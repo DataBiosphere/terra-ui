@@ -160,3 +160,9 @@ export const allAppTypes: AppToolLabel[] = _.flow(_.map('appType'), _.compact)(a
 
 export const isPauseSupported = (toolLabel: ToolLabel): boolean => !_.find((tool: Tool) => tool.label === toolLabel)(tools)?.isPauseUnsupported
 
+//TODO: Placeholders. Finalized version will live in other TypeScript util files.
+export type Runtime = any
+
+export type AppDataDisk = any
+
+export type PersistentDisk = any

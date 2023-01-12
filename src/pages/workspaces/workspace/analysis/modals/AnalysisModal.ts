@@ -29,7 +29,7 @@ import { analysisNameInput, analysisNameValidator, baseRmd, notebookData } from 
 import {
   getCurrentApp, getCurrentPersistentDisk, getCurrentRuntime, isResourceDeletable
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { AppTool, cloudAppTools, cloudRuntimeTools, ExtensionDisplay, getAppType, getToolLabelFromFileExtension, getToolLabelFromRuntime, isAppToolLabel, runtimeTools, Tool, toolExtensionDisplay, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { AppDataDisk, AppTool, cloudAppTools, cloudRuntimeTools, getAppType, getToolLabelFromFileExtension, getToolLabelFromRuntime, isAppToolLabel, PersistentDisk, Runtime, runtimeTools, Tool, toolExtensionDisplay, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import validate from 'validate.js'
 
 
@@ -41,10 +41,10 @@ export interface AnalysisModalProps {
   isOpen: boolean
   workspace: BaseWorkspace
   location: any
-  runtimes: any[]
+  runtimes: Runtime[]
   apps: AppTool[]
-  appDataDisks: any[]
-  persistentDisks: any[]
+  appDataDisks: AppDataDisk[]
+  persistentDisks: PersistentDisk[]
   onDismiss: () => void
   onError: () => void
   onSuccess: () => void
@@ -334,7 +334,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             onChange: v => {
               setFileExt(v.value)
             },
-            options: toolExtensionDisplay.RStudio as ExtensionDisplay[]
+            options: toolExtensionDisplay.RStudio!
           })
         ]),
         (isJupyterLab || isRStudio || isJupyter) &&
