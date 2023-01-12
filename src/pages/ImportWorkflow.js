@@ -74,9 +74,13 @@ const DockstoreImporter = ({ path, version, source }) => {
         }),
       ])
 
-      const defaultOutputConfiguration = _.fromPairs(
-        _.map(({ name }) => [name, `this.${_.last(name.split('.'))}`], workflowOutputs)
-      )
+      const defaultOutputConfiguration = _.flow(
+        _.map(output => {
+          const outputExpression = `this.${_.last(_.split('.', output.name))}`
+          return [output.name, outputExpression]
+        }),
+        _.fromPairs
+      )(workflowOutputs)
 
       await rawlsWorkspace.importMethodConfigFromDocker({
         namespace, name: workflowName, rootEntityType: _.head(_.keys(entityMetadata)),
