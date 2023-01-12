@@ -24,7 +24,7 @@ const ApplicationLauncher = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: _.get('application'),
     activeTab: appLauncherTabName
-  }) // TODO: Check if name: workspaceName could be moved into the other workspace deconstruction
+  })
 )(({
   name: workspaceName, sparkInterface, analysesData: { runtimes, refreshRuntimes },
   application, workspace: { azureContext, workspace: { namespace, name, workspaceId, googleProject, bucketName } }
