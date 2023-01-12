@@ -54,24 +54,18 @@ jest.mock('src/libs/error', () => ({
 }))
 
 jest.mock('src/libs/notifications', () => ({
-  notify: jest.fn((...args) => {
-    console.debug('######################### notify')/* eslint-disable-line */
-    console.debug({ method: 'notify', args: [...args] })/* eslint-disable-line */
-  })
+  notify: jest.fn()
 }))
 
 jest.mock('src/pages/workspaces/workspace/analysis/file-utils', () => {
   const originalModule = jest.requireActual('src/pages/workspaces/workspace/analysis/file-utils')
   return {
     ...originalModule,
-    // getExtension: jest.fn().mockImplementation((ext: Extension) => originalModule.getExtension(ext)), //() => 'ipynb' as Extension,
     useAnalysisFiles: jest.fn()
   }
 })
 
 const createFunc = jest.fn()
-
-//TODO: Put in test data
 
 const getTestFile = (abs: AbsolutePath, cloudProvider: CloudProviderType = cloudProviderTypes.GCP): AnalysisFile => ({
   name: abs,

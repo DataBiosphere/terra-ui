@@ -31,10 +31,7 @@ jest.mock('src/components/Modal', () => {
 })
 
 jest.mock('src/libs/notifications', () => ({
-  notify: jest.fn((...args) => {
-    console.debug('######################### notify')/* eslint-disable-line */
-    console.debug({ method: 'notify', args: [...args] })/* eslint-disable-line */
-  })
+  notify: jest.fn()
 }))
 
 jest.mock('src/libs/ajax/GoogleStorage')
