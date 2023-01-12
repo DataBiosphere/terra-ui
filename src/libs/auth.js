@@ -327,31 +327,49 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
 authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     const tosDetails = await Ajax().User.getTermsOfServiceDetails()
-    if (_.isNull(tosDetails)) {
-      const termsOfService = {
-        isGracePeriodEnabled: undefined,
-        currentVersion: undefined,
-        userAcceptedVersion: undefined,
-        userAcceptedTos: false,
-        userNeedsToAcceptTos: true,
-      }
-      authStore.update(state => ({ ...state, termsOfService }))
-    } else {
-      const userAcceptedTos = !_.isUndefined(tosDetails.currentVersion) ?
-        tosDetails.currentVersion === tosDetails.userAcceptedVersion : undefined
-      const userNeedsToAcceptTos = !_.isUndefined(userAcceptedTos) ?
-        (!userAcceptedTos && !tosDetails.isGracePeriodEnabled) || _.isUndefined(tosDetails.userAcceptedVersion) : false
-      const termsOfService = {
-        isGracePeriodEnabled: tosDetails.isGracePeriodEnabled,
-        currentVersion: tosDetails.currentVersion,
-        userAcceptedVersion: tosDetails.userAcceptedVersion,
-        userAcceptedTos,
-        userNeedsToAcceptTos,
-      }
-      authStore.update(state => ({ ...state, termsOfService }))
-    }
+    const termsOfService = parseToSDetails(tosDetails)
+    authStore.update(state => ({ ...state, termsOfService }))
   }
 }))
+
+const parseToSDetails = tosDetails => {
+  if (_.isNull(tosDetails)) {
+    return {
+      isGracePeriodEnabled: undefined,
+      currentVersion: undefined,
+      userAcceptedVersion: undefined,
+      userAcceptedTos: false,
+      userNeedsToAcceptTos: true,
+    }
+  } else {
+    // IF user has accepted latest version of ToS
+    // THEN let them use Terra, do not show them the ToS popup
+    // ELSE IF user accepted ANY prior version of ToS and Grace Period is enabled
+    // THEN let them use Terra, do show them the ToS popup
+    // ELSE                ///////// IF user has no accepted ToS version OR Grace Period is disabled
+    // THEN they can't use Terra until you accept ToS
+
+    // Has the user ever accepted any version of the ToS?
+    const userHasAcceptedAnyToSVersion = !_.isUndefined(tosDetails.userAcceptedVersion)
+    // Has the user accepted the latest/current version of the ToS?
+    const userAcceptedLatestTos = !_.isUndefined(tosDetails.currentVersion) ?
+      tosDetails.currentVersion === tosDetails.userAcceptedVersion : false
+    // Will we permit the user to use Terra under the ToS grace period?
+    const userOperatingUnderGracePeriod = tosDetails.isGracePeriodEnabled && userHasAcceptedAnyToSVersion
+    // Should we display the "Updated ToS" alert/pop-up to the user to ask them to accept the _latest_ version of ToS
+    const showToSPopup = !userAcceptedLatestTos
+
+    const userCanUseTerra = userAcceptedLatestTos || userOperatingUnderGracePeriod
+
+    return {
+      isGracePeriodEnabled: tosDetails.isGracePeriodEnabled,
+      currentVersion: tosDetails.currentVersion,
+      userAcceptedVersion: tosDetails.userAcceptedVersion,
+      userAcceptedTos: userCanUseTerra,
+      userNeedsToAcceptTos: showToSPopup,
+    }
+  }
+}
 
 authStore.subscribe(withErrorIgnoring(async (state, oldState) => {
   if (!oldState.termsOfService.userAcceptedTos && state.termsOfService.userAcceptedTos) {
