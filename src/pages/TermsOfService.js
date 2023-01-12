@@ -19,8 +19,9 @@ import * as Utils from 'src/libs/utils'
 const TermsOfServicePage = () => {
   const [busy, setBusy] = useState()
   const { isSignedIn, termsOfService } = authStore.get() // can't change while viewing this without causing it to unmount, so doesn't need to subscribe
-  const needToAccept = isSignedIn && !termsOfService.userAcceptedTos
-  const isGracePeriod = isSignedIn && termsOfService.isGracePeriodEnabled && !_.isUndefined(termsOfService.userAcceptedVersion)
+  const needToAccept = isSignedIn && termsOfService.userNeedsToAcceptTos
+  const userHasAcceptedPreviousTos = !_.isUndefined(termsOfService.userAcceptedVersion)
+  const canUserContinueUnderGracePeriod = isSignedIn && termsOfService.isGracePeriodEnabled && userHasAcceptedPreviousTos
   const [tosText, setTosText] = useState()
 
   useOnMount(() => {
@@ -45,7 +46,7 @@ const TermsOfServicePage = () => {
         const registrationStatus = userStatus.registeredWithTos
         authStore.update(state => ({ ...state, registrationStatus }))
       }
-      if (isGracePeriod) {
+      if (canUserContinueUnderGracePeriod) {
         Nav.history.goBack()
       }
     } catch (error) {
@@ -71,15 +72,17 @@ const TermsOfServicePage = () => {
           }
         }, [tosText])
       ]),
-      needToAccept && !isGracePeriod && !!tosText && div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
+      needToAccept && !canUserContinueUnderGracePeriod && !!tosText &&
+      div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
         h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: signOut }, 'Decline and Sign Out'),
         h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept'])
       ]),
-      needToAccept && isGracePeriod && !!tosText && div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
+      needToAccept && canUserContinueUnderGracePeriod && !!tosText &&
+      div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
         h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: signOut }, 'Decline and Sign Out'),
         h(ButtonOutline, { style: { marginRight: '1rem' }, onClick: Nav.history.goBack, disabled: busy }, ['Continue under grace period']),
         h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept'])
-      ]),
+      ])
     ])
   ])
 }
