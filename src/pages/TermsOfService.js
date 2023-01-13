@@ -39,16 +39,18 @@ const TermsOfServicePage = () => {
     try {
       setBusy(true)
       const { enabled } = await Ajax().User.acceptTos()
-      termsOfService.userCanUseTerra = true
-      termsOfService.userAcceptedVersion = termsOfService.currentVersion
-      termsOfService.userCanUseTerra = false
-      authStore.update(state => ({ ...state, termsOfService }))
+
       if (enabled) {
+        termsOfService.userCanUseTerra = true
+        termsOfService.showTosPopup = false
+        termsOfService.userAcceptedVersion = termsOfService.currentVersion
+        termsOfService.userContinuedUnderGracePeriod = undefined
+
         const registrationStatus = userStatus.registeredWithTos
-        authStore.update(state => ({ ...state, registrationStatus }))
-      }
-      if (canUserContinueUnderGracePeriod) {
-        Nav.history.goBack()
+        authStore.update(state => ({ ...state, registrationStatus, termsOfService }))
+        Nav.goToPath('root')
+      } else {
+        reportError('Error accepting TOS, Sam accept TOS endpoint returned False')
       }
     } catch (error) {
       reportError('Error accepting TOS', error)
