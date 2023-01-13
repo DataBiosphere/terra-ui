@@ -1,6 +1,6 @@
 import { differenceInDays } from 'date-fns'
 import _ from 'lodash/fp'
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useContext, useEffect, useState } from 'react'
 import { div, h, h2, p, span, strong } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -12,7 +12,7 @@ import { FlexTable, HeaderCell, SimpleFlexTable, Sortable, TextCell } from 'src/
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { useWorkspaces } from 'src/components/workspace-utils'
-import { Ajax as terraAjax } from 'src/libs/ajax'
+import { Ajax, ajaxContext } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportErrorAndRethrow, withErrorHandling, withErrorIgnoring, withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
@@ -33,21 +33,20 @@ import {
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
 import { appTools, getToolLabelFromRuntime, isPauseSupported } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
-let ajax = terraAjax // replaceable to allow for usage outside of Terra UI
-const Ajax = signal => ajax(signal)
 
 const DeleteRuntimeModal = ({
   runtime: { cloudContext, googleProject, runtimeName, runtimeConfig: { persistentDiskId }, workspaceId }, onDismiss, onSuccess
 }) => {
   const [deleteDisk, setDeleteDisk] = useState(false)
   const [deleting, setDeleting] = useState()
+  const ajax = useContext(ajaxContext)
   const deleteRuntime = _.flow(
     Utils.withBusyState(setDeleting),
     withErrorReporting('Error deleting cloud environment')
   )(async () => {
     isGcpContext(cloudContext) ?
-      await Ajax().Runtimes.runtime(googleProject, runtimeName).delete(deleteDisk) :
-      await Ajax().Runtimes.runtimeV2(workspaceId, runtimeName).delete(deleteDisk)
+      await ajax().Runtimes.runtime(googleProject, runtimeName).delete(deleteDisk) :
+      await ajax().Runtimes.runtimeV2(workspaceId, runtimeName).delete(deleteDisk)
     onSuccess()
   })
   return h(Modal, {
@@ -76,11 +75,12 @@ const DeleteRuntimeModal = ({
 
 const DeleteDiskModal = ({ disk: { googleProject, name }, isGalaxyDisk, onDismiss, onSuccess }) => {
   const [busy, setBusy] = useState(false)
+  const ajax = useContext(ajaxContext)
   const deleteDisk = _.flow(
     Utils.withBusyState(setBusy),
     withErrorReporting('Error deleting persistent disk')
   )(async () => {
-    await Ajax().Disks.disk(googleProject, name).delete()
+    await ajax().Disks.disk(googleProject, name).delete()
     onSuccess()
   })
   return h(Modal, {
@@ -99,13 +99,14 @@ const DeleteDiskModal = ({ disk: { googleProject, name }, isGalaxyDisk, onDismis
 const DeleteAppModal = ({ app: { appName, diskName, appType, cloudContext: { cloudProvider, cloudResource } }, onDismiss, onSuccess }) => {
   const [deleteDisk, setDeleteDisk] = useState(false)
   const [deleting, setDeleting] = useState()
+  const ajax = useContext(ajaxContext)
   const deleteApp = _.flow(
     Utils.withBusyState(setDeleting),
     withErrorReportingInModal('Error deleting cloud environment', onDismiss)
   )(async () => {
     //TODO: this should use types in IA-3824
     if (cloudProvider === 'GCP') {
-      await Ajax().Apps.app(cloudResource, appName).delete(deleteDisk)
+      await ajax().Apps.app(cloudResource, appName).delete(deleteDisk)
       onSuccess()
     } else {
       throw new Error('Deleting apps is currently only supported on GCP')
@@ -173,11 +174,12 @@ const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, on
   const [isWorkspaceSelected, setIsWorkspaceSelected] = useState({})
   // users can choose to delete their disk instead of coping via a checkbox. Mutually exclusive with `isWorkspaceSelected`
   const [deleteDisk, setDeleteDisk] = useState(false)
+  const ajax = useContext(ajaxContext)
 
   const copyDiskToWorkspace = ({ googleProject, namespace: saturnWorkspaceNamespace, name: saturnWorkspaceName }) => {
     // show an error for each failed copy operation
     return reportErrorAndRethrow(`Error copying persistent disk to workspace '${saturnWorkspaceName}'`,
-      () => Ajax().Disks.disk(googleProject, disk.name).create({
+      () => ajax().Disks.disk(googleProject, disk.name).create({
         ..._.pick(['size', 'blockSize', 'zone'], disk),
         diskType: disk.diskType.label,
         labels: { saturnWorkspaceNamespace, saturnWorkspaceName },
@@ -285,8 +287,7 @@ const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, on
   ])
 }
 
-export const Environments = ({ajax: newAjax = undefined, nav = undefined}) => {
-  if (newAjax) { ajax = newAjax }
+export const Environments = ({ nav = undefined }) => {
   const getLink = nav ? nav.getLink : Nav.getLink
   const signal = useCancellation()
   const { workspaces, refresh: refreshWorkspaces } = _.flow(
@@ -316,6 +317,7 @@ export const Environments = ({ajax: newAjax = undefined, nav = undefined}) => {
   const [diskSort, setDiskSort] = useState({ field: 'project', direction: 'asc' })
   const [migrateDisk, setMigrateDisk] = useState()
   const [shouldFilterByCreator, setShouldFilterByCreator] = useState(true)
+  const ajax = useContext(ajaxContext)
 
   const currentUser = getUser().email
 
@@ -329,14 +331,14 @@ export const Environments = ({ajax: newAjax = undefined, nav = undefined}) => {
 
     const listArgs = shouldFilterByCreator ? { role: 'creator', includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' } : { includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }
     const [newRuntimes, newDisks, newApps] = await Promise.all([
-      Ajax(signal).Runtimes.listV2(listArgs),
-      Ajax(signal).Disks.list({ ...listArgs, includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }),
-      Ajax(signal).Apps.listWithoutProject(listArgs)
+      ajax(signal).Runtimes.listV2(listArgs),
+      ajax(signal).Disks.list({ ...listArgs, includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }),
+      ajax(signal).Apps.listWithoutProject(listArgs)
     ])
     const endTimeForLeoCallsEpochMs = Date.now()
 
     const leoCallTimeTotalMs = endTimeForLeoCallsEpochMs - startTimeForLeoCallsEpochMs
-    Ajax().Metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, { leoCallTimeMs: leoCallTimeTotalMs, totalCallTimeMs: leoCallTimeTotalMs, runtimes: newRuntimes.length, disks: newDisks.length, apps: newApps.length })
+    ajax().Metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, { leoCallTimeMs: leoCallTimeTotalMs, totalCallTimeMs: leoCallTimeTotalMs, runtimes: newRuntimes.length, disks: newDisks.length, apps: newApps.length })
 
     const cloudObjectNeedsMigration = (cloudContext, status, workspace) => status === 'Ready' &&
       isGcpContext(cloudContext) && cloudContext.cloudResource !== workspace?.googleProject
@@ -375,9 +377,9 @@ export const Environments = ({ajax: newAjax = undefined, nav = undefined}) => {
 
   const pauseComputeAndRefresh = Utils.withBusyState(setLoading, async (computeType, compute) => {
     const wrappedPauseCompute = withErrorReporting('Error pausing compute', () => computeType === 'runtime' ?
-      Ajax().Runtimes.runtimeWrapper(compute).stop() :
+      ajax().Runtimes.runtimeWrapper(compute).stop() :
       //TODO: AKS vs GKE apps
-      Ajax().Apps.app(compute.workspace.googleProject, compute.appName).pause())
+      ajax().Apps.app(compute.workspace.googleProject, compute.appName).pause())
     await wrappedPauseCompute()
     await loadData()
   })
@@ -586,7 +588,8 @@ export const Environments = ({ajax: newAjax = undefined, nav = undefined}) => {
       disks).length > 1
   }
 
-  return h(Fragment, [div({ role: 'main', style: { padding: '1rem', flexGrow: 1 } }, [
+  return h(Fragment, [
+    div({ role: 'main', style: { padding: '1rem', flexGrow: 1 } }, [
       h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '0 0 1rem 0', padding: 0 } }, ['Your cloud environments']),
       div({ style: { marginBottom: '.5rem' } }, [
         h(LabeledCheckbox, { checked: shouldFilterByCreator, onChange: setShouldFilterByCreator }, [
@@ -879,9 +882,12 @@ export const Environments = ({ajax: newAjax = undefined, nav = undefined}) => {
   ])
 }
 
+export { ajaxContext }
+
 const EnvironmentsPage = () => h(FooterWrapper, [
   h(TopBar, { title: 'Cloud Environments' }),
-  h(Environments)
+  // Pulling Ajax from context allows overriding for usage outside of Terra UI.
+  h(ajaxContext.Provider, { value: Ajax }, [h(Environments)])
 ])
 
 export const navPaths = [

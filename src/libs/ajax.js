@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
+import { createContext } from 'react'
 import {
   appIdentifier, authOpts, fetchAgora, fetchBond, fetchDataRepo, fetchDockstore,
   fetchDrsHub,
@@ -1044,3 +1045,5 @@ export const Ajax = signal => {
 
 // Exposing Ajax for use by integration tests (and debugging, or whatever)
 window.Ajax = Ajax
+
+export const ajaxContext = createContext()
