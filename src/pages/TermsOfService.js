@@ -80,7 +80,7 @@ const TermsOfServicePage = () => {
       needToAccept && canUserContinueUnderGracePeriod && !!tosText &&
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
         h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: signOut }, 'Decline and Sign Out'),
-        h(ButtonOutline, { style: { marginRight: '1rem' }, onClick: Nav.history.goBack, disabled: busy }, ['Continue under grace period']),
+        h(ButtonOutline, { style: { marginRight: '1rem' }, onClick: Nav.history.push("/"), disabled: busy }, ['Continue under grace period']),
         h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept'])
       ])
     ])
