@@ -6,6 +6,7 @@ import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/c
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
@@ -27,8 +28,13 @@ const ApplicationLauncher = _.flow(
   })
 )(({
   name: workspaceName, sparkInterface, analysesData: { runtimes, refreshRuntimes },
-  application, workspace: { azureContext, workspace: { workspaceId, googleProject, bucketName } }
+  application, workspace: { azureContext, workspace: { workspaceId, googleProject, bucketName }, namespace }
 }, _ref) => {
+  useEffect(() => {
+    Ajax().Metrics.captureEvent(Events.analysisLaunch,
+      { origin: 'appLauncher', source: application, application, workspaceName, namespace, cloudPlatform: googleProject ? 'GCP' : 'Azure' })
+  }, [application, namespace, googleProject, workspaceName])
+
   const [busy, setBusy] = useState(false)
   const [outdatedAnalyses, setOutdatedAnalyses] = useState()
   const [fileOutdatedOpen, setFileOutdatedOpen] = useState(false)
