@@ -19,11 +19,18 @@ import * as Utils from 'src/libs/utils'
 const TermsOfServicePage = () => {
   const [busy, setBusy] = useState()
   const { isSignedIn, termsOfService } = authStore.get() // can't change while viewing this without causing it to unmount, so doesn't need to subscribe
-  const needToAccept = isSignedIn && !termsOfService.userAcceptedTos
-  const isGracePeriod = isSignedIn && termsOfService.isGracePeriodEnabled && !_.isUndefined(termsOfService.userAcceptedVersion)
+  const needToAccept = isSignedIn && termsOfService.showTosPopup
+  const userHasAcceptedPreviousTos = !_.isUndefined(termsOfService.userAcceptedVersion)
+  const canUserContinueUnderGracePeriod = isSignedIn && termsOfService.isGracePeriodEnabled && userHasAcceptedPreviousTos
   const [tosText, setTosText] = useState()
 
   useOnMount(() => {
+    authStore.update(state => ({
+      ...state, termsOfService: {
+        ...termsOfService,
+        userContinuedUnderGracePeriod: false
+      }
+    }))
     const loadTosAndUpdateState = _.flow(
       Utils.withBusyState(setBusy),
       withErrorReporting('There was an error retrieving our terms of service.')
@@ -37,19 +44,38 @@ const TermsOfServicePage = () => {
     try {
       setBusy(true)
       const { enabled } = await Ajax().User.acceptTos()
-      termsOfService.userAcceptedTos = true
-      termsOfService.userAcceptedVersion = termsOfService.currentVersion
-      termsOfService.userNeedsToAcceptTos = false
-      authStore.update(state => ({ ...state, termsOfService }))
+
       if (enabled) {
+        const newTermsOfService = {
+          ...termsOfService,
+          userCanUseTerra: true,
+          showTosPopup: false,
+          userAcceptedVersion: termsOfService.currentVersion
+        }
+
         const registrationStatus = userStatus.registeredWithTos
-        authStore.update(state => ({ ...state, registrationStatus }))
-      }
-      if (isGracePeriod) {
-        Nav.history.goBack()
+        authStore.update(state => ({ ...state, registrationStatus, termsOfService: newTermsOfService }))
+        Nav.goToPath('root')
+      } else {
+        reportError('Error accepting TOS, unexpected backend error occurred.')
       }
     } catch (error) {
       reportError('Error accepting TOS', error)
+      setBusy(false)
+    }
+  }
+
+  const continueButton = () => {
+    try {
+      setBusy(true)
+      const newTermsOfService = {
+        ...termsOfService,
+        userContinuedUnderGracePeriod: true
+      }
+      authStore.update(state => ({ ...state, termsOfService: newTermsOfService }))
+      Nav.goToPath('root')
+    } catch (error) {
+      reportError('Error continuing under TOS grace period', error)
       setBusy(false)
     }
   }
@@ -71,15 +97,17 @@ const TermsOfServicePage = () => {
           }
         }, [tosText])
       ]),
-      needToAccept && !isGracePeriod && !!tosText && div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
+      needToAccept && !canUserContinueUnderGracePeriod && !!tosText &&
+      div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
         h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: signOut }, 'Decline and Sign Out'),
         h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept'])
       ]),
-      needToAccept && isGracePeriod && !!tosText && div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
+      needToAccept && canUserContinueUnderGracePeriod && !!tosText &&
+      div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
         h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: signOut }, 'Decline and Sign Out'),
-        h(ButtonOutline, { style: { marginRight: '1rem' }, onClick: Nav.history.goBack, disabled: busy }, ['Continue under grace period']),
+        h(ButtonOutline, { style: { marginRight: '1rem' }, onClick: continueButton, disabled: busy }, ['Continue under grace period']),
         h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept'])
-      ]),
+      ])
     ])
   ])
 }

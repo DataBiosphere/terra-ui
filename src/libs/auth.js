@@ -8,11 +8,13 @@ import { getLocalStorage, getSessionStorage } from 'src/libs/browser-storage'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import { captureAppcuesEvent } from 'src/libs/events'
+import * as Nav from 'src/libs/nav'
 import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs'
 import allProviders from 'src/libs/providers'
 import {
-  asyncImportJobStore, authStore, azureCookieReadyStore, azurePreviewStore, cookieReadyStore, getUser, requesterPaysProjectStore, userStatus, workspacesStore, workspaceStore
+  asyncImportJobStore, authStore, azureCookieReadyStore, azurePreviewStore, cookieReadyStore, getUser, requesterPaysProjectStore, userStatus,
+  workspacesStore, workspaceStore
 } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -66,6 +68,7 @@ export const signOut = () => {
   revokeTokens()
     .finally(() => auth.removeUser())
     .finally(() => auth.clearStaleState())
+  Nav.goToPath('root')
 }
 
 export const signOutAfterSessionTimeout = () => {
@@ -249,8 +252,8 @@ const initializeTermsOfService = (isSignedIn, state) => {
     isGracePeriodEnabled: isSignedIn ? state.termsOfService.isGracePeriodEnabled : undefined,
     currentVersion: isSignedIn ? state.termsOfService.currentVersion : undefined,
     userAcceptedVersion: isSignedIn ? state.termsOfService.userAcceptedVersion : undefined,
-    userAcceptedTos: isSignedIn ? state.termsOfService.userAcceptedTos : undefined,
-    userNeedsToAcceptTos: isSignedIn ? state.termsOfService.userNeedsToAcceptTos : undefined,
+    userCanUseTerra: isSignedIn ? state.termsOfService.userCanUseTerra : undefined,
+    showTosPopup: isSignedIn ? state.termsOfService.showTosPopup : undefined
   }
 }
 
@@ -300,9 +303,9 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
     try {
       const { enabled } = await Ajax().User.getStatus()
       if (enabled) {
-        // While initial state is first loading, state.termsOfService.userAcceptedTos will be undefined (it will then be `true` on the
+        // While initial state is first loading, state.termsOfService.userCanUseTerra will be undefined (it will then be `true` on the
         // second execution of this code, which is still part of the initial rendering).
-        return state.termsOfService.userAcceptedTos ? userStatus.registeredWithTos : userStatus.registeredWithoutTos
+        return state.termsOfService.userCanUseTerra ? userStatus.registeredWithTos : userStatus.registeredWithoutTos
       } else {
         return userStatus.disabled
       }
@@ -315,8 +318,8 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
     }
   }
   // need to guard against state.termsOfService not being initialized
-  const oldStateAcceptedTos = oldState.termsOfService && oldState.termsOfService.userAcceptedTos
-  const newStateAcceptedTos = state.termsOfService && state.termsOfService.userAcceptedTos
+  const oldStateAcceptedTos = oldState.termsOfService && oldState.termsOfService.userCanUseTerra
+  const newStateAcceptedTos = state.termsOfService && state.termsOfService.userCanUseTerra
   if ((!oldState.isSignedIn && state.isSignedIn) || (!oldStateAcceptedTos && newStateAcceptedTos)) {
     clearNotification(sessionTimeoutProps.id)
     const registrationStatus = await getRegistrationStatus()
@@ -327,34 +330,52 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
 authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     const tosDetails = await Ajax().User.getTermsOfServiceDetails()
-    if (_.isNull(tosDetails)) {
-      const termsOfService = {
-        isGracePeriodEnabled: undefined,
-        currentVersion: undefined,
-        userAcceptedVersion: undefined,
-        userAcceptedTos: false,
-        userNeedsToAcceptTos: true,
-      }
-      authStore.update(state => ({ ...state, termsOfService }))
-    } else {
-      const userAcceptedTos = !_.isUndefined(tosDetails.currentVersion) ?
-        tosDetails.currentVersion === tosDetails.userAcceptedVersion : undefined
-      const userNeedsToAcceptTos = !_.isUndefined(userAcceptedTos) ?
-        (!userAcceptedTos && !tosDetails.isGracePeriodEnabled) || _.isUndefined(tosDetails.userAcceptedVersion) : false
-      const termsOfService = {
-        isGracePeriodEnabled: tosDetails.isGracePeriodEnabled,
-        currentVersion: tosDetails.currentVersion,
-        userAcceptedVersion: tosDetails.userAcceptedVersion,
-        userAcceptedTos,
-        userNeedsToAcceptTos,
-      }
-      authStore.update(state => ({ ...state, termsOfService }))
-    }
+    const termsOfService = parseToSDetails(tosDetails)
+    authStore.update(state => ({ ...state, termsOfService }))
   }
 }))
 
+export const parseToSDetails = tosDetails => {
+  if (_.isNull(tosDetails)) {
+    return {
+      isGracePeriodEnabled: undefined,
+      currentVersion: undefined,
+      userAcceptedVersion: undefined,
+      userCanUseTerra: false,
+      showTosPopup: true
+    }
+  } else {
+    // IF user has accepted latest version of ToS
+    // THEN let them use Terra, do not show them the ToS popup
+    // ELSE IF user accepted ANY prior version of ToS and Grace Period is enabled
+    // THEN let them use Terra, do show them the ToS popup
+    // ELSE
+    // THEN they can't use Terra until they accept ToS
+
+    // Has the user ever accepted any version of the ToS?
+    const userHasAcceptedAnyToSVersion = !_.isUndefined(tosDetails.userAcceptedVersion)
+    // Has the user accepted the latest/current version of the ToS?
+    const userAcceptedLatestTos = !_.isUndefined(tosDetails.currentVersion) ?
+      tosDetails.currentVersion === tosDetails.userAcceptedVersion : false
+    // Will we permit the user to use Terra under the ToS grace period?
+    const userOperatingUnderGracePeriod = tosDetails.isGracePeriodEnabled && userHasAcceptedAnyToSVersion
+    // Should we display the "Updated ToS" alert/pop-up to the user to ask them to accept the _latest_ version of ToS
+    const showTosPopup = !userAcceptedLatestTos
+
+    const userCanUseTerra = userAcceptedLatestTos || userOperatingUnderGracePeriod
+
+    return {
+      isGracePeriodEnabled: tosDetails.isGracePeriodEnabled,
+      currentVersion: tosDetails.currentVersion,
+      userAcceptedVersion: tosDetails.userAcceptedVersion,
+      userCanUseTerra,
+      showTosPopup
+    }
+  }
+}
+
 authStore.subscribe(withErrorIgnoring(async (state, oldState) => {
-  if (!oldState.termsOfService.userAcceptedTos && state.termsOfService.userAcceptedTos) {
+  if (!oldState.termsOfService.userCanUseTerra && state.termsOfService.userCanUseTerra) {
     if (window.Appcues) {
       window.Appcues.identify(state.user.id, {
         dateJoined: parseJSON((await Ajax().User.firstTimestamp()).timestamp).getTime()
