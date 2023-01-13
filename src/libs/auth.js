@@ -358,7 +358,7 @@ export const parseToSDetails = tosDetails => {
     // Will we permit the user to use Terra under the ToS grace period?
     const userOperatingUnderGracePeriod = tosDetails.isGracePeriodEnabled && userHasAcceptedAnyToSVersion
     // Should we display the "Updated ToS" alert/pop-up to the user to ask them to accept the _latest_ version of ToS
-    const showToSPopup = !userAcceptedLatestTos
+    const showTosPopup = !userAcceptedLatestTos
 
     const userCanUseTerra = userAcceptedLatestTos || userOperatingUnderGracePeriod
 
@@ -366,8 +366,8 @@ export const parseToSDetails = tosDetails => {
       isGracePeriodEnabled: tosDetails.isGracePeriodEnabled,
       currentVersion: tosDetails.currentVersion,
       userAcceptedVersion: tosDetails.userAcceptedVersion,
-      userCanUseTerra: userCanUseTerra,
-      showTosPopup: showToSPopup
+      userCanUseTerra,
+      showTosPopup
     }
   }
 }

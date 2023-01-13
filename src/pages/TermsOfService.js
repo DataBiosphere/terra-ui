@@ -56,14 +56,12 @@ const TermsOfServicePage = () => {
     }
   }
 
-  const continueButton = async () => {
+  const continueButton = () => {
     try {
       setBusy(true)
       termsOfService.userContinuedUnderGracePeriod = true
       authStore.update(state => ({ ...state, termsOfService }))
-
       Nav.goToPath('root')
-
     } catch (error) {
       reportError('Error continuing under TOS grace period', error)
       setBusy(false)
