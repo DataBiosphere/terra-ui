@@ -209,11 +209,10 @@ export const AzureComputeModalBase = ({
         Ajax().Metrics.captureEvent(Events.analysisAzureJupyterLabCreate, {
           region: computeConfig.region,
           machineSize: computeConfig.machineType,
-          labels: {
-            saturnWorkspaceNamespace: namespace,
-            saturnWorkspaceName: workspaceName
-          },
-          disk
+          saturnWorkspaceNamespace: namespace,
+          saturnWorkspaceName: workspaceName,
+          diskSize: disk.size,
+          workspaceId
         })
 
         return Ajax().Runtimes.runtimeV2(workspaceId, Utils.generateRuntimeName()).create({
