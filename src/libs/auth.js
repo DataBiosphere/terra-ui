@@ -349,8 +349,8 @@ export const parseToSDetails = tosDetails => {
     // THEN let them use Terra, do not show them the ToS popup
     // ELSE IF user accepted ANY prior version of ToS and Grace Period is enabled
     // THEN let them use Terra, do show them the ToS popup
-    // ELSE                ///////// IF user has no accepted ToS version OR Grace Period is disabled
-    // THEN they can't use Terra until you accept ToS
+    // ELSE
+    // THEN they can't use Terra until they accept ToS
 
     // Has the user ever accepted any version of the ToS?
     const userHasAcceptedAnyToSVersion = !_.isUndefined(tosDetails.userAcceptedVersion)

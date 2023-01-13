@@ -170,8 +170,8 @@ export const SaveFilesHelpAzure = () => {
   return h(Fragment, [
     p([
       'If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
-      'please move them to your workspace storage container.' // TODO: Link support article once published
-    ])
+      'please move them to your workspace storage container.', // TODO: Link support article once published
+    ]),
   ])
 }
 

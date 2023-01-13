@@ -16,7 +16,7 @@ const parsedTosDetailsDefault = {
   showTosPopup: false
 }
 
-describe('Terms of Service Detail Parser gives access', () => {
+describe('Terms of Service Detail Parser - Access', () => {
   it('gives access to users that have accepted the most recent ToS version', () => {
     expect(parseToSDetails(tosDetailsDefault)).toEqual(parsedTosDetailsDefault)
   })
@@ -96,7 +96,7 @@ describe('Terms of Service Detail Parser gives access', () => {
   })
 })
 
-describe('Terms of Service Detail Parser sets ToS pop-up', () => {
+describe('Terms of Service Detail Parser - Popup', () => {
   it('to show if the user has accepted a version of the ToS that is not the latest version and the grace period is enabled', () => {
     expect(parseToSDetails({
       isGracePeriodEnabled: true,

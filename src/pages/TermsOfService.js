@@ -57,7 +57,7 @@ const TermsOfServicePage = () => {
         authStore.update(state => ({ ...state, registrationStatus, termsOfService: newTermsOfService }))
         Nav.goToPath('root')
       } else {
-        reportError('Error accepting TOS, Sam accept TOS endpoint returned False')
+        reportError('Error accepting TOS, unexpected backend error occurred.')
       }
     } catch (error) {
       reportError('Error accepting TOS', error)
