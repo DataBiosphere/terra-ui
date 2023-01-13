@@ -23,7 +23,12 @@ const TermsOfServicePage = () => {
   const userHasAcceptedPreviousTos = !_.isUndefined(termsOfService.userAcceptedVersion)
   const canUserContinueUnderGracePeriod = isSignedIn && termsOfService.isGracePeriodEnabled && userHasAcceptedPreviousTos
   const [tosText, setTosText] = useState()
-  termsOfService.userContinuedUnderGracePeriod = false
+  authStore.update(state => ({
+    ...state, termsOfService: {
+      ...termsOfService,
+      userContinuedUnderGracePeriod: false
+    }
+  }))
 
   useOnMount(() => {
     const loadTosAndUpdateState = _.flow(
@@ -41,13 +46,15 @@ const TermsOfServicePage = () => {
       const { enabled } = await Ajax().User.acceptTos()
 
       if (enabled) {
-        termsOfService.userCanUseTerra = true
-        termsOfService.showTosPopup = false
-        termsOfService.userAcceptedVersion = termsOfService.currentVersion
-        termsOfService.userContinuedUnderGracePeriod = undefined
+        const newTermsOfService = {
+          ...termsOfService,
+          userCanUseTerra: true,
+          showTosPopup: false,
+          userAcceptedVersion: termsOfService.currentVersion
+        }
 
         const registrationStatus = userStatus.registeredWithTos
-        authStore.update(state => ({ ...state, registrationStatus, termsOfService }))
+        authStore.update(state => ({ ...state, registrationStatus, termsOfService: newTermsOfService }))
         Nav.goToPath('root')
       } else {
         reportError('Error accepting TOS, Sam accept TOS endpoint returned False')
@@ -61,8 +68,11 @@ const TermsOfServicePage = () => {
   const continueButton = () => {
     try {
       setBusy(true)
-      termsOfService.userContinuedUnderGracePeriod = true
-      authStore.update(state => ({ ...state, termsOfService }))
+      const newTermsOfService = {
+        ...termsOfService,
+        userContinuedUnderGracePeriod: true
+      }
+      authStore.update(state => ({ ...state, termsOfService: newTermsOfService }))
       Nav.goToPath('root')
     } catch (error) {
       reportError('Error continuing under TOS grace period', error)
