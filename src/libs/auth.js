@@ -12,7 +12,8 @@ import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notific
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs'
 import allProviders from 'src/libs/providers'
 import {
-  asyncImportJobStore, authStore, azureCookieReadyStore, azurePreviewStore, cookieReadyStore, getUser, requesterPaysProjectStore, userStatus, workspacesStore, workspaceStore
+  asyncImportJobStore, authStore, azureCookieReadyStore, azurePreviewStore, cookieReadyStore, getUser, requesterPaysProjectStore, userStatus,
+  workspacesStore, workspaceStore
 } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -249,8 +250,8 @@ const initializeTermsOfService = (isSignedIn, state) => {
     isGracePeriodEnabled: isSignedIn ? state.termsOfService.isGracePeriodEnabled : undefined,
     currentVersion: isSignedIn ? state.termsOfService.currentVersion : undefined,
     userAcceptedVersion: isSignedIn ? state.termsOfService.userAcceptedVersion : undefined,
-    userAcceptedTos: isSignedIn ? state.termsOfService.userAcceptedTos : undefined,
-    userNeedsToAcceptTos: isSignedIn ? state.termsOfService.userNeedsToAcceptTos : undefined,
+    userCanUseTerra: isSignedIn ? state.termsOfService.userCanUseTerra : undefined,
+    showTosPopup: isSignedIn ? state.termsOfService.showTosPopup : undefined
   }
 }
 
@@ -300,9 +301,9 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
     try {
       const { enabled } = await Ajax().User.getStatus()
       if (enabled) {
-        // While initial state is first loading, state.termsOfService.userAcceptedTos will be undefined (it will then be `true` on the
+        // While initial state is first loading, state.termsOfService.userCanUseTerra will be undefined (it will then be `true` on the
         // second execution of this code, which is still part of the initial rendering).
-        return state.termsOfService.userAcceptedTos ? userStatus.registeredWithTos : userStatus.registeredWithoutTos
+        return state.termsOfService.userCanUseTerra ? userStatus.registeredWithTos : userStatus.registeredWithoutTos
       } else {
         return userStatus.disabled
       }
@@ -315,8 +316,8 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
     }
   }
   // need to guard against state.termsOfService not being initialized
-  const oldStateAcceptedTos = oldState.termsOfService && oldState.termsOfService.userAcceptedTos
-  const newStateAcceptedTos = state.termsOfService && state.termsOfService.userAcceptedTos
+  const oldStateAcceptedTos = oldState.termsOfService && oldState.termsOfService.userCanUseTerra
+  const newStateAcceptedTos = state.termsOfService && state.termsOfService.userCanUseTerra
   if ((!oldState.isSignedIn && state.isSignedIn) || (!oldStateAcceptedTos && newStateAcceptedTos)) {
     clearNotification(sessionTimeoutProps.id)
     const registrationStatus = await getRegistrationStatus()
@@ -338,8 +339,8 @@ export const parseToSDetails = tosDetails => {
       isGracePeriodEnabled: undefined,
       currentVersion: undefined,
       userAcceptedVersion: undefined,
-      userAcceptedTos: false,
-      userNeedsToAcceptTos: true,
+      userCanUseTerra: false,
+      showTosPopup: true
     }
   } else {
     // IF user has accepted latest version of ToS
@@ -365,14 +366,14 @@ export const parseToSDetails = tosDetails => {
       isGracePeriodEnabled: tosDetails.isGracePeriodEnabled,
       currentVersion: tosDetails.currentVersion,
       userAcceptedVersion: tosDetails.userAcceptedVersion,
-      userAcceptedTos: userCanUseTerra,
-      userNeedsToAcceptTos: showToSPopup,
+      userCanUseTerra: userCanUseTerra,
+      showTosPopup: showToSPopup
     }
   }
 }
 
 authStore.subscribe(withErrorIgnoring(async (state, oldState) => {
-  if (!oldState.termsOfService.userAcceptedTos && state.termsOfService.userAcceptedTos) {
+  if (!oldState.termsOfService.userCanUseTerra && state.termsOfService.userCanUseTerra) {
     if (window.Appcues) {
       window.Appcues.identify(state.user.id, {
         dateJoined: parseJSON((await Ajax().User.firstTimestamp()).timestamp).getTime()

@@ -12,8 +12,8 @@ const parsedTosDetailsDefault = {
   isGracePeriodEnabled: true,
   currentVersion: '1',
   userAcceptedVersion: '1',
-  userAcceptedTos: true,
-  userNeedsToAcceptTos: false
+  userCanUseTerra: true,
+  showTosPopup: false
 }
 
 describe('Terms of Service Detail Parser gives access', () => {
@@ -32,8 +32,8 @@ describe('Terms of Service Detail Parser gives access', () => {
       isGracePeriodEnabled: true,
       currentVersion: '1',
       userAcceptedVersion: '0',
-      userAcceptedTos: true,
-      userNeedsToAcceptTos: true
+      userCanUseTerra: true,
+      showTosPopup: true
     })
   })
 
@@ -48,8 +48,8 @@ describe('Terms of Service Detail Parser gives access', () => {
       isGracePeriodEnabled: true,
       currentVersion: '9',
       userAcceptedVersion: '0',
-      userAcceptedTos: true,
-      userNeedsToAcceptTos: true
+      userCanUseTerra: true,
+      showTosPopup: true
     })
   })
 
@@ -65,8 +65,8 @@ describe('Terms of Service Detail Parser gives access', () => {
       isGracePeriodEnabled: false,
       currentVersion: '1',
       userAcceptedVersion: '0',
-      userAcceptedTos: false,
-      userNeedsToAcceptTos: true
+      userCanUseTerra: false,
+      showTosPopup: true
     })
   })
 
@@ -80,8 +80,8 @@ describe('Terms of Service Detail Parser gives access', () => {
       isGracePeriodEnabled: true,
       currentVersion: '1',
       userAcceptedVersion: undefined,
-      userAcceptedTos: false,
-      userNeedsToAcceptTos: true
+      userCanUseTerra: false,
+      showTosPopup: true
     }
 
     // Assertion for when `userAcceptedVersion` is undefined
@@ -107,8 +107,8 @@ describe('Terms of Service Detail Parser sets ToS pop-up', () => {
       isGracePeriodEnabled: true,
       currentVersion: '1',
       userAcceptedVersion: '0',
-      userAcceptedTos: true,
-      userNeedsToAcceptTos: true // this is the field we care about for this test
+      userCanUseTerra: true,
+      showTosPopup: true // this is the field we care about for this test
     })
   })
 
@@ -122,8 +122,8 @@ describe('Terms of Service Detail Parser sets ToS pop-up', () => {
       isGracePeriodEnabled: false,
       currentVersion: '1',
       userAcceptedVersion: '0',
-      userAcceptedTos: false,
-      userNeedsToAcceptTos: true // this is the field we care about for this test
+      userCanUseTerra: false,
+      showTosPopup: true // this is the field we care about for this test
     })
   })
 
@@ -137,8 +137,8 @@ describe('Terms of Service Detail Parser sets ToS pop-up', () => {
       isGracePeriodEnabled: false,
       currentVersion: '1',
       userAcceptedVersion: undefined,
-      userAcceptedTos: false,
-      userNeedsToAcceptTos: true // this is the field we care about for this test
+      userCanUseTerra: false,
+      showTosPopup: true // this is the field we care about for this test
     })
   })
 })

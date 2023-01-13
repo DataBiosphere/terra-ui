@@ -16,7 +16,7 @@ import TermsOfService from 'src/pages/TermsOfService'
 const AuthContainer = ({ children }) => {
   const { name, public: isPublic } = useRoute()
   const { isSignedIn, registrationStatus, termsOfService, profile } = useStore(authStore)
-  const userNeedsToAcceptTos = termsOfService.userNeedsToAcceptTos
+  const displayTosPage = isSignedIn && (!!!termsOfService.userContinuedUnderGracePeriod || !termsOfService.userCanUseTerra)
   const seenAzurePreview = useStore(azurePreviewStore) || false
   const authspinner = () => h(centeredSpinner, { style: { position: 'fixed' } })
 
@@ -26,8 +26,7 @@ const AuthContainer = ({ children }) => {
     [seenAzurePreview === false && isAzureUser(), () => h(AzurePreview)],
     [registrationStatus === undefined && !isPublic, authspinner],
     [registrationStatus === userStatus.unregistered, () => h(Register)],
-    [userNeedsToAcceptTos === undefined && !isPublic, authspinner],
-    [userNeedsToAcceptTos && name !== 'privacy', () => h(TermsOfService)],
+    [displayTosPage && _.isUndefined(termsOfService.userContinuedUnderGracePeriod) && name !== 'privacy', () => h(TermsOfService)],
     [registrationStatus === userStatus.disabled, () => h(Disabled)],
     [_.isEmpty(profile) && !isPublic, authspinner],
     () => children

@@ -19,10 +19,11 @@ import * as Utils from 'src/libs/utils'
 const TermsOfServicePage = () => {
   const [busy, setBusy] = useState()
   const { isSignedIn, termsOfService } = authStore.get() // can't change while viewing this without causing it to unmount, so doesn't need to subscribe
-  const needToAccept = isSignedIn && termsOfService.userNeedsToAcceptTos
+  const needToAccept = isSignedIn && termsOfService.showTosPopup
   const userHasAcceptedPreviousTos = !_.isUndefined(termsOfService.userAcceptedVersion)
   const canUserContinueUnderGracePeriod = isSignedIn && termsOfService.isGracePeriodEnabled && userHasAcceptedPreviousTos
   const [tosText, setTosText] = useState()
+  termsOfService.userContinuedUnderGracePeriod = false
 
   useOnMount(() => {
     const loadTosAndUpdateState = _.flow(
@@ -38,9 +39,9 @@ const TermsOfServicePage = () => {
     try {
       setBusy(true)
       const { enabled } = await Ajax().User.acceptTos()
-      termsOfService.userAcceptedTos = true
+      termsOfService.userCanUseTerra = true
       termsOfService.userAcceptedVersion = termsOfService.currentVersion
-      termsOfService.userNeedsToAcceptTos = false
+      termsOfService.userCanUseTerra = false
       authStore.update(state => ({ ...state, termsOfService }))
       if (enabled) {
         const registrationStatus = userStatus.registeredWithTos
@@ -51,6 +52,20 @@ const TermsOfServicePage = () => {
       }
     } catch (error) {
       reportError('Error accepting TOS', error)
+      setBusy(false)
+    }
+  }
+
+  const continueButton = async () => {
+    try {
+      setBusy(true)
+      termsOfService.userContinuedUnderGracePeriod = true
+      authStore.update(state => ({ ...state, termsOfService }))
+
+      Nav.goToPath('root')
+
+    } catch (error) {
+      reportError('Error continuing under TOS grace period', error)
       setBusy(false)
     }
   }
@@ -80,7 +95,7 @@ const TermsOfServicePage = () => {
       needToAccept && canUserContinueUnderGracePeriod && !!tosText &&
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
         h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: signOut }, 'Decline and Sign Out'),
-        h(ButtonOutline, { style: { marginRight: '1rem' }, onClick: Nav.goToPath('root'), disabled: busy }, ['Continue under grace period']),
+        h(ButtonOutline, { style: { marginRight: '1rem' }, onClick: continueButton, disabled: busy }, ['Continue under grace period']),
         h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept'])
       ])
     ])
