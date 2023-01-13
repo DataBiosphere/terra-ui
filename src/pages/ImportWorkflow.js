@@ -63,10 +63,28 @@ const DockstoreImporter = ({ path, version, source }) => {
 
     try {
       const rawlsWorkspace = Ajax().Workspaces.workspace(namespace, name)
-      const entityMetadata = await rawlsWorkspace.entityMetadata()
+      const [entityMetadata, { outputs: workflowOutputs }] = await Promise.all([
+        rawlsWorkspace.entityMetadata(),
+        Ajax(signal).Methods.configInputsOutputs({
+          methodRepoMethod: {
+            methodPath: path,
+            methodVersion: version,
+            sourceRepo: source,
+          }
+        }),
+      ])
+
+      const defaultOutputConfiguration = _.flow(
+        _.map(output => {
+          const outputExpression = `this.${_.last(_.split('.', output.name))}`
+          return [output.name, outputExpression]
+        }),
+        _.fromPairs
+      )(workflowOutputs)
+
       await rawlsWorkspace.importMethodConfigFromDocker({
         namespace, name: workflowName, rootEntityType: _.head(_.keys(entityMetadata)),
-        inputs: {}, outputs: {}, prerequisites: {}, methodConfigVersion: 1, deleted: false,
+        inputs: {}, outputs: defaultOutputConfiguration, prerequisites: {}, methodConfigVersion: 1, deleted: false,
         methodRepoMethod: {
           sourceRepo: source,
           methodPath: path,
