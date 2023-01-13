@@ -23,14 +23,14 @@ const TermsOfServicePage = () => {
   const userHasAcceptedPreviousTos = !_.isUndefined(termsOfService.userAcceptedVersion)
   const canUserContinueUnderGracePeriod = isSignedIn && termsOfService.isGracePeriodEnabled && userHasAcceptedPreviousTos
   const [tosText, setTosText] = useState()
-  authStore.update(state => ({
-    ...state, termsOfService: {
-      ...termsOfService,
-      userContinuedUnderGracePeriod: false
-    }
-  }))
 
   useOnMount(() => {
+    authStore.update(state => ({
+      ...state, termsOfService: {
+        ...termsOfService,
+        userContinuedUnderGracePeriod: false
+      }
+    }))
     const loadTosAndUpdateState = _.flow(
       Utils.withBusyState(setBusy),
       withErrorReporting('There was an error retrieving our terms of service.')
