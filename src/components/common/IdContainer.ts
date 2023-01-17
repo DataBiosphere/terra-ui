@@ -7,7 +7,7 @@ type IdContainerProps = {
 }
 
 /**
- * DEPRECATED - should switch to useUniqueIdFn pattern
+ * DEPRECATED - should switch to useUniqueId pattern (below)
  */
 export const IdContainer = ({ children }: IdContainerProps) => {
   const [id] = useState(() => _.uniqueId('element-'))
