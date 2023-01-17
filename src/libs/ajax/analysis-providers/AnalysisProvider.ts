@@ -1,6 +1,7 @@
 import { Ajax } from 'src/libs/ajax'
 import { GoogleWorkspaceInfo, isGoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils'
 import { AnalysisFile, getExtension, stripExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 export interface AnalysisProviderContract {
@@ -8,7 +9,7 @@ export interface AnalysisProviderContract {
   copyAnalysis: (
       sourceWorkspace: WorkspaceInfo,
       printName: string,
-      toolLabel: string,
+      toolLabel: ToolLabel,
       targetWorkspace: WorkspaceInfo,
       newName: string,
       signal?: AbortSignal
@@ -26,7 +27,7 @@ export const AnalysisProvider: AnalysisProviderContract = {
   copyAnalysis: async (
     sourceWorkspace: WorkspaceInfo,
     printName: string,
-    toolLabel: string,
+    toolLabel: ToolLabel,
     targetWorkspace: WorkspaceInfo,
     newName: string,
     signal?: AbortSignal

@@ -1,30 +1,39 @@
 import _ from 'lodash/fp'
-import PropTypes from 'prop-types'
 import { Fragment, useState } from 'react'
 import { b, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, spinnerOverlay, useUniqueIdFn } from 'src/components/common'
+import { ButtonPrimary, spinnerOverlay, useUniqueId } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import Modal from 'src/components/Modal'
 import { WorkspaceSelector } from 'src/components/workspace-utils'
 import { FormLabel } from 'src/libs/forms'
-import * as Nav from 'src/libs/nav'
-import * as Utils from 'src/libs/utils'
-import { WorkspaceInfo } from 'src/libs/workspace-utils'
+import { goToPath as navToPath } from 'src/libs/nav'
+import { isValidWsExportTarget, summarizeErrors } from 'src/libs/utils'
+import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils'
 import { getAnalysisFileExtension, stripExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { useAnalysesExportState } from 'src/pages/workspaces/workspace/analysis/modals/export-analysis-modal/export-analysis-modal.state'
 import {
   analysisNameInput, analysisNameValidator
 } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { analysisLauncherTabName, analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import validate from 'validate.js'
 
 
-export const ExportAnalysisModal = ({ fromLauncher, onDismiss, printName, toolLabel, workspace }) => {
+export interface ExportAnalysisModalProps {
+  fromLauncher?: boolean
+  onDismiss: (event: unknown) => void
+  printName: string
+  toolLabel: ToolLabel
+  workspace: WorkspaceWrapper
+}
+
+export const ExportAnalysisModal: React.FC<ExportAnalysisModalProps> = ({ fromLauncher, onDismiss, printName, toolLabel, workspace }) => {
   // State
-  const unique = useUniqueIdFn()
-  const [newName, setNewName] = useState(stripExtension(printName))
+  const uniqueId = useUniqueId()
+  const unique = (prefix: string): string => `${prefix}-${uniqueId}`
+  const [newName, setNewName] = useState<string>(stripExtension(printName))
   const {
-    workspaces, selectedWorkspace, selectWorkspace, existingAnalysisNames, pendingCopy, copyAnalysis
+    workspaces, selectedWorkspace, existingAnalysisNames, pendingCopy, selectWorkspace, copyAnalysis
   } = useAnalysesExportState(workspace, printName, toolLabel)
 
   const selectedWorkspaceId = selectedWorkspace ? selectedWorkspace.workspaceId : undefined
@@ -37,7 +46,7 @@ export const ExportAnalysisModal = ({ fromLauncher, onDismiss, printName, toolLa
   const copyError = pendingCopy.status === 'Error' ? pendingCopy.error : null
 
   // Render
-  const errors = validate(
+  const formErrors = validate(
     { selectedWorkspaceId, newName },
     {
       selectedWorkspaceId: { presence: true },
@@ -51,10 +60,10 @@ export const ExportAnalysisModal = ({ fromLauncher, onDismiss, printName, toolLa
     onDismiss,
     cancelText: copiedToWorkspace ? 'Stay Here' : undefined,
     okButton: h(ButtonPrimary, {
-      tooltip: Utils.summarizeErrors(errors),
-      disabled: !!errors,
+      tooltip: summarizeErrors(formErrors),
+      disabled: !!formErrors,
       onClick: copiedToWorkspace ?
-        () => Nav.goToPath(fromLauncher ? analysisLauncherTabName : analysisTabName, {
+        () => navToPath(fromLauncher ? analysisLauncherTabName : analysisTabName, {
           namespace: copiedToWorkspace.namespace,
           name: copiedToWorkspace.name,
           analysisName: `${newName}.${getAnalysisFileExtension(toolLabel)}`,
@@ -77,7 +86,7 @@ export const ExportAnalysisModal = ({ fromLauncher, onDismiss, printName, toolLa
           h(WorkspaceSelector, {
             id: unique('workspace-selector'),
             'aria-label': undefined,
-            workspaces: _.filter(Utils.isValidWsExportTarget(workspace), workspaces),
+            workspaces: _.filter(isValidWsExportTarget(workspace), workspaces),
             value: selectedWorkspaceId,
             onChange: (v: string): void => selectWorkspace(v)
           })
@@ -85,7 +94,7 @@ export const ExportAnalysisModal = ({ fromLauncher, onDismiss, printName, toolLa
         h(Fragment, [
           h(FormLabel, { htmlFor: unique('analysis-name'), required: true }, ['Name']),
           analysisNameInput({
-            error: Utils.summarizeErrors(errors?.newName),
+            error: summarizeErrors(formErrors?.newName),
             inputProps: {
               id: unique('analysis-name'),
               value: newName,
@@ -97,13 +106,6 @@ export const ExportAnalysisModal = ({ fromLauncher, onDismiss, printName, toolLa
     copying && spinnerOverlay,
     !!copyError && h(ErrorView, { error: copyError })
   ])
-}
-
-ExportAnalysisModal.propTypes = {
-  fromLauncher: PropTypes.bool,
-  onDismiss: PropTypes.func.isRequired,
-  printName: PropTypes.string.isRequired,
-  workspace: PropTypes.object.isRequired
 }
 
 export default ExportAnalysisModal

@@ -12,6 +12,7 @@ import {
   AnalysisFile,
   getDisplayName
 } from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 export type LoadedAnalysisNames = LoadedState<string[], unknown>
@@ -25,11 +26,16 @@ export interface AnalysisExportState {
   pendingCopy: LoadedState<true, unknown>
 }
 
-export const useAnalysesExportState = (sourceWorkspace: WorkspaceWrapper, printName: string, toolLabel): AnalysisExportState => {
+export const errors = {
+  badWorkspace: 'Selected Workspace does not exist',
+  noWorkspace: 'No workspace selected'
+}
+
+export const useAnalysesExportState = (sourceWorkspace: WorkspaceWrapper, printName: string, toolLabel: ToolLabel): AnalysisExportState => {
   const captureEvent = useMetricsEvent()
   const signal = useCancellation()
   const workspaces: WorkspaceWrapper[] = useWorkspaces().workspaces
-  const [selectedWorkspace] = useState<WorkspaceWrapper | null>(null)
+  const [selectedWorkspace, setSelectedWorkspace] = useState<WorkspaceWrapper | null>(null)
   const [existingAnalysisNames, setExistingAnalysisNames] = useLoadedData<string[]>()
   const [pendingCopy, setPendingCopy] = useLoadedData<true>()
 
@@ -37,9 +43,10 @@ export const useAnalysesExportState = (sourceWorkspace: WorkspaceWrapper, printN
     await setExistingAnalysisNames(async () => {
       const foundWorkspaceWrapper = _.find({ workspace: { workspaceId } }, workspaces)
       if (foundWorkspaceWrapper === undefined) {
-        throw (Error('Selected Workspace does not exist'))
+        throw (Error(errors.badWorkspace))
       }
       const chosenWorkspace = foundWorkspaceWrapper.workspace
+      setSelectedWorkspace(foundWorkspaceWrapper)
 
       const selectedAnalyses: AnalysisFile[] = await AnalysisProvider.listAnalyses(chosenWorkspace, signal)
       const names = _.map(({ name }) => getDisplayName(name), selectedAnalyses)
@@ -50,7 +57,7 @@ export const useAnalysesExportState = (sourceWorkspace: WorkspaceWrapper, printN
   const doCopy = async (newName: string): Promise<void> => {
     await setPendingCopy(async () => {
       if (selectedWorkspace === null) {
-        throw (Error('No workspace selected'))
+        throw (Error(errors.noWorkspace))
       }
       await AnalysisProvider.copyAnalysis(
         sourceWorkspace.workspace, printName, toolLabel, selectedWorkspace.workspace, newName, signal
