@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { isCromwellAppVisible } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 import { CloudProviderType } from 'src/libs/workspace-utils'
-import { Extension } from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { Extension, getExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
 
 
 export type RuntimeToolLabel = 'Jupyter' | 'RStudio' | 'JupyterLab'
@@ -148,7 +148,7 @@ const extensionToToolMap: Partial<Record<Extension, RuntimeToolLabel>> = (() => 
 
 export const getToolLabelForImage = (image: string): ToolLabel | undefined => _.find(tool => _.includes(image, tool.imageIds), runtimeTools)?.label
 
-export const getToolLabelFromFileExtension = (fileName: Extension): ToolLabel | undefined => extensionToToolMap[fileName]
+export const getToolLabelFromFileExtension = (fileName: Extension): ToolLabel | undefined => extensionToToolMap[getExtension(fileName)]
 
 // TODO: runtime type
 export const getToolLabelFromRuntime = (runtime: any): ToolLabel => _.get(['labels', 'tool'])(runtime)
