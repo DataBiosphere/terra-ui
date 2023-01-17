@@ -61,6 +61,7 @@ jest.mock('src/pages/workspaces/workspace/analysis/file-utils', () => {
   const originalModule = jest.requireActual('src/pages/workspaces/workspace/analysis/file-utils')
   return {
     ...originalModule,
+    getExtension: jest.fn(),
     useAnalysisFiles: jest.fn()
   }
 })
