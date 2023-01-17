@@ -131,7 +131,7 @@ export const WorkspaceList = () => {
   // each render avoids unnecessarily recomputing the memoized filteredWorkspaces value.
   const accessLevelsFilter = query.accessLevelsFilter || EMPTY_LIST
   const projectsFilter = query.projectsFilter || undefined
-  const cloudProviderFilter = query.cloudProvider || undefined
+  const cloudPlatformFilter = query.cloudPlatform || undefined
   const submissionsFilter = query.submissionsFilter || EMPTY_LIST
   const tab = query.tab || 'myWorkspaces'
   const tagsFilter = query.tagsFilter || EMPTY_LIST
@@ -196,11 +196,11 @@ export const WorkspaceList = () => {
       return Utils.textMatch(filter, `${namespace}/${name}`) &&
         (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
         (_.isEmpty(projectsFilter) || projectsFilter === namespace) &&
-        (_.isEmpty(cloudProviderFilter) || getCloudProviderFromWorkspace(ws) === cloudProviderFilter) &&
+        (_.isEmpty(cloudPlatformFilter) || getCloudProviderFromWorkspace(ws) === cloudPlatformFilter) &&
         (_.isEmpty(submissionsFilter) || submissionsFilter.includes(workspaceSubmissionStatus(ws))) &&
         _.every(a => _.includes(a, _.get(['tag:tags', 'items'], attributes)), tagsFilter)
     }),
-    initialFiltered), [accessLevelsFilter, filter, initialFiltered, projectsFilter, cloudProviderFilter, submissionsFilter, tagsFilter])
+    initialFiltered), [accessLevelsFilter, filter, initialFiltered, projectsFilter, cloudPlatformFilter, submissionsFilter, tagsFilter])
 
   //Starred workspaces are always floated to the top
   const sortedWorkspaces = _.orderBy(
@@ -492,11 +492,11 @@ export const WorkspaceList = () => {
           h(Select, {
             isClearable: true,
             isMulti: false,
-            placeholder: 'Cloud provider',
-            'aria-label': 'Filter by cloud provider',
-            value: cloudProviderFilter,
+            placeholder: 'Cloud platform',
+            'aria-label': 'Filter by cloud platform',
+            value: cloudPlatformFilter,
             hideSelectedOptions: true,
-            onChange: data => Nav.updateSearch({ ...query, cloudProvider: data?.value || undefined }),
+            onChange: data => Nav.updateSearch({ ...query, cloudPlatform: data?.value || undefined }),
             options: _.sortBy(cloudProvider => cloudProviderLabels[cloudProvider], _.keys(cloudProviderTypes)),
             getOptionLabel: ({ value }) => cloudProviderLabels[value]
           })
