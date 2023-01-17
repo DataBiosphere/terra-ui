@@ -38,7 +38,7 @@ import { AnalysisModal } from 'src/pages/workspaces/workspace/analysis/modals/An
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
 import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { getToolFromFileExtension, getToolFromRuntime, runtimeTools, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getToolLabelFromFileExtension, getToolLabelFromRuntime, runtimeTools, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -89,9 +89,9 @@ const AnalysisCard = ({
 
   const analysisName = getFileName(name)
   const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name: workspaceName, analysisName })
-  const toolLabel = getToolFromFileExtension(name)
+  const toolLabel = getToolLabelFromFileExtension(name)
 
-  const currentRuntimeTool = getToolFromRuntime(currentRuntime)
+  const currentRuntimeToolLabel = getToolLabelFromRuntime(currentRuntime)
 
   const rstudioLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name, application: 'RStudio' })
   const analysisEditLink = `${analysisLink}/?${qs.stringify({ mode: 'edit' })}`
@@ -112,9 +112,9 @@ const AnalysisCard = ({
         h(MenuButton, {
           'aria-label': 'Edit',
           href: analysisEditLink,
-          disabled: locked || !canWrite || currentRuntimeTool === toolLabels.RStudio,
+          disabled: locked || !canWrite || currentRuntimeToolLabel === toolLabels.RStudio,
           tooltip: Utils.cond([!canWrite, () => noWrite],
-            [currentRuntimeTool === toolLabels.RStudio, () => 'You must have a runtime with Jupyter to edit.']),
+            [currentRuntimeToolLabel === toolLabels.RStudio, () => 'You must have a runtime with Jupyter to edit.']),
           tooltipSide: 'left'
         }, locked ? [makeMenuIcon('lock'), 'Open (In Use)'] : [makeMenuIcon('edit'), 'Edit']),
         h(MenuButton, {
@@ -127,9 +127,9 @@ const AnalysisCard = ({
         h(MenuButton, {
           'aria-label': 'Launch',
           href: rstudioLaunchLink,
-          disabled: !canWrite || currentRuntimeTool === toolLabels.Jupyter,
+          disabled: !canWrite || currentRuntimeToolLabel === toolLabels.Jupyter,
           tooltip: Utils.cond([!canWrite, () => noWrite],
-            [currentRuntimeTool === toolLabels.RStudio, () => 'You must have a runtime with RStudio to launch.']),
+            [currentRuntimeToolLabel === toolLabels.RStudio, () => 'You must have a runtime with RStudio to launch.']),
           tooltipSide: 'left'
         }, [makeMenuIcon('rocket'), 'Open'])
       ]),
@@ -308,7 +308,7 @@ const Analyses = _.flow(
     try {
       await Promise.all(_.map(file => {
         const name = file.name
-        const toolLabel = getToolFromFileExtension(file.name)
+        const toolLabel = getToolLabelFromFileExtension(file.name)
         let resolvedName = name
         let c = 0
         while (_.includes(resolvedName, existingNames)) {
@@ -511,7 +511,8 @@ const Analyses = _.flow(
           analyses,
           apps,
           refreshApps,
-          uploadFiles, openUploader,
+          uploadFiles,
+          openUploader,
           location,
           onDismiss: () => {
             setCreating(false)
@@ -531,7 +532,7 @@ const Analyses = _.flow(
         }),
         renamingAnalysisName && h(AnalysisDuplicator, {
           printName: getFileName(renamingAnalysisName),
-          toolLabel: getToolFromFileExtension(renamingAnalysisName),
+          toolLabel: getToolLabelFromFileExtension(renamingAnalysisName),
           workspaceInfo: { cloudPlatform, googleProject, workspaceId, namespace, name: workspaceName, bucketName },
           destroyOld: true,
           fromLauncher: false,
@@ -543,7 +544,7 @@ const Analyses = _.flow(
         }),
         copyingAnalysisName && h(AnalysisDuplicator, {
           printName: getFileName(copyingAnalysisName),
-          toolLabel: getToolFromFileExtension(copyingAnalysisName),
+          toolLabel: getToolLabelFromFileExtension(copyingAnalysisName),
           workspaceInfo: { cloudPlatform, googleProject, workspaceId, namespace, name: workspaceName, bucketName },
           destroyOld: false,
           fromLauncher: false,
@@ -555,12 +556,12 @@ const Analyses = _.flow(
         }),
         exportingAnalysisName && h(ExportAnalysisModal, {
           printName: getFileName(exportingAnalysisName),
-          toolLabel: getToolFromFileExtension(exportingAnalysisName),
+          toolLabel: getToolLabelFromFileExtension(exportingAnalysisName),
           workspace,
           onDismiss: () => setExportingAnalysisName(undefined)
         }),
         deletingAnalysisName && h(DeleteConfirmationModal, {
-          objectType: getToolFromFileExtension(deletingAnalysisName) ? `${getToolFromFileExtension(deletingAnalysisName)} analysis` : 'analysis',
+          objectType: getToolLabelFromFileExtension(deletingAnalysisName) ? `${getToolLabelFromFileExtension(deletingAnalysisName)} analysis` : 'analysis',
           objectName: getFileName(deletingAnalysisName),
           buttonText: 'Delete analysis',
           onConfirm: _.flow(
@@ -573,7 +574,7 @@ const Analyses = _.flow(
                 googleProject,
                 bucketName,
                 getFileName(deletingAnalysisName),
-                getToolFromFileExtension(deletingAnalysisName)
+                getToolLabelFromFileExtension(deletingAnalysisName)
               ).delete()
             } else {
               await Ajax(signal).AzureStorage.blob(workspaceId, getFileName(deletingAnalysisName)).delete()

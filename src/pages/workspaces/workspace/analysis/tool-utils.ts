@@ -146,12 +146,12 @@ const extensionToToolMap: Partial<Record<Extension, RuntimeToolLabel>> = (() => 
   return extMap
 })()
 
-export const getToolForImage = (image: string): ToolLabel | undefined => _.find(tool => _.includes(image, tool.imageIds), runtimeTools)?.label
+export const getToolLabelForImage = (image: string): ToolLabel | undefined => _.find(tool => _.includes(image, tool.imageIds), runtimeTools)?.label
 
-export const getToolFromFileExtension = (fileName: Extension): ToolLabel | undefined => extensionToToolMap[getExtension(fileName)]
+export const getToolLabelFromFileExtension = (fileName: Extension): ToolLabel | undefined => extensionToToolMap[getExtension(fileName)]
 
 // TODO: runtime type
-export const getToolFromRuntime = (runtime: any): ToolLabel => _.get(['labels', 'tool'])(runtime)
+export const getToolLabelFromRuntime = (runtime: any): ToolLabel => _.get(['labels', 'tool'])(runtime)
 
 export const getAppType = (label: ToolLabel): string | undefined => appTools[label]?.appType
 
@@ -160,3 +160,9 @@ export const allAppTypes: AppToolLabel[] = _.flow(_.map('appType'), _.compact)(a
 
 export const isPauseSupported = (toolLabel: ToolLabel): boolean => !_.find((tool: Tool) => tool.label === toolLabel)(tools)?.isPauseUnsupported
 
+//TODO: Placeholders. Finalized version will live in other TypeScript util files.
+export type Runtime = any
+
+export type AppDataDisk = any
+
+export type PersistentDisk = any

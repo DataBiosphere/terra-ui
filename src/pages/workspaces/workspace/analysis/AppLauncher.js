@@ -14,7 +14,7 @@ import * as Utils from 'src/libs/utils'
 import { getExtension, notebookLockHash, stripExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { analysisTabName, appLauncherTabName, PeriodicAzureCookieSetter, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import { getAnalysesDisplayList, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { getPatternFromRuntimeTool, getToolFromRuntime, runtimeTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getPatternFromRuntimeTool, getToolLabelFromRuntime, runtimeTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -179,11 +179,11 @@ const ApplicationLauncher = _.flow(
         await Ajax()
           .Runtimes
           .fileSyncing(googleProject, runtime.runtimeName)
-          .setStorageLinks(localBaseDirectory, '', cloudStorageDirectory, getPatternFromRuntimeTool(getToolFromRuntime(runtime))) :
+          .setStorageLinks(localBaseDirectory, '', cloudStorageDirectory, getPatternFromRuntimeTool(getToolLabelFromRuntime(runtime))) :
         await Ajax()
           .Runtimes
           .azureProxy(runtime.proxyUrl)
-          .setStorageLinks(localBaseDirectory, cloudStorageDirectory, getPatternFromRuntimeTool(getToolFromRuntime(runtime)))
+          .setStorageLinks(localBaseDirectory, cloudStorageDirectory, getPatternFromRuntimeTool(getToolLabelFromRuntime(runtime)))
     })
 
 

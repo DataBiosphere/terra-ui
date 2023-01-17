@@ -12,7 +12,6 @@ import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { isGoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils'
 import {
-  AnalysisFileStore,
   DisplayName,
   FileName, getDisplayName,
   getExtension,
@@ -39,7 +38,9 @@ export interface AnalysisDuplicatorProps {
 
 export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, printName, toolLabel, workspaceInfo, onDismiss, onSuccess }: AnalysisDuplicatorProps) => {
   const [newName, setNewName] = useState<string>('')
-  const { loadedState: { state: analyses } }: AnalysisFileStore = useAnalysisFiles()
+  const { loadedState } = useAnalysisFiles()
+  const analyses = loadedState.status !== 'None' ? loadedState.state : null
+
   const existingNames: DisplayName[] = _.map(({ name }) => getDisplayName(name), analyses)
 
   const [nameTouched, setNameTouched] = useState<boolean>(false)
