@@ -16,7 +16,7 @@ import TermsOfService from 'src/pages/TermsOfService'
 const AuthContainer = ({ children }) => {
   const { name, public: isPublic } = useRoute()
   const { isSignedIn, registrationStatus, termsOfService, profile } = useStore(authStore)
-  const displayTosPage = isSignedIn && !termsOfService.userCanUseTerra
+  const displayTosPage = isSignedIn && termsOfService.userCanUseTerra === false
   const seenAzurePreview = useStore(azurePreviewStore) || false
   const authspinner = () => h(centeredSpinner, { style: { position: 'fixed' } })
 
