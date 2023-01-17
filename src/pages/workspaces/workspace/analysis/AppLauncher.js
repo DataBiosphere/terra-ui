@@ -12,7 +12,7 @@ import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/l
 import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { getExtension, notebookLockHash, stripExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
-import { analysisTabName, appLauncherTabName, PeriodicAzureCookieSetter, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { appLauncherTabName, PeriodicAzureCookieSetter, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import { getAnalysesDisplayList, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { getPatternFromRuntimeTool, getToolLabelFromRuntime, runtimeTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -24,16 +24,17 @@ const ApplicationLauncher = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: _.get('application'),
     activeTab: appLauncherTabName
-  })
+  }) // TODO: Check if name: workspaceName could be moved into the other workspace deconstruction
 )(({
   name: workspaceName, sparkInterface, analysesData: { runtimes, refreshRuntimes },
-  application, workspace: { azureContext, workspace: { namespace, name, workspaceId, googleProject, bucketName } }
+  application, workspace: { azureContext, workspace: { workspaceId, googleProject, bucketName } }
 }, _ref) => {
-  const [busy, setBusy] = useState(true)
+  const [busy, setBusy] = useState(false)
   const [outdatedAnalyses, setOutdatedAnalyses] = useState()
   const [fileOutdatedOpen, setFileOutdatedOpen] = useState(false)
   const [hashedOwnerEmail, setHashedOwnerEmail] = useState()
   const [iframeSrc, setIframeSrc] = useState()
+
   const leoCookieReady = useStore(cookieReadyStore)
   const azureCookieReady = useStore(azureCookieReadyStore)
   const cookieReady = !!googleProject ? leoCookieReady : azureCookieReady
@@ -49,6 +50,7 @@ const ApplicationLauncher = _.flow(
 
   const runtime = getCurrentRuntime(runtimes)
   const runtimeStatus = getConvertedRuntimeStatus(runtime) // preserve null vs undefined
+
   const FileOutdatedModal = ({ onDismiss, bucketName }) => {
     const handleChoice = _.flow(
       withErrorReportingInModal('Error setting up analysis file syncing')(onDismiss),
@@ -127,14 +129,13 @@ const ApplicationLauncher = _.flow(
       analysis?.metadata[hashedOwnerEmail] === 'outdated', analyses)
   }
 
-  useOnMount(async () => {
+  useOnMount(() => {
     const findHashedEmail = withErrorReporting('Error loading user email information', async () => {
       const hashedEmail = await notebookLockHash(bucketName, email)
       setHashedOwnerEmail(hashedEmail)
     })
 
-    await refreshRuntimes()
-    setBusy(false)
+    refreshRuntimes()
     findHashedEmail()
   })
 
@@ -250,7 +251,6 @@ const ApplicationLauncher = _.flow(
             [runtimeStatus === 'LeoReconfiguring', () => 'Cloud environment is updating, please wait.'],
             [runtimeStatus === 'Error', () => 'Error with the cloud environment, please try again.'],
             [runtimeStatus === null, () => 'Create a cloud environment to continue.'],
-            [runtimeStatus === undefined && runtime === undefined, () => Nav.goToPath(analysisTabName, { namespace, name })],
             [runtimeStatus === undefined, () => 'Loading...'],
             () => 'Unknown cloud environment status. Please create a new cloud environment or contact support.'
           )
