@@ -112,7 +112,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
         async () => {
           const workspace = await Ajax().Workspaces.create(body)
           // Only invoke Leo if we are within an Azure Workspace
-          if (isAzureWorkspace(workspace)) {
+          if (!workspace.googleProject) {
             await Ajax().Leo.create('cbas-wds-default', workspace.workspaceId)
           }
           Ajax().Metrics.captureEvent(Events.workspaceCreate, extractWorkspaceDetails(
