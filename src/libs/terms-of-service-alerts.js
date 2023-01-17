@@ -10,7 +10,7 @@ import * as Utils from 'src/libs/utils'
 
 
 const getNewTermsOfServiceNeedsAcceptingAlert = async termsOfServiceState => {
-  const shouldNotify = termsOfServiceState.isGracePeriodEnabled && !termsOfServiceState.userAcceptedTos
+  const shouldNotify = termsOfServiceState.showTosPopup
   if (!shouldNotify) {
     return null
   }
@@ -23,7 +23,7 @@ const getNewTermsOfServiceNeedsAcceptingAlert = async termsOfServiceState => {
     responseText = undefined
   }
   const gracePeriodText = _.isUndefined(responseText) ?
-    "There is currently a grace period allowing you to use Terra under the terms of service you've previously agreed to." :
+    'There is currently a grace period allowing you to use Terra under the terms of service you\'ve previously agreed to.' :
     responseText
 
   return {

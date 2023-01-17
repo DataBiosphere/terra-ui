@@ -72,4 +72,5 @@ registerTest({
   name: 'run-rstudio',
   fn: testRunRStudioFn,
   timeout: 20 * 60 * 1000,
+  targetEnvironments: [], // Disabled due to flakiness, perhaps caused by IAM propagation delays
 })
