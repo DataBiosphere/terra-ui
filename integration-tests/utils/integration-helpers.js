@@ -27,6 +27,34 @@ const clipToken = str => str.toString().substr(-10, 10)
 const testWorkspaceNamePrefix = 'terra-ui-test-workspace-'
 const getTestWorkspaceName = () => `${testWorkspaceNamePrefix}${uuid.v4()}`
 
+/**
+ * GCP IAM changes may take a few minutes to propagate after creating a workspace or granting a
+ * user access to a workspace. This function polls to check if the logged in user's pet service
+ * account has read access to the given workspace's GCS bucket.
+ */
+const waitForReadAccessToWorkspaceBucket = async ({ page, billingProject, workspaceName, timeout = defaultTimeout }) => {
+  await page.evaluate(async ({ billingProject, workspaceName, timeout }) => {
+    const startTime = Date.now()
+    while (true) {
+      try {
+        await window.Ajax().Workspaces.workspace(billingProject, workspaceName).checkBucketReadAccess()
+        return
+      } catch (response) {
+        if (response.status === 403) {
+          if (Date.now() - startTime < timeout) {
+            // Wait 15s before retrying
+            await new Promise(resolve => setTimeout(resolve, 15 * 1000))
+            continue
+          } else {
+            throw new Error('Timed out waiting for access to workspace bucket')
+          }
+        } else {
+          throw response
+        }
+      }
+    }
+  }, { billingProject, workspaceName, timeout })
+}
 
 const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   const workspaceName = getTestWorkspaceName()
@@ -35,6 +63,7 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
       await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
     }, workspaceName, billingProject)
     console.info(`Created workspace: ${workspaceName}`)
+    await waitForReadAccessToWorkspaceBucket({ page, billingProject, workspaceName })
   } catch (e) {
     console.error(`Failed to create workspace: ${workspaceName} with billing project: ${billingProject}`)
     console.error(e)
