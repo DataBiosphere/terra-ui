@@ -33,7 +33,8 @@ describe('AnalysisProvider - listAnalyses', () => {
 
     const workspaceInfo: Partial<WorkspaceInfo> = {
       googleProject: 'GoogleProject123',
-      bucketName: 'Bucket123'
+      bucketName: 'Bucket123',
+      cloudPlatform: 'Gcp'
     }
 
     // Act
@@ -94,7 +95,8 @@ describe('AnalysisProvider - copyAnalysis', () => {
 
     const workspaceInfo: Partial<WorkspaceInfo> = {
       googleProject: 'GoogleProject123',
-      bucketName: 'Bucket123'
+      bucketName: 'Bucket123',
+      cloudPlatform: 'Gcp'
     }
     const targetWorkspace: Partial<WorkspaceInfo> = {
       bucketName: 'TargetBucket456'
