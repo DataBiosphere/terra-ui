@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { createContext } from 'react'
+import { createContext, useContext } from 'react'
 import {
   appIdentifier, authOpts, fetchAgora, fetchBond, fetchDataRepo, fetchDockstore,
   fetchDrsHub,
@@ -1048,3 +1048,5 @@ window.Ajax = Ajax
 
 // Pulling Ajax from context allows overriding for usage outside of Terra UI.
 export const ajaxContext = createContext(Ajax)
+
+export const useAjax = () => useContext(ajaxContext)

@@ -1,6 +1,6 @@
 import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
-import { Fragment, useContext, useState } from 'react'
+import { Fragment, useState } from 'react'
 import { b, div, h, p, span } from 'react-hyperscript-helpers'
 import { ClipboardButton } from 'src/components/ClipboardButton'
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
@@ -12,7 +12,7 @@ import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { Ajax, ajaxContext } from 'src/libs/ajax'
+import { Ajax, useAjax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -32,7 +32,7 @@ export const useWorkspaces = () => {
   const signal = useCancellation()
   const [loading, setLoading] = useState(false)
   const workspaces = useStore(workspacesStore)
-  const ajax = useContext(ajaxContext)
+  const ajax = useAjax()
   const refresh = _.flow(
     withErrorReporting('Error loading workspace list'),
     Utils.withBusyState(setLoading)

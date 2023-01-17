@@ -1,6 +1,6 @@
 import { differenceInDays } from 'date-fns'
 import _ from 'lodash/fp'
-import { Fragment, useContext, useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { div, h, h2, p, span, strong } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -12,7 +12,7 @@ import { FlexTable, HeaderCell, SimpleFlexTable, Sortable, TextCell } from 'src/
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { useWorkspaces } from 'src/components/workspace-utils'
-import { ajaxContext } from 'src/libs/ajax'
+import { ajaxContext, useAjax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportErrorAndRethrow, withErrorHandling, withErrorIgnoring, withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
@@ -39,7 +39,7 @@ const DeleteRuntimeModal = ({
 }) => {
   const [deleteDisk, setDeleteDisk] = useState(false)
   const [deleting, setDeleting] = useState()
-  const ajax = useContext(ajaxContext)
+  const ajax = useAjax()
   const deleteRuntime = _.flow(
     Utils.withBusyState(setDeleting),
     withErrorReporting('Error deleting cloud environment')
@@ -75,7 +75,7 @@ const DeleteRuntimeModal = ({
 
 const DeleteDiskModal = ({ disk: { googleProject, name }, isGalaxyDisk, onDismiss, onSuccess }) => {
   const [busy, setBusy] = useState(false)
-  const ajax = useContext(ajaxContext)
+  const ajax = useAjax()
   const deleteDisk = _.flow(
     Utils.withBusyState(setBusy),
     withErrorReporting('Error deleting persistent disk')
@@ -99,7 +99,7 @@ const DeleteDiskModal = ({ disk: { googleProject, name }, isGalaxyDisk, onDismis
 const DeleteAppModal = ({ app: { appName, diskName, appType, cloudContext: { cloudProvider, cloudResource } }, onDismiss, onSuccess }) => {
   const [deleteDisk, setDeleteDisk] = useState(false)
   const [deleting, setDeleting] = useState()
-  const ajax = useContext(ajaxContext)
+  const ajax = useAjax()
   const deleteApp = _.flow(
     Utils.withBusyState(setDeleting),
     withErrorReportingInModal('Error deleting cloud environment', onDismiss)
@@ -174,7 +174,7 @@ const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, on
   const [isWorkspaceSelected, setIsWorkspaceSelected] = useState({})
   // users can choose to delete their disk instead of coping via a checkbox. Mutually exclusive with `isWorkspaceSelected`
   const [deleteDisk, setDeleteDisk] = useState(false)
-  const ajax = useContext(ajaxContext)
+  const ajax = useAjax()
 
   const copyDiskToWorkspace = ({ googleProject, namespace: saturnWorkspaceNamespace, name: saturnWorkspaceName }) => {
     // show an error for each failed copy operation
@@ -317,7 +317,7 @@ export const Environments = ({ nav = undefined }) => {
   const [diskSort, setDiskSort] = useState({ field: 'project', direction: 'asc' })
   const [migrateDisk, setMigrateDisk] = useState()
   const [shouldFilterByCreator, setShouldFilterByCreator] = useState(true)
-  const ajax = useContext(ajaxContext)
+  const ajax = useAjax()
 
   const currentUser = getUser().email
 
