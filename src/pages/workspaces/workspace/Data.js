@@ -572,11 +572,7 @@ const WorkspaceData = _.flow(
         setWdsSchema([])
         setWdsSchemaError(undefined)
         const url = await wdsDataTableProvider.proxyUrlPromise
-        if (url === 'PROVISIONING') {
-          // TODO: AJ-761: Handle UI changes
-        } else {
-          setProxyUrlLoaded(!!url)
-        }
+        setProxyUrlLoaded(!!url)
         const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(url, workspaceId)
         setWdsSchema(wdsSchema)
       } catch (error) {
