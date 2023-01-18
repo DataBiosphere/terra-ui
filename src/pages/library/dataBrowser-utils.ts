@@ -56,7 +56,7 @@ export const getDatasetReleasePoliciesDisplayInformation = (dataUsePermission: s
   )
 }
 
-export const DatasetReleasePolicyDisplayInformation = ({ 'TerraDCAT_ap:hasDataUsePermission': dataUsePermission }: { 'TerraDCAT_ap:hasDataUsePermission': string }) => {
+export const makeDatasetReleasePolicyDisplayInformation = dataUsePermission => {
   const { label, description } = getDatasetReleasePoliciesDisplayInformation(dataUsePermission)
   return h(Fragment, [
     label,

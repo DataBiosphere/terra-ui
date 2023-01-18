@@ -1,10 +1,9 @@
 import { render } from '@testing-library/react'
-import { h } from 'react-hyperscript-helpers'
 import { brands } from 'src/libs/brands'
 import { dataCatalogStore } from 'src/libs/state'
 import {
-  datarepoSnapshotUrlFragment, datasetAccessTypes, DatasetReleasePolicyDisplayInformation, getDatasetAccessType,
-  prepareDatasetsForDisplay, workspaceUrlFragment
+  datarepoSnapshotUrlFragment, datasetAccessTypes, getDatasetAccessType,
+  makeDatasetReleasePolicyDisplayInformation, prepareDatasetsForDisplay, workspaceUrlFragment
 } from 'src/pages/library/dataBrowser-utils'
 
 
@@ -31,17 +30,17 @@ describe('dataBrowser-utils', () => {
   })
 
   it('finds the correct data use policy to display if it exists', () => {
-    const { getByText } = render(h(DatasetReleasePolicyDisplayInformation, { 'TerraDCAT_ap:hasDataUsePermission': 'DUO:0000007' }))
+    const { getByText } = render(makeDatasetReleasePolicyDisplayInformation('DUO:0000007'))
     expect(getByText('Disease specific research')).toBeTruthy()
   })
 
   it('uses unspecified as the data use policy if undefined', () => {
-    const { getByText } = render(h(DatasetReleasePolicyDisplayInformation, { 'TerraDCAT_ap:hasDataUsePermission': undefined }))
+    const { getByText } = render(makeDatasetReleasePolicyDisplayInformation(undefined))
     expect(getByText('Unspecified')).toBeTruthy()
   })
 
   it('uses given data use policy as the data use policy if unknown', () => {
-    const { getByText } = render(h(DatasetReleasePolicyDisplayInformation, { 'TerraDCAT_ap:hasDataUsePermission': 'Something else' }))
+    const { getByText } = render(makeDatasetReleasePolicyDisplayInformation('Something else'))
     expect(getByText('Something else')).toBeTruthy()
   })
 })

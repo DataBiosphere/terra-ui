@@ -22,9 +22,9 @@ import { cloudProviderLabels } from 'src/libs/workspace-utils'
 import { commonStyles } from 'src/pages/library/common'
 import {
   DatasetAccess,
-  datasetAccessTypes, DatasetReleasePolicyDisplayInformation, formatDatasetTime, getAssayCategoryListFromDataset, getDataModalityListFromDataset,
+  datasetAccessTypes, formatDatasetTime, getAssayCategoryListFromDataset, getDataModalityListFromDataset,
   getDatasetAccessType,
-  isDatarepoSnapshot, isWorkspace, uiMessaging, useDataCatalog
+  isDatarepoSnapshot, isWorkspace, makeDatasetReleasePolicyDisplayInformation, uiMessaging, useDataCatalog
 } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
@@ -44,7 +44,7 @@ const MetadataDetailsComponent = ({ dataObj, name }) => {
     div({ style: { display: 'flex', width: '100%', flexWrap: 'wrap' } }, [
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Data release policy']),
-        h(DatasetReleasePolicyDisplayInformation, dataObj)
+        makeDatasetReleasePolicyDisplayInformation(dataObj['TerraDCAT_ap:hasDataUsePermission'])
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Last Updated']),

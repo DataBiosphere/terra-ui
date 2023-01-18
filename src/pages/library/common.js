@@ -534,37 +534,51 @@ export const SearchAndFilterComponent = ({
   ])
 }
 
-const listItemsMatchForSectionEntry = (list, sectionEntry) => _.filter(listItem => sectionEntry.matchBy(listItem), list)
+const listItemsMatchForSectionEntry = (list, sectionEntry, matcher) => _.filter(listItem => matcher(listItem, sectionEntry), list)
 
 const getMatchingDataForSection = (section, list) => {
   return _.flow(
-    _.flatMap(sectionEntry => listItemsMatchForSectionEntry(list, sectionEntry)),
+    _.flatMap(sectionEntry => listItemsMatchForSectionEntry(list, sectionEntry, section.matchBy)),
     _.uniqWith(_.isEqual)
   )(section.values)
 }
 
-const FilterSectionV2 = ({ values, filteredData, selectedSections, onFilterSelect }) => {
+// intersect(unionAcross(section a), unionAcross(section b), unionAcross(section c)...)
+const getMatchingDataForSectionList = (sections, list) => {
+  return sections.length === 0 ?
+    list :
+    _.flow(
+      _.map(section => getMatchingDataForSection(section, list)),
+      _.over([_.first, _.tail]),
+      _.spread(_.reduce(_.intersectionWith(_.isEqual)))
+    )(sections)
+}
+
+const FilterSectionV2 = ({ section, fullList, selectedSections, onFilterSelect }) => {
   const [showAll, setShowAll] = useState(false)
+  const selectedSectionsWithoutSection = selectedSections ? _.remove(s => s.header === section.header, selectedSections) : []
+  const itemsFilteredByOtherSections = selectedSectionsWithoutSection.length > 0 ? getMatchingDataForSectionList(selectedSectionsWithoutSection, fullList) : fullList
+  const valuesToShow = _.filter(sectionEntry => listItemsMatchForSectionEntry(itemsFilteredByOtherSections, sectionEntry, section.matchBy), section.values)
 
   return h(Fragment, [
     _.map(sectionEntry => {
-      const numMatches = listItemsMatchForSectionEntry(filteredData, sectionEntry).length
+      const numMatches = listItemsMatchForSectionEntry(itemsFilteredByOtherSections, sectionEntry, section.matchBy).length
       const sectionChecked = _.filter(section => _.includes(sectionEntry, section.values), selectedSections).length > 0
       return h(Clickable, {
         'aria-checked': sectionChecked,
         role: 'checkbox',
-        key: sectionEntry.value,
+        key: _.uniqueId(''),
         style: {
           display: 'flex', alignItems: 'baseline', margin: '0.5rem 0',
           paddingBottom: '0.5rem', borderBottom: `1px solid ${colors.dark(0.1)}`
         },
         onClick: () => onFilterSelect(sectionEntry)
       }, [
-        div({ style: { lineHeight: '1.375rem', flex: 1 } }, [sectionEntry.renderer ? sectionEntry.renderer : sectionEntry.value]),
+        div({ style: { lineHeight: '1.375rem', flex: 1 } }, [section.renderer ? section.renderer(sectionEntry) : sectionEntry]),
         div({ style: styles.pill(sectionChecked) }, [numMatches, div({ className: 'sr-only' }, [' matches'])])
       ])
-    }, values),
-    _.size(values) > numLabelsToRender && h(Link, {
+    }, valuesToShow),
+    _.size(valuesToShow) > numLabelsToRender && h(Link, {
       style: { display: 'block', textAlign: 'center' },
       onClick: () => { setShowAll(!showAll) }
     }, ['See more']),
@@ -574,32 +588,23 @@ const FilterSectionV2 = ({ values, filteredData, selectedSections, onFilterSelec
 }
 
 
-const SidebarV2 = ({ onSectionFilter, sections, selectedSections, filteredData }) => {
+const SidebarV2 = ({ onSectionFilter, sections, selectedSections, fullList }) => {
   return div({ style: { display: 'flex', flexDirection: 'column' } }, [
     _.map(section => {
-      const { keepCollapsed, header, values } = section
+      const { header, values } = section
 
-      return keepCollapsed ?
-        h(Clickable, {
-          key: header,
-          onClick: () => onSectionFilter(section),
-          style: { ...styles.sidebarRow, ...styles.nav.navSection, ...styles.nav.title }
-        }, [
-          div({ style: { flex: 1 } }, [header]),
-          div({ style: styles.pill(_.includes(section, selectedSections)) }, [getMatchingDataForSection(section, filteredData)])
-        ]) :
-        h(Collapse, {
-          key: header,
-          style: styles.nav.navSection,
-          summaryStyle: styles.nav.title,
-          titleFirst: true, initialOpenState: true,
-          title: h(Fragment, [
-            span({ style: { fontWeight: 700 } }, [header]),
-            span({ style: { marginLeft: '0.5rem', fontWeight: 400 } }, [`(${_.size(values)})`])
-          ])
-        }, [
-          h(FilterSectionV2, { values, filteredData, selectedSections, onFilterSelect: sectionEntry => onSectionFilter(header, sectionEntry) })
+      return h(Collapse, {
+        key: header,
+        style: styles.nav.navSection,
+        summaryStyle: styles.nav.title,
+        titleFirst: true, initialOpenState: true,
+        title: h(Fragment, [
+          span({ style: { fontWeight: 700 } }, [header]),
+          span({ style: { marginLeft: '0.5rem', fontWeight: 400 } }, [`(${_.size(values)})`])
         ])
+      }, [
+        h(FilterSectionV2, { section, fullList, selectedSections, onFilterSelect: sectionEntry => onSectionFilter(section, sectionEntry) })
+      ])
     }, sections)
   ])
 }
@@ -610,32 +615,19 @@ export const SearchAndFilterComponentV2 = ({
 }) => {
   const { query } = Nav.useRoute()
   const searchFilter = query.filter || ''
-  const [selectedSections, setSelectedSections] = useState([])
-  const selectedTags = useMemo(() => qs.parse(query.selectedTags) || {}, [query])
+  const querySections = query.selectedSections || []
+  // Add the match and render functions to what is stored in the query params
+  const selectedSections = _.map(section => ({ ...(_.find(s => s.header === section.header, sidebarSections)), ...section }), querySections)
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
   const filterRegex = new RegExp(`(${_.escapeRegExp(searchFilter)})`, 'i')
-
-  // intersect(unionAcross(section a), unionAcross(section b), unionAcross(section c)...)
-
-
-  const getFilteredDatasets = () => {
-    return selectedSections.length === 0 ?
-      fullList :
-      _.flow(
-        _.map(section => getMatchingDataForSection(section, fullList)),
-        _.over([_.first, _.tail]),
-        _.spread(_.reduce(_.intersectionWith(_.isEqual)))
-      )(selectedSections)
-  }
-
-  const datasetsShown = _.filter(item => _.includes(_.toLower(searchFilter), `${getLowerName(item)} ${getLowerDescription(item)}`), getFilteredDatasets())
+  const datasetsShown = _.filter(item => _.includes(_.toLower(searchFilter), `${getLowerName(item)} ${getLowerDescription(item)}`), getMatchingDataForSectionList(selectedSections, fullList))
 
 
-  const navigateToFilterAndSelection = ({ filter = searchFilter, tags = selectedTags } = {}) => {
+  const navigateToFilterAndSelection = ({ filter = searchFilter, sections = querySections } = []) => {
     const newSearch = qs.stringify({
       ...query,
       filter: filter || undefined,
-      selectedTags: tags || undefined
+      selectedSections: sections || undefined
     }, { addQueryPrefix: true })
 
     if (newSearch !== Nav.history.location.search) {
@@ -654,7 +646,7 @@ export const SearchAndFilterComponentV2 = ({
   }
 
   // Trim items from the sidebar facets for which there aren't any search results
-  const sections = _.remove(section => _.isEmpty(getMatchingDataForSection(section, datasetsShown)), sidebarSections)
+  const sections = _.remove(section => _.isEmpty(getMatchingDataForSection(section, fullList)), sidebarSections)
 
 
   const getContext = _.flow(
@@ -662,59 +654,6 @@ export const SearchAndFilterComponentV2 = ({
     getContextualSuggestion,
     _.map(item => _.toLower(item) === _.toLower(searchFilter) ? strong([item]) : item)
   )
-
-  // const filteredData = useMemo(() => {
-  //   const filterByText = _.filter(item => _.includes(_.toLower(searchFilter), `${getLowerName(item)} ${getLowerDescription(item)}`))
-  //
-  //   const filterBySections = listData => {
-  //     if (_.isEmpty(selectedSections)) {
-  //       return listData
-  //     } else {
-  //       const tags = _.uniqBy(_.flatMap('tags', selectedSections))
-  //       return _.uniq(_.flatMap(tag => listDataByTag[tag], tags))
-  //     }
-  //   }
-  //
-  //   const filterByTags = (listData, tags = selectedTags) => {
-  //     if (_.isEmpty(tags) || !listData) {
-  //       return listData
-  //     } else {
-  //       const selectedDataByTag = _.map(
-  //         _.flow(
-  //           _.flatMap(lowerTag => _.intersectionBy(idField, listData, listDataByTag[lowerTag])),
-  //           _.uniqBy(idField)
-  //         ), tags
-  //       )
-  //
-  //       return _.reduce(
-  //         (acc, iter) => _.intersectionBy(idField, acc, iter),
-  //         _.head(selectedDataByTag),
-  //         _.tail(selectedDataByTag)
-  //       )
-  //     }
-  //   }
-  //
-  //   const sharedList = _.flow(
-  //     filterBySections,
-  //     filterByText
-  //   )(fullList)
-  //
-  //   return {
-  //     data: _.flow(
-  //       filterByTags,
-  //       customSort ? _.orderBy([customSort.field], [customSort.direction]) : _.orderBy([sort.field], [sort.direction])
-  //     )(sharedList),
-  //     facets: _.flow(
-  //       _.keys,
-  //       _.map(section => {
-  //         const reducedTags = _.omit(section, selectedTags)
-  //         const facetedSearchData = filterByTags(sharedList, reducedTags)
-  //         return [section, groupByFeaturedTags(facetedSearchData, sidebarSections)]
-  //       }),
-  //       _.fromPairs
-  //     )(selectedTags)
-  //   }
-  // }, [fullList, searchFilter, customSort, sort, listDataByTag, selectedTags, selectedSections, sidebarSections, idField, getLowerName, getLowerDescription])
 
   return h(Fragment, [
     div({
@@ -731,7 +670,7 @@ export const SearchAndFilterComponentV2 = ({
       h2({ style: { ...styles.sidebarRow } }, [
         div({ style: styles.header }, [searchType]),
         div({
-          style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)), role: 'status',
+          style: styles.pill(_.isEmpty(selectedSections)), role: 'status',
           'aria-label': `${_.size(datasetsShown)} Results found`
         }, [_.size(datasetsShown)])
       ]),
@@ -739,8 +678,7 @@ export const SearchAndFilterComponentV2 = ({
         div({ style: { flex: 1, fontSize: '1.125rem', fontWeight: 600 } }, ['Filters']),
         h(Link, {
           onClick: () => {
-            setSelectedSections([])
-            navigateToFilterAndSelection({ tags: {} })
+            navigateToFilterAndSelection({ sections: [] })
           }
         }, ['clear'])
       ]),
@@ -798,19 +736,23 @@ export const SearchAndFilterComponentV2 = ({
     div({ style: { display: 'flex', margin: '0 1rem', height: '100%' } }, [
       div({ style: { width: '19rem', flex: 'none' } }, [
         h(SidebarV2, {
-          onSectionFilter: (header, sectionEntry) => {
-            const sectionSelected = _.findIndex(section => section.header === header, selectedSections)
+          onSectionFilter: (section, sectionEntry) => {
+            const sectionSelected = _.findIndex(s => _.isEqual(s.header, section.header), selectedSections)
             if (sectionSelected !== -1) {
               const sectionToAlter = selectedSections[sectionSelected]
               const valuesSelected = _.xor([sectionEntry], sectionToAlter.values)
-              setSelectedSections(_.set(`[${sectionSelected}].values`, valuesSelected, selectedSections))
+              Ajax().Metrics.captureEvent(`${Events.catalogFilter}:sidebar`, { tag: sectionEntry })
+              valuesSelected.length > 0 ?
+                navigateToFilterAndSelection({ sections: _.set(`[${sectionSelected}].values`, valuesSelected, selectedSections) }) :
+                navigateToFilterAndSelection({ sections: _.remove(s => _.isEqual(s.header, section.header), selectedSections) })
             } else {
-              setSelectedSections(_.concat({ header, values: [sectionEntry] }, selectedSections))
+              const sections = _.concat({ ...section, values: [sectionEntry] }, selectedSections)
+              navigateToFilterAndSelection({ sections })
             }
           },
           sections,
           selectedSections,
-          filteredData: datasetsShown,
+          fullList,
         })
       ]),
       div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
