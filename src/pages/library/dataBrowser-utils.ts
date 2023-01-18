@@ -133,7 +133,6 @@ export const DatasetAccess = ({ dataset }: DatasetAccessProps) => {
         style: buttonStyle,
         onClick: () => {
           setRequestingAccess(true)
-          // @ts-expect-error
           Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
             id: dataset.id,
             title: dataset['dct:title']

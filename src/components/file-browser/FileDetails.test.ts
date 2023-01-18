@@ -45,7 +45,9 @@ describe('FileDetails', () => {
     render(h(FileDetails, { file, provider: mockProvider }))
 
     // Assert
-    const renderedValue = screen.getByText(field).parentElement!.lastElementChild!.textContent!
+    const rawRenderedValue = screen.getByText(field).parentElement!.lastElementChild!.textContent!
+    // normalize non-breaking spaces to just be normal space character for simpler assertion
+    const renderedValue = rawRenderedValue.replace(/\xa0/g, ' ').replace(/\u202f/g, ' ')
     expect(renderedValue).toBe(expected)
   })
 

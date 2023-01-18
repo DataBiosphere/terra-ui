@@ -362,7 +362,6 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
                 await create(fullAnalysisName, toolLabel, contents)
                 //TODO: Temporary, once Analyses.js uses store, refreshAnalyses will be deprecated in favor of refresh() within the create function
                 await refreshAnalyses()
-                // @ts-expect-error
                 await Ajax().Metrics.captureEvent(Events.analysisCreate, { source: toolLabel, application: toolLabel, filename: fullAnalysisName })
                 setAnalysisName('')
                 enterNextViewMode(toolLabel)
