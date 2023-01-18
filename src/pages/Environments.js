@@ -288,7 +288,6 @@ const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, on
 }
 
 export const Environments = ({ nav = undefined }) => {
-  const getLink = nav ? nav.getLink : Nav.getLink
   const signal = useCancellation()
   const { workspaces, refresh: refreshWorkspaces } = _.flow(
     useWorkspaces,
@@ -451,7 +450,7 @@ export const Environments = ({ nav = undefined }) => {
   const getWorkspaceCell = (namespace, name, appType, shouldWarn) => {
     return !!name ?
       h(Fragment, [
-        h(Link, { href: getLink('workspace-dashboard', { namespace, name }), style: { wordBreak: 'break-word' } }, [name]),
+        h(Link, { href: nav.getLink('workspace-dashboard', { namespace, name }), style: { wordBreak: 'break-word' } }, [name]),
         shouldWarn && h(TooltipTrigger, {
           content: `This workspace has multiple active cloud environments${forAppText(appType)}. Only the latest one will be used.`
         }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
@@ -724,7 +723,7 @@ export const Environments = ({ nav = undefined }) => {
               const multipleDisks = multipleDisksError(disksByProject[googleProject], appType)
               return !!workspace ?
                 h(Fragment, [
-                  h(Link, { href: getLink('workspace-dashboard', workspace), style: { wordBreak: 'break-word' } },
+                  h(Link, { href: nav.getLink('workspace-dashboard', workspace), style: { wordBreak: 'break-word' } },
                     [workspace.name]),
                   currentUser === creator && diskStatus !== 'Deleting' && multipleDisks &&
                   h(TooltipTrigger, {
@@ -888,7 +887,7 @@ export { ajaxContext } from 'src/libs/ajax'
 
 const EnvironmentsPage = () => h(FooterWrapper, [
   h(TopBar, { title: 'Cloud Environments' }),
-  h(Environments)
+  h(Environments, { nav: Nav })
 ])
 
 export const navPaths = [
