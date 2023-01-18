@@ -300,12 +300,12 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
           _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
         ).then(res => {
           //@ts-expect-error
-          Ajax().Metrics.captureEvent(Events.analysisPreviewSuccess, { fileName: name, fileType: getAnalysisFileExtension(name), cloudProvider: cloudProviderTypes.GCP })
+          Ajax().Metrics.captureEvent(Events.analysisPreviewSuccess, { fileName: name, fileType: getAnalysisFileExtension(name), cloudPlatform: cloudProviderTypes.GCP })
           return res.text()
         })
           .catch(res => {
           //@ts-expect-error
-            Ajax().Metrics.captureEvent(Events.analysisPreviewFail, { fileName: name, fileType: getAnalysisFileExtension(name), cloudProvider: cloudProviderTypes.GCP, errorText: res.statusText })
+            Ajax().Metrics.captureEvent(Events.analysisPreviewFail, { fileName: name, fileType: getAnalysisFileExtension(name), cloudPlatform: cloudProviderTypes.GCP, errorText: res.statusText })
             throw res
           })
       },

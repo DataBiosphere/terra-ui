@@ -162,12 +162,12 @@ export const AzureStorage = (signal?: AbortSignal) => ({
           _.mergeAll([authOpts(), { signal, method: 'POST', body: textFileContents }])
         ).then(res => {
           //@ts-expect-error
-          Ajax().Metrics.captureEvent(Events.analysisPreviewSuccess, { fileName: blobName, fileType: getAnalysisFileExtension(blobName), cloudProvider: cloudProviderTypes.AZURE })
+          Ajax().Metrics.captureEvent(Events.analysisPreviewSuccess, { fileName: blobName, fileType: getAnalysisFileExtension(blobName), cloudPlatform: cloudProviderTypes.AZURE })
           return res.text()
         })
           .catch(res => {
             //@ts-expect-error
-            Ajax().Metrics.captureEvent(Events.analysisPreviewFail, { fileName: blobName, fileType: getAnalysisFileExtension(blobName), cloudProvider: cloudProviderTypes.AZURE, errorText: res.statusText })
+            Ajax().Metrics.captureEvent(Events.analysisPreviewFail, { fileName: blobName, fileType: getAnalysisFileExtension(blobName), cloudPlatform: cloudProviderTypes.AZURE, errorText: res.statusText })
             throw res
           })
       },
