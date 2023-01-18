@@ -15,14 +15,14 @@ import { useOnMount } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { cloudProviderLabels } from 'src/libs/workspace-utils'
+import { cloudPlatformLabels } from 'src/libs/workspace-utils'
 import { SearchAndFilterComponent } from 'src/pages/library/common'
 
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 const sidebarSections = [{
   name: 'Cloud Platform',
-  labels: [cloudProviderLabels.GCP, cloudProviderLabels.AZURE],
+  labels: [cloudPlatformLabels.GCP, cloudPlatformLabels.AZURE],
 }, {
   name: 'Getting Started',
   labels: ['Workflow Tutorials', 'Notebook Tutorials', 'Data Tutorials', 'RStudio Tutorials', 'Galaxy Tutorials']
@@ -103,9 +103,9 @@ const Showcase = () => {
 
         // Add cloud provider tag to allow filtering by cloud provider.
         if (workspace.cloudPlatform === 'Azure') {
-          tags.push(_.toLower(cloudProviderLabels.AZURE))
+          tags.push(_.toLower(cloudPlatformLabels.AZURE))
         } else if (workspace.cloudPlatform === 'Gcp') {
-          tags.push(_.toLower(cloudProviderLabels.GCP))
+          tags.push(_.toLower(cloudPlatformLabels.GCP))
         }
 
         return _.set('tags.items', tags, workspace)

@@ -18,7 +18,7 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, usePollingEffect } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-import { cloudProviderLabels } from 'src/libs/workspace-utils'
+import { cloudPlatformLabels } from 'src/libs/workspace-utils'
 import { commonStyles } from 'src/pages/library/common'
 import {
   DatasetAccess,
@@ -59,8 +59,8 @@ const MetadataDetailsComponent = ({ dataObj, name }) => {
         _.map(
           ({ cloudPlatform }) => div({ key: cloudPlatform }, [
             Utils.switchCase(cloudPlatform,
-              ['gcp', () => h(GcpLogo, { title: cloudProviderLabels.GCP, ...styles.cloudIconProps })],
-              ['azure', () => h(AzureLogo, { title: cloudProviderLabels.AZURE, ...styles.cloudIconProps })]
+              ['gcp', () => h(GcpLogo, { title: cloudPlatformLabels.GCP, ...styles.cloudIconProps })],
+              ['azure', () => h(AzureLogo, { title: cloudPlatformLabels.AZURE, ...styles.cloudIconProps })]
             )
           ]),
           _.uniqBy('cloudPlatform', dataObj.storage)

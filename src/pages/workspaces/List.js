@@ -3,7 +3,7 @@ import _ from 'lodash/fp'
 import { useEffect, useMemo, useState } from 'react'
 import { div, h, p, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
+import { CloudPlatformIcon } from 'src/components/CloudPlatformIcon'
 import Collapse from 'src/components/Collapse'
 import { IdContainer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -31,7 +31,7 @@ import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
+import { getCloudPlatformFromWorkspace } from 'src/libs/workspace-utils'
 import { isGcpContext } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { UnboundDiskNotification, V1WorkspaceNotification } from 'src/pages/workspaces/workspace/Dashboard'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
@@ -357,7 +357,7 @@ export const WorkspaceList = () => {
             const workspace = sortedWorkspaces[rowIndex]
             return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
               div({ style: styles.tableCellContent }, [
-                h(CloudProviderIcon, { cloudProvider: getCloudProviderFromWorkspace(workspace) })
+                h(CloudPlatformIcon, { cloudProvider: getCloudPlatformFromWorkspace(workspace) })
               ])
             ])
           },

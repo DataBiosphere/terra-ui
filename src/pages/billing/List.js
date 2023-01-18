@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
-import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
+import { CloudPlatformIcon } from 'src/components/CloudPlatformIcon'
 import Collapse from 'src/components/Collapse'
 import { ButtonOutline, ButtonPrimary, Clickable, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -21,13 +21,13 @@ import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { isCloudProvider } from 'src/libs/workspace-utils'
+import { isCloudPlatform } from 'src/libs/workspace-utils'
 import CreateAzureBillingProjectModal from 'src/pages/billing/CreateAzureBillingProjectModal'
 import CreateGCPBillingProject from 'src/pages/billing/CreateGCPBillingProject'
 import CreateNewBillingProjectWizard from 'src/pages/billing/CreateNewBillingProjectWizard'
 import DeleteBillingProjectModal from 'src/pages/billing/DeleteBillingProjectModal'
 import ProjectDetail from 'src/pages/billing/Project'
-import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { cloudPlatforms } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
 
 
@@ -58,7 +58,7 @@ const CreateBillingProjectControl = ({ isAzurePreviewUser, showCreateProjectModa
   }
 
   if (!isAzurePreviewUser) {
-    return createButton(showCreateProjectModal, cloudProviders.gcp)
+    return createButton(showCreateProjectModal, cloudPlatforms.gcp)
   } else {
     return h(MenuTrigger, {
       side: 'bottom',
@@ -66,11 +66,11 @@ const CreateBillingProjectControl = ({ isAzurePreviewUser, showCreateProjectModa
       content: h(Fragment, [
         h(MenuButton, {
           'aria-haspopup': 'dialog',
-          onClick: () => showCreateProjectModal(cloudProviders.azure)
+          onClick: () => showCreateProjectModal(cloudPlatforms.azure)
         }, 'Azure Billing Project'),
         h(MenuButton, {
           'aria-haspopup': 'dialog',
-          onClick: () => showCreateProjectModal(cloudProviders.gcp)
+          onClick: () => showCreateProjectModal(cloudPlatforms.gcp)
         }, 'GCP Billing Project')
       ])
     }, [createButton()])
@@ -117,8 +117,8 @@ const BillingProjectActions = ({ project: { projectName }, loadProjects }) => {
 
 const ProjectListItem = ({ project, project: { projectName, roles, status, message, cloudPlatform }, loadProjects, isActive }) => {
   // Billing projects in an error status may have UNKNOWN for the cloudPlatform.
-  const cloudContextIcon = isCloudProvider(cloudPlatform) && div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
-    h(CloudProviderIcon, { cloudProvider: cloudPlatform })
+  const cloudContextIcon = isCloudPlatform(cloudPlatform) && div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
+    h(CloudPlatformIcon, { cloudProvider: cloudPlatform })
   ])
 
   const selectableProject = () => h(Clickable, {
@@ -303,7 +303,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const authorizeAndLoadAccounts = () => authorizeAccounts().then(loadAccounts)
 
   const showCreateProjectModal = async type => {
-    if (type === cloudProviders.azure) {
+    if (type === cloudPlatforms.azure) {
       setCreatingBillingProject(type)
     } else if (Auth.hasBillingScope()) {
       setCreatingBillingProject(type)
@@ -387,23 +387,23 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           ])
         ])
       ]),
-      creatingBillingProject === cloudProviders.gcp && h(NewBillingProjectModal, {
+      creatingBillingProject === cloudPlatforms.gcp && h(NewBillingProjectModal, {
         billingAccounts,
         loadAccounts,
         onDismiss: () => setCreatingBillingProject(null),
         onSuccess: billingProjectName => {
           Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
-            billingProjectName, cloudPlatform: cloudProviders.gcp.label
+            billingProjectName, cloudPlatform: cloudPlatforms.gcp.label
           })
           setCreatingBillingProject(null)
           loadProjects()
         }
       }),
-      creatingBillingProject === cloudProviders.azure && isAzurePreviewUser && h(CreateAzureBillingProjectModal, {
+      creatingBillingProject === cloudPlatforms.azure && isAzurePreviewUser && h(CreateAzureBillingProjectModal, {
         onDismiss: () => setCreatingBillingProject(null),
         onSuccess: billingProjectName => {
           Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
-            billingProjectName, cloudPlatform: cloudProviders.azure.label
+            billingProjectName, cloudPlatform: cloudPlatforms.azure.label
           })
           setCreatingBillingProject(null)
           loadProjects()
@@ -430,7 +430,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           billingAccounts,
           onSuccess: billingProjectName => {
             Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
-              billingProjectName, cloudPlatform: cloudProviders.gcp.label
+              billingProjectName, cloudPlatform: cloudPlatforms.gcp.label
             })
             setCreatingBillingProject(null)
             loadProjects()

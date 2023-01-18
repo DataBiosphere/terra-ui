@@ -500,13 +500,13 @@ export const getIsRuntimeBusy = runtime => {
 
 // NOTE: the label property is being compared to Ajax response values, so the label cannot be changed without
 // impacting code.
-export const cloudProviders = {
+export const cloudPlatforms = {
   azure: { label: 'AZURE' },
   gcp: { label: 'GCP' }
 }
 
-export const isGcpContext = ({ cloudProvider }) => cloudProvider === cloudProviders.gcp.label
-export const isAzureContext = ({ cloudProvider }) => cloudProvider === cloudProviders.azure.label
+export const isGcpContext = ({ cloudPlatform }) => cloudPlatform === cloudPlatforms.gcp.label
+export const isAzureContext = ({ cloudPlatform }) => cloudPlatform === cloudPlatforms.azure.label
 
 //TODO: fields isAppStatus? LeoLabel? isRuntimeStatus?
 export const runtimeStatuses = {

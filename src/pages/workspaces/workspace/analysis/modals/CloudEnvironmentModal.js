@@ -17,7 +17,7 @@ import * as Nav from 'src/libs/nav'
 import { useStore } from 'src/libs/react-utils'
 import { cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
+import { cloudPlatformTypes, getCloudPlatformFromWorkspace } from 'src/libs/workspace-utils'
 import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/AzureComputeModal'
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal'
@@ -29,7 +29,7 @@ import {
   isCurrentGalaxyDiskDetaching
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
-import { appTools, getAppType, getToolsToDisplayForCloudProvider, isAppToolLabel, isPauseSupported, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { appTools, getAppType, getToolsToDisplayForCloudPlatform, isAppToolLabel, isPauseSupported, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const titleId = 'cloud-env-modal'
@@ -43,7 +43,7 @@ export const CloudEnvironmentModal = ({
   const [busy, setBusy] = useState(false)
   const [errorRuntimeId, setErrorRuntimeId] = useState(undefined)
   const [errorAppId, setErrorAppId] = useState(undefined)
-  const cloudProvider = getCloudProviderFromWorkspace(workspace)
+  const cloudProvider = getCloudPlatformFromWorkspace(workspace)
   const cookieReady = useStore(cookieReadyStore)
   const currentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
 
@@ -84,7 +84,7 @@ export const CloudEnvironmentModal = ({
   })
 
   const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } },
-    _.map(tool => renderToolButtons(tool.label))(filterForTool ? [tools[filterForTool]] : getToolsToDisplayForCloudProvider(getCloudProviderFromWorkspace(workspace))) //TODO: We should have access to cloudProvider string.
+    _.map(tool => renderToolButtons(tool.label))(filterForTool ? [tools[filterForTool]] : getToolsToDisplayForCloudPlatform(getCloudPlatformFromWorkspace(workspace))) //TODO: We should have access to cloudProvider string.
   )
 
   const toolPanelStyles = {
@@ -394,8 +394,8 @@ export const CloudEnvironmentModal = ({
   )
 
   const getView = () => Utils.switchCase(cloudProvider,
-    [cloudProviderTypes.GCP, getGCPView],
-    [cloudProviderTypes.AZURE, getAzureView]
+    [cloudPlatformTypes.GCP, getGCPView],
+    [cloudPlatformTypes.AZURE, getAzureView]
   )
 
   const width = Utils.switchCase(viewMode,

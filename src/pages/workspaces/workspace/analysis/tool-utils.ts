@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { isCromwellAppVisible } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
-import { CloudProviderType } from 'src/libs/workspace-utils'
+import { CloudPlatformType } from 'src/libs/workspace-utils'
 import { Extension, getExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
 
 
@@ -94,7 +94,7 @@ export const tools: Record<ToolLabel, Tool> = {
 }
 
 //The order of the array is important, it decides the order in AnalysisModal.
-export const cloudRuntimeTools: Record<CloudProviderType, RuntimeTool[]> = {
+export const cloudRuntimeTools: Record<CloudPlatformType, RuntimeTool[]> = {
   GCP: [
     Jupyter,
     RStudio
@@ -104,7 +104,7 @@ export const cloudRuntimeTools: Record<CloudProviderType, RuntimeTool[]> = {
   ]
 }
 
-export const cloudAppTools: Record<CloudProviderType, AppTool[]> = {
+export const cloudAppTools: Record<CloudPlatformType, AppTool[]> = {
   GCP: [
     Galaxy,
     Cromwell
@@ -130,8 +130,8 @@ export const getPatternFromRuntimeTool = (toolLabel: RuntimeToolLabel): string =
   [toolLabels.JupyterLab, () => '.*\\.ipynb']
 )
 
-export const getToolsToDisplayForCloudProvider = (cloudProvider: CloudProviderType): Tool[] => _.remove((tool: Tool) => !!tool.isHidden)(
-  (cloudRuntimeTools[cloudProvider] as Tool[]).concat(cloudAppTools[cloudProvider] as Tool[]))
+export const getToolsToDisplayForCloudPlatform = (cloudPlatform: CloudPlatformType): Tool[] => _.remove((tool: Tool) => !!tool.isHidden)(
+  (cloudRuntimeTools[cloudPlatform] as Tool[]).concat(cloudAppTools[cloudPlatform] as Tool[]))
 
 export const toolToExtensionMap: Record<ToolLabel, Extension> = _.flow(
   _.filter('ext'),

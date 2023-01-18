@@ -27,7 +27,7 @@ import * as Style from 'src/libs/style'
 import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { billingRoles } from 'src/pages/billing/List'
-import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { cloudPlatforms } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
 const workspaceLastModifiedWidth = 150
@@ -134,9 +134,9 @@ const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, billingProject
       ]),
       isExpanded && div({ id, style: { ...workspaceCardStyles.row, padding: '0.5rem', border: `1px solid ${colors.light()}` } }, [
         div({ style: workspaceCardStyles.expandedInfoContainer }, [
-          billingProject.cloudPlatform === cloudProviders.gcp.label && h(ExpandedInfoRow, { title: 'Google Project', details: googleProject }),
-          billingProject.cloudPlatform === cloudProviders.gcp.label && h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccountDisplayName, errorMessage: billingAccountErrorMessage }),
-          billingProject.cloudPlatform === cloudProviders.azure.label && h(ExpandedInfoRow, { title: 'Resource Group ID', details: billingProject.managedAppCoordinates.managedResourceGroupId })
+          billingProject.cloudPlatform === cloudPlatforms.gcp.label && h(ExpandedInfoRow, { title: 'Google Project', details: googleProject }),
+          billingProject.cloudPlatform === cloudPlatforms.gcp.label && h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccountDisplayName, errorMessage: billingAccountErrorMessage }),
+          billingProject.cloudPlatform === cloudPlatforms.azure.label && h(ExpandedInfoRow, { title: 'Resource Group ID', details: billingProject.managedAppCoordinates.managedResourceGroupId })
         ])
       ])
     ])])
@@ -556,7 +556,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const billingAccountsOutOfDate = !(_.isEmpty(groups.error) && _.isEmpty(groups.updating))
   const getBillingAccountStatus = workspace => _.findKey(g => g.has(workspace), groups)
 
-  const isGcpProject = billingProject.cloudPlatform === cloudProviders.gcp.label
+  const isGcpProject = billingProject.cloudPlatform === cloudPlatforms.gcp.label
 
   const tabToTable = {
     workspaces: h(Fragment, [

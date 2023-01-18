@@ -1,17 +1,17 @@
 
-export type CloudProviderType = 'AZURE' | 'GCP'
-export const cloudProviderTypes: Record<CloudProviderType, CloudProviderType> = {
+export type CloudPlatformType = 'AZURE' | 'GCP'
+export const cloudPlatformTypes: Record<CloudPlatformType, CloudPlatformType> = {
   AZURE: 'AZURE',
   GCP: 'GCP'
 }
 
-export const cloudProviderLabels: Record<CloudProviderType, string> = {
+export const cloudPlatformLabels: Record<CloudPlatformType, string> = {
   AZURE: 'Microsoft Azure',
   GCP: 'Google Cloud Platform',
 }
 
-export const isCloudProvider = (x: unknown): x is CloudProviderType => {
-  return x as string in cloudProviderTypes
+export const isCloudPlatform = (x: unknown): x is CloudPlatformType => {
+  return x as string in cloudPlatformTypes
 }
 
 export interface BaseWorkspaceInfo {
@@ -59,4 +59,4 @@ export const isGoogleWorkspace = (workspace: BaseWorkspace): workspace is Google
   return isGoogleWorkspaceInfo(workspace.workspace)
 }
 
-export const getCloudProviderFromWorkspace = (workspace: BaseWorkspace): CloudProviderType => isAzureWorkspace(workspace) ? cloudProviderTypes.AZURE : cloudProviderTypes.GCP
+export const getCloudPlatformFromWorkspace = (workspace: BaseWorkspace): CloudPlatformType => isAzureWorkspace(workspace) ? cloudPlatformTypes.AZURE : cloudPlatformTypes.GCP

@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { authOpts, fetchOk, fetchWorkspaceManager } from 'src/libs/ajax/ajax-common'
 import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
-import { cloudProviderTypes } from 'src/libs/workspace-utils'
+import { cloudPlatformTypes } from 'src/libs/workspace-utils'
 import {
   AbsolutePath,
   AnalysisFile,
@@ -98,7 +98,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
       displayName: getDisplayName(notebook.name),
       fileName: getFileName(notebook.name),
       tool: toolLabels.Jupyter,
-      cloudProvider: cloudProviderTypes.AZURE
+      cloudProvider: cloudPlatformTypes.AZURE
     }), notebooks)
   },
 

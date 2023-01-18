@@ -18,7 +18,7 @@ import { FormLabel } from 'src/libs/forms'
 import { usePrevious, withDisplayName } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { BaseWorkspace, cloudProviderTypes, isGoogleWorkspaceInfo } from 'src/libs/workspace-utils'
+import { BaseWorkspace, cloudPlatformTypes, isGoogleWorkspaceInfo } from 'src/libs/workspace-utils'
 import { getFileName, useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/AzureComputeModal'
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
@@ -126,8 +126,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       [Utils.DEFAULT, renderSelectAnalysisBody])
 
     const getEnvironmentView = () => Utils.switchCase(cloudPlatform,
-      [cloudProviderTypes.GCP, getGCPEnvironmentView],
-      [cloudProviderTypes.AZURE, getAzureEnvironmentView]
+      [cloudPlatformTypes.GCP, getGCPEnvironmentView],
+      [cloudPlatformTypes.AZURE, getAzureEnvironmentView]
     )
 
     const getGCPEnvironmentView = () => Utils.switchCase(currentTool,

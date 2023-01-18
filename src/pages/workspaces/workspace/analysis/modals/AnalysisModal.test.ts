@@ -6,7 +6,7 @@ import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage'
 import { reportError } from 'src/libs/error'
-import { CloudProviderType, cloudProviderTypes } from 'src/libs/workspace-utils'
+import { CloudPlatformType, cloudPlatformTypes } from 'src/libs/workspace-utils'
 import {
   AbsolutePath,
   AnalysisFile,
@@ -68,7 +68,7 @@ jest.mock('src/pages/workspaces/workspace/analysis/file-utils', () => {
 
 const createFunc = jest.fn()
 
-const getTestFile = (abs: AbsolutePath, cloudProvider: CloudProviderType = cloudProviderTypes.GCP): AnalysisFile => ({
+const getTestFile = (abs: AbsolutePath, cloudProvider: CloudPlatformType = cloudPlatformTypes.GCP): AnalysisFile => ({
   name: abs,
   ext: '.ipynb' as Extension,
   displayName: getDisplayName(abs),

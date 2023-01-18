@@ -7,8 +7,8 @@ import { reportError } from 'src/libs/error'
 import { workspaceStore } from 'src/libs/state'
 import { ReadyState } from 'src/libs/type-utils/LoadedState'
 import {
-  CloudProviderType,
-  cloudProviderTypes
+  CloudPlatformType,
+  cloudPlatformTypes
 } from 'src/libs/workspace-utils'
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import {
@@ -38,7 +38,7 @@ jest.mock('src/libs/notifications', () => ({
 }))
 
 //TODO: test commons
-const getTestFile = (abs: AbsolutePath, cloudProvider: CloudProviderType = cloudProviderTypes.GCP): AnalysisFile => ({
+const getTestFile = (abs: AbsolutePath, cloudProvider: CloudPlatformType = cloudPlatformTypes.GCP): AnalysisFile => ({
   name: abs,
   ext: getExtension(abs),
   displayName: getDisplayName(abs),

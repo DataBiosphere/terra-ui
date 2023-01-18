@@ -9,7 +9,7 @@ import {
   GoogleStorageContract
 } from 'src/libs/ajax/GoogleStorage'
 import { errorWatcher } from 'src/libs/error.mock'
-import { CloudProviderType, cloudProviderTypes } from 'src/libs/workspace-utils'
+import { CloudPlatformType, cloudPlatformTypes } from 'src/libs/workspace-utils'
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import {
   AbsolutePath, AnalysisFile, getDisplayName, getExtension, getFileName, useAnalysisFiles
@@ -55,7 +55,7 @@ jest.mock('src/libs/error', () => {
   }
 })
 
-const getTestFile = (abs: AbsolutePath, cloudProvider: CloudProviderType = cloudProviderTypes.GCP): AnalysisFile => ({
+const getTestFile = (abs: AbsolutePath, cloudProvider: CloudPlatformType = cloudPlatformTypes.GCP): AnalysisFile => ({
   name: abs,
   ext: getExtension(abs),
   displayName: getDisplayName(abs),

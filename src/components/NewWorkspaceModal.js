@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, p, strong } from 'react-hyperscript-helpers'
-import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
+import { CloudPlatformIcon } from 'src/components/CloudPlatformIcon'
 import { ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
@@ -18,8 +18,8 @@ import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-import { cloudProviderLabels, isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
-import { cloudProviders, defaultLocation } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { cloudPlatformLabels, isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
+import { cloudPlatforms, defaultLocation } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
 
 
@@ -148,11 +148,11 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     return !!cloneWorkspace && bucketLocation !== sourceWorkspaceLocation
   }
 
-  const isAzureBillingProject = project => isCloudProviderBillingProject(project, cloudProviders.azure.label)
+  const isAzureBillingProject = project => isCloudPlatformBillingProject(project, cloudPlatforms.azure.label)
 
-  const isGoogleBillingProject = project => isCloudProviderBillingProject(project, cloudProviders.gcp.label)
+  const isGoogleBillingProject = project => isCloudPlatformBillingProject(project, cloudPlatforms.gcp.label)
 
-  const isCloudProviderBillingProject = (project, cloudProvider) => getProjectCloudPlatform(project) === cloudProvider
+  const isCloudPlatformBillingProject = (project, cloudPlatform) => getProjectCloudPlatform(project) === cloudPlatform
 
   const getProjectCloudPlatform = project => {
     if (project === undefined) {
@@ -242,12 +242,12 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           onChange: ({ value }) => setNamespace(value),
           styles: { option: provided => ({ ...provided, padding: 10 }) },
           options: _.map(({ projectName, invalidBillingAccount, cloudPlatform }) => ({
-            'aria-label': `${cloudProviderLabels[cloudPlatform]} ${projectName}${ariaInvalidBillingAccountMsg(invalidBillingAccount)}`,
+            'aria-label': `${cloudPlatformLabels[cloudPlatform]} ${projectName}${ariaInvalidBillingAccountMsg(invalidBillingAccount)}`,
             label: h(TooltipTrigger, {
               content: invalidBillingAccount && invalidBillingAccountMsg, side: 'left'
             },
             [div({ style: { display: 'flex', alignItems: 'center' } },
-              [h(CloudProviderIcon, { key: projectName, cloudProvider: cloudPlatform, style: { marginRight: '0.5rem' } }), projectName]
+              [h(CloudPlatformIcon, { key: projectName, cloudPlatform, style: { marginRight: '0.5rem' } }), projectName]
             )]),
             value: projectName,
             isDisabled: invalidBillingAccount

@@ -3,22 +3,22 @@ import { h } from 'react-hyperscript-helpers'
 import { ReactComponent as CloudAzureLogo } from 'src/images/cloud_azure_icon.svg'
 // @ts-expect-error
 import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg'
-import { cloudProviderLabels, CloudProviderType } from 'src/libs/workspace-utils'
+import { cloudPlatformLabels, CloudPlatformType } from 'src/libs/workspace-utils'
 
 
-type CloudProviderIconProps = {
-  cloudProvider: CloudProviderType
+type CloudPlatformIconProps = {
+  cloudPlatform: CloudPlatformType
 } & JSX.IntrinsicElements['svg']
 
-export const CloudProviderIcon = ({ cloudProvider, ...props }: CloudProviderIconProps) => {
+export const CloudPlatformIcon = ({ cloudPlatform, ...props }: CloudPlatformIconProps) => {
   const icon = {
     AZURE: CloudAzureLogo,
     GCP: CloudGcpLogo,
-  }[cloudProvider]
+  }[cloudPlatform]
 
   return h(icon, {
     role: 'img',
-    title: cloudProviderLabels[cloudProvider],
+    title: cloudPlatformLabels[cloudPlatform],
     ...props,
   })
 }

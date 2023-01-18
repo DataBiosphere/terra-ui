@@ -9,7 +9,7 @@ import LoadedState from 'src/libs/type-utils/LoadedState'
 import { NominalType } from 'src/libs/type-utils/type-helpers'
 import * as Utils from 'src/libs/utils'
 import {
-  CloudProviderType,
+  CloudPlatformType,
   isGoogleWorkspaceInfo,
   WorkspaceWrapper
 } from 'src/libs/workspace-utils'
@@ -45,7 +45,7 @@ export interface AnalysisFile {
   fileName: FileName
   lastModified: number
   tool: ToolLabel
-  cloudProvider: CloudProviderType
+  cloudProvider: CloudPlatformType
   // We only populate this for google files to handle file syncing
   // If there is a differentiation for Azure, we should add sub-types
   metadata?: AnalysisFileMetadata

@@ -5,7 +5,7 @@ import { canUseWorkspaceProject } from 'src/libs/ajax/Billing'
 import { getConfig } from 'src/libs/config'
 import { getUser, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { cloudProviderTypes } from 'src/libs/workspace-utils'
+import { cloudPlatformTypes } from 'src/libs/workspace-utils'
 import {
   AbsolutePath,
   AnalysisFile,
@@ -192,7 +192,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
           fileName: getFileName(name),
           tool: getToolLabelFromFileExtension(getExtension(name)) as ToolLabel,
           lastModified: new Date(updated).getTime(),
-          cloudProvider: cloudProviderTypes.GCP,
+          cloudProvider: cloudPlatformTypes.GCP,
           metadata
         }
       }),

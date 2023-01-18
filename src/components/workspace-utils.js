@@ -3,7 +3,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, div, h, p, span } from 'react-hyperscript-helpers'
 import { ClipboardButton } from 'src/components/ClipboardButton'
-import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
+import { CloudPlatformIcon } from 'src/components/CloudPlatformIcon'
 import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import DelayedRender from 'src/components/DelayedRender'
 import { icon, spinner } from 'src/components/icons'
@@ -24,7 +24,7 @@ import { useCancellation, useInstance, useOnMount, useStore, withDisplayName } f
 import { workspacesStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
+import { getCloudPlatformFromWorkspace } from 'src/libs/workspace-utils'
 import validate from 'validate.js'
 
 
@@ -482,7 +482,7 @@ export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadi
             status: submissionStatus,
             loadingSubmissionStats
           }),
-          h(CloudProviderIcon, { cloudProvider: getCloudProviderFromWorkspace(workspace), style: { marginLeft: 5 } })
+          h(CloudPlatformIcon, { cloudProvider: getCloudPlatformFromWorkspace(workspace), style: { marginLeft: 5 } })
         ])
       ])
     ])

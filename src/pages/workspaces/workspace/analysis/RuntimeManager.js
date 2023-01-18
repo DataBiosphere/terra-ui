@@ -17,7 +17,7 @@ import { useOnMount, usePrevious } from 'src/libs/react-utils'
 import { errorNotifiedApps, errorNotifiedRuntimes } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { appLauncherTabName, GalaxyLaunchButton, GalaxyWarning } from 'src/pages/workspaces/workspace/analysis/runtime-common'
-import { cloudProviders, getCurrentApp, getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { cloudPlatforms, getCurrentApp, getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { appTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
@@ -30,7 +30,7 @@ export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
     withErrorReporting('Could Not Retrieve Cloud Environment Error Info'),
     Utils.withBusyState(setLoadingRuntimeDetails)
   )(async () => {
-    const { errors: runtimeErrors } = runtime.cloudContext.cloudProvider === cloudProviders.azure.label ?
+    const { errors: runtimeErrors } = runtime.cloudContext.cloudProvider === cloudPlatforms.azure.label ?
       await Ajax().Runtimes.runtimeV2(runtime.workspaceId, runtime.runtimeName).details() :
       await Ajax().Runtimes.runtime(runtime.googleProject, runtime.runtimeName).details()
     if (_.some(({ errorMessage }) => errorMessage.includes('Userscript failed'), runtimeErrors)) {
