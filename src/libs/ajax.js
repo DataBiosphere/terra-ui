@@ -1046,7 +1046,7 @@ export const Ajax = signal => {
 // Exposing Ajax for use by integration tests (and debugging, or whatever)
 window.Ajax = Ajax
 
-// Pulling Ajax from context allows overriding for usage outside of Terra UI.
+// Pulling Ajax from context allows replacing for usage outside of Terra UI.
 export const ajaxContext = createContext(Ajax)
 
-export const useAjax = () => useContext(ajaxContext)
+export const useReplaceableAjax = () => useContext(ajaxContext)
