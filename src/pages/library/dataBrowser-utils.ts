@@ -4,7 +4,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { ButtonOutline } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
-import { DataCollection, DatasetResponse } from 'src/libs/ajax/Catalog'
+import { DataCollection, Dataset } from 'src/libs/ajax/Catalog'
 import { getEnabledBrand } from 'src/libs/brand-utils'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -14,15 +14,6 @@ import * as Utils from 'src/libs/utils'
 import { commonStyles } from 'src/pages/library/common'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
-// This type should change when we fix tags to be specific to the type
-interface Tags {
-  itemsType: string
-  items: string
-}
-
-export interface Dataset extends DatasetResponse {
-  tags: Tags
-}
 
 export type DatasetAccessType =
     'Controlled' |
@@ -64,29 +55,29 @@ export const makeDatasetReleasePolicyDisplayInformation = dataUsePermission => {
   ])
 }
 
-export const isExternal = (dataset: DatasetResponse) => Utils.cond(
+export const isExternal = (dataset: Dataset) => Utils.cond(
   [isWorkspace(dataset), () => false],
   [isDatarepoSnapshot(dataset), () => false],
   () => true) as boolean
 
 export const workspaceUrlFragment = '/#workspaces/'
 
-export const isWorkspace = (dataset: DatasetResponse) => {
+export const isWorkspace = (dataset: Dataset) => {
   return _.toLower(dataset['dcat:accessURL']).includes(workspaceUrlFragment)
 }
 
 export const datarepoSnapshotUrlFragment = '/snapshots/details/'
 
-export const isDatarepoSnapshot = (dataset: DatasetResponse) => {
+export const isDatarepoSnapshot = (dataset: Dataset) => {
   return _.toLower(dataset['dcat:accessURL']).includes(datarepoSnapshotUrlFragment)
 }
 
-export const getConsortiumTitlesFromDataset = (dataset: DatasetResponse): string[] => _.flow(
+export const getConsortiumTitlesFromDataset = (dataset: Dataset): string[] => _.flow(
   _.map((hasDataCollection: DataCollection) => hasDataCollection['dct:title']),
   _.compact
 )(dataset['TerraDCAT_ap:hasDataCollection'])
 
-export const getDataModalityListFromDataset = (dataset: DatasetResponse): string[] => _.flow(
+export const getDataModalityListFromDataset = (dataset: Dataset): string[] => _.flow(
   _.flatMap('TerraCore:hasDataModality'),
   _.sortBy(_.toLower),
   _.compact,
@@ -95,7 +86,7 @@ export const getDataModalityListFromDataset = (dataset: DatasetResponse): string
 )(dataset['prov:wasGeneratedBy'])
 
 
-export const getAssayCategoryListFromDataset = (dataset: DatasetResponse) => _.flow(
+export const getAssayCategoryListFromDataset = (dataset: Dataset) => _.flow(
   _.flatMap('TerraCore:hasAssayCategory'),
   _.sortBy(_.toLower),
   _.compact,
@@ -105,7 +96,7 @@ export const getAssayCategoryListFromDataset = (dataset: DatasetResponse) => _.f
 export const formatDatasetTime = (time: string | null) => !!time ? Utils.makeStandardDate(new Date(time)) : null
 
 // Return type should be decided by above
-export const getDatasetAccessType = (dataset: DatasetResponse) => Utils.cond(
+export const getDatasetAccessType = (dataset: Dataset) => Utils.cond(
   [isExternal(dataset), () => datasetAccessTypes.External],
   [dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner', () => datasetAccessTypes.Granted],
   () => datasetAccessTypes.Controlled)
@@ -162,32 +153,12 @@ export const DatasetAccess = ({ dataset }: DatasetAccessProps) => {
   ])
 }
 
-// These are used to match against by the filter
-const extractTags = (dataset: DatasetResponse): Tags => {
-  return {
-    itemsType: 'AttributeValue',
-    items: _.flow(_.flatten, _.toLower)([
-      getDatasetAccessType(dataset),
-      getConsortiumTitlesFromDataset(dataset),
-      dataset.samples?.species,
-      dataset.samples?.disease,
-      getAssayCategoryListFromDataset(dataset),
-      getDataModalityListFromDataset(dataset),
-      _.map('TerraCore:hasFileFormat', dataset.fileAggregate),
-      dataset['TerraDCAT_ap:hasDataUsePermission']
-    ]) as string
-  }
-}
 
-
-export const prepareDatasetsForDisplay = (datasets: DatasetResponse[], dataCollectionsToInclude: string[]): Dataset[] => {
-  const filteredDatasets = _.filter(dataCollectionsToInclude ?
+export const prepareDatasetsForDisplay = (datasets: Dataset[], dataCollectionsToInclude: string[]): Dataset[] => {
+  return _.filter(dataCollectionsToInclude ?
     dataset => _.intersection(dataCollectionsToInclude, _.map('dct:title', dataset['TerraDCAT_ap:hasDataCollection'])).length > 0 :
     _.constant(true),
   datasets)
-  return _.map(dataset => {
-    return { ...dataset, tags: extractTags(dataset) } as Dataset
-  }, filteredDatasets)
 }
 
 interface DataCatalog { dataCatalog: Dataset[]; refresh: () => void; loading: boolean }

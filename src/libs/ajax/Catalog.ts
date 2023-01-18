@@ -75,7 +75,7 @@ export interface Contributor {
   additionalInformation: any
 }
 
-export interface DatasetResponse {
+export interface Dataset {
   'TerraCore:id'?: string
   'dct:title': string
   'dct:description': string
@@ -107,7 +107,7 @@ export interface DatasetResponse {
 }
 
 export interface DatasetListResponse {
-  result: DatasetResponse[]
+  result: Dataset[]
 }
 
 export interface GetDatasetPreviewTableRequest {
