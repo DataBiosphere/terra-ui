@@ -99,6 +99,9 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
       onSuccess(await Utils.cond(
         [cloneWorkspace, async () => {
           const workspace = await Ajax().Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body)
+          if (!workspace.googleProject) {
+            Ajax().Apps.createAppV2(`wds-${workspace.workspaceId}`, workspace.workspaceId)
+          }
           const featuredList = await Ajax().FirecloudBucket.getFeaturedWorkspaces()
           Ajax().Metrics.captureEvent(Events.workspaceClone, {
             featured: _.some({ namespace: cloneWorkspace.workspace.namespace, name: cloneWorkspace.workspace.name }, featuredList),
