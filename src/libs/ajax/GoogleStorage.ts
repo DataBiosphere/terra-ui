@@ -299,13 +299,11 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
         return fetchOk(`${getConfig().calhounUrlRoot}/api/convert`,
           _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
         ).then(res => {
-          //@ts-expect-error
-          Ajax().Metrics.captureEvent(Events.analysisPreviewSuccess, { fileName: name, fileType: getAnalysisFileExtension(name), cloudPlatform: cloudProviderTypes.GCP })
+          Ajax().Metrics.captureEvent(Events.analysisPreviewSuccess, { fileName: name, fileType: getExtension(name), cloudPlatform: cloudProviderTypes.GCP })
           return res.text()
         })
           .catch(res => {
-          //@ts-expect-error
-            Ajax().Metrics.captureEvent(Events.analysisPreviewFail, { fileName: name, fileType: getAnalysisFileExtension(name), cloudPlatform: cloudProviderTypes.GCP, errorText: res.statusText })
+            Ajax().Metrics.captureEvent(Events.analysisPreviewFail, { fileName: name, fileType: getExtension(name), cloudPlatform: cloudProviderTypes.GCP, errorText: res.statusText })
             throw res
           })
       },
@@ -394,7 +392,14 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
         ).then(res => res.text())
         return fetchOk(`${getConfig().calhounUrlRoot}/${calhounPath}`,
           _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
-        ).then(res => res.text())
+        ).then(res => {
+          Ajax().Metrics.captureEvent(Events.analysisPreviewSuccess, { fileName: name, fileType: getExtension(toolLabel), cloudPlatform: cloudProviderTypes.GCP })
+          return res.text()
+        })
+          .catch(res => {
+            Ajax().Metrics.captureEvent(Events.analysisPreviewFail, { fileName: name, fileType: getExtension(toolLabel), cloudPlatform: cloudProviderTypes.GCP, errorText: res.statusText })
+            throw res
+          })
       },
 
       copy,

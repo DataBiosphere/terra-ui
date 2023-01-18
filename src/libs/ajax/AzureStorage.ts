@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { Ajax } from 'src/libs/ajax'
 import { authOpts, fetchOk, fetchWorkspaceManager } from 'src/libs/ajax/ajax-common'
 import { getConfig } from 'src/libs/config'
+import Events from 'src/libs/events'
 import * as Utils from 'src/libs/utils'
 import { cloudProviderTypes } from 'src/libs/workspace-utils'
 import {
@@ -161,12 +162,10 @@ export const AzureStorage = (signal?: AbortSignal) => ({
         return fetchOk(`${getConfig().calhounUrlRoot}/${calhounPath}`,
           _.mergeAll([authOpts(), { signal, method: 'POST', body: textFileContents }])
         ).then(res => {
-          //@ts-expect-error
           Ajax().Metrics.captureEvent(Events.analysisPreviewSuccess, { fileName: blobName, fileType: getAnalysisFileExtension(blobName), cloudPlatform: cloudProviderTypes.AZURE })
           return res.text()
         })
           .catch(res => {
-            //@ts-expect-error
             Ajax().Metrics.captureEvent(Events.analysisPreviewFail, { fileName: blobName, fileType: getAnalysisFileExtension(blobName), cloudPlatform: cloudProviderTypes.AZURE, errorText: res.statusText })
             throw res
           })
