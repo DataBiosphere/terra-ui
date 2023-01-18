@@ -71,7 +71,6 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
 
         if (destroyOld) {
           await rename()
-          // @ts-expect-error
           Ajax().Metrics.captureEvent(Events.notebookRename, {
             oldName: printName,
             newName,
@@ -79,7 +78,6 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
           })
         } else {
           await duplicate()
-          // @ts-expect-error
           Ajax().Metrics.captureEvent(Events.notebookCopy, {
             oldName: printName,
             newName,
