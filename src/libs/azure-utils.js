@@ -7,11 +7,10 @@ export const defaultAzureRegion = 'eastus'
 
 export const defaultAzureComputeConfig = {
   machineType: defaultAzureMachineType,
-  diskSize: defaultAzureDiskSize,
-  region: defaultAzureRegion
+  diskSize: defaultAzureDiskSize
 }
 
-//TODO: this should be fleshed out once azure region isn't limited to workspace region
+//TODO: this should be fleshed out once azure region isn't limited to workspace region. Remove this once all the references are gone.
 export const azureRegions = { eastus: { flag: '🇺🇸', label: 'East US' } }
 export const getRegionLabel = key => _.has(key, azureRegions) ? azureRegions[key].label : 'Unknown azure region'
 export const getRegionFlag = key => _.has(key, azureRegions) ? azureRegions[key].flag : '❓'

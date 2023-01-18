@@ -206,7 +206,6 @@ export const AzureComputeModalBase = ({
         }
 
         return Ajax().Runtimes.runtimeV2(workspaceId, Utils.generateRuntimeName()).create({
-          region: computeConfig.region,
           machineSize: computeConfig.machineType,
           labels: {
             saturnWorkspaceNamespace: namespace,
