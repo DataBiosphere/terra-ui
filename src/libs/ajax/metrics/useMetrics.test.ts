@@ -29,8 +29,8 @@ describe('useMetricsEvent', () => {
 
     // Act
     const renderedHook = renderHook(() => useMetricsEvent())
-    const logEvent = renderedHook.result.current
-    logEvent('hi there', { something: 'interesting' })
+    const { captureEvent } = renderedHook.result.current
+    captureEvent('hi there', { something: 'interesting' })
 
     // Assert
     expect(watchCaptureEvent).toBeCalledTimes(1)
