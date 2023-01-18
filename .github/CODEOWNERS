@@ -2,18 +2,21 @@
 # See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners#codeowners-syntax
 /src/libs/brand*.js @DataBiosphere/terra-cobranding
 /src/libs/colors.js @DataBiosphere/terra-cobranding
-/src/libs/ajax/Apps.js @DataBiosphere/interactive-analysis
-/src/libs/ajax/Runtimes.js @DataBiosphere/interactive-analysis
-/src/libs/ajax/AzureStorage.js @DataBiosphere/interactive-analysis
-/src/libs/ajax/GoogleStorage.js @DataBiosphere/interactive-analysis
+/src/libs/ajax/Apps.js @DataBiosphere/broad-interactive-analysis
+/src/libs/ajax/Runtimes.js @DataBiosphere/broad-interactive-analysis
+/src/libs/ajax/AzureStorage.js @DataBiosphere/broad-interactive-analysis
+/src/libs/ajax/GoogleStorage.js @DataBiosphere/broad-interactive-analysis
 /src/pages/LandingPage* @DataBiosphere/terra-cobranding
 /src/pages/billing/ @DataBiosphere/broadworkspaces
 /src/pages/workspaces/* @DataBiosphere/broadworkspaces
 /src/pages/workspaces/workspace/*Dashboard* @DataBiosphere/broadworkspaces
 /src/pages/workspaces/workspace/*Workspace* @DataBiosphere/broadworkspaces
-/src/pages/workspaces/workspace/analysis @DataBiosphere/interactive-analysis
+/src/pages/workspaces/workspace/analysis @DataBiosphere/broad-interactive-analysis
 /src/components/*Workspace* @DataBiosphere/broadworkspaces
 /src/components/workspace-utils* @DataBiosphere/broadworkspaces
 /integration-tests/tests/billing-projects.js @DataBiosphere/broadworkspaces
 /integration-tests/tests/janitor.js @DataBiosphere/broadworkspaces
 /integration-tests/tests/workspace-dashboard.js @DataBiosphere/broadworkspaces
+/integration-tests/tests/run-analysis.js @DataBiosphere/broad-interactive-analysis
+/integration-tests/tests/run-rstudio.js @DataBiosphere/broad-interactive-analysis
+/integration-tests/tests/analysis-context-bar.js @DataBiosphere/broad-interactive-analysis
