@@ -647,10 +647,11 @@ const WorkspaceData = _.flow(
   const editWorkspaceErrorMessage = Utils.editWorkspaceError(workspace)
   const canEditWorkspace = !editWorkspaceErrorMessage
 
+  const canUploadTsv = isGoogleWorkspace || (isAzureWorkspace && proxyUrlLoaded)
   return div({ style: styles.tableContainer }, [
     !entityMetadata ? spinnerOverlay : h(Fragment, [
       div({ style: { ...styles.sidebarContainer, width: sidebarWidth } }, [
-        div({
+        canUploadTsv && div({
           style: {
             display: 'flex', padding: '1rem 1.5rem',
             backgroundColor: colors.light(),
@@ -765,7 +766,7 @@ const WorkspaceData = _.flow(
                 ])
               }, sortedEntityPairs)
             ]),
-            isAzureWorkspace && h(DataTypeSection, {
+            isAzureWorkspace && proxyUrlLoaded && h(DataTypeSection, {
               title: 'Tables'
             }, [
               [
