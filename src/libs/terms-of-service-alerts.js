@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect } from 'react'
-import { h } from 'react-hyperscript-helpers'
+import { br, h } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -31,7 +31,7 @@ const getNewTermsOfServiceNeedsAcceptingAlert = async termsOfServiceState => {
     title: 'There is a new Terra Terms of Service.',
     message: h(Fragment, [
       h(Fragment, { key: 'customText' }, [gracePeriodText]),
-      h(Fragment, { key: 'lineBreak' }, [<br/>]),
+      h(Fragment, { key: 'lineBreak' }, [br()]),
       h(Link, { href: Nav.getLink('terms-of-service'), key: 'tosLink' }, 'Accept the new Terms of Service here.')
     ]),
     severity: 'error'
