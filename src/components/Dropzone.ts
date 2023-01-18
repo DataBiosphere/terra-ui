@@ -45,7 +45,7 @@ const Dropzone = ({ disabled = false, onDragOver, onDrop, onDragLeave, style = {
 
   return div(getRootProps({ tabIndex: -1, style: { ...style, ...(dragging ? activeStyle : {}) } }), [
     // the input is disabled by react-dropzone when noClick is true, which makes it drag only, so we couldn't even open it manually
-    input({ ...getInputProps({ disabled, 'aria-hidden': true }) }),
+    input({ ...getInputProps({ disabled, 'aria-hidden': true, 'data-testid': 'dropzone-upload' }) }),
     children({ dragging, openUploader, ...dropProps })
   ])
 }

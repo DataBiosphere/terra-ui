@@ -19,7 +19,7 @@ import {
   AnalysisDuplicatorProps
 } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
 import {
-  getToolFromFileExtension, ToolLabel, toolLabels
+  getToolLabelFromFileExtension, ToolLabel, toolLabels
 } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
@@ -31,10 +31,7 @@ jest.mock('src/components/Modal', () => {
 })
 
 jest.mock('src/libs/notifications', () => ({
-  notify: jest.fn((...args) => {
-    console.debug('######################### notify')/* eslint-disable-line */
-    console.debug({ method: 'notify', args: [...args] })/* eslint-disable-line */
-  })
+  notify: jest.fn()
 }))
 
 jest.mock('src/libs/ajax/GoogleStorage')
@@ -63,7 +60,7 @@ const getTestFile = (abs: AbsolutePath, cloudProvider: CloudProviderType = cloud
   ext: getExtension(abs),
   displayName: getDisplayName(abs),
   fileName: getFileName(abs),
-  tool: getToolFromFileExtension(getExtension(abs)) as ToolLabel,
+  tool: getToolLabelFromFileExtension(getExtension(abs)) as ToolLabel,
   lastModified: new Date().getTime(),
   cloudProvider
 })
@@ -87,7 +84,9 @@ describe('AnalysisDuplicator', () => {
     // Arrange
     asMockedFn(useAnalysisFiles).mockImplementation(() => ({
       refresh: () => Promise.resolve(),
-      loadedState: { state: [], status: 'Ready' }
+      loadedState: { state: [], status: 'Ready' },
+      create: () => Promise.resolve(),
+      pendingCreate: { status: 'Ready', state: true }
     }))
   })
 
@@ -122,6 +121,8 @@ describe('AnalysisDuplicator', () => {
     asMockedFn(useAnalysisFiles).mockImplementation(() => ({
       loadedState: { state: fileList, status: 'Ready' },
       refresh: () => Promise.resolve(),
+      create: () => Promise.resolve(),
+      pendingCreate: { status: 'Ready', state: true }
     }))
 
     // Act
