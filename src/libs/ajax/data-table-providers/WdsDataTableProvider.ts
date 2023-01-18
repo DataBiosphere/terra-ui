@@ -86,7 +86,7 @@ const getRelationParts = (val: unknown): string[] => {
 export const getWdsUrl = apps => {
   // look explicitly for an app named 'cbas-wds-default'. If found, use it, even if it isn't running
   // this handles the case where the user has explicitly shut down the app
-  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === 'cbas-wds-default')
+  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === 'cbas-wds-default' && app.status === 'RUNNING')
   if (namedApp.length === 1) {
     return namedApp[0].proxyUrls.wds
   }
