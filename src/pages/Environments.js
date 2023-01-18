@@ -12,7 +12,7 @@ import { FlexTable, HeaderCell, SimpleFlexTable, Sortable, TextCell } from 'src/
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { useWorkspaces } from 'src/components/workspace-utils'
-import { ajaxContext, useReplaceableAjax } from 'src/libs/ajax'
+import { useReplaceableAjax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportErrorAndRethrow, withErrorHandling, withErrorIgnoring, withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
@@ -882,8 +882,9 @@ export const Environments = ({ nav = undefined }) => {
   ])
 }
 
-// Temporary export here for ease of access to it when using the above component.
-export { ajaxContext }
+// Temporary export here for ease of access to it when using the above component from outside of
+// this repository.
+export { ajaxContext } from 'src/libs/ajax'
 
 const EnvironmentsPage = () => h(FooterWrapper, [
   h(TopBar, { title: 'Cloud Environments' }),
