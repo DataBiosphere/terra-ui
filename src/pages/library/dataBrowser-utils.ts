@@ -30,7 +30,6 @@ export type DatasetAccessType =
     'Pending' |
     'External'
 
-// What do we want to do here?
 export const datasetAccessTypes: Record<DatasetAccessType, DatasetAccessType> = {
   Controlled: 'Controlled',
   Granted: 'Granted',

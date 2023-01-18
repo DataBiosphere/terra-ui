@@ -8,11 +8,11 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
+import { commonStyles, SearchAndFilterComponentV2 } from 'src/pages/library/common'
 import {
   DatasetAccess,
   datasetAccessTypes, DatasetReleasePolicyDisplayInformation, formatDatasetTime, getAssayCategoryListFromDataset, getConsortiumTitlesFromDataset,
-  getDataModalityListFromDataset,
+  getDataModalityListFromDataset, getDatasetAccessType, getDatasetReleasePoliciesDisplayInformation,
   useDataCatalog
 } from 'src/pages/library/dataBrowser-utils'
 
@@ -40,47 +40,117 @@ const getUnique = (mapper, data) => _.flow(
   _.sortBy(_.toLower)
 )(data)
 
-// Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
-const extractCatalogFilters = dataCatalog => {
+const extractCatalogFiltersV2 = dataCatalog => {
   return [{
-    name: 'Access type',
-    labels: _.values(datasetAccessTypes),
-    labelRenderer: accessValue => {
-      const lowerKey = _.toLower(accessValue)
-      const iconKey = accessValue === datasetAccessTypes.Granted ? 'unlock' : 'lock'
-      return [div({ key: `access-filter-${lowerKey}`, style: { display: 'flex' } }, [
-        icon(iconKey, { style: { color: styles.access[lowerKey], marginRight: 5 } }),
-        div([accessValue])
-      ])]
-    }
+    header: 'Access type',
+    values: _.map(value => {
+      const lowerKey = _.toLower(value)
+      const iconKey = value === datasetAccessTypes.Granted ? 'unlock' : 'lock'
+      return {
+        matchBy: dataset => getDatasetAccessType(dataset) === value,
+        renderer: div({ key: `access-filter-${lowerKey}`, style: { display: 'flex' } }, [
+          icon(iconKey, { style: { color: styles.access[lowerKey], marginRight: 5 } }),
+          div([value])
+        ]),
+        value
+      }
+    }, _.values(datasetAccessTypes)),
   }, {
-    name: 'Consortium',
-    labels: getUnique(dataset => getConsortiumTitlesFromDataset(dataset), dataCatalog)
+    header: 'Consortium',
+    values: _.map(value => ({
+      matchBy: dataset => _.includes(value, getConsortiumTitlesFromDataset(dataset)),
+      value
+    }),
+    getUnique(dataset => getConsortiumTitlesFromDataset(dataset), dataCatalog)
+    )
   }, {
-    name: 'Data use policy',
-    labels: getUnique(dataset => dataset['TerraDCAT_ap:hasDataUsePermission'], dataCatalog),
-    labelRenderer: rawPolicy => {
-      return [div({ key: rawPolicy, style: { display: 'flex', flexDirection: 'column' } }, [
-        h(DatasetReleasePolicyDisplayInformation, { 'TerraDCAT_ap:hasDataUsePermission': rawPolicy })
-      ])]
-    }
+    header: 'Data use policy',
+    values: _.flow(
+      _.uniqWith(dataset => getDatasetReleasePoliciesDisplayInformation(dataset['TerraDCAT_ap:hasDataUsePermission']).label),
+      _.compact,
+      _.sortBy(value => _.toLower(getDatasetReleasePoliciesDisplayInformation(value['TerraDCAT_ap:hasDataUsePermission']).label)),
+      _.map(value => ({
+        matchBy: dataset => dataset['TerraDCAT_ap:hasDataUsePermission'] === value['TerraDCAT_ap:hasDataUsePermission'],
+        renderer: div({ key: getDatasetReleasePoliciesDisplayInformation(value['TerraDCAT_ap:hasDataUsePermission']).label, style: { display: 'flex', flexDirection: 'column' } }, [
+          h(DatasetReleasePolicyDisplayInformation, value)
+        ]),
+        value
+      }))
+    )(dataCatalog)
   }, {
-    name: 'Data modality',
-    labels: getUnique(dataset => getDataModalityListFromDataset(dataset), dataCatalog)
+    header: 'Data modality',
+    values: _.map(value => ({
+      matchBy: dataset => _.includes(value, getDataModalityListFromDataset(dataset)),
+      value
+    }), getUnique(dataset => getDataModalityListFromDataset(dataset), dataCatalog))
   }, {
-    name: 'Assay Category',
-    labels: getUnique(dataset => getAssayCategoryListFromDataset(dataset), dataCatalog)
+    header: 'Assay Category',
+    values: _.map(value => ({
+      matchBy: dataset => _.includes(value, getAssayCategoryListFromDataset(dataset)),
+      value
+    }), getUnique(dataset => getAssayCategoryListFromDataset(dataset), dataCatalog))
   }, {
-    name: 'File type',
-    labels: getUnique('dcat:mediaType', _.flatMap('files', dataCatalog))
+    header: 'File type',
+    values: _.map(value => ({
+      matchBy: dataset => _.includes(value, _.map(files => files['TerraCore:hasFileFormat'], dataset.fileAggregate)),
+      value
+    }), getUnique('dcat:mediaType', _.flatMap('files', dataCatalog)))
   }, {
-    name: 'Disease',
-    labels: getUnique('samples.disease', dataCatalog)
+    header: 'Disease',
+    labels: _.map(value => ({
+      matchBy: dataset => _.includes(value, dataset.samples.disease),
+      value
+    }), getUnique('samples.disease', dataCatalog))
   }, {
-    name: 'Species',
-    labels: getUnique('samples.genus', dataCatalog)
+    header: 'Species',
+    labels: _.map(value => ({
+      matchBy: dataset => _.includes(value, dataset.samples.species),
+      value
+    }), getUnique('samples.species', dataCatalog))
   }]
 }
+
+// Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
+// const extractCatalogFilters = dataCatalog => {
+//   return [{
+//     name: 'Access type',
+//     labels: _.values(datasetAccessTypes),
+//     labelRenderer: accessValue => {
+//       const lowerKey = _.toLower(accessValue)
+//       const iconKey = accessValue === datasetAccessTypes.Granted ? 'unlock' : 'lock'
+//       return [div({ key: `access-filter-${lowerKey}`, style: { display: 'flex' } }, [
+//         icon(iconKey, { style: { color: styles.access[lowerKey], marginRight: 5 } }),
+//         div([accessValue])
+//       ])]
+//     }
+//   }, {
+//     name: 'Consortium',
+//     labels: getUnique(dataset => getConsortiumTitlesFromDataset(dataset), dataCatalog)
+//   }, {
+//     name: 'Data use policy',
+//     labels: getUnique(dataset => dataset['TerraDCAT_ap:hasDataUsePermission'], dataCatalog),
+//     labelRenderer: rawPolicy => {
+//       return [div({ key: rawPolicy, style: { display: 'flex', flexDirection: 'column' } }, [
+//         h(DatasetReleasePolicyDisplayInformation, { 'TerraDCAT_ap:hasDataUsePermission': rawPolicy })
+//       ])]
+//     }
+//   }, {
+//     name: 'Data modality',
+//     labels: getUnique(dataset => getDataModalityListFromDataset(dataset), dataCatalog)
+//   }, {
+//     name: 'Assay Category',
+//     labels: getUnique(dataset => getAssayCategoryListFromDataset(dataset), dataCatalog)
+//   }, {
+//     name: 'File type',
+//     labels: getUnique('dcat:mediaType', _.flatMap('files', dataCatalog))
+//   }, {
+//     name: 'Disease',
+//     labels: getUnique('samples.disease', dataCatalog)
+//   }, {
+//     name: 'Species',
+//     labels: getUnique('samples.genus', dataCatalog)
+//   }]
+// }
 
 // All possible columns for the catalog's table view. The default columns shown are declared below in `Browser`.
 const allColumns = {
@@ -169,9 +239,9 @@ export const Browser = () => {
   const { dataCatalog, loading } = useDataCatalog()
 
   return h(Fragment, [
-    h(SearchAndFilterComponent, {
+    h(SearchAndFilterComponentV2, {
       getLowerName: dataset => _.toLower(dataset['dct:title']), getLowerDescription: dataset => _.toLower(dataset['dct:description']),
-      fullList: dataCatalog, sidebarSections: extractCatalogFilters(dataCatalog),
+      fullList: dataCatalog, sidebarSections: extractCatalogFiltersV2(dataCatalog),
       customSort: sort,
       searchType: 'Datasets',
       titleField: 'dct:title',

@@ -533,3 +533,290 @@ export const SearchAndFilterComponent = ({
     ])
   ])
 }
+
+const listItemsMatchForSectionEntry = (list, sectionEntry) => _.filter(listItem => sectionEntry.matchBy(listItem), list)
+
+const getMatchingDataForSection = (section, list) => {
+  return _.flow(
+    _.flatMap(sectionEntry => listItemsMatchForSectionEntry(list, sectionEntry)),
+    _.uniqWith(_.isEqual)
+  )(section.values)
+}
+
+const FilterSectionV2 = ({ values, filteredData, selectedSections, onFilterSelect }) => {
+  const [showAll, setShowAll] = useState(false)
+
+  return h(Fragment, [
+    _.map(sectionEntry => {
+      const numMatches = listItemsMatchForSectionEntry(filteredData, sectionEntry).length
+      const sectionChecked = _.filter(section => _.includes(sectionEntry, section.values), selectedSections).length > 0
+      return h(Clickable, {
+        'aria-checked': sectionChecked,
+        role: 'checkbox',
+        key: sectionEntry.value,
+        style: {
+          display: 'flex', alignItems: 'baseline', margin: '0.5rem 0',
+          paddingBottom: '0.5rem', borderBottom: `1px solid ${colors.dark(0.1)}`
+        },
+        onClick: () => onFilterSelect(sectionEntry)
+      }, [
+        div({ style: { lineHeight: '1.375rem', flex: 1 } }, [sectionEntry.renderer ? sectionEntry.renderer : sectionEntry.value]),
+        div({ style: styles.pill(sectionChecked) }, [numMatches, div({ className: 'sr-only' }, [' matches'])])
+      ])
+    }, values),
+    _.size(values) > numLabelsToRender && h(Link, {
+      style: { display: 'block', textAlign: 'center' },
+      onClick: () => { setShowAll(!showAll) }
+    }, ['See more']),
+    // TODO: Show All Modal
+    // showAll && h(FilterModal, { name, labels, setShowAll, onTagFilter, listDataByTag, lowerSelectedTags, filteredData })
+  ])
+}
+
+
+const SidebarV2 = ({ onSectionFilter, sections, selectedSections, filteredData }) => {
+  return div({ style: { display: 'flex', flexDirection: 'column' } }, [
+    _.map(section => {
+      const { keepCollapsed, header, values } = section
+
+      return keepCollapsed ?
+        h(Clickable, {
+          key: header,
+          onClick: () => onSectionFilter(section),
+          style: { ...styles.sidebarRow, ...styles.nav.navSection, ...styles.nav.title }
+        }, [
+          div({ style: { flex: 1 } }, [header]),
+          div({ style: styles.pill(_.includes(section, selectedSections)) }, [getMatchingDataForSection(section, filteredData)])
+        ]) :
+        h(Collapse, {
+          key: header,
+          style: styles.nav.navSection,
+          summaryStyle: styles.nav.title,
+          titleFirst: true, initialOpenState: true,
+          title: h(Fragment, [
+            span({ style: { fontWeight: 700 } }, [header]),
+            span({ style: { marginLeft: '0.5rem', fontWeight: 400 } }, [`(${_.size(values)})`])
+          ])
+        }, [
+          h(FilterSectionV2, { values, filteredData, selectedSections, onFilterSelect: sectionEntry => onSectionFilter(header, sectionEntry) })
+        ])
+    }, sections)
+  ])
+}
+
+export const SearchAndFilterComponentV2 = ({
+  fullList, sidebarSections, customSort, searchType, getLowerName, getLowerDescription,
+  titleField = 'name', descField = 'description', listView
+}) => {
+  const { query } = Nav.useRoute()
+  const searchFilter = query.filter || ''
+  const [selectedSections, setSelectedSections] = useState([])
+  const selectedTags = useMemo(() => qs.parse(query.selectedTags) || {}, [query])
+  const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
+  const filterRegex = new RegExp(`(${_.escapeRegExp(searchFilter)})`, 'i')
+
+  // intersect(unionAcross(section a), unionAcross(section b), unionAcross(section c)...)
+
+
+  const getFilteredDatasets = () => {
+    return selectedSections.length === 0 ?
+      fullList :
+      _.flow(
+        _.map(section => getMatchingDataForSection(section, fullList)),
+        _.over([_.first, _.tail]),
+        _.spread(_.reduce(_.intersectionWith(_.isEqual)))
+      )(selectedSections)
+  }
+
+  const datasetsShown = _.filter(item => _.includes(_.toLower(searchFilter), `${getLowerName(item)} ${getLowerDescription(item)}`), getFilteredDatasets())
+
+
+  const navigateToFilterAndSelection = ({ filter = searchFilter, tags = selectedTags } = {}) => {
+    const newSearch = qs.stringify({
+      ...query,
+      filter: filter || undefined,
+      selectedTags: tags || undefined
+    }, { addQueryPrefix: true })
+
+    if (newSearch !== Nav.history.location.search) {
+      Nav.history.replace({ search: newSearch })
+    }
+  }
+
+  const onSearchChange = filter => {
+    if (filter) {
+      // This method is already debounced, but we need to further debounce the event logging to
+      // prevent getting all the intermediate filter strings in the event logs.
+      debounceSearchEvent(filter)
+    }
+
+    navigateToFilterAndSelection({ filter })
+  }
+
+  // Trim items from the sidebar facets for which there aren't any search results
+  const sections = _.remove(section => _.isEmpty(getMatchingDataForSection(section, datasetsShown)), sidebarSections)
+
+
+  const getContext = _.flow(
+    _.split(filterRegex),
+    getContextualSuggestion,
+    _.map(item => _.toLower(item) === _.toLower(searchFilter) ? strong([item]) : item)
+  )
+
+  // const filteredData = useMemo(() => {
+  //   const filterByText = _.filter(item => _.includes(_.toLower(searchFilter), `${getLowerName(item)} ${getLowerDescription(item)}`))
+  //
+  //   const filterBySections = listData => {
+  //     if (_.isEmpty(selectedSections)) {
+  //       return listData
+  //     } else {
+  //       const tags = _.uniqBy(_.flatMap('tags', selectedSections))
+  //       return _.uniq(_.flatMap(tag => listDataByTag[tag], tags))
+  //     }
+  //   }
+  //
+  //   const filterByTags = (listData, tags = selectedTags) => {
+  //     if (_.isEmpty(tags) || !listData) {
+  //       return listData
+  //     } else {
+  //       const selectedDataByTag = _.map(
+  //         _.flow(
+  //           _.flatMap(lowerTag => _.intersectionBy(idField, listData, listDataByTag[lowerTag])),
+  //           _.uniqBy(idField)
+  //         ), tags
+  //       )
+  //
+  //       return _.reduce(
+  //         (acc, iter) => _.intersectionBy(idField, acc, iter),
+  //         _.head(selectedDataByTag),
+  //         _.tail(selectedDataByTag)
+  //       )
+  //     }
+  //   }
+  //
+  //   const sharedList = _.flow(
+  //     filterBySections,
+  //     filterByText
+  //   )(fullList)
+  //
+  //   return {
+  //     data: _.flow(
+  //       filterByTags,
+  //       customSort ? _.orderBy([customSort.field], [customSort.direction]) : _.orderBy([sort.field], [sort.direction])
+  //     )(sharedList),
+  //     facets: _.flow(
+  //       _.keys,
+  //       _.map(section => {
+  //         const reducedTags = _.omit(section, selectedTags)
+  //         const facetedSearchData = filterByTags(sharedList, reducedTags)
+  //         return [section, groupByFeaturedTags(facetedSearchData, sidebarSections)]
+  //       }),
+  //       _.fromPairs
+  //     )(selectedTags)
+  //   }
+  // }, [fullList, searchFilter, customSort, sort, listDataByTag, selectedTags, selectedSections, sidebarSections, idField, getLowerName, getLowerDescription])
+
+  return h(Fragment, [
+    div({
+      style: {
+        display: 'grid',
+        gridTemplateColumns: '19rem 1fr',
+        gridTemplateRows: 'auto 3rem',
+        gap: '2rem 1rem',
+        gridAutoFlow: 'column',
+        margin: '1rem 1rem 0',
+        alignItems: 'baseline'
+      }
+    }, [
+      h2({ style: { ...styles.sidebarRow } }, [
+        div({ style: styles.header }, [searchType]),
+        div({
+          style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)), role: 'status',
+          'aria-label': `${_.size(datasetsShown)} Results found`
+        }, [_.size(datasetsShown)])
+      ]),
+      div({ style: { ...styles.nav.title, display: 'flex', alignItems: 'baseline' } }, [
+        div({ style: { flex: 1, fontSize: '1.125rem', fontWeight: 600 } }, ['Filters']),
+        h(Link, {
+          onClick: () => {
+            setSelectedSections([])
+            navigateToFilterAndSelection({ tags: {} })
+          }
+        }, ['clear'])
+      ]),
+      div({ style: { display: 'flex', alignItems: 'center' } }, [
+        h(IdContainer, [id => h(Fragment, [
+          h(div, { id, className: 'sr-only' }, `Search ${searchType}`),
+          h(DelayedAutoCompleteInput, {
+            style: { borderRadius: 25, flex: '1 1 0' },
+            inputIcon: 'search',
+            openOnFocus: true,
+            value: searchFilter,
+            labelId: id,
+            placeholder: 'Search Name or Description',
+            itemToString: v => v[titleField],
+            onChange: onSearchChange,
+            suggestionFilter: _.curry((needle, listItem) => _.includes(_.toLower(needle), `${getLowerName(listItem)} ${getLowerDescription(listItem)}`)),
+            renderSuggestion: suggestion => {
+              return div({ style: { lineHeight: '1.75rem', padding: '0.375rem 0', borderBottom: `1px dotted ${colors.dark(0.7)}` } },
+                _.flow(
+                  _.split(filterRegex),
+                  _.map(item => _.toLower(item) === _.toLower(searchFilter) ? strong([item]) : item),
+                  maybeMatch => {
+                    return _.size(maybeMatch) < 2 ? [
+                      _.truncate({ length: 90 }, _.head(maybeMatch)),
+                      div({ style: { lineHeight: '1.5rem', marginLeft: '2rem' } }, [...getContext(suggestion[descField])])
+                    ] : maybeMatch
+                  }
+                )(suggestion[titleField])
+              )
+            },
+            suggestions: datasetsShown
+          })
+        ])]),
+        !customSort && h(IdContainer, [id => h(Fragment, [
+          label({
+            htmlFor: id,
+            style: { margin: '0 1ch 0 1rem', whiteSpace: 'nowrap' }
+          }, ['Sort by']),
+          h(Select, {
+            id,
+            isClearable: false,
+            isSearchable: false,
+            styles: { container: old => ({ ...old, flex: '0 0 content' }) },
+            value: sort,
+            onChange: ({ value }) => setSort(value),
+            options: [
+              { value: { field: 'created', direction: 'desc' }, label: 'most recent' },
+              { value: { field: 'name', direction: 'asc' }, label: 'alphabetical' }
+            ]
+          })
+        ])])
+      ]),
+      div({ style: { fontSize: '1rem', fontWeight: 600 } }, [searchFilter ? `Results For "${searchFilter}"` : 'All results'])
+    ]),
+    div({ style: { display: 'flex', margin: '0 1rem', height: '100%' } }, [
+      div({ style: { width: '19rem', flex: 'none' } }, [
+        h(SidebarV2, {
+          onSectionFilter: (header, sectionEntry) => {
+            const sectionSelected = _.findIndex(section => section.header === header, selectedSections)
+            if (sectionSelected !== -1) {
+              const sectionToAlter = selectedSections[sectionSelected]
+              const valuesSelected = _.xor([sectionEntry], sectionToAlter.values)
+              setSelectedSections(_.set(`[${sectionSelected}].values`, valuesSelected, selectedSections))
+            } else {
+              setSelectedSections(_.concat({ header, values: [sectionEntry] }, selectedSections))
+            }
+          },
+          sections,
+          selectedSections,
+          filteredData: datasetsShown,
+        })
+      ]),
+      div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
+        _.isEmpty(datasetsShown) ? div({ style: { margin: 'auto', textAlign: 'center' } }, ['No Results Found']) :
+          listView(datasetsShown)
+      ])
+    ])
+  ])
+}
