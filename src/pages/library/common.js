@@ -534,16 +534,47 @@ export const SearchAndFilterComponent = ({
   ])
 }
 
-const listItemsMatchForSectionEntry = (list, sectionEntry, matcher) => _.filter(listItem => matcher(listItem, sectionEntry), list)
+/**
+ * A function to get all data in a list for a specific filter item following the rules of the given matcher
+ * for the passed in appType for the passed in workspace name.
+ *
+ * @param {U} sectionEntry The value of this filterItem to match against
+ * @param {Function} matcher A function of signature (T, U) => boolean to test a list item against the section entry and determine if it matches or not
+ * @param {T[]} list The list of data to filter
+ * @returns {T[]} The list of all data that match the given entry
+ */
+const listItemsMatchForSectionEntry = (sectionEntry, matcher, list) => _.filter(listItem => matcher(listItem, sectionEntry), list)
 
+/**
+ * @typedef FilterSection
+ * @type {object}
+ * @property {string} header - the header for the section
+ * @property {Function} matchBy - a function of (T, U) => boolean to handle matching the section entries against list data
+ * @property {Function} renderer - how to render section entries
+ * @property {U[]} values - the list items for this filter section
+ */
+
+/**
+ * A function to get all data in a list for a filter section that returns the union of all data which matches any section entries
+ *
+ * @param {FilterSection} section The section to test against
+ * @param {T[]} list The list of data to filter
+ * @returns {T[]} The list of all data that match the given section
+ */
 const getMatchingDataForSection = (section, list) => {
   return _.flow(
-    _.flatMap(sectionEntry => listItemsMatchForSectionEntry(list, sectionEntry, section.matchBy)),
+    _.flatMap(sectionEntry => listItemsMatchForSectionEntry(sectionEntry, section.matchBy, list)),
     _.uniqWith(_.isEqual)
   )(section.values)
 }
 
-// intersect(unionAcross(section a), unionAcross(section b), unionAcross(section c)...)
+/**
+ * A function to get all data in a list that matches all given section entries
+ *
+ * @param {FilterSection[]} sections The section to test against
+ * @param {T[]} list The list of data to filter
+ * @returns {T[]} The list of all data that match the given section
+ */
 const getMatchingDataForSectionList = (sections, list) => {
   return sections.length === 0 ?
     list :
@@ -556,13 +587,16 @@ const getMatchingDataForSectionList = (sections, list) => {
 
 const FilterSectionV2 = ({ section, fullList, selectedSections, onFilterSelect }) => {
   const [showAll, setShowAll] = useState(false)
+  // We only want to show the count when compared against other sections because filtered data is unioned within a section
   const selectedSectionsWithoutSection = selectedSections ? _.remove(s => s.header === section.header, selectedSections) : []
   const itemsFilteredByOtherSections = selectedSectionsWithoutSection.length > 0 ? getMatchingDataForSectionList(selectedSectionsWithoutSection, fullList) : fullList
-  const valuesToShow = _.filter(sectionEntry => listItemsMatchForSectionEntry(itemsFilteredByOtherSections, sectionEntry, section.matchBy), section.values)
+  // We want to filter out values for which there are no entries. This is only really important for values that are not derived from
+  // the list data itself, like dataset access levels. However, because we don't differentiate between types of filters, we need to test all of them
+  const valuesToShow = _.filter(sectionEntry => _.size(listItemsMatchForSectionEntry(sectionEntry, section.matchBy, fullList)) > 0, section.values)
 
   return h(Fragment, [
     _.map(sectionEntry => {
-      const numMatches = listItemsMatchForSectionEntry(itemsFilteredByOtherSections, sectionEntry, section.matchBy).length
+      const numMatches = listItemsMatchForSectionEntry(sectionEntry, section.matchBy, itemsFilteredByOtherSections).length
       const sectionChecked = _.filter(section => _.includes(sectionEntry, section.values), selectedSections).length > 0
       return h(Clickable, {
         'aria-checked': sectionChecked,

@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { Fragment, useState, CSSProperties } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -100,17 +100,23 @@ const allColumns = {
   species: { title: 'Species', contents: row => _.join(', ', getUnique('samples.genus', { row })) }
 }
 
+interface ColumnSetting {
+  name: string,
+  key: string,
+  visible: boolean
+}
+
 // Columns are stored as a list of column key names in `cols` below. The column settings that the ColumnSelector dialog uses contains
 // the column title, key and a visible flag.
 //
 // These functions convert between the two formats.
 
 export const convertSettingsToCols = _.flow(
-  _.filter(columnSetting => columnSetting.visible),
+  _.filter((columnSetting: ColumnSetting) => columnSetting.visible),
   _.map(columnSetting => columnSetting.key)
 )
 
-export const convertColsToSettings = cols => _.flow(
+export const convertColsToSettings = (cols: string[]): ColumnSetting[] => _.flow(
   _.toPairs,
   _.map(([k, v]) => {
     return { name: v.title, key: k, visible: _.includes(k, cols) }
@@ -122,12 +128,12 @@ const DataBrowserTableComponent = ({ sort, setSort, cols, setCols, filteredList 
     'aria-label': 'dataset list',
     columns: [
       {
-        header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dct:title', onSort: setSort }, ['Dataset Name'])]),
+        header: div({ style: styles.table.header as CSSProperties }, [h(MiniSortable, { sort, field: 'dct:title', onSort: setSort }, ['Dataset Name'])]),
         size: { grow: 2.2 }, key: 'name'
       },
       ..._.map(columnKey => {
         return {
-          header: div({ style: styles.table.header },
+          header: div({ style: styles.table.header as CSSProperties },
             [h(MiniSortable, { sort, field: columnKey, onSort: setSort }, [allColumns[columnKey].title])]),
           size: { grow: 1 }, key: columnKey
         }
