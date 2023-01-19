@@ -39,6 +39,8 @@ const waitForAccessToWorkspaceBucket = async ({ page, billingProject, workspaceN
     const startTime = Date.now()
 
     const checks = [
+      // Get bucket metadata
+      () => window.Ajax().Buckets.checkBucketLocation(googleProject, bucketName),
       // List objects
       () => window.Ajax().Buckets.list(googleProject, bucketName, ''),
       // Create object
