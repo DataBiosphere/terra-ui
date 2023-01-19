@@ -159,12 +159,14 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
 
     const currentApps = {
       Galaxy: currentApp(toolLabels.Galaxy),
-      Cromwell: currentApp(toolLabels.Cromwell)
+      Cromwell: currentApp(toolLabels.Cromwell),
+      CromwellOnAzure: currentApp(toolLabels.CromwellOnAzure)
     }
 
     const appDisabledMessages = {
       Galaxy: 'You already have a Galaxy environment',
-      Cromwell: 'You already have a Cromwell instance'
+      Cromwell: 'You already have a Cromwell instance',
+      CromwellOnAzure: 'You already have a Cromwell instance or one is still being created'
     }
 
     const toolImages = {
@@ -172,7 +174,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       RStudio: img({ src: rstudioBioLogo, alt: 'Create new R file', style: _.merge(styles.image, { width: 207 }) }),
       JupyterLab: img({ src: jupyterLogoLong, alt: 'Create new notebook', style: _.merge(styles.image, { width: 111 }) }),
       Galaxy: img({ src: galaxyLogo, alt: 'Create new Galaxy app', style: _.merge(styles.image, { width: 139 }) }),
-      Cromwell: img({ src: cromwellImg, alt: 'Create new Cromwell app', style: styles.image })
+      Cromwell: img({ src: cromwellImg, alt: 'Create new Cromwell app', style: styles.image }),
+      CromwellOnAzure: img({ src: cromwellImg, alt: 'Create new Cromwell app', style: styles.image })
     }
 
     const runtimeToolButtons = availableRuntimeTools.map((runtimeTool => {
@@ -188,7 +191,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     }))
 
     const appToolButtons = availableAppTools.map((appTool => {
-      const currentApp = currentApps[appTool.label]
+      // for Public Preview disable the option to create a new Cromwell app in Azure
+      const currentApp = currentApps[appTool.label] || appTool.label === toolLabels.CromwellOnAzure
       return !appTool.isHidden ? h(Clickable, {
         style: { opacity: currentApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
           setCurrentToolObj(appTool)

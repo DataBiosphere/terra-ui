@@ -229,7 +229,7 @@ const ApplicationLauncher = _.flow(
     // We cannot attach the periodic cookie setter until we have a running runtime for azure, because the relay is not guaranteed to be ready until then
     !!azureContext && getConvertedRuntimeStatus(runtime) === 'Running' ? h(PeriodicAzureCookieSetter, { proxyUrl: runtime.proxyUrl }) : null,
     fileOutdatedOpen && h(FileOutdatedModal, { onDismiss: () => setFileOutdatedOpen(false), bucketName }),
-    _.includes(runtimeStatus, usableStatuses) && cookieReady ?
+    _.includes(runtimeStatus, usableStatuses) && cookieReady.readyForRuntime ?
       h(Fragment, [
         iframe({
           src: iframeSrc,

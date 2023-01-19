@@ -29,7 +29,7 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { isAzureWorkspace } from 'src/libs/workspace-utils'
+import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
 import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import { getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentPersistentDisk, getCurrentRuntime, getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
@@ -71,6 +71,7 @@ export const ContextBar = ({
     [toolLabels.Jupyter, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
     [toolLabels.Galaxy, () => img({ src: galaxyLogo, style: { height: 40, width: 40 }, alt: '' })],
     [toolLabels.Cromwell, () => img({ src: cromwellImg, style: { width: 45 }, alt: '' })],
+    [toolLabels.CromwellOnAzure, () => img({ src: cromwellImg, style: { width: 45 }, alt: '' })],
     [toolLabels.RStudio, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: '' })],
     [toolLabels.JupyterLab, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })]
   )
@@ -112,11 +113,13 @@ export const ContextBar = ({
 
   const getEnvironmentStatusIcons = () => {
     const galaxyApp = getCurrentApp(appTools.Galaxy.appType)(apps)
-    const cromwellApp = !tools.Cromwell.isHidden && getCurrentApp(appTools.Cromwell.appType)(apps)
+    const cromwellApp = !tools.Cromwell.isHidden && isGoogleWorkspace(workspace) && getCurrentApp(appTools.Cromwell.appType)(apps)
+    const cromwellOnAzureApp = !tools.CromwellOnAzure.isHidden && isAzureWorkspace(workspace) && getCurrentApp(appTools.CromwellOnAzure.appType)(apps)
     return h(Fragment, [
       ...(currentRuntime ? [getIconForTool(currentRuntimeTool, currentRuntime.status)] : []),
       ...(galaxyApp ? [getIconForTool(toolLabels.Galaxy, galaxyApp.status)] : []),
-      ...(cromwellApp ? [getIconForTool(toolLabels.Cromwell, cromwellApp.status)] : [])
+      ...(cromwellApp ? [getIconForTool(toolLabels.Cromwell, cromwellApp.status)] : []),
+      ...(cromwellOnAzureApp ? [getIconForTool(toolLabels.CromwellOnAzure, cromwellOnAzureApp.status)] : [])
     ])
   }
 

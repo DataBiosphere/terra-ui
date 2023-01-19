@@ -108,12 +108,13 @@ export const PeriodicCookieSetter = () => {
   return null
 }
 
-export const PeriodicAzureCookieSetter = ({ proxyUrl }) => {
+export const PeriodicAzureCookieSetter = ({ proxyUrl, forCromwell = false }) => {
   const signal = useCancellation()
   usePollingEffect(
     withErrorIgnoring(async () => {
       await Ajax(signal).Runtimes.azureProxy(proxyUrl).setAzureCookie()
-      azureCookieReadyStore.set(true)
+      if (forCromwell) azureCookieReadyStore.update(_.set('readyForCromwellApp', true))
+      else azureCookieReadyStore.update(_.set('readyForRuntime', true))
     }),
     { ms: 5 * 60 * 1000, leading: true }
   )

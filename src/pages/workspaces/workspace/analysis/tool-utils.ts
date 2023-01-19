@@ -1,12 +1,12 @@
 import _ from 'lodash/fp'
-import { isCromwellAppVisible } from 'src/libs/config'
+import { isCromwellAppVisible, isCromwellOnAzureAppVisible } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 import { CloudProviderType } from 'src/libs/workspace-utils'
 import { Extension, getExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
 
 
 export type RuntimeToolLabel = 'Jupyter' | 'RStudio' | 'JupyterLab'
-export type AppToolLabel = 'Galaxy' | 'Cromwell'
+export type AppToolLabel = 'Galaxy' | 'Cromwell' | 'CromwellOnAzure'
 export type MiscToolLabel = 'spark' | 'terminal'
 export type ToolLabel = RuntimeToolLabel | AppToolLabel | MiscToolLabel
 
@@ -17,12 +17,14 @@ export const toolLabels: Record<ToolLabel, ToolLabel> = {
   spark: 'spark',
   JupyterLab: 'JupyterLab',
   Galaxy: 'Galaxy',
-  Cromwell: 'Cromwell'
+  Cromwell: 'Cromwell',
+  CromwellOnAzure: 'CromwellOnAzure'
 }
 
 export const appToolLabelTypes: Record<AppToolLabel, AppToolLabel> = {
   Galaxy: 'Galaxy',
-  Cromwell: 'Cromwell'
+  Cromwell: 'Cromwell',
+  CromwellOnAzure: 'CromwellOnAzure'
 }
 
 export const isAppToolLabel = (x: ToolLabel): x is AppToolLabel => x in appToolLabelTypes
@@ -72,10 +74,14 @@ const JupyterLab: RuntimeTool = {
 const Galaxy: AppTool = { label: toolLabels.Galaxy, appType: 'GALAXY' }
 
 const Cromwell: AppTool = { label: toolLabels.Cromwell, appType: 'CROMWELL', isHidden: !isCromwellAppVisible(), isPauseUnsupported: true }
+const CromwellOnAzure: AppTool = { label: toolLabels.CromwellOnAzure, appType: 'CROMWELL', isHidden: !isCromwellOnAzureAppVisible(), isPauseUnsupported: true }
 
 export const appTools: Record<AppToolLabel, AppTool> = {
   Galaxy,
-  Cromwell
+  Cromwell,
+  // this can be combined with Cromwell app in the future(?). But for the first iteration it is simpler to have it separate
+  // so that its easy to display Cromwell card in Modal and also disable the Settings button.
+  CromwellOnAzure
 }
 
 export const runtimeTools: Record<RuntimeToolLabel, RuntimeTool> = {
@@ -109,7 +115,9 @@ export const cloudAppTools: Record<CloudProviderType, AppTool[]> = {
     Galaxy,
     Cromwell
   ],
-  AZURE: []
+  AZURE: [
+    CromwellOnAzure
+  ]
 }
 
 export interface ExtensionDisplay {
