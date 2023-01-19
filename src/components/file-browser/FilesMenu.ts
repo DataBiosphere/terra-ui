@@ -80,9 +80,11 @@ export const FilesMenu = (props: FilesMenuProps) => {
       onClick: () => setConfirmingDelete(true),
     }, [icon('trash'), ' Delete']),
 
-    // @ts-expect-error
     creatingNewDirectory && h(NameModal, {
       thing: 'Folder',
+      // @ts-expect-error
+      validator: /^[^\s/#*?\[\]]+$/, // eslint-disable-line no-useless-escape
+      validationMessage: 'Folder name may not contain spaces, forward slashes, or any of the following characters: # * ? [ ]',
       onDismiss: () => setCreatingNewDirectory(false),
       onSuccess: async ({ name }) => {
         setCreatingNewDirectory(false)
