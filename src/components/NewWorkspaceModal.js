@@ -96,10 +96,10 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
   }
 
   const create = async () => {
+    let workspace = null
     try {
       setCreateError(undefined)
       setCreating(true)
-
       const body = {
         namespace,
         name,
@@ -110,8 +110,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
       }
       onSuccess(await Utils.cond(
         [cloneWorkspace, async () => {
-          const workspace = await Ajax().Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body)
-          await createLeoApp(workspace)
+          workspace = await Ajax().Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body)
           const featuredList = await Ajax().FirecloudBucket.getFeaturedWorkspaces()
           Ajax().Metrics.captureEvent(Events.workspaceClone, {
             featured: _.some({ namespace: cloneWorkspace.workspace.namespace, name: cloneWorkspace.workspace.name }, featuredList),
@@ -123,14 +122,15 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           return workspace
         }],
         async () => {
-          const workspace = await Ajax().Workspaces.create(body)
+          workspace = await Ajax().Workspaces.create(body)
           Ajax().Metrics.captureEvent(Events.workspaceCreate, extractWorkspaceDetails(
             // Create response does not include cloudPlatform.
             _.merge(workspace, { cloudPlatform: getProjectCloudPlatform() }))
           )
-          await createLeoApp(workspace)
           return workspace
-        }))
+        })
+      )
+      await createLeoApp(workspace)
     } catch (error) {
       const { message } = await error.json()
       setCreating(false)
