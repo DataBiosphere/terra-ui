@@ -72,6 +72,6 @@ export const Apps = signal => ({
     }
     const res = fetchLeo(`api/apps/v2/${workspaceId}/${appName}`,
       _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
-    return res.json()
+    return res
   }
 })
