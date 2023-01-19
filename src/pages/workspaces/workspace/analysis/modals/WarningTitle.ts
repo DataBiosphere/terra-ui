@@ -12,7 +12,6 @@ export const WarningTitle = ({ children, iconSize = 36 }: WarningTitleProps) => 
   return div({ style: { display: 'flex', alignItems: 'center' } }, [
     icon('warning-standard', {
       size: iconSize,
-      // @ts-expect-error
       style: { color: colors.warning(), marginRight: '0.75rem' },
     }),
     children,

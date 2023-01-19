@@ -15,11 +15,15 @@ import { useOnMount } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { cloudProviderLabels } from 'src/libs/workspace-utils'
 import { SearchAndFilterComponent } from 'src/pages/library/common'
 
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 const sidebarSections = [{
+  name: 'Cloud Platform',
+  labels: [cloudProviderLabels.GCP, cloudProviderLabels.AZURE],
+}, {
   name: 'Getting Started',
   labels: ['Workflow Tutorials', 'Notebook Tutorials', 'Data Tutorials', 'RStudio Tutorials', 'Galaxy Tutorials']
 }, {
@@ -91,12 +95,21 @@ const Showcase = () => {
     const loadData = withErrorReporting('Error loading showcase', async () => {
       const showcase = await Ajax().FirecloudBucket.getShowcaseWorkspaces()
 
-      // Immediately lowercase the workspace tags so we don't have to think about it again.
-      // Also pre-compute lower name and description.
-      const featuredWorkspaces = _.map(workspace => ({
-        ...workspace,
-        tags: _.update(['items'], _.map(_.toLower), workspace.tags)
-      }), showcase)
+      const featuredWorkspaces = _.map(workspace => {
+        // SearchAndFilterComponent compares lowercased filters from the sidebar to
+        // unmodified tags. Thus, tags must be lowercased for SearchAndFilterComponent
+        // to work properly.
+        const tags = _.map(_.toLower, workspace.tags.items)
+
+        // Add cloud provider tag to allow filtering by cloud provider.
+        if (workspace.cloudPlatform === 'Azure') {
+          tags.push(_.toLower(cloudProviderLabels.AZURE))
+        } else if (workspace.cloudPlatform === 'Gcp') {
+          tags.push(_.toLower(cloudProviderLabels.GCP))
+        }
+
+        return _.set('tags.items', tags, workspace)
+      }, showcase)
 
       setFullList(featuredWorkspaces)
 

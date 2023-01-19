@@ -123,7 +123,6 @@ export const DatasetAccess = ({ dataset }: DatasetAccessProps) => {
         style: buttonStyle,
         onClick: () => {
           setRequestingAccess(true)
-          // @ts-expect-error
           Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
             id: dataset.id,
             title: dataset['dct:title']
@@ -139,7 +138,6 @@ export const DatasetAccess = ({ dataset }: DatasetAccessProps) => {
         href: dataset['dcat:accessURL'], target: '_blank'
       }, [
         div({ style: { fontSize: 12 } }, ['Externally managed']),
-        // @ts-expect-error
         icon('pop-out', { style: { marginLeft: 10 }, size: 16 })
       ])],
       [Utils.DEFAULT, () => div({ style: { color: commonStyles.access.granted, display: 'flex', alignItems: 'center' } }, [

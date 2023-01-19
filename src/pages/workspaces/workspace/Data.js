@@ -985,83 +985,84 @@ const WorkspaceData = _.flow(
       h(SidebarSeparator, { sidebarWidth, setSidebarWidth }),
       div({ style: styles.tableViewPanel }, [
         _.includes(selectedData?.type, [workspaceDataTypes.entities, workspaceDataTypes.entitiesVersion]) && h(DataTableFeaturePreviewFeedbackBanner),
-        Utils.switchCase(selectedData?.type,
-          [undefined, () => div({ style: { textAlign: 'center' } }, ['Select a data type from the navigation panel on the left'])],
-          [workspaceDataTypes.localVariables, () => h(LocalVariablesContent, {
-            workspace,
-            refreshKey
-          })],
-          [workspaceDataTypes.referenceData, () => h(ReferenceDataContent, {
-            key: selectedData.reference,
-            workspace,
-            referenceKey: selectedData.reference
-          })],
-          [workspaceDataTypes.bucketObjects, () => h(FileBrowser, {
-            style: { flex: '1 1 auto' },
-            controlPanelStyle: {
-              padding: '1rem',
-              background: colors.light(0.5)
-            },
-            workspace,
-            extraMenuItems: h(Link, {
-              href: `https://seqr.broadinstitute.org/workspace/${namespace}/${name}`,
-              style: { padding: '0.5rem' }
-            }, [icon('pop-out'), ' Analyze in Seqr']),
-            noticeForPrefix: prefix => prefix.startsWith(`${dataTableVersionsPathRoot}/`) ?
-              'Files in this folder are managed via data table versioning.' :
-              null,
-            shouldDisableEditForPrefix: prefix => prefix.startsWith(`${dataTableVersionsPathRoot}/`)
-          })],
-          [workspaceDataTypes.snapshot, () => h(SnapshotContent, {
-            key: refreshKey,
-            workspace,
-            snapshotDetails,
-            snapshotName: selectedData.snapshotName,
-            tableName: selectedData.tableName,
-            loadMetadata: () => loadSnapshotEntities(selectedData.snapshotName),
-            onUpdate: async newSnapshotName => {
-              await loadSnapshotMetadata()
-              setSelectedData({ type: workspaceDataTypes.snapshot, snapshotName: newSnapshotName })
-              forceRefresh()
-            },
-            onDelete: async () => {
-              await loadSnapshotMetadata()
-              setSelectedData(undefined)
-              forceRefresh()
-            }
-          })],
-          [workspaceDataTypes.entities, () => h(EntitiesContent, {
-            key: refreshKey,
-            workspace,
-            entityMetadata,
-            setEntityMetadata,
-            entityKey: selectedData.entityType,
-            activeCrossTableTextFilter,
-            loadMetadata,
-            deleteColumnUpdateMetadata,
-            forceRefresh
-          })],
-          [workspaceDataTypes.entitiesVersion, () => h(DataTableVersion, {
-            workspace,
-            version: selectedData.version,
-            onDelete: reportErrorAndRethrow('Error deleting version', async () => {
-              await deleteDataTableVersion(selectedData.version)
-              setSelectedData(undefined)
-            }),
-            onImport: reportErrorAndRethrow('Error importing version', async () => {
-              const { tableName } = await importDataTableVersion(selectedData.version)
-              await loadMetadata()
-              setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName })
-            })
-          })],
-          [workspaceDataTypes.wds, () => wdsDataTableProvider && proxyUrlLoaded && !_.isEmpty(wdsSchema) && h(WDSContent, {
-            key: refreshKey,
-            workspaceUUID: workspaceId,
-            workspace,
-            dataProvider: wdsDataTableProvider,
-            recordType: selectedData.entityType,
-            wdsSchema
-          })]
+        Utils.switchCase(selectedData?.type, [undefined, () => Utils.cond([wdsSchemaError && isAzureWorkspace, () => div({ style: { textAlign: 'center' } }, [icon('loadingSpinner'), ' The database that powers your data tables is unavailable. It may take a few minutes after initial workspace creation to be ready.'])],
+          () => div({ style: { textAlign: 'center' } }, ['Select a data type from the navigation panel on the left']),
+        )],
+        [workspaceDataTypes.localVariables, () => h(LocalVariablesContent, {
+          workspace,
+          refreshKey
+        })],
+        [workspaceDataTypes.referenceData, () => h(ReferenceDataContent, {
+          key: selectedData.reference,
+          workspace,
+          referenceKey: selectedData.reference
+        })],
+        [workspaceDataTypes.bucketObjects, () => h(FileBrowser, {
+          style: { flex: '1 1 auto' },
+          controlPanelStyle: {
+            padding: '1rem',
+            background: colors.light(0.5)
+          },
+          workspace,
+          extraMenuItems: h(Link, {
+            href: `https://seqr.broadinstitute.org/workspace/${namespace}/${name}`,
+            style: { padding: '0.5rem' }
+          }, [icon('pop-out'), ' Analyze in Seqr']),
+          noticeForPrefix: prefix => prefix.startsWith(`${dataTableVersionsPathRoot}/`) ?
+            'Files in this folder are managed via data table versioning.' :
+            null,
+          shouldDisableEditForPrefix: prefix => prefix.startsWith(`${dataTableVersionsPathRoot}/`)
+        })],
+        [workspaceDataTypes.snapshot, () => h(SnapshotContent, {
+          key: refreshKey,
+          workspace,
+          snapshotDetails,
+          snapshotName: selectedData.snapshotName,
+          tableName: selectedData.tableName,
+          loadMetadata: () => loadSnapshotEntities(selectedData.snapshotName),
+          onUpdate: async newSnapshotName => {
+            await loadSnapshotMetadata()
+            setSelectedData({ type: workspaceDataTypes.snapshot, snapshotName: newSnapshotName })
+            forceRefresh()
+          },
+          onDelete: async () => {
+            await loadSnapshotMetadata()
+            setSelectedData(undefined)
+            forceRefresh()
+          }
+        })],
+        [workspaceDataTypes.entities, () => h(EntitiesContent, {
+          key: refreshKey,
+          workspace,
+          entityMetadata,
+          setEntityMetadata,
+          entityKey: selectedData.entityType,
+          activeCrossTableTextFilter,
+          loadMetadata,
+          deleteColumnUpdateMetadata,
+          forceRefresh
+        })],
+        [workspaceDataTypes.entitiesVersion, () => h(DataTableVersion, {
+          workspace,
+          version: selectedData.version,
+          onDelete: reportErrorAndRethrow('Error deleting version', async () => {
+            await deleteDataTableVersion(selectedData.version)
+            setSelectedData(undefined)
+          }),
+          onImport: reportErrorAndRethrow('Error importing version', async () => {
+            const { tableName } = await importDataTableVersion(selectedData.version)
+            await loadMetadata()
+            setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName })
+          })
+        })],
+        [workspaceDataTypes.wds, () => wdsDataTableProvider && proxyUrlLoaded && !_.isEmpty(wdsSchema) && h(WDSContent, {
+          key: refreshKey,
+          workspaceUUID: workspaceId,
+          workspace,
+          dataProvider: wdsDataTableProvider,
+          recordType: selectedData.entityType,
+          wdsSchema
+        })]
         )
       ])
     ])
