@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
+import { createContext, useContext } from 'react'
 import {
   appIdentifier, authOpts, fetchAgora, fetchBond, fetchDataRepo, fetchDockstore,
   fetchDrsHub,
@@ -1044,3 +1045,11 @@ export const Ajax = signal => {
 
 // Exposing Ajax for use by integration tests (and debugging, or whatever)
 window.Ajax = Ajax
+
+// Experimental: Pulling Ajax from context allows replacing for usage outside of Terra UI.
+// https://github.com/DataBiosphere/terra-ui/pull/3669
+export const ajaxContext = createContext(Ajax)
+
+// Experimental: Pulling Ajax from context allows replacing for usage outside of Terra UI.
+// https://github.com/DataBiosphere/terra-ui/pull/3669
+export const useReplaceableAjaxExperimental = () => useContext(ajaxContext)

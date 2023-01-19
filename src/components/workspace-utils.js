@@ -12,7 +12,7 @@ import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { Ajax } from 'src/libs/ajax'
+import { Ajax, useReplaceableAjaxExperimental } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -32,11 +32,12 @@ export const useWorkspaces = () => {
   const signal = useCancellation()
   const [loading, setLoading] = useState(false)
   const workspaces = useStore(workspacesStore)
+  const ajax = useReplaceableAjaxExperimental()
   const refresh = _.flow(
     withErrorReporting('Error loading workspace list'),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const ws = await Ajax(signal).Workspaces.list([
+    const ws = await ajax(signal).Workspaces.list([
       'accessLevel', 'public', 'workspace', 'workspace.attributes.description', 'workspace.attributes.tag:tags', 'workspace.workspaceVersion'
     ])
     workspacesStore.set(ws)
