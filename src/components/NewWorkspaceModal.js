@@ -99,7 +99,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
       onSuccess(await Utils.cond(
         [cloneWorkspace, async () => {
           const workspace = await Ajax().Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body)
-          if (!workspace.googleProject) {
+          if (isAzureBillingProject()) {
             Ajax().Apps.createAppV2(`wds-${workspace.workspaceId}`, workspace.workspaceId)
           }
           const featuredList = await Ajax().FirecloudBucket.getFeaturedWorkspaces()
@@ -107,7 +107,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
             featured: _.some({ namespace: cloneWorkspace.workspace.namespace, name: cloneWorkspace.workspace.name }, featuredList),
             ...extractCrossWorkspaceDetails(cloneWorkspace, {
               // Clone response does not include cloudPlatform, cross-cloud cloning is not supported.
-              workspace: _.merge(workspace, { cloudPlatform: cloneWorkspace.workspace.cloudPlatform })
+              workspace: _.merge(workspace, { cloudPlatform: getProjectCloudPlatform() })
             })
           })
           return workspace
@@ -115,7 +115,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
         async () => {
           const workspace = await Ajax().Workspaces.create(body)
           // Only invoke Leo if we are within an Azure Workspace
-          if (!workspace.googleProject) {
+          if (isAzureBillingProject()) {
             Ajax().Apps.createAppV2(`wds-${workspace.workspaceId}`, workspace.workspaceId)
           }
           Ajax().Metrics.captureEvent(Events.workspaceCreate, extractWorkspaceDetails(
