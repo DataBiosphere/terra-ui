@@ -1046,7 +1046,10 @@ export const Ajax = signal => {
 // Exposing Ajax for use by integration tests (and debugging, or whatever)
 window.Ajax = Ajax
 
-// Pulling Ajax from context allows replacing for usage outside of Terra UI.
+// Experimental: Pulling Ajax from context allows replacing for usage outside of Terra UI.
+// https://github.com/DataBiosphere/terra-ui/pull/3669
 export const ajaxContext = createContext(Ajax)
 
-export const useReplaceableAjax = () => useContext(ajaxContext)
+// Experimental: Pulling Ajax from context allows replacing for usage outside of Terra UI.
+// https://github.com/DataBiosphere/terra-ui/pull/3669
+export const useReplaceableAjaxExperimental = () => useContext(ajaxContext)

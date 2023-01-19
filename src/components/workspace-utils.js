@@ -12,7 +12,7 @@ import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { Ajax, useReplaceableAjax } from 'src/libs/ajax'
+import { Ajax, useReplaceableAjaxExperimental } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -32,7 +32,7 @@ export const useWorkspaces = () => {
   const signal = useCancellation()
   const [loading, setLoading] = useState(false)
   const workspaces = useStore(workspacesStore)
-  const ajax = useReplaceableAjax()
+  const ajax = useReplaceableAjaxExperimental()
   const refresh = _.flow(
     withErrorReporting('Error loading workspace list'),
     Utils.withBusyState(setLoading)
