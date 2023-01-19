@@ -2,6 +2,7 @@
 # See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners#codeowners-syntax
 /src/libs/brand*.js @DataBiosphere/terra-cobranding
 /src/libs/colors.js @DataBiosphere/terra-cobranding
+/src/pages/Environments.js @DataBiosphere/broad-interactive-analysis
 /src/libs/ajax/Apps.js @DataBiosphere/broad-interactive-analysis
 /src/libs/ajax/Runtimes.js @DataBiosphere/broad-interactive-analysis
 /src/libs/ajax/AzureStorage.js @DataBiosphere/broad-interactive-analysis
