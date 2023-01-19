@@ -80,7 +80,7 @@ export const appTools: Record<AppToolLabel, AppTool> = {
   Galaxy,
   Cromwell,
   // this can be combined with Cromwell app in the future(?). But for the first iteration it is simpler to have it separate
-  // so that its easy to display Cromwell card in Modal and also disable the Settings button.
+  // so that its easy to display Cromwell card in Modal with disabled Settings button.
   CromwellOnAzure
 }
 

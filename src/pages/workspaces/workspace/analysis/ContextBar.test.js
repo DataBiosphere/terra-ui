@@ -315,7 +315,8 @@ const contextBarProps = {
   refreshApps: () => '',
   workspace: {
     workspace: {
-      namespace: 'namespace'
+      namespace: 'namespace',
+      cloudPlatform: 'Gcp'
     },
     namespace: 'Broad Test Workspace'
   }
