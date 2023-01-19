@@ -346,7 +346,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }
     }
 
-    const loadBucketLocation = withErrorReporting('Error loading bucket location', async (googleProject, bucketName) => {
+    const loadBucketLocation = withErrorIgnoring(async (googleProject, bucketName) => {
       if (!!googleProject) {
         const bucketLocation = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
         setBucketLocation(bucketLocation)
