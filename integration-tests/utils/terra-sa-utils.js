@@ -6,7 +6,7 @@ const { getSecrets, userEmail } = require('../utils/integration-config')
 const makeAuthClient = _.memoize((subject, { client_email: email, private_key: key }) => {
   return new JWT({
     email,
-    scopes: ['profile', 'email', 'openid'],
+    scopes: ['profile', 'email', 'openid', 'offline_access'],
     subject,
     key
   })

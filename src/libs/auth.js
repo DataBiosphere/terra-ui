@@ -38,7 +38,7 @@ export const getOidcConfig = () => {
     silent_redirect_uri: `${window.origin}/redirect-from-oauth-silent`,
     metadata,
     prompt: 'consent login',
-    scope: 'openid email profile',
+    scope: 'openid email profile offline_access',
     loadUserInfo: isGoogleAuthority(),
     stateStore: new WebStorageStateStore({ store: getLocalStorage() }),
     userStore: new WebStorageStateStore({ store: getLocalStorage() }),
@@ -46,7 +46,6 @@ export const getOidcConfig = () => {
     // Leo's setCookie interval is currently 5 min, set refresh auth then 5 min 30 seconds to gurantee that setCookie's token won't expire between 2 setCookie api calls
     accessTokenExpiringNotificationTimeInSeconds: 330,
     includeIdTokenInSilentRenew: true,
-    extraQueryParams: { access_type: 'offline' }
   }
 }
 
@@ -100,7 +99,7 @@ const getSigninArgs = includeBillingScope => {
     [isGoogleAuthority(), () => ({ scope: 'openid email profile https://www.googleapis.com/auth/cloud-billing' })],
     // For B2C switch to a dedicated policy endpoint configured for the GCP cloud-billing scope.
     () => ({
-      extraQueryParams: { access_type: 'offline', p: getConfig().b2cBillingPolicy },
+      extraQueryParams: { p: getConfig().b2cBillingPolicy },
       extraTokenParams: { p: getConfig().b2cBillingPolicy }
     })
   )
