@@ -83,6 +83,18 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     setIsAlphaRegionalityUser(await Ajax(signal).Groups.group(getConfig().alphaRegionalityGroup).isMember())
   })
 
+  const createLeoApp = async workspace => {
+    try {
+      if (isAzureBillingProject() && !getConfig().isProd) {
+        Ajax().Apps.createAppV2(`wds-${workspace.workspaceId}`, workspace.workspaceId)
+      }
+    } catch (error) {
+      const { message } = await error.json()
+      setCreating(false)
+      setCreateError(message)
+    }
+  }
+
   const create = async () => {
     try {
       setCreateError(undefined)
@@ -99,9 +111,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
       onSuccess(await Utils.cond(
         [cloneWorkspace, async () => {
           const workspace = await Ajax().Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body)
-          if (isAzureBillingProject() && !getConfig().isProd) {
-            Ajax().Apps.createAppV2(`wds-${workspace.workspaceId}`, workspace.workspaceId)
-          }
+          await createLeoApp(workspace)
           const featuredList = await Ajax().FirecloudBucket.getFeaturedWorkspaces()
           Ajax().Metrics.captureEvent(Events.workspaceClone, {
             featured: _.some({ namespace: cloneWorkspace.workspace.namespace, name: cloneWorkspace.workspace.name }, featuredList),
@@ -114,14 +124,11 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
         }],
         async () => {
           const workspace = await Ajax().Workspaces.create(body)
-          // Only invoke Leo if we are within an Azure Workspace
-          if (isAzureBillingProject() && !getConfig().isProd) {
-            Ajax().Apps.createAppV2(`wds-${workspace.workspaceId}`, workspace.workspaceId)
-          }
           Ajax().Metrics.captureEvent(Events.workspaceCreate, extractWorkspaceDetails(
             // Create response does not include cloudPlatform.
             _.merge(workspace, { cloudPlatform: getProjectCloudPlatform() }))
           )
+          await createLeoApp(workspace)
           return workspace
         }))
     } catch (error) {
