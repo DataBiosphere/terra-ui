@@ -83,23 +83,17 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     setIsAlphaRegionalityUser(await Ajax(signal).Groups.group(getConfig().alphaRegionalityGroup).isMember())
   })
 
-  const createLeoApp = async workspace => {
-    try {
-      if (isAzureBillingProject() && !getConfig().isProd) {
-        Ajax().Apps.createAppV2(`wds-${workspace.workspaceId}`, workspace.workspaceId)
-      }
-    } catch (error) {
-      const { message } = await error.json()
-      setCreating(false)
-      setCreateError(message)
+  const createLeoApp = withErrorReporting('Error starting Leo app', async workspace => {
+    if (isAzureBillingProject() && !getConfig().isProd) {
+      await Ajax().Apps.createAppV2(`wds-${workspace.workspaceId}`, workspace.workspaceId)
     }
-  }
+  })
 
   const create = async () => {
-    let workspace = null
     try {
       setCreateError(undefined)
       setCreating(true)
+
       const body = {
         namespace,
         name,
@@ -108,9 +102,9 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
         copyFilesWithPrefix: 'notebooks/',
         ...(!!bucketLocation && isGoogleBillingProject() && { bucketLocation })
       }
-      onSuccess(await Utils.cond(
+      const createdWorkspace = await Utils.cond(
         [cloneWorkspace, async () => {
-          workspace = await Ajax().Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body)
+          const workspace = await Ajax().Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body)
           const featuredList = await Ajax().FirecloudBucket.getFeaturedWorkspaces()
           Ajax().Metrics.captureEvent(Events.workspaceClone, {
             featured: _.some({ namespace: cloneWorkspace.workspace.namespace, name: cloneWorkspace.workspace.name }, featuredList),
@@ -122,15 +116,15 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           return workspace
         }],
         async () => {
-          workspace = await Ajax().Workspaces.create(body)
+          const workspace = await Ajax().Workspaces.create(body)
           Ajax().Metrics.captureEvent(Events.workspaceCreate, extractWorkspaceDetails(
             // Create response does not include cloudPlatform.
             _.merge(workspace, { cloudPlatform: getProjectCloudPlatform() }))
           )
           return workspace
         })
-      )
-      await createLeoApp(workspace)
+      onSuccess(createdWorkspace)
+      createLeoApp(createdWorkspace)
     } catch (error) {
       const { message } = await error.json()
       setCreating(false)
