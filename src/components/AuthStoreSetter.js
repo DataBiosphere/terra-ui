@@ -10,8 +10,6 @@ const AuthStoreSetter = () => {
   const auth = useAuth()
 
   useOnMount(() => authStore.update(_.set(['authContext'], auth)))
-
-
   useEffect(() => {
     const cleanupFns = [
       auth.events.addUserLoaded(user => processUser(user, true)),

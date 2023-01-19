@@ -46,6 +46,7 @@ export const getOidcConfig = () => {
     // Leo's setCookie interval is currently 5 min, set refresh auth then 5 min 30 seconds to gurantee that setCookie's token won't expire between 2 setCookie api calls
     accessTokenExpiringNotificationTimeInSeconds: 330,
     includeIdTokenInSilentRenew: true,
+    extraQueryParams: { access_type: 'offline' }
   }
 }
 
@@ -99,7 +100,7 @@ const getSigninArgs = includeBillingScope => {
     [isGoogleAuthority(), () => ({ scope: 'openid email profile https://www.googleapis.com/auth/cloud-billing' })],
     // For B2C switch to a dedicated policy endpoint configured for the GCP cloud-billing scope.
     () => ({
-      extraQueryParams: { p: getConfig().b2cBillingPolicy },
+      extraQueryParams: { access_type: 'offline', p: getConfig().b2cBillingPolicy },
       extraTokenParams: { p: getConfig().b2cBillingPolicy }
     })
   )
