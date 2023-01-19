@@ -3,6 +3,7 @@ import _ from 'lodash/fp'
 import { useEffect, useMemo, useState } from 'react'
 import { div, h, p, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
+import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
 import Collapse from 'src/components/Collapse'
 import { IdContainer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -19,10 +20,7 @@ import {
   NoWorkspacesMessage, recentlyViewedPersistenceId, RecentlyViewedWorkspaceCard, useWorkspaces, WorkspaceStarControl, WorkspaceSubmissionStatusIcon,
   WorkspaceTagSelect
 } from 'src/components/workspace-utils'
-import { ReactComponent as CloudAzureLogo } from 'src/images/cloud_azure_icon.svg'
-import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg'
 import { Ajax } from 'src/libs/ajax'
-import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
@@ -33,7 +31,8 @@ import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { cloudProviders, isGcpContext } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
+import { isGcpContext } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { UnboundDiskNotification, V1WorkspaceNotification } from 'src/pages/workspaces/workspace/Dashboard'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
@@ -157,7 +156,7 @@ export const WorkspaceList = () => {
     const loadPersistentDisks = withErrorIgnoring(async () => {
       setGcpPersistentDisks(_.filter(({ cloudContext }) => isGcpContext(cloudContext),
         await Ajax().Disks.list({
-          creator: getUser().email,
+          role: 'creator',
           includeLabels: ['saturnWorkspaceNamespace', 'saturnWorkspaceName'].join(',')
         })
       ))
@@ -355,12 +354,10 @@ export const WorkspaceList = () => {
         }, {
           headerRenderer: () => div({ className: 'sr-only' }, ['Cloud Platform']),
           cellRenderer: ({ rowIndex }) => {
-            const { workspace: { cloudPlatform } } = sortedWorkspaces[rowIndex]
+            const workspace = sortedWorkspaces[rowIndex]
             return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
               div({ style: styles.tableCellContent }, [
-                Utils.switchCase(_.toUpper(cloudPlatform),
-                  [cloudProviders.gcp.label, () => h(CloudGcpLogo, { title: cloudProviders.gcp.iconTitle, role: 'img' })],
-                  [cloudProviders.azure.label, () => h(CloudAzureLogo, { title: cloudProviders.azure.iconTitle, role: 'img' })])
+                h(CloudProviderIcon, { cloudProvider: getCloudProviderFromWorkspace(workspace) })
               ])
             ])
           },

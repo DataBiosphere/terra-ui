@@ -31,7 +31,7 @@ import {
   workspaceHasMultipleDisks
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
-import { appTools, getToolFromRuntime, isPauseSupported } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { appTools, getToolLabelFromRuntime, isPauseSupported } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const DeleteRuntimeModal = ({
@@ -528,7 +528,7 @@ const Environments = () => {
     const shouldShowPauseButton =
       Utils.cond(
         [isApp(compute) && !_.find(tool => tool.appType && tool.appType === compute.appType)(appTools)?.isPauseUnsupported, () => true],
-        [isPauseSupported(getToolFromRuntime(compute)) && currentUser === getCreatorForRuntime(compute), () => true],
+        [isPauseSupported(getToolLabelFromRuntime(compute)) && currentUser === getCreatorForRuntime(compute), () => true],
         () => false)
 
     return shouldShowPauseButton && h(Link, {

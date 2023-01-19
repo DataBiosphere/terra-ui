@@ -4,6 +4,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { ButtonOutline } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
+import { DataCollection, DatasetResponse } from 'src/libs/ajax/Catalog'
 import { getEnabledBrand } from 'src/libs/brand-utils'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -13,12 +14,28 @@ import * as Utils from 'src/libs/utils'
 import { commonStyles } from 'src/pages/library/common'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
+// This type should change when we fix tags to be specific to the type
+interface Tags {
+  itemsType: string
+  items: string
+}
 
-export const datasetAccessTypes = {
-  CONTROLLED: 'Controlled',
-  GRANTED: 'Granted',
-  PENDING: 'Pending',
-  EXTERNAL: 'External'
+export interface Dataset extends DatasetResponse {
+  tags: Tags
+}
+
+export type DatasetAccessType =
+    'Controlled' |
+    'Granted' |
+    'Pending' |
+    'External'
+
+// What do we want to do here?
+export const datasetAccessTypes: Record<DatasetAccessType, DatasetAccessType> = {
+  Controlled: 'Controlled',
+  Granted: 'Granted',
+  Pending: 'Pending',
+  External: 'External'
 }
 
 export const uiMessaging = {
@@ -27,7 +44,7 @@ export const uiMessaging = {
 }
 
 // This list is generated from the schema enum
-export const getDatasetReleasePoliciesDisplayInformation = dataUsePermission => {
+export const getDatasetReleasePoliciesDisplayInformation = (dataUsePermission: string): { label: string; description?: string } => {
   return Utils.switchCase(
     dataUsePermission,
     ['DUO:0000007', () => ({ label: 'DS', description: 'Disease specific research' })],
@@ -40,7 +57,7 @@ export const getDatasetReleasePoliciesDisplayInformation = dataUsePermission => 
   )
 }
 
-export const DatasetReleasePolicyDisplayInformation = ({ dataUsePermission }) => {
+export const DatasetReleasePolicyDisplayInformation = ({ 'TerraDCAT_ap:hasDataUsePermission': dataUsePermission }: { 'TerraDCAT_ap:hasDataUsePermission': string }) => {
   const { label, description } = getDatasetReleasePoliciesDisplayInformation(dataUsePermission)
   return h(Fragment, [
     label,
@@ -48,26 +65,29 @@ export const DatasetReleasePolicyDisplayInformation = ({ dataUsePermission }) =>
   ])
 }
 
-export const isExternal = dataset => Utils.cond(
+export const isExternal = (dataset: DatasetResponse) => Utils.cond(
   [isWorkspace(dataset), () => false],
   [isDatarepoSnapshot(dataset), () => false],
-  () => true)
+  () => true) as boolean
 
 export const workspaceUrlFragment = '/#workspaces/'
 
-export const isWorkspace = dataset => {
+export const isWorkspace = (dataset: DatasetResponse) => {
   return _.toLower(dataset['dcat:accessURL']).includes(workspaceUrlFragment)
 }
 
 export const datarepoSnapshotUrlFragment = '/snapshots/details/'
 
-export const isDatarepoSnapshot = dataset => {
+export const isDatarepoSnapshot = (dataset: DatasetResponse) => {
   return _.toLower(dataset['dcat:accessURL']).includes(datarepoSnapshotUrlFragment)
 }
 
-export const getConsortiumsFromDataset = dataset => _.map('dct:title', dataset['TerraDCAT_ap:hasDataCollection'])
+export const getConsortiumTitlesFromDataset = (dataset: DatasetResponse): string[] => _.flow(
+  _.map((hasDataCollection: DataCollection) => hasDataCollection['dct:title']),
+  _.compact
+)(dataset['TerraDCAT_ap:hasDataCollection'])
 
-export const getDataModalityListFromDataset = dataset => _.flow(
+export const getDataModalityListFromDataset = (dataset: DatasetResponse): string[] => _.flow(
   _.flatMap('TerraCore:hasDataModality'),
   _.sortBy(_.toLower),
   _.compact,
@@ -76,23 +96,26 @@ export const getDataModalityListFromDataset = dataset => _.flow(
 )(dataset['prov:wasGeneratedBy'])
 
 
-export const getAssayCategoryListFromDataset = dataset => _.flow(
+export const getAssayCategoryListFromDataset = (dataset: DatasetResponse) => _.flow(
   _.flatMap('TerraCore:hasAssayCategory'),
   _.sortBy(_.toLower),
   _.compact,
   _.uniqBy(_.toLower)
-)(dataset['prov:wasGeneratedBy'])
+)(dataset['prov:wasGeneratedBy']) as string[]
 
-export const formatDatasetTime = time => !!time ? Utils.makeStandardDate(new Date(time)) : null
+export const formatDatasetTime = (time: string | null) => !!time ? Utils.makeStandardDate(new Date(time)) : null
 
+// Return type should be decided by above
+export const getDatasetAccessType = (dataset: DatasetResponse) => Utils.cond(
+  [isExternal(dataset), () => datasetAccessTypes.External],
+  [dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner', () => datasetAccessTypes.Granted],
+  () => datasetAccessTypes.Controlled)
 
-export const getDatasetAccessType = dataset => Utils.cond(
-  [isExternal(dataset), () => datasetAccessTypes.EXTERNAL],
-  [dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner', () => datasetAccessTypes.GRANTED],
-  () => datasetAccessTypes.CONTROLLED)
-
-export const DatasetAccess = ({ dataset }) => {
-  const { requestingAccess, setRequestingAccess } = useState()
+interface DatasetAccessProps {
+  dataset: Dataset
+}
+export const DatasetAccess = ({ dataset }: DatasetAccessProps) => {
+  const [requestingAccess, setRequestingAccess] = useState(false)
   const access = getDatasetAccessType(dataset)
   const { requestAccessURL } = dataset
   const buttonStyle = { height: 34, textTransform: 'none', padding: '.5rem' }
@@ -100,74 +123,81 @@ export const DatasetAccess = ({ dataset }) => {
 
   return h(Fragment, [
     Utils.cond(
-      [!!requestAccessURL && access === datasetAccessTypes.CONTROLLED, () => {
+      [!!requestAccessURL && access === datasetAccessTypes.Controlled, () => {
         return h(ButtonOutline, {
           style: buttonStyle,
           href: requestAccessURL, target: '_blank'
         }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])
       }],
-      [access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
+      [access === datasetAccessTypes.Controlled, () => h(ButtonOutline, {
         style: buttonStyle,
         onClick: () => {
-          setRequestingAccess()
+          setRequestingAccess(true)
           Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
             id: dataset.id,
             title: dataset['dct:title']
           })
         }
       }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
-      [access === datasetAccessTypes.PENDING, () => div({ style: { color: commonStyles.access.pending, display: 'flex', alignItems: 'center' } }, [
+      [access === datasetAccessTypes.Pending, () => div({ style: { color: commonStyles.access.pending, display: 'flex', alignItems: 'center' } }, [
         icon('lock'),
         div({ style: textStyle }, ['Pending Access'])
       ])],
-      [access === datasetAccessTypes.EXTERNAL, () => h(ButtonOutline, {
+      [access === datasetAccessTypes.External, () => h(ButtonOutline, {
         style: buttonStyle,
         href: dataset['dcat:accessURL'], target: '_blank'
-      }, [div({ style: { fontSize: 12 } }, ['Externally managed']), icon('pop-out', { style: { marginLeft: 10 }, size: 16 })])],
+      }, [
+        div({ style: { fontSize: 12 } }, ['Externally managed']),
+        icon('pop-out', { style: { marginLeft: 10 }, size: 16 })
+      ])],
       [Utils.DEFAULT, () => div({ style: { color: commonStyles.access.granted, display: 'flex', alignItems: 'center' } }, [
         icon('unlock'),
         div({ style: textStyle }, ['Granted Access'])
       ])]),
-    !!requestingAccess && h(RequestDatasetAccessModal, {
+    requestingAccess && h(RequestDatasetAccessModal, {
       datasets: [dataset],
-      onDismiss: () => setRequestingAccess()
+      onDismiss: () => setRequestingAccess(false)
     })
   ])
 }
 
 // These are used to match against by the filter
-const extractTags = dataset => {
+const extractTags = (dataset: DatasetResponse): Tags => {
   return {
     itemsType: 'AttributeValue',
     items: _.flow(_.flatten, _.toLower)([
       getDatasetAccessType(dataset),
-      getConsortiumsFromDataset(dataset),
-      dataset.samples?.genus,
+      getConsortiumTitlesFromDataset(dataset),
+      dataset.samples?.species,
       dataset.samples?.disease,
       getAssayCategoryListFromDataset(dataset),
       getDataModalityListFromDataset(dataset),
-      _.map('dcat:mediaType', dataset.files),
+      _.map('TerraCore:hasFileFormat', dataset.fileAggregate),
       dataset['TerraDCAT_ap:hasDataUsePermission']
-    ])
+    ]) as string
   }
 }
 
-export const prepareDatasetsForDisplay = (datasets, dataCollectionsToInclude) => {
+
+export const prepareDatasetsForDisplay = (datasets: DatasetResponse[], dataCollectionsToInclude: string[]): Dataset[] => {
   const filteredDatasets = _.filter(dataCollectionsToInclude ?
     dataset => _.intersection(dataCollectionsToInclude, _.map('dct:title', dataset['TerraDCAT_ap:hasDataCollection'])).length > 0 :
     _.constant(true),
   datasets)
   return _.map(dataset => {
-    return _.set(['tags'], extractTags(dataset), dataset)
+    return { ...dataset, tags: extractTags(dataset) } as Dataset
   }, filteredDatasets)
 }
 
-export const useDataCatalog = () => {
+interface DataCatalog { dataCatalog: Dataset[]; refresh: () => void; loading: boolean }
+
+export const useDataCatalog = (): DataCatalog => {
   const signal = useCancellation()
   const [loading, setLoading] = useState(false)
-  const dataCatalog = useStore(dataCatalogStore)
+  const dataCatalog = useStore(dataCatalogStore) as Dataset[]
 
-  const refresh = _.flow(
+  const refresh: () => void = _.flow(
+    // @ts-expect-error
     withErrorReporting('Error loading data catalog'),
     Utils.withBusyState(setLoading)
   )(async () => {
@@ -176,7 +206,7 @@ export const useDataCatalog = () => {
     const normList = prepareDatasetsForDisplay(datasets, dataCollectionsToInclude)
 
     dataCatalogStore.set(normList)
-  })
+  }) as () => void
   useOnMount(() => {
     _.isEmpty(dataCatalog) && refresh()
   })

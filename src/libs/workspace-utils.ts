@@ -4,6 +4,12 @@ export const cloudProviderTypes: Record<CloudProviderType, CloudProviderType> = 
   AZURE: 'AZURE',
   GCP: 'GCP'
 }
+
+export const cloudProviderLabels: Record<CloudProviderType, string> = {
+  AZURE: 'Microsoft Azure',
+  GCP: 'Google Cloud Platform',
+}
+
 export const isCloudProvider = (x: unknown): x is CloudProviderType => {
   return x as string in cloudProviderTypes
 }

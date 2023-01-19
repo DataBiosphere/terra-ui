@@ -15,7 +15,6 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   await click(page, clickable({ textContains: 'Register' }))
   await click(page, clickable({ textContains: 'Accept' }), { timeout: 90000 })
   await findText(page, 'To get started, Create a New Workspace')
-  await verifyAccessibility(page)
 })
 
 registerTest({

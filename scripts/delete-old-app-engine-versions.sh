@@ -48,7 +48,14 @@ abort() {
 # ensure that jq is installed
 check_jq_installed() {
     if ! jq --version 1>/dev/null 2>&1; then
-        abort "jq v1.6 or above is required; install using brew install jq"
+        abort "jq v1.6 or above is required; install jq to continue"
+    fi
+}
+
+# ensure that gcloud is installed
+check_gcloud_installed() {
+    if ! gcloud --version 1>/dev/null 2>&1; then
+        abort "gcloud is required; install google-cloud-sdk to continue"
     fi
 }
 
@@ -127,6 +134,7 @@ execute_delete() {
 check_color_support
 
 check_jq_installed
+check_gcloud_installed
 
 if [ -z "${1+:}" ]; then
     usage

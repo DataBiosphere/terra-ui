@@ -8,8 +8,8 @@ import { authStore, userStatus } from 'src/libs/state'
 import { v4 as uuid } from 'uuid'
 
 
-export const Metrics = signal => ({
-  captureEvent: withErrorIgnoring(async (event, details = {}) => {
+export const Metrics = (signal?: AbortSignal) => {
+  const captureEventFn = async (event, details = {}) => {
     await ensureAuthSettled()
     const { isSignedIn, registrationStatus } = authStore.get() // NOTE: This is intentionally read after ensureAuthSettled
     const isRegistered = isSignedIn && registrationStatus === userStatus.registeredWithTos
@@ -31,14 +31,17 @@ export const Metrics = signal => ({
     }
 
     return fetchBard('api/event', _.mergeAll([isRegistered ? authOpts() : undefined, jsonBody(body), { signal, method: 'POST' }]))
-  }),
+  }
+  return ({
+    captureEvent: (withErrorIgnoring(captureEventFn) as unknown as typeof captureEventFn),
 
-  syncProfile: withErrorIgnoring(() => {
-    return fetchBard('api/syncProfile', _.merge(authOpts(), { signal, method: 'POST' }))
-  }),
+    syncProfile: withErrorIgnoring(() => {
+      return fetchBard('api/syncProfile', _.merge(authOpts(), { signal, method: 'POST' }))
+    }),
 
-  identify: withErrorIgnoring(anonId => {
-    const body = { anonId }
-    return fetchBard('api/identify', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+    identify: withErrorIgnoring(anonId => {
+      const body = { anonId }
+      return fetchBard('api/identify', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+    })
   })
-})
+}

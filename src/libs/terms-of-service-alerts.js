@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect } from 'react'
-import { h } from 'react-hyperscript-helpers'
+import { br, h } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -10,7 +10,7 @@ import * as Utils from 'src/libs/utils'
 
 
 const getNewTermsOfServiceNeedsAcceptingAlert = async termsOfServiceState => {
-  const shouldNotify = termsOfServiceState.isGracePeriodEnabled && !termsOfServiceState.userAcceptedTos
+  const shouldNotify = termsOfServiceState.showTosPopup
   if (!shouldNotify) {
     return null
   }
@@ -23,7 +23,7 @@ const getNewTermsOfServiceNeedsAcceptingAlert = async termsOfServiceState => {
     responseText = undefined
   }
   const gracePeriodText = _.isUndefined(responseText) ?
-    "There is currently a grace period allowing you to use Terra under the terms of service you've previously agreed to." :
+    'There is currently a grace period allowing you to use Terra under the terms of service you\'ve previously agreed to.' :
     responseText
 
   return {
@@ -31,7 +31,7 @@ const getNewTermsOfServiceNeedsAcceptingAlert = async termsOfServiceState => {
     title: 'There is a new Terra Terms of Service.',
     message: h(Fragment, [
       h(Fragment, { key: 'customText' }, [gracePeriodText]),
-      h(Fragment, { key: 'lineBreak' }, [<br/>]),
+      h(Fragment, { key: 'lineBreak' }, [br()]),
       h(Link, { href: Nav.getLink('terms-of-service'), key: 'tosLink' }, 'Accept the new Terms of Service here.')
     ]),
     severity: 'error'

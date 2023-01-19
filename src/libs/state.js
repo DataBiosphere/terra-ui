@@ -71,7 +71,7 @@ export const snapshotsListStore = Utils.atom()
 
 export const snapshotStore = Utils.atom()
 
-export const dataCatalogStore = Utils.atom()
+export const dataCatalogStore = Utils.atom([])
 
 /*
  * Modifies ajax responses for testing purposes.

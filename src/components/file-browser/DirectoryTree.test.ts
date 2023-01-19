@@ -31,6 +31,7 @@ describe('Directory', () => {
       rootLabel: 'Workspace bucket',
       selectedDirectory: '',
       setActiveDescendant: () => {},
+      onError: () => {},
       onSelectDirectory: jest.fn()
     }))
 
@@ -52,6 +53,7 @@ describe('Directory', () => {
       rootLabel: 'Workspace bucket',
       selectedDirectory: '',
       setActiveDescendant: () => {},
+      onError: () => {},
       onSelectDirectory
     }))
 
@@ -100,6 +102,7 @@ describe('Directory', () => {
           rootLabel: 'Workspace bucket',
           selectedDirectory: '',
           setActiveDescendant: () => {},
+          onError: () => {},
           onSelectDirectory: jest.fn()
         })
       ])
@@ -148,6 +151,7 @@ describe('Directory', () => {
       rootLabel: 'Workspace bucket',
       selectedDirectory: '',
       setActiveDescendant: () => {},
+      onError: () => {},
       onSelectDirectory: jest.fn()
     }))
 
@@ -189,6 +193,7 @@ describe('Directory', () => {
       rootLabel: 'Workspace bucket',
       selectedDirectory: '',
       setActiveDescendant: () => {},
+      onError: () => {},
       onSelectDirectory: jest.fn()
     }))
 
@@ -198,6 +203,49 @@ describe('Directory', () => {
 
     // Assert
     screen.getByText('Error loading subdirectories')
+  })
+
+  it('calls onError callback on errors loading directories', async () => {
+    // Arrange
+    const user = userEvent.setup()
+
+    const errorState = {
+      status: 'Error',
+      error: new Error('Something went wrong'),
+      directories: []
+    } as UseDirectoriesInDirectoryResult['state']
+
+    const useDirectoriesInDirectoryResult: UseDirectoriesInDirectoryResult = {
+      state: errorState,
+      hasNextPage: false,
+      loadNextPage: () => Promise.resolve(),
+      loadAllRemainingItems: () => Promise.resolve(),
+      reload: () => Promise.resolve()
+    }
+
+    asMockedFn(useDirectoriesInDirectory).mockReturnValue(useDirectoriesInDirectoryResult)
+
+    const onError = jest.fn()
+
+    render(h(Directory, {
+      activeDescendant: 'node-0',
+      id: 'node-0',
+      level: 0,
+      path: 'path/to/directory/',
+      provider: mockFileBrowserProvider,
+      rootLabel: 'Workspace bucket',
+      selectedDirectory: '',
+      setActiveDescendant: () => {},
+      onError,
+      onSelectDirectory: jest.fn()
+    }))
+
+    // Act
+    const toggle = screen.getByTestId('toggle-expanded')
+    await user.click(toggle)
+
+    // Assert
+    expect(onError).toHaveBeenCalledWith(new Error('Something went wrong'))
   })
 
   describe('when next page is available', () => {
@@ -236,6 +284,7 @@ describe('Directory', () => {
         rootLabel: 'Workspace bucket',
         selectedDirectory: '',
         setActiveDescendant: () => {},
+        onError: () => {},
         onSelectDirectory: jest.fn()
       }))
 

@@ -18,6 +18,7 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, usePollingEffect } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
+import { cloudProviderLabels } from 'src/libs/workspace-utils'
 import { commonStyles } from 'src/pages/library/common'
 import {
   DatasetAccess,
@@ -43,7 +44,7 @@ const MetadataDetailsComponent = ({ dataObj, name }) => {
     div({ style: { display: 'flex', width: '100%', flexWrap: 'wrap' } }, [
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Data release policy']),
-        h(DatasetReleasePolicyDisplayInformation, { dataUsePermission: dataObj['TerraDCAT_ap:hasDataUsePermission'] })
+        h(DatasetReleasePolicyDisplayInformation, dataObj)
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Last Updated']),
@@ -58,8 +59,8 @@ const MetadataDetailsComponent = ({ dataObj, name }) => {
         _.map(
           ({ cloudPlatform }) => div({ key: cloudPlatform }, [
             Utils.switchCase(cloudPlatform,
-              ['gcp', () => h(GcpLogo, { title: 'Google Cloud Platform', ...styles.cloudIconProps })],
-              ['azure', () => h(AzureLogo, { title: 'Microsoft Azure', ...styles.cloudIconProps })]
+              ['gcp', () => h(GcpLogo, { title: cloudProviderLabels.GCP, ...styles.cloudIconProps })],
+              ['azure', () => h(AzureLogo, { title: cloudProviderLabels.AZURE, ...styles.cloudIconProps })]
             )
           ]),
           _.uniqBy('cloudPlatform', dataObj.storage)
@@ -118,7 +119,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
   const [tdrSnapshotPreparePolling, setTdrSnapshotPreparePolling] = useState(false)
   const sidebarButtonWidth = 230
   const access = getDatasetAccessType(dataObj)
-  const actionTooltip = access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeatureTooltip
+  const actionTooltip = access === datasetAccessTypes.Granted ? '' : uiMessaging.controlledFeatureTooltip
 
   const importDataToWorkspace = dataset => {
     Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
@@ -190,7 +191,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
           ])
         ])
       ]),
-      access === datasetAccessTypes.EXTERNAL ?
+      access === datasetAccessTypes.External ?
         h(Fragment, [
           h(ButtonPrimary, {
             style: { fontSize: 14, textTransform: 'none', height: 'unset', width: '100%', marginTop: 20 },
@@ -200,7 +201,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
         ]) :
         h(Fragment, [
           h(ButtonOutline, {
-            disabled: access !== datasetAccessTypes.GRANTED,
+            disabled: access !== datasetAccessTypes.Granted,
             tooltip: actionTooltip,
             style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
             onClick: () => {
@@ -217,7 +218,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
             ])
           ]),
           h(ButtonPrimary, {
-            disabled: access !== datasetAccessTypes.GRANTED || tdrSnapshotPreparePolling,
+            disabled: access !== datasetAccessTypes.Granted || tdrSnapshotPreparePolling,
             tooltip: actionTooltip,
             style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
             onClick: () => {
