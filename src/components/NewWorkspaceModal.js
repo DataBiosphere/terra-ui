@@ -99,7 +99,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
       onSuccess(await Utils.cond(
         [cloneWorkspace, async () => {
           const workspace = await Ajax().Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body)
-          if (isAzureBillingProject()) {
+          if (isAzureBillingProject() && !getConfig().isProd) {
             Ajax().Apps.createAppV2(`wds-${workspace.workspaceId}`, workspace.workspaceId)
           }
           const featuredList = await Ajax().FirecloudBucket.getFeaturedWorkspaces()
@@ -115,7 +115,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
         async () => {
           const workspace = await Ajax().Workspaces.create(body)
           // Only invoke Leo if we are within an Azure Workspace
-          if (isAzureBillingProject()) {
+          if (isAzureBillingProject() && !getConfig().isProd) {
             Ajax().Apps.createAppV2(`wds-${workspace.workspaceId}`, workspace.workspaceId)
           }
           Ajax().Metrics.captureEvent(Events.workspaceCreate, extractWorkspaceDetails(
