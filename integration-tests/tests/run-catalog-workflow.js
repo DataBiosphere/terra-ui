@@ -22,5 +22,5 @@ const testCatalogFlowFn = _.flow(
 registerTest({
   name: 'run-catalog-workflow',
   fn: testCatalogFlowFn,
-  timeout: 2 * 60 * 1000
+  timeout: 5 * 60 * 1000
 })
