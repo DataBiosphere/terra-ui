@@ -12,7 +12,6 @@ const AuthStoreSetter = () => {
   useOnMount(() => authStore.update(_.set(['authContext'], auth)))
 
 
-  reloadAuthToken() // TODO: JUST FOR TESTING IN DEV BEE, TO BE REMOVED BEFORE MERGING
   useEffect(() => {
     const cleanupFns = [
       auth.events.addUserLoaded(user => processUser(user, true)),
