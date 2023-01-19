@@ -32,24 +32,43 @@ const getTestWorkspaceName = () => `${testWorkspaceNamePrefix}${uuid.v4()}`
  * user access to a workspace. This function polls to check if the logged in user's pet service
  * account has read access to the given workspace's GCS bucket.
  */
-const waitForReadAccessToWorkspaceBucket = async ({ page, billingProject, workspaceName, timeout = defaultTimeout }) => {
+const waitForAccessToWorkspaceBucket = async ({ page, billingProject, workspaceName, timeout = defaultTimeout }) => {
   await page.evaluate(async ({ billingProject, workspaceName, timeout }) => {
+    const { workspace: { googleProject, bucketName } } = await window.Ajax().Workspaces.workspace(billingProject, workspaceName).details(['workspace'])
+
     const startTime = Date.now()
-    while (true) {
-      try {
-        await window.Ajax().Workspaces.workspace(billingProject, workspaceName).checkBucketReadAccess()
-        return
-      } catch (response) {
-        if (response.status === 403) {
-          if (Date.now() - startTime < timeout) {
-            // Wait 15s before retrying
-            await new Promise(resolve => setTimeout(resolve, 15 * 1000))
-            continue
+
+    const checks = [
+      // Get bucket metadata
+      () => window.Ajax().Buckets.checkBucketLocation(googleProject, bucketName),
+      // List objects
+      () => window.Ajax().Buckets.list(googleProject, bucketName, ''),
+      // Create object
+      () => {
+        const file = new File([''], 'permissions-check', { type: 'text/text' })
+        return window.Ajax().Buckets.upload(googleProject, bucketName, '', file)
+      },
+      // Delete object
+      () => window.Ajax().Buckets.delete(googleProject, bucketName, 'permissions-check'),
+    ]
+
+    for (const check of checks) {
+      while (true) {
+        try {
+          await check()
+          break
+        } catch (response) {
+          if (response.status === 403) {
+            if (Date.now() - startTime < timeout) {
+              // Wait 15s before retrying
+              await new Promise(resolve => setTimeout(resolve, 15 * 1000))
+              continue
+            } else {
+              throw new Error('Timed out waiting for access to workspace bucket')
+            }
           } else {
-            throw new Error('Timed out waiting for access to workspace bucket')
+            throw response
           }
-        } else {
-          throw response
         }
       }
     }
@@ -63,7 +82,7 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
       await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
     }, workspaceName, billingProject)
     console.info(`Created workspace: ${workspaceName}`)
-    await waitForReadAccessToWorkspaceBucket({ page, billingProject, workspaceName })
+    await waitForAccessToWorkspaceBucket({ page, billingProject, workspaceName })
   } catch (e) {
     console.error(`Failed to create workspace: ${workspaceName} with billing project: ${billingProject}`)
     console.error(e)

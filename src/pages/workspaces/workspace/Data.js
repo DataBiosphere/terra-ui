@@ -567,6 +567,7 @@ const WorkspaceData = _.flow(
 
   const loadWdsSchema = async () => {
     if (isAzureWorkspace) {
+      // TODO: AJ-783: Logic will need to exist here to check if Leo app is past "Provisioning"
       try {
         setWdsSchema([])
         setWdsSchemaError(undefined)
