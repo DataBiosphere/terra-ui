@@ -1,17 +1,17 @@
 // This test is owned by the Interactive Analysis (IA) Team.
 const _ = require('lodash/fp')
-const { withRegisteredUser, withBilling, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers')
+const { deleteRuntimes, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers')
 const {
   click, clickable, getAnimatedDrawer, findElement, noSpinnersAfter, findButtonInDialogByAriaLabel
 } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
+const { withUserToken } = require('../utils/terra-sa-utils')
 
 
-const testAnalysisContextBarFn = _.flow(
+const testAnalysisContextBarFn = _.flowRight(
+  withUserToken,
   withWorkspace,
-  withBilling,
-  withRegisteredUser
-)(async ({ page, token, testUrl, workspaceName }) => {
+)(async ({ billingProject, page, token, testUrl, workspaceName }) => {
   // Navigate to appropriate part of UI (the analysis tab)
   await performAnalysisTabSetup(page, token, testUrl, workspaceName)
 
@@ -58,6 +58,8 @@ const testAnalysisContextBarFn = _.flow(
   await findElement(page, clickable({ textContains: 'Pausing' }), { timeout: 40000 })
 
   // We don't wait for the env to pause for the sake of time, since its redundant and more-so tests the backend
+
+  await deleteRuntimes({ page, billingProject, workspaceName })
 })
 
 registerTest({
