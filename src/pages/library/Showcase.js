@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
+import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { libraryTopMatter } from 'src/components/library-common'
 import { FirstParagraphMarkdownViewer } from 'src/components/markdown'
@@ -15,7 +16,7 @@ import { useOnMount } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { cloudProviderLabels } from 'src/libs/workspace-utils'
+import { cloudProviderLabels, cloudProviderTypes } from 'src/libs/workspace-utils'
 import { SearchAndFilterComponent } from 'src/pages/library/common'
 
 
@@ -52,7 +53,8 @@ const sidebarSections = [{
 }]
 
 const WorkspaceCard = ({ workspace }) => {
-  const { namespace, name, created, description } = workspace
+  const { namespace, name, cloudPlatform, created, description } = workspace
+
   return a({
     href: Nav.getLink('workspace-dashboard', { namespace, name }),
     style: {
@@ -78,7 +80,14 @@ const WorkspaceCard = ({ workspace }) => {
     div({ style: { flex: 1, minWidth: 0, padding: '15px 20px', overflow: 'hidden' } }, [
       div({ style: { display: 'flex' } }, [
         div({ style: { flex: 1, color: colors.accent(), fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
-        created && div([Utils.makeStandardDate(created)])
+        created && div([Utils.makeStandardDate(created)]),
+        (cloudPlatform === 'Azure' || cloudPlatform === 'Gcp') && h(CloudProviderIcon, {
+          cloudProvider: {
+            Azure: cloudProviderTypes.Azure,
+            Gcp: cloudProviderTypes.GCP,
+          }[cloudPlatform],
+          style: { marginLeft: '1ch' },
+        }),
       ]),
       h(FirstParagraphMarkdownViewer, {
         style: { margin: 0, fontSize: '14px', lineHeight: '20px', height: 100, overflow: 'hidden' }
