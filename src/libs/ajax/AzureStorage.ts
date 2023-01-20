@@ -41,6 +41,10 @@ export const AzureStorage = (signal?: AbortSignal) => ({
     return tokenResponse.json()
   },
 
+  /**
+   * Note that this method will throw an error if there is no shared access storage container available
+   * (which is an expected transient state while a workspace is being cloned).
+   */
   details: async (workspaceId: string): Promise<StorageDetails> => {
     const res = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources?stewardship=CONTROLLED&limit=1000`,
       _.merge(authOpts(), { signal })
@@ -52,6 +56,14 @@ export const AzureStorage = (signal?: AbortSignal) => ({
       },
       data.resources
     )
+    // When a workspace is first cloned, it will not have a storage container, as the storage container and blob
+    // cloning happens asynchronously. Ultimately we will change the `StorageDetails` variable types to reflect
+    // that they may be null, but until all the consuming code changes to handle that we will just throw an error
+    // (which is what was happening anyway when we tried to access container.metadata).
+    if (!container) {
+      throw new Error('The workspace does not have a shared access storage container.')
+    }
+
     const sas = await AzureStorage(signal).sasToken(workspaceId, container.metadata.resourceId)
 
     return {
