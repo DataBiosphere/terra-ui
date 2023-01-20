@@ -216,7 +216,6 @@ const testAzureWorkspace = withUserToken(async ({ environment, page, token, test
   // Verify Analyses tab is present.
   // Data tab should only be visible in dev for Azure workspaces
   const expectedTabs = environment === 'dev' ? ['data', 'analyses'] : ['analyses']
-  console.log('expectedTabs', expectedTabs)
   await dashboard.assertTabs(expectedTabs, true)
 
   // Check accessibility.
