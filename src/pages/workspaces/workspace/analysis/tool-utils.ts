@@ -34,6 +34,7 @@ export interface Tool {
   isHidden?: boolean
   isLaunchUnsupported?: boolean
   isPauseUnsupported?: boolean
+  isSettingsUnsupported?: boolean
 }
 
 export interface RuntimeTool extends Tool {
@@ -74,7 +75,7 @@ const JupyterLab: RuntimeTool = {
 const Galaxy: AppTool = { label: toolLabels.Galaxy, appType: 'GALAXY' }
 
 const Cromwell: AppTool = { label: toolLabels.Cromwell, appType: 'CROMWELL', isHidden: !isCromwellAppVisible(), isPauseUnsupported: true }
-const CromwellOnAzure: AppTool = { label: toolLabels.CromwellOnAzure, appType: 'CROMWELL', isHidden: !isCromwellOnAzureAppVisible(), isPauseUnsupported: true }
+const CromwellOnAzure: AppTool = { label: toolLabels.CromwellOnAzure, appType: 'CROMWELL', isHidden: !isCromwellOnAzureAppVisible(), isPauseUnsupported: true, isSettingsUnsupported: true }
 
 export const appTools: Record<AppToolLabel, AppTool> = {
   Galaxy,
@@ -167,6 +168,8 @@ export const getAppType = (label: ToolLabel): string | undefined => appTools[lab
 export const allAppTypes: AppToolLabel[] = _.flow(_.map('appType'), _.compact)(appTools)
 
 export const isPauseSupported = (toolLabel: ToolLabel): boolean => !_.find((tool: Tool) => tool.label === toolLabel)(tools)?.isPauseUnsupported
+
+export const isSettingsSupported = (toolLabel: ToolLabel): boolean => !_.find((tool: Tool) => tool.label === toolLabel)(tools)?.isSettingsUnsupported
 
 //TODO: Placeholders. Finalized version will live in other TypeScript util files.
 export type Runtime = any

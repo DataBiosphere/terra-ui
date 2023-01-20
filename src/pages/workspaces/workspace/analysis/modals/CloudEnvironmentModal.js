@@ -29,7 +29,9 @@ import {
   isCurrentGalaxyDiskDetaching
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
-import { appTools, getAppType, getToolsToDisplayForCloudProvider, isAppToolLabel, isPauseSupported, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import {
+  appTools, getAppType, getToolsToDisplayForCloudProvider, isAppToolLabel, isPauseSupported, isSettingsSupported, toolLabels, tools
+} from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const titleId = 'cloud-env-modal'
@@ -350,8 +352,6 @@ export const CloudEnvironmentModal = ({
     const app = currentApp(toolLabel)
     const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || app
     const isCloudEnvForToolDisabled = isCloudEnvModalDisabled(toolLabel)
-    // for Public Preview disable the option to create a new Cromwell app in Azure
-    const isSettingsOptionDisabled = toolLabel === toolLabels.CromwellOnAzure
     return h(Fragment, [
       // We cannot attach the periodic cookie setter until we have a running Cromwell app for Azure because the relay is not guaranteed to be ready until then
       toolLabel === toolLabels.CromwellOnAzure && app?.status === 'RUNNING' ? h(PeriodicAzureCookieSetter, { proxyUrl: app.proxyUrls['cbas-ui'], forCromwell: true }) : null,
@@ -370,7 +370,7 @@ export const CloudEnvironmentModal = ({
         ]),
         // Cloud environment button
         div({ style: toolButtonDivStyles }, [
-          !isSettingsOptionDisabled && h(Clickable, {
+          isSettingsSupported(toolLabel) && h(Clickable, {
             'aria-label': `${toolLabel} Environment`,
             style: {
               ...toolButtonStyles,

@@ -278,7 +278,7 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
   return { runtimes, refreshRuntimes, persistentDisks, appDataDisks }
 }
 
-const useAppPolling = (googleProject, workspaceName, workspaceId) => {
+const useAppPolling = (googleProject, workspaceName, workspace) => {
   const signal = useCancellation()
   const timeout = useRef()
   const [apps, setApps] = useState()
@@ -288,10 +288,9 @@ const useAppPolling = (googleProject, workspaceName, workspaceId) => {
   }
   const loadApps = async () => {
     try {
-      const newGoogleApps = !!googleProject ?
-        await Ajax(signal).Apps.list(googleProject, { role: 'creator', saturnWorkspaceName: workspaceName }) :
-        []
-      const newAzureApps = !!workspaceId ? await Ajax(signal).Apps.getV2AppInfo(workspaceId) : []
+      const newGoogleApps = !!workspace && isGoogleWorkspace(workspace) ?
+        await Ajax(signal).Apps.list(googleProject, { role: 'creator', saturnWorkspaceName: workspaceName }) : []
+      const newAzureApps = !!workspace && isAzureWorkspace(workspace) ? await Ajax(signal).Apps.getV2AppInfo(workspace.workspace.workspaceId) : []
       const combinedNewApps = [...newGoogleApps, ...newAzureApps]
 
       setApps(combinedNewApps)
@@ -335,10 +334,8 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const prevAzureContext = usePrevious(azureContext)
     const workspaceLoaded = !!workspace
 
-    const workspaceId = workspace?.workspace.workspaceId
-
     const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject, workspace)
-    const { apps, refreshApps } = useAppPolling(googleProject, name, workspaceId)
+    const { apps, refreshApps } = useAppPolling(googleProject, name, workspace)
     // The following if statements are necessary to support the context bar properly loading runtimes for google/azure
     if (workspaceLoaded) {
       if (googleProject !== prevGoogleProject && isGoogleWorkspace(workspace)) {
