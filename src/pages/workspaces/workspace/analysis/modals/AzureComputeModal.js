@@ -9,8 +9,7 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { Ajax } from 'src/libs/ajax'
 import {
-  azureMachineTypes, azureRegions, defaultAzureComputeConfig, defaultAzureDiskSize, defaultAzureMachineType, defaultAzureRegion, getMachineTypeLabel,
-  getRegionLabel
+  azureMachineTypes, defaultAzureComputeConfig, defaultAzureDiskSize, defaultAzureMachineType, defaultAzureRegion, getMachineTypeLabel
 } from 'src/libs/azure-utils'
 import colors from 'src/libs/colors'
 import { withErrorReportingInModal } from 'src/libs/error'
@@ -126,27 +125,6 @@ export const AzureComputeModalBase = ({
         h(IdContainer, [
           id => h(Fragment, [
             div({ style: { marginBottom: '.5rem' } }, [
-              label({ htmlFor: id, style: computeStyles.label }, ['Location'])
-            ]),
-            div({ style: { width: 400 } }, [
-              h(Select, {
-                id,
-                isSearchable: false,
-                isClearable: false,
-                value: computeConfig.region,
-                isDisabled: true, //this is currently locked to workspace location
-                onChange: ({ value }) => updateComputeConfig('region', value),
-                options: _.keys(azureRegions),
-                getOptionLabel: ({ value }) => getRegionLabel(value)
-              })
-            ])
-          ])
-        ])
-      ]),
-      div({ style: { marginBottom: '2rem' } }, [
-        h(IdContainer, [
-          id => h(Fragment, [
-            div({ style: { marginBottom: '.5rem' } }, [
               label({ htmlFor: id, style: computeStyles.label }, ['Disk Size (GB)'])
             ]),
             div({ style: { width: 75 } }, [
@@ -228,7 +206,6 @@ export const AzureComputeModalBase = ({
         }
 
         return Ajax().Runtimes.runtimeV2(workspaceId, Utils.generateRuntimeName()).create({
-          region: computeConfig.region,
           machineSize: computeConfig.machineType,
           labels: {
             saturnWorkspaceNamespace: namespace,
