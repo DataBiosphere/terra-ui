@@ -90,10 +90,11 @@ export const getWdsUrl = apps => {
   if (namedApp.length === 1) {
     return namedApp[0].proxyUrls.wds
   }
-  // if we didn't find the expected app 'cbas-wds-default', go hunting:
-  const candidates = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
+  // if we didn't find the expected app 'wds-${app.workspaceId}', go hunting:
+  const candidates = apps.filter(app => app.appType === 'CROMWELL' && ['RUNNING', 'PROVISIONING'].includes(app.status))
   if (candidates.length === 0) {
     // no app deployed yet
+    // TODO: AJ-790: Launch an app
     return ''
   }
   if (candidates.length > 1) {
