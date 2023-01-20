@@ -362,18 +362,22 @@ const withScreenshot = _.curry((testName, fn) => async options => {
 
 // Emitted when the page crashes
 const logError = page => {
-  const handle = msg => {
-    console.error('page.error', typeof msg === 'object' ? JSON.stringify(msg) : msg)
-  }
+  // this error will log an object of type [Error: ...] which is not very
+  // informative and looks incorrect at first glance since the contents would be
+  // more useful but in fact this is the best we can do here since the object
+  // contents cannot be easily stringified otherwise you get {}
+  const handle = msg => console.error('page.error', msg)
   page.on('error', handle)
   return () => page.off('error', handle)
 }
 
 // Emitted when an uncaught exception happens within the page
 const logPageError = page => {
-  const handle = msg => {
-    console.error('page.pageerror', typeof msg === 'object' ? JSON.stringify(msg) : msg)
-  }
+  // this error will log an object of type [Error: ...] which is not very
+  // informative and looks incorrect at first glance since the contents would be
+  // more useful but in fact this is the best we can do here since the object
+  // contents cannot be easily stringified otherwise you get {}
+  const handle = msg => console.error('page.pageerror', msg)
   page.on('pageerror', handle)
   return () => page.off('pageerror', handle)
 }
