@@ -162,11 +162,11 @@ export const AzureStorage = (signal?: AbortSignal) => ({
         return fetchOk(`${getConfig().calhounUrlRoot}/${calhounPath}`,
           _.mergeAll([authOpts(), { signal, method: 'POST', body: textFileContents }])
         ).then(res => {
-          Ajax().Metrics.captureEvent(Events.analysisPreviewSuccess, { fileName: blobName, fileType: getAnalysisFileExtension(blobName), cloudPlatform: cloudProviderTypes.AZURE })
+          Ajax().Metrics.captureEvent(Events.analysisPreviewSuccess, { fileName: blobName, fileType: getExtension(blobName), cloudPlatform: cloudProviderTypes.AZURE })
           return res.text()
         })
           .catch(res => {
-            Ajax().Metrics.captureEvent(Events.analysisPreviewFail, { fileName: blobName, fileType: getAnalysisFileExtension(blobName), cloudPlatform: cloudProviderTypes.AZURE, errorText: res.statusText })
+            Ajax().Metrics.captureEvent(Events.analysisPreviewFail, { fileName: blobName, fileType: getExtension(blobName), cloudPlatform: cloudProviderTypes.AZURE, errorText: res.statusText })
             throw res
           })
       },
