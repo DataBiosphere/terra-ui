@@ -491,19 +491,6 @@ export const WorkspaceList = () => {
         div({ style: styles.filter }, [
           h(Select, {
             isClearable: true,
-            isMulti: false,
-            placeholder: 'Cloud platform',
-            'aria-label': 'Filter by cloud platform',
-            value: cloudPlatformFilter,
-            hideSelectedOptions: true,
-            onChange: data => Nav.updateSearch({ ...query, cloudPlatform: data?.value || undefined }),
-            options: _.sortBy(cloudProvider => cloudProviderLabels[cloudProvider], _.keys(cloudProviderTypes)),
-            getOptionLabel: ({ value }) => cloudProviderLabels[value]
-          })
-        ]),
-        div({ style: { ...styles.filter, marginRight: 0 } }, [
-          h(Select, {
-            isClearable: true,
             isMulti: true,
             isSearchable: false,
             placeholder: 'Submission status',
@@ -514,7 +501,20 @@ export const WorkspaceList = () => {
             options: ['running', 'success', 'failure'],
             getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
           })
-        ])
+        ]),
+        div({ style: { ...styles.filter, marginRight: 0 } }, [
+          h(Select, {
+            isClearable: true,
+            isMulti: false,
+            placeholder: 'Cloud platform',
+            'aria-label': 'Filter by cloud platform',
+            value: cloudPlatformFilter,
+            hideSelectedOptions: true,
+            onChange: data => Nav.updateSearch({ ...query, cloudPlatform: data?.value || undefined }),
+            options: _.sortBy(cloudProvider => cloudProviderLabels[cloudProvider], _.keys(cloudProviderTypes)),
+            getOptionLabel: ({ value }) => cloudProviderLabels[value]
+          })
+        ]),
       ]),
       h(SimpleTabBar, {
         'aria-label': 'choose a workspace collection',
