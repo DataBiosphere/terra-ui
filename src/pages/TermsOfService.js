@@ -25,12 +25,6 @@ const TermsOfServicePage = () => {
   const [tosText, setTosText] = useState()
 
   useOnMount(() => {
-    authStore.update(state => ({
-      ...state, termsOfService: {
-        ...termsOfService,
-        userContinuedUnderGracePeriod: false
-      }
-    }))
     const loadTosAndUpdateState = _.flow(
       Utils.withBusyState(setBusy),
       withErrorReporting('There was an error retrieving our terms of service.')
@@ -58,6 +52,7 @@ const TermsOfServicePage = () => {
         Nav.goToPath('root')
       } else {
         reportError('Error accepting TOS, unexpected backend error occurred.')
+        setBusy(false)
       }
     } catch (error) {
       reportError('Error accepting TOS', error)
@@ -66,18 +61,7 @@ const TermsOfServicePage = () => {
   }
 
   const continueButton = () => {
-    try {
-      setBusy(true)
-      const newTermsOfService = {
-        ...termsOfService,
-        userContinuedUnderGracePeriod: true
-      }
-      authStore.update(state => ({ ...state, termsOfService: newTermsOfService }))
-      Nav.goToPath('root')
-    } catch (error) {
-      reportError('Error continuing under TOS grace period', error)
-      setBusy(false)
-    }
+    Nav.goToPath('root')
   }
 
   return div({ role: 'main', style: { padding: '1rem', minHeight: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' } }, [
