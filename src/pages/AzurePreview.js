@@ -40,12 +40,43 @@ const styles = {
 const supportEmail = 'preview@terra.bio'
 const supportSubject = 'Terra on Microsoft Azure Preview Environment'
 
-const AzurePreview = () => {
-  const { isAzurePreviewUser } = useStore(authStore)
+const AzurePreviewDescription = () => p({ style: styles.paragraph }, [
+  'This is a preview version of the Terra platform on Microsoft Azure. The public offering of Terra on Microsoft Azure is expected in early 2023.'
+])
 
+const AzurePreviewForPreviewUser = () => {
   const dismiss = () => {
     azurePreviewStore.set(true)
   }
+
+  return h(Fragment, [
+    h(AzurePreviewDescription),
+
+    div({ style: { ...styles.centered, marginTop: '1.5rem' } }, [
+      h(ButtonPrimary, { onClick: dismiss, style: { ...styles.button, marginBottom: '1rem' } }, ['Proceed to Terra on Microsoft Azure Preview']),
+      h(ButtonOutline, { onClick: signOut, style: styles.button }, ['Log Out']),
+    ])
+  ])
+}
+
+const AzurePreviewForNonPreviewUser = () => {
+  return h(Fragment, [
+    h(AzurePreviewDescription),
+
+    p({ style: styles.paragraph }, [
+      'You are not currently part of the Terra on Microsoft Azure Preview Program. If you are interested in joining the program, please contact ',
+      h(Link, { href: `mailto:${supportEmail}?subject=${encodeURIComponent(supportSubject)}`, ...Utils.newTabLinkProps, style: { textDecoration: 'underline' } }, [supportEmail]),
+      '.'
+    ]),
+
+    div({ style: { ...styles.centered, marginTop: '1.5rem' } }, [
+      h(ButtonPrimary, { onClick: signOut, style: styles.button }, ['Log Out']),
+    ])
+  ])
+}
+
+const AzurePreview = () => {
+  const { isAzurePreviewUser } = useStore(authStore)
 
   return div({
     role: 'main',
@@ -60,22 +91,7 @@ const AzurePreview = () => {
     h(TerraOnAzureLogo, { title: 'Terra on Microsoft Azure - Preview', role: 'img' }),
     h1({ style: styles.header }, ['Terra on Microsoft Azure - Preview']),
 
-    p({ style: styles.paragraph }, [
-      'This is a preview version of the Terra platform on Microsoft Azure. The public offering of Terra on Microsoft Azure is expected in early 2023.'
-    ]),
-
-    !isAzurePreviewUser && p({ style: styles.paragraph }, [
-      'You are not currently part of the Terra on Microsoft Azure Preview Program. If you are interested in joining the program, please contact ',
-      h(Link, { href: `mailto:${supportEmail}?subject=${encodeURIComponent(supportSubject)}`, ...Utils.newTabLinkProps, style: { textDecoration: 'underline' } }, [supportEmail]),
-      '.'
-    ]),
-
-    div({ style: { ...styles.centered, marginTop: '1.5rem' } }, [
-      !!isAzurePreviewUser ? h(Fragment, [
-        h(ButtonPrimary, { onClick: dismiss, style: { ...styles.button, marginBottom: '1rem' } }, ['Proceed to Terra on Microsoft Azure Preview']),
-        h(ButtonOutline, { onClick: signOut, style: styles.button }, ['Log Out']),
-      ]) : h(ButtonPrimary, { onClick: signOut, style: styles.button }, ['Log Out']),
-    ])
+    !!isAzurePreviewUser ? h(AzurePreviewForPreviewUser) : h(AzurePreviewForNonPreviewUser),
   ])
 }
 
