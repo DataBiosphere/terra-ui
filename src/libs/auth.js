@@ -254,7 +254,6 @@ const initializeTermsOfService = (isSignedIn, state) => {
     userAcceptedVersion: isSignedIn ? state.termsOfService.userAcceptedVersion : undefined,
     userCanUseTerra: isSignedIn ? state.termsOfService.userCanUseTerra : undefined,
     showTosPopup: isSignedIn ? state.termsOfService.showTosPopup : undefined,
-    userContinuedUnderGracePeriod: isSignedIn ? state.termsOfService.userContinuedUnderGracePeriod : undefined,
   }
 }
 
