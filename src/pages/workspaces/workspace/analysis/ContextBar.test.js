@@ -48,6 +48,9 @@ jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
   isCromwellAppVisible: () => {
     return true
+  },
+  isCromwellOnAzureAppVisible: () => {
+    return true
   }
 }))
 
@@ -136,6 +139,42 @@ const cromwellDisk = {
   size: 500,
   status: 'Ready',
   zone: 'us-central1-a'
+}
+
+const cromwellOnAzureRunning = {
+  appName: 'test-cromwell-app',
+  cloudContext: {
+    cloudProvider: 'AZURE',
+    cloudResource: 'path/to/cloud/resource'
+  },
+  kubernetesRuntimeConfig: {
+    numNodes: 1,
+    machineType: 'Standard_A2_v2',
+    autoscalingEnabled: false
+  },
+  errors: [],
+  status: 'RUNNING',
+  proxyUrls: {
+    cbas: 'https://lz123.servicebus.windows.net/test-cromwell-app/cbas',
+    'cbas-ui': 'https://lz123.servicebus.windows.net/test-cromwell-app/',
+    cromwell: 'https://lz123.servicebus.windows.net/test-cromwell-app/cromwell',
+    wds: 'https://lz123.servicebus.windows.net/test-cromwell-app/wds'
+  },
+  diskName: null,
+  customEnvironmentVariables: {},
+  auditInfo: {
+    creator: 'abc.testerson@gmail.com',
+    createdDate: '2023-01-18T23:28:47.605176Z',
+    destroyedDate: null,
+    dateAccessed: '2023-01-18T23:28:47.605176Z'
+  },
+  appType: 'CROMWELL',
+  labels: {
+    cloudContext: 'path/to/cloud/context',
+    appName: 'test-cromwell-app',
+    clusterServiceAccount: '/subscriptions/123/pet-101',
+    creator: 'abc.testerson@gmail.com'
+  }
 }
 
 const galaxyDisk = {
@@ -322,6 +361,23 @@ const contextBarProps = {
   }
 }
 
+const contextBarPropsForAzure = {
+  runtimes: [],
+  apps: [],
+  appDataDisks: [],
+  refreshRuntimes: () => '',
+  location: 'US-CENTRAL1',
+  locationType: '',
+  refreshApps: () => '',
+  workspace: {
+    workspace: {
+      namespace: 'namespace',
+      cloudPlatform: 'Azure'
+    },
+    namespace: 'Broad Azure Test Workspace'
+  }
+}
+
 describe('ContextBar - buttons', () => {
   it('will render default icons', () => {
     // Act
@@ -415,6 +471,23 @@ describe('ContextBar - buttons', () => {
     expect(getByLabelText('Environment Configuration'))
     expect(getByTestId('terminal-button-id')).toHaveAttribute('disabled')
     expect(getByLabelText(new RegExp(/Cromwell Environment/i)))
+  })
+
+  it('will render a Cromwell on Azure button with a disabled Terminal Button', () => {
+    // Arrange
+    const cromwellOnAzureContextBarProps = {
+      ...contextBarPropsForAzure,
+      apps: [cromwellOnAzureRunning],
+      appDataDisks: []
+    }
+
+    // Act
+    const { getByLabelText, getByTestId } = render(h(ContextBar, cromwellOnAzureContextBarProps))
+
+    //Assert
+    expect(getByLabelText('Environment Configuration'))
+    expect(getByTestId('terminal-button-id')).toHaveAttribute('disabled')
+    expect(getByLabelText(new RegExp(/CromwellOnAzure Environment/i)))
   })
 
   it('will render Azure Environment button', () => {
