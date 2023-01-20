@@ -185,7 +185,7 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
   }, azureWorkspacesListResult, azureWorkspaceDetailsResult, azureWorkspaceResourcesResult, namespace, name, workspaceInfo.workspaceId)
 }
 
-const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
+const testAzureWorkspace = withUserToken(async ({ environment, page, token, testUrl }) => {
   const workspaceDescription = 'azure workspace description'
   const workspaceName = 'azure-workspace'
 
@@ -213,8 +213,11 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
   // Verify tabs that currently depend on Google project ID are not present.
   await dashboard.assertTabs(['notebooks', 'workflows', 'job history'], false)
 
-  // Verify Analyses and Data tabs are present.
-  await dashboard.assertTabs(['analyses', 'data'], true)
+  // Verify Analyses tab is present.
+  // Data tab should only be visible in dev for Azure workspaces
+  const expectedTabs = environment === 'dev' ? ['data', 'analyses'] : ['analyses']
+  console.log('expectedTabs', expectedTabs)
+  await dashboard.assertTabs(expectedTabs, true)
 
   // Check accessibility.
   await verifyAccessibility(page)
