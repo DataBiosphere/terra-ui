@@ -16,6 +16,7 @@ import { saToken } from 'src/libs/ajax/GoogleStorage'
 import { getUser } from 'src/libs/auth'
 import { isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
@@ -87,6 +88,7 @@ const WorkspaceTabs = ({
   const isLocked = workspace?.workspace.isLocked
   const workspaceLoaded = !!workspace
   const googleWorkspace = workspaceLoaded && isGoogleWorkspace(workspace)
+  const isDataTabShown = googleWorkspace || !getConfig().isProd
 
   const onClone = () => setCloningWorkspace(true)
   const onDelete = () => setDeletingWorkspace(true)
@@ -96,7 +98,7 @@ const WorkspaceTabs = ({
 
   const tabs = [
     { name: 'dashboard', link: 'workspace-dashboard' },
-    { name: 'data', link: 'workspace-data' },
+    ...(isDataTabShown ? [{ name: 'data', link: 'workspace-data' }] : []),
     { name: 'analyses', link: analysisTabName },
     ...(googleWorkspace ? [{ name: 'workflows', link: 'workspace-workflows' }] : []),
     ...(googleWorkspace ? [{ name: 'job history', link: 'workspace-job-history' }] : [])
