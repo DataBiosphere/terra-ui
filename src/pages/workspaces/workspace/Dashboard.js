@@ -348,7 +348,7 @@ const WorkspaceDashboard = _.flow(
     }
   }
 
-  const loadAzureStorage = withErrorReporting('Error loading Azure storage information.', async () => {
+  const loadAzureStorage = useCallback(async () => {
     try {
       const { location, sas } = await Ajax(signal).AzureStorage.details(workspaceId)
       setAzureStorage({ storageContainerUrl: _.head(_.split('?', sas.url)), storageLocation: location, sas })
@@ -358,7 +358,7 @@ const WorkspaceDashboard = _.flow(
       // expected transient error and a workspace that is truly missing a storage container.
       console.log(`Error thrown by AzureStorage.details: ${error}`) // eslint-disable-line no-console
     }
-  })
+  }, [workspaceId, signal])
 
   useEffect(() => {
     if (isAzureWorkspace(workspace)) {
