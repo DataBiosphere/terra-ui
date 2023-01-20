@@ -31,7 +31,7 @@ const recordType: string = 'item'
 
 const testProxyUrl: string = 'https://lzsomeTestUrl.servicebus.windows.net/super-cool-proxy-url/wds'
 const testProxyUrlResponse: Array<Object> = [
-  { appType: 'CROMWELL', appName: 'cbas-wds-default', proxyUrls: { wds: testProxyUrl } }
+  { appType: 'CROMWELL', appName: `wds-${uuid}`, proxyUrls: { wds: testProxyUrl }, workspaceId: uuid }
 ]
 
 const queryOptions: EntityQueryOptions = {

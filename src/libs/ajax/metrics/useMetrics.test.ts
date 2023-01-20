@@ -8,6 +8,7 @@ import { useMetricsEvent } from './useMetrics'
 type AjaxExports = typeof import('src/libs/ajax')
 jest.mock('src/libs/ajax', (): AjaxExports => {
   return {
+    ...jest.requireActual('src/libs/ajax'),
     Ajax: jest.fn()
   }
 })

@@ -2,7 +2,7 @@
 const _ = require('lodash/fp')
 const { withRegisteredUser, withBilling, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers')
 const {
-  click, clickable, delay, findElement, noSpinnersAfter, fillIn, findIframe, findText, dismissNotifications, select, getAnimatedDrawer, image, input
+  click, clickable, delay, findElement, noSpinnersAfter, fillIn, findIframe, findText, dismissNotifications, getAnimatedDrawer, image, input
 } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
 
@@ -21,7 +21,6 @@ const testRunAnalysisFn = _.flow(
   await findElement(page, getAnimatedDrawer('Select an application'))
   await click(page, image({ text: 'Create new notebook' }))
   await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName)
-  await select(page, 'Language', 'Python 3')
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create Analysis' })) })
 
   // Close the create cloud env modal that pops up
