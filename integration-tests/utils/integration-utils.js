@@ -409,6 +409,8 @@ const logPageResponses = page => {
         const responseIsJSON = response.headers()['content-type'] === 'application/json'
         response.text().then(content => {
           console.log('page.http.error', `${method} ${status} ${url}`, responseIsJSON ? JSON.parse(content) : content)
+        }).catch(err => {
+          console.error('page.http.error', 'Unable to get response content', err)
         })
       }
     }
