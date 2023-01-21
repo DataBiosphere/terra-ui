@@ -21,6 +21,7 @@ import {
   WorkspaceTagSelect
 } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
+import { isAzureUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
@@ -135,6 +136,12 @@ export const WorkspaceList = () => {
   const submissionsFilter = query.submissionsFilter || EMPTY_LIST
   const tab = query.tab || 'myWorkspaces'
   const tagsFilter = query.tagsFilter || EMPTY_LIST
+
+  useOnMount(() => {
+    if (!cloudPlatformFilter) {
+      Nav.updateSearch({ ...query, cloudPlatform: isAzureUser() ? cloudProviderTypes.AZURE : cloudProviderTypes.GCP })
+    }
+  })
 
   const [creatingNewWorkspace, setCreatingNewWorkspace] = useState(false)
   const [cloningWorkspaceId, setCloningWorkspaceId] = useState()
