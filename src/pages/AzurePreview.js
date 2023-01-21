@@ -38,17 +38,15 @@ const styles = {
   },
 }
 
-const AzurePreviewDescription = () => p({ style: styles.paragraph }, [
-  'This is a preview version of the Terra platform on Microsoft Azure. The public offering of Terra on Microsoft Azure is expected in early 2023.'
-])
-
 const AzurePreviewForPreviewUser = () => {
   const dismiss = () => {
     azurePreviewStore.set(true)
   }
 
   return h(Fragment, [
-    h(AzurePreviewDescription),
+    p({ style: styles.paragraph }, [
+      'This is a preview version of the Terra platform on Microsoft Azure.'
+    ]),
 
     div({ style: { marginTop: '1.5rem' } }, [
       h(ButtonPrimary, { onClick: dismiss, style: styles.button }, ['Proceed to Terra on Microsoft Azure Preview']),
@@ -176,18 +174,16 @@ const AzurePreviewForNonPreviewUser = () => {
   }, [userInfo])
 
   return h(Fragment, [
-    h(AzurePreviewDescription),
-
     hasSubmittedForm ? h(Fragment, [
       p({ style: styles.paragraph }, [
-        'Thank you for your interest in using Terra on Microsoft Azure. We will be in touch with you shortly with your access information.'
+        'Thank you for your interest in using Terra on Azure. We will be in touch with you shortly with your access information.'
       ]),
       div({ style: { marginTop: '1.5rem' } }, [
         h(ButtonPrimary, { onClick: signOut, style: styles.button }, ['Sign Out']),
       ])
     ]) : div([
       p({ style: styles.paragraph }, [
-        'You are not currently part of the Terra on Microsoft Azure Preview Program. If you are interested in joining the program, please complete the form below.'
+        'Terra on Azure is currently in preview. Please complete the following form if you are interested in accessing the platform and exploring the capabilities of Terra on Azure.'
       ]),
 
       h(AzurePreviewUserForm, { value: userInfo, onChange: setUserInfo, onSubmit: submitForm }),
