@@ -54,7 +54,7 @@ const AzurePreviewForPreviewUser = () => {
 
     div({ style: { ...styles.centered, marginTop: '1.5rem' } }, [
       h(ButtonPrimary, { onClick: dismiss, style: { ...styles.button, marginBottom: '1rem' } }, ['Proceed to Terra on Microsoft Azure Preview']),
-      h(ButtonOutline, { onClick: signOut, style: styles.button }, ['Log Out']),
+      h(ButtonOutline, { onClick: signOut, style: styles.button }, ['Sign Out']),
     ])
   ])
 }
@@ -70,7 +70,7 @@ const AzurePreviewForNonPreviewUser = () => {
     ]),
 
     div({ style: { ...styles.centered, marginTop: '1.5rem' } }, [
-      h(ButtonPrimary, { onClick: signOut, style: styles.button }, ['Log Out']),
+      h(ButtonPrimary, { onClick: signOut, style: styles.button }, ['Sign Out']),
     ])
   ])
 }

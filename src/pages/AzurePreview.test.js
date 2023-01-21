@@ -48,15 +48,15 @@ describe('AzurePreview', () => {
       expect(azurePreviewStore.set).toHaveBeenCalledWith(true)
     })
 
-    it('renders a log out button', async () => {
+    it('renders a sign out button', async () => {
       // Arrange
       const user = userEvent.setup()
 
       // Act
       render(h(AzurePreview))
 
-      const logOutButton = screen.getByText('Log Out')
-      await user.click(logOutButton)
+      const signOutButton = screen.getByText('Sign Out')
+      await user.click(signOutButton)
 
       // Assert
       expect(signOut).toHaveBeenCalled()
@@ -79,15 +79,15 @@ describe('AzurePreview', () => {
       expect(supportLink.getAttribute('href')).toEqual(expect.stringContaining('mailto:preview@terra.bio'))
     })
 
-    it('renders a log out button', async () => {
+    it('renders a sign out button', async () => {
       // Arrange
       const user = userEvent.setup()
 
       // Act
       render(h(AzurePreview))
 
-      const logOutButton = screen.getByText('Log Out')
-      await user.click(logOutButton)
+      const signOutButton = screen.getByText('Sign Out')
+      await user.click(signOutButton)
 
       // Assert
       expect(signOut).toHaveBeenCalled()
