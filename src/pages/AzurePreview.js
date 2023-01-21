@@ -1,6 +1,7 @@
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import { div, form, h, h1, input, p } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import planet from 'src/images/register-planet.svg'
 import { ReactComponent as TerraOnAzureLogo } from 'src/images/terra-ms-logo.svg'
@@ -200,7 +201,10 @@ const AzurePreviewForNonPreviewUser = () => {
           marginTop: '1.5rem',
         }
       }, [
-        h(ButtonPrimary, { disabled: !submitEnabled, onClick: submitForm, style: styles.button }, ['Submit']),
+        h(ButtonPrimary, { disabled: !submitEnabled, onClick: submitForm, style: styles.button }, [
+          'Submit',
+          busy && icon('loadingSpinner', { size: 12, style: { marginLeft: '1ch' } }),
+        ]),
         h(ButtonOutline, { onClick: signOut, style: styles.button }, ['Sign Out']),
       ])
     ])
