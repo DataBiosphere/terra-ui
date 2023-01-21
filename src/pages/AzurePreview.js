@@ -1,13 +1,13 @@
-import { Fragment } from 'react'
-import { div, h, h1, p } from 'react-hyperscript-helpers'
-import { ButtonOutline, ButtonPrimary, Link } from 'src/components/common'
+import { Fragment, useCallback, useEffect, useState } from 'react'
+import { div, form, h, h1, p } from 'react-hyperscript-helpers'
+import { ButtonOutline, ButtonPrimary } from 'src/components/common'
 import planet from 'src/images/register-planet.svg'
 import { ReactComponent as TerraOnAzureLogo } from 'src/images/terra-ms-logo.svg'
 import { signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useStore } from 'src/libs/react-utils'
 import { authStore, azurePreviewStore } from 'src/libs/state'
-import * as Utils from 'src/libs/utils'
 
 
 const styles = {
@@ -37,9 +37,6 @@ const styles = {
   },
 }
 
-const supportEmail = 'preview@terra.bio'
-const supportSubject = 'Terra on Microsoft Azure Preview Environment'
-
 const AzurePreviewDescription = () => p({ style: styles.paragraph }, [
   'This is a preview version of the Terra platform on Microsoft Azure. The public offering of Terra on Microsoft Azure is expected in early 2023.'
 ])
@@ -59,19 +56,62 @@ const AzurePreviewForPreviewUser = () => {
   ])
 }
 
+export const submittedPreviewFormPrefKey = 'submitted-azure-preview-form'
+
 const AzurePreviewForNonPreviewUser = () => {
+  const [hasSubmittedForm, setHasSubmittedForm] = useState(() => getLocalPref(submittedPreviewFormPrefKey) || false)
+  useEffect(() => {
+    setLocalPref(submittedPreviewFormPrefKey, hasSubmittedForm)
+  }, [hasSubmittedForm])
+
+  const submitForm = useCallback(() => {
+    setHasSubmittedForm(true)
+  }, [])
+
   return h(Fragment, [
     h(AzurePreviewDescription),
 
-    p({ style: styles.paragraph }, [
-      'You are not currently part of the Terra on Microsoft Azure Preview Program. If you are interested in joining the program, please contact ',
-      h(Link, { href: `mailto:${supportEmail}?subject=${encodeURIComponent(supportSubject)}`, ...Utils.newTabLinkProps, style: { textDecoration: 'underline' } }, [supportEmail]),
-      '.'
-    ]),
+    hasSubmittedForm ? h(Fragment, [
+      p({ style: styles.paragraph }, [
+        'Thank you for your interest in using Terra on Microsoft Azure. We will be in touch with you shortly with your access information.'
+      ]),
+      div({
+        style: {
+          display: 'flex',
+          justifyContent: 'center',
+          marginTop: '1.5rem',
+        }
+      }, [
+        h(ButtonPrimary, { onClick: signOut, style: styles.button }, ['Sign Out']),
+      ])
+    ]) : div([
+      p({ style: styles.paragraph }, [
+        'You are not currently part of the Terra on Microsoft Azure Preview Program. If you are interested in joining the program, please complete the form below.'
+      ]),
 
-    div({ style: { ...styles.centered, marginTop: '1.5rem' } }, [
-      h(ButtonPrimary, { onClick: signOut, style: styles.button }, ['Sign Out']),
-    ])
+      form({
+        name: 'azure-preview-interest',
+        style: {
+          width: '100%',
+        },
+        onSubmit: e => {
+          e.preventDefault()
+          submitForm()
+        }
+      }, []),
+
+      div({
+        style: {
+          display: 'flex',
+          justifyContent: 'space-between',
+          width: '100%',
+          marginTop: '1.5rem',
+        }
+      }, [
+        h(ButtonPrimary, { onClick: submitForm, style: styles.button }, ['Submit']),
+        h(ButtonOutline, { onClick: signOut, style: styles.button }, ['Sign Out']),
+      ])
+    ]),
   ])
 }
 

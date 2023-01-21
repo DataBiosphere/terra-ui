@@ -2,14 +2,20 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import { signOut } from 'src/libs/auth'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { authStore, azurePreviewStore } from 'src/libs/state'
 
-import AzurePreview from './AzurePreview'
+import AzurePreview, { submittedPreviewFormPrefKey } from './AzurePreview'
 
 
 jest.mock('src/libs/auth', () => ({
   ...jest.requireActual('src/libs/auth'),
   signOut: jest.fn(),
+}))
+
+jest.mock('src/libs/prefs', () => ({
+  getLocalPref: jest.fn(),
+  setLocalPref: jest.fn(),
 }))
 
 describe('AzurePreview', () => {
@@ -68,15 +74,77 @@ describe('AzurePreview', () => {
       authStore.set({ isAzurePreviewUser: false })
     })
 
-    it('renders a message and a link to email support', () => {
-      // Act
-      render(h(AzurePreview))
+    describe('for users who have not submitted the form', () => {
+      beforeAll(() => {
+        getLocalPref.mockImplementation(key => key === submittedPreviewFormPrefKey ? false : undefined)
+      })
 
-      // Assert
-      screen.getByText(/You are not currently part of the Terra on Microsoft Azure Preview Program/)
+      it('renders a message', () => {
+        // Act
+        render(h(AzurePreview))
 
-      const supportLink = screen.getByText('preview@terra.bio')
-      expect(supportLink.getAttribute('href')).toEqual(expect.stringContaining('mailto:preview@terra.bio'))
+        // Assert
+        screen.getByText('You are not currently part of the Terra on Microsoft Azure Preview Program. If you are interested in joining the program, please complete the form below.')
+      })
+
+      it('renders the form', () => {
+        // Act
+        render(h(AzurePreview))
+
+        // Assert
+        screen.getByRole('form')
+      })
+
+      describe('submitting the form', () => {
+        let user
+
+        beforeEach(async () => {
+          // Arrange
+          user = userEvent.setup()
+
+          render(h(AzurePreview))
+
+          // Act
+          const submitButton = screen.getByText('Submit')
+          await user.click(submitButton)
+        })
+
+        it('hides the form', () => {
+          // Assert
+          expect(screen.queryByRole('form')).toBeNull()
+        })
+
+        it('shows a thank you message', () => {
+          // Assert
+          screen.getByText('Thank you for your interest in using Terra on Microsoft Azure. We will be in touch with you shortly with your access information.')
+        })
+
+        it('saves submission status', () => {
+          expect(setLocalPref).toHaveBeenCalledWith(submittedPreviewFormPrefKey, true)
+        })
+      })
+    })
+
+    describe('for users who have submitted the form', () => {
+      beforeAll(() => {
+        getLocalPref.mockImplementation(key => key === submittedPreviewFormPrefKey ? true : undefined)
+      })
+
+      it('renders a message', () => {
+        // Act
+        render(h(AzurePreview))
+
+        // Assert
+        screen.getByText('Thank you for your interest in using Terra on Microsoft Azure. We will be in touch with you shortly with your access information.')
+      })
+
+      it('does not render the form', () => {
+        // Act
+        render(h(AzurePreview))
+
+        // Assert
+        expect(screen.queryByRole('form')).toBeNull()
+      })
     })
 
     it('renders a sign out button', async () => {
