@@ -17,7 +17,7 @@ import { reportError, reportErrorAndRethrow } from 'src/libs/error'
 import Events, { extractBillingDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { authStore } from 'src/libs/state'
+import { authStore, getUser } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -233,7 +233,7 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
         div({ style: { marginBottom: '0.25rem' } }, ['To grant access, add ', span({ style: { fontWeight: 'bold' } }, 'terra-billing@terra.bio'),
           ' as a ', span({ style: { fontWeight: 'bold' } }, 'Billing Account User'), ' on the ',
           h(Link, {
-            href: `https://console.cloud.google.com/billing/${chosenBillingAccount.accountName.split('/')[1]}?authuser=${Auth.getUser().email}`,
+            href: `https://console.cloud.google.com/billing/${chosenBillingAccount.accountName.split('/')[1]}?authuser=${getUser().email}`,
             ...Utils.newTabLinkProps
           }, ['Google Cloud Console', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])]),
         div({ style: { marginBottom: '0.25rem' } }, ['Then, ',
