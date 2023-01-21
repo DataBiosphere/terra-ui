@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useState } from 'react'
-import { div, form, h, h1, p } from 'react-hyperscript-helpers'
+import { div, form, h, h1, input, p } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary } from 'src/components/common'
 import { ValidatedInput } from 'src/components/input'
 import planet from 'src/images/register-planet.svg'
@@ -115,6 +115,8 @@ const AzurePreviewUserForm = ({ value: formValue, onChange, onSubmit }) => {
         }),
       ])
     }),
+
+    input({ type: 'submit', value: 'submit', style: { display: 'none' } })
   ])
 }
 
@@ -188,7 +190,7 @@ const AzurePreviewForNonPreviewUser = () => {
         'Terra on Azure is currently in preview. Please complete the following form if you are interested in accessing the platform and exploring the capabilities of Terra on Azure.'
       ]),
 
-      h(AzurePreviewUserForm, { value: userInfo, onChange: setUserInfo, onSubmit: submitForm }),
+      h(AzurePreviewUserForm, { value: userInfo, onChange: setUserInfo, onSubmit: submitEnabled ? submitForm : () => {} }),
 
       div({
         style: {
