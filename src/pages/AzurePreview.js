@@ -1,10 +1,12 @@
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import { div, form, h, h1, p } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary } from 'src/components/common'
+import { TextInput } from 'src/components/input'
 import planet from 'src/images/register-planet.svg'
 import { ReactComponent as TerraOnAzureLogo } from 'src/images/terra-ms-logo.svg'
 import { signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { FormLabel } from 'src/libs/forms'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useStore } from 'src/libs/react-utils'
 import { authStore, azurePreviewStore } from 'src/libs/state'
@@ -58,11 +60,72 @@ const AzurePreviewForPreviewUser = () => {
 
 export const submittedPreviewFormPrefKey = 'submitted-azure-preview-form'
 
+const AzurePreviewUserForm = ({ value: formValue, onChange, onSubmit }) => {
+  const fields = [
+    {
+      key: 'firstName',
+      label: 'First name',
+    },
+    {
+      key: 'lastName',
+      label: 'Last name',
+    },
+    {
+      key: 'title',
+      label: 'Title/Role',
+    },
+    {
+      key: 'organization',
+      label: 'Organization name',
+    },
+    {
+      key: 'contactEmail',
+      label: 'Contact email address',
+    },
+  ]
+
+  return form({
+    name: 'azure-preview-interest',
+    style: {
+      display: 'flex',
+      flexFlow: 'row wrap',
+      justifyContent: 'space-between',
+      width: 570,
+    },
+    onSubmit: e => {
+      e.preventDefault()
+      onSubmit()
+    }
+  }, [
+    fields.map(({ key, label }) => {
+      const inputId = `azure-preview-interest-${key}`
+      return div({ key, style: { width: 250 } }, [
+        h(FormLabel, { htmlFor: inputId, required: true }, [label]),
+        h(TextInput, {
+          id: inputId,
+          value: formValue[key],
+          onChange: value => { onChange({ ...formValue, [key]: value }) },
+        }),
+      ])
+    }),
+  ])
+}
+
 const AzurePreviewForNonPreviewUser = () => {
   const [hasSubmittedForm, setHasSubmittedForm] = useState(() => getLocalPref(submittedPreviewFormPrefKey) || false)
   useEffect(() => {
     setLocalPref(submittedPreviewFormPrefKey, hasSubmittedForm)
   }, [hasSubmittedForm])
+
+  const [userInfo, setUserInfo] = useState({
+    firstName: '',
+    lastName: '',
+    title: '',
+    organization: '',
+    contactEmail: '',
+  })
+
+  const submitEnabled = Object.values(userInfo).every(Boolean)
 
   const submitForm = useCallback(() => {
     setHasSubmittedForm(true)
@@ -89,16 +152,7 @@ const AzurePreviewForNonPreviewUser = () => {
         'You are not currently part of the Terra on Microsoft Azure Preview Program. If you are interested in joining the program, please complete the form below.'
       ]),
 
-      form({
-        name: 'azure-preview-interest',
-        style: {
-          width: '100%',
-        },
-        onSubmit: e => {
-          e.preventDefault()
-          submitForm()
-        }
-      }, []),
+      h(AzurePreviewUserForm, { value: userInfo, onChange: setUserInfo, onSubmit: submitForm }),
 
       div({
         style: {
@@ -108,7 +162,7 @@ const AzurePreviewForNonPreviewUser = () => {
           marginTop: '1.5rem',
         }
       }, [
-        h(ButtonPrimary, { onClick: submitForm, style: styles.button }, ['Submit']),
+        h(ButtonPrimary, { disabled: !submitEnabled, onClick: submitForm, style: styles.button }, ['Submit']),
         h(ButtonOutline, { onClick: signOut, style: styles.button }, ['Sign Out']),
       ])
     ]),

@@ -95,6 +95,35 @@ describe('AzurePreview', () => {
         screen.getByRole('form')
       })
 
+      describe('form validation', () => {
+        it('requires a value for all fields', async () => {
+          // Arrange
+          const user = userEvent.setup()
+
+          render(h(AzurePreview))
+
+          const isSubmitEnabled = () => screen.getByText('Submit').getAttribute('aria-disabled') === 'false'
+
+          // Assert
+          expect(isSubmitEnabled()).toBe(false)
+
+          // Act
+          await user.type(screen.getByLabelText('First name *'), 'A')
+          await user.type(screen.getByLabelText('Last name *'), 'User')
+
+          // Assert
+          expect(isSubmitEnabled()).toBe(false)
+
+          // Act
+          await user.type(screen.getByLabelText('Title/Role *'), 'Automated test')
+          await user.type(screen.getByLabelText('Organization name *'), 'Terra UI')
+          await user.type(screen.getByLabelText('Contact email address *'), 'user@example.com')
+
+          // Assert
+          expect(isSubmitEnabled()).toBe(true)
+        })
+      })
+
       describe('submitting the form', () => {
         let user
 
@@ -103,6 +132,12 @@ describe('AzurePreview', () => {
           user = userEvent.setup()
 
           render(h(AzurePreview))
+
+          await user.type(screen.getByLabelText('First name *'), 'A')
+          await user.type(screen.getByLabelText('Last name *'), 'User')
+          await user.type(screen.getByLabelText('Title/Role *'), 'Automated test')
+          await user.type(screen.getByLabelText('Organization name *'), 'Terra UI')
+          await user.type(screen.getByLabelText('Contact email address *'), 'user@example.com')
 
           // Act
           const submitButton = screen.getByText('Submit')
