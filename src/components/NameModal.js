@@ -9,26 +9,29 @@ import { FormLabel } from 'src/libs/forms'
 
 export const NameModal = ({ onSuccess, onDismiss, thing, value, validator = null, validationMessage = 'Invalid input' }) => {
   const [name, setName] = useState(value || '')
+  const [inputTouched, setInputTouched] = useState(false)
   const [error, setError] = useState(null)
   const isUpdate = value !== undefined
 
   useEffect(() => {
-    if (name !== '' && _.isRegExp(validator) && !validator.test(name)) {
+    if (!name && inputTouched) {
+      setError('Name is required')
+    } else if (_.isRegExp(validator) && !validator.test(name)) {
       setError(validationMessage)
-    } else if (name !== '' && _.isFunction(validator)) {
+    } else if (_.isFunction(validator)) {
       const msg = validator(name)
       setError(msg === false ? null : _.isString(msg) ? msg : validationMessage)
     } else {
       setError(null)
     }
-  }, [name]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [name, inputTouched]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return h(Modal, {
     title: (isUpdate ? 'Update ' : 'Create a New ') + thing,
     onDismiss,
     okButton: h(ButtonPrimary, {
       onClick: () => onSuccess({ name }),
-      disabled: error !== null
+      disabled: !name || error !== null
     }, [
       isUpdate ? 'Update ' : 'Create ',
       thing
@@ -43,7 +46,10 @@ export const NameModal = ({ onSuccess, onDismiss, thing, value, validator = null
             autoFocus: true,
             placeholder: 'Enter a name',
             value: name,
-            onChange: v => setName(v)
+            onChange: v => {
+              setInputTouched(true)
+              setName(v)
+            }
           },
           error
         })
