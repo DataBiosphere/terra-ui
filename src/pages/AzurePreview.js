@@ -11,7 +11,7 @@ import { reportError } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useStore } from 'src/libs/react-utils'
-import { authStore, azurePreviewStore } from 'src/libs/state'
+import { authStore, azurePreviewStore, getUser } from 'src/libs/state'
 
 
 const styles = {
@@ -128,6 +128,7 @@ const formInputMap = {
   title: 'titleIdPlaceholder',
   organization: 'organizationIdPlaceholder',
   contactEmail: 'contactEmailIdPlaceholder',
+  terraEmail: 'terraEmailIdPlaceholder',
 }
 
 const AzurePreviewForNonPreviewUser = () => {
@@ -144,6 +145,7 @@ const AzurePreviewForNonPreviewUser = () => {
     title: '',
     organization: '',
     contactEmail: '',
+    terraEmail: getUser().email,
   })
 
   const submitEnabled = Object.values(userInfo).every(Boolean) && !busy

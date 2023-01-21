@@ -28,7 +28,10 @@ describe('AzurePreview', () => {
   it('renders different content based on whether the user is a preview user', () => {
     // Act
     const [previewUserContent, nonPreviewUserContent] = [true, false].map(isAzurePreviewUser => {
-      authStore.set({ isAzurePreviewUser })
+      authStore.set({
+        user: { email: 'user@organization.name' },
+        isAzurePreviewUser,
+      })
       const { container, unmount } = render(h(AzurePreview))
       const content = container.innerHTML
       unmount()
@@ -77,7 +80,10 @@ describe('AzurePreview', () => {
 
   describe('for non-preview users', () => {
     beforeAll(() => {
-      authStore.set({ isAzurePreviewUser: false })
+      authStore.set({
+        user: { email: 'user@organization.name' },
+        isAzurePreviewUser: false
+      })
     })
 
     describe('for users who have not submitted the form', () => {
@@ -159,7 +165,7 @@ describe('AzurePreview', () => {
         it('submits user info', () => {
           expect(submitForm).toHaveBeenCalledWith(expect.any(String), expect.any(Object))
           const formInput = submitForm.mock.calls[0][1]
-          expect(Object.values(formInput)).toEqual(expect.arrayContaining(['A', 'User', 'Automated test', 'Terra UI', 'user@example.com']))
+          expect(Object.values(formInput)).toEqual(expect.arrayContaining(['A', 'User', 'Automated test', 'Terra UI', 'user@example.com', 'user@organization.name']))
         })
 
         it('hides the form', () => {
