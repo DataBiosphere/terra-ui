@@ -173,15 +173,17 @@ const AzurePreviewForNonPreviewUser = () => {
     }
   }, [userInfo])
 
-  return h(Fragment, [
-    hasSubmittedForm ? h(Fragment, [
+  if (hasSubmittedForm) {
+    return h(Fragment, [
       p({ style: styles.paragraph }, [
         'Thank you for your interest in using Terra on Azure. We will be in touch with you shortly with your access information.'
       ]),
       div({ style: { marginTop: '1.5rem' } }, [
         h(ButtonPrimary, { onClick: signOut, style: styles.button }, ['Sign Out']),
       ])
-    ]) : div([
+    ])
+  } else {
+    return div([
       p({ style: styles.paragraph }, [
         'Terra on Azure is currently in preview. Please complete the following form if you are interested in accessing the platform and exploring the capabilities of Terra on Azure.'
       ]),
@@ -199,8 +201,8 @@ const AzurePreviewForNonPreviewUser = () => {
         h(ButtonPrimary, { disabled: !submitEnabled, onClick: submitForm, style: styles.button }, ['Submit']),
         h(ButtonOutline, { onClick: signOut, style: styles.button }, ['Sign Out']),
       ])
-    ]),
-  ])
+    ])
+  }
 }
 
 const AzurePreview = () => {
