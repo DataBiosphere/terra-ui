@@ -1,12 +1,18 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
+import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { authStore, azurePreviewStore } from 'src/libs/state'
 
 import AzurePreview, { submittedPreviewFormPrefKey } from './AzurePreview'
 
+
+jest.mock('src/libs/ajax', () => ({
+  ...jest.requireActual('src/libs/ajax'),
+  Ajax: jest.fn(),
+}))
 
 jest.mock('src/libs/auth', () => ({
   ...jest.requireActual('src/libs/auth'),
@@ -124,8 +130,14 @@ describe('AzurePreview', () => {
         })
       })
 
-      describe('submitting the form', () => {
+      describe('successfully submitting the form', () => {
+        let submitForm
         let user
+
+        beforeAll(() => {
+          submitForm = jest.fn(() => Promise.resolve())
+          Ajax.mockImplementation(() => ({ Surveys: { submitForm } }))
+        })
 
         beforeEach(async () => {
           // Arrange
@@ -141,7 +153,13 @@ describe('AzurePreview', () => {
 
           // Act
           const submitButton = screen.getByText('Submit')
-          await user.click(submitButton)
+          await act(() => user.click(submitButton))
+        })
+
+        it('submits user info', () => {
+          expect(submitForm).toHaveBeenCalledWith(expect.any(String), expect.any(Object))
+          const formInput = submitForm.mock.calls[0][1]
+          expect(Object.values(formInput)).toEqual(expect.arrayContaining(['A', 'User', 'Automated test', 'Terra UI', 'user@example.com']))
         })
 
         it('hides the form', () => {

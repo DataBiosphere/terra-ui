@@ -4,8 +4,10 @@ import { ButtonOutline, ButtonPrimary } from 'src/components/common'
 import { ValidatedInput } from 'src/components/input'
 import planet from 'src/images/register-planet.svg'
 import { ReactComponent as TerraOnAzureLogo } from 'src/images/terra-ms-logo.svg'
+import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { reportError } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useStore } from 'src/libs/react-utils'
@@ -118,11 +120,23 @@ const AzurePreviewUserForm = ({ value: formValue, onChange, onSubmit }) => {
   ])
 }
 
+const formId = 'formIdPlaceholder'
+
+const formInputMap = {
+  firstName: 'firstNameIdPlaceholder',
+  lastName: 'lastNameIdPlaceholder',
+  title: 'titleIdPlaceholder',
+  organization: 'organizationIdPlaceholder',
+  contactEmail: 'contactEmailIdPlaceholder',
+}
+
 const AzurePreviewForNonPreviewUser = () => {
   const [hasSubmittedForm, setHasSubmittedForm] = useState(() => getLocalPref(submittedPreviewFormPrefKey) || false)
   useEffect(() => {
     setLocalPref(submittedPreviewFormPrefKey, hasSubmittedForm)
   }, [hasSubmittedForm])
+
+  const [busy, setBusy] = useState(false)
 
   const [userInfo, setUserInfo] = useState({
     firstName: '',
@@ -132,11 +146,22 @@ const AzurePreviewForNonPreviewUser = () => {
     contactEmail: '',
   })
 
-  const submitEnabled = Object.values(userInfo).every(Boolean)
+  const submitEnabled = Object.values(userInfo).every(Boolean) && !busy
 
-  const submitForm = useCallback(() => {
-    setHasSubmittedForm(true)
-  }, [])
+  const submitForm = useCallback(async () => {
+    setBusy(true)
+    try {
+      const formInput = Object.entries(formInputMap)
+        .reduce((acc, [userInfoKey, formFieldId]) => ({ ...acc, [formFieldId]: userInfo[userInfoKey] }), {})
+
+      await Ajax().Surveys.submitForm(formId, formInput)
+      setHasSubmittedForm(true)
+    } catch (error) {
+      reportError('Error submitting information', error)
+    } finally {
+      setBusy(false)
+    }
+  }, [userInfo])
 
   return h(Fragment, [
     h(AzurePreviewDescription),
