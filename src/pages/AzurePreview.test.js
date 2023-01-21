@@ -129,6 +129,7 @@ describe('AzurePreview', () => {
           // Act
           await user.type(screen.getByLabelText('Title/Role *'), 'Automated test')
           await user.type(screen.getByLabelText('Organization name *'), 'Terra UI')
+          await user.clear(screen.getByLabelText('Contact email address *'))
           await user.type(screen.getByLabelText('Contact email address *'), 'user@example.com')
 
           // Assert
@@ -155,6 +156,7 @@ describe('AzurePreview', () => {
           await user.type(screen.getByLabelText('Last name *'), 'User')
           await user.type(screen.getByLabelText('Title/Role *'), 'Automated test')
           await user.type(screen.getByLabelText('Organization name *'), 'Terra UI')
+          await user.clear(screen.getByLabelText('Contact email address *'))
           await user.type(screen.getByLabelText('Contact email address *'), 'user@example.com')
 
           // Act

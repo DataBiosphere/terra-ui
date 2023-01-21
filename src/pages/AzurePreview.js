@@ -139,13 +139,23 @@ const AzurePreviewForNonPreviewUser = () => {
 
   const [busy, setBusy] = useState(false)
 
-  const [userInfo, setUserInfo] = useState({
-    firstName: '',
-    lastName: '',
-    title: '',
-    organization: '',
-    contactEmail: '',
-    terraEmail: getUser().email,
+  const [userInfo, setUserInfo] = useState(() => {
+    const user = getUser()
+
+    // If the user's name contains only one space, guess that it contains
+    // their first and last name and auto populate those inputs.
+    // Otherwise, leave them blank.
+    const nameParts = (user.name || '').trim().split(/\s/)
+    const [firstName, lastName] = nameParts.length === 2 ? nameParts : ['', '']
+
+    return {
+      firstName,
+      lastName,
+      title: '',
+      organization: '',
+      contactEmail: user.email,
+      terraEmail: user.email,
+    }
   })
 
   const submitEnabled = Object.values(userInfo).every(Boolean) && !busy
