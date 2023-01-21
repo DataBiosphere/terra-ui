@@ -19,7 +19,6 @@ const styles = {
     alignItems: 'center',
   },
   paragraph: {
-    textAlign: 'center',
     fontSize: 16,
     lineHeight: 1.5,
     maxWidth: 570,
@@ -28,8 +27,6 @@ const styles = {
     display: 'flex',
     marginTop: '3rem',
     marginBotton: '2rem',
-    justifyContent: 'center',
-    alignItems: 'center',
     color: colors.dark(0.8),
     fontSize: '1.8rem',
     fontWeight: 500,
@@ -51,8 +48,10 @@ const AzurePreviewForPreviewUser = () => {
   return h(Fragment, [
     h(AzurePreviewDescription),
 
-    div({ style: { ...styles.centered, marginTop: '1.5rem' } }, [
-      h(ButtonPrimary, { onClick: dismiss, style: { ...styles.button, marginBottom: '1rem' } }, ['Proceed to Terra on Microsoft Azure Preview']),
+    div({ style: { marginTop: '1.5rem' } }, [
+      h(ButtonPrimary, { onClick: dismiss, style: styles.button }, ['Proceed to Terra on Microsoft Azure Preview']),
+    ]),
+    div({ style: { marginTop: '1rem' } }, [
       h(ButtonOutline, { onClick: signOut, style: styles.button }, ['Sign Out']),
     ])
   ])
@@ -146,13 +145,7 @@ const AzurePreviewForNonPreviewUser = () => {
       p({ style: styles.paragraph }, [
         'Thank you for your interest in using Terra on Microsoft Azure. We will be in touch with you shortly with your access information.'
       ]),
-      div({
-        style: {
-          display: 'flex',
-          justifyContent: 'center',
-          marginTop: '1.5rem',
-        }
-      }, [
+      div({ style: { marginTop: '1.5rem' } }, [
         h(ButtonPrimary, { onClick: signOut, style: styles.button }, ['Sign Out']),
       ])
     ]) : div([
@@ -190,10 +183,12 @@ const AzurePreview = () => {
       backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0px bottom -600px'
     }
   }, [
-    h(TerraOnAzureLogo, { title: 'Terra on Microsoft Azure - Preview', role: 'img' }),
-    h1({ style: styles.header }, ['Terra on Microsoft Azure - Preview']),
+    div([
+      h(TerraOnAzureLogo, { title: 'Terra on Microsoft Azure - Preview', role: 'img' }),
+      h1({ style: styles.header }, ['Terra on Microsoft Azure - Preview']),
 
-    !!isAzurePreviewUser ? h(AzurePreviewForPreviewUser) : h(AzurePreviewForNonPreviewUser),
+      !!isAzurePreviewUser ? h(AzurePreviewForPreviewUser) : h(AzurePreviewForNonPreviewUser),
+    ]),
   ])
 }
 
