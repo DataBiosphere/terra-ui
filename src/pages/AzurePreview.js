@@ -1,7 +1,7 @@
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import { div, form, h, h1, p } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary } from 'src/components/common'
-import { TextInput } from 'src/components/input'
+import { ValidatedInput } from 'src/components/input'
 import planet from 'src/images/register-planet.svg'
 import { ReactComponent as TerraOnAzureLogo } from 'src/images/terra-ms-logo.svg'
 import { signOut } from 'src/libs/auth'
@@ -61,6 +61,8 @@ const AzurePreviewForPreviewUser = () => {
 export const submittedPreviewFormPrefKey = 'submitted-azure-preview-form'
 
 const AzurePreviewUserForm = ({ value: formValue, onChange, onSubmit }) => {
+  const [fieldsTouched, setFieldsTouched] = useState({})
+
   const fields = [
     {
       key: 'firstName',
@@ -101,10 +103,16 @@ const AzurePreviewUserForm = ({ value: formValue, onChange, onSubmit }) => {
       const inputId = `azure-preview-interest-${key}`
       return div({ key, style: { width: 250 } }, [
         h(FormLabel, { htmlFor: inputId, required: true }, [label]),
-        h(TextInput, {
-          id: inputId,
-          value: formValue[key],
-          onChange: value => { onChange({ ...formValue, [key]: value }) },
+        h(ValidatedInput, {
+          inputProps: {
+            id: inputId,
+            value: formValue[key],
+            onChange: value => {
+              setFieldsTouched(v => ({ ...v, [key]: true }))
+              onChange({ ...formValue, [key]: value })
+            },
+          },
+          error: fieldsTouched[key] && !formValue[key] ? `${label} is required` : undefined,
         }),
       ])
     }),
