@@ -1,6 +1,6 @@
-import { Dispatch, Fragment, SetStateAction, useEffect, useRef } from 'react'
-import { div, h, p, span } from 'react-hyperscript-helpers'
-import { Link } from 'src/components/common'
+import { Dispatch, Fragment, SetStateAction, useEffect, useRef, useState } from 'react'
+import { div, h, span } from 'react-hyperscript-helpers'
+import { ButtonOutline, Link, topSpinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { useFilesInDirectory } from 'src/components/file-browser/file-browser-hooks'
 import { basename } from 'src/components/file-browser/file-browser-utils'
@@ -9,9 +9,10 @@ import FilesTable from 'src/components/file-browser/FilesTable'
 import { NoticeForPath } from 'src/components/file-browser/NoticeForPath'
 import { icon } from 'src/components/icons'
 import { UploadProgressModal } from 'src/components/ProgressBar'
-import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
+import FileBrowserProvider, { FileBrowserDirectory, FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 import colors from 'src/libs/colors'
 import { dataTableVersionsPathRoot } from 'src/libs/data-table-versions'
+import { reportError } from 'src/libs/error'
 import { useUploader } from 'src/libs/uploads'
 import * as Utils from 'src/libs/utils'
 
@@ -25,6 +26,8 @@ interface FilesInDirectoryProps {
   selectedFiles: { [path: string]: FileBrowserFile }
   setSelectedFiles: Dispatch<SetStateAction<{ [path: string]: FileBrowserFile }>>
   onClickFile: (file: FileBrowserFile) => void
+  onCreateDirectory: (directory: FileBrowserDirectory) => void
+  onDeleteDirectory: () => void
   onError: (error: Error) => void
 }
 
@@ -38,6 +41,8 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
     selectedFiles,
     setSelectedFiles,
     onClickFile,
+    onCreateDirectory,
+    onDeleteDirectory,
     onError,
   } = props
 
@@ -74,6 +79,8 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
     )
   }, [directoryLabel, files, status])
 
+  const [busy, setBusy] = useState(false)
+
   return div({
     style: {
       display: 'flex',
@@ -95,9 +102,11 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
       h(FilesMenu, {
         disabled: editDisabled,
         disabledReason: editDisabledReason,
+        path,
         provider,
         selectedFiles,
         onClickUpload: openUploader,
+        onCreateDirectory,
         onDeleteFiles: () => {
           setSelectedFiles({})
           reload()
@@ -162,7 +171,7 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
           ])
         ])
       ]),
-      files.length === 0 && p({
+      files.length === 0 && div({
         style: {
           marginTop: '1rem',
           fontStyle: 'italic',
@@ -172,6 +181,23 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
         Utils.cond(
           [status === 'Loading', () => 'Loading files...'],
           [status === 'Error', () => 'Unable to load files'],
+          [path !== '' && provider.supportsEmptyDirectories, () => h(ButtonOutline, {
+            style: { marginTop: '1rem', textTransform: 'none' },
+            onClick: async () => {
+              // Attempt to delete folder placeholder object.
+              // A placeholder object may not exist for the prefix being viewed, so do not an report error for 404 responses.
+              // See https://cloud.google.com/storage/docs/folders for more information on placeholder objects.
+              setBusy(true)
+              try {
+                await provider.deleteEmptyDirectory(path)
+                setBusy(false)
+                onDeleteDirectory()
+              } catch (error) {
+                setBusy(false)
+                reportError('Error deleting folder', error)
+              }
+            }
+          }, ['Delete this folder'])],
           () => 'No files have been uploaded yet'
         )
       ])
@@ -180,6 +206,8 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
       status: uploadState,
       abort: cancelUpload
     }),
+
+    busy && topSpinnerOverlay,
   ])
 }
 

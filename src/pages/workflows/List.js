@@ -10,9 +10,9 @@ import { TabBar } from 'src/components/tabBars'
 import { FlexTable, HeaderCell, Sortable, TooltipCell } from 'src/components/table'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
-import { getUser } from 'src/libs/auth'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
+import { getUser } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 

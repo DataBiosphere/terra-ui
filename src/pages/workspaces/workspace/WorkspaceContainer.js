@@ -13,14 +13,14 @@ import TopBar from 'src/components/TopBar'
 import { updateRecentlyViewedWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { saToken } from 'src/libs/ajax/GoogleStorage'
-import { getUser } from 'src/libs/auth'
 import { isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount, usePrevious, useStore, withDisplayName } from 'src/libs/react-utils'
-import { workspaceStore } from 'src/libs/state'
+import { getUser, workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { differenceFromNowInSeconds } from 'src/libs/utils'
@@ -87,6 +87,7 @@ const WorkspaceTabs = ({
   const isLocked = workspace?.workspace.isLocked
   const workspaceLoaded = !!workspace
   const googleWorkspace = workspaceLoaded && isGoogleWorkspace(workspace)
+  const isDataTabShown = googleWorkspace || !getConfig().isProd
 
   const onClone = () => setCloningWorkspace(true)
   const onDelete = () => setDeletingWorkspace(true)
@@ -96,7 +97,7 @@ const WorkspaceTabs = ({
 
   const tabs = [
     { name: 'dashboard', link: 'workspace-dashboard' },
-    { name: 'data', link: 'workspace-data' },
+    ...(isDataTabShown ? [{ name: 'data', link: 'workspace-data' }] : []),
     { name: 'analyses', link: analysisTabName },
     ...(googleWorkspace ? [{ name: 'workflows', link: 'workspace-workflows' }] : []),
     ...(googleWorkspace ? [{ name: 'job history', link: 'workspace-job-history' }] : [])

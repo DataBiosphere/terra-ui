@@ -19,9 +19,6 @@ import {
 import * as Utils from 'src/libs/utils'
 
 
-export { getUser }
-
-
 export const getOidcConfig = () => {
   const metadata = {
     authorization_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
@@ -254,7 +251,6 @@ const initializeTermsOfService = (isSignedIn, state) => {
     userAcceptedVersion: isSignedIn ? state.termsOfService.userAcceptedVersion : undefined,
     userCanUseTerra: isSignedIn ? state.termsOfService.userCanUseTerra : undefined,
     showTosPopup: isSignedIn ? state.termsOfService.showTosPopup : undefined,
-    userContinuedUnderGracePeriod: isSignedIn ? state.termsOfService.userContinuedUnderGracePeriod : undefined,
   }
 }
 

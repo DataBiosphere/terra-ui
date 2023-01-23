@@ -1,5 +1,5 @@
 import { img } from 'react-hyperscript-helpers'
-import { getUser } from 'src/libs/auth'
+import { getUser } from 'src/libs/state'
 
 
 const ProfilePicture = ({ size, style, ...props } = {}) => {

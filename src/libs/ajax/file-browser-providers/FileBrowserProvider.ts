@@ -14,6 +14,8 @@ export interface FileBrowserDirectory {
 }
 
 interface FileBrowserProvider {
+  supportsEmptyDirectories: boolean
+
   getDirectoriesInDirectory(path: string, options?: { signal?: AbortSignal }): Promise<IncrementalResponse<FileBrowserDirectory>>
   getFilesInDirectory(path: string, options?: { signal?: AbortSignal }): Promise<IncrementalResponse<FileBrowserFile>>
   getDownloadUrlForFile(path: string, options?: { signal?: AbortSignal }): Promise<string>
@@ -21,6 +23,9 @@ interface FileBrowserProvider {
 
   uploadFileToDirectory(directoryPath: string, file: File): Promise<void>
   deleteFile(path: string): Promise<void>
+
+  createEmptyDirectory(directoryPath: string): Promise<FileBrowserDirectory>
+  deleteEmptyDirectory(directoryPath: string): Promise<void>
 }
 
 export default FileBrowserProvider
