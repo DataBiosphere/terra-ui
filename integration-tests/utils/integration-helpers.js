@@ -1,7 +1,7 @@
 const _ = require('lodash/fp')
 const uuid = require('uuid')
 const {
-  click, clickable, dismissNotifications, fillIn, findText, gotoPage, input, label, signIntoTerra, waitForNoSpinners, navChild, noSpinnersAfter,
+  clearSelect, click, clickable, dismissNotifications, fillIn, findText, gotoPage, input, label, signIntoTerra, waitForNoSpinners, navChild, noSpinnersAfter,
   navOptionNetworkIdle, enablePageLogging
 } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
@@ -180,6 +180,7 @@ const viewWorkspaceDashboard = async (page, token, workspaceName) => {
   await signIntoTerra(page, { token })
   await click(page, clickable({ textContains: 'View Workspaces' }))
   await dismissNotifications(page)
+  await clearSelect(page, 'Filter by cloud platform')
   await fillIn(page, input({ placeholder: 'Search by keyword' }), workspaceName)
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) })
 }
