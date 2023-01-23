@@ -1,14 +1,21 @@
 import _ from 'lodash/fp'
-import { Fragment, useState, CSSProperties } from 'react'
+import React, { CSSProperties, Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ColumnSelector, MiniSortable, SimpleTable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
+import { Dataset } from 'src/libs/ajax/Catalog'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { commonStyles, SearchAndFilterComponentV2 } from 'src/pages/library/common'
+import {
+  commonStyles,
+  FilterSection,
+  SearchAndFilterComponent,
+  SearchAndFilterProps,
+  Sort
+} from 'src/pages/library/common'
 import {
   DatasetAccess,
   datasetAccessTypes, formatDatasetTime, getAssayCategoryListFromDataset, getConsortiumTitlesFromDataset,
@@ -33,7 +40,7 @@ const styles = {
   }
 }
 
-const getUnique = (mapper, data) => _.flow(
+export const getUnique = (mapper, data) => _.flow(
   _.flatMap(mapper),
   _.compact,
   _.uniq,
@@ -41,7 +48,7 @@ const getUnique = (mapper, data) => _.flow(
 )(data)
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
-const extractCatalogFiltersV2 = dataCatalog => {
+export const extractCatalogFilters = (dataCatalog: Dataset[]): FilterSection<Dataset>[] => {
   return [{
     header: 'Access type',
     matchBy: (dataset, value) => getDatasetAccessType(dataset) === value,
@@ -70,21 +77,21 @@ const extractCatalogFiltersV2 = dataCatalog => {
     matchBy: (dataset, value) => _.includes(value, getDataModalityListFromDataset(dataset)),
     values: getUnique(dataset => getDataModalityListFromDataset(dataset), dataCatalog)
   }, {
-    header: 'Assay Category',
+    header: 'Assay category',
     matchBy: (dataset, value) => _.includes(value, getAssayCategoryListFromDataset(dataset)),
     values: getUnique(dataset => getAssayCategoryListFromDataset(dataset), dataCatalog)
   }, {
     header: 'File type',
     matchBy: (dataset, value) => _.includes(value, _.map(files => files['TerraCore:hasFileFormat'], dataset.fileAggregate)),
-    values: getUnique('dcat:mediaType', _.flatMap('files', dataCatalog))
+    values: getUnique('TerraCore:hasFileFormat', _.flatMap('fileAggregate', dataCatalog))
   }, {
     header: 'Disease',
     matchBy: (dataset, value) => _.intersection(value, dataset.samples?.disease).length > 0,
-    values: getUnique('samples?.disease', dataCatalog)
+    values: getUnique(dataset => dataset.samples?.disease, dataCatalog)
   }, {
     header: 'Species',
     matchBy: (dataset, value) => _.intersection(value, dataset.samples?.species).length > 0,
-    values: getUnique('samples?.species', dataCatalog)
+    values: getUnique(dataset => dataset.samples?.species, dataCatalog)
   }]
 }
 
@@ -101,8 +108,8 @@ const allColumns = {
 }
 
 interface ColumnSetting {
-  name: string,
-  key: string,
+  name: string
+  key: string
   visible: boolean
 }
 
@@ -174,21 +181,20 @@ const DataBrowserTableComponent = ({ sort, setSort, cols, setCols, filteredList 
 }
 
 export const Browser = () => {
-  const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
+  const [sort, setSort] = useState<Sort>({ field: 'created', direction: 'desc' })
   // This state contains the current set of visible columns, in the order that they appear.
   // Note that the Dataset Name column isn't customizable and is always shown first.
   const [cols, setCols] = useState(['consortiums', 'subjects', 'dataModality', 'lastUpdated'])
   const { dataCatalog, loading } = useDataCatalog()
 
   return h(Fragment, [
-    h(SearchAndFilterComponentV2, {
+    h(SearchAndFilterComponent as React.FC<SearchAndFilterProps<Dataset>>, {
       getLowerName: dataset => _.toLower(dataset['dct:title']), getLowerDescription: dataset => _.toLower(dataset['dct:description']),
-      fullList: dataCatalog, sidebarSections: extractCatalogFiltersV2(dataCatalog),
+      fullList: dataCatalog, sidebarSections: extractCatalogFilters(dataCatalog),
       customSort: sort,
       searchType: 'Datasets',
       titleField: 'dct:title',
       descField: 'dct:description',
-      idField: 'id',
       listView: filteredList => DataBrowserTableComponent({ sort, setSort, cols, setCols, filteredList })
     }),
     loading && spinnerOverlay

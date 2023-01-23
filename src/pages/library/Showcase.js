@@ -18,38 +18,39 @@ import * as Utils from 'src/libs/utils'
 import { cloudProviderLabels } from 'src/libs/workspace-utils'
 import { SearchAndFilterComponent } from 'src/pages/library/common'
 
-
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
-const sidebarSections = [{
-  name: 'Cloud Platform',
-  labels: [cloudProviderLabels.GCP, cloudProviderLabels.AZURE],
+// All workspaces match by their tags
+const sidebarSectionsV2 = _.map(section => ({ ...section, matchBy: (workspace, value) => _.includes(value, workspace.tags.items) }), [{
+  header: 'Cloud Platform',
+  values: [cloudProviderLabels.GCP, cloudProviderLabels.AZURE],
 }, {
-  name: 'Getting Started',
-  labels: ['Workflow Tutorials', 'Notebook Tutorials', 'Data Tutorials', 'RStudio Tutorials', 'Galaxy Tutorials']
+  header: 'Getting Started',
+  values: ['Workflow Tutorials', 'Notebook Tutorials', 'Data Tutorials', 'RStudio Tutorials', 'Galaxy Tutorials']
 }, {
-  name: 'Analysis Tools',
-  labels: ['WDLs', 'Jupyter Notebooks', 'RStudio', 'Galaxy', 'Hail', 'Bioconductor', 'GATK', 'Cumulus', 'Spark']
+  header: 'Analysis Tools',
+  values: ['WDLs', 'Jupyter Notebooks', 'RStudio', 'Galaxy', 'Hail', 'Bioconductor', 'GATK', 'Cumulus', 'Spark']
 }, {
-  name: 'Experimental Strategy',
-  labels: ['GWAS', 'Exome Analysis', 'Whole Genome Analysis', 'Fusion Transcript Detection', 'RNA Analysis', 'Machine Learning',
+  header: 'Experimental Strategy',
+  values: ['GWAS', 'Exome Analysis', 'Whole Genome Analysis', 'Fusion Transcript Detection', 'RNA Analysis', 'Machine Learning',
     'Variant Discovery', 'Epigenomics', 'DNA Methylation', 'Copy Number Variation', 'Structural Variation', 'Functional Annotation']
 }, {
-  name: 'Data Generation Technology',
-  labels: ['10x analysis', 'Bisulfate Sequencing']
+  header: 'Data Generation Technology',
+  values: ['10x analysis', 'Bisulfate Sequencing']
 }, {
-  name: 'Scientific Domain',
-  labels: ['Cancer', 'Infectious Diseases', 'MPG', 'Single-cell', 'Immunology', 'Neurodegenerative Diseases']
+  header: 'Scientific Domain',
+  values: ['Cancer', 'Infectious Diseases', 'MPG', 'Single-cell', 'Immunology', 'Neurodegenerative Diseases']
 }, {
-  name: 'Datasets',
-  labels: ['AnVIL', 'CMG', 'CCDG', 'TopMed', 'HCA', 'TARGET', 'ENCODE', 'BioData Catalyst', 'TCGA', '1000 Genomes', 'BRAIN Initiative',
+  header: 'Datasets',
+  values: ['AnVIL', 'CMG', 'CCDG', 'TopMed', 'HCA', 'TARGET', 'ENCODE', 'BioData Catalyst', 'TCGA', '1000 Genomes', 'BRAIN Initiative',
     'gnomAD', 'NCI', 'COVID-19', 'AMP PD']
 }, {
-  name: 'Utilities',
-  labels: ['Format Conversion', 'Developer Tools']
+  header: 'Utilities',
+  values: ['Format Conversion', 'Developer Tools']
 }, {
-  name: 'Projects',
-  labels: ['HCA', 'AnVIL', 'BRAIN Initiative', 'BioData Catalyst', 'NCI', 'AMP PD']
+  header: 'Projects',
+  values: ['HCA', 'AnVIL', 'BRAIN Initiative', 'BioData Catalyst', 'NCI', 'AMP PD']
 }]
+)
 
 const WorkspaceCard = ({ workspace }) => {
   const { namespace, name, created, description } = workspace
@@ -124,7 +125,7 @@ const Showcase = () => {
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('featured workspaces'),
     h(SearchAndFilterComponent, {
-      fullList, sidebarSections,
+      fullList, sidebarSectionsV2,
       searchType: 'Featured Workspaces',
       getLowerName: workspace => _.toLower(workspace.name),
       getLowerDescription: workspace => _.toLower(workspace.description),

@@ -34,7 +34,7 @@ export const uiMessaging = {
 }
 
 // This list is generated from the schema enum
-export const getDatasetReleasePoliciesDisplayInformation = (dataUsePermission: string): { label: string; description?: string } => {
+export const getDatasetReleasePoliciesDisplayInformation = (dataUsePermission: string | undefined): { label: string; description?: string } => {
   return Utils.switchCase(
     dataUsePermission,
     ['DUO:0000007', () => ({ label: 'DS', description: 'Disease specific research' })],
@@ -96,7 +96,7 @@ export const getAssayCategoryListFromDataset = (dataset: Dataset) => _.flow(
 export const formatDatasetTime = (time: string | null) => !!time ? Utils.makeStandardDate(new Date(time)) : null
 
 // Return type should be decided by above
-export const getDatasetAccessType = (dataset: Dataset) => Utils.cond(
+export const getDatasetAccessType = (dataset: Dataset): DatasetAccessType => Utils.cond(
   [isExternal(dataset), () => datasetAccessTypes.External],
   [dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner', () => datasetAccessTypes.Granted],
   () => datasetAccessTypes.Controlled)

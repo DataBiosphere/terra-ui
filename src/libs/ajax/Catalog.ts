@@ -103,7 +103,7 @@ export interface Dataset {
   contributors: Contributor[]
   id: string
   accessLevel: AccessLevel
-  phsId: string
+  phsId?: string
 }
 
 export interface DatasetListResponse {

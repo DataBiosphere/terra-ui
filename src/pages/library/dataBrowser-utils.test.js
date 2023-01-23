@@ -1,10 +1,14 @@
 import { render } from '@testing-library/react'
+import * as _ from 'lodash/fp'
 import { brands } from 'src/libs/brands'
 import { dataCatalogStore } from 'src/libs/state'
 import {
-  datarepoSnapshotUrlFragment, datasetAccessTypes, getDatasetAccessType,
+  datarepoSnapshotUrlFragment, datasetAccessTypes, getAssayCategoryListFromDataset, getConsortiumTitlesFromDataset, getDataModalityListFromDataset,
+  getDatasetAccessType,
+  getDatasetReleasePoliciesDisplayInformation,
   makeDatasetReleasePolicyDisplayInformation, prepareDatasetsForDisplay, workspaceUrlFragment
 } from 'src/pages/library/dataBrowser-utils'
+import { TEST_DATASET_ONE } from 'src/pages/library/test-datasets'
 
 
 beforeEach(() => {
@@ -42,5 +46,41 @@ describe('dataBrowser-utils', () => {
   it('uses given data use policy as the data use policy if unknown', () => {
     const { getByText } = render(makeDatasetReleasePolicyDisplayInformation('Something else'))
     expect(getByText('Something else')).toBeTruthy()
+  })
+
+  it('generates consortium titles properly', () => {
+    const expectedValues = ['The Dog Land', 'Cats R Us']
+    const result = getConsortiumTitlesFromDataset(TEST_DATASET_ONE)
+    _.forEach(expectedValue => expect(result).toContain(expectedValue), expectedValues)
+  })
+
+  it('generates data use policy properly', () => {
+    expect(
+      getDatasetReleasePoliciesDisplayInformation(TEST_DATASET_ONE['TerraDCAT_ap:hasDataUsePermission']))
+      .toMatchObject({ label: 'GRU', description: 'General research use' })
+  })
+
+  it('generates data use policy in the case of an unknown policy correctly', () => {
+    expect(
+      getDatasetReleasePoliciesDisplayInformation('abcdef'))
+      .toMatchObject({ label: 'abcdef' })
+  })
+
+  it('generates data use policy in the case of an undefined policy correctly', () => {
+    expect(
+      getDatasetReleasePoliciesDisplayInformation(undefined))
+      .toMatchObject({ label: 'Unspecified', description: 'No specified dataset release policy' })
+  })
+
+  it('generates data modality list correctly', () => {
+    const expectedValues = ['Epigenomic', 'Genomic', 'Transcriptomic']
+    const result = getDataModalityListFromDataset(TEST_DATASET_ONE)
+    _.forEach(expectedValue => expect(result).toContain(expectedValue), expectedValues)
+  })
+
+  it('generates data assay categories correctly', () => {
+    const expectedValues = ['nuq-seq', 'RNA-seq']
+    const result = getAssayCategoryListFromDataset(TEST_DATASET_ONE)
+    _.forEach(expectedValue => expect(result).toContain(expectedValue), expectedValues)
   })
 })
