@@ -84,24 +84,46 @@ const getRelationParts = (val: unknown): string[] => {
 
 // Extract wds URL from Leo response. exported for testing
 export const getWdsUrl = apps => {
-  // look explicitly for an app named 'wds-${app.workspaceId}'. If found, use it, even if it isn't running
-  // this handles the case where the user has explicitly shut down the app
+  // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by Leo
+  // See here for specific enumerations -- https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
+
+  // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' -- if WDS is healthy and running, there should only be one app RUNNNING
   const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}` && app.status === 'RUNNING')
   if (namedApp.length === 1) {
     return namedApp[0].proxyUrls.wds
   }
-  // if we didn't find the expected app 'wds-${app.workspaceId}', go hunting:
-  const candidates = apps.filter(app => app.appType === 'CROMWELL' && ['RUNNING', 'PROVISIONING'].includes(app.status))
+
+  // if we didn't find the expected app 'wds-${app.workspaceId}' running...
+  const candidates = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}`)
+  // Nothing has launched yet, bring WDS to life!
   if (candidates.length === 0) {
-    // no app deployed yet
     // TODO: AJ-790: Launch an app
-    return ''
+    return 'LAUNCH' // TODO: Make sure spinning wheel renders
   }
-  if (candidates.length > 1) {
-    // multiple apps found; use the earliest-created one
+
+  // WDS is being created in k8s (takes a few minutes)
+  if (candidates.length === 1 && candidates[0].status === 'PROVISIONING') {
+    // TODO: AJ-790: Don't launch an app
+    return 'PROVISIONING' // TODO: Make sure spinning wheel renders
+  }
+
+  // If we reach this logic, we have more than one app running with the associated workspace Id...
+  const healthyStatuses = ['RUNNING', 'PROVISIONING']
+  const healthyCandidates = candidates.filter(app => healthyStatuses.includes(app.status))
+  if (healthyCandidates > 0) {
+    // Evaluate the earliest-created WDS app
     candidates.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
+    if (candidates[0].status === 'RUNNING') {
+      return candidates[0].proxyUrls.wds
+    }
+    if (candidates[0].status === 'PROVISIONING') {
+      return 'PROVISIONING'
+    }
+    // TODO: AJ-790: How do we feel if we reach this point...
+    return 'ERROR'
   }
-  return candidates[0].proxyUrls.wds
+  // TODO: AJ-790: How do we feel if we reach this point...
+  return 'ERROR'
 }
 
 export class WdsDataTableProvider implements DataTableProvider {
