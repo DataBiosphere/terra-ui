@@ -138,8 +138,8 @@ export const WorkspaceList = () => {
   const tagsFilter = query.tagsFilter || EMPTY_LIST
 
   useOnMount(() => {
-    if (!cloudPlatformFilter) {
-      Nav.updateSearch({ ...query, cloudPlatform: isAzureUser() ? cloudProviderTypes.AZURE : cloudProviderTypes.GCP })
+    if (isAzureUser() && !cloudPlatformFilter) {
+      Nav.updateSearch({ ...query, cloudPlatform: cloudProviderTypes.AZURE })
     }
   })
 
