@@ -65,7 +65,6 @@ export const signOut = () => {
   revokeTokens()
     .finally(() => auth.removeUser())
     .finally(() => auth.clearStaleState())
-  Nav.goToPath('root')
 }
 
 export const signOutAfterSessionTimeout = () => {
