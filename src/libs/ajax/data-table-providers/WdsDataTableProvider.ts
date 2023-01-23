@@ -103,13 +103,15 @@ export const getWdsUrl = apps => {
   return candidates[0].proxyUrls.wds
 }
 
+export const wdsProviderName: string = 'WDS'
+
 export class WdsDataTableProvider implements DataTableProvider {
   constructor(workspaceId: string) {
     this.workspaceId = workspaceId
     this.proxyUrlPromise = Ajax().Apps.getV2AppInfo(workspaceId).then(getWdsUrl)
   }
 
-  providerName: string = 'WDS'
+  providerName: string = wdsProviderName
 
   proxyUrlPromise: Promise<string>
 
