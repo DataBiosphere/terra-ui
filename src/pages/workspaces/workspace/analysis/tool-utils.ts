@@ -21,6 +21,17 @@ export const toolLabels: Record<ToolLabel, ToolLabel> = {
   CromwellOnAzure: 'CromwellOnAzure'
 }
 
+export const toolLabelDisplays: Record<ToolLabel, String> = {
+  Jupyter: 'Jupyter',
+  RStudio: 'RStudio',
+  terminal: 'terminal',
+  spark: 'spark',
+  JupyterLab: 'JupyterLab',
+  Galaxy: 'Galaxy',
+  Cromwell: 'Cromwell',
+  CromwellOnAzure: 'Workflows on Cromwell'
+}
+
 export const appToolLabelTypes: Record<AppToolLabel, AppToolLabel> = {
   Galaxy: 'Galaxy',
   Cromwell: 'Cromwell',
@@ -170,6 +181,8 @@ export const allAppTypes: AppToolLabel[] = _.flow(_.map('appType'), _.compact)(a
 export const isPauseSupported = (toolLabel: ToolLabel): boolean => !_.find((tool: Tool) => tool.label === toolLabel)(tools)?.isPauseUnsupported
 
 export const isSettingsSupported = (toolLabel: ToolLabel): boolean => !_.find((tool: Tool) => tool.label === toolLabel)(tools)?.isSettingsUnsupported
+
+export const getToolDisplayName = (toolLabel: ToolLabel): String => !!toolLabelDisplays[toolLabel] ? toolLabelDisplays[toolLabel] : toolLabel
 
 //TODO: Placeholders. Finalized version will live in other TypeScript util files.
 export type Runtime = any

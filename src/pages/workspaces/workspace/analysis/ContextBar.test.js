@@ -487,7 +487,7 @@ describe('ContextBar - buttons', () => {
     //Assert
     expect(getByLabelText('Environment Configuration'))
     expect(getByTestId('terminal-button-id')).toHaveAttribute('disabled')
-    expect(getByLabelText(new RegExp(/CromwellOnAzure Environment/i)))
+    expect(getByLabelText(new RegExp(/Workflows on Cromwell Environment/i)))
   })
 
   it('will render Azure Environment button', () => {

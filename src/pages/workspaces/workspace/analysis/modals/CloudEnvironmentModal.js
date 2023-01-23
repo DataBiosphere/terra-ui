@@ -30,7 +30,7 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
 import {
-  appTools, getAppType, getToolsToDisplayForCloudProvider, isAppToolLabel, isPauseSupported, isSettingsSupported, toolLabels, tools
+  appTools, getAppType, getToolDisplayName, getToolsToDisplayForCloudProvider, isAppToolLabel, isPauseSupported, isSettingsSupported, toolLabels, tools
 } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
@@ -428,7 +428,7 @@ export const CloudEnvironmentModal = ({
   const modalBody = h(Fragment, [
     h(TitleBar, {
       id: titleId,
-      title: filterForTool ? `${filterForTool} Environment Details` : 'Cloud Environment Details',
+      title: filterForTool ? `${getToolDisplayName(filterForTool)} Environment Details` : 'Cloud Environment Details',
       titleStyles: _.merge(viewMode === undefined ? {} : { display: 'none' }, { margin: '1.5rem 0 .5rem 1rem' }),
       width,
       onDismiss,
