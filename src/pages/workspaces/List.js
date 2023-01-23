@@ -138,6 +138,10 @@ export const WorkspaceList = () => {
   const tagsFilter = query.tagsFilter || EMPTY_LIST
 
   useOnMount(() => {
+    // For some time after Terra on Azure is released, the vast majority of featured workspaces
+    // will be GCP workspaces, which are not usable by Azure users. To improve visibility of the
+    // featured workspaces that are available on Azure, automatically filter workspaces by cloud
+    // platform for Azure users.
     if (isAzureUser() && !cloudPlatformFilter) {
       Nav.updateSearch({ ...query, cloudPlatform: cloudProviderTypes.AZURE })
     }
