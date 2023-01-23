@@ -269,7 +269,7 @@ export const ComputeModalBase = ({
       WORKSPACE_NAMESPACE: namespace,
       WORKSPACE_BUCKET: `gs://${bucketName}`,
       GOOGLE_PROJECT: googleProject,
-      CUSTOM_ENV: isCustomImage.toString()
+      CUSTOM_IMAGE: isCustomImage.toString()
     }
 
     sendCloudEnvironmentMetrics()
