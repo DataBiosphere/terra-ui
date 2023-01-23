@@ -21,7 +21,7 @@ export const toolLabels: Record<ToolLabel, ToolLabel> = {
   CromwellOnAzure: 'CromwellOnAzure'
 }
 
-export const toolLabelDisplays: Record<ToolLabel, String> = {
+export const toolLabelDisplays: Record<ToolLabel, string> = {
   Jupyter: 'Jupyter',
   RStudio: 'RStudio',
   terminal: 'terminal',
