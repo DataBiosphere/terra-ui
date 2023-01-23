@@ -19,7 +19,7 @@ import {
 import { AppTool, getToolLabelFromFileExtension, ToolLabel, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
-import { defaultAzureWorkspace, defaultGoogleWorkspace, galaxyDisk, galaxyRunning, getGoogleRuntime } from '../_testData/testData'
+import { defaultAzureWorkspace, defaultGoogleWorkspace, galaxyDisk, galaxyRunning, getGoogleRuntime, imageDocs } from '../_testData/testData'
 import { AnalysisModal, AnalysisModalProps } from './AnalysisModal'
 
 
@@ -90,7 +90,10 @@ describe('AnalysisModal', () => {
     }))
 
     //@ts-expect-error
-    Ajax.mockImplementation(() => ({ Metrics: { captureEvent: jest.fn() } }))
+    Ajax.mockImplementation(() => ({
+      Buckets: { getObjectPreview: () => Promise.resolve({ json: () => Promise.resolve(imageDocs) }) },
+      Metrics: { captureEvent: jest.fn() },
+    }))
   })
 
   it('GCP - Renders correctly by default', () => {
