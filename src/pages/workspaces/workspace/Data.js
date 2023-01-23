@@ -27,7 +27,7 @@ import { FlexTable, HeaderCell } from 'src/components/table'
 import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider'
-import { WdsDataTableProvider } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider'
+import { WdsDataTableProvider, wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions'
@@ -41,6 +41,7 @@ import { asyncImportJobStore, getUser } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -340,6 +341,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
             Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
               ...extractWorkspaceDetails(workspace.workspace),
               providerName: dataProvider.providerName,
+              cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label,
               downloadFrom: 'all rows',
               fileType: '.tsv'
             })
@@ -430,7 +432,8 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
           await dataProvider.deleteTable(tableName)
           Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
             ...extractWorkspaceDetails(workspace.workspace),
-            providerName: dataProvider.providerName
+            providerName: dataProvider.providerName,
+            cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label
           })
           setDeleting(false)
           onDeleteTable(tableName)

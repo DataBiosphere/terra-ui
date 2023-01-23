@@ -21,6 +21,7 @@ import { UriViewerLink } from 'src/components/UriViewer'
 import ReferenceData from 'src/data/reference-data'
 import { Ajax } from 'src/libs/ajax'
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing'
+import { wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider'
 import { defaultAzureRegion, getRegionLabel } from 'src/libs/azure-utils'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -30,6 +31,7 @@ import { notify } from 'src/libs/notifications'
 import { requesterPaysProjectStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
 
 
@@ -326,7 +328,8 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
       await dataProvider.uploadTsv({ workspaceId, recordType, file, useFireCloudDataModel, deleteEmptyValues, namespace, name })
       onSuccess()
       Ajax().Metrics.captureEvent(Events.workspaceDataUpload, {
-        workspaceNamespace: namespace, workspaceName: name, providerName: dataProvider.providerName
+        workspaceNamespace: namespace, workspaceName: name, providerName: dataProvider.providerName,
+        cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label
       })
     } catch (error) {
       await reportError('Error uploading entities', error)
@@ -523,7 +526,8 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
               href: dataProvider.tsvFeatures.sampleTSVLink,
               ...Utils.newTabLinkProps,
               onClick: () => Ajax().Metrics.captureEvent(Events.workspaceSampleTsvDownload, {
-                workspaceNamespace: namespace, workspaceName: name, providerName: dataProvider.providerName
+                workspaceNamespace: namespace, workspaceName: name, providerName: dataProvider.providerName,
+                cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label
               })
             }, ['sample_template.tsv '])
           ]),
