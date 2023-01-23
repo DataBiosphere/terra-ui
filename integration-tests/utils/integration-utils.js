@@ -173,10 +173,6 @@ const select = async (page, labelContains, text) => {
   return click(page, `//div[starts-with(@id, "react-select-") and @role="option" and contains(normalize-space(.),"${text}")]`)
 }
 
-const clearSelect = async (page, labelContains) => {
-  await click(page, `(((${input({ labelContains })})//ancestor::*[contains(@class, "-control")])//*[local-name() = "svg"])[1]`)
-}
-
 const waitForNoSpinners = page => {
   return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
 }
@@ -486,7 +482,6 @@ module.exports = {
   input,
   label,
   select,
-  clearSelect,
   svgText,
   delay,
   signIntoTerra,
