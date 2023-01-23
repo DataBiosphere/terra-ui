@@ -78,6 +78,7 @@ const getTestFile = (abs: AbsolutePath, cloudProvider: CloudProviderType = cloud
   cloudProvider
 })
 
+type AjaxContract = ReturnType<typeof Ajax>
 
 describe('AnalysisModal', () => {
   beforeEach(() => {
@@ -89,11 +90,12 @@ describe('AnalysisModal', () => {
       pendingCreate: { status: 'Ready', state: true }
     }))
 
-    //@ts-expect-error
-    Ajax.mockImplementation(() => ({
-      Buckets: { getObjectPreview: () => Promise.resolve({ json: () => Promise.resolve(imageDocs) }) },
-      Metrics: { captureEvent: jest.fn() },
-    }))
+    asMockedFn(Ajax).mockImplementation(() => ({
+      Buckets: {
+        getObjectPreview: () => Promise.resolve({ json: () => Promise.resolve(imageDocs) }),
+      } as Partial<AjaxContract['Buckets']>,
+      Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
+    }) as Partial<AjaxContract> as AjaxContract)
   })
 
   it('GCP - Renders correctly by default', () => {
