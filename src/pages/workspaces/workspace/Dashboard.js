@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useCallback, useEffect, useImperativeHandle, useState } from 'react'
+import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { dd, div, dl, dt, h, h3, i, span, strong } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper } from 'src/components/bucket-utils'
@@ -327,6 +327,7 @@ const WorkspaceDashboard = _.flow(
   const persistenceId = `workspaces/${namespace}/${name}/dashboard`
 
   const signal = useCancellation()
+  const interval = useRef()
 
   const refresh = () => {
     loadSubmissionCount()
@@ -346,6 +347,34 @@ const WorkspaceDashboard = _.flow(
       loadAzureStorage()
     }
   }
+
+  const loadAzureStorage = useCallback(async () => {
+    try {
+      const { location, sas } = await Ajax(signal).AzureStorage.details(workspaceId)
+      setAzureStorage({ storageContainerUrl: _.head(_.split('?', sas.url)), storageLocation: location, sas })
+    } catch (error) {
+      // We expect to get a transient error while the workspace is cloning. We will improve
+      // the handling of this with WOR-534 so that we correctly differentiate between the
+      // expected transient error and a workspace that is truly missing a storage container.
+      console.log(`Error thrown by AzureStorage.details: ${error}`) // eslint-disable-line no-console
+    }
+  }, [workspaceId, signal])
+
+  useEffect(() => {
+    if (isAzureWorkspace(workspace)) {
+      if (!storageContainerUrl && !interval.current) {
+        interval.current = setInterval(loadAzureStorage, 5000)
+      } else if (!!storageContainerUrl && interval.current) {
+        clearInterval(interval.current)
+        interval.current = undefined
+      }
+    }
+
+    return () => {
+      clearInterval(interval.current)
+      interval.current = undefined
+    }
+  }, [loadAzureStorage, workspace, storageContainerUrl])
 
   useImperativeHandle(ref, () => ({ refresh }))
 
@@ -395,11 +424,6 @@ const WorkspaceDashboard = _.flow(
         }
       }
     }
-  })
-
-  const loadAzureStorage = withErrorReporting('Error loading Azure storage information.', async () => {
-    const { location, sas } = await Ajax(signal).AzureStorage.details(workspaceId)
-    setAzureStorage({ storageContainerUrl: _.head(_.split('?', sas.url)), storageLocation: location, sas })
   })
 
   const loadConsent = withErrorReporting('Error loading data', async () => {

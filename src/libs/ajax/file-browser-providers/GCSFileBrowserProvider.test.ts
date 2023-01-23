@@ -208,4 +208,47 @@ describe('GCSFileBrowserProvider', () => {
     // Assert
     expect(del).toHaveBeenCalledWith('test-project', 'test-bucket', 'path/to/file.txt')
   })
+
+  it('creates empty directories', async () => {
+    // Arrange
+    const upload = jest.fn(() => Promise.resolve())
+    asMockedFn(Ajax).mockImplementation(() => ({
+      Buckets: { upload } as Partial<GoogleStorageContract>
+    }) as ReturnType<typeof Ajax>)
+
+    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' })
+
+    // Act
+    const directory = await provider.createEmptyDirectory('foo/bar/baz/')
+
+    // Assert
+    expect(upload).toHaveBeenCalledWith(
+      'test-project',
+      'test-bucket',
+      'foo/bar/',
+      new File([], 'baz/', { type: 'text/plain' })
+    )
+
+    expect(directory).toEqual({ path: 'foo/bar/baz/' })
+  })
+
+  it('deletes empty directories', async () => {
+    // Arrange
+    const del = jest.fn(() => Promise.resolve())
+    asMockedFn(Ajax).mockImplementation(() => ({
+      Buckets: { delete: del } as Partial<GoogleStorageContract>
+    }) as ReturnType<typeof Ajax>)
+
+    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' })
+
+    // Act
+    await provider.deleteEmptyDirectory('foo/bar/baz/')
+
+    // Assert
+    expect(del).toHaveBeenCalledWith(
+      'test-project',
+      'test-bucket',
+      'foo/bar/baz/',
+    )
+  })
 })

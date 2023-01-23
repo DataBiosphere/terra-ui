@@ -143,7 +143,7 @@ export class WdsDataTableProvider implements DataTableProvider {
     },
     tooltip: (options: TsvUploadButtonTooltipOptions): string => {
       return Utils.cond(
-        [!options.recordTypePresent, () => 'Please enter record type'],
+        [!options.recordTypePresent, () => 'Please enter table name'],
         [!options.filePresent, () => 'Please select valid data to upload'],
         () => 'Upload selected data'
       )
