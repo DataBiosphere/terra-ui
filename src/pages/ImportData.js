@@ -134,7 +134,7 @@ const ImportDataDestination = ({ workspaceId, templateWorkspaces, template, user
     ])
   }
 
-  const SelectExistingWorkspace = () => h(Fragment, [
+  const renderSelectExistingWorkspace = () => h(Fragment, [
     h2({ style: styles.title }, ['Start with an existing workspace']),
     h(IdContainer, [id => h(Fragment, [
       h(FormLabel, { htmlFor: id, style: { marginBottom: '0.25rem' } }, ['Select one of your workspaces']),
@@ -159,7 +159,7 @@ const ImportDataDestination = ({ workspaceId, templateWorkspaces, template, user
     ])
   ])
 
-  const SelectTemplateWorkspace = () => h(Fragment, [
+  const renderSelectTemplateWorkspace = () => h(Fragment, [
     h2({ style: styles.title }, ['Start with a template']),
     importMayTakeTime && div({ style: { marginBottom: '1rem', lineHeight: '1.5' } }, [importMayTakeTimeMessage]),
     div({
@@ -209,8 +209,8 @@ const ImportDataDestination = ({ workspaceId, templateWorkspaces, template, user
 
   return div({ style: { ...styles.card, marginLeft: '2rem' } }, [
     Utils.switchCase(mode,
-      ['existing', () => h(SelectExistingWorkspace)],
-      ['template', () => h(SelectTemplateWorkspace)],
+      ['existing', () => renderSelectExistingWorkspace()],
+      ['template', () => renderSelectTemplateWorkspace()],
       [Utils.DEFAULT, () => {
         return h(Fragment, [
           h2({ style: styles.title }, ['Destination of the prepared data']),
