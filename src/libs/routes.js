@@ -20,7 +20,6 @@ import * as NotFound from 'src/pages/NotFound'
 import * as PrivacyPolicy from 'src/pages/PrivacyPolicy'
 import * as Profile from 'src/pages/Profile'
 import * as TermsOfService from 'src/pages/TermsOfService'
-import * as TestLogin from 'src/pages/TestLogin'
 import * as Upload from 'src/pages/Upload'
 import * as WorkflowsList from 'src/pages/workflows/List'
 import * as WorkflowDetails from 'src/pages/workflows/workflow/WorkflowDetails'
@@ -46,7 +45,6 @@ import * as WorkflowView from 'src/pages/workspaces/workspace/workflows/Workflow
  * [^1] including page:view:* events for new pages; see PageViewReporter
  */
 const routes = _.flatten([
-  TestLogin.navPaths,
   LandingPage.navPaths,
   WorkspaceList.navPaths,
   WorkflowView.navPaths,
