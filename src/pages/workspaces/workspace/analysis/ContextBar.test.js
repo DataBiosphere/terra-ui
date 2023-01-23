@@ -235,7 +235,7 @@ const jupyter = {
 }
 
 
-const azureRunning = {
+const jupyterLabRunning = {
   auditInfo: {
     createdDate: '2022-09-09T20:20:06.982538Z',
     creator: 'ncl.hedwig@gmail.com',
@@ -258,7 +258,7 @@ const azureRunning = {
     saturnVersion: '6',
     saturnWorkspaceName: 'isAzure',
     saturnWorkspaceNamespace: 'alpha-azure-billing-project-20220407',
-    tool: 'Azure'
+    tool: 'JupyterLab'
   },
   patchInProgress: false,
   proxyUrl: 'https://relay-ns-2a77dcb5-882c-46b9-a3bc-5d251aff14d0.servicebus.windows.net/saturn-b2eecc2d-75d5-44f5-8eb2-5147db41874a',
@@ -490,10 +490,10 @@ describe('ContextBar - buttons', () => {
     expect(getByLabelText(new RegExp(/Workflows on Cromwell Environment/i)))
   })
 
-  it('will render Azure Environment button', () => {
+  it('will render JupyterLab Environment button', () => {
     const jupyterContextBarProps = {
       ...contextBarProps,
-      runtimes: [azureRunning],
+      runtimes: [jupyterLabRunning],
       persistentDisks: []
     }
 
@@ -504,7 +504,7 @@ describe('ContextBar - buttons', () => {
     expect(getByText('Rate:'))
     expect(getByText(Utils.formatUSD(RUNTIME_COST)))
     expect(getByLabelText('Environment Configuration'))
-    expect(getByLabelText(new RegExp(/Azure Environment/i)))
+    expect(getByLabelText(new RegExp(/JupyterLab Environment/i)))
     expect(getByTestId('terminal-button-id')).toHaveAttribute('disabled')
   })
 

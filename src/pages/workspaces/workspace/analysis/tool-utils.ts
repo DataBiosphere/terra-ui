@@ -182,8 +182,6 @@ export const isPauseSupported = (toolLabel: ToolLabel): boolean => !_.find((tool
 
 export const isSettingsSupported = (toolLabel: ToolLabel): boolean => !_.find((tool: Tool) => tool.label === toolLabel)(tools)?.isSettingsUnsupported
 
-export const getToolDisplayName = (toolLabel: ToolLabel): String => !!toolLabelDisplays[toolLabel] ? toolLabelDisplays[toolLabel] : toolLabel
-
 //TODO: Placeholders. Finalized version will live in other TypeScript util files.
 export type Runtime = any
 

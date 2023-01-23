@@ -33,7 +33,7 @@ import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
 import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import { getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentPersistentDisk, getCurrentRuntime, getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { appTools, getAppType, getToolDisplayName, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { appTools, getAppType, toolLabelDisplays, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const contextBarStyles = {
@@ -95,7 +95,7 @@ export const ContextBar = ({
       },
       tooltipSide: 'left',
       tooltip: div([
-        div({ style: { fontWeight: 'bold' } }, `${getToolDisplayName(toolLabel)} Environment`),
+        div({ style: { fontWeight: 'bold' } }, `${toolLabelDisplays[toolLabel]} Environment`),
         div(getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)),
         div(getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel))
       ]),
