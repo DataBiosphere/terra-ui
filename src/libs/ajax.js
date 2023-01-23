@@ -17,9 +17,9 @@ import { Metrics } from 'src/libs/ajax/Metrics'
 import { Resources } from 'src/libs/ajax/Resources'
 import { Runtimes } from 'src/libs/ajax/Runtimes'
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService'
-import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
+import { getUser } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 

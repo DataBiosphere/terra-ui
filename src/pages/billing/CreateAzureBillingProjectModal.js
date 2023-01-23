@@ -7,6 +7,7 @@ import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { reportErrorAndRethrow } from 'src/libs/error'
 import { formHint, FormLabel } from 'src/libs/forms'
 import { useCancellation } from 'src/libs/react-utils'
@@ -171,8 +172,14 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
       ])]),
       div({ style: { paddingTop: '1.0rem', display: 'flex' } },
         [
+          icon('warning-standard', { size: 16, style: { marginRight: '0.5rem', color: colors.warning() } }),
+          strong(['Creating a Terra billing project costs about $5 per day and includes shared Azure resources for all workspaces in the project.'])
+        ]
+      ),
+      div({ style: { paddingTop: '1.0rem', display: 'flex' } },
+        [
           icon('clock', { size: 16, style: { marginRight: '0.5rem' } }),
-          strong(['Creating a Terra billing project on Azure may take up to 15 minutes to complete. During this time, the billing project is not available for use.'])
+          strong(['It may take up to 15 minutes for the billing project to be fully created and ready for use.'])
         ]
       )
     ]),

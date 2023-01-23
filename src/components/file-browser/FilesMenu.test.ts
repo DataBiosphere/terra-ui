@@ -50,9 +50,11 @@ describe('FilesMenu', () => {
       user = userEvent.setup()
 
       render(h(FilesMenu, {
+        path: 'path/to/',
         provider: mockProvider,
         selectedFiles,
         onClickUpload: () => {},
+        onCreateDirectory: () => {},
         onDeleteFiles,
       }))
 
@@ -92,5 +94,41 @@ describe('FilesMenu', () => {
       // Assert
       expect(onDeleteFiles).toHaveBeenCalled()
     })
+  })
+
+  it('creates new folder', async () => {
+    // Arrange
+    const user = userEvent.setup()
+
+    const createEmptyDirectory = jest.fn((path: string) => Promise.resolve({ path }))
+    const mockProvider = {
+      supportsEmptyDirectories: true,
+      createEmptyDirectory
+    } as Partial<FileBrowserProvider> as FileBrowserProvider
+
+    const onCreateDirectory = jest.fn()
+
+    render(h(FilesMenu, {
+      path: 'path/to/directory/',
+      provider: mockProvider,
+      selectedFiles: {},
+      onClickUpload: () => {},
+      onCreateDirectory,
+      onDeleteFiles: () => {},
+    }))
+
+    // Act
+    const newFolderButton = screen.getByText('New folder')
+    await user.click(newFolderButton)
+
+    const nameInput = screen.getByLabelText('Folder name *')
+    await user.type(nameInput, 'test-folder')
+
+    const createButton = screen.getByText('Create Folder')
+    await act(() => user.click(createButton))
+
+    // Assert
+    expect(createEmptyDirectory).toHaveBeenCalledWith('path/to/directory/test-folder/')
+    expect(onCreateDirectory).toHaveBeenCalledWith({ path: 'path/to/directory/test-folder/' })
   })
 })

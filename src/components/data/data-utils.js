@@ -496,7 +496,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
             ])
           ])
         ]),
-        currentFile && supportsFireCloudDataModel(newEntityType) && div([
+        currentFile && supportsFireCloudDataModel(newEntityType) && isGoogleWorkspace && div([
           h(LabeledCheckbox, {
             checked: useFireCloudDataModel,
             onChange: setUseFireCloudDataModel,
