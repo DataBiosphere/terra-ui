@@ -173,7 +173,7 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
       div({ style: { paddingTop: '1.0rem', display: 'flex' } },
         [
           icon('warning-standard', { size: 16, style: { marginRight: '0.5rem', color: colors.warning() } }),
-          strong(['Creating a Terra billing project costs about $5 per day  and includes shared Azure resources for all workspaces in the project.'])
+          strong(['Creating a Terra billing project costs about $5 per day and includes shared Azure resources for all workspaces in the project.'])
         ]
       ),
       div({ style: { paddingTop: '1.0rem', display: 'flex' } },
