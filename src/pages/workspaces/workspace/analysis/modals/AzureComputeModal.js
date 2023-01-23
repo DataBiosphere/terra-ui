@@ -9,7 +9,8 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { Ajax } from 'src/libs/ajax'
 import {
-  azureMachineTypes, defaultAzureComputeConfig, defaultAzureDiskSize, defaultAzureMachineType, defaultAzureRegion, getMachineTypeLabel
+  azureMachineTypes, azureRegionToPrices,
+  defaultAzureComputeConfig, defaultAzureDiskSize, defaultAzureMachineType, defaultAzureRegion, getDiskType, getMachineTypeLabel
 } from 'src/libs/azure-utils'
 import colors from 'src/libs/colors'
 import { withErrorReportingInModal } from 'src/libs/error'
@@ -243,7 +244,24 @@ export const AzureComputeModalBase = ({
     ])
   }
 
-  //TODO this does not actually compute cost as is, see IA-3348
+  const getComputeCost = () => {
+    const regionPriceObj = _.find(priceObj => priceObj.name === computeConfig.region, azureRegionToPrices)
+    const cost = regionPriceObj[computeConfig.machineType]
+    return cost
+  }
+
+  const getDiskCost = () => {
+    const regionPriceObj = _.find(priceObj => priceObj.name === computeConfig.region, azureRegionToPrices)
+
+    // get Azure disk type (E1, E2, E4 etc) whose storage is large enough to hold the requested Gb.
+    // Note that the largest (E80 LRS) will not hold more than 32767 Gb, according to the Azure docs.
+    // TODO research; maybe we use a different disk type or multiple of these disks?
+    const diskType = getDiskType(computeConfig.diskSize)
+
+    const cost = regionPriceObj[diskType]
+    return cost
+  }
+
   //It is possible that once we compute the cost, we would like to parameterize this and make it a shared function between the equivalent in ComputeModal
   const renderCostBreakdown = () => {
     return div({
@@ -264,11 +282,10 @@ export const AzureComputeModalBase = ({
           ])
         ])
       }, [
-        { label: 'Running cloud compute cost', cost: Utils.formatUSD(0), unitLabel: 'per hr' },
-        { label: 'Paused cloud compute cost', cost: Utils.formatUSD(0), unitLabel: 'per hr' },
+        { label: 'Cloud compute cost', cost: Utils.formatUSD(getComputeCost()), unitLabel: 'per hr' },
         {
           label: 'Persistent disk cost',
-          cost: Utils.formatUSD(0),
+          cost: Utils.formatUSD(getDiskCost()),
           unitLabel: 'per month'
         }
       ])

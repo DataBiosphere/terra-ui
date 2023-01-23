@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 
+// GOOGLE CLOUD MACHINE TYPES AND PRICING
 
 export const machineTypes = [
   { name: 'n1-standard-1', cpu: 1, memory: 3.75 },
