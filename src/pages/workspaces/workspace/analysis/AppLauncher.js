@@ -36,7 +36,7 @@ const ApplicationLauncher = _.flow(
   const [iframeSrc, setIframeSrc] = useState()
   const leoCookieReady = useStore(cookieReadyStore)
   const azureCookieReady = useStore(azureCookieReadyStore)
-  const cookieReady = !!googleProject ? leoCookieReady : azureCookieReady
+  const cookieReady = !!googleProject ? leoCookieReady : azureCookieReady.readyForRuntime
   const signal = useCancellation()
   const interval = useRef()
   const { user: { email } } = useStore(authStore)
@@ -228,7 +228,7 @@ const ApplicationLauncher = _.flow(
     // We cannot attach the periodic cookie setter until we have a running runtime for azure, because the relay is not guaranteed to be ready until then
     !!azureContext && getConvertedRuntimeStatus(runtime) === 'Running' ? h(PeriodicAzureCookieSetter, { proxyUrl: runtime.proxyUrl }) : null,
     fileOutdatedOpen && h(FileOutdatedModal, { onDismiss: () => setFileOutdatedOpen(false), bucketName }),
-    _.includes(runtimeStatus, usableStatuses) && cookieReady.readyForRuntime ?
+    _.includes(runtimeStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
         iframe({
           src: iframeSrc,
