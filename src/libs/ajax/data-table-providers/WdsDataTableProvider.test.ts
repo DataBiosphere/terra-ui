@@ -582,10 +582,10 @@ describe('WdsDataTableProvider', () => {
   })
 
   describe('tooltip', () => {
-    it('Tooltip -- needs record type', () => {
+    it('Tooltip -- needs table name', () => {
       const provider = new TestableWdsProvider(uuid)
       const actual = provider.tsvFeatures.tooltip({ filePresent: true, recordTypePresent: false })
-      expect(actual).toBe('Please enter record type')
+      expect(actual).toBe('Please enter table name')
     })
 
     it('Tooltip -- needs valid data', () => {
