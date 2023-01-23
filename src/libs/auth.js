@@ -19,9 +19,6 @@ import {
 import * as Utils from 'src/libs/utils'
 
 
-export { getUser }
-
-
 export const getOidcConfig = () => {
   const metadata = {
     authorization_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
