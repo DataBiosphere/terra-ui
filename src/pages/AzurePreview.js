@@ -1,15 +1,15 @@
 import { Fragment, useCallback, useEffect, useState } from 'react'
-import { div, form, h, h1, input, p } from 'react-hyperscript-helpers'
-import { ButtonOutline, ButtonPrimary } from 'src/components/common'
+import { div, fieldset, form, h, h1, input, label, p, span } from 'react-hyperscript-helpers'
+import { ButtonOutline, ButtonPrimary, Checkbox } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { ValidatedInput } from 'src/components/input'
+import { TextArea, ValidatedInput } from 'src/components/input'
 import planet from 'src/images/register-planet.svg'
 import { ReactComponent as TerraOnAzureLogo } from 'src/images/terra-ms-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import { FormLabel } from 'src/libs/forms'
+import { FormLabel, FormLegend } from 'src/libs/forms'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useStore } from 'src/libs/react-utils'
 import { authStore, azurePreviewStore, getUser } from 'src/libs/state'
@@ -24,7 +24,7 @@ const styles = {
   paragraph: {
     fontSize: 16,
     lineHeight: 1.5,
-    maxWidth: 570,
+    maxWidth: 760,
   },
   header: {
     display: 'flex',
@@ -62,8 +62,9 @@ export const submittedPreviewFormPrefKey = 'submitted-azure-preview-form'
 
 const AzurePreviewUserForm = ({ value: formValue, onChange, onSubmit }) => {
   const [fieldsTouched, setFieldsTouched] = useState({})
+  const [otherUseCase, setOtherUseCase] = useState('')
 
-  const fields = [
+  const requiredTextFields = [
     {
       key: 'firstName',
       label: 'First name',
@@ -86,22 +87,31 @@ const AzurePreviewUserForm = ({ value: formValue, onChange, onSubmit }) => {
     },
   ]
 
+  const useCases = [
+    'Manage datasets',
+    'Launch workflows',
+    'Collaborate with individuals within your organization',
+    'Access data',
+    'Complete interactive analyses',
+    'Collaborate with others outside of your organization',
+  ]
+
   return form({
     name: 'azure-preview-interest',
     style: {
       display: 'flex',
       flexFlow: 'row wrap',
       justifyContent: 'space-between',
-      width: 570,
+      width: 760,
     },
     onSubmit: e => {
       e.preventDefault()
       onSubmit()
     }
   }, [
-    fields.map(({ key, label }) => {
+    requiredTextFields.map(({ key, label }) => {
       const inputId = `azure-preview-interest-${key}`
-      return div({ key, style: { width: 250 } }, [
+      return div({ key, style: { width: 'calc(50% - 10px)' } }, [
         h(FormLabel, { htmlFor: inputId, required: true }, [label]),
         h(ValidatedInput, {
           inputProps: {
@@ -116,6 +126,94 @@ const AzurePreviewUserForm = ({ value: formValue, onChange, onSubmit }) => {
         }),
       ])
     }),
+
+    fieldset({ style: { padding: 0, border: 'none', margin: '2rem 0 0' } }, [
+      h(FormLegend, { style: { marginBottom: '1rem' } }, [
+        'What do you want to do in Terra?',
+        span({ style: { fontSize: '14px', fontStyle: 'italic', fontWeight: 400 } }, [' Please select all that apply']),
+      ]),
+
+      div({
+        style: {
+          display: 'flex',
+          flexFlow: 'row wrap',
+          justifyContent: 'space-between',
+        },
+      }, [
+        useCases.map(useCase => {
+          const isChecked = formValue.useCases.includes(useCase)
+          const id = `azure-preview-use-case-${useCase}`
+          return div({
+            key: useCase,
+            style: {
+              display: 'flex',
+              width: 240,
+              marginBottom: '1rem'
+            },
+          }, [
+            label({
+              htmlFor: id,
+              style: { display: 'flex', alignItems: 'center' },
+              onClick: () => onChange({
+                ...formValue,
+                useCases: isChecked ?
+                  formValue.useCases.filter(uc => uc !== useCase) :
+                  [...formValue.useCases, useCase]
+              }),
+            }, [
+              h(Checkbox, {
+                checked: isChecked,
+                id,
+                style: { flexShrink: 0, marginRight: '1ch' },
+                onChange: checked => {
+                  onChange({
+                    ...formValue,
+                    useCases: checked ?
+                      [...formValue.useCases, useCase] :
+                      formValue.useCases.filter(uc => uc !== useCase),
+                  })
+                }
+              }),
+              span([useCase])
+            ])
+          ])
+        }),
+
+        div({ style: { width: '100%' } }, [
+          label({
+            onClick: () => onChange({
+              ...formValue,
+              otherUseCase: !!formValue.otherUseCase ? '' : otherUseCase,
+            }),
+            style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }
+          }, [
+            h(Checkbox, {
+              checked: !!formValue.otherUseCase,
+              style: { flexShrink: 0, marginRight: '1ch' },
+              onChange: checked => {
+                onChange({
+                  ...formValue,
+                  otherUseCase: checked ? otherUseCase || ' ' : '',
+                })
+              },
+            }),
+            span(['Other (please specify)']),
+          ]),
+
+          h(TextArea, {
+            rows: 3,
+            value: otherUseCase,
+            onChange: value => {
+              setOtherUseCase(value)
+              onChange({
+                ...formValue,
+                otherUseCase: value,
+              })
+            }
+          })
+        ]),
+      ]),
+    ]),
 
     // Submit input allows submitting form by pressing the enter key.
     input({ type: 'submit', value: 'submit', style: { display: 'none' } })
@@ -157,6 +255,8 @@ const AzurePreviewForNonPreviewUser = () => {
       organization: '',
       contactEmail: user.email,
       terraEmail: user.email,
+      useCases: [],
+      otherUseCase: '',
     }
   })
 
