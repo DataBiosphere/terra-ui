@@ -83,7 +83,7 @@ const WorkspaceCard = ({ workspace }) => {
         created && div([Utils.makeStandardDate(created)]),
         (cloudPlatform === 'Azure' || cloudPlatform === 'Gcp') && h(CloudProviderIcon, {
           cloudProvider: {
-            Azure: cloudProviderTypes.Azure,
+            Azure: cloudProviderTypes.AZURE,
             Gcp: cloudProviderTypes.GCP,
           }[cloudPlatform],
           style: { marginLeft: '1ch' },
