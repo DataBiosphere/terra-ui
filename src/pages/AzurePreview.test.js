@@ -96,7 +96,7 @@ describe('AzurePreview', () => {
         render(h(AzurePreview))
 
         // Assert
-        screen.getByText('Terra on Azure is currently in preview. Please complete the following form if you are interested in accessing the platform and exploring the capabilities of Terra on Azure.')
+        screen.getByText('Terra on Microsoft Azure is currently in preview. Please complete the following form if you are interested in accessing the platform and exploring the capabilities of Terra on Microsoft Azure.')
       })
 
       it('renders the form', () => {
@@ -177,7 +177,7 @@ describe('AzurePreview', () => {
 
         it('shows a thank you message', () => {
           // Assert
-          screen.getByText('Thank you for your interest in using Terra on Azure. We will be in touch with your access information soon.')
+          screen.getByText('Thank you for your interest in using Terra on Microsoft Azure. We will be in touch with your access information soon.')
         })
 
         it('saves submission status', () => {
@@ -196,7 +196,7 @@ describe('AzurePreview', () => {
         render(h(AzurePreview))
 
         // Assert
-        screen.getByText('Thank you for your interest in using Terra on Azure. We will be in touch with your access information soon.')
+        screen.getByText('Thank you for your interest in using Terra on Microsoft Azure. We will be in touch with your access information soon.')
       })
 
       it('does not render the form', () => {
