@@ -100,6 +100,7 @@ export const resolveWdsUrl = (apps, workspaceId) => {
   const candidates = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}`)
   // ...nothing has launched yet, bring WDS to life!
   if (candidates.length === 0) {
+    // !getConfig().isProd is temporary until WDS is ready for production launch in Feb 2023
     if (!getConfig().isProd) {
       withErrorReporting('An error occurred when creating your data tables. Please reach out to support@terra.bio', async () => {
         await Ajax().Apps.createAppV2(`wds-${workspaceId}`, workspaceId)
