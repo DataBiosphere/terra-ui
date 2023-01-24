@@ -4,7 +4,7 @@ import {
   getMatchingDataForSection,
   getMatchingDataForSectionList,
   listItemsMatchForSectionEntry, sectionEntrySelected
-} from 'src/pages/library/common'
+} from 'src/pages/library/SearchAndFilterComponent'
 
 
 const data = ['A quick brown fox jumped over a lazy gray dog', 'aeio', 'stock', 'styx']

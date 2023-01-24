@@ -10,18 +10,18 @@ import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import {
-  commonStyles,
-  FilterSection,
-  SearchAndFilterComponent,
-  SearchAndFilterProps,
-  Sort
-} from 'src/pages/library/common'
-import {
   DatasetAccess,
   datasetAccessTypes, formatDatasetTime, getAssayCategoryListFromDataset, getConsortiumTitlesFromDataset,
   getDataModalityListFromDataset, getDatasetAccessType, getDatasetReleasePoliciesDisplayInformation,
   makeDatasetReleasePolicyDisplayInformation, useDataCatalog
 } from 'src/pages/library/dataBrowser-utils'
+import {
+  commonStyles,
+  FilterSection,
+  SearchAndFilterComponent,
+  SearchAndFilterProps,
+  Sort
+} from 'src/pages/library/SearchAndFilterComponent'
 
 
 const styles = {
@@ -86,11 +86,11 @@ export const extractCatalogFilters = (dataCatalog: Dataset[]): FilterSection<Dat
     values: getUnique('TerraCore:hasFileFormat', _.flatMap('fileAggregate', dataCatalog))
   }, {
     header: 'Disease',
-    matchBy: (dataset, value) => _.intersection(value, dataset.samples?.disease).length > 0,
+    matchBy: (dataset, value) => _.intersection([value], dataset.samples?.disease).length > 0,
     values: getUnique(dataset => dataset.samples?.disease, dataCatalog)
   }, {
     header: 'Species',
-    matchBy: (dataset, value) => _.intersection(value, dataset.samples?.species).length > 0,
+    matchBy: (dataset, value) => _.intersection([value], dataset.samples?.species).length > 0,
     values: getUnique(dataset => dataset.samples?.species, dataCatalog)
   }]
 }

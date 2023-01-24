@@ -3,12 +3,47 @@ import {
   convertColsToSettings,
   convertSettingsToCols, extractCatalogFilters
 } from 'src/pages/library/DataBrowser'
-import { TEST_DATASETS } from 'src/pages/library/test-datasets'
+import { TEST_DATASET_ONE, TEST_DATASET_TWO, TEST_DATASETS } from 'src/pages/library/test-datasets'
 
 
 const settings = [{ name: 'Consortiums', key: 'consortiums', visible: true },
   { name: 'Species', key: 'species', visible: false }]
 const cols = ['consortiums']
+const expectedFilterSectionsAndValuesForTestDatasets = [
+  {
+    header: 'Access type',
+    values: ['Granted', 'Controlled']
+  },
+  {
+    header: 'Consortium',
+    values: ['The Dog Land', 'Cats R Us']
+  },
+  {
+    header: 'Data use policy',
+    values: ['DUO:0000042']
+  },
+  {
+    header: 'Data modality',
+    values: ['Epigenomic', 'Genomic', 'Transcriptomic']
+  },
+  {
+    header: 'Assay category',
+    values: ['nuq-seq', 'RNA-seq']
+  },
+  {
+    header: 'File type',
+    values: ['bam', 'bai']
+  },
+  {
+    header: 'Disease',
+    values: ['too cute', 'aww']
+  },
+  {
+    header: 'Species',
+    values: ['dogs', 'cats']
+  }
+]
+const expectedFilterHeaders = _.map(expectedFilterSection => expectedFilterSection.header, expectedFilterSectionsAndValuesForTestDatasets)
 
 
 describe('DataBrowser', () => {
@@ -23,48 +58,17 @@ describe('DataBrowser', () => {
 
 
   it('generates proper filter sections for datasets', () => {
-    const extractCatalogFiltersResult = extractCatalogFilters(TEST_DATASETS)
-    const expectedHeaders = ['Access type', 'Consortium', 'Data use policy', 'Data modality', 'Assay category', 'File type', 'Disease', 'Species']
-    _.forEach(expectedValue => expect(_.map(filter => filter.header, extractCatalogFiltersResult)).toContain(expectedValue), expectedHeaders)
+    // Arrange is handled with test suite scoped constants
+    // Act
+    const extractCatalogFiltersResultHeaders = _.map(filter => filter.header, extractCatalogFilters(TEST_DATASETS))
+    // Assert
+    _.forEach(expectedHeader => expect(extractCatalogFiltersResultHeaders).toContain(expectedHeader), expectedFilterHeaders)
   })
 
   it('generates the correct values for each filter section', () => {
+    // Act
     const extractCatalogFiltersResult = extractCatalogFilters(TEST_DATASETS)
-    const sectionsAndValues = [
-      {
-        header: 'Access type',
-        values: ['Granted']
-      },
-      {
-        header: 'Consortium',
-        values: ['The Dog Land', 'Cats R Us']
-      },
-      {
-        header: 'Data use policy',
-        values: ['DUO:0000042']
-      },
-      {
-        header: 'Data modality',
-        values: ['Epigenomic', 'Genomic', 'Transcriptomic']
-      },
-      {
-        header: 'Assay category',
-        values: ['nuq-seq', 'RNA-seq']
-      },
-      {
-        header: 'File type',
-        values: ['bam', 'bai']
-      },
-      {
-        header: 'Disease',
-        values: ['too cute', 'aww']
-      },
-      {
-        header: 'Species',
-        values: ['dogs', 'cats']
-      }
-    ]
-
+    // Assert
     _.forEach(sectionAndValues => {
       const filter = _.find(filter => filter.header === sectionAndValues.header, extractCatalogFiltersResult)
       if (filter !== undefined) {
@@ -72,6 +76,24 @@ describe('DataBrowser', () => {
       } else {
         fail(`Section ${sectionAndValues.header} did not appear as was expected`)
       }
-    }, sectionsAndValues)
+    }, expectedFilterSectionsAndValuesForTestDatasets)
   })
+
+  _.forEach(header => {
+    it(`generates a working matchBy function for the filter for ${header}`, () => {
+      // Arrange
+      const extractCatalogFiltersResult = extractCatalogFilters(TEST_DATASETS)
+      const section = _.find(filterSection => filterSection.header === header, extractCatalogFiltersResult)
+      if (section === undefined) {
+        fail(`Section ${header} did not appear as was expected`)
+      } else {
+        // Act
+        const matchesDatasetOne = section.matchBy(TEST_DATASET_ONE, section.values[0])
+        const matchesDatasetTwo = section.matchBy(TEST_DATASET_TWO, section.values[0])
+        // Assert
+        expect(matchesDatasetOne).toBeTruthy()
+        expect(matchesDatasetTwo).toBeFalsy()
+      }
+    })
+  }, expectedFilterHeaders)
 })

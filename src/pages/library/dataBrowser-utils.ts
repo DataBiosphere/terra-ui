@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { Fragment, ReactElement, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonOutline } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -11,20 +11,20 @@ import Events from 'src/libs/events'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { dataCatalogStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { commonStyles } from 'src/pages/library/common'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
+import { commonStyles } from 'src/pages/library/SearchAndFilterComponent'
 
 
 export type DatasetAccessType =
-    'Controlled' |
     'Granted' |
     'Pending' |
+    'Controlled' |
     'External'
 
 export const datasetAccessTypes: Record<DatasetAccessType, DatasetAccessType> = {
-  Controlled: 'Controlled',
   Granted: 'Granted',
   Pending: 'Pending',
+  Controlled: 'Controlled',
   External: 'External'
 }
 
@@ -34,7 +34,7 @@ export const uiMessaging = {
 }
 
 // This list is generated from the schema enum
-export const getDatasetReleasePoliciesDisplayInformation = (dataUsePermission: string | undefined): { label: string; description?: string } => {
+export const getDatasetReleasePoliciesDisplayInformation = (dataUsePermission?: string): { label: string; description?: string } => {
   return Utils.switchCase(
     dataUsePermission,
     ['DUO:0000007', () => ({ label: 'DS', description: 'Disease specific research' })],
@@ -47,7 +47,7 @@ export const getDatasetReleasePoliciesDisplayInformation = (dataUsePermission: s
   )
 }
 
-export const makeDatasetReleasePolicyDisplayInformation = dataUsePermission => {
+export const makeDatasetReleasePolicyDisplayInformation = (dataUsePermission: string): ReactElement => {
   const { label, description } = getDatasetReleasePoliciesDisplayInformation(dataUsePermission)
   return h(Fragment, [
     label,
@@ -55,20 +55,20 @@ export const makeDatasetReleasePolicyDisplayInformation = dataUsePermission => {
   ])
 }
 
-export const isExternal = (dataset: Dataset) => Utils.cond(
+export const isExternal = (dataset: Dataset): boolean => Utils.cond(
   [isWorkspace(dataset), () => false],
   [isDatarepoSnapshot(dataset), () => false],
-  () => true) as boolean
+  () => true)
 
 export const workspaceUrlFragment = '/#workspaces/'
 
-export const isWorkspace = (dataset: Dataset) => {
+export const isWorkspace = (dataset: Dataset): boolean => {
   return _.toLower(dataset['dcat:accessURL']).includes(workspaceUrlFragment)
 }
 
 export const datarepoSnapshotUrlFragment = '/snapshots/details/'
 
-export const isDatarepoSnapshot = (dataset: Dataset) => {
+export const isDatarepoSnapshot = (dataset: Dataset): boolean => {
   return _.toLower(dataset['dcat:accessURL']).includes(datarepoSnapshotUrlFragment)
 }
 

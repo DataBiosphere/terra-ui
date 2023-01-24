@@ -1,4 +1,4 @@
-import _ from 'lodash/fp'
+import * as _ from 'lodash/fp'
 import { useState } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -16,11 +16,11 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { cloudProviderLabels } from 'src/libs/workspace-utils'
-import { SearchAndFilterComponent } from 'src/pages/library/common'
+import { SearchAndFilterComponent } from 'src/pages/library/SearchAndFilterComponent'
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 // All workspaces match by their tags
-const sidebarSectionsV2 = _.map(section => ({ ...section, matchBy: (workspace, value) => _.includes(value, workspace.tags.items) }), [{
+const sidebarSections = _.map(section => ({ matchBy: (workspace, value) => _.contains(_.toLower(value), workspace.tags.items), ...section }), [{
   header: 'Cloud Platform',
   values: [cloudProviderLabels.GCP, cloudProviderLabels.AZURE],
 }, {
@@ -125,7 +125,7 @@ const Showcase = () => {
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('featured workspaces'),
     h(SearchAndFilterComponent, {
-      fullList, sidebarSectionsV2,
+      fullList, sidebarSections,
       searchType: 'Featured Workspaces',
       getLowerName: workspace => _.toLower(workspace.name),
       getLowerDescription: workspace => _.toLower(workspace.description),

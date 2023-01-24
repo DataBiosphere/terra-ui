@@ -6,7 +6,7 @@ export const TEST_DATASET_ONE: Dataset = {
   'dct:description': 'The best there ever was',
   'dct:creator': 'The hero we all need',
   'dct:issued': new Date().toDateString(),
-  'dcat:accessURL': 'https://http.cat/',
+  'dcat:accessURL': 'https://http.cat/#workspaces/',
   'TerraDCAT_ap:hasDataUsePermission': 'DUO:0000042',
   'TerraDCAT_ap:hasDataCollection': [
     { 'dct:title': 'The Dog Land' }, { 'dct:title': 'Cats R Us' }
@@ -42,6 +42,7 @@ export const TEST_DATASET_ONE: Dataset = {
   accessLevel: 'owner'
 }
 
+// This dataset is designed to not match any filters that we are using in DataBrowser.test.ts
 export const TEST_DATASET_TWO: Dataset = {
   'dct:title': 'The worlds worst dataset',
   'dct:description': 'What a bad dataset',
@@ -54,6 +55,6 @@ export const TEST_DATASET_TWO: Dataset = {
   samples: {},
   contributors: [],
   id: 'id',
-  accessLevel: 'owner'
+  accessLevel: 'discoverer'
 }
 export const TEST_DATASETS: Dataset[] = [TEST_DATASET_ONE, TEST_DATASET_TWO]

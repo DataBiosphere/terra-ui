@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import pluralize from 'pluralize'
 import * as qs from 'qs'
-import React, { CSSProperties, Fragment, useState } from 'react'
+import React, { CSSProperties, Fragment, ReactElement, useState } from 'react'
 import { div, em, h, h2, label, span, strong } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
@@ -18,8 +18,8 @@ import * as Utils from 'src/libs/utils'
 
 export interface FilterSection<DataType> {
   header: string
-  matchBy: (arg0: DataType, arg1: string) => boolean
-  renderer?: (string) => any
+  matchBy: (listItem: DataType, value: string) => boolean
+  renderer?: (string) => string | ReactElement
   values: string[]
 }
 
@@ -287,8 +287,8 @@ interface FilterSectionProps<ListItem> {
 const FilterSectionComponent = <ListItem>({ section, fullList, selectedSections, onFilterSelect }: FilterSectionProps<ListItem>) => {
   const [showAll, setShowAll] = useState(false)
   // We only want to show the count when compared against other sections because filtered data is unioned within a section
-  const selectedSectionsWithoutSection = selectedSections ? _.remove(s => s.header === section.header, selectedSections) as FilterSection<ListItem>[] : []
-  const itemsFilteredByOtherSections = selectedSectionsWithoutSection.length > 0 ? getMatchingDataForSectionList(selectedSectionsWithoutSection, fullList) : fullList
+  const selectedSectionsWithoutSection = _.remove(s => s.header === section.header, selectedSections) as FilterSection<ListItem>[]
+  const itemsFilteredByOtherSections = getMatchingDataForSectionList(selectedSectionsWithoutSection, fullList)
   // We want to filter out values for which there are no entries. This is only really important for values that are not derived from
   // the list data itself, like dataset access levels. However, because we don't differentiate between types of filters, we need to test all of them
   const valuesToShow = _.filter(sectionEntry => _.size(listItemsMatchForSectionEntry(sectionEntry, section.matchBy, fullList)) > 0, section.values)
@@ -378,8 +378,8 @@ export const SearchAndFilterComponent = <ListItem>({
   const querySections: FilterSectionKeys[] = query.selectedSections || []
   // Add the match and render functions to what is stored in the query params
   const selectedSections = _.map(section => {
-    const maybeSelectedSection = _.find(s => s.header === section.header, sidebarSections)
-    return { ...maybeSelectedSection, ...section } as FilterSection<ListItem>
+    const selectedSection = _.find(s => s.header === section.header, sidebarSections) || {}
+    return { ...selectedSection, ...section } as FilterSection<ListItem>
   }, querySections)
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
   const filterRegex = new RegExp(`(${_.escapeRegExp(searchFilter)})`, 'i')
