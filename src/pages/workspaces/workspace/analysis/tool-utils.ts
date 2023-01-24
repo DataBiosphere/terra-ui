@@ -1,12 +1,12 @@
 import _ from 'lodash/fp'
-import { isCromwellAppVisible } from 'src/libs/config'
+import { isCromwellAppVisible, isCromwellOnAzureAppVisible } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 import { CloudProviderType } from 'src/libs/workspace-utils'
 import { Extension, getExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
 
 
 export type RuntimeToolLabel = 'Jupyter' | 'RStudio' | 'JupyterLab'
-export type AppToolLabel = 'Galaxy' | 'Cromwell'
+export type AppToolLabel = 'Galaxy' | 'Cromwell' | 'CromwellOnAzure'
 export type MiscToolLabel = 'spark' | 'terminal'
 export type ToolLabel = RuntimeToolLabel | AppToolLabel | MiscToolLabel
 
@@ -17,12 +17,25 @@ export const toolLabels: Record<ToolLabel, ToolLabel> = {
   spark: 'spark',
   JupyterLab: 'JupyterLab',
   Galaxy: 'Galaxy',
-  Cromwell: 'Cromwell'
+  Cromwell: 'Cromwell',
+  CromwellOnAzure: 'CromwellOnAzure'
+}
+
+export const toolLabelDisplays: Record<ToolLabel, string> = {
+  Jupyter: 'Jupyter',
+  RStudio: 'RStudio',
+  terminal: 'terminal',
+  spark: 'spark',
+  JupyterLab: 'JupyterLab',
+  Galaxy: 'Galaxy',
+  Cromwell: 'Cromwell',
+  CromwellOnAzure: 'Workflows on Cromwell'
 }
 
 export const appToolLabelTypes: Record<AppToolLabel, AppToolLabel> = {
   Galaxy: 'Galaxy',
-  Cromwell: 'Cromwell'
+  Cromwell: 'Cromwell',
+  CromwellOnAzure: 'CromwellOnAzure'
 }
 
 export const isAppToolLabel = (x: ToolLabel): x is AppToolLabel => x in appToolLabelTypes
@@ -32,6 +45,7 @@ export interface Tool {
   isHidden?: boolean
   isLaunchUnsupported?: boolean
   isPauseUnsupported?: boolean
+  isSettingsUnsupported?: boolean
 }
 
 export interface RuntimeTool extends Tool {
@@ -72,10 +86,14 @@ const JupyterLab: RuntimeTool = {
 const Galaxy: AppTool = { label: toolLabels.Galaxy, appType: 'GALAXY' }
 
 const Cromwell: AppTool = { label: toolLabels.Cromwell, appType: 'CROMWELL', isHidden: !isCromwellAppVisible(), isPauseUnsupported: true }
+const CromwellOnAzure: AppTool = { label: toolLabels.CromwellOnAzure, appType: 'CROMWELL', isHidden: !isCromwellOnAzureAppVisible(), isPauseUnsupported: true, isSettingsUnsupported: true }
 
 export const appTools: Record<AppToolLabel, AppTool> = {
   Galaxy,
-  Cromwell
+  Cromwell,
+  // this can be combined with Cromwell app in the future(?). But for the first iteration it is simpler to have it separate
+  // so that its easy to display Cromwell card in Modal with disabled Settings button.
+  CromwellOnAzure
 }
 
 export const runtimeTools: Record<RuntimeToolLabel, RuntimeTool> = {
@@ -109,7 +127,9 @@ export const cloudAppTools: Record<CloudProviderType, AppTool[]> = {
     Galaxy,
     Cromwell
   ],
-  AZURE: []
+  AZURE: [
+    CromwellOnAzure
+  ]
 }
 
 export interface ExtensionDisplay {
@@ -159,6 +179,8 @@ export const getAppType = (label: ToolLabel): string | undefined => appTools[lab
 export const allAppTypes: AppToolLabel[] = _.flow(_.map('appType'), _.compact)(appTools)
 
 export const isPauseSupported = (toolLabel: ToolLabel): boolean => !_.find((tool: Tool) => tool.label === toolLabel)(tools)?.isPauseUnsupported
+
+export const isSettingsSupported = (toolLabel: ToolLabel): boolean => !_.find((tool: Tool) => tool.label === toolLabel)(tools)?.isSettingsUnsupported
 
 //TODO: Placeholders. Finalized version will live in other TypeScript util files.
 export type Runtime = any

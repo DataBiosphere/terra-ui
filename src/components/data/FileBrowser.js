@@ -472,7 +472,7 @@ const BucketBrowser = (({
       }),
 
       creatingNewFolder && h(NameModal, {
-        thing: 'New folder',
+        thing: 'Folder',
         onDismiss: () => setCreatingNewFolder(false),
         onSuccess: _.flow(
           Utils.withBusyState(setBusy),
