@@ -339,12 +339,8 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const { apps, refreshApps } = useAppPolling(googleProject, name, workspace)
     // The following if statements are necessary to support the context bar properly loading runtimes for google/azure
     if (workspaceLoaded) {
-      if (googleProject !== prevGoogleProject && isGoogleWorkspace(workspace)) {
-        refreshRuntimes()
-        refreshApps()
-      }
-      if (azureContext !== prevAzureContext && isAzureWorkspace(workspace)) {
-        refreshRuntimes(true)
+      if (googleProject !== prevGoogleProject || azureContext !== prevAzureContext) {
+        refreshRuntimes(isAzureWorkspace(workspace))
         refreshApps()
       }
     }
