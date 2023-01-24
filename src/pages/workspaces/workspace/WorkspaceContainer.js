@@ -279,7 +279,7 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
   return { runtimes, refreshRuntimes, persistentDisks, appDataDisks }
 }
 
-const useAppPolling = (googleProject, workspaceName) => {
+const useAppPolling = (googleProject, workspaceName, workspace) => {
   const signal = useCancellation()
   const timeout = useRef()
   const [apps, setApps] = useState()
@@ -289,13 +289,15 @@ const useAppPolling = (googleProject, workspaceName) => {
   }
   const loadApps = async () => {
     try {
-      const newApps = !!googleProject ?
-        await Ajax(signal).Apps.list(googleProject, { role: 'creator', saturnWorkspaceName: workspaceName }) :
-        []
-      setApps(newApps)
+      const newGoogleApps = !!workspace && isGoogleWorkspace(workspace) ?
+        await Ajax(signal).Apps.list(googleProject, { role: 'creator', saturnWorkspaceName: workspaceName }) : []
+      const newAzureApps = !!workspace && isAzureWorkspace(workspace) ? await Ajax(signal).Apps.getV2AppInfo(workspace.workspace.workspaceId) : []
+      const combinedNewApps = [...newGoogleApps, ...newAzureApps]
+
+      setApps(combinedNewApps)
       _.forOwn(tool => {
         if (tool.appType) {
-          const app = getCurrentApp(tool.appType)(newApps)
+          const app = getCurrentApp(tool.appType)(combinedNewApps)
           reschedule((app && _.includes(app.status, ['PROVISIONING', 'PREDELETING'])) ? 10000 : 120000)
         }
       })(tools)
@@ -334,16 +336,12 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const workspaceLoaded = !!workspace
 
     const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject, workspace)
-    const { apps, refreshApps } = useAppPolling(googleProject, name)
+    const { apps, refreshApps } = useAppPolling(googleProject, name, workspace)
     // The following if statements are necessary to support the context bar properly loading runtimes for google/azure
-    // Note that the refreshApps function currently is not supported for azure
     if (workspaceLoaded) {
-      if (googleProject !== prevGoogleProject && isGoogleWorkspace(workspace)) {
-        refreshRuntimes()
+      if (googleProject !== prevGoogleProject || azureContext !== prevAzureContext) {
+        refreshRuntimes(isAzureWorkspace(workspace))
         refreshApps()
-      }
-      if (azureContext !== prevAzureContext && isAzureWorkspace(workspace)) {
-        refreshRuntimes(true)
       }
     }
 

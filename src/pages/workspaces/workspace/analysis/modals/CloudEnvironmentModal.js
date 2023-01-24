@@ -15,21 +15,24 @@ import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { useStore } from 'src/libs/react-utils'
-import { cookieReadyStore } from 'src/libs/state'
+import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
 import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/AzureComputeModal'
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal'
 import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal'
-import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { appLauncherTabName, PeriodicAzureCookieSetter } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
   getComputeStatusForDisplay, getConvertedRuntimeStatus, getCostDisplayForDisk, getCostDisplayForTool,
   getCurrentApp, getCurrentPersistentDisk, getCurrentRuntime, getIsAppBusy, getIsRuntimeBusy, getRuntimeForTool,
   isCurrentGalaxyDiskDetaching
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
-import { appTools, getAppType, getToolsToDisplayForCloudProvider, isAppToolLabel, isPauseSupported, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import {
+  appTools, getAppType, getToolsToDisplayForCloudProvider, isAppToolLabel, isPauseSupported, isSettingsSupported,
+  toolLabelDisplays, toolLabels, tools
+} from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const titleId = 'cloud-env-modal'
@@ -44,7 +47,8 @@ export const CloudEnvironmentModal = ({
   const [errorRuntimeId, setErrorRuntimeId] = useState(undefined)
   const [errorAppId, setErrorAppId] = useState(undefined)
   const cloudProvider = getCloudProviderFromWorkspace(workspace)
-  const cookieReady = useStore(cookieReadyStore)
+  const leoCookieReady = useStore(cookieReadyStore)
+  const azureCookieReady = useStore(azureCookieReadyStore)
   const currentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
 
   const noCompute = 'You do not have access to run analyses on this workspace.'
@@ -250,6 +254,7 @@ export const CloudEnvironmentModal = ({
     [toolLabels.Galaxy, () => galaxyLogo],
     [toolLabels.RStudio, () => rstudioBioLogo],
     [toolLabels.Cromwell, () => cromwellImg],
+    [toolLabels.CromwellOnAzure, () => cromwellImg],
     [toolLabels.JupyterLab, () => jupyterLogo])
 
   const isCloudEnvModalDisabled = toolLabel => Utils.cond(
@@ -268,10 +273,11 @@ export const CloudEnvironmentModal = ({
   const getToolLaunchClickableProps = toolLabel => {
     const app = currentApp(toolLabel)
     const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || app
-    // TODO what does cookieReady do? Found it in the galaxy app launch code, is it needed here?
+    // TODO what does leoCookieReady do? Found it in the galaxy app launch code, is it needed here?
     const isToolBusy = isAppToolLabel(toolLabel) ?
       getIsAppBusy(app) || app?.status === 'STOPPED' || app?.status === 'ERROR' :
       currentRuntime?.status === 'Error'
+    const cookieReady = toolLabel === toolLabels.CromwellOnAzure ? azureCookieReady.readyForCromwellApp : leoCookieReady
     const isDisabled = !doesCloudEnvForToolExist || !cookieReady || !canCompute || busy || isToolBusy || !isLaunchSupported(toolLabel)
     const baseProps = {
       'aria-label': `Launch ${toolLabel}`,
@@ -313,6 +319,17 @@ export const CloudEnvironmentModal = ({
           ...Utils.newTabLinkPropsWithReferrer
         }
       }],
+      [toolLabels.CromwellOnAzure, () => {
+        return {
+          ...baseProps,
+          href: app?.proxyUrls['cbas-ui'],
+          onClick: () => {
+            onDismiss()
+            Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: appTools.CromwellOnAzure.appType })
+          },
+          ...Utils.newTabLinkPropsWithReferrer
+        }
+      }],
       [Utils.DEFAULT, () => {
         // TODO: Jupyter link isn't currently valid, and button will always be disabled for Jupyter because launching directly into tree view is problematic in terms of welder/nbextensions. We are investigating alternatives in https://broadworkbench.atlassian.net/browse/IA-2873
         const applicationLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: toolLabel })
@@ -337,6 +354,8 @@ export const CloudEnvironmentModal = ({
     const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || app
     const isCloudEnvForToolDisabled = isCloudEnvModalDisabled(toolLabel)
     return h(Fragment, [
+      // We cannot attach the periodic cookie setter until we have a running Cromwell app for Azure because the relay is not guaranteed to be ready until then
+      toolLabel === toolLabels.CromwellOnAzure && app?.status === 'RUNNING' ? h(PeriodicAzureCookieSetter, { proxyUrl: app.proxyUrls['cbas-ui'], forCromwell: true }) : null,
       div({ style: toolPanelStyles }, [
         // Label at the top for each tool
         div({ style: toolLabelStyles }, [
@@ -352,7 +371,7 @@ export const CloudEnvironmentModal = ({
         ]),
         // Cloud environment button
         div({ style: toolButtonDivStyles }, [
-          h(Clickable, {
+          isSettingsSupported(toolLabel) && h(Clickable, {
             'aria-label': `${toolLabel} Environment`,
             style: {
               ...toolButtonStyles,
@@ -410,7 +429,7 @@ export const CloudEnvironmentModal = ({
   const modalBody = h(Fragment, [
     h(TitleBar, {
       id: titleId,
-      title: filterForTool ? `${filterForTool} Environment Details` : 'Cloud Environment Details',
+      title: filterForTool ? `${toolLabelDisplays[filterForTool]} Environment Details` : 'Cloud Environment Details',
       titleStyles: _.merge(viewMode === undefined ? {} : { display: 'none' }, { margin: '1.5rem 0 .5rem 1rem' }),
       width,
       onDismiss,
