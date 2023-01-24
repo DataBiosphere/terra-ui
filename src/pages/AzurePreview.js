@@ -255,7 +255,7 @@ const AzurePreviewForNonPreviewUser = () => {
       lastName,
       title: '',
       organization: '',
-      contactEmail: user.email,
+      contactEmail: user.email || '',
       terraEmail: user.email,
       useCases: [],
       otherUseCase: '',
