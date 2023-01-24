@@ -117,6 +117,7 @@ const AzurePreviewUserForm = ({ value: formValue, onChange, onSubmit }) => {
       ])
     }),
 
+    // Submit input allows submitting form by pressing the enter key.
     input({ type: 'submit', value: 'submit', style: { display: 'none' } })
   ])
 }
