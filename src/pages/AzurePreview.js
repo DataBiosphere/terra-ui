@@ -229,6 +229,8 @@ const formInputMap = {
   organization: 'entry.1020670185',
   contactEmail: 'entry.1125156163',
   terraEmail: 'entry.1938956483',
+  useCases: 'entry.768184594',
+  otherUseCase: 'entry.1274069507',
 }
 
 const AzurePreviewForNonPreviewUser = () => {
@@ -260,13 +262,18 @@ const AzurePreviewForNonPreviewUser = () => {
     }
   })
 
-  const submitEnabled = Object.values(userInfo).every(Boolean) && !busy
+  const requiredFields = ['firstName', 'lastName', 'title', 'organization', 'contactEmail', 'terraEmail']
+
+  const submitEnabled = requiredFields.every(field => !!userInfo[field]) && !busy
 
   const submitForm = useCallback(async () => {
     setBusy(true)
     try {
       const formInput = Object.entries(formInputMap)
-        .reduce((acc, [userInfoKey, formFieldId]) => ({ ...acc, [formFieldId]: userInfo[userInfoKey] }), {})
+        .reduce((acc, [userInfoKey, formFieldId]) => ({
+          ...acc,
+          [formFieldId]: userInfoKey === 'useCases' ? userInfo.useCases.join(', ') : userInfo[userInfoKey],
+        }), {})
 
       await Ajax().Surveys.submitForm(formId, formInput)
       setHasSubmittedForm(true)
