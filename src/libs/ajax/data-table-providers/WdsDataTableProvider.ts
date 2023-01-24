@@ -11,8 +11,8 @@ import {
   UploadParameters
 } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 import { getConfig } from 'src/libs/config'
+import { withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
-
 
 // interface definitions for WDS payload responses
 interface AttributeSchema {
@@ -101,7 +101,9 @@ export const resolveWdsUrl = (apps, workspaceId) => {
   // ...nothing has launched yet, bring WDS to life!
   if (candidates.length === 0) {
     if (!getConfig().isProd) {
-      Ajax().Apps.createAppV2(`wds-${workspaceId}`, workspaceId)
+      withErrorReporting('An error occurred when creating your data tables. Please reach out to support@terra.bio', async () => {
+        await Ajax().Apps.createAppV2(`wds-${workspaceId}`, workspaceId)
+      })
     }
     return ''
   }
