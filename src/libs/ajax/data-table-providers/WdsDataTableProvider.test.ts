@@ -9,7 +9,7 @@ import {
   EntityQueryResponse,
   TsvUploadButtonDisabledOptions
 } from './DataTableProvider'
-import { getWdsUrl, RecordAttributes, RecordQueryResponse, RecordTypeSchema, SearchRequest, WdsDataTableProvider, wdsToEntityServiceMetadata } from './WdsDataTableProvider'
+import { RecordAttributes, RecordQueryResponse, RecordTypeSchema, resolveWdsUrl, SearchRequest, WdsDataTableProvider, wdsToEntityServiceMetadata } from './WdsDataTableProvider'
 
 
 jest.mock('src/libs/ajax')
@@ -700,20 +700,20 @@ describe('transformMetadata', () => {
   })
 })
 
-describe('getWdsUrl', () => {
+describe('resolveWdsUrl', () => {
   it('properly extracts the proxy Url from the leo response', () => {
-    expect(getWdsUrl(testProxyUrlResponse, uuid)).toBe(testProxyUrl)
+    expect(resolveWdsUrl(testProxyUrlResponse, uuid)).toBe(testProxyUrl)
   })
   it('locate the Url when the app name is different and is running', () => {
     const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
       { appType: 'CROMWELL', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } }
     ]
-    expect(getWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid)).toBe(testProxyUrl)
+    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid)).toBe(testProxyUrl)
   })
   it('return empty string when app not found', () => {
     const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
       { appType: 'A_DIFFERENT_APP', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } }
     ]
-    expect(getWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid)).toBe('')
+    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid)).toBe('')
   })
 })
