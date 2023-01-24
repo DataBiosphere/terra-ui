@@ -21,6 +21,7 @@ import {
   WorkspaceTagSelect
 } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
+import { isAzureUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
@@ -31,7 +32,7 @@ import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
+import { cloudProviderLabels, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
 import { isGcpContext } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { UnboundDiskNotification, V1WorkspaceNotification } from 'src/pages/workspaces/workspace/Dashboard'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
@@ -131,9 +132,20 @@ export const WorkspaceList = () => {
   // each render avoids unnecessarily recomputing the memoized filteredWorkspaces value.
   const accessLevelsFilter = query.accessLevelsFilter || EMPTY_LIST
   const projectsFilter = query.projectsFilter || undefined
+  const cloudPlatformFilter = query.cloudPlatform || undefined
   const submissionsFilter = query.submissionsFilter || EMPTY_LIST
   const tab = query.tab || 'myWorkspaces'
   const tagsFilter = query.tagsFilter || EMPTY_LIST
+
+  useOnMount(() => {
+    // For some time after Terra on Azure is released, the vast majority of featured workspaces
+    // will be GCP workspaces, which are not usable by Azure users. To improve visibility of the
+    // featured workspaces that are available on Azure, automatically filter workspaces by cloud
+    // platform for Azure users.
+    if (isAzureUser() && !cloudPlatformFilter) {
+      Nav.updateSearch({ ...query, cloudPlatform: cloudProviderTypes.AZURE })
+    }
+  })
 
   const [creatingNewWorkspace, setCreatingNewWorkspace] = useState(false)
   const [cloningWorkspaceId, setCloningWorkspaceId] = useState()
@@ -195,10 +207,11 @@ export const WorkspaceList = () => {
       return Utils.textMatch(filter, `${namespace}/${name}`) &&
         (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
         (_.isEmpty(projectsFilter) || projectsFilter === namespace) &&
+        (_.isEmpty(cloudPlatformFilter) || getCloudProviderFromWorkspace(ws) === cloudPlatformFilter) &&
         (_.isEmpty(submissionsFilter) || submissionsFilter.includes(workspaceSubmissionStatus(ws))) &&
         _.every(a => _.includes(a, _.get(['tag:tags', 'items'], attributes)), tagsFilter)
     }),
-    initialFiltered), [accessLevelsFilter, filter, initialFiltered, projectsFilter, submissionsFilter, tagsFilter])
+    initialFiltered), [accessLevelsFilter, filter, initialFiltered, projectsFilter, cloudPlatformFilter, submissionsFilter, tagsFilter])
 
   //Starred workspaces are always floated to the top
   const sortedWorkspaces = _.orderBy(
@@ -486,7 +499,7 @@ export const WorkspaceList = () => {
             )(workspaces)
           })
         ]),
-        div({ style: { ...styles.filter, marginRight: 0 } }, [
+        div({ style: styles.filter }, [
           h(Select, {
             isClearable: true,
             isMulti: true,
@@ -499,7 +512,20 @@ export const WorkspaceList = () => {
             options: ['running', 'success', 'failure'],
             getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
           })
-        ])
+        ]),
+        div({ style: { ...styles.filter, marginRight: 0 } }, [
+          h(Select, {
+            isClearable: true,
+            isMulti: false,
+            placeholder: 'Cloud platform',
+            'aria-label': 'Filter by cloud platform',
+            value: cloudPlatformFilter,
+            hideSelectedOptions: true,
+            onChange: data => Nav.updateSearch({ ...query, cloudPlatform: data?.value || undefined }),
+            options: _.sortBy(cloudProvider => cloudProviderLabels[cloudProvider], _.keys(cloudProviderTypes)),
+            getOptionLabel: ({ value }) => cloudProviderLabels[value]
+          })
+        ]),
       ]),
       h(SimpleTabBar, {
         'aria-label': 'choose a workspace collection',

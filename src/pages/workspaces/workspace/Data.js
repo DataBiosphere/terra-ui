@@ -27,8 +27,7 @@ import { FlexTable, HeaderCell } from 'src/components/table'
 import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider'
-import { WdsDataTableProvider } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider'
-import { getUser } from 'src/libs/auth'
+import { WdsDataTableProvider, wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions'
@@ -38,10 +37,11 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { asyncImportJobStore } from 'src/libs/state'
+import { asyncImportJobStore, getUser } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -341,6 +341,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
             Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
               ...extractWorkspaceDetails(workspace.workspace),
               providerName: dataProvider.providerName,
+              cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label,
               downloadFrom: 'all rows',
               fileType: '.tsv'
             })
@@ -431,7 +432,8 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
           await dataProvider.deleteTable(tableName)
           Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
             ...extractWorkspaceDetails(workspace.workspace),
-            providerName: dataProvider.providerName
+            providerName: dataProvider.providerName,
+            cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label
           })
           setDeleting(false)
           onDeleteTable(tableName)
@@ -567,6 +569,7 @@ const WorkspaceData = _.flow(
 
   const loadWdsSchema = async () => {
     if (isAzureWorkspace) {
+      // TODO: AJ-783: Logic will need to exist here to check if Leo app is past "Provisioning"
       try {
         setWdsSchema([])
         setWdsSchemaError(undefined)
@@ -647,10 +650,11 @@ const WorkspaceData = _.flow(
   const editWorkspaceErrorMessage = Utils.editWorkspaceError(workspace)
   const canEditWorkspace = !editWorkspaceErrorMessage
 
+  const canUploadTsv = isGoogleWorkspace || (isAzureWorkspace && proxyUrlLoaded)
   return div({ style: styles.tableContainer }, [
     !entityMetadata ? spinnerOverlay : h(Fragment, [
       div({ style: { ...styles.sidebarContainer, width: sidebarWidth } }, [
-        div({
+        canUploadTsv && div({
           style: {
             display: 'flex', padding: '1rem 1.5rem',
             backgroundColor: colors.light(),
@@ -765,7 +769,7 @@ const WorkspaceData = _.flow(
                 ])
               }, sortedEntityPairs)
             ]),
-            isAzureWorkspace && h(DataTypeSection, {
+            isAzureWorkspace && proxyUrlLoaded && h(DataTypeSection, {
               title: 'Tables'
             }, [
               [

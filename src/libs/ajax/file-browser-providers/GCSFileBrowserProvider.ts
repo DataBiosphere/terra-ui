@@ -47,8 +47,13 @@ const GCSFileBrowserProvider = ({ bucket, project, pageSize = 1000 }: GCSFileBro
         }
 
         const response = await Ajax(signal).Buckets.list(project, bucket, prefix, requestOptions)
+        const responseItems = (response[itemsOrPrefixes] || []).map(itemOrPrefix => mapItemOrPrefix(itemOrPrefix))
 
-        buffer = buffer.concat((response[itemsOrPrefixes] || []).map(itemOrPrefix => mapItemOrPrefix(itemOrPrefix)))
+        // Exclude folder placeholder objects.
+        // See https://cloud.google.com/storage/docs/folders for more information.
+        const responseItemsWithoutPlaceholders = responseItems.filter(fileOrDirectory => (fileOrDirectory as any).path !== prefix)
+
+        buffer = buffer.concat(responseItemsWithoutPlaceholders)
         nextPageToken = response.nextPageToken
       } while (buffer.length < pageSize && nextPageToken)
     }
@@ -78,6 +83,7 @@ const GCSFileBrowserProvider = ({ bucket, project, pageSize = 1000 }: GCSFileBro
   }
 
   return {
+    supportsEmptyDirectories: true,
     getFilesInDirectory: (path, { signal } = {}) => getNextPage({
       isFirstPage: true,
       itemsOrPrefixes: 'items',
@@ -116,6 +122,32 @@ const GCSFileBrowserProvider = ({ bucket, project, pageSize = 1000 }: GCSFileBro
     },
     deleteFile: async (path: string): Promise<void> => {
       await Ajax().Buckets.delete(project, bucket, path)
+    },
+    createEmptyDirectory: async (directoryPath: string) => {
+      // Create a placeholder object for the new folder.
+      // See https://cloud.google.com/storage/docs/folders for more information.
+      console.assert(directoryPath.endsWith('/'), 'Directory paths must include a trailing slash')
+      const prefixSegments = directoryPath.split('/').slice(0, -2)
+      const prefix = prefixSegments.length === 0 ? '' : `${prefixSegments.join('/')}/`
+      const directoryName = directoryPath.split('/').slice(-2, -1)[0]
+      const placeholderObject = new File([''], `${directoryName}/`, { type: 'text/plain' })
+      await Ajax().Buckets.upload(project, bucket, prefix, placeholderObject)
+      return {
+        path: directoryPath
+      }
+    },
+    deleteEmptyDirectory: async (directoryPath: string) => {
+      console.assert(directoryPath.endsWith('/'), 'Directory paths must include a trailing slash')
+      // Attempt to delete folder placeholder object.
+      // A placeholder object may not exist for the prefix being viewed, so do not an report error for 404 responses.
+      // See https://cloud.google.com/storage/docs/folders for more information on placeholder objects.
+      try {
+        await Ajax().Buckets.delete(project, bucket, directoryPath)
+      } catch (error) {
+        if (!(error instanceof Response && error.status === 404)) {
+          throw error
+        }
+      }
     },
   }
 }

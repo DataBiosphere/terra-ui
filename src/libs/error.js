@@ -3,6 +3,7 @@ import { notify } from 'src/libs/notifications'
 
 
 export const reportError = async (title, obj) => {
+  console.error(title, obj) // helpful when the notify component fails to render
   // Do not show an error notification when a session times out.
   // Notification for this case is handled elsewhere.
   if (obj instanceof Error && obj.message === 'Session timed out') {

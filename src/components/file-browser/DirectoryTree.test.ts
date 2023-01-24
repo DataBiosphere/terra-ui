@@ -7,6 +7,7 @@ import { h, ul } from 'react-hyperscript-helpers'
 import { Directory } from 'src/components/file-browser/DirectoryTree'
 import { useDirectoriesInDirectory } from 'src/components/file-browser/file-browser-hooks'
 import FileBrowserProvider from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
+import * as Utils from 'src/libs/utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
 
@@ -28,6 +29,7 @@ describe('Directory', () => {
       id: 'node-0',
       path: 'path/to/directory/',
       provider: mockFileBrowserProvider,
+      reloadRequests: Utils.subscribable(),
       rootLabel: 'Workspace bucket',
       selectedDirectory: '',
       setActiveDescendant: () => {},
@@ -50,6 +52,7 @@ describe('Directory', () => {
       level: 0,
       path: 'path/to/directory/',
       provider: mockFileBrowserProvider,
+      reloadRequests: Utils.subscribable(),
       rootLabel: 'Workspace bucket',
       selectedDirectory: '',
       setActiveDescendant: () => {},
@@ -99,6 +102,7 @@ describe('Directory', () => {
           level: 0,
           path: 'path/to/directory/',
           provider: mockFileBrowserProvider,
+          reloadRequests: Utils.subscribable(),
           rootLabel: 'Workspace bucket',
           selectedDirectory: '',
           setActiveDescendant: () => {},
@@ -148,6 +152,7 @@ describe('Directory', () => {
       level: 0,
       path: 'path/to/directory/',
       provider: mockFileBrowserProvider,
+      reloadRequests: Utils.subscribable(),
       rootLabel: 'Workspace bucket',
       selectedDirectory: '',
       setActiveDescendant: () => {},
@@ -190,6 +195,7 @@ describe('Directory', () => {
       level: 0,
       path: 'path/to/directory/',
       provider: mockFileBrowserProvider,
+      reloadRequests: Utils.subscribable(),
       rootLabel: 'Workspace bucket',
       selectedDirectory: '',
       setActiveDescendant: () => {},
@@ -233,6 +239,7 @@ describe('Directory', () => {
       level: 0,
       path: 'path/to/directory/',
       provider: mockFileBrowserProvider,
+      reloadRequests: Utils.subscribable(),
       rootLabel: 'Workspace bucket',
       selectedDirectory: '',
       setActiveDescendant: () => {},
@@ -281,6 +288,7 @@ describe('Directory', () => {
         level: 0,
         path: 'path/to/directory/',
         provider: mockFileBrowserProvider,
+        reloadRequests: Utils.subscribable(),
         rootLabel: 'Workspace bucket',
         selectedDirectory: '',
         setActiveDescendant: () => {},

@@ -84,9 +84,9 @@ const getRelationParts = (val: unknown): string[] => {
 
 // Extract wds URL from Leo response. exported for testing
 export const getWdsUrl = apps => {
-  // look explicitly for an app named 'cbas-wds-default'. If found, use it, even if it isn't running
+  // look explicitly for an app named 'wds-${app.workspaceId}'. If found, use it, even if it isn't running
   // this handles the case where the user has explicitly shut down the app
-  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === 'cbas-wds-default')
+  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}` && app.status === 'RUNNING')
   if (namedApp.length === 1) {
     return namedApp[0].proxyUrls.wds
   }
@@ -103,13 +103,15 @@ export const getWdsUrl = apps => {
   return candidates[0].proxyUrls.wds
 }
 
+export const wdsProviderName: string = 'WDS'
+
 export class WdsDataTableProvider implements DataTableProvider {
   constructor(workspaceId: string) {
     this.workspaceId = workspaceId
     this.proxyUrlPromise = Ajax().Apps.getV2AppInfo(workspaceId).then(getWdsUrl)
   }
 
-  providerName: string = 'WDS'
+  providerName: string = wdsProviderName
 
   proxyUrlPromise: Promise<string>
 
@@ -143,7 +145,7 @@ export class WdsDataTableProvider implements DataTableProvider {
     },
     tooltip: (options: TsvUploadButtonTooltipOptions): string => {
       return Utils.cond(
-        [!options.recordTypePresent, () => 'Please enter record type'],
+        [!options.recordTypePresent, () => 'Please enter table name'],
         [!options.filePresent, () => 'Please select valid data to upload'],
         () => 'Upload selected data'
       )

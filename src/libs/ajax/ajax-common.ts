@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
-import { getUser, reloadAuthToken, signOutAfterSessionTimeout } from 'src/libs/auth'
+import { reloadAuthToken, signOutAfterSessionTimeout } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
-import { ajaxOverridesStore } from 'src/libs/state'
+import { ajaxOverridesStore, getUser } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 

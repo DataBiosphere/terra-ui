@@ -1,19 +1,19 @@
 // This test is owned by the Interactive Analysis (IA) Team.
 const _ = require('lodash/fp')
-const { withRegisteredUser, withBilling, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers')
+const { deleteRuntimes, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers')
 const {
-  click, clickable, delay, findElement, noSpinnersAfter, fillIn, findIframe, findText, dismissNotifications, select, getAnimatedDrawer, image, input
+  click, clickable, delay, findElement, noSpinnersAfter, fillIn, findIframe, findText, dismissNotifications, getAnimatedDrawer, image, input
 } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
+const { withUserToken } = require('../utils/terra-sa-utils')
 
 
 const notebookName = 'test-notebook'
 
-const testRunAnalysisFn = _.flow(
+const testRunAnalysisFn = _.flowRight(
+  withUserToken,
   withWorkspace,
-  withBilling,
-  withRegisteredUser
-)(async ({ workspaceName, page, testUrl, token }) => {
+)(async ({ billingProject, workspaceName, page, testUrl, token }) => {
   await performAnalysisTabSetup(page, token, testUrl, workspaceName)
 
   // Create analysis file
@@ -21,7 +21,6 @@ const testRunAnalysisFn = _.flow(
   await findElement(page, getAnimatedDrawer('Select an application'))
   await click(page, image({ text: 'Create new notebook' }))
   await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName)
-  await select(page, 'Language', 'Python 3')
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create Analysis' })) })
 
   // Close the create cloud env modal that pops up
@@ -69,6 +68,8 @@ const testRunAnalysisFn = _.flow(
 
   // Save notebook to avoid "unsaved changes" modal when test tear-down tries to close the window
   await click(frame, clickable({ text: 'Save and Checkpoint' }))
+
+  await deleteRuntimes({ page, billingProject, workspaceName })
 })
 
 registerTest({

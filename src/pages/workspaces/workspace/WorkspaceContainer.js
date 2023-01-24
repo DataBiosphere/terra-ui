@@ -13,14 +13,14 @@ import TopBar from 'src/components/TopBar'
 import { updateRecentlyViewedWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { saToken } from 'src/libs/ajax/GoogleStorage'
-import { getUser } from 'src/libs/auth'
 import { isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount, usePrevious, useStore, withDisplayName } from 'src/libs/react-utils'
-import { workspaceStore } from 'src/libs/state'
+import { getUser, workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { differenceFromNowInSeconds } from 'src/libs/utils'
@@ -87,6 +87,7 @@ const WorkspaceTabs = ({
   const isLocked = workspace?.workspace.isLocked
   const workspaceLoaded = !!workspace
   const googleWorkspace = workspaceLoaded && isGoogleWorkspace(workspace)
+  const isDataTabShown = googleWorkspace || !getConfig().isProd
 
   const onClone = () => setCloningWorkspace(true)
   const onDelete = () => setDeletingWorkspace(true)
@@ -96,7 +97,7 @@ const WorkspaceTabs = ({
 
   const tabs = [
     { name: 'dashboard', link: 'workspace-dashboard' },
-    { name: 'data', link: 'workspace-data' },
+    ...(isDataTabShown ? [{ name: 'data', link: 'workspace-data' }] : []),
     { name: 'analyses', link: analysisTabName },
     ...(googleWorkspace ? [{ name: 'workflows', link: 'workspace-workflows' }] : []),
     ...(googleWorkspace ? [{ name: 'job history', link: 'workspace-job-history' }] : [])
@@ -278,7 +279,7 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
   return { runtimes, refreshRuntimes, persistentDisks, appDataDisks }
 }
 
-const useAppPolling = (googleProject, workspaceName) => {
+const useAppPolling = (googleProject, workspaceName, workspace) => {
   const signal = useCancellation()
   const timeout = useRef()
   const [apps, setApps] = useState()
@@ -288,13 +289,15 @@ const useAppPolling = (googleProject, workspaceName) => {
   }
   const loadApps = async () => {
     try {
-      const newApps = !!googleProject ?
-        await Ajax(signal).Apps.list(googleProject, { role: 'creator', saturnWorkspaceName: workspaceName }) :
-        []
-      setApps(newApps)
+      const newGoogleApps = !!workspace && isGoogleWorkspace(workspace) ?
+        await Ajax(signal).Apps.list(googleProject, { role: 'creator', saturnWorkspaceName: workspaceName }) : []
+      const newAzureApps = !!workspace && isAzureWorkspace(workspace) ? await Ajax(signal).Apps.getV2AppInfo(workspace.workspace.workspaceId) : []
+      const combinedNewApps = [...newGoogleApps, ...newAzureApps]
+
+      setApps(combinedNewApps)
       _.forOwn(tool => {
         if (tool.appType) {
-          const app = getCurrentApp(tool.appType)(newApps)
+          const app = getCurrentApp(tool.appType)(combinedNewApps)
           reschedule((app && _.includes(app.status, ['PROVISIONING', 'PREDELETING'])) ? 10000 : 120000)
         }
       })(tools)
@@ -333,25 +336,21 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const workspaceLoaded = !!workspace
 
     const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject, workspace)
-    const { apps, refreshApps } = useAppPolling(googleProject, name)
+    const { apps, refreshApps } = useAppPolling(googleProject, name, workspace)
     // The following if statements are necessary to support the context bar properly loading runtimes for google/azure
-    // Note that the refreshApps function currently is not supported for azure
     if (workspaceLoaded) {
-      if (googleProject !== prevGoogleProject && isGoogleWorkspace(workspace)) {
-        refreshRuntimes()
+      if (googleProject !== prevGoogleProject || azureContext !== prevAzureContext) {
+        refreshRuntimes(isAzureWorkspace(workspace))
         refreshApps()
-      }
-      if (azureContext !== prevAzureContext && isAzureWorkspace(workspace)) {
-        refreshRuntimes(true)
       }
     }
 
-    const loadBucketLocation = async (googleProject, bucketName) => {
+    const loadBucketLocation = withErrorIgnoring(async (googleProject, bucketName) => {
       if (!!googleProject) {
         const bucketLocation = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
         setBucketLocation(bucketLocation)
       }
-    }
+    })
 
     const refreshWorkspace = _.flow(
       withErrorReporting('Error loading workspace'),

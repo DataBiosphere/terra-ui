@@ -1,4 +1,5 @@
-import { getUser, reloadAuthToken, signOutAfterSessionTimeout } from 'src/libs/auth'
+import { reloadAuthToken, signOutAfterSessionTimeout } from 'src/libs/auth'
+import { getUser } from 'src/libs/state'
 import { asMockedFn } from 'src/testing/test-utils'
 
 import { authOpts, withRetryAfterReloadingExpiredAuthToken } from './ajax-common'
@@ -7,9 +8,16 @@ import { authOpts, withRetryAfterReloadingExpiredAuthToken } from './ajax-common
 type AuthExports = typeof import('src/libs/auth')
 jest.mock('src/libs/auth', (): Partial<AuthExports> => {
   return {
-    getUser: jest.fn(() => ({ token: 'testtoken' })),
     reloadAuthToken: jest.fn(),
     signOutAfterSessionTimeout: jest.fn(),
+  }
+})
+
+type StateExports = typeof import('src/libs/state')
+jest.mock('src/libs/state', (): StateExports => {
+  return {
+    ...jest.requireActual('src/libs/state'),
+    getUser: jest.fn(() => ({ token: 'testtoken' })),
   }
 })
 
