@@ -12,7 +12,7 @@ const cols = ['consortiums']
 const expectedFilterSectionsAndValuesForTestDatasets = [
   {
     header: 'Access type',
-    values: ['Granted', 'Controlled']
+    values: ['Granted', 'Controlled', 'External', 'Pending']
   },
   {
     header: 'Consortium',
@@ -72,7 +72,7 @@ describe('DataBrowser', () => {
     _.forEach(sectionAndValues => {
       const filter = _.find(filter => filter.header === sectionAndValues.header, extractCatalogFiltersResult)
       if (filter !== undefined) {
-        _.forEach(value => expect(filter.values).toContain(value), sectionAndValues.values)
+        expect(_.xor(filter.values, sectionAndValues.values).length).toBe(0)
       } else {
         fail(`Section ${sectionAndValues.header} did not appear as was expected`)
       }

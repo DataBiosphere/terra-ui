@@ -20,7 +20,7 @@ import { SearchAndFilterComponent } from 'src/pages/library/SearchAndFilterCompo
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 // All workspaces match by their tags
-const sidebarSections = _.map(section => ({ matchBy: (workspace, value) => _.contains(_.toLower(value), workspace.tags.items), ...section }), [{
+export const sidebarSections = _.map(section => ({ matchBy: (workspace, value) => _.contains(_.toLower(value), workspace.tags.items), ...section }), [{
   header: 'Cloud Platform',
   values: [cloudProviderLabels.GCP, cloudProviderLabels.AZURE],
 }, {

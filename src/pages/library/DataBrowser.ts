@@ -48,6 +48,7 @@ export const getUnique = (mapper, data) => _.flow(
 )(data)
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
+// Renderers are not tested, because typing gives all the assertions we want to make on them (We make no promises about the contents of custom renderers, just their return types)
 export const extractCatalogFilters = (dataCatalog: Dataset[]): FilterSection<Dataset>[] => {
   return [{
     header: 'Access type',
