@@ -7,7 +7,20 @@ import {
 } from 'src/pages/library/SearchAndFilterComponent'
 
 
-const data = ['A quick brown fox jumped over a lazy gray dog', 'aeio', 'stock', 'styx', 'xylophone']
+type TestStrings =
+    'A quick brown fox jumped over a lazy gray dog' |
+    'aeio' |
+    'stock' |
+    'styx' |
+    'xylophone'
+
+const testStrings: Record<TestStrings, TestStrings> = {
+  'A quick brown fox jumped over a lazy gray dog': 'A quick brown fox jumped over a lazy gray dog',
+  aeio: 'aeio',
+  stock: 'stock',
+  styx: 'styx',
+  xylophone: 'xylophone'
+}
 
 // Arrange
 const FILTERS: FilterSection<string>[] = [
@@ -26,35 +39,35 @@ const FILTERS: FilterSection<string>[] = [
 describe('library/common', () => {
   it('matches correctly for a section entry', () => {
     // Act
-    const listItemsMatching = listItemsMatchForSectionEntry('a', FILTERS[0].matchBy, data)
+    const listItemsMatching = listItemsMatchForSectionEntry('a', FILTERS[0].matchBy, _.values(testStrings))
     // Assert
-    expect(listItemsMatching).toContain(data[0])
-    expect(listItemsMatching).toContain(data[1])
-    expect(listItemsMatching).not.toContain(data[2])
-    expect(listItemsMatching).not.toContain(data[3])
-    expect(listItemsMatching).not.toContain(data[4])
+    expect(listItemsMatching).toContain(testStrings['A quick brown fox jumped over a lazy gray dog'])
+    expect(listItemsMatching).toContain(testStrings.aeio)
+    expect(listItemsMatching).not.toContain(testStrings.stock)
+    expect(listItemsMatching).not.toContain(testStrings.styx)
+    expect(listItemsMatching).not.toContain(testStrings.xylophone)
   })
 
   it('matches on union for a section', () => {
     // Act
-    const listItemsMatching = getMatchingDataForSection(FILTERS[0], data)
+    const listItemsMatching = getMatchingDataForSection(FILTERS[0], _.values(testStrings))
     // Assert
-    expect(listItemsMatching).toContain(data[0])
-    expect(listItemsMatching).toContain(data[1])
-    expect(listItemsMatching).toContain(data[2])
-    expect(listItemsMatching).not.toContain(data[3])
-    expect(listItemsMatching).toContain(data[4])
+    expect(listItemsMatching).toContain(testStrings['A quick brown fox jumped over a lazy gray dog'])
+    expect(listItemsMatching).toContain(testStrings.aeio)
+    expect(listItemsMatching).toContain(testStrings.stock)
+    expect(listItemsMatching).not.toContain(testStrings.styx)
+    expect(listItemsMatching).toContain(testStrings.xylophone)
   })
 
   it('matches on intersection for a list of sections', () => {
     // Act
-    const listItemsMatching = getMatchingDataForSectionList(FILTERS, data)
+    const listItemsMatching = getMatchingDataForSectionList(FILTERS, _.values(testStrings))
     // Assert
-    expect(listItemsMatching).not.toContain(data[0])
-    expect(listItemsMatching).not.toContain(data[1])
-    expect(listItemsMatching).not.toContain(data[2])
-    expect(listItemsMatching).not.toContain(data[3])
-    expect(listItemsMatching).toContain(data[4])
+    expect(listItemsMatching).not.toContain(testStrings['A quick brown fox jumped over a lazy gray dog'])
+    expect(listItemsMatching).not.toContain(testStrings.aeio)
+    expect(listItemsMatching).not.toContain(testStrings.stock)
+    expect(listItemsMatching).not.toContain(testStrings.styx)
+    expect(listItemsMatching).toContain(testStrings.xylophone)
   })
 
   it('checks properly if a section entry is selected', () => {

@@ -34,18 +34,16 @@ export const uiMessaging = {
 }
 
 // This list is generated from the schema enum
-export const getDatasetReleasePoliciesDisplayInformation = (dataUsePermission?: string): { label: string; description?: string } => {
-  return Utils.switchCase(
-    dataUsePermission,
-    ['DUO:0000007', () => ({ label: 'DS', description: 'Disease specific research' })],
-    ['DUO:0000042', () => ({ label: 'GRU', description: 'General research use' })],
-    ['DUO:0000006', () => ({ label: 'HMB', description: 'Health or medical or biomedical research' })],
-    ['DUO:0000011', () => ({ label: 'POA', description: 'Population origins or ancestry research only' })],
-    ['DUO:0000004', () => ({ label: 'NRES', description: 'No restriction' })],
-    [undefined, () => ({ label: 'Unspecified', description: 'No specified dataset release policy' })],
-    [Utils.DEFAULT, () => ({ label: dataUsePermission })]
-  )
-}
+export const getDatasetReleasePoliciesDisplayInformation = (dataUsePermission?: string): { label: string; description?: string } => Utils.switchCase(
+  dataUsePermission,
+  ['DUO:0000007', () => ({ label: 'DS', description: 'Disease specific research' })],
+  ['DUO:0000042', () => ({ label: 'GRU', description: 'General research use' })],
+  ['DUO:0000006', () => ({ label: 'HMB', description: 'Health or medical or biomedical research' })],
+  ['DUO:0000011', () => ({ label: 'POA', description: 'Population origins or ancestry research only' })],
+  ['DUO:0000004', () => ({ label: 'NRES', description: 'No restriction' })],
+  [undefined, () => ({ label: 'Unspecified', description: 'No specified dataset release policy' })],
+  [Utils.DEFAULT, () => ({ label: dataUsePermission })]
+)
 
 export const makeDatasetReleasePolicyDisplayInformation = (dataUsePermission: string): ReactElement => {
   const { label, description } = getDatasetReleasePoliciesDisplayInformation(dataUsePermission)
@@ -62,15 +60,11 @@ export const isExternal = (dataset: Dataset): boolean => Utils.cond(
 
 export const workspaceUrlFragment = '/#workspaces/'
 
-export const isWorkspace = (dataset: Dataset): boolean => {
-  return _.toLower(dataset['dcat:accessURL']).includes(workspaceUrlFragment)
-}
+export const isWorkspace = (dataset: Dataset): boolean => _.toLower(dataset['dcat:accessURL']).includes(workspaceUrlFragment)
 
 export const datarepoSnapshotUrlFragment = '/snapshots/details/'
 
-export const isDatarepoSnapshot = (dataset: Dataset): boolean => {
-  return _.toLower(dataset['dcat:accessURL']).includes(datarepoSnapshotUrlFragment)
-}
+export const isDatarepoSnapshot = (dataset: Dataset): boolean => _.toLower(dataset['dcat:accessURL']).includes(datarepoSnapshotUrlFragment)
 
 export const getConsortiumTitlesFromDataset = (dataset: Dataset): string[] => _.flow(
   _.map((hasDataCollection: DataCollection) => hasDataCollection['dct:title']),
@@ -152,12 +146,13 @@ export const DatasetAccess = ({ dataset }: DatasetAccessProps) => {
 }
 
 
-export const prepareDatasetsForDisplay = (datasets: Dataset[], dataCollectionsToInclude: string[]): Dataset[] => {
-  return _.filter(dataCollectionsToInclude ?
-    dataset => _.intersection(dataCollectionsToInclude, _.map('dct:title', dataset['TerraDCAT_ap:hasDataCollection'])).length > 0 :
-    _.constant(true),
-  datasets)
-}
+export const prepareDatasetsForDisplay = (datasets: Dataset[], dataCollectionsToInclude: string[]): Dataset[] => _.filter(
+  dataCollectionsToInclude ?
+    dataset => _.intersection(
+      dataCollectionsToInclude,
+      _.map('dct:title', dataset['TerraDCAT_ap:hasDataCollection'])
+    ).length > 0 :
+    _.constant(true), datasets)
 
 interface DataCatalog { dataCatalog: Dataset[]; refresh: () => void; loading: boolean }
 
