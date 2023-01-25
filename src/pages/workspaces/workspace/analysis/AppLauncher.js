@@ -13,7 +13,7 @@ import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/l
 import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { getExtension, notebookLockHash, stripExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
-import { appLauncherTabName, PeriodicAzureCookieSetter, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { analysisTabName, appLauncherTabName, PeriodicAzureCookieSetter, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import { getAnalysesDisplayList, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { getPatternFromRuntimeTool, getToolLabelFromRuntime, runtimeTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -28,7 +28,7 @@ const ApplicationLauncher = _.flow(
   })
 )(({
   name: workspaceName, sparkInterface, analysesData: { runtimes, refreshRuntimes },
-  application, workspace: { azureContext, workspace: { workspaceId, googleProject, bucketName }, namespace }
+  application, workspace: { namespace, name, azureContext, workspace: { workspaceId, googleProject, bucketName } }
 }, _ref) => {
   useEffect(() => {
     Ajax().Metrics.captureEvent(Events.analysisLaunch,
@@ -135,13 +135,14 @@ const ApplicationLauncher = _.flow(
       analysis?.metadata[hashedOwnerEmail] === 'outdated', analyses)
   }
 
-  useOnMount(() => {
+  useOnMount(async () => {
     const findHashedEmail = withErrorReporting('Error loading user email information', async () => {
       const hashedEmail = await notebookLockHash(bucketName, email)
       setHashedOwnerEmail(hashedEmail)
     })
 
-    refreshRuntimes()
+    await refreshRuntimes()
+    setBusy(false)
     findHashedEmail()
   })
 
@@ -260,6 +261,7 @@ const ApplicationLauncher = _.flow(
             [runtimeStatus === 'LeoReconfiguring', () => 'Cloud environment is updating, please wait.'],
             [runtimeStatus === 'Error', () => 'Error with the cloud environment, please try again.'],
             [runtimeStatus === null, () => 'Create a cloud environment to continue.'],
+            [runtimeStatus === undefined && runtime === undefined, () => Nav.goToPath(analysisTabName, { namespace, name })],
             [runtimeStatus === undefined, () => 'Loading...'],
             () => 'Unknown cloud environment status. Please create a new cloud environment or contact support.'
           )
