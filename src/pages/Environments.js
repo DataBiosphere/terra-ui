@@ -761,7 +761,7 @@ export const Environments = ({ nav = undefined }) => {
             }
           },
           {
-            size: { min: '5em', grow: 0 },
+            size: { min: '7em', grow: 0 },
             field: 'status',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'status', onSort: setDiskSort }, ['Status']),
             cellRenderer: ({ rowIndex }) => {
