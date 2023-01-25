@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import React, { forwardRef, ForwardRefRenderFunction, memo, useEffect, useRef, useState } from 'react'
+import { forwardRef, memo, useEffect, useRef, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { safeCurry } from 'src/libs/type-utils/lodash-fp-helpers'
 import { delay, pollWithCancellation } from 'src/libs/utils'
@@ -98,8 +98,8 @@ export const combineRefs = refs => {
 }
 
 // TODO: improve these types further
-export const forwardRefWithName = safeCurry((name: string, WrappedComponent: React.ComponentType): React.ComponentType => {
-  return withDisplayName(name, forwardRef(WrappedComponent as ForwardRefRenderFunction<unknown, {}>))
+export const forwardRefWithName = safeCurry((name: string, WrappedComponent) => {
+  return withDisplayName(name, forwardRef(WrappedComponent))
 })
 
 export const memoWithName = _.curry((name, WrappedComponent) => {
