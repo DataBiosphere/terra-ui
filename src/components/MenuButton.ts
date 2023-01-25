@@ -5,9 +5,9 @@ import colors from 'src/libs/colors'
 import { forwardRefWithName } from 'src/libs/react-utils'
 
 
-type MenuButtonProps<T extends keyof JSX.IntrinsicElements> = ClickableProps<T>
+type MenuButtonProps = ClickableProps<keyof JSX.IntrinsicElements>
 
-const MenuButtonInternal = <T extends keyof JSX.IntrinsicElements = 'div'>({ disabled, children, ...props }: MenuButtonProps<T>, ref) => {
+const MenuButtonInternal = ({ disabled, children, ...props }: MenuButtonProps, ref) => {
   return div({ role: 'menuitem' }, [
     h(Clickable, {
       ref,
@@ -24,6 +24,4 @@ const MenuButtonInternal = <T extends keyof JSX.IntrinsicElements = 'div'>({ dis
   ])
 }
 
-
-export const MenuButton = <T extends keyof JSX.IntrinsicElements>(): React.FC<MenuButtonProps<T>> => forwardRefWithName('MenuButton', MenuButtonInternal) as React.FC<MenuButtonProps<T>>
-// export const MenuButton = <T extends keyof JSX.IntrinsicElements>(): React.FC<MenuButtonProps<T>> => forwardRefWithName('MenuButton', MenuButtonInternal) as (<T extends keyof JSX.IntrinsicElements>(props: MenuButtonProps<T>) => JSX.Element)
+export const MenuButton = forwardRefWithName('MenuButton', MenuButtonInternal) as React.FC<MenuButtonProps>
