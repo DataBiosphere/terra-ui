@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { useEffect, useState } from 'react'
+import { CSSProperties, useEffect, useState } from 'react'
 import { div, fieldset, h, h2, h3, legend, li, p, span, ul } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, LabeledCheckbox, Link, RadioButton } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -14,22 +14,31 @@ import * as Utils from 'src/libs/utils'
 import CreateGCPBillingProject from 'src/pages/billing/CreateGCPBillingProject'
 
 
+function stepBanner(active: boolean): CSSProperties {
+  return {
+    borderRadius: '8px',
+    boxSizing: 'border-box',
+    padding: '1.5rem 2rem',
+    marginTop: '1rem',
+    display: 'flex',
+    border: active ? `1px solid ${colors.accent()}` : `1px solid ${colors.accent(0.2)}`,
+    backgroundColor: active ? colors.light(0.5) : colors.light(0.3),
+    boxShadow: active ? '0 0 5px 0 rgba(77,114,170,0.5)' : 'none'
+  }
+}
+
+const radioButtonLabel: CSSProperties = {
+  marginLeft: '1rem',
+  color: colors.accent(),
+  fontWeight: 500,
+  lineHeight: '22px'
+}
+const accentColor = colors.accent()
+
 export const styles = {
-  stepBanner: active => {
-    return {
-      borderRadius: '8px', boxSizing: 'border-box',
-      padding: '1.5rem 2rem',
-      marginTop: '1rem',
-      display: 'flex',
-      border: active ? `1px solid ${colors.accent()}` : `1px solid ${colors.accent(0.2)}`,
-      backgroundColor: active ? colors.light(0.5) : colors.light(0.3),
-      boxShadow: active ? '0 0 5px 0 rgba(77,114,170,0.5)' : 'none'
-    }
-  },
-  radioButtonLabel: {
-    marginLeft: '1rem', color: colors.accent(), fontWeight: 500, lineHeight: '22px'
-  },
-  accentColor: colors.accent()
+  stepBanner,
+  radioButtonLabel,
+  accentColor
 }
 
 const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAndLoadAccounts }) => {
@@ -38,10 +47,10 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
   const [accessToAddBillingAccountUser, setAccessToAddBillingAccountUser] = useState(() => getLocalPref(persistenceId)?.accessToAddBillingAccountUser)
   const [verified, setVerified] = useState(() => getLocalPref(persistenceId)?.verified || false)
   const [billingProjectName, setBillingProjectName] = useState('')
-  const [chosenBillingAccount, setChosenBillingAccount] = useState('')
+  const [chosenBillingAccount, setChosenBillingAccount] = useState<any>()
   const [refreshed, setRefreshed] = useState(false)
   const [isBusy, setIsBusy] = useState(false)
-  const [existing, setExisting] = useState([])
+  const [existing, setExisting] = useState<string[]>([])
   const [activeStep, setActiveStep] = useState(() => getLocalPref(persistenceId)?.activeStep || 1)
 
   useEffect(() => {
@@ -66,7 +75,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
     try {
       await Ajax().Billing.createGCPProject(billingProjectName, chosenBillingAccount.accountName)
       onSuccess(billingProjectName)
-    } catch (error) {
+    } catch (error: any) {
       if (error.status === 409) {
         setExisting(_.concat(billingProjectName, existing))
       } else {
@@ -81,7 +90,12 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
 
     return li({
       'aria-current': isActive ? 'step' : false,
-      style: { ...styles.stepBanner(isActive), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }
+      style: {
+        ...styles.stepBanner(isActive),
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }
     }, [
       div({ style: { maxWidth: '60%' } }, [
         h3({ style: { fontSize: 18, marginTop: 0 } }, ['STEP 1']),
@@ -122,14 +136,26 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
       }
     }
 
-    return li({ 'aria-current': isActive ? 'step' : false, style: { ...styles.stepBanner(isActive), flexDirection: 'column' } }, [
+    return li({
+      'aria-current': isActive ? 'step' : false,
+      style: { ...styles.stepBanner(isActive), flexDirection: 'column' }
+    }, [
       h3({ style: { fontSize: 18, marginTop: 0 } }, ['STEP 2']),
       fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'block' } }, [
-        legend({ style: { maxWidth: '55%', fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', marginTop: '0.25rem', float: 'left' } },
-          ['Select an existing billing account or create a new one.\n\nIf you are creating a new billing account, you may be eligible for $300 in free credits. ' +
-          'Follow the instructions to activate your account in the Google Cloud Console.']),
+        legend({
+          style: {
+            maxWidth: '55%',
+            fontSize: 14,
+            lineHeight: '22px',
+            whiteSpace: 'pre-wrap',
+            marginTop: '0.25rem',
+            float: 'left'
+          }
+        },
+        ['Select an existing billing account or create a new one.\n\nIf you are creating a new billing account, you may be eligible for $300 in free credits. ' +
+            'Follow the instructions to activate your account in the Google Cloud Console.']),
         div({ style: { width: '25%', float: 'right' } }, [
-          div({ style: { display: 'flex', displayDirection: 'row' } }, [
+          div({ style: { display: 'flex', flexDirection: 'row' } }, [
             h(RadioButton, {
               text: "I don't have access to a Cloud billing account", name: 'access-to-account',
               checked: accessToBillingAccount === false,
@@ -140,7 +166,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               }
             })
           ]),
-          div({ style: { marginTop: '2rem', display: 'flex', displayDirection: 'row' } }, [
+          div({ style: { marginTop: '2rem', display: 'flex', flexDirection: 'row' } }, [
             h(RadioButton, {
               text: 'I have a billing account', name: 'access-to-account',
               checked: accessToBillingAccount === true,
@@ -169,80 +195,102 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
         ])
 
     const checkbox =
-      div({ style: { width: '25%', float: 'right' } }, [
-        h(LabeledCheckbox, {
-          checked: verified === true,
-          onChange: async () => {
-            Ajax().Metrics.captureEvent(Events.billingCreationStep3VerifyUserAdded)
-            if (isDone) {
-              resetStep3()
-            } else {
-              await authorizeAndLoadAccounts()
-              setVerified(true)
-              next()
-            }
-          }
-        }, [
-          p({ style: { ...styles.radioButtonLabel, marginLeft: '2rem', marginTop: '-1.3rem' } }, [
-            'I have verified the user has been added to my account (requires reauthentication)'
-          ])
-        ])
-      ])
-
-    const addTerraAsBillingAccountUser =
-      fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'block' } }, [
-        legend({ style: { maxWidth: '60%', fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', marginTop: '0.25rem', float: 'left' } },
-          [span({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap' } },
-            ['Add ', span({ style: { fontWeight: 'bold' } }, 'terra-billing@terra.bio'), ' as a Billing Account User',
-              span({ style: { fontWeight: 'bold' } }, ' to your billing account.')]),
-          div({ style: { marginTop: '3rem' } }, [linkToSupport])]),
         div({ style: { width: '25%', float: 'right' } }, [
-          div({ style: { display: 'flex', displayDirection: 'row' } }, [
-            h(RadioButton, {
-              text: "I don't have access to do this", name: 'permission',
-              checked: accessToAddBillingAccountUser === false,
-              disabled: !isDone && !isActive,
-              labelStyle: { ...styles.radioButtonLabel },
-              onChange: () => {
-                Ajax().Metrics.captureEvent(Events.billingCreationStep3BillingAccountNoAccess)
-                setAccessToAddBillingAccountUser(false)
-                if (isDone) {
-                  setActiveStep(3)
-                  setRefreshed(false)
-                }
-              }
-            })
-          ]),
-          div({ style: { marginTop: '2rem', display: 'flex', displayDirection: 'row' } }, [
-            h(RadioButton, {
-              text: 'I have added terra-billing as a billing account user (requires reauthentication)', name: 'permission',
-              checked: accessToAddBillingAccountUser === true,
-              disabled: !isDone && !isActive,
-              labelStyle: { ...styles.radioButtonLabel },
-              onChange: async () => {
-                Ajax().Metrics.captureEvent(Events.billingCreationStep3AddedTerraBilling)
-                setAccessToAddBillingAccountUser(true)
+          h(LabeledCheckbox, {
+            checked: verified === true,
+            onChange: async () => {
+              Ajax().Metrics.captureEvent(Events.billingCreationStep3VerifyUserAdded)
+              if (isDone) {
+                resetStep3()
+              } else {
                 await authorizeAndLoadAccounts()
+                setVerified(true)
                 next()
               }
-            })
+            }
+          }, [
+            p({ style: { ...styles.radioButtonLabel, marginLeft: '2rem', marginTop: '-1.3rem' } }, [
+              'I have verified the user has been added to my account (requires reauthentication)'
+            ])
           ])
         ])
-      ])
+
+    const addTerraAsBillingAccountUser =
+        fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'block' } }, [
+          legend({
+            style: {
+              maxWidth: '60%',
+              fontSize: 14,
+              lineHeight: '22px',
+              whiteSpace: 'pre-wrap',
+              marginTop: '0.25rem',
+              float: 'left'
+            }
+          },
+          [span({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap' } },
+            ['Add ', span({ style: { fontWeight: 'bold' } }, ['terra-billing@terra.bio']), ' as a Billing Account User',
+              span({ style: { fontWeight: 'bold' } }, [' to your billing account.'])]),
+          div({ style: { marginTop: '3rem' } }, [linkToSupport])]),
+          div({ style: { width: '25%', float: 'right' } }, [
+            div({ style: { display: 'flex', flexDirection: 'row' } }, [
+              h(RadioButton, {
+                text: "I don't have access to do this", name: 'permission',
+                checked: accessToAddBillingAccountUser === false,
+                disabled: !isDone && !isActive,
+                labelStyle: { ...styles.radioButtonLabel },
+                onChange: () => {
+                  Ajax().Metrics.captureEvent(Events.billingCreationStep3BillingAccountNoAccess)
+                  setAccessToAddBillingAccountUser(false)
+                  if (isDone) {
+                    setActiveStep(3)
+                    setRefreshed(false)
+                  }
+                }
+              })
+            ]),
+            div({ style: { marginTop: '2rem', display: 'flex', flexDirection: 'row' } }, [
+              h(RadioButton, {
+                text: 'I have added terra-billing as a billing account user (requires reauthentication)',
+                name: 'permission',
+                checked: accessToAddBillingAccountUser === true,
+                disabled: !isDone && !isActive,
+                labelStyle: { ...styles.radioButtonLabel },
+                onChange: async () => {
+                  Ajax().Metrics.captureEvent(Events.billingCreationStep3AddedTerraBilling)
+                  setAccessToAddBillingAccountUser(true)
+                  await authorizeAndLoadAccounts()
+                  next()
+                }
+              })
+            ])
+          ])
+        ])
 
     const contactBillingAccountAdministrator =
-      fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'block' } }, [
-        legend({ style: { maxWidth: '55%', fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', marginTop: '0.25rem', float: 'left' } },
+        fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'block' } }, [
+          legend({
+            style: {
+              maxWidth: '55%',
+              fontSize: 14,
+              lineHeight: '22px',
+              whiteSpace: 'pre-wrap',
+              marginTop: '0.25rem',
+              float: 'left'
+            }
+          },
           [
             span(['Contact your billing account administrator and have them add you and ',
               span({ style: { fontWeight: 'bold' } }, ['terra-billing@terra.bio']), ' as a Billing Account User',
               span({ style: { fontWeight: 'bold' } }, [' to your organization\'s billing account.'])]),
             div({ style: { marginTop: '2rem' } }, [linkToSupport])
           ]),
-        checkbox
-      ])
+          checkbox
+        ])
 
-    return li({ 'aria-current': isActive ? 'step' : false, style: { ...styles.stepBanner(isActive), display: 'flex', flexDirection: 'column' } }, [
+    return li({
+      'aria-current': isActive ? 'step' : false,
+      style: { ...styles.stepBanner(isActive), display: 'flex', flexDirection: 'column' }
+    }, [
       h3({ style: { fontSize: 18, marginTop: 0 } }, ['STEP 3']),
       (isActive || isDone) &&
       (!accessToBillingAccount || (accessToAddBillingAccountUser !== undefined && !accessToAddBillingAccountUser)) ?
@@ -259,7 +307,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
       h3({ style: { fontSize: 18, marginTop: 0 } }, ['STEP 4']),
       span({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', width: '75%' } },
         ['Create a Terra project to connect your Google billing account to Terra. ' +
-        'Billing projects allow you to manage your workspaces and are required to create one.']),
+          'Billing projects allow you to manage your workspaces and are required to create one.']),
       div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'space-between', height: 'auto' } }, [
         div({ style: { maxWidth: '35%', paddingBottom: '4rem' } }, [
           CreateGCPBillingProject({
@@ -277,10 +325,18 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
             },
             role: 'alert'
           }, [
-            icon('warning-standard', { style: { color: colors.warning(), height: '1.5rem', width: '1.5rem', marginRight: '0.5rem', marginTop: '0.25rem' } }),
+            icon('warning-standard', {
+              style: {
+                color: colors.warning(),
+                height: '1.5rem',
+                width: '1.5rem',
+                marginRight: '0.5rem',
+                marginTop: '0.25rem'
+              }
+            }),
             !refreshed ? div({ style: { paddingInline: '0.5rem', lineHeight: '24px', fontWeight: 500 } }, [
               'You do not have access to any Google Billing Accounts. Please verify that a billing account has been created in the ' +
-              'Google Billing Console and terra-billing@terra.bio has been added as a Billing Account User to your billing account.',
+                    'Google Billing Console and terra-billing@terra.bio has been added as a Billing Account User to your billing account.',
               div({ style: { marginTop: '0.5rem' } }, [
                 h(Link, {
                   style: { textDecoration: 'underline', color: styles.accentColor },
@@ -308,7 +364,13 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
           ]) :
           div({ style: { display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
             h(ButtonPrimary, {
-              style: { marginTop: '2rem', height: '2.5rem', borderRadius: 2, textTransform: 'none', paddingInline: isBusy ? '1rem' : '2rem' },
+              style: {
+                marginTop: '2rem',
+                height: '2.5rem',
+                borderRadius: 2,
+                textTransform: 'none',
+                paddingInline: isBusy ? '1rem' : '2rem'
+              },
               onClick: submit,
               disabled: !isActive
             }, [
@@ -335,5 +397,6 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
     ])
   ])
 }
+
 
 export default CreateNewBillingProjectWizard
