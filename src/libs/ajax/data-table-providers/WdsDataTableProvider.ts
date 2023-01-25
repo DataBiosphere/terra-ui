@@ -10,7 +10,6 @@ import {
   TsvUploadButtonTooltipOptions,
   UploadParameters
 } from 'src/libs/ajax/data-table-providers/DataTableProvider'
-import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
@@ -100,30 +99,26 @@ export const resolveWdsUrl = (apps, workspaceId) => {
   const candidates = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}`)
   // ...nothing has launched yet, bring WDS to life!
   if (candidates.length === 0) {
-    // !getConfig().isProd is temporary until WDS is ready for production launch in Feb 2023
-    if (!getConfig().isProd) {
-      withErrorReporting('An error occurred when creating your data tables. Please reach out to support@terra.bio', async () => {
-        await Ajax().Apps.createAppV2(`wds-${workspaceId}`, workspaceId)
-      })
-    }
+    withErrorReporting('An error occurred when creating your data tables. Please reach out to support@terra.bio', async () => {
+      await Ajax().Apps.createAppV2(`wds-${workspaceId}`, workspaceId)
+    })
     return ''
   }
 
-  // WDS is being created in k8s (takes a few minutes)
+  // WDS is being created in a Kubernetes cluster (takes a few minutes)
   if (candidates.length === 1 && candidates[0].status === 'PROVISIONING') {
     return ''
   }
 
   // If we reach this logic, we have more than one Leo app with the associated workspace Id...
-  const healthyStatuses = ['RUNNING', 'PROVISIONING']
-  const healthyCandidates = candidates.filter(app => healthyStatuses.includes(app.status))
-  if (healthyCandidates > 0) {
+  const allCromwellApps = apps.filter(app => app.appType === 'CROMWELL')
+  if (allCromwellApps > 0) {
     // Evaluate the earliest-created WDS app
-    candidates.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
-    if (candidates[0].status === 'RUNNING') {
-      return candidates[0].proxyUrls.wds
+    allCromwellApps.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
+    if (allCromwellApps[0].status === 'RUNNING') {
+      return allCromwellApps[0].proxyUrls.wds
     }
-    if (candidates[0].status === 'PROVISIONING') {
+    if (allCromwellApps[0].status === 'PROVISIONING') {
       return ''
     }
     // TODO: AJ-790: How do we feel if we reach this point...

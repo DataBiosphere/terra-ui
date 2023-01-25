@@ -704,11 +704,11 @@ describe('resolveWdsUrl', () => {
   it('properly extracts the proxy Url from the leo response', () => {
     expect(resolveWdsUrl(testProxyUrlResponse, uuid)).toBe(testProxyUrl)
   })
-  it('locate the Url when the app name is different and is running', () => {
+  it('return an empty string if WDS is still PROVISIONING', () => {
     const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
-      { appType: 'CROMWELL', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } }
+      { appType: 'CROMWELL', appName: 'something-else', status: 'PROVISIONING', proxyUrls: { wds: testProxyUrl } }
     ]
-    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid)).toBe(testProxyUrl)
+    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid)).toBe('')
   })
   it('return empty string when app not found', () => {
     const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
@@ -716,4 +716,11 @@ describe('resolveWdsUrl', () => {
     ]
     expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid)).toBe('')
   })
+  // 2023-01-24T15:27:28.740880Z -- example timestamp
+  // it('return the earliest RUNNING app if more than one exists', () => {
+  //   const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
+  //     { appType: 'A_DIFFERENT_APP', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } }
+  //   ]
+  //   expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid)).toBe('')
+  // })
 })
