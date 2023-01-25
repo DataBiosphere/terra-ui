@@ -1,7 +1,8 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ClipboardButton } from 'src/components/common'
+import { ClipboardButton } from 'src/components/ClipboardButton'
+import { ButtonPrimary } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
@@ -30,7 +31,7 @@ const getWdsUrl = apps => {
 }
 
 
-export const WdsTroubleshooter = ({ onDismiss, workspaceId }) => {
+export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
   const [leoOk, setLeoOk] = useState([])
   const [wdsResponsive, setWdsResponsive] = useState(false)
   const [version, setVersion] = useState({})
@@ -74,23 +75,30 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId }) => {
     }, ['Done'])
   }, [div({ style: { padding: '1rem 0.5rem', lineHeight: '1.4rem' } },
     [h(div, {}, ['Leo app listing: ', h(Fragment, [leoOk.length, ' app(s) total'])]),
+      h(div, {}, ['Workspace Id: ', h(Fragment, [workspaceId, h(ClipboardButton, {
+        'aria-label': 'Copy workspaceId to clipboard',
+        style: { marginLeft: '1rem' },
+        text: workspaceId
+      })])]),
+      h(div, {}, ['Resource Group Id: ', h(Fragment, [mrgId, h(ClipboardButton, {
+        'aria-label': 'Copy resource group id to clipboard',
+        style: { marginLeft: '1rem' },
+        text: mrgId
+      })])]),
       h(div, {}, ['WDS app found: ', h(Fragment, [appFound, h(ClipboardButton, {
         'aria-label': 'Copy found app name to clipboard',
-        className: 'cell-hover-only',
         style: { marginLeft: '1rem' },
         text: appFound
       })])]),
       h(div, {}, ['WDS app status: ', h(Fragment, [appRunning])]),
       h(div, {}, ['App proxy url: ', h(Fragment, [h(div, { style: _.merge({ width: '400px' }, Style.noWrapEllipsis) }, [proxyUrl]), h(ClipboardButton, {
         'aria-label': 'Copy proxy url to clipboard',
-        className: 'cell-hover-only',
         style: { marginLeft: '1rem' },
         text: proxyUrl
       })])]),
       h(div, {}, ['WDS responding: ', h(Fragment, [JSON.stringify(wdsResponsive)])]),
       h(div, {}, ['WDS version: ', h(Fragment, [JSON.stringify(version), h(ClipboardButton, {
         'aria-label': 'Copy WDS version to clipboard',
-        className: 'cell-hover-only',
         style: { marginLeft: '1rem' },
         text: version
       })])]),

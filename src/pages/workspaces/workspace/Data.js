@@ -773,7 +773,8 @@ const WorkspaceData = _.flow(
             ]),
             troubleshootingWds && h(WdsTroubleshooter, {
               onDismiss: () => setTroubleshootingWds(false),
-              workspaceId
+              workspaceId,
+              mrgId: workspace.azureContext.managedResourceGroupId
             }),
             isAzureWorkspace && proxyUrlLoaded && h(DataTypeSection, {
               title: 'Tables'
@@ -784,13 +785,6 @@ const WorkspaceData = _.flow(
                   buttonText: 'Troubleshoot',
                   onAdd: () => setTroubleshootingWds(true)
                 }),
-                // TODO: debugging only; remove this
-                // h(NoDataPlaceholder, {
-                //   message: '',
-                //   buttonText: 'Troubleshoot',
-                //   onAdd: () => setTroubleshootingWds(true)
-                // }),
-                // TODO: debugging only; remove this ^^^^^
                 // TODO: Logic needs to slightly change here -- there is a delay when wdsSchema is updated
                 // so `No tables have been uploaded.` briefly renders
                 !wdsSchemaError && _.isEmpty(wdsSchema) && h(NoDataPlaceholder, {
@@ -1004,8 +998,17 @@ const WorkspaceData = _.flow(
       h(SidebarSeparator, { sidebarWidth, setSidebarWidth }),
       div({ style: styles.tableViewPanel }, [
         _.includes(selectedData?.type, [workspaceDataTypes.entities, workspaceDataTypes.entitiesVersion]) && h(DataTableFeaturePreviewFeedbackBanner),
-        Utils.switchCase(selectedData?.type, [undefined, () => Utils.cond([wdsSchemaError && isAzureWorkspace, () => div({ style: { textAlign: 'center' } }, [icon('loadingSpinner'), ' The database that powers your data tables is unavailable. It may take a few minutes after initial workspace creation to be ready.'])],
-          () => div({ style: { textAlign: 'center' } }, ['Select a data type from the navigation panel on the left']),
+        Utils.switchCase(selectedData?.type, [undefined, () => Utils.cond([wdsSchemaError && isAzureWorkspace, () => div({ style: { textAlign: 'center' } },
+          [icon('loadingSpinner'), ' The database that powers your data tables is unavailable. It may take a few minutes after initial workspace creation to be ready.',
+            h(div, {
+              style: {
+                padding: '0.5rem 1.5rem',
+                backgroundColor: 'white'
+              }
+            }, [
+              h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['Troubleshoot'])
+            ])])],
+        () => div({ style: { textAlign: 'center' } }, ['Select a data type from the navigation panel on the left']),
         )],
         [workspaceDataTypes.localVariables, () => h(LocalVariablesContent, {
           workspace,
