@@ -133,6 +133,12 @@ describe('AzurePreview', () => {
           await user.type(screen.getByLabelText('Contact email address *'), 'user@example.com')
 
           // Assert
+          expect(isSubmitEnabled()).toBe(false)
+
+          // Act
+          await user.click(screen.getByText('Launch workflows'))
+
+          // Assert
           expect(isSubmitEnabled()).toBe(true)
         })
       })
@@ -158,6 +164,7 @@ describe('AzurePreview', () => {
           await user.type(screen.getByLabelText('Organization name *'), 'Terra UI')
           await user.clear(screen.getByLabelText('Contact email address *'))
           await user.type(screen.getByLabelText('Contact email address *'), 'user@example.com')
+          await user.click(screen.getByText('Launch workflows'))
 
           // Act
           const submitButton = screen.getByText('Submit')
@@ -167,7 +174,7 @@ describe('AzurePreview', () => {
         it('submits user info', () => {
           expect(submitForm).toHaveBeenCalledWith(expect.any(String), expect.any(Object))
           const formInput = submitForm.mock.calls[0][1]
-          expect(Object.values(formInput)).toEqual(expect.arrayContaining(['A', 'User', 'Automated test', 'Terra UI', 'user@example.com', 'user@organization.name']))
+          expect(Object.values(formInput)).toEqual(expect.arrayContaining(['A', 'User', 'Automated test', 'Terra UI', 'user@example.com', 'user@organization.name', 'Launch workflows']))
         })
 
         it('hides the form', () => {
@@ -177,7 +184,7 @@ describe('AzurePreview', () => {
 
         it('shows a thank you message', () => {
           // Assert
-          screen.getByText('Thank you for your interest in using Terra on Microsoft Azure. We will be in touch with your access information soon.')
+          screen.getByText('Thank you for your interest in using Terra on Microsoft Azure. We will be in touch with your access information.')
         })
 
         it('saves submission status', () => {
@@ -196,7 +203,7 @@ describe('AzurePreview', () => {
         render(h(AzurePreview))
 
         // Assert
-        screen.getByText('Thank you for your interest in using Terra on Microsoft Azure. We will be in touch with your access information soon.')
+        screen.getByText('Thank you for your interest in using Terra on Microsoft Azure. We will be in touch with your access information.')
       })
 
       it('does not render the form', () => {

@@ -129,7 +129,7 @@ const AzurePreviewUserForm = ({ value: formValue, onChange, onSubmit }) => {
 
     fieldset({ style: { padding: 0, border: 'none', margin: '2rem 0 0' } }, [
       h(FormLegend, { style: { marginBottom: '1rem' } }, [
-        'What do you want to do in Terra?',
+        'What do you want to do in Terra? *',
         span({ style: { fontSize: '14px', fontStyle: 'italic', fontWeight: 400 } }, [' Please select all that apply']),
       ]),
 
@@ -263,8 +263,9 @@ const AzurePreviewForNonPreviewUser = () => {
   })
 
   const requiredFields = ['firstName', 'lastName', 'title', 'organization', 'contactEmail', 'terraEmail']
+  const useCasesChecked = !!userInfo['otherUseCase'] || userInfo['useCases'].length > 0
 
-  const submitEnabled = requiredFields.every(field => !!userInfo[field]) && !busy
+  const submitEnabled = requiredFields.every(field => !!userInfo[field]) && useCasesChecked && !busy
 
   const submitForm = useCallback(async () => {
     setBusy(true)
@@ -287,7 +288,7 @@ const AzurePreviewForNonPreviewUser = () => {
   if (hasSubmittedForm) {
     return h(Fragment, [
       p({ style: styles.paragraph }, [
-        'Thank you for your interest in using Terra on Microsoft Azure. We will be in touch with your access information soon.'
+        'Thank you for your interest in using Terra on Microsoft Azure. We will be in touch with your access information.'
       ]),
       div({ style: { marginTop: '1.5rem' } }, [
         h(ButtonPrimary, { onClick: signOut, style: styles.button }, ['Sign Out']),
@@ -309,7 +310,7 @@ const AzurePreviewForNonPreviewUser = () => {
           marginTop: '1.5rem',
         }
       }, [
-        h(ButtonPrimary, { disabled: !submitEnabled, onClick: submitForm, style: styles.button }, [
+        h(ButtonPrimary, { disabled: !submitEnabled, onClick: submitForm, style: styles.button, tooltip: submitEnabled ? '' : 'Please fill out all required fields' }, [
           'Submit',
           busy && icon('loadingSpinner', { size: 12, style: { marginLeft: '1ch' } }),
         ]),
