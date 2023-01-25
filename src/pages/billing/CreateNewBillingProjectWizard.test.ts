@@ -7,10 +7,18 @@ import { Ajax } from 'src/libs/ajax'
 import Events from 'src/libs/events'
 import * as Preferences from 'src/libs/prefs'
 import CreateNewBillingProjectWizard, { styles } from 'src/pages/billing/CreateNewBillingProjectWizard'
+import { asMockedFn } from 'src/testing/test-utils'
 
 
 jest.mock('src/libs/ajax')
 jest.spyOn(Preferences, 'getLocalPref')
+
+type AjaxContract = ReturnType<typeof Ajax>
+
+function expectNotNull<T>(value: T | null): T {
+  expect(value).not.toBeNull()
+  return value as T
+}
 
 const getStep1Button = () => screen.getByText('Go to Google Cloud Console')
 const getStep2BillingAccountNoAccessButton = () => screen.getByLabelText("I don't have access to a Cloud billing account")
@@ -21,7 +29,7 @@ const getStep3VerifyUserAdded = () => screen.queryByRole('checkbox', { name: 'I 
 const textMatcher = text => screen.queryByText((_, node) => {
   const hasText = node => node.textContent === text
   const nodeHasText = hasText(node)
-  const childrenDontHaveText = Array.from(node.children).every(
+  const childrenDontHaveText = Array.from(node?.children || []).every(
     child => !hasText(child)
   )
   return nodeHasText && childrenDontHaveText
@@ -131,10 +139,10 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     jest.resetAllMocks()
 
     // Arrange
-    Ajax.mockImplementation(() => ({
-      Billing: { createGCPProject },
-      Metrics: { captureEvent }
-    }))
+    asMockedFn(Ajax).mockImplementation(() => ({
+      Billing: { createGCPProject } as Partial<AjaxContract['Billing']>,
+      Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>
+    }as Partial<AjaxContract> as AjaxContract))
 
     wizardComponent = render(h(CreateNewBillingProjectWizard, {
       onSuccess: jest.fn(), billingAccounts: [{ accountName, displayName }], authorizeAndLoadAccounts: jest.fn()
@@ -248,7 +256,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       // Act
       fireEvent.click(getStep2BillingAccountNoAccessButton())
       await act(async () => {
-        await userEvent.click(getStep3VerifyUserAdded())
+        await userEvent.click(expectNotNull(getStep3VerifyUserAdded()))
       })
       expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationStep3VerifyUserAdded)
     })
@@ -274,7 +282,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     // Act
     beforeEach(async () => {
       fireEvent.click(getStep2HaveBillingAccountButton())
-      await act(async () => { await userEvent.click(getStep3BillingAccountNoAccessButton()) })
+      await act(async () => { await userEvent.click(expectNotNull(getStep3BillingAccountNoAccessButton())) })
       expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationStep3BillingAccountNoAccess)
     })
     // Assert
@@ -298,7 +306,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     // Act
     beforeEach(async () => {
       fireEvent.click(getStep2HaveBillingAccountButton())
-      await act(async () => { await userEvent.click(getStep3AddedTerraBillingButton()) })
+      await act(async () => { await userEvent.click(expectNotNull(getStep3AddedTerraBillingButton())) })
       expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationStep3AddedTerraBilling)
     })
     // Assert
@@ -334,7 +342,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       const projectName = 'Billing_Project_Name'
       // Complete Step 2 and 3
       fireEvent.click(getStep2BillingAccountNoAccessButton())
-      await act(async () => { await userEvent.click(getStep3VerifyUserAdded()) })
+      await act(async () => { await userEvent.click(expectNotNull(getStep3VerifyUserAdded())) })
 
       // Step 4 status
       testStep4Enabled()
@@ -356,7 +364,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
 
       // Act - Click Create
       await act(async () => {
-        await userEvent.click(getStep4CreateButton())
+        await userEvent.click(expectNotNull(getStep4CreateButton()))
       })
       // Assert
       expect(createGCPProject).toHaveBeenCalledWith(projectName, accountName)
@@ -367,17 +375,17 @@ describe('CreateNewBillingProjectWizard Steps', () => {
 describe('Step 4 Warning Message', () => {
   // Arrange
   beforeEach(async () => {
-    Ajax.mockImplementation(() => ({
-      Billing: { createGCPProject },
-      Metrics: { captureEvent }
-    }))
+    asMockedFn(Ajax).mockImplementation(() => ({
+      Billing: { createGCPProject } as Partial<AjaxContract['Billing']>,
+      Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>
+    } as Partial<AjaxContract> as AjaxContract))
 
     render(h(CreateNewBillingProjectWizard, {
       onSuccess: jest.fn(), billingAccounts: [], authorizeAndLoadAccounts: jest.fn()
     }))
 
     fireEvent.click(getStep2BillingAccountNoAccessButton())
-    await act(async () => { await userEvent.click(getStep3VerifyUserAdded()) })
+    await act(async () => { await userEvent.click(expectNotNull(getStep3VerifyUserAdded())) })
   })
 
   it('should show a warning message when there are no billing accounts', () => {
@@ -389,22 +397,22 @@ describe('Step 4 Warning Message', () => {
 
   it('should show the correct message when refresh step 3 is clicked but there are no billing accounts', async () => {
     // Act
-    await act(async () => { await userEvent.click(screen.queryByText('Refresh Step 3')) })
+    await act(async () => { await userEvent.click(expectNotNull(screen.queryByText('Refresh Step 3'))) })
     expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationRefreshStep3)
     // Assert
     expect(screen.queryByText('Terra still does not have access to any Google Billing Accounts. ' +
       'Please contact Terra support for additional help.')).not.toBeNull()
     expect(screen.queryByText('Terra support')).not.toBeNull()
-    fireEvent.click(screen.queryByText('Terra support'))
+    fireEvent.click(expectNotNull(screen.queryByText('Terra support')))
     expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationContactTerraSupport)
   })
 })
 
 describe('Changing prior answers', () => {
   beforeEach(() => {
-    Ajax.mockImplementation(() => ({
-      Metrics: { captureEvent }
-    }))
+    asMockedFn(Ajax).mockImplementation(() => ({
+      Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>
+    }as Partial<AjaxContract> as AjaxContract))
     render(h(CreateNewBillingProjectWizard, {
       onSuccess: jest.fn(), billingAccounts: jest.fn(), authorizeAndLoadAccounts: jest.fn()
     }))
@@ -428,7 +436,7 @@ describe('Changing prior answers', () => {
   it('should reset from Step 3 if Step 2 answer is changed (option 2 to 1)', () => {
     // Arrange
     fireEvent.click(getStep2HaveBillingAccountButton())
-    fireEvent.click(getStep3BillingAccountNoAccessButton())
+    fireEvent.click(expectNotNull(getStep3BillingAccountNoAccessButton()))
     // Assert
     testStep2HaveBillingChecked()
     testStepActive(3)
@@ -443,13 +451,13 @@ describe('Changing prior answers', () => {
   it('should reset from Step 3 if Step 3 checkbox is unchecked from Step 4', async () => {
     // Act - Check
     fireEvent.click(getStep2BillingAccountNoAccessButton())
-    await act(async () => { await userEvent.click(getStep3VerifyUserAdded()) })
+    await act(async () => { await userEvent.click(expectNotNull(getStep3VerifyUserAdded())) })
     // Assert
     testStep2DontHaveAccessToBillingChecked()
     verifyChecked(getStep3VerifyUserAdded())
     testStep4Enabled()
     // Act - Uncheck
-    await act(async () => { await userEvent.click(getStep3VerifyUserAdded()) })
+    await act(async () => { await userEvent.click(expectNotNull(getStep3VerifyUserAdded())) })
     // Assert
     testStep2DontHaveAccessToBillingChecked()
     verifyUnchecked(getStep3VerifyUserAdded())
@@ -460,13 +468,13 @@ describe('Changing prior answers', () => {
   it('should reset from Step 3 if Step 3 radio button answer is changed from Step 4', async () => {
     // Act - Check
     fireEvent.click(getStep2HaveBillingAccountButton())
-    await act(async () => { await userEvent.click(getStep3AddedTerraBillingButton()) })
+    await act(async () => { await userEvent.click(expectNotNull(getStep3AddedTerraBillingButton())) })
     // Assert
     testStep2HaveBillingChecked()
     verifyChecked(getStep3AddedTerraBillingButton())
     testStep4Enabled()
     // Act - Uncheck
-    fireEvent.click(getStep3BillingAccountNoAccessButton())
+    fireEvent.click(expectNotNull(getStep3BillingAccountNoAccessButton()))
     // Assert
     testStep2HaveBillingChecked()
     testStep3DontHaveAccessToBillingCheckBox()
