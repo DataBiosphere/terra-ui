@@ -761,7 +761,7 @@ export const Environments = ({ nav = undefined }) => {
             }
           },
           {
-            size: { min: '7em', grow: 0 },
+            size: { min: '8em', grow: 0 },
             field: 'status',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'status', onSort: setDiskSort }, ['Status']),
             cellRenderer: ({ rowIndex }) => {
@@ -778,7 +778,7 @@ export const Environments = ({ nav = undefined }) => {
             }
           },
           {
-            size: { min: '8em', grow: 0 },
+            size: { min: '10em', grow: 0 },
             field: 'created',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'created', onSort: setDiskSort }, ['Created']),
             cellRenderer: ({ rowIndex }) => {
@@ -786,7 +786,7 @@ export const Environments = ({ nav = undefined }) => {
             }
           },
           {
-            size: { min: '8em', grow: 0 },
+            size: { min: '10em', grow: 0 },
             field: 'accessed',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'accessed', onSort: setDiskSort }, ['Last accessed']),
             cellRenderer: ({ rowIndex }) => {
