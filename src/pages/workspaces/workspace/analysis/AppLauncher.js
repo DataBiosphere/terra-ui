@@ -35,7 +35,7 @@ const ApplicationLauncher = _.flow(
       { origin: 'appLauncher', source: application, application, workspaceName, namespace, cloudPlatform: googleProject ? 'GCP' : 'Azure' })
   }, [application, namespace, googleProject, workspaceName])
 
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useState(true)
   const [outdatedAnalyses, setOutdatedAnalyses] = useState()
   const [fileOutdatedOpen, setFileOutdatedOpen] = useState(false)
   const [hashedOwnerEmail, setHashedOwnerEmail] = useState()
