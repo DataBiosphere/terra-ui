@@ -486,7 +486,7 @@ export const Environments = ({ nav = undefined }) => {
 
   const getDetailsPopup = (cloudEnvName, billingId, disk, creator, workspaceId) => {
     return h(PopupTrigger, {
-      content: div({ style: { padding: '0.5rem' } }, [
+      content: div({ style: { padding: '0.5rem', overflowWrap: 'break-word', width: '30em' } }, [
         div([strong(['Name: ']), cloudEnvName]),
         div([strong(['Billing ID: ']), billingId]),
         workspaceId && div([strong(['Workspace ID: ']), workspaceId]),
@@ -740,7 +740,7 @@ export const Environments = ({ nav = undefined }) => {
               const runtime = _.find({ runtimeConfig: { persistentDiskId: id } }, runtimes)
               const app = _.find({ diskName: name }, apps)
               return h(PopupTrigger, {
-                content: div({ style: { padding: '0.5rem' } }, [
+                content: div({ style: { padding: '0.5rem', overflowWrap: 'break-word', width: '30em' } }, [
                   div([strong(['Name: ']), name]),
                   div([strong(['Billing ID: ']), cloudContext.cloudResource]),
                   workspace && div([strong(['Workspace ID: ']), workspace.workspaceId]),
