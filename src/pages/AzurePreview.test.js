@@ -133,6 +133,12 @@ describe('AzurePreview', () => {
           await user.type(screen.getByLabelText('Contact email address *'), 'user@example.com')
 
           // Assert
+          expect(isSubmitEnabled()).toBe(false)
+
+          // Act
+          await user.click(screen.getByLabelText('Launch workflows'))
+
+          // Assert
           expect(isSubmitEnabled()).toBe(true)
         })
       })
@@ -158,6 +164,7 @@ describe('AzurePreview', () => {
           await user.type(screen.getByLabelText('Organization name *'), 'Terra UI')
           await user.clear(screen.getByLabelText('Contact email address *'))
           await user.type(screen.getByLabelText('Contact email address *'), 'user@example.com')
+          await user.click(screen.getByLabelText('Launch workflows'))
 
           // Act
           const submitButton = screen.getByText('Submit')
@@ -167,7 +174,7 @@ describe('AzurePreview', () => {
         it('submits user info', () => {
           expect(submitForm).toHaveBeenCalledWith(expect.any(String), expect.any(Object))
           const formInput = submitForm.mock.calls[0][1]
-          expect(Object.values(formInput)).toEqual(expect.arrayContaining(['A', 'User', 'Automated test', 'Terra UI', 'user@example.com', 'user@organization.name']))
+          expect(Object.values(formInput)).toEqual(expect.arrayContaining(['A', 'User', 'Automated test', 'Terra UI', 'user@example.com', 'user@organization.name', 'Launch workflows']))
         })
 
         it('hides the form', () => {
