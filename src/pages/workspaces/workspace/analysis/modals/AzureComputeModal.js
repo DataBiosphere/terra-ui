@@ -252,12 +252,7 @@ export const AzureComputeModalBase = ({
 
   const getDiskCost = () => {
     const regionPriceObj = _.find(priceObj => priceObj.name === computeConfig.region, azureRegionToPrices)
-
-    // get Azure disk type (E1, E2, E4 etc) whose storage is large enough to hold the requested Gb.
-    // Note that the largest (E80 LRS) will not hold more than 32767 Gb, according to the Azure docs.
-    // TODO research; maybe we use a different disk type or multiple of these disks?
     const diskType = getDiskType(computeConfig.diskSize)
-
     const cost = regionPriceObj[diskType]
     return cost
   }
@@ -282,7 +277,9 @@ export const AzureComputeModalBase = ({
           ])
         ])
       }, [
-        { label: 'Cloud compute cost', cost: Utils.formatUSD(getComputeCost()), unitLabel: 'per hr' },
+        { label: 'Running cloud compute cost', cost: Utils.formatUSD(getComputeCost()), unitLabel: 'per hr' },
+        // TODO [IA-3993] consider implementing pause via deallocate (which changes cost) instead of powerOff (which doesn't)
+        { label: 'Paused cloud compute cost', cost: Utils.formatUSD(getComputeCost()), unitLabel: 'per hr' },
         {
           label: 'Persistent disk cost',
           cost: Utils.formatUSD(getDiskCost()),
