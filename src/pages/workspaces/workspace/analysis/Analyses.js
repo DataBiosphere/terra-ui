@@ -2,16 +2,18 @@ import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
-import { a, div, h, img, span } from 'react-hyperscript-helpers'
+import { a, div, h, img, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { withViewToggle } from 'src/components/CardsListToggle'
-import { ButtonOutline, Clickable, DeleteConfirmationModal, HeaderRenderer, Link, PageBox, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, Clickable, DeleteConfirmationModal, IdContainer, Link, spinnerOverlay, Switch } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
+import { FeaturePreviewFeedbackModal } from 'src/components/FeaturePreviewFeedbackModal'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
+import { PageBox } from 'src/components/PageBox'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
-import { ariaSort } from 'src/components/table'
+import { ariaSort, HeaderRenderer } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import galaxyLogo from 'src/images/galaxy-logo.svg'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
@@ -20,6 +22,8 @@ import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
@@ -34,7 +38,7 @@ import { AnalysisModal } from 'src/pages/workspaces/workspace/analysis/modals/An
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
 import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { getToolFromFileExtension, getToolFromRuntime, runtimeTools, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getToolLabelFromFileExtension, getToolLabelFromRuntime, runtimeTools, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -85,9 +89,9 @@ const AnalysisCard = ({
 
   const analysisName = getFileName(name)
   const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name: workspaceName, analysisName })
-  const toolLabel = getToolFromFileExtension(name)
+  const toolLabel = getToolLabelFromFileExtension(name)
 
-  const currentRuntimeTool = getToolFromRuntime(currentRuntime)
+  const currentRuntimeToolLabel = getToolLabelFromRuntime(currentRuntime)
 
   const rstudioLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name, application: 'RStudio' })
   const analysisEditLink = `${analysisLink}/?${qs.stringify({ mode: 'edit' })}`
@@ -108,9 +112,9 @@ const AnalysisCard = ({
         h(MenuButton, {
           'aria-label': 'Edit',
           href: analysisEditLink,
-          disabled: locked || !canWrite || currentRuntimeTool === toolLabels.RStudio,
+          disabled: locked || !canWrite || currentRuntimeToolLabel === toolLabels.RStudio,
           tooltip: Utils.cond([!canWrite, () => noWrite],
-            [currentRuntimeTool === toolLabels.RStudio, () => 'You must have a runtime with Jupyter to edit.']),
+            [currentRuntimeToolLabel === toolLabels.RStudio, () => 'You must have a runtime with Jupyter to edit.']),
           tooltipSide: 'left'
         }, locked ? [makeMenuIcon('lock'), 'Open (In Use)'] : [makeMenuIcon('edit'), 'Edit']),
         h(MenuButton, {
@@ -123,9 +127,9 @@ const AnalysisCard = ({
         h(MenuButton, {
           'aria-label': 'Launch',
           href: rstudioLaunchLink,
-          disabled: !canWrite || currentRuntimeTool === toolLabels.Jupyter,
+          disabled: !canWrite || currentRuntimeToolLabel === toolLabels.Jupyter,
           tooltip: Utils.cond([!canWrite, () => noWrite],
-            [currentRuntimeTool === toolLabels.RStudio, () => 'You must have a runtime with RStudio to launch.']),
+            [currentRuntimeToolLabel === toolLabels.RStudio, () => 'You must have a runtime with RStudio to launch.']),
           tooltipSide: 'left'
         }, [makeMenuIcon('rocket'), 'Open'])
       ]),
@@ -234,7 +238,7 @@ const Analyses = _.flow(
   }),
   withViewToggle('analysesTab')
 )(({
-  name: workspaceName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { workspaceId, googleProject, bucketName } },
+  name: workspaceName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { cloudPlatform, workspaceId, googleProject, bucketName } },
   analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks, location },
   onRequesterPaysError
 }, _ref) => {
@@ -243,6 +247,9 @@ const Analyses = _.flow(
   const [deletingAnalysisName, setDeletingAnalysisName] = useState(undefined)
   const [exportingAnalysisName, setExportingAnalysisName] = useState(undefined)
   const [sortOrder, setSortOrder] = useState(() => getLocalPref(KEY_ANALYSES_SORT_ORDER) || defaultSort.value)
+  const enableJupyterLabPersistenceId = `${namespace}/${workspaceName}/enableJupyterLabGCP`
+  const [enableJupyterLabGCP, setEnableJupyterLabGCP] = useState(() => getLocalPref(enableJupyterLabPersistenceId) || false)
+  const [feedbackShowing, setFeedbackShowing] = useState(false)
   const [filter, setFilter] = useState(() => StateHistory.get().filter || '')
   const [busy, setBusy] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -301,7 +308,7 @@ const Analyses = _.flow(
     try {
       await Promise.all(_.map(file => {
         const name = file.name
-        const toolLabel = getToolFromFileExtension(file.name)
+        const toolLabel = getToolLabelFromFileExtension(file.name)
         let resolvedName = name
         let c = 0
         while (_.includes(resolvedName, existingNames)) {
@@ -342,6 +349,10 @@ const Analyses = _.flow(
     StateHistory.update({ analyses, sortOrder, filter })
   }, [analyses, sortOrder, filter])
 
+  useEffect(() => {
+    setLocalPref(enableJupyterLabPersistenceId, enableJupyterLabGCP)
+  }, [enableJupyterLabGCP, enableJupyterLabPersistenceId])
+
   const noAnalysisBanner = div([
     div({ style: { fontSize: 48 } }, ['A place for all your analyses ']),
     div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', columnGap: '5rem' } }, _.dropRight(!!googleProject ? 0 : 2, [
@@ -363,6 +374,41 @@ const Analyses = _.flow(
     icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '1rem' } }),
     'Copying 1 or more interactive analysis files from another workspace.',
     span({ style: { fontWeight: 'bold', marginLeft: '0.5ch' } }, ['This may take a few minutes.'])
+  ])
+
+  const previewJupyterLabMessage = div({
+    style: _.merge(
+      Style.elements.card.container,
+      { backgroundColor: colors.success(0.15), flexDirection: 'none', alignItems: 'center' })
+  }, [
+    div({ style: { display: 'flex', flexWrap: 'wrap', whiteSpace: 'pre-wrap', alignItems: 'center' } }, [
+      icon('talk-bubble', { size: 19, style: { color: colors.warning(), marginRight: '1rem' } }),
+      'JupyterLab is now available in this workspace as a beta feature. Please ',
+      h(Link, {
+        style: { color: colors.accent(1.25) },
+        onClick: () => setFeedbackShowing(true)
+      }, ['fill out our survey']),
+      ' to help us improve the JupyterLab experience.'
+    ]),
+    div({ style: { display: 'flex' } }, [
+      h(IdContainer, [id => h(Fragment, [
+        div({
+          style: { display: 'flex', alignItems: 'center' }
+        }, [
+          label({ htmlFor: id, style: { fontWeight: 'bold', margin: '0 0.5rem', whiteSpace: 'nowrap' } }, 'Enable JupyterLab'),
+          h(Switch, {
+            id,
+            checked: enableJupyterLabGCP,
+            onLabel: '', offLabel: '',
+            width: 40, height: 20,
+            onChange: value => {
+              setEnableJupyterLabGCP(value)
+              Ajax().Metrics.captureEvent(Events.analysisToggleJupyterLabGCP, { ...extractWorkspaceDetails(workspace.workspace), enabled: value })
+            }
+          })
+        ])
+      ])])
+    ])
   ])
 
   // Render helpers
@@ -389,6 +435,22 @@ const Analyses = _.flow(
       }
     }, [
       activeFileTransfers && activeFileTransferMessage,
+      feedbackShowing && h(FeaturePreviewFeedbackModal, {
+        onDismiss: () => setFeedbackShowing(false),
+        onSuccess: () => {
+          setFeedbackShowing(false)
+        },
+        featureName: 'JupyterLab',
+        formId: '1FAIpQLScgSqTwp6e2AaVcwkd8mcgseijUjBmRqT7DIyQNjdwz8IT-EA',
+        feedbackId: 'entry.760196566',
+        contactEmailId: 'entry.11317098',
+        sourcePageId: 'entry.1141779347',
+        primaryQuestion: 'Please tell us about your experience using JupyterLab',
+        sourcePage: 'Analyses List'
+      }),
+      //Show the JupyterLab preview message only for GCP workspaces, because it's already the default for Azure workspaces
+      //It's currently hidden behind a feature preview flag until the supporting documentation/blog post are ready
+      isFeaturePreviewEnabled('jupyterlab-gcp') && !_.isEmpty(analyses) && !!googleProject && previewJupyterLabMessage,
       Utils.cond(
         [_.isEmpty(analyses), () => noAnalysisBanner],
         [!_.isEmpty(analyses) && _.isEmpty(renderedAnalyses), () => {
@@ -449,7 +511,8 @@ const Analyses = _.flow(
           analyses,
           apps,
           refreshApps,
-          uploadFiles, openUploader,
+          uploadFiles,
+          openUploader,
           location,
           onDismiss: () => {
             setCreating(false)
@@ -469,8 +532,8 @@ const Analyses = _.flow(
         }),
         renamingAnalysisName && h(AnalysisDuplicator, {
           printName: getFileName(renamingAnalysisName),
-          toolLabel: getToolFromFileExtension(renamingAnalysisName),
-          workspaceInfo: { googleProject, workspaceId, namespace, name: workspaceName, bucketName },
+          toolLabel: getToolLabelFromFileExtension(renamingAnalysisName),
+          workspaceInfo: { cloudPlatform, googleProject, workspaceId, namespace, name: workspaceName, bucketName },
           destroyOld: true,
           fromLauncher: false,
           onDismiss: () => setRenamingAnalysisName(undefined),
@@ -481,8 +544,8 @@ const Analyses = _.flow(
         }),
         copyingAnalysisName && h(AnalysisDuplicator, {
           printName: getFileName(copyingAnalysisName),
-          toolLabel: getToolFromFileExtension(copyingAnalysisName),
-          workspaceInfo: { googleProject, workspaceId, namespace, name: workspaceName, bucketName },
+          toolLabel: getToolLabelFromFileExtension(copyingAnalysisName),
+          workspaceInfo: { cloudPlatform, googleProject, workspaceId, namespace, name: workspaceName, bucketName },
           destroyOld: false,
           fromLauncher: false,
           onDismiss: () => setCopyingAnalysisName(undefined),
@@ -493,12 +556,12 @@ const Analyses = _.flow(
         }),
         exportingAnalysisName && h(ExportAnalysisModal, {
           printName: getFileName(exportingAnalysisName),
-          toolLabel: getToolFromFileExtension(exportingAnalysisName),
+          toolLabel: getToolLabelFromFileExtension(exportingAnalysisName),
           workspace,
           onDismiss: () => setExportingAnalysisName(undefined)
         }),
         deletingAnalysisName && h(DeleteConfirmationModal, {
-          objectType: getToolFromFileExtension(deletingAnalysisName) ? `${getToolFromFileExtension(deletingAnalysisName)} analysis` : 'analysis',
+          objectType: getToolLabelFromFileExtension(deletingAnalysisName) ? `${getToolLabelFromFileExtension(deletingAnalysisName)} analysis` : 'analysis',
           objectName: getFileName(deletingAnalysisName),
           buttonText: 'Delete analysis',
           onConfirm: _.flow(
@@ -511,7 +574,7 @@ const Analyses = _.flow(
                 googleProject,
                 bucketName,
                 getFileName(deletingAnalysisName),
-                getToolFromFileExtension(deletingAnalysisName)
+                getToolLabelFromFileExtension(deletingAnalysisName)
               ).delete()
             } else {
               await Ajax(signal).AzureStorage.blob(workspaceId, getFileName(deletingAnalysisName)).delete()

@@ -13,18 +13,18 @@ import TopBar from 'src/components/TopBar'
 import { updateRecentlyViewedWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { saToken } from 'src/libs/ajax/GoogleStorage'
-import { getUser } from 'src/libs/auth'
 import { isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount, usePrevious, useStore, withDisplayName } from 'src/libs/react-utils'
-import { workspaceStore } from 'src/libs/state'
+import { getUser, workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { differenceFromNowInSeconds } from 'src/libs/utils'
+import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
 import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
@@ -79,13 +79,15 @@ const AzureWarning = () => {
 }
 
 const WorkspaceTabs = ({
-  namespace, name, workspace, isGoogleWorkspace, activeTab, refresh,
+  namespace, name, workspace, activeTab, refresh,
   setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, setShowLockWorkspaceModal, setLeavingWorkspace
 }) => {
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
   const canShare = workspace?.canShare
   const isLocked = workspace?.workspace.isLocked
-  const isAzureWorkspace = !!workspace?.azureContext
+  const workspaceLoaded = !!workspace
+  const googleWorkspace = workspaceLoaded && isGoogleWorkspace(workspace)
+  const isDataTabShown = googleWorkspace || !getConfig().isProd
 
   const onClone = () => setCloningWorkspace(true)
   const onDelete = () => setDeletingWorkspace(true)
@@ -95,12 +97,10 @@ const WorkspaceTabs = ({
 
   const tabs = [
     { name: 'dashboard', link: 'workspace-dashboard' },
-    ...(isFeaturePreviewEnabled('workspace-data-service') || isGoogleWorkspace ? [{ name: 'data', link: 'workspace-data' }] : []),
-    // the spread operator results in no array entry if the config value is false
-    // we want this feature gated until it is ready for release
+    ...(isDataTabShown ? [{ name: 'data', link: 'workspace-data' }] : []),
     { name: 'analyses', link: analysisTabName },
-    ...(isGoogleWorkspace ? [{ name: 'workflows', link: 'workspace-workflows' }] : []),
-    ...(isGoogleWorkspace ? [{ name: 'job history', link: 'workspace-job-history' }] : [])
+    ...(googleWorkspace ? [{ name: 'workflows', link: 'workspace-workflows' }] : []),
+    ...(googleWorkspace ? [{ name: 'job history', link: 'workspace-job-history' }] : [])
   ]
   return h(Fragment, [
     h(TabBar, {
@@ -113,10 +113,10 @@ const WorkspaceTabs = ({
       h(WorkspaceMenu, {
         iconSize: 27, popupLocation: 'bottom',
         callbacks: { onClone, onShare, onLock, onDelete, onLeave },
-        workspaceInfo: { canShare, isAzureWorkspace, isLocked, isOwner, workspaceLoaded: !!workspace }
+        workspaceInfo: { canShare, isLocked, isOwner, workspaceLoaded }
       })
     ]),
-    isAzureWorkspace && h(AzureWarning)
+    workspaceLoaded && isAzureWorkspace(workspace) && h(AzureWarning)
   ])
 }
 
@@ -137,10 +137,6 @@ const WorkspaceContainer = ({
   const [sharingWorkspace, setSharingWorkspace] = useState(false)
   const [showLockWorkspaceModal, setShowLockWorkspaceModal] = useState(false)
   const [leavingWorkspace, setLeavingWorkspace] = useState(false)
-
-  // If googleProject is not undefined (server info not yet loaded)
-  // and not the empty string, we know that we have a Google workspace.
-  const isGoogleWorkspace = !!workspace?.workspace.googleProject
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
@@ -166,7 +162,7 @@ const WorkspaceContainer = ({
     ]),
     showTabBar && h(WorkspaceTabs, {
       namespace, name, activeTab, refresh, workspace, setDeletingWorkspace, setCloningWorkspace,
-      setLeavingWorkspace, setSharingWorkspace, setShowLockWorkspaceModal, isGoogleWorkspace
+      setLeavingWorkspace, setSharingWorkspace, setShowLockWorkspaceModal
     }),
     div({ role: 'main', style: Style.elements.pageContentContainer },
       [div({ style: { flex: 1, display: 'flex' } }, [
@@ -252,7 +248,7 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
       // v1 workspaces: cloud environment (runtime + disk) is used across workspaces that share the same googleProject
       // v2 workspaces: 1 cloud environment per workspace - saturnWorkspaceName == workspaceName and saturnWorkspaceNamespace == Terra Billing Project (which is no longer equivalent to googleProject)
       // TODO: after PPW migration - we should only need saturnWorkspaceName and saturnWorkspaceNamespace labels
-      const cloudEnvFilters = _.pickBy(l => !_.isUndefined(l), saturnWorkspaceVersion === 'v1' ? { creator: getUser().email, googleProject } : { creator: getUser().email, saturnWorkspaceName, saturnWorkspaceNamespace })
+      const cloudEnvFilters = _.pickBy(l => !_.isUndefined(l), saturnWorkspaceVersion === 'v1' ? { role: 'creator', googleProject } : { role: 'creator', saturnWorkspaceName, saturnWorkspaceNamespace })
 
       // Disks.list API takes includeLabels to specify which labels to return in the response
       // Runtimes.listV2 API always returns all labels for a runtime
@@ -283,7 +279,7 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
   return { runtimes, refreshRuntimes, persistentDisks, appDataDisks }
 }
 
-const useAppPolling = (googleProject, workspaceName) => {
+const useAppPolling = (googleProject, workspaceName, workspace) => {
   const signal = useCancellation()
   const timeout = useRef()
   const [apps, setApps] = useState()
@@ -293,13 +289,15 @@ const useAppPolling = (googleProject, workspaceName) => {
   }
   const loadApps = async () => {
     try {
-      const newApps = !!googleProject ?
-        await Ajax(signal).Apps.list(googleProject, { creator: getUser().email, saturnWorkspaceName: workspaceName }) :
-        []
-      setApps(newApps)
+      const newGoogleApps = !!workspace && isGoogleWorkspace(workspace) ?
+        await Ajax(signal).Apps.list(googleProject, { role: 'creator', saturnWorkspaceName: workspaceName }) : []
+      const newAzureApps = !!workspace && isAzureWorkspace(workspace) ? await Ajax(signal).Apps.getV2AppInfo(workspace.workspace.workspaceId) : []
+      const combinedNewApps = [...newGoogleApps, ...newAzureApps]
+
+      setApps(combinedNewApps)
       _.forOwn(tool => {
         if (tool.appType) {
-          const app = getCurrentApp(tool.appType)(newApps)
+          const app = getCurrentApp(tool.appType)(combinedNewApps)
           reschedule((app && _.includes(app.status, ['PROVISIONING', 'PREDELETING'])) ? 10000 : 120000)
         }
       })(tools)
@@ -335,27 +333,24 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
 
     const prevGoogleProject = usePrevious(googleProject)
     const prevAzureContext = usePrevious(azureContext)
+    const workspaceLoaded = !!workspace
 
     const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject, workspace)
-    const { apps, refreshApps } = useAppPolling(googleProject, name)
-    const isGoogleWorkspace = !!googleProject
-    const isAzureWorkspace = !!azureContext
+    const { apps, refreshApps } = useAppPolling(googleProject, name, workspace)
     // The following if statements are necessary to support the context bar properly loading runtimes for google/azure
-    // Note that the refreshApps function currently is not supported for azure
-    if (googleProject !== prevGoogleProject && isGoogleWorkspace) {
-      refreshRuntimes()
-      refreshApps()
-    }
-    if (azureContext !== prevAzureContext && isAzureWorkspace) {
-      refreshRuntimes(true)
+    if (workspaceLoaded) {
+      if (googleProject !== prevGoogleProject || azureContext !== prevAzureContext) {
+        refreshRuntimes(isAzureWorkspace(workspace))
+        refreshApps()
+      }
     }
 
-    const loadBucketLocation = async (googleProject, bucketName) => {
+    const loadBucketLocation = withErrorIgnoring(async (googleProject, bucketName) => {
       if (!!googleProject) {
         const bucketLocation = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
         setBucketLocation(bucketLocation)
       }
-    }
+    })
 
     const refreshWorkspace = _.flow(
       withErrorReporting('Error loading workspace'),
@@ -364,7 +359,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       try {
         const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details([
           'accessLevel', 'azureContext', 'canCompute', 'canShare', 'owners',
-          'workspace', 'workspace.attributes', 'workspace.authorizationDomain',
+          'workspace', 'workspace.attributes', 'workspace.authorizationDomain', 'workspace.cloudPlatform',
           'workspace.isLocked', 'workspace.workspaceId', 'workspaceSubmissionStats'
         ])
         workspaceStore.set(workspace)
@@ -373,12 +368,11 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         updateRecentlyViewedWorkspaces(workspace.workspace.workspaceId)
 
         const { accessLevel, workspace: { bucketName, createdBy, createdDate, googleProject } } = workspace
-        const isGoogleWorkspace = !!googleProject
 
         loadBucketLocation(googleProject, bucketName)
         // Request a service account token. If this is the first time, it could take some time before everything is in sync.
         // Doing this now, even though we don't explicitly need it now, increases the likelihood that it will be ready when it is needed.
-        if (Utils.canWrite(accessLevel) && isGoogleWorkspace) {
+        if (Utils.canWrite(accessLevel) && isGoogleWorkspace(workspace)) {
           saToken(googleProject)
         }
 

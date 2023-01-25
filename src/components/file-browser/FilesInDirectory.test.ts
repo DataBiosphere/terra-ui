@@ -59,7 +59,10 @@ describe('FilesInDirectory', () => {
       path: 'path/to/directory/',
       selectedFiles: {},
       setSelectedFiles: () => {},
-      onClickFile: jest.fn()
+      onClickFile: jest.fn(),
+      onCreateDirectory: () => {},
+      onDeleteDirectory: () => {},
+      onError: () => {},
     }))
 
     // Assert
@@ -94,7 +97,10 @@ describe('FilesInDirectory', () => {
       path: 'path/to/directory/',
       selectedFiles: {},
       setSelectedFiles: () => {},
-      onClickFile: jest.fn()
+      onClickFile: jest.fn(),
+      onCreateDirectory: () => {},
+      onDeleteDirectory: () => {},
+      onError: () => {},
     }))
 
     // Assert
@@ -125,13 +131,46 @@ describe('FilesInDirectory', () => {
         path: 'path/to/directory/',
         selectedFiles: {},
         setSelectedFiles: () => {},
-        onClickFile: jest.fn()
+        onClickFile: jest.fn(),
+        onCreateDirectory: () => {},
+        onDeleteDirectory: () => {},
+        onError: () => {},
       }))
 
       // Assert
       screen.getByText(expectedMessage)
     }
   )
+
+  it('calls onError callback on errors loading files', () => {
+    // Arrange
+    const useFilesInDirectoryResult: UseFilesInDirectoryResult = {
+      state: { status: 'Error', error: new Error('Something went wrong'), files: [] },
+      hasNextPage: false,
+      loadNextPage: () => Promise.resolve(),
+      loadAllRemainingItems: () => Promise.resolve(),
+      reload: () => Promise.resolve()
+    }
+
+    asMockedFn(useFilesInDirectory).mockReturnValue(useFilesInDirectoryResult)
+
+    const onError = jest.fn()
+
+    // Act
+    render(h(FilesInDirectory, {
+      provider: mockFileBrowserProvider,
+      path: 'path/to/directory/',
+      selectedFiles: {},
+      setSelectedFiles: () => {},
+      onClickFile: jest.fn(),
+      onCreateDirectory: () => {},
+      onDeleteDirectory: () => {},
+      onError,
+    }))
+
+    // Assert
+    expect(onError).toHaveBeenCalledWith(new Error('Something went wrong'))
+  })
 
   describe('when next page is available', () => {
     // Arrange
@@ -170,7 +209,10 @@ describe('FilesInDirectory', () => {
         path: 'path/to/directory/',
         selectedFiles: {},
         setSelectedFiles: () => {},
-        onClickFile: jest.fn()
+        onClickFile: jest.fn(),
+        onCreateDirectory: () => {},
+        onDeleteDirectory: () => {},
+        onError: () => {},
       }))
 
       // Assert
@@ -189,7 +231,10 @@ describe('FilesInDirectory', () => {
         path: 'path/to/directory/',
         selectedFiles: {},
         setSelectedFiles: () => {},
-        onClickFile: jest.fn()
+        onClickFile: jest.fn(),
+        onCreateDirectory: () => {},
+        onDeleteDirectory: () => {},
+        onError: () => {},
       }))
 
       // Assert
@@ -221,7 +266,10 @@ describe('FilesInDirectory', () => {
       path: 'path/to/directory/',
       selectedFiles: {},
       setSelectedFiles: () => {},
-      onClickFile: jest.fn()
+      onClickFile: jest.fn(),
+      onCreateDirectory: () => {},
+      onDeleteDirectory: () => {},
+      onError: () => {},
     }))
 
     const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]')!
@@ -233,5 +281,47 @@ describe('FilesInDirectory', () => {
 
     // Assert
     expect(uploadFileToDirectory).toHaveBeenCalledWith('path/to/directory/', file)
+  })
+
+  it('allows deleting empty folders', async () => {
+    // Arrange
+    const user = userEvent.setup()
+
+    const deleteEmptyDirectory = jest.fn(() => Promise.resolve())
+    const mockProvider = {
+      supportsEmptyDirectories: true,
+      deleteEmptyDirectory,
+    } as Partial<FileBrowserProvider> as FileBrowserProvider
+
+    const onDeleteDirectory = jest.fn()
+
+    const useFilesInDirectoryResult: UseFilesInDirectoryResult = {
+      state: { status: 'Ready', files: [] },
+      hasNextPage: false,
+      loadNextPage: () => Promise.resolve(),
+      loadAllRemainingItems: () => Promise.resolve(),
+      reload: () => Promise.resolve()
+    }
+
+    asMockedFn(useFilesInDirectory).mockReturnValue(useFilesInDirectoryResult)
+
+    render(h(FilesInDirectory, {
+      provider: mockProvider,
+      path: 'path/to/directory/',
+      selectedFiles: {},
+      setSelectedFiles: () => {},
+      onClickFile: jest.fn(),
+      onCreateDirectory: () => {},
+      onDeleteDirectory,
+      onError: () => {},
+    }))
+
+    // Act
+    const deleteButton = screen.getByText('Delete this folder')
+    await act(() => user.click(deleteButton))
+
+    // Assert
+    expect(deleteEmptyDirectory).toHaveBeenCalledWith('path/to/directory/')
+    expect(onDeleteDirectory).toHaveBeenCalled()
   })
 })

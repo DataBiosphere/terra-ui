@@ -1,14 +1,16 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { a, div, h, h2 } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ClipboardButton, DeleteConfirmationModal, HeaderRenderer, IdContainer, Link, PageBox, PageBoxVariants, spinnerOverlay } from 'src/components/common'
+import { ClipboardButton } from 'src/components/ClipboardButton'
+import { ButtonPrimary, DeleteConfirmationModal, IdContainer, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { AdminNotifierCheckbox } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput, ValidatedInput } from 'src/components/input'
 import LeaveResourceModal from 'src/components/LeaveResourceModal'
 import Modal from 'src/components/Modal'
-import { ariaSort } from 'src/components/table'
+import { PageBox, PageBoxVariants } from 'src/components/PageBox'
+import { ariaSort, HeaderRenderer } from 'src/components/table'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -219,7 +221,7 @@ const GroupList = () => {
         value: filter
       })
     ]),
-    h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
+    h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.light }, [
       div({ style: Style.cardList.toolbarContainer }, [
         h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' } }, [
           'Group Management'

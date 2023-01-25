@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
+import { createContext, useContext } from 'react'
 import {
   appIdentifier, authOpts, fetchAgora, fetchBond, fetchDataRepo, fetchDockstore,
   fetchDrsHub,
@@ -16,9 +17,8 @@ import { Metrics } from 'src/libs/ajax/Metrics'
 import { Resources } from 'src/libs/ajax/Resources'
 import { Runtimes } from 'src/libs/ajax/Runtimes'
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService'
-import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
-import { withErrorIgnoring } from 'src/libs/error'
+import { getUser } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -94,21 +94,6 @@ const User = signal => ({
     return res.json()
   },
 
-  getTosAccepted: async () => {
-    try {
-      const res = await fetchSam('register/user/v1/termsofservice/status', _.merge(authOpts(), { signal }))
-      return res.json()
-    } catch (error) {
-      if (error.status === 404) {
-        return null
-      } else if (error.status === 403) {
-        return false
-      } else {
-        throw error
-      }
-    }
-  },
-
   getTos: async () => {
     const response = await fetchSam('tos/text', _.merge(authOpts(), { signal }))
     return response.text()
@@ -116,16 +101,31 @@ const User = signal => ({
 
   acceptTos: async () => {
     try {
-      await fetchSam(
+      const response = await fetchSam(
         'register/user/v1/termsofservice',
         _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody('app.terra.bio/#terms-of-service')])
       )
+      return response.json()
     } catch (error) {
       if (error.status !== 404) {
         throw error
       }
     }
   },
+
+  getTermsOfServiceDetails: async () => {
+    try {
+      const res = await(fetchSam('register/user/v2/self/termsOfServiceDetails', _.merge(authOpts(), { signal })))
+      return res.json()
+    } catch (error) {
+      if (error.status === 404 || error.status === 403) {
+        return null
+      } else {
+        throw error
+      }
+    }
+  },
+
 
   getPrivacyPolicy: async () => {
     const response = await fetchSam('privacy/text', _.merge(authOpts(), { signal }))
@@ -871,6 +871,11 @@ const FirecloudBucket = signal => ({
   getTemplateWorkspaces: async () => {
     const res = await fetchOk(`${getConfig().firecloudBucketRoot}/template-workspaces.json`, { signal })
     return res.json()
+  },
+
+  getTosGracePeriodText: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/tos-grace-period.json`, { signal })
+    return res.json()
   }
 })
 
@@ -1004,9 +1009,7 @@ const OAuth2 = signal => ({
 })
 
 const Surveys = signal => ({
-  submitForm: withErrorIgnoring((formId, data) => {
-    return fetchGoogleForms(`${formId}/formResponse?${qs.stringify(data)}`, { signal })
-  })
+  submitForm: (formId, data) => fetchGoogleForms(`${formId}/formResponse?${qs.stringify(data)}`, { signal })
 })
 
 export const Ajax = signal => {
@@ -1039,3 +1042,11 @@ export const Ajax = signal => {
 
 // Exposing Ajax for use by integration tests (and debugging, or whatever)
 window.Ajax = Ajax
+
+// Experimental: Pulling Ajax from context allows replacing for usage outside of Terra UI.
+// https://github.com/DataBiosphere/terra-ui/pull/3669
+export const ajaxContext = createContext(Ajax)
+
+// Experimental: Pulling Ajax from context allows replacing for usage outside of Terra UI.
+// https://github.com/DataBiosphere/terra-ui/pull/3669
+export const useReplaceableAjaxExperimental = () => useContext(ajaxContext)

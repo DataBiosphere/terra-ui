@@ -8,10 +8,11 @@ import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
-import { bucketBrowserUrl, getUser } from 'src/libs/auth'
+import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
+import { getUser } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
@@ -31,7 +32,7 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
     const load = Utils.withBusyState(setLoading, async () => {
       if (isGoogleWorkspace) {
         const [currentWorkspaceAppList, { acl }, { usageInBytes }] = await Promise.all([
-          Ajax(signal).Apps.listWithoutProject({ creator: getUser().email, saturnWorkspaceName: name }),
+          Ajax(signal).Apps.listWithoutProject({ role: 'creator', saturnWorkspaceName: name }),
           Ajax(signal).Workspaces.workspace(namespace, name).getAcl(),
           Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
         ])

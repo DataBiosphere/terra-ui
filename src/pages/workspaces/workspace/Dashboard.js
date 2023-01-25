@@ -1,10 +1,11 @@
 import _ from 'lodash/fp'
-import { Fragment, useCallback, useEffect, useImperativeHandle, useState } from 'react'
+import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { dd, div, dl, dt, h, h3, i, span, strong } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper } from 'src/components/bucket-utils'
+import { ClipboardButton } from 'src/components/ClipboardButton'
 import Collapse from 'src/components/Collapse'
-import { ButtonPrimary, ButtonSecondary, ClipboardButton, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import { InfoBox } from 'src/components/PopupTrigger'
@@ -28,6 +29,7 @@ import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/l
 import { authStore, contactUsActive, requesterPaysProjectStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import SignIn from 'src/pages/SignIn'
 import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic'
 import { isV1Artifact, wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -191,9 +193,7 @@ export const UnboundDiskNotification = props => {
 }
 
 const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace }) => {
-  const isGoogleWorkspace = !!workspace?.workspace?.googleProject
-  console.assert(isGoogleWorkspace, 'BucketLocation expects a Google workspace')
-
+  console.assert(!!workspace && isGoogleWorkspace(workspace), 'BucketLocation expects a Google workspace')
   const [loading, setLoading] = useState(true)
   const [{ location, locationType }, setBucketLocation] = useState({ location: undefined, locationType: undefined })
   const [needsRequesterPaysProject, setNeedsRequesterPaysProject] = useState(false)
@@ -327,6 +327,7 @@ const WorkspaceDashboard = _.flow(
   const persistenceId = `workspaces/${namespace}/${name}/dashboard`
 
   const signal = useCancellation()
+  const interval = useRef()
 
   const refresh = () => {
     loadSubmissionCount()
@@ -338,13 +339,42 @@ const WorkspaceDashboard = _.flow(
       loadAcl()
     }
 
-    if (!azureContext) {
+    if (isGoogleWorkspace(workspace)) {
       loadStorageCost()
       loadBucketSize()
-    } else {
+    }
+    if (isAzureWorkspace(workspace)) {
       loadAzureStorage()
     }
   }
+
+  const loadAzureStorage = useCallback(async () => {
+    try {
+      const { location, sas } = await Ajax(signal).AzureStorage.details(workspaceId)
+      setAzureStorage({ storageContainerUrl: _.head(_.split('?', sas.url)), storageLocation: location, sas })
+    } catch (error) {
+      // We expect to get a transient error while the workspace is cloning. We will improve
+      // the handling of this with WOR-534 so that we correctly differentiate between the
+      // expected transient error and a workspace that is truly missing a storage container.
+      console.log(`Error thrown by AzureStorage.details: ${error}`) // eslint-disable-line no-console
+    }
+  }, [workspaceId, signal])
+
+  useEffect(() => {
+    if (isAzureWorkspace(workspace)) {
+      if (!storageContainerUrl && !interval.current) {
+        interval.current = setInterval(loadAzureStorage, 5000)
+      } else if (!!storageContainerUrl && interval.current) {
+        clearInterval(interval.current)
+        interval.current = undefined
+      }
+    }
+
+    return () => {
+      clearInterval(interval.current)
+      interval.current = undefined
+    }
+  }, [loadAzureStorage, workspace, storageContainerUrl])
 
   useImperativeHandle(ref, () => ({ refresh }))
 
@@ -394,11 +424,6 @@ const WorkspaceDashboard = _.flow(
         }
       }
     }
-  })
-
-  const loadAzureStorage = withErrorReporting('Error loading Azure storage information.', async () => {
-    const { location, sas } = await Ajax(signal).AzureStorage.details(workspaceId)
-    setAzureStorage({ storageContainerUrl: _.head(_.split('?', sas.url)), storageLocation: location, sas })
   })
 
   const loadConsent = withErrorReporting('Error loading data', async () => {
@@ -477,8 +502,8 @@ const WorkspaceDashboard = _.flow(
   )
 
   const getCloudInformation = () => {
-    return !googleProject && !azureContext ? [] : [
-      dl(!!googleProject ? [
+    return !isAzureWorkspace(workspace) && !isGoogleWorkspace(workspace) ? [] : [
+      dl(isGoogleWorkspace(workspace) ? [
         h(InfoRow, { title: 'Cloud Name' }, [
           h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16 } })
         ]),
@@ -532,7 +557,7 @@ const WorkspaceDashboard = _.flow(
           })
         ])
       ]),
-      !!googleProject && h(Fragment, [
+      isGoogleWorkspace(workspace) && h(Fragment, [
         div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
           style: { margin: '1rem 0.5rem' },
           ...Utils.newTabLinkProps,
@@ -546,7 +571,7 @@ const WorkspaceDashboard = _.flow(
         }, ['Open project in Google Cloud Console', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
         )])
       ]),
-      !googleProject && div({ style: { margin: '0.5rem', fontSize: 12 } }, [
+      isAzureWorkspace(workspace) && div({ style: { margin: '0.5rem', fontSize: 12 } }, [
         div(['Use SAS URL in conjunction with ',
           h(Link, {
             ...Utils.newTabLinkProps, href: 'https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10',

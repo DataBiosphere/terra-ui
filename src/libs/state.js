@@ -8,7 +8,7 @@ export const authStore = Utils.atom({
   isSignedIn: undefined,
   anonymousId: undefined,
   registrationStatus: undefined,
-  acceptedTos: undefined,
+  termsOfService: {},
   user: {},
   profile: {},
   fenceStatus: {},
@@ -27,7 +27,10 @@ export const userStatus = {
 }
 
 export const cookieReadyStore = Utils.atom(false)
-export const azureCookieReadyStore = Utils.atom(false)
+export const azureCookieReadyStore = Utils.atom({
+  readyForRuntime: false,
+  readyForCromwellApp: false
+})
 
 export const lastActiveTimeStore = staticStorageSlot(getLocalStorage(), 'idleTimeout')
 lastActiveTimeStore.update(v => v || {})
@@ -68,7 +71,7 @@ export const snapshotsListStore = Utils.atom()
 
 export const snapshotStore = Utils.atom()
 
-export const dataCatalogStore = Utils.atom()
+export const dataCatalogStore = Utils.atom([])
 
 /*
  * Modifies ajax responses for testing purposes.

@@ -5,20 +5,24 @@ import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/commo
 import { TextArea, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
+import { withErrorIgnoring } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
 
-export const DataBrowserFeedbackModal = ({ onSuccess, onDismiss, primaryQuestion, sourcePage }) => {
+export const FeaturePreviewFeedbackModal = ({ onSuccess, onDismiss, formId, feedbackId, contactEmailId, sourcePageId, featureName, primaryQuestion, sourcePage }) => {
   const [contactEmail, setContactEmail] = useState('')
   const [feedback, setFeedback] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [thanksShowing, setThanksShowing] = useState(false)
 
-  const submit = Utils.withBusyState(setSubmitting, async () => {
-    await Ajax().Surveys.submitForm('1FAIpQLSevEVLKiLNACAsti8k2U8EVKGHmQ4pJ8_643MfdY2lZEIusyw',
-      { 'entry.477992521': feedback, 'entry.82175827': contactEmail, 'entry.367682225': sourcePage })
+  const submit = _.flow(
+    withErrorIgnoring,
+    Utils.withBusyState(setSubmitting),
+  )(async () => {
+    await Ajax().Surveys.submitForm(formId,
+      { [feedbackId]: feedback, [contactEmailId]: contactEmail, [sourcePageId]: sourcePage })
     setThanksShowing(true)
   })
 
@@ -41,7 +45,7 @@ export const DataBrowserFeedbackModal = ({ onSuccess, onDismiss, primaryQuestion
       ['OK'])
     }, [
       div({ style: { fontWeight: 600, fontSize: 18 } }, [
-        'Thank you for helping us improve the Data Catalog experience!'
+        `Thank you for helping us improve the ${featureName} experience!`
       ])
     ]) :
     h(Modal, {

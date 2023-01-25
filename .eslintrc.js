@@ -69,7 +69,11 @@ module.exports = {
     'arrow-parens': ['warn', 'as-needed'],
     'arrow-spacing': 'warn',
     'no-duplicate-imports': 'warn',
-    'no-restricted-syntax': ['warn', { 'selector': 'TSEnumDeclaration', 'message': 'Use a union of literals instead of an enum' }],
+    'no-restricted-syntax': [
+      'warn',
+      { 'selector': 'TSEnumDeclaration', 'message': 'Use a union of literals instead of an enum' },
+      { 'selector': 'JSXElement', 'message': 'Use react-hyperscript-helpers instead of JSX' }
+    ],
     // TODO: Set 'variables' to 'true' after fixing the existing issues
     'no-use-before-define': ['warn', { 'functions': true, 'classes': true, 'variables': false }],
     'no-useless-rename': 'warn',
@@ -117,6 +121,9 @@ module.exports = {
     'import/named': 'warn',
     'import/newline-after-import': ['warn', { 'count': 2 }],
     'import/no-anonymous-default-export': ['warn', { 'allowObject': true }],
+    'import/no-internal-modules': ['warn', {
+      'forbid': ['src/components/common/*']
+    }],
     'import/no-unresolved': 'warn',
 
     'no-debugger': 'warn'

@@ -5,7 +5,6 @@ const {
   navOptionNetworkIdle, enablePageLogging
 } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
-const { withUserToken } = require('../utils/terra-sa-utils')
 
 
 const defaultTimeout = 5 * 60 * 1000
@@ -27,6 +26,53 @@ const clipToken = str => str.toString().substr(-10, 10)
 const testWorkspaceNamePrefix = 'terra-ui-test-workspace-'
 const getTestWorkspaceName = () => `${testWorkspaceNamePrefix}${uuid.v4()}`
 
+/**
+ * GCP IAM changes may take a few minutes to propagate after creating a workspace or granting a
+ * user access to a workspace. This function polls to check if the logged in user's pet service
+ * account has read access to the given workspace's GCS bucket.
+ */
+const waitForAccessToWorkspaceBucket = async ({ page, billingProject, workspaceName, timeout = defaultTimeout }) => {
+  await page.evaluate(async ({ billingProject, workspaceName, timeout }) => {
+    const { workspace: { googleProject, bucketName } } = await window.Ajax().Workspaces.workspace(billingProject, workspaceName).details(['workspace'])
+
+    const startTime = Date.now()
+
+    const checks = [
+      // Get bucket metadata
+      () => window.Ajax().Buckets.checkBucketLocation(googleProject, bucketName),
+      // List objects
+      () => window.Ajax().Buckets.list(googleProject, bucketName, ''),
+      // Create object
+      () => {
+        const file = new File([''], 'permissions-check', { type: 'text/text' })
+        return window.Ajax().Buckets.upload(googleProject, bucketName, '', file)
+      },
+      // Delete object
+      () => window.Ajax().Buckets.delete(googleProject, bucketName, 'permissions-check'),
+    ]
+
+    for (const check of checks) {
+      while (true) {
+        try {
+          await check()
+          break
+        } catch (response) {
+          if (response.status === 403) {
+            if (Date.now() - startTime < timeout) {
+              // Wait 15s before retrying
+              await new Promise(resolve => setTimeout(resolve, 15 * 1000))
+              continue
+            } else {
+              throw new Error('Timed out waiting for access to workspace bucket')
+            }
+          } else {
+            throw response
+          }
+        }
+      }
+    }
+  }, { billingProject, workspaceName, timeout })
+}
 
 const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   const workspaceName = getTestWorkspaceName()
@@ -35,6 +81,7 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
       await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
     }, workspaceName, billingProject)
     console.info(`Created workspace: ${workspaceName}`)
+    await waitForAccessToWorkspaceBucket({ page, billingProject, workspaceName })
   } catch (e) {
     console.error(`Failed to create workspace: ${workspaceName} with billing project: ${billingProject}`)
     console.error(e)
@@ -93,87 +140,17 @@ const withUser = test => async args => {
   }
 }
 
-const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, email }) => {
-  await page.evaluate((email, billingProject) => {
-    return window.Ajax().Billing.addProjectUser(billingProject, ['User'], email)
-  }, email, billingProject)
-
-  console.info(`added user to: ${billingProject}`)
-
-  const userList = await page.evaluate(billingProject => {
-    return window.Ajax().Billing.listProjectUsers(billingProject)
-  }, billingProject)
-
-  const billingUser = _.find({ email }, userList)
-
-  console.info(`test user was added to the billing project with the role: ${!!billingUser && billingUser.role}`)
-})
-
-const removeUserFromBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, email }) => {
-  await page.evaluate((email, billingProject) => {
-    return window.Ajax().Billing.removeProjectUser(billingProject, ['User'], email)
-  }, email, billingProject)
-
-  console.info(`removed user from: ${billingProject}`)
-})
-
-const withBilling = test => async options => {
-  console.log('withBilling ...')
-  await addUserToBilling(options)
-
-  try {
-    await test({ ...options })
-  } finally {
-    console.log('withBilling cleanup ...')
-    await deleteRuntimes(options)
-    await removeUserFromBilling(options)
-  }
-}
-
-const deleteRuntimes = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, email }) => {
-  const deletedRuntimes = await page.evaluate(async (billingProject, email) => {
-    const runtimes = await window.Ajax().Runtimes.list({ googleProject: billingProject, creator: email })
+const deleteRuntimes = async ({ page, billingProject, workspaceName }) => {
+  const deletedRuntimes = await page.evaluate(async (billingProject, workspaceName) => {
+    const { workspace: { googleProject } } = await window.Ajax().Workspaces.workspace(billingProject, workspaceName).details(['workspace'])
+    const runtimes = await window.Ajax().Runtimes.list({ googleProject, role: 'creator' })
     return Promise.all(_.map(async runtime => {
-      await window.Ajax().Runtimes.runtime(runtime.googleProject, runtime.runtimeName).delete(true) // true = also delete persistent disk
+      await window.Ajax().Runtimes.runtime(runtime.googleProject, runtime.runtimeName).delete(true) // true = also delete persistent disk.
       return runtime.runtimeName
     }, _.remove({ status: 'Deleting' }, runtimes)))
-  }, billingProject, email)
+  }, billingProject, workspaceName)
   console.info(`deleted runtimes: ${deletedRuntimes}`)
-})
-
-const registerUser = withSignedInPage(async ({ page, token }) => {
-  // TODO: make this available to all puppeteer browser windows
-  console.info(`token of user in registerUser(): ...${clipToken(token)}`)
-  await page.evaluate(() => {
-    window.catchErrorResponse = async fn => {
-      try {
-        await fn()
-      } catch (e) {
-        if (e instanceof Response) {
-          const text = await e.text()
-          const headers = e.headers
-          const headerAuthToken = headers.get('authorization') ?
-            `...${clipToken(headers.get('authorization').toString())}` :
-            headers.get('authorization')
-          throw new Error(`Failed to Ajax: ${e.url} authorization header was: ${headerAuthToken} and status of: ${e.status}: ${text}`)
-        } else {
-          throw e
-        }
-      }
-    }
-  })
-  await page.evaluate(async () => {
-    await window.catchErrorResponse(async () => {
-      await window.Ajax().User.profile.set({ firstName: 'Integration', lastName: 'Test', contactEmail: 'me@example.com' })
-      await window.Ajax().User.acceptTos()
-    })
-  })
-})
-
-const withRegisteredUser = test => withUser(async options => {
-  await registerUser(options)
-  await test(options)
-})
+}
 
 const navigateToDataCatalog = async (page, testUrl, token) => {
   await gotoPage(page, testUrl)
@@ -219,14 +196,13 @@ module.exports = {
   clickNavChildAndLoad,
   createEntityInWorkspace,
   defaultTimeout,
+  deleteRuntimes,
   navigateToDataCatalog,
   enableDataCatalog,
   testWorkspaceNamePrefix,
   testWorkspaceName: getTestWorkspaceName,
   withWorkspace,
-  withBilling,
   withUser,
-  withRegisteredUser,
   performAnalysisTabSetup,
   viewWorkspaceDashboard
 }

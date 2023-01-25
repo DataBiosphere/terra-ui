@@ -14,8 +14,7 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   await verifyAccessibility(page)
   await click(page, clickable({ textContains: 'Register' }))
   await click(page, clickable({ textContains: 'Accept' }), { timeout: 90000 })
-  await findText(page, 'To get started, Create a New Workspace')
-  await verifyAccessibility(page)
+  await findText(page, 'Welcome to Terra Community Workbench')
 })
 
 registerTest({

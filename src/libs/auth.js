@@ -12,12 +12,10 @@ import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notific
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs'
 import allProviders from 'src/libs/providers'
 import {
-  asyncImportJobStore, authStore, azureCookieReadyStore, azurePreviewStore, cookieReadyStore, getUser, requesterPaysProjectStore, userStatus, workspacesStore, workspaceStore
+  asyncImportJobStore, authStore, azureCookieReadyStore, azurePreviewStore, cookieReadyStore, getUser, requesterPaysProjectStore, userStatus,
+  workspacesStore, workspaceStore
 } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-
-
-export { getUser }
 
 
 export const getOidcConfig = () => {
@@ -119,7 +117,11 @@ export const signIn = async (includeBillingScope = false) => {
 
 export const reloadAuthToken = (includeBillingScope = false) => {
   const args = getSigninArgs(includeBillingScope)
-  return getAuthInstance().signinSilent(args).catch(() => false)
+  return getAuthInstance().signinSilent(args).catch(e => {
+    console.error('An unexpected exception occurred while attempting to refresh auth credentials.')
+    console.error(e)
+    return false
+  })
 }
 
 export const hasBillingScope = () => {
@@ -183,6 +185,9 @@ export const bucketBrowserUrl = id => {
   return `https://console.cloud.google.com/storage/browser/${id}?authuser=${getUser().email}`
 }
 
+/*
+ * Specifies whether the user has logged in via the Azure identity provider.
+ */
 export const isAzureUser = () => {
   return _.startsWith('https://login.microsoftonline.com', getUser().idp)
 }
@@ -208,7 +213,7 @@ export const processUser = (user, isSignInEvent) => {
       isSignedIn,
       anonymousId: !isSignedIn && state.isSignedIn ? undefined : state.anonymousId,
       registrationStatus: isSignedIn ? state.registrationStatus : undefined,
-      acceptedTos: isSignedIn ? state.acceptedTos : undefined,
+      termsOfService: initializeTermsOfService(isSignedIn, state),
       profile: isSignedIn ? state.profile : {},
       nihStatus: isSignedIn ? state.nihStatus : undefined,
       fenceStatus: isSignedIn ? state.fenceStatus : {},
@@ -217,6 +222,9 @@ export const processUser = (user, isSignInEvent) => {
       cookiesAccepted: isSignedIn ? state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey) : undefined,
       isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
       hasGcpBillingScopeThroughB2C: isSignedIn ? state.hasGcpBillingScopeThroughB2C : undefined,
+      // A user is an Azure preview user if they are a member of the Sam group _or_ they have the `azurePreviewUser` claim set from B2C.
+      // Only enforce the Azure preview allow-list on prod.
+      isAzurePreviewUser: isSignedIn ? !getConfig().isProd || state.isAzurePreviewUser || profile.isAzurePreviewUser : undefined,
       user: {
         token: user?.access_token,
         scope: user?.scope,
@@ -232,6 +240,16 @@ export const processUser = (user, isSignInEvent) => {
       }
     }
   })
+}
+
+const initializeTermsOfService = (isSignedIn, state) => {
+  return {
+    isGracePeriodEnabled: isSignedIn ? state.termsOfService.isGracePeriodEnabled : undefined,
+    currentVersion: isSignedIn ? state.termsOfService.currentVersion : undefined,
+    userAcceptedVersion: isSignedIn ? state.termsOfService.userAcceptedVersion : undefined,
+    userCanUseTerra: isSignedIn ? state.termsOfService.userCanUseTerra : undefined,
+    showTosPopup: isSignedIn ? state.termsOfService.showTosPopup : undefined,
+  }
 }
 
 export const initializeAuth = _.memoize(async () => {
@@ -280,9 +298,9 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
     try {
       const { enabled } = await Ajax().User.getStatus()
       if (enabled) {
-        // While initial state is first loading, state.acceptedTos will be undefined (it will then be `true` on the
+        // While initial state is first loading, state.termsOfService.userCanUseTerra will be undefined (it will then be `true` on the
         // second execution of this code, which is still part of the initial rendering).
-        return state.acceptedTos ? userStatus.registeredWithTos : userStatus.registeredWithoutTos
+        return state.termsOfService.userCanUseTerra ? userStatus.registeredWithTos : userStatus.registeredWithoutTos
       } else {
         return userStatus.disabled
       }
@@ -294,7 +312,10 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
       }
     }
   }
-  if ((!oldState.isSignedIn && state.isSignedIn) || (!oldState.acceptedTos && state.acceptedTos)) {
+  // need to guard against state.termsOfService not being initialized
+  const oldStateAcceptedTos = oldState.termsOfService && oldState.termsOfService.userCanUseTerra
+  const newStateAcceptedTos = state.termsOfService && state.termsOfService.userCanUseTerra
+  if ((!oldState.isSignedIn && state.isSignedIn) || (!oldStateAcceptedTos && newStateAcceptedTos)) {
     clearNotification(sessionTimeoutProps.id)
     const registrationStatus = await getRegistrationStatus()
     authStore.update(state => ({ ...state, registrationStatus }))
@@ -303,13 +324,53 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
 
 authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
-    const acceptedTos = await Ajax().User.getTosAccepted()
-    authStore.update(state => ({ ...state, acceptedTos }))
+    const tosDetails = await Ajax().User.getTermsOfServiceDetails()
+    const termsOfService = parseToSDetails(tosDetails)
+    authStore.update(state => ({ ...state, termsOfService }))
   }
 }))
 
+export const parseToSDetails = tosDetails => {
+  if (_.isNull(tosDetails)) {
+    return {
+      isGracePeriodEnabled: undefined,
+      currentVersion: undefined,
+      userAcceptedVersion: undefined,
+      userCanUseTerra: false,
+      showTosPopup: true
+    }
+  } else {
+    // IF user has accepted latest version of ToS
+    // THEN let them use Terra, do not show them the ToS popup
+    // ELSE IF user accepted ANY prior version of ToS and Grace Period is enabled
+    // THEN let them use Terra, do show them the ToS popup
+    // ELSE
+    // THEN they can't use Terra until they accept ToS
+
+    // Has the user ever accepted any version of the ToS?
+    const userHasAcceptedAnyToSVersion = !_.isUndefined(tosDetails.userAcceptedVersion)
+    // Has the user accepted the latest/current version of the ToS?
+    const userAcceptedLatestTos = !_.isUndefined(tosDetails.currentVersion) ?
+      tosDetails.currentVersion === tosDetails.userAcceptedVersion : false
+    // Will we permit the user to use Terra under the ToS grace period?
+    const userOperatingUnderGracePeriod = tosDetails.isGracePeriodEnabled && userHasAcceptedAnyToSVersion
+    // Should we display the "Updated ToS" alert/pop-up to the user to ask them to accept the _latest_ version of ToS
+    const showTosPopup = !userAcceptedLatestTos
+
+    const userCanUseTerra = userAcceptedLatestTos || userOperatingUnderGracePeriod
+
+    return {
+      isGracePeriodEnabled: tosDetails.isGracePeriodEnabled,
+      currentVersion: tosDetails.currentVersion,
+      userAcceptedVersion: tosDetails.userAcceptedVersion,
+      userCanUseTerra,
+      showTosPopup
+    }
+  }
+}
+
 authStore.subscribe(withErrorIgnoring(async (state, oldState) => {
-  if (!oldState.acceptedTos && state.acceptedTos) {
+  if (!oldState.termsOfService.userCanUseTerra && state.termsOfService.userCanUseTerra) {
     if (window.Appcues) {
       window.Appcues.identify(state.user.id, {
         dateJoined: parseJSON((await Ajax().User.firstTimestamp()).timestamp).getTime()
@@ -392,3 +453,11 @@ workspaceStore.subscribe((newState, oldState) => {
     requesterPaysProjectStore.reset()
   }
 })
+
+authStore.subscribe(withErrorReporting('Error loading azure preview group membership', async (state, oldState) => {
+  if (becameRegistered(oldState, state)) {
+    const isGroupMember = await Ajax().Groups.group(getConfig().azurePreviewGroup).isMember()
+    const isAzurePreviewUser = oldState.isAzurePreviewUser || isGroupMember
+    authStore.update(state => ({ ...state, isAzurePreviewUser }))
+  }
+}))

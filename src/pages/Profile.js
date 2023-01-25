@@ -3,22 +3,22 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import { div, h, h2, h3, label, p, span } from 'react-hyperscript-helpers'
+import { ClipboardButton } from 'src/components/ClipboardButton'
 import Collapse from 'src/components/Collapse'
-import {
-  ButtonPrimary, Checkbox, ClipboardButton, IdContainer, LabeledCheckbox, Link, PageBox, PageBoxVariants, spinnerOverlay
-} from 'src/components/common'
+import { ButtonPrimary, Checkbox, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import { FrameworkServiceLink, ShibbolethLink, UnlinkFenceAccount } from 'src/components/external-account-links'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, spinner } from 'src/components/icons'
 import { TextInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { PageBox, PageBoxVariants } from 'src/components/PageBox'
 import { InfoBox } from 'src/components/PopupTrigger'
 import ProfilePicture from 'src/components/ProfilePicture'
 import { SimpleTabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
 import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
-import { getUser, refreshTerraProfile } from 'src/libs/auth'
+import { refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
@@ -27,7 +27,7 @@ import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import allProviders from 'src/libs/providers'
 import { memoWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { authStore } from 'src/libs/state'
+import { authStore, getUser } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -362,7 +362,7 @@ const PassportLinker = ({ queryParams: { state, code } = {}, provider, prettyNam
 const sectionTitle = text => h2({ style: styles.sectionTitle }, [text])
 
 const ExternalIdentitiesTab = ({ queryParams }) => {
-  return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
+  return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.light }, [
     h(NihLink, { nihToken: queryParams?.['nih-username-token'] }),
     _.map(provider => h(FenceLink, { key: provider.key, provider }), allProviders),
     !!getConfig().externalCredsUrlRoot && h(PassportLinker, { queryParams, provider: 'ras', prettyName: 'RAS' })
@@ -421,7 +421,7 @@ const NotificationSettingsTab = ({ setSaving }) => {
   const [prefsData] = _.over(_.pickBy)((_v, k) => _.startsWith('notifications/', k), authStore.get().profile)
 
 
-  return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
+  return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.light }, [
     div({ style: Style.cardList.toolbarContainer }, [
       h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' } }, [
         'Account Notifications',
@@ -532,7 +532,7 @@ const PersonalInfoTab = ({ setSaving }) => {
   const required = { presence: { allowEmpty: false } }
   const errors = validate({ firstName, lastName }, { firstName: required, lastName: required })
 
-  return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
+  return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.light }, [
     div({ style: styles.header.line }, [
       div({ style: { position: 'relative' } }, [
         h(ProfilePicture, { size: 48 }),

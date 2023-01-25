@@ -3,8 +3,9 @@ import _ from 'lodash/fp'
 import { useEffect, useMemo, useState } from 'react'
 import { div, h, p, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
+import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
 import Collapse from 'src/components/Collapse'
-import { HeaderRenderer, IdContainer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
+import { IdContainer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
@@ -12,20 +13,18 @@ import LeaveResourceModal from 'src/components/LeaveResourceModal'
 import { FirstParagraphMarkdownViewer } from 'src/components/markdown'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { SimpleTabBar } from 'src/components/tabBars'
-import { FlexTable } from 'src/components/table'
+import { FlexTable, HeaderRenderer } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import {
   NoWorkspacesMessage, recentlyViewedPersistenceId, RecentlyViewedWorkspaceCard, useWorkspaces, WorkspaceStarControl, WorkspaceSubmissionStatusIcon,
   WorkspaceTagSelect
 } from 'src/components/workspace-utils'
-import { ReactComponent as CloudAzureLogo } from 'src/images/cloud_azure_icon.svg'
-import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg'
 import { Ajax } from 'src/libs/ajax'
-import { getUser } from 'src/libs/auth'
+import { isAzureUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
-import Events from 'src/libs/events'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
@@ -33,7 +32,8 @@ import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { cloudProviders, isGcpContext } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { cloudProviderLabels, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
+import { isGcpContext } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { UnboundDiskNotification, V1WorkspaceNotification } from 'src/pages/workspaces/workspace/Dashboard'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
@@ -103,7 +103,7 @@ const somePersistentDiskRequiresMigration = (workspaces, disks) => {
     _.mapValues(_.flow(_.groupBy('name'), _.mapValues(_.head)))
   )(workspaces)
 
-  return workspaces && _.flip(_.some)(disks, ({ googleProject, labels }) => {
+  return !_.isEmpty(workspaces) && _.flip(_.some)(disks, ({ googleProject, labels }) => {
     return workspacesByNsAndName[labels.saturnWorkspaceNamespace]?.[labels.saturnWorkspaceName]?.googleProject !== googleProject
   })
 }
@@ -132,9 +132,20 @@ export const WorkspaceList = () => {
   // each render avoids unnecessarily recomputing the memoized filteredWorkspaces value.
   const accessLevelsFilter = query.accessLevelsFilter || EMPTY_LIST
   const projectsFilter = query.projectsFilter || undefined
+  const cloudPlatformFilter = query.cloudPlatform || undefined
   const submissionsFilter = query.submissionsFilter || EMPTY_LIST
   const tab = query.tab || 'myWorkspaces'
   const tagsFilter = query.tagsFilter || EMPTY_LIST
+
+  useOnMount(() => {
+    // For some time after Terra on Azure is released, the vast majority of featured workspaces
+    // will be GCP workspaces, which are not usable by Azure users. To improve visibility of the
+    // featured workspaces that are available on Azure, automatically filter workspaces by cloud
+    // platform for Azure users.
+    if (isAzureUser() && !cloudPlatformFilter) {
+      Nav.updateSearch({ ...query, cloudPlatform: cloudProviderTypes.AZURE })
+    }
+  })
 
   const [creatingNewWorkspace, setCreatingNewWorkspace] = useState(false)
   const [cloningWorkspaceId, setCloningWorkspaceId] = useState()
@@ -157,7 +168,7 @@ export const WorkspaceList = () => {
     const loadPersistentDisks = withErrorIgnoring(async () => {
       setGcpPersistentDisks(_.filter(({ cloudContext }) => isGcpContext(cloudContext),
         await Ajax().Disks.list({
-          creator: getUser().email,
+          role: 'creator',
           includeLabels: ['saturnWorkspaceNamespace', 'saturnWorkspaceName'].join(',')
         })
       ))
@@ -196,10 +207,11 @@ export const WorkspaceList = () => {
       return Utils.textMatch(filter, `${namespace}/${name}`) &&
         (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
         (_.isEmpty(projectsFilter) || projectsFilter === namespace) &&
+        (_.isEmpty(cloudPlatformFilter) || getCloudProviderFromWorkspace(ws) === cloudPlatformFilter) &&
         (_.isEmpty(submissionsFilter) || submissionsFilter.includes(workspaceSubmissionStatus(ws))) &&
         _.every(a => _.includes(a, _.get(['tag:tags', 'items'], attributes)), tagsFilter)
     }),
-    initialFiltered), [accessLevelsFilter, filter, initialFiltered, projectsFilter, submissionsFilter, tagsFilter])
+    initialFiltered), [accessLevelsFilter, filter, initialFiltered, projectsFilter, cloudPlatformFilter, submissionsFilter, tagsFilter])
 
   //Starred workspaces are always floated to the top
   const sortedWorkspaces = _.orderBy(
@@ -257,7 +269,7 @@ export const WorkspaceList = () => {
           headerRenderer: makeHeaderRenderer('name'),
           cellRenderer: ({ rowIndex }) => {
             const {
-              accessLevel, workspace: { workspaceId, namespace, name, workspaceVersion, attributes: { description } }
+              accessLevel, workspace, workspace: { workspaceId, namespace, name, workspaceVersion, attributes: { description } }
             } = sortedWorkspaces[rowIndex]
             const canView = Utils.canRead(accessLevel)
             const canAccessWorkspace = () => !canView ? setRequestingAccessWorkspaceId(workspaceId) : undefined
@@ -273,7 +285,7 @@ export const WorkspaceList = () => {
                   href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
                   onClick: () => {
                     canAccessWorkspace()
-                    !!canView && Ajax().Metrics.captureEvent(Events.workspaceOpenFromList, { workspaceName: name, workspaceNamespace: namespace })
+                    !!canView && Ajax().Metrics.captureEvent(Events.workspaceOpenFromList, extractWorkspaceDetails(workspace))
                   },
                   tooltip: !canView &&
                     'You cannot access this workspace because it is protected by an Authorization Domain. Click to learn about gaining access.',
@@ -355,12 +367,10 @@ export const WorkspaceList = () => {
         }, {
           headerRenderer: () => div({ className: 'sr-only' }, ['Cloud Platform']),
           cellRenderer: ({ rowIndex }) => {
-            const { workspace: { cloudPlatform } } = sortedWorkspaces[rowIndex]
+            const workspace = sortedWorkspaces[rowIndex]
             return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
               div({ style: styles.tableCellContent }, [
-                Utils.switchCase(_.toUpper(cloudPlatform),
-                  [cloudProviders.gcp.label, () => h(CloudGcpLogo, { title: cloudProviders.gcp.iconTitle, role: 'img' })],
-                  [cloudProviders.azure.label, () => h(CloudAzureLogo, { title: cloudProviders.azure.iconTitle, role: 'img' })])
+                h(CloudProviderIcon, { cloudProvider: getCloudProviderFromWorkspace(workspace) })
               ])
             ])
           },
@@ -489,7 +499,7 @@ export const WorkspaceList = () => {
             )(workspaces)
           })
         ]),
-        div({ style: { ...styles.filter, marginRight: 0 } }, [
+        div({ style: styles.filter }, [
           h(Select, {
             isClearable: true,
             isMulti: true,
@@ -502,7 +512,20 @@ export const WorkspaceList = () => {
             options: ['running', 'success', 'failure'],
             getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
           })
-        ])
+        ]),
+        div({ style: { ...styles.filter, marginRight: 0 } }, [
+          h(Select, {
+            isClearable: true,
+            isMulti: false,
+            placeholder: 'Cloud platform',
+            'aria-label': 'Filter by cloud platform',
+            value: cloudPlatformFilter,
+            hideSelectedOptions: true,
+            onChange: data => Nav.updateSearch({ ...query, cloudPlatform: data?.value || undefined }),
+            options: _.sortBy(cloudProvider => cloudProviderLabels[cloudProvider], _.keys(cloudProviderTypes)),
+            getOptionLabel: ({ value }) => cloudProviderLabels[value]
+          })
+        ]),
       ]),
       h(SimpleTabBar, {
         'aria-label': 'choose a workspace collection',

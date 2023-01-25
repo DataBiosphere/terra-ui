@@ -161,7 +161,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
                 h(DelayedAutocompleteTextArea, {
                   autosize: true,
                   spellCheck: false,
-                  placeholder: optional ? 'Optional' : 'Required',
+                  placeholder: which === 'inputs' && !optional ? 'Required' : 'Optional',
                   value,
                   style: isFile ? { paddingRight: '2rem' } : undefined,
                   onChange: v => onChange(name, v),
@@ -810,12 +810,17 @@ const WorkflowView = _.flow(
           div({ style: { display: 'flex', alignItems: 'baseline', minWidth: 'max-content' } }, [
             // This span is to prevent vertical resizing when the memory retry multiplier input is visible.
             span({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, [
-              span([
+              span({ style: { ...styles.checkBoxSpanMargins, marginLeft: 0 } }, [
                 h(LabeledCheckbox, {
                   disabled: currentSnapRedacted || !!Utils.computeWorkspaceError(ws),
                   checked: useCallCache,
                   onChange: v => this.setState({ useCallCache: v })
                 }, [' Use call caching'])
+              ]),
+              h(InfoBox, [
+                'Call caching detects when a job has been run in the past so that it doesn\'t have to re-compute results. ',
+                h(Link, { href: this.getSupportLink('360047664872'), ...Utils.newTabLinkProps },
+                  [clickToLearnMore])
               ]),
               span({ style: styles.checkBoxSpanMargins }, [
                 h(LabeledCheckbox, {
@@ -1002,6 +1007,17 @@ const WorkflowView = _.flow(
           modifiedConfig: _.update(key, _.assign(_, _.pick(existing, updates)), modifiedConfig)
         }
       })
+
+      const { workspace } = this.props
+      const { modifiedConfig } = this.state
+      const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
+      Ajax().Metrics.captureEvent(Events.workflowUploadIO, {
+        ...extractWorkspaceDetails(workspace.workspace),
+        inputsOrOutputs: key,
+        methodVersion,
+        sourceRepo,
+        methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath
+      })
     } catch (error) {
       if (error instanceof SyntaxError) {
         reportError('Error processing file', 'This json file is not formatted correctly.')
@@ -1009,6 +1025,24 @@ const WorkflowView = _.flow(
         reportError('Error processing file', error)
       }
     }
+  }
+
+  clear(key) {
+    this.setState(prevState => {
+      const { modifiedConfig: prevModifiedConfig } = prevState
+      return { modifiedConfig: _.set(key, {}, prevModifiedConfig) }
+    })
+
+    const { workspace } = this.props
+    const { modifiedConfig } = this.state
+    const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
+    Ajax().Metrics.captureEvent(Events.workflowClearIO, {
+      ...extractWorkspaceDetails(workspace.workspace),
+      inputsOrOutputs: key,
+      methodVersion,
+      sourceRepo,
+      methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath
+    })
   }
 
   renderWDL() {
@@ -1034,7 +1068,7 @@ const WorkflowView = _.flow(
     const attributeNames = _.get([modifiedConfig.rootEntityType, 'attributeNames'], selectionMetadata) || []
 
     const suggestions = [
-      ...(!selectedTableName && !modifiedConfig.dataReferenceName) ? [`this.${modifiedConfig.rootEntityType}_id`] : [],
+      ...(!selectedTableName && !modifiedConfig.dataReferenceName && modifiedConfig.rootEntityType) ? [`this.${modifiedConfig.rootEntityType}_id`] : [],
       ...(modifiedConfig.rootEntityType ? _.map(name => `this.${name}`, attributeNames) : []),
       ...getWorkflowInputSuggestionsForAttributesOfSetMembers(selectedEntities, selectionMetadata),
       ..._.map(name => `workspace.${name}`, workspaceAttributes)
@@ -1080,6 +1114,10 @@ const WorkflowView = _.flow(
           div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
           h(Link, { style: linkStyle, onClick: openUploader }, ['upload json'])
         ]),
+        isEditable && h(Fragment, [
+          div({ style: { whiteSpace: 'pre' } }, ['  |  ']),
+          h(Link, { style: linkStyle, onClick: () => this.clear(key) }, [`Clear ${key}`])
+        ]),
         h(DelayedSearchInput, {
           'aria-label': `Search ${key}`,
           style: { marginLeft: '1rem', width: 200 },
@@ -1097,13 +1135,25 @@ const WorkflowView = _.flow(
           errors,
           onBrowse: name => this.setState({ variableSelected: name }),
           onChange: (name, v) => this.setState(_.set(['modifiedConfig', key, name], v)),
-          onSetDefaults: () => this.setState(oldState => {
-            return _.set(
-              ['modifiedConfig', 'outputs'],
-              _.fromPairs(_.map(({ name }) => [name, `this.${_.last(name.split('.'))}`], oldState.modifiedInputsOutputs.outputs)),
-              oldState
-            )
-          }),
+          onSetDefaults: () => {
+            this.setState(oldState => {
+              return _.set(
+                ['modifiedConfig', 'outputs'],
+                _.fromPairs(_.map(({ name }) => [name, `this.${_.last(name.split('.'))}`], oldState.modifiedInputsOutputs.outputs)),
+                oldState
+              )
+            })
+
+            const { workspace } = this.props
+            const { modifiedConfig } = this.state
+            const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
+            Ajax().Metrics.captureEvent(Events.workflowUseDefaultOutputs, {
+              ...extractWorkspaceDetails(workspace.workspace),
+              methodVersion,
+              sourceRepo,
+              methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath
+            })
+          },
           suggestions,
           availableSnapshots
         })

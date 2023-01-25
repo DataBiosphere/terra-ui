@@ -20,10 +20,12 @@ const eventsList = {
   analysisDisableBeta: 'analysis:disable',
   analysisLaunch: 'analysis:launch',
   analysisCreate: 'analysis:create',
+  analysisToggleJupyterLabGCP: 'analysis:toggleJupyterLabGCP',
   billingProjectExpandWorkspace: 'billing:project:workspace:expand',
   billingProjectGoToWorkspace: 'billing:project:workspace:navigate',
   billingProjectOpenFromList: 'billing:project:open-from-list',
   billingProjectSelectTab: 'billing:project:tab',
+  billingChangeAccount: 'billing:project:account:update',
   billingCreationStep1: 'billing:creation:step1:gcpConsoleClicked',
   billingCreationStep2BillingAccountNoAccess: 'billing:creation:step2:billingAccountNoAccess',
   billingCreationStep2HaveBillingAccount: 'billing:creation:step2:haveBillingAccount',
@@ -34,9 +36,8 @@ const eventsList = {
   billingCreationContactTerraSupport: 'billing:creation:contactTerraSupport',
   billingCreationGCPProjectNameEntered: 'billing:creation:gcpProjectNameEntered',
   billingCreationGCPBillingAccountSelected: 'billing:creation:gcpBillingAccountSelected',
-  billingCreationGCPBillingProjectCreated: 'billing:creation:gcpBillingProjectCreated',
-  billingCreationAzureBillingProjectCreated: 'billing:creation:azureBillingProjectCreated',
-  changeBillingAccount: 'billing:project:account:update',
+  billingCreationBillingProjectCreated: 'billing:creation:billingProjectCreated',
+  billingRemoveAccount: 'billing:project:account:remove',
   cloudEnvironmentConfigOpen: 'cloudEnvironment:config:open',
   cloudEnvironmentCreate: 'cloudEnvironment:create',
   cloudEnvironmentDelete: 'cloudEnvironment:delete',
@@ -63,12 +64,14 @@ const eventsList = {
   notebookCopy: 'notebook:copy',
   notificationToggle: 'notification:toggle',
   pageView: 'page:view',
-  removeBillingAccount: 'billing:project:account:remove',
   resourceLeave: 'resource:leave',
   userRegister: 'user:register',
+  workflowClearIO: 'workflow:clearIO',
   workflowImport: 'workflow:import',
   workflowLaunch: 'workflow:launch',
   workflowRerun: 'workflow:rerun',
+  workflowUploadIO: 'workflow:uploadIO',
+  workflowUseDefaultOutputs: 'workflow:useDefaultOutputs',
   workspaceClone: 'workspace:clone',
   workspaceCreate: 'workspace:create',
   workspaceDataAddColumn: 'workspace:data:addColumn',
@@ -95,6 +98,7 @@ const eventsList = {
   workspaceDataRenameTable: 'workspace:data:rename-table',
   workspaceDataDeleteTable: 'workspace:data:deleteTable',
   workspaceOpenFromList: 'workspace:open-from-list',
+  workspaceOpenFromRecentlyViewed: 'workspace:open-from-recently-viewed',
   workspaceSampleTsvDownload: 'workspace:sample-tsv:download',
   workspaceShare: 'workspace:share',
   workspaceShareWithSupport: 'workspace:shareWithSupport',
@@ -103,17 +107,37 @@ const eventsList = {
   workspaceStar: 'workspace:star'
 }
 
+/**
+ * Extracts name, namespace, and cloudPlatform (if present) from an object. The object can either have these
+ * as top-level properties (such as would be returned from parseNav), or nested within a workspace object
+ * (such as would be returned from the ajax workspace details API).
+ */
 export const extractWorkspaceDetails = workspaceObject => {
-  const { name, namespace } = workspaceObject
-  return { workspaceName: name, workspaceNamespace: namespace }
+  // A "workspace" as returned from the workspace list or details API method has as "workspace" object within it
+  // containing the workspace details.
+  const workspaceDetails = 'workspace' in workspaceObject ? workspaceObject.workspace : workspaceObject
+  const { name, namespace, cloudPlatform } = workspaceDetails
+  const data = { workspaceName: name, workspaceNamespace: namespace }
+  // When workspace details are obtained from the nav path, the cloudPlatform will not be available.
+  // Uppercase cloud platform because we mix camelcase and uppercase depending on which server API it came from (rawls/workspace vs. leo).
+  return _.isUndefined(cloudPlatform) ? data : _.merge(data, { cloudPlatform: _.toUpper(cloudPlatform) })
 }
 
 export const extractCrossWorkspaceDetails = (fromWorkspace, toWorkspace) => {
   return {
     fromWorkspaceNamespace: fromWorkspace.workspace.namespace,
     fromWorkspaceName: fromWorkspace.workspace.name,
+    fromWorkspaceCloudPlatform: _.toUpper(fromWorkspace.workspace.cloudPlatform),
     toWorkspaceNamespace: toWorkspace.workspace.namespace,
-    toWorkspaceName: toWorkspace.workspace.name
+    toWorkspaceName: toWorkspace.workspace.name,
+    toWorkspaceCloudPlatform: _.toUpper(toWorkspace.workspace.cloudPlatform)
+  }
+}
+
+export const extractBillingDetails = billingProject => {
+  return {
+    billingProjectName: billingProject.projectName,
+    cloudPlatform: _.toUpper(billingProject.cloudPlatform) // Should already be uppercase, but enforce for consistency.
   }
 }
 

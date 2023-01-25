@@ -2,7 +2,9 @@ import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, div, h, p, span } from 'react-hyperscript-helpers'
-import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, Clickable, ClipboardButton, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ClipboardButton } from 'src/components/ClipboardButton'
+import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
+import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import DelayedRender from 'src/components/DelayedRender'
 import { icon, spinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
@@ -10,9 +12,7 @@ import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { ReactComponent as CloudAzureLogo } from 'src/images/cloud_azure_icon.svg'
-import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg'
-import { Ajax } from 'src/libs/ajax'
+import { Ajax, useReplaceableAjaxExperimental } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -24,7 +24,7 @@ import { useCancellation, useInstance, useOnMount, useStore, withDisplayName } f
 import { workspacesStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
 import validate from 'validate.js'
 
 
@@ -32,11 +32,12 @@ export const useWorkspaces = () => {
   const signal = useCancellation()
   const [loading, setLoading] = useState(false)
   const workspaces = useStore(workspacesStore)
+  const ajax = useReplaceableAjaxExperimental()
   const refresh = _.flow(
     withErrorReporting('Error loading workspace list'),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const ws = await Ajax(signal).Workspaces.list([
+    const ws = await ajax(signal).Workspaces.list([
       'accessLevel', 'public', 'workspace', 'workspace.attributes.description', 'workspace.attributes.tag:tags', 'workspace.workspaceVersion'
     ])
     workspacesStore.set(ws)
@@ -393,7 +394,7 @@ export const WorkspaceStarControl = ({ workspace, stars, setStars, style, updati
       _.concat(refreshedStarredWorkspaceList, [workspaceId]) :
       _.without([workspaceId], refreshedStarredWorkspaceList)
     await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', updatedWorkspaceIds) })
-    Ajax().Metrics.captureEvent(Events.workspaceStar, { workspaceId, starred: star })
+    Ajax().Metrics.captureEvent(Events.workspaceStar, { workspaceId, starred: star, ...extractWorkspaceDetails(workspace.workspace) })
     setStars(updatedWorkspaceIds)
   })
 
@@ -462,13 +463,16 @@ export const updateRecentlyViewedWorkspaces = workspaceId => {
 }
 
 export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadingSubmissionStats, timestamp }) => {
-  const { workspace: { namespace, name, googleProject } } = workspace
+  const { workspace: { namespace, name } } = workspace
 
   const dateViewed = Utils.makeCompleteDate(new Date(parseInt(timestamp)).toString())
 
   return h(Clickable, {
     style: { ...Style.elements.card.container, maxWidth: 'calc(25% - 10px)', margin: '0 0.25rem', lineHeight: '1.5rem', flex: '0 1 calc(25% - 10px)' },
-    href: Nav.getLink('workspace-dashboard', { namespace, name })
+    href: Nav.getLink('workspace-dashboard', { namespace, name }),
+    onClick: () => {
+      Ajax().Metrics.captureEvent(Events.workspaceOpenFromRecentlyViewed, extractWorkspaceDetails(workspace.workspace))
+    },
   }, [
     div({ style: { flex: 'none' } }, [
       div({ style: { color: colors.accent(), ...Style.noWrapEllipsis, fontSize: 16, marginBottom: 7 } }, name),
@@ -479,9 +483,7 @@ export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadi
             status: submissionStatus,
             loadingSubmissionStats
           }),
-          !!googleProject ?
-            h(CloudGcpLogo, { title: cloudProviders.gcp.iconTitle, role: 'img', style: { marginLeft: 5 } }) :
-            h(CloudAzureLogo, { title: cloudProviders.azure.iconTitle, role: 'img', style: { marginLeft: 5 } })
+          h(CloudProviderIcon, { cloudProvider: getCloudProviderFromWorkspace(workspace), style: { marginLeft: 5 } })
         ])
       ])
     ])

@@ -1,12 +1,13 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { div, h, strong } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common'
+import { div, h } from 'react-hyperscript-helpers'
+import { ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { reportErrorAndRethrow } from 'src/libs/error'
 import { formHint, FormLabel } from 'src/libs/forms'
 import { useCancellation } from 'src/libs/react-utils'
@@ -78,7 +79,14 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
   const subscriptionIdError = Utils.cond(
     [subscriptionIdTouched && !isValidSubscriptionId, () => Utils.summarizeErrors(subscriptionIdErrors?.subscriptionId)],
     [errorFetchingManagedApps, () => 'Unable to retrieve Managed Applications for that subscription'],
-    [errorFetchingManagedApps === false && managedApps.length === 0, () => 'No Terra Managed Applications exist for that subscription'],
+    [errorFetchingManagedApps === false && managedApps.length === 0, () => h(Fragment, [
+      div({ key: 'message' }, ['No Terra Managed Applications exist for that subscription. ',
+        h(Link, {
+          href: 'https://portal.azure.com/#view/Microsoft_Azure_Marketplace/MarketplaceOffersBlade/selectedMenuItemId/home',
+          ...Utils.newTabLinkProps
+        }, ['Go to the Azure Marketplace'])]),
+      ' to create a Terra Managed Application.'
+    ])],
     [Utils.DEFAULT, () => undefined]
   )
 
@@ -111,7 +119,16 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
       ])]),
       !(billingProjectNameTouched && billingProjectNameErrors) && formHint('Name must be unique and cannot be changed.'),
       h(IdContainer, [id => h(Fragment, [
-        h(FormLabel, { htmlFor: id, required: true }, ['Azure subscription']),
+        h(FormLabel, { htmlFor: id, required: true }, [
+          'Azure subscription',
+          h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
+            'You can copy your Subscription ID from the Azure Portal. ',
+            h(Link, {
+              href: 'https://portal.azure.com/',
+              ...Utils.newTabLinkProps
+            }, ['Go to the Azure Portal.'])
+          ])
+        ]),
         h(ValidatedInput, {
           inputProps: {
             id,
@@ -155,8 +172,18 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
       ])]),
       div({ style: { paddingTop: '1.0rem', display: 'flex' } },
         [
+          icon('warning-standard', { size: 16, style: { marginRight: '0.5rem', color: colors.warning() } }),
+          div(['Creating a Terra billing project currently costs about $5 per day. ',
+            h(Link, {
+              href: 'https://support.terra.bio/hc/en-us/articles/12029087819291',
+              ...Utils.newTabLinkProps
+            }, ['Learn more and follow changes.'])])
+        ]
+      ),
+      div({ style: { paddingTop: '1.0rem', display: 'flex' } },
+        [
           icon('clock', { size: 16, style: { marginRight: '0.5rem' } }),
-          strong(['Creating a Terra billing project on Azure may take up to 15 minutes to complete. During this time, the billing project is not available for use.'])
+          div(['It may take up to 15 minutes for the billing project to be fully created and ready for use.'])
         ]
       )
     ]),

@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, p, strong } from 'react-hyperscript-helpers'
+import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
 import { ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
@@ -8,17 +9,16 @@ import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { allRegions, availableBucketRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isSupportedBucketLocation } from 'src/components/region-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { ReactComponent as CloudAzureLogo } from 'src/images/cloud_azure_icon.svg'
-import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
-import { reportErrorAndRethrow, withErrorReporting } from 'src/libs/error'
-import Events from 'src/libs/events'
+import { reportErrorAndRethrow, withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import Events, { extractCrossWorkspaceDetails, extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
+import { cloudProviderLabels, isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { cloudProviders, defaultLocation } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
 
@@ -45,23 +45,6 @@ const constraints = {
   namespace: {
     presence: true
   }
-}
-
-const getCloudPlatformTitle = cloudPlatform => {
-  return Utils.switchCase(cloudPlatform,
-    [cloudProviders.gcp.label, () => cloudProviders.gcp.iconTitle],
-    [cloudProviders.azure.label, () => cloudProviders.azure.iconTitle]
-  )
-}
-
-const cloudPlatformIcon = ({ cloudPlatform }) => {
-  const props = { title: getCloudPlatformTitle(cloudPlatform), role: 'img' }
-
-  return div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
-    Utils.switchCase(cloudPlatform,
-      [cloudProviders.gcp.label, () => h(CloudGcpLogo, props)],
-      [cloudProviders.azure.label, () => h(CloudAzureLogo, props)])
-  ])
 }
 
 const invalidBillingAccountMsg = 'Workspaces may only be created in billing projects that have a Google billing account accessible in Terra'
@@ -100,6 +83,14 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     setIsAlphaRegionalityUser(await Ajax(signal).Groups.group(getConfig().alphaRegionalityGroup).isMember())
   })
 
+  // Error is ignored here since any errors associated with Leo app creation are not communicated during workspace creation
+  // Rather when the user first visits the `Data` tab
+  const createLeoApp = withErrorIgnoring(async workspace => {
+    if (isAzureBillingProject() && !getConfig().isProd) {
+      await Ajax().Apps.createAppV2(`wds-${workspace.workspaceId}`, workspace.workspaceId)
+    }
+  })
+
   const create = async () => {
     try {
       setCreateError(undefined)
@@ -111,24 +102,31 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
         authorizationDomain: _.map(v => ({ membersGroupName: v }), [...getRequiredGroups(), ...groups]),
         attributes: { description },
         copyFilesWithPrefix: 'notebooks/',
-        ...(!!bucketLocation && { bucketLocation })
+        ...(!!bucketLocation && isGoogleBillingProject() && { bucketLocation })
       }
-      onSuccess(await Utils.cond(
+      const createdWorkspace = await Utils.cond(
         [cloneWorkspace, async () => {
           const workspace = await Ajax().Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body)
           const featuredList = await Ajax().FirecloudBucket.getFeaturedWorkspaces()
           Ajax().Metrics.captureEvent(Events.workspaceClone, {
             featured: _.some({ namespace: cloneWorkspace.workspace.namespace, name: cloneWorkspace.workspace.name }, featuredList),
-            fromWorkspaceName: cloneWorkspace.workspace.name, fromWorkspaceNamespace: cloneWorkspace.workspace.namespace,
-            toWorkspaceName: workspace.name, toWorkspaceNamespace: workspace.namespace
+            ...extractCrossWorkspaceDetails(cloneWorkspace, {
+              // Clone response does not include cloudPlatform, cross-cloud cloning is not supported.
+              workspace: _.merge(workspace, { cloudPlatform: getProjectCloudPlatform() })
+            })
           })
           return workspace
         }],
         async () => {
           const workspace = await Ajax().Workspaces.create(body)
-          Ajax().Metrics.captureEvent(Events.workspaceCreate, { workspaceName: workspace.name, workspaceNamespace: workspace.namespace })
+          Ajax().Metrics.captureEvent(Events.workspaceCreate, extractWorkspaceDetails(
+            // Create response does not include cloudPlatform.
+            _.merge(workspace, { cloudPlatform: getProjectCloudPlatform() }))
+          )
           return workspace
-        }))
+        })
+      onSuccess(createdWorkspace)
+      createLeoApp(createdWorkspace)
     } catch (error) {
       const { message } = await error.json()
       setCreating(false)
@@ -148,7 +146,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
         setNamespace(_.some({ projectName: namespace }, projects) ? namespace : undefined)
       }),
     Ajax(signal).Groups.list().then(setAllGroups),
-    !!cloneWorkspace && !cloneWorkspace.azureContext && Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
+    !!cloneWorkspace && isGoogleWorkspace(cloneWorkspace) && Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
       .then(({ location }) => {
         // For current phased regionality release, we only allow US or NORTHAMERICA-NORTHEAST1 (Montreal) workspace buckets.
         setBucketLocation(isSupportedBucketLocation(location) ? location : defaultLocation)
@@ -160,18 +158,25 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     return !!cloneWorkspace && bucketLocation !== sourceWorkspaceLocation
   }
 
-  const isAzureBillingProject = project => {
+  const isAzureBillingProject = project => isCloudProviderBillingProject(project, cloudProviders.azure.label)
+
+  const isGoogleBillingProject = project => isCloudProviderBillingProject(project, cloudProviders.gcp.label)
+
+  const isCloudProviderBillingProject = (project, cloudProvider) => getProjectCloudPlatform(project) === cloudProvider
+
+  const getProjectCloudPlatform = project => {
     if (project === undefined) {
       project = _.find({ projectName: namespace }, billingProjects)
     }
-    return project?.cloudPlatform === cloudProviders.azure.label
+    return project?.cloudPlatform
   }
 
   const isBillingProjectApplicable = project => {
-    // Only support cloning a workspace to the same cloud environment.
+    // Only support cloning a workspace to the same cloud environment. If this changes, also update
+    // the Events.workspaceClone event data.
     return Utils.cond(
-      [!!cloneWorkspace && !!cloneWorkspace.azureContext, () => isAzureBillingProject(project)],
-      [!!cloneWorkspace && !cloneWorkspace.azureContext, () => !isAzureBillingProject(project)],
+      [!!cloneWorkspace && isAzureWorkspace(cloneWorkspace), () => isAzureBillingProject(project)],
+      [!!cloneWorkspace && isGoogleWorkspace(cloneWorkspace), () => isGoogleBillingProject(project)],
       [Utils.DEFAULT, () => true]
     )
   }
@@ -247,19 +252,19 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           onChange: ({ value }) => setNamespace(value),
           styles: { option: provided => ({ ...provided, padding: 10 }) },
           options: _.map(({ projectName, invalidBillingAccount, cloudPlatform }) => ({
-            'aria-label': `${getCloudPlatformTitle(cloudPlatform)} ${projectName}${ariaInvalidBillingAccountMsg(invalidBillingAccount)}`,
+            'aria-label': `${cloudProviderLabels[cloudPlatform]} ${projectName}${ariaInvalidBillingAccountMsg(invalidBillingAccount)}`,
             label: h(TooltipTrigger, {
               content: invalidBillingAccount && invalidBillingAccountMsg, side: 'left'
             },
             [div({ style: { display: 'flex', alignItems: 'center' } },
-              [h(cloudPlatformIcon, { cloudPlatform, key: projectName }), projectName]
+              [h(CloudProviderIcon, { key: projectName, cloudProvider: cloudPlatform, style: { marginRight: '0.5rem' } }), projectName]
             )]),
             value: projectName,
             isDisabled: invalidBillingAccount
           }), _.sortBy('projectName', _.uniq(billingProjects)))
         })
       ])]),
-      !isAzureBillingProject() && h(IdContainer, [id => h(Fragment, [
+      isGoogleBillingProject() && h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id }, [
           'Bucket location',
           h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
@@ -326,7 +331,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           onChange: setDescription
         })
       ])]),
-      !isAzureBillingProject() && h(IdContainer, [id => h(Fragment, [
+      isGoogleBillingProject() && h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id }, [
           'Authorization domain',
           h(InfoBox, { style: { marginLeft: '0.25rem' } }, [

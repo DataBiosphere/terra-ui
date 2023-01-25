@@ -501,8 +501,8 @@ export const getIsRuntimeBusy = runtime => {
 // NOTE: the label property is being compared to Ajax response values, so the label cannot be changed without
 // impacting code.
 export const cloudProviders = {
-  azure: { label: 'AZURE', iconTitle: 'Microsoft Azure' },
-  gcp: { label: 'GCP', iconTitle: 'Google Cloud Platform' }
+  azure: { label: 'AZURE' },
+  gcp: { label: 'GCP' }
 }
 
 export const isGcpContext = ({ cloudProvider }) => cloudProvider === cloudProviders.gcp.label
@@ -521,4 +521,5 @@ export const runtimeStatuses = {
   error: { label: 'Error', leoLabel: 'Error', canChangeCompute: true }
 }
 
+export const getCreatorForRuntime = _.get(['auditInfo', 'creator'])
 

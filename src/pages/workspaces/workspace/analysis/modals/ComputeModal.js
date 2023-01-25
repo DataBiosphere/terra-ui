@@ -1,9 +1,8 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, br, code, div, fieldset, h, label, legend, li, p, span, strong, ul } from 'react-hyperscript-helpers'
-import {
-  ButtonOutline, ButtonPrimary, ClipboardButton, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay
-} from 'src/components/common'
+import { ClipboardButton } from 'src/components/ClipboardButton'
+import { ButtonOutline, ButtonPrimary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
@@ -32,7 +31,7 @@ import {
   getDefaultMachineType, getIsRuntimeBusy, getPersistentDiskCostMonthly, getValidGpuOptions, getValidGpuTypesForZone,
   isAutopauseEnabled, pdTypes, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { getToolForImage, getToolFromRuntime, runtimeTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getToolLabelForImage, getToolLabelFromRuntime, runtimeTools, terraSupportedRuntimeImageIds, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import validate from 'validate.js'
 
 
@@ -43,6 +42,7 @@ const titleId = 'cloud-compute-modal-title'
 const customMode = '__custom_mode__'
 const terraDockerBaseGithubUrl = 'https://github.com/databiosphere/terra-docker'
 const terraBaseImages = `${terraDockerBaseGithubUrl}#terra-base-images`
+const anVILRStudioImage = 'https://github.com/anvilproject/anvil-docker/tree/master/anvil-rstudio-bioconductor'
 const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/360034669811'
 
 // Distilled from https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
@@ -191,6 +191,7 @@ export const ComputeModalBase = ({
   const [simplifiedForm, setSimplifiedForm] = useState(!currentRuntimeDetails)
   const [leoImages, setLeoImages] = useState([])
   const [selectedLeoImage, setSelectedLeoImage] = useState(undefined)
+  const [timeoutInMinutes, setTimeoutInMinutes] = useState(null)
   const [customEnvImage, setCustomEnvImage] = useState('')
   const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState('')
   const [runtimeType, setRuntimeType] = useState(runtimeTypes.gceVm)
@@ -218,6 +219,10 @@ export const ComputeModalBase = ({
   const isPersistentDisk = shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected)
 
   const isCustomImage = selectedLeoImage === customMode
+  const supportedImages = _.flow(
+    _.filter(({ id }) => terraSupportedRuntimeImageIds.includes(id)),
+    _.map(({ image }) => image)
+  )(leoImages)
   const { version, updated, packages, requiresSpark, label: packageLabel } = _.find({ image: selectedLeoImage }, leoImages) || {}
   // The memory sizes below are the minimum required to launch Terra-supported GCP runtimes, based on experimentation.
   const minRequiredMemory = isDataproc(runtimeType) ? 7.5 : 3.75 // in GB
@@ -257,7 +262,7 @@ export const ComputeModalBase = ({
     const shouldDeleteRuntime = existingRuntime && !canUpdateRuntime()
     const shouldCreateRuntime = !canUpdateRuntime() && !!desiredRuntime
     const { namespace, name, bucketName, googleProject } = getWorkspaceObject()
-    const desiredTool = getToolFromRuntime(desiredRuntime)
+    const desiredToolLabel = getToolLabelFromRuntime(desiredRuntime)
 
     const customEnvVars = {
       WORKSPACE_NAME: name,
@@ -280,7 +285,7 @@ export const ComputeModalBase = ({
         cloudService: desiredRuntime.cloudService,
         ...(desiredRuntime.cloudService === cloudServices.GCE ? {
           zone: desiredRuntime.zone.toLowerCase(),
-          machineType: desiredRuntime.machineType || getDefaultMachineType(false, desiredTool),
+          machineType: desiredRuntime.machineType || getDefaultMachineType(false, desiredToolLabel),
           ...(computeConfig.gpuEnabled && { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } })
         } : {
           region: desiredRuntime.region.toLowerCase(),
@@ -323,11 +328,11 @@ export const ComputeModalBase = ({
         }
 
         const createRuntimeConfig = { ...runtimeConfig, ...diskConfig }
-
         await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
           runtimeConfig: createRuntimeConfig,
           autopauseThreshold: computeConfig.autopauseThreshold,
           toolDockerImage: desiredRuntime.toolDockerImage,
+          timeoutInMinutes,
           labels: {
             saturnWorkspaceNamespace: namespace,
             saturnWorkspaceName: name
@@ -359,7 +364,7 @@ export const ComputeModalBase = ({
     return { currentNumCpus, currentMemory, validGpuName, validGpuNames, validGpuType, validGpuOptions, validNumGpus, validNumGpusOptions }
   }
 
-  const isRStudioImage = getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id) === runtimeTools.RStudio.label
+  const isRStudioImage = getToolLabelForImage(_.find({ image: selectedLeoImage }, leoImages)?.id) === runtimeTools.RStudio.label
 
   const canUpdateRuntime = () => {
     const { runtime: existingRuntime, autopauseThreshold: existingAutopauseThreshold } = getExistingEnvironmentConfig()
@@ -410,7 +415,7 @@ export const ComputeModalBase = ({
     const cloudService = runtimeConfig?.cloudService
     const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
     const gpuConfig = runtimeConfig?.gpuConfig
-    const tool = getToolFromRuntime(currentRuntimeDetails)
+    const toolLabel = getToolLabelFromRuntime(currentRuntimeDetails)
 
     return {
       hasGpu: computeConfig.hasGpu,
@@ -418,11 +423,11 @@ export const ComputeModalBase = ({
       runtime: currentRuntimeDetails ? {
         cloudService,
         toolDockerImage: getImageUrl(currentRuntimeDetails),
-        tool,
+        tool: toolLabel,
         ...(currentRuntimeDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri }),
         ...(cloudService === cloudServices.GCE ? {
           zone: computeConfig.computeZone,
-          machineType: runtimeConfig.machineType || getDefaultMachineType(false, tool),
+          machineType: runtimeConfig.machineType || getDefaultMachineType(false, toolLabel),
           ...(computeConfig.hasGpu && gpuConfig ? { gpuConfig } : {}),
           bootDiskSize: runtimeConfig.bootDiskSize,
           ...(runtimeConfig.persistentDiskId ? {
@@ -464,7 +469,7 @@ export const ComputeModalBase = ({
             ...(cloudService === cloudServices.GCE ? {
               zone: computeConfig.computeZone,
               region: computeConfig.computeRegion,
-              machineType: computeConfig.masterMachineType || getDefaultMachineType(false, getToolFromRuntime(existingRuntime)),
+              machineType: computeConfig.masterMachineType || getDefaultMachineType(false, getToolLabelFromRuntime(existingRuntime)),
               ...(computeConfig.gpuEnabled ? { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } } : {}),
               bootDiskSize: existingRuntime?.bootDiskSize,
               ...(shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected) ? {
@@ -515,13 +520,13 @@ export const ComputeModalBase = ({
    */
   const getPendingRuntimeConfig = () => {
     const { runtime: desiredRuntime, autopauseThreshold: desiredAutopauseThreshold } = getDesiredEnvironmentConfig()
-    const tool = getToolFromRuntime(desiredRuntime)
+    const toolLabel = getToolLabelFromRuntime(desiredRuntime)
 
     return {
       cloudService: desiredRuntime.cloudService,
       autopauseThreshold: desiredAutopauseThreshold,
       ...(desiredRuntime.cloudService === cloudServices.GCE ? {
-        machineType: desiredRuntime.machineType || getDefaultMachineType(false, tool),
+        machineType: desiredRuntime.machineType || getDefaultMachineType(false, toolLabel),
         bootDiskSize: desiredRuntime.bootDiskSize,
         region: desiredRuntime.region,
         zone: desiredRuntime.zone,
@@ -579,7 +584,7 @@ export const ComputeModalBase = ({
 
   const makeImageInfo = style => {
     const selectedImage = _.find({ image: selectedLeoImage }, leoImages)
-    const shouldDisable = _.isEmpty(leoImages) ? true : selectedImage.isCommunity || getToolForImage(selectedImage.id) === toolLabels.RStudio
+    const shouldDisable = _.isEmpty(leoImages) ? true : selectedImage.isCommunity || getToolLabelForImage(selectedImage.id) === toolLabels.RStudio
     const changelogUrl = _.isEmpty(leoImages) ?
       '' :
       `https://github.com/DataBiosphere/terra-docker/blob/master/${_.replace('_legacy', '', selectedImage.id)}/CHANGELOG.md`
@@ -856,6 +861,34 @@ export const ComputeModalBase = ({
     )
   }
 
+  const renderCustomTimeoutInMinutes = () => {
+    return h(IdContainer, [
+      id => h(div, {}, [
+        div({ style: { margin: '0.5rem 0' } }, [
+          label({ htmlFor: id, style: { ...computeStyles.label } }, ['Creation Timeout Limit']),
+          h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+            'Custom and Legacy image creation may take longer than the default 10 minute timeout window. ' +
+            'To avoid an error, you may enter a value between 10 and 30 minutes.'
+          ])
+        ]),
+        div({ style: { display: 'grid', alignItems: 'center', gridGap: '0.7rem', gridTemplateColumns: '4.5rem 9.5rem', marginTop: '0.75rem' } }, [
+          h(NumberInput, {
+              id,
+              min: 10,
+              max: 30,
+              isClearable: false,
+              onlyInteger: true,
+              value: timeoutInMinutes,
+              placeholder: '10',
+              onChange: value => setTimeoutInMinutes(value),
+              'aria-label': 'Minutes of processing before failure'
+            }),
+            span('Minutes')
+        ])
+      ])
+    ])
+  }
+
   const renderApplicationConfigurationSection = () => {
     return div({ style: computeStyles.whiteBoxContainer }, [
       h(IdContainer, [
@@ -866,7 +899,7 @@ export const ComputeModalBase = ({
               'The software application + programming languages + packages used when you create your cloud environment. '
             ])
           ]),
-          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: tool !== toolLabels.RStudio })])
+          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: tool === toolLabels.Jupyter || tool === toolLabels.RStudio })])
         ])
       ]),
       Utils.switchCase(selectedLeoImage,
@@ -889,8 +922,15 @@ export const ComputeModalBase = ({
               ])
             ]),
             div([
-              'Custom environments ', b(['must ']), 'be based off one of the ',
-              h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images'])
+              'Custom environments ', b(['must ']), 'be based off ',
+              ...Utils.switchCase(tool, [
+                toolLabels.RStudio, () => ['the ', h(Link,
+                  { href: anVILRStudioImage, ...Utils.newTabLinkProps }, ['AnVIL RStudio image'])]
+                ], [
+                toolLabels.Jupyter, () => ['one of the ', h(Link,
+                  { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images'])]
+                ]
+              )
             ])
           ])
         }],
@@ -902,7 +942,8 @@ export const ComputeModalBase = ({
             ])
           ])
         }]
-      )
+      ),
+      selectedLeoImage && !supportedImages.includes(selectedLeoImage) ? renderCustomTimeoutInMinutes() : []
     ])
   }
 
@@ -1059,7 +1100,7 @@ export const ComputeModalBase = ({
                     value: runtimeType,
                     onChange: ({ value }) => {
                       setRuntimeType(value)
-                      const defaultMachineTypeForSelectedValue = getDefaultMachineType(isDataproc(value), getToolFromRuntime(value))
+                      const defaultMachineTypeForSelectedValue = getDefaultMachineType(isDataproc(value), getToolLabelFromRuntime(value))
                       // we need to update the compute config if the current value is smaller than the default for the dropdown option
                       if (isMachineTypeSmaller(computeConfig.masterMachineType, defaultMachineTypeForSelectedValue)) {
                         updateComputeConfig('masterMachineType', defaultMachineTypeForSelectedValue)
@@ -1228,8 +1269,12 @@ export const ComputeModalBase = ({
       div({ style: { lineHeight: 1.5 } }, [
         p([
           'You are about to create a virtual machine using an unverified Docker image. ',
-          'Please make sure that it was created by you or someone you trust, using one of our ',
-          h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.']),
+          'Please make sure that it was created by you or someone you trust using ',
+          ...Utils.switchCase(tool, [
+            toolLabels.RStudio, () => ['our base ', h(Link, { href: anVILRStudioImage, ...Utils.newTabLinkProps }, ['AnVIL RStudio image.'])]
+          ], [
+            toolLabels.Jupyter, () => ['one of our ', h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])]
+          ]),
           ' Custom Docker images could potentially cause serious security issues.'
         ]),
         h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
@@ -1445,8 +1490,8 @@ export const ComputeModalBase = ({
 
   const renderEnvironmentWarning = () => {
     const { runtime: existingRuntime } = getExistingEnvironmentConfig()
-    const desiredTool = getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id)
-    const desiredToolPhrase = isCustomImage ? 'a custom image' : strong([desiredTool])
+    const desiredToolLabel = getToolLabelForImage(_.find({ image: selectedLeoImage }, leoImages)?.id)
+    const desiredToolLabelPhrase = isCustomImage ? 'a custom image' : strong([desiredToolLabel])
 
     return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
       h(TitleBar, {
@@ -1491,12 +1536,12 @@ export const ComputeModalBase = ({
             existingRuntime?.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp)
           ])],
           [willRequireDowntime(), () => h(Fragment, [
-            existingRuntime && existingRuntime.tool !== desiredTool ?
+            existingRuntime && existingRuntime.tool !== desiredToolLabel ?
               p([
                 'By continuing, you will be changing the application of your cloud environment from ',
                 strong([existingRuntime.tool]),
                 ' to ',
-                desiredToolPhrase,
+                desiredToolLabelPhrase,
                 '.'
               ]) :
               undefined,
@@ -1517,7 +1562,7 @@ export const ComputeModalBase = ({
       _.map(({ label, image }) => ({ label, value: image }))
     )(leoImages)
 
-    const desiredTool = getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id)
+    const desiredToolLabel = getToolLabelForImage(_.find({ image: selectedLeoImage }, leoImages)?.id)
 
     return h(GroupedSelect, {
       ...props,
@@ -1531,10 +1576,11 @@ export const ComputeModalBase = ({
           [Utils.DEFAULT, () => runtimeTypes.gceVm]
         )
         setSelectedLeoImage(value)
+        setTimeoutInMinutes(supportedImages.includes(value) ? null : timeoutInMinutes)
         setCustomEnvImage('')
         setRuntimeType(newRuntimeType)
         updateComputeConfig('componentGatewayEnabled', isDataproc(newRuntimeType))
-        const machineType = getDefaultMachineType(isDataproc(newRuntimeType), desiredTool)
+        const machineType = getDefaultMachineType(isDataproc(newRuntimeType), desiredToolLabel)
         updateComputeConfig('masterMachineType', machineType)
         if (isDataproc(newRuntimeType) && computeConfig.masterDiskSize < defaultDataprocMasterDiskSize) {
           updateComputeConfig('masterDiskSize', defaultDataprocMasterDiskSize)
@@ -1545,7 +1591,7 @@ export const ComputeModalBase = ({
       options: [
         {
           label: 'TERRA-MAINTAINED JUPYTER ENVIRONMENTS',
-          options: getImages(({ isCommunity, id }) => (!isCommunity && !(getToolForImage(id) === toolLabels.RStudio)))
+          options: getImages(({ isCommunity, id }) => (!isCommunity && !(getToolLabelForImage(id) === toolLabels.RStudio)))
         },
         {
           label: 'COMMUNITY-MAINTAINED JUPYTER ENVIRONMENTS (verified partners)',
@@ -1553,7 +1599,7 @@ export const ComputeModalBase = ({
         },
         {
           label: 'COMMUNITY-MAINTAINED RSTUDIO ENVIRONMENTS (verified partners)',
-          options: getImages(image => getToolForImage(image.id) === toolLabels.RStudio)
+          options: getImages(image => getToolLabelForImage(image.id) === toolLabels.RStudio)
         },
         ...(includeCustom ? [{
           label: 'OTHER ENVIRONMENTS',

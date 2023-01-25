@@ -1,5 +1,5 @@
 import filesize from 'filesize'
-import { Dispatch, SetStateAction } from 'react'
+import React, { Dispatch, SetStateAction } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Checkbox, Link } from 'src/components/common'
@@ -82,9 +82,8 @@ const FilesTable = (props: FilesTableProps) => {
               const file = files[rowIndex]
               return h(Link, {
                 href: file.url,
-                // @ts-expect-error
                 style: {
-                  ...Style.noWrapEllipsis,
+                  ...Style.noWrapEllipsis as React.CSSProperties,
                   textDecoration: 'underline'
                 },
                 onClick: e => {

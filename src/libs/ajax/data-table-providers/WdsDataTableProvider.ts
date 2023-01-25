@@ -82,15 +82,38 @@ const getRelationParts = (val: unknown): string[] => {
   return []
 }
 
+// Extract wds URL from Leo response. exported for testing
+export const getWdsUrl = apps => {
+  // look explicitly for an app named 'wds-${app.workspaceId}'. If found, use it, even if it isn't running
+  // this handles the case where the user has explicitly shut down the app
+  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}` && app.status === 'RUNNING')
+  if (namedApp.length === 1) {
+    return namedApp[0].proxyUrls.wds
+  }
+  // if we didn't find the expected app 'cbas-wds-default', go hunting:
+  const candidates = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
+  if (candidates.length === 0) {
+    // no app deployed yet
+    return ''
+  }
+  if (candidates.length > 1) {
+    // multiple apps found; use the earliest-created one
+    candidates.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
+  }
+  return candidates[0].proxyUrls.wds
+}
+
+export const wdsProviderName: string = 'WDS'
+
 export class WdsDataTableProvider implements DataTableProvider {
-  constructor(workspaceId: string, proxyUrl: string) {
+  constructor(workspaceId: string) {
     this.workspaceId = workspaceId
-    this.proxyUrl = proxyUrl
+    this.proxyUrlPromise = Ajax().Apps.getV2AppInfo(workspaceId).then(getWdsUrl)
   }
 
-  providerName: string = 'WDS'
+  providerName: string = wdsProviderName
 
-  proxyUrl: string
+  proxyUrlPromise: Promise<string>
 
   workspaceId: string
 
@@ -122,7 +145,7 @@ export class WdsDataTableProvider implements DataTableProvider {
     },
     tooltip: (options: TsvUploadButtonTooltipOptions): string => {
       return Utils.cond(
-        [!options.recordTypePresent, () => 'Please enter record type'],
+        [!options.recordTypePresent, () => 'Please enter table name'],
         [!options.filePresent, () => 'Please select valid data to upload'],
         () => 'Upload selected data'
       )
@@ -189,8 +212,9 @@ export class WdsDataTableProvider implements DataTableProvider {
   }
 
   getPage = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions, metadata: EntityMetadata): Promise<EntityQueryResponse> => {
+    const proxyUrl = await this.proxyUrlPromise
     const wdsPage: RecordQueryResponse = await Ajax(signal).WorkspaceData
-      .getRecords(this.proxyUrl, this.workspaceId, entityType,
+      .getRecords(proxyUrl, this.workspaceId, entityType,
         _.merge({
           offset: (queryOptions.pageNumber - 1) * queryOptions.itemsPerPage,
           limit: queryOptions.itemsPerPage,
@@ -201,15 +225,18 @@ export class WdsDataTableProvider implements DataTableProvider {
     return this.transformPage(wdsPage, entityType, queryOptions, metadata)
   }
 
-  deleteTable = (entityType: string): Promise<Response> => {
-    return Ajax().WorkspaceData.deleteTable(this.proxyUrl, this.workspaceId, entityType)
+  deleteTable = async (entityType: string): Promise<Response> => {
+    const proxyUrl = await this.proxyUrlPromise
+    return Ajax().WorkspaceData.deleteTable(proxyUrl, this.workspaceId, entityType)
   }
 
-  downloadTsv = (signal: AbortSignal, entityType: string): Promise<Blob> => {
-    return Ajax(signal).WorkspaceData.downloadTsv(this.proxyUrl, this.workspaceId, entityType)
+  downloadTsv = async (signal: AbortSignal, entityType: string): Promise<Blob> => {
+    const proxyUrl = await this.proxyUrlPromise
+    return Ajax(signal).WorkspaceData.downloadTsv(proxyUrl, this.workspaceId, entityType)
   }
 
-  uploadTsv = (uploadParams: UploadParameters): Promise<TsvUploadResponse> => {
-    return Ajax().WorkspaceData.uploadTsv(this.proxyUrl, uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
+  uploadTsv = async (uploadParams: UploadParameters): Promise<TsvUploadResponse> => {
+    const proxyUrl = await this.proxyUrlPromise
+    return Ajax().WorkspaceData.uploadTsv(proxyUrl, uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
   }
 }

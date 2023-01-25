@@ -36,7 +36,7 @@ describe('CreateAzureBillingProjectModal', () => {
   const getBillingProjectHint = () => screen.queryByText('Name must be unique and cannot be changed.')
 
   const invalidUuidError = 'Subscription id must be a UUID'
-  const noManagedApps = 'No Terra Managed Applications exist for that subscription'
+  const noManagedApps = 'Go to the Azure Marketplace' // Can only test for complete text in an element, in this case the link.
   const managedAppCallFailed = 'Unable to retrieve Managed Applications for that subscription'
   const getSubscriptionInput = () => screen.getByLabelText('Azure subscription *')
   const getManagedAppInput = () => screen.getByLabelText('Unassigned managed application *')

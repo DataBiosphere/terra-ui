@@ -10,7 +10,7 @@ import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { getLocalPref } from 'src/libs/prefs'
 import { useCancellation, useGetter, useOnMount, usePollingEffect, usePrevious, useStore } from 'src/libs/react-utils'
-import { authStore, azureCookieReadyStore, cookieReadyStore, userStatus } from 'src/libs/state'
+import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { getConvertedRuntimeStatus, usableStatuses } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
@@ -92,8 +92,11 @@ export const RuntimeStatusMonitor = ({ runtime, onRuntimeStoppedRunning = _.noop
 }
 
 export const AuthenticatedCookieSetter = () => {
-  const { registrationStatus } = useStore(authStore)
-  return registrationStatus === userStatus.registeredWithTos && getLocalPref(cookiesAcceptedKey) !== false ? h(PeriodicCookieSetter) : null
+  const { termsOfService } = useStore(authStore)
+  const cookiesAccepted = getLocalPref(cookiesAcceptedKey) !== false
+  const userCanUseTerra = termsOfService.userCanUseTerra
+
+  return userCanUseTerra && cookiesAccepted ? h(PeriodicCookieSetter) : null
 }
 
 export const PeriodicCookieSetter = () => {
@@ -108,12 +111,13 @@ export const PeriodicCookieSetter = () => {
   return null
 }
 
-export const PeriodicAzureCookieSetter = ({ proxyUrl }) => {
+export const PeriodicAzureCookieSetter = ({ proxyUrl, forCromwell = false }) => {
   const signal = useCancellation()
   usePollingEffect(
     withErrorIgnoring(async () => {
       await Ajax(signal).Runtimes.azureProxy(proxyUrl).setAzureCookie()
-      azureCookieReadyStore.set(true)
+      if (forCromwell) azureCookieReadyStore.update(_.set('readyForCromwellApp', true))
+      else azureCookieReadyStore.update(_.set('readyForRuntime', true))
     }),
     { ms: 5 * 60 * 1000, leading: true }
   )
@@ -160,6 +164,15 @@ export const SaveFilesHelpGalaxy = () => {
         href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
         ...Utils.newTabLinkProps
       }, ['move them to the workspace bucket.'])])
+  ])
+}
+
+export const SaveFilesHelpAzure = () => {
+  return h(Fragment, [
+    p([
+      'If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
+      'please move them to your workspace storage container.', // TODO: Link support article once published
+    ]),
   ])
 }
 

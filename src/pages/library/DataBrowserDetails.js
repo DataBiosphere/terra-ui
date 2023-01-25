@@ -2,7 +2,8 @@ import _ from 'lodash/fp'
 import qs from 'qs'
 import { Fragment, useState } from 'react'
 import { div, h, h1, h2, h3, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
-import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Link } from 'src/components/common'
+import { FeaturePreviewFeedbackModal } from 'src/components/FeaturePreviewFeedbackModal'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
@@ -17,12 +18,14 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, usePollingEffect } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
+import { cloudProviderLabels } from 'src/libs/workspace-utils'
 import { commonStyles } from 'src/pages/library/common'
 import {
+  DatasetAccess,
   datasetAccessTypes, DatasetReleasePolicyDisplayInformation, formatDatasetTime, getAssayCategoryListFromDataset, getDataModalityListFromDataset,
+  getDatasetAccessType,
   isDatarepoSnapshot, isWorkspace, uiMessaging, useDataCatalog
 } from 'src/pages/library/dataBrowser-utils'
-import { DataBrowserFeedbackModal } from 'src/pages/library/DataBrowserFeedbackModal'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -35,21 +38,13 @@ const styles = {
   cloudIconProps: { role: 'img', style: { maxHeight: 25, maxWidth: 150 } }
 }
 
-export const ContactCard = ({ contactName, institution, email }) => {
-  return div({ key: contactName, style: { marginBottom: 30 } }, [
-    contactName,
-    institution && div({ style: { marginTop: 5 } }, [institution]),
-    email && h(Link, { href: `mailto:${email}`, style: { marginTop: 5, display: 'block' } }, [email])
-  ])
-}
-
 const MetadataDetailsComponent = ({ dataObj, name }) => {
   return h(Fragment, [
     h2({ className: 'sr-only' }, [` ${name} Metadata`]),
     div({ style: { display: 'flex', width: '100%', flexWrap: 'wrap' } }, [
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Data release policy']),
-        h(DatasetReleasePolicyDisplayInformation, { dataUsePermission: dataObj['TerraDCAT_ap:hasDataUsePermission'] })
+        h(DatasetReleasePolicyDisplayInformation, dataObj)
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Last Updated']),
@@ -64,24 +59,27 @@ const MetadataDetailsComponent = ({ dataObj, name }) => {
         _.map(
           ({ cloudPlatform }) => div({ key: cloudPlatform }, [
             Utils.switchCase(cloudPlatform,
-              ['gcp', () => h(GcpLogo, { title: 'Google Cloud Platform', ...styles.cloudIconProps })],
-              ['azure', () => h(AzureLogo, { title: 'Microsoft Azure', ...styles.cloudIconProps })]
+              ['gcp', () => h(GcpLogo, { title: cloudProviderLabels.GCP, ...styles.cloudIconProps })],
+              ['azure', () => h(AzureLogo, { title: cloudProviderLabels.AZURE, ...styles.cloudIconProps })]
             )
           ]),
           _.uniqBy('cloudPlatform', dataObj.storage)
         )
       ]),
       div({ style: styles.attributesColumn }, [
-        h3({ style: styles.headers }, ['Contact']),
-        _.map(ContactCard, dataObj.contacts)
+        h3({ style: styles.headers }, ['Owner']),
+        dataObj['TerraDCAT_ap:hasOwner']
       ]),
       div({ style: styles.attributesColumn }, [
-        h3({ style: styles.headers }, ['Data curator']),
-        _.map(ContactCard, dataObj.curators)
+        h3({ style: styles.headers }, ['Custodians']),
+        div({ style: { whiteSpace: 'pre' } }, [_.join('\n', dataObj['TerraDCAT_ap:hasCustodian'])])
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Contributors']),
-        div({ style: { whiteSpace: 'pre' } }, [_.join('\n', dataObj.contributorNames)])
+        _.map(({ name, email }) => !!email ?
+          h(Link, { key: _.uniqueId(`${name}-${email}-`), href: `mailto:${email}`, style: { marginTop: 5, display: 'block' } }, [name]) :
+          div({ key: _.uniqueId(`${name}-${email}-`), style: { marginTop: 5 } }, [name]),
+        dataObj.contributors)
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Region']),
@@ -107,16 +105,6 @@ const MainContent = ({ dataObj }) => {
         workspaceName
       ])
     ]),
-    dataObj.access === datasetAccessTypes.EXTERNAL && div({ style: { marginBottom: '1rem', display: 'flex' } }, [
-      'This data is hosted and managed externally from Terra. ',
-      h(Link, {
-        style: { ...linkStyle, marginLeft: 10 },
-        href: accessURL, target: '_blank'
-      }, [
-        'Go to external data site',
-        icon('pop-out', { size: 18, style: { marginLeft: 10, color: styles.access.controlled } })
-      ])
-    ]),
     dataObj['dct:description'],
     h(MetadataDetailsComponent, { dataObj })
   ])
@@ -124,14 +112,14 @@ const MainContent = ({ dataObj }) => {
 
 
 export const SidebarComponent = ({ dataObj, id }) => {
-  const { access, requestAccessURL } = dataObj
   const [showRequestAccessModal, setShowRequestAccessModal] = useState(false)
   const [feedbackShowing, setFeedbackShowing] = useState(false)
   const [datasetNotSupportedForExport, setDatasetNotSupportedForExport] = useState(false)
   const [snapshotExportJobId, setSnapshotExportJobId] = useState()
   const [tdrSnapshotPreparePolling, setTdrSnapshotPreparePolling] = useState(false)
   const sidebarButtonWidth = 230
-
+  const access = getDatasetAccessType(dataObj)
+  const actionTooltip = access === datasetAccessTypes.Granted ? '' : uiMessaging.controlledFeatureTooltip
 
   const importDataToWorkspace = dataset => {
     Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
@@ -165,34 +153,8 @@ export const SidebarComponent = ({ dataObj, id }) => {
       div({ style: { backgroundColor: 'white', padding: 20, paddingTop: 0, width: '100%', border: '2px solid #D6D7D7', borderRadius: 5 } }, [
         div([
           h3(['Access type']),
-          div([
-            Utils.cond(
-              [access === datasetAccessTypes.EXTERNAL, () => div({ style: { fontSize: 12 } }, ['Managed Externally'])],
-              [!!requestAccessURL && access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
-                style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
-                href: requestAccessURL, target: '_blank'
-              }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
-              [access === datasetAccessTypes.CONTROLLED, () => h(ButtonSecondary, {
-                style: { fontSize: 16, textTransform: 'none', height: 'unset' },
-                onClick: () => {
-                  setShowRequestAccessModal(true)
-                  Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
-                    id: dataObj.id,
-                    title: dataObj['dct:title']
-                  })
-                }
-              }, [
-                icon('lock', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
-                'Request Access'
-              ])],
-              [access === datasetAccessTypes.PENDING, () => div({ style: { color: styles.access.pending } }, [
-                icon('unlock', { size: 18, style: { marginRight: 10 } }),
-                'Pending Access'
-              ])],
-              [Utils.DEFAULT, () => div({ style: { color: styles.access.granted } }, [
-                icon('unlock', { size: 18, style: { marginRight: 10 } }),
-                'Granted Access'
-              ])])
+          div({ style: { display: 'flex', alignItems: 'flex-start' } }, [
+            h(DatasetAccess, { dataset: dataObj }),
           ])
         ]),
         div([
@@ -216,20 +178,20 @@ export const SidebarComponent = ({ dataObj, id }) => {
           table([
             tbody([
               _.map(file => {
-                return tr({ key: `filetype_${file['dcat:mediaType']}_${file.count}` }, [
-                  td({ style: { paddingRight: 30 } }, [file['dcat:mediaType']]),
+                return tr({ key: `filetype_${file['TerraCore:hasFileFormat']}_${file.count}` }, [
+                  td({ style: { paddingRight: 30 } }, [file['TerraCore:hasFileFormat']]),
                   td([(file.count || 0).toLocaleString()])
                 ])
-              }, dataObj.files),
+              }, dataObj.fileAggregate),
               tr({ style: { fontWeight: 'bold', borderTop: '2px solid rgba(0,0,0,.3)' } }, [
                 td(['Total']),
-                td([_.sumBy('count', dataObj.files).toLocaleString()])
+                td([_.sumBy('count', dataObj.fileAggregate).toLocaleString()])
               ])
             ])
           ])
         ])
       ]),
-      access === datasetAccessTypes.EXTERNAL ?
+      access === datasetAccessTypes.External ?
         h(Fragment, [
           h(ButtonPrimary, {
             style: { fontSize: 14, textTransform: 'none', height: 'unset', width: '100%', marginTop: 20 },
@@ -239,10 +201,8 @@ export const SidebarComponent = ({ dataObj, id }) => {
         ]) :
         h(Fragment, [
           h(ButtonOutline, {
-            disabled: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) && dataObj.access !== datasetAccessTypes.GRANTED,
-            tooltip: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) ?
-              dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeatureTooltip :
-              uiMessaging.unsupportedDatasetTypeTooltip('preview'),
+            disabled: access !== datasetAccessTypes.Granted,
+            tooltip: actionTooltip,
             style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
             onClick: () => {
               Ajax().Metrics.captureEvent(`${Events.catalogView}:previewData`, {
@@ -258,10 +218,8 @@ export const SidebarComponent = ({ dataObj, id }) => {
             ])
           ]),
           h(ButtonPrimary, {
-            disabled: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) && (dataObj.access !== datasetAccessTypes.GRANTED || tdrSnapshotPreparePolling),
-            tooltip: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) ?
-              dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeatureTooltip :
-              uiMessaging.unsupportedDatasetTypeTooltip('preparing for analysis'),
+            disabled: access !== datasetAccessTypes.Granted || tdrSnapshotPreparePolling,
+            tooltip: actionTooltip,
             style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
             onClick: () => {
               importDataToWorkspace(dataObj)
@@ -277,9 +235,14 @@ export const SidebarComponent = ({ dataObj, id }) => {
           ])
         ])
     ]),
-    feedbackShowing && h(DataBrowserFeedbackModal, {
+    feedbackShowing && h(FeaturePreviewFeedbackModal, {
       onDismiss: () => setFeedbackShowing(false),
       onSuccess: () => setFeedbackShowing(false),
+      featureName: 'Data Catalog',
+      formId: '1FAIpQLSevEVLKiLNACAsti8k2U8EVKGHmQ4pJ8_643MfdY2lZEIusyw',
+      feedbackId: 'entry.477992521',
+      contactEmailId: 'entry.82175827',
+      sourcePageId: 'entry.367682225',
       primaryQuestion: 'Is there anything missing or that you would like to see in this dataset view?',
       sourcePage: 'Catalog Details'
     }),
@@ -330,7 +293,8 @@ const SnapshotExportModal = ({ jobId, dataset, onDismiss, onFailure }) => {
           pathname: Nav.getPath('import-data'),
           search: qs.stringify({
             url: getConfig().dataRepoUrlRoot, format: 'tdrexport', referrer: 'data-catalog',
-            snapshotId: dataset['dct:identifier'], snapshotName: dataset['dct:title'], tdrmanifest: jobResultManifest
+            snapshotId: dataset['dct:identifier'], snapshotName: dataset['dct:title'], tdrmanifest: jobResultManifest,
+            tdrSyncPermissions: false
           })
         }) : onFailure()
       }],

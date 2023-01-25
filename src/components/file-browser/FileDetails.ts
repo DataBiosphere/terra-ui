@@ -1,15 +1,18 @@
 import filesize from 'filesize'
 import { Fragment } from 'react'
 import { dd, div, dl, dt, h } from 'react-hyperscript-helpers'
-import { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
+import { DownloadFileCommand } from 'src/components/file-browser/DownloadFileCommand'
+import { DownloadFileLink } from 'src/components/file-browser/DownloadFileLink'
+import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 
 
 interface FileDetailsProps {
   file: FileBrowserFile
+  provider: FileBrowserProvider
 }
 
 export const FileDetails = (props: FileDetailsProps) => {
-  const { file } = props
+  const { file, provider } = props
 
   return h(Fragment, [
     dl([
@@ -25,6 +28,8 @@ export const FileDetails = (props: FileDetailsProps) => {
         dt({ style: { marginBottom: '0.25rem', fontWeight: 500 } }, ['Size']),
         dd({ style: { marginLeft: '0.5rem' } }, [filesize(file.size)]),
       ]),
-    ])
+    ]),
+    h(DownloadFileLink, { file, provider }),
+    h(DownloadFileCommand, { file, provider }),
   ])
 }
