@@ -136,7 +136,7 @@ describe('AzurePreview', () => {
           expect(isSubmitEnabled()).toBe(false)
 
           // Act
-          await user.click(screen.getByLabelText('Launch workflows'))
+          await user.click(screen.getByText('Launch workflows'))
 
           // Assert
           expect(isSubmitEnabled()).toBe(true)
@@ -164,7 +164,7 @@ describe('AzurePreview', () => {
           await user.type(screen.getByLabelText('Organization name *'), 'Terra UI')
           await user.clear(screen.getByLabelText('Contact email address *'))
           await user.type(screen.getByLabelText('Contact email address *'), 'user@example.com')
-          await user.click(screen.getByLabelText('Launch workflows'))
+          await user.click(screen.getByText('Launch workflows'))
 
           // Act
           const submitButton = screen.getByText('Submit')
