@@ -5,6 +5,7 @@ import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/commo
 import { TextArea, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
+import { withErrorIgnoring } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -16,7 +17,10 @@ export const FeaturePreviewFeedbackModal = ({ onSuccess, onDismiss, formId, feed
   const [submitting, setSubmitting] = useState(false)
   const [thanksShowing, setThanksShowing] = useState(false)
 
-  const submit = Utils.withBusyState(setSubmitting, async () => {
+  const submit = _.flow(
+    withErrorIgnoring,
+    Utils.withBusyState(setSubmitting),
+  )(async () => {
     await Ajax().Surveys.submitForm(formId,
       { [feedbackId]: feedback, [contactEmailId]: contactEmail, [sourcePageId]: sourcePage })
     setThanksShowing(true)

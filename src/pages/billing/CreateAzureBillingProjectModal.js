@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { div, h, strong } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
@@ -126,7 +126,7 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
             h(Link, {
               href: 'https://portal.azure.com/',
               ...Utils.newTabLinkProps
-            }, ['Go to the Azure Portal'])
+            }, ['Go to the Azure Portal.'])
           ])
         ]),
         h(ValidatedInput, {
@@ -173,13 +173,17 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
       div({ style: { paddingTop: '1.0rem', display: 'flex' } },
         [
           icon('warning-standard', { size: 16, style: { marginRight: '0.5rem', color: colors.warning() } }),
-          strong(['Creating a Terra billing project costs about $5 per day and includes shared Azure resources for all workspaces in the project.'])
+          div(['Creating a Terra billing project currently costs about $5 per day. ',
+            h(Link, {
+              href: 'https://support.terra.bio/hc/en-us/articles/12029087819291',
+              ...Utils.newTabLinkProps
+            }, ['Learn more and follow changes.'])])
         ]
       ),
       div({ style: { paddingTop: '1.0rem', display: 'flex' } },
         [
           icon('clock', { size: 16, style: { marginRight: '0.5rem' } }),
-          strong(['It may take up to 15 minutes for the billing project to be fully created and ready for use.'])
+          div(['It may take up to 15 minutes for the billing project to be fully created and ready for use.'])
         ]
       )
     ]),
