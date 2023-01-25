@@ -346,7 +346,7 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContent
     role: 'table',
     'aria-label': ariaLabel,
     'aria-readonly': readOnly || undefined,
-    className: 'simple-flex-table'
+    className: 'simple-flex-table',
   }, [
     div({
       role: 'row',
@@ -357,7 +357,7 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContent
           key: i,
           role: 'columnheader',
           'aria-sort': ariaSort(sort, field),
-          style: { ...styles.flexCell(size), ...styles.header(i * 1, columns.length, { border }) }
+          style: { ...styles.flexCell({ minWidth: size }), ...styles.header(i * 1, columns.length, { border }) }
         }, [headerRenderer({ columnIndex: i })])
       }, Utils.toIndexPairs(columns))
     ]),
@@ -367,7 +367,7 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContent
         role: 'row',
         as: 'div',
         className: 'table-row',
-        style: { backgroundColor: 'white', display: 'flex', minHeight: 48 },
+        style: { overflowWrap: 'anywhere', backgroundColor: 'white', display: 'flex', minHeight: 48 },
         hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined
       }, [
         _.map(([i, { size, cellRenderer }]) => {
@@ -375,7 +375,7 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContent
             key: i,
             role: 'cell',
             className: 'table-cell',
-            style: { ...styles.flexCell(size), ...styles.cell(i * 1, columns.length, { border }) }
+            style: { ...styles.flexCell({ minWidth: size }), ...styles.cell(i * 1, columns.length, { border }) }
           }, [cellRenderer({ columnIndex: i, rowIndex })])
         }, Utils.toIndexPairs(columns))
       ])
