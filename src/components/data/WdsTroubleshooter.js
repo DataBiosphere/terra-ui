@@ -72,32 +72,32 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId }) => {
       tooltip: 'Done',
       onClick: onDismiss
     }, ['Done'])
-  }, [
-    h(div, {}, ['Leo app listing: ', h(Fragment, [leoOk.length, ' app(s) total'])]),
-    h(div, {}, ['WDS app found: ', h(Fragment, [appFound, h(ClipboardButton, {
-      'aria-label': 'Copy found app name to clipboard',
-      className: 'cell-hover-only',
-      style: { marginLeft: '1rem' },
-      text: appFound
-    })])]),
-    h(div, {}, ['WDS app status: ', h(Fragment, [appRunning])]),
-    h(div, {}, ['App proxy url: ', h(Fragment, [h(div, { style: _.merge({ width: '400px' }, Style.noWrapEllipsis) }, [proxyUrl]), h(ClipboardButton, {
-      'aria-label': 'Copy proxy url to clipboard',
-      className: 'cell-hover-only',
-      style: { marginLeft: '1rem' },
-      text: proxyUrl
-    })])]),
-    h(div, {}, ['WDS responding: ', h(Fragment, [JSON.stringify(wdsResponsive)])]),
-    h(div, {}, ['WDS version: ', h(Fragment, [JSON.stringify(version), h(ClipboardButton, {
-      'aria-label': 'Copy WDS version to clipboard',
-      className: 'cell-hover-only',
-      style: { marginLeft: '1rem' },
-      text: version
-    })])]),
-    h(div, {}, ['WDS status: ', h(Fragment, [JSON.stringify(wdsStatus)])]),
-    h(div, {}, ['WDS DB status: ', h(Fragment, [JSON.stringify(wdsDbStatus)])]),
-    h(div, {}, ['WDS ping status: ', h(Fragment, [JSON.stringify(wdsPingStatus)])]),
-    //TODO: Implement doesSchemaExist API in WDS, then call it
-    // h(div, {}, ['WDS default instance exists: ', h(Fragment, ['tbd - need API support'])]),
-  ])
+  }, [div({ style: { padding: '1rem 0.5rem', lineHeight: '1.4rem' } },
+    [h(div, {}, ['Leo app listing: ', h(Fragment, [leoOk.length, ' app(s) total'])]),
+      h(div, {}, ['WDS app found: ', h(Fragment, [appFound, h(ClipboardButton, {
+        'aria-label': 'Copy found app name to clipboard',
+        className: 'cell-hover-only',
+        style: { marginLeft: '1rem' },
+        text: appFound
+      })])]),
+      h(div, {}, ['WDS app status: ', h(Fragment, [appRunning])]),
+      h(div, {}, ['App proxy url: ', h(Fragment, [h(div, { style: _.merge({ width: '400px' }, Style.noWrapEllipsis) }, [proxyUrl]), h(ClipboardButton, {
+        'aria-label': 'Copy proxy url to clipboard',
+        className: 'cell-hover-only',
+        style: { marginLeft: '1rem' },
+        text: proxyUrl
+      })])]),
+      h(div, {}, ['WDS responding: ', h(Fragment, [JSON.stringify(wdsResponsive)])]),
+      h(div, {}, ['WDS version: ', h(Fragment, [JSON.stringify(version), h(ClipboardButton, {
+        'aria-label': 'Copy WDS version to clipboard',
+        className: 'cell-hover-only',
+        style: { marginLeft: '1rem' },
+        text: version
+      })])]),
+      h(div, {}, ['WDS status: ', h(Fragment, [JSON.stringify(wdsStatus)])]),
+      h(div, {}, ['WDS DB status: ', h(Fragment, [JSON.stringify(wdsDbStatus)])]),
+      h(div, {}, ['WDS ping status: ', h(Fragment, [JSON.stringify(wdsPingStatus)])])]
+  )])
 }
+//TODO: Implement doesSchemaExist API in WDS, then call it
+// h(div, {}, ['WDS default instance exists: ', h(Fragment, ['tbd - need API support'])]),

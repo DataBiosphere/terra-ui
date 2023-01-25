@@ -802,12 +802,12 @@ const WorkspaceData = _.flow(
                   buttonText: 'Troubleshoot',
                   onAdd: () => setTroubleshootingWds(true)
                 }),
-                // TODO: debugging only; remove this vvvvv
-                h(NoDataPlaceholder, {
-                  message: '',
-                  buttonText: 'Troubleshoot',
-                  onAdd: () => setTroubleshootingWds(true)
-                }),
+                // TODO: debugging only; remove this
+                // h(NoDataPlaceholder, {
+                //   message: '',
+                //   buttonText: 'Troubleshoot',
+                //   onAdd: () => setTroubleshootingWds(true)
+                // }),
                 // TODO: debugging only; remove this ^^^^^
                 // TODO: Logic needs to slightly change here -- there is a delay when wdsSchema is updated
                 // so `No tables have been uploaded.` briefly renders
