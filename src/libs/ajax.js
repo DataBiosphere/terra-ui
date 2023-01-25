@@ -113,9 +113,22 @@ const User = signal => ({
     }
   },
 
-  getTermsOfServiceDetails: async () => {
+  rejectTos: async () => {
     try {
-      const res = await(fetchSam('register/user/v2/self/termsOfServiceDetails', _.merge(authOpts(), { signal })))
+      const response = await fetchSam(
+        'register/user/v1/termsofservice', _.mergeAll([authOpts(), { signal, method: 'DELETE' }])
+      )
+      return response.json()
+    } catch (error) {
+      if (error.status !== 404) {
+        throw error
+      }
+    }
+  },
+
+  getTermsOfServiceAdherenceStatus: async () => {
+    try {
+      const res = await(fetchSam('register/user/v2/self/termsOfServiceAdherenceStatus', _.merge(authOpts(), { signal })))
       return res.json()
     } catch (error) {
       if (error.status === 404 || error.status === 403) {

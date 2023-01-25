@@ -10,7 +10,7 @@ import * as Utils from 'src/libs/utils'
 
 
 const getNewTermsOfServiceNeedsAcceptingAlert = async termsOfServiceState => {
-  const shouldNotify = termsOfServiceState.showTosPopup
+  const shouldNotify = !termsOfServiceState.userHasAcceptedLatestTos && termsOfServiceState.acceptedTosAllowsUsage
   if (!shouldNotify) {
     return null
   }

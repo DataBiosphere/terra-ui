@@ -94,9 +94,9 @@ export const RuntimeStatusMonitor = ({ runtime, onRuntimeStoppedRunning = _.noop
 export const AuthenticatedCookieSetter = () => {
   const { termsOfService } = useStore(authStore)
   const cookiesAccepted = getLocalPref(cookiesAcceptedKey) !== false
-  const userCanUseTerra = termsOfService.userCanUseTerra
+  const acceptedTosAllowsUsage = termsOfService.acceptedTosAllowsUsage
 
-  return userCanUseTerra && cookiesAccepted ? h(PeriodicCookieSetter) : null
+  return acceptedTosAllowsUsage && cookiesAccepted ? h(PeriodicCookieSetter) : null
 }
 
 export const PeriodicCookieSetter = () => {
