@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
-import { forwardRef, memo, useEffect, useRef, useState } from 'react'
+import React, { forwardRef, ForwardRefRenderFunction, memo, useEffect, useRef, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
+import { safeCurry } from 'src/libs/type-utils/lodash-fp-helpers'
 import { delay, pollWithCancellation } from 'src/libs/utils'
 
 
@@ -66,10 +67,11 @@ export const useCancelable = () => {
   }
 }
 
+// TODO: properly type
 export const useCancellation = () => {
-  const controller = useRef()
+  const controller: any = useRef()
   useOnMount(() => {
-    const instance = controller.current
+    const instance: any = controller.current
     return () => instance.abort()
   })
   if (!controller.current) {
@@ -95,8 +97,9 @@ export const combineRefs = refs => {
   }
 }
 
-export const forwardRefWithName = _.curry((name, WrappedComponent) => {
-  return withDisplayName(name, forwardRef(WrappedComponent))
+// TODO: improve these types further
+export const forwardRefWithName = safeCurry((name: string, WrappedComponent: React.ComponentType): React.ComponentType => {
+  return withDisplayName(name, forwardRef(WrappedComponent as ForwardRefRenderFunction<unknown, {}>))
 })
 
 export const memoWithName = _.curry((name, WrappedComponent) => {
