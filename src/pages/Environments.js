@@ -594,13 +594,13 @@ export const Environments = ({ nav = undefined }) => {
           span({ style: { fontWeight: 600 } }, [' Hide resources you did not create'])
         ])
       ]),
-      runtimes && h(SimpleFlexTable, {
+      runtimes && div({ style: { overflow: 'scroll' } }, [h(SimpleFlexTable, {
         'aria-label': 'cloud environments',
         sort,
         rowCount: filteredCloudEnvironments.length,
         columns: [
           {
-            size: { basis: 250 },
+            size: { min: '10em' },
             field: 'project',
             headerRenderer: () => h(Sortable, { sort, field: 'project', onSort: setSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
@@ -609,7 +609,7 @@ export const Environments = ({ nav = undefined }) => {
             }
           },
           {
-            size: { basis: 250 },
+            size: { min: '10em' },
             field: 'workspace',
             headerRenderer: () => h(Sortable, { sort, field: 'workspace', onSort: setSort }, ['Workspace']),
             cellRenderer: ({ rowIndex }) => {
@@ -618,17 +618,17 @@ export const Environments = ({ nav = undefined }) => {
             }
           },
           {
-            size: { basis: 125, grow: 0 },
+            size: { min: '7em', grow: 0 },
             headerRenderer: () => h(Sortable, { sort, field: 'type', onSort: setSort }, ['Type']),
             cellRenderer: ({ rowIndex }) => getCloudProvider(filteredCloudEnvironments[rowIndex])
           },
           {
-            size: { basis: 125, grow: 0 },
+            size: { min: '8em', grow: 0 },
             headerRenderer: () => h(Sortable, { sort, field: 'tool', onSort: setSort }, ['Tool']),
             cellRenderer: ({ rowIndex }) => getCloudEnvTool(filteredCloudEnvironments[rowIndex])
           },
           {
-            size: { basis: 90, grow: 0 },
+            size: { min: '7em', grow: 0 },
             headerRenderer: () => 'Details',
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
@@ -636,7 +636,7 @@ export const Environments = ({ nav = undefined }) => {
             }
           },
           {
-            size: { basis: 150, grow: 0 },
+            size: { min: '7em', grow: 0 },
             field: 'status',
             headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
             cellRenderer: ({ rowIndex }) => {
@@ -645,7 +645,7 @@ export const Environments = ({ nav = undefined }) => {
             }
           },
           {
-            size: { basis: 120, grow: 0.2 },
+            size: { min: '10em', grow: 0.2 },
             headerRenderer: () => 'Location',
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
@@ -657,7 +657,7 @@ export const Environments = ({ nav = undefined }) => {
             }
           },
           {
-            size: { basis: 220, grow: 0 },
+            size: { min: '10em', grow: 0 },
             field: 'created',
             headerRenderer: () => h(Sortable, { sort, field: 'created', onSort: setSort }, ['Created']),
             cellRenderer: ({ rowIndex }) => {
@@ -665,7 +665,7 @@ export const Environments = ({ nav = undefined }) => {
             }
           },
           {
-            size: { basis: 220, grow: 0 },
+            size: { min: '10em', grow: 0 },
             field: 'accessed',
             headerRenderer: () => h(Sortable, { sort, field: 'accessed', onSort: setSort }, ['Last accessed']),
             cellRenderer: ({ rowIndex }) => {
@@ -673,7 +673,7 @@ export const Environments = ({ nav = undefined }) => {
             }
           },
           {
-            size: { basis: 240, grow: 0 },
+            size: { min: '8em', grow: 0 },
             field: 'cost',
             headerRenderer: () => h(Sortable, { sort, field: 'cost', onSort: setSort }, [`Cost / hr (${Utils.formatUSD(totalCost)} total)`]),
             cellRenderer: ({ rowIndex }) => {
@@ -684,7 +684,7 @@ export const Environments = ({ nav = undefined }) => {
             }
           },
           {
-            size: { basis: 200, grow: 0 },
+            size: { min: '13em', grow: 0 },
             headerRenderer: () => 'Actions',
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
@@ -696,15 +696,15 @@ export const Environments = ({ nav = undefined }) => {
             }
           }
         ]
-      }),
+      })]),
       h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '1rem 0', padding: 0 } }, ['Your persistent disks']),
-      disks && h(SimpleFlexTable, {
+      disks && div({ style: { overflow: 'scroll' } }, [h(SimpleFlexTable, {
         'aria-label': 'persistent disks',
         sort: diskSort,
         rowCount: filteredDisks.length,
         columns: [
           {
-            size: { basis: 250 },
+            size: { min: '10em' },
             field: 'project',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
@@ -713,7 +713,7 @@ export const Environments = ({ nav = undefined }) => {
             }
           },
           {
-            size: { basis: 250 },
+            size: { min: '10em' },
             field: 'workspace',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'workspace', onSort: setDiskSort }, ['Workspace']),
             cellRenderer: ({ rowIndex }) => {
@@ -733,7 +733,7 @@ export const Environments = ({ nav = undefined }) => {
             }
           },
           {
-            size: { basis: 90, grow: 0 },
+            size: { min: '6em', grow: 0 },
             headerRenderer: () => 'Details',
             cellRenderer: ({ rowIndex }) => {
               const { name, id, cloudContext, workspace, auditInfo: { creator } } = filteredDisks[rowIndex]
@@ -752,7 +752,7 @@ export const Environments = ({ nav = undefined }) => {
             }
           },
           {
-            size: { basis: 120, grow: 0 },
+            size: { min: '5em', grow: 0 },
             field: 'size',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'size', onSort: setDiskSort }, ['Size (GB)']),
             cellRenderer: ({ rowIndex }) => {
@@ -761,7 +761,7 @@ export const Environments = ({ nav = undefined }) => {
             }
           },
           {
-            size: { basis: 130, grow: 0 },
+            size: { min: '5em', grow: 0 },
             field: 'status',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'status', onSort: setDiskSort }, ['Status']),
             cellRenderer: ({ rowIndex }) => {
@@ -770,7 +770,7 @@ export const Environments = ({ nav = undefined }) => {
             }
           },
           {
-            size: { basis: 120, grow: 0.2 },
+            size: { min: '10em', grow: 0.2 },
             headerRenderer: () => 'Location',
             cellRenderer: ({ rowIndex }) => {
               const disk = filteredDisks[rowIndex]
@@ -778,7 +778,7 @@ export const Environments = ({ nav = undefined }) => {
             }
           },
           {
-            size: { basis: 220, grow: 0 },
+            size: { min: '8em', grow: 0 },
             field: 'created',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'created', onSort: setDiskSort }, ['Created']),
             cellRenderer: ({ rowIndex }) => {
@@ -786,7 +786,7 @@ export const Environments = ({ nav = undefined }) => {
             }
           },
           {
-            size: { basis: 220, grow: 0 },
+            size: { min: '8em', grow: 0 },
             field: 'accessed',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'accessed', onSort: setDiskSort }, ['Last accessed']),
             cellRenderer: ({ rowIndex }) => {
@@ -794,7 +794,7 @@ export const Environments = ({ nav = undefined }) => {
             }
           },
           {
-            size: { basis: 250, grow: 0 },
+            size: { min: '10em', grow: 0 },
             field: 'cost',
             headerRenderer: () => {
               return h(Sortable, { sort: diskSort, field: 'cost', onSort: setDiskSort }, [`Cost / month (${Utils.formatUSD(totalDiskCost)} total)`])
@@ -806,7 +806,7 @@ export const Environments = ({ nav = undefined }) => {
             }
           },
           {
-            size: { basis: 200, grow: 0 },
+            size: { min: '10em', grow: 0 },
             headerRenderer: () => 'Action',
             cellRenderer: ({ rowIndex }) => {
               const { id, status, name } = filteredDisks[rowIndex]
@@ -824,7 +824,7 @@ export const Environments = ({ nav = undefined }) => {
             }
           }
         ]
-      }),
+      })]),
       errorRuntimeId && h(RuntimeErrorModal, {
         runtime: _.find({ id: errorRuntimeId }, runtimes),
         onDismiss: () => setErrorRuntimeId(undefined)
