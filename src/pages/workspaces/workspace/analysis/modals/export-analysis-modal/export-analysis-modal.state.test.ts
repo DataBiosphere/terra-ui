@@ -34,7 +34,7 @@ jest.mock('src/libs/ajax/analysis-providers/AnalysisProvider', (): AnalysisProvi
 const useMetricsEventWatcher = jest.fn()
 
 beforeEach(() => {
-  asMockedFn(useMetricsEvent).mockImplementation(() => useMetricsEventWatcher)
+  asMockedFn(useMetricsEvent).mockImplementation(() => ({ captureEvent: useMetricsEventWatcher }))
 })
 
 describe('useAnalysesExportState', () => {

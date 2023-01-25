@@ -32,7 +32,7 @@ export const errors = {
 }
 
 export const useAnalysesExportState = (sourceWorkspace: WorkspaceWrapper, printName: string, toolLabel: ToolLabel): AnalysisExportState => {
-  const captureEvent = useMetricsEvent()
+  const { captureEvent } = useMetricsEvent()
   const signal = useCancellation()
   const workspaces: WorkspaceWrapper[] = useWorkspaces().workspaces
   const [selectedWorkspace, setSelectedWorkspace] = useState<WorkspaceWrapper | null>(null)
