@@ -177,7 +177,7 @@ describe('AzurePreview', () => {
 
         it('shows a thank you message', () => {
           // Assert
-          screen.getByText('Thank you for your interest in using Terra on Microsoft Azure. We will be in touch with your access information soon.')
+          screen.getByText('Thank you for your interest in using Terra on Microsoft Azure. We will be in touch with your access information.')
         })
 
         it('saves submission status', () => {
@@ -196,7 +196,7 @@ describe('AzurePreview', () => {
         render(h(AzurePreview))
 
         // Assert
-        screen.getByText('Thank you for your interest in using Terra on Microsoft Azure. We will be in touch with your access information soon.')
+        screen.getByText('Thank you for your interest in using Terra on Microsoft Azure. We will be in touch with your access information.')
       })
 
       it('does not render the form', () => {
