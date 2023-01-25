@@ -99,9 +99,11 @@ export const resolveWdsUrl = (apps, workspaceId) => {
   const candidates = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}`)
   // ...nothing has launched yet, bring WDS to life!
   if (candidates.length === 0) {
-    withErrorReporting('An error occurred when creating your data tables. Please reach out to support@terra.bio', async () => {
-      await Ajax().Apps.createAppV2(`wds-${workspaceId}`, workspaceId)
+    const typedWithErrorReporting : any = withErrorReporting
+    const createLeoAppWithErrorHandling = typedWithErrorReporting('An error occurred when creating your data tables. Please reach out to support@terra.bio', async () => {
+      await Ajax().Apps.createAppV2(`wds-${workspaceId}`, `${workspaceId}`)
     })
+    createLeoAppWithErrorHandling()
     return ''
   }
 
