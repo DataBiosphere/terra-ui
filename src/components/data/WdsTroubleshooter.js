@@ -5,30 +5,9 @@ import { ClipboardButton } from 'src/components/ClipboardButton'
 import { ButtonPrimary } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
+import { resolveWdsApp } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
-
-
-// TODO: this is copied almost wholesale from Data.js; don't copy it, import it!
-const getWdsUrl = apps => {
-  // look explicitly for an app named 'cbas-wds-default'. If found, use it, even if it isn't running
-  // this handles the case where the user has explicitly shut down the app
-  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === 'cbas-wds-default')
-  if (namedApp.length === 1) {
-    return namedApp[0]
-  }
-  // if we didn't find the expected app 'cbas-wds-default', go hunting:
-  const candidates = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
-  if (candidates.length === 0) {
-    // no app deployed yet
-    return ''
-  }
-  if (candidates.length > 1) {
-    // multiple apps found; use the earliest-created one
-    candidates.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
-  }
-  return candidates[0]
-}
 
 
 export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
@@ -48,7 +27,7 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     setLeoOk('checking...')
     Ajax(signal).Apps.getV2AppInfo(workspaceId).then(res => {
       setLeoOk(res)
-      const foundApp = getWdsUrl(res)
+      const foundApp = resolveWdsApp(res)
       setAppFound(foundApp.appName)
       setAppRunning(foundApp.status)
       setProxyUrl(foundApp.proxyUrls?.wds)

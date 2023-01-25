@@ -82,6 +82,34 @@ const getRelationParts = (val: unknown): string[] => {
   return []
 }
 
+//Placeholder method - this will be fleshed out in AJ-790, but is needed now for WDSTroubleshooter to work
+export const resolveWdsApp = apps => {
+  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}` && app.status === 'RUNNING')
+  if (namedApp.length === 1) {
+    return namedApp[0]
+  }
+
+  // if we didn't find the expected app 'wds-${app.workspaceId}' running...
+  const candidates = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}`)
+
+  // WDS is being created in a Kubernetes cluster (takes a few minutes)
+  if (candidates.length === 1 && candidates[0].status === 'PROVISIONING') {
+    return candidates[0]
+  }
+  const allCromwellApps = apps.filter(app => app.appType === 'CROMWELL')
+  if (allCromwellApps > 0) {
+    // Evaluate the earliest-created WDS app
+    allCromwellApps.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
+    if (allCromwellApps[0].status === 'RUNNING') {
+      return allCromwellApps[0]
+    }
+    if (allCromwellApps[0].status === 'PROVISIONING') {
+      return ''
+    }
+    return 'ERROR'
+  }
+}
+
 // Extract wds URL from Leo response. exported for testing
 export const getWdsUrl = apps => {
   // look explicitly for an app named 'wds-${app.workspaceId}'. If found, use it, even if it isn't running
