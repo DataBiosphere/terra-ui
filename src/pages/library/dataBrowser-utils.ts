@@ -16,15 +16,15 @@ import { commonStyles } from 'src/pages/library/SearchAndFilterComponent'
 
 
 export type DatasetAccessType =
+    'Controlled' |
     'Granted' |
     'Pending' |
-    'Controlled' |
     'External'
 
 export const datasetAccessTypes: Record<DatasetAccessType, DatasetAccessType> = {
+  Controlled: 'Controlled',
   Granted: 'Granted',
   Pending: 'Pending',
-  Controlled: 'Controlled',
   External: 'External'
 }
 

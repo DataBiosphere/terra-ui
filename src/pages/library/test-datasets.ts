@@ -6,6 +6,7 @@ export const TEST_DATASET_ONE: Dataset = {
   'dct:description': 'The best there ever was',
   'dct:creator': 'The hero we all need',
   'dct:issued': new Date().toDateString(),
+  // The workspaces url segment is so that the dataset resolves as true for isWorkspace
   'dcat:accessURL': 'https://http.cat/#workspaces/',
   'TerraDCAT_ap:hasDataUsePermission': 'DUO:0000042',
   'TerraDCAT_ap:hasDataCollection': [

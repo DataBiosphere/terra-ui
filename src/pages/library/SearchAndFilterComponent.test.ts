@@ -7,7 +7,7 @@ import {
 } from 'src/pages/library/SearchAndFilterComponent'
 
 
-const data = ['A quick brown fox jumped over a lazy gray dog', 'aeio', 'stock', 'styx']
+const data = ['A quick brown fox jumped over a lazy gray dog', 'aeio', 'stock', 'styx', 'xylophone']
 
 // Arrange
 const FILTERS: FilterSection<string>[] = [
@@ -32,6 +32,7 @@ describe('library/common', () => {
     expect(listItemsMatching).toContain(data[1])
     expect(listItemsMatching).not.toContain(data[2])
     expect(listItemsMatching).not.toContain(data[3])
+    expect(listItemsMatching).not.toContain(data[4])
   })
 
   it('matches on union for a section', () => {
@@ -42,6 +43,7 @@ describe('library/common', () => {
     expect(listItemsMatching).toContain(data[1])
     expect(listItemsMatching).toContain(data[2])
     expect(listItemsMatching).not.toContain(data[3])
+    expect(listItemsMatching).toContain(data[4])
   })
 
   it('matches on intersection for a list of sections', () => {
@@ -52,6 +54,7 @@ describe('library/common', () => {
     expect(listItemsMatching).not.toContain(data[1])
     expect(listItemsMatching).not.toContain(data[2])
     expect(listItemsMatching).not.toContain(data[3])
+    expect(listItemsMatching).toContain(data[4])
   })
 
   it('checks properly if a section entry is selected', () => {
