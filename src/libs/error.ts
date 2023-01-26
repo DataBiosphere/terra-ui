@@ -1,5 +1,7 @@
 import _ from 'lodash/fp'
 import { notify } from 'src/libs/notifications'
+import { AnyPromiseFn, GenericPromiseFn } from 'src/libs/type-utils/general-types'
+import { safeCurry } from 'src/libs/type-utils/lodash-fp-helpers'
 
 
 export const reportError = async (title, obj) => {
@@ -13,18 +15,29 @@ export const reportError = async (title, obj) => {
   notify('error', title, { detail: await (obj instanceof Response ? obj.text() : obj) })
 }
 
+export type ErrorCallback = (error: unknown) => void | Promise<void>
+const withErrorHandlingFn = <R, F extends AnyPromiseFn>(
+  callback: ErrorCallback,
+  fn: GenericPromiseFn<F, R | void>
+): GenericPromiseFn<F, R | void> => async (...args: Parameters<F>): Promise<R | void> => {
+    try {
+      return await fn(...args)
+    } catch (error) {
+      await callback(error)
+    }
+  }
+
 /**
  * Invoke the `callback` with any error thrown when evaluating the async `fn` with `...args`.
  */
-export const withErrorHandling = _.curry((callback, fn) => async (...args) => {
-  try { return await fn(...args) } catch (error) { await callback(error) }
-})
+export const withErrorHandling = safeCurry(withErrorHandlingFn)
 
+// TODO type this properly
 /**
  * Return a Promise to the result of evaluating the async `fn` with `...args` or undefined if
  * evaluation fails.
  */
-export const withErrorIgnoring = withErrorHandling(_.noop)
+export const withErrorIgnoring = withErrorHandling(_.noop) as any
 
 /**
  * Return a Promise to the result of evaluating the async `fn` with `...args`. If evaluation fails,
@@ -51,11 +64,16 @@ export const withErrorReportingInModal = _.curry((title, onDismiss, fn) => {
   })
 })
 
+const withErrorReportingFn = <R, F extends AnyPromiseFn>(
+  title: string,
+  fn: GenericPromiseFn<F, R>
+): GenericPromiseFn<F, R> => {
+  return withErrorIgnoring(reportErrorAndRethrow(title)(fn))
+}
+
 /**
  * Return a Promise to the result of evaluating the async `fn` with `...args` or undefined if
  * evaluation fails. If evaluation fails, report the error to the user with `title`.
  */
-export const withErrorReporting = _.curry((title, fn) => {
-  return withErrorIgnoring(reportErrorAndRethrow(title)(fn))
-})
+export const withErrorReporting = safeCurry(withErrorReportingFn)
 
