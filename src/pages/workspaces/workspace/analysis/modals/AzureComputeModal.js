@@ -13,6 +13,7 @@ import {
 } from 'src/libs/azure-utils'
 import colors from 'src/libs/colors'
 import { withErrorReportingInModal } from 'src/libs/error'
+import Events from 'src/libs/events'
 import { useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
@@ -204,6 +205,15 @@ export const AzureComputeModalBase = ({
           name: Utils.generatePersistentDiskName(),
           labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: workspaceName }
         }
+
+        Ajax().Metrics.captureEvent(Events.analysisAzureJupyterLabCreate, {
+          region: computeConfig.region,
+          machineSize: computeConfig.machineType,
+          saturnWorkspaceNamespace: namespace,
+          saturnWorkspaceName: workspaceName,
+          diskSize: disk.size,
+          workspaceId
+        })
 
         return Ajax().Runtimes.runtimeV2(workspaceId, Utils.generateRuntimeName()).create({
           machineSize: computeConfig.machineType,
