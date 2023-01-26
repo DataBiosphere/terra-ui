@@ -619,7 +619,7 @@ export const Environments = ({ nav = undefined }) => {
               }
             },
             {
-              size: { min: '7em', grow: 0 },
+              size: { min: '10em', grow: 0 },
               headerRenderer: () => h(Sortable, { sort, field: 'type', onSort: setSort }, ['Type']),
               cellRenderer: ({ rowIndex }) => getCloudProvider(filteredCloudEnvironments[rowIndex])
             },
