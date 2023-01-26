@@ -120,7 +120,7 @@ export const resolveWdsUrl = (apps, workspaceId) => {
   const allCromwellApps = apps.filter(app => app.appType === 'CROMWELL')
   if (allCromwellApps.length > 0) {
     // Evaluate the most-recent-created WDS app
-    allCromwellApps.sort((a, b) => new Date(b.auditInfo.createdDate) - new Date(a.auditInfo.createdDate))
+    allCromwellApps.sort((a, b) => new Date(b.auditInfo.createdDate).valueOf() - new Date(a.auditInfo.createdDate).valueOf())
     if (allCromwellApps[0].status === 'RUNNING') {
       return allCromwellApps[0].proxyUrls.wds
     }
