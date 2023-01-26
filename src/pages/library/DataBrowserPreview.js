@@ -73,6 +73,18 @@ const DatasetPreviewSelector = ({ access, dataset, selectedTable, setSelectedTab
   })],
   [Utils.DEFAULT, undefined])
 
+export const formatTableCell = ({ cellKey, cellContent, rowIndex, table, setViewJSON }) => {
+  const parsableCellContent = _.isObject(cellContent) ? JSON.stringify(cellContent) : cellContent
+  const maybeJSON = Utils.maybeParseJSON(parsableCellContent)
+  return Utils.cond(
+    [!Utils.cantBeNumber(cellContent), () => cellContent],
+    [!!maybeJSON, () => h(ButtonPrimary, {
+      style: { fontSize: 16, textTransform: 'none' },
+      onClick: () => setViewJSON({ title: `${table}, Row ${rowIndex} - ${cellKey}`, cellData: maybeJSON })
+    }, ['View JSON'])],
+    [Utils.DEFAULT, () => cellContent?.toString()]
+  )
+}
 
 const DataBrowserPreview = ({ id }) => {
   const signal = useCancellation()
@@ -107,19 +119,6 @@ const DataBrowserPreview = ({ id }) => {
   })
 
   useEffect(() => {
-    const formatTableCell = ({ cellKey, cellContent, rowIndex, table }) => {
-      const maybeJSON = Utils.maybeParseJSON(cellContent)
-      return Utils.cond(
-        [!Utils.cantBeNumber(cellContent), () => cellContent],
-        [!!maybeJSON, () => h(ButtonPrimary, {
-          style: { fontSize: 16, textTransform: 'none' },
-          onClick: () => setViewJSON({ title: `${table}, Row ${rowIndex} - ${cellKey}`, cellData: maybeJSON })
-        }, ['View JSON'])],
-        [_.isObject(cellContent), () => JSON.stringify(cellContent)],
-        [Utils.DEFAULT, () => cellContent?.toString()]
-      )
-    }
-
     const loadTable = _.flow(
       Utils.withBusyState(setLoading),
       withErrorReporting('Error loading table')
@@ -144,7 +143,7 @@ const DataBrowserPreview = ({ id }) => {
         Utils.toIndexPairs,
         _.map(([rowIndex, row]) => {
           return _.reduce((acc, { name }) => {
-            const formattedCell = formatTableCell({ cellKey: name, cellContent: row[name], rowIndex, table: selectedTable })
+            const formattedCell = formatTableCell({ cellKey: name, cellContent: row[name], rowIndex, table: selectedTable, setViewJSON })
             return _.set([name], formattedCell, acc)
           }, {}, previewTableData.columns)
         })
