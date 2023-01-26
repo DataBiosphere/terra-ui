@@ -594,15 +594,14 @@ export const Environments = ({ nav = undefined }) => {
           span({ style: { fontWeight: 600 } }, [' Hide resources you did not create'])
         ])
       ]),
-      runtimes &&
-      div({ style: { overflow: 'scroll' } }, [
+      runtimes && div({ style: { overflow: 'scroll', overflowWrap: 'break-word', wordBreak: 'break-all' } }, [
         h(SimpleFlexTable, {
           'aria-label': 'cloud environments',
           sort,
           rowCount: filteredCloudEnvironments.length,
           columns: [
             {
-              size: { min: '10em' },
+              size: { min: '12em' },
               field: 'project',
               headerRenderer: () => h(Sortable, { sort, field: 'project', onSort: setSort }, ['Billing project']),
               cellRenderer: ({ rowIndex }) => {
@@ -620,7 +619,7 @@ export const Environments = ({ nav = undefined }) => {
               }
             },
             {
-              size: { min: '7em', grow: 0 },
+              size: { min: '10em', grow: 0 },
               headerRenderer: () => h(Sortable, { sort, field: 'type', onSort: setSort }, ['Type']),
               cellRenderer: ({ rowIndex }) => getCloudProvider(filteredCloudEnvironments[rowIndex])
             },
@@ -675,7 +674,7 @@ export const Environments = ({ nav = undefined }) => {
               }
             },
             {
-              size: { min: '8em', grow: 0 },
+              size: { min: '14em', grow: 0 },
               field: 'cost',
               headerRenderer: () => h(Sortable, { sort, field: 'cost', onSort: setSort }, [`Cost / hr (${Utils.formatUSD(totalCost)} total)`]),
               cellRenderer: ({ rowIndex }) => {
@@ -701,14 +700,14 @@ export const Environments = ({ nav = undefined }) => {
         })
       ]),
       h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '1rem 0', padding: 0 } }, ['Your persistent disks']),
-      disks && div({ style: { overflow: 'scroll' } }, [
+      disks && div({ style: { overflow: 'scroll', overflowWrap: 'break-word', wordBreak: 'break-all' } }, [
         h(SimpleFlexTable, {
           'aria-label': 'persistent disks',
           sort: diskSort,
           rowCount: filteredDisks.length,
           columns: [
             {
-              size: { min: '10em' },
+              size: { min: '12em' },
               field: 'project',
               headerRenderer: () => h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
               cellRenderer: ({ rowIndex }) => {

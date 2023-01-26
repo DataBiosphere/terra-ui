@@ -367,7 +367,7 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContent
         role: 'row',
         as: 'div',
         className: 'table-row',
-        style: { overflowWrap: 'break-word', wordBreak: 'break-all', backgroundColor: 'white', display: 'flex', minHeight: 48 },
+        style: { backgroundColor: 'white', display: 'flex', minHeight: 48 },
         hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined
       }, [
         _.map(([i, { size, cellRenderer }]) => {
