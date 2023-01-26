@@ -193,7 +193,7 @@ const AnalysisCard = ({
   )
 
   const toolIcon = div({ style: { marginRight: '1rem' } }, [
-    img({ src: toolIconSrc, alt: application, style: { height: 40, width: 40 } })
+    img({ src: toolIconSrc, alt: '', style: { height: 40, width: 40 } })
   ])
 
   const toolContainer = div({ style: { display: 'flex', flex: 1, flexDirection: 'row', alignItems: 'center' } }, [
