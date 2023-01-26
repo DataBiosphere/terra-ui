@@ -19,7 +19,7 @@ import {
 import { AppTool, getToolLabelFromFileExtension, ToolLabel, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
-import { defaultAzureWorkspace, defaultGoogleWorkspace, galaxyDisk, galaxyRunning, getGoogleRuntime } from '../_testData/testData'
+import { defaultAzureWorkspace, defaultGoogleWorkspace, galaxyDisk, galaxyRunning, getGoogleRuntime, imageDocs } from '../_testData/testData'
 import { AnalysisModal, AnalysisModalProps } from './AnalysisModal'
 
 
@@ -78,6 +78,7 @@ const getTestFile = (abs: AbsolutePath, cloudProvider: CloudProviderType = cloud
   cloudProvider
 })
 
+type AjaxContract = ReturnType<typeof Ajax>
 
 describe('AnalysisModal', () => {
   beforeEach(() => {
@@ -89,8 +90,12 @@ describe('AnalysisModal', () => {
       pendingCreate: { status: 'Ready', state: true }
     }))
 
-    //@ts-expect-error
-    Ajax.mockImplementation(() => ({ Metrics: { captureEvent: jest.fn() } }))
+    asMockedFn(Ajax).mockImplementation(() => ({
+      Buckets: {
+        getObjectPreview: () => Promise.resolve({ json: () => Promise.resolve(imageDocs) }),
+      } as Partial<AjaxContract['Buckets']>,
+      Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
+    }) as Partial<AjaxContract> as AjaxContract)
   })
 
   it('GCP - Renders correctly by default', () => {

@@ -47,11 +47,11 @@ const styles = {
 }
 
 export const withDebouncedChange = WrappedComponent => {
-  const Wrapper = ({ onChange, value, debounceMs, ...props }) => {
+  const Wrapper = ({ onChange, value, debounceMs = 250, ...props }) => {
     const [internalValue, setInternalValue] = useState()
     const getInternalValue = useGetter(internalValue)
     const getOnChange = useGetter(onChange)
-    const updateParent = useInstance(() => _.debounce(debounceMs || 250, () => {
+    const updateParent = useInstance(() => _.debounce(debounceMs, () => {
       getOnChange()(getInternalValue())
       setInternalValue(undefined)
     }))

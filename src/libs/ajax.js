@@ -18,7 +18,6 @@ import { Resources } from 'src/libs/ajax/Resources'
 import { Runtimes } from 'src/libs/ajax/Runtimes'
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService'
 import { getConfig } from 'src/libs/config'
-import { withErrorIgnoring } from 'src/libs/error'
 import { getUser } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -1010,9 +1009,7 @@ const OAuth2 = signal => ({
 })
 
 const Surveys = signal => ({
-  submitForm: withErrorIgnoring((formId, data) => {
-    return fetchGoogleForms(`${formId}/formResponse?${qs.stringify(data)}`, { signal })
-  })
+  submitForm: (formId, data) => fetchGoogleForms(`${formId}/formResponse?${qs.stringify(data)}`, { signal })
 })
 
 export const Ajax = signal => {
