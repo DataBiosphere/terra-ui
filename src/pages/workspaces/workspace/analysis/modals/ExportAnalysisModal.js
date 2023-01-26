@@ -5,6 +5,7 @@ import { b, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import Modal from 'src/components/Modal'
+import { InfoBox } from 'src/components/PopupTrigger'
 import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import Events, { extractCrossWorkspaceDetails } from 'src/libs/events'
@@ -96,7 +97,11 @@ export const ExportAnalysisModal = ({ fromLauncher, onDismiss, printName, toolLa
       ]) :
       h(Fragment, [
         h(IdContainer, [id => h(Fragment, [
-          h(FormLabel, { htmlFor: id, required: true }, ['Destination']),
+          h(FormLabel, { htmlFor: id, required: true }, [
+            'Destination',
+            h(InfoBox, { style: { marginLeft: '0.2rem' } },
+              ['Only workspaces in the same cloud platform are available.'])
+          ]),
           h(WorkspaceSelector, {
             id,
             workspaces: _.filter(Utils.isValidWsExportTarget(workspace), workspaces),
@@ -120,7 +125,7 @@ export const ExportAnalysisModal = ({ fromLauncher, onDismiss, printName, toolLa
         ])])
       ]),
     copying && spinnerOverlay,
-    error && h(ErrorView, { error })
+    error && h(ErrorView, { error }),
   ])
 }
 
