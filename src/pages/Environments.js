@@ -142,8 +142,8 @@ const DeleteAppModal = ({ app: { appName, diskName, appType, cloudContext: { clo
 
 // These are for calling attention to resources that are most likely linked to GCP v1 workspaces.
 // Rawls will no longer return v1 workspaces, but Leo does not have a way to filter out disks/cloud environments related to them.
-const unsupportedDiskMessage = 'This disk is not associated with a supported workspace. It is recommended that you delete it and any associated cloud environment.'
-const unsupportedCloudEnvironmentMessage = 'This cloud environment is not associated with a supported workspace. It is recommended that you delete it and any associated persistent disk.'
+const unsupportedDiskMessage = 'This disk is not associated with a supported workspace. It is recommended that you delete it to avoid additional cloud costs.'
+const unsupportedCloudEnvironmentMessage = 'This cloud environment is not associated with a supported workspace. It is recommended that you delete it to avoid additional cloud costs.'
 const UnsupportedWorkspaceCell = ({ status, message }) => div({
   style: {
     display: 'flex', flex: 1, flexDirection: 'column',
@@ -324,7 +324,7 @@ export const Environments = ({ nav = undefined }) => {
   const getWorkspaceCell = (namespace, name, appType, shouldWarn, unsupportedWorkspace) => {
     if (unsupportedWorkspace) {
       // Don't want to include a link because there is no workspace to link to.
-      return `${name} (no access)`
+      return `${name} (unavailable)`
     }
     return !!name ?
       h(Fragment, [
@@ -522,7 +522,7 @@ export const Environments = ({ nav = undefined }) => {
               }
             },
             {
-              size: { min: '7em', grow: 0 },
+              size: { min: '8em', grow: 0 },
               field: 'status',
               headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
               cellRenderer: ({ rowIndex }) => {
