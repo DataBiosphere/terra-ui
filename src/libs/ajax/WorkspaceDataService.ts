@@ -42,4 +42,8 @@ export const WorkspaceData = signal => ({
     const res = await fetchWDS(root)('status', _.merge(authOpts(), { signal }))
     return res.json()
   },
+  listInstances: async (root: string): Promise<any> => {
+    const res = await fetchWDS(root)('instances/v0.2', _.merge(authOpts(), { signal }))
+    return res.json()
+  },
 })

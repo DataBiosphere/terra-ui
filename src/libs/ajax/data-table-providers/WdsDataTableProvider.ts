@@ -97,7 +97,7 @@ export const resolveWdsApp = apps => {
     return candidates[0]
   }
   const allCromwellApps = apps.filter(app => app.appType === 'CROMWELL')
-  if (allCromwellApps > 0) {
+  if (allCromwellApps.length > 0) {
     // Evaluate the earliest-created WDS app
     allCromwellApps.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
     if (allCromwellApps[0].status === 'RUNNING') {

@@ -781,9 +781,7 @@ const WorkspaceData = _.flow(
             }, [
               [
                 wdsSchemaError && h(NoDataPlaceholder, {
-                  message: 'Data tables are unavailable.',
-                  buttonText: 'Troubleshoot',
-                  onAdd: () => setTroubleshootingWds(true)
+                  message: 'Data tables are unavailable.'
                 }),
                 // TODO: Logic needs to slightly change here -- there is a delay when wdsSchema is updated
                 // so `No tables have been uploaded.` briefly renders
@@ -998,16 +996,9 @@ const WorkspaceData = _.flow(
       h(SidebarSeparator, { sidebarWidth, setSidebarWidth }),
       div({ style: styles.tableViewPanel }, [
         _.includes(selectedData?.type, [workspaceDataTypes.entities, workspaceDataTypes.entitiesVersion]) && h(DataTableFeaturePreviewFeedbackBanner),
-        Utils.switchCase(selectedData?.type, [undefined, () => Utils.cond([wdsSchemaError && isAzureWorkspace, () => div({ style: { textAlign: 'center' } },
-          [icon('loadingSpinner'), ' The database that powers your data tables is unavailable. It may take a few minutes after initial workspace creation to be ready.',
-            h(div, {
-              style: {
-                padding: '0.5rem 1.5rem',
-                backgroundColor: 'white'
-              }
-            }, [
-              h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['Troubleshoot'])
-            ])])],
+        Utils.switchCase(selectedData?.type, [undefined, () => Utils.cond([wdsSchemaError && isAzureWorkspace, () => div({ style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' } },
+          [icon('loadingSpinner'), ' The database that powers your data tables is unavailable. It may take a few minutes after initial workspace creation to be ready. If you think something has gone wrong, please reach out to support@terra.bio and include information from our ',
+            h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['Troubleshoot']), ' page.'])],
         () => div({ style: { textAlign: 'center' } }, ['Select a data type from the navigation panel on the left']),
         )],
         [workspaceDataTypes.localVariables, () => h(LocalVariablesContent, {

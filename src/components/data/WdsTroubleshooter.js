@@ -23,6 +23,7 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
   const [appFound, setAppFound] = useState(null)
   const [appRunning, setAppRunning] = useState(null)
   const [proxyUrl, setProxyUrl] = useState(null)
+  const [defaultInstanceExists, setDefaultInstanceExists] = useState(null)
 
   const signal = useCancellation()
 
@@ -30,17 +31,17 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     Ajax(signal).Apps.getV2AppInfo(workspaceId).then(res => {
       setLeoOk(res)
       const foundApp = resolveWdsApp(res)
-      setAppFound(foundApp.appName)
-      setAppRunning(foundApp.status)
-      setProxyUrl(foundApp.proxyUrls?.wds)
-      Ajax(signal).WorkspaceData.getVersion(foundApp.proxyUrls?.wds).then(res => {
+      setAppFound(foundApp?.appName)
+      setAppRunning(foundApp?.status)
+      setProxyUrl(foundApp?.proxyUrls?.wds)
+      Ajax(signal).WorkspaceData.getVersion(foundApp?.proxyUrls?.wds).then(res => {
         setWdsResponsive(true)
         setVersion(res.git?.commit?.id)
       }).catch(_ => {
         setWdsResponsive(false)
         setVersion('unknown')
       })
-      Ajax(signal).WorkspaceData.getStatus(foundApp.proxyUrls?.wds).then(res => {
+      Ajax(signal).WorkspaceData.getStatus(foundApp?.proxyUrls?.wds).then(res => {
         setWdsStatus(res.status)
         setWdsDbStatus(res.components?.db?.status)
         setWdsPingStatus(res.components?.ping?.status)
@@ -48,6 +49,11 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
         setWdsStatus('unresponsive')
         setWdsDbStatus('unknown')
         setWdsPingStatus('unknown')
+      })
+      Ajax(signal).WorkspaceData.listInstances(foundApp?.proxyUrls?.wds).then(res => {
+        setDefaultInstanceExists(res.includes(workspaceId))
+      }).catch(_ => {
+        setDefaultInstanceExists('unknown')
       })
     }).catch(_ => {
       setLeoOk([])
@@ -74,18 +80,31 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     text: value
   })])
 
+  const troubleShooterText = {
+    'Workspace Id':	workspaceId,
+    'Resource Group Id':	mrgId,
+    'App listing':	leoOk?.length,
+    'Data Table app found':	appFound,
+    'Data Table app running?':	appRunning,
+    'Data Table app proxy url':	proxyUrl,
+    'Data Table app responding':	wdsResponsive,
+    'Data Table app version':	version,
+    'Data Table app status':	wdsStatus,
+    'Data Table app DB status':	wdsDbStatus,
+    'Data Table app ping status':	wdsPingStatus,
+    'Default Instance exists': defaultInstanceExists
+  }
 
   return h(Modal, {
     showCancel: false,
     onDismiss,
-    title: 'WDS Troubleshooter',
+    title: 'Data Table Troubleshooter',
     width: '55rem',
     okButton: h(ButtonPrimary, {
       tooltip: 'Done',
       onClick: onDismiss
     }, ['Done'])
   }, [div({ style: { padding: '1rem 0.5rem', lineHeight: '1.4rem' } }, [
-
     table({ style: { borderSpacing: '1rem 0', borderCollapse: 'separate' } }, [
       tr([
         td({ style: { fontWeight: 'bold' } }, [
@@ -99,30 +118,30 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
           !!mrgId ? checkIcon('success') : checkIcon('failure')
         ]),
         td({ style: { fontWeight: 'bold' } }, ['Resource Group Id']),
-        td([clippy('resource group id', mrgId)])
+        td([clippy('Resource Group Id', mrgId)])
       ]),
       tr([
         td({ style: { fontWeight: 'bold' } }, [leoOk == null ? checkIcon('running') :
           (!!leoOk?.length ? checkIcon('success') : checkIcon('failure'))]),
-        td({ style: { fontWeight: 'bold' } }, ['Leo app listing']),
-        td([h(Fragment, [leoOk?.length, ' app(s) total'])])
+        td({ style: { fontWeight: 'bold' } }, ['App listing']),
+        td([h(Fragment, [`${leoOk?.length} app(s) total`])])
       ]),
       tr([
         td({ style: { fontWeight: 'bold' } }, [leoOk == null ? checkIcon('running') :
           (!!appFound && appFound !== 'unknown' ? checkIcon('success') : checkIcon('failure'))]),
-        td({ style: { fontWeight: 'bold' } }, ['WDS app found']),
+        td({ style: { fontWeight: 'bold' } }, ['Data Table app found']),
         td([clippy('found app name', appFound)])
       ]),
       tr([
         td({ style: { fontWeight: 'bold' } }, [appRunning == null ? checkIcon('running') :
           (!!appRunning && appRunning !== 'unknown' ? checkIcon('success') : checkIcon('failure'))]),
-        td({ style: { fontWeight: 'bold' } }, ['WDS app status']),
+        td({ style: { fontWeight: 'bold' } }, ['Data Table app status']),
         td([h(Fragment, [appRunning])])
       ]),
       tr([
         td({ style: { fontWeight: 'bold' } }, [proxyUrl == null ? checkIcon('running') :
           (!!proxyUrl && proxyUrl !== 'unknown' ? checkIcon('success') : checkIcon('failure'))]),
-        td({ style: { fontWeight: 'bold' } }, ['App proxy url']),
+        td({ style: { fontWeight: 'bold' } }, ['Data Table app proxy url']),
         // don't use the clippy() helper here so we can truncate the proxyUrl
         td([
           h(Fragment, [h(div, { style: _.merge({ width: '400px', float: 'left' }, Style.noWrapEllipsis) }, [proxyUrl]),
@@ -136,35 +155,46 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
       tr([
         td({ style: { fontWeight: 'bold' } }, [wdsResponsive == null ? checkIcon('running') :
           (!!wdsResponsive && wdsResponsive !== 'unknown' ? checkIcon('success') : checkIcon('failure'))]),
-        td({ style: { fontWeight: 'bold' } }, ['WDS responding']),
+        td({ style: { fontWeight: 'bold' } }, ['Data Table app responding']),
         td([h(Fragment, [wdsResponsive != null ? JSON.stringify(wdsResponsive) : ''])])
       ]),
       tr([
         td({ style: { fontWeight: 'bold' } }, [version == null ? checkIcon('running') :
           (!!version && version !== 'unknown' ? checkIcon('success') : checkIcon('failure'))]),
-        td({ style: { fontWeight: 'bold' } }, ['WDS version']),
+        td({ style: { fontWeight: 'bold' } }, ['Data Table app version']),
         td([clippy('WDS version', version)])
       ]),
       tr([
         td({ style: { fontWeight: 'bold' } }, [wdsStatus == null ? checkIcon('running') :
           (!!wdsStatus && wdsStatus !== 'unresponsive' && wdsStatus !== 'DOWN' ? checkIcon('success') : checkIcon('failure'))]),
-        td({ style: { fontWeight: 'bold' } }, ['WDS status']),
+        td({ style: { fontWeight: 'bold' } }, ['Data Table app status']),
         td([h(Fragment, [wdsStatus])])
       ]),
       tr([
         td({ style: { fontWeight: 'bold' } }, [wdsDbStatus == null ? checkIcon('running') :
           (!!wdsDbStatus && wdsDbStatus !== 'unknown' && wdsDbStatus !== 'DOWN' ? checkIcon('success') : checkIcon('failure'))]),
-        td({ style: { fontWeight: 'bold' } }, ['WDS DB status']),
+        td({ style: { fontWeight: 'bold' } }, ['Data Table app DB status']),
         td([h(Fragment, [wdsDbStatus])])
       ]),
       tr([
         td({ style: { fontWeight: 'bold' } }, [wdsPingStatus == null ? checkIcon('running') :
           (!!wdsPingStatus && wdsPingStatus !== 'unknown' && wdsPingStatus !== 'DOWN' ? checkIcon('success') : checkIcon('failure'))]),
-        td({ style: { fontWeight: 'bold' } }, ['WDS ping status']),
+        td({ style: { fontWeight: 'bold' } }, ['Data Table app ping status']),
         td([h(Fragment, [wdsPingStatus])])
       ]),
-    ])
-
+      tr([
+        td({ style: { fontWeight: 'bold' } }, [defaultInstanceExists == null ? checkIcon('running') :
+          (!!defaultInstanceExists && defaultInstanceExists !== 'unknown' ? checkIcon('success') : checkIcon('failure'))]),
+        td({ style: { fontWeight: 'bold' } }, ['Default instance exists']),
+        td([h(Fragment, [defaultInstanceExists])])
+      ]),
+    ]),
+    h(Fragment, {}, ['Please copy this information and email support@terra.bio to troubleshoot the error with your data tables.',
+      h(ClipboardButton, {
+        'aria-label': 'Copy troubleshooting info to clipboard',
+        style: { marginLeft: '1rem' },
+        text: JSON.stringify(troubleShooterText)
+      })])
   ]
   )])
 }
