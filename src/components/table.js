@@ -346,7 +346,7 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContent
     role: 'table',
     'aria-label': ariaLabel,
     'aria-readonly': readOnly || undefined,
-    className: 'simple-flex-table'
+    className: 'simple-flex-table',
   }, [
     div({
       role: 'row',
@@ -367,7 +367,7 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContent
         role: 'row',
         as: 'div',
         className: 'table-row',
-        style: { backgroundColor: 'white', display: 'flex', minHeight: 48 },
+        style: { overflowWrap: 'break-word', wordBreak: 'break-all', backgroundColor: 'white', display: 'flex', minHeight: 48 },
         hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined
       }, [
         _.map(([i, { size, cellRenderer }]) => {
