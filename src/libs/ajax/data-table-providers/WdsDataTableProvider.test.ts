@@ -727,17 +727,32 @@ describe('resolveWdsUrl', () => {
     ]
     expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid)).toBe('')
   })
-  // it('return empty string when app not found', () => {
-  //   const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
-  //     { appType: 'A_DIFFERENT_APP', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } }
-  //   ]
-  //   expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid)).toBe('')
-  // })
+  it('return empty string when app not found', () => {
+    const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
+      { appType: 'A_DIFFERENT_APP', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } }
+    ]
+    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid)).toBe('')
+  })
   // 2023-01-24T15:27:28.740880Z -- example timestamp
-  // it('return the earliest RUNNING app if more than one exists', () => {
-  //   const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
-  //     { appType: 'A_DIFFERENT_APP', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } }
+  it('return the earliest RUNNING app if more than one exists', () => {
+    const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
+      { appType: 'A_DIFFERENT_APP', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } }
+    ]
+    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid)).toBe('')
+  })
+  // it('return the latest PROVISIONING app if more than one exists, and is not RUNNING', () => {
+  //   const testProxyUrlResponseWithDifferentAppNameA: Array<Object> = [
+  //     {
+  //       appType: 'CROMWELL', appName: `wds-${uuid}`, status: 'RUNNING', proxyUrls: { wds: testProxyUrl }, auditInfo: {
+  //       createdDate: '2023-01-24T15:27:28.740880Z'
+  //       }
+  //     },
+  //     {
+  //       appType: 'CROMWELL', workspaceId: uuid, appName: `wds-${uuid}`, status: 'RUNNING', proxyUrls: { wds: 'something-older.com' }, auditInfo: {
+  //         createdDate: '2024-01-24T15:27:28.740880Z'
+  //       }
+  //     },
   //   ]
-  //   expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid)).toBe('')
+  //   expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppNameA, uuid)).toBe(testProxyUrl)
   // })
 })
