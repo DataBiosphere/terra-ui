@@ -370,10 +370,6 @@ export const sha256 = async message => {
 }
 
 export const formatBytes = (bytes: number): string => {
-  if (bytes < 2 ** 10) {
-    return `${bytes} B`
-  }
-
   const lookup: [string, number][] = [
     ['P', 2 ** 50],
     ['T', 2 ** 40],
@@ -387,7 +383,7 @@ export const formatBytes = (bytes: number): string => {
     return `${(bytes / divisor).toPrecision(3)} ${prefix}iB`
   }
   // fallback is to return unformatted
-  return `${bytes} b`
+  return `${bytes} B`
 }
 
 //Truncates an integer to the thousands, i.e. 10363 -> 10k
