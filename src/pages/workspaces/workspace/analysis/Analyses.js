@@ -62,14 +62,14 @@ const centerColumnFlex = { flex: 5 }
 const endColumnFlex = { flex: '0 0 150px', display: 'flex', justifyContent: 'flex-left', whiteSpace: 'nowrap' }
 
 const AnalysisCardHeaders = ({ sort, onSort }) => {
-  return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', paddingLeft: '1.5rem', marginBottom: '0.5rem' } }, [
-    div({ 'aria-sort': ariaSort(sort, tableFields.application), style: { flex: 1 } }, [
+  return div({ role: 'row', style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', paddingLeft: '1.5rem', marginBottom: '0.5rem' } }, [
+    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, tableFields.application), style: { flex: 1 } }, [
       h(HeaderRenderer, { sort, onSort, name: tableFields.application })
     ]),
-    div({ 'aria-sort': ariaSort(sort, tableFields.name), style: centerColumnFlex }, [
+    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, tableFields.name), style: centerColumnFlex }, [
       h(HeaderRenderer, { sort, onSort, name: tableFields.name })
     ]),
-    div({ 'aria-sort': ariaSort(sort, tableFields.lastModified), style: { ...endColumnFlex, paddingRight: '1rem' } }, [
+    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, tableFields.lastModified), style: { ...endColumnFlex, paddingRight: '1rem' } }, [
       h(HeaderRenderer, { sort, onSort, name: tableFields.lastModified })
     ]),
     div({ style: { flex: `0 0 ${analysisContextMenuSize}px` } }, [
@@ -462,7 +462,7 @@ const Analyses = _.flow(
         [!_.isEmpty(analyses) && _.isEmpty(renderedAnalyses), () => {
           return div({ style: { fontStyle: 'italic' } }, ['No matching analyses'])
         }],
-        [Utils.DEFAULT, () => h(Fragment, [
+        [Utils.DEFAULT, () => div({ role: 'table' }, [
           h(AnalysisCardHeaders, {
             sort: sortOrder, onSort: newSortOrder => {
               setLocalPref(KEY_ANALYSES_SORT_ORDER, newSortOrder)
