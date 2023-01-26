@@ -5,6 +5,8 @@ import * as qs from 'qs'
 import { div, span } from 'react-hyperscript-helpers'
 import { v4 as uuid } from 'uuid'
 
+import { getCloudProviderFromWorkspace } from './workspace-utils'
+
 
 export const subscribable = () => {
   let subscribers = []
@@ -275,8 +277,10 @@ export const kvArrayToObject = _.reduce((acc, { key, value }) => _.set(key, valu
 export const isValidWsExportTarget = _.curry((sourceWs, destWs) => {
   const { workspace: { workspaceId: sourceId, authorizationDomain: sourceAD } } = sourceWs
   const { accessLevel, workspace: { workspaceId: destId, authorizationDomain: destAD } } = destWs
+  const sourceWsCloudPlatform = getCloudProviderFromWorkspace(sourceWs)
+  const destWsCloudPlatform = getCloudProviderFromWorkspace(destWs)
 
-  return sourceId !== destId && canWrite(accessLevel) && (_.intersectionWith(_.isEqual, sourceAD, destAD).length === sourceAD.length)
+  return sourceId !== destId && canWrite(accessLevel) && (_.intersectionWith(_.isEqual, sourceAD, destAD).length === sourceAD.length) && sourceWsCloudPlatform === destWsCloudPlatform
 })
 
 export const append = _.curry((value, arr) => _.concat(arr, [value]))

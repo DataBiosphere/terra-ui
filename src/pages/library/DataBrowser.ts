@@ -1,20 +1,27 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import React, { CSSProperties, Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ColumnSelector, MiniSortable, SimpleTable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
+import { Dataset } from 'src/libs/ajax/Catalog'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
 import {
   DatasetAccess,
-  datasetAccessTypes, DatasetReleasePolicyDisplayInformation, formatDatasetTime, getAssayCategoryListFromDataset, getConsortiumTitlesFromDataset,
-  getDataModalityListFromDataset,
-  useDataCatalog
+  datasetAccessTypes, formatDatasetTime, getAssayCategoryListFromDataset, getConsortiumTitlesFromDataset,
+  getDataModalityListFromDataset, getDatasetAccessType, getDatasetReleasePoliciesDisplayInformation,
+  makeDatasetReleasePolicyDisplayInformation, useDataCatalog
 } from 'src/pages/library/dataBrowser-utils'
+import {
+  commonStyles,
+  FilterSection,
+  SearchAndFilterComponent,
+  SearchAndFilterProps,
+  Sort
+} from 'src/pages/library/SearchAndFilterComponent'
 
 
 const styles = {
@@ -33,7 +40,7 @@ const styles = {
   }
 }
 
-const getUnique = (mapper, data) => _.flow(
+export const getUnique = (mapper, data) => _.flow(
   _.flatMap(mapper),
   _.compact,
   _.uniq,
@@ -41,44 +48,51 @@ const getUnique = (mapper, data) => _.flow(
 )(data)
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
-const extractCatalogFilters = dataCatalog => {
+// Renderers are not tested, because typing gives all the assertions we want to make on them (We make no promises about the contents of custom renderers, just their return types)
+export const extractCatalogFilters = (dataCatalog: Dataset[]): FilterSection<Dataset>[] => {
   return [{
-    name: 'Access type',
-    labels: _.values(datasetAccessTypes),
-    labelRenderer: accessValue => {
-      const lowerKey = _.toLower(accessValue)
-      const iconKey = accessValue === datasetAccessTypes.Granted ? 'unlock' : 'lock'
-      return [div({ key: `access-filter-${lowerKey}`, style: { display: 'flex' } }, [
+    header: 'Access type',
+    matchBy: (dataset, value) => getDatasetAccessType(dataset) === value,
+    renderer: value => {
+      const lowerKey = _.toLower(value)
+      const iconKey = value === datasetAccessTypes.Granted ? 'unlock' : 'lock'
+      return div({ key: `access-filter-${lowerKey}`, style: { display: 'flex' } }, [
         icon(iconKey, { style: { color: styles.access[lowerKey], marginRight: 5 } }),
-        div([accessValue])
-      ])]
-    }
+        value
+      ])
+    },
+    values: _.values(datasetAccessTypes),
   }, {
-    name: 'Consortium',
-    labels: getUnique(dataset => getConsortiumTitlesFromDataset(dataset), dataCatalog)
+    header: 'Consortium',
+    matchBy: (dataset, value) => _.includes(value, getConsortiumTitlesFromDataset(dataset)),
+    values: getUnique(dataset => getConsortiumTitlesFromDataset(dataset), dataCatalog)
   }, {
-    name: 'Data use policy',
-    labels: getUnique(dataset => dataset['TerraDCAT_ap:hasDataUsePermission'], dataCatalog),
-    labelRenderer: rawPolicy => {
-      return [div({ key: rawPolicy, style: { display: 'flex', flexDirection: 'column' } }, [
-        h(DatasetReleasePolicyDisplayInformation, { 'TerraDCAT_ap:hasDataUsePermission': rawPolicy })
-      ])]
-    }
+    header: 'Data use policy',
+    matchBy: (dataset, value) => _.isEqual(dataset['TerraDCAT_ap:hasDataUsePermission'], value),
+    renderer: value => div({ key: getDatasetReleasePoliciesDisplayInformation(value).label, style: { display: 'flex', flexDirection: 'column' } }, [
+      makeDatasetReleasePolicyDisplayInformation(value)
+    ]),
+    values: getUnique('TerraDCAT_ap:hasDataUsePermission', dataCatalog)
   }, {
-    name: 'Data modality',
-    labels: getUnique(dataset => getDataModalityListFromDataset(dataset), dataCatalog)
+    header: 'Data modality',
+    matchBy: (dataset, value) => _.includes(value, getDataModalityListFromDataset(dataset)),
+    values: getUnique(dataset => getDataModalityListFromDataset(dataset), dataCatalog)
   }, {
-    name: 'Assay Category',
-    labels: getUnique(dataset => getAssayCategoryListFromDataset(dataset), dataCatalog)
+    header: 'Assay category',
+    matchBy: (dataset, value) => _.includes(value, getAssayCategoryListFromDataset(dataset)),
+    values: getUnique(dataset => getAssayCategoryListFromDataset(dataset), dataCatalog)
   }, {
-    name: 'File type',
-    labels: getUnique('dcat:mediaType', _.flatMap('files', dataCatalog))
+    header: 'File type',
+    matchBy: (dataset, value) => _.includes(value, _.map(files => files['TerraCore:hasFileFormat'], dataset.fileAggregate)),
+    values: getUnique('TerraCore:hasFileFormat', _.flatMap('fileAggregate', dataCatalog))
   }, {
-    name: 'Disease',
-    labels: getUnique('samples.disease', dataCatalog)
+    header: 'Disease',
+    matchBy: (dataset, value) => _.intersection([value], dataset.samples?.disease).length > 0,
+    values: getUnique(dataset => dataset.samples?.disease, dataCatalog)
   }, {
-    name: 'Species',
-    labels: getUnique('samples.genus', dataCatalog)
+    header: 'Species',
+    matchBy: (dataset, value) => _.intersection([value], dataset.samples?.species).length > 0,
+    values: getUnique(dataset => dataset.samples?.species, dataCatalog)
   }]
 }
 
@@ -94,17 +108,23 @@ const allColumns = {
   species: { title: 'Species', contents: row => _.join(', ', getUnique('samples.genus', { row })) }
 }
 
+interface ColumnSetting {
+  name: string
+  key: string
+  visible: boolean
+}
+
 // Columns are stored as a list of column key names in `cols` below. The column settings that the ColumnSelector dialog uses contains
 // the column title, key and a visible flag.
 //
 // These functions convert between the two formats.
 
 export const convertSettingsToCols = _.flow(
-  _.filter(columnSetting => columnSetting.visible),
+  _.filter((columnSetting: ColumnSetting) => columnSetting.visible),
   _.map(columnSetting => columnSetting.key)
 )
 
-export const convertColsToSettings = cols => _.flow(
+export const convertColsToSettings = (cols: string[]): ColumnSetting[] => _.flow(
   _.toPairs,
   _.map(([k, v]) => {
     return { name: v.title, key: k, visible: _.includes(k, cols) }
@@ -116,12 +136,12 @@ const DataBrowserTableComponent = ({ sort, setSort, cols, setCols, filteredList 
     'aria-label': 'dataset list',
     columns: [
       {
-        header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dct:title', onSort: setSort }, ['Dataset Name'])]),
+        header: div({ style: styles.table.header as CSSProperties }, [h(MiniSortable, { sort, field: 'dct:title', onSort: setSort }, ['Dataset Name'])]),
         size: { grow: 2.2 }, key: 'name'
       },
       ..._.map(columnKey => {
         return {
-          header: div({ style: styles.table.header },
+          header: div({ style: styles.table.header as CSSProperties },
             [h(MiniSortable, { sort, field: columnKey, onSort: setSort }, [allColumns[columnKey].title])]),
           size: { grow: 1 }, key: columnKey
         }
@@ -162,21 +182,20 @@ const DataBrowserTableComponent = ({ sort, setSort, cols, setCols, filteredList 
 }
 
 export const Browser = () => {
-  const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
+  const [sort, setSort] = useState<Sort>({ field: 'created', direction: 'desc' })
   // This state contains the current set of visible columns, in the order that they appear.
   // Note that the Dataset Name column isn't customizable and is always shown first.
   const [cols, setCols] = useState(['consortiums', 'subjects', 'dataModality', 'lastUpdated'])
   const { dataCatalog, loading } = useDataCatalog()
 
   return h(Fragment, [
-    h(SearchAndFilterComponent, {
+    h(SearchAndFilterComponent as React.FC<SearchAndFilterProps<Dataset>>, {
       getLowerName: dataset => _.toLower(dataset['dct:title']), getLowerDescription: dataset => _.toLower(dataset['dct:description']),
       fullList: dataCatalog, sidebarSections: extractCatalogFilters(dataCatalog),
       customSort: sort,
       searchType: 'Datasets',
       titleField: 'dct:title',
       descField: 'dct:description',
-      idField: 'id',
       listView: filteredList => DataBrowserTableComponent({ sort, setSort, cols, setCols, filteredList })
     }),
     loading && spinnerOverlay
