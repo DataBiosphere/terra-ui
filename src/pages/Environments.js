@@ -594,8 +594,7 @@ export const Environments = ({ nav = undefined }) => {
           span({ style: { fontWeight: 600 } }, [' Hide resources you did not create'])
         ])
       ]),
-      runtimes &&
-      div({ style: { overflow: 'scroll', overflowWrap: 'break-word', wordBreak: 'break-all' } }, [
+      runtimes && div({ style: { overflow: 'scroll', overflowWrap: 'break-word', wordBreak: 'break-all' } }, [
         h(SimpleFlexTable, {
           'aria-label': 'cloud environments',
           sort,
