@@ -100,7 +100,7 @@ export const ExportAnalysisModal = ({ fromLauncher, onDismiss, printName, toolLa
           h(FormLabel, { htmlFor: id, required: true }, [
             'Destination',
             h(InfoBox, { style: { marginLeft: '0.2rem' } },
-              ['Only workspaces in the same Cloud Platform are available.'])
+              ['Only workspaces in the same cloud platform are available.'])
           ]),
           h(WorkspaceSelector, {
             id,
