@@ -28,7 +28,7 @@ const ApplicationLauncher = _.flow(
   })
 )(({
   name: workspaceName, sparkInterface, analysesData: { runtimes, refreshRuntimes },
-  application, workspace: { azureContext, workspace: { name, workspaceId, googleProject, bucketName }, namespace }
+  application, workspace: { azureContext, workspace: { workspaceId, googleProject, bucketName }, namespace }
 }, _ref) => {
   useEffect(() => {
     Ajax().Metrics.captureEvent(Events.analysisLaunch,
