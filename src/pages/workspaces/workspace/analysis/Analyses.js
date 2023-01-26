@@ -192,14 +192,8 @@ const AnalysisCard = ({
     [toolLabels.JupyterLab, () => jupyterLogo]
   )
 
-  const toolAltSwitch = Utils.switchCase(application,
-    [toolLabels.Jupyter, () => 'Jupyter notebook'],
-    [toolLabels.RStudio, () => 'Rstudio'],
-    [toolLabels.JupyterLab, () => 'Jupyter notebook']
-  )
-
   const toolIcon = div({ style: { marginRight: '1rem' } }, [
-    img({ src: toolIconSrc, alt: toolAltSwitch, style: { height: 40, width: 40 } })
+    img({ src: toolIconSrc, alt: application, style: { height: 40, width: 40 } })
   ])
 
   const toolContainer = div({ style: { display: 'flex', flex: 1, flexDirection: 'row', alignItems: 'center' } }, [
