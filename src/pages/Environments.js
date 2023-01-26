@@ -674,7 +674,7 @@ export const Environments = ({ nav = undefined }) => {
               }
             },
             {
-              size: { min: '8em', grow: 0 },
+              size: { min: '14em', grow: 0 },
               field: 'cost',
               headerRenderer: () => h(Sortable, { sort, field: 'cost', onSort: setSort }, [`Cost / hr (${Utils.formatUSD(totalCost)} total)`]),
               cellRenderer: ({ rowIndex }) => {
