@@ -22,7 +22,7 @@ import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
 import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
-  getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, isGcpContext, mapToPdTypes
+  getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, mapToPdTypes
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import RuntimeManager from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
 import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
@@ -124,13 +124,6 @@ const WorkspaceTabs = ({
     ])
   ])
 }
-
-// v2 workspaces may have been migrated from v1 workspaces, in which case the googleProject
-// associated with runtimes on GCP will not match the workspace googleProject. These
-// should be hidden from the user.
-export const isV1Artifact = _.curry((workspace, { googleProject, cloudContext }) => {
-  return isGcpContext(cloudContext) && googleProject !== workspace.googleProject
-})
 
 const WorkspaceContainer = ({
   namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true,
@@ -265,7 +258,7 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
         Ajax(signal).Runtimes.listV2(cloudEnvFilters)
       ]) : [[], []]
 
-      setRuntimes(_.remove(isV1Artifact(workspace?.workspace), newRuntimes))
+      setRuntimes(newRuntimes)
       setAppDataDisks(_.remove(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
       setPersistentDisks(mapToPdTypes(_.filter(disk => _.isUndefined(getDiskAppType(disk)), newDisks)))
 
