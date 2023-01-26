@@ -601,7 +601,7 @@ export const Environments = ({ nav = undefined }) => {
           rowCount: filteredCloudEnvironments.length,
           columns: [
             {
-              size: { min: '10em' },
+              size: { min: '12em' },
               field: 'project',
               headerRenderer: () => h(Sortable, { sort, field: 'project', onSort: setSort }, ['Billing project']),
               cellRenderer: ({ rowIndex }) => {
@@ -700,14 +700,14 @@ export const Environments = ({ nav = undefined }) => {
         })
       ]),
       h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '1rem 0', padding: 0 } }, ['Your persistent disks']),
-      disks && div({ style: { overflow: 'scroll' } }, [
+      disks && div({ style: { overflow: 'scroll', overflowWrap: 'break-word', wordBreak: 'break-all' } }, [
         h(SimpleFlexTable, {
           'aria-label': 'persistent disks',
           sort: diskSort,
           rowCount: filteredDisks.length,
           columns: [
             {
-              size: { min: '10em' },
+              size: { min: '12em' },
               field: 'project',
               headerRenderer: () => h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
               cellRenderer: ({ rowIndex }) => {
