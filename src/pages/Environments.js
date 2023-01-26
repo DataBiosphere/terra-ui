@@ -595,7 +595,7 @@ export const Environments = ({ nav = undefined }) => {
         ])
       ]),
       runtimes &&
-      div({ style: { overflow: 'scroll' } }, [
+      div({ style: { overflow: 'scroll', overflowWrap: 'break-word', wordBreak: 'break-all' } }, [
         h(SimpleFlexTable, {
           'aria-label': 'cloud environments',
           sort,
