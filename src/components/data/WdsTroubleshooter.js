@@ -65,6 +65,7 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
       setWdsStatus('unresponsive')
       setWdsDbStatus('unknown')
       setWdsPingStatus('unknown')
+      setDefaultInstanceExists('unknown')
     })
   })
 
