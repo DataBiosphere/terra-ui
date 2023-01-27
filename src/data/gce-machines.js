@@ -145,6 +145,8 @@ export const ephemeralExternalIpAddressPrice = { // per hour in dollars for all 
   preemptible: 0.002
 }
 
+// TODO [IA-4007] Explore replacing the hardcoded, manually synced script output below with a dynamic solution for price quotes.
+
 // Disk prices below are per GB per https://cloud.google.com/compute/all-pricing#disk
 // GPU prices below are hourly and per GPU (https://cloud.google.com/compute/gpus-pricing).
 // The data below comes from Google's pricing API: https://cloud.google.com/billing/v1/how-tos/caltalog-api

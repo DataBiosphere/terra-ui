@@ -122,6 +122,8 @@ export const azureDiskTypes = {
  */
 export const getDiskType = diskSize => _.findKey(maxSize => diskSize <= maxSize, azureDiskTypes)
 
+// TODO [IA-4007] Explore replacing the hardcoded, manually synced script output below with a dynamic solution for price quotes.
+
 // Storage prices below are monthly; see https://learn.microsoft.com/en-us/azure/virtual-machines/disks-types#standard-ssds
 // Compute prices below are hourly, per https://azure.microsoft.com/en-us/pricing/details/virtual-machines/linux/#pricing.
 // The data below comes from Azure's pricing API: https://prices.azure.com/api/retail/prices
