@@ -80,20 +80,55 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     text: value
   })])
 
-  const troubleShooterText = {
-    'Workspace Id':	workspaceId,
-    'Resource Group Id':	mrgId,
-    'App listing':	leoOk?.length,
-    'Data Table app found':	appFound,
-    'Data Table app running?':	appRunning,
-    'Data Table app proxy url':	proxyUrl,
-    'Data Table app responding':	wdsResponsive,
-    'Data Table app version':	version,
-    'Data Table app status':	wdsStatus,
-    'Data Table app DB status':	wdsDbStatus,
-    'Data Table app ping status':	wdsPingStatus,
-    'Default Instance exists': defaultInstanceExists
+  const troubleShooterRow = ([label, text, iconRunning, iconSuccess, copy, element]) => {
+    return tr([
+      td({ style: { fontWeight: 'bold' } }, [
+        iconRunning ? checkIcon('running') : (iconSuccess ? checkIcon('success') : checkIcon('failure'))
+      ]),
+      td({ style: { fontWeight: 'bold' } }, [label]),
+      td({ style: { fontWeight: 'bold' } }, [!!element]),
+      Utils.cond([!!element, () => element], () => Utils.cond([copy, () => td([clippy(label, text)])], () => td([h(Fragment, [text])]))
+      )
+    ])
   }
+
+  // The proxyUrl is long and should be truncated, but
+  // we still want to be able to copy it, so it gets it own special element
+  // that doesn't use the clippy() helper
+  const proxyElement =
+      td([
+        h(Fragment, [h(div, { style: _.merge({ width: '400px', float: 'left' }, Style.noWrapEllipsis) }, [proxyUrl]),
+          h(ClipboardButton, {
+            'aria-label': 'Copy proxy url to clipboard',
+            style: { marginLeft: '1rem' },
+            text: proxyUrl
+          })])
+      ])
+
+  /** For each piece of information we want to include in the troubleshooter, we want:
+   * 1. A label
+   * 2. The value of information
+   * 3. A function or variable that evaluates to boolean, determining whether the info/validation is still running
+   * 4. A function or variable that evaluates to boolean, determining whether the info/validation is successful
+   * 5. A boolean that determines whether or not to display a copy-clipboard icon for this piece of info
+   * 6. An optional element to use in place of the standard defined in troubleShooterRow
+  **/
+  const troubleShooterText = [
+    ['Workspace Id',	workspaceId, false, !!workspaceId, true],
+    ['Resource Group Id',	mrgId, false, !!mrgId, true],
+    ['App listing',	`${leoOk?.length} app(s) total`, leoOk == null, !!leoOk?.length, false],
+    ['Data app name',	appFound, leoOk == null, !!appFound && appFound !== 'unknown', true],
+    ['Data app running?',	appRunning, appRunning == null, !!appRunning && appRunning !== 'unknown', false],
+    ['Data app proxy url',	proxyUrl, proxyUrl == null, !!proxyUrl && proxyUrl !== 'unknown', false, proxyElement],
+    ['Data app responding',	JSON.stringify(wdsResponsive), wdsResponsive == null, !!wdsResponsive && wdsResponsive !== 'unknown', false],
+    ['Data app version',	version, version == null, !!version && version !== 'unknown', false],
+    ['Data app status',	wdsStatus, wdsStatus == null, !!wdsStatus && wdsStatus !== 'unresponsive' && wdsStatus !== 'DOWN', false],
+    ['Data app DB status',	wdsDbStatus, wdsDbStatus == null, !!wdsDbStatus && wdsDbStatus !== 'unknown' && wdsDbStatus !== 'DOWN', false],
+    ['Data app ping status',	wdsPingStatus, wdsPingStatus == null, !!wdsPingStatus && wdsPingStatus !== 'unknown' && wdsPingStatus !== 'DOWN', false],
+    ['Default Instance exists', JSON.stringify(defaultInstanceExists), defaultInstanceExists == null, !!defaultInstanceExists && defaultInstanceExists !== 'unknown', false]
+  ]
+
+  const tableRows = troubleShooterText.map(x => troubleShooterRow(x))
 
   return h(Modal, {
     showCancel: false,
@@ -105,98 +140,14 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
       onClick: onDismiss
     }, ['Done'])
   }, [div({ style: { padding: '1rem 0.5rem', lineHeight: '1.4rem' } }, [
-    table({ style: { borderSpacing: '1rem 0', borderCollapse: 'separate' } }, [
-      tr([
-        td({ style: { fontWeight: 'bold' } }, [
-          !!workspaceId ? checkIcon('success') : checkIcon('failure')
-        ]),
-        td({ style: { fontWeight: 'bold' } }, ['Workspace Id']),
-        td([clippy('Workspace Id', workspaceId)])
-      ]),
-      tr([
-        td({ style: { fontWeight: 'bold' } }, [
-          !!mrgId ? checkIcon('success') : checkIcon('failure')
-        ]),
-        td({ style: { fontWeight: 'bold' } }, ['Resource Group Id']),
-        td([clippy('Resource Group Id', mrgId)])
-      ]),
-      tr([
-        td({ style: { fontWeight: 'bold' } }, [leoOk == null ? checkIcon('running') :
-          (!!leoOk?.length ? checkIcon('success') : checkIcon('failure'))]),
-        td({ style: { fontWeight: 'bold' } }, ['App listing']),
-        td([h(Fragment, [`${leoOk?.length} app(s) total`])])
-      ]),
-      tr([
-        td({ style: { fontWeight: 'bold' } }, [leoOk == null ? checkIcon('running') :
-          (!!appFound && appFound !== 'unknown' ? checkIcon('success') : checkIcon('failure'))]),
-        td({ style: { fontWeight: 'bold' } }, ['Data Table app found']),
-        td([clippy('found app name', appFound)])
-      ]),
-      tr([
-        td({ style: { fontWeight: 'bold' } }, [appRunning == null ? checkIcon('running') :
-          (!!appRunning && appRunning !== 'unknown' ? checkIcon('success') : checkIcon('failure'))]),
-        td({ style: { fontWeight: 'bold' } }, ['Data Table app status']),
-        td([h(Fragment, [appRunning])])
-      ]),
-      tr([
-        td({ style: { fontWeight: 'bold' } }, [proxyUrl == null ? checkIcon('running') :
-          (!!proxyUrl && proxyUrl !== 'unknown' ? checkIcon('success') : checkIcon('failure'))]),
-        td({ style: { fontWeight: 'bold' } }, ['Data Table app proxy url']),
-        // don't use the clippy() helper here so we can truncate the proxyUrl
-        td([
-          h(Fragment, [h(div, { style: _.merge({ width: '400px', float: 'left' }, Style.noWrapEllipsis) }, [proxyUrl]),
-            h(ClipboardButton, {
-              'aria-label': 'Copy proxy url to clipboard',
-              style: { marginLeft: '1rem' },
-              text: proxyUrl
-            })])
-        ])
-      ]),
-      tr([
-        td({ style: { fontWeight: 'bold' } }, [wdsResponsive == null ? checkIcon('running') :
-          (!!wdsResponsive && wdsResponsive !== 'unknown' ? checkIcon('success') : checkIcon('failure'))]),
-        td({ style: { fontWeight: 'bold' } }, ['Data Table app responding']),
-        td([h(Fragment, [wdsResponsive != null ? JSON.stringify(wdsResponsive) : ''])])
-      ]),
-      tr([
-        td({ style: { fontWeight: 'bold' } }, [version == null ? checkIcon('running') :
-          (!!version && version !== 'unknown' ? checkIcon('success') : checkIcon('failure'))]),
-        td({ style: { fontWeight: 'bold' } }, ['Data Table app version']),
-        td([clippy('WDS version', version)])
-      ]),
-      tr([
-        td({ style: { fontWeight: 'bold' } }, [wdsStatus == null ? checkIcon('running') :
-          (!!wdsStatus && wdsStatus !== 'unresponsive' && wdsStatus !== 'DOWN' ? checkIcon('success') : checkIcon('failure'))]),
-        td({ style: { fontWeight: 'bold' } }, ['Data Table app status']),
-        td([h(Fragment, [wdsStatus])])
-      ]),
-      tr([
-        td({ style: { fontWeight: 'bold' } }, [wdsDbStatus == null ? checkIcon('running') :
-          (!!wdsDbStatus && wdsDbStatus !== 'unknown' && wdsDbStatus !== 'DOWN' ? checkIcon('success') : checkIcon('failure'))]),
-        td({ style: { fontWeight: 'bold' } }, ['Data Table app DB status']),
-        td([h(Fragment, [wdsDbStatus])])
-      ]),
-      tr([
-        td({ style: { fontWeight: 'bold' } }, [wdsPingStatus == null ? checkIcon('running') :
-          (!!wdsPingStatus && wdsPingStatus !== 'unknown' && wdsPingStatus !== 'DOWN' ? checkIcon('success') : checkIcon('failure'))]),
-        td({ style: { fontWeight: 'bold' } }, ['Data Table app ping status']),
-        td([h(Fragment, [wdsPingStatus])])
-      ]),
-      tr([
-        td({ style: { fontWeight: 'bold' } }, [defaultInstanceExists == null ? checkIcon('running') :
-          (!!defaultInstanceExists && defaultInstanceExists !== 'unknown' ? checkIcon('success') : checkIcon('failure'))]),
-        td({ style: { fontWeight: 'bold' } }, ['Default instance exists']),
-        td([h(Fragment, [defaultInstanceExists])])
-      ]),
-    ]),
+    table({ style: { borderSpacing: '1rem 0', borderCollapse: 'separate' } }, //[
+      tableRows
+    ),
     h(Fragment, {}, ['Please copy this information and email support@terra.bio to troubleshoot the error with your data tables.',
       h(ClipboardButton, {
         'aria-label': 'Copy troubleshooting info to clipboard',
         style: { marginLeft: '1rem' },
-        text: JSON.stringify(troubleShooterText)
+        text: JSON.stringify(troubleShooterText.map(x => x.slice(0, 2)))
       })])
-  ]
-  )])
+  ])])
 }
-//TODO: Implement doesSchemaExist API in WDS, then call it
-// h(div, {}, ['WDS default instance exists: ', h(Fragment, ['tbd - need API support'])]),
