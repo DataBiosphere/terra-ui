@@ -120,12 +120,12 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     ['Data app name',	appFound, leoOk == null, !!appFound && appFound !== 'unknown', true],
     ['Data app running?',	appRunning, appRunning == null, !!appRunning && appRunning !== 'unknown', false],
     ['Data app proxy url',	proxyUrl, proxyUrl == null, !!proxyUrl && proxyUrl !== 'unknown', false, proxyElement],
-    ['Data app responding',	JSON.stringify(wdsResponsive), wdsResponsive == null, !!wdsResponsive && wdsResponsive !== 'unknown', false],
+    ['Data app responding',	`${wdsResponsive}`, wdsResponsive == null, !!wdsResponsive && wdsResponsive !== 'unknown', false],
     ['Data app version',	version, version == null, !!version && version !== 'unknown', false],
     ['Data app status',	wdsStatus, wdsStatus == null, !!wdsStatus && wdsStatus !== 'unresponsive' && wdsStatus !== 'DOWN', false],
     ['Data app DB status',	wdsDbStatus, wdsDbStatus == null, !!wdsDbStatus && wdsDbStatus !== 'unknown' && wdsDbStatus !== 'DOWN', false],
     ['Data app ping status',	wdsPingStatus, wdsPingStatus == null, !!wdsPingStatus && wdsPingStatus !== 'unknown' && wdsPingStatus !== 'DOWN', false],
-    ['Default Instance exists', JSON.stringify(defaultInstanceExists), defaultInstanceExists == null, !!defaultInstanceExists && defaultInstanceExists !== 'unknown', false]
+    ['Default Instance exists', `${defaultInstanceExists}`, defaultInstanceExists == null, !!defaultInstanceExists && defaultInstanceExists !== 'unknown', false]
   ]
 
   const tableRows = troubleShooterText.map(x => troubleShooterRow(x))

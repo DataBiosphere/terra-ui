@@ -82,7 +82,7 @@ const getRelationParts = (val: unknown): string[] => {
   return []
 }
 
-//Placeholder method - this will be fleshed out in AJ-790, but is needed now for WDSTroubleshooter to work
+//Although this method repeats some logic from the resolveWdsUrl method, the two are using somewhat different criteria
 export const resolveWdsApp = apps => {
   const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}` && app.status === 'RUNNING')
   if (namedApp.length === 1) {
@@ -96,18 +96,15 @@ export const resolveWdsApp = apps => {
   if (candidates.length === 1 && candidates[0].status === 'PROVISIONING') {
     return candidates[0]
   }
+
+  //Failed to find an app with the proper name and in a reasonable state, so just look for any CROMWELL app
   const allCromwellApps = apps.filter(app => app.appType === 'CROMWELL')
   if (allCromwellApps.length > 0) {
     // Evaluate the earliest-created WDS app
     allCromwellApps.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
-    if (allCromwellApps[0].status === 'RUNNING') {
-      return allCromwellApps[0]
-    }
-    if (allCromwellApps[0].status === 'PROVISIONING') {
-      return ''
-    }
-    return 'ERROR'
+    return allCromwellApps[0]
   }
+  return ''
 }
 
 // Extract wds URL from Leo response. exported for testing
