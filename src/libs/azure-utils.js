@@ -121,7 +121,11 @@ export const getDiskType = diskSize => _.findKey(maxSize => diskSize <= maxSize,
 
 // TODO [IA-4007] Explore replacing the hardcoded, manually synced script output below with a dynamic solution for price quotes.
 
+<<<<<<< HEAD
 // Storage prices below are monthly; see https://learn.microsoft.com/en-us/azure/virtual-machines/disks-types#standard-hdds
+=======
+// Storage prices below are monthly; see https://learn.microsoft.com/en-us/azure/virtual-machines/disks-types#standard-ssds
+>>>>>>> 1c21f008 ([IA-3348] Add TODO to explore dynamic pricing)
 // Compute prices below are hourly, per https://azure.microsoft.com/en-us/pricing/details/virtual-machines/linux/#pricing.
 // The data below comes from Azure's pricing API: https://prices.azure.com/api/retail/prices
 // There is a script available at https://github.com/broadinstitute/dsp-scripts/blob/master/terra-ui/regionality/parse_pricing_api_azure.py.
