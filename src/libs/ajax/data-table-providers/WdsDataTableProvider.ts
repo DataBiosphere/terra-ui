@@ -108,24 +108,12 @@ export const resolveWdsApp = apps => {
 }
 
 // Extract wds URL from Leo response. exported for testing
-export const getWdsUrl = apps => {
-  // look explicitly for an app named 'wds-${app.workspaceId}'. If found, use it, even if it isn't running
-  // this handles the case where the user has explicitly shut down the app
-  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}` && app.status === 'RUNNING')
-  if (namedApp.length === 1) {
-    return namedApp[0].proxyUrls.wds
+export const resolveWdsUrl = apps => {
+  const foundApp = resolveWdsApp(apps)
+  if (foundApp?.status === 'RUNNING') {
+    return foundApp.proxyUrls?.wds
   }
-  // if we didn't find the expected app 'cbas-wds-default', go hunting:
-  const candidates = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
-  if (candidates.length === 0) {
-    // no app deployed yet
-    return ''
-  }
-  if (candidates.length > 1) {
-    // multiple apps found; use the earliest-created one
-    candidates.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
-  }
-  return candidates[0].proxyUrls.wds
+  return ''
 }
 
 export const wdsProviderName: string = 'WDS'
@@ -133,7 +121,7 @@ export const wdsProviderName: string = 'WDS'
 export class WdsDataTableProvider implements DataTableProvider {
   constructor(workspaceId: string) {
     this.workspaceId = workspaceId
-    this.proxyUrlPromise = Ajax().Apps.getV2AppInfo(workspaceId).then(getWdsUrl)
+    this.proxyUrlPromise = Ajax().Apps.getV2AppInfo(workspaceId).then(resolveWdsUrl)
   }
 
   providerName: string = wdsProviderName
