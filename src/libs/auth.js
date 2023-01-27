@@ -245,7 +245,7 @@ export const processUser = (user, isSignInEvent) => {
 const initializeTermsOfService = (isSignedIn, state) => {
   return {
     userHasAcceptedLatestTos: isSignedIn ? state.termsOfService.userHasAcceptedLatestTos : undefined,
-    acceptedTosAllowsUsage: isSignedIn ? state.termsOfService.acceptedTosAllowsUsage : undefined,
+    permitsSystemUsage: isSignedIn ? state.termsOfService.permitsSystemUsage : undefined,
   }
 }
 
@@ -295,9 +295,9 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
     try {
       const { enabled } = await Ajax().User.getStatus()
       if (enabled) {
-        // While initial state is first loading, state.termsOfService.acceptedTosAllowsUsage will be undefined
+        // While initial state is first loading, state.termsOfService.permitsSystemUsage will be undefined
         // (it will then be `true` on the second execution of this code, which is still part of the initial rendering).
-        return state.termsOfService.acceptedTosAllowsUsage ? userStatus.registeredWithTos : userStatus.registeredWithoutTos
+        return state.termsOfService.permitsSystemUsage ? userStatus.registeredWithTos : userStatus.registeredWithoutTos
       } else {
         return userStatus.disabled
       }
@@ -310,9 +310,9 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
     }
   }
   // need to guard against state.termsOfService not being initialized
-  const oldStateAcceptedTosAllowsUsage = oldState.termsOfService && oldState.termsOfService.acceptedTosAllowsUsage
-  const newStateAcceptedTosAllowsUsage = state.termsOfService && state.termsOfService.acceptedTosAllowsUsage
-  if ((!oldState.isSignedIn && state.isSignedIn) || (!oldStateAcceptedTosAllowsUsage && newStateAcceptedTosAllowsUsage)) {
+  const oldStatePermitsSystemUsage = oldState.termsOfService && oldState.termsOfService.permitsSystemUsage
+  const newStatePermitsSystemUsage = state.termsOfService && state.termsOfService.permitsSystemUsage
+  if ((!oldState.isSignedIn && state.isSignedIn) || (!oldStatePermitsSystemUsage && newStatePermitsSystemUsage)) {
     clearNotification(sessionTimeoutProps.id)
     const registrationStatus = await getRegistrationStatus()
     authStore.update(state => ({ ...state, registrationStatus }))
@@ -331,18 +331,15 @@ export const parseTosAdherenceStatus = tosDetails => {
   if (_.isNull(tosDetails)) {
     return {
       userHasAcceptedLatestTos: undefined,
-      acceptedTosAllowsUsage: undefined,
+      permitsSystemUsage: undefined,
     }
   } else {
-    return {
-      userHasAcceptedLatestTos: tosDetails.undefined,
-      acceptedTosAllowsUsage: tosDetails.undefined,
-    }
+    return tosDetails
   }
 }
 
 authStore.subscribe(withErrorIgnoring(async (state, oldState) => {
-  if (!oldState.termsOfService.acceptedTosAllowsUsage && state.termsOfService.acceptedTosAllowsUsage) {
+  if (!oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage) {
     if (window.Appcues) {
       window.Appcues.identify(state.user.id, {
         dateJoined: parseJSON((await Ajax().User.firstTimestamp()).timestamp).getTime()

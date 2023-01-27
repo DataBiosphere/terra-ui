@@ -36,7 +36,7 @@ describe('TermsOfService', () => {
   it('shows "Continue under grace period" when the user has not accepted the latest ToS but is still allowed to use Terra', async () => {
     const termsOfService = {
       userHasAcceptedLatestTos: false,
-      acceptedTosAllowsUsage: true,
+      permitsSystemUsage: true,
     }
     const isSignedIn = true
 
@@ -51,7 +51,7 @@ describe('TermsOfService', () => {
   it('does not show "Continue under grace period" when the user has not accepted the latest ToS and is not allowed to use Terra', async () => {
     const termsOfService = {
       userHasAcceptedLatestTos: false,
-      acceptedTosAllowsUsage: false,
+      permitsSystemUsage: false,
     }
     const isSignedIn = true
     setupMockAjax(termsOfService)

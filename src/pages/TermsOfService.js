@@ -20,7 +20,7 @@ const TermsOfServicePage = () => {
   const [busy, setBusy] = useState()
   const { isSignedIn, termsOfService } = authStore.get() // can't change while viewing this without causing it to unmount, so doesn't need to subscribe
   const noActionNeeded = isSignedIn && termsOfService.userHasAcceptedLatestTos
-  const acceptedTosAllowsUsage = isSignedIn && termsOfService.acceptedTosAllowsUsage
+  const usageAllowed = isSignedIn && termsOfService.permitsSystemUsage
   const [tosText, setTosText] = useState()
 
   useOnMount(() => {
@@ -83,12 +83,12 @@ const TermsOfServicePage = () => {
           }
         }, [tosText])
       ]),
-      !noActionNeeded && !acceptedTosAllowsUsage && !!tosText &&
+      !noActionNeeded && !usageAllowed && !!tosText &&
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
         h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: signOut }, 'Decline and Sign Out'),
         h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept'])
       ]),
-      !noActionNeeded && acceptedTosAllowsUsage && !!tosText &&
+      !noActionNeeded && usageAllowed && !!tosText &&
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
         h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: reject }, 'Decline and Sign Out'),
         h(ButtonOutline, { style: { marginRight: '1rem' }, onClick: continueButton, disabled: busy }, ['Continue under grace period']),
