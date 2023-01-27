@@ -147,7 +147,7 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
       h(ClipboardButton, {
         'aria-label': 'Copy troubleshooting info to clipboard',
         style: { marginLeft: '1rem' },
-        text: JSON.stringify(troubleShooterText.map(x => x.slice(0, 2)))
+        text: troubleShooterText.map(x => x.slice(0, 2)).join('\n')
       })])
   ])])
 }
