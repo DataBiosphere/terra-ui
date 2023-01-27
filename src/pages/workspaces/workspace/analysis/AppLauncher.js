@@ -228,7 +228,7 @@ const ApplicationLauncher = _.flow(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [googleProject, workspaceName, runtimes, bucketName])
 
-  if (!busy && runtimeStatus === undefined && runtime === undefined) Nav.goToPath(analysisTabName, { namespace, name })
+  if (!busy && runtime === undefined) Nav.goToPath(analysisTabName, { namespace, name })
 
   return h(Fragment, [
     h(RuntimeStatusMonitor, {
