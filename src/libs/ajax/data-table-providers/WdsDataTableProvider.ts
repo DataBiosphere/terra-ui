@@ -119,8 +119,8 @@ export const resolveWdsUrl = (apps, workspaceId) => {
   // If we reach this logic, we have more than one Leo app with the associated workspace Id...
   const allCromwellApps = apps.filter(app => app.appType === 'CROMWELL')
   if (allCromwellApps.length > 0) {
-    // Evaluate the most-recent-created WDS app
-    allCromwellApps.sort((a, b) => new Date(b.auditInfo.createdDate).valueOf() - new Date(a.auditInfo.createdDate).valueOf())
+    // Evaluate the earliest-created WDS app
+    allCromwellApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf())
     if (allCromwellApps[0].status === 'RUNNING') {
       return allCromwellApps[0].proxyUrls.wds
     }

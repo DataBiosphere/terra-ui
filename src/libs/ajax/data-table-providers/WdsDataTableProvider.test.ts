@@ -147,7 +147,7 @@ describe('WdsDataTableProvider', () => {
   }
 
   const createAppV2MockImpl: AppsContract['createAppV2'] = (_workspaceId: string) => {
-    return Promise.resolve(testProxyUrlResponse)
+    return Promise.resolve('')
   }
 
   let getRecords: jest.MockedFunction<WorkspaceDataContract['getRecords']>
@@ -733,32 +733,32 @@ describe('resolveWdsUrl', () => {
     ]
     expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid)).toBe('')
   })
-  it('return an empty RUNNING app if more than one exists', () => {
+  it('return empty string if no CROMWELL app exists but other apps are present', () => {
     const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
       { appType: 'A_DIFFERENT_APP', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } }
     ]
     expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid)).toBe('')
   })
-  it('return the most recent RUNNING app if more than one exists', () => {
+  it('return the earliest created RUNNING app if more than one exists', () => {
     const testProxyUrlResponseMultipleApps: Array<Object> = [
       {
-        appType: 'CROMWELL', workspaceId: uuid, appName: `wds-${uuid}`, status: 'RUNNING', proxyUrls: { wds: testProxyUrl }, auditInfo: {
+        appType: 'CROMWELL', workspaceId: uuid, appName: `wds-${uuid}`, status: 'RUNNING', proxyUrls: { wds: 'something-older.com' }, auditInfo: {
           createdDate: '2022-01-24T15:27:28.740880Z'
         }
       },
       {
-        appType: 'CROMWELL', workspaceId: uuid, appName: `wds-${uuid}`, status: 'RUNNING', proxyUrls: { wds: 'something-newer.com' }, auditInfo: {
+        appType: 'CROMWELL', workspaceId: uuid, appName: `wds-${uuid}`, status: 'RUNNING', proxyUrls: { wds: testProxyUrl }, auditInfo: {
           createdDate: '2023-01-24T15:27:28.740880Z'
         }
       },
     ]
-    expect(resolveWdsUrl(testProxyUrlResponseMultipleApps, uuid)).toBe('something-newer.com')
+    expect(resolveWdsUrl(testProxyUrlResponseMultipleApps, uuid)).toBe('something-older.com')
   })
-  it('return an empty string if a multiple apps exist, and the PROVISIONING app is created most recently', () => {
+  it('return an empty string if a multiple apps exist, and the PROVISIONING app is created earliest', () => {
     const testProxyUrlResponseMultipleApps: Array<Object> = [
       {
         appType: 'CROMWELL', workspaceId: uuid, appName: `wds-${uuid}`, status: 'PROVISIONING', auditInfo: {
-          createdDate: '2023-01-24T15:27:28.740880Z'
+          createdDate: '2021-01-24T15:27:28.740880Z'
         }
       },
       {
@@ -768,7 +768,7 @@ describe('resolveWdsUrl', () => {
       },
       {
         appType: 'CROMWELL', workspaceId: uuid, appName: `wds-${uuid}`, status: 'RUNNING', proxyUrls: { wds: testProxyUrl }, auditInfo: {
-          createdDate: '2021-01-24T15:27:28.740880Z'
+          createdDate: '2023-01-24T15:27:28.740880Z'
         }
       },
     ]

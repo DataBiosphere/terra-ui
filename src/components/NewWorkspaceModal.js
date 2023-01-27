@@ -88,8 +88,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
   const createLeoApp = withErrorIgnoring(async workspace => {
     // !getConfig().isProd is temporary until WDS is ready for production launch in Feb 2023
     if (isAzureBillingProject() && !getConfig().isProd) {
-      const signal = useCancellation()
-      await Ajax(signal).Apps.createAppV2(`wds-${workspace.workspaceId}`, workspace.workspaceId)
+      await Ajax().Apps.createAppV2(`wds-${workspace.workspaceId}`, workspace.workspaceId)
     }
   })
 
