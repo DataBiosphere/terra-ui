@@ -228,6 +228,8 @@ const ApplicationLauncher = _.flow(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [googleProject, workspaceName, runtimes, bucketName])
 
+  if (!busy && runtimeStatus === undefined && runtime === undefined) Nav.goToPath(analysisTabName, { namespace, name })
+
   return h(Fragment, [
     h(RuntimeStatusMonitor, {
       runtime
@@ -261,7 +263,6 @@ const ApplicationLauncher = _.flow(
             [runtimeStatus === 'LeoReconfiguring', () => 'Cloud environment is updating, please wait.'],
             [runtimeStatus === 'Error', () => 'Error with the cloud environment, please try again.'],
             [runtimeStatus === null, () => 'Create a cloud environment to continue.'],
-            [runtimeStatus === undefined && runtime === undefined, () => Nav.goToPath(analysisTabName, { namespace, name })],
             [runtimeStatus === undefined, () => 'Loading...'],
             () => 'Unknown cloud environment status. Please create a new cloud environment or contact support.'
           )
