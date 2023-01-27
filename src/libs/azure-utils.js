@@ -12,6 +12,7 @@ export const defaultAzureComputeConfig = {
   region: defaultAzureRegion,
 }
 
+// TODO [] other countries' flags
 export const azureRegions = {
   eastus: { flag: '🇺🇸', label: 'East US' },
   eastus2: { flag: '🇺🇸', label: 'East US 2' },

@@ -9,7 +9,7 @@ import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, spinn
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
-import { dataSyncingDocUrl } from 'src/data/machines'
+import { dataSyncingDocUrl } from 'src/data/gce-machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'

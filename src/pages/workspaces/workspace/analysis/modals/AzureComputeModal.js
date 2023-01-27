@@ -18,8 +18,9 @@ import Events from 'src/libs/events'
 import { useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
+import { computeStyles } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
-  computeStyles, getCurrentRuntime, getIsRuntimeBusy
+  getCurrentRuntime, getIsRuntimeBusy
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
@@ -257,7 +258,7 @@ export const AzureComputeModalBase = ({
     return cost
   }
 
-  //It is possible that once we compute the cost, we would like to parameterize this and make it a shared function between the equivalent in ComputeModal
+  // TODO [IA-3348] It is possible that once we compute the cost, we would like to parameterize this and make it a shared function between the equivalent in ComputeModal
   const renderCostBreakdown = () => {
     return div({
       style: {
