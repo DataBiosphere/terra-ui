@@ -72,7 +72,11 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
           icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
           'Undeletable Workspace Warning'
         ]),
-        p({ style: { fontWeight: 'normal' } }, [`You cannot delete this workspace because there are ${nonDeletableApps.length} application(s) you must delete first. Only applications in ('ERROR', 'RUNNING') status can be automatically deleted.`])
+        p({ style: { fontWeight: 'normal' } }, [
+          `You cannot delete this workspace because there are ${nonDeletableApps.length} application(s) you must delete first.`,
+          isGoogleWorkspace ?
+            'Only applications in (\'ERROR\', \'RUNNING\') status can be automatically deleted.' : ''
+        ])
       ]) :
       p({ style: { marginLeft: '1rem', fontWeight: 'bold' } }, [`Detected ${deletableApps.length} automatically deletable application(s).`])
   }
