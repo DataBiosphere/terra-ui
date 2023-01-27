@@ -73,5 +73,10 @@ export const Apps = signal => ({
     const res = fetchLeo(`api/apps/v2/${workspaceId}/${appName}`,
       _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
     return res
-  }
+  },
+  listAppsV2: async (workspaceId, includeDeleted = false) => {
+    const res = await fetchLeo(`api/apps/v2/${workspaceId}?includeDeleted=${includeDeleted}`,
+      _.mergeAll([authOpts(), appIdentifier, { signal }]))
+    return res.json()
+  },
 })

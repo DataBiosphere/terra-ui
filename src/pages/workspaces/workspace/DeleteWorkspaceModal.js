@@ -17,7 +17,7 @@ import * as Utils from 'src/libs/utils'
 import { isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
-const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucketName, googleProject } }, onDismiss, onSuccess }) => {
+const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucketName, googleProject, workspaceId } }, onDismiss, onSuccess }) => {
   const [deleting, setDeleting] = useState(false)
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
   const [loading, setLoading] = useState(false)
@@ -39,6 +39,11 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
         setApps(currentWorkspaceAppList)
         setCollaboratorEmails(_.without([getUser().email], _.keys(acl)))
         setWorkspaceBucketUsageInBytes(usageInBytes)
+      } else {
+        const currentWorkspaceAppList = await Ajax(signal).Apps.listAppsV2(workspaceId)
+        // temporary hack: change each app to status: 'disallow' which will cause this modal to think they are undeletable
+        const hackedAppList = _.map(_.set('status', 'disallow'), currentWorkspaceAppList)
+        setApps(hackedAppList)
       }
     })
     load()
