@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { CSSProperties, useEffect, useState } from 'react'
-import { div, fieldset, h, h2, h3, legend, li, p, span, ul } from 'react-hyperscript-helpers'
+import { div, fieldset, h, h2, legend, p, span, ul } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, LabeledCheckbox, Link, RadioButton } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import SupportRequestWrapper from 'src/components/SupportRequest'
@@ -12,34 +12,8 @@ import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { contactUsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import CreateGCPBillingProject from 'src/pages/billing/CreateGCPBillingProject'
+import { Step, StepTitle } from 'src/pages/billing/StepWizard'
 
-
-function stepBanner(active: boolean): CSSProperties {
-  return {
-    borderRadius: '8px',
-    boxSizing: 'border-box',
-    padding: '1.5rem 2rem',
-    marginTop: '1rem',
-    display: 'flex',
-    border: active ? `1px solid ${colors.accent()}` : `1px solid ${colors.accent(0.2)}`,
-    backgroundColor: active ? colors.light(0.5) : colors.light(0.3),
-    boxShadow: active ? '0 0 5px 0 rgba(77,114,170,0.5)' : 'none'
-  }
-}
-
-const radioButtonLabel: CSSProperties = {
-  marginLeft: '1rem',
-  color: colors.accent(),
-  fontWeight: 500,
-  lineHeight: '22px'
-}
-const accentColor = colors.accent()
-
-export const styles = {
-  stepBanner,
-  radioButtonLabel,
-  accentColor
-}
 
 const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAndLoadAccounts }) => {
   const persistenceId = 'billing'
@@ -85,40 +59,38 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
   })
 
   const step1 = () => {
-    const isActive = activeStep === 1
     const isDone = activeStep > 1
 
-    return li({
-      'aria-current': isActive ? 'step' : false,
-      style: {
-        ...styles.stepBanner(isActive),
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between'
-      }
-    }, [
-      div({ style: { maxWidth: '60%' } }, [
-        h3({ style: { fontSize: 18, marginTop: 0 } }, ['STEP 1']),
-        span({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap' } },
-          ['Go to the Google Cloud Platform Billing Console and sign-in with the same user you use to login to Terra.'])
-      ]),
-      h(Clickable, {
-        style: {
-          color: styles.accentColor, backgroundColor: 'none', border: `1px solid ${styles.accentColor}`,
-          paddingInline: '1.5rem', display: 'inline-flex', justifyContent: 'space-around', alignItems: 'center',
-          height: '2.5rem', fontWeight: 500, fontSize: 14, borderRadius: 2, whiteSpace: 'nowrap',
-          marginLeft: '2rem', textTransform: 'none'
-        },
-        href: 'https://console.cloud.google.com',
-        ...Utils.newTabLinkProps,
-        onClick: () => {
-          Ajax().Metrics.captureEvent(Events.billingCreationStep1)
-          if (!isDone) {
-            next()
-          }
-        }
-      }, ['Go to Google Cloud Console'])
+    const leftPanel = div({ style: { maxWidth: '60%' } }, [
+      StepTitle({ text: 'STEP 1' }),
+      span({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap' } },
+        ['Go to the Google Cloud Platform Billing Console and sign-in with the same user you use to login to Terra.'])
     ])
+    const rightPanel = h(Clickable, {
+      style: {
+        color: styles.accentColor, backgroundColor: 'none', border: `1px solid ${styles.accentColor}`,
+        paddingInline: '1.5rem', display: 'inline-flex', justifyContent: 'space-around', alignItems: 'center',
+        height: '2.5rem', fontWeight: 500, fontSize: 14, borderRadius: 2, whiteSpace: 'nowrap',
+        marginLeft: '2rem', textTransform: 'none'
+      },
+      href: 'https://console.cloud.google.com',
+      ...Utils.newTabLinkProps,
+      onClick: () => {
+        Ajax().Metrics.captureEvent(Events.billingCreationStep1)
+        if (!isDone) {
+          next()
+        }
+      }
+    }, ['Go to Google Cloud Console'])
+
+    return h(
+      Step,
+      {
+        isActive: activeStep === 1,
+        style: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+      },
+      [leftPanel, rightPanel]
+    )
   }
 
   const step2 = () => {
@@ -136,50 +108,49 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
       }
     }
 
-    return li({
-      'aria-current': isActive ? 'step' : false,
-      style: { ...styles.stepBanner(isActive), flexDirection: 'column' }
-    }, [
-      h3({ style: { fontSize: 18, marginTop: 0 } }, ['STEP 2']),
-      fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'block' } }, [
-        legend({
-          style: {
-            maxWidth: '55%',
-            fontSize: 14,
-            lineHeight: '22px',
-            whiteSpace: 'pre-wrap',
-            marginTop: '0.25rem',
-            float: 'left'
-          }
-        },
-        ['Select an existing billing account or create a new one.\n\nIf you are creating a new billing account, you may be eligible for $300 in free credits. ' +
-            'Follow the instructions to activate your account in the Google Cloud Console.']),
-        div({ style: { width: '25%', float: 'right' } }, [
-          div({ style: { display: 'flex', flexDirection: 'row' } }, [
-            h(RadioButton, {
-              text: "I don't have access to a Cloud billing account", name: 'access-to-account',
-              checked: accessToBillingAccount === false,
-              labelStyle: { ...styles.radioButtonLabel },
-              onChange: () => {
-                setNextStep(false)
-                Ajax().Metrics.captureEvent(Events.billingCreationStep2BillingAccountNoAccess)
-              }
-            })
-          ]),
-          div({ style: { marginTop: '2rem', display: 'flex', flexDirection: 'row' } }, [
-            h(RadioButton, {
-              text: 'I have a billing account', name: 'access-to-account',
-              checked: accessToBillingAccount === true,
-              labelStyle: { ...styles.radioButtonLabel },
-              onChange: () => {
-                setNextStep(true)
-                Ajax().Metrics.captureEvent(Events.billingCreationStep2HaveBillingAccount)
-              }
-            })
+    return h(Step,
+      { isActive },
+      [
+        StepTitle({ text: 'STEP 2' }),
+        fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'block' } }, [
+          legend({
+            style: {
+              maxWidth: '55%',
+              fontSize: 14,
+              lineHeight: '22px',
+              whiteSpace: 'pre-wrap',
+              marginTop: '0.25rem',
+              float: 'left'
+            }
+          },
+          ['Select an existing billing account or create a new one.\n\nIf you are creating a new billing account, you may be eligible for $300 in free credits. ' +
+                'Follow the instructions to activate your account in the Google Cloud Console.']),
+          div({ style: { width: '25%', float: 'right' } }, [
+            div({ style: { display: 'flex', flexDirection: 'row' } }, [
+              h(RadioButton, {
+                text: "I don't have access to a Cloud billing account", name: 'access-to-account',
+                checked: accessToBillingAccount === false,
+                labelStyle: { ...styles.radioButtonLabel },
+                onChange: () => {
+                  setNextStep(false)
+                  Ajax().Metrics.captureEvent(Events.billingCreationStep2BillingAccountNoAccess)
+                }
+              })
+            ]),
+            div({ style: { marginTop: '2rem', display: 'flex', flexDirection: 'row' } }, [
+              h(RadioButton, {
+                text: 'I have a billing account', name: 'access-to-account',
+                checked: accessToBillingAccount === true,
+                labelStyle: { ...styles.radioButtonLabel },
+                onChange: () => {
+                  setNextStep(true)
+                  Ajax().Metrics.captureEvent(Events.billingCreationStep2HaveBillingAccount)
+                }
+              })
+            ])
           ])
         ])
       ])
-    ])
   }
 
   const step3 = () => {
@@ -287,11 +258,8 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
           checkbox
         ])
 
-    return li({
-      'aria-current': isActive ? 'step' : false,
-      style: { ...styles.stepBanner(isActive), display: 'flex', flexDirection: 'column' }
-    }, [
-      h3({ style: { fontSize: 18, marginTop: 0 } }, ['STEP 3']),
+    return h(Step, { isActive }, [
+      StepTitle({ text: 'STEP 3' }),
       (isActive || isDone) &&
       (!accessToBillingAccount || (accessToAddBillingAccountUser !== undefined && !accessToAddBillingAccountUser)) ?
         contactBillingAccountAdministrator : addTerraAsBillingAccountUser
@@ -301,10 +269,8 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
   const step4 = () => {
     const isActive = activeStep === 4
 
-    return li({
-      'aria-current': isActive ? 'step' : false, style: { ...styles.stepBanner(isActive), flexDirection: 'column' }
-    }, [
-      h3({ style: { fontSize: 18, marginTop: 0 } }, ['STEP 4']),
+    return h(Step, { isActive }, [
+      StepTitle({ text: 'STEP 4' }),
       span({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', width: '75%' } },
         ['Create a Terra project to connect your Google billing account to Terra. ' +
           'Billing projects allow you to manage your workspaces and are required to create one.']),
@@ -396,6 +362,20 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
       step4()
     ])
   ])
+}
+
+
+const radioButtonLabel: CSSProperties = {
+  marginLeft: '1rem',
+  color: colors.accent(),
+  fontWeight: 500,
+  lineHeight: '22px'
+}
+const accentColor = colors.accent()
+
+export const styles = {
+  radioButtonLabel,
+  accentColor
 }
 
 

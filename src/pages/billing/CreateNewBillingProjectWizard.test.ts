@@ -6,7 +6,7 @@ import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import Events from 'src/libs/events'
 import * as Preferences from 'src/libs/prefs'
-import CreateNewBillingProjectWizard, { styles } from 'src/pages/billing/CreateNewBillingProjectWizard'
+import CreateNewBillingProjectWizard from 'src/pages/billing/CreateNewBillingProjectWizard'
 import { asMockedFn } from 'src/testing/test-utils'
 
 
@@ -54,10 +54,8 @@ const verifyUnchecked = item => expect(item).not.toBeChecked()
 const testStepActive = stepNumber => {
   screen.getAllByRole('listitem').forEach((step, index) => {
     if (index === stepNumber - 1) {
-      expect(step).toHaveStyle({ ...styles.stepBanner(true) })
       expect(step.getAttribute('aria-current')).toBe('step')
     } else {
-      expect(step).toHaveStyle({ ...styles.stepBanner(false) })
       expect(step.getAttribute('aria-current')).toBe('false')
     }
   })
