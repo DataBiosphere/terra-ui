@@ -599,6 +599,7 @@ export const ComputeModalBase = ({
       h(ClipboardButton, {
         text: selectedLeoImage,
         style: { marginLeft: '0.5rem' },
+        'aria-label': 'clipboard',
         tooltip: 'Copy the image version'
       })
     ])
