@@ -488,7 +488,6 @@ const WorkspaceData = _.flow(
   const [selectedData, setSelectedData] = useState(() => StateHistory.get().selectedData)
   const [entityMetadata, setEntityMetadata] = useState(() => StateHistory.get().entityMetadata)
   const [snapshotDetails, setSnapshotDetails] = useState(() => StateHistory.get().snapshotDetails)
-  const [wdsSchema, setWdsSchema] = useState(() => StateHistory.get().wdsSchema)
   const [importingReference, setImportingReference] = useState(false)
   const [deletingReference, setDeletingReference] = useState(undefined)
   const [troubleshootingWds, setTroubleshootingWds] = useState(false)
@@ -496,13 +495,14 @@ const WorkspaceData = _.flow(
   const [uploadingWDSFile, setUploadingWDSFile] = useState(false)
   const [entityMetadataError, setEntityMetadataError] = useState()
   const [snapshotMetadataError, setSnapshotMetadataError] = useState()
-  const [wdsSchemaError, setWdsSchemaError] = useState()
   const [sidebarWidth, setSidebarWidth] = useState(280)
   const [activeCrossTableTextFilter, setActiveCrossTableTextFilter] = useState('')
   const [crossTableResultCounts, setCrossTableResultCounts] = useState({})
   const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false)
   const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}) // { [entityType: string]: boolean }
-  const [proxyUrlLoaded, setProxyUrlLoaded] = useState(false)
+
+  const [wdsProxyUrl, setWdsProxyUrl] = useState({ status: 'None', state: '' })
+  const [wdsTypes, setWdsTypes] = useState({ status: 'None', state: [] })
 
   const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } = useDataTableVersions(workspace)
 
@@ -571,17 +571,28 @@ const WorkspaceData = _.flow(
 
   const loadWdsSchema = async () => {
     if (isAzureWorkspace) {
-      // TODO: AJ-783: Logic will need to exist here to check if Leo app is past "Provisioning"
-      try {
-        setWdsSchema([])
-        setWdsSchemaError(undefined)
-        const url = await wdsDataTableProvider.proxyUrlPromise
-        setProxyUrlLoaded(!!url)
-        const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(url, workspaceId)
-        setWdsSchema(wdsSchema)
-      } catch (error) {
-        setWdsSchemaError(error)
-      }
+      // get the proxy url for this app from Leo
+      setWdsProxyUrl({ status: 'Loading', state: '' })
+      await wdsDataTableProvider.proxyUrlPromise
+        .then(url => {
+          if (!!url) {
+            setWdsProxyUrl({ status: 'Ready', state: url })
+            // proxy url is good; now, get the WDS schema
+            setWdsTypes({ status: 'Loading', state: [] })
+            Ajax(signal).WorkspaceData.getSchema(url, workspaceId)
+              .then(typesResult => {
+                setWdsTypes({ status: 'Ready', state: typesResult })
+              })
+              .catch(err => {
+                setWdsTypes({ status: 'Error', state: err })
+              })
+          } else {
+            setWdsProxyUrl({ status: 'Error', state: url })
+          }
+        })
+        .catch(err => {
+          setWdsProxyUrl({ status: 'Error', state: err })
+        })
     }
   }
 
@@ -652,7 +663,12 @@ const WorkspaceData = _.flow(
   const editWorkspaceErrorMessage = Utils.editWorkspaceError(workspace)
   const canEditWorkspace = !editWorkspaceErrorMessage
 
-  const canUploadTsv = isGoogleWorkspace || (isAzureWorkspace && proxyUrlLoaded)
+  // conventience vars for WDS
+  const wdsReady = wdsProxyUrl.status === 'Ready' && wdsTypes.status === 'Ready'
+  const wdsLoading = wdsProxyUrl.status === 'Loading' || wdsTypes.status === 'Loading'
+  const wdsError = wdsProxyUrl.status === 'Error' || wdsTypes.status === 'Error'
+
+  const canUploadTsv = isGoogleWorkspace || (isAzureWorkspace && wdsReady)
   return div({ style: styles.tableContainer }, [
     !entityMetadata ? spinnerOverlay : h(Fragment, [
       div({ style: { ...styles.sidebarContainer, width: sidebarWidth } }, [
@@ -776,21 +792,19 @@ const WorkspaceData = _.flow(
               workspaceId,
               mrgId: workspace.azureContext.managedResourceGroupId
             }),
-            isAzureWorkspace && proxyUrlLoaded && h(DataTypeSection, {
+            isAzureWorkspace && h(DataTypeSection, {
               title: 'Tables'
             }, [
               [
-                wdsSchemaError && h(NoDataPlaceholder, {
-                  message: 'Data tables are unavailable.'
+                (wdsLoading || wdsError) && h(NoDataPlaceholder, {
+                  message: wdsLoading ? icon('loadingSpinner') : 'Data tables are unavailable'
                 }),
-                // TODO: Logic needs to slightly change here -- there is a delay when wdsSchema is updated
-                // so `No tables have been uploaded.` briefly renders
-                !wdsSchemaError && _.isEmpty(wdsSchema) && h(NoDataPlaceholder, {
+                wdsReady && _.isEmpty(wdsTypes.state) && h(NoDataPlaceholder, {
                   message: 'No tables have been uploaded.',
                   buttonText: 'Upload TSV',
                   onAdd: () => setUploadingWDSFile(true)
                 }),
-                !_.isEmpty(wdsSchema) && _.map(typeDef => {
+                wdsReady && !_.isEmpty(wdsTypes.state) && _.map(typeDef => {
                   return div({ key: typeDef.name, role: 'listitem' }, [
                     h(DataTypeButton, {
                       key: typeDef.name,
@@ -813,7 +827,7 @@ const WorkspaceData = _.flow(
                         onRenameTable: undefined,
                         onDeleteTable: tableName => {
                           setSelectedData(undefined)
-                          setWdsSchema(_.remove(typeDef => typeDef.name === tableName, wdsSchema))
+                          setWdsTypes({ status: 'Ready', state: _.remove(typeDef => typeDef.name === tableName, wdsTypes.state) })
                           forceRefresh()
                         },
                         isShowingVersionHistory: false,
@@ -822,7 +836,7 @@ const WorkspaceData = _.flow(
                       })
                     })
                   ])
-                }, wdsSchema)
+                }, wdsTypes.state)
               ]
             ]),
             (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) && isGoogleWorkspace && h(DataTypeSection, {
@@ -966,7 +980,7 @@ const WorkspaceData = _.flow(
                 forceRefresh()
                 loadMetadata()
               }, namespace, name,
-              workspaceId, entityTypes: wdsSchema.map(item => item['name']), dataProvider: wdsDataTableProvider,
+              workspaceId, entityTypes: wdsTypes.state.map(item => item['name']), dataProvider: wdsDataTableProvider,
               isGoogleWorkspace
             }),
             isGoogleWorkspace && h(DataTypeSection, {
@@ -996,8 +1010,9 @@ const WorkspaceData = _.flow(
       h(SidebarSeparator, { sidebarWidth, setSidebarWidth }),
       div({ style: styles.tableViewPanel }, [
         _.includes(selectedData?.type, [workspaceDataTypes.entities, workspaceDataTypes.entitiesVersion]) && h(DataTableFeaturePreviewFeedbackBanner),
-        Utils.switchCase(selectedData?.type, [undefined, () => Utils.cond([wdsSchemaError && isAzureWorkspace, () => div({ style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' } },
-          [icon('loadingSpinner'), ' The database that powers your data tables is unavailable. It may take a few minutes after initial workspace creation to be ready. If you think something has gone wrong, please reach out to support@terra.bio and include information from our ',
+        Utils.switchCase(selectedData?.type, [undefined, () => Utils.cond([!wdsReady && isAzureWorkspace, () => div({ style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' } },
+          [icon('loadingSpinner'),
+            ' The database that powers your data tables is unavailable. It may take a few minutes after initial workspace creation to be ready. If you think something has gone wrong, please reach out to support@terra.bio and include information from our ',
             h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['Troubleshoot']), ' page.'])],
         () => div({ style: { textAlign: 'center' } }, ['Select a data type from the navigation panel on the left']),
         )],
@@ -1068,13 +1083,13 @@ const WorkspaceData = _.flow(
             setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName })
           })
         })],
-        [workspaceDataTypes.wds, () => wdsDataTableProvider && proxyUrlLoaded && !_.isEmpty(wdsSchema) && h(WDSContent, {
+        [workspaceDataTypes.wds, () => wdsDataTableProvider && wdsReady && !_.isEmpty(wdsTypes.state) && h(WDSContent, {
           key: refreshKey,
           workspaceUUID: workspaceId,
           workspace,
           dataProvider: wdsDataTableProvider,
           recordType: selectedData.entityType,
-          wdsSchema
+          wdsSchema: wdsTypes.state
         })]
         )
       ])
