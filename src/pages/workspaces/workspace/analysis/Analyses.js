@@ -181,6 +181,7 @@ const AnalysisCard = ({
   //the flex values for columns here correspond to the flex values in the header
   const artifactName = div({
     title: getFileName(name),
+    role: 'cell',
     style: {
       ...Style.elements.card.title, whiteSpace: 'normal', overflowY: 'auto', textAlign: 'left', ...centerColumnFlex
     }
@@ -196,7 +197,7 @@ const AnalysisCard = ({
     img({ src: toolIconSrc, alt: '', style: { height: 40, width: 40 } })
   ])
 
-  const toolContainer = div({ style: { display: 'flex', flex: 1, flexDirection: 'row', alignItems: 'center' } }, [
+  const toolContainer = div({ style: { display: 'flex', flex: 1, flexDirection: 'row', role: 'cell', alignItems: 'center' } }, [
     toolIcon,
     // this is the tool name, i.e. 'Jupyter'. It is named identical to the header row to simplify the sorting code at the cost of naming consistency.
     application
@@ -204,13 +205,14 @@ const AnalysisCard = ({
 
   return a({
     href: analysisLink,
+    role: 'row',
     style: _.merge({
       ...Style.cardList.longCardShadowless
     }, { marginBottom: '.75rem', paddingLeft: '1.5rem' })
   }, [
     toolContainer,
     artifactName,
-    div({ style: { ...endColumnFlex, flexDirection: 'row' } }, [
+    div({ role: 'cell', style: { ...endColumnFlex, flexDirection: 'row' } }, [
       div({ style: { flex: 1, display: 'flex' } }, [
         locked && h(Clickable, {
           'aria-label': `${artifactName} artifact label`,
@@ -420,6 +422,7 @@ const Analyses = _.flow(
       _.orderBy(sortTokens[field] || field, direction),
       _.map(({ name, lastModified, metadata, application }) => h(AnalysisCard, {
         key: name,
+        role: 'rowgroup',
         currentRuntime, name, lastModified, metadata, application, namespace, workspaceName, canWrite, currentUserHash, potentialLockers,
         onRename: () => setRenamingAnalysisName(name),
         onCopy: () => setCopyingAnalysisName(name),
@@ -463,7 +466,7 @@ const Analyses = _.flow(
               setSortOrder(newSortOrder)
             }
           }),
-          div({ role: 'list', 'aria-label': 'analysis artifacts in workspace', style: { flexGrow: 1, width: '100%' } }, [renderedAnalyses])
+          div({ role: 'row', 'aria-label': 'analysis artifacts in workspace', style: { flexGrow: 1, width: '100%' } }, [renderedAnalyses])
         ])]
       )
     ])
