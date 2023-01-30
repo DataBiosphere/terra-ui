@@ -480,7 +480,7 @@ const WorkspaceData = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Data', activeTab: 'data'
   })
-)(({ namespace, name, workspace, workspace: { workspace: { googleProject, attributes, workspaceId } }, refreshWorkspace }, ref) => {
+)(({ namespace, name, workspace, workspace: { workspace: { createdBy, googleProject, attributes, workspaceId } }, refreshWorkspace }, ref) => {
   // State
   const [refreshKey, setRefreshKey] = useState(0)
   const forceRefresh = () => setRefreshKey(_.add(1))
@@ -512,7 +512,11 @@ const WorkspaceData = _.flow(
 
   const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name)
 
-  const wdsDataTableProvider = useMemo(() => new WdsDataTableProvider(workspaceId), [workspaceId])
+  // auto-deploy WDS for a user who is: 1) the workspace creator, and 2) still an OWNER of the workspace
+  // TODO: pass this `autoDeployWds` variable into WdsDataTableProvider and respect it in resolveWdsUrl
+  const autoDeployWds = workspace?.accessLevel === 'OWNER' && createdBy === getUser()?.email
+
+  const wdsDataTableProvider = useMemo(() => new WdsDataTableProvider(workspaceId, autoDeployWds), [workspaceId, autoDeployWds])
 
   const loadEntityMetadata = async () => {
     try {
