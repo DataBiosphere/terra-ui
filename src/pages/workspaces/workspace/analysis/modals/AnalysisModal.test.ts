@@ -5,7 +5,6 @@ import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage'
-import { reportError } from 'src/libs/error'
 import { CloudProviderType, cloudProviderTypes } from 'src/libs/workspace-utils'
 import {
   AbsolutePath,
@@ -19,6 +18,7 @@ import {
 import { AppTool, getToolLabelFromFileExtension, ToolLabel, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
+import { reportError } from '../../../../../libs/error'
 import { defaultAzureWorkspace, defaultGoogleWorkspace, galaxyDisk, galaxyRunning, getGoogleRuntime, imageDocs } from '../_testData/testData'
 import { AnalysisModal, AnalysisModalProps } from './AnalysisModal'
 
