@@ -193,18 +193,13 @@ const AnalysisCard = ({
     [toolLabels.JupyterLab, () => jupyterLogo]
   )
 
-  const toolIcon = div({ style: { marginRight: '1rem' } }, [
-    img({ src: toolIconSrc, alt: '', style: { height: 40, width: 40 } })
-  ])
-
-  const toolContainer = div({ style: { display: 'flex', flex: 1, flexDirection: 'row', role: 'cell', alignItems: 'center' } }, [
-    toolIcon,
+  const toolContainer = div({ role: 'cell', style: { display: 'flex', flex: 1, flexDirection: 'row', alignItems: 'center' } }, [
+    img({ src: toolIconSrc, alt: '', style: { marginRight: '1rem', height: 40, width: 40 } }),
     // this is the tool name, i.e. 'Jupyter'. It is named identical to the header row to simplify the sorting code at the cost of naming consistency.
     application
   ])
 
   return a({
-    href: analysisLink,
     role: 'row',
     style: _.merge({
       ...Style.cardList.longCardShadowless
@@ -466,7 +461,7 @@ const Analyses = _.flow(
               setSortOrder(newSortOrder)
             }
           }),
-          div({ role: 'row', 'aria-label': 'analysis artifacts in workspace', style: { flexGrow: 1, width: '100%' } }, [renderedAnalyses])
+          renderedAnalyses
         ])]
       )
     ])
