@@ -84,21 +84,21 @@ const getRelationParts = (val: unknown): string[] => {
 
 //Although this method repeats some logic from the resolveWdsUrl method, the two are using somewhat different criteria
 export const resolveWdsApp = apps => {
-  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}` && app.status === 'RUNNING')
+  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}` && ['RUNNING', 'PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status))
   if (namedApp.length === 1) {
     return namedApp[0]
   }
 
-  // if we didn't find the expected app 'wds-${app.workspaceId}' running...
-  const candidates = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}`)
-
-  // WDS is being created in a Kubernetes cluster (takes a few minutes)
-  if (candidates.length === 1 && candidates[0].status === 'PROVISIONING') {
-    return candidates[0]
+  //Failed to find an app with the proper name, look for a RUNNING CROMWELL app
+  const runningCromwellApps = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
+  if (runningCromwellApps.length > 0) {
+    // Evaluate the earliest-created WDS app
+    runningCromwellApps.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
+    return runningCromwellApps[0]
   }
 
-  //Failed to find an app with the proper name and in a reasonable state, so just look for any CROMWELL app
-  const allCromwellApps = apps.filter(app => app.appType === 'CROMWELL')
+  //Failed to find an app with the proper name and in a RUNNING state, so look for a CROMWELL app in a non-error state
+  const allCromwellApps = apps.filter(app => app.appType === 'CROMWELL' && ['PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status))
   if (allCromwellApps.length > 0) {
     // Evaluate the earliest-created WDS app
     allCromwellApps.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
