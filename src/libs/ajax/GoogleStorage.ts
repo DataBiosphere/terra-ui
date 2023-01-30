@@ -79,7 +79,6 @@ const getServiceAccountToken: (googleProject: string, token: string) => Promise<
   return res.json()
 }, {
   expires: 1000 * 60 * 30,
-  // @ts-expect-error
   keyFn: (...args) => JSON.stringify(args)
 })
 
