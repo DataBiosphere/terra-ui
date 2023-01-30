@@ -10,7 +10,7 @@ import { v4 as uuid } from 'uuid'
 import { getCloudProviderFromWorkspace } from './workspace-utils'
 
 
-// TODO: add good typing (remove any's)
+// TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
 export const subscribable = () => {
   let subscribers = []
   return {
@@ -142,10 +142,10 @@ export const switchCase = (value, ...pairs) => {
   return match && match[1]()
 }
 
-// TODO: add good typing (remove any's)
+// TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
 export const toIndexPairs = _.flow(_.toPairs, _.map(([k, v]) => [k as any * 1, v]))
 
-// TODO: add good typing (remove any's)
+// TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
 /**
  * Memoizes an async function for up to `expires` ms.
  * Rejected promises are immediately removed from the cache.
@@ -225,7 +225,7 @@ export const nextSort = ({ field, direction }, newField) => {
     { field: newField, direction: 'asc' }
 }
 
-// TODO: add good typing (remove any's)
+// TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
 export const summarizeErrors = errors => {
   const errorList = cond(
     [_.isPlainObject(errors), () => _.flatMap(_.values, errors)],
@@ -278,7 +278,7 @@ export const convertValue = _.curry((type, value) => {
  */
 export const normalizeLabel = _.flow(_.camelCase, _.startCase)
 
-// TODO: add good typing (remove any's)
+// TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
 export const kvArrayToObject = _.reduce((acc, { key, value }) => _.set(key, value, acc) as any, {})
 
 export const isValidWsExportTarget = _.curry((sourceWs, destWs) => {
@@ -360,7 +360,7 @@ export const commaJoin = (list, conjunction = 'or') => {
   )(list))
 }
 
-// TODO: add good typing (remove any's)
+// TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
 export const sha256 = async message => {
   const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(message))
   return _.flow(

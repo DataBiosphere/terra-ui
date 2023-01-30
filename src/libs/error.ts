@@ -32,7 +32,7 @@ const withErrorHandlingFn = <R, F extends AnyPromiseFn>(
  */
 export const withErrorHandling = safeCurry(withErrorHandlingFn)
 
-// TODO type this properly
+// TODO type this properly  - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
 /**
  * Return a Promise to the result of evaluating the async `fn` with `...args` or undefined if
  * evaluation fails.
