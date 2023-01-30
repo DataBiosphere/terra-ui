@@ -91,16 +91,16 @@ export const createLeoAppWithErrorHandling = workspaceId => {
   createLeoAppCall()
 }
 
-// Invokes logic to determine a URL for WDS
+// Invokes logic to determine the appropriate app for WDS
 // If WDS is not running, a URL will not be present -- in some cases, this function may invoke
 // a new call to Leo to instantiate a WDS being available, thus having a valid URL
-export const resolveWdsUrl = (apps, workspaceId, shouldAutoDeployWds) => {
+export const resolveWdsApp = (apps, workspaceId, shouldAutoDeployWds) => {
   // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by Leo
   // See here for specific enumerations -- https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
   // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' -- if WDS is healthy and running, there should only be one app RUNNING
-  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}` && app.status === 'RUNNING')
+  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}` && ['RUNNING', 'PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status))
   if (namedApp.length === 1) {
-    return namedApp[0].proxyUrls.wds
+    return namedApp[0]
   }
 
   // if we didn't find the expected app 'wds-${app.workspaceId}' running...
@@ -118,8 +118,15 @@ export const resolveWdsUrl = (apps, workspaceId, shouldAutoDeployWds) => {
     return ''
   }
 
+  const runningCromwellApps = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
+  if (runningCromwellApps.length > 0) {
+    // Evaluate the earliest-created WDS app
+    runningCromwellApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf())
+    return runningCromwellApps[0]
+  }
+
   // If we reach this logic, we have more than one Leo app with the associated workspace Id...
-  const allCromwellApps = apps.filter(app => app.appType === 'CROMWELL')
+  const allCromwellApps = apps.filter(app => app.appType === 'CROMWELL' && ['PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status))
   if (allCromwellApps.length > 0) {
     // Evaluate the earliest-created WDS app
     allCromwellApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf())
@@ -130,7 +137,15 @@ export const resolveWdsUrl = (apps, workspaceId, shouldAutoDeployWds) => {
       return ''
     }
   }
-  // TODO: AJ-783: Revisit for how the UI might present an ERROR state
+  return ''
+}
+
+// Extract wds URL from Leo response. exported for testing
+export const resolveWdsUrl = (apps, workspaceId, shouldAutoDeployWds) => {
+  const foundApp = resolveWdsApp(apps, workspaceId, shouldAutoDeployWds)
+  if (foundApp?.status === 'RUNNING') {
+    return foundApp.proxyUrls.wds
+  }
   return ''
 }
 
