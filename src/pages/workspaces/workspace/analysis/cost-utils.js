@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import {
   cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, machineTypes, regionToPrices
 } from 'src/data/gce-machines'
+import { azureRegionToPrices, getDiskType } from 'src/libs/azure-utils'
 import * as Utils from 'src/libs/utils'
 import {
   defaultComputeRegion, defaultGceMachineType, findMachineType, getComputeStatusForDisplay, getCurrentAttachedDataDisk, getCurrentPersistentDisk,
@@ -9,6 +10,7 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { appTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
+// GOOGLE COST METHODS begin
 
 const dataprocCost = (machineType, numInstances) => {
   const { cpu: cpuPrice } = findMachineType(machineType)
@@ -190,3 +192,24 @@ export const getCostForDisk = (app, appDataDisks, computeRegion, currentRuntimeT
   }
   return diskCost
 }
+
+// end GOOGLE COST METHODS
+
+// AZURE COST METHODS begin
+
+export const getAzureComputeCostEstimate = ({ region, machineType }) => {
+  // TODO [IA-3348] make helper in azure-utils
+  const regionPriceObj = _.find(priceObj => priceObj.name === region, azureRegionToPrices)
+  const cost = regionPriceObj[machineType]
+  return cost
+}
+
+export const getAzureDiskCostEstimate = ({ region, diskSize }) => {
+  // TODO [IA-3348] make helper in azure-utils
+  const regionPriceObj = _.find(priceObj => priceObj.name === region, azureRegionToPrices)
+  const diskType = getDiskType(diskSize)
+  const cost = regionPriceObj[diskType]
+  return cost
+}
+
+// end AZURE COST METHODS

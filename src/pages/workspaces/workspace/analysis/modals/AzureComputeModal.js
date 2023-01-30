@@ -9,14 +9,15 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { Ajax } from 'src/libs/ajax'
 import {
-  azureMachineTypes, azureRegionToPrices,
-  defaultAzureComputeConfig, defaultAzureDiskSize, defaultAzureMachineType, defaultAzureRegion, getDiskType, getMachineTypeLabel
+  azureMachineTypes,
+  defaultAzureComputeConfig, defaultAzureDiskSize, defaultAzureMachineType, defaultAzureRegion, getMachineTypeLabel
 } from 'src/libs/azure-utils'
 import colors from 'src/libs/colors'
 import { withErrorReportingInModal } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
+import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
 import { computeStyles } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
@@ -245,19 +246,6 @@ export const AzureComputeModalBase = ({
     ])
   }
 
-  const getComputeCost = () => {
-    const regionPriceObj = _.find(priceObj => priceObj.name === computeConfig.region, azureRegionToPrices)
-    const cost = regionPriceObj[computeConfig.machineType]
-    return cost
-  }
-
-  const getDiskCost = () => {
-    const regionPriceObj = _.find(priceObj => priceObj.name === computeConfig.region, azureRegionToPrices)
-    const diskType = getDiskType(computeConfig.diskSize)
-    const cost = regionPriceObj[diskType]
-    return cost
-  }
-
   // TODO [IA-3348] It is possible that once we compute the cost, we would like to parameterize this and make it a shared function between the equivalent in ComputeModal
   const renderCostBreakdown = () => {
     return div({
@@ -278,12 +266,12 @@ export const AzureComputeModalBase = ({
           ])
         ])
       }, [
-        { label: 'Running cloud compute cost', cost: Utils.formatUSD(getComputeCost()), unitLabel: 'per hr' },
+        { label: 'Running cloud compute cost', cost: Utils.formatUSD(getAzureComputeCostEstimate(computeConfig)), unitLabel: 'per hr' },
         // TODO [IA-3993] consider implementing pause via deallocate (which changes cost) instead of powerOff (which doesn't)
-        { label: 'Paused cloud compute cost', cost: Utils.formatUSD(getComputeCost()), unitLabel: 'per hr' },
+        { label: 'Paused cloud compute cost', cost: Utils.formatUSD(getAzureComputeCostEstimate(computeConfig)), unitLabel: 'per hr' },
         {
           label: 'Persistent disk cost',
-          cost: Utils.formatUSD(getDiskCost()),
+          cost: Utils.formatUSD(getAzureDiskCostEstimate(computeConfig)),
           unitLabel: 'per month'
         }
       ])
