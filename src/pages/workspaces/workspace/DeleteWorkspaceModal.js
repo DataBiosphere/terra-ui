@@ -82,9 +82,8 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { namespace, 
   const isDeleteDisabledFromResources = (hasApps() && !_.isEmpty(nonDeletableApps)) || controlledResourcesExist
 
   const getResourceDeletionMessage = () => {
-    const applications = pluralize('application', nonDeletableApps.length, false)
     const appCount = nonDeletableApps.length > 1 ? `are ${nonDeletableApps.length}` : 'is 1'
-    const googleMessage = `You cannot delete this workspace because there ${appCount} ${applications} you must delete first. Only applications in ('ERROR', 'RUNNING') status can be automatically deleted.`
+    const googleMessage = `You cannot delete this workspace because there ${appCount} ${pluralize('application', nonDeletableApps.length, false)} you must delete first. Only applications in ('ERROR', 'RUNNING') status can be automatically deleted.`
     const azureMessage = 'Deleting workspaces with running cloud resources in Terra on Azure Preview is currently unavailable. Please reach out to support@terra.bio for assistance.'
     return isDeleteDisabledFromResources ?
       div({ style: { ...warningBoxStyle, fontSize: 14, display: 'flex', flexDirection: 'column' } }, [
@@ -96,7 +95,7 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { namespace, 
           isGoogleWorkspace(workspace) ? googleMessage : azureMessage
         ])
       ]) :
-      p({ style: { marginLeft: '1rem', fontWeight: 'bold' } }, [`Detected ${deletableApps.length} automatically deletable ${applications}.`])
+      p({ style: { marginLeft: '1rem', fontWeight: 'bold' } }, [`Detected ${deletableApps.length} automatically deletable ${pluralize('application', deletableApps.length, false)}.`])
   }
 
   const deleteWorkspace = async () => {
