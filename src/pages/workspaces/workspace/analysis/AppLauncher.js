@@ -13,7 +13,7 @@ import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/l
 import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { getExtension, notebookLockHash, stripExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
-import { appLauncherTabName, PeriodicAzureCookieSetter, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { analysisTabName, appLauncherTabName, PeriodicAzureCookieSetter, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import { getAnalysesDisplayList, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { getPatternFromRuntimeTool, getToolLabelFromRuntime, runtimeTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -28,14 +28,14 @@ const ApplicationLauncher = _.flow(
   })
 )(({
   name: workspaceName, sparkInterface, analysesData: { runtimes, refreshRuntimes },
-  application, workspace: { azureContext, workspace: { workspaceId, googleProject, bucketName }, namespace }
+  application, workspace: { azureContext, workspace: { namespace, name, workspaceId, googleProject, bucketName } }
 }, _ref) => {
   useEffect(() => {
     Ajax().Metrics.captureEvent(Events.analysisLaunch,
       { origin: 'appLauncher', source: application, application, workspaceName, namespace, cloudPlatform: googleProject ? 'GCP' : 'Azure' })
   }, [application, namespace, googleProject, workspaceName])
 
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useState(true)
   const [outdatedAnalyses, setOutdatedAnalyses] = useState()
   const [fileOutdatedOpen, setFileOutdatedOpen] = useState(false)
   const [hashedOwnerEmail, setHashedOwnerEmail] = useState()
@@ -135,13 +135,14 @@ const ApplicationLauncher = _.flow(
       analysis?.metadata[hashedOwnerEmail] === 'outdated', analyses)
   }
 
-  useOnMount(() => {
+  useOnMount(async () => {
     const findHashedEmail = withErrorReporting('Error loading user email information', async () => {
       const hashedEmail = await notebookLockHash(bucketName, email)
       setHashedOwnerEmail(hashedEmail)
     })
 
-    refreshRuntimes()
+    await refreshRuntimes()
+    setBusy(false)
     findHashedEmail()
   })
 
@@ -226,6 +227,8 @@ const ApplicationLauncher = _.flow(
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [googleProject, workspaceName, runtimes, bucketName])
+
+  if (!busy && runtime === undefined) Nav.goToPath(analysisTabName, { namespace, name })
 
   return h(Fragment, [
     h(RuntimeStatusMonitor, {
