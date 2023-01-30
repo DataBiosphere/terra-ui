@@ -79,7 +79,7 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { namespace, 
         !_.isEmpty(nonDeletableApps))
   }
 
-  const isDeleteDisabledFromResources = (hasApps() && !_.isEmpty(nonDeletableApps)) || (isAzureWorkspace(workspace) && controlledResourcesExist)
+  const isDeleteDisabledFromResources = (hasApps() && !_.isEmpty(nonDeletableApps)) || controlledResourcesExist
 
   const getResourceDeletionMessage = () => {
     const applications = pluralize('application', nonDeletableApps.length, false)
