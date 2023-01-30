@@ -1,4 +1,4 @@
-import { differenceFromNowInSeconds, isValidWsExportTarget } from 'src/libs/utils'
+import { differenceFromNowInSeconds, formatBytes, isValidWsExportTarget } from 'src/libs/utils'
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 
 
@@ -134,5 +134,29 @@ describe('isValidWsExportTarget', () => {
 
     // Assert
     expect(result).toBe(false)
+  })
+})
+
+describe('formatBytes', () => {
+  it('handles GB', () => {
+    // Act
+    const result = formatBytes(40000000000)
+
+    // Assert
+    expect(result).toBe('37.3 GiB')
+  })
+  it('handles MB', () => {
+    // Act
+    const result = formatBytes(40000000)
+
+    // Assert
+    expect(result).toBe('38.1 MiB')
+  })
+  it('handles fallback case', () => {
+    // Act
+    const result = formatBytes(40)
+
+    // Assert
+    expect(result).toBe('40 B')
   })
 })

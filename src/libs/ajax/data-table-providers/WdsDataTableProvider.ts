@@ -94,7 +94,7 @@ export const createLeoAppWithErrorHandling = workspaceId => {
 // Invokes logic to determine a URL for WDS
 // If WDS is not running, a URL will not be present -- in some cases, this function may invoke
 // a new call to Leo to instantiate a WDS being available, thus having a valid URL
-export const resolveWdsUrl = (apps, workspaceId, shouldAutoDeployWds?) => {
+export const resolveWdsUrl = (apps, workspaceId, shouldAutoDeployWds) => {
   // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by Leo
   // See here for specific enumerations -- https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
   // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' -- if WDS is healthy and running, there should only be one app RUNNING
