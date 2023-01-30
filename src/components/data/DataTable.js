@@ -143,7 +143,6 @@ const DataTable = props => {
       googleProject, activeTextFilter, filterOperator
     }
     const { results, resultMetadata: { filteredCount, unfilteredCount } } = await dataProvider.getPage(signal, entityType, queryOptions, entityMetadata)
-
     // Find all the unique attribute names contained in the current page of results.
     const attrNamesFromResults = _.uniq(_.flatMap(_.keys, _.map('attributes', results)))
     // Add any attribute names from the current page of results to those found in metadata.
