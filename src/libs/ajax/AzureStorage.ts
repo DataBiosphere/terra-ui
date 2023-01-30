@@ -67,7 +67,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
     const sas = await AzureStorage(signal).sasToken(workspaceId, container.metadata.resourceId)
 
     return {
-      location: 'Unknown', // depends on TOAZ-265
+      location: container.metadata.controlledResourceMetadata.region,
       storageContainerName: container.resourceAttributes.azureStorageContainer.storageContainerName,
       sas
     }
