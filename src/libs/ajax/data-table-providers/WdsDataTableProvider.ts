@@ -94,7 +94,7 @@ export const createLeoAppWithErrorHandling = workspaceId => {
 // Invokes logic to determine a URL for WDS
 // If WDS is not running, a URL will not be present -- in some cases, this function may invoke
 // a new call to Leo to instantiate a WDS being available, thus having a valid URL
-export const resolveWdsUrl = (apps, workspaceId) => {
+export const resolveWdsUrl = (apps, workspaceId, shouldAutoDeployWds?) => {
   // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by Leo
   // See here for specific enumerations -- https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
   // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' -- if WDS is healthy and running, there should only be one app RUNNNING
@@ -105,9 +105,11 @@ export const resolveWdsUrl = (apps, workspaceId) => {
 
   // if we didn't find the expected app 'wds-${app.workspaceId}' running...
   const candidates = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}`)
-  // ...nothing has launched yet, bring WDS to life!
+  // ...nothing has launched yet, bring WDS to life if the request is coming from the OWNER of the workspace!
   if (candidates.length === 0) {
-    createLeoAppWithErrorHandling(workspaceId)
+    if (shouldAutoDeployWds) {
+      createLeoAppWithErrorHandling(workspaceId)
+    }
     return ''
   }
 
@@ -135,9 +137,9 @@ export const resolveWdsUrl = (apps, workspaceId) => {
 export const wdsProviderName: string = 'WDS'
 
 export class WdsDataTableProvider implements DataTableProvider {
-  constructor(workspaceId: string) {
+  constructor(workspaceId: string, shouldAutoDeployWds: boolean) {
     this.workspaceId = workspaceId
-    this.proxyUrlPromise = Ajax().Apps.listAppsV2(workspaceId).then(apps => resolveWdsUrl(apps, workspaceId))
+    this.proxyUrlPromise = Ajax().Apps.listAppsV2(workspaceId).then(apps => resolveWdsUrl(apps, workspaceId, shouldAutoDeployWds))
   }
 
   providerName: string = wdsProviderName

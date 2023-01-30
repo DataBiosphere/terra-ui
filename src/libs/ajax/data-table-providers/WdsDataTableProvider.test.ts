@@ -174,7 +174,7 @@ describe('WdsDataTableProvider', () => {
   describe('transformAttributes', () => {
     it('excludes the primary key from the resultant attributes', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, false)
 
       const input: RecordAttributes = {
         something: 123,
@@ -198,7 +198,7 @@ describe('WdsDataTableProvider', () => {
     })
     it('is resilient if the primary key does not exist in input attributes', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, false)
 
       const input: RecordAttributes = {
         something: 123,
@@ -223,7 +223,7 @@ describe('WdsDataTableProvider', () => {
   describe('transformPage', () => {
     it('restructures a WDS response', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, false)
 
       // example response from WDS, copy-pasted from a WDS swagger call
       const wdsPage: RecordQueryResponse = {
@@ -311,7 +311,7 @@ describe('WdsDataTableProvider', () => {
     })
     it('restructures array attributes', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, false)
 
       // example response from WDS, copy-pasted from a WDS swagger call
       const wdsPage: RecordQueryResponse = {
@@ -379,7 +379,7 @@ describe('WdsDataTableProvider', () => {
     })
     it('restructures relation URIs, both scalar and array', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, false)
 
       // example response from WDS, copy-pasted from a WDS swagger call
       const wdsPage: RecordQueryResponse = {
@@ -455,7 +455,7 @@ describe('WdsDataTableProvider', () => {
     })
     it('handles mixed arrays that contain some relation URIs and some strings', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, false)
 
       // example response from WDS, copy-pasted from a WDS swagger call
       const wdsPage: RecordQueryResponse = {
@@ -529,7 +529,7 @@ describe('WdsDataTableProvider', () => {
   describe('getPage', () => {
     it('restructures a WDS response', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, false)
       const signal = new AbortController().signal
 
       const metadata: EntityMetadata = {
@@ -551,7 +551,7 @@ describe('WdsDataTableProvider', () => {
   describe('deleteTable', () => {
     it('restructures a WDS response', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, false)
 
       // Act
       return provider.deleteTable(recordType).then(actual => {
@@ -564,7 +564,7 @@ describe('WdsDataTableProvider', () => {
   describe('downloadTsv', () => {
     it('restructures a WDS response', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, false)
       const signal = new AbortController().signal
 
       // Act
@@ -584,12 +584,12 @@ describe('WdsDataTableProvider', () => {
       [{ filePresent: true, uploading: true, recordTypePresent: true }, true],
       [{ filePresent: true, uploading: false, recordTypePresent: false }, true]
     ])('Upload button is disabled', (conditions: TsvUploadButtonDisabledOptions, result: boolean) => {
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, false)
       expect(provider.tsvFeatures.disabled(conditions)).toEqual(result)
     })
 
     it('Upload button is not disabled', () => {
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, false)
       const actual = provider.tsvFeatures.disabled({ filePresent: true, uploading: false, recordTypePresent: true })
       expect(actual).toBe(false)
     })
@@ -597,13 +597,13 @@ describe('WdsDataTableProvider', () => {
 
   describe('tooltip', () => {
     it('Tooltip -- needs table name', () => {
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, false)
       const actual = provider.tsvFeatures.tooltip({ filePresent: true, recordTypePresent: false })
       expect(actual).toBe('Please enter table name')
     })
 
     it('Tooltip -- needs valid data', () => {
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, false)
       const actual = provider.tsvFeatures.tooltip({ filePresent: false, recordTypePresent: true })
       expect(actual).toBe('Please select valid data to upload')
     })
@@ -612,7 +612,7 @@ describe('WdsDataTableProvider', () => {
   describe('uploadTsv', () => {
     it('uploads a TSV', () => {
       // ====== Arrange
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, false)
       const tsvFile = new File([''], 'testFile.tsv')
       // ====== Act
       return provider.uploadTsv({ recordType, file: tsvFile, workspaceId: uuid, name: '', deleteEmptyValues: false, namespace: '', useFireCloudDataModel: false }).then(actual => {
@@ -717,27 +717,33 @@ describe('transformMetadata', () => {
 
 describe('resolveWdsUrl', () => {
   it('properly extracts the proxy Url from the leo response', () => {
-    expect(resolveWdsUrl(testProxyUrlResponse, uuid)).toBe(testProxyUrl)
+    expect(resolveWdsUrl(testProxyUrlResponse, uuid, false)).toBe(testProxyUrl)
   })
-  it('return an empty string if WDS is still PROVISIONING', () => {
+  it('deploys a new WDS app & return an empty string if WDS is still PROVISIONING', () => {
     jest.mock('./WdsDataTableProvider', () => ({ createLeoAppWithErrorHandling: () => {} }
     ))
     const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
       { appType: 'CROMWELL', appName: 'something-else', status: 'PROVISIONING', proxyUrls: { wds: testProxyUrl } }
     ]
-    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid)).toBe('')
+    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid, true)).toBe('')
+  })
+  it('does not deploy a new WDS app & return an empty string if WDS is still PROVISIONING', () => {
+    const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
+      { appType: 'CROMWELL', appName: 'something-else', status: 'PROVISIONING', proxyUrls: { wds: testProxyUrl } }
+    ]
+    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid, false)).toBe('')
   })
   it('return empty string when app not found', () => {
     const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
       { appType: 'A_DIFFERENT_APP', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } }
     ]
-    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid)).toBe('')
+    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid, false)).toBe('')
   })
   it('return empty string if no CROMWELL app exists but other apps are present', () => {
     const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
       { appType: 'A_DIFFERENT_APP', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } }
     ]
-    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid)).toBe('')
+    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, uuid, false)).toBe('')
   })
   it('return the earliest created RUNNING app if more than one exists', () => {
     const testProxyUrlResponseMultipleApps: Array<Object> = [
@@ -752,7 +758,7 @@ describe('resolveWdsUrl', () => {
         }
       },
     ]
-    expect(resolveWdsUrl(testProxyUrlResponseMultipleApps, uuid)).toBe('something-older.com')
+    expect(resolveWdsUrl(testProxyUrlResponseMultipleApps, uuid, false)).toBe('something-older.com')
   })
   it('return an empty string if a multiple apps exist, and the PROVISIONING app is created earliest', () => {
     const testProxyUrlResponseMultipleApps: Array<Object> = [
@@ -772,6 +778,6 @@ describe('resolveWdsUrl', () => {
         }
       },
     ]
-    expect(resolveWdsUrl(testProxyUrlResponseMultipleApps, uuid)).toBe('')
+    expect(resolveWdsUrl(testProxyUrlResponseMultipleApps, uuid, false)).toBe('')
   })
 })
