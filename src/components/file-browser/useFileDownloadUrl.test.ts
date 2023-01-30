@@ -1,8 +1,8 @@
 import { renderHook } from '@testing-library/react-hooks'
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
-import { reportError } from 'src/libs/error'
 import { controlledPromise } from 'src/testing/test-utils'
 
+import { reportError } from '../../libs/error'
 import { useFileDownloadUrl } from './useFileDownloadUrl'
 
 

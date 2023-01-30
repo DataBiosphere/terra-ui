@@ -6,6 +6,7 @@ import { reportError, withErrorReporting } from 'src/libs/error'
 import { useCancellation, useStore } from 'src/libs/react-utils'
 import { workspaceStore } from 'src/libs/state'
 import LoadedState from 'src/libs/type-utils/LoadedState'
+import { withHandlers } from 'src/libs/type-utils/lodash-fp-helpers'
 import { NominalType } from 'src/libs/type-utils/type-helpers'
 import * as Utils from 'src/libs/utils'
 import {
@@ -65,17 +66,16 @@ export const useAnalysisFiles = (): AnalysisFileStore => {
   const [analyses, setAnalyses] = useState<AnalysisFile[]>([])
   const [pendingCreate, setPendingCreate] = useLoadedData<true>()
 
-  const refresh: () => Promise<void> = _.flow(
-    // @ts-expect-error
+  const refresh = withHandlers([
     withErrorReporting('Error loading analysis files'),
     Utils.withBusyState(setLoading)
-  )(async (): Promise<void> => {
+  ], async (): Promise<void> => {
     const workspaceInfo = workspace.workspace
     const existingAnalyses: AnalysisFile[] = isGoogleWorkspaceInfo(workspaceInfo) ?
       await Ajax(signal).Buckets.listAnalyses(workspaceInfo.googleProject, workspaceInfo.bucketName) :
       await Ajax(signal).AzureStorage.listNotebooks(workspaceInfo.workspaceId)
     setAnalyses(existingAnalyses)
-  }) as () => Promise<void>
+  })
 
   const create = async (fullAnalysisName: any, toolLabel: ToolLabel, contents: any): Promise<void> => {
     await setPendingCreate(async () => {
@@ -111,7 +111,6 @@ export const findPotentialNotebookLockers = async ({ canShare, namespace, worksp
   const potentialLockers = _.flow(
     _.toPairs,
     _.map(([email, data]) => ({ email, ...data })),
-    // @ts-expect-error
     _.filter(({ accessLevel }) => Utils.hasAccessLevel('WRITER', accessLevel))
   )(acl)
   const lockHolderPromises = _.map(async ({ email }) => {
