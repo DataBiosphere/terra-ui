@@ -61,7 +61,7 @@ export const Apps = signal => ({
       }
     }
   },
-  getV2AppInfo: async workspaceId => {
+  listAppsByWorkspaceV2: async workspaceId => {
     const res = await fetchLeo(`api/apps/v2/${workspaceId}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()

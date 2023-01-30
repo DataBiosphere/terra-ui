@@ -142,7 +142,7 @@ describe('WdsDataTableProvider', () => {
     return Promise.resolve({ message: 'Upload Succeeded', recordsModified: 1 })
   }
 
-  const getV2AppInfoMockImpl: AppsContract['getV2AppInfo'] = (_workspaceId: string) => {
+  const listAppsByWorkspaceV2MockImpl: AppsContract['listAppsByWorkspaceV2'] = (_workspaceId: string) => {
     return Promise.resolve(testProxyUrlResponse)
   }
 
@@ -154,7 +154,7 @@ describe('WdsDataTableProvider', () => {
   let deleteTable: jest.MockedFunction<WorkspaceDataContract['deleteTable']>
   let downloadTsv: jest.MockedFunction<WorkspaceDataContract['downloadTsv']>
   let uploadTsv: jest.MockedFunction<WorkspaceDataContract['uploadTsv']>
-  let getV2AppInfo: jest.MockedFunction<AppsContract['getV2AppInfo']>
+  let listAppsByWorkspaceV2: jest.MockedFunction<AppsContract['listAppsByWorkspaceV2']>
   let createAppV2: jest.MockedFunction<AppsContract['createAppV2']>
 
   beforeEach(() => {
@@ -162,12 +162,12 @@ describe('WdsDataTableProvider', () => {
     deleteTable = jest.fn().mockImplementation(deleteTableMockImpl)
     downloadTsv = jest.fn().mockImplementation(downloadTsvMockImpl)
     uploadTsv = jest.fn().mockImplementation(uploadTsvMockImpl)
-    getV2AppInfo = jest.fn().mockImplementation(getV2AppInfoMockImpl)
+    listAppsByWorkspaceV2 = jest.fn().mockImplementation(listAppsByWorkspaceV2MockImpl)
     createAppV2 = jest.fn().mockImplementation(createAppV2MockImpl)
 
     asMockedFn(Ajax).mockImplementation(() => ({
       WorkspaceData: { getRecords, deleteTable, downloadTsv, uploadTsv } as Partial<WorkspaceDataContract>,
-      Apps: { getV2AppInfo, createAppV2 } as Partial<AppsContract>
+      Apps: { listAppsByWorkspaceV2, createAppV2 } as Partial<AppsContract>
     } as Partial<AjaxContract> as AjaxContract))
   })
 

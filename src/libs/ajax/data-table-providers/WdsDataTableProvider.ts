@@ -137,7 +137,7 @@ export const wdsProviderName: string = 'WDS'
 export class WdsDataTableProvider implements DataTableProvider {
   constructor(workspaceId: string) {
     this.workspaceId = workspaceId
-    this.proxyUrlPromise = Ajax().Apps.getV2AppInfo(workspaceId).then(apps => resolveWdsUrl(apps, workspaceId))
+    this.proxyUrlPromise = Ajax().Apps.listAppsByWorkspaceV2(workspaceId).then(apps => resolveWdsUrl(apps, workspaceId))
   }
 
   providerName: string = wdsProviderName
