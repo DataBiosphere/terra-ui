@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { Ajax } from 'src/libs/ajax'
 import { authOpts, fetchOk, fetchWorkspaceManager } from 'src/libs/ajax/ajax-common'
 import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
@@ -46,10 +47,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
    * (which is an expected transient state while a workspace is being cloned).
    */
   details: async (workspaceId: string): Promise<StorageDetails> => {
-    const res = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources?stewardship=CONTROLLED&limit=1000`,
-      _.merge(authOpts(), { signal })
-    )
-    const data = await res.json()
+    const data = await Ajax(signal).WorkspaceManagerResources.controlledResources(workspaceId)
     const container = _.find(
       {
         metadata: { resourceType: 'AZURE_STORAGE_CONTAINER', controlledResourceMetadata: { accessScope: 'SHARED_ACCESS' } }
@@ -67,7 +65,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
     const sas = await AzureStorage(signal).sasToken(workspaceId, container.metadata.resourceId)
 
     return {
-      location: 'Unknown', // depends on TOAZ-265
+      location: container.metadata.controlledResourceMetadata.region,
       storageContainerName: container.resourceAttributes.azureStorageContainer.storageContainerName,
       sas
     }
