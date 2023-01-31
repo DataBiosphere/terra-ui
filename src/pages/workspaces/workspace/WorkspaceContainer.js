@@ -229,7 +229,7 @@ const WorkspaceAccessError = () => {
   ])
 }
 
-const useCloudEnvironmentPolling = (googleProject, workspace) => {
+const useCloudEnvironmentPolling = workspace => {
   const signal = useCancellation()
   const timeout = useRef()
   const [runtimes, setRuntimes] = useState()
@@ -238,7 +238,6 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
 
   const saturnWorkspaceNamespace = workspace?.workspace.namespace
   const saturnWorkspaceName = workspace?.workspace.name
-  const saturnWorkspaceVersion = workspace?.workspace.workspaceVersion
 
   const reschedule = ms => {
     clearTimeout(timeout.current)
@@ -246,10 +245,7 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
   }
   const load = async maybeStale => {
     try {
-      // v1 workspaces: cloud environment (runtime + disk) is used across workspaces that share the same googleProject
-      // v2 workspaces: 1 cloud environment per workspace - saturnWorkspaceName == workspaceName and saturnWorkspaceNamespace == Terra Billing Project (which is no longer equivalent to googleProject)
-      // TODO: after PPW migration - we should only need saturnWorkspaceName and saturnWorkspaceNamespace labels
-      const cloudEnvFilters = _.pickBy(l => !_.isUndefined(l), saturnWorkspaceVersion === 'v1' ? { role: 'creator', googleProject } : { role: 'creator', saturnWorkspaceName, saturnWorkspaceNamespace })
+      const cloudEnvFilters = _.pickBy(l => !_.isUndefined(l), { role: 'creator', saturnWorkspaceName, saturnWorkspaceNamespace })
 
       // Disks.list API takes includeLabels to specify which labels to return in the response
       // Runtimes.listV2 API always returns all labels for a runtime
@@ -329,7 +325,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
 
     const workspaceLoaded = !!workspace
 
-    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject, workspace)
+    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(workspace)
     const { apps, refreshApps } = useAppPolling(googleProject, name, workspace)
     // The following if statements are necessary to support the context bar properly loading runtimes for google/azure
     if (workspaceLoaded && (googleProject !== prevGoogleProject || azureContext !== prevAzureContext)) {
