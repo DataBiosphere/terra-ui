@@ -12,7 +12,6 @@ import {
 } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 import { withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
-import { v4 as uuid } from 'uuid'
 
 // interface definitions for WDS payload responses
 interface AttributeSchema {
@@ -127,7 +126,12 @@ export const resolveWdsApp = (apps, shouldAutoDeployWds) => {
   // Due to Leo naming requirements, ensure this app has a unique name; this prevents
   // name collisions with previously-deployed apps which may be in ERROR or DELETED states.
   if (shouldAutoDeployWds) {
-    createLeoAppWithErrorHandling(uuid())
+    // David An: disabled for now. This needs to pass both the workspaceId and a random app name to
+    // createLeoAppWithErrorHandling.
+    // Additionally, it needs to be failsafe to race conditions in which the user enters the Data
+    // tab before Leo has had a chance to respond with knowledge about the app that was created
+    // during workspace creation.
+    // createLeoAppWithErrorHandling(uuid())
   }
 
   return ''
