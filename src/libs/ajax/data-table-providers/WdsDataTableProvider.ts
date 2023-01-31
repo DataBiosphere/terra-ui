@@ -115,11 +115,6 @@ export const resolveWdsApp = (apps, workspaceId, shouldAutoDeployWds) => {
     return ''
   }
 
-  // WDS is being created in a Kubernetes cluster (takes a few minutes)
-  if (candidates.length === 1 && candidates[0].status === 'PROVISIONING') {
-    return ''
-  }
-
   const runningCromwellApps = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
   if (runningCromwellApps.length > 0) {
     // Evaluate the earliest-created WDS app
@@ -132,12 +127,7 @@ export const resolveWdsApp = (apps, workspaceId, shouldAutoDeployWds) => {
   if (allCromwellApps.length > 0) {
     // Evaluate the earliest-created WDS app
     allCromwellApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf())
-    if (allCromwellApps[0].status === 'RUNNING') {
-      return allCromwellApps[0].proxyUrls.wds
-    }
-    if (allCromwellApps[0].status === 'PROVISIONING') {
-      return ''
-    }
+    return allCromwellApps[0]
   }
   return ''
 }
