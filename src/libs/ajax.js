@@ -14,9 +14,10 @@ import { Catalog } from 'src/libs/ajax/Catalog'
 import { Disks } from 'src/libs/ajax/Disks'
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage'
 import { Metrics } from 'src/libs/ajax/Metrics'
-import { Resources } from 'src/libs/ajax/Resources'
 import { Runtimes } from 'src/libs/ajax/Runtimes'
+import { SamResources } from 'src/libs/ajax/SamResources'
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService'
+import { WorkspaceManagerResources } from 'src/libs/ajax/WorkspaceManagerResources'
 import { getConfig } from 'src/libs/config'
 import { getUser } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -1016,7 +1017,7 @@ export const Ajax = signal => {
   return {
     User: User(signal),
     Groups: Groups(signal),
-    Resources: Resources(),
+    SamResources: SamResources(),
     Billing: Billing(signal),
     Workspaces: Workspaces(signal),
     Catalog: Catalog(signal),
@@ -1036,7 +1037,8 @@ export const Ajax = signal => {
     FirecloudBucket: FirecloudBucket(signal),
     OAuth2: OAuth2(signal),
     Surveys: Surveys(signal),
-    WorkspaceData: WorkspaceData(signal)
+    WorkspaceData: WorkspaceData(signal),
+    WorkspaceManagerResources: WorkspaceManagerResources(signal)
   }
 }
 

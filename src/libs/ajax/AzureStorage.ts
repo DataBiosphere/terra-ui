@@ -47,7 +47,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
    * (which is an expected transient state while a workspace is being cloned).
    */
   details: async (workspaceId: string): Promise<StorageDetails> => {
-    const data = await Ajax(signal).Resources.workspaceControlledResources(workspaceId)
+    const data = await Ajax(signal).WorkspaceManagerResources.controlledResources(workspaceId)
     const container = _.find(
       {
         metadata: { resourceType: 'AZURE_STORAGE_CONTAINER', controlledResourceMetadata: { accessScope: 'SHARED_ACCESS' } }

@@ -50,7 +50,7 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { namespace, 
         const hackedAppList = _.map(_.set('status', 'disallow'), currentWorkspaceAppList)
         setApps(hackedAppList)
         // Also temporarily disable delete if there are any controlled resources besides the expected workspace storage container.
-        const controlledResources = await Ajax(signal).Resources.workspaceControlledResources(workspaceId)
+        const controlledResources = await Ajax(signal).WorkspaceManagerResources.controlledResources(workspaceId)
         setControlledResourcesExist(controlledResources.resources.length > 1)
       }
     })
