@@ -1,5 +1,5 @@
 import { CSSProperties } from 'react'
-import { li } from 'react-hyperscript-helpers'
+import { div } from 'react-hyperscript-helpers'
 import colors from 'src/libs/colors'
 
 
@@ -11,21 +11,21 @@ function stepBanner(active: boolean): CSSProperties {
     marginTop: '1rem',
     display: 'flex',
     flexDirection: 'column',
+    width: '100%',
     border: active ? `1px solid ${colors.accent()}` : `1px solid ${colors.accent(0.2)}`,
     backgroundColor: active ? colors.light(0.5) : colors.light(0.3),
     boxShadow: active ? '0 0 5px 0 rgba(77,114,170,0.5)' : 'none'
   }
 }
 
-export type StepProps = {
+export interface StepProps {
   isActive: boolean
   style?: React.CSSProperties
   children?: React.ReactNode[]
 }
 
-export const Step = ({ isActive, ...props }: StepProps) => li({
+export const Step = ({ isActive, ...props }: StepProps) => div({
   'aria-current': isActive ? 'step' : false,
-  style: { ...stepBanner(isActive), flexDirection: 'column', ...props.style }
-},
-props.children || []
-)
+  style: { ...stepBanner(isActive), ...props.style },
+  children: props.children || []
+})
