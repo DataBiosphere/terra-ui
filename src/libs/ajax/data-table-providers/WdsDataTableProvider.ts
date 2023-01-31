@@ -82,25 +82,38 @@ const getRelationParts = (val: unknown): string[] => {
   return []
 }
 
-// Extract wds URL from Leo response. exported for testing
-export const getWdsUrl = apps => {
-  // look explicitly for an app named 'wds-${app.workspaceId}'. If found, use it, even if it isn't running
-  // this handles the case where the user has explicitly shut down the app
-  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}` && app.status === 'RUNNING')
+//Although this method repeats some logic from the resolveWdsUrl method, the two are using somewhat different criteria
+export const resolveWdsApp = apps => {
+  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}` && ['RUNNING', 'PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status))
   if (namedApp.length === 1) {
-    return namedApp[0].proxyUrls.wds
+    return namedApp[0]
   }
-  // if we didn't find the expected app 'cbas-wds-default', go hunting:
-  const candidates = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
-  if (candidates.length === 0) {
-    // no app deployed yet
-    return ''
+
+  //Failed to find an app with the proper name, look for a RUNNING CROMWELL app
+  const runningCromwellApps = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
+  if (runningCromwellApps.length > 0) {
+    // Evaluate the earliest-created WDS app
+    runningCromwellApps.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
+    return runningCromwellApps[0]
   }
-  if (candidates.length > 1) {
-    // multiple apps found; use the earliest-created one
-    candidates.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
+
+  //Failed to find an app with the proper name and in a RUNNING state, so look for a CROMWELL app in a non-error state
+  const allCromwellApps = apps.filter(app => app.appType === 'CROMWELL' && ['PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status))
+  if (allCromwellApps.length > 0) {
+    // Evaluate the earliest-created WDS app
+    allCromwellApps.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
+    return allCromwellApps[0]
   }
-  return candidates[0].proxyUrls.wds
+  return ''
+}
+
+// Extract wds URL from Leo response. exported for testing
+export const resolveWdsUrl = apps => {
+  const foundApp = resolveWdsApp(apps)
+  if (foundApp?.status === 'RUNNING') {
+    return foundApp.proxyUrls?.wds
+  }
+  return ''
 }
 
 export const wdsProviderName: string = 'WDS'
@@ -108,7 +121,7 @@ export const wdsProviderName: string = 'WDS'
 export class WdsDataTableProvider implements DataTableProvider {
   constructor(workspaceId: string) {
     this.workspaceId = workspaceId
-    this.proxyUrlPromise = Ajax().Apps.getV2AppInfo(workspaceId).then(getWdsUrl)
+    this.proxyUrlPromise = Ajax().Apps.getV2AppInfo(workspaceId).then(resolveWdsUrl)
   }
 
   providerName: string = wdsProviderName
