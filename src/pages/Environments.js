@@ -67,7 +67,7 @@ const DeleteRuntimeModal = ({
             marginBottom: '1rem'
           }
         }, [
-          p(['Persistent disks will be made available soon for Azure VMs'])
+          p(['Deleting a runtime requires deleting a persistent disk for azure.'])
         ])) :
         p([
           'Deleting this cloud environment will also ', span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk.'])
