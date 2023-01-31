@@ -48,6 +48,12 @@ const DeleteRuntimeModal = ({
       await ajax().Runtimes.runtimeV2(workspaceId, runtimeName).delete(deleteDisk)
     onSuccess()
   })
+
+  //delete the disk always if in azure
+  if (!isGcpContext(cloudContext)) {
+    setDeleteDisk(true)
+  }
+
   return h(Modal, {
     title: 'Delete cloud environment?',
     onDismiss,
