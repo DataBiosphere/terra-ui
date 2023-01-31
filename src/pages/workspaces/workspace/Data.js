@@ -498,6 +498,7 @@ const WorkspaceData = _.flow(
   const [crossTableResultCounts, setCrossTableResultCounts] = useState({})
   const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false)
   const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}) // { [entityType: string]: boolean }
+  const pollWdsInterval = useRef()
 
   const [wdsProxyUrl, setWdsProxyUrl] = useState({ status: 'None', state: '' })
   const [wdsTypes, setWdsTypes] = useState({ status: 'None', state: [] })
@@ -593,6 +594,37 @@ const WorkspaceData = _.flow(
         })
     }
   }
+
+  const loadWdsTypes = useCallback(async () => {
+    try {
+      const url = !!wdsProxyUrl && wdsProxyUrl.state
+      !!url && await Ajax(signal).WorkspaceData.getSchema(url, workspaceId)
+        .then(typesResult => {
+          setWdsTypes({ status: 'Ready', state: typesResult })
+        })
+        .catch(err => {
+          setWdsTypes({ status: 'Error', state: err })
+        })
+    } catch (error) {
+      console.log(`Error thrown loading WDS schema: ${error}`) // eslint-disable-line no-console
+    }
+  }, [workspaceId, wdsProxyUrl, signal])
+
+  useEffect(() => {
+    if (isAzureWorkspace(workspaceId)) {
+      if ((!wdsTypes || wdsTypes.status !== 'Ready') && !pollWdsInterval.current) {
+        pollWdsInterval.current = setInterval(loadWdsTypes, 30 * 1000) // TODO is this milliseconds
+      } else if (!!wdsTypes && wdsTypes.status === 'Ready' && pollWdsInterval.current) {
+        clearInterval(pollWdsInterval.current)
+        pollWdsInterval.current = undefined
+      }
+    }
+
+    return () => {
+      clearInterval(pollWdsInterval.current)
+      pollWdsInterval.current = undefined
+    }
+  }, [loadWdsTypes, workspaceId, wdsTypes, isAzureWorkspace])
 
   const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first))
 
