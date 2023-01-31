@@ -60,13 +60,14 @@ const DeleteRuntimeModal = ({
           display: 'flex',
           borderRadius: 5,
           padding: '0.5rem 1rem',
-          marginTop: '1rem'
+          marginTop: '1rem',
+          marginBottom: '1rem'
         }
       }, [
         p(['For Azure VMs, persistent disks will be made available soon.'])
       ]),
       persistentDiskId ?
-        h(LabeledCheckbox, { checked: deleteDisk, onChange: setDeleteDisk }, [
+        h(LabeledCheckbox, { disabled: !isGcpContext(cloudContext), checked: deleteDisk, onChange: setDeleteDisk }, [
           span({ style: { fontWeight: 600 } }, [' Also delete the persistent disk and all files on it'])
         ]) :
         p([
