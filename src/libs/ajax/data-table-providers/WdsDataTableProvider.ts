@@ -98,7 +98,9 @@ export const resolveWdsApp = (apps, workspaceId, shouldAutoDeployWds) => {
   // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by Leo
   // See here for specific enumerations -- https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
   // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' -- if WDS is healthy and running, there should only be one app RUNNING
-  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}` && ['RUNNING', 'PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status))
+  // an app may be in the 'PROVISIONING', 'STOPPED', 'STOPPING', which can still be deemed as an OK state for WDS
+  const healthyStates = ['RUNNING', 'PROVISIONING', 'STOPPED', 'STOPPING']
+  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}` && healthyStates.includes(app.status))
   if (namedApp.length === 1) {
     return namedApp[0]
   }
