@@ -223,8 +223,8 @@ const AnalysisCard = ({
           ])
         ])
       ]),
-      div({ style: { marginLeft: '1rem' } }, [analysisMenu])
-    ])
+    ]),
+    div({ role: 'cell', style: { marginLeft: '1rem' } }, [analysisMenu])
   ])
 }
 
