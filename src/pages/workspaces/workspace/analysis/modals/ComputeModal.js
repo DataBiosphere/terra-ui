@@ -1779,12 +1779,14 @@ export const ComputeModalBase = ({
     ])
 
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
-      h(IdContainer, [
         id => h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
-          label({ htmlFor: id, style: computeStyles.label }, ['Persistent disk', div({ style: { marginTop: '0.5rem' } }, [
-            'Persistent disks store analysis data. ',
-            h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
-          ])]),
+          label({ htmlFor: id, style: computeStyles.label }, [
+            'Persistent disk',
+            div({ style: { marginTop: '0.5rem' } }, [
+              'Persistent disks store analysis data. ',
+              h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
+            ])
+          ]),
           div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
             diskExists ?
               h(TooltipTrigger, {
@@ -1797,7 +1799,8 @@ export const ComputeModalBase = ({
               }, [renderPersistentDiskType(id)]) : renderPersistentDiskType(id),
             h(div, [
               label({ htmlFor: id, style: computeStyles.label }, [
-                'Disk Size (GB)',
+              'Disk Size (GB)',
+              div({ style: { marginTop: '0.5rem' } }, [
                 h(NumberInput, {
                   min: 10,
                   max: 64000,
@@ -1806,8 +1809,8 @@ export const ComputeModalBase = ({
                   value: computeConfig.selectedPersistentDiskSize,
                   onChange: updateComputeConfig('selectedPersistentDiskSize')
                 })
-              ]),
-            ])
+              ])
+            ]),
           ])
         ])
       ])
