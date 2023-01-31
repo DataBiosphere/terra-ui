@@ -2,7 +2,11 @@ import _ from 'lodash/fp'
 import {
   cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, machineTypes, regionToPrices
 } from 'src/data/gce-machines'
+<<<<<<< HEAD
 import { getAzurePricesForRegion, getDiskType } from 'src/libs/azure-utils'
+=======
+import { azureRegions, azureRegionToPrices, getDiskType } from 'src/libs/azure-utils'
+>>>>>>> f9326f45 ([IA-3348] set location to Azure region in WorkspaceContainer)
 import * as Utils from 'src/libs/utils'
 import {
   defaultComputeRegion, defaultGceMachineType, findMachineType, getComputeStatusForDisplay, getCurrentAttachedDataDisk, getCurrentPersistentDisk,
@@ -207,6 +211,7 @@ export const getCostForDisk = (app, appDataDisks, computeRegion, currentRuntimeT
     diskCost = currentDataDisk ? getGalaxyDiskCost(currentDataDisk) : ''
   }
   return diskCost
+<<<<<<< HEAD
 }
 
 // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
@@ -231,3 +236,49 @@ const isAzureDisk = persistentDisk => {
   return persistentDisk ? isAzureContext(persistentDisk.cloudContext) : false
 }
 // end COMMON METHODS
+=======
+}
+
+// end GOOGLE COST METHODS
+
+// AZURE COST METHODS begin
+
+export const getAzureComputeCostEstimate = ({ region, machineType }) => {
+  const regionPriceObj = getAzurePricesForRegion(region)
+  const cost = regionPriceObj[machineType]
+  return cost
+}
+
+export const getAzureDiskCostEstimate = ({ region, diskSize }) => {
+  const regionPriceObj = getAzurePricesForRegion(region)
+  const diskType = getDiskType(diskSize)
+  const cost = regionPriceObj[diskType]
+  return cost
+}
+
+export const getAzurePricesForRegion = key => _.has(key, azureRegions) ? _.find(priceObj => priceObj.name === key, azureRegionToPrices) : {}
+
+// end AZURE COST METHODS
+
+// common
+
+// TODO [IA-3348] Azure cost display for JupyterLab
+// TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
+export const getCostDisplayForTool = (app, currentRuntime, currentRuntimeTool, toolLabel) => {
+  return Utils.cond(
+    [toolLabel === toolLabels.Galaxy, () => app ? `${getComputeStatusForDisplay(app.status)} ${Utils.formatUSD(getGalaxyComputeCost(app))}/hr` : ''],
+    [toolLabel === toolLabels.Cromwell, () => ''], // We will determine what to put here later
+    [toolLabel === toolLabels.JupyterLab, () => ''], //TODO: Azure cost calculation
+    [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getRuntimeCost(currentRuntime))}/hr`],
+    [Utils.DEFAULT, () => {
+      return ''
+    }]
+  )
+}
+
+export const getCostDisplayForDisk = (app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel) => {
+  const diskCost = getCostForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
+  return diskCost ? `Disk ${Utils.formatUSD(diskCost)}/hr` : ''
+}
+
+>>>>>>> f9326f45 ([IA-3348] set location to Azure region in WorkspaceContainer)
