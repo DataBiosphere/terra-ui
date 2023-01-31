@@ -343,14 +343,14 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }
     }
 
-    const loadBucketLocation = withErrorIgnoring(async (googleProject, bucketName) => {
-      if (!!googleProject) {
+    const loadBucketLocation = withErrorIgnoring(async (googleProject, bucketName, workspace) => {
+      if (isGoogleWorkspace(workspace) && !!googleProject) {
         // Google
         const bucketLocation = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
         setBucketLocation(bucketLocation)
-      } else {
+      } else if (isAzureWorkspace(workspace)) {
         // Azure: region is armRegionName such as eastus
-        const { location } = await Ajax(signal).AzureStorage.details(workspace?.workspace?.workspaceId)
+        const { location } = await Ajax(signal).AzureStorage.details(workspace.workspace.workspaceId)
         setBucketLocation({ location, locationType: undefined })
       }
     })

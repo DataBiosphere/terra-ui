@@ -223,6 +223,7 @@ const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, on
     ])
   }
 
+  // TODO [IA-3348] support Azure?
   const costPerCopy = getPersistentDiskCostMonthly(disk, getRegionFromZone(disk.zone))
   const numberOfCopies = _.flow(_.values, _.compact, _.size)(isWorkspaceSelected)
 
