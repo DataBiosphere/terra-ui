@@ -19,7 +19,7 @@ import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { betaVersionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
-import { useOnMount } from 'src/libs/react-utils'
+import { useOnMount, useUniqueId } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
@@ -1778,10 +1778,13 @@ export const ComputeModalBase = ({
       ])
     ])
 
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const idDiskType = useUniqueId()
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const idDiskSize = useUniqueId()
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
-      h(IdContainer, [
-        id => h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
-          label({ htmlFor: id, style: computeStyles.label }, ['Persistent disk']),
+        h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
+          label({ style: computeStyles.label }, ['Persistent disk']),
           div({ style: { marginTop: '0.5rem' } }, [
             'Persistent disks store analysis data. ',
             h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
@@ -1795,12 +1798,12 @@ export const ComputeModalBase = ({
                   'Please delete the existing disk before selecting a new type.'
                 ],
                 side: 'bottom'
-              }, [renderPersistentDiskType(id)]) : renderPersistentDiskType(id),
+              }, [renderPersistentDiskType(idDiskType)]) : renderPersistentDiskType(idDiskType),
             h(div, [
-              label({ htmlFor: id, style: computeStyles.label }, ['Disk Size (GB)']),
+              label({ htmlFor: idDiskSize, style: computeStyles.label }, ['Disk Size (GB)']),
               div({ style: { marginTop: '0.5rem' } }, [
                 h(NumberInput, {
-                  id,
+                  id: idDiskSize,
                   min: 10,
                   max: 64000,
                   isClearable: false,
@@ -1812,7 +1815,6 @@ export const ComputeModalBase = ({
             ])
           ])
         ])
-      ])
     ])
   }
   // Render functions -- end
