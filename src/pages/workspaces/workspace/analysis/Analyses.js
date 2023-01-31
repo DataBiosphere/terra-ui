@@ -199,7 +199,7 @@ const AnalysisCard = ({
   const toolContainer = div({ role: 'cell', style: { display: 'flex', flex: 1, flexDirection: 'row', alignItems: 'center' } }, [
     img({ src: toolIconSrc, alt: '', style: { marginRight: '1rem', height: 40, width: 40 } }),
     // this is the tool name, i.e. 'Jupyter'. It is named identical to the header row to simplify the sorting code at the cost of naming consistency.
-    a({ href: analysisLink }, [application])
+    application
   ])
 
   return div({
@@ -219,7 +219,7 @@ const AnalysisCard = ({
         }, [icon('lock')]),
         h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
           div({ style: { fontSize: '0.8rem', display: 'flex', alignItems: 'center', textAlign: 'left' } }, [
-            a({ href: analysisLink }, [Utils.makePrettyDate(lastModified)])
+            Utils.makePrettyDate(lastModified)
           ])
         ])
       ]),
