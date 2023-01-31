@@ -14,7 +14,6 @@ import { dataSyncingDocUrl } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
-import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
@@ -319,17 +318,13 @@ const PreviewHeader = ({
       [isJupyterLabGCP && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === toolLabels.Jupyter,
         () => h(HeaderButton, {
           onClick: () => {
-            Ajax().Metrics.captureEvent(Events.analysisLaunch,
-              { origin: 'analysisLauncher', source: toolLabels.JupyterLab, application: toolLabels.JupyterLab, workspaceName: name, namespace })
-            Nav.goToPath(appLauncherTabName, { namespace, name, application: toolLabels.JupyterLab })
+            Nav.goToPath(appLauncherTabName, { namespace, name, application: toolLabels.JupyterLab, cloudPlatform })
           }
         }, openMenuIcon)],
       [isAzureWorkspace && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === toolLabels.Jupyter,
         () => h(HeaderButton, {
           onClick: () => {
-            Ajax().Metrics.captureEvent(Events.analysisLaunch,
-              { origin: 'analysisLauncher', source: currentRuntimeToolLabel, application: currentRuntimeToolLabel, workspaceName: name, namespace })
-            Nav.goToPath(appLauncherTabName, { namespace, name, application: currentRuntimeToolLabel })
+            Nav.goToPath(appLauncherTabName, { namespace, name, application: toolLabels.JupyterLab, cloudPlatform })
           }
         }, openMenuIcon)],
       [isAzureWorkspace && runtimeStatus !== 'Running', () => {}],
@@ -343,9 +338,7 @@ const PreviewHeader = ({
         () => h(HeaderButton, {
           onClick: () => {
             if (runtimeStatus === 'Running') {
-              Ajax().Metrics.captureEvent(Events.analysisLaunch,
-                { origin: 'analysisLauncher', source: toolLabels.RStudio, application: toolLabels.RStudio, workspaceName: name, namespace })
-              Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' })
+              Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio', cloudPlatform })
             }
           }
         },
@@ -503,13 +496,8 @@ const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace:
 // This is the purely functional component
 // It is in charge of ensuring that navigating away from the Jupyter iframe results in a save via a custom extension located in `jupyter-iframe-extension`
 // See this ticket for RStudio impl discussion: https://broadworkbench.atlassian.net/browse/IA-2947
-const JupyterFrameManager = ({ onClose, frameRef, details = {} }) => {
+const JupyterFrameManager = ({ onClose, frameRef }) => {
   useOnMount(() => {
-    Ajax()
-      .Metrics
-      .captureEvent(Events.analysisLaunch,
-        { source: toolLabels.Jupyter, application: toolLabels.Jupyter, workspaceName: details.name, namespace: details.namespace })
-
     const isSaved = Utils.atom(true)
     const onMessage = e => {
       switch (e.data) {
