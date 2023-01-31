@@ -55,19 +55,8 @@ const DeleteRuntimeModal = ({
   }, [
     div({ style: { lineHeight: 1.5 } }, [
       persistentDiskId ?
-        (isGcpContext(cloudContext) ? h(LabeledCheckbox, { checked: deleteDisk, onChange: setDeleteDisk }, [
+        (isGcpContext(cloudContext) && h(LabeledCheckbox, { checked: deleteDisk, onChange: setDeleteDisk }, [
           span({ style: { fontWeight: 600 } }, [' Also delete the persistent disk and all files on it'])
-        ]) : div({
-          style: {
-            backgroundColor: colors.accent(0.2),
-            display: 'flex',
-            borderRadius: 5,
-            padding: '0.5rem 1rem',
-            marginTop: '1rem',
-            marginBottom: '1rem'
-          }
-        }, [
-          p(['Deleting a runtime requires deleting a persistent disk for azure.'])
         ])) :
         p([
           'Deleting this cloud environment will also ', span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk.'])
