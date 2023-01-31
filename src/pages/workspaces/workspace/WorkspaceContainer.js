@@ -343,14 +343,14 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }
     }
 
-    const loadBucketLocation = withErrorIgnoring(async (googleProject, bucketName) => {
-      if (!!googleProject) {
+    const loadBucketLocation = withErrorIgnoring(async (googleProject, bucketName, workspace) => {
+      if (isGoogleWorkspace(workspace) && !!googleProject) {
         // Google
         const bucketLocation = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
         setBucketLocation(bucketLocation)
-      } else {
+      } else if (isAzureWorkspace(workspace)) {
         // Azure: region is armRegionName such as eastus
-        const { location } = await Ajax(signal).AzureStorage.details(workspace?.workspace?.workspaceId)
+        const { location } = await Ajax(signal).AzureStorage.details(workspace.workspace.workspaceId)
         setBucketLocation({ location, locationType: undefined })
       }
     })
@@ -372,7 +372,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
 
         const { accessLevel, workspace: { bucketName, createdBy, createdDate, googleProject } } = workspace
 
-        loadBucketLocation(googleProject, bucketName)
+        loadBucketLocation(googleProject, bucketName, workspace)
         // Request a service account token. If this is the first time, it could take some time before everything is in sync.
         // Doing this now, even though we don't explicitly need it now, increases the likelihood that it will be ready when it is needed.
         if (Utils.canWrite(accessLevel) && isGoogleWorkspace(workspace)) {
@@ -405,7 +405,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       if (!workspace) {
         refreshWorkspace()
       } else {
-        loadBucketLocation(googleProject, workspace.workspace.bucketName)
+        loadBucketLocation(googleProject, workspace.workspace.bucketName, workspace)
       }
     })
 

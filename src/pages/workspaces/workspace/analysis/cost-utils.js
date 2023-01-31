@@ -6,7 +6,7 @@ import { azureRegions, azureRegionToPrices, getDiskType } from 'src/libs/azure-u
 import * as Utils from 'src/libs/utils'
 import {
   defaultComputeRegion, defaultGceMachineType, findMachineType, getComputeStatusForDisplay, getCurrentAttachedDataDisk, getCurrentPersistentDisk,
-  getRuntimeForTool, normalizeRuntimeConfig, pdTypes
+  getRuntimeForTool, isAzureContext, normalizeRuntimeConfig, pdTypes
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { appTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
@@ -81,11 +81,16 @@ const numberOfHoursPerMonth = 730
 const getPersistentDiskPriceForRegionHourly = (computeRegion, diskType) => getPersistentDiskPriceForRegionMonthly(computeRegion, diskType) / numberOfHoursPerMonth
 
 export const getPersistentDiskCostMonthly = (currentPersistentDiskDetails, computeRegion) => {
-  const price = getPersistentDiskPriceForRegionMonthly(computeRegion, currentPersistentDiskDetails?.diskType)
-  return _.includes(currentPersistentDiskDetails?.status, ['Deleting', 'Failed']) ? 0.0 : currentPersistentDiskDetails?.size * price
+  let price
+  if (isAzureContext(currentPersistentDiskDetails?.cloudContext)) {
+    price = getAzureDiskCostEstimate({ diskSize: currentPersistentDiskDetails?.size, region: currentPersistentDiskDetails?.zone })
+  } else {
+    price = currentPersistentDiskDetails?.size * getPersistentDiskPriceForRegionMonthly(computeRegion, currentPersistentDiskDetails?.diskType)
+  }
+  return _.includes(currentPersistentDiskDetails?.status, ['Deleting', 'Failed']) ? 0.0 : price
 }
-export const getPersistentDiskCostHourly = ({ size, status, diskType }, computeRegion) => {
-  const price = getPersistentDiskPriceForRegionHourly(computeRegion, diskType)
+export const getPersistentDiskCostHourly = ({ size, status, diskType, cloudContext }, computeRegion) => {
+  const price = isAzureContext(cloudContext) ? getAzureDiskCostEstimate({ diskSize: size, region: computeRegion }) / numberOfHoursPerMonth : getPersistentDiskPriceForRegionHourly(computeRegion, diskType)
   return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : size * price
 }
 
@@ -94,14 +99,19 @@ const ephemeralExternalIpAddressCost = ({ numStandardVms, numPreemptibleVms }) =
   return numStandardVms * ephemeralExternalIpAddressPrice.standard + numPreemptibleVms * ephemeralExternalIpAddressPrice.preemptible
 }
 
-export const getRuntimeCost = ({ runtimeConfig, status }) => Utils.switchCase(status,
-  [
-    'Stopped',
-    () => runtimeConfigBaseCost(runtimeConfig)
-  ],
-  ['Error', () => 0.0],
-  [Utils.DEFAULT, () => runtimeConfigCost(runtimeConfig)]
-)
+export const getRuntimeCost = ({ runtimeConfig, status, cloudContext }) => {
+  if (isAzureContext(cloudContext)) {
+    return getAzureComputeCostEstimate(runtimeConfig)
+  }
+  return Utils.switchCase(status,
+    [
+      'Stopped',
+      () => runtimeConfigBaseCost(runtimeConfig)
+    ],
+    ['Error', () => 0.0],
+    [Utils.DEFAULT, () => runtimeConfigCost(runtimeConfig)]
+  )
+}
 
 export const getAppCost = (app, dataDisk) => app.appType === appTools.Galaxy.appType ? getGalaxyCost(app, dataDisk) : 0
 
@@ -163,8 +173,11 @@ export const getGalaxyCostTextChildren = (app, appDataDisks) => {
 
 export const getCostForDisk = (app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel) => {
   let diskCost = ''
-  if (currentRuntimeTool === toolLabel && persistentDisks && persistentDisks.length > 0) {
-    const curPd = getCurrentPersistentDisk(runtimes, persistentDisks)
+  const curPd = persistentDisks && persistentDisks.length && getCurrentPersistentDisk(runtimes, persistentDisks)
+  if (curPd && isAzureDisk(curPd)) {
+    return getAzureDiskCostEstimate({ region: computeRegion, diskSize: curPd.size }) / numberOfHoursPerMonth
+  }
+  if (currentRuntimeTool === toolLabel && persistentDisks && persistentDisks.length) {
     const { size = 0, status = 'Running', diskType = pdTypes.standard } = curPd || {}
     diskCost = getPersistentDiskCostHourly({ size, status, diskType }, computeRegion)
   } else if (app && appDataDisks && (toolLabel === 'Galaxy')) {
@@ -196,15 +209,14 @@ export const getAzurePricesForRegion = key => _.has(key, azureRegions) ? _.find(
 
 // end AZURE COST METHODS
 
-// common
+// COMMON METHODS begin
 
-// TODO [IA-3348] Azure cost display for JupyterLab
 // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
 export const getCostDisplayForTool = (app, currentRuntime, currentRuntimeTool, toolLabel) => {
   return Utils.cond(
     [toolLabel === toolLabels.Galaxy, () => app ? `${getComputeStatusForDisplay(app.status)} ${Utils.formatUSD(getGalaxyComputeCost(app))}/hr` : ''],
     [toolLabel === toolLabels.Cromwell, () => ''], // We will determine what to put here later
-    [toolLabel === toolLabels.JupyterLab, () => ''], //TODO: Azure cost calculation
+    [toolLabel === toolLabels.JupyterLab, () => currentRuntime ? `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getAzureComputeCostEstimate(currentRuntime.runtimeConfig))}/hr` : ''],
     [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getRuntimeCost(currentRuntime))}/hr`],
     [Utils.DEFAULT, () => {
       return ''
@@ -217,3 +229,7 @@ export const getCostDisplayForDisk = (app, appDataDisks, computeRegion, currentR
   return diskCost ? `Disk ${Utils.formatUSD(diskCost)}/hr` : ''
 }
 
+const isAzureDisk = persistentDisk => {
+  return persistentDisk ? isAzureContext(persistentDisk.cloudContext) : false
+}
+// end COMMON METHODS

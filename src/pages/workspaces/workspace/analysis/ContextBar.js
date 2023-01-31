@@ -61,8 +61,7 @@ export const ContextBar = ({
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false)
   const [selectedToolIcon, setSelectedToolIcon] = useState(undefined)
 
-  // TODO [IA-3348] fork azure to azureRegion
-  const computeRegion = getRegionInfo(location, locationType).computeRegion
+  const computeRegion = isAzureWorkspace(workspace) ? location : getRegionInfo(location, locationType).computeRegion
   const currentRuntime = getCurrentRuntime(runtimes)
   const currentRuntimeTool = currentRuntime?.labels?.tool
   const isTerminalEnabled = currentRuntimeTool === toolLabels.Jupyter && currentRuntime && currentRuntime.status !== 'Error'
