@@ -14,8 +14,6 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
-import { Ajax } from '../ajax'
-
 
 type SasInfo = {
   url: string
