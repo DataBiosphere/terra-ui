@@ -289,7 +289,7 @@ const useAppPolling = (googleProject, workspaceName, workspace) => {
     try {
       const newGoogleApps = !!workspace && isGoogleWorkspace(workspace) ?
         await Ajax(signal).Apps.list(googleProject, { role: 'creator', saturnWorkspaceName: workspaceName }) : []
-      const newAzureApps = !!workspace && isAzureWorkspace(workspace) ? await Ajax(signal).Apps.getV2AppInfo(workspace.workspace.workspaceId) : []
+      const newAzureApps = !!workspace && isAzureWorkspace(workspace) ? await Ajax(signal).Apps.listAppsV2(workspace.workspace.workspaceId) : []
       const combinedNewApps = [...newGoogleApps, ...newAzureApps]
 
       setApps(combinedNewApps)

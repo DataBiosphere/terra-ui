@@ -16,7 +16,7 @@ const LeaveResourceModal = ({ displayName, samResourceType, samResourceId, onDis
   const leaveResource = async () => {
     try {
       setLeaving(true)
-      await Ajax().Resources.leave(samResourceType, samResourceId)
+      await Ajax().SamResources.leave(samResourceType, samResourceId)
       Ajax().Metrics.captureEvent(Events.resourceLeave, { samResourceType, samResourceId })
       setLeaving(false)
       onDismiss()

@@ -19,6 +19,7 @@ import LocalVariablesContent from 'src/components/data/LocalVariablesContent'
 import RenameTableModal from 'src/components/data/RenameTableModal'
 import { useSavedColumnSettings } from 'src/components/data/SavedColumnSettings'
 import WDSContent from 'src/components/data/WDSContent'
+import { WdsTroubleshooter } from 'src/components/data/WdsTroubleshooter'
 import { icon, spinner } from 'src/components/icons'
 import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
@@ -480,7 +481,7 @@ const WorkspaceData = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Data', activeTab: 'data'
   })
-)(({ namespace, name, workspace, workspace: { workspace: { googleProject, attributes, workspaceId } }, refreshWorkspace }, ref) => {
+)(({ namespace, name, workspace, workspace: { workspace: { createdBy, googleProject, attributes, workspaceId } }, refreshWorkspace }, ref) => {
   // State
   const [refreshKey, setRefreshKey] = useState(0)
   const forceRefresh = () => setRefreshKey(_.add(1))
@@ -489,6 +490,7 @@ const WorkspaceData = _.flow(
   const [snapshotDetails, setSnapshotDetails] = useState(() => StateHistory.get().snapshotDetails)
   const [importingReference, setImportingReference] = useState(false)
   const [deletingReference, setDeletingReference] = useState(undefined)
+  const [troubleshootingWds, setTroubleshootingWds] = useState(false)
   const [uploadingFile, setUploadingFile] = useState(false)
   const [uploadingWDSFile, setUploadingWDSFile] = useState(false)
   const [entityMetadataError, setEntityMetadataError] = useState()
@@ -512,7 +514,10 @@ const WorkspaceData = _.flow(
 
   const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name)
 
-  const wdsDataTableProvider = useMemo(() => new WdsDataTableProvider(workspaceId), [workspaceId])
+  // auto-deploy WDS for a user who is: 1) the workspace creator, and 2) still an OWNER of the workspace
+  const shouldAutoDeployWds = workspace?.accessLevel === 'OWNER' && createdBy === getUser()?.email
+
+  const wdsDataTableProvider = useMemo(() => new WdsDataTableProvider(workspaceId, shouldAutoDeployWds), [workspaceId, shouldAutoDeployWds])
 
   const loadEntityMetadata = async () => {
     try {
@@ -785,6 +790,11 @@ const WorkspaceData = _.flow(
                 ])
               }, sortedEntityPairs)
             ]),
+            troubleshootingWds && h(WdsTroubleshooter, {
+              onDismiss: () => setTroubleshootingWds(false),
+              workspaceId,
+              mrgId: workspace.azureContext.managedResourceGroupId
+            }),
             isAzureWorkspace && h(DataTypeSection, {
               title: 'Tables'
             }, [
@@ -1003,8 +1013,11 @@ const WorkspaceData = _.flow(
       h(SidebarSeparator, { sidebarWidth, setSidebarWidth }),
       div({ style: styles.tableViewPanel }, [
         _.includes(selectedData?.type, [workspaceDataTypes.entities, workspaceDataTypes.entitiesVersion]) && h(DataTableFeaturePreviewFeedbackBanner),
-        Utils.switchCase(selectedData?.type, [undefined, () => Utils.cond([!wdsReady && isAzureWorkspace, () => div({ style: { textAlign: 'center' } }, [icon('loadingSpinner'), ' The database that powers your data tables is unavailable. It may take a few minutes after initial workspace creation to be ready.'])],
-          () => div({ style: { textAlign: 'center' } }, ['Select a data type from the navigation panel on the left']),
+        Utils.switchCase(selectedData?.type, [undefined, () => Utils.cond([!wdsReady && isAzureWorkspace, () => div({ style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' } },
+          [icon('loadingSpinner'),
+            ' The database that powers your data tables is unavailable. It may take a few minutes after initial workspace creation to be ready. If you think something has gone wrong, please reach out to support@terra.bio and include information from our ',
+            h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['Troubleshoot']), ' page.'])],
+        () => div({ style: { textAlign: 'center' } }, ['Select a data type from the navigation panel on the left']),
         )],
         [workspaceDataTypes.localVariables, () => h(LocalVariablesContent, {
           workspace,

@@ -95,7 +95,7 @@ afterEach(() => {
   jest.clearAllMocks()
 })
 
-//Note - These constants are copied from src/libs/runtime-utils.test.js
+//Note - These constants are copied from ./runtime-utils.test.js
 const galaxyRunning = {
   appName: 'terra-app-69200c2f-89c3-47db-874c-b770d8de737f',
   appType: 'GALAXY',

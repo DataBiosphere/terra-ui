@@ -10,6 +10,7 @@ import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { dataCatalogStore } from 'src/libs/state'
+import { withHandlers } from 'src/libs/type-utils/lodash-fp-helpers'
 import * as Utils from 'src/libs/utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 import { commonStyles } from 'src/pages/library/SearchAndFilterComponent'
@@ -161,17 +162,16 @@ export const useDataCatalog = (): DataCatalog => {
   const [loading, setLoading] = useState(false)
   const dataCatalog = useStore(dataCatalogStore) as Dataset[]
 
-  const refresh: () => void = _.flow(
-    // @ts-expect-error
+  const refresh = withHandlers([
     withErrorReporting('Error loading data catalog'),
     Utils.withBusyState(setLoading)
-  )(async () => {
+  ], async (): Promise<void> => {
     const { result: datasets } = await Ajax(signal).Catalog.getDatasets()
     const dataCollectionsToInclude = getEnabledBrand().catalogDataCollectionsToInclude
     const normList = prepareDatasetsForDisplay(datasets, dataCollectionsToInclude)
 
     dataCatalogStore.set(normList)
-  }) as () => void
+  })
   useOnMount(() => {
     _.isEmpty(dataCatalog) && refresh()
   })
