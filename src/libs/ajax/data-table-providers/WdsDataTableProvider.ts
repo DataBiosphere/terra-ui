@@ -12,6 +12,7 @@ import {
 } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 import { withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
+import { v4 as uuid } from 'uuid'
 
 // interface definitions for WDS payload responses
 interface AttributeSchema {
@@ -94,7 +95,7 @@ export const createLeoAppWithErrorHandling = workspaceId => {
 // Invokes logic to determine the appropriate app for WDS
 // If WDS is not running, a URL will not be present -- in some cases, this function may invoke
 // a new call to Leo to instantiate a WDS being available, thus having a valid URL
-export const resolveWdsApp = (apps, workspaceId, shouldAutoDeployWds) => {
+export const resolveWdsApp = (apps, shouldAutoDeployWds) => {
   // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by Leo
   // See here for specific enumerations -- https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
   // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' -- if WDS is healthy and running, there should only be one app RUNNING
@@ -105,16 +106,7 @@ export const resolveWdsApp = (apps, workspaceId, shouldAutoDeployWds) => {
     return namedApp[0]
   }
 
-  // if we didn't find the expected app 'wds-${app.workspaceId}' running...
-  const candidates = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}`)
-  // ...nothing has launched yet, bring WDS to life if the request is coming from the OWNER of the workspace!
-  if (candidates.length === 0) {
-    if (shouldAutoDeployWds) {
-      createLeoAppWithErrorHandling(workspaceId)
-    }
-    return ''
-  }
-
+  //Failed to find an app with the proper name, look for a RUNNING CROMWELL app
   const runningCromwellApps = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
   if (runningCromwellApps.length > 0) {
     // Evaluate the earliest-created WDS app
@@ -129,12 +121,21 @@ export const resolveWdsApp = (apps, workspaceId, shouldAutoDeployWds) => {
     allCromwellApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf())
     return allCromwellApps[0]
   }
+
+  // we could not find an app of type CROMWELL in any healthy state, regardless of its name.
+  // Self-heal and try to deploy an app, assuming shouldAutoDeployWds is true.
+  // Due to Leo naming requirements, ensure this app has a unique name; this prevents
+  // name collisions with previously-deployed apps which may be in ERROR or DELETED states.
+  if (shouldAutoDeployWds) {
+    createLeoAppWithErrorHandling(uuid())
+  }
+
   return ''
 }
 
 // Extract wds URL from Leo response. exported for testing
-export const resolveWdsUrl = (apps, workspaceId, shouldAutoDeployWds) => {
-  const foundApp = resolveWdsApp(apps, workspaceId, shouldAutoDeployWds)
+export const resolveWdsUrl = (apps, shouldAutoDeployWds) => {
+  const foundApp = resolveWdsApp(apps, shouldAutoDeployWds)
   if (foundApp?.status === 'RUNNING') {
     return foundApp.proxyUrls.wds
   }
@@ -146,7 +147,7 @@ export const wdsProviderName: string = 'WDS'
 export class WdsDataTableProvider implements DataTableProvider {
   constructor(workspaceId: string, shouldAutoDeployWds: boolean) {
     this.workspaceId = workspaceId
-    this.proxyUrlPromise = Ajax().Apps.listAppsV2(workspaceId).then(apps => resolveWdsUrl(apps, workspaceId, shouldAutoDeployWds))
+    this.proxyUrlPromise = Ajax().Apps.listAppsV2(workspaceId).then(apps => resolveWdsUrl(apps, shouldAutoDeployWds))
   }
 
   providerName: string = wdsProviderName
