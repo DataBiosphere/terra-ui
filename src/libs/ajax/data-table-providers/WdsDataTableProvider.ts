@@ -10,7 +10,9 @@ import {
   TsvUploadButtonTooltipOptions,
   UploadParameters
 } from 'src/libs/ajax/data-table-providers/DataTableProvider'
+import { withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
+import { v4 as uuid } from 'uuid'
 
 // interface definitions for WDS payload responses
 interface AttributeSchema {
@@ -82,9 +84,24 @@ const getRelationParts = (val: unknown): string[] => {
   return []
 }
 
-//Although this method repeats some logic from the resolveWdsUrl method, the two are using somewhat different criteria
-export const resolveWdsApp = apps => {
-  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}` && ['RUNNING', 'PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status))
+export const createLeoAppWithErrorHandling = workspaceId => {
+  const typedWithErrorReporting : any = withErrorReporting
+  const createLeoAppCall = typedWithErrorReporting('An error occurred when creating your data tables. Please reach out to support@terra.bio', async () => {
+    await Ajax().Apps.createAppV2(`wds-${workspaceId}`, `${workspaceId}`)
+  })
+  createLeoAppCall()
+}
+
+// Invokes logic to determine the appropriate app for WDS
+// If WDS is not running, a URL will not be present -- in some cases, this function may invoke
+// a new call to Leo to instantiate a WDS being available, thus having a valid URL
+export const resolveWdsApp = (apps, shouldAutoDeployWds) => {
+  // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by Leo
+  // See here for specific enumerations -- https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
+  // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' -- if WDS is healthy and running, there should only be one app RUNNING
+  // an app may be in the 'PROVISIONING', 'STOPPED', 'STOPPING', which can still be deemed as an OK state for WDS
+  const healthyStates = ['RUNNING', 'PROVISIONING', 'STOPPED', 'STOPPING']
+  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}` && healthyStates.includes(app.status))
   if (namedApp.length === 1) {
     return namedApp[0]
   }
@@ -93,25 +110,34 @@ export const resolveWdsApp = apps => {
   const runningCromwellApps = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
   if (runningCromwellApps.length > 0) {
     // Evaluate the earliest-created WDS app
-    runningCromwellApps.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
+    runningCromwellApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf())
     return runningCromwellApps[0]
   }
 
-  //Failed to find an app with the proper name and in a RUNNING state, so look for a CROMWELL app in a non-error state
+  // If we reach this logic, we have more than one Leo app with the associated workspace Id...
   const allCromwellApps = apps.filter(app => app.appType === 'CROMWELL' && ['PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status))
   if (allCromwellApps.length > 0) {
     // Evaluate the earliest-created WDS app
-    allCromwellApps.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
+    allCromwellApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf())
     return allCromwellApps[0]
   }
+
+  // we could not find an app of type CROMWELL in any healthy state, regardless of its name.
+  // Self-heal and try to deploy an app, assuming shouldAutoDeployWds is true.
+  // Due to Leo naming requirements, ensure this app has a unique name; this prevents
+  // name collisions with previously-deployed apps which may be in ERROR or DELETED states.
+  if (shouldAutoDeployWds) {
+    createLeoAppWithErrorHandling(uuid())
+  }
+
   return ''
 }
 
 // Extract wds URL from Leo response. exported for testing
-export const resolveWdsUrl = apps => {
-  const foundApp = resolveWdsApp(apps)
+export const resolveWdsUrl = (apps, shouldAutoDeployWds) => {
+  const foundApp = resolveWdsApp(apps, shouldAutoDeployWds)
   if (foundApp?.status === 'RUNNING') {
-    return foundApp.proxyUrls?.wds
+    return foundApp.proxyUrls.wds
   }
   return ''
 }
@@ -119,9 +145,9 @@ export const resolveWdsUrl = apps => {
 export const wdsProviderName: string = 'WDS'
 
 export class WdsDataTableProvider implements DataTableProvider {
-  constructor(workspaceId: string) {
+  constructor(workspaceId: string, shouldAutoDeployWds: boolean) {
     this.workspaceId = workspaceId
-    this.proxyUrlPromise = Ajax().Apps.getV2AppInfo(workspaceId).then(resolveWdsUrl)
+    this.proxyUrlPromise = Ajax().Apps.listAppsV2(workspaceId).then(apps => resolveWdsUrl(apps, shouldAutoDeployWds))
   }
 
   providerName: string = wdsProviderName
@@ -149,8 +175,8 @@ export class WdsDataTableProvider implements DataTableProvider {
     textImportPlaceholder: 'idcolumn(tab)column1(tab)column2...',
     invalidFormatWarning: 'Invalid format: Data does not include sys_name column.',
     isInvalid: (): boolean => {
-    // WDS does not have any restrictions on what can be uploaded, as entity_id
-    // is not required like in Entity Service for GCP.
+      // WDS does not have any restrictions on what can be uploaded, as entity_id
+      // is not required like in Entity Service for GCP.
       return false
     },
     disabled: (options: TsvUploadButtonDisabledOptions): boolean => {
