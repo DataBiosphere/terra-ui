@@ -1227,6 +1227,7 @@ export const ComputeModalBase = ({
     ])
   }
 
+  // TODO [IA-3348] parameterize and make it a shared function between the equivalent in AzureComputeModal
   const renderCostBreakdown = () => {
     return div({
       style: {

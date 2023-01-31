@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import {
   cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, machineTypes, regionToPrices
 } from 'src/data/gce-machines'
-import { azureRegionToPrices, getDiskType } from 'src/libs/azure-utils'
+import { azureRegions, azureRegionToPrices, getDiskType } from 'src/libs/azure-utils'
 import * as Utils from 'src/libs/utils'
 import {
   defaultComputeRegion, defaultGceMachineType, findMachineType, getComputeStatusForDisplay, getCurrentAttachedDataDisk, getCurrentPersistentDisk,
@@ -161,24 +161,6 @@ export const getGalaxyCostTextChildren = (app, appDataDisks) => {
     [getComputeStatusForDisplay(app.status), dataDisk ? ` ${Utils.formatUSD(getGalaxyCost(app, dataDisk))}/hr` : ''] : ['']
 }
 
-// TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
-export const getCostDisplayForTool = (app, currentRuntime, currentRuntimeTool, toolLabel) => {
-  return Utils.cond(
-    [toolLabel === toolLabels.Galaxy, () => app ? `${getComputeStatusForDisplay(app.status)} ${Utils.formatUSD(getGalaxyComputeCost(app))}/hr` : ''],
-    [toolLabel === toolLabels.Cromwell, () => ''], // We will determine what to put here later
-    [toolLabel === toolLabels.JupyterLab, () => ''], //TODO: Azure cost calculation
-    [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getRuntimeCost(currentRuntime))}/hr`],
-    [Utils.DEFAULT, () => {
-      return ''
-    }]
-  )
-}
-
-export const getCostDisplayForDisk = (app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel) => {
-  const diskCost = getCostForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
-  return diskCost ? `Disk ${Utils.formatUSD(diskCost)}/hr` : ''
-}
-
 export const getCostForDisk = (app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel) => {
   let diskCost = ''
   if (currentRuntimeTool === toolLabel && persistentDisks && persistentDisks.length > 0) {
@@ -198,18 +180,40 @@ export const getCostForDisk = (app, appDataDisks, computeRegion, currentRuntimeT
 // AZURE COST METHODS begin
 
 export const getAzureComputeCostEstimate = ({ region, machineType }) => {
-  // TODO [IA-3348] make helper in azure-utils
-  const regionPriceObj = _.find(priceObj => priceObj.name === region, azureRegionToPrices)
+  const regionPriceObj = getAzurePricesForRegion(region)
   const cost = regionPriceObj[machineType]
   return cost
 }
 
 export const getAzureDiskCostEstimate = ({ region, diskSize }) => {
-  // TODO [IA-3348] make helper in azure-utils
-  const regionPriceObj = _.find(priceObj => priceObj.name === region, azureRegionToPrices)
+  const regionPriceObj = getAzurePricesForRegion(region)
   const diskType = getDiskType(diskSize)
   const cost = regionPriceObj[diskType]
   return cost
 }
 
+export const getAzurePricesForRegion = key => _.has(key, azureRegions) ? _.find(priceObj => priceObj.name === key, azureRegionToPrices) : {}
+
 // end AZURE COST METHODS
+
+// common
+
+// TODO [IA-3348] Azure cost display for JupyterLab
+// TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
+export const getCostDisplayForTool = (app, currentRuntime, currentRuntimeTool, toolLabel) => {
+  return Utils.cond(
+    [toolLabel === toolLabels.Galaxy, () => app ? `${getComputeStatusForDisplay(app.status)} ${Utils.formatUSD(getGalaxyComputeCost(app))}/hr` : ''],
+    [toolLabel === toolLabels.Cromwell, () => ''], // We will determine what to put here later
+    [toolLabel === toolLabels.JupyterLab, () => ''], //TODO: Azure cost calculation
+    [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getRuntimeCost(currentRuntime))}/hr`],
+    [Utils.DEFAULT, () => {
+      return ''
+    }]
+  )
+}
+
+export const getCostDisplayForDisk = (app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel) => {
+  const diskCost = getCostForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
+  return diskCost ? `Disk ${Utils.formatUSD(diskCost)}/hr` : ''
+}
+
