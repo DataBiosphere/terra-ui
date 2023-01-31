@@ -32,8 +32,8 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
       setLeoOk(res)
       const foundApp = resolveWdsApp(res)
       setAppFound(foundApp?.appName)
-      setAppRunning(foundApp?.status)
-      setProxyUrl(foundApp?.proxyUrls?.wds)
+      setAppRunning(!!foundApp?.appName ? foundApp?.status : 'unknown')
+      setProxyUrl(!!foundApp?.appName ? foundApp?.proxyUrls?.wds : 'unknown')
       Ajax(signal).WorkspaceData.getVersion(foundApp?.proxyUrls?.wds).then(res => {
         setWdsResponsive(true)
         setVersion(res.git?.commit?.id)
