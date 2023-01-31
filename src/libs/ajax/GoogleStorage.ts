@@ -22,7 +22,7 @@ import {
   toolLabels
 } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
-import { Ajax } from '../ajax'
+import { Metrics } from './Metrics'
 /*
  * Detects errors due to requester pays buckets, and adds the current workspace's billing
  * project if the user has access, retrying the request once if necessary.
@@ -299,11 +299,11 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
         return fetchOk(`${getConfig().calhounUrlRoot}/api/convert`,
           _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
         ).then(res => {
-          Ajax().Metrics.captureEvent(Events.analysisPreviewSuccess, { fileName: name, fileType: getExtension(name), cloudPlatform: cloudProviderTypes.GCP })
+          Metrics().captureEvent(Events.analysisPreviewSuccess, { fileName: name, fileType: getExtension(name), cloudPlatform: cloudProviderTypes.GCP })
           return res.text()
         })
           .catch(res => {
-            Ajax().Metrics.captureEvent(Events.analysisPreviewFail, { fileName: name, fileType: getExtension(name), cloudPlatform: cloudProviderTypes.GCP, errorText: res.statusText })
+            Metrics().captureEvent(Events.analysisPreviewFail, { fileName: name, fileType: getExtension(name), cloudPlatform: cloudProviderTypes.GCP, errorText: res.statusText })
             throw res
           })
       },
@@ -393,11 +393,11 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
         return fetchOk(`${getConfig().calhounUrlRoot}/${calhounPath}`,
           _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
         ).then(res => {
-          Ajax().Metrics.captureEvent(Events.analysisPreviewSuccess, { fileName: name, fileType: getExtension(toolLabel), cloudPlatform: cloudProviderTypes.GCP })
+          Metrics().captureEvent(Events.analysisPreviewSuccess, { fileName: name, fileType: getExtension(toolLabel), cloudPlatform: cloudProviderTypes.GCP })
           return res.text()
         })
           .catch(res => {
-            Ajax().Metrics.captureEvent(Events.analysisPreviewFail, { fileName: name, fileType: getExtension(toolLabel), cloudPlatform: cloudProviderTypes.GCP, errorText: res.statusText })
+            Metrics().captureEvent(Events.analysisPreviewFail, { fileName: name, fileType: getExtension(toolLabel), cloudPlatform: cloudProviderTypes.GCP, errorText: res.statusText })
             throw res
           })
       },

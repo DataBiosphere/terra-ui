@@ -14,6 +14,8 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
+import { Metrics } from './Metrics'
+
 
 type SasInfo = {
   url: string
@@ -160,11 +162,11 @@ export const AzureStorage = (signal?: AbortSignal) => ({
         return fetchOk(`${getConfig().calhounUrlRoot}/${calhounPath}`,
           _.mergeAll([authOpts(), { signal, method: 'POST', body: textFileContents }])
         ).then(res => {
-          Ajax().Metrics.captureEvent(Events.analysisPreviewSuccess, { fileName: blobName, fileType: getExtension(blobName), cloudPlatform: cloudProviderTypes.AZURE })
+          Metrics().captureEvent(Events.analysisPreviewSuccess, { fileName: blobName, fileType: getExtension(blobName), cloudPlatform: cloudProviderTypes.AZURE })
           return res.text()
         })
           .catch(res => {
-            Ajax().Metrics.captureEvent(Events.analysisPreviewFail, { fileName: blobName, fileType: getExtension(blobName), cloudPlatform: cloudProviderTypes.AZURE, errorText: res.statusText })
+            Metrics().captureEvent(Events.analysisPreviewFail, { fileName: blobName, fileType: getExtension(blobName), cloudPlatform: cloudProviderTypes.AZURE, errorText: res.statusText })
             throw res
           })
       },
