@@ -617,9 +617,10 @@ export const ComputeModalBase = ({
     const metricsEvent = Utils.cond(
       [(viewMode === 'deleteEnvironment'), () => 'cloudEnvironmentDelete'],
       [(!!existingRuntime), () => 'cloudEnvironmentUpdate'],
-      () => 'cloudEnvironmentCreate',
-      [(isCustomImage), () => 'cloudEnvironmentCustomCreate']
+      () => 'cloudEnvironmentCreate'
     )
+    if (isCustomImage) Ajax().Metrics.captureEvent(Events.cloudEnvironmentCreateCustom)
+
 
     Ajax().Metrics.captureEvent(Events[metricsEvent], {
       ...extractWorkspaceDetails(getWorkspaceObject()),
