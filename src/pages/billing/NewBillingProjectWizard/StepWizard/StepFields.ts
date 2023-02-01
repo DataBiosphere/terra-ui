@@ -1,9 +1,16 @@
 import { CSSProperties, ReactNode } from 'react'
-import { fieldset, legend } from 'react-hyperscript-helpers'
+import { div, fieldset, form, legend } from 'react-hyperscript-helpers'
+import { FormLabel } from 'src/libs/forms'
 
 
-export const StepFields = ({ children, style }: { children: ReactNode[]; style?: CSSProperties }) => fieldset(
+interface StepFieldsProps {
+  children: ReactNode[]
+  style?: CSSProperties
+}
+
+export const StepFields = ({ children, style, disabled = false }: StepFieldsProps & { disabled?: boolean }) => fieldset(
   {
+    disabled,
     style: {
       border: 'none',
       margin: 0,
@@ -18,12 +25,35 @@ export const StepFields = ({ children, style }: { children: ReactNode[]; style?:
   [children]
 )
 
-export const StepFieldLegend = ({ children }: { children: React.ReactNode[] }) => legend({
+export const StepFieldLegend = ({ children, style }: StepFieldsProps) => legend({
   style: {
     fontSize: 14,
     lineHeight: '22px',
     whiteSpace: 'pre-wrap',
     marginTop: '0.25rem',
-    float: 'left'
+    float: 'left',
+    ...style
   }
 }, children)
+
+export const StepFieldForm = ({ children, style }: StepFieldsProps) => form({
+  style: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignContent: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    ...style
+  }
+}, children)
+
+interface LabeledFieldProps extends StepFieldsProps {
+  formId: string
+  label: ReactNode
+  required?: boolean
+}
+
+export const LabeledField = ({ label, formId, required = false, children, style }: LabeledFieldProps) => div({ style: { display: 'flex', flexDirection: 'column', ...style } }, [
+  FormLabel({ htmlFor: formId, required, children: [label] }),
+  ...children
+])

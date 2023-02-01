@@ -1,7 +1,7 @@
 import { CSSProperties } from 'react'
 import { div } from 'react-hyperscript-helpers'
 import colors from 'src/libs/colors'
-import { StepTitle } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepTitle'
+import { StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepHeader'
 
 
 function stepBanner(active: boolean): CSSProperties {
@@ -22,7 +22,7 @@ function stepBanner(active: boolean): CSSProperties {
 export interface StepProps {
   isActive: boolean
   title?: string
-  introText?: React.ReactNode
+  introText?: React.ReactNode[]
   style?: React.CSSProperties
   children?: React.ReactNode[]
 }
@@ -31,7 +31,7 @@ export const Step = ({ isActive, title, ...props }: StepProps) => div({
   'aria-current': isActive ? 'step' : false,
   style: { ...stepBanner(isActive), ...props.style },
   children: [
-    title ? StepTitle({ text: title }) : undefined,
+    title ? StepHeader({ title, description: props.introText }) : undefined,
     props.children || []
   ]
 })

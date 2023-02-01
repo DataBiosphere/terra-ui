@@ -1,4 +1,4 @@
 export { Step } from './Step'
-export { StepTitle } from './StepTitle'
+export { StepHeader } from './StepHeader'
 export { StepWizard } from './StepWizard'
 export { StepFields, StepFieldLegend } from './StepFields'

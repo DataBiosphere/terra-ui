@@ -18,7 +18,7 @@ import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { contactUsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import CreateGCPBillingProject from 'src/pages/billing/CreateGCPBillingProject'
-import { Step, StepFieldLegend, StepFields, StepTitle, StepWizard } from 'src/pages/billing/NewBillingProjectWizard/StepWizard'
+import { Step, StepFieldLegend, StepFields, StepHeader, StepWizard } from 'src/pages/billing/NewBillingProjectWizard/StepWizard'
 
 
 const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAndLoadAccounts }) => {
@@ -66,7 +66,7 @@ const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAndLoadA
   })
 
   const step1 = () => h(Step, { isActive: activeStep === 1 }, [
-    StepTitle({ text: 'STEP 1' }),
+    StepHeader({ title: 'STEP 1' }),
     StepFields({
       children: [
         StepFieldLegend({ children: ['Go to the Google Cloud Platform Billing Console and sign-in with the same user you use to login to Terra.'] }),
@@ -114,7 +114,7 @@ const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAndLoadA
     return h(Step,
       { isActive },
       [
-        StepTitle({ text: 'STEP 2' }),
+        StepHeader({ title: 'STEP 2' }),
         h(StepFields, [
           h(StepFieldLegend, [
             'Select an existing billing account or create a new one.\n\nIf you are creating a new billing account, you may be eligible for $300 in free credits. ' +
@@ -259,7 +259,7 @@ const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAndLoadA
         ])
 
     return h(Step, { isActive }, [
-      StepTitle({ text: 'STEP 3' }),
+      StepHeader({ title: 'STEP 3' }),
       (activeStep >= 3) && (!accessToBillingAccount || (accessToAddBillingAccountUser === false)) ?
         contactBillingAccountAdministrator : addTerraAsBillingAccountUser
     ])
@@ -269,7 +269,7 @@ const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAndLoadA
     const isActive = activeStep === 4
 
     return h(Step, { isActive }, [
-      StepTitle({ text: 'STEP 4' }),
+      StepHeader({ title: 'STEP 4' }),
       span({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', width: '75%' } },
         ['Create a Terra project to connect your Google billing account to Terra. ' +
           'Billing projects allow you to manage your workspaces and are required to create one.']),

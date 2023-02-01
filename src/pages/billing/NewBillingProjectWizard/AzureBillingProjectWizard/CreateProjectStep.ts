@@ -1,16 +1,18 @@
 import _ from 'lodash/fp'
 import { ReactNode, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Select, spinnerOverlay, useUniqueId } from 'src/components/common'
 import { ValidatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
 import { reportErrorAndRethrow } from 'src/libs/error'
-import { FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 import { billingProjectNameValidator } from 'src/pages/billing/List'
 import { AzureManagedAppCoordinates, BillingProject } from 'src/pages/billing/models'
-import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard'
+import { Step, StepFields, StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard'
+import { LabeledField } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields'
+
+import { ExternalLink } from './ExternalLink'
 
 
 type CreateProjectStepProps = {
@@ -20,6 +22,18 @@ type CreateProjectStepProps = {
   submit: (newProject: BillingProject) => void
   subscriptionId?: string
 }
+
+
+const managedAppsToOptions = (apps: AzureManagedAppCoordinates[]) => _.map(application => {
+  return {
+    value: application,
+    label: !!application.region ?
+      `${application.applicationDeploymentName} (${application.region})` :
+      application.applicationDeploymentName
+  }
+}, apps)
+
+
 export const CreateProjectStep = ({ isActive, managedApps, ...props }: CreateProjectStepProps) => {
   const [billingProjectName, setBillingProjectName] = useState<string>()
   const [nameErrors, setNameErrors] = useState<ReactNode>()
@@ -35,9 +49,8 @@ export const CreateProjectStep = ({ isActive, managedApps, ...props }: CreatePro
     Utils.withBusyState(setIsCreating)
   )(async () => {
     try {
-      //projectName, tenantId, subscriptionId, managedResourceGroupId
-      const response = await Ajax().Billing.createAzureProject(billingProjectName, selectedApp?.tenantId, props.subscriptionId,
-        selectedApp?.managedResourceGroupId)
+      const response = await Ajax().Billing
+        .createAzureProject(billingProjectName, selectedApp?.tenantId, props.subscriptionId, selectedApp?.managedResourceGroupId)
       const json = await response.json()
       props.submit(json)
     } catch (error) {
@@ -59,58 +72,68 @@ export const CreateProjectStep = ({ isActive, managedApps, ...props }: CreatePro
 
   const validSelections = () => !!billingProjectName && !nameErrors && !!selectedApp
 
-  return h(Step, { isActive, title: 'STEP 2' }, [
-    div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'space-around' } }, [
-      div({ style: { width: '40%', display: 'flex', flexDirection: 'column', margin: '2rem' } }, [
-        h(FormLabel, { htmlFor: nameInputId, required: true }, ['Terra billing project']),
-        h(ValidatedInput, {
-          inputProps: {
-            id: nameInputId,
-            billingProjectName,
-            placeholder: 'Enter a name for the project',
-            onChange: setBillingProjectName,
-            onBlur: onNameInput
-          },
-          error: nameErrors
-        })
-      ]),
-      div({ style: { display: 'flex', flexDirection: 'column' } }, [
-        h(FormLabel, { htmlFor: appSelectId, required: true }, [
-          'Unassigned managed application',
-          InfoBox({
-            style: ({ marginLeft: '0.25rem' } as any), children: [
-              'A managed application instance can only be assigned to a single Terra billing ',
-              'project. Only unassigned managed applications are included in the list below.'
+  return Step({
+    isActive, children: [
+      StepHeader({
+        title: 'STEP 2', description: [
+          'Set up a Terra billing project. ',
+          ExternalLink({ text: 'Go to Azure Marketplace', url: 'https://portal.azure.com/' }),
+          ' to find or create your managed resource group.'
+        ]
+      }),
+      StepFields({
+        disabled: !isActive, children: [
+          LabeledField({
+            label: 'Terra billing project',
+            formId: nameInputId,
+            required: true,
+            style: { width: '30%' },
+            children: [
+              ValidatedInput({
+                inputProps: {
+                  id: nameInputId,
+                  value: billingProjectName,
+                  placeholder: 'Enter a name for the project',
+                  onChange: setBillingProjectName,
+                  onBlur: onNameInput
+                },
+                error: nameErrors
+              })
             ]
-          } as any)
-        ]), //{ size, children, style, side, tooltip, iconOverride }
-        div({ style: { fontSize: 14 } }, [
-          h(Select, {
-            id: appSelectId,
-            //isMulti: false,
-            placeholder: 'Select a managed application',
-            isDisabled: managedApps.length === 0,
-            value: selectedApp,
-            onChange: ({ value }) => setSelectedApp(value),
-            options: _.map(application => {
-              return {
-                value: application,
-                label: !!application.region ?
-                  `${application.applicationDeploymentName} (${application.region})` :
-                  application.applicationDeploymentName
-              }
-            }, managedApps)
-          })
-        ])
-      ]),
-      h(ButtonPrimary, {
-        style: { margin: '2rem' },
-        onClick: createBillingProject,
-        disabled: !isActive || !validSelections()
-      }, [
-        'Create Billing Project'
-      ]),
-    ]),
-    isCreating && spinnerOverlay
-  ])
+          }),
+          LabeledField({
+            label: [
+              'Unassigned managed application',
+              InfoBox({
+                style: ({ marginLeft: '0.25rem' } as any), children: [
+                  'A managed application instance can only be assigned to a single Terra billing ',
+                  'project. Only unassigned managed applications are included in the list below.'
+                ]
+              } as any)
+            ],
+            formId: appSelectId,
+            required: true,
+            children: [
+              h(Select, {
+                id: appSelectId,
+                placeholder: 'Select a managed application',
+                isDisabled: managedApps.length === 0,
+                value: selectedApp,
+                onChange: ({ value }) => setSelectedApp(value),
+                options: managedAppsToOptions(managedApps)
+              })
+            ]
+          }),
+          ButtonPrimary({
+            style: { margin: '2rem' },
+            onClick: createBillingProject,
+            disabled: !isActive || !validSelections(),
+            children: ['Create Billing Project']
+          }),
+        ]
+      }),
+      isCreating && spinnerOverlay
+    ]
+  })
 }
+
