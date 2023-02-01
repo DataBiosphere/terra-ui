@@ -110,7 +110,7 @@ export const resolveWdsApp = apps => {
 // Extract wds URL from Leo response. exported for testing
 export const resolveWdsUrl = apps => {
   const foundApp = resolveWdsApp(apps)
-  if (foundApp?.status === 'RUNNING') {
+  if (['RUNNING', 'PROVISIONING'].includes(foundApp?.status)) {
     return foundApp.proxyUrls?.wds
   }
   return ''
@@ -119,14 +119,14 @@ export const resolveWdsUrl = apps => {
 export const wdsProviderName: string = 'WDS'
 
 export class WdsDataTableProvider implements DataTableProvider {
-  constructor(workspaceId: string) {
+  constructor(workspaceId: string, proxyUrl: string) {
     this.workspaceId = workspaceId
-    this.proxyUrlPromise = Ajax().Apps.getV2AppInfo(workspaceId).then(resolveWdsUrl)
+    this.proxyUrl = proxyUrl
   }
 
   providerName: string = wdsProviderName
 
-  proxyUrlPromise: Promise<string>
+  proxyUrl: string
 
   workspaceId: string
 
@@ -225,9 +225,9 @@ export class WdsDataTableProvider implements DataTableProvider {
   }
 
   getPage = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions, metadata: EntityMetadata): Promise<EntityQueryResponse> => {
-    const proxyUrl = await this.proxyUrlPromise
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded')
     const wdsPage: RecordQueryResponse = await Ajax(signal).WorkspaceData
-      .getRecords(proxyUrl, this.workspaceId, entityType,
+      .getRecords(this.proxyUrl, this.workspaceId, entityType,
         _.merge({
           offset: (queryOptions.pageNumber - 1) * queryOptions.itemsPerPage,
           limit: queryOptions.itemsPerPage,
@@ -238,18 +238,18 @@ export class WdsDataTableProvider implements DataTableProvider {
     return this.transformPage(wdsPage, entityType, queryOptions, metadata)
   }
 
-  deleteTable = async (entityType: string): Promise<Response> => {
-    const proxyUrl = await this.proxyUrlPromise
-    return Ajax().WorkspaceData.deleteTable(proxyUrl, this.workspaceId, entityType)
+  deleteTable = (entityType: string): Promise<Response> => {
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded')
+    return Ajax().WorkspaceData.deleteTable(this.proxyUrl, this.workspaceId, entityType)
   }
 
-  downloadTsv = async (signal: AbortSignal, entityType: string): Promise<Blob> => {
-    const proxyUrl = await this.proxyUrlPromise
-    return Ajax(signal).WorkspaceData.downloadTsv(proxyUrl, this.workspaceId, entityType)
+  downloadTsv = (signal: AbortSignal, entityType: string): Promise<Blob> => {
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded')
+    return Ajax(signal).WorkspaceData.downloadTsv(this.proxyUrl, this.workspaceId, entityType)
   }
 
-  uploadTsv = async (uploadParams: UploadParameters): Promise<TsvUploadResponse> => {
-    const proxyUrl = await this.proxyUrlPromise
-    return Ajax().WorkspaceData.uploadTsv(proxyUrl, uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
+  uploadTsv = (uploadParams: UploadParameters): Promise<TsvUploadResponse> => {
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded')
+    return Ajax().WorkspaceData.uploadTsv(this.proxyUrl, uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
   }
 }

@@ -160,7 +160,7 @@ describe('WdsDataTableProvider', () => {
   describe('transformAttributes', () => {
     it('excludes the primary key from the resultant attributes', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, testProxyUrl)
 
       const input: RecordAttributes = {
         something: 123,
@@ -184,7 +184,7 @@ describe('WdsDataTableProvider', () => {
     })
     it('is resilient if the primary key does not exist in input attributes', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, testProxyUrl)
 
       const input: RecordAttributes = {
         something: 123,
@@ -209,7 +209,7 @@ describe('WdsDataTableProvider', () => {
   describe('transformPage', () => {
     it('restructures a WDS response', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, testProxyUrl)
 
       // example response from WDS, copy-pasted from a WDS swagger call
       const wdsPage: RecordQueryResponse = {
@@ -297,7 +297,7 @@ describe('WdsDataTableProvider', () => {
     })
     it('restructures array attributes', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, testProxyUrl)
 
       // example response from WDS, copy-pasted from a WDS swagger call
       const wdsPage: RecordQueryResponse = {
@@ -365,7 +365,7 @@ describe('WdsDataTableProvider', () => {
     })
     it('restructures relation URIs, both scalar and array', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, testProxyUrl)
 
       // example response from WDS, copy-pasted from a WDS swagger call
       const wdsPage: RecordQueryResponse = {
@@ -441,7 +441,7 @@ describe('WdsDataTableProvider', () => {
     })
     it('handles mixed arrays that contain some relation URIs and some strings', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, testProxyUrl)
 
       // example response from WDS, copy-pasted from a WDS swagger call
       const wdsPage: RecordQueryResponse = {
@@ -515,7 +515,7 @@ describe('WdsDataTableProvider', () => {
   describe('getPage', () => {
     it('restructures a WDS response', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, testProxyUrl)
       const signal = new AbortController().signal
 
       const metadata: EntityMetadata = {
@@ -537,7 +537,7 @@ describe('WdsDataTableProvider', () => {
   describe('deleteTable', () => {
     it('restructures a WDS response', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, testProxyUrl)
 
       // Act
       return provider.deleteTable(recordType).then(actual => {
@@ -550,7 +550,7 @@ describe('WdsDataTableProvider', () => {
   describe('downloadTsv', () => {
     it('restructures a WDS response', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, testProxyUrl)
       const signal = new AbortController().signal
 
       // Act
@@ -570,12 +570,12 @@ describe('WdsDataTableProvider', () => {
       [{ filePresent: true, uploading: true, recordTypePresent: true }, true],
       [{ filePresent: true, uploading: false, recordTypePresent: false }, true]
     ])('Upload button is disabled', (conditions: TsvUploadButtonDisabledOptions, result: boolean) => {
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, testProxyUrl)
       expect(provider.tsvFeatures.disabled(conditions)).toEqual(result)
     })
 
     it('Upload button is not disabled', () => {
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, testProxyUrl)
       const actual = provider.tsvFeatures.disabled({ filePresent: true, uploading: false, recordTypePresent: true })
       expect(actual).toBe(false)
     })
@@ -583,13 +583,13 @@ describe('WdsDataTableProvider', () => {
 
   describe('tooltip', () => {
     it('Tooltip -- needs table name', () => {
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, testProxyUrl)
       const actual = provider.tsvFeatures.tooltip({ filePresent: true, recordTypePresent: false })
       expect(actual).toBe('Please enter table name')
     })
 
     it('Tooltip -- needs valid data', () => {
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, testProxyUrl)
       const actual = provider.tsvFeatures.tooltip({ filePresent: false, recordTypePresent: true })
       expect(actual).toBe('Please select valid data to upload')
     })
@@ -598,7 +598,7 @@ describe('WdsDataTableProvider', () => {
   describe('uploadTsv', () => {
     it('uploads a TSV', () => {
       // ====== Arrange
-      const provider = new TestableWdsProvider(uuid)
+      const provider = new TestableWdsProvider(uuid, testProxyUrl)
       const tsvFile = new File([''], 'testFile.tsv')
       // ====== Act
       return provider.uploadTsv({ recordType, file: tsvFile, workspaceId: uuid, name: '', deleteEmptyValues: false, namespace: '', useFireCloudDataModel: false }).then(actual => {
