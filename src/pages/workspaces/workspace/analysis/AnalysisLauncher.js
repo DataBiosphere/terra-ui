@@ -479,7 +479,8 @@ const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace:
     } else {
       Metrics().captureEvent(Events.analysisPreviewFail, { fileName: analysisName, fileType: getExtension(analysisName), cloudPlatform: !!googleProject ? cloudProviderTypes.GCP : cloudProviderTypes.AZURE, errorText: response.statusText })
     }
-    setPreview(await response.text())
+    const previewHtml = await response.text()
+    setPreview(previewHtml)
   })
   useOnMount(() => {
     loadPreview()
