@@ -727,7 +727,7 @@ describe('resolveWdsUrl', () => {
     const testHealthyAppProxyUrlResponse: Array<Object> = [
       { appType: 'CROMWELL', appName: `wds-${uuid}`, status: appStatus, proxyUrls: { wds: testProxyUrl }, workspaceId: uuid }
     ]
-    expect(resolveWdsUrl(testHealthyAppProxyUrlResponse, false)).toBe(expectedUrl)
+    expect(resolveWdsUrl(testHealthyAppProxyUrlResponse)).toBe(expectedUrl)
   })
 
   it('deploys a new WDS app & returns an empty string if the response contains no healthy criteria', () => {
@@ -736,28 +736,28 @@ describe('resolveWdsUrl', () => {
     const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
       { appType: 'SOMETHING_ELSE', appName: 'something-else', status: 'ERROR', proxyUrls: { wds: testProxyUrl } }
     ]
-    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, true)).toBe('')
+    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName)).toBe('')
   })
 
   it('does not deploy a new WDS app if a flag is set, yet still returns an empty string if the response contains no healthy criteria', () => {
     const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
       { appType: 'CROMWELL', appName: 'something-else', status: 'PROVISIONING', proxyUrls: { wds: testProxyUrl } }
     ]
-    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, false)).toBe('')
+    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName)).toBe('')
   })
 
   it('return empty string for the url when app not found', () => {
     const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
       { appType: 'A_DIFFERENT_APP', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } }
     ]
-    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, true)).toBe('')
+    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName)).toBe('')
   })
 
   it('return empty string if no CROMWELL app exists but other apps are present', () => {
     const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
       { appType: 'A_DIFFERENT_APP', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } }
     ]
-    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, true)).toBe('')
+    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName)).toBe('')
   })
 
   it('return the earliest created RUNNING app url if more than one exists', () => {
@@ -773,7 +773,7 @@ describe('resolveWdsUrl', () => {
         }
       },
     ]
-    expect(resolveWdsUrl(testProxyUrlResponseMultipleApps, false)).toBe('something-older.com')
+    expect(resolveWdsUrl(testProxyUrlResponseMultipleApps)).toBe('something-older.com')
   })
 
   it('return the earliest created app if more than one exists and are in the \'PROVISIONING\', \'STOPPED\', or \'STOPPING\' states', () => {
@@ -794,6 +794,6 @@ describe('resolveWdsUrl', () => {
         }
       },
     ]
-    expect(resolveWdsUrl(testProxyUrlResponseMultipleApps, false)).toBe('')
+    expect(resolveWdsUrl(testProxyUrlResponseMultipleApps)).toBe('')
   })
 })
