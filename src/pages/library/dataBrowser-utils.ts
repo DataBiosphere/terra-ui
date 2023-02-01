@@ -8,11 +8,11 @@ import { DataCollection, Dataset } from 'src/libs/ajax/Catalog'
 import { getEnabledBrand } from 'src/libs/brand-utils'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
+import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { dataCatalogStore } from 'src/libs/state'
 import { withHandlers } from 'src/libs/type-utils/lodash-fp-helpers'
 import * as Utils from 'src/libs/utils'
-import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 import { commonStyles } from 'src/pages/library/SearchAndFilterComponent'
 
 
@@ -100,7 +100,6 @@ interface DatasetAccessProps {
   dataset: Dataset
 }
 export const DatasetAccess = ({ dataset }: DatasetAccessProps) => {
-  const [requestingAccess, setRequestingAccess] = useState(false)
   const access = getDatasetAccessType(dataset)
   const { requestAccessURL } = dataset
   const buttonStyle = { height: 34, textTransform: 'none', padding: '.5rem' }
@@ -117,7 +116,7 @@ export const DatasetAccess = ({ dataset }: DatasetAccessProps) => {
       [access === datasetAccessTypes.Controlled, () => h(ButtonOutline, {
         style: buttonStyle,
         onClick: () => {
-          setRequestingAccess(true)
+          notify('info', 'Informal access request not yet supported through Terra, please contact the dataset owner')
           Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
             id: dataset.id,
             title: dataset['dct:title']
@@ -138,11 +137,7 @@ export const DatasetAccess = ({ dataset }: DatasetAccessProps) => {
       [Utils.DEFAULT, () => div({ style: { color: commonStyles.access.granted, display: 'flex', alignItems: 'center' } }, [
         icon('unlock'),
         div({ style: textStyle }, ['Granted Access'])
-      ])]),
-    requestingAccess && h(RequestDatasetAccessModal, {
-      datasets: [dataset],
-      onDismiss: () => setRequestingAccess(false)
-    })
+      ])])
   ])
 }
 
