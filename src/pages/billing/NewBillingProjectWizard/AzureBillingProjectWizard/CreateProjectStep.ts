@@ -10,7 +10,7 @@ import { FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 import { billingProjectNameValidator } from 'src/pages/billing/List'
 import { AzureManagedAppCoordinates, BillingProject } from 'src/pages/billing/models'
-import { Step, StepTitle } from 'src/pages/billing/StepWizard'
+import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard'
 
 
 type CreateProjectStepProps = {
@@ -35,6 +35,7 @@ export const CreateProjectStep = ({ isActive, managedApps, ...props }: CreatePro
     Utils.withBusyState(setIsCreating)
   )(async () => {
     try {
+      //projectName, tenantId, subscriptionId, managedResourceGroupId
       const response = await Ajax().Billing.createAzureProject(billingProjectName, selectedApp?.tenantId, props.subscriptionId,
         selectedApp?.managedResourceGroupId)
       const json = await response.json()
@@ -58,8 +59,7 @@ export const CreateProjectStep = ({ isActive, managedApps, ...props }: CreatePro
 
   const validSelections = () => !!billingProjectName && !nameErrors && !!selectedApp
 
-  return h(Step, { isActive }, [
-    StepTitle({ text: 'STEP 2' }),
+  return h(Step, { isActive, title: 'STEP 2' }, [
     div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'space-around' } }, [
       div({ style: { width: '40%', display: 'flex', flexDirection: 'column', margin: '2rem' } }, [
         h(FormLabel, { htmlFor: nameInputId, required: true }, ['Terra billing project']),

@@ -1,7 +1,13 @@
 import _ from 'lodash/fp'
 import { CSSProperties, useEffect, useState } from 'react'
-import { div, fieldset, h, h2, legend, p, span, ul } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, LabeledCheckbox, Link, RadioButton } from 'src/components/common'
+import { div, fieldset, h, legend, p, span } from 'react-hyperscript-helpers'
+import {
+  ButtonOutline,
+  ButtonPrimary,
+  LabeledCheckbox,
+  Link,
+  RadioButton
+} from 'src/components/common'
 import { icon } from 'src/components/icons'
 import SupportRequestWrapper from 'src/components/SupportRequest'
 import { Ajax } from 'src/libs/ajax'
@@ -12,20 +18,21 @@ import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { contactUsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import CreateGCPBillingProject from 'src/pages/billing/CreateGCPBillingProject'
-import { Step, StepTitle } from 'src/pages/billing/StepWizard'
+import { Step, StepFieldLegend, StepFields, StepTitle, StepWizard } from 'src/pages/billing/NewBillingProjectWizard/StepWizard'
 
 
-const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAndLoadAccounts }) => {
+const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAndLoadAccounts }) => {
   const persistenceId = 'billing'
   const [accessToBillingAccount, setAccessToBillingAccount] = useState(() => getLocalPref(persistenceId)?.accessToBillingAccount)
-  const [accessToAddBillingAccountUser, setAccessToAddBillingAccountUser] = useState(() => getLocalPref(persistenceId)?.accessToAddBillingAccountUser)
-  const [verified, setVerified] = useState(() => getLocalPref(persistenceId)?.verified || false)
+  const [accessToAddBillingAccountUser, setAccessToAddBillingAccountUser] = useState<boolean | undefined>(() => getLocalPref(persistenceId)?.accessToAddBillingAccountUser)
+  const [verified, setVerified] = useState<boolean>(() => getLocalPref(persistenceId)?.verified || false)
   const [billingProjectName, setBillingProjectName] = useState('')
   const [chosenBillingAccount, setChosenBillingAccount] = useState<any>()
-  const [refreshed, setRefreshed] = useState(false)
-  const [isBusy, setIsBusy] = useState(false)
+  const [refreshed, setRefreshed] = useState<boolean>(false)
+  const [isBusy, setIsBusy] = useState<boolean>(false)
   const [existing, setExisting] = useState<string[]>([])
-  const [activeStep, setActiveStep] = useState(() => getLocalPref(persistenceId)?.activeStep || 1)
+  // const [activeStep, setActiveStep] = useState<number>(( getLocalPref(persistenceId)?.activeStep || 1))
+  const [activeStep, setActiveStep] = useState<number>(1)
 
   useEffect(() => {
     setLocalPref(persistenceId, { activeStep, accessToBillingAccount, verified, accessToAddBillingAccountUser })
@@ -58,40 +65,36 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
     }
   })
 
-  const step1 = () => {
-    const isDone = activeStep > 1
-
-    const leftPanel = div({ style: { maxWidth: '60%' } }, [
-      StepTitle({ text: 'STEP 1' }),
-      span({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap' } },
-        ['Go to the Google Cloud Platform Billing Console and sign-in with the same user you use to login to Terra.'])
-    ])
-    const rightPanel = h(Clickable, {
-      style: {
-        color: styles.accentColor, backgroundColor: 'none', border: `1px solid ${styles.accentColor}`,
-        paddingInline: '1.5rem', display: 'inline-flex', justifyContent: 'space-around', alignItems: 'center',
-        height: '2.5rem', fontWeight: 500, fontSize: 14, borderRadius: 2, whiteSpace: 'nowrap',
-        marginLeft: '2rem', textTransform: 'none'
-      },
-      href: 'https://console.cloud.google.com',
-      ...Utils.newTabLinkProps,
-      onClick: () => {
-        Ajax().Metrics.captureEvent(Events.billingCreationStep1)
-        if (!isDone) {
-          next()
-        }
-      }
-    }, ['Go to Google Cloud Console'])
-
-    return h(
-      Step,
-      {
-        isActive: activeStep === 1,
-        style: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-      },
-      [leftPanel, rightPanel]
+  const step1 = () => h(Step, { isActive: activeStep === 1 }, [
+    StepTitle({ text: 'STEP 1' }),
+    StepFields({
+      children: [
+        StepFieldLegend({ children: ['Go to the Google Cloud Platform Billing Console and sign-in with the same user you use to login to Terra.'] }),
+        h(ButtonOutline,
+          {
+            disabled: false,
+            href: 'https://console.cloud.google.com',
+            ...Utils.newTabLinkProps,
+            onClick: () => {
+              // FIXME: this seems wrong
+              //  I would think the button would just be inactive if we're not on step 1
+              //  then we wouldn't need this check, and we'd also only capture the metric when active
+              //  before this was using the raw clickable, though - so I've preserved the exact funtionality for now
+              Ajax().Metrics.captureEvent(Events.billingCreationStep1)
+              if (activeStep === 1) {
+                next()
+              }
+            },
+            style: { textTransform: 'none', backgroundColor: 'none' }
+          },
+          ['Go to Google Cloud Console']
+        )
+      ]
+    }
     )
-  }
+  ]
+  )
+
 
   const step2 = () => {
     const isActive = activeStep === 2
@@ -112,42 +115,39 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
       { isActive },
       [
         StepTitle({ text: 'STEP 2' }),
-        fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'block' } }, [
-          legend({
+        h(StepFields, [
+          h(StepFieldLegend, [
+            'Select an existing billing account or create a new one.\n\nIf you are creating a new billing account, you may be eligible for $300 in free credits. ' +
+              'Follow the instructions to activate your account in the Google Cloud Console.'
+          ]),
+          div({
+            role: 'radiogroup',
             style: {
-              maxWidth: '55%',
-              fontSize: 14,
-              lineHeight: '22px',
-              whiteSpace: 'pre-wrap',
-              marginTop: '0.25rem',
-              float: 'left'
+              width: '25%',
+              float: 'right',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-around'
             }
-          },
-          ['Select an existing billing account or create a new one.\n\nIf you are creating a new billing account, you may be eligible for $300 in free credits. ' +
-                'Follow the instructions to activate your account in the Google Cloud Console.']),
-          div({ style: { width: '25%', float: 'right' } }, [
-            div({ style: { display: 'flex', flexDirection: 'row' } }, [
-              h(RadioButton, {
-                text: "I don't have access to a Cloud billing account", name: 'access-to-account',
-                checked: accessToBillingAccount === false,
-                labelStyle: { ...styles.radioButtonLabel },
-                onChange: () => {
-                  setNextStep(false)
-                  Ajax().Metrics.captureEvent(Events.billingCreationStep2BillingAccountNoAccess)
-                }
-              })
-            ]),
-            div({ style: { marginTop: '2rem', display: 'flex', flexDirection: 'row' } }, [
-              h(RadioButton, {
-                text: 'I have a billing account', name: 'access-to-account',
-                checked: accessToBillingAccount === true,
-                labelStyle: { ...styles.radioButtonLabel },
-                onChange: () => {
-                  setNextStep(true)
-                  Ajax().Metrics.captureEvent(Events.billingCreationStep2HaveBillingAccount)
-                }
-              })
-            ])
+          }, [
+            h(div, [RadioButton({
+              text: "I don't have access to a Cloud billing account", name: 'access-to-account',
+              checked: accessToBillingAccount === false,
+              labelStyle: { ...styles.radioButtonLabel },
+              onChange: () => {
+                setNextStep(false)
+                Ajax().Metrics.captureEvent(Events.billingCreationStep2BillingAccountNoAccess)
+              }
+            })]),
+            h(div, [RadioButton({
+              text: 'I have a billing account', name: 'access-to-account',
+              checked: accessToBillingAccount === true,
+              labelStyle: { ...styles.radioButtonLabel },
+              onChange: () => {
+                setNextStep(true)
+                Ajax().Metrics.captureEvent(Events.billingCreationStep2HaveBillingAccount)
+              }
+            })])
           ])
         ])
       ])
@@ -155,15 +155,15 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
 
   const step3 = () => {
     const isActive = activeStep === 3
-    const isDone = activeStep > 3
+    //const isDone = activeStep > 3
 
     const linkToSupport =
         h(Link, {
-          ...Utils.newTabLinkProps, style: { textDecoration: 'underline', color: styles.accentColor },
+          ...Utils.newTabLinkProps, style: { textDecoration: 'underline', color: colors.accent() },
           href: 'https://support.terra.bio/hc/en-us/articles/360026182251'
-        }, [
-          'Learn how to set up a Google Cloud Billing account'
-        ])
+        },
+        ['Learn how to set up a Google Cloud Billing account']
+        )
 
     const checkbox =
         div({ style: { width: '25%', float: 'right' } }, [
@@ -171,7 +171,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
             checked: verified === true,
             onChange: async () => {
               Ajax().Metrics.captureEvent(Events.billingCreationStep3VerifyUserAdded)
-              if (isDone) {
+              if (activeStep > 3) {
                 resetStep3()
               } else {
                 await authorizeAndLoadAccounts()
@@ -207,24 +207,24 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               h(RadioButton, {
                 text: "I don't have access to do this", name: 'permission',
                 checked: accessToAddBillingAccountUser === false,
-                disabled: !isDone && !isActive,
+                disabled: !isActive,
                 labelStyle: { ...styles.radioButtonLabel },
                 onChange: () => {
                   Ajax().Metrics.captureEvent(Events.billingCreationStep3BillingAccountNoAccess)
                   setAccessToAddBillingAccountUser(false)
-                  if (isDone) {
+                  if (activeStep > 3) {
                     setActiveStep(3)
                     setRefreshed(false)
                   }
                 }
-              })
+              }),
             ]),
             div({ style: { marginTop: '2rem', display: 'flex', flexDirection: 'row' } }, [
               h(RadioButton, {
                 text: 'I have added terra-billing as a billing account user (requires reauthentication)',
                 name: 'permission',
                 checked: accessToAddBillingAccountUser === true,
-                disabled: !isDone && !isActive,
+                disabled: !isActive,
                 labelStyle: { ...styles.radioButtonLabel },
                 onChange: async () => {
                   Ajax().Metrics.captureEvent(Events.billingCreationStep3AddedTerraBilling)
@@ -260,8 +260,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
 
     return h(Step, { isActive }, [
       StepTitle({ text: 'STEP 3' }),
-      (isActive || isDone) &&
-      (!accessToBillingAccount || (accessToAddBillingAccountUser !== undefined && !accessToAddBillingAccountUser)) ?
+      (activeStep >= 3) && (!accessToBillingAccount || (accessToAddBillingAccountUser === false)) ?
         contactBillingAccountAdministrator : addTerraAsBillingAccountUser
     ])
   }
@@ -305,7 +304,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
                     'Google Billing Console and terra-billing@terra.bio has been added as a Billing Account User to your billing account.',
               div({ style: { marginTop: '0.5rem' } }, [
                 h(Link, {
-                  style: { textDecoration: 'underline', color: styles.accentColor },
+                  style: { textDecoration: 'underline', color: colors.accent() },
                   onClick: async () => {
                     Ajax().Metrics.captureEvent(Events.billingCreationRefreshStep3)
                     await authorizeAndLoadAccounts()
@@ -318,7 +317,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
                 'Terra still does not have access to any Google Billing Accounts. Please contact Terra support for additional help.',
                 div({ style: { marginTop: '0.5rem' } }, [
                   h(Link, {
-                    style: { textDecoration: 'underline', color: styles.accentColor },
+                    style: { textDecoration: 'underline', color: colors.accent() },
                     onClick: () => {
                       Ajax().Metrics.captureEvent(Events.billingCreationContactTerraSupport)
                       contactUsActive.set(true)
@@ -349,19 +348,12 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
     ])
   }
 
-  return div({ style: { padding: '1.5rem 3rem' } }, [
-    h2({ style: { fontWeight: 'bold', fontSize: 18 } }, ['Link a Google Cloud billing account to Terra']),
-    div({ style: { marginTop: '0.5rem', fontSize: 14, lineHeight: '22px', width: 'calc(100% - 150px)' } }, [
-      `The linked billing account is required to cover all Google Cloud data storage, compute and egress costs incurred in a Terra workspace.
-        Cloud costs are billed directly from Google and passed through Terra billing projects with no markup.`
-    ]),
-    ul({ style: { margin: 0, padding: 0, listStyleType: 'none' } }, [
-      step1(),
-      step2(),
-      step3(),
-      step4()
-    ])
-  ])
+  return StepWizard({
+    title: 'Link a Google Cloud billing account to Terra',
+    intro: `The linked billing account is required to cover all Google Cloud data storage, compute and egress costs incurred in a Terra workspace.
+        Cloud costs are billed directly from Google and passed through Terra billing projects with no markup.`,
+    children: [step1(), step2(), step3(), step4()]
+  })
 }
 
 
@@ -371,12 +363,10 @@ const radioButtonLabel: CSSProperties = {
   fontWeight: 500,
   lineHeight: '22px'
 }
-const accentColor = colors.accent()
 
 export const styles = {
   radioButtonLabel,
-  accentColor
 }
 
 
-export default CreateNewBillingProjectWizard
+export default GCPBillingProjectWizard

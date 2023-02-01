@@ -5,7 +5,7 @@ import { ValidatedInput } from 'src/components/input'
 import colors from 'src/libs/colors'
 import { FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
-import { Step, StepFieldLegend, StepFields, StepTitle } from 'src/pages/billing/StepWizard'
+import { Step, StepFieldLegend, StepFields } from 'src/pages/billing/NewBillingProjectWizard/StepWizard'
 import { validate } from 'validate.js'
 
 
@@ -41,8 +41,7 @@ export const AzureSubscriptionIdStep = ({ isActive, subscriptionId, ...props }: 
       setErrors(undefined)
     }
   }
-  return h(Step, { isActive }, [
-    h(StepTitle, { text: 'STEP 1' }),
+  return h(Step, { isActive, title: 'STEP 1' }, [
     h(StepFields, { style: { flexDirection: 'column' } }, [
       h(StepFieldLegend, [
         'Link Terra to your Azure subscription. ',
