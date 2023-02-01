@@ -719,7 +719,7 @@ describe('resolveWdsUrl', () => {
   it.each(
     [
       { appStatus: 'RUNNING', expectedUrl: testProxyUrl },
-      { appStatus: 'PROVISIONING', expectedUrl: '' },
+      { appStatus: 'PROVISIONING', expectedUrl: testProxyUrl },
       { appStatus: 'STOPPED', expectedUrl: '' },
       { appStatus: 'STOPPING', expectedUrl: '' }
     ]
@@ -743,7 +743,7 @@ describe('resolveWdsUrl', () => {
     const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
       { appType: 'CROMWELL', appName: 'something-else', status: 'PROVISIONING', proxyUrls: { wds: testProxyUrl } }
     ]
-    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName)).toBe('')
+    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName)).toBe(testProxyUrl)
   })
 
   it('return empty string for the url when app not found', () => {
