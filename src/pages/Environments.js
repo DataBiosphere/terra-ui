@@ -682,7 +682,7 @@ export const Environments = ({ nav = undefined }) => {
               }
             },
             {
-              size: { min: '10em', grow: 0 },
+              size: { min: '11em', grow: 0 },
               field: 'accessed',
               headerRenderer: () => h(Sortable, { sort, field: 'accessed', onSort: setSort }, ['Last accessed']),
               cellRenderer: ({ rowIndex }) => {
