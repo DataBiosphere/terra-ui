@@ -1761,7 +1761,7 @@ export const ComputeModalBase = ({
     const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
 
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const renderPersistentDiskType = (id = useUniqueId()) => h(div, [
+    const renderPersistentDiskType = id => h(div, [
       label({ htmlFor: id, style: computeStyles.label }, ['Disk Type']),
       div({ style: { marginTop: '0.5rem' } }, [
         h(Select, {
@@ -1780,6 +1780,8 @@ export const ComputeModalBase = ({
     ])
 
     // eslint-disable-next-line react-hooks/rules-of-hooks
+    const idPersistentDisk = useUniqueId()
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const idDiskSize = useUniqueId()
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
         h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
@@ -1797,7 +1799,7 @@ export const ComputeModalBase = ({
                   'Please delete the existing disk before selecting a new type.'
                 ],
                 side: 'bottom'
-              }, [renderPersistentDiskType()]) : renderPersistentDiskType(),
+              }, [renderPersistentDiskType(idPersistentDisk)]) : renderPersistentDiskType(idPersistentDisk),
             h(div, [
               label({ htmlFor: idDiskSize, style: computeStyles.label }, ['Disk Size (GB)']),
               div({ style: { marginTop: '0.5rem' } }, [
