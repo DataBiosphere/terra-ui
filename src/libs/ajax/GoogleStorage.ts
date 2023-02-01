@@ -3,7 +3,6 @@ import * as qs from 'qs'
 import { authOpts, checkRequesterPaysError, fetchOk, fetchSam, jsonBody, withRetryOnError, withUrlPrefix } from 'src/libs/ajax/ajax-common'
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing'
 import { getConfig } from 'src/libs/config'
-import Events from 'src/libs/events'
 import { getUser, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { cloudProviderTypes } from 'src/libs/workspace-utils'
@@ -22,7 +21,6 @@ import {
   toolLabels
 } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
-import { Metrics } from './Metrics'
 /*
  * Detects errors due to requester pays buckets, and adds the current workspace's billing
  * project if the user has access, retrying the request once if necessary.
@@ -298,14 +296,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
         ).then(res => res.text())
         return fetchOk(`${getConfig().calhounUrlRoot}/api/convert`,
           _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
-        ).then(res => {
-          Metrics().captureEvent(Events.analysisPreviewSuccess, { fileName: name, fileType: getExtension(name), cloudPlatform: cloudProviderTypes.GCP })
-          return res.text()
-        })
-          .catch(res => {
-            Metrics().captureEvent(Events.analysisPreviewFail, { fileName: name, fileType: getExtension(name), cloudPlatform: cloudProviderTypes.GCP, errorText: res.statusText })
-            throw res
-          })
+        ).then(res => res)
       },
 
       copy,
@@ -392,14 +383,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
         ).then(res => res.text())
         return fetchOk(`${getConfig().calhounUrlRoot}/${calhounPath}`,
           _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
-        ).then(res => {
-          Metrics().captureEvent(Events.analysisPreviewSuccess, { fileName: name, fileType: getExtension(toolLabel), cloudPlatform: cloudProviderTypes.GCP })
-          return res.text()
-        })
-          .catch(res => {
-            Metrics().captureEvent(Events.analysisPreviewFail, { fileName: name, fileType: getExtension(toolLabel), cloudPlatform: cloudProviderTypes.GCP, errorText: res.statusText })
-            throw res
-          })
+        ).then(res => res)
       },
 
       copy,
