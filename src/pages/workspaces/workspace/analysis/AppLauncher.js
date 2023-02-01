@@ -240,13 +240,13 @@ const ApplicationLauncher = _.flow(
     fileOutdatedOpen && h(FileOutdatedModal, { onDismiss: () => setFileOutdatedOpen(false), bucketName }),
     _.includes(runtimeStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
-        application === toolLabels.JupyterLab && div({ style: { padding: '2rem', position: 'absolute', top: 0, left: 0, zIndex: 1 } }, [
+        application === toolLabels.JupyterLab && div({ style: { padding: '2rem', position: 'absolute', top: 0, left: 0, zIndex: 0 } }, [
           h(StatusMessage, {}, ['Your Virtual Machine (VM) is ready. JupyterLab will launch momentarily...'])
         ]),
         iframe({
           src: iframeSrc,
           style: {
-            border: 'none', flex: 1, zIndex: 2,
+            border: 'none', flex: 1, zIndex: 1,
             ...(application === toolLabels.terminal ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
           },
           title: `Interactive ${application} iframe`

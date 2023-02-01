@@ -9,7 +9,15 @@ import {
   EntityQueryResponse,
   TsvUploadButtonDisabledOptions
 } from './DataTableProvider'
-import { RecordAttributes, RecordQueryResponse, RecordTypeSchema, resolveWdsUrl, SearchRequest, WdsDataTableProvider, wdsToEntityServiceMetadata } from './WdsDataTableProvider'
+import {
+  RecordAttributes,
+  RecordQueryResponse,
+  RecordTypeSchema,
+  resolveWdsUrl,
+  SearchRequest,
+  WdsDataTableProvider,
+  wdsToEntityServiceMetadata
+} from './WdsDataTableProvider'
 
 
 jest.mock('src/libs/ajax')
@@ -134,26 +142,32 @@ describe('WdsDataTableProvider', () => {
     return Promise.resolve({ message: 'Upload Succeeded', recordsModified: 1 })
   }
 
-  const getV2AppInfoMockImpl: AppsContract['getV2AppInfo'] = (_workspaceId: string) => {
+  const listAppsV2MockImpl: AppsContract['listAppsV2'] = (_workspaceId: string) => {
     return Promise.resolve(testProxyUrlResponse)
+  }
+
+  const createAppV2MockImpl: AppsContract['createAppV2'] = (_workspaceId: string) => {
+    return Promise.resolve('')
   }
 
   let getRecords: jest.MockedFunction<WorkspaceDataContract['getRecords']>
   let deleteTable: jest.MockedFunction<WorkspaceDataContract['deleteTable']>
   let downloadTsv: jest.MockedFunction<WorkspaceDataContract['downloadTsv']>
   let uploadTsv: jest.MockedFunction<WorkspaceDataContract['uploadTsv']>
-  let getV2AppInfo: jest.MockedFunction<AppsContract['getV2AppInfo']>
+  let listAppsV2: jest.MockedFunction<AppsContract['listAppsV2']>
+  let createAppV2: jest.MockedFunction<AppsContract['createAppV2']>
 
   beforeEach(() => {
     getRecords = jest.fn().mockImplementation(getRecordsMockImpl)
     deleteTable = jest.fn().mockImplementation(deleteTableMockImpl)
     downloadTsv = jest.fn().mockImplementation(downloadTsvMockImpl)
     uploadTsv = jest.fn().mockImplementation(uploadTsvMockImpl)
-    getV2AppInfo = jest.fn().mockImplementation(getV2AppInfoMockImpl)
+    listAppsV2 = jest.fn().mockImplementation(listAppsV2MockImpl)
+    createAppV2 = jest.fn().mockImplementation(createAppV2MockImpl)
 
     asMockedFn(Ajax).mockImplementation(() => ({
       WorkspaceData: { getRecords, deleteTable, downloadTsv, uploadTsv } as Partial<WorkspaceDataContract>,
-      Apps: { getV2AppInfo } as Partial<AppsContract>
+      Apps: { listAppsV2, createAppV2 } as Partial<AppsContract>
     } as Partial<AjaxContract> as AjaxContract))
   })
 
@@ -700,20 +714,86 @@ describe('transformMetadata', () => {
   })
 })
 
-describe('getWdsUrl', () => {
-  it('properly extracts the proxy Url from the leo response', () => {
-    expect(resolveWdsUrl(testProxyUrlResponse)).toBe(testProxyUrl)
-  })
-  it('locate the Url when the app name is different and is running', () => {
-    const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
-      { appType: 'CROMWELL', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } }
+
+describe('resolveWdsUrl', () => {
+  it.each(
+    [
+      { appStatus: 'RUNNING', expectedUrl: testProxyUrl },
+      { appStatus: 'PROVISIONING', expectedUrl: '' },
+      { appStatus: 'STOPPED', expectedUrl: '' },
+      { appStatus: 'STOPPING', expectedUrl: '' }
     ]
-    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName)).toBe(testProxyUrl)
+  )('properly extracts the correct value for a healthy WDS app from the leo response', ({ appStatus, expectedUrl }) => {
+    const testHealthyAppProxyUrlResponse: Array<Object> = [
+      { appType: 'CROMWELL', appName: `wds-${uuid}`, status: appStatus, proxyUrls: { wds: testProxyUrl }, workspaceId: uuid }
+    ]
+    expect(resolveWdsUrl(testHealthyAppProxyUrlResponse, false)).toBe(expectedUrl)
   })
-  it('return empty string when app not found', () => {
+
+  it('deploys a new WDS app & returns an empty string if the response contains no healthy criteria', () => {
+    jest.mock('./WdsDataTableProvider', () => ({ createLeoAppWithErrorHandling: () => {} }
+    ))
+    const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
+      { appType: 'SOMETHING_ELSE', appName: 'something-else', status: 'ERROR', proxyUrls: { wds: testProxyUrl } }
+    ]
+    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, true)).toBe('')
+  })
+
+  it('does not deploy a new WDS app if a flag is set, yet still returns an empty string if the response contains no healthy criteria', () => {
+    const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
+      { appType: 'CROMWELL', appName: 'something-else', status: 'PROVISIONING', proxyUrls: { wds: testProxyUrl } }
+    ]
+    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, false)).toBe('')
+  })
+
+  it('return empty string for the url when app not found', () => {
     const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
       { appType: 'A_DIFFERENT_APP', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } }
     ]
-    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName)).toBe('')
+    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, true)).toBe('')
+  })
+
+  it('return empty string if no CROMWELL app exists but other apps are present', () => {
+    const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
+      { appType: 'A_DIFFERENT_APP', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } }
+    ]
+    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName, true)).toBe('')
+  })
+
+  it('return the earliest created RUNNING app url if more than one exists', () => {
+    const testProxyUrlResponseMultipleApps: Array<Object> = [
+      {
+        appType: 'CROMWELL', workspaceId: uuid, appName: `wds-${uuid}`, status: 'RUNNING', proxyUrls: { wds: 'something-older.com' }, auditInfo: {
+          createdDate: '2022-01-24T15:27:28.740880Z'
+        }
+      },
+      {
+        appType: 'CROMWELL', workspaceId: uuid, appName: `wds-${uuid}`, status: 'RUNNING', proxyUrls: { wds: testProxyUrl }, auditInfo: {
+          createdDate: '2023-01-24T15:27:28.740880Z'
+        }
+      },
+    ]
+    expect(resolveWdsUrl(testProxyUrlResponseMultipleApps, false)).toBe('something-older.com')
+  })
+
+  it('return the earliest created app if more than one exists and are in the \'PROVISIONING\', \'STOPPED\', or \'STOPPING\' states', () => {
+    const testProxyUrlResponseMultipleApps: Array<Object> = [
+      {
+        appType: 'CROMWELL', workspaceId: uuid, appName: `wds-${uuid}`, status: 'STOPPED', proxyUrls: { wds: 'something-older.com' }, auditInfo: {
+          createdDate: '2021-01-24T15:27:28.740880Z'
+        }
+      },
+      {
+        appType: 'CROMWELL', workspaceId: uuid, appName: `wds-${uuid}`, status: 'STOPPING', proxyUrls: { wds: testProxyUrl }, auditInfo: {
+          createdDate: '2022-01-24T15:27:28.740880Z'
+        }
+      },
+      {
+        appType: 'CROMWELL', workspaceId: uuid, appName: `wds-${uuid}`, status: 'PROVISIONING', proxyUrls: { wds: testProxyUrl }, auditInfo: {
+          createdDate: '2023-01-24T15:27:28.740880Z'
+        }
+      },
+    ]
+    expect(resolveWdsUrl(testProxyUrlResponseMultipleApps, false)).toBe('')
   })
 })

@@ -28,7 +28,7 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
   const signal = useCancellation()
 
   useOnMount(() => {
-    Ajax(signal).Apps.getV2AppInfo(workspaceId).then(res => {
+    Ajax(signal).Apps.listAppsV2(workspaceId).then(res => {
       setLeoOk(res)
       const foundApp = resolveWdsApp(res)
       setAppFound(foundApp?.appName)

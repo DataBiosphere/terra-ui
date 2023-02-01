@@ -44,7 +44,7 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { namespace, 
         setCollaboratorEmails(_.without([getUser().email], _.keys(acl)))
         setWorkspaceBucketUsageInBytes(usageInBytes)
       } else {
-        const currentWorkspaceAppList = await Ajax(signal).Apps.getV2AppInfo(workspaceId)
+        const currentWorkspaceAppList = await Ajax(signal).Apps.listAppsV2(workspaceId)
         // temporary hack to prevent orphaning resources on Azure:
         // change each app to status: 'disallow' which will cause this modal to think they are undeletable
         const hackedAppList = _.map(_.set('status', 'disallow'), currentWorkspaceAppList)

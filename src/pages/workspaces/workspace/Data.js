@@ -23,7 +23,8 @@ import { WdsTroubleshooter } from 'src/components/data/WdsTroubleshooter'
 import { icon, spinner } from 'src/components/icons'
 import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
-import { MenuButton, MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
+import { MenuButton } from 'src/components/MenuButton'
+import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell } from 'src/components/table'
 import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
@@ -515,10 +516,14 @@ const WorkspaceData = _.flow(
 
   const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name)
 
+  // auto-deploy WDS for a user who is: 1) the workspace creator, and 2) still an OWNER of the workspace
+  // disablied: const shouldAutoDeployWds = workspace?.accessLevel === 'OWNER' && createdBy === getUser()?.email
+
   const wdsDataTableProvider = useMemo(() => {
     const proxyUrl = !!wdsProxyUrl && wdsProxyUrl.state
     return new WdsDataTableProvider(workspaceId, proxyUrl)
   }, [workspaceId, wdsProxyUrl])
+
 
   const loadEntityMetadata = async () => {
     try {
