@@ -80,16 +80,16 @@ const getPersistentDiskPriceForRegionMonthly = (computeRegion, diskType) => {
 const numberOfHoursPerMonth = 730
 const getPersistentDiskPriceForRegionHourly = (computeRegion, diskType) => getPersistentDiskPriceForRegionMonthly(computeRegion, diskType) / numberOfHoursPerMonth
 
-export const getPersistentDiskCostMonthly = (currentPersistentDiskDetails, computeRegion) => {
+export const getPersistentDiskCostMonthly = ({ cloudContext = {}, diskType, size, status, zone }, computeRegion) => {
   let price
-  if (isAzureContext(currentPersistentDiskDetails?.cloudContext)) {
-    price = getAzureDiskCostEstimate({ diskSize: currentPersistentDiskDetails?.size, region: currentPersistentDiskDetails?.zone })
+  if (isAzureContext(cloudContext)) {
+    price = getAzureDiskCostEstimate({ diskSize: size, region: zone })
   } else {
-    price = currentPersistentDiskDetails?.size * getPersistentDiskPriceForRegionMonthly(computeRegion, currentPersistentDiskDetails?.diskType)
+    price = size * getPersistentDiskPriceForRegionMonthly(computeRegion, diskType)
   }
-  return _.includes(currentPersistentDiskDetails?.status, ['Deleting', 'Failed']) ? 0.0 : price
+  return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : price
 }
-export const getPersistentDiskCostHourly = ({ size, status, diskType, cloudContext }, computeRegion) => {
+export const getPersistentDiskCostHourly = ({ size, status, diskType, cloudContext = {} }, computeRegion) => {
   const price = isAzureContext(cloudContext) ? getAzureDiskCostEstimate({ diskSize: size, region: computeRegion }) / numberOfHoursPerMonth : getPersistentDiskPriceForRegionHourly(computeRegion, diskType)
   return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : size * price
 }
@@ -99,7 +99,7 @@ const ephemeralExternalIpAddressCost = ({ numStandardVms, numPreemptibleVms }) =
   return numStandardVms * ephemeralExternalIpAddressPrice.standard + numPreemptibleVms * ephemeralExternalIpAddressPrice.preemptible
 }
 
-export const getRuntimeCost = ({ runtimeConfig, status, cloudContext }) => {
+export const getRuntimeCost = ({ runtimeConfig, status, cloudContext = {} }) => {
   if (isAzureContext(cloudContext)) {
     return getAzureComputeCostEstimate(runtimeConfig)
   }
