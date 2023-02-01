@@ -205,12 +205,11 @@ export const ContextBar = ({
           ]),
           getEnvironmentStatusIcons()
         ]),
-        h(Clickable, {
+        isTerminalEnabled && h(Clickable, {
           style: { borderTop: `1px solid ${colors.accent()}`, paddingLeft: '1rem', alignItems: 'center', ...contextBarStyles.contextBarButton, color: !isTerminalEnabled ? colors.dark(0.7) : contextBarStyles.contextBarButton.color },
           hover: contextBarStyles.hover,
           'data-testid': 'terminal-button-id',
           tooltipSide: 'left',
-          disabled: !isTerminalEnabled,
           href: terminalLaunchLink,
           onClick: withErrorReporting('Error starting runtime', async () => {
             await Ajax().Metrics.captureEvent(Events.analysisLaunch,
@@ -219,7 +218,7 @@ export const ContextBar = ({
               await Ajax().Runtimes.runtimeWrapper(currentRuntime).start()
             }
           }),
-          tooltip: !isTerminalEnabled ? 'Terminal can only be launched from here for Google Jupyter environments.' : 'Terminal',
+          tooltip: 'Terminal',
           tooltipDelay: 100,
           useTooltipAsLabel: false,
           ...Utils.newTabLinkProps
