@@ -207,56 +207,7 @@ export const getCostForDisk = (app, appDataDisks, computeRegion, currentRuntimeT
     diskCost = currentDataDisk ? getGalaxyDiskCost(currentDataDisk) : ''
   }
   return diskCost
-
 }
-
-// TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
-export const getCostDisplayForTool = (app, currentRuntime, currentRuntimeTool, toolLabel) => {
-  return Utils.cond(
-    [toolLabel === toolLabels.Galaxy, () => app ? `${getComputeStatusForDisplay(app.status)} ${Utils.formatUSD(getGalaxyComputeCost(app))}/hr` : ''],
-    [toolLabel === toolLabels.Cromwell, () => ''], // We will determine what to put here later
-    [toolLabel === toolLabels.JupyterLab, () => currentRuntime ? `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getAzureComputeCostEstimate(currentRuntime.runtimeConfig))}/hr` : ''],
-    [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getRuntimeCost(currentRuntime))}/hr`],
-    [Utils.DEFAULT, () => {
-      return ''
-    }]
-  )
-}
-
-export const getCostDisplayForDisk = (app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel) => {
-  const diskCost = getCostForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
-  return diskCost ? `Disk ${Utils.formatUSD(diskCost)}/hr` : ''
-}
-
-const isAzureDisk = persistentDisk => {
-  return persistentDisk ? isAzureContext(persistentDisk.cloudContext) : false
-}
-// end COMMON METHODS
-=======
-}
-
-// end GOOGLE COST METHODS
-
-// AZURE COST METHODS begin
-
-export const getAzureComputeCostEstimate = ({ region, machineType }) => {
-  const regionPriceObj = getAzurePricesForRegion(region)
-  const cost = regionPriceObj[machineType]
-  return cost
-}
-
-export const getAzureDiskCostEstimate = ({ region, diskSize }) => {
-  const regionPriceObj = getAzurePricesForRegion(region)
-  const diskType = getDiskType(diskSize)
-  const cost = regionPriceObj[diskType]
-  return cost
-}
-
-export const getAzurePricesForRegion = key => _.has(key, azureRegions) ? _.find(priceObj => priceObj.name === key, azureRegionToPrices) : {}
-
-// end AZURE COST METHODS
-
-// COMMON METHODS begin
 
 // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
 export const getCostDisplayForTool = (app, currentRuntime, currentRuntimeTool, toolLabel) => {
