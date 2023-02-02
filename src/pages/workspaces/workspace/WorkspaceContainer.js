@@ -342,6 +342,9 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const [googleProject, setGoogleProject] = useState(workspace?.workspace.googleProject)
     const [azureContext, setAzureContext] = useState(workspace?.azureContext)
     const [{ location, locationType }, setBucketLocation] = useState({ location: defaultLocation, locationType: locationTypes.default })
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    const [azureStorage, setAzureStorage] = useState(
+      { storageContainerUrl: undefined, storageLocation: undefined, sas: {} })
     const workspaceInitialized = workspace?.workspaceInitialized // will be stored in cached workspace
 
     const prevGoogleProject = usePrevious(googleProject)
@@ -371,11 +374,15 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         if (isGoogleWorkspace(workspace)) {
           await checkGooglePermissions(workspace)
         } else {
+          await checkAzureStorageExists(workspace)
           updateWorkspaceInStore(workspace, true)
         }
       } else if (!!workspace && isGoogleWorkspace(workspace)) {
+        // console.log('Google, skipping permissions initialization check')
         await loadGoogleBucketLocation(workspace)
-        // console.log('Google, skipping initialization check')
+      } else if (!!workspace && isAzureWorkspace(workspace)) {
+        // console.log('Azure, skipping storage initialization check')
+        await loadAzureStorageDetails(workspace)
       }
     }
 
@@ -400,6 +407,27 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       const bucketLocation = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(workspace.workspace.googleProject, workspace.workspace.bucketName)
       // console.log("setting bucketLocation " + bucketLocation.location)
       setBucketLocation(bucketLocation)
+    })
+
+    const checkAzureStorageExists = async workspace => {
+      try {
+        const { location, sas } = await Ajax(signal).AzureStorage.details(workspace.workspace.workspaceId)
+        const sasUrl = sas.url
+        setAzureStorage({ storageContainerUrl: _.head(_.split('?', sasUrl)), storageLocation: location, sasUrl })
+        updateWorkspaceInStore(workspace, true)
+      } catch (error) {
+        // We expect to get a transient error while the workspace is cloning. We will improve
+        // the handling of this with WOR-534 so that we correctly differentiate between the
+        // expected transient error and a workspace that is truly missing a storage container.
+        // console.log(`Error thrown by AzureStorage.details: ${error}`) // eslint-disable-line no-console
+        checkInitializationTimeout.current = setTimeout(() => checkWorkspaceInitialization(workspace), 5000)
+      }
+    }
+
+    const loadAzureStorageDetails = withErrorReporting('Error loading storage information', async workspace => {
+      const { location, sas } = await Ajax(signal).AzureStorage.details(workspace.workspace.workspaceId)
+      const sasUrl = sas.url
+      setAzureStorage({ storageContainerUrl: _.head(_.split('?', sasUrl)), storageLocation: location, sasUrl })
     })
 
     const refreshWorkspace = _.flow(
@@ -466,6 +494,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         title: _.isFunction(title) ? title(props) : title,
         breadcrumbs: breadcrumbs(props),
         topBarContent: topBarContent && topBarContent({ workspace, ...props }),
+        azureStorage, // TODO: combine with existing location/locationType
         analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks, location, locationType },
         refresh: async () => {
           await refreshWorkspace()
@@ -476,7 +505,8 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, refreshWorkspace, analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, location, persistentDisks },
+          workspace, refreshWorkspace, azureStorage,
+          analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, location, persistentDisks },
           ...props
         }),
         loadingWorkspace && spinnerOverlay
