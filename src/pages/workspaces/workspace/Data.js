@@ -587,7 +587,7 @@ const WorkspaceData = _.flow(
 
   const loadWdsUrl = useCallback(workspaceId => {
     //setWdsProxyUrl({ status: 'Loading', state: '' })
-    return Ajax().Apps.getV2AppInfo(workspaceId).then(resolveWdsUrl)
+    return Ajax().Apps.listAppsV2(workspaceId).then(resolveWdsUrl)
       .then(url => {
         if (!!url) {
           setWdsProxyUrl({ status: 'Ready', state: url })
