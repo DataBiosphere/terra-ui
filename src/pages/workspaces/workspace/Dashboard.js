@@ -364,35 +364,31 @@ const WorkspaceDashboard = _.flow(
     }
   }, [workspaceId, signal])
 
-  const loadStorageCost = withErrorReporting('Error loading storage cost data', async () => {
-    if (Utils.canWrite(accessLevel)) {
-      try {
-        const { estimate, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).storageCostEstimate()
-        setStorageCost({ isSuccess: true, estimate, lastUpdated })
-      } catch (error) {
-        if (error.status === 404) {
-          setStorageCost({ isSuccess: false, estimate: 'Not available' })
-        } else {
-          throw error
-        }
+  const loadStorageCost = useCallback(withErrorReporting('Error loading storage cost data', async () => { // eslint-disable-line react-hooks/exhaustive-deps
+    try {
+      const { estimate, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).storageCostEstimate()
+      setStorageCost({ isSuccess: true, estimate, lastUpdated })
+    } catch (error) {
+      if (error.status === 404) {
+        setStorageCost({ isSuccess: false, estimate: 'Not available' })
+      } else {
+        throw error
       }
     }
-  })
+  }), [namespace, name])
 
-  const loadBucketSize = withErrorReporting('Error loading bucket size.', async () => {
-    if (Utils.canWrite(accessLevel)) {
-      try {
-        const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
-        setBucketSize({ isSuccess: true, usage: Utils.formatBytes(usageInBytes), lastUpdated })
-      } catch (error) {
-        if (error.status === 404) {
-          setBucketSize({ isSuccess: false, usage: 'Not available' })
-        } else {
-          throw error
-        }
+  const loadBucketSize = useCallback(withErrorReporting('Error loading bucket size.', async () => { // eslint-disable-line react-hooks/exhaustive-deps
+    try {
+      const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
+      setBucketSize({ isSuccess: true, usage: Utils.formatBytes(usageInBytes), lastUpdated })
+    } catch (error) {
+      if (error.status === 404) {
+        setBucketSize({ isSuccess: false, usage: 'Not available' })
+      } else {
+        throw error
       }
     }
-  })
+  }), [namespace, name])
 
   useEffect(() => {
     if (isAzureWorkspace(workspace)) {
@@ -403,7 +399,7 @@ const WorkspaceDashboard = _.flow(
         interval.current = undefined
       }
     }
-    if (isGoogleWorkspace(workspace) && workspace.workspaceInitialized) {
+    if (isGoogleWorkspace(workspace) && workspace.workspaceInitialized && Utils.canWrite(accessLevel)) {
       loadStorageCost()
       loadBucketSize()
     }
@@ -412,7 +408,7 @@ const WorkspaceDashboard = _.flow(
       clearInterval(interval.current)
       interval.current = undefined
     }
-  }, [loadAzureStorage, workspace, storageContainerUrl, loadStorageCost, loadBucketSize])
+  }, [accessLevel, loadAzureStorage, workspace, storageContainerUrl, loadStorageCost, loadBucketSize])
 
   useImperativeHandle(ref, () => ({ refresh }))
 
