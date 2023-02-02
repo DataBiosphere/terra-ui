@@ -22,7 +22,7 @@ export const StepFields = ({ children, style, disabled = false }: StepFieldsProp
       ...style
     }
   },
-  [children]
+  children
 )
 
 export const StepFieldLegend = ({ children, style }: StepFieldsProps) => legend({
@@ -54,6 +54,6 @@ interface LabeledFieldProps extends StepFieldsProps {
 }
 
 export const LabeledField = ({ label, formId, required = false, children, style }: LabeledFieldProps) => div({ style: { display: 'flex', flexDirection: 'column', ...style } }, [
-  h(FormLabel, { htmlFor: formId, required, children: [label] }),
+  h(FormLabel, { htmlFor: formId, required }, [label]),
   children
 ])

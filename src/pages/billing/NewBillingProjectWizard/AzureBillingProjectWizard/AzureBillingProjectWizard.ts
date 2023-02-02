@@ -15,13 +15,12 @@ interface AzureBillingProjectWizardProps {
 }
 
 export const AzureBillingProjectWizard = ({ ...props }: AzureBillingProjectWizardProps) => {
-  const [activeStep, setActiveStep] = useState<number>(3)
+  const [activeStep, setActiveStep] = useState<number>(1)
   const [subscriptionId, setSubscriptionId] = useState<string>()
   const [managedApps, loadManagedApps] = useLoadedData<AzureManagedAppCoordinates[]>()
   const [billingProject, setBillingProject] = useState<BillingProject>()
 
   const signal = useCancellation()
-
 
   const onSubscriptionIdSelected = () => loadManagedApps(async () => {
     const json = await Ajax(signal).Billing.listAzureManagedApplications(subscriptionId, false)

@@ -30,8 +30,9 @@ export interface StepProps {
 export const Step = ({ isActive, title, ...props }: StepProps) => div({
   'aria-current': isActive ? 'step' : false,
   style: { ...stepBanner(isActive), ...props.style },
-  children: [
-    title ? StepHeader({ title, description: props.introText }) : undefined,
-    props.children || []
-  ]
-})
+},
+[
+  title ? StepHeader({ title, description: props.introText }) : undefined,
+  props.children || []
+]
+)
