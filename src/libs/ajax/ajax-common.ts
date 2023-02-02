@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
-import { getUser, reloadAuthToken, signOutAfterSessionTimeout } from 'src/libs/auth'
+import { reloadAuthToken, signOutAfterSessionTimeout } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
-import { ajaxOverridesStore } from 'src/libs/state'
+import { ajaxOverridesStore, getUser } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -189,7 +189,15 @@ export const fetchEcm = _.flow(
   withRetryAfterReloadingExpiredAuthToken,
 )(fetchOk)
 
-export const fetchGoogleForms = withUrlPrefix('https://docs.google.com/forms/u/0/d/e/', fetchOk)
+// Google Forms does not set a CORS header that allows Terra to access the response.
+// Thus, we send the request in no-cors mode and, because the response is "opaque",
+// we do not check response.ok.
+export const fetchGoogleForms = _.flow(
+  withUrlPrefix('https://docs.google.com/forms/u/0/d/e/'),
+  withInstrumentation,
+  withCancellation,
+  wrappedFetch => (url, options) => wrappedFetch(url, _.merge(options, { mode: 'no-cors' })),
+)(fetch)
 
 export const fetchWDS = wdsProxyUrlRoot => _.flow(
   withUrlPrefix(`${wdsProxyUrlRoot}/`),

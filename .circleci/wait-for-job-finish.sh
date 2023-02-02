@@ -8,8 +8,8 @@ set -o pipefail
 
 counter=0
 
-# Wait up to 5 minutes for job to finish. A job can run on multiple nodes: parallelism > 1
-while [ "$counter" -le 300 ]; do
+# Wait up to 7 minutes for job to finish. A job can run on multiple nodes: parallelism > 1
+while [ "$counter" -le 420 ]; do
   # Find number of nodes in running
   job_detail=$(curl -s "https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui/job/$CIRCLE_BUILD_NUM" --header 'Circle-Token: "'"$CIRCLECI_USER_TOKEN"'"')
   job_running_nodes_count=$(echo "$job_detail" | jq -r '.parallel_runs[] | select(.status == "running") | select(.index != '"$CIRCLE_NODE_INDEX"')' | grep -c "running")
@@ -27,5 +27,5 @@ date
 
 # Something is wrong. Log response for error troubleshooting
 curl -s "https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui/job/$CIRCLE_BUILD_NUM" --header 'Circle-Token: "'"$CIRCLECI_USER_TOKEN"'"' | jq -r '.'
-echo "ERROR: Exceeded maximum waiting time 5 minutes."
+echo "ERROR: Exceeded maximum waiting time 7 minutes."
 exit 1

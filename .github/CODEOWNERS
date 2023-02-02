@@ -1,14 +1,36 @@
 # Each line is a file pattern followed by one or more owners.
 # See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners#codeowners-syntax
+/src/data/datasets.js @DataBiosphere/data-explorer-eng
 /src/libs/brand*.js @DataBiosphere/terra-cobranding
 /src/libs/colors.js @DataBiosphere/terra-cobranding
+/src/pages/Environments.js @DataBiosphere/broad-interactive-analysis
+/src/libs/ajax/Apps.js @DataBiosphere/broad-interactive-analysis
+/src/libs/ajax/Runtimes.js @DataBiosphere/broad-interactive-analysis
+/src/libs/ajax/AzureStorage.js @DataBiosphere/broad-interactive-analysis
+/src/libs/ajax/GoogleStorage.js @DataBiosphere/broad-interactive-analysis
+/src/libs/ajax/Catalog.ts @DataBiosphere/data-explorer-eng
+/src/pages/library/DataBrowser* @DataBiosphere/data-explorer-eng
+/src/pages/library/dataBrowser-utils* @DataBiosphere/data-explorer-eng
+/src/pages/library/Datasets* @DataBiosphere/data-explorer-eng
+/src/pages/library/SearchAndFilterComponent* @DataBiosphere/data-explorer-eng
+/src/pages/library/test-datasets.ts @DataBiosphere/data-explorer-eng
+/src/pages/ImportData.js @DataBiosphere/data-explorer-eng
 /src/pages/LandingPage* @DataBiosphere/terra-cobranding
 /src/pages/billing/ @DataBiosphere/broadworkspaces
 /src/pages/workspaces/* @DataBiosphere/broadworkspaces
 /src/pages/workspaces/workspace/*Dashboard* @DataBiosphere/broadworkspaces
 /src/pages/workspaces/workspace/*Workspace* @DataBiosphere/broadworkspaces
+/src/pages/workspaces/workspace/analysis @DataBiosphere/broad-interactive-analysis
 /src/components/*Workspace* @DataBiosphere/broadworkspaces
 /src/components/workspace-utils* @DataBiosphere/broadworkspaces
 /integration-tests/tests/billing-projects.js @DataBiosphere/broadworkspaces
 /integration-tests/tests/janitor.js @DataBiosphere/broadworkspaces
 /integration-tests/tests/workspace-dashboard.js @DataBiosphere/broadworkspaces
+/integration-tests/tests/run-analysis.js @DataBiosphere/broad-interactive-analysis
+/integration-tests/tests/run-rstudio.js @DataBiosphere/broad-interactive-analysis
+/integration-tests/tests/analysis-context-bar.js @DataBiosphere/broad-interactive-analysis
+/integration-tests/tests/export-*-dataset-to-new-workspace.js @DataBiosphere/data-explorer-eng
+/integration-tests/tests/preview-dataset.js @DataBiosphere/data-explorer-eng
+/integration-tests/tests/request-access.js @DataBiosphere/data-explorer-eng
+/integration-tests/tests/run-catalog* @DataBiosphere/data-explorer-eng
+/integration-tests/utils/catalog-utils.js @DataBiosphere/data-explorer-eng

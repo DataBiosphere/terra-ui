@@ -6,6 +6,7 @@ import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/c
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
@@ -14,7 +15,7 @@ import * as Utils from 'src/libs/utils'
 import { getExtension, notebookLockHash, stripExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { analysisTabName, appLauncherTabName, PeriodicAzureCookieSetter, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import { getAnalysesDisplayList, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { getPatternFromRuntimeTool, getToolFromRuntime, runtimeTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getPatternFromRuntimeTool, getToolLabelFromRuntime, runtimeTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -29,14 +30,20 @@ const ApplicationLauncher = _.flow(
   name: workspaceName, sparkInterface, analysesData: { runtimes, refreshRuntimes },
   application, workspace: { azureContext, workspace: { namespace, name, workspaceId, googleProject, bucketName } }
 }, _ref) => {
+  useEffect(() => {
+    Ajax().Metrics.captureEvent(Events.analysisLaunch,
+      { origin: 'appLauncher', source: application, application, workspaceName, namespace, cloudPlatform: googleProject ? 'GCP' : 'Azure' })
+  }, [application, namespace, googleProject, workspaceName])
+
   const [busy, setBusy] = useState(true)
   const [outdatedAnalyses, setOutdatedAnalyses] = useState()
   const [fileOutdatedOpen, setFileOutdatedOpen] = useState(false)
   const [hashedOwnerEmail, setHashedOwnerEmail] = useState()
   const [iframeSrc, setIframeSrc] = useState()
+
   const leoCookieReady = useStore(cookieReadyStore)
   const azureCookieReady = useStore(azureCookieReadyStore)
-  const cookieReady = !!googleProject ? leoCookieReady : azureCookieReady
+  const cookieReady = !!googleProject ? leoCookieReady : azureCookieReady.readyForRuntime
   const signal = useCancellation()
   const interval = useRef()
   const { user: { email } } = useStore(authStore)
@@ -49,6 +56,7 @@ const ApplicationLauncher = _.flow(
 
   const runtime = getCurrentRuntime(runtimes)
   const runtimeStatus = getConvertedRuntimeStatus(runtime) // preserve null vs undefined
+
   const FileOutdatedModal = ({ onDismiss, bucketName }) => {
     const handleChoice = _.flow(
       withErrorReportingInModal('Error setting up analysis file syncing')(onDismiss),
@@ -179,11 +187,11 @@ const ApplicationLauncher = _.flow(
         await Ajax()
           .Runtimes
           .fileSyncing(googleProject, runtime.runtimeName)
-          .setStorageLinks(localBaseDirectory, '', cloudStorageDirectory, getPatternFromRuntimeTool(getToolFromRuntime(runtime))) :
+          .setStorageLinks(localBaseDirectory, '', cloudStorageDirectory, getPatternFromRuntimeTool(getToolLabelFromRuntime(runtime))) :
         await Ajax()
           .Runtimes
           .azureProxy(runtime.proxyUrl)
-          .setStorageLinks(localBaseDirectory, cloudStorageDirectory, getPatternFromRuntimeTool(getToolFromRuntime(runtime)))
+          .setStorageLinks(localBaseDirectory, cloudStorageDirectory, getPatternFromRuntimeTool(getToolLabelFromRuntime(runtime)))
     })
 
 
@@ -220,6 +228,8 @@ const ApplicationLauncher = _.flow(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [googleProject, workspaceName, runtimes, bucketName])
 
+  if (!busy && runtime === undefined) Nav.goToPath(analysisTabName, { namespace, name })
+
   return h(Fragment, [
     h(RuntimeStatusMonitor, {
       runtime
@@ -230,10 +240,13 @@ const ApplicationLauncher = _.flow(
     fileOutdatedOpen && h(FileOutdatedModal, { onDismiss: () => setFileOutdatedOpen(false), bucketName }),
     _.includes(runtimeStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
+        application === toolLabels.JupyterLab && div({ style: { padding: '2rem', position: 'absolute', top: 0, left: 0, zIndex: 0 } }, [
+          h(StatusMessage, {}, ['Your Virtual Machine (VM) is ready. JupyterLab will launch momentarily...'])
+        ]),
         iframe({
           src: iframeSrc,
           style: {
-            border: 'none', flex: 1,
+            border: 'none', flex: 1, zIndex: 1,
             ...(application === toolLabels.terminal ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
           },
           title: `Interactive ${application} iframe`
@@ -250,7 +263,6 @@ const ApplicationLauncher = _.flow(
             [runtimeStatus === 'LeoReconfiguring', () => 'Cloud environment is updating, please wait.'],
             [runtimeStatus === 'Error', () => 'Error with the cloud environment, please try again.'],
             [runtimeStatus === null, () => 'Create a cloud environment to continue.'],
-            [runtimeStatus === undefined && runtime === undefined, () => Nav.goToPath(analysisTabName, { namespace, name })],
             [runtimeStatus === undefined, () => 'Loading...'],
             () => 'Unknown cloud environment status. Please create a new cloud environment or contact support.'
           )

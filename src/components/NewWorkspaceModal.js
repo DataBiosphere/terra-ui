@@ -12,7 +12,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
-import { reportErrorAndRethrow, withErrorReporting } from 'src/libs/error'
+import { reportErrorAndRethrow, withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import Events, { extractCrossWorkspaceDetails, extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
@@ -83,6 +83,14 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     setIsAlphaRegionalityUser(await Ajax(signal).Groups.group(getConfig().alphaRegionalityGroup).isMember())
   })
 
+  // Error is ignored here since any errors associated with Leo app creation are not communicated during workspace creation
+  // Rather when the user first visits the `Data` tab
+  const createLeoApp = withErrorIgnoring(async workspace => {
+    if (isAzureBillingProject()) {
+      await Ajax().Apps.createAppV2(`wds-${workspace.workspaceId}`, workspace.workspaceId)
+    }
+  })
+
   const create = async () => {
     try {
       setCreateError(undefined)
@@ -96,7 +104,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
         copyFilesWithPrefix: 'notebooks/',
         ...(!!bucketLocation && isGoogleBillingProject() && { bucketLocation })
       }
-      onSuccess(await Utils.cond(
+      const createdWorkspace = await Utils.cond(
         [cloneWorkspace, async () => {
           const workspace = await Ajax().Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body)
           const featuredList = await Ajax().FirecloudBucket.getFeaturedWorkspaces()
@@ -104,7 +112,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
             featured: _.some({ namespace: cloneWorkspace.workspace.namespace, name: cloneWorkspace.workspace.name }, featuredList),
             ...extractCrossWorkspaceDetails(cloneWorkspace, {
               // Clone response does not include cloudPlatform, cross-cloud cloning is not supported.
-              workspace: _.merge(workspace, { cloudPlatform: cloneWorkspace.workspace.cloudPlatform })
+              workspace: _.merge(workspace, { cloudPlatform: getProjectCloudPlatform() })
             })
           })
           return workspace
@@ -116,7 +124,9 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
             _.merge(workspace, { cloudPlatform: getProjectCloudPlatform() }))
           )
           return workspace
-        }))
+        })
+      onSuccess(createdWorkspace)
+      createLeoApp(createdWorkspace)
     } catch (error) {
       const { message } = await error.json()
       setCreating(false)
@@ -350,6 +360,16 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
         })
       ])]),
       customMessage && div({ style: { marginTop: '1rem', lineHeight: '1.5rem' } }, [customMessage]),
+      isAzureBillingProject() && div({ style: { paddingTop: '1.0rem', display: 'flex' } },
+        [
+          icon('warning-standard', { size: 16, style: { marginRight: '0.5rem', color: colors.warning() } }),
+          div(['Creating a workspace currently costs about $5 per day. ',
+            h(Link, {
+              href: 'https://support.terra.bio/hc/en-us/articles/12029087819291',
+              ...Utils.newTabLinkProps
+            }, ['Learn more and follow changes.'])])
+        ]
+      ),
       createError && div({
         style: { marginTop: '1rem', color: colors.danger() }
       }, [createError]),

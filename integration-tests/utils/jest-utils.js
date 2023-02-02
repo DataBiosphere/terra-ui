@@ -23,7 +23,7 @@ const {
   CLUSTER_TIMEOUT_MINUTES: clusterTimeout = 120
 } = process.env
 
-const targetEnvParams = _.merge({ ...envs[environment] }, { billingProject, snapshotColumnName, snapshotId, snapshotTableName, testUrl, workflowName })
+const targetEnvParams = _.merge({ ...envs[environment], environment }, { billingProject, snapshotColumnName, snapshotId, snapshotTableName, testUrl, workflowName })
 
 const registerTest = ({ fn, name, timeout = defaultTimeout, targetEnvironments = _.keys(envs) }) => {
   return _.includes(environment, targetEnvironments) ? test(

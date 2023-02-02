@@ -4,10 +4,10 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { parseGsUri } from 'src/components/data/data-utils'
 import { Ajax } from 'src/libs/ajax'
-import { getUser } from 'src/libs/auth'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { notify } from 'src/libs/notifications'
 import { useCancellation } from 'src/libs/react-utils'
+import { getUser } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 

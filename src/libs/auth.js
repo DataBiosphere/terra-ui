@@ -8,7 +8,6 @@ import { getLocalStorage, getSessionStorage } from 'src/libs/browser-storage'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import { captureAppcuesEvent } from 'src/libs/events'
-import * as Nav from 'src/libs/nav'
 import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs'
 import allProviders from 'src/libs/providers'
@@ -17,9 +16,6 @@ import {
   workspacesStore, workspaceStore
 } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-
-
-export { getUser }
 
 
 export const getOidcConfig = () => {
@@ -68,7 +64,6 @@ export const signOut = () => {
   revokeTokens()
     .finally(() => auth.removeUser())
     .finally(() => auth.clearStaleState())
-  Nav.goToPath('root')
 }
 
 export const signOutAfterSessionTimeout = () => {
@@ -253,7 +248,7 @@ const initializeTermsOfService = (isSignedIn, state) => {
     currentVersion: isSignedIn ? state.termsOfService.currentVersion : undefined,
     userAcceptedVersion: isSignedIn ? state.termsOfService.userAcceptedVersion : undefined,
     userCanUseTerra: isSignedIn ? state.termsOfService.userCanUseTerra : undefined,
-    showTosPopup: isSignedIn ? state.termsOfService.showTosPopup : undefined
+    showTosPopup: isSignedIn ? state.termsOfService.showTosPopup : undefined,
   }
 }
 

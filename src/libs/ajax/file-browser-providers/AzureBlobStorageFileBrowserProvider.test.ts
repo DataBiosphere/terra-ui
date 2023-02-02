@@ -3,8 +3,9 @@ import { fetchOk } from 'src/libs/ajax/ajax-common'
 import { AzureStorageContract } from 'src/libs/ajax/AzureStorage'
 import AzureBlobStorageFileBrowserProvider from 'src/libs/ajax/file-browser-providers/AzureBlobStorageFileBrowserProvider'
 import { FileBrowserDirectory, FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
-import * as Utils from 'src/libs/utils'
 import { asMockedFn } from 'src/testing/test-utils'
+
+import * as Utils from '../../utils'
 
 
 jest.mock('src/libs/ajax/ajax-common', () => ({

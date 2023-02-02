@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import ButtonBar from 'src/components/ButtonBar'
 import Modal from 'src/components/Modal'
-import { getUser, signOut } from 'src/libs/auth'
+import { signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import { useCurrentTime, useOnMount, useStore } from 'src/libs/react-utils'
-import { authStore, lastActiveTimeStore } from 'src/libs/state'
+import { authStore, getUser, lastActiveTimeStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 

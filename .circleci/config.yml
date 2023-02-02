@@ -281,13 +281,13 @@ jobs:
           env: staging
   integration-tests-alpha:
     executor: puppeteer
-    parallelism: 1
+    parallelism: 4
     steps:
       - integration-tests:
           env: alpha
   integration-tests-staging:
     executor: puppeteer
-    parallelism: 1
+    parallelism: 4
     steps:
       - integration-tests:
           env: staging

@@ -21,6 +21,7 @@ const eventsList = {
   analysisLaunch: 'analysis:launch',
   analysisCreate: 'analysis:create',
   analysisToggleJupyterLabGCP: 'analysis:toggleJupyterLabGCP',
+  analysisAzureJupyterLabCreate: 'analysis:azureJupyterLabCreate',
   billingProjectExpandWorkspace: 'billing:project:workspace:expand',
   billingProjectGoToWorkspace: 'billing:project:workspace:navigate',
   billingProjectOpenFromList: 'billing:project:open-from-list',

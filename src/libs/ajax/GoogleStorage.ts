@@ -15,7 +15,7 @@ import {
   getFileName
 } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import {
-  getToolFromFileExtension,
+  getToolLabelFromFileExtension,
   runtimeTools,
   ToolLabel,
   toolLabels
@@ -79,7 +79,6 @@ const getServiceAccountToken: (googleProject: string, token: string) => Promise<
   return res.json()
 }, {
   expires: 1000 * 60 * 30,
-  // @ts-expect-error
   keyFn: (...args) => JSON.stringify(args)
 })
 
@@ -190,7 +189,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
           ext: getExtension(name),
           displayName: getDisplayName(name),
           fileName: getFileName(name),
-          tool: getToolFromFileExtension(getExtension(name)) as ToolLabel,
+          tool: getToolLabelFromFileExtension(getExtension(name)) as ToolLabel,
           lastModified: new Date(updated).getTime(),
           cloudProvider: cloudProviderTypes.GCP,
           metadata

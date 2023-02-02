@@ -1,6 +1,7 @@
-import _ from 'lodash/fp'
+import * as _ from 'lodash/fp'
 import { useState } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
+import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { libraryTopMatter } from 'src/components/library-common'
 import { FirstParagraphMarkdownViewer } from 'src/components/markdown'
@@ -15,40 +16,47 @@ import { useOnMount } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { SearchAndFilterComponent } from 'src/pages/library/common'
+import { cloudProviderLabels, cloudProviderTypes } from 'src/libs/workspace-utils'
+import { SearchAndFilterComponent } from 'src/pages/library/SearchAndFilterComponent'
 
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
-const sidebarSections = [{
-  name: 'Getting Started',
-  labels: ['Workflow Tutorials', 'Notebook Tutorials', 'Data Tutorials', 'RStudio Tutorials', 'Galaxy Tutorials']
+// All workspaces match by their tags
+export const sidebarSections = _.map(section => ({ matchBy: (workspace, value) => _.contains(_.toLower(value), workspace.tags.items), ...section }), [{
+  header: 'Cloud Platform',
+  values: [cloudProviderLabels.GCP, cloudProviderLabels.AZURE],
 }, {
-  name: 'Analysis Tools',
-  labels: ['WDLs', 'Jupyter Notebooks', 'RStudio', 'Galaxy', 'Hail', 'Bioconductor', 'GATK', 'Cumulus', 'Spark']
+  header: 'Getting Started',
+  values: ['Workflow Tutorials', 'Notebook Tutorials', 'Data Tutorials', 'RStudio Tutorials', 'Galaxy Tutorials']
 }, {
-  name: 'Experimental Strategy',
-  labels: ['GWAS', 'Exome Analysis', 'Whole Genome Analysis', 'Fusion Transcript Detection', 'RNA Analysis', 'Machine Learning',
+  header: 'Analysis Tools',
+  values: ['WDLs', 'Jupyter Notebooks', 'RStudio', 'Galaxy', 'Hail', 'Bioconductor', 'GATK', 'Cumulus', 'Spark']
+}, {
+  header: 'Experimental Strategy',
+  values: ['GWAS', 'Exome Analysis', 'Whole Genome Analysis', 'Fusion Transcript Detection', 'RNA Analysis', 'Machine Learning',
     'Variant Discovery', 'Epigenomics', 'DNA Methylation', 'Copy Number Variation', 'Structural Variation', 'Functional Annotation']
 }, {
-  name: 'Data Generation Technology',
-  labels: ['10x analysis', 'Bisulfate Sequencing']
+  header: 'Data Generation Technology',
+  values: ['10x analysis', 'Bisulfate Sequencing']
 }, {
-  name: 'Scientific Domain',
-  labels: ['Cancer', 'Infectious Diseases', 'MPG', 'Single-cell', 'Immunology', 'Neurodegenerative Diseases']
+  header: 'Scientific Domain',
+  values: ['Cancer', 'Infectious Diseases', 'MPG', 'Single-cell', 'Immunology', 'Neurodegenerative Diseases']
 }, {
-  name: 'Datasets',
-  labels: ['AnVIL', 'CMG', 'CCDG', 'TopMed', 'HCA', 'TARGET', 'ENCODE', 'BioData Catalyst', 'TCGA', '1000 Genomes', 'BRAIN Initiative',
+  header: 'Datasets',
+  values: ['AnVIL', 'CMG', 'CCDG', 'TopMed', 'HCA', 'TARGET', 'ENCODE', 'BioData Catalyst', 'TCGA', '1000 Genomes', 'BRAIN Initiative',
     'gnomAD', 'NCI', 'COVID-19', 'AMP PD']
 }, {
-  name: 'Utilities',
-  labels: ['Format Conversion', 'Developer Tools']
+  header: 'Utilities',
+  values: ['Format Conversion', 'Developer Tools']
 }, {
-  name: 'Projects',
-  labels: ['HCA', 'AnVIL', 'BRAIN Initiative', 'BioData Catalyst', 'NCI', 'AMP PD']
+  header: 'Projects',
+  values: ['HCA', 'AnVIL', 'BRAIN Initiative', 'BioData Catalyst', 'NCI', 'AMP PD']
 }]
+)
 
 const WorkspaceCard = ({ workspace }) => {
-  const { namespace, name, created, description } = workspace
+  const { namespace, name, cloudPlatform, created, description } = workspace
+
   return a({
     href: Nav.getLink('workspace-dashboard', { namespace, name }),
     style: {
@@ -74,7 +82,14 @@ const WorkspaceCard = ({ workspace }) => {
     div({ style: { flex: 1, minWidth: 0, padding: '15px 20px', overflow: 'hidden' } }, [
       div({ style: { display: 'flex' } }, [
         div({ style: { flex: 1, color: colors.accent(), fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
-        created && div([Utils.makeStandardDate(created)])
+        created && div([Utils.makeStandardDate(created)]),
+        (cloudPlatform === 'Azure' || cloudPlatform === 'Gcp') && h(CloudProviderIcon, {
+          cloudProvider: {
+            Azure: cloudProviderTypes.AZURE,
+            Gcp: cloudProviderTypes.GCP,
+          }[cloudPlatform],
+          style: { marginLeft: '1ch' },
+        }),
       ]),
       h(FirstParagraphMarkdownViewer, {
         style: { margin: 0, fontSize: '14px', lineHeight: '20px', height: 100, overflow: 'hidden' }
@@ -91,12 +106,21 @@ const Showcase = () => {
     const loadData = withErrorReporting('Error loading showcase', async () => {
       const showcase = await Ajax().FirecloudBucket.getShowcaseWorkspaces()
 
-      // Immediately lowercase the workspace tags so we don't have to think about it again.
-      // Also pre-compute lower name and description.
-      const featuredWorkspaces = _.map(workspace => ({
-        ...workspace,
-        tags: _.update(['items'], _.map(_.toLower), workspace.tags)
-      }), showcase)
+      const featuredWorkspaces = _.map(workspace => {
+        // SearchAndFilterComponent compares lowercased filters from the sidebar to
+        // unmodified tags. Thus, tags must be lowercased for SearchAndFilterComponent
+        // to work properly.
+        const tags = _.map(_.toLower, workspace.tags.items)
+
+        // Add cloud provider tag to allow filtering by cloud provider.
+        if (workspace.cloudPlatform === 'Azure') {
+          tags.push(_.toLower(cloudProviderLabels.AZURE))
+        } else if (workspace.cloudPlatform === 'Gcp') {
+          tags.push(_.toLower(cloudProviderLabels.GCP))
+        }
+
+        return _.set('tags.items', tags, workspace)
+      }, showcase)
 
       setFullList(featuredWorkspaces)
 

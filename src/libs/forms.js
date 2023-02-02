@@ -1,4 +1,4 @@
-import { div, label } from 'react-hyperscript-helpers'
+import { div, label, legend } from 'react-hyperscript-helpers'
 import * as Style from 'src/libs/style'
 
 
@@ -17,6 +17,10 @@ const styles = {
 
 export const FormLabel = ({ style = {}, required = false, children, ...props }) => {
   return label({ ...props, style: { ...styles.formLabel, ...style } }, [children, required && ' *'])
+}
+
+export const FormLegend = ({ style = {}, children, ...props }) => {
+  return legend({ ...props, style: { ...styles.formLabel, ...style } }, [children])
 }
 
 export const formHint = text => {

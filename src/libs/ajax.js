@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
+import { createContext, useContext } from 'react'
 import {
   appIdentifier, authOpts, fetchAgora, fetchBond, fetchDataRepo, fetchDockstore,
   fetchDrsHub,
@@ -13,12 +14,12 @@ import { Catalog } from 'src/libs/ajax/Catalog'
 import { Disks } from 'src/libs/ajax/Disks'
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage'
 import { Metrics } from 'src/libs/ajax/Metrics'
-import { Resources } from 'src/libs/ajax/Resources'
 import { Runtimes } from 'src/libs/ajax/Runtimes'
+import { SamResources } from 'src/libs/ajax/SamResources'
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService'
-import { getUser } from 'src/libs/auth'
+import { WorkspaceManagerResources } from 'src/libs/ajax/WorkspaceManagerResources'
 import { getConfig } from 'src/libs/config'
-import { withErrorIgnoring } from 'src/libs/error'
+import { getUser } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -1009,16 +1010,14 @@ const OAuth2 = signal => ({
 })
 
 const Surveys = signal => ({
-  submitForm: withErrorIgnoring((formId, data) => {
-    return fetchGoogleForms(`${formId}/formResponse?${qs.stringify(data)}`, { signal })
-  })
+  submitForm: (formId, data) => fetchGoogleForms(`${formId}/formResponse?${qs.stringify(data)}`, { signal })
 })
 
 export const Ajax = signal => {
   return {
     User: User(signal),
     Groups: Groups(signal),
-    Resources: Resources(),
+    SamResources: SamResources(),
     Billing: Billing(signal),
     Workspaces: Workspaces(signal),
     Catalog: Catalog(signal),
@@ -1038,9 +1037,18 @@ export const Ajax = signal => {
     FirecloudBucket: FirecloudBucket(signal),
     OAuth2: OAuth2(signal),
     Surveys: Surveys(signal),
-    WorkspaceData: WorkspaceData(signal)
+    WorkspaceData: WorkspaceData(signal),
+    WorkspaceManagerResources: WorkspaceManagerResources(signal)
   }
 }
 
 // Exposing Ajax for use by integration tests (and debugging, or whatever)
 window.Ajax = Ajax
+
+// Experimental: Pulling Ajax from context allows replacing for usage outside of Terra UI.
+// https://github.com/DataBiosphere/terra-ui/pull/3669
+export const ajaxContext = createContext(Ajax)
+
+// Experimental: Pulling Ajax from context allows replacing for usage outside of Terra UI.
+// https://github.com/DataBiosphere/terra-ui/pull/3669
+export const useReplaceableAjaxExperimental = () => useContext(ajaxContext)

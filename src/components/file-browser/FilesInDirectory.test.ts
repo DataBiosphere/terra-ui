@@ -60,6 +60,8 @@ describe('FilesInDirectory', () => {
       selectedFiles: {},
       setSelectedFiles: () => {},
       onClickFile: jest.fn(),
+      onCreateDirectory: () => {},
+      onDeleteDirectory: () => {},
       onError: () => {},
     }))
 
@@ -96,6 +98,8 @@ describe('FilesInDirectory', () => {
       selectedFiles: {},
       setSelectedFiles: () => {},
       onClickFile: jest.fn(),
+      onCreateDirectory: () => {},
+      onDeleteDirectory: () => {},
       onError: () => {},
     }))
 
@@ -128,6 +132,8 @@ describe('FilesInDirectory', () => {
         selectedFiles: {},
         setSelectedFiles: () => {},
         onClickFile: jest.fn(),
+        onCreateDirectory: () => {},
+        onDeleteDirectory: () => {},
         onError: () => {},
       }))
 
@@ -157,6 +163,8 @@ describe('FilesInDirectory', () => {
       selectedFiles: {},
       setSelectedFiles: () => {},
       onClickFile: jest.fn(),
+      onCreateDirectory: () => {},
+      onDeleteDirectory: () => {},
       onError,
     }))
 
@@ -202,6 +210,8 @@ describe('FilesInDirectory', () => {
         selectedFiles: {},
         setSelectedFiles: () => {},
         onClickFile: jest.fn(),
+        onCreateDirectory: () => {},
+        onDeleteDirectory: () => {},
         onError: () => {},
       }))
 
@@ -222,6 +232,8 @@ describe('FilesInDirectory', () => {
         selectedFiles: {},
         setSelectedFiles: () => {},
         onClickFile: jest.fn(),
+        onCreateDirectory: () => {},
+        onDeleteDirectory: () => {},
         onError: () => {},
       }))
 
@@ -255,6 +267,8 @@ describe('FilesInDirectory', () => {
       selectedFiles: {},
       setSelectedFiles: () => {},
       onClickFile: jest.fn(),
+      onCreateDirectory: () => {},
+      onDeleteDirectory: () => {},
       onError: () => {},
     }))
 
@@ -267,5 +281,47 @@ describe('FilesInDirectory', () => {
 
     // Assert
     expect(uploadFileToDirectory).toHaveBeenCalledWith('path/to/directory/', file)
+  })
+
+  it('allows deleting empty folders', async () => {
+    // Arrange
+    const user = userEvent.setup()
+
+    const deleteEmptyDirectory = jest.fn(() => Promise.resolve())
+    const mockProvider = {
+      supportsEmptyDirectories: true,
+      deleteEmptyDirectory,
+    } as Partial<FileBrowserProvider> as FileBrowserProvider
+
+    const onDeleteDirectory = jest.fn()
+
+    const useFilesInDirectoryResult: UseFilesInDirectoryResult = {
+      state: { status: 'Ready', files: [] },
+      hasNextPage: false,
+      loadNextPage: () => Promise.resolve(),
+      loadAllRemainingItems: () => Promise.resolve(),
+      reload: () => Promise.resolve()
+    }
+
+    asMockedFn(useFilesInDirectory).mockReturnValue(useFilesInDirectoryResult)
+
+    render(h(FilesInDirectory, {
+      provider: mockProvider,
+      path: 'path/to/directory/',
+      selectedFiles: {},
+      setSelectedFiles: () => {},
+      onClickFile: jest.fn(),
+      onCreateDirectory: () => {},
+      onDeleteDirectory,
+      onError: () => {},
+    }))
+
+    // Act
+    const deleteButton = screen.getByText('Delete this folder')
+    await act(() => user.click(deleteButton))
+
+    // Assert
+    expect(deleteEmptyDirectory).toHaveBeenCalledWith('path/to/directory/')
+    expect(onDeleteDirectory).toHaveBeenCalled()
   })
 })
