@@ -1014,7 +1014,8 @@ const WorkspaceData = _.flow(
       h(SidebarSeparator, { sidebarWidth, setSidebarWidth }),
       div({ style: styles.tableViewPanel }, [
         _.includes(selectedData?.type, [workspaceDataTypes.entities, workspaceDataTypes.entitiesVersion]) && h(DataTableFeaturePreviewFeedbackBanner),
-        Utils.switchCase(selectedData?.type, [undefined, () => Utils.cond([!wdsReady && isAzureWorkspace, () => div({ style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' } },
+        Utils.cond([createdBy === getUser()?.email || isGoogleWorkspace, () => Utils.switchCase(selectedData?.type, [undefined, () => Utils.cond([!wdsReady && isAzureWorkspace, () => div({ style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' } },
+
           [icon('loadingSpinner'),
             ' The database that powers your data tables is unavailable. It may take a few minutes after initial workspace creation to be ready. If you think something has gone wrong, please reach out to support@terra.bio and include information from our ',
             h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['Troubleshoot']), ' page.'])],
@@ -1095,7 +1096,8 @@ const WorkspaceData = _.flow(
           recordType: selectedData.entityType,
           wdsSchema: wdsTypes.state
         })]
-        )
+        )], () => div({ style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' } }, ['Currently, only a workspace creator can use data tables. If you were invited to this workspace, you can use the clone feature to create your own workspace to use data tables.']))
+      // ]
       ])
     ])
   ])
