@@ -1756,7 +1756,7 @@ export const ComputeModalBase = ({
     ])
   }
 
-  const idDiskSize = useUniqueId()
+  const diskSizeId = useUniqueId()
   const persistentDiskId = useUniqueId()
   const RenderPersistentDiskSection = diskExists => {
     const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
@@ -1800,10 +1800,10 @@ export const ComputeModalBase = ({
                 side: 'bottom'
               }, [RenderPersistentDiskType()]) : RenderPersistentDiskType(),
             h(div, [
-              label({ htmlFor: idDiskSize, style: computeStyles.label }, ['Disk Size (GB)']),
+              label({ htmlFor: diskSizeId, style: computeStyles.label }, ['Disk Size (GB)']),
               div({ style: { marginTop: '0.5rem' } }, [
                 h(NumberInput, {
-                  id: idDiskSize,
+                  id: diskSizeId,
                   min: 10,
                   max: 64000,
                   isClearable: false,
