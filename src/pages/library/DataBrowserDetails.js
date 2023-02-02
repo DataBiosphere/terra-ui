@@ -7,6 +7,7 @@ import { FeaturePreviewFeedbackModal } from 'src/components/FeaturePreviewFeedba
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
+import { MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
@@ -104,7 +105,7 @@ const MainContent = ({ dataObj }) => {
         workspaceName
       ])
     ]),
-    dataObj['dct:description'],
+    h(MarkdownViewer, [dataObj['dct:description']]),
     h(MetadataDetailsComponent, { dataObj })
   ])
 }
