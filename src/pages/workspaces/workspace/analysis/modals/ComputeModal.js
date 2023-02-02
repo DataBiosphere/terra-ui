@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, br, code, div, fieldset, h, label, legend, li, p, span, strong, ul } from 'react-hyperscript-helpers'
 import { ClipboardButton } from 'src/components/ClipboardButton'
-import { ButtonOutline, ButtonPrimary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay, useUniqueId } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
@@ -19,7 +19,7 @@ import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { betaVersionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
-import { useOnMount, useUniqueId } from 'src/libs/react-utils'
+import { useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
@@ -33,7 +33,6 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { getToolLabelForImage, getToolLabelFromRuntime, runtimeTools, terraSupportedRuntimeImageIds, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import validate from 'validate.js'
-
 
 // Change to true to enable a debugging panel (intended for dev mode only)
 const showDebugPanel = false
@@ -1699,7 +1698,7 @@ export const ComputeModalBase = ({
         div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
           renderApplicationConfigurationSection(),
           renderComputeProfileSection(existingRuntime),
-          !!isPersistentDisk && renderPersistentDiskSection(existingPersistentDisk),
+          !!isPersistentDisk && RenderPersistentDiskSection(existingPersistentDisk),
           isGce(runtimeType) && !isPersistentDisk && div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
               'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
@@ -1757,11 +1756,16 @@ export const ComputeModalBase = ({
     ])
   }
 
-  const renderPersistentDiskSection = diskExists => {
+  const RenderPersistentDiskSection = diskExists => {
+    const idDiskSize = useUniqueId()
+
     const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
 
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const renderPersistentDiskType = id => h(div, [
+    const RenderPersistentDiskType = () => {
+      const id = useUniqueId()
+
+      return (
+        h(div, [
       label({ htmlFor: id, style: computeStyles.label }, ['Disk Type']),
       div({ style: { marginTop: '0.5rem' } }, [
         h(Select, {
@@ -1778,11 +1782,8 @@ export const ComputeModalBase = ({
         })
       ])
     ])
-
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const idPersistentDisk = useUniqueId()
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const idDiskSize = useUniqueId()
+    )
+  }
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
         h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
           label({ style: computeStyles.label }, ['Persistent disk']),
@@ -1799,7 +1800,7 @@ export const ComputeModalBase = ({
                   'Please delete the existing disk before selecting a new type.'
                 ],
                 side: 'bottom'
-              }, [renderPersistentDiskType(idPersistentDisk)]) : renderPersistentDiskType(idPersistentDisk),
+              }, [RenderPersistentDiskType()]) : RenderPersistentDiskType(),
             h(div, [
               label({ htmlFor: idDiskSize, style: computeStyles.label }, ['Disk Size (GB)']),
               div({ style: { marginTop: '0.5rem' } }, [
