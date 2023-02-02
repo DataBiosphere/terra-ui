@@ -19,6 +19,7 @@ import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl, refreshTerraProfile } from 'src/libs/auth'
+import { getRegionFlag, getRegionLabel } from 'src/libs/azure-utils'
 import { getEnabledBrand } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -534,9 +535,9 @@ const WorkspaceDashboard = _.flow(
         h(InfoRow, { title: 'Cloud Name' }, [
           h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } })
         ]),
-        // h(InfoRow, { title: 'Location' }, [
-        //   h(TooltipCell, !!storageLocation ? [getRegionFlag(storageLocation), ' ', getRegionLabel(storageLocation)] : ['Loading'])
-        // ]), depends on TOAZ-265
+        h(InfoRow, { title: 'Location' }, [
+          h(TooltipCell, !!storageLocation ? [getRegionFlag(storageLocation), ' ', getRegionLabel(storageLocation)] : ['Loading'])
+        ]),
         h(InfoRow, { title: 'Resource Group ID' }, [
           h(TooltipCell, [azureContext.managedResourceGroupId]),
           h(ClipboardButton,

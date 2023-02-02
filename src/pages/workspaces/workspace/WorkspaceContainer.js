@@ -15,7 +15,6 @@ import { Ajax } from 'src/libs/ajax'
 import { saToken } from 'src/libs/ajax/GoogleStorage'
 import { isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
@@ -87,7 +86,6 @@ const WorkspaceTabs = ({
   const isLocked = workspace?.workspace.isLocked
   const workspaceLoaded = !!workspace
   const googleWorkspace = workspaceLoaded && isGoogleWorkspace(workspace)
-  const isDataTabShown = googleWorkspace || !getConfig().isProd
 
   const onClone = () => setCloningWorkspace(true)
   const onDelete = () => setDeletingWorkspace(true)
@@ -97,7 +95,7 @@ const WorkspaceTabs = ({
 
   const tabs = [
     { name: 'dashboard', link: 'workspace-dashboard' },
-    ...(isDataTabShown ? [{ name: 'data', link: 'workspace-data' }] : []),
+    { name: 'data', link: 'workspace-data' },
     { name: 'analyses', link: analysisTabName },
     ...(googleWorkspace ? [{ name: 'workflows', link: 'workspace-workflows' }] : []),
     ...(googleWorkspace ? [{ name: 'job history', link: 'workspace-job-history' }] : [])
@@ -291,7 +289,7 @@ const useAppPolling = (googleProject, workspaceName, workspace) => {
     try {
       const newGoogleApps = !!workspace && isGoogleWorkspace(workspace) ?
         await Ajax(signal).Apps.list(googleProject, { role: 'creator', saturnWorkspaceName: workspaceName }) : []
-      const newAzureApps = !!workspace && isAzureWorkspace(workspace) ? await Ajax(signal).Apps.getV2AppInfo(workspace.workspace.workspaceId) : []
+      const newAzureApps = !!workspace && isAzureWorkspace(workspace) ? await Ajax(signal).Apps.listAppsV2(workspace.workspace.workspaceId) : []
       const combinedNewApps = [...newGoogleApps, ...newAzureApps]
 
       setApps(combinedNewApps)

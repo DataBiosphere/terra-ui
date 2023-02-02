@@ -43,11 +43,13 @@ const DeleteRuntimeModal = ({
     Utils.withBusyState(setDeleting),
     withErrorReporting('Error deleting cloud environment')
   )(async () => {
+    // delete the disk always if in azure
     isGcpContext(cloudContext) ?
       await ajax().Runtimes.runtime(googleProject, runtimeName).delete(deleteDisk) :
-      await ajax().Runtimes.runtimeV2(workspaceId, runtimeName).delete(deleteDisk)
+      await ajax().Runtimes.runtimeV2(workspaceId, runtimeName).delete(true)
     onSuccess()
   })
+
   return h(Modal, {
     title: 'Delete cloud environment?',
     onDismiss,
@@ -55,9 +57,20 @@ const DeleteRuntimeModal = ({
   }, [
     div({ style: { lineHeight: 1.5 } }, [
       persistentDiskId ?
-        h(LabeledCheckbox, { checked: deleteDisk, onChange: setDeleteDisk }, [
+        (isGcpContext(cloudContext) ? h(LabeledCheckbox, { checked: deleteDisk, onChange: setDeleteDisk }, [
           span({ style: { fontWeight: 600 } }, [' Also delete the persistent disk and all files on it'])
-        ]) :
+        ]) : div({
+          style: {
+            backgroundColor: colors.accent(0.2),
+            display: 'flex',
+            borderRadius: 5,
+            padding: '0.5rem 1rem',
+            marginTop: '1rem',
+            marginBottom: '1rem'
+          }
+        }, [
+          p(['Deleting your Virtual Machine will also delete the attached persistent disk'])
+        ])) :
         p([
           'Deleting this cloud environment will also ', span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk.'])
         ]),
@@ -666,7 +679,7 @@ export const Environments = ({ nav = undefined }) => {
               }
             },
             {
-              size: { min: '10em', grow: 0 },
+              size: { min: '11em', grow: 0 },
               field: 'accessed',
               headerRenderer: () => h(Sortable, { sort, field: 'accessed', onSort: setSort }, ['Last accessed']),
               cellRenderer: ({ rowIndex }) => {
@@ -789,7 +802,7 @@ export const Environments = ({ nav = undefined }) => {
               }
             },
             {
-              size: { min: '10em', grow: 0 },
+              size: { min: '11em', grow: 0 },
               field: 'accessed',
               headerRenderer: () => h(Sortable, { sort: diskSort, field: 'accessed', onSort: setDiskSort }, ['Last accessed']),
               cellRenderer: ({ rowIndex }) => {

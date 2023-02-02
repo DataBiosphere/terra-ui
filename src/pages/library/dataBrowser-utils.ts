@@ -7,11 +7,10 @@ import { Ajax } from 'src/libs/ajax'
 import { DataCollection, Dataset } from 'src/libs/ajax/Catalog'
 import { getEnabledBrand } from 'src/libs/brand-utils'
 import { withErrorReporting } from 'src/libs/error'
-import Events from 'src/libs/events'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { dataCatalogStore } from 'src/libs/state'
+import { withHandlers } from 'src/libs/type-utils/lodash-fp-helpers'
 import * as Utils from 'src/libs/utils'
-import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 import { commonStyles } from 'src/pages/library/SearchAndFilterComponent'
 
 
@@ -99,7 +98,6 @@ interface DatasetAccessProps {
   dataset: Dataset
 }
 export const DatasetAccess = ({ dataset }: DatasetAccessProps) => {
-  const [requestingAccess, setRequestingAccess] = useState(false)
   const access = getDatasetAccessType(dataset)
   const { requestAccessURL } = dataset
   const buttonStyle = { height: 34, textTransform: 'none', padding: '.5rem' }
@@ -114,14 +112,9 @@ export const DatasetAccess = ({ dataset }: DatasetAccessProps) => {
         }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])
       }],
       [access === datasetAccessTypes.Controlled, () => h(ButtonOutline, {
+        tooltip: 'Informal access request not yet supported through Terra, please contact the dataset owner',
         style: buttonStyle,
-        onClick: () => {
-          setRequestingAccess(true)
-          Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
-            id: dataset.id,
-            title: dataset['dct:title']
-          })
-        }
+        disabled: true
       }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
       [access === datasetAccessTypes.Pending, () => div({ style: { color: commonStyles.access.pending, display: 'flex', alignItems: 'center' } }, [
         icon('lock'),
@@ -137,11 +130,7 @@ export const DatasetAccess = ({ dataset }: DatasetAccessProps) => {
       [Utils.DEFAULT, () => div({ style: { color: commonStyles.access.granted, display: 'flex', alignItems: 'center' } }, [
         icon('unlock'),
         div({ style: textStyle }, ['Granted Access'])
-      ])]),
-    requestingAccess && h(RequestDatasetAccessModal, {
-      datasets: [dataset],
-      onDismiss: () => setRequestingAccess(false)
-    })
+      ])])
   ])
 }
 
@@ -161,17 +150,16 @@ export const useDataCatalog = (): DataCatalog => {
   const [loading, setLoading] = useState(false)
   const dataCatalog = useStore(dataCatalogStore) as Dataset[]
 
-  const refresh: () => void = _.flow(
-    // @ts-expect-error
+  const refresh = withHandlers([
     withErrorReporting('Error loading data catalog'),
     Utils.withBusyState(setLoading)
-  )(async () => {
+  ], async (): Promise<void> => {
     const { result: datasets } = await Ajax(signal).Catalog.getDatasets()
     const dataCollectionsToInclude = getEnabledBrand().catalogDataCollectionsToInclude
     const normList = prepareDatasetsForDisplay(datasets, dataCollectionsToInclude)
 
     dataCatalogStore.set(normList)
-  }) as () => void
+  })
   useOnMount(() => {
     _.isEmpty(dataCatalog) && refresh()
   })

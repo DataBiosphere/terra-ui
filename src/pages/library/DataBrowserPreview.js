@@ -15,7 +15,6 @@ import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { datasetAccessTypes, getDatasetAccessType, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
-import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
 const styles = {
@@ -42,20 +41,8 @@ const styles = {
 
 const activeTab = 'datasets'
 
-const DatasetPreviewSelector = ({ access, dataset, selectedTable, setSelectedTable, selectOptions }) => Utils.switchCase(access,
-  [datasetAccessTypes.Controlled, () => div({
-    style: {
-      display: 'flex', flexDirection: 'row', backgroundColor: 'white', fontSize: '1.1rem', lineHeight: '1.7rem', padding: '20px 30px 25px',
-      width: 'fit-content', margin: 'auto'
-    }
-  }, [
-    h(RequestDatasetAccessModal, {
-      datasets: [dataset],
-      onDismiss: () => {
-        Nav.goToPath('library-details', { id: Nav.getCurrentRoute().params.id })
-      }
-    })
-  ])],
+const DatasetPreviewSelector = ({ access, selectedTable, setSelectedTable, selectOptions }) => Utils.switchCase(access,
+  [datasetAccessTypes.Controlled, () => Nav.goToPath('library-details', { id: Nav.getCurrentRoute().params.id })],
   [datasetAccessTypes.Granted, () => h(GroupedSelect, {
     'aria-label': 'data type',
     styles: { container: base => ({ ...base, marginLeft: '1rem', width: 350, marginBottom: 30 }) },

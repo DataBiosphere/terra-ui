@@ -86,7 +86,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
   // Error is ignored here since any errors associated with Leo app creation are not communicated during workspace creation
   // Rather when the user first visits the `Data` tab
   const createLeoApp = withErrorIgnoring(async workspace => {
-    if (isAzureBillingProject() && !getConfig().isProd) {
+    if (isAzureBillingProject()) {
       await Ajax().Apps.createAppV2(`wds-${workspace.workspaceId}`, workspace.workspaceId)
     }
   })

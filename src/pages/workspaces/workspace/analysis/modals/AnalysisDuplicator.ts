@@ -58,7 +58,6 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
     okButton: h(ButtonPrimary, {
       disabled: errors || processing,
       tooltip: Utils.summarizeErrors(errors),
-      // @ts-expect-error
       onClick: withErrorReportingInModal(`Error ${destroyOld ? 'renaming' : 'copying'} analysis`, onDismiss, async () => {
         setProcessing(true)
         const rename = isGoogleWorkspaceInfo(workspaceInfo) ?
