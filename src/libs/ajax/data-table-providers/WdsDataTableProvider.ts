@@ -140,7 +140,7 @@ export const resolveWdsApp = apps => {
 // Extract wds URL from Leo response. exported for testing
 export const resolveWdsUrl = apps => {
   const foundApp = resolveWdsApp(apps)
-  if (['RUNNING', 'PROVISIONING'].includes(foundApp?.status)) {
+  if (foundApp?.status === 'RUNNING') {
     return foundApp.proxyUrls.wds
   }
   return ''

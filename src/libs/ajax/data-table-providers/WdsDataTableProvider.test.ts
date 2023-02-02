@@ -719,7 +719,7 @@ describe('resolveWdsUrl', () => {
   it.each(
     [
       { appStatus: 'RUNNING', expectedUrl: testProxyUrl },
-      { appStatus: 'PROVISIONING', expectedUrl: testProxyUrl },
+      { appStatus: 'PROVISIONING', expectedUrl: '' },
       { appStatus: 'STOPPED', expectedUrl: '' },
       { appStatus: 'STOPPING', expectedUrl: '' }
     ]
