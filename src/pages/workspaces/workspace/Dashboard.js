@@ -219,8 +219,11 @@ const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace 
   }, [workspace, signal])
 
   useEffect(() => {
-    loadBucketLocation()
-  }, [loadBucketLocation])
+    if (workspace?.workspaceInitialized) {
+      // The bucketLocation from the container is not used because it doesn't do anything to handle requestPays (it just ignores errors).
+      loadBucketLocation()
+    }
+  }, [loadBucketLocation, workspace])
 
   if (loading) {
     return 'Loading'
@@ -340,7 +343,7 @@ const WorkspaceDashboard = _.flow(
       loadAcl()
     }
 
-    if (isGoogleWorkspace(workspace)) {
+    if (isGoogleWorkspace(workspace) && workspace.workspaceInitialized) {
       loadStorageCost()
       loadBucketSize()
     }
@@ -360,42 +363,6 @@ const WorkspaceDashboard = _.flow(
       console.log(`Error thrown by AzureStorage.details: ${error}`) // eslint-disable-line no-console
     }
   }, [workspaceId, signal])
-
-  useEffect(() => {
-    if (isAzureWorkspace(workspace)) {
-      if (!storageContainerUrl && !interval.current) {
-        interval.current = setInterval(loadAzureStorage, 5000)
-      } else if (!!storageContainerUrl && interval.current) {
-        clearInterval(interval.current)
-        interval.current = undefined
-      }
-    }
-
-    return () => {
-      clearInterval(interval.current)
-      interval.current = undefined
-    }
-  }, [loadAzureStorage, workspace, storageContainerUrl])
-
-  useImperativeHandle(ref, () => ({ refresh }))
-
-  const [workspaceInfoPanelOpen, setWorkspaceInfoPanelOpen] = useState(() => getLocalPref(persistenceId)?.workspaceInfoPanelOpen)
-  const [cloudInfoPanelOpen, setCloudInfoPanelOpen] = useState(() => getLocalPref(persistenceId)?.cloudInfoPanelOpen || false)
-  const [ownersPanelOpen, setOwnersPanelOpen] = useState(() => getLocalPref(persistenceId)?.ownersPanelOpen || false)
-  const [authDomainPanelOpen, setAuthDomainPanelOpen] = useState(() => getLocalPref(persistenceId)?.authDomainPanelOpen || false)
-  const [tagsPanelOpen, setTagsPanelOpen] = useState(() => getLocalPref(persistenceId)?.tagsPanelOpen || false)
-  const [notificationsPanelOpen, setNotificationsPanelOpen] = useState(() => getLocalPref(persistenceId)?.notificationsPanelOpen || false)
-
-  useEffect(() => {
-    setLocalPref(persistenceId,
-      { workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen, notificationsPanelOpen })
-  }, [persistenceId, workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen, notificationsPanelOpen])
-
-  // Helpers
-  const loadSubmissionCount = withErrorReporting('Error loading submission count data', async () => {
-    const submissions = await Ajax(signal).Workspaces.workspace(namespace, name).listSubmissions()
-    setSubmissionsCount(submissions.length)
-  })
 
   const loadStorageCost = withErrorReporting('Error loading storage cost data', async () => {
     if (Utils.canWrite(accessLevel)) {
@@ -425,6 +392,46 @@ const WorkspaceDashboard = _.flow(
         }
       }
     }
+  })
+
+  useEffect(() => {
+    if (isAzureWorkspace(workspace)) {
+      if (!storageContainerUrl && !interval.current) {
+        interval.current = setInterval(loadAzureStorage, 5000)
+      } else if (!!storageContainerUrl && interval.current) {
+        clearInterval(interval.current)
+        interval.current = undefined
+      }
+    }
+    if (isGoogleWorkspace(workspace) && workspace.workspaceInitialized) {
+      loadStorageCost()
+      loadBucketSize()
+    }
+
+    return () => {
+      clearInterval(interval.current)
+      interval.current = undefined
+    }
+  }, [loadAzureStorage, workspace, storageContainerUrl, loadStorageCost, loadBucketSize])
+
+  useImperativeHandle(ref, () => ({ refresh }))
+
+  const [workspaceInfoPanelOpen, setWorkspaceInfoPanelOpen] = useState(() => getLocalPref(persistenceId)?.workspaceInfoPanelOpen)
+  const [cloudInfoPanelOpen, setCloudInfoPanelOpen] = useState(() => getLocalPref(persistenceId)?.cloudInfoPanelOpen || false)
+  const [ownersPanelOpen, setOwnersPanelOpen] = useState(() => getLocalPref(persistenceId)?.ownersPanelOpen || false)
+  const [authDomainPanelOpen, setAuthDomainPanelOpen] = useState(() => getLocalPref(persistenceId)?.authDomainPanelOpen || false)
+  const [tagsPanelOpen, setTagsPanelOpen] = useState(() => getLocalPref(persistenceId)?.tagsPanelOpen || false)
+  const [notificationsPanelOpen, setNotificationsPanelOpen] = useState(() => getLocalPref(persistenceId)?.notificationsPanelOpen || false)
+
+  useEffect(() => {
+    setLocalPref(persistenceId,
+      { workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen, notificationsPanelOpen })
+  }, [persistenceId, workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen, notificationsPanelOpen])
+
+  // Helpers
+  const loadSubmissionCount = withErrorReporting('Error loading submission count data', async () => {
+    const submissions = await Ajax(signal).Workspaces.workspace(namespace, name).listSubmissions()
+    setSubmissionsCount(submissions.length)
   })
 
   const loadConsent = withErrorReporting('Error loading data', async () => {

@@ -64,17 +64,29 @@ const WorkspacePermissionNotice = ({ workspace }) => {
   ])
 }
 
+const TitleBarWarning = message => {
+  return h(TitleBar, {
+    title: div({ role: 'alert', style: { display: 'flex', alignItems: 'center', margin: '1rem' } }, [
+      icon('warning-standard', { size: 32, style: { color: colors.danger(), marginRight: '0.5rem' } }),
+      span({ style: { color: colors.dark(), fontSize: 14 } }, [message])
+    ]), style: { backgroundColor: colors.accent(0.25) }
+  })
+}
+
 const AzureWarning = () => {
   const warningMessage = 'It is a violation of US Federal Policy to store any Unclassified Confidential Information (ie FISMA, FIPS-199, etc.) in ' +
     'this platform at this time. Do not put this data in this platform unless you are explicitly authorized to by the manager of the Dataset or ' +
     'you have your own agreements in place.'
+  return TitleBarWarning(warningMessage)
+}
 
-  return h(TitleBar, {
-    title: div({ role: 'alert', style: { display: 'flex', alignItems: 'center', margin: '1rem' } }, [
-      icon('warning-standard', { size: 32, style: { color: colors.danger(), marginRight: '0.5rem' } }),
-      span({ style: { color: colors.dark(), fontSize: 14 } }, [warningMessage])
-    ]), style: { backgroundColor: colors.accent(0.25) }
-  })
+
+const GooglePermissionsWarning = () => {
+  const warningMessage = 'This workspace is currently synchronizing its permissions with Google. This can take anywhere from a couple minutes ' +
+    'to a few hours in rare cases. Access to this workspace’s bucket and running analysis in workflows or notebooks may result in errors until ' +
+    'this synchronization is complete.'
+
+  return TitleBarWarning(warningMessage)
 }
 
 const WorkspaceTabs = ({
@@ -113,8 +125,7 @@ const WorkspaceTabs = ({
         callbacks: { onClone, onShare, onLock, onDelete, onLeave },
         workspaceInfo: { canShare, isLocked, isOwner, workspaceLoaded }
       })
-    ]),
-    workspaceLoaded && isAzureWorkspace(workspace) && h(AzureWarning)
+    ])
   ])
 }
 
@@ -135,6 +146,7 @@ const WorkspaceContainer = ({
   const [sharingWorkspace, setSharingWorkspace] = useState(false)
   const [showLockWorkspaceModal, setShowLockWorkspaceModal] = useState(false)
   const [leavingWorkspace, setLeavingWorkspace] = useState(false)
+  const workspaceLoaded = !!workspace
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
@@ -162,6 +174,8 @@ const WorkspaceContainer = ({
       namespace, name, activeTab, refresh, workspace, setDeletingWorkspace, setCloningWorkspace,
       setLeavingWorkspace, setSharingWorkspace, setShowLockWorkspaceModal
     }),
+    workspaceLoaded && isAzureWorkspace(workspace) && h(AzureWarning),
+    workspaceLoaded && isGoogleWorkspace(workspace) && workspace.workspaceInitialized === false && h(GooglePermissionsWarning),
     div({ role: 'main', style: Style.elements.pageContentContainer },
       [div({ style: { flex: 1, display: 'flex' } }, [
         div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [
@@ -328,6 +342,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const [googleProject, setGoogleProject] = useState(workspace?.workspace.googleProject)
     const [azureContext, setAzureContext] = useState(workspace?.azureContext)
     const [{ location, locationType }, setBucketLocation] = useState({ location: defaultLocation, locationType: locationTypes.default })
+    const workspaceInitialized = workspace?.workspaceInitialized // will be stored in cached workspace
 
     const prevGoogleProject = usePrevious(googleProject)
     const prevAzureContext = usePrevious(azureContext)
@@ -343,11 +358,48 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }
     }
 
-    const loadBucketLocation = withErrorIgnoring(async (googleProject, bucketName) => {
-      if (!!googleProject) {
-        const bucketLocation = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
-        setBucketLocation(bucketLocation)
+    const checkInitializationTimeout = useRef()
+
+    const updateWorkspaceInStore = (workspace, initialized) => {
+      workspace.workspaceInitialized = initialized
+      // clone to force React to re-render components that depend on workspace
+      workspaceStore.set(_.clone(workspace))
+    }
+
+    const checkWorkspaceInitialization = async workspace => {
+      if (!!workspace && !workspaceInitialized) {
+        if (isGoogleWorkspace(workspace)) {
+          await checkGooglePermissions(workspace)
+        } else {
+          updateWorkspaceInStore(workspace, true)
+        }
+      } else if (!!workspace && isGoogleWorkspace(workspace)) {
+        await loadGoogleBucketLocation(workspace)
+        // console.log('Google, skipping initialization check')
       }
+    }
+
+    const checkGooglePermissions = async workspace => {
+      try {
+        // console.log('making ajax call')
+        await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketReadAccess() // REQUESTER PAYS!!, also having trouble if you just a writer.
+        // console.log("got success status!!!!!!")
+        updateWorkspaceInStore(workspace, true)
+        loadGoogleBucketLocation(workspace)
+      } catch (error) {
+        updateWorkspaceInStore(workspace, false)
+        // console.log(error)
+        // console.log(`Google permissions are still syncing ${error}`) // eslint-disable-line no-console
+        // TODO: check for requesterPays error
+        checkInitializationTimeout.current = setTimeout(() => checkWorkspaceInitialization(workspace), 15000)
+      }
+    }
+
+    // withErrorIgnoring because of requesterPays
+    const loadGoogleBucketLocation = withErrorIgnoring(async workspace => {
+      const bucketLocation = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(workspace.workspace.googleProject, workspace.workspace.bucketName)
+      // console.log("setting bucketLocation " + bucketLocation.location)
+      setBucketLocation(bucketLocation)
     })
 
     const refreshWorkspace = _.flow(
@@ -360,14 +412,15 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
           'workspace', 'workspace.attributes', 'workspace.authorizationDomain', 'workspace.cloudPlatform',
           'workspace.isLocked', 'workspace.workspaceId', 'workspaceSubmissionStats'
         ])
-        workspaceStore.set(workspace)
+        updateWorkspaceInStore(workspace, workspaceInitialized)
         setGoogleProject(workspace.workspace.googleProject)
         setAzureContext(workspace.azureContext)
         updateRecentlyViewedWorkspaces(workspace.workspace.workspaceId)
 
-        const { accessLevel, workspace: { bucketName, createdBy, createdDate, googleProject } } = workspace
+        const { accessLevel, workspace: { createdBy, createdDate, googleProject } } = workspace
 
-        loadBucketLocation(googleProject, bucketName)
+        checkWorkspaceInitialization(workspace)
+
         // Request a service account token. If this is the first time, it could take some time before everything is in sync.
         // Doing this now, even though we don't explicitly need it now, increases the likelihood that it will be ready when it is needed.
         if (Utils.canWrite(accessLevel) && isGoogleWorkspace(workspace)) {
@@ -400,8 +453,9 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       if (!workspace) {
         refreshWorkspace()
       } else {
-        loadBucketLocation(googleProject, workspace.workspace.bucketName)
+        checkWorkspaceInitialization(workspace)
       }
+      return () => clearTimeout(checkInitializationTimeout.current)
     })
 
     if (accessError) {
