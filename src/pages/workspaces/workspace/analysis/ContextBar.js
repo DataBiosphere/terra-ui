@@ -63,7 +63,7 @@ export const ContextBar = ({
   const computeRegion = getRegionInfo(location, locationType).computeRegion
   const currentRuntime = getCurrentRuntime(runtimes)
   const currentRuntimeTool = currentRuntime?.labels?.tool
-  const isTerminalEnabled = currentRuntimeTool === toolLabels.Jupyter && currentRuntime && currentRuntime.status !== 'Error'
+  const isTerminalVisible = currentRuntimeTool === toolLabels.Jupyter && currentRuntime && currentRuntime.status !== 'Error'
   const terminalLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: 'terminal' })
   const canCompute = !!(workspace?.canCompute || runtimes?.length)
 
@@ -205,8 +205,8 @@ export const ContextBar = ({
           ]),
           getEnvironmentStatusIcons()
         ]),
-        isTerminalEnabled && h(Clickable, {
-          style: { borderTop: `1px solid ${colors.accent()}`, paddingLeft: '1rem', alignItems: 'center', ...contextBarStyles.contextBarButton, color: !isTerminalEnabled ? colors.dark(0.7) : contextBarStyles.contextBarButton.color },
+        isTerminalVisible && h(Clickable, {
+          style: { borderTop: `1px solid ${colors.accent()}`, paddingLeft: '1rem', alignItems: 'center', ...contextBarStyles.contextBarButton, color: !isTerminalVisible ? colors.dark(0.7) : contextBarStyles.contextBarButton.color },
           hover: contextBarStyles.hover,
           'data-testid': 'terminal-button-id',
           tooltipSide: 'left',
