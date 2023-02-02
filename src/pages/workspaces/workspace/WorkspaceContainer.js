@@ -138,7 +138,8 @@ export const isV1Artifact = _.curry((workspace, { googleProject, cloudContext })
 
 const WorkspaceContainer = ({
   namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true,
-  analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks, location, locationType },
+  analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+  storageDetails: { googleBucketLocation, googleBucketType },
   refresh, workspace, refreshWorkspace, children
 }) => {
   const [deletingWorkspace, setDeletingWorkspace] = useState(false)
@@ -182,7 +183,8 @@ const WorkspaceContainer = ({
           children
         ]),
         workspace && h(ContextBar, {
-          workspace, apps, appDataDisks, refreshApps, runtimes, persistentDisks, refreshRuntimes, location, locationType
+          workspace, apps, appDataDisks, refreshApps, runtimes, persistentDisks, refreshRuntimes,
+          location: googleBucketLocation, locationType: googleBucketType
         })
       ])]
     ),
@@ -341,10 +343,9 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       undefined
     const [googleProject, setGoogleProject] = useState(workspace?.workspace.googleProject)
     const [azureContext, setAzureContext] = useState(workspace?.azureContext)
-    const [{ location, locationType }, setBucketLocation] = useState({ location: defaultLocation, locationType: locationTypes.default })
+    const [{ location, locationType }, setGoogleStorage] = useState({ location: defaultLocation, locationType: locationTypes.default })
     /* eslint-disable @typescript-eslint/no-unused-vars */
-    const [azureStorage, setAzureStorage] = useState(
-      { storageContainerUrl: undefined, storageLocation: undefined, sas: {} })
+    const [azureStorage, setAzureStorage] = useState({ storageContainerUrl: undefined, location: undefined, sasUrl: undefined })
     const workspaceInitialized = workspace?.workspaceInitialized // will be stored in cached workspace
 
     const prevGoogleProject = usePrevious(googleProject)
@@ -388,32 +389,40 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
 
     const checkGooglePermissions = async workspace => {
       try {
-        // console.log('making ajax call')
         await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketReadAccess() // REQUESTER PAYS!!, also having trouble if you just a writer.
         // console.log("got success status!!!!!!")
         updateWorkspaceInStore(workspace, true)
         loadGoogleBucketLocation(workspace)
       } catch (error) {
-        updateWorkspaceInStore(workspace, false)
-        // console.log(error)
-        // console.log(`Google permissions are still syncing ${error}`) // eslint-disable-line no-console
-        // TODO: check for requesterPays error
-        checkInitializationTimeout.current = setTimeout(() => checkWorkspaceInitialization(workspace), 15000)
+        const errorText = await error.text()
+        const requesterPaysError = _.includes('requester pays', errorText)
+        if (requesterPaysError) {
+          updateWorkspaceInStore(workspace, true)
+        } else {
+          updateWorkspaceInStore(workspace, false)
+          // console.log(error)
+          // console.log(`Google permissions are still syncing ${error}`) // eslint-disable-line no-console
+          checkInitializationTimeout.current = setTimeout(() => checkWorkspaceInitialization(workspace), 15000)
+        }
       }
     }
 
-    // withErrorIgnoring because of requesterPays
+    // Note that withErrorIgnoring is used because checkBucketLocation will error for requester pays workspaces.
     const loadGoogleBucketLocation = withErrorIgnoring(async workspace => {
-      const bucketLocation = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(workspace.workspace.googleProject, workspace.workspace.bucketName)
+      const storageDetails = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(workspace.workspace.googleProject, workspace.workspace.bucketName)
       // console.log("setting bucketLocation " + bucketLocation.location)
-      setBucketLocation(bucketLocation)
+      setGoogleStorage(storageDetails)
     })
+
+    const storeAzureStorageDetails = azureStorageDetails => {
+      const { location, sas } = azureStorageDetails
+      const sasUrl = sas.url
+      setAzureStorage({ storageContainerUrl: _.head(_.split('?', sasUrl)), location, sasUrl })
+    }
 
     const checkAzureStorageExists = async workspace => {
       try {
-        const { location, sas } = await Ajax(signal).AzureStorage.details(workspace.workspace.workspaceId)
-        const sasUrl = sas.url
-        setAzureStorage({ storageContainerUrl: _.head(_.split('?', sasUrl)), storageLocation: location, sasUrl })
+        storeAzureStorageDetails(await Ajax(signal).AzureStorage.details(workspace.workspace.workspaceId))
         updateWorkspaceInStore(workspace, true)
       } catch (error) {
         // We expect to get a transient error while the workspace is cloning. We will improve
@@ -425,9 +434,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     }
 
     const loadAzureStorageDetails = withErrorReporting('Error loading storage information', async workspace => {
-      const { location, sas } = await Ajax(signal).AzureStorage.details(workspace.workspace.workspaceId)
-      const sasUrl = sas.url
-      setAzureStorage({ storageContainerUrl: _.head(_.split('?', sasUrl)), storageLocation: location, sasUrl })
+      storeAzureStorageDetails(await Ajax(signal).AzureStorage.details(workspace.workspace.workspaceId))
     })
 
     const refreshWorkspace = _.flow(
@@ -486,6 +493,12 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       return () => clearTimeout(checkInitializationTimeout.current)
     })
 
+    const analysesData = { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks }
+    const storageDetails = {
+      googleBucketLocation: location, googleBucketType: locationType,
+      azureContainerRegion: azureStorage.location, azureContainerUrl: azureStorage.storageContainerUrl, azureContainerSasUrl: azureStorage.sasUrl
+    }
+
     if (accessError) {
       return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)])
     } else {
@@ -494,8 +507,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         title: _.isFunction(title) ? title(props) : title,
         breadcrumbs: breadcrumbs(props),
         topBarContent: topBarContent && topBarContent({ workspace, ...props }),
-        azureStorage, // TODO: combine with existing location/locationType
-        analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks, location, locationType },
+        analysesData, storageDetails,
         refresh: async () => {
           await refreshWorkspace()
           if (child.current?.refresh) {
@@ -505,8 +517,8 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, refreshWorkspace, azureStorage,
-          analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, location, persistentDisks },
+          workspace, refreshWorkspace,
+          analysesData, storageDetails,
           ...props
         }),
         loadingWorkspace && spinnerOverlay

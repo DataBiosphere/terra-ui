@@ -242,7 +242,8 @@ const Analyses = _.flow(
   withViewToggle('analysesTab')
 )(({
   name: workspaceName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { cloudPlatform, workspaceId, googleProject, bucketName } },
-  analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks, location },
+  analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+  storageDetails: { googleBucketLocation },
   onRequesterPaysError
 }, _ref) => {
   const [renamingAnalysisName, setRenamingAnalysisName] = useState(undefined)
@@ -517,7 +518,7 @@ const Analyses = _.flow(
           refreshApps,
           uploadFiles,
           openUploader,
-          location,
+          googleBucketLocation,
           onDismiss: () => {
             setCreating(false)
           },
