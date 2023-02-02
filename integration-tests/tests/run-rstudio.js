@@ -1,19 +1,19 @@
 // This test is owned by the Interactive Analysis (IA) Team.
 const _ = require('lodash/fp')
-const { withRegisteredUser, withBilling, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers')
+const { deleteRuntimes, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers')
 const {
   click, clickable, delay, findElement, noSpinnersAfter, fillIn, findIframe, findText, dismissNotifications, getAnimatedDrawer, image, input
 } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
+const { withUserToken } = require('../utils/terra-sa-utils')
 
 
 const rFileName = 'test-rmd'
 
-const testRunRStudioFn = _.flow(
+const testRunRStudioFn = _.flowRight(
+  withUserToken,
   withWorkspace,
-  withBilling,
-  withRegisteredUser
-)(async ({ workspaceName, page, testUrl, token }) => {
+)(async ({ billingProject, workspaceName, page, testUrl, token }) => {
   await performAnalysisTabSetup(page, token, testUrl, workspaceName)
 
   // Create analysis file
@@ -66,11 +66,12 @@ const testRunRStudioFn = _.flow(
   await findText(frame, '[1] 1')
 
   await dismissNotifications(page)
+
+  await deleteRuntimes({ page, billingProject, workspaceName })
 })
 
 registerTest({
   name: 'run-rstudio',
   fn: testRunRStudioFn,
   timeout: 20 * 60 * 1000,
-  targetEnvironments: [], // Disabled due to flakiness, perhaps caused by IAM propagation delays
 })

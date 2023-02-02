@@ -7,13 +7,13 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { MenuButton } from 'src/components/MenuButton'
 import Modal from 'src/components/Modal'
-import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
+import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
-import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
@@ -32,7 +32,7 @@ import {
   getConvertedRuntimeStatus, getCurrentPersistentDisk, getCurrentRuntime, usableStatuses
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import {
-  getPatternFromRuntimeTool, getToolFromFileExtension, getToolFromRuntime, toolLabels
+  getPatternFromRuntimeTool, getToolLabelFromFileExtension, getToolLabelFromRuntime, toolLabels
 } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -66,9 +66,9 @@ const AnalysisLauncher = _.flow(
     const [busy, setBusy] = useState()
     const { mode } = queryParams
     //note that here, the file tool is either Jupyter or RStudio, and cannot be azure (as .ipynb extensions are used for azure as well)
-    //hence, currentRuntimeTool is not always currentFileToolLabel
-    const currentFileToolLabel = getToolFromFileExtension(analysisName)
-    const currentRuntimeTool = getToolFromRuntime(currentRuntime)
+    //hence, currentRuntimeToolLabel is not always currentFileToolLabel
+    const currentFileToolLabel = getToolLabelFromFileExtension(analysisName)
+    const currentRuntimeToolLabel = getToolLabelFromRuntime(currentRuntime)
     const iframeStyles = { height: '100%', width: '100%' }
     const isAzureWorkspace = !!workspace.azureContext
 
@@ -79,7 +79,7 @@ const AnalysisLauncher = _.flow(
     return h(Fragment, [
       div({ style: { flex: 1, display: 'flex' } }, [
         div({ style: { flex: 1 } }, [
-          (Utils.canWrite(accessLevel) && canCompute && !!mode && _.includes(status, usableStatuses) && currentRuntimeTool === 'Jupyter') ?
+          (Utils.canWrite(accessLevel) && canCompute && !!mode && _.includes(status, usableStatuses) && currentRuntimeToolLabel === 'Jupyter') ?
             h(labels?.welderInstallFailed ? WelderDisabledNotebookEditorFrame : AnalysisEditorFrame,
               { key: runtimeName, workspace, runtime: currentRuntime, analysisName, mode, toolLabel: currentFileToolLabel, styles: iframeStyles }) :
             h(Fragment, [
@@ -258,7 +258,7 @@ const PreviewHeader = ({
   const { mode } = queryParams
   const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name, analysisName })
   const isAzureWorkspace = !!workspace.azureContext
-  const currentRuntimeTool = getToolFromRuntime(runtime)
+  const currentRuntimeToolLabel = getToolLabelFromRuntime(runtime)
   const enableJupyterLabPersistenceId = `${namespace}/${name}/enableJupyterLabGCP`
   const [enableJupyterLabGCP] = useState(() => getLocalPref(enableJupyterLabPersistenceId) || false)
 
@@ -318,23 +318,19 @@ const PreviewHeader = ({
       [isJupyterLabGCP && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === toolLabels.Jupyter,
         () => h(HeaderButton, {
           onClick: () => {
-            Ajax().Metrics.captureEvent(Events.analysisLaunch,
-              { origin: 'analysisLauncher', source: toolLabels.JupyterLab, application: toolLabels.JupyterLab, workspaceName: name, namespace })
-            Nav.goToPath(appLauncherTabName, { namespace, name, application: toolLabels.JupyterLab })
+            Nav.goToPath(appLauncherTabName, { namespace, name, application: toolLabels.JupyterLab, cloudPlatform })
           }
         }, openMenuIcon)],
       [isAzureWorkspace && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === toolLabels.Jupyter,
         () => h(HeaderButton, {
           onClick: () => {
-            Ajax().Metrics.captureEvent(Events.analysisLaunch,
-              { origin: 'analysisLauncher', source: currentRuntimeTool, application: currentRuntimeTool, workspaceName: name, namespace })
-            Nav.goToPath(appLauncherTabName, { namespace, name, application: currentRuntimeTool })
+            Nav.goToPath(appLauncherTabName, { namespace, name, application: toolLabels.JupyterLab, cloudPlatform })
           }
         }, openMenuIcon)],
       [isAzureWorkspace && runtimeStatus !== 'Running', () => {}],
-      // Azure logic must come before this branch, as currentRuntimeTool !== currentFileToolLabel for azure.
+      // Azure logic must come before this branch, as currentRuntimeToolLabel !== currentFileToolLabel for azure.
 
-      [currentRuntimeTool !== currentFileToolLabel, () => createNewRuntimeOpenButton],
+      [currentRuntimeToolLabel !== currentFileToolLabel, () => createNewRuntimeOpenButton],
       // If the tool is RStudio and we are in this branch, we need to either start an existing runtime or launch the app
       // Worth mentioning that the Stopped branch will launch RStudio, and then we depend on the RuntimeManager to prompt user the app is ready to launch
       // Then open can be clicked again
@@ -342,15 +338,13 @@ const PreviewHeader = ({
         () => h(HeaderButton, {
           onClick: () => {
             if (runtimeStatus === 'Running') {
-              Ajax().Metrics.captureEvent(Events.analysisLaunch,
-                { origin: 'analysisLauncher', source: toolLabels.RStudio, application: toolLabels.RStudio, workspaceName: name, namespace })
-              Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' })
+              Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio', cloudPlatform })
             }
           }
         },
         openMenuIcon)],
       // Jupyter is slightly different since it interacts with editMode and playground mode flags as well. This is not applicable to JupyterLab in either cloud
-      [(currentRuntimeTool === toolLabels.Jupyter && !mode) || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
+      [(currentRuntimeToolLabel === toolLabels.Jupyter && !mode) || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
         Utils.cond(
           [runtime && !welderEnabled, () => h(HeaderButton, { onClick: () => setEditModeDisabledOpen(true) }, [
             makeMenuIcon('warning-standard'), 'Open (Disabled)'
@@ -437,7 +431,7 @@ const PreviewHeader = ({
     }),
     copyingAnalysis && h(AnalysisDuplicator, {
       printName: getFileName(analysisName),
-      toolLabel: getToolFromFileExtension(analysisName),
+      toolLabel: getToolLabelFromFileExtension(analysisName),
       fromLauncher: true,
       workspaceInfo: { cloudPlatform, name, googleProject, workspaceId, namespace, bucketName },
       destroyOld: false,
@@ -446,7 +440,7 @@ const PreviewHeader = ({
     }),
     exportingAnalysis && h(ExportAnalysisModal, {
       printName: getFileName(analysisName),
-      toolLabel: getToolFromFileExtension(analysisName), workspace,
+      toolLabel: getToolLabelFromFileExtension(analysisName), workspace,
       fromLauncher: true,
       onDismiss: () => setExportingAnalysis(false)
     }),
@@ -502,13 +496,8 @@ const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace:
 // This is the purely functional component
 // It is in charge of ensuring that navigating away from the Jupyter iframe results in a save via a custom extension located in `jupyter-iframe-extension`
 // See this ticket for RStudio impl discussion: https://broadworkbench.atlassian.net/browse/IA-2947
-const JupyterFrameManager = ({ onClose, frameRef, details = {} }) => {
+const JupyterFrameManager = ({ onClose, frameRef }) => {
   useOnMount(() => {
-    Ajax()
-      .Metrics
-      .captureEvent(Events.analysisLaunch,
-        { source: toolLabels.Jupyter, application: toolLabels.Jupyter, workspaceName: details.name, namespace: details.namespace })
-
     const isSaved = Utils.atom(true)
     const onMessage = e => {
       switch (e.data) {

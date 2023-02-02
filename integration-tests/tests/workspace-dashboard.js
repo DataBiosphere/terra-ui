@@ -138,7 +138,7 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
       {
         metadata: {
           resourceType: 'AZURE_STORAGE_CONTAINER',
-          controlledResourceMetadata: { accessScope: 'SHARED_ACCESS' }
+          controlledResourceMetadata: { accessScope: 'SHARED_ACCESS', region: 'eastus' }
         },
         resourceAttributes: { azureStorageContainer: { storageContainerName: 'sc-name' } }
       }
@@ -203,7 +203,7 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
     'Cloud NameMicrosoft Azure',
     'Resource Group IDdummy-mrg-id',
     'Storage Container URLhttp://storageContainerUrl.com',
-    // 'Location🇺🇸 East US', depends on TOAZ-265
+    'Location🇺🇸 East US',
     'SAS URLhttp://storageContainerUrl.com?sasTokenParams'
   ])
 

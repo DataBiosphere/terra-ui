@@ -19,16 +19,17 @@ import LocalVariablesContent from 'src/components/data/LocalVariablesContent'
 import RenameTableModal from 'src/components/data/RenameTableModal'
 import { useSavedColumnSettings } from 'src/components/data/SavedColumnSettings'
 import WDSContent from 'src/components/data/WDSContent'
+import { WdsTroubleshooter } from 'src/components/data/WdsTroubleshooter'
 import { icon, spinner } from 'src/components/icons'
 import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
-import { MenuButton, MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
+import { MenuButton } from 'src/components/MenuButton'
+import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell } from 'src/components/table'
 import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider'
-import { WdsDataTableProvider } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider'
-import { getUser } from 'src/libs/auth'
+import { WdsDataTableProvider, wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions'
@@ -38,10 +39,11 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { asyncImportJobStore } from 'src/libs/state'
+import { asyncImportJobStore, getUser } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -341,6 +343,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
             Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
               ...extractWorkspaceDetails(workspace.workspace),
               providerName: dataProvider.providerName,
+              cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label,
               downloadFrom: 'all rows',
               fileType: '.tsv'
             })
@@ -431,7 +434,8 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
           await dataProvider.deleteTable(tableName)
           Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
             ...extractWorkspaceDetails(workspace.workspace),
-            providerName: dataProvider.providerName
+            providerName: dataProvider.providerName,
+            cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label
           })
           setDeleting(false)
           onDeleteTable(tableName)
@@ -478,27 +482,28 @@ const WorkspaceData = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Data', activeTab: 'data'
   })
-)(({ namespace, name, workspace, workspace: { workspace: { googleProject, attributes, workspaceId } }, refreshWorkspace }, ref) => {
+)(({ namespace, name, workspace, workspace: { workspace: { createdBy, googleProject, attributes, workspaceId } }, refreshWorkspace }, ref) => {
   // State
   const [refreshKey, setRefreshKey] = useState(0)
   const forceRefresh = () => setRefreshKey(_.add(1))
   const [selectedData, setSelectedData] = useState(() => StateHistory.get().selectedData)
   const [entityMetadata, setEntityMetadata] = useState(() => StateHistory.get().entityMetadata)
   const [snapshotDetails, setSnapshotDetails] = useState(() => StateHistory.get().snapshotDetails)
-  const [wdsSchema, setWdsSchema] = useState(() => StateHistory.get().wdsSchema)
   const [importingReference, setImportingReference] = useState(false)
   const [deletingReference, setDeletingReference] = useState(undefined)
+  const [troubleshootingWds, setTroubleshootingWds] = useState(false)
   const [uploadingFile, setUploadingFile] = useState(false)
   const [uploadingWDSFile, setUploadingWDSFile] = useState(false)
   const [entityMetadataError, setEntityMetadataError] = useState()
   const [snapshotMetadataError, setSnapshotMetadataError] = useState()
-  const [wdsSchemaError, setWdsSchemaError] = useState()
   const [sidebarWidth, setSidebarWidth] = useState(280)
   const [activeCrossTableTextFilter, setActiveCrossTableTextFilter] = useState('')
   const [crossTableResultCounts, setCrossTableResultCounts] = useState({})
   const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false)
   const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}) // { [entityType: string]: boolean }
-  const [proxyUrlLoaded, setProxyUrlLoaded] = useState(false)
+
+  const [wdsProxyUrl, setWdsProxyUrl] = useState({ status: 'None', state: '' })
+  const [wdsTypes, setWdsTypes] = useState({ status: 'None', state: [] })
 
   const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } = useDataTableVersions(workspace)
 
@@ -510,7 +515,10 @@ const WorkspaceData = _.flow(
 
   const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name)
 
-  const wdsDataTableProvider = useMemo(() => new WdsDataTableProvider(workspaceId), [workspaceId])
+  // auto-deploy WDS for a user who is: 1) the workspace creator, and 2) still an OWNER of the workspace
+  const shouldAutoDeployWds = workspace?.accessLevel === 'OWNER' && createdBy === getUser()?.email
+
+  const wdsDataTableProvider = useMemo(() => new WdsDataTableProvider(workspaceId, shouldAutoDeployWds), [workspaceId, shouldAutoDeployWds])
 
   const loadEntityMetadata = async () => {
     try {
@@ -567,16 +575,28 @@ const WorkspaceData = _.flow(
 
   const loadWdsSchema = async () => {
     if (isAzureWorkspace) {
-      try {
-        setWdsSchema([])
-        setWdsSchemaError(undefined)
-        const url = await wdsDataTableProvider.proxyUrlPromise
-        setProxyUrlLoaded(!!url)
-        const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(url, workspaceId)
-        setWdsSchema(wdsSchema)
-      } catch (error) {
-        setWdsSchemaError(error)
-      }
+      // get the proxy url for this app from Leo
+      setWdsProxyUrl({ status: 'Loading', state: '' })
+      await wdsDataTableProvider.proxyUrlPromise
+        .then(url => {
+          if (!!url) {
+            setWdsProxyUrl({ status: 'Ready', state: url })
+            // proxy url is good; now, get the WDS schema
+            setWdsTypes({ status: 'Loading', state: [] })
+            Ajax(signal).WorkspaceData.getSchema(url, workspaceId)
+              .then(typesResult => {
+                setWdsTypes({ status: 'Ready', state: typesResult })
+              })
+              .catch(err => {
+                setWdsTypes({ status: 'Error', state: err })
+              })
+          } else {
+            setWdsProxyUrl({ status: 'Error', state: url })
+          }
+        })
+        .catch(err => {
+          setWdsProxyUrl({ status: 'Error', state: err })
+        })
     }
   }
 
@@ -647,10 +667,16 @@ const WorkspaceData = _.flow(
   const editWorkspaceErrorMessage = Utils.editWorkspaceError(workspace)
   const canEditWorkspace = !editWorkspaceErrorMessage
 
+  // conventience vars for WDS
+  const wdsReady = wdsProxyUrl.status === 'Ready' && wdsTypes.status === 'Ready'
+  const wdsLoading = wdsProxyUrl.status === 'Loading' || wdsTypes.status === 'Loading'
+  const wdsError = wdsProxyUrl.status === 'Error' || wdsTypes.status === 'Error'
+
+  const canUploadTsv = isGoogleWorkspace || (isAzureWorkspace && wdsReady)
   return div({ style: styles.tableContainer }, [
     !entityMetadata ? spinnerOverlay : h(Fragment, [
       div({ style: { ...styles.sidebarContainer, width: sidebarWidth } }, [
-        div({
+        canUploadTsv && div({
           style: {
             display: 'flex', padding: '1rem 1.5rem',
             backgroundColor: colors.light(),
@@ -765,21 +791,24 @@ const WorkspaceData = _.flow(
                 ])
               }, sortedEntityPairs)
             ]),
+            troubleshootingWds && h(WdsTroubleshooter, {
+              onDismiss: () => setTroubleshootingWds(false),
+              workspaceId,
+              mrgId: workspace.azureContext.managedResourceGroupId
+            }),
             isAzureWorkspace && h(DataTypeSection, {
               title: 'Tables'
             }, [
               [
-                wdsSchemaError && h(NoDataPlaceholder, {
-                  message: 'Data tables are unavailable.'
+                (wdsLoading || wdsError) && h(NoDataPlaceholder, {
+                  message: wdsLoading ? icon('loadingSpinner') : 'Data tables are unavailable'
                 }),
-                // TODO: Logic needs to slightly change here -- there is a delay when wdsSchema is updated
-                // so `No tables have been uploaded.` briefly renders
-                !wdsSchemaError && _.isEmpty(wdsSchema) && h(NoDataPlaceholder, {
+                wdsReady && _.isEmpty(wdsTypes.state) && h(NoDataPlaceholder, {
                   message: 'No tables have been uploaded.',
                   buttonText: 'Upload TSV',
                   onAdd: () => setUploadingWDSFile(true)
                 }),
-                !_.isEmpty(wdsSchema) && _.map(typeDef => {
+                wdsReady && !_.isEmpty(wdsTypes.state) && _.map(typeDef => {
                   return div({ key: typeDef.name, role: 'listitem' }, [
                     h(DataTypeButton, {
                       key: typeDef.name,
@@ -802,7 +831,7 @@ const WorkspaceData = _.flow(
                         onRenameTable: undefined,
                         onDeleteTable: tableName => {
                           setSelectedData(undefined)
-                          setWdsSchema(_.remove(typeDef => typeDef.name === tableName, wdsSchema))
+                          setWdsTypes({ status: 'Ready', state: _.remove(typeDef => typeDef.name === tableName, wdsTypes.state) })
                           forceRefresh()
                         },
                         isShowingVersionHistory: false,
@@ -811,7 +840,7 @@ const WorkspaceData = _.flow(
                       })
                     })
                   ])
-                }, wdsSchema)
+                }, wdsTypes.state)
               ]
             ]),
             (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) && isGoogleWorkspace && h(DataTypeSection, {
@@ -955,7 +984,7 @@ const WorkspaceData = _.flow(
                 forceRefresh()
                 loadMetadata()
               }, namespace, name,
-              workspaceId, entityTypes: wdsSchema.map(item => item['name']), dataProvider: wdsDataTableProvider,
+              workspaceId, entityTypes: wdsTypes.state.map(item => item['name']), dataProvider: wdsDataTableProvider,
               isGoogleWorkspace
             }),
             isGoogleWorkspace && h(DataTypeSection, {
@@ -985,83 +1014,87 @@ const WorkspaceData = _.flow(
       h(SidebarSeparator, { sidebarWidth, setSidebarWidth }),
       div({ style: styles.tableViewPanel }, [
         _.includes(selectedData?.type, [workspaceDataTypes.entities, workspaceDataTypes.entitiesVersion]) && h(DataTableFeaturePreviewFeedbackBanner),
-        Utils.switchCase(selectedData?.type,
-          [undefined, () => div({ style: { textAlign: 'center' } }, ['Select a data type from the navigation panel on the left'])],
-          [workspaceDataTypes.localVariables, () => h(LocalVariablesContent, {
-            workspace,
-            refreshKey
-          })],
-          [workspaceDataTypes.referenceData, () => h(ReferenceDataContent, {
-            key: selectedData.reference,
-            workspace,
-            referenceKey: selectedData.reference
-          })],
-          [workspaceDataTypes.bucketObjects, () => h(FileBrowser, {
-            style: { flex: '1 1 auto' },
-            controlPanelStyle: {
-              padding: '1rem',
-              background: colors.light(0.5)
-            },
-            workspace,
-            extraMenuItems: h(Link, {
-              href: `https://seqr.broadinstitute.org/workspace/${namespace}/${name}`,
-              style: { padding: '0.5rem' }
-            }, [icon('pop-out'), ' Analyze in Seqr']),
-            noticeForPrefix: prefix => prefix.startsWith(`${dataTableVersionsPathRoot}/`) ?
-              'Files in this folder are managed via data table versioning.' :
-              null,
-            shouldDisableEditForPrefix: prefix => prefix.startsWith(`${dataTableVersionsPathRoot}/`)
-          })],
-          [workspaceDataTypes.snapshot, () => h(SnapshotContent, {
-            key: refreshKey,
-            workspace,
-            snapshotDetails,
-            snapshotName: selectedData.snapshotName,
-            tableName: selectedData.tableName,
-            loadMetadata: () => loadSnapshotEntities(selectedData.snapshotName),
-            onUpdate: async newSnapshotName => {
-              await loadSnapshotMetadata()
-              setSelectedData({ type: workspaceDataTypes.snapshot, snapshotName: newSnapshotName })
-              forceRefresh()
-            },
-            onDelete: async () => {
-              await loadSnapshotMetadata()
-              setSelectedData(undefined)
-              forceRefresh()
-            }
-          })],
-          [workspaceDataTypes.entities, () => h(EntitiesContent, {
-            key: refreshKey,
-            workspace,
-            entityMetadata,
-            setEntityMetadata,
-            entityKey: selectedData.entityType,
-            activeCrossTableTextFilter,
-            loadMetadata,
-            deleteColumnUpdateMetadata,
-            forceRefresh
-          })],
-          [workspaceDataTypes.entitiesVersion, () => h(DataTableVersion, {
-            workspace,
-            version: selectedData.version,
-            onDelete: reportErrorAndRethrow('Error deleting version', async () => {
-              await deleteDataTableVersion(selectedData.version)
-              setSelectedData(undefined)
-            }),
-            onImport: reportErrorAndRethrow('Error importing version', async () => {
-              const { tableName } = await importDataTableVersion(selectedData.version)
-              await loadMetadata()
-              setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName })
-            })
-          })],
-          [workspaceDataTypes.wds, () => wdsDataTableProvider && proxyUrlLoaded && !_.isEmpty(wdsSchema) && h(WDSContent, {
-            key: refreshKey,
-            workspaceUUID: workspaceId,
-            workspace,
-            dataProvider: wdsDataTableProvider,
-            recordType: selectedData.entityType,
-            wdsSchema
-          })]
+        Utils.switchCase(selectedData?.type, [undefined, () => Utils.cond([!wdsReady && isAzureWorkspace, () => div({ style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' } },
+          [icon('loadingSpinner'),
+            ' The database that powers your data tables is unavailable. It may take a few minutes after initial workspace creation to be ready. If you think something has gone wrong, please reach out to support@terra.bio and include information from our ',
+            h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['Troubleshoot']), ' page.'])],
+        () => div({ style: { textAlign: 'center' } }, ['Select a data type from the navigation panel on the left']),
+        )],
+        [workspaceDataTypes.localVariables, () => h(LocalVariablesContent, {
+          workspace,
+          refreshKey
+        })],
+        [workspaceDataTypes.referenceData, () => h(ReferenceDataContent, {
+          key: selectedData.reference,
+          workspace,
+          referenceKey: selectedData.reference
+        })],
+        [workspaceDataTypes.bucketObjects, () => h(FileBrowser, {
+          style: { flex: '1 1 auto' },
+          controlPanelStyle: {
+            padding: '1rem',
+            background: colors.light(0.5)
+          },
+          workspace,
+          extraMenuItems: h(Link, {
+            href: `https://seqr.broadinstitute.org/workspace/${namespace}/${name}`,
+            style: { padding: '0.5rem' }
+          }, [icon('pop-out'), ' Analyze in Seqr']),
+          noticeForPrefix: prefix => prefix.startsWith(`${dataTableVersionsPathRoot}/`) ?
+            'Files in this folder are managed via data table versioning.' :
+            null,
+          shouldDisableEditForPrefix: prefix => prefix.startsWith(`${dataTableVersionsPathRoot}/`)
+        })],
+        [workspaceDataTypes.snapshot, () => h(SnapshotContent, {
+          key: refreshKey,
+          workspace,
+          snapshotDetails,
+          snapshotName: selectedData.snapshotName,
+          tableName: selectedData.tableName,
+          loadMetadata: () => loadSnapshotEntities(selectedData.snapshotName),
+          onUpdate: async newSnapshotName => {
+            await loadSnapshotMetadata()
+            setSelectedData({ type: workspaceDataTypes.snapshot, snapshotName: newSnapshotName })
+            forceRefresh()
+          },
+          onDelete: async () => {
+            await loadSnapshotMetadata()
+            setSelectedData(undefined)
+            forceRefresh()
+          }
+        })],
+        [workspaceDataTypes.entities, () => h(EntitiesContent, {
+          key: refreshKey,
+          workspace,
+          entityMetadata,
+          setEntityMetadata,
+          entityKey: selectedData.entityType,
+          activeCrossTableTextFilter,
+          loadMetadata,
+          deleteColumnUpdateMetadata,
+          forceRefresh
+        })],
+        [workspaceDataTypes.entitiesVersion, () => h(DataTableVersion, {
+          workspace,
+          version: selectedData.version,
+          onDelete: reportErrorAndRethrow('Error deleting version', async () => {
+            await deleteDataTableVersion(selectedData.version)
+            setSelectedData(undefined)
+          }),
+          onImport: reportErrorAndRethrow('Error importing version', async () => {
+            const { tableName } = await importDataTableVersion(selectedData.version)
+            await loadMetadata()
+            setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName })
+          })
+        })],
+        [workspaceDataTypes.wds, () => wdsDataTableProvider && wdsReady && !_.isEmpty(wdsTypes.state) && h(WDSContent, {
+          key: refreshKey,
+          workspaceUUID: workspaceId,
+          workspace,
+          dataProvider: wdsDataTableProvider,
+          recordType: selectedData.entityType,
+          wdsSchema: wdsTypes.state
+        })]
         )
       ])
     ])

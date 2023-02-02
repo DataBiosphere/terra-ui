@@ -48,6 +48,9 @@ jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
   isCromwellAppVisible: () => {
     return true
+  },
+  isCromwellOnAzureAppVisible: () => {
+    return true
   }
 }))
 
@@ -92,7 +95,7 @@ afterEach(() => {
   jest.clearAllMocks()
 })
 
-//Note - These constants are copied from src/libs/runtime-utils.test.js
+//Note - These constants are copied from ./runtime-utils.test.js
 const galaxyRunning = {
   appName: 'terra-app-69200c2f-89c3-47db-874c-b770d8de737f',
   appType: 'GALAXY',
@@ -136,6 +139,42 @@ const cromwellDisk = {
   size: 500,
   status: 'Ready',
   zone: 'us-central1-a'
+}
+
+const cromwellOnAzureRunning = {
+  appName: 'test-cromwell-app',
+  cloudContext: {
+    cloudProvider: 'AZURE',
+    cloudResource: 'path/to/cloud/resource'
+  },
+  kubernetesRuntimeConfig: {
+    numNodes: 1,
+    machineType: 'Standard_A2_v2',
+    autoscalingEnabled: false
+  },
+  errors: [],
+  status: 'RUNNING',
+  proxyUrls: {
+    cbas: 'https://lz123.servicebus.windows.net/test-cromwell-app/cbas',
+    'cbas-ui': 'https://lz123.servicebus.windows.net/test-cromwell-app/',
+    cromwell: 'https://lz123.servicebus.windows.net/test-cromwell-app/cromwell',
+    wds: 'https://lz123.servicebus.windows.net/test-cromwell-app/wds'
+  },
+  diskName: null,
+  customEnvironmentVariables: {},
+  auditInfo: {
+    creator: 'abc.testerson@gmail.com',
+    createdDate: '2023-01-18T23:28:47.605176Z',
+    destroyedDate: null,
+    dateAccessed: '2023-01-18T23:28:47.605176Z'
+  },
+  appType: 'CROMWELL',
+  labels: {
+    cloudContext: 'path/to/cloud/context',
+    appName: 'test-cromwell-app',
+    clusterServiceAccount: '/subscriptions/123/pet-101',
+    creator: 'abc.testerson@gmail.com'
+  }
 }
 
 const galaxyDisk = {
@@ -196,7 +235,7 @@ const jupyter = {
 }
 
 
-const azureRunning = {
+const jupyterLabRunning = {
   auditInfo: {
     createdDate: '2022-09-09T20:20:06.982538Z',
     creator: 'ncl.hedwig@gmail.com',
@@ -219,7 +258,7 @@ const azureRunning = {
     saturnVersion: '6',
     saturnWorkspaceName: 'isAzure',
     saturnWorkspaceNamespace: 'alpha-azure-billing-project-20220407',
-    tool: 'Azure'
+    tool: 'JupyterLab'
   },
   patchInProgress: false,
   proxyUrl: 'https://relay-ns-2a77dcb5-882c-46b9-a3bc-5d251aff14d0.servicebus.windows.net/saturn-b2eecc2d-75d5-44f5-8eb2-5147db41874a',
@@ -315,9 +354,27 @@ const contextBarProps = {
   refreshApps: () => '',
   workspace: {
     workspace: {
-      namespace: 'namespace'
+      namespace: 'namespace',
+      cloudPlatform: 'Gcp'
     },
     namespace: 'Broad Test Workspace'
+  }
+}
+
+const contextBarPropsForAzure = {
+  runtimes: [],
+  apps: [],
+  appDataDisks: [],
+  refreshRuntimes: () => '',
+  location: 'US-CENTRAL1',
+  locationType: '',
+  refreshApps: () => '',
+  workspace: {
+    workspace: {
+      namespace: 'namespace',
+      cloudPlatform: 'Azure'
+    },
+    namespace: 'Broad Azure Test Workspace'
   }
 }
 
@@ -416,10 +473,27 @@ describe('ContextBar - buttons', () => {
     expect(getByLabelText(new RegExp(/Cromwell Environment/i)))
   })
 
-  it('will render Azure Environment button', () => {
+  it('will render a Cromwell on Azure button with a disabled Terminal Button', () => {
+    // Arrange
+    const cromwellOnAzureContextBarProps = {
+      ...contextBarPropsForAzure,
+      apps: [cromwellOnAzureRunning],
+      appDataDisks: []
+    }
+
+    // Act
+    const { getByLabelText, getByTestId } = render(h(ContextBar, cromwellOnAzureContextBarProps))
+
+    //Assert
+    expect(getByLabelText('Environment Configuration'))
+    expect(getByTestId('terminal-button-id')).toHaveAttribute('disabled')
+    expect(getByLabelText(new RegExp(/Workflows on Cromwell Environment/i)))
+  })
+
+  it('will render JupyterLab Environment button', () => {
     const jupyterContextBarProps = {
       ...contextBarProps,
-      runtimes: [azureRunning],
+      runtimes: [jupyterLabRunning],
       persistentDisks: []
     }
 
@@ -430,7 +504,7 @@ describe('ContextBar - buttons', () => {
     expect(getByText('Rate:'))
     expect(getByText(Utils.formatUSD(RUNTIME_COST)))
     expect(getByLabelText('Environment Configuration'))
-    expect(getByLabelText(new RegExp(/Azure Environment/i)))
+    expect(getByLabelText(new RegExp(/JupyterLab Environment/i)))
     expect(getByTestId('terminal-button-id')).toHaveAttribute('disabled')
   })
 

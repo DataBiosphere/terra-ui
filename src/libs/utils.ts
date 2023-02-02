@@ -3,22 +3,27 @@ import { differenceInCalendarMonths, differenceInSeconds, parseJSON } from 'date
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { div, span } from 'react-hyperscript-helpers'
+import { AnyPromiseFn, GenericPromiseFn } from 'src/libs/type-utils/general-types'
+import { safeCurry } from 'src/libs/type-utils/lodash-fp-helpers'
 import { v4 as uuid } from 'uuid'
 
+import { getCloudProviderFromWorkspace } from './workspace-utils'
 
+
+// TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
 export const subscribable = () => {
   let subscribers = []
   return {
     subscribe: fn => {
-      subscribers = append(fn, subscribers)
+      subscribers = append(fn, subscribers) as any
       return {
         unsubscribe: () => {
-          subscribers = _.without([fn], subscribers)
+          subscribers = _.without([fn], subscribers) as any
         }
       }
     },
     next: (...args) => {
-      _.forEach(fn => fn(...args), subscribers)
+      _.forEach(fn => (fn as any)(...args), subscribers)
     }
   }
 }
@@ -137,13 +142,15 @@ export const switchCase = (value, ...pairs) => {
   return match && match[1]()
 }
 
-export const toIndexPairs = _.flow(_.toPairs, _.map(([k, v]) => [k * 1, v]))
+// TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
+export const toIndexPairs = _.flow(_.toPairs, _.map(([k, v]) => [k as any * 1, v]))
 
+// TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
 /**
  * Memoizes an async function for up to `expires` ms.
  * Rejected promises are immediately removed from the cache.
  */
-export const memoizeAsync = (asyncFn, { keyFn = _.identity, expires = Infinity }) => {
+export const memoizeAsync = (asyncFn, { keyFn = _.identity, expires = Infinity }: any) => {
   const cache = {}
   return (...args) => {
     const now = Date.now()
@@ -218,6 +225,7 @@ export const nextSort = ({ field, direction }, newField) => {
     { field: newField, direction: 'asc' }
 }
 
+// TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
 export const summarizeErrors = errors => {
   const errorList = cond(
     [_.isPlainObject(errors), () => _.flatMap(_.values, errors)],
@@ -226,7 +234,7 @@ export const summarizeErrors = errors => {
   )
   if (errorList.length) {
     return _.map(([k, v]) => {
-      return div({ key: k, style: { marginTop: k !== '0' ? '0.5rem' : undefined } }, [v])
+      return div({ key: k, style: { marginTop: k !== '0' ? '0.5rem' : undefined } }, [v as any])
     }, _.toPairs(errorList))
   }
 }
@@ -270,27 +278,35 @@ export const convertValue = _.curry((type, value) => {
  */
 export const normalizeLabel = _.flow(_.camelCase, _.startCase)
 
-export const kvArrayToObject = _.reduce((acc, { key, value }) => _.set(key, value, acc), {})
+// TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
+export const kvArrayToObject = _.reduce((acc, { key, value }) => _.set(key, value, acc) as any, {})
 
 export const isValidWsExportTarget = _.curry((sourceWs, destWs) => {
   const { workspace: { workspaceId: sourceId, authorizationDomain: sourceAD } } = sourceWs
   const { accessLevel, workspace: { workspaceId: destId, authorizationDomain: destAD } } = destWs
+  const sourceWsCloudPlatform = getCloudProviderFromWorkspace(sourceWs)
+  const destWsCloudPlatform = getCloudProviderFromWorkspace(destWs)
 
-  return sourceId !== destId && canWrite(accessLevel) && (_.intersectionWith(_.isEqual, sourceAD, destAD).length === sourceAD.length)
+  return sourceId !== destId && canWrite(accessLevel) && (_.intersectionWith(_.isEqual, sourceAD, destAD).length === sourceAD.length) && sourceWsCloudPlatform === destWsCloudPlatform
 })
 
 export const append = _.curry((value, arr) => _.concat(arr, [value]))
 
+const withBusyStateFn = <R, F extends AnyPromiseFn>(
+  setBusy: (value: boolean) => void,
+  fn: GenericPromiseFn<F, R>
+): GenericPromiseFn<F, R | void> => async (...args: Parameters<F>) => {
+    try {
+      setBusy(true)
+      return await fn(...args)
+    } finally {
+      setBusy(false)
+    }
+  }
+
 // Transforms an async function so that it updates a busy flag via the provided callback 'setBusy'
 // Note that 'fn' does not get called during the transformation.
-export const withBusyState = _.curry((setBusy, fn) => async (...args) => {
-  try {
-    setBusy(true)
-    return await fn(...args)
-  } finally {
-    setBusy(false)
-  }
-})
+export const withBusyState = safeCurry(withBusyStateFn)
 
 export const newTabLinkProps = { target: '_blank', rel: 'noopener noreferrer' } // https://mathiasbynens.github.io/rel-noopener/
 
@@ -344,27 +360,30 @@ export const commaJoin = (list, conjunction = 'or') => {
   )(list))
 }
 
+// TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
 export const sha256 = async message => {
   const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(message))
   return _.flow(
-    _.map(v => v.toString(16).padStart(2, '0')),
+    _.map((v: any) => v.toString(16).padStart(2, '0')),
     _.join('')
   )(new Uint8Array(hashBuffer))
 }
 
-export const formatBytes = bytes => {
-  if (bytes < 2 ** 10) {
-    return `${bytes} B`
-  }
-
-  const [prefix, divisor] = [
+export const formatBytes = (bytes: number): string => {
+  const lookup: [string, number][] = [
     ['P', 2 ** 50],
     ['T', 2 ** 40],
     ['G', 2 ** 30],
     ['M', 2 ** 20],
     ['K', 2 ** 10]
-  ].find(([_p, d]) => bytes >= d)
-  return `${(bytes / divisor).toPrecision(3)} ${prefix}iB`
+  ]
+  const maybeLookup = lookup.find(([_p, d]: [string, number]) => bytes >= d)
+  if (maybeLookup) {
+    const [prefix, divisor] = maybeLookup
+    return `${(bytes / divisor).toPrecision(3)} ${prefix}iB`
+  }
+  // fallback is to return unformatted
+  return `${bytes} B`
 }
 
 //Truncates an integer to the thousands, i.e. 10363 -> 10k

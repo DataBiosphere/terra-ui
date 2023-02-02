@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { Ajax } from 'src/libs/ajax'
 import { authOpts, fetchOk, fetchWorkspaceManager } from 'src/libs/ajax/ajax-common'
 import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
@@ -41,21 +42,30 @@ export const AzureStorage = (signal?: AbortSignal) => ({
     return tokenResponse.json()
   },
 
+  /**
+   * Note that this method will throw an error if there is no shared access storage container available
+   * (which is an expected transient state while a workspace is being cloned).
+   */
   details: async (workspaceId: string): Promise<StorageDetails> => {
-    const res = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources?stewardship=CONTROLLED&limit=1000`,
-      _.merge(authOpts(), { signal })
-    )
-    const data = await res.json()
+    const data = await Ajax(signal).WorkspaceManagerResources.controlledResources(workspaceId)
     const container = _.find(
       {
         metadata: { resourceType: 'AZURE_STORAGE_CONTAINER', controlledResourceMetadata: { accessScope: 'SHARED_ACCESS' } }
       },
       data.resources
     )
+    // When a workspace is first cloned, it will not have a storage container, as the storage container and blob
+    // cloning happens asynchronously. Ultimately we will change the `StorageDetails` variable types to reflect
+    // that they may be null, but until all the consuming code changes to handle that we will just throw an error
+    // (which is what was happening anyway when we tried to access container.metadata).
+    if (!container) {
+      throw new Error('The workspace does not have a shared access storage container.')
+    }
+
     const sas = await AzureStorage(signal).sasToken(workspaceId, container.metadata.resourceId)
 
     return {
-      location: 'Unknown', // depends on TOAZ-265
+      location: container.metadata.controlledResourceMetadata.region,
       storageContainerName: container.resourceAttributes.azureStorageContainer.storageContainerName,
       sas
     }
