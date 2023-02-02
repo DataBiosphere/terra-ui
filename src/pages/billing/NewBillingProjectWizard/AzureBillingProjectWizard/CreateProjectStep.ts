@@ -9,16 +9,15 @@ import { reportErrorAndRethrow } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 import { billingProjectNameValidator } from 'src/pages/billing/List'
 import { AzureManagedAppCoordinates, BillingProject } from 'src/pages/billing/models'
-import { Step, StepFields, StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard'
-import { LabeledField } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields'
+import { LabeledField, Step, StepFields, StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard'
+import { validate } from 'validate.js'
 
-import { ExternalLink } from './ExternalLink'
+import { ExternalLink } from '../StepWizard/ExternalLink'
 
 
 type CreateProjectStepProps = {
   isActive: boolean
   managedApps: AzureManagedAppCoordinates[]
-  billingProjectNameValidator: (string) => any // any => errors, but no type defined in project yet
   submit: (newProject: BillingProject) => void
   subscriptionId?: string
 }
@@ -61,13 +60,11 @@ export const CreateProjectStep = ({ isActive, managedApps, ...props }: CreatePro
 
   const onNameInput = () => {
     const errors = billingProjectName ?
-      Utils.summarizeErrors(billingProjectNameValidator(billingProjectName)?.billingProjectName) :
-      'A name is required to create a billing project.'
-    if (errors) {
-      setNameErrors([errors])
-    } else {
-      setNameErrors(undefined)
-    }
+      Utils.summarizeErrors(
+        // todo: not sure if we need validate against existing projects here, since the user shouldn't have any at this step...
+        validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator([]) })?.billingProjectName
+      ) : 'A name is required to create a billing project.'
+    setNameErrors(errors)
   }
 
   const validSelections = () => !!billingProjectName && !nameErrors && !!selectedApp
@@ -105,7 +102,7 @@ export const CreateProjectStep = ({ isActive, managedApps, ...props }: CreatePro
             label: [
               'Unassigned managed application',
               InfoBox({
-                style: ({ marginLeft: '0.25rem' } as any), children: [
+                style: { marginLeft: '0.25rem' }, children: [
                   'A managed application instance can only be assigned to a single Terra billing ',
                   'project. Only unassigned managed applications are included in the list below.'
                 ]
@@ -127,7 +124,7 @@ export const CreateProjectStep = ({ isActive, managedApps, ...props }: CreatePro
           ButtonPrimary({
             style: { margin: '2rem' },
             onClick: createBillingProject,
-            disabled: !isActive || !validSelections(),
+            disabled: !validSelections(),
             children: ['Create Billing Project']
           }),
         ]

@@ -1,4 +1,4 @@
-export { Step } from './Step'
-export { StepHeader } from './StepHeader'
-export { StepWizard } from './StepWizard'
-export { StepFields, StepFieldLegend } from './StepFields'
+export * from './Step'
+export * from './StepHeader'
+export * from './StepWizard'
+export * from './StepFields'

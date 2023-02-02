@@ -1,14 +1,18 @@
 import { ReactNode, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, useUniqueId } from 'src/components/common'
 import { ValidatedInput } from 'src/components/input'
-import { FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
-import { Step, StepFields, StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard'
-import { StepFieldForm } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields'
+import {
+  LabeledField,
+  Step,
+  StepFieldForm,
+  StepFields,
+  StepHeader
+} from 'src/pages/billing/NewBillingProjectWizard/StepWizard'
 import { validate } from 'validate.js'
 
-import { ExternalLink } from './ExternalLink'
+import { ExternalLink } from '../StepWizard/ExternalLink'
 
 
 type AzureSubscriptionIdStepProps = {
@@ -19,23 +23,19 @@ type AzureSubscriptionIdStepProps = {
 }
 
 export const AzureSubscriptionIdStep = ({ isActive, subscriptionId, ...props }: AzureSubscriptionIdStepProps) => {
-  const [errors, setErrors] = useState<ReactNode>()
+  const [errors, setErrors] = useState<ReactNode | undefined>()
   const formId = useUniqueId()
 
   const validateSubscriptionId = () => {
-    const errors = subscriptionId ?
-      Utils.summarizeErrors(
-        validate({ subscriptionId }, { subscriptionId: { type: 'uuid' } })?.subscriptionId
-      ) : 'An Azure Subscription ID is required'
-    if (errors) {
-      setErrors(errors)
+    if (!subscriptionId) {
+      setErrors('An Azure Subscription ID is required')
     } else {
-      setErrors(undefined)
+      setErrors(Utils.summarizeErrors(validate({ subscriptionId }, { subscriptionId: { type: 'uuid' } })?.subscriptionId))
     }
   }
 
   return h(Step, { isActive }, [
-    StepHeader({
+    h(StepHeader, {
       title: 'STEP 1', description: [
         'Link Terra to your Azure subscription. ',
         ExternalLink({ text: 'Go to Azure Marketplace', url: 'https://portal.azure.com/' }),
@@ -43,26 +43,25 @@ export const AzureSubscriptionIdStep = ({ isActive, subscriptionId, ...props }: 
       ]
     }),
     h(StepFields, { disabled: !isActive }, [
-      StepFieldForm({
-        children: [
-          h(div, { style: { display: 'flex', flexDirection: 'column', maxWidth: '75%' } } as any, [
-            h(FormLabel, { htmlFor: formId, required: true }, ['Enter your Azure subscription Id']),
-            h(ValidatedInput, {
-              inputProps: {
-                id: formId,
-                placeholder: 'Azure Subscription ID',
-                onChange: props.onChange,
-                value: subscriptionId,
-                onBlur: validateSubscriptionId,
-              },
-              error: errors
-            }),
-          ]),
-          h(ButtonPrimary,
-            { style: { margin: '2rem' }, onClick: props.submit, disabled: !!errors || !subscriptionId },
-            ['Submit']),
-        ]
-      })
+      h(StepFieldForm, [
+        h(LabeledField, { label: 'Enter your Azure subscription Id', formId, required: true }, [
+          h(ValidatedInput, {
+            inputProps: {
+              id: formId,
+              placeholder: 'Azure Subscription ID',
+              onChange: props.onChange,
+              value: subscriptionId,
+              onBlur: validateSubscriptionId,
+            },
+            error: errors
+          })
+        ]),
+        h(ButtonPrimary, {
+          style: { margin: '2rem' },
+          onClick: props.submit,
+          disabled: !!errors || !subscriptionId
+        }, ['Submit']),
+      ])
     ])
   ])
 }

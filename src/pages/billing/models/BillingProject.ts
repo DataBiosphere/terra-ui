@@ -13,4 +13,3 @@ export interface BillingProject {
   cloudPlatform: 'GCP' | 'Azure'
 }
 
-

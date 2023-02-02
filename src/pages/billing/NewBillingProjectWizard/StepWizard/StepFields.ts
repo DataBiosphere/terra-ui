@@ -1,5 +1,5 @@
 import { CSSProperties, ReactNode } from 'react'
-import { div, fieldset, form, legend } from 'react-hyperscript-helpers'
+import { div, fieldset, form, h, legend } from 'react-hyperscript-helpers'
 import { FormLabel } from 'src/libs/forms'
 
 
@@ -54,6 +54,6 @@ interface LabeledFieldProps extends StepFieldsProps {
 }
 
 export const LabeledField = ({ label, formId, required = false, children, style }: LabeledFieldProps) => div({ style: { display: 'flex', flexDirection: 'column', ...style } }, [
-  FormLabel({ htmlFor: formId, required, children: [label] }),
-  ...children
+  h(FormLabel, { htmlFor: formId, required, children: [label] }),
+  children
 ])

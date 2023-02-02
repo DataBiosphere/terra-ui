@@ -4,20 +4,18 @@ import { spinnerOverlay } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData'
 import { useCancellation } from 'src/libs/react-utils'
-import { billingProjectNameValidator } from 'src/pages/billing/List'
-import { BillingProject } from 'src/pages/billing/models'
-import { AzureManagedAppCoordinates } from 'src/pages/billing/models/AzureManagedAppCoordinates'
-import { AddUserStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AddUserStep'
-import { AzureSubscriptionIdStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureSubscriptionIdStep'
-import { CreateProjectStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/CreateProjectStep'
+import { AzureManagedAppCoordinates, BillingProject } from 'src/pages/billing/models'
 import { StepWizard } from 'src/pages/billing/NewBillingProjectWizard/StepWizard'
-import { validate } from 'validate.js'
+
+import { AddUserStep, AzureSubscriptionIdStep, CreateProjectStep } from './'
 
 
-type AzureBillingProjectWizardProps = {}
+interface AzureBillingProjectWizardProps {
+
+}
 
 export const AzureBillingProjectWizard = ({ ...props }: AzureBillingProjectWizardProps) => {
-  const [activeStep, setActiveStep] = useState<number>(1)
+  const [activeStep, setActiveStep] = useState<number>(3)
   const [subscriptionId, setSubscriptionId] = useState<string>()
   const [managedApps, loadManagedApps] = useLoadedData<AzureManagedAppCoordinates[]>()
   const [billingProject, setBillingProject] = useState<BillingProject>()
@@ -32,7 +30,7 @@ export const AzureBillingProjectWizard = ({ ...props }: AzureBillingProjectWizar
   })
 
   return h(StepWizard,
-    { title: 'Hello', intro: 'intro Text' },
+    { title: 'Create an Azure Billing Project', intro: 'intro Text' },
     [
       AzureSubscriptionIdStep({
         isActive: activeStep === 1,
@@ -43,7 +41,6 @@ export const AzureBillingProjectWizard = ({ ...props }: AzureBillingProjectWizar
       CreateProjectStep({
         isActive: activeStep === 2,
         subscriptionId,
-        billingProjectNameValidator: (billingProjectName: String) => validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator([]) }), // todo: use real projects
         managedApps: managedApps.status === 'Ready' ? managedApps.state : [],
         submit: (newProject: BillingProject) => {
           setBillingProject(newProject)
