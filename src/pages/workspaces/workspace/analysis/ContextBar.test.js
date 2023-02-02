@@ -381,12 +381,12 @@ const contextBarPropsForAzure = {
 describe('ContextBar - buttons', () => {
   it('will render default icons', () => {
     // Act
-    const { getByText, getByLabelText, getByTestId } = render(h(ContextBar, contextBarProps))
+    const { getByText, getByLabelText, queryByTestId } = render(h(ContextBar, contextBarProps))
 
     // Assert
     expect(getByText('Rate:'))
     expect(getByLabelText('Environment Configuration'))
-    expect(getByTestId('terminal-button-id')).toHaveAttribute('disabled')
+    expect(queryByTestId('terminal-button-id')).not.toBeInTheDocument()
   })
 
   it('will render Jupyter button with an enabled Terminal Button', () => {
@@ -440,7 +440,7 @@ describe('ContextBar - buttons', () => {
     }
 
     // Act
-    const { getByText, getByLabelText, getByTestId } = render(h(ContextBar, rstudioGalaxyContextBarProps))
+    const { getByText, getByLabelText, queryByTestId } = render(h(ContextBar, rstudioGalaxyContextBarProps))
 
     //Assert
     expect(getByText('Rate:'))
@@ -448,7 +448,7 @@ describe('ContextBar - buttons', () => {
     expect(getByLabelText('Environment Configuration'))
     expect(getByLabelText(new RegExp(/RStudio Environment/i)))
     expect(getByLabelText(new RegExp(/Galaxy Environment/i)))
-    expect(getByTestId('terminal-button-id')).toHaveAttribute('disabled')
+    expect(queryByTestId('terminal-button-id')).not.toBeInTheDocument()
     expect(getByText(/Running \$.*\/hr/))
     expect(getByText(/Creating \$.*\/hr/))
     expect(getByText(/Disk \$.*\/hr/))
@@ -463,13 +463,13 @@ describe('ContextBar - buttons', () => {
     }
 
     // Act
-    const { getByText, getByLabelText, getByTestId } = render(h(ContextBar, rstudioGalaxyContextBarProps))
+    const { getByText, getByLabelText, queryByTestId } = render(h(ContextBar, rstudioGalaxyContextBarProps))
 
     //Assert
     expect(getByText('Rate:'))
     expect(getByText('$0.00'))
     expect(getByLabelText('Environment Configuration'))
-    expect(getByTestId('terminal-button-id')).toHaveAttribute('disabled')
+    expect(queryByTestId('terminal-button-id')).not.toBeInTheDocument()
     expect(getByLabelText(new RegExp(/Cromwell Environment/i)))
   })
 
@@ -482,11 +482,11 @@ describe('ContextBar - buttons', () => {
     }
 
     // Act
-    const { getByLabelText, getByTestId } = render(h(ContextBar, cromwellOnAzureContextBarProps))
+    const { getByLabelText, queryByTestId } = render(h(ContextBar, cromwellOnAzureContextBarProps))
 
     //Assert
     expect(getByLabelText('Environment Configuration'))
-    expect(getByTestId('terminal-button-id')).toHaveAttribute('disabled')
+    expect(queryByTestId('terminal-button-id')).not.toBeInTheDocument()
     expect(getByLabelText(new RegExp(/Workflows on Cromwell Environment/i)))
   })
 
@@ -498,14 +498,14 @@ describe('ContextBar - buttons', () => {
     }
 
     // Act
-    const { getByText, getByLabelText, getByTestId } = render(h(ContextBar, jupyterContextBarProps))
+    const { getByText, getByLabelText, queryByTestId } = render(h(ContextBar, jupyterContextBarProps))
 
     //Assert
     expect(getByText('Rate:'))
     expect(getByText(Utils.formatUSD(RUNTIME_COST)))
     expect(getByLabelText('Environment Configuration'))
     expect(getByLabelText(new RegExp(/JupyterLab Environment/i)))
-    expect(getByTestId('terminal-button-id')).toHaveAttribute('disabled')
+    expect(queryByTestId('terminal-button-id')).not.toBeInTheDocument()
   })
 
   it('will render button with error status', () => {
