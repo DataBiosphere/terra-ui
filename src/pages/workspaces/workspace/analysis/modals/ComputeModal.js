@@ -1756,20 +1756,18 @@ export const ComputeModalBase = ({
     ])
   }
 
+  const idDiskSize = useUniqueId()
+  const persistentDiskId = useUniqueId()
   const RenderPersistentDiskSection = diskExists => {
-    const idDiskSize = useUniqueId()
-
     const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
 
     const RenderPersistentDiskType = () => {
-      const id = useUniqueId()
-
       return (
         h(div, [
-      label({ htmlFor: id, style: computeStyles.label }, ['Disk Type']),
+      label({ htmlFor: persistentDiskId, style: computeStyles.label }, ['Disk Type']),
       div({ style: { marginTop: '0.5rem' } }, [
         h(Select, {
-          id,
+          id: persistentDiskId,
           value: computeConfig.selectedPersistentDiskType,
           isDisabled: diskExists || false,
           onChange: ({ value }) => updateComputeConfig('selectedPersistentDiskType', value),
