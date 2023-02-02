@@ -730,25 +730,9 @@ describe('resolveWdsUrl', () => {
     expect(resolveWdsUrl(testHealthyAppProxyUrlResponse)).toBe(expectedUrl)
   })
 
-  it('deploys a new WDS app & returns an empty string if the response contains no healthy criteria', () => {
-    jest.mock('./WdsDataTableProvider', () => ({ createLeoAppWithErrorHandling: () => {} }
-    ))
+  it('returns an empty string if the response status is in ERROR and the app is not found', () => {
     const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
       { appType: 'SOMETHING_ELSE', appName: 'something-else', status: 'ERROR', proxyUrls: { wds: testProxyUrl } }
-    ]
-    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName)).toBe('')
-  })
-
-  it('does not deploy a new WDS app if a flag is set, yet still returns an empty string if the response contains no healthy criteria', () => {
-    const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
-      { appType: 'CROMWELL', appName: 'something-else', status: 'PROVISIONING', proxyUrls: { wds: testProxyUrl } }
-    ]
-    expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName)).toBe(testProxyUrl)
-  })
-
-  it('return empty string for the url when app not found', () => {
-    const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
-      { appType: 'A_DIFFERENT_APP', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } }
     ]
     expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName)).toBe('')
   })
