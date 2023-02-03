@@ -1698,7 +1698,7 @@ export const ComputeModalBase = ({
         div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
           renderApplicationConfigurationSection(),
           renderComputeProfileSection(existingRuntime),
-          !!isPersistentDisk && RenderPersistentDiskSection(existingPersistentDisk),
+          !!isPersistentDisk && h(RenderPersistentDiskSection, { existingPersistentDisk }),
           isGce(runtimeType) && !isPersistentDisk && div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
               'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
@@ -1756,20 +1756,21 @@ export const ComputeModalBase = ({
     ])
   }
 
-  const diskSizeId = useUniqueId()
-  const persistentDiskId = useUniqueId()
-  const RenderPersistentDiskSection = diskExists => {
+  const RenderPersistentDiskSection = ({ existingPersistentDisk }) => {
     const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
+    const diskSizeId = useUniqueId()
+    const diskExists = !!existingPersistentDisk
 
     const RenderPersistentDiskType = () => {
-      return (
-        h(div, [
+      const persistentDiskId = useUniqueId()
+  return (
+    h(div, [
       label({ htmlFor: persistentDiskId, style: computeStyles.label }, ['Disk Type']),
       div({ style: { marginTop: '0.5rem' } }, [
-        h(Select, {
+      h(Select, {
           id: persistentDiskId,
           value: computeConfig.selectedPersistentDiskType,
-          isDisabled: diskExists || false,
+          isDisabled: diskExists,
           onChange: ({ value }) => updateComputeConfig('selectedPersistentDiskType', value),
           menuPlacement: 'auto',
           options: [
@@ -1798,7 +1799,7 @@ export const ComputeModalBase = ({
                   'Please delete the existing disk before selecting a new type.'
                 ],
                 side: 'bottom'
-              }, [RenderPersistentDiskType()]) : RenderPersistentDiskType(),
+              }, [h(RenderPersistentDiskType)]) : h(RenderPersistentDiskType),
             h(div, [
               label({ htmlFor: diskSizeId, style: computeStyles.label }, ['Disk Size (GB)']),
               div({ style: { marginTop: '0.5rem' } }, [
