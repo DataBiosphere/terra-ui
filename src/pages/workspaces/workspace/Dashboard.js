@@ -340,10 +340,7 @@ const WorkspaceDashboard = _.flow(
       loadAcl()
     }
 
-    if (isGoogleWorkspace(workspace) && workspace.workspaceInitialized) {
-      loadStorageCost()
-      loadBucketSize()
-    }
+    updateGoogleBucketDetails(workspace)
   }
 
   const loadStorageCost = useMemo(() => withErrorReporting('Error loading storage cost data', async () => {
@@ -372,12 +369,16 @@ const WorkspaceDashboard = _.flow(
     }
   }), [namespace, name, signal])
 
-  useEffect(() => {
+  const updateGoogleBucketDetails = useCallback(workspace => {
     if (isGoogleWorkspace(workspace) && workspace.workspaceInitialized && Utils.canWrite(accessLevel)) {
       loadStorageCost()
       loadBucketSize()
     }
-  }, [accessLevel, workspace, loadStorageCost, loadBucketSize])
+  }, [accessLevel, loadStorageCost, loadBucketSize])
+
+  useEffect(() => {
+    updateGoogleBucketDetails(workspace)
+  }, [workspace, updateGoogleBucketDetails])
 
   useImperativeHandle(ref, () => ({ refresh }))
 
