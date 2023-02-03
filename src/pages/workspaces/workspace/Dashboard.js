@@ -509,7 +509,7 @@ const WorkspaceDashboard = _.flow(
           h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } })
         ]),
         h(InfoRow, { title: 'Location' }, [
-          h(TooltipCell, !!storageDetails?.azureContainerRegion ? [getRegionFlag(storageDetails.azureContainerRegion), ' ', getRegionLabel(storageDetails.azureContainerRegion)] : ['Loading'])
+          h(TooltipCell, !!storageDetails.azureContainerRegion ? [getRegionFlag(storageDetails.azureContainerRegion), ' ', getRegionLabel(storageDetails.azureContainerRegion)] : ['Loading'])
         ]),
         h(InfoRow, { title: 'Resource Group ID' }, [
           h(TooltipCell, [azureContext.managedResourceGroupId]),
@@ -517,17 +517,17 @@ const WorkspaceDashboard = _.flow(
             { 'aria-label': 'Copy resource group id to clipboard', text: azureContext.managedResourceGroupId, style: { marginLeft: '0.25rem' } })
         ]),
         h(InfoRow, { title: 'Storage Container URL' }, [
-          h(TooltipCell, [!!storageDetails?.azureContainerUrl ? storageDetails.azureContainerUrl : 'Loading']),
+          h(TooltipCell, [!!storageDetails.azureContainerUrl ? storageDetails.azureContainerUrl : 'Loading']),
           h(ClipboardButton, {
             'aria-label': 'Copy storage container URL to clipboard',
-            text: storageDetails?.azureContainerUrl, style: { marginLeft: '0.25rem' }
+            text: storageDetails.azureContainerUrl, style: { marginLeft: '0.25rem' }
           })
         ]),
         h(InfoRow, { title: 'Storage SAS URL' }, [
-          h(TooltipCell, [!!storageDetails?.azureContainerSasUrl ? storageDetails.azureContainerSasUrl : 'Loading']),
+          h(TooltipCell, [!!storageDetails.azureContainerSasUrl ? storageDetails.azureContainerSasUrl : 'Loading']),
           h(ClipboardButton, {
             'aria-label': 'Copy SAS URL to clipboard',
-            text: storageDetails?.azureContainerSasUrl, style: { marginLeft: '0.25rem' }
+            text: storageDetails.azureContainerSasUrl, style: { marginLeft: '0.25rem' }
           })
         ])
       ]),
