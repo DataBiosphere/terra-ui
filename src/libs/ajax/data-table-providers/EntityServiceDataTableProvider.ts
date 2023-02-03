@@ -51,7 +51,7 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
       return !options.filePresent || options.isInvalid || options.uploading
     },
     tooltip: (options: TsvUploadButtonTooltipOptions): string => {
-      return !options.filePresent || options.isInvalid ? 'Please select valid data to upload' : 'Upload selected data'
+      return !options.filePresent || options.isInvalid ? 'Please select valid data to upload' : (options.uploading ? 'Uploading...' : 'Upload selected data')
     }
   }
 

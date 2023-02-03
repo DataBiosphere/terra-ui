@@ -77,6 +77,7 @@ export type TsvUploadButtonTooltipOptions = {
   filePresent: boolean
   isInvalid?: boolean
   recordTypePresent: boolean
+  uploading?: boolean
 }
 
 export interface AttributeArray {

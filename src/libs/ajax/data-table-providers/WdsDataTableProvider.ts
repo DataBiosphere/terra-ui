@@ -190,6 +190,7 @@ export class WdsDataTableProvider implements DataTableProvider {
       return Utils.cond(
         [!options.recordTypePresent, () => 'Please enter table name'],
         [!options.filePresent, () => 'Please select valid data to upload'],
+        [options.uploading, () => 'Uploading...'],
         () => 'Upload selected data'
       )
     }
