@@ -6,34 +6,30 @@ import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import LeaveResourceModal from 'src/components/LeaveResourceModal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
-import { locationTypes } from 'src/components/region-common'
 import { TabBar } from 'src/components/tabBars'
 import TitleBar from 'src/components/TitleBar'
 import TopBar from 'src/components/TopBar'
-import { updateRecentlyViewedWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
-import { saToken } from 'src/libs/ajax/GoogleStorage'
 import { isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { clearNotification, notify } from 'src/libs/notifications'
-import { useCancellation, useOnMount, usePrevious, useStore, withDisplayName } from 'src/libs/react-utils'
-import { getUser, workspaceStore } from 'src/libs/state'
+import { useCancellation, useOnMount, usePrevious, withDisplayName } from 'src/libs/react-utils'
+import { getUser } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { differenceFromNowInSeconds } from 'src/libs/utils'
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
 import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
-  defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, isGcpContext, mapToPdTypes
+  getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, isGcpContext, mapToPdTypes
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import RuntimeManager from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
 import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
+import { useActiveWorkspace } from 'src/pages/workspaces/workspace/useActiveWorkspace'
 import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu'
 
 
@@ -333,172 +329,22 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
   const Wrapper = props => {
     const { namespace, name } = props
     const child = useRef()
-    const signal = useCancellation()
-    const [accessError, setAccessError] = useState(false)
-    const accessNotificationId = useRef()
-    const cachedWorkspace = useStore(workspaceStore)
-    const [loadingWorkspace, setLoadingWorkspace] = useState(false)
-    const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ?
-      cachedWorkspace :
-      undefined
-    const [googleProject, setGoogleProject] = useState(workspace?.workspace.googleProject)
-    const [azureContext, setAzureContext] = useState(workspace?.azureContext)
-    const [{ location, locationType }, setGoogleStorage] = useState({ location: defaultLocation, locationType: locationTypes.default })
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    const [azureStorage, setAzureStorage] = useState({ storageContainerUrl: undefined, location: undefined, sasUrl: undefined })
-    const workspaceInitialized = workspace?.workspaceInitialized // will be stored in cached workspace
 
+    const { workspace, accessError, loadingWorkspace, azureContext, googleProject, storageDetails, refreshWorkspace } = useActiveWorkspace(namespace, name)
     const prevGoogleProject = usePrevious(googleProject)
     const prevAzureContext = usePrevious(azureContext)
+
     const workspaceLoaded = !!workspace
 
     const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject, workspace)
     const { apps, refreshApps } = useAppPolling(googleProject, name, workspace)
     // The following if statements are necessary to support the context bar properly loading runtimes for google/azure
-    if (workspaceLoaded) {
-      if (googleProject !== prevGoogleProject || azureContext !== prevAzureContext) {
-        refreshRuntimes(isAzureWorkspace(workspace))
-        refreshApps()
-      }
+    if (workspaceLoaded && (googleProject !== prevGoogleProject || azureContext !== prevAzureContext)) {
+      refreshRuntimes(true)
+      refreshApps()
     }
-
-    const checkInitializationTimeout = useRef()
-
-    const updateWorkspaceInStore = (workspace, initialized) => {
-      workspace.workspaceInitialized = initialized
-      // clone to force React to re-render components that depend on workspace
-      workspaceStore.set(_.clone(workspace))
-    }
-
-    const checkWorkspaceInitialization = async workspace => {
-      if (!!workspace && !workspaceInitialized) {
-        if (isGoogleWorkspace(workspace)) {
-          await checkGooglePermissions(workspace)
-        } else {
-          await checkAzureStorageExists(workspace)
-          updateWorkspaceInStore(workspace, true)
-        }
-      } else if (!!workspace && isGoogleWorkspace(workspace)) {
-        // console.log('Google, skipping permissions initialization check')
-        await loadGoogleBucketLocation(workspace)
-      } else if (!!workspace && isAzureWorkspace(workspace)) {
-        // console.log('Azure, skipping storage initialization check')
-        await loadAzureStorageDetails(workspace)
-      }
-    }
-
-    const checkGooglePermissions = async workspace => {
-      try {
-        await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketReadAccess() // REQUESTER PAYS!!, also having trouble if you just a writer.
-        // console.log("got success status!!!!!!")
-        updateWorkspaceInStore(workspace, true)
-        loadGoogleBucketLocation(workspace)
-      } catch (error) {
-        const errorText = await error.text()
-        const requesterPaysError = _.includes('requester pays', errorText)
-        if (requesterPaysError) {
-          updateWorkspaceInStore(workspace, true)
-        } else {
-          updateWorkspaceInStore(workspace, false)
-          // console.log(error)
-          // console.log(`Google permissions are still syncing ${error}`) // eslint-disable-line no-console
-          checkInitializationTimeout.current = setTimeout(() => checkWorkspaceInitialization(workspace), 15000)
-        }
-      }
-    }
-
-    // Note that withErrorIgnoring is used because checkBucketLocation will error for requester pays workspaces.
-    const loadGoogleBucketLocation = withErrorIgnoring(async workspace => {
-      const storageDetails = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(workspace.workspace.googleProject, workspace.workspace.bucketName)
-      // console.log("setting bucketLocation " + storageDetails.location)
-      setGoogleStorage(storageDetails)
-    })
-
-    const storeAzureStorageDetails = azureStorageDetails => {
-      const { location, sas } = azureStorageDetails
-      const sasUrl = sas.url
-      setAzureStorage({ storageContainerUrl: _.head(_.split('?', sasUrl)), location, sasUrl })
-    }
-
-    const checkAzureStorageExists = async workspace => {
-      try {
-        storeAzureStorageDetails(await Ajax(signal).AzureStorage.details(workspace.workspace.workspaceId))
-        // console.log("got success status!!!!!!")
-        updateWorkspaceInStore(workspace, true)
-      } catch (error) {
-        // We expect to get a transient error while the workspace is cloning. We will improve
-        // the handling of this with WOR-534 so that we correctly differentiate between the
-        // expected transient error and a workspace that is truly missing a storage container.
-        // console.log(`Error thrown by AzureStorage.details: ${error}`) // eslint-disable-line no-console
-        checkInitializationTimeout.current = setTimeout(() => checkWorkspaceInitialization(workspace), 5000)
-      }
-    }
-
-    const loadAzureStorageDetails = withErrorReporting('Error loading storage information', async workspace => {
-      storeAzureStorageDetails(await Ajax(signal).AzureStorage.details(workspace.workspace.workspaceId))
-    })
-
-    const refreshWorkspace = _.flow(
-      withErrorReporting('Error loading workspace'),
-      Utils.withBusyState(setLoadingWorkspace)
-    )(async () => {
-      try {
-        const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details([
-          'accessLevel', 'azureContext', 'canCompute', 'canShare', 'owners',
-          'workspace', 'workspace.attributes', 'workspace.authorizationDomain', 'workspace.cloudPlatform',
-          'workspace.isLocked', 'workspace.workspaceId', 'workspaceSubmissionStats'
-        ])
-        updateWorkspaceInStore(workspace, workspaceInitialized)
-        setGoogleProject(workspace.workspace.googleProject)
-        setAzureContext(workspace.azureContext)
-        updateRecentlyViewedWorkspaces(workspace.workspace.workspaceId)
-
-        const { accessLevel, workspace: { createdBy, createdDate, googleProject } } = workspace
-
-        checkWorkspaceInitialization(workspace)
-
-        // Request a service account token. If this is the first time, it could take some time before everything is in sync.
-        // Doing this now, even though we don't explicitly need it now, increases the likelihood that it will be ready when it is needed.
-        if (Utils.canWrite(accessLevel) && isGoogleWorkspace(workspace)) {
-          saToken(googleProject)
-        }
-
-        if (!Utils.isOwner(accessLevel) && (createdBy === getUser().email) && (differenceFromNowInSeconds(createdDate) < 60)) {
-          accessNotificationId.current = notify('info', 'Workspace access synchronizing', {
-            message: h(Fragment, [
-              'It looks like you just created this workspace. It may take up to a minute before you have access to modify it. Refresh at any time to re-check.',
-              div({ style: { marginTop: '1rem' } }, [h(Link, {
-                onClick: () => {
-                  refreshWorkspace()
-                  clearNotification(accessNotificationId.current)
-                }
-              }, 'Click to refresh now')])
-            ])
-          })
-        }
-      } catch (error) {
-        if (error.status === 404) {
-          setAccessError(true)
-        } else {
-          throw error
-        }
-      }
-    })
-
-    useOnMount(() => {
-      if (!workspace) {
-        refreshWorkspace()
-      } else {
-        checkWorkspaceInitialization(workspace)
-      }
-      return () => clearTimeout(checkInitializationTimeout.current)
-    })
 
     const analysesData = { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks }
-    const storageDetails = {
-      googleBucketLocation: location, googleBucketType: locationType,
-      azureContainerRegion: azureStorage.location, azureContainerUrl: azureStorage.storageContainerUrl, azureContainerSasUrl: azureStorage.sasUrl
-    }
 
     if (accessError) {
       return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)])
