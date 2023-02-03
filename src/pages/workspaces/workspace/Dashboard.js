@@ -201,7 +201,7 @@ const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace 
   const [showRequesterPaysModal, setShowRequesterPaysModal] = useState(false)
 
   const signal = useCancellation()
-  const loadBucketLocation = useCallback(async () => {
+  const loadGoogleBucketLocation = useCallback(async () => {
     setLoading(true)
     try {
       const { namespace, name, workspace: { googleProject, bucketName } } = workspace
@@ -220,10 +220,10 @@ const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace 
 
   useEffect(() => {
     if (workspace?.workspaceInitialized) {
-      // The bucketLocation from the container is not used because it doesn't do anything to handle requestPays (it just ignores errors).
-      loadBucketLocation()
+      // storageDetails.googleBucketLocation is not used because WorkspaceContainer silently fails for requester pays workspaces
+      loadGoogleBucketLocation()
     }
-  }, [loadBucketLocation, workspace])
+  }, [loadGoogleBucketLocation, workspace])
 
   if (loading) {
     return 'Loading'
@@ -243,7 +243,7 @@ const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace 
         onSuccess: selectedGoogleProject => {
           requesterPaysProjectStore.set(selectedGoogleProject)
           setShowRequesterPaysModal(false)
-          loadBucketLocation()
+          loadGoogleBucketLocation()
         }
       })
     ])

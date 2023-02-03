@@ -69,7 +69,7 @@ const TitleBarWarning = message => {
     title: div({ role: 'alert', style: { display: 'flex', alignItems: 'center', margin: '1rem' } }, [
       icon('warning-standard', { size: 32, style: { color: colors.danger(), marginRight: '0.5rem' } }),
       span({ style: { color: colors.dark(), fontSize: 14 } }, [message])
-    ]), style: { backgroundColor: colors.accent(0.25) }
+    ]), style: { backgroundColor: colors.accent(0.35), borderBottom: `1px solid ${colors.accent()}` }
   })
 }
 
@@ -410,7 +410,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     // Note that withErrorIgnoring is used because checkBucketLocation will error for requester pays workspaces.
     const loadGoogleBucketLocation = withErrorIgnoring(async workspace => {
       const storageDetails = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(workspace.workspace.googleProject, workspace.workspace.bucketName)
-      // console.log("setting bucketLocation " + bucketLocation.location)
+      // console.log("setting bucketLocation " + storageDetails.location)
       setGoogleStorage(storageDetails)
     })
 
@@ -423,6 +423,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const checkAzureStorageExists = async workspace => {
       try {
         storeAzureStorageDetails(await Ajax(signal).AzureStorage.details(workspace.workspace.workspaceId))
+        // console.log("got success status!!!!!!")
         updateWorkspaceInStore(workspace, true)
       } catch (error) {
         // We expect to get a transient error while the workspace is cloning. We will improve
