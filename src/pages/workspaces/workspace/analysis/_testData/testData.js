@@ -277,6 +277,20 @@ export const galaxyRunning = {
   status: 'RUNNING'
 }
 
+export const galaxyDeleting = {
+  appName: 'terra-app-71200c2f-89c3-47db-874c-b770d8de22g',
+  appType: 'GALAXY',
+  auditInfo: {
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-30T20:19:13.162484Z'
+  },
+  diskName: 'saturn-pd-1236594ac-d829-423d-a8df-76fe96f5897',
+  errors: [],
+  googleProject: 'terra-test-e4000484',
+  kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+  labels: {},
+  proxyUrls: { galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy' },
+  status: 'DELETING'
+}
 
 export const galaxyDisk = {
   auditInfo: {
@@ -292,3 +306,4 @@ export const galaxyDisk = {
   status: 'Ready',
   zone: 'us-central1-a'
 }
+

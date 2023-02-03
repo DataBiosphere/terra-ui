@@ -99,8 +99,63 @@ export const getRegionFlag = key => _.has(key, azureRegions) ? azureRegions[key]
 export const azureMachineTypes = { Standard_DS2_v2: { cpu: 2, ramInGb: 7 }, Standard_DS3_v2: { cpu: 4, ramInGb: 14 }, Standard_DS4_v2: { cpu: 8, ramInGb: 28 }, Standard_DS5_v2: { cpu: 16, ramInGb: 56 } }
 export const getMachineTypeLabel = key => _.has(key, azureMachineTypes) ? `${key}, ${azureMachineTypes[key].cpu} CPU(s), ${azureMachineTypes[key].ramInGb} GBs` : 'Unknown machine type'
 
-// max GB of each azure storage disk type; per https://learn.microsoft.com/en-us/azure/virtual-machines/disks-types#standard-hdds
+
 export const azureDiskTypes = {
+  standard: {
+    value: 'STANDARD_LRS',
+    displayName: 'Standard HDD'
+  }
+}
+
+// max GB of each azure standard storage disk; per https://learn.microsoft.com/en-us/azure/virtual-machines/disks-types#standard-hdds
+export const azureStandardDiskTypes = {
+  'S4 LRS': {
+    label: 'S4 LRS',
+    size: 32,
+  },
+  'S6 LRS': {
+    label: 'S6 LRS',
+    size: 64,
+  },
+  'S10 LRS': {
+    label: 'S10 LRS',
+    size: 128,
+  },
+  'S15 LRS': {
+    label: 'S15 LRS',
+    size: 256
+  },
+  'S20 LRS': {
+    label: 'S20 LRS',
+    size: 512
+  },
+  'S30 LRS': {
+    label: 'S30 LRS',
+    size: 1024
+  },
+  'S40 LRS': {
+    label: 'S40 LRS',
+    size: 2048
+  },
+  'S50 LRS': {
+    label: 'S50 LRS',
+    size: 4096
+  },
+  'S60 LRS': {
+    label: 'S60 LRS',
+    size: 8192
+  },
+  'S70 LRS': {
+    label: 'S70 LRS',
+    size: 16384
+  },
+  'S80 LRS': {
+    label: 'S80 LRS',
+    size: 32767
+  }
+}
+
+export const azureStandardDiskSizes = {
   'S4 LRS': 32,
   'S6 LRS': 64,
   'S10 LRS': 128,
@@ -113,11 +168,16 @@ export const azureDiskTypes = {
   'S70 LRS': 16384,
   'S80 LRS': 32767,
 }
+
+export const azureDiskTypeToOffering = {
+  STANDARD_LRS: azureStandardDiskSizes
+}
+
 /** Get Azure disk type (S4, S6 etc) whose storage is large enough to hold the requested size (in Gb).
  * Note that the largest (S80 LRS) will not hold more than 32767 Gb, according to the Azure docs.
  * TODO [IA-3390] calculate differently
  */
-export const getDiskType = diskSize => _.findKey(maxSize => diskSize <= maxSize, azureDiskTypes)
+export const getDiskType = diskSize => _.findKey(maxSize => diskSize <= maxSize, azureStandardDiskSizes)
 
 // TODO [IA-4007] Explore replacing the hardcoded, manually synced script output below with a dynamic solution for price quotes.
 
