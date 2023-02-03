@@ -482,7 +482,7 @@ const WorkspaceData = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Data', activeTab: 'data'
   })
-)(({ namespace, name, workspace, workspace: { workspace: { googleProject, attributes, workspaceId } }, refreshWorkspace }, ref) => {
+)(({ namespace, name, workspace, workspace: { workspace: { createdBy, googleProject, attributes, workspaceId } }, refreshWorkspace }, ref) => {
   // State
   const [refreshKey, setRefreshKey] = useState(0)
   const forceRefresh = () => setRefreshKey(_.add(1))
