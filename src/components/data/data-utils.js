@@ -467,7 +467,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
             }
           })
         ]),
-        ((currentFile && entityTypeAlreadyExists) || _.includes(recordType, entityTypes)) && div({
+        ((isGoogleWorkspace && currentFile && entityTypeAlreadyExists) || (!isGoogleWorkspace && _.includes(recordType, entityTypes))) && div({
           style: { ...warningBoxStyle, margin: '1rem 0 0.5rem', display: 'flex', alignItems: 'center' }
         }, [
           icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
