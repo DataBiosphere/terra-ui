@@ -29,7 +29,7 @@ import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
-import { useActiveWorkspace } from 'src/pages/workspaces/workspace/useActiveWorkspace'
+import { useWorkspace } from 'src/pages/workspaces/workspace/useWorkspace'
 import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu'
 
 
@@ -330,7 +330,9 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const { namespace, name } = props
     const child = useRef()
 
-    const { workspace, accessError, loadingWorkspace, azureContext, googleProject, storageDetails, refreshWorkspace } = useActiveWorkspace(namespace, name)
+    const { workspace, accessError, loadingWorkspace, storageDetails, refreshWorkspace } = useWorkspace(namespace, name)
+    const googleProject = workspace?.googleProject
+    const azureContext = workspace?.azureContext
     const prevGoogleProject = usePrevious(googleProject)
     const prevAzureContext = usePrevious(azureContext)
 

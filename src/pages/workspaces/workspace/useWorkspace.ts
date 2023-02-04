@@ -30,29 +30,27 @@ interface WorkspaceDetails {
   workspace: InitializedWorkspaceWrapper
   accessError: boolean
   loadingWorkspace: boolean
-  azureContext: any
-  googleProject: string
   storageDetails: StorageDetails
   refreshWorkspace: () => {}
 }
 
-export const useActiveWorkspace = (namespace, name) : WorkspaceDetails => {
+export const GOOGLE_PERMISSIONS_RECHECK_RATE = 15000
+export const AZURE_BUCKET_RECHECK_RATE = 5000
+
+export const useWorkspace = (namespace, name) : WorkspaceDetails => {
   const [accessError, setAccessError] = useState(false)
   const [loadingWorkspace, setLoadingWorkspace] = useState(false)
   const accessNotificationId = useRef()
   const cachedWorkspace = useStore(workspaceStore)
   const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ? cachedWorkspace : undefined
-  const [googleProject, setGoogleProject] = useState(workspace?.workspace.googleProject)
-  const [azureContext, setAzureContext] = useState(workspace?.azureContext)
   const [{ location, locationType }, setGoogleStorage] = useState({
-    location: defaultLocation,
-    locationType: locationTypes.default
+    location: defaultLocation, locationType: locationTypes.default // These default types are historical
   })
   const [azureStorage, setAzureStorage] = useState<{ location: string; storageContainerUrl: string | undefined; sasUrl: string }>()
   const workspaceInitialized = workspace?.workspaceInitialized // will be stored in cached workspace
 
   const signal = useCancellation()
-  const checkInitializationTimeout = useRef()
+  const checkInitializationTimeout = useRef<any>()
 
   const updateWorkspaceInStore = (workspace, initialized) => {
     workspace.workspaceInitialized = initialized
@@ -66,7 +64,6 @@ export const useActiveWorkspace = (namespace, name) : WorkspaceDetails => {
         await checkGooglePermissions(workspace)
       } else {
         await checkAzureStorageExists(workspace)
-        updateWorkspaceInStore(workspace, true)
       }
     } else if (!!workspace && isGoogleWorkspace(workspace)) {
       // console.log('Google, skipping permissions initialization check')
@@ -91,10 +88,8 @@ export const useActiveWorkspace = (namespace, name) : WorkspaceDetails => {
         updateWorkspaceInStore(workspace, true)
       } else {
         updateWorkspaceInStore(workspace, false)
-        // console.log(error)
-        // console.log(`Google permissions are still syncing ${error}`) // eslint-disable-line no-console
-        // @ts-ignore
-        checkInitializationTimeout.current = setTimeout(() => checkWorkspaceInitialization(workspace), 15000)
+        console.log('Google permissions are still syncing') // eslint-disable-line no-console
+        checkInitializationTimeout.current = setTimeout(() => checkWorkspaceInitialization(workspace), GOOGLE_PERMISSIONS_RECHECK_RATE)
       }
     }
   }
@@ -118,12 +113,12 @@ export const useActiveWorkspace = (namespace, name) : WorkspaceDetails => {
       // console.log('got success status!!!!!!')
       updateWorkspaceInStore(workspace, true)
     } catch (error) {
+      updateWorkspaceInStore(workspace, false)
       // We expect to get a transient error while the workspace is cloning. We will improve
       // the handling of this with WOR-534 so that we correctly differentiate between the
       // expected transient error and a workspace that is truly missing a storage container.
-      // console.log(`Error thrown by AzureStorage.details: ${error}`) // eslint-disable-line no-console
-      // @ts-ignore
-      checkInitializationTimeout.current = setTimeout(() => checkWorkspaceInitialization(workspace), 5000)
+      console.log(`Error thrown by AzureStorage.details: ${error}`) // eslint-disable-line no-console
+      checkInitializationTimeout.current = setTimeout(() => checkWorkspaceInitialization(workspace), AZURE_BUCKET_RECHECK_RATE)
     }
   }
 
@@ -139,8 +134,6 @@ export const useActiveWorkspace = (namespace, name) : WorkspaceDetails => {
         'workspace.isLocked', 'workspace.workspaceId', 'workspaceSubmissionStats'
       ])
       updateWorkspaceInStore(workspace, workspaceInitialized)
-      setGoogleProject(workspace.workspace.googleProject)
-      setAzureContext(workspace.azureContext)
       updateRecentlyViewedWorkspaces(workspace.workspace.workspaceId)
 
       const { accessLevel, workspace: { createdBy, createdDate, googleProject } } = workspace
@@ -153,6 +146,7 @@ export const useActiveWorkspace = (namespace, name) : WorkspaceDetails => {
         saToken(googleProject)
       }
 
+      // This is old code-- it is unclear if this case can actually happen anymore.
       if (!Utils.isOwner(accessLevel) && (createdBy === getUser().email) && (differenceFromNowInSeconds(createdDate) < 60)) {
         accessNotificationId.current = notify('info', 'Workspace access synchronizing', {
           message: h(Fragment, [
@@ -193,5 +187,5 @@ export const useActiveWorkspace = (namespace, name) : WorkspaceDetails => {
     azureContainerSasUrl: azureStorage?.sasUrl
   }
 
-  return { workspace, accessError, loadingWorkspace, azureContext, googleProject, storageDetails, refreshWorkspace }
+  return { workspace, accessError, loadingWorkspace, storageDetails, refreshWorkspace }
 }
