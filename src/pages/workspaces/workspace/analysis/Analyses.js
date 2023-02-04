@@ -518,7 +518,7 @@ const Analyses = _.flow(
           refreshApps,
           uploadFiles,
           openUploader,
-          googleBucketLocation,
+          location: googleBucketLocation,
           onDismiss: () => {
             setCreating(false)
           },
