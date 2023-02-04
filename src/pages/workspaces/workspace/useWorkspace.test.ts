@@ -165,6 +165,27 @@ describe('useActiveWorkspace', () => {
     expect(GoogleStorage.saToken).not.toHaveBeenCalled()
   })
 
+  it('can initialize from a requester pays Google workspace in workspaceStore', () => {
+    // Arrange
+    // @ts-ignore
+    Ajax.mockImplementation(() => ({
+      Workspaces: {
+        workspace: () => ({
+          checkBucketLocation: () => Promise.reject(new Response('Mock requester pays error', { status: 400 }))
+        })
+      }
+    }))
+    workspaceStore.set(initializedGoogleWorkspace)
+    // Calling to get the bucket location fails, default options remain
+    const expectedStorageDetails = _.merge(defaultGoogleBucketOptions, defaultAzureStorageOptions)
+
+    // Act
+    const { result } = renderHook(() => useWorkspace('testNamespace', 'testName'))
+
+    // Assert
+    assertResult(result.current, initializedGoogleWorkspace, expectedStorageDetails, false)
+  })
+
   it('can initialize from an Azure workspace in workspaceStore', async () => {
     // Arrange
     // @ts-ignore
@@ -248,6 +269,36 @@ describe('useActiveWorkspace', () => {
     // Assert
     assertResult(result.current, initializedGoogleWorkspace, expectedSecondStorageDetails, false)
     expect(workspaceStore.set).toHaveBeenCalledWith(initializedGoogleWorkspace)
+  })
+
+  it('treats requesterPays errors as Google workspace being initialized', async () => {
+    // Arrange
+    // remove workspaceInitialized because the server response does not include this information
+    const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace
+
+    // Throw error from checkBucketReadAccess
+    // @ts-ignore
+    Ajax.mockImplementation(() => ({
+      Workspaces: {
+        workspace: () => ({
+          details: jest.fn().mockReturnValue(Promise.resolve(serverWorkspaceResponse)),
+          checkBucketReadAccess: () => Promise.reject(new Response('Mock requester pays error', { status: 500 }))
+        })
+      }
+    }))
+
+    // Will not attempt to retrieve storage details due to requester pays
+    const expectedStorageDetails = _.merge(defaultGoogleBucketOptions, defaultAzureStorageOptions)
+
+    // Act
+    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'))
+    await waitForNextUpdate() // For the call to checkBucketReadAccess to execute
+
+    // Assert
+    assertResult(result.current, initializedGoogleWorkspace, expectedStorageDetails, false)
+    expect(workspaceStore.set).toHaveBeenCalledWith(initializedGoogleWorkspace)
+    expect(WorkspaceUtils.updateRecentlyViewedWorkspaces).toHaveBeenCalledWith(initializedGoogleWorkspace.workspace.workspaceId)
+    expect(GoogleStorage.saToken).toHaveBeenCalled()
   })
 
   it('can read workspace details from server, and poll WSM until the container exists', async () => {

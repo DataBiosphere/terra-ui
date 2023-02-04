@@ -5,6 +5,7 @@ import { Link } from 'src/components/common'
 import { locationTypes } from 'src/components/region-common'
 import { updateRecentlyViewedWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
+import { responseContainsRequesterPaysError } from 'src/libs/ajax/ajax-common'
 import { saToken } from 'src/libs/ajax/GoogleStorage'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import { clearNotification, notify } from 'src/libs/notifications'
@@ -17,8 +18,8 @@ import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/runtime
 
 
 interface StorageDetails {
-  googleBucketLocation: string|undefined
-  googleBucketType: string|undefined
+  googleBucketLocation: string // historically returns defaultLocation if cannot be retrieved or Azure
+  googleBucketType: string // historically returns locationTypes.default if cannot be retrieved or Azure
   azureContainerRegion: string|undefined
   azureContainerUrl: string|undefined
   azureContainerSasUrl: string|undefined
@@ -83,8 +84,7 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
     } catch (error) {
       // @ts-ignore
       const errorText = await error.text()
-      const requesterPaysError = _.includes('requester pays', errorText)
-      if (requesterPaysError) {
+      if (responseContainsRequesterPaysError(errorText)) {
         updateWorkspaceInStore(workspace, true)
       } else {
         updateWorkspaceInStore(workspace, false)

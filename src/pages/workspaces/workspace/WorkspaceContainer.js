@@ -135,8 +135,7 @@ export const isV1Artifact = _.curry((workspace, { googleProject, cloudContext })
 const WorkspaceContainer = ({
   namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true,
   analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
-  storageDetails: { googleBucketLocation, googleBucketType },
-  refresh, workspace, refreshWorkspace, children
+  storageDetails, refresh, workspace, refreshWorkspace, children
 }) => {
   const [deletingWorkspace, setDeletingWorkspace] = useState(false)
   const [cloningWorkspace, setCloningWorkspace] = useState(false)
@@ -179,8 +178,7 @@ const WorkspaceContainer = ({
           children
         ]),
         workspace && h(ContextBar, {
-          workspace, apps, appDataDisks, refreshApps, runtimes, persistentDisks, refreshRuntimes,
-          location: googleBucketLocation, locationType: googleBucketType
+          workspace, apps, appDataDisks, refreshApps, runtimes, persistentDisks, refreshRuntimes, storageDetails
         })
       ])]
     ),
