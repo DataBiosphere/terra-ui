@@ -1,5 +1,5 @@
 import { CSSProperties } from 'react'
-import { div } from 'react-hyperscript-helpers'
+import { section } from 'react-hyperscript-helpers'
 import colors from 'src/libs/colors'
 import { StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepHeader'
 
@@ -27,7 +27,8 @@ export interface StepProps {
   children?: React.ReactNode[]
 }
 
-export const Step = ({ isActive, title, ...props }: StepProps) => div({
+export const Step = ({ isActive, title, ...props }: StepProps) => section({
+  'data-test-id': 'Step',
   'aria-current': isActive ? 'step' : false,
   style: { ...stepBanner(isActive), ...props.style },
 },

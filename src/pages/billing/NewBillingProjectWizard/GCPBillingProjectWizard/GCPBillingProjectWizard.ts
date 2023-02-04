@@ -1,23 +1,30 @@
 import { CSSProperties, useEffect, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import colors from 'src/libs/colors'
-import { getLocalPref, setLocalPref } from 'src/libs/prefs'
-import { StepWizard } from 'src/pages/billing/NewBillingProjectWizard/StepWizard'
+import { setLocalPref } from 'src/libs/prefs' //getLocalPref,
+import { BillingAccount } from 'src/pages/billing/models/BillingAccount'
+import { StepWizard } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepWizard'
 
-import {
-  AddTerraAsBillingAccountUserStep,
-  BillingAccountAccessStep,
-  ContactAccountAdminToAddUserStep,
-  CreateTerraProjectStep,
-  GoToGCPConsoleStep
-} from './'
+import { AddTerraAsBillingAccountUserStep } from './AddTerraAsBillingAccountUserStep'
+import { BillingAccountAccessStep } from './BillingAccountAccessStep'
+import { ContactAccountAdminToAddUserStep } from './ContactAccountAdminToAddUserStep'
+import { CreateTerraProjectStep } from './CreateTerraProjectStep'
+import { GoToGCPConsoleStep } from './GoToGCPConsoleStep'
 
 
-const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAndLoadAccounts }) => {
+interface GCPBillingProjectWizardProps {
+  billingAccounts: Record<string, BillingAccount>
+  onSuccess: () => any
+  // calls Auth.ensureBillingScope, then re-loads billing accounts from rawls
+  authorizeAndLoadAccounts: () => Promise<void>
+}
+
+export const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAndLoadAccounts }: GCPBillingProjectWizardProps) => {
   const persistenceId = 'billing'
-  const [accessToBillingAccount, setAccessToBillingAccount] = useState(() => getLocalPref(persistenceId)?.accessToBillingAccount)
-  const [accessToAddBillingAccountUser, setAccessToAddBillingAccountUser] = useState<boolean | undefined>(() => getLocalPref(persistenceId)?.accessToAddBillingAccountUser)
+  const [accessToBillingAccount, setAccessToBillingAccount] = useState<boolean>()//(() => getLocalPref(persistenceId)?.accessToBillingAccount)
+  const [accessToAddBillingAccountUser, setAccessToAddBillingAccountUser] = useState<boolean | undefined>()//(() => getLocalPref(persistenceId)?.accessToAddBillingAccountUser)
   // const [verified, setVerified] = useState<boolean>(() => getLocalPref(persistenceId)?.verified || false)
+  const [verifiedUsersAdded, setVerifiedUsersAdded] = useState<boolean | undefined>(false) // if no access to add billing account user, has the user verified access
   const [refreshed, setRefreshed] = useState<boolean>(false)
   const [existing, setExisting] = useState<string[]>([])
   const [activeStep, setActiveStep] = useState<number>(1) //useState<number>(( getLocalPref(persistenceId)?.activeStep || 1))
@@ -37,35 +44,50 @@ const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAndLoadA
       accessToBillingAccount,
       setAccessToBillingAccount: (access: boolean) => {
         setAccessToBillingAccount(access)
+        setAccessToAddBillingAccountUser(undefined)
+        setVerifiedUsersAdded(undefined) // reset verification of step 3
+        setRefreshed(false) // this might or might not be necessary
         setActiveStep(3)
       },
       isActive: activeStep === 2,
     }),
-    accessToBillingAccount ?
+    accessToBillingAccount && accessToAddBillingAccountUser !== false ?
       h(AddTerraAsBillingAccountUserStep, {
-        persistenceId,
-        authorizeAndLoadAccounts,
-        setRefreshed,
-        accessToAddBillingAccountUser: !!accessToAddBillingAccountUser,
-        setAccessToAddBillingAccountUser,
+        accessToAddBillingAccountUser,
+        setAccessToAddBillingAccountUser: async hasUserAccess => {
+          setAccessToAddBillingAccountUser(hasUserAccess)
+          if (hasUserAccess) {
+            await authorizeAndLoadAccounts()
+            setActiveStep(4)
+            setRefreshed(true)
+          } else {
+            setActiveStep(3)
+            //await authorizeAndLoadAccounts()
+            setRefreshed(false)
+          }
+        },
         isActive: activeStep === 3,
         isFinished: activeStep > 3,
-        setIsFinished: finished => {
-          if (finished) setActiveStep(4)
-          else setActiveStep(3)
-        },
       }) :
       h(ContactAccountAdminToAddUserStep, {
-        persistenceId,
-        authorizeAndLoadAccounts,
-
-        setRefreshed,
+        //persistenceId,
+        // authorizeAndLoadAccounts,
+        verifiedUsersAdded,
+        setVerifiedUsersAdded: async verified => {
+          setVerifiedUsersAdded(verified)
+          if (verified) {
+            await authorizeAndLoadAccounts()
+            setActiveStep(4)
+            //setRefreshed(true)  // FIXME: I think this makes sense here, since we just refreshed auth and accounts
+            //     but the existing unit tests fail with it,
+            //     since the refresh button in step 4 doesn't come up
+          } else {
+            setActiveStep(3)
+            setRefreshed(false)
+          }
+        },
         isActive: activeStep === 3,
         isFinished: activeStep > 3,
-        setIsFinished: finished => {
-          if (!finished) setActiveStep(3)
-        },
-        stepFinished: () => setActiveStep(4),
       }),
     h(CreateTerraProjectStep, {
       isActive: activeStep === 4,

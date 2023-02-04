@@ -4,10 +4,13 @@ import { spinnerOverlay } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData'
 import { useCancellation } from 'src/libs/react-utils'
-import { AzureManagedAppCoordinates, BillingProject } from 'src/pages/billing/models'
-import { StepWizard } from 'src/pages/billing/NewBillingProjectWizard/StepWizard'
+import { AzureManagedAppCoordinates } from 'src/pages/billing/models/AzureManagedAppCoordinates'
+import { BillingProject } from 'src/pages/billing/models/BillingProject'
+import { StepWizard } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepWizard'
 
-import { AddUserStep, AzureSubscriptionIdStep, CreateProjectStep } from './'
+import { AddUserStep } from './AddUserStep'
+import { AzureSubscriptionIdStep } from './AzureSubscriptionIdStep'
+import { CreateProjectStep } from './CreateProjectStep'
 
 
 interface AzureBillingProjectWizardProps {

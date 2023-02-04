@@ -3,7 +3,9 @@ import { ButtonOutline } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
 import Events from 'src/libs/events'
 import * as Utils from 'src/libs/utils'
-import { Step, StepFieldLegend, StepFields, StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard'
+import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/Step'
+import { StepFieldLegend, StepFields } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields'
+import { StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepHeader'
 
 
 interface GoToGCPConsoleStepProps {

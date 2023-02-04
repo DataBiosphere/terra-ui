@@ -6,8 +6,10 @@ import { ValidatedInput } from 'src/components/input'
 import { Ajax } from 'src/libs/ajax'
 import * as Utils from 'src/libs/utils'
 import { billingRoles } from 'src/pages/billing/List'
-import { BillingProject } from 'src/pages/billing/models'
-import { LabeledField, Step, StepFields, StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard'
+import { BillingProject } from 'src/pages/billing/models/BillingProject'
+import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/Step'
+import { LabeledField, StepFields } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields'
+import { StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepHeader'
 import { validate } from 'validate.js'
 
 

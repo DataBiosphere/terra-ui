@@ -3,13 +3,9 @@ import { h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, useUniqueId } from 'src/components/common'
 import { ValidatedInput } from 'src/components/input'
 import * as Utils from 'src/libs/utils'
-import {
-  LabeledField,
-  Step,
-  StepFieldForm,
-  StepFields,
-  StepHeader
-} from 'src/pages/billing/NewBillingProjectWizard/StepWizard'
+import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/Step'
+import { LabeledField, StepFieldForm, StepFields } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields'
+import { StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepHeader'
 import { validate } from 'validate.js'
 
 import { ExternalLink } from '../StepWizard/ExternalLink'

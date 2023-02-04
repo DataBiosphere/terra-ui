@@ -11,7 +11,7 @@ interface LabeledProps extends HTMLElementProps<'input'> {
 }
 
 export const LabeledRadioButton = ({ text, name, labelStyle, style, ...props }: LabeledProps) => div(
-  { style: { display: 'flex', flexDirection: 'row', ...style } }, [
+  { style: { display: 'flex', flexDirection: 'row', margin: '.25rem', ...style } }, [
     RadioButton({
       text,
       name,
@@ -21,3 +21,10 @@ export const LabeledRadioButton = ({ text, name, labelStyle, style, ...props }: 
   ]
 )
 
+export const LabeledRadioGroup = ({ style, children }: {style?: React.CSSProperties; children: React.ReactNode[]}) => div({
+  style: {
+    width: '25%', float: 'right', display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-around', ...style
+  }, role: 'radiogroup'
+}, children)
