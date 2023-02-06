@@ -2,6 +2,11 @@ import * as _ from 'lodash/fp'
 import { authOpts, fetchCatalog, jsonBody } from 'src/libs/ajax/ajax-common'
 
 
+export type StorageSystem =
+    'wks' |
+    'ext' |
+    'tdr'
+
 export interface DatasetTableListEntry {
   name: string
   hasData?: boolean
@@ -26,6 +31,236 @@ export type AccessLevel =
     'discoverer' |
     'no_access'
 
+export type DatasetDataUsePermission =
+  'DUO:0000007' |
+  'DUO:0000042' |
+  'DUO:0000006' |
+  'DUO:0000011' |
+  'DUO:0000004'
+
+export const datasetDataUsePermissionTypes: Record<DatasetDataUsePermission, DatasetDataUsePermission> = {
+  'DUO:0000007': 'DUO:0000007',
+  'DUO:0000042': 'DUO:0000042',
+  'DUO:0000006': 'DUO:0000006',
+  'DUO:0000011': 'DUO:0000011',
+  'DUO:0000004': 'DUO:0000004'
+}
+
+export type GoogleCloudResource =
+    'bigquery' |
+    'firestore' |
+    'bucket'
+
+export const googleCloudResourceTypes: Record<GoogleCloudResource, GoogleCloudResource> = {
+  bigquery: 'bigquery',
+  firestore: 'firestore',
+  bucket: 'bucket'
+}
+
+export type GoogleCloudRegion =
+    'southamerica-west1' |
+    'us-central1' |
+    'us-east1' |
+    'us-east4' |
+    'us-west1' |
+    'us-west4' |
+    'europe-north1' |
+    'europe-west1' |
+    'europe-west4' |
+    'asia-east1' |
+    'asia-southeast1'
+
+export const googleCloudRegionTypes: Record<GoogleCloudRegion, GoogleCloudRegion> = {
+  'southamerica-west1': 'southamerica-west1',
+  'us-central1': 'us-central1',
+  'us-east1': 'us-east1',
+  'us-east4': 'us-east4',
+  'us-west1': 'us-west1',
+  'us-west4': 'us-west4',
+  'europe-north1': 'europe-north1',
+  'europe-west1': 'europe-west1',
+  'europe-west4': 'europe-west4',
+  'asia-east1': 'asia-east1',
+  'asia-southeast1': 'asia-southeast1'
+}
+
+export type AzureCloudResource =
+  'application_deployment' |
+  'storage_account' |
+  'synapse_workspace'
+
+
+export const azureCloudResourceTypes: Record<AzureCloudResource, AzureCloudResource> = {
+  application_deployment: 'application_deployment',
+  storage_account: 'storage_account',
+  synapse_workspace: 'synapse_workspace'
+}
+
+export type AzureCloudRegion =
+  'eastus' |
+  'eastus2' |
+  'southcentralus' |
+  'westus2' |
+  'westus3' |
+  'australiaeast' |
+  'southeastasia' |
+  'northeurope' |
+  'swedencentral' |
+  'uksouth' |
+  'westeurope' |
+  'centralus' |
+  'southafricanorth' |
+  'centralindia' |
+  'eastasia' |
+  'japaneast' |
+  'koreacentral' |
+  'canadacentral' |
+  'francecentral' |
+  'germanywestcentral' |
+  'norwayeast' |
+  'switzerlandnorth' |
+  'uaenorth' |
+  'brazilsouth' |
+  'eassus2euap' |
+  'qatarcentral' |
+  'centralusstage' |
+  'eastusstage' |
+  'eastus2stage' |
+  'northcentralusstage' |
+  'southcentralusstage' |
+  'westtusstage' |
+  'westus2stage' |
+  'asia' |
+  'asiapacific' |
+  'australia' |
+  'brazil' |
+  'canada' |
+  'europe' |
+  'france' |
+  'germany' |
+  'global' |
+  'india' |
+  'japan' |
+  'korea' |
+  'norway' |
+  'singapore' |
+  'southafrica' |
+  'switzerland' |
+  'uae' |
+  'uk' |
+  'unitedstates' |
+  'unitedstateseuap' |
+  'eastasiastage' |
+  'southeastasiastage' |
+  'eastusstg' |
+  'southcentralusstg' |
+  'northcentralus' |
+  'westus' |
+  'jioindiawest' |
+  'centraluseuap' |
+  'westcentralus' |
+  'southafricawest' |
+  'australiacentral' |
+  'australiacentral2' |
+  'australiasoutheast' |
+  'japanwest' |
+  'jioindiacentral' |
+  'koreasouth' |
+  'southindia' |
+  'westindia' |
+  'canadaeast' |
+  'francesouth' |
+  'germanynorth' |
+  'norwaywest' |
+  'switzerlandwest' |
+  'ukwest' |
+  'uaecentral' |
+  'brazilsoutheast'
+
+
+export const azureCloudRegionTypes: Record<AzureCloudRegion, AzureCloudRegion> = {
+  eastus: 'eastus',
+  eastus2: 'eastus2',
+  southcentralus: 'southcentralus',
+  westus2: 'westus2',
+  westus3: 'westus3',
+  australiaeast: 'australiaeast',
+  southeastasia: 'southeastasia',
+  northeurope: 'northeurope',
+  swedencentral: 'swedencentral',
+  uksouth: 'uksouth',
+  westeurope: 'westeurope',
+  centralus: 'centralus',
+  southafricanorth: 'southafricanorth',
+  centralindia: 'centralindia',
+  eastasia: 'eastasia',
+  japaneast: 'japaneast',
+  koreacentral: 'koreacentral',
+  canadacentral: 'canadacentral',
+  francecentral: 'francecentral',
+  germanywestcentral: 'germanywestcentral',
+  norwayeast: 'norwayeast',
+  switzerlandnorth: 'switzerlandnorth',
+  uaenorth: 'uaenorth',
+  brazilsouth: 'brazilsouth',
+  eassus2euap: 'eassus2euap',
+  qatarcentral: 'qatarcentral',
+  centralusstage: 'centralusstage',
+  eastusstage: 'eastusstage',
+  eastus2stage: 'eastus2stage',
+  northcentralusstage: 'northcentralusstage',
+  southcentralusstage: 'southcentralusstage',
+  westtusstage: 'westtusstage',
+  westus2stage: 'westus2stage',
+  asia: 'asia',
+  asiapacific: 'asiapacific',
+  australia: 'australia',
+  brazil: 'brazil',
+  canada: 'canada',
+  europe: 'europe',
+  france: 'france',
+  germany: 'germany',
+  global: 'global',
+  india: 'india',
+  japan: 'japan',
+  korea: 'korea',
+  norway: 'norway',
+  singapore: 'singapore',
+  southafrica: 'southafrica',
+  switzerland: 'switzerland',
+  uae: 'uae',
+  uk: 'uk',
+  unitedstates: 'unitedstates',
+  unitedstateseuap: 'unitedstateseuap',
+  eastasiastage: 'eastasiastage',
+  southeastasiastage: 'southeastasiastage',
+  eastusstg: 'eastusstg',
+  southcentralusstg: 'southcentralusstg',
+  northcentralus: 'northcentralus',
+  westus: 'westus',
+  jioindiawest: 'jioindiawest',
+  centraluseuap: 'centraluseuap',
+  westcentralus: 'westcentralus',
+  southafricawest: 'southafricawest',
+  australiacentral: 'australiacentral',
+  australiacentral2: 'australiacentral2',
+  australiasoutheast: 'australiasoutheast',
+  japanwest: 'japanwest',
+  jioindiacentral: 'jioindiacentral',
+  koreasouth: 'koreasouth',
+  southindia: 'southindia',
+  westindia: 'westindia',
+  canadaeast: 'canadaeast',
+  francesouth: 'francesouth',
+  germanynorth: 'germanynorth',
+  norwaywest: 'norwaywest',
+  switzerlandwest: 'switzerlandwest',
+  ukwest: 'ukwest',
+  uaecentral: 'uaecentral',
+  brazilsoutheast: 'brazilsoutheast'
+}
+
+
 export interface Publication {
   'dct:title'?: string
   'dcat:accessURL'?: string
@@ -47,9 +282,9 @@ export interface GeneratedBy {
 }
 
 export interface StorageObject {
-  region?: string
-  cloudResource?: string
-  cloudPlatform?: string
+  region?: GoogleCloudRegion | AzureCloudRegion
+  cloudResource?: GoogleCloudResource | AzureCloudResource
+  cloudPlatform?: 'gcp' | 'azure'
 }
 
 export interface Counts {
@@ -70,12 +305,12 @@ export interface Samples {
 }
 
 export interface Contributor {
-  name: string
-  email: string
-  additionalInformation: any
+  name?: string
+  email?: string
+  additionalInformation?: any
 }
 
-export interface Dataset {
+export interface DatasetMetadata {
   'TerraCore:id'?: string
   'dct:title': string
   'dct:description': string
@@ -83,7 +318,6 @@ export interface Dataset {
   'dct:issued': string
   'dct:modified'?: string
   'dcat:accessURL': string
-  'requestAccessURL'?: string
   'TerraDCAT_ap:hasDataUsePermission'?: string
   'TerraDCAT_ap:hasOriginalPublication'?: Publication
   'TerraDCAT_ap:hasPublication'?: Publication[]
@@ -101,6 +335,10 @@ export interface Dataset {
   fileAggregate?: FileTypeCounts[]
   samples: Samples
   contributors: Contributor[]
+}
+
+export interface Dataset extends DatasetMetadata {
+  requestAccessURL?: string
   id: string
   accessLevel: AccessLevel
   phsId?: string
@@ -121,6 +359,7 @@ export interface ExportDatasetRequest {
 }
 
 export interface CatalogContract {
+  upsertDataset: (storageSystem: StorageSystem, storageSourceId: string, metadata: DatasetMetadata) => Promise<Response>
   getDatasets: () => Promise<DatasetListResponse>
   getDatasetTables: (id: string) => Promise<DatasetTableListResponse>
   getDatasetPreviewTable: (request: GetDatasetPreviewTableRequest) => Promise<DatasetTableResponse>
@@ -137,6 +376,7 @@ const catalogPost = async (url: string, signal: AbortSignal | undefined, jsonBod
 }
 
 export const Catalog = (signal?: AbortSignal): CatalogContract => ({
+  upsertDataset: (storageSystem: StorageSystem, storageSourceId: string, metadata: DatasetMetadata): Promise<Response> => catalogPost('v1/datasets', signal, { storageSystem, storageSourceId, catalogEntry: metadata }),
   getDatasets: (): Promise<DatasetListResponse> => catalogGet('v1/datasets', signal),
   getDatasetTables: (id: string): Promise<DatasetTableListResponse> => catalogGet(`v1/datasets/${id}/tables`, signal),
   getDatasetPreviewTable: ({ id, tableName }: GetDatasetPreviewTableRequest): Promise<DatasetTableResponse> => catalogGet(`v1/datasets/${id}/tables/${tableName}`, signal),

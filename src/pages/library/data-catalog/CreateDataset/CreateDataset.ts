@@ -1,0 +1,247 @@
+import * as _ from 'lodash/fp'
+import { useState } from 'react'
+import { div, h } from 'react-hyperscript-helpers'
+import { ButtonPrimary } from 'src/components/common'
+import FooterWrapper from 'src/components/FooterWrapper'
+import TopBar from 'src/components/TopBar'
+import { Ajax } from 'src/libs/ajax'
+import {
+  datasetDataUsePermissionTypes,
+  DatasetMetadata,
+  StorageSystem
+} from 'src/libs/ajax/Catalog'
+import * as Utils from 'src/libs/utils'
+import {
+  ListInput,
+  MarkdownInput,
+  SelectInput,
+  StringInput
+} from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs'
+import { ContributorInput } from 'src/pages/library/data-catalog/CreateDataset/CustomInputs/ContributorInput'
+import { CountsInput } from 'src/pages/library/data-catalog/CreateDataset/CustomInputs/CountsInput'
+import { DataCollectionInput } from 'src/pages/library/data-catalog/CreateDataset/CustomInputs/DataCollectionInput'
+import { PublicationInput } from 'src/pages/library/data-catalog/CreateDataset/CustomInputs/PublicationInput'
+import { SamplesInput } from 'src/pages/library/data-catalog/CreateDataset/CustomInputs/SamplesInput'
+import { StorageInput } from 'src/pages/library/data-catalog/CreateDataset/CustomInputs/StorageInput'
+import {
+  makeDatasetReleasePolicyDisplayInformation
+} from 'src/pages/library/dataBrowser-utils'
+import { validate } from 'validate.js'
+
+
+const constraints = {
+  'dct:title': {
+    presence: { allowEmpty: false }
+  },
+  'dct:description': {
+    presence: { allowEmpty: false }
+  },
+  'dct:creator': {
+    presence: { allowEmpty: false }
+  },
+  'dcat:accessURL': {
+    presence: { allowEmpty: false },
+    url: true
+  }
+}
+
+interface CreateDatasetProps {
+  storageSystem: StorageSystem
+  storageSourceId: string
+}
+
+const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetProps) => {
+  const [titleTouched, setTitleTouched] = useState(false)
+  const [descriptionTouched, setDescriptionTouched] = useState(false)
+  const [creatorTouched, setCreatorTouched] = useState(false)
+  const [accessURLTouched, setAccessURLTouched] = useState(false)
+
+  const now = new Date().toISOString()
+
+  const [metadata, setMetadata] = useState<DatasetMetadata>({
+    'TerraCore:id': '',
+    'dct:title': '',
+    'dct:description': '',
+    'dct:creator': '',
+    'dct:issued': now,
+    'dcat:accessURL': '',
+    'TerraDCAT_ap:hasDataUsePermission': undefined,
+    'TerraDCAT_ap:hasOriginalPublication': undefined,
+    'TerraDCAT_ap:hasPublication': [],
+    'TerraDCAT_ap:hasDataCollection': [],
+    'TerraDCAT_ap:hasOwner': '',
+    'TerraDCAT_ap:hasCustodian': [],
+    'TerraDCAT_ap:hasConsentGroup': '',
+    'TerraCoreValueSets:SampleType': [],
+    'prov:wasAssociatedWith': [],
+    'prov:wasGeneratedBy': [],
+    'TerraDCAT_ap:hasGenomicDataType': [],
+    'TerraDCAT_ap:hasPhenotypeDataType': [],
+    storage: [],
+    counts: {},
+    fileAggregate: [],
+    samples: {},
+    contributors: []
+  })
+
+  const errors = validate(metadata, constraints)
+
+  return h(FooterWrapper, {}, [
+    h(TopBar, { title: 'Create Dataset', href: '' }, []),
+    h(StringInput, {
+      title: 'Title',
+      onChange: value => {
+        setTitleTouched(true)
+        setMetadata(_.set('dct:title', value, metadata))
+      },
+      value: metadata['dct:title'],
+      errors: titleTouched && errors && errors['dct:title'],
+      placeholder: 'Enter a title',
+      autoFocus: true,
+      required: true
+    }),
+    h(MarkdownInput, {
+      title: 'Description',
+      onChange: (value: string) => {
+        setDescriptionTouched(true)
+        setMetadata(_.set('dct:description', value, metadata))
+      },
+      value: metadata['dct:description'],
+      placeholder: 'Enter a description',
+      required: true,
+      errors: descriptionTouched && errors && errors['dct:description']
+    }),
+    h(StringInput, {
+      title: 'Dataset Creator',
+      onChange: (value: string) => {
+        setCreatorTouched(true)
+        setMetadata(_.set('dct:creator', value, metadata))
+      },
+      value: metadata['dct:creator'],
+      placeholder: 'Enter the creator of the dataset',
+      required: true,
+      errors: creatorTouched && errors && errors['dct:creator']
+    }),
+    h(StringInput, {
+      title: 'Access URL',
+      onChange: (value: string) => {
+        setAccessURLTouched(true)
+        setMetadata(_.set('dcat:accessURL', value, metadata))
+      },
+      value: metadata['dcat:accessURL'],
+      placeholder: 'Enter the url to access the dataset',
+      required: true,
+      errors: accessURLTouched && errors && errors['dcat:accessURL']
+    }),
+    h(SelectInput, {
+      title: 'Data Use Permission',
+      onChange: option => setMetadata(_.set('TerraDCAT_ap:hasDataUsePermission', option.value, metadata)),
+      placeholder: 'Enter a data use permission',
+      value: metadata['TerraDCAT_ap:hasDataUsePermission'],
+      options: _.map(dataUsePermission => {
+        const displayInformation = makeDatasetReleasePolicyDisplayInformation(dataUsePermission)
+        return {
+          label: displayInformation,
+          value: dataUsePermission
+        }
+      }, datasetDataUsePermissionTypes)
+    }),
+    h(PublicationInput, {
+      onChange: value => setMetadata(_.set('TerraDCAT_ap:hasOriginalPublication', value, metadata)),
+      publication: metadata['TerraDCAT_ap:hasOriginalPublication'] || { 'dct:title': '', 'dcat:accessURL': '' },
+      title: 'Original Publication',
+      wrapperProps: {
+        style: { width: '100%' }
+      }
+    }),
+    h(ListInput, {
+      title: 'Publications',
+      list: metadata['TerraDCAT_ap:hasPublication'] ? metadata['TerraDCAT_ap:hasPublication'] : [],
+      blankValue: { 'dct:title': '', 'dcat:accessURL': '' },
+      renderer: (listItem, key, onChange) => h(PublicationInput, {
+        onChange,
+        publication: listItem,
+        title: undefined,
+        wrapperProps: {
+          style: { width: '95%' },
+          key
+        }
+      }),
+      onChange: (value, index) => setMetadata(_.set(`TerraDCAT_ap:hasPublication[${index}]`, value, metadata)),
+      onRemove: value => setMetadata(_.set('TerraDCAT_ap:hasPublication', _.xor([value], metadata['TerraDCAT_ap:hasPublication']), metadata))
+    }),
+    h(ListInput, {
+      title: 'Data Collections',
+      list: metadata['TerraDCAT_ap:hasDataCollection'] ? metadata['TerraDCAT_ap:hasDataCollection'] : [],
+      blankValue: { 'dct:identifier': '', 'dct:title': '', 'dct:description': '', 'dct:creator': '', 'dct:publisher': '', 'dct:issued': '', 'dct:modified': '' },
+      renderer: (listItem, key, onChange) => h(DataCollectionInput, {
+        onChange,
+        dataCollection: listItem,
+        wrapperProps: {
+          style: { width: '95%' },
+          key
+        }
+      }),
+      onChange: (value, index) => setMetadata(_.set(`TerraDCAT_ap:hasDataCollection[${index}]`, value, metadata)),
+      onRemove: value => setMetadata(_.set('TerraDCAT_ap:hasDataCollection', _.xor([value], metadata['TerraDCAT_ap:hasDataCollection']), metadata))
+    }),
+    h(CountsInput, {
+      title: 'Counts',
+      counts: metadata.counts,
+      onChange: value => setMetadata(_.set('counts', value, metadata))
+    }),
+    h(SamplesInput, {
+      title: 'Samples',
+      samples: metadata.samples,
+      onChange: value => setMetadata(_.set('samples', value, metadata))
+    }),
+    h(ListInput, {
+      title: 'Contributors',
+      list: metadata.contributors ? metadata.contributors : [],
+      blankValue: { name: '', email: '', additionalInformation: {} },
+      renderer: (listItem, key, onChange) => h(ContributorInput, {
+        onChange,
+        contributor: listItem,
+        title: undefined,
+        wrapperProps: {
+          style: { width: '95%' },
+          key
+        }
+      }),
+      onChange: (value, index) => setMetadata(_.set(`contributors[${index}]`, value, metadata)),
+      onRemove: value => setMetadata(_.set('contributors', _.xor([value], metadata.contributors), metadata))
+    }),
+    h(ListInput, {
+      title: 'Storage',
+      list: metadata.storage ? metadata.storage : [],
+      blankValue: { cloudPlatform: '', cloudResource: undefined, region: undefined },
+      renderer: (listItem, key, onChange) => h(StorageInput, {
+        onChange,
+        storageObject: listItem,
+        wrapperProps: {
+          style: { width: '95%' },
+          key
+        }
+      }),
+      onChange: (value, index) => setMetadata(_.set(`storage[${index}]`, value, metadata)),
+      onRemove: value => setMetadata(_.set('storage', _.xor([value], metadata.storage), metadata))
+    }),
+    div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
+      div({ style: { display: 'flex', justifyContent: 'flex-end', margin: '1rem' } }, [
+        h(ButtonPrimary, {
+          style: { marginLeft: '1rem' },
+          disabled: errors,
+          tooltip: Utils.summarizeErrors(errors),
+          onClick: () => Ajax().Catalog.upsertDataset(storageSystem, storageSourceId, metadata)
+        }, ['Create'])
+      ])
+    ])
+  ])
+}
+
+export const navPaths = [{
+  name: 'create-dataset',
+  path: '/library/datasets/create/:storageSystem/:storageSourceId',
+  component: CreateDataset,
+  title: 'Catalog - Create Dataset'
+}]

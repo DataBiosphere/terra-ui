@@ -46,7 +46,7 @@ export const getDatasetReleasePoliciesDisplayInformation = (dataUsePermission?: 
 
 export const makeDatasetReleasePolicyDisplayInformation = (dataUsePermission: string): ReactElement => {
   const { label, description } = getDatasetReleasePoliciesDisplayInformation(dataUsePermission)
-  return h(Fragment, [
+  return h(div, [
     label,
     description && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [description])
   ])

@@ -89,6 +89,12 @@ const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
  * @param {Object} props - see {@link https://react-select.com/props#select-props}
  * @param props.value - a member of options
  * @param {Array} props.options - can be of any type; if objects, they should each contain a value and label, unless defining getOptionLabel
+ * @param {string} [props.placeholder] - The placeholder value for the select
+ * @param {Function} props.onChange - The function to call when a user makes a selection
+ * @param {boolean} [props.isClearable] - whether the select can be cleared
+ * @param {boolean} [props.isSearchable] - whether the select can be cleared
+ * @param {Object} [props.styles] - custom styling for the select
+ * @param {Function} [props.getOptionLabel] - a function to custom style the options
  * @param props.id - The HTML ID to give the form element
  */
 export const Select = ({ value, options, ...props }) => {
