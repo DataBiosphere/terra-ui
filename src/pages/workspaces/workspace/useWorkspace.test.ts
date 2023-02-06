@@ -4,6 +4,7 @@ import { locationTypes } from 'src/components/region-common'
 import * as WorkspaceUtils from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import * as GoogleStorage from 'src/libs/ajax/GoogleStorage'
+import { getConfig } from 'src/libs/config'
 import * as Notifications from 'src/libs/notifications'
 import { getUser, workspaceStore } from 'src/libs/state'
 import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
@@ -19,6 +20,11 @@ jest.mock('src/libs/notifications')
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
   getUser: jest.fn()
+}))
+
+jest.mock('src/libs/config', () => ({
+  ...jest.requireActual('src/libs/config'),
+  getConfig: jest.fn().mockReturnValue({})
 }))
 
 describe('useActiveWorkspace', () => {
@@ -115,6 +121,9 @@ describe('useActiveWorkspace', () => {
     getUser.mockReturnValue({
       email: 'christina@foo.com'
     })
+
+    // @ts-ignore
+    getConfig.mockReturnValue({ isProd: false })
 
     jest.spyOn(workspaceStore, 'set')
     jest.spyOn(WorkspaceUtils, 'updateRecentlyViewedWorkspaces')
@@ -453,5 +462,40 @@ describe('useActiveWorkspace', () => {
     expect(WorkspaceUtils.updateRecentlyViewedWorkspaces).toHaveBeenCalledWith(expectedWorkspaceResponse.workspace.workspaceId)
     expect(GoogleStorage.saToken).not.toHaveBeenCalled()
     expect(Notifications.notify).toHaveBeenCalled()
+  })
+
+  it('Does not (temporarily) call checkBucketReadAccess in production', async () => {
+    // Need to add nexflow role to old workspaces (WOR-764)
+
+    // Arrange
+    // @ts-ignore
+    getConfig.mockReturnValue({ isProd: true })
+
+    // remove workspaceInitialized because the server response does not include this information
+    const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace
+
+    // @ts-ignore
+    Ajax.mockImplementation(() => ({
+      Workspaces: {
+        workspace: () => ({
+          details: jest.fn().mockReturnValue(Promise.resolve(serverWorkspaceResponse)),
+          checkBucketLocation: jest.fn().mockReturnValue(Promise.resolve(bucketLocationResponse)),
+        })
+      }
+    }))
+
+    const expectedStorageDetails = _.merge({
+      googleBucketLocation: bucketLocationResponse.location,
+      googleBucketType: bucketLocationResponse.locationType
+    }, defaultAzureStorageOptions)
+
+    // Act
+    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'))
+    await waitForNextUpdate() // For the call to checkBucketLocation to execute
+
+    // Assert
+    assertResult(result.current, initializedGoogleWorkspace, expectedStorageDetails, false)
+    expect(workspaceStore.set).toHaveBeenCalledWith(initializedGoogleWorkspace)
+    expect(WorkspaceUtils.updateRecentlyViewedWorkspaces).toHaveBeenCalledWith(initializedGoogleWorkspace.workspace.workspaceId)
   })
 })

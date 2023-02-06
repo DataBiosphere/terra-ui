@@ -7,6 +7,7 @@ import { updateRecentlyViewedWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { responseContainsRequesterPaysError } from 'src/libs/ajax/ajax-common'
 import { saToken } from 'src/libs/ajax/GoogleStorage'
+import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import { clearNotification, notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
@@ -35,7 +36,7 @@ interface WorkspaceDetails {
   refreshWorkspace: () => {}
 }
 
-export const GOOGLE_PERMISSIONS_RECHECK_RATE = 15000
+export const GOOGLE_PERMISSIONS_RECHECK_RATE = 5000
 export const AZURE_BUCKET_RECHECK_RATE = 5000
 
 export const useWorkspace = (namespace, name) : WorkspaceDetails => {
@@ -59,26 +60,35 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
     workspaceStore.set(_.clone(workspace))
   }
 
-  const checkWorkspaceInitialization = async workspace => {
-    if (!!workspace && !workspaceInitialized) {
+  const checkWorkspaceInitialization = workspace => {
+    console.assert(!!workspace, 'initialization should not be called before workspace details are fetched')
+
+    const initializeWorkspace = () => {
       if (isGoogleWorkspace(workspace)) {
-        await checkGooglePermissions(workspace)
+        checkGooglePermissions(workspace)
       } else {
-        await checkAzureStorageExists(workspace)
+        checkAzureStorageExists(workspace)
       }
-    } else if (!!workspace && isGoogleWorkspace(workspace)) {
+    }
+
+    if (!workspaceInitialized) {
+      initializeWorkspace()
+    } else if (isGoogleWorkspace(workspace)) {
       // console.log('Google, skipping permissions initialization check')
-      await loadGoogleBucketLocation(workspace)
-    } else if (!!workspace && isAzureWorkspace(workspace)) {
+      loadGoogleBucketLocation(workspace)
+    } else if (isAzureWorkspace(workspace)) {
       // console.log('Azure, skipping storage initialization check')
-      await loadAzureStorageDetails(workspace)
+      loadAzureStorageDetails(workspace)
     }
   }
 
   const checkGooglePermissions = async workspace => {
     try {
-      await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketReadAccess()
-      // console.log('got success status!!!!!!')
+      // Need to add nexflow role to old workspaces (WOR-764) before enabling in production.
+      if (!getConfig().isProd) {
+        await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketReadAccess()
+        // console.log('got success status!!!!!!')
+      }
       updateWorkspaceInStore(workspace, true)
       loadGoogleBucketLocation(workspace)
     } catch (error) {
@@ -86,6 +96,7 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
       const errorText = await error.text()
       if (responseContainsRequesterPaysError(errorText)) {
         updateWorkspaceInStore(workspace, true)
+        // console.log('got requester pays error')
       } else {
         updateWorkspaceInStore(workspace, false)
         console.log('Google permissions are still syncing') // eslint-disable-line no-console
@@ -97,7 +108,6 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
   // Note that withErrorIgnoring is used because checkBucketLocation will error for requester pays workspaces.
   const loadGoogleBucketLocation = withErrorIgnoring(async workspace => {
     const storageDetails = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(workspace.workspace.googleProject, workspace.workspace.bucketName)
-    // console.log(`setting bucketLocation ${storageDetails.location}`)
     setGoogleStorage(storageDetails)
   })
 
