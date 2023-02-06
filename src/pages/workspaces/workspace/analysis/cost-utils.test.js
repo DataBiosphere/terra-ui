@@ -23,6 +23,7 @@ describe('getCostDisplayForDisk', () => {
     // Assert
     expect(result).toBe(expectedResult)
   })
+
   it('GCP - will get the disk cost for a Jupyter Persistent Disk', () => {
     // Arrange
     const jupyterDisk = getDisk()
@@ -44,6 +45,7 @@ describe('getCostDisplayForDisk', () => {
     // Assert
     expect(result).toBe(expectedResult)
   })
+
   it('GCP - will return empty string because when there is no app or runtime to get cost information from.', () => {
     // Arrange
     const app = undefined
@@ -61,6 +63,7 @@ describe('getCostDisplayForDisk', () => {
     // Assert
     expect(result).toBe(expectedResult)
   })
+
   it('GCP - will return empty string because toolLabel and currentRuntimeTool are not equal.', () => {
     // Arrange
     const app = undefined
@@ -78,6 +81,7 @@ describe('getCostDisplayForDisk', () => {
     // Assert
     expect(result).toBe(expectedResult)
   })
+
   it('GCP - will return blank string because cost is 0 due to deleting disk.', () => {
     // Arrange
     const jupyterDisk = getDisk()
@@ -138,6 +142,7 @@ describe('GCP getCostDisplayForTool', () => {
     // Assert
     expect(result).toBe(expectedResult)
   })
+
   it('Azure - will get compute cost and compute status for a running Jupyter runtime', () => {
     // Arrange
     const expectedResult = 'Running $0.06/hr'
@@ -154,6 +159,7 @@ describe('GCP getCostDisplayForTool', () => {
     // Assert
     expect(result).toBe(expectedResult)
   })
+
   it('Azure - will get compute cost and compute status for a stopped Jupyter runtime', () => {
     // Arrange
     const expectedResult = 'Paused $0.01/hr'
@@ -171,6 +177,7 @@ describe('GCP getCostDisplayForTool', () => {
     // Assert
     expect(result).toBe(expectedResult)
   })
+
   it('Azure - will return blank because current runtime is not equal to currentRuntimeTool', () => {
     // Arrange
     const expectedResult = ''
@@ -200,6 +207,7 @@ describe('getRuntimeCost', () => {
     // Assert
     expect(result).toBeGreaterThan(0)
   })
+
   it('Azure - will return 0 if runtime is in error', () => {
     // Arrange
     const runtime = getGoogleRuntime({
@@ -229,6 +237,7 @@ describe('getCostDisplayForTool', () => {
     // Assert
     expect(result).toContain('Running') // Costs may change, but we want to make sure the status prints correctly.
   })
+
   it('Azure - will get blank compute cost due to no runtime.', () => {
     // Arrange
     const app = undefined
