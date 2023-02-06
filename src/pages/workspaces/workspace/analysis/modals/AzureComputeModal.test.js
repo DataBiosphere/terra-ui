@@ -1,9 +1,11 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import _ from 'lodash/fp'
 import { act } from 'react-dom/test-utils'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
-import { defaultAzureMachineType } from 'src/libs/azure-utils'
+import { azureMachineTypes, defaultAzureMachineType } from 'src/libs/azure-utils'
+import { formatUSD } from 'src/libs/utils'
 import {
   defaultAzureWorkspace, imageDocs, testAzureDefaultLocation
 } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
@@ -14,11 +16,7 @@ import { asMockedFn } from 'src/testing/test-utils'
 import { AzureComputeModalBase } from './AzureComputeModal'
 
 
-jest.mock('src/pages/workspaces/workspace/analysis/cost-utils', () => ({
-  ...jest.requireActual('src/pages/workspaces/workspace/analysis/cost-utils'),
-  getAzureComputeCostEstimate: jest.fn(),
-  getAzureDiskCostEstimate: jest.fn()
-}))
+jest.mock('src/pages/workspaces/workspace/analysis/cost-utils')
 
 jest.mock('src/libs/ajax')
 jest.mock('src/libs/notifications', () => ({
@@ -118,20 +116,11 @@ describe('AzureComputeModal', () => {
 
   it('renders default cost estimate', async () => {
     // Arrange
-    const createFunc = jest.fn()
-    const runtimeFunc = jest.fn(() => ({
-      create: createFunc,
-      details: jest.fn()
-    }))
+    const expectedComputeCost = 0.15
+    const expectedDiskCost = 0.20
 
-    asMockedFn(getAzureComputeCostEstimate).mockReturnValue(0.15)
-    asMockedFn(getAzureDiskCostEstimate).mockReturnValue(0.20)
-    Ajax.mockImplementation(() => ({
-      ...defaultAjaxImpl,
-      Runtimes: {
-        runtimeV2: runtimeFunc
-      }
-    }))
+    asMockedFn(getAzureComputeCostEstimate).mockReturnValue(expectedComputeCost)
+    asMockedFn(getAzureDiskCostEstimate).mockReturnValue(expectedDiskCost)
 
     // Act
     await act(async () => {
@@ -139,35 +128,37 @@ describe('AzureComputeModal', () => {
     })
 
     // Assert
-    expect(screen.getAllByText('$0.15')) // Currently stopped and running are the same cost.
-    expect(screen.getByText('$0.20'))
+    expect(screen.getAllByText(formatUSD(expectedComputeCost))) // Currently stopped and running are the same cost.
+    expect(screen.getByText(formatUSD(expectedDiskCost)))
   })
 
-  it('renders default cost estimate', async () => {
+  it('renders updated cost estimate after change', async () => {
     // Arrange
-    const createFunc = jest.fn()
-    const runtimeFunc = jest.fn(() => ({
-      create: createFunc,
-      details: jest.fn()
-    }))
+    const initialComputeCost = 0.15
+    const expectedComputeCost = 0.30
+    const expectedDiskCost = 0.20
 
-    asMockedFn(getAzureComputeCostEstimate).mockReturnValue(0.15)
-    asMockedFn(getAzureDiskCostEstimate).mockReturnValue(0.20)
-    Ajax.mockImplementation(() => ({
-      ...defaultAjaxImpl,
-      Runtimes: {
-        runtimeV2: runtimeFunc
-      }
-    }))
+    asMockedFn(getAzureComputeCostEstimate).mockImplementation(computeConfig => {
+      return computeConfig.machineType === defaultAzureMachineType ? initialComputeCost : expectedComputeCost
+    })
 
+    asMockedFn(getAzureDiskCostEstimate).mockReturnValue(expectedDiskCost)
+
+    const user = userEvent.setup()
     // Act
     await act(async () => {
       await render(h(AzureComputeModalBase, defaultModalProps))
+      expect(screen.getAllByText(formatUSD(initialComputeCost))) // Verify initial value
+
+      const selectCompute = screen.getByLabelText('Cloud compute profile')
+      await user.click(selectCompute)
+      const selectOption = await screen.getByText(_.keys(azureMachineTypes)[1], { exact: false })
+      await user.click(selectOption)
     })
 
     // Assert
-    expect(screen.getAllByText('$0.15')) // Currently stopped and running are the same cost.
-    expect(screen.getByText('$0.20'))
+    expect(screen.getAllByText(formatUSD(expectedComputeCost))) // Currently stopped and running are the same cost.
+    expect(screen.getByText(formatUSD(expectedDiskCost)))
   })
 })
 

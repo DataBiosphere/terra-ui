@@ -5,11 +5,13 @@ import { act } from 'react-dom/test-utils'
 import { h } from 'react-hyperscript-helpers'
 import { cloudServices } from 'src/data/gce-machines'
 import { Ajax } from 'src/libs/ajax'
+import { formatUSD } from 'src/libs/utils'
 import {
   defaultGoogleWorkspace, defaultImage, defaultRImage, defaultTestDisk, getDisk,
   getGoogleRuntime, getJupyterRuntimeConfig, hailImage,
   imageDocs, testDefaultLocation
 } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
+import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import {
   defaultDataprocMachineType, defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize,
@@ -17,6 +19,7 @@ import {
   runtimeStatuses
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { runtimeTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { asMockedFn } from 'src/testing/test-utils'
 
 
 jest.mock('src/libs/notifications', () => ({
@@ -27,6 +30,7 @@ jest.mock('src/libs/notifications', () => ({
 }))
 
 jest.mock('src/libs/ajax')
+jest.mock('src/pages/workspaces/workspace/analysis/cost-utils')
 
 const onSuccess = jest.fn()
 const defaultModalProps = {
@@ -992,5 +996,27 @@ describe('ComputeModal', () => {
         timeoutInMinutes: null
       }))
     })
+  })
+
+  it('renders default cost estimate', async () => {
+    // Arrange
+    const expectedRuntimeConfigCost = 0.40
+    const expectedRuntimeConfigBaseCost = 0.15
+    const expectedPersistentDiskCostMonthly = 0.20
+
+    asMockedFn(runtimeConfigCost).mockReturnValue(expectedRuntimeConfigCost)
+    asMockedFn(runtimeConfigBaseCost).mockReturnValue(expectedRuntimeConfigBaseCost)
+    asMockedFn(getPersistentDiskCostMonthly).mockReturnValue(expectedPersistentDiskCostMonthly)
+
+
+    // Act
+    await act(async () => {
+      await render(h(ComputeModalBase, defaultModalProps))
+    })
+
+    // Assert
+    expect(screen.getByText(formatUSD(expectedRuntimeConfigCost)))
+    expect(screen.getByText(formatUSD(expectedRuntimeConfigBaseCost)))
+    expect(screen.getByText(formatUSD(expectedPersistentDiskCostMonthly)))
   })
 })
