@@ -18,8 +18,8 @@ import { asMockedFn } from 'src/testing/test-utils'
 
 jest.mock('src/libs/ajax/AzureStorage')
 
-jest.mock('src/libs/ajax')
 type AjaxExports = typeof import('src/libs/ajax')
+jest.mock('src/libs/ajax')
 type AjaxContract = ReturnType<AjaxExports['Ajax']>
 
 jest.mock('src/libs/notifications')
