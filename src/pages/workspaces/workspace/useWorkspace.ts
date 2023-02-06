@@ -75,7 +75,6 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
       // Need to add nextflow role to old workspaces (WOR-764) before enabling in production.
       if (!getConfig().isProd) {
         await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketReadAccess()
-        // console.log('got success status!!!!!!')
       }
       updateWorkspaceInStore(workspace, true)
       loadGoogleBucketLocation(workspace)
@@ -84,7 +83,6 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
       const errorText = await error.text()
       if (responseContainsRequesterPaysError(errorText)) {
         updateWorkspaceInStore(workspace, true)
-        // console.log('got requester pays error')
       } else {
         updateWorkspaceInStore(workspace, false)
         console.log('Google permissions are still syncing') // eslint-disable-line no-console
@@ -108,7 +106,6 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
   const checkAzureStorageExists = async workspace => {
     try {
       storeAzureStorageDetails(await Ajax(signal).AzureStorage.details(workspace.workspace.workspaceId))
-      // console.log('got success status!!!!!!')
       updateWorkspaceInStore(workspace, true)
     } catch (error) {
       updateWorkspaceInStore(workspace, false)

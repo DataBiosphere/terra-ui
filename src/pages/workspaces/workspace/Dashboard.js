@@ -220,7 +220,8 @@ const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace 
 
   useEffect(() => {
     if (workspace?.workspaceInitialized) {
-      // storageDetails.googleBucketLocation is not used because WorkspaceContainer silently fails for requester pays workspaces
+      // storageDetails.googleBucketLocation is not used because WorkspaceContainer silently fails for requester pays workspaces.
+      // We wish to show the user more information in this case and allow them to link a workspace.
       loadGoogleBucketLocation()
     }
   }, [loadGoogleBucketLocation, workspace])
