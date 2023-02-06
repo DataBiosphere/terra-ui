@@ -1,6 +1,7 @@
+import { getAzurePricesForRegion } from 'src/libs/azure-utils'
 import { azureDisk, azureRuntime, galaxyDisk, galaxyRunning, getDisk, getGoogleRuntime, getJupyterRuntimeConfig } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 
-import { getAzurePricesForRegion, getCostDisplayForDisk, getCostDisplayForTool, getPersistentDiskCostMonthly, getRuntimeCost } from './cost-utils'
+import { getCostDisplayForDisk, getCostDisplayForTool, getPersistentDiskCostMonthly, getRuntimeCost } from './cost-utils'
 import { cloudProviders, pdTypes } from './runtime-utils'
 import { toolLabels } from './tool-utils'
 

@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { b, div, h, input, label, p } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, IdContainer, Link, spinnerOverlay } from 'src/components/common'
 import { cookiesAcceptedKey } from 'src/components/CookieWarning'
 import { icon, spinner } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
@@ -9,7 +9,7 @@ import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { getLocalPref } from 'src/libs/prefs'
-import { useCancellation, useGetter, useOnMount, usePollingEffect, usePrevious, useStore, useUniqueId } from 'src/libs/react-utils'
+import { useCancellation, useGetter, useOnMount, usePollingEffect, usePrevious, useStore } from 'src/libs/react-utils'
 import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -34,7 +34,6 @@ export const StatusMessage = ({ hideSpinner, children }) => {
 }
 
 export const RadioBlock = ({ labelText, children, name, checked, onChange, style = {} }) => {
-  const radioBlockId = useUniqueId()
   return div({
     style: {
       backgroundColor: colors.warning(0.2),
@@ -44,13 +43,13 @@ export const RadioBlock = ({ labelText, children, name, checked, onChange, style
       ...style
     }
   }, [
-    h(Fragment, [
-      input({ type: 'radio', name, checked, onChange, radioBlockId }),
+    h(IdContainer, [id => h(Fragment, [
+      input({ type: 'radio', name, checked, onChange, id }),
       div({ style: { marginLeft: '.75rem' } }, [
-        label({ style: { fontWeight: 600, fontSize: 16 }, htmlFor: radioBlockId }, [labelText]),
+        label({ style: { fontWeight: 600, fontSize: 16 }, htmlFor: id }, [labelText]),
         children
       ])
-    ])
+    ])])
   ])
 }
 
