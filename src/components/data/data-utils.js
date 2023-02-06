@@ -368,7 +368,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
     }
   }, [
     ({ dragging, openUploader }) => h(Fragment, [
-      h(Modal, {
+      !uploading && h(Modal, {
         onDismiss,
         title: 'Import Table Data',
         width: '35rem',
@@ -376,7 +376,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
           disabled: dataProvider.tsvFeatures.disabled({ filePresent: currentFile, isInvalid, uploading, recordTypePresent: recordType }),
           tooltip: dataProvider.tsvFeatures.tooltip({ filePresent: currentFile, isInvalid, recordTypePresent: recordType, uploading }),
           onClick: doUpload
-        }, [Utils.cond([uploading, () => icon('loadingSpinner')], () => 'Start Import Job')])
+        }, ['Start Import Job'])
       }, [
         div(
           ['Choose the data import option below. ',
