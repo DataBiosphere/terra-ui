@@ -20,11 +20,13 @@ import { useCancellation, useGetter } from 'src/libs/react-utils'
 import { contactUsActive, getUser } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import {
+  getAppCost, getGalaxyComputeCost, getPersistentDiskCostMonthly, getRuntimeCost
+} from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
-  defaultComputeZone, getAppCost, getComputeStatusForDisplay, getCreatorForRuntime, getDiskAppType, getGalaxyComputeCost,
-  getPersistentDiskCostMonthly,
-  getRegionFromZone, getRuntimeCost, isApp, isComputePausable, isGcpContext, isResourceDeletable, mapToPdTypes,
+  defaultComputeZone, getComputeStatusForDisplay, getCreatorForRuntime, getDiskAppType,
+  getRegionFromZone, isApp, isComputePausable, isGcpContext, isResourceDeletable, mapToPdTypes,
   workspaceHasMultipleDisks
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'

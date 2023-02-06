@@ -30,9 +30,10 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
+import { getCostDisplayForDisk, getCostDisplayForTool, getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
 import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
-import { getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentPersistentDisk, getCurrentRuntime, getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { getCurrentApp, getCurrentAppDataDisk, getCurrentPersistentDisk, getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { appTools, getAppType, toolLabelDisplays, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
@@ -60,6 +61,10 @@ export const ContextBar = ({
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false)
   const [selectedToolIcon, setSelectedToolIcon] = useState(undefined)
 
+  const computeRegion = getRegionInfo(location, locationType).computeRegion
+  // Azure workspace containers will pass the 'location' param as an Azure armRegionName, which can be used directly as the computeRegion
+  const computeRegion = isAzureWorkspace(workspace) ? location : getRegionInfo(location, locationType).computeRegion
+  // TODO resolve this (expect Azure loc in storageDetails)
   const computeRegion = getRegionInfo(googleBucketLocation, googleBucketType).computeRegion
   const currentRuntime = getCurrentRuntime(runtimes)
   const currentRuntimeTool = currentRuntime?.labels?.tool
@@ -132,7 +137,8 @@ export const ContextBar = ({
     const runtimeCost = currentRuntime ? getRuntimeCost(currentRuntime) : 0
     const curPd = getCurrentPersistentDisk(runtimes, persistentDisks)
     const diskCost = curPd ? getPersistentDiskCostHourly(curPd, computeRegion) : 0
-    return `${Utils.formatUSD(galaxyRuntimeCost + galaxyDiskCost + runtimeCost + diskCost)}`
+    const display = Utils.formatUSD(galaxyRuntimeCost + galaxyDiskCost + runtimeCost + diskCost)
+    return `${display}`
   }
 
   return h(Fragment, [

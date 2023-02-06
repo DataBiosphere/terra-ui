@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { version } from 'src/data/machines'
+import { version } from 'src/data/gce-machines'
 import { appIdentifier, authOpts, fetchLeo, fetchOk, jsonBody } from 'src/libs/ajax/ajax-common'
 import { getConfig } from 'src/libs/config'
 
