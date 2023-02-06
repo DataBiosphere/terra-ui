@@ -374,7 +374,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
         width: '35rem',
         okButton: h(ButtonPrimary, {
           disabled: dataProvider.tsvFeatures.disabled({ filePresent: currentFile, isInvalid, uploading, recordTypePresent: recordType }),
-          tooltip: dataProvider.tsvFeatures.tooltip({ filePresent: currentFile, isInvalid, recordTypePresent: recordType, uploading }),
+          tooltip: dataProvider.tsvFeatures.tooltip({ filePresent: currentFile, isInvalid, recordTypePresent: recordType }),
           onClick: doUpload
         }, ['Start Import Job'])
       }, [
