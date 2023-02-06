@@ -307,3 +307,65 @@ export const galaxyDisk = {
   zone: 'us-central1-a'
 }
 
+
+export const azureDisk = {
+  id: 16902,
+  cloudContext: {
+    cloudProvider: 'AZURE',
+    cloudResource: 'testCloudResource'
+  },
+  zone: 'eastus',
+  name: 'testAzurePD',
+  status: 'Ready',
+  auditInfo: {
+    creator: 'test.user@gmail.com',
+    createdDate: '2023-02-01T20:40:50.428281Z',
+    destroyedDate: null,
+    dateAccessed: '2023-02-01T20:41:00.357Z'
+  },
+  size: 50,
+  diskType: 'pd-standard', //TODO: This should be stored in backend as STANDARD_LRS
+  blockSize: 4096,
+  labels: {
+    saturnWorkspaceNamespace: 'azure-dev-2023-01-23',
+    saturnWorkspaceName: 'N8AzureWS-2-1-2'
+  }
+}
+
+export const azureRuntime = {
+  id: 79771,
+  workspaceId: 'fafbb550-62eb-4135-8b82-3ce4d53446af',
+  runtimeName: 'saturn-42a4398b-10f8-4626-9025-7abda26aedab',
+  googleProject: '0cb7a640-45a2-4ed6-be9f-63519f86e04b/3efc5bdf-be0e-44e7-b1d7-c08931e3c16c/mrg-terra-dev-jan23-20230123125907',
+  cloudContext: {
+    cloudProvider: 'AZURE',
+    cloudResource: '0cb7a640-45a2-4ed6-be9f-63519f86e04b/3efc5bdf-be0e-44e7-b1d7-c08931e3c16c/mrg-terra-dev-jan23-20230123125907'
+  },
+  auditInfo: {
+    creator: 'ncl.hedwig@gmail.com',
+    createdDate: '2023-02-01T20:40:50.428281Z',
+    destroyedDate: null,
+    dateAccessed: '2023-02-01T20:41:00.357Z'
+  },
+  runtimeConfig: {
+    cloudService: 'AZURE_VM',
+    machineType: 'Standard_DS2_v2',
+    persistentDiskId: 16902,
+    region: 'eastus'
+  },
+  proxyUrl: 'https://lzf07312d05014dcfc2a6d8244c0f9b166a3801f44ec2b003d.servicebus.windows.net/saturn-42a4398b-10f8-4626-9025-7abda26aedab',
+  status: 'Running',
+  labels: {
+    saturnWorkspaceNamespace: 'azure-dev-2023-01-23',
+    creator: 'ncl.hedwig@gmail.com',
+    clusterServiceAccount: 'ncl.hedwig@gmail.com',
+    saturnAutoCreated: 'true',
+    clusterName: 'saturn-42a4398b-10f8-4626-9025-7abda26aedab',
+    saturnWorkspaceName: 'N8AzureWS-2-1-2',
+    saturnVersion: '6',
+    tool: 'JupyterLab',
+    runtimeName: 'saturn-42a4398b-10f8-4626-9025-7abda26aedab',
+    cloudContext: 'Azure/0cb7a640-45a2-4ed6-be9f-63519f86e04b/3efc5bdf-be0e-44e7-b1d7-c08931e3c16c/mrg-terra-dev-jan23-20230123125907'
+  },
+  patchInProgress: false
+}
