@@ -539,14 +539,14 @@ export const Environments = ({ nav = undefined }) => {
     }, [makeMenuIcon('trash'), 'Delete'])
   }
 
-  const renderPauseButton = (computeType, compute) => {
+  const renderPauseButton = (computeType, compute, isGcp) => {
     const { status } = compute
 
-    const shouldShowPauseButton =
-      Utils.cond(
-        [isApp(compute) && !_.find(tool => tool.appType && tool.appType === compute.appType)(appTools)?.isPauseUnsupported, () => true],
-        [isPauseSupported(getToolLabelFromRuntime(compute)) && currentUser === getCreatorForRuntime(compute), () => true],
-        () => false)
+    const shouldShowPauseButton = //TODO: IA-3993 enable pausing
+    isGcp && Utils.cond(
+      [isApp(compute) && !_.find(tool => tool.appType && tool.appType === compute.appType)(appTools)?.isPauseUnsupported, () => true],
+      [isPauseSupported(getToolLabelFromRuntime(compute)) && currentUser === getCreatorForRuntime(compute), () => true],
+      () => false)
 
     return shouldShowPauseButton && h(Link, {
       style: { marginRight: '1rem' },
@@ -704,7 +704,7 @@ export const Environments = ({ nav = undefined }) => {
                 const cloudEnvironment = filteredCloudEnvironments[rowIndex]
                 const computeType = isApp(cloudEnvironment) ? 'app' : 'runtime'
                 return h(Fragment, [
-                  renderPauseButton(computeType, cloudEnvironment),
+                  renderPauseButton(computeType, cloudEnvironment, getCloudProvider(filteredCloudEnvironments[rowIndex]) === 'GCE'),
                   renderDeleteButton(computeType, cloudEnvironment)
                 ])
               }
