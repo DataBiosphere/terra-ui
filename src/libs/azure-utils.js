@@ -155,29 +155,16 @@ export const azureStandardDiskTypes = {
   }
 }
 
-export const azureStandardDiskSizes = {
-  'S4 LRS': 32,
-  'S6 LRS': 64,
-  'S10 LRS': 128,
-  'S15 LRS': 256,
-  'S20 LRS': 512,
-  'S30 LRS': 1024,
-  'S40 LRS': 2048,
-  'S50 LRS': 4096,
-  'S60 LRS': 8192,
-  'S70 LRS': 16384,
-  'S80 LRS': 32767,
-}
 
 export const azureDiskTypeToOffering = {
-  STANDARD_LRS: azureStandardDiskSizes
+  STANDARD_LRS: azureStandardDiskTypes
 }
 
 /** Get Azure disk type (S4, S6 etc) whose storage is large enough to hold the requested size (in Gb).
  * Note that the largest (S80 LRS) will not hold more than 32767 Gb, according to the Azure docs.
  * TODO [IA-3390] calculate differently
  */
-export const getDiskType = diskSize => _.findKey(maxSize => diskSize <= maxSize, azureStandardDiskSizes)
+export const getDiskType = diskSize => _.findKey(diskType => diskSize <= diskType.size, azureStandardDiskTypes)
 
 // TODO [IA-4007] Explore replacing the hardcoded, manually synced script output below with a dynamic solution for price quotes.
 
