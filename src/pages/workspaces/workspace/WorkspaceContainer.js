@@ -6,34 +6,30 @@ import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import LeaveResourceModal from 'src/components/LeaveResourceModal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
-import { locationTypes } from 'src/components/region-common'
 import { TabBar } from 'src/components/tabBars'
 import TitleBar from 'src/components/TitleBar'
 import TopBar from 'src/components/TopBar'
-import { updateRecentlyViewedWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
-import { saToken } from 'src/libs/ajax/GoogleStorage'
 import { isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { clearNotification, notify } from 'src/libs/notifications'
-import { useCancellation, useOnMount, usePrevious, useStore, withDisplayName } from 'src/libs/react-utils'
-import { getUser, workspaceStore } from 'src/libs/state'
+import { useCancellation, useOnMount, usePrevious, withDisplayName } from 'src/libs/react-utils'
+import { getUser } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { differenceFromNowInSeconds } from 'src/libs/utils'
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
 import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
-  defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, isGcpContext, mapToPdTypes
+  getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, isGcpContext, mapToPdTypes
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import RuntimeManager from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
 import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
+import { useWorkspace } from 'src/pages/workspaces/workspace/useWorkspace'
 import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu'
 
 
@@ -64,17 +60,29 @@ const WorkspacePermissionNotice = ({ workspace }) => {
   ])
 }
 
+const TitleBarWarning = message => {
+  return h(TitleBar, {
+    title: div({ role: 'alert', style: { display: 'flex', alignItems: 'center', margin: '1rem' } }, [
+      icon('warning-standard', { size: 32, style: { color: colors.danger(), marginRight: '0.5rem' } }),
+      span({ style: { color: colors.dark(), fontSize: 14 } }, [message])
+    ]), style: { backgroundColor: colors.accent(0.35), borderBottom: `1px solid ${colors.accent()}` }
+  })
+}
+
 const AzureWarning = () => {
   const warningMessage = 'It is a violation of US Federal Policy to store any Unclassified Confidential Information (ie FISMA, FIPS-199, etc.) in ' +
     'this platform at this time. Do not put this data in this platform unless you are explicitly authorized to by the manager of the Dataset or ' +
     'you have your own agreements in place.'
+  return TitleBarWarning(warningMessage)
+}
 
-  return h(TitleBar, {
-    title: div({ role: 'alert', style: { display: 'flex', alignItems: 'center', margin: '1rem' } }, [
-      icon('warning-standard', { size: 32, style: { color: colors.danger(), marginRight: '0.5rem' } }),
-      span({ style: { color: colors.dark(), fontSize: 14 } }, [warningMessage])
-    ]), style: { backgroundColor: colors.accent(0.25) }
-  })
+
+const GooglePermissionsWarning = () => {
+  const warningMessage = 'This workspace is currently synchronizing its permissions with Google. This can take anywhere from a couple minutes ' +
+    'to a few hours in rare cases. Access to this workspace’s bucket and running analysis in workflows or notebooks may result in errors until ' +
+    'this synchronization is complete.'
+
+  return TitleBarWarning(warningMessage)
 }
 
 const WorkspaceTabs = ({
@@ -113,8 +121,7 @@ const WorkspaceTabs = ({
         callbacks: { onClone, onShare, onLock, onDelete, onLeave },
         workspaceInfo: { canShare, isLocked, isOwner, workspaceLoaded }
       })
-    ]),
-    workspaceLoaded && isAzureWorkspace(workspace) && h(AzureWarning)
+    ])
   ])
 }
 
@@ -127,14 +134,15 @@ export const isV1Artifact = _.curry((workspace, { googleProject, cloudContext })
 
 const WorkspaceContainer = ({
   namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true,
-  analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks, location, locationType },
-  refresh, workspace, refreshWorkspace, children
+  analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+  storageDetails, refresh, workspace, refreshWorkspace, children
 }) => {
   const [deletingWorkspace, setDeletingWorkspace] = useState(false)
   const [cloningWorkspace, setCloningWorkspace] = useState(false)
   const [sharingWorkspace, setSharingWorkspace] = useState(false)
   const [showLockWorkspaceModal, setShowLockWorkspaceModal] = useState(false)
   const [leavingWorkspace, setLeavingWorkspace] = useState(false)
+  const workspaceLoaded = !!workspace
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
@@ -162,13 +170,15 @@ const WorkspaceContainer = ({
       namespace, name, activeTab, refresh, workspace, setDeletingWorkspace, setCloningWorkspace,
       setLeavingWorkspace, setSharingWorkspace, setShowLockWorkspaceModal
     }),
+    workspaceLoaded && isAzureWorkspace(workspace) && h(AzureWarning),
+    workspaceLoaded && isGoogleWorkspace(workspace) && workspace.workspaceInitialized === false && h(GooglePermissionsWarning),
     div({ role: 'main', style: Style.elements.pageContentContainer },
       [div({ style: { flex: 1, display: 'flex' } }, [
         div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [
           children
         ]),
         workspace && h(ContextBar, {
-          workspace, apps, appDataDisks, refreshApps, runtimes, persistentDisks, refreshRuntimes, location, locationType
+          workspace, apps, appDataDisks, refreshApps, runtimes, persistentDisks, refreshRuntimes, storageDetails
         })
       ])]
     ),
@@ -317,92 +327,24 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
   const Wrapper = props => {
     const { namespace, name } = props
     const child = useRef()
-    const signal = useCancellation()
-    const [accessError, setAccessError] = useState(false)
-    const accessNotificationId = useRef()
-    const cachedWorkspace = useStore(workspaceStore)
-    const [loadingWorkspace, setLoadingWorkspace] = useState(false)
-    const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ?
-      cachedWorkspace :
-      undefined
-    const [googleProject, setGoogleProject] = useState(workspace?.workspace.googleProject)
-    const [azureContext, setAzureContext] = useState(workspace?.azureContext)
-    const [{ location, locationType }, setBucketLocation] = useState({ location: defaultLocation, locationType: locationTypes.default })
 
+    const { workspace, accessError, loadingWorkspace, storageDetails, refreshWorkspace } = useWorkspace(namespace, name)
+    const googleProject = workspace?.googleProject
+    const azureContext = workspace?.azureContext
     const prevGoogleProject = usePrevious(googleProject)
     const prevAzureContext = usePrevious(azureContext)
+
     const workspaceLoaded = !!workspace
 
     const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject, workspace)
     const { apps, refreshApps } = useAppPolling(googleProject, name, workspace)
     // The following if statements are necessary to support the context bar properly loading runtimes for google/azure
-    if (workspaceLoaded) {
-      if (googleProject !== prevGoogleProject || azureContext !== prevAzureContext) {
-        refreshRuntimes(isAzureWorkspace(workspace))
-        refreshApps()
-      }
+    if (workspaceLoaded && (googleProject !== prevGoogleProject || azureContext !== prevAzureContext)) {
+      refreshRuntimes(true)
+      refreshApps()
     }
 
-    const loadBucketLocation = withErrorIgnoring(async (googleProject, bucketName) => {
-      if (!!googleProject) {
-        const bucketLocation = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
-        setBucketLocation(bucketLocation)
-      }
-    })
-
-    const refreshWorkspace = _.flow(
-      withErrorReporting('Error loading workspace'),
-      Utils.withBusyState(setLoadingWorkspace)
-    )(async () => {
-      try {
-        const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details([
-          'accessLevel', 'azureContext', 'canCompute', 'canShare', 'owners',
-          'workspace', 'workspace.attributes', 'workspace.authorizationDomain', 'workspace.cloudPlatform',
-          'workspace.isLocked', 'workspace.workspaceId', 'workspaceSubmissionStats'
-        ])
-        workspaceStore.set(workspace)
-        setGoogleProject(workspace.workspace.googleProject)
-        setAzureContext(workspace.azureContext)
-        updateRecentlyViewedWorkspaces(workspace.workspace.workspaceId)
-
-        const { accessLevel, workspace: { bucketName, createdBy, createdDate, googleProject } } = workspace
-
-        loadBucketLocation(googleProject, bucketName)
-        // Request a service account token. If this is the first time, it could take some time before everything is in sync.
-        // Doing this now, even though we don't explicitly need it now, increases the likelihood that it will be ready when it is needed.
-        if (Utils.canWrite(accessLevel) && isGoogleWorkspace(workspace)) {
-          saToken(googleProject)
-        }
-
-        if (!Utils.isOwner(accessLevel) && (createdBy === getUser().email) && (differenceFromNowInSeconds(createdDate) < 60)) {
-          accessNotificationId.current = notify('info', 'Workspace access synchronizing', {
-            message: h(Fragment, [
-              'It looks like you just created this workspace. It may take up to a minute before you have access to modify it. Refresh at any time to re-check.',
-              div({ style: { marginTop: '1rem' } }, [h(Link, {
-                onClick: () => {
-                  refreshWorkspace()
-                  clearNotification(accessNotificationId.current)
-                }
-              }, 'Click to refresh now')])
-            ])
-          })
-        }
-      } catch (error) {
-        if (error.status === 404) {
-          setAccessError(true)
-        } else {
-          throw error
-        }
-      }
-    })
-
-    useOnMount(() => {
-      if (!workspace) {
-        refreshWorkspace()
-      } else {
-        loadBucketLocation(googleProject, workspace.workspace.bucketName)
-      }
-    })
+    const analysesData = { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks }
 
     if (accessError) {
       return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)])
@@ -412,7 +354,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         title: _.isFunction(title) ? title(props) : title,
         breadcrumbs: breadcrumbs(props),
         topBarContent: topBarContent && topBarContent({ workspace, ...props }),
-        analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks, location, locationType },
+        analysesData, storageDetails,
         refresh: async () => {
           await refreshWorkspace()
           if (child.current?.refresh) {
@@ -422,7 +364,8 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, refreshWorkspace, analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, location, persistentDisks },
+          workspace, refreshWorkspace,
+          analysesData, storageDetails,
           ...props
         }),
         loadingWorkspace && spinnerOverlay
