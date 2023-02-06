@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import * as Utils from 'src/libs/utils'
 import {
+  defaultAzureLocation,
   defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultLocation, defaultPersistentDiskType, runtimeStatuses
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
@@ -12,6 +13,8 @@ const defaultAzureWorkspaceNamespace = 'test-azure-ws'
 
 //this is important, so the test impl can diverge
 export const testDefaultLocation = defaultLocation
+
+export const testAzureDefaultLocation = defaultAzureLocation
 
 export const defaultImage = {
   id: 'terra-jupyter-gatk',
