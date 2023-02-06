@@ -207,9 +207,9 @@ export const CloudEnvironmentModal = ({
           shape: 'pause',
           toolLabel,
           onClick: () => stopApp(toolLabel),
-          disabled: busy || !canCompute,
+          disabled: cloudProvider === cloudProviderTypes.AZURE || busy || !canCompute,
           messageChildren: [span('Pause')],
-          tooltip: canCompute ? 'Pause Environment' : noCompute
+          tooltip: (cloudProvider === cloudProviderTypes.AZURE) ? 'Feature coming soon' : (canCompute ? 'Pause Environment' : noCompute)//TODO:bungl
         })
       case 'Starting':
       case 'Stopping':
