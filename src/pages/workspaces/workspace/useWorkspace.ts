@@ -22,9 +22,9 @@ import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/runtime
 interface StorageDetails {
   googleBucketLocation: string // historically returns defaultLocation if cannot be retrieved or Azure
   googleBucketType: string // historically returns locationTypes.default if cannot be retrieved or Azure
-  azureContainerRegion: string|undefined
-  azureContainerUrl: string|undefined
-  azureContainerSasUrl: string|undefined
+  azureContainerRegion?: string
+  azureContainerUrl?: string
+  azureContainerSasUrl?: string
 }
 
 export type InitializedWorkspaceWrapper = WorkspaceWrapper & { workspaceInitialized: boolean }
