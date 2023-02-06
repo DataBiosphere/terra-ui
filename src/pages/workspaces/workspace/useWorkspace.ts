@@ -6,6 +6,7 @@ import { locationTypes } from 'src/components/region-common'
 import { updateRecentlyViewedWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { responseContainsRequesterPaysError } from 'src/libs/ajax/ajax-common'
+import { AzureStorage } from 'src/libs/ajax/AzureStorage'
 import { saToken } from 'src/libs/ajax/GoogleStorage'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
@@ -52,7 +53,7 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
   const workspaceInitialized = workspace?.workspaceInitialized // will be stored in cached workspace
 
   const signal = useCancellation()
-  const checkInitializationTimeout = useRef<any>()
+  const checkInitializationTimeout = useRef<number>()
 
   const updateWorkspaceInStore = (workspace, initialized) => {
     workspace.workspaceInitialized = initialized
@@ -78,15 +79,14 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
       }
       updateWorkspaceInStore(workspace, true)
       loadGoogleBucketLocation(workspace)
-    } catch (error) {
-      // @ts-ignore
+    } catch (error: any) {
       const errorText = await error.text()
       if (responseContainsRequesterPaysError(errorText)) {
         updateWorkspaceInStore(workspace, true)
       } else {
         updateWorkspaceInStore(workspace, false)
         console.log('Google permissions are still syncing') // eslint-disable-line no-console
-        checkInitializationTimeout.current = setTimeout(() => checkWorkspaceInitialization(workspace), googlePermissionsRecheckRate)
+        checkInitializationTimeout.current = window.setTimeout(() => checkWorkspaceInitialization(workspace), googlePermissionsRecheckRate)
       }
     }
   }
@@ -105,7 +105,7 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
 
   const checkAzureStorageExists = async workspace => {
     try {
-      storeAzureStorageDetails(await Ajax(signal).AzureStorage.details(workspace.workspace.workspaceId))
+      storeAzureStorageDetails(await AzureStorage(signal).details(workspace.workspace.workspaceId))
       updateWorkspaceInStore(workspace, true)
     } catch (error) {
       updateWorkspaceInStore(workspace, false)
@@ -113,12 +113,12 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
       // the handling of this with WOR-534 so that we correctly differentiate between the
       // expected transient error and a workspace that is truly missing a storage container.
       console.log(`Error thrown by AzureStorage.details: ${error}`) // eslint-disable-line no-console
-      checkInitializationTimeout.current = setTimeout(() => checkWorkspaceInitialization(workspace), azureBucketRecheckRate)
+      checkInitializationTimeout.current = window.setTimeout(() => checkWorkspaceInitialization(workspace), azureBucketRecheckRate)
     }
   }
 
   const loadAzureStorageDetails = withErrorReporting('Error loading storage information', async workspace => {
-    storeAzureStorageDetails(await Ajax(signal).AzureStorage.details(workspace.workspace.workspaceId))
+    storeAzureStorageDetails(await AzureStorage(signal).details(workspace.workspace.workspaceId))
   })
 
   const refreshWorkspace = _.flow(withErrorReporting('Error loading workspace'), Utils.withBusyState(setLoadingWorkspace))(async () => {
@@ -155,8 +155,7 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
           ])
         })
       }
-    } catch (error) {
-      // @ts-ignore
+    } catch (error: any) {
       if (error.status === 404) {
         setAccessError(true)
       } else {
