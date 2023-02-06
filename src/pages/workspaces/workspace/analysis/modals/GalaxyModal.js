@@ -7,7 +7,7 @@ import { NumberInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { machineTypes } from 'src/data/machines'
+import { machineTypes } from 'src/data/gce-machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReportingInModal } from 'src/libs/error'
@@ -15,11 +15,11 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { withDisplayName } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { getGalaxyComputeCost, getGalaxyDiskCost } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
-import { GalaxyLaunchButton, GalaxyWarning, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { computeStyles, GalaxyLaunchButton, GalaxyWarning, RadioBlock, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
-  computeStyles, findMachineType, getCurrentApp, getCurrentAppDataDisk, getCurrentAttachedDataDisk, getGalaxyComputeCost, getGalaxyDiskCost,
-  pdTypes, RadioBlock
+  findMachineType, getCurrentApp, getCurrentAppDataDisk, getCurrentAttachedDataDisk, pdTypes
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 import { appTools } from '../tool-utils'

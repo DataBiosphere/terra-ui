@@ -1,14 +1,15 @@
 import { addDays, subDays } from 'date-fns'
 import { getGoogleRuntime } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
+import { getCostDisplayForDisk, getCostDisplayForTool } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import {
-  getAnalysesDisplayList, getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentAppIncludingDeleting,
+  getAnalysesDisplayList, getCurrentApp, getCurrentAppDataDisk, getCurrentAppIncludingDeleting,
   getCurrentRuntime, getDiskAppType, runtimeStatuses, workspaceHasMultipleApps, workspaceHasMultipleDisks
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { appTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
-jest.mock('src/data/machines', () => {
-  const originalModule = jest.requireActual('src/data/machines')
+jest.mock('src/data/gce-machines', () => {
+  const originalModule = jest.requireActual('src/data/gce-machines')
 
   return {
     ...originalModule,

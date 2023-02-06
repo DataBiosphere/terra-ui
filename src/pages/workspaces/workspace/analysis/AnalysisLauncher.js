@@ -10,7 +10,7 @@ import { icon } from 'src/components/icons'
 import { MenuButton } from 'src/components/MenuButton'
 import Modal from 'src/components/Modal'
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger'
-import { dataSyncingDocUrl } from 'src/data/machines'
+import { dataSyncingDocUrl } from 'src/data/gce-machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -117,6 +117,7 @@ const AnalysisLauncher = _.flow(
           hideCloseButton: true,
           workspace,
           runtimes,
+          location,
           onDismiss: () => {
             chooseMode(undefined)
             setCreateOpen(false)

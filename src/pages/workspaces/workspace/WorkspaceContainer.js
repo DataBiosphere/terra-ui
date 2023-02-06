@@ -350,6 +350,15 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }
     })
 
+    // TODO [WOR-750] We expect a transient error while the workspace is cloning. This code
+    // ignores any error and does not retry; future changes will replace this logic with retries.
+    const loadAzureLocation = withErrorIgnoring(async workspace => {
+      if (isAzureWorkspace(workspace)) {
+        const { location } = await Ajax(signal).AzureStorage.details(workspace.workspace.workspaceId)
+        setBucketLocation({ location })
+      }
+    })
+
     const refreshWorkspace = _.flow(
       withErrorReporting('Error loading workspace'),
       Utils.withBusyState(setLoadingWorkspace)
@@ -368,6 +377,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         const { accessLevel, workspace: { bucketName, createdBy, createdDate, googleProject } } = workspace
 
         loadBucketLocation(googleProject, bucketName)
+        loadAzureLocation(workspace)
         // Request a service account token. If this is the first time, it could take some time before everything is in sync.
         // Doing this now, even though we don't explicitly need it now, increases the likelihood that it will be ready when it is needed.
         if (Utils.canWrite(accessLevel) && isGoogleWorkspace(workspace)) {
@@ -401,6 +411,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         refreshWorkspace()
       } else {
         loadBucketLocation(googleProject, workspace.workspace.bucketName)
+        loadAzureLocation(workspace)
       }
     })
 

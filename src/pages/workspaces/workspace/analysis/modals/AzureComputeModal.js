@@ -9,23 +9,26 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { Ajax } from 'src/libs/ajax'
 import {
-  azureMachineTypes, defaultAzureComputeConfig, defaultAzureDiskSize, defaultAzureMachineType, defaultAzureRegion, getMachineTypeLabel
+  azureMachineTypes,
+  defaultAzureComputeConfig, defaultAzureDiskSize, defaultAzureMachineType, defaultAzureRegion, getMachineTypeLabel
 } from 'src/libs/azure-utils'
 import colors from 'src/libs/colors'
 import { withErrorReportingInModal } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
+import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
+import { computeStyles } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
-  computeStyles, getCurrentRuntime, getIsRuntimeBusy
+  getCurrentRuntime, getIsRuntimeBusy
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
 const titleId = 'azure-compute-modal-title'
 
 export const AzureComputeModalBase = ({
-  onDismiss, onSuccess, onError = onDismiss, workspace: { workspace: { namespace, name: workspaceName, workspaceId } }, runtimes, hideCloseButton = false
+  onDismiss, onSuccess, onError = onDismiss, workspace: { workspace: { namespace, name: workspaceName, workspaceId } }, runtimes, location, hideCloseButton = false
 }) => {
   const [loading, setLoading] = useState(false)
   const [viewMode, setViewMode] = useState(undefined)
@@ -44,7 +47,8 @@ export const AzureComputeModalBase = ({
     setComputeConfig({
       machineType: runtimeDetails?.runtimeConfig?.machineType || defaultAzureMachineType,
       diskSize: runtimeDetails?.diskConfig?.size || defaultAzureDiskSize,
-      region: runtimeDetails?.runtimeConfig?.region || defaultAzureRegion
+      // Azure workspace containers will pass the 'location' param as an Azure armRegionName, which can be used directly as the computeRegion
+      region: runtimeDetails?.runtimeConfig?.region || location || defaultAzureRegion
     })
   }))
 
@@ -243,8 +247,7 @@ export const AzureComputeModalBase = ({
     ])
   }
 
-  //TODO this does not actually compute cost as is, see IA-3348
-  //It is possible that once we compute the cost, we would like to parameterize this and make it a shared function between the equivalent in ComputeModal
+  // TODO [IA-3348] parameterize and make it a shared function between the equivalent in ComputeModal
   const renderCostBreakdown = () => {
     return div({
       style: {
@@ -264,11 +267,12 @@ export const AzureComputeModalBase = ({
           ])
         ])
       }, [
-        { label: 'Running cloud compute cost', cost: Utils.formatUSD(0), unitLabel: 'per hr' },
-        { label: 'Paused cloud compute cost', cost: Utils.formatUSD(0), unitLabel: 'per hr' },
+        { label: 'Running cloud compute cost', cost: Utils.formatUSD(getAzureComputeCostEstimate(computeConfig)), unitLabel: 'per hr' },
+        // TODO [IA-3993] consider implementing pause via deallocate (which changes cost) instead of powerOff (which doesn't)
+        { label: 'Paused cloud compute cost', cost: Utils.formatUSD(getAzureComputeCostEstimate(computeConfig)), unitLabel: 'per hr' },
         {
           label: 'Persistent disk cost',
-          cost: Utils.formatUSD(0),
+          cost: Utils.formatUSD(getAzureDiskCostEstimate(computeConfig)),
           unitLabel: 'per month'
         }
       ])

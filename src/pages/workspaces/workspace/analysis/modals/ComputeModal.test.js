@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import _ from 'lodash/fp'
 import { act } from 'react-dom/test-utils'
 import { h } from 'react-hyperscript-helpers'
-import { cloudServices } from 'src/data/machines'
+import { cloudServices } from 'src/data/gce-machines'
 import { Ajax } from 'src/libs/ajax'
 import {
   defaultGoogleWorkspace, defaultImage, defaultRImage, defaultTestDisk, getDisk,
