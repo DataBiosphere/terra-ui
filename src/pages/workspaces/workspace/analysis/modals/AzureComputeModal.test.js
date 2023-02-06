@@ -7,7 +7,7 @@ import { Ajax } from 'src/libs/ajax'
 import { azureMachineTypes, defaultAzureMachineType } from 'src/libs/azure-utils'
 import { formatUSD } from 'src/libs/utils'
 import {
-  defaultAzureWorkspace, imageDocs, testAzureDefaultLocation
+  defaultAzureWorkspace, imageDocs, testAzureDefaultRegion
 } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
@@ -26,7 +26,7 @@ const onSuccess = jest.fn()
 const defaultModalProps = {
   onSuccess, onDismiss: jest.fn(), onError: jest.fn(),
   currentRuntime: undefined, currentDisk: undefined, tool: toolLabels.JupyterLab, workspace: defaultAzureWorkspace,
-  location: testAzureDefaultLocation
+  location: testAzureDefaultRegion
 }
 
 
