@@ -36,8 +36,8 @@ interface WorkspaceDetails {
   refreshWorkspace: () => {}
 }
 
-export const GOOGLE_PERMISSIONS_RECHECK_RATE = 5000
-export const AZURE_BUCKET_RECHECK_RATE = 5000
+export const googlePermissionsRecheckRate = 15000
+export const azureBucketRecheckRate = 5000
 
 export const useWorkspace = (namespace, name) : WorkspaceDetails => {
   const [accessError, setAccessError] = useState(false)
@@ -63,28 +63,16 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
   const checkWorkspaceInitialization = workspace => {
     console.assert(!!workspace, 'initialization should not be called before workspace details are fetched')
 
-    const initializeWorkspace = () => {
-      if (isGoogleWorkspace(workspace)) {
-        checkGooglePermissions(workspace)
-      } else {
-        checkAzureStorageExists(workspace)
-      }
-    }
-
-    if (!workspaceInitialized) {
-      initializeWorkspace()
-    } else if (isGoogleWorkspace(workspace)) {
-      // console.log('Google, skipping permissions initialization check')
-      loadGoogleBucketLocation(workspace)
+    if (isGoogleWorkspace(workspace)) {
+      !workspaceInitialized ? checkGooglePermissions(workspace) : loadGoogleBucketLocation(workspace)
     } else if (isAzureWorkspace(workspace)) {
-      // console.log('Azure, skipping storage initialization check')
-      loadAzureStorageDetails(workspace)
+      !workspaceInitialized ? checkAzureStorageExists(workspace) : loadAzureStorageDetails(workspace)
     }
   }
 
   const checkGooglePermissions = async workspace => {
     try {
-      // Need to add nexflow role to old workspaces (WOR-764) before enabling in production.
+      // Need to add nextflow role to old workspaces (WOR-764) before enabling in production.
       if (!getConfig().isProd) {
         await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketReadAccess()
         // console.log('got success status!!!!!!')
@@ -100,7 +88,7 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
       } else {
         updateWorkspaceInStore(workspace, false)
         console.log('Google permissions are still syncing') // eslint-disable-line no-console
-        checkInitializationTimeout.current = setTimeout(() => checkWorkspaceInitialization(workspace), GOOGLE_PERMISSIONS_RECHECK_RATE)
+        checkInitializationTimeout.current = setTimeout(() => checkWorkspaceInitialization(workspace), googlePermissionsRecheckRate)
       }
     }
   }
@@ -128,7 +116,7 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
       // the handling of this with WOR-534 so that we correctly differentiate between the
       // expected transient error and a workspace that is truly missing a storage container.
       console.log(`Error thrown by AzureStorage.details: ${error}`) // eslint-disable-line no-console
-      checkInitializationTimeout.current = setTimeout(() => checkWorkspaceInitialization(workspace), AZURE_BUCKET_RECHECK_RATE)
+      checkInitializationTimeout.current = setTimeout(() => checkWorkspaceInitialization(workspace), azureBucketRecheckRate)
     }
   }
 

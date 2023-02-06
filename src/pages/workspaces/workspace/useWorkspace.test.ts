@@ -9,7 +9,7 @@ import * as Notifications from 'src/libs/notifications'
 import { getUser, workspaceStore } from 'src/libs/state'
 import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import {
-  AZURE_BUCKET_RECHECK_RATE, GOOGLE_PERMISSIONS_RECHECK_RATE, useWorkspace
+  azureBucketRecheckRate, googlePermissionsRecheckRate, useWorkspace
 } from 'src/pages/workspaces/workspace/useWorkspace'
 
 
@@ -272,7 +272,7 @@ describe('useActiveWorkspace', () => {
 
     // Act
     // next call to checkBucketReadAccess is on a timer
-    jest.advanceTimersByTime(GOOGLE_PERMISSIONS_RECHECK_RATE)
+    jest.advanceTimersByTime(googlePermissionsRecheckRate)
     await waitForNextUpdate()
 
     // Assert
@@ -359,7 +359,7 @@ describe('useActiveWorkspace', () => {
 
     // Act
     // next call to AzureStorage.details is on a timer
-    jest.advanceTimersByTime(AZURE_BUCKET_RECHECK_RATE)
+    jest.advanceTimersByTime(azureBucketRecheckRate)
     await waitForNextUpdate()
 
     // Assert
@@ -465,7 +465,7 @@ describe('useActiveWorkspace', () => {
   })
 
   it('Does not (temporarily) call checkBucketReadAccess in production', async () => {
-    // Need to add nexflow role to old workspaces (WOR-764)
+    // Need to add nextflow role to old workspaces (WOR-764)
 
     // Arrange
     // @ts-ignore
