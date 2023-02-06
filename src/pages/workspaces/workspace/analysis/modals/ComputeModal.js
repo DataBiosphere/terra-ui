@@ -1698,7 +1698,7 @@ export const ComputeModalBase = ({
         div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
           renderApplicationConfigurationSection(),
           renderComputeProfileSection(existingRuntime),
-          !!isPersistentDisk && h(RenderPersistentDiskSection, { existingPersistentDisk }),
+          !!isPersistentDisk && h(PersistentDiskSection, !!existingPersistentDisk),
           isGce(runtimeType) && !isPersistentDisk && div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
               'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
@@ -1756,12 +1756,11 @@ export const ComputeModalBase = ({
     ])
   }
 
-  const RenderPersistentDiskSection = ({ existingPersistentDisk }) => {
+  const PersistentDiskSection = diskExists => {
     const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
     const diskSizeId = useUniqueId()
-    const diskExists = !!existingPersistentDisk
 
-    const RenderPersistentDiskType = () => {
+    const PersistentDiskType = () => {
       const persistentDiskId = useUniqueId()
   return (
     h(div, [
@@ -1799,7 +1798,7 @@ export const ComputeModalBase = ({
                   'Please delete the existing disk before selecting a new type.'
                 ],
                 side: 'bottom'
-              }, [h(RenderPersistentDiskType)]) : h(RenderPersistentDiskType),
+              }, [h(PersistentDiskType)]) : h(PersistentDiskType),
             h(div, [
               label({ htmlFor: diskSizeId, style: computeStyles.label }, ['Disk Size (GB)']),
               div({ style: { marginTop: '0.5rem' } }, [
