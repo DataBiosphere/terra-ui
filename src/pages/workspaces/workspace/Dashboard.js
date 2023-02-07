@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
-import { dd, div, dl, dt, h, h3, i, span, strong } from 'react-hyperscript-helpers'
+import { dd, div, dl, dt, h, h3, i, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper } from 'src/components/bucket-utils'
 import { ClipboardButton } from 'src/components/ClipboardButton'
@@ -27,13 +27,13 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { authStore, contactUsActive, requesterPaysProjectStore } from 'src/libs/state'
+import { authStore, requesterPaysProjectStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import SignIn from 'src/pages/SignIn'
 import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic'
-import { isV1Artifact, wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 const styles = {
@@ -125,70 +125,6 @@ const RightBoxSection = ({ title, info, initialOpenState, afterTitle, onClick, c
         afterTitle,
         onClick
       }, [children])
-    ])
-  ])
-}
-
-export const V1WorkspaceNotification = ({ showIcon, showLinks, id }) => {
-  return div({
-    style: {
-      ...Style.dashboard.rightBoxContainer,
-      display: 'flex', alignItems: 'flex-start',
-      id,
-      padding: '1rem',
-      border: '1px solid',
-      borderColor: colors.warning(),
-      backgroundColor: colors.warning(0.10)
-    }
-  }, [
-    !!showIcon &&
-    icon('warning-standard',
-      { style: { color: colors.warning(), height: '1.5rem', width: '1.5rem', marginRight: '0.5rem', marginTop: '0.25rem' } }),
-    div([
-      span(['Terra will no longer support this workspace after ', strong(['January 31, 2023']), '.']),
-      div({ style: { paddingTop: '1rem' } }, !!showLinks ?
-        [
-          'If you wish to keep this workspace, please ',
-          h(Link, {
-            href: 'https://support.terra.bio/hc/en-us/articles/360047679911',
-            style: { wordBreak: 'break-word' }, ...Utils.newTabLinkProps
-          }, [
-            'reattach a valid Google Billing Account'
-          ]),
-          ' to the billing project belonging to this workspace and contact ',
-          h(Link, {
-            style: { wordBreak: 'break-word' },
-            onClick: () => {
-              Ajax().Metrics.captureEvent(Events.billingCreationContactTerraSupport)
-              contactUsActive.set(true)
-            }
-          }, ['Terra support']),
-          ' to migrate your workspace.'
-        ] :
-        ['If you wish to keep this workspace, please reattach a valid Google Billing Account to the billing project belonging to this workspace and contact Terra support to migrate your workspace.'])
-    ])
-  ])
-}
-
-export const UnboundDiskNotification = props => {
-  return div({
-    ...props,
-    style: {
-      ...Style.dashboard.rightBoxContainer,
-      padding: '1rem',
-      border: '1px solid',
-      borderColor: colors.accent(),
-      marginTop: '1rem',
-      ...props?.style
-    }
-  }, [
-    strong(['Persistent disks can no longer be shared between workspaces. ']),
-    h(Link, { href: Nav.getLink('environments'), style: { wordBreak: 'break-word' } }, [
-      'Review your shared disks and choose where each should go'
-    ]),
-    '.',
-    div({ style: { paddingTop: '1rem' } }, [
-      'On December 31st 2022, all un-migrated shared disks will be deleted.'
     ])
   ])
 }
@@ -304,7 +240,6 @@ const WorkspaceDashboard = _.flow(
 )(({
   namespace, name,
   refreshWorkspace,
-  analysesData,
   storageDetails,
   workspace, workspace: {
     accessLevel,
@@ -616,8 +551,6 @@ const WorkspaceDashboard = _.flow(
       ])
     ]),
     div({ style: Style.dashboard.rightBox }, [
-      workspace.workspace.workspaceVersion === 'v1' && h(V1WorkspaceNotification, { showIcon: true, showLinks: true }),
-      _.some(isV1Artifact(workspace.workspace), analysesData?.persistentDisks) && h(UnboundDiskNotification),
       h(RightBoxSection, {
         title: 'Workspace information',
         initialOpenState: workspaceInfoPanelOpen !== undefined ? workspaceInfoPanelOpen : true,
