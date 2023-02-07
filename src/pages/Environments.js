@@ -539,21 +539,21 @@ export const Environments = ({ nav = undefined }) => {
     }, [makeMenuIcon('trash'), 'Delete'])
   }
 
-  const renderPauseButton = (computeType, compute, isGcp) => {
+  const renderPauseButton = (computeType, compute, isAzure) => {
     const { status } = compute
 
-    const shouldShowPauseButton =
-    Utils.cond(
+    const shouldShowPauseButton = Utils.cond(
       [isApp(compute) && !_.find(tool => tool.appType && tool.appType === compute.appType)(appTools)?.isPauseUnsupported, () => true],
       [isPauseSupported(getToolLabelFromRuntime(compute)) && currentUser === getCreatorForRuntime(compute), () => true],
       () => false)
 
     return shouldShowPauseButton && h(Link, { //TODO: IA-3993 enable pausing
       style: { marginRight: '1rem' },
-      disabled: !isGcp || !isComputePausable(computeType, compute),
-      tooltip: !isGcp ? 'Feature coming soon' : (isComputePausable(computeType, compute) ?
-        'Pause cloud environment' :
-        `Cannot pause a cloud environment while in status ${_.upperCase(getComputeStatusForDisplay(status))}.`),
+      disabled: isAzure || !isComputePausable(computeType, compute),
+      tooltip: Utils.cond(
+        [isAzure, () => 'Feature coming soon'],
+        [isComputePausable(computeType, compute), () => 'Pause cloud environment'],
+        () => `Cannot pause a cloud environment while in status ${_.upperCase(getComputeStatusForDisplay(status))}.`),
       onClick: () => pauseComputeAndRefresh(computeType, compute)
     }, [makeMenuIcon('pause'), 'Pause'])
   }
@@ -704,7 +704,7 @@ export const Environments = ({ nav = undefined }) => {
                 const cloudEnvironment = filteredCloudEnvironments[rowIndex]
                 const computeType = isApp(cloudEnvironment) ? 'app' : 'runtime'
                 return h(Fragment, [
-                  renderPauseButton(computeType, cloudEnvironment, getCloudProvider(filteredCloudEnvironments[rowIndex]) === 'GCE'),
+                  renderPauseButton(computeType, cloudEnvironment, getCloudProvider(filteredCloudEnvironments[rowIndex]) === 'AZURE_VM'),
                   renderDeleteButton(computeType, cloudEnvironment)
                 ])
               }
