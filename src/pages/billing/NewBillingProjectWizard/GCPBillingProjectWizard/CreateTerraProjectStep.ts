@@ -41,7 +41,7 @@ export const CreateTerraProjectStep = ({
   const [billingProjectName, setBillingProjectName] = useState('')
   const [chosenBillingAccount, setChosenBillingAccount] = useState<any>()
   const [isBusy, setIsBusy] = useState(false)
-  //const billingAccounts = {}
+
   const submit = _.flow(
     reportErrorAndRethrow('Error creating billing project'),
     Utils.withBusyState(setIsBusy)
@@ -59,7 +59,7 @@ export const CreateTerraProjectStep = ({
   })
   return h(Step, { isActive }, [
     h(StepHeader, {
-      title: 'STEP 4', description: [
+      title: 'STEP 4', children: [
         'Create a Terra project to connect your Google billing account to Terra. ',
         'Billing projects allow you to manage your workspaces and are required to create one.'
       ]

@@ -6,10 +6,9 @@ import { ValidatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
 import { reportErrorAndRethrow } from 'src/libs/error'
-import * as Utils from 'src/libs/utils'
+import { summarizeErrors, withBusyState } from 'src/libs/utils'
 import { billingProjectNameValidator } from 'src/pages/billing/List'
 import { AzureManagedAppCoordinates } from 'src/pages/billing/models/AzureManagedAppCoordinates'
-import { BillingProject } from 'src/pages/billing/models/BillingProject'
 import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/Step'
 import { LabeledField, StepFields } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields'
 import { StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepHeader'
@@ -21,7 +20,7 @@ import { ExternalLink } from '../StepWizard/ExternalLink'
 type CreateProjectStepProps = {
   isActive: boolean
   managedApps: AzureManagedAppCoordinates[]
-  submit: (newProject: BillingProject) => void
+  submit: (newProject: string) => void
   subscriptionId?: string
 }
 
@@ -48,13 +47,16 @@ export const CreateProjectStep = ({ isActive, managedApps, ...props }: CreatePro
 
   const createBillingProject = _.flow(
     reportErrorAndRethrow('Error creating billing project'),
-    Utils.withBusyState(setIsCreating)
+    withBusyState(setIsCreating)
   )(async () => {
     try {
       const response = await Ajax().Billing
         .createAzureProject(billingProjectName, selectedApp?.tenantId, props.subscriptionId, selectedApp?.managedResourceGroupId)
-      const json = await response.json()
-      props.submit(json)
+      if (response.ok) {
+        billingProjectName && props.submit(billingProjectName)
+      } else if (response.status === 409) {
+
+      }
     } catch (error) {
       throw error
     }
@@ -63,7 +65,7 @@ export const CreateProjectStep = ({ isActive, managedApps, ...props }: CreatePro
 
   const onNameInput = () => {
     const errors = billingProjectName ?
-      Utils.summarizeErrors(
+      summarizeErrors(
         // todo: not sure if we need validate against existing projects here, since the user shouldn't have any at this step...
         validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator([]) })?.billingProjectName
       ) : 'A name is required to create a billing project.'
@@ -75,7 +77,7 @@ export const CreateProjectStep = ({ isActive, managedApps, ...props }: CreatePro
   return Step({
     isActive, children: [
       StepHeader({
-        title: 'STEP 2', description: [
+        title: 'STEP 2', children: [
           'Set up a Terra billing project. ',
           ExternalLink({ text: 'Go to Azure Marketplace', url: 'https://portal.azure.com/' }),
           ' to find or create your managed resource group.'
@@ -125,6 +127,7 @@ export const CreateProjectStep = ({ isActive, managedApps, ...props }: CreatePro
             ]
           }),
           ButtonPrimary({
+            role: 'button',
             style: { margin: '2rem' },
             onClick: createBillingProject,
             disabled: !validSelections(),

@@ -22,7 +22,7 @@ export const StepFields = ({ children, style, disabled = false }: StepFieldsProp
       ...style
     }
   },
-  children
+  [children]
 )
 
 export const StepFieldLegend = ({ children, style }: StepFieldsProps) => legend({

@@ -2,7 +2,7 @@ import { ReactNode, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, useUniqueId } from 'src/components/common'
 import { ValidatedInput } from 'src/components/input'
-import * as Utils from 'src/libs/utils'
+import { summarizeErrors } from 'src/libs/utils'
 import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/Step'
 import { LabeledField, StepFieldForm, StepFields } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields'
 import { StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepHeader'
@@ -26,20 +26,18 @@ export const AzureSubscriptionIdStep = ({ isActive, subscriptionId, ...props }: 
     if (!subscriptionId) {
       setErrors('An Azure Subscription ID is required')
     } else {
-      setErrors(Utils.summarizeErrors(validate({ subscriptionId }, { subscriptionId: { type: 'uuid' } })?.subscriptionId))
+      setErrors(summarizeErrors(validate({ subscriptionId }, { subscriptionId: { type: 'uuid' } })?.subscriptionId))
     }
   }
 
   return h(Step, { isActive }, [
-    h(StepHeader, {
-      title: 'STEP 1', description: [
-        'Link Terra to your Azure subscription. ',
-        ExternalLink({ text: 'Go to Azure Marketplace', url: 'https://portal.azure.com/' }),
-        ' to access your Azure subscription ID'
-      ]
-    }),
-    h(StepFields, { disabled: !isActive }, [
-      h(StepFieldForm, [
+    h(StepHeader, { title: 'STEP 1' }, [
+      'Link Terra to your Azure subscription. ',
+      ExternalLink({ text: 'Go to Azure Marketplace', url: 'https://portal.azure.com/' }),
+      ' to access your Azure subscription ID'
+    ]),
+    h(StepFields, { disabled: !isActive, style: { width: '100%', height: '100%' } }, [
+      h(StepFieldForm, { style: { height: '100%' } }, [
         h(LabeledField, { label: 'Enter your Azure subscription Id', formId, required: true }, [
           h(ValidatedInput, {
             inputProps: {

@@ -14,7 +14,7 @@ import { GoToGCPConsoleStep } from './GoToGCPConsoleStep'
 
 interface GCPBillingProjectWizardProps {
   billingAccounts: Record<string, BillingAccount>
-  onSuccess: () => any
+  onSuccess: (string) => void
   // calls Auth.ensureBillingScope, then re-loads billing accounts from rawls
   authorizeAndLoadAccounts: () => Promise<void>
 }
@@ -23,7 +23,6 @@ export const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeA
   const persistenceId = 'billing'
   const [accessToBillingAccount, setAccessToBillingAccount] = useState<boolean>()//(() => getLocalPref(persistenceId)?.accessToBillingAccount)
   const [accessToAddBillingAccountUser, setAccessToAddBillingAccountUser] = useState<boolean | undefined>()//(() => getLocalPref(persistenceId)?.accessToAddBillingAccountUser)
-  // const [verified, setVerified] = useState<boolean>(() => getLocalPref(persistenceId)?.verified || false)
   const [verifiedUsersAdded, setVerifiedUsersAdded] = useState<boolean | undefined>(false) // if no access to add billing account user, has the user verified access
   const [refreshed, setRefreshed] = useState<boolean>(false)
   const [existing, setExisting] = useState<string[]>([])
@@ -71,16 +70,15 @@ export const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeA
       }) :
       h(ContactAccountAdminToAddUserStep, {
         //persistenceId,
-        // authorizeAndLoadAccounts,
         verifiedUsersAdded,
         setVerifiedUsersAdded: async verified => {
           setVerifiedUsersAdded(verified)
           if (verified) {
             await authorizeAndLoadAccounts()
             setActiveStep(4)
-            //setRefreshed(true)  // FIXME: I think this makes sense here, since we just refreshed auth and accounts
-            //     but the existing unit tests fail with it,
-            //     since the refresh button in step 4 doesn't come up
+            // I think this makes sense here, since we just refreshed auth and accounts,
+            // but the existing unit tests fail with it, since the refresh button in step 4 doesn't come up
+            //setRefreshed(true)
           } else {
             setActiveStep(3)
             setRefreshed(false)

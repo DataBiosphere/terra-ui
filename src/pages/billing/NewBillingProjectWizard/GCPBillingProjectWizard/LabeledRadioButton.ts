@@ -27,4 +27,4 @@ export const LabeledRadioGroup = ({ style, children }: {style?: React.CSSPropert
     flexDirection: 'column',
     justifyContent: 'space-around', ...style
   }, role: 'radiogroup'
-}, children)
+}, [children])

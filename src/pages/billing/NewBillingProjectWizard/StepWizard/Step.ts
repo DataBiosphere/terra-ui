@@ -31,9 +31,7 @@ export const Step = ({ isActive, title, ...props }: StepProps) => section({
   'data-test-id': 'Step',
   'aria-current': isActive ? 'step' : false,
   style: { ...stepBanner(isActive), ...props.style },
-},
-[
-  title ? StepHeader({ title, description: props.introText }) : undefined,
+}, [
+  title ? StepHeader({ title, children: props.introText }) : undefined,
   props.children || []
-]
-)
+])

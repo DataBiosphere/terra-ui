@@ -4,9 +4,9 @@ import { h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Select, useUniqueId } from 'src/components/common'
 import { ValidatedInput } from 'src/components/input'
 import { Ajax } from 'src/libs/ajax'
+import { useCancellation } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { billingRoles } from 'src/pages/billing/List'
-import { BillingProject } from 'src/pages/billing/models/BillingProject'
 import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/Step'
 import { LabeledField, StepFields } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields'
 import { StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepHeader'
@@ -15,35 +15,37 @@ import { validate } from 'validate.js'
 
 interface AddUserStepProps {
   isActive: boolean
-  billingProject?: BillingProject
+  billingProjectName?: string
 }
 
+export const emailFieldId = 'azure-billing-wizard_add-user-step_email-field'
 
-export const AddUserStep = ({ isActive, billingProject }: AddUserStepProps) => {
+export const AddUserStep = ({ isActive, billingProjectName }: AddUserStepProps) => {
   const [emails, setEmails] = useState<string>()
   const [emailErrors, setEmailErrors] = useState<ReactNode>()
-  const emailFieldId = useUniqueId()
-
   const [selectedRole, setSelectedRole] = useState()
   const roleFieldId = useUniqueId()
+  const signal = useCancellation()
 
 
   const addUsers = async () => {
     await Promise.all(_.map(
-      async email => await Ajax().Billing.addProjectUser(billingProject?.projectName, [selectedRole], email),
+      email => Ajax(signal).Billing.addProjectUser(billingProjectName, [selectedRole], email),
       emails?.split(',')?.map(v => v?.trim()).filter(v => v?.length > 0)
     ))
-    // TODO: do something with results
+    // TODO: show results results
   }
 
   const validateEmails = () => {
-    if (!emails) {
-      setEmailErrors('Enter an email to add a user')
+    if (!emails || emails.length === 0) {
+      // fixme: needs a key
+      setEmailErrors(Utils.summarizeErrors(['Enter an email to add a user']))
     } else {
       const separateEmails = emails?.split(',').filter(v => !!(v.trim().length))
       const errors: ReactNode[] = []
       _.forEach(email => {
-        const error = Utils.summarizeErrors(validate({ [email]: email }, { [email]: { email: true } })?.[email])
+        const validation = validate({ [email]: email }, { [email]: { email: true } })?.[email]
+        const error = Utils.summarizeErrors(validation)
         if (error) {
           errors.push(...error)
         }
@@ -58,7 +60,7 @@ export const AddUserStep = ({ isActive, billingProject }: AddUserStepProps) => {
 
   return h(Step, { isActive }, [
     StepHeader({
-      title: 'STEP 3', description: [
+      title: 'STEP 3', children: [
         'Optional: Add additional users to your Terra billing project. ',
         'For bulk upload, separate email addresses by a comma. ',
         'Any email addresses not associated with a Terra account will be sent an email to register'
@@ -72,7 +74,7 @@ export const AddUserStep = ({ isActive, billingProject }: AddUserStepProps) => {
               inputProps: {
                 id: emailFieldId,
                 value: emails,
-                placeholder: 'Enter a name for the project',
+                placeholder: 'Enter emails of users to add',
                 onChange: setEmails,
                 onBlur: validateEmails
               },
@@ -96,11 +98,11 @@ export const AddUserStep = ({ isActive, billingProject }: AddUserStepProps) => {
         }),
         ButtonPrimary({
           style: { margin: '2rem' },
-          onClick: () => {
-            addUsers()
-          },
-          disabled: !isActive || !emails || !!emailErrors || !selectedRole,
-          children: ['Add']
+          onClick: addUsers,
+          role: 'button',
+          'aria-label': 'add-users-to-azure-billing-project',
+          disabled: !!(!isActive || !emails || !!emailErrors || !selectedRole),
+          children: ['Add Users']
         }),
       ]
     })
