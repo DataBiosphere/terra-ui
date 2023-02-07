@@ -11,8 +11,9 @@ import Dropzone from 'src/components/Dropzone'
 import { FeaturePreviewFeedbackModal } from 'src/components/FeaturePreviewFeedbackModal'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
+import { MenuButton } from 'src/components/MenuButton'
 import { PageBox } from 'src/components/PageBox'
-import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
+import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger'
 import { ariaSort, HeaderRenderer } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import galaxyLogo from 'src/images/galaxy-logo.svg'
@@ -62,18 +63,18 @@ const centerColumnFlex = { flex: 5 }
 const endColumnFlex = { flex: '0 0 150px', display: 'flex', justifyContent: 'flex-left', whiteSpace: 'nowrap' }
 
 const AnalysisCardHeaders = ({ sort, onSort }) => {
-  return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', paddingLeft: '1.5rem', marginBottom: '0.5rem' } }, [
-    div({ 'aria-sort': ariaSort(sort, tableFields.application), style: { flex: 1 } }, [
+  return div({ role: 'row', style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', paddingLeft: '1.5rem', marginBottom: '0.5rem' } }, [
+    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, tableFields.application), style: { flex: 1 } }, [
       h(HeaderRenderer, { sort, onSort, name: tableFields.application })
     ]),
-    div({ 'aria-sort': ariaSort(sort, tableFields.name), style: centerColumnFlex }, [
+    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, tableFields.name), style: centerColumnFlex }, [
       h(HeaderRenderer, { sort, onSort, name: tableFields.name })
     ]),
-    div({ 'aria-sort': ariaSort(sort, tableFields.lastModified), style: { ...endColumnFlex, paddingRight: '1rem' } }, [
+    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, tableFields.lastModified), style: { ...endColumnFlex, paddingRight: '1rem' } }, [
       h(HeaderRenderer, { sort, onSort, name: tableFields.lastModified })
     ]),
-    div({ style: { flex: `0 0 ${analysisContextMenuSize}px` } }, [
-      div({ className: 'sr-only' }, ['Expand'])
+    div({ role: 'columnheader', style: { flex: `0 0 ${analysisContextMenuSize}px` } }, [
+      div({ className: 'sr-only' }, ['Actions'])
     ])
   ])
 }
@@ -181,10 +182,14 @@ const AnalysisCard = ({
   //the flex values for columns here correspond to the flex values in the header
   const artifactName = div({
     title: getFileName(name),
+
+    role: 'cell',
     style: {
       ...Style.elements.card.title, whiteSpace: 'normal', overflowY: 'auto', textAlign: 'left', ...centerColumnFlex
     }
-  }, [getFileName(name)])
+  }, [
+    a({ href: analysisLink }, [getFileName(name)])
+  ])
 
   const toolIconSrc = Utils.switchCase(application,
     [toolLabels.Jupyter, () => jupyterLogo],
@@ -192,25 +197,21 @@ const AnalysisCard = ({
     [toolLabels.JupyterLab, () => jupyterLogo]
   )
 
-  const toolIcon = div({ style: { marginRight: '1rem' } }, [
-    img({ src: toolIconSrc, style: { height: 40, width: 40 } })
-  ])
-
-  const toolContainer = div({ style: { display: 'flex', flex: 1, flexDirection: 'row', alignItems: 'center' } }, [
-    toolIcon,
+  const toolContainer = div({ role: 'cell', style: { display: 'flex', flex: 1, flexDirection: 'row', alignItems: 'center' } }, [
+    img({ src: toolIconSrc, alt: '', style: { marginRight: '1rem', height: 40, width: 40 } }),
     // this is the tool name, i.e. 'Jupyter'. It is named identical to the header row to simplify the sorting code at the cost of naming consistency.
     application
   ])
 
-  return a({
-    href: analysisLink,
+  return div({
+    role: 'row',
     style: _.merge({
       ...Style.cardList.longCardShadowless
     }, { marginBottom: '.75rem', paddingLeft: '1.5rem' })
   }, [
     toolContainer,
     artifactName,
-    div({ style: { ...endColumnFlex, flexDirection: 'row' } }, [
+    div({ role: 'cell', style: { ...endColumnFlex, flexDirection: 'row' } }, [
       div({ style: { flex: 1, display: 'flex' } }, [
         locked && h(Clickable, {
           'aria-label': `${artifactName} artifact label`,
@@ -218,11 +219,13 @@ const AnalysisCard = ({
           tooltip: `This analysis is currently being edited by ${lockedBy || 'another user'}`
         }, [icon('lock')]),
         h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
-          div({ style: { fontSize: '0.8rem', display: 'flex', alignItems: 'center', textAlign: 'left' } }, [Utils.makePrettyDate(lastModified)])
+          div({ style: { fontSize: '0.8rem', display: 'flex', alignItems: 'center', textAlign: 'left' } }, [
+            Utils.makePrettyDate(lastModified)
+          ])
         ])
       ]),
-      div({ style: { marginLeft: '1rem' } }, [analysisMenu])
-    ])
+    ]),
+    div({ role: 'cell', style: { marginLeft: '1rem' } }, [analysisMenu])
   ])
 }
 
@@ -239,7 +242,8 @@ const Analyses = _.flow(
   withViewToggle('analysesTab')
 )(({
   name: workspaceName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { cloudPlatform, workspaceId, googleProject, bucketName } },
-  analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks, location },
+  analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+  storageDetails: { googleBucketLocation },
   onRequesterPaysError
 }, _ref) => {
   const [renamingAnalysisName, setRenamingAnalysisName] = useState(undefined)
@@ -420,6 +424,7 @@ const Analyses = _.flow(
       _.orderBy(sortTokens[field] || field, direction),
       _.map(({ name, lastModified, metadata, application }) => h(AnalysisCard, {
         key: name,
+        role: 'rowgroup',
         currentRuntime, name, lastModified, metadata, application, namespace, workspaceName, canWrite, currentUserHash, potentialLockers,
         onRename: () => setRenamingAnalysisName(name),
         onCopy: () => setCopyingAnalysisName(name),
@@ -456,14 +461,14 @@ const Analyses = _.flow(
         [!_.isEmpty(analyses) && _.isEmpty(renderedAnalyses), () => {
           return div({ style: { fontStyle: 'italic' } }, ['No matching analyses'])
         }],
-        [Utils.DEFAULT, () => h(Fragment, [
+        [Utils.DEFAULT, () => div({ role: 'table' }, [
           h(AnalysisCardHeaders, {
             sort: sortOrder, onSort: newSortOrder => {
               setLocalPref(KEY_ANALYSES_SORT_ORDER, newSortOrder)
               setSortOrder(newSortOrder)
             }
           }),
-          div({ role: 'list', 'aria-label': 'analysis artifacts in workspace', style: { flexGrow: 1, width: '100%' } }, [renderedAnalyses])
+          renderedAnalyses
         ])]
       )
     ])
@@ -513,7 +518,7 @@ const Analyses = _.flow(
           refreshApps,
           uploadFiles,
           openUploader,
-          location,
+          location: googleBucketLocation,
           onDismiss: () => {
             setCreating(false)
           },

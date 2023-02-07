@@ -12,8 +12,9 @@ import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { AutocompleteTextInput, PasteOnlyInput, TextInput, ValidatedInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
+import { MenuButton } from 'src/components/MenuButton'
 import Modal from 'src/components/Modal'
-import { MenuButton, MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
+import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
 import { Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -466,7 +467,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
             }
           })
         ]),
-        ((currentFile && entityTypeAlreadyExists) || _.includes(recordType, entityTypes)) && div({
+        ((isGoogleWorkspace && currentFile && entityTypeAlreadyExists) || (!isGoogleWorkspace && _.includes(recordType, entityTypes))) && div({
           style: { ...warningBoxStyle, margin: '1rem 0 0.5rem', display: 'flex', alignItems: 'center' }
         }, [
           icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),

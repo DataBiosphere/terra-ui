@@ -10,6 +10,7 @@ import {
   TsvUploadButtonTooltipOptions,
   UploadParameters
 } from 'src/libs/ajax/data-table-providers/DataTableProvider'
+import { withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
 // interface definitions for WDS payload responses
@@ -82,38 +83,80 @@ const getRelationParts = (val: unknown): string[] => {
   return []
 }
 
-// Extract wds URL from Leo response. exported for testing
-export const getWdsUrl = apps => {
-  // look explicitly for an app named 'wds-${app.workspaceId}'. If found, use it, even if it isn't running
-  // this handles the case where the user has explicitly shut down the app
-  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}` && app.status === 'RUNNING')
+export const createLeoAppWithErrorHandling = workspaceId => {
+  const typedWithErrorReporting : any = withErrorReporting
+  const createLeoAppCall = typedWithErrorReporting('An error occurred when creating your data tables. Please reach out to support@terra.bio', async () => {
+    await Ajax().Apps.createAppV2(`wds-${workspaceId}`, `${workspaceId}`)
+  })
+  createLeoAppCall()
+}
+
+// Invokes logic to determine the appropriate app for WDS
+// If WDS is not running, a URL will not be present -- in some cases, this function may invoke
+// a new call to Leo to instantiate a WDS being available, thus having a valid URL
+export const resolveWdsApp = apps => {
+  // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by Leo
+  // See here for specific enumerations -- https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
+  // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' -- if WDS is healthy and running, there should only be one app RUNNING
+  // an app may be in the 'PROVISIONING', 'STOPPED', 'STOPPING', which can still be deemed as an OK state for WDS
+  const healthyStates = ['RUNNING', 'PROVISIONING', 'STOPPED', 'STOPPING']
+  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}` && healthyStates.includes(app.status))
   if (namedApp.length === 1) {
-    return namedApp[0].proxyUrls.wds
+    return namedApp[0]
   }
-  // if we didn't find the expected app 'cbas-wds-default', go hunting:
-  const candidates = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
-  if (candidates.length === 0) {
-    // no app deployed yet
-    return ''
+
+  //Failed to find an app with the proper name, look for a RUNNING CROMWELL app
+  const runningCromwellApps = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
+  if (runningCromwellApps.length > 0) {
+    // Evaluate the earliest-created WDS app
+    runningCromwellApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf())
+    return runningCromwellApps[0]
   }
-  if (candidates.length > 1) {
-    // multiple apps found; use the earliest-created one
-    candidates.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
+
+  // If we reach this logic, we have more than one Leo app with the associated workspace Id...
+  const allCromwellApps = apps.filter(app => app.appType === 'CROMWELL' && ['PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status))
+  if (allCromwellApps.length > 0) {
+    // Evaluate the earliest-created WDS app
+    allCromwellApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf())
+    return allCromwellApps[0]
   }
-  return candidates[0].proxyUrls.wds
+
+  // we could not find an app of type CROMWELL in any healthy state, regardless of its name.
+  // Self-heal and try to deploy an app, assuming shouldAutoDeployWds is true.
+  // Due to Leo naming requirements, ensure this app has a unique name; this prevents
+  // name collisions with previously-deployed apps which may be in ERROR or DELETED states.
+  //if (shouldAutoDeployWds) {
+  // David An: disabled for now. This needs to pass both the workspaceId and a random app name to
+  // createLeoAppWithErrorHandling.
+  // Additionally, it needs to be failsafe to race conditions in which the user enters the Data
+  // tab before Leo has had a chance to respond with knowledge about the app that was created
+  // during workspace creation.
+  // createLeoAppWithErrorHandling(uuid())
+  //}
+
+  return ''
+}
+
+// Extract wds URL from Leo response. exported for testing
+export const resolveWdsUrl = apps => {
+  const foundApp = resolveWdsApp(apps)
+  if (foundApp?.status === 'RUNNING') {
+    return foundApp.proxyUrls.wds
+  }
+  return ''
 }
 
 export const wdsProviderName: string = 'WDS'
 
 export class WdsDataTableProvider implements DataTableProvider {
-  constructor(workspaceId: string) {
+  constructor(workspaceId: string, proxyUrl: string) {
     this.workspaceId = workspaceId
-    this.proxyUrlPromise = Ajax().Apps.getV2AppInfo(workspaceId).then(getWdsUrl)
+    this.proxyUrl = proxyUrl
   }
 
   providerName: string = wdsProviderName
 
-  proxyUrlPromise: Promise<string>
+  proxyUrl: string
 
   workspaceId: string
 
@@ -136,8 +179,8 @@ export class WdsDataTableProvider implements DataTableProvider {
     textImportPlaceholder: 'idcolumn(tab)column1(tab)column2...',
     invalidFormatWarning: 'Invalid format: Data does not include sys_name column.',
     isInvalid: (): boolean => {
-    // WDS does not have any restrictions on what can be uploaded, as entity_id
-    // is not required like in Entity Service for GCP.
+      // WDS does not have any restrictions on what can be uploaded, as entity_id
+      // is not required like in Entity Service for GCP.
       return false
     },
     disabled: (options: TsvUploadButtonDisabledOptions): boolean => {
@@ -212,9 +255,9 @@ export class WdsDataTableProvider implements DataTableProvider {
   }
 
   getPage = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions, metadata: EntityMetadata): Promise<EntityQueryResponse> => {
-    const proxyUrl = await this.proxyUrlPromise
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded')
     const wdsPage: RecordQueryResponse = await Ajax(signal).WorkspaceData
-      .getRecords(proxyUrl, this.workspaceId, entityType,
+      .getRecords(this.proxyUrl, this.workspaceId, entityType,
         _.merge({
           offset: (queryOptions.pageNumber - 1) * queryOptions.itemsPerPage,
           limit: queryOptions.itemsPerPage,
@@ -225,18 +268,18 @@ export class WdsDataTableProvider implements DataTableProvider {
     return this.transformPage(wdsPage, entityType, queryOptions, metadata)
   }
 
-  deleteTable = async (entityType: string): Promise<Response> => {
-    const proxyUrl = await this.proxyUrlPromise
-    return Ajax().WorkspaceData.deleteTable(proxyUrl, this.workspaceId, entityType)
+  deleteTable = (entityType: string): Promise<Response> => {
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded')
+    return Ajax().WorkspaceData.deleteTable(this.proxyUrl, this.workspaceId, entityType)
   }
 
-  downloadTsv = async (signal: AbortSignal, entityType: string): Promise<Blob> => {
-    const proxyUrl = await this.proxyUrlPromise
-    return Ajax(signal).WorkspaceData.downloadTsv(proxyUrl, this.workspaceId, entityType)
+  downloadTsv = (signal: AbortSignal, entityType: string): Promise<Blob> => {
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded')
+    return Ajax(signal).WorkspaceData.downloadTsv(this.proxyUrl, this.workspaceId, entityType)
   }
 
-  uploadTsv = async (uploadParams: UploadParameters): Promise<TsvUploadResponse> => {
-    const proxyUrl = await this.proxyUrlPromise
-    return Ajax().WorkspaceData.uploadTsv(proxyUrl, uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
+  uploadTsv = (uploadParams: UploadParameters): Promise<TsvUploadResponse> => {
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded')
+    return Ajax().WorkspaceData.uploadTsv(this.proxyUrl, uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
   }
 }

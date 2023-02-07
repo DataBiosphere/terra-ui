@@ -7,6 +7,7 @@ import { FeaturePreviewFeedbackModal } from 'src/components/FeaturePreviewFeedba
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
+import { MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
@@ -25,7 +26,6 @@ import {
   getDatasetAccessType,
   isDatarepoSnapshot, isWorkspace, makeDatasetReleasePolicyDisplayInformation, uiMessaging, useDataCatalog
 } from 'src/pages/library/dataBrowser-utils'
-import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 import { commonStyles } from 'src/pages/library/SearchAndFilterComponent'
 
 
@@ -105,14 +105,13 @@ const MainContent = ({ dataObj }) => {
         workspaceName
       ])
     ]),
-    dataObj['dct:description'],
+    h(MarkdownViewer, [dataObj['dct:description']]),
     h(MetadataDetailsComponent, { dataObj })
   ])
 }
 
 
 export const SidebarComponent = ({ dataObj, id }) => {
-  const [showRequestAccessModal, setShowRequestAccessModal] = useState(false)
   const [feedbackShowing, setFeedbackShowing] = useState(false)
   const [datasetNotSupportedForExport, setDatasetNotSupportedForExport] = useState(false)
   const [snapshotExportJobId, setSnapshotExportJobId] = useState()
@@ -245,10 +244,6 @@ export const SidebarComponent = ({ dataObj, id }) => {
       sourcePageId: 'entry.367682225',
       primaryQuestion: 'Is there anything missing or that you would like to see in this dataset view?',
       sourcePage: 'Catalog Details'
-    }),
-    showRequestAccessModal && h(RequestDatasetAccessModal, {
-      datasets: [dataObj],
-      onDismiss: () => setShowRequestAccessModal(false)
     }),
     datasetNotSupportedForExport && h(Modal, {
       title: 'Cannot Export Dataset',

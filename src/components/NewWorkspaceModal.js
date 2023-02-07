@@ -86,7 +86,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
   // Error is ignored here since any errors associated with Leo app creation are not communicated during workspace creation
   // Rather when the user first visits the `Data` tab
   const createLeoApp = withErrorIgnoring(async workspace => {
-    if (isAzureBillingProject() && !getConfig().isProd) {
+    if (isAzureBillingProject()) {
       await Ajax().Apps.createAppV2(`wds-${workspace.workspaceId}`, workspace.workspaceId)
     }
   })
@@ -360,6 +360,16 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
         })
       ])]),
       customMessage && div({ style: { marginTop: '1rem', lineHeight: '1.5rem' } }, [customMessage]),
+      isAzureBillingProject() && div({ style: { paddingTop: '1.0rem', display: 'flex' } },
+        [
+          icon('warning-standard', { size: 16, style: { marginRight: '0.5rem', color: colors.warning() } }),
+          div(['Creating a workspace currently costs about $5 per day. ',
+            h(Link, {
+              href: 'https://support.terra.bio/hc/en-us/articles/12029087819291',
+              ...Utils.newTabLinkProps
+            }, ['Learn more and follow changes.'])])
+        ]
+      ),
       createError && div({
         style: { marginTop: '1rem', color: colors.danger() }
       }, [createError]),

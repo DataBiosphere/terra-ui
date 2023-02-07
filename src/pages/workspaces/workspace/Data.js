@@ -19,15 +19,17 @@ import LocalVariablesContent from 'src/components/data/LocalVariablesContent'
 import RenameTableModal from 'src/components/data/RenameTableModal'
 import { useSavedColumnSettings } from 'src/components/data/SavedColumnSettings'
 import WDSContent from 'src/components/data/WDSContent'
+import { WdsTroubleshooter } from 'src/components/data/WdsTroubleshooter'
 import { icon, spinner } from 'src/components/icons'
 import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
-import { MenuButton, MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
+import { MenuButton } from 'src/components/MenuButton'
+import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell } from 'src/components/table'
 import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider'
-import { WdsDataTableProvider, wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider'
+import { resolveWdsUrl, WdsDataTableProvider, wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions'
@@ -480,7 +482,7 @@ const WorkspaceData = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Data', activeTab: 'data'
   })
-)(({ namespace, name, workspace, workspace: { workspace: { googleProject, attributes, workspaceId } }, refreshWorkspace }, ref) => {
+)(({ namespace, name, workspace, workspace: { workspace: { createdBy, googleProject, attributes, workspaceId } }, refreshWorkspace }, ref) => {
   // State
   const [refreshKey, setRefreshKey] = useState(0)
   const forceRefresh = () => setRefreshKey(_.add(1))
@@ -489,6 +491,7 @@ const WorkspaceData = _.flow(
   const [snapshotDetails, setSnapshotDetails] = useState(() => StateHistory.get().snapshotDetails)
   const [importingReference, setImportingReference] = useState(false)
   const [deletingReference, setDeletingReference] = useState(undefined)
+  const [troubleshootingWds, setTroubleshootingWds] = useState(false)
   const [uploadingFile, setUploadingFile] = useState(false)
   const [uploadingWDSFile, setUploadingWDSFile] = useState(false)
   const [entityMetadataError, setEntityMetadataError] = useState()
@@ -498,6 +501,7 @@ const WorkspaceData = _.flow(
   const [crossTableResultCounts, setCrossTableResultCounts] = useState({})
   const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false)
   const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}) // { [entityType: string]: boolean }
+  const pollWdsInterval = useRef()
 
   const [wdsProxyUrl, setWdsProxyUrl] = useState({ status: 'None', state: '' })
   const [wdsTypes, setWdsTypes] = useState({ status: 'None', state: [] })
@@ -512,7 +516,14 @@ const WorkspaceData = _.flow(
 
   const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name)
 
-  const wdsDataTableProvider = useMemo(() => new WdsDataTableProvider(workspaceId), [workspaceId])
+  // auto-deploy WDS for a user who is: 1) the workspace creator, and 2) still an OWNER of the workspace
+  // disablied: const shouldAutoDeployWds = workspace?.accessLevel === 'OWNER' && createdBy === getUser()?.email
+
+  const wdsDataTableProvider = useMemo(() => {
+    const proxyUrl = !!wdsProxyUrl && wdsProxyUrl.state
+    return new WdsDataTableProvider(workspaceId, proxyUrl)
+  }, [workspaceId, wdsProxyUrl])
+
 
   const loadEntityMetadata = async () => {
     try {
@@ -568,31 +579,71 @@ const WorkspaceData = _.flow(
   }
 
   const loadWdsSchema = async () => {
+    // Initial attempt to load WDS data when the user arrives on the data page
     if (isAzureWorkspace) {
-      // get the proxy url for this app from Leo
-      setWdsProxyUrl({ status: 'Loading', state: '' })
-      await wdsDataTableProvider.proxyUrlPromise
-        .then(url => {
-          if (!!url) {
-            setWdsProxyUrl({ status: 'Ready', state: url })
-            // proxy url is good; now, get the WDS schema
-            setWdsTypes({ status: 'Loading', state: [] })
-            Ajax(signal).WorkspaceData.getSchema(url, workspaceId)
-              .then(typesResult => {
-                setWdsTypes({ status: 'Ready', state: typesResult })
-              })
-              .catch(err => {
-                setWdsTypes({ status: 'Error', state: err })
-              })
-          } else {
-            setWdsProxyUrl({ status: 'Error', state: url })
-          }
-        })
-        .catch(err => {
-          setWdsProxyUrl({ status: 'Error', state: err })
-        })
+      await loadWdsData()
     }
   }
+
+  const loadWdsUrl = useCallback(workspaceId => {
+    //setWdsProxyUrl({ status: 'Loading', state: '' })
+    return Ajax().Apps.listAppsV2(workspaceId).then(resolveWdsUrl)
+      .then(url => {
+        if (!!url) {
+          setWdsProxyUrl({ status: 'Ready', state: url })
+        }
+        return url
+      })
+      .catch(err => {
+        setWdsProxyUrl({ status: 'Error', state: err })
+        return ''
+      })
+  }, [])
+
+  const loadWdsTypes = useCallback((url, workspaceId) => {
+    return Ajax(signal).WorkspaceData.getSchema(url, workspaceId)
+      .then(typesResult => {
+        setWdsTypes({ status: 'Ready', state: typesResult })
+      })
+      .catch(err => {
+        setWdsTypes({ status: 'Error', state: err })
+      })
+  }, [signal])
+
+  const loadWdsData = useCallback(async () => {
+    try {
+      // Try to load the proxy URL
+      if (!wdsProxyUrl || (wdsProxyUrl.status !== 'Ready')) {
+        const wdsUrl = await loadWdsUrl(workspaceId)
+        if (!!wdsUrl) {
+          await loadWdsTypes(wdsUrl, workspaceId)
+        }
+      } else {
+        // If we have the proxy URL try to load the WDS types
+        const proxyUrl = wdsProxyUrl.state
+        await loadWdsTypes(proxyUrl, workspaceId)
+      }
+    } catch (error) {
+      console.log(`Error thrown loading WDS schema: ${error}`) // eslint-disable-line no-console
+    }
+  }, [loadWdsUrl, loadWdsTypes, workspaceId, wdsProxyUrl])
+
+  useEffect(() => {
+    if (isAzureWorkspace) {
+      // Start polling if we're missing WDS Types, and stop polling when we have them.
+      if ((!wdsTypes || (wdsTypes.status !== 'Ready')) && !pollWdsInterval.current) {
+        pollWdsInterval.current = setInterval(loadWdsData, 30 * 1000)
+      } else if (!!wdsTypes && wdsTypes.status === 'Ready' && pollWdsInterval.current) {
+        clearInterval(pollWdsInterval.current)
+        pollWdsInterval.current = undefined
+      }
+    }
+
+    return () => {
+      clearInterval(pollWdsInterval.current)
+      pollWdsInterval.current = undefined
+    }
+  }, [loadWdsData, workspaceId, wdsProxyUrl, wdsTypes, isAzureWorkspace])
 
   const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first))
 
@@ -785,6 +836,11 @@ const WorkspaceData = _.flow(
                 ])
               }, sortedEntityPairs)
             ]),
+            troubleshootingWds && h(WdsTroubleshooter, {
+              onDismiss: () => setTroubleshootingWds(false),
+              workspaceId,
+              mrgId: workspace.azureContext.managedResourceGroupId
+            }),
             isAzureWorkspace && h(DataTypeSection, {
               title: 'Tables'
             }, [
@@ -1003,8 +1059,12 @@ const WorkspaceData = _.flow(
       h(SidebarSeparator, { sidebarWidth, setSidebarWidth }),
       div({ style: styles.tableViewPanel }, [
         _.includes(selectedData?.type, [workspaceDataTypes.entities, workspaceDataTypes.entitiesVersion]) && h(DataTableFeaturePreviewFeedbackBanner),
-        Utils.switchCase(selectedData?.type, [undefined, () => Utils.cond([!wdsReady && isAzureWorkspace, () => div({ style: { textAlign: 'center' } }, [icon('loadingSpinner'), ' The database that powers your data tables is unavailable. It may take a few minutes after initial workspace creation to be ready.'])],
-          () => div({ style: { textAlign: 'center' } }, ['Select a data type from the navigation panel on the left']),
+        Utils.cond([createdBy === getUser()?.email || isGoogleWorkspace, () => Utils.switchCase(selectedData?.type, [undefined, () => Utils.cond([!wdsReady && isAzureWorkspace, () => div({ style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' } },
+
+          [icon('loadingSpinner'),
+            ' The database that powers your data tables is unavailable. It may take a few minutes after initial workspace creation to be ready. If you think something has gone wrong, please reach out to support@terra.bio and include information from our ',
+            h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['Troubleshoot']), ' page.'])],
+        () => div({ style: { textAlign: 'center' } }, ['Select a data type from the navigation panel on the left']),
         )],
         [workspaceDataTypes.localVariables, () => h(LocalVariablesContent, {
           workspace,
@@ -1081,7 +1141,8 @@ const WorkspaceData = _.flow(
           recordType: selectedData.entityType,
           wdsSchema: wdsTypes.state
         })]
-        )
+        )], () => div({ style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' } }, ['Currently, only a workspace creator can use data tables. If you were invited to this workspace, you can use the clone feature to create your own workspace to use data tables.']))
+      // ]
       ])
     ])
   ])

@@ -127,8 +127,11 @@ describe('useLoadedData hook', () => {
 
 
   it('handles ready state, then later error state', async () => {
+    const onErrorListener = jest.fn()
     // Act
-    const hookRender = renderHook(() => useLoadedData<TestData>())
+    const hookRender = renderHook(() => useLoadedData<TestData>({
+      onError: errState => onErrorListener(errState)
+    }))
     const hookResult1: UseLoadedDataResult<TestData> = hookRender.result.current
     let updateData = hookResult1[1]
 
@@ -184,5 +187,8 @@ describe('useLoadedData hook', () => {
     expect(hookResultReady[0]).toEqual(expectedStateReady)
     expect(hookResult3[0]).toEqual(expectedState3)
     expect(hookResultFinal[0]).toEqual(expectedStateFinal)
+    expect(onErrorListener).toBeCalledTimes(1)
+    expect(onErrorListener).toBeCalledWith(expectedStateFinal)
   })
 })
+
