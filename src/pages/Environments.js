@@ -522,7 +522,7 @@ export const Environments = ({ nav = undefined }) => {
               }
             },
             {
-              size: { min: '8em', grow: 0 },
+              size: { min: '9em', grow: 0 },
               field: 'status',
               headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
               cellRenderer: ({ rowIndex }) => {
