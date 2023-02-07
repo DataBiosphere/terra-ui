@@ -18,8 +18,10 @@ import { useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
 import {
-  computeStyles, getCurrentRuntime, getIsRuntimeBusy
+  getCurrentRuntime, getIsRuntimeBusy
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+
+import { computeStyles } from './modalStyles'
 
 
 const titleId = 'azure-compute-modal-title'

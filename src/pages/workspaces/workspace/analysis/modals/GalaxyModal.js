@@ -18,11 +18,12 @@ import * as Utils from 'src/libs/utils'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
 import { GalaxyLaunchButton, GalaxyWarning, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
-  computeStyles, findMachineType, getCurrentApp, getCurrentAppDataDisk, getCurrentAttachedDataDisk, getGalaxyComputeCost, getGalaxyDiskCost,
+  findMachineType, getCurrentApp, getCurrentAppDataDisk, getCurrentAttachedDataDisk, getGalaxyComputeCost, getGalaxyDiskCost,
   pdTypes, RadioBlock
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 import { appTools } from '../tool-utils'
+import { computeStyles } from './modalStyles'
 
 
 const defaultDataDisk = { size: 500, diskType: pdTypes.standard }
