@@ -19,6 +19,7 @@ export const StepFields = ({ children, style, disabled = false }: StepFieldsProp
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignContent: 'center',
+      width: '100%',
       ...style
     }
   },

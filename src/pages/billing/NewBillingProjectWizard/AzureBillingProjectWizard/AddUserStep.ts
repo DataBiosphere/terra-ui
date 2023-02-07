@@ -1,111 +1,212 @@
-import _ from 'lodash/fp'
-import { ReactNode, useState } from 'react'
-import { h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Select, useUniqueId } from 'src/components/common'
+import { CSSProperties, ReactNode, useState } from 'react'
+import { div, h, li, ul } from 'react-hyperscript-helpers'
+import { ButtonOutline, Select, useUniqueId } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
-import { Ajax } from 'src/libs/ajax'
-import Events from 'src/libs/events'
-import { useCancellation } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-import { billingRoles } from 'src/pages/billing/List'
+import { allBillingRoles, BillingRole } from 'src/pages/billing/models/BillingRole'
 import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/Step'
 import { LabeledField, StepFields } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields'
 import { StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepHeader'
 import { validate } from 'validate.js'
 
 
-interface AddUserStepProps {
-  isActive: boolean
-  billingProjectName?: string
+export interface AddUserInfo {
+  email: string
+  role: BillingRole
 }
 
-export const emailFieldId = 'azure-billing-wizard_add-user-step_email-field'
+interface AddUserStepProps {
+  isActive: boolean
+  users: Array<AddUserInfo>
+  setUsers: (users: Array<AddUserInfo>) => void
+}
 
-export const AddUserStep = ({ isActive, billingProjectName }: AddUserStepProps) => {
-  const [emails, setEmails] = useState<string>()
+
+export const AddUserStep = ({ isActive, users, setUsers }: AddUserStepProps) => {
+  const [email, setEmail] = useState<string>()
   const [emailErrors, setEmailErrors] = useState<ReactNode>()
-  const [selectedRole, setSelectedRole] = useState()
+  const [role, setRole] = useState<BillingRole>()
+  const emailFieldId = useUniqueId()
   const roleFieldId = useUniqueId()
-  const signal = useCancellation()
 
-
-  const addUsers = async () => {
-    await Promise.all(_.map(
-      email => Ajax(signal).Billing.addProjectUser(billingProjectName, [selectedRole], email),
-      emails?.split(',')?.map(v => v?.trim()).filter(v => v?.length > 0)
-    ))
-    Ajax().Metrics.captureEvent(Events.billingAzureCreationUserAdded)
-  }
-
-  const validateEmails = () => {
-    if (!emails || emails.length === 0) {
-      // fixme: needs a key
+  const validateEmail = () => {
+    if (!email || email.length === 0) {
       setEmailErrors(Utils.summarizeErrors(['Enter an email to add a user']))
     } else {
-      const separateEmails = emails?.split(',').filter(v => !!(v.trim().length))
-      const errors: ReactNode[] = []
-      _.forEach(email => {
-        const validation = validate({ [email]: email }, { [email]: { email: true } })?.[email]
-        const error = Utils.summarizeErrors(validation)
-        if (error) {
-          errors.push(...error)
-        }
-      }, separateEmails)
-      if (!!errors.length) {
-        setEmailErrors(errors)
-      } else {
-        setEmailErrors(undefined)
-      }
+      const validation = validate({ [email]: email }, { [email]: { email: true } })?.[email]
+      setEmailErrors(Utils.summarizeErrors(validation))
+    }
+  }
+
+  const addUser = () => {
+    if (email && role && !emailErrors) {
+      setUsers([{ email, role }, ...users])
+      setRole(undefined)
+      setEmail('')
     }
   }
 
   return h(Step, { isActive }, [
-    StepHeader({
-      title: 'STEP 3', children: [
-        'Optional: Add additional users to your Terra billing project. ',
-        'For bulk upload, separate email addresses by a comma. ',
-        'Any email addresses not associated with a Terra account will be sent an email to register'
-      ]
-    }),
-    StepFields({
-      disabled: !isActive, children: [
-        LabeledField({
-          label: 'User email', formId: emailFieldId, style: { width: '30%' }, children: [
+    h(StepHeader, { title: 'STEP 3' }, [
+      'Optional: Add additional users to your Terra billing project. ',
+      'For bulk upload, separate email addresses by a comma. ',
+      'Any email addresses not associated with a Terra account will be sent an email to register'
+    ]),
+    h(StepFields, { disabled: false }, [
+      ul({ style: { display: 'flex', flexDirection: 'column-reverse', width: '100%' } }, [
+        li({ style: addUserLIStyles, key: 'add-user-input' }, [
+          div({ style: emailFieldStyles }, [
+            h(LabeledField, { label: 'User email', formId: emailFieldId }, []),
             ValidatedInput({
               inputProps: {
                 id: emailFieldId,
-                value: emails,
-                placeholder: 'Enter emails of users to add',
-                onChange: setEmails,
-                onBlur: validateEmails
+                value: email,
+                placeholder: 'Enter email of users to add',
+                onChange: setEmail,
+                onBlur: validateEmail
               },
               error: emailErrors
             })
-          ]
-        }),
-        LabeledField({
-          label: 'Role', formId: roleFieldId, style: { width: '30%' }, children: [
-            h(Select, {
-              id: roleFieldId,
-              placeholder: 'Select a role',
-              value: selectedRole,
-              onChange: ({ value }) => setSelectedRole(value),
-              options: [
-                { label: billingRoles.owner, value: billingRoles.owner },
-                { label: billingRoles.user, value: billingRoles.user }
-              ]
-            })
-          ]
-        }),
-        ButtonPrimary({
-          style: { margin: '2rem' },
-          onClick: addUsers,
-          role: 'button',
-          'aria-label': 'add-users-to-azure-billing-project',
-          disabled: !!(!isActive || !emails || !!emailErrors || !selectedRole),
-          children: ['Add Users']
-        }),
-      ]
-    })
+          ]),
+          div({ style: roleFieldStyles }, [
+            h(LabeledField, { label: 'Role', formId: roleFieldId }, []),
+            h(Select, { id: roleFieldId, placeholder: 'Select a role', value: role, onChange: ({ r }) => setRole(r), options: billingRoleOptions })
+          ]),
+          h(SpacedButton, { onClick: addUser, iconShape: 'plus', buttonLabel: 'add-user' })
+        ]),
+        ...users.map(user => h(AddedUserDisplay, { user, remove: () => setUsers(users.filter(u => u.email !== user.email)) })),
+      ])
+    ])
   ])
 }
+
+
+const billingRoleOptions = allBillingRoles.map(role => ({ label: role, value: role }))
+
+const addUserLIStyles: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'row',
+  width: '75%',
+  alignSelf: 'start',
+  justifyContent: 'start',
+  margin: '0',
+  padding: 0,
+  alignContent: 'center',
+  alignItems: 'center'//
+}
+const addUserFieldStyles: CSSProperties = {
+  marginLeft: '0rem',
+  marginRight: '2rem',
+  marginTop: '0',
+  marginBottom: '0'
+}
+
+const emailFieldStyles: CSSProperties = {
+  width: '30%',
+  ...addUserFieldStyles
+}
+
+const roleFieldStyles: CSSProperties = {
+  width: '25%',
+  ...addUserFieldStyles
+}
+
+
+interface AddedUserDisplayProps {
+  user: AddUserInfo
+  remove: () => void
+}
+
+const AddedUserDisplay = ({ user, ...props }: AddedUserDisplayProps) => {
+  const emailFieldId = useUniqueId()
+  const roleFieldId = useUniqueId()
+  return li({ style: addUserLIStyles, key: user.email }, [
+    div({ style: emailFieldStyles }, [
+      h(LabeledField, { label: 'User email', formId: emailFieldId }, []),
+      ValidatedInput({ inputProps: { disabled: true, id: emailFieldId, value: user.email } })
+    ]),
+    div({ style: roleFieldStyles }, [
+      h(LabeledField, { label: 'Role', formId: roleFieldId }, []),
+      h(Select, { id: roleFieldId, disabled: true, value: user.role, options: billingRoleOptions })
+    ]),
+    h(SpacedButton, { onClick: props.remove, iconShape: 'times', buttonLabel: 'remove-user' })
+  ])
+}
+
+interface SpacedButtonProps {
+  onClick: () => void
+  iconShape: string
+  buttonLabel: string
+}
+
+const SpacedButton = ({ onClick, ...props }: SpacedButtonProps) => div({ style: addUserFieldStyles }, [
+  div({ style: { paddingTop: '2.25rem' } }), // spacer element to make two flex lines, so the button lines up with the input fields
+  h(ButtonOutline, { onClick, role: 'button', 'aria-label': props.buttonLabel }, [icon(props.iconShape, {})])
+])
+
+/*
+interface AddUserFieldProps {
+  addUser: (AddUserInfo) => void
+}
+
+
+const AddUserField = ({...props}: AddUserFieldProps) => {
+  const [userEmail, setUserEmail] = useState<string>()
+  const [emailErrors, setEmailErrors] = useState<ReactNode>()
+  const [role, setRole] = useState<BillingRole>()
+  const emailFieldId = useUniqueId()
+  const roleFieldId = useUniqueId()
+
+  const validateEmail = () => {
+    if (!userEmail || userEmail.length === 0) {
+      setEmailErrors(Utils.summarizeErrors(['Enter an email to add a user']))
+    } else {
+      const validation = validate({[userEmail]: userEmail}, {[userEmail]: {email: true}})?.[userEmail]
+      setEmailErrors(Utils.summarizeErrors(validation))
+    }
+  }
+
+  return li({style: addUserLIStyles, key: 'add-user-input'}, [
+    div({style: emailFieldStyles}, [
+      h(LabeledField, {label: 'User email', formId: emailFieldId,}, []),
+      ValidatedInput({
+        inputProps: {
+          id: emailFieldId,
+          value: userEmail,
+          placeholder: 'Enter email of users to add',
+          onChange: setUserEmail,
+          onBlur: validateEmail
+        },
+        error: emailErrors
+      })
+    ]),
+    div({style: roleFieldStyles}, [
+      h(LabeledField, {label: 'Role', formId: roleFieldId}, []),
+      h(Select, {
+        id: roleFieldId,
+        placeholder: 'Select a role',
+        value: role,
+        onChange: ({value}) => setRole(value),
+        options: billingRoleOptions
+      })
+    ]),
+    div({style: buttonWrapperStyles}, [
+      div({style: {paddingTop: '2.25rem'}}),
+      h(ButtonOutline, {
+        onClick: () => {
+          if (userEmail && role && !emailErrors) {
+            props.addUser({email: userEmail, role})
+            setRole(undefined)
+            setUserEmail('')
+          }
+        },
+        role: 'button',
+        'aria-label': 'add-user',
+        disabled: !userEmail || !role || emailErrors,//!!(!isActive || !emails || !!emailErrors || !selectedRole),
+      }, [icon('plus', {})])
+    ])
+  ])
+}
+*/
+

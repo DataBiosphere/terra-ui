@@ -48,7 +48,8 @@ describe('AddUserStep', () => {
 
       render(h(AddUserStep, {
         isActive: true,
-        billingProjectName: 'testBillingProjectName'
+        users: [],
+        setUsers: jest.fn()
       }))
     })
 
@@ -72,7 +73,8 @@ describe('AddUserStep', () => {
 
       render(h(AddUserStep, {
         isActive: true,
-        billingProjectName: 'testBillingProjectName'
+        users: [],
+        setUsers: jest.fn()
       }))
     })
 
@@ -119,7 +121,9 @@ describe('AddUserStep', () => {
 
       render(h(AddUserStep, {
         isActive: true,
-        billingProjectName: 'testBillingProjectName'
+        users: [],
+        setUsers: jest.fn()
+        //billingProjectName: 'testBillingProjectName'
       }))
     })
 

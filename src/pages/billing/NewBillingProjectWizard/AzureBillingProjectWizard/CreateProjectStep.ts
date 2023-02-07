@@ -1,13 +1,12 @@
 import _ from 'lodash/fp'
 import { ReactNode, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Select, spinnerOverlay, useUniqueId } from 'src/components/common'
+import { Select, useUniqueId } from 'src/components/common'
 import { ValidatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
-import { reportErrorAndRethrow } from 'src/libs/error'
 import Events from 'src/libs/events'
-import { summarizeErrors, withBusyState } from 'src/libs/utils'
+import { summarizeErrors } from 'src/libs/utils'
 import { billingProjectNameValidator } from 'src/pages/billing/List'
 import { AzureManagedAppCoordinates } from 'src/pages/billing/models/AzureManagedAppCoordinates'
 import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/Step'
@@ -21,8 +20,13 @@ import { ExternalLink } from '../StepWizard/ExternalLink'
 type CreateProjectStepProps = {
   isActive: boolean
   managedApps: AzureManagedAppCoordinates[]
-  submit: (newProject: string) => void
-  subscriptionId?: string
+  selectedApp?: AzureManagedAppCoordinates
+  setSelectedApp: (AzureManagedAppCoordinates) => void
+  billingProjectName?: string
+  setBillingProjectName: (string) => void
+  existingProjectNames: string[]
+  // submit: (newProject: string) => void
+  // subscriptionId?: string
 }
 
 
@@ -36,118 +40,67 @@ const managedAppsToOptions = (apps: AzureManagedAppCoordinates[]) => _.map(appli
 }, apps)
 
 
-export const CreateProjectStep = ({ isActive, managedApps, ...props }: CreateProjectStepProps) => {
-  const [billingProjectName, setBillingProjectName] = useState<string>()
+export const CreateProjectStep = ({
+  isActive,
+  managedApps,
+  selectedApp,
+  billingProjectName,
+  ...props
+}: CreateProjectStepProps) => {
   const [nameErrors, setNameErrors] = useState<ReactNode>()
-  const [existing, setExisting] = useState<string[]>([])
-
-  const [selectedApp, setSelectedApp] = useState<AzureManagedAppCoordinates>()
-
-  const [isCreating, setIsCreating] = useState(false)
   const appSelectId = useUniqueId()
   const nameInputId = useUniqueId()
-
-  const createBillingProject = _.flow(
-    reportErrorAndRethrow('Error creating billing project'),
-    withBusyState(setIsCreating)
-  )(async () => {
-    if (!billingProjectName) return
-    try {
-      Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectCreateSubmit)
-      const response = await Ajax().Billing
-        .createAzureProject(billingProjectName, selectedApp?.tenantId, props.subscriptionId, selectedApp?.managedResourceGroupId)
-      if (response.ok) {
-        billingProjectName && props.submit(billingProjectName)
-        Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectCreateSuccess)
-      }
-    } catch (error: any) {
-      if (error?.status === 409) {
-        setExisting(_.concat(billingProjectName, existing))
-      } else {
-        Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectCreateFail)
-        throw error
-      }
-    }
-  })
-
 
   const onNameInput = () => {
     Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectNameEntered)
     const errors = billingProjectName ?
       summarizeErrors(
-        validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existing) })?.billingProjectName
+        validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(props.existingProjectNames) })?.billingProjectName
       ) : 'A name is required to create a billing project.'
     setNameErrors(errors)
   }
 
-  const validSelections = () => !!billingProjectName && !nameErrors && !!selectedApp
-
-  return Step({
-    isActive, children: [
-      StepHeader({
-        title: 'STEP 2', children: [
-          'Set up a Terra billing project. ',
-          ExternalLink({ text: 'Go to Azure Marketplace', url: 'https://portal.azure.com/' }),
-          ' to find or create your managed resource group.'
+  return h(Step, { isActive }, [
+    h(StepHeader, { title: 'STEP 2' }, [
+      'Set up a Terra billing project. ',
+      ExternalLink({ text: 'Go to Azure Marketplace', url: 'https://portal.azure.com/' }),
+      ' to find or create your managed resource group.'
+    ]),
+    h(StepFields, { disabled: !isActive, style: { justifyContent: 'space-around', width: '75%' } }, [
+      h(LabeledField, { label: 'Terra billing project', formId: nameInputId, required: true, style: { width: '30%' } }, [
+        ValidatedInput({
+          error: nameErrors,
+          inputProps: {
+            id: nameInputId,
+            value: billingProjectName,
+            placeholder: 'Enter a name for the project',
+            onChange: props.setBillingProjectName,
+            onBlur: onNameInput
+          }
+        })
+      ]),
+      h(LabeledField, {
+        formId: appSelectId, required: true, label: [
+          'Unassigned managed application',
+          h(InfoBox, { style: { marginLeft: '0.25rem' } } as any, [
+            'A managed application instance can only be assigned to a single Terra billing ',
+            'project. Only unassigned managed applications are included in the list below.'
+          ])
         ]
-      }),
-      StepFields({
-        disabled: !isActive, children: [
-          LabeledField({
-            label: 'Terra billing project',
-            formId: nameInputId,
-            required: true,
-            style: { width: '30%' },
-            children: [
-              ValidatedInput({
-                inputProps: {
-                  id: nameInputId,
-                  value: billingProjectName,
-                  placeholder: 'Enter a name for the project',
-                  onChange: setBillingProjectName,
-                  onBlur: onNameInput
-                },
-                error: nameErrors
-              })
-            ]
-          }),
-          LabeledField({
-            label: [
-              'Unassigned managed application',
-              InfoBox({
-                style: { marginLeft: '0.25rem' }, children: [
-                  'A managed application instance can only be assigned to a single Terra billing ',
-                  'project. Only unassigned managed applications are included in the list below.'
-                ]
-              } as any)
-            ],
-            formId: appSelectId,
-            required: true,
-            children: [
-              h(Select, {
-                id: appSelectId,
-                placeholder: 'Select a managed application',
-                isDisabled: managedApps.length === 0,
-                value: selectedApp,
-                onChange: ({ value }) => {
-                  Ajax().Metrics.captureEvent(Events.billingAzureCreationMRGSelected)
-                  setSelectedApp(value)
-                },
-                options: managedAppsToOptions(managedApps)
-              })
-            ]
-          }),
-          ButtonPrimary({
-            role: 'button',
-            style: { margin: '2rem' },
-            onClick: createBillingProject,
-            disabled: !validSelections(),
-            children: ['Create Billing Project']
-          }),
-        ]
-      }),
-      isCreating && spinnerOverlay
-    ]
-  })
+      }, [
+        h(Select, {
+          id: appSelectId,
+          placeholder: 'Select a managed application',
+          isDisabled: managedApps.length === 0,
+          value: selectedApp,
+          onChange: ({ value }) => {
+            Ajax().Metrics.captureEvent(Events.billingAzureCreationMRGSelected)
+            props.setSelectedApp(value)
+          },
+          options: managedAppsToOptions(managedApps)
+        })
+      ]),
+    ]),
+  ])
 }
 

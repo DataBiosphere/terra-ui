@@ -1,8 +1,5 @@
-import { render } from '@testing-library/react'
-import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import * as Preferences from 'src/libs/prefs'
-import { CreateProjectStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/CreateProjectStep'
 import { asMockedFn } from 'src/testing/test-utils'
 
 
@@ -14,7 +11,6 @@ jest.spyOn(Preferences, 'getLocalPref')
 
 const createAzureProject = asMockedFn(() => Promise.resolve([]))
 const captureEvent = asMockedFn(() => Promise.resolve([]))
-const submitFn = asMockedFn(() => Promise.resolve())
 
 
 describe('AddUserStep', () => {
@@ -24,13 +20,6 @@ describe('AddUserStep', () => {
       Billing: { createAzureProject } as Partial<AjaxContract['Billing']>,
       Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>
     } as Partial<AjaxContract> as AjaxContract))
-
-    render(h(CreateProjectStep, {
-      isActive: true,
-      managedApps: [],
-      submit: submitFn,
-      subscriptionId: ''
-    }))
   })
 
   /*
