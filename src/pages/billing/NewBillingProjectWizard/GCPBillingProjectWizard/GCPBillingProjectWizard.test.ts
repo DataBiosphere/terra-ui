@@ -333,9 +333,8 @@ describe('GCPBillingProjectWizard Steps', () => {
       verifyEnabled(getStep1Button())
       testStep2ButtonsEnabled()
       testStep2HaveBillingChecked()
-      // I'm not sure the following tests are correct
-      // verifyEnabled(getStep3AddedTerraBillingButton())
-      // verifyEnabled(getStep3BillingAccountNoAccessButton())
+      verifyEnabled(getStep3AddedTerraBillingButton())
+      verifyEnabled(getStep3BillingAccountNoAccessButton())
     })
     it('should show the correct text and buttons Step 3', () => {
       expect(getStep3BillingAccountNoAccessButton()).not.toBeNull()
