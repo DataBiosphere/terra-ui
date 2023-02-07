@@ -6,6 +6,7 @@ import { ValidatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
 import { reportErrorAndRethrow } from 'src/libs/error'
+import Events from 'src/libs/events'
 import { summarizeErrors, withBusyState } from 'src/libs/utils'
 import { billingProjectNameValidator } from 'src/pages/billing/List'
 import { AzureManagedAppCoordinates } from 'src/pages/billing/models/AzureManagedAppCoordinates'
@@ -38,6 +39,7 @@ const managedAppsToOptions = (apps: AzureManagedAppCoordinates[]) => _.map(appli
 export const CreateProjectStep = ({ isActive, managedApps, ...props }: CreateProjectStepProps) => {
   const [billingProjectName, setBillingProjectName] = useState<string>()
   const [nameErrors, setNameErrors] = useState<ReactNode>()
+  const [existing, setExisting] = useState<string[]>([])
 
   const [selectedApp, setSelectedApp] = useState<AzureManagedAppCoordinates>()
 
@@ -49,25 +51,31 @@ export const CreateProjectStep = ({ isActive, managedApps, ...props }: CreatePro
     reportErrorAndRethrow('Error creating billing project'),
     withBusyState(setIsCreating)
   )(async () => {
+    if (!billingProjectName) return
     try {
+      Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectCreateSubmit)
       const response = await Ajax().Billing
         .createAzureProject(billingProjectName, selectedApp?.tenantId, props.subscriptionId, selectedApp?.managedResourceGroupId)
       if (response.ok) {
         billingProjectName && props.submit(billingProjectName)
-      } else if (response.status === 409) {
-
+        Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectCreateSuccess)
       }
-    } catch (error) {
-      throw error
+    } catch (error: any) {
+      if (error?.status === 409) {
+        setExisting(_.concat(billingProjectName, existing))
+      } else {
+        Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectCreateFail)
+        throw error
+      }
     }
   })
 
 
   const onNameInput = () => {
+    Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectNameEntered)
     const errors = billingProjectName ?
       summarizeErrors(
-        // todo: not sure if we need validate against existing projects here, since the user shouldn't have any at this step...
-        validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator([]) })?.billingProjectName
+        validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existing) })?.billingProjectName
       ) : 'A name is required to create a billing project.'
     setNameErrors(errors)
   }
@@ -121,7 +129,10 @@ export const CreateProjectStep = ({ isActive, managedApps, ...props }: CreatePro
                 placeholder: 'Select a managed application',
                 isDisabled: managedApps.length === 0,
                 value: selectedApp,
-                onChange: ({ value }) => setSelectedApp(value),
+                onChange: ({ value }) => {
+                  Ajax().Metrics.captureEvent(Events.billingAzureCreationMRGSelected)
+                  setSelectedApp(value)
+                },
                 options: managedAppsToOptions(managedApps)
               })
             ]

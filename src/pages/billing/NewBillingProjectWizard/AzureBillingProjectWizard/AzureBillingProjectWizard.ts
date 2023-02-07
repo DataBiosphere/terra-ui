@@ -17,7 +17,7 @@ interface AzureBillingProjectWizardProps {
 }
 
 export const AzureBillingProjectWizard = ({ ...props }: AzureBillingProjectWizardProps) => {
-  const [activeStep, setActiveStep] = useState<number>(3)
+  const [activeStep, setActiveStep] = useState<number>(1)
   const [subscriptionId, setSubscriptionId] = useState<string>()
   const [managedApps, loadManagedApps] = useLoadedData<AzureManagedAppCoordinates[]>()
   const [billingProjectName, setBillingProjectName] = useState<string>()

@@ -25,7 +25,6 @@ export const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeA
   const [accessToAddBillingAccountUser, setAccessToAddBillingAccountUser] = useState<boolean | undefined>()//(() => getLocalPref(persistenceId)?.accessToAddBillingAccountUser)
   const [verifiedUsersAdded, setVerifiedUsersAdded] = useState<boolean | undefined>(false) // if no access to add billing account user, has the user verified access
   const [refreshed, setRefreshed] = useState<boolean>(false)
-  const [existing, setExisting] = useState<string[]>([])
   const [activeStep, setActiveStep] = useState<number>(1) //useState<number>(( getLocalPref(persistenceId)?.activeStep || 1))
 
   useEffect(() => {
@@ -90,8 +89,6 @@ export const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeA
     h(CreateTerraProjectStep, {
       isActive: activeStep === 4,
       billingAccounts,
-      existing,
-      setExisting,
       refreshed,
       setRefreshed,
       authorizeAndLoadAccounts,

@@ -39,7 +39,7 @@ export const AddTerraAsBillingAccountUserStep = ({ isActive, ...props }: AddTerr
           checked: props.accessToAddBillingAccountUser === false,
           labelStyle: { ...styles.radioButtonLabel },
           onChange: () => {
-            Ajax().Metrics.captureEvent(Events.billingCreationStep3BillingAccountNoAccess)
+            Ajax().Metrics.captureEvent(Events.billingGCPCreationStep3BillingAccountNoAccess)
             props.setAccessToAddBillingAccountUser(false)
           }
         }),
@@ -49,7 +49,7 @@ export const AddTerraAsBillingAccountUserStep = ({ isActive, ...props }: AddTerr
           name: 'permission',
           checked: props.accessToAddBillingAccountUser,
           onChange: () => {
-            Ajax().Metrics.captureEvent(Events.billingCreationStep3AddedTerraBilling)
+            Ajax().Metrics.captureEvent(Events.billingGCPCreationStep3AddedTerraBilling)
             props.setAccessToAddBillingAccountUser(true)
           }
         })

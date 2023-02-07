@@ -21,9 +21,6 @@ interface CreateTerraProjectStepProps {
   isActive: boolean
   billingAccounts: Record<string, BillingAccount>
 
-  existing: any
-  setExisting: (any) => void
-
   refreshed: boolean
   setRefreshed: (boolean) => void
   authorizeAndLoadAccounts: () => Promise<void>
@@ -34,13 +31,13 @@ interface CreateTerraProjectStepProps {
 export const CreateTerraProjectStep = ({
   isActive,
   billingAccounts,
-  existing,
   onSuccess,
   ...props
 }: CreateTerraProjectStepProps) => {
   const [billingProjectName, setBillingProjectName] = useState('')
   const [chosenBillingAccount, setChosenBillingAccount] = useState<any>()
   const [isBusy, setIsBusy] = useState(false)
+  const [existing, setExisting] = useState<string[]>([])
 
   const submit = _.flow(
     reportErrorAndRethrow('Error creating billing project'),
@@ -50,8 +47,8 @@ export const CreateTerraProjectStep = ({
       await Ajax().Billing.createGCPProject(billingProjectName, chosenBillingAccount.accountName)
       onSuccess(billingProjectName)
     } catch (error: any) {
-      if (error.status === 409) {
-        props.setExisting(_.concat(billingProjectName, existing))
+      if (error?.status === 409) {
+        setExisting(_.concat(billingProjectName, existing))
       } else {
         throw error
       }
@@ -123,7 +120,7 @@ const NoBillingAccounts = (props: {
       h(Link, {
         style: { textDecoration: 'underline', color: colors.accent() },
         onClick: async () => {
-          Ajax().Metrics.captureEvent(Events.billingCreationRefreshStep3)
+          Ajax().Metrics.captureEvent(Events.billingGCPCreationRefreshStep3)
           await props.authorizeAndLoadAccounts()
           props.setRefreshed(true)
         }

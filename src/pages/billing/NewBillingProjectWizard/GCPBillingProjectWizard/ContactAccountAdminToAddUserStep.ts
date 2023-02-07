@@ -30,7 +30,7 @@ export const ContactAccountAdminToAddUserStep = ({ isActive, ...props }: Contact
         checked: props.verifiedUsersAdded,
         disabled: !isActive && !props.isFinished, // disabled when we haven't gotten to this step - still allow users to go back, though
         onChange: () => {
-          Ajax().Metrics.captureEvent(Events.billingCreationStep3VerifyUserAdded)
+          Ajax().Metrics.captureEvent(Events.billingGCPCreationStep3VerifyUserAdded)
           props.setVerifiedUsersAdded(!props.verifiedUsersAdded)
         }
       }, [

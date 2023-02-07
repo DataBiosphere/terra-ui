@@ -4,6 +4,7 @@ import { h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Select, useUniqueId } from 'src/components/common'
 import { ValidatedInput } from 'src/components/input'
 import { Ajax } from 'src/libs/ajax'
+import Events from 'src/libs/events'
 import { useCancellation } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { billingRoles } from 'src/pages/billing/List'
@@ -33,7 +34,7 @@ export const AddUserStep = ({ isActive, billingProjectName }: AddUserStepProps) 
       email => Ajax(signal).Billing.addProjectUser(billingProjectName, [selectedRole], email),
       emails?.split(',')?.map(v => v?.trim()).filter(v => v?.length > 0)
     ))
-    // TODO: show results results
+    Ajax().Metrics.captureEvent(Events.billingAzureCreationUserAdded)
   }
 
   const validateEmails = () => {

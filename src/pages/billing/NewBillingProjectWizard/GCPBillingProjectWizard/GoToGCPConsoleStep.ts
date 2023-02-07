@@ -27,7 +27,7 @@ export const GoToGCPConsoleStep = ({ isActive, ...props }: GoToGCPConsoleStepPro
           //  I would think the button would just be inactive if we're not on step 1
           //  then we wouldn't need this check, and we'd also only capture the metric when active
           //  before this was using the raw clickable, though - so I've preserved the exact funtionality for now
-          Ajax().Metrics.captureEvent(Events.billingCreationStep1)
+          Ajax().Metrics.captureEvent(Events.billingGCPCreationStep1)
           if (isActive) {
             props.stepFinished()
           }

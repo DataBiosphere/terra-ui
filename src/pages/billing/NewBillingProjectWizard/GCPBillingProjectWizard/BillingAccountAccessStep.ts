@@ -26,7 +26,7 @@ export const BillingAccountAccessStep = ({ isActive, ...props }: BillingAccountA
         checked: props.accessToBillingAccount === false,
         onChange: () => {
           props.setAccessToBillingAccount(false)
-          Ajax().Metrics.captureEvent(Events.billingCreationStep2BillingAccountNoAccess)
+          Ajax().Metrics.captureEvent(Events.billingGCPCreationStep2BillingAccountNoAccess)
         }
       }),
       LabeledRadioButton({
@@ -34,7 +34,7 @@ export const BillingAccountAccessStep = ({ isActive, ...props }: BillingAccountA
         checked: props.accessToBillingAccount,
         onChange: () => {
           props.setAccessToBillingAccount(true)
-          Ajax().Metrics.captureEvent(Events.billingCreationStep2HaveBillingAccount)
+          Ajax().Metrics.captureEvent(Events.billingGCPCreationStep2HaveBillingAccount)
         }
       })
     ])

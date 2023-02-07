@@ -197,7 +197,7 @@ describe('GCPBillingProjectWizard Steps', () => {
     // Act
     beforeEach(() => {
       fireEvent.click(getStep1Button())
-      expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationStep1)
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingGCPCreationStep1)
     })
     // Assert
     it('has Step 2 as the current step', () => {
@@ -220,7 +220,7 @@ describe('GCPBillingProjectWizard Steps', () => {
     // Act
     beforeEach(() => {
       fireEvent.click(getStep2BillingAccountNoAccessButton())
-      expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationStep2BillingAccountNoAccess)
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingGCPCreationStep2BillingAccountNoAccess)
     })
     // Assert
     it('should not change the previous step', () => {
@@ -247,7 +247,7 @@ describe('GCPBillingProjectWizard Steps', () => {
     // Act
     beforeEach(() => {
       fireEvent.click(getStep2HaveBillingAccountButton())
-      expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationStep2HaveBillingAccount)
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingGCPCreationStep2HaveBillingAccount)
     })
     // Assert
     it('should not change the previous step', () => {
@@ -277,7 +277,7 @@ describe('GCPBillingProjectWizard Steps', () => {
       await act(async () => {
         await userEvent.click(expectNotNull(getStep3VerifyUserAdded()))
       })
-      expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationStep3VerifyUserAdded)
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingGCPCreationStep3VerifyUserAdded)
     })
     // Assert
     it('should not change the state of previous steps ', () => {
@@ -302,7 +302,7 @@ describe('GCPBillingProjectWizard Steps', () => {
     beforeEach(async () => {
       fireEvent.click(getStep2HaveBillingAccountButton())
       await act(async () => { await userEvent.click(expectNotNull(getStep3BillingAccountNoAccessButton())) })
-      expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationStep3BillingAccountNoAccess)
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingGCPCreationStep3BillingAccountNoAccess)
     })
     // Assert
     it('should not change the state of prior steps ', () => {
@@ -326,7 +326,7 @@ describe('GCPBillingProjectWizard Steps', () => {
     beforeEach(async () => {
       fireEvent.click(getStep2HaveBillingAccountButton())
       await act(async () => { await userEvent.click(expectNotNull(getStep3AddedTerraBillingButton())) })
-      expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationStep3AddedTerraBilling)
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingGCPCreationStep3AddedTerraBilling)
     })
     // Assert
     it('should not change the state of prior steps', () => {
@@ -417,7 +417,7 @@ describe('Step 4 Warning Message', () => {
   it('should show the correct message when refresh step 3 is clicked but there are no billing accounts', async () => {
     // Act
     await act(async () => { await userEvent.click(expectNotNull(screen.queryByText('Refresh Step 3'))) })
-    expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationRefreshStep3)
+    expect(captureEvent).toHaveBeenCalledWith(Events.billingGCPCreationRefreshStep3)
     // Assert
     expect(screen.queryByText('Terra still does not have access to any Google Billing Accounts. ' +
       'Please contact Terra support for additional help.')).not.toBeNull()

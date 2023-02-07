@@ -2,6 +2,8 @@ import { ReactNode, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, useUniqueId } from 'src/components/common'
 import { ValidatedInput } from 'src/components/input'
+import { Ajax } from 'src/libs/ajax'
+import Events from 'src/libs/events'
 import { summarizeErrors } from 'src/libs/utils'
 import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/Step'
 import { LabeledField, StepFieldForm, StepFields } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields'
@@ -23,6 +25,7 @@ export const AzureSubscriptionIdStep = ({ isActive, subscriptionId, ...props }: 
   const formId = useUniqueId()
 
   const validateSubscriptionId = () => {
+    Ajax().Metrics.captureEvent(Events.billingAzureCreationSubscriptionEntered)
     if (!subscriptionId) {
       setErrors('An Azure Subscription ID is required')
     } else {
