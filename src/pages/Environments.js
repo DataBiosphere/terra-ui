@@ -542,18 +542,18 @@ export const Environments = ({ nav = undefined }) => {
   const renderPauseButton = (computeType, compute, isGcp) => {
     const { status } = compute
 
-    const shouldShowPauseButton = //TODO: IA-3993 enable pausing
-    isGcp && Utils.cond(
+    const shouldShowPauseButton =
+    Utils.cond(
       [isApp(compute) && !_.find(tool => tool.appType && tool.appType === compute.appType)(appTools)?.isPauseUnsupported, () => true],
       [isPauseSupported(getToolLabelFromRuntime(compute)) && currentUser === getCreatorForRuntime(compute), () => true],
       () => false)
 
-    return shouldShowPauseButton && h(Link, {
+    return shouldShowPauseButton && h(Link, { //TODO: IA-3993 enable pausing
       style: { marginRight: '1rem' },
-      disabled: !isComputePausable(computeType, compute),
-      tooltip: isComputePausable(computeType, compute) ?
+      disabled: !isGcp || !isComputePausable(computeType, compute),
+      tooltip: !isGcp ? 'Feature coming soon' : (isComputePausable(computeType, compute) ?
         'Pause cloud environment' :
-        `Cannot pause a cloud environment while in status ${_.upperCase(getComputeStatusForDisplay(status))}.`,
+        `Cannot pause a cloud environment while in status ${_.upperCase(getComputeStatusForDisplay(status))}.`),
       onClick: () => pauseComputeAndRefresh(computeType, compute)
     }, [makeMenuIcon('pause'), 'Pause'])
   }
