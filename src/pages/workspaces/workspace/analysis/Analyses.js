@@ -33,6 +33,7 @@ import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { findPotentialNotebookLockers, getExtension, getFileName, notebookLockHash } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
 import { AnalysisModal } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisModal'
@@ -243,7 +244,7 @@ const Analyses = _.flow(
 )(({
   name: workspaceName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { cloudPlatform, workspaceId, googleProject, bucketName } },
   analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
-  storageDetails: { googleBucketLocation },
+  storageDetails: { googleBucketLocation, azureContainerRegion },
   onRequesterPaysError
 }, _ref) => {
   const [renamingAnalysisName, setRenamingAnalysisName] = useState(undefined)
@@ -265,6 +266,11 @@ const Analyses = _.flow(
   const authState = useStore(authStore)
   const signal = useCancellation()
   const currentRuntime = getCurrentRuntime(runtimes)
+  const location = Utils.cond(
+    [isGoogleWorkspace(workspace), () => googleBucketLocation],
+    [isAzureWorkspace(workspace), () => azureContainerRegion],
+    () => null
+  )
 
   // Helpers
   //TODO: does this prevent users from making an .Rmd with the same name as an .ipynb?
@@ -518,7 +524,7 @@ const Analyses = _.flow(
           refreshApps,
           uploadFiles,
           openUploader,
-          location: googleBucketLocation,
+          location,
           onDismiss: () => {
             setCreating(false)
           },

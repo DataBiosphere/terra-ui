@@ -57,7 +57,7 @@ const AnalysisLauncher = _.flow(
   ({
     queryParams, analysisName, workspace, workspace: { accessLevel, canCompute },
     analysesData: { runtimes, refreshRuntimes, persistentDisks },
-    storageDetails: { googleBucketLocation },
+    storageDetails: { googleBucketLocation, azureContainerRegion },
   }, _ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     const currentRuntime = getCurrentRuntime(runtimes)
@@ -100,7 +100,7 @@ const AnalysisLauncher = _.flow(
           workspace,
           currentRuntime,
           currentDisk,
-          location: googleBucketLocation,
+          googleBucketLocation,
           onDismiss: () => {
             chooseMode(undefined)
             setCreateOpen(false)
@@ -118,7 +118,7 @@ const AnalysisLauncher = _.flow(
           hideCloseButton: true,
           workspace,
           runtimes,
-          location,
+          azureContainerRegion,
           onDismiss: () => {
             chooseMode(undefined)
             setCreateOpen(false)

@@ -55,22 +55,29 @@ const contextBarStyles = {
 }
 
 export const ContextBar = ({
-  runtimes, apps, appDataDisks, refreshRuntimes, storageDetails: { googleBucketLocation, googleBucketType }, refreshApps,
+  runtimes, apps, appDataDisks, refreshRuntimes, storageDetails: { azureContainerRegion, googleBucketLocation, googleBucketType }, refreshApps,
   workspace, persistentDisks, workspace: { workspace: { namespace, name: workspaceName } }
 }) => {
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false)
   const [selectedToolIcon, setSelectedToolIcon] = useState(undefined)
 
-  const computeRegion = getRegionInfo(location, locationType).computeRegion
-  // Azure workspace containers will pass the 'location' param as an Azure armRegionName, which can be used directly as the computeRegion
-  const computeRegion = isAzureWorkspace(workspace) ? location : getRegionInfo(location, locationType).computeRegion
-  // TODO resolve this (expect Azure loc in storageDetails)
-  const computeRegion = getRegionInfo(googleBucketLocation, googleBucketType).computeRegion
   const currentRuntime = getCurrentRuntime(runtimes)
   const currentRuntimeTool = currentRuntime?.labels?.tool
   const isTerminalVisible = currentRuntimeTool === toolLabels.Jupyter && currentRuntime && currentRuntime.status !== 'Error'
   const terminalLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: 'terminal' })
   const canCompute = !!(workspace?.canCompute || runtimes?.length)
+
+  // Azure workspace containers' armRegionName can be used directly in cost-utils as the computeRegion
+  const computeRegion = Utils.cond(
+    [isGoogleWorkspace(workspace), () => getRegionInfo(googleBucketLocation, googleBucketType).computeRegion],
+    [isAzureWorkspace(workspace), () => azureContainerRegion],
+    () => null
+  )
+  const location = Utils.cond(
+    [isGoogleWorkspace(workspace), () => googleBucketLocation],
+    [isAzureWorkspace(workspace), () => azureContainerRegion],
+    () => null
+  )
 
   const getImgForTool = toolLabel => Utils.switchCase(toolLabel,
     [toolLabels.Jupyter, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
@@ -157,7 +164,7 @@ export const ContextBar = ({
         await refreshRuntimes(true)
         await refreshApps()
       },
-      runtimes, apps, appDataDisks, refreshRuntimes, refreshApps, workspace, canCompute, persistentDisks, location: googleBucketLocation, computeRegion
+      runtimes, apps, appDataDisks, refreshRuntimes, refreshApps, workspace, canCompute, persistentDisks, location, computeRegion
     }),
     div({ style: { ...Style.elements.contextBarContainer, width: 70 } }, [
       div({ style: contextBarStyles.contextBarContainer }, [

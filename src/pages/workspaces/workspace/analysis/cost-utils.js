@@ -6,7 +6,7 @@ import { getAzurePricesForRegion, getDiskType } from 'src/libs/azure-utils'
 import * as Utils from 'src/libs/utils'
 import {
   defaultComputeRegion, defaultGceMachineType, findMachineType, getComputeStatusForDisplay, getCurrentAttachedDataDisk, getCurrentPersistentDisk,
-  getRuntimeForTool, isAzureContext, normalizeRuntimeConfig, pdTypes
+  getRuntimeForTool, isAzureContext, isGcpContext, normalizeRuntimeConfig, pdTypes
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { appTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
@@ -165,17 +165,20 @@ export const getAzureDiskCostEstimate = ({ region, diskSize }) => {
 // COMMON METHODS begin
 
 export const getPersistentDiskCostMonthly = ({ cloudContext = {}, diskType, size, status, zone }, computeRegion) => {
-  let price
-  if (isAzureContext(cloudContext)) {
-    price = getAzureDiskCostEstimate({ diskSize: size, region: zone })
-  } else {
-    price = size * getPersistentDiskPriceForRegionMonthly(computeRegion, diskType)
-  }
+  const price = Utils.cond(
+    [isAzureContext(cloudContext), () => getAzureDiskCostEstimate({ diskSize: size, region: zone })],
+    [isGcpContext(cloudContext), () => size * getPersistentDiskPriceForRegionMonthly(computeRegion, diskType)],
+    [Utils.DEFAULT, () => 0.0]
+  )
   return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : price
 }
 export const getPersistentDiskCostHourly = ({ size, status, diskType, cloudContext = {} }, computeRegion) => {
-  const price = isAzureContext(cloudContext) ? getAzureDiskCostEstimate({ diskSize: size, region: computeRegion }) / numberOfHoursPerMonth : getPersistentDiskPriceForRegionHourly(computeRegion, diskType)
-  return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : size * price
+  const price = Utils.cond(
+    [isAzureContext(cloudContext), () => getAzureDiskCostEstimate({ diskSize: size, region: computeRegion }) / numberOfHoursPerMonth],
+    [isGcpContext(cloudContext), () => size * getPersistentDiskPriceForRegionHourly(computeRegion, diskType)],
+    [Utils.DEFAULT, () => 0.0]
+  )
+  return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : price
 }
 
 export const getRuntimeCost = ({ runtimeConfig, status, cloudContext = {} }) => {
