@@ -349,8 +349,13 @@ const contextBarProps = {
   apps: [],
   appDataDisks: [],
   refreshRuntimes: () => '',
-  location: 'US-CENTRAL1',
-  locationType: '',
+  storageDetails: {
+    googleBucketLocation: 'US-CENTRAL1',
+    googleBucketType: '',
+    azureContainerRegion: 'eastus',
+    azureContainerUrl: 'container-url',
+    azureContainerSasUrl: 'container-url?sas'
+  },
   refreshApps: () => '',
   workspace: {
     workspace: {
@@ -366,8 +371,13 @@ const contextBarPropsForAzure = {
   apps: [],
   appDataDisks: [],
   refreshRuntimes: () => '',
-  location: 'US-CENTRAL1',
-  locationType: '',
+  storageDetails: {
+    googleBucketLocation: 'US-CENTRAL1',
+    googleBucketType: 'region',
+    azureContainerRegion: undefined,
+    azureContainerUrl: undefined,
+    azureContainerSasUrl: undefined
+  },
   refreshApps: () => '',
   workspace: {
     workspace: {

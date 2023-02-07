@@ -94,7 +94,7 @@ export const createLeoAppWithErrorHandling = workspaceId => {
 // Invokes logic to determine the appropriate app for WDS
 // If WDS is not running, a URL will not be present -- in some cases, this function may invoke
 // a new call to Leo to instantiate a WDS being available, thus having a valid URL
-export const resolveWdsApp = (apps, shouldAutoDeployWds) => {
+export const resolveWdsApp = apps => {
   // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by Leo
   // See here for specific enumerations -- https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
   // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' -- if WDS is healthy and running, there should only be one app RUNNING
@@ -125,21 +125,21 @@ export const resolveWdsApp = (apps, shouldAutoDeployWds) => {
   // Self-heal and try to deploy an app, assuming shouldAutoDeployWds is true.
   // Due to Leo naming requirements, ensure this app has a unique name; this prevents
   // name collisions with previously-deployed apps which may be in ERROR or DELETED states.
-  if (shouldAutoDeployWds) {
-    // David An: disabled for now. This needs to pass both the workspaceId and a random app name to
-    // createLeoAppWithErrorHandling.
-    // Additionally, it needs to be failsafe to race conditions in which the user enters the Data
-    // tab before Leo has had a chance to respond with knowledge about the app that was created
-    // during workspace creation.
-    // createLeoAppWithErrorHandling(uuid())
-  }
+  //if (shouldAutoDeployWds) {
+  // David An: disabled for now. This needs to pass both the workspaceId and a random app name to
+  // createLeoAppWithErrorHandling.
+  // Additionally, it needs to be failsafe to race conditions in which the user enters the Data
+  // tab before Leo has had a chance to respond with knowledge about the app that was created
+  // during workspace creation.
+  // createLeoAppWithErrorHandling(uuid())
+  //}
 
   return ''
 }
 
 // Extract wds URL from Leo response. exported for testing
-export const resolveWdsUrl = (apps, shouldAutoDeployWds) => {
-  const foundApp = resolveWdsApp(apps, shouldAutoDeployWds)
+export const resolveWdsUrl = apps => {
+  const foundApp = resolveWdsApp(apps)
   if (foundApp?.status === 'RUNNING') {
     return foundApp.proxyUrls.wds
   }
@@ -149,14 +149,14 @@ export const resolveWdsUrl = (apps, shouldAutoDeployWds) => {
 export const wdsProviderName: string = 'WDS'
 
 export class WdsDataTableProvider implements DataTableProvider {
-  constructor(workspaceId: string, shouldAutoDeployWds: boolean) {
+  constructor(workspaceId: string, proxyUrl: string) {
     this.workspaceId = workspaceId
-    this.proxyUrlPromise = Ajax().Apps.listAppsV2(workspaceId).then(apps => resolveWdsUrl(apps, shouldAutoDeployWds))
+    this.proxyUrl = proxyUrl
   }
 
   providerName: string = wdsProviderName
 
-  proxyUrlPromise: Promise<string>
+  proxyUrl: string
 
   workspaceId: string
 
@@ -255,9 +255,9 @@ export class WdsDataTableProvider implements DataTableProvider {
   }
 
   getPage = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions, metadata: EntityMetadata): Promise<EntityQueryResponse> => {
-    const proxyUrl = await this.proxyUrlPromise
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded')
     const wdsPage: RecordQueryResponse = await Ajax(signal).WorkspaceData
-      .getRecords(proxyUrl, this.workspaceId, entityType,
+      .getRecords(this.proxyUrl, this.workspaceId, entityType,
         _.merge({
           offset: (queryOptions.pageNumber - 1) * queryOptions.itemsPerPage,
           limit: queryOptions.itemsPerPage,
@@ -268,18 +268,18 @@ export class WdsDataTableProvider implements DataTableProvider {
     return this.transformPage(wdsPage, entityType, queryOptions, metadata)
   }
 
-  deleteTable = async (entityType: string): Promise<Response> => {
-    const proxyUrl = await this.proxyUrlPromise
-    return Ajax().WorkspaceData.deleteTable(proxyUrl, this.workspaceId, entityType)
+  deleteTable = (entityType: string): Promise<Response> => {
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded')
+    return Ajax().WorkspaceData.deleteTable(this.proxyUrl, this.workspaceId, entityType)
   }
 
-  downloadTsv = async (signal: AbortSignal, entityType: string): Promise<Blob> => {
-    const proxyUrl = await this.proxyUrlPromise
-    return Ajax(signal).WorkspaceData.downloadTsv(proxyUrl, this.workspaceId, entityType)
+  downloadTsv = (signal: AbortSignal, entityType: string): Promise<Blob> => {
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded')
+    return Ajax(signal).WorkspaceData.downloadTsv(this.proxyUrl, this.workspaceId, entityType)
   }
 
-  uploadTsv = async (uploadParams: UploadParameters): Promise<TsvUploadResponse> => {
-    const proxyUrl = await this.proxyUrlPromise
-    return Ajax().WorkspaceData.uploadTsv(proxyUrl, uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
+  uploadTsv = (uploadParams: UploadParameters): Promise<TsvUploadResponse> => {
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded')
+    return Ajax().WorkspaceData.uploadTsv(this.proxyUrl, uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
   }
 }

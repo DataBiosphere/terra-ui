@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
 import { dd, div, dl, dt, h, h3, i, span, strong } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper } from 'src/components/bucket-utils'
@@ -201,7 +201,7 @@ const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace 
   const [showRequesterPaysModal, setShowRequesterPaysModal] = useState(false)
 
   const signal = useCancellation()
-  const loadBucketLocation = useCallback(async () => {
+  const loadGoogleBucketLocation = useCallback(async () => {
     setLoading(true)
     try {
       const { namespace, name, workspace: { googleProject, bucketName } } = workspace
@@ -219,8 +219,12 @@ const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace 
   }, [workspace, signal])
 
   useEffect(() => {
-    loadBucketLocation()
-  }, [loadBucketLocation])
+    if (workspace?.workspaceInitialized) {
+      // storageDetails.googleBucketLocation is not used because WorkspaceContainer silently fails for requester pays workspaces.
+      // We wish to show the user more information in this case and allow them to link a workspace.
+      loadGoogleBucketLocation()
+    }
+  }, [loadGoogleBucketLocation, workspace])
 
   if (loading) {
     return 'Loading'
@@ -240,7 +244,7 @@ const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace 
         onSuccess: selectedGoogleProject => {
           requesterPaysProjectStore.set(selectedGoogleProject)
           setShowRequesterPaysModal(false)
-          loadBucketLocation()
+          loadGoogleBucketLocation()
         }
       })
     ])
@@ -301,12 +305,13 @@ const WorkspaceDashboard = _.flow(
   namespace, name,
   refreshWorkspace,
   analysesData,
+  storageDetails,
   workspace, workspace: {
     accessLevel,
     azureContext,
     owners,
     workspace: {
-      authorizationDomain, createdDate, lastModified, bucketName, googleProject, workspaceId,
+      authorizationDomain, createdDate, lastModified, bucketName, googleProject,
       attributes, attributes: { description = '' }
     }
   }
@@ -315,9 +320,6 @@ const WorkspaceDashboard = _.flow(
   const [submissionsCount, setSubmissionsCount] = useState(undefined)
   const [storageCost, setStorageCost] = useState(undefined)
   const [bucketSize, setBucketSize] = useState(undefined)
-  /* eslint-disable @typescript-eslint/no-unused-vars */
-  const [{ storageContainerUrl, storageLocation, sas: { url } }, setAzureStorage] = useState(
-    { storageContainerUrl: undefined, storageLocation: undefined, sas: {} })
   const [editDescription, setEditDescription] = useState(undefined)
   const [saving, setSaving] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -328,7 +330,6 @@ const WorkspaceDashboard = _.flow(
   const persistenceId = `workspaces/${namespace}/${name}/dashboard`
 
   const signal = useCancellation()
-  const interval = useRef()
 
   const refresh = () => {
     loadSubmissionCount()
@@ -340,42 +341,45 @@ const WorkspaceDashboard = _.flow(
       loadAcl()
     }
 
-    if (isGoogleWorkspace(workspace)) {
+    updateGoogleBucketDetails(workspace)
+  }
+
+  const loadStorageCost = useMemo(() => withErrorReporting('Error loading storage cost data', async () => {
+    try {
+      const { estimate, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).storageCostEstimate()
+      setStorageCost({ isSuccess: true, estimate, lastUpdated })
+    } catch (error) {
+      if (error.status === 404) {
+        setStorageCost({ isSuccess: false, estimate: 'Not available' })
+      } else {
+        throw error
+      }
+    }
+  }), [namespace, name, signal])
+
+  const loadBucketSize = useMemo(() => withErrorReporting('Error loading bucket size.', async () => {
+    try {
+      const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
+      setBucketSize({ isSuccess: true, usage: Utils.formatBytes(usageInBytes), lastUpdated })
+    } catch (error) {
+      if (error.status === 404) {
+        setBucketSize({ isSuccess: false, usage: 'Not available' })
+      } else {
+        throw error
+      }
+    }
+  }), [namespace, name, signal])
+
+  const updateGoogleBucketDetails = useCallback(workspace => {
+    if (isGoogleWorkspace(workspace) && workspace.workspaceInitialized && Utils.canWrite(accessLevel)) {
       loadStorageCost()
       loadBucketSize()
     }
-    if (isAzureWorkspace(workspace)) {
-      loadAzureStorage()
-    }
-  }
-
-  const loadAzureStorage = useCallback(async () => {
-    try {
-      const { location, sas } = await Ajax(signal).AzureStorage.details(workspaceId)
-      setAzureStorage({ storageContainerUrl: _.head(_.split('?', sas.url)), storageLocation: location, sas })
-    } catch (error) {
-      // We expect to get a transient error while the workspace is cloning. We will improve
-      // the handling of this with WOR-534 so that we correctly differentiate between the
-      // expected transient error and a workspace that is truly missing a storage container.
-      console.log(`Error thrown by AzureStorage.details: ${error}`) // eslint-disable-line no-console
-    }
-  }, [workspaceId, signal])
+  }, [accessLevel, loadStorageCost, loadBucketSize])
 
   useEffect(() => {
-    if (isAzureWorkspace(workspace)) {
-      if (!storageContainerUrl && !interval.current) {
-        interval.current = setInterval(loadAzureStorage, 5000)
-      } else if (!!storageContainerUrl && interval.current) {
-        clearInterval(interval.current)
-        interval.current = undefined
-      }
-    }
-
-    return () => {
-      clearInterval(interval.current)
-      interval.current = undefined
-    }
-  }, [loadAzureStorage, workspace, storageContainerUrl])
+    updateGoogleBucketDetails(workspace)
+  }, [workspace, updateGoogleBucketDetails])
 
   useImperativeHandle(ref, () => ({ refresh }))
 
@@ -395,36 +399,6 @@ const WorkspaceDashboard = _.flow(
   const loadSubmissionCount = withErrorReporting('Error loading submission count data', async () => {
     const submissions = await Ajax(signal).Workspaces.workspace(namespace, name).listSubmissions()
     setSubmissionsCount(submissions.length)
-  })
-
-  const loadStorageCost = withErrorReporting('Error loading storage cost data', async () => {
-    if (Utils.canWrite(accessLevel)) {
-      try {
-        const { estimate, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).storageCostEstimate()
-        setStorageCost({ isSuccess: true, estimate, lastUpdated })
-      } catch (error) {
-        if (error.status === 404) {
-          setStorageCost({ isSuccess: false, estimate: 'Not available' })
-        } else {
-          throw error
-        }
-      }
-    }
-  })
-
-  const loadBucketSize = withErrorReporting('Error loading bucket size.', async () => {
-    if (Utils.canWrite(accessLevel)) {
-      try {
-        const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
-        setBucketSize({ isSuccess: true, usage: Utils.formatBytes(usageInBytes), lastUpdated })
-      } catch (error) {
-        if (error.status === 404) {
-          setBucketSize({ isSuccess: false, usage: 'Not available' })
-        } else {
-          throw error
-        }
-      }
-    }
   })
 
   const loadConsent = withErrorReporting('Error loading data', async () => {
@@ -536,7 +510,7 @@ const WorkspaceDashboard = _.flow(
           h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } })
         ]),
         h(InfoRow, { title: 'Location' }, [
-          h(TooltipCell, !!storageLocation ? [getRegionFlag(storageLocation), ' ', getRegionLabel(storageLocation)] : ['Loading'])
+          h(TooltipCell, !!storageDetails.azureContainerRegion ? [getRegionFlag(storageDetails.azureContainerRegion), ' ', getRegionLabel(storageDetails.azureContainerRegion)] : ['Loading'])
         ]),
         h(InfoRow, { title: 'Resource Group ID' }, [
           h(TooltipCell, [azureContext.managedResourceGroupId]),
@@ -544,17 +518,17 @@ const WorkspaceDashboard = _.flow(
             { 'aria-label': 'Copy resource group id to clipboard', text: azureContext.managedResourceGroupId, style: { marginLeft: '0.25rem' } })
         ]),
         h(InfoRow, { title: 'Storage Container URL' }, [
-          h(TooltipCell, [!!storageContainerUrl ? storageContainerUrl : 'Loading']),
+          h(TooltipCell, [!!storageDetails.azureContainerUrl ? storageDetails.azureContainerUrl : 'Loading']),
           h(ClipboardButton, {
             'aria-label': 'Copy storage container URL to clipboard',
-            text: storageContainerUrl, style: { marginLeft: '0.25rem' }
+            text: storageDetails.azureContainerUrl, style: { marginLeft: '0.25rem' }
           })
         ]),
         h(InfoRow, { title: 'Storage SAS URL' }, [
-          h(TooltipCell, [!!url ? url : 'Loading']),
+          h(TooltipCell, [!!storageDetails.azureContainerSasUrl ? storageDetails.azureContainerSasUrl : 'Loading']),
           h(ClipboardButton, {
             'aria-label': 'Copy SAS URL to clipboard',
-            text: url, style: { marginLeft: '0.25rem' }
+            text: storageDetails.azureContainerSasUrl, style: { marginLeft: '0.25rem' }
           })
         ])
       ]),

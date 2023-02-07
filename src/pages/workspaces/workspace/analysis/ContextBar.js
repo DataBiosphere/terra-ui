@@ -54,13 +54,13 @@ const contextBarStyles = {
 }
 
 export const ContextBar = ({
-  runtimes, apps, appDataDisks, refreshRuntimes, location, locationType, refreshApps,
+  runtimes, apps, appDataDisks, refreshRuntimes, storageDetails: { googleBucketLocation, googleBucketType }, refreshApps,
   workspace, persistentDisks, workspace: { workspace: { namespace, name: workspaceName } }
 }) => {
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false)
   const [selectedToolIcon, setSelectedToolIcon] = useState(undefined)
 
-  const computeRegion = getRegionInfo(location, locationType).computeRegion
+  const computeRegion = getRegionInfo(googleBucketLocation, googleBucketType).computeRegion
   const currentRuntime = getCurrentRuntime(runtimes)
   const currentRuntimeTool = currentRuntime?.labels?.tool
   const isTerminalVisible = currentRuntimeTool === toolLabels.Jupyter && currentRuntime && currentRuntime.status !== 'Error'
@@ -151,7 +151,7 @@ export const ContextBar = ({
         await refreshRuntimes(true)
         await refreshApps()
       },
-      runtimes, apps, appDataDisks, refreshRuntimes, refreshApps, workspace, canCompute, persistentDisks, location, computeRegion
+      runtimes, apps, appDataDisks, refreshRuntimes, refreshApps, workspace, canCompute, persistentDisks, location: googleBucketLocation, computeRegion
     }),
     div({ style: { ...Style.elements.contextBarContainer, width: 70 } }, [
       div({ style: contextBarStyles.contextBarContainer }, [
