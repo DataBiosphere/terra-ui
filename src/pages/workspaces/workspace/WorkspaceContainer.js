@@ -22,7 +22,7 @@ import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
 import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
-  getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, isGcpContext, mapToPdTypes
+  getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, mapToPdTypes
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import RuntimeManager from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
 import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
@@ -124,13 +124,6 @@ const WorkspaceTabs = ({
     ])
   ])
 }
-
-// v2 workspaces may have been migrated from v1 workspaces, in which case the googleProject
-// associated with runtimes on GCP will not match the workspace googleProject. These
-// should be hidden from the user.
-export const isV1Artifact = _.curry((workspace, { googleProject, cloudContext }) => {
-  return isGcpContext(cloudContext) && googleProject !== workspace.googleProject
-})
 
 const WorkspaceContainer = ({
   namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true,
@@ -236,7 +229,7 @@ const WorkspaceAccessError = () => {
   ])
 }
 
-const useCloudEnvironmentPolling = (googleProject, workspace) => {
+const useCloudEnvironmentPolling = workspace => {
   const signal = useCancellation()
   const timeout = useRef()
   const [runtimes, setRuntimes] = useState()
@@ -245,7 +238,6 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
 
   const saturnWorkspaceNamespace = workspace?.workspace.namespace
   const saturnWorkspaceName = workspace?.workspace.name
-  const saturnWorkspaceVersion = workspace?.workspace.workspaceVersion
 
   const reschedule = ms => {
     clearTimeout(timeout.current)
@@ -253,10 +245,7 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
   }
   const load = async maybeStale => {
     try {
-      // v1 workspaces: cloud environment (runtime + disk) is used across workspaces that share the same googleProject
-      // v2 workspaces: 1 cloud environment per workspace - saturnWorkspaceName == workspaceName and saturnWorkspaceNamespace == Terra Billing Project (which is no longer equivalent to googleProject)
-      // TODO: after PPW migration - we should only need saturnWorkspaceName and saturnWorkspaceNamespace labels
-      const cloudEnvFilters = _.pickBy(l => !_.isUndefined(l), saturnWorkspaceVersion === 'v1' ? { role: 'creator', googleProject } : { role: 'creator', saturnWorkspaceName, saturnWorkspaceNamespace })
+      const cloudEnvFilters = _.pickBy(l => !_.isUndefined(l), { role: 'creator', saturnWorkspaceName, saturnWorkspaceNamespace })
 
       // Disks.list API takes includeLabels to specify which labels to return in the response
       // Runtimes.listV2 API always returns all labels for a runtime
@@ -265,7 +254,7 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
         Ajax(signal).Runtimes.listV2(cloudEnvFilters)
       ]) : [[], []]
 
-      setRuntimes(_.remove(isV1Artifact(workspace?.workspace), newRuntimes))
+      setRuntimes(newRuntimes)
       setAppDataDisks(_.remove(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
       setPersistentDisks(mapToPdTypes(_.filter(disk => _.isUndefined(getDiskAppType(disk)), newDisks)))
 
@@ -336,7 +325,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
 
     const workspaceLoaded = !!workspace
 
-    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject, workspace)
+    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(workspace)
     const { apps, refreshApps } = useAppPolling(googleProject, name, workspace)
     // The following if statements are necessary to support the context bar properly loading runtimes for google/azure
     if (workspaceLoaded && (googleProject !== prevGoogleProject || azureContext !== prevAzureContext)) {
