@@ -6,7 +6,7 @@ import { getAzurePricesForRegion, getDiskType } from 'src/libs/azure-utils'
 import * as Utils from 'src/libs/utils'
 import {
   defaultComputeRegion, defaultGceMachineType, findMachineType, getComputeStatusForDisplay, getCurrentAttachedDataDisk, getCurrentPersistentDisk,
-  getRuntimeForTool, isAzureContext, isGcpContext, normalizeRuntimeConfig, pdTypes
+  getRuntimeForTool, isAzureContext, normalizeRuntimeConfig, pdTypes
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { appTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
@@ -167,16 +167,14 @@ export const getAzureDiskCostEstimate = ({ region, diskSize }) => {
 export const getPersistentDiskCostMonthly = ({ cloudContext = {}, diskType, size, status, zone }, computeRegion) => {
   const price = Utils.cond(
     [isAzureContext(cloudContext), () => getAzureDiskCostEstimate({ diskSize: size, region: zone })],
-    [isGcpContext(cloudContext), () => size * getPersistentDiskPriceForRegionMonthly(computeRegion, diskType)],
-    [Utils.DEFAULT, () => 0.0]
+    [Utils.DEFAULT, () => size * getPersistentDiskPriceForRegionMonthly(computeRegion, diskType)]
   )
   return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : price
 }
 export const getPersistentDiskCostHourly = ({ size, status, diskType, cloudContext = {} }, computeRegion) => {
   const price = Utils.cond(
     [isAzureContext(cloudContext), () => getAzureDiskCostEstimate({ diskSize: size, region: computeRegion }) / numberOfHoursPerMonth],
-    [isGcpContext(cloudContext), () => size * getPersistentDiskPriceForRegionHourly(computeRegion, diskType)],
-    [Utils.DEFAULT, () => 0.0]
+    [Utils.DEFAULT, () => size * getPersistentDiskPriceForRegionHourly(computeRegion, diskType)],
   )
   return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : price
 }
