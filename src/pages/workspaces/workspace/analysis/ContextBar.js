@@ -55,7 +55,7 @@ const contextBarStyles = {
 
 export const ContextBar = ({
   runtimes, apps, appDataDisks, refreshRuntimes, storageDetails: { googleBucketLocation, googleBucketType }, refreshApps,
-  workspace, persistentDisks, workspace: { workspace: { namespace, name: workspaceName } }
+  workspace, persistentDisks, storageDetails, workspace: { workspace: { namespace, name: workspaceName } }
 }) => {
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false)
   const [selectedToolIcon, setSelectedToolIcon] = useState(undefined)
@@ -139,6 +139,7 @@ export const ContextBar = ({
     h(CloudEnvironmentModal, {
       isOpen: isCloudEnvOpen,
       filterForTool: selectedToolIcon,
+      storageDetails,
       onSuccess: async () => {
         setCloudEnvOpen(false)
         setSelectedToolIcon(undefined)

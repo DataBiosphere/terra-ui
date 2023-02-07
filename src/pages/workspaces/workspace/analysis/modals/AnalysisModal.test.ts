@@ -16,6 +16,7 @@ import {
   useAnalysisFiles
 } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { AppTool, getToolLabelFromFileExtension, ToolLabel, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace'
 import { asMockedFn } from 'src/testing/test-utils'
 
 import { reportError } from '../../../../../libs/error'
@@ -37,7 +38,8 @@ const defaultGcpModalProps: AnalysisModalProps = {
   openUploader: () => {},
   uploadFiles: () => {},
   //TODO: Temporary until Analyses.js implements useAnalysisFiles
-  refreshAnalyses: () => {}
+  refreshAnalyses: () => {},
+  storageDetails: {} as StorageDetails
 }
 
 const defaultAzureModalProps: AnalysisModalProps = {

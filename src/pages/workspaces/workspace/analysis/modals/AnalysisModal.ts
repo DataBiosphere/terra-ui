@@ -30,6 +30,7 @@ import {
   getCurrentApp, getCurrentPersistentDisk, getCurrentRuntime, isResourceDeletable
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppDataDisk, AppTool, cloudAppTools, cloudRuntimeTools, getAppType, getToolLabelFromFileExtension, getToolLabelFromRuntime, isAppToolLabel, PersistentDisk, Runtime, runtimeTools, Tool, toolExtensionDisplay, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace'
 import validate from 'validate.js'
 
 
@@ -52,6 +53,7 @@ export interface AnalysisModalProps {
   uploadFiles: () => void
   //TODO: Temporary until Analyses.js implements useAnalysisFiles
   refreshAnalyses: () => void
+  storageDetails: StorageDetails
 }
 
 export const AnalysisModal = withDisplayName('AnalysisModal')(
@@ -64,7 +66,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     openUploader,
     workspace,
     location,
-    refreshAnalyses
+    refreshAnalyses,
+    storageDetails
   }: AnalysisModalProps) => {
     const [viewMode, setViewMode] = useState<any>()
     const cloudPlatform = workspace.workspace.cloudPlatform.toUpperCase()
@@ -156,7 +159,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       workspace,
       runtimes,
       onDismiss,
-      onSuccess
+      onSuccess,
+      storageDetails
     })
 
     const renderAppModal = (appModalBase, toolLabel) => h(appModalBase, {

@@ -40,7 +40,7 @@ const titleId = 'cloud-env-modal'
 export const CloudEnvironmentModal = ({
   isOpen, onSuccess, onDismiss, canCompute, runtimes, apps, appDataDisks, refreshRuntimes, refreshApps,
   workspace, persistentDisks, location, computeRegion, workspace: { workspace: { namespace, name: workspaceName } },
-  filterForTool = undefined
+  filterForTool = undefined, storageDetails
 }) => {
   const [viewMode, setViewMode] = useState(undefined)
   const [busy, setBusy] = useState(false)
@@ -74,7 +74,8 @@ export const CloudEnvironmentModal = ({
     runtimes,
     onDismiss,
     onSuccess,
-    onError: onDismiss
+    onError: onDismiss,
+    storageDetails
   })
 
   const renderAppModal = (appModalBase, appMode) => h(appModalBase, {

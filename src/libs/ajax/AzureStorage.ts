@@ -19,7 +19,7 @@ type SasInfo = {
   token: string
 }
 
-type StorageDetails = {
+type AzureStorageDetails = {
   location: string
   storageContainerName: string
   sas: SasInfo
@@ -46,7 +46,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
    * Note that this method will throw an error if there is no shared access storage container available
    * (which is an expected transient state while a workspace is being cloned).
    */
-  details: async (workspaceId: string): Promise<StorageDetails> => {
+  details: async (workspaceId: string): Promise<AzureStorageDetails> => {
     const data = await Ajax(signal).WorkspaceManagerResources.controlledResources(workspaceId)
     const container = _.find(
       {
@@ -55,7 +55,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
       data.resources
     )
     // When a workspace is first cloned, it will not have a storage container, as the storage container and blob
-    // cloning happens asynchronously. Ultimately we will change the `StorageDetails` variable types to reflect
+    // cloning happens asynchronously. Ultimately we will change the `AzureStorageDetails` variable types to reflect
     // that they may be null, but until all the consuming code changes to handle that we will just throw an error
     // (which is what was happening anyway when we tried to access container.metadata).
     if (!container) {

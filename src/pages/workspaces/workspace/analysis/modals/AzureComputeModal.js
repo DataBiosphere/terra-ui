@@ -25,7 +25,7 @@ import {
 const titleId = 'azure-compute-modal-title'
 
 export const AzureComputeModalBase = ({
-  onDismiss, onSuccess, onError = onDismiss, workspace: { workspace: { namespace, name: workspaceName, workspaceId } }, runtimes, hideCloseButton = false
+  onDismiss, onSuccess, onError = onDismiss, workspace: { workspace: { namespace, name: workspaceName, workspaceId } }, runtimes, hideCloseButton = false, storageDetails
 }) => {
   const [loading, setLoading] = useState(false)
   const [viewMode, setViewMode] = useState(undefined)
@@ -221,7 +221,10 @@ export const AzureComputeModalBase = ({
             saturnWorkspaceNamespace: namespace,
             saturnWorkspaceName: workspaceName
           },
-          disk
+          disk,
+          workspaceStorageContainerUrl: storageDetails.azureContainerUrl,
+          workspaceNamespace: namespace,
+          workspaceName
         })
       }]
     )
