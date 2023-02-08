@@ -539,9 +539,9 @@ export const Environments = ({ nav = undefined }) => {
     }, [makeMenuIcon('trash'), 'Delete'])
   }
 
-  const renderPauseButton = (computeType, compute, isAzure) => {
+  const renderPauseButton = (computeType, compute) => {
     const { status } = compute
-
+    const isAzure = getCloudProvider(compute) === 'AZURE_VM'
     const shouldShowPauseButton = Utils.cond(
       [isApp(compute) && !_.find(tool => tool.appType && tool.appType === compute.appType)(appTools)?.isPauseUnsupported, () => true],
       [isPauseSupported(getToolLabelFromRuntime(compute)) && currentUser === getCreatorForRuntime(compute), () => true],
@@ -704,7 +704,7 @@ export const Environments = ({ nav = undefined }) => {
                 const cloudEnvironment = filteredCloudEnvironments[rowIndex]
                 const computeType = isApp(cloudEnvironment) ? 'app' : 'runtime'
                 return h(Fragment, [
-                  renderPauseButton(computeType, cloudEnvironment, getCloudProvider(filteredCloudEnvironments[rowIndex]) === 'AZURE_VM'),
+                  renderPauseButton(computeType, cloudEnvironment),
                   renderDeleteButton(computeType, cloudEnvironment)
                 ])
               }
