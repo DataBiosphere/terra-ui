@@ -100,7 +100,7 @@ const AnalysisLauncher = _.flow(
           workspace,
           currentRuntime,
           currentDisk,
-          googleBucketLocation,
+          location: googleBucketLocation,
           onDismiss: () => {
             chooseMode(undefined)
             setCreateOpen(false)
@@ -118,7 +118,7 @@ const AnalysisLauncher = _.flow(
           hideCloseButton: true,
           workspace,
           runtimes,
-          azureContainerRegion,
+          location: azureContainerRegion,
           onDismiss: () => {
             chooseMode(undefined)
             setCreateOpen(false)
