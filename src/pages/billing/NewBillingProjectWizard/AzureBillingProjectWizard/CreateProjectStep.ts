@@ -25,8 +25,6 @@ type CreateProjectStepProps = {
   billingProjectName?: string
   setBillingProjectName: (string) => void
   existingProjectNames: string[]
-  // submit: (newProject: string) => void
-  // subscriptionId?: string
 }
 
 

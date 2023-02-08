@@ -4,29 +4,26 @@ import { FormLabel } from 'src/libs/forms'
 
 
 interface StepFieldsProps {
-  children: ReactNode[]
+  children?: ReactNode[]
   style?: CSSProperties
 }
 
-export const StepFields = ({ children, style, disabled = false }: StepFieldsProps & { disabled?: boolean }) => fieldset(
-  {
-    disabled,
-    style: {
-      border: 'none',
-      margin: 0,
-      padding: 0,
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignContent: 'center',
-      width: '100%',
-      ...style
-    }
-  },
-  [children]
-)
+export const StepFields = ({ children = [], style, disabled = false }: StepFieldsProps & { disabled?: boolean }) => fieldset({
+  disabled,
+  style: {
+    border: 'none',
+    margin: 0,
+    padding: 0,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignContent: 'center',
+    width: '100%',
+    ...style
+  }
+}, [children])
 
-export const StepFieldLegend = ({ children, style }: StepFieldsProps) => legend({
+export const StepFieldLegend = ({ children = [], style }: StepFieldsProps) => legend({
   style: {
     fontSize: 14,
     lineHeight: '22px',
@@ -37,7 +34,7 @@ export const StepFieldLegend = ({ children, style }: StepFieldsProps) => legend(
   }
 }, children)
 
-export const StepFieldForm = ({ children, style }: StepFieldsProps) => form({
+export const StepFieldForm = ({ children = [], style }: StepFieldsProps) => form({
   style: {
     display: 'flex',
     flexDirection: 'row',
@@ -54,7 +51,7 @@ interface LabeledFieldProps extends StepFieldsProps {
   required?: boolean
 }
 
-export const LabeledField = ({ label, formId, required = false, children, style }: LabeledFieldProps) => div({ style: { display: 'flex', flexDirection: 'column', ...style } }, [
+export const LabeledField = ({ label, formId, required = false, children = [], style }: LabeledFieldProps) => div({ style: { display: 'flex', flexDirection: 'column', ...style } }, [
   h(FormLabel, { htmlFor: formId, required }, [label]),
   children
 ])
