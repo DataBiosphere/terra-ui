@@ -52,7 +52,7 @@ export const CatalogNumberInput = ({ title, onChange, value, required = false, w
   ])
 }
 
-export const MarkdownInput = ({ title, onChange, value, placeholder, required = false, errors }: StringInputProps): ReactElement => {
+export const MarkdownInput = ({ title, onChange, value, placeholder, required = false, errors = undefined }: StringInputProps): ReactElement => {
   const id = useUniqueId()
   return h(div, [
     h(FormLabel, { htmlFor: id, required }, [title]),

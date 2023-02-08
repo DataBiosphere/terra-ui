@@ -4,7 +4,7 @@ import * as _ from 'lodash/fp'
 import { useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import {
-  CatalogNumberInput, ListInput,
+  CatalogNumberInput, ListInput, MarkdownInput, SelectInput,
   StringInput
 } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs'
 
@@ -79,6 +79,43 @@ describe('CreateDatasetInputs', () => {
     expect(input.closest('input')?.value).toBe(initialValue.toString() + addedValue.toString())
   })
 
+  it('Renders a MarkdownInput', () => {
+    // Arrange
+    const initialValue = 'Abc'
+    // Act
+    render(h(InputWithState, {
+      initialValue,
+      props: {
+        title: 'Title'
+      },
+      input: MarkdownInput
+    }))
+    // Assert
+    expect(screen.getByText('Title')).toBeTruthy()
+    // Cannot test for value because the it gets into testing underlying library behavior
+  })
+
+  it('Renders a Select input with the title and value and selectable options', async () => {
+    const user = userEvent.setup()
+    const currentValue = 'an initial value'
+    const newValue = 'a new value'
+    const options = [currentValue, newValue, 'unused value']
+    render(h(InputWithState, {
+      initialValue: currentValue,
+      props: {
+        title: 'Title',
+        placeholder: '',
+        options
+      },
+      input: SelectInput
+    }))
+    const select = screen.getByLabelText('Title')
+    expect(screen.getByText('Title')).toBeTruthy()
+    expect(screen.findByText(currentValue)).toBeTruthy()
+    await user.type(select, newValue)
+    expect(screen.findByText(newValue)).toBeTruthy()
+  })
+
   it('Renders a list for ListInput', () => {
     // Arrange
     const initialList = ['a', 'b', 'c']
@@ -95,18 +132,37 @@ describe('CreateDatasetInputs', () => {
     }, initialList)
   })
 
-  it('Removes items from the list for ListInput', async () => {
+  it('Renders an editable list for ListInput', () => {
     // Arrange
-    const initialList = ['a', 'b', 'c']
+    const initialList = ['Hello,']
+    const addedValue = 'world'
     const user = userEvent.setup()
-    // Act
     render(h(StringListInputWithState, {
       initialList,
       title: 'Title',
       blankValue: ''
     }))
+    _.forEach(async listValue => {
+      const input = screen.getByLabelText(`Title ${listValue}`)
+      // Act
+      await user.type(input, addedValue)
+      // Assert
+      expect(input.closest('input')?.value).toBe(listValue + addedValue)
+    }, initialList)
+  })
+
+  it('Removes items from the list for ListInput', async () => {
+    // Arrange
+    const initialList = ['a', 'b', 'c']
+    const user = userEvent.setup()
+    render(h(StringListInputWithState, {
+      initialList,
+      title: 'Title',
+      blankValue: ''
+    }))
+    // Act
     await user.click(screen.getByLabelText('Remove List Item 0'))
-    // Assert - for each value in the list we should see an input with the title 'index' and value 'listItem'
+    // Assert
     _.forEach(listValue => {
       const input = screen.getByLabelText(`Title ${listValue}`).closest('input')
       expect(input?.value).toBe(listValue.toString())
@@ -117,14 +173,14 @@ describe('CreateDatasetInputs', () => {
     // Arrange
     const initialList = ['a', 'b', 'c']
     const user = userEvent.setup()
-    // Act
     render(h(StringListInputWithState, {
       initialList,
       title: 'Title',
       blankValue: ''
     }))
+    // Act
     await user.click(screen.getByLabelText('Add List Item'))
-    // Assert - for each value in the list we should see an input with the title 'index' and value 'listItem'
+    // Assert
     _.forEach(listValue => {
       const input = screen.getByLabelText(listValue !== '' ? `Title ${listValue}` : 'Title').closest('input')
       expect(input?.value).toBe(listValue.toString())
