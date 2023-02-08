@@ -69,7 +69,7 @@ describe('AzureComputeModal', () => {
     // Arrange
 
     // Act
-
+    // wrapping component init-time stateful side-effects with act()
     await act(async () => {
       await render(h(AzureComputeModalBase, defaultModalProps))
     })
@@ -94,6 +94,7 @@ describe('AzureComputeModal', () => {
     }))
 
     // Act
+    // wrapping component init-time stateful side-effects with act()
     await act(async () => {
       await render(h(AzureComputeModalBase, defaultModalProps))
       await userEvent.click(getCreateButton())
@@ -126,6 +127,7 @@ describe('AzureComputeModal', () => {
     asMockedFn(getAzureDiskCostEstimate).mockReturnValue(expectedDiskCost)
 
     // Act
+    // wrapping component init-time stateful side-effects with act()
     await act(async () => {
       await render(h(AzureComputeModalBase, defaultModalProps))
     })
@@ -148,7 +150,9 @@ describe('AzureComputeModal', () => {
     asMockedFn(getAzureDiskCostEstimate).mockReturnValue(expectedDiskCost)
 
     const user = userEvent.setup()
+
     // Act
+    // wrapping component init-time stateful side-effects with act()
     await act(async () => {
       await render(h(AzureComputeModalBase, defaultModalProps))
       expect(screen.getAllByText(formatUSD(initialComputeCost)).length).toBeTruthy() // Verify initial value
