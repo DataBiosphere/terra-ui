@@ -1,18 +1,19 @@
 import * as _ from 'lodash/fp'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import {
+  DataCollection,
   datasetDataUsePermissionTypes,
-  DatasetMetadata,
+  DatasetMetadata, Publication,
   StorageSystem
 } from 'src/libs/ajax/Catalog'
 import * as Utils from 'src/libs/utils'
 import {
-  ListInput,
+  ListInput, ListInputProps,
   MarkdownInput,
   SelectInput,
   StringInput
@@ -154,20 +155,19 @@ const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetProps) =
         style: { width: '100%' }
       }
     }),
-    h(ListInput, {
+    h(ListInput as React.FC<ListInputProps<Publication>>, {
       title: 'Publications',
       list: metadata['TerraDCAT_ap:hasPublication'] ? metadata['TerraDCAT_ap:hasPublication'] : [],
       blankValue: { 'dct:title': '', 'dcat:accessURL': '' },
       renderer: (listItem, onChange) => h(PublicationInput, {
         onChange,
         publication: listItem,
-        title: undefined,
         wrapperProps: { style: { width: '95%' } }
       }),
       onChange: (value, index) => setMetadata(_.set(`TerraDCAT_ap:hasPublication[${index}]`, value, metadata)),
       onRemove: value => setMetadata(_.set('TerraDCAT_ap:hasPublication', _.xor([value], metadata['TerraDCAT_ap:hasPublication']), metadata))
     }),
-    h(ListInput, {
+    h(ListInput as React.FC<ListInputProps<DataCollection>>, {
       title: 'Data Collections',
       list: metadata['TerraDCAT_ap:hasDataCollection'] ? metadata['TerraDCAT_ap:hasDataCollection'] : [],
       blankValue: { 'dct:identifier': '', 'dct:title': '', 'dct:description': '', 'dct:creator': '', 'dct:publisher': '', 'dct:issued': '', 'dct:modified': '' },

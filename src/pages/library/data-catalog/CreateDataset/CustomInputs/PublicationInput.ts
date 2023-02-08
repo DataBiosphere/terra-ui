@@ -1,4 +1,5 @@
 import { div, h } from 'react-hyperscript-helpers'
+import { Publication } from 'src/libs/ajax/Catalog'
 import { FormLabel } from 'src/libs/forms'
 import {
   generateIndividualInputPropsForObjectField,
@@ -7,7 +8,15 @@ import {
 import { validate } from 'validate.js'
 
 
-export const PublicationInput = ({ onChange, publication, title, wrapperProps, required = false }) => {
+export interface PublicationInputProps {
+  onChange: (publication: Publication) => void
+  publication: Publication
+  title?: string
+  wrapperProps?: any
+  required?: boolean
+}
+
+export const PublicationInput = ({ onChange, publication, title, wrapperProps, required = false }: PublicationInputProps) => {
   const publicationConstraints = {
     'dcat:accessURL': {
       url: true

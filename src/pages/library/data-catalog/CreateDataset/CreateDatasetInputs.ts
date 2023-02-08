@@ -85,7 +85,7 @@ export const SelectInput = ({ title, value, placeholder = '', options, onChange,
   ])
 }
 
-interface ListInputProps<T> {
+export interface ListInputProps<T> {
   title: string
   list: T[]
   blankValue: T
