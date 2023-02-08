@@ -49,7 +49,11 @@ export const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeA
       },
       isActive: activeStep === 2,
     }),
-    accessToBillingAccount && accessToAddBillingAccountUser !== false ?
+    // show AddTerraAsBillingAccountUserStep by default, and when the user selects that they have a billing account in step 2
+    // show ContactAccountAdminToAddUserStep if the user selects that they don't have a billing account in step 2
+    //     and transition to ContactAccountAdminToAddUserStep if the user selects that they don't have access to add a user in AddTerraAsBillingAccountUserStep
+    // This may be better to combine into a separate component - then `refreshed` states in step 3 and 4 could be separate
+    accessToBillingAccount !== false && accessToAddBillingAccountUser !== false ?
       h(AddTerraAsBillingAccountUserStep, {
         accessToAddBillingAccountUser,
         setAccessToAddBillingAccountUser: async hasUserAccess => {
