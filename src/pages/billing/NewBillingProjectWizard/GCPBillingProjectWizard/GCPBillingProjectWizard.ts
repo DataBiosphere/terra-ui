@@ -1,7 +1,7 @@
 import { CSSProperties, useEffect, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import colors from 'src/libs/colors'
-import { setLocalPref } from 'src/libs/prefs' //getLocalPref,
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { BillingAccount } from 'src/pages/billing/models/BillingAccount'
 import { StepWizard } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepWizard'
 
@@ -21,11 +21,11 @@ interface GCPBillingProjectWizardProps {
 
 export const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAndLoadAccounts }: GCPBillingProjectWizardProps) => {
   const persistenceId = 'billing'
-  const [accessToBillingAccount, setAccessToBillingAccount] = useState<boolean>()//(() => getLocalPref(persistenceId)?.accessToBillingAccount)
-  const [accessToAddBillingAccountUser, setAccessToAddBillingAccountUser] = useState<boolean | undefined>()//(() => getLocalPref(persistenceId)?.accessToAddBillingAccountUser)
+  const [accessToBillingAccount, setAccessToBillingAccount] = useState<boolean>(() => getLocalPref(persistenceId)?.accessToBillingAccount)
+  const [accessToAddBillingAccountUser, setAccessToAddBillingAccountUser] = useState<boolean | undefined>(() => getLocalPref(persistenceId)?.accessToAddBillingAccountUser)
   const [verifiedUsersAdded, setVerifiedUsersAdded] = useState<boolean | undefined>(false) // if no access to add billing account user, has the user verified access
   const [refreshed, setRefreshed] = useState<boolean>(false)
-  const [activeStep, setActiveStep] = useState<number>(1) //useState<number>(( getLocalPref(persistenceId)?.activeStep || 1))
+  const [activeStep, setActiveStep] = useState<number>((getLocalPref(persistenceId)?.activeStep || 1))
 
   useEffect(() => {
     setLocalPref(persistenceId, { activeStep, accessToBillingAccount, accessToAddBillingAccountUser })
@@ -77,7 +77,7 @@ export const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeA
             setActiveStep(4)
             // I think this makes sense here, since we just refreshed auth and accounts,
             // but the existing unit tests fail with it, since the refresh button in step 4 doesn't come up
-            //setRefreshed(true)
+            // setRefreshed(true)
           } else {
             setActiveStep(3)
             setRefreshed(false)

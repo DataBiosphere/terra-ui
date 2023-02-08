@@ -16,11 +16,11 @@ export interface BillingAccountAccessStepProps {
 export const BillingAccountAccessStep = ({ isActive, ...props }: BillingAccountAccessStepProps) => h(Step, { isActive }, [
   h(StepHeader, { title: 'STEP 2', children: ['Select an existing billing account or create a new one.'] }),
   h(StepFields, [
-    h(StepFieldLegend, [
+    h(StepFieldLegend, { style: { width: '70%' } }, [
       'If you are creating a new billing account, you may be eligible for $300 in free credits. ' +
       'Follow the instructions to activate your account in the Google Cloud Console.'
     ]),
-    h(LabeledRadioGroup, [
+    h(LabeledRadioGroup, { style: { width: '30%' } }, [
       LabeledRadioButton({
         text: "I don't have access to a Cloud billing account", name: 'access-to-account',
         checked: props.accessToBillingAccount === false,
