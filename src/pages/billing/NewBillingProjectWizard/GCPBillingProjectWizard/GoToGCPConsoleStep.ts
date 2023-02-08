@@ -23,19 +23,17 @@ export const GoToGCPConsoleStep = ({ isActive, ...props }: GoToGCPConsoleStepPro
         href: 'https://console.cloud.google.com',
         ...Utils.newTabLinkProps,
         onClick: () => {
+          Ajax().Metrics.captureEvent(Events.billingGCPCreationStep1)
           // FIXME: this seems wrong
           //  I would think the button would just be inactive if we're not on step 1
           //  then we wouldn't need this check, and we'd also only capture the metric when active
-          //  before this was using the raw clickable, though - so I've preserved the exact funtionality for now
-          Ajax().Metrics.captureEvent(Events.billingGCPCreationStep1)
+          //  before this was using the raw clickable, though - so I've preserved the exact functionality for now
           if (isActive) {
             props.stepFinished()
           }
         },
         style: { textTransform: 'none', backgroundColor: 'none' }
-      },
-      ['Go to Google Cloud Console']
-      )
+      }, ['Go to Google Cloud Console'])
     ])
   ])
 }

@@ -26,13 +26,13 @@ export const AddTerraAsBillingAccountUserStep = ({ isActive, ...props }: AddTerr
   return h(Step, { isActive }, [
     h(StepHeader, { title: 'STEP 3' }),
     h(StepFields, [
-      h(StepFieldLegend, [
+      h(StepFieldLegend, { style: { width: '70%' } }, [
         'Add ',
         span({ style: { fontWeight: 'bold' } }, ['terra-billing@terra.bio']),
         ' as a Billing Account User',
         span({ style: { fontWeight: 'bold' } }, [' to your billing account.']), //]),
       ]),
-      h(LabeledRadioGroup, [
+      h(LabeledRadioGroup, { style: { width: '30%' } }, [
         h(LabeledRadioButton, {
           disabled,
           text: "I don't have access to do this", name: 'permission',

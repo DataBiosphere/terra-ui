@@ -23,7 +23,8 @@ export const LabeledRadioButton = ({ text, name, labelStyle, style, ...props }: 
 
 export const LabeledRadioGroup = ({ style, children }: {style?: React.CSSProperties; children: React.ReactNode[]}) => div({
   style: {
-    width: '25%', float: 'right', display: 'flex',
+    display: 'flex',
+    margin: '1rem',
     flexDirection: 'column',
     justifyContent: 'space-around', ...style
   }, role: 'radiogroup'

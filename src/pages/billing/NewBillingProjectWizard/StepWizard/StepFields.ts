@@ -29,6 +29,7 @@ export const StepFieldLegend = ({ children = [], style }: StepFieldsProps) => le
     lineHeight: '22px',
     whiteSpace: 'pre-wrap',
     marginTop: '0.25rem',
+    marginRight: '1rem',
     float: 'left',
     ...style
   }
