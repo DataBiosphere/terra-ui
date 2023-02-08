@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, spinnerOverlay } from 'src/components/common'
+import { h } from 'react-hyperscript-helpers'
+import { spinnerOverlay } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData'
 import { reportErrorAndRethrow } from 'src/libs/error'
@@ -9,11 +9,12 @@ import Events from 'src/libs/events'
 import { useCancellation } from 'src/libs/react-utils'
 import { withBusyState } from 'src/libs/utils'
 import { AzureManagedAppCoordinates } from 'src/pages/billing/models/AzureManagedAppCoordinates'
+import { CreateProjectStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/CreateProjectStep'
 import { StepWizard } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepWizard'
 
 import { AddUserInfo, AddUserStep } from './AddUserStep'
 import { AzureSubscriptionIdStep } from './AzureSubscriptionIdStep'
-import { CreateProjectStep } from './CreateProjectStep'
+import { ProjectFieldsStep } from './ProjectFieldsStep'
 
 
 interface AzureBillingProjectWizardProps {
@@ -69,7 +70,7 @@ export const AzureBillingProjectWizard = ({ ...props }: AzureBillingProjectWizar
       onChange: setSubscriptionId,
       submit: onSubscriptionIdSelected
     }),
-    CreateProjectStep({
+    ProjectFieldsStep({
       isActive: activeStep === 2,
       selectedApp,
       setSelectedApp: app => {
@@ -89,9 +90,11 @@ export const AzureBillingProjectWizard = ({ ...props }: AzureBillingProjectWizar
       existingProjectNames: existing
     }),
     h(AddUserStep, { users, setUsers, isActive: activeStep === 3 }),
-    div({ style: { margin: '2rem', display: 'flex', flexDirection: 'row', justifyContent: 'flex-end' } }, [
-      h(ButtonPrimary, { role: 'button', disabled: activeStep < 3, onClick: createBillingProject }, ['Submit'])
-    ]),
+    h(CreateProjectStep, {
+      createBillingProject,
+      isActive: activeStep > 2,
+      createReady: activeStep > 2 && !!subscriptionId && !!billingProjectName && !!selectedApp
+    }),
     managedApps.status === 'Loading' && spinnerOverlay,
     isCreating && spinnerOverlay
   ])
