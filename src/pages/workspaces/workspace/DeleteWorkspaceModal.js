@@ -7,57 +7,21 @@ import { warningBoxStyle } from 'src/components/data/data-utils'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { reportError, withErrorReportingInModal } from 'src/libs/error'
-import { useCancellation, useOnMount } from 'src/libs/react-utils'
-import { getUser } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
-import { isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { useDeleteWorkspaceState } from 'src/pages/workspaces/workspace/delete-workspace-modal.state'
 
 
 const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { namespace, name, bucketName, workspaceId } }, onDismiss, onSuccess }) => {
-  const [deleting, setDeleting] = useState(false)
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [apps, setApps] = useState()
-  const [collaboratorEmails, setCollaboratorEmails] = useState()
-  const [workspaceBucketUsageInBytes, setWorkspaceBucketUsageInBytes] = useState()
-  const [controlledResourcesExist, setControlledResourcesExist] = useState(false)
 
-  const signal = useCancellation()
+  const {
+    workspaceBucketUsageInBytes, deletableApps, nonDeletableApps, loading, collaboratorEmails, hasApps, isDeleteDisabledFromResources,
+    deleteWorkspace, deleting
+  } = useDeleteWorkspaceState(workspace, namespace, name, workspaceId, onDismiss, onSuccess)
 
-  useOnMount(() => {
-    const load = _.flow(
-      withErrorReportingInModal('Error checking workspace resources', onDismiss),
-      Utils.withBusyState(setLoading)
-    )(async () => {
-      if (isGoogleWorkspace(workspace)) {
-        const [currentWorkspaceAppList, { acl }, { usageInBytes }] = await Promise.all([
-          Ajax(signal).Apps.listWithoutProject({ role: 'creator', saturnWorkspaceName: name }),
-          Ajax(signal).Workspaces.workspace(namespace, name).getAcl(),
-          Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
-        ])
-        setApps(currentWorkspaceAppList)
-        setCollaboratorEmails(_.without([getUser().email], _.keys(acl)))
-        setWorkspaceBucketUsageInBytes(usageInBytes)
-      } else {
-        const currentWorkspaceAppList = await Ajax(signal).Apps.listAppsV2(workspaceId)
-        // temporary hack to prevent orphaning resources on Azure:
-        // change each app to status: 'disallow' which will cause this modal to think they are undeletable
-        const hackedAppList = _.map(_.set('status', 'disallow'), currentWorkspaceAppList)
-        setApps(hackedAppList)
-        // Also temporarily disable delete if there are any controlled resources besides the expected workspace storage container.
-        const controlledResources = await Ajax(signal).WorkspaceManagerResources.controlledResources(workspaceId)
-        setControlledResourcesExist(controlledResources.resources.length > 1)
-      }
-    })
-    load()
-  })
-
-  const [deletableApps, nonDeletableApps] = _.partition(isResourceDeletable('app'), apps)
 
   const getStorageDeletionMessage = () => {
     return div({ style: { marginTop: '1rem' } }, [
@@ -73,17 +37,11 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { namespace, 
     ])
   }
 
-  const hasApps = () => {
-    return deletableApps !== undefined && nonDeletableApps !== undefined &&
-      (!_.isEmpty(deletableApps) ||
-        !_.isEmpty(nonDeletableApps))
-  }
-
-  const isDeleteDisabledFromResources = (hasApps() && !_.isEmpty(nonDeletableApps)) || controlledResourcesExist
 
   const getResourceDeletionMessage = () => {
     const appCount = nonDeletableApps.length > 1 ? `are ${nonDeletableApps.length}` : 'is 1'
-    const googleMessage = `You cannot delete this workspace because there ${appCount} ${pluralize('application', nonDeletableApps.length, false)} you must delete first. Only applications in ('ERROR', 'RUNNING') status can be automatically deleted.`
+    const googleMessage = `You cannot delete this workspace because there ${appCount} ${pluralize('application', nonDeletableApps.length,
+      false)} you must delete first. Only applications in ('ERROR', 'RUNNING') status can be automatically deleted.`
     const azureMessage = 'Deleting workspaces with running cloud resources in Terra on Azure Preview is currently unavailable. Please reach out to support@terra.bio for assistance.'
     return isDeleteDisabledFromResources ?
       div({ style: { ...warningBoxStyle, fontSize: 14, display: 'flex', flexDirection: 'column' } }, [
@@ -95,25 +53,10 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { namespace, 
           isGoogleWorkspace(workspace) ? googleMessage : azureMessage
         ])
       ]) :
-      p({ style: { marginLeft: '1rem', fontWeight: 'bold' } }, [`Detected ${deletableApps.length} automatically deletable ${pluralize('application', deletableApps.length, false)}.`])
+      p({ style: { marginLeft: '1rem', fontWeight: 'bold' } },
+        [`Detected ${deletableApps.length} automatically deletable ${pluralize('application', deletableApps.length, false)}.`])
   }
 
-  const deleteWorkspace = async () => {
-    try {
-      setDeleting(true)
-      if (isGoogleWorkspace(workspace)) {
-        await Promise.all(
-          _.map(async app => await Ajax().Apps.app(app.cloudContext.cloudResource, app.appName).delete(), deletableApps)
-        )
-      }
-      await Ajax().Workspaces.workspace(namespace, name).delete()
-      onDismiss()
-      onSuccess()
-    } catch (error) {
-      reportError('Error deleting workspace', error)
-      setDeleting(false)
-    }
-  }
 
   return h(Modal, {
     title: span({ style: { display: 'flex', alignItems: 'center' } }, [
