@@ -25,8 +25,8 @@ import * as Utils from 'src/libs/utils'
 import { isCloudProvider } from 'src/libs/workspace-utils'
 import CreateAzureBillingProjectModal from 'src/pages/billing/CreateAzureBillingProjectModal'
 import CreateGCPBillingProject from 'src/pages/billing/CreateGCPBillingProject'
-import CreateNewBillingProjectWizard from 'src/pages/billing/CreateNewBillingProjectWizard'
 import DeleteBillingProjectModal from 'src/pages/billing/DeleteBillingProjectModal'
+import { GCPBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/GCPBillingProjectWizard'
 import ProjectDetail from 'src/pages/billing/Project'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
@@ -427,7 +427,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
               p(['It may not exist, or you may not have access to it.'])
             ])
           ])],
-        [!isLoadingProjects && _.isEmpty(billingProjects) && !Auth.isAzureUser(), () => h(CreateNewBillingProjectWizard, {
+        [!isLoadingProjects && _.isEmpty(billingProjects) && !Auth.isAzureUser(), () => h(GCPBillingProjectWizard, {
           billingAccounts,
           onSuccess: billingProjectName => {
             Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
