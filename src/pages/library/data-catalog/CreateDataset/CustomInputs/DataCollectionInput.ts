@@ -15,7 +15,6 @@ export const DataCollectionInput = ({ title = undefined, dataCollection, onChang
       h(StringInput, generateIndividualInputPropsForObjectField('dct:description', 'Description', 'Enter a description', dataCollection, onChange, undefined, 7)),
       h(StringInput, generateIndividualInputPropsForObjectField('dct:creator', 'Creator', 'Enter the creator', dataCollection, onChange, undefined, 7)),
       h(StringInput, generateIndividualInputPropsForObjectField('dct:publisher', 'Publisher', 'Enter the publisher', dataCollection, onChange, undefined, 7)),
-      // TODO: Consider more strong typing here?
       h(StringInput, generateIndividualInputPropsForObjectField('dct:issued', 'Issued', 'Enter  issued time', dataCollection, onChange, undefined, 7)),
       h(StringInput, generateIndividualInputPropsForObjectField('dct:modified', 'Modified', 'Enter last modified time', dataCollection, onChange, undefined, 7))
     ])
