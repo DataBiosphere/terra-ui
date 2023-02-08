@@ -8,13 +8,24 @@ import Events from 'src/libs/events'
 import { formHint, FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 import { billingProjectNameValidator } from 'src/pages/billing/List'
+import { BillingAccount } from 'src/pages/billing/models/BillingAccount'
 import validate from 'validate.js'
 
+
+interface CreateGCPBillingProjectProps {
+  billingAccounts: Record<string, BillingAccount>
+  chosenBillingAccount?: BillingAccount
+  setChosenBillingAccount: (BillingAccount) => void
+  billingProjectName?: string
+  setBillingProjectName: (string) => void
+  existing: any
+  disabled?: boolean
+}
 
 const CreateGCPBillingProject = ({
   billingAccounts, chosenBillingAccount, setChosenBillingAccount,
   billingProjectName, setBillingProjectName, existing, disabled = false
-}) => {
+}: CreateGCPBillingProjectProps) => {
   const [billingProjectNameTouched, setBillingProjectNameTouched] = useState(false)
 
   const errors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existing) })
