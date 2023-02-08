@@ -56,7 +56,8 @@ const AnalysisLauncher = _.flow(
 )(
   ({
     queryParams, analysisName, workspace, workspace: { accessLevel, canCompute },
-    analysesData: { runtimes, refreshRuntimes, persistentDisks, location }
+    analysesData: { runtimes, refreshRuntimes, persistentDisks },
+    storageDetails: { googleBucketLocation },
   }, _ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     const currentRuntime = getCurrentRuntime(runtimes)
@@ -99,7 +100,7 @@ const AnalysisLauncher = _.flow(
           workspace,
           currentRuntime,
           currentDisk,
-          location,
+          location: googleBucketLocation,
           onDismiss: () => {
             chooseMode(undefined)
             setCreateOpen(false)
