@@ -27,7 +27,7 @@ import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/
 import {
   analysisLauncherTabName, analysisTabName, appLauncherTabName, ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor,
   StatusMessage
-} from 'src/pages/workspaces/workspace/analysis/runtime-common'
+} from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import {
   getConvertedRuntimeStatus, getCurrentPersistentDisk, getCurrentRuntime, usableStatuses
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'

@@ -17,13 +17,13 @@ import * as Nav from 'src/libs/nav'
 import { useStore } from 'src/libs/react-utils'
 import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { getCostDisplayForDisk, getCostDisplayForTool } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { cloudProviderTypes, getCloudProviderFromWorkspace, isAzureWorkspace } from 'src/libs/workspace-utils'
+import { getCostDisplayForDisk, getCostDisplayForTool } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/AzureComputeModal'
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal'
 import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal'
-import { appLauncherTabName, PeriodicAzureCookieSetter } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { appLauncherTabName, PeriodicAzureCookieSetter } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import {
   getComputeStatusForDisplay, getConvertedRuntimeStatus,
   getCurrentApp, getCurrentPersistentDisk, getCurrentRuntime, getIsAppBusy, getIsRuntimeBusy, getRuntimeForTool,

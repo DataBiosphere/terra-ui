@@ -32,7 +32,7 @@ import * as Utils from 'src/libs/utils'
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { getCostDisplayForDisk, getCostDisplayForTool, getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
-import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import { getCurrentApp, getCurrentAppDataDisk, getCurrentPersistentDisk, getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { appTools, getAppType, toolLabelDisplays, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 

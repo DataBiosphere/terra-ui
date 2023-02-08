@@ -38,7 +38,7 @@ import { findPotentialNotebookLockers, getExtension, getFileName, notebookLockHa
 import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
 import { AnalysisModal } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisModal'
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
-import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { getToolLabelFromFileExtension, getToolLabelFromRuntime, runtimeTools, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'

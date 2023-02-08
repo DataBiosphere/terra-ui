@@ -69,7 +69,10 @@ describe('AzureComputeModal', () => {
     // Arrange
 
     // Act
-    await act(async () => await render(h(AzureComputeModalBase, defaultModalProps)))
+
+    await act(async () => {
+      await render(h(AzureComputeModalBase, defaultModalProps))
+    })
 
     // Assert
     verifyEnabled(getCreateButton())
@@ -128,7 +131,7 @@ describe('AzureComputeModal', () => {
     })
 
     // Assert
-    expect(screen.getAllByText(formatUSD(expectedComputeCost))) // Currently stopped and running are the same cost.
+    expect(screen.getAllByText(formatUSD(expectedComputeCost)).length).toBeTruthy() // Currently stopped and running are the same cost.
     expect(screen.getByText(formatUSD(expectedDiskCost)))
   })
 
@@ -148,7 +151,7 @@ describe('AzureComputeModal', () => {
     // Act
     await act(async () => {
       await render(h(AzureComputeModalBase, defaultModalProps))
-      expect(screen.getAllByText(formatUSD(initialComputeCost))) // Verify initial value
+      expect(screen.getAllByText(formatUSD(initialComputeCost)).length).toBeTruthy() // Verify initial value
 
       const selectCompute = screen.getByLabelText('Cloud compute profile')
       await user.click(selectCompute)
@@ -157,7 +160,7 @@ describe('AzureComputeModal', () => {
     })
 
     // Assert
-    expect(screen.getAllByText(formatUSD(expectedComputeCost))) // Currently stopped and running are the same cost.
+    expect(screen.getAllByText(formatUSD(expectedComputeCost)).length).toBeTruthy() // Currently stopped and running are the same cost.
     expect(screen.getByText(formatUSD(expectedDiskCost)))
   })
 })

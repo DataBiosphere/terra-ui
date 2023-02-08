@@ -23,7 +23,7 @@ import * as Utils from 'src/libs/utils'
 import {
   getAppCost, getGalaxyComputeCost, getPersistentDiskCostMonthly, getRuntimeCost
 } from 'src/pages/workspaces/workspace/analysis/cost-utils'
-import { SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import {
   defaultComputeZone, getComputeStatusForDisplay, getCreatorForRuntime, getDiskAppType,
   getRegionFromZone, isApp, isComputePausable, isGcpContext, isResourceDeletable, mapToPdTypes,
