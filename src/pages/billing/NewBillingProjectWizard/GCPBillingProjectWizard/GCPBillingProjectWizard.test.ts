@@ -77,35 +77,20 @@ const testStep2HaveBillingChecked = () => {
   verifyUnchecked(getStep2BillingAccountNoAccessButton())
 }
 
-/* FIXME: this isn't actually testing state - it relies on which version has been rendered
-         the only reason the AddTerraAsBillingAccountUserStep is rendered instead of ContactBillingAccountAdministrator
-         is a logic quirk of the original implementation:
-          (isActive || isDone) &&
-         (!accessToBillingAccount
-           || (accessToAddBillingAccountUser !== undefined && !accessToAddBillingAccountUser)
-           ) ? contactBillingAccountAdministrator : addTerraAsBillingAccountUser
-    so at least for now, I'm just changing the disabled/unchecked checks to treat null elements as acceptable
-     */
-const testStep3InitialState = () => {
-  const noAccessButton = getStep3BillingAccountNoAccessButton()
-  if (!!noAccessButton) {
-    verifyDisabled(noAccessButton)
-    verifyUnchecked(noAccessButton)
-  }
-  const terraUserAddedButton = getStep3AddedTerraBillingButton()
-  if (!!terraUserAddedButton) {
-    verifyDisabled(terraUserAddedButton)
-    verifyUnchecked(terraUserAddedButton)
-  }
-  const userAddedCheckbox = getStep3VerifyUserAdded()
-  if (!!userAddedCheckbox) {
-    verifyDisabled(userAddedCheckbox)
-    verifyUnchecked(userAddedCheckbox)
-  }
-  //expect(getStep3AddTerraAsUserText()).not.toBeNull()
-  //expect(getStep3ContactBillingAdministrator()).toBeNull()
-  //expect(getStep3VerifyUserAdded()).toBeNull()
+// the happy path
+const testAddTerraUserRenderedForStep3 = () => {
+  expect(getStep3VerifyUserAdded()).toBeNull()
+  expect(getStep3BillingAccountNoAccessButton()).not.toBeNull()
+  expect(getStep3AddedTerraBillingButton()).not.toBeNull()
 }
+
+const testAddTerraUserStep3UninitializedState = () => {
+  verifyDisabled(getStep3BillingAccountNoAccessButton())
+  verifyUnchecked(getStep3BillingAccountNoAccessButton())
+  verifyDisabled(getStep3AddedTerraBillingButton())
+  verifyUnchecked(getStep3AddedTerraBillingButton())
+}
+
 
 const testStep3RadioButtonsNoneSelected = () => {
   verifyEnabled(getStep3BillingAccountNoAccessButton())
@@ -183,7 +168,8 @@ describe('GCPBillingProjectWizard Steps', () => {
       verifyUnchecked(getStep2HaveBillingAccountButton())
     })
     it('has the correct initial state for Step 3', () => {
-      testStep3InitialState()
+      testAddTerraUserRenderedForStep3()
+      testAddTerraUserStep3UninitializedState()
     })
     it('has the correct initial state for Step 4', () => {
       testStep4Disabled()
@@ -209,7 +195,8 @@ describe('GCPBillingProjectWizard Steps', () => {
       verifyUnchecked(getStep2HaveBillingAccountButton())
     })
     it('has the correct initial state for Step 3', () => {
-      testStep3InitialState()
+      testAddTerraUserRenderedForStep3()
+      testAddTerraUserStep3UninitializedState()
     })
     it('has the correct initial state for Step 4', () => {
       testStep4Disabled()
