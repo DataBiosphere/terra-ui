@@ -28,6 +28,7 @@ export const StringInput = ({ title, onChange, value, placeholder, autoFocus = f
     h(ValidatedInput, {
       inputProps: {
         id,
+        'aria-label': title ? undefined : value,
         autoFocus,
         placeholder,
         value,

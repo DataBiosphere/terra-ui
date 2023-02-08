@@ -4,13 +4,20 @@ import {
   azureCloudRegionTypes,
   azureCloudResourceTypes,
   googleCloudRegionTypes,
-  googleCloudResourceTypes
+  googleCloudResourceTypes,
+  StorageObject
 } from 'src/libs/ajax/Catalog'
 import * as Utils from 'src/libs/utils'
 import { SelectInput } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs'
 
 
-export const StorageInput = ({ wrapperProps, storageObject, onChange }) => {
+interface StorageInputProps {
+  wrapperProps?: any
+  storageObject: StorageObject
+  onChange: (storageObject: StorageObject) => void
+}
+
+export const StorageInput = ({ wrapperProps, storageObject, onChange }: StorageInputProps) => {
   const inputWrapperProps = {
     style: { width: `${100 / 3}%` }
   }
@@ -25,7 +32,7 @@ export const StorageInput = ({ wrapperProps, storageObject, onChange }) => {
         ['azure', () => _.values(azureTypes)],
         [Utils.DEFAULT, () => []]
       ),
-      onChange: option => onChange(_.set(key, option.value, storageObject))
+      onChange: option => onChange(_.set(key, option.value, storageObject) as StorageObject)
     }
   }
 

@@ -8,7 +8,7 @@ import { Ajax } from 'src/libs/ajax'
 import {
   DataCollection,
   datasetDataUsePermissionTypes,
-  DatasetMetadata, Publication,
+  DatasetMetadata, Publication, StorageObject,
   StorageSystem
 } from 'src/libs/ajax/Catalog'
 import * as Utils from 'src/libs/utils'
@@ -202,10 +202,10 @@ const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetProps) =
       onChange: (value, index) => setMetadata(_.set(`contributors[${index}]`, value, metadata)),
       onRemove: value => setMetadata(_.set('contributors', _.xor([value], metadata.contributors), metadata))
     }),
-    h(ListInput, {
+    h(ListInput as React.FC<ListInputProps<StorageObject>>, {
       title: 'Storage',
       list: metadata.storage ? metadata.storage : [],
-      blankValue: { cloudPlatform: '', cloudResource: undefined, region: undefined },
+      blankValue: { cloudPlatform: undefined, cloudResource: undefined, region: undefined },
       renderer: (listItem, onChange) => h(StorageInput, {
         onChange,
         storageObject: listItem,
