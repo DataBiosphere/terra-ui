@@ -58,14 +58,14 @@ export const CreateProjectStep = ({
     setNameErrors(errors)
   }
 
-  return h(Step, { isActive }, [
+  return h(Step, { isActive, style: { height: '10rem' } }, [
     h(StepHeader, { title: 'STEP 2' }, [
       'Set up a Terra billing project. ',
       ExternalLink({ text: 'Go to Azure Marketplace', url: 'https://portal.azure.com/' }),
       ' to find or create your managed resource group.'
     ]),
-    h(StepFields, { disabled: !isActive, style: { justifyContent: 'space-around', width: '75%' } }, [
-      h(LabeledField, { label: 'Terra billing project', formId: nameInputId, required: true, style: { width: '30%' } }, [
+    h(StepFields, { disabled: !isActive, style: { justifyContent: 'flex-start', width: '75%' } }, [
+      h(LabeledField, { label: 'Terra billing project', formId: nameInputId, required: true, style: { width: '30%', marginLeft: 0, marginRight: '2rem' } }, [
         ValidatedInput({
           error: nameErrors,
           inputProps: {

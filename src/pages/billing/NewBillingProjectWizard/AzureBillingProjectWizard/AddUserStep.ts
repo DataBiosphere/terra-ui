@@ -54,7 +54,7 @@ export const AddUserStep = ({ isActive, users, setUsers }: AddUserStepProps) => 
       'Any email addresses not associated with a Terra account will be sent an email to register'
     ]),
     h(StepFields, { disabled: false }, [
-      ul({ style: { display: 'flex', flexDirection: 'column-reverse', width: '100%' } }, [
+      ul({ style: { display: 'flex', flexDirection: 'column-reverse', width: '100%', margin: 0, padding: 0 } }, [
         li({ style: addUserLIStyles, key: 'add-user-input' }, [
           div({ style: emailFieldStyles }, [
             h(LabeledField, { label: 'User email', formId: emailFieldId }, []),
@@ -71,7 +71,7 @@ export const AddUserStep = ({ isActive, users, setUsers }: AddUserStepProps) => 
           ]),
           div({ style: roleFieldStyles }, [
             h(LabeledField, { label: 'Role', formId: roleFieldId }, []),
-            h(Select, { id: roleFieldId, placeholder: 'Select a role', value: role, onChange: ({ r }) => setRole(r), options: billingRoleOptions })
+            h(Select, { id: roleFieldId, placeholder: 'Select a role', value: role, onChange: ({ value }) => setRole(value), options: billingRoleOptions })
           ]),
           h(SpacedButton, { onClick: addUser, iconShape: 'plus', buttonLabel: 'add-user' })
         ]),
