@@ -1,10 +1,10 @@
 import { div, h, label } from 'react-hyperscript-helpers'
-
-import { Link, Select, useUniqueId } from '../../../../../components/common'
-import { NumberInput } from '../../../../../components/input'
-import TooltipTrigger from '../../../../../components/TooltipTrigger'
-import { pdTypes } from '../../../../../pages/workspaces/workspace/analysis/runtime-utils'
-import { computeStyles } from './modalStyles'
+import { Link, Select } from 'src/components/common'
+import { NumberInput } from 'src/components/input'
+import TooltipTrigger from 'src/components/TooltipTrigger'
+import { useUniqueId } from 'src/libs/react-utils'
+import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles'
+import { pdTypes } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
 export const PersistentDiskType = ({ diskExists, computeConfig, updateComputeConfig }) => {
