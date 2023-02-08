@@ -89,7 +89,7 @@ interface ListInputProps<T> {
   title: string
   list: T[]
   blankValue: T
-  renderer: (listItem: T, key: number, onChange: (newValue: T) => void) => ReactElement | string
+  renderer: (listItem: T, onChange: (newValue: T) => void) => ReactElement | string
   onChange: (valueChanged: T, index: number) => void
   onRemove: (valueRemoved: T) => void
   listItemTitles?: boolean
@@ -98,12 +98,10 @@ interface ListInputProps<T> {
 export const ListInput = <T>({ title, list, blankValue, renderer, onChange, onRemove, listItemTitles = true }: ListInputProps<T>) => {
   return div({ style: { width: '100%' } }, [
     h(FormLabel, [title]),
-    _.map(([index, listItem]) => div({ style: { display: 'flex' } }, [
-      renderer(listItem, index, newValue => {
-        onChange(newValue, index)
-      }),
+    _.map(([index, listItem]) => div({ style: { display: 'flex' }, key: index }, [
+      renderer(listItem, newValue => { onChange(newValue, index) }),
       h(Clickable, {
-        'aria-label': 'Remove List Item',
+        'aria-label': `Remove List Item ${index}`,
         style: {
           marginLeft: 10,
           display: 'flex',
@@ -136,7 +134,8 @@ export const ListInput = <T>({ title, list, blankValue, renderer, onChange, onRe
 
 export const generateIndividualInputPropsForObjectField = (title, key, placeholder, object, onChange, errors, numbersOfFieldsInRow) => ({
   wrapperProps: {
-    style: { width: `${100 / numbersOfFieldsInRow}%` }
+    style: { width: `${100 / numbersOfFieldsInRow}%` },
+    key
   },
   title,
   onChange: value => onChange(_.set(key, value, object)),

@@ -6,22 +6,19 @@ import { ListInput, StringInput } from 'src/pages/library/data-catalog/CreateDat
 
 export const SamplesInput = ({ title, samples, onChange }) => {
   // This gets its own because the properties are lists
-  const generateIndividualInputProps = (title, inputKey) => ({
+  const generateIndividualInputProps = (title, field) => ({
     title,
-    list: samples[inputKey] ? samples[inputKey] : [],
+    list: samples[field] ? samples[field] : [],
     listItemTitles: false,
     blankValue: '',
-    renderer: (listItem, key, onChange) => h(StringInput, {
+    renderer: (listItem, onChange) => h(StringInput, {
       onChange,
       value: listItem,
-      wrapperProps: {
-        style: { width: '80%' },
-        key
-      },
-      placeholder: `Enter ${inputKey}`
+      wrapperProps: { style: { width: '80%' } },
+      placeholder: `Enter ${field}`
     }),
-    onChange: (value, index) => onChange(_.set(`${inputKey}.[${index}]`, value, samples)),
-    onRemove: value => onChange(_.set(inputKey, _.xor([value], samples[inputKey]), samples))
+    onChange: (value, index) => onChange(_.set(`${field}.[${index}]`, value, samples)),
+    onRemove: value => onChange(_.set(field, _.xor([value], samples[field]), samples))
   })
   return div([
     title && h(FormLabel, [title]),

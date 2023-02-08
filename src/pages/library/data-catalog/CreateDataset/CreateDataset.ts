@@ -158,14 +158,11 @@ const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetProps) =
       title: 'Publications',
       list: metadata['TerraDCAT_ap:hasPublication'] ? metadata['TerraDCAT_ap:hasPublication'] : [],
       blankValue: { 'dct:title': '', 'dcat:accessURL': '' },
-      renderer: (listItem, key, onChange) => h(PublicationInput, {
+      renderer: (listItem, onChange) => h(PublicationInput, {
         onChange,
         publication: listItem,
         title: undefined,
-        wrapperProps: {
-          style: { width: '95%' },
-          key
-        }
+        wrapperProps: { style: { width: '95%' } }
       }),
       onChange: (value, index) => setMetadata(_.set(`TerraDCAT_ap:hasPublication[${index}]`, value, metadata)),
       onRemove: value => setMetadata(_.set('TerraDCAT_ap:hasPublication', _.xor([value], metadata['TerraDCAT_ap:hasPublication']), metadata))
@@ -174,13 +171,10 @@ const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetProps) =
       title: 'Data Collections',
       list: metadata['TerraDCAT_ap:hasDataCollection'] ? metadata['TerraDCAT_ap:hasDataCollection'] : [],
       blankValue: { 'dct:identifier': '', 'dct:title': '', 'dct:description': '', 'dct:creator': '', 'dct:publisher': '', 'dct:issued': '', 'dct:modified': '' },
-      renderer: (listItem, key, onChange) => h(DataCollectionInput, {
+      renderer: (listItem, onChange) => h(DataCollectionInput, {
         onChange,
         dataCollection: listItem,
-        wrapperProps: {
-          style: { width: '95%' },
-          key
-        }
+        wrapperProps: { style: { width: '95%' } }
       }),
       onChange: (value, index) => setMetadata(_.set(`TerraDCAT_ap:hasDataCollection[${index}]`, value, metadata)),
       onRemove: value => setMetadata(_.set('TerraDCAT_ap:hasDataCollection', _.xor([value], metadata['TerraDCAT_ap:hasDataCollection']), metadata))
@@ -199,14 +193,11 @@ const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetProps) =
       title: 'Contributors',
       list: metadata.contributors ? metadata.contributors : [],
       blankValue: { name: '', email: '', additionalInformation: {} },
-      renderer: (listItem, key, onChange) => h(ContributorInput, {
+      renderer: (listItem, onChange) => h(ContributorInput, {
         onChange,
         contributor: listItem,
         title: undefined,
-        wrapperProps: {
-          style: { width: '95%' },
-          key
-        }
+        wrapperProps: { style: { width: '95%' } }
       }),
       onChange: (value, index) => setMetadata(_.set(`contributors[${index}]`, value, metadata)),
       onRemove: value => setMetadata(_.set('contributors', _.xor([value], metadata.contributors), metadata))
@@ -215,13 +206,10 @@ const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetProps) =
       title: 'Storage',
       list: metadata.storage ? metadata.storage : [],
       blankValue: { cloudPlatform: '', cloudResource: undefined, region: undefined },
-      renderer: (listItem, key, onChange) => h(StorageInput, {
+      renderer: (listItem, onChange) => h(StorageInput, {
         onChange,
         storageObject: listItem,
-        wrapperProps: {
-          style: { width: '95%' },
-          key
-        }
+        wrapperProps: { style: { width: '95%' } }
       }),
       onChange: (value, index) => setMetadata(_.set(`storage[${index}]`, value, metadata)),
       onRemove: value => setMetadata(_.set('storage', _.xor([value], metadata.storage), metadata))
