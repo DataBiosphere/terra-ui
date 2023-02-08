@@ -56,6 +56,7 @@ const isFilePreviewable = ({ size, ...metadata }) => {
   return !isBinary(metadata) && (isText(metadata) || (isImage(metadata) && size <= 1e9))
 }
 
+// TODO: Aaron -- change value potentially for WDS?
 const isGs = uri => _.startsWith('gs://', uri)
 
 const isDrs = uri => _.startsWith('dos://', uri) || _.startsWith('drs://', uri)
@@ -176,7 +177,7 @@ const UriViewer = _.flow(
 
   const loadMetadata = async () => {
     try {
-      if (isGs(uri)) {
+      if (isGs(uri) && false) {
         const [bucket, name] = parseGsUri(uri)
         const loadObject = withRequesterPaysHandler(onRequesterPaysError, () => {
           return Ajax(signal).Buckets.getObject(googleProject, bucket, name)

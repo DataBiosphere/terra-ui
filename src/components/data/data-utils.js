@@ -44,6 +44,7 @@ export const warningBoxStyle = {
 
 const errorTextStyle = { color: colors.danger(), fontWeight: 'bold', fontSize: 12, marginTop: '0.5rem' }
 
+// TODO: Aaron -- might need to change
 export const parseGsUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
 
 export const getDownloadCommand = (fileName, gsUri, accessUrl) => {
@@ -67,7 +68,7 @@ export const getUserProjectForWorkspace = async workspace => (workspace && await
   workspace.workspace.googleProject :
   requesterPaysProjectStore.get()
 
-const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)
+const isUri = (datum, isGoogleWorkspace = true) => (isGoogleWorkspace && _.startsWith('gs://', datum)) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)
 
 export const getRootTypeForSetTable = tableName => _.replace(/(_set)+$/, '', tableName)
 
@@ -116,6 +117,7 @@ export const renderDataCell = (attributeValue, workspace) => {
   const renderCell = datum => {
     const stringDatum = Utils.convertValue('string', datum)
 
+    // TODO: Aaron
     return isUri(datum) ? h(UriViewerLink, { uri: datum, workspace }) : stringDatum
   }
 
