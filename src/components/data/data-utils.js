@@ -68,7 +68,9 @@ export const getUserProjectForWorkspace = async workspace => (workspace && await
   workspace.workspace.googleProject :
   requesterPaysProjectStore.get()
 
-const isUri = (datum, isGoogleWorkspace = true) => (isGoogleWorkspace && _.startsWith('gs://', datum)) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)
+const isUri = (datum, isGoogleWorkspace) => (isGoogleWorkspace &&
+  (_.startsWith('gs://', datum) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum))) ||
+  (!isGoogleWorkspace && _.includes('blob.core.windows.net', datum))
 
 export const getRootTypeForSetTable = tableName => _.replace(/(_set)+$/, '', tableName)
 
@@ -116,9 +118,7 @@ export const renderDataCell = (attributeValue, workspace) => {
 
   const renderCell = datum => {
     const stringDatum = Utils.convertValue('string', datum)
-
-    // TODO: Aaron
-    return isUri(datum) ? h(UriViewerLink, { uri: datum, workspace }) : stringDatum
+    return isUri(datum, workspace.googleProject) ? h(UriViewerLink, { uri: datum, workspace }) : stringDatum
   }
 
   const renderArray = items => {
@@ -144,6 +144,7 @@ export const renderDataCell = (attributeValue, workspace) => {
     return !!bucket && bucket !== workspaceBucket
   }
 
+  // TODO: Is this applicable to Azure
   const hasOtherBucketUrls = Utils.cond(
     [type === 'json' && _.isArray(attributeValue), () => _.some(isOtherBucketGsUri, attributeValue)],
     [type === 'string' && isList, () => _.some(isOtherBucketGsUri, attributeValue.items)],
@@ -152,7 +153,7 @@ export const renderDataCell = (attributeValue, workspace) => {
   )
 
   return h(Fragment, [
-    hasOtherBucketUrls && h(TooltipTrigger, { content: 'Some files are located outside of the current workspace' }, [
+    workspace.googleProject && hasOtherBucketUrls && h(TooltipTrigger, { content: 'Some files are located outside of the current workspace' }, [
       h(Interactive, { as: 'span', tabIndex: 0, style: { marginRight: '1ch' } }, [
         icon('warning-info', { size: 20, style: { color: colors.accent(), cursor: 'help' } })
       ])
