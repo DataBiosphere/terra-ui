@@ -39,7 +39,6 @@ export const AzureBillingProjectWizard = ({ ...props }: AzureBillingProjectWizar
     return json.managedApps
   })
 
-
   const createBillingProject = _.flow(
     reportErrorAndRethrow('Error creating billing project'),
     withBusyState(setIsCreating)
@@ -97,4 +96,3 @@ export const AzureBillingProjectWizard = ({ ...props }: AzureBillingProjectWizar
     isCreating && spinnerOverlay
   ])
 }
-
