@@ -56,7 +56,7 @@ export const isAzureWorkspace = (workspace: BaseWorkspace): workspace is AzureWo
 }
 
 export const isGoogleWorkspace = (workspace: BaseWorkspace): workspace is GoogleWorkspace => {
-  return workspace && isGoogleWorkspaceInfo(workspace.workspace)
+  return isGoogleWorkspaceInfo(workspace.workspace)
 }
 
 export const getCloudProviderFromWorkspace = (workspace: BaseWorkspace): CloudProviderType => isAzureWorkspace(workspace) ? cloudProviderTypes.AZURE : cloudProviderTypes.GCP
