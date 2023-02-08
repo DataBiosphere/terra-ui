@@ -407,19 +407,19 @@ export const Environments = ({ nav = undefined }) => {
 
   const renderPauseButton = (computeType, compute) => {
     const { status } = compute
+    const isAzure = getCloudProvider(compute) === 'AZURE_VM'
+    const shouldShowPauseButton = Utils.cond(
+      [isApp(compute) && !_.find(tool => tool.appType && tool.appType === compute.appType)(appTools)?.isPauseUnsupported, () => true],
+      [isPauseSupported(getToolLabelFromRuntime(compute)) && currentUser === getCreatorForRuntime(compute), () => true],
+      () => false)
 
-    const shouldShowPauseButton =
-      Utils.cond(
-        [isApp(compute) && !_.find(tool => tool.appType && tool.appType === compute.appType)(appTools)?.isPauseUnsupported, () => true],
-        [isPauseSupported(getToolLabelFromRuntime(compute)) && currentUser === getCreatorForRuntime(compute), () => true],
-        () => false)
-
-    return shouldShowPauseButton && h(Link, {
+    return shouldShowPauseButton && h(Link, { //TODO: IA-3993 enable pausing
       style: { marginRight: '1rem' },
-      disabled: !isComputePausable(computeType, compute),
-      tooltip: isComputePausable(computeType, compute) ?
-        'Pause cloud environment' :
-        `Cannot pause a cloud environment while in status ${_.upperCase(getComputeStatusForDisplay(status))}.`,
+      disabled: isAzure || !isComputePausable(computeType, compute),
+      tooltip: Utils.cond(
+        [isAzure, () => 'Feature coming soon'],
+        [isComputePausable(computeType, compute), () => 'Pause cloud environment'],
+        () => `Cannot pause a cloud environment while in status ${_.upperCase(getComputeStatusForDisplay(status))}.`),
       onClick: () => pauseComputeAndRefresh(computeType, compute)
     }, [makeMenuIcon('pause'), 'Pause'])
   }
