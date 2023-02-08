@@ -5,9 +5,8 @@ import * as WorkspaceUtils from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { AzureStorage, AzureStorageContract } from 'src/libs/ajax/AzureStorage'
 import * as GoogleStorage from 'src/libs/ajax/GoogleStorage'
-import { getConfig } from 'src/libs/config'
 import * as Notifications from 'src/libs/notifications'
-import { getUser, workspaceStore } from 'src/libs/state'
+import { workspaceStore } from 'src/libs/state'
 import { DeepPartial } from 'src/libs/type-utils/deep-partial'
 import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import {
@@ -24,10 +23,13 @@ type AjaxContract = ReturnType<AjaxExports['Ajax']>
 
 jest.mock('src/libs/notifications')
 
-jest.mock('src/libs/state', () => ({
-  ...jest.requireActual('src/libs/state'),
-  getUser: jest.fn()
-}))
+type StateExports = typeof import('src/libs/state')
+jest.mock('src/libs/state', (): StateExports => {
+  return {
+    ...jest.requireActual('src/libs/state'),
+    getUser: jest.fn(() => ({ email: 'christina@foo.com' })),
+  }
+})
 
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
@@ -123,14 +125,6 @@ describe('useActiveWorkspace', () => {
   beforeEach(() => {
     workspaceStore.reset()
     jest.useFakeTimers()
-
-    // @ts-ignore
-    getUser.mockReturnValue({
-      email: 'christina@foo.com'
-    })
-
-    // @ts-ignore
-    getConfig.mockReturnValue({ isProd: false })
 
     jest.spyOn(workspaceStore, 'set')
     jest.spyOn(WorkspaceUtils, 'updateRecentlyViewedWorkspaces')
@@ -469,40 +463,5 @@ describe('useActiveWorkspace', () => {
     expect(WorkspaceUtils.updateRecentlyViewedWorkspaces).toHaveBeenCalledWith(expectedWorkspaceResponse.workspace.workspaceId)
     expect(GoogleStorage.saToken).not.toHaveBeenCalled()
     expect(Notifications.notify).toHaveBeenCalled()
-  })
-
-  it('Does not (temporarily) call checkBucketReadAccess in production', async () => {
-    // Need to add nextflow role to old workspaces (WOR-764)
-
-    // Arrange
-    // @ts-ignore
-    getConfig.mockReturnValue({ isProd: true })
-
-    // remove workspaceInitialized because the server response does not include this information
-    const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace
-
-    const mockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
-          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse)
-        })
-      }
-    }
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract)
-
-    const expectedStorageDetails = _.merge({
-      googleBucketLocation: bucketLocationResponse.location,
-      googleBucketType: bucketLocationResponse.locationType
-    }, defaultAzureStorageOptions)
-
-    // Act
-    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'))
-    await waitForNextUpdate() // For the call to checkBucketLocation to execute
-
-    // Assert
-    assertResult(result.current, initializedGoogleWorkspace, expectedStorageDetails, false)
-    expect(workspaceStore.set).toHaveBeenCalledWith(initializedGoogleWorkspace)
-    expect(WorkspaceUtils.updateRecentlyViewedWorkspaces).toHaveBeenCalledWith(initializedGoogleWorkspace.workspace.workspaceId)
   })
 })

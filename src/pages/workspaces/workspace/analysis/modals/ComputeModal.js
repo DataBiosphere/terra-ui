@@ -267,7 +267,8 @@ export const ComputeModalBase = ({
       WORKSPACE_NAME: name,
       WORKSPACE_NAMESPACE: namespace,
       WORKSPACE_BUCKET: `gs://${bucketName}`,
-      GOOGLE_PROJECT: googleProject
+      GOOGLE_PROJECT: googleProject,
+      CUSTOM_IMAGE: isCustomImage.toString()
     }
 
     sendCloudEnvironmentMetrics()
@@ -618,6 +619,8 @@ export const ComputeModalBase = ({
       [(!!existingRuntime), () => 'cloudEnvironmentUpdate'],
       () => 'cloudEnvironmentCreate'
     )
+    if (isCustomImage) Ajax().Metrics.captureEvent(Events.cloudEnvironmentCreateCustom)
+
 
     Ajax().Metrics.captureEvent(Events[metricsEvent], {
       ...extractWorkspaceDetails(getWorkspaceObject()),
