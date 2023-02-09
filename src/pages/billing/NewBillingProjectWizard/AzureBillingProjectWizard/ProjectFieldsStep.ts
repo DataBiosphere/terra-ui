@@ -17,8 +17,9 @@ import { validate } from 'validate.js'
 import { ExternalLink } from '../StepWizard/ExternalLink'
 
 
-type CreateProjectStepProps = {
+interface CreateProjectStepProps {
   isActive: boolean
+  stepFinished: (boolean) => void // signals next step, and returns focus later if the user goes back
   managedApps: AzureManagedAppCoordinates[]
   selectedApp?: AzureManagedAppCoordinates
   setSelectedApp: (AzureManagedAppCoordinates) => void
@@ -49,6 +50,7 @@ export const ProjectFieldsStep = ({
   const appSelectId = useUniqueId()
   const nameInputId = useUniqueId()
 
+
   const onNameInput = () => {
     Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectNameEntered)
     const errors = billingProjectName ?
@@ -56,15 +58,18 @@ export const ProjectFieldsStep = ({
         validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(props.existingProjectNames) })?.billingProjectName
       ) : 'A name is required to create a billing project.'
     setNameErrors(errors)
+    if (!errors && !!selectedApp) {
+      props.stepFinished(true)
+    }
   }
 
-  return h(Step, { isActive, style: { height: '10rem' } }, [
+  return h(Step, { isActive, style: { height: '13rem' } }, [
     h(StepHeader, { title: 'STEP 2' }, [
       'Set up a Terra billing project. ',
       ExternalLink({ text: 'Go to Azure Marketplace', url: 'https://portal.azure.com/' }),
       ' to find or create your managed resource group.'
     ]),
-    h(StepFields, { disabled: !isActive, style: { justifyContent: 'flex-start', width: '75%' } }, [
+    h(StepFields, { style: { justifyContent: 'flex-start', width: '75%', marginTop: '1rem' } }, [
       h(LabeledField, { label: 'Terra billing project', formId: nameInputId, required: true, style: { width: '30%', marginLeft: 0, marginRight: '2rem' } }, [
         ValidatedInput({
           error: nameErrors,
@@ -72,7 +77,12 @@ export const ProjectFieldsStep = ({
             id: nameInputId,
             value: billingProjectName,
             placeholder: 'Enter a name for the project',
-            onChange: props.setBillingProjectName,
+            onChange: value => {
+              if (!isActive) {
+                props.stepFinished(false)
+              }
+              props.setBillingProjectName(value)
+            },
             onBlur: onNameInput
           }
         })
@@ -92,8 +102,16 @@ export const ProjectFieldsStep = ({
           isDisabled: managedApps.length === 0,
           value: selectedApp,
           onChange: ({ value }) => {
+            if (!isActive) {
+              props.stepFinished(false)
+            }
             Ajax().Metrics.captureEvent(Events.billingAzureCreationMRGSelected)
             props.setSelectedApp(value)
+          },
+          onBlur: () => {
+            if (!!billingProjectName && !nameErrors && !!selectedApp) {
+              props.stepFinished(true)
+            }
           },
           options: managedAppsToOptions(managedApps)
         })

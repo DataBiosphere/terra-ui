@@ -37,7 +37,7 @@ export const AzureSubscriptionIdStep = ({ isActive, subscriptionId, ...props }: 
     }
   }
 
-  return h(Step, { isActive }, [
+  return h(Step, { isActive, style: { height: '12rem' } }, [
     h(StepHeader, { title: 'STEP 1' }, [
       'Link Terra to your Azure subscription. ',
       ExternalLink({ text: 'Go to Azure Marketplace', url: 'https://portal.azure.com/' }),

@@ -31,7 +31,7 @@ export const AzureBillingProjectWizard = ({ ...props }: AzureBillingProjectWizar
   const [isCreating, setIsCreating] = useState(false)
   const [selectedApp, setSelectedApp] = useState<AzureManagedAppCoordinates>()
 
-  const [existing, setExisting] = useState<string[]>([])
+  const [existingProjectNames, setExistingProjectNames] = useState<string[]>([])
   const signal = useCancellation()
 
   const onSubscriptionIdSelected = () => loadManagedApps(async () => {
@@ -55,7 +55,7 @@ export const AzureBillingProjectWizard = ({ ...props }: AzureBillingProjectWizar
       }
     } catch (error: any) {
       if (error?.status === 409) {
-        setExisting(_.concat(billingProjectName, existing))
+        setExistingProjectNames(_.concat(billingProjectName, existingProjectNames))
       } else {
         Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectCreateFail)
         throw error
@@ -63,31 +63,33 @@ export const AzureBillingProjectWizard = ({ ...props }: AzureBillingProjectWizar
     }
   })
 
+  const stepFinished = (step: number, finished: boolean) => {
+    if (finished && activeStep === step) { // the user completed the active step
+      setActiveStep(step + 1)
+    } else if (!finished && activeStep > step) { // the user went back
+      setActiveStep(step)
+    } // the user is entering fields for later steps - don't change active step
+  }
+
   return h(StepWizard, { title: 'Create an Azure Billing Project', intro: 'intro Text' }, [
     h(AzureSubscriptionIdStep, {
       isActive: activeStep === 1,
       subscriptionId,
-      onChange: setSubscriptionId,
+      onChange: subscriptionId => {
+        setActiveStep(1)
+        setSubscriptionId(subscriptionId)
+      },
       submit: onSubscriptionIdSelected
     }),
     ProjectFieldsStep({
       isActive: activeStep === 2,
+      stepFinished: finished => stepFinished(2, finished),
       selectedApp,
-      setSelectedApp: app => {
-        setSelectedApp(app)
-        if (app && billingProjectName) {
-          setActiveStep((3))
-        }
-      },
+      setSelectedApp,
       billingProjectName,
-      setBillingProjectName: name => {
-        setBillingProjectName(name)
-        if (name && selectedApp) {
-          setActiveStep((3))
-        }
-      },
+      setBillingProjectName,
       managedApps: managedApps.status === 'Ready' ? managedApps.state : [],
-      existingProjectNames: existing
+      existingProjectNames
     }),
     h(AddUserStep, { users, setUsers, isActive: activeStep === 3 }),
     h(CreateProjectStep, {

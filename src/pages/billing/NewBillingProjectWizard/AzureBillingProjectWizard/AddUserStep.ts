@@ -12,7 +12,7 @@ import { validate } from 'validate.js'
 
 
 export interface AddUserInfo {
-  email: string
+  emails: string
   role: BillingRole
 }
 
@@ -24,30 +24,36 @@ interface AddUserStepProps {
 
 
 export const AddUserStep = ({ isActive, users, setUsers }: AddUserStepProps) => {
-  const [email, setEmail] = useState<string>()
+  const [emails, setEmails] = useState<string>()
   const [emailErrors, setEmailErrors] = useState<ReactNode>()
   const [role, setRole] = useState<BillingRole>()
   const emailFieldId = useUniqueId()
   const roleFieldId = useUniqueId()
 
   const validateEmail = () => {
-    if (!email || email.length === 0) {
+    if (!emails || emails.length === 0) {
       setEmailErrors(Utils.summarizeErrors(['Enter an email to add a user']))
     } else {
-      const validation = validate({ [email]: email }, { [email]: { email: true } })?.[email]
-      setEmailErrors(Utils.summarizeErrors(validation))
+      const errors = emails.split(',')
+        .map(email => Utils.summarizeErrors(validate({ [email]: email }, { [email]: { email: true } })?.[email]))
+        .filter(error => !!error)
+      if (errors.length > 0) {
+        setEmailErrors(errors)
+      } else {
+        setEmailErrors(undefined)
+      }
     }
   }
 
   const addUser = () => {
-    if (email && role && !emailErrors) {
-      setUsers([{ email, role }, ...users])
+    if (emails && role && !emailErrors) {
+      setUsers([{ emails, role }, ...users])
       setRole(undefined)
-      setEmail('')
+      setEmails('')
     }
   }
 
-  return h(Step, { isActive }, [
+  return h(Step, { isActive, style: { height: '16rem' } }, [
     h(StepHeader, { title: 'STEP 3' }, [
       'Optional: Add additional users to your Terra billing project. ',
       'For bulk upload, separate email addresses by a comma. ',
@@ -61,9 +67,9 @@ export const AddUserStep = ({ isActive, users, setUsers }: AddUserStepProps) => 
             ValidatedInput({
               inputProps: {
                 id: emailFieldId,
-                value: email,
+                value: emails,
                 placeholder: 'Enter email of users to add',
-                onChange: setEmail,
+                onChange: setEmails,
                 onBlur: validateEmail
               },
               error: emailErrors
@@ -75,7 +81,7 @@ export const AddUserStep = ({ isActive, users, setUsers }: AddUserStepProps) => 
           ]),
           h(SpacedButton, { onClick: addUser, iconShape: 'plus', buttonLabel: 'add-user' })
         ]),
-        ...users.map(user => h(AddedUserDisplay, { user, remove: () => setUsers(users.filter(u => u.email !== user.email)) })),
+        ...users.map(user => h(AddedUserDisplay, { user, remove: () => setUsers(users.filter(u => u.emails !== user.emails)) })),
       ])
     ])
   ])
@@ -93,7 +99,7 @@ const addUserLIStyles: CSSProperties = {
   margin: '0',
   padding: 0,
   alignContent: 'center',
-  alignItems: 'center'//
+  alignItems: 'center'
 }
 const addUserFieldStyles: CSSProperties = {
   marginLeft: '0rem',
@@ -121,10 +127,10 @@ interface AddedUserDisplayProps {
 const AddedUserDisplay = ({ user, ...props }: AddedUserDisplayProps) => {
   const emailFieldId = useUniqueId()
   const roleFieldId = useUniqueId()
-  return li({ style: addUserLIStyles, key: user.email }, [
+  return li({ style: addUserLIStyles, key: user.emails }, [
     div({ style: emailFieldStyles }, [
       h(LabeledField, { label: 'User email', formId: emailFieldId }, []),
-      ValidatedInput({ inputProps: { disabled: true, id: emailFieldId, value: user.email } })
+      ValidatedInput({ inputProps: { disabled: true, id: emailFieldId, value: user.emails } })
     ]),
     div({ style: roleFieldStyles }, [
       h(LabeledField, { label: 'Role', formId: roleFieldId }, []),
@@ -144,69 +150,4 @@ const SpacedButton = ({ onClick, ...props }: SpacedButtonProps) => div({ style: 
   div({ style: { paddingTop: '2.25rem' } }), // spacer element to make two flex lines, so the button lines up with the input fields
   h(ButtonOutline, { onClick, role: 'button', 'aria-label': props.buttonLabel }, [icon(props.iconShape, {})])
 ])
-
-/*
-interface AddUserFieldProps {
-  addUser: (AddUserInfo) => void
-}
-
-
-const AddUserField = ({...props}: AddUserFieldProps) => {
-  const [userEmail, setUserEmail] = useState<string>()
-  const [emailErrors, setEmailErrors] = useState<ReactNode>()
-  const [role, setRole] = useState<BillingRole>()
-  const emailFieldId = useUniqueId()
-  const roleFieldId = useUniqueId()
-
-  const validateEmail = () => {
-    if (!userEmail || userEmail.length === 0) {
-      setEmailErrors(Utils.summarizeErrors(['Enter an email to add a user']))
-    } else {
-      const validation = validate({[userEmail]: userEmail}, {[userEmail]: {email: true}})?.[userEmail]
-      setEmailErrors(Utils.summarizeErrors(validation))
-    }
-  }
-
-  return li({style: addUserLIStyles, key: 'add-user-input'}, [
-    div({style: emailFieldStyles}, [
-      h(LabeledField, {label: 'User email', formId: emailFieldId,}, []),
-      ValidatedInput({
-        inputProps: {
-          id: emailFieldId,
-          value: userEmail,
-          placeholder: 'Enter email of users to add',
-          onChange: setUserEmail,
-          onBlur: validateEmail
-        },
-        error: emailErrors
-      })
-    ]),
-    div({style: roleFieldStyles}, [
-      h(LabeledField, {label: 'Role', formId: roleFieldId}, []),
-      h(Select, {
-        id: roleFieldId,
-        placeholder: 'Select a role',
-        value: role,
-        onChange: ({value}) => setRole(value),
-        options: billingRoleOptions
-      })
-    ]),
-    div({style: buttonWrapperStyles}, [
-      div({style: {paddingTop: '2.25rem'}}),
-      h(ButtonOutline, {
-        onClick: () => {
-          if (userEmail && role && !emailErrors) {
-            props.addUser({email: userEmail, role})
-            setRole(undefined)
-            setUserEmail('')
-          }
-        },
-        role: 'button',
-        'aria-label': 'add-user',
-        disabled: !userEmail || !role || emailErrors,//!!(!isActive || !emails || !!emailErrors || !selectedRole),
-      }, [icon('plus', {})])
-    ])
-  ])
-}
-*/
 
