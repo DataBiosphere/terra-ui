@@ -76,7 +76,6 @@ export const CreateTerraProjectStep = ({
           h(ButtonPrimary, {
             onClick: submit,
             role: 'button',
-            'aria-label': 'create-billing-project',
             disabled: !isActive
           }, [
             'Create Terra Billing Project',

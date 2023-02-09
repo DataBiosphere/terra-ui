@@ -64,7 +64,6 @@ export const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeA
             setRefreshed(true)
           } else {
             setActiveStep(3)
-            //await authorizeAndLoadAccounts()
             setRefreshed(false)
           }
         },

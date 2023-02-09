@@ -39,7 +39,7 @@ const getStep3AddTerraAsUserText = () => textMatcher('Add terra-billing@terra.bi
 const getStep3ContactBillingAdministrator = () => textMatcher('Contact your billing account administrator and have them add you and terra-billing@terra.bio as a ' +
   "Billing Account User to your organization's billing account.")
 
-const getStep4CreateButton = () => screen.queryByRole('button', { name: 'create-billing-project' })
+const getStep4CreateButton = () => screen.queryByRole('button', { name: 'Create Terra Billing Project' })
 const getBillingProjectInput = () => screen.getByLabelText('Terra billing project *')
 const getBillingAccountInput = () => screen.getByLabelText('Select billing account *')
 const getStep4RefreshText = () => screen.queryByText('You do not have access to any Google Billing Accounts. Please verify that a billing account ' +
