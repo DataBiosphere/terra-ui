@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { b, div, h, p } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
+import { b, div, h, input, label, p } from 'react-hyperscript-helpers'
+import { ButtonPrimary, IdContainer, Link, spinnerOverlay } from 'src/components/common'
 import { cookiesAcceptedKey } from 'src/components/CookieWarning'
 import { icon, spinner } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
@@ -11,14 +11,45 @@ import Events from 'src/libs/events'
 import { getLocalPref } from 'src/libs/prefs'
 import { useCancellation, useGetter, useOnMount, usePollingEffect, usePrevious, useStore } from 'src/libs/react-utils'
 import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { getConvertedRuntimeStatus, usableStatuses } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
+
+export const computeStyles = {
+  label: { fontWeight: 600, whiteSpace: 'pre' },
+  value: { fontWeight: 400, whiteSpace: 'pre' },
+  titleBar: { marginBottom: '1rem' },
+  whiteBoxContainer: { padding: '1rem', borderRadius: 3, backgroundColor: 'white' },
+  drawerContent: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' },
+  headerText: { fontSize: 16, fontWeight: 600 },
+  warningView: { backgroundColor: colors.warning(0.1) }
+}
 
 export const StatusMessage = ({ hideSpinner, children }) => {
   return div({ style: { paddingLeft: '2rem', display: 'flex', alignItems: 'center' } }, [
     !hideSpinner && spinner({ style: { marginRight: '0.5rem' } }),
     div([children])
+  ])
+}
+
+export const RadioBlock = ({ labelText, children, name, checked, onChange, style = {} }) => {
+  return div({
+    style: {
+      backgroundColor: colors.warning(0.2),
+      borderRadius: 3, border: `1px solid ${checked ? colors.accent() : 'transparent'}`,
+      boxShadow: checked ? Style.standardShadow : undefined,
+      display: 'flex', alignItems: 'baseline', padding: '.75rem',
+      ...style
+    }
+  }, [
+    h(IdContainer, [id => h(Fragment, [
+      input({ type: 'radio', name, checked, onChange, id }),
+      div({ style: { marginLeft: '.75rem' } }, [
+        label({ style: { fontWeight: 600, fontSize: 16 }, htmlFor: id }, [labelText]),
+        children
+      ])
+    ])])
   ])
 }
 
