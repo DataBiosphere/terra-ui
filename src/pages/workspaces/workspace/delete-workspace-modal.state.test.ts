@@ -213,9 +213,7 @@ describe('useDeleteWorkspace', () => {
     const name = 'example_workspace_name'
     const namespace = 'example_namespace'
     const workspaceId = 'example_workspace_id'
-
     const mockDelete = () => Promise.reject(new Response('mock deletion error'))
-
     const mockApps: Partial<AjaxAppsContract> = {
       listWithoutProject: jest.fn()
     }

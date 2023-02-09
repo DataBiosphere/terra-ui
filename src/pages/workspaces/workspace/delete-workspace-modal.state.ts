@@ -9,12 +9,25 @@ import { BaseWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
-export const useDeleteWorkspaceState = (workspace: BaseWorkspace, namespace: string, name: string, workspaceId: string, onDismiss: () => void, onSuccess: () => void) => {
+export interface DeleteWorkspaceState {
+  workspaceBucketUsageInBytes: number | null
+  deletableApps: string[]
+  nonDeletableApps: string[]
+  loading: boolean
+  collaboratorEmails: string[] | null
+  hasApps: () => boolean
+  isDeleteDisabledFromResources: boolean
+  deleteWorkspace: () => void
+  deleting: boolean
+}
+
+
+export const useDeleteWorkspaceState = (workspace: BaseWorkspace, namespace: string, name: string, workspaceId: string, onDismiss: () => void, onSuccess: () => void): DeleteWorkspaceState => {
   const [deleting, setDeleting] = useState(false)
   const [loading, setLoading] = useState(false)
   const [apps, setApps] = useState()
   const [collaboratorEmails, setCollaboratorEmails] = useState()
-  const [workspaceBucketUsageInBytes, setWorkspaceBucketUsageInBytes] = useState()
+  const [workspaceBucketUsageInBytes, setWorkspaceBucketUsageInBytes] = useState<number>()
   const [controlledResourcesExist, setControlledResourcesExist] = useState(false)
   const [deletableApps, nonDeletableApps] = _.partition(isResourceDeletable('app'), apps) as any // TODO ew
 
@@ -77,6 +90,15 @@ export const useDeleteWorkspaceState = (workspace: BaseWorkspace, namespace: str
     }
   }
 
-  // TODO declare this as an interface
-  return { workspaceBucketUsageInBytes, deletableApps, nonDeletableApps, loading, collaboratorEmails, hasApps, isDeleteDisabledFromResources, deleteWorkspace, deleting }
+  return {
+    workspaceBucketUsageInBytes: workspaceBucketUsageInBytes ? workspaceBucketUsageInBytes : null,
+    deletableApps,
+    nonDeletableApps,
+    loading,
+    collaboratorEmails: collaboratorEmails ? collaboratorEmails : null,
+    hasApps,
+    isDeleteDisabledFromResources,
+    deleteWorkspace,
+    deleting
+  }
 }
