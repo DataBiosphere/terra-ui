@@ -32,7 +32,7 @@ import { notify } from 'src/libs/notifications'
 import { requesterPaysProjectStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { isGoogleWorkspace } from 'src/libs/workspace-utils'
+import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
 
@@ -69,8 +69,8 @@ export const getUserProjectForWorkspace = async workspace => (workspace && await
   isGoogleWorkspace(workspace) :
   requesterPaysProjectStore.get()
 
-const isUri = (datum, isGoogleWorkspace) => (isGoogleWorkspace &&
-  isGs(datum)) || isDrs(datum) || (!isGoogleWorkspace && (isAzureUri(datum)))
+const isUri = (datum, workspace) => (isGoogleWorkspace(workspace) &&
+  isGs(datum)) || isDrs(datum) || (isAzureWorkspace(workspace) && (isAzureUri(datum)))
 
 export const getRootTypeForSetTable = tableName => _.replace(/(_set)+$/, '', tableName)
 
@@ -118,7 +118,7 @@ export const renderDataCell = (attributeValue, workspace) => {
 
   const renderCell = datum => {
     const stringDatum = Utils.convertValue('string', datum)
-    return isUri(datum, isGoogleWorkspace(workspace)) ? h(UriViewerLink, { uri: datum, workspace }) : stringDatum
+    return isUri(datum, workspace) ? h(UriViewerLink, { uri: datum, workspace }) : stringDatum
   }
 
   const renderArray = items => {
@@ -144,7 +144,6 @@ export const renderDataCell = (attributeValue, workspace) => {
     return !!bucket && bucket !== workspaceBucket
   }
 
-  // TODO: Is this applicable to Azure
   const hasOtherBucketUrls = Utils.cond(
     [type === 'json' && _.isArray(attributeValue), () => _.some(isOtherBucketGsUri, attributeValue)],
     [type === 'string' && isList, () => _.some(isOtherBucketGsUri, attributeValue.items)],
