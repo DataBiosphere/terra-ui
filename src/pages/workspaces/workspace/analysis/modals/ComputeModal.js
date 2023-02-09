@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, br, code, div, fieldset, h, label, legend, li, p, span, strong, ul } from 'react-hyperscript-helpers'
 import { ClipboardButton } from 'src/components/ClipboardButton'
-import { ButtonOutline, ButtonPrimary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay, useUniqueId } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
@@ -11,7 +11,7 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import { getAvailableComputeRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isUSLocation } from 'src/components/region-common'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { cloudServices, isMachineTypeSmaller, machineTypes } from 'src/data/machines'
+import { cloudServices, isMachineTypeSmaller, machineTypes } from 'src/data/gce-machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -22,18 +22,18 @@ import * as Nav from 'src/libs/nav'
 import { useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
-import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { computeStyles, RadioBlock, SaveFilesHelp, SaveFilesHelpRStudio } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import {
-  computeStyles, defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize,
+  defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize,
   defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation,
   defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, defaultPersistentDiskType, displayNameForGpuType, findMachineType, getAutopauseThreshold,
-  getDefaultMachineType, getIsRuntimeBusy, getPersistentDiskCostMonthly, getValidGpuOptions, getValidGpuTypesForZone,
-  isAutopauseEnabled, pdTypes, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
+  getDefaultMachineType, getIsRuntimeBusy, getValidGpuOptions, getValidGpuTypesForZone,
+  isAutopauseEnabled, pdTypes
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { getToolLabelForImage, getToolLabelFromRuntime, runtimeTools, terraSupportedRuntimeImageIds, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import validate from 'validate.js'
-
 
 // Change to true to enable a debugging panel (intended for dev mode only)
 const showDebugPanel = false
@@ -268,7 +268,8 @@ export const ComputeModalBase = ({
       WORKSPACE_NAME: name,
       WORKSPACE_NAMESPACE: namespace,
       WORKSPACE_BUCKET: `gs://${bucketName}`,
-      GOOGLE_PROJECT: googleProject
+      GOOGLE_PROJECT: googleProject,
+      CUSTOM_IMAGE: isCustomImage.toString()
     }
 
     sendCloudEnvironmentMetrics()
@@ -599,6 +600,7 @@ export const ComputeModalBase = ({
       h(ClipboardButton, {
         text: selectedLeoImage,
         style: { marginLeft: '0.5rem' },
+        'aria-label': 'clipboard',
         tooltip: 'Copy the image version'
       })
     ])
@@ -618,6 +620,8 @@ export const ComputeModalBase = ({
       [(!!existingRuntime), () => 'cloudEnvironmentUpdate'],
       () => 'cloudEnvironmentCreate'
     )
+    if (isCustomImage) Ajax().Metrics.captureEvent(Events.cloudEnvironmentCreateCustom)
+
 
     Ajax().Metrics.captureEvent(Events[metricsEvent], {
       ...extractWorkspaceDetails(getWorkspaceObject()),
@@ -1226,6 +1230,7 @@ export const ComputeModalBase = ({
     ])
   }
 
+  // TODO [IA-3348] parameterize and make it a shared function between the equivalent in AzureComputeModal
   const renderCostBreakdown = () => {
     return div({
       style: {
@@ -1698,7 +1703,7 @@ export const ComputeModalBase = ({
         div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
           renderApplicationConfigurationSection(),
           renderComputeProfileSection(existingRuntime),
-          !!isPersistentDisk && renderPersistentDiskSection(existingPersistentDisk),
+          !!isPersistentDisk && h(PersistentDiskSection, !!existingPersistentDisk),
           isGce(runtimeType) && !isPersistentDisk && div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
               'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
@@ -1756,16 +1761,20 @@ export const ComputeModalBase = ({
     ])
   }
 
-  const renderPersistentDiskSection = diskExists => {
+  const PersistentDiskSection = diskExists => {
     const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
+    const diskSizeId = useUniqueId()
 
-    const renderPersistentDiskType = id => h(div, [
-      label({ htmlFor: id, style: computeStyles.label }, ['Disk Type']),
+    const PersistentDiskType = () => {
+      const persistentDiskId = useUniqueId()
+  return (
+    h(div, [
+      label({ htmlFor: persistentDiskId, style: computeStyles.label }, ['Disk Type']),
       div({ style: { marginTop: '0.5rem' } }, [
-        h(Select, {
-          id,
+      h(Select, {
+          id: persistentDiskId,
           value: computeConfig.selectedPersistentDiskType,
-          isDisabled: diskExists || false,
+          isDisabled: diskExists,
           onChange: ({ value }) => updateComputeConfig('selectedPersistentDiskType', value),
           menuPlacement: 'auto',
           options: [
@@ -1776,11 +1785,11 @@ export const ComputeModalBase = ({
         })
       ])
     ])
-
+    )
+  }
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
-      h(IdContainer, [
-        id => h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
-          label({ htmlFor: id, style: computeStyles.label }, ['Persistent disk']),
+        h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
+          label({ style: computeStyles.label }, ['Persistent disk']),
           div({ style: { marginTop: '0.5rem' } }, [
             'Persistent disks store analysis data. ',
             h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
@@ -1794,12 +1803,12 @@ export const ComputeModalBase = ({
                   'Please delete the existing disk before selecting a new type.'
                 ],
                 side: 'bottom'
-              }, [renderPersistentDiskType(id)]) : renderPersistentDiskType(id),
+              }, [h(PersistentDiskType)]) : h(PersistentDiskType),
             h(div, [
-              label({ htmlFor: id, style: computeStyles.label }, ['Disk Size (GB)']),
+              label({ htmlFor: diskSizeId, style: computeStyles.label }, ['Disk Size (GB)']),
               div({ style: { marginTop: '0.5rem' } }, [
                 h(NumberInput, {
-                  id,
+                  id: diskSizeId,
                   min: 10,
                   max: 64000,
                   isClearable: false,
@@ -1811,7 +1820,6 @@ export const ComputeModalBase = ({
             ])
           ])
         ])
-      ])
     ])
   }
   // Render functions -- end

@@ -10,7 +10,7 @@ import { icon } from 'src/components/icons'
 import { MenuButton } from 'src/components/MenuButton'
 import Modal from 'src/components/Modal'
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger'
-import { dataSyncingDocUrl } from 'src/data/machines'
+import { dataSyncingDocUrl } from 'src/data/gce-machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -27,7 +27,7 @@ import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/
 import {
   analysisLauncherTabName, analysisTabName, appLauncherTabName, ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor,
   StatusMessage
-} from 'src/pages/workspaces/workspace/analysis/runtime-common'
+} from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import {
   getConvertedRuntimeStatus, getCurrentPersistentDisk, getCurrentRuntime, usableStatuses
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
@@ -56,7 +56,8 @@ const AnalysisLauncher = _.flow(
 )(
   ({
     queryParams, analysisName, workspace, workspace: { accessLevel, canCompute },
-    analysesData: { runtimes, refreshRuntimes, persistentDisks, location }
+    analysesData: { runtimes, refreshRuntimes, persistentDisks },
+    storageDetails: { googleBucketLocation, azureContainerRegion },
   }, _ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     const currentRuntime = getCurrentRuntime(runtimes)
@@ -99,7 +100,7 @@ const AnalysisLauncher = _.flow(
           workspace,
           currentRuntime,
           currentDisk,
-          location,
+          location: googleBucketLocation,
           onDismiss: () => {
             chooseMode(undefined)
             setCreateOpen(false)
@@ -117,6 +118,7 @@ const AnalysisLauncher = _.flow(
           hideCloseButton: true,
           workspace,
           runtimes,
+          location: azureContainerRegion,
           onDismiss: () => {
             chooseMode(undefined)
             setCreateOpen(false)
