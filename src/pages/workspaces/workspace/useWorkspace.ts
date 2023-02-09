@@ -8,6 +8,7 @@ import { Ajax } from 'src/libs/ajax'
 import { responseContainsRequesterPaysError } from 'src/libs/ajax/ajax-common'
 import { AzureStorage } from 'src/libs/ajax/AzureStorage'
 import { saToken } from 'src/libs/ajax/GoogleStorage'
+import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import { clearNotification, notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
@@ -72,7 +73,10 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
 
   const checkGooglePermissions = async workspace => {
     try {
-      await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketReadAccess()
+      // Need to add nextflow role to old workspaces (WOR-764) before enabling in production.
+      if (!getConfig().isProd) {
+        await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketReadAccess()
+      }
       updateWorkspaceInStore(workspace, true)
       loadGoogleBucketLocation(workspace)
     } catch (error: any) {
