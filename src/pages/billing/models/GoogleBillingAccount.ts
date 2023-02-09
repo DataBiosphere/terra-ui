@@ -1,4 +1,4 @@
-export interface BillingAccount {
+export interface GoogleBillingAccount {
   accountName: string
   firecloudHasAccess?: boolean
   displayName: string

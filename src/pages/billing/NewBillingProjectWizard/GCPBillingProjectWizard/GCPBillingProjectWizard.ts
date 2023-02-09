@@ -2,7 +2,7 @@ import { CSSProperties, useEffect, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import colors from 'src/libs/colors'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
-import { BillingAccount } from 'src/pages/billing/models/BillingAccount'
+import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAccount'
 import { StepWizard } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepWizard'
 
 import { AddTerraAsBillingAccountUserStep } from './AddTerraAsBillingAccountUserStep'
@@ -13,7 +13,7 @@ import { GoToGCPConsoleStep } from './GoToGCPConsoleStep'
 
 
 interface GCPBillingProjectWizardProps {
-  billingAccounts: Record<string, BillingAccount>
+  billingAccounts: Record<string, GoogleBillingAccount>
   onSuccess: (string) => void
   // calls Auth.ensureBillingScope, then re-loads billing accounts from rawls
   authorizeAndLoadAccounts: () => Promise<void>

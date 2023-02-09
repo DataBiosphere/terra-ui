@@ -8,13 +8,13 @@ import Events from 'src/libs/events'
 import { formHint, FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 import { billingProjectNameValidator } from 'src/pages/billing/List'
-import { BillingAccount } from 'src/pages/billing/models/BillingAccount'
+import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAccount'
 import validate from 'validate.js'
 
 
 interface CreateGCPBillingProjectProps {
-  billingAccounts: Record<string, BillingAccount>
-  chosenBillingAccount?: BillingAccount
+  billingAccounts: Record<string, GoogleBillingAccount>
+  chosenBillingAccount?: GoogleBillingAccount
   setChosenBillingAccount: (BillingAccount) => void
   billingProjectName?: string
   setBillingProjectName: (string) => void

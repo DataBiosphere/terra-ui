@@ -11,7 +11,7 @@ import Events from 'src/libs/events'
 import { contactUsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import CreateGCPBillingProject from 'src/pages/billing/CreateGCPBillingProject'
-import { BillingAccount } from 'src/pages/billing/models/BillingAccount'
+import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAccount'
 import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/Step'
 import { StepFields } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields'
 import { StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepHeader'
@@ -19,7 +19,7 @@ import { StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard
 
 interface CreateTerraProjectStepProps {
   isActive: boolean
-  billingAccounts: Record<string, BillingAccount>
+  billingAccounts: Record<string, GoogleBillingAccount>
 
   refreshed: boolean
   setRefreshed: (boolean) => void
