@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react-hooks'
 import { Ajax } from 'src/libs/ajax'
+import { reportError } from 'src/libs/error'
 import { DeepPartial } from 'src/libs/type-utils/deep-partial'
 import { AzureWorkspaceInfo, GoogleWorkspaceInfo } from 'src/libs/workspace-utils'
 import { useDeleteWorkspaceState } from 'src/pages/workspaces/workspace/delete-workspace-modal.state'
@@ -13,6 +14,11 @@ jest.mock('src/libs/ajax', (): AjaxExports => {
     Ajax: jest.fn()
   }
 })
+
+jest.mock('src/libs/error', () => ({
+  ...jest.requireActual('src/libs/error'),
+  reportError: jest.fn(),
+}))
 
 type AjaxContract = ReturnType<typeof Ajax>;
 type AjaxAppsContract = AjaxContract['Apps']
@@ -37,6 +43,11 @@ describe('useDeleteWorkspace', () => {
   const mockOnDismiss = jest.fn(() => {
   })
   const mockOnSuccess = jest.fn(() => {
+  })
+
+  beforeEach(() => {
+    jest.spyOn(console, 'error').mockImplementation(() => {})
+    jest.spyOn(console, 'log').mockImplementation(() => {})
   })
 
   it('can initialize state for a google workspace', async () => {
@@ -121,7 +132,6 @@ describe('useDeleteWorkspace', () => {
     const name = 'example_workspace_name'
     const namespace = 'example_namespace'
     const workspaceId = 'example_workspace_id'
-
     const mockDelete = jest.fn().mockResolvedValue([])
     const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
       workspace: () => ({
@@ -132,7 +142,6 @@ describe('useDeleteWorkspace', () => {
       listAppsV2: jest.fn()
     }
     asMockedFn((mockListAppsV2 as AjaxAppsContract).listAppsV2).mockResolvedValue([])
-
     const mockWsmControlledResources: Partial<AjaxWorkspaceManagerContract> = {
       controlledResources: jest.fn()
     }
@@ -158,5 +167,86 @@ describe('useDeleteWorkspace', () => {
     expect(result.current.deleting).toBe(true)
     expect(mockOnDismiss).toHaveBeenCalledTimes(1)
     expect(mockOnSuccess).toHaveBeenCalledTimes(1)
+  })
+
+  it('can delete a google workspace', async () => {
+    // Arrange
+    const name = 'example_workspace_name'
+    const namespace = 'example_namespace'
+    const workspaceId = 'example_workspace_id'
+    const mockDelete = jest.fn().mockResolvedValue([])
+    const mockApps: Partial<AjaxAppsContract> = {
+      listWithoutProject: jest.fn()
+    }
+    asMockedFn((mockApps as AjaxAppsContract).listWithoutProject).mockResolvedValue([])
+
+    const mockGetAcl = jest.fn().mockResolvedValue([])
+    const mockGetBucketUsage = jest.fn().mockResolvedValue([])
+    const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
+      workspace: () => ({
+        getAcl: mockGetAcl,
+        bucketUsage: mockGetBucketUsage,
+        delete: mockDelete
+      })
+    }
+
+    const mockAjax: Partial<AjaxContract> = {
+      Apps: mockApps as AjaxAppsContract,
+      Workspaces: mockWorkspaces as AjaxWorkspacesContract
+    }
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract)
+
+    // Act
+    const {
+      result,
+      waitForNextUpdate
+    } = renderHook(() => useDeleteWorkspaceState(googleWorkspace, namespace, name, workspaceId, mockOnDismiss, mockOnSuccess))
+    await waitForNextUpdate()
+    await act(() => result.current.deleteWorkspace())
+
+    // Assert
+    expect(result.current.deleting).toBe(true)
+  })
+
+  it('can handle errors when deletion fails', async () => {
+    // Arrange
+    const name = 'example_workspace_name'
+    const namespace = 'example_namespace'
+    const workspaceId = 'example_workspace_id'
+
+    const mockDelete = () => Promise.reject(new Response('mock deletion error'))
+
+    const mockApps: Partial<AjaxAppsContract> = {
+      listWithoutProject: jest.fn()
+    }
+    asMockedFn((mockApps as AjaxAppsContract).listWithoutProject).mockResolvedValue([])
+
+    const mockGetAcl = jest.fn().mockResolvedValue([])
+    const mockGetBucketUsage = jest.fn().mockResolvedValue([])
+    const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
+      workspace: () => ({
+        getAcl: mockGetAcl,
+        bucketUsage: mockGetBucketUsage,
+        delete: mockDelete
+      })
+    }
+
+    const mockAjax: Partial<AjaxContract> = {
+      Apps: mockApps as AjaxAppsContract,
+      Workspaces: mockWorkspaces as AjaxWorkspacesContract
+    }
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract)
+
+    // Act
+    const {
+      result,
+      waitForNextUpdate
+    } = renderHook(() => useDeleteWorkspaceState(googleWorkspace, namespace, name, workspaceId, mockOnDismiss, mockOnSuccess))
+    await waitForNextUpdate()
+    await act(() => result.current.deleteWorkspace())
+
+    // Assert
+    expect(result.current.deleting).toBe(false)
+    expect(reportError).toHaveBeenCalled()
   })
 })
