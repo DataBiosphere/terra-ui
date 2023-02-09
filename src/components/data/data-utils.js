@@ -32,6 +32,7 @@ import { notify } from 'src/libs/notifications'
 import { requesterPaysProjectStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
 
@@ -65,11 +66,11 @@ export const getDownloadCommand = (fileName, gsUri, accessUrl) => {
 }
 
 export const getUserProjectForWorkspace = async workspace => (workspace && await canUseWorkspaceProject(workspace)) ?
-  workspace.workspace.googleProject :
+  isGoogleWorkspace(workspace) :
   requesterPaysProjectStore.get()
 
 const isUri = (datum, isGoogleWorkspace) => (isGoogleWorkspace &&
-  (isGs(datum) || isDrs(datum))) || (!isGoogleWorkspace && isAzureUri(datum))
+  isGs(datum)) || isDrs(datum) || (!isGoogleWorkspace && (isAzureUri(datum)))
 
 export const getRootTypeForSetTable = tableName => _.replace(/(_set)+$/, '', tableName)
 
@@ -117,7 +118,7 @@ export const renderDataCell = (attributeValue, workspace) => {
 
   const renderCell = datum => {
     const stringDatum = Utils.convertValue('string', datum)
-    return isUri(datum, workspace.googleProject) ? h(UriViewerLink, { uri: datum, workspace }) : stringDatum
+    return isUri(datum, isGoogleWorkspace(workspace)) ? h(UriViewerLink, { uri: datum, workspace }) : stringDatum
   }
 
   const renderArray = items => {
@@ -152,7 +153,7 @@ export const renderDataCell = (attributeValue, workspace) => {
   )
 
   return h(Fragment, [
-    workspace.googleProject && hasOtherBucketUrls && h(TooltipTrigger, { content: 'Some files are located outside of the current workspace' }, [
+    isGoogleWorkspace(workspace) && hasOtherBucketUrls && h(TooltipTrigger, { content: 'Some files are located outside of the current workspace' }, [
       h(Interactive, { as: 'span', tabIndex: 0, style: { marginRight: '1ch' } }, [
         icon('warning-info', { size: 20, style: { color: colors.accent(), cursor: 'help' } })
       ])
