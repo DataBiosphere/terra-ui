@@ -18,7 +18,7 @@ interface CreateGCPBillingProjectProps {
   setChosenBillingAccount: (BillingAccount) => void
   billingProjectName?: string
   setBillingProjectName: (string) => void
-  existing: any
+  existing: string[]
   disabled?: boolean
 }
 

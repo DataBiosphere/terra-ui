@@ -82,6 +82,7 @@ const testAddTerraUserRenderedForStep3 = () => {
   expect(getStep3VerifyUserAdded()).toBeNull()
   expect(getStep3BillingAccountNoAccessButton()).not.toBeNull()
   expect(getStep3AddedTerraBillingButton()).not.toBeNull()
+  expect(getStep3AddTerraAsUserText()).not.toBeNull()
 }
 
 const testAddTerraUserStep3UninitializedState = () => {

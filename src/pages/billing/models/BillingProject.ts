@@ -24,6 +24,6 @@ export interface AzureBillingProject extends BillingProject {
 export interface GCPBillingProject extends BillingProject {
   cloudPlatform: 'GCP'
   billingAccount: string
-  servicePerimeter: string
+  servicePerimeter?: string
 }
 
