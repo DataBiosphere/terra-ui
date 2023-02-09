@@ -17,7 +17,7 @@ import SupportRequest from 'src/components/SupportRequest'
 import { getOidcConfig } from 'src/libs/auth'
 import { PageViewReporter } from 'src/libs/events'
 import { LocationProvider, PathHashInserter, Router, TitleManager } from 'src/libs/nav'
-import { AuthenticatedCookieSetter } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { AuthenticatedCookieSetter } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 
 
 const Main = () => {

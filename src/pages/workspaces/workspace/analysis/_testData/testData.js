@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { defaultAzureRegion } from 'src/libs/azure-utils'
 import * as Utils from 'src/libs/utils'
 import {
   defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultLocation, defaultPersistentDiskType, runtimeStatuses
@@ -12,6 +13,8 @@ const defaultAzureWorkspaceNamespace = 'test-azure-ws'
 
 //this is important, so the test impl can diverge
 export const testDefaultLocation = defaultLocation
+
+export const testAzureDefaultRegion = defaultAzureRegion
 
 export const defaultImage = {
   id: 'terra-jupyter-gatk',
@@ -277,6 +280,20 @@ export const galaxyRunning = {
   status: 'RUNNING'
 }
 
+export const galaxyDeleting = {
+  appName: 'terra-app-71200c2f-89c3-47db-874c-b770d8de22g',
+  appType: 'GALAXY',
+  auditInfo: {
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-30T20:19:13.162484Z'
+  },
+  diskName: 'saturn-pd-1236594ac-d829-423d-a8df-76fe96f5897',
+  errors: [],
+  googleProject: 'terra-test-e4000484',
+  kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+  labels: {},
+  proxyUrls: { galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy' },
+  status: 'DELETING'
+}
 
 export const galaxyDisk = {
   auditInfo: {
@@ -291,4 +308,67 @@ export const galaxyDisk = {
   size: 500,
   status: 'Ready',
   zone: 'us-central1-a'
+}
+
+
+export const azureDisk = {
+  id: 16902,
+  cloudContext: {
+    cloudProvider: 'AZURE',
+    cloudResource: 'testCloudResource'
+  },
+  zone: 'eastus',
+  name: 'testAzurePD',
+  status: 'Ready',
+  auditInfo: {
+    creator: 'test.user@gmail.com',
+    createdDate: '2023-02-01T20:40:50.428281Z',
+    destroyedDate: null,
+    dateAccessed: '2023-02-01T20:41:00.357Z'
+  },
+  size: 50,
+  diskType: 'pd-standard', //TODO: This should be stored in backend as STANDARD_LRS
+  blockSize: 4096,
+  labels: {
+    saturnWorkspaceNamespace: 'azure-dev-2023-01-23',
+    saturnWorkspaceName: 'N8AzureWS-2-1-2'
+  }
+}
+
+export const azureRuntime = {
+  id: 79771,
+  workspaceId: 'fafbb550-62eb-4135-8b82-3ce4d53446af',
+  runtimeName: 'saturn-42a4398b-10f8-4626-9025-7abda26aedab',
+  googleProject: '0cb7a640-45a2-4ed6-be9f-63519f86e04b/3efc5bdf-be0e-44e7-b1d7-c08931e3c16c/mrg-terra-dev-jan23-20230123125907',
+  cloudContext: {
+    cloudProvider: 'AZURE',
+    cloudResource: '0cb7a640-45a2-4ed6-be9f-63519f86e04b/3efc5bdf-be0e-44e7-b1d7-c08931e3c16c/mrg-terra-dev-jan23-20230123125907'
+  },
+  auditInfo: {
+    creator: 'ncl.hedwig@gmail.com',
+    createdDate: '2023-02-01T20:40:50.428281Z',
+    destroyedDate: null,
+    dateAccessed: '2023-02-01T20:41:00.357Z'
+  },
+  runtimeConfig: {
+    cloudService: 'AZURE_VM',
+    machineType: 'Standard_DS2_v2',
+    persistentDiskId: 16902,
+    region: 'eastus'
+  },
+  proxyUrl: 'https://lzf07312d05014dcfc2a6d8244c0f9b166a3801f44ec2b003d.servicebus.windows.net/saturn-42a4398b-10f8-4626-9025-7abda26aedab',
+  status: 'Running',
+  labels: {
+    saturnWorkspaceNamespace: 'azure-dev-2023-01-23',
+    creator: 'ncl.hedwig@gmail.com',
+    clusterServiceAccount: 'ncl.hedwig@gmail.com',
+    saturnAutoCreated: 'true',
+    clusterName: 'saturn-42a4398b-10f8-4626-9025-7abda26aedab',
+    saturnWorkspaceName: 'N8AzureWS-2-1-2',
+    saturnVersion: '6',
+    tool: 'JupyterLab',
+    runtimeName: 'saturn-42a4398b-10f8-4626-9025-7abda26aedab',
+    cloudContext: 'Azure/0cb7a640-45a2-4ed6-be9f-63519f86e04b/3efc5bdf-be0e-44e7-b1d7-c08931e3c16c/mrg-terra-dev-jan23-20230123125907'
+  },
+  patchInProgress: false
 }

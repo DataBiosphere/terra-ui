@@ -30,9 +30,10 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
+import { getCostDisplayForDisk, getCostDisplayForTool, getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
-import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
-import { getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentPersistentDisk, getCurrentRuntime, getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
+import { getCurrentApp, getCurrentAppDataDisk, getCurrentPersistentDisk, getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { appTools, getAppType, toolLabelDisplays, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
@@ -54,18 +55,29 @@ const contextBarStyles = {
 }
 
 export const ContextBar = ({
-  runtimes, apps, appDataDisks, refreshRuntimes, storageDetails: { googleBucketLocation, googleBucketType }, refreshApps,
+  runtimes, apps, appDataDisks, refreshRuntimes, storageDetails: { azureContainerRegion, googleBucketLocation, googleBucketType }, refreshApps,
   workspace, persistentDisks, workspace: { workspace: { namespace, name: workspaceName } }
 }) => {
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false)
   const [selectedToolIcon, setSelectedToolIcon] = useState(undefined)
 
-  const computeRegion = getRegionInfo(googleBucketLocation, googleBucketType).computeRegion
   const currentRuntime = getCurrentRuntime(runtimes)
   const currentRuntimeTool = currentRuntime?.labels?.tool
   const isTerminalVisible = currentRuntimeTool === toolLabels.Jupyter && currentRuntime && currentRuntime.status !== 'Error'
   const terminalLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: 'terminal' })
   const canCompute = !!(workspace?.canCompute || runtimes?.length)
+
+  // Azure workspace containers' armRegionName can be used directly in cost-utils as the computeRegion
+  const computeRegion = Utils.cond(
+    [isGoogleWorkspace(workspace), () => getRegionInfo(googleBucketLocation, googleBucketType).computeRegion],
+    [isAzureWorkspace(workspace), () => azureContainerRegion],
+    () => null
+  )
+  const location = Utils.cond(
+    [isGoogleWorkspace(workspace), () => googleBucketLocation],
+    [isAzureWorkspace(workspace), () => azureContainerRegion],
+    () => null
+  )
 
   const getImgForTool = toolLabel => Utils.switchCase(toolLabel,
     [toolLabels.Jupyter, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
@@ -132,7 +144,8 @@ export const ContextBar = ({
     const runtimeCost = currentRuntime ? getRuntimeCost(currentRuntime) : 0
     const curPd = getCurrentPersistentDisk(runtimes, persistentDisks)
     const diskCost = curPd ? getPersistentDiskCostHourly(curPd, computeRegion) : 0
-    return `${Utils.formatUSD(galaxyRuntimeCost + galaxyDiskCost + runtimeCost + diskCost)}`
+    const display = Utils.formatUSD(galaxyRuntimeCost + galaxyDiskCost + runtimeCost + diskCost)
+    return `${display}`
   }
 
   return h(Fragment, [
@@ -151,7 +164,7 @@ export const ContextBar = ({
         await refreshRuntimes(true)
         await refreshApps()
       },
-      runtimes, apps, appDataDisks, refreshRuntimes, refreshApps, workspace, canCompute, persistentDisks, location: googleBucketLocation, computeRegion
+      runtimes, apps, appDataDisks, refreshRuntimes, refreshApps, workspace, canCompute, persistentDisks, location, computeRegion
     }),
     div({ style: { ...Style.elements.contextBarContainer, width: 70 } }, [
       div({ style: contextBarStyles.contextBarContainer }, [

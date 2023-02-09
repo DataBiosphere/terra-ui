@@ -20,7 +20,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
-import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import {
   getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, mapToPdTypes
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
