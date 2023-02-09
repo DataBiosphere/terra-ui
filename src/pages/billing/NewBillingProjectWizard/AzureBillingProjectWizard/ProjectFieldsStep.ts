@@ -3,9 +3,9 @@ import { ReactNode, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { Select, useUniqueId } from 'src/components/common'
 import { ValidatedInput } from 'src/components/input'
-import { InfoBox } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
 import Events from 'src/libs/events'
+import { formHint } from 'src/libs/forms'
 import { summarizeErrors } from 'src/libs/utils'
 import { billingProjectNameValidator } from 'src/pages/billing/List'
 import { AzureManagedAppCoordinates } from 'src/pages/billing/models/AzureManagedAppCoordinates'
@@ -63,14 +63,14 @@ export const ProjectFieldsStep = ({
     }
   }
 
-  return h(Step, { isActive, style: { height: '13rem' } }, [
+  return h(Step, { isActive, style: { height: '14rem' } }, [
     h(StepHeader, { title: 'STEP 2' }, [
       'Set up a Terra billing project. ',
       ExternalLink({ text: 'Go to Azure Marketplace', url: 'https://portal.azure.com/' }),
       ' to find or create your managed resource group.'
     ]),
     h(StepFields, { style: { justifyContent: 'flex-start', width: '75%', marginTop: '1rem' } }, [
-      h(LabeledField, { label: 'Terra billing project', formId: nameInputId, required: true, style: { width: '30%', marginLeft: 0, marginRight: '2rem' } }, [
+      h(LabeledField, { label: 'Terra billing project', formId: nameInputId, required: true, style: { flex: '1 1 30%', marginLeft: 0, marginRight: '2rem' } }, [
         ValidatedInput({
           error: nameErrors,
           inputProps: {
@@ -85,17 +85,10 @@ export const ProjectFieldsStep = ({
             },
             onBlur: onNameInput
           }
-        })
+        }),
+        !nameErrors && formHint('Name must be unique and cannot be changed.')
       ]),
-      h(LabeledField, {
-        formId: appSelectId, required: true, label: [
-          'Unassigned managed application',
-          h(InfoBox, { style: { marginLeft: '0.25rem' } } as any, [
-            'A managed application instance can only be assigned to a single Terra billing ',
-            'project. Only unassigned managed applications are included in the list below.'
-          ])
-        ]
-      }, [
+      h(LabeledField, { formId: appSelectId, required: true, style: { flex: '1 1 30%' }, label: ['Unassigned managed application'] }, [
         h(Select, {
           id: appSelectId,
           placeholder: 'Select a managed application',
@@ -114,7 +107,8 @@ export const ProjectFieldsStep = ({
             }
           },
           options: managedAppsToOptions(managedApps)
-        })
+        }),
+        formHint('A managed application instance can only be assigned to a single Terra billing project. Only unassigned managed applications are included in the list below.')
       ]),
     ]),
   ])

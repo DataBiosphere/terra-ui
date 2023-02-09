@@ -9,6 +9,7 @@ import Events from 'src/libs/events'
 import { useCancellation } from 'src/libs/react-utils'
 import { withBusyState } from 'src/libs/utils'
 import { AzureManagedAppCoordinates } from 'src/pages/billing/models/AzureManagedAppCoordinates'
+import { BillingRole } from 'src/pages/billing/models/BillingRole'
 import { CreateProjectStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/CreateProjectStep'
 import { StepWizard } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepWizard'
 
@@ -20,6 +21,9 @@ import { ProjectFieldsStep } from './ProjectFieldsStep'
 interface AzureBillingProjectWizardProps {
   onSuccess: (string) => void
 }
+
+export const userInfoListToProjectAccessObjects = (userInfo: AddUserInfo[]): Array<{email: string; role: BillingRole}> => _.flatten(userInfo.map(info => info.emails.split(',').map(email => ({ email: email.trim(), role: info.role }))))
+
 
 export const AzureBillingProjectWizard = ({ ...props }: AzureBillingProjectWizardProps) => {
   const [activeStep, setActiveStep] = useState<number>(1)
@@ -40,6 +44,7 @@ export const AzureBillingProjectWizard = ({ ...props }: AzureBillingProjectWizar
     return json.managedApps
   })
 
+
   const createBillingProject = _.flow(
     reportErrorAndRethrow('Error creating billing project'),
     withBusyState(setIsCreating)
@@ -47,10 +52,11 @@ export const AzureBillingProjectWizard = ({ ...props }: AzureBillingProjectWizar
     if (!billingProjectName) return
     try {
       Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectCreateSubmit)
+
+      const members = userInfoListToProjectAccessObjects(users)
       const response = await Ajax().Billing
-        .createAzureProject(billingProjectName, selectedApp?.tenantId, subscriptionId, selectedApp?.managedResourceGroupId)
+        .createAzureProject(billingProjectName, selectedApp?.tenantId, subscriptionId, selectedApp?.managedResourceGroupId, members)
       if (response.ok) {
-        //billingProjectName && props.submit(billingProjectName)
         Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectCreateSuccess)
       }
     } catch (error: any) {

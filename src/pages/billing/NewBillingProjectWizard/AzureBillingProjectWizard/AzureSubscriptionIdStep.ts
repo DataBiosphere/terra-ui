@@ -41,11 +41,11 @@ export const AzureSubscriptionIdStep = ({ isActive, subscriptionId, ...props }: 
     h(StepHeader, { title: 'STEP 1' }, [
       'Link Terra to your Azure subscription. ',
       ExternalLink({ text: 'Go to Azure Marketplace', url: 'https://portal.azure.com/' }),
-      ' to access your Azure subscription ID'
+      ' to access your Azure Subscription ID.'
     ]),
     h(StepFields, { style: { width: '100%', height: '100%' } }, [
       //h(StepFieldForm, { style: { height: '100%' } }, [
-      h(LabeledField, { style: { width: '60%' }, label: 'Enter your Azure subscription Id', formId, required: true }, [
+      h(LabeledField, { style: { width: '60%' }, label: 'Enter your Azure subscription ID', formId, required: true }, [
         h(ValidatedInput, {
           inputProps: {
             id: formId,

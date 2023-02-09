@@ -57,7 +57,7 @@ export const AddUserStep = ({ isActive, users, setUsers }: AddUserStepProps) => 
     h(StepHeader, { title: 'STEP 3' }, [
       'Optional: Add additional users to your Terra billing project. ',
       'For bulk upload, separate email addresses by a comma. ',
-      'Any email addresses not associated with a Terra account will be sent an email to register'
+      'Any email addresses not associated with a Terra account will be sent an email to register.'
     ]),
     h(StepFields, { disabled: false }, [
       ul({ style: { display: 'flex', flexDirection: 'column-reverse', width: '100%', margin: 0, padding: 0 } }, [
