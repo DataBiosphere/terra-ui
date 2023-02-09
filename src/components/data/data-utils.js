@@ -45,7 +45,6 @@ export const warningBoxStyle = {
 
 const errorTextStyle = { color: colors.danger(), fontWeight: 'bold', fontSize: 12, marginTop: '0.5rem' }
 
-// TODO: Aaron -- might need to change
 export const parseGsUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
 
 export const getDownloadCommand = (fileName, gsUri, accessUrl) => {
