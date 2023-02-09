@@ -748,7 +748,7 @@ const WorkspaceData = _.flow(
             ])
           }, [h(ButtonOutline, {
             disabled: !canEditWorkspace,
-            tooltip: canEditWorkspace ? 'Add data to this workspace' : editWorkspaceErrorMessage,
+            tooltip: canEditWorkspace && !uploadingWDSFile ? 'Add data to this workspace' : editWorkspaceErrorMessage,
             style: { flex: 1 }
           }, [span([icon('plus-circle', { style: { marginRight: '1ch' } }), 'Import data'])])])
         ]),
@@ -1059,11 +1059,11 @@ const WorkspaceData = _.flow(
       h(SidebarSeparator, { sidebarWidth, setSidebarWidth }),
       div({ style: styles.tableViewPanel }, [
         _.includes(selectedData?.type, [workspaceDataTypes.entities, workspaceDataTypes.entitiesVersion]) && h(DataTableFeaturePreviewFeedbackBanner),
-        Utils.cond([createdBy === getUser()?.email || isGoogleWorkspace, () => Utils.switchCase(selectedData?.type, [undefined, () => Utils.cond([!wdsReady && isAzureWorkspace, () => div({ style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' } },
+        Utils.cond([createdBy === getUser()?.email || isGoogleWorkspace, () => Utils.switchCase(selectedData?.type, [undefined, () => Utils.cond([isAzureWorkspace && (uploadingWDSFile || !wdsReady), () => div({ style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' } },
 
           [icon('loadingSpinner'),
-            ' The database that powers your data tables is unavailable. It may take a few minutes after initial workspace creation to be ready. If you think something has gone wrong, please reach out to support@terra.bio and include information from our ',
-            h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['Troubleshoot']), ' page.'])],
+            ' Preparing your data tables, this may take a few minutes. ',
+            Utils.cond([!uploadingWDSFile, () => div({}, ['You can ', h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['check the status']), ' of your data table service.'])], '')])],
         () => div({ style: { textAlign: 'center' } }, ['Select a data type from the navigation panel on the left']),
         )],
         [workspaceDataTypes.localVariables, () => h(LocalVariablesContent, {

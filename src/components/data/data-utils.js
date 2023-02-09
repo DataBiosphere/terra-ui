@@ -541,8 +541,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
             }, [' Importing Data - Using a Template'])
           ])
         ])
-      ]),
-      uploading && spinnerOverlay
+      ])
     ])
   ])
 }
