@@ -19,25 +19,28 @@ type AjaxAppsContract = AjaxContract['Apps']
 type AjaxWorkspaceManagerContract = AjaxContract['WorkspaceManagerResources']
 type AjaxWorkspacesContract = AjaxContract['Workspaces']
 
-// Cases
-// it should initialize state for a google workspace
-// it should initialize state for an azure workspace
-// it should delete a workspace and invoke the appropriate hooks on success
-// it should delete a workspace and report an error on failure
-
 describe('useDeleteWorkspace', () => {
+  const googleWorkspace = {
+    accessLevel: 'writer',
+    canShare: true,
+    canCompute: true,
+    workspace: {
+      cloudPlatform: 'Gcp'
+    } as GoogleWorkspaceInfo
+  }
+  const azureWorkspace = {
+    accessLevel: 'writer',
+    canShare: true,
+    canCompute: true,
+    workspace: {} as AzureWorkspaceInfo
+  }
+  const mockOnDismiss = jest.fn(() => {
+  })
+  const mockOnSuccess = jest.fn(() => {
+  })
+
   it('can initialize state for a google workspace', async () => {
     // Arrange
-    const onDismiss = jest.fn(() => {})
-    const onSuccess = jest.fn(() => {})
-    const workspace = {
-      accessLevel: 'writer',
-      canShare: true,
-      canCompute: true,
-      workspace: {
-        cloudPlatform: 'Gcp'
-      } as GoogleWorkspaceInfo
-    }
     const name = 'example_workspace_name'
     const namespace = 'example_namespace'
     const workspaceId = 'example_workspace_id'
@@ -62,7 +65,10 @@ describe('useDeleteWorkspace', () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract)
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useDeleteWorkspaceState(workspace, namespace, name, workspaceId, onDismiss, onSuccess))
+    const {
+      result,
+      waitForNextUpdate
+    } = renderHook(() => useDeleteWorkspaceState(googleWorkspace, namespace, name, workspaceId, mockOnDismiss, mockOnSuccess))
     await waitForNextUpdate()
 
     // Assert
@@ -75,16 +81,6 @@ describe('useDeleteWorkspace', () => {
 
   it('can initialize state for an azure workspace', async () => {
     // Arrange
-    const onDismiss = jest.fn(() => {})
-    const onSuccess = jest.fn(() => {})
-    const workspace = {
-      accessLevel: 'writer',
-      canShare: true,
-      canCompute: true,
-      workspace: {
-
-      } as AzureWorkspaceInfo
-    }
     const name = 'example_workspace_name'
     const namespace = 'example_namespace'
     const workspaceId = 'example_workspace_id'
@@ -108,7 +104,10 @@ describe('useDeleteWorkspace', () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract)
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useDeleteWorkspaceState(workspace, namespace, name, workspaceId, onDismiss, onSuccess))
+    const {
+      result,
+      waitForNextUpdate
+    } = renderHook(() => useDeleteWorkspaceState(azureWorkspace, namespace, name, workspaceId, mockOnDismiss, mockOnSuccess))
     await waitForNextUpdate()
 
     // Assert
@@ -119,16 +118,6 @@ describe('useDeleteWorkspace', () => {
 
   it('can delete an azure workspace', async () => {
     // Arrange
-    const onDismiss = jest.fn(() => {})
-    const onSuccess = jest.fn(() => {})
-    const workspace = {
-      accessLevel: 'writer',
-      canShare: true,
-      canCompute: true,
-      workspace: {
-
-      } as AzureWorkspaceInfo
-    }
     const name = 'example_workspace_name'
     const namespace = 'example_namespace'
     const workspaceId = 'example_workspace_id'
@@ -158,13 +147,16 @@ describe('useDeleteWorkspace', () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract)
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useDeleteWorkspaceState(workspace, namespace, name, workspaceId, onDismiss, onSuccess))
+    const {
+      result,
+      waitForNextUpdate
+    } = renderHook(() => useDeleteWorkspaceState(azureWorkspace, namespace, name, workspaceId, mockOnDismiss, mockOnSuccess))
     await waitForNextUpdate()
     await act(() => result.current.deleteWorkspace())
 
     // Assert
     expect(result.current.deleting).toBe(true)
-    expect(onDismiss).toHaveBeenCalledTimes(1)
-    expect(onSuccess).toHaveBeenCalledTimes(1)
+    expect(mockOnDismiss).toHaveBeenCalledTimes(1)
+    expect(mockOnSuccess).toHaveBeenCalledTimes(1)
   })
 })
