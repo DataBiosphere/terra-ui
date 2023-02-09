@@ -105,6 +105,7 @@ const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspac
 
 const withWorkspace = test => async options => {
   console.log('withWorkspace ...')
+  console.log(options)
   const workspaceName = await makeWorkspace(options)
 
   try {
