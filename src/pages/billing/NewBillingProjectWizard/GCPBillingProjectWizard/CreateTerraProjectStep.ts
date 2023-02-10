@@ -73,11 +73,7 @@ export const CreateTerraProjectStep = ({
           authorizeAndLoadAccounts: props.authorizeAndLoadAccounts
         }) :
         div({ style: { display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
-          h(ButtonPrimary, {
-            onClick: submit,
-            role: 'button',
-            disabled: !isActive
-          }, [
+          h(ButtonPrimary, { style: { textTransform: 'none' }, onClick: submit, disabled: !isActive }, [
             'Create Terra Billing Project',
             isBusy && icon('loadingSpinner', { size: 16, style: { color: 'white', marginRight: '0.5rem' } }),
           ]),
