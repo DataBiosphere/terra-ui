@@ -37,7 +37,7 @@ const TermsOfServicePage = () => {
     try {
       setBusy(true)
       const { enabled } = await Ajax().User.acceptTos()
-      const termsOfService = await Ajax().User.getTermsOfServiceAdherenceStatus()
+      const termsOfService = await Ajax().User.getTermsOfServiceComplianceStatus()
 
       if (enabled) {
         const registrationStatus = userStatus.registeredWithTos

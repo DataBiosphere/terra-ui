@@ -7,11 +7,19 @@ import TermsOfServicePage from 'src/pages/TermsOfService'
 
 
 jest.mock('src/libs/ajax')
-jest.mock('src/libs/notifications')
+jest.mock('react-notifications-component', () => {
+  return {
+    store: {
+      addNotification: jest.fn(),
+      removeNotification: jest.fn()
+    }
+  }
+})
+
 
 const setupMockAjax = termsOfService => {
   const getTos = jest.fn().mockReturnValue(Promise.resolve('some text'))
-  const getTermsOfServiceAdherenceStatus = jest.fn().mockReturnValue(termsOfService)
+  const getTermsOfServiceComplianceStatus = jest.fn().mockReturnValue(termsOfService)
   const getStatus = jest.fn().mockReturnValue({})
   Ajax.mockImplementation(() => ({
     Metrics: {
@@ -22,10 +30,13 @@ const setupMockAjax = termsOfService => {
         get: jest.fn().mockReturnValue(Promise.resolve({ keyValuePairs: [] })),
       },
       getTos,
-      getTermsOfServiceAdherenceStatus,
+      getTermsOfServiceComplianceStatus,
       getStatus
     }
   }))
+
+  const isSignedIn = true
+  authStore.update(state => ({ ...state, termsOfService, isSignedIn }))
 }
 
 describe('TermsOfService', () => {
@@ -38,12 +49,10 @@ describe('TermsOfService', () => {
       userHasAcceptedLatestTos: false,
       permitsSystemUsage: true,
     }
-    const isSignedIn = true
 
     setupMockAjax(termsOfService)
 
     render(h(TermsOfServicePage))
-    authStore.update(state => ({ ...state, termsOfService, isSignedIn }))
     const continueUnderGracePeriodButton = await screen.findByText('Continue under grace period')
     expect(continueUnderGracePeriodButton).not.toBeFalsy()
   })
@@ -53,13 +62,29 @@ describe('TermsOfService', () => {
       userHasAcceptedLatestTos: false,
       permitsSystemUsage: false,
     }
-    const isSignedIn = true
     setupMockAjax(termsOfService)
 
     // Need to wrap in 'act' or else get a warning about updating react state
-    await act(() => Promise.resolve(render(h(TermsOfServicePage))))
-    authStore.update(state => ({ ...state, termsOfService, isSignedIn }))
+    await act(() => Promise.resolve(render(h(TermsOfServicePage))).finally())
+
     const continueUnderGracePeriodButton = await screen.queryByText('Continue under grace period')
     expect(continueUnderGracePeriodButton).not.toBeInTheDocument()
+  })
+
+  it('does not show any buttons when the user has accepted the latest ToS and is allowed to use Terra', async () => {
+    const termsOfService = {
+      userHasAcceptedLatestTos: true,
+      permitsSystemUsage: true,
+    }
+    setupMockAjax(termsOfService)
+
+    // Need to wrap in 'act' or else get a warning about updating react state
+    await act(() => Promise.resolve(render(h(TermsOfServicePage))).finally())
+
+    const continueUnderGracePeriodButton = await screen.queryByText('Continue under grace period')
+    expect(continueUnderGracePeriodButton).not.toBeInTheDocument()
+
+    const acceptButton = await screen.queryByText('Accept')
+    expect(acceptButton).not.toBeInTheDocument()
   })
 })

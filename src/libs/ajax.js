@@ -126,9 +126,9 @@ const User = signal => ({
     }
   },
 
-  getTermsOfServiceAdherenceStatus: async () => {
+  getTermsOfServiceComplianceStatus: async () => {
     try {
-      const res = await(fetchSam('register/user/v2/self/termsOfServiceAdherenceStatus', _.merge(authOpts(), { signal })))
+      const res = await fetchSam('register/user/v2/self/termsOfServiceComplianceStatus', _.merge(authOpts(), { signal }))
       return res.json()
     } catch (error) {
       if (error.status === 404 || error.status === 403) {

@@ -321,13 +321,13 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
 
 authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
-    const tosDetails = await Ajax().User.getTermsOfServiceAdherenceStatus()
-    const termsOfService = parseTosAdherenceStatus(tosDetails)
+    const tosDetails = await Ajax().User.getTermsOfServiceComplianceStatus()
+    const termsOfService = parseTosComplianceStatus(tosDetails)
     authStore.update(state => ({ ...state, termsOfService }))
   }
 }))
 
-export const parseTosAdherenceStatus = tosDetails => {
+export const parseTosComplianceStatus = tosDetails => {
   if (_.isNull(tosDetails)) {
     return {
       userHasAcceptedLatestTos: undefined,
