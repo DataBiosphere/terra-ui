@@ -15,7 +15,7 @@ function stepBanner(active: boolean): CSSProperties {
     width: '100%',
     border: active ? `1px solid ${colors.accent()}` : `1px solid ${colors.accent(0.2)}`,
     backgroundColor: active ? colors.light(0.5) : colors.light(0.3),
-    boxShadow: active ? '0 0 5px 0 rgba(77,114,170,0.5)' : 'none'
+    boxShadow: active ? `0 0 5px 0 ${colors.accent(0.5)}` : 'none'
   }
 }
 
