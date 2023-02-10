@@ -100,7 +100,7 @@ export const useDeleteWorkspaceState = (workspace: BaseWorkspace, onDismiss: () 
     loading,
     deleting,
     isDeleteDisabledFromResources,
-    workspaceBucketUsageInBytes: workspaceBucketUsageInBytes ? workspaceBucketUsageInBytes : null,
+    workspaceBucketUsageInBytes: workspaceBucketUsageInBytes !== undefined ? workspaceBucketUsageInBytes : null,
     deletableApps,
     nonDeletableApps,
     collaboratorEmails: collaboratorEmails ? collaboratorEmails : null,
