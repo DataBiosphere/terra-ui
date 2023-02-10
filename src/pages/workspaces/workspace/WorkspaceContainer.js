@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -14,13 +14,13 @@ import { isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { useCancellation, useOnMount, usePrevious, withDisplayName } from 'src/libs/react-utils'
+import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import { getUser } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
-import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import {
   getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, mapToPdTypes
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
@@ -276,7 +276,7 @@ const useCloudEnvironmentPolling = workspace => {
   return { runtimes, refreshRuntimes, persistentDisks, appDataDisks }
 }
 
-const useAppPolling = (googleProject, workspaceName, workspace) => {
+const useAppPolling = workspace => {
   const signal = useCancellation()
   const timeout = useRef()
   const [apps, setApps] = useState()
@@ -284,10 +284,11 @@ const useAppPolling = (googleProject, workspaceName, workspace) => {
     clearTimeout(timeout.current)
     timeout.current = setTimeout(refreshAppsSilently, ms)
   }
-  const loadApps = async () => {
+  const loadApps = async maybeStale => {
     try {
       const newGoogleApps = !!workspace && isGoogleWorkspace(workspace) ?
-        await Ajax(signal).Apps.list(googleProject, { role: 'creator', saturnWorkspaceName: workspaceName }) : []
+        await Ajax(signal).Apps.list(workspace.workspace.googleProject, { role: 'creator', saturnWorkspaceName: workspace.workspace.name }) :
+        []
       const newAzureApps = !!workspace && isAzureWorkspace(workspace) ? await Ajax(signal).Apps.listAppsV2(workspace.workspace.workspaceId) : []
       const combinedNewApps = [...newGoogleApps, ...newAzureApps]
 
@@ -295,7 +296,7 @@ const useAppPolling = (googleProject, workspaceName, workspace) => {
       _.forOwn(tool => {
         if (tool.appType) {
           const app = getCurrentApp(tool.appType)(combinedNewApps)
-          reschedule((app && _.includes(app.status, ['PROVISIONING', 'PREDELETING'])) ? 10000 : 120000)
+          reschedule(maybeStale || (app && _.includes(app.status, ['PROVISIONING', 'PREDELETING'])) ? 10000 : 120000)
         }
       })(tools)
     } catch (error) {
@@ -318,20 +319,15 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const child = useRef()
 
     const { workspace, accessError, loadingWorkspace, storageDetails, refreshWorkspace } = useWorkspace(namespace, name)
-    const googleProject = workspace?.googleProject
-    const azureContext = workspace?.azureContext
-    const prevGoogleProject = usePrevious(googleProject)
-    const prevAzureContext = usePrevious(azureContext)
-
-    const workspaceLoaded = !!workspace
-
     const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(workspace)
-    const { apps, refreshApps } = useAppPolling(googleProject, name, workspace)
-    // The following if statements are necessary to support the context bar properly loading runtimes for google/azure
-    if (workspaceLoaded && (googleProject !== prevGoogleProject || azureContext !== prevAzureContext)) {
+    const { apps, refreshApps } = useAppPolling(workspace)
+
+    // The following is necessary to support the context bar properly loading runtimes for google/azure
+    useEffect(() => {
       refreshRuntimes(true)
-      refreshApps()
-    }
+      refreshApps(true)
+    }, [workspace]) // eslint-disable-line react-hooks/exhaustive-deps
+
 
     const analysesData = { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks }
 

@@ -20,11 +20,13 @@ import { useCancellation, useGetter } from 'src/libs/react-utils'
 import { contactUsActive, getUser } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
-  defaultComputeZone, getAppCost, getComputeStatusForDisplay, getCreatorForRuntime, getDiskAppType, getGalaxyComputeCost,
-  getPersistentDiskCostMonthly,
-  getRegionFromZone, getRuntimeCost, isApp, isComputePausable, isGcpContext, isResourceDeletable, mapToPdTypes,
+  getAppCost, getGalaxyComputeCost, getPersistentDiskCostMonthly, getRuntimeCost
+} from 'src/pages/workspaces/workspace/analysis/cost-utils'
+import { SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
+import {
+  defaultComputeZone, getComputeStatusForDisplay, getCreatorForRuntime, getDiskAppType,
+  getRegionFromZone, isApp, isComputePausable, isGcpContext, isResourceDeletable, mapToPdTypes,
   workspaceHasMultipleDisks
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
@@ -407,19 +409,19 @@ export const Environments = ({ nav = undefined }) => {
 
   const renderPauseButton = (computeType, compute) => {
     const { status } = compute
+    const isAzure = getCloudProvider(compute) === 'AZURE_VM'
+    const shouldShowPauseButton = Utils.cond(
+      [isApp(compute) && !_.find(tool => tool.appType && tool.appType === compute.appType)(appTools)?.isPauseUnsupported, () => true],
+      [isPauseSupported(getToolLabelFromRuntime(compute)) && currentUser === getCreatorForRuntime(compute), () => true],
+      () => false)
 
-    const shouldShowPauseButton =
-      Utils.cond(
-        [isApp(compute) && !_.find(tool => tool.appType && tool.appType === compute.appType)(appTools)?.isPauseUnsupported, () => true],
-        [isPauseSupported(getToolLabelFromRuntime(compute)) && currentUser === getCreatorForRuntime(compute), () => true],
-        () => false)
-
-    return shouldShowPauseButton && h(Link, {
+    return shouldShowPauseButton && h(Link, { //TODO: IA-3993 enable pausing
       style: { marginRight: '1rem' },
-      disabled: !isComputePausable(computeType, compute),
-      tooltip: isComputePausable(computeType, compute) ?
-        'Pause cloud environment' :
-        `Cannot pause a cloud environment while in status ${_.upperCase(getComputeStatusForDisplay(status))}.`,
+      disabled: isAzure || !isComputePausable(computeType, compute),
+      tooltip: Utils.cond(
+        [isAzure, () => 'Feature coming soon'],
+        [isComputePausable(computeType, compute), () => 'Pause cloud environment'],
+        () => `Cannot pause a cloud environment while in status ${_.upperCase(getComputeStatusForDisplay(status))}.`),
       onClick: () => pauseComputeAndRefresh(computeType, compute)
     }, [makeMenuIcon('pause'), 'Pause'])
   }

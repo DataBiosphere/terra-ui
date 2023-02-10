@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 
+// GOOGLE CLOUD MACHINE TYPES AND PRICING
 
 export const machineTypes = [
   { name: 'n1-standard-1', cpu: 1, memory: 3.75 },
@@ -143,6 +144,8 @@ export const ephemeralExternalIpAddressPrice = { // per hour in dollars for all 
   standard: 0.004,
   preemptible: 0.002
 }
+
+// TODO [IA-4007] Explore replacing the hardcoded, manually synced script output below with a dynamic solution for price quotes.
 
 // Disk prices below are per GB per https://cloud.google.com/compute/all-pricing#disk
 // GPU prices below are hourly and per GPU (https://cloud.google.com/compute/gpus-pricing).
