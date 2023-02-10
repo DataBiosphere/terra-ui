@@ -12,15 +12,18 @@ import Modal from 'src/components/Modal'
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/gce-machines'
 import { Ajax } from 'src/libs/ajax'
+import { Metrics } from 'src/libs/ajax/Metrics'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { findPotentialNotebookLockers, getFileName, notebookLockHash } from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { cloudProviderTypes } from 'src/libs/workspace-utils'
+import { findPotentialNotebookLockers, getExtension, getFileName, notebookLockHash } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
 import { ComputeModal } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
@@ -468,9 +471,17 @@ const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace:
     withRequesterPaysHandler(onRequesterPaysError),
     withErrorReporting('Error previewing analysis')
   )(async () => {
-    const previewHtml = !!googleProject ?
+    // TOODO: Tracked in IA-4015. This implementation is not ideal. Introduce Error typing to better resolve the response.
+    const response = !!googleProject ?
       await Ajax(signal).Buckets.analysis(googleProject, bucketName, analysisName, toolLabel).preview() :
       await Ajax(signal).AzureStorage.blob(workspaceId, analysisName).preview()
+
+    if (response.status === 200) {
+      Metrics().captureEvent(Events.analysisPreviewSuccess, { fileName: analysisName, fileType: getExtension(analysisName), cloudPlatform: !!googleProject ? cloudProviderTypes.GCP : cloudProviderTypes.AZURE })
+    } else {
+      Metrics().captureEvent(Events.analysisPreviewFail, { fileName: analysisName, fileType: getExtension(analysisName), cloudPlatform: !!googleProject ? cloudProviderTypes.GCP : cloudProviderTypes.AZURE, errorText: response.statusText })
+    }
+    const previewHtml = await response.text()
     setPreview(previewHtml)
   })
   useOnMount(() => {
