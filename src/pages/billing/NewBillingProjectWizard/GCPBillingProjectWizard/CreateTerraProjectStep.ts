@@ -54,7 +54,7 @@ export const CreateTerraProjectStep = ({
       }
     }
   })
-  return h(Step, { isActive }, [
+  return h(Step, { isActive, style: { height: '18rem' } }, [
     h(StepHeader, {
       title: 'STEP 4', children: [
         'Create a Terra project to connect your Google billing account to Terra. ',
@@ -72,7 +72,7 @@ export const CreateTerraProjectStep = ({
           setRefreshed: props.setRefreshed,
           authorizeAndLoadAccounts: props.authorizeAndLoadAccounts
         }) :
-        div({ style: { display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
+        div({ style: { display: 'flex', flexDirection: 'column', margin: '4rem' } }, [
           h(ButtonPrimary, { style: { textTransform: 'none' }, onClick: submit, disabled: !isActive }, [
             'Create Terra Billing Project',
             isBusy && icon('loadingSpinner', { size: 16, style: { color: 'white', marginRight: '0.5rem' } }),
