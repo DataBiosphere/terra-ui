@@ -1,4 +1,3 @@
-// TODO: move to more testing based off of state, not actions
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'jest-axe'
@@ -77,13 +76,17 @@ const testStep2HaveBillingChecked = () => {
   verifyUnchecked(getStep2BillingAccountNoAccessButton())
 }
 
-// the happy path
+// check that the default happy path is rendered
 const testAddTerraUserRenderedForStep3 = () => {
+  // checking that the alternate component is not rendered
   expect(getStep3VerifyUserAdded()).toBeNull()
+  expect(getStep3ContactBillingAdministrator()).toBeNull()
+  // checking that the correct component is rendered
   expect(getStep3BillingAccountNoAccessButton()).not.toBeNull()
   expect(getStep3AddedTerraBillingButton()).not.toBeNull()
   expect(getStep3AddTerraAsUserText()).not.toBeNull()
 }
+
 
 const testAddTerraUserStep3UninitializedState = () => {
   verifyDisabled(getStep3BillingAccountNoAccessButton())
@@ -100,8 +103,11 @@ const testStep3RadioButtonsNoneSelected = () => {
   verifyUnchecked(getStep3AddedTerraBillingButton())
   expect(getStep3BillingAccountNoAccessButton()).not.toBeNull()
   expect(getStep3AddedTerraBillingButton()).not.toBeNull()
-  expect(getStep3VerifyUserAdded()).toBeNull()
   expect(getStep3AddTerraAsUserText()).not.toBeNull()
+  // the next two asserts don't necessarily belong logically,
+  // but the components that are checked will never be rendered when the ones above are present
+  // so it makes sense to leave them here
+  expect(getStep3VerifyUserAdded()).toBeNull()
   expect(getStep3ContactBillingAdministrator()).toBeNull()
 }
 
