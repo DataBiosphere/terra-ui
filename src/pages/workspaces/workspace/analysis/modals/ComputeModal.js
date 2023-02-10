@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
-import { b, br, code, div, fieldset, h, label, legend, li, p, span, strong, ul } from 'react-hyperscript-helpers'
+import React, { Fragment, useState } from 'react'
+import { b, br, code, div, fieldset, h, label, legend, p, span, strong } from 'react-hyperscript-helpers'
 import { ClipboardButton } from 'src/components/ClipboardButton'
 import { ButtonOutline, ButtonPrimary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay, useUniqueId } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -38,6 +38,7 @@ import validate from 'validate.js'
 // Change to true to enable a debugging panel (intended for dev mode only)
 const showDebugPanel = false
 const titleId = 'cloud-compute-modal-title'
+const subtitleId = 'cloud-compute-modal-subtitle'
 
 const customMode = '__custom_mode__'
 const terraDockerBaseGithubUrl = 'https://github.com/databiosphere/terra-docker'
@@ -121,24 +122,6 @@ const WorkerSelector = ({ value, machineTypeOptions, onChange }) => {
   ])
 }
 
-const DataprocDiskSelector = ({ value, onChange }) => {
-  return h(IdContainer, [
-    id => h(Fragment, [
-      label({ htmlFor: id, style: computeStyles.label }, ['Disk size (GB)']),
-      h(NumberInput, {
-        id,
-        style: { minWidth: '6rem' },
-        min: 150, // less than this size causes failures in cluster creation
-        max: 64000,
-        isClearable: false,
-        onlyInteger: true,
-        value,
-        onChange
-      })
-    ])
-  ])
-}
-
 const SparkInterface = ({ sparkInterface, namespace, name, onDismiss }) => {
   const { label, displayName, synopsis } = sparkInterface
 
@@ -188,12 +171,11 @@ export const ComputeModalBase = ({
   const [viewMode, setViewMode] = useState(undefined)
   const [deleteDiskSelected, setDeleteDiskSelected] = useState(false)
   const [upgradeDiskSelected, setUpgradeDiskSelected] = useState(false)
-  const [simplifiedForm, setSimplifiedForm] = useState(!currentRuntimeDetails)
   const [leoImages, setLeoImages] = useState([])
   const [selectedLeoImage, setSelectedLeoImage] = useState(undefined)
   const [timeoutInMinutes, setTimeoutInMinutes] = useState(null)
   const [customEnvImage, setCustomEnvImage] = useState('')
-  const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState('')
+  const jupyterUserScript = React.useRef()
   const [runtimeType, setRuntimeType] = useState(runtimeTypes.gceVm)
   const [computeConfig, setComputeConfig] = useState({
     selectedPersistentDiskSize: defaultGcePersistentDiskSize,
@@ -223,7 +205,7 @@ export const ComputeModalBase = ({
     _.filter(({ id }) => terraSupportedRuntimeImageIds.includes(id)),
     _.map(({ image }) => image)
   )(leoImages)
-  const { version, updated, packages, requiresSpark, label: packageLabel } = _.find({ image: selectedLeoImage }, leoImages) || {}
+  const { version, updated, packages, requiresSpark, label } = _.find({ image: selectedLeoImage }, leoImages) || {}
   // The memory sizes below are the minimum required to launch Terra-supported GCP runtimes, based on experimentation.
   const minRequiredMemory = isDataproc(runtimeType) ? 7.5 : 3.75 // in GB
   const validMachineTypes = _.filter(({ memory }) => memory >= minRequiredMemory, machineTypes)
@@ -466,7 +448,7 @@ export const ComputeModalBase = ({
           return {
             cloudService,
             toolDockerImage: selectedLeoImage === customMode ? customEnvImage : selectedLeoImage,
-            ...(jupyterUserScriptUri && { jupyterUserScriptUri }),
+            ...(jupyterUserScript.current && jupyterUserScript.current.value && { jupyterUserScriptUri: jupyterUserScript.current.value }),
             ...(cloudService === cloudServices.GCE ? {
               zone: computeConfig.computeZone,
               region: computeConfig.computeRegion,
@@ -638,7 +620,7 @@ export const ComputeModalBase = ({
       ..._.mapKeys(key => `desiredPersistentDisk_${key}`, desiredPersistentDisk),
       desiredPersistentDisk_costPerMonth: (desiredPersistentDisk && getPersistentDiskCostMonthly(getPendingDisk(), computeConfig.computeRegion)),
       ..._.mapKeys(key => `existingPersistentDisk_${key}`, existingPersistentDisk),
-      isDefaultConfig: !!simplifiedForm
+      isDefaultConfig: !!currentRuntimeDetails
     })
   }
 
@@ -742,7 +724,6 @@ export const ComputeModalBase = ({
       setCurrentRuntimeDetails(currentRuntimeDetails)
       setCurrentPersistentDiskDetails(currentPersistentDiskDetails)
       setCustomEnvImage(!foundImage ? imageUrl : '')
-      setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
 
       const locationType = getLocationType(location)
       const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType)
@@ -951,7 +932,7 @@ export const ComputeModalBase = ({
     ])
   }
 
-  const renderComputeProfileSection = computeExists => {
+  const ComputeProfileSection = (computeExists, diskExists) => {
     const { currentNumCpus, currentMemory, validGpuName, validGpuNames, validGpuOptions, validNumGpus, validNumGpusOptions } = getValidCpuGpuConfig(
       mainMachineType)
 
@@ -961,8 +942,31 @@ export const ComputeModalBase = ({
     const enableAutopauseSpan = span(['Enable autopause'])
     const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
     const gridItemInputStyle = { minWidth: '6rem' }
+    const PersistentDiskType = () => {
+      const persistentDiskId = useUniqueId()
+  return (
+    h(div, [
+      label({ htmlFor: persistentDiskId, style: computeStyles.label }, ['Disk Type']),
+      div({ style: { marginTop: '0.5rem' } }, [
+      h(Select, {
+          id: persistentDiskId,
+          value: computeConfig.selectedPersistentDiskType,
+          isDisabled: diskExists,
+          onChange: ({ value }) => updateComputeConfig('selectedPersistentDiskType', value),
+          menuPlacement: 'auto',
+          options: [
+            { label: pdTypes.standard.displayName, value: pdTypes.standard },
+            { label: pdTypes.balanced.displayName, value: pdTypes.balanced },
+            { label: pdTypes.ssd.displayName, value: pdTypes.ssd }
+          ]
+        })
+      ]),
+      h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent Disks.'])
+    ])
+    )
+  }
 
-    return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
+    return (div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
       div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
       div([
         div({ style: { ...gridStyle, gridGap: '.75rem', gridTemplateColumns: 'repeat(6, auto)', justifyContent: 'flex-start' } }, [
@@ -1010,11 +1014,40 @@ export const ComputeModalBase = ({
               ])
             ])
           ]),
-          // Disk Selection
-          !isPersistentDisk ?
-            h(DataprocDiskSelector, { value: computeConfig.masterDiskSize, onChange: updateComputeConfig('masterDiskSize') }) :
-            div({ style: { gridColumnEnd: 'span 2' } })
+          isPersistentDisk ?
+          (diskExists && h(IdContainer, [
+            id => h(Fragment, [
+              label({ htmlFor: id, style: computeStyles.label }, ['Persistent Disk Size (GB)']),
+              div([
+                h(NumberInput, {
+                  id,
+                  min: 10,
+                  max: 64000,
+                  isClearable: false,
+                  onlyInteger: true,
+                  value: computeConfig.selectedPersistentDiskSize,
+                  onChange: updateComputeConfig('selectedPersistentDiskSize')
+                })
+              ])
+            ])
+          ])) :
+            h(IdContainer, [
+              id => h(Fragment, [
+                label({ htmlFor: id, style: computeStyles.label }, ['Non-Persistent Disk size (GB)']),
+                h(NumberInput, {
+                  id,
+                  style: { minWidth: '6rem' },
+                  min: 150, // less than this size causes failures in cluster creation
+                  max: 64000,
+                  isClearable: false,
+                  onlyInteger: true,
+                  value: computeConfig.masterDiskSize,
+                  onChange: updateComputeConfig('masterDiskSize')
+                })
+              ])
+            ]),
         ]),
+
         // GPU Enabling
         isGce(runtimeType) && div({ style: { gridColumnEnd: 'span 6', marginTop: '1.5rem' } }, [
           h(LabeledCheckbox, {
@@ -1084,8 +1117,8 @@ export const ComputeModalBase = ({
                 h(TextInput, {
                   id,
                   placeholder: 'URI',
-                  value: jupyterUserScriptUri,
-                  onChange: setJupyterUserScriptUri
+                  ref: jupyterUserScript,
+                  defaultValue: currentRuntimeDetails?.jupyterUserScriptUri || ''
                 })
               ])
             ])
@@ -1128,7 +1161,19 @@ export const ComputeModalBase = ({
               ])
             ])
           ])
-        ])
+        ]),
+        diskExists &&
+          div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
+            diskExists ?
+              h(TooltipTrigger, {
+                content: [
+                  'You already have a persistent disk in this workspace. ',
+                  'Disk type can only be configured at creation time. ',
+                  'Please delete the existing disk before selecting a new type.'
+                ],
+                side: 'bottom'
+              }, [h(PersistentDiskType)]) : h(PersistentDiskType),
+      ])
       ]),
       div({ style: { gridColumnEnd: 'span 6', marginTop: '1.5rem' } }, [
         h(LabeledCheckbox, {
@@ -1200,7 +1245,21 @@ export const ComputeModalBase = ({
           h(WorkerSelector, {
             value: computeConfig.workerMachineType, machineTypeOptions: validMachineTypes, onChange: updateComputeConfig('workerMachineType')
           }),
-          h(DataprocDiskSelector, { value: computeConfig.workerDiskSize, onChange: updateComputeConfig('workerDiskSize') })
+          h(IdContainer, [
+            id => h(Fragment, [
+              label({ htmlFor: id, style: computeStyles.label }, ['Worker Disk size (GB)']),
+              h(NumberInput, {
+                id,
+                style: { minWidth: '6rem' },
+                min: 150, // less than this size causes failures in cluster creation
+                max: 64000,
+                isClearable: false,
+                onlyInteger: true,
+                value: computeConfig.workerDiskSize,
+                 onChange: updateComputeConfig('workerDiskSize')
+              })
+            ])
+          ])
         ])
       ]),
       div({ style: { ...gridStyle, gridTemplateColumns: '0.25fr 8.5rem 1fr 5.5rem 1fr 5rem', marginTop: '1.5rem' } }, [
@@ -1227,7 +1286,7 @@ export const ComputeModalBase = ({
           ])
         ])
       ])
-    ])
+    ]))
   }
 
   // TODO [IA-3348] parameterize and make it a shared function between the equivalent in AzureComputeModal
@@ -1614,9 +1673,28 @@ export const ComputeModalBase = ({
     })
   }
 
+  const resetToDefaults = () => {
+    const desiredToolLabel = getToolLabelForImage(_.find({ image: selectedLeoImage }, leoImages)?.id)
+
+    const requiresSpark = _.find({ image: setSelectedLeoImage }, leoImages)?.requiresSpark
+        const newRuntimeType = Utils.cond(
+          [!!requiresSpark && isDataproc(runtimeType), () => runtimeType],
+          [!!requiresSpark && !isDataproc(runtimeType), () => runtimeTypes.dataprocSingleNode],
+          [Utils.DEFAULT, () => runtimeTypes.gceVm]
+        )
+        setTimeoutInMinutes(supportedImages.includes(setSelectedLeoImage) ? null : timeoutInMinutes)
+        setCustomEnvImage('')
+        setRuntimeType(newRuntimeType)
+        updateComputeConfig('componentGatewayEnabled', isDataproc(newRuntimeType))
+        const machineType = getDefaultMachineType(isDataproc(newRuntimeType), desiredToolLabel)
+        updateComputeConfig('masterMachineType', machineType)
+        if (isDataproc(newRuntimeType) && computeConfig.masterDiskSize < defaultDataprocMasterDiskSize) {
+          updateComputeConfig('masterDiskSize', defaultDataprocMasterDiskSize)
+        }
+  }
+
   const renderMainForm = () => {
     const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
-    const { cpu, memory } = findMachineType(mainMachineType)
     const renderTitleAndTagline = () => {
       return h(Fragment, [
         h(TitleBar, {
@@ -1626,7 +1704,14 @@ export const ComputeModalBase = ({
           hideCloseButton: shouldHideCloseButton,
           onDismiss
         }),
-        div(['A cloud environment consists of application configuration, cloud compute and persistent disk(s).'])
+        div(['A cloud environment consists of application configuration, cloud compute and persistent disk(s).']),
+        h(TitleBar, {
+          id: subtitleId,
+          style: { marginTop: '0.5rem', marginBottom: '0.5rem' },
+          title: 'Cost based on settings below',
+          hideCloseButton: shouldHideCloseButton,
+          onDismiss
+        }),
       ])
     }
     const renderBottomButtons = () => {
@@ -1640,70 +1725,22 @@ export const ComputeModalBase = ({
             () => 'Delete Environment'
           )
         ]),
+        h(ButtonOutline, {
+          onClick: () => resetToDefaults()
+        }, ['Back to defaults']),
         div({ style: { flex: 1 } }),
-        !simplifiedForm && renderActionButton()
+        renderActionButton()
       ])
     }
-    const renderDiskText = () => {
-      return span({ style: { fontWeight: 600 } }, [computeConfig.selectedPersistentDiskSize, ' GB persistent disk'])
-    }
 
-    return simplifiedForm ?
-      div({ style: computeStyles.drawerContent }, [
-        renderTitleAndTagline(),
-        div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
-          div({ style: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' } }, [
-            div({ style: { marginRight: '2rem' } }, [
-              div({ style: { fontSize: 16, fontWeight: 600 } }, ['Use default environment']),
-              ul({ style: { paddingLeft: '1rem', marginBottom: 0, lineHeight: 1.5 } }, [
-                li([
-                  div([packageLabel, h(ClipboardButton, {
-                    text: selectedLeoImage,
-                    style: { marginLeft: '0.5rem' },
-                    tooltip: 'Copy the image version'
-                  })]),
-                  h(Link, { onClick: () => setViewMode('packages') }, ['What’s installed on this environment?'])
-                ]),
-                li({ style: { marginTop: '1rem' } }, [
-                  'Compute profile: ', span({ style: { fontWeight: 600 } }, [cpu, ' CPU(s)']), ', ',
-                  span({ style: { fontWeight: 600 } }, [memory, ' GB memory']), ', and ',
-                  existingPersistentDisk ?
-                    h(Fragment, ['your existing ', renderDiskText(), '.']) :
-                    h(Fragment, ['a ', renderDiskText(), '.']),
-                  div([h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent Disks.'])])
-                ]),
-                li({ style: { marginTop: '1rem' } }, [
-                  'Region: This cloud environment will be created in the region ',
-                  strong([computeConfig.computeRegion.toLowerCase()]), '. ',
-                  'Copying data from a bucket in a different region may incur network egress charges. ',
-                  'Network egress charges are not accounted for in cost estimates. ',
-                  div([h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
-                    'Learn more about Regionality.'
-                  ])])
-                ])
-              ])
-            ]),
-            renderActionButton()
-          ]),
-          renderCostBreakdown()
-        ]),
-        div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
-          div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
-            div({ style: { fontSize: 16, fontWeight: 600 } }, ['Create custom environment']),
-            h(ButtonOutline, { onClick: () => setSimplifiedForm(false) }, ['Customize'])
-          ])
-        ]),
-        renderBottomButtons()
-      ]) :
-      h(Fragment, [
+    return h(Fragment, [
         div({ style: { padding: '1.5rem', borderBottom: `1px solid ${colors.dark(0.4)}` } }, [
           renderTitleAndTagline(),
           renderCostBreakdown()
         ]),
         div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
           renderApplicationConfigurationSection(),
-          renderComputeProfileSection(existingRuntime),
-          !!isPersistentDisk && h(PersistentDiskSection, !!existingPersistentDisk),
+          h(ComputeProfileSection, existingRuntime, !!existingPersistentDisk),
           isGce(runtimeType) && !isPersistentDisk && div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
               'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
@@ -1761,67 +1798,6 @@ export const ComputeModalBase = ({
     ])
   }
 
-  const PersistentDiskSection = diskExists => {
-    const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
-    const diskSizeId = useUniqueId()
-
-    const PersistentDiskType = () => {
-      const persistentDiskId = useUniqueId()
-  return (
-    h(div, [
-      label({ htmlFor: persistentDiskId, style: computeStyles.label }, ['Disk Type']),
-      div({ style: { marginTop: '0.5rem' } }, [
-      h(Select, {
-          id: persistentDiskId,
-          value: computeConfig.selectedPersistentDiskType,
-          isDisabled: diskExists,
-          onChange: ({ value }) => updateComputeConfig('selectedPersistentDiskType', value),
-          menuPlacement: 'auto',
-          options: [
-            { label: pdTypes.standard.displayName, value: pdTypes.standard },
-            { label: pdTypes.balanced.displayName, value: pdTypes.balanced },
-            { label: pdTypes.ssd.displayName, value: pdTypes.ssd }
-          ]
-        })
-      ])
-    ])
-    )
-  }
-    return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
-        h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
-          label({ style: computeStyles.label }, ['Persistent disk']),
-          div({ style: { marginTop: '0.5rem' } }, [
-            'Persistent disks store analysis data. ',
-            h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
-          ]),
-          div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
-            diskExists ?
-              h(TooltipTrigger, {
-                content: [
-                  'You already have a persistent disk in this workspace. ',
-                  'Disk type can only be configured at creation time. ',
-                  'Please delete the existing disk before selecting a new type.'
-                ],
-                side: 'bottom'
-              }, [h(PersistentDiskType)]) : h(PersistentDiskType),
-            h(div, [
-              label({ htmlFor: diskSizeId, style: computeStyles.label }, ['Disk Size (GB)']),
-              div({ style: { marginTop: '0.5rem' } }, [
-                h(NumberInput, {
-                  id: diskSizeId,
-                  min: 10,
-                  max: 64000,
-                  isClearable: false,
-                  onlyInteger: true,
-                  value: computeConfig.selectedPersistentDiskSize,
-                  onChange: updateComputeConfig('selectedPersistentDiskSize')
-                })
-              ])
-            ])
-          ])
-        ])
-    ])
-  }
   // Render functions -- end
 
   // Render
