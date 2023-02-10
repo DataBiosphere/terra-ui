@@ -5,32 +5,34 @@ import { reportError, withErrorReportingInModal } from 'src/libs/error'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { getUser } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { BaseWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
+import { BaseWorkspace, isGoogleWorkspace, WorkspaceInfo } from 'src/libs/workspace-utils'
 import { isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
 export interface DeleteWorkspaceState {
-  workspaceBucketUsageInBytes: number | null
-  deletableApps: string[]
-  nonDeletableApps: string[]
   loading: boolean
-  collaboratorEmails: string[] | null
-  hasApps: () => boolean
-  isDeleteDisabledFromResources: boolean
-  deleteWorkspace: () => void
   deleting: boolean
+  isDeleteDisabledFromResources: boolean
+  workspaceBucketUsageInBytes: any
+  deletableApps: any
+  nonDeletableApps: any
+  collaboratorEmails: any
+  hasApps: () => boolean
+  deleteWorkspace: () => void
+  controlledResourcesExist: boolean
 }
 
 
-export const useDeleteWorkspaceState = (workspace: BaseWorkspace, namespace: string, name: string, workspaceId: string, onDismiss: () => void, onSuccess: () => void): DeleteWorkspaceState => {
+export const useDeleteWorkspaceState = (workspace: BaseWorkspace, onDismiss: () => void, onSuccess: () => void) : DeleteWorkspaceState => {
   const [deleting, setDeleting] = useState(false)
   const [loading, setLoading] = useState(false)
   const [apps, setApps] = useState()
   const [collaboratorEmails, setCollaboratorEmails] = useState()
-  const [workspaceBucketUsageInBytes, setWorkspaceBucketUsageInBytes] = useState<number>()
+  const [workspaceBucketUsageInBytes, setWorkspaceBucketUsageInBytes] = useState()
   const [controlledResourcesExist, setControlledResourcesExist] = useState(false)
-  const [deletableApps, nonDeletableApps] = _.partition(isResourceDeletable('app'), apps) as any // TODO ew
+  const [deletableApps, nonDeletableApps] = _.partition(isResourceDeletable('app'), apps) as any // TODO fix this
 
+  const workspaceInfo: WorkspaceInfo = workspace.workspace
   const signal = useCancellation()
 
   useOnMount(() => {
@@ -40,9 +42,9 @@ export const useDeleteWorkspaceState = (workspace: BaseWorkspace, namespace: str
     )(async () => {
       if (isGoogleWorkspace(workspace)) {
         const [currentWorkspaceAppList, { acl }, { usageInBytes }] = await Promise.all([
-          Ajax(signal).Apps.listWithoutProject({ role: 'creator', saturnWorkspaceName: name }),
-          Ajax(signal).Workspaces.workspace(namespace, name).getAcl(),
-          Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
+          Ajax(signal).Apps.listWithoutProject({ role: 'creator', saturnWorkspaceName: workspaceInfo.name }),
+          Ajax(signal).Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name).getAcl(),
+          Ajax(signal).Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name).bucketUsage()
         ])
         setApps(currentWorkspaceAppList)
 
@@ -50,7 +52,7 @@ export const useDeleteWorkspaceState = (workspace: BaseWorkspace, namespace: str
         setCollaboratorEmails(_.without([getUser().email], _.keys(acl)))
         setWorkspaceBucketUsageInBytes(usageInBytes)
       } else {
-        const currentWorkspaceAppList = await Ajax(signal).Apps.listAppsV2(workspaceId)
+        const currentWorkspaceAppList = await Ajax(signal).Apps.listAppsV2(workspaceInfo.workspaceId)
         // temporary hack to prevent orphaning resources on Azure:
         // change each app to status: 'disallow' which will cause this modal to think they are undeletable
         const hackedAppList = _.map(_.set('status', 'disallow'), currentWorkspaceAppList)
@@ -58,7 +60,7 @@ export const useDeleteWorkspaceState = (workspace: BaseWorkspace, namespace: str
         // @ts-ignore
         setApps(hackedAppList)
         // Also temporarily disable delete if there are any controlled resources besides the expected workspace storage container.
-        const controlledResources = await Ajax(signal).WorkspaceManagerResources.controlledResources(workspaceId)
+        const controlledResources = await Ajax(signal).WorkspaceManagerResources.controlledResources(workspaceInfo.workspaceId)
         setControlledResourcesExist(controlledResources.resources.length > 1)
       }
     })
@@ -81,7 +83,7 @@ export const useDeleteWorkspaceState = (workspace: BaseWorkspace, namespace: str
           _.map(async app => await Ajax().Apps.app(app.cloudContext.cloudResource, app.appName).delete(), deletableApps)
         )
       }
-      await Ajax().Workspaces.workspace(namespace, name).delete()
+      await Ajax().Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name).delete()
       onDismiss()
       onSuccess()
     } catch (error) {
@@ -91,14 +93,15 @@ export const useDeleteWorkspaceState = (workspace: BaseWorkspace, namespace: str
   }
 
   return {
-    workspaceBucketUsageInBytes: workspaceBucketUsageInBytes ? workspaceBucketUsageInBytes : null,
+    loading,
+    deleting,
+    isDeleteDisabledFromResources,
+    workspaceBucketUsageInBytes,
     deletableApps,
     nonDeletableApps,
-    loading,
-    collaboratorEmails: collaboratorEmails ? collaboratorEmails : null,
+    collaboratorEmails,
     hasApps,
-    isDeleteDisabledFromResources,
     deleteWorkspace,
-    deleting
+    controlledResourcesExist
   }
 }

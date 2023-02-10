@@ -14,13 +14,20 @@ import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { useDeleteWorkspaceState } from 'src/pages/workspaces/workspace/delete-workspace-modal.state'
 
 
-const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { namespace, name, bucketName, workspaceId } }, onDismiss, onSuccess }) => {
+const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucketName } }, onDismiss, onSuccess }) => {
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
 
   const {
-    workspaceBucketUsageInBytes, deletableApps, nonDeletableApps, loading, collaboratorEmails, hasApps, isDeleteDisabledFromResources,
-    deleteWorkspace, deleting
-  } = useDeleteWorkspaceState(workspace, namespace, name, workspaceId, onDismiss, onSuccess)
+    loading,
+    deleting,
+    isDeleteDisabledFromResources,
+    workspaceBucketUsageInBytes,
+    deletableApps,
+    nonDeletableApps,
+    collaboratorEmails,
+    hasApps,
+    deleteWorkspace
+  } = useDeleteWorkspaceState(workspace, onDismiss, onSuccess)
 
 
   const getStorageDeletionMessage = () => {
