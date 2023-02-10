@@ -53,19 +53,16 @@ export const useDeleteWorkspaceState = (workspace: BaseWorkspace, onDismiss: () 
           Ajax(signal).Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name).bucketUsage()
         ])
         setApps(currentWorkspaceAppList)
-
-        const filteredEmails = _.without([getUser().email], _.keys(acl))
-        setCollaboratorEmails(filteredEmails)
-
+        setCollaboratorEmails(_.without([getUser().email], _.keys(acl)))
         setWorkspaceBucketUsageInBytes(usageInBytes)
       } else {
         const currentWorkspaceAppList = await Ajax(signal).Apps.listAppsV2(workspaceInfo.workspaceId)
+
         // temporary hack to prevent orphaning resources on Azure:
         // change each app to status: 'disallow' which will cause this modal to think they are undeletable
-        const hackedAppList = _.map(_.set('status', 'disallow'), currentWorkspaceAppList)
-
-        // @ts-ignore
+        const hackedAppList = _.map(_.set('status', 'disallow'), currentWorkspaceAppList) as DeleteWorkspaceModalLeoApp[]
         setApps(hackedAppList)
+
         // Also temporarily disable delete if there are any controlled resources besides the expected workspace storage container.
         const controlledResources = await Ajax(signal).WorkspaceManagerResources.controlledResources(workspaceInfo.workspaceId)
         setControlledResourcesExist(controlledResources.resources.length > 1)
