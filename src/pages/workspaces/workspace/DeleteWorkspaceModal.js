@@ -39,7 +39,7 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
       }, ['Google Cloud Bucket']) :
         'Azure Storage Container',
       ' and all its data',
-      workspaceBucketUsageInBytes !== undefined && span({ style: { fontWeight: 600 } }, ` (${Utils.formatBytes(workspaceBucketUsageInBytes)})`),
+      workspaceBucketUsageInBytes !== null && span({ style: { fontWeight: 600 } }, ` (${Utils.formatBytes(workspaceBucketUsageInBytes)})`),
       '.'
     ])
   }

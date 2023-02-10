@@ -9,14 +9,20 @@ import { BaseWorkspace, isGoogleWorkspace, WorkspaceInfo } from 'src/libs/worksp
 import { isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
+interface DeleteWorkspaceModalLeoApp {
+  appName: string
+  status: string
+  cloudContext: any
+}
+
 export interface DeleteWorkspaceState {
   loading: boolean
   deleting: boolean
   isDeleteDisabledFromResources: boolean
-  workspaceBucketUsageInBytes: any
-  deletableApps: any
-  nonDeletableApps: any
-  collaboratorEmails: any
+  workspaceBucketUsageInBytes: number | null
+  deletableApps: DeleteWorkspaceModalLeoApp[]
+  nonDeletableApps: DeleteWorkspaceModalLeoApp[]
+  collaboratorEmails: string[] | null
   hasApps: () => boolean
   deleteWorkspace: () => void
   controlledResourcesExist: boolean
@@ -26,11 +32,11 @@ export interface DeleteWorkspaceState {
 export const useDeleteWorkspaceState = (workspace: BaseWorkspace, onDismiss: () => void, onSuccess: () => void) : DeleteWorkspaceState => {
   const [deleting, setDeleting] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [apps, setApps] = useState()
-  const [collaboratorEmails, setCollaboratorEmails] = useState()
-  const [workspaceBucketUsageInBytes, setWorkspaceBucketUsageInBytes] = useState()
+  const [apps, setApps] = useState<DeleteWorkspaceModalLeoApp[]>()
+  const [collaboratorEmails, setCollaboratorEmails] = useState<string[] | null>()
+  const [workspaceBucketUsageInBytes, setWorkspaceBucketUsageInBytes] = useState<number | null>()
   const [controlledResourcesExist, setControlledResourcesExist] = useState(false)
-  const [deletableApps, nonDeletableApps] = _.partition(isResourceDeletable('app'), apps) as any // TODO fix this
+  const [deletableApps, nonDeletableApps] = _.partition(isResourceDeletable('app'), apps) as [DeleteWorkspaceModalLeoApp[], DeleteWorkspaceModalLeoApp[]]
 
   const workspaceInfo: WorkspaceInfo = workspace.workspace
   const signal = useCancellation()
@@ -48,15 +54,16 @@ export const useDeleteWorkspaceState = (workspace: BaseWorkspace, onDismiss: () 
         ])
         setApps(currentWorkspaceAppList)
 
-        // @ts-ignore
-        setCollaboratorEmails(_.without([getUser().email], _.keys(acl)))
+        const filteredEmails = _.without([getUser().email], _.keys(acl))
+        setCollaboratorEmails(filteredEmails)
+
         setWorkspaceBucketUsageInBytes(usageInBytes)
       } else {
         const currentWorkspaceAppList = await Ajax(signal).Apps.listAppsV2(workspaceInfo.workspaceId)
         // temporary hack to prevent orphaning resources on Azure:
         // change each app to status: 'disallow' which will cause this modal to think they are undeletable
         const hackedAppList = _.map(_.set('status', 'disallow'), currentWorkspaceAppList)
-        // TODO fix this
+
         // @ts-ignore
         setApps(hackedAppList)
         // Also temporarily disable delete if there are any controlled resources besides the expected workspace storage container.
@@ -96,10 +103,10 @@ export const useDeleteWorkspaceState = (workspace: BaseWorkspace, onDismiss: () 
     loading,
     deleting,
     isDeleteDisabledFromResources,
-    workspaceBucketUsageInBytes,
+    workspaceBucketUsageInBytes: workspaceBucketUsageInBytes ? workspaceBucketUsageInBytes : null,
     deletableApps,
     nonDeletableApps,
-    collaboratorEmails,
+    collaboratorEmails: collaboratorEmails ? collaboratorEmails : null,
     hasApps,
     deleteWorkspace,
     controlledResourcesExist
