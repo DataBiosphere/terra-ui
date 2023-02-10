@@ -52,7 +52,7 @@ const verifyChecked = item => expect(item).toBeChecked()
 const verifyUnchecked = item => expect(item).not.toBeChecked()
 
 const testStepActive = stepNumber => {
-  screen.queryAllByTestId('Step').forEach((step, index) => {
+  screen.queryAllByRole('listitem').forEach((step, index) => {
     if (index === stepNumber - 1) {
       expect(step.getAttribute('aria-current')).toBe('step')
     } else {
