@@ -16,6 +16,7 @@ export interface AddUserInfo {
   role: BillingRole
 }
 
+
 interface AddUserStepProps {
   isActive: boolean
   users: Array<AddUserInfo>
@@ -53,35 +54,41 @@ export const AddUserStep = ({ isActive, users, setUsers }: AddUserStepProps) => 
     }
   }
 
-  return h(Step, { isActive, style: { height: '16rem' } }, [
+  return h(Step, { isActive, style: { height: '20rem' } }, [
     h(StepHeader, { title: 'STEP 3' }, [
       'Optional: Add additional users to your Terra billing project. ',
       'For bulk upload, separate email addresses by a comma. ',
       'Any email addresses not associated with a Terra account will be sent an email to register.'
     ]),
-    h(StepFields, { disabled: false }, [
-      ul({ style: { display: 'flex', flexDirection: 'column-reverse', width: '100%', margin: 0, padding: 0 } }, [
-        li({ style: addUserLIStyles, key: 'add-user-input' }, [
-          div({ style: emailFieldStyles }, [
-            h(LabeledField, { label: 'User email', formId: emailFieldId }, []),
-            ValidatedInput({
-              inputProps: {
-                id: emailFieldId,
-                value: emails,
-                placeholder: 'Enter email of users to add',
-                onChange: setEmails,
-                onBlur: validateEmail
-              },
-              error: emailErrors
-            })
-          ]),
-          div({ style: roleFieldStyles }, [
-            h(LabeledField, { label: 'Role', formId: roleFieldId }, []),
-            h(Select, { id: roleFieldId, placeholder: 'Select a role', value: role, onChange: ({ value }) => setRole(value), options: billingRoleOptions })
-          ]),
-          h(SpacedButton, { onClick: addUser, iconShape: 'plus', buttonLabel: 'add-user' })
+    h(StepFields, { disabled: false, style: { display: 'flex', flexDirection: 'column', width: '100%' } }, [
+      div({ style: { ...addUserLIStyles } }, [
+        div({ style: emailFieldStyles }, [
+          h(LabeledField, { label: 'User email', formId: emailFieldId }, []),
+          ValidatedInput({
+            inputProps: {
+              id: emailFieldId,
+              value: emails,
+              placeholder: 'Enter email of users to add',
+              onChange: setEmails,
+              onBlur: validateEmail
+            },
+            error: emailErrors
+          })
         ]),
-        ...users.map(user => h(AddedUserDisplay, { user, remove: () => setUsers(users.filter(u => u.emails !== user.emails)) })),
+        div({ style: roleFieldStyles }, [
+          h(LabeledField, { label: 'Role', formId: roleFieldId }),
+          h(Select, { id: roleFieldId, placeholder: 'Select a role', value: role, onChange: ({ value }) => setRole(value), options: billingRoleOptions })
+        ]),
+        div({ style: addUserFieldStyles }, [
+          div({ style: { paddingTop: '2.25rem' } }), // spacer element to make two flex lines, so the button lines up with the input fields
+          h(ButtonOutline, { onClick: addUser, 'aria-label': 'add-user' }, [icon('plus')])
+        ])
+      ]),
+      div({ style: { height: '9rem', overflow: 'auto', width: '100%' } }, [
+        ul({ style: { display: 'flex', flexDirection: 'column', width: '100%', margin: 0, padding: 0, overflow: 'auto' } }, [
+          ...users.map((user, index) => h(AddedUserDisplay, { key: index.toString(), user, remove: () => setUsers(users.filter(u => u.emails !== user.emails)) })
+          ),
+        ])
       ])
     ])
   ])
@@ -122,32 +129,20 @@ const roleFieldStyles: CSSProperties = {
 interface AddedUserDisplayProps {
   user: AddUserInfo
   remove: () => void
+  key: string
 }
 
-const AddedUserDisplay = ({ user, ...props }: AddedUserDisplayProps) => {
+const AddedUserDisplay = ({ key, user, ...props }: AddedUserDisplayProps) => {
   const emailFieldId = useUniqueId()
   const roleFieldId = useUniqueId()
-  return li({ style: addUserLIStyles, key: user.emails }, [
+  return li({ key, style: { ...addUserLIStyles, marginTop: '1rem' } }, [
     div({ style: emailFieldStyles }, [
-      h(LabeledField, { label: 'User email', formId: emailFieldId }, []),
       ValidatedInput({ inputProps: { disabled: true, id: emailFieldId, value: user.emails } })
     ]),
     div({ style: roleFieldStyles }, [
-      h(LabeledField, { label: 'Role', formId: roleFieldId }, []),
       h(Select, { id: roleFieldId, disabled: true, value: user.role, options: billingRoleOptions })
     ]),
-    h(SpacedButton, { onClick: props.remove, iconShape: 'times', buttonLabel: 'remove-user' })
+    h(ButtonOutline, { onClick: props.remove, 'aria-label': 'remove-user' }, [icon('times')])
   ])
 }
-
-interface SpacedButtonProps {
-  onClick: () => void
-  iconShape: string
-  buttonLabel: string
-}
-
-const SpacedButton = ({ onClick, ...props }: SpacedButtonProps) => div({ style: addUserFieldStyles }, [
-  div({ style: { paddingTop: '2.25rem' } }), // spacer element to make two flex lines, so the button lines up with the input fields
-  h(ButtonOutline, { onClick, role: 'button', 'aria-label': props.buttonLabel }, [icon(props.iconShape, {})])
-])
 

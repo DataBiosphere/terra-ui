@@ -40,7 +40,7 @@ export const AzureBillingProjectWizard = ({ ...props }: AzureBillingProjectWizar
 
   const onSubscriptionIdSelected = () => loadManagedApps(async () => {
     const json = await Ajax(signal).Billing.listAzureManagedApplications(subscriptionId, false)
-    setActiveStep(2)
+    stepFinished(1, true)
     return json.managedApps
   })
 
@@ -82,7 +82,7 @@ export const AzureBillingProjectWizard = ({ ...props }: AzureBillingProjectWizar
       isActive: activeStep === 1,
       subscriptionId,
       onChange: subscriptionId => {
-        setActiveStep(1)
+        stepFinished(1, false)
         setSubscriptionId(subscriptionId)
       },
       submit: onSubscriptionIdSelected
