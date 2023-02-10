@@ -25,7 +25,7 @@ export const StepFields = ({ children = [], style, disabled = false }: StepField
 
 export const StepFieldLegend = ({ children = [], style }: StepFieldsProps) => legend({
   style: {
-    fontSize: 14,
+    fontSize: '1rem',
     lineHeight: '22px',
     whiteSpace: 'pre-wrap',
     marginTop: '0.25rem',

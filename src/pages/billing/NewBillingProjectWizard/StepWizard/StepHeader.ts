@@ -9,6 +9,6 @@ interface StepHeaderProps {
 
 export const StepHeader = ({ title, children = [], ...props }: StepHeaderProps) => header({ style: { width: '100%', display: 'flex', flexDirection: 'row', ...props.styles } }, [
   h3({ style: { fontSize: 18, marginTop: 0, marginRight: '1rem' } }, [title]),
-  span({ style: { fontSize: '1rem', lineHeight: '22px', whiteSpace: 'pre-wrap', width: '75%' } }, [children]),
+  span({ style: { fontSize: '1rem', lineHeight: '22px', width: '75%' } }, [children]),
 ]
 )

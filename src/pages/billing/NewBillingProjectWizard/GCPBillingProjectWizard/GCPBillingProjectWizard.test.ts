@@ -1,4 +1,3 @@
-// TODO: move to more testing based off of state, not actions
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'jest-axe'
@@ -39,7 +38,7 @@ const getStep3AddTerraAsUserText = () => textMatcher('Add terra-billing@terra.bi
 const getStep3ContactBillingAdministrator = () => textMatcher('Contact your billing account administrator and have them add you and terra-billing@terra.bio as a ' +
   "Billing Account User to your organization's billing account.")
 
-const getStep4CreateButton = () => screen.queryByRole('button', { name: 'create-billing-project' })
+const getStep4CreateButton = () => screen.queryByRole('button', { name: 'Create Terra Billing Project' })
 const getBillingProjectInput = () => screen.getByLabelText('Terra billing project *')
 const getBillingAccountInput = () => screen.getByLabelText('Select billing account *')
 const getStep4RefreshText = () => screen.queryByText('You do not have access to any Google Billing Accounts. Please verify that a billing account ' +
@@ -53,7 +52,7 @@ const verifyChecked = item => expect(item).toBeChecked()
 const verifyUnchecked = item => expect(item).not.toBeChecked()
 
 const testStepActive = stepNumber => {
-  screen.queryAllByTestId('Step').forEach((step, index) => {
+  screen.queryAllByRole('listitem').forEach((step, index) => {
     if (index === stepNumber - 1) {
       expect(step.getAttribute('aria-current')).toBe('step')
     } else {
@@ -77,12 +76,17 @@ const testStep2HaveBillingChecked = () => {
   verifyUnchecked(getStep2BillingAccountNoAccessButton())
 }
 
-// the happy path
+// check that the default happy path is rendered
 const testAddTerraUserRenderedForStep3 = () => {
+  // checking that the alternate component is not rendered
   expect(getStep3VerifyUserAdded()).toBeNull()
+  expect(getStep3ContactBillingAdministrator()).toBeNull()
+  // checking that the correct component is rendered
   expect(getStep3BillingAccountNoAccessButton()).not.toBeNull()
   expect(getStep3AddedTerraBillingButton()).not.toBeNull()
+  expect(getStep3AddTerraAsUserText()).not.toBeNull()
 }
+
 
 const testAddTerraUserStep3UninitializedState = () => {
   verifyDisabled(getStep3BillingAccountNoAccessButton())
@@ -99,8 +103,11 @@ const testStep3RadioButtonsNoneSelected = () => {
   verifyUnchecked(getStep3AddedTerraBillingButton())
   expect(getStep3BillingAccountNoAccessButton()).not.toBeNull()
   expect(getStep3AddedTerraBillingButton()).not.toBeNull()
-  expect(getStep3VerifyUserAdded()).toBeNull()
   expect(getStep3AddTerraAsUserText()).not.toBeNull()
+  // the next two asserts don't necessarily belong logically,
+  // but the components that are checked will never be rendered when the ones above are present
+  // so it makes sense to leave them here
+  expect(getStep3VerifyUserAdded()).toBeNull()
   expect(getStep3ContactBillingAdministrator()).toBeNull()
 }
 

@@ -11,7 +11,7 @@ import Events from 'src/libs/events'
 import { contactUsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import CreateGCPBillingProject from 'src/pages/billing/CreateGCPBillingProject'
-import { BillingAccount } from 'src/pages/billing/models/BillingAccount'
+import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAccount'
 import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/Step'
 import { StepFields } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields'
 import { StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepHeader'
@@ -19,7 +19,7 @@ import { StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard
 
 interface CreateTerraProjectStepProps {
   isActive: boolean
-  billingAccounts: Record<string, BillingAccount>
+  billingAccounts: Record<string, GoogleBillingAccount>
 
   refreshed: boolean
   setRefreshed: (boolean) => void
@@ -54,7 +54,7 @@ export const CreateTerraProjectStep = ({
       }
     }
   })
-  return h(Step, { isActive }, [
+  return h(Step, { isActive, style: { height: '18rem' } }, [
     h(StepHeader, {
       title: 'STEP 4', children: [
         'Create a Terra project to connect your Google billing account to Terra. ',
@@ -72,13 +72,8 @@ export const CreateTerraProjectStep = ({
           setRefreshed: props.setRefreshed,
           authorizeAndLoadAccounts: props.authorizeAndLoadAccounts
         }) :
-        div({ style: { display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
-          h(ButtonPrimary, {
-            onClick: submit,
-            role: 'button',
-            'aria-label': 'create-billing-project',
-            disabled: !isActive
-          }, [
+        div({ style: { display: 'flex', flexDirection: 'column', margin: '4rem' } }, [
+          h(ButtonPrimary, { style: { textTransform: 'none' }, onClick: submit, disabled: !isActive }, [
             'Create Terra Billing Project',
             isBusy && icon('loadingSpinner', { size: 16, style: { color: 'white', marginRight: '0.5rem' } }),
           ]),

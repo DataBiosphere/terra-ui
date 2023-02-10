@@ -33,7 +33,7 @@ const getTestWorkspaceName = () => `${testWorkspaceNamePrefix}${uuid.v4()}`
  */
 const waitForAccessToWorkspaceBucket = async ({ page, billingProject, workspaceName, timeout = defaultTimeout }) => {
   await page.evaluate(async ({ billingProject, workspaceName, timeout }) => {
-    const { workspace: { googleProject, bucketName } } = await window.Ajax().Workspaces.workspace(billingProject, workspaceName).details(['workspace'])
+    const { workspace: { googleProject, bucketName } } = await window.Ajax().Workspaces.workspace(billingProject, workspaceName).details(['workspace', 'azureContext'])
 
     const startTime = Date.now()
 

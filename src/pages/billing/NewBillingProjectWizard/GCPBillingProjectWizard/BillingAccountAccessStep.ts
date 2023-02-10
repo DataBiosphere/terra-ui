@@ -1,4 +1,4 @@
-import { h } from 'react-hyperscript-helpers'
+import { h, p } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import Events from 'src/libs/events'
 import { LabeledRadioButton, LabeledRadioGroup } from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/LabeledRadioButton'
@@ -14,11 +14,14 @@ export interface BillingAccountAccessStepProps {
 }
 
 export const BillingAccountAccessStep = ({ isActive, ...props }: BillingAccountAccessStepProps) => h(Step, { isActive }, [
-  h(StepHeader, { title: 'STEP 2', children: ['Select an existing billing account or create a new one.'] }),
+  h(StepHeader, { title: 'STEP 2', children: [] }),
   h(StepFields, [
     h(StepFieldLegend, { style: { width: '70%' } }, [
-      'If you are creating a new billing account, you may be eligible for $300 in free credits. ' +
-      'Follow the instructions to activate your account in the Google Cloud Console.'
+      'Select an existing billing account or create a new one.',
+      p({ style: { fontSize: '.875rem', lineHeight: '22px', width: '75%' } }, [
+        'If you are creating a new billing account, you may be eligible for $300 in free credits. ' +
+        'Follow the instructions to activate your account in the Google Cloud Console.'
+      ]),
     ]),
     h(LabeledRadioGroup, { style: { width: '30%' } }, [
       LabeledRadioButton({
@@ -38,6 +41,8 @@ export const BillingAccountAccessStep = ({ isActive, ...props }: BillingAccountA
         }
       })
     ])
-  ])
+  ]),
+
+
 ])
 

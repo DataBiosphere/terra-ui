@@ -2,7 +2,7 @@ import { CSSProperties, useEffect, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import colors from 'src/libs/colors'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
-import { BillingAccount } from 'src/pages/billing/models/BillingAccount'
+import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAccount'
 import { StepWizard } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepWizard'
 
 import { AddTerraAsBillingAccountUserStep } from './AddTerraAsBillingAccountUserStep'
@@ -13,7 +13,7 @@ import { GoToGCPConsoleStep } from './GoToGCPConsoleStep'
 
 
 interface GCPBillingProjectWizardProps {
-  billingAccounts: Record<string, BillingAccount>
+  billingAccounts: Record<string, GoogleBillingAccount>
   onSuccess: (string) => void
   // calls Auth.ensureBillingScope, then re-loads billing accounts from rawls
   authorizeAndLoadAccounts: () => Promise<void>
@@ -23,13 +23,14 @@ export const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeA
   const persistenceId = 'billing'
   const [accessToBillingAccount, setAccessToBillingAccount] = useState<boolean>(() => getLocalPref(persistenceId)?.accessToBillingAccount)
   const [accessToAddBillingAccountUser, setAccessToAddBillingAccountUser] = useState<boolean | undefined>(() => getLocalPref(persistenceId)?.accessToAddBillingAccountUser)
-  const [verifiedUsersAdded, setVerifiedUsersAdded] = useState<boolean | undefined>(false) // if no access to add billing account user, has the user verified access
+  // if the user can't add a billing account user, has the user verified that terra was added
+  const [verifiedUsersAdded, setVerifiedUsersAdded] = useState<boolean | undefined>(() => getLocalPref(persistenceId)?.verifiedUsersAdded || false)
   const [refreshed, setRefreshed] = useState<boolean>(false)
-  const [activeStep, setActiveStep] = useState<number>((getLocalPref(persistenceId)?.activeStep || 1))
+  const [activeStep, setActiveStep] = useState<number>(() => getLocalPref(persistenceId)?.activeStep || 1)
 
   useEffect(() => {
-    setLocalPref(persistenceId, { activeStep, accessToBillingAccount, accessToAddBillingAccountUser })
-  }, [persistenceId, activeStep, accessToBillingAccount, accessToAddBillingAccountUser])
+    setLocalPref(persistenceId, { activeStep, accessToBillingAccount, accessToAddBillingAccountUser, verifiedUsersAdded })
+  }, [persistenceId, activeStep, accessToBillingAccount, accessToAddBillingAccountUser, verifiedUsersAdded])
 
 
   return h(StepWizard, {
@@ -64,7 +65,6 @@ export const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeA
             setRefreshed(true)
           } else {
             setActiveStep(3)
-            //await authorizeAndLoadAccounts()
             setRefreshed(false)
           }
         },
@@ -72,7 +72,6 @@ export const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeA
         isFinished: activeStep > 3,
       }) :
       h(ContactAccountAdminToAddUserStep, {
-        //persistenceId,
         verifiedUsersAdded,
         setVerifiedUsersAdded: async verified => {
           setVerifiedUsersAdded(verified)
