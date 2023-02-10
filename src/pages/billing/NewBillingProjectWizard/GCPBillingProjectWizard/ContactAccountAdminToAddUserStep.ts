@@ -26,9 +26,8 @@ export const ContactAccountAdminToAddUserStep = ({ isActive, ...props }: Contact
       ' as a Billing Account User',
       span({ style: { fontWeight: 'bold' } }, [' to your organization\'s billing account.'])
     ]),
-    div({ style: { width: '30%', display: 'flex', flexDirection: 'row' } }, [
+    div({ style: { width: '30%' } }, [
       h(LabeledCheckbox, {
-        style: { margin: '.25rem', marginTop: '.375rem' },
         checked: props.verifiedUsersAdded,
         disabled: !isActive && !props.isFinished, // disabled when we haven't gotten to this step - still allow users to go back, though
         onChange: () => {
@@ -36,7 +35,13 @@ export const ContactAccountAdminToAddUserStep = ({ isActive, ...props }: Contact
           props.setVerifiedUsersAdded(!props.verifiedUsersAdded)
         }
       }, [
-        span({ style: { float: 'right', ...styles.radioButtonLabel } }, ['I have verified the user has been added to my account (requires reauthentication)'])
+        // this negative margin here is hideous but necessary:
+        // giving the div that contains the checkbox {display: flex, flexDirection: row} gives the label the correct layout
+        // but it also breaks the checkbox, because it's implemented as layered svg icons, making it very sensitive to layout changes
+        // if the component is changed to use an input element with checkbox, we should be able to just use flexbox and be done with all the tweaks
+        span({ style: { float: 'right', ...styles.radioButtonLabel, marginLeft: '2rem', marginTop: '-1.3rem' } }, [
+          'I have verified the user has been added to my account (requires reauthentication)'
+        ])
       ]),
     ])
   ]),
@@ -46,5 +51,4 @@ export const ContactAccountAdminToAddUserStep = ({ isActive, ...props }: Contact
     url: 'https://support.terra.bio/hc/en-us/articles/360026182251'
   })
 ])
-
 

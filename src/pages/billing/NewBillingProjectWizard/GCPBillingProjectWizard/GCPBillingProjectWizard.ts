@@ -72,7 +72,6 @@ export const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeA
         isFinished: activeStep > 3,
       }) :
       h(ContactAccountAdminToAddUserStep, {
-        //persistenceId,
         verifiedUsersAdded,
         setVerifiedUsersAdded: async verified => {
           setVerifiedUsersAdded(verified)
