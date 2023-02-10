@@ -23,13 +23,14 @@ export const GCPBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeA
   const persistenceId = 'billing'
   const [accessToBillingAccount, setAccessToBillingAccount] = useState<boolean>(() => getLocalPref(persistenceId)?.accessToBillingAccount)
   const [accessToAddBillingAccountUser, setAccessToAddBillingAccountUser] = useState<boolean | undefined>(() => getLocalPref(persistenceId)?.accessToAddBillingAccountUser)
-  const [verifiedUsersAdded, setVerifiedUsersAdded] = useState<boolean | undefined>(false) // if no access to add billing account user, has the user verified access
+  // if the user can't add a billing account user, has the user verified that terra was added
+  const [verifiedUsersAdded, setVerifiedUsersAdded] = useState<boolean | undefined>(() => getLocalPref(persistenceId)?.verifiedUsersAdded || false)
   const [refreshed, setRefreshed] = useState<boolean>(false)
-  const [activeStep, setActiveStep] = useState<number>((getLocalPref(persistenceId)?.activeStep || 1))
+  const [activeStep, setActiveStep] = useState<number>(() => getLocalPref(persistenceId)?.activeStep || 1)
 
   useEffect(() => {
-    setLocalPref(persistenceId, { activeStep, accessToBillingAccount, accessToAddBillingAccountUser })
-  }, [persistenceId, activeStep, accessToBillingAccount, accessToAddBillingAccountUser])
+    setLocalPref(persistenceId, { activeStep, accessToBillingAccount, accessToAddBillingAccountUser, verifiedUsersAdded })
+  }, [persistenceId, activeStep, accessToBillingAccount, accessToAddBillingAccountUser, verifiedUsersAdded])
 
 
   return h(StepWizard, {
