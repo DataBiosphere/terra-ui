@@ -77,7 +77,10 @@ export const AzureBillingProjectWizard = ({ ...props }: AzureBillingProjectWizar
     } // the user is entering fields for later steps - don't change active step
   }
 
-  return h(StepWizard, { title: 'Create an Azure Billing Project', intro: 'intro Text' }, [
+  return h(StepWizard, {
+    title: 'Complete the following steps to link Terra to your Azure subscription, and add users to the created Terra billing project.',
+    intro: ''
+  }, [
     h(AzureSubscriptionIdStep, {
       isActive: activeStep === 1,
       subscriptionId,

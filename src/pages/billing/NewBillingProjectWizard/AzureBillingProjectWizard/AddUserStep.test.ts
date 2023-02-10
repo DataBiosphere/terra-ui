@@ -23,7 +23,7 @@ const textMatcher = text => screen.queryByText((_, node) => {
 
 const getEmailInput = () => screen.getByLabelText('User email')
 const getRoleInput = () => screen.getByLabelText('Role')
-const getAddUsersButton = () => screen.getByRole('button', { name: 'add-users-to-azure-billing-project' })
+const getAddUsersButton = () => screen.getByRole('button', { name: 'add-user' })
 const getInvalidEmailErrors = () => screen.queryAllByText(/is not a valid email/i)
 
 jest.mock('src/libs/ajax')
@@ -103,9 +103,18 @@ describe('AddUserStep', () => {
       const emailValue = 'invalid'
       const emailInput: HTMLElement = getEmailInput()
       fireEvent.change(emailInput, { target: { value: emailValue } })
+      fireEvent.blur(emailInput) // onBlur - triggers validation
+
+      // confirming an error state
+      const emailRegex = /invalid is not a valid email/i
+      expect(screen.queryAllByText(emailRegex).length).toBe(1)
+
       // fixme: it looks like this is failing because the common button component
       //  doesn't pass the disabled prop all the way through
-      //  it sets styles, prevents it from being clicked, etc, but doesn't set 'disabled=true' on the actual element
+      //  it sets styles, prevents it from being clicked, even sets aria-disabled: true, etc, but doesn't set 'disabled=true' on the actual element
+      //  actual error output:
+      //   Received element is not disabled:
+      //    <div aria-disabled="true" aria-label="add-user" class="hover-style " disabled="" role="button" style="display: inline-flex; justify-content: space-around; align-items: center; height: 2.25rem; font-size: 14px; font-weight: 500; text-transform: uppercase; white-space: nowrap; user-select: none; border: 1px solid #adb2ba; border-radius: 5px; color: rgb(77, 114, 170); padding: 0.875rem; background-color: rgb(204, 207, 212); cursor: not-allowed;" tabindex="-1" />
       // expect(getAddUsersButton()).toBeDisabled()
     })
   })

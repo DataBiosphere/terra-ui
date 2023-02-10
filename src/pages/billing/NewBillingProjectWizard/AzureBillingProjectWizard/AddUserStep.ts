@@ -47,10 +47,10 @@ export const AddUserStep = ({ isActive, users, setUsers }: AddUserStepProps) => 
   }
 
   const addUser = () => {
-    if (emails && role && !emailErrors) {
+    if (!!emails && !!role && !emailErrors) {
       setUsers([{ emails, role }, ...users])
       setRole(undefined)
-      setEmails('')
+      setEmails(undefined)
     }
   }
 
@@ -81,7 +81,7 @@ export const AddUserStep = ({ isActive, users, setUsers }: AddUserStepProps) => 
         ]),
         div({ style: addUserFieldStyles }, [
           div({ style: { paddingTop: '2.25rem' } }), // spacer element to make two flex lines, so the button lines up with the input fields
-          h(ButtonOutline, { onClick: addUser, 'aria-label': 'add-user' }, [icon('plus')])
+          h(ButtonOutline, { onClick: addUser, 'aria-label': 'add-user', disabled: !emails || !role || !!emailErrors }, [icon('plus')])
         ])
       ]),
       div({ style: { height: '9rem', overflow: 'auto', width: '100%' } }, [

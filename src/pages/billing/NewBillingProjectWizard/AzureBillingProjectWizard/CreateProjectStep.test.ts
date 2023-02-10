@@ -22,6 +22,9 @@ describe('AddUserStep', () => {
     } as Partial<AjaxContract> as AjaxContract))
   })
 
+  it('is just a placeholder', () => {
+    // There isn't much to test for in the add
+  })
   /*
   todo: events to test for:
     billingAzureCreationSubscriptionEntered: 'billing:creation:step1:AzureSubscriptionEntered',
