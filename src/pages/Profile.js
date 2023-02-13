@@ -473,7 +473,7 @@ const NotificationSettingsTab = ({ setSaving }) => {
             `notifications/AbortedSubmissionNotification/${label}`
           ]
         })
-      })(workspaces)
+      })(_.filter({ public: false }, workspaces)) // public workspaces are not useful to display here and clutter the list
     )
   ])
 }
