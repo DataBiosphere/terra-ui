@@ -4,11 +4,7 @@ import { h } from 'react-hyperscript-helpers'
 import { CreateDataset } from 'src/pages/library/data-catalog/CreateDataset/CreateDataset'
 
 
-jest.mock('src/libs/nav', () => ({
-  ...jest.requireActual('src/libs/nav'),
-  getLink: jest.fn(),
-  getPath: jest.fn()
-}))
+jest.mock('src/libs/nav')
 
 
 describe('CreateDataset', () => {
