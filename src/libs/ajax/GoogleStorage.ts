@@ -296,7 +296,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
         ).then(res => res.text())
         return fetchOk(`${getConfig().calhounUrlRoot}/api/convert`,
           _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
-        ).then(res => res.text())
+        ).then(res => res)
       },
 
       copy,
@@ -383,7 +383,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
         ).then(res => res.text())
         return fetchOk(`${getConfig().calhounUrlRoot}/${calhounPath}`,
           _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
-        ).then(res => res.text())
+        ).then(res => res)
       },
 
       copy,

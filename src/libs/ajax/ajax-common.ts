@@ -64,11 +64,15 @@ const withAppIdentifier = wrappedFetch => (url, options) => {
 export const checkRequesterPaysError = async response => {
   if (response.status === 400) {
     const data = await response.text()
-    const requesterPaysError = _.includes('requester pays', data)
+    const requesterPaysError = responseContainsRequesterPaysError(data)
     return Object.assign(new Response(new Blob([data]), response), { requesterPaysError })
   } else {
     return Object.assign(response, { requesterPaysError: false })
   }
+}
+
+export const responseContainsRequesterPaysError = responseText => {
+  return _.includes('requester pays', responseText)
 }
 
 // Allows use of ajaxOverrideStore to stub responses for testing
