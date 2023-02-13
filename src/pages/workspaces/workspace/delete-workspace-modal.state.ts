@@ -7,6 +7,8 @@ import { getUser } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { BaseWorkspace, isGoogleWorkspace, WorkspaceInfo } from 'src/libs/workspace-utils'
 import { isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import {useLoadedData} from "src/libs/ajax/loaded-data/useLoadedData";
+import LoadedState from "src/libs/type-utils/LoadedState";
 
 
 interface DeleteWorkspaceModalLeoApp {
@@ -15,17 +17,22 @@ interface DeleteWorkspaceModalLeoApp {
   cloudContext: any
 }
 
+
+
+
+
 export interface DeleteWorkspaceState {
   loading: boolean
   deleting: boolean
   isDeleteDisabledFromResources: boolean
   workspaceBucketUsageInBytes: number | null
   deletableApps: DeleteWorkspaceModalLeoApp[]
-  nonDeletableApps: DeleteWorkspaceModalLeoApp[]
+  nonDeletableApps: DeleteWorkspaceModalLeoApp[],
   collaboratorEmails: string[] | null
   hasApps: () => boolean
   deleteWorkspace: () => void
-  controlledResourcesExist: boolean
+  controlledResourcesExist: boolean,
+  otherApps: LoadedState<DeleteWorkspaceModalLeoApp[], unknown>
 }
 
 export interface DeleteWorkspaceHookArgs {
@@ -33,6 +40,8 @@ export interface DeleteWorkspaceHookArgs {
   onDismiss: () => void
   onSuccess: () => void
 }
+
+
 
 
 export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs) : DeleteWorkspaceState => {
@@ -44,20 +53,37 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs) : Del
   const [controlledResourcesExist, setControlledResourcesExist] = useState(false)
   const [deletableApps, nonDeletableApps] = _.partition(isResourceDeletable('app'), apps) as [DeleteWorkspaceModalLeoApp[], DeleteWorkspaceModalLeoApp[]]
 
+
+  const [otherApps, setOtherApps] = useLoadedData<DeleteWorkspaceModalLeoApp[]>({onError: state => {
+      reportError('Error checking workspace resources', state.error)
+      hookArgs.onDismiss()
+    }})
+
+
+
   const workspaceInfo: WorkspaceInfo = hookArgs.workspace.workspace
   const signal = useCancellation()
 
   useOnMount(() => {
-    const load = _.flow(
-      withErrorReportingInModal('Error checking workspace resources', hookArgs.onDismiss),
-      Utils.withBusyState(setLoading)
-    )(async () => {
+
+    setOtherApps(async () => {
+      const foo = await Ajax(signal).Apps.listWithoutProject({ role: 'creator', saturnWorkspaceName: workspaceInfo.name })
+      Ajax(signal).Apps.listWithoutProject({ role: 'creator', saturnWorkspaceName: workspaceInfo.name }),
+          Ajax(signal).Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name).getAcl(),
+          Ajax(signal).Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name).bucketUsage()
+      return foo
+    })
+
+
+
+    const load = async () => {
       if (isGoogleWorkspace(hookArgs.workspace)) {
         const [currentWorkspaceAppList, { acl }, { usageInBytes }] = await Promise.all([
           Ajax(signal).Apps.listWithoutProject({ role: 'creator', saturnWorkspaceName: workspaceInfo.name }),
           Ajax(signal).Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name).getAcl(),
           Ajax(signal).Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name).bucketUsage()
         ])
+
         setApps(currentWorkspaceAppList)
         setCollaboratorEmails(_.without([getUser().email], _.keys(acl)))
         setWorkspaceBucketUsageInBytes(usageInBytes)
@@ -112,6 +138,7 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs) : Del
     collaboratorEmails: collaboratorEmails ? collaboratorEmails : null,
     hasApps,
     deleteWorkspace,
-    controlledResourcesExist
+    controlledResourcesExist,
+    otherApps // <--
   }
 }

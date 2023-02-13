@@ -26,7 +26,8 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
     nonDeletableApps,
     collaboratorEmails,
     hasApps,
-    deleteWorkspace
+    deleteWorkspace,
+    otherApps
   } = useDeleteWorkspaceState({ workspace, onDismiss, onSuccess })
 
 
@@ -44,6 +45,8 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
     ])
   }
 
+  const isOtherAppsLoading = otherApps.status === 'Loading'
+  const otherAppsInfo = otherApps.status === 'Ready' ? otherApps.state : null
 
   const getResourceDeletionMessage = () => {
     const appCount = nonDeletableApps.length > 1 ? `are ${nonDeletableApps.length}` : 'is 1'
