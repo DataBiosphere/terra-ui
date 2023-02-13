@@ -13,7 +13,10 @@ import * as Utils from 'src/libs/utils'
 import CreateGCPBillingProject from 'src/pages/billing/CreateGCPBillingProject'
 import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAccount'
 import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/Step'
-import { StepFields } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields'
+import {
+  StepFieldLegend,
+  StepFields
+} from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields'
 import { StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepHeader'
 
 
@@ -54,31 +57,32 @@ export const CreateTerraProjectStep = ({
       }
     }
   })
-  return h(Step, { isActive, style: { height: '18rem' } }, [
-    h(StepHeader, {
-      title: 'STEP 4', children: [
+  return h(Step, { isActive, style: { height: '22rem' } }, [
+    h(StepHeader, { title: 'STEP 4' }),
+    h(StepFields, { disabled: !isActive, style: { flexDirection: 'column' } }, [
+      h(StepFieldLegend, { style: { width: '65%' } }, [
         'Create a Terra project to connect your Google billing account to Terra. ',
-        'Billing projects allow you to manage your workspaces and are required to create one.'
-      ]
-    }),
-    h(StepFields, { disabled: !isActive }, [
-      div([CreateGCPBillingProject({
-        billingAccounts, chosenBillingAccount, setChosenBillingAccount,
-        billingProjectName, setBillingProjectName, existing, disabled: !isActive
-      })]),
-      isActive && _.isEmpty(billingAccounts) ?
-        h(NoBillingAccounts, {
-          refreshed: props.refreshed,
-          setRefreshed: props.setRefreshed,
-          authorizeAndLoadAccounts: props.authorizeAndLoadAccounts
-        }) :
-        div({ style: { display: 'flex', flexDirection: 'column', margin: '4rem' } }, [
-          h(ButtonPrimary, { style: { textTransform: 'none' }, onClick: submit, disabled: !isActive }, [
-            'Create Terra Billing Project',
-            isBusy && icon('loadingSpinner', { size: 16, style: { color: 'white', marginRight: '0.5rem' } }),
-          ]),
-          isBusy && div({ role: 'alert', style: { marginTop: '1rem' } }, ['This may take a minute'])
-        ])
+        'Billing projects allow you to manage your workspaces and are required to create one.',
+      ]),
+      div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'space-between' } }, [
+        div([CreateGCPBillingProject({
+          billingAccounts, chosenBillingAccount, setChosenBillingAccount,
+          billingProjectName, setBillingProjectName, existing, disabled: !isActive
+        })]),
+        isActive && _.isEmpty(billingAccounts) ?
+          h(NoBillingAccounts, {
+            refreshed: props.refreshed,
+            setRefreshed: props.setRefreshed,
+            authorizeAndLoadAccounts: props.authorizeAndLoadAccounts
+          }) :
+          div({ style: { display: 'flex', flexDirection: 'column', marginTop: '2.5rem' } }, [
+            h(ButtonPrimary, { style: { textTransform: 'none' }, onClick: submit, disabled: !isActive }, [
+              'Create Terra Billing Project',
+              isBusy && icon('loadingSpinner', { size: 16, style: { color: 'white', marginRight: '0.5rem' } }),
+            ]),
+            isBusy && div({ role: 'alert', style: { marginTop: '1rem' } }, ['This may take a minute'])
+          ])
+      ])
     ])
   ])
 }

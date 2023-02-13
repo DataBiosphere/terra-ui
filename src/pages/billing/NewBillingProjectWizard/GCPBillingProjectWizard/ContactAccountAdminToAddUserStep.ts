@@ -20,7 +20,7 @@ interface ContactAccountAdminToAddUserStepProps {
 export const ContactAccountAdminToAddUserStep = ({ isActive, ...props }: ContactAccountAdminToAddUserStepProps) => h(Step, { isActive }, [
   StepHeader({ title: 'STEP 3' }),
   h(StepFields, [
-    h(StepFieldLegend, { style: { width: '70%' } }, [
+    h(StepFieldLegend, { style: { width: '50%' } }, [
       'Contact your billing account administrator and have them add you and ',
       span({ style: { fontWeight: 'bold' } }, ['terra-billing@terra.bio']),
       ' as a Billing Account User',

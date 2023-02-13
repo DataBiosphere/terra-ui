@@ -23,16 +23,23 @@ export const StepFields = ({ children = [], style, disabled = false }: StepField
   }
 }, [children])
 
+const primaryStepTextStyle = {
+  fontSize: '1rem',
+  lineHeight: '22px',
+  whiteSpace: 'pre-wrap',
+  marginTop: '0.25rem',
+  marginRight: '1rem',
+  float: 'left'
+}
+
 export const StepFieldLegend = ({ children = [], style }: StepFieldsProps) => legend({
-  style: {
-    fontSize: '1rem',
-    lineHeight: '22px',
-    whiteSpace: 'pre-wrap',
-    marginTop: '0.25rem',
-    marginRight: '1rem',
-    float: 'left',
-    ...style
-  }
+  style: { ...primaryStepTextStyle as CSSProperties, ...style }
+}, children)
+
+// An alternative to StepFieldLegend that will render in the same way, but is not expected to be inside
+// a fieldset.
+export const StepInfo = ({ children = [], style }: StepFieldsProps) => div({
+  style: { ...primaryStepTextStyle as CSSProperties, ...style }
 }, children)
 
 export const StepFieldForm = ({ children = [], style }: StepFieldsProps) => form({

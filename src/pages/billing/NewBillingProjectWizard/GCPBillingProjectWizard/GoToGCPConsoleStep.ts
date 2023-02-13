@@ -1,10 +1,10 @@
-import { h } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import { ButtonOutline } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
 import Events from 'src/libs/events'
 import * as Utils from 'src/libs/utils'
 import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/Step'
-import { StepFieldLegend, StepFields } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields'
+import { StepInfo } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields'
 import { StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepHeader'
 
 
@@ -16,8 +16,9 @@ interface GoToGCPConsoleStepProps {
 export const GoToGCPConsoleStep = ({ isActive, ...props }: GoToGCPConsoleStepProps) => {
   return h(Step, { isActive }, [
     StepHeader({ title: 'STEP 1' }),
-    h(StepFields, [
-      h(StepFieldLegend, ['Go to the Google Cloud Platform Billing Console and sign-in with the same user you use to login to Terra.']),
+    div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } }, [
+      h(StepInfo, { style: { maxWidth: '60%' } },
+        ['Go to the Google Cloud Platform Billing Console and sign-in with the same user you use to login to Terra.']),
       h(ButtonOutline, {
         disabled: false,
         href: 'https://console.cloud.google.com',
