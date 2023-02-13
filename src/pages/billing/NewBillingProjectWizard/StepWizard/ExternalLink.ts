@@ -15,5 +15,4 @@ export const ExternalLink = ({ text, url, ...props }: ExternalLinkProps) => h(Li
   ...Utils.newTabLinkProps,
   style: { textDecoration: 'underline', color: colors.accent(), ...props.style },
   href: url,
-
 }, [text])

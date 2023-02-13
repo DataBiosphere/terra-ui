@@ -23,11 +23,9 @@ import { StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard
 interface CreateTerraProjectStepProps {
   isActive: boolean
   billingAccounts: Record<string, GoogleBillingAccount>
-
   refreshed: boolean
   setRefreshed: (boolean) => void
   authorizeAndLoadAccounts: () => Promise<void>
-
   onSuccess: (string) => void
 }
 

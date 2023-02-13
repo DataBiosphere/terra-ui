@@ -47,7 +47,7 @@ export const AddTerraAsBillingAccountUserStep = ({ isActive, ...props }: AddTerr
           disabled,
           text: 'I have added terra-billing as a billing account user (requires reauthentication)',
           name: 'permission',
-          checked: props.accessToAddBillingAccountUser,
+          checked: props.accessToAddBillingAccountUser === true,
           onChange: () => {
             Ajax().Metrics.captureEvent(Events.billingGCPCreationStep3AddedTerraBilling)
             props.setAccessToAddBillingAccountUser(true)

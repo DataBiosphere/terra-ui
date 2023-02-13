@@ -14,7 +14,6 @@ interface ContactAccountAdminToAddUserStepProps {
   isFinished: boolean
   verifiedUsersAdded: boolean | undefined
   setVerifiedUsersAdded: (boolean) => void
-
 }
 
 export const ContactAccountAdminToAddUserStep = ({ isActive, ...props }: ContactAccountAdminToAddUserStepProps) => h(Step, { isActive }, [
@@ -28,7 +27,7 @@ export const ContactAccountAdminToAddUserStep = ({ isActive, ...props }: Contact
     ]),
     div({ style: { width: '30%' } }, [
       h(LabeledCheckbox, {
-        checked: props.verifiedUsersAdded,
+        checked: props.verifiedUsersAdded === true,
         disabled: !isActive && !props.isFinished, // disabled when we haven't gotten to this step - still allow users to go back, though
         onChange: () => {
           Ajax().Metrics.captureEvent(Events.billingGCPCreationStep3VerifyUserAdded)

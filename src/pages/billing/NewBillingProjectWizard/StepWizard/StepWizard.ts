@@ -7,7 +7,6 @@ export interface StepWizardProps {
   children?: React.ReactNode
 }
 
-
 export const StepWizard = ({ title, intro, ...props }: StepWizardProps) => {
   return section({ style: { padding: '1.5rem 3rem', width: '100%' } }, [
     h2({ style: { fontWeight: 'bold', fontSize: 18 } }, [title]),

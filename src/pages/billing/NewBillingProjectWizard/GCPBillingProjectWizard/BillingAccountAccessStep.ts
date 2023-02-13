@@ -34,7 +34,7 @@ export const BillingAccountAccessStep = ({ isActive, ...props }: BillingAccountA
       }),
       LabeledRadioButton({
         text: 'I have a billing account', name: 'access-to-account',
-        checked: props.accessToBillingAccount,
+        checked: props.accessToBillingAccount === true,
         onChange: () => {
           props.setAccessToBillingAccount(true)
           Ajax().Metrics.captureEvent(Events.billingGCPCreationStep2HaveBillingAccount)
@@ -42,7 +42,5 @@ export const BillingAccountAccessStep = ({ isActive, ...props }: BillingAccountA
       })
     ])
   ]),
-
-
 ])
 
