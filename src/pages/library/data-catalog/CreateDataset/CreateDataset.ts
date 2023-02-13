@@ -51,7 +51,7 @@ interface CreateDatasetProps {
   storageSourceId: string
 }
 
-const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetProps) => {
+export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetProps) => {
   const [titleTouched, setTitleTouched] = useState(false)
   const [descriptionTouched, setDescriptionTouched] = useState(false)
   const [creatorTouched, setCreatorTouched] = useState(false)
