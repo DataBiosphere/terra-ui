@@ -378,9 +378,9 @@ const catalogPost = async (url: string, signal: AbortSignal | undefined, jsonBod
 }
 
 export const Catalog = (signal?: AbortSignal): CatalogContract => ({
-  upsertDataset: (storageSystem: StorageSystem, storageSourceId: string, metadata: DatasetMetadata): Promise<Response> => catalogPost('v1/datasets', signal, { storageSystem, storageSourceId, catalogEntry: metadata }),
-  getDatasets: (): Promise<DatasetListResponse> => catalogGet('v1/datasets', signal),
-  getDatasetTables: (id: string): Promise<DatasetTableListResponse> => catalogGet(`v1/datasets/${id}/tables`, signal),
-  getDatasetPreviewTable: ({ id, tableName }: GetDatasetPreviewTableRequest): Promise<DatasetTableResponse> => catalogGet(`v1/datasets/${id}/tables/${tableName}`, signal),
-  exportDataset: ({ id, workspaceId }: ExportDatasetRequest): Promise<Response> => catalogPost(`v1/datasets/${id}/export`, signal, { workspaceId })
+  upsertDataset: (storageSystem, storageSourceId, metadata) => catalogPost('v1/datasets', signal, { storageSystem, storageSourceId, catalogEntry: metadata }),
+  getDatasets: () => catalogGet('v1/datasets', signal),
+  getDatasetTables: id => catalogGet(`v1/datasets/${id}/tables`, signal),
+  getDatasetPreviewTable: ({ id, tableName }) => catalogGet(`v1/datasets/${id}/tables/${tableName}`, signal),
+  exportDataset: ({ id, workspaceId }) => catalogPost(`v1/datasets/${id}/export`, signal, { workspaceId })
 })
