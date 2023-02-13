@@ -185,6 +185,8 @@ const UriViewer = _.flow(
         })
         const metadata = await loadObject(googleProject, bucket, name)
         setMetadata(metadata)
+      } else if (isAzureUri(uri)) {
+        // TODO:
       } else {
         // TODO: change below comment after switch to DRSHub is complete, tracked in ticket [ID-170]
         // Fields are mapped from the martha_v3 fields to those used by google
@@ -279,7 +281,7 @@ const UriViewer = _.flow(
         div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
       ])],
       () => h(Fragment, [
-        isGs(uri) ? 'Loading metadata...' : 'Resolving DOS object...',
+        isGs(uri) ? 'Loading metadata...' : isAzureUri(uri) ? 'Retrieving Azure file...' : isDrs(uri) ? 'Resolving DRS object...' : 'Retrieving file...',
         spinner({ style: { marginLeft: 4 } })
       ])
     )
