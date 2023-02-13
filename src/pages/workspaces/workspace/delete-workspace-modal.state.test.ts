@@ -34,7 +34,8 @@ describe('useDeleteWorkspace', () => {
     workspace: {
       name: 'example',
       namespace: 'example',
-      cloudPlatform: 'Gcp'
+      cloudPlatform: 'Gcp',
+      workspaceId: 'googleWorkspaceId'
     } as GoogleWorkspaceInfo
   } as BaseWorkspace
   const azureWorkspace = {
@@ -44,7 +45,8 @@ describe('useDeleteWorkspace', () => {
     workspace: {
       name: 'example',
       namespace: 'example',
-      cloudPlatform: 'azure'
+      cloudPlatform: 'azure',
+      workspaceId: 'azureWorkspaceId'
     } as AzureWorkspaceInfo
   } as BaseWorkspace
   const mockOnDismiss = jest.fn(() => {
@@ -90,6 +92,7 @@ describe('useDeleteWorkspace', () => {
     expect(result.current.collaboratorEmails).toEqual(['example1@example.com'])
     expect(result.current.workspaceBucketUsageInBytes).toBe(1234)
     expect(mockApps.listWithoutProject).toHaveBeenCalledTimes(1)
+    expect(mockApps.listWithoutProject).toHaveBeenCalledWith({ role: 'creator', saturnWorkspaceName: googleWorkspace.workspace.name })
     expect(mockGetAcl).toHaveBeenCalledTimes(1)
     expect(mockGetBucketUsage).toHaveBeenCalledTimes(1)
   })
@@ -132,7 +135,9 @@ describe('useDeleteWorkspace', () => {
     expect(result.current.isDeleteDisabledFromResources).toBe(true)
     expect(result.current.controlledResourcesExist).toBe(true)
     expect(mockListAppsV2.listAppsV2).toHaveBeenCalledTimes(1)
+    expect(mockListAppsV2.listAppsV2).toHaveBeenCalledWith(azureWorkspace.workspace.workspaceId)
     expect(mockWsmControlledResources.controlledResources).toHaveBeenCalledTimes(1)
+    expect(mockWsmControlledResources.controlledResources).toHaveBeenCalledWith(azureWorkspace.workspace.workspaceId)
   })
 
   it('can delete an azure workspace', async () => {
