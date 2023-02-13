@@ -7,7 +7,6 @@ import {
   googleCloudResourceTypes,
   StorageObject
 } from 'src/libs/ajax/Catalog'
-import * as Utils from 'src/libs/utils'
 import { SelectInput, SelectInputProps } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs'
 
 
@@ -21,17 +20,20 @@ export const StorageInput = ({ wrapperProps, storageObject, onChange }: StorageI
   const inputWrapperProps = {
     style: { width: `${100 / 3}%` }
   }
+
   // This gets its own method because it is select inputs
   const generateSelectInputProps = (title, key, azureTypes, gcpTypes): SelectInputProps => {
     return {
       title,
       wrapperProps: inputWrapperProps,
       value: storageObject[key],
-      options: Utils.switchCase(storageObject.cloudPlatform,
-        ['gcp', () => _.values(gcpTypes)],
-        ['azure', () => _.values(azureTypes)],
-        [Utils.DEFAULT, () => []]
-      ),
+      options: (() => {
+        switch (storageObject.cloudPlatform) {
+          case 'gcp': return _.values(gcpTypes)
+          case 'azure': return _.values(azureTypes)
+          default: return []
+        }
+      })(),
       onChange: option => onChange(_.set(key, option.value, storageObject) as StorageObject)
     }
   }

@@ -1,3 +1,4 @@
+import * as _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
 import { DataCollection } from 'src/libs/ajax/Catalog'
 import { FormLabel } from 'src/libs/forms'
@@ -17,14 +18,24 @@ interface DataCollectionInputProps {
 export const DataCollectionInput = ({ title = undefined, dataCollection, onChange, wrapperProps }: DataCollectionInputProps) => {
   return div(wrapperProps, [
     title && h(FormLabel, [title]),
-    div({ style: { display: 'flex', width: '100%' } }, [
-      h(StringInput, generateIndividualInputPropsForObjectField('Identifier', 'dct:identifier', 'Enter a short identifier', dataCollection, onChange, undefined, 7)),
-      h(StringInput, generateIndividualInputPropsForObjectField('Title', 'dct:title', 'Enter the full title', dataCollection, onChange, undefined, 7)),
-      h(StringInput, generateIndividualInputPropsForObjectField('Description', 'dct:description', 'Enter a description', dataCollection, onChange, undefined, 7)),
-      h(StringInput, generateIndividualInputPropsForObjectField('Creator', 'dct:creator', 'Enter the creator', dataCollection, onChange, undefined, 7)),
-      h(StringInput, generateIndividualInputPropsForObjectField('Publisher', 'dct:publisher', 'Enter the publisher', dataCollection, onChange, undefined, 7)),
-      h(StringInput, generateIndividualInputPropsForObjectField('Issued', 'dct:issued', 'Enter  issued time', dataCollection, onChange, undefined, 7)),
-      h(StringInput, generateIndividualInputPropsForObjectField('Modified', 'dct:modified', 'Enter last modified time', dataCollection, onChange, undefined, 7))
-    ])
+    div({ style: { display: 'flex', width: '100%' } }, _.map(
+      field => h(StringInput, generateIndividualInputPropsForObjectField(
+        field.title,
+        field.key,
+        field.placeholder,
+        dataCollection,
+        onChange,
+        undefined,
+        7
+      )), [
+        { title: 'Identifier', key: 'dct:identifier', placeholder: 'Enter a short identifier' },
+        { title: 'Title', key: 'dct:title', placeholder: 'Enter the full title' },
+        { title: 'Description', key: 'dct:description', placeholder: 'Enter a description' },
+        { title: 'Creator', key: 'dct:creator', placeholder: 'Enter the creator' },
+        { title: 'Publisher', key: 'dct:publisher', placeholder: 'Enter a publisher' },
+        { title: 'Issued', key: 'dct:issued', placeholder: 'Enter  issued time' },
+        { title: 'Modified', key: 'dct:modified', placeholder: 'Enter last modified time' }
+      ])
+    )
   ])
 }
