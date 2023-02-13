@@ -85,7 +85,7 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
     contributors: []
   })
 
-  const errors = validate(metadata, constraints)
+  const errors = validate(metadata, constraints) || {}
 
   return h(FooterWrapper, {}, [
     h(TopBar, { title: 'Create Dataset', href: '' }, []),
@@ -96,7 +96,7 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
         setMetadata(_.set('dct:title', value, metadata))
       },
       value: metadata['dct:title'],
-      errors: titleTouched && errors && errors['dct:title'],
+      errors: titleTouched && errors['dct:title'],
       placeholder: 'Enter a title',
       autoFocus: true,
       required: true
@@ -110,7 +110,7 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
       value: metadata['dct:description'],
       placeholder: 'Enter a description',
       required: true,
-      errors: descriptionTouched && errors && errors['dct:description']
+      errors: descriptionTouched && errors['dct:description']
     }),
     h(StringInput, {
       title: 'Dataset Creator',
@@ -121,7 +121,7 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
       value: metadata['dct:creator'],
       placeholder: 'Enter the creator of the dataset',
       required: true,
-      errors: creatorTouched && errors && errors['dct:creator']
+      errors: creatorTouched && errors['dct:creator']
     }),
     h(StringInput, {
       title: 'Access URL',
@@ -132,7 +132,7 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
       value: metadata['dcat:accessURL'],
       placeholder: 'Enter the url to access the dataset',
       required: true,
-      errors: accessURLTouched && errors && errors['dcat:accessURL']
+      errors: accessURLTouched && errors['dcat:accessURL']
     }),
     h(SelectInput, {
       title: 'Data Use Permission',
@@ -157,7 +157,7 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
     }),
     h(ListInput as React.FC<ListInputProps<Publication>>, {
       title: 'Publications',
-      list: metadata['TerraDCAT_ap:hasPublication'] ? metadata['TerraDCAT_ap:hasPublication'] : [],
+      list: metadata['TerraDCAT_ap:hasPublication'] || [],
       blankValue: { 'dct:title': '', 'dcat:accessURL': '' },
       renderer: (listItem, onChange) => h(PublicationInput, {
         onChange,
@@ -169,7 +169,7 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
     }),
     h(ListInput as React.FC<ListInputProps<DataCollection>>, {
       title: 'Data Collections',
-      list: metadata['TerraDCAT_ap:hasDataCollection'] ? metadata['TerraDCAT_ap:hasDataCollection'] : [],
+      list: metadata['TerraDCAT_ap:hasDataCollection'] || [],
       blankValue: { 'dct:identifier': '', 'dct:title': '', 'dct:description': '', 'dct:creator': '', 'dct:publisher': '', 'dct:issued': '', 'dct:modified': '' },
       renderer: (listItem, onChange) => h(DataCollectionInput, {
         onChange,
@@ -191,7 +191,7 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
     }),
     h(ListInput, {
       title: 'Contributors',
-      list: metadata.contributors ? metadata.contributors : [],
+      list: metadata.contributors || [],
       blankValue: { name: '', email: '', additionalInformation: {} },
       renderer: (listItem, onChange) => h(ContributorInput, {
         onChange,
@@ -204,7 +204,7 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
     }),
     h(ListInput as React.FC<ListInputProps<StorageObject>>, {
       title: 'Storage',
-      list: metadata.storage ? metadata.storage : [],
+      list: metadata.storage || [],
       blankValue: { cloudPlatform: undefined, cloudResource: undefined, region: undefined },
       renderer: (listItem, onChange) => h(StorageInput, {
         onChange,
