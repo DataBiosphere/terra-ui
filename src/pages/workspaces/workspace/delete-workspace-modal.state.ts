@@ -112,6 +112,13 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs) : Del
           _.map(async app => await Ajax().Apps.app(app.cloudContext.cloudResource, app.appName).delete(), deletableApps)
         )
       }
+
+      if (nonDeletableRuntimes.length > 0 || nonDeletableApps.length > 0) {
+        reportError('Undeletable workspace', {})
+        setDeleting(false)
+        return
+      }
+
       await Ajax().Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name).delete()
       hookArgs.onDismiss()
       hookArgs.onSuccess()
@@ -133,11 +140,13 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs) : Del
       if (nonDeletableApps.length > 0) {
         reportError('Unable to delete apps', {})
         setDeletingAzureResources(false)
+        return
       }
 
       if (nonDeletableRuntimes.length > 0) {
         reportError('Unable to delete runtimes', {})
         setDeletingAzureResources(false)
+        return
       }
 
       await Ajax(signal).Apps.deleteAllAppsV2(workspaceInfo.workspaceId)
