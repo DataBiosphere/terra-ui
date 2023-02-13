@@ -30,7 +30,7 @@ export const AddTerraAsBillingAccountUserStep = ({ isActive, ...props }: AddTerr
         'Add ',
         span({ style: { fontWeight: 'bold' } }, ['terra-billing@terra.bio']),
         ' as a Billing Account User',
-        span({ style: { fontWeight: 'bold' } }, [' to your billing account.']), //]),
+        span({ style: { fontWeight: 'bold' } }, [' to your billing account.']),
       ]),
       h(LabeledRadioGroup, { style: { width: '30%' } }, [
         h(LabeledRadioButton, {
