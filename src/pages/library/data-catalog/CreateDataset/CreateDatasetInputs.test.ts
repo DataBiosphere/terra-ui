@@ -99,7 +99,11 @@ describe('CreateDatasetInputs', () => {
     const user = userEvent.setup()
     const currentValue = 'an initial value'
     const newValue = 'a new value'
-    const options = [currentValue, newValue, 'unused value']
+    const options = [
+      { label: currentValue, value: currentValue },
+      { label: newValue, value: newValue },
+      { label: 'unused value', value: '' }
+    ]
     render(h(InputWithState, {
       initialValue: currentValue,
       props: {
@@ -111,9 +115,11 @@ describe('CreateDatasetInputs', () => {
     }))
     const select = screen.getByLabelText('Title')
     expect(screen.getByText('Title')).toBeTruthy()
-    expect(screen.findByText(currentValue)).toBeTruthy()
-    await user.type(select, newValue)
-    expect(screen.findByText(newValue)).toBeTruthy()
+    expect(await screen.findByText(currentValue)).toBeTruthy()
+    await user.click(select)
+    const newValueOption = await screen.findAllByText(newValue)
+    await user.click(newValueOption[1])
+    expect(await screen.findByText(newValue)).toBeTruthy()
   })
 
   it('Renders a list for ListInput', () => {
