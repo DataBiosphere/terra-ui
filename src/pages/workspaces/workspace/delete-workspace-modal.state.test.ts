@@ -2,7 +2,7 @@ import { act, renderHook } from '@testing-library/react-hooks'
 import { Ajax } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import { DeepPartial } from 'src/libs/type-utils/deep-partial'
-import { AzureWorkspaceInfo, GoogleWorkspaceInfo } from 'src/libs/workspace-utils'
+import { AzureWorkspaceInfo, BaseWorkspace, GoogleWorkspaceInfo } from 'src/libs/workspace-utils'
 import { useDeleteWorkspaceState } from 'src/pages/workspaces/workspace/delete-workspace-modal.state'
 import { asMockedFn } from 'src/testing/test-utils'
 
@@ -15,7 +15,8 @@ jest.mock('src/libs/ajax', (): AjaxExports => {
   }
 })
 
-jest.mock('src/libs/error', () => ({
+type ErrorExports = typeof import('src/libs/error')
+jest.mock('src/libs/error', (): ErrorExports => ({
   ...jest.requireActual('src/libs/error'),
   reportError: jest.fn(),
 }))
@@ -35,7 +36,7 @@ describe('useDeleteWorkspace', () => {
       namespace: 'example',
       cloudPlatform: 'Gcp'
     } as GoogleWorkspaceInfo
-  }
+  } as BaseWorkspace
   const azureWorkspace = {
     accessLevel: 'writer',
     canShare: true,
@@ -45,17 +46,10 @@ describe('useDeleteWorkspace', () => {
       namespace: 'example',
       cloudPlatform: 'azure'
     } as AzureWorkspaceInfo
-  }
+  } as BaseWorkspace
   const mockOnDismiss = jest.fn(() => {
   })
   const mockOnSuccess = jest.fn(() => {
-  })
-
-  beforeEach(() => {
-    jest.spyOn(console, 'error').mockImplementation(() => {
-    })
-    jest.spyOn(console, 'log').mockImplementation(() => {
-    })
   })
 
   it('can initialize state for a google workspace with running apps', async () => {
@@ -87,7 +81,7 @@ describe('useDeleteWorkspace', () => {
     const {
       result,
       waitForNextUpdate
-    } = renderHook(() => useDeleteWorkspaceState(googleWorkspace, mockOnDismiss, mockOnSuccess))
+    } = renderHook(() => useDeleteWorkspaceState({ workspace: googleWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess }))
     await waitForNextUpdate()
 
     // Assert
@@ -95,6 +89,9 @@ describe('useDeleteWorkspace', () => {
     expect(result.current.isDeleteDisabledFromResources).toBe(false)
     expect(result.current.collaboratorEmails).toEqual(['example1@example.com'])
     expect(result.current.workspaceBucketUsageInBytes).toBe(1234)
+    expect(mockApps.listWithoutProject).toHaveBeenCalledTimes(1)
+    expect(mockGetAcl).toHaveBeenCalledTimes(1)
+    expect(mockGetBucketUsage).toHaveBeenCalledTimes(1)
   })
 
   it('can initialize state for an azure workspace', async () => {
@@ -127,13 +124,15 @@ describe('useDeleteWorkspace', () => {
     const {
       result,
       waitForNextUpdate
-    } = renderHook(() => useDeleteWorkspaceState(azureWorkspace, mockOnDismiss, mockOnSuccess))
+    } = renderHook(() => useDeleteWorkspaceState({ workspace: azureWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess }))
     await waitForNextUpdate()
 
     // Assert
     expect(result.current.hasApps()).toBe(true)
     expect(result.current.isDeleteDisabledFromResources).toBe(true)
     expect(result.current.controlledResourcesExist).toBe(true)
+    expect(mockListAppsV2.listAppsV2).toHaveBeenCalledTimes(1)
+    expect(mockWsmControlledResources.controlledResources).toHaveBeenCalledTimes(1)
   })
 
   it('can delete an azure workspace', async () => {
@@ -165,7 +164,7 @@ describe('useDeleteWorkspace', () => {
     const {
       result,
       waitForNextUpdate
-    } = renderHook(() => useDeleteWorkspaceState(azureWorkspace, mockOnDismiss, mockOnSuccess))
+    } = renderHook(() => useDeleteWorkspaceState({ workspace: azureWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess }))
     await waitForNextUpdate()
     await act(() => result.current.deleteWorkspace())
 
@@ -173,6 +172,7 @@ describe('useDeleteWorkspace', () => {
     expect(result.current.deleting).toBe(true)
     expect(mockOnDismiss).toHaveBeenCalledTimes(1)
     expect(mockOnSuccess).toHaveBeenCalledTimes(1)
+    expect(mockDelete).toHaveBeenCalledTimes(1)
   })
 
   it('can delete a google workspace', async () => {
@@ -203,12 +203,13 @@ describe('useDeleteWorkspace', () => {
     const {
       result,
       waitForNextUpdate
-    } = renderHook(() => useDeleteWorkspaceState(googleWorkspace, mockOnDismiss, mockOnSuccess))
+    } = renderHook(() => useDeleteWorkspaceState({ workspace: googleWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess }))
     await waitForNextUpdate()
     await act(() => result.current.deleteWorkspace())
 
     // Assert
     expect(result.current.deleting).toBe(true)
+    expect(mockDelete).toHaveBeenCalledTimes(1)
   })
 
   it('can handle errors when deletion fails', async () => {
@@ -239,12 +240,12 @@ describe('useDeleteWorkspace', () => {
     const {
       result,
       waitForNextUpdate
-    } = renderHook(() => useDeleteWorkspaceState(googleWorkspace, mockOnDismiss, mockOnSuccess))
+    } = renderHook(() => useDeleteWorkspaceState({ workspace: googleWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess }))
     await waitForNextUpdate()
     await act(() => result.current.deleteWorkspace())
 
     // Assert
     expect(result.current.deleting).toBe(false)
-    expect(reportError).toHaveBeenCalled()
+    expect(reportError).toHaveBeenCalledTimes(1)
   })
 })

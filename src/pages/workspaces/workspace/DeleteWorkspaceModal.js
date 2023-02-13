@@ -27,7 +27,7 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
     collaboratorEmails,
     hasApps,
     deleteWorkspace
-  } = useDeleteWorkspaceState(workspace, onDismiss, onSuccess)
+  } = useDeleteWorkspaceState({ workspace, onDismiss, onSuccess })
 
 
   const getStorageDeletionMessage = () => {

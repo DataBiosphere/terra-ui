@@ -28,8 +28,14 @@ export interface DeleteWorkspaceState {
   controlledResourcesExist: boolean
 }
 
+export interface DeleteWorkspaceHookArgs {
+  workspace: BaseWorkspace
+  onDismiss: () => void
+  onSuccess: () => void
+}
 
-export const useDeleteWorkspaceState = (workspace: BaseWorkspace, onDismiss: () => void, onSuccess: () => void) : DeleteWorkspaceState => {
+
+export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs) : DeleteWorkspaceState => {
   const [deleting, setDeleting] = useState(false)
   const [loading, setLoading] = useState(false)
   const [apps, setApps] = useState<DeleteWorkspaceModalLeoApp[]>()
@@ -38,15 +44,15 @@ export const useDeleteWorkspaceState = (workspace: BaseWorkspace, onDismiss: () 
   const [controlledResourcesExist, setControlledResourcesExist] = useState(false)
   const [deletableApps, nonDeletableApps] = _.partition(isResourceDeletable('app'), apps) as [DeleteWorkspaceModalLeoApp[], DeleteWorkspaceModalLeoApp[]]
 
-  const workspaceInfo: WorkspaceInfo = workspace.workspace
+  const workspaceInfo: WorkspaceInfo = hookArgs.workspace.workspace
   const signal = useCancellation()
 
   useOnMount(() => {
     const load = _.flow(
-      withErrorReportingInModal('Error checking workspace resources', onDismiss),
+      withErrorReportingInModal('Error checking workspace resources', hookArgs.onDismiss),
       Utils.withBusyState(setLoading)
     )(async () => {
-      if (isGoogleWorkspace(workspace)) {
+      if (isGoogleWorkspace(hookArgs.workspace)) {
         const [currentWorkspaceAppList, { acl }, { usageInBytes }] = await Promise.all([
           Ajax(signal).Apps.listWithoutProject({ role: 'creator', saturnWorkspaceName: workspaceInfo.name }),
           Ajax(signal).Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name).getAcl(),
@@ -82,14 +88,14 @@ export const useDeleteWorkspaceState = (workspace: BaseWorkspace, onDismiss: () 
   const deleteWorkspace = async () => {
     try {
       setDeleting(true)
-      if (isGoogleWorkspace(workspace)) {
+      if (isGoogleWorkspace(hookArgs.workspace)) {
         await Promise.all(
           _.map(async app => await Ajax().Apps.app(app.cloudContext.cloudResource, app.appName).delete(), deletableApps)
         )
       }
       await Ajax().Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name).delete()
-      onDismiss()
-      onSuccess()
+      hookArgs.onDismiss()
+      hookArgs.onSuccess()
     } catch (error) {
       reportError('Error deleting workspace', error)
       setDeleting(false)
