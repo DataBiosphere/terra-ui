@@ -310,6 +310,7 @@ export interface Contributor {
   additionalInformation?: any
 }
 
+// This interface represents all user defined fields for a dataset
 export interface DatasetMetadata {
   'TerraCore:id'?: string
   'dct:title': string
@@ -337,6 +338,7 @@ export interface DatasetMetadata {
   contributors: Contributor[]
 }
 
+// This interface adds all catalog generated fields for a dataset
 export interface Dataset extends DatasetMetadata {
   requestAccessURL?: string
   id: string
