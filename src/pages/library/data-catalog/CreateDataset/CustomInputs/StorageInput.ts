@@ -8,7 +8,7 @@ import {
   StorageObject
 } from 'src/libs/ajax/Catalog'
 import * as Utils from 'src/libs/utils'
-import { SelectInput } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs'
+import { SelectInput, SelectInputProps } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs'
 
 
 interface StorageInputProps {
@@ -22,7 +22,7 @@ export const StorageInput = ({ wrapperProps, storageObject, onChange }: StorageI
     style: { width: `${100 / 3}%` }
   }
   // This gets its own method because it is select inputs
-  const generateSelectInputProps = (title, key, azureTypes, gcpTypes) => {
+  const generateSelectInputProps = (title, key, azureTypes, gcpTypes): SelectInputProps => {
     return {
       title,
       wrapperProps: inputWrapperProps,

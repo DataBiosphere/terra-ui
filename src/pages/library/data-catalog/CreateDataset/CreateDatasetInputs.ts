@@ -10,15 +10,18 @@ import { useUniqueId } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 
-interface StringInputProps {
+interface InputProps<T> {
   title?: string
+  value?: T
   onChange: Function
-  value: string
-  placeholder: string
+  wrapperProps?: {}
+  errors?: any
+  placeholder?: string
+}
+
+interface StringInputProps extends InputProps<string> {
   autoFocus?: boolean
   required?: boolean
-  errors?: any
-  wrapperProps?: {}
 }
 
 export const StringInput = ({ title, onChange, value, placeholder, autoFocus = false, required = false, errors, wrapperProps = {} }: StringInputProps): ReactElement => {
@@ -39,7 +42,11 @@ export const StringInput = ({ title, onChange, value, placeholder, autoFocus = f
   ])
 }
 
-export const CatalogNumberInput = ({ title, onChange, value, required = false, wrapperProps = {} }): ReactElement => {
+interface NumberInputProps extends InputProps<number> {
+  required?: boolean
+}
+
+export const CatalogNumberInput = ({ title, onChange, value, required = false, wrapperProps = {} }: NumberInputProps): ReactElement => {
   const id = useUniqueId()
   return div(wrapperProps, [
     h(FormLabel, { htmlFor: id, required }, [title]),
@@ -53,7 +60,7 @@ export const CatalogNumberInput = ({ title, onChange, value, required = false, w
   ])
 }
 
-export const MarkdownInput = ({ title, onChange, value, placeholder, required = false, errors = undefined }: StringInputProps): ReactElement => {
+export const MarkdownInput = ({ title, onChange, value, placeholder, required = false, errors }: StringInputProps): ReactElement => {
   const id = useUniqueId()
   return h(div, [
     h(FormLabel, { htmlFor: id, required }, [title]),
@@ -69,7 +76,13 @@ export const MarkdownInput = ({ title, onChange, value, placeholder, required = 
   ])
 }
 
-export const SelectInput = ({ title, value, placeholder = '', options, onChange, wrapperProps = {} }) => {
+export interface SelectInputProps extends InputProps<string> {
+  options: string[] | { value: string; label: string | ReactElement }[]
+  placeholder?: string
+  wrapperProps?: {}
+}
+
+export const SelectInput = ({ title, value, placeholder = '', options, onChange, wrapperProps = {} }: SelectInputProps) => {
   const id = useUniqueId()
 
   return div(wrapperProps, [
@@ -133,7 +146,7 @@ export const ListInput = <T>({ title, list, blankValue, renderer, onChange, onRe
   ])
 }
 
-export const generateIndividualInputPropsForObjectField = (title, key, placeholder, object, onChange, errors, numbersOfFieldsInRow) => ({
+export const generateIndividualInputPropsForObjectField = (title, key, placeholder, object, onChange, errors, numbersOfFieldsInRow): InputProps<any> => ({
   wrapperProps: {
     style: { width: `${100 / numbersOfFieldsInRow}%` },
     key
