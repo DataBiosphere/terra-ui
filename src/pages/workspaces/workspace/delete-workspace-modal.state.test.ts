@@ -23,6 +23,7 @@ jest.mock('src/libs/error', (): ErrorExports => ({
 
 type AjaxContract = ReturnType<typeof Ajax>;
 type AjaxAppsContract = AjaxContract['Apps']
+type AjaxRuntimesContract = AjaxContract['Runtimes']
 type AjaxWorkspaceManagerContract = AjaxContract['WorkspaceManagerResources']
 type AjaxWorkspacesContract = AjaxContract['Workspaces']
 
@@ -104,8 +105,12 @@ describe('useDeleteWorkspace', () => {
     }
     asMockedFn((mockListAppsV2 as AjaxAppsContract).listAppsV2).mockResolvedValue([{
       appName: 'example',
-      status: 'running'
+      status: 'provisioning'
     }])
+    const mockListRuntimesV2: Partial<AjaxRuntimesContract> = {
+      listV2WithWorkspace: jest.fn()
+    }
+    asMockedFn((mockListRuntimesV2 as AjaxRuntimesContract).listV2WithWorkspace).mockResolvedValue([])
 
     const mockWsmControlledResources: Partial<AjaxWorkspaceManagerContract> = {
       controlledResources: jest.fn()
@@ -119,7 +124,8 @@ describe('useDeleteWorkspace', () => {
 
     const mockAjax: Partial<AjaxContract> = {
       Apps: mockListAppsV2 as AjaxAppsContract,
-      WorkspaceManagerResources: mockWsmControlledResources as AjaxWorkspaceManagerContract
+      WorkspaceManagerResources: mockWsmControlledResources as AjaxWorkspaceManagerContract,
+      Runtimes: mockListRuntimesV2 as AjaxRuntimesContract
     }
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract)
 
@@ -132,7 +138,8 @@ describe('useDeleteWorkspace', () => {
 
     // Assert
     expect(result.current.hasApps()).toBe(true)
-    expect(result.current.isDeleteDisabledFromResources).toBe(true)
+    expect(result.current.hasRuntimes()).toBe(false)
+    expect(result.current.isDeleteDisabledFromLeoResources).toBe(true)
     expect(result.current.controlledResourcesExist).toBe(true)
     expect(mockListAppsV2.listAppsV2).toHaveBeenCalledTimes(1)
     expect(mockListAppsV2.listAppsV2).toHaveBeenCalledWith(azureWorkspace.workspace.workspaceId)
@@ -152,6 +159,12 @@ describe('useDeleteWorkspace', () => {
       listAppsV2: jest.fn()
     }
     asMockedFn((mockListAppsV2 as AjaxAppsContract).listAppsV2).mockResolvedValue([])
+
+    const mockListRuntimesV2: Partial<AjaxRuntimesContract> = {
+      listV2WithWorkspace: jest.fn()
+    }
+    asMockedFn((mockListRuntimesV2 as AjaxRuntimesContract).listV2WithWorkspace).mockResolvedValue([])
+
     const mockWsmControlledResources: Partial<AjaxWorkspaceManagerContract> = {
       controlledResources: jest.fn()
     }
@@ -161,6 +174,7 @@ describe('useDeleteWorkspace', () => {
     const mockAjax: Partial<AjaxContract> = {
       Workspaces: mockWorkspaces as AjaxWorkspacesContract,
       Apps: mockListAppsV2 as AjaxAppsContract,
+      Runtimes: mockListRuntimesV2 as AjaxRuntimesContract,
       WorkspaceManagerResources: mockWsmControlledResources as AjaxWorkspaceManagerContract
     }
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract)

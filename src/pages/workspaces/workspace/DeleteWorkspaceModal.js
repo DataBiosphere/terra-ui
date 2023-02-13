@@ -21,12 +21,17 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
     loading,
     deleting,
     isDeleteDisabledFromResources,
+    isDeleteDisabledFromLeoResources,
     workspaceBucketUsageInBytes,
     deletableApps,
     nonDeletableApps,
     collaboratorEmails,
     hasApps,
-    deleteWorkspace
+    hasRuntimes,
+    deleteWorkspace,
+    deleteWorkspaceAzureResources,
+    deletingAzureResources,
+    controlledResourcesExist
   } = useDeleteWorkspaceState({ workspace, onDismiss, onSuccess })
 
 
@@ -65,55 +70,84 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
   }
 
 
-  return h(Modal, {
-    title: span({ style: { display: 'flex', alignItems: 'center' } }, [
-      icon('warning-standard', { size: 24, color: colors.warning() }),
-      span({ style: { marginLeft: '1ch' } }, ['Delete workspace'])
-    ]),
-    onDismiss,
-    okButton: h(ButtonPrimary, {
-      disabled: _.toLower(deleteConfirmation) !== 'delete workspace' || isDeleteDisabledFromResources,
-      onClick: deleteWorkspace,
-      tooltip: Utils.cond(
-        [isDeleteDisabledFromResources && isGoogleWorkspace(workspace), () => 'You must ensure all apps in this workspace are deletable'],
-        [isDeleteDisabledFromResources && isAzureWorkspace(workspace), () => 'This workspace cannot be deleted'],
-        [_.toLower(deleteConfirmation) !== 'delete workspace', () => 'You must type the confirmation message'],
-        () => '')
-    }, 'Delete workspace'),
-    styles: { modal: { background: colors.warning(0.1) } }
-  }, [
-    div(['Are you sure you want to permanently delete the workspace ',
-      span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, name),
-      '?']),
-    getStorageDeletionMessage(),
-    isDeleteDisabledFromResources && div({ style: { marginTop: '1rem' } }, [
-      getResourceDeletionMessage()
-    ]),
-    !isDeleteDisabledFromResources && hasApps() && div({ style: { marginTop: '1rem' } }, [
-      p(['Deleting it will also delete any associated applications:']),
-      getResourceDeletionMessage()
-    ]),
-    collaboratorEmails && collaboratorEmails.length > 0 && div({ style: { marginTop: '1rem' } }, [
-      p(`${pluralize('collaborator', collaboratorEmails.length, true)} will lose access to this workspace.`),
-      div(collaboratorEmails.slice(0, 5).map(
-        email => div({ key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [h(Link, { href: `mailto:${email}` }, [email])])
-      )),
-      collaboratorEmails.length > 5 && (
-        div(`and ${collaboratorEmails.length - 5} more`)
-      )
-    ]),
-    !isDeleteDisabledFromResources && b({ style: { display: 'block', marginTop: '1rem' } }, 'This cannot be undone.'),
-    !isDeleteDisabledFromResources && div({ style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
-      label({ htmlFor: 'delete-workspace-confirmation', style: { marginBottom: '0.25rem' } }, ['Please type \'Delete Workspace\' to continue:']),
-      h(TextInput, {
-        id: 'delete-workspace-confirmation',
-        placeholder: 'Delete Workspace',
-        value: deleteConfirmation,
-        onChange: setDeleteConfirmation
-      })
-    ]),
-    (deleting || loading) && spinnerOverlay
-  ])
+  const getAzureResourceCleanupModal = () => {
+    return h(Modal, {
+      title: span({ style: { display: 'flex', alignItems: 'center' } }, [
+        icon('warning-standard', { size: 24, color: colors.warning() }),
+        span({ style: { marginLeft: '1ch' } }, ['Delete workspace'])
+      ]),
+      onDismiss,
+      okButton: h(ButtonPrimary, {
+        disabled: isDeleteDisabledFromLeoResources,
+        onClick: deleteWorkspaceAzureResources
+      }, ['Delete workspace resources']),
+      styles: { modal: { background: colors.warning(0.1) } }
+    },
+    [
+      isDeleteDisabledFromLeoResources && div(['This workspace has resources that are not deletable']),
+      !isDeleteDisabledFromLeoResources && div(['This workspaces resources need deletion']),
+      (deletingAzureResources || loading) && spinnerOverlay
+    ]
+    )
+  }
+
+  const getWorkspaceDeletionModal = () => {
+    return h(Modal, {
+      title: span({ style: { display: 'flex', alignItems: 'center' } }, [
+        icon('warning-standard', { size: 24, color: colors.warning() }),
+        span({ style: { marginLeft: '1ch' } }, ['Delete workspace'])
+      ]),
+      onDismiss,
+      okButton: h(ButtonPrimary, {
+        disabled: _.toLower(deleteConfirmation) !== 'delete workspace' || isDeleteDisabledFromResources,
+        onClick: deleteWorkspace,
+        tooltip: Utils.cond(
+          [isDeleteDisabledFromResources && isGoogleWorkspace(workspace), () => 'You must ensure all apps in this workspace are deletable'],
+          [isDeleteDisabledFromResources && isAzureWorkspace(workspace), () => 'This workspace cannot be deleted'],
+          [_.toLower(deleteConfirmation) !== 'delete workspace', () => 'You must type the confirmation message'],
+          () => '')
+      }, 'Delete workspace'),
+      styles: { modal: { background: colors.warning(0.1) } }
+    }, [
+      div(['Are you sure you want to permanently delete the workspace ',
+        span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, name),
+        '?']),
+      getStorageDeletionMessage(),
+      isDeleteDisabledFromResources && div({ style: { marginTop: '1rem' } }, [
+        getResourceDeletionMessage()
+      ]),
+      !isDeleteDisabledFromResources && hasApps() && div({ style: { marginTop: '1rem' } }, [
+        p(['Deleting it will also delete any associated applications:']),
+        getResourceDeletionMessage()
+      ]),
+      collaboratorEmails && collaboratorEmails.length > 0 && div({ style: { marginTop: '1rem' } }, [
+        p(`${pluralize('collaborator', collaboratorEmails.length, true)} will lose access to this workspace.`),
+        div(collaboratorEmails.slice(0, 5).map(
+          email => div({ key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [h(Link, { href: `mailto:${email}` }, [email])])
+        )),
+        collaboratorEmails.length > 5 && (
+          div(`and ${collaboratorEmails.length - 5} more`)
+        )
+      ]),
+      !isDeleteDisabledFromResources && b({ style: { display: 'block', marginTop: '1rem' } }, 'This cannot be undone.'),
+      !isDeleteDisabledFromResources && div({ style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
+        label({ htmlFor: 'delete-workspace-confirmation', style: { marginBottom: '0.25rem' } }, ['Please type \'Delete Workspace\' to continue:']),
+        h(TextInput, {
+          id: 'delete-workspace-confirmation',
+          placeholder: 'Delete Workspace',
+          value: deleteConfirmation,
+          onChange: setDeleteConfirmation
+        })
+      ]),
+      (deleting || loading) && spinnerOverlay
+    ])
+  }
+
+  if (isAzureWorkspace(workspace) && (hasApps() || hasRuntimes() || controlledResourcesExist)) {
+    return getAzureResourceCleanupModal()
+  } else {
+    return getWorkspaceDeletionModal()
+  }
 }
 
 export default DeleteWorkspaceModal

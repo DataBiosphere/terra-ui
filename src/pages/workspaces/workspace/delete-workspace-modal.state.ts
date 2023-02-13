@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Ajax } from 'src/libs/ajax'
 import { reportError, withErrorReportingInModal } from 'src/libs/error'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
@@ -15,16 +15,25 @@ interface DeleteWorkspaceModalLeoApp {
   cloudContext: any
 }
 
+interface DeleteWorkspaceModalLeoRuntime {
+  runtimeName: string
+  status: string
+}
+
 export interface DeleteWorkspaceState {
   loading: boolean
   deleting: boolean
   isDeleteDisabledFromResources: boolean
+  isDeleteDisabledFromLeoResources: boolean
   workspaceBucketUsageInBytes: number | null
   deletableApps: DeleteWorkspaceModalLeoApp[]
   nonDeletableApps: DeleteWorkspaceModalLeoApp[]
   collaboratorEmails: string[] | null
   hasApps: () => boolean
+  hasRuntimes: () => boolean
   deleteWorkspace: () => void
+  deleteWorkspaceAzureResources: () => void
+  deletingAzureResources: boolean
   controlledResourcesExist: boolean
 }
 
@@ -39,13 +48,17 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs) : Del
   const [deleting, setDeleting] = useState(false)
   const [loading, setLoading] = useState(false)
   const [apps, setApps] = useState<DeleteWorkspaceModalLeoApp[]>()
+  const [runtimes, setRuntimes] = useState<DeleteWorkspaceModalLeoRuntime[]>()
   const [collaboratorEmails, setCollaboratorEmails] = useState<string[] | null>()
   const [workspaceBucketUsageInBytes, setWorkspaceBucketUsageInBytes] = useState<number | null>()
   const [controlledResourcesExist, setControlledResourcesExist] = useState(false)
   const [deletableApps, nonDeletableApps] = _.partition(isResourceDeletable('app'), apps) as [DeleteWorkspaceModalLeoApp[], DeleteWorkspaceModalLeoApp[]]
+  const [deletingAzureResources, setDeletingAzureResources] = useState(false)
+  const [deletableRuntimes, nonDeletableRuntimes] = _.partition(isResourceDeletable('runtime'), runtimes) as [DeleteWorkspaceModalLeoRuntime[], DeleteWorkspaceModalLeoRuntime[]]
 
   const workspaceInfo: WorkspaceInfo = hookArgs.workspace.workspace
   const signal = useCancellation()
+  const checkAzureResourcesTimeout = useRef<number>()
 
   useOnMount(() => {
     const load = _.flow(
@@ -63,18 +76,17 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs) : Del
         setWorkspaceBucketUsageInBytes(usageInBytes)
       } else {
         const currentWorkspaceAppList = await Ajax(signal).Apps.listAppsV2(workspaceInfo.workspaceId)
+        const currentRuntimesList = await Ajax(signal).Runtimes.listV2WithWorkspace(workspaceInfo.workspaceId)
 
-        // temporary hack to prevent orphaning resources on Azure:
-        // change each app to status: 'disallow' which will cause this modal to think they are undeletable
-        const hackedAppList = _.map(_.set('status', 'disallow'), currentWorkspaceAppList) as DeleteWorkspaceModalLeoApp[]
-        setApps(hackedAppList)
-
+        setApps(currentWorkspaceAppList)
+        setRuntimes(currentRuntimesList)
         // Also temporarily disable delete if there are any controlled resources besides the expected workspace storage container.
         const controlledResources = await Ajax(signal).WorkspaceManagerResources.controlledResources(workspaceInfo.workspaceId)
         setControlledResourcesExist(controlledResources.resources.length > 1)
       }
     })
     load()
+    clearTimeout(checkAzureResourcesTimeout.current)
   })
 
   const hasApps = () => {
@@ -83,7 +95,14 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs) : Del
             !_.isEmpty(nonDeletableApps))
   }
 
-  const isDeleteDisabledFromResources = (hasApps() && !_.isEmpty(nonDeletableApps)) || controlledResourcesExist
+  const hasRuntimes = () => {
+    return deletableRuntimes !== undefined && nonDeletableRuntimes !== undefined &&
+        (!_.isEmpty(deletableRuntimes) ||
+            !_.isEmpty(nonDeletableRuntimes))
+  }
+
+  const isDeleteDisabledFromResources = (hasApps() && !_.isEmpty(nonDeletableApps))
+  const isDeleteDisabledFromLeoResources = (hasRuntimes() && !_.isEmpty(nonDeletableRuntimes)) || (isDeleteDisabledFromResources)
 
   const deleteWorkspace = async () => {
     try {
@@ -102,16 +121,49 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs) : Del
     }
   }
 
+  const checkAzureResources = () => {
+    if (hasApps() || controlledResourcesExist) {
+      checkAzureResourcesTimeout.current = window.setTimeout(() => checkAzureResources(), 5000)
+    }
+  }
+
+  const deleteWorkspaceAzureResources = async () => {
+    setDeletingAzureResources(true)
+    try {
+      if (nonDeletableApps.length > 0) {
+        reportError('Unable to delete apps', {})
+        setDeletingAzureResources(false)
+      }
+
+      if (nonDeletableRuntimes.length > 0) {
+        reportError('Unable to delete runtimes', {})
+        setDeletingAzureResources(false)
+      }
+
+      await Ajax(signal).Apps.deleteAllAppsV2(workspaceInfo.workspaceId)
+      await Ajax(signal).Runtimes.runtimeV2(workspaceInfo.workspaceId).deleteAll()
+
+      checkAzureResourcesTimeout.current = window.setTimeout(() => checkAzureResources(), 5000)
+    } catch (error) {
+      reportError('Error deleting workspace resources', error)
+      setDeletingAzureResources(false)
+    }
+  }
+
   return {
     loading,
     deleting,
     isDeleteDisabledFromResources,
+    isDeleteDisabledFromLeoResources,
     workspaceBucketUsageInBytes: workspaceBucketUsageInBytes !== undefined ? workspaceBucketUsageInBytes : null,
     deletableApps,
     nonDeletableApps,
     collaboratorEmails: collaboratorEmails ? collaboratorEmails : null,
     hasApps,
+    hasRuntimes,
     deleteWorkspace,
+    deleteWorkspaceAzureResources,
+    deletingAzureResources,
     controlledResourcesExist
   }
 }
