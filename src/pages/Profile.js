@@ -461,19 +461,22 @@ const NotificationSettingsTab = ({ setSaving }) => {
     ]),
     h(NotificationCardHeaders),
     div({ role: 'list', 'aria-label': 'notification settings for workspaces', style: { flexGrow: 1, width: '100%' } },
-      _.map(workspace => {
-        const label = `${workspace.workspace.namespace}/${workspace.workspace.name}`
-        return h(NotificationCard, {
-          setSaving,
-          prefsData,
-          label,
-          notificationKeys: [
-            `notifications/SuccessfulSubmissionNotification/${label}`,
-            `notifications/FailedSubmissionNotification/${label}`,
-            `notifications/AbortedSubmissionNotification/${label}`
-          ]
+      _.flow(
+        _.filter({ public: false }), // public workspaces are not useful to display here and clutter the list
+        _.map(workspace => {
+          const label = `${workspace.workspace.namespace}/${workspace.workspace.name}`
+          return h(NotificationCard, {
+            setSaving,
+            prefsData,
+            label,
+            notificationKeys: [
+              `notifications/SuccessfulSubmissionNotification/${label}`,
+              `notifications/FailedSubmissionNotification/${label}`,
+              `notifications/AbortedSubmissionNotification/${label}`
+            ]
+          })
         })
-      })(_.filter({ public: false }, workspaces)) // public workspaces are not useful to display here and clutter the list
+      )(workspaces)
     )
   ])
 }
