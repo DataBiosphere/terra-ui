@@ -9,7 +9,7 @@ import Events from 'src/libs/events'
 import { useCancellation } from 'src/libs/react-utils'
 import { withBusyState } from 'src/libs/utils'
 import { AzureManagedAppCoordinates } from 'src/pages/billing/models/AzureManagedAppCoordinates'
-import { BillingRole } from 'src/pages/billing/models/BillingRole'
+import { BillingRole } from 'src/pages/billing/models/BillingProject'
 import { CreateProjectStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/CreateProjectStep'
 import { StepWizard } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepWizard'
 
