@@ -1,7 +1,7 @@
 import * as _ from 'lodash/fp'
 import React, { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary } from 'src/components/common'
+import { ButtonPrimary, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
@@ -11,6 +11,7 @@ import {
   DatasetMetadata, Publication, StorageObject,
   StorageSystem
 } from 'src/libs/ajax/Catalog'
+import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import {
   ListInput, ListInputProps,
@@ -56,6 +57,7 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
   const [descriptionTouched, setDescriptionTouched] = useState(false)
   const [creatorTouched, setCreatorTouched] = useState(false)
   const [accessURLTouched, setAccessURLTouched] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const now = new Date().toISOString()
 
@@ -86,8 +88,8 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
   })
 
   const errors = validate(metadata, constraints) || {}
-
   return h(FooterWrapper, {}, [
+    loading && spinnerOverlay,
     h(TopBar, { title: 'Create Dataset', href: '' }, []),
     h(StringInput, {
       title: 'Title',
@@ -218,9 +220,13 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
       div({ style: { display: 'flex', justifyContent: 'flex-end', margin: '1rem' } }, [
         h(ButtonPrimary, {
           style: { marginLeft: '1rem' },
-          disabled: _.keys(errors).length > 1,
+          disabled: _.keys(errors).length > 0,
           tooltip: Utils.summarizeErrors(errors),
-          onClick: () => Ajax().Catalog.upsertDataset(storageSystem, storageSourceId, metadata)
+          onClick: async () => {
+            setLoading(true)
+            const response = await (await Ajax().Catalog.upsertDataset(storageSystem, storageSourceId, metadata)).json()
+            Nav.goToPath('library-details', { id: response.id })
+          }
         }, ['Create'])
       ])
     ])
