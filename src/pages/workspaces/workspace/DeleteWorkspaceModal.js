@@ -11,7 +11,7 @@ import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
-import { useDeleteWorkspaceState } from 'src/pages/workspaces/workspace/delete-workspace-modal.state'
+import { useDeleteWorkspaceState } from 'src/pages/workspaces/workspace/useDeleteWorkspaceState'
 
 
 const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucketName } }, onDismiss, onSuccess }) => {

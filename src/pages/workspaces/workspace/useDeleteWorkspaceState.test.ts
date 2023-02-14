@@ -3,7 +3,7 @@ import { Ajax } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import { DeepPartial } from 'src/libs/type-utils/deep-partial'
 import { AzureWorkspaceInfo, BaseWorkspace, GoogleWorkspaceInfo } from 'src/libs/workspace-utils'
-import { useDeleteWorkspaceState } from 'src/pages/workspaces/workspace/delete-workspace-modal.state'
+import { useDeleteWorkspaceState } from 'src/pages/workspaces/workspace/useDeleteWorkspaceState'
 import { asMockedFn } from 'src/testing/test-utils'
 
 
