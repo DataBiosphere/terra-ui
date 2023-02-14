@@ -181,14 +181,16 @@ const AzurePreviewUserForm = ({ value: formValue, onChange, onSubmit }) => {
 
         div({ style: { width: '100%' } }, [
           label({
+            htmlFor: 'azure-preview-use-case-other',
             onClick: () => onChange({
               ...formValue,
-              otherUseCase: !!formValue.otherUseCase ? '' : otherUseCase,
+              otherUseCase: !!formValue.otherUseCase ? '' : otherUseCase || ' ',
             }),
-            style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }
+            style: { display: 'inline-flex', alignItems: 'center', marginBottom: '0.5rem' }
           }, [
             h(Checkbox, {
               checked: !!formValue.otherUseCase,
+              id: 'azure-preview-use-case-other',
               style: { flexShrink: 0, marginRight: '1ch' },
               onChange: checked => {
                 onChange({
@@ -201,6 +203,7 @@ const AzurePreviewUserForm = ({ value: formValue, onChange, onSubmit }) => {
           ]),
 
           h(TextArea, {
+            'aria-label': 'Other use case',
             rows: 3,
             value: otherUseCase,
             onChange: value => {
