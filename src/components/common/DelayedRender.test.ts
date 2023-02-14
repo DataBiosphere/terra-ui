@@ -14,13 +14,13 @@ describe('DelayedRender', () => {
       div(['Hello world'])
     ]))
 
+    const isRenderedInitially = screen.queryByText('Hello world') !== null
+
+    act(() => { jest.advanceTimersByTime(3000) })
+    const isRenderedAfterDelay = screen.queryByText('Hello world') !== null
+
     // Assert
-    expect(screen.queryByText('Hello world')).toBeNull()
-
-    act(() => { jest.advanceTimersByTime(1000) })
-    expect(screen.queryByText('Hello world')).toBeNull()
-
-    act(() => { jest.advanceTimersByTime(2000) })
-    screen.queryByText('Hello world')
+    expect(isRenderedInitially).toBe(false)
+    expect(isRenderedAfterDelay).toBe(true)
   })
 })
