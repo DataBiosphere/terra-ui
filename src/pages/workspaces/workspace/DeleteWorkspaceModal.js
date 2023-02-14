@@ -83,10 +83,11 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
     },
     [
       isDeleteDisabledFromResources && div([
-        p(['This workspace has resources that are not deletable. Please reach out to support@terra.bio for assistance.']),
+        p(['This workspace has resources that are not deletable.']),
+        p(['If the resource is provisioning or deleting, try again in a few minutes. Please reach out to support@terra.bio for assistance.']),
         ul([
-          workspaceResources.nonDeleteableApps.map(app => li(app.appName)),
-          workspaceResources.nonDeleteableRuntimes.map(runtime => li(runtime.runtimeName))
+          workspaceResources.nonDeleteableApps.map(app => li([app.appName, ` (${app.status.toLowerCase()})`])),
+          workspaceResources.nonDeleteableRuntimes.map(runtime => li([runtime.runtimeName, ` (${runtime.status.toLowerCase()})`]))
         ]),
       ]),
       !isDeleteDisabledFromResources && div([

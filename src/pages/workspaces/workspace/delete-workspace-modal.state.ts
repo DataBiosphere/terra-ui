@@ -108,6 +108,7 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs) : Del
       }
     })
     load()
+
     clearTimeout(checkAzureResourcesTimeout.current)
   })
 
@@ -147,7 +148,10 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs) : Del
     }
   }
 
-  const checkAzureResources = () => {
+  const checkAzureResources = async () => {
+    const appsInfo = await fetchWorkspaceResources(hookArgs.workspace)
+    setWorkspaceResources(appsInfo)
+
     if (hasApps() || controlledResourcesExist) {
       checkAzureResourcesTimeout.current = window.setTimeout(() => checkAzureResources(), 5000)
     }
@@ -177,14 +181,6 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs) : Del
       setDeletingAzureResources(false)
     }
   }
-
-  // loading
-  // deleting
-  // isDeleteDisabled
-  // hasExternalResourcesRequiringImmediateDeletion
-  // deletionStats (bucket usage bytes, collaborators)
-  // deleteWorkspace
-  // deleteExternalResources
 
   return {
     workspaceResources,
