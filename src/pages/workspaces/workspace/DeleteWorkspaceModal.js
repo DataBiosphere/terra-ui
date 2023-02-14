@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import pluralize from 'pluralize'
 import { useState } from 'react'
-import { b, div, h, label, li, p, span, ul } from 'react-hyperscript-helpers'
+import { b, div, h, label, li, p, span, strong, ul } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
 import { warningBoxStyle } from 'src/components/data/data-utils'
 import { icon } from 'src/components/icons'
@@ -82,7 +82,13 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
       styles: { modal: { background: colors.warning(0.1) } }
     },
     [
-      isDeleteDisabledFromResources && div(['This workspace has resources that are not deletable']),
+      isDeleteDisabledFromResources && div([
+        p(['This workspace has resources that are not deletable. Please reach out to support@terra.bio for assistance.']),
+        ul([
+          workspaceResources.nonDeleteableApps.map(app => li(app.appName)),
+          workspaceResources.nonDeleteableRuntimes.map(runtime => li(runtime.runtimeName))
+        ]),
+      ]),
       !isDeleteDisabledFromResources && div([
         p(['This workspace cannot be deleted because of the following running cloud resources:']),
         ul([
@@ -91,7 +97,7 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
         ]),
         p(['These resources must be deleted before the workspace can be deleted']),
         p(['It may take several minutes to delete all of the cloud resources in this workspace. Please do not close this window']),
-        p(['This cannot be undone.'])
+        p([strong('This cannot be undone.')])
 
       ]),
       (deletingAzureResources || loading) && spinnerOverlay
