@@ -65,12 +65,14 @@ export const workflowSelectionStore = Utils.atom({
   entities: undefined
 })
 
+/** @type {Utils.Atom<any[]>} */
 export const asyncImportJobStore = Utils.atom([])
 
 export const snapshotsListStore = Utils.atom()
 
 export const snapshotStore = Utils.atom()
 
+/** @type {Utils.Atom<any[]>} */
 export const dataCatalogStore = Utils.atom([])
 
 /*
