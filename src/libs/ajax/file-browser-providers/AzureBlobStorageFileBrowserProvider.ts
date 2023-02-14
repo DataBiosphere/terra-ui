@@ -11,7 +11,7 @@ export interface AzureBlobStorageFileBrowserProviderParams {
 }
 
 type AzureBlobStorageFileBrowserProviderGetPageParams<T> = {
-  isFirstPage: boolean
+  isFirstPage?: boolean
   pageToken?: string
   pendingItems?: T[]
   prefix: string
@@ -29,7 +29,6 @@ interface BlobListRequestOptions {
 
 const AzureBlobStorageFileBrowserProvider = ({ workspaceId, pageSize = 1000 }: AzureBlobStorageFileBrowserProviderParams): FileBrowserProvider => {
   const storageDetailsPromise = AzureStorage().details(workspaceId)
-
   const getNextPage = async <T>(params: AzureBlobStorageFileBrowserProviderGetPageParams<T>): Promise<IncrementalResponse<T>> => {
     const {
       isFirstPage,
@@ -108,7 +107,6 @@ const AzureBlobStorageFileBrowserProvider = ({ workspaceId, pageSize = 1000 }: A
         tagName: 'Blob',
         mapBlobOrBlobPrefix: blob => {
           const name = blob.getElementsByTagName('Name').item(0)!.textContent!
-
           const blobProperties = blob.getElementsByTagName('Properties').item(0)!
           const creationTime = blobProperties.getElementsByTagName('Creation-Time').item(0)!.textContent!
           const lastModified = blobProperties.getElementsByTagName('Last-Modified').item(0)!.textContent!
@@ -117,7 +115,6 @@ const AzureBlobStorageFileBrowserProvider = ({ workspaceId, pageSize = 1000 }: A
           const blobUrl = new URL(sasUrl)
           blobUrl.pathname += `/${name}`
           blobUrl.search = ''
-
           return {
             path: name,
             url: blobUrl.href,
@@ -162,7 +159,6 @@ const AzureBlobStorageFileBrowserProvider = ({ workspaceId, pageSize = 1000 }: A
     },
     uploadFileToDirectory: async (directoryPath, file) => {
       const { sas: { url: originalSasUrl } } = await storageDetailsPromise
-
       const blobUrl = new URL(originalSasUrl)
       blobUrl.pathname += `/${directoryPath}${encodeURIComponent(file.name)}`
 

@@ -125,6 +125,7 @@ const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps
           rootLabel,
           selectedFiles,
           setSelectedFiles,
+          // TODO: Aaron
           onClickFile: setFocusedFile,
           onCreateDirectory: (directory: FileBrowserDirectory) => {
             setPath(directory.path)
