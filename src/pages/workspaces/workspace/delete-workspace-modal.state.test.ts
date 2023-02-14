@@ -46,7 +46,7 @@ describe('useDeleteWorkspace', () => {
     workspace: {
       name: 'example',
       namespace: 'example',
-      cloudPlatform: 'azure',
+      cloudPlatform: 'Azure',
       workspaceId: 'azureWorkspaceId'
     } as AzureWorkspaceInfo
   } as BaseWorkspace
@@ -139,7 +139,7 @@ describe('useDeleteWorkspace', () => {
     // Assert
     expect(result.current.hasApps()).toBe(true)
     expect(result.current.hasRuntimes()).toBe(false)
-    expect(result.current.isDeleteDisabledFromLeoResources).toBe(true)
+    expect(result.current.isDeleteDisabledFromResources).toBe(true)
     expect(result.current.controlledResourcesExist).toBe(true)
     expect(mockListAppsV2.listAppsV2).toHaveBeenCalledTimes(1)
     expect(mockListAppsV2.listAppsV2).toHaveBeenCalledWith(azureWorkspace.workspace.workspaceId)
@@ -367,6 +367,7 @@ describe('useDeleteWorkspace', () => {
     expect(result.current.deletingAzureResources).toBe(false)
     expect(mockAppsV2.deleteAllAppsV2).toHaveBeenCalledTimes(0)
     expect(mockDeleteAllRuntimes).toHaveBeenCalledTimes(0)
+    expect(reportError).toHaveBeenCalledTimes(1)
   })
 
   it('should not allow deletion of a workspace with undeletable azure apps', async () => {
@@ -418,5 +419,6 @@ describe('useDeleteWorkspace', () => {
     expect(result.current.deleting).toBe(false)
     expect(result.current.deletingAzureResources).toBe(false)
     expect(mockDelete).toHaveBeenCalledTimes(0)
+    expect(reportError).toHaveBeenCalledTimes(1)
   })
 })

@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import pluralize from 'pluralize'
 import { useState } from 'react'
-import { b, div, h, label, p, span } from 'react-hyperscript-helpers'
+import { b, div, h, label, li, p, span, ul } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
 import { warningBoxStyle } from 'src/components/data/data-utils'
 import { icon } from 'src/components/icons'
@@ -18,13 +18,11 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
 
   const {
+    workspaceResources,
     loading,
     deleting,
     isDeleteDisabledFromResources,
-    isDeleteDisabledFromLeoResources,
     workspaceBucketUsageInBytes,
-    deletableApps,
-    nonDeletableApps,
     collaboratorEmails,
     hasApps,
     hasRuntimes,
@@ -51,8 +49,8 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
 
 
   const getResourceDeletionMessage = () => {
-    const appCount = nonDeletableApps.length > 1 ? `are ${nonDeletableApps.length}` : 'is 1'
-    const googleMessage = `You cannot delete this workspace because there ${appCount} ${pluralize('application', nonDeletableApps.length,
+    const appCount = workspaceResources.nonDeleteableApps.length > 1 ? `are ${workspaceResources.nonDeleteableApps.length}` : 'is 1'
+    const googleMessage = `You cannot delete this workspace because there ${appCount} ${pluralize('application', workspaceResources.nonDeleteableApps.length,
       false)} you must delete first. Only applications in ('ERROR', 'RUNNING') status can be automatically deleted.`
     const azureMessage = 'Deleting workspaces with running cloud resources in Terra on Azure Preview is currently unavailable. Please reach out to support@terra.bio for assistance.'
     return isDeleteDisabledFromResources ?
@@ -66,7 +64,7 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
         ])
       ]) :
       p({ style: { marginLeft: '1rem', fontWeight: 'bold' } },
-        [`Detected ${deletableApps.length} automatically deletable ${pluralize('application', deletableApps.length, false)}.`])
+        [`Detected ${workspaceResources.deleteableApps.length} automatically deletable ${pluralize('application', workspaceResources.deleteableApps.length, false)}.`])
   }
 
 
@@ -78,14 +76,24 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
       ]),
       onDismiss,
       okButton: h(ButtonPrimary, {
-        disabled: isDeleteDisabledFromLeoResources,
+        disabled: isDeleteDisabledFromResources,
         onClick: deleteWorkspaceAzureResources
       }, ['Delete workspace resources']),
       styles: { modal: { background: colors.warning(0.1) } }
     },
     [
-      isDeleteDisabledFromLeoResources && div(['This workspace has resources that are not deletable']),
-      !isDeleteDisabledFromLeoResources && div(['This workspaces resources need deletion']),
+      isDeleteDisabledFromResources && div(['This workspace has resources that are not deletable']),
+      !isDeleteDisabledFromResources && div([
+        p(['This workspace cannot be deleted because of the following running cloud resources:']),
+        ul([
+          workspaceResources.apps.map(app => li(app.appName)),
+          workspaceResources.runtimes.map(runtime => li(runtime.runtimeName))
+        ]),
+        p(['These resources must be deleted before the workspace can be deleted']),
+        p(['It may take several minutes to delete all of the cloud resources in this workspace. Please do not close this window']),
+        p(['This cannot be undone.'])
+
+      ]),
       (deletingAzureResources || loading) && spinnerOverlay
     ]
     )
