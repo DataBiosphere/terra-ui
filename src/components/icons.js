@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Children, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import DelayedRender from 'src/components/DelayedRender'
+import { DelayedRender } from 'src/components/common'
 import colors from 'src/libs/colors'
 import iconDict from 'src/libs/icon-dict'
 
