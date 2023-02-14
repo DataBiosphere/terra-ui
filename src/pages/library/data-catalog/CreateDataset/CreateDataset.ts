@@ -218,7 +218,7 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
       div({ style: { display: 'flex', justifyContent: 'flex-end', margin: '1rem' } }, [
         h(ButtonPrimary, {
           style: { marginLeft: '1rem' },
-          disabled: errors,
+          disabled: _.keys(errors).length > 1,
           tooltip: Utils.summarizeErrors(errors),
           onClick: () => Ajax().Catalog.upsertDataset(storageSystem, storageSourceId, metadata)
         }, ['Create'])
