@@ -47,7 +47,7 @@ const errorTextStyle = { color: colors.danger(), fontWeight: 'bold', fontSize: 1
 
 export const parseGsUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
 
-export const getDownloadCommand = (fileName, gsUri, azureUri, accessUrl) => {
+export const getDownloadCommand = (fileName, gsUri, accessUrl) => {
   const { url: httpUrl, headers: httpHeaders } = accessUrl || {}
 
   if (httpUrl) {
@@ -60,11 +60,6 @@ export const getDownloadCommand = (fileName, gsUri, azureUri, accessUrl) => {
   }
 
   if (gsUri) {
-    return `gsutil cp ${gsUri} ${fileName || '.'}`
-  }
-
-  if (azureUri) {
-    // TODO: Aaron
     return `gsutil cp ${gsUri} ${fileName || '.'}`
   }
 }
