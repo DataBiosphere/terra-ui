@@ -27,9 +27,8 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
     hasApps,
     hasRuntimes,
     deleteWorkspace,
-    deleteWorkspaceAzureResources,
-    deletingAzureResources,
-    controlledResourcesExist
+    deleteWorkspaceResources,
+    deletingResources
   } = useDeleteWorkspaceState({ workspace, onDismiss, onSuccess })
 
 
@@ -77,12 +76,12 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
       onDismiss,
       okButton: h(ButtonPrimary, {
         disabled: isDeleteDisabledFromResources,
-        onClick: deleteWorkspaceAzureResources
+        onClick: deleteWorkspaceResources
       }, ['Delete workspace resources']),
       styles: { modal: { background: colors.warning(0.1) } }
     },
     [
-      isDeleteDisabledFromResources && div([
+      isDeleteDisabledFromResources && !deletingResources && div([
         p(['This workspace has resources that are not deletable.']),
         p(['If the resource is provisioning or deleting, try again in a few minutes. Please reach out to support@terra.bio for assistance.']),
         ul([
@@ -90,18 +89,18 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
           workspaceResources.nonDeleteableRuntimes.map(runtime => li([runtime.runtimeName, ` (${runtime.status.toLowerCase()})`]))
         ]),
       ]),
-      !isDeleteDisabledFromResources && div([
+      (!isDeleteDisabledFromResources || deletingResources) && div([
         p(['This workspace cannot be deleted because of the following running cloud resources:']),
         ul([
-          workspaceResources.apps.map(app => li(app.appName)),
-          workspaceResources.runtimes.map(runtime => li(runtime.runtimeName))
+          workspaceResources.apps.map(app => li([app.appName])),
+          workspaceResources.runtimes.map(runtime => li([runtime.runtimeName]))
         ]),
         p(['These resources must be deleted before the workspace can be deleted']),
         p(['It may take several minutes to delete all of the cloud resources in this workspace. Please do not close this window']),
-        p([strong('This cannot be undone.')])
+        p([strong(['This cannot be undone.'])])
 
       ]),
-      (deletingAzureResources || loading) && spinnerOverlay
+      (deletingResources || loading) && spinnerOverlay
     ]
     )
   }
@@ -158,7 +157,7 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
     ])
   }
 
-  if (isAzureWorkspace(workspace) && (hasApps() || hasRuntimes() || controlledResourcesExist)) {
+  if (isAzureWorkspace(workspace) && (hasApps() || hasRuntimes() || deletingResources)) {
     return getAzureResourceCleanupModal()
   } else {
     return getWorkspaceDeletionModal()

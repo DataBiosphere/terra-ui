@@ -3,7 +3,10 @@ import { Ajax } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import { DeepPartial } from 'src/libs/type-utils/deep-partial'
 import { AzureWorkspaceInfo, BaseWorkspace, GoogleWorkspaceInfo } from 'src/libs/workspace-utils'
-import { useDeleteWorkspaceState } from 'src/pages/workspaces/workspace/useDeleteWorkspaceState'
+import {
+  useDeleteWorkspaceState,
+  WorkspaceResourceDeletionPollRate
+} from 'src/pages/workspaces/workspace/useDeleteWorkspaceState'
 import { asMockedFn } from 'src/testing/test-utils'
 
 
@@ -24,7 +27,6 @@ jest.mock('src/libs/error', (): ErrorExports => ({
 type AjaxContract = ReturnType<typeof Ajax>;
 type AjaxAppsContract = AjaxContract['Apps']
 type AjaxRuntimesContract = AjaxContract['Runtimes']
-type AjaxWorkspaceManagerContract = AjaxContract['WorkspaceManagerResources']
 type AjaxWorkspacesContract = AjaxContract['Workspaces']
 
 describe('useDeleteWorkspace', () => {
@@ -53,6 +55,10 @@ describe('useDeleteWorkspace', () => {
   const mockOnDismiss = jest.fn(() => {
   })
   const mockOnSuccess = jest.fn(() => {
+  })
+
+  beforeEach(() => {
+    jest.useFakeTimers()
   })
 
   it('can initialize state for a google workspace with running apps', async () => {
@@ -112,20 +118,16 @@ describe('useDeleteWorkspace', () => {
     }
     asMockedFn((mockListRuntimesV2 as AjaxRuntimesContract).listV2WithWorkspace).mockResolvedValue([])
 
-    const mockWsmControlledResources: Partial<AjaxWorkspaceManagerContract> = {
-      controlledResources: jest.fn()
+    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { 'example1@example.com': {} } })
+    const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
+      workspace: () => ({
+        getAcl: mockGetAcl
+      })
     }
-    asMockedFn((mockWsmControlledResources as AjaxWorkspaceManagerContract).controlledResources).mockResolvedValue({
-      resources: [
-        { metadata: { name: 'example' } },
-        { metadata: { name: 'example' } }
-      ]
-    })
-
     const mockAjax: Partial<AjaxContract> = {
       Apps: mockListAppsV2 as AjaxAppsContract,
-      WorkspaceManagerResources: mockWsmControlledResources as AjaxWorkspaceManagerContract,
-      Runtimes: mockListRuntimesV2 as AjaxRuntimesContract
+      Runtimes: mockListRuntimesV2 as AjaxRuntimesContract,
+      Workspaces: mockWorkspaces as AjaxWorkspacesContract
     }
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract)
 
@@ -140,19 +142,18 @@ describe('useDeleteWorkspace', () => {
     expect(result.current.hasApps()).toBe(true)
     expect(result.current.hasRuntimes()).toBe(false)
     expect(result.current.isDeleteDisabledFromResources).toBe(true)
-    expect(result.current.controlledResourcesExist).toBe(true)
     expect(mockListAppsV2.listAppsV2).toHaveBeenCalledTimes(1)
     expect(mockListAppsV2.listAppsV2).toHaveBeenCalledWith(azureWorkspace.workspace.workspaceId)
-    expect(mockWsmControlledResources.controlledResources).toHaveBeenCalledTimes(1)
-    expect(mockWsmControlledResources.controlledResources).toHaveBeenCalledWith(azureWorkspace.workspace.workspaceId)
   })
 
   it('can delete an azure workspace', async () => {
     // Arrange
     const mockDelete = jest.fn().mockResolvedValue([])
+    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { 'example1@example.com': {} } })
     const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
       workspace: () => ({
-        delete: mockDelete
+        delete: mockDelete,
+        getAcl: mockGetAcl
       })
     }
     const mockListAppsV2: Partial<AjaxAppsContract> = {
@@ -165,17 +166,10 @@ describe('useDeleteWorkspace', () => {
     }
     asMockedFn((mockListRuntimesV2 as AjaxRuntimesContract).listV2WithWorkspace).mockResolvedValue([])
 
-    const mockWsmControlledResources: Partial<AjaxWorkspaceManagerContract> = {
-      controlledResources: jest.fn()
-    }
-    asMockedFn((mockWsmControlledResources as AjaxWorkspaceManagerContract).controlledResources).mockResolvedValue({
-      resources: []
-    })
     const mockAjax: Partial<AjaxContract> = {
       Workspaces: mockWorkspaces as AjaxWorkspacesContract,
       Apps: mockListAppsV2 as AjaxAppsContract,
-      Runtimes: mockListRuntimesV2 as AjaxRuntimesContract,
-      WorkspaceManagerResources: mockWsmControlledResources as AjaxWorkspaceManagerContract
+      Runtimes: mockListRuntimesV2 as AjaxRuntimesContract
     }
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract)
 
@@ -261,19 +255,23 @@ describe('useDeleteWorkspace', () => {
       waitForNextUpdate
     } = renderHook(() => useDeleteWorkspaceState({ workspace: googleWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess }))
     await waitForNextUpdate()
-    await act(() => result.current.deleteWorkspace())
+
+
+    await expect(() => act(() => result.current.deleteWorkspace())).rejects
 
     // Assert
     expect(result.current.deleting).toBe(false)
-    expect(reportError).toHaveBeenCalledTimes(1)
   })
+
 
   it('should not allow deletion of undeletable azure apps', async () => {
     // Arrange
     const mockDelete = jest.fn().mockResolvedValue([])
+    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { 'example1@example.com': {} } })
     const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
       workspace: () => ({
-        delete: mockDelete
+        delete: mockDelete,
+        getAcl: mockGetAcl
       })
     }
     const mockListAppsV2: Partial<AjaxAppsContract> = {
@@ -291,17 +289,10 @@ describe('useDeleteWorkspace', () => {
     }
     asMockedFn((mockListRuntimesV2 as AjaxRuntimesContract).listV2WithWorkspace).mockResolvedValue([])
 
-    const mockWsmControlledResources: Partial<AjaxWorkspaceManagerContract> = {
-      controlledResources: jest.fn()
-    }
-    asMockedFn((mockWsmControlledResources as AjaxWorkspaceManagerContract).controlledResources).mockResolvedValue({
-      resources: []
-    })
     const mockAjax: Partial<AjaxContract> = {
       Workspaces: mockWorkspaces as AjaxWorkspacesContract,
       Apps: mockListAppsV2 as AjaxAppsContract,
       Runtimes: mockListRuntimesV2 as AjaxRuntimesContract,
-      WorkspaceManagerResources: mockWsmControlledResources as AjaxWorkspaceManagerContract
     }
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract)
 
@@ -311,11 +302,12 @@ describe('useDeleteWorkspace', () => {
       waitForNextUpdate
     } = renderHook(() => useDeleteWorkspaceState({ workspace: azureWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess }))
     await waitForNextUpdate()
-    await act(() => result.current.deleteWorkspaceAzureResources())
+
+    await expect(act(() => result.current.deleteWorkspaceResources())).rejects.toThrow()
 
     // Assert
     expect(result.current.deleting).toBe(false)
-    expect(result.current.deletingAzureResources).toBe(false)
+    expect(result.current.deletingResources).toBe(false)
     expect(mockListAppsV2.deleteAllAppsV2).toHaveBeenCalledTimes(0)
   })
 
@@ -323,9 +315,11 @@ describe('useDeleteWorkspace', () => {
   it('should not allow deletion of undeletable azure runtimes', async () => {
     // Arrange
     const mockDelete = jest.fn().mockResolvedValue([])
+    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { 'example1@example.com': {} } })
     const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
       workspace: () => ({
-        delete: mockDelete
+        delete: mockDelete,
+        getAcl: mockGetAcl
       })
     }
     const mockAppsV2: Partial<AjaxAppsContract> = {
@@ -340,17 +334,10 @@ describe('useDeleteWorkspace', () => {
       })
     }
 
-    const mockWsmControlledResources: Partial<AjaxWorkspaceManagerContract> = {
-      controlledResources: jest.fn()
-    }
-    asMockedFn((mockWsmControlledResources as AjaxWorkspaceManagerContract).controlledResources).mockResolvedValue({
-      resources: []
-    })
     const mockAjax: Partial<AjaxContract> = {
       Workspaces: mockWorkspaces as AjaxWorkspacesContract,
       Apps: mockAppsV2 as AjaxAppsContract,
       Runtimes: mockRuntimes as AjaxRuntimesContract,
-      WorkspaceManagerResources: mockWsmControlledResources as AjaxWorkspaceManagerContract
     }
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract)
 
@@ -360,22 +347,25 @@ describe('useDeleteWorkspace', () => {
       waitForNextUpdate
     } = renderHook(() => useDeleteWorkspaceState({ workspace: azureWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess }))
     await waitForNextUpdate()
-    await act(() => result.current.deleteWorkspaceAzureResources())
+
+
+    await expect(act(() => result.current.deleteWorkspaceResources())).rejects.toThrow()
 
     // Assert
     expect(result.current.deleting).toBe(false)
-    expect(result.current.deletingAzureResources).toBe(false)
+    expect(result.current.deletingResources).toBe(false)
     expect(mockAppsV2.deleteAllAppsV2).toHaveBeenCalledTimes(0)
     expect(mockDeleteAllRuntimes).toHaveBeenCalledTimes(0)
-    expect(reportError).toHaveBeenCalledTimes(1)
   })
 
-  it('should not allow deletion of a workspace with undeletable azure apps', async () => {
+  it('should not allow deletion of a workspace with non-deletable resources', async () => {
     // Arrange
     const mockDelete = jest.fn().mockResolvedValue([])
+    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { 'example1@example.com': {} } })
     const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
       workspace: () => ({
-        delete: mockDelete
+        delete: mockDelete,
+        getAcl: mockGetAcl
       })
     }
     const mockListAppsV2: Partial<AjaxAppsContract> = {
@@ -393,17 +383,10 @@ describe('useDeleteWorkspace', () => {
     }
     asMockedFn((mockListRuntimesV2 as AjaxRuntimesContract).listV2WithWorkspace).mockResolvedValue([])
 
-    const mockWsmControlledResources: Partial<AjaxWorkspaceManagerContract> = {
-      controlledResources: jest.fn()
-    }
-    asMockedFn((mockWsmControlledResources as AjaxWorkspaceManagerContract).controlledResources).mockResolvedValue({
-      resources: []
-    })
     const mockAjax: Partial<AjaxContract> = {
       Workspaces: mockWorkspaces as AjaxWorkspacesContract,
       Apps: mockListAppsV2 as AjaxAppsContract,
       Runtimes: mockListRuntimesV2 as AjaxRuntimesContract,
-      WorkspaceManagerResources: mockWsmControlledResources as AjaxWorkspaceManagerContract
     }
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract)
 
@@ -413,12 +396,72 @@ describe('useDeleteWorkspace', () => {
       waitForNextUpdate
     } = renderHook(() => useDeleteWorkspaceState({ workspace: azureWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess }))
     await waitForNextUpdate()
-    await act(() => result.current.deleteWorkspace())
+
+    await expect(act(() => result.current.deleteWorkspace())).rejects.toThrow()
 
     // Assert
     expect(result.current.deleting).toBe(false)
-    expect(result.current.deletingAzureResources).toBe(false)
+    expect(result.current.deletingResources).toBe(false)
     expect(mockDelete).toHaveBeenCalledTimes(0)
-    expect(reportError).toHaveBeenCalledTimes(1)
+  })
+
+  it('polls after dispatching a call to delete workspace resources', async () => {
+    // Arrange
+    const mockDelete = jest.fn().mockResolvedValue([])
+    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { 'example1@example.com': {} } })
+    const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
+      workspace: () => ({
+        delete: mockDelete,
+        getAcl: mockGetAcl
+      })
+    }
+    //
+    const mockListAppsFn = jest.fn()
+    const mockListAppsV2: Partial<AjaxAppsContract> = {
+      listAppsV2: mockListAppsFn,
+      deleteAllAppsV2: jest.fn()
+    }
+    mockListAppsFn.mockResolvedValueOnce([
+      {
+        appName: 'app1',
+        status: 'running'
+      }
+    ]).mockResolvedValueOnce([])
+    //
+    const mockRuntimesV2: DeepPartial<AjaxRuntimesContract> = {
+      listV2WithWorkspace: jest.fn(),
+      runtimeV2: () => ({
+        deleteAll: jest.fn
+      })
+    }
+    asMockedFn((mockRuntimesV2 as AjaxRuntimesContract).listV2WithWorkspace).mockResolvedValue([])
+
+    const mockAjax: Partial<AjaxContract> = {
+      Workspaces: mockWorkspaces as AjaxWorkspacesContract,
+      Apps: mockListAppsV2 as AjaxAppsContract,
+      Runtimes: mockRuntimesV2 as AjaxRuntimesContract,
+    }
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract)
+
+    // Act
+    const {
+      result,
+      waitForNextUpdate
+    } = renderHook(() => useDeleteWorkspaceState({ workspace: azureWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess }))
+    await waitForNextUpdate()
+    await act(() => result.current.deleteWorkspaceResources())
+
+    // Assert
+    expect(result.current.deleting).toBe(false)
+    expect(result.current.deletingResources).toBe(true)
+    expect(mockDelete).toHaveBeenCalledTimes(0)
+    expect(reportError).toHaveBeenCalledTimes(0)
+
+    // Act
+    jest.advanceTimersByTime(WorkspaceResourceDeletionPollRate)
+    await waitForNextUpdate()
+
+    expect(result.current.deletingResources).toBe(false)
+    expect(result.current.hasApps()).toBe(false)
   })
 })
