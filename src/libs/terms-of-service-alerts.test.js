@@ -56,26 +56,36 @@ const renderAlerts = async termsOfService => {
 
 describe('terms-of-service-alerts', () => {
   it('adds a notification when the user has a new Terms of Service to accept', async () => {
+    // Arrange
     jest.spyOn(TosAlerts, 'useTermsOfServiceAlerts')
 
     const termsOfService = {
       userHasAcceptedLatestTos: false,
       permitsSystemUsage: true,
     }
+
+    // Act
     await renderAlerts(termsOfService)
+
+    // Assert
     expect(TosAlerts.useTermsOfServiceAlerts).toHaveBeenCalled()
     expect(TosAlerts.tosGracePeriodAlertsStore.get().length).toEqual(1)
     expect(TosAlerts.tosGracePeriodAlertsStore.get()[0].id).toEqual('terms-of-service-needs-accepting-grace-period')
   })
 
   it('does not add a notification when the user does not have a new Terms of Service to accept', async () => {
+    // Arrange
     jest.spyOn(TosAlerts, 'useTermsOfServiceAlerts')
 
     const termsOfService = {
       userHasAcceptedLatestTos: true,
       permitsSystemUsage: true,
     }
+
+    // Act
     await renderAlerts(termsOfService)
+
+    // Assert
     expect(TosAlerts.useTermsOfServiceAlerts).toHaveBeenCalled()
     expect(TosAlerts.tosGracePeriodAlertsStore.get().length).toEqual(0)
   })

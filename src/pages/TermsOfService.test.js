@@ -49,6 +49,7 @@ describe('TermsOfService', () => {
     authStore.reset()
   })
   it('fetches the Terms of Service text from Sam', async () => {
+    // Arrange
     const termsOfService = {
       userHasAcceptedLatestTos: true,
       permitsSystemUsage: true,
@@ -56,8 +57,10 @@ describe('TermsOfService', () => {
 
     const { getTosFn } = setupMockAjax(termsOfService)
 
+    // Act
     await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
 
+    // Assert
     expect(getTosFn).toHaveBeenCalled()
 
     const termsOfServiceText = screen.findByText('some text')
@@ -65,6 +68,7 @@ describe('TermsOfService', () => {
   })
 
   it('shows "Continue under grace period" when the user has not accepted the latest ToS but is still allowed to use Terra', async () => {
+    // Arrange
     const termsOfService = {
       userHasAcceptedLatestTos: false,
       permitsSystemUsage: true,
@@ -72,35 +76,44 @@ describe('TermsOfService', () => {
 
     setupMockAjax(termsOfService)
 
+    // Act
     await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
 
+    // Assert
     const continueUnderGracePeriodButton = screen.findByText('Continue under grace period')
     expect(continueUnderGracePeriodButton).not.toBeFalsy()
   })
 
   it('does not show "Continue under grace period" when the user has not accepted the latest ToS and is not allowed to use Terra', async () => {
+    // Arrange
     const termsOfService = {
       userHasAcceptedLatestTos: false,
       permitsSystemUsage: false,
     }
     setupMockAjax(termsOfService)
 
+    // Act
     await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
 
+    // Assert
     const continueUnderGracePeriodButton = screen.queryByText('Continue under grace period')
     expect(continueUnderGracePeriodButton).not.toBeInTheDocument()
   })
 
   it('does not show any buttons when the user has accepted the latest ToS and is allowed to use Terra', async () => {
+    // Arrange
     const termsOfService = {
       userHasAcceptedLatestTos: true,
       permitsSystemUsage: true,
     }
+
     setupMockAjax(termsOfService)
 
-    // Need to wrap in 'act' or else get a warning about updating react state
+
+    // Act
     await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
 
+    // Assert
     const continueUnderGracePeriodButton = screen.queryByText('Continue under grace period')
     expect(continueUnderGracePeriodButton).not.toBeInTheDocument()
 
