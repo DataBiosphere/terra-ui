@@ -31,6 +31,8 @@ const primaryStepTextStyle = {
   float: 'left'
 }
 
+export const legendDetailsStyle = { fontSize: '.875rem', lineHeight: '22px' }
+
 export const StepFieldLegend = ({ children, style }: StepFieldsProps) => legend({
   style: { ...primaryStepTextStyle as CSSProperties, ...style }
 }, [children])
