@@ -17,14 +17,15 @@ import * as Nav from 'src/libs/nav'
 import { useStore } from 'src/libs/react-utils'
 import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
+import { cloudProviderTypes, getCloudProviderFromWorkspace, isAzureWorkspace } from 'src/libs/workspace-utils'
+import { getCostDisplayForDisk, getCostDisplayForTool } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/AzureComputeModal'
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal'
 import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal'
-import { appLauncherTabName, PeriodicAzureCookieSetter } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { appLauncherTabName, PeriodicAzureCookieSetter } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import {
-  getComputeStatusForDisplay, getConvertedRuntimeStatus, getCostDisplayForDisk, getCostDisplayForTool,
+  getComputeStatusForDisplay, getConvertedRuntimeStatus,
   getCurrentApp, getCurrentPersistentDisk, getCurrentRuntime, getIsAppBusy, getIsRuntimeBusy, getRuntimeForTool,
   isCurrentGalaxyDiskDetaching
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
@@ -39,7 +40,10 @@ const titleId = 'cloud-env-modal'
 
 export const CloudEnvironmentModal = ({
   isOpen, onSuccess, onDismiss, canCompute, runtimes, apps, appDataDisks, refreshRuntimes, refreshApps,
-  workspace, persistentDisks, location, computeRegion, workspace: { workspace: { namespace, name: workspaceName } },
+  workspace, persistentDisks,
+  // Note: for Azure environments `location` and `computeRegion` are identical
+  location, computeRegion,
+  workspace: { workspace: { namespace, name: workspaceName } },
   filterForTool = undefined
 }) => {
   const [viewMode, setViewMode] = useState(undefined)
@@ -72,6 +76,7 @@ export const CloudEnvironmentModal = ({
     hideCloseButton: true,
     workspace,
     runtimes,
+    location,
     onDismiss,
     onSuccess,
     onError: onDismiss
@@ -207,9 +212,12 @@ export const CloudEnvironmentModal = ({
           shape: 'pause',
           toolLabel,
           onClick: () => stopApp(toolLabel),
-          disabled: busy || !canCompute,
+          disabled: isAzureWorkspace(workspace) || busy || !canCompute, //TODO: IA-3993 enable pausing
           messageChildren: [span('Pause')],
-          tooltip: canCompute ? 'Pause Environment' : noCompute
+          tooltip: Utils.cond(
+            [isAzureWorkspace(workspace), () => 'Feature coming soon'],
+            [canCompute, () => 'Pause Environment'],
+            () => noCompute)
         })
       case 'Starting':
       case 'Stopping':

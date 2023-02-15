@@ -21,7 +21,7 @@ import {
   analysisNameInput,
   analysisNameValidator
 } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
-import { analysisLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { analysisLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import validate from 'validate.js'
 
@@ -58,7 +58,6 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
     okButton: h(ButtonPrimary, {
       disabled: errors || processing,
       tooltip: Utils.summarizeErrors(errors),
-      // @ts-expect-error
       onClick: withErrorReportingInModal(`Error ${destroyOld ? 'renaming' : 'copying'} analysis`, onDismiss, async () => {
         setProcessing(true)
         const rename = isGoogleWorkspaceInfo(workspaceInfo) ?

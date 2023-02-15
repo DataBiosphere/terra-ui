@@ -1,6 +1,22 @@
 import { useState } from 'react'
-import LoadedState from 'src/libs/type-utils/LoadedState'
+import LoadedState, { ErrorState } from 'src/libs/type-utils/LoadedState'
 import { isFetchResponse } from 'src/libs/type-utils/type-helpers'
+
+
+export interface UseLoadedDataArgs<T> {
+  /**
+   * An optional handler that will be called if there is an error.
+   * Note that LoadedData object typing already allows expression of error status, convenient for consumption by
+   * visual components.  This handler is to accommodate additional side effects within the hook consuming
+   * useLoadedData hook
+   * @param state - the error state as of when the error happened
+   * @example
+   * const [pendingCreate, setPendingCreate] = useLoadedData<true>({
+   *   onError: (errState) => ReportError(errState.error)
+   * })
+   */
+  onError?: (state: ErrorState<T, unknown>) => void
+}
 
 /**
  * The Tuple returned by useLoadedData custom helper hook
@@ -31,7 +47,7 @@ export type UseLoadedDataResult<T> = [
  * }
  * @returns a tuple with [currentLoadedState, updateDataMethod]
  */
-export const useLoadedData = <T>(): UseLoadedDataResult<T> => {
+export const useLoadedData = <T>(hookArgs: UseLoadedDataArgs<T> = {}): UseLoadedDataResult<T> => {
   const [loadedData, setLoadedData] = useState<LoadedState<T, unknown>>({ status: 'None' })
 
   const updateDataFn = async (dataCall: () => Promise<T>) => {
@@ -50,11 +66,16 @@ export const useLoadedData = <T>(): UseLoadedDataResult<T> => {
       const error = isFetchResponse(err) ?
         Error(await err.text()) :
         err
-      setLoadedData({
+      const errorResult: ErrorState<T, unknown> = {
         status: 'Error',
         state: previousState,
         error
-      })
+      }
+      setLoadedData(errorResult)
+
+      if (hookArgs.onError) {
+        hookArgs.onError(errorResult)
+      }
     }
   }
 

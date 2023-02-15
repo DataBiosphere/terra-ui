@@ -15,7 +15,6 @@ import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { datasetAccessTypes, getDatasetAccessType, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
-import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
 const styles = {
@@ -42,20 +41,8 @@ const styles = {
 
 const activeTab = 'datasets'
 
-const DatasetPreviewSelector = ({ access, dataset, selectedTable, setSelectedTable, selectOptions }) => Utils.switchCase(access,
-  [datasetAccessTypes.Controlled, () => div({
-    style: {
-      display: 'flex', flexDirection: 'row', backgroundColor: 'white', fontSize: '1.1rem', lineHeight: '1.7rem', padding: '20px 30px 25px',
-      width: 'fit-content', margin: 'auto'
-    }
-  }, [
-    h(RequestDatasetAccessModal, {
-      datasets: [dataset],
-      onDismiss: () => {
-        Nav.goToPath('library-details', { id: Nav.getCurrentRoute().params.id })
-      }
-    })
-  ])],
+const DatasetPreviewSelector = ({ access, selectedTable, setSelectedTable, selectOptions }) => Utils.switchCase(access,
+  [datasetAccessTypes.Controlled, () => Nav.goToPath('library-details', { id: Nav.getCurrentRoute().params.id })],
   [datasetAccessTypes.Granted, () => h(GroupedSelect, {
     'aria-label': 'data type',
     styles: { container: base => ({ ...base, marginLeft: '1rem', width: 350, marginBottom: 30 }) },
@@ -73,6 +60,18 @@ const DatasetPreviewSelector = ({ access, dataset, selectedTable, setSelectedTab
   })],
   [Utils.DEFAULT, undefined])
 
+export const formatTableCell = ({ cellKey, cellContent, rowIndex, table, setViewJSON }) => {
+  const parsableCellContent = _.isObject(cellContent) ? JSON.stringify(cellContent) : cellContent
+  const maybeJSON = Utils.maybeParseJSON(parsableCellContent)
+  return Utils.cond(
+    [!Utils.cantBeNumber(cellContent), () => cellContent],
+    [!!maybeJSON, () => h(ButtonPrimary, {
+      style: { fontSize: 16, textTransform: 'none' },
+      onClick: () => setViewJSON({ title: `${table}, Row ${rowIndex} - ${cellKey}`, cellData: maybeJSON })
+    }, ['View JSON'])],
+    [Utils.DEFAULT, () => cellContent?.toString()]
+  )
+}
 
 const DataBrowserPreview = ({ id }) => {
   const signal = useCancellation()
@@ -107,19 +106,6 @@ const DataBrowserPreview = ({ id }) => {
   })
 
   useEffect(() => {
-    const formatTableCell = ({ cellKey, cellContent, rowIndex, table }) => {
-      const maybeJSON = Utils.maybeParseJSON(cellContent)
-      return Utils.cond(
-        [!Utils.cantBeNumber(cellContent), () => cellContent],
-        [!!maybeJSON, () => h(ButtonPrimary, {
-          style: { fontSize: 16, textTransform: 'none' },
-          onClick: () => setViewJSON({ title: `${table}, Row ${rowIndex} - ${cellKey}`, cellData: maybeJSON })
-        }, ['View JSON'])],
-        [_.isObject(cellContent), () => JSON.stringify(cellContent)],
-        [Utils.DEFAULT, () => cellContent?.toString()]
-      )
-    }
-
     const loadTable = _.flow(
       Utils.withBusyState(setLoading),
       withErrorReporting('Error loading table')
@@ -144,7 +130,7 @@ const DataBrowserPreview = ({ id }) => {
         Utils.toIndexPairs,
         _.map(([rowIndex, row]) => {
           return _.reduce((acc, { name }) => {
-            const formattedCell = formatTableCell({ cellKey: name, cellContent: row[name], rowIndex, table: selectedTable })
+            const formattedCell = formatTableCell({ cellKey: name, cellContent: row[name], rowIndex, table: selectedTable, setViewJSON })
             return _.set([name], formattedCell, acc)
           }, {}, previewTableData.columns)
         })

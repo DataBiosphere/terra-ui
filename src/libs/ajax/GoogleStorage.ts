@@ -79,7 +79,6 @@ const getServiceAccountToken: (googleProject: string, token: string) => Promise<
   return res.json()
 }, {
   expires: 1000 * 60 * 30,
-  // @ts-expect-error
   keyFn: (...args) => JSON.stringify(args)
 })
 
@@ -297,7 +296,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
         ).then(res => res.text())
         return fetchOk(`${getConfig().calhounUrlRoot}/api/convert`,
           _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
-        ).then(res => res.text())
+        ).then(res => res)
       },
 
       copy,
@@ -384,7 +383,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
         ).then(res => res.text())
         return fetchOk(`${getConfig().calhounUrlRoot}/${calhounPath}`,
           _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
-        ).then(res => res.text())
+        ).then(res => res)
       },
 
       copy,

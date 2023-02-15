@@ -138,7 +138,7 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
       {
         metadata: {
           resourceType: 'AZURE_STORAGE_CONTAINER',
-          controlledResourceMetadata: { accessScope: 'SHARED_ACCESS' }
+          controlledResourceMetadata: { accessScope: 'SHARED_ACCESS', region: 'eastus' }
         },
         resourceAttributes: { azureStorageContainer: { storageContainerName: 'sc-name' } }
       }
@@ -185,7 +185,7 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
   }, azureWorkspacesListResult, azureWorkspaceDetailsResult, azureWorkspaceResourcesResult, namespace, name, workspaceInfo.workspaceId)
 }
 
-const testAzureWorkspace = withUserToken(async ({ environment, page, token, testUrl }) => {
+const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
   const workspaceDescription = 'azure workspace description'
   const workspaceName = 'azure-workspace'
 
@@ -203,7 +203,7 @@ const testAzureWorkspace = withUserToken(async ({ environment, page, token, test
     'Cloud NameMicrosoft Azure',
     'Resource Group IDdummy-mrg-id',
     'Storage Container URLhttp://storageContainerUrl.com',
-    // 'Location🇺🇸 East US', depends on TOAZ-265
+    'Location🇺🇸 East US',
     'SAS URLhttp://storageContainerUrl.com?sasTokenParams'
   ])
 
@@ -213,11 +213,8 @@ const testAzureWorkspace = withUserToken(async ({ environment, page, token, test
   // Verify tabs that currently depend on Google project ID are not present.
   await dashboard.assertTabs(['notebooks', 'workflows', 'job history'], false)
 
-  // Verify Analyses tab is present.
-  await dashboard.assertTabs(['analyses'], true)
-
-  // Data tab should only be visible in dev for Azure workspaces
-  await dashboard.assertTabs(['data'], environment === 'dev')
+  // Verify Analyses and Data tabs are present.
+  await dashboard.assertTabs(['analyses', 'data'], true)
 
   // Check accessibility.
   await verifyAccessibility(page)

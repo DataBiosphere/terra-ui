@@ -8,8 +8,9 @@ import { absoluteSpinnerOverlay, ButtonPrimary, IdContainer, Link, Select } from
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
+import { MenuButton } from 'src/components/MenuButton'
 import Modal from 'src/components/Modal'
-import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
+import { MenuTrigger } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
 import { ariaSort, HeaderRenderer } from 'src/components/table'
 import { useWorkspaces } from 'src/components/workspace-utils'
@@ -84,7 +85,7 @@ const ExpandedInfoRow = ({ title, details, errorMessage }) => {
 }
 
 const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, billingProject, billingAccountStatus, isExpanded, onExpand }) => {
-  const { namespace, name, createdBy, lastModified, googleProject, billingAccountDisplayName, billingAccountErrorMessage } = workspace
+  const { namespace, name, createdBy, lastModified, googleProject, billingAccountDisplayName, errorMessage } = workspace
   const workspaceCardStyles = {
     field: {
       ...Style.noWrapEllipsis, flex: 1, height: '1.20rem', width: `calc(50% - ${(workspaceLastModifiedWidth + workspaceExpandIconSize) / 2}px)`, paddingRight: '1rem'
@@ -135,7 +136,7 @@ const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, billingProject
       isExpanded && div({ id, style: { ...workspaceCardStyles.row, padding: '0.5rem', border: `1px solid ${colors.light()}` } }, [
         div({ style: workspaceCardStyles.expandedInfoContainer }, [
           billingProject.cloudPlatform === cloudProviders.gcp.label && h(ExpandedInfoRow, { title: 'Google Project', details: googleProject }),
-          billingProject.cloudPlatform === cloudProviders.gcp.label && h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccountDisplayName, errorMessage: billingAccountErrorMessage }),
+          billingProject.cloudPlatform === cloudProviders.gcp.label && h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccountDisplayName, errorMessage }),
           billingProject.cloudPlatform === cloudProviders.azure.label && h(ExpandedInfoRow, { title: 'Resource Group ID', details: billingProject.managedAppCoordinates.managedResourceGroupId })
         ])
       ])
@@ -182,7 +183,7 @@ const BillingAccountSummaryPanel = ({ counts: { done, error, updating } }) => {
 const groupByBillingAccountStatus = (billingProject, workspaces) => {
   const group = workspace => Utils.cond(
     [billingProject.billingAccount === workspace.billingAccount, () => 'done'],
-    [!!workspace.billingAccountErrorMessage, () => 'error'],
+    [!!workspace.errorMessage, () => 'error'],
     [Utils.DEFAULT, () => 'updating']
   )
 

@@ -1,4 +1,4 @@
-import _ from 'lodash/fp'
+import * as _ from 'lodash/fp'
 import { useState } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
@@ -17,40 +17,42 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { cloudProviderLabels, cloudProviderTypes } from 'src/libs/workspace-utils'
-import { SearchAndFilterComponent } from 'src/pages/library/common'
+import { SearchAndFilterComponent } from 'src/pages/library/SearchAndFilterComponent'
 
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
-const sidebarSections = [{
-  name: 'Cloud Platform',
-  labels: [cloudProviderLabels.GCP, cloudProviderLabels.AZURE],
+// All workspaces match by their tags
+export const sidebarSections = _.map(section => ({ matchBy: (workspace, value) => _.contains(_.toLower(value), workspace.tags.items), ...section }), [{
+  header: 'Cloud Platform',
+  values: [cloudProviderLabels.GCP, cloudProviderLabels.AZURE],
 }, {
-  name: 'Getting Started',
-  labels: ['Workflow Tutorials', 'Notebook Tutorials', 'Data Tutorials', 'RStudio Tutorials', 'Galaxy Tutorials']
+  header: 'Getting Started',
+  values: ['Workflow Tutorials', 'Notebook Tutorials', 'Data Tutorials', 'RStudio Tutorials', 'Galaxy Tutorials']
 }, {
-  name: 'Analysis Tools',
-  labels: ['WDLs', 'Jupyter Notebooks', 'RStudio', 'Galaxy', 'Hail', 'Bioconductor', 'GATK', 'Cumulus', 'Spark']
+  header: 'Analysis Tools',
+  values: ['WDLs', 'Jupyter Notebooks', 'RStudio', 'Galaxy', 'Hail', 'Bioconductor', 'GATK', 'Cumulus', 'Spark']
 }, {
-  name: 'Experimental Strategy',
-  labels: ['GWAS', 'Exome Analysis', 'Whole Genome Analysis', 'Fusion Transcript Detection', 'RNA Analysis', 'Machine Learning',
+  header: 'Experimental Strategy',
+  values: ['GWAS', 'Exome Analysis', 'Whole Genome Analysis', 'Fusion Transcript Detection', 'RNA Analysis', 'Machine Learning',
     'Variant Discovery', 'Epigenomics', 'DNA Methylation', 'Copy Number Variation', 'Structural Variation', 'Functional Annotation']
 }, {
-  name: 'Data Generation Technology',
-  labels: ['10x analysis', 'Bisulfate Sequencing']
+  header: 'Data Generation Technology',
+  values: ['10x analysis', 'Bisulfate Sequencing']
 }, {
-  name: 'Scientific Domain',
-  labels: ['Cancer', 'Infectious Diseases', 'MPG', 'Single-cell', 'Immunology', 'Neurodegenerative Diseases']
+  header: 'Scientific Domain',
+  values: ['Cancer', 'Infectious Diseases', 'MPG', 'Single-cell', 'Immunology', 'Neurodegenerative Diseases']
 }, {
-  name: 'Datasets',
-  labels: ['AnVIL', 'CMG', 'CCDG', 'TopMed', 'HCA', 'TARGET', 'ENCODE', 'BioData Catalyst', 'TCGA', '1000 Genomes', 'BRAIN Initiative',
+  header: 'Datasets',
+  values: ['AnVIL', 'CMG', 'CCDG', 'TopMed', 'HCA', 'TARGET', 'ENCODE', 'BioData Catalyst', 'TCGA', '1000 Genomes', 'BRAIN Initiative',
     'gnomAD', 'NCI', 'COVID-19', 'AMP PD']
 }, {
-  name: 'Utilities',
-  labels: ['Format Conversion', 'Developer Tools']
+  header: 'Utilities',
+  values: ['Format Conversion', 'Developer Tools']
 }, {
-  name: 'Projects',
-  labels: ['HCA', 'AnVIL', 'BRAIN Initiative', 'BioData Catalyst', 'NCI', 'AMP PD']
+  header: 'Projects',
+  values: ['HCA', 'AnVIL', 'BRAIN Initiative', 'BioData Catalyst', 'NCI', 'AMP PD']
 }]
+)
 
 const WorkspaceCard = ({ workspace }) => {
   const { namespace, name, cloudPlatform, created, description } = workspace

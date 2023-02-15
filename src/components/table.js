@@ -346,7 +346,7 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContent
     role: 'table',
     'aria-label': ariaLabel,
     'aria-readonly': readOnly || undefined,
-    className: 'simple-flex-table'
+    className: 'simple-flex-table',
   }, [
     div({
       role: 'row',
