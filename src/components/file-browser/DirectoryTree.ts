@@ -203,7 +203,8 @@ export const Directory = (props: DirectoryProps) => {
   } = props
   const isSelected = path === selectedDirectory
 
-  const [isExpanded, setIsExpanded] = useState(false)
+  // Automatically expand root directory.
+  const [isExpanded, setIsExpanded] = useState(path === '')
   const [hasLoadedContents, setHasLoadedContents] = useState(false)
 
   return li({

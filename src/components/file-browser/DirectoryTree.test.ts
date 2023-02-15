@@ -41,6 +41,57 @@ describe('Directory', () => {
     screen.getByText('directory')
   })
 
+  it('immediately fetches and renders directory contents for root directory', () => {
+    // Arrange
+    const directories = [
+      {
+        path: 'directory1'
+      },
+      {
+        path: 'directory2'
+      },
+      {
+        path: 'directory3'
+      }
+    ]
+
+    const useDirectoriesInDirectoryResult: UseDirectoriesInDirectoryResult = {
+      state: { directories, status: 'Ready' },
+      hasNextPage: undefined,
+      loadNextPage: () => Promise.resolve(),
+      loadAllRemainingItems: () => Promise.resolve(),
+      reload: () => Promise.resolve()
+    }
+
+    asMockedFn(useDirectoriesInDirectory).mockReturnValue(useDirectoriesInDirectoryResult)
+
+    // Act
+    render(
+      ul({ role: 'tree' }, [
+        h(Directory, {
+          activeDescendant: 'node-0',
+          id: 'node-0',
+          level: 0,
+          path: '',
+          provider: mockFileBrowserProvider,
+          reloadRequests: Utils.subscribable(),
+          rootLabel: 'Workspace bucket',
+          selectedDirectory: '',
+          setActiveDescendant: () => {},
+          onError: () => {},
+          onSelectDirectory: jest.fn()
+        })
+      ])
+    )
+
+    // Assert
+    expect(useDirectoriesInDirectory).toHaveBeenCalled()
+
+    const subdirectoryList = screen.getByRole('group')
+    const renderedSubdirectories = Array.from(subdirectoryList.children).map(el => el.children[1].textContent)
+    expect(renderedSubdirectories).toEqual(['directory1', 'directory2', 'directory3'])
+  })
+
   describe('when directory name is clicked', () => {
     let onSelectDirectory
 
