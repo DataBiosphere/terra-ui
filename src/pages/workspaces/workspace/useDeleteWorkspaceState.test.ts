@@ -256,7 +256,6 @@ describe('useDeleteWorkspace', () => {
     } = renderHook(() => useDeleteWorkspaceState({ workspace: googleWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess }))
     await waitForNextUpdate()
 
-
     await expect(() => act(() => result.current.deleteWorkspace())).rejects
 
     // Assert

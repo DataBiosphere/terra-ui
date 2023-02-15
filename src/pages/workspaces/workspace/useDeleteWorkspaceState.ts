@@ -162,21 +162,19 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
 
   const deleteWorkspaceResources = async () => {
     if (isGoogleWorkspace(hookArgs.workspace)) {
-      throw new Error('Attempting to delete resources in an unsupported workspace') // eslint-disable-line no-console
+      throw new Error('Attempting to delete resources in an unsupported workspace')
     }
 
-    setDeletingResources(true)
     if (workspaceResources && workspaceResources.nonDeleteableApps.length > 0) {
-      setDeletingResources(false)
       throw new Error('Workspace contains non-deletable apps')
     }
 
     if (workspaceResources && workspaceResources.nonDeleteableRuntimes.length > 0) {
-      setDeletingResources(false)
       throw new Error('Workspace contains non-deletable runtimes')
     }
 
     try {
+      setDeletingResources(true)
       console.log(`Requesting app and runtime deletion for workspace ${workspaceInfo.workspaceId}`) // eslint-disable-line no-console
       await Ajax(signal).Apps.deleteAllAppsV2(workspaceInfo.workspaceId)
       await Ajax(signal).Runtimes.runtimeV2(workspaceInfo.workspaceId).deleteAll()
