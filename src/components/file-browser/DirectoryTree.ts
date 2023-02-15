@@ -278,6 +278,7 @@ export const Directory = (props: DirectoryProps) => {
       }),
       onClick: () => {
         onSelectDirectory(path)
+        setIsExpanded(true)
       }
     }, [path === '' ? rootLabel : basename(path)]),
     isExpanded && h(Subdirectories, {

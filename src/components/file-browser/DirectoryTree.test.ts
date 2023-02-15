@@ -41,31 +41,69 @@ describe('Directory', () => {
     screen.getByText('directory')
   })
 
-  it('it calls onSelectDirectory callback with path when directory name is clicked', async () => {
-    // Arrange
-    const user = userEvent.setup()
+  describe('when directory name is clicked', () => {
+    let onSelectDirectory
 
-    const onSelectDirectory = jest.fn()
-    render(h(Directory, {
-      activeDescendant: 'node-0',
-      id: 'node-0',
-      level: 0,
-      path: 'path/to/directory/',
-      provider: mockFileBrowserProvider,
-      reloadRequests: Utils.subscribable(),
-      rootLabel: 'Workspace bucket',
-      selectedDirectory: '',
-      setActiveDescendant: () => {},
-      onError: () => {},
-      onSelectDirectory
-    }))
+    beforeEach(async () => {
+      // Arrange
+      const user = userEvent.setup()
 
-    // Act
-    const link = screen.getByText('directory')
-    await user.click(link)
+      const directories = [
+        {
+          path: 'path/to/directory/subdirectory1'
+        },
+        {
+          path: 'path/to/directory/subdirectory2'
+        },
+        {
+          path: 'path/to/directory/subdirectory3'
+        }
+      ]
 
-    // Assert
-    expect(onSelectDirectory).toHaveBeenCalledWith('path/to/directory/')
+      const useDirectoriesInDirectoryResult: UseDirectoriesInDirectoryResult = {
+        state: { directories, status: 'Ready' },
+        hasNextPage: undefined,
+        loadNextPage: () => Promise.resolve(),
+        loadAllRemainingItems: () => Promise.resolve(),
+        reload: () => Promise.resolve()
+      }
+
+      asMockedFn(useDirectoriesInDirectory).mockReturnValue(useDirectoriesInDirectoryResult)
+
+      onSelectDirectory = jest.fn()
+      render(h(Directory, {
+        activeDescendant: 'node-0',
+        id: 'node-0',
+        level: 0,
+        path: 'path/to/directory/',
+        provider: mockFileBrowserProvider,
+        reloadRequests: Utils.subscribable(),
+        rootLabel: 'Workspace bucket',
+        selectedDirectory: '',
+        setActiveDescendant: () => {},
+        onError: () => {},
+        onSelectDirectory
+      }))
+
+      // Act
+      const link = screen.getByText('directory')
+      await user.click(link)
+    })
+
+    it('it calls onSelectDirectory callback with path when directory name is clicked', () => {
+      // Assert
+      expect(onSelectDirectory).toHaveBeenCalledWith('path/to/directory/')
+    })
+
+    it('fetches and renders directory contents', () => {
+      // Assert
+      expect(useDirectoriesInDirectory).toHaveBeenCalled()
+
+      const subdirectoryList = screen.getByRole('group')
+
+      const renderedSubdirectories = Array.from(subdirectoryList.children).map(el => el.children[1].textContent)
+      expect(renderedSubdirectories).toEqual(['subdirectory1', 'subdirectory2', 'subdirectory3'])
+    })
   })
 
   it('fetches and renders directory contents when expanded', async () => {
