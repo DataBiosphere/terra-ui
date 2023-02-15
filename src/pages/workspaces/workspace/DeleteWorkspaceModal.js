@@ -71,13 +71,13 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
     return h(Modal, {
       title: span({ style: { display: 'flex', alignItems: 'center' } }, [
         icon('warning-standard', { size: 24, color: colors.warning() }),
-        span({ style: { marginLeft: '1ch' } }, ['Delete workspace'])
+        span({ style: { marginLeft: '1ch' } }, ['Delete workspace resources'])
       ]),
       onDismiss,
       okButton: h(ButtonPrimary, {
         disabled: isDeleteDisabledFromResources,
         onClick: deleteWorkspaceResources
-      }, ['Delete workspace resources']),
+      }, ['Delete all resources']),
       styles: { modal: { background: colors.warning(0.1) } }
     },
     [
