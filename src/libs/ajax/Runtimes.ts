@@ -2,19 +2,22 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { version } from 'src/data/gce-machines'
 import { appIdentifier, authOpts, fetchLeo, fetchOk, jsonBody } from 'src/libs/ajax/ajax-common'
+import { GetRuntimeItem, ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { getConfig } from 'src/libs/config'
+import { CloudPlatform } from 'src/pages/billing/models/BillingProject'
 
 
 export const Runtimes = signal => {
-  const v1Func = (project, name) => {
+  const v1Func = (project: string, name: string) => {
     const root = `api/google/v1/runtimes/${project}/${name}`
 
     return {
-      details: async () => {
+      details: async (): Promise<GetRuntimeItem> => {
         const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]))
         return res.json()
       },
-      create: options => {
+
+      create: (options): Promise<void> => {
         const body = _.merge(options, {
           labels: { saturnAutoCreated: 'true', saturnVersion: version },
           defaultClientId: getConfig().googleClientId,
@@ -34,66 +37,60 @@ export const Runtimes = signal => {
         return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
       },
 
-      update: options => {
+      update: (options): Promise<void> => {
         const body = { ...options, allowStop: true }
         return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PATCH' }, appIdentifier]))
       },
 
-      start: () => {
+      start: (): Promise<void> => {
         return fetchLeo(`${root}/start`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
       },
 
-      stop: () => {
+      stop: (): Promise<void> => {
         return fetchLeo(`${root}/stop`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
       },
 
-      delete: deleteDisk => {
+      delete: (deleteDisk: boolean): Promise<void> => {
         return fetchLeo(`${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
           _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
       }
     }
   }
 
-  const v2Func = (workspaceId, name, cloudProvider = 'azure') => {
-    const root = `api/v2/runtimes/${workspaceId}/${cloudProvider}/${name}`
+  const v2Func = (workspaceId: string, name: string, cloudPlatform: CloudPlatform = 'AZURE') => {
+    const root = `api/v2/runtimes/${workspaceId}/${_.toLower(cloudPlatform)}/${name}`
     const noCloudProviderRoot = `api/v2/runtimes/${workspaceId}/${name}`
 
     return {
-      details: async () => {
+      details: async (): Promise<GetRuntimeItem> => {
         const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]))
         return res.json()
       },
 
-      create: options => {
+      create: (options): Promise<void> => {
         const body = _.merge(options, {
           labels: { saturnAutoCreated: 'true', saturnVersion: version }
         })
         return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
       },
 
-      delete: (deleteDisk = true) => {
+      delete: (deleteDisk: boolean = true): Promise<void> => {
         return fetchLeo(`${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
           _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
       },
 
-      start: () => {
+      start: (): Promise<void> => {
         return fetchLeo(`${noCloudProviderRoot}/start`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
       },
 
-      stop: () => {
+      stop: (): Promise<void> => {
         return fetchLeo(`${noCloudProviderRoot}/stop`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
-      },
-
-      deleteAll: (deleteDisk = true) => {
-        return fetchLeo(`api/v2/runtimes/${workspaceId}/deleteAll${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
-          _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier])
-        )
       }
     }
   }
 
   return ({
-    list: async (labels = {}) => {
+    list: async (labels: Record<string, string> = {}): Promise<ListRuntimeItem[]> => {
       const res = await fetchLeo(`api/google/v1/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
         _.mergeAll([authOpts(), appIdentifier, { signal }]))
       return res.json()
@@ -126,7 +123,7 @@ export const Runtimes = signal => {
       }
     },
 
-    listV2: async (labels = {}) => {
+    listV2: async (labels: Record<string, string> = {}): Promise<ListRuntimeItem[]> => {
       const res = await fetchLeo(`api/v2/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
         _.mergeAll([authOpts(), appIdentifier, { signal }]))
 
@@ -142,10 +139,16 @@ export const Runtimes = signal => {
       return runtimesWithToolLabelDecorated
     },
 
-    listV2WithWorkspace: async (workspaceId, labels = {}) => {
+    listV2WithWorkspace: async (workspaceId: string, labels: Record<string, string> = {}): Promise<ListRuntimeItem[]> => {
       const res = await fetchLeo(`api/v2/runtimes/${workspaceId}?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
         _.mergeAll([authOpts(), appIdentifier, { signal }]))
       return res.json()
+    },
+
+    deleteAll: async (workspaceId: string, deleteDisk = true) => {
+        return fetchLeo(`api/v2/runtimes/${workspaceId}/deleteAll${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
+            _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier])
+        )
     },
 
     runtimeV2: v2Func,
@@ -197,8 +200,8 @@ export const Runtimes = signal => {
           try {
             await fetchLeo(`${root}/welder/objects/lock`, _.mergeAll([authOpts(), jsonBody({ localPath }), { signal, method: 'POST' }]))
             return true
-          } catch (error) {
-            if (error.status === 409) {
+          } catch (error: any) {
+            if ('status' in error && error.status === 409) {
               return false
             } else {
               throw error

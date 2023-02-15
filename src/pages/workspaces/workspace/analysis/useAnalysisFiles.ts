@@ -7,7 +7,7 @@ import { workspaceStore } from 'src/libs/state'
 import LoadedState from 'src/libs/type-utils/LoadedState'
 import { withHandlers } from 'src/libs/type-utils/lodash-fp-helpers'
 import * as Utils from 'src/libs/utils'
-import { CloudProviderType, cloudProviderTypes, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils'
+import {CloudProvider, cloudProviderTypes, isGoogleWorkspaceInfo, WorkspaceWrapper} from 'src/libs/workspace-utils'
 import {
   AbsolutePath,
   DisplayName,
@@ -33,7 +33,7 @@ export interface AnalysisFile {
   fileName: FileName
   lastModified: number
   tool: ToolLabel
-  cloudProvider: CloudProviderType
+  cloudProvider: CloudProvider
   // We only populate this for google files to handle file syncing
   // If there is a differentiation for Azure, we should add sub-types
   metadata?: AnalysisFileMetadata
@@ -125,7 +125,7 @@ export const useAnalysisFiles = (): AnalysisFileStore => {
 
 // This is mainly a test utility in its current form
 // AnalysisFile objects should not usually be constructed with this in app code, as the lastModified date is set to the current time
-export const getFileFromPath = (abs: AbsolutePath, cloudProvider: CloudProviderType = cloudProviderTypes.GCP): AnalysisFile => ({
+export const getFileFromPath = (abs: AbsolutePath, cloudProvider: CloudProvider = cloudProviderTypes.GCP): AnalysisFile => ({
   name: abs,
   ext: getExtension(abs),
   displayName: getDisplayName(abs),

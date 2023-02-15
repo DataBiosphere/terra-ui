@@ -6,6 +6,7 @@ import { h } from 'react-hyperscript-helpers'
 import { AzureStorage, AzureStorageContract } from 'src/libs/ajax/AzureStorage'
 import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage'
 import { errorWatcher } from 'src/libs/error.mock'
+import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils'
 import {
   defaultAzureWorkspace,
   defaultGoogleWorkspace

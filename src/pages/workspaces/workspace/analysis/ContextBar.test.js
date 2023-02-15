@@ -95,7 +95,7 @@ afterEach(() => {
   jest.clearAllMocks()
 })
 
-//Note - These constants are copied from ./runtime-utils.test.js
+//Note - These constants are copied from ./runtime-utils.test.ts
 const galaxyRunning = {
   appName: 'terra-app-69200c2f-89c3-47db-874c-b770d8de737f',
   appType: 'GALAXY',
@@ -213,7 +213,7 @@ const jupyter = {
     cloudService: 'GCE',
     bootDiskSize: 120,
     zone: 'us-central1-a',
-    gpuConfig: null
+    gpuConfig: undefined
   },
   proxyUrl: 'https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-dev-cf677740/saturn-eae9168f-9b99-4910-945e-dbab66e04d91/jupyter',
   status: 'Running',
@@ -323,7 +323,7 @@ const rstudioRuntime = {
     cloudService: 'GCE',
     bootDiskSize: 120,
     zone: 'us-central1-a',
-    gpuConfig: null
+    gpuConfig: undefined
   },
   proxyUrl: 'https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-dev-98897219/saturn-48afb74a-15b1-4aad-8b23-d039cf8253fb/rstudio',
   status: 'Running',
