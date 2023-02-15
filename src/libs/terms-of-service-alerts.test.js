@@ -21,8 +21,8 @@ jest.mock('react-notifications-component', () => {
 
 const setupMockAjax = termsOfService => {
   const getTos = jest.fn().mockReturnValue(Promise.resolve('some text'))
-  const getTermsOfServiceComplianceStatus = jest.fn().mockReturnValue(termsOfService)
-  const getStatus = jest.fn().mockReturnValue({})
+  const getTermsOfServiceComplianceStatus = jest.fn().mockReturnValue(Promise.resolve(termsOfService))
+  const getStatus = jest.fn().mockReturnValue(Promise.resolve({}))
   Ajax.mockImplementation(() => ({
     Metrics: {
       captureEvent: jest.fn()
@@ -47,11 +47,11 @@ afterEach(() => {
 })
 
 const renderAlerts = async termsOfService => {
-  await act(() => Promise.resolve(render(h(Alerts))).finally())
+  await act(async () => { render(h(Alerts)) }) //eslint-disable-line
   setupMockAjax(termsOfService)
 
   const isSignedIn = true
-  await act(() => Promise.resolve(authStore.update(state => ({ ...state, termsOfService, isSignedIn }))).finally())
+  await act(async () => { authStore.update(state => ({ ...state, termsOfService, isSignedIn })) })  //eslint-disable-line
 }
 
 describe('terms-of-service-alerts', () => {

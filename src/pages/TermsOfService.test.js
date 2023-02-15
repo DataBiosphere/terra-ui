@@ -19,8 +19,8 @@ jest.mock('react-notifications-component', () => {
 
 const setupMockAjax = termsOfService => {
   const getTos = jest.fn().mockReturnValue(Promise.resolve('some text'))
-  const getTermsOfServiceComplianceStatus = jest.fn().mockReturnValue(termsOfService)
-  const getStatus = jest.fn().mockReturnValue({})
+  const getTermsOfServiceComplianceStatus = jest.fn().mockReturnValue(Promise.resolve(termsOfService))
+  const getStatus = jest.fn().mockReturnValue(Promise.resolve({}))
   Ajax.mockImplementation(() => ({
     Metrics: {
       captureEvent: jest.fn()
@@ -37,11 +37,31 @@ const setupMockAjax = termsOfService => {
 
   const isSignedIn = true
   authStore.update(state => ({ ...state, termsOfService, isSignedIn }))
+  return {
+    getTosFn: getTos,
+    getStatusFn: getStatus,
+    getTermsOfServiceComplianceStatusFn: getTermsOfServiceComplianceStatus,
+  }
 }
 
 describe('TermsOfService', () => {
   afterEach(() => {
     authStore.reset()
+  })
+  it('fetches the Terms of Service text from Sam', async () => {
+    const termsOfService = {
+      userHasAcceptedLatestTos: true,
+      permitsSystemUsage: true,
+    }
+
+    const { getTosFn } = setupMockAjax(termsOfService)
+
+    await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
+
+    expect(getTosFn).toHaveBeenCalled()
+
+    const termsOfServiceText = screen.findByText('some text')
+    expect(termsOfServiceText).not.toBeFalsy()
   })
 
   it('shows "Continue under grace period" when the user has not accepted the latest ToS but is still allowed to use Terra', async () => {
@@ -52,8 +72,9 @@ describe('TermsOfService', () => {
 
     setupMockAjax(termsOfService)
 
-    render(h(TermsOfServicePage))
-    const continueUnderGracePeriodButton = await screen.findByText('Continue under grace period')
+    await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
+
+    const continueUnderGracePeriodButton = screen.findByText('Continue under grace period')
     expect(continueUnderGracePeriodButton).not.toBeFalsy()
   })
 
@@ -64,10 +85,9 @@ describe('TermsOfService', () => {
     }
     setupMockAjax(termsOfService)
 
-    // Need to wrap in 'act' or else get a warning about updating react state
-    await act(() => Promise.resolve(render(h(TermsOfServicePage))).finally())
+    await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
 
-    const continueUnderGracePeriodButton = await screen.queryByText('Continue under grace period')
+    const continueUnderGracePeriodButton = screen.queryByText('Continue under grace period')
     expect(continueUnderGracePeriodButton).not.toBeInTheDocument()
   })
 
@@ -79,12 +99,12 @@ describe('TermsOfService', () => {
     setupMockAjax(termsOfService)
 
     // Need to wrap in 'act' or else get a warning about updating react state
-    await act(() => Promise.resolve(render(h(TermsOfServicePage))).finally())
+    await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
 
-    const continueUnderGracePeriodButton = await screen.queryByText('Continue under grace period')
+    const continueUnderGracePeriodButton = screen.queryByText('Continue under grace period')
     expect(continueUnderGracePeriodButton).not.toBeInTheDocument()
 
-    const acceptButton = await screen.queryByText('Accept')
+    const acceptButton = screen.queryByText('Accept')
     expect(acceptButton).not.toBeInTheDocument()
   })
 })

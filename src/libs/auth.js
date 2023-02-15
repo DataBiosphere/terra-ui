@@ -309,10 +309,9 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
       }
     }
   }
-  // need to guard against state.termsOfService not being initialized
-  const oldStatePermitsSystemUsage = oldState.termsOfService && oldState.termsOfService.permitsSystemUsage
-  const newStatePermitsSystemUsage = state.termsOfService && state.termsOfService.permitsSystemUsage
-  if ((!oldState.isSignedIn && state.isSignedIn) || (!oldStatePermitsSystemUsage && newStatePermitsSystemUsage)) {
+  const canNowUseSystem = !oldState?.termsOfService?.permitsSystemUsage && state?.termsOfService?.permitsSystemUsage
+  const isNowSignedIn = !oldState.isSignedIn && state.isSignedIn
+  if (isNowSignedIn || canNowUseSystem) {
     clearNotification(sessionTimeoutProps.id)
     const registrationStatus = await getRegistrationStatus()
     authStore.update(state => ({ ...state, registrationStatus }))
@@ -321,22 +320,15 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
 
 authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
-    const tosDetails = await Ajax().User.getTermsOfServiceComplianceStatus()
-    const termsOfService = parseTosComplianceStatus(tosDetails)
+    const tosComplianceStatus = await Ajax().User.getTermsOfServiceComplianceStatus()
+    const termsOfService = _.isNull(tosComplianceStatus) ?
+      {
+        userHasAcceptedLatestTos: undefined,
+        permitsSystemUsage: undefined,
+      } : tosComplianceStatus
     authStore.update(state => ({ ...state, termsOfService }))
   }
 }))
-
-export const parseTosComplianceStatus = tosDetails => {
-  if (_.isNull(tosDetails)) {
-    return {
-      userHasAcceptedLatestTos: undefined,
-      permitsSystemUsage: undefined,
-    }
-  } else {
-    return tosDetails
-  }
-}
 
 authStore.subscribe(withErrorIgnoring(async (state, oldState) => {
   if (!oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage) {
