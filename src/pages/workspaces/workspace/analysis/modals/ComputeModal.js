@@ -1703,7 +1703,7 @@ export const ComputeModalBase = ({
         div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
           renderApplicationConfigurationSection(),
           renderComputeProfileSection(existingRuntime),
-          !!isPersistentDisk && h(PersistentDiskSection, !!existingPersistentDisk),
+          !!isPersistentDisk && h(PersistentDiskSection, { diskExists: existingPersistentDisk !== undefined }),
           isGce(runtimeType) && !isPersistentDisk && div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
               'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
@@ -1761,7 +1761,7 @@ export const ComputeModalBase = ({
     ])
   }
 
-  const PersistentDiskSection = diskExists => {
+  const PersistentDiskSection = ({ diskExists }) => {
     const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
     const diskSizeId = useUniqueId()
 
