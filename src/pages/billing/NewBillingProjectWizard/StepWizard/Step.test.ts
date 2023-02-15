@@ -8,7 +8,7 @@ import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/Step'
 
 describe('Step', () => {
   it('renders all child props in order', () => {
-    const d1 = div({ id: 'd1', children: ['d1Text'] })
+    const d1 = div({ id: 'd1' }, ['d1Text'])
     const d2 = div({ id: 'd2' })
     const d3 = div({ id: 'd3' })
 
@@ -22,9 +22,9 @@ describe('Step', () => {
   })
 
   it('sets aria-current to step when active', () => {
-    const renderResult = render(h(div, {}, [
-      Step({ isActive: true, children: [div({ children: ['activeStepChild'] })] }),
-      Step({ isActive: false, children: [div({ children: ['inactiveStepChild'] })] })
+    const renderResult = render(div([
+      h(Step, { isActive: true }, [div(['activeStepChild'])]),
+      h(Step, { isActive: false }, [div(['inactiveStepChild'])])
     ]))
 
     const activeStep = renderResult.getByText('activeStepChild')!.parentElement!
@@ -35,9 +35,9 @@ describe('Step', () => {
   })
 
   it('has a more intense border and lighter background when active', () => {
-    const renderResult = render(h(div, {}, [
-      Step({ isActive: true, children: [div({ children: ['activeStepChild'] })] }),
-      Step({ isActive: false, children: [div({ children: ['inactiveStepChild'] })] })
+    const renderResult = render(div([
+      h(Step, { isActive: true }, [div(['activeStepChild'])]),
+      h(Step, { isActive: false }, [div(['inactiveStepChild'])])
     ]))
     const activeStyle = getComputedStyle(renderResult.getByText('activeStepChild').parentElement!)
     const inactiveStyle = getComputedStyle(renderResult.getByText('inactiveStepChild').parentElement!)
@@ -51,4 +51,3 @@ describe('Step', () => {
       .toBeLessThan(parseInt(inactiveStyle.borderColor.substring(1), 16))
   })
 })
-

@@ -1,3 +1,4 @@
+import { PropsWithChildren } from 'react'
 import { div, HTMLElementProps } from 'react-hyperscript-helpers'
 import { RadioButton } from 'src/components/common'
 import { styles } from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/GCPBillingProjectWizard'
@@ -21,7 +22,11 @@ export const LabeledRadioButton = ({ text, name, labelStyle, style, ...props }: 
   ]
 )
 
-export const LabeledRadioGroup = ({ style, children }: {style?: React.CSSProperties; children: React.ReactNode[]}) => div({
+type LabeledRadioGroupProps = PropsWithChildren<{
+  style?: React.CSSProperties
+}>
+
+export const LabeledRadioGroup = ({ style, children }: LabeledRadioGroupProps) => div({
   style: {
     display: 'flex',
     margin: '1rem',
