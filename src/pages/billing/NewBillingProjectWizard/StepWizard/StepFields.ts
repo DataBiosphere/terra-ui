@@ -1,14 +1,13 @@
-import { CSSProperties, ReactNode } from 'react'
+import { CSSProperties, PropsWithChildren, ReactNode } from 'react'
 import { div, fieldset, form, h, legend } from 'react-hyperscript-helpers'
 import { FormLabel } from 'src/libs/forms'
 
 
-interface StepFieldsProps {
-  children?: ReactNode[]
+type StepFieldsProps = PropsWithChildren<{
   style?: CSSProperties
-}
+}>
 
-export const StepFields = ({ children = [], style, disabled = false }: StepFieldsProps & { disabled?: boolean }) => fieldset({
+export const StepFields = ({ children, style, disabled = false }: StepFieldsProps & { disabled?: boolean }) => fieldset({
   disabled,
   style: {
     border: 'none',
@@ -32,17 +31,17 @@ const primaryStepTextStyle = {
   float: 'left'
 }
 
-export const StepFieldLegend = ({ children = [], style }: StepFieldsProps) => legend({
+export const StepFieldLegend = ({ children, style }: StepFieldsProps) => legend({
   style: { ...primaryStepTextStyle as CSSProperties, ...style }
-}, children)
+}, [children])
 
 // An alternative to StepFieldLegend that will render in the same way, but is not expected to be inside
 // a fieldset.
-export const StepInfo = ({ children = [], style }: StepFieldsProps) => div({
+export const StepInfo = ({ children, style }: StepFieldsProps) => div({
   style: { ...primaryStepTextStyle as CSSProperties, ...style }
-}, children)
+}, [children])
 
-export const StepFieldForm = ({ children = [], style }: StepFieldsProps) => form({
+export const StepFieldForm = ({ children, style }: StepFieldsProps) => form({
   style: {
     display: 'flex',
     flexDirection: 'row',
@@ -51,7 +50,7 @@ export const StepFieldForm = ({ children = [], style }: StepFieldsProps) => form
     width: '100%',
     ...style
   }
-}, children)
+}, [children])
 
 interface LabeledFieldProps extends StepFieldsProps {
   formId: string
@@ -59,7 +58,7 @@ interface LabeledFieldProps extends StepFieldsProps {
   required?: boolean
 }
 
-export const LabeledField = ({ label, formId, required = false, children = [], style }: LabeledFieldProps) => div({ style: { display: 'flex', flexDirection: 'column', ...style } }, [
+export const LabeledField = ({ label, formId, required = false, children, style }: LabeledFieldProps) => div({ style: { display: 'flex', flexDirection: 'column', ...style } }, [
   h(FormLabel, { htmlFor: formId, required }, [label]),
   children
 ])

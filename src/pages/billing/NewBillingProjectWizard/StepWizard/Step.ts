@@ -1,4 +1,4 @@
-import { CSSProperties } from 'react'
+import { CSSProperties, PropsWithChildren } from 'react'
 import { li } from 'react-hyperscript-helpers'
 import colors from 'src/libs/colors'
 
@@ -18,16 +18,15 @@ function stepBanner(active: boolean): CSSProperties {
   }
 }
 
-export interface StepProps {
+export type StepProps = PropsWithChildren<{
   isActive: boolean
   style?: React.CSSProperties
-  children?: React.ReactNode[]
-}
+}>
 
-export const Step = ({ isActive, children = [], ...props }: StepProps) => li({
+export const Step = ({ isActive, children, style }: StepProps) => li({
   'data-test-id': 'Step',
   'aria-current': isActive ? 'step' : false,
-  style: { ...stepBanner(isActive), ...props.style },
+  style: { ...stepBanner(isActive), ...style },
 }, [
   children
 ])

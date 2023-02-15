@@ -14,7 +14,7 @@ export interface BillingAccountAccessStepProps {
 }
 
 export const BillingAccountAccessStep = ({ isActive, ...props }: BillingAccountAccessStepProps) => h(Step, { isActive }, [
-  h(StepHeader, { title: 'STEP 2', children: [] }),
+  h(StepHeader, { title: 'STEP 2' }),
   h(StepFields, [
     h(StepFieldLegend, { style: { width: '70%' } }, [
       'Select an existing billing account or create a new one.',

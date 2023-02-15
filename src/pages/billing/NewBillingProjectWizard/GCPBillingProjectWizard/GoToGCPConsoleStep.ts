@@ -15,7 +15,7 @@ interface GoToGCPConsoleStepProps {
 
 export const GoToGCPConsoleStep = ({ isActive, ...props }: GoToGCPConsoleStepProps) => {
   return h(Step, { isActive }, [
-    StepHeader({ title: 'STEP 1' }),
+    h(StepHeader, { title: 'STEP 1' }),
     div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } }, [
       h(StepInfo, { style: { maxWidth: '60%' } },
         ['Go to the Google Cloud Platform Billing Console and sign-in with the same user you use to login to Terra.']),
