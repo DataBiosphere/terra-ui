@@ -202,7 +202,7 @@ const UriViewer = _.flow(
             timeCreated: getFile.createdAt,
             updated: getFile.updatedAt,
             fileName: getFile.path,
-            accessUrl: url
+            accessUrl: { url }
           }
           setMetadata(metadata)
         })
