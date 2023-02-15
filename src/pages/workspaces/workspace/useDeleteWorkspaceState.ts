@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { useRef, useState } from 'react'
 import { Ajax } from 'src/libs/ajax'
-import { withErrorReportingInModal } from 'src/libs/error'
+import { reportError, withErrorReportingInModal } from 'src/libs/error'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { getUser } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -132,17 +132,16 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
       setDeleting(true)
       if (isGoogleWorkspace(hookArgs.workspace) && workspaceResources) {
         await Promise.all(
-          _.map(async app => await Ajax().Apps.app(app.cloudContext.cloudResource, app.appName).delete(), workspaceResources.deleteableApps)
+          _.map(async app => await Ajax(signal).Apps.app(app.cloudContext.cloudResource, app.appName).delete(), workspaceResources.deleteableApps)
         )
       }
 
-
-      await Ajax().Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name).delete()
+      await Ajax(signal).Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name).delete()
       hookArgs.onDismiss()
       hookArgs.onSuccess()
     } catch (error) {
       setDeleting(false)
-      throw error
+      await reportError('Error deleting workspace', error)
     }
   }
 

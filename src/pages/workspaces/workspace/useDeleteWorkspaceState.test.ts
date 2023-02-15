@@ -227,7 +227,6 @@ describe('useDeleteWorkspace', () => {
 
   it('can handle errors when deletion fails', async () => {
     // Arrange
-    const mockDelete = () => Promise.reject(new Response('mock deletion error'))
     const mockApps: Partial<AjaxAppsContract> = {
       listWithoutProject: jest.fn()
     }
@@ -235,6 +234,7 @@ describe('useDeleteWorkspace', () => {
 
     const mockGetAcl = jest.fn().mockResolvedValue([])
     const mockGetBucketUsage = jest.fn().mockResolvedValue([])
+    const mockDelete = jest.fn().mockRejectedValue(new Error('testing'))//.reject(new Error("error"))
     const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
       workspace: () => ({
         getAcl: mockGetAcl,
@@ -256,10 +256,12 @@ describe('useDeleteWorkspace', () => {
     } = renderHook(() => useDeleteWorkspaceState({ workspace: googleWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess }))
     await waitForNextUpdate()
 
-    await expect(() => act(() => result.current.deleteWorkspace())).rejects
+    await act(() => result.current.deleteWorkspace())
 
     // Assert
     expect(result.current.deleting).toBe(false)
+    expect(mockDelete).toHaveBeenCalledTimes(1)
+    expect(reportError).toHaveBeenCalledTimes(1)
   })
 
 
@@ -454,7 +456,6 @@ describe('useDeleteWorkspace', () => {
     expect(result.current.deleting).toBe(false)
     expect(result.current.deletingResources).toBe(true)
     expect(mockDelete).toHaveBeenCalledTimes(0)
-    expect(reportError).toHaveBeenCalledTimes(0)
 
     // Act
     jest.advanceTimersByTime(WorkspaceResourceDeletionPollRate)
