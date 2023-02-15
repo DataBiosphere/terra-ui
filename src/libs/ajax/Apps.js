@@ -68,7 +68,10 @@ export const Apps = signal => ({
   },
   createAppV2: (appName, workspaceId) => {
     const body = {
-      appType: 'CROMWELL'
+      appType: 'CROMWELL',
+      labels: {
+        saturnAutoCreated: 'true'
+      }
     }
     const res = fetchLeo(`api/apps/v2/${workspaceId}/${appName}`,
       _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
