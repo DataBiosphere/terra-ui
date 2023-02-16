@@ -12,6 +12,7 @@ import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import DownloadPrices from 'src/data/download-prices'
 import { Ajax } from 'src/libs/ajax'
+import AzureBlobStorageFileBrowserProvider from 'src/libs/ajax/file-browser-providers/AzureBlobStorageFileBrowserProvider'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
@@ -19,7 +20,6 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import { knownBucketRequesterPaysStatuses, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { isAzureWorkspace } from 'src/libs/workspace-utils'
 
 
 const styles = {
@@ -61,10 +61,7 @@ export const isGs = uri => _.startsWith('gs://', uri)
 
 export const isDrs = uri => _.startsWith('dos://', uri) || _.startsWith('drs://', uri)
 
-export const isAzureUri = uri => {
-  const azureRegex = RegExp('https://(.+).blob.core.windows.net')
-  return azureRegex.test(uri)
-}
+export const isAzureUri = uri => _.includes('blob.core.windows.net', uri)
 
 const getMaxDownloadCostNA = bytes => {
   const nanos = DownloadPrices.pricingInfo[0].pricingExpression.tieredRates[1].unitPrice.nanos
@@ -73,7 +70,7 @@ const getMaxDownloadCostNA = bytes => {
   return Utils.formatUSD(downloadPrice)
 }
 
-// TODO: Will need to eventually add Azure support
+// TODO: Will need to evetually add Azure support
 const PreviewContent = ({ metadata, metadata: { bucket, name }, googleProject }) => {
   const signal = useCancellation()
   const [preview, setPreview] = useState()
@@ -190,6 +187,25 @@ const UriViewer = _.flow(
         })
         const metadata = await loadObject(googleProject, bucket, name)
         setMetadata(metadata)
+      } else if (isAzureUri(uri)) {
+        const provider = AzureBlobStorageFileBrowserProvider(
+          { workspaceId: workspace.workspace.workspaceId, pageSize: 1 }
+        )
+        const getFile = await provider.getFilesInDirectory('').then(files => {
+          return files.items[0]
+        })
+        await provider.getDownloadUrlForFile(getFile.path).then(url => {
+          const metadata = {
+            bucket: '',
+            name: getFile.path,
+            size: getFile.size,
+            timeCreated: getFile.createdAt,
+            updated: getFile.updatedAt,
+            fileName: getFile.path,
+            accessUrl: { url }
+          }
+          setMetadata(metadata)
+        })
       } else {
         // TODO: change below comment after switch to DRSHub is complete, tracked in ticket [ID-170]
         // Fields are mapped from the martha_v3 fields to those used by google
@@ -214,6 +230,7 @@ const UriViewer = _.flow(
 
   const { size, timeCreated, updated, bucket, name, fileName, accessUrl } = metadata || {}
   const gsUri = `gs://${bucket}/${name}`
+  // TODO: Need to update this to be able to ingest AzureURI
   const downloadCommand = getDownloadCommand(fileName, gsUri, accessUrl)
   return h(Modal, {
     onDismiss,
@@ -284,7 +301,7 @@ const UriViewer = _.flow(
         div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
       ])],
       () => h(Fragment, [
-        isGs(uri) ? 'Loading metadata...' : 'Resolving DRS object...',
+        isGs(uri) ? 'Loading metadata...' : isAzureUri(uri) ? 'Retrieving Azure file...' : isDrs(uri) ? 'Resolving DRS object...' : 'Retrieving file...',
         spinner({ style: { marginLeft: 4 } })
       ])
     )
@@ -302,7 +319,7 @@ export const UriViewerLink = ({ uri, workspace }) => {
         setModalOpen(true)
       }
     }, [isGs(uri) || isAzureUri(uri) ? _.last(uri.split(/\/\b/)) : uri]),
-    modalOpen && !isAzureWorkspace(workspace) && h(UriViewer, {
+    modalOpen && h(UriViewer, {
       onDismiss: () => setModalOpen(false),
       uri, workspace
     })

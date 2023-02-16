@@ -88,6 +88,7 @@ const FilesTable = (props: FilesTableProps) => {
                 },
                 onClick: e => {
                   e.preventDefault()
+                  // TODO: Aaron
                   onClickFile(file)
                 }
               }, [basename(file.path)])
