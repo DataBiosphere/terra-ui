@@ -86,7 +86,7 @@ describe('ComputeModal', () => {
     // Assert
     verifyEnabled(getCreateButton())
     screen.getByText('Jupyter Cloud Environment')
-    screen.getByText('Cost based on settings below')
+    screen.getByText('Create custom environment')
   })
 
   it('sends the proper leo API call in default create case (no runtimes or disks)', async () => {
@@ -689,6 +689,7 @@ describe('ComputeModal', () => {
     await act(async () => {
       await render(h(ComputeModalBase, defaultModalProps))
 
+      await userEvent.click(screen.getByText('Customize'))
       const selectMenu = await screen.getByLabelText('Application configuration')
       await userEvent.click(selectMenu)
       const selectOption = await screen.findByText(hailImage.label)
@@ -751,6 +752,7 @@ describe('ComputeModal', () => {
     await act(async () => {
       await render(h(ComputeModalBase, defaultModalProps))
 
+      await userEvent.click(screen.getByText('Customize'))
       const selectMenu = await screen.getByLabelText('Application configuration')
       await userEvent.click(selectMenu)
       const selectOption = await screen.findByText('Custom Environment')
@@ -799,6 +801,7 @@ describe('ComputeModal', () => {
     await act(async () => {
       await render(h(ComputeModalBase, defaultModalProps))
 
+      await userEvent.click(screen.getByText('Customize'))
       const selectMenu = await screen.getByLabelText('Application configuration')
       await userEvent.click(selectMenu)
       const selectOption = await screen.findByText('Custom Environment')
@@ -827,18 +830,18 @@ describe('ComputeModal', () => {
   })
 
   // click learn more about persistent disk
-  // it('should render learn more about persistent disks', async () => {
-  //   // Act
-  //   await act(async () => {
-  //     await render(h(ComputeModalBase, defaultModalProps))
-  //     const link = screen.getByText('Learn more about persistent disks and where your disk is mounted.')
-  //     await userEvent.click(link)
-  //   })
+  it('should render learn more about persistent disks', async () => {
+    // Act
+    await act(async () => {
+      await render(h(ComputeModalBase, defaultModalProps))
+      const link = screen.getByText('Learn more about Persistent Disks.')
+      await userEvent.click(link)
+    })
 
-  //   // Assert
-  //   screen.getByText('About persistent disk')
-  //   screen.getByText(/Your persistent disk is mounted in the directory/)
-  // })
+    // Assert
+    screen.getByText('About persistent disk')
+    screen.getByText(/Your persistent disk is mounted in the directory/)
+  })
 
   it('should render whats installed on this environment', async () => {
     // Act
@@ -872,6 +875,8 @@ describe('ComputeModal', () => {
     // Act
     await act(async () => {
       await render(h(ComputeModalBase, defaultModalProps))
+      const link = screen.getByText('Customize')
+      await userEvent.click(link)
       const enableGPU = await screen.getByText('Enable GPUs')
       await userEvent.click(enableGPU)
     })
@@ -911,6 +916,7 @@ describe('ComputeModal', () => {
       await render(h(ComputeModalBase, defaultModalProps))
 
       // Act
+      await userEvent.click(screen.getByText('Customize'))
       const selectMenu = await screen.getByLabelText('Application configuration')
       await userEvent.click(selectMenu)
       const selectOption = await screen.findByText(/Legacy GATK:/)
@@ -954,6 +960,7 @@ describe('ComputeModal', () => {
       await act(async () => {
         await render(h(ComputeModalBase, { ...defaultModalProps, tool: runtimeTool.label }))
 
+        await userEvent.click(screen.getByText('Customize'))
         const selectMenu = await screen.getByLabelText('Application configuration')
         await userEvent.click(selectMenu)
         const customImageSelect = await screen.findByText('Custom Environment')
@@ -1012,6 +1019,7 @@ describe('ComputeModal', () => {
       await act(async () => {
         await render(h(ComputeModalBase, { ...defaultModalProps, tool: runtimeTool.label }))
 
+        await userEvent.click(screen.getByText('Customize'))
         const selectMenu = await screen.getByLabelText('Application configuration')
         await userEvent.click(selectMenu)
         const customImageSelect = await screen.findByText('Custom Environment')
