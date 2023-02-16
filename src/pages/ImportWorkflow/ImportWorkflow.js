@@ -11,15 +11,15 @@ import { WorkspaceImporter } from 'src/components/workspace-utils'
 import importBackground from 'src/images/hex-import-background.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { useCancellation } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { workflowNameValidation } from 'src/libs/workflow-utils'
 import validate from 'validate.js'
 
+import { importDockstoreWorkflow } from './importDockstoreWorkflow'
 import { useDockstoreWdl } from './useDockstoreWdl'
 
 
@@ -45,47 +45,24 @@ export const ImportWorkflow = ({ path, version, source }) => {
 
   const { wdl, status: wdlStatus } = useDockstoreWdl({ path, version, isTool: source === 'dockstoretools' })
 
-  const signal = useCancellation()
-
-  const doImport = Utils.withBusyState(setIsBusy, async workspace => {
+  const doImport = _.flow(
+    Utils.withBusyState(setIsBusy),
+    withErrorReporting('Error importing workflow'),
+  )(async workspace => {
     const { name, namespace } = workspace
     const eventData = { source, ...extractWorkspaceDetails(workspace) }
 
     try {
-      const rawlsWorkspace = Ajax().Workspaces.workspace(namespace, name)
-      const [entityMetadata, { outputs: workflowOutputs }] = await Promise.all([
-        rawlsWorkspace.entityMetadata(),
-        Ajax(signal).Methods.configInputsOutputs({
-          methodRepoMethod: {
-            methodPath: path,
-            methodVersion: version,
-            sourceRepo: source,
-          }
-        }),
-      ])
-
-      const defaultOutputConfiguration = _.flow(
-        _.map(output => {
-          const outputExpression = `this.${_.last(_.split('.', output.name))}`
-          return [output.name, outputExpression]
-        }),
-        _.fromPairs
-      )(workflowOutputs)
-
-      await rawlsWorkspace.importMethodConfigFromDocker({
-        namespace, name: workflowName, rootEntityType: _.head(_.keys(entityMetadata)),
-        inputs: {}, outputs: defaultOutputConfiguration, prerequisites: {}, methodConfigVersion: 1, deleted: false,
-        methodRepoMethod: {
-          sourceRepo: source,
-          methodPath: path,
-          methodVersion: version
-        }
+      await importDockstoreWorkflow({
+        workspace,
+        workflow: { path, version, source },
+        workflowName
       })
       Ajax().Metrics.captureEvent(Events.workflowImport, { ...eventData, success: true })
       Nav.goToPath('workflow', { namespace, name, workflowNamespace: namespace, workflowName })
     } catch (error) {
-      reportError('Error importing workflow', error)
       Ajax().Metrics.captureEvent(Events.workflowImport, { ...eventData, success: false })
+      throw error
     }
   })
 
