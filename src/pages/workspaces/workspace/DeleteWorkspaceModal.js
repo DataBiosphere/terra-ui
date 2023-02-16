@@ -87,15 +87,16 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
         p(['This workspace has resources that are not deletable.']),
         p(['If the resource is provisioning or deleting, try again in a few minutes. Please reach out to support@terra.bio for assistance.']),
         ul([
-          workspaceResources.nonDeleteableApps.map(app => li([app.appName, ` (${app.status.toLowerCase()})`])),
-          workspaceResources.nonDeleteableRuntimes.map(runtime => li([runtime.runtimeName, ` (${runtime.status.toLowerCase()})`]))
+          workspaceResources.nonDeleteableApps.map(app => li({ key: app.appName }, [app.appName, ` (${app.status.toLowerCase()})`])),
+          workspaceResources.nonDeleteableRuntimes.map(
+            runtime => li({ key: runtime.runtimeName }, [runtime.runtimeName, ` (${runtime.status.toLowerCase()})`]))
         ])
       ]),
       (!isDeleteDisabledFromResources || deletingResources) && div([
         p(['This workspace cannot be deleted because of the following running cloud resources:']),
         ul([
-          workspaceResources.apps.map(app => li([app.appName])),
-          workspaceResources.runtimes.map(runtime => li([runtime.runtimeName]))
+          workspaceResources.apps.map(app => li({ key: app.appName }, [app.appName])),
+          workspaceResources.runtimes.map(runtime => li({ key: runtime.runtimeName }, [runtime.runtimeName]))
         ]),
         p(['These resources must be deleted before the workspace can be deleted']),
         p(['It may take several minutes to delete all of the cloud resources in this workspace. Please do not close this window']),
@@ -160,7 +161,8 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
   }
 
   if (loading) {
-    return div({}, [
+    // only show the deletion modal when we have all of our constiuent data elements
+    return div([
       spinnerOverlay
     ])
   } else if (isAzureWorkspace(workspace) && (hasApps() || hasRuntimes() || deletingResources)) {
