@@ -70,7 +70,7 @@ export const brands = {
     signInName: 'NHLBI BioData Catalyst',
     queryName: 'nhlbi biodata catalyst',
     welcomeHeader: 'Welcome to NHLBI BioData Catalyst',
-    description: 'NHLBI BioData Catalyst is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
+    description: 'NHLBI BioData Catalyst (BDC) is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     hostName: 'terra.biodatacatalyst.nhlbi.nih.gov',
     docLinks: [
       {

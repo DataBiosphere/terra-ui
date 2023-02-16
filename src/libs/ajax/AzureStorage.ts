@@ -158,7 +158,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
         const textFileContents = await getObject()
         return fetchOk(`${getConfig().calhounUrlRoot}/${calhounPath}`,
           _.mergeAll([authOpts(), { signal, method: 'POST', body: textFileContents }])
-        ).then(res => res.text())
+        ).then(res => res)
       },
 
       create: async contents => {

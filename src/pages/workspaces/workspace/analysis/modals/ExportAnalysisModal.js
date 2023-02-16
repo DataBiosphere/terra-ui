@@ -15,7 +15,7 @@ import { useCancellation } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { getAnalysisFileExtension, getDisplayName, getExtension, stripExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { analysisNameInput, analysisNameValidator } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
-import { analysisLauncherTabName, analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { analysisLauncherTabName, analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import validate from 'validate.js'
 
 

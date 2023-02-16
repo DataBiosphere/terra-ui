@@ -21,7 +21,7 @@ import {
   analysisNameInput,
   analysisNameValidator
 } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
-import { analysisLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { analysisLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import validate from 'validate.js'
 
