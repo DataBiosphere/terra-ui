@@ -95,6 +95,7 @@ const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
  * @param {boolean} [props.isSearchable] - whether the select can be cleared
  * @param {boolean} [props.isMulti] - whether the select is multiselect or not
  * @param {Object} [props.styles] - custom styling for the select
+ * @param {boolean} [props.isDisabled] - whether the select is disabled
  * @param {Function} [props.getOptionLabel] - a function to custom style the options
  * @param props.id - The HTML ID to give the form element
  */
