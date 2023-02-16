@@ -11,6 +11,7 @@ import {
   DatasetMetadata, Publication, StorageObject,
   StorageSystem
 } from 'src/libs/ajax/Catalog'
+import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import {
@@ -222,10 +223,14 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
           style: { marginLeft: '1rem' },
           disabled: _.keys(errors).length > 0,
           tooltip: Utils.summarizeErrors(errors),
-          onClick: async () => {
-            setLoading(true)
-            const response = await (await Ajax().Catalog.upsertDataset(storageSystem, storageSourceId, metadata)).json()
-            Nav.goToPath('library-details', { id: response.id })
+          onClick: () => {
+            _.flow(
+              withErrorReporting('Error creating dataset'),
+              Utils.withBusyState(setLoading)
+            )(async () => {
+              const response = await (await Ajax().Catalog.upsertDataset(storageSystem, storageSourceId, metadata)).json()
+              Nav.goToPath('library-details', { id: response.id })
+            })()
           }
         }, ['Create'])
       ])
