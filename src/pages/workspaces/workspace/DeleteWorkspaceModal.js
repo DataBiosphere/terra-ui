@@ -49,7 +49,8 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
 
   const getResourceDeletionMessage = () => {
     const appCount = workspaceResources.nonDeleteableApps.length > 1 ? `are ${workspaceResources.nonDeleteableApps.length}` : 'is 1'
-    const googleMessage = `You cannot delete this workspace because there ${appCount} ${pluralize('application', workspaceResources.nonDeleteableApps.length,
+    const googleMessage = `You cannot delete this workspace because there ${appCount} ${pluralize('application',
+      workspaceResources.nonDeleteableApps.length,
       false)} you must delete first. Only applications in ('ERROR', 'RUNNING') status can be automatically deleted.`
     const azureMessage = 'Deleting workspaces with running cloud resources in Terra on Azure Preview is currently unavailable. Please reach out to support@terra.bio for assistance.'
     return isDeleteDisabledFromResources ?
@@ -63,7 +64,8 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
         ])
       ]) :
       p({ style: { marginLeft: '1rem', fontWeight: 'bold' } },
-        [`Detected ${workspaceResources.deleteableApps.length} automatically deletable ${pluralize('application', workspaceResources.deleteableApps.length, false)}.`])
+        [`Detected ${workspaceResources.deleteableApps.length} automatically deletable ${pluralize('application',
+          workspaceResources.deleteableApps.length, false)}.`])
   }
 
 
@@ -87,7 +89,7 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
         ul([
           workspaceResources.nonDeleteableApps.map(app => li([app.appName, ` (${app.status.toLowerCase()})`])),
           workspaceResources.nonDeleteableRuntimes.map(runtime => li([runtime.runtimeName, ` (${runtime.status.toLowerCase()})`]))
-        ]),
+        ])
       ]),
       (!isDeleteDisabledFromResources || deletingResources) && div([
         p(['This workspace cannot be deleted because of the following running cloud resources:']),
@@ -157,7 +159,11 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
     ])
   }
 
-  if (isAzureWorkspace(workspace) && (hasApps() || hasRuntimes() || deletingResources)) {
+  if (loading) {
+    return div({}, [
+      spinnerOverlay
+    ])
+  } else if (isAzureWorkspace(workspace) && (hasApps() || hasRuntimes() || deletingResources)) {
     return getAzureResourceCleanupModal()
   } else {
     return getWorkspaceDeletionModal()
