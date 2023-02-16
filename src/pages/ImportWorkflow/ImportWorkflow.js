@@ -7,7 +7,6 @@ import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import TopBar from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
-import { WorkspaceImporter } from 'src/components/workspace-utils'
 import importBackground from 'src/images/hex-import-background.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -21,6 +20,7 @@ import validate from 'validate.js'
 
 import { importDockstoreWorkflow } from './importDockstoreWorkflow'
 import { useDockstoreWdl } from './useDockstoreWdl'
+import { WorkspaceImporter } from './WorkspaceImporter'
 
 
 const styles = {
@@ -66,7 +66,7 @@ export const ImportWorkflow = ({ path, version, source }) => {
     }
   })
 
-  const errors = (validate({ workflowName }, { workflowName: workflowNameValidation() }))
+  const errors = validate({ workflowName }, { workflowName: workflowNameValidation() })
 
   return div({ style: styles.container }, [
     div({ style: { ...styles.card, maxWidth: 740 } }, [
