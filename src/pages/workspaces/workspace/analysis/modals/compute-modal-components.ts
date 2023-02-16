@@ -1,3 +1,5 @@
+// eslint-disable-next-line lodash-fp/use-fp
+import { CurriedFunction1 } from 'lodash'
 import { div, h, label } from 'react-hyperscript-helpers'
 import { Link, Select } from 'src/components/common'
 import { NumberInput } from 'src/components/input'
@@ -7,7 +9,43 @@ import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/mo
 import { pdTypes } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
-export const PersistentDiskType = ({ diskExists, computeConfig, updateComputeConfig }) => {
+interface IComputeConfig {
+  selectedPersistentDiskSize: number
+  selectedPersistentDiskType: {
+    label: string
+    displayName: string
+    regionToPricesName: string
+  }
+  masterMachineType: any
+  masterDiskSize: number
+  numberOfWorkers: number
+  numberOfPreemptibleWorkers: number
+  workerMachineType: string
+  workerDiskSize: number
+  componentGatewayEnabled: boolean
+  gpuEnabled: boolean
+  hasGpu: boolean
+  gpuType: string
+  numGpus: number
+  autopauseThreshold: number
+  computeRegion: string
+  computeZone: string
+}
+
+interface PersistentDiskProps {
+  diskExists: boolean
+  computeConfig: IComputeConfig
+  updateComputeConfig: CurriedFunction1<string, void>
+  handleLearnMoreAboutPersistentDisk: React.MouseEventHandler
+}
+
+interface PersistentDiskTypeProps {
+  diskExists: boolean
+  computeConfig: IComputeConfig
+  updateComputeConfig: CurriedFunction1<string, void>
+}
+
+export const PersistentDiskType = ({ diskExists, computeConfig, updateComputeConfig }: PersistentDiskTypeProps) => {
   const persistentDiskId = useUniqueId()
   return (
     h(div, [
@@ -17,7 +55,7 @@ export const PersistentDiskType = ({ diskExists, computeConfig, updateComputeCon
           id: persistentDiskId,
           value: computeConfig.selectedPersistentDiskType,
           isDisabled: diskExists,
-          onChange: ({ value }) => updateComputeConfig('selectedPersistentDiskType', value),
+          onChange: updateComputeConfig('selectedPersistentDiskType'),
           menuPlacement: 'auto',
           options: [
             { label: pdTypes.standard.displayName, value: pdTypes.standard },
@@ -30,7 +68,7 @@ export const PersistentDiskType = ({ diskExists, computeConfig, updateComputeCon
   )
 }
 
-export const PersistentDiskSection = ({ diskExists, computeConfig, updateComputeConfig, handleLearnMoreAboutPersistentDisk }) => {
+export const PersistentDiskSection = ({ diskExists, computeConfig, updateComputeConfig, handleLearnMoreAboutPersistentDisk }: PersistentDiskProps) => {
   const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
   const diskSizeId = useUniqueId()
 
