@@ -3,16 +3,16 @@ import * as qs from 'qs'
 import { fetchDockstore, fetchOk } from './ajax-common'
 
 
-type DockstoreWorkflowDescriptor = {
+export type DockstoreWorkflowDescriptor = {
   path: string
   isTool: boolean
 }
 
-type DockstoreWorkflowVersionDescriptor = DockstoreWorkflowDescriptor & {
+export type DockstoreWorkflowVersionDescriptor = DockstoreWorkflowDescriptor & {
   version: string
 }
 
-type DockstoreWorkflowVersion = {
+export type DockstoreWorkflowVersion = {
   'descriptor-type': unknown[]
   dockerfile: boolean
   id: string
@@ -24,7 +24,7 @@ type DockstoreWorkflowVersion = {
   'verified-source': string
 }
 
-type DockstoreWorkflow = {
+export type DockstoreWorkflow = {
   author: string
   contains: unknown[]
   description: string
@@ -68,3 +68,5 @@ export const Dockstore = (signal?: AbortSignal) => ({
     return fetchDockstore(`api/ga4gh/v1/tools?${qs.stringify(params)}`, { signal }).then(res => res.json())
   },
 })
+
+export type DockstoreContract = ReturnType<typeof Dockstore>
