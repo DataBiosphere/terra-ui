@@ -1613,26 +1613,6 @@ export const ComputeModalBase = ({
     })
   }
 
-  const resetToDefaults = () => {
-    const desiredToolLabel = getToolLabelForImage(_.find({ image: selectedLeoImage }, leoImages)?.id)
-
-    const requiresSpark = _.find({ image: setSelectedLeoImage }, leoImages)?.requiresSpark
-        const newRuntimeType = Utils.cond(
-          [!!requiresSpark && isDataproc(runtimeType), () => runtimeType],
-          [!!requiresSpark && !isDataproc(runtimeType), () => runtimeTypes.dataprocSingleNode],
-          [Utils.DEFAULT, () => runtimeTypes.gceVm]
-        )
-        setTimeoutInMinutes(supportedImages.includes(setSelectedLeoImage) ? null : timeoutInMinutes)
-        setCustomEnvImage('')
-        setRuntimeType(newRuntimeType)
-        updateComputeConfig('componentGatewayEnabled', isDataproc(newRuntimeType))
-        const machineType = getDefaultMachineType(isDataproc(newRuntimeType), desiredToolLabel)
-        updateComputeConfig('masterMachineType', machineType)
-        if (isDataproc(newRuntimeType) && computeConfig.masterDiskSize < defaultDataprocMasterDiskSize) {
-          updateComputeConfig('masterDiskSize', defaultDataprocMasterDiskSize)
-        }
-  }
-
   const renderMainForm = () => {
     const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
     const renderTitleAndTagline = () => {
@@ -1667,9 +1647,6 @@ export const ComputeModalBase = ({
             () => 'Delete Environment'
           )
         ]),
-        h(ButtonOutline, {
-          onClick: () => resetToDefaults()
-        }, ['Back to defaults']),
         div({ style: { flex: 1 } }),
         renderActionButton()
       ])
