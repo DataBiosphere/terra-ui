@@ -712,7 +712,7 @@ const WorkspaceData = _.flow(
   const editWorkspaceErrorMessage = Utils.editWorkspaceError(workspace)
   const canEditWorkspace = !editWorkspaceErrorMessage
 
-  // conventience vars for WDS
+  // convenience vars for WDS
   const wdsReady = wdsProxyUrl.status === 'Ready' && wdsTypes.status === 'Ready'
   const wdsLoading = wdsProxyUrl.status === 'Loading' || wdsTypes.status === 'Loading'
   const wdsError = wdsProxyUrl.status === 'Error' || wdsTypes.status === 'Error'
@@ -849,9 +849,7 @@ const WorkspaceData = _.flow(
                   message: wdsLoading ? icon('loadingSpinner') : 'Data tables are unavailable'
                 }),
                 wdsReady && _.isEmpty(wdsTypes.state) && h(NoDataPlaceholder, {
-                  message: 'No tables have been uploaded.',
-                  buttonText: 'Upload TSV',
-                  onAdd: () => setUploadingWDSFile(true)
+                  message: 'No tables have been uploaded.'
                 }),
                 wdsReady && !_.isEmpty(wdsTypes.state) && _.map(typeDef => {
                   return div({ key: typeDef.name, role: 'listitem' }, [
@@ -885,7 +883,11 @@ const WorkspaceData = _.flow(
                       })
                     })
                   ])
-                }, wdsTypes.state)
+                }, wdsTypes.state),
+                h(NoDataPlaceholder, {
+                  buttonText: 'Data Table Status',
+                  onAdd: () => setTroubleshootingWds(true)
+                }),
               ]
             ]),
             (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) && isGoogleWorkspace && h(DataTypeSection, {
