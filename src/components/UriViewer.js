@@ -61,7 +61,10 @@ export const isGs = uri => _.startsWith('gs://', uri)
 
 export const isDrs = uri => _.startsWith('dos://', uri) || _.startsWith('drs://', uri)
 
-export const isAzureUri = uri => _.includes('blob.core.windows.net', uri)
+export const isAzureUri = uri => {
+  const azureRegex = RegExp('^https://(.+).blob.core.windows.net')
+  return azureRegex.test(uri)
+}
 
 const getMaxDownloadCostNA = bytes => {
   const nanos = DownloadPrices.pricingInfo[0].pricingExpression.tieredRates[1].unitPrice.nanos
