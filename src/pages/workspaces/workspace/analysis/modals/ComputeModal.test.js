@@ -827,6 +827,34 @@ describe('ComputeModal', () => {
     }))
   })
 
+  // click learn more about persistent disk
+  it.each([
+    { tool: runtimeTools.Jupyter },
+    { tool: runtimeTools.RStudio }
+  ])('should render learn more about persistent disks', async ({ tool }) => {
+    // Arrange
+    const disk = getDisk()
+    const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) }
+    const runtime = getGoogleRuntime(runtimeProps)
+    // Act
+    // HACK: await not necessary here
+    // eslint-disable-next-line require-await
+    await act(async () => {
+      render(h(ComputeModalBase, {
+        ...defaultModalProps,
+        currentDisk: disk,
+        currentRuntime: runtime
+      }))
+    })
+
+    // Assert
+    const link = screen.getByText(/Learn more about persistent disks/)
+    await userEvent.click(link)
+    screen.getByText('About persistent disk')
+    if (tool.label === 'jupyter') screen.getByText(/\/home\/jupyter/)
+    else screen.getByText(/\/home\/rstudio/)
+  })
+
   it('correctly renders and updates timeoutInMinutes', async () => {
     await act(async () => {
       // Arrange
