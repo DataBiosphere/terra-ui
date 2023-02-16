@@ -1,6 +1,7 @@
 export * from './buttons'
 export * from './Checkbox'
 export * from './Clickable'
+export * from './DelayedRender'
 export * from './DeleteConfirmationModal'
 export * from './FocusTrapper'
 export * from './IdContainer'
