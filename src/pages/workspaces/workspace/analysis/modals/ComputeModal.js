@@ -637,7 +637,7 @@ export const ComputeModalBase = ({
       ..._.mapKeys(key => `desiredPersistentDisk_${key}`, desiredPersistentDisk),
       desiredPersistentDisk_costPerMonth: (desiredPersistentDisk && getPersistentDiskCostMonthly(getPendingDisk(), computeConfig.computeRegion)),
       ..._.mapKeys(key => `existingPersistentDisk_${key}`, existingPersistentDisk),
-      isDefaultConfig: !!currentRuntimeDetails
+      isDefaultConfig: !currentRuntimeDetails
     })
   }
 

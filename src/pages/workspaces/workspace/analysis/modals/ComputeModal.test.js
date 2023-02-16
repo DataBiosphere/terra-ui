@@ -355,6 +355,58 @@ describe('ComputeModal', () => {
     expect(deleteFunc).toHaveBeenCalled()
   })
 
+  // click reset environment changes items back to default values
+  it('should reset environment changes back to defaults when reset is pressed', async () => {
+    // Arrange
+    const machine1 = { name: 'n1-standard-2', cpu: 2, memory: 7.50 }
+    const machine2 = { name: 'n1-standard-4', cpu: 4, memory: 15 }
+    const runtimeProps = {
+      image: hailImage.image, status: runtimeStatuses.stopped.leoLabel, runtimeConfig: {
+        numberOfWorkers: 2,
+        masterMachineType: machine1.name,
+        masterDiskSize: 151,
+        workerMachineType: machine2.name,
+        workerDiskSize: 150,
+        numberOfWorkerLocalSSDs: 0,
+        numberOfPreemptibleWorkers: 0,
+        cloudService: 'DATAPROC',
+        region: 'us-central1',
+        componentGatewayEnabled: true,
+        workerPrivateAccess: false
+      }
+    }
+    // const disk = getDisk()
+    // const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) }
+    const runtime = getGoogleRuntime(runtimeProps)
+
+    // Act
+    await act(async () => {
+      await render(h(ComputeModalBase, {
+        ...defaultModalProps,
+        currentRuntime: runtime
+      }))
+
+      //change cpus
+      await userEvent.click(screen.getByLabelText('CPUs'))
+      const selectOption = await screen.findByText('4')
+      await userEvent.click(selectOption)
+
+      await userEvent.click(screen.getByLabelText('Memory (GB)'))
+      const selectMem = await screen.findByText('26')
+      await userEvent.click(selectMem)
+
+      //reset to defaults
+      const defaultsButton = await screen.findByText('Back to defaults')
+      await userEvent.click(defaultsButton)
+    })
+
+    // Assert
+    const cpuFinal = screen.getByLabelText('CPUs')
+    expect(cpuFinal).toHaveDisplayValue(2)
+    const memFinal = screen.getByLabelText('Memory (GB)')
+    expect(memFinal).toHaveDisplayValue(15)
+  })
+
   // click update with downtime (and keep pd)
   it.each([
     { tool: runtimeTools.Jupyter },
