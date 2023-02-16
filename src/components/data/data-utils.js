@@ -65,10 +65,10 @@ export const getDownloadCommand = (fileName, gsUri, accessUrl) => {
 }
 
 export const getUserProjectForWorkspace = async workspace => (workspace && await canUseWorkspaceProject(workspace)) ?
-  isGoogleWorkspace(workspace) :
+  workspace.workspace.googleProject :
   requesterPaysProjectStore.get()
 
-const isUri = (datum, workspace) => (isGoogleWorkspace(workspace) &&
+const isViewableUri = (datum, workspace) => (isGoogleWorkspace(workspace) &&
   isGs(datum)) || isDrs(datum) || (isAzureWorkspace(workspace) && (isAzureUri(datum)))
 
 export const getRootTypeForSetTable = tableName => _.replace(/(_set)+$/, '', tableName)
@@ -117,7 +117,7 @@ export const renderDataCell = (attributeValue, workspace) => {
 
   const renderCell = datum => {
     const stringDatum = Utils.convertValue('string', datum)
-    return isUri(datum, workspace) ? h(UriViewerLink, { uri: datum, workspace }) : stringDatum
+    return isViewableUri(datum, workspace) ? h(UriViewerLink, { uri: datum, workspace }) : stringDatum
   }
 
   const renderArray = items => {
