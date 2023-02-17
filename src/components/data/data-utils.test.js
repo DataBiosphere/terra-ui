@@ -233,7 +233,7 @@ describe('renderDataCell', () => {
 
     it('renders links to Azure URLs', () => {
       const { container, getByRole } = render(renderDataCell('https://sa226344b664da26ad6863.blob.core.windows.net/file1.cram', testAzureWorkspace))
-      expect(container).toHaveTextContent('https://sa226344b664da26ad6863.blob.core.windows.net/file1.cram')
+      expect(container).toHaveTextContent('file1.cram')
       const link = getByRole('link')
       expect(link).toHaveAttribute('href', 'https://sa226344b664da26ad6863.blob.core.windows.net/file1.cram')
     })
