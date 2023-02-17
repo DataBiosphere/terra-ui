@@ -15,6 +15,9 @@ export interface Subscribable<T extends any[]> {
   next: (...args: T) => void
 }
 
+/**
+ * A mechanism for registering callbacks for some state change.
+ */
 export const subscribable = <T extends any[]>(): Subscribable<T> => {
   let subscribers: ((...args: T) => void)[] = []
   return {
