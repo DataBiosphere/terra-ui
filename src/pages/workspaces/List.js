@@ -5,7 +5,7 @@ import { div, h, p, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
 import Collapse from 'src/components/Collapse'
-import { IdContainer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
+import { Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
@@ -30,11 +30,8 @@ import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
-import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { cloudProviderLabels, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
-import { isGcpContext } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { UnboundDiskNotification, V1WorkspaceNotification } from 'src/pages/workspaces/workspace/Dashboard'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal'
@@ -94,20 +91,6 @@ const workspaceSubmissionStatus = workspace => {
   )
 }
 
-// [PPWM-104] Temporary logic supporting project-per-workspace persistent disk migration
-const somePersistentDiskRequiresMigration = (workspaces, disks) => {
-  // construct map of namespace -> (map of name -> workspace) from list of workspace
-  const workspacesByNsAndName = _.flow(
-    _.map('workspace'),
-    _.groupBy('namespace'),
-    _.mapValues(_.flow(_.groupBy('name'), _.mapValues(_.head)))
-  )(workspaces)
-
-  return !_.isEmpty(workspaces) && _.flip(_.some)(disks, ({ googleProject, labels }) => {
-    return workspacesByNsAndName[labels.saturnWorkspaceNamespace]?.[labels.saturnWorkspaceName]?.googleProject !== googleProject
-  })
-}
-
 const EMPTY_LIST = []
 
 export const WorkspaceList = () => {
@@ -157,25 +140,12 @@ export const WorkspaceList = () => {
 
   const [sort, setSort] = useState({ field: 'lastModified', direction: 'desc' })
 
-  // [PPWM-104] Temporary logic supporting project-per-workspace persistent disk migration
-  const [gcpPersistentDisks, setGcpPersistentDisks] = useState()
-
   useOnMount(() => {
     const loadFeatured = withErrorIgnoring(async () => {
       setFeaturedList(await Ajax().FirecloudBucket.getFeaturedWorkspaces())
     })
 
-    const loadPersistentDisks = withErrorIgnoring(async () => {
-      setGcpPersistentDisks(_.filter(({ cloudContext }) => isGcpContext(cloudContext),
-        await Ajax().Disks.list({
-          role: 'creator',
-          includeLabels: ['saturnWorkspaceNamespace', 'saturnWorkspaceName'].join(',')
-        })
-      ))
-    })
-
     loadFeatured()
-    loadPersistentDisks()
   })
 
   useEffect(() => {
@@ -269,7 +239,7 @@ export const WorkspaceList = () => {
           headerRenderer: makeHeaderRenderer('name'),
           cellRenderer: ({ rowIndex }) => {
             const {
-              accessLevel, workspace, workspace: { workspaceId, namespace, name, workspaceVersion, attributes: { description } }
+              accessLevel, workspace, workspace: { workspaceId, namespace, name, attributes: { description } }
             } = sortedWorkspaces[rowIndex]
             const canView = Utils.canRead(accessLevel)
             const canAccessWorkspace = () => !canView ? setRequestingAccessWorkspaceId(workspaceId) : undefined
@@ -290,20 +260,7 @@ export const WorkspaceList = () => {
                   tooltip: !canView &&
                     'You cannot access this workspace because it is protected by an Authorization Domain. Click to learn about gaining access.',
                   tooltipSide: 'right'
-                }, [name]),
-                workspaceVersion === 'v1' && h(IdContainer, [
-                  id => h(TooltipTrigger, {
-                    side: 'right',
-                    type: 'light',
-                    useTooltipAsLabel: true,
-                    content: h(V1WorkspaceNotification, { id, showIcon: false, showLinks: false })
-                  }, [icon('warning-standard',
-                    {
-                      'aria-labelledby': id,
-                      style: { color: colors.warning(), height: '1.3rem', width: '1.3rem', marginLeft: '0.5rem', marginTop: '-0.2rem' }
-                    })]
-                  )
-                ])
+                }, [name])
               ]),
               div({ style: { ...styles.tableCellContent } }, [
                 h(FirstParagraphMarkdownViewer, {
@@ -408,12 +365,6 @@ export const WorkspaceList = () => {
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces' }),
     div({ role: 'main', style: { padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-      somePersistentDiskRequiresMigration(workspaces, gcpPersistentDisks) && h(UnboundDiskNotification, {
-        style: {
-          position: 'absolute', top: topBarHeight, left: '50%', transform: 'translate(-50%, -50%)',
-          zIndex: 2 // Draw over top bar but behind contact support dialog
-        }
-      }),
       div({ style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, fontSize: '1.5rem' } }, ['Workspaces']),
         h(Link, {

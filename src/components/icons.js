@@ -1,7 +1,10 @@
 import _ from 'lodash/fp'
 import { Children, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import DelayedRender from 'src/components/DelayedRender'
+// Temporary workaround to avoid a circular import.
+// components/icons => components/common => components/common/spinners => components/icons
+// eslint-disable-next-line import/no-internal-modules
+import { DelayedRender } from 'src/components/common/DelayedRender'
 import colors from 'src/libs/colors'
 import iconDict from 'src/libs/icon-dict'
 

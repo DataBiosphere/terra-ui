@@ -53,5 +53,6 @@ const testFindWorkflowFn = _.flow(
 
 registerTest({
   name: 'find-workflow',
-  fn: testFindWorkflowFn
+  fn: testFindWorkflowFn,
+  targetEnvironments: [], // https://broadworkbench.atlassian.net/browse/WX-944
 })

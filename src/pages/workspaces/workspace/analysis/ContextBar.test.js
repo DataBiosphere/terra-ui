@@ -6,8 +6,8 @@ import { Ajax } from 'src/libs/ajax'
 import { defaultAzureMachineType, defaultAzureRegion } from 'src/libs/azure-utils'
 import * as Utils from 'src/libs/utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
+import { getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
-import { getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
@@ -16,8 +16,8 @@ const GALAXY_DISK_COST = 1
 const RUNTIME_COST = 0.1
 const PERSISTENT_DISK_COST = 0.01
 
-jest.mock('src/pages/workspaces/workspace/analysis/runtime-utils', () => ({
-  ...jest.requireActual('src/pages/workspaces/workspace/analysis/runtime-utils'),
+jest.mock('src/pages/workspaces/workspace/analysis/cost-utils', () => ({
+  ...jest.requireActual('src/pages/workspaces/workspace/analysis/cost-utils'),
   getGalaxyComputeCost: jest.fn(),
   getGalaxyDiskCost: jest.fn(),
   getPersistentDiskCostHourly: jest.fn(),
@@ -349,8 +349,13 @@ const contextBarProps = {
   apps: [],
   appDataDisks: [],
   refreshRuntimes: () => '',
-  location: 'US-CENTRAL1',
-  locationType: '',
+  storageDetails: {
+    googleBucketLocation: 'US-CENTRAL1',
+    googleBucketType: '',
+    azureContainerRegion: 'eastus',
+    azureContainerUrl: 'container-url',
+    azureContainerSasUrl: 'container-url?sas'
+  },
   refreshApps: () => '',
   workspace: {
     workspace: {
@@ -366,8 +371,13 @@ const contextBarPropsForAzure = {
   apps: [],
   appDataDisks: [],
   refreshRuntimes: () => '',
-  location: 'US-CENTRAL1',
-  locationType: '',
+  storageDetails: {
+    googleBucketLocation: 'US-CENTRAL1',
+    googleBucketType: 'region',
+    azureContainerRegion: undefined,
+    azureContainerUrl: undefined,
+    azureContainerSasUrl: undefined
+  },
   refreshApps: () => '',
   workspace: {
     workspace: {
