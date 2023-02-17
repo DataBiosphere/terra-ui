@@ -181,13 +181,18 @@ const UriViewer = _.flow(
 
   const loadMetadata = async () => {
     try {
+      let metadata = {}
       if (isGs(uri)) {
         const [bucket, name] = parseGsUri(uri)
         const loadObject = withRequesterPaysHandler(onRequesterPaysError, () => {
           return Ajax(signal).Buckets.getObject(googleProject, bucket, name)
         })
-        const metadata = await loadObject(googleProject, bucket, name)
+        metadata = await loadObject(googleProject, bucket, name)
         setMetadata(metadata)
+      } else if (isAzureUri(uri)) {
+        metadata = {
+          name: uri,
+        }
       } else {
         // TODO: change below comment after switch to DRSHub is complete, tracked in ticket [ID-170]
         // Fields are mapped from the martha_v3 fields to those used by google
@@ -195,13 +200,13 @@ const UriViewer = _.flow(
         // https://cloud.google.com/storage/docs/json_api/v1/objects#resource-representations
         // The time formats returned are in ISO 8601 vs. RFC 3339 but should be ok for parsing by `new Date()`
         const { bucket, name, size, timeCreated, timeUpdated: updated, fileName, accessUrl } =
-          await Ajax(signal).DrsUriResolver.getDataObjectMetadata(
-            uri,
-            ['bucket', 'name', 'size', 'timeCreated', 'timeUpdated', 'fileName', 'accessUrl']
-          )
-        const metadata = { bucket, name, fileName, size, timeCreated, updated, accessUrl }
-        setMetadata(metadata)
+            await Ajax(signal).DrsUriResolver.getDataObjectMetadata(
+              uri,
+              ['bucket', 'name', 'size', 'timeCreated', 'timeUpdated', 'fileName', 'accessUrl']
+            )
+        metadata = { bucket, name, fileName, size, timeCreated, updated, accessUrl }
       }
+      setMetadata(metadata)
     } catch (e) {
       setLoadingError(await e.json())
     }
@@ -221,7 +226,7 @@ const UriViewer = _.flow(
     okButton: 'Done'
   }, [
     Utils.cond(
-      [loadingError, () => h(Fragment, [
+      [!isAzureUri(uri) && loadingError, () => h(Fragment, [
         div({ style: { paddingBottom: '1rem' } }, [
           'Error loading data. This file does not exist or you do not have permission to view it.'
         ]),
@@ -237,15 +242,15 @@ const UriViewer = _.flow(
           els.data((fileName || _.last(name.split('/'))).split('.').join('.\u200B')) // allow line break on periods
         ]),
         !isAzureUri(uri) && h(PreviewContent, { metadata, googleProject }),
-        els.cell([els.label('File size'), els.data(filesize(size))]),
-        !accessUrl && !!gsUri && els.cell([
+        !isAzureUri(uri) && els.cell([els.label('File size'), els.data(filesize(size))]),
+        !isAzureUri(uri) && !accessUrl && !!gsUri && els.cell([
           h(Link, {
             ...Utils.newTabLinkProps,
             href: bucketBrowserUrl(gsUri.match(/gs:\/\/(.+)\//)[1])
           }, ['View this file in the Google Cloud Storage Browser'])
         ]),
-        h(DownloadButton, { uri, metadata, accessUrl }),
-        els.cell([
+        !isAzureUri(uri) && h(DownloadButton, { uri, metadata, accessUrl }),
+        !isAzureUri(uri) && els.cell([
           els.label('Terminal download command'),
           els.data([
             div({ style: { display: 'flex' } }, [
@@ -279,9 +284,10 @@ const UriViewer = _.flow(
             els.data([h(FileProvenance, { workspace, fileUrl: uri })])
           ])
         ]),
-        div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
+        !isAzureUri(uri) && div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.']),
+        isAzureUri(uri) && div({ style: { marginTop: '2rem', fontSize: 14 } }, ['Download functionality for Azure files coming soon'])
       ])],
-      () => h(Fragment, [
+      () => !isAzureUri(uri) && h(Fragment, [
         isGs(uri) ? 'Loading metadata...' : 'Resolving DRS file...',
         spinner({ style: { marginLeft: 4 } })
       ])
@@ -297,7 +303,7 @@ export const UriViewerLink = ({ uri, workspace }) => {
       href: uri,
       onClick: e => {
         e.preventDefault()
-        setModalOpen(!isAzureUri(uri))
+        setModalOpen(true)
       }
     }, [isGs(uri) || isAzureUri(uri) ? _.last(uri.split(/\/\b/)) : uri]),
     modalOpen && h(UriViewer, {
