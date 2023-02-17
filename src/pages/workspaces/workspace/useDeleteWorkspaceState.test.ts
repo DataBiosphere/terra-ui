@@ -24,8 +24,6 @@ jest.mock('src/libs/error', (): ErrorExports => ({
   reportError: jest.fn(),
 }))
 
-jest.mock('src/libs/notifications')
-
 type AjaxContract = ReturnType<typeof Ajax>;
 type AjaxAppsContract = AjaxContract['Apps']
 type AjaxRuntimesContract = AjaxContract['Runtimes']
@@ -306,8 +304,7 @@ describe('useDeleteWorkspace', () => {
     } = renderHook(() => useDeleteWorkspaceState({ workspace: azureWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess }))
     await waitForNextUpdate()
 
-    result.current.deleteWorkspaceResources()
-
+    await act(() => result.current.deleteWorkspaceResources())
 
     // Assert
     expect(result.current.deleting).toBe(false)
@@ -326,6 +323,7 @@ describe('useDeleteWorkspace', () => {
         getAcl: mockGetAcl
       })
     }
+    //
     const mockListAppsFn = jest.fn()
     const mockListAppsV2: Partial<AjaxAppsContract> = {
       listAppsV2: mockListAppsFn,
@@ -337,6 +335,7 @@ describe('useDeleteWorkspace', () => {
         status: 'running'
       }
     ]).mockResolvedValueOnce([])
+    //
     const mockRuntimesV2: DeepPartial<AjaxRuntimesContract> = {
       listV2WithWorkspace: jest.fn(),
       runtimeV2: () => ({

@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { useRef, useState } from 'react'
 import { Ajax } from 'src/libs/ajax'
-import { reportError, withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
+import { reportError, withErrorReportingInModal } from 'src/libs/error'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { getUser } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -165,20 +165,20 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
     }
   }
 
-  const deleteWorkspaceResources = withErrorReporting('Error deleting workspace resources', async () => {
-    if (isGoogleWorkspace(hookArgs.workspace)) {
-      throw new Error('Attempting to delete resources in an unsupported workspace')
-    }
-
-    if (workspaceResources && workspaceResources.nonDeleteableApps.length > 0) {
-      throw new Error('Workspace contains non-deletable apps')
-    }
-
-    if (workspaceResources && workspaceResources.nonDeleteableRuntimes.length > 0) {
-      throw new Error('Workspace contains non-deletable runtimes')
-    }
-
+  const deleteWorkspaceResources = async () => {
     try {
+      if (isGoogleWorkspace(hookArgs.workspace)) {
+        throw new Error('Attempting to delete resources in an unsupported workspace')
+      }
+
+      if (workspaceResources && workspaceResources.nonDeleteableApps.length > 0) {
+        throw new Error('Workspace contains non-deletable apps')
+      }
+
+      if (workspaceResources && workspaceResources.nonDeleteableRuntimes.length > 0) {
+        throw new Error('Workspace contains non-deletable runtimes')
+      }
+
       setDeletingResources(true)
       console.log(`Requesting app and runtime deletion for workspace ${workspaceInfo.workspaceId}`) // eslint-disable-line no-console
       await Ajax(signal).Apps.deleteAllAppsV2(workspaceInfo.workspaceId, true)
@@ -190,7 +190,7 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
       setDeletingResources(false)
       reportError('Error deleting workspace', error)
     }
-  })
+  }
 
   return {
     workspaceResources,
