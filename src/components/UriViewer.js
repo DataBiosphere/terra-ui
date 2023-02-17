@@ -60,9 +60,9 @@ export const isGs = uri => _.startsWith('gs://', uri)
 
 export const isDrs = uri => _.startsWith('dos://', uri) || _.startsWith('drs://', uri)
 
+const azureRegex = RegExp('^https://(.+).blob.core.windows.net')
 export const isAzureUri = uri => {
-  const azureRegex = RegExp('^https://(.+).blob.core.windows.net')
-  return azureRegex.test(uri)
+  return uri.match(azureRegex)
 }
 
 const getMaxDownloadCostNA = bytes => {
@@ -181,18 +181,13 @@ const UriViewer = _.flow(
 
   const loadMetadata = async () => {
     try {
-      let metadata = {}
       if (isGs(uri)) {
         const [bucket, name] = parseGsUri(uri)
         const loadObject = withRequesterPaysHandler(onRequesterPaysError, () => {
           return Ajax(signal).Buckets.getObject(googleProject, bucket, name)
         })
-        metadata = await loadObject(googleProject, bucket, name)
+        const metadata = await loadObject(googleProject, bucket, name)
         setMetadata(metadata)
-      } else if (isAzureUri(uri)) {
-        metadata = {
-          name: uri,
-        }
       } else {
         // TODO: change below comment after switch to DRSHub is complete, tracked in ticket [ID-170]
         // Fields are mapped from the martha_v3 fields to those used by google
@@ -204,9 +199,9 @@ const UriViewer = _.flow(
               uri,
               ['bucket', 'name', 'size', 'timeCreated', 'timeUpdated', 'fileName', 'accessUrl']
             )
-        metadata = { bucket, name, fileName, size, timeCreated, updated, accessUrl }
+        const metadata = { bucket, name, fileName, size, timeCreated, updated, accessUrl }
+        setMetadata(metadata)
       }
-      setMetadata(metadata)
     } catch (e) {
       setLoadingError(await e.json())
     }
@@ -218,6 +213,19 @@ const UriViewer = _.flow(
   const { size, timeCreated, updated, bucket, name, fileName, accessUrl } = metadata || {}
   const gsUri = `gs://${bucket}/${name}`
   const downloadCommand = getDownloadCommand(fileName, gsUri, accessUrl)
+  if (isAzureUri(uri)) {
+    return h(Modal, {
+      onDismiss,
+      title: 'File Details',
+      showCancel: false,
+      showX: true,
+      okButton: 'Done'
+    },
+    [els.cell([
+      els.label('Filename'),
+      els.data(_.last(uri.split('/')).split('.').join('.\u200B')) // allow line break on periods
+    ]), div({ style: { marginTop: '2rem', fontSize: 14 } }, ['Download functionality for Azure files coming soon'])])
+  }
   return h(Modal, {
     onDismiss,
     title: 'File Details',
@@ -226,7 +234,7 @@ const UriViewer = _.flow(
     okButton: 'Done'
   }, [
     Utils.cond(
-      [!isAzureUri(uri) && loadingError, () => h(Fragment, [
+      [loadingError, () => h(Fragment, [
         div({ style: { paddingBottom: '1rem' } }, [
           'Error loading data. This file does not exist or you do not have permission to view it.'
         ]),
@@ -241,16 +249,16 @@ const UriViewer = _.flow(
           els.label('Filename'),
           els.data((fileName || _.last(name.split('/'))).split('.').join('.\u200B')) // allow line break on periods
         ]),
-        !isAzureUri(uri) && h(PreviewContent, { metadata, googleProject }),
-        !isAzureUri(uri) && els.cell([els.label('File size'), els.data(filesize(size))]),
-        !isAzureUri(uri) && !accessUrl && !!gsUri && els.cell([
+        h(PreviewContent, { metadata, googleProject }),
+        els.cell([els.label('File size'), els.data(filesize(size))]),
+        !accessUrl && !!gsUri && els.cell([
           h(Link, {
             ...Utils.newTabLinkProps,
             href: bucketBrowserUrl(gsUri.match(/gs:\/\/(.+)\//)[1])
           }, ['View this file in the Google Cloud Storage Browser'])
         ]),
-        !isAzureUri(uri) && h(DownloadButton, { uri, metadata, accessUrl }),
-        !isAzureUri(uri) && els.cell([
+        h(DownloadButton, { uri, metadata, accessUrl }),
+        els.cell([
           els.label('Terminal download command'),
           els.data([
             div({ style: { display: 'flex' } }, [
@@ -284,10 +292,9 @@ const UriViewer = _.flow(
             els.data([h(FileProvenance, { workspace, fileUrl: uri })])
           ])
         ]),
-        !isAzureUri(uri) && div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.']),
-        isAzureUri(uri) && div({ style: { marginTop: '2rem', fontSize: 14 } }, ['Download functionality for Azure files coming soon'])
+        div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
       ])],
-      () => !isAzureUri(uri) && h(Fragment, [
+      () => h(Fragment, [
         isGs(uri) ? 'Loading metadata...' : 'Resolving DRS file...',
         spinner({ style: { marginLeft: 4 } })
       ])
