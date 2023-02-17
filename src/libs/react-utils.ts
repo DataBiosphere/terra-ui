@@ -73,10 +73,10 @@ export const useCancelable = (): UseCancelableResult => {
 }
 
 export const useCancellation = (): AbortSignal => {
-  const controller: any = useRef()
+  const controller = useRef<AbortController>()
   useOnMount(() => {
-    const instance: any = controller.current
-    return () => instance.abort()
+    const instance = controller.current
+    return () => instance!.abort()
   })
   if (!controller.current) {
     controller.current = new window.AbortController()
