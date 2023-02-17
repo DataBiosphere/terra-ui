@@ -33,12 +33,12 @@ export interface WorkspaceResources {
 }
 
 export interface DeleteWorkspaceState {
-  workspaceResources: WorkspaceResources | null
+  workspaceResources: WorkspaceResources | undefined
   loading: boolean
   deleting: boolean
   isDeleteDisabledFromResources: boolean
-  workspaceBucketUsageInBytes: number | null
-  collaboratorEmails: string[] | null
+  workspaceBucketUsageInBytes: number | undefined
+  collaboratorEmails: string[] | undefined
   hasApps: () => boolean
   hasRuntimes: () => boolean
   deleteWorkspace: () => void
@@ -56,10 +56,10 @@ export interface DeleteWorkspaceHookArgs {
 export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): DeleteWorkspaceState => {
   const [deleting, setDeleting] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [collaboratorEmails, setCollaboratorEmails] = useState<string[] | null>()
-  const [workspaceBucketUsageInBytes, setWorkspaceBucketUsageInBytes] = useState<number | null>()
+  const [collaboratorEmails, setCollaboratorEmails] = useState<string[]>()
+  const [workspaceBucketUsageInBytes, setWorkspaceBucketUsageInBytes] = useState<number>()
   const [deletingResources, setDeletingResources] = useState(false)
-  const [workspaceResources, setWorkspaceResources] = useState<WorkspaceResources | null>(null)
+  const [workspaceResources, setWorkspaceResources] = useState<WorkspaceResources>()
 
   const workspaceInfo: WorkspaceInfo = hookArgs.workspace.workspace
   const signal = useCancellation()
@@ -112,14 +112,14 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
   })
 
   const hasApps = () => {
-    return (workspaceResources !== null && !_.isEmpty(workspaceResources.apps))
+    return (workspaceResources !== undefined && !_.isEmpty(workspaceResources.apps))
   }
 
   const hasRuntimes = () => {
-    return (workspaceResources !== null && !_.isEmpty(workspaceResources.runtimes))
+    return (workspaceResources !== undefined && !_.isEmpty(workspaceResources.runtimes))
   }
 
-  const isDeleteDisabledFromResources = workspaceResources !== null && (
+  const isDeleteDisabledFromResources = workspaceResources !== undefined && (
     (hasApps() && !_.isEmpty(workspaceResources.nonDeleteableApps)) || (hasRuntimes() && !_.isEmpty(workspaceResources.nonDeleteableRuntimes))
   )
 
@@ -181,8 +181,8 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
     try {
       setDeletingResources(true)
       console.log(`Requesting app and runtime deletion for workspace ${workspaceInfo.workspaceId}`) // eslint-disable-line no-console
-      await Ajax(signal).Apps.deleteAllAppsV2(workspaceInfo.workspaceId)
-      await Ajax(signal).Runtimes.runtimeV2(workspaceInfo.workspaceId).deleteAll()
+      await Ajax(signal).Apps.deleteAllAppsV2(workspaceInfo.workspaceId, true)
+      await Ajax(signal).Runtimes.runtimeV2(workspaceInfo.workspaceId).deleteAll(true)
       console.log('Resource deletions requested, starting poll.') // eslint-disable-line no-console
 
       checkAzureResourcesTimeout.current = window.setTimeout(() => checkAzureResources(), WorkspaceResourceDeletionPollRate)
@@ -197,8 +197,8 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
     loading,
     deleting,
     isDeleteDisabledFromResources,
-    workspaceBucketUsageInBytes: workspaceBucketUsageInBytes !== undefined ? workspaceBucketUsageInBytes : null,
-    collaboratorEmails: collaboratorEmails ? collaboratorEmails : null,
+    workspaceBucketUsageInBytes,
+    collaboratorEmails,
     hasApps,
     hasRuntimes,
     deleteWorkspace,

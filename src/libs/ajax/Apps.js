@@ -77,8 +77,8 @@ export const Apps = signal => ({
       _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
     return res
   },
-  deleteAllAppsV2: async workspaceId => {
-    const res = await fetchLeo(`api/apps/v2/${workspaceId}/deleteAll`,
+  deleteAllAppsV2: async (workspaceId, deleteDisk = true) => {
+    const res = await fetchLeo(`api/apps/v2/${workspaceId}/deleteAll${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal, method: 'POST' }]))
 
     return res
