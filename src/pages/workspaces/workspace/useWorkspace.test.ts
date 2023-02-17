@@ -108,7 +108,8 @@ describe('useActiveWorkspace', () => {
 
   const defaultGoogleBucketOptions = {
     googleBucketLocation: defaultLocation,
-    googleBucketType: locationTypes.default
+    googleBucketType: locationTypes.default,
+    fetchedGoogleBucketLocation: undefined
   }
 
   const azureStorageDetails = {
@@ -162,7 +163,8 @@ describe('useActiveWorkspace', () => {
     workspaceStore.set(initializedGoogleWorkspace)
     const expectedStorageDetails = _.merge({
       googleBucketLocation: bucketLocationResponse.location,
-      googleBucketType: bucketLocationResponse.locationType
+      googleBucketType: bucketLocationResponse.locationType,
+      fetchedGoogleBucketLocation: 'SUCCESS'
     }, defaultAzureStorageOptions)
 
     // Act
@@ -176,7 +178,7 @@ describe('useActiveWorkspace', () => {
     expect(GoogleStorage.saToken).not.toHaveBeenCalled()
   })
 
-  it('can initialize from a requester pays Google workspace in workspaceStore', () => {
+  it('can initialize from a requester pays Google workspace in workspaceStore', async () => {
     // Arrange
     const mockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
@@ -188,11 +190,16 @@ describe('useActiveWorkspace', () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract)
 
     workspaceStore.set(initializedGoogleWorkspace)
-    // Calling to get the bucket location fails, default options remain
-    const expectedStorageDetails = _.merge(defaultGoogleBucketOptions, defaultAzureStorageOptions)
+    // Calling to get the bucket location fails, default options remain except for indication of error state.
+    const expectedStorageDetails = _.mergeAll([
+      defaultGoogleBucketOptions,
+      { fetchedGoogleBucketLocation: 'ERROR' },
+      defaultAzureStorageOptions
+    ])
 
     // Act
-    const { result } = renderHook(() => useWorkspace('testNamespace', 'testName'))
+    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'))
+    await waitForNextUpdate() // For the bucket location call
 
     // Assert
     assertResult(result.current, initializedGoogleWorkspace, expectedStorageDetails, false)
@@ -243,10 +250,11 @@ describe('useActiveWorkspace', () => {
     const uninitializedGoogleWorkspace = _.clone(initializedGoogleWorkspace)
     uninitializedGoogleWorkspace.workspaceInitialized = false
 
-    const expectedFirstStorageDetails = _.merge(defaultGoogleBucketOptions, defaultAzureStorageOptions)
-    const expectedSecondStorageDetails = _.merge({
+    const expectedStillSyncingDetails = _.merge(defaultGoogleBucketOptions, defaultAzureStorageOptions)
+    const expectedAllSyncedDetails = _.merge({
       googleBucketLocation: bucketLocationResponse.location,
-      googleBucketType: bucketLocationResponse.locationType
+      googleBucketType: bucketLocationResponse.locationType,
+      fetchedGoogleBucketLocation: 'SUCCESS'
     }, defaultAzureStorageOptions)
 
     // Act
@@ -254,31 +262,133 @@ describe('useActiveWorkspace', () => {
     await waitForNextUpdate() // For the call to checkBucketReadAccess to execute
 
     // Assert
-    assertResult(result.current, uninitializedGoogleWorkspace, expectedFirstStorageDetails, false)
+    assertResult(result.current, uninitializedGoogleWorkspace, expectedStillSyncingDetails, false)
     expect(workspaceStore.set).toHaveBeenCalledWith(uninitializedGoogleWorkspace)
     expect(WorkspaceUtils.updateRecentlyViewedWorkspaces).toHaveBeenCalledWith(uninitializedGoogleWorkspace.workspace.workspaceId)
     expect(GoogleStorage.saToken).toHaveBeenCalled()
 
     // Arrange
-    // Return success for the next call to checkBucketReadAccess
+    // Return success for the next call to checkBucketReadAccess, but fail storageCostEstimate.
+    let partialSuccessMockAjax: DeepPartial<AjaxContract> = {
+      Workspaces: {
+        workspace: () => ({
+          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
+          checkBucketReadAccess: jest.fn(),
+          storageCostEstimate: () => Promise.reject(new Response('Mock storage cost estimate error', { status: 500 })),
+          bucketUsage: jest.fn()
+        })
+      }
+    }
+    asMockedFn(Ajax).mockImplementation(() => partialSuccessMockAjax as AjaxContract)
+
+    // Act
+    jest.advanceTimersByTime(googlePermissionsRecheckRate)
+    await waitForNextUpdate()
+
+    // Assert
+    assertResult(result.current, uninitializedGoogleWorkspace, expectedStillSyncingDetails, false)
+
+    // Arrange
+    // Fail bucketUsage this time.
+    partialSuccessMockAjax = {
+      Workspaces: {
+        workspace: () => ({
+          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
+          checkBucketReadAccess: jest.fn(),
+          storageCostEstimate: jest.fn(),
+          bucketUsage: () => Promise.reject(new Response('Mock bucket usage error', { status: 500 }))
+        })
+      }
+    }
+    asMockedFn(Ajax).mockImplementation(() => partialSuccessMockAjax as AjaxContract)
+
+    // Act
+    jest.advanceTimersByTime(googlePermissionsRecheckRate)
+    await waitForNextUpdate()
+
+    // Assert
+    assertResult(result.current, uninitializedGoogleWorkspace, expectedStillSyncingDetails, false)
+
+    // Arrange
+    // Fail checkBucketLocation this time.
+    partialSuccessMockAjax = {
+      Workspaces: {
+        workspace: () => ({
+          checkBucketLocation: () => Promise.reject(new Response('Mock check bucket location', { status: 500 })),
+          checkBucketReadAccess: jest.fn(),
+          storageCostEstimate: jest.fn(),
+          bucketUsage: () => jest.fn()
+        })
+      }
+    }
+    asMockedFn(Ajax).mockImplementation(() => partialSuccessMockAjax as AjaxContract)
+
+    // Act
+    jest.advanceTimersByTime(googlePermissionsRecheckRate)
+    await waitForNextUpdate()
+
+    // Assert
+    const errorStorageDetails = _.merge(expectedStillSyncingDetails, { fetchedGoogleBucketLocation: 'ERROR' })
+    assertResult(result.current, uninitializedGoogleWorkspace, errorStorageDetails, false)
+
+    // Arrange
+    // Finally, all succeed
     const successMockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
         workspace: () => ({
           checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
-          checkBucketReadAccess: jest.fn()
+          checkBucketReadAccess: jest.fn(),
+          storageCostEstimate: jest.fn(),
+          bucketUsage: jest.fn()
         })
       }
     }
     asMockedFn(Ajax).mockImplementation(() => successMockAjax as AjaxContract)
 
     // Act
-    // next call to checkBucketReadAccess is on a timer
     jest.advanceTimersByTime(googlePermissionsRecheckRate)
     await waitForNextUpdate()
 
     // Assert
-    assertResult(result.current, initializedGoogleWorkspace, expectedSecondStorageDetails, false)
+    assertResult(result.current, initializedGoogleWorkspace, expectedAllSyncedDetails, false)
     expect(workspaceStore.set).toHaveBeenCalledWith(initializedGoogleWorkspace)
+  })
+
+  it('can read workspace details from server for read-only workspace, and poll Google until permissions are synced', async () => {
+    // Arrange
+    const readOnlyWorkspace = _.clone(initializedGoogleWorkspace)
+    readOnlyWorkspace.accessLevel = 'READER'
+    // remove workspaceInitialized because the server response does not include this information
+    const { workspaceInitialized, ...serverWorkspaceResponse } = readOnlyWorkspace
+
+    // checkBucketAccess and checkBucketLocation succeed, but calls that should only be executed if
+    // user has writer permission throw errors (to verify that they aren't called).
+    const successMockAjax: DeepPartial<AjaxContract> = {
+      Workspaces: {
+        workspace: () => ({
+          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
+          checkBucketReadAccess: jest.fn(),
+          storageCostEstimate: () => Promise.reject(new Response('Should not call', { status: 500 })),
+          bucketUsage: () => Promise.reject(new Response('Should not call', { status: 500 }))
+        })
+      }
+    }
+    asMockedFn(Ajax).mockImplementation(() => successMockAjax as AjaxContract)
+
+    const expectedAllSyncedDetails = _.merge({
+      googleBucketLocation: bucketLocationResponse.location,
+      googleBucketType: bucketLocationResponse.locationType,
+      fetchedGoogleBucketLocation: 'SUCCESS'
+    }, defaultAzureStorageOptions)
+
+    // Act
+    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'))
+    await waitForNextUpdate() // For the calls to checkBucketReadAccess and checkBucketLocation to execute
+
+    // Assert
+    assertResult(result.current, readOnlyWorkspace, expectedAllSyncedDetails, false)
+    expect(workspaceStore.set).toHaveBeenCalledWith(readOnlyWorkspace)
   })
 
   it('treats requesterPays errors as Google workspace being initialized', async () => {
@@ -298,7 +408,11 @@ describe('useActiveWorkspace', () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract)
 
     // Will not attempt to retrieve storage details due to requester pays
-    const expectedStorageDetails = _.merge(defaultGoogleBucketOptions, defaultAzureStorageOptions)
+    const expectedStorageDetails = _.merge({
+      googleBucketLocation: defaultGoogleBucketOptions.googleBucketLocation,
+      googleBucketType: defaultGoogleBucketOptions.googleBucketType,
+      fetchedGoogleBucketLocation: 'ERROR'
+    }, defaultAzureStorageOptions)
 
     // Act
     const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'))
@@ -411,7 +525,8 @@ describe('useActiveWorkspace', () => {
 
     const expectStorageDetails = _.merge({
       googleBucketLocation: bucketLocationResponse.location,
-      googleBucketType: bucketLocationResponse.locationType
+      googleBucketType: bucketLocationResponse.locationType,
+      fetchedGoogleBucketLocation: 'SUCCESS'
     }, defaultAzureStorageOptions)
 
     // Act
@@ -447,7 +562,8 @@ describe('useActiveWorkspace', () => {
 
     const expectStorageDetails = _.merge({
       googleBucketLocation: bucketLocationResponse.location,
-      googleBucketType: bucketLocationResponse.locationType
+      googleBucketType: bucketLocationResponse.locationType,
+      fetchedGoogleBucketLocation: 'SUCCESS'
     }, defaultAzureStorageOptions)
 
     // Created time is '2023-02-03T22:26:06.124Z',
