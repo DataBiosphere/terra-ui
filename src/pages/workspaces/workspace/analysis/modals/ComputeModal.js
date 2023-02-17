@@ -1625,15 +1625,13 @@ export const ComputeModalBase = ({
           onDismiss
         }),
         div(['A cloud environment consists of application configuration, cloud compute and persistent disk(s).']),
-        h(IdContainer, [
-         id => h(TitleBar, {
-            id,
+        h(TitleBar, {
+            id: 'compute-modal-subtitle-label',
             style: { marginTop: '0.5rem', marginBottom: '0.5rem' },
             title: 'Cost based on settings below',
             hideCloseButton: shouldHideCloseButton,
             onDismiss
-          }),
-        ]),
+        }),
       ])
     }
     const renderBottomButtons = () => {

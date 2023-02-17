@@ -829,9 +829,9 @@ describe('ComputeModal', () => {
 
   // click learn more about persistent disk
   it.each([
-    { tool: runtimeTools.Jupyter },
-    { tool: runtimeTools.RStudio }
-  ])('should render learn more about persistent disks', async ({ tool }) => {
+    { tool: runtimeTools.Jupyter, expectedLabel: /\/home\/jupyter/ },
+    { tool: runtimeTools.RStudio, expectedLabel: /\/home\/rstudio/ }
+  ])('should render learn more about persistent disks', async ({ tool, expectedLabel }) => {
     // Arrange
     const disk = getDisk()
     const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) }
@@ -851,8 +851,7 @@ describe('ComputeModal', () => {
     const link = screen.getByText(/Learn more about persistent disks/)
     await userEvent.click(link)
     screen.getByText('About persistent disk')
-    if (tool.label === 'jupyter') screen.getByText(/\/home\/jupyter/)
-    else screen.getByText(/\/home\/rstudio/)
+    screen.getByText(expectedLabel)
   })
 
   it('correctly renders and updates timeoutInMinutes', async () => {
