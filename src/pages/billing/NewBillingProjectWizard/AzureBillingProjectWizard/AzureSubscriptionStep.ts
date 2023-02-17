@@ -13,6 +13,7 @@ import {
   columnEntryStyle,
   rowStyle
 } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/styles'
+import { ExternalLink } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/ExternalLink'
 import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/Step'
 import {
   LabeledField, legendDetailsStyle,
@@ -22,8 +23,6 @@ import {
 import { StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepHeader'
 import { validate as validateUuid } from 'uuid'
 import { validate } from 'validate.js'
-
-import { ExternalLink } from '../StepWizard/ExternalLink'
 
 
 type AzureSubscriptionStepProps = {
@@ -70,20 +69,8 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
         async () => {
           Ajax().Metrics.captureEvent(Events.billingAzureCreationSubscriptionEntered)
           try {
-            // Hack for Lou to test
-            if (subscriptionId === '0fa61a72-3a6b-4d51-a7e9-75fbeb7c7ed9') {
-              const dummyManagedApp = {
-                applicationDeploymentName: 'FakeManagedAppDeployment',
-                managedResourceGroupId: 'mrg-terra-dev-previ-20230215130800',
-                region: 'eastus',
-                subscriptionId: 'df547342-9cfd-44ef-a6dd-df0ede32f1e3',
-                tenantId: 'fad90753-2022-4456-9b0a-c7e5b934e408'
-              }
-              setManagedApps([dummyManagedApp])
-            } else {
-              const managedApps = await Ajax(signal).Billing.listAzureManagedApplications(subscriptionId, false)
-              setManagedApps(managedApps.managedApps)
-            }
+            const managedApps = await Ajax(signal).Billing.listAzureManagedApplications(subscriptionId, false)
+            setManagedApps(managedApps.managedApps)
             setErrorFetchingManagedApps(false)
           } catch (obj) {
             setErrorFetchingManagedApps(true)
