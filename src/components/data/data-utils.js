@@ -68,8 +68,9 @@ export const getUserProjectForWorkspace = async workspace => (workspace && await
   workspace.workspace.googleProject :
   requesterPaysProjectStore.get()
 
-const isViewableUri = (datum, workspace) => (isGoogleWorkspace(workspace) &&
-  isGs(datum)) || isDrs(datum) || (isAzureWorkspace(workspace) && (isAzureUri(datum)))
+const isViewableUri = (datum, workspace) => (isGoogleWorkspace(workspace) && isGs(datum)) ||
+  (isAzureWorkspace(workspace) && (isAzureUri(datum))) ||
+  isDrs(datum)
 
 export const getRootTypeForSetTable = tableName => _.replace(/(_set)+$/, '', tableName)
 
