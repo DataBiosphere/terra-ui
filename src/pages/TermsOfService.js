@@ -45,10 +45,10 @@ const TermsOfServicePage = () => {
         Nav.goToPath('root')
       } else {
         reportError('Error accepting TOS, unexpected backend error occurred.')
-        setBusy(false)
       }
     } catch (error) {
       reportError('Error accepting Terms of Service', error)
+    } finally {
       setBusy(false)
     }
   }
@@ -57,12 +57,12 @@ const TermsOfServicePage = () => {
     try {
       setBusy(true)
       await Ajax().User.rejectTos()
-      setBusy(false)
     } catch (error) {
       reportError('Error rejecting Terms of Service', error)
+    } finally {
       setBusy(false)
+      signOut()
     }
-    signOut()
   }
 
   const continueButton = () => {
@@ -86,7 +86,7 @@ const TermsOfServicePage = () => {
           }
         }, [tosText])
       ]),
-      !acceptedLatestTos && !usageAllowed && !!tosText &&
+      !usageAllowed && !!tosText &&
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
         h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: signOut }, 'Decline and Sign Out'),
         h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept'])

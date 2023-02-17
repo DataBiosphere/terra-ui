@@ -295,8 +295,7 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
     try {
       const { enabled } = await Ajax().User.getStatus()
       if (enabled) {
-        // While initial state is first loading, state.termsOfService.permitsSystemUsage will be undefined
-        // (it will then be `true` on the second execution of this code, which is still part of the initial rendering).
+        // When Terra is first loaded, termsOfService.permitsSystemUsage will be undefined while the user's ToS status is fetched from Sam
         return state.termsOfService.permitsSystemUsage ? userStatus.registeredWithTos : userStatus.registeredWithoutTos
       } else {
         return userStatus.disabled
@@ -309,7 +308,7 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
       }
     }
   }
-  const canNowUseSystem = !oldState?.termsOfService?.permitsSystemUsage && state?.termsOfService?.permitsSystemUsage
+  const canNowUseSystem = !oldState.termsOfService?.permitsSystemUsage && state.termsOfService?.permitsSystemUsage
   const isNowSignedIn = !oldState.isSignedIn && state.isSignedIn
   if (isNowSignedIn || canNowUseSystem) {
     clearNotification(sessionTimeoutProps.id)
