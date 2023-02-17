@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { useRef, useState } from 'react'
 import { Ajax } from 'src/libs/ajax'
-import { reportError, withErrorReportingInModal } from 'src/libs/error'
+import { reportError, withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { getUser } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -165,7 +165,7 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
     }
   }
 
-  const deleteWorkspaceResources = async () => {
+  const deleteWorkspaceResources = withErrorReporting('Error deleting workspace resources', async () => {
     if (isGoogleWorkspace(hookArgs.workspace)) {
       throw new Error('Attempting to delete resources in an unsupported workspace')
     }
@@ -190,7 +190,7 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
       setDeletingResources(false)
       reportError('Error deleting workspace', error)
     }
-  }
+  })
 
   return {
     workspaceResources,

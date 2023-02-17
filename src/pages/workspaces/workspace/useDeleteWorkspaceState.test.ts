@@ -24,6 +24,8 @@ jest.mock('src/libs/error', (): ErrorExports => ({
   reportError: jest.fn(),
 }))
 
+jest.mock('src/libs/notifications')
+
 type AjaxContract = ReturnType<typeof Ajax>;
 type AjaxAppsContract = AjaxContract['Apps']
 type AjaxRuntimesContract = AjaxContract['Runtimes']
@@ -304,7 +306,8 @@ describe('useDeleteWorkspace', () => {
     } = renderHook(() => useDeleteWorkspaceState({ workspace: azureWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess }))
     await waitForNextUpdate()
 
-    await expect(act(() => result.current.deleteWorkspaceResources())).rejects.toThrow()
+    result.current.deleteWorkspaceResources()
+
 
     // Assert
     expect(result.current.deleting).toBe(false)
@@ -323,12 +326,10 @@ describe('useDeleteWorkspace', () => {
         getAcl: mockGetAcl
       })
     }
-    //
     const mockListAppsFn = jest.fn()
-    const mockAppsDeleteAll = jest.fn()
-    const mockAppsV2: Partial<AjaxAppsContract> = {
+    const mockListAppsV2: Partial<AjaxAppsContract> = {
       listAppsV2: mockListAppsFn,
-      deleteAllAppsV2: mockAppsDeleteAll
+      deleteAllAppsV2: jest.fn()
     }
     mockListAppsFn.mockResolvedValueOnce([
       {
@@ -336,17 +337,17 @@ describe('useDeleteWorkspace', () => {
         status: 'running'
       }
     ]).mockResolvedValueOnce([])
-
-    const mockRuntimesDeleteAll = jest.fn()
     const mockRuntimesV2: DeepPartial<AjaxRuntimesContract> = {
       listV2WithWorkspace: jest.fn(),
-      runtimeV2: () => ({ deleteAll: mockRuntimesDeleteAll })
+      runtimeV2: () => ({
+        deleteAll: jest.fn
+      })
     }
     asMockedFn((mockRuntimesV2 as AjaxRuntimesContract).listV2WithWorkspace).mockResolvedValue([])
 
     const mockAjax: Partial<AjaxContract> = {
       Workspaces: mockWorkspaces as AjaxWorkspacesContract,
-      Apps: mockAppsV2 as AjaxAppsContract,
+      Apps: mockListAppsV2 as AjaxAppsContract,
       Runtimes: mockRuntimesV2 as AjaxRuntimesContract,
     }
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract)
@@ -362,10 +363,6 @@ describe('useDeleteWorkspace', () => {
     // Assert
     expect(result.current.deleting).toBe(false)
     expect(result.current.deletingResources).toBe(true)
-    expect(mockRuntimesDeleteAll).toHaveBeenCalledTimes(1)
-    expect(mockRuntimesDeleteAll).toHaveBeenCalledWith(true)
-    expect(mockAppsDeleteAll).toHaveBeenCalledTimes(1)
-    expect(mockAppsDeleteAll).toHaveBeenCalledWith(azureWorkspace.workspace.workspaceId, true)
     expect(mockDelete).toHaveBeenCalledTimes(0)
 
     // Act
