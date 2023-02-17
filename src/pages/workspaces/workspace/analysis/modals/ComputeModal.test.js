@@ -773,6 +773,41 @@ describe('ComputeModal', () => {
     })
   })
 
+  // click learn more about persistent disk
+  it('should render learn more about persistent disks', async () => {
+    // Act
+    await act(async () => {
+      await render(h(ComputeModalBase, defaultModalProps))
+      const link = screen.getByText('Learn more about Persistent Disks.')
+      await userEvent.click(link)
+    })
+
+    // Assert
+    screen.getByText('About persistent disk')
+    screen.getByText(/Your persistent disk is mounted in the directory/)
+  })
+
+  it.each([
+    { tool: runtimeTools.Jupyter },
+    { tool: runtimeTools.RStudio }
+  ])('should check successfully that the disk type is clickable', async ({ tool }) => {
+    //arrange
+    const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ tool }) }
+    const runtime = getGoogleRuntime(runtimeProps)
+
+    // Act
+    await act(async () => {
+      await render(h(ComputeModalBase, {
+        ...defaultModalProps,
+        currentRuntime: runtime
+      }))
+    })
+
+    // Assert
+    const diskTypeDropdown = screen.getByLabelText('Disk Type')
+    await userEvent.click(diskTypeDropdown)
+  })
+
   it('should render whats installed on this environment', async () => {
     // Act
     await act(async () => {

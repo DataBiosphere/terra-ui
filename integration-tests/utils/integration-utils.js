@@ -395,10 +395,24 @@ const logPageResponses = page => {
     'googleapis',
     'bvdp'
   ]
-  const handle = res => {
-    const request = res.request()
-    if (terraRequests.some(urlPart => request.url().includes(urlPart))) {
-      console.log('page.http', `${request.method()} ${res.status()} ${res.url()}`)
+  const handle = response => {
+    const request = response.request()
+    const url = request.url()
+    const shouldLogRequest = terraRequests.some(urlPart => url.includes(urlPart))
+    if (shouldLogRequest) {
+      const method = request.method()
+      const status = response.status()
+      console.log('page.http', `${method} ${status} ${url}`)
+
+      const isErrorResponse = status >= 400
+      if (isErrorResponse) {
+        const responseIsJSON = response.headers()['content-type'] === 'application/json'
+        response.text().then(content => {
+          console.log('page.http.error', `${method} ${status} ${url}`, responseIsJSON ? JSON.parse(content) : content)
+        }).catch(err => {
+          console.error('page.http.error', 'Unable to get response content', err)
+        })
+      }
     }
   }
   page.on('response', handle)
