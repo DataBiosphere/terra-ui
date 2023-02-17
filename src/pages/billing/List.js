@@ -426,6 +426,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
               billingProjectName, cloudPlatform: cloudProviders.azure.label
             })
+            setCreatingBillingProject(null)
             loadProjects()
             Nav.history.push({
               pathname: Nav.getPath('billing'),
