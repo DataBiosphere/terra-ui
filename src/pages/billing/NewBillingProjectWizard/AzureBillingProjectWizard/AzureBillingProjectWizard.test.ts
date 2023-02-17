@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { axe } from 'jest-axe'
 import { h } from 'react-hyperscript-helpers'
+import { Ajax } from 'src/libs/ajax'
 import Events from 'src/libs/events'
 import {
   addUserAndOwner, getAddUsersRadio,
@@ -16,8 +17,10 @@ import {
   clickCreateBillingProject,
   nameBillingProject, verifyCreateBillingProjectDisabled
 } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/CreateNamedProjectStep.test'
+import { asMockedFn } from 'src/testing/test-utils'
 
-// Mocking done by selectManagedApp.
+// Note that mocking is done by selectManagedApp (as well as default mocking in setUp).
+type AjaxContract = ReturnType<typeof Ajax>
 jest.mock('src/libs/ajax')
 
 describe('transforming user info to the request object', () => {
@@ -56,6 +59,10 @@ describe('AzureBillingProjectWizard', () => {
   const captureEvent = jest.fn()
 
   beforeEach(() => {
+    asMockedFn(Ajax).mockImplementation(() => ({
+      Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>
+    } as Partial<AjaxContract> as AjaxContract))
+
     renderResult = render(h(AzureBillingProjectWizard, {
       onSuccess
     }))

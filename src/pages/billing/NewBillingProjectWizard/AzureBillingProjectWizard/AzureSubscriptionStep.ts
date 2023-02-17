@@ -107,9 +107,6 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
     setManagedApps([])
     props.onSubscriptionIdChanged(v)
     setSubscriptionIdTouched(true)
-    if (isValidSubscriptionId) {
-      Ajax().Metrics.captureEvent(Events.billingAzureCreationSubscriptionEntered)
-    }
   }
 
   return h(Step, { isActive, style: { minHeight: '18rem', paddingBottom: '0.5rem' } }, [

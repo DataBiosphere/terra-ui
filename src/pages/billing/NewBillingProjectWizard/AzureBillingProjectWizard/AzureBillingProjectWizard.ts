@@ -80,6 +80,9 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
       [Utils.DEFAULT, () => undefined]
     )
     setProjectNameErrors(errors)
+    if (!errors) {
+      Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectNameEntered)
+    }
   }, [billingProjectName, existingProjectNames])
 
   const stepFinished = (step: number, finished: boolean) => {
@@ -143,7 +146,6 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
       billingProjectName: billingProjectName !== undefined ? billingProjectName : '',
       onBillingProjectNameChanged: billingProjectName => {
         setBillingProjectName(billingProjectName)
-        Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectNameEntered)
       },
       onBillingProjectInputFocused: () => {
         if (step1HasNoErrors && step2HasNoErrors) {
