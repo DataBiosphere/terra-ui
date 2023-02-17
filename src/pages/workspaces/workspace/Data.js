@@ -846,9 +846,11 @@ const WorkspaceData = _.flow(
             }, [
               [
                 (wdsLoading || wdsError) && h(NoDataPlaceholder, {
+                  key: 'wds-loading-unavailable-NoDataPlaceholder',
                   message: wdsLoading ? icon('loadingSpinner') : 'Data tables are unavailable'
                 }),
                 wdsReady && _.isEmpty(wdsTypes.state) && h(NoDataPlaceholder, {
+                  key: 'wds-no-data-NoDataPlaceholder',
                   message: 'No tables have been uploaded.'
                 }),
                 wdsReady && !_.isEmpty(wdsTypes.state) && _.map(typeDef => {
@@ -885,6 +887,7 @@ const WorkspaceData = _.flow(
                   ])
                 }, wdsTypes.state),
                 h(NoDataPlaceholder, {
+                  key: 'wds-troubleshooter-status-NoDataPlaceholder',
                   buttonText: 'Data Table Status',
                   onAdd: () => setTroubleshootingWds(true)
                 }),
