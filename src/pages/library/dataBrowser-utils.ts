@@ -6,7 +6,6 @@ import { icon } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
 import { DataCollection, Dataset } from 'src/libs/ajax/Catalog'
 import { getEnabledBrand } from 'src/libs/brand-utils'
-import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { dataCatalogStore } from 'src/libs/state'
@@ -62,7 +61,7 @@ export const workspaceUrlFragment = '/#workspaces/'
 
 export const isWorkspace = (dataset: Dataset): boolean => _.toLower(dataset['dcat:accessURL']).includes(workspaceUrlFragment)
 
-export const datarepoSnapshotUrlFragment = getConfig().dataRepoUrlRoot
+export const datarepoSnapshotUrlFragment = '/snapshots/'
 
 export const isDatarepoSnapshot = (dataset: Dataset): boolean => _.toLower(dataset['dcat:accessURL']).includes(datarepoSnapshotUrlFragment)
 
