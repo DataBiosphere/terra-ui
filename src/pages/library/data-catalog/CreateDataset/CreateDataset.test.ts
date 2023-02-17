@@ -8,6 +8,40 @@ jest.mock('src/libs/nav')
 
 
 describe('CreateDataset', () => {
+  it('Prepopulates storage system', async () => {
+    // Act
+    render(h(CreateDataset, {
+      storageSystem: 'wks',
+      storageSourceId: ''
+    }))
+    // Assert
+    expect(await screen.queryAllByText('Workspace').length).toBe(1)
+  })
+
+  it('Validates storage system', async () => {
+    // Act
+    render(h(CreateDataset))
+    // Assert
+    expect(await screen.queryAllByText('Storage system can\'t be blank').length).toBe(1)
+  })
+
+  it('Prepopulates storage source id', async () => {
+    // Act
+    render(h(CreateDataset, {
+      storageSystem: 'ext',
+      storageSourceId: 'blahblah'
+    }))
+    // Assert
+    expect(await screen.queryAllByText('Storage source id can\'t be blank').length).toBe(0)
+  })
+
+  it('Validates storage source id', async () => {
+    // Act
+    render(h(CreateDataset))
+    // Assert
+    expect(await screen.queryAllByText('Storage source id can\'t be blank').length).toBe(2)
+  })
+
   it('Validates for title', async () => {
     const user = userEvent.setup()
 

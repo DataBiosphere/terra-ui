@@ -78,19 +78,21 @@ export const MarkdownInput = ({ title, onChange, value, placeholder, required = 
 
 export interface SelectInputProps extends InputProps<string> {
   options: string[] | { value: string; label: string | ReactElement }[]
+  isClearable?: boolean
   placeholder?: string
   wrapperProps?: {}
+  required?: boolean
 }
 
-export const SelectInput = ({ title, value, placeholder = '', options, onChange, wrapperProps = {} }: SelectInputProps) => {
+export const SelectInput = ({ title, value, placeholder = '', options, onChange, isClearable = true, required = false, wrapperProps = {} }: SelectInputProps) => {
   const id = useUniqueId()
 
   return div(wrapperProps, [
-    h(FormLabel, { htmlFor: id }, [title]),
+    h(FormLabel, { htmlFor: id, required }, [title]),
     h(Select, {
       id,
       value,
-      isClearable: true,
+      isClearable,
       isSearchable: false,
       placeholder,
       options,

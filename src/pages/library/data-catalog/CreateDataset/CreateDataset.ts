@@ -103,12 +103,14 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
     h(TopBar, { title: 'Create Dataset', href: '' }, []),
     h(SelectInput, {
       title: 'Storage System',
+      isClearable: false,
       onChange: option => {
         setStorageSourceIdState(option.value === 'ext' ? uuid() : '')
         setStorageSystemState(option.value)
       },
       placeholder: 'Enter the storage system',
       value: storageSystemState,
+      required: true,
       options: [
         { label: 'Workspace', value: 'wks' },
         { label: 'TDR Snapshot', value: 'tdr' },
@@ -119,7 +121,7 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
       title: 'Storage Source Id',
       onChange: value => setStorageSourceIdState(value),
       value: storageSourceIdState,
-      errors: titleTouched && errors['dct:title'],
+      errors: errors.storageSourceId,
       placeholder: 'Enter the storage source id',
       required: true
     }),
