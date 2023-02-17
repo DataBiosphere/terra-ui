@@ -29,10 +29,17 @@ import { StorageInput } from 'src/pages/library/data-catalog/CreateDataset/Custo
 import {
   makeDatasetReleasePolicyDisplayInformation
 } from 'src/pages/library/dataBrowser-utils'
+import { v4 as uuid } from 'uuid'
 import { validate } from 'validate.js'
 
 
 const constraints = {
+  storageSystem: {
+    presence: { allowEmpty: false }
+  },
+  storageSourceId: {
+    presence: { allowEmpty: false }
+  },
   'dct:title': {
     presence: { allowEmpty: false }
   },
@@ -54,6 +61,8 @@ interface CreateDatasetProps {
 }
 
 export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetProps) => {
+  const [storageSystemState, setStorageSystemState] = useState(storageSystem)
+  const [storageSourceIdState, setStorageSourceIdState] = useState(storageSourceId)
   const [titleTouched, setTitleTouched] = useState(false)
   const [descriptionTouched, setDescriptionTouched] = useState(false)
   const [creatorTouched, setCreatorTouched] = useState(false)
@@ -88,10 +97,32 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
     contributors: []
   })
 
-  const errors = validate(metadata, constraints) || {}
+  const errors = validate({ storageSystem: storageSystemState, storageSourceId: storageSourceIdState, ...metadata }, constraints) || {}
   return h(FooterWrapper, {}, [
     loading && spinnerOverlay,
     h(TopBar, { title: 'Create Dataset', href: '' }, []),
+    h(SelectInput, {
+      title: 'Storage System',
+      onChange: option => {
+        setStorageSourceIdState(option.value === 'ext' ? uuid() : '')
+        setStorageSystemState(option.value)
+      },
+      placeholder: 'Enter the storage system',
+      value: storageSystemState,
+      options: [
+        { label: 'Workspace', value: 'wks' },
+        { label: 'TDR Snapshot', value: 'tdr' },
+        { label: 'External', value: 'ext' }
+      ]
+    }),
+    h(StringInput, {
+      title: 'Storage Source Id',
+      onChange: value => setStorageSourceIdState(value),
+      value: storageSourceIdState,
+      errors: titleTouched && errors['dct:title'],
+      placeholder: 'Enter the storage source id',
+      required: true
+    }),
     h(StringInput, {
       title: 'Title',
       onChange: value => {
@@ -228,7 +259,7 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
               withErrorReporting('Error creating dataset'),
               Utils.withBusyState(setLoading)
             )(async () => {
-              const response = await (await Ajax().Catalog.upsertDataset(storageSystem, storageSourceId, metadata)).json()
+              const response = await (await Ajax().Catalog.upsertDataset(storageSystemState, storageSourceIdState, metadata)).json()
               Nav.goToPath('library-details', { id: response.id })
             })()
           }
@@ -239,6 +270,11 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
 }
 
 export const navPaths = [{
+  name: 'create-dataset',
+  path: '/library/datasets/create',
+  component: CreateDataset,
+  title: 'Catalog - Create Dataset'
+}, {
   name: 'create-dataset',
   path: '/library/datasets/create/:storageSystem/:storageSourceId',
   component: CreateDataset,
