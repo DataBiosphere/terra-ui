@@ -1,73 +1,86 @@
 import _ from 'lodash/fp'
-import { useState } from 'react'
+import { Fragment, ReactNode, useEffect, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { spinnerOverlay } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
-import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData'
 import { reportErrorAndRethrow } from 'src/libs/error'
 import Events from 'src/libs/events'
-import { useCancellation } from 'src/libs/react-utils'
-import { withBusyState } from 'src/libs/utils'
+import { summarizeErrors, withBusyState } from 'src/libs/utils'
+import * as Utils from 'src/libs/utils'
+import { billingProjectNameValidator } from 'src/pages/billing/List'
 import { AzureManagedAppCoordinates } from 'src/pages/billing/models/AzureManagedAppCoordinates'
 import { BillingRole } from 'src/pages/billing/models/BillingProject'
-import { CreateProjectStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/CreateProjectStep'
+import { AddUsersStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AddUsersStep'
+import { AzureSubscriptionStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureSubscriptionStep'
+import { CreateNamedProjectStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/CreateNamedProjectStep'
 import { StepWizard } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepWizard'
-
-import { AddUserInfo, AddUserStep } from './AddUserStep'
-import { AzureSubscriptionIdStep } from './AzureSubscriptionIdStep'
-import { ProjectFieldsStep } from './ProjectFieldsStep'
+import { validate } from 'validate.js'
 
 
 interface AzureBillingProjectWizardProps {
   onSuccess: (string) => void
 }
 
-export const userInfoListToProjectAccessObjects = (userInfo: AddUserInfo[]): Array<{email: string; role: BillingRole}> => _.flatten(userInfo.map(info => info.emails.split(',').map(email => ({ email: email.trim(), role: info.role }))))
+export const userInfoListToProjectAccessObjects = (emails: string, role: BillingRole): Array<{email: string; role: BillingRole}> => {
+  if (emails.trim() === '') {
+    return []
+  } else {
+    return _.flatten(emails.split(',').map(email => ({ email: email.trim(), role })))
+  }
+}
 
-
-export const AzureBillingProjectWizard = ({ ...props }: AzureBillingProjectWizardProps) => {
+export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWizardProps) => {
   const [activeStep, setActiveStep] = useState<number>(1)
-  const [subscriptionId, setSubscriptionId] = useState<string>()
-  const [managedApps, loadManagedApps] = useLoadedData<AzureManagedAppCoordinates[]>()
-  const [billingProjectName, setBillingProjectName] = useState<string>()
-  const [users, setUsers] = useState<AddUserInfo[]>([])
-
-  const [isCreating, setIsCreating] = useState(false)
-  const [selectedApp, setSelectedApp] = useState<AzureManagedAppCoordinates>()
+  const [subscriptionId, setSubscriptionId] = useState<string>('')
+  // undefined used to indicate that the user has not yet typed in the input (don't want to show error)
+  const [billingProjectName, setBillingProjectName] = useState<string|undefined>(undefined)
+  const [userEmails, setUserEmails] = useState({ emails: '', hasError: false })
+  const [ownerEmails, setOwnerEmails] = useState({ emails: '', hasError: false })
+  // undefined used to indicate that the user has not yet made a selection
+  const [addUsersOrOwners, setAddUsersOrOwners] = useState<boolean|undefined>(undefined)
+  const [managedApp, setManagedApp] = useState<AzureManagedAppCoordinates>()
 
   const [existingProjectNames, setExistingProjectNames] = useState<string[]>([])
-  const signal = useCancellation()
+  const [projectNameErrors, setProjectNameErrors] = useState<ReactNode>()
 
-  const onSubscriptionIdSelected = () => loadManagedApps(async () => {
-    const json = await Ajax(signal).Billing.listAzureManagedApplications(subscriptionId, false)
-    stepFinished(1, true)
-    return json.managedApps
-  })
-
+  const [isBusy, setIsBusy] = useState(false)
 
   const createBillingProject = _.flow(
+    withBusyState(setIsBusy),
     reportErrorAndRethrow('Error creating billing project'),
-    withBusyState(setIsCreating)
   )(async () => {
     if (!billingProjectName) return
     try {
-      Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectCreateSubmit)
-
-      const members = userInfoListToProjectAccessObjects(users)
-      const response = await Ajax().Billing
-        .createAzureProject(billingProjectName, selectedApp?.tenantId, subscriptionId, selectedApp?.managedResourceGroupId, members)
-      if (response.ok) {
-        Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectCreateSuccess)
-      }
+      const users = userInfoListToProjectAccessObjects(userEmails.emails, 'User')
+      const owners = userInfoListToProjectAccessObjects(ownerEmails.emails, 'Owner')
+      const members = _.concat(users, owners)
+      await Ajax().Billing
+        .createAzureProject(
+          billingProjectName, managedApp?.tenantId, subscriptionId, managedApp?.managedResourceGroupId, members
+        )
+      onSuccess(billingProjectName)
+      // No need to event success, as that is done in the onSuccess callback
     } catch (error: any) {
       if (error?.status === 409) {
         setExistingProjectNames(_.concat(billingProjectName, existingProjectNames))
+        Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectDuplicateName)
       } else {
         Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectCreateFail)
         throw error
       }
     }
   })
+
+  useEffect(() => {
+    const errors = Utils.cond(
+      [!!billingProjectName, () => summarizeErrors(
+        validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existingProjectNames) })?.billingProjectName
+      )],
+      [billingProjectName !== undefined, () => 'A name is required to create a billing project.'],
+      [Utils.DEFAULT, () => undefined]
+    )
+    setProjectNameErrors(errors)
+  }, [billingProjectName, existingProjectNames])
 
   const stepFinished = (step: number, finished: boolean) => {
     if (finished && activeStep === step) { // the user completed the active step
@@ -77,36 +90,71 @@ export const AzureBillingProjectWizard = ({ ...props }: AzureBillingProjectWizar
     } // the user is entering fields for later steps - don't change active step
   }
 
-  return h(StepWizard, {
-    title: 'Complete the following steps to link Terra to your Azure subscription, and add users to the created Terra billing project.',
-    intro: ''
+  const onManagedAppSelected = managedApp => {
+    stepFinished(1, !!managedApp)
+    setManagedApp(managedApp)
+  }
+
+  const step1HasNoErrors = !!subscriptionId && !!managedApp
+  const step2HasNoErrors = addUsersOrOwners === false ||
+    (addUsersOrOwners === true && !ownerEmails.hasError && !userEmails.hasError &&
+        (ownerEmails.emails.trim().length > 0 || userEmails.emails.trim().length > 0))
+
+  return h(Fragment, [h(StepWizard, {
+    title: 'Link an Azure Subscription to Terra',
+    intro: `The linked subscription is required to cover all Azure data storage, compute and egress costs incurred in a Terra workspace.
+        Cloud costs are billed directly from Azure and passed through Terra billing projects with no markup.`
   }, [
-    h(AzureSubscriptionIdStep, {
+    h(AzureSubscriptionStep, {
       isActive: activeStep === 1,
       subscriptionId,
-      onChange: subscriptionId => {
+      onSubscriptionIdChanged: subscriptionId => {
         stepFinished(1, false)
         setSubscriptionId(subscriptionId)
+        onManagedAppSelected(undefined)
       },
-      submit: onSubscriptionIdSelected
+      managedApp,
+      onManagedAppSelected,
+      isBusy,
+      setIsBusy
     }),
-    ProjectFieldsStep({
-      isActive: activeStep === 2,
-      stepFinished: finished => stepFinished(2, finished),
-      selectedApp,
-      setSelectedApp,
-      billingProjectName,
-      setBillingProjectName,
-      managedApps: managedApps.status === 'Ready' ? managedApps.state : [],
-      existingProjectNames
+    h(AddUsersStep, {
+      userEmails: userEmails.emails,
+      ownerEmails: ownerEmails.emails,
+      addUsersOrOwners,
+      onAddUsersOrOwners: addUsersOrOwners => {
+        stepFinished(2, !addUsersOrOwners)
+        setAddUsersOrOwners(addUsersOrOwners)
+      },
+      onSetUserEmails: (emails, hasError) => {
+        stepFinished(2, false)
+        setUserEmails({ emails, hasError })
+      },
+      onSetOwnerEmails: (emails, hasError) => {
+        stepFinished(2, false)
+        setOwnerEmails({ emails, hasError })
+      },
+      onOwnersOrUsersInputFocused: () => {
+        stepFinished(2, false)
+      },
+      isActive: activeStep === 2
     }),
-    h(AddUserStep, { users, setUsers, isActive: activeStep === 3 }),
-    h(CreateProjectStep, {
+    h(CreateNamedProjectStep, {
+      billingProjectName: billingProjectName !== undefined ? billingProjectName : '',
+      onBillingProjectNameChanged: billingProjectName => {
+        setBillingProjectName(billingProjectName)
+        Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectNameEntered)
+      },
+      onBillingProjectInputFocused: () => {
+        if (step1HasNoErrors && step2HasNoErrors) {
+          stepFinished(2, true)
+        }
+      },
       createBillingProject,
-      isActive: activeStep > 2,
-      createReady: activeStep > 2 && !!subscriptionId && !!billingProjectName && !!selectedApp
-    }),
-    managedApps.status === 'Loading' && spinnerOverlay,
-    isCreating && spinnerOverlay
-  ])
+      projectNameErrors,
+      isActive: activeStep === 3,
+      createReady: step1HasNoErrors && step2HasNoErrors && !!billingProjectName && !projectNameErrors && !isBusy
+    })
+  ]),
+  isBusy && spinnerOverlay]) // TODO: overlay problem: not filling the whole screen.
 }
