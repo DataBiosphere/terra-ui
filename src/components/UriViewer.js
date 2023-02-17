@@ -62,7 +62,10 @@ export const isDrs = uri => _.startsWith('dos://', uri) || _.startsWith('drs://'
 
 const azureRegex = RegExp('^https://(.+).blob.core.windows.net')
 export const isAzureUri = uri => {
-  return uri.match(azureRegex)
+  if (typeof uri == 'string') {
+    return uri.match(azureRegex)
+  }
+  return false
 }
 
 const getMaxDownloadCostNA = bytes => {
