@@ -297,7 +297,7 @@ export const UriViewerLink = ({ uri, workspace }) => {
       href: uri,
       onClick: e => {
         e.preventDefault()
-        setModalOpen(true)
+        setModalOpen(!isAzureUri(uri))
       }
     }, [isGs(uri) || isAzureUri(uri) ? _.last(uri.split(/\/\b/)) : uri]),
     modalOpen && h(UriViewer, {
