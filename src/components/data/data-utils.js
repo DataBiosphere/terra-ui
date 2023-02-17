@@ -18,7 +18,7 @@ import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
 import { Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { UriViewerLink } from 'src/components/UriViewer'
+import { isAzureUri, isDrs, isGs, UriViewerLink } from 'src/components/UriViewer'
 import ReferenceData from 'src/data/reference-data'
 import { Ajax } from 'src/libs/ajax'
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing'
@@ -32,6 +32,7 @@ import { notify } from 'src/libs/notifications'
 import { requesterPaysProjectStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
 
@@ -67,7 +68,9 @@ export const getUserProjectForWorkspace = async workspace => (workspace && await
   workspace.workspace.googleProject :
   requesterPaysProjectStore.get()
 
-const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)
+const isViewableUri = (datum, workspace) => (isGoogleWorkspace(workspace) && isGs(datum)) ||
+  (isAzureWorkspace(workspace) && (isAzureUri(datum))) ||
+  isDrs(datum)
 
 export const getRootTypeForSetTable = tableName => _.replace(/(_set)+$/, '', tableName)
 
@@ -115,8 +118,7 @@ export const renderDataCell = (attributeValue, workspace) => {
 
   const renderCell = datum => {
     const stringDatum = Utils.convertValue('string', datum)
-
-    return isUri(datum) ? h(UriViewerLink, { uri: datum, workspace }) : stringDatum
+    return isViewableUri(datum, workspace) ? h(UriViewerLink, { uri: datum, workspace }) : stringDatum
   }
 
   const renderArray = items => {
@@ -150,7 +152,7 @@ export const renderDataCell = (attributeValue, workspace) => {
   )
 
   return h(Fragment, [
-    hasOtherBucketUrls && h(TooltipTrigger, { content: 'Some files are located outside of the current workspace' }, [
+    isGoogleWorkspace(workspace) && hasOtherBucketUrls && h(TooltipTrigger, { content: 'Some files are located outside of the current workspace' }, [
       h(Interactive, { as: 'span', tabIndex: 0, style: { marginRight: '1ch' } }, [
         icon('warning-info', { size: 20, style: { color: colors.accent(), cursor: 'help' } })
       ])
