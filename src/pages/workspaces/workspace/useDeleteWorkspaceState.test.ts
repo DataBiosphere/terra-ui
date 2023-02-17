@@ -234,7 +234,7 @@ describe('useDeleteWorkspace', () => {
 
     const mockGetAcl = jest.fn().mockResolvedValue([])
     const mockGetBucketUsage = jest.fn().mockResolvedValue([])
-    const mockDelete = jest.fn().mockRejectedValue(new Error('testing'))//.reject(new Error("error"))
+    const mockDelete = jest.fn().mockRejectedValue(new Error('testing'))
     const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
       workspace: () => ({
         getAcl: mockGetAcl,
@@ -370,5 +370,117 @@ describe('useDeleteWorkspace', () => {
 
     expect(result.current.deletingResources).toBe(false)
     expect(result.current.hasApps()).toBe(false)
+  })
+
+  it('should report an error when initial call to delete resources fails', async () => {
+    // Arrange
+    const mockDelete = jest.fn().mockResolvedValue([])
+    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { 'example1@example.com': {} } })
+    const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
+      workspace: () => ({
+        delete: mockDelete,
+        getAcl: mockGetAcl
+      })
+    }
+    //
+    const mockListAppsFn = jest.fn()
+    const mockListAppsV2: Partial<AjaxAppsContract> = {
+      listAppsV2: mockListAppsFn,
+      deleteAllAppsV2: jest.fn()
+    }
+    mockListAppsFn.mockResolvedValueOnce([
+      {
+        appName: 'app1',
+        status: 'running'
+      }
+    ]).mockResolvedValueOnce([])
+    const mockRuntimeDeleteAll = jest.fn().mockRejectedValue('failed')
+    const mockRuntimesV2: DeepPartial<AjaxRuntimesContract> = {
+      listV2WithWorkspace: jest.fn(),
+      runtimeV2: () => ({
+        deleteAll: mockRuntimeDeleteAll
+      })
+    }
+    asMockedFn((mockRuntimesV2 as AjaxRuntimesContract).listV2WithWorkspace).mockResolvedValue([])
+
+    const mockAjax: Partial<AjaxContract> = {
+      Workspaces: mockWorkspaces as AjaxWorkspacesContract,
+      Apps: mockListAppsV2 as AjaxAppsContract,
+      Runtimes: mockRuntimesV2 as AjaxRuntimesContract,
+    }
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract)
+
+    // Act
+    const {
+      result,
+      waitForNextUpdate
+    } = renderHook(() => useDeleteWorkspaceState({
+      workspace: azureWorkspace,
+      onDismiss: mockOnDismiss,
+      onSuccess: mockOnSuccess
+    }))
+    await waitForNextUpdate()
+    await act(() => result.current.deleteWorkspaceResources())
+
+    expect(mockRuntimeDeleteAll).toHaveBeenCalledTimes(1)
+    expect(reportError).toHaveBeenCalledTimes(1)
+  })
+
+
+  it('should handle errors during resource deletion polling', async () => {
+    // Arrange
+    const mockDelete = jest.fn().mockResolvedValue([])
+    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { 'example1@example.com': {} } })
+    const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
+      workspace: () => ({
+        delete: mockDelete,
+        getAcl: mockGetAcl
+      })
+    }
+    const mockListAppsFn = jest.fn()
+    const mockListAppsV2: Partial<AjaxAppsContract> = {
+      listAppsV2: mockListAppsFn,
+      deleteAllAppsV2: jest.fn()
+    }
+    mockListAppsFn.mockResolvedValueOnce([
+      {
+        appName: 'app1',
+        status: 'running'
+      }
+    ]).mockRejectedValue('error')
+    const mockRuntimesV2: DeepPartial<AjaxRuntimesContract> = {
+      listV2WithWorkspace: jest.fn(),
+      runtimeV2: () => ({
+        deleteAll: jest.fn
+      })
+    }
+    asMockedFn((mockRuntimesV2 as AjaxRuntimesContract).listV2WithWorkspace).mockResolvedValue([])
+
+    const mockAjax: Partial<AjaxContract> = {
+      Workspaces: mockWorkspaces as AjaxWorkspacesContract,
+      Apps: mockListAppsV2 as AjaxAppsContract,
+      Runtimes: mockRuntimesV2 as AjaxRuntimesContract,
+    }
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract)
+
+    // Act
+    const {
+      result,
+      waitForNextUpdate
+    } = renderHook(() => useDeleteWorkspaceState({ workspace: azureWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess }))
+    await waitForNextUpdate()
+    await act(() => result.current.deleteWorkspaceResources())
+
+    // Assert
+    expect(result.current.deleting).toBe(false)
+    expect(result.current.deletingResources).toBe(true)
+    expect(mockDelete).toHaveBeenCalledTimes(0)
+
+    // Act
+    jest.advanceTimersByTime(WorkspaceResourceDeletionPollRate)
+    await waitForNextUpdate()
+
+    expect(result.current.deletingResources).toBe(false)
+    expect(reportError).toHaveBeenCalledTimes(1)
   })
 })

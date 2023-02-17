@@ -69,7 +69,7 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
   }
 
 
-  const getAzureResourceCleanupModal = () => {
+  const renderAzureCleanupModal = () => {
     return h(Modal, {
       title: span({ style: { display: 'flex', alignItems: 'center' } }, [
         icon('warning-standard', { size: 24, color: colors.warning() }),
@@ -98,7 +98,7 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
           workspaceResources.apps.map(app => li({ key: app.appName }, [app.appName])),
           workspaceResources.runtimes.map(runtime => li({ key: runtime.runtimeName }, [runtime.runtimeName]))
         ]),
-        p(['These resources must be deleted before the workspace can be deleted']),
+        p(['These resources must be deleted before the workspace can be deleted.']),
         p(['It may take several minutes to delete all of the cloud resources in this workspace. Please do not close this window']),
         p([strong(['This cannot be undone.'])])
 
@@ -108,7 +108,7 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
     )
   }
 
-  const getWorkspaceDeletionModal = () => {
+  const renderWorkspaceDeletionModal = () => {
     return h(Modal, {
       title: span({ style: { display: 'flex', alignItems: 'center' } }, [
         icon('warning-standard', { size: 24, color: colors.warning() }),
@@ -166,9 +166,9 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
       spinnerOverlay
     ])
   } else if (isAzureWorkspace(workspace) && (hasApps() || hasRuntimes() || deletingResources)) {
-    return getAzureResourceCleanupModal()
+    return renderAzureCleanupModal()
   } else {
-    return getWorkspaceDeletionModal()
+    return renderWorkspaceDeletionModal()
   }
 }
 

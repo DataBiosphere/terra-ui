@@ -108,7 +108,7 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
     })
     load()
 
-    clearTimeout(checkAzureResourcesTimeout.current)
+    return () => clearTimeout(checkAzureResourcesTimeout.current)
   })
 
   const hasApps = () => {
@@ -146,16 +146,22 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
   }
 
   const checkAzureResources = async () => {
-    console.log('Checking azure resources...') // eslint-disable-line no-console
-    const appsInfo = await fetchWorkspaceResources(hookArgs.workspace)
-    setWorkspaceResources(appsInfo)
+    try {
+      console.log('Checking azure resources...') // eslint-disable-line no-console
+      const appsInfo = await fetchWorkspaceResources(hookArgs.workspace)
+      setWorkspaceResources(appsInfo)
 
-    if (appsInfo.apps.length > 0 || appsInfo.runtimes.length > 0) {
-      console.log('Resources still present, rescheduling check...') // eslint-disable-line no-console
-      checkAzureResourcesTimeout.current = window.setTimeout(() => checkAzureResources(), WorkspaceResourceDeletionPollRate)
-    } else {
-      console.log('Resources gone.') // eslint-disable-line no-console
+      if (appsInfo.apps.length > 0 || appsInfo.runtimes.length > 0) {
+        console.log('Resources still present, rescheduling check...') // eslint-disable-line no-console
+        checkAzureResourcesTimeout.current = window.setTimeout(() => checkAzureResources(), WorkspaceResourceDeletionPollRate)
+      } else {
+        console.log('Resources gone.') // eslint-disable-line no-console
+        setDeletingResources(false)
+      }
+    } catch (error) {
       setDeletingResources(false)
+      await reportError('Error checking workspace resources', error)
+      return
     }
   }
 
@@ -182,7 +188,7 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
       checkAzureResourcesTimeout.current = window.setTimeout(() => checkAzureResources(), WorkspaceResourceDeletionPollRate)
     } catch (error) {
       setDeletingResources(false)
-      throw error
+      reportError('Error deleting workspace', error)
     }
   }
 
