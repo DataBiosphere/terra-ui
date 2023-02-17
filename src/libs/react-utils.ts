@@ -176,10 +176,18 @@ type UseLabelAssertOptions = {
  * @param [id]: Optional: The ID of the component if allowId is true
  * @param [tooltip] Optional: The tooltip provided to the component if allowTooltip is true
  */
-export const useLabelAssert = (componentName: string, {
-  allowLabelledBy = true, allowId = false, allowTooltip = false, allowContent = false,
-  'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledBy, id, tooltip
-}: UseLabelAssertOptions) => {
+export const useLabelAssert = (componentName: string, options: UseLabelAssertOptions) => {
+  const {
+    allowContent = false,
+    allowId = false,
+    allowLabelledBy = true,
+    allowTooltip = false,
+    'aria-label': ariaLabel,
+    'aria-labelledby': ariaLabelledBy,
+    id,
+    tooltip,
+  } = options
+
   const printed = useRef(false)
 
   if (!printed.current) {
