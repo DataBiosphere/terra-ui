@@ -2,7 +2,6 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
-import Events from 'src/libs/events'
 import {
   AzureSubscriptionStep
 } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureSubscriptionStep'
@@ -43,13 +42,11 @@ export const selectManagedApp = async (captureEvent = jest.fn(), createAzureProj
   // Act - Supply valid subscription UUID and wait for Ajax response
   fireEvent.change(getSubscriptionInput(), { target: { value: subscription } })
   await waitFor(() => verifyEnabled(getManagedAppInput()))
-  expect(captureEvent).toBeCalledWith(Events.billingAzureCreationSubscriptionEntered)
 
   // Act - Select one of the managed apps
   await userEvent.click(getManagedAppInput())
   const selectOption = await screen.findByText(`${appName} (${appRegion})`)
   await userEvent.click(selectOption)
-  expect(captureEvent).toHaveBeenLastCalledWith(Events.billingAzureCreationMRGSelected)
   return selectedManagedApp
 }
 

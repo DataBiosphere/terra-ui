@@ -80,7 +80,7 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
       [Utils.DEFAULT, () => undefined]
     )
     setProjectNameErrors(errors)
-    if (!errors) {
+    if (!errors && billingProjectName !== undefined) {
       Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectNameEntered)
     }
   }, [billingProjectName, existingProjectNames])
@@ -96,6 +96,9 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
   const onManagedAppSelected = managedApp => {
     stepFinished(1, !!managedApp)
     setManagedApp(managedApp)
+    if (!!managedApp) {
+      Ajax().Metrics.captureEvent(Events.billingAzureCreationMRGSelected)
+    }
   }
 
   const step1HasNoErrors = !!subscriptionId && !!managedApp
@@ -111,10 +114,13 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
     h(AzureSubscriptionStep, {
       isActive: activeStep === 1,
       subscriptionId,
-      onSubscriptionIdChanged: subscriptionId => {
+      onSubscriptionIdChanged: (subscriptionId, hasError) => {
         stepFinished(1, false)
         setSubscriptionId(subscriptionId)
         onManagedAppSelected(undefined)
+        if (!hasError) {
+          Ajax().Metrics.captureEvent(Events.billingAzureCreationSubscriptionEntered)
+        }
       },
       managedApp,
       onManagedAppSelected,
@@ -128,14 +134,23 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
       onAddUsersOrOwners: addUsersOrOwners => {
         stepFinished(2, !addUsersOrOwners)
         setAddUsersOrOwners(addUsersOrOwners)
+        Ajax().Metrics.captureEvent(
+          addUsersOrOwners ? Events.billingAzureCreationWillAddUsers : Events.billingAzureCreationNoUsersToAdd
+        )
       },
       onSetUserEmails: (emails, hasError) => {
         stepFinished(2, false)
         setUserEmails({ emails, hasError })
+        if (!hasError && !!emails) {
+          Ajax().Metrics.captureEvent(Events.billingAzureCreationUsersAdded)
+        }
       },
       onSetOwnerEmails: (emails, hasError) => {
         stepFinished(2, false)
         setOwnerEmails({ emails, hasError })
+        if (!hasError && !!emails) {
+          Ajax().Metrics.captureEvent(Events.billingAzureCreationOwnersAdded)
+        }
       },
       onOwnersOrUsersInputFocused: () => {
         stepFinished(2, false)

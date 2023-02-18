@@ -59,6 +59,7 @@ describe('AzureBillingProjectWizard', () => {
   const captureEvent = jest.fn()
 
   beforeEach(() => {
+    jest.resetAllMocks()
     asMockedFn(Ajax).mockImplementation(() => ({
       Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>
     } as Partial<AjaxContract> as AjaxContract))
@@ -86,7 +87,6 @@ describe('AzureBillingProjectWizard', () => {
     testStepActive(3)
     verifyCreateBillingProjectDisabled()
     await nameBillingProject(billingProjectName)
-    expect(captureEvent).toBeCalledWith(Events.billingAzureCreationProjectNameEntered)
     expect(await axe(renderResult.container)).toHaveNoViolations()
 
     await clickCreateBillingProject()
@@ -94,6 +94,12 @@ describe('AzureBillingProjectWizard', () => {
       billingProjectName, managedApp.tenantId, managedApp.subscriptionId, managedApp.managedResourceGroupId,
       []
     )
+
+    expect(captureEvent).toHaveBeenNthCalledWith(1, Events.billingAzureCreationSubscriptionEntered)
+    expect(captureEvent).toHaveBeenNthCalledWith(2, Events.billingAzureCreationMRGSelected)
+    expect(captureEvent).toHaveBeenNthCalledWith(3, Events.billingAzureCreationNoUsersToAdd)
+    expect(captureEvent).toHaveBeenNthCalledWith(4, Events.billingAzureCreationProjectNameEntered)
+    expect(captureEvent).toHaveBeenCalledTimes(4)
     expect(onSuccess).toBeCalledWith(billingProjectName)
   })
 
@@ -120,6 +126,14 @@ describe('AzureBillingProjectWizard', () => {
       billingProjectName, managedApp.tenantId, managedApp.subscriptionId, managedApp.managedResourceGroupId,
       [{ email: 'onlyuser@example.com', role: 'User' }, { email: 'owner@example.com', role: 'Owner' }]
     )
+
+    expect(captureEvent).toHaveBeenNthCalledWith(1, Events.billingAzureCreationSubscriptionEntered)
+    expect(captureEvent).toHaveBeenNthCalledWith(2, Events.billingAzureCreationMRGSelected)
+    expect(captureEvent).toHaveBeenNthCalledWith(3, Events.billingAzureCreationWillAddUsers)
+    expect(captureEvent).toHaveBeenNthCalledWith(4, Events.billingAzureCreationUsersAdded)
+    expect(captureEvent).toHaveBeenNthCalledWith(5, Events.billingAzureCreationOwnersAdded)
+    expect(captureEvent).toHaveBeenNthCalledWith(6, Events.billingAzureCreationProjectNameEntered)
+    expect(captureEvent).toHaveBeenCalledTimes(6)
     expect(onSuccess).toBeCalledWith(billingProjectName)
   })
 
@@ -160,5 +174,6 @@ describe('AzureBillingProjectWizard', () => {
     await nameBillingProject('')
     await screen.findByText(nameRequiredText)
     expect(screen.queryByText(tooShortText)).toBeNull()
+    expect(captureEvent).not.toBeCalled()
   })
 })

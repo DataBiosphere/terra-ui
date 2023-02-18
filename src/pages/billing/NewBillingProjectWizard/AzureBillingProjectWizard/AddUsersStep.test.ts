@@ -2,16 +2,10 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { act } from 'react-dom/test-utils'
 import { h } from 'react-hyperscript-helpers'
-import { Ajax } from 'src/libs/ajax'
-import Events from 'src/libs/events'
 import {
   AddUsersStep
 } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AddUsersStep'
-import { asMockedFn } from 'src/testing/test-utils'
 
-
-type AjaxContract = ReturnType<typeof Ajax>
-jest.mock('src/libs/ajax')
 
 const onSetUserEmails = jest.fn()
 const onSetOwnerEmails = jest.fn()
@@ -40,13 +34,8 @@ const defaultProps = {
 }
 
 describe('AddUsersStep', () => {
-  const captureEvent = jest.fn()
-
   beforeEach(() => {
     jest.resetAllMocks()
-    asMockedFn(Ajax).mockImplementation(() => ({
-      Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>
-    } as Partial<AjaxContract> as AjaxContract))
   })
 
   const verifyDisabled = item => expect(item).toHaveAttribute('disabled')
@@ -81,7 +70,6 @@ describe('AddUsersStep', () => {
 
     // Assert
     expect(mockAddUsersOrOwners).toBeCalledWith(true)
-    expect(captureEvent).toBeCalledWith(Events.billingAzureCreationWillAddUsers)
     verifyCheckedState(getNoUsersRadio(), false)
     verifyCheckedState(getAddUsersRadio(), true)
     verifyEnabled(getUsersInput())
@@ -94,7 +82,6 @@ describe('AddUsersStep', () => {
     expect(onOwnersOrUsersInputFocused).toBeCalled()
     fireEvent.change(getUsersInput(), { target: { value: 'user@foo.com' } })
     expect(onSetUserEmails).toBeCalledWith('user@foo.com', false)
-    expect(captureEvent).toBeCalledWith(Events.billingAzureCreationUsersAdded)
 
     onOwnersOrUsersInputFocused.mockReset()
     await act(async () => {
@@ -103,11 +90,9 @@ describe('AddUsersStep', () => {
     expect(onOwnersOrUsersInputFocused).toBeCalled()
     fireEvent.change(getOwnersInput(), { target: { value: 'owner@foo.com' } })
     expect(onSetOwnerEmails).toBeCalledWith('owner@foo.com', false)
-    expect(captureEvent).toBeCalledWith(Events.billingAzureCreationOwnersAdded)
 
     fireEvent.click(getNoUsersRadio())
     expect(mockAddUsersOrOwners).toBeCalledWith(false)
-    expect(captureEvent).toHaveBeenLastCalledWith(Events.billingAzureCreationNoUsersToAdd)
     expect(onSetOwnerEmails).toHaveBeenLastCalledWith('', false)
     expect(onSetUserEmails).toHaveBeenLastCalledWith('', false)
     verifyDisabled(getUsersInput())

@@ -3,8 +3,6 @@ import { ReactNode, useState } from 'react'
 import { div, h, p } from 'react-hyperscript-helpers'
 import { useUniqueId } from 'src/components/common'
 import { ValidatedInput } from 'src/components/input'
-import { Ajax } from 'src/libs/ajax'
-import Events from 'src/libs/events'
 import { formHint, FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 import {
@@ -33,7 +31,6 @@ interface EmailInputProps {
   setErrors: (ReactNode) => void
   onFocus: () => void
   label: string
-  eventKey: string
   addSpacing: boolean
 }
 
@@ -64,7 +61,6 @@ const EmailInput = (props: EmailInputProps) => {
           } else {
             props.setErrors(null)
             props.onSetEmails(emails, false)
-            Ajax().Metrics.captureEvent(props.eventKey)
           }
         },
         value: props.emails,
@@ -116,7 +112,6 @@ export const AddUsersStep = ({ isActive, ...props }: AddUserStepProps) => {
                 setUserEmailErrors(null)
                 props.onSetUserEmails('', false)
                 props.onSetOwnerEmails('', false)
-                Ajax().Metrics.captureEvent(Events.billingAzureCreationNoUsersToAdd)
               }
             }
           }),
@@ -124,9 +119,6 @@ export const AddUsersStep = ({ isActive, ...props }: AddUserStepProps) => {
             text: 'Add the following owners and/or users', name: 'add-users',
             onChange: changed => {
               props.onAddUsersOrOwners(changed.target.checked)
-              if (changed.target.checked) {
-                Ajax().Metrics.captureEvent(Events.billingAzureCreationWillAddUsers)
-              }
             },
           })
         ]),
@@ -140,7 +132,6 @@ export const AddUsersStep = ({ isActive, ...props }: AddUserStepProps) => {
               setErrors: setOwnerEmailErrors,
               onFocus: props.onOwnersOrUsersInputFocused,
               label: 'Owners',
-              eventKey: Events.billingAzureCreationOwnersAdded,
               addSpacing: true
             }),
             h(EmailInput, {
@@ -150,7 +141,6 @@ export const AddUsersStep = ({ isActive, ...props }: AddUserStepProps) => {
               errors: userEmailErrors,
               setErrors: setUserEmailErrors,
               onFocus: props.onOwnersOrUsersInputFocused,
-              eventKey: Events.billingAzureCreationUsersAdded,
               label: 'Users',
               addSpacing: false
             }),

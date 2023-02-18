@@ -4,7 +4,6 @@ import { div, h, p } from 'react-hyperscript-helpers'
 import { Link, Select, useUniqueId } from 'src/components/common'
 import { ValidatedInputWithRef } from 'src/components/input'
 import { Ajax } from 'src/libs/ajax'
-import Events from 'src/libs/events'
 import { useCancellation } from 'src/libs/react-utils'
 import { summarizeErrors } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
@@ -28,7 +27,7 @@ import { validate } from 'validate.js'
 type AzureSubscriptionStepProps = {
   isActive: boolean
   subscriptionId?: string
-  onSubscriptionIdChanged: (string) => void
+  onSubscriptionIdChanged: (string, boolean) => void
   managedApp?: AzureManagedAppCoordinates
   onManagedAppSelected: (AzureManagedAppCoordinates) => void
   isBusy?: boolean
@@ -60,14 +59,14 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
 
   const signal = useCancellation()
 
-  const subscriptionIdErrors = validate({ subscriptionId }, { subscriptionId: { type: 'uuid' } })
+  const getSubscriptionIdErrors = subscriptionId => validate({ subscriptionId }, { subscriptionId: { type: 'uuid' } })
+  const subscriptionIdErrors = getSubscriptionIdErrors(subscriptionId)
   const isValidSubscriptionId = !!subscriptionId && !subscriptionIdErrors
 
   useEffect(() => {
     if (isValidSubscriptionId) {
       const fetchManagedApps = Utils.withBusyState(props.setIsBusy,
         async () => {
-          Ajax().Metrics.captureEvent(Events.billingAzureCreationSubscriptionEntered)
           try {
             const managedApps = await Ajax(signal).Billing.listAzureManagedApplications(subscriptionId, false)
             setManagedApps(managedApps.managedApps)
@@ -105,7 +104,7 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
   const subscriptionIdChanged = v => {
     setErrorFetchingManagedApps(undefined)
     setManagedApps([])
-    props.onSubscriptionIdChanged(v)
+    props.onSubscriptionIdChanged(v, getSubscriptionIdErrors(v))
     setSubscriptionIdTouched(true)
   }
 
@@ -148,7 +147,6 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
             value: props.managedApp,
             onChange: ({ value }) => {
               props.onManagedAppSelected(value)
-              Ajax().Metrics.captureEvent(Events.billingAzureCreationMRGSelected)
             },
             options: managedAppsToOptions(managedApps)
           }),
