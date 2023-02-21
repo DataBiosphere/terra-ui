@@ -10,22 +10,37 @@ import { v4 as uuid } from 'uuid'
 import { getCloudProviderFromWorkspace } from './workspace-utils'
 
 
-// TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
-export const subscribable = () => {
-  let subscribers = []
+export interface Subscribable<T extends any[]> {
+  subscribe: (fn: (...args: T) => void) => { unsubscribe: () => void }
+  next: (...args: T) => void
+}
+
+/**
+ * A mechanism for registering callbacks for some state change.
+ */
+export const subscribable = <T extends any[]>(): Subscribable<T> => {
+  let subscribers: ((...args: T) => void)[] = []
   return {
-    subscribe: fn => {
-      subscribers = append(fn, subscribers) as any
+    subscribe: (fn: (...args: T) => void) => {
+      subscribers = append(fn, subscribers)
       return {
         unsubscribe: () => {
-          subscribers = _.without([fn], subscribers) as any
+          subscribers = _.without([fn], subscribers)
         }
       }
     },
-    next: (...args) => {
-      _.forEach(fn => (fn as any)(...args), subscribers)
+    next: (...args: T) => {
+      _.forEach(fn => fn(...args), subscribers)
     }
   }
+}
+
+export interface Atom<T> {
+  subscribe: (fn: (value: T, previousValue: T) => void) => { unsubscribe: () => void }
+  get: () => T
+  set: (value: T) => void
+  update: (fn: (currentValue: T) => T) => void
+  reset: () => void
 }
 
 /**
@@ -33,11 +48,11 @@ export const subscribable = () => {
  * to lodash and Immutable. (deref => get, reset! => set, swap! => update, reset to go back to initial value)
  * Implements the Store interface
  */
-export const atom = initialValue => {
+export const atom = <T = any>(initialValue: T): Atom<T> => {
   let value = initialValue
-  const { subscribe, next } = subscribable()
+  const { subscribe, next } = subscribable<[T, T]>()
   const get = () => value
-  const set = newValue => {
+  const set = (newValue: T) => {
     const oldValue = value
     value = newValue
     next(newValue, oldValue)
