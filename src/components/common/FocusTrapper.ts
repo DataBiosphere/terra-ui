@@ -3,7 +3,13 @@ import FocusLock from 'react-focus-lock'
 import { h } from 'react-hyperscript-helpers'
 
 
-export const FocusTrapper = ({ children, onBreakout, ...props }) => {
+type FocusLockProps = Parameters<typeof FocusLock>[0]
+
+export type FocusTrapperProps = FocusLockProps & {
+  onBreakout: () => void
+}
+
+export const FocusTrapper = ({ children, onBreakout, ...props }: FocusTrapperProps) => {
   return h(FocusLock, {
     returnFocus: true,
     lockProps: _.merge({
