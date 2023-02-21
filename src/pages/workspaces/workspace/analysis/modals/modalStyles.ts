@@ -1,6 +1,6 @@
 import colors from 'src/libs/colors'
 
-//I re-create compute styles here because they're not typed in their native file
+
 export const computeStyles: Record<string, React.CSSProperties> = {
   label: { fontWeight: 600, whiteSpace: 'pre' },
   value: { fontWeight: 400, whiteSpace: 'pre' },
