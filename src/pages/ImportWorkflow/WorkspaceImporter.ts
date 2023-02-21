@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { Fragment, ReactElement, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link } from 'src/components/common'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -21,7 +21,8 @@ type WorkspaceImporterInnerProps = WorkspaceImporterProps & {
   refreshWorkspaces: () => void
 }
 
-export const WorkspaceImporter = _.flow(
+// Type WorkspaceImporter because types don't carry through flow.
+export const WorkspaceImporter: (props: WorkspaceImporterInnerProps) => ReactElement<any, any> = _.flow(
   withDisplayName('WorkspaceImporter'),
   withWorkspaces
 )(({ workspaces, refreshWorkspaces, onImport, authorizationDomain: ad, selectedWorkspaceId: initialWs, additionalErrors, ...props }: WorkspaceImporterInnerProps) => {
