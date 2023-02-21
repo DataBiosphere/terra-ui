@@ -1,5 +1,3 @@
-// eslint-disable-next-line lodash-fp/use-fp
-import { CurriedFunction1 } from 'lodash'
 import { div, h, label } from 'react-hyperscript-helpers'
 import { Link, Select } from 'src/components/common'
 import { NumberInput } from 'src/components/input'
@@ -35,14 +33,14 @@ interface IComputeConfig {
 interface PersistentDiskProps {
   diskExists: boolean
   computeConfig: IComputeConfig
-  updateComputeConfig: CurriedFunction1<string, void>
+  updateComputeConfig: (arg: string) => (diskType: string) => void
   handleLearnMoreAboutPersistentDisk: React.MouseEventHandler
 }
 
 interface PersistentDiskTypeProps {
   diskExists: boolean
   computeConfig: IComputeConfig
-  updateComputeConfig: CurriedFunction1<string, void>
+  updateComputeConfig: (arg: string) => (diskType: string) => void
 }
 
 export const PersistentDiskType = ({ diskExists, computeConfig, updateComputeConfig }: PersistentDiskTypeProps) => {

@@ -6,7 +6,7 @@ import { h } from 'react-hyperscript-helpers'
 import {
   PersistentDiskSection,
   PersistentDiskType,
-} from 'src/pages/workspaces/workspace/analysis/modals/compute-modal-components'
+} from 'src/pages/workspaces/workspace/analysis/modals/persistent-disk-controls'
 import {
   defaultAutopauseThreshold,
   defaultComputeRegion,
@@ -59,38 +59,35 @@ const defaultPersistentDiskTypeProps = {
   updateComputeConfig,
 }
 
-jest.mock('src/libs/notifications', () => ({
-  notify: jest.fn((...args) => {
-    console.debug("######################### notify"); /* eslint-disable-line */
-    console.debug({ method: "notify", args: [...args] }); /* eslint-disable-line */
-  }),
-}))
-
 describe('compute-modal-component', () => {
   describe('PersistentDiskType', () => {
     // Passing diskExists [true,false] to PersistentDiskType
-    it('should be disabled when existing PD', async () => {
+    it('should be disabled when existing PD', () => {
+      // Arrange
+      render(h(PersistentDiskType, defaultPersistentDiskTypeProps))
+
       // Act
-      await render(h(PersistentDiskType, defaultPersistentDiskTypeProps))
       const dType = screen.getByLabelText('Disk Type')
 
       // Assert
       expect(dType).toBeDisabled()
     })
-    it('should not be disabled when no existing PD', async () => {
+    it('should not be disabled when no existing PD', () => {
+      // Arrange
+      render(h(PersistentDiskType, { ...defaultPersistentDiskTypeProps, diskExists: false }))
+
       // Act
-      await render(h(PersistentDiskType, { ...defaultPersistentDiskTypeProps, diskExists: false }))
 
       // Assert
-      const dType = screen.getByLabelText('Disk Type')
-
-      expect(dType).not.toBeDisabled()
+      expect(screen.getByLabelText('Disk Type')).not.toBeDisabled()
     })
 
     // Ensuring updateComputeConfig gets called with proper value on change
     it('should call updateComputeConfig with proper value on change', async () => {
-      // Act
+      // Arrange
       render(h(PersistentDiskType, { ...defaultPersistentDiskTypeProps, diskExists: false }))
+
+      // Act
       const dTypeOld = screen.getByLabelText('Disk Type')
       await userEvent.click(dTypeOld)
       const dTypeNew = screen.getByText('Balanced')
@@ -104,12 +101,14 @@ describe('compute-modal-component', () => {
   describe('PersistentDiskSection', () => {
     // click learn more about persistent disk
     it('should render learn more about persistent disks', async () => {
-      //arrange
+      // Arrange
       const fakepd = jest.fn()
+      render(h(PersistentDiskSection, {
+        ...defaultPersistentDiskProps,
+        handleLearnMoreAboutPersistentDisk: fakepd
+      }))
+
       // Act
-      await render(
-        h(PersistentDiskSection, { ...defaultPersistentDiskProps, handleLearnMoreAboutPersistentDisk: fakepd })
-      )
       const link = screen.getByText(/Learn more about persistent disks/)
       await userEvent.click(link)
 
@@ -118,8 +117,10 @@ describe('compute-modal-component', () => {
     })
 
     it('should not show tooltip when no existing PD', async () => {
+      // Arrange
+      render(h(PersistentDiskSection, { ...defaultPersistentDiskProps, diskExists: false }))
+
       // Act
-      await render(h(PersistentDiskSection, { ...defaultPersistentDiskProps, diskExists: false }))
       const dType = screen.getByText('Disk Type')
       await userEvent.hover(dType)
 
@@ -129,8 +130,10 @@ describe('compute-modal-component', () => {
     })
 
     it('should show tooltip when existing PD', async () => {
+      // Arrange
+      render(h(PersistentDiskSection, defaultPersistentDiskProps))
+
       // Act
-      await render(h(PersistentDiskSection, defaultPersistentDiskProps))
       const dType = screen.getByText('Disk Type')
       await userEvent.hover(dType)
 
@@ -140,8 +143,10 @@ describe('compute-modal-component', () => {
 
     // Ensuring updateComputeConfig gets called with proper value on change
     it('should call updateComputeConfig with proper value on change', async () => {
+      // Arrange
+      render(h(PersistentDiskSection, { ...defaultPersistentDiskProps, diskExists: false }))
+
       // Act
-      await render(h(PersistentDiskSection, { ...defaultPersistentDiskProps, diskExists: false }))
       const dTypeOld = screen.getByLabelText('Disk Type')
       await userEvent.click(dTypeOld)
       const dTypeNew = screen.getByText('Balanced')
