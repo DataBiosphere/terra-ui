@@ -16,16 +16,6 @@ import * as Utils from 'src/libs/utils'
 import { getConvertedRuntimeStatus, usableStatuses } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
-export const computeStyles = {
-  label: { fontWeight: 600, whiteSpace: 'pre' },
-  value: { fontWeight: 400, whiteSpace: 'pre' },
-  titleBar: { marginBottom: '1rem' },
-  whiteBoxContainer: { padding: '1rem', borderRadius: 3, backgroundColor: 'white' },
-  drawerContent: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' },
-  headerText: { fontSize: 16, fontWeight: 600 },
-  warningView: { backgroundColor: colors.warning(0.1) }
-}
-
 export const StatusMessage = ({ hideSpinner, children }) => {
   return div({ style: { paddingLeft: '2rem', display: 'flex', alignItems: 'center' } }, [
     !hideSpinner && spinner({ style: { marginRight: '0.5rem' } }),
