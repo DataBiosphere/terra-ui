@@ -123,6 +123,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["source-map-explorer", "npm:2.5.2"],\
             ["svgo", "npm:1.3.2"],\
             ["typescript", "patch:typescript@npm%3A4.8.3#~builtin<compat/typescript>::version=4.8.3&hash=a1c5e5"],\
+            ["ua-parser-js", "npm:1.0.33"],\
             ["use-memo-one", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:1.1.3"],\
             ["uuid", "npm:8.3.2"],\
             ["validate.js", "npm:0.13.1"],\
@@ -19353,6 +19354,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["source-map-explorer", "npm:2.5.2"],\
             ["svgo", "npm:1.3.2"],\
             ["typescript", "patch:typescript@npm%3A4.8.3#~builtin<compat/typescript>::version=4.8.3&hash=a1c5e5"],\
+            ["ua-parser-js", "npm:1.0.33"],\
             ["use-memo-one", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:1.1.3"],\
             ["uuid", "npm:8.3.2"],\
             ["validate.js", "npm:0.13.1"],\
@@ -19749,6 +19751,13 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/ua-parser-js-npm-0.7.31-aeb4c9aae9-e2f8324a83.zip/node_modules/ua-parser-js/",\
           "packageDependencies": [\
             ["ua-parser-js", "npm:0.7.31"]\
+          ],\
+          "linkType": "HARD"\
+        }],\
+        ["npm:1.0.33", {\
+          "packageLocation": "./.yarn/cache/ua-parser-js-npm-1.0.33-60ab7da777-460adef512.zip/node_modules/ua-parser-js/",\
+          "packageDependencies": [\
+            ["ua-parser-js", "npm:1.0.33"]\
           ],\
           "linkType": "HARD"\
         }]\
