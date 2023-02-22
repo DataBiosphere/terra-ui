@@ -43,6 +43,8 @@ const titleId = 'analysis-modal-title'
 const analysisMode = Symbol('artifact')
 const environmentMode = Symbol('environment')
 
+const StringSelect = Select as typeof Select<string>
+
 export interface AnalysisModalProps {
   isOpen: boolean
   workspace: BaseWorkspace
@@ -323,22 +325,22 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         (isJupyterLab || isJupyter) &&
           h(Fragment, [
             h(FormLabel, { htmlFor: nameSelectId, required: true }, ['Language']),
-            h(Select, {
+            h(StringSelect, {
               id: nameSelectId, isSearchable: true,
               placeholder: 'Select a language',
               getOptionLabel: ({ value }) => _.startCase(value),
               value: notebookKernel,
-              onChange: ({ value: notebookKernel }) => setNotebookKernel(notebookKernel),
+              onChange: opt => setNotebookKernel(opt!.value),
               options: ['python3', 'r']
             })
           ]),
         isRStudio && h(Fragment, [
           h(FormLabel, { htmlFor: fileTypeSelect, required: true }, ['File Type']),
-          h(Select, {
+          h(StringSelect, {
             id: fileTypeSelect, isSearchable: true,
             value: fileExt,
             onChange: v => {
-              setFileExt(v.value)
+              setFileExt(v!.value)
             },
             options: toolExtensionDisplay.RStudio!
           })

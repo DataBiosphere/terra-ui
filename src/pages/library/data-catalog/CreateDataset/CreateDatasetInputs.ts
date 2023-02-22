@@ -1,7 +1,7 @@
 import * as _ from 'lodash/fp'
 import { ReactElement } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { Clickable, Select } from 'src/components/common'
+import { Clickable, Select, SelectProps } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NumberInput, ValidatedInput } from 'src/components/input'
 import { MarkdownEditor } from 'src/components/markdown'
@@ -76,20 +76,19 @@ export const MarkdownInput = ({ title, onChange, value, placeholder, required = 
   ])
 }
 
-export interface SelectInputProps extends InputProps<string> {
-  options: string[] | { value: string; label: string | ReactElement }[]
-  isClearable?: boolean
-  placeholder?: string
-  wrapperProps?: {}
+export type SelectInputProps<Value> = SelectProps<Value, false, { value: Value; label: string }> & {
+  title: string
   required?: boolean
+  wrapperProps?: Omit<JSX.IntrinsicElements['div'], 'children'>
 }
 
-export const SelectInput = ({ title, value, placeholder = '', options, onChange, isClearable = true, required = false, wrapperProps = {} }: SelectInputProps) => {
+export const SelectInput = <Value>({ title, value, placeholder = '', options, onChange, isClearable = true, required = false, wrapperProps = {} }: SelectInputProps<Value>) => {
   const id = useUniqueId()
 
-  return div(wrapperProps, [
+  const ParameterizedSelect = Select as typeof Select<Value>
+  return div({ ...wrapperProps }, [
     h(FormLabel, { htmlFor: id, required }, [title]),
-    h(Select, {
+    h(ParameterizedSelect, {
       id,
       value,
       isClearable,
