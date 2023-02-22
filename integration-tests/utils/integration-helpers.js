@@ -40,15 +40,10 @@ const waitForAccessToWorkspaceBucket = async ({ page, billingProject, workspaceN
     const checks = [
       // Get bucket metadata
       () => window.Ajax().Buckets.checkBucketLocation(googleProject, bucketName),
-      // List objects
-      () => window.Ajax().Buckets.list(googleProject, bucketName, ''),
-      // Create object
-      () => {
-        const file = new File([''], 'permissions-check', { type: 'text/text' })
-        return window.Ajax().Buckets.upload(googleProject, bucketName, '', file)
-      },
-      // Delete object
-      () => window.Ajax().Buckets.delete(googleProject, bucketName, 'permissions-check'),
+      // https://rawls.dsde-dev.broadinstitute.org/#/workspaces/readBucket
+      // Checks if user has bucket access, 403 if not.
+      // This API checks if user has all expected permissions. `read` on API name does not accurately describe APIs functionality.
+      () => window.Ajax().Workspaces.workspace(billingProject, workspaceName).checkBucketReadAccess(),
     ]
 
     for (const check of checks) {
