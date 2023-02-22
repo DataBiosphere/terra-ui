@@ -86,7 +86,7 @@ describe('ComputeModal', () => {
     // Assert
     verifyEnabled(getCreateButton())
     screen.getByText('Jupyter Cloud Environment')
-    screen.getByText('Create custom environment')
+    screen.getByText('Cost based on settings below')
   })
 
   it('sends the proper leo API call in default create case (no runtimes or disks)', async () => {
@@ -354,7 +354,6 @@ describe('ComputeModal', () => {
     expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything())
     expect(deleteFunc).toHaveBeenCalled()
   })
-
   // click update with downtime (and keep pd)
   it.each([
     { tool: runtimeTools.Jupyter },
@@ -637,7 +636,6 @@ describe('ComputeModal', () => {
     await act(async () => {
       await render(h(ComputeModalBase, defaultModalProps))
 
-      await userEvent.click(screen.getByText('Customize'))
       const selectMenu = await screen.getByLabelText('Application configuration')
       await userEvent.click(selectMenu)
       const selectOption = await screen.findByText(hailImage.label)
@@ -700,7 +698,6 @@ describe('ComputeModal', () => {
     await act(async () => {
       await render(h(ComputeModalBase, defaultModalProps))
 
-      await userEvent.click(screen.getByText('Customize'))
       const selectMenu = await screen.getByLabelText('Application configuration')
       await userEvent.click(selectMenu)
       const selectOption = await screen.findByText('Custom Environment')
@@ -749,7 +746,6 @@ describe('ComputeModal', () => {
     await act(async () => {
       await render(h(ComputeModalBase, defaultModalProps))
 
-      await userEvent.click(screen.getByText('Customize'))
       const selectMenu = await screen.getByLabelText('Application configuration')
       await userEvent.click(selectMenu)
       const selectOption = await screen.findByText('Custom Environment')
@@ -777,19 +773,17 @@ describe('ComputeModal', () => {
     })
   })
 
-  // click learn more about persistent disk
-  it('should render learn more about persistent disks', async () => {
-    // Act
-    await act(async () => {
-      await render(h(ComputeModalBase, defaultModalProps))
-      const link = screen.getByText('Learn more about Persistent Disks.')
-      await userEvent.click(link)
-    })
+  // // click learn more about persistent disk //TODO: enable after IA-4024
+  // it('should render learn more about persistent disks', () => {
+  //   // Act
+  //   render(h(ComputeModalBase, defaultModalProps))
+  //   const link = screen.getByText('Learn more about persistent disks and where your disk is mounted.')
+  //   userEvent.click(link)
 
-    // Assert
-    screen.getByText('About persistent disk')
-    screen.getByText(/Your persistent disk is mounted in the directory/)
-  })
+  //   // Assert
+  //   screen.getByText('About persistent disk')
+  //   screen.getByText(/Your persistent disk is mounted in the directory/)
+  // })
 
   it.each([
     { tool: runtimeTools.Jupyter },
@@ -844,8 +838,6 @@ describe('ComputeModal', () => {
     // Act
     await act(async () => {
       await render(h(ComputeModalBase, defaultModalProps))
-      const link = screen.getByText('Customize')
-      await userEvent.click(link)
       const enableGPU = await screen.getByText('Enable GPUs')
       await userEvent.click(enableGPU)
     })
@@ -868,6 +860,33 @@ describe('ComputeModal', () => {
     }))
   })
 
+  // click learn more about persistent disk
+  it.each([
+    { tool: runtimeTools.Jupyter, expectedLabel: /\/home\/jupyter/ },
+    { tool: runtimeTools.RStudio, expectedLabel: /\/home\/rstudio/ }
+  ])('should render learn more about persistent disks', async ({ tool, expectedLabel }) => {
+    // Arrange
+    const disk = getDisk()
+    const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) }
+    const runtime = getGoogleRuntime(runtimeProps)
+    // Act
+    // HACK: await not necessary here
+    // eslint-disable-next-line require-await
+    await act(async () => {
+      render(h(ComputeModalBase, {
+        ...defaultModalProps,
+        currentDisk: disk,
+        currentRuntime: runtime
+      }))
+    })
+
+    // Assert
+    const link = screen.getByText(/Learn more about persistent disks/)
+    await userEvent.click(link)
+    screen.getByText('About persistent disk')
+    screen.getByText(expectedLabel)
+  })
+
   it('correctly renders and updates timeoutInMinutes', async () => {
     await act(async () => {
       // Arrange
@@ -885,7 +904,6 @@ describe('ComputeModal', () => {
       await render(h(ComputeModalBase, defaultModalProps))
 
       // Act
-      await userEvent.click(screen.getByText('Customize'))
       const selectMenu = await screen.getByLabelText('Application configuration')
       await userEvent.click(selectMenu)
       const selectOption = await screen.findByText(/Legacy GATK:/)
@@ -929,7 +947,6 @@ describe('ComputeModal', () => {
       await act(async () => {
         await render(h(ComputeModalBase, { ...defaultModalProps, tool: runtimeTool.label }))
 
-        await userEvent.click(screen.getByText('Customize'))
         const selectMenu = await screen.getByLabelText('Application configuration')
         await userEvent.click(selectMenu)
         const customImageSelect = await screen.findByText('Custom Environment')
@@ -988,7 +1005,6 @@ describe('ComputeModal', () => {
       await act(async () => {
         await render(h(ComputeModalBase, { ...defaultModalProps, tool: runtimeTool.label }))
 
-        await userEvent.click(screen.getByText('Customize'))
         const selectMenu = await screen.getByLabelText('Application configuration')
         await userEvent.click(selectMenu)
         const customImageSelect = await screen.findByText('Custom Environment')
