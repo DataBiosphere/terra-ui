@@ -1,7 +1,8 @@
 import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { Children, Fragment, useEffect, useRef, useState } from 'react'
 import { b, div, h, p, span } from 'react-hyperscript-helpers'
+import { AutoSizer, List } from 'react-virtualized'
 import { ClipboardButton } from 'src/components/ClipboardButton'
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
 import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, Clickable, DelayedRender, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
@@ -77,8 +78,64 @@ export const withWorkspaces = WrappedComponent => {
   })
 }
 
+const WorkspaceSelectorMenuList = props => {
+  const { children, focusedOption, getStyles, getValue, maxHeight } = props
+
+  const list = useRef()
+
+  // Scroll to the currently selected value (if there is one) when the menu is opened.
+  useOnMount(() => {
+    const [value] = getValue()
+    if (value) {
+      const renderedOptions = Children.map(children, child => child.props.data)
+      const valueIndex = renderedOptions.findIndex(opt => opt.value === value.value)
+      if (valueIndex !== -1) {
+        list.current.scrollToRow(valueIndex)
+      }
+    }
+  })
+
+  // When navigating option with arrow keys, scroll the virtualized list so that the focused option is visible.
+  useEffect(() => {
+    const renderedOptions = Children.map(children, child => child.props.data)
+    const focusedOptionIndex = renderedOptions.indexOf(focusedOption)
+    if (focusedOptionIndex !== -1) {
+      list.current.scrollToRow(focusedOptionIndex)
+    }
+  }, [children, focusedOption])
+
+  const hasRenderedOptions = Array.isArray(children)
+
+  // If no options are rendered, then render the "no options" message.
+  if (!hasRenderedOptions) {
+    return children
+  }
+
+  const rowCount = children.length
+  const rowHeight = 40
+  const height = _.clamp(rowHeight, maxHeight, rowHeight * rowCount)
+
+  return h(AutoSizer, { disableHeight: true }, [
+    ({ width }) => {
+      return h(List, {
+        ref: list,
+        height,
+        width,
+        rowCount,
+        rowHeight,
+        rowRenderer: ({ index, style, key }) => div({ key, style }, [children[index]]),
+        style: { ...getStyles('menuList', props), boxSizing: 'content-box' },
+      })
+    }
+  ])
+}
+
 export const WorkspaceSelector = ({ workspaces, value, onChange, id, 'aria-label': ariaLabel, ...props }) => {
   return h(Select, {
+    // Some users may have hundreds or thousands of workspaces. react-select performs poorly when it
+    // renders that many options. To address that, this component virtualizes the list of options.
+    // See https://broadworkbench.atlassian.net/browse/SUP-808 for more information.
+    components: { MenuList: WorkspaceSelectorMenuList },
     id,
     'aria-label': ariaLabel || 'Select a workspace',
     placeholder: 'Select a workspace',
