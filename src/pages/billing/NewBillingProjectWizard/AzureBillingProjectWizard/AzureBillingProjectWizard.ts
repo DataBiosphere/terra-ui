@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, ReactNode, useEffect, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
-import { spinnerOverlay } from 'src/components/common'
+import { customSpinnerOverlay } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
 import { reportErrorAndRethrow } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -173,5 +173,5 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
       createReady: step1HasNoErrors && step2HasNoErrors && !!billingProjectName && !projectNameErrors && !isBusy
     })
   ]),
-  isBusy && spinnerOverlay]) // TODO: overlay problem: not filling the whole screen.
+  isBusy && customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'absolute' })])
 }
