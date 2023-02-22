@@ -87,7 +87,10 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
         return managedApps
       })
     }
-  }, [subscriptionId, setManagedApps, signal])
+    // the linter wants us to add setManagedApps to the dependencies
+    // but it isn't a proper dependency, and adding it causes a re-render loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subscriptionId, signal])
 
   const subscriptionIdChanged = v => props.onSubscriptionIdChanged(v, !!getSubscriptionIdErrors(v))
 
