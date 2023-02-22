@@ -56,9 +56,17 @@ const isFilePreviewable = ({ size, ...metadata }) => {
   return !isBinary(metadata) && (isText(metadata) || (isImage(metadata) && size <= 1e9))
 }
 
-const isGs = uri => _.startsWith('gs://', uri)
+export const isGs = uri => _.startsWith('gs://', uri)
 
-const isDrs = uri => _.startsWith('dos://', uri) || _.startsWith('drs://', uri)
+export const isDrs = uri => _.startsWith('dos://', uri) || _.startsWith('drs://', uri)
+
+const azureRegex = RegExp('^https://(.+).blob.core.windows.net')
+export const isAzureUri = uri => {
+  if (typeof uri == 'string') {
+    return uri.match(azureRegex)
+  }
+  return false
+}
 
 const getMaxDownloadCostNA = bytes => {
   const nanos = DownloadPrices.pricingInfo[0].pricingExpression.tieredRates[1].unitPrice.nanos
@@ -190,10 +198,10 @@ const UriViewer = _.flow(
         // https://cloud.google.com/storage/docs/json_api/v1/objects#resource-representations
         // The time formats returned are in ISO 8601 vs. RFC 3339 but should be ok for parsing by `new Date()`
         const { bucket, name, size, timeCreated, timeUpdated: updated, fileName, accessUrl } =
-          await Ajax(signal).DrsUriResolver.getDataObjectMetadata(
-            uri,
-            ['bucket', 'name', 'size', 'timeCreated', 'timeUpdated', 'fileName', 'accessUrl']
-          )
+            await Ajax(signal).DrsUriResolver.getDataObjectMetadata(
+              uri,
+              ['bucket', 'name', 'size', 'timeCreated', 'timeUpdated', 'fileName', 'accessUrl']
+            )
         const metadata = { bucket, name, fileName, size, timeCreated, updated, accessUrl }
         setMetadata(metadata)
       }
@@ -208,6 +216,19 @@ const UriViewer = _.flow(
   const { size, timeCreated, updated, bucket, name, fileName, accessUrl } = metadata || {}
   const gsUri = `gs://${bucket}/${name}`
   const downloadCommand = getDownloadCommand(fileName, gsUri, accessUrl)
+  if (isAzureUri(uri)) {
+    return h(Modal, {
+      onDismiss,
+      title: 'File Details',
+      showCancel: false,
+      showX: true,
+      okButton: 'Done'
+    },
+    [els.cell([
+      els.label('Filename'),
+      els.data(_.last(uri.split('/')).split('.').join('.\u200B')) // allow line break on periods
+    ]), div({ style: { marginTop: '2rem', fontSize: 14 } }, ['Download functionality for Azure files coming soon'])])
+  }
   return h(Modal, {
     onDismiss,
     title: 'File Details',
@@ -277,7 +298,7 @@ const UriViewer = _.flow(
         div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
       ])],
       () => h(Fragment, [
-        isGs(uri) ? 'Loading metadata...' : 'Resolving DOS object...',
+        isGs(uri) ? 'Loading metadata...' : 'Resolving DRS file...',
         spinner({ style: { marginLeft: 4 } })
       ])
     )
@@ -294,7 +315,7 @@ export const UriViewerLink = ({ uri, workspace }) => {
         e.preventDefault()
         setModalOpen(true)
       }
-    }, [isGs(uri) ? _.last(uri.split(/\/\b/)) : uri]),
+    }, [isGs(uri) || isAzureUri(uri) ? _.last(uri.split(/\/\b/)) : uri]),
     modalOpen && h(UriViewer, {
       onDismiss: () => setModalOpen(false),
       uri, workspace

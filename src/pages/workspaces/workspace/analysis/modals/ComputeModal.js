@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { b, br, code, div, fieldset, h, label, legend, li, p, span, strong, ul } from 'react-hyperscript-helpers'
+import { b, br, code, div, fieldset, h, label, legend, p, span, strong } from 'react-hyperscript-helpers'
 import { ClipboardButton } from 'src/components/ClipboardButton'
 import { ButtonOutline, ButtonPrimary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -191,7 +191,6 @@ export const ComputeModalBase = ({
   const [viewMode, setViewMode] = useState(undefined)
   const [deleteDiskSelected, setDeleteDiskSelected] = useState(false)
   const [upgradeDiskSelected, setUpgradeDiskSelected] = useState(false)
-  const [simplifiedForm, setSimplifiedForm] = useState(!currentRuntimeDetails)
   const [leoImages, setLeoImages] = useState([])
   const [selectedLeoImage, setSelectedLeoImage] = useState(undefined)
   const [timeoutInMinutes, setTimeoutInMinutes] = useState(null)
@@ -226,7 +225,7 @@ export const ComputeModalBase = ({
     _.filter(({ id }) => terraSupportedRuntimeImageIds.includes(id)),
     _.map(({ image }) => image)
   )(leoImages)
-  const { version, updated, packages, requiresSpark, label: packageLabel } = _.find({ image: selectedLeoImage }, leoImages) || {}
+  const { version, updated, packages, requiresSpark } = _.find({ image: selectedLeoImage }, leoImages) || {}
   // The memory sizes below are the minimum required to launch Terra-supported GCP runtimes, based on experimentation.
   const minRequiredMemory = isDataproc(runtimeType) ? 7.5 : 3.75 // in GB
   const validMachineTypes = _.filter(({ memory }) => memory >= minRequiredMemory, machineTypes)
@@ -641,7 +640,7 @@ export const ComputeModalBase = ({
       ..._.mapKeys(key => `desiredPersistentDisk_${key}`, desiredPersistentDisk),
       desiredPersistentDisk_costPerMonth: (desiredPersistentDisk && getPersistentDiskCostMonthly(getPendingDisk(), computeConfig.computeRegion)),
       ..._.mapKeys(key => `existingPersistentDisk_${key}`, existingPersistentDisk),
-      isDefaultConfig: !!simplifiedForm
+      isDefaultConfig: !currentRuntimeDetails
     })
   }
 
@@ -1619,7 +1618,6 @@ export const ComputeModalBase = ({
 
   const renderMainForm = () => {
     const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
-    const { cpu, memory } = findMachineType(mainMachineType)
     const renderTitleAndTagline = () => {
       return h(Fragment, [
         h(TitleBar, {
@@ -1629,7 +1627,14 @@ export const ComputeModalBase = ({
           hideCloseButton: shouldHideCloseButton,
           onDismiss
         }),
-        div(['A cloud environment consists of application configuration, cloud compute and persistent disk(s).'])
+        div(['A cloud environment consists of application configuration, cloud compute and persistent disk(s).']),
+        h(TitleBar, {
+            id: 'compute-modal-subtitle-label',
+            style: { marginTop: '0.5rem', marginBottom: '0.5rem' },
+            title: 'Cost based on settings below',
+            hideCloseButton: shouldHideCloseButton,
+            onDismiss
+        }),
       ])
     }
     const renderBottomButtons = () => {
@@ -1644,61 +1649,11 @@ export const ComputeModalBase = ({
           )
         ]),
         div({ style: { flex: 1 } }),
-        !simplifiedForm && renderActionButton()
+        renderActionButton()
       ])
     }
-    const renderDiskText = () => {
-      return span({ style: { fontWeight: 600 } }, [computeConfig.selectedPersistentDiskSize, ' GB persistent disk'])
-    }
 
-    return simplifiedForm ?
-      div({ style: computeStyles.drawerContent }, [
-        renderTitleAndTagline(),
-        div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
-          div({ style: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' } }, [
-            div({ style: { marginRight: '2rem' } }, [
-              div({ style: { fontSize: 16, fontWeight: 600 } }, ['Use default environment']),
-              ul({ style: { paddingLeft: '1rem', marginBottom: 0, lineHeight: 1.5 } }, [
-                li([
-                  div([packageLabel, h(ClipboardButton, {
-                    text: selectedLeoImage,
-                    style: { marginLeft: '0.5rem' },
-                    tooltip: 'Copy the image version'
-                  })]),
-                  h(Link, { onClick: () => setViewMode('packages') }, ['What’s installed on this environment?'])
-                ]),
-                li({ style: { marginTop: '1rem' } }, [
-                  'Compute profile: ', span({ style: { fontWeight: 600 } }, [cpu, ' CPU(s)']), ', ',
-                  span({ style: { fontWeight: 600 } }, [memory, ' GB memory']), ', and ',
-                  existingPersistentDisk ?
-                    h(Fragment, ['your existing ', renderDiskText(), '.']) :
-                    h(Fragment, ['a ', renderDiskText(), '.']),
-                  div([h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent Disks.'])])
-                ]),
-                li({ style: { marginTop: '1rem' } }, [
-                  'Region: This cloud environment will be created in the region ',
-                  strong([computeConfig.computeRegion.toLowerCase()]), '. ',
-                  'Copying data from a bucket in a different region may incur network egress charges. ',
-                  'Network egress charges are not accounted for in cost estimates. ',
-                  div([h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
-                    'Learn more about Regionality.'
-                  ])])
-                ])
-              ])
-            ]),
-            renderActionButton()
-          ]),
-          renderCostBreakdown()
-        ]),
-        div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
-          div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
-            div({ style: { fontSize: 16, fontWeight: 600 } }, ['Create custom environment']),
-            h(ButtonOutline, { onClick: () => setSimplifiedForm(false) }, ['Customize'])
-          ])
-        ]),
-        renderBottomButtons()
-      ]) :
-      h(Fragment, [
+    return h(Fragment, [
         div({ style: { padding: '1.5rem', borderBottom: `1px solid ${colors.dark(0.4)}` } }, [
           renderTitleAndTagline(),
           renderCostBreakdown()
