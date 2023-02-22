@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { forwardRef, memo, useEffect, useRef, useState } from 'react'
+import { EffectCallback, forwardRef, memo, useEffect, useRef, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { safeCurry } from 'src/libs/type-utils/lodash-fp-helpers'
 import { delay, pollWithCancellation } from 'src/libs/utils'
@@ -10,12 +10,12 @@ import { delay, pollWithCancellation } from 'src/libs/utils'
  * React's hooks eslint plugin flags [] because it's a common mistake. However, sometimes this is
  * exactly the right thing to do. This function makes the intention clear and avoids the lint error.
  */
-export const useOnMount = fn => {
+export const useOnMount = (fn: EffectCallback) => {
   useEffect(fn, []) // eslint-disable-line react-hooks/exhaustive-deps
 }
 
-export const usePrevious = value => {
-  const ref = useRef()
+export const usePrevious = <T>(value: T): T | undefined => {
+  const ref = useRef<T>()
 
   useEffect(() => {
     ref.current = value
@@ -28,18 +28,18 @@ export const usePrevious = value => {
  * Given a value that changes over time, returns a getter function that reads the current value.
  * Useful for asynchronous processes that need to read the current value of e.g. props or state.
  */
-export const useGetter = value => {
-  const ref = useRef()
+export const useGetter = <T>(value: T): () => T => {
+  const ref = useRef<T>()
   ref.current = value
-  return () => ref.current
+  return () => ref.current!
 }
 
 /**
  * Calls the provided function to produce and return a value tied to this component instance.
  * The initializer function is only called once for each component instance, on first render.
  */
-export const useInstance = fn => {
-  const ref = useRef()
+export const useInstance = <T>(fn: () => T): T => {
+  const ref = useRef<T>()
   if (!ref.current) {
     ref.current = fn()
   }
@@ -50,7 +50,12 @@ export const useUniqueId = () => {
   return useInstance(() => _.uniqueId('unique-id-'))
 }
 
-export const useCancelable = () => {
+type UseCancelableResult = {
+  signal: AbortSignal
+  abort: () => void
+}
+
+export const useCancelable = (): UseCancelableResult => {
   const [controller, setController] = useState(new window.AbortController())
 
   // Abort it automatically in the destructor
@@ -67,12 +72,11 @@ export const useCancelable = () => {
   }
 }
 
-// TODO: properly type
-export const useCancellation = () => {
-  const controller: any = useRef()
+export const useCancellation = (): AbortSignal => {
+  const controller = useRef<AbortController>()
   useOnMount(() => {
-    const instance: any = controller.current
-    return () => instance.abort()
+    const instance = controller.current
+    return () => instance!.abort()
   })
   if (!controller.current) {
     controller.current = new window.AbortController()
@@ -148,6 +152,17 @@ export const useStore = theStore => {
   return value
 }
 
+type UseLabelAssertOptions = {
+  allowContent?: boolean
+  allowId?: boolean
+  allowLabelledBy?: boolean
+  allowTooltip?: boolean
+  'aria-label'?: string
+  'aria-labelledby'?: string
+  id?: string
+  tooltip?: string
+}
+
 /**
  * Asserts that a component has an accessible label, and alerts the developer how to fix it if it doesn't.
  *
@@ -161,10 +176,18 @@ export const useStore = theStore => {
  * @param [id]: Optional: The ID of the component if allowId is true
  * @param [tooltip] Optional: The tooltip provided to the component if allowTooltip is true
  */
-export const useLabelAssert = (componentName, {
-  allowLabelledBy = true, allowId = false, allowTooltip = false, allowContent = false,
-  'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledBy, id, tooltip
-}) => {
+export const useLabelAssert = (componentName: string, options: UseLabelAssertOptions) => {
+  const {
+    allowContent = false,
+    allowId = false,
+    allowLabelledBy = true,
+    allowTooltip = false,
+    'aria-label': ariaLabel,
+    'aria-labelledby': ariaLabelledBy,
+    id,
+    tooltip,
+  } = options
+
   const printed = useRef(false)
 
   if (!printed.current) {
