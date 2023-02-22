@@ -773,17 +773,17 @@ describe('ComputeModal', () => {
     })
   })
 
-  // // click learn more about persistent disk //TODO: enable after IA-4024
-  // it('should render learn more about persistent disks', () => {
-  //   // Act
-  //   render(h(ComputeModalBase, defaultModalProps))
-  //   const link = screen.getByText('Learn more about persistent disks and where your disk is mounted.')
-  //   userEvent.click(link)
+  // click learn more about persistent disk
+  it('should render learn more about persistent disks', async () => {
+    // Act
+    render(h(ComputeModalBase, defaultModalProps))
+    const link = screen.getByText('Learn more about persistent disks and where your disk is mounted.')
+    await userEvent.click(link)
 
-  //   // Assert
-  //   screen.getByText('About persistent disk')
-  //   screen.getByText(/Your persistent disk is mounted in the directory/)
-  // })
+    // Assert
+    screen.getByText('About persistent disk')
+    screen.getByText(/Your persistent disk is mounted in the directory/)
+  })
 
   it.each([
     { tool: runtimeTools.Jupyter },
