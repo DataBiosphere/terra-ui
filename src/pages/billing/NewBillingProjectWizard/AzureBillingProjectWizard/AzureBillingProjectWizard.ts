@@ -31,7 +31,7 @@ export const userInfoListToProjectAccessObjects = (emails: string, role: Billing
 
 export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWizardProps) => {
   const [activeStep, setActiveStep] = useState<number>(1)
-  const [subscriptionId, setSubscriptionId] = useState<string>('')
+  const [subscriptionId, setSubscriptionId] = useState<string>()
   // undefined used to indicate that the user has not yet typed in the input (don't want to show error)
   const [billingProjectName, setBillingProjectName] = useState<string|undefined>(undefined)
   const [userEmails, setUserEmails] = useState({ emails: '', hasError: false })
@@ -124,8 +124,6 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
       },
       managedApp,
       onManagedAppSelected,
-      isBusy,
-      setIsBusy
     }),
     h(AddUsersStep, {
       userEmails: userEmails.emails,
@@ -158,7 +156,7 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
       isActive: activeStep === 2
     }),
     h(CreateNamedProjectStep, {
-      billingProjectName: billingProjectName !== undefined ? billingProjectName : '',
+      billingProjectName: billingProjectName ?? '',
       onBillingProjectNameChanged: billingProjectName => {
         setBillingProjectName(billingProjectName)
       },

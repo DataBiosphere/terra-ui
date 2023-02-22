@@ -1,9 +1,10 @@
 import _ from 'lodash/fp'
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { ReactNode, useEffect, useRef, useState } from 'react'
 import { div, h, p } from 'react-hyperscript-helpers'
-import { Link, Select, useUniqueId } from 'src/components/common'
+import { customSpinnerOverlay, Link, Select, useUniqueId } from 'src/components/common'
 import { ValidatedInputWithRef } from 'src/components/input'
 import { Ajax } from 'src/libs/ajax'
+import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData'
 import { useCancellation } from 'src/libs/react-utils'
 import { summarizeErrors } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
@@ -26,12 +27,10 @@ import { validate } from 'validate.js'
 
 type AzureSubscriptionStepProps = {
   isActive: boolean
-  subscriptionId?: string
+  subscriptionId?: string // undefined indicates the value hasn't been changed by the user yet
   onSubscriptionIdChanged: (string, boolean) => void
   managedApp?: AzureManagedAppCoordinates
   onManagedAppSelected: (AzureManagedAppCoordinates) => void
-  isBusy?: boolean
-  setIsBusy: (boolean) => void
 }
 
 const managedAppsToOptions = (apps: AzureManagedAppCoordinates[]) => _.map(application => {
@@ -48,65 +47,49 @@ validate.validators.type.types.uuid = value => validateUuid(value)
 // @ts-ignore
 validate.validators.type.messages.uuid = 'must be a UUID'
 
-export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: AzureSubscriptionStepProps) => {
-  const [managedApps, setManagedApps] = useState<AzureManagedAppCoordinates[]>([])
-  const [errorFetchingManagedApps, setErrorFetchingManagedApps] = useState<boolean|undefined>(undefined)
-  const [subscriptionIdTouched, setSubscriptionIdTouched] = useState(false)
 
-  const subscriptionIdInput = useRef<any>()
+export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: AzureSubscriptionStepProps) => {
+  const [subscriptionIdError, setSubscriptionIdError] = useState<ReactNode>()
+  const [managedApps, setManagedApps] = useLoadedData<AzureManagedAppCoordinates[]>({
+    onError: state => {
+      // We can't rely on the formatting of the error, so show a generic message but include the error in the console for debugging purposes.
+      if (state.error instanceof Response) {
+        state.error.text().then(console.error)
+      } else {
+        console.error(state.error)
+      }
+    }
+  })
+  const subscriptionIdInput = useRef<HTMLInputElement>()
   const subscriptionInputId = useUniqueId()
   const appSelectId = useUniqueId()
-
   const signal = useCancellation()
 
-  const getSubscriptionIdErrors = subscriptionId => validate({ subscriptionId }, { subscriptionId: { type: 'uuid' } })
-  const subscriptionIdErrors = getSubscriptionIdErrors(subscriptionId)
-  const isValidSubscriptionId = !!subscriptionId && !subscriptionIdErrors
-
-  useEffect(() => {
-    if (isValidSubscriptionId) {
-      const fetchManagedApps = Utils.withBusyState(props.setIsBusy,
-        async () => {
-          try {
-            const managedApps = await Ajax(signal).Billing.listAzureManagedApplications(subscriptionId, false)
-            setManagedApps(managedApps.managedApps)
-            setErrorFetchingManagedApps(false)
-          } catch (obj) {
-            setErrorFetchingManagedApps(true)
-            // We can't rely on the formatting of the error, so show a generic message but include the error in the console for debugging purposes.
-            const error = await (obj instanceof Response ? obj.text() : obj)
-            console.error(error)
-          }
-        }
-      )
-      fetchManagedApps()
-    }
-  }, [isValidSubscriptionId, subscriptionId, signal, props.setIsBusy])
+  const getSubscriptionIdErrors = subscriptionId => subscriptionId !== undefined && validate({ subscriptionId }, { subscriptionId: { type: 'uuid' } })
 
   useEffect(() => {
     // setTimeout necessary because of UIE-73.
     setTimeout(() => subscriptionIdInput.current?.focus(), 0)
   }, [])
 
-  const subscriptionIdError = Utils.cond(
-    [subscriptionIdTouched && !isValidSubscriptionId, () => summarizeErrors(subscriptionIdErrors?.subscriptionId)],
-    [isValidSubscriptionId && managedApps.length === 0 && !props.isBusy, () => h(Fragment, [
-      div({ key: 'message' }, ['No Terra Managed Applications exist for that subscription. ',
-        h(Link, {
-          href: 'https://portal.azure.com/#view/Microsoft_Azure_Marketplace/MarketplaceOffersBlade/selectedMenuItemId/home',
-          ...Utils.newTabLinkProps
-        }, ['Go to the Azure Marketplace']),
-        ' to create a Terra Managed Application.'])
-    ])],
-    [Utils.DEFAULT, () => undefined]
-  )
+  useEffect(() => {
+    const subscriptionIdErrors = getSubscriptionIdErrors(subscriptionId)?.subscriptionId
+    if (!!subscriptionIdErrors) {
+      setSubscriptionIdError(summarizeErrors(subscriptionIdErrors))
+    } else if (!!subscriptionId) {
+      setManagedApps(async () => {
+        setSubscriptionIdError(undefined)
+        const response = await Ajax(signal).Billing.listAzureManagedApplications(subscriptionId, false)
+        const managedApps = response.managedApps
+        if (managedApps.length === 0) {
+          setSubscriptionIdError(h(NoManagedApps))
+        }
+        return managedApps
+      })
+    }
+  }, [subscriptionId, setManagedApps, signal])
 
-  const subscriptionIdChanged = v => {
-    setErrorFetchingManagedApps(undefined)
-    setManagedApps([])
-    props.onSubscriptionIdChanged(v, getSubscriptionIdErrors(v))
-    setSubscriptionIdTouched(true)
-  }
+  const subscriptionIdChanged = v => props.onSubscriptionIdChanged(v, !!getSubscriptionIdErrors(v))
 
   return h(Step, { isActive, style: { minHeight: '18rem', paddingBottom: '0.5rem' } }, [
     h(StepHeader, { title: 'STEP 1' }),
@@ -128,7 +111,7 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
               id: subscriptionInputId,
               placeholder: 'Azure Subscription ID',
               onChange: subscriptionIdChanged,
-              value: subscriptionId,
+              value: subscriptionId ?? '',
             },
             ref: subscriptionIdInput,
             error: subscriptionIdError
@@ -143,16 +126,23 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
             id: appSelectId,
             placeholder: 'Select a managed application',
             isMulti: false,
-            isDisabled: errorFetchingManagedApps !== false || !!subscriptionIdError,
+            isDisabled: managedApps.status !== 'Ready' || !!subscriptionIdError,
             value: props.managedApp,
             onChange: ({ value }) => {
               props.onManagedAppSelected(value)
             },
-            options: managedAppsToOptions(managedApps)
+            options: managedAppsToOptions(managedApps.status === 'Ready' ? managedApps.state : [])
           }),
         ])
       ])
-    ])
+    ]),
+    managedApps.status === 'Loading' && customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'absolute' })
   ])
 }
 
+const NoManagedApps = () => div({ key: 'message' }, ['No Terra Managed Applications exist for that subscription. ',
+  h(Link, {
+    href: 'https://portal.azure.com/#view/Microsoft_Azure_Marketplace/MarketplaceOffersBlade/selectedMenuItemId/home',
+    ...Utils.newTabLinkProps
+  }, ['Go to the Azure Marketplace']),
+  ' to create a Terra Managed Application.'])
