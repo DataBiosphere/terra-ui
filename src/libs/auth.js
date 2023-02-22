@@ -320,10 +320,12 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
 authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     const tosComplianceStatus = await Ajax().User.getTermsOfServiceComplianceStatus()
+    // If the user is now logged in, but there's no ToS status from Sam,
+    // then they haven't accepted it yet and Sam hasn't caught up.
     const termsOfService = _.isNull(tosComplianceStatus) ?
       {
-        userHasAcceptedLatestTos: undefined,
-        permitsSystemUsage: undefined,
+        userHasAcceptedLatestTos: false,
+        permitsSystemUsage: false,
       } : tosComplianceStatus
     authStore.update(state => ({ ...state, termsOfService }))
   }
