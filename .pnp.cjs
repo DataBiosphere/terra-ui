@@ -85,7 +85,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["iframe-resizer", "npm:4.3.2"],\
             ["igv", "npm:2.11.2"],\
             ["jest-axe", "npm:6.0.0"],\
-            ["jszip", "npm:3.7.1"],\
+            ["jszip", "npm:3.10.1"],\
             ["jwt-decode", "npm:3.1.2"],\
             ["lint-staged", "npm:13.0.3"],\
             ["lodash", "npm:4.17.21"],\
@@ -12788,14 +12788,14 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["jszip", [\
-        ["npm:3.7.1", {\
-          "packageLocation": "./.yarn/cache/jszip-npm-3.7.1-4ec3dbc6c4-67d737a82b.zip/node_modules/jszip/",\
+        ["npm:3.10.1", {\
+          "packageLocation": "./.yarn/cache/jszip-npm-3.10.1-2862546cfb-abc77bfbe3.zip/node_modules/jszip/",\
           "packageDependencies": [\
-            ["jszip", "npm:3.7.1"],\
+            ["jszip", "npm:3.10.1"],\
             ["lie", "npm:3.3.0"],\
             ["pako", "npm:1.0.11"],\
             ["readable-stream", "npm:2.3.7"],\
-            ["set-immediate-shim", "npm:1.0.1"]\
+            ["setimmediate", "npm:1.0.5"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -18108,15 +18108,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
-      ["set-immediate-shim", [\
-        ["npm:1.0.1", {\
-          "packageLocation": "./.yarn/cache/set-immediate-shim-npm-1.0.1-f1ac810b1a-5085c84039.zip/node_modules/set-immediate-shim/",\
-          "packageDependencies": [\
-            ["set-immediate-shim", "npm:1.0.1"]\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
       ["setimmediate", [\
         ["npm:1.0.5", {\
           "packageLocation": "./.yarn/cache/setimmediate-npm-1.0.5-54587459b6-c9a6f2c5b5.zip/node_modules/setimmediate/",\
@@ -19175,7 +19166,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["iframe-resizer", "npm:4.3.2"],\
             ["igv", "npm:2.11.2"],\
             ["jest-axe", "npm:6.0.0"],\
-            ["jszip", "npm:3.7.1"],\
+            ["jszip", "npm:3.10.1"],\
             ["jwt-decode", "npm:3.1.2"],\
             ["lint-staged", "npm:13.0.3"],\
             ["lodash", "npm:4.17.21"],\
