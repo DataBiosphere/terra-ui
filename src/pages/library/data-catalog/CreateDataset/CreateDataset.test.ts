@@ -4,8 +4,12 @@ import { h } from 'react-hyperscript-helpers'
 import { CreateDataset } from 'src/pages/library/data-catalog/CreateDataset/CreateDataset'
 
 
-jest.mock('src/libs/nav')
-
+type NavExports = typeof import('src/libs/nav')
+jest.mock('src/libs/nav', (): Partial<NavExports> => ({
+  getCurrentUrl: jest.fn().mockReturnValue(new URL('https://app.terra.bio')),
+  getLink: jest.fn(),
+  goToPath: jest.fn(),
+}))
 
 describe('CreateDataset', () => {
   it('Prepopulates storage system', async () => {
