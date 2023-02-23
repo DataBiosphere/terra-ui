@@ -1,7 +1,15 @@
 import { getEnabledBrand, isBrand } from 'src/libs/brand-utils'
 import { BrandConfiguration, brands, defaultBrand } from 'src/libs/brands'
+import { getCurrentUrl } from 'src/libs/nav'
 import { configOverridesStore } from 'src/libs/state'
+import { asMockedFn } from 'src/testing/test-utils'
 
+
+type NavExports = typeof import('src/libs/nav')
+jest.mock('src/libs/nav', (): NavExports => ({
+  ...jest.requireActual('src/libs/nav'),
+  getCurrentUrl: jest.fn(),
+}))
 
 describe('brand-utils', () => {
   const testBrand: BrandConfiguration = {
@@ -17,22 +25,10 @@ describe('brand-utils', () => {
     },
   }
 
-  let originalLocation
-
-  beforeAll(() => {
-    originalLocation = window.location
-    // @ts-expect-error
-    delete window.location
-  })
-
-  afterAll(() => {
-    window.location = originalLocation
-  })
-
   describe('isBrand', () => {
     it('returns true if hostname matches brand', () => {
       // Arrange
-      window.location = new URL('https://testbrand.terra.bio/path/to/page') as unknown as Location
+      asMockedFn(getCurrentUrl).mockReturnValue(new URL('https://testbrand.terra.bio/path/to/page'))
 
       // Act
       const isTestBrand = isBrand(testBrand)
@@ -43,7 +39,7 @@ describe('brand-utils', () => {
 
     it('returns false if hostname does not match brand', () => {
       // Arrange
-      window.location = new URL('https://app.terra.bio/path/to/page') as unknown as Location
+      asMockedFn(getCurrentUrl).mockReturnValue(new URL('https://app.terra.bio/path/to/page'))
 
       // Act
       const isTestBrand = isBrand(testBrand)
@@ -58,7 +54,7 @@ describe('brand-utils', () => {
       ['staging']
     ])('returns true if hostname matches %s subdomain of brand hostname', tier => {
       // Arrange
-      window.location = new URL(`https://${tier}.testbrand.terra.bio/path/to/page`) as unknown as Location
+      asMockedFn(getCurrentUrl).mockReturnValue(new URL(`https://${tier}.testbrand.terra.bio/path/to/page`))
 
       // Act
       const isTestBrand = isBrand(testBrand)
@@ -90,7 +86,7 @@ describe('brand-utils', () => {
     it('returns brand based on hostname when an invalid brand is forced', () => {
       // Arrange
       configOverridesStore.set({ brand: 'invalidBrand' })
-      window.location = new URL('https://anvil.terra.bio/path/to/page') as unknown as Location
+      asMockedFn(getCurrentUrl).mockReturnValue(new URL('https://anvil.terra.bio/path/to/page'))
 
       // Act
       const enabledBrand = getEnabledBrand()
@@ -101,7 +97,7 @@ describe('brand-utils', () => {
 
     it('returns default brand when hostname-based brand is invalid', () => {
       // Arrange
-      window.location = new URL('https://invalid-brand.terra.bio/path/to/page') as unknown as Location
+      asMockedFn(getCurrentUrl).mockReturnValue(new URL('https://invalid-brand.terra.bio/path/to/page'))
 
       // Act
       const enabledBrand = getEnabledBrand()

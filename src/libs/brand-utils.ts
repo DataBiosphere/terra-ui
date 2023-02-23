@@ -1,10 +1,12 @@
 import _ from 'lodash/fp'
 import { BrandConfiguration, brands, defaultBrand } from 'src/libs/brands'
 import { getConfig } from 'src/libs/config'
+import { getCurrentUrl } from 'src/libs/nav'
 
 
 export const isBrand = (brand: BrandConfiguration): boolean => {
-  return new RegExp(`^((dev|alpha|staging)\\.)?${brand.hostName}$`).test(window.location.hostname)
+  const currentHostname = getCurrentUrl().hostname
+  return new RegExp(`^((dev|alpha|staging)\\.)?${brand.hostName}$`).test(currentHostname)
 }
 
 export const getEnabledBrand = (): BrandConfiguration => {

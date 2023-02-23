@@ -72,6 +72,10 @@ export const LocationProvider = ({ children }) => {
   return h(locationContext.Provider, { value: location }, [children])
 }
 
+export const getCurrentUrl = () => {
+  return new URL(window.location.href)
+}
+
 export const getCurrentRoute = () => {
   return parseRoute(routeHandlersStore.get(), history.location)
 }
