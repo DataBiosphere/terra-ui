@@ -11,7 +11,9 @@ export type FocusTrapperProps = FocusLockProps & {
   onBreakout: () => void
 }
 
-export const FocusTrapper = ({ children, onBreakout, ...props }: FocusTrapperProps) => {
+export const FocusTrapper = (props: FocusTrapperProps) => {
+  const { children, onBreakout, ...otherProps } = props
+
   return h(FocusLock, {
     returnFocus: true,
     lockProps: _.merge({
@@ -23,6 +25,6 @@ export const FocusTrapper = ({ children, onBreakout, ...props }: FocusTrapperPro
           e.stopPropagation()
         }
       }
-    }, props)
+    }, otherProps)
   }, [children])
 }
