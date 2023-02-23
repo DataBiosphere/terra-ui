@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h2, label } from 'react-hyperscript-helpers'
-import { IdContainer, spinnerOverlay } from 'src/components/common'
+import { DeleteConfirmationModal, IdContainer, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
@@ -41,6 +41,7 @@ const styles = {
 
 export const ImportWorkflow = ({ path, version, source }) => {
   const [isBusy, setIsBusy] = useState(false)
+  const [confirmOverwriteInWorkspace, setConfirmOverwriteInWorkspace] = useState()
   const [workflowName, setWorkflowName] = useState(_.last(path.split('/')))
 
   const { wdl, status: wdlStatus } = useDockstoreWdl({ path, version, isTool: source === 'dockstoretools' })
@@ -48,21 +49,26 @@ export const ImportWorkflow = ({ path, version, source }) => {
   const doImport = _.flow(
     Utils.withBusyState(setIsBusy),
     withErrorReporting('Error importing workflow'),
-  )(async workspace => {
+  )(async (workspace, options = {}) => {
     const { name, namespace } = workspace
     const eventData = { source, ...extractWorkspaceDetails(workspace) }
 
+    setConfirmOverwriteInWorkspace(undefined)
     try {
       await importDockstoreWorkflow({
         workspace,
         workflow: { path, version, source },
         workflowName
-      })
+      }, options)
       Ajax().Metrics.captureEvent(Events.workflowImport, { ...eventData, success: true })
       Nav.goToPath('workflow', { namespace, name, workflowNamespace: namespace, workflowName })
     } catch (error) {
-      Ajax().Metrics.captureEvent(Events.workflowImport, { ...eventData, success: false })
-      throw error
+      if (error.status === 409) {
+        setConfirmOverwriteInWorkspace(workspace)
+      } else {
+        Ajax().Metrics.captureEvent(Events.workflowImport, { ...eventData, success: false })
+        throw error
+      }
     }
   })
 
@@ -102,10 +108,23 @@ export const ImportWorkflow = ({ path, version, source }) => {
       h(IdContainer, [
         id => h(Fragment, [
           label({ htmlFor: id, style: { ...styles.title, paddingTop: '2rem' } }, ['Destination Workspace']),
-          h(WorkspaceImporter, { id, onImport: doImport, additionalErrors: errors })
+          h(WorkspaceImporter, {
+            additionalErrors: errors,
+            id,
+            onImport: workspace => doImport(workspace, { overwrite: false }),
+          })
         ])
       ]),
       (wdlStatus === 'Loading' || isBusy) && spinnerOverlay
+    ]),
+
+    !!confirmOverwriteInWorkspace && h(DeleteConfirmationModal, {
+      title: 'Overwrite existing workflow?',
+      buttonText: 'Overwrite',
+      onConfirm: () => doImport(confirmOverwriteInWorkspace, { overwrite: true }),
+      onDismiss: () => setConfirmOverwriteInWorkspace(undefined),
+    }, [
+      `The selected workspace already contains a workflow named "${workflowName}". Are you sure you want to overwrite it?`,
     ])
   ])
 }

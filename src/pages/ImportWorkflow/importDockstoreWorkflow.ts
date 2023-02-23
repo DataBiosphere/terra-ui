@@ -15,7 +15,14 @@ type ImportDockstoreWorkflowArgs = {
   workflowName: string
 }
 
-export const importDockstoreWorkflow = async ({ workspace, workflow, workflowName }: ImportDockstoreWorkflowArgs) => {
+type ImportDockstoreWorkflowOptions = {
+  overwrite?: boolean
+}
+
+export const importDockstoreWorkflow = async (
+  { workspace, workflow, workflowName }: ImportDockstoreWorkflowArgs,
+  { overwrite = false }: ImportDockstoreWorkflowOptions = {},
+) => {
   const { name, namespace } = workspace
   const { path, version, source } = workflow
 
@@ -30,6 +37,16 @@ export const importDockstoreWorkflow = async ({ workspace, workflow, workflowNam
         sourceRepo: source,
       }
     }),
+    // If overwrite is true, attempt to delete any existing workflow with the given name.
+    // Do not error if no such workflow exists.
+    overwrite ?
+      workspaceApi.methodConfig(namespace, workflowName).delete().catch(err => {
+        if ((err as Response).status === 404) {
+          return
+        } else {
+          throw err
+        }
+      }) : Promise.resolve()
   ])
 
   const defaultOutputConfiguration = _.flow(

@@ -149,7 +149,57 @@ describe('ImportWorkflow', () => {
       expect.objectContaining({
         workspace: expect.objectContaining({ namespace: 'test', name: 'workspace1' }),
         workflow: testWorkflow,
-      })
+      }),
+      { overwrite: false },
     )
+  })
+
+  it('confirms overwrite if workflow already exists', async () => {
+    // Arrange
+    const user = userEvent.setup()
+
+    asMockedFn(importDockstoreWorkflow).mockRejectedValueOnce(new Response('{}', { status: 409 }))
+
+    const testWorkflow = {
+      path: 'github.com/DataBiosphere/test-workflows/test-workflow',
+      version: 'v1.0.0',
+      source: 'dockstore',
+    }
+
+    render(h(ImportWorkflow, { ...testWorkflow }))
+
+    // Act
+    const workspaceMenu = screen.getByLabelText('Destination Workspace')
+    await user.click(workspaceMenu)
+    const option = screen.getAllByRole('option').find(el => el.textContent === 'workspace1')!
+    await user.click(option)
+
+    const importButton = screen.getByText('Import')
+    await act(() => user.click(importButton))
+    const firstImportDockstoreWorkflowCallArgs = asMockedFn(importDockstoreWorkflow).mock.calls[0]
+
+    const confirmationMessageShown = !!screen.queryByText('The selected workspace already contains a workflow named "test-workflow". Are you sure you want to overwrite it?')
+    const confirmButton = screen.getByText('Overwrite')
+    await act(() => user.click(confirmButton))
+    const secondImportDockstoreWorkflowCallArgs = asMockedFn(importDockstoreWorkflow).mock.calls[1]
+
+    // Assert
+    expect(firstImportDockstoreWorkflowCallArgs).toEqual([
+      expect.objectContaining({
+        workspace: expect.objectContaining({ namespace: 'test', name: 'workspace1' }),
+        workflow: testWorkflow,
+      }),
+      { overwrite: false },
+    ])
+
+    expect(confirmationMessageShown).toBe(true)
+
+    expect(secondImportDockstoreWorkflowCallArgs).toEqual([
+      expect.objectContaining({
+        workspace: expect.objectContaining({ namespace: 'test', name: 'workspace1' }),
+        workflow: testWorkflow,
+      }),
+      { overwrite: true },
+    ])
   })
 })
