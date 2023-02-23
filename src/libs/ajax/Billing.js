@@ -30,7 +30,12 @@ export const Billing = signal => ({
     // members: an array of {email: string, role: string}
     return await fetchRawls('billing/v2',
       _.mergeAll([authOpts(), jsonBody(
-        { projectName, managedAppCoordinates: { tenantId, subscriptionId, managedResourceGroupId }, members }
+        {
+          projectName,
+          members,
+          managedAppCoordinates: { tenantId, subscriptionId, managedResourceGroupId },
+          inviteUsersNotFound: true
+        }
       ),
       { signal, method: 'POST' }])
     )
