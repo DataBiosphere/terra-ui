@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, br, code, div, fieldset, h, label, legend, p, span, strong } from 'react-hyperscript-helpers'
 import { ClipboardButton } from 'src/components/ClipboardButton'
-import { ButtonOutline, ButtonPrimary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay, useUniqueId } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
@@ -24,7 +24,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
-import { computeStyles, RadioBlock, SaveFilesHelp, SaveFilesHelpRStudio } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
+import { RadioBlock, SaveFilesHelp, SaveFilesHelpRStudio } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import {
   defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize,
   defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation,
@@ -34,6 +34,9 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { getToolLabelForImage, getToolLabelFromRuntime, runtimeTools, terraSupportedRuntimeImageIds, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import validate from 'validate.js'
+
+import { computeStyles } from './modalStyles'
+import { PersistentDiskSection } from './persistent-disk-controls.ts'
 
 // Change to true to enable a debugging panel (intended for dev mode only)
 const showDebugPanel = false
@@ -1658,7 +1661,7 @@ export const ComputeModalBase = ({
         div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
           renderApplicationConfigurationSection(),
           renderComputeProfileSection(existingRuntime),
-          !!isPersistentDisk && h(PersistentDiskSection, { diskExists: !!existingPersistentDisk }),
+          !!isPersistentDisk && h(PersistentDiskSection, { diskExists: !!existingPersistentDisk, computeConfig, updateComputeConfig, handleLearnMoreAboutPersistentDisk }),
           isGce(runtimeType) && !isPersistentDisk && div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
               'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
@@ -1716,67 +1719,6 @@ export const ComputeModalBase = ({
     ])
   }
 
-  const PersistentDiskSection = ({ diskExists }) => {
-    const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
-    const diskSizeId = useUniqueId()
-
-    const PersistentDiskType = () => {
-      const persistentDiskId = useUniqueId()
-  return (
-    h(div, [
-      label({ htmlFor: persistentDiskId, style: computeStyles.label }, ['Disk Type']),
-      div({ style: { marginTop: '0.5rem' } }, [
-      h(Select, {
-          id: persistentDiskId,
-          value: computeConfig.selectedPersistentDiskType,
-          isDisabled: diskExists,
-          onChange: ({ value }) => updateComputeConfig('selectedPersistentDiskType', value),
-          menuPlacement: 'auto',
-          options: [
-            { label: pdTypes.standard.displayName, value: pdTypes.standard },
-            { label: pdTypes.balanced.displayName, value: pdTypes.balanced },
-            { label: pdTypes.ssd.displayName, value: pdTypes.ssd }
-          ]
-        })
-      ])
-    ])
-    )
-  }
-    return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
-        h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
-          label({ style: computeStyles.label }, ['Persistent disk']),
-          div({ style: { marginTop: '0.5rem' } }, [
-            'Persistent disks store analysis data. ',
-            h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
-          ]),
-          div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
-            diskExists ?
-              h(TooltipTrigger, {
-                content: [
-                  'You already have a persistent disk in this workspace. ',
-                  'Disk type can only be configured at creation time. ',
-                  'Please delete the existing disk before selecting a new type.'
-                ],
-                side: 'bottom'
-              }, [h(PersistentDiskType)]) : h(PersistentDiskType),
-            h(div, [
-              label({ htmlFor: diskSizeId, style: computeStyles.label }, ['Disk Size (GB)']),
-              div({ style: { marginTop: '0.5rem' } }, [
-                h(NumberInput, {
-                  id: diskSizeId,
-                  min: 10,
-                  max: 64000,
-                  isClearable: false,
-                  onlyInteger: true,
-                  value: computeConfig.selectedPersistentDiskSize,
-                  onChange: updateComputeConfig('selectedPersistentDiskSize')
-                })
-              ])
-            ])
-          ])
-        ])
-    ])
-  }
   // Render functions -- end
 
   // Render

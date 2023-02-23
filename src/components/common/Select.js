@@ -94,6 +94,7 @@ const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
  * @param {boolean} [props.isClearable] - whether the select can be cleared
  * @param {boolean} [props.isSearchable] - whether the select can be cleared
  * @param {boolean} [props.isMulti] - whether the select is multiselect or not
+ * @param {string} [props.menuPlacement] - determines where the menu is placed
  * @param {Object} [props.styles] - custom styling for the select
  * @param {boolean} [props.isDisabled] - whether the select is disabled
  * @param {Function} [props.getOptionLabel] - a function to custom style the options
