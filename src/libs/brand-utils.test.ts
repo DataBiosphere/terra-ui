@@ -1,26 +1,41 @@
 import { getEnabledBrand, isBrand } from 'src/libs/brand-utils'
-import { brands, defaultBrand } from 'src/libs/brands'
+import { BrandConfiguration, brands, defaultBrand } from 'src/libs/brands'
+import { configOverridesStore } from 'src/libs/state'
 
 
 describe('brand-utils', () => {
-  let location
+  const testBrand: BrandConfiguration = {
+    name: 'Terra Test',
+    queryName: 'terra test',
+    welcomeHeader: 'Welcome to Terra Unit Tests',
+    description: 'This is only a test.',
+    hostName: 'testbrand.terra.bio',
+    docLinks: [],
+    logos: {
+      color: '',
+      white: '',
+    },
+  }
+
+  let originalLocation
 
   beforeAll(() => {
-    location = window.location
+    originalLocation = window.location
+    // @ts-expect-error
     delete window.location
   })
 
   afterAll(() => {
-    window.location = location
+    window.location = originalLocation
   })
 
   describe('isBrand', () => {
     it('returns true if hostname matches brand', () => {
       // Arrange
-      window.location = new URL('https://testbrand.terra.bio/path/to/page')
+      window.location = new URL('https://testbrand.terra.bio/path/to/page') as unknown as Location
 
       // Act
-      const isTestBrand = isBrand({ hostName: 'testbrand.terra.bio' })
+      const isTestBrand = isBrand(testBrand)
 
       // Assert
       expect(isTestBrand).toBe(true)
@@ -28,10 +43,10 @@ describe('brand-utils', () => {
 
     it('returns false if hostname does not match brand', () => {
       // Arrange
-      window.location = new URL('https://app.terra.bio/path/to/page')
+      window.location = new URL('https://app.terra.bio/path/to/page') as unknown as Location
 
       // Act
-      const isTestBrand = isBrand({ hostName: 'testbrand.terra.bio' })
+      const isTestBrand = isBrand(testBrand)
 
       // Assert
       expect(isTestBrand).toBe(false)
@@ -43,10 +58,10 @@ describe('brand-utils', () => {
       ['staging']
     ])('returns true if hostname matches %s subdomain of brand hostname', tier => {
       // Arrange
-      window.location = new URL(`https://${tier}.testbrand.terra.bio/path/to/page`)
+      window.location = new URL(`https://${tier}.testbrand.terra.bio/path/to/page`) as unknown as Location
 
       // Act
-      const isTestBrand = isBrand({ hostName: 'testbrand.terra.bio' })
+      const isTestBrand = isBrand(testBrand)
 
       // Assert
       expect(isTestBrand).toBe(true)
@@ -63,7 +78,7 @@ describe('brand-utils', () => {
 
     it('returns forced brand when a valid one is set', () => {
       // Arrange
-      window.configOverridesStore.set({ brand: 'rareX' })
+      configOverridesStore.set({ brand: 'rareX' })
 
       // Act
       const enabledBrand = getEnabledBrand()
@@ -74,8 +89,8 @@ describe('brand-utils', () => {
 
     it('returns brand based on hostname when an invalid brand is forced', () => {
       // Arrange
-      window.configOverridesStore.set({ brand: 'invalidBrand' })
-      window.location = new URL('https://anvil.terra.bio/path/to/page')
+      configOverridesStore.set({ brand: 'invalidBrand' })
+      window.location = new URL('https://anvil.terra.bio/path/to/page') as unknown as Location
 
       // Act
       const enabledBrand = getEnabledBrand()
@@ -86,7 +101,7 @@ describe('brand-utils', () => {
 
     it('returns default brand when hostname-based brand is invalid', () => {
       // Arrange
-      window.location = new URL('https://invalid-brand.terra.bio/path/to/page')
+      window.location = new URL('https://invalid-brand.terra.bio/path/to/page') as unknown as Location
 
       // Act
       const enabledBrand = getEnabledBrand()

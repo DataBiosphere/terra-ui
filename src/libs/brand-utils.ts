@@ -1,14 +1,14 @@
 import _ from 'lodash/fp'
-import { brands, defaultBrand } from 'src/libs/brands'
+import { BrandConfiguration, brands, defaultBrand } from 'src/libs/brands'
 import { getConfig } from 'src/libs/config'
 
 
-export const isBrand = brand => {
+export const isBrand = (brand: BrandConfiguration): boolean => {
   return new RegExp(`^((dev|alpha|staging)\\.)?${brand.hostName}$`).test(window.location.hostname)
 }
 
-export const getEnabledBrand = () => {
-  const forcedBrand = getConfig().brand
+export const getEnabledBrand = (): BrandConfiguration => {
+  const forcedBrand: string = getConfig().brand
 
   if (!!forcedBrand && _.has(forcedBrand, brands)) {
     return brands[forcedBrand]
@@ -21,10 +21,10 @@ export const getEnabledBrand = () => {
 
   const brandFromHostName = _.findKey(isBrand, brands)
 
-  return brands[brandFromHostName] ?? defaultBrand
+  return (brandFromHostName && brands[brandFromHostName]) || defaultBrand
 }
 
-export const pickBrandLogo = (color = false) => {
+export const pickBrandLogo = (color: boolean = false): string => {
   const { logos } = getEnabledBrand()
   return color ? logos.color : logos.white
 }

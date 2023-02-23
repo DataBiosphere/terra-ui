@@ -156,7 +156,7 @@ export const useDataCatalog = (): DataCatalog => {
   ], async (): Promise<void> => {
     const { result: datasets } = await Ajax(signal).Catalog.getDatasets()
     const dataCollectionsToInclude = getEnabledBrand().catalogDataCollectionsToInclude
-    const normList = prepareDatasetsForDisplay(datasets, dataCollectionsToInclude)
+    const normList = prepareDatasetsForDisplay(datasets, dataCollectionsToInclude || [])
 
     dataCatalogStore.set(normList)
   })
