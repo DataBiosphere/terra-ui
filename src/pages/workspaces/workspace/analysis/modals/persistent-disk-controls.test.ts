@@ -49,14 +49,14 @@ const updateComputeConfig = jest.fn()
 const defaultPersistentDiskProps = {
   diskExists: true,
   computeConfig: defaultIComputeConfig,
-  updateComputeConfig,
+  updateComputeConfig: () => updateComputeConfig, //we shouldn't be using curry, therefore we have to use this.
   handleLearnMoreAboutPersistentDisk: jest.fn(),
 }
 
 const defaultPersistentDiskTypeProps = {
   diskExists: true,
   computeConfig: defaultIComputeConfig,
-  updateComputeConfig,
+  updateComputeConfig: () => updateComputeConfig,
 }
 
 describe('compute-modal-component', () => {
@@ -94,7 +94,7 @@ describe('compute-modal-component', () => {
       await userEvent.click(dTypeNew)
 
       // Assert
-      expect(updateComputeConfig).toBeCalledWith('selectedPersistentDiskType')
+      expect(updateComputeConfig).toBeCalledWith({ displayName: 'Balanced', label: 'pd-balanced', regionToPricesName: 'monthlyBalancedDiskPrice' })
     })
   })
 
@@ -153,8 +153,7 @@ describe('compute-modal-component', () => {
       await userEvent.click(dTypeNew)
 
       // Assert
-      expect(updateComputeConfig).toBeCalledWith('selectedPersistentDiskSize')
-      expect(updateComputeConfig).toBeCalledWith('selectedPersistentDiskType')
+      expect(updateComputeConfig).toBeCalledWith({ displayName: 'Balanced', label: 'pd-balanced', regionToPricesName: 'monthlyBalancedDiskPrice' })
     })
   })
 })

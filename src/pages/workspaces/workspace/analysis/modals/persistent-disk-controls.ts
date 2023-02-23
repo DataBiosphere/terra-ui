@@ -53,8 +53,8 @@ export const PersistentDiskType = ({ diskExists, computeConfig, updateComputeCon
           id: persistentDiskId,
           value: computeConfig.selectedPersistentDiskType,
           isDisabled: diskExists,
-          onChange: updateComputeConfig('selectedPersistentDiskType'),
-          // menuPlacement: 'auto',
+          onChange: e => updateComputeConfig('selectedPersistentDiskType')(e.value),
+          menuPlacement: 'auto',
           options: [
             { label: pdTypes.standard.displayName, value: pdTypes.standard },
             { label: pdTypes.balanced.displayName, value: pdTypes.balanced },
