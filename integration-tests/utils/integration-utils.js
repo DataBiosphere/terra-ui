@@ -169,7 +169,12 @@ const fillInReplace = async (page, xpath, text) => {
 }
 
 const select = async (page, labelContains, text) => {
-  await click(page, input({ labelContains }))
+  const inputXpath = input({ labelContains })
+  await click(page, inputXpath)
+  // Some select menus have virtualized lists of options, so the desired option may not be present in
+  // the DOM if the full options list is shown. Search for the desired option to narrow down the list
+  // of options.
+  await fillInReplace(page, inputXpath, text)
   return click(page, `//div[starts-with(@id, "react-select-") and @role="option" and contains(normalize-space(.),"${text}")]`)
 }
 
