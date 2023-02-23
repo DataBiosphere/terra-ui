@@ -135,7 +135,7 @@ export const DatasetAccess = ({ dataset }: DatasetAccessProps) => {
 }
 
 
-export const prepareDatasetsForDisplay = (datasets: Dataset[], dataCollectionsToInclude: string[]): Dataset[] => _.filter(
+export const prepareDatasetsForDisplay = (datasets: Dataset[], dataCollectionsToInclude: string[] | undefined): Dataset[] => _.filter(
   dataCollectionsToInclude ?
     dataset => _.intersection(
       dataCollectionsToInclude,
@@ -156,7 +156,7 @@ export const useDataCatalog = (): DataCatalog => {
   ], async (): Promise<void> => {
     const { result: datasets } = await Ajax(signal).Catalog.getDatasets()
     const dataCollectionsToInclude = getEnabledBrand().catalogDataCollectionsToInclude
-    const normList = prepareDatasetsForDisplay(datasets, dataCollectionsToInclude || [])
+    const normList = prepareDatasetsForDisplay(datasets, dataCollectionsToInclude)
 
     dataCatalogStore.set(normList)
   })
