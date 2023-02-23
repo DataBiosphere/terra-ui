@@ -74,7 +74,7 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
 
   const subscriptionIdChanged = v => props.onSubscriptionIdChanged(v, !!getSubscriptionIdErrors(v))
 
-
+  // this is done in a useEffect instead of just calculating from props to debounce the input validation
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       const subscriptionIdErrors = getSubscriptionIdErrors(subscriptionId)?.subscriptionId

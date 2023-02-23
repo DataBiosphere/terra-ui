@@ -1,5 +1,5 @@
 import pluralize from 'pluralize'
-import { ReactNode, useState } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import { div, h, p } from 'react-hyperscript-helpers'
 import { useUniqueId } from 'src/components/common'
 import { ValidatedInput } from 'src/components/input'
@@ -36,6 +36,16 @@ interface EmailInputProps {
 
 const EmailInput = (props: EmailInputProps) => {
   const inputId = useUniqueId()
+  const [debouncedEmails, setDebouncedEmails] = useState<ReactNode>()
+  const [debouncedErrors, setDebouncedErrors] = useState<ReactNode>()
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedEmails(props.emails)
+      setDebouncedErrors(props.errors)
+    }, 3000)
+    return () => clearTimeout(timeoutId)
+  }, [props.emails, props.errors])
 
   const getIndividualEmails = emails => emails?.split(',').map(email => email.trim()).filter(email => !!email)
   const validateEmails = individualEmails => {
@@ -66,10 +76,10 @@ const EmailInput = (props: EmailInputProps) => {
         value: props.emails,
         onFocus: props.onFocus
       },
-      error: props.errors,
+      error: debouncedErrors,
     }),
-    !props.errors && !!props.emails && div({ style: hintStyle },
-      [formHint(`${pluralize('email', getIndividualEmails(props.emails).length, true)} entered`)])
+    !debouncedErrors && !!debouncedEmails && div({ style: hintStyle },
+      [formHint(`${pluralize('email', getIndividualEmails(debouncedEmails).length, true)} entered`)])
   ])
 }
 
