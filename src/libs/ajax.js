@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { createContext, useContext } from 'react'
 import {
-  appIdentifier, authOpts, fetchAgora, fetchBond, fetchDataRepo, fetchDockstore,
+  appIdentifier, authOpts, fetchAgora, fetchBond, fetchDataRepo,
   fetchDrsHub,
   fetchEcm, fetchGoogleForms,
   fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, jsonBody
@@ -12,6 +12,7 @@ import { AzureStorage } from 'src/libs/ajax/AzureStorage'
 import { Billing } from 'src/libs/ajax/Billing'
 import { Catalog } from 'src/libs/ajax/Catalog'
 import { Disks } from 'src/libs/ajax/Disks'
+import { Dockstore } from 'src/libs/ajax/Dockstore'
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage'
 import { Metrics } from 'src/libs/ajax/Metrics'
 import { Runtimes } from 'src/libs/ajax/Runtimes'
@@ -35,9 +36,6 @@ window.ajaxOverrideUtils = {
   }),
   makeSuccess: body => _wrappedFetch => () => Promise.resolve(new Response(JSON.stringify(body), { status: 200 }))
 }
-
-// %23 = '#', %2F = '/'
-const dockstoreMethodPath = ({ path, isTool }) => `api/ga4gh/v1/tools/${isTool ? '' : '%23workflow%2F'}${encodeURIComponent(path)}/versions`
 
 const getFirstTimeStamp = Utils.memoizeAsync(async token => {
   const res = await fetchRex('firstTimestamps/record', _.mergeAll([authOpts(token), { method: 'POST' }]))
@@ -963,21 +961,6 @@ const Submissions = signal => ({
     const res = await fetchRawls('submissions/queueStatus', _.merge(authOpts(), { signal }))
     return res.json()
   }
-})
-
-const Dockstore = signal => ({
-  getWdl: async ({ path, version, isTool }) => {
-    const res = await fetchDockstore(`${dockstoreMethodPath({ path, isTool })}/${encodeURIComponent(version)}/WDL/descriptor`, { signal })
-    const { url } = await res.json()
-    return fetchOk(url, { signal }).then(res => res.text())
-  },
-
-  getVersions: async ({ path, isTool }) => {
-    const res = await fetchDockstore(dockstoreMethodPath({ path, isTool }), { signal })
-    return res.json()
-  },
-
-  listTools: (params = {}) => fetchDockstore(`api/ga4gh/v1/tools?${qs.stringify(params)}`).then(r => r.json())
 })
 
 const shouldUseDrsHub = !!getConfig().shouldUseDrsHub
