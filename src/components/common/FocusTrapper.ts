@@ -7,7 +7,7 @@ import { h } from 'react-hyperscript-helpers'
 // is a function component, we can get the type from its parameters.
 type FocusLockProps = Parameters<typeof FocusLock>[0]
 
-export type FocusTrapperProps = FocusLockProps & {
+export interface FocusTrapperProps extends FocusLockProps {
   onBreakout: () => void
 }
 
