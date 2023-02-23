@@ -72,27 +72,32 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
     setTimeout(() => subscriptionIdInput.current?.focus(), 0)
   }, [])
 
+  const subscriptionIdChanged = v => props.onSubscriptionIdChanged(v, !!getSubscriptionIdErrors(v))
+
+
   useEffect(() => {
-    const subscriptionIdErrors = getSubscriptionIdErrors(subscriptionId)?.subscriptionId
-    if (!!subscriptionIdErrors) {
-      setSubscriptionIdError(summarizeErrors(subscriptionIdErrors))
-    } else if (!!subscriptionId) {
-      setManagedApps(async () => {
-        setSubscriptionIdError(undefined)
-        const response = await Ajax(signal).Billing.listAzureManagedApplications(subscriptionId, false)
-        const managedApps = response.managedApps
-        if (managedApps.length === 0) {
-          setSubscriptionIdError(h(NoManagedApps))
-        }
-        return managedApps
-      })
-    }
+    const timeoutId = setTimeout(() => {
+      const subscriptionIdErrors = getSubscriptionIdErrors(subscriptionId)?.subscriptionId
+      if (!!subscriptionIdErrors) {
+        setSubscriptionIdError(summarizeErrors(subscriptionIdErrors))
+      } else if (!!subscriptionId) {
+        setManagedApps(async () => {
+          setSubscriptionIdError(undefined)
+          const response = await Ajax(signal).Billing.listAzureManagedApplications(subscriptionId, false)
+          const managedApps = response.managedApps
+          if (managedApps.length === 0) {
+            setSubscriptionIdError(h(NoManagedApps))
+          }
+          return managedApps
+        })
+      }
+    }, 3000)
+    return () => clearTimeout(timeoutId)
     // the linter wants us to add setManagedApps to the dependencies
     // but it isn't a proper dependency, and adding it causes a re-render loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subscriptionId, signal])
 
-  const subscriptionIdChanged = v => props.onSubscriptionIdChanged(v, !!getSubscriptionIdErrors(v))
 
   return h(Step, { isActive, style: { minHeight: '18rem', paddingBottom: '0.5rem' } }, [
     h(StepHeader, { title: 'STEP 1' }),
