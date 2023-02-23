@@ -59,6 +59,9 @@ export interface BrandConfiguration {
     [otherLogoType: string]: string
   }
 
+  /** Optional URL for landing page background image */
+  landingPageBackground?: string
+
   /** Optionally filter which datasets show up in the Data Catalog */
   catalogDataCollectionsToInclude?: string[]
 }
