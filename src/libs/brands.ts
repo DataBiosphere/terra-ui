@@ -23,33 +23,43 @@ import terraLogoShadow from 'src/images/brands/terra/logo-wShadow.svg'
 
 const nonBreakingHyphen = '\u2011'
 
-/**
- * BrandConfiguration
- * @property name - Brand name.
- * @property queryName - Used to construct return URLs for FireCloud.
- * @property welcomeHeader - Landing page header text.
- * @property description - Landing page text.
- * @property hostName - Host name for branded site.
- * @property docLinks - Links shown on landing page.
- * @property docLinks[].link - Link URL.
- * @property docLinks[].text - Link text.
- * @property logos - URLs for logo images.
- * @property logos.color - Brand logo.
- * @property logos.white - Light version of brand logo used against dark backgrounds.
- * @property catalogDataCollectionsToInclude - Customize which datasets show up in the Data Catalog.
- */
-export type BrandConfiguration = {
+
+export interface BrandConfiguration {
+  /** Brand name */
   name: string
+
+  /** Used to construct return URLs for FireCloud */
   queryName: string
+
+  /** Landing page header text */
   welcomeHeader: string
+
+  /** Landing page text */
   description: string
+
+  /** Host name for branded site */
   hostName: string
-  docLinks: { link: string; text: string }[]
+
+  /** Links shown on landing page */
+  docLinks: {
+    /** Link URL */
+    link: string
+
+    /** Link text */
+    text: string
+  }[]
+
+  /** URLs for logo images */
   logos: {
+    /** Brand logo */
     color: string
+
+    /** Light version of brand logo used against dark backgrounds */
     white: string
     [otherLogoType: string]: string
   }
+
+  /** Optionally filter which datasets show up in the Data Catalog */
   catalogDataCollectionsToInclude?: string[]
 }
 
