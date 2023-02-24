@@ -32,6 +32,7 @@ interface EmailInputProps {
   onFocus: () => void
   label: string
   addSpacing: boolean
+  inputDebounce?: number
 }
 
 const EmailInput = (props: EmailInputProps) => {
@@ -43,9 +44,9 @@ const EmailInput = (props: EmailInputProps) => {
     const timeoutId = setTimeout(() => {
       setDebouncedEmails(props.emails)
       setDebouncedErrors(props.errors)
-    }, 3000)
+    }, props.inputDebounce)
     return () => clearTimeout(timeoutId)
-  }, [props.emails, props.errors])
+  }, [props.emails, props.errors, props.inputDebounce])
 
   const getIndividualEmails = emails => emails?.split(',').map(email => email.trim()).filter(email => !!email)
   const validateEmails = individualEmails => {
@@ -92,9 +93,10 @@ interface AddUserStepProps {
   addUsersOrOwners?: boolean
   onAddUsersOrOwners: (boolean) => void
   onOwnersOrUsersInputFocused: () => void
+  inputDebounce?: number
 }
 
-export const AddUsersStep = ({ isActive, ...props }: AddUserStepProps) => {
+export const AddUsersStep = ({ isActive, inputDebounce = 0, ...props }: AddUserStepProps) => {
   const [userEmailErrors, setUserEmailErrors] = useState<ReactNode>()
   const [ownerEmailErrors, setOwnerEmailErrors] = useState<ReactNode>()
 
@@ -142,7 +144,8 @@ export const AddUsersStep = ({ isActive, ...props }: AddUserStepProps) => {
               setErrors: setOwnerEmailErrors,
               onFocus: props.onOwnersOrUsersInputFocused,
               label: 'Owners',
-              addSpacing: true
+              addSpacing: true,
+              inputDebounce
             }),
             h(EmailInput, {
               disabled: !props.addUsersOrOwners,
@@ -152,7 +155,8 @@ export const AddUsersStep = ({ isActive, ...props }: AddUserStepProps) => {
               setErrors: setUserEmailErrors,
               onFocus: props.onOwnersOrUsersInputFocused,
               label: 'Users',
-              addSpacing: false
+              addSpacing: false,
+              inputDebounce
             }),
           ])
       ])

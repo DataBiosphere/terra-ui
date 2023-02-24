@@ -31,6 +31,7 @@ type AzureSubscriptionStepProps = {
   onSubscriptionIdChanged: (string, boolean) => void
   managedApp?: AzureManagedAppCoordinates
   onManagedAppSelected: (AzureManagedAppCoordinates) => void
+  inputDebounce?: number
 }
 
 const managedAppsToOptions = (apps: AzureManagedAppCoordinates[]) => _.map(application => {
@@ -48,7 +49,7 @@ validate.validators.type.types.uuid = value => validateUuid(value)
 validate.validators.type.messages.uuid = 'must be a UUID'
 
 
-export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: AzureSubscriptionStepProps) => {
+export const AzureSubscriptionStep = ({ isActive, subscriptionId, inputDebounce = 0, ...props }: AzureSubscriptionStepProps) => {
   const [subscriptionIdError, setSubscriptionIdError] = useState<ReactNode>()
   const [managedApps, setManagedApps] = useLoadedData<AzureManagedAppCoordinates[]>({
     onError: state => {
@@ -58,6 +59,7 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
       } else {
         console.error(state.error)
       }
+      setSubscriptionIdError(h(NoManagedApps))
     }
   })
   const subscriptionIdInput = useRef<HTMLInputElement>()
@@ -91,7 +93,7 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
           return managedApps
         })
       }
-    }, 3000)
+    }, inputDebounce)
     return () => clearTimeout(timeoutId)
     // the linter wants us to add setManagedApps to the dependencies
     // but it isn't a proper dependency, and adding it causes a re-render loop
@@ -139,7 +141,7 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
             onChange: ({ value }) => {
               props.onManagedAppSelected(value)
             },
-            options: managedAppsToOptions(managedApps.status === 'Ready' ? managedApps.state : [])
+            options: managedApps.status === 'Ready' ? managedAppsToOptions(managedApps.state) : []
           }),
         ])
       ])
