@@ -1,10 +1,15 @@
-import { div, h, label } from 'react-hyperscript-helpers'
+import { br, code, div, h, label, p } from 'react-hyperscript-helpers'
 import { Link, Select } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import { NumberInput } from 'src/components/input'
+import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import { Ajax } from 'src/libs/ajax'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { useUniqueId } from 'src/libs/react-utils'
+import * as Utils from 'src/libs/utils'
 import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles'
-import { pdTypes } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { getCurrentMountDirectory, getCurrentRuntime, getWorkspaceObject, pdTypes, runtimeTypes } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
 interface IComputeConfig {
@@ -41,6 +46,59 @@ interface PersistentDiskTypeProps {
   diskExists: boolean
   computeConfig: IComputeConfig
   updateComputeConfig: (arg: string) => (diskType: string) => void
+}
+
+// STATE STUFF TO FIGURE OUT
+// - setViewMode
+// - currentRuntimeDetails
+// - getDesiredEnvironmentConfig, getExistingEnvironmentConfig
+
+interface PersistentDiskLearnProps {
+  hasAttachedDisk: () => boolean
+  setViewMode: React.Dispatch<any> //TODO (LM) not sure if this is correct
+}
+
+interface PersistentDiskAboutProps {
+  titleId: string
+  setViewMode: React.Dispatch<any> //TODO (LM) not sure if this is correct
+  onDismiss: () => void
+}
+
+export const handleLearnMoreAboutPersistentDisk = ({ hasAttachedDisk, setViewMode }: PersistentDiskLearnProps) => {
+  setViewMode('aboutPersistentDisk')
+  Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, {
+    ...extractWorkspaceDetails(getWorkspaceObject()), currentlyHasAttachedDisk: !!hasAttachedDisk()
+  })
+}
+
+// TODO, check if unattached azure PD
+export const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelected) => runtimeType === runtimeTypes.gceVm &&
+  (!runtimeDetails?.runtimeConfig?.diskSize || upgradeDiskSelected)
+
+export const renderAboutPersistentDisk = ({ titleId, setViewMode, onDismiss }: PersistentDiskAboutProps) => {
+  return div({ style: computeStyles.drawerContent }, [
+    h(TitleBar, {
+      id: titleId,
+      title: 'About persistent disk',
+      style: computeStyles.titleBar,
+      titleExtras: [],
+      hideCloseButton: true,
+      onDismiss,
+      onPrevious: () => setViewMode(undefined)
+    }),
+    div({ style: { lineHeight: 1.5 } }, [
+      p(['Your persistent disk is mounted in the directory ',
+        code({ style: { fontWeight: 600 } }, [getCurrentMountDirectory(getCurrentRuntime)]), br(),
+        'Please save your analysis data in this directory to ensure it’s stored on your disk.']),
+      p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you delete your compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
+      p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
+      p(['If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.']),
+      h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360047318551', ...Utils.newTabLinkProps }, [
+        'Learn more about persistent disks',
+        icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+      ])
+    ])
+  ])
 }
 
 export const PersistentDiskType = ({ diskExists, computeConfig, updateComputeConfig }: PersistentDiskTypeProps) => {
