@@ -1,26 +1,26 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h2, label } from 'react-hyperscript-helpers'
-import { IdContainer, spinnerOverlay } from 'src/components/common'
+import { DeleteConfirmationModal, IdContainer, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import TopBar from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
-import { WorkspaceImporter } from 'src/components/workspace-utils'
 import importBackground from 'src/images/hex-import-background.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { useCancellation } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { workflowNameValidation } from 'src/libs/workflow-utils'
 import validate from 'validate.js'
 
+import { importDockstoreWorkflow } from './importDockstoreWorkflow'
 import { useDockstoreWdl } from './useDockstoreWdl'
+import { WorkspaceImporter } from './WorkspaceImporter'
 
 
 const styles = {
@@ -41,55 +41,38 @@ const styles = {
 
 export const ImportWorkflow = ({ path, version, source }) => {
   const [isBusy, setIsBusy] = useState(false)
+  const [confirmOverwriteInWorkspace, setConfirmOverwriteInWorkspace] = useState()
   const [workflowName, setWorkflowName] = useState(_.last(path.split('/')))
 
   const { wdl, status: wdlStatus } = useDockstoreWdl({ path, version, isTool: source === 'dockstoretools' })
 
-  const signal = useCancellation()
-
-  const doImport = Utils.withBusyState(setIsBusy, async workspace => {
+  const doImport = _.flow(
+    Utils.withBusyState(setIsBusy),
+    withErrorReporting('Error importing workflow'),
+  )(async (workspace, options = {}) => {
     const { name, namespace } = workspace
     const eventData = { source, ...extractWorkspaceDetails(workspace) }
 
+    setConfirmOverwriteInWorkspace(undefined)
     try {
-      const rawlsWorkspace = Ajax().Workspaces.workspace(namespace, name)
-      const [entityMetadata, { outputs: workflowOutputs }] = await Promise.all([
-        rawlsWorkspace.entityMetadata(),
-        Ajax(signal).Methods.configInputsOutputs({
-          methodRepoMethod: {
-            methodPath: path,
-            methodVersion: version,
-            sourceRepo: source,
-          }
-        }),
-      ])
-
-      const defaultOutputConfiguration = _.flow(
-        _.map(output => {
-          const outputExpression = `this.${_.last(_.split('.', output.name))}`
-          return [output.name, outputExpression]
-        }),
-        _.fromPairs
-      )(workflowOutputs)
-
-      await rawlsWorkspace.importMethodConfigFromDocker({
-        namespace, name: workflowName, rootEntityType: _.head(_.keys(entityMetadata)),
-        inputs: {}, outputs: defaultOutputConfiguration, prerequisites: {}, methodConfigVersion: 1, deleted: false,
-        methodRepoMethod: {
-          sourceRepo: source,
-          methodPath: path,
-          methodVersion: version
-        }
-      })
+      await importDockstoreWorkflow({
+        workspace,
+        workflow: { path, version, source },
+        workflowName
+      }, options)
       Ajax().Metrics.captureEvent(Events.workflowImport, { ...eventData, success: true })
       Nav.goToPath('workflow', { namespace, name, workflowNamespace: namespace, workflowName })
     } catch (error) {
-      reportError('Error importing workflow', error)
-      Ajax().Metrics.captureEvent(Events.workflowImport, { ...eventData, success: false })
+      if (error.status === 409) {
+        setConfirmOverwriteInWorkspace(workspace)
+      } else {
+        Ajax().Metrics.captureEvent(Events.workflowImport, { ...eventData, success: false })
+        throw error
+      }
     }
   })
 
-  const errors = (validate({ workflowName }, { workflowName: workflowNameValidation() }))
+  const errors = validate({ workflowName }, { workflowName: workflowNameValidation() })
 
   return div({ style: styles.container }, [
     div({ style: { ...styles.card, maxWidth: 740 } }, [
@@ -125,10 +108,23 @@ export const ImportWorkflow = ({ path, version, source }) => {
       h(IdContainer, [
         id => h(Fragment, [
           label({ htmlFor: id, style: { ...styles.title, paddingTop: '2rem' } }, ['Destination Workspace']),
-          h(WorkspaceImporter, { id, onImport: doImport, additionalErrors: errors })
+          h(WorkspaceImporter, {
+            additionalErrors: errors,
+            id,
+            onImport: workspace => doImport(workspace, { overwrite: false }),
+          })
         ])
       ]),
       (wdlStatus === 'Loading' || isBusy) && spinnerOverlay
+    ]),
+
+    !!confirmOverwriteInWorkspace && h(DeleteConfirmationModal, {
+      title: 'Overwrite existing workflow?',
+      buttonText: 'Overwrite',
+      onConfirm: () => doImport(confirmOverwriteInWorkspace, { overwrite: true }),
+      onDismiss: () => setConfirmOverwriteInWorkspace(undefined),
+    }, [
+      `The selected workspace already contains a workflow named "${workflowName}". Are you sure you want to overwrite it?`,
     ])
   ])
 }
