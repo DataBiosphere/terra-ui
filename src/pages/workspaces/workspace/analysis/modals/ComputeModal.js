@@ -30,7 +30,7 @@ import {
   defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation,
   defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, defaultPersistentDiskType, displayNameForGpuType, findMachineType, getAutopauseThreshold,
   getDefaultMachineType, getIsRuntimeBusy, getValidGpuOptions, getValidGpuTypesForZone,
-  isAutopauseEnabled, pdTypes
+  isAutopauseEnabled, pdTypes, runtimeTypes
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { getToolLabelForImage, getToolLabelFromRuntime, runtimeTools, terraSupportedRuntimeImageIds, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import validate from 'validate.js'
@@ -57,11 +57,6 @@ const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:
  * 2. A cluster with a main node AND two or more worker nodes (sometimes referred to as 'Spark cluster')
  * If you modify this object, make sure to update the helpers below it too as applicable.
  */
-const runtimeTypes = {
-  gceVm: 'Standard VM',
-  dataprocSingleNode: 'Spark single node',
-  dataprocCluster: 'Spark cluster'
-}
 
 const sparkInterfaces = {
   yarn: {

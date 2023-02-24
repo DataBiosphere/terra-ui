@@ -24,6 +24,7 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 import { computeStyles } from './modalStyles'
+//import { PersistentDiskSection } from './persistent-disk-controls.ts'
 
 
 const titleId = 'azure-compute-modal-title'
@@ -243,7 +244,7 @@ export const AzureComputeModalBase = ({
       div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
         renderApplicationConfigurationSection(),
         renderComputeProfileSection(),
-        // add PD section here
+        //!!isPersistentDisk && h(PersistentDiskSection, { diskExists: !!existingPersistentDisk, computeConfig, updateComputeConfig, handleLearnMoreAboutPersistentDisk }),
         renderBottomButtons()
       ])
     ])

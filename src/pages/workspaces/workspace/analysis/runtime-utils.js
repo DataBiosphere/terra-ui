@@ -6,6 +6,12 @@ import * as Utils from 'src/libs/utils'
 import { allAppTypes, appTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
+export const runtimeTypes = {
+  gceVm: 'Standard VM',
+  dataprocSingleNode: 'Spark single node',
+  dataprocCluster: 'Spark cluster'
+}
+
 export const pdTypes = {
   standard: {
     label: 'pd-standard',
@@ -127,6 +133,15 @@ export const trimRuntimesOldestFirst = _.flow(
 // Status note: undefined means still loading and no runtime
 export const getCurrentRuntime = runtimes => !runtimes ? undefined : (_.flow(trimRuntimesOldestFirst, _.last)(runtimes) || undefined)
 
+export const getCurrentMountDirectory = currentRuntimeDetails => {
+  const rstudioMountPoint = '/home/rstudio'
+  const jupyterMountPoint = '/home/jupyter'
+  const noMountDirectory = `${jupyterMountPoint} for Jupyter environments and ${rstudioMountPoint} for RStudio environments`
+  return currentRuntimeDetails?.labels.tool ?
+    (currentRuntimeDetails?.labels.tool === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) :
+    noMountDirectory
+}
+
 const getCurrentAppExcludingStatuses = (appType, statuses) => _.flow(
   _.filter({ appType }),
   _.remove(({ status }) => _.includes(status, statuses)),
@@ -148,6 +163,9 @@ export const getDiskAppType = disk => {
   const appType = _.find(type => type.toLowerCase() === saturnApp?.toLowerCase(), allAppTypes)
   return appType
 }
+
+// TODO (ME) does this work and make sense?
+export const getWorkspaceObject = workspace => workspace?.workspace
 
 export const workspaceHasMultipleDisks = (disks, diskAppType) => {
   const appTypeDisks = _.filter(disk => getDiskAppType(disk) === diskAppType && disk.status !== 'Deleting', disks)
