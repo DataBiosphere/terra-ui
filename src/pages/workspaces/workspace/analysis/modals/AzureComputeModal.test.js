@@ -7,7 +7,9 @@ import { Ajax } from 'src/libs/ajax'
 import { azureMachineTypes, defaultAzureMachineType } from 'src/libs/azure-utils'
 import { formatUSD } from 'src/libs/utils'
 import {
-  defaultAzureWorkspace, imageDocs, testAzureDefaultRegion
+  defaultAzureWorkspace, getDisk,
+  getGoogleRuntime, getJupyterRuntimeConfig,
+  imageDocs, testAzureDefaultRegion
 } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
@@ -28,7 +30,6 @@ const defaultModalProps = {
   currentRuntime: undefined, currentDisk: undefined, tool: runtimeToolLabels.JupyterLab, workspace: defaultAzureWorkspace,
   location: testAzureDefaultRegion
 }
-
 
 const defaultAjaxImpl = {
   Runtimes: {
@@ -166,6 +167,49 @@ describe('AzureComputeModal', () => {
     // Assert
     expect(screen.getAllByText(formatUSD(expectedComputeCost)).length).toBeTruthy() // Currently stopped and running are the same cost.
     expect(screen.getByText(formatUSD(expectedDiskCost)))
+  })
+
+  // click delete environment on an existing [jupyter, rstudio] runtime with disk should bring up confirmation
+  it.each([
+    { tool: runtimeToolLabels.Jupyter },
+    { tool: runtimeToolLabels.RStudio }
+  ])('deletes environment with a confirmation for disk deletion for tool $tool.label', async ({ tool }) => {
+    // Arrange
+    const disk = getDisk()
+    const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) }
+    const runtime = getGoogleRuntime(runtimeProps)//TODO: create getAzureRuntime, we don't have one yet
+
+    const runtimeFunc = jest.fn(() => ({
+      details: () => runtime
+    }))
+    Ajax.mockImplementation(() => ({
+      ...defaultAjaxImpl,
+      Runtimes: {
+        runtime: runtimeFunc
+      },
+      Disks: {
+        disk: () => ({
+          details: () => disk
+        })
+      }
+    }))
+
+    // Act
+    await act(async () => {
+      render(h(AzureComputeModalBase, {
+        ...defaultModalProps,
+        currentDisk: disk,
+        currentRuntime: runtime
+      }))
+      await userEvent.click(screen.getByText('Delete Environment'))
+    })
+
+    // Assert
+    verifyEnabled(screen.getByText('Delete'))
+    const radio1 = screen.getByLabelText('Keep persistent disk, delete application configuration and compute profile')
+    expect(radio1).toBeChecked()
+    const radio2 = screen.getByLabelText('Delete everything, including persistent disk')
+    expect(radio2).not.toBeChecked()
   })
 })
 

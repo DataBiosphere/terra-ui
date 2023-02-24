@@ -45,7 +45,7 @@ const DeleteRuntimeModal = ({
     Utils.withBusyState(setDeleting),
     withErrorReporting('Error deleting cloud environment')
   )(async () => {
-    // delete the disk always if in azure
+    // TODO [IA-4052] don't delete the disk always if in azure
     isGcpContext(cloudContext) ?
       await ajax().Runtimes.runtime(googleProject, runtimeName).delete(deleteDisk) :
       await ajax().Runtimes.runtimeV2(workspaceId, runtimeName).delete(true)
