@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { code } from 'react-hyperscript-helpers'
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { isCromwellAppVisible } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
@@ -179,3 +180,12 @@ export const isToolHidden = (toolLabel: ToolLabel, cloudProvider: CloudProvider)
   [toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviderTypes.GCP && !isCromwellAppVisible(), () => true],
   [Utils.DEFAULT, () => false]
 )
+
+export const getCurrentMountDirectory = (toolLabel: ToolLabel) => {
+  const boldCode = function(label: ToolLabel) {
+    const mydir = label.toLowerCase()
+    return code({ style: { fontWeight: 600 } }, [`/home/${mydir}`])
+  }
+  const defaultMsg = [boldCode(runtimeToolLabels.Jupyter), ' for Jupyter environments and ', boldCode(runtimeToolLabels.RStudio), ' for RStudio environments']
+  return typeof toolLabel === 'string' ? [boldCode(toolLabel)] : defaultMsg // TODO: remove string check IA-4091
+}

@@ -45,10 +45,9 @@ const DeleteRuntimeModal = ({
     Utils.withBusyState(setDeleting),
     withErrorReporting('Error deleting cloud environment')
   )(async () => {
-    // delete the disk always if in azure
     isGcpContext(cloudContext) ?
       await ajax().Runtimes.runtime(googleProject, runtimeName).delete(deleteDisk) :
-      await ajax().Runtimes.runtimeV2(workspaceId, runtimeName).delete(true)
+      await ajax().Runtimes.runtimeV2(workspaceId, runtimeName).delete(deleteDisk)
     onSuccess()
   })
 
@@ -228,7 +227,7 @@ export const Environments = ({ nav = undefined }) => {
       { includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }
     const [newRuntimes, newDisks, newApps] = await Promise.all([
       ajax(signal).Runtimes.listV2(listArgs),
-      ajax(signal).Disks.list({ ...listArgs, includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }),
+      ajax(signal).Disks.disksV1().list({ ...listArgs, includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }),
       ajax(signal).Apps.listWithoutProject(listArgs)
     ])
     const endTimeForLeoCallsEpochMs = Date.now()

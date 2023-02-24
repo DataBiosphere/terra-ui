@@ -58,6 +58,7 @@ export interface ListDiskItem {
   blockSize: number
   labels: LeoResourceLabels
 }
+
 export type PersistentDisk = ListDiskItem | GetDiskItem
 export type AppDataDisk = PersistentDisk
 

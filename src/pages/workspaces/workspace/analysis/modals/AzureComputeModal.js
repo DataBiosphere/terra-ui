@@ -3,7 +3,6 @@ import { Fragment, useState } from 'react'
 import { div, h, label, p, span } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { NumberInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
@@ -17,32 +16,34 @@ import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
+import { DeleteEnvironment } from 'src/pages/workspaces/workspace/analysis/modals/DeleteEnvironment'
 import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
-import {
-  getCurrentRuntime, getIsRuntimeBusy
-} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { getIsRuntimeBusy } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
 import { computeStyles } from './modalStyles'
+import { AboutPersistentDisk, PersistentDiskSection } from './persistent-disk-controls'
 
 
 const titleId = 'azure-compute-modal-title'
 
 export const AzureComputeModalBase = ({
-  onDismiss, onSuccess, onError = onDismiss, workspace, runtimes, location, hideCloseButton = false
+  onDismiss, onSuccess, onError = onDismiss, workspace, currentRuntime, currentDisk, location, tool, hideCloseButton = false
 }) => {
   const [loading, setLoading] = useState(false)
   const [viewMode, setViewMode] = useState(undefined)
-  const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(() => getCurrentRuntime(runtimes))
+  const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(currentRuntime)
+  const [currentPersistentDiskDetails] = useState(currentDisk)
   const [computeConfig, setComputeConfig] = useState(defaultAzureComputeConfig)
   const updateComputeConfig = (key, value) => setComputeConfig(_.set(key, value, computeConfig))
   const { namespace, name: workspaceName, workspaceId } = workspace.workspace
+  const persistentDiskExists = !!currentPersistentDiskDetails
+  const [deleteDiskSelected, setDeleteDiskSelected] = useState(false)
+
   // Lifecycle
   useOnMount(_.flow(
     withErrorReportingInModal('Error loading cloud environment', onError),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const currentRuntime = getCurrentRuntime(runtimes)
     const runtimeDetails = currentRuntime ? await Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).details() : null
     Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
       existingConfig: !!currentRuntime, ...extractWorkspaceDetails(workspace.workspace)
@@ -50,7 +51,7 @@ export const AzureComputeModalBase = ({
     setCurrentRuntimeDetails(runtimeDetails)
     setComputeConfig({
       machineType: runtimeDetails?.runtimeConfig?.machineType || defaultAzureMachineType,
-      diskSize: runtimeDetails?.diskConfig?.size || defaultAzureDiskSize,
+      persistentDiskSize: runtimeDetails?.diskConfig?.size || defaultAzureDiskSize,
       // Azure workspace containers will pass the 'location' param as an Azure armRegionName, which can be used directly as the computeRegion
       region: runtimeDetails?.runtimeConfig?.region || location || defaultAzureRegion
     })
@@ -71,10 +72,17 @@ export const AzureComputeModalBase = ({
 
   const renderBottomButtons = () => {
     return div({ style: { display: 'flex', marginTop: '2rem' } }, [
-      doesRuntimeExist() && h(ButtonOutline, {
+      h(ButtonOutline, {
         onClick: () => setViewMode('deleteEnvironment')
-      }, ['Delete Environment']),
+      }, [
+        Utils.cond(
+          [doesRuntimeExist(), () => 'Delete Environment'],
+          [persistentDiskExists, () => 'Delete Persistent Disk'],
+          () => 'Delete Environment'
+        )
+      ]),
       div({ style: { flex: 1 } }),
+
       renderActionButton()
     ])
   }
@@ -130,26 +138,6 @@ export const AzureComputeModalBase = ({
           ])
         ])
       ]),
-      div({ style: { marginBottom: '2rem' } }, [
-        h(IdContainer, [
-          id => h(Fragment, [
-            div({ style: { marginBottom: '.5rem' } }, [
-              label({ htmlFor: id, style: computeStyles.label }, ['Disk Size (GB)'])
-            ]),
-            div({ style: { width: 75 } }, [
-              h(NumberInput, {
-                id,
-                min: 50,
-                max: 64000,
-                isClearable: false,
-                onlyInteger: true,
-                value: computeConfig.diskSize,
-                onChange: v => updateComputeConfig('diskSize', v)
-              })
-            ])
-          ])
-        ])
-      ])
     ])
   }
 
@@ -223,12 +211,13 @@ export const AzureComputeModalBase = ({
 
     //each branch of the cond should return a promise
     await Utils.cond(
-      [viewMode === 'deleteEnvironment',
-        () => Ajax().Runtimes.runtimeV2(workspaceId, currentRuntimeDetails.runtimeName).delete()], //delete runtime
+      [viewMode === 'deleteEnvironment', () => Utils.cond(
+        [doesRuntimeExist(), () => Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).delete(deleteDiskSelected)], // delete runtime
+        [!!persistentDiskExists, () => Ajax().Disks.disksV2().delete(workspaceId, currentPersistentDiskDetails.name)] // delete disk
+      )],
       [Utils.DEFAULT, () => {
         const disk = {
-          size: computeConfig.diskSize,
-          //We do not currently support re-attaching azure disks
+          size: computeConfig.persistentDiskSize,
           name: Utils.generatePersistentDiskName(),
           labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: workspaceName }
         }
@@ -256,6 +245,7 @@ export const AzureComputeModalBase = ({
       div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
         renderApplicationConfigurationSection(),
         renderComputeProfileSection(),
+        h(PersistentDiskSection, { persistentDiskExists, computeConfig, updateComputeConfig, setViewMode, tool }),
         renderBottomButtons()
       ])
     ])
@@ -292,31 +282,22 @@ export const AzureComputeModalBase = ({
     ])
   }
 
-  const renderDeleteEnvironment = () => {
-    return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
-      h(TitleBar, {
-        id: titleId,
-        hideCloseButton,
-        style: computeStyles.titleBar,
-        title: h(WarningTitle, ['Delete environment']),
-        onDismiss,
-        onPrevious: () => setViewMode(undefined)
-      }),
-      div({ style: { lineHeight: '1.5rem' } }, [
-        p([
-          'Deleting your application configuration and cloud compute profile will also ',
-          span({ style: { fontWeight: 600 } }, ['delete all files on the built-in hard disk.'])
-        ])
-      ]),
-      div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-        renderActionButton()
-      ])
-    ])
-  }
-
   return h(Fragment, [
     Utils.switchCase(viewMode,
-      ['deleteEnvironment', renderDeleteEnvironment],
+      ['aboutPersistentDisk', () => AboutPersistentDisk({ titleId, setViewMode, onDismiss, tool })],
+      ['deleteEnvironment', () => DeleteEnvironment({
+        id: titleId,
+        runtimeConfig: currentRuntimeDetails && currentRuntimeDetails.runtimeConfig,
+        persistentDiskId: currentPersistentDiskDetails.id,
+        persistentDiskCostDisplay: Utils.formatUSD(getAzureDiskCostEstimate(computeConfig)),
+        deleteDiskSelected,
+        setDeleteDiskSelected,
+        setViewMode,
+        renderActionButton,
+        hideCloseButton: false,
+        onDismiss,
+        toolLabel: currentRuntimeDetails && currentRuntimeDetails.labels.tool
+      })],
       [Utils.DEFAULT, renderMainForm]
     ),
     loading && spinnerOverlay
