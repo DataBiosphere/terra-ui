@@ -951,8 +951,8 @@ export const ComputeModalBase = ({
       ),
       h(IdContainer, [
         id => div({ style: { marginTop: '0.5rem' } }, [
-          label({ htmlFor: id, style: computeStyles.label }, ['Startup script']),
-          span({ style: { fontStyle: 'italic' } }, [' Optional']),
+          label({ htmlFor: id, style: computeStyles.label }, ['Startup script',
+            span({ style: { ...computeStyles.value, fontStyle: 'italic' } }, [' Optional'])]),
           div({ style: { marginTop: '0.5rem' } }, [
             h(TextInput, {
               id,
