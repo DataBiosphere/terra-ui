@@ -7,7 +7,7 @@ import { fetchOk } from 'src/libs/ajax/ajax-common'
 import { getLocalStorage, getSessionStorage } from 'src/libs/browser-storage'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
-import { captureAppcuesEvent } from 'src/libs/events'
+import Events, { captureAppcuesEvent } from 'src/libs/events'
 import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs'
 import allProviders from 'src/libs/providers'
@@ -111,7 +111,7 @@ export const signIn = async (includeBillingScope = false) => {
   if (!isGoogleAuthority()) {
     authStore.update(state => ({ ...state, hasGcpBillingScopeThroughB2C: includeBillingScope }))
   }
-
+  Ajax().Metrics.captureEvent(Events.userLoginAnyMethod)
   return user
 }
 
