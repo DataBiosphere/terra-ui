@@ -30,6 +30,7 @@ const defaultIComputeConfig = {
   selectedPersistentDiskType: defaultPersistentDiskType,
   masterMachineType: getDefaultMachineType(false, toolLabels.RStudio),
   masterDiskSize: defaultDataprocMasterDiskSize,
+  diskSize: 0, //TODO: set to a default disk size for Azure
   numberOfWorkers: defaultNumDataprocWorkers,
   numberOfPreemptibleWorkers: defaultNumDataprocPreemptibleWorkers,
   workerMachineType: defaultDataprocMachineType,

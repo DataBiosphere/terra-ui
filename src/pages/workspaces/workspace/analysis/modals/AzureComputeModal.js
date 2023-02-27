@@ -3,7 +3,6 @@ import { Fragment, useState } from 'react'
 import { div, h, label, p, span } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { NumberInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
@@ -24,6 +23,7 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 import { computeStyles } from './modalStyles'
+import { ParentPersistentDiskSection } from './persistent-disk-controls'
 //import { PersistentDiskSection } from './persistent-disk-controls.ts'
 
 
@@ -36,7 +36,8 @@ export const AzureComputeModalBase = ({
   const [viewMode, setViewMode] = useState(undefined)
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(() => getCurrentRuntime(runtimes))
   const [computeConfig, setComputeConfig] = useState(defaultAzureComputeConfig)
-  const updateComputeConfig = (key, value) => setComputeConfig(_.set(key, value, computeConfig))
+  const updateComputeConfig = _.curry((key, value) => setComputeConfig(_.set(key, value)))
+  //(key, value) => setComputeConfig(_.set(key, value, computeConfig))
 
   // Lifecycle
   useOnMount(_.flow(
@@ -128,26 +129,26 @@ export const AzureComputeModalBase = ({
           ])
         ])
       ]),
-      div({ style: { marginBottom: '2rem' } }, [
-        h(IdContainer, [
-          id => h(Fragment, [
-            div({ style: { marginBottom: '.5rem' } }, [
-              label({ htmlFor: id, style: computeStyles.label }, ['Disk Size (GB)'])
-            ]),
-            div({ style: { width: 75 } }, [
-              h(NumberInput, {
-                id,
-                min: 50,
-                max: 64000,
-                isClearable: false,
-                onlyInteger: true,
-                value: computeConfig.diskSize,
-                onChange: v => updateComputeConfig('diskSize', v)
-              })
-            ])
-          ])
-        ])
-      ])
+      // div({ style: { marginBottom: '2rem' } }, [
+      //   h(IdContainer, [
+      //     id => h(Fragment, [
+      //       div({ style: { marginBottom: '.5rem' } }, [
+      //         label({ htmlFor: id, style: computeStyles.label }, ['Disk Size (GB)'])
+      //       ]),
+      //       div({ style: { width: 75 } }, [
+      //         h(NumberInput, {
+      //           id,
+      //           min: 50,
+      //           max: 64000,
+      //           isClearable: false,
+      //           onlyInteger: true,
+      //           value: computeConfig.diskSize,
+      //           onChange: v => updateComputeConfig('diskSize', v)
+      //         })
+      //       ])
+      //     ])
+      //   ])
+      // ])
     ])
   }
 
@@ -244,7 +245,7 @@ export const AzureComputeModalBase = ({
       div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
         renderApplicationConfigurationSection(),
         renderComputeProfileSection(),
-        //!!isPersistentDisk && h(PersistentDiskSection, { diskExists: !!existingPersistentDisk, computeConfig, updateComputeConfig, handleLearnMoreAboutPersistentDisk }),
+        h(ParentPersistentDiskSection, { diskExists: false, computeConfig, updateComputeConfig, handleLearnMoreAboutPersistentDisk: () => {} }),
         renderBottomButtons()
       ])
     ])

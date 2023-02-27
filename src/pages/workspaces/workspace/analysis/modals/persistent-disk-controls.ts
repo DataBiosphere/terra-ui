@@ -21,6 +21,7 @@ interface IComputeConfig {
   }
   masterMachineType: any
   masterDiskSize: number
+  diskSize: number
   numberOfWorkers: number
   numberOfPreemptibleWorkers: number
   workerMachineType: string
@@ -160,6 +161,65 @@ export const PersistentDiskSection = ({ diskExists, computeConfig, updateCompute
           ])
         ])
       ])
+    ])
+  ])
+}
+
+//diskExists, computeConfig, updateComputeConfig, handleLearnMoreAboutPersistentDisk
+export const ParentPersistentDiskSection = ({ computeConfig, updateComputeConfig, handleLearnMoreAboutPersistentDisk }: PersistentDiskProps) => {
+  const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
+  const diskSizeId = useUniqueId()
+
+  return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
+    div({ style: { display: 'flex', flexDirection: 'column' } }, [
+      label({ style: computeStyles.label }, ['Persistent disk']),
+      div({ style: { marginTop: '0.5rem' } }, [
+        'Persistent disks store analysis data. ',
+        h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
+      ]),
+      h(div, [
+        div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
+          label({ htmlFor: diskSizeId, style: computeStyles.label }, ['Disk Size (GB)'])
+        ]),
+        div({ style: { width: 75, marginTop: '0.5rem' } }, [
+          h(NumberInput, {
+            id: diskSizeId,
+            min: 50,
+            max: 64000,
+            isClearable: false,
+            onlyInteger: true,
+            value: computeConfig.diskSize, //TODO: need to combine diskSize (azure) and selectedPersistentDiskSize (GCP)
+            onChange: updateComputeConfig('diskSize')
+          })
+        ])
+      ])
+
+      // diff from here down
+      // div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
+      //   diskExists ?
+      //     h(TooltipTrigger, {
+      //       content: [
+      //         'You already have a persistent disk in this workspace. ',
+      //         'Disk type can only be configured at creation time. ',
+      //         'Please delete the existing disk before selecting a new type.'
+      //       ],
+      //       side: 'bottom'
+      //     }, [h(PersistentDiskType, { diskExists, computeConfig, updateComputeConfig })]) : h(PersistentDiskType, { diskExists, computeConfig, updateComputeConfig }),
+      //   h(div, [
+      //     label({ htmlFor: diskSizeId, style: computeStyles.label }, ['Disk Size (GB)']),
+      //     div({ style: { marginTop: '0.5rem' } }, [
+      //       h(NumberInput, {
+      //         id: diskSizeId,
+      //         min: 10,
+      //         max: 64000,
+      //         isClearable: false,
+      //         onlyInteger: true,
+      //         value: computeConfig.selectedPersistentDiskSize,
+      //         onChange: updateComputeConfig('selectedPersistentDiskSize')
+      //       })
+      //     ])
+      //   ])
+      // ])
     ])
   ])
 }
