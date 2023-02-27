@@ -60,8 +60,7 @@ describe('AzureSubscriptionStep', () => {
       subscriptionId: '',
       onSubscriptionIdChanged: jest.fn(),
       managedApp: undefined,
-      onManagedAppSelected: onManagedAppSelectedEvent,
-      inputDebounce: 0,
+      onManagedAppSelected: onManagedAppSelectedEvent
     }
     renderResult = render(h(AzureSubscriptionStep, {
       ...defaultProps,

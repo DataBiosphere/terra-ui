@@ -31,7 +31,6 @@ type AzureSubscriptionStepProps = {
   onSubscriptionIdChanged: (string, boolean) => void
   managedApp?: AzureManagedAppCoordinates
   onManagedAppSelected: (AzureManagedAppCoordinates) => void
-  inputDebounce?: number
 }
 
 const managedAppsToOptions = (apps: AzureManagedAppCoordinates[]) => _.map(application => {
@@ -49,7 +48,9 @@ validate.validators.type.types.uuid = value => validateUuid(value)
 validate.validators.type.messages.uuid = 'must be a UUID'
 
 
-export const AzureSubscriptionStep = ({ isActive, subscriptionId, inputDebounce = 0, ...props }: AzureSubscriptionStepProps) => {
+export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: AzureSubscriptionStepProps) => {
+  const getSubscriptionIdErrors = subscriptionId => subscriptionId !== undefined && validate({ subscriptionId }, { subscriptionId: { type: 'uuid' } })
+
   const [subscriptionIdError, setSubscriptionIdError] = useState<ReactNode>()
   const [managedApps, setManagedApps] = useLoadedData<AzureManagedAppCoordinates[]>({
     onError: state => {
@@ -67,39 +68,28 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, inputDebounce 
   const appSelectId = useUniqueId()
   const signal = useCancellation()
 
-  const getSubscriptionIdErrors = subscriptionId => subscriptionId !== undefined && validate({ subscriptionId }, { subscriptionId: { type: 'uuid' } })
-
   useEffect(() => {
     // setTimeout necessary because of UIE-73.
     setTimeout(() => subscriptionIdInput.current?.focus(), 0)
   }, [])
 
-  const subscriptionIdChanged = v => props.onSubscriptionIdChanged(v, !!getSubscriptionIdErrors(v))
+  const subscriptionIdChanged = v => {
+    const errors = summarizeErrors(getSubscriptionIdErrors(v)?.subscriptionId)
+    setSubscriptionIdError(errors)
+    props.onSubscriptionIdChanged(v, !!errors)
 
-  // this is done in a useEffect instead of just calculating from props to debounce the input validation
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      const subscriptionIdErrors = getSubscriptionIdErrors(subscriptionId)?.subscriptionId
-      if (!!subscriptionIdErrors) {
-        setSubscriptionIdError(summarizeErrors(subscriptionIdErrors))
-      } else if (!!subscriptionId) {
-        setManagedApps(async () => {
-          setSubscriptionIdError(undefined)
-          const response = await Ajax(signal).Billing.listAzureManagedApplications(subscriptionId, false)
-          const managedApps = response.managedApps
-          if (managedApps.length === 0) {
-            setSubscriptionIdError(h(NoManagedApps))
-          }
-          return managedApps
-        })
-      }
-    }, inputDebounce)
-    return () => clearTimeout(timeoutId)
-    // the linter wants us to add setManagedApps to the dependencies
-    // but it isn't a proper dependency, and adding it causes a re-render loop
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subscriptionId, signal])
-
+    if (!!v && !errors) {
+      setManagedApps(async () => {
+        setSubscriptionIdError(undefined)
+        const response = await Ajax(signal).Billing.listAzureManagedApplications(v, false)
+        const managedApps = response.managedApps
+        if (managedApps.length === 0) {
+          setSubscriptionIdError(h(NoManagedApps))
+        }
+        return managedApps
+      })
+    }
+  }
 
   return h(Step, { isActive, style: { minHeight: '18rem', paddingBottom: '0.5rem' } }, [
     h(StepHeader, { title: 'STEP 1' }),
