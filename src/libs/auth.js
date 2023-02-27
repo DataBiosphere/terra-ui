@@ -111,7 +111,7 @@ export const signIn = async (includeBillingScope = false) => {
   if (!isGoogleAuthority()) {
     authStore.update(state => ({ ...state, hasGcpBillingScopeThroughB2C: includeBillingScope }))
   }
-  Ajax().Metrics.captureEvent(Events.userLoginAnyMethod)
+  Ajax().Metrics.captureEvent(Events.userLogin, { authProvider: user.profile.idp })
   return user
 }
 
