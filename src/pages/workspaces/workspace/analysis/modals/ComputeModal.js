@@ -944,11 +944,25 @@ export const ComputeModalBase = ({
           return h(Fragment, [
             div({ style: { display: 'flex' } }, [
               h(Link, { onClick: () => setViewMode('packages') }, ['What’s installed on this environment?']),
-              makeImageInfo({ marginLeft: 'auto' })
+              makeImageInfo({ marginLeft: 'auto' }),
             ])
           ])
         }]
       ),
+      h(IdContainer, [
+        id => div({ style: { marginTop: '0.5rem' } }, [
+          label({ htmlFor: id, style: computeStyles.label }, ['Startup script',
+            span({ style: { ...computeStyles.value, fontStyle: 'italic' } }, [' Optional'])]),
+          div({ style: { marginTop: '0.5rem' } }, [
+            h(TextInput, {
+              id,
+              placeholder: 'URI',
+              value: jupyterUserScriptUri,
+              onChange: setJupyterUserScriptUri
+            })
+          ])
+        ])
+      ]),
       selectedLeoImage && !supportedImages.includes(selectedLeoImage) ? renderCustomTimeoutInMinutes() : []
     ])
   }
@@ -1079,19 +1093,6 @@ export const ComputeModalBase = ({
           ])
         ]),
         div({ style: gridStyle }, [
-          h(IdContainer, [
-            id => div({ style: { gridColumnEnd: 'span 6', marginTop: '0.5rem' } }, [
-              label({ htmlFor: id, style: computeStyles.label }, ['Startup script']),
-              div({ style: { marginTop: '0.5rem' } }, [
-                h(TextInput, {
-                  id,
-                  placeholder: 'URI',
-                  value: jupyterUserScriptUri,
-                  onChange: setJupyterUserScriptUri
-                })
-              ])
-            ])
-          ]),
           h(IdContainer, [
             id => div({ style: { gridColumnEnd: 'span 4', marginTop: '0.5rem' } }, [
               label({ htmlFor: id, style: computeStyles.label }, ['Compute type']),
