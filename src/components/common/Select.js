@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Children, useEffect, useRef } from 'react'
+import { Children, useCallback, useEffect, useRef } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import RSelect, { components as RSelectComponents } from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
@@ -138,26 +138,28 @@ const VirtualizedMenuList = props => {
 
   const list = useRef()
 
+  const scrollToOptionForValue = useCallback(value => {
+    const renderedOptions = Children.map(children, child => child.props.data)
+    const valueIndex = renderedOptions.findIndex(opt => opt.value === value)
+    if (valueIndex !== -1) {
+      list.current.scrollToRow(valueIndex)
+    }
+  }, [children])
+
   // Scroll to the currently selected value (if there is one) when the menu is opened.
   useOnMount(() => {
-    const [value] = getValue()
-    if (value) {
-      const renderedOptions = Children.map(children, child => child.props.data)
-      const valueIndex = renderedOptions.findIndex(opt => opt.value === value.value)
-      if (valueIndex !== -1) {
-        list.current.scrollToRow(valueIndex)
-      }
+    const [selectedOption] = getValue()
+    if (selectedOption) {
+      scrollToOptionForValue(selectedOption.value)
     }
   })
 
   // When navigating option with arrow keys, scroll the virtualized list so that the focused option is visible.
   useEffect(() => {
-    const renderedOptions = Children.map(children, child => child.props.data)
-    const focusedOptionIndex = renderedOptions.indexOf(focusedOption)
-    if (focusedOptionIndex !== -1) {
-      list.current.scrollToRow(focusedOptionIndex)
+    if (focusedOption) {
+      scrollToOptionForValue(focusedOption.value)
     }
-  }, [children, focusedOption])
+  }, [children, focusedOption]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const hasRenderedOptions = Array.isArray(children)
 
