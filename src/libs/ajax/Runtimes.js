@@ -82,6 +82,12 @@ export const Runtimes = signal => {
 
       stop: () => {
         return fetchLeo(`${noCloudProviderRoot}/stop`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
+      },
+
+      deleteAll: (deleteDisk = true) => {
+        return fetchLeo(`api/v2/runtimes/${workspaceId}/deleteAll${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
+          _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier])
+        )
       }
     }
   }
