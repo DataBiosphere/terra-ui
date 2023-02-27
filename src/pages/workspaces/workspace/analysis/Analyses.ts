@@ -314,18 +314,18 @@ export const BaseAnalyses: FC<AnalysesProps> = ({
   storageDetails: { googleBucketLocation, azureContainerRegion },
   onRequesterPaysError
 }: AnalysesProps, _ref) => {
-  const [renamingAnalysisName, setRenamingAnalysisName] = useState<AbsolutePath | undefined>(undefined)
-  const [copyingAnalysisName, setCopyingAnalysisName] = useState<AbsolutePath | undefined>(undefined)
-  const [deletingAnalysisName, setDeletingAnalysisName] = useState<AbsolutePath | undefined>(undefined)
-  const [exportingAnalysisName, setExportingAnalysisName] = useState<AbsolutePath | undefined>(undefined)
+  const [renamingAnalysisName, setRenamingAnalysisName] = useState<AbsolutePath>()
+  const [copyingAnalysisName, setCopyingAnalysisName] = useState<AbsolutePath>()
+  const [deletingAnalysisName, setDeletingAnalysisName] = useState<AbsolutePath>()
+  const [exportingAnalysisName, setExportingAnalysisName] = useState<AbsolutePath>()
   const [sortOrder, setSortOrder] = useState<SortOrderInfo>(() => getLocalPref(KEY_ANALYSES_SORT_ORDER) || defaultSort.value)
   const [feedbackShowing, setFeedbackShowing] = useState(false)
   const [filter, setFilter] = useState(() => StateHistory.get().filter || '')
   const [busy, setBusy] = useState(false)
   const [creating, setCreating] = useState(false)
-  const [analyses, setAnalyses] = useState<DisplayAnalysisFile[] | undefined>(() => StateHistory.get().analyses || undefined)
-  const [currentUserHash, setCurrentUserHash] = useState<string | undefined>(undefined)
-  const [potentialLockers, setPotentialLockers] = useState(undefined)
+  const [analyses, setAnalyses] = useState<DisplayAnalysisFile[]>(() => StateHistory.get().analyses || undefined)
+  const [currentUserHash, setCurrentUserHash] = useState<string>()
+  const [potentialLockers, setPotentialLockers] = useState()
   const [activeFileTransfers, setActiveFileTransfers] = useState(false)
   const enableJupyterLabPersistenceId: string = `${workspace.workspace.namespace}/${workspace.workspace.name}/${ENABLE_JUPYTERLAB_ID}`
   const [enableJupyterLabGCP, setEnableJupyterLabGCP] = useState<boolean>(() => getLocalPref(enableJupyterLabPersistenceId) || false)
