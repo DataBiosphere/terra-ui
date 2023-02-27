@@ -146,7 +146,7 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, inputDebounce 
         ])
       ])
     ]),
-    managedApps.status === 'Loading' && customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'absolute' })
+    managedApps.status === 'Loading' && customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'fixed' })
   ])
 }
 

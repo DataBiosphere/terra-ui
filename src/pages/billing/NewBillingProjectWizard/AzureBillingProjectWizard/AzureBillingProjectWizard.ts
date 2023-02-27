@@ -171,5 +171,5 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
       createReady: step1HasNoErrors && step2HasNoErrors && !!billingProjectName && !projectNameErrors && !isBusy
     })
   ]),
-  isBusy && customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'absolute' })])
+  isBusy && customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'fixed' })])
 }
