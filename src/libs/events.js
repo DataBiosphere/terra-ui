@@ -69,6 +69,7 @@ const eventsList = {
   notificationToggle: 'notification:toggle',
   pageView: 'page:view',
   resourceLeave: 'resource:leave',
+  userLogin: 'user:login',
   userRegister: 'user:register',
   workflowClearIO: 'workflow:clearIO',
   workflowImport: 'workflow:import',
