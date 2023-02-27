@@ -193,8 +193,8 @@ export const ComputeModalBase = ({
   const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState('')
   const [runtimeType, setRuntimeType] = useState(runtimeTypes.gceVm)
   const [computeConfig, setComputeConfig] = useState({
-    selectedPersistentDiskSize: defaultGcePersistentDiskSize,
-    selectedPersistentDiskType: defaultPersistentDiskType,
+    persistentDiskSize: defaultGcePersistentDiskSize,
+    persistentDiskType: defaultPersistentDiskType,
     //The false here is valid because the modal never opens to dataproc as the default
     masterMachineType: getDefaultMachineType(false, tool),
     masterDiskSize: defaultDataprocMasterDiskSize,
@@ -495,7 +495,7 @@ export const ComputeModalBase = ({
       persistentDisk: Utils.cond(
         [deleteDiskSelected, () => undefined],
         [viewMode !== 'deleteEnvironment' && shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected),
-          () => ({ size: computeConfig.selectedPersistentDiskSize, diskType: computeConfig.selectedPersistentDiskType })],
+          () => ({ size: computeConfig.persistentDiskSize, diskType: computeConfig.persistentDiskType })],
         () => existingPersistentDisk
       )
     }
@@ -759,8 +759,8 @@ export const ComputeModalBase = ({
 
       setRuntimeType(newRuntimeType)
       setComputeConfig({
-        selectedPersistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
-        selectedPersistentDiskType: (!!currentPersistentDiskDetails?.diskType && currentPersistentDiskDetails.diskType) || defaultPersistentDiskType,
+        persistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
+        persistentDiskType: (!!currentPersistentDiskDetails?.diskType && currentPersistentDiskDetails.diskType) || defaultPersistentDiskType,
         masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
         masterDiskSize: diskSize,
         numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,

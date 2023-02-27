@@ -13,8 +13,8 @@ import { getCurrentMountDirectory, getCurrentRuntime, getWorkspaceObject, pdType
 
 
 interface IComputeConfig {
-  selectedPersistentDiskSize: number
-  selectedPersistentDiskType: {
+  persistentDiskSize: number
+  persistentDiskType: {
     label: string
     displayName: string
     regionToPricesName: string
@@ -56,12 +56,12 @@ interface PersistentDiskTypeProps {
 
 interface PersistentDiskLearnProps {
   hasAttachedDisk: () => boolean
-  setViewMode: React.Dispatch<any> //TODO (LM) not sure if this is correct
+  setViewMode: React.Dispatch<any>
 }
 
 interface PersistentDiskAboutProps {
   titleId: string
-  setViewMode: React.Dispatch<any> //TODO (LM) not sure if this is correct
+  setViewMode: React.Dispatch<any>
   onDismiss: () => void
 }
 
@@ -110,9 +110,9 @@ export const PersistentDiskType = ({ diskExists, computeConfig, updateComputeCon
       div({ style: { marginTop: '0.5rem' } }, [
         h(Select, {
           id: persistentDiskId,
-          value: computeConfig.selectedPersistentDiskType,
+          value: computeConfig.persistentDiskType,
           isDisabled: diskExists,
-          onChange: e => updateComputeConfig('selectedPersistentDiskType')(e.value),
+          onChange: e => updateComputeConfig('persistentDiskType')(e.value),
           menuPlacement: 'auto',
           options: [
             { label: pdTypes.standard.displayName, value: pdTypes.standard },
@@ -155,8 +155,8 @@ export const PersistentDiskSection = ({ diskExists, computeConfig, updateCompute
               max: 64000,
               isClearable: false,
               onlyInteger: true,
-              value: computeConfig.selectedPersistentDiskSize,
-              onChange: updateComputeConfig('selectedPersistentDiskSize')
+              value: computeConfig.persistentDiskSize,
+              onChange: updateComputeConfig('persistentDiskSize')
             })
           ])
         ])
@@ -188,8 +188,8 @@ export const ParentPersistentDiskSection = ({ computeConfig, updateComputeConfig
             max: 64000,
             isClearable: false,
             onlyInteger: true,
-            value: computeConfig.diskSize, //TODO: need to combine diskSize (azure) and selectedPersistentDiskSize (GCP)
-            onChange: updateComputeConfig('diskSize')
+            value: computeConfig.persistentDiskSize,
+            onChange: updateComputeConfig('persistentDiskSize')
           })
         ])
       ])
@@ -214,8 +214,8 @@ export const ParentPersistentDiskSection = ({ computeConfig, updateComputeConfig
       //         max: 64000,
       //         isClearable: false,
       //         onlyInteger: true,
-      //         value: computeConfig.selectedPersistentDiskSize,
-      //         onChange: updateComputeConfig('selectedPersistentDiskSize')
+      //         value: computeConfig.persistentDiskSize,
+      //         onChange: updateComputeConfig('persistentDiskSize')
       //       })
       //     ])
       //   ])

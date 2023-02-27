@@ -49,7 +49,7 @@ export const AzureComputeModalBase = ({
     setCurrentRuntimeDetails(runtimeDetails)
     setComputeConfig({
       machineType: runtimeDetails?.runtimeConfig?.machineType || defaultAzureMachineType,
-      diskSize: runtimeDetails?.diskConfig?.size || defaultAzureDiskSize,
+      persistentDiskSize: runtimeDetails?.diskConfig?.size || defaultAzureDiskSize,
       // Azure workspace containers will pass the 'location' param as an Azure armRegionName, which can be used directly as the computeRegion
       region: runtimeDetails?.runtimeConfig?.region || location || defaultAzureRegion
     })
@@ -207,7 +207,7 @@ export const AzureComputeModalBase = ({
         () => Ajax().Runtimes.runtimeV2(workspaceId, currentRuntimeDetails.runtimeName).delete()], //delete runtime
       [Utils.DEFAULT, () => {
         const disk = {
-          size: computeConfig.diskSize,
+          size: computeConfig.persistentDiskSize,
           //We do not currently support re-attaching azure disks
           name: Utils.generatePersistentDiskName(),
           labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: workspaceName }
@@ -218,7 +218,7 @@ export const AzureComputeModalBase = ({
           machineSize: computeConfig.machineType,
           saturnWorkspaceNamespace: namespace,
           saturnWorkspaceName: workspaceName,
-          diskSize: disk.size,
+          diskSize: disk.size, // left as diskSize for metrics gathering
           workspaceId
         })
 

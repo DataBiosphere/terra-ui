@@ -26,8 +26,8 @@ import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const defaultIComputeConfig = {
-  selectedPersistentDiskSize: defaultGcePersistentDiskSize,
-  selectedPersistentDiskType: defaultPersistentDiskType,
+  persistentDiskSize: defaultGcePersistentDiskSize,
+  persistentDiskType: defaultPersistentDiskType,
   masterMachineType: getDefaultMachineType(false, toolLabels.RStudio),
   masterDiskSize: defaultDataprocMasterDiskSize,
   diskSize: 0, //TODO: set to a default disk size for Azure
