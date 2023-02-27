@@ -11,12 +11,13 @@ import {
   AbsolutePath
 } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { AppTool, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
-import { getFileFromPath, useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
+import { getFileFromPath } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 import { asMockedFn } from 'src/testing/test-utils'
 
 import { AnalysisModal, AnalysisModalProps } from './AnalysisModal'
 
 
+const createFunc = jest.fn()
 const defaultGcpModalProps: AnalysisModalProps = {
   isOpen: true,
   workspace: defaultGoogleWorkspace,
@@ -30,6 +31,14 @@ const defaultGcpModalProps: AnalysisModalProps = {
   onSuccess: () => {},
   openUploader: () => {},
   uploadFiles: () => {},
+  analysisFileStore: {
+    refreshFileStore: () => Promise.resolve(),
+    loadedState: { state: [], status: 'Ready' },
+    create: createFunc,
+    pendingCreate: { status: 'Ready', state: true },
+    pendingDelete: { status: 'Ready', state: true },
+    deleteFile: () => Promise.resolve()
+  }
 }
 
 const defaultAzureModalProps: AnalysisModalProps = {
@@ -58,31 +67,10 @@ jest.mock('src/pages/workspaces/workspace/analysis/file-utils', (): FileUtilsExp
   }
 })
 
-type UseAnalysisFilesExport = typeof import('src/pages/workspaces/workspace/analysis/useAnalysisFiles')
-jest.mock('src/pages/workspaces/workspace/analysis/useAnalysisFiles', (): UseAnalysisFilesExport => {
-  const originalModule = jest.requireActual('src/pages/workspaces/workspace/analysis/useAnalysisFiles')
-  return {
-    ...originalModule,
-    useAnalysisFiles: jest.fn()
-  }
-})
-
-const createFunc = jest.fn()
-
 type AjaxContract = ReturnType<typeof Ajax>
 
 describe('AnalysisModal', () => {
   beforeEach(() => {
-    // Arrange
-    asMockedFn(useAnalysisFiles).mockImplementation(() => ({
-      refreshFileStore: () => Promise.resolve(),
-      loadedState: { state: [], status: 'Ready' },
-      create: createFunc,
-      pendingCreate: { status: 'Ready', state: true },
-      pendingDelete: { status: 'Ready', state: true },
-      deleteFile: () => Promise.resolve()
-    }))
-
     asMockedFn(Ajax).mockImplementation(() => ({
       Buckets: {
         getObjectPreview: () => Promise.resolve({ json: () => Promise.resolve(imageDocs) }),
@@ -350,17 +338,20 @@ describe('AnalysisModal', () => {
   it('Attempts to create a file with a name that already exists', async () => {
     // Arrange
     const fileList = [getFileFromPath('test/file1.ipynb' as AbsolutePath), getFileFromPath('test/file2.ipynb' as AbsolutePath)]
-    asMockedFn(useAnalysisFiles).mockImplementation(() => ({
+    const mockFileStore = {
       loadedState: { state: fileList, status: 'Ready' },
       refreshFileStore: () => Promise.resolve(),
       create: () => Promise.resolve(),
       pendingCreate: { status: 'Ready', state: true },
       pendingDelete: { status: 'Ready', state: true },
       deleteFile: () => Promise.resolve()
-    }))
+    }
 
     const user = userEvent.setup()
-    render(h(AnalysisModal, defaultGcpModalProps))
+    render(h(AnalysisModal, {
+      ...defaultGcpModalProps,
+      analysisFileStore: mockFileStore
+    }))
 
     // Act
     await act(async () => {
@@ -379,17 +370,20 @@ describe('AnalysisModal', () => {
     // Arrange
     const fileList = [getFileFromPath('test/file1.ipynb' as AbsolutePath)]
     const createMock = jest.fn().mockRejectedValue(new Error('MyTestError'))
-    asMockedFn(useAnalysisFiles).mockImplementation(() => ({
+    const mockFileStore = {
       loadedState: { state: fileList, status: 'Ready' },
       refreshFileStore: () => Promise.resolve(),
       create: createMock,
       pendingCreate: { status: 'Ready', state: true },
       pendingDelete: { status: 'Ready', state: true },
       deleteFile: () => Promise.resolve()
-    }))
-
+    }
     const user = userEvent.setup()
-    render(h(AnalysisModal, defaultGcpModalProps))
+
+    render(h(AnalysisModal, {
+      ...defaultGcpModalProps,
+      analysisFileStore: mockFileStore
+    }))
 
     // Act
     await act(async () => {

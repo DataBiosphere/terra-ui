@@ -332,7 +332,8 @@ export const BaseAnalyses: FC<AnalysesProps> = ({
 
   const authState = useStore(authStore)
   const signal = useCancellation()
-  const { loadedState, refreshFileStore, create, deleteFile } = useAnalysisFiles()
+  const analysisFileStore = useAnalysisFiles()
+  const { loadedState, refreshFileStore, create, deleteFile } = analysisFileStore
   const currentRuntime = getCurrentRuntime(runtimes)
   const location = Utils.cond(
     [isGoogleWorkspace(workspace), () => googleBucketLocation],
@@ -547,16 +548,15 @@ export const BaseAnalyses: FC<AnalysesProps> = ({
           },
           onError: () => {
             setCreating(false)
-            refreshAnalyses()
             refreshRuntimes()
             refreshApps()
           },
           onSuccess: () => {
             setCreating(false)
-            refreshAnalyses()
             refreshRuntimes()
             refreshApps()
-          }
+          },
+          analysisFileStore
         }),
         renamingAnalysisName && h(AnalysisDuplicator, {
           printName: getFileName(renamingAnalysisName),
