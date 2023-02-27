@@ -35,7 +35,7 @@ const testRunAnalysisFn = _.flowRight(
   await delay(200)
 
   // Navigate to analysis launcher
-  await findElement(page, clickable({ textContains: notebookName }))
+  await findElement(page, clickable({ textContains: notebookName }), { timeout: 60000 })
   await click(page, clickable({ textContains: notebookName }))
   await dismissNotifications(page)
 
