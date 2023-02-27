@@ -46,7 +46,7 @@ export const getDatasetReleasePoliciesDisplayInformation = (dataUsePermission?: 
 
 export const makeDatasetReleasePolicyDisplayInformation = (dataUsePermission: string): ReactElement => {
   const { label, description } = getDatasetReleasePoliciesDisplayInformation(dataUsePermission)
-  return h(Fragment, [
+  return h(div, [
     label,
     description && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [description])
   ])
@@ -61,7 +61,7 @@ export const workspaceUrlFragment = '/#workspaces/'
 
 export const isWorkspace = (dataset: Dataset): boolean => _.toLower(dataset['dcat:accessURL']).includes(workspaceUrlFragment)
 
-export const datarepoSnapshotUrlFragment = '/snapshots/details/'
+export const datarepoSnapshotUrlFragment = '/snapshots/'
 
 export const isDatarepoSnapshot = (dataset: Dataset): boolean => _.toLower(dataset['dcat:accessURL']).includes(datarepoSnapshotUrlFragment)
 

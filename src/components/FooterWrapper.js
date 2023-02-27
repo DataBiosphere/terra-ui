@@ -22,7 +22,7 @@ const styles = {
 const buildTimestamp = new Date(parseInt(process.env.REACT_APP_BUILD_TIMESTAMP, 10))
 
 // If you change the layout here, make sure it's reflected in the pre-rendered version in public/index.html
-const FooterWrapper = ({ children, alwaysShow, fixedHeight }) => {
+const FooterWrapper = ({ children, alwaysShow = false, fixedHeight = false }) => {
   const [isExpanded, setIsExpanded] = useState(false)
   const [scrollBarHeight, setScrollBarHeight] = useState(window.innerHeight - document.body.offsetHeight)
 

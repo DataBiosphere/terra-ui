@@ -109,6 +109,7 @@ export const imageDocs = [
 
 export const defaultGoogleWorkspace = {
   workspace: {
+    authorizationDomain: [],
     cloudPlatform: 'Gcp',
     bucketName: 'test-bucket',
     googleProject: `${defaultGoogleWorkspaceNamespace}-project`,
@@ -123,6 +124,7 @@ export const defaultGoogleWorkspace = {
 
 export const defaultAzureWorkspace = {
   workspace: {
+    authorizationDomain: [],
     cloudPlatform: 'Azure',
     googleProject: '',
     bucketName: '',

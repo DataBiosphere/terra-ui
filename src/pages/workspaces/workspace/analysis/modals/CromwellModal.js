@@ -9,9 +9,10 @@ import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { withDisplayName } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-import { computeStyles } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import { getCurrentApp, getCurrentAppDataDisk } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { appTools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+
+import { computeStyles } from './modalStyles'
 
 
 const defaultDataDiskSize = 500 // GB

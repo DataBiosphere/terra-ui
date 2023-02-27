@@ -844,51 +844,49 @@ const WorkspaceData = _.flow(
             isAzureWorkspace && h(DataTypeSection, {
               title: 'Tables'
             }, [
-              [
-                (wdsLoading || wdsError) && h(NoDataPlaceholder, {
-                  message: wdsLoading ? icon('loadingSpinner') : 'Data tables are unavailable'
-                }),
-                wdsReady && _.isEmpty(wdsTypes.state) && h(NoDataPlaceholder, {
-                  message: 'No tables have been uploaded.'
-                }),
-                wdsReady && !_.isEmpty(wdsTypes.state) && _.map(typeDef => {
-                  return div({ key: typeDef.name, role: 'listitem' }, [
-                    h(DataTypeButton, {
-                      key: typeDef.name,
-                      selected: selectedData?.type === workspaceDataTypes.wds && selectedData.entityType === typeDef.name,
-                      entityName: typeDef.name,
-                      entityCount: typeDef.count,
-                      filteredCount: typeDef.count,
-                      activeCrossTableTextFilter: false,
-                      crossTableSearchInProgress: false,
-                      onClick: () => {
-                        setSelectedData({ type: workspaceDataTypes.wds, entityType: typeDef.name })
+              (wdsLoading || wdsError) && h(NoDataPlaceholder, {
+                message: wdsLoading ? icon('loadingSpinner') : 'Data tables are unavailable'
+              }),
+              wdsReady && _.isEmpty(wdsTypes.state) && h(NoDataPlaceholder, {
+                message: 'No tables have been uploaded.'
+              }),
+              wdsReady && !_.isEmpty(wdsTypes.state) && _.map(typeDef => {
+                return div({ key: typeDef.name, role: 'listitem' }, [
+                  h(DataTypeButton, {
+                    key: typeDef.name,
+                    selected: selectedData?.type === workspaceDataTypes.wds && selectedData.entityType === typeDef.name,
+                    entityName: typeDef.name,
+                    entityCount: typeDef.count,
+                    filteredCount: typeDef.count,
+                    activeCrossTableTextFilter: false,
+                    crossTableSearchInProgress: false,
+                    onClick: () => {
+                      setSelectedData({ type: workspaceDataTypes.wds, entityType: typeDef.name })
+                      forceRefresh()
+                    },
+                    after: h(DataTableActions, {
+                      dataProvider: wdsDataTableProvider,
+                      tableName: typeDef.name,
+                      rowCount: typeDef.count,
+                      entityMetadata,
+                      workspace,
+                      onRenameTable: undefined,
+                      onDeleteTable: tableName => {
+                        setSelectedData(undefined)
+                        setWdsTypes({ status: 'Ready', state: _.remove(typeDef => typeDef.name === tableName, wdsTypes.state) })
                         forceRefresh()
                       },
-                      after: h(DataTableActions, {
-                        dataProvider: wdsDataTableProvider,
-                        tableName: typeDef.name,
-                        rowCount: typeDef.count,
-                        entityMetadata,
-                        workspace,
-                        onRenameTable: undefined,
-                        onDeleteTable: tableName => {
-                          setSelectedData(undefined)
-                          setWdsTypes({ status: 'Ready', state: _.remove(typeDef => typeDef.name === tableName, wdsTypes.state) })
-                          forceRefresh()
-                        },
-                        isShowingVersionHistory: false,
-                        onSaveVersion: undefined,
-                        onToggleVersionHistory: undefined
-                      })
+                      isShowingVersionHistory: false,
+                      onSaveVersion: undefined,
+                      onToggleVersionHistory: undefined
                     })
-                  ])
-                }, wdsTypes.state),
-                h(NoDataPlaceholder, {
-                  buttonText: 'Data Table Status',
-                  onAdd: () => setTroubleshootingWds(true)
-                }),
-              ]
+                  })
+                ])
+              }, wdsTypes.state),
+              h(NoDataPlaceholder, {
+                buttonText: 'Data Table Status',
+                onAdd: () => setTroubleshootingWds(true)
+              }),
             ]),
             (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) && isGoogleWorkspace && h(DataTypeSection, {
               title: 'Snapshots',
