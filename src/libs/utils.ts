@@ -232,7 +232,7 @@ export const computeWorkspaceError = ({ canCompute, workspace: { isLocked } }) =
 
 export const textMatch = safeCurry((needle: string, haystack: string): boolean => {
   return haystack.toLowerCase().includes(needle.toLowerCase())
-})
+}) as ((needle: string, haystack: string) => boolean)
 
 export const nextSort = ({ field, direction }, newField) => {
   return newField === field ?

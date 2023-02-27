@@ -442,7 +442,7 @@ export const BaseAnalyses: FC<AnalysesProps> = ({
     const { field, direction } = sortOrder
     const canWrite = Utils.canWrite(accessLevel)
 
-    const filteredAnalyses: DisplayAnalysisFile[] = _.filter((analysisFile: DisplayAnalysisFile) => Utils.textMatch(filter, getFileName(analysisFile.name)) as unknown as boolean, analyses)
+    const filteredAnalyses: DisplayAnalysisFile[] = _.filter((analysisFile: DisplayAnalysisFile) => Utils.textMatch(filter, getFileName(analysisFile.name)), analyses)
     // Lodash does not have a well-typed return on this function and there are not any nice alternatives, so expect error for now
     // @ts-expect-error
     const sortedAnalyses: DisplayAnalysisFile[] = _.orderBy(sortTokens[field] || field, direction, filteredAnalyses)
