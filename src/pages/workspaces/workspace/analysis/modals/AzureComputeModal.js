@@ -23,8 +23,7 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 import { computeStyles } from './modalStyles'
-import { ParentPersistentDiskSection } from './persistent-disk-controls'
-//import { PersistentDiskSection } from './persistent-disk-controls.ts'
+import { AzurePersistentDiskSection } from './persistent-disk-controls'
 
 
 const titleId = 'azure-compute-modal-title'
@@ -37,7 +36,6 @@ export const AzureComputeModalBase = ({
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(() => getCurrentRuntime(runtimes))
   const [computeConfig, setComputeConfig] = useState(defaultAzureComputeConfig)
   const updateComputeConfig = _.curry((key, value) => setComputeConfig(_.set(key, value)))
-  //(key, value) => setComputeConfig(_.set(key, value, computeConfig))
 
   // Lifecycle
   useOnMount(_.flow(
@@ -129,26 +127,6 @@ export const AzureComputeModalBase = ({
           ])
         ])
       ]),
-      // div({ style: { marginBottom: '2rem' } }, [
-      //   h(IdContainer, [
-      //     id => h(Fragment, [
-      //       div({ style: { marginBottom: '.5rem' } }, [
-      //         label({ htmlFor: id, style: computeStyles.label }, ['Disk Size (GB)'])
-      //       ]),
-      //       div({ style: { width: 75 } }, [
-      //         h(NumberInput, {
-      //           id,
-      //           min: 50,
-      //           max: 64000,
-      //           isClearable: false,
-      //           onlyInteger: true,
-      //           value: computeConfig.diskSize,
-      //           onChange: v => updateComputeConfig('diskSize', v)
-      //         })
-      //       ])
-      //     ])
-      //   ])
-      // ])
     ])
   }
 
@@ -245,7 +223,7 @@ export const AzureComputeModalBase = ({
       div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
         renderApplicationConfigurationSection(),
         renderComputeProfileSection(),
-        h(ParentPersistentDiskSection, { diskExists: false, computeConfig, updateComputeConfig, handleLearnMoreAboutPersistentDisk: () => {} }),
+        h(AzurePersistentDiskSection, { diskExists: false, computeConfig, updateComputeConfig, handleLearnMoreAboutPersistentDisk: () => {} }),
         renderBottomButtons()
       ])
     ])

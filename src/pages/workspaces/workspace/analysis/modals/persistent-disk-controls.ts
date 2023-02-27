@@ -49,11 +49,6 @@ interface PersistentDiskTypeProps {
   updateComputeConfig: (arg: string) => (diskType: string) => void
 }
 
-// STATE STUFF TO FIGURE OUT
-// - setViewMode
-// - currentRuntimeDetails
-// - getDesiredEnvironmentConfig, getExistingEnvironmentConfig
-
 interface PersistentDiskLearnProps {
   hasAttachedDisk: () => boolean
   setViewMode: React.Dispatch<any>
@@ -125,6 +120,8 @@ export const PersistentDiskType = ({ diskExists, computeConfig, updateComputeCon
   )
 }
 
+// TODO: combine both persistent disk sections into 1 parent
+
 export const PersistentDiskSection = ({ diskExists, computeConfig, updateComputeConfig, handleLearnMoreAboutPersistentDisk }: PersistentDiskProps) => {
   const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
   const diskSizeId = useUniqueId()
@@ -165,8 +162,7 @@ export const PersistentDiskSection = ({ diskExists, computeConfig, updateCompute
   ])
 }
 
-//diskExists, computeConfig, updateComputeConfig, handleLearnMoreAboutPersistentDisk
-export const ParentPersistentDiskSection = ({ computeConfig, updateComputeConfig, handleLearnMoreAboutPersistentDisk }: PersistentDiskProps) => {
+export const AzurePersistentDiskSection = ({ computeConfig, updateComputeConfig, handleLearnMoreAboutPersistentDisk }: PersistentDiskProps) => {
   const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
   const diskSizeId = useUniqueId()
 
@@ -193,33 +189,6 @@ export const ParentPersistentDiskSection = ({ computeConfig, updateComputeConfig
           })
         ])
       ])
-
-      // diff from here down
-      // div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
-      //   diskExists ?
-      //     h(TooltipTrigger, {
-      //       content: [
-      //         'You already have a persistent disk in this workspace. ',
-      //         'Disk type can only be configured at creation time. ',
-      //         'Please delete the existing disk before selecting a new type.'
-      //       ],
-      //       side: 'bottom'
-      //     }, [h(PersistentDiskType, { diskExists, computeConfig, updateComputeConfig })]) : h(PersistentDiskType, { diskExists, computeConfig, updateComputeConfig }),
-      //   h(div, [
-      //     label({ htmlFor: diskSizeId, style: computeStyles.label }, ['Disk Size (GB)']),
-      //     div({ style: { marginTop: '0.5rem' } }, [
-      //       h(NumberInput, {
-      //         id: diskSizeId,
-      //         min: 10,
-      //         max: 64000,
-      //         isClearable: false,
-      //         onlyInteger: true,
-      //         value: computeConfig.persistentDiskSize,
-      //         onChange: updateComputeConfig('persistentDiskSize')
-      //       })
-      //     ])
-      //   ])
-      // ])
     ])
   ])
 }
