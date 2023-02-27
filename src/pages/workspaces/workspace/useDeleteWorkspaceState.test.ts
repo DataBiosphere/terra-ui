@@ -323,11 +323,12 @@ describe('useDeleteWorkspace', () => {
         getAcl: mockGetAcl
       })
     }
-    //
+
     const mockListAppsFn = jest.fn()
+    const mockDeleteAllApps = jest.fn()
     const mockListAppsV2: Partial<AjaxAppsContract> = {
       listAppsV2: mockListAppsFn,
-      deleteAllAppsV2: jest.fn()
+      deleteAllAppsV2: mockDeleteAllApps
     }
     mockListAppsFn.mockResolvedValueOnce([
       {
@@ -335,11 +336,12 @@ describe('useDeleteWorkspace', () => {
         status: 'running'
       }
     ]).mockResolvedValueOnce([])
-    //
+
+    const mockDeleteAllRuntimes = jest.fn()
     const mockRuntimesV2: DeepPartial<AjaxRuntimesContract> = {
       listV2WithWorkspace: jest.fn(),
       runtimeV2: () => ({
-        deleteAll: jest.fn
+        deleteAll: mockDeleteAllRuntimes
       })
     }
     asMockedFn((mockRuntimesV2 as AjaxRuntimesContract).listV2WithWorkspace).mockResolvedValue([])
@@ -363,6 +365,10 @@ describe('useDeleteWorkspace', () => {
     expect(result.current.deleting).toBe(false)
     expect(result.current.deletingResources).toBe(true)
     expect(mockDelete).toHaveBeenCalledTimes(0)
+    expect(mockDeleteAllRuntimes).toHaveBeenCalledTimes(1)
+    expect(mockDeleteAllRuntimes).toHaveBeenCalledWith(true)
+    expect(mockDeleteAllApps).toHaveBeenCalledTimes(1)
+    expect(mockDeleteAllApps).toHaveBeenCalledWith(azureWorkspace.workspace.workspaceId, true)
 
     // Act
     jest.advanceTimersByTime(WorkspaceResourceDeletionPollRate)
@@ -382,7 +388,7 @@ describe('useDeleteWorkspace', () => {
         getAcl: mockGetAcl
       })
     }
-    //
+
     const mockListAppsFn = jest.fn()
     const mockListAppsV2: Partial<AjaxAppsContract> = {
       listAppsV2: mockListAppsFn,

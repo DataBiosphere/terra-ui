@@ -141,7 +141,7 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
       hookArgs.onSuccess()
     } catch (error) {
       setDeleting(false)
-      await reportError('Error deleting workspace', error)
+      reportError('Error deleting workspace', error)
     }
   }
 
@@ -160,8 +160,7 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
       }
     } catch (error) {
       setDeletingResources(false)
-      await reportError('Error checking workspace resources', error)
-      return
+      reportError('Error checking workspace resources', error)
     }
   }
 

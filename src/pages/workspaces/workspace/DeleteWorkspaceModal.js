@@ -78,7 +78,10 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
       onDismiss,
       okButton: h(ButtonPrimary, {
         disabled: isDeleteDisabledFromResources,
-        onClick: deleteWorkspaceResources
+        onClick: deleteWorkspaceResources,
+        tooltip: Utils.cond(
+          [isDeleteDisabledFromResources, () => 'All workspace resources must be in a deletable state.'],
+          () => '')
       }, ['Delete all resources']),
       styles: { modal: { background: colors.warning(0.1) } }
     },
@@ -99,7 +102,7 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
           workspaceResources.runtimes.map(runtime => li({ key: runtime.runtimeName }, [runtime.runtimeName]))
         ]),
         p(['These resources must be deleted before the workspace can be deleted.']),
-        p(['It may take several minutes to delete all of the cloud resources in this workspace. Please do not close this window']),
+        p(['It may take several minutes to delete all of the cloud resources in this workspace. Please do not close this window.']),
         p([strong(['This cannot be undone.'])])
 
       ]),
@@ -120,7 +123,6 @@ const DeleteWorkspaceModal = ({ workspace, workspace: { workspace: { name, bucke
         onClick: deleteWorkspace,
         tooltip: Utils.cond(
           [isDeleteDisabledFromResources && isGoogleWorkspace(workspace), () => 'You must ensure all apps in this workspace are deletable'],
-          [isDeleteDisabledFromResources && isAzureWorkspace(workspace), () => 'This workspace cannot be deleted'],
           [_.toLower(deleteConfirmation) !== 'delete workspace', () => 'You must type the confirmation message'],
           () => '')
       }, 'Delete workspace'),
