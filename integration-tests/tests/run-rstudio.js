@@ -36,6 +36,7 @@ const testRunRStudioFn = _.flowRight(
   // Navigate to analysis launcher
   await findElement(page, clickable({ textContains: rFileName }), { timeout: 60000 })
   await click(page, clickable({ textContains: rFileName }))
+
   await dismissNotifications(page)
 
   await noSpinnersAfter(page, {
