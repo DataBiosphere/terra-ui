@@ -96,7 +96,7 @@ interface AddUserStepProps {
   inputDebounce?: number
 }
 
-export const AddUsersStep = ({ isActive, inputDebounce = 0, ...props }: AddUserStepProps) => {
+export const AddUsersStep = ({ isActive, inputDebounce = 1000, ...props }: AddUserStepProps) => {
   const [userEmailErrors, setUserEmailErrors] = useState<ReactNode>()
   const [ownerEmailErrors, setOwnerEmailErrors] = useState<ReactNode>()
 
