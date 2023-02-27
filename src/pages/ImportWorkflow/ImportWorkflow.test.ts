@@ -56,6 +56,13 @@ jest.mock('src/libs/nav', () => ({
   goToPath: jest.fn(),
 }))
 
+// The workspace menu uses react-virtualized's AutoSizer to size the options menu.
+// This makes the virtualized window large enough for options to be rendered.
+jest.mock('react-virtualized', () => ({
+  ...jest.requireActual('react-virtualized'),
+  AutoSizer: ({ children }) => children({ width: 300 })
+}))
+
 describe('ImportWorkflow', () => {
   beforeAll(() => {
     // Arrange
