@@ -5,6 +5,7 @@ import { customSpinnerOverlay } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
 import { reportErrorAndRethrow } from 'src/libs/error'
 import Events from 'src/libs/events'
+import { useOnMount } from 'src/libs/react-utils'
 import { summarizeErrors, withBusyState } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 import { billingProjectNameValidator } from 'src/pages/billing/List'
@@ -63,9 +64,9 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
     } catch (error: any) {
       if (error?.status === 409) {
         setExistingProjectNames(_.concat(billingProjectName, existingProjectNames))
-        Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectDuplicateName)
+        Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectCreateFail, { existingName: true })
       } else {
-        Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectCreateFail)
+        Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectCreateFail, { existingName: false })
         throw error
       }
     }
@@ -80,10 +81,11 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
       [Utils.DEFAULT, () => undefined]
     )
     setProjectNameErrors(errors)
-    if (!errors && billingProjectName !== undefined) {
-      Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectNameEntered)
-    }
   }, [billingProjectName, existingProjectNames])
+
+  useOnMount(() => {
+    Ajax().Metrics.captureEvent(Events.billingAzureCreationSubscriptionStep)
+  })
 
   const stepFinished = (step: number, finished: boolean) => {
     if (finished && activeStep === step) { // the user completed the active step
@@ -114,13 +116,10 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
     h(AzureSubscriptionStep, {
       isActive: activeStep === 1,
       subscriptionId,
-      onSubscriptionIdChanged: (subscriptionId, hasError) => {
+      onSubscriptionIdChanged: subscriptionId => {
         stepFinished(1, false)
         setSubscriptionId(subscriptionId)
         onManagedAppSelected(undefined)
-        if (!hasError) {
-          Ajax().Metrics.captureEvent(Events.billingAzureCreationSubscriptionEntered)
-        }
       },
       managedApp,
       onManagedAppSelected,
@@ -139,16 +138,10 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
       onSetUserEmails: (emails, hasError) => {
         stepFinished(2, false)
         setUserEmails({ emails, hasError })
-        if (!hasError && !!emails) {
-          Ajax().Metrics.captureEvent(Events.billingAzureCreationUsersAdded)
-        }
       },
       onSetOwnerEmails: (emails, hasError) => {
         stepFinished(2, false)
         setOwnerEmails({ emails, hasError })
-        if (!hasError && !!emails) {
-          Ajax().Metrics.captureEvent(Events.billingAzureCreationOwnersAdded)
-        }
       },
       onOwnersOrUsersInputFocused: () => {
         stepFinished(2, false)
@@ -163,6 +156,7 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
       onBillingProjectInputFocused: () => {
         if (step1HasNoErrors && step2HasNoErrors) {
           stepFinished(2, true)
+          Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectNameStep)
         }
       },
       createBillingProject,

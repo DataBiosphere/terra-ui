@@ -28,7 +28,7 @@ import { validate } from 'validate.js'
 type AzureSubscriptionStepProps = {
   isActive: boolean
   subscriptionId?: string // undefined indicates the value hasn't been changed by the user yet
-  onSubscriptionIdChanged: (string, boolean) => void
+  onSubscriptionIdChanged: (string) => void
   managedApp?: AzureManagedAppCoordinates
   onManagedAppSelected: (AzureManagedAppCoordinates) => void
 }
@@ -76,7 +76,7 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
   const subscriptionIdChanged = v => {
     const errors = summarizeErrors(getSubscriptionIdErrors(v)?.subscriptionId)
     setSubscriptionIdError(errors)
-    props.onSubscriptionIdChanged(v, !!errors)
+    props.onSubscriptionIdChanged(v)
 
     if (!!v && !errors) {
       setManagedApps(async () => {

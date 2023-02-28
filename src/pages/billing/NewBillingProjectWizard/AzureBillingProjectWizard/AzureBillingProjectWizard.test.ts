@@ -95,10 +95,10 @@ describe('AzureBillingProjectWizard', () => {
       []
     )
 
-    expect(captureEvent).toHaveBeenNthCalledWith(1, Events.billingAzureCreationSubscriptionEntered)
+    expect(captureEvent).toHaveBeenNthCalledWith(1, Events.billingAzureCreationSubscriptionStep)
     expect(captureEvent).toHaveBeenNthCalledWith(2, Events.billingAzureCreationMRGSelected)
     expect(captureEvent).toHaveBeenNthCalledWith(3, Events.billingAzureCreationNoUsersToAdd)
-    expect(captureEvent).toHaveBeenNthCalledWith(4, Events.billingAzureCreationProjectNameEntered)
+    expect(captureEvent).toHaveBeenNthCalledWith(4, Events.billingAzureCreationProjectNameStep)
     expect(captureEvent).toHaveBeenCalledTimes(4)
     expect(onSuccess).toBeCalledWith(billingProjectName)
   })
@@ -127,13 +127,11 @@ describe('AzureBillingProjectWizard', () => {
       [{ email: 'onlyuser@example.com', role: 'User' }, { email: 'owner@example.com', role: 'Owner' }]
     )
 
-    expect(captureEvent).toHaveBeenNthCalledWith(1, Events.billingAzureCreationSubscriptionEntered)
+    expect(captureEvent).toHaveBeenNthCalledWith(1, Events.billingAzureCreationSubscriptionStep)
     expect(captureEvent).toHaveBeenNthCalledWith(2, Events.billingAzureCreationMRGSelected)
     expect(captureEvent).toHaveBeenNthCalledWith(3, Events.billingAzureCreationWillAddUsers)
-    expect(captureEvent).toHaveBeenNthCalledWith(4, Events.billingAzureCreationUsersAdded)
-    expect(captureEvent).toHaveBeenNthCalledWith(5, Events.billingAzureCreationOwnersAdded)
-    expect(captureEvent).toHaveBeenNthCalledWith(6, Events.billingAzureCreationProjectNameEntered)
-    expect(captureEvent).toHaveBeenCalledTimes(6)
+    expect(captureEvent).toHaveBeenNthCalledWith(4, Events.billingAzureCreationProjectNameStep)
+    expect(captureEvent).toHaveBeenCalledTimes(4)
     expect(onSuccess).toBeCalledWith(billingProjectName)
   })
 
@@ -155,7 +153,7 @@ describe('AzureBillingProjectWizard', () => {
     verifyCreateBillingProjectDisabled()
     expect(onSuccess).not.toBeCalled()
     await screen.findByText('Billing project name already exists')
-    expect(captureEvent).toHaveBeenCalledWith(Events.billingAzureCreationProjectDuplicateName)
+    expect(captureEvent).toHaveBeenCalledWith(Events.billingAzureCreationProjectCreateFail, { existingName: true })
     expect(await axe(renderResult.container)).toHaveNoViolations()
   })
 
@@ -174,6 +172,5 @@ describe('AzureBillingProjectWizard', () => {
     await nameBillingProject('')
     await screen.findByText(nameRequiredText)
     expect(screen.queryByText(tooShortText)).toBeNull()
-    expect(captureEvent).not.toBeCalled()
   })
 })

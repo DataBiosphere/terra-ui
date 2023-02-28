@@ -428,10 +428,6 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             })
             setCreatingBillingProject(null)
             loadProjects()
-            Nav.history.push({
-              pathname: Nav.getPath('billing'),
-              search: qs.stringify({ selectedName: billingProjectName, type: 'project' })
-            })
           }
         })],
         [!isLoadingProjects && _.isEmpty(billingProjects) && !Auth.isAzureUser(), () => h(GCPBillingProjectWizard, {
