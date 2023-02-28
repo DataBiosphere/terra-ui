@@ -67,7 +67,7 @@ export interface BrandConfiguration {
  * Configuration for Terra co-brands (a.k.a. white label sites)
  * https://broadworkbench.atlassian.net/wiki/spaces/WOR/pages/2369388553/Cobranding+and+White+Label+Sites
  */
-export const brands: { [brandName: string]: BrandConfiguration } = {
+export const brands: Record<string, BrandConfiguration> = {
   anvil: {
     name: 'AnVIL',
     queryName: 'anvil',
