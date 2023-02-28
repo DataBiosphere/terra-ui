@@ -3,7 +3,6 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { createContext, useContext, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { getEnabledBrand } from 'src/libs/brand-utils'
 import { useOnMount, useStore } from 'src/libs/react-utils'
 import { routeHandlersStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -84,19 +83,6 @@ export const useRoute = () => {
   const location = useContext(locationContext)
   const handlers = useStore(routeHandlersStore)
   return parseRoute(handlers, location)
-}
-
-export const TitleManager = () => {
-  const { title, params, query } = useRoute()
-  const newTitle = Utils.cond(
-    [_.isFunction(title), () => title({ ...params, queryParams: query })],
-    [title, () => title],
-    () => getEnabledBrand().name
-  )
-  useEffect(() => {
-    document.title = newTitle
-  }, [newTitle])
-  return null
 }
 
 export const Router = () => {
