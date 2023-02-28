@@ -340,9 +340,7 @@ describe('useDeleteWorkspace', () => {
     const mockDeleteAllRuntimes = jest.fn()
     const mockRuntimesV2: DeepPartial<AjaxRuntimesContract> = {
       listV2WithWorkspace: jest.fn(),
-      runtimeV2: () => ({
-        deleteAll: mockDeleteAllRuntimes
-      })
+      deleteAll: mockDeleteAllRuntimes
     }
     asMockedFn((mockRuntimesV2 as AjaxRuntimesContract).listV2WithWorkspace).mockResolvedValue([])
 
@@ -366,7 +364,7 @@ describe('useDeleteWorkspace', () => {
     expect(result.current.deletingResources).toBe(true)
     expect(mockDelete).toHaveBeenCalledTimes(0)
     expect(mockDeleteAllRuntimes).toHaveBeenCalledTimes(1)
-    expect(mockDeleteAllRuntimes).toHaveBeenCalledWith(true)
+    expect(mockDeleteAllRuntimes).toHaveBeenCalledWith(azureWorkspace.workspace.workspaceId, true)
     expect(mockDeleteAllApps).toHaveBeenCalledTimes(1)
     expect(mockDeleteAllApps).toHaveBeenCalledWith(azureWorkspace.workspace.workspaceId, true)
 
@@ -403,9 +401,7 @@ describe('useDeleteWorkspace', () => {
     const mockRuntimeDeleteAll = jest.fn().mockRejectedValue('failed')
     const mockRuntimesV2: DeepPartial<AjaxRuntimesContract> = {
       listV2WithWorkspace: jest.fn(),
-      runtimeV2: () => ({
-        deleteAll: mockRuntimeDeleteAll
-      })
+      deleteAll: mockRuntimeDeleteAll
     }
     asMockedFn((mockRuntimesV2 as AjaxRuntimesContract).listV2WithWorkspace).mockResolvedValue([])
 
@@ -456,9 +452,7 @@ describe('useDeleteWorkspace', () => {
     ]).mockRejectedValue('error')
     const mockRuntimesV2: DeepPartial<AjaxRuntimesContract> = {
       listV2WithWorkspace: jest.fn(),
-      runtimeV2: () => ({
-        deleteAll: jest.fn
-      })
+      deleteAll: jest.fn
     }
     asMockedFn((mockRuntimesV2 as AjaxRuntimesContract).listV2WithWorkspace).mockResolvedValue([])
 
