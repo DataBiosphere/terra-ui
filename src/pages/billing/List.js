@@ -4,7 +4,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
 import Collapse from 'src/components/Collapse'
-import { ButtonOutline, ButtonPrimary, Clickable, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Clickable, customSpinnerOverlay, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, spinner } from 'src/components/icons'
 import { MenuButton } from 'src/components/MenuButton'
@@ -23,9 +23,9 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { isCloudProvider } from 'src/libs/workspace-utils'
-import CreateAzureBillingProjectModal from 'src/pages/billing/CreateAzureBillingProjectModal'
 import CreateGCPBillingProject from 'src/pages/billing/CreateGCPBillingProject'
 import DeleteBillingProjectModal from 'src/pages/billing/DeleteBillingProjectModal'
+import { AzureBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureBillingProjectWizard'
 import { GCPBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/GCPBillingProjectWizard'
 import ProjectDetail from 'src/pages/billing/Project'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
@@ -306,6 +306,8 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const showCreateProjectModal = async type => {
     if (type === cloudProviders.azure) {
       setCreatingBillingProject(type)
+      // Show the Azure wizard instead of the selected billing project.
+      Nav.history.replace({ search: '' })
     } else if (Auth.hasBillingScope()) {
       setCreatingBillingProject(type)
     } else {
@@ -346,6 +348,9 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     ({ roles }) => _.includes(billingRoles.owner, roles),
     billingProjects
   )
+
+  const azureUserWithNoBillingProjects = !isLoadingProjects && _.isEmpty(billingProjects) && Auth.isAzureUser()
+  const creatingAzureBillingProject = !selectedName && creatingBillingProject === cloudProviders.azure
 
   return h(FooterWrapper, { fixedHeight: true }, [
     h(TopBar, { title: 'Billing' }, [
@@ -400,17 +405,6 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           loadProjects()
         }
       }),
-      creatingBillingProject === cloudProviders.azure && isAzurePreviewUser && h(CreateAzureBillingProjectModal, {
-        onDismiss: () => setCreatingBillingProject(null),
-        onSuccess: billingProjectName => {
-          Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
-            billingProjectName, cloudPlatform: cloudProviders.azure.label
-          })
-          setCreatingBillingProject(null)
-          loadProjects()
-        },
-        billingProjectNameValidator
-      }),
       div({
         style: {
           overflowY: 'auto', flexGrow: 1, display: 'flex', flexDirection: 'column'
@@ -427,6 +421,15 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
               p(['It may not exist, or you may not have access to it.'])
             ])
           ])],
+        [azureUserWithNoBillingProjects || creatingAzureBillingProject, () => h(AzureBillingProjectWizard, {
+          onSuccess: billingProjectName => {
+            Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
+              billingProjectName, cloudPlatform: cloudProviders.azure.label
+            })
+            setCreatingBillingProject(null)
+            loadProjects()
+          }
+        })],
         [!isLoadingProjects && _.isEmpty(billingProjects) && !Auth.isAzureUser(), () => h(GCPBillingProjectWizard, {
           billingAccounts,
           onSuccess: billingProjectName => {
@@ -459,7 +462,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           ])
         }]
       )]),
-      (isLoadingProjects || isAuthorizing || isLoadingAccounts) && spinnerOverlay
+      (isLoadingProjects || isAuthorizing || isLoadingAccounts) && customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'fixed' })
     ])
   ])
 }

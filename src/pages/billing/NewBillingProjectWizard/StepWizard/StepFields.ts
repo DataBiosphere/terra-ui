@@ -1,5 +1,5 @@
 import { CSSProperties, PropsWithChildren, ReactNode } from 'react'
-import { div, fieldset, form, h, legend } from 'react-hyperscript-helpers'
+import { div, fieldset, h, legend } from 'react-hyperscript-helpers'
 import { FormLabel } from 'src/libs/forms'
 
 
@@ -31,6 +31,8 @@ const primaryStepTextStyle = {
   float: 'left'
 }
 
+export const legendDetailsStyle = { fontSize: '.875rem', lineHeight: '22px' }
+
 export const StepFieldLegend = ({ children, style }: StepFieldsProps) => legend({
   style: { ...primaryStepTextStyle as CSSProperties, ...style }
 }, [children])
@@ -39,17 +41,6 @@ export const StepFieldLegend = ({ children, style }: StepFieldsProps) => legend(
 // a fieldset.
 export const StepInfo = ({ children, style }: StepFieldsProps) => div({
   style: { ...primaryStepTextStyle as CSSProperties, ...style }
-}, [children])
-
-export const StepFieldForm = ({ children, style }: StepFieldsProps) => form({
-  style: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignContent: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    ...style
-  }
 }, [children])
 
 interface LabeledFieldProps extends StepFieldsProps {
