@@ -185,6 +185,7 @@ export const getJupyterRuntimeConfig = ({ diskId = getRandomInt(randomMaxInt), m
   gpuConfig: null
 })
 
+// NOSONAR
 export const getRandomInt = max => Math.floor(Math.random() * max)
 
 export const defaultAuditInfo = {
