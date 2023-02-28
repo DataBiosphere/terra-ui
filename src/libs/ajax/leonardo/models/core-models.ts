@@ -1,5 +1,5 @@
 import { CloudProvider } from 'src/libs/workspace-utils'
-import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 export interface AuditInfo {

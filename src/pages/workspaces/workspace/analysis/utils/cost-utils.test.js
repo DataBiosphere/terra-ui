@@ -1,10 +1,9 @@
 import { getAzurePricesForRegion } from 'src/libs/azure-utils'
 import { azureDisk, azureRuntime, galaxyDisk, galaxyRunning, getDisk, getGoogleRuntime, getJupyterRuntimeConfig } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
-import { pdTypes } from 'src/pages/workspaces/workspace/analysis/disk-utils'
-
-import { getCostDisplayForDisk, getCostDisplayForTool, getPersistentDiskCostMonthly, getRuntimeCost } from './cost-utils'
-import { cloudProviders } from './runtime-utils'
-import { toolLabels } from './tool-utils'
+import { getCostDisplayForDisk, getCostDisplayForTool, getPersistentDiskCostMonthly, getRuntimeCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
+import { pdTypes } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 describe('getCostDisplayForDisk', () => {

@@ -1,9 +1,9 @@
 // TODO: type with disks
 import _ from 'lodash/fp'
 import * as Utils from 'src/libs/utils'
-import { getCurrentAppIncludingDeleting, getDiskAppType } from 'src/pages/workspaces/workspace/analysis/app-utils'
-import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { appTools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getCurrentAppIncludingDeleting, getDiskAppType } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
+import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { appTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 export const pdTypes = {

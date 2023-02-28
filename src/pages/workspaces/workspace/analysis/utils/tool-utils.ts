@@ -3,7 +3,7 @@ import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { isCromwellAppVisible, isCromwellOnAzureAppVisible } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 import { CloudProvider } from 'src/libs/workspace-utils'
-import { FileExtension, getExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { FileExtension, getExtension } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
 
 
 export type RuntimeToolLabel = 'Jupyter' | 'RStudio' | 'JupyterLab'

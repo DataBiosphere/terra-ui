@@ -3,12 +3,12 @@ import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { galaxyDeleting, galaxyDisk, galaxyRunning, getGoogleRuntime } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import {
   getCurrentApp, getCurrentAppIncludingDeleting, getDiskAppType, workspaceHasMultipleApps
-} from 'src/pages/workspaces/workspace/analysis/app-utils'
-import { getCurrentAppDataDisk, workspaceHasMultipleDisks } from 'src/pages/workspaces/workspace/analysis/disk-utils'
+} from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
+import { getCurrentAppDataDisk, workspaceHasMultipleDisks } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
 import {
   getAnalysesDisplayList, getCurrentRuntime
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { appTools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { appTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 jest.mock('src/data/gce-machines', () => {

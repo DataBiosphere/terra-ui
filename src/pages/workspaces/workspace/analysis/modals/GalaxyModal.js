@@ -15,20 +15,20 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { withDisplayName } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { getCurrentApp } from 'src/pages/workspaces/workspace/analysis/app-utils'
-import { getGalaxyComputeCost, getGalaxyDiskCost } from 'src/pages/workspaces/workspace/analysis/cost-utils'
+import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
+import { GalaxyLaunchButton, GalaxyWarning, RadioBlock, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
+import { getCurrentApp } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
+import { getGalaxyComputeCost, getGalaxyDiskCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import {
   getCurrentAppDataDisk,
   getCurrentAttachedDataDisk,
   pdTypes
-} from 'src/pages/workspaces/workspace/analysis/disk-utils'
-import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
-import { GalaxyLaunchButton, GalaxyWarning, RadioBlock, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
+} from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
 import {
   findMachineType
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { appTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
-import { appTools } from '../tool-utils'
 import { computeStyles } from './modalStyles'
 
 

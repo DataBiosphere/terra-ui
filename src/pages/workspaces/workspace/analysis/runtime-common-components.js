@@ -13,7 +13,7 @@ import { useCancellation, useGetter, useOnMount, usePollingEffect, usePrevious, 
 import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { getConvertedRuntimeStatus, usableStatuses } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { getConvertedRuntimeStatus, usableStatuses } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
 
 export const StatusMessage = ({ hideSpinner, children }) => {

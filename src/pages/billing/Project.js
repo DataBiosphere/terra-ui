@@ -28,7 +28,7 @@ import * as Style from 'src/libs/style'
 import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { billingRoles } from 'src/pages/billing/List'
-import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
 
 const workspaceLastModifiedWidth = 150

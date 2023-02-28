@@ -6,9 +6,9 @@ import { Ajax } from 'src/libs/ajax'
 import { defaultAzureMachineType, defaultAzureRegion } from 'src/libs/azure-utils'
 import * as Utils from 'src/libs/utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
-import { getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
-import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
+import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 const GALAXY_COMPUTE_COST = 10

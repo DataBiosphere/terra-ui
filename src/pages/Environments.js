@@ -20,18 +20,18 @@ import { useCancellation, useGetter } from 'src/libs/react-utils'
 import { contactUsActive, getUser } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { getDiskAppType, isApp } from 'src/pages/workspaces/workspace/analysis/app-utils'
+import { SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
+import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
+import { getDiskAppType, isApp } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
 import {
   getAppCost, getGalaxyComputeCost, getPersistentDiskCostMonthly, getRuntimeCost
-} from 'src/pages/workspaces/workspace/analysis/cost-utils'
-import { mapToPdTypes, workspaceHasMultipleDisks } from 'src/pages/workspaces/workspace/analysis/disk-utils'
-import { SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
+} from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
+import { mapToPdTypes, workspaceHasMultipleDisks } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import { isComputePausable, isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/utils/resource-utils'
 import {
   defaultComputeZone, getComputeStatusForDisplay, getCreatorForRuntime, getRegionFromZone, isGcpContext
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
-import { appTools, getToolLabelFromRuntime, isPauseSupported } from 'src/pages/workspaces/workspace/analysis/tool-utils'
-import { isComputePausable, isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/utils/resource-utils'
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { appTools, getToolLabelFromRuntime, isPauseSupported } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 const DeleteRuntimeModal = ({

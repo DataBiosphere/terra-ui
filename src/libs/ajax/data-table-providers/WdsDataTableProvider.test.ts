@@ -1,5 +1,5 @@
 import { Ajax } from 'src/libs/ajax'
-import { Apps } from 'src/libs/ajax/Apps'
+import { Apps } from 'src/libs/ajax/leonardo/Apps'
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService'
 import { asMockedFn } from 'src/testing/test-utils'
 

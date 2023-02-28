@@ -1,5 +1,5 @@
 import { authOpts, fetchLeo } from 'src/libs/ajax/ajax-common'
-import { Runtimes } from 'src/libs/ajax/Runtimes'
+import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes'
 
 
 jest.mock('src/libs/ajax/ajax-common', () => ({

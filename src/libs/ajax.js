@@ -7,15 +7,15 @@ import {
   fetchEcm, fetchGoogleForms,
   fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, jsonBody
 } from 'src/libs/ajax/ajax-common'
-import { Apps } from 'src/libs/ajax/Apps'
 import { AzureStorage } from 'src/libs/ajax/AzureStorage'
 import { Billing } from 'src/libs/ajax/Billing'
 import { Catalog } from 'src/libs/ajax/Catalog'
-import { Disks } from 'src/libs/ajax/Disks'
 import { Dockstore } from 'src/libs/ajax/Dockstore'
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage'
+import { Apps } from 'src/libs/ajax/leonardo/Apps'
+import { Disks } from 'src/libs/ajax/leonardo/Disks'
+import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes'
 import { Metrics } from 'src/libs/ajax/Metrics'
-import { Runtimes } from 'src/libs/ajax/Runtimes'
 import { SamResources } from 'src/libs/ajax/SamResources'
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService'
 import { WorkspaceManagerResources } from 'src/libs/ajax/WorkspaceManagerResources'

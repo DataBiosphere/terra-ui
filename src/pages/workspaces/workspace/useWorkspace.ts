@@ -16,7 +16,7 @@ import { getUser, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { differenceFromNowInSeconds } from 'src/libs/utils'
 import { isAzureWorkspace, isGoogleWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils'
-import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
 
 export interface StorageDetails {

@@ -3,8 +3,8 @@ import { Link, Select } from 'src/components/common'
 import { NumberInput } from 'src/components/input'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { useUniqueId } from 'src/libs/react-utils'
-import { pdTypes } from 'src/pages/workspaces/workspace/analysis/disk-utils'
 import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles'
+import { pdTypes } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
 
 
 interface IComputeConfig {

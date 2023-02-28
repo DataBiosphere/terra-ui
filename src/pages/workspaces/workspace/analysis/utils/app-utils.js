@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { allAppTypes } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { allAppTypes } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 export const isApp = cloudEnvironment => !!cloudEnvironment?.appName

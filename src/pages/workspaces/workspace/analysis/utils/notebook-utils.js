@@ -8,7 +8,7 @@ import { Ajax } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
-import { addExtensionToNotebook } from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { addExtensionToNotebook } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
 import validate from 'validate.js'
 
 

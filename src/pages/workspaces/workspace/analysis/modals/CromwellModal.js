@@ -9,9 +9,9 @@ import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { withDisplayName } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-import { getCurrentApp } from 'src/pages/workspaces/workspace/analysis/app-utils'
-import { getCurrentAppDataDisk } from 'src/pages/workspaces/workspace/analysis/disk-utils'
-import { appTools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getCurrentApp } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
+import { getCurrentAppDataDisk } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import { appTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 import { computeStyles } from './modalStyles'
 

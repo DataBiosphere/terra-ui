@@ -8,11 +8,11 @@ import {
   defaultGceBootDiskSize,
   defaultGcePersistentDiskSize,
   defaultPersistentDiskType,
-} from 'src/pages/workspaces/workspace/analysis/disk-utils'
+} from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
 import {
   defaultGceMachineType, defaultLocation
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { v4 as uuid } from 'uuid'
 
 

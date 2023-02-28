@@ -12,15 +12,15 @@ import {
   getGoogleRuntime, getJupyterRuntimeConfig, hailImage,
   imageDocs, testDefaultLocation
 } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
-import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/cost-utils'
+import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
+import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import {
   defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize, defaultPersistentDiskType
-} from 'src/pages/workspaces/workspace/analysis/disk-utils'
-import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
+} from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
 import {
   defaultDataprocMachineType, defaultGceMachineType, defaultGpuType, defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { runtimeTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { runtimeTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
 

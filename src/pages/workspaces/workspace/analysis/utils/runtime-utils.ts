@@ -12,7 +12,7 @@ import {
 import { NominalType } from 'src/libs/type-utils/type-helpers'
 import * as Utils from 'src/libs/utils'
 import { CloudProvider } from 'src/libs/workspace-utils'
-import { RuntimeToolLabel, ToolLabel, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { RuntimeToolLabel, ToolLabel, toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 export const defaultGceMachineType = 'n1-standard-1'

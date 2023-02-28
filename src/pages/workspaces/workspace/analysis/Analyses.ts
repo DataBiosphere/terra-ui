@@ -39,6 +39,11 @@ import * as Style from 'src/libs/style'
 import { withHandlers } from 'src/libs/type-utils/lodash-fp-helpers'
 import * as Utils from 'src/libs/utils'
 import { isAzureWorkspace, isGoogleWorkspace, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils'
+import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
+import { AnalysisModal } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisModal'
+import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
+import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
+import { AnalysisFile, useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 import {
   AbsolutePath,
   FileName,
@@ -46,12 +51,8 @@ import {
   getExtension,
   getFileName,
   notebookLockHash
-} from 'src/pages/workspaces/workspace/analysis/file-utils'
-import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
-import { AnalysisModal } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisModal'
-import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
-import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
-import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+} from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
+import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import {
   getToolLabelFromFileExtension,
   getToolLabelFromRuntime,
@@ -59,8 +60,7 @@ import {
   ToolLabel,
   toolLabels,
   tools
-} from 'src/pages/workspaces/workspace/analysis/tool-utils'
-import { AnalysisFile, useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
+} from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
