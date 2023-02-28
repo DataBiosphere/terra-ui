@@ -4,7 +4,7 @@ import { Fragment, useState } from 'react'
 import { b, div, h, p, span } from 'react-hyperscript-helpers'
 import { ClipboardButton } from 'src/components/ClipboardButton'
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
-import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, Clickable, DelayedRender, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, Clickable, DelayedRender, IdContainer, Link, spinnerOverlay, VirtualizedSelect } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
@@ -78,7 +78,7 @@ export const withWorkspaces = WrappedComponent => {
 }
 
 export const WorkspaceSelector = ({ workspaces, value, onChange, id, 'aria-label': ariaLabel, ...props }) => {
-  return h(Select, {
+  return h(VirtualizedSelect, {
     id,
     'aria-label': ariaLabel || 'Select a workspace',
     placeholder: 'Select a workspace',

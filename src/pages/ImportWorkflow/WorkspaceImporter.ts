@@ -18,6 +18,7 @@ type WorkspaceImporterProps = {
 
 type WorkspaceImporterInnerProps = WorkspaceImporterProps & {
   workspaces: WorkspaceWrapper[]
+  loadingWorkspaces: boolean
   refreshWorkspaces: () => void
 }
 
@@ -25,7 +26,7 @@ type WorkspaceImporterInnerProps = WorkspaceImporterProps & {
 export const WorkspaceImporter: (props: WorkspaceImporterInnerProps) => ReactElement<any, any> = _.flow(
   withDisplayName('WorkspaceImporter'),
   withWorkspaces
-)(({ workspaces, refreshWorkspaces, onImport, authorizationDomain: ad, selectedWorkspaceId: initialWs, additionalErrors, ...props }: WorkspaceImporterInnerProps) => {
+)(({ workspaces, loadingWorkspaces, refreshWorkspaces, onImport, authorizationDomain: ad, selectedWorkspaceId: initialWs, additionalErrors, ...props }: WorkspaceImporterInnerProps) => {
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(initialWs)
   const [creatingWorkspace, setCreatingWorkspace] = useState(false)
 
@@ -38,6 +39,7 @@ export const WorkspaceImporter: (props: WorkspaceImporterInnerProps) => ReactEle
         return Utils.canWrite(ws.accessLevel) &&
           (!ad || _.some({ membersGroupName: ad }, ws.workspace.authorizationDomain))
       }, workspaces),
+      noOptionsMessage: loadingWorkspaces ? _.constant('Loading workspaces') : undefined,
       value: selectedWorkspaceId,
       onChange: setSelectedWorkspaceId,
       ...props
