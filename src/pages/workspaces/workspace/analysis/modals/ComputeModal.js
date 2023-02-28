@@ -1419,6 +1419,8 @@ export const ComputeModalBase = ({
       h(TitleBar, {
         id: titleId,
         style: computeStyles.titleBar,
+        disabled: currentRuntimeDetails.status !== 'Running',
+        tooltip: currentRuntimeDetails.status !== 'Running' ? `Cannot delete environment in (${currentRuntimeDetails.status}) status` : 'Delete Environment',
         title: h(WarningTitle, ['Delete environment']),
         hideCloseButton: shouldHideCloseButton,
         onDismiss,
@@ -1641,6 +1643,8 @@ export const ComputeModalBase = ({
     const renderBottomButtons = () => {
       return div({ style: { display: 'flex', marginTop: '2rem' } }, [
         (!!existingRuntime || !!existingPersistentDisk) && h(ButtonOutline, {
+          disabled: currentRuntimeDetails.status !== 'Running',
+          tooltip: currentRuntimeDetails.status !== 'Running' ? `Cannot delete environment in (${currentRuntimeDetails.status}) status` : 'Delete Environment',
           onClick: () => setViewMode('deleteEnvironment')
         }, [
           Utils.cond(
