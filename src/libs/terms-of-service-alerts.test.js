@@ -8,7 +8,11 @@ import * as TosAlerts from 'src/libs/terms-of-service-alerts'
 
 
 jest.mock('src/libs/ajax')
-jest.mock('src/libs/nav')
+
+jest.mock('src/libs/nav', () => ({
+  ...jest.requireActual('src/libs/nav'),
+  getLink: jest.fn().mockReturnValue(''),
+}))
 
 jest.mock('react-notifications-component', () => {
   return {
