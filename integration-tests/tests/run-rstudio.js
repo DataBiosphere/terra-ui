@@ -34,9 +34,7 @@ const testRunRStudioFn = _.flowRight(
   await delay(200)
 
   // Navigate to analysis launcher
-  // await click(page, `//*[@title="${rFileName}.Rmd"]`, { timeout: 60000 })
-  await findElement(page, clickable({ text: `${rFileName}.Rmd` }), { timeout: 30000 })
-  // await clickTableCell(page, { tableName: 'analyses', columnHeader: 'Name', text: `${rFileName}.Rmd`, isDescendant: true })
+  await click(page, `//*[@title="${rFileName}.Rmd"]`, { timeout: 30000 })
   await dismissNotifications(page)
 
   await noSpinnersAfter(page, {
