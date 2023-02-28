@@ -486,7 +486,7 @@ export const BaseAnalyses: FC<AnalysesProps> = ({
         [!_.isEmpty(analyses) && _.isEmpty(analysisCards), () => {
           return div({ style: { fontStyle: 'italic' } }, ['No matching analyses'])
         }],
-        [Utils.DEFAULT, () => div({ role: 'table' }, [
+        [Utils.DEFAULT, () => div({ role: 'table', 'aria-label': 'analyses' }, [
           h(AnalysisCardHeaders, {
             sort: sortOrder, onSort: newSortOrder => {
               setLocalPref(KEY_ANALYSES_SORT_ORDER, newSortOrder)

@@ -36,7 +36,7 @@ const testRunAnalysisFn = _.flowRight(
 
   // Navigate to analysis launcher
   await findElement(page, clickable({ textContains: notebookName }), { timeout: 60000 })
-  await click(page, clickable({ textContains: notebookName }))
+  await click(page, clickable({ text: `${notebookName}.ipynb` }))
   await dismissNotifications(page)
 
   await noSpinnersAfter(page, {
