@@ -21,7 +21,7 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
         color: colors.dark(),
         padding: '3rem 5rem',
         backgroundColor: '#fafbfd', // This not-quite-white fallback color was extracted from the background image
-        backgroundImage: `url(${landingPageHero})`,
+        backgroundImage: `url(${brand.landingPageBackground || landingPageHero})`,
         backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0 top 0'
       }
     }, [
