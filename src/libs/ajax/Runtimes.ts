@@ -145,10 +145,10 @@ export const Runtimes = signal => {
       return res.json()
     },
 
-    deleteAll: async (workspaceId: string, deleteDisk = true) => {
-        return fetchLeo(`api/v2/runtimes/${workspaceId}/deleteAll${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
-            _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier])
-        )
+    deleteAll: (workspaceId: string, deleteDisk = true): Promise<void> => {
+      return fetchLeo(`api/v2/runtimes/${workspaceId}/deleteAll${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
+        _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier])
+      )
     },
 
     runtimeV2: v2Func,

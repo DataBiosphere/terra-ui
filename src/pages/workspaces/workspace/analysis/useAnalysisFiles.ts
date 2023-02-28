@@ -7,7 +7,7 @@ import { workspaceStore } from 'src/libs/state'
 import LoadedState from 'src/libs/type-utils/LoadedState'
 import { withHandlers } from 'src/libs/type-utils/lodash-fp-helpers'
 import * as Utils from 'src/libs/utils'
-import {CloudProvider, cloudProviderTypes, isGoogleWorkspaceInfo, WorkspaceWrapper} from 'src/libs/workspace-utils'
+import { CloudProvider, cloudProviderTypes, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils'
 import {
   AbsolutePath,
   DisplayName,

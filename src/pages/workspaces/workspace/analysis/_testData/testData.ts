@@ -6,8 +6,8 @@ import * as Utils from 'src/libs/utils'
 import { cloudProviderTypes } from 'src/libs/workspace-utils'
 import {
   defaultGceBootDiskSize,
-  defaultPersistentDiskType,
   defaultGcePersistentDiskSize,
+  defaultPersistentDiskType,
 } from 'src/pages/workspaces/workspace/analysis/disk-utils'
 import {
   defaultGceMachineType, defaultLocation

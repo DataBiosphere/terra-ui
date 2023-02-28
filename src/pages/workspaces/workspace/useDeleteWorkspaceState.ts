@@ -5,7 +5,7 @@ import { reportError, withErrorReportingInModal } from 'src/libs/error'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { getUser } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { BaseWorkspace, isGoogleWorkspace, isAzureWorkspace, WorkspaceInfo } from 'src/libs/workspace-utils'
+import { BaseWorkspace, isAzureWorkspace, isGoogleWorkspace, WorkspaceInfo } from 'src/libs/workspace-utils'
 import { isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/utils/resource-utils'
 
 

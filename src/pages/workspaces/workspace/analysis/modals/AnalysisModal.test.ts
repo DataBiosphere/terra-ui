@@ -7,7 +7,6 @@ import { Ajax } from 'src/libs/ajax'
 import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage'
 import { reportError } from 'src/libs/error'
 import { defaultAzureWorkspace, defaultGoogleWorkspace, galaxyDisk, galaxyRunning, getGoogleRuntime, imageDocs } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
-import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils'
 import {
   AbsolutePath
 } from 'src/pages/workspaces/workspace/analysis/file-utils'
