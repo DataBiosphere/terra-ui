@@ -15,7 +15,7 @@ import {
   DisplayName,
   FileName, getDisplayName,
   getExtension,
-  getFileName, useAnalysisFiles
+  getFileName
 } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import {
   analysisNameInput,
@@ -23,6 +23,7 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { analysisLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 import validate from 'validate.js'
 
 

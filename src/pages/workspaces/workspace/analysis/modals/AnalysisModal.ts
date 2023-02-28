@@ -19,7 +19,7 @@ import { usePrevious, withDisplayName } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { BaseWorkspace, cloudProviderTypes, isGoogleWorkspaceInfo } from 'src/libs/workspace-utils'
-import { getFileName, useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { getFileName } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/AzureComputeModal'
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal'
@@ -30,6 +30,7 @@ import {
   getCurrentApp, getCurrentPersistentDisk, getCurrentRuntime, isResourceDeletable
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppDataDisk, AppTool, cloudAppTools, cloudRuntimeTools, getAppType, getToolLabelFromFileExtension, getToolLabelFromRuntime, isAppToolLabel, PersistentDisk, Runtime, runtimeTools, Tool, toolExtensionDisplay, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { AnalysisFileStore } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 import validate from 'validate.js'
 
 
@@ -50,8 +51,7 @@ export interface AnalysisModalProps {
   onSuccess: () => void
   openUploader: () => void
   uploadFiles: () => void
-  //TODO: Temporary until Analyses.js implements useAnalysisFiles
-  refreshAnalyses: () => void
+  analysisFileStore: AnalysisFileStore
 }
 
 export const AnalysisModal = withDisplayName('AnalysisModal')(
@@ -64,7 +64,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     openUploader,
     workspace,
     location,
-    refreshAnalyses
+    analysisFileStore
   }: AnalysisModalProps) => {
     const [viewMode, setViewMode] = useState<any>()
     const cloudPlatform = workspace.workspace.cloudPlatform.toUpperCase()
@@ -81,7 +81,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const currentApp: any = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
 
     //TODO: Bring in as props from Analyses OR bring entire AnalysisFileStore from props.
-    const { loadedState, create, pendingCreate } = useAnalysisFiles()
+    const { loadedState, create, pendingCreate } = analysisFileStore
     //TODO: When the above is done, this check below may not be necessary.
     const analyses = loadedState.status !== 'None' ? loadedState.state : null
     const status = loadedState.status
@@ -361,8 +361,6 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
                   [isRStudio, () => baseRmd])
                 const fullAnalysisName = `${analysisName}.${fileExt}`
                 await create(fullAnalysisName, toolLabel, contents)
-                //TODO: Temporary, once Analyses.js uses store, refreshAnalyses will be deprecated in favor of refresh() within the create function
-                await refreshAnalyses()
                 await Ajax().Metrics.captureEvent(Events.analysisCreate, { source: toolLabel, application: toolLabel, filename: fullAnalysisName, cloudPlatform })
                 setAnalysisName('')
                 enterNextViewMode(toolLabel)

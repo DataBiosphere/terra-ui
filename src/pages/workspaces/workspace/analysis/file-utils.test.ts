@@ -6,20 +6,13 @@ import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorag
 import { reportError } from 'src/libs/error'
 import { workspaceStore } from 'src/libs/state'
 import { ReadyState } from 'src/libs/type-utils/LoadedState'
-import {
-  CloudProviderType,
-  cloudProviderTypes
-} from 'src/libs/workspace-utils'
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import {
   AbsolutePath,
-  AnalysisFile,
-  getDisplayName,
-  getExtension,
-  getFileName,
-  useAnalysisFiles
+  getExtension, getFileName
 } from 'src/pages/workspaces/workspace/analysis/file-utils'
-import { getToolLabelFromFileExtension, ToolLabel, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getToolLabelFromFileExtension, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { AnalysisFile, getFileFromPath, useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 import { asMockedFn } from 'src/testing/test-utils'
 
 
@@ -36,17 +29,6 @@ jest.mock('src/libs/notifications', () => ({
     console.debug({ method: 'notify', args: [...args] })/* eslint-disable-line */
   })
 }))
-
-//TODO: test commons
-const getTestFile = (abs: AbsolutePath, cloudProvider: CloudProviderType = cloudProviderTypes.GCP): AnalysisFile => ({
-  name: abs,
-  ext: getExtension(abs),
-  displayName: getDisplayName(abs),
-  fileName: getFileName(abs),
-  tool: getToolLabelFromFileExtension(getExtension(abs)) as ToolLabel,
-  lastModified: new Date().getTime(),
-  cloudProvider
-})
 
 describe('file-utils', () => {
   describe('useAnalysisFiles', () => {
@@ -65,7 +47,7 @@ describe('file-utils', () => {
 
     it('returns the correct files', async () => {
       // Arrange
-      const fileList: AnalysisFile[] = [getTestFile('test/file1.ipynb' as AbsolutePath), getTestFile('test/file2.ipynb' as AbsolutePath)]
+      const fileList: AnalysisFile[] = [getFileFromPath('test/file1.ipynb' as AbsolutePath), getFileFromPath('test/file2.ipynb' as AbsolutePath)]
 
       const listAnalyses = jest.fn(() => Promise.resolve(fileList))
       const googleStorageMock: Partial<GoogleStorageContract> = ({
@@ -86,7 +68,7 @@ describe('file-utils', () => {
 
     it('loads files from the correct cloud provider storage with a google workspace', async () => {
       // Arrange
-      const fileList: AnalysisFile[] = [getTestFile('test/file1.ipynb' as AbsolutePath), getTestFile('test/file2.ipynb' as AbsolutePath)]
+      const fileList: AnalysisFile[] = [getFileFromPath('test/file1.ipynb' as AbsolutePath), getFileFromPath('test/file2.ipynb' as AbsolutePath)]
 
       const listAnalyses = jest.fn(() => Promise.resolve(fileList))
       const googleStorageMock: Partial<GoogleStorageContract> = ({
@@ -105,7 +87,7 @@ describe('file-utils', () => {
 
     it('loads files from the correct cloud provider storage with an azure workspace', async () => {
       // Arrange
-      const fileList = [getTestFile('test/file1.ipynb' as AbsolutePath), getTestFile('test/file2.ipynb' as AbsolutePath)]
+      const fileList = [getFileFromPath('test/file1.ipynb' as AbsolutePath), getFileFromPath('test/file2.ipynb' as AbsolutePath)]
 
       const calledMock = jest.fn(() => Promise.resolve(fileList))
       const azureStorageMock: Partial<AzureStorageContract> = ({
@@ -124,7 +106,7 @@ describe('file-utils', () => {
 
     it('creates a file with a GCP workspace', async () => {
       // Arrange
-      const fileList: AnalysisFile[] = [getTestFile('test/file1.ipynb' as AbsolutePath), getTestFile('test/file2.ipynb' as AbsolutePath)]
+      const fileList: AnalysisFile[] = [getFileFromPath('test/file1.ipynb' as AbsolutePath), getFileFromPath('test/file2.ipynb' as AbsolutePath)]
 
       const listAnalyses = jest.fn(() => Promise.resolve(fileList))
       const create = jest.fn(() => Promise.resolve())
@@ -141,9 +123,7 @@ describe('file-utils', () => {
       workspaceStore.set(defaultGoogleWorkspace)
       const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useAnalysisFiles())
       await waitForNextUpdate()
-      await act(async () => {
-        await hookReturnRef.current.create('AnalysisFile', toolLabels.Jupyter, 'myContents')
-      })
+      await act(() => hookReturnRef.current.create('AnalysisFile', toolLabels.Jupyter, 'myContents'))
 
       // Assert
       expect(create).toHaveBeenCalledWith('myContents')
@@ -168,9 +148,7 @@ describe('file-utils', () => {
       const hookRender1 = renderHook(() => useAnalysisFiles())
       await hookRender1.waitForNextUpdate()
       const hookResult2 = hookRender1.result.current
-      await act(async () => {
-        await hookResult2.create('AnalysisFile', toolLabels.Jupyter, 'myContents')
-      })
+      await act(() => hookResult2.create('AnalysisFile', toolLabels.Jupyter, 'myContents'))
 
       // Assert
       expect(create).toHaveBeenCalledWith('myContents')
@@ -179,7 +157,7 @@ describe('file-utils', () => {
 
     it('creates a file with an Azure workspace', async () => {
       // Arrange
-      const fileList: AnalysisFile[] = [getTestFile('test/file1.ipynb' as AbsolutePath), getTestFile('test/file2.ipynb' as AbsolutePath)]
+      const fileList: AnalysisFile[] = [getFileFromPath('test/file1.ipynb' as AbsolutePath), getFileFromPath('test/file2.ipynb' as AbsolutePath)]
 
       const listNotebooks = jest.fn(() => Promise.resolve(fileList))
       const create = jest.fn(() => Promise.resolve())
@@ -195,9 +173,7 @@ describe('file-utils', () => {
       const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useAnalysisFiles())
       await waitForNextUpdate()
       // Act
-      await act(async () => {
-        await hookReturnRef.current.create('AnalysisFile', toolLabels.Jupyter, 'myContents')
-      })
+      await act(() => hookReturnRef.current.create('AnalysisFile', toolLabels.Jupyter, 'myContents'))
 
       // Assert
       expect(create).toHaveBeenCalledWith('myContents')
@@ -222,12 +198,121 @@ describe('file-utils', () => {
     const hookRender1 = renderHook(() => useAnalysisFiles())
     await hookRender1.waitForNextUpdate()
     const hookResult2 = hookRender1.result.current
-    await act(async () => {
-      await hookResult2.create('AnalysisFile', toolLabels.Jupyter, 'myContents')
-    })
+    await act(() => hookResult2.create('AnalysisFile', toolLabels.Jupyter, 'myContents'))
 
     // Assert
     expect(create).toHaveBeenCalledWith('myContents')
+    expect(reportError).toHaveBeenCalled()
+  })
+
+
+  // file deletion tests
+
+  it('deletes a file with a GCP workspace', async () => {
+    // Arrange
+    const file1Path = 'test/file1.ipynb' as AbsolutePath
+    const fileList: AnalysisFile[] = [getFileFromPath(file1Path), getFileFromPath('test/file2.ipynb' as AbsolutePath)]
+
+    const listAnalyses = jest.fn(() => Promise.resolve(fileList))
+    const doDelete = jest.fn(() => Promise.resolve())
+    const analysisMock: Partial<GoogleStorageContract['analysis']> = jest.fn(() => ({
+      delete: doDelete
+    }))
+    const googleStorageMock: Partial<GoogleStorageContract> = ({
+      listAnalyses,
+      analysis: analysisMock as GoogleStorageContract['analysis']
+    })
+    asMockedFn(GoogleStorage).mockImplementation(() => googleStorageMock as GoogleStorageContract)
+
+    // Act
+    workspaceStore.set(defaultGoogleWorkspace)
+    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useAnalysisFiles())
+    await waitForNextUpdate()
+    await act(() => hookReturnRef.current.deleteFile(file1Path))
+
+    // Assert
+    expect(analysisMock).toHaveBeenCalledWith(defaultGoogleWorkspace.workspace.googleProject, defaultGoogleWorkspace.workspace.bucketName, getFileName(file1Path), getToolLabelFromFileExtension(getExtension(file1Path)))
+    expect(doDelete).toHaveBeenCalled()
+  })
+
+  it('Fails to create a file with a GCP workspace', async () => {
+    // Arrange
+    const file1Path = 'test/file1.ipynb' as AbsolutePath
+    const listAnalyses = jest.fn(() => Promise.resolve([]))
+    const doDelete = jest.fn(() => Promise.reject(new Error('myError')))
+    const analysisMock: Partial<GoogleStorageContract['analysis']> = jest.fn(() => ({
+      delete: doDelete,
+      refresh: jest.fn(() => Promise.reject(new Error('ee')))
+    }))
+    const googleStorageMock: Partial<GoogleStorageContract> = ({
+      listAnalyses,
+      analysis: analysisMock as GoogleStorageContract['analysis']
+    })
+    asMockedFn(GoogleStorage).mockImplementation(() => googleStorageMock as GoogleStorageContract)
+
+    // Act
+    workspaceStore.set(defaultGoogleWorkspace)
+    const hookRender1 = renderHook(() => useAnalysisFiles())
+    await hookRender1.waitForNextUpdate()
+    const hookResult2 = hookRender1.result.current
+    await act(() => hookResult2.deleteFile(file1Path))
+
+    // Assert
+    expect(analysisMock).toHaveBeenCalledWith(defaultGoogleWorkspace.workspace.googleProject, defaultGoogleWorkspace.workspace.bucketName, getFileName(file1Path), getToolLabelFromFileExtension(getExtension(file1Path)))
+    expect(doDelete).toHaveBeenCalled()
+    expect(reportError).toHaveBeenCalled()
+  })
+
+  it('creates a file with an Azure workspace', async () => {
+    // Arrange
+    const file1Path = 'test/file1.ipynb' as AbsolutePath
+    const fileList: AnalysisFile[] = [getFileFromPath(file1Path), getFileFromPath('test/file2.ipynb' as AbsolutePath)]
+
+    const listNotebooks = jest.fn(() => Promise.resolve(fileList))
+    const doDelete = jest.fn(() => Promise.resolve())
+    const blobMock: Partial<AzureStorageContract['blob']> = jest.fn(() => ({
+      delete: doDelete
+    }))
+    const azureStorageMock: Partial<AzureStorageContract> = ({
+      listNotebooks,
+      blob: blobMock as AzureStorageContract['blob']
+    })
+    asMockedFn(AzureStorage).mockImplementation(() => azureStorageMock as AzureStorageContract)
+    workspaceStore.set(defaultAzureWorkspace)
+    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useAnalysisFiles())
+    await waitForNextUpdate()
+    // Act
+    await act(() => hookReturnRef.current.deleteFile(file1Path))
+
+    // Assert
+    expect(blobMock).toHaveBeenCalledWith(defaultAzureWorkspace.workspace.workspaceId, getFileName(file1Path))
+    expect(doDelete).toHaveBeenCalled()
+  })
+
+  it('Fails to create a file with an Azure workspace', async () => {
+    // Arrange
+    const file1Path = 'test/file1.ipynb' as AbsolutePath
+    const listNotebooks = jest.fn(() => Promise.resolve([]))
+    const doDelete = jest.fn(() => Promise.reject(new Error('myError')))
+    const blobMock: Partial<AzureStorageContract['blob']> = jest.fn(() => ({
+      delete: doDelete
+    }))
+    const azureStorageMock: Partial<AzureStorageContract> = ({
+      listNotebooks,
+      blob: blobMock as AzureStorageContract['blob']
+    })
+    asMockedFn(AzureStorage).mockImplementation(() => azureStorageMock as AzureStorageContract)
+
+    // Act
+    workspaceStore.set(defaultAzureWorkspace)
+    const hookRender1 = renderHook(() => useAnalysisFiles())
+    await hookRender1.waitForNextUpdate()
+    const hookResult2 = hookRender1.result.current
+    await act(() => hookResult2.deleteFile(file1Path))
+
+    // Assert
+    expect(blobMock).toHaveBeenCalledWith(defaultAzureWorkspace.workspace.workspaceId, getFileName(file1Path))
+    expect(doDelete).toHaveBeenCalled()
     expect(reportError).toHaveBeenCalled()
   })
 })

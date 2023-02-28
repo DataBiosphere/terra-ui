@@ -2,7 +2,12 @@ import _ from 'lodash/fp'
 import { defaultAzureRegion } from 'src/libs/azure-utils'
 import * as Utils from 'src/libs/utils'
 import {
-  defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultLocation, defaultPersistentDiskType, runtimeStatuses
+  defaultGceBootDiskSize,
+  defaultGceMachineType,
+  defaultGcePersistentDiskSize,
+  defaultLocation,
+  defaultPersistentDiskType,
+  runtimeStatuses
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { v4 as uuid } from 'uuid'

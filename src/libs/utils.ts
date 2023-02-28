@@ -105,9 +105,9 @@ export const formatNumber = new Intl.NumberFormat('en-US').format
 
 export const workspaceAccessLevels = ['NO ACCESS', 'READER', 'WRITER', 'OWNER', 'PROJECT_OWNER']
 
-export const hasAccessLevel = _.curry((required, current) => {
+export const hasAccessLevel = (required: string, current: string): boolean => {
   return workspaceAccessLevels.indexOf(current) >= workspaceAccessLevels.indexOf(required)
-})
+}
 
 export const canWrite = accessLevel => hasAccessLevel('WRITER', accessLevel)
 export const canRead = accessLevel => hasAccessLevel('READER', accessLevel)
@@ -230,9 +230,9 @@ export const computeWorkspaceError = ({ canCompute, workspace: { isLocked } }) =
   )
 }
 
-export const textMatch = _.curry((needle, haystack) => {
+export const textMatch = safeCurry((needle: string, haystack: string): boolean => {
   return haystack.toLowerCase().includes(needle.toLowerCase())
-})
+}) as ((needle: string, haystack: string) => boolean)
 
 export const nextSort = ({ field, direction }, newField) => {
   return newField === field ?

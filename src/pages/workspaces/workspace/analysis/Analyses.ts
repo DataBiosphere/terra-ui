@@ -1,8 +1,8 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useEffect, useState } from 'react'
-import { a, div, h, img, label, span } from 'react-hyperscript-helpers'
+import { CSSProperties, FC, Fragment, useEffect, useState } from 'react'
+import { div, h, img, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { withViewToggle } from 'src/components/CardsListToggle'
@@ -25,6 +25,7 @@ import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
+import { ENABLE_JUPYTERLAB_ID, JUPYTERLAB_GCP_FEATURE_ID } from 'src/libs/feature-previews-config'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
@@ -32,15 +33,33 @@ import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/l
 import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
+import { withHandlers } from 'src/libs/type-utils/lodash-fp-helpers'
 import * as Utils from 'src/libs/utils'
-import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
-import { findPotentialNotebookLockers, getExtension, getFileName, notebookLockHash } from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { isAzureWorkspace, isGoogleWorkspace, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils'
+import {
+  AbsolutePath,
+  FileName,
+  findPotentialNotebookLockers, getDisplayName,
+  getExtension,
+  getFileName,
+  notebookLockHash
+} from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
 import { AnalysisModal } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisModal'
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
 import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { getToolLabelFromFileExtension, getToolLabelFromRuntime, runtimeTools, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import {
+  App,
+  getToolLabelFromFileExtension,
+  getToolLabelFromRuntime, PersistentDisk, Runtime,
+  runtimeTools,
+  ToolLabel,
+  toolLabels,
+  tools
+} from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { AnalysisFile, useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
+import { StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -50,18 +69,19 @@ const tableFields = {
   lastModified: 'lastModified'
 }
 
-const KEY_ANALYSES_SORT_ORDER = 'AnalysesSortOrder'
+export const KEY_ANALYSES_SORT_ORDER = 'AnalysesSortOrder'
 
 const noWrite = 'You do not have access to modify this workspace.'
 
 const sortTokens = {
-  name: notebook => notebook.name.toLowerCase()
+  name: (notebook: AnalysisFile) => notebook.name.toLowerCase()
 }
+
 const defaultSort = { value: { field: tableFields.lastModified, direction: 'desc' } }
 
 const analysisContextMenuSize = 16
-const centerColumnFlex = { flex: 5 }
-const endColumnFlex = { flex: '0 0 150px', display: 'flex', justifyContent: 'flex-left', whiteSpace: 'nowrap' }
+const centerColumnFlex: CSSProperties = { flex: 5 }
+const endColumnFlex: CSSProperties = { flex: '0 0 150px', display: 'flex', justifyContent: 'flex-left', whiteSpace: 'nowrap' }
 
 const AnalysisCardHeaders = ({ sort, onSort }) => {
   return div({ role: 'row', style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', paddingLeft: '1.5rem', marginBottom: '0.5rem' } }, [
@@ -80,18 +100,19 @@ const AnalysisCardHeaders = ({ sort, onSort }) => {
   ])
 }
 
+//TODO: move to separate file
 const AnalysisCard = ({
   currentRuntime, namespace, name, lastModified, metadata, application, workspaceName, onRename, onCopy, onDelete, onExport, canWrite,
   currentUserHash, potentialLockers
 }) => {
   const { lockExpiresAt, lastLockedBy } = metadata || {}
-  const lockExpirationDate = new Date(parseInt(lockExpiresAt))
-  const locked = currentUserHash && lastLockedBy && lastLockedBy !== currentUserHash && lockExpirationDate > Date.now()
+  const isLockExpired: boolean = new Date(parseInt(lockExpiresAt)).getTime() > Date.now()
+  const isLocked: boolean = currentUserHash && lastLockedBy && lastLockedBy !== currentUserHash && !isLockExpired
   const lockedBy = potentialLockers ? potentialLockers[lastLockedBy] : null
 
-  const analysisName = getFileName(name)
+  const analysisName: FileName = getFileName(name)
   const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name: workspaceName, analysisName })
-  const toolLabel = getToolLabelFromFileExtension(name)
+  const toolLabel: ToolLabel = getToolLabelFromFileExtension(name)
 
   const currentRuntimeToolLabel = getToolLabelFromRuntime(currentRuntime)
 
@@ -114,11 +135,11 @@ const AnalysisCard = ({
         h(MenuButton, {
           'aria-label': 'Edit',
           href: analysisEditLink,
-          disabled: locked || !canWrite || currentRuntimeToolLabel === toolLabels.RStudio,
+          disabled: isLocked || !canWrite || currentRuntimeToolLabel === toolLabels.RStudio,
           tooltip: Utils.cond([!canWrite, () => noWrite],
             [currentRuntimeToolLabel === toolLabels.RStudio, () => 'You must have a runtime with Jupyter to edit.']),
           tooltipSide: 'left'
-        }, locked ? [makeMenuIcon('lock'), 'Open (In Use)'] : [makeMenuIcon('edit'), 'Edit']),
+        }, isLocked ? [makeMenuIcon('lock'), 'Open (In Use)'] : [makeMenuIcon('edit'), 'Edit']),
         h(MenuButton, {
           'aria-label': 'Playground',
           href: analysisPlaygroundLink,
@@ -138,7 +159,7 @@ const AnalysisCard = ({
       h(MenuButton, {
         'aria-label': 'Copy',
         disabled: !canWrite,
-        tooltip: !canWrite && noWrite,
+        tooltip: !canWrite ? noWrite : undefined,
         tooltipSide: 'left',
         onClick: () => onCopy()
       }, [makeMenuIcon('copy'), 'Make a copy']),
@@ -160,14 +181,14 @@ const AnalysisCard = ({
       h(MenuButton, {
         'aria-label': 'Rename',
         disabled: !canWrite,
-        tooltip: !canWrite && noWrite,
+        tooltip: !canWrite ? noWrite : undefined,
         tooltipSide: 'left',
         onClick: () => onRename()
       }, [makeMenuIcon('renameIcon'), 'Rename']),
       h(MenuButton, {
         'aria-label': 'Delete',
         disabled: !canWrite,
-        tooltip: !canWrite && noWrite,
+        tooltip: !canWrite ? noWrite : undefined,
         tooltipSide: 'left',
         onClick: () => onDelete()
       }, [makeMenuIcon('trash'), 'Delete'])
@@ -182,17 +203,17 @@ const AnalysisCard = ({
 
   //the flex values for columns here correspond to the flex values in the header
   const artifactName = div({
+    onClick: () => Nav.goToPath(analysisLauncherTabName, { namespace, name: workspaceName, analysisName }),
     title: getFileName(name),
-
     role: 'cell',
     style: {
-      ...Style.elements.card.title, whiteSpace: 'normal', overflowY: 'auto', textAlign: 'left', ...centerColumnFlex
+      ...Style.elements.card.title, whiteSpace: 'normal', textAlign: 'left', cursor: 'pointer', ...centerColumnFlex
     }
   }, [
-    a({ href: analysisLink }, [getFileName(name)])
+    getFileName(name)
   ])
 
-  const toolIconSrc = Utils.switchCase(application,
+  const toolIconSrc: string = Utils.switchCase(application,
     [toolLabels.Jupyter, () => jupyterLogo],
     [toolLabels.RStudio, () => rstudioSquareLogo],
     [toolLabels.JupyterLab, () => jupyterLogo]
@@ -214,7 +235,7 @@ const AnalysisCard = ({
     artifactName,
     div({ role: 'cell', style: { ...endColumnFlex, flexDirection: 'row' } }, [
       div({ style: { flex: 1, display: 'flex' } }, [
-        locked && h(Clickable, {
+        isLocked && h(Clickable, {
           'aria-label': `${artifactName} artifact label`,
           style: { display: 'flex', paddingRight: '1rem', color: colors.dark(0.75) },
           tooltip: `This analysis is currently being edited by ${lockedBy || 'another user'}`
@@ -230,41 +251,89 @@ const AnalysisCard = ({
   ])
 }
 
-const Analyses = _.flow(
-  forwardRefWithName('Analyses'),
-  requesterPaysWrapper({
-    onDismiss: () => Nav.history.goBack()
-  }),
-  wrapWorkspace({
-    breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: 'Analyses',
-    activeTab: 'analyses'
-  }),
-  withViewToggle('analysesTab')
-)(({
-  name: workspaceName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { cloudPlatform, workspaceId, googleProject, bucketName } },
+const activeFileTransferMessage = div({
+  style: _.merge(
+    Style.elements.card.container,
+    { backgroundColor: colors.warning(0.15), flexDirection: 'none', justifyContent: 'start', alignItems: 'center' })
+}, [
+  icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '1rem' } }),
+  'Copying 1 or more interactive analysis files from another workspace.',
+  span({ style: { fontWeight: 'bold', marginLeft: '0.5ch' } }, ['This may take a few minutes.'])
+])
+
+export type DisplayAnalysisFile = AnalysisFile & {
+  application: ToolLabel
+}
+
+export const decorateAnalysisFiles = (rawAnalyses: AnalysisFile[]): DisplayAnalysisFile[] => {
+  const notebooks: AnalysisFile[] = _.filter(({ name }) => _.includes(getExtension(name), runtimeTools.Jupyter.ext), rawAnalyses)
+  const rAnalyses: AnalysisFile[] = _.filter(({ name }) => _.includes(getExtension(name), runtimeTools.RStudio.ext), rawAnalyses)
+
+  //we map the `toolLabel` corresponding header label, which simplifies the table sorting code
+  const enhancedNotebooks: DisplayAnalysisFile[] = _.map(file => ({ application: tools.Jupyter.label, ...file }), notebooks)
+  const enhancedRmd: DisplayAnalysisFile[] = _.map(file => ({ application: tools.RStudio.label, ...file }), rAnalyses)
+
+  const tempAnalyses: DisplayAnalysisFile[] = _.concat(enhancedNotebooks, enhancedRmd)
+  return _.reverse(_.sortBy(tableFields.lastModified, tempAnalyses))
+}
+
+export const getUniqueFileName = (originalName: string, existingFileNames: FileName[]): FileName => {
+  const name: FileName = originalName as FileName
+  let resolvedName: FileName = name
+  let c = 0
+  while (_.includes(resolvedName, existingFileNames)) {
+    resolvedName = `${getDisplayName(name)}_${++c}.${getExtension(name)}` as FileName
+  }
+  return resolvedName
+}
+
+export interface AnalysesData {
+  apps: App[]
+  refreshApps: () => Promise<void>
+  runtimes: Runtime[]
+  refreshRuntimes: () => Promise<void>
+  appDataDisks: PersistentDisk[]
+  persistentDisks: PersistentDisk[]
+}
+
+export interface AnalysesProps {
+  workspace: WorkspaceWrapper
+  analysesData: AnalysesData
+  onRequesterPaysError: () => void
+  storageDetails: StorageDetails
+}
+
+export interface SortOrderInfo {
+  field: string
+  direction: 'asc' | 'desc'
+}
+
+export const BaseAnalyses: FC<AnalysesProps> = ({
+  workspace,
   analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
   storageDetails: { googleBucketLocation, azureContainerRegion },
   onRequesterPaysError
-}, _ref) => {
-  const [renamingAnalysisName, setRenamingAnalysisName] = useState(undefined)
-  const [copyingAnalysisName, setCopyingAnalysisName] = useState(undefined)
-  const [deletingAnalysisName, setDeletingAnalysisName] = useState(undefined)
-  const [exportingAnalysisName, setExportingAnalysisName] = useState(undefined)
-  const [sortOrder, setSortOrder] = useState(() => getLocalPref(KEY_ANALYSES_SORT_ORDER) || defaultSort.value)
-  const enableJupyterLabPersistenceId = `${namespace}/${workspaceName}/enableJupyterLabGCP`
-  const [enableJupyterLabGCP, setEnableJupyterLabGCP] = useState(() => getLocalPref(enableJupyterLabPersistenceId) || false)
+}: AnalysesProps, _ref) => {
+  const [renamingAnalysisName, setRenamingAnalysisName] = useState<AbsolutePath>()
+  const [copyingAnalysisName, setCopyingAnalysisName] = useState<AbsolutePath>()
+  const [deletingAnalysisName, setDeletingAnalysisName] = useState<AbsolutePath>()
+  const [exportingAnalysisName, setExportingAnalysisName] = useState<AbsolutePath>()
+  const [sortOrder, setSortOrder] = useState<SortOrderInfo>(() => getLocalPref(KEY_ANALYSES_SORT_ORDER) || defaultSort.value)
   const [feedbackShowing, setFeedbackShowing] = useState(false)
   const [filter, setFilter] = useState(() => StateHistory.get().filter || '')
   const [busy, setBusy] = useState(false)
   const [creating, setCreating] = useState(false)
-  const [analyses, setAnalyses] = useState(() => StateHistory.get().analyses || undefined)
-  const [currentUserHash, setCurrentUserHash] = useState(undefined)
-  const [potentialLockers, setPotentialLockers] = useState(undefined)
+  const [analyses, setAnalyses] = useState<DisplayAnalysisFile[]>(() => StateHistory.get().analyses || undefined)
+  const [currentUserHash, setCurrentUserHash] = useState<string>()
+  const [potentialLockers, setPotentialLockers] = useState()
   const [activeFileTransfers, setActiveFileTransfers] = useState(false)
+  const enableJupyterLabPersistenceId: string = `${workspace.workspace.namespace}/${workspace.workspace.name}/${ENABLE_JUPYTERLAB_ID}`
+  const [enableJupyterLabGCP, setEnableJupyterLabGCP] = useState<boolean>(() => getLocalPref(enableJupyterLabPersistenceId) || false)
 
   const authState = useStore(authStore)
   const signal = useCancellation()
+  const analysisFileStore = useAnalysisFiles()
+  const { loadedState, refreshFileStore, create, deleteFile } = analysisFileStore
   const currentRuntime = getCurrentRuntime(runtimes)
   const location = Utils.cond(
     [isGoogleWorkspace(workspace), () => googleBucketLocation],
@@ -272,119 +341,51 @@ const Analyses = _.flow(
     () => null
   )
 
-  // Helpers
-  //TODO: does this prevent users from making an .Rmd with the same name as an .ipynb?
-  const existingNames = _.map(({ name }) => {
-    return getFileName(name)
-  }, analyses)
+  const { accessLevel, workspace: workspaceInfo } = workspace
 
-  const loadGoogleAnalyses = async () => {
-    const rawAnalyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
-    const notebooks = _.filter(({ name }) => _.endsWith(`.${tools.Jupyter.ext}`, name), rawAnalyses)
-    const rAnalyses = _.filter(({ name }) => _.includes(getExtension(name), tools.RStudio.ext), rawAnalyses)
+  const refreshAnalyses: () => Promise<void> = withHandlers([withRequesterPaysHandler(onRequesterPaysError) as any], refreshFileStore)
 
-    //we map the `toolLabel` corresponding header label, which simplifies the table sorting code
-    const enhancedNotebooks = _.map(_.set('application', tools.Jupyter.label), notebooks)
-    const enhancedRmd = _.map(_.set('application', tools.RStudio.label), rAnalyses)
-
-    const analyses = _.concat(enhancedNotebooks, enhancedRmd)
-    setAnalyses(_.reverse(_.sortBy(tableFields.lastModified, analyses)))
-  }
-
-  const loadAzureAnalyses = async () => {
-    const analyses = await Ajax(signal).AzureStorage.listNotebooks(workspaceId)
-    const enhancedAnalyses = _.map(_.set('application', tools.JupyterLab.label), analyses)
-    setAnalyses(_.reverse(_.sortBy(tableFields.lastModified, enhancedAnalyses)))
-  }
-
-  const refreshAnalyses = _.flow(
-    withRequesterPaysHandler(onRequesterPaysError),
-    withErrorReporting('Error loading analyses'),
+  const existingFileNames: FileName[] = _.map((analysis: DisplayAnalysisFile) => analysis.fileName, analyses)
+  const uploadFiles: (files: File[]) => Promise<unknown> = _.flow(
+    withErrorReporting('Error uploading files. Ensure the file has the proper extension'),
     Utils.withBusyState(setBusy)
-  )(!!googleProject ? loadGoogleAnalyses : loadAzureAnalyses)
-
-  const getActiveFileTransfers = _.flow(
-    withErrorReporting('Error loading file transfer status for notebooks in the workspace.'),
-    Utils.withBusyState(setBusy)
-  )(async () => {
-    const fileTransfers = await Ajax(signal).Workspaces.workspace(namespace, workspaceName).listActiveFileTransfers()
-    setActiveFileTransfers(!_.isEmpty(fileTransfers))
-  })
-
-  const uploadFiles = _.flow(
-    withErrorReporting('Error uploading files'),
-    Utils.withBusyState(setBusy)
-  )(async files => {
-    try {
-      await Promise.all(_.map(file => {
-        const name = file.name
-        const toolLabel = getToolLabelFromFileExtension(file.name)
-        let resolvedName = name
-        let c = 0
-        while (_.includes(resolvedName, existingNames)) {
-          resolvedName = `${name} ${++c}`
-        }
-        return !!googleProject ?
-          Ajax().Buckets.analysis(googleProject, bucketName, resolvedName, toolLabel).create(file) :
-          Ajax(signal).AzureStorage.blob(workspaceId, resolvedName).create(file)
-      }, files))
-      refreshAnalyses()
-    } catch (error) {
-      if (error instanceof SyntaxError) {
-        reportError('Error uploading analysis', 'This file is not formatted correctly, ensure it has the correct extension')
-      } else {
-        reportError('Error creating analysis', error)
-      }
-    }
+  )(async (files: File[]) => {
+    await Promise.all(_.map(file => {
+      const uniqueFileName = getUniqueFileName(file.name, existingFileNames)
+      const toolLabel: ToolLabel = getToolLabelFromFileExtension(getExtension(file.name))
+      return create(uniqueFileName, toolLabel, file)
+    }, files))
   })
 
   // Lifecycle
-  useOnMount(_.flow(
-    withErrorReporting('Error loading analyses'),
-    Utils.withBusyState(setBusy)
-  )(async () => {
-    const [currentUserHash, potentialLockers] = !!googleProject ?
-      await Promise.all([notebookLockHash(bucketName, authState.user.email), findPotentialNotebookLockers({ canShare, namespace, workspaceName, bucketName })]) :
-      await Promise.all([Promise.resolve(undefined), Promise.resolve([])])
+  useOnMount(() => {
+    const load = _.flow(
+      withErrorReporting('Error loading analyses'),
+      Utils.withBusyState(setBusy)
+    )(async () => {
+      const [currentUserHash, potentialLockers]: [string | undefined, any] = isGoogleWorkspace(workspace) ?
+        await Promise.all([notebookLockHash(workspace.workspace.bucketName, authState.user.email), findPotentialNotebookLockers(workspace)]) :
+        await Promise.all([Promise.resolve(undefined), Promise.resolve([])])
 
-    setCurrentUserHash(currentUserHash)
-    setPotentialLockers(potentialLockers)
-    getActiveFileTransfers()
-    await refreshAnalyses()
-    await refreshRuntimes()
+      setCurrentUserHash(currentUserHash)
+      setPotentialLockers(potentialLockers)
+
+      const fileTransfers: any[] = await Ajax(signal).Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name).listActiveFileTransfers()
+      setActiveFileTransfers(!_.isEmpty(fileTransfers))
+
+      await refreshRuntimes()
+    })
+
+    load()
   })
-  )
 
+  //We reference the analyses from `useAnalysisStore`, and on change, we decorate them from `AnalysisFile[]` to `DisplayAnalysisFile[]` and update state history
   useEffect(() => {
-    StateHistory.update({ analyses, sortOrder, filter })
-  }, [analyses, sortOrder, filter])
-
-  useEffect(() => {
-    setLocalPref(enableJupyterLabPersistenceId, enableJupyterLabGCP)
-  }, [enableJupyterLabGCP, enableJupyterLabPersistenceId])
-
-  const noAnalysisBanner = div([
-    div({ style: { fontSize: 48 } }, ['A place for all your analyses ']),
-    div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', columnGap: '5rem' } }, _.dropRight(!!googleProject ? 0 : 2, [
-      img({ src: jupyterLogo, style: { height: 120, width: 80 }, alt: 'Jupyter' }),
-      img({ src: rstudioBioLogo, style: { width: 400 }, alt: 'RStudio Bioconductor' }),
-      img({ src: galaxyLogo, style: { height: 60, width: 208 }, alt: 'Galaxy' })
-    ])
-    ),
-    div({ style: { marginTop: '1rem', fontSize: 20 } }, [
-      'Click the button above to create an analysis.'
-    ])
-  ])
-
-  const activeFileTransferMessage = div({
-    style: _.merge(
-      Style.elements.card.container,
-      { backgroundColor: colors.warning(0.15), flexDirection: 'none', justifyContent: 'start', alignItems: 'center' })
-  }, [
-    icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '1rem' } }),
-    'Copying 1 or more interactive analysis files from another workspace.',
-    span({ style: { fontWeight: 'bold', marginLeft: '0.5ch' } }, ['This may take a few minutes.'])
-  ])
+    const rawAnalyses: AnalysisFile[] = loadedState.status !== 'None' && loadedState.state !== null ? loadedState.state : []
+    const decoratedAnalyses = decorateAnalysisFiles(rawAnalyses)
+    setAnalyses(decoratedAnalyses)
+    StateHistory.update({ analyses: decoratedAnalyses, sortOrder, filter })
+  }, [loadedState.status, sortOrder, filter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const previewJupyterLabMessage = div({
     style: _.merge(
@@ -405,19 +406,34 @@ const Analyses = _.flow(
         div({
           style: { display: 'flex', alignItems: 'center' }
         }, [
-          label({ htmlFor: id, style: { fontWeight: 'bold', margin: '0 0.5rem', whiteSpace: 'nowrap' } }, 'Enable JupyterLab'),
+          label({ htmlFor: id, style: { fontWeight: 'bold', margin: '0 0.5rem', whiteSpace: 'nowrap' } }, ['Enable JupyterLab']),
           h(Switch, {
-            id,
-            checked: enableJupyterLabGCP,
+            // @ts-expect-error
             onLabel: '', offLabel: '',
-            width: 40, height: 20,
             onChange: value => {
               setEnableJupyterLabGCP(value)
-              Ajax().Metrics.captureEvent(Events.analysisToggleJupyterLabGCP, { ...extractWorkspaceDetails(workspace.workspace), enabled: value })
-            }
-          })
+              setLocalPref(enableJupyterLabPersistenceId, value)
+              Ajax().Metrics.captureEvent(Events.analysisToggleJupyterLabGCP, { ...extractWorkspaceDetails(workspaceInfo), enabled: value })
+            },
+            id,
+            checked: enableJupyterLabGCP,
+            width: 40, height: 20,
+          }, [])
         ])
       ])])
+    ])
+  ])
+
+  const noAnalysisBanner = div([
+    div({ style: { fontSize: 48 } }, ['A place for all your analyses ']),
+    div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', columnGap: '5rem' } }, _.dropRight(isGoogleWorkspaceInfo(workspaceInfo) ? 0 : 2, [
+      img({ src: jupyterLogo, style: { height: 120, width: 80 }, alt: 'Jupyter' }),
+      img({ src: rstudioBioLogo, style: { width: 400 }, alt: 'RStudio Bioconductor' }),
+      img({ src: galaxyLogo, style: { height: 60, width: 208 }, alt: 'Galaxy' })
+    ])
+    ),
+    div({ style: { marginTop: '1rem', fontSize: 20 } }, [
+      'Click the button above to create an analysis.'
     ])
   ])
 
@@ -425,24 +441,27 @@ const Analyses = _.flow(
   const renderAnalyses = () => {
     const { field, direction } = sortOrder
     const canWrite = Utils.canWrite(accessLevel)
-    const renderedAnalyses = _.flow(
-      _.filter(({ name }) => Utils.textMatch(filter, getFileName(name))),
-      _.orderBy(sortTokens[field] || field, direction),
-      _.map(({ name, lastModified, metadata, application }) => h(AnalysisCard, {
-        key: name,
-        role: 'rowgroup',
-        currentRuntime, name, lastModified, metadata, application, namespace, workspaceName, canWrite, currentUserHash, potentialLockers,
-        onRename: () => setRenamingAnalysisName(name),
-        onCopy: () => setCopyingAnalysisName(name),
-        onExport: () => setExportingAnalysisName(name),
-        onDelete: () => setDeletingAnalysisName(name)
-      }))
-    )(analyses)
 
+    const filteredAnalyses: DisplayAnalysisFile[] = _.filter((analysisFile: DisplayAnalysisFile) => Utils.textMatch(filter, getFileName(analysisFile.name)), analyses)
+    // Lodash does not have a well-typed return on this function and there are not any nice alternatives, so expect error for now
+    // @ts-expect-error
+    const sortedAnalyses: DisplayAnalysisFile[] = _.orderBy(sortTokens[field] || field, direction, filteredAnalyses)
+    const analysisCards = _.map(({ name, lastModified, metadata, application }) => h(AnalysisCard, {
+      key: name,
+      role: 'rowgroup',
+      currentRuntime, name, lastModified, metadata, application, namespace: workspaceInfo.namespace, workspaceName: workspaceInfo.name, canWrite, currentUserHash, potentialLockers,
+      onRename: () => setRenamingAnalysisName(name),
+      onCopy: () => setCopyingAnalysisName(name),
+      onExport: () => setExportingAnalysisName(name),
+      onDelete: () => setDeletingAnalysisName(name)
+    }), sortedAnalyses)
+
+
+    const basePageStyles: CSSProperties = _.isEmpty(analyses) ? { alignItems: 'center', height: '80%' } : { flexDirection: 'column' }
     return div({
       style: {
         ..._.merge({ textAlign: 'center', display: 'flex', justifyContent: 'center', padding: '0 1rem 0 1rem' },
-          _.isEmpty(analyses) ? { alignItems: 'center', height: '80%' } : { flexDirection: 'column' })
+          basePageStyles)
       }
     }, [
       activeFileTransfers && activeFileTransferMessage,
@@ -461,20 +480,20 @@ const Analyses = _.flow(
       }),
       //Show the JupyterLab preview message only for GCP workspaces, because it's already the default for Azure workspaces
       //It's currently hidden behind a feature preview flag until the supporting documentation/blog post are ready
-      isFeaturePreviewEnabled('jupyterlab-gcp') && !_.isEmpty(analyses) && !!googleProject && previewJupyterLabMessage,
+      isFeaturePreviewEnabled(JUPYTERLAB_GCP_FEATURE_ID) && !_.isEmpty(analyses) && isGoogleWorkspace(workspace) && previewJupyterLabMessage,
       Utils.cond(
         [_.isEmpty(analyses), () => noAnalysisBanner],
-        [!_.isEmpty(analyses) && _.isEmpty(renderedAnalyses), () => {
+        [!_.isEmpty(analyses) && _.isEmpty(analysisCards), () => {
           return div({ style: { fontStyle: 'italic' } }, ['No matching analyses'])
         }],
-        [Utils.DEFAULT, () => div({ role: 'table' }, [
+        [Utils.DEFAULT, () => div({ role: 'table', 'aria-label': 'analyses' }, [
           h(AnalysisCardHeaders, {
             sort: sortOrder, onSort: newSortOrder => {
               setLocalPref(KEY_ANALYSES_SORT_ORDER, newSortOrder)
               setSortOrder(newSortOrder)
             }
           }),
-          renderedAnalyses
+          analysisCards
         ])]
       )
     ])
@@ -512,7 +531,6 @@ const Analyses = _.flow(
         }),
         h(AnalysisModal, {
           isOpen: creating,
-          namespace,
           workspace,
           runtimes,
           persistentDisks,
@@ -528,35 +546,34 @@ const Analyses = _.flow(
           onDismiss: () => {
             setCreating(false)
           },
-          onError: async () => {
+          onError: () => {
             setCreating(false)
-            await refreshAnalyses()
-            await refreshRuntimes()
-            await refreshApps()
+            refreshRuntimes()
+            refreshApps()
           },
-          onSuccess: async () => {
+          onSuccess: () => {
             setCreating(false)
-            await refreshAnalyses()
-            await refreshRuntimes()
-            await refreshApps()
-          }
+            refreshRuntimes()
+            refreshApps()
+          },
+          analysisFileStore
         }),
         renamingAnalysisName && h(AnalysisDuplicator, {
           printName: getFileName(renamingAnalysisName),
-          toolLabel: getToolLabelFromFileExtension(renamingAnalysisName),
-          workspaceInfo: { cloudPlatform, googleProject, workspaceId, namespace, name: workspaceName, bucketName },
+          toolLabel: getToolLabelFromFileExtension(getExtension(renamingAnalysisName)),
+          workspaceInfo,
           destroyOld: true,
           fromLauncher: false,
-          onDismiss: () => setRenamingAnalysisName(undefined),
-          onSuccess: () => {
+          onDismiss: () => {
             setRenamingAnalysisName(undefined)
             refreshAnalyses()
-          }
+          },
+          onSuccess: () => setRenamingAnalysisName(undefined)
         }),
         copyingAnalysisName && h(AnalysisDuplicator, {
           printName: getFileName(copyingAnalysisName),
-          toolLabel: getToolLabelFromFileExtension(copyingAnalysisName),
-          workspaceInfo: { cloudPlatform, googleProject, workspaceId, namespace, name: workspaceName, bucketName },
+          toolLabel: getToolLabelFromFileExtension(getExtension(copyingAnalysisName)),
+          workspaceInfo,
           destroyOld: false,
           fromLauncher: false,
           onDismiss: () => setCopyingAnalysisName(undefined),
@@ -566,13 +583,14 @@ const Analyses = _.flow(
           }
         }),
         exportingAnalysisName && h(ExportAnalysisModal, {
+          fromLauncher: false,
           printName: getFileName(exportingAnalysisName),
-          toolLabel: getToolLabelFromFileExtension(exportingAnalysisName),
+          toolLabel: getToolLabelFromFileExtension(getExtension(exportingAnalysisName)),
           workspace,
           onDismiss: () => setExportingAnalysisName(undefined)
         }),
         deletingAnalysisName && h(DeleteConfirmationModal, {
-          objectType: getToolLabelFromFileExtension(deletingAnalysisName) ? `${getToolLabelFromFileExtension(deletingAnalysisName)} analysis` : 'analysis',
+          objectType: getToolLabelFromFileExtension(getExtension(deletingAnalysisName)) ? `${getToolLabelFromFileExtension(getExtension(deletingAnalysisName))} analysis` : 'analysis',
           objectName: getFileName(deletingAnalysisName),
           buttonText: 'Delete analysis',
           onConfirm: _.flow(
@@ -580,26 +598,30 @@ const Analyses = _.flow(
             withErrorReporting('Error deleting analysis.')
           )(async () => {
             setDeletingAnalysisName(undefined)
-            if (!!googleProject) {
-              await Ajax().Buckets.analysis(
-                googleProject,
-                bucketName,
-                getFileName(deletingAnalysisName),
-                getToolLabelFromFileExtension(deletingAnalysisName)
-              ).delete()
-            } else {
-              await Ajax(signal).AzureStorage.blob(workspaceId, getFileName(deletingAnalysisName)).delete()
-            }
-            refreshAnalyses()
+            await deleteFile(deletingAnalysisName)
           }),
           onDismiss: () => setDeletingAnalysisName(undefined)
         })
       ]),
       renderAnalyses()
     ]),
-    busy && spinnerOverlay
+    (loadedState.status === 'Loading' || busy) && spinnerOverlay
   ])])
-})
+}
+
+const Analyses = _.flow(
+  forwardRefWithName('Analyses'),
+  requesterPaysWrapper({
+    onDismiss: () => Nav.history.goBack()
+  }),
+  wrapWorkspace({
+    breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
+    title: 'Analyses',
+    activeTab: 'analyses',
+    topBarContent: null
+  }),
+  withViewToggle('analysesTab')
+)(BaseAnalyses)
 
 export const navPaths = [
   {

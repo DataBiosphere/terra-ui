@@ -1,3 +1,6 @@
+export const JUPYTERLAB_GCP_FEATURE_ID = 'jupyterlab-gcp'
+export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP'
+
 const featurePreviewsConfig = [
   {
     id: 'data-table-versioning',
@@ -14,7 +17,7 @@ const featurePreviewsConfig = [
     feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on data table provenance')}`
   },
   {
-    id: 'jupyterlab-gcp',
+    id: JUPYTERLAB_GCP_FEATURE_ID,
     title: 'JupyterLab on GCP',
     description: 'Enabling this feature will allow you to launch notebooks using JupyterLab in GCP workspaces.',
     groups: ['preview-jupyterlab-gcp'],
