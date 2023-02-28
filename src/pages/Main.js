@@ -14,9 +14,10 @@ import FirecloudNotification from 'src/components/FirecloudNotification'
 import IdleStatusMonitor from 'src/components/IdleStatusMonitor'
 import ImportStatus from 'src/components/ImportStatus'
 import SupportRequest from 'src/components/SupportRequest'
+import { TitleManager } from 'src/components/TitleManager'
 import { getOidcConfig } from 'src/libs/auth'
 import { PageViewReporter } from 'src/libs/events'
-import { LocationProvider, PathHashInserter, Router, TitleManager } from 'src/libs/nav'
+import { LocationProvider, PathHashInserter, Router } from 'src/libs/nav'
 import { AuthenticatedCookieSetter } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 
 

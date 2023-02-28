@@ -18,7 +18,7 @@ import { isAzureWorkspace, isGoogleWorkspace, WorkspaceWrapper } from 'src/libs/
 import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
-interface StorageDetails {
+export interface StorageDetails {
   googleBucketLocation: string // historically returns defaultLocation if cannot be retrieved or Azure
   googleBucketType: string // historically returns locationTypes.default if cannot be retrieved or Azure
   azureContainerRegion?: string

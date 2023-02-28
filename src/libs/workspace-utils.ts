@@ -19,6 +19,7 @@ export interface BaseWorkspaceInfo {
   name: string
   workspaceId: string
   cloudPlatform: string
+  authorizationDomain: string[]
 }
 
 export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
@@ -47,6 +48,7 @@ export interface AzureWorkspace extends BaseWorkspace {
 }
 
 export interface GoogleWorkspace extends BaseWorkspace {
+  workspace: GoogleWorkspaceInfo
 }
 
 export type WorkspaceWrapper = GoogleWorkspace | AzureWorkspace

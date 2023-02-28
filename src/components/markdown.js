@@ -81,17 +81,17 @@ const SimpleMDE = lazy(() => import('react-simplemde-editor'))
 /**
  * N.B. Make sure you memoize 'options' if you're passing any in to 'SimpleMDE'!
  */
-export const MarkdownEditor = ({ options: rawOptions, placeholder, ...props }) => {
+export const MarkdownEditor = ({ options: rawOptions, placeholder, autofocus = true, ...props }) => {
   const options = useMemo(() => _.merge({
     placeholder,
-    autofocus: true,
+    autofocus,
     renderingConfig: {
       singleLineBreaks: false
     },
     previewClass: ['editor-preview', 'markdown-body'],
     previewRender: renderAndSanitizeMarkdown,
     status: false
-  }, rawOptions), [placeholder, rawOptions])
+  }, rawOptions), [placeholder, autofocus, rawOptions])
 
   return h(Suspense, { fallback: centeredSpinner() }, [h(SimpleMDE, { options, ...props })])
 }

@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { isCromwellAppVisible, isCromwellOnAzureAppVisible } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 import { CloudProviderType } from 'src/libs/workspace-utils'
-import { Extension, getExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { FileExtension, getExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
 
 
 export type RuntimeToolLabel = 'Jupyter' | 'RStudio' | 'JupyterLab'
@@ -49,10 +49,10 @@ export interface Tool {
 }
 
 export interface RuntimeTool extends Tool {
-  ext: Extension[]
+  ext: FileExtension[]
   imageIds: string[]
   defaultImageId: string
-  defaultExt: Extension
+  defaultExt: FileExtension
 }
 
 export interface AppTool extends Tool {
@@ -63,22 +63,22 @@ export const terraSupportedRuntimeImageIds: string[] = [
   'terra-jupyter-bioconductor', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'RStudio'
 ]
 
-const RStudio: RuntimeTool = { label: toolLabels.RStudio, ext: ['Rmd', 'R'] as Extension[], imageIds: ['RStudio'], defaultImageId: 'RStudio', defaultExt: 'Rmd' as Extension }
+const RStudio: RuntimeTool = { label: toolLabels.RStudio, ext: ['Rmd', 'R'] as FileExtension[], imageIds: ['RStudio'], defaultImageId: 'RStudio', defaultExt: 'Rmd' as FileExtension }
 
 const Jupyter: RuntimeTool = {
   label: toolLabels.Jupyter,
-  ext: ['ipynb' as Extension],
+  ext: ['ipynb' as FileExtension],
   imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'],
   defaultImageId: 'terra-jupyter-gatk',
   isLaunchUnsupported: true,
-  defaultExt: 'ipynb' as Extension
+  defaultExt: 'ipynb' as FileExtension
 }
 
 const JupyterLab: RuntimeTool = {
   label: toolLabels.JupyterLab,
-  ext: ['ipynb' as Extension],
+  ext: ['ipynb' as FileExtension],
   isLaunchUnsupported: false,
-  defaultExt: 'ipynb' as Extension,
+  defaultExt: 'ipynb' as FileExtension,
   imageIds: [],
   defaultImageId: '',
 }
@@ -134,15 +134,15 @@ export const cloudAppTools: Record<CloudProviderType, AppTool[]> = {
 
 export interface ExtensionDisplay {
   label: string
-  value: Extension
+  value: FileExtension
 }
 
 export const toolExtensionDisplay: Partial<Record<ToolLabel, ExtensionDisplay[]>> = {
   RStudio: [
-    { label: 'R Markdown (.Rmd)', value: 'Rmd' as Extension },
-    { label: 'R Script (.R)', value: 'R' as Extension }
+    { label: 'R Markdown (.Rmd)', value: 'Rmd' as FileExtension },
+    { label: 'R Script (.R)', value: 'R' as FileExtension }
   ],
-  Jupyter: [{ label: 'IPython Notebook (.ipynb)', value: 'ipynb' as Extension }]
+  Jupyter: [{ label: 'IPython Notebook (.ipynb)', value: 'ipynb' as FileExtension }]
 }
 export const getPatternFromRuntimeTool = (toolLabel: RuntimeToolLabel): string => Utils.switchCase(toolLabel,
   [toolLabels.RStudio, () => '.+(\\.R|\\.Rmd)$'],
@@ -153,22 +153,24 @@ export const getPatternFromRuntimeTool = (toolLabel: RuntimeToolLabel): string =
 export const getToolsToDisplayForCloudProvider = (cloudProvider: CloudProviderType): Tool[] => _.remove((tool: Tool) => !!tool.isHidden)(
   (cloudRuntimeTools[cloudProvider] as Tool[]).concat(cloudAppTools[cloudProvider] as Tool[]))
 
-export const toolToExtensionMap: Record<ToolLabel, Extension> = _.flow(
+export const toolToExtensionMap: Record<ToolLabel, FileExtension> = _.flow(
   _.filter('ext'),
   _.map((tool: RuntimeTool) => ({ [tool.label]: tool.ext })),
   _.reduce(_.merge, {})
 )(runtimeTools)
 
-const extensionToToolMap: Partial<Record<Extension, RuntimeToolLabel>> = (() => {
-  const extMap = {}
-  _.forEach(extension => extMap[extension] = runtimeTools.RStudio.label, runtimeTools.RStudio.ext)
-  _.forEach(extension => extMap[extension] = runtimeTools.Jupyter.label, runtimeTools.Jupyter.ext)
-  return extMap
-})()
+export type AnalysisFileExtension = 'Rmd' | 'R' | 'ipynb'
+const extensionToToolMap: Record<AnalysisFileExtension, ToolLabel> = {
+  Rmd: runtimeTools.RStudio.label,
+  R: runtimeTools.RStudio.label,
+  ipynb: runtimeTools.Jupyter.label
+}
 
 export const getToolLabelForImage = (image: string): ToolLabel | undefined => _.find(tool => _.includes(image, tool.imageIds), runtimeTools)?.label
 
-export const getToolLabelFromFileExtension = (fileName: Extension): ToolLabel | undefined => extensionToToolMap[getExtension(fileName)]
+// Currently, a lot of consumers of this are not typescript, so we defensively use `getExtension` on the input
+// TODO: Once all consumer are in typescript, we can remove `getExtension` from this function
+export const getToolLabelFromFileExtension = (fileName: FileExtension): ToolLabel => extensionToToolMap[getExtension(fileName)]
 
 // TODO: runtime type
 export const getToolLabelFromRuntime = (runtime: any): ToolLabel => _.get(['labels', 'tool'])(runtime)
@@ -188,3 +190,5 @@ export type Runtime = any
 export type AppDataDisk = any
 
 export type PersistentDisk = any
+
+export type App = any

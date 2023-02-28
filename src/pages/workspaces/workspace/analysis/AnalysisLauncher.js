@@ -16,6 +16,7 @@ import { Metrics } from 'src/libs/ajax/Metrics'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
+import { ENABLE_JUPYTERLAB_ID } from 'src/libs/feature-previews-config'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
@@ -264,7 +265,7 @@ const PreviewHeader = ({
   const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name, analysisName })
   const isAzureWorkspace = !!workspace.azureContext
   const currentRuntimeToolLabel = getToolLabelFromRuntime(runtime)
-  const enableJupyterLabPersistenceId = `${namespace}/${name}/enableJupyterLabGCP`
+  const enableJupyterLabPersistenceId = `${namespace}/${name}/${ENABLE_JUPYTERLAB_ID}`
   const [enableJupyterLabGCP] = useState(() => getLocalPref(enableJupyterLabPersistenceId) || false)
 
   const checkIfLocked = withErrorReporting('Error checking analysis lock status', async () => {

@@ -26,10 +26,16 @@ export const Billing = signal => ({
     )
   },
 
-  createAzureProject: async (projectName, tenantId, subscriptionId, managedResourceGroupId) => {
+  createAzureProject: async (projectName, tenantId, subscriptionId, managedResourceGroupId, members) => {
+    // members: an array of {email: string, role: string}
     return await fetchRawls('billing/v2',
       _.mergeAll([authOpts(), jsonBody(
-        { projectName, managedAppCoordinates: { tenantId, subscriptionId, managedResourceGroupId } }
+        {
+          projectName,
+          members,
+          managedAppCoordinates: { tenantId, subscriptionId, managedResourceGroupId },
+          inviteUsersNotFound: true
+        }
       ),
       { signal, method: 'POST' }])
     )
