@@ -73,14 +73,18 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
   })
 
   useEffect(() => {
-    const errors = Utils.cond(
-      [!!billingProjectName, () => summarizeErrors(
-        validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existingProjectNames) })?.billingProjectName
-      )],
-      [billingProjectName !== undefined, () => 'A name is required to create a billing project.'],
-      [Utils.DEFAULT, () => undefined]
-    )
-    setProjectNameErrors(errors)
+    let isMounted = true // Necessary to avoid React warning about updates in unmounted component after project created.
+    if (isMounted) {
+      const errors = Utils.cond(
+        [!!billingProjectName, () => summarizeErrors(
+          validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existingProjectNames) })?.billingProjectName
+        )],
+        [billingProjectName !== undefined, () => 'A name is required to create a billing project.'],
+        [Utils.DEFAULT, () => undefined]
+      )
+      setProjectNameErrors(errors)
+    }
+    return () => { isMounted = true }
   }, [billingProjectName, existingProjectNames])
 
   useOnMount(() => {

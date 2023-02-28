@@ -4,7 +4,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
 import Collapse from 'src/components/Collapse'
-import { ButtonOutline, ButtonPrimary, Clickable, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Clickable, customSpinnerOverlay, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, spinner } from 'src/components/icons'
 import { MenuButton } from 'src/components/MenuButton'
@@ -462,7 +462,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           ])
         }]
       )]),
-      (isLoadingProjects || isAuthorizing || isLoadingAccounts) && spinnerOverlay
+      (isLoadingProjects || isAuthorizing || isLoadingAccounts) && customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'fixed' })
     ])
   ])
 }
