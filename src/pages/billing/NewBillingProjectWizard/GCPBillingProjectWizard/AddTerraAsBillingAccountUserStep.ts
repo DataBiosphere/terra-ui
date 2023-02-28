@@ -2,11 +2,11 @@ import { h, span } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import Events from 'src/libs/events'
 import { styles } from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/GCPBillingProjectWizard'
+import { ExternalLink } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/ExternalLink'
 import {
   LabeledRadioButton,
   LabeledRadioGroup
-} from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/LabeledRadioButton'
-import { ExternalLink } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/ExternalLink'
+} from 'src/pages/billing/NewBillingProjectWizard/StepWizard/LabeledRadioButton'
 import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/Step'
 import { StepFieldLegend, StepFields } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields'
 import { StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepHeader'

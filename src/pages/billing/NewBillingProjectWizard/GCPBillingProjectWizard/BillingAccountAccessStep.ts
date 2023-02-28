@@ -1,9 +1,13 @@
 import { h, p } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import Events from 'src/libs/events'
-import { LabeledRadioButton, LabeledRadioGroup } from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/LabeledRadioButton'
+import { LabeledRadioButton, LabeledRadioGroup } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/LabeledRadioButton'
 import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/Step'
-import { StepFieldLegend, StepFields } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields'
+import {
+  legendDetailsStyle,
+  StepFieldLegend,
+  StepFields
+} from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields'
 import { StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepHeader'
 
 
@@ -18,7 +22,7 @@ export const BillingAccountAccessStep = ({ isActive, ...props }: BillingAccountA
   h(StepFields, [
     h(StepFieldLegend, { style: { width: '70%' } }, [
       'Select an existing billing account or create a new one.',
-      p({ style: { fontSize: '.875rem', lineHeight: '22px', width: '75%' } }, [
+      p({ style: { ...legendDetailsStyle, width: '75%' } }, [
         'If you are creating a new billing account, you may be eligible for $300 in free credits. ' +
         'Follow the instructions to activate your account in the Google Cloud Console.'
       ]),
