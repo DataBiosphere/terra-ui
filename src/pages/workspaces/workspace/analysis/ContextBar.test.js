@@ -16,8 +16,8 @@ const GALAXY_DISK_COST = 1
 const RUNTIME_COST = 0.1
 const PERSISTENT_DISK_COST = 0.01
 
-jest.mock('src/pages/workspaces/workspace/analysis/cost-utils', () => ({
-  ...jest.requireActual('src/pages/workspaces/workspace/analysis/cost-utils'),
+jest.mock('src/pages/workspaces/workspace/analysis/utils/cost-utils', () => ({
+  ...jest.requireActual('src/pages/workspaces/workspace/analysis/utils/cost-utils'),
   getGalaxyComputeCost: jest.fn(),
   getGalaxyDiskCost: jest.fn(),
   getPersistentDiskCostHourly: jest.fn(),

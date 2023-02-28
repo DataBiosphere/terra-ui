@@ -32,7 +32,7 @@ jest.mock('src/libs/notifications', () => ({
 }))
 
 jest.mock('src/libs/ajax')
-jest.mock('src/pages/workspaces/workspace/analysis/cost-utils')
+jest.mock('src/pages/workspaces/workspace/analysis/utils/cost-utils')
 
 const onSuccess = jest.fn()
 const defaultModalProps = {

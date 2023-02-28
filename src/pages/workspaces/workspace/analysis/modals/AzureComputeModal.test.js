@@ -16,7 +16,7 @@ import { asMockedFn } from 'src/testing/test-utils'
 import { AzureComputeModalBase } from './AzureComputeModal'
 
 
-jest.mock('src/pages/workspaces/workspace/analysis/cost-utils')
+jest.mock('src/pages/workspaces/workspace/analysis/utils/cost-utils')
 
 jest.mock('src/libs/ajax')
 jest.mock('src/libs/notifications', () => ({
