@@ -1145,13 +1145,13 @@ export const ComputeModalBase = ({
           span({ style: { marginLeft: '0.5rem', ...computeStyles.label, verticalAlign: 'top' } }, [
             enableAutopauseSpan
           ]),
-          h(Link, {
-            style: { marginLeft: '1rem', verticalAlign: 'top' },
-            href: 'https://support.terra.bio/hc/en-us/articles/360029761352-Preventing-runaway-costs-with-Cloud-Environment-autopause-#h_27c11f46-a6a7-4860-b5e7-fac17df2b2b5', ...Utils.newTabLinkProps
-          }, [
-            'Learn more about autopause.',
-            icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
-          ])
+        ]),
+        h(Link, {
+          style: { marginLeft: '1rem', verticalAlign: 'top' },
+          href: 'https://support.terra.bio/hc/en-us/articles/360029761352-Preventing-runaway-costs-with-Cloud-Environment-autopause-#h_27c11f46-a6a7-4860-b5e7-fac17df2b2b5', ...Utils.newTabLinkProps
+        }, [
+          'Learn more about autopause.',
+          icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
         ]),
         div({ style: { ...gridStyle, gridGap: '0.7rem', gridTemplateColumns: '4.5rem 9.5rem', marginTop: '0.75rem' } }, [
           h(NumberInput, {
