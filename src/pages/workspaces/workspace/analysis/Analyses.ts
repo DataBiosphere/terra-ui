@@ -21,6 +21,9 @@ import jupyterLogo from 'src/images/jupyter-logo.svg'
 import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
+import { App } from 'src/libs/ajax/leonardo/models/app-models'
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models'
+import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
@@ -50,9 +53,8 @@ import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/
 import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import {
-  App,
   getToolLabelFromFileExtension,
-  getToolLabelFromRuntime, PersistentDisk, Runtime,
+  getToolLabelFromRuntime,
   runtimeTools,
   ToolLabel,
   toolLabels,
