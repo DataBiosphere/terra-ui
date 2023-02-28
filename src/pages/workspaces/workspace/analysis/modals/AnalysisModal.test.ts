@@ -67,6 +67,7 @@ jest.mock('src/pages/workspaces/workspace/analysis/file-utils', (): FileUtilsExp
   }
 })
 
+
 type AjaxContract = ReturnType<typeof Ajax>
 
 describe('AnalysisModal', () => {

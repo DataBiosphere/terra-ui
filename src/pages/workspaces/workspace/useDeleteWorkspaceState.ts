@@ -6,7 +6,7 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { getUser } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { BaseWorkspace, isAzureWorkspace, isGoogleWorkspace, WorkspaceInfo } from 'src/libs/workspace-utils'
-import { isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/utils/resource-utils'
 
 
 export const WorkspaceResourceDeletionPollRate = 5000
@@ -56,10 +56,10 @@ export interface DeleteWorkspaceHookArgs {
 export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): DeleteWorkspaceState => {
   const [deleting, setDeleting] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [collaboratorEmails, setCollaboratorEmails] = useState<string[]>()
-  const [workspaceBucketUsageInBytes, setWorkspaceBucketUsageInBytes] = useState<number>()
   const [deletingResources, setDeletingResources] = useState(false)
   const [workspaceResources, setWorkspaceResources] = useState<WorkspaceResources>()
+  const [collaboratorEmails, setCollaboratorEmails] = useState<string[]>()
+  const [workspaceBucketUsageInBytes, setWorkspaceBucketUsageInBytes] = useState<number>()
 
   const workspaceInfo: WorkspaceInfo = hookArgs.workspace.workspace
   const signal = useCancellation()
@@ -77,8 +77,8 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
     const currentRuntimesList = isAzureWorkspace(workspace) ?
         await Ajax(signal).Runtimes.listV2WithWorkspace(workspaceInfo.workspaceId) as DeleteWorkspaceModalLeoRuntime[] : []
 
-    const [deletableApps, nonDeletableApps] = _.partition(isResourceDeletable('app'), apps) as [DeleteWorkspaceModalLeoApp[], DeleteWorkspaceModalLeoApp[]]
-    const [deletableRuntimes, nonDeletableRuntimes] = _.partition(isResourceDeletable('runtime'), currentRuntimesList) as [DeleteWorkspaceModalLeoRuntime[], DeleteWorkspaceModalLeoRuntime[]]
+    const [deletableApps, nonDeletableApps] = _.partition(app => isResourceDeletable('app', app), apps) as [DeleteWorkspaceModalLeoApp[], DeleteWorkspaceModalLeoApp[]]
+    const [deletableRuntimes, nonDeletableRuntimes] = _.partition(runtime => isResourceDeletable('runtime', runtime), currentRuntimesList) as [DeleteWorkspaceModalLeoRuntime[], DeleteWorkspaceModalLeoRuntime[]]
     return {
       nonDeleteableApps: nonDeletableApps,
       deleteableApps: deletableApps,
@@ -181,7 +181,7 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
       setDeletingResources(true)
       console.log(`Requesting app and runtime deletion for workspace ${workspaceInfo.workspaceId}`) // eslint-disable-line no-console
       await Ajax(signal).Apps.deleteAllAppsV2(workspaceInfo.workspaceId, true)
-      await Ajax(signal).Runtimes.runtimeV2(workspaceInfo.workspaceId).deleteAll(true)
+      await Ajax(signal).Runtimes.deleteAll(workspaceInfo.workspaceId, true)
       console.log('Resource deletions requested, starting poll.') // eslint-disable-line no-console
 
       checkAzureResourcesTimeout.current = window.setTimeout(() => checkAzureResources(), WorkspaceResourceDeletionPollRate)

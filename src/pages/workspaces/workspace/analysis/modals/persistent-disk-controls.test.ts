@@ -4,6 +4,12 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import {
+  defaultDataprocMasterDiskSize,
+  defaultDataprocWorkerDiskSize,
+  defaultGcePersistentDiskSize,
+  defaultPersistentDiskType,
+} from 'src/pages/workspaces/workspace/analysis/disk-utils'
+import {
   PersistentDiskSection,
   PersistentDiskType,
 } from 'src/pages/workspaces/workspace/analysis/modals/persistent-disk-controls'
@@ -12,14 +18,10 @@ import {
   defaultComputeRegion,
   defaultComputeZone,
   defaultDataprocMachineType,
-  defaultDataprocMasterDiskSize,
-  defaultDataprocWorkerDiskSize,
-  defaultGcePersistentDiskSize,
   defaultGpuType,
   defaultNumDataprocPreemptibleWorkers,
   defaultNumDataprocWorkers,
   defaultNumGpus,
-  defaultPersistentDiskType,
   getDefaultMachineType,
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'

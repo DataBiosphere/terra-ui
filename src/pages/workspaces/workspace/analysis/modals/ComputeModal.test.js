@@ -5,6 +5,7 @@ import { act } from 'react-dom/test-utils'
 import { h } from 'react-hyperscript-helpers'
 import { cloudServices } from 'src/data/gce-machines'
 import { Ajax } from 'src/libs/ajax'
+import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { formatUSD } from 'src/libs/utils'
 import {
   defaultGoogleWorkspace, defaultImage, defaultRImage, defaultTestDisk, getDisk,
@@ -12,11 +13,12 @@ import {
   imageDocs, testDefaultLocation
 } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/cost-utils'
+import {
+  defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize, defaultPersistentDiskType
+} from 'src/pages/workspaces/workspace/analysis/disk-utils'
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import {
-  defaultDataprocMachineType, defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize,
-  defaultGceMachineType, defaultGpuType, defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, defaultPersistentDiskType,
-  runtimeStatuses
+  defaultDataprocMachineType, defaultGceMachineType, defaultGpuType, defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { runtimeTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'

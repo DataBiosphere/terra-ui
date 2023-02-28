@@ -20,17 +20,18 @@ import { useCancellation, useGetter } from 'src/libs/react-utils'
 import { contactUsActive, getUser } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { getDiskAppType, isApp } from 'src/pages/workspaces/workspace/analysis/app-utils'
 import {
   getAppCost, getGalaxyComputeCost, getPersistentDiskCostMonthly, getRuntimeCost
 } from 'src/pages/workspaces/workspace/analysis/cost-utils'
+import { mapToPdTypes, workspaceHasMultipleDisks } from 'src/pages/workspaces/workspace/analysis/disk-utils'
 import { SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import {
-  defaultComputeZone, getComputeStatusForDisplay, getCreatorForRuntime, getDiskAppType,
-  getRegionFromZone, isApp, isComputePausable, isGcpContext, isResourceDeletable, mapToPdTypes,
-  workspaceHasMultipleDisks
+  defaultComputeZone, getComputeStatusForDisplay, getCreatorForRuntime, getRegionFromZone, isGcpContext
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
 import { appTools, getToolLabelFromRuntime, isPauseSupported } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { isComputePausable, isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/utils/resource-utils'
 
 
 const DeleteRuntimeModal = ({

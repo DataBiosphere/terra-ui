@@ -18,7 +18,9 @@ import { useStore } from 'src/libs/react-utils'
 import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { cloudProviderTypes, getCloudProviderFromWorkspace, isAzureWorkspace } from 'src/libs/workspace-utils'
+import { getCurrentApp, getIsAppBusy } from 'src/pages/workspaces/workspace/analysis/app-utils'
 import { getCostDisplayForDisk, getCostDisplayForTool } from 'src/pages/workspaces/workspace/analysis/cost-utils'
+import { getCurrentPersistentDisk, isCurrentGalaxyDiskDetaching } from 'src/pages/workspaces/workspace/analysis/disk-utils'
 import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/AzureComputeModal'
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal'
@@ -26,8 +28,7 @@ import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/
 import { appLauncherTabName, PeriodicAzureCookieSetter } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import {
   getComputeStatusForDisplay, getConvertedRuntimeStatus,
-  getCurrentApp, getCurrentPersistentDisk, getCurrentRuntime, getIsAppBusy, getIsRuntimeBusy, getRuntimeForTool,
-  isCurrentGalaxyDiskDetaching
+  getCurrentRuntime, getIsRuntimeBusy, getRuntimeForTool
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
 import {

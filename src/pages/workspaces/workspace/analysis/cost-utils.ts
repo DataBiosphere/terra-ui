@@ -1,12 +1,29 @@
 import _ from 'lodash/fp'
 import {
-  cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, machineTypes, regionToPrices
+  dataprocCpuPrice, ephemeralExternalIpAddressPrice, machineTypes, regionToPrices
 } from 'src/data/gce-machines'
+import {
+  GoogleRuntimeConfig,
+  isDataprocConfig,
+  isGceConfig,
+  isGceRuntimeConfig,
+  isGceWithPdConfig
+} from 'src/libs/ajax/leonardo/models/runtime-config-models'
 import { getAzurePricesForRegion, getDiskType } from 'src/libs/azure-utils'
 import * as Utils from 'src/libs/utils'
 import {
-  defaultComputeRegion, defaultGceMachineType, findMachineType, getComputeStatusForDisplay, getCurrentAttachedDataDisk, getCurrentPersistentDisk,
-  getRuntimeForTool, isAzureContext, normalizeRuntimeConfig, pdTypes
+  defaultDataprocWorkerDiskSize, defaultGceBootDiskSize,
+  getCurrentAttachedDataDisk,
+  getCurrentPersistentDisk,
+  pdTypes
+} from 'src/pages/workspaces/workspace/analysis/disk-utils'
+import {
+  defaultComputeRegion,
+  defaultGceMachineType,
+  findMachineType,
+  getComputeStatusForDisplay, getNormalizedComputeRegion,
+  getRuntimeForTool,
+  isAzureContext,
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { appTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
@@ -19,8 +36,8 @@ const dataprocCost = (machineType, numInstances) => {
 }
 
 const getHourlyCostForMachineType = (machineTypeName, region, isPreemptible) => {
-  const { cpu, memory } = _.find({ name: machineTypeName }, machineTypes) || {}
-  const { n1HourlyCpuPrice, preemptibleN1HourlyCpuPrice, n1HourlyGBRamPrice, preemptibleN1HourlyGBRamPrice } = _.find({ name: _.toUpper(region) },
+  const { cpu, memory } = _.find({ name: machineTypeName }, machineTypes) || { cpu: 0, memory: 0 }
+  const { n1HourlyCpuPrice = 0, preemptibleN1HourlyCpuPrice = 0, n1HourlyGBRamPrice = 0, preemptibleN1HourlyGBRamPrice = 0 } = _.find({ name: _.toUpper(region) },
     regionToPrices) || {}
   return isPreemptible ?
     (cpu * preemptibleN1HourlyCpuPrice) + (memory * preemptibleN1HourlyGBRamPrice) :
@@ -28,47 +45,62 @@ const getHourlyCostForMachineType = (machineTypeName, region, isPreemptible) => 
 }
 
 const getGpuCost = (gpuType, numGpus, region) => {
-  const prices = _.find({ name: region }, regionToPrices)
+  const prices = _.find({ name: region }, regionToPrices) || {}
   // From a type like 'nvidia-tesla-t4', look up 't4HourlyPrice' in prices
   const price = prices[`${_.last(_.split('-', gpuType))}HourlyPrice`]
   return price * numGpus
 }
 
-export const runtimeConfigBaseCost = config => {
-  const {
-    cloudService, masterMachineType, masterDiskSize, numberOfWorkers, workerMachineType, workerDiskSize, bootDiskSize, computeRegion
-  } = normalizeRuntimeConfig(config)
+const getDefaultIfUndefined = (input: number | undefined, alternative: number): number => input ? input : alternative
 
-  const isDataproc = cloudService === cloudServices.DATAPROC
+// This function deals with runtimes that are paused
+// All disks referenced in this function are boot disks (aka the disk google needs to provision by default for OS storage)
+// The user pd cost for a runtime is calculated elsewhere
+export const runtimeConfigBaseCost = (config: GoogleRuntimeConfig): number => {
+  const computeRegion = getNormalizedComputeRegion(config)
 
-  return _.sum([
-    (masterDiskSize + numberOfWorkers * workerDiskSize) * getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard),
-    isDataproc ?
-      (dataprocCost(masterMachineType, 1) + dataprocCost(workerMachineType, numberOfWorkers)) :
-      (bootDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard))
-  ])
+  const costForDataproc: number = isDataprocConfig(config) ?
+    config.masterDiskSize + config.numberOfWorkers *
+      getDefaultIfUndefined(config.workerDiskSize, defaultDataprocWorkerDiskSize) *
+    getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard) +
+    dataprocCost(config.masterMachineType, 1) + dataprocCost(config.workerMachineType, config.numberOfWorkers) :
+    0
+
+  const costForGceWithoutUserDisk: number = isGceConfig(config) ?
+    getDefaultIfUndefined(config.bootDiskSize, defaultGceBootDiskSize) * getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard) :
+    0
+
+  const costForGceWithUserDisk: number = isGceWithPdConfig(config) ?
+    (config.bootDiskSize) * getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard) : 0
+
+  return _.sum([costForDataproc, costForGceWithoutUserDisk, costForGceWithUserDisk])
 }
 
-export const runtimeConfigCost = config => {
-  const {
-    cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, computeRegion
-  } = normalizeRuntimeConfig(
-    config)
-  const masterPrice = getHourlyCostForMachineType(masterMachineType, computeRegion, false)
-  const workerPrice = getHourlyCostForMachineType(workerMachineType, computeRegion, false)
-  const preemptiblePrice = getHourlyCostForMachineType(workerMachineType, computeRegion, true)
-  const numberOfStandardVms = 1 + numberOfWorkers // 1 is for the master VM
-  const gpuConfig = config?.gpuConfig
-  const gpuEnabled = cloudService === cloudServices.GCE && !!gpuConfig
+export const runtimeConfigCost = (config: GoogleRuntimeConfig): number => {
+  const computeRegion = getNormalizedComputeRegion(config)
+
+  const machineType: string = isGceRuntimeConfig(config) ? config.machineType :
+    isDataprocConfig(config) ? config.masterMachineType : defaultGceMachineType
+
+  const baseMachinePrice: number = getHourlyCostForMachineType(machineType, computeRegion, false)
+
+  const additionalDataprocCost: number = isDataprocConfig(config) ? _.sum([
+    config.numberOfWorkers * getHourlyCostForMachineType(config.workerMachineType, computeRegion, false),
+    getDefaultIfUndefined(config.numberOfPreemptibleWorkers, 0) * getHourlyCostForMachineType(config.workerMachineType, computeRegion, true),
+    getDefaultIfUndefined(config.numberOfPreemptibleWorkers, 0) * getDefaultIfUndefined(config.workerDiskSize, 0) * getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard),
+    dataprocCost(config.workerMachineType, getDefaultIfUndefined(config.numberOfPreemptibleWorkers, 0)),
+    ephemeralExternalIpAddressCost({ numStandardVms: config.numberOfWorkers, numPreemptibleVms: getDefaultIfUndefined(config.numberOfPreemptibleWorkers, 0) })
+  ]) : 0
+
+  const gpuCost = isGceRuntimeConfig(config) && !_.isNil(config.gpuConfig) ? getGpuCost(config.gpuConfig.gpuType, config.gpuConfig.numOfGpus, computeRegion) : 0
+
+  const baseVmIpCost = ephemeralExternalIpAddressCost({ numStandardVms: 1, numPreemptibleVms: 0 })
 
   return _.sum([
-    masterPrice,
-    numberOfWorkers * workerPrice,
-    numberOfPreemptibleWorkers * preemptiblePrice,
-    numberOfPreemptibleWorkers * workerDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard),
-    cloudService === cloudServices.DATAPROC && dataprocCost(workerMachineType, numberOfPreemptibleWorkers),
-    gpuEnabled && getGpuCost(gpuConfig.gpuType, gpuConfig.numOfGpus, computeRegion),
-    ephemeralExternalIpAddressCost({ numStandardVms: numberOfStandardVms, numPreemptibleVms: numberOfPreemptibleWorkers }),
+    baseMachinePrice,
+    additionalDataprocCost,
+    gpuCost,
+    baseVmIpCost,
     runtimeConfigBaseCost(config)
   ])
 }
@@ -137,24 +169,18 @@ export const getGalaxyDiskCost = ({ size: dataDiskType, diskType }) => {
   }, defaultComputeRegion)
 }
 
-export const getGalaxyCostTextChildren = (app, appDataDisks) => {
-  const dataDisk = getCurrentAttachedDataDisk(app, appDataDisks)
-  return app ?
-    [getComputeStatusForDisplay(app.status), dataDisk ? ` ${Utils.formatUSD(getGalaxyCost(app, dataDisk))}/hr` : ''] : ['']
-}
-
 // end GOOGLE COST METHODS
 
 // AZURE COST METHODS begin
 
 export const getAzureComputeCostEstimate = ({ region, machineType }) => {
-  const regionPriceObj = getAzurePricesForRegion(region)
+  const regionPriceObj = getAzurePricesForRegion(region) || {}
   const cost = regionPriceObj[machineType]
   return cost
 }
 
 export const getAzureDiskCostEstimate = ({ region, diskSize }) => {
-  const regionPriceObj = getAzurePricesForRegion(region)
+  const regionPriceObj = getAzurePricesForRegion(region) || {}
   const diskType = getDiskType(diskSize)
   const cost = regionPriceObj[diskType]
   return cost
@@ -166,6 +192,7 @@ export const getAzureDiskCostEstimate = ({ region, diskSize }) => {
 
 export const getPersistentDiskCostMonthly = ({ cloudContext = {}, diskType, size, status, zone }, computeRegion) => {
   const price = Utils.cond(
+    // @ts-expect-error
     [isAzureContext(cloudContext), () => getAzureDiskCostEstimate({ diskSize: size, region: zone })],
     [Utils.DEFAULT, () => size * getPersistentDiskPriceForRegionMonthly(computeRegion, diskType)]
   )
@@ -173,6 +200,7 @@ export const getPersistentDiskCostMonthly = ({ cloudContext = {}, diskType, size
 }
 export const getPersistentDiskCostHourly = ({ size, status, diskType, cloudContext = {} }, computeRegion) => {
   const price = Utils.cond(
+    // @ts-expect-error
     [isAzureContext(cloudContext), () => getAzureDiskCostEstimate({ diskSize: size, region: computeRegion }) / numberOfHoursPerMonth],
     [Utils.DEFAULT, () => size * getPersistentDiskPriceForRegionHourly(computeRegion, diskType)],
   )
@@ -180,6 +208,7 @@ export const getPersistentDiskCostHourly = ({ size, status, diskType, cloudConte
 }
 
 export const getRuntimeCost = ({ runtimeConfig, status, cloudContext = {} }) => {
+  // @ts-expect-error
   if (isAzureContext(cloudContext)) {
     return getAzureComputeCostEstimate(runtimeConfig)
   }
@@ -210,7 +239,7 @@ export const getCostForDisk = (app, appDataDisks, computeRegion, currentRuntimeT
   return diskCost
 }
 
-// TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
+//TODO: this is incorrect!! We need to check cloud provider.
 export const getCostDisplayForTool = (app, currentRuntime, currentRuntimeTool, toolLabel) => {
   return Utils.cond(
     [toolLabel === toolLabels.Galaxy, () => app ? `${getComputeStatusForDisplay(app.status)} ${Utils.formatUSD(getGalaxyComputeCost(app))}/hr` : ''],

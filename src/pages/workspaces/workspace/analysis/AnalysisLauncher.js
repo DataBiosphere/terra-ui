@@ -24,6 +24,7 @@ import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/l
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { cloudProviderTypes } from 'src/libs/workspace-utils'
+import { getCurrentPersistentDisk } from 'src/pages/workspaces/workspace/analysis/disk-utils'
 import { findPotentialNotebookLockers, getExtension, getFileName, notebookLockHash } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
 import { ComputeModal } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
@@ -33,7 +34,7 @@ import {
   StatusMessage
 } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import {
-  getConvertedRuntimeStatus, getCurrentPersistentDisk, getCurrentRuntime, usableStatuses
+  getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import {
   getPatternFromRuntimeTool, getToolLabelFromFileExtension, getToolLabelFromRuntime, toolLabels

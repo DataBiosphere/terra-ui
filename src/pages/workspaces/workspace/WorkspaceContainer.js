@@ -19,10 +19,12 @@ import { getUser } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
+import { getCurrentApp, getDiskAppType } from 'src/pages/workspaces/workspace/analysis/app-utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
+import { mapToPdTypes } from 'src/pages/workspaces/workspace/analysis/disk-utils'
 import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import {
-  getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, mapToPdTypes
+  getConvertedRuntimeStatus, getCurrentRuntime
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import RuntimeManager from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
 import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'

@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { appIdentifier, authOpts, fetchLeo, jsonBody } from 'src/libs/ajax/ajax-common'
-import { pdTypes } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { pdTypes } from 'src/pages/workspaces/workspace/analysis/disk-utils'
 
 
 export const Disks = signal => ({
