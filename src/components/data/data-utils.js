@@ -307,7 +307,7 @@ export const notifyDataImportProgress = jobId => {
   })
 }
 
-export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTypes, workspaceId, dataProvider, isGoogleWorkspace }) => {
+export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTypes, workspaceId, dataProvider, isGoogleWorkspace, onUpload }) => {
   const [useFireCloudDataModel, setUseFireCloudDataModel] = useState(false)
   const [isFileImportCurrMode, setIsFileImportCurrMode] = useState(true)
   const [isFileImportLastUsedMode, setIsFileImportLastUsedMode] = useState(undefined)
@@ -325,6 +325,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
 
   const doUpload = async () => {
     setUploading(true)
+    onUpload({ attributes: [], count: '', name: recordType, primaryKey: 'id' })
     try {
       await dataProvider.uploadTsv({ workspaceId, recordType, file, useFireCloudDataModel, deleteEmptyValues, namespace, name })
       onSuccess()

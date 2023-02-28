@@ -389,10 +389,10 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
       ])
     }, [
       h(Clickable, {
-        disabled: loading,
+        disabled: loading || rowCount === '',
         tooltip: 'Table menu',
         useTooltipAsLabel: true
-      }, [icon(loading ? 'loadingSpinner' : 'cardMenuIcon')])
+      }, [icon(loading || rowCount === '' ? 'loadingSpinner' : 'cardMenuIcon')])
     ]),
     exporting && h(ExportDataModal, {
       onDismiss: () => {
@@ -1028,9 +1028,13 @@ const WorkspaceData = _.flow(
                 setUploadingWDSFile(false)
                 forceRefresh()
                 loadMetadata()
-              }, namespace, name,
+              },
+              namespace, name,
               workspaceId, entityTypes: wdsTypes.state.map(item => item['name']), dataProvider: wdsDataTableProvider,
-              isGoogleWorkspace
+              isGoogleWorkspace,
+              onUpload: newRecordType => {
+                setWdsTypes({ state: _.concat(wdsTypes.state, newRecordType), status: 'Ready' })
+              }
             }),
             isGoogleWorkspace && h(DataTypeSection, {
               title: 'Other Data'
@@ -1059,7 +1063,7 @@ const WorkspaceData = _.flow(
       h(SidebarSeparator, { sidebarWidth, setSidebarWidth }),
       div({ style: styles.tableViewPanel }, [
         _.includes(selectedData?.type, [workspaceDataTypes.entities, workspaceDataTypes.entitiesVersion]) && h(DataTableFeaturePreviewFeedbackBanner),
-        Utils.cond([createdBy === getUser()?.email || isGoogleWorkspace, () => Utils.switchCase(selectedData?.type, [undefined, () => Utils.cond([isAzureWorkspace && (uploadingWDSFile || !wdsReady), () => div({ style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' } },
+        Utils.cond([createdBy === getUser()?.email || isGoogleWorkspace, () => Utils.switchCase(selectedData?.type, [undefined, () => Utils.cond([isAzureWorkspace && !wdsReady, () => div({ style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' } },
 
           [icon('loadingSpinner'),
             ' Preparing your data tables, this may take a few minutes. ',
