@@ -60,7 +60,7 @@ export const runtimeConfigBaseCost = (config: GoogleRuntimeConfig): number => {
   const computeRegion = getNormalizedComputeRegion(config)
 
   const costForDataproc: number = isDataprocConfig(config) ?
-    config.masterDiskSize + config.numberOfWorkers *
+    (config.masterDiskSize + config.numberOfWorkers) *
       getDefaultIfUndefined(config.workerDiskSize, defaultDataprocWorkerDiskSize) *
     getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard) +
     dataprocCost(config.masterMachineType, 1) + dataprocCost(config.workerMachineType, config.numberOfWorkers) :
