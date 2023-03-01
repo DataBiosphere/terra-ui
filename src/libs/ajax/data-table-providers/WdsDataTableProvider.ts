@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { notifyDataImportProgress } from 'src/components/data/data-utils'
 import { Ajax } from 'src/libs/ajax'
 import {
   AttributeArray,
@@ -280,6 +281,10 @@ export class WdsDataTableProvider implements DataTableProvider {
 
   uploadTsv = (uploadParams: UploadParameters): Promise<TsvUploadResponse> => {
     if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded')
+    const filesize = uploadParams.file?.size || Number.MAX_SAFE_INTEGER
+    if (filesize > 262144) { // 256k
+      notifyDataImportProgress(uploadParams.recordType, 'Your data will show up under Tables once import is complete.')
+    }
     return Ajax().WorkspaceData.uploadTsv(this.proxyUrl, uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
   }
 }

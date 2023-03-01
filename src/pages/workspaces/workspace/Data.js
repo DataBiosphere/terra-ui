@@ -841,6 +841,7 @@ const WorkspaceData = _.flow(
               workspaceId,
               mrgId: workspace.azureContext.managedResourceGroupId
             }),
+            isAzureWorkspace && uploadingWDSFile && h(DataImportPlaceholder),
             isAzureWorkspace && h(DataTypeSection, {
               title: 'Tables'
             }, [
@@ -1031,10 +1032,7 @@ const WorkspaceData = _.flow(
               },
               namespace, name,
               workspaceId, entityTypes: wdsTypes.state.map(item => item['name']), dataProvider: wdsDataTableProvider,
-              isGoogleWorkspace,
-              onUpload: newRecordType => {
-                setWdsTypes({ state: _.concat(wdsTypes.state, newRecordType), status: 'Ready' })
-              }
+              isGoogleWorkspace
             }),
             isGoogleWorkspace && h(DataTypeSection, {
               title: 'Other Data'
