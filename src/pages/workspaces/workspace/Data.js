@@ -389,10 +389,10 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
       ])
     }, [
       h(Clickable, {
-        disabled: loading || rowCount === '',
+        disabled: loading,
         tooltip: 'Table menu',
         useTooltipAsLabel: true
-      }, [icon(loading || rowCount === '' ? 'loadingSpinner' : 'cardMenuIcon')])
+      }, [icon(loading ? 'loadingSpinner' : 'cardMenuIcon')])
     ]),
     exporting && h(ExportDataModal, {
       onDismiss: () => {
