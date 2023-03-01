@@ -11,14 +11,14 @@ import {
   defaultGoogleWorkspace
 } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import {
-  AbsolutePath, getExtension
-} from 'src/pages/workspaces/workspace/analysis/file-utils'
-import {
   AnalysisDuplicator,
   AnalysisDuplicatorProps
 } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
-import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { AnalysisFile, getFileFromPath, useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
+import {
+  AbsolutePath, getExtension
+} from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
+import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
 

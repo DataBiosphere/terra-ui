@@ -1,4 +1,4 @@
-import { allAppTypes, appTools, isAppToolLabel, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { allAppTypes, appTools, isAppToolLabel, toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 describe('getAllAppTypes and isToolAnApp', () => {

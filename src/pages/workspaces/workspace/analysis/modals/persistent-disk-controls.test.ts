@@ -4,15 +4,15 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import {
+  PersistentDiskSection,
+  PersistentDiskType,
+} from 'src/pages/workspaces/workspace/analysis/modals/persistent-disk-controls'
+import {
   defaultDataprocMasterDiskSize,
   defaultDataprocWorkerDiskSize,
   defaultGcePersistentDiskSize,
   defaultPersistentDiskType,
-} from 'src/pages/workspaces/workspace/analysis/disk-utils'
-import {
-  PersistentDiskSection,
-  PersistentDiskType,
-} from 'src/pages/workspaces/workspace/analysis/modals/persistent-disk-controls'
+} from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
 import {
   defaultAutopauseThreshold,
   defaultComputeRegion,
@@ -23,8 +23,8 @@ import {
   defaultNumDataprocWorkers,
   defaultNumGpus,
   getDefaultMachineType,
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 const defaultIComputeConfig = {

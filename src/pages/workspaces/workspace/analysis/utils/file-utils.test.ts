@@ -7,12 +7,12 @@ import { reportError } from 'src/libs/error'
 import { workspaceStore } from 'src/libs/state'
 import { ReadyState } from 'src/libs/type-utils/LoadedState'
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
+import { AnalysisFile, getFileFromPath, useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 import {
   AbsolutePath,
   getExtension, getFileName
-} from 'src/pages/workspaces/workspace/analysis/file-utils'
-import { getToolLabelFromFileExtension, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
-import { AnalysisFile, getFileFromPath, useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
+} from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
+import { getToolLabelFromFileExtension, toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
 

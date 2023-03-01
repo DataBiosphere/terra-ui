@@ -16,7 +16,7 @@ import {
   getCurrentAttachedDataDisk,
   getCurrentPersistentDisk,
   pdTypes
-} from 'src/pages/workspaces/workspace/analysis/disk-utils'
+} from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
 import {
   defaultComputeRegion,
   defaultGceMachineType,
@@ -24,8 +24,8 @@ import {
   getComputeStatusForDisplay, getNormalizedComputeRegion,
   getRuntimeForTool,
   isAzureContext,
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { appTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { appTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 // GOOGLE COST METHODS begin
 

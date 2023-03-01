@@ -6,19 +6,19 @@ import { getConfig } from 'src/libs/config'
 import { getUser, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { cloudProviderTypes } from 'src/libs/workspace-utils'
+import { AnalysisFile, AnalysisFileMetadata } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 import {
   AbsolutePath,
   getDisplayName,
   getExtension,
   getFileName
-} from 'src/pages/workspaces/workspace/analysis/file-utils'
+} from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
 import {
   getToolLabelFromFileExtension,
   runtimeTools,
   ToolLabel,
   toolLabels
-} from 'src/pages/workspaces/workspace/analysis/tool-utils'
-import { AnalysisFile, AnalysisFileMetadata } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
+} from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 /*
  * Detects errors due to requester pays buckets, and adds the current workspace's billing

@@ -16,8 +16,8 @@ import {
   getDisplayName,
   getExtension,
   getFileName
-} from 'src/pages/workspaces/workspace/analysis/file-utils'
-import { getToolLabelFromFileExtension, ToolLabel } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+} from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
+import { getToolLabelFromFileExtension, ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 export interface AnalysisFileMetadata {

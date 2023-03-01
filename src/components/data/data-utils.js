@@ -33,7 +33,7 @@ import { requesterPaysProjectStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
-import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import validate from 'validate.js'
 
 
