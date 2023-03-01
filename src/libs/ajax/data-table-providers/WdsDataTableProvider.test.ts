@@ -1,8 +1,10 @@
 import { Ajax } from 'src/libs/ajax'
 import { Apps } from 'src/libs/ajax/leonardo/Apps'
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService'
+import { cloudProviderTypes } from 'src/libs/workspace-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
+import { ListAppResponse } from '../leonardo/models/app-models'
 import {
   EntityMetadata,
   EntityQueryOptions,
@@ -47,8 +49,24 @@ class TestableWdsProvider extends WdsDataTableProvider {
 const recordType: string = 'item'
 
 const testProxyUrl: string = 'https://lzsomeTestUrl.servicebus.windows.net/super-cool-proxy-url/wds'
-const testProxyUrlResponse: Array<Object> = [
-  { appType: 'CROMWELL', appName: `wds-${uuid}`, status: 'RUNNING', proxyUrls: { wds: testProxyUrl }, workspaceId: uuid }
+const testProxyUrlResponse: ListAppResponse[] = [
+  {
+    cloudContext: {
+      cloudProvider: cloudProviderTypes.GCP,
+      cloudResource: 'terra-test-e4000484'
+    },
+    appType: 'CROMWELL',
+    auditInfo: {
+      creator: 'cahrens@gmail.com', createdDate: '2021-12-10T20:19:13.162484Z', dateAccessed: '2021-12-11T20:19:13.162484Z'
+    },
+    kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+    errors: [],
+    appName: `wds-${uuid}`,
+    status: 'RUNNING',
+    labels: { saturnWorkspaceName: 'test-workspace' },
+    proxyUrls: { wds: testProxyUrl },
+    workspaceId: uuid
+  }
 ]
 
 const queryOptions: EntityQueryOptions = {
@@ -151,12 +169,12 @@ describe('WdsDataTableProvider', () => {
     return Promise.resolve({ message: 'Upload Succeeded', recordsModified: 1 })
   }
 
-  const listAppsV2MockImpl: AppsContract['listAppsV2'] = (_workspaceId: string) => {
+  const listAppsV2MockImpl = (_workspaceId: string): Promise<ListAppResponse[]> => {
     return Promise.resolve(testProxyUrlResponse)
   }
 
   const createAppV2MockImpl: AppsContract['createAppV2'] = (_workspaceId: string) => {
-    return Promise.resolve('')
+    return Promise.resolve()
   }
 
   let getRecords: jest.MockedFunction<WorkspaceDataContract['getRecords']>

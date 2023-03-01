@@ -12,6 +12,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { useWorkspaces } from 'src/components/workspace-utils'
 import { useReplaceableAjaxExperimental } from 'src/libs/ajax'
+import { isApp } from 'src/libs/ajax/leonardo/models/app-models'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -22,7 +23,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
-import { getDiskAppType, isApp } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
+import { getDiskAppType } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
 import {
   getAppCost, getGalaxyComputeCost, getPersistentDiskCostMonthly, getRuntimeCost
 } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
@@ -137,7 +138,7 @@ const DeleteAppModal = ({ app: { appName, diskName, appType, cloudContext: { clo
         p([
           'Deleting this cloud environment will also ', span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk.'])
         ]),
-      appType === appTools.Galaxy.appType && h(SaveFilesHelpGalaxy)
+      appType === appTools.GALAXY.label && h(SaveFilesHelpGalaxy)
     ]),
     deleting && spinnerOverlay
   ])
@@ -457,7 +458,7 @@ export const Environments = ({ nav = undefined }) => {
   const renderDeleteDiskModal = disk => {
     return h(DeleteDiskModal, {
       disk,
-      isGalaxyDisk: getDiskAppType(disk) === appTools.Galaxy.appType,
+      isGalaxyDisk: getDiskAppType(disk) === appTools.GALAXY.label,
       onDismiss: () => setDeleteDiskId(undefined),
       onSuccess: () => {
         setDeleteDiskId(undefined)

@@ -1,11 +1,7 @@
-import {
-  AuditInfo,
-  CloudContext,
-  LeoError,
-  LeoResourceLabels
-} from 'src/libs/ajax/leonardo/models/core-models'
+import { AuditInfo, CloudContext, LeoError, LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models'
 import { DiskConfig } from 'src/libs/ajax/leonardo/models/disk-models'
 import { RuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models'
+import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 export type LeoRuntimeStatus = 'Running'
@@ -48,6 +44,14 @@ export const runtimeStatuses: { [label: string]: RuntimeStatus } = {
   error: { label: 'Error', leoLabel: 'Error', canChangeCompute: true }
 }
 
+export interface RuntimeLabels extends LeoResourceLabels {
+  tool: ToolLabel
+}
+
+export interface RuntimeError extends LeoError {
+  errorCode: number
+}
+
 export interface ListRuntimeItem {
   id: number
   workspaceId?: string
@@ -58,7 +62,7 @@ export interface ListRuntimeItem {
   runtimeConfig: RuntimeConfig
   proxyUrl: string
   status: LeoRuntimeStatus
-  labels: LeoResourceLabels
+  labels: RuntimeLabels
   patchInProgress: boolean
 }
 
@@ -93,12 +97,12 @@ export interface GetRuntimeItem {
   runtimeConfig: RuntimeConfig
   proxyUrl: string
   status: LeoRuntimeStatus
-  labels: LeoResourceLabels
+  labels: RuntimeLabels
   userScriptUri?: string
   startUserScriptUri?: string
   jupyterUserScriptUri?: string
   jupyterStartUserScriptUri?: string
-  errors: LeoError[]
+  errors: RuntimeError[]
   userJupyterExtensionConfig?: UserJupyterExtensionConfig
   autopauseThreshold: number
   defaultClientId?: string
@@ -112,5 +116,5 @@ export interface GetRuntimeItem {
 export type Runtime = GetRuntimeItem | ListRuntimeItem
 export const isRuntime = (obj: any): obj is Runtime => {
   const castRuntime = obj as Runtime
-  return castRuntime.runtimeConfig !== undefined && castRuntime.runtimeName !== undefined && castRuntime.cloudContext !== undefined
+  return castRuntime && castRuntime.runtimeConfig !== undefined && castRuntime.runtimeName !== undefined && castRuntime.cloudContext !== undefined
 }

@@ -59,7 +59,7 @@ export const workspaceHasMultipleDisks = (disks, diskAppType) => {
  */
 export const getCurrentAppDataDisk = (appType, apps, appDataDisks, workspaceName) => {
   // a user's PD can either be attached to their current app, detaching from a deleting app or unattached
-  const currentApp = getCurrentAppIncludingDeleting(appType)(apps)
+  const currentApp = getCurrentAppIncludingDeleting(appType, apps)
   const currentDiskName = currentApp?.diskName
   const attachedDiskNames = _.without([undefined], _.map(app => app.diskName, apps))
   // If the disk is attached to an app (or being detached from a deleting app), return that disk. Otherwise,
@@ -93,6 +93,6 @@ export const getCurrentPersistentDisk = (runtimes, persistentDisks) => {
     _.last(_.sortBy('auditInfo.createdDate', _.filter(({ id, status }) => status !== 'Deleting' && !_.includes(id, attachedIds), persistentDisks)))
 }
 export const isCurrentGalaxyDiskDetaching = apps => {
-  const currentGalaxyApp = getCurrentAppIncludingDeleting(appTools.Galaxy.appType)(apps)
+  const currentGalaxyApp = getCurrentAppIncludingDeleting(appTools.GALAXY.label, apps)
   return currentGalaxyApp && _.includes(currentGalaxyApp.status, ['DELETING', 'PREDELETING'])
 }

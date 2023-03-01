@@ -18,7 +18,7 @@ import { AnalysisFile, getFileFromPath, useAnalysisFiles } from 'src/pages/works
 import {
   AbsolutePath, getExtension
 } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
-import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
 
@@ -63,7 +63,7 @@ const defaultModalProps: AnalysisDuplicatorProps = {
   destroyOld: false,
   fromLauncher: false,
   printName: baseTestFile.fileName,
-  toolLabel: toolLabels.Jupyter,
+  toolLabel: runtimeToolLabels.Jupyter,
   workspaceInfo: defaultGoogleWorkspace.workspace,
   onDismiss, onSuccess
 }

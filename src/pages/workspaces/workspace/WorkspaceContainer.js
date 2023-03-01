@@ -297,7 +297,7 @@ const useAppPolling = workspace => {
       setApps(combinedNewApps)
       _.forOwn(tool => {
         if (tool.appType) {
-          const app = getCurrentApp(tool.appType)(combinedNewApps)
+          const app = getCurrentApp(tool.appType, combinedNewApps)
           reschedule(maybeStale || (app && _.includes(app.status, ['PROVISIONING', 'PREDELETING'])) ? 10000 : 120000)
         }
       })(tools)

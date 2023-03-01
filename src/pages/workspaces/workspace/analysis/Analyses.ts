@@ -56,9 +56,9 @@ import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/utils
 import {
   getToolLabelFromFileExtension,
   getToolLabelFromRuntime,
+  runtimeToolLabels,
   runtimeTools,
   ToolLabel,
-  toolLabels,
   tools
 } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace'
@@ -133,13 +133,13 @@ const AnalysisCard = ({
         tooltip: canWrite && 'Open without cloud compute',
         tooltipSide: 'left'
       }, [makeMenuIcon('eye'), 'Open preview']),
-      ...(toolLabel === toolLabels.Jupyter ? [
+      ...(toolLabel === runtimeToolLabels.Jupyter ? [
         h(MenuButton, {
           'aria-label': 'Edit',
           href: analysisEditLink,
-          disabled: isLocked || !canWrite || currentRuntimeToolLabel === toolLabels.RStudio,
+          disabled: isLocked || !canWrite || currentRuntimeToolLabel === runtimeToolLabels.RStudio,
           tooltip: Utils.cond([!canWrite, () => noWrite],
-            [currentRuntimeToolLabel === toolLabels.RStudio, () => 'You must have a runtime with Jupyter to edit.']),
+            [currentRuntimeToolLabel === runtimeToolLabels.RStudio, () => 'You must have a runtime with Jupyter to edit.']),
           tooltipSide: 'left'
         }, isLocked ? [makeMenuIcon('lock'), 'Open (In Use)'] : [makeMenuIcon('edit'), 'Edit']),
         h(MenuButton, {
@@ -152,9 +152,9 @@ const AnalysisCard = ({
         h(MenuButton, {
           'aria-label': 'Launch',
           href: rstudioLaunchLink,
-          disabled: !canWrite || currentRuntimeToolLabel === toolLabels.Jupyter,
+          disabled: !canWrite || currentRuntimeToolLabel === runtimeToolLabels.Jupyter,
           tooltip: Utils.cond([!canWrite, () => noWrite],
-            [currentRuntimeToolLabel === toolLabels.RStudio, () => 'You must have a runtime with RStudio to launch.']),
+            [currentRuntimeToolLabel === runtimeToolLabels.RStudio, () => 'You must have a runtime with RStudio to launch.']),
           tooltipSide: 'left'
         }, [makeMenuIcon('rocket'), 'Open'])
       ]),
@@ -216,9 +216,9 @@ const AnalysisCard = ({
   ])
 
   const toolIconSrc: string = Utils.switchCase(application,
-    [toolLabels.Jupyter, () => jupyterLogo],
-    [toolLabels.RStudio, () => rstudioSquareLogo],
-    [toolLabels.JupyterLab, () => jupyterLogo]
+    [runtimeToolLabels.Jupyter, () => jupyterLogo],
+    [runtimeToolLabels.RStudio, () => rstudioSquareLogo],
+    [runtimeToolLabels.JupyterLab, () => jupyterLogo]
   )
 
   const toolContainer = div({ role: 'cell', style: { display: 'flex', flex: 1, flexDirection: 'row', alignItems: 'center' } }, [

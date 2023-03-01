@@ -3,7 +3,7 @@ import { azureDisk, azureRuntime, galaxyDisk, galaxyRunning, getDisk, getGoogleR
 import { getCostDisplayForDisk, getCostDisplayForTool, getPersistentDiskCostMonthly, getRuntimeCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import { pdTypes } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
-import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { appToolLabels, runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 const defaultSparkSingleNode = {
@@ -42,7 +42,7 @@ describe('getCostDisplayForDisk', () => {
     const currentRuntimeTool = undefined
     const persistentDisks = []
     const runtimes = []
-    const toolLabel = toolLabels.Galaxy
+    const toolLabel = appToolLabels.GALAXY
     const expectedResult = 'Disk $0.04/hr'
 
     // Act
@@ -61,10 +61,10 @@ describe('getCostDisplayForDisk', () => {
     const app = undefined
     const appDataDisks = []
     const computeRegion = 'US-CENTRAL1'
-    const currentRuntimeTool = toolLabels.Jupyter
+    const currentRuntimeTool = runtimeToolLabels.Jupyter
     const persistentDisks = [jupyterDisk]
     const runtimes = [jupyterRuntime]
-    const toolLabel = toolLabels.Jupyter
+    const toolLabel = runtimeToolLabels.Jupyter
     const expectedResult = 'Disk < $0.01/hr'
 
     // Act
@@ -97,10 +97,10 @@ describe('getCostDisplayForDisk', () => {
     const app = undefined
     const appDataDisks = []
     const computeRegion = 'US-CENTRAL1'
-    const currentRuntimeTool = toolLabels.Jupyter
+    const currentRuntimeTool = runtimeToolLabels.Jupyter
     const persistentDisks = []
     const runtimes = []
-    const toolLabel = toolLabels.RStudio
+    const toolLabel = runtimeToolLabels.RStudio
     const expectedResult = ''
 
     // Act
@@ -119,10 +119,10 @@ describe('getCostDisplayForDisk', () => {
     const app = undefined
     const appDataDisks = []
     const computeRegion = 'US-CENTRAL1'
-    const currentRuntimeTool = toolLabels.Jupyter
+    const currentRuntimeTool = runtimeToolLabels.Jupyter
     const persistentDisks = [{ ...jupyterDisk, status: 'Deleting' }]
     const runtimes = [jupyterRuntime]
-    const toolLabel = toolLabels.Jupyter
+    const toolLabel = runtimeToolLabels.Jupyter
     const expectedResult = ''
 
     // Act
@@ -138,10 +138,10 @@ describe('getCostDisplayForDisk', () => {
     const app = undefined
     const appDataDisks = []
     const computeRegion = 'eastus'
-    const currentRuntimeTool = toolLabels.JupyterLab
+    const currentRuntimeTool = runtimeToolLabels.JupyterLab
     const persistentDisks = [azureDisk]
     const runtimes = [azureRuntime]
-    const toolLabel = toolLabels.Jupyter
+    const toolLabel = runtimeToolLabels.Jupyter
     const expectedResult = 'Disk < $0.01/hr'
 
     // Act
@@ -162,7 +162,7 @@ describe('GCP getCostDisplayForTool', () => {
     const app = galaxyRunning
     const currentRuntime = undefined
     const currentRuntimeTool = undefined
-    const toolLabel = toolLabels.Galaxy
+    const toolLabel = appToolLabels.GALAXY
 
     // Act
     const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
@@ -178,8 +178,8 @@ describe('GCP getCostDisplayForTool', () => {
     const currentRuntime = getGoogleRuntime({
       runtimeConfig: getJupyterRuntimeConfig()
     })
-    const currentRuntimeTool = toolLabels.Jupyter
-    const toolLabel = toolLabels.Jupyter
+    const currentRuntimeTool = runtimeToolLabels.Jupyter
+    const toolLabel = runtimeToolLabels.Jupyter
 
     // Act
     const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
@@ -196,8 +196,8 @@ describe('GCP getCostDisplayForTool', () => {
       runtimeConfig: getJupyterRuntimeConfig()
     })
     const currentRuntime = { ...jupyterRuntime, status: 'Stopped' }
-    const currentRuntimeTool = toolLabels.Jupyter
-    const toolLabel = toolLabels.Jupyter
+    const currentRuntimeTool = runtimeToolLabels.Jupyter
+    const toolLabel = runtimeToolLabels.Jupyter
 
     // Act
     const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
@@ -213,8 +213,8 @@ describe('GCP getCostDisplayForTool', () => {
     const currentRuntime = getGoogleRuntime({
       runtimeConfig: getJupyterRuntimeConfig()
     })
-    const currentRuntimeTool = toolLabels.RStudio
-    const toolLabel = toolLabels.Jupyter
+    const currentRuntimeTool = runtimeToolLabels.RStudio
+    const toolLabel = runtimeToolLabels.Jupyter
 
     // Act
     const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
@@ -256,8 +256,8 @@ describe('getCostDisplayForTool', () => {
     // Arrange
     const app = undefined
     const currentRuntime = azureRuntime
-    const currentRuntimeTool = toolLabels.JupyterLab
-    const toolLabel = toolLabels.JupyterLab
+    const currentRuntimeTool = runtimeToolLabels.JupyterLab
+    const toolLabel = runtimeToolLabels.JupyterLab
 
     // Act
     const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
@@ -270,8 +270,8 @@ describe('getCostDisplayForTool', () => {
     // Arrange
     const app = undefined
     const currentRuntime = undefined
-    const currentRuntimeTool = toolLabels.JupyterLab
-    const toolLabel = toolLabels.JupyterLab
+    const currentRuntimeTool = runtimeToolLabels.JupyterLab
+    const toolLabel = runtimeToolLabels.JupyterLab
 
     // Act
     const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)

@@ -10,7 +10,7 @@ import {
   getDisplayName,
   getExtension, getFileName
 } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
-import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 type SasInfo = {
@@ -106,7 +106,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
       ext: getExtension(notebook.name),
       displayName: getDisplayName(notebook.name),
       fileName: getFileName(notebook.name),
-      tool: toolLabels.Jupyter,
+      tool: runtimeToolLabels.Jupyter,
       cloudProvider: cloudProviderTypes.AZURE
     }), notebooks)
   },
