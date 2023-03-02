@@ -20,8 +20,8 @@ import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/utils/r
 
 export interface StorageDetails {
   googleBucketLocation: string // historically returns defaultLocation if bucket location cannot be retrieved or Azure
-  fetchedGoogleBucketLocation: 'SUCCESS' | 'ERROR' | undefined // undefined: still fetching
   googleBucketType: string // historically returns locationTypes.default if bucket type cannot be retrieved or Azure
+  fetchedGoogleBucketLocation: 'SUCCESS' | 'ERROR' | undefined // undefined: still fetching
   azureContainerRegion?: string
   azureContainerUrl?: string
   azureContainerSasUrl?: string
@@ -49,8 +49,7 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
   const [{ location, locationType, fetchedLocation }, setGoogleStorage] =
     useState<{ fetchedLocation: 'SUCCESS' | 'ERROR' | undefined; location: string; locationType: string }>({
       fetchedLocation: undefined, location: defaultLocation, locationType: locationTypes.default // These default types are historical
-    }
-    )
+    })
   const [azureStorage, setAzureStorage] = useState<{ location: string; storageContainerUrl: string | undefined; sasUrl: string }>()
   const workspaceInitialized = workspace?.workspaceInitialized // will be stored in cached workspace
 
@@ -77,7 +76,7 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
     try {
       // Because checkBucketReadAccess can succeed and subsequent calls to get the bucket location or storage
       // cost estimate may fail (due to caching of previous failure results), do not consider permissions
-      // to be done sync'ing until all the methods that we know will be called quickly in succession succeed.
+      // to be done syncing until all the methods that we know will be called quickly in succession succeed.
       // This is not guaranteed to eliminate the issue, but it improves the odds.
       await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketReadAccess()
       if (Utils.canWrite(workspace.accessLevel)) {

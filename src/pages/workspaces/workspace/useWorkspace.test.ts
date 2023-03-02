@@ -356,13 +356,13 @@ describe('useActiveWorkspace', () => {
 
   it('can read workspace details from server for read-only workspace, and poll Google until permissions are synced', async () => {
     // Arrange
-    // remove workspaceInitialized because the server response does not include this information
     const readOnlyWorkspace = _.clone(initializedGoogleWorkspace)
     readOnlyWorkspace.accessLevel = 'READER'
+    // remove workspaceInitialized because the server response does not include this information
     const { workspaceInitialized, ...serverWorkspaceResponse } = readOnlyWorkspace
 
-    // checkBucketAccess and checkBucketLocation succeed, calls that should only be executed if
-    // user has writer permission throw errors.
+    // checkBucketAccess and checkBucketLocation succeed, but calls that should only be executed if
+    // user has writer permission throw errors (to verify that they aren't called).
     const successMockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
         workspace: () => ({
