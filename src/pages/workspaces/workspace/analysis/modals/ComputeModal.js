@@ -527,7 +527,6 @@ export const ComputeModalBase = ({
   const getPendingRuntimeConfig = () => {
     const { runtime: desiredRuntime, autopauseThreshold: desiredAutopauseThreshold } = getDesiredEnvironmentConfig()
     const toolLabel = getToolLabelFromRuntime(desiredRuntime)
-
     return {
       cloudService: desiredRuntime.cloudService,
       autopauseThreshold: desiredAutopauseThreshold,
@@ -544,11 +543,9 @@ export const ComputeModalBase = ({
         masterDiskSize: desiredRuntime.masterDiskSize,
         numberOfWorkers: desiredRuntime.numberOfWorkers,
         componentGatewayEnabled: computeConfig.componentGatewayEnabled,
-        ...(desiredRuntime.numberOfWorkers && {
-          numberOfPreemptibleWorkers: desiredRuntime.numberOfPreemptibleWorkers,
-          workerMachineType: desiredRuntime.workerMachineType,
-          workerDiskSize: desiredRuntime.workerDiskSize
-        })
+        numberOfPreemptibleWorkers: desiredRuntime.numberOfPreemptibleWorkers || 0,
+        workerMachineType: desiredRuntime.workerMachineType,
+        workerDiskSize: desiredRuntime.workerDiskSize || 0
       })
     }
   }

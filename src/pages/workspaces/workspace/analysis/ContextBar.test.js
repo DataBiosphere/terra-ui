@@ -623,9 +623,9 @@ describe('ContextBar - actions', () => {
     })
     )
 
-    global.window = Object.create(window)
+    const myWindow = Object.create(window)
     const url = 'http://dummy.com'
-    Object.defineProperty(window, 'location', {
+    Object.defineProperty(myWindow, 'location', {
       value: {
         href: url
       },
@@ -674,9 +674,9 @@ describe('ContextBar - actions', () => {
     })
     )
 
-    global.window = Object.create(window)
+    const myWindow = Object.create(window)
     const url = 'http://dummy.com'
-    Object.defineProperty(window, 'location', {
+    Object.defineProperty(myWindow, 'location', {
       value: {
         href: url
       },

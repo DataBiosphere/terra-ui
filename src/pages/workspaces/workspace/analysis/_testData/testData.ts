@@ -33,6 +33,7 @@ export const defaultImage = {
   updated: '2022-08-09',
   version: '2.2.8'
 }
+
 export const defaultRImage = {
   id: 'RStudio',
   image: 'us.gcr.io/broad-dsp-gcr-public/anvil-rstudio-bioconductor:3.15.2',
@@ -53,6 +54,7 @@ export const hailImage = {
   updated: '2022-08-25',
   version: '1.0.20'
 }
+
 export const imageDocs = [
   defaultImage,
   {

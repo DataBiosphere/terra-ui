@@ -32,13 +32,14 @@ export interface GceWithPdConfig extends BaseRuntimeConfig {
 
 export interface DataprocConfig extends BaseRuntimeConfig {
   numberOfWorkers: number
+  autopauseThreshold: number //TODO: Add to base config
   masterMachineType: string
   masterDiskSize: number
   workerMachineType?: string
   workerDiskSize?: number
   numberOfWorkerLocalSSDs?: number
   numberOfPreemptibleWorkers?: number
-  properties: Record<string, string>
+  // properties: Record<string, string> TODO: Where is this used?
   region: string
   componentGatewayEnabled: boolean
   workerPrivateAccess: boolean
