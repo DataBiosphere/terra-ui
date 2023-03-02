@@ -23,7 +23,7 @@ import { getUser } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
-window.ajaxOverrideUtils = {
+(window as any).ajaxOverrideUtils = {
   mapJsonBody: _.curry((fn, wrappedFetch) => async (...args) => {
     const res = await wrappedFetch(...args)
     return new Response(JSON.stringify(fn(await res.json())), res)
@@ -107,7 +107,7 @@ const User = signal => ({
         _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody('app.terra.bio/#terms-of-service')])
       )
       return response.json()
-    } catch (error) {
+    } catch (error: any) {
       if (error.status !== 404) {
         throw error
       }
@@ -118,7 +118,7 @@ const User = signal => ({
     try {
       const res = await(fetchSam('register/user/v2/self/termsOfServiceDetails', _.merge(authOpts(), { signal })))
       return res.json()
-    } catch (error) {
+    } catch (error: any) {
       if (error.status === 404 || error.status === 403) {
         return null
       } else {
@@ -192,7 +192,7 @@ const User = signal => ({
     try {
       const res = await fetchOrchestration('api/nih/status', _.merge(authOpts(), { signal }))
       return res.json()
-    } catch (error) {
+    } catch (error: any) {
       if (error.status === 404) {
         return {}
       } else {
@@ -214,7 +214,7 @@ const User = signal => ({
     try {
       const res = await fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal }))
       return res.json()
-    } catch (error) {
+    } catch (error: any) {
       if (error.status === 404) {
         return {}
       } else {
@@ -259,7 +259,7 @@ const User = signal => ({
         try {
           const res = await fetchEcm(root, _.merge(authOpts(), { signal }))
           return res.json()
-        } catch (error) {
+        } catch (error: any) {
           if (error.status === 404) {
             return null
           } else {
@@ -292,7 +292,7 @@ const User = signal => ({
   isUserRegistered: async email => {
     try {
       await fetchSam(`api/users/v1/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'GET' }))
-    } catch (error) {
+    } catch (error: any) {
       if (error.status === 404) {
         return false
       } else {
@@ -436,7 +436,7 @@ const Workspaces = signal => ({
   },
 
   getTags: async (tag, limit) => {
-    const params = { q: tag }
+    const params: any = { q: tag }
     if (limit) {
       params.limit = limit
     }
@@ -922,7 +922,7 @@ const Methods = signal => ({
         return res.json()
       },
 
-      toWorkspace: async (workspace, config = {}) => {
+      toWorkspace: async (workspace, config: any = {}) => {
         const res = await fetchRawls(`workspaces/${workspace.namespace}/${workspace.name}/methodconfigs`,
           _.mergeAll([authOpts(), jsonBody(_.merge({
             methodRepoMethod: {
@@ -1013,7 +1013,7 @@ const Surveys = signal => ({
   submitForm: (formId, data) => fetchGoogleForms(`${formId}/formResponse?${qs.stringify(data)}`, { signal })
 })
 
-export const Ajax = signal => {
+export const Ajax = (signal?: AbortSignal) => {
   return {
     User: User(signal),
     Groups: Groups(signal),
@@ -1042,8 +1042,10 @@ export const Ajax = signal => {
   }
 }
 
+export type AjaxContract = ReturnType<typeof Ajax>
+
 // Exposing Ajax for use by integration tests (and debugging, or whatever)
-window.Ajax = Ajax
+(window as any).Ajax = Ajax
 
 // Experimental: Pulling Ajax from context allows replacing for usage outside of Terra UI.
 // https://github.com/DataBiosphere/terra-ui/pull/3669

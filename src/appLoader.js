@@ -10,6 +10,10 @@ import { startPollingServiceAlerts } from 'src/libs/service-alerts-polling'
 import { initializeTCell } from 'src/libs/tcell'
 import Main from 'src/pages/Main'
 
+import { initAppDependencies } from './appDependencies'
+
+
+initAppDependencies()
 
 const appRoot = document.getElementById('root')
 

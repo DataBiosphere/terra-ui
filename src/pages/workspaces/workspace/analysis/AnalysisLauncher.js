@@ -11,6 +11,7 @@ import { MenuButton } from 'src/components/MenuButton'
 import Modal from 'src/components/Modal'
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/gce-machines'
+import { analysisComponentDependencies } from 'src/dependencies/analysis/analysis-component-resolver'
 import { Ajax } from 'src/libs/ajax'
 import { Metrics } from 'src/libs/ajax/Metrics'
 import colors from 'src/libs/colors'
@@ -26,7 +27,6 @@ import { cloudProviderTypes } from 'src/libs/workspace-utils'
 import { findPotentialNotebookLockers, getExtension, getFileName, notebookLockHash } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
 import { ComputeModal } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
-import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
 import {
   analysisLauncherTabName, analysisTabName, appLauncherTabName, ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor,
   StatusMessage
@@ -249,6 +249,8 @@ const PreviewHeader = ({
   queryParams, runtime, readOnlyAccess, onCreateRuntime, analysisName, currentFileToolLabel, workspace, setCreateOpen, refreshRuntimes,
   workspace: { canShare, workspace: { cloudPlatform, namespace, name, bucketName, googleProject, workspaceId } }
 }) => {
+  const { ExportAnalysisModal } = analysisComponentDependencies.get()
+
   const signal = useCancellation()
   const { user: { email } } = useStore(authStore)
   const [fileInUseOpen, setFileInUseOpen] = useState(false)
@@ -445,7 +447,8 @@ const PreviewHeader = ({
     }),
     exportingAnalysis && h(ExportAnalysisModal, {
       printName: getFileName(analysisName),
-      toolLabel: getToolLabelFromFileExtension(analysisName), workspace,
+      toolLabel: getToolLabelFromFileExtension(analysisName),
+      workspace,
       fromLauncher: true,
       onDismiss: () => setExportingAnalysis(false)
     }),

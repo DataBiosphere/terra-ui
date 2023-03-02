@@ -16,6 +16,7 @@ import { PageBox } from 'src/components/PageBox'
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger'
 import { ariaSort, HeaderRenderer } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import { analysisComponentDependencies } from 'src/dependencies/analysis/analysis-component-resolver'
 import galaxyLogo from 'src/images/galaxy-logo.svg'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
 import rstudioBioLogo from 'src/images/r-bio-logo.svg'
@@ -37,7 +38,6 @@ import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { findPotentialNotebookLockers, getExtension, getFileName, notebookLockHash } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
 import { AnalysisModal } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisModal'
-import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
 import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { getToolLabelFromFileExtension, getToolLabelFromRuntime, runtimeTools, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
@@ -247,6 +247,8 @@ const Analyses = _.flow(
   storageDetails: { googleBucketLocation, azureContainerRegion },
   onRequesterPaysError
 }, _ref) => {
+  const { ExportAnalysisModal } = analysisComponentDependencies.get()
+
   const [renamingAnalysisName, setRenamingAnalysisName] = useState(undefined)
   const [copyingAnalysisName, setCopyingAnalysisName] = useState(undefined)
   const [deletingAnalysisName, setDeletingAnalysisName] = useState(undefined)
