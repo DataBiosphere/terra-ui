@@ -11,6 +11,8 @@ import galaxyLogo from 'src/images/galaxy-logo.svg'
 import jupyterLogoLong from 'src/images/jupyter-logo-long.png'
 import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
+import { AppDataDisk, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models'
+import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -19,17 +21,21 @@ import { usePrevious, withDisplayName } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { BaseWorkspace, cloudProviderTypes, isGoogleWorkspaceInfo } from 'src/libs/workspace-utils'
-import { getFileName, useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/AzureComputeModal'
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal'
 import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
-import { analysisNameInput, analysisNameValidator, baseRmd, notebookData } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { AnalysisFileStore } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
+import { getCurrentApp } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
+import { getCurrentPersistentDisk } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import { getFileName } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
+import { analysisNameInput, analysisNameValidator, baseRmd, notebookData } from 'src/pages/workspaces/workspace/analysis/utils/notebook-utils'
+import { isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/utils/resource-utils'
 import {
-  getCurrentApp, getCurrentPersistentDisk, getCurrentRuntime, isResourceDeletable
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { AppDataDisk, AppTool, cloudAppTools, cloudRuntimeTools, getAppType, getToolLabelFromFileExtension, getToolLabelFromRuntime, isAppToolLabel, PersistentDisk, Runtime, runtimeTools, Tool, toolExtensionDisplay, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+  getCurrentRuntime
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { AppTool, cloudAppTools, cloudRuntimeTools, getAppType, getToolLabelFromFileExtension, getToolLabelFromRuntime, isAppToolLabel, runtimeTools, Tool, toolExtensionDisplay, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import validate from 'validate.js'
 
 
@@ -50,8 +56,7 @@ export interface AnalysisModalProps {
   onSuccess: () => void
   openUploader: () => void
   uploadFiles: () => void
-  //TODO: Temporary until Analyses.js implements useAnalysisFiles
-  refreshAnalyses: () => void
+  analysisFileStore: AnalysisFileStore
 }
 
 export const AnalysisModal = withDisplayName('AnalysisModal')(
@@ -64,7 +69,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     openUploader,
     workspace,
     location,
-    refreshAnalyses
+    analysisFileStore
   }: AnalysisModalProps) => {
     const [viewMode, setViewMode] = useState<any>()
     const cloudPlatform = workspace.workspace.cloudPlatform.toUpperCase()
@@ -81,7 +86,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const currentApp: any = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
 
     //TODO: Bring in as props from Analyses OR bring entire AnalysisFileStore from props.
-    const { loadedState, create, pendingCreate } = useAnalysisFiles()
+    const { loadedState, create, pendingCreate } = analysisFileStore
     //TODO: When the above is done, this check below may not be necessary.
     const analyses = loadedState.status !== 'None' ? loadedState.state : null
     const status = loadedState.status
@@ -102,9 +107,9 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       Utils.switchCase(baseViewMode,
         [analysisMode, () => Utils.cond(
           [doesCloudEnvForToolExist, onSuccess],
-          [!doesCloudEnvForToolExist && !!currentRuntime && isResourceDeletable({ resourceType: 'runtime', resource: currentRuntime }), () => setViewMode(environmentMode)],
+          [!doesCloudEnvForToolExist && !!currentRuntime && isResourceDeletable('runtime', currentRuntime), () => setViewMode(environmentMode)],
           [!doesCloudEnvForToolExist && !currentRuntime, () => setViewMode(environmentMode)],
-          [!doesCloudEnvForToolExist && !!currentRuntime && !isResourceDeletable({ resourceType: 'runtime', resource: currentRuntime }), onSuccess]
+          [!doesCloudEnvForToolExist && !!currentRuntime && !isResourceDeletable('runtime', currentRuntime), onSuccess]
         )],
         [environmentMode, onSuccess],
         [Utils.DEFAULT, () => Utils.cond(
@@ -247,7 +252,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           const toolLabel = isGoogleWorkspaceInfo(workspace.workspace) ? getToolLabelFromFileExtension(files.pop().path) : toolLabels.JupyterLab
           const tool = toolLabel ? tools[toolLabel] : undefined
           setCurrentToolObj(tool)
-          currentRuntime && !isResourceDeletable({ resourceType: 'runtime', resource: currentRuntime }) && currentRuntimeToolLabel !== toolLabel ?
+          currentRuntime && !isResourceDeletable('runtime', currentRuntime) && currentRuntimeToolLabel !== toolLabel ?
             onSuccess() :
             enterNextViewMode(tool, analysisMode)
           uploadFiles()
@@ -339,7 +344,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           })
         ]),
         (isJupyterLab || isRStudio || isJupyter) &&
-        currentRuntime && !isResourceDeletable({ resourceType: 'runtime', resource: currentRuntime }) && currentRuntimeToolLabel !== toolLabel &&
+        currentRuntime && !isResourceDeletable('runtime', currentRuntime) && currentRuntimeToolLabel !== toolLabel &&
         div({ style: { backgroundColor: colors.warning(0.1), margin: '0.5rem', padding: '1rem' } }, [
           h(WarningTitle, { iconSize: 16 }, [span({ style: { fontWeight: 600 } }, ['Environment Creation'])]),
           div({ style: { marginBottom: '0.5rem', marginTop: '1rem' } }, [
@@ -361,8 +366,6 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
                   [isRStudio, () => baseRmd])
                 const fullAnalysisName = `${analysisName}.${fileExt}`
                 await create(fullAnalysisName, toolLabel, contents)
-                //TODO: Temporary, once Analyses.js uses store, refreshAnalyses will be deprecated in favor of refresh() within the create function
-                await refreshAnalyses()
                 await Ajax().Metrics.captureEvent(Events.analysisCreate, { source: toolLabel, application: toolLabel, filename: fullAnalysisName, cloudPlatform })
                 setAnalysisName('')
                 enterNextViewMode(toolLabel)

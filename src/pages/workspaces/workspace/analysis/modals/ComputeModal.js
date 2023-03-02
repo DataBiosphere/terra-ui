@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { b, br, code, div, fieldset, h, label, legend, li, p, span, strong, ul } from 'react-hyperscript-helpers'
+import { b, br, code, div, fieldset, h, label, legend, p, span, strong } from 'react-hyperscript-helpers'
 import { ClipboardButton } from 'src/components/ClipboardButton'
-import { ButtonOutline, ButtonPrimary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay, useUniqueId } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
@@ -22,18 +22,24 @@ import * as Nav from 'src/libs/nav'
 import { useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
-import { computeStyles, RadioBlock, SaveFilesHelp, SaveFilesHelpRStudio } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
+import { RadioBlock, SaveFilesHelp, SaveFilesHelpRStudio } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
+import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import {
-  defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize,
-  defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation,
-  defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, defaultPersistentDiskType, displayNameForGpuType, findMachineType, getAutopauseThreshold,
+  defaultDataprocMasterDiskSize,
+  defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGcePersistentDiskSize, defaultPersistentDiskType, pdTypes
+} from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import {
+  defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultGpuType, defaultLocation,
+  defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getAutopauseThreshold,
   getDefaultMachineType, getIsRuntimeBusy, getValidGpuOptions, getValidGpuTypesForZone,
-  isAutopauseEnabled, pdTypes
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { getToolLabelForImage, getToolLabelFromRuntime, runtimeTools, terraSupportedRuntimeImageIds, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+  isAutopauseEnabled
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { getToolLabelForImage, getToolLabelFromRuntime, runtimeTools, terraSupportedRuntimeImageIds, toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import validate from 'validate.js'
+
+import { computeStyles } from './modalStyles'
+import { PersistentDiskSection } from './persistent-disk-controls.ts'
 
 // Change to true to enable a debugging panel (intended for dev mode only)
 const showDebugPanel = false
@@ -188,7 +194,6 @@ export const ComputeModalBase = ({
   const [viewMode, setViewMode] = useState(undefined)
   const [deleteDiskSelected, setDeleteDiskSelected] = useState(false)
   const [upgradeDiskSelected, setUpgradeDiskSelected] = useState(false)
-  const [simplifiedForm, setSimplifiedForm] = useState(!currentRuntimeDetails)
   const [leoImages, setLeoImages] = useState([])
   const [selectedLeoImage, setSelectedLeoImage] = useState(undefined)
   const [timeoutInMinutes, setTimeoutInMinutes] = useState(null)
@@ -223,7 +228,7 @@ export const ComputeModalBase = ({
     _.filter(({ id }) => terraSupportedRuntimeImageIds.includes(id)),
     _.map(({ image }) => image)
   )(leoImages)
-  const { version, updated, packages, requiresSpark, label: packageLabel } = _.find({ image: selectedLeoImage }, leoImages) || {}
+  const { version, updated, packages, requiresSpark } = _.find({ image: selectedLeoImage }, leoImages) || {}
   // The memory sizes below are the minimum required to launch Terra-supported GCP runtimes, based on experimentation.
   const minRequiredMemory = isDataproc(runtimeType) ? 7.5 : 3.75 // in GB
   const validMachineTypes = _.filter(({ memory }) => memory >= minRequiredMemory, machineTypes)
@@ -638,7 +643,7 @@ export const ComputeModalBase = ({
       ..._.mapKeys(key => `desiredPersistentDisk_${key}`, desiredPersistentDisk),
       desiredPersistentDisk_costPerMonth: (desiredPersistentDisk && getPersistentDiskCostMonthly(getPendingDisk(), computeConfig.computeRegion)),
       ..._.mapKeys(key => `existingPersistentDisk_${key}`, existingPersistentDisk),
-      isDefaultConfig: !!simplifiedForm
+      isDefaultConfig: !currentRuntimeDetails
     })
   }
 
@@ -942,11 +947,25 @@ export const ComputeModalBase = ({
           return h(Fragment, [
             div({ style: { display: 'flex' } }, [
               h(Link, { onClick: () => setViewMode('packages') }, ['What’s installed on this environment?']),
-              makeImageInfo({ marginLeft: 'auto' })
+              makeImageInfo({ marginLeft: 'auto' }),
             ])
           ])
         }]
       ),
+      h(IdContainer, [
+        id => div({ style: { marginTop: '0.5rem' } }, [
+          label({ htmlFor: id, style: computeStyles.label }, ['Startup script',
+            span({ style: { ...computeStyles.value, fontStyle: 'italic' } }, [' Optional'])]),
+          div({ style: { marginTop: '0.5rem' } }, [
+            h(TextInput, {
+              id,
+              placeholder: 'URI',
+              value: jupyterUserScriptUri,
+              onChange: setJupyterUserScriptUri
+            })
+          ])
+        ])
+      ]),
       selectedLeoImage && !supportedImages.includes(selectedLeoImage) ? renderCustomTimeoutInMinutes() : []
     ])
   }
@@ -1078,19 +1097,6 @@ export const ComputeModalBase = ({
         ]),
         div({ style: gridStyle }, [
           h(IdContainer, [
-            id => div({ style: { gridColumnEnd: 'span 6', marginTop: '0.5rem' } }, [
-              label({ htmlFor: id, style: computeStyles.label }, ['Startup script']),
-              div({ style: { marginTop: '0.5rem' } }, [
-                h(TextInput, {
-                  id,
-                  placeholder: 'URI',
-                  value: jupyterUserScriptUri,
-                  onChange: setJupyterUserScriptUri
-                })
-              ])
-            ])
-          ]),
-          h(IdContainer, [
             id => div({ style: { gridColumnEnd: 'span 4', marginTop: '0.5rem' } }, [
               label({ htmlFor: id, style: computeStyles.label }, ['Compute type']),
               (isRStudioImage || requiresSpark) && h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
@@ -1139,13 +1145,13 @@ export const ComputeModalBase = ({
           span({ style: { marginLeft: '0.5rem', ...computeStyles.label, verticalAlign: 'top' } }, [
             enableAutopauseSpan
           ]),
-          h(Link, {
-            style: { marginLeft: '1rem', verticalAlign: 'top' },
-            href: 'https://support.terra.bio/hc/en-us/articles/360029761352-Preventing-runaway-costs-with-Cloud-Environment-autopause-#h_27c11f46-a6a7-4860-b5e7-fac17df2b2b5', ...Utils.newTabLinkProps
-          }, [
-            'Learn more about autopause.',
-            icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
-          ])
+        ]),
+        h(Link, {
+          style: { marginLeft: '1rem', verticalAlign: 'top' },
+          href: 'https://support.terra.bio/hc/en-us/articles/360029761352-Preventing-runaway-costs-with-Cloud-Environment-autopause-#h_27c11f46-a6a7-4860-b5e7-fac17df2b2b5', ...Utils.newTabLinkProps
+        }, [
+          'Learn more about autopause.',
+          icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
         ]),
         div({ style: { ...gridStyle, gridGap: '0.7rem', gridTemplateColumns: '4.5rem 9.5rem', marginTop: '0.75rem' } }, [
           h(NumberInput, {
@@ -1616,7 +1622,6 @@ export const ComputeModalBase = ({
 
   const renderMainForm = () => {
     const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
-    const { cpu, memory } = findMachineType(mainMachineType)
     const renderTitleAndTagline = () => {
       return h(Fragment, [
         h(TitleBar, {
@@ -1626,7 +1631,14 @@ export const ComputeModalBase = ({
           hideCloseButton: shouldHideCloseButton,
           onDismiss
         }),
-        div(['A cloud environment consists of application configuration, cloud compute and persistent disk(s).'])
+        div(['A cloud environment consists of application configuration, cloud compute and persistent disk(s).']),
+        h(TitleBar, {
+            id: 'compute-modal-subtitle-label',
+            style: { marginTop: '0.5rem', marginBottom: '0.5rem' },
+            title: 'Cost based on settings below',
+            hideCloseButton: shouldHideCloseButton,
+            onDismiss
+        }),
       ])
     }
     const renderBottomButtons = () => {
@@ -1641,61 +1653,11 @@ export const ComputeModalBase = ({
           )
         ]),
         div({ style: { flex: 1 } }),
-        !simplifiedForm && renderActionButton()
+        renderActionButton()
       ])
     }
-    const renderDiskText = () => {
-      return span({ style: { fontWeight: 600 } }, [computeConfig.selectedPersistentDiskSize, ' GB persistent disk'])
-    }
 
-    return simplifiedForm ?
-      div({ style: computeStyles.drawerContent }, [
-        renderTitleAndTagline(),
-        div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
-          div({ style: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' } }, [
-            div({ style: { marginRight: '2rem' } }, [
-              div({ style: { fontSize: 16, fontWeight: 600 } }, ['Use default environment']),
-              ul({ style: { paddingLeft: '1rem', marginBottom: 0, lineHeight: 1.5 } }, [
-                li([
-                  div([packageLabel, h(ClipboardButton, {
-                    text: selectedLeoImage,
-                    style: { marginLeft: '0.5rem' },
-                    tooltip: 'Copy the image version'
-                  })]),
-                  h(Link, { onClick: () => setViewMode('packages') }, ['What’s installed on this environment?'])
-                ]),
-                li({ style: { marginTop: '1rem' } }, [
-                  'Compute profile: ', span({ style: { fontWeight: 600 } }, [cpu, ' CPU(s)']), ', ',
-                  span({ style: { fontWeight: 600 } }, [memory, ' GB memory']), ', and ',
-                  existingPersistentDisk ?
-                    h(Fragment, ['your existing ', renderDiskText(), '.']) :
-                    h(Fragment, ['a ', renderDiskText(), '.']),
-                  div([h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent Disks.'])])
-                ]),
-                li({ style: { marginTop: '1rem' } }, [
-                  'Region: This cloud environment will be created in the region ',
-                  strong([computeConfig.computeRegion.toLowerCase()]), '. ',
-                  'Copying data from a bucket in a different region may incur network egress charges. ',
-                  'Network egress charges are not accounted for in cost estimates. ',
-                  div([h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
-                    'Learn more about Regionality.'
-                  ])])
-                ])
-              ])
-            ]),
-            renderActionButton()
-          ]),
-          renderCostBreakdown()
-        ]),
-        div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
-          div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
-            div({ style: { fontSize: 16, fontWeight: 600 } }, ['Create custom environment']),
-            h(ButtonOutline, { onClick: () => setSimplifiedForm(false) }, ['Customize'])
-          ])
-        ]),
-        renderBottomButtons()
-      ]) :
-      h(Fragment, [
+    return h(Fragment, [
         div({ style: { padding: '1.5rem', borderBottom: `1px solid ${colors.dark(0.4)}` } }, [
           renderTitleAndTagline(),
           renderCostBreakdown()
@@ -1703,7 +1665,7 @@ export const ComputeModalBase = ({
         div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
           renderApplicationConfigurationSection(),
           renderComputeProfileSection(existingRuntime),
-          !!isPersistentDisk && h(PersistentDiskSection, !!existingPersistentDisk),
+          !!isPersistentDisk && h(PersistentDiskSection, { diskExists: !!existingPersistentDisk, computeConfig, updateComputeConfig, handleLearnMoreAboutPersistentDisk }),
           isGce(runtimeType) && !isPersistentDisk && div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
               'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
@@ -1761,67 +1723,6 @@ export const ComputeModalBase = ({
     ])
   }
 
-  const PersistentDiskSection = diskExists => {
-    const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
-    const diskSizeId = useUniqueId()
-
-    const PersistentDiskType = () => {
-      const persistentDiskId = useUniqueId()
-  return (
-    h(div, [
-      label({ htmlFor: persistentDiskId, style: computeStyles.label }, ['Disk Type']),
-      div({ style: { marginTop: '0.5rem' } }, [
-      h(Select, {
-          id: persistentDiskId,
-          value: computeConfig.selectedPersistentDiskType,
-          isDisabled: diskExists,
-          onChange: ({ value }) => updateComputeConfig('selectedPersistentDiskType', value),
-          menuPlacement: 'auto',
-          options: [
-            { label: pdTypes.standard.displayName, value: pdTypes.standard },
-            { label: pdTypes.balanced.displayName, value: pdTypes.balanced },
-            { label: pdTypes.ssd.displayName, value: pdTypes.ssd }
-          ]
-        })
-      ])
-    ])
-    )
-  }
-    return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
-        h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
-          label({ style: computeStyles.label }, ['Persistent disk']),
-          div({ style: { marginTop: '0.5rem' } }, [
-            'Persistent disks store analysis data. ',
-            h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
-          ]),
-          div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
-            diskExists ?
-              h(TooltipTrigger, {
-                content: [
-                  'You already have a persistent disk in this workspace. ',
-                  'Disk type can only be configured at creation time. ',
-                  'Please delete the existing disk before selecting a new type.'
-                ],
-                side: 'bottom'
-              }, [h(PersistentDiskType)]) : h(PersistentDiskType),
-            h(div, [
-              label({ htmlFor: diskSizeId, style: computeStyles.label }, ['Disk Size (GB)']),
-              div({ style: { marginTop: '0.5rem' } }, [
-                h(NumberInput, {
-                  id: diskSizeId,
-                  min: 10,
-                  max: 64000,
-                  isClearable: false,
-                  onlyInteger: true,
-                  value: computeConfig.selectedPersistentDiskSize,
-                  onChange: updateComputeConfig('selectedPersistentDiskSize')
-                })
-              ])
-            ])
-          ])
-        ])
-    ])
-  }
   // Render functions -- end
 
   // Render

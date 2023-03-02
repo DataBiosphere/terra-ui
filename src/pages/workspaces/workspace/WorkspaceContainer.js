@@ -21,11 +21,13 @@ import * as Utils from 'src/libs/utils'
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
 import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
-import {
-  getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, mapToPdTypes
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import RuntimeManager from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
-import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getCurrentApp, getDiskAppType } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
+import { mapToPdTypes } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import {
+  getConvertedRuntimeStatus, getCurrentRuntime
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { tools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'

@@ -1,10 +1,12 @@
 import _ from 'lodash/fp'
+import { Children, useCallback, useEffect, useRef } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import RSelect, { components as RSelectComponents } from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
+import { AutoSizer, List } from 'react-virtualized'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
-import { useLabelAssert, useUniqueId } from 'src/libs/react-utils'
+import { useLabelAssert, useOnMount, useUniqueId } from 'src/libs/react-utils'
 
 
 const commonSelectProps = {
@@ -89,6 +91,15 @@ const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
  * @param {Object} props - see {@link https://react-select.com/props#select-props}
  * @param props.value - a member of options
  * @param {Array} props.options - can be of any type; if objects, they should each contain a value and label, unless defining getOptionLabel
+ * @param {string} [props.placeholder] - The placeholder value for the select
+ * @param {Function} props.onChange - The function to call when a user makes a selection
+ * @param {boolean} [props.isClearable] - whether the select can be cleared
+ * @param {boolean} [props.isSearchable] - whether the select can be cleared
+ * @param {boolean} [props.isMulti] - whether the select is multiselect or not
+ * @param {string} [props.menuPlacement] - determines where the menu is placed
+ * @param {Object} [props.styles] - custom styling for the select
+ * @param {boolean} [props.isDisabled] - whether the select is disabled
+ * @param {Function} [props.getOptionLabel] - a function to custom style the options
  * @param props.id - The HTML ID to give the form element
  */
 export const Select = ({ value, options, ...props }) => {
@@ -120,4 +131,68 @@ export const AsyncCreatableSelect = props => {
     ...commonSelectProps,
     ...props
   })
+}
+
+const VirtualizedMenuList = props => {
+  const { children, focusedOption, getStyles, getValue, maxHeight } = props
+
+  const list = useRef()
+
+  const scrollToOptionForValue = useCallback(value => {
+    const renderedOptions = Children.map(children, child => child.props.data)
+    const valueIndex = renderedOptions.findIndex(opt => opt.value === value)
+    if (valueIndex !== -1) {
+      list.current.scrollToRow(valueIndex)
+    }
+  }, [children])
+
+  // Scroll to the currently selected value (if there is one) when the menu is opened.
+  useOnMount(() => {
+    const [selectedOption] = getValue()
+    if (selectedOption) {
+      scrollToOptionForValue(selectedOption.value)
+    }
+  })
+
+  // When navigating option with arrow keys, scroll the virtualized list so that the focused option is visible.
+  useEffect(() => {
+    if (focusedOption) {
+      scrollToOptionForValue(focusedOption.value)
+    }
+  }, [children, focusedOption]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const hasRenderedOptions = Array.isArray(children)
+
+  // If no options are rendered, then render the "no options" message.
+  if (!hasRenderedOptions) {
+    return children
+  }
+
+  const rowCount = children.length
+  const rowHeight = 40
+  const height = _.clamp(rowHeight, maxHeight, rowHeight * rowCount)
+
+  return h(AutoSizer, { disableHeight: true }, [
+    ({ width }) => {
+      return h(List, {
+        ref: list,
+        height,
+        width,
+        rowCount,
+        rowHeight,
+        rowRenderer: ({ index, style, key }) => div({ key, style }, [children[index]]),
+        style: { ...getStyles('menuList', props), boxSizing: 'content-box' },
+      })
+    }
+  ])
+}
+
+export const VirtualizedSelect = props => {
+  return h(Select, _.merge({
+    // react-select performs poorly when it has to render hundreds or thousands of options.
+    // This can happen for example in a workspace menu if the user has many workspaces.
+    // To address that, this component virtualizes the list of options.
+    // See https://broadworkbench.atlassian.net/browse/SUP-808 for more information.
+    components: { MenuList: VirtualizedMenuList },
+  }, props))
 }

@@ -13,18 +13,8 @@ import { useCancellation, useGetter, useOnMount, usePollingEffect, usePrevious, 
 import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { getConvertedRuntimeStatus, usableStatuses } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { getConvertedRuntimeStatus, usableStatuses } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
-
-export const computeStyles = {
-  label: { fontWeight: 600, whiteSpace: 'pre' },
-  value: { fontWeight: 400, whiteSpace: 'pre' },
-  titleBar: { marginBottom: '1rem' },
-  whiteBoxContainer: { padding: '1rem', borderRadius: 3, backgroundColor: 'white' },
-  drawerContent: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' },
-  headerText: { fontSize: 16, fontWeight: 600 },
-  warningView: { backgroundColor: colors.warning(0.1) }
-}
 
 export const StatusMessage = ({ hideSpinner, children }) => {
   return div({ style: { paddingLeft: '2rem', display: 'flex', alignItems: 'center' } }, [
@@ -125,9 +115,9 @@ export const RuntimeStatusMonitor = ({ runtime, onRuntimeStoppedRunning = _.noop
 export const AuthenticatedCookieSetter = () => {
   const { termsOfService } = useStore(authStore)
   const cookiesAccepted = getLocalPref(cookiesAcceptedKey) !== false
-  const userCanUseTerra = termsOfService.userCanUseTerra
+  const allowedToUseSystem = termsOfService.permitsSystemUsage
 
-  return userCanUseTerra && cookiesAccepted ? h(PeriodicCookieSetter) : null
+  return allowedToUseSystem && cookiesAccepted ? h(PeriodicCookieSetter) : null
 }
 
 export const PeriodicCookieSetter = () => {

@@ -75,35 +75,23 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     ['running', () => icon('loadingSpinner', { size, style: { color: colors.primary() }, 'aria-label': 'Validation Running' })]
   )
 
-  const clippy = (label, value) => !!value && h(Fragment, [value, h(ClipboardButton, {
-    'aria-label': `Copy ${label} to clipboard`,
-    style: { marginLeft: '1rem' },
-    text: value
-  })])
-
-  const troubleShooterRow = ([label, text, iconRunning, iconSuccess, copy, element]) => {
+  const troubleShooterRow = ([label, text, iconRunning, iconSuccess, element]) => {
     return tr([
       td({ style: { fontWeight: 'bold' } }, [
         iconRunning ? checkIcon('running') : (iconSuccess ? checkIcon('success') : checkIcon('failure'))
       ]),
       td({ style: { fontWeight: 'bold' } }, [label]),
       td({ style: { fontWeight: 'bold' } }, [!!element]),
-      Utils.cond([!!element, () => element], () => Utils.cond([copy, () => td([clippy(label, text)])], () => td([h(Fragment, [text])]))
+      Utils.cond([!!element, () => element], () => td([h(Fragment, [text])])
       )
     ])
   }
 
-  // The proxyUrl is long and should be truncated, but
-  // we still want to be able to copy it, so it gets it own special element
-  // that doesn't use the clippy() helper
+  // The proxyUrl is long and should be truncated,
+  // so it gets it own special element
   const proxyElement =
       td([
-        h(Fragment, [h(div, { style: _.merge({ width: '400px', float: 'left' }, Style.noWrapEllipsis) }, [proxyUrl]),
-          h(ClipboardButton, {
-            'aria-label': 'Copy proxy url to clipboard',
-            style: { marginLeft: '1rem' },
-            text: proxyUrl
-          })])
+        h(Fragment, [h(div, { style: _.merge({ width: '400px', float: 'left' }, Style.noWrapEllipsis) }, [proxyUrl])])
       ])
 
   /** For each piece of information we want to include in the troubleshooter, we want:
@@ -111,22 +99,21 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
    * 2. The value of information
    * 3. A function or variable that evaluates to boolean, determining whether the info/validation is still running
    * 4. A function or variable that evaluates to boolean, determining whether the info/validation is successful
-   * 5. A boolean that determines whether or not to display a copy-clipboard icon for this piece of info
-   * 6. An optional element to use in place of the standard defined in troubleShooterRow
+   * 5. An optional element to use in place of the standard defined in troubleShooterRow
   **/
   const troubleShooterText = [
-    ['Workspace Id',	workspaceId, false, !!workspaceId, true],
-    ['Resource Group Id',	mrgId, false, !!mrgId, true],
-    ['App listing',	`${leoOk?.length} app(s) total`, leoOk == null, !!leoOk?.length, false],
-    ['Data app name',	appFound, leoOk == null, !!appFound && appFound !== 'unknown', true],
-    ['Data app running?',	appRunning, appRunning == null, !!appRunning && appRunning !== 'unknown', false],
-    ['Data app proxy url',	proxyUrl, proxyUrl == null, !!proxyUrl && proxyUrl !== 'unknown', false, proxyElement],
-    ['Data app responding',	`${wdsResponsive}`, wdsResponsive == null, !!wdsResponsive && wdsResponsive !== 'unknown', false],
-    ['Data app version',	version, version == null, !!version && version !== 'unknown', false],
-    ['Data app status',	wdsStatus, wdsStatus == null, !!wdsStatus && wdsStatus !== 'unresponsive' && wdsStatus !== 'DOWN', false],
-    ['Data app DB status',	wdsDbStatus, wdsDbStatus == null, !!wdsDbStatus && wdsDbStatus !== 'unknown' && wdsDbStatus !== 'DOWN', false],
-    ['Data app ping status',	wdsPingStatus, wdsPingStatus == null, !!wdsPingStatus && wdsPingStatus !== 'unknown' && wdsPingStatus !== 'DOWN', false],
-    ['Default Instance exists', `${defaultInstanceExists}`, defaultInstanceExists == null, !!defaultInstanceExists && defaultInstanceExists !== 'unknown', false]
+    ['Workspace Id',	workspaceId, false, !!workspaceId],
+    ['Resource Group Id',	mrgId, false, !!mrgId],
+    ['App listing',	`${leoOk?.length} app(s) total`, leoOk == null, !!leoOk?.length],
+    ['Data app name',	appFound, leoOk == null, !!appFound && appFound !== 'unknown'],
+    ['Data app running?',	appRunning, appRunning == null, !!appRunning && appRunning !== 'unknown'],
+    ['Data app proxy url',	proxyUrl, proxyUrl == null, !!proxyUrl && proxyUrl !== 'unknown', proxyElement],
+    ['Data app responding',	`${wdsResponsive}`, wdsResponsive == null, !!wdsResponsive && wdsResponsive !== 'unknown'],
+    ['Data app version',	version, version == null, !!version && version !== 'unknown'],
+    ['Data app status',	wdsStatus, wdsStatus == null, !!wdsStatus && wdsStatus !== 'unresponsive' && wdsStatus !== 'DOWN'],
+    ['Data app DB status',	wdsDbStatus, wdsDbStatus == null, !!wdsDbStatus && wdsDbStatus !== 'unknown' && wdsDbStatus !== 'DOWN'],
+    ['Data app ping status',	wdsPingStatus, wdsPingStatus == null, !!wdsPingStatus && wdsPingStatus !== 'unknown' && wdsPingStatus !== 'DOWN'],
+    ['Default Instance exists', `${defaultInstanceExists}`, defaultInstanceExists == null, !!defaultInstanceExists && defaultInstanceExists !== 'unknown']
   ]
 
   const tableRows = troubleShooterText.map(x => troubleShooterRow(x))
@@ -134,12 +121,12 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
   return h(Modal, {
     showCancel: false,
     onDismiss,
-    title: 'Data Table Troubleshooter',
+    title: 'Data Table Status',
     width: '55rem',
     okButton: h(ButtonPrimary, {
-      tooltip: 'Done',
+      tooltip: 'Close',
       onClick: onDismiss
-    }, ['Done'])
+    }, ['Close'])
   }, [div({ style: { padding: '1rem 0.5rem', lineHeight: '1.4rem' } }, [
     table({ style: { borderSpacing: '1rem 0', borderCollapse: 'separate' } }, //[
       tableRows

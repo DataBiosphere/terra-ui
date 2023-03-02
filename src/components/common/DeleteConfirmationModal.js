@@ -13,18 +13,14 @@ import { IdContainer } from './IdContainer'
 export const DeleteConfirmationModal = ({
   objectType,
   objectName,
-  title: titleProp,
-  children,
-  confirmationPrompt,
-  buttonText: buttonTextProp,
   onConfirm,
-  onDismiss
+  onDismiss,
+  children = undefined,
+  confirmationPrompt = undefined,
+  title = `Delete ${objectType}`,
+  buttonText = `Delete ${objectType}`,
 }) => {
-  const title = titleProp || `Delete ${objectType}`
-  const buttonText = buttonTextProp || `Delete ${objectType}`
-
   const [confirmation, setConfirmation] = useState('')
-
   const isConfirmed = !confirmationPrompt || _.toLower(confirmation) === _.toLower(confirmationPrompt)
 
   return h(Modal, {
