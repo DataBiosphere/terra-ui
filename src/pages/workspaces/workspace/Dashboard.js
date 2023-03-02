@@ -166,7 +166,11 @@ export const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ wor
         setLoading(false)
       }
     }
-  }, [loadGoogleBucketLocation, setBucketLocation, workspace?.workspaceInitialized, storageDetails])
+  }, [
+    loadGoogleBucketLocation, setBucketLocation,
+    // Explicit dependencies to avoid extra calls to loadGoogleBucketLocation
+    workspace?.workspaceInitialized, storageDetails.fetchedGoogleBucketLocation, storageDetails.googleBucketLocation, storageDetails.googleBucketType
+  ])
 
   if (loading) {
     return 'Loading'

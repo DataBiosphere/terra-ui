@@ -7,7 +7,7 @@ import { h } from 'react-hyperscript-helpers'
 import { locationTypes } from 'src/components/region-common'
 import { Ajax } from 'src/libs/ajax'
 import { authStore } from 'src/libs/state'
-import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import { BucketLocation, WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard'
 import { asMockedFn } from 'src/testing/test-utils'
 
