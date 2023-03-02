@@ -47,6 +47,7 @@ validate.validators.type.types.uuid = value => validateUuid(value)
 // @ts-ignore
 validate.validators.type.messages.uuid = 'must be a UUID'
 
+const AzureManagedAppCoordinatesSelect = Select as typeof Select<AzureManagedAppCoordinates>
 
 export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: AzureSubscriptionStepProps) => {
   const getSubscriptionIdErrors = subscriptionId => subscriptionId !== undefined && validate({ subscriptionId }, { subscriptionId: { type: 'uuid' } })
@@ -122,14 +123,14 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
           formId: appSelectId, required: true, style: columnEntryStyle(false),
           label: ['Unassigned managed application']
         }, [
-          h(Select, {
+          h(AzureManagedAppCoordinatesSelect, {
             id: appSelectId,
             placeholder: 'Select a managed application',
             isMulti: false,
             isDisabled: managedApps.status !== 'Ready' || !!subscriptionIdError,
-            value: props.managedApp,
-            onChange: ({ value }) => {
-              props.onManagedAppSelected(value)
+            value: props.managedApp || null,
+            onChange: option => {
+              props.onManagedAppSelected(option!.value)
             },
             options: managedApps.status === 'Ready' ? managedAppsToOptions(managedApps.state) : []
           }),
