@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { cloudServiceTypes, DataprocConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models'
+import { cloudServiceTypes } from 'src/libs/ajax/leonardo/models/runtime-config-models'
 import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { defaultAzureRegion } from 'src/libs/azure-utils'
 import * as Utils from 'src/libs/utils'
@@ -386,31 +386,4 @@ export const azureRuntime = {
     cloudContext: 'Azure/0cb7a640-45a2-4ed6-be9f-63519f86e04b/3efc5bdf-be0e-44e7-b1d7-c08931e3c16c/mrg-terra-dev-jan23-20230123125907'
   },
   patchInProgress: false
-}
-
-export const defaultSparkSingleNode: DataprocConfig = {
-  cloudService: 'DATAPROC',
-  autopauseThreshold: 30,
-  region: 'US-CENTRAL1',
-  masterMachineType: 'n1-standard-4',
-  masterDiskSize: 150,
-  numberOfWorkers: 0,
-  componentGatewayEnabled: true,
-  numberOfPreemptibleWorkers: 0,
-  workerDiskSize: 0,
-  workerPrivateAccess: false
-}
-
-export const defaultSparkCluster: DataprocConfig = {
-  cloudService: 'DATAPROC',
-  autopauseThreshold: 30,
-  region: 'US-CENTRAL1',
-  masterMachineType: 'n1-standard-4',
-  masterDiskSize: 150,
-  numberOfWorkers: 2,
-  componentGatewayEnabled: true,
-  numberOfPreemptibleWorkers: 0,
-  workerMachineType: 'n1-standard-4',
-  workerDiskSize: 150,
-  workerPrivateAccess: false
 }

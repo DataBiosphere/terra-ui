@@ -1,10 +1,37 @@
 import { getAzurePricesForRegion } from 'src/libs/azure-utils'
-import { azureDisk, azureRuntime, defaultSparkCluster, defaultSparkSingleNode, galaxyDisk, galaxyRunning, getDisk, getGoogleRuntime, getJupyterRuntimeConfig } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
+import { azureDisk, azureRuntime, galaxyDisk, galaxyRunning, getDisk, getGoogleRuntime, getJupyterRuntimeConfig } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import { getCostDisplayForDisk, getCostDisplayForTool, getPersistentDiskCostMonthly, getRuntimeCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import { pdTypes } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
+
+const defaultSparkSingleNode = {
+  cloudService: 'DATAPROC',
+  autopauseThreshold: 30,
+  region: 'US-CENTRAL1',
+  masterMachineType: 'n1-standard-4',
+  masterDiskSize: 150,
+  numberOfWorkers: 0,
+  componentGatewayEnabled: true,
+  numberOfPreemptibleWorkers: 0,
+  workerDiskSize: 0,
+  workerPrivateAccess: false
+}
+
+const defaultSparkCluster = {
+  cloudService: 'DATAPROC',
+  autopauseThreshold: 30,
+  region: 'US-CENTRAL1',
+  masterMachineType: 'n1-standard-4',
+  masterDiskSize: 150,
+  numberOfWorkers: 2,
+  componentGatewayEnabled: true,
+  numberOfPreemptibleWorkers: 0,
+  workerMachineType: 'n1-standard-4',
+  workerDiskSize: 150,
+  workerPrivateAccess: false
+}
 
 describe('getCostDisplayForDisk', () => {
   it('GCP - will get the disk cost for a Galaxy AppDataDisk', () => {
