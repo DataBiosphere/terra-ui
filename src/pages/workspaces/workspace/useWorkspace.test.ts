@@ -230,36 +230,20 @@ describe('useActiveWorkspace', () => {
     expect(GoogleStorage.saToken).not.toHaveBeenCalled()
   })
 
-  it('can read workspace details from server, and poll Google until permissions are synced', async () => {
+  const verifyGooglePermissionsFailure = async (fetchedGoogleBucketLocation: string | undefined = undefined) => {
     // Arrange
-    // remove workspaceInitialized because the server response does not include this information
-    const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace
-
-    // Throw error from checkBucketReadAccess
-    const errorMockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
-          checkBucketReadAccess: () => Promise.reject(new Response('Mock permissions error', { status: 500 }))
-        })
-      }
-    }
-    asMockedFn(Ajax).mockImplementation(() => errorMockAjax as AjaxContract)
-
     // Expected response from useWorkspace should be false to reflect that permissions are not fully synced.
     const uninitializedGoogleWorkspace = _.clone(initializedGoogleWorkspace)
     uninitializedGoogleWorkspace.workspaceInitialized = false
 
-    const expectedStillSyncingDetails = _.merge(defaultGoogleBucketOptions, defaultAzureStorageOptions)
-    const expectedAllSyncedDetails = _.merge({
-      googleBucketLocation: bucketLocationResponse.location,
-      googleBucketType: bucketLocationResponse.locationType,
-      fetchedGoogleBucketLocation: 'SUCCESS'
-    }, defaultAzureStorageOptions)
+    const expectedStillSyncingDetails = _.mergeAll([
+      defaultGoogleBucketOptions, { fetchedGoogleBucketLocation }, defaultAzureStorageOptions
+    ])
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'))
-    await waitForNextUpdate() // For the call to checkBucketReadAccess to execute
+    const renderHookResult = renderHook(() => useWorkspace('testNamespace', 'testName'))
+    const { result, waitForNextUpdate } = renderHookResult
+    await waitForNextUpdate()
 
     // Assert
     assertResult(result.current, uninitializedGoogleWorkspace, expectedStillSyncingDetails, false)
@@ -267,72 +251,17 @@ describe('useActiveWorkspace', () => {
     expect(WorkspaceUtils.updateRecentlyViewedWorkspaces).toHaveBeenCalledWith(uninitializedGoogleWorkspace.workspace.workspaceId)
     expect(GoogleStorage.saToken).toHaveBeenCalled()
 
+    return renderHookResult
+  }
+
+  const verifyGooglePermissionsSuccess = async (result, waitForNextUpdate) => {
     // Arrange
-    // Return success for the next call to checkBucketReadAccess, but fail storageCostEstimate.
-    let partialSuccessMockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () => ({
-          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
-          checkBucketReadAccess: jest.fn(),
-          storageCostEstimate: () => Promise.reject(new Response('Mock storage cost estimate error', { status: 500 })),
-          bucketUsage: jest.fn()
-        })
-      }
-    }
-    asMockedFn(Ajax).mockImplementation(() => partialSuccessMockAjax as AjaxContract)
+    const expectedAllSyncedDetails = _.merge({
+      googleBucketLocation: bucketLocationResponse.location,
+      googleBucketType: bucketLocationResponse.locationType,
+      fetchedGoogleBucketLocation: 'SUCCESS'
+    }, defaultAzureStorageOptions)
 
-    // Act
-    jest.advanceTimersByTime(googlePermissionsRecheckRate)
-    await waitForNextUpdate()
-
-    // Assert
-    assertResult(result.current, uninitializedGoogleWorkspace, expectedStillSyncingDetails, false)
-
-    // Arrange
-    // Fail bucketUsage this time.
-    partialSuccessMockAjax = {
-      Workspaces: {
-        workspace: () => ({
-          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
-          checkBucketReadAccess: jest.fn(),
-          storageCostEstimate: jest.fn(),
-          bucketUsage: () => Promise.reject(new Response('Mock bucket usage error', { status: 500 }))
-        })
-      }
-    }
-    asMockedFn(Ajax).mockImplementation(() => partialSuccessMockAjax as AjaxContract)
-
-    // Act
-    jest.advanceTimersByTime(googlePermissionsRecheckRate)
-    await waitForNextUpdate()
-
-    // Assert
-    assertResult(result.current, uninitializedGoogleWorkspace, expectedStillSyncingDetails, false)
-
-    // Arrange
-    // Fail checkBucketLocation this time.
-    partialSuccessMockAjax = {
-      Workspaces: {
-        workspace: () => ({
-          checkBucketLocation: () => Promise.reject(new Response('Mock check bucket location', { status: 500 })),
-          checkBucketReadAccess: jest.fn(),
-          storageCostEstimate: jest.fn(),
-          bucketUsage: () => jest.fn()
-        })
-      }
-    }
-    asMockedFn(Ajax).mockImplementation(() => partialSuccessMockAjax as AjaxContract)
-
-    // Act
-    jest.advanceTimersByTime(googlePermissionsRecheckRate)
-    await waitForNextUpdate()
-
-    // Assert
-    const errorStorageDetails = _.merge(expectedStillSyncingDetails, { fetchedGoogleBucketLocation: 'ERROR' })
-    assertResult(result.current, uninitializedGoogleWorkspace, errorStorageDetails, false)
-
-    // Arrange
-    // Finally, all succeed
     const successMockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
         workspace: () => ({
@@ -352,6 +281,103 @@ describe('useActiveWorkspace', () => {
     // Assert
     assertResult(result.current, initializedGoogleWorkspace, expectedAllSyncedDetails, false)
     expect(workspaceStore.set).toHaveBeenCalledWith(initializedGoogleWorkspace)
+  }
+
+  it('can read workspace details from server, and poll until permissions synced (handling checkBucketAccess failure)', async () => {
+    // Arrange
+    // remove workspaceInitialized because the server response does not include this information
+    const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace
+
+    const errorMockAjax: DeepPartial<AjaxContract> = {
+      Workspaces: {
+        workspace: () => ({
+          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+          checkBucketReadAccess: () => Promise.reject(new Response('Mock permissions error', { status: 500 }))
+        })
+      }
+    }
+    asMockedFn(Ajax).mockImplementation(() => errorMockAjax as AjaxContract)
+
+    // Verify initial failure based on error mock.
+    const { result, waitForNextUpdate } = await verifyGooglePermissionsFailure()
+
+    // Finally, change mock to pass all checks verify success.
+    await verifyGooglePermissionsSuccess(result, waitForNextUpdate)
+  })
+
+  it('can read workspace details from server, and poll until permissions synced (handling storageCostEstimate failure)', async () => {
+    // Arrange
+    // remove workspaceInitialized because the server response does not include this information
+    const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace
+
+    const errorMockAjax: DeepPartial<AjaxContract> = {
+      Workspaces: {
+        workspace: () => ({
+          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
+          checkBucketReadAccess: jest.fn(),
+          storageCostEstimate: () => Promise.reject(new Response('Mock storage cost estimate error', { status: 500 })),
+          bucketUsage: jest.fn()
+        })
+      }
+    }
+    asMockedFn(Ajax).mockImplementation(() => errorMockAjax as AjaxContract)
+
+    // Verify initial failure based on error mock.
+    const { result, waitForNextUpdate } = await verifyGooglePermissionsFailure()
+
+    // Finally, change mock to pass all checks verify success.
+    await verifyGooglePermissionsSuccess(result, waitForNextUpdate)
+  })
+
+  it('can read workspace details from server, and poll until permissions synced (handling bucketUsage failure)', async () => {
+    // Arrange
+    // remove workspaceInitialized because the server response does not include this information
+    const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace
+
+    const errorMockAjax: DeepPartial<AjaxContract> = {
+      Workspaces: {
+        workspace: () => ({
+          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
+          checkBucketReadAccess: jest.fn(),
+          storageCostEstimate: jest.fn(),
+          bucketUsage: () => Promise.reject(new Response('Mock bucket usage error', { status: 500 }))
+        })
+      }
+    }
+    asMockedFn(Ajax).mockImplementation(() => errorMockAjax as AjaxContract)
+
+    // Verify initial failure based on error mock.
+    const { result, waitForNextUpdate } = await verifyGooglePermissionsFailure()
+
+    // Finally, change mock to pass all checks verify success.
+    await verifyGooglePermissionsSuccess(result, waitForNextUpdate)
+  })
+
+  it('can read workspace details from server, and poll until permissions synced (handling checkBucketLocation failure)', async () => {
+    // Arrange
+    // remove workspaceInitialized because the server response does not include this information
+    const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace
+
+    const errorMockAjax: DeepPartial<AjaxContract> = {
+      Workspaces: {
+        workspace: () => ({
+          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+          checkBucketLocation: () => Promise.reject(new Response('Mock check bucket location', { status: 500 })),
+          checkBucketReadAccess: jest.fn(),
+          storageCostEstimate: jest.fn(),
+          bucketUsage: jest.fn()
+        })
+      }
+    }
+    asMockedFn(Ajax).mockImplementation(() => errorMockAjax as AjaxContract)
+
+    // Verify initial failure based on error mock.
+    const { result, waitForNextUpdate } = await verifyGooglePermissionsFailure('ERROR')
+
+    // Finally, change mock to pass all checks verify success.
+    await verifyGooglePermissionsSuccess(result, waitForNextUpdate)
   })
 
   it('can read workspace details from server for read-only workspace, and poll Google until permissions are synced', async () => {
