@@ -28,7 +28,7 @@ import DeleteBillingProjectModal from 'src/pages/billing/DeleteBillingProjectMod
 import { AzureBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureBillingProjectWizard'
 import { GCPBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/GCPBillingProjectWizard'
 import ProjectDetail from 'src/pages/billing/Project'
-import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import validate from 'validate.js'
 
 

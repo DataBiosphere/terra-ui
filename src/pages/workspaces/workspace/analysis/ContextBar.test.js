@@ -6,9 +6,9 @@ import { Ajax } from 'src/libs/ajax'
 import { defaultAzureMachineType, defaultAzureRegion } from 'src/libs/azure-utils'
 import * as Utils from 'src/libs/utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
-import { getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
-import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
+import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 const GALAXY_COMPUTE_COST = 10
@@ -16,8 +16,8 @@ const GALAXY_DISK_COST = 1
 const RUNTIME_COST = 0.1
 const PERSISTENT_DISK_COST = 0.01
 
-jest.mock('src/pages/workspaces/workspace/analysis/cost-utils', () => ({
-  ...jest.requireActual('src/pages/workspaces/workspace/analysis/cost-utils'),
+jest.mock('src/pages/workspaces/workspace/analysis/utils/cost-utils', () => ({
+  ...jest.requireActual('src/pages/workspaces/workspace/analysis/utils/cost-utils'),
   getGalaxyComputeCost: jest.fn(),
   getGalaxyDiskCost: jest.fn(),
   getPersistentDiskCostHourly: jest.fn(),
@@ -95,7 +95,7 @@ afterEach(() => {
   jest.clearAllMocks()
 })
 
-//Note - These constants are copied from ./runtime-utils.test.js
+//Note - These constants are copied from ./runtime-utils.test.ts
 const galaxyRunning = {
   appName: 'terra-app-69200c2f-89c3-47db-874c-b770d8de737f',
   appType: 'GALAXY',
@@ -213,7 +213,7 @@ const jupyter = {
     cloudService: 'GCE',
     bootDiskSize: 120,
     zone: 'us-central1-a',
-    gpuConfig: null
+    gpuConfig: undefined
   },
   proxyUrl: 'https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-dev-cf677740/saturn-eae9168f-9b99-4910-945e-dbab66e04d91/jupyter',
   status: 'Running',
@@ -323,7 +323,7 @@ const rstudioRuntime = {
     cloudService: 'GCE',
     bootDiskSize: 120,
     zone: 'us-central1-a',
-    gpuConfig: null
+    gpuConfig: undefined
   },
   proxyUrl: 'https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-dev-98897219/saturn-48afb74a-15b1-4aad-8b23-d039cf8253fb/rstudio',
   status: 'Running',

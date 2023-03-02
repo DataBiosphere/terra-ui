@@ -1,15 +1,18 @@
 import _ from 'lodash/fp'
+import { cloudServiceTypes } from 'src/libs/ajax/leonardo/models/runtime-config-models'
+import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { defaultAzureRegion } from 'src/libs/azure-utils'
 import * as Utils from 'src/libs/utils'
+import { cloudProviderTypes } from 'src/libs/workspace-utils'
 import {
   defaultGceBootDiskSize,
-  defaultGceMachineType,
   defaultGcePersistentDiskSize,
-  defaultLocation,
   defaultPersistentDiskType,
-  runtimeStatuses
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+} from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import {
+  defaultGceMachineType, defaultLocation
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { v4 as uuid } from 'uuid'
 
 
@@ -179,10 +182,10 @@ const randomMaxInt = 10000
 export const getJupyterRuntimeConfig = ({ diskId = getRandomInt(randomMaxInt), machineType = defaultGceMachineType } = {}) => ({
   machineType,
   persistentDiskId: diskId,
-  cloudService: 'GCE',
+  cloudService: cloudServiceTypes.GCE,
   bootDiskSize: defaultGceBootDiskSize,
   zone: 'us-central1-a',
-  gpuConfig: null
+  gpuConfig: undefined
 })
 
 export const getRandomInt = max => Math.floor(Math.random() * max)
@@ -190,7 +193,6 @@ export const getRandomInt = max => Math.floor(Math.random() * max)
 export const defaultAuditInfo = {
   creator: 'testuser123@broad.com',
   createdDate: '2022-07-18T18:35:32.012698Z',
-  destroyedDate: null,
   dateAccessed: '2022-07-18T21:44:17.565Z'
 }
 
@@ -199,7 +201,7 @@ export const generateGoogleProject = () => `terra-test-${uuid().substring(0, 8)}
 export const getGoogleRuntime = ({
   workspace = defaultGoogleWorkspace,
   runtimeName = Utils.generateRuntimeName(),
-  status = runtimeStatuses.running.label,
+  status = runtimeStatuses.running.leoLabel,
   tool = tools.Jupyter,
   runtimeConfig = getJupyterRuntimeConfig(),
   image = undefined
@@ -215,14 +217,14 @@ export const getGoogleRuntime = ({
     runtimeName,
     googleProject,
     cloudContext: {
-      cloudProvider: 'GCP',
+      cloudProvider: cloudProviderTypes.GCP,
       cloudResource: googleProject
     },
+    serviceAccount: 'testuser123@broad.com',
     auditInfo: defaultAuditInfo,
     runtimeConfig,
     proxyUrl: `https://leonardo.dsde-dev.broadinstitute.org/proxy/${googleProject}/${runtimeName}/${_.toLower(tool.label)}`,
     status,
-    autopauseThreshold: 30,
     labels: {
       ...defaultWorkspaceLabels,
       'saturn-iframe-extension': 'https://bvdp-saturn-dev.appspot.com/jupyter-iframe-extension.js',
@@ -236,6 +238,8 @@ export const getGoogleRuntime = ({
       cloudContext: `Gcp/${googleProject}`,
       googleProject
     },
+    errors: [],
+    autopauseThreshold: 30,
     runtimeImages: [
       {
         imageType: 'Proxy',
@@ -268,6 +272,8 @@ export const getGoogleRuntime = ({
         timestamp: '2022-09-19T15:37:11.035465Z'
       }
     ],
+    scopes: [],
+    customEnvironmentVariables: {},
     patchInProgress: false
   }
 }
@@ -358,7 +364,7 @@ export const azureRuntime = {
     dateAccessed: '2023-02-01T20:41:00.357Z'
   },
   runtimeConfig: {
-    cloudService: 'AZURE_VM',
+    cloudService: cloudServiceTypes.AZURE_VM,
     machineType: 'Standard_DS2_v2',
     persistentDiskId: 16902,
     region: 'eastus'

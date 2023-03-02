@@ -1,9 +1,9 @@
 import { getAzurePricesForRegion } from 'src/libs/azure-utils'
 import { azureDisk, azureRuntime, galaxyDisk, galaxyRunning, getDisk, getGoogleRuntime, getJupyterRuntimeConfig } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
-
-import { getCostDisplayForDisk, getCostDisplayForTool, getPersistentDiskCostMonthly, getRuntimeCost } from './cost-utils'
-import { cloudProviders, pdTypes } from './runtime-utils'
-import { toolLabels } from './tool-utils'
+import { getCostDisplayForDisk, getCostDisplayForTool, getPersistentDiskCostMonthly, getRuntimeCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
+import { pdTypes } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 describe('getCostDisplayForDisk', () => {
@@ -47,7 +47,7 @@ describe('getCostDisplayForDisk', () => {
     expect(result).toBe(expectedResult)
   })
 
-  it('GCP - will return empty string because when there is no app or runtime to get cost information from.', () => {
+  it('Will return empty string because when there is no app or runtime to get cost information from.', () => {
     // Arrange
     const app = undefined
     const appDataDisks = []
@@ -129,7 +129,7 @@ describe('getCostDisplayForDisk', () => {
 
 
 describe('GCP getCostDisplayForTool', () => {
-  it('Azure - will get compute cost and compute status for Galaxy app', () => {
+  it('Will get compute cost and compute status for Galaxy app', () => {
     // Arrange
     const expectedResult = 'Running $0.53/hr'
     const app = galaxyRunning
@@ -144,7 +144,7 @@ describe('GCP getCostDisplayForTool', () => {
     expect(result).toBe(expectedResult)
   })
 
-  it('Azure - will get compute cost and compute status for a running Jupyter runtime', () => {
+  it('Will get compute cost and compute status for a running Jupyter runtime', () => {
     // Arrange
     const expectedResult = 'Running $0.06/hr'
     const app = undefined
@@ -161,9 +161,9 @@ describe('GCP getCostDisplayForTool', () => {
     expect(result).toBe(expectedResult)
   })
 
-  it('Azure - will get compute cost and compute status for a stopped Jupyter runtime', () => {
+  it('Will get compute cost and compute status for a stopped Jupyter runtime', () => {
     // Arrange
-    const expectedResult = 'Paused $0.01/hr'
+    const expectedResult = 'Paused < $0.01/hr'
     const app = undefined
     const jupyterRuntime = getGoogleRuntime({
       runtimeConfig: getJupyterRuntimeConfig()
@@ -179,7 +179,7 @@ describe('GCP getCostDisplayForTool', () => {
     expect(result).toBe(expectedResult)
   })
 
-  it('Azure - will return blank because current runtime is not equal to currentRuntimeTool', () => {
+  it('Will return blank because current runtime is not equal to currentRuntimeTool', () => {
     // Arrange
     const expectedResult = ''
     const app = undefined
@@ -209,7 +209,7 @@ describe('getRuntimeCost', () => {
     expect(result).toBeGreaterThan(0)
   })
 
-  it('Azure - will return 0 if runtime is in error', () => {
+  it('GCP - Will return 0 if runtime is in error', () => {
     // Arrange
     const runtime = getGoogleRuntime({
       runtimeConfig: getJupyterRuntimeConfig(),
@@ -239,7 +239,7 @@ describe('getCostDisplayForTool', () => {
     expect(result).toContain('Running') // Costs may change, but we want to make sure the status prints correctly.
   })
 
-  it('Azure - will get blank compute cost due to no runtime.', () => {
+  it('Will get blank compute cost due to no runtime.', () => {
     // Arrange
     const app = undefined
     const currentRuntime = undefined

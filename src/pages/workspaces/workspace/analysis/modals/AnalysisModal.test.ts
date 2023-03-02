@@ -7,11 +7,11 @@ import { Ajax } from 'src/libs/ajax'
 import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage'
 import { reportError } from 'src/libs/error'
 import { defaultAzureWorkspace, defaultGoogleWorkspace, galaxyDisk, galaxyRunning, getGoogleRuntime, imageDocs } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
+import { getFileFromPath } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 import {
   AbsolutePath
-} from 'src/pages/workspaces/workspace/analysis/file-utils'
-import { AppTool, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
-import { getFileFromPath } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
+} from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
+import { AppTool, tools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
 import { AnalysisModal, AnalysisModalProps } from './AnalysisModal'
@@ -58,14 +58,15 @@ jest.mock('src/libs/notifications', () => ({
   notify: jest.fn()
 }))
 
-type FileUtilsExports = typeof import('src/pages/workspaces/workspace/analysis/file-utils')
-jest.mock('src/pages/workspaces/workspace/analysis/file-utils', (): FileUtilsExports => {
-  const originalModule = jest.requireActual('src/pages/workspaces/workspace/analysis/file-utils')
+type FileUtilsExports = typeof import('src/pages/workspaces/workspace/analysis/utils/file-utils')
+jest.mock('src/pages/workspaces/workspace/analysis/utils/file-utils', (): FileUtilsExports => {
+  const originalModule = jest.requireActual('src/pages/workspaces/workspace/analysis/utils/file-utils')
   return {
     ...originalModule,
     getExtension: jest.fn()
   }
 })
+
 
 type AjaxContract = ReturnType<typeof Ajax>
 

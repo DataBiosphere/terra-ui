@@ -1,8 +1,9 @@
 import _ from 'lodash/fp'
+import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { isCromwellAppVisible, isCromwellOnAzureAppVisible } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
-import { CloudProviderType } from 'src/libs/workspace-utils'
-import { FileExtension, getExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { CloudProvider } from 'src/libs/workspace-utils'
+import { FileExtension, getExtension } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
 
 
 export type RuntimeToolLabel = 'Jupyter' | 'RStudio' | 'JupyterLab'
@@ -112,7 +113,7 @@ export const tools: Record<ToolLabel, Tool> = {
 }
 
 //The order of the array is important, it decides the order in AnalysisModal.
-export const cloudRuntimeTools: Record<CloudProviderType, RuntimeTool[]> = {
+export const cloudRuntimeTools: Record<CloudProvider, RuntimeTool[]> = {
   GCP: [
     Jupyter,
     RStudio
@@ -122,7 +123,7 @@ export const cloudRuntimeTools: Record<CloudProviderType, RuntimeTool[]> = {
   ]
 }
 
-export const cloudAppTools: Record<CloudProviderType, AppTool[]> = {
+export const cloudAppTools: Record<CloudProvider, AppTool[]> = {
   GCP: [
     Galaxy,
     Cromwell
@@ -150,7 +151,7 @@ export const getPatternFromRuntimeTool = (toolLabel: RuntimeToolLabel): string =
   [toolLabels.JupyterLab, () => '.*\\.ipynb']
 )
 
-export const getToolsToDisplayForCloudProvider = (cloudProvider: CloudProviderType): Tool[] => _.remove((tool: Tool) => !!tool.isHidden)(
+export const getToolsToDisplayForCloudProvider = (cloudProvider: CloudProvider): Tool[] => _.remove((tool: Tool) => !!tool.isHidden)(
   (cloudRuntimeTools[cloudProvider] as Tool[]).concat(cloudAppTools[cloudProvider] as Tool[]))
 
 export const toolToExtensionMap: Record<ToolLabel, FileExtension> = _.flow(
@@ -172,8 +173,7 @@ export const getToolLabelForImage = (image: string): ToolLabel | undefined => _.
 // TODO: Once all consumer are in typescript, we can remove `getExtension` from this function
 export const getToolLabelFromFileExtension = (fileName: FileExtension): ToolLabel => extensionToToolMap[getExtension(fileName)]
 
-// TODO: runtime type
-export const getToolLabelFromRuntime = (runtime: any): ToolLabel => _.get(['labels', 'tool'])(runtime)
+export const getToolLabelFromRuntime = (runtime: Runtime): ToolLabel => runtime?.labels?.tool
 
 export const getAppType = (label: ToolLabel): string | undefined => appTools[label]?.appType
 
@@ -183,12 +183,3 @@ export const allAppTypes: AppToolLabel[] = _.flow(_.map('appType'), _.compact)(a
 export const isPauseSupported = (toolLabel: ToolLabel): boolean => !_.find((tool: Tool) => tool.label === toolLabel)(tools)?.isPauseUnsupported
 
 export const isSettingsSupported = (toolLabel: ToolLabel): boolean => !_.find((tool: Tool) => tool.label === toolLabel)(tools)?.isSettingsUnsupported
-
-//TODO: Placeholders. Finalized version will live in other TypeScript util files.
-export type Runtime = any
-
-export type AppDataDisk = any
-
-export type PersistentDisk = any
-
-export type App = any

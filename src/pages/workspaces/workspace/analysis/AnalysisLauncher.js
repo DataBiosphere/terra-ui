@@ -24,7 +24,6 @@ import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/l
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { cloudProviderTypes } from 'src/libs/workspace-utils'
-import { findPotentialNotebookLockers, getExtension, getFileName, notebookLockHash } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
 import { ComputeModal } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
@@ -32,12 +31,14 @@ import {
   analysisLauncherTabName, analysisTabName, appLauncherTabName, ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor,
   StatusMessage
 } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
+import { getCurrentPersistentDisk } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import { findPotentialNotebookLockers, getExtension, getFileName, notebookLockHash } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
 import {
-  getConvertedRuntimeStatus, getCurrentPersistentDisk, getCurrentRuntime, usableStatuses
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+  getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import {
   getPatternFromRuntimeTool, getToolLabelFromFileExtension, getToolLabelFromRuntime, toolLabels
-} from 'src/pages/workspaces/workspace/analysis/tool-utils'
+} from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 import { AzureComputeModal } from './modals/AzureComputeModal'

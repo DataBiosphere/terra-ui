@@ -17,11 +17,11 @@ import { withErrorReportingInModal } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
+import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import {
   getCurrentRuntime, getIsRuntimeBusy
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
 import { computeStyles } from './modalStyles'
 
