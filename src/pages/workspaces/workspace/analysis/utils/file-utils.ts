@@ -3,7 +3,7 @@ import { Ajax } from 'src/libs/ajax'
 import { NominalType } from 'src/libs/type-utils/type-helpers'
 import * as Utils from 'src/libs/utils'
 import { GoogleWorkspace } from 'src/libs/workspace-utils'
-import { runtimeTools, ToolLabel, toolToExtensionMap } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { runtimeTools, ToolLabel, toolToExtensionMap } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 export type FileName = NominalType<string, 'FileName'> // represents a file with an extension and no path, eg `dir/file.ipynb` =>  `file.ipynb`

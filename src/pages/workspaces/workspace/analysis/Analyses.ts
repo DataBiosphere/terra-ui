@@ -21,6 +21,9 @@ import jupyterLogo from 'src/images/jupyter-logo.svg'
 import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
+import { App } from 'src/libs/ajax/leonardo/models/app-models'
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models'
+import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
@@ -36,6 +39,11 @@ import * as Style from 'src/libs/style'
 import { withHandlers } from 'src/libs/type-utils/lodash-fp-helpers'
 import * as Utils from 'src/libs/utils'
 import { isAzureWorkspace, isGoogleWorkspace, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils'
+import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
+import { AnalysisModal } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisModal'
+import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
+import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
+import { AnalysisFile, useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 import {
   AbsolutePath,
   FileName,
@@ -43,22 +51,16 @@ import {
   getExtension,
   getFileName,
   notebookLockHash
-} from 'src/pages/workspaces/workspace/analysis/file-utils'
-import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
-import { AnalysisModal } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisModal'
-import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
-import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
-import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+} from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
+import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import {
-  App,
   getToolLabelFromFileExtension,
-  getToolLabelFromRuntime, PersistentDisk, Runtime,
+  getToolLabelFromRuntime,
   runtimeTools,
   ToolLabel,
   toolLabels,
   tools
-} from 'src/pages/workspaces/workspace/analysis/tool-utils'
-import { AnalysisFile, useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
+} from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 

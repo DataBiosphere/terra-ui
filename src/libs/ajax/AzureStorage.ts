@@ -4,13 +4,13 @@ import { authOpts, fetchOk, fetchWorkspaceManager } from 'src/libs/ajax/ajax-com
 import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 import { cloudProviderTypes } from 'src/libs/workspace-utils'
+import { AnalysisFile, AnalysisFileMetadata } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 import {
   AbsolutePath,
   getDisplayName,
   getExtension, getFileName
-} from 'src/pages/workspaces/workspace/analysis/file-utils'
-import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
-import { AnalysisFile, AnalysisFileMetadata } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
+} from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
+import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 type SasInfo = {

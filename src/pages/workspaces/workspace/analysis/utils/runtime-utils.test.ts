@@ -1,10 +1,14 @@
 import { addDays, subDays } from 'date-fns'
+import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { galaxyDeleting, galaxyDisk, galaxyRunning, getGoogleRuntime } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import {
-  getAnalysesDisplayList, getCurrentApp, getCurrentAppDataDisk, getCurrentAppIncludingDeleting,
-  getCurrentRuntime, getDiskAppType, runtimeStatuses, workspaceHasMultipleApps, workspaceHasMultipleDisks
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { appTools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+  getCurrentApp, getCurrentAppIncludingDeleting, getDiskAppType, workspaceHasMultipleApps
+} from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
+import { getCurrentAppDataDisk, workspaceHasMultipleDisks } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import {
+  getAnalysesDisplayList, getCurrentRuntime
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { appTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 jest.mock('src/data/gce-machines', () => {
@@ -392,8 +396,8 @@ describe('getCurrentRuntime', () => {
     expect(getCurrentRuntime([runtime1])).toStrictEqual(runtime1)
   })
   it('returns no runtimes if only deleting runtimes exists', () => {
-    const runtime1 = getGoogleRuntime({ status: runtimeStatuses.deleting.label })
-    const runtime2 = getGoogleRuntime({ status: runtimeStatuses.deleting.label })
+    const runtime1 = getGoogleRuntime({ status: runtimeStatuses.deleting.leoLabel })
+    const runtime2 = getGoogleRuntime({ status: runtimeStatuses.deleting.leoLabel })
     expect(getCurrentRuntime([runtime1, runtime2])).toBeUndefined()
   })
   it('returns the most recent runtime in a list', () => {
@@ -426,7 +430,7 @@ describe('getCurrentRuntime', () => {
 
 describe('getCurrentAppDataDisk', () => {
   it('returns undefined if no disk exists for the given app type', () => {
-    expect(getCurrentAppDataDisk(appTools.Galaxy.appType, [cromwellProvisioning], [cromwellProvisioningDisk])).toBeUndefined()
+    expect(getCurrentAppDataDisk(appTools.Galaxy.appType, [cromwellProvisioning], [cromwellProvisioningDisk], 'test-workspace')).toBeUndefined()
   })
   it('returns the newest attached disk, even if app is deleting', () => {
     expect(getCurrentAppDataDisk(appTools.Galaxy.appType, mockApps, mockAppDisks, 'test-workspace')).toStrictEqual(galaxyDeletingDiskUpdatedPd)

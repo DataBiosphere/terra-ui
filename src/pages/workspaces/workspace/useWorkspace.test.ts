@@ -8,7 +8,7 @@ import * as GoogleStorage from 'src/libs/ajax/GoogleStorage'
 import * as Notifications from 'src/libs/notifications'
 import { workspaceStore } from 'src/libs/state'
 import { DeepPartial } from 'src/libs/type-utils/deep-partial'
-import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import {
   azureBucketRecheckRate, googlePermissionsRecheckRate, useWorkspace
 } from 'src/pages/workspaces/workspace/useWorkspace'
