@@ -18,7 +18,8 @@ import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
 import { Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { isAzureUri, isDrs, isGs, UriViewerLink } from 'src/components/UriViewer'
+import { isAzureUri, isDrsUri, isGsUri } from 'src/components/UriViewer/uri-viewer-utils'
+import { UriViewerLink } from 'src/components/UriViewer/UriViewerLink'
 import ReferenceData from 'src/data/reference-data'
 import { Ajax } from 'src/libs/ajax'
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing'
@@ -68,9 +69,9 @@ export const getUserProjectForWorkspace = async workspace => (workspace && await
   workspace.workspace.googleProject :
   requesterPaysProjectStore.get()
 
-const isViewableUri = (datum, workspace) => (isGoogleWorkspace(workspace) && isGs(datum)) ||
+const isViewableUri = (datum, workspace) => (isGoogleWorkspace(workspace) && isGsUri(datum)) ||
   (isAzureWorkspace(workspace) && (isAzureUri(datum))) ||
-  isDrs(datum)
+  isDrsUri(datum)
 
 export const getRootTypeForSetTable = tableName => _.replace(/(_set)+$/, '', tableName)
 
