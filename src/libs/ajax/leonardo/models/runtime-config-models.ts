@@ -11,7 +11,7 @@ export const cloudServiceTypes: Record<ComputeType, ComputeType> = {
 }
 
 export interface BaseRuntimeConfig {
-  cloudService: ComputeType //TODO: Autopause?
+  cloudService: ComputeType
 }
 
 export interface GceConfig extends BaseRuntimeConfig {
@@ -39,7 +39,7 @@ export interface DataprocConfig extends BaseRuntimeConfig {
   workerDiskSize?: number
   numberOfWorkerLocalSSDs?: number
   numberOfPreemptibleWorkers?: number
-  // properties: Record<string, string> What is this?
+  // properties: Record<string, string> TODO: Where is this used?
   region: string
   componentGatewayEnabled: boolean
   workerPrivateAccess: boolean
