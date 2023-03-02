@@ -20,7 +20,7 @@ import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/runtime
 
 export interface StorageDetails {
   googleBucketLocation: string // historically returns defaultLocation if bucket location cannot be retrieved or Azure
-  fetchedGoogleBucketLocation: string | 'ERROR' | undefined // string (besides 'ERROR'): actual location, undefined: still fetching
+  fetchedGoogleBucketLocation: 'SUCCESS' | 'ERROR' | undefined // undefined: still fetching
   googleBucketType: string // historically returns locationTypes.default if bucket type cannot be retrieved or Azure
   azureContainerRegion?: string
   azureContainerUrl?: string
@@ -47,7 +47,7 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
   const cachedWorkspace = useStore(workspaceStore)
   const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ? cachedWorkspace : undefined
   const [{ location, locationType, fetchedLocation }, setGoogleStorage] =
-    useState<{ fetchedLocation: string | 'ERROR' | undefined; location: string; locationType: string }>({
+    useState<{ fetchedLocation: 'SUCCESS' | 'ERROR' | undefined; location: string; locationType: string }>({
       fetchedLocation: undefined, location: defaultLocation, locationType: locationTypes.default // These default types are historical
     }
     )
@@ -112,7 +112,7 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
   const loadGoogleBucketLocation = async workspace => {
     try {
       const storageDetails = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(workspace.workspace.googleProject, workspace.workspace.bucketName)
-      storageDetails.fetchedLocation = storageDetails.location
+      storageDetails.fetchedLocation = 'SUCCESS'
       setGoogleStorage(storageDetails)
     } catch (error) {
       setGoogleStorage({ fetchedLocation: 'ERROR', location, locationType })

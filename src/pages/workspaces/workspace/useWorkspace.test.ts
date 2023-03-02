@@ -164,7 +164,7 @@ describe('useActiveWorkspace', () => {
     const expectedStorageDetails = _.merge({
       googleBucketLocation: bucketLocationResponse.location,
       googleBucketType: bucketLocationResponse.locationType,
-      fetchedGoogleBucketLocation: bucketLocationResponse.location
+      fetchedGoogleBucketLocation: 'SUCCESS'
     }, defaultAzureStorageOptions)
 
     // Act
@@ -254,7 +254,7 @@ describe('useActiveWorkspace', () => {
     const expectedAllSyncedDetails = _.merge({
       googleBucketLocation: bucketLocationResponse.location,
       googleBucketType: bucketLocationResponse.locationType,
-      fetchedGoogleBucketLocation: bucketLocationResponse.location
+      fetchedGoogleBucketLocation: 'SUCCESS'
     }, defaultAzureStorageOptions)
 
     // Act
@@ -379,7 +379,7 @@ describe('useActiveWorkspace', () => {
     const expectedAllSyncedDetails = _.merge({
       googleBucketLocation: bucketLocationResponse.location,
       googleBucketType: bucketLocationResponse.locationType,
-      fetchedGoogleBucketLocation: bucketLocationResponse.location
+      fetchedGoogleBucketLocation: 'SUCCESS'
     }, defaultAzureStorageOptions)
 
     // Act
@@ -526,7 +526,7 @@ describe('useActiveWorkspace', () => {
     const expectStorageDetails = _.merge({
       googleBucketLocation: bucketLocationResponse.location,
       googleBucketType: bucketLocationResponse.locationType,
-      fetchedGoogleBucketLocation: bucketLocationResponse.location
+      fetchedGoogleBucketLocation: 'SUCCESS'
     }, defaultAzureStorageOptions)
 
     // Act
@@ -563,7 +563,7 @@ describe('useActiveWorkspace', () => {
     const expectStorageDetails = _.merge({
       googleBucketLocation: bucketLocationResponse.location,
       googleBucketType: bucketLocationResponse.locationType,
-      fetchedGoogleBucketLocation: bucketLocationResponse.location
+      fetchedGoogleBucketLocation: 'SUCCESS'
     }, defaultAzureStorageOptions)
 
     // Created time is '2023-02-03T22:26:06.124Z',

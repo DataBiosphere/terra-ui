@@ -152,7 +152,7 @@ describe('BucketLocation', () => {
     // Arrange
     const props = {
       workspace,
-      storageDetails: _.mergeAll([defaultGoogleBucketOptions, { fetchedGoogleBucketLocation: defaultGoogleBucketOptions.googleBucketLocation }, defaultAzureStorageOptions])
+      storageDetails: _.mergeAll([defaultGoogleBucketOptions, { fetchedGoogleBucketLocation: 'SUCCESS' }, defaultAzureStorageOptions])
     }
 
     // Act

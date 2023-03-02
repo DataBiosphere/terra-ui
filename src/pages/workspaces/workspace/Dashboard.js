@@ -161,13 +161,12 @@ export const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ wor
         // while storageDetails.googleBucketLocation will contain the default value.
         // In the case of requester pays workspaces, we wish to show the user more information in this case and allow them to link a workspace.
         loadGoogleBucketLocation()
-      } else if (!!storageDetails.fetchedGoogleBucketLocation && !!storageDetails.googleBucketType) {
-        setBucketLocation({ location: storageDetails.fetchedGoogleBucketLocation, locationType: storageDetails.googleBucketType })
+      } else if (storageDetails.fetchedGoogleBucketLocation === 'SUCCESS') {
+        setBucketLocation({ location: storageDetails.googleBucketLocation, locationType: storageDetails.googleBucketType })
         setLoading(false)
       }
     }
-  }, [loadGoogleBucketLocation, setBucketLocation,
-    workspace?.workspaceInitialized, storageDetails.fetchedGoogleBucketLocation, storageDetails.googleBucketType])
+  }, [loadGoogleBucketLocation, setBucketLocation, workspace?.workspaceInitialized, storageDetails])
 
   if (loading) {
     return 'Loading'
