@@ -76,7 +76,7 @@ export const MarkdownInput = ({ title, onChange, value, placeholder, required = 
   ])
 }
 
-export type SelectInputProps<Value> = SelectProps<Value, false, { value: Value; label: string }> & {
+export type SelectInputProps<Value> = SelectProps<Value, false, { value: Value; label: string | undefined }> & {
   title: string
   required?: boolean
   wrapperProps?: Omit<JSX.IntrinsicElements['div'], 'children'>

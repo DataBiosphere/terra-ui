@@ -81,7 +81,7 @@ const formatGroupLabel = (group: { label?: string }) => (
 
 type BaseSelectProps<
   Value,
-  Option extends { value: Value; label?: string },
+  Option extends { value: Value; label?: string | undefined },
   IsMulti extends boolean,
   Group extends RSelectGroupBase<Option>,
 > = Omit<RSelectProps<Option, IsMulti, Group>, 'getOptionLabel' | 'value'> & {
@@ -107,7 +107,7 @@ type BaseSelectProps<
  */
 const BaseSelect = <
   Value,
-  Option extends { value: Value; label?: string },
+  Option extends { value: Value; label?: string | undefined },
   IsMulti extends boolean,
   Group extends RSelectGroupBase<Option>,
 > ({ value, id, findValue, ...props }: BaseSelectProps<Value, Option, IsMulti, Group>) => {
@@ -128,7 +128,7 @@ const BaseSelect = <
 export type SelectProps<
   Value,
   IsMulti extends boolean,
-  Option extends { value: Value; label?: string },
+  Option extends { value: Value; label?: string | undefined },
 > = Omit<BaseSelectProps<Value, Option, IsMulti, never>, 'findValue' | 'options'> & {
   options: (Value | Option)[]
 }
@@ -151,7 +151,7 @@ export type SelectProps<
 export const Select = <
   Value,
   IsMulti extends boolean = false,
-  Option extends { value: Value; label?: string } = { value: Value; label: string },
+  Option extends { value: Value; label?: string | undefined } = { value: Value; label: string | undefined },
 > ({ value, options = [], ...props }: SelectProps<Value, IsMulti, Option>) => {
   useLabelAssert('Select', { ...props, allowId: true })
 
@@ -173,7 +173,7 @@ export const Select = <
 export type GroupedSelectProps<
   Value,
   IsMulti extends boolean,
-  Option extends { value: Value; label?: string },
+  Option extends { value: Value; label?: string | undefined },
   Group extends RSelectGroupBase<Option>,
 > = Omit<BaseSelectProps<Value, Option, IsMulti, Group>, 'findValue' | 'options'> & {
   options: Group[]
@@ -188,7 +188,7 @@ export type GroupedSelectProps<
 export const GroupedSelect = <
   Value,
   IsMulti extends boolean = false,
-  Option extends { value: Value; label?: string } = { value: Value; label?: string },
+  Option extends { value: Value; label?: string | undefined } = { value: Value; label?: string | undefined },
   Group extends RSelectGroupBase<Option> = RSelectGroupBase<Option>,
 > ({ value, options = [], ...props }: GroupedSelectProps<Value, IsMulti, Option, Group>) => {
   useLabelAssert('GroupedSelect', { ...props, allowId: true })
