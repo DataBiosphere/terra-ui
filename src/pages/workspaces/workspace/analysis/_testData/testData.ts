@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { cloudServiceTypes } from 'src/libs/ajax/leonardo/models/runtime-config-models'
+import { cloudServiceTypes, DataprocConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models'
 import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { defaultAzureRegion } from 'src/libs/azure-utils'
 import * as Utils from 'src/libs/utils'
@@ -33,6 +33,7 @@ export const defaultImage = {
   updated: '2022-08-09',
   version: '2.2.8'
 }
+
 export const defaultRImage = {
   id: 'RStudio',
   image: 'us.gcr.io/broad-dsp-gcr-public/anvil-rstudio-bioconductor:3.15.2',
@@ -53,6 +54,7 @@ export const hailImage = {
   updated: '2022-08-25',
   version: '1.0.20'
 }
+
 export const imageDocs = [
   defaultImage,
   {
@@ -384,4 +386,31 @@ export const azureRuntime = {
     cloudContext: 'Azure/0cb7a640-45a2-4ed6-be9f-63519f86e04b/3efc5bdf-be0e-44e7-b1d7-c08931e3c16c/mrg-terra-dev-jan23-20230123125907'
   },
   patchInProgress: false
+}
+
+export const defaultSparkSingleNode: DataprocConfig = {
+  cloudService: 'DATAPROC',
+  autopauseThreshold: 30,
+  region: 'US-CENTRAL1',
+  masterMachineType: 'n1-standard-4',
+  masterDiskSize: 150,
+  numberOfWorkers: 0,
+  componentGatewayEnabled: true,
+  numberOfPreemptibleWorkers: 0,
+  workerDiskSize: 0,
+  workerPrivateAccess: false
+}
+
+export const defaultSparkCluster: DataprocConfig = {
+  cloudService: 'DATAPROC',
+  autopauseThreshold: 30,
+  region: 'US-CENTRAL1',
+  masterMachineType: 'n1-standard-4',
+  masterDiskSize: 150,
+  numberOfWorkers: 2,
+  componentGatewayEnabled: true,
+  numberOfPreemptibleWorkers: 0,
+  workerMachineType: 'n1-standard-4',
+  workerDiskSize: 150,
+  workerPrivateAccess: false
 }

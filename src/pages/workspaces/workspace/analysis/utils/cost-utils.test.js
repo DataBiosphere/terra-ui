@@ -1,6 +1,6 @@
 import { getAzurePricesForRegion } from 'src/libs/azure-utils'
-import { azureDisk, azureRuntime, galaxyDisk, galaxyRunning, getDisk, getGoogleRuntime, getJupyterRuntimeConfig } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
-import { getCostDisplayForDisk, getCostDisplayForTool, getPersistentDiskCostMonthly, getRuntimeCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
+import { azureDisk, azureRuntime, defaultSparkCluster, defaultSparkSingleNode, galaxyDisk, galaxyRunning, getDisk, getGoogleRuntime, getJupyterRuntimeConfig } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
+import { getCostDisplayForDisk, getCostDisplayForTool, getPersistentDiskCostMonthly, getRuntimeCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import { pdTypes } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
@@ -276,5 +276,21 @@ describe('getPersistentDiskCostMonthly', () => {
 
     // Assert
     expect(result).toBe(getAzurePricesForRegion('eastus')['S6 LRS'])
+  })
+})
+
+describe('runtimeConfigCost for dataproc', () => {
+  it('gets cost for a dataproc cluster', () => {
+    // Act
+    const result = runtimeConfigCost(defaultSparkCluster)
+    // Assert
+    expect(result).toBeGreaterThan(0)
+  })
+  it('gets cost for single node cluster', () => {
+    // Act
+    const result = runtimeConfigCost(defaultSparkSingleNode)
+
+    // Assert
+    expect(result).toBeGreaterThan(0)
   })
 })
