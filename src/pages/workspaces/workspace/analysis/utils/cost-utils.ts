@@ -72,7 +72,6 @@ export const runtimeConfigBaseCost = (config: GoogleRuntimeConfig): number => {
 
   const costForGceWithUserDisk: number = isGceWithPdConfig(config) ?
     (config.bootDiskSize) * getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard) : 0
-
   return _.sum([costForDataproc, costForGceWithoutUserDisk, costForGceWithUserDisk])
 }
 

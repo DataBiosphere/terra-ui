@@ -544,11 +544,11 @@ export const ComputeModalBase = ({
         masterDiskSize: desiredRuntime.masterDiskSize,
         numberOfWorkers: desiredRuntime.numberOfWorkers,
         componentGatewayEnabled: computeConfig.componentGatewayEnabled,
-        ...(desiredRuntime.numberOfWorkers && {
-          numberOfPreemptibleWorkers: desiredRuntime.numberOfPreemptibleWorkers,
-          workerMachineType: desiredRuntime.workerMachineType,
-          workerDiskSize: desiredRuntime.workerDiskSize
-        })
+
+        numberOfPreemptibleWorkers: desiredRuntime.numberOfPreemptibleWorkers || 0,
+        workerMachineType: desiredRuntime.workerMachineType,
+        workerDiskSize: desiredRuntime.workerDiskSize || 0
+
       })
     }
   }
