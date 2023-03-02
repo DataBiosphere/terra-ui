@@ -1029,6 +1029,7 @@ const WorkspaceData = _.flow(
                 setUploadingWDSFile(false)
                 forceRefresh()
                 loadMetadata()
+                notify('success', 'Data imported successfully.')
               },
               namespace, name,
               workspaceId, entityTypes: wdsTypes.state.map(item => item['name']), dataProvider: wdsDataTableProvider,
