@@ -33,15 +33,17 @@ interface IComputeConfig {
 interface PersistentDiskProps {
   diskExists: boolean
   computeConfig: IComputeConfig
-  updateComputeConfig: (arg: string) => (diskType: string) => void
+  updateComputeConfig: (arg: string) => (diskType: any) => void
   handleLearnMoreAboutPersistentDisk: React.MouseEventHandler
 }
 
 interface PersistentDiskTypeProps {
   diskExists: boolean
   computeConfig: IComputeConfig
-  updateComputeConfig: (arg: string) => (diskType: string) => void
+  updateComputeConfig: (arg: string) => (diskType: any) => void
 }
+
+const PersistentDiskTypeSelect = Select as typeof Select<IComputeConfig['selectedPersistentDiskType']>
 
 export const PersistentDiskType = ({ diskExists, computeConfig, updateComputeConfig }: PersistentDiskTypeProps) => {
   const persistentDiskId = useUniqueId()
@@ -49,11 +51,11 @@ export const PersistentDiskType = ({ diskExists, computeConfig, updateComputeCon
     h(div, [
       label({ htmlFor: persistentDiskId, style: computeStyles.label }, ['Disk Type']),
       div({ style: { marginTop: '0.5rem' } }, [
-        h(Select, {
+        h(PersistentDiskTypeSelect, {
           id: persistentDiskId,
           value: computeConfig.selectedPersistentDiskType,
           isDisabled: diskExists,
-          onChange: e => updateComputeConfig('selectedPersistentDiskType')(e.value),
+          onChange: e => updateComputeConfig('selectedPersistentDiskType')(e!.value),
           menuPlacement: 'auto',
           options: [
             { label: pdTypes.standard.displayName, value: pdTypes.standard },

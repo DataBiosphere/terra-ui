@@ -16,13 +16,15 @@ interface StorageInputProps {
   onChange: (storageObject: StorageObject) => void
 }
 
+const CloudPlatformStorageInput = SelectInput as typeof SelectInput<StorageObject['cloudPlatform']>
+
 export const StorageInput = ({ wrapperProps, storageObject, onChange }: StorageInputProps) => {
   const inputWrapperProps = {
     style: { width: `${100 / 3}%` }
   }
 
   // This gets its own method because it is select inputs
-  const generateSelectInputProps = (title, key, azureTypes, gcpTypes): SelectInputProps => {
+  const generateSelectInputProps = <Value>(title, key, azureTypes, gcpTypes): SelectInputProps<Value> => {
     return {
       title,
       wrapperProps: inputWrapperProps,
@@ -34,18 +36,18 @@ export const StorageInput = ({ wrapperProps, storageObject, onChange }: StorageI
           default: return []
         }
       })(),
-      onChange: option => onChange(_.set(key, option.value, storageObject) as StorageObject)
+      onChange: option => onChange(_.set(key, option!.value, storageObject) as StorageObject)
     }
   }
 
   return div(wrapperProps, [
     div({ style: { display: 'flex', width: '100%' } }, [
-      h(SelectInput, {
+      h(CloudPlatformStorageInput, {
         title: 'Cloud Platform',
         wrapperProps: inputWrapperProps,
         value: storageObject.cloudPlatform,
         options: ['gcp', 'azure'],
-        onChange: option => onChange({ cloudPlatform: option.value })
+        onChange: option => onChange({ cloudPlatform: option!.value })
       }),
       h(SelectInput, generateSelectInputProps('Cloud Resource', 'cloudResource', azureCloudResourceTypes, googleCloudResourceTypes)),
       h(SelectInput, generateSelectInputProps('Region', 'region', azureCloudRegionTypes, googleCloudRegionTypes))

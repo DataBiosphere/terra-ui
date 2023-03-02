@@ -358,6 +358,8 @@ export interface Sort {
   direction: SortDirection
 }
 
+const SortSelect = Select as typeof Select<Sort>
+
 export interface SearchAndFilterProps<ListItem> {
   fullList: ListItem[]
   sidebarSections: FilterSection<ListItem>[]
@@ -381,7 +383,7 @@ export const SearchAndFilterComponent = <ListItem>({
     const selectedSection = _.find(s => s.header === section.header, sidebarSections) || {}
     return { ...selectedSection, ...section } as FilterSection<ListItem>
   }, querySections)
-  const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
+  const [sort, setSort] = useState<Sort>({ field: 'created', direction: 'desc' })
   const filterRegex = new RegExp(`(${_.escapeRegExp(searchFilter)})`, 'i')
   const listItemsShown = _.filter(item => _.includes(_.toLower(searchFilter), `${getLowerName(item)} ${getLowerDescription(item)}`), getMatchingDataForSectionList(selectedSections, fullList))
   const searchBarId = useUniqueId()
@@ -483,13 +485,13 @@ export const SearchAndFilterComponent = <ListItem>({
             htmlFor: id,
             style: { margin: '0 1ch 0 1rem', whiteSpace: 'nowrap' }
           }, ['Sort by']),
-          h(Select, {
+          h(SortSelect, {
             id,
             isClearable: false,
             isSearchable: false,
             styles: { container: old => ({ ...old, flex: '0 0 content' }) },
             value: sort,
-            onChange: ({ value }) => setSort(value),
+            onChange: opt => setSort(opt!.value),
             options: [
               { value: { field: 'created', direction: 'desc' }, label: 'most recent' },
               { value: { field: 'name', direction: 'asc' }, label: 'alphabetical' }
