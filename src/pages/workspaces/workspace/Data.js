@@ -747,8 +747,8 @@ const WorkspaceData = _.flow(
               }, 'Add reference data')
             ])
           }, [h(ButtonOutline, {
-            disabled: !canEditWorkspace,
-            tooltip: canEditWorkspace && !uploadingWDSFile ? 'Add data to this workspace' : editWorkspaceErrorMessage,
+            disabled: !canEditWorkspace || uploadingWDSFile,
+            tooltip: Utils.cond([uploadingWDSFile, 'Upload in progress'], canEditWorkspace ? 'Add data to this workspace' : editWorkspaceErrorMessage),
             style: { flex: 1 }
           }, [span([icon('plus-circle', { style: { marginRight: '1ch' } }), 'Import data'])])])
         ]),
