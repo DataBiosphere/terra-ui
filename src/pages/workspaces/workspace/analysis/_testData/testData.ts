@@ -1,4 +1,6 @@
 import _ from 'lodash/fp'
+import { AppType } from 'src/libs/ajax/leonardo/models/app-models'
+import { AppDataDisk } from 'src/libs/ajax/leonardo/models/disk-models'
 import { cloudServiceTypes } from 'src/libs/ajax/leonardo/models/runtime-config-models'
 import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { defaultAzureRegion } from 'src/libs/azure-utils'
@@ -160,7 +162,7 @@ export const defaultTestDisk = {
   auditInfo: {
     creator: 'testuser123@broad.com',
     createdDate: '2022-07-18T18:35:32.012698Z',
-    destroyedDate: null,
+    // destroyedDate: null,
     dateAccessed: '2022-07-18T20:34:56.092Z'
   },
   size: defaultGcePersistentDiskSize,
@@ -280,11 +282,14 @@ export const getGoogleRuntime = ({
   }
 }
 
-export const galaxyRunning = {
+export const galaxyRunning: AppType = {
   appName: 'terra-app-69200c2f-89c3-47db-874c-b770d8de737f',
   appType: 'GALAXY',
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-29T20:19:13.162484Z'
+    creator: 'cahrens@gmail.com',
+    createdDate: '2021-11-29T20:19:13.162484Z',
+    // destroyedDate: null,
+    dateAccessed: '2021-11-29T20:19:13.162484Z'
   },
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
   errors: [],
@@ -295,11 +300,14 @@ export const galaxyRunning = {
   status: 'RUNNING'
 }
 
-export const galaxyDeleting = {
+export const galaxyDeleting: AppType = {
   appName: 'terra-app-71200c2f-89c3-47db-874c-b770d8de22g',
   appType: 'GALAXY',
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-30T20:19:13.162484Z'
+    creator: 'cahrens@gmail.com',
+    createdDate: '2021-11-30T20:19:13.162484Z',
+    // destroyedDate: null,
+    dateAccessed: '2021-11-30T20:19:13.162484Z'
   },
   diskName: 'saturn-pd-1236594ac-d829-423d-a8df-76fe96f5897',
   errors: [],
@@ -310,9 +318,12 @@ export const galaxyDeleting = {
   status: 'DELETING'
 }
 
-export const galaxyDisk = {
+export const galaxyDisk:AppDataDisk = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-29T20:19:14.114Z'
+    creator: 'cahrens@gmail.com',
+    createdDate: '2021-11-29T20:19:13.162484Z',
+    // destroyedDate: null,
+    dateAccessed: '2021-11-29T20:19:14.114Z'
   },
   blockSize: 4096,
   diskType: 'pd-standard',
@@ -338,7 +349,7 @@ export const azureDisk = {
   auditInfo: {
     creator: 'test.user@gmail.com',
     createdDate: '2023-02-01T20:40:50.428281Z',
-    destroyedDate: null,
+    // destroyedDate: null,
     dateAccessed: '2023-02-01T20:41:00.357Z'
   },
   size: 50,
@@ -362,7 +373,7 @@ export const azureRuntime = {
   auditInfo: {
     creator: 'ncl.hedwig@gmail.com',
     createdDate: '2023-02-01T20:40:50.428281Z',
-    destroyedDate: null,
+    // destroyedDate: null,
     dateAccessed: '2023-02-01T20:41:00.357Z'
   },
   runtimeConfig: {

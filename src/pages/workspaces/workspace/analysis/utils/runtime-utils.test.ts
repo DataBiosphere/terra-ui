@@ -32,7 +32,7 @@ const cromwellRunning = {
   appName: 'terra-app-83f46705-524c-4fc8-xcyc-97fdvcfby14f',
   appType: 'CROMWELL',
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-28T20:28:01.998494Z', destroyedDate: null, dateAccessed: '2021-11-28T20:28:01.998494Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-28T20:28:01.998494Z', dateAccessed: '2021-11-28T20:28:01.998494Z'
   },
   diskName: 'saturn-pd-693a9707-634d-4134-bb3a-xyz73cd5a8ce',
   errors: [],
@@ -48,7 +48,7 @@ const cromwellProvisioning = {
   appName: 'terra-app-73f46705-524c-4fc8-ac8c-07fd0cfbb14f',
   appType: 'CROMWELL',
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:28:01.998494Z', destroyedDate: null, dateAccessed: '2021-11-29T20:28:01.998494Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:28:01.998494Z', dateAccessed: '2021-11-29T20:28:01.998494Z'
   },
   diskName: 'saturn-pd-693a9707-634d-4134-bb3a-cbb73cd5a8ce',
   errors: [],
@@ -66,7 +66,7 @@ const galaxy1Workspace1 = {
   appName: 'terra-app-69200c2f-89c3-47db-874c-b770d8de858g',
   appType: 'GALAXY',
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-12-10T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-12-11T20:19:13.162484Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-12-10T20:19:13.162484Z', dateAccessed: '2021-12-11T20:19:13.162484Z'
   },
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-87fe07f6b5e8', // galaxyDisk1Workspace1
   errors: [],
@@ -81,7 +81,7 @@ const galaxy2Workspace1 = {
   appName: 'terra-app-69200c2f-89c3-47db-874c-b770d8de656t',
   appType: 'GALAXY',
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-12-10T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-12-11T20:19:13.162484Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-12-10T20:19:13.162484Z', dateAccessed: '2021-12-11T20:19:13.162484Z'
   },
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-98fe18f7b6e9', // galaxyDisk2Workspace1
   errors: [],
@@ -96,7 +96,7 @@ const cromwell1Workspace1 = {
   appName: 'terra-app-69200c2f-89c3-47db-874c-b770d8de656t',
   appType: 'GALAXY',
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-12-10T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-12-11T20:19:13.162484Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-12-10T20:19:13.162484Z', dateAccessed: '2021-12-11T20:19:13.162484Z'
   },
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-55fe36f5b4e8', // cromwellDisk1Workspace1
   errors: [],
@@ -111,7 +111,7 @@ const mockAppsSameWorkspace = [galaxy1Workspace1, galaxy2Workspace1, cromwell1Wo
 
 const galaxyDiskUpdatedPd = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-29T20:19:14.114Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:19:13.162484Z', dateAccessed: '2021-11-29T20:19:14.114Z'
   },
   blockSize: 4096,
   diskType: {
@@ -131,7 +131,7 @@ const galaxyDiskUpdatedPd = {
 // Newer than galaxyDisk, attached to galaxyDeleting app.
 const galaxyDeletingDisk = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-30T20:19:14.114Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T20:19:13.162484Z', dateAccessed: '2021-11-30T20:19:14.114Z'
   },
   blockSize: 4096,
   diskType: 'pd-standard',
@@ -146,7 +146,7 @@ const galaxyDeletingDisk = {
 
 const galaxyDeletingDiskUpdatedPd = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-30T20:19:14.114Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T20:19:13.162484Z', dateAccessed: '2021-11-30T20:19:14.114Z'
   },
   blockSize: 4096,
   diskType: {
@@ -165,7 +165,7 @@ const galaxyDeletingDiskUpdatedPd = {
 
 const cromwellUnattachedDisk = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T02:21:00.705505Z', destroyedDate: null, dateAccessed: '2021-11-30T02:21:00.705505Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T02:21:00.705505Z', dateAccessed: '2021-11-30T02:21:00.705505Z'
   },
   blockSize: 4096,
   diskType: 'pd-standard',
@@ -180,7 +180,7 @@ const cromwellUnattachedDisk = {
 
 const cromwellUnattachedDiskUpdatedPd = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T02:21:00.705505Z', destroyedDate: null, dateAccessed: '2021-11-30T02:21:00.705505Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T02:21:00.705505Z', dateAccessed: '2021-11-30T02:21:00.705505Z'
   },
   blockSize: 4096,
   diskType: {
@@ -200,7 +200,7 @@ const cromwellUnattachedDiskUpdatedPd = {
 // Older than cromwellUnattachedDisk, attached to cromwellProvisioning app.
 const cromwellProvisioningDisk = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:28:01.998494Z', destroyedDate: null, dateAccessed: '2021-11-29T20:28:03.109Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:28:01.998494Z', dateAccessed: '2021-11-29T20:28:03.109Z'
   },
   blockSize: 4096,
   diskType: 'pd-standard',
@@ -215,7 +215,7 @@ const cromwellProvisioningDisk = {
 
 const cromwellProvisioningDiskUpdatedPd = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:28:01.998494Z', destroyedDate: null, dateAccessed: '2021-11-29T20:28:03.109Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:28:01.998494Z', dateAccessed: '2021-11-29T20:28:03.109Z'
   },
   blockSize: 4096,
   diskType: {
@@ -235,7 +235,7 @@ const cromwellProvisioningDiskUpdatedPd = {
 
 const jupyterDisk = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-12-02T16:38:13.777424Z', destroyedDate: null, dateAccessed: '2021-12-02T16:40:23.464Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-12-02T16:38:13.777424Z', dateAccessed: '2021-12-02T16:40:23.464Z'
   },
   blockSize: 4096,
   cloudContext: { cloudProvider: 'GCP', cloudResource: 'terra-test-f828b4cd' },
@@ -253,7 +253,7 @@ const mockAppDisks = [galaxyDisk, galaxyDeletingDisk, cromwellProvisioningDisk, 
 
 const galaxyDisk1Workspace1 = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-12-10T20:19:14.114Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T20:19:13.162484Z', dateAccessed: '2021-12-10T20:19:14.114Z'
   },
   blockSize: 4096,
   diskType: 'pd-standard',
@@ -268,7 +268,7 @@ const galaxyDisk1Workspace1 = {
 
 const galaxyDisk2Workspace1 = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-28T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-29T20:19:14.114Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-28T20:19:13.162484Z', dateAccessed: '2021-11-29T20:19:14.114Z'
   },
   blockSize: 4096,
   diskType: 'pd-standard',
@@ -283,7 +283,7 @@ const galaxyDisk2Workspace1 = {
 
 const galaxyDisk3Workspace2 = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-26T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-29T20:19:14.114Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-26T20:19:13.162484Z', dateAccessed: '2021-11-29T20:19:14.114Z'
   },
   blockSize: 4096,
   diskType: 'pd-standard',
@@ -298,7 +298,7 @@ const galaxyDisk3Workspace2 = {
 
 const cromwellDisk1Workspace1 = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-26T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-29T20:19:14.114Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-26T20:19:13.162484Z', dateAccessed: '2021-11-29T20:19:14.114Z'
   },
   blockSize: 4096,
   diskType: 'pd-standard',

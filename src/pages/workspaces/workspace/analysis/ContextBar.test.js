@@ -165,7 +165,7 @@ const cromwellOnAzureRunning = {
   auditInfo: {
     creator: 'abc.testerson@gmail.com',
     createdDate: '2023-01-18T23:28:47.605176Z',
-    destroyedDate: null,
+    // destroyedDate: null,
     dateAccessed: '2023-01-18T23:28:47.605176Z'
   },
   appType: 'CROMWELL',
@@ -204,7 +204,7 @@ const jupyter = {
   auditInfo: {
     creator: 'testuser123@broad.com',
     createdDate: '2022-07-18T18:35:32.012698Z',
-    destroyedDate: null,
+    // destroyedDate: null,
     dateAccessed: '2022-07-18T21:44:17.565Z'
   },
   runtimeConfig: {
@@ -240,7 +240,7 @@ const jupyterLabRunning = {
     createdDate: '2022-09-09T20:20:06.982538Z',
     creator: 'ncl.hedwig@gmail.com',
     dateAccessed: '2022-09-09T20:20:08.185Z',
-    destroyedDate: null
+    // destroyedDate: null
   },
   cloudContext: {
     cloudProvider: 'AZURE',
@@ -286,7 +286,7 @@ const runtimeDisk = {
   auditInfo: {
     creator: 'testuser123@broad.com',
     createdDate: '2022-07-18T18:35:32.012698Z',
-    destroyedDate: null,
+    // destroyedDate: null,
     dateAccessed: '2022-07-18T20:34:56.092Z'
   },
   size: 50,
@@ -314,7 +314,7 @@ const rstudioRuntime = {
   auditInfo: {
     creator: 'ncl.hedwig@gmail.com',
     createdDate: '2022-09-08T19:46:37.396597Z',
-    destroyedDate: null,
+    // destroyedDate: null,
     dateAccessed: '2022-09-08T19:47:21.206Z'
   },
   runtimeConfig: {

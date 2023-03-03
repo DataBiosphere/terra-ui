@@ -21,7 +21,7 @@ import jupyterLogo from 'src/images/jupyter-logo.svg'
 import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
-import { App } from 'src/libs/ajax/leonardo/models/app-models'
+import { AppType } from 'src/libs/ajax/leonardo/models/app-models'
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models'
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models'
 import colors from 'src/libs/colors'
@@ -290,7 +290,7 @@ export const getUniqueFileName = (originalName: string, existingFileNames: FileN
 }
 
 export interface AnalysesData {
-  apps: App[]
+  apps: AppType[]
   refreshApps: () => Promise<void>
   runtimes: Runtime[]
   refreshRuntimes: () => Promise<void>
