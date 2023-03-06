@@ -8,11 +8,9 @@ import Events, { extractCrossWorkspaceDetails } from 'src/libs/events'
 import { useCancellation } from 'src/libs/react-utils'
 import LoadedState from 'src/libs/type-utils/LoadedState'
 import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils'
-import {
-  AnalysisFile,
-  getDisplayName
-} from 'src/pages/workspaces/workspace/analysis/file-utils'
-import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { AnalysisFile } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
+import { getDisplayName } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
+import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 export type LoadedAnalysisNames = LoadedState<string[], unknown>

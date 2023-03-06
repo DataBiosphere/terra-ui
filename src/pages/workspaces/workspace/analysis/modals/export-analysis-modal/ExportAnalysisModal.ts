@@ -9,13 +9,11 @@ import { FormLabel } from 'src/libs/forms'
 import { goToPath as navToPath } from 'src/libs/nav'
 import { isValidWsExportTarget, summarizeErrors } from 'src/libs/utils'
 import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils'
-import { getAnalysisFileExtension, stripExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { useAnalysesExportState } from 'src/pages/workspaces/workspace/analysis/modals/export-analysis-modal/export-analysis-modal.state'
-import {
-  analysisNameInput, analysisNameValidator
-} from 'src/pages/workspaces/workspace/analysis/notebook-utils'
-import { analysisLauncherTabName, analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
-import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { analysisLauncherTabName, analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
+import { getAnalysisFileExtension, stripExtension } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
+import { analysisNameInput, analysisNameValidator } from 'src/pages/workspaces/workspace/analysis/utils/notebook-utils'
+import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import validate from 'validate.js'
 
 

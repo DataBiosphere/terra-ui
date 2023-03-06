@@ -5,7 +5,7 @@ import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils'
 import {
   useAnalysesExportState
 } from 'src/pages/workspaces/workspace/analysis/modals/export-analysis-modal/export-analysis-modal.state'
-import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
 import { ExportAnalysisModal } from './ExportAnalysisModal'
@@ -42,7 +42,8 @@ const mockWorkspaces: Partial<WorkspaceWrapper>[] = [
       workspaceId: 'Workspace1',
       name: 'name1',
       namespace: 'namespace1',
-      cloudPlatform: ''
+      cloudPlatform: '',
+      authorizationDomain: []
     }
   },
   {
@@ -50,7 +51,8 @@ const mockWorkspaces: Partial<WorkspaceWrapper>[] = [
       workspaceId: 'Workspace2',
       name: 'name2',
       namespace: 'namespace2',
-      cloudPlatform: ''
+      cloudPlatform: '',
+      authorizationDomain: []
     }
   },
   {
@@ -58,7 +60,8 @@ const mockWorkspaces: Partial<WorkspaceWrapper>[] = [
       workspaceId: 'Workspace3',
       name: 'name3',
       namespace: 'namespace3',
-      cloudPlatform: ''
+      cloudPlatform: '',
+      authorizationDomain: []
     }
   }
 ]

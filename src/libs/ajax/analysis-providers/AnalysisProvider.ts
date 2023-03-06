@@ -1,7 +1,8 @@
 import { Ajax } from 'src/libs/ajax'
 import { GoogleWorkspaceInfo, isGoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils'
-import { AnalysisFile, getExtension, stripExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
-import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { AnalysisFile } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
+import { getExtension, stripExtension } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
+import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 export interface AnalysisProviderContract {

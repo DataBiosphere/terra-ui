@@ -1,7 +1,7 @@
 import { Ajax } from 'src/libs/ajax'
 import { AnalysisProvider } from 'src/libs/ajax/analysis-providers/AnalysisProvider'
 import { WorkspaceInfo } from 'src/libs/workspace-utils'
-import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
 
