@@ -269,7 +269,6 @@ export const AzureComputeModalBase = ({
         ])
       }, [
         { label: 'Running cloud compute cost', cost: Utils.formatUSD(getAzureComputeCostEstimate(computeConfig)), unitLabel: 'per hr' },
-        // TODO [IA-3993] consider implementing pause via deallocate (which changes cost) instead of powerOff (which doesn't)
         { label: 'Paused cloud compute cost', cost: Utils.formatUSD(getAzureComputeCostEstimate(computeConfig)), unitLabel: 'per hr' },
         {
           label: 'Persistent disk cost',
