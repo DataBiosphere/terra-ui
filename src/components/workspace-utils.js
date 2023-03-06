@@ -82,7 +82,9 @@ export const WorkspaceSelector = ({ workspaces, value, onChange, id, 'aria-label
     _.sortBy(ws => ws.workspace.name.toLowerCase()),
     _.map(({ workspace: { workspaceId, name } }) => ({ value: workspaceId, label: name }))
   )(workspaces)
-
+  // console.log('n8n8')
+  // console.log(workspaces)
+  // console.log(options)
   return h(VirtualizedSelect, {
     id,
     'aria-label': ariaLabel || 'Select a workspace',
