@@ -294,7 +294,7 @@ const FilterSectionComponent = <ListItem>({ section, fullList, selectedSections,
   const valuesToShow = _.filter(sectionEntry => _.size(listItemsMatchForSectionEntry(sectionEntry, section.matchBy, fullList)) > 0, section.values)
 
   return h(Fragment, [
-    _.map(sectionEntry => {
+    _.map((sectionEntry : string) => {
       const numMatches = listItemsMatchForSectionEntry(sectionEntry, section.matchBy, itemsFilteredByOtherSections).length
       const sectionEntryChecked = sectionEntrySelected(section, sectionEntry, selectedSections)
       return h(Clickable, {
@@ -310,7 +310,7 @@ const FilterSectionComponent = <ListItem>({ section, fullList, selectedSections,
         div({ style: { lineHeight: '1.375rem', flex: 1 } }, [section.renderer ? section.renderer(sectionEntry) : sectionEntry]),
         div({ style: styles.pill(sectionEntryChecked) }, [numMatches, div({ className: 'sr-only' }, [' matches'])])
       ])
-    }, valuesToShow),
+    }, _.take(numLabelsToRender, valuesToShow)),
     _.size(valuesToShow) > numLabelsToRender && h(Link, {
       style: { display: 'block', textAlign: 'center' },
       onClick: () => { setShowAll(!showAll) }
