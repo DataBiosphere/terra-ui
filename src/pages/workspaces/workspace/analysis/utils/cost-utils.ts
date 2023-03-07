@@ -29,13 +29,13 @@ import { appTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/ut
 
 // GOOGLE COST METHODS begin
 
-const dataprocCost = (machineType, numInstances) => {
+export const dataprocCost = (machineType, numInstances) => {
   const { cpu: cpuPrice } = findMachineType(machineType)
 
   return cpuPrice * numInstances * dataprocCpuPrice
 }
 
-const getHourlyCostForMachineType = (machineTypeName, region, isPreemptible) => {
+export const getHourlyCostForMachineType = (machineTypeName, region, isPreemptible) => {
   const { cpu, memory } = _.find({ name: machineTypeName }, machineTypes) || { cpu: 0, memory: 0 }
   const { n1HourlyCpuPrice = 0, preemptibleN1HourlyCpuPrice = 0, n1HourlyGBRamPrice = 0, preemptibleN1HourlyGBRamPrice = 0 } = _.find({ name: _.toUpper(region) },
     regionToPrices) || {}
@@ -44,14 +44,14 @@ const getHourlyCostForMachineType = (machineTypeName, region, isPreemptible) => 
     (cpu * n1HourlyCpuPrice) + (memory * n1HourlyGBRamPrice)
 }
 
-const getGpuCost = (gpuType, numGpus, region) => {
+export const getGpuCost = (gpuType, numGpus, region) => {
   const prices = _.find({ name: region }, regionToPrices) || {}
   // From a type like 'nvidia-tesla-t4', look up 't4HourlyPrice' in prices
   const price = prices[`${_.last(_.split('-', gpuType))}HourlyPrice`]
   return price * numGpus
 }
 
-const getDefaultIfUndefined = (input: number | undefined, alternative: number): number => input ? input : alternative
+export const getDefaultIfUndefined = (input: number | undefined, alternative: number): number => input ? input : alternative
 
 // This function deals with runtimes that are paused
 // All disks referenced in this function are boot disks (aka the disk google needs to provision by default for OS storage)
@@ -60,8 +60,8 @@ export const runtimeConfigBaseCost = (config: GoogleRuntimeConfig): number => {
   const computeRegion = getNormalizedComputeRegion(config)
 
   const costForDataproc: number = isDataprocConfig(config) ?
-    config.masterDiskSize + config.numberOfWorkers *
-      getDefaultIfUndefined(config.workerDiskSize, defaultDataprocWorkerDiskSize) *
+    (config.masterDiskSize + config.numberOfWorkers *
+      getDefaultIfUndefined(config.workerDiskSize, defaultDataprocWorkerDiskSize)) *
     getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard) +
     dataprocCost(config.masterMachineType, 1) + dataprocCost(config.workerMachineType, config.numberOfWorkers) :
     0
@@ -72,7 +72,6 @@ export const runtimeConfigBaseCost = (config: GoogleRuntimeConfig): number => {
 
   const costForGceWithUserDisk: number = isGceWithPdConfig(config) ?
     (config.bootDiskSize) * getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard) : 0
-
   return _.sum([costForDataproc, costForGceWithoutUserDisk, costForGceWithUserDisk])
 }
 
@@ -106,13 +105,13 @@ export const runtimeConfigCost = (config: GoogleRuntimeConfig): number => {
 }
 
 // Per GB following https://cloud.google.com/compute/pricing
-const getPersistentDiskPriceForRegionMonthly = (computeRegion, diskType) => {
+export const getPersistentDiskPriceForRegionMonthly = (computeRegion, diskType) => {
   return _.flow(_.find({ name: _.toUpper(computeRegion) }), _.get([diskType.regionToPricesName]))(regionToPrices)
 }
 const numberOfHoursPerMonth = 730
-const getPersistentDiskPriceForRegionHourly = (computeRegion, diskType) => getPersistentDiskPriceForRegionMonthly(computeRegion, diskType) / numberOfHoursPerMonth
+export const getPersistentDiskPriceForRegionHourly = (computeRegion, diskType) => getPersistentDiskPriceForRegionMonthly(computeRegion, diskType) / numberOfHoursPerMonth
 
-const ephemeralExternalIpAddressCost = ({ numStandardVms, numPreemptibleVms }) => {
+export const ephemeralExternalIpAddressCost = ({ numStandardVms, numPreemptibleVms }) => {
   // Google categorizes a VM as 'standard' if it is not 'pre-emptible'.
   return numStandardVms * ephemeralExternalIpAddressPrice.standard + numPreemptibleVms * ephemeralExternalIpAddressPrice.preemptible
 }

@@ -93,13 +93,16 @@ export const Billing = signal => ({
     return res.json()
   },
 
-  addProjectUser: (projectName, roles, email) => {
-    const addRole = role => fetchRawls(
-      `billing/v2/${projectName}/members/${role}/${encodeURIComponent(email)}`,
-      _.merge(authOpts(), { signal, method: 'PUT' })
+  addProjectUser: async (projectName, roles, email) => {
+    // Build an array of {email: string, role: string}
+    let userRoles = []
+    roles.forEach(role => {
+      userRoles = _.concat(userRoles, [{ email, role }])
+    })
+    return await fetchRawls(`billing/v2/${projectName}/members?inviteUsersNotFound=true`,
+      _.mergeAll([authOpts(), jsonBody({ membersToAdd: userRoles, membersToRemove: [] }),
+        { signal, method: 'PATCH' }])
     )
-
-    return Promise.all(_.map(addRole, roles))
   },
 
   removeProjectUser: (projectName, roles, email) => {

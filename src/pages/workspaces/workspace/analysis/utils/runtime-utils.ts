@@ -60,7 +60,7 @@ export const getNormalizedComputeRegion = (config: GoogleRuntimeConfig): Normali
 }
 
 export const findMachineType = (name: string) => {
-  return _.find({ name }, machineTypes) || { name, cpu: NaN, memory: NaN, price: NaN, preemptiblePrice: NaN }
+  return _.find({ name }, machineTypes) || { name, cpu: 0, memory: 0, price: 0, preemptiblePrice: 0 }
 }
 
 export const getValidGpuTypesForZone = (zone: string) => {
