@@ -1,15 +1,15 @@
 import { CSSProperties, ReactNode } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Link, useUniqueId } from 'src/components/common'
+import { ButtonPrimary, useUniqueId } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import colors from 'src/libs/colors'
 import { formHint } from 'src/libs/forms'
-import { newTabLinkProps } from 'src/libs/utils'
 import {
   columnEntryStyle, hintStyle,
   rowStyle
 } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/styles'
+import { ExternalLink } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/ExternalLink'
 import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/Step'
 import {
   LabeledField,
@@ -39,10 +39,10 @@ const AzureCostWarnings = () => {
         icon('warning-standard', { size: 16, style: { marginRight: '0.5rem', color: colors.warning() } }),
         div([
           'Creating a Terra billing project currently costs about $5 per day. ',
-          h(Link, {
-            href: 'https://support.terra.bio/hc/en-us/articles/12029087819291',
-            ...newTabLinkProps
-          }, ['Learn more and follow changes', icon('pop-out', { size: 10, style: { marginLeft: '0.25rem' } })])
+          h(ExternalLink, {
+            url: 'https://support.terra.bio/hc/en-us/articles/12029087819291',
+            text: 'Learn more and follow changes'
+          })
         ])
       ]),
       div({ style: rowEntry }, [

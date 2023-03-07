@@ -28,6 +28,7 @@ import * as Style from 'src/libs/style'
 import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { billingRoles } from 'src/pages/billing/List'
+import { ExternalLink } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/ExternalLink'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
 
@@ -785,10 +786,11 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [billingProject.projectName]),
       isGcpProject && h(GcpBillingAccountControls, { authorizeAndLoadAccounts, billingAccounts, billingProject, isOwner, getShowBillingModal, setShowBillingModal, reloadBillingProject, setUpdating }),
       isAzureProject && div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
-        h(Link, {
-          href: `https://portal.azure.com/#@${billingProject.managedAppCoordinates.tenantId}/resource/subscriptions/${billingProject.managedAppCoordinates.subscriptionId}/resourceGroups/${billingProject.managedAppCoordinates.managedResourceGroupId}/overview`,
-          ...Utils.newTabLinkProps
-        }, ['Open Resource Group in Azure Portal', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })])
+        h(ExternalLink, {
+          url: `https://portal.azure.com/#@${billingProject.managedAppCoordinates.tenantId}/resource/subscriptions/${billingProject.managedAppCoordinates.subscriptionId}/resourceGroups/${billingProject.managedAppCoordinates.managedResourceGroupId}/overview`,
+          text: 'Open Resource Group in Azure Portal',
+          popoutSize: 14
+        })
       ]),
       _.size(projectUsers) > 1 && _.size(projectOwners) === 1 && div({
         style: {

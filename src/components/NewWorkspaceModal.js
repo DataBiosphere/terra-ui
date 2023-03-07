@@ -367,7 +367,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
             h(Link, {
               href: 'https://support.terra.bio/hc/en-us/articles/12029087819291',
               ...Utils.newTabLinkProps
-            }, ['Learn more and follow changes', icon('pop-out', { size: 10, style: { marginLeft: '0.25rem' } })])])
+            }, ['Learn more and follow changes', icon('pop-out', { size: 14, style: { marginLeft: '0.25rem' } })])])
         ]
       ),
       createError && div({
