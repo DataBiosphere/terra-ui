@@ -1,78 +1,60 @@
-import { br, code, div, h, label, p } from 'react-hyperscript-helpers'
+import { br, div, h, label, p } from 'react-hyperscript-helpers'
 import { Link, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NumberInput } from 'src/components/input'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { Ajax } from 'src/libs/ajax'
-import Events, { extractWorkspaceDetails } from 'src/libs/events'
+// import { Ajax } from 'src/libs/ajax'
+// import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { useUniqueId } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles'
-import { getCurrentMountDirectory, getCurrentRuntime, getWorkspaceObject, pdTypes, runtimeTypes } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { getCurrentRuntime, pdTypes, runtimeTypes } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { getCurrentMountDirectory } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+
+import { IComputeConfig } from '../modal-utils'
 
 
-interface IComputeConfig {
-  persistentDiskSize: number
-  persistentDiskType: {
-    label: string
-    displayName: string
-    regionToPricesName: string
-  }
-  masterMachineType: any
-  masterDiskSize: number
-  diskSize: number
-  numberOfWorkers: number
-  numberOfPreemptibleWorkers: number
-  workerMachineType: string
-  workerDiskSize: number
-  componentGatewayEnabled: boolean
-  gpuEnabled: boolean
-  hasGpu: boolean
-  gpuType: string
-  numGpus: number
-  autopauseThreshold: number
-  computeRegion: string
-  computeZone: string
-}
-
-interface PersistentDiskProps {
+export interface PersistentDiskProps {
   diskExists: boolean
   computeConfig: IComputeConfig
   updateComputeConfig: (arg: string) => (diskType: string) => void
-  handleLearnMoreAboutPersistentDisk: React.MouseEventHandler
+  handleLearnMoreAboutPersistentDisk: (setViewMode: React.Dispatch<any>, hasAttachedDisk: any) => void
+  setViewMode: any
+  hasAttachedDisk: (getExistingEnvironmentConfig: any) => boolean
+  getExistingEnvironmentConfig: any
 }
 
-interface PersistentDiskTypeProps {
+export interface PersistentDiskTypeProps {
   diskExists: boolean
   computeConfig: IComputeConfig
   updateComputeConfig: (arg: string) => (diskType: string) => void
 }
 
-interface PersistentDiskLearnProps {
-  hasAttachedDisk: () => boolean
-  setViewMode: React.Dispatch<any>
-}
-
-interface PersistentDiskAboutProps {
+export interface PersistentDiskAboutProps {
   titleId: string
   setViewMode: React.Dispatch<any>
   onDismiss: () => void
 }
 
-export const handleLearnMoreAboutPersistentDisk = ({ hasAttachedDisk, setViewMode }: PersistentDiskLearnProps) => {
-  setViewMode('aboutPersistentDisk')
-  Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, {
-    ...extractWorkspaceDetails(getWorkspaceObject()), currentlyHasAttachedDisk: !!hasAttachedDisk()
-  })
+export const hasAttachedDisk = ({ getExistingEnvironmentConfig }) => {
+  const { runtime: existingRuntime } = getExistingEnvironmentConfig()
+  return existingRuntime?.persistentDiskAttached
 }
+
+// export const handleLearnMoreAboutPersistentDisk = ({ setViewMode, hasAttachedDisk }) => {
+//   setViewMode('aboutPersistentDisk')
+//   Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, {
+//     ...extractWorkspaceDetails(getWorkspaceObject()), currentlyHasAttachedDisk: !!hasAttachedDisk()
+//   }) // TODO IA-4053 figure out currentlyHasAttachedDisk
+// }
 
 // TODO, check if unattached azure PD
 export const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelected) => runtimeType === runtimeTypes.gceVm &&
   (!runtimeDetails?.runtimeConfig?.diskSize || upgradeDiskSelected)
 
-export const renderAboutPersistentDisk = ({ titleId, setViewMode, onDismiss }: PersistentDiskAboutProps) => {
-  return div({ style: computeStyles.drawerContent }, [
+export const AboutPersistentDisk = ({ titleId, setViewMode, onDismiss }: PersistentDiskAboutProps) => {
+  return (div({ style: computeStyles.drawerContent }, [
     h(TitleBar, {
       id: titleId,
       title: 'About persistent disk',
@@ -84,7 +66,7 @@ export const renderAboutPersistentDisk = ({ titleId, setViewMode, onDismiss }: P
     }),
     div({ style: { lineHeight: 1.5 } }, [
       p(['Your persistent disk is mounted in the directory ',
-        code({ style: { fontWeight: 600 } }, [getCurrentMountDirectory(getCurrentRuntime)]), br(),
+        getCurrentMountDirectory(getCurrentRuntime), br(),
         'Please save your analysis data in this directory to ensure it’s stored on your disk.']),
       p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you delete your compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
       p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
@@ -94,7 +76,7 @@ export const renderAboutPersistentDisk = ({ titleId, setViewMode, onDismiss }: P
         icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
       ])
     ])
-  ])
+  ]))
 }
 
 export const PersistentDiskType = ({ diskExists, computeConfig, updateComputeConfig }: PersistentDiskTypeProps) => {
@@ -122,7 +104,7 @@ export const PersistentDiskType = ({ diskExists, computeConfig, updateComputeCon
 
 // TODO: combine both persistent disk sections into 1 parent
 
-export const PersistentDiskSection = ({ diskExists, computeConfig, updateComputeConfig, handleLearnMoreAboutPersistentDisk }: PersistentDiskProps) => {
+export const PersistentDiskSection = ({ diskExists, computeConfig, updateComputeConfig, setViewMode }: PersistentDiskProps) => {
   const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
   const diskSizeId = useUniqueId()
 
@@ -131,7 +113,10 @@ export const PersistentDiskSection = ({ diskExists, computeConfig, updateCompute
       label({ style: computeStyles.label }, ['Persistent disk']),
       div({ style: { marginTop: '0.5rem' } }, [
         'Persistent disks store analysis data. ',
-        h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
+        //handleLearnMoreAboutPersistentDisk(setViewMode, hasAttachedDisk)
+        h(Link, {
+          onClick: () => setViewMode('aboutPersistentDisk')
+        }, ['Learn more about persistent disks and where your disk is mounted.'])
       ]),
       div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
         diskExists ?
@@ -162,7 +147,7 @@ export const PersistentDiskSection = ({ diskExists, computeConfig, updateCompute
   ])
 }
 
-export const AzurePersistentDiskSection = ({ computeConfig, updateComputeConfig, handleLearnMoreAboutPersistentDisk }: PersistentDiskProps) => {
+export const AzurePersistentDiskSection = ({ computeConfig, updateComputeConfig, setViewMode }: PersistentDiskProps) => {
   const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
   const diskSizeId = useUniqueId()
 
@@ -171,7 +156,10 @@ export const AzurePersistentDiskSection = ({ computeConfig, updateComputeConfig,
       label({ style: computeStyles.label }, ['Persistent disk']),
       div({ style: { marginTop: '0.5rem' } }, [
         'Persistent disks store analysis data. ',
-        h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
+        //h(Link, { onClick: () => setViewMode('aboutPersistentDisk') }, ['Learn more about persistent disks and where your disk is mounted.'])
+        h(Link, {
+          onClick: () => setViewMode('aboutPersistentDisk')
+        }, ['Learn more about persistent disks and where your disk is mounted.'])
       ]),
       h(div, [
         div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [

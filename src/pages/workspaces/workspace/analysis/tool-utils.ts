@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { code } from 'react-hyperscript-helpers'
 import { isCromwellAppVisible, isCromwellOnAzureAppVisible } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 import { CloudProviderType } from 'src/libs/workspace-utils'
@@ -181,6 +182,15 @@ export const allAppTypes: AppToolLabel[] = _.flow(_.map('appType'), _.compact)(a
 export const isPauseSupported = (toolLabel: ToolLabel): boolean => !_.find((tool: Tool) => tool.label === toolLabel)(tools)?.isPauseUnsupported
 
 export const isSettingsSupported = (toolLabel: ToolLabel): boolean => !_.find((tool: Tool) => tool.label === toolLabel)(tools)?.isSettingsUnsupported
+
+export const getCurrentMountDirectory = (runtime: any) => {
+  const boldCode = function(label: ToolLabel) {
+    return code({ style: { fontWeight: 600 } }, [`/home/${label.toLowerCase()}`])
+  }
+  const toolLabel = getToolLabelFromRuntime(runtime)
+  const defaultMsg = [boldCode(toolLabels.Jupyter), ' for Jupyter environments and ', boldCode(toolLabels.RStudio), ' for RStudio environments']
+  return toolLabel ? [boldCode(toolLabel)] : defaultMsg
+}
 
 //TODO: Placeholders. Finalized version will live in other TypeScript util files.
 export type Runtime = any

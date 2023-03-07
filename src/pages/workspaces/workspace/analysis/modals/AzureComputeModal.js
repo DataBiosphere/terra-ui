@@ -23,7 +23,7 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 import { computeStyles } from './modalStyles'
-import { AzurePersistentDiskSection } from './persistent-disk-controls'
+import { AboutPersistentDisk, AzurePersistentDiskSection } from './persistent-disk-controls'
 
 
 const titleId = 'azure-compute-modal-title'
@@ -196,8 +196,8 @@ export const AzureComputeModalBase = ({
           machineSize: computeConfig.machineType,
           saturnWorkspaceNamespace: namespace,
           saturnWorkspaceName: workspaceName,
-          diskSize: disk.size, // left as diskSize for metrics gathering
-          workspaceId
+          diskSize: disk.size, // left as diskSize for backwards-compatible metrics gathering
+          workspaceId // TODO: track persistent disk use here also
         })
 
         return Ajax().Runtimes.runtimeV2(workspaceId, Utils.generateRuntimeName()).create({
@@ -223,7 +223,7 @@ export const AzureComputeModalBase = ({
       div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
         renderApplicationConfigurationSection(),
         renderComputeProfileSection(),
-        h(AzurePersistentDiskSection, { diskExists: false, computeConfig, updateComputeConfig, handleLearnMoreAboutPersistentDisk: () => {} }),
+        h(AzurePersistentDiskSection, { computeConfig, updateComputeConfig, setViewMode }),
         renderBottomButtons()
       ])
     ])
@@ -285,6 +285,7 @@ export const AzureComputeModalBase = ({
 
   return h(Fragment, [
     Utils.switchCase(viewMode,
+      ['aboutPersistentDisk', () => AboutPersistentDisk({ titleId, setViewMode, onDismiss })],
       ['deleteEnvironment', renderDeleteEnvironment],
       [Utils.DEFAULT, renderMainForm]
     ),

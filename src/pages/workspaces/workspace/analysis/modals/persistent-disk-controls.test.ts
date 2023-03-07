@@ -4,8 +4,8 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import {
-  PersistentDiskSection,
-  PersistentDiskType,
+  PersistentDiskProps, PersistentDiskSection,
+  PersistentDiskType, PersistentDiskTypeProps
 } from 'src/pages/workspaces/workspace/analysis/modals/persistent-disk-controls'
 import {
   defaultAutopauseThreshold,
@@ -20,7 +20,7 @@ import {
   defaultNumDataprocWorkers,
   defaultNumGpus,
   defaultPersistentDiskType,
-  getDefaultMachineType,
+  getDefaultMachineType
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
@@ -47,14 +47,17 @@ const defaultIComputeConfig = {
 
 const updateComputeConfig = jest.fn()
 
-const defaultPersistentDiskProps = {
+const defaultPersistentDiskProps: PersistentDiskProps = {
   diskExists: true,
   computeConfig: defaultIComputeConfig,
   updateComputeConfig: () => updateComputeConfig, //we shouldn't be using curry, therefore we have to use this.
   handleLearnMoreAboutPersistentDisk: jest.fn(),
+  setViewMode: jest.fn(),
+  hasAttachedDisk: jest.fn(),
+  getExistingEnvironmentConfig: jest.fn()
 }
 
-const defaultPersistentDiskTypeProps = {
+const defaultPersistentDiskTypeProps: PersistentDiskTypeProps = {
   diskExists: true,
   computeConfig: defaultIComputeConfig,
   updateComputeConfig: () => updateComputeConfig,
@@ -104,7 +107,7 @@ describe('compute-modal-component', () => {
     it('should render learn more about persistent disks', async () => {
       // Arrange
       const fakepd = jest.fn()
-      render(h(PersistentDiskSection, {
+      render(h(PersistentDiskSection, { //diskExists, computeConfig, updateComputeConfig, setViewMode
         ...defaultPersistentDiskProps,
         handleLearnMoreAboutPersistentDisk: fakepd
       }))

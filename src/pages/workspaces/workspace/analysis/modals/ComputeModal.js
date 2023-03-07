@@ -32,7 +32,7 @@ import {
   getDefaultMachineType, getIsRuntimeBusy, getValidGpuOptions, getValidGpuTypesForZone,
   isAutopauseEnabled, pdTypes, runtimeTypes
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { getToolLabelForImage, getToolLabelFromRuntime, runtimeTools, terraSupportedRuntimeImageIds, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getCurrentMountDirectory, getToolLabelForImage, getToolLabelFromRuntime, runtimeTools, terraSupportedRuntimeImageIds, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import validate from 'validate.js'
 
 import { computeStyles } from './modalStyles'
@@ -397,15 +397,6 @@ export const ComputeModalBase = ({
       !desiredPersistentDisk ||
       desiredPersistentDisk.size < existingPersistentDisk.size
     )
-  }
-
-  const getCurrentMountDirectory = currentRuntimeDetails => {
-    const rstudioMountPoint = '/home/rstudio'
-    const jupyterMountPoint = '/home/jupyter'
-    const noMountDirectory = `${jupyterMountPoint} for Jupyter environments and ${rstudioMountPoint} for RStudio environments`
-    return currentRuntimeDetails?.labels.tool ?
-      (currentRuntimeDetails?.labels.tool === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) :
-      noMountDirectory
   }
 
   const getExistingEnvironmentConfig = () => {
@@ -1656,7 +1647,7 @@ export const ComputeModalBase = ({
         div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
           renderApplicationConfigurationSection(),
           renderComputeProfileSection(existingRuntime),
-          !!isPersistentDisk && h(PersistentDiskSection, { diskExists: !!existingPersistentDisk, computeConfig, updateComputeConfig, handleLearnMoreAboutPersistentDisk }),
+          !!isPersistentDisk && h(PersistentDiskSection, { computeConfig, updateComputeConfig, setViewMode }),
           isGce(runtimeType) && !isPersistentDisk && div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
               'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
