@@ -558,6 +558,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const getBillingAccountStatus = workspace => _.findKey(g => g.has(workspace), groups)
 
   const isGcpProject = billingProject.cloudPlatform === cloudProviders.gcp.label
+  const isAzureProject = billingProject.cloudPlatform === cloudProviders.azure.label
 
   const tabToTable = {
     workspaces: h(Fragment, [
@@ -779,11 +780,16 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     () => !getShowBillingModal() && getBillingAccountsOutOfDate() && refreshWorkspaces(),
     { ms: 5000 }
   )
-
   return h(Fragment, [
     div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [billingProject.projectName]),
       isGcpProject && h(GcpBillingAccountControls, { authorizeAndLoadAccounts, billingAccounts, billingProject, isOwner, getShowBillingModal, setShowBillingModal, reloadBillingProject, setUpdating }),
+      isAzureProject && div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
+        h(Link, {
+          href: `https://portal.azure.com/#@${billingProject.managedAppCoordinates.tenantId}/resource/subscriptions/${billingProject.managedAppCoordinates.subscriptionId}/resourceGroups/${billingProject.managedAppCoordinates.managedResourceGroupId}/overview`,
+          ...Utils.newTabLinkProps
+        }, ['Open Resource Group in Azure Portal', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })])
+      ]),
       _.size(projectUsers) > 1 && _.size(projectOwners) === 1 && div({
         style: {
           display: 'flex',
