@@ -164,6 +164,24 @@ const UnsupportedWorkspaceCell = ({ status, message }) => div({
   ])
 ])
 
+export const PauseButton = ({ computeType, compute, currentUser, pauseComputeAndRefresh }) => {
+  const shouldShowPauseButton = Utils.cond(
+    [isApp(compute) && !_.find(tool => tool.appType && tool.appType === compute.appType)(appTools)?.isPauseUnsupported, () => true],
+    [isPauseSupported(getToolLabelFromRuntime(compute)) && currentUser === getCreatorForRuntime(compute), () => true],
+    () => false)
+
+  return (
+    shouldShowPauseButton && h(Link, {
+      style: { marginRight: '1rem' },
+      disabled: !isComputePausable(computeType, compute),
+      tooltip: isComputePausable(computeType, compute) ?
+        'Pause cloud environment' :
+        'Cannot pause a cloud environment while in status',
+      onClick: () => pauseComputeAndRefresh(computeType, compute)
+    }, [makeMenuIcon('pause'), 'Pause'])
+  )
+}
+
 export const Environments = ({ nav = undefined }) => {
   const signal = useCancellation()
   const { workspaces, refresh: refreshWorkspaces } = _.flow(
@@ -408,22 +426,6 @@ export const Environments = ({ nav = undefined }) => {
     }, [makeMenuIcon('trash'), 'Delete'])
   }
 
-  const renderPauseButton = (computeType, compute) => {
-    const shouldShowPauseButton = Utils.cond(
-      [isApp(compute) && !_.find(tool => tool.appType && tool.appType === compute.appType)(appTools)?.isPauseUnsupported, () => true],
-      [isPauseSupported(getToolLabelFromRuntime(compute)) && currentUser === getCreatorForRuntime(compute), () => true],
-      () => false)
-
-    return shouldShowPauseButton && h(Link, {
-      style: { marginRight: '1rem' },
-      disabled: !isComputePausable(computeType, compute),
-      tooltip: isComputePausable(computeType, compute) ?
-        'Pause cloud environment' :
-        'Cannot pause a cloud environment while in status',
-      onClick: () => pauseComputeAndRefresh(computeType, compute)
-    }, [makeMenuIcon('pause'), 'Pause'])
-  }
-
   const renderErrorApps = app => {
     const convertedAppStatus = getComputeStatusForDisplay(app.status)
     if (convertedAppStatus !== 'Error' && app.unsupportedWorkspace) {
@@ -576,7 +578,7 @@ export const Environments = ({ nav = undefined }) => {
                 const cloudEnvironment = filteredCloudEnvironments[rowIndex]
                 const computeType = isApp(cloudEnvironment) ? 'app' : 'runtime'
                 return h(Fragment, [
-                  renderPauseButton(computeType, cloudEnvironment),
+                  h(PauseButton, { computeType, cloudEnvironment, currentUser, pauseComputeAndRefresh }),
                   renderDeleteButton(computeType, cloudEnvironment)
                 ])
               }
