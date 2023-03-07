@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { b, br, code, div, fieldset, h, label, legend, p, span, strong } from 'react-hyperscript-helpers'
+import { b, br, div, fieldset, h, label, legend, p, span, strong } from 'react-hyperscript-helpers'
 import { ClipboardButton } from 'src/components/ClipboardButton'
 import { ButtonOutline, ButtonPrimary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -36,7 +36,7 @@ import { getCurrentMountDirectory, getToolLabelForImage, getToolLabelFromRuntime
 import validate from 'validate.js'
 
 import { computeStyles } from './modalStyles'
-import { PersistentDiskSection } from './persistent-disk-controls.ts'
+import { handleLearnMoreAboutPersistentDisk, PersistentDiskSection } from './persistent-disk-controls.ts'
 
 // Change to true to enable a debugging panel (intended for dev mode only)
 const showDebugPanel = false
@@ -213,6 +213,7 @@ export const ComputeModalBase = ({
   })
   // State -- end
 
+  const cloudPlatform = extractWorkspaceDetails(workspace).cloudPlatform
   const isPersistentDisk = shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected)
 
   const isCustomImage = selectedLeoImage === customMode
@@ -538,13 +539,6 @@ export const ComputeModalBase = ({
 
   const getWorkspaceObject = () => workspace?.workspace
 
-  const handleLearnMoreAboutPersistentDisk = () => {
-    setViewMode('aboutPersistentDisk')
-    Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, {
-      ...extractWorkspaceDetails(getWorkspaceObject()), currentlyHasAttachedDisk: !!hasAttachedDisk()
-    })
-  }
-
   const hasAttachedDisk = () => {
     const { runtime: existingRuntime } = getExistingEnvironmentConfig()
     return existingRuntime?.persistentDiskAttached
@@ -785,7 +779,7 @@ export const ComputeModalBase = ({
       }),
       div({ style: { lineHeight: 1.5 } }, [
         p(['Your persistent disk is mounted in the directory ',
-          code({ style: { fontWeight: 600 } }, [getCurrentMountDirectory(currentRuntimeDetails)]), br(),
+          getCurrentMountDirectory(currentRuntimeDetails), br(),
           'Please save your analysis data in this directory to ensure it’s stored on your disk.']),
         p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you delete your compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
         p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
@@ -1369,7 +1363,7 @@ export const ComputeModalBase = ({
         onChange: () => setDeleteDiskSelected(false)
       }, [
         p(['Please save your analysis data in the directory ',
-          code({ style: { fontWeight: 600 } }, [getCurrentMountDirectory(currentRuntimeDetails)]), ' to ensure it’s stored on your disk.']),
+          getCurrentMountDirectory(currentRuntimeDetails), ' to ensure it’s stored on your disk.']),
         p([
           'Deletes your application configuration and cloud compute profile, but detaches your persistent disk and saves it for later. ',
           'The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type.'
@@ -1639,6 +1633,7 @@ export const ComputeModalBase = ({
       ])
     }
 
+
     return h(Fragment, [
         div({ style: { padding: '1.5rem', borderBottom: `1px solid ${colors.dark(0.4)}` } }, [
           renderTitleAndTagline(),
@@ -1647,7 +1642,7 @@ export const ComputeModalBase = ({
         div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
           renderApplicationConfigurationSection(),
           renderComputeProfileSection(existingRuntime),
-          !!isPersistentDisk && h(PersistentDiskSection, { computeConfig, updateComputeConfig, setViewMode }),
+          !!isPersistentDisk && h(PersistentDiskSection, { computeConfig, updateComputeConfig, setViewMode, cloudPlatform }),
           isGce(runtimeType) && !isPersistentDisk && div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
               'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',

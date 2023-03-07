@@ -46,15 +46,15 @@ const defaultIComputeConfig = {
 }
 
 const updateComputeConfig = jest.fn()
+const handleLearnMoreAboutPersistentDisk = jest.fn()
+
 
 const defaultPersistentDiskProps: PersistentDiskProps = {
   diskExists: true,
   computeConfig: defaultIComputeConfig,
   updateComputeConfig: () => updateComputeConfig, //we shouldn't be using curry, therefore we have to use this.
-  handleLearnMoreAboutPersistentDisk: jest.fn(),
   setViewMode: jest.fn(),
-  hasAttachedDisk: jest.fn(),
-  getExistingEnvironmentConfig: jest.fn()
+  cloudPlatform: 'GCP'
 }
 
 const defaultPersistentDiskTypeProps: PersistentDiskTypeProps = {
@@ -106,18 +106,14 @@ describe('compute-modal-component', () => {
     // click learn more about persistent disk
     it('should render learn more about persistent disks', async () => {
       // Arrange
-      const fakepd = jest.fn()
-      render(h(PersistentDiskSection, { //diskExists, computeConfig, updateComputeConfig, setViewMode
-        ...defaultPersistentDiskProps,
-        handleLearnMoreAboutPersistentDisk: fakepd
-      }))
+      render(h(PersistentDiskSection, defaultPersistentDiskProps))
 
       // Act
-      const link = screen.getByText(/Learn more about persistent disks/)
+      const link = screen.getByText('Learn more about persistent disks and where your disk is mounted.')
       await userEvent.click(link)
 
       // Assert
-      expect(fakepd).toBeCalled()
+      expect(handleLearnMoreAboutPersistentDisk).toHaveBeenCalled()
     })
 
     it('should not show tooltip when no existing PD', async () => {
@@ -146,7 +142,7 @@ describe('compute-modal-component', () => {
     })
 
     // Ensuring updateComputeConfig gets called with proper value on change
-    it('should call updateComputeConfig with proper value on change', async () => {
+    it('should call updateComputeConfig with proper value on changing type', async () => {
       // Arrange
       render(h(PersistentDiskSection, { ...defaultPersistentDiskProps, diskExists: false }))
 
@@ -158,6 +154,18 @@ describe('compute-modal-component', () => {
 
       // Assert
       expect(updateComputeConfig).toBeCalledWith({ displayName: 'Balanced', label: 'pd-balanced', regionToPricesName: 'monthlyBalancedDiskPrice' })
+    })
+
+    it('should call updateComputeConfig with proper value on changing size', async () => {
+      // Arrange
+      render(h(PersistentDiskSection, { ...defaultPersistentDiskProps, diskExists: false }))
+
+      // Act
+      const sizeInput = screen.getByLabelText('Disk Size (GB)')
+      await userEvent.type(sizeInput, '0')
+
+      // Assert
+      expect(updateComputeConfig).toBeCalledWith(500)
     })
   })
 })

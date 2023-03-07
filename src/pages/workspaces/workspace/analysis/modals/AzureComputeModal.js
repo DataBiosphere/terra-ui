@@ -23,7 +23,7 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 import { computeStyles } from './modalStyles'
-import { AboutPersistentDisk, AzurePersistentDiskSection } from './persistent-disk-controls'
+import { AboutPersistentDisk, PersistentDiskSection } from './persistent-disk-controls'
 
 
 const titleId = 'azure-compute-modal-title'
@@ -43,6 +43,7 @@ export const AzureComputeModalBase = ({
     Utils.withBusyState(setLoading)
   )(async () => {
     const currentRuntime = getCurrentRuntime(runtimes)
+
     const runtimeDetails = currentRuntime ? await Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).details() : null
     setCurrentRuntimeDetails(runtimeDetails)
     setComputeConfig({
@@ -184,9 +185,9 @@ export const AzureComputeModalBase = ({
       [viewMode === 'deleteEnvironment',
         () => Ajax().Runtimes.runtimeV2(workspaceId, currentRuntimeDetails.runtimeName).delete()], //delete runtime
       [Utils.DEFAULT, () => {
+        // TODO: We DO currently support re-attaching azure disks
         const disk = {
           size: computeConfig.persistentDiskSize,
-          //We do not currently support re-attaching azure disks
           name: Utils.generatePersistentDiskName(),
           labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: workspaceName }
         }
@@ -223,7 +224,7 @@ export const AzureComputeModalBase = ({
       div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
         renderApplicationConfigurationSection(),
         renderComputeProfileSection(),
-        h(AzurePersistentDiskSection, { computeConfig, updateComputeConfig, setViewMode }),
+        h(PersistentDiskSection, { computeConfig, updateComputeConfig, setViewMode }),
         renderBottomButtons()
       ])
     ])

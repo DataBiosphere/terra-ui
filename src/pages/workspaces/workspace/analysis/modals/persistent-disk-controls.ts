@@ -4,10 +4,11 @@ import { icon } from 'src/components/icons'
 import { NumberInput } from 'src/components/input'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-// import { Ajax } from 'src/libs/ajax'
-// import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import { Ajax } from 'src/libs/ajax'
+import Events from 'src/libs/events'
 import { useUniqueId } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
+//import { getExistingEnvironmentConfig } from 'src/pages/workspaces/workspace/analysis/modal-utils'
 import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles'
 import { getCurrentRuntime, pdTypes, runtimeTypes } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { getCurrentMountDirectory } from 'src/pages/workspaces/workspace/analysis/tool-utils'
@@ -19,10 +20,8 @@ export interface PersistentDiskProps {
   diskExists: boolean
   computeConfig: IComputeConfig
   updateComputeConfig: (arg: string) => (diskType: string) => void
-  handleLearnMoreAboutPersistentDisk: (setViewMode: React.Dispatch<any>, hasAttachedDisk: any) => void
   setViewMode: any
-  hasAttachedDisk: (getExistingEnvironmentConfig: any) => boolean
-  getExistingEnvironmentConfig: any
+  cloudPlatform: any
 }
 
 export interface PersistentDiskTypeProps {
@@ -33,21 +32,14 @@ export interface PersistentDiskTypeProps {
 
 export interface PersistentDiskAboutProps {
   titleId: string
-  setViewMode: React.Dispatch<any>
+  setViewMode: any
   onDismiss: () => void
 }
 
-export const hasAttachedDisk = ({ getExistingEnvironmentConfig }) => {
-  const { runtime: existingRuntime } = getExistingEnvironmentConfig()
-  return existingRuntime?.persistentDiskAttached
+export const handleLearnMoreAboutPersistentDisk = ({ setViewMode }) => {
+  setViewMode('aboutPersistentDisk')
+  Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView)
 }
-
-// export const handleLearnMoreAboutPersistentDisk = ({ setViewMode, hasAttachedDisk }) => {
-//   setViewMode('aboutPersistentDisk')
-//   Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, {
-//     ...extractWorkspaceDetails(getWorkspaceObject()), currentlyHasAttachedDisk: !!hasAttachedDisk()
-//   }) // TODO IA-4053 figure out currentlyHasAttachedDisk
-// }
 
 // TODO, check if unattached azure PD
 export const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelected) => runtimeType === runtimeTypes.gceVm &&
@@ -103,34 +95,25 @@ export const PersistentDiskType = ({ diskExists, computeConfig, updateComputeCon
 }
 
 // TODO: combine both persistent disk sections into 1 parent
-
-export const PersistentDiskSection = ({ diskExists, computeConfig, updateComputeConfig, setViewMode }: PersistentDiskProps) => {
+export const PersistentDiskSection = ({ diskExists, computeConfig, updateComputeConfig, setViewMode, cloudPlatform }: PersistentDiskProps) => {
   const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
   const diskSizeId = useUniqueId()
+
 
   return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
     div({ style: { display: 'flex', flexDirection: 'column' } }, [
       label({ style: computeStyles.label }, ['Persistent disk']),
       div({ style: { marginTop: '0.5rem' } }, [
         'Persistent disks store analysis data. ',
-        //handleLearnMoreAboutPersistentDisk(setViewMode, hasAttachedDisk)
         h(Link, {
-          onClick: () => setViewMode('aboutPersistentDisk')
+          onClick: () => handleLearnMoreAboutPersistentDisk({ setViewMode })
         }, ['Learn more about persistent disks and where your disk is mounted.'])
       ]),
       div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
-        diskExists ?
-          h(TooltipTrigger, {
-            content: [
-              'You already have a persistent disk in this workspace. ',
-              'Disk type can only be configured at creation time. ',
-              'Please delete the existing disk before selecting a new type.'
-            ],
-            side: 'bottom'
-          }, [h(PersistentDiskType, { diskExists, computeConfig, updateComputeConfig })]) : h(PersistentDiskType, { diskExists, computeConfig, updateComputeConfig }),
+        cloudPlatform === 'GCP' ? diskType({ diskExists, computeConfig, updateComputeConfig }) : false,
         h(div, [
           label({ htmlFor: diskSizeId, style: computeStyles.label }, ['Disk Size (GB)']),
-          div({ style: { marginTop: '0.5rem' } }, [
+          div({ style: { width: 75, marginTop: '0.5rem' } }, [
             h(NumberInput, {
               id: diskSizeId,
               min: 10,
@@ -147,36 +130,46 @@ export const PersistentDiskSection = ({ diskExists, computeConfig, updateCompute
   ])
 }
 
-export const AzurePersistentDiskSection = ({ computeConfig, updateComputeConfig, setViewMode }: PersistentDiskProps) => {
-  const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
-  const diskSizeId = useUniqueId()
-
-  return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
-    div({ style: { display: 'flex', flexDirection: 'column' } }, [
-      label({ style: computeStyles.label }, ['Persistent disk']),
-      div({ style: { marginTop: '0.5rem' } }, [
-        'Persistent disks store analysis data. ',
-        //h(Link, { onClick: () => setViewMode('aboutPersistentDisk') }, ['Learn more about persistent disks and where your disk is mounted.'])
-        h(Link, {
-          onClick: () => setViewMode('aboutPersistentDisk')
-        }, ['Learn more about persistent disks and where your disk is mounted.'])
-      ]),
-      h(div, [
-        div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
-          label({ htmlFor: diskSizeId, style: computeStyles.label }, ['Disk Size (GB)'])
-        ]),
-        div({ style: { width: 75, marginTop: '0.5rem' } }, [
-          h(NumberInput, {
-            id: diskSizeId,
-            min: 50,
-            max: 64000,
-            isClearable: false,
-            onlyInteger: true,
-            value: computeConfig.persistentDiskSize,
-            onChange: updateComputeConfig('persistentDiskSize')
-          })
-        ])
-      ])
-    ])
-  ])
+export const diskType = ({ diskExists, computeConfig, updateComputeConfig }) => {
+  return diskExists ? h(TooltipTrigger, {
+    content: [
+      'You already have a persistent disk in this workspace. ',
+      'Disk type can only be configured at creation time. ',
+      'Please delete the existing disk before selecting a new type.'
+    ],
+    side: 'bottom'
+  }, [h(PersistentDiskType, { diskExists, computeConfig, updateComputeConfig })]) : h(PersistentDiskType, { diskExists, computeConfig, updateComputeConfig })
 }
+
+// export const AzurePersistentDiskSection = ({ computeConfig, updateComputeConfig, setViewMode }: PersistentDiskProps) => {
+//   const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
+//   const diskSizeId = useUniqueId()
+
+//   return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
+//     div({ style: { display: 'flex', flexDirection: 'column' } }, [
+//       label({ style: computeStyles.label }, ['Persistent disk']),
+//       div({ style: { marginTop: '0.5rem' } }, [
+//         'Persistent disks store analysis data. ',
+//         h(Link, {
+//           onClick: () => handleLearnMoreAboutPersistentDisk({ setViewMode })
+//         }, ['Learn more about persistent disks and where your disk is mounted.'])
+//       ]),
+//       h(div, [
+//         div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
+//           label({ htmlFor: diskSizeId, style: computeStyles.label }, ['Disk Size (GB)'])
+//         ]),
+//         div({ style: { width: 75, marginTop: '0.5rem' } }, [
+//           h(NumberInput, {
+//             id: diskSizeId,
+//             min: 50,
+//             max: 64000,
+//             isClearable: false,
+//             onlyInteger: true,
+//             value: computeConfig.persistentDiskSize,
+//             onChange: updateComputeConfig('persistentDiskSize')
+//           })
+//         ])
+//       ])
+//     ])
+//   ])
+// }
