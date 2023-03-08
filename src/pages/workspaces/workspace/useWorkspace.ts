@@ -8,7 +8,6 @@ import { Ajax } from 'src/libs/ajax'
 import { responseContainsRequesterPaysError } from 'src/libs/ajax/ajax-common'
 import { AzureStorage } from 'src/libs/ajax/AzureStorage'
 import { saToken } from 'src/libs/ajax/GoogleStorage'
-import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import { clearNotification, notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
@@ -20,8 +19,9 @@ import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/utils/r
 
 
 export interface StorageDetails {
-  googleBucketLocation: string // historically returns defaultLocation if cannot be retrieved or Azure
-  googleBucketType: string // historically returns locationTypes.default if cannot be retrieved or Azure
+  googleBucketLocation: string // historically returns defaultLocation if bucket location cannot be retrieved or Azure
+  googleBucketType: string // historically returns locationTypes.default if bucket type cannot be retrieved or Azure
+  fetchedGoogleBucketLocation: 'SUCCESS' | 'ERROR' | undefined // undefined: still fetching
   azureContainerRegion?: string
   azureContainerUrl?: string
   azureContainerSasUrl?: string
@@ -46,9 +46,10 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
   const accessNotificationId = useRef()
   const cachedWorkspace = useStore(workspaceStore)
   const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ? cachedWorkspace : undefined
-  const [{ location, locationType }, setGoogleStorage] = useState({
-    location: defaultLocation, locationType: locationTypes.default // These default types are historical
-  })
+  const [{ location, locationType, fetchedLocation }, setGoogleStorage] =
+    useState<{ fetchedLocation: 'SUCCESS' | 'ERROR' | undefined; location: string; locationType: string }>({
+      fetchedLocation: undefined, location: defaultLocation, locationType: locationTypes.default // These default types are historical
+    })
   const [azureStorage, setAzureStorage] = useState<{ location: string; storageContainerUrl: string | undefined; sasUrl: string }>()
   const workspaceInitialized = workspace?.workspaceInitialized // will be stored in cached workspace
 
@@ -65,7 +66,7 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
     console.assert(!!workspace, 'initialization should not be called before workspace details are fetched')
 
     if (isGoogleWorkspace(workspace)) {
-      !workspaceInitialized ? checkGooglePermissions(workspace) : loadGoogleBucketLocation(workspace)
+      !workspaceInitialized ? checkGooglePermissions(workspace) : loadGoogleBucketLocationIgnoringError(workspace)
     } else if (isAzureWorkspace(workspace)) {
       !workspaceInitialized ? checkAzureStorageExists(workspace) : loadAzureStorageDetails(workspace)
     }
@@ -73,15 +74,26 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
 
   const checkGooglePermissions = async workspace => {
     try {
-      // Need to add nextflow role to old workspaces (WOR-764) before enabling in production.
-      if (!getConfig().isProd) {
-        await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketReadAccess()
+      // Because checkBucketReadAccess can succeed and subsequent calls to get the bucket location or storage
+      // cost estimate may fail (due to caching of previous failure results), do not consider permissions
+      // to be done syncing until all the methods that we know will be called quickly in succession succeed.
+      // This is not guaranteed to eliminate the issue, but it improves the odds.
+      await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketReadAccess()
+      if (Utils.canWrite(workspace.accessLevel)) {
+        // Calls done on the Workspace Dashboard. We could store the results and pass them
+        // through, but then we would have to do it checkWorkspaceInitialization as well,
+        // and nobody else actually needs these values.
+        await Ajax(signal).Workspaces.workspace(namespace, name).storageCostEstimate()
+        await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
       }
+      await loadGoogleBucketLocation(workspace)
       updateWorkspaceInStore(workspace, true)
-      loadGoogleBucketLocation(workspace)
     } catch (error: any) {
       const errorText = await error.text()
       if (responseContainsRequesterPaysError(errorText)) {
+        // loadGoogleBucketLocation will not get called in this case because checkBucketReadAccess fails first,
+        // but it would also fail with the requester pays error.
+        setGoogleStorage({ fetchedLocation: 'ERROR', location, locationType })
         updateWorkspaceInStore(workspace, true)
       } else {
         updateWorkspaceInStore(workspace, false)
@@ -92,10 +104,20 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
   }
 
   // Note that withErrorIgnoring is used because checkBucketLocation will error for requester pays workspaces.
-  const loadGoogleBucketLocation = withErrorIgnoring(async workspace => {
-    const storageDetails = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(workspace.workspace.googleProject, workspace.workspace.bucketName)
-    setGoogleStorage(storageDetails)
+  const loadGoogleBucketLocationIgnoringError = withErrorIgnoring(async workspace => {
+    await loadGoogleBucketLocation(workspace)
   })
+
+  const loadGoogleBucketLocation = async workspace => {
+    try {
+      const storageDetails = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(workspace.workspace.googleProject, workspace.workspace.bucketName)
+      storageDetails.fetchedLocation = 'SUCCESS'
+      setGoogleStorage(storageDetails)
+    } catch (error) {
+      setGoogleStorage({ fetchedLocation: 'ERROR', location, locationType })
+      throw error
+    }
+  }
 
   const storeAzureStorageDetails = azureStorageDetails => {
     const { location, sas } = azureStorageDetails
@@ -176,6 +198,7 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
   const storageDetails = {
     googleBucketLocation: location,
     googleBucketType: locationType,
+    fetchedGoogleBucketLocation: fetchedLocation,
     azureContainerRegion: azureStorage?.location,
     azureContainerUrl: azureStorage?.storageContainerUrl,
     azureContainerSasUrl: azureStorage?.sasUrl

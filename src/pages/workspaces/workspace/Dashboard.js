@@ -129,7 +129,7 @@ const RightBoxSection = ({ title, info, initialOpenState, afterTitle, onClick, c
   ])
 }
 
-const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace }) => {
+export const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace, storageDetails }) => {
   console.assert(!!workspace && isGoogleWorkspace(workspace), 'BucketLocation expects a Google workspace')
   const [loading, setLoading] = useState(true)
   const [{ location, locationType }, setBucketLocation] = useState({ location: undefined, locationType: undefined })
@@ -156,11 +156,21 @@ const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace 
 
   useEffect(() => {
     if (workspace?.workspaceInitialized) {
-      // storageDetails.googleBucketLocation is not used because WorkspaceContainer silently fails for requester pays workspaces.
-      // We wish to show the user more information in this case and allow them to link a workspace.
-      loadGoogleBucketLocation()
+      if (storageDetails.fetchedGoogleBucketLocation === 'ERROR') {
+        // storageDetails.fetchedGoogleBucketLocation stores if an error was encountered from the server,
+        // while storageDetails.googleBucketLocation will contain the default value.
+        // In the case of requester pays workspaces, we wish to show the user more information in this case and allow them to link a workspace.
+        loadGoogleBucketLocation()
+      } else if (storageDetails.fetchedGoogleBucketLocation === 'SUCCESS') {
+        setBucketLocation({ location: storageDetails.googleBucketLocation, locationType: storageDetails.googleBucketType })
+        setLoading(false)
+      }
     }
-  }, [loadGoogleBucketLocation, workspace])
+  }, [
+    loadGoogleBucketLocation, setBucketLocation,
+    // Explicit dependencies to avoid extra calls to loadGoogleBucketLocation
+    workspace?.workspaceInitialized, storageDetails.fetchedGoogleBucketLocation, storageDetails.googleBucketLocation, storageDetails.googleBucketType
+  ])
 
   if (loading) {
     return 'Loading'
@@ -417,7 +427,7 @@ const WorkspaceDashboard = _.flow(
         h(InfoRow, { title: 'Cloud Name' }, [
           h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16 } })
         ]),
-        h(InfoRow, { title: 'Location' }, [h(BucketLocation, { workspace })]),
+        h(InfoRow, { title: 'Location' }, [h(BucketLocation, { workspace, storageDetails })]),
         h(InfoRow, { title: 'Google Project ID' }, [
           h(TooltipCell, [googleProject]),
           h(ClipboardButton, { 'aria-label': 'Copy google project id to clipboard', text: googleProject, style: { marginLeft: '0.25rem' } })
