@@ -8,9 +8,8 @@ import { Ajax } from 'src/libs/ajax'
 import Events from 'src/libs/events'
 import { useUniqueId } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-//import { getExistingEnvironmentConfig } from 'src/pages/workspaces/workspace/analysis/modal-utils'
 import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles'
-import { getCurrentRuntime, pdTypes, runtimeTypes } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { pdTypes, runtimeTypes } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { getCurrentMountDirectory } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 import { IComputeConfig } from '../modal-utils'
@@ -33,6 +32,7 @@ export interface PersistentDiskTypeProps {
 export interface PersistentDiskAboutProps {
   titleId: string
   setViewMode: any
+  tool: any
   onDismiss: () => void
 }
 
@@ -45,7 +45,7 @@ export const handleLearnMoreAboutPersistentDisk = ({ setViewMode }) => {
 export const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelected) => runtimeType === runtimeTypes.gceVm &&
   (!runtimeDetails?.runtimeConfig?.diskSize || upgradeDiskSelected)
 
-export const AboutPersistentDisk = ({ titleId, setViewMode, onDismiss }: PersistentDiskAboutProps) => {
+export const AboutPersistentDisk = ({ titleId, setViewMode, tool, onDismiss }: PersistentDiskAboutProps) => {
   return (div({ style: computeStyles.drawerContent }, [
     h(TitleBar, {
       id: titleId,
@@ -58,7 +58,7 @@ export const AboutPersistentDisk = ({ titleId, setViewMode, onDismiss }: Persist
     }),
     div({ style: { lineHeight: 1.5 } }, [
       p(['Your persistent disk is mounted in the directory ',
-        getCurrentMountDirectory(getCurrentRuntime), br(),
+        ...getCurrentMountDirectory(tool), br(),
         'Please save your analysis data in this directory to ensure it’s stored on your disk.']),
       p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you delete your compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
       p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
@@ -94,7 +94,6 @@ export const PersistentDiskType = ({ diskExists, computeConfig, updateComputeCon
   )
 }
 
-// TODO: combine both persistent disk sections into 1 parent
 export const PersistentDiskSection = ({ diskExists, computeConfig, updateComputeConfig, setViewMode, cloudPlatform }: PersistentDiskProps) => {
   const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
   const diskSizeId = useUniqueId()
@@ -140,36 +139,3 @@ export const diskType = ({ diskExists, computeConfig, updateComputeConfig }) => 
     side: 'bottom'
   }, [h(PersistentDiskType, { diskExists, computeConfig, updateComputeConfig })]) : h(PersistentDiskType, { diskExists, computeConfig, updateComputeConfig })
 }
-
-// export const AzurePersistentDiskSection = ({ computeConfig, updateComputeConfig, setViewMode }: PersistentDiskProps) => {
-//   const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
-//   const diskSizeId = useUniqueId()
-
-//   return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
-//     div({ style: { display: 'flex', flexDirection: 'column' } }, [
-//       label({ style: computeStyles.label }, ['Persistent disk']),
-//       div({ style: { marginTop: '0.5rem' } }, [
-//         'Persistent disks store analysis data. ',
-//         h(Link, {
-//           onClick: () => handleLearnMoreAboutPersistentDisk({ setViewMode })
-//         }, ['Learn more about persistent disks and where your disk is mounted.'])
-//       ]),
-//       h(div, [
-//         div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
-//           label({ htmlFor: diskSizeId, style: computeStyles.label }, ['Disk Size (GB)'])
-//         ]),
-//         div({ style: { width: 75, marginTop: '0.5rem' } }, [
-//           h(NumberInput, {
-//             id: diskSizeId,
-//             min: 50,
-//             max: 64000,
-//             isClearable: false,
-//             onlyInteger: true,
-//             value: computeConfig.persistentDiskSize,
-//             onChange: updateComputeConfig('persistentDiskSize')
-//           })
-//         ])
-//       ])
-//     ])
-//   ])
-// }

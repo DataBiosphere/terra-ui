@@ -183,13 +183,13 @@ export const isPauseSupported = (toolLabel: ToolLabel): boolean => !_.find((tool
 
 export const isSettingsSupported = (toolLabel: ToolLabel): boolean => !_.find((tool: Tool) => tool.label === toolLabel)(tools)?.isSettingsUnsupported
 
-export const getCurrentMountDirectory = (runtime: any) => {
+export const getCurrentMountDirectory = (toolLabel: ToolLabel) => {
   const boldCode = function(label: ToolLabel) {
-    return code({ style: { fontWeight: 600 } }, [`/home/${label.toLowerCase()}`])
+    const mydir = label.toLowerCase()
+    return code({ style: { fontWeight: 600 } }, [`/home/${mydir}`])
   }
-  const toolLabel = getToolLabelFromRuntime(runtime)
   const defaultMsg = [boldCode(toolLabels.Jupyter), ' for Jupyter environments and ', boldCode(toolLabels.RStudio), ' for RStudio environments']
-  return toolLabel ? [boldCode(toolLabel)] : defaultMsg
+  return typeof toolLabel === 'string' ? [boldCode(toolLabel)] : defaultMsg // TODO: remove string check IA-4091
 }
 
 //TODO: Placeholders. Finalized version will live in other TypeScript util files.

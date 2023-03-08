@@ -46,14 +46,21 @@ const defaultIComputeConfig = {
 }
 
 const updateComputeConfig = jest.fn()
-const handleLearnMoreAboutPersistentDisk = jest.fn()
+const setViewMode = jest.fn()
+const handleLearnMoreAboutPersistentDiskMock = jest.fn()
+
+
+jest.mock('src/pages/workspaces/workspace/analysis/modals/persistent-disk-controls', () => ({
+  ...jest.requireActual('src/pages/workspaces/workspace/analysis/modals/persistent-disk-controls'),
+  handleLearnMoreAboutPersistentDisk: () => handleLearnMoreAboutPersistentDiskMock
+}))
 
 
 const defaultPersistentDiskProps: PersistentDiskProps = {
   diskExists: true,
   computeConfig: defaultIComputeConfig,
   updateComputeConfig: () => updateComputeConfig, //we shouldn't be using curry, therefore we have to use this.
-  setViewMode: jest.fn(),
+  setViewMode: () => setViewMode,
   cloudPlatform: 'GCP'
 }
 
@@ -104,7 +111,7 @@ describe('compute-modal-component', () => {
 
   describe('PersistentDiskSection', () => {
     // click learn more about persistent disk
-    it('should render learn more about persistent disks', async () => {
+    it('should render learn more about persistent disks 3', async () => {
       // Arrange
       render(h(PersistentDiskSection, defaultPersistentDiskProps))
 
@@ -113,7 +120,7 @@ describe('compute-modal-component', () => {
       await userEvent.click(link)
 
       // Assert
-      expect(handleLearnMoreAboutPersistentDisk).toHaveBeenCalled()
+      expect(handleLearnMoreAboutPersistentDiskMock).toHaveBeenCalled()
     })
 
     it('should not show tooltip when no existing PD', async () => {

@@ -29,7 +29,7 @@ import { AboutPersistentDisk, PersistentDiskSection } from './persistent-disk-co
 const titleId = 'azure-compute-modal-title'
 
 export const AzureComputeModalBase = ({
-  onDismiss, onSuccess, onError = onDismiss, workspace: { workspace: { namespace, name: workspaceName, workspaceId } }, runtimes, location, hideCloseButton = false
+  onDismiss, onSuccess, onError = onDismiss, workspace: { workspace: { namespace, name: workspaceName, workspaceId } }, runtimes, location, tool, hideCloseButton = false
 }) => {
   const [loading, setLoading] = useState(false)
   const [viewMode, setViewMode] = useState(undefined)
@@ -224,7 +224,7 @@ export const AzureComputeModalBase = ({
       div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
         renderApplicationConfigurationSection(),
         renderComputeProfileSection(),
-        h(PersistentDiskSection, { computeConfig, updateComputeConfig, setViewMode }),
+        h(PersistentDiskSection, { computeConfig, updateComputeConfig, setViewMode, tool }),
         renderBottomButtons()
       ])
     ])
@@ -286,7 +286,7 @@ export const AzureComputeModalBase = ({
 
   return h(Fragment, [
     Utils.switchCase(viewMode,
-      ['aboutPersistentDisk', () => AboutPersistentDisk({ titleId, setViewMode, onDismiss })],
+      ['aboutPersistentDisk', () => AboutPersistentDisk({ titleId, setViewMode, onDismiss, tool })],
       ['deleteEnvironment', renderDeleteEnvironment],
       [Utils.DEFAULT, renderMainForm]
     ),
