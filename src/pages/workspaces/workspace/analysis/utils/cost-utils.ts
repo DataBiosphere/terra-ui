@@ -242,7 +242,6 @@ export const getCostForDisk = (app, appDataDisks, computeRegion, currentRuntimeT
   return diskCost
 }
 
-//TODO: this is incorrect!! We need to check cloud provider.
 export const getCostDisplayForTool = (app, currentRuntime, currentRuntimeTool, toolLabel) => {
   return Utils.cond(
     [toolLabel === toolLabels.Galaxy, () => app ? `${getComputeStatusForDisplay(app.status)} ${Utils.formatUSD(getGalaxyComputeCost(app))}/hr` : ''],
