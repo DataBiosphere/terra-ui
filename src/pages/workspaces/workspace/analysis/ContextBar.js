@@ -139,15 +139,19 @@ export const ContextBar = ({
 
   //This excludes cromwellapp in the calculation.
   const getTotalToolAndDiskCostDisplay = () => {
-    const galaxyApp = getCurrentApp(appTools.Galaxy.appType)(apps)
-    const galaxyDisk = getCurrentAppDataDisk(appTools.Galaxy.appType, apps, appDataDisks, workspaceName)
-    const galaxyRuntimeCost = galaxyApp ? getGalaxyComputeCost(galaxyApp) : 0
-    const galaxyDiskCost = galaxyDisk ? getGalaxyDiskCost(galaxyDisk) : 0
-    const runtimeCost = currentRuntime ? getRuntimeCost(currentRuntime) : 0
-    const curPd = getCurrentPersistentDisk(runtimes, persistentDisks)
-    const diskCost = curPd ? getPersistentDiskCostHourly(curPd, computeRegion) : 0
-    const display = Utils.formatUSD(galaxyRuntimeCost + galaxyDiskCost + runtimeCost + diskCost)
-    return `${display}`
+    if (isGoogleWorkspace(workspace)) {
+      const galaxyApp = getCurrentApp(appTools.Galaxy.appType)(apps)
+      const galaxyDisk = getCurrentAppDataDisk(appTools.Galaxy.appType, apps, appDataDisks, workspaceName)
+      const galaxyRuntimeCost = galaxyApp ? getGalaxyComputeCost(galaxyApp) : 0
+      const galaxyDiskCost = galaxyDisk ? getGalaxyDiskCost(galaxyDisk) : 0
+      const runtimeCost = currentRuntime ? getRuntimeCost(currentRuntime) : 0
+      const curPd = getCurrentPersistentDisk(runtimes, persistentDisks)
+      const diskCost = curPd ? getPersistentDiskCostHourly(curPd, computeRegion) : 0
+      const display = Utils.formatUSD(galaxyRuntimeCost + galaxyDiskCost + runtimeCost + diskCost)
+      return `${display}`
+    } else {
+      return '$0'//[IA-4105] TODO: add azure cost calculation
+    }
   }
 
   return h(Fragment, [
