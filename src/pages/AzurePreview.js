@@ -291,7 +291,10 @@ const AzurePreviewForNonPreviewUser = () => {
   if (hasSubmittedForm) {
     return h(Fragment, [
       p({ style: styles.paragraph }, [
-        'Thank you for your interest in using Terra on Microsoft Azure. We will be in touch with your access information.'
+        'Thank you for your interest in using Terra on Microsoft Azure. We will be in touch with your access information. ',
+      ]),
+      p({ style: styles.paragraph }, [
+        'Please add preview@terra.bio to your contact list to not miss emails about access to the preview.',
       ]),
       div({ style: { marginTop: '1.5rem' } }, [
         h(ButtonPrimary, { onClick: signOut, style: styles.button }, ['Sign Out']),
