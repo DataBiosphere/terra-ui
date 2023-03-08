@@ -17,7 +17,7 @@ import * as Nav from 'src/libs/nav'
 import { useStore } from 'src/libs/react-utils'
 import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { cloudProviderTypes, getCloudProviderFromWorkspace, isAzureWorkspace } from 'src/libs/workspace-utils'
+import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
 import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/AzureComputeModal'
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal'
@@ -213,12 +213,9 @@ export const CloudEnvironmentModal = ({
           shape: 'pause',
           toolLabel,
           onClick: () => stopApp(toolLabel),
-          disabled: isAzureWorkspace(workspace) || busy || !canCompute, //TODO: IA-3993 enable pausing
+          disabled: busy || !canCompute,
           messageChildren: [span('Pause')],
-          tooltip: Utils.cond(
-            [isAzureWorkspace(workspace), () => 'Feature coming soon'],
-            [canCompute, () => 'Pause Environment'],
-            () => noCompute)
+          tooltip: canCompute ? 'Pause Environment' : noCompute
         })
       case 'Starting':
       case 'Stopping':

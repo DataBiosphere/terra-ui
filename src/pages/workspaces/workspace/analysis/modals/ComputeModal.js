@@ -1629,13 +1629,7 @@ export const ComputeModalBase = ({
           onDismiss
         }),
         div(['A cloud environment consists of application configuration, cloud compute and persistent disk(s).']),
-        h(TitleBar, {
-            id: 'compute-modal-subtitle-label',
-            style: { marginTop: '0.5rem', marginBottom: '0.5rem' },
-            title: 'Cost based on settings below',
-            hideCloseButton: shouldHideCloseButton,
-            onDismiss
-        }),
+        label({ htmlFor: 'compute-modal-subtitle-label', style: computeStyles.label }, ['Estimated cost for these settings']),
       ])
     }
     const renderBottomButtons = () => {

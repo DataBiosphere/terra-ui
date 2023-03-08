@@ -28,6 +28,7 @@ import * as Style from 'src/libs/style'
 import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { billingRoles } from 'src/pages/billing/List'
+import { ExternalLink } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/ExternalLink'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
 
@@ -45,6 +46,8 @@ const getBillingAccountIcon = status => {
   const { shape, color } = billingAccountIcons[status]
   return icon(shape, { size: billingAccountIconSize, color })
 }
+
+const accountLinkStyle = { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' }
 
 const WorkspaceCardHeaders = memoWithName('WorkspaceCardHeaders', ({ needsStatusColumn, sort, onSort }) => {
   return div({ role: 'row', style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
@@ -304,7 +307,7 @@ const GcpBillingAccountControls = ({
 
   return h(Fragment, [
     Auth.hasBillingScope() &&
-    div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
+    div({ style: accountLinkStyle }, [
       span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
       span({ style: { flexShrink: 0, marginRight: '0.5rem' } }, billingAccountDisplayText),
       isOwner && h(MenuTrigger, {
@@ -378,7 +381,7 @@ const GcpBillingAccountControls = ({
       ])
     ]),
     Auth.hasBillingScope() && isOwner &&
-    div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', margin: '0.5rem 0 0 1rem' } }, [
+    div({ style: accountLinkStyle }, [
       span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, marginRight: '0.75rem' } }, 'Spend Report Configuration:'),
       span({ style: { flexShrink: 0 } }, 'Edit'),
       h(Link, {
@@ -426,7 +429,7 @@ const GcpBillingAccountControls = ({
       ])
     ]),
     !Auth.hasBillingScope() &&
-    div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
+    div({ style: accountLinkStyle }, [
       h(Link, {
         onClick: authorizeAndLoadAccounts
       }, ['View billing account'])
@@ -558,6 +561,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const getBillingAccountStatus = workspace => _.findKey(g => g.has(workspace), groups)
 
   const isGcpProject = billingProject.cloudPlatform === cloudProviders.gcp.label
+  const isAzureProject = billingProject.cloudPlatform === cloudProviders.azure.label
 
   const tabToTable = {
     workspaces: h(Fragment, [
@@ -779,11 +783,17 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     () => !getShowBillingModal() && getBillingAccountsOutOfDate() && refreshWorkspaces(),
     { ms: 5000 }
   )
-
   return h(Fragment, [
     div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [billingProject.projectName]),
       isGcpProject && h(GcpBillingAccountControls, { authorizeAndLoadAccounts, billingAccounts, billingProject, isOwner, getShowBillingModal, setShowBillingModal, reloadBillingProject, setUpdating }),
+      isAzureProject && div({ style: accountLinkStyle }, [
+        h(ExternalLink, {
+          url: `https://portal.azure.com/#@${billingProject.managedAppCoordinates.tenantId}/resource/subscriptions/${billingProject.managedAppCoordinates.subscriptionId}/resourceGroups/${billingProject.managedAppCoordinates.managedResourceGroupId}/overview`,
+          text: 'Open Resource Group in Azure Portal',
+          popoutSize: 14
+        })
+      ]),
       _.size(projectUsers) > 1 && _.size(projectOwners) === 1 && div({
         style: {
           display: 'flex',
