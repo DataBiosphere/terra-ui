@@ -1025,11 +1025,13 @@ const WorkspaceData = _.flow(
             }),
             uploadingWDSFile && h(EntityUploader, {
               onDismiss: () => setUploadingWDSFile(false),
-              onSuccess: () => {
+              onSuccess: recordType => {
                 setUploadingWDSFile(false)
                 forceRefresh()
                 loadMetadata()
-                notify('success', 'Data imported successfully.')
+                notify('success', `Data imported successfully to table ${recordType}.`, {
+                  id: `${recordType}_success`
+                })
               },
               namespace, name,
               workspaceId, entityTypes: wdsTypes.state.map(item => item['name']), dataProvider: wdsDataTableProvider,
