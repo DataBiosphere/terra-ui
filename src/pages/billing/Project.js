@@ -481,7 +481,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         )
       ])
     ]),
-    [spendReportKey]: h(SpendReport, { tab, billingProject })
+    [spendReportKey]: h(SpendReport, { billingProjectName: billingProject.projectName, viewSelected: tab === spendReportKey })
   }
 
   const tabs = _.map(key => ({

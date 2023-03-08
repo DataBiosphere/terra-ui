@@ -10,15 +10,12 @@ import {
 import { Ajax } from 'src/libs/ajax'
 import { FormLabel } from 'src/libs/forms'
 import { useCancellation } from 'src/libs/react-utils'
-import * as Utils from 'src/libs/utils'
 import { CostCard } from 'src/pages/billing/SpendReport/CostCard'
 import { ErrorAlert } from 'src/pages/billing/SpendReport/ErrorAlert'
 
 
 const LazyChart = lazy(() => import('src/components/Chart'))
 const maxWorkspacesInChart = 10
-const spendReportKey = 'spend report'
-
 
 const OtherMessaging = ({ cost }) => {
   const msg = cost !== null ?
@@ -31,10 +28,75 @@ const OtherMessaging = ({ cost }) => {
   ])
 }
 
-export const SpendReport = ({ tab, billingProject }) => {
-  const [updating, setUpdating] = useState(false)
-  const [projectCost, setProjectCost] = useState(null)
-  const [costPerWorkspace, setCostPerWorkspace] = useState(
+// Interfaces for internal storage of data
+interface WorkspaceCosts {
+  workspaceNames: string[]
+  computeCosts: number[]
+  storageCosts: number[]
+  otherCosts: number[]
+  numWorkspaces: number
+  costFormatter: any
+}
+
+interface ProjectCost {
+  spend: string
+  compute: string
+  storage: string
+  other: string
+}
+// End of interfaces for internal storage of data
+
+// Interfaces for dealing with the server SpendReport JSON response
+interface CategorySpendData {
+  category: string
+  cost: string
+  credits: string
+  currency: string
+}
+
+interface WorkspaceSpendData {
+  cost: string
+  credits: string
+  currency: string
+  googleProjectId: string
+  subAggregation: { aggregationKey: 'Category'; spendData: CategorySpendData[]}
+  workspace: { name: string; namespace: string }
+}
+
+interface AggregatedSpendData {
+  aggregationKey: 'Workspace' | 'Category'
+}
+
+interface AggregatedWorkspaceSpendData extends AggregatedSpendData{
+  aggregationKey: 'Workspace'
+  spendData: WorkspaceSpendData[]
+}
+
+interface AggregatedCategorySpendData extends AggregatedSpendData {
+  aggregationKey: 'Category'
+  spendData: CategorySpendData[]
+}
+
+interface SpendReportServerResponse {
+  spendDetails: AggregatedSpendData[]
+  spendSummary: {
+    cost: string
+    credits: string
+    currency: string
+    startDate: string
+    endDate: string
+  }
+}
+// End of interfaces for dealing with the server SpendReport JSON response
+
+interface SpendReportProps {
+  billingProjectName: string
+  viewSelected: boolean
+}
+
+export const SpendReport = (props: SpendReportProps) => {
+  const [projectCost, setProjectCost] = useState<ProjectCost|null>(null)
+  const [costPerWorkspace, setCostPerWorkspace] = useState<WorkspaceCosts>(
     { workspaceNames: [], computeCosts: [], otherCosts: [], storageCosts: [], numWorkspaces: 0, costFormatter: null }
   )
   const [updatingProjectCost, setUpdatingProjectCost] = useState(false)
@@ -72,7 +134,8 @@ export const SpendReport = ({ tab, billingProject }) => {
     yAxis: {
       crosshair: true, min: 0,
       labels: {
-        formatter() { // @ts-ignore
+        formatter() {
+          // @ts-ignore
           return costPerWorkspace.costFormatter.format(this.value)
         }, // eslint-disable-line object-shorthand
         style: { fontSize: '12px' }
@@ -93,76 +156,64 @@ export const SpendReport = ({ tab, billingProject }) => {
 
   const isProjectCostReady = projectCost !== null
 
-  // Update cost data only if report date range changes, or if spend report tab was selected.
   useEffect(() => {
-    const maybeLoadProjectCost =
-        Utils.withBusyState(setUpdating, async () => {
-          if (!updatingProjectCost && projectCost === null && tab === spendReportKey) {
-            setUpdatingProjectCost(true)
-            const endDate = new Date().toISOString().slice(0, 10)
-            const startDate = subDays(spendReportLengthInDays, new Date()).toISOString().slice(0, 10)
-            const spend = await Ajax(signal).Billing.getSpendReport({ billingProjectName: billingProject.projectName, startDate, endDate })
-            const costFormatter = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: spend.spendSummary.currency })
-            // @ts-ignore
-            const categoryDetails = _.find(details => details.aggregationKey === 'Category')(spend.spendDetails)
-            console.assert(categoryDetails !== undefined, 'Spend report details do not include aggregation by Category')
-            const getCategoryCosts = (categorySpendData, asFloat) => {
-              const costDict = {}
-              _.forEach(type => {
-                // @ts-ignore
-                const costAsString = _.find(['category', type])(categorySpendData)?.cost ?? 0
-                costDict[type] = asFloat ? parseFloat(costAsString) : costFormatter.format(costAsString)
-              }, ['Compute', 'Storage', 'Other'])
-              return costDict
-            }
-            // @ts-ignore
-            const costDict = getCategoryCosts(categoryDetails.spendData, false)
-
-            const totalCosts = {
-              spend: costFormatter.format(spend.spendSummary.cost), // @ts-ignore
-              compute: costDict.Compute, // @ts-ignore
-              storage: costDict.Storage, // @ts-ignore
-              other: costDict.Other
-            }
-
-            // @ts-ignore
-            setProjectCost(totalCosts)
-
-            // @ts-ignore
-            const workspaceDetails = _.find(details => details.aggregationKey === 'Workspace')(spend.spendDetails)
-            console.assert(workspaceDetails !== undefined, 'Spend report details do not include aggregation by Workspace')
-            // Get the most expensive workspaces, sorted from most to least expensive.
-            // @ts-ignore
-            const mostExpensiveWorkspaces = _.flow(
-              _.sortBy(({ cost }) => { return parseFloat(cost) }),
-              _.reverse,
-              _.slice(0, maxWorkspacesInChart) // @ts-ignore
-            )(workspaceDetails?.spendData)
-            // Pull out names and costs.
-            const costPerWorkspace = {
-              // @ts-ignore
-              workspaceNames: [], computeCosts: [], storageCosts: [], otherCosts: [], costFormatter, numWorkspaces: workspaceDetails?.spendData.length
-            }
-            _.forEach(workspaceCostData => {
-              // @ts-ignore
-              costPerWorkspace.workspaceNames.push(workspaceCostData.workspace.name)
-              // @ts-ignore
-              const categoryDetails = workspaceCostData.subAggregation
-              console.assert(categoryDetails.key !== 'Category', 'Workspace spend report details do not include sub-aggregation by Category')
-              const costDict = getCategoryCosts(categoryDetails.spendData, true) // @ts-ignore
-              costPerWorkspace.computeCosts.push(costDict.Compute) // @ts-ignore
-              costPerWorkspace.storageCosts.push(costDict.Storage) // @ts-ignore
-              costPerWorkspace.otherCosts.push(costDict.Other) // @ts-ignore
-            })(mostExpensiveWorkspaces) // @ts-ignore
-            setCostPerWorkspace(costPerWorkspace)
-            setUpdatingProjectCost(false)
+    const maybeLoadProjectCost = async () => {
+      if (!updatingProjectCost && !errorMessage && projectCost === null && props.viewSelected) {
+        setUpdatingProjectCost(true)
+        const endDate = new Date().toISOString().slice(0, 10)
+        const startDate = subDays(spendReportLengthInDays, new Date()).toISOString().slice(0, 10)
+        const spend = await Ajax(signal).Billing.getSpendReport({ billingProjectName: props.billingProjectName, startDate, endDate }) as SpendReportServerResponse
+        const costFormatter = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: spend.spendSummary.currency })
+        const categoryDetails = _.find(details => details.aggregationKey === 'Category', spend.spendDetails) as AggregatedCategorySpendData
+        console.assert(categoryDetails !== undefined, 'Spend report details do not include aggregation by Category')
+        const getCategoryCosts = (categorySpendData: CategorySpendData[]): { compute: number; storage: number; other: number } => {
+          return {
+            compute: parseFloat(_.find(['category', 'Compute'], categorySpendData)?.cost ?? '0'),
+            storage: parseFloat(_.find(['category', 'Storage'], categorySpendData)?.cost ?? '0'),
+            other: parseFloat(_.find(['category', 'Other'], categorySpendData)?.cost ?? '0')
           }
+        }
+        const costDict = getCategoryCosts(categoryDetails.spendData)
+
+        setProjectCost({
+          spend: costFormatter.format(parseFloat(spend.spendSummary.cost)),
+          compute: costFormatter.format(costDict.compute),
+          storage: costFormatter.format(costDict.storage),
+          other: costFormatter.format(costDict.other)
         })
+
+        const workspaceDetails = _.find(details => details.aggregationKey === 'Workspace', spend.spendDetails) as AggregatedWorkspaceSpendData
+        console.assert(workspaceDetails !== undefined, 'Spend report details do not include aggregation by Workspace')
+        // Get the most expensive workspaces, sorted from most to least expensive.
+        const mostExpensiveWorkspaces = _.flow(
+          _.sortBy(({ cost }) => { return parseFloat(cost) }),
+          _.reverse,
+          _.slice(0, maxWorkspacesInChart)
+        )(workspaceDetails?.spendData) as WorkspaceSpendData[]
+        // Pull out names and costs.
+        const costPerWorkspace: WorkspaceCosts = {
+          workspaceNames: [], computeCosts: [], storageCosts: [], otherCosts: [], costFormatter, numWorkspaces: workspaceDetails?.spendData.length
+        }
+        _.forEach(workspaceCostData => {
+          costPerWorkspace.workspaceNames.push(workspaceCostData.workspace.name)
+          const categoryDetails = workspaceCostData.subAggregation
+          console.assert(categoryDetails.aggregationKey === 'Category', 'Workspace spend report details do not include sub-aggregation by Category')
+          const costDict = getCategoryCosts(categoryDetails.spendData)
+          costPerWorkspace.computeCosts.push(costDict.compute)
+          costPerWorkspace.storageCosts.push(costDict.storage)
+          costPerWorkspace.otherCosts.push(costDict.other)
+        }, mostExpensiveWorkspaces)
+        setCostPerWorkspace(costPerWorkspace)
+        setUpdatingProjectCost(false)
+      }
+    }
     maybeLoadProjectCost().catch(async error => {
       setErrorMessage(await (error instanceof Response ? error.text() : error))
       setUpdatingProjectCost(false)
     })
-  }, [spendReportLengthInDays, tab]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [spendReportLengthInDays, props, signal, projectCost, updatingProjectCost, errorMessage])
+
+  const NumberSelect = Select as typeof Select<number>
 
   return h(Fragment, [
     div({ style: { display: 'grid', rowGap: '0.5rem' } }, [
@@ -179,29 +230,30 @@ export const SpendReport = ({ tab, billingProject }) => {
           div({ style: { gridRowStart: 1, gridColumnStart: 1 } }, [
             h(IdContainer, [id => h(Fragment, [
               h(FormLabel, { htmlFor: id }, ['Date range']),
-              h(Select, {
+              h(NumberSelect, {
                 id,
                 value: spendReportLengthInDays,
                 options: _.map(days => ({
                   label: `Last ${days} days`,
                   value: days
                 }), [7, 30, 90]),
-                // @ts-ignore
-                onChange: ({ value: selectedDays }) => {
+                onChange: selectedOption => {
+                  const selectedDays = selectedOption!.value
                   if (selectedDays !== spendReportLengthInDays) {
                     setSpendReportLengthInDays(selectedDays)
                     setProjectCost(null)
+                    setErrorMessage(undefined)
                   }
                 }
               })
             ])])
           ]),
           ...(_.map(name => h(CostCard, {
+            type: name,
             title: `Total ${name}`,
             amount: (!isProjectCostReady ? '...' : projectCost[name]),
             isProjectCostReady,
-            showAsterisk: name === 'spend',
-            key: name
+            showAsterisk: name === 'spend'
           }),
           ['spend', 'compute', 'storage'])
           )
@@ -216,6 +268,6 @@ export const SpendReport = ({ tab, billingProject }) => {
         ]
       )
     ]),
-    updating && customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'fixed' })
+    updatingProjectCost && customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'fixed' })
   ])
 }
