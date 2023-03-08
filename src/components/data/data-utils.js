@@ -29,7 +29,7 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
-import { notify } from 'src/libs/notifications'
+import { clearNotification, notify } from 'src/libs/notifications'
 import { requesterPaysProjectStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -303,10 +303,10 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
 
 const supportsFireCloudDataModel = entityType => _.includes(entityType, ['pair', 'participant', 'sample'])
 
-export const notifyDataImportProgress = jobId => {
+export const notifyDataImportProgress = (jobId, message) => {
   notify('info', 'Data import in progress.', {
     id: jobId,
-    message: 'Data will show up incrementally as the job progresses.'
+    message
   })
 }
 
@@ -330,7 +330,8 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
     setUploading(true)
     try {
       await dataProvider.uploadTsv({ workspaceId, recordType, file, useFireCloudDataModel, deleteEmptyValues, namespace, name })
-      onSuccess()
+      onSuccess(recordType)
+      clearNotification(recordType)
       Ajax().Metrics.captureEvent(Events.workspaceDataUpload, {
         workspaceNamespace: namespace, workspaceName: name, providerName: dataProvider.providerName,
         cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label
@@ -371,7 +372,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
     }
   }, [
     ({ dragging, openUploader }) => h(Fragment, [
-      h(Modal, {
+      !uploading && h(Modal, {
         onDismiss,
         title: 'Import Table Data',
         width: '35rem',
@@ -544,8 +545,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
             }, [' Importing Data - Using a Template'])
           ])
         ])
-      ]),
-      uploading && spinnerOverlay
+      ])
     ])
   ])
 }
