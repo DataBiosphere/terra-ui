@@ -90,7 +90,7 @@ const defaultAnalysesProps: AnalysesProps = {
   workspace: defaultGoogleWorkspace,
   analysesData: defaultAnalysesData,
   onRequesterPaysError: () => {},
-  storageDetails: { googleBucketLocation: '', googleBucketType: '' }
+  storageDetails: { googleBucketLocation: '', googleBucketType: '', fetchedGoogleBucketLocation: undefined }
 }
 
 
