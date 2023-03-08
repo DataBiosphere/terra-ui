@@ -50,7 +50,8 @@ const queryOptions: EntityQueryOptions = {
   snapshotName: '',
   googleProject: '',
   activeTextFilter: '',
-  filterOperator: ''
+  filterOperator: '',
+  columnFilter: ''
 }
 
 type WorkspaceDataContract = ReturnType<typeof WorkspaceData>

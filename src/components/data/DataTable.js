@@ -84,6 +84,7 @@ const DataTable = props => {
   const [pageNumber, setPageNumber] = useState(1)
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
   const [activeTextFilter, setActiveTextFilter] = useState(activeCrossTableTextFilter || '')
+  const [columnFilter, setColumnFilter] = useState('')
 
   const [columnWidths, setColumnWidths] = useState(() => getLocalPref(persistenceId)?.columnWidths || {})
   const [columnState, setColumnState] = useState(() => {
@@ -141,7 +142,7 @@ const DataTable = props => {
   )(async () => {
     const queryOptions = {
       pageNumber, itemsPerPage, sortField: sort.field, sortDirection: sort.direction, snapshotName,
-      googleProject, activeTextFilter, filterOperator
+      googleProject, activeTextFilter, filterOperator, columnFilter
     }
     const { results, resultMetadata: { filteredCount, unfilteredCount } } = await dataProvider.getPage(signal, entityType, queryOptions, entityMetadata)
 
@@ -222,13 +223,18 @@ const DataTable = props => {
     return entities.length && _.every(k => _.includes(k, selectedKeys), entityKeys)
   }
 
+  const searchByColumn = (field, v) => {
+    setColumnFilter(`${field}=${v.toString().trim()}`)
+    setPageNumber(1)
+  }
+
   // Lifecycle
   useEffect(() => {
     loadData()
     if (persist) {
-      StateHistory.update({ itemsPerPage, pageNumber, sort, activeTextFilter })
+      StateHistory.update({ itemsPerPage, pageNumber, sort, activeTextFilter, columnFilter })
     }
-  }, [itemsPerPage, pageNumber, sort, activeTextFilter, filterOperator, refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [itemsPerPage, pageNumber, sort, activeTextFilter, filterOperator, columnFilter, refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (persist) {
@@ -354,7 +360,7 @@ const DataTable = props => {
                   setColumnWidths(_.set('name', nameWidth + delta))
                 }
               }, [
-                h(HeaderOptions, { sort, field: 'name', onSort: setSort },
+                h(HeaderOptions, { sort, field: 'name', onSort: setSort, renderSearch: !!googleProject, searchByColumn: v => searchByColumn(`${entityType}_id`, v) },
                   [h(HeaderCell, [entityMetadata[entityType].idName])])
               ]),
               cellRenderer: ({ rowIndex }) => {
@@ -385,7 +391,7 @@ const DataTable = props => {
                   width: thisWidth, onWidthChange: delta => setColumnWidths(_.set(attributeName, thisWidth + delta))
                 }, [
                   h(HeaderOptions, {
-                    sort, field: attributeName, onSort: setSort,
+                    sort, field: attributeName, onSort: setSort, renderSearch: !!googleProject, searchByColumn: v => searchByColumn(attributeName, v),
                     extraActions: _.concat(
                       editable ? [
                         // settimeout 0 is needed to delay opening the modaals until after the popup menu closes.

@@ -48,6 +48,7 @@ export interface EntityQueryOptions {
   googleProject: string
   activeTextFilter: string
   filterOperator: string
+  columnFilter: string
 }
 
 export type UploadParameters = {

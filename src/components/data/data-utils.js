@@ -10,7 +10,9 @@ import { convertAttributeValue, getAttributeType } from 'src/components/data/att
 import AttributeInput, { AttributeTypeInput } from 'src/components/data/AttributeInput'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
-import { AutocompleteTextInput, PasteOnlyInput, TextInput, ValidatedInput } from 'src/components/input'
+import {
+  AutocompleteTextInput, ConfirmedSearchInput, PasteOnlyInput, TextInput, ValidatedInput
+} from 'src/components/input'
 import Interactive from 'src/components/Interactive'
 import { MenuButton } from 'src/components/MenuButton'
 import Modal from 'src/components/Modal'
@@ -1185,13 +1187,18 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
   ])
 }
 
-export const HeaderOptions = ({ sort, field, onSort, extraActions, children }) => {
+export const HeaderOptions = ({ sort, field, onSort, extraActions, renderSearch, searchByColumn, children }) => {
   const columnMenu = h(MenuTrigger, {
-    closeOnClick: true,
+    closeOnClick: false,
     side: 'bottom',
     content: h(Fragment, [
       h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
       h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
+      renderSearch && h(ConfirmedSearchInput, {
+        'aria-label': 'Filter by column',
+        placeholder: 'Search in column for an exact match',
+        onChange: searchByColumn
+      }),
       !_.isEmpty(extraActions) && h(Fragment, [
         h(MenuDivider),
         _.map(({ label, disabled, tooltip, onClick }) => h(MenuButton, { key: label, disabled, tooltip, onClick }, [label]), extraActions)
