@@ -282,6 +282,7 @@ export const getGoogleRuntime = ({
 
 export const galaxyRunning = {
   appName: 'terra-app-69200c2f-89c3-47db-874c-b770d8de737f',
+  label: toolLabels.Galaxy,
   appType: 'GALAXY',
   auditInfo: {
     creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-29T20:19:13.162484Z'

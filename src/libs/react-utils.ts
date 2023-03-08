@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { EffectCallback, forwardRef, memo, useEffect, useRef, useState } from 'react'
+import { EffectCallback, forwardRef, ForwardRefRenderFunction, memo, ReactElement, useEffect, useRef, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { safeCurry } from 'src/libs/type-utils/lodash-fp-helpers'
 import { delay, pollWithCancellation } from 'src/libs/utils'
@@ -84,7 +84,17 @@ export const useCancellation = (): AbortSignal => {
   return controller.current.signal
 }
 
-export const withDisplayName = _.curry((name, WrappedComponent) => {
+type ComponentWithDisplayName = {
+  (props: any, context?: any): ReactElement<any, any> | null
+  displayName?: string | undefined
+}
+
+type WithDisplayNameFn = {
+  (name: string): <T extends ComponentWithDisplayName>(WrappedComponent: T) => T
+  <T extends ComponentWithDisplayName>(name: string, WrappedComponent: T): T
+}
+
+export const withDisplayName: WithDisplayNameFn = safeCurry(<T extends ComponentWithDisplayName>(name: string, WrappedComponent: T): T => {
   WrappedComponent.displayName = name
   return WrappedComponent
 })
@@ -101,8 +111,12 @@ export const combineRefs = refs => {
   }
 }
 
-// TODO: improve these types further
-export const forwardRefWithName = safeCurry((name: string, WrappedComponent) => {
+type ForwardRefWithNameFn = {
+  (name: string): <T, P = any>(WrappedComponent: ForwardRefRenderFunction<T, P>) => ReturnType<typeof forwardRef<T, P>>
+  <T, P>(name: string, WrappedComponent: ForwardRefRenderFunction<T, P>): ReturnType<typeof forwardRef<T, P>>
+}
+
+export const forwardRefWithName: ForwardRefWithNameFn = safeCurry(<T, P>(name: string, WrappedComponent: ForwardRefRenderFunction<T, P>) => {
   return withDisplayName(name, forwardRef(WrappedComponent))
 })
 
