@@ -147,7 +147,7 @@ export const ContextBar = ({
     const curPd = getCurrentPersistentDisk(runtimes, persistentDisks)
     const diskCost = curPd ? getPersistentDiskCostHourly(curPd, computeRegion) : 0
     const display = Utils.formatUSD(galaxyRuntimeCost + galaxyDiskCost + runtimeCost + diskCost)
-    return isGoogleWorkspace(workspace) && currentRuntime.status === 'Stopped' ? '$0.00' : `${display}` //[IA-4105] TODO: add azure cost calculation
+    return !isGoogleWorkspace(workspace) && currentRuntime && currentRuntime.status === 'Stopped' ? '$0.00' : `${display}` //[IA-4105] TODO: add azure cost calculation
   }
 
   return h(Fragment, [
