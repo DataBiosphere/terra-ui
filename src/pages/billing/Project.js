@@ -1,10 +1,8 @@
-import { subDays } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import Collapse from 'src/components/Collapse'
-import { absoluteSpinnerOverlay, ButtonPrimary, IdContainer, Link, Select } from 'src/components/common'
+import { ButtonPrimary, customSpinnerOverlay, IdContainer, Link, Select } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
@@ -29,6 +27,7 @@ import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { billingRoles } from 'src/pages/billing/List'
 import { ExternalLink } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/ExternalLink'
+import { SpendReport } from 'src/pages/billing/SpendReport/SpendReport'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
 
@@ -199,54 +198,8 @@ const groupByBillingAccountStatus = (billingProject, workspaces) => {
   return _.mapValues(ws => new Set(ws), _.groupBy(group, workspaces))
 }
 
-const LazyChart = lazy(() => import('src/components/Chart'))
-const maxWorkspacesInChart = 10
 const spendReportKey = 'spend report'
 
-const CostCard = ({ title, amount, isProjectCostReady, showAsterisk, ...props }) => {
-  return div({
-    ...props,
-    style: {
-      ...Style.elements.card.container,
-      backgroundColor: 'white',
-      padding: undefined,
-      boxShadow: undefined,
-      gridRowStart: '2'
-    }
-  }, [
-    div(
-      {
-        style: { flex: 'none', padding: '0.625rem 1.25rem' },
-        'aria-live': isProjectCostReady ? 'polite' : 'off',
-        'aria-atomic': true
-      },
-      [
-        div({ style: { fontSize: 16, color: colors.accent(), margin: '0.25rem 0.0rem', fontWeight: 'normal' } }, [title]),
-        div({ style: { fontSize: 32, height: 40, fontWeight: 'bold', gridRowStart: '2' } }, [
-          amount,
-          (!!showAsterisk && isProjectCostReady) ? span(
-            {
-              style: { fontSize: 16, fontWeight: 'normal', verticalAlign: 'super' },
-              'aria-hidden': true
-            },
-            ['*']
-          ) : null
-        ])
-      ]
-    )
-  ])
-}
-
-const OtherMessaging = ({ cost }) => {
-  const msg = cost !== null ?
-    `Total spend includes ${cost} in other infrastructure or query costs related to the general operations of Terra.` :
-    'Total spend includes infrastructure or query costs related to the general operations of Terra'
-  return div({ 'aria-live': cost !== null ? 'polite' : 'off', 'aria-atomic': true }, [
-    span({ 'aria-hidden': true }, ['*']),
-    '',
-    msg
-  ])
-}
 
 const GcpBillingAccountControls = ({
   authorizeAndLoadAccounts, billingAccounts, billingProject, isOwner, getShowBillingModal, setShowBillingModal,
@@ -437,45 +390,6 @@ const GcpBillingAccountControls = ({
   ])
 }
 
-const ErrorAlert = ({ errorMessage }) => {
-  const error = Utils.maybeParseJSON(errorMessage)
-  return div({
-    style: {
-      backgroundColor: colors.danger(0.15), borderRadius: '4px',
-      boxShadow: '0 0 4px 0 rgba(0,0,0,0.5)', display: 'flex',
-      padding: '1rem', margin: '1rem 0 0'
-    }
-  }, [
-    div({ style: { display: 'flex' } },
-      [
-        div({ style: { margin: '0.3rem' } }, [
-          icon('error-standard', {
-            'aria-hidden': false, 'aria-label': 'error notification', size: 30,
-            style: { color: colors.danger(), flexShrink: 0, marginRight: '0.3rem' }
-          })
-        ]),
-        Utils.cond(
-          [_.isString(errorMessage), () => div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'center' } },
-            [
-              div({ style: { fontWeight: 'bold', marginLeft: '0.2rem' }, role: 'alert' },
-                _.upperFirst(error.message)),
-              h(Collapse, { title: 'Full Error Detail', style: { marginTop: '0.5rem' } },
-                [
-                  div({
-                    style: {
-                      padding: '0.5rem', marginTop: '0.5rem', backgroundColor: colors.light(),
-                      whiteSpace: 'pre-wrap', overflow: 'auto', overflowWrap: 'break-word',
-                      fontFamily: 'Menlo, monospace',
-                      maxHeight: 400
-                    }
-                  }, [JSON.stringify(error, null, 2)])
-                ])
-            ])],
-          () => div({ style: { display: 'flex', alignItems: 'center' }, role: 'alert' }, errorMessage.toString()))
-      ])
-  ])
-}
-
 const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProject, isOwner, reloadBillingProject }) => {
   // State
   const { query } = Nav.useRoute()
@@ -493,13 +407,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const [expandedWorkspaceName, setExpandedWorkspaceName] = useState()
   const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
   const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
-  const [projectCost, setProjectCost] = useState(null)
-  const [costPerWorkspace, setCostPerWorkspace] = useState(
-    { workspaceNames: [], computeCosts: [], otherCosts: [], storageCosts: [], numWorkspaces: 0, costFormatter: null }
-  )
-  const [updatingProjectCost, setUpdatingProjectCost] = useState(false)
-  const [spendReportLengthInDays, setSpendReportLengthInDays] = useState(30)
-  const [errorMessage, setErrorMessage] = useState()
 
   const signal = useCancellation()
 
@@ -509,52 +416,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     { namespace: billingProject.projectName },
     _.map('workspace', workspaces)
   ), [billingProject, workspaces])
-
-  const spendChartOptions = {
-    chart: { marginTop: 50, spacingLeft: 20, style: { fontFamily: 'inherit' }, type: 'bar' },
-    credits: { enabled: false },
-    legend: { reversed: true },
-    plotOptions: { series: { stacking: 'normal' } },
-    series: [
-      { name: 'Compute', data: costPerWorkspace.computeCosts },
-      { name: 'Storage', data: costPerWorkspace.storageCosts }
-    ],
-    title: {
-      align: 'left', style: { fontSize: '16px' }, y: 25,
-      text: costPerWorkspace.numWorkspaces > maxWorkspacesInChart ? `Top ${maxWorkspacesInChart} Spending Workspaces` : 'Spend By Workspace'
-    },
-    tooltip: {
-      followPointer: true,
-      shared: true,
-      headerFormat: '{point.key}',
-      pointFormatter: function() { // eslint-disable-line object-shorthand
-        return `<br/><span style="color:${this.color}">\u25CF</span> ${this.series.name}: ${costPerWorkspace.costFormatter.format(this.y)}`
-      }
-    },
-    xAxis: {
-      categories: costPerWorkspace.workspaceNames, crosshair: true,
-      labels: { style: { fontSize: '12px' } }
-    },
-    yAxis: {
-      crosshair: true, min: 0,
-      labels: {
-        formatter: function() { return costPerWorkspace.costFormatter.format(this.value) }, // eslint-disable-line object-shorthand
-        style: { fontSize: '12px' }
-      },
-      title: { enabled: false },
-      width: '96%'
-    },
-    accessibility: {
-      point: {
-        descriptionFormatter: point => {
-          return `${point.index + 1}. Workspace ${point.category}, ${point.series.name}: ${costPerWorkspace.costFormatter.format(point.y)}.`
-        }
-      }
-    },
-    exporting: { buttons: { contextButton: { x: -15 } } }
-  }
-
-  const isProjectCostReady = projectCost !== null
 
   const groups = groupByBillingAccountStatus(billingProject, workspacesInProject)
   const billingAccountsOutOfDate = !(_.isEmpty(groups.error) && _.isEmpty(groups.updating))
@@ -620,56 +481,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         )
       ])
     ]),
-    [spendReportKey]: div({ style: { display: 'grid', rowGap: '0.5rem' } }, [
-      !!errorMessage && h(ErrorAlert, { errorMessage }),
-      div(
-        {
-          style: {
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, minmax(max-content, 1fr))',
-            rowGap: '1.66rem',
-            columnGap: '1.25rem'
-          }
-        }, [
-          div({ style: { gridRowStart: 1, gridColumnStart: 1 } }, [
-            h(IdContainer, [id => h(Fragment, [
-              h(FormLabel, { htmlFor: id }, ['Date range']),
-              h(Select, {
-                id,
-                value: spendReportLengthInDays,
-                options: _.map(days => ({
-                  label: `Last ${days} days`,
-                  value: days
-                }), [7, 30, 90]),
-                onChange: ({ value: selectedDays }) => {
-                  if (selectedDays !== spendReportLengthInDays) {
-                    setSpendReportLengthInDays(selectedDays)
-                    setProjectCost(null)
-                  }
-                }
-              })
-            ])])
-          ]),
-          ...(_.map(name => h(CostCard, {
-            title: `Total ${name}`,
-            amount: (!isProjectCostReady ? '...' : projectCost[name]),
-            isProjectCostReady,
-            showAsterisk: name === 'spend',
-            key: name
-          }),
-          ['spend', 'compute', 'storage'])
-          )
-        ]
-      ),
-      h(OtherMessaging, { cost: isProjectCostReady ? projectCost['other'] : null }),
-      costPerWorkspace.numWorkspaces > 0 && div(
-        {
-          style: { minWidth: 500, marginTop: '1rem' }
-        }, [ // Set minWidth so chart will shrink on resize
-          h(Suspense, { fallback: null }, [h(LazyChart, { options: spendChartOptions })])
-        ]
-      )
-    ])
+    [spendReportKey]: h(SpendReport, { tab, billingProject })
   }
 
   const tabs = _.map(key => ({
@@ -714,66 +526,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   useOnMount(() => { reloadBillingProjectUsers() })
 
   useEffect(() => { StateHistory.update({ projectUsers }) }, [projectUsers])
-  // Update cost data only if report date range changes, or if spend report tab was selected.
-  useEffect(() => {
-    const maybeLoadProjectCost =
-      Utils.withBusyState(setUpdating, async () => {
-        if (!updatingProjectCost && projectCost === null && tab === spendReportKey) {
-          setUpdatingProjectCost(true)
-          const endDate = new Date().toISOString().slice(0, 10)
-          const startDate = subDays(spendReportLengthInDays, new Date()).toISOString().slice(0, 10)
-          const spend = await Ajax(signal).Billing.getSpendReport({ billingProjectName: billingProject.projectName, startDate, endDate })
-          const costFormatter = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: spend.spendSummary.currency })
-          const categoryDetails = _.find(details => details.aggregationKey === 'Category')(spend.spendDetails)
-          console.assert(categoryDetails !== undefined, 'Spend report details do not include aggregation by Category')
-          const getCategoryCosts = (categorySpendData, asFloat) => {
-            const costDict = {}
-            _.forEach(type => {
-              const costAsString = _.find(['category', type])(categorySpendData)?.cost ?? 0
-              costDict[type] = asFloat ? parseFloat(costAsString) : costFormatter.format(costAsString)
-            }, ['Compute', 'Storage', 'Other'])
-            return costDict
-          }
-          const costDict = getCategoryCosts(categoryDetails.spendData, false)
-          const totalCosts = {
-            spend: costFormatter.format(spend.spendSummary.cost),
-            compute: costDict.Compute,
-            storage: costDict.Storage,
-            other: costDict.Other
-          }
-
-          setProjectCost(totalCosts)
-
-          const workspaceDetails = _.find(details => details.aggregationKey === 'Workspace')(spend.spendDetails)
-          console.assert(workspaceDetails !== undefined, 'Spend report details do not include aggregation by Workspace')
-          // Get the most expensive workspaces, sorted from most to least expensive.
-          const mostExpensiveWorkspaces = _.flow(
-            _.sortBy(({ cost }) => { return parseFloat(cost) }),
-            _.reverse,
-            _.slice(0, maxWorkspacesInChart)
-          )(workspaceDetails?.spendData)
-          // Pull out names and costs.
-          const costPerWorkspace = {
-            workspaceNames: [], computeCosts: [], storageCosts: [], otherCosts: [], costFormatter, numWorkspaces: workspaceDetails?.spendData.length
-          }
-          _.forEach(workspaceCostData => {
-            costPerWorkspace.workspaceNames.push(workspaceCostData.workspace.name)
-            const categoryDetails = workspaceCostData.subAggregation
-            console.assert(categoryDetails.key !== 'Category', 'Workspace spend report details do not include sub-aggregation by Category')
-            const costDict = getCategoryCosts(categoryDetails.spendData, true)
-            costPerWorkspace.computeCosts.push(costDict.Compute)
-            costPerWorkspace.storageCosts.push(costDict.Storage)
-            costPerWorkspace.otherCosts.push(costDict.Other)
-          })(mostExpensiveWorkspaces)
-          setCostPerWorkspace(costPerWorkspace)
-          setUpdatingProjectCost(false)
-        }
-      })
-    maybeLoadProjectCost().catch(async error => {
-      setErrorMessage(await (error instanceof Response ? error.text() : error))
-      setUpdatingProjectCost(false)
-    })
-  }, [spendReportLengthInDays, tab]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // usePollingEffect calls the "effect" in a while-loop and binds references once on mount.
   // As such, we need a layer of indirection to get current values.
@@ -783,6 +535,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     () => !getShowBillingModal() && getBillingAccountsOutOfDate() && refreshWorkspaces(),
     { ms: 5000 }
   )
+
   return h(Fragment, [
     div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [billingProject.projectName]),
@@ -877,7 +630,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       }
     }),
     billingAccountsOutOfDate && h(BillingAccountSummaryPanel, { counts: _.mapValues(_.size, groups) }),
-    updating && absoluteSpinnerOverlay
+    updating && customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'fixed' })
   ])
 }
 
