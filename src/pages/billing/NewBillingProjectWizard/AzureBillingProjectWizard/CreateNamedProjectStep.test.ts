@@ -57,7 +57,7 @@ describe('CreateNamedProjectStep', () => {
     // @ts-ignore
     expect(getBillingProjectInput().value).toBe(defaultProps.billingProjectName)
     expect(screen.queryByText(uniqueBillingProjectNameMsg)).not.toBeNull()
-    expect(screen.queryByText('Learn more and follow changes.')).not.toBeNull()
+    expect(screen.queryByText('Learn more and follow changes')).not.toBeNull()
     expect(screen.queryByText('It may take up to 15 minutes for the billing project to be fully created and ready for use.')).not.toBeNull()
     verifyCreateBillingProjectDisabled()
     expect(createBillingProject).not.toHaveBeenCalled()
