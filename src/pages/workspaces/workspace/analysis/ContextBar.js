@@ -147,7 +147,7 @@ export const ContextBar = ({
     const curPd = getCurrentPersistentDisk(runtimes, persistentDisks)
     const diskCost = curPd ? getPersistentDiskCostHourly(curPd, computeRegion) : 0
     const display = Utils.formatUSD(galaxyRuntimeCost + galaxyDiskCost + runtimeCost + diskCost)
-    return `${display}`
+    return display
   }
 
   return h(Fragment, [
