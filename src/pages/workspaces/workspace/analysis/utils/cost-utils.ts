@@ -209,7 +209,11 @@ export const getPersistentDiskCostHourly = ({ size, status, diskType, cloudConte
 export const getRuntimeCost = ({ runtimeConfig, status, cloudContext = {} }) => {
   // @ts-expect-error
   if (isAzureContext(cloudContext)) {
-    return getAzureComputeCostEstimate(runtimeConfig)
+    return Utils.switchCase(status,
+      ['Stopped', () => 0.0],
+      ['Error', () => 0.0],
+      [Utils.DEFAULT, () => getAzureComputeCostEstimate(runtimeConfig)]
+    )
   }
   return Utils.switchCase(status,
     [
@@ -243,7 +247,7 @@ export const getCostDisplayForTool = (app, currentRuntime, currentRuntimeTool, t
   return Utils.cond(
     [toolLabel === toolLabels.Galaxy, () => app ? `${getComputeStatusForDisplay(app.status)} ${Utils.formatUSD(getGalaxyComputeCost(app))}/hr` : ''],
     [toolLabel === toolLabels.Cromwell, () => ''], // We will determine what to put here later
-    [toolLabel === toolLabels.JupyterLab, () => currentRuntime ? `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getAzureComputeCostEstimate(currentRuntime.runtimeConfig))}/hr` : ''],
+    [toolLabel === toolLabels.JupyterLab, () => currentRuntime ? `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getRuntimeCost(currentRuntime))}/hr` : ''],
     [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getRuntimeCost(currentRuntime))}/hr`],
     [Utils.DEFAULT, () => {
       return ''

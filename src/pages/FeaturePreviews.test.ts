@@ -29,7 +29,7 @@ describe('Environments', () => {
       labels: { tool: '' }
     }
 
-    await act(async () => { render(h(PauseButton, { computeType: 'app', cloudEnvironment:testCompute, currentUser: 'Jake', pauseComputeAndRefresh })) }) //eslint-disable-line
+    await act(async () => { render(h(PauseButton, { computeType: 'app', cloudEnvironment: testCompute, currentUser: 'Jake', pauseComputeAndRefresh })) }) //eslint-disable-line
     // Act
     const pauseButton = screen.getByText('Pause')
     // Assert
