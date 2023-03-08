@@ -18,7 +18,7 @@ export interface BillingProject {
 
 export interface AzureBillingProject extends BillingProject {
   cloudPlatform: 'AZURE'
-  azureManagedAppCoordinates: AzureManagedAppCoordinates
+  managedAppCoordinates: AzureManagedAppCoordinates
 }
 
 export interface GCPBillingProject extends BillingProject {
