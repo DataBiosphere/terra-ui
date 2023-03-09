@@ -185,7 +185,7 @@ export const AzureComputeModalBase = ({
       [viewMode === 'deleteEnvironment',
         () => Ajax().Runtimes.runtimeV2(workspaceId, currentRuntimeDetails.runtimeName).delete()], //delete runtime
       [Utils.DEFAULT, () => {
-        // TODO: We DO currently support re-attaching azure disks
+        // TODO [IA-4052]: We DO currently support re-attaching azure disks
         const disk = {
           size: computeConfig.persistentDiskSize,
           name: Utils.generatePersistentDiskName(),
@@ -198,7 +198,7 @@ export const AzureComputeModalBase = ({
           saturnWorkspaceNamespace: namespace,
           saturnWorkspaceName: workspaceName,
           diskSize: disk.size, // left as diskSize for backwards-compatible metrics gathering
-          workspaceId // TODO: track persistent disk use here also
+          workspaceId // TODO [IA-4052]: track persistent disk use here also
         })
 
         return Ajax().Runtimes.runtimeV2(workspaceId, Utils.generateRuntimeName()).create({

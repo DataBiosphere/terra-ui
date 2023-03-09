@@ -161,10 +161,11 @@ describe('compute-modal-component', () => {
 
       // Act
       const sizeInput = screen.getByLabelText('Disk Size (GB)')
-      await userEvent.type(sizeInput, '0')
+      await userEvent.clear(sizeInput)
+      await userEvent.type(sizeInput, '50')
 
       // Assert
-      expect(updateComputeConfig).toBeCalledWith(500)
+      expect(updateComputeConfig).toBeCalledWith(50)
     })
   })
 })

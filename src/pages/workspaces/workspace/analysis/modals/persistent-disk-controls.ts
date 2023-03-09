@@ -41,7 +41,7 @@ export const handleLearnMoreAboutPersistentDisk = ({ setViewMode }) => {
   Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView)
 }
 
-// TODO, check if unattached azure PD
+// TODO [IA-4053], check if unattached azure PD
 export const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelected) => runtimeType === runtimeTypes.gceVm &&
   (!runtimeDetails?.runtimeConfig?.diskSize || upgradeDiskSelected)
 
