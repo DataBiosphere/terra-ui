@@ -304,7 +304,7 @@ const FilterSectionComponent = <ListItem>({ section, fullList, selectedSections,
   return h(Fragment, [
     _.map((sectionEntry : string) => {
       const numMatches = listItemsMatchForSectionEntry(sectionEntry, section.matchBy, itemsFilteredByOtherSections).length
-      const sectionEntryChecked = selectedLabels.includes(sectionEntry)
+      const sectionEntryChecked = _.includes(sectionEntry, selectedLabels)
       return h(Clickable, {
         'aria-checked': sectionEntryChecked,
         role: 'checkbox',
