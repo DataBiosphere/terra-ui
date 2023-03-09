@@ -98,7 +98,6 @@ export const PersistentDiskSection = ({ diskExists, computeConfig, updateCompute
   const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
   const diskSizeId = useUniqueId()
 
-
   return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
     div({ style: { display: 'flex', flexDirection: 'column' } }, [
       label({ style: computeStyles.label }, ['Persistent disk']),
@@ -109,7 +108,8 @@ export const PersistentDiskSection = ({ diskExists, computeConfig, updateCompute
         }, ['Learn more about persistent disks and where your disk is mounted.'])
       ]),
       div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
-        cloudPlatform === 'GCP' ? diskType({ diskExists, computeConfig, updateComputeConfig }) : false,
+        // TODO: we inconsistently use GCP and Gcp, once cloudPlatform is typed, make stronger comparison here
+        ['GCP', 'Gcp'].includes(cloudPlatform) ? diskType({ diskExists, computeConfig, updateComputeConfig }) : false,
         h(div, [
           label({ htmlFor: diskSizeId, style: computeStyles.label }, ['Disk Size (GB)']),
           div({ style: { width: 75, marginTop: '0.5rem' } }, [
@@ -129,7 +129,7 @@ export const PersistentDiskSection = ({ diskExists, computeConfig, updateCompute
   ])
 }
 
-export const diskType = ({ diskExists, computeConfig, updateComputeConfig }) => {
+const diskType = ({ diskExists, computeConfig, updateComputeConfig }) => {
   return diskExists ? h(TooltipTrigger, {
     content: [
       'You already have a persistent disk in this workspace. ',
