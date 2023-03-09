@@ -1198,7 +1198,7 @@ export const HeaderOptions = ({ sort, field, onSort, extraActions, renderSearch,
       h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
       renderSearch && h(ConfirmedSearchInput, {
         'aria-label': 'Filter by column',
-        placeholder: 'Search in column for an exact match',
+        placeholder: 'Exact match search in column',
         onChange: searchByColumn,
         onClick: e => { e.stopPropagation() }
       }),

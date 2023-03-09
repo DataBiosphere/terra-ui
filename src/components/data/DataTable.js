@@ -15,6 +15,7 @@ import Modal from 'src/components/Modal'
 import { MenuTrigger } from 'src/components/PopupTrigger'
 import { GridTable, HeaderCell, paginator, Resizable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
+import { wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
@@ -22,6 +23,7 @@ import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
 
 const entityMap = entities => {
@@ -226,6 +228,10 @@ const DataTable = props => {
   const searchByColumn = (field, v) => {
     setColumnFilter(`${field}=${v.toString().trim()}`)
     setPageNumber(1)
+    Ajax().Metrics.captureEvent(Events.workspaceDataFilteredSearch, {
+      workspaceNamespace: namespace, workspaceName: name, providerName: dataProvider.providerName,
+      cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label
+    })
   }
 
   // Lifecycle
