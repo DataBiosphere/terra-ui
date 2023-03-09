@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import pluralize from 'pluralize'
-import { Fragment, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { b, div, fieldset, h, img, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import {
@@ -1188,8 +1188,10 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
 }
 
 export const HeaderOptions = ({ sort, field, onSort, extraActions, renderSearch, searchByColumn, children }) => {
+  const popup = useRef()
   const columnMenu = h(MenuTrigger, {
-    closeOnClick: false,
+    ref: popup,
+    closeOnClick: true,
     side: 'bottom',
     content: h(Fragment, [
       h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
@@ -1197,7 +1199,8 @@ export const HeaderOptions = ({ sort, field, onSort, extraActions, renderSearch,
       renderSearch && h(ConfirmedSearchInput, {
         'aria-label': 'Filter by column',
         placeholder: 'Search in column for an exact match',
-        onChange: searchByColumn
+        onChange: searchByColumn,
+        onClick: e => { e.stopPropagation() }
       }),
       !_.isEmpty(extraActions) && h(Fragment, [
         h(MenuDivider),
