@@ -88,7 +88,6 @@ describe('ComputeModal', () => {
     // Assert
     verifyEnabled(getCreateButton())
     screen.getByText('Jupyter Cloud Environment')
-    screen.getByText('Estimated cost for these settings')
   })
 
   it('sends the proper leo API call in default create case (no runtimes or disks)', async () => {

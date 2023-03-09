@@ -164,20 +164,20 @@ const UnsupportedWorkspaceCell = ({ status, message }) => div({
   ])
 ])
 
-export const PauseButton = ({ computeType, compute, currentUser, pauseComputeAndRefresh }) => {
+export const PauseButton = ({ computeType, cloudEnvironment, currentUser, pauseComputeAndRefresh }) => {
   const shouldShowPauseButton = Utils.cond(
-    [isApp(compute) && !_.find(tool => tool.appType && tool.appType === compute.appType)(appTools)?.isPauseUnsupported, () => true],
-    [isPauseSupported(getToolLabelFromRuntime(compute)) && currentUser === getCreatorForRuntime(compute), () => true],
+    [isApp(cloudEnvironment) && !_.find(tool => tool.appType && tool.appType === cloudEnvironment.appType)(appTools)?.isPauseUnsupported, () => true],
+    [isPauseSupported(getToolLabelFromRuntime(cloudEnvironment)) && currentUser === getCreatorForRuntime(cloudEnvironment), () => true],
     () => false)
 
   return (
     shouldShowPauseButton && h(Link, {
       style: { marginRight: '1rem' },
-      disabled: !isComputePausable(computeType, compute),
-      tooltip: isComputePausable(computeType, compute) ?
+      disabled: !isComputePausable(computeType, cloudEnvironment),
+      tooltip: isComputePausable(computeType, cloudEnvironment) ?
         'Pause cloud environment' :
-        'Cannot pause a cloud environment while in status',
-      onClick: () => pauseComputeAndRefresh(computeType, compute)
+        `Cannot pause a cloud environment while in status ${_.upperCase(getComputeStatusForDisplay(cloudEnvironment.status))}.`,
+      onClick: () => pauseComputeAndRefresh(computeType, cloudEnvironment)
     }, [makeMenuIcon('pause'), 'Pause'])
   )
 }
