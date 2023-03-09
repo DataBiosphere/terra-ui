@@ -16,7 +16,7 @@ import {
 import Interactive from 'src/components/Interactive'
 import { MenuButton } from 'src/components/MenuButton'
 import Modal from 'src/components/Modal'
-import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
+import PopupTrigger, { MenuDivider } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
 import { Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -1189,7 +1189,7 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
 
 export const HeaderOptions = ({ sort, field, onSort, extraActions, renderSearch, searchByColumn, children }) => {
   const popup = useRef()
-  const columnMenu = h(MenuTrigger, {
+  const columnMenu = h(PopupTrigger, {
     ref: popup,
     closeOnClick: true,
     side: 'bottom',
@@ -1199,7 +1199,12 @@ export const HeaderOptions = ({ sort, field, onSort, extraActions, renderSearch,
       renderSearch && h(ConfirmedSearchInput, {
         'aria-label': 'Filter by column',
         placeholder: 'Exact match search in column',
-        onChange: searchByColumn,
+        onChange: e => {
+          if (!!e) {
+            searchByColumn(e)
+            popup.current.close()
+          }
+        },
         onClick: e => { e.stopPropagation() }
       }),
       !_.isEmpty(extraActions) && h(Fragment, [

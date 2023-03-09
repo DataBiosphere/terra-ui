@@ -13,7 +13,7 @@ import { ConfirmedSearchInput } from 'src/components/input'
 import { MenuButton } from 'src/components/MenuButton'
 import Modal from 'src/components/Modal'
 import { MenuTrigger } from 'src/components/PopupTrigger'
-import { GridTable, HeaderCell, paginator, Resizable } from 'src/components/table'
+import { GridTable, HeaderCell, paginator, Resizable, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import { wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider'
 import colors from 'src/libs/colors'
@@ -226,12 +226,23 @@ const DataTable = props => {
   }
 
   const searchByColumn = (field, v) => {
+    setActiveTextFilter('')
     setColumnFilter(`${field}=${v.toString().trim()}`)
     setPageNumber(1)
     Ajax().Metrics.captureEvent(Events.workspaceDataFilteredSearch, {
       workspaceNamespace: namespace, workspaceName: name, providerName: dataProvider.providerName,
       cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label
     })
+  }
+
+  const parseColumnFilter = colFilt => {
+    if (!!colFilt) {
+      const parsed = colFilt.split('=')
+      if (parsed.length > 1) {
+        return { filterColAttr: parsed[0], filterColTerm: parsed[1] }
+      }
+    }
+    return { filterColAttr: '', filterColTerm: '' }
   }
 
   // Lifecycle
@@ -310,6 +321,7 @@ const DataTable = props => {
             'aria-label': 'Search',
             placeholder: 'Search',
             onChange: v => {
+              setColumnFilter('')
               setActiveTextFilter(v.toString().trim())
               setPageNumber(1)
             },
@@ -358,6 +370,13 @@ const DataTable = props => {
               }
             }
 
+            const { filterColAttr, filterColTerm } = parseColumnFilter(columnFilter)
+            const filterBreadCrumb = h(TextCell, { style: { fontWeight: 400, display: 'flex', 'flex-direction': 'row' } }, [`| filtered by ${filterColTerm}`, h(Clickable, {
+              'aria-label': 'Clear filter',
+              tooltip: 'Clear filter',
+              style: { alignSelf: 'flex-start', marginLeft: 'auto' },
+              onClick: () => setColumnFilter('')
+            }, [icon('times-circle', { color: colors.light(8), size: 10, display: 'flex', 'flex-direction': 'row' })])])
             const defaultColumnsWithoutSelectRow = [{
               field: 'name',
               width: nameWidth,
@@ -366,8 +385,8 @@ const DataTable = props => {
                   setColumnWidths(_.set('name', nameWidth + delta))
                 }
               }, [
-                h(HeaderOptions, { sort, field: 'name', onSort: setSort, renderSearch: !!googleProject, searchByColumn: v => searchByColumn(`${entityType}_id`, v) },
-                  [h(HeaderCell, [entityMetadata[entityType].idName])])
+                h(HeaderOptions, { sort, field: 'name', onSort: setSort, renderSearch: !!googleProject, searchByColumn: v => searchByColumn(entityMetadata[entityType].idName, v) },
+                  [h(HeaderCell, [entityMetadata[entityType].idName, (filterColAttr === entityMetadata[entityType].idName) && filterBreadCrumb])])
               ]),
               cellRenderer: ({ rowIndex }) => {
                 const { name: entityName } = entities[rowIndex]
@@ -410,7 +429,7 @@ const DataTable = props => {
                   }, [
                     h(HeaderCell, [
                       !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } }, [columnNamespace]),
-                      columnName
+                      columnName, (filterColAttr === attributeName) && filterBreadCrumb
                     ])
                   ])
                 ]),
