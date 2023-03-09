@@ -30,7 +30,7 @@ const defaultIComputeConfig = {
   persistentDiskType: defaultPersistentDiskType,
   masterMachineType: getDefaultMachineType(false, toolLabels.RStudio),
   masterDiskSize: defaultDataprocMasterDiskSize,
-  diskSize: 0, //TODO: set to a default disk size for Azure
+  diskSize: 50,
   numberOfWorkers: defaultNumDataprocWorkers,
   numberOfPreemptibleWorkers: defaultNumDataprocPreemptibleWorkers,
   workerMachineType: defaultDataprocMachineType,
@@ -162,10 +162,10 @@ describe('compute-modal-component', () => {
       // Act
       const sizeInput = screen.getByLabelText('Disk Size (GB)')
       await userEvent.clear(sizeInput)
-      await userEvent.type(sizeInput, '50')
+      await userEvent.type(sizeInput, '70')
 
       // Assert
-      expect(updateComputeConfig).toBeCalledWith(50)
+      expect(updateComputeConfig).toBeCalledWith(70)
     })
   })
 })
