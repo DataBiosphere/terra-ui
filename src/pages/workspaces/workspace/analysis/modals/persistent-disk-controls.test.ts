@@ -30,7 +30,6 @@ const defaultIComputeConfig = {
   persistentDiskType: defaultPersistentDiskType,
   masterMachineType: getDefaultMachineType(false, toolLabels.RStudio),
   masterDiskSize: defaultDataprocMasterDiskSize,
-  diskSize: 50,
   numberOfWorkers: defaultNumDataprocWorkers,
   numberOfPreemptibleWorkers: defaultNumDataprocPreemptibleWorkers,
   workerMachineType: defaultDataprocMachineType,
