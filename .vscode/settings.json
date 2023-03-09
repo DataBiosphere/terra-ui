@@ -6,5 +6,15 @@
   "eslint.nodePath": ".yarn/sdks",
   "typescript.tsdk": ".yarn/sdks/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
-  "eslint.lintTask.enable": true
+  "eslint.lintTask.enable": true,
+  "workbench.tree.indent": 20,
+  "workbench.tree.renderIndentGuides": "always",
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true
+  },
+  "css.lint.unknownAtRules": "ignore"
 }
