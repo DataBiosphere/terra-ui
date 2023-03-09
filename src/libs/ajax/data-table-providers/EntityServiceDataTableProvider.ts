@@ -85,7 +85,7 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
       } else {
         const { jobId } = await workspace.importFlexibleEntitiesFileAsync(uploadParams.file, { deleteEmptyValues: uploadParams.deleteEmptyValues })
         asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace: uploadParams.namespace, name: uploadParams.name }, jobId }))
-        notifyDataImportProgress(jobId)
+        notifyDataImportProgress(jobId, 'Data will show up incrementally as the job progresses.')
       }
     }
   }

@@ -22,6 +22,15 @@ import {
 
 jest.mock('src/libs/ajax')
 
+jest.mock('react-notifications-component', () => {
+  return {
+    store: {
+      addNotification: jest.fn(),
+      removeNotification: jest.fn()
+    }
+  }
+})
+
 const uuid = '123e4567-e89b-12d3-a456-426614174000' // value doesn't matter for these tests
 
 // shell class that extends WdsDataTableProvider to allow testing protected methods

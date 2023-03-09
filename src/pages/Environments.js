@@ -164,6 +164,24 @@ const UnsupportedWorkspaceCell = ({ status, message }) => div({
   ])
 ])
 
+export const PauseButton = ({ computeType, cloudEnvironment, currentUser, pauseComputeAndRefresh }) => {
+  const shouldShowPauseButton = Utils.cond(
+    [isApp(cloudEnvironment) && !_.find(tool => tool.appType && tool.appType === cloudEnvironment.appType)(appTools)?.isPauseUnsupported, () => true],
+    [isPauseSupported(getToolLabelFromRuntime(cloudEnvironment)) && currentUser === getCreatorForRuntime(cloudEnvironment), () => true],
+    () => false)
+
+  return (
+    shouldShowPauseButton && h(Link, {
+      style: { marginRight: '1rem' },
+      disabled: !isComputePausable(computeType, cloudEnvironment),
+      tooltip: isComputePausable(computeType, cloudEnvironment) ?
+        'Pause cloud environment' :
+        `Cannot pause a cloud environment while in status ${_.upperCase(getComputeStatusForDisplay(cloudEnvironment.status))}.`,
+      onClick: () => pauseComputeAndRefresh(computeType, cloudEnvironment)
+    }, [makeMenuIcon('pause'), 'Pause'])
+  )
+}
+
 export const Environments = ({ nav = undefined }) => {
   const signal = useCancellation()
   const { workspaces, refresh: refreshWorkspaces } = _.flow(
@@ -408,25 +426,6 @@ export const Environments = ({ nav = undefined }) => {
     }, [makeMenuIcon('trash'), 'Delete'])
   }
 
-  const renderPauseButton = (computeType, compute) => {
-    const { status } = compute
-    const isAzure = getCloudProvider(compute) === 'AZURE_VM'
-    const shouldShowPauseButton = Utils.cond(
-      [isApp(compute) && !_.find(tool => tool.appType && tool.appType === compute.appType)(appTools)?.isPauseUnsupported, () => true],
-      [isPauseSupported(getToolLabelFromRuntime(compute)) && currentUser === getCreatorForRuntime(compute), () => true],
-      () => false)
-
-    return shouldShowPauseButton && h(Link, { //TODO: IA-3993 enable pausing
-      style: { marginRight: '1rem' },
-      disabled: isAzure || !isComputePausable(computeType, compute),
-      tooltip: Utils.cond(
-        [isAzure, () => 'Feature coming soon'],
-        [isComputePausable(computeType, compute), () => 'Pause cloud environment'],
-        () => `Cannot pause a cloud environment while in status ${_.upperCase(getComputeStatusForDisplay(status))}.`),
-      onClick: () => pauseComputeAndRefresh(computeType, compute)
-    }, [makeMenuIcon('pause'), 'Pause'])
-  }
-
   const renderErrorApps = app => {
     const convertedAppStatus = getComputeStatusForDisplay(app.status)
     if (convertedAppStatus !== 'Error' && app.unsupportedWorkspace) {
@@ -579,7 +578,7 @@ export const Environments = ({ nav = undefined }) => {
                 const cloudEnvironment = filteredCloudEnvironments[rowIndex]
                 const computeType = isApp(cloudEnvironment) ? 'app' : 'runtime'
                 return h(Fragment, [
-                  renderPauseButton(computeType, cloudEnvironment),
+                  h(PauseButton, { computeType, cloudEnvironment, currentUser, pauseComputeAndRefresh }),
                   renderDeleteButton(computeType, cloudEnvironment)
                 ])
               }
