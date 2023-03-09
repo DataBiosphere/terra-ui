@@ -148,7 +148,7 @@ export const useStore = <T>(theStore: Atom<T>): T => {
   const [value, setValue] = useState(theStore.get())
   useEffect(() => {
     return theStore.subscribe(v => setValue(v)).unsubscribe
-  }, [theStore, setValue])
+  }, [theStore])
   return value
 }
 
