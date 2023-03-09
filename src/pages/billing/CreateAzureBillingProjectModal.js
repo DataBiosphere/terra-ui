@@ -68,7 +68,7 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
             setErrorFetchingManagedApps(true)
             // We can't rely on the formatting of the error, so show a generic message but include the error in the console for debugging purposes.
             const error = await (obj instanceof Response ? obj.text() : obj)
-            console.error(`HERE: ${error}`)
+            console.error(error)
           }
         }
       )

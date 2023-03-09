@@ -155,7 +155,6 @@ export const getDiskAppType = disk => {
   return appType
 }
 
-// TODO (ME) does this work and make sense?
 export const getWorkspaceObject = workspace => workspace?.workspace
 
 export const workspaceHasMultipleDisks = (disks, diskAppType) => {

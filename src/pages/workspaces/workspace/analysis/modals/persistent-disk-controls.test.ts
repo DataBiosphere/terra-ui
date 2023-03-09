@@ -102,7 +102,7 @@ describe('compute-modal-component', () => {
 
   describe('PersistentDiskSection', () => {
     // click learn more about persistent disk
-    it('should render learn more about persistent disks 3', async () => {
+    it('should render learn more about persistent disks', async () => {
       // Arrange
       const setViewModeMock = jest.fn()
       render(h(PersistentDiskSection, { ...defaultPersistentDiskProps, setViewMode: setViewModeMock }))
@@ -112,7 +112,7 @@ describe('compute-modal-component', () => {
       await userEvent.click(link)
 
       // Assert
-      expect(setViewModeMock).toHaveBeenCalled()
+      expect(setViewModeMock).toHaveBeenCalledWith('aboutPersistentDisk')
     })
 
     it('should not show tooltip when no existing PD', async () => {

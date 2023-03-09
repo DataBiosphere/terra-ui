@@ -138,7 +138,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     )
 
     const getAzureEnvironmentView = () => Utils.switchCase(currentTool,
-      [toolLabels.JupyterLab, renderAzureModal()]
+      [toolLabels.JupyterLab, renderAzureModal]
     )
 
     const renderComputeModal = () => h(ComputeModalBase, {
