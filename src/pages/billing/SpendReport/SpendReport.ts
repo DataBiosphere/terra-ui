@@ -48,7 +48,7 @@ interface ProjectCost {
 
 // Interfaces for dealing with the server SpendReport JSON response
 interface CategorySpendData {
-  category: string
+  category: 'Compute' | 'Storage' | 'Other'
   cost: string
   credits: string
   currency: string
@@ -67,24 +67,24 @@ interface AggregatedSpendData {
   aggregationKey: 'Workspace' | 'Category'
 }
 
-interface AggregatedWorkspaceSpendData extends AggregatedSpendData{
+export interface AggregatedWorkspaceSpendData extends AggregatedSpendData{
   aggregationKey: 'Workspace'
   spendData: WorkspaceSpendData[]
 }
 
-interface AggregatedCategorySpendData extends AggregatedSpendData {
+export interface AggregatedCategorySpendData extends AggregatedSpendData {
   aggregationKey: 'Category'
   spendData: CategorySpendData[]
 }
 
-interface SpendReportServerResponse {
+export interface SpendReportServerResponse {
   spendDetails: AggregatedSpendData[]
   spendSummary: {
     cost: string
     credits: string
     currency: string
-    startDate: string
-    endDate: string
+    endTime: string
+    startTime: string
   }
 }
 // End of interfaces for dealing with the server SpendReport JSON response

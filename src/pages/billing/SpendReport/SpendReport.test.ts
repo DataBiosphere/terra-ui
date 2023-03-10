@@ -2,7 +2,11 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { act } from 'react-dom/test-utils'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
-import { SpendReport } from 'src/pages/billing/SpendReport/SpendReport'
+import {
+  AggregatedCategorySpendData, AggregatedWorkspaceSpendData,
+  SpendReport,
+  SpendReportServerResponse
+} from 'src/pages/billing/SpendReport/SpendReport'
 import { asMockedFn } from 'src/testing/test-utils'
 
 
@@ -41,55 +45,65 @@ describe('SpendReport', () => {
   const otherCostMessaging = /other infrastructure or query costs related to the general operations of Terra/i
 
   const createSpendReportResult = totalCost => {
-    return {
+    const categorySpendData = {
+      aggregationKey: 'Category',
+      spendData: [
+        { cost: '999', category: 'Compute' },
+        { cost: '22', category: 'Storage' },
+        { cost: '89', category: 'Other' }
+      ]
+    } as AggregatedCategorySpendData
+
+    const workspaceSpendData = {
+      aggregationKey: 'Workspace',
+      spendData: [
+        {
+          cost: '100', workspace: { name: 'Second Most Expensive Workspace' },
+          subAggregation: {
+            aggregationKey: 'Category',
+            spendData: [
+              { cost: '90', category: 'Compute' },
+              { cost: '2', category: 'Storage' },
+              { cost: '8', category: 'Other' }
+            ]
+          }
+        },
+        {
+          cost: '1000', workspace: { name: 'Most Expensive Workspace' },
+          subAggregation: {
+            aggregationKey: 'Category',
+            spendData: [
+              { cost: '900', category: 'Compute' },
+              { cost: '20', category: 'Storage' },
+              { cost: '80', category: 'Other' }
+            ]
+          }
+        },
+        {
+          cost: '10', workspace: { name: 'Third Most Expensive Workspace' },
+          subAggregation: {
+            aggregationKey: 'Category',
+            spendData: [
+              { cost: '9', category: 'Compute' },
+              { cost: '0', category: 'Storage' },
+              { cost: '1', category: 'Other' }
+            ]
+          }
+        }
+      ]
+    } as AggregatedWorkspaceSpendData
+
+    const mockServerResponse = {
       spendSummary: {
         cost: totalCost, credits: '2.50', currency: 'USD', endTime: 'dummyTime', startTime: 'dummyTime'
       },
       spendDetails: [
-        {
-          aggregationKey: 'Workspace',
-          spendData: [
-            {
-              cost: '100', workspace: { name: 'Second Most Expensive Workspace' },
-              subAggregation: {
-                aggregationKey: 'Category',
-                spendData: [{ cost: '90', category: 'Compute' }, { cost: '2', category: 'Storage' }, {
-                  cost: '8',
-                  category: 'Other'
-                }]
-              }
-            },
-            {
-              cost: '1000', workspace: { name: 'Most Expensive Workspace' },
-              subAggregation: {
-                aggregationKey: 'Category',
-                spendData: [{ cost: '900', category: 'Compute' }, { cost: '20', category: 'Storage' }, {
-                  cost: '80',
-                  category: 'Other'
-                }]
-              }
-            },
-            {
-              cost: '10', workspace: { name: 'Third Most Expensive Workspace' },
-              subAggregation: {
-                aggregationKey: 'Category',
-                spendData: [{ cost: '9', category: 'Compute' }, { cost: '0', category: 'Storage' }, {
-                  cost: '1',
-                  category: 'Other'
-                }]
-              }
-            }
-          ]
-        },
-        {
-          aggregationKey: 'Category',
-          spendData: [{ cost: '999', category: 'Compute' }, { cost: '22', category: 'Storage' }, {
-            cost: '89',
-            category: 'Other'
-          }]
-        }
+        workspaceSpendData,
+        categorySpendData
       ]
-    }
+    } as SpendReportServerResponse
+
+    return mockServerResponse
   }
 
   it('does not call the server if view is not active', async () => {
