@@ -213,8 +213,6 @@ export const SpendReport = (props: SpendReportProps) => {
     })
   }, [spendReportLengthInDays, props, signal, projectCost, updatingProjectCost, errorMessage])
 
-  const NumberSelect = Select as typeof Select<number>
-
   return h(Fragment, [
     div({ style: { display: 'grid', rowGap: '0.5rem' } }, [
       !!errorMessage && h(ErrorAlert, { errorMessage }),
@@ -230,7 +228,7 @@ export const SpendReport = (props: SpendReportProps) => {
           div({ style: { gridRowStart: 1, gridColumnStart: 1 } }, [
             h(IdContainer, [id => h(Fragment, [
               h(FormLabel, { htmlFor: id }, ['Date range']),
-              h(NumberSelect, {
+              h((Select<number>), {
                 id,
                 value: spendReportLengthInDays,
                 options: _.map(days => ({
