@@ -162,7 +162,7 @@ export const SpendReport = (props: SpendReportProps) => {
         setUpdatingProjectCost(true)
         const endDate = new Date().toISOString().slice(0, 10)
         const startDate = subDays(spendReportLengthInDays, new Date()).toISOString().slice(0, 10)
-        const spend = await Ajax(signal).Billing.getSpendReport({ billingProjectName: props.billingProjectName, startDate, endDate }) as SpendReportServerResponse
+        const spend: SpendReportServerResponse = await Ajax(signal).Billing.getSpendReport({ billingProjectName: props.billingProjectName, startDate, endDate })
         const costFormatter = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: spend.spendSummary.currency })
         const categoryDetails = _.find(details => details.aggregationKey === 'Category', spend.spendDetails) as AggregatedCategorySpendData
         console.assert(categoryDetails !== undefined, 'Spend report details do not include aggregation by Category')

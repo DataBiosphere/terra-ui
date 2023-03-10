@@ -45,55 +45,58 @@ describe('SpendReport', () => {
   const otherCostMessaging = /other infrastructure or query costs related to the general operations of Terra/i
 
   const createSpendReportResult = totalCost => {
-    const categorySpendData = {
+    const categorySpendData: AggregatedCategorySpendData = {
       aggregationKey: 'Category',
       spendData: [
-        { cost: '999', category: 'Compute' },
-        { cost: '22', category: 'Storage' },
-        { cost: '89', category: 'Other' }
+        { cost: '999', category: 'Compute', credits: '0.00', currency: 'USD' },
+        { cost: '22', category: 'Storage', credits: '0.00', currency: 'USD' },
+        { cost: '89', category: 'Other', credits: '0.00', currency: 'USD' }
       ]
-    } as AggregatedCategorySpendData
+    }
 
-    const workspaceSpendData = {
+    const workspaceSpendData: AggregatedWorkspaceSpendData = {
       aggregationKey: 'Workspace',
       spendData: [
         {
-          cost: '100', workspace: { name: 'Second Most Expensive Workspace' },
+          cost: '100', credits: '0.00', currency: 'USD', googleProjectId: 'googleProjectId',
+          workspace: { name: 'Second Most Expensive Workspace', namespace: 'namespace' },
           subAggregation: {
             aggregationKey: 'Category',
             spendData: [
-              { cost: '90', category: 'Compute' },
-              { cost: '2', category: 'Storage' },
-              { cost: '8', category: 'Other' }
+              { cost: '90', category: 'Compute', credits: '0.00', currency: 'USD' },
+              { cost: '2', category: 'Storage', credits: '0.00', currency: 'USD' },
+              { cost: '8', category: 'Other', credits: '0.00', currency: 'USD' }
             ]
           }
         },
         {
-          cost: '1000', workspace: { name: 'Most Expensive Workspace' },
+          cost: '1000', credits: '0.00', currency: 'USD', googleProjectId: 'googleProjectId',
+          workspace: { name: 'Most Expensive Workspace', namespace: 'namespace' },
           subAggregation: {
             aggregationKey: 'Category',
             spendData: [
-              { cost: '900', category: 'Compute' },
-              { cost: '20', category: 'Storage' },
-              { cost: '80', category: 'Other' }
+              { cost: '900', category: 'Compute', credits: '0.00', currency: 'USD' },
+              { cost: '20', category: 'Storage', credits: '0.00', currency: 'USD' },
+              { cost: '80', category: 'Other', credits: '0.00', currency: 'USD' }
             ]
           }
         },
         {
-          cost: '10', workspace: { name: 'Third Most Expensive Workspace' },
+          cost: '10', credits: '0.00', currency: 'USD', googleProjectId: 'googleProjectId',
+          workspace: { name: 'Third Most Expensive Workspace', namespace: 'namespace' },
           subAggregation: {
             aggregationKey: 'Category',
             spendData: [
-              { cost: '9', category: 'Compute' },
-              { cost: '0', category: 'Storage' },
-              { cost: '1', category: 'Other' }
+              { cost: '9', category: 'Compute', credits: '0.00', currency: 'USD' },
+              { cost: '0', category: 'Storage', credits: '0.00', currency: 'USD' },
+              { cost: '1', category: 'Other', credits: '0.00', currency: 'USD' }
             ]
           }
         }
       ]
-    } as AggregatedWorkspaceSpendData
+    }
 
-    const mockServerResponse = {
+    const mockServerResponse: SpendReportServerResponse = {
       spendSummary: {
         cost: totalCost, credits: '2.50', currency: 'USD', endTime: 'dummyTime', startTime: 'dummyTime'
       },
@@ -101,7 +104,7 @@ describe('SpendReport', () => {
         workspaceSpendData,
         categorySpendData
       ]
-    } as SpendReportServerResponse
+    }
 
     return mockServerResponse
   }
