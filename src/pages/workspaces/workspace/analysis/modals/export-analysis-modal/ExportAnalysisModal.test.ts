@@ -6,7 +6,7 @@ import {
   useAnalysesExportState
 } from 'src/pages/workspaces/workspace/analysis/modals/export-analysis-modal/export-analysis-modal.state'
 import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
-import { asMockedFn } from 'src/testing/test-utils'
+import { asMockedFn, setUpAutoSizerTesting } from 'src/testing/test-utils'
 
 import { ExportAnalysisModal } from './ExportAnalysisModal'
 
@@ -36,29 +36,7 @@ jest.mock('src/libs/utils', (): UtilsExports => {
   })
 })
 
-// This is for the AutoSizer component. It requires screen dimensions in order to be tested properly.
-Object.defineProperties(window.HTMLElement.prototype, {
-  offsetLeft: {
-    get() {
-      return parseFloat(window.getComputedStyle(this).marginLeft) || 0
-    }
-  },
-  offsetTop: {
-    get() {
-      return parseFloat(window.getComputedStyle(this).marginTop) || 0
-    }
-  },
-  offsetHeight: {
-    get() {
-      return parseFloat(window.getComputedStyle(this).height) || 0
-    }
-  },
-  offsetWidth: {
-    get() {
-      return parseFloat(window.getComputedStyle(this).width) || 0
-    }
-  }
-})
+setUpAutoSizerTesting()
 
 const mockWorkspaces: Partial<WorkspaceWrapper>[] = [
   {
