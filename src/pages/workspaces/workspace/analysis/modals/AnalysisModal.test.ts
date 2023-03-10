@@ -36,10 +36,10 @@ const defaultGcpModalProps: AnalysisModalProps = {
   analysisFileStore: {
     refreshFileStore: () => Promise.resolve(),
     loadedState: { state: [], status: 'Ready' },
-    create: createFunc,
+    createAnalysis: createFunc,
     pendingCreate: { status: 'Ready', state: true },
     pendingDelete: { status: 'Ready', state: true },
-    deleteFile: () => Promise.resolve()
+    deleteAnalysis: () => Promise.resolve()
   }
 }
 
@@ -372,7 +372,7 @@ describe('AnalysisModal', () => {
   it('Error on create', async () => {
     // Arrange
     const fileList = [getFileFromPath('test/file1.ipynb' as AbsolutePath)]
-    const createMock = jest.fn().mockRejectedValue(new Error('MyTestError'))
+    const createAnalysisMock = jest.fn().mockRejectedValue(new Error('MyTestError'))
     const mockFileStore = {
       loadedState: { state: fileList, status: 'Ready' } as LoadedState<AnalysisFile[]>,
       refreshFileStore: () => Promise.resolve(),
@@ -401,7 +401,7 @@ describe('AnalysisModal', () => {
     })
 
     // Assert
-    expect(createMock).toHaveBeenCalled()
+    expect(createAnalysisMock).toHaveBeenCalled()
     expect(reportError).toHaveBeenCalled()
   })
 })

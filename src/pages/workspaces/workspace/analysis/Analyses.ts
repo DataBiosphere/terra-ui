@@ -41,7 +41,7 @@ import * as Utils from 'src/libs/utils'
 import { isAzureWorkspace, isGoogleWorkspace, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils'
 import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
 import { AnalysisModal } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisModal'
-import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/export-analysis-modal/ExportAnalysisModal'
+import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal/ExportAnalysisModal'
 import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import { AnalysisFile, useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 import {
@@ -335,7 +335,7 @@ export const BaseAnalyses = ({
   const authState = useStore(authStore)
   const signal = useCancellation()
   const analysisFileStore = useAnalysisFiles()
-  const { loadedState, refreshFileStore, create, deleteFile } = analysisFileStore
+  const { loadedState, refreshFileStore, createAnalysis, deleteAnalysis } = analysisFileStore
   const currentRuntime = getCurrentRuntime(runtimes)
   const location = Utils.cond(
     [isGoogleWorkspace(workspace), () => googleBucketLocation],
@@ -355,7 +355,7 @@ export const BaseAnalyses = ({
     await Promise.all(_.map(file => {
       const uniqueFileName = getUniqueFileName(file.name, existingFileNames)
       const toolLabel: ToolLabel = getToolLabelFromFileExtension(getExtension(file.name))
-      return create(uniqueFileName, toolLabel, file)
+      return createAnalysis(uniqueFileName, toolLabel, file)
     }, files))
   })
 
@@ -599,7 +599,7 @@ export const BaseAnalyses = ({
             withErrorReporting('Error deleting analysis.')
           )(async () => {
             setDeletingAnalysisName(undefined)
-            await deleteFile(deletingAnalysisName)
+            await deleteAnalysis(deletingAnalysisName)
           }),
           onDismiss: () => setDeletingAnalysisName(undefined)
         })

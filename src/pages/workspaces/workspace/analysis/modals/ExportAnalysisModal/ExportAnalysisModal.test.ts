@@ -4,7 +4,7 @@ import { h } from 'react-hyperscript-helpers'
 import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils'
 import {
   useAnalysesExportState
-} from 'src/pages/workspaces/workspace/analysis/modals/export-analysis-modal/export-analysis-modal.state'
+} from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal/useAnalysisExportState'
 import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn, setUpAutoSizerTesting } from 'src/testing/test-utils'
 
@@ -17,9 +17,9 @@ jest.mock('src/components/Modal', (): ModalExports => {
   return modalMock.mockModalModule()
 })
 
-type ExportAnalysisModalStateExports = typeof import('./export-analysis-modal.state')
-jest.mock('./export-analysis-modal.state', (): ExportAnalysisModalStateExports => ({
-  ...jest.requireActual('./export-analysis-modal.state'),
+type ExportAnalysisModalStateExports = typeof import('./useAnalysisExportState')
+jest.mock('./useAnalysisExportState', (): ExportAnalysisModalStateExports => ({
+  ...jest.requireActual('./useAnalysisExportState'),
   useAnalysesExportState: jest.fn()
 }))
 

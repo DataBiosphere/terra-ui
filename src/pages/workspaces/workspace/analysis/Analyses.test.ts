@@ -80,10 +80,10 @@ const defaultAnalysesData: AnalysesData = {
 const defaultUseAnalysisStore = {
   refreshFileStore: () => Promise.resolve(),
   loadedState: { status: 'Ready', state: [] as AnalysisFile[] } as LoadedState<AnalysisFile[], unknown>,
-  create: () => Promise.resolve(),
+  createAnalysis: () => Promise.resolve(),
+  deleteAnalysis: () => Promise.resolve(),
   pendingCreate: { status: 'None', state: true } as LoadedState<true, unknown>,
-  pendingDelete: { status: 'None', state: true } as LoadedState<true, unknown>,
-  deleteFile: () => Promise.resolve()
+  pendingDelete: { status: 'None', state: true } as LoadedState<true, unknown>
 }
 
 const defaultAnalysesProps: AnalysesProps = {
@@ -344,7 +344,7 @@ describe('Analyses', () => {
     asMockedFn(useAnalysisFiles).mockReturnValue({
       ...defaultUseAnalysisStore,
       loadedState: { status: 'Ready', state: files },
-      create: createObservable
+      createAnalysis: createObservable
     })
 
     // Act

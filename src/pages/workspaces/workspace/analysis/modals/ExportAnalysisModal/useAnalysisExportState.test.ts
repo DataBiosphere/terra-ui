@@ -8,7 +8,7 @@ import { AbsolutePath } from 'src/pages/workspaces/workspace/analysis/utils/file
 import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
-import { errors, useAnalysesExportState } from './export-analysis-modal.state'
+import { errors, useAnalysesExportState } from './useAnalysisExportState'
 
 
 type UseMetricsExports = typeof import('src/libs/ajax/metrics/useMetrics')
@@ -28,7 +28,9 @@ jest.mock('src/libs/ajax/analysis-providers/AnalysisProvider', (): AnalysisProvi
   ...jest.requireActual('src/libs/ajax/analysis-providers/AnalysisProvider'),
   AnalysisProvider: {
     listAnalyses: jest.fn(),
-    copyAnalysis: jest.fn()
+    copyAnalysis: jest.fn(),
+    deleteAnalysis: jest.fn(),
+    createAnalysis: jest.fn()
   }
 }))
 

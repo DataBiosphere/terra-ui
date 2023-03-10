@@ -106,7 +106,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const currentApp = (toolLabel: AppToolLabel): App | undefined => getCurrentApp(toolLabel, apps)
 
     //TODO: Bring in as props from Analyses OR bring entire AnalysisFileStore from props.
-    const { loadedState, create, pendingCreate } = analysisFileStore
+    const { loadedState, createAnalysis, pendingCreate } = analysisFileStore
     //TODO: When the above is done, this check below may not be necessary.
     const analyses = loadedState.status !== 'None' ? loadedState.state : null
     const status = loadedState.status
@@ -385,7 +385,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
                   [isJupyterLab || isJupyter, () => JSON.stringify(notebookData[notebookKernel])],
                   [isRStudio, () => baseRmd])
                 const fullAnalysisName = `${analysisName}.${fileExt}`
-                await create(fullAnalysisName, toolLabel, contents)
+                await createAnalysis(fullAnalysisName, toolLabel, contents)
                 await Ajax().Metrics.captureEvent(Events.analysisCreate, { source: toolLabel, application: toolLabel, filename: fullAnalysisName, cloudProvider })
                 setAnalysisName('')
                 enterNextViewMode(toolLabel)
