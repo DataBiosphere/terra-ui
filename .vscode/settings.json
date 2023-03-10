@@ -18,5 +18,8 @@
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
   "prettier.prettierPath": ".yarn/sdks/prettier/index.js"
 }
