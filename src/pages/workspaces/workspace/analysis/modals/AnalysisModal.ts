@@ -157,6 +157,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       workspace,
       tool: currentTool,
       runtimes,
+      persistentDisks,
       onDismiss,
       onSuccess,
     })

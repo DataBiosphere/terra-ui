@@ -29,13 +29,14 @@ import { AboutPersistentDisk, PersistentDiskSection } from './persistent-disk-co
 const titleId = 'azure-compute-modal-title'
 
 export const AzureComputeModalBase = ({
-  onDismiss, onSuccess, onError = onDismiss, workspace: { workspace: { namespace, name: workspaceName, workspaceId } }, runtimes, location, tool, hideCloseButton = false
+  onDismiss, onSuccess, onError = onDismiss, workspace: { workspace: { namespace, name: workspaceName, workspaceId } }, runtimes, persistentDisks, location, tool, hideCloseButton = false
 }) => {
   const [loading, setLoading] = useState(false)
   const [viewMode, setViewMode] = useState(undefined)
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(() => getCurrentRuntime(runtimes))
   const [computeConfig, setComputeConfig] = useState(defaultAzureComputeConfig)
   const updateComputeConfig = _.curry((key, value) => setComputeConfig(_.set(key, value)))
+  const persistentDiskExists = persistentDisks?.length > 0
 
   // Lifecycle
   useOnMount(_.flow(
@@ -224,7 +225,7 @@ export const AzureComputeModalBase = ({
       div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
         renderApplicationConfigurationSection(),
         renderComputeProfileSection(),
-        h(PersistentDiskSection, { computeConfig, updateComputeConfig, setViewMode, tool }),
+        h(PersistentDiskSection, { persistentDiskExists, computeConfig, updateComputeConfig, setViewMode, tool }),
         renderBottomButtons()
       ])
     ])

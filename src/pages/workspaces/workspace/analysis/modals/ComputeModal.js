@@ -213,7 +213,6 @@ export const ComputeModalBase = ({
   })
   // State -- end
 
-
   const cloudPlatform = extractWorkspaceDetails(workspace).cloudPlatform
   const isPersistentDisk = shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected)
 
@@ -1618,7 +1617,7 @@ export const ComputeModalBase = ({
         div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
           renderApplicationConfigurationSection(),
           renderComputeProfileSection(existingRuntime),
-          !!isPersistentDisk && h(PersistentDiskSection, { diskExists: !!existingPersistentDisk, computeConfig, updateComputeConfig, setViewMode, cloudPlatform, tool }),
+          !!isPersistentDisk && h(PersistentDiskSection, { persistentDiskExists: !!existingPersistentDisk, computeConfig, updateComputeConfig, setViewMode, cloudPlatform, tool }),
           isGce(runtimeType) && !isPersistentDisk && div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
               'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
