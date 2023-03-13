@@ -1,5 +1,4 @@
 import { CloudProvider } from 'src/libs/workspace-utils'
-import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 export interface AuditInfo {
@@ -9,19 +8,15 @@ export interface AuditInfo {
   dateAccessed: string
 }
 
-export interface BaseLabels {
-  tool: ToolLabel
+export interface LeoError {
+  errorMessage: string
+  timestamp: string
 }
 
-export type LeoResourceLabels = BaseLabels & Record<string, any>
+export type LeoResourceLabels = Record<string, any>
 
 export interface CloudContext {
   cloudProvider: CloudProvider
   cloudResource: string
 }
 
-export interface LeoError {
-  errorMessage: string
-  errorCode: number
-  timestamp: string
-}

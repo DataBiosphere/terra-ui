@@ -12,7 +12,7 @@ import {
   AbsolutePath,
   getExtension, getFileName
 } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
-import { getToolLabelFromFileExtension, toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { getToolLabelFromFileExtension, runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
 
@@ -123,7 +123,7 @@ describe('file-utils', () => {
       workspaceStore.set(defaultGoogleWorkspace)
       const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useAnalysisFiles())
       await waitForNextUpdate()
-      await act(() => hookReturnRef.current.create('AnalysisFile', toolLabels.Jupyter, 'myContents'))
+      await act(() => hookReturnRef.current.create('AnalysisFile', runtimeToolLabels.Jupyter, 'myContents'))
 
       // Assert
       expect(create).toHaveBeenCalledWith('myContents')
@@ -148,7 +148,7 @@ describe('file-utils', () => {
       const hookRender1 = renderHook(() => useAnalysisFiles())
       await hookRender1.waitForNextUpdate()
       const hookResult2 = hookRender1.result.current
-      await act(() => hookResult2.create('AnalysisFile', toolLabels.Jupyter, 'myContents'))
+      await act(() => hookResult2.create('AnalysisFile', runtimeToolLabels.Jupyter, 'myContents'))
 
       // Assert
       expect(create).toHaveBeenCalledWith('myContents')
@@ -173,7 +173,7 @@ describe('file-utils', () => {
       const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useAnalysisFiles())
       await waitForNextUpdate()
       // Act
-      await act(() => hookReturnRef.current.create('AnalysisFile', toolLabels.Jupyter, 'myContents'))
+      await act(() => hookReturnRef.current.create('AnalysisFile', runtimeToolLabels.Jupyter, 'myContents'))
 
       // Assert
       expect(create).toHaveBeenCalledWith('myContents')
@@ -198,7 +198,7 @@ describe('file-utils', () => {
     const hookRender1 = renderHook(() => useAnalysisFiles())
     await hookRender1.waitForNextUpdate()
     const hookResult2 = hookRender1.result.current
-    await act(() => hookResult2.create('AnalysisFile', toolLabels.Jupyter, 'myContents'))
+    await act(() => hookResult2.create('AnalysisFile', runtimeToolLabels.Jupyter, 'myContents'))
 
     // Assert
     expect(create).toHaveBeenCalledWith('myContents')

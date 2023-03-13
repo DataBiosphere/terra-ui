@@ -12,7 +12,7 @@ import {
 import { NominalType } from 'src/libs/type-utils/type-helpers'
 import * as Utils from 'src/libs/utils'
 import { CloudProvider } from 'src/libs/workspace-utils'
-import { RuntimeToolLabel, ToolLabel, toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { RuntimeToolLabel, runtimeToolLabels, ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 export const defaultGceMachineType = 'n1-standard-1'
@@ -40,7 +40,7 @@ export const usableStatuses: LeoRuntimeStatus[] = ['Updating', 'Running']
 
 export const getDefaultMachineType = (isDataproc: boolean, tool: ToolLabel): string => Utils.cond(
   [isDataproc, () => defaultDataprocMachineType],
-  [tool === toolLabels.RStudio, () => defaultRStudioMachineType],
+  [tool === runtimeToolLabels.RStudio, () => defaultRStudioMachineType],
   [Utils.DEFAULT, () => defaultGceMachineType])
 
 // GCP zones look like 'US-CENTRAL1-A'. To get the region, remove the last two characters.

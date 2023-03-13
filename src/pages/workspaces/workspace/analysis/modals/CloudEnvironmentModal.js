@@ -32,8 +32,9 @@ import {
   getCurrentRuntime, getIsRuntimeBusy, getRuntimeForTool
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import {
-  appTools, getAppType, getToolsToDisplayForCloudProvider, isAppToolLabel, isPauseSupported, isSettingsSupported,
-  toolLabelDisplays, toolLabels, tools
+  appToolLabels,
+  appTools, getToolsToDisplayForCloudProvider, isAppToolLabel, isPauseSupported, isSettingsSupported,
+  runtimeToolLabels, toolLabelDisplays, tools
 } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
@@ -61,7 +62,7 @@ export const CloudEnvironmentModal = ({
   const resetView = () => setViewMode(undefined)
 
   const renderComputeModal = tool => h(ComputeModalBase, {
-    isOpen: viewMode === toolLabels.Jupyter || viewMode === toolLabels.RStudio,
+    isOpen: viewMode === runtimeToolLabels.Jupyter || viewMode === runtimeToolLabels.RStudio,
     workspace,
     tool,
     currentRuntime,
@@ -73,7 +74,7 @@ export const CloudEnvironmentModal = ({
   })
 
   const renderAzureModal = () => h(AzureComputeModalBase, {
-    isOpen: viewMode === toolLabels.JupyterLab,
+    isOpen: viewMode === runtimeToolLabels.JupyterLab,
     hideCloseButton: true,
     workspace,
     runtimes,
@@ -94,7 +95,9 @@ export const CloudEnvironmentModal = ({
   })
 
   const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } },
-    _.map(tool => renderToolButtons(tool.label))(filterForTool ? [tools[filterForTool]] : getToolsToDisplayForCloudProvider(getCloudProviderFromWorkspace(workspace))) //TODO: We should have access to cloudProvider string.
+    _.map(tool => renderToolButtons(tool.label, cloudProvider))(
+      filterForTool ? [tools[filterForTool]] : getToolsToDisplayForCloudProvider(cloudProvider)
+    )
   )
 
   const toolPanelStyles = {
@@ -131,7 +134,7 @@ export const CloudEnvironmentModal = ({
   const currentRuntimeStatus = getConvertedRuntimeStatus(currentRuntime)
   const currentRuntimeTool = currentRuntime?.labels?.tool
 
-  const currentApp = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
+  const currentApp = toolLabel => getCurrentApp(toolLabel, apps)
 
   const isLaunchSupported = toolLabel => !_.find(tool => tool.label === toolLabel)(tools).isLaunchUnsupported
 
@@ -256,15 +259,14 @@ export const CloudEnvironmentModal = ({
   }
 
   const getToolIcon = toolLabel => Utils.switchCase(toolLabel,
-    [toolLabels.Jupyter, () => jupyterLogo],
-    [toolLabels.Galaxy, () => galaxyLogo],
-    [toolLabels.RStudio, () => rstudioBioLogo],
-    [toolLabels.Cromwell, () => cromwellImg],
-    [toolLabels.CromwellOnAzure, () => cromwellImg],
-    [toolLabels.JupyterLab, () => jupyterLogo])
+    [runtimeToolLabels.Jupyter, () => jupyterLogo],
+    [appToolLabels.GALAXY, () => galaxyLogo],
+    [runtimeToolLabels.RStudio, () => rstudioBioLogo],
+    [appToolLabels.CROMWELL, () => cromwellImg],
+    [runtimeToolLabels.JupyterLab, () => jupyterLogo])
 
   const isCloudEnvModalDisabled = toolLabel => Utils.cond(
-    [isAppToolLabel(toolLabel), () => !canCompute || busy || (toolLabel === toolLabels.Galaxy && isCurrentGalaxyDiskDetaching(apps)) || getIsAppBusy(currentApp(toolLabel))],
+    [isAppToolLabel(toolLabel), () => !canCompute || busy || (toolLabel === appToolLabels.GALAXY && isCurrentGalaxyDiskDetaching(apps)) || getIsAppBusy(currentApp(toolLabel))],
     [Utils.DEFAULT, () => {
       const runtime = getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool)
       // This asks 'does this tool have a runtime'
@@ -276,14 +278,17 @@ export const CloudEnvironmentModal = ({
     }]
   )
 
-  const getToolLaunchClickableProps = toolLabel => {
+  const getToolLaunchClickableProps = (toolLabel, cloudProvider) => {
     const app = currentApp(toolLabel)
     const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || app
     // TODO what does leoCookieReady do? Found it in the galaxy app launch code, is it needed here?
     const isToolBusy = isAppToolLabel(toolLabel) ?
       getIsAppBusy(app) || app?.status === 'STOPPED' || app?.status === 'ERROR' :
       currentRuntime?.status === 'Error'
-    const cookieReady = toolLabel === toolLabels.CromwellOnAzure ? azureCookieReady.readyForCromwellApp : leoCookieReady
+
+    const cookieReady = Utils.cond(
+      [cloudProvider === cloudProviderTypes.AZURE && toolLabel === appToolLabels.CROMWELL, () => azureCookieReady.readyForCromwellApp],
+      [Utils.DEFAULT, () => leoCookieReady])
     const isDisabled = !doesCloudEnvForToolExist || !cookieReady || !canCompute || busy || isToolBusy || !isLaunchSupported(toolLabel)
     const baseProps = {
       'aria-label': `Launch ${toolLabel}`,
@@ -296,14 +301,14 @@ export const CloudEnvironmentModal = ({
       hover: isDisabled ? {} : { backgroundColor: colors.accent(0.2) },
       tooltip: Utils.cond(
         [doesCloudEnvForToolExist && !isDisabled, () => 'Open'],
-        [doesCloudEnvForToolExist && isDisabled && isLaunchSupported(toolLabel), () => `Please wait until ${toolLabel} is running`],
+        [doesCloudEnvForToolExist && isDisabled && isLaunchSupported(toolLabel), () => `Please wait until ${toolLabelDisplays[toolLabel]} is running`],
         [doesCloudEnvForToolExist && isDisabled && !isLaunchSupported(toolLabel),
-          () => `Select or create an analysis in the analyses tab to open ${toolLabel}`],
+          () => `Select or create an analysis in the analyses tab to open ${toolLabelDisplays[toolLabel]}`],
         [Utils.DEFAULT, () => 'No Environment found']
       )
     }
     return Utils.switchCase(toolLabel,
-      [toolLabels.Galaxy, () => {
+      [appToolLabels.GALAXY, () => {
         return {
           ...baseProps,
           href: app?.proxyUrls?.galaxy,
@@ -314,24 +319,13 @@ export const CloudEnvironmentModal = ({
           ...Utils.newTabLinkPropsWithReferrer
         }
       }],
-      [toolLabels.Cromwell, () => {
+      [appToolLabels.CROMWELL, () => {
         return {
           ...baseProps,
-          href: app?.proxyUrls['cromwell-service'],
+          href: cloudProvider === cloudProviderTypes.AZURE ? app?.proxyUrls['cbas-ui'] : app?.proxyUrls['cromwell-service'],
           onClick: () => {
             onDismiss()
-            Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: appTools.Cromwell.appType })
-          },
-          ...Utils.newTabLinkPropsWithReferrer
-        }
-      }],
-      [toolLabels.CromwellOnAzure, () => {
-        return {
-          ...baseProps,
-          href: app?.proxyUrls['cbas-ui'],
-          onClick: () => {
-            onDismiss()
-            Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: appTools.CromwellOnAzure.appType })
+            Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: appTools.CROMWELL.label })
           },
           ...Utils.newTabLinkPropsWithReferrer
         }
@@ -345,7 +339,7 @@ export const CloudEnvironmentModal = ({
           onClick: () => {
             Ajax().Metrics.captureEvent(Events.analysisLaunch,
               { origin: 'contextBar', source: toolLabel, application: toolLabel, workspaceName, namespace })
-            if ((toolLabel === toolLabels.Jupyter || toolLabel === toolLabels.RStudio) && currentRuntime?.status === 'Stopped') {
+            if ((toolLabel === runtimeToolLabels.Jupyter || toolLabel === runtimeToolLabels.RStudio) && currentRuntime?.status === 'Stopped') {
               startApp(toolLabel)
             }
             onDismiss()
@@ -355,13 +349,13 @@ export const CloudEnvironmentModal = ({
     )
   }
 
-  const renderToolButtons = toolLabel => {
+  const renderToolButtons = (toolLabel, cloudProvider) => {
     const app = currentApp(toolLabel)
     const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || app
     const isCloudEnvForToolDisabled = isCloudEnvModalDisabled(toolLabel)
     return h(Fragment, [
       // We cannot attach the periodic cookie setter until we have a running Cromwell app for Azure because the relay is not guaranteed to be ready until then
-      toolLabel === toolLabels.CromwellOnAzure && app?.status === 'RUNNING' ? h(PeriodicAzureCookieSetter, { proxyUrl: app.proxyUrls['cbas-ui'], forCromwell: true }) : null,
+      toolLabel === appToolLabels.CROMWELL && app?.cloudContext?.cloudProvider === cloudProviderTypes.AZURE && app?.status === 'RUNNING' ? h(PeriodicAzureCookieSetter, { proxyUrl: app.proxyUrls['cbas-ui'], forCromwell: true }) : null,
       div({ style: toolPanelStyles }, [
         // Label at the top for each tool
         div({ style: toolLabelStyles }, [
@@ -377,7 +371,7 @@ export const CloudEnvironmentModal = ({
         ]),
         // Cloud environment button
         div({ style: toolButtonDivStyles }, [
-          isSettingsSupported(toolLabel) && h(Clickable, {
+          isSettingsSupported(toolLabel, cloudProvider) && h(Clickable, {
             'aria-label': `${toolLabel} Environment`,
             style: {
               ...toolButtonStyles,
@@ -396,7 +390,7 @@ export const CloudEnvironmentModal = ({
           // Status button with stop/start functionality
           renderStatusClickable(toolLabel),
           // Launch
-          h(Clickable, { ...getToolLaunchClickableProps(toolLabel) }, [
+          h(Clickable, { ...getToolLaunchClickableProps(toolLabel, cloudProvider) }, [
             icon('rocket', { size: 20 }),
             span({ style: { marginTop: '.25rem' } }, ['Open'])
           ])
@@ -406,15 +400,15 @@ export const CloudEnvironmentModal = ({
   }
 
   const getGCPView = () => Utils.switchCase(viewMode,
-    [toolLabels.Jupyter, () => renderComputeModal(toolLabels.Jupyter)],
-    [toolLabels.RStudio, () => renderComputeModal(toolLabels.RStudio)],
-    [toolLabels.Galaxy, () => renderAppModal(GalaxyModalBase, toolLabels.Galaxy)],
-    [toolLabels.Cromwell, () => renderAppModal(CromwellModalBase, toolLabels.Cromwell)],
+    [runtimeToolLabels.Jupyter, () => renderComputeModal(runtimeToolLabels.Jupyter)],
+    [runtimeToolLabels.RStudio, () => renderComputeModal(runtimeToolLabels.RStudio)],
+    [appToolLabels.GALAXY, () => renderAppModal(GalaxyModalBase, appToolLabels.GALAXY)],
+    [appToolLabels.CROMWELL, () => renderAppModal(CromwellModalBase, appToolLabels.CROMWELL)],
     [Utils.DEFAULT, renderDefaultPage]
   )
 
   const getAzureView = () => Utils.switchCase(viewMode,
-    [toolLabels.JupyterLab, renderAzureModal],
+    [runtimeToolLabels.JupyterLab, renderAzureModal],
     [Utils.DEFAULT, renderDefaultPage]
   )
 
@@ -424,11 +418,11 @@ export const CloudEnvironmentModal = ({
   )
 
   const width = Utils.switchCase(viewMode,
-    [toolLabels.Jupyter, () => 675],
-    [toolLabels.RStudio, () => 675],
-    [toolLabels.Galaxy, () => 675],
-    [toolLabels.Cromwell, () => 675],
-    [toolLabels.JupyterLab, () => 675],
+    [runtimeToolLabels.Jupyter, () => 675],
+    [runtimeToolLabels.RStudio, () => 675],
+    [appToolLabels.GALAXY, () => 675],
+    [appToolLabels.CROMWELL, () => 675],
+    [runtimeToolLabels.JupyterLab, () => 675],
     [Utils.DEFAULT, () => 430]
   )
 

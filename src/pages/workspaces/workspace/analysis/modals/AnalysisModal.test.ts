@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage'
+import { App } from 'src/libs/ajax/leonardo/models/app-models'
 import { reportError } from 'src/libs/error'
 import LoadedState from 'src/libs/type-utils/LoadedState'
 import { defaultAzureWorkspace, defaultGoogleWorkspace, galaxyDisk, galaxyRunning, getGoogleRuntime, imageDocs } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
@@ -12,7 +13,7 @@ import { AnalysisFile, getFileFromPath } from 'src/pages/workspaces/workspace/an
 import {
   AbsolutePath
 } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
-import { AppTool, tools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { tools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
 import { AnalysisModal, AnalysisModalProps } from './AnalysisModal'
@@ -24,14 +25,14 @@ const defaultGcpModalProps: AnalysisModalProps = {
   workspace: defaultGoogleWorkspace,
   location: 'US',
   runtimes: [],
-  apps: [] as AppTool[],
+  apps: [] as App[],
   appDataDisks: [],
   persistentDisks: [],
   onDismiss: () => {},
   onError: () => {},
   onSuccess: () => {},
   openUploader: () => {},
-  uploadFiles: () => {},
+  uploadFiles: files => Promise.resolve(files),
   analysisFileStore: {
     refreshFileStore: () => Promise.resolve(),
     loadedState: { state: [], status: 'Ready' },
