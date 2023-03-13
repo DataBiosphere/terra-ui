@@ -32,7 +32,7 @@ const defaultGcpModalProps: AnalysisModalProps = {
   onError: () => {},
   onSuccess: () => {},
   openUploader: () => {},
-  uploadFiles: () => {},
+  uploadFiles: files => Promise.resolve(files),
   analysisFileStore: {
     refreshFileStore: () => Promise.resolve(),
     loadedState: { state: [], status: 'Ready' },
