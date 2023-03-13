@@ -233,7 +233,7 @@ const SupportRequest = () => {
 const SupportRequestWrapper = () => {
   const isActive = useStore(contactUsActive)
 
-  return isActive && h(SupportRequest)
+  return isActive ? h(SupportRequest) : null
 }
 
 export default SupportRequestWrapper

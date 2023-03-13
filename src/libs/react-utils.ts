@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { EffectCallback, forwardRef, ForwardRefRenderFunction, memo, ReactElement, useEffect, useRef, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { safeCurry } from 'src/libs/type-utils/lodash-fp-helpers'
-import { delay, pollWithCancellation } from 'src/libs/utils'
+import { Atom, delay, pollWithCancellation } from 'src/libs/utils'
 
 
 /**
@@ -10,7 +10,7 @@ import { delay, pollWithCancellation } from 'src/libs/utils'
  * React's hooks eslint plugin flags [] because it's a common mistake. However, sometimes this is
  * exactly the right thing to do. This function makes the intention clear and avoids the lint error.
  */
-export const useOnMount = (fn: EffectCallback) => {
+export const useOnMount = (fn: EffectCallback): void => {
   useEffect(fn, []) // eslint-disable-line react-hooks/exhaustive-deps
 }
 
@@ -46,7 +46,7 @@ export const useInstance = <T>(fn: () => T): T => {
   return ref.current
 }
 
-export const useUniqueId = () => {
+export const useUniqueId = (): string => {
   return useInstance(() => _.uniqueId('unique-id-'))
 }
 
@@ -158,11 +158,11 @@ export const useCurrentTime = (initialDelay = 250) => {
 /**
  * Hook that returns the value of a given store. When the store changes, the component will re-render
  */
-export const useStore = theStore => {
+export const useStore = <T>(theStore: Atom<T>): T => {
   const [value, setValue] = useState(theStore.get())
   useEffect(() => {
     return theStore.subscribe(v => setValue(v)).unsubscribe
-  }, [theStore, setValue])
+  }, [theStore])
   return value
 }
 
