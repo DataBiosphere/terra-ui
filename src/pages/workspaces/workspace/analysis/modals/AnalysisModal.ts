@@ -75,7 +75,7 @@ export interface AnalysisModalProps {
   onError: () => void
   onSuccess: () => void
   openUploader: () => void
-  uploadFiles: () => void
+  uploadFiles: (files: File[]) => Promise<unknown>
   analysisFileStore: AnalysisFileStore
 }
 
@@ -275,7 +275,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           currentRuntime && !isResourceDeletable('runtime', currentRuntime) && currentRuntimeToolLabel !== toolLabel ?
             onSuccess() :
             enterNextViewMode(tool, analysisMode)
-          uploadFiles()
+          uploadFiles(files)
         }
       },
       [() => h(Clickable, {

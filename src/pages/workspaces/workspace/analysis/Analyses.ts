@@ -539,10 +539,8 @@ export const BaseAnalyses = ({
           appDataDisks,
           refreshAnalyses,
           analyses,
-          // @ts-expect-error
           apps,
           refreshApps,
-          // @ts-expect-error
           uploadFiles,
           openUploader,
           location,
