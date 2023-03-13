@@ -48,7 +48,8 @@ const styles = {
   }
 }
 
-const isCreatingStatus = status => _.includes(status, ['Creating', 'CreatingLandingZone'])
+const isCreatingOrDeletingStatus = status => _.includes(status, ['Creating', 'CreatingLandingZone', 'Deleting'])
+const isErrorStatus = status => _.includes(status, ['Error', 'DeletionFailed'])
 
 const CreateBillingProjectControl = ({ isAzurePreviewUser, showCreateProjectModal }) => {
   const createButton = (onClickCallback, type) => {
@@ -93,7 +94,7 @@ const BillingProjectActions = ({ project: { projectName }, loadProjects }) => {
         }, ['Delete Billing Project'])
       ])
     }, [
-      h(Link, { 'aria-label': 'Billing project menu', style: { display: 'flex', alignItems: 'center' } }, [
+      h(Link, { 'aria-label': 'Billing project menu', style: { display: 'flex', alignItems: 'center', marginLeft: '0.5rem' } }, [
         icon('cardMenuIcon', { size: 16, 'aria-haspopup': 'menu' })
       ])
     ]),
@@ -128,24 +129,22 @@ const ProjectListItem = ({ project, project: { projectName, roles, status, messa
     onClick: () => Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, extractBillingDetails(project)),
     hover: Style.navList.itemHover(isActive),
     'aria-current': isActive ? 'location' : false
-  }, [cloudContextIcon, projectName])
+  }, [cloudContextIcon, projectName,
+    isOwner && h(BillingProjectActions, { project, loadProjects })])
 
   const unselectableProject = () => {
     const iconAndTooltip =
-      isCreatingStatus(status) ? spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
-        status === 'Error' ? h(Fragment, [
-          h(InfoBox, { style: { color: colors.danger(), margin: '0 0.5rem 0 0.5rem' }, side: 'right' }, [
+      isCreatingOrDeletingStatus(status) ? spinner({ size: 16, style: { color: colors.accent(), marginLeft: '0.5rem' } }) :
+        isErrorStatus(status) ? h(Fragment, [
+          h(InfoBox, { style: { color: colors.danger(), marginLeft: '0.5rem' }, side: 'right' }, [
             div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [
-              message || 'Error during project creation.'
+              message || 'The billing project is in an error state'
             ])
           ]),
-          //Currently, only billing projects that failed to create can have actions performed on them.
-          //If that changes in the future, this should be moved elsewhere
-          isOwner && h(BillingProjectActions, { project, loadProjects })
         ]) : undefined
 
     return div({ style: { ...styles.projectListItem(isActive), color: colors.dark() } }, [
-      cloudContextIcon, projectName, iconAndTooltip
+      cloudContextIcon, projectName, iconAndTooltip, isOwner && h(BillingProjectActions, { project, loadProjects })
     ])
   }
 
@@ -155,7 +154,7 @@ const ProjectListItem = ({ project, project: { projectName, roles, status, messa
   return div({ role: 'listitem' }, [
     !_.isEmpty(viewerRoles) && status === 'Ready' ?
       selectableProject() :
-      unselectableProject()
+      unselectableProject(),
   ])
 }
 
@@ -324,7 +323,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   })
 
   useEffect(() => {
-    const anyProjectsCreating = _.some(({ status }) => isCreatingStatus(status), billingProjects)
+    const anyProjectsCreating = _.some(({ status }) => isCreatingOrDeletingStatus(status), billingProjects)
 
     if (anyProjectsCreating && !interval.current) {
       interval.current = setInterval(loadProjects, 10000)
