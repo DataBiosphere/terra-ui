@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { CSSProperties, FC, Fragment, useEffect, useState } from 'react'
+import { CSSProperties, ForwardedRef, Fragment, useEffect, useState } from 'react'
 import { div, h, img, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
@@ -310,12 +310,12 @@ export interface SortOrderInfo {
   direction: 'asc' | 'desc'
 }
 
-export const BaseAnalyses: FC<AnalysesProps> = ({
+export const BaseAnalyses = ({
   workspace,
   analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
   storageDetails: { googleBucketLocation, azureContainerRegion },
   onRequesterPaysError
-}: AnalysesProps, _ref) => {
+}: AnalysesProps, _ref: ForwardedRef<unknown>) => {
   const [renamingAnalysisName, setRenamingAnalysisName] = useState<AbsolutePath>()
   const [copyingAnalysisName, setCopyingAnalysisName] = useState<AbsolutePath>()
   const [deletingAnalysisName, setDeletingAnalysisName] = useState<AbsolutePath>()
@@ -410,7 +410,6 @@ export const BaseAnalyses: FC<AnalysesProps> = ({
         }, [
           label({ htmlFor: id, style: { fontWeight: 'bold', margin: '0 0.5rem', whiteSpace: 'nowrap' } }, ['Enable JupyterLab']),
           h(Switch, {
-            // @ts-expect-error
             onLabel: '', offLabel: '',
             onChange: value => {
               setEnableJupyterLabGCP(value)
@@ -420,7 +419,7 @@ export const BaseAnalyses: FC<AnalysesProps> = ({
             id,
             checked: enableJupyterLabGCP,
             width: 40, height: 20,
-          }, [])
+          })
         ])
       ])])
     ])
@@ -540,8 +539,10 @@ export const BaseAnalyses: FC<AnalysesProps> = ({
           appDataDisks,
           refreshAnalyses,
           analyses,
+          // @ts-expect-error
           apps,
           refreshApps,
+          // @ts-expect-error
           uploadFiles,
           openUploader,
           location,
