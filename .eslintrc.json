@@ -1,5 +1,4 @@
 {
-  "plugins": ["lodash-fp", "simple-import-sort", "import", "prettier"],
   "extends": ["prettier", "airbnb", "airbnb-typescript"],
   "parserOptions": {
     "project": "./tsconfig.json"
@@ -19,8 +18,10 @@
     "jest": true
   },
   "rules": {
-    "max-len": ["error", { "code": 120 }],
-    "@typescript-eslint/no-unused-vars": [
+    "indent": "off",
+    "max-len": ["warn", { "code": 120 }],
+    "comma-dangle": "off",
+    "no-unused-vars": [
       "warn",
       {
         "vars": "all",
@@ -29,5 +30,6 @@
         "ignoreRestSiblings": true
       }
     ]
-  }
+  },
+  "plugins": ["lodash-fp", "import", "simple-import-sort", "prettier"]
 }
