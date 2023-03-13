@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { b, br, code, div, fieldset, h, label, legend, p, span, strong } from 'react-hyperscript-helpers'
+import { b, div, fieldset, h, label, legend, p, span, strong } from 'react-hyperscript-helpers'
 import { ClipboardButton } from 'src/components/ClipboardButton'
 import { ButtonOutline, ButtonPrimary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -33,13 +33,13 @@ import {
   defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultGpuType, defaultLocation,
   defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getAutopauseThreshold,
   getDefaultMachineType, getIsRuntimeBusy, getValidGpuOptions, getValidGpuTypesForZone,
-  isAutopauseEnabled
+  isAutopauseEnabled, runtimeTypes
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
-import { getToolLabelForImage, getToolLabelFromRuntime, runtimeTools, terraSupportedRuntimeImageIds, toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { getCurrentMountDirectory, getToolLabelForImage, getToolLabelFromRuntime, runtimeTools, terraSupportedRuntimeImageIds, toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import validate from 'validate.js'
 
 import { computeStyles } from './modalStyles'
-import { PersistentDiskSection } from './persistent-disk-controls.ts'
+import { AboutPersistentDisk, handleLearnMoreAboutPersistentDisk, PersistentDiskSection } from './persistent-disk-controls.ts'
 
 // Change to true to enable a debugging panel (intended for dev mode only)
 const showDebugPanel = false
@@ -60,11 +60,6 @@ const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:
  * 2. A cluster with a main node AND two or more worker nodes (sometimes referred to as 'Spark cluster')
  * If you modify this object, make sure to update the helpers below it too as applicable.
  */
-const runtimeTypes = {
-  gceVm: 'Standard VM',
-  dataprocSingleNode: 'Spark single node',
-  dataprocCluster: 'Spark cluster'
-}
 
 const sparkInterfaces = {
   yarn: {
@@ -201,8 +196,8 @@ export const ComputeModalBase = ({
   const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState('')
   const [runtimeType, setRuntimeType] = useState(runtimeTypes.gceVm)
   const [computeConfig, setComputeConfig] = useState({
-    selectedPersistentDiskSize: defaultGcePersistentDiskSize,
-    selectedPersistentDiskType: defaultPersistentDiskType,
+    persistentDiskSize: defaultGcePersistentDiskSize,
+    persistentDiskType: defaultPersistentDiskType,
     //The false here is valid because the modal never opens to dataproc as the default
     masterMachineType: getDefaultMachineType(false, tool),
     masterDiskSize: defaultDataprocMasterDiskSize,
@@ -221,6 +216,7 @@ export const ComputeModalBase = ({
   })
   // State -- end
 
+  const cloudPlatform = extractWorkspaceDetails(workspace).cloudPlatform
   const isPersistentDisk = shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected)
 
   const isCustomImage = selectedLeoImage === customMode
@@ -407,15 +403,6 @@ export const ComputeModalBase = ({
     )
   }
 
-  const getCurrentMountDirectory = currentRuntimeDetails => {
-    const rstudioMountPoint = '/home/rstudio'
-    const jupyterMountPoint = '/home/jupyter'
-    const noMountDirectory = `${jupyterMountPoint} for Jupyter environments and ${rstudioMountPoint} for RStudio environments`
-    return currentRuntimeDetails?.labels.tool ?
-      (currentRuntimeDetails?.labels.tool === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) :
-      noMountDirectory
-  }
-
   const getExistingEnvironmentConfig = () => {
     const runtimeConfig = currentRuntimeDetails?.runtimeConfig
     const cloudService = runtimeConfig?.cloudService
@@ -503,7 +490,7 @@ export const ComputeModalBase = ({
       persistentDisk: Utils.cond(
         [deleteDiskSelected, () => undefined],
         [viewMode !== 'deleteEnvironment' && shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected),
-          () => ({ size: computeConfig.selectedPersistentDiskSize, diskType: computeConfig.selectedPersistentDiskType })],
+          () => ({ size: computeConfig.persistentDiskSize, diskType: computeConfig.persistentDiskType })],
         () => existingPersistentDisk
       )
     }
@@ -551,13 +538,6 @@ export const ComputeModalBase = ({
   }
 
   const getWorkspaceObject = () => workspace?.workspace
-
-  const handleLearnMoreAboutPersistentDisk = () => {
-    setViewMode('aboutPersistentDisk')
-    Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, {
-      ...extractWorkspaceDetails(getWorkspaceObject()), currentlyHasAttachedDisk: !!hasAttachedDisk()
-    })
-  }
 
   const hasAttachedDisk = () => {
     const { runtime: existingRuntime } = getExistingEnvironmentConfig()
@@ -764,8 +744,8 @@ export const ComputeModalBase = ({
 
       setRuntimeType(newRuntimeType)
       setComputeConfig({
-        selectedPersistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
-        selectedPersistentDiskType: (!!currentPersistentDiskDetails?.diskType && currentPersistentDiskDetails.diskType) || defaultPersistentDiskType,
+        persistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
+        persistentDiskType: (!!currentPersistentDiskDetails?.diskType && currentPersistentDiskDetails.diskType) || defaultPersistentDiskType,
         masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
         masterDiskSize: diskSize,
         numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
@@ -787,31 +767,6 @@ export const ComputeModalBase = ({
   })
 
   // Render functions -- begin
-  const renderAboutPersistentDisk = () => {
-    return div({ style: computeStyles.drawerContent }, [
-      h(TitleBar, {
-        id: titleId,
-        style: computeStyles.titleBar,
-        title: 'About persistent disk',
-        hideCloseButton: shouldHideCloseButton,
-        onDismiss,
-        onPrevious: () => setViewMode()
-      }),
-      div({ style: { lineHeight: 1.5 } }, [
-        p(['Your persistent disk is mounted in the directory ',
-          code({ style: { fontWeight: 600 } }, [getCurrentMountDirectory(currentRuntimeDetails)]), br(),
-          'Please save your analysis data in this directory to ensure it’s stored on your disk.']),
-        p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you delete your compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
-        p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
-        p(['If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.']),
-        h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360047318551', ...Utils.newTabLinkProps }, [
-          'Learn more about persistent disks',
-          icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
-        ])
-      ])
-    ])
-  }
-
   const renderActionButton = () => {
     const { runtime: existingRuntime, hasGpu } = getExistingEnvironmentConfig()
     const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
@@ -1384,7 +1339,7 @@ export const ComputeModalBase = ({
         onChange: () => setDeleteDiskSelected(false)
       }, [
         p(['Please save your analysis data in the directory ',
-          code({ style: { fontWeight: 600 } }, [getCurrentMountDirectory(currentRuntimeDetails)]), ' to ensure it’s stored on your disk.']),
+          ...getCurrentMountDirectory(getToolLabelFromRuntime(existingRuntime)), ' to ensure it’s stored on your disk.']),
         p([
           'Deletes your application configuration and cloud compute profile, but detaches your persistent disk and saves it for later. ',
           'The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type.'
@@ -1647,6 +1602,7 @@ export const ComputeModalBase = ({
       ])
     }
 
+
     return h(Fragment, [
         div({ style: { padding: '1.5rem', borderBottom: `1px solid ${colors.dark(0.4)}` } }, [
           renderTitleAndTagline(),
@@ -1655,7 +1611,7 @@ export const ComputeModalBase = ({
         div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
           renderApplicationConfigurationSection(),
           renderComputeProfileSection(existingRuntime),
-          !!isPersistentDisk && h(PersistentDiskSection, { diskExists: !!existingPersistentDisk, computeConfig, updateComputeConfig, handleLearnMoreAboutPersistentDisk }),
+          !!isPersistentDisk && h(PersistentDiskSection, { persistentDiskExists: !!existingPersistentDisk, computeConfig, updateComputeConfig, setViewMode, cloudPlatform, tool }),
           isGce(runtimeType) && !isPersistentDisk && div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
               'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
@@ -1719,7 +1675,7 @@ export const ComputeModalBase = ({
   return h(Fragment, [
     Utils.switchCase(viewMode,
       ['packages', renderPackages],
-      ['aboutPersistentDisk', renderAboutPersistentDisk],
+      ['aboutPersistentDisk', () => AboutPersistentDisk({ titleId, setViewMode, onDismiss, tool })],
       ['sparkConsole', renderSparkConsole],
       ['customImageWarning', renderCustomImageWarning],
       ['environmentWarning', renderEnvironmentWarning],

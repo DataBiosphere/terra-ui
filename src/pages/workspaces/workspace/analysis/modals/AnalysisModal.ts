@@ -160,11 +160,13 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     })
 
     const renderAzureModal = () => h(AzureComputeModalBase, {
-      workspace,
-      runtimes,
       location,
+      workspace,
+      tool: currentTool,
+      runtimes,
+      persistentDisks,
       onDismiss,
-      onSuccess
+      onSuccess,
     })
 
     const renderAppModal = (appModalBase, toolLabel) => h(appModalBase, {

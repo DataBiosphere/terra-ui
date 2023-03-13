@@ -178,9 +178,9 @@ export const getAzureComputeCostEstimate = ({ region, machineType }) => {
   return cost
 }
 
-export const getAzureDiskCostEstimate = ({ region, diskSize }) => {
+export const getAzureDiskCostEstimate = ({ region, persistentDiskSize }) => {
   const regionPriceObj = getAzurePricesForRegion(region) || {}
-  const diskType = getDiskType(diskSize)
+  const diskType = getDiskType(persistentDiskSize)
   const cost = regionPriceObj[diskType]
   return cost
 }
@@ -192,7 +192,7 @@ export const getAzureDiskCostEstimate = ({ region, diskSize }) => {
 export const getPersistentDiskCostMonthly = ({ cloudContext = {}, diskType, size, status, zone }, computeRegion) => {
   const price = Utils.cond(
     // @ts-expect-error
-    [isAzureContext(cloudContext), () => getAzureDiskCostEstimate({ diskSize: size, region: zone })],
+    [isAzureContext(cloudContext), () => getAzureDiskCostEstimate({ persistentDiskSize: size, region: zone })],
     [Utils.DEFAULT, () => size * getPersistentDiskPriceForRegionMonthly(computeRegion, diskType)]
   )
   return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : price
@@ -200,7 +200,7 @@ export const getPersistentDiskCostMonthly = ({ cloudContext = {}, diskType, size
 export const getPersistentDiskCostHourly = ({ size, status, diskType, cloudContext = {} }, computeRegion) => {
   const price = Utils.cond(
     // @ts-expect-error
-    [isAzureContext(cloudContext), () => getAzureDiskCostEstimate({ diskSize: size, region: computeRegion }) / numberOfHoursPerMonth],
+    [isAzureContext(cloudContext), () => getAzureDiskCostEstimate({ persistentDiskSize: size, region: computeRegion }) / numberOfHoursPerMonth],
     [Utils.DEFAULT, () => size * getPersistentDiskPriceForRegionHourly(computeRegion, diskType)],
   )
   return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : price
@@ -229,7 +229,7 @@ export const getCostForDisk = (app, appDataDisks, computeRegion, currentRuntimeT
   let diskCost = ''
   const curPd = persistentDisks && persistentDisks.length && getCurrentPersistentDisk(runtimes, persistentDisks)
   if (curPd && isAzureDisk(curPd)) {
-    return getAzureDiskCostEstimate({ region: computeRegion, diskSize: curPd.size }) / numberOfHoursPerMonth
+    return getAzureDiskCostEstimate({ region: computeRegion, persistentDiskSize: curPd.size }) / numberOfHoursPerMonth
   }
   if (currentRuntimeTool === toolLabel && persistentDisks && persistentDisks.length) {
     const { size = 0, status = 'Running', diskType = pdTypes.standard } = curPd || {}

@@ -2,10 +2,11 @@ import '@testing-library/jest-dom'
 
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MouseEvent } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import {
-  PersistentDiskSection,
-  PersistentDiskType,
+  PersistentDiskProps, PersistentDiskSection,
+  PersistentDiskType, PersistentDiskTypeProps
 } from 'src/pages/workspaces/workspace/analysis/modals/persistent-disk-controls'
 import {
   defaultDataprocMasterDiskSize,
@@ -28,8 +29,8 @@ import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-u
 
 
 const defaultIComputeConfig = {
-  selectedPersistentDiskSize: defaultGcePersistentDiskSize,
-  selectedPersistentDiskType: defaultPersistentDiskType,
+  persistentDiskSize: defaultGcePersistentDiskSize,
+  persistentDiskType: defaultPersistentDiskType,
   masterMachineType: getDefaultMachineType(false, toolLabels.RStudio),
   masterDiskSize: defaultDataprocMasterDiskSize,
   numberOfWorkers: defaultNumDataprocWorkers,
@@ -48,15 +49,17 @@ const defaultIComputeConfig = {
 
 const updateComputeConfig = jest.fn()
 
-const defaultPersistentDiskProps = {
-  diskExists: true,
+const defaultPersistentDiskProps: PersistentDiskProps = {
+  persistentDiskExists: true,
   computeConfig: defaultIComputeConfig,
-  updateComputeConfig: () => updateComputeConfig, //we shouldn't be using curry, therefore we have to use this.
-  handleLearnMoreAboutPersistentDisk: jest.fn(),
+  updateComputeConfig: () => updateComputeConfig,
+  setViewMode: jest.fn(),
+  cloudPlatform: 'GCP',
+  handleLearnMoreAboutPersistentDisk: jest.fn()
 }
 
-const defaultPersistentDiskTypeProps = {
-  diskExists: true,
+const defaultPersistentDiskTypeProps: PersistentDiskTypeProps = {
+  persistentDiskExists: true,
   computeConfig: defaultIComputeConfig,
   updateComputeConfig: () => updateComputeConfig,
 }
@@ -76,7 +79,7 @@ describe('compute-modal-component', () => {
     })
     it('should not be disabled when no existing PD', () => {
       // Arrange
-      render(h(PersistentDiskType, { ...defaultPersistentDiskTypeProps, diskExists: false }))
+      render(h(PersistentDiskType, { ...defaultPersistentDiskTypeProps, persistentDiskExists: false }))
 
       // Act
 
@@ -87,7 +90,7 @@ describe('compute-modal-component', () => {
     // Ensuring updateComputeConfig gets called with proper value on change
     it('should call updateComputeConfig with proper value on change', async () => {
       // Arrange
-      render(h(PersistentDiskType, { ...defaultPersistentDiskTypeProps, diskExists: false }))
+      render(h(PersistentDiskType, { ...defaultPersistentDiskTypeProps, persistentDiskExists: false }))
 
       // Act
       const dTypeOld = screen.getByLabelText('Disk Type')
@@ -104,23 +107,20 @@ describe('compute-modal-component', () => {
     // click learn more about persistent disk
     it('should render learn more about persistent disks', async () => {
       // Arrange
-      const fakepd = jest.fn()
-      render(h(PersistentDiskSection, {
-        ...defaultPersistentDiskProps,
-        handleLearnMoreAboutPersistentDisk: fakepd
-      }))
+      const setViewModeMock = jest.fn()
+      render(h(PersistentDiskSection, { ...defaultPersistentDiskProps, setViewMode: setViewModeMock }))
 
       // Act
-      const link = screen.getByText(/Learn more about persistent disks/)
+      const link = screen.getByText('Learn more about persistent disks and where your disk is mounted.')
       await userEvent.click(link)
 
       // Assert
-      expect(fakepd).toBeCalled()
+      expect(setViewModeMock).toHaveBeenCalledWith('aboutPersistentDisk')
     })
 
     it('should not show tooltip when no existing PD', async () => {
       // Arrange
-      render(h(PersistentDiskSection, { ...defaultPersistentDiskProps, diskExists: false }))
+      render(h(PersistentDiskSection, { ...defaultPersistentDiskProps, persistentDiskExists: false }))
 
       // Act
       const dType = screen.getByText('Disk Type')
@@ -144,9 +144,9 @@ describe('compute-modal-component', () => {
     })
 
     // Ensuring updateComputeConfig gets called with proper value on change
-    it('should call updateComputeConfig with proper value on change', async () => {
+    it('should call updateComputeConfig with proper value on changing type', async () => {
       // Arrange
-      render(h(PersistentDiskSection, { ...defaultPersistentDiskProps, diskExists: false }))
+      render(h(PersistentDiskSection, { ...defaultPersistentDiskProps, persistentDiskExists: false }))
 
       // Act
       const dTypeOld = screen.getByLabelText('Disk Type')
@@ -156,6 +156,19 @@ describe('compute-modal-component', () => {
 
       // Assert
       expect(updateComputeConfig).toBeCalledWith({ displayName: 'Balanced', label: 'pd-balanced', regionToPricesName: 'monthlyBalancedDiskPrice' })
+    })
+
+    it('should call updateComputeConfig with proper value on changing size', async () => {
+      // Arrange
+      render(h(PersistentDiskSection, { ...defaultPersistentDiskProps, persistentDiskExists: false }))
+
+      // Act
+      const sizeInput = screen.getByLabelText('Disk Size (GB)')
+      await userEvent.clear(sizeInput)
+      await userEvent.type(sizeInput, '70')
+
+      // Assert
+      expect(updateComputeConfig).toBeCalledWith(70)
     })
   })
 })

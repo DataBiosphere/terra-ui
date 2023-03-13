@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { code } from 'react-hyperscript-helpers'
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { isCromwellAppVisible, isCromwellOnAzureAppVisible } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
@@ -183,3 +184,16 @@ export const allAppTypes: AppToolLabel[] = _.flow(_.map('appType'), _.compact)(a
 export const isPauseSupported = (toolLabel: ToolLabel): boolean => !_.find((tool: Tool) => tool.label === toolLabel)(tools)?.isPauseUnsupported
 
 export const isSettingsSupported = (toolLabel: ToolLabel): boolean => !_.find((tool: Tool) => tool.label === toolLabel)(tools)?.isSettingsUnsupported
+
+export const getCurrentMountDirectory = (toolLabel: ToolLabel) => {
+  const boldCode = function(label: ToolLabel) {
+    const mydir = label.toLowerCase()
+    return code({ style: { fontWeight: 600 } }, [`/home/${mydir}`])
+  }
+  const defaultMsg = [boldCode(toolLabels.Jupyter), ' for Jupyter environments and ', boldCode(toolLabels.RStudio), ' for RStudio environments']
+  return typeof toolLabel === 'string' ? [boldCode(toolLabel)] : defaultMsg // TODO: remove string check IA-4091
+}
+
+export type AppDataDisk = any
+
+export type PersistentDisk = any
