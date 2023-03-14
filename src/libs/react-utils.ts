@@ -131,7 +131,7 @@ export const withCancellationSignal = WrappedComponent => {
   })
 }
 
-export const usePollingEffect = (effectFn, { ms, leading }) => {
+export const usePollingEffect = (effectFn: () => Promise<any>, { ms, leading }: { ms: number; leading: boolean }): void => {
   const signal = useCancellation()
 
   useOnMount(() => {
