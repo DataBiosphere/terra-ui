@@ -14,6 +14,7 @@ import * as Style from 'src/libs/style'
 import { isCloudProvider } from 'src/libs/workspace-utils'
 import { billingRoles } from 'src/pages/billing/Billing'
 import { BillingProjectActions } from 'src/pages/billing/List/BillingProjectActions'
+import { BillingProject } from 'src/pages/billing/models/BillingProject'
 
 
 const styles = {
@@ -27,24 +28,34 @@ const styles = {
   }
 }
 
-export const ProjectListItem = ({ project, project: { projectName, roles, status, message, cloudPlatform }, loadProjects, isActive, isCreatingStatus }) => {
+interface ProjectListItemProps {
+  project: BillingProject
+  loadProjects: () => void
+  isActive: boolean
+  isCreatingStatus: boolean
+}
+
+export const ProjectListItem = (props: ProjectListItemProps) => {
+  const { projectName, roles, status, message, cloudPlatform } = props.project
   // Billing projects in an error status may have UNKNOWN for the cloudPlatform.
   const cloudContextIcon = isCloudProvider(cloudPlatform) && div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
     h(CloudProviderIcon, { cloudProvider: cloudPlatform })
   ])
 
   const selectableProject = () => h(Clickable, {
-    style: { ...styles.projectListItem(isActive), color: isActive ? colors.accent(1.1) : colors.accent() },
+    style: { ...styles.projectListItem(props.isActive), color: props.isActive ? colors.accent(1.1) : colors.accent() },
     href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
-    onClick: () => Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, extractBillingDetails(project)),
-    hover: Style.navList.itemHover(isActive),
-    'aria-current': isActive ? 'location' : false
+    onClick: () => Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, extractBillingDetails(props.project)),
+    hover: Style.navList.itemHover(props.isActive),
+    'aria-current': props.isActive ? 'location' : false
   }, [cloudContextIcon, projectName])
 
   const unselectableProject = () => {
     const iconAndTooltip =
-      isCreatingStatus ? spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
+      // @ts-ignore
+      props.isCreatingStatus ? spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
         status === 'Error' ? h(Fragment, [
+          // @ts-ignore
           h(InfoBox, { style: { color: colors.danger(), margin: '0 0.5rem 0 0.5rem' }, side: 'right' }, [
             div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [
               message || 'Error during project creation.'
@@ -52,10 +63,10 @@ export const ProjectListItem = ({ project, project: { projectName, roles, status
           ]),
           //Currently, only billing projects that failed to create can have actions performed on them.
           //If that changes in the future, this should be moved elsewhere
-          isOwner && h(BillingProjectActions, { project, loadProjects })
+          isOwner && h(BillingProjectActions, { projectName: props.project.projectName, loadProjects: props.loadProjects })
         ]) : undefined
 
-    return div({ style: { ...styles.projectListItem(isActive), color: colors.dark() } }, [
+    return div({ style: { ...styles.projectListItem(props.isActive), color: colors.dark() } }, [
       cloudContextIcon, projectName, iconAndTooltip
     ])
   }

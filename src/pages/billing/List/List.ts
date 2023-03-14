@@ -17,10 +17,13 @@ import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { CloudProvider } from 'src/libs/workspace-utils'
 import { billingRoles } from 'src/pages/billing/Billing'
 import { CreateBillingProjectControl } from 'src/pages/billing/List/CreateBillingProjectControl'
 import { GCPNewBillingProjectModal } from 'src/pages/billing/List/GCPNewBillingProjectModal'
 import { ProjectListItem } from 'src/pages/billing/List/ProjectListItem'
+import { BillingProject } from 'src/pages/billing/models/BillingProject'
+import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAccount'
 import { AzureBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureBillingProjectWizard'
 import { GCPBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/GCPBillingProjectWizard'
 import ProjectDetail from 'src/pages/billing/Project'
@@ -36,19 +39,18 @@ const BillingProjectSubheader = ({ title, children }) => h(Collapse, {
   summaryStyle: { padding: '1rem 1rem 1rem 2rem' }
 }, [children])
 
-
 export const List = ({ queryParams: { selectedName } }) => {
   // State
-  const [billingProjects, setBillingProjects] = useState(StateHistory.get().billingProjects || [])
-  const [creatingBillingProject, setCreatingBillingProject] = useState(null) // null or cloudProvider values
-  const [billingAccounts, setBillingAccounts] = useState({})
-  const [isLoadingProjects, setIsLoadingProjects] = useState(false)
-  const [isAuthorizing, setIsAuthorizing] = useState(false)
-  const [isLoadingAccounts, setIsLoadingAccounts] = useState(false)
+  const [billingProjects, setBillingProjects] = useState<BillingProject[]>(StateHistory.get().billingProjects || [])
+  const [creatingBillingProject, setCreatingBillingProject] = useState<{ label: CloudProvider } | null>()
+  const [billingAccounts, setBillingAccounts] = useState<Record<string, GoogleBillingAccount>>({})
+  const [isLoadingProjects, setIsLoadingProjects] = useState<boolean>(false)
+  const [isAuthorizing, setIsAuthorizing] = useState<boolean>(false)
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState<boolean>(false)
   const { isAzurePreviewUser } = useStore(authStore)
 
   const signal = useCancellation()
-  const interval = useRef()
+  const interval = useRef<number>()
 
   // Helpers
   const loadProjects = _.flow(
@@ -82,14 +84,14 @@ export const List = ({ queryParams: { selectedName } }) => {
   )(() => {
     if (Auth.hasBillingScope()) {
       return Ajax(signal).Billing.listAccounts()
-        .then(_.keyBy('accountName'))
+        .then(_.keyBy('accountName')) // @ts-ignore
         .then(setBillingAccounts)
     }
   })
 
   const authorizeAndLoadAccounts = () => authorizeAccounts().then(loadAccounts)
 
-  const showCreateProjectModal = async type => {
+  const showCreateProjectModal = async (type: { label: CloudProvider }) => {
     if (type === cloudProviders.azure) {
       setCreatingBillingProject(type)
       // Show the Azure wizard instead of the selected billing project.
@@ -113,7 +115,7 @@ export const List = ({ queryParams: { selectedName } }) => {
     const anyProjectsCreating = _.some(({ status }) => isCreatingStatus(status), billingProjects)
 
     if (anyProjectsCreating && !interval.current) {
-      interval.current = setInterval(loadProjects, 10000)
+      interval.current = window.setInterval(loadProjects, 10000)
     } else if (!anyProjectsCreating && interval.current) {
       clearInterval(interval.current)
       interval.current = undefined
@@ -139,9 +141,9 @@ export const List = ({ queryParams: { selectedName } }) => {
   const creatingAzureBillingProject = !selectedName && creatingBillingProject === cloudProviders.azure
 
   return h(FooterWrapper, { fixedHeight: true }, [
-    h(TopBar, { title: 'Billing' }, [
+    h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
       !!selectedName && div({ style: Style.breadcrumb.breadcrumb }, [
-        div({ style: Style.noWrapEllipsis }, breadcrumbs),
+        div({ style: Style.noWrapEllipsis }, [breadcrumbs]),
         div({ style: Style.breadcrumb.textUnderBreadcrumb }, [selectedName])
       ])
     ]),
@@ -159,8 +161,8 @@ export const List = ({ queryParams: { selectedName } }) => {
             alignItems: 'center', textTransform: 'uppercase', color: colors.dark()
           }
         }, [
-          h2({ style: { fontSize: 16 } }, 'Billing Projects'),
-          h(CreateBillingProjectControl, { isAzurePreviewUser, showCreateProjectModal })
+          h2({ style: { fontSize: 16 } }, ['Billing Projects']),
+          h(CreateBillingProjectControl, { isAzurePreviewUser: !!isAzurePreviewUser, showCreateProjectModal })
         ]),
         h(BillingProjectSubheader, { title: 'Owned by You' }, [
           div({ role: 'list' }, [
@@ -227,7 +229,7 @@ export const List = ({ queryParams: { selectedName } }) => {
             setCreatingBillingProject(null)
             loadProjects()
             Nav.history.push({
-              pathname: Nav.getPath('billing'),
+              pathname: Nav.getPath('billing', undefined, undefined),
               search: qs.stringify({ selectedName: billingProjectName, type: 'project' })
             })
           },

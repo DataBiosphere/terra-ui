@@ -12,7 +12,7 @@ export const standardLine = `1px solid ${colors.dark(0.7)}`
 
 export const proportionalNumbers = { fontVariantNumeric: 'proportional-nums', fontFeatureSettings: 'initial' }
 
-export const noWrapEllipsis = { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }
+export const noWrapEllipsis: CSSProperties = { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }
 
 export const codeFont = { fontFamily: 'Courier New' }
 
@@ -109,7 +109,7 @@ export const navList = {
   }
 }
 
-export const breadcrumb = {
+export const breadcrumb: { breadcrumb: CSSProperties; textUnderBreadcrumb: CSSProperties } = {
   breadcrumb: {
     display: 'flex', flexDirection: 'column',
     color: isTerra() ? 'white' : colors.accent(),

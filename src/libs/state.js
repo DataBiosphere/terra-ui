@@ -14,7 +14,8 @@ export const authStore = Utils.atom({
   fenceStatus: {},
   cookiesAccepted: undefined,
   authContext: undefined,
-  oidcConfig: {}
+  oidcConfig: {},
+  isAzurePreviewUser: undefined
 })
 
 export const getUser = () => authStore.get().user

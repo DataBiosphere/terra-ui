@@ -11,24 +11,32 @@ import { getUser } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { billingProjectNameValidator } from 'src/pages/billing/Billing'
 import CreateGCPBillingProject from 'src/pages/billing/CreateGCPBillingProject'
+import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAccount'
 import { validate } from 'validate.js'
 
 
-export const GCPNewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAccounts }) => {
+interface GCPNewBillingProjectModalProps {
+  billingAccounts: Record<string, GoogleBillingAccount>
+  onSuccess: (string) => void
+  onDismiss: () => void
+  loadAccounts: () => void
+}
+
+export const GCPNewBillingProjectModal = (props: GCPNewBillingProjectModalProps) => {
   const [billingProjectName, setBillingProjectName] = useState('')
-  const [existing, setExisting] = useState([])
+  const [existing, setExisting] = useState<string[]>([])
   const [isBusy, setIsBusy] = useState(false)
-  const [chosenBillingAccount, setChosenBillingAccount] = useState('')
+  const [chosenBillingAccount, setChosenBillingAccount] = useState<GoogleBillingAccount>()
 
   const submit = _.flow(
     reportErrorAndRethrow('Error creating billing project'),
     Utils.withBusyState(setIsBusy)
   )(async () => {
     try {
-      await Ajax().Billing.createGCPProject(billingProjectName, chosenBillingAccount.accountName)
-      onSuccess(billingProjectName)
-    } catch (error) {
-      if (error.status === 409) {
+      await Ajax().Billing.createGCPProject(billingProjectName, chosenBillingAccount?.accountName)
+      props.onSuccess(billingProjectName)
+    } catch (error: any) {
+      if (error?.status === 409) {
         setExisting(_.concat(billingProjectName, existing))
       } else {
         throw error
@@ -37,22 +45,22 @@ export const GCPNewBillingProjectModal = ({ onSuccess, onDismiss, billingAccount
   })
 
   const errors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existing) })
-  const billingLoadedAndEmpty = billingAccounts && _.isEmpty(billingAccounts)
-  const billingPresent = !_.isEmpty(billingAccounts)
+  const billingLoadedAndEmpty = props.billingAccounts && _.isEmpty(props.billingAccounts)
+  const billingPresent = !_.isEmpty(props.billingAccounts)
 
   return h(Modal, {
-    onDismiss,
+    onDismiss: props.onDismiss,
     shouldCloseOnOverlayClick: false,
     title: 'Create Terra Billing Project',
     showCancel: !billingLoadedAndEmpty,
-    showButtons: !!billingAccounts,
+    showButtons: !!props.billingAccounts,
     okButton: billingPresent ?
       h(ButtonPrimary, {
         disabled: errors || !chosenBillingAccount || !chosenBillingAccount.firecloudHasAccess,
         onClick: submit
       }, ['Create']) :
       h(ButtonPrimary, {
-        onClick: onDismiss
+        onClick: props.onDismiss
       }, ['Ok'])
   }, [
     billingLoadedAndEmpty && h(Fragment, [
@@ -63,18 +71,22 @@ export const GCPNewBillingProjectModal = ({ onSuccess, onDismiss, billingAccount
       }, ['Learn how to create a billing account.', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })])
     ]),
     billingPresent && h(Fragment, [
-      CreateGCPBillingProject({ billingAccounts, chosenBillingAccount, setChosenBillingAccount, billingProjectName, setBillingProjectName, existing }),
+      CreateGCPBillingProject({
+        billingAccounts: props.billingAccounts,
+        chosenBillingAccount, setChosenBillingAccount,
+        billingProjectName, setBillingProjectName, existing
+      }),
       !!chosenBillingAccount && !chosenBillingAccount.firecloudHasAccess && div({ style: { fontWeight: 500, fontSize: 13 } }, [
         div({ style: { margin: '0.25rem 0 0.25rem 0', color: colors.danger() } },
-          'Terra does not have access to this account. '),
-        div({ style: { marginBottom: '0.25rem' } }, ['To grant access, add ', span({ style: { fontWeight: 'bold' } }, 'terra-billing@terra.bio'),
-          ' as a ', span({ style: { fontWeight: 'bold' } }, 'Billing Account User'), ' on the ',
+          ['Terra does not have access to this account. ']),
+        div({ style: { marginBottom: '0.25rem' } }, ['To grant access, add ', span({ style: { fontWeight: 'bold' } }, ['terra-billing@terra.bio']),
+          ' as a ', span({ style: { fontWeight: 'bold' } }, ['Billing Account User']), ' on the ',
           h(Link, {
             href: `https://console.cloud.google.com/billing/${chosenBillingAccount.accountName.split('/')[1]}?authuser=${getUser().email}`,
             ...Utils.newTabLinkProps
           }, ['Google Cloud Console', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])]),
         div({ style: { marginBottom: '0.25rem' } }, ['Then, ',
-          h(Link, { onClick: loadAccounts }, ['click here']), ' to refresh your billing accounts.']),
+          h(Link, { onClick: props.loadAccounts }, ['click here']), ' to refresh your billing accounts.']),
         div({ style: { marginTop: '0.5rem' } }, [
           h(Link, {
             href: 'https://support.terra.bio/hc/en-us/articles/360026182251',
@@ -83,6 +95,6 @@ export const GCPNewBillingProjectModal = ({ onSuccess, onDismiss, billingAccount
         ])
       ])
     ]),
-    (isBusy || !billingAccounts) && spinnerOverlay
+    (isBusy || !props.billingAccounts) && spinnerOverlay
   ])
 }

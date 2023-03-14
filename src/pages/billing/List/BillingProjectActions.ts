@@ -9,10 +9,16 @@ import { reportError } from 'src/libs/error'
 import DeleteBillingProjectModal from 'src/pages/billing/DeleteBillingProjectModal'
 
 
-export const BillingProjectActions = ({ project: { projectName }, loadProjects }) => {
+interface BillingProjectActionsProps {
+  projectName: string
+  loadProjects: () => void
+}
+
+export const BillingProjectActions = (props: BillingProjectActionsProps) => {
   const [showDeleteProjectModal, setShowDeleteProjectModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
+  // @ts-ignore
   return h(Fragment, [
     h(MenuTrigger, {
       closeOnClick: true,
@@ -25,18 +31,19 @@ export const BillingProjectActions = ({ project: { projectName }, loadProjects }
       ])
     }, [
       h(Link, { 'aria-label': 'Billing project menu', style: { display: 'flex', alignItems: 'center' } }, [
+        // @ts-ignore
         icon('cardMenuIcon', { size: 16, 'aria-haspopup': 'menu' })
       ])
     ]),
     showDeleteProjectModal && h(DeleteBillingProjectModal, {
-      projectName, deleting,
+      projectName: props.projectName, deleting,
       onDismiss: () => setShowDeleteProjectModal(false),
       onConfirm: async () => {
         setDeleting(true)
         try {
-          await Ajax().Billing.deleteProject(projectName)
+          await Ajax().Billing.deleteProject(props.projectName)
           setShowDeleteProjectModal(false)
-          loadProjects()
+          props.loadProjects()
         } catch (err) {
           reportError('Error deleting billing project.', err)
           setShowDeleteProjectModal(false)
