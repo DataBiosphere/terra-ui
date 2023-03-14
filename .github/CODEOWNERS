@@ -4,7 +4,7 @@
 /src/libs/brand*.js @DataBiosphere/terra-cobranding
 /src/libs/colors.js @DataBiosphere/terra-cobranding
 /src/pages/Environments.js @DataBiosphere/broad-interactive-analysis
-/src/libs/ajax/Apps.js @DataBiosphere/broad-interactive-analysis
+/src/libs/ajax/Apps.ts @DataBiosphere/broad-interactive-analysis
 /src/libs/ajax/Runtimes.ts @DataBiosphere/broad-interactive-analysis
 /src/libs/ajax/AzureStorage.js @DataBiosphere/broad-interactive-analysis
 /src/libs/ajax/GoogleStorage.js @DataBiosphere/broad-interactive-analysis

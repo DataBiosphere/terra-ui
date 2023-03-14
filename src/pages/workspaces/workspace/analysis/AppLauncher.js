@@ -15,7 +15,10 @@ import * as Utils from 'src/libs/utils'
 import { analysisTabName, appLauncherTabName, PeriodicAzureCookieSetter, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import { getExtension, notebookLockHash, stripExtension } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
 import { getAnalysesDisplayList, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
-import { getPatternFromRuntimeTool, getToolLabelFromRuntime, runtimeTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import {
+  getPatternFromRuntimeTool, getToolLabelFromRuntime, launchableToolLabel,
+  runtimeToolLabels, runtimeTools
+} from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -52,7 +55,7 @@ const ApplicationLauncher = _.flow(
   // This sets up welder for RStudio and Jupyter Lab Apps
   // Jupyter is always launched with a specific file, which is localized
   // RStudio/Jupyter Lab in Azure are launched in a general sense, and all files are localized.
-  const [shouldSetupWelder, setShouldSetupWelder] = useState(application === toolLabels.RStudio || application === toolLabels.JupyterLab)
+  const [shouldSetupWelder, setShouldSetupWelder] = useState(application === runtimeToolLabels.RStudio || application === runtimeToolLabels.JupyterLab)
 
   const runtime = getCurrentRuntime(runtimes)
   const runtimeStatus = getConvertedRuntimeStatus(runtime) // preserve null vs undefined
@@ -71,11 +74,11 @@ const ApplicationLauncher = _.flow(
         if (shouldCopy) {
           // clear 'outdated' metadata (which gets populated by welder) so that new copy file does not get marked as outdated
           newMetadata[hashedOwnerEmail] = ''
-          await Ajax().Buckets.analysis(googleProject, bucketName, file, toolLabels.RStudio).copyWithMetadata(getCopyName(file), bucketName, newMetadata)
+          await Ajax().Buckets.analysis(googleProject, bucketName, file, runtimeToolLabels.RStudio).copyWithMetadata(getCopyName(file), bucketName, newMetadata)
         }
         // update bucket metadata for the outdated file to be marked as doNotSync so that welder ignores the outdated file for the current user
         newMetadata[hashedOwnerEmail] = 'doNotSync'
-        await Ajax().Buckets.analysis(googleProject, bucketName, file, toolLabels.RStudio).updateMetadata(file, newMetadata)
+        await Ajax().Buckets.analysis(googleProject, bucketName, file, runtimeToolLabels.RStudio).updateMetadata(file, newMetadata)
       }, outdatedAnalyses))
       onDismiss()
     })
@@ -159,11 +162,11 @@ const ApplicationLauncher = _.flow(
 
       const proxyUrl = runtime?.proxyUrl
       const url = await Utils.switchCase(application,
-        [toolLabels.terminal, () => `${proxyUrl}/terminals/1`],
-        [toolLabels.spark, () => getSparkInterfaceSource(proxyUrl)],
-        [toolLabels.RStudio, () => proxyUrl],
-        [toolLabels.JupyterLab, () => `${proxyUrl}/lab`],
-        [Utils.DEFAULT, () => console.error(`Expected ${application} to be one of terminal, spark, ${toolLabels.RStudio}, or ${toolLabels.JupyterLab}.`)]
+        [launchableToolLabel.terminal, () => `${proxyUrl}/terminals/1`],
+        [launchableToolLabel.spark, () => getSparkInterfaceSource(proxyUrl)],
+        [runtimeToolLabels.RStudio, () => proxyUrl],
+        [runtimeToolLabels.JupyterLab, () => `${proxyUrl}/lab`],
+        [Utils.DEFAULT, () => console.error(`Expected ${application} to be one of terminal, spark, ${runtimeToolLabels.RStudio}, or ${runtimeToolLabels.JupyterLab}.`)]
       )
 
       setIframeSrc(url)
@@ -177,7 +180,7 @@ const ApplicationLauncher = _.flow(
       //user may toggle back and forth between them. In order to keep notebooks tidy and in a predictable location on
       //disk, we mirror the localBaseDirectory used by edit mode for Jupyter.
       //Once Jupyter is phased out in favor of JupyterLab for GCP, the localBaseDirectory can be '' for all cases
-      const localBaseDirectory = !!googleProject && application === toolLabels.JupyterLab ? `${workspaceName}/edit` : ''
+      const localBaseDirectory = !!googleProject && application === runtimeToolLabels.JupyterLab ? `${workspaceName}/edit` : ''
 
       const { storageContainerName: azureStorageContainer } = !!azureContext ? await Ajax(signal).AzureStorage.details(workspaceId) : {}
       const cloudStorageDirectory = !!azureContext ? `${azureStorageContainer}/analyses` : `gs://${bucketName}/notebooks`
@@ -240,14 +243,14 @@ const ApplicationLauncher = _.flow(
     fileOutdatedOpen && h(FileOutdatedModal, { onDismiss: () => setFileOutdatedOpen(false), bucketName }),
     _.includes(runtimeStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
-        application === toolLabels.JupyterLab && div({ style: { padding: '2rem', position: 'absolute', top: 0, left: 0, zIndex: 0 } }, [
+        application === runtimeToolLabels.JupyterLab && div({ style: { padding: '2rem', position: 'absolute', top: 0, left: 0, zIndex: 0 } }, [
           h(StatusMessage, {}, ['Your Virtual Machine (VM) is ready. JupyterLab will launch momentarily...'])
         ]),
         iframe({
           src: iframeSrc,
           style: {
             border: 'none', flex: 1, zIndex: 1,
-            ...(application === toolLabels.terminal ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
+            ...(application === launchableToolLabel.terminal ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
           },
           title: `Interactive ${application} iframe`
         })

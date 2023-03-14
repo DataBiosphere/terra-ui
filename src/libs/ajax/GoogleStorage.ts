@@ -15,9 +15,9 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
 import {
   getToolLabelFromFileExtension,
+  runtimeToolLabels,
   runtimeTools,
-  ToolLabel,
-  toolLabels
+  ToolLabel
 } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 /*
@@ -326,10 +326,10 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
     const bucketUrl = `storage/v1/b/${bucket}/o`
 
     const calhounPath = Utils.switchCase(toolLabel,
-      [toolLabels.Jupyter, () => 'api/convert'], [toolLabels.RStudio, () => 'api/convert/rmd'])
+      [runtimeToolLabels.Jupyter, () => 'api/convert'], [runtimeToolLabels.RStudio, () => 'api/convert/rmd'])
 
     const mimeType = Utils.switchCase(toolLabel,
-      [toolLabels.Jupyter, () => 'application/x-ipynb+json'], [toolLabels.RStudio, () => 'application/octet-stream'])
+      [runtimeToolLabels.Jupyter, () => 'application/x-ipynb+json'], [runtimeToolLabels.RStudio, () => 'application/octet-stream'])
 
     const encodeFileName = name => encodeAnalysisName(getFileName(name))
 

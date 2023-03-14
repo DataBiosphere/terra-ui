@@ -80,7 +80,7 @@ const AzureWarning = () => {
 
 
 const GooglePermissionsWarning = () => {
-  const warningMessage = 'This workspace is currently synchronizing its permissions with Google. This can take anywhere from a couple minutes ' +
+  const warningMessage = 'Google is currently synchronizing its permissions with this workspace. This can take anywhere from a couple minutes ' +
     'to a few hours in rare cases. Access to this workspace’s bucket and running analysis in workflows or notebooks may result in errors until ' +
     'this synchronization is complete.'
 
@@ -297,7 +297,7 @@ const useAppPolling = workspace => {
       setApps(combinedNewApps)
       _.forOwn(tool => {
         if (tool.appType) {
-          const app = getCurrentApp(tool.appType)(combinedNewApps)
+          const app = getCurrentApp(tool.appType, combinedNewApps)
           reschedule(maybeStale || (app && _.includes(app.status, ['PROVISIONING', 'PREDELETING'])) ? 10000 : 120000)
         }
       })(tools)

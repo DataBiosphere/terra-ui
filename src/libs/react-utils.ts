@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
-import { EffectCallback, forwardRef, memo, useEffect, useRef, useState } from 'react'
+import { EffectCallback, forwardRef, ForwardRefRenderFunction, memo, ReactElement, useEffect, useRef, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { safeCurry } from 'src/libs/type-utils/lodash-fp-helpers'
-import { delay, pollWithCancellation } from 'src/libs/utils'
+import { Atom, delay, pollWithCancellation } from 'src/libs/utils'
 
 
 /**
@@ -10,7 +10,7 @@ import { delay, pollWithCancellation } from 'src/libs/utils'
  * React's hooks eslint plugin flags [] because it's a common mistake. However, sometimes this is
  * exactly the right thing to do. This function makes the intention clear and avoids the lint error.
  */
-export const useOnMount = (fn: EffectCallback) => {
+export const useOnMount = (fn: EffectCallback): void => {
   useEffect(fn, []) // eslint-disable-line react-hooks/exhaustive-deps
 }
 
@@ -46,7 +46,7 @@ export const useInstance = <T>(fn: () => T): T => {
   return ref.current
 }
 
-export const useUniqueId = () => {
+export const useUniqueId = (): string => {
   return useInstance(() => _.uniqueId('unique-id-'))
 }
 
@@ -84,7 +84,17 @@ export const useCancellation = (): AbortSignal => {
   return controller.current.signal
 }
 
-export const withDisplayName = _.curry((name, WrappedComponent) => {
+type ComponentWithDisplayName = {
+  (props: any, context?: any): ReactElement<any, any> | null
+  displayName?: string | undefined
+}
+
+type WithDisplayNameFn = {
+  (name: string): <T extends ComponentWithDisplayName>(WrappedComponent: T) => T
+  <T extends ComponentWithDisplayName>(name: string, WrappedComponent: T): T
+}
+
+export const withDisplayName: WithDisplayNameFn = safeCurry(<T extends ComponentWithDisplayName>(name: string, WrappedComponent: T): T => {
   WrappedComponent.displayName = name
   return WrappedComponent
 })
@@ -101,8 +111,12 @@ export const combineRefs = refs => {
   }
 }
 
-// TODO: improve these types further
-export const forwardRefWithName = safeCurry((name: string, WrappedComponent) => {
+type ForwardRefWithNameFn = {
+  (name: string): <T, P = any>(WrappedComponent: ForwardRefRenderFunction<T, P>) => ReturnType<typeof forwardRef<T, P>>
+  <T, P>(name: string, WrappedComponent: ForwardRefRenderFunction<T, P>): ReturnType<typeof forwardRef<T, P>>
+}
+
+export const forwardRefWithName: ForwardRefWithNameFn = safeCurry(<T, P>(name: string, WrappedComponent: ForwardRefRenderFunction<T, P>) => {
   return withDisplayName(name, forwardRef(WrappedComponent))
 })
 
@@ -117,7 +131,7 @@ export const withCancellationSignal = WrappedComponent => {
   })
 }
 
-export const usePollingEffect = (effectFn, { ms, leading }) => {
+export const usePollingEffect = (effectFn: () => Promise<any>, { ms, leading }: { ms: number; leading: boolean }): void => {
   const signal = useCancellation()
 
   useOnMount(() => {
@@ -144,11 +158,11 @@ export const useCurrentTime = (initialDelay = 250) => {
 /**
  * Hook that returns the value of a given store. When the store changes, the component will re-render
  */
-export const useStore = theStore => {
+export const useStore = <T>(theStore: Atom<T>): T => {
   const [value, setValue] = useState(theStore.get())
   useEffect(() => {
     return theStore.subscribe(v => setValue(v)).unsubscribe
-  }, [theStore, setValue])
+  }, [theStore])
   return value
 }
 

@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { App } from 'src/libs/ajax/leonardo/models/app-models'
 import { cloudServiceTypes } from 'src/libs/ajax/leonardo/models/runtime-config-models'
 import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { defaultAzureRegion } from 'src/libs/azure-utils'
@@ -12,7 +13,7 @@ import {
 import {
   defaultGceMachineType, defaultLocation
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
-import { toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { runtimeToolLabels, tools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { v4 as uuid } from 'uuid'
 
 
@@ -210,7 +211,7 @@ export const getGoogleRuntime = ({
 } = {}) => {
   const googleProject = workspace.workspace.googleProject
   const imageUri = image ? image : Utils.switchCase(tool.label,
-    [toolLabels.RStudio, () => defaultRImage.image],
+    [runtimeToolLabels.RStudio, () => defaultRImage.image],
     [Utils.DEFAULT, () => defaultImage.image])
 
   return {
@@ -280,35 +281,60 @@ export const getGoogleRuntime = ({
   }
 }
 
-export const galaxyRunning = {
+export const galaxyRunning: App = {
+  cloudContext: {
+    cloudProvider: cloudProviderTypes.GCP,
+    cloudResource: 'terra-test-e4000484'
+  },
   appName: 'terra-app-69200c2f-89c3-47db-874c-b770d8de737f',
   appType: 'GALAXY',
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-29T20:19:13.162484Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:19:13.162484Z', dateAccessed: '2021-11-29T20:19:13.162484Z'
   },
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
   errors: [],
-  googleProject: 'terra-test-e4000484',
   kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
   labels: {},
   proxyUrls: { galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy' },
   status: 'RUNNING'
 }
 
-export const galaxyDeleting = {
+export const galaxyDeleting: App = {
+  cloudContext: {
+    cloudProvider: cloudProviderTypes.GCP,
+    cloudResource: 'terra-test-e4000484'
+  },
   appName: 'terra-app-71200c2f-89c3-47db-874c-b770d8de22g',
   appType: 'GALAXY',
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-30T20:19:13.162484Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T20:19:13.162484Z', dateAccessed: '2021-11-30T20:19:13.162484Z'
   },
   diskName: 'saturn-pd-1236594ac-d829-423d-a8df-76fe96f5897',
   errors: [],
-  googleProject: 'terra-test-e4000484',
   kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
   labels: {},
   proxyUrls: { galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy' },
   status: 'DELETING'
 }
+
+export const generateTestApp = (overrides: Partial<App>): App => ({
+  cloudContext: {
+    cloudProvider: cloudProviderTypes.GCP,
+    cloudResource: 'terra-test-e4000484'
+  },
+  appName: 'terra-app-69200c2f-89c3-47db-874c-b770d8de737f',
+  appType: 'GALAXY',
+  auditInfo: {
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:19:13.162484Z', dateAccessed: '2021-11-29T20:19:13.162484Z'
+  },
+  diskName: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
+  errors: [],
+  kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+  labels: {},
+  proxyUrls: { galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy' },
+  status: 'RUNNING',
+  ...overrides
+})
 
 export const galaxyDisk = {
   auditInfo: {

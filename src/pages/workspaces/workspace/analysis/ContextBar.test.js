@@ -8,7 +8,7 @@ import * as Utils from 'src/libs/utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
 import { getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
-import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { appToolLabels, runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 const GALAXY_COMPUTE_COST = 10
@@ -497,7 +497,7 @@ describe('ContextBar - buttons', () => {
     //Assert
     expect(getByLabelText('Environment Configuration'))
     expect(queryByTestId('terminal-button-id')).not.toBeInTheDocument()
-    expect(getByLabelText(new RegExp(/Workflows on Cromwell Environment/i)))
+    expect(getByLabelText(new RegExp(/Cromwell Environment/i)))
   })
 
   it('will render JupyterLab Environment button', () => {
@@ -568,7 +568,7 @@ describe('ContextBar - actions', () => {
 
     // Assert
     getByText('Cloud Environment Details')
-    getByText(toolLabels.Jupyter)
+    getByText(runtimeToolLabels.Jupyter)
   })
 
   it('clicking Galaxy opens CloudEnvironmentModal with Galaxy as filter for tool.', () => {
@@ -585,7 +585,7 @@ describe('ContextBar - actions', () => {
 
     // Assert
     getByText('Cloud Environment Details')
-    getByText(toolLabels.Galaxy)
+    getByText(appToolLabels.GALAXY)
   })
 
   it('clicking RStudio opens CloudEnvironmentModal with RStudio as filter for tool.', () => {
@@ -604,7 +604,7 @@ describe('ContextBar - actions', () => {
 
     // Assert
     getByText('Cloud Environment Details')
-    getByText(toolLabels.RStudio)
+    getByText(runtimeToolLabels.RStudio)
   })
 
   it('clicking Terminal will attempt to start currently stopped runtime', async () => {

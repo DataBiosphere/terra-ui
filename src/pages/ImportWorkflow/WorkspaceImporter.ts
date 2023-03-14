@@ -64,7 +64,6 @@ export const WorkspaceImporter: (props: WorkspaceImporterInnerProps) => ReactEle
       }, ['create a new workspace'])
     ]),
     creatingWorkspace && h(NewWorkspaceModal, {
-      // @ts-expect-error
       requiredAuthDomain: ad,
       onDismiss: () => setCreatingWorkspace(false),
       onSuccess: w => {
