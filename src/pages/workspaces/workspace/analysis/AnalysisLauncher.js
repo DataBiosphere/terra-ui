@@ -326,12 +326,16 @@ const PreviewHeader = ({
         () => h(HeaderButton, {
           onClick: () => {
             Nav.goToPath(appLauncherTabName, { namespace, name, application: runtimeToolLabels.JupyterLab, cloudPlatform })
+            Ajax().Metrics.captureEvent(Events.analysisLaunch,
+              { origin: 'analysisLauncher', source: runtimeToolLabels.JupyterLab, application: runtimeToolLabels.JupyterLab, workspaceName: name, namespace, cloudPlatform })
           }
         }, openMenuIcon)],
       [isAzureWorkspace && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === runtimeToolLabels.Jupyter,
         () => h(HeaderButton, {
           onClick: () => {
             Nav.goToPath(appLauncherTabName, { namespace, name, application: runtimeToolLabels.JupyterLab, cloudPlatform })
+            Ajax().Metrics.captureEvent(Events.analysisLaunch,
+              { origin: 'analysisLauncher', source: currentRuntimeToolLabel, application: currentRuntimeToolLabel, workspaceName: name, namespace, cloudPlatform })
           }
         }, openMenuIcon)],
       [isAzureWorkspace && runtimeStatus !== 'Running', () => {}],
@@ -346,6 +350,8 @@ const PreviewHeader = ({
           onClick: () => {
             if (runtimeStatus === 'Running') {
               Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio', cloudPlatform })
+              Ajax().Metrics.captureEvent(Events.analysisLaunch,
+                { origin: 'analysisLauncher', source: runtimeToolLabels.RStudio, application: runtimeToolLabels.RStudio, workspaceName: name, namespace, cloudPlatform })
             }
           }
         },
@@ -511,8 +517,14 @@ const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace:
 // This is the purely functional component
 // It is in charge of ensuring that navigating away from the Jupyter iframe results in a save via a custom extension located in `jupyter-iframe-extension`
 // See this ticket for RStudio impl discussion: https://broadworkbench.atlassian.net/browse/IA-2947
-const JupyterFrameManager = ({ onClose, frameRef }) => {
+const JupyterFrameManager = ({ onClose, frameRef, details = {} }) => {
   useOnMount(() => {
+    Ajax()
+      .Metrics
+      .captureEvent(Events.analysisLaunch,
+        { source: runtimeToolLabels.Jupyter, application: runtimeToolLabels.Jupyter, workspaceName: details.name, namespace: details.namespace, cloudPlatform: details.cloudPlatform })
+
+
     const isSaved = Utils.atom(true)
     const onMessage = e => {
       switch (e.data) {

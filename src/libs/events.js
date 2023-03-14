@@ -20,8 +20,11 @@ const eventsList = {
   analysisDisableBeta: 'analysis:disable',
   analysisLaunch: 'analysis:launch',
   analysisCreate: 'analysis:create',
+
+  runtimeCreate: 'analysis:runtimeCreate',
+  analysisAzureJupyterLabCreate: 'analysis:azureJupyterLabCreate', //TODO: Combine with runtimeCreate
+
   analysisToggleJupyterLabGCP: 'analysis:toggleJupyterLabGCP',
-  analysisAzureJupyterLabCreate: 'analysis:azureJupyterLabCreate',
   analysisPreviewSuccess: 'analysis:previewSuccess',
   analysisPreviewFail: 'analysis:previewFail',
   billingProjectExpandWorkspace: 'billing:project:workspace:expand',

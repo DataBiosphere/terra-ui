@@ -312,6 +312,7 @@ export const CloudEnvironmentModal = ({
         [Utils.DEFAULT, () => 'No Environment found']
       )
     }
+
     return Utils.switchCase(toolLabel,
       [appToolLabels.GALAXY, () => {
         return {
