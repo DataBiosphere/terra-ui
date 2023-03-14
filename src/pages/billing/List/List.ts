@@ -17,7 +17,7 @@ import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { CloudProvider } from 'src/libs/workspace-utils'
+import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils'
 import { billingRoles } from 'src/pages/billing/Billing'
 import { CreateBillingProjectControl } from 'src/pages/billing/List/CreateBillingProjectControl'
 import { GCPNewBillingProjectModal } from 'src/pages/billing/List/GCPNewBillingProjectModal'
@@ -27,7 +27,6 @@ import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAcco
 import { AzureBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureBillingProjectWizard'
 import { GCPBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/GCPBillingProjectWizard'
 import ProjectDetail from 'src/pages/billing/Project'
-import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
 
 const isCreatingStatus = status => _.includes(status, ['Creating', 'CreatingLandingZone'])
@@ -42,7 +41,7 @@ const BillingProjectSubheader = ({ title, children }) => h(Collapse, {
 export const List = ({ queryParams: { selectedName } }) => {
   // State
   const [billingProjects, setBillingProjects] = useState<BillingProject[]>(StateHistory.get().billingProjects || [])
-  const [creatingBillingProject, setCreatingBillingProject] = useState<{ label: CloudProvider } | null>()
+  const [creatingBillingProjectType, setCreatingBillingProjectType] = useState<CloudProvider | null>()
   const [billingAccounts, setBillingAccounts] = useState<Record<string, GoogleBillingAccount>>({})
   const [isLoadingProjects, setIsLoadingProjects] = useState<boolean>(false)
   const [isAuthorizing, setIsAuthorizing] = useState<boolean>(false)
@@ -91,16 +90,16 @@ export const List = ({ queryParams: { selectedName } }) => {
 
   const authorizeAndLoadAccounts = () => authorizeAccounts().then(loadAccounts)
 
-  const showCreateProjectModal = async (type: { label: CloudProvider }) => {
-    if (type === cloudProviders.azure) {
-      setCreatingBillingProject(type)
+  const showCreateProjectModal = async (type: CloudProvider) => {
+    if (type === 'AZURE') {
+      setCreatingBillingProjectType(type)
       // Show the Azure wizard instead of the selected billing project.
       Nav.history.replace({ search: '' })
     } else if (Auth.hasBillingScope()) {
-      setCreatingBillingProject(type)
+      setCreatingBillingProjectType(type)
     } else {
       await authorizeAndLoadAccounts()
-      Auth.hasBillingScope() && setCreatingBillingProject(type)
+      Auth.hasBillingScope() && setCreatingBillingProjectType(type)
     }
   }
 
@@ -138,7 +137,7 @@ export const List = ({ queryParams: { selectedName } }) => {
   )
 
   const azureUserWithNoBillingProjects = !isLoadingProjects && _.isEmpty(billingProjects) && Auth.isAzureUser()
-  const creatingAzureBillingProject = !selectedName && creatingBillingProject === cloudProviders.azure
+  const creatingAzureBillingProject = !selectedName && creatingBillingProjectType === 'AZURE'
 
   return h(FooterWrapper, { fixedHeight: true }, [
     h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
@@ -183,15 +182,15 @@ export const List = ({ queryParams: { selectedName } }) => {
           ])
         ])
       ]),
-      creatingBillingProject === cloudProviders.gcp && h(GCPNewBillingProjectModal, {
+      creatingBillingProjectType === 'GCP' && h(GCPNewBillingProjectModal, {
         billingAccounts,
         loadAccounts,
-        onDismiss: () => setCreatingBillingProject(null),
+        onDismiss: () => setCreatingBillingProjectType(null),
         onSuccess: billingProjectName => {
           Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
-            billingProjectName, cloudPlatform: cloudProviders.gcp.label
+            billingProjectName, cloudPlatform: cloudProviderTypes.GCP
           })
-          setCreatingBillingProject(null)
+          setCreatingBillingProjectType(null)
           loadProjects()
         }
       }),
@@ -214,9 +213,9 @@ export const List = ({ queryParams: { selectedName } }) => {
         [azureUserWithNoBillingProjects || creatingAzureBillingProject, () => h(AzureBillingProjectWizard, {
           onSuccess: billingProjectName => {
             Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
-              billingProjectName, cloudPlatform: cloudProviders.azure.label
+              billingProjectName, cloudPlatform: cloudProviderTypes.AZURE
             })
-            setCreatingBillingProject(null)
+            setCreatingBillingProjectType(null)
             loadProjects()
           }
         })],
@@ -224,9 +223,9 @@ export const List = ({ queryParams: { selectedName } }) => {
           billingAccounts,
           onSuccess: billingProjectName => {
             Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
-              billingProjectName, cloudPlatform: cloudProviders.gcp.label
+              billingProjectName, cloudPlatform: cloudProviderTypes.GCP
             })
-            setCreatingBillingProject(null)
+            setCreatingBillingProjectType(null)
             loadProjects()
             Nav.history.push({
               pathname: Nav.getPath('billing', undefined, undefined),

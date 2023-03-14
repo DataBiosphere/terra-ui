@@ -5,16 +5,15 @@ import { icon } from 'src/components/icons'
 import { MenuButton } from 'src/components/MenuButton'
 import { MenuTrigger } from 'src/components/PopupTrigger'
 import { CloudProvider } from 'src/libs/workspace-utils'
-import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
 
 interface CreateBillingProjectControlProps {
   isAzurePreviewUser: boolean
-  showCreateProjectModal: (type: { label: CloudProvider }) => void
+  showCreateProjectModal: (type: CloudProvider) => void
 }
 
 export const CreateBillingProjectControl = (props: CreateBillingProjectControlProps) => {
-  const createButton = (type: { label: CloudProvider } | undefined) => {
+  const createButton = (type: CloudProvider | undefined) => {
     return h(ButtonOutline, {
       'aria-label': 'Create new billing project',
       onClick: () => type !== undefined ? props.showCreateProjectModal(type) : undefined
@@ -22,7 +21,7 @@ export const CreateBillingProjectControl = (props: CreateBillingProjectControlPr
   }
 
   if (!props.isAzurePreviewUser) {
-    return createButton(cloudProviders.gcp)
+    return createButton('GCP')
   } else {
     return h(MenuTrigger, {
       side: 'bottom',
@@ -30,11 +29,11 @@ export const CreateBillingProjectControl = (props: CreateBillingProjectControlPr
       content: h(Fragment, [
         h(MenuButton, {
           'aria-haspopup': 'dialog',
-          onClick: () => props.showCreateProjectModal(cloudProviders.azure)
+          onClick: () => props.showCreateProjectModal('AZURE')
         }, ['Azure Billing Project']),
         h(MenuButton, {
           'aria-haspopup': 'dialog',
-          onClick: () => props.showCreateProjectModal(cloudProviders.gcp)
+          onClick: () => props.showCreateProjectModal('GCP')
         }, ['GCP Billing Project'])
       ])
     }, [createButton(undefined)])
