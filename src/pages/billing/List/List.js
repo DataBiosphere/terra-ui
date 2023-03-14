@@ -1,159 +1,33 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
-import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
 import Collapse from 'src/components/Collapse'
-import { ButtonOutline, ButtonPrimary, Clickable, customSpinnerOverlay, Link, spinnerOverlay } from 'src/components/common'
+import { customSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { icon, spinner } from 'src/components/icons'
-import { MenuButton } from 'src/components/MenuButton'
-import Modal from 'src/components/Modal'
-import { InfoBox, MenuTrigger } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { reportError, reportErrorAndRethrow } from 'src/libs/error'
-import Events, { extractBillingDetails } from 'src/libs/events'
+import { reportErrorAndRethrow } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { authStore, getUser } from 'src/libs/state'
+import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { isCloudProvider } from 'src/libs/workspace-utils'
-import { billingProjectNameValidator, billingRoles } from 'src/pages/billing/Billing'
-import CreateGCPBillingProject from 'src/pages/billing/CreateGCPBillingProject'
-import DeleteBillingProjectModal from 'src/pages/billing/DeleteBillingProjectModal'
+import { billingRoles } from 'src/pages/billing/Billing'
+import { CreateBillingProjectControl } from 'src/pages/billing/List/CreateBillingProjectControl'
+import { GCPNewBillingProjectModal } from 'src/pages/billing/List/GCPNewBillingProjectModal'
+import { ProjectListItem } from 'src/pages/billing/List/ProjectListItem'
 import { AzureBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureBillingProjectWizard'
 import { GCPBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/GCPBillingProjectWizard'
 import ProjectDetail from 'src/pages/billing/Project'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
-import validate from 'validate.js'
 
-
-const styles = {
-  projectListItem: selected => {
-    return {
-      ...Style.navList.itemContainer(selected),
-      ...Style.navList.item(selected),
-      ...(selected ? { backgroundColor: colors.dark(0.1) } : {}),
-      paddingLeft: '3rem'
-    }
-  }
-}
 
 const isCreatingStatus = status => _.includes(status, ['Creating', 'CreatingLandingZone'])
-
-const CreateBillingProjectControl = ({ isAzurePreviewUser, showCreateProjectModal }) => {
-  const createButton = (onClickCallback, type) => {
-    return h(ButtonOutline, {
-      'aria-label': 'Create new billing project',
-      onClick: () => !!onClickCallback && onClickCallback(type)
-    }, [span([icon('plus-circle', { style: { marginRight: '1ch' } }), 'Create'])])
-  }
-
-  if (!isAzurePreviewUser) {
-    return createButton(showCreateProjectModal, cloudProviders.gcp)
-  } else {
-    return h(MenuTrigger, {
-      side: 'bottom',
-      closeOnClick: true,
-      content: h(Fragment, [
-        h(MenuButton, {
-          'aria-haspopup': 'dialog',
-          onClick: () => showCreateProjectModal(cloudProviders.azure)
-        }, 'Azure Billing Project'),
-        h(MenuButton, {
-          'aria-haspopup': 'dialog',
-          onClick: () => showCreateProjectModal(cloudProviders.gcp)
-        }, 'GCP Billing Project')
-      ])
-    }, [createButton()])
-  }
-}
-
-const BillingProjectActions = ({ project: { projectName }, loadProjects }) => {
-  const [showDeleteProjectModal, setShowDeleteProjectModal] = useState(false)
-  const [deleting, setDeleting] = useState(false)
-
-  return h(Fragment, [
-    h(MenuTrigger, {
-      closeOnClick: true,
-      side: 'right',
-      style: { marginRight: '0.5rem' },
-      content: h(Fragment, [
-        h(MenuButton, {
-          onClick: () => setShowDeleteProjectModal(true)
-        }, ['Delete Billing Project'])
-      ])
-    }, [
-      h(Link, { 'aria-label': 'Billing project menu', style: { display: 'flex', alignItems: 'center' } }, [
-        icon('cardMenuIcon', { size: 16, 'aria-haspopup': 'menu' })
-      ])
-    ]),
-    showDeleteProjectModal && h(DeleteBillingProjectModal, {
-      projectName, deleting,
-      onDismiss: () => setShowDeleteProjectModal(false),
-      onConfirm: async () => {
-        setDeleting(true)
-        try {
-          await Ajax().Billing.deleteProject(projectName)
-          setShowDeleteProjectModal(false)
-          loadProjects()
-        } catch (err) {
-          reportError('Error deleting billing project.', err)
-          setShowDeleteProjectModal(false)
-        }
-        setDeleting(false)
-      }
-    })
-  ])
-}
-
-const ProjectListItem = ({ project, project: { projectName, roles, status, message, cloudPlatform }, loadProjects, isActive }) => {
-  // Billing projects in an error status may have UNKNOWN for the cloudPlatform.
-  const cloudContextIcon = isCloudProvider(cloudPlatform) && div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
-    h(CloudProviderIcon, { cloudProvider: cloudPlatform })
-  ])
-
-  const selectableProject = () => h(Clickable, {
-    style: { ...styles.projectListItem(isActive), color: isActive ? colors.accent(1.1) : colors.accent() },
-    href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
-    onClick: () => Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, extractBillingDetails(project)),
-    hover: Style.navList.itemHover(isActive),
-    'aria-current': isActive ? 'location' : false
-  }, [cloudContextIcon, projectName])
-
-  const unselectableProject = () => {
-    const iconAndTooltip =
-      isCreatingStatus(status) ? spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
-        status === 'Error' ? h(Fragment, [
-          h(InfoBox, { style: { color: colors.danger(), margin: '0 0.5rem 0 0.5rem' }, side: 'right' }, [
-            div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [
-              message || 'Error during project creation.'
-            ])
-          ]),
-          //Currently, only billing projects that failed to create can have actions performed on them.
-          //If that changes in the future, this should be moved elsewhere
-          isOwner && h(BillingProjectActions, { project, loadProjects })
-        ]) : undefined
-
-    return div({ style: { ...styles.projectListItem(isActive), color: colors.dark() } }, [
-      cloudContextIcon, projectName, iconAndTooltip
-    ])
-  }
-
-  const viewerRoles = _.intersection(roles, _.values(billingRoles))
-  const isOwner = _.includes(billingRoles.owner, roles)
-
-  return div({ role: 'listitem' }, [
-    !_.isEmpty(viewerRoles) && status === 'Ready' ?
-      selectableProject() :
-      unselectableProject()
-  ])
-}
 
 const BillingProjectSubheader = ({ title, children }) => h(Collapse, {
   title: span({ style: { fontWeight: 'bold' } }, [title]),
@@ -162,80 +36,8 @@ const BillingProjectSubheader = ({ title, children }) => h(Collapse, {
   summaryStyle: { padding: '1rem 1rem 1rem 2rem' }
 }, [children])
 
-const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAccounts }) => {
-  const [billingProjectName, setBillingProjectName] = useState('')
-  const [existing, setExisting] = useState([])
-  const [isBusy, setIsBusy] = useState(false)
-  const [chosenBillingAccount, setChosenBillingAccount] = useState('')
 
-  const submit = _.flow(
-    reportErrorAndRethrow('Error creating billing project'),
-    Utils.withBusyState(setIsBusy)
-  )(async () => {
-    try {
-      await Ajax().Billing.createGCPProject(billingProjectName, chosenBillingAccount.accountName)
-      onSuccess(billingProjectName)
-    } catch (error) {
-      if (error.status === 409) {
-        setExisting(_.concat(billingProjectName, existing))
-      } else {
-        throw error
-      }
-    }
-  })
-
-  const errors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existing) })
-  const billingLoadedAndEmpty = billingAccounts && _.isEmpty(billingAccounts)
-  const billingPresent = !_.isEmpty(billingAccounts)
-
-  return h(Modal, {
-    onDismiss,
-    shouldCloseOnOverlayClick: false,
-    title: 'Create Terra Billing Project',
-    showCancel: !billingLoadedAndEmpty,
-    showButtons: !!billingAccounts,
-    okButton: billingPresent ?
-      h(ButtonPrimary, {
-        disabled: errors || !chosenBillingAccount || !chosenBillingAccount.firecloudHasAccess,
-        onClick: submit
-      }, ['Create']) :
-      h(ButtonPrimary, {
-        onClick: onDismiss
-      }, ['Ok'])
-  }, [
-    billingLoadedAndEmpty && h(Fragment, [
-      'You don\'t have access to any billing accounts.  ',
-      h(Link, {
-        href: 'https://support.terra.bio/hc/en-us/articles/360026182251',
-        ...Utils.newTabLinkProps
-      }, ['Learn how to create a billing account.', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })])
-    ]),
-    billingPresent && h(Fragment, [
-      CreateGCPBillingProject({ billingAccounts, chosenBillingAccount, setChosenBillingAccount, billingProjectName, setBillingProjectName, existing }),
-      !!chosenBillingAccount && !chosenBillingAccount.firecloudHasAccess && div({ style: { fontWeight: 500, fontSize: 13 } }, [
-        div({ style: { margin: '0.25rem 0 0.25rem 0', color: colors.danger() } },
-          'Terra does not have access to this account. '),
-        div({ style: { marginBottom: '0.25rem' } }, ['To grant access, add ', span({ style: { fontWeight: 'bold' } }, 'terra-billing@terra.bio'),
-          ' as a ', span({ style: { fontWeight: 'bold' } }, 'Billing Account User'), ' on the ',
-          h(Link, {
-            href: `https://console.cloud.google.com/billing/${chosenBillingAccount.accountName.split('/')[1]}?authuser=${getUser().email}`,
-            ...Utils.newTabLinkProps
-          }, ['Google Cloud Console', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])]),
-        div({ style: { marginBottom: '0.25rem' } }, ['Then, ',
-          h(Link, { onClick: loadAccounts }, ['click here']), ' to refresh your billing accounts.']),
-        div({ style: { marginTop: '0.5rem' } }, [
-          h(Link, {
-            href: 'https://support.terra.bio/hc/en-us/articles/360026182251',
-            ...Utils.newTabLinkProps
-          }, ['Need help?', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])
-        ])
-      ])
-    ]),
-    (isBusy || !billingAccounts) && spinnerOverlay
-  ])
-}
-
-export const BillingList = ({ queryParams: { selectedName } }) => {
+export const List = ({ queryParams: { selectedName } }) => {
   // State
   const [billingProjects, setBillingProjects] = useState(StateHistory.get().billingProjects || [])
   const [creatingBillingProject, setCreatingBillingProject] = useState(null) // null or cloudProvider values
@@ -364,7 +166,8 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           div({ role: 'list' }, [
             _.map(project => h(ProjectListItem, {
               project, key: project.projectName, loadProjects,
-              isActive: !!selectedName && project.projectName === selectedName
+              isActive: !!selectedName && project.projectName === selectedName,
+              isCreatingStatus: isCreatingStatus(project.status)
             }), projectsOwned)
           ])
         ]),
@@ -372,12 +175,13 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           div({ role: 'list' }, [
             _.map(project => h(ProjectListItem, {
               project, key: project.projectName, loadProjects,
-              isActive: !!selectedName && project.projectName === selectedName
+              isActive: !!selectedName && project.projectName === selectedName,
+              isCreatingStatus: isCreatingStatus(project.status)
             }), projectsShared)
           ])
         ])
       ]),
-      creatingBillingProject === cloudProviders.gcp && h(NewBillingProjectModal, {
+      creatingBillingProject === cloudProviders.gcp && h(GCPNewBillingProjectModal, {
         billingAccounts,
         loadAccounts,
         onDismiss: () => setCreatingBillingProject(null),

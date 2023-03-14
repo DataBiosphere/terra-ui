@@ -1,4 +1,4 @@
-import { BillingList } from 'src/pages/billing/List/List'
+import { List } from 'src/pages/billing/List/List'
 
 
 export const billingRoles = {
@@ -22,7 +22,7 @@ export const navPaths = [
   {
     name: 'billing',
     path: '/billing',
-    component: BillingList,
+    component: List,
     title: 'Billing'
   }
 ]
