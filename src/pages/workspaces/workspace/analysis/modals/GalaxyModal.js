@@ -9,6 +9,7 @@ import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { machineTypes } from 'src/data/gce-machines'
 import { Ajax } from 'src/libs/ajax'
+import { pdTypes } from 'src/libs/ajax/leonardo/models/disk-models'
 import colors from 'src/libs/colors'
 import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
@@ -21,8 +22,7 @@ import { getCurrentApp } from 'src/pages/workspaces/workspace/analysis/utils/app
 import { getGalaxyComputeCost, getGalaxyDiskCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import {
   getCurrentAppDataDisk,
-  getCurrentAttachedDataDisk,
-  pdTypes
+  getCurrentAttachedDataDisk
 } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
 import {
   findMachineType

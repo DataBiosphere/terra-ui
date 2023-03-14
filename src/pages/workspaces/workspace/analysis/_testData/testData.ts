@@ -1,7 +1,8 @@
 import _ from 'lodash/fp'
 import { App } from 'src/libs/ajax/leonardo/models/app-models'
-import { cloudServiceTypes } from 'src/libs/ajax/leonardo/models/runtime-config-models'
-import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models'
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models'
+import { cloudServiceTypes, RuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models'
+import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { defaultAzureRegion } from 'src/libs/azure-utils'
 import * as Utils from 'src/libs/utils'
 import { cloudProviderTypes } from 'src/libs/workspace-utils'
@@ -201,6 +202,81 @@ export const defaultAuditInfo = {
 
 export const generateGoogleProject = () => `terra-test-${uuid().substring(0, 8)}`
 
+export const getRuntimeConfig = (overrides: Partial<RuntimeConfig> = {}): RuntimeConfig => ({
+  machineType: defaultGceMachineType,
+  persistentDiskId: getRandomInt(randomMaxInt),
+  cloudService: cloudServiceTypes.GCE,
+  bootDiskSize: defaultGceBootDiskSize,
+  zone: 'us-central1-a',
+  gpuConfig: undefined,
+  ...overrides
+})
+
+export const getRuntime = (overrides: Partial<Runtime> = {}): Runtime => {
+  const runtime: Runtime = {
+    id: getRandomInt(randomMaxInt),
+    runtimeName: 'test-runtime',
+    cloudContext: {
+      cloudProvider: cloudProviderTypes.GCP,
+      cloudResource: 'terra-test-e4000484'
+    },
+    googleProject: 'terra-test-e4000484',
+    serviceAccount: 'testuser123@broad.com',
+    auditInfo: defaultAuditInfo,
+    runtimeConfig: getRuntimeConfig(),
+    proxyUrl: 'https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-test-e4000484/test-runtime/jupyter',
+    status: runtimeStatuses.running.leoLabel,
+    labels: {
+      ...defaultWorkspaceLabels,
+      'saturn-iframe-extension': 'https://bvdp-saturn-dev.appspot.com/jupyter-iframe-extension.js',
+      creator: 'testuser123@broad.com',
+      clusterServiceAccount: 'pet-26534176105071279add1@terra-dev-cf677740.iam.gserviceaccount.com',
+      saturnAutoCreated: 'true',
+      clusterName: 'test-runtime',
+      saturnVersion: '6',
+      tool: runtimeToolLabels.Jupyter,
+      runtimeName: 'test-runtime',
+      cloudContext: 'Gcp/terra-test-e4000484',
+      googleProject: 'terra-test-e4000484'
+    },
+    errors: [],
+    autopauseThreshold: 30,
+    runtimeImages: [
+      {
+        imageType: 'Proxy',
+        imageUrl: 'broadinstitute/openidc-proxy:2.3.1_2',
+        timestamp: '2022-09-19T15:37:11.035465Z'
+      },
+      {
+        imageType: tools.Jupyter.label,
+        imageUrl: 'us.gcr.io/broad-dsp-gcr-public/jupyter-server:ef956b2', //fake uri
+        timestamp: '2022-09-19T15:37:11.035465Z'
+      },
+      {
+        imageType: 'Welder',
+        imageUrl: 'us.gcr.io/broad-dsp-gcr-public/welder-server:ef956b2',
+        timestamp: '2022-09-19T15:37:11.035465Z'
+      },
+      {
+        imageType: 'BootSource',
+        imageUrl: 'projects/broad-dsp-gcr-public/global/images/nl-825-2-gce-cos-image-e06f7d9',
+        timestamp: '2022-09-19T15:37:12.119Z'
+      },
+      {
+        imageType: 'CryptoDetector',
+        imageUrl: 'us.gcr.io/broad-dsp-gcr-public/cryptomining-detector:0.0.2',
+        timestamp: '2022-09-19T15:37:11.035465Z'
+      }
+    ],
+    scopes: [],
+    customEnvironmentVariables: {},
+    patchInProgress: false,
+    ...overrides
+  }
+
+  return runtime
+}
+
 export const getGoogleRuntime = ({
   workspace = defaultGoogleWorkspace,
   runtimeName = Utils.generateRuntimeName(),
@@ -336,13 +412,35 @@ export const generateTestApp = (overrides: Partial<App>): App => ({
   ...overrides
 })
 
-export const galaxyDisk = {
+export const generateTestDisk = (overrides: Partial<PersistentDisk> = {}): PersistentDisk => ({
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-29T20:19:14.114Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:19:13.162484Z', dateAccessed: '2021-11-29T20:19:14.114Z'
   },
   blockSize: 4096,
   diskType: 'pd-standard',
-  googleProject: 'terra-test-e4000484',
+  cloudContext: {
+    cloudProvider: cloudProviderTypes.GCP,
+    cloudResource: 'terra-test-e4000484'
+  },
+  id: getRandomInt(randomMaxInt),
+  labels: { saturnApplication: 'galaxy', saturnWorkspaceName: 'test-workspace' }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
+  name: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
+  size: 500,
+  status: 'Ready',
+  zone: 'us-central1-a',
+  ...overrides
+})
+
+export const galaxyDisk: PersistentDisk = {
+  auditInfo: {
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:19:13.162484Z', dateAccessed: '2021-11-29T20:19:14.114Z'
+  },
+  blockSize: 4096,
+  diskType: 'pd-standard',
+  cloudContext: {
+    cloudProvider: cloudProviderTypes.GCP,
+    cloudResource: 'terra-test-e4000484'
+  },
   id: 10,
   labels: { saturnApplication: 'galaxy', saturnWorkspaceName: 'test-workspace' }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
   name: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
@@ -352,7 +450,7 @@ export const galaxyDisk = {
 }
 
 
-export const azureDisk = {
+export const azureDisk: PersistentDisk = {
   id: 16902,
   cloudContext: {
     cloudProvider: 'AZURE',
@@ -364,7 +462,6 @@ export const azureDisk = {
   auditInfo: {
     creator: 'test.user@gmail.com',
     createdDate: '2023-02-01T20:40:50.428281Z',
-    destroyedDate: null,
     dateAccessed: '2023-02-01T20:41:00.357Z'
   },
   size: 50,
@@ -376,7 +473,7 @@ export const azureDisk = {
   }
 }
 
-export const azureRuntime = {
+export const azureRuntime: Runtime = {
   id: 79771,
   workspaceId: 'fafbb550-62eb-4135-8b82-3ce4d53446af',
   runtimeName: 'saturn-42a4398b-10f8-4626-9025-7abda26aedab',
@@ -388,7 +485,6 @@ export const azureRuntime = {
   auditInfo: {
     creator: 'ncl.hedwig@gmail.com',
     createdDate: '2023-02-01T20:40:50.428281Z',
-    destroyedDate: null,
     dateAccessed: '2023-02-01T20:41:00.357Z'
   },
   runtimeConfig: {

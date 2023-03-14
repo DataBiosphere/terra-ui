@@ -1,4 +1,5 @@
 import { App } from 'src/libs/ajax/leonardo/models/app-models'
+import { DecoratedPersistentDisk, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models'
 import { cloudProviderTypes } from 'src/libs/workspace-utils'
 import { galaxyDeleting, galaxyDisk, galaxyRunning } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import { getCurrentApp, getCurrentAppIncludingDeleting, getDiskAppType, workspaceHasMultipleApps } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
@@ -105,9 +106,9 @@ const cromwell1Workspace1: App = {
 const mockAppsSameWorkspace = [galaxy1Workspace1, galaxy2Workspace1, cromwell1Workspace1]
 
 
-const galaxyDiskUpdatedPd = {
+const galaxyDiskUpdatedPd: DecoratedPersistentDisk = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-29T20:19:14.114Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:19:13.162484Z', dateAccessed: '2021-11-29T20:19:14.114Z'
   },
   blockSize: 4096,
   diskType: {
@@ -115,7 +116,10 @@ const galaxyDiskUpdatedPd = {
     label: 'pd-standard',
     regionToPricesName: 'monthlyStandardDiskPrice'
   },
-  googleProject: 'terra-test-e4000484',
+  cloudContext: {
+    cloudProvider: cloudProviderTypes.GCP,
+    cloudResource: 'terra-test-e4000484'
+  },
   id: 10,
   labels: { saturnApplication: 'galaxy', saturnWorkspaceName: 'test-workspace' }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
   name: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
@@ -125,13 +129,16 @@ const galaxyDiskUpdatedPd = {
 }
 
 // Newer than galaxyDisk, attached to galaxyDeleting app.
-const galaxyDeletingDisk = {
+const galaxyDeletingDisk: PersistentDisk = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-30T20:19:14.114Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T20:19:13.162484Z', dateAccessed: '2021-11-30T20:19:14.114Z'
   },
   blockSize: 4096,
   diskType: 'pd-standard',
-  googleProject: 'terra-test-e4000484',
+  cloudContext: {
+    cloudProvider: cloudProviderTypes.GCP,
+    cloudResource: 'terra-test-e4000484'
+  },
   id: 10,
   labels: { saturnApplication: 'GALAXY', saturnWorkspaceName: 'test-workspace' },
   name: 'saturn-pd-1236594ac-d829-423d-a8df-76fe96f5897',
@@ -140,9 +147,9 @@ const galaxyDeletingDisk = {
   zone: 'us-central1-a'
 }
 
-const galaxyDeletingDiskUpdatedPd = {
+const galaxyDeletingDiskUpdatedPd: DecoratedPersistentDisk = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-30T20:19:14.114Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T20:19:13.162484Z', dateAccessed: '2021-11-30T20:19:14.114Z'
   },
   blockSize: 4096,
   diskType: {
@@ -150,7 +157,10 @@ const galaxyDeletingDiskUpdatedPd = {
     label: 'pd-standard',
     regionToPricesName: 'monthlyStandardDiskPrice'
   },
-  googleProject: 'terra-test-e4000484',
+  cloudContext: {
+    cloudProvider: cloudProviderTypes.GCP,
+    cloudResource: 'terra-test-e4000484'
+  },
   id: 10,
   labels: { saturnApplication: 'GALAXY', saturnWorkspaceName: 'test-workspace' },
   name: 'saturn-pd-1236594ac-d829-423d-a8df-76fe96f5897',
@@ -159,13 +169,16 @@ const galaxyDeletingDiskUpdatedPd = {
   zone: 'us-central1-a'
 }
 
-const cromwellUnattachedDisk = {
+const cromwellUnattachedDisk: PersistentDisk = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T02:21:00.705505Z', destroyedDate: null, dateAccessed: '2021-11-30T02:21:00.705505Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T02:21:00.705505Z', dateAccessed: '2021-11-30T02:21:00.705505Z'
   },
   blockSize: 4096,
   diskType: 'pd-standard',
-  googleProject: 'terra-test-e4000484',
+  cloudContext: {
+    cloudProvider: cloudProviderTypes.GCP,
+    cloudResource: 'terra-test-e4000484'
+  },
   id: 12,
   labels: { saturnApplication: 'CROMWELL', saturnWorkspaceName: 'test-workspace' },
   name: 'saturn-pd-7fc0c398-63fe-4441-aea5-1e794c961310',
@@ -174,9 +187,9 @@ const cromwellUnattachedDisk = {
   zone: 'us-central1-a'
 }
 
-const cromwellUnattachedDiskUpdatedPd = {
+const cromwellUnattachedDiskUpdatedPd: DecoratedPersistentDisk = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T02:21:00.705505Z', destroyedDate: null, dateAccessed: '2021-11-30T02:21:00.705505Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T02:21:00.705505Z', dateAccessed: '2021-11-30T02:21:00.705505Z'
   },
   blockSize: 4096,
   diskType: {
@@ -184,7 +197,10 @@ const cromwellUnattachedDiskUpdatedPd = {
     label: 'pd-standard',
     regionToPricesName: 'monthlyStandardDiskPrice'
   },
-  googleProject: 'terra-test-e4000484',
+  cloudContext: {
+    cloudProvider: cloudProviderTypes.GCP,
+    cloudResource: 'terra-test-e4000484'
+  },
   id: 12,
   labels: { saturnApplication: 'CROMWELL', saturnWorkspaceName: 'test-workspace' },
   name: 'saturn-pd-7fc0c398-63fe-4441-aea5-1e794c961310',
@@ -194,13 +210,16 @@ const cromwellUnattachedDiskUpdatedPd = {
 }
 
 // Older than cromwellUnattachedDisk, attached to cromwellProvisioning app.
-const cromwellProvisioningDisk = {
+const cromwellProvisioningDisk: PersistentDisk = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:28:01.998494Z', destroyedDate: null, dateAccessed: '2021-11-29T20:28:03.109Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:28:01.998494Z', dateAccessed: '2021-11-29T20:28:03.109Z'
   },
   blockSize: 4096,
   diskType: 'pd-standard',
-  googleProject: 'terra-test-e4000484',
+  cloudContext: {
+    cloudProvider: cloudProviderTypes.GCP,
+    cloudResource: 'terra-test-e4000484'
+  },
   id: 11,
   labels: { saturnApplication: 'CROMWELL', saturnWorkspaceName: 'test-workspace' },
   name: 'saturn-pd-693a9707-634d-4134-bb3a-cbb73cd5a8ce',
@@ -209,9 +228,9 @@ const cromwellProvisioningDisk = {
   zone: 'us-central1-a'
 }
 
-const cromwellProvisioningDiskUpdatedPd = {
+const cromwellProvisioningDiskUpdatedPd: DecoratedPersistentDisk = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:28:01.998494Z', destroyedDate: null, dateAccessed: '2021-11-29T20:28:03.109Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:28:01.998494Z', dateAccessed: '2021-11-29T20:28:03.109Z'
   },
   blockSize: 4096,
   diskType: {
@@ -219,7 +238,10 @@ const cromwellProvisioningDiskUpdatedPd = {
     label: 'pd-standard',
     regionToPricesName: 'monthlyStandardDiskPrice'
   },
-  googleProject: 'terra-test-e4000484',
+  cloudContext: {
+    cloudProvider: cloudProviderTypes.GCP,
+    cloudResource: 'terra-test-e4000484'
+  },
   id: 11,
   labels: { saturnApplication: 'CROMWELL', saturnWorkspaceName: 'test-workspace' },
   name: 'saturn-pd-693a9707-634d-4134-bb3a-cbb73cd5a8ce',
@@ -228,15 +250,13 @@ const cromwellProvisioningDiskUpdatedPd = {
   zone: 'us-central1-a'
 }
 
-
-const jupyterDisk = {
+const jupyterDisk: PersistentDisk = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-12-02T16:38:13.777424Z', destroyedDate: null, dateAccessed: '2021-12-02T16:40:23.464Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-12-02T16:38:13.777424Z', dateAccessed: '2021-12-02T16:40:23.464Z'
   },
   blockSize: 4096,
   cloudContext: { cloudProvider: 'GCP', cloudResource: 'terra-test-f828b4cd' },
   diskType: 'pd-standard',
-  googleProject: 'terra-test-f828b4cd',
   id: 29,
   labels: {},
   name: 'saturn-pd-bd0d0405-c048-4212-bccf-568435933081',
@@ -247,13 +267,16 @@ const jupyterDisk = {
 
 const mockAppDisks = [galaxyDisk, galaxyDeletingDisk, cromwellProvisioningDisk, cromwellUnattachedDisk]
 
-const galaxyDisk1Workspace1 = {
+const galaxyDisk1Workspace1: PersistentDisk = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-12-10T20:19:14.114Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T20:19:13.162484Z', dateAccessed: '2021-12-10T20:19:14.114Z'
   },
   blockSize: 4096,
   diskType: 'pd-standard',
-  googleProject: 'terra-test-e4000484',
+  cloudContext: {
+    cloudProvider: cloudProviderTypes.GCP,
+    cloudResource: 'terra-test-e4000484'
+  },
   id: 13,
   labels: { saturnApplication: 'GALAXY', saturnWorkspaceName: 'test-workspace' },
   name: 'saturn-pd-026594ac-d829-423d-a8df-87fe07f6b5e8',
@@ -262,13 +285,16 @@ const galaxyDisk1Workspace1 = {
   zone: 'us-central1-a'
 }
 
-const galaxyDisk2Workspace1 = {
+const galaxyDisk2Workspace1: PersistentDisk = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-28T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-29T20:19:14.114Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-28T20:19:13.162484Z', dateAccessed: '2021-11-29T20:19:14.114Z'
   },
   blockSize: 4096,
   diskType: 'pd-standard',
-  googleProject: 'terra-test-e4000484',
+  cloudContext: {
+    cloudProvider: cloudProviderTypes.GCP,
+    cloudResource: 'terra-test-e4000484'
+  },
   id: 14,
   labels: { saturnApplication: 'GALAXY', saturnWorkspaceName: 'test-workspace' },
   name: 'saturn-pd-026594ac-d829-423d-a8df-98fe18f7b6e9',
@@ -277,13 +303,16 @@ const galaxyDisk2Workspace1 = {
   zone: 'us-central1-a'
 }
 
-const galaxyDisk3Workspace2 = {
+const galaxyDisk3Workspace2: PersistentDisk = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-26T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-29T20:19:14.114Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-26T20:19:13.162484Z', dateAccessed: '2021-11-29T20:19:14.114Z'
+  },
+  cloudContext: {
+    cloudProvider: cloudProviderTypes.GCP,
+    cloudResource: 'terra-test-e4000484'
   },
   blockSize: 4096,
   diskType: 'pd-standard',
-  googleProject: 'terra-test-e4000484',
   id: 15,
   labels: { saturnApplication: 'GALAXY', saturnWorkspaceName: 'test-workspace-2' },
   name: 'saturn-pd-026594ac-d829-423d-a8df-33fe36f5b4e4',
@@ -292,13 +321,16 @@ const galaxyDisk3Workspace2 = {
   zone: 'us-central1-a'
 }
 
-const cromwellDisk1Workspace1 = {
+const cromwellDisk1Workspace1: PersistentDisk = {
   auditInfo: {
-    creator: 'cahrens@gmail.com', createdDate: '2021-11-26T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-29T20:19:14.114Z'
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-26T20:19:13.162484Z', dateAccessed: '2021-11-29T20:19:14.114Z'
   },
   blockSize: 4096,
   diskType: 'pd-standard',
-  googleProject: 'terra-test-e4000484',
+  cloudContext: {
+    cloudProvider: cloudProviderTypes.GCP,
+    cloudResource: 'terra-test-e4000484'
+  },
   id: 16,
   labels: { saturnApplication: 'CROMWELL', saturnWorkspaceName: 'test-workspace' },
   name: 'saturn-pd-026594ac-d829-423d-a8df-55fe36f5b4e8',
