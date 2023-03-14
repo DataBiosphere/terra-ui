@@ -7,7 +7,7 @@ import { Ajax } from 'src/libs/ajax'
 import Events from 'src/libs/events'
 import { formHint, FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
-import { billingProjectNameValidator } from 'src/pages/billing/List'
+import { billingProjectNameValidator } from 'src/pages/billing/Billing'
 import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAccount'
 import validate from 'validate.js'
 

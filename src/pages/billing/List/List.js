@@ -23,6 +23,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { isCloudProvider } from 'src/libs/workspace-utils'
+import { billingProjectNameValidator, billingRoles } from 'src/pages/billing/Billing'
 import CreateGCPBillingProject from 'src/pages/billing/CreateGCPBillingProject'
 import DeleteBillingProjectModal from 'src/pages/billing/DeleteBillingProjectModal'
 import { AzureBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureBillingProjectWizard'
@@ -31,11 +32,6 @@ import ProjectDetail from 'src/pages/billing/Project'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import validate from 'validate.js'
 
-
-export const billingRoles = {
-  owner: 'Owner',
-  user: 'User'
-}
 
 const styles = {
   projectListItem: selected => {
@@ -158,18 +154,6 @@ const ProjectListItem = ({ project, project: { projectName, roles, status, messa
       unselectableProject()
   ])
 }
-
-export const billingProjectNameValidator = existing => ({
-  length: { minimum: 6, maximum: 30 },
-  format: {
-    pattern: /(\w|-)+/,
-    message: 'can only contain letters, numbers, underscores and hyphens.'
-  },
-  exclusion: {
-    within: existing,
-    message: 'already exists'
-  }
-})
 
 const BillingProjectSubheader = ({ title, children }) => h(Collapse, {
   title: span({ style: { fontWeight: 'bold' } }, [title]),
@@ -466,13 +450,3 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     ])
   ])
 }
-
-
-export const navPaths = [
-  {
-    name: 'billing',
-    path: '/billing',
-    component: BillingList,
-    title: 'Billing'
-  }
-]
