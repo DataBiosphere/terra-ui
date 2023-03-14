@@ -18,7 +18,6 @@ export const BillingProjectActions = (props: BillingProjectActionsProps) => {
   const [showDeleteProjectModal, setShowDeleteProjectModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
-  // @ts-ignore
   return h(Fragment, [
     h(MenuTrigger, {
       closeOnClick: true,
