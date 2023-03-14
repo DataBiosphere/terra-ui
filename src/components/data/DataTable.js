@@ -22,6 +22,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
@@ -268,6 +269,7 @@ const DataTable = props => {
 
 
   // Render
+  const { filterColAttr, filterColTerm } = parseColumnFilter(columnFilter)
   const columnSettings = applyColumnSettings(columnState || [], entityMetadata[entityType]?.attributeNames)
   const nameWidth = columnWidths['name'] || 150
 
@@ -370,13 +372,12 @@ const DataTable = props => {
               }
             }
 
-            const { filterColAttr, filterColTerm } = parseColumnFilter(columnFilter)
-            const filterBreadCrumb = h(TextCell, { style: { fontWeight: 400, display: 'flex', 'flex-direction': 'row' } }, [`| filtered by ${filterColTerm}`, h(Clickable, {
+            const filterBreadCrumb = h(div, { style: { display: 'flex', overflow: 'hidden' } }, [h(TextCell, { style: { fontWeight: 400, ...Style.noWrapEllipsis } }, [`filtered by: ${filterColTerm}`]), h(Clickable, {
               'aria-label': 'Clear filter',
               tooltip: 'Clear filter',
               style: { alignSelf: 'flex-start', marginLeft: 'auto' },
               onClick: () => setColumnFilter('')
-            }, [icon('times-circle', { color: colors.light(8), size: 10, display: 'flex', 'flex-direction': 'row' })])])
+            }, [icon('times-circle', { color: colors.light(8), size: 16 })])])
             const defaultColumnsWithoutSelectRow = [{
               field: 'name',
               width: nameWidth,
