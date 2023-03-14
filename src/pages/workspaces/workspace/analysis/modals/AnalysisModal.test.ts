@@ -344,10 +344,10 @@ describe('AnalysisModal', () => {
     const mockFileStore = {
       loadedState: { state: fileList, status: 'Ready' } as LoadedState<AnalysisFile[]>,
       refreshFileStore: () => Promise.resolve(),
-      create: () => Promise.resolve(),
+      createAnalysis: () => Promise.resolve(),
+      deleteAnalysis: () => Promise.resolve(),
       pendingCreate: { status: 'Ready', state: true } as LoadedState<true, unknown>,
       pendingDelete: { status: 'Ready', state: true } as LoadedState<true, unknown>,
-      deleteFile: () => Promise.resolve()
     }
 
     const user = userEvent.setup()
@@ -376,10 +376,10 @@ describe('AnalysisModal', () => {
     const mockFileStore = {
       loadedState: { state: fileList, status: 'Ready' } as LoadedState<AnalysisFile[]>,
       refreshFileStore: () => Promise.resolve(),
-      create: createMock,
+      createAnalysis: createAnalysisMock,
+      deleteAnalysis: () => Promise.resolve(),
       pendingCreate: { status: 'Ready', state: true } as LoadedState<true, unknown>,
       pendingDelete: { status: 'Ready', state: true } as LoadedState<true, unknown>,
-      deleteFile: () => Promise.resolve()
     }
     const user = userEvent.setup()
 

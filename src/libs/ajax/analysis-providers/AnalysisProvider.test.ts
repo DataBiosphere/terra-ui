@@ -1,7 +1,7 @@
 import { Ajax } from 'src/libs/ajax'
 import { AnalysisProvider } from 'src/libs/ajax/analysis-providers/AnalysisProvider'
 import { WorkspaceInfo } from 'src/libs/workspace-utils'
-import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
 
@@ -107,7 +107,7 @@ describe('AnalysisProvider - copyAnalysis', () => {
     const result = await AnalysisProvider.copyAnalysis(
         workspaceInfo as WorkspaceInfo,
         'PrintName123.jpt',
-        toolLabels.Jupyter,
+        runtimeToolLabels.Jupyter,
         targetWorkspace as WorkspaceInfo,
         'NewName123'
     )
@@ -115,7 +115,7 @@ describe('AnalysisProvider - copyAnalysis', () => {
     // Assert
     expect(result).toEqual(undefined)
     expect(mockBuckets.analysis).toBeCalledTimes(1)
-    expect(mockBuckets.analysis).toBeCalledWith('GoogleProject123', 'Bucket123', 'PrintName123.jpt', toolLabels.Jupyter)
+    expect(mockBuckets.analysis).toBeCalledWith('GoogleProject123', 'Bucket123', 'PrintName123.jpt', runtimeToolLabels.Jupyter)
     expect(watchCopy).toBeCalledTimes(1)
     expect(watchCopy).toBeCalledWith('NewName123.jpt', 'TargetBucket456', false)
   })
@@ -152,7 +152,7 @@ describe('AnalysisProvider - copyAnalysis', () => {
     const result = await AnalysisProvider.copyAnalysis(
         workspaceInfo as WorkspaceInfo,
         'PrintName123.jpt',
-        toolLabels.Jupyter,
+        runtimeToolLabels.Jupyter,
         targetWorkspace as WorkspaceInfo,
         'NewName123'
     )

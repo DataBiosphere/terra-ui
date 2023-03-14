@@ -5,7 +5,7 @@ import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils'
 import {
   useAnalysesExportState
 } from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal/useAnalysisExportState'
-import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn, setUpAutoSizerTesting } from 'src/testing/test-utils'
 
 import { ExportAnalysisModal } from './ExportAnalysisModal'
@@ -91,7 +91,7 @@ describe('ExportAnalysisModal', () => {
       workspace: workspace as WorkspaceWrapper,
       printName: 'PrintName123',
       onDismiss: () => {},
-      toolLabel: toolLabels.Jupyter
+      toolLabel: runtimeToolLabels.Jupyter
     }))
 
     // Assert
@@ -132,7 +132,7 @@ describe('ExportAnalysisModal', () => {
       workspace: workspace as WorkspaceWrapper,
       printName: 'PrintName123',
       onDismiss: () => {},
-      toolLabel: toolLabels.Jupyter
+      toolLabel: runtimeToolLabels.Jupyter
     }))
 
     // Act
@@ -172,7 +172,7 @@ describe('ExportAnalysisModal', () => {
       workspace: workspace as WorkspaceWrapper,
       printName: 'PrintName123',
       onDismiss: () => {},
-      toolLabel: toolLabels.Jupyter
+      toolLabel: runtimeToolLabels.Jupyter
     }))
 
     // Act
@@ -210,7 +210,7 @@ describe('ExportAnalysisModal', () => {
       workspace: workspace as WorkspaceWrapper,
       printName: 'PrintName123',
       onDismiss: () => {},
-      toolLabel: toolLabels.Jupyter
+      toolLabel: runtimeToolLabels.Jupyter
     }))
 
     // Assert
@@ -241,7 +241,7 @@ describe('ExportAnalysisModal', () => {
       printName: 'PrintName123',
       onDismiss: () => {
       },
-      toolLabel: toolLabels.Jupyter
+      toolLabel: runtimeToolLabels.Jupyter
     }))
 
     // Assert
@@ -281,7 +281,7 @@ describe('ExportAnalysisModal', () => {
       workspace: workspace as WorkspaceWrapper,
       printName: 'PrintName123',
       onDismiss: () => {},
-      toolLabel: toolLabels.Jupyter
+      toolLabel: runtimeToolLabels.Jupyter
     }))
 
     // Act
@@ -323,7 +323,7 @@ describe('ExportAnalysisModal', () => {
       printName: 'PrintName123',
       onDismiss: () => {
       },
-      toolLabel: toolLabels.Jupyter
+      toolLabel: runtimeToolLabels.Jupyter
     }))
 
     // Assert

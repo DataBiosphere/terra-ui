@@ -5,7 +5,7 @@ import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics'
 import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils'
 import { AnalysisFile } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 import { AbsolutePath } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
-import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
 import { errors, useAnalysesExportState } from './useAnalysisExportState'
@@ -61,7 +61,7 @@ describe('useAnalysesExportState', () => {
     const renderedHook = renderHook(() => useAnalysesExportState(
         sourceWorkspace as WorkspaceWrapper,
         'PrintName123',
-        toolLabels.Jupyter))
+        runtimeToolLabels.Jupyter))
 
     // Assert
     const hookResult = renderedHook.result.current
@@ -109,7 +109,7 @@ describe('useAnalysesExportState', () => {
     const renderedHook = renderHook(() => useAnalysesExportState(
         sourceWorkspace as WorkspaceWrapper,
         'PrintName123',
-        toolLabels.Jupyter))
+        runtimeToolLabels.Jupyter))
     const hookResult1 = renderedHook.result.current
     act(() => {
       hookResult1.selectWorkspace('Workspace2')
@@ -173,7 +173,7 @@ describe('useAnalysesExportState', () => {
     const renderedHook = renderHook(() => useAnalysesExportState(
         sourceWorkspace as WorkspaceWrapper,
         'PrintName123',
-        toolLabels.Jupyter))
+        runtimeToolLabels.Jupyter))
     const hookResult1 = renderedHook.result.current
     act(() => {
       hookResult1.selectWorkspace('Workspace3')
@@ -233,7 +233,7 @@ describe('useAnalysesExportState', () => {
     const renderedHook = renderHook(() => useAnalysesExportState(
         sourceWorkspace as WorkspaceWrapper,
         'PrintName123',
-        toolLabels.Jupyter))
+        runtimeToolLabels.Jupyter))
     const hookResult1 = renderedHook.result.current
     act(() => {
       hookResult1.selectWorkspace('Workspace2')
@@ -254,7 +254,7 @@ describe('useAnalysesExportState', () => {
     expect(AnalysisProvider.copyAnalysis).toBeCalledWith(
       sourceWorkspace.workspace,
       'PrintName123',
-      toolLabels.Jupyter,
+      runtimeToolLabels.Jupyter,
       expectedSelectedWorkspace,
       'NewName123',
       expect.anything())
@@ -299,7 +299,7 @@ describe('useAnalysesExportState', () => {
     const renderedHook = renderHook(() => useAnalysesExportState(
         sourceWorkspace as WorkspaceWrapper,
         'PrintName123',
-        toolLabels.Jupyter))
+        runtimeToolLabels.Jupyter))
 
     // Act
     const hookResult2 = renderedHook.result.current
