@@ -38,7 +38,13 @@ const BillingProjectSubheader = ({ title, children }) => h(Collapse, {
   summaryStyle: { padding: '1rem 1rem 1rem 2rem' }
 }, [children])
 
-export const List = ({ query: { selectedName } }: { query: { selectedName: string | undefined } }) => {
+interface ListProps {
+  queryParams: {
+    selectedName: string | undefined
+  }
+}
+
+export const List = (props: ListProps) => {
   // State
   const [billingProjects, setBillingProjects] = useState<BillingProject[]>(StateHistory.get().billingProjects || [])
   const [creatingBillingProjectType, setCreatingBillingProjectType] = useState<CloudProvider | null>()
@@ -50,6 +56,7 @@ export const List = ({ query: { selectedName } }: { query: { selectedName: strin
 
   const signal = useCancellation()
   const interval = useRef<number>()
+  const selectedName = props.queryParams.selectedName
 
   // Helpers
   const loadProjects = _.flow(
