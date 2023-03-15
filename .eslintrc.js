@@ -28,6 +28,8 @@ module.exports = {
     'arrow-parens': 'off',
     'operator-linebreak': 'off',
     'implicit-arrow-linebreak': 'off',
+    'import/newline-after-import': 'off',
+    'space-before-function-paren': 'off',
 
     // Best Practices
     'no-multi-spaces': 'warn',
@@ -71,7 +73,6 @@ module.exports = {
     'quote-props': ['warn', 'as-needed'],
     quotes: ['warn', 'single', { avoidEscape: true }],
     'space-before-blocks': 'warn',
-    'space-before-function-paren': ['warn', { anonymous: 'never', named: 'never', asyncArrow: 'always' }],
     'space-in-parens': 'warn',
     'space-infix-ops': 'warn',
 
@@ -126,7 +127,6 @@ module.exports = {
     'simple-import-sort/imports': 'warn',
 
     'import/named': 'warn',
-    'import/newline-after-import': ['warn', { count: 2 }],
     'import/no-anonymous-default-export': ['warn', { allowObject: true }],
     'import/no-internal-modules': [
       'warn',
