@@ -20,8 +20,9 @@ module.exports = {
   rules: {
     indent: 'off',
     'comma-dangle': 'off',
+    'import/prefer-default-export': 'off',
 
-    // TODO: ticket all of these to be fixed
+    // TODO: ticket all of these to be fixed or considered
     'react/forbid-prop-types': 'off',
     'react/prop-types': 'off',
     'react/sort-comp': 'off',
@@ -30,11 +31,11 @@ module.exports = {
     'react/require-default-props': 'off',
     'react/static-property-placement': 'off',
 
-    'import/prefer-default-export': 'off',
     'import/no-cycle': 'off',
     'import/no-named-as-default': 'off',
     'import/no-extraneous-dependencies': 'off',
     'import/extensions': 'off',
+    'import/no-relative-parent-imports': 'off',
 
     '@typescript-eslint/default-param-last': 'off',
     '@typescript-eslint/return-await': 'off',
