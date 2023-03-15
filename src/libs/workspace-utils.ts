@@ -10,7 +10,7 @@ export const cloudProviderLabels: Record<CloudProvider, string> = {
   GCP: 'Google Cloud Platform',
 }
 
-export const isCloudProvider = (x: unknown): x is CloudProvider => {
+export const isKnownCloudProvider = (x: unknown): x is CloudProvider => {
   return x as string in cloudProviderTypes
 }
 
