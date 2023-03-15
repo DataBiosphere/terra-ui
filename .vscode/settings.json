@@ -11,7 +11,7 @@
   "editor.quickSuggestions": {
     "strings": true
   },
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
   "editor.codeActionsOnSave": {
     "source.organizeImports": true
   },
@@ -21,5 +21,10 @@
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "prettier.prettierPath": ".yarn/sdks/prettier/index.js"
+  "editor.formatOnPaste": false, // required
+  "editor.formatOnType": false, // required
+  "editor.formatOnSave": true, // optional
+  "editor.formatOnSaveMode": "file", // required to format on save
+  "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
+  "vs-code-prettier-eslint.prettierLast": false
 }
