@@ -1196,9 +1196,10 @@ export const HeaderOptions = ({ sort, field, onSort, extraActions, renderSearch,
     content: h(Fragment, [
       h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
       h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
-      renderSearch && h(ConfirmedSearchInput, {
-        'aria-label': 'Filter by column',
-        placeholder: 'Exact match search in column',
+      renderSearch && h(div, { style: { width: '98%' } }, [h(ConfirmedSearchInput, {
+        'aria-label': 'Exact match filter',
+        placeholder: 'Exact match filter',
+        style: { marginLeft: '0.25rem' },
         onChange: e => {
           if (!!e) {
             searchByColumn(e)
@@ -1206,7 +1207,7 @@ export const HeaderOptions = ({ sort, field, onSort, extraActions, renderSearch,
           }
         },
         onClick: e => { e.stopPropagation() }
-      }),
+      })]),
       !_.isEmpty(extraActions) && h(Fragment, [
         h(MenuDivider),
         _.map(({ label, disabled, tooltip, onClick }) => h(MenuButton, { key: label, disabled, tooltip, onClick }, [label]), extraActions)

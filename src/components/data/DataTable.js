@@ -13,7 +13,7 @@ import { ConfirmedSearchInput } from 'src/components/input'
 import { MenuButton } from 'src/components/MenuButton'
 import Modal from 'src/components/Modal'
 import { MenuTrigger } from 'src/components/PopupTrigger'
-import { GridTable, HeaderCell, paginator, Resizable, TextCell } from 'src/components/table'
+import { GridTable, HeaderCell, paginator, Resizable, TooltipCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import { wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider'
 import colors from 'src/libs/colors'
@@ -87,7 +87,7 @@ const DataTable = props => {
   const [pageNumber, setPageNumber] = useState(1)
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
   const [activeTextFilter, setActiveTextFilter] = useState(activeCrossTableTextFilter || '')
-  const [columnFilter, setColumnFilter] = useState('')
+  const [columnFilter, setColumnFilter] = useState({ filterColAttr: '', filterColTerm: '' })
 
   const [columnWidths, setColumnWidths] = useState(() => getLocalPref(persistenceId)?.columnWidths || {})
   const [columnState, setColumnState] = useState(() => {
@@ -143,9 +143,10 @@ const DataTable = props => {
     Utils.withBusyState(setLoading),
     withErrorReporting('Error loading entities')
   )(async () => {
+    const colFilt = (!!columnFilter['filterColAttr'] && !!columnFilter['filterColTerm']) ? `${columnFilter['filterColAttr']}=${columnFilter['filterColTerm']}` : ''
     const queryOptions = {
       pageNumber, itemsPerPage, sortField: sort.field, sortDirection: sort.direction, snapshotName,
-      googleProject, activeTextFilter, filterOperator, columnFilter
+      googleProject, activeTextFilter, filterOperator, columnFilter: colFilt
     }
     const { results, resultMetadata: { filteredCount, unfilteredCount } } = await dataProvider.getPage(signal, entityType, queryOptions, entityMetadata)
 
@@ -228,22 +229,12 @@ const DataTable = props => {
 
   const searchByColumn = (field, v) => {
     setActiveTextFilter('')
-    setColumnFilter(`${field}=${v.toString().trim()}`)
+    setColumnFilter({ filterColAttr: field, filterColTerm: v.toString().trim() })
     setPageNumber(1)
     Ajax().Metrics.captureEvent(Events.workspaceDataFilteredSearch, {
       workspaceNamespace: namespace, workspaceName: name, providerName: dataProvider.providerName,
       cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label
     })
-  }
-
-  const parseColumnFilter = colFilt => {
-    if (!!colFilt) {
-      const parsed = colFilt.split('=')
-      if (parsed.length > 1) {
-        return { filterColAttr: parsed[0], filterColTerm: parsed[1] }
-      }
-    }
-    return { filterColAttr: '', filterColTerm: '' }
   }
 
   // Lifecycle
@@ -269,7 +260,6 @@ const DataTable = props => {
 
 
   // Render
-  const { filterColAttr, filterColTerm } = parseColumnFilter(columnFilter)
   const columnSettings = applyColumnSettings(columnState || [], entityMetadata[entityType]?.attributeNames)
   const nameWidth = columnWidths['name'] || 150
 
@@ -323,7 +313,7 @@ const DataTable = props => {
             'aria-label': 'Search',
             placeholder: 'Search',
             onChange: v => {
-              setColumnFilter('')
+              setColumnFilter({ filterColAttr: '', filterColTerm: '' })
               setActiveTextFilter(v.toString().trim())
               setPageNumber(1)
             },
@@ -372,12 +362,17 @@ const DataTable = props => {
               }
             }
 
-            const filterBreadCrumb = h(div, { style: { display: 'flex', overflow: 'hidden' } }, [h(TextCell, { style: { fontWeight: 400, ...Style.noWrapEllipsis } }, [`filtered by: ${filterColTerm}`]), h(Clickable, {
+            const filterBreadCrumb = h(div, { style: { display: 'flex', overflow: 'hidden' } }, [h(TooltipCell, { tooltip: `filtered by: ${columnFilter['filterColTerm']}`, style: { fontWeight: 400, ...Style.noWrapEllipsis } },
+              [`filtered by: ${columnFilter['filterColTerm']}`]), h(Clickable, {
               'aria-label': 'Clear filter',
               tooltip: 'Clear filter',
-              style: { alignSelf: 'flex-start', marginLeft: 'auto' },
-              onClick: () => setColumnFilter('')
+              style: { alignSelf: 'flex-start', marginLeft: '0.3rem' },
+              onClick: e => {
+                e.stopPropagation()
+                setColumnFilter({ filterColAttr: '', filterColTerm: '' })
+              }
             }, [icon('times-circle', { color: colors.light(8), size: 16 })])])
+
             const defaultColumnsWithoutSelectRow = [{
               field: 'name',
               width: nameWidth,
@@ -387,7 +382,7 @@ const DataTable = props => {
                 }
               }, [
                 h(HeaderOptions, { sort, field: 'name', onSort: setSort, renderSearch: !!googleProject, searchByColumn: v => searchByColumn(entityMetadata[entityType].idName, v) },
-                  [h(HeaderCell, [entityMetadata[entityType].idName, (filterColAttr === entityMetadata[entityType].idName) && filterBreadCrumb])])
+                  [h(HeaderCell, [entityMetadata[entityType].idName, (columnFilter['filterColAttr'] === entityMetadata[entityType].idName) && filterBreadCrumb])])
               ]),
               cellRenderer: ({ rowIndex }) => {
                 const { name: entityName } = entities[rowIndex]
@@ -430,7 +425,7 @@ const DataTable = props => {
                   }, [
                     h(HeaderCell, [
                       !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } }, [columnNamespace]),
-                      columnName, (filterColAttr === attributeName) && filterBreadCrumb
+                      columnName, (columnFilter['filterColAttr'] === attributeName) && filterBreadCrumb
                     ])
                   ])
                 ]),
