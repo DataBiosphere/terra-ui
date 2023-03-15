@@ -18,7 +18,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils'
-import { billingRoles } from 'src/pages/billing/Billing'
+import { billingRoles } from 'src/pages/billing/billing-utils'
 import { CreateBillingProjectControl } from 'src/pages/billing/List/CreateBillingProjectControl'
 import { GCPNewBillingProjectModal } from 'src/pages/billing/List/GCPNewBillingProjectModal'
 import { ProjectListItem } from 'src/pages/billing/List/ProjectListItem'
@@ -38,7 +38,7 @@ const BillingProjectSubheader = ({ title, children }) => h(Collapse, {
   summaryStyle: { padding: '1rem 1rem 1rem 2rem' }
 }, [children])
 
-export const List = ({ queryParams: { selectedName } }) => {
+export const List = ({ query: { selectedName } }: { query: { selectedName: string | undefined } }) => {
   // State
   const [billingProjects, setBillingProjects] = useState<BillingProject[]>(StateHistory.get().billingProjects || [])
   const [creatingBillingProjectType, setCreatingBillingProjectType] = useState<CloudProvider | null>()
@@ -199,7 +199,7 @@ export const List = ({ queryParams: { selectedName } }) => {
           overflowY: 'auto', flexGrow: 1, display: 'flex', flexDirection: 'column'
         }
       }, [Utils.cond(
-        [selectedName && !_.some({ projectName: selectedName }, billingProjects),
+        [!!selectedName && !_.some({ projectName: selectedName }, billingProjects),
           () => div({
             style: {
               margin: '1rem auto 0 auto'
@@ -234,7 +234,7 @@ export const List = ({ queryParams: { selectedName } }) => {
           },
           authorizeAndLoadAccounts
         })],
-        [selectedName && _.some({ projectName: selectedName }, billingProjects), () => {
+        [!!selectedName && _.some({ projectName: selectedName }, billingProjects), () => {
           const billingProject = _.find({ projectName: selectedName }, billingProjects)
           return h(ProjectDetail, {
             key: selectedName,
@@ -255,3 +255,12 @@ export const List = ({ queryParams: { selectedName } }) => {
     ])
   ])
 }
+
+export const navPaths = [
+  {
+    name: 'billing',
+    path: '/billing',
+    component: List,
+    title: 'Billing'
+  }
+]

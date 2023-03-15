@@ -1,6 +1,3 @@
-import { List } from 'src/pages/billing/List/List'
-
-
 export const billingRoles = {
   owner: 'Owner',
   user: 'User'
@@ -17,12 +14,3 @@ export const billingProjectNameValidator = (existing: string[]) => ({
     message: 'already exists'
   }
 })
-
-export const navPaths = [
-  {
-    name: 'billing',
-    path: '/billing',
-    component: List,
-    title: 'Billing'
-  }
-]

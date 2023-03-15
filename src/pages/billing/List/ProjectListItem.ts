@@ -11,8 +11,8 @@ import colors from 'src/libs/colors'
 import Events, { extractBillingDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
-import { isCloudProvider } from 'src/libs/workspace-utils'
-import { billingRoles } from 'src/pages/billing/Billing'
+import { isKnownCloudProvider } from 'src/libs/workspace-utils'
+import { billingRoles } from 'src/pages/billing/billing-utils'
 import { BillingProjectActions } from 'src/pages/billing/List/BillingProjectActions'
 import { BillingProject } from 'src/pages/billing/models/BillingProject'
 
@@ -38,7 +38,7 @@ interface ProjectListItemProps {
 export const ProjectListItem = (props: ProjectListItemProps) => {
   const { projectName, roles, status, message, cloudPlatform } = props.project
   // Billing projects in an error status may have UNKNOWN for the cloudPlatform.
-  const cloudContextIcon = isCloudProvider(cloudPlatform) && div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
+  const cloudContextIcon = isKnownCloudProvider(cloudPlatform) && div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
     h(CloudProviderIcon, { cloudProvider: cloudPlatform })
   ])
 
