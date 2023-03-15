@@ -78,11 +78,12 @@ export const Billing = signal => ({
    * @param billingProjectName
    * @param startDate, a string of the format YYYY-MM-DD, representing the start date of the report.
    * @param endDate a string of the format YYYY-MM-DD, representing the end date of the report.
+   * @param aggregationKeys a list of strings indicating how to aggregate spend data. subAggregation can be requested by separating keys with '~' e.g. 'Workspace~Category'
    * @returns {Promise<*>}
    */
-  getSpendReport: async ({ billingProjectName, startDate, endDate }) => {
+  getSpendReport: async ({ billingProjectName, startDate, endDate, aggregationKeys }) => {
     const res = await fetchRawls(
-      `billing/v2/${billingProjectName}/spendReport?${qs.stringify({ startDate, endDate, aggregationKey: 'Workspace~Category' })}&${qs.stringify({ aggregationKey: 'Category' })}`,
+      `billing/v2/${billingProjectName}/spendReport?${qs.stringify({ startDate, endDate, aggregationKey: aggregationKeys }, { arrayFormat: 'repeat' })}`,
       _.merge(authOpts(), { signal })
     )
     return res.json()

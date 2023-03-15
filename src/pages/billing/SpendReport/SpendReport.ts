@@ -10,6 +10,7 @@ import {
 import { Ajax } from 'src/libs/ajax'
 import { FormLabel } from 'src/libs/forms'
 import { useCancellation } from 'src/libs/react-utils'
+import { CloudPlatform } from 'src/pages/billing/models/BillingProject'
 import { CostCard } from 'src/pages/billing/SpendReport/CostCard'
 import { ErrorAlert } from 'src/pages/billing/SpendReport/ErrorAlert'
 
@@ -91,6 +92,7 @@ export interface SpendReportServerResponse {
 
 interface SpendReportProps {
   billingProjectName: string
+  billingProjectCloudPlatform: CloudPlatform
   viewSelected: boolean
 }
 
@@ -102,6 +104,7 @@ export const SpendReport = (props: SpendReportProps) => {
   const [updatingProjectCost, setUpdatingProjectCost] = useState(false)
   const [spendReportLengthInDays, setSpendReportLengthInDays] = useState(30)
   const [errorMessage, setErrorMessage] = useState()
+  const includePerWorkspaceCosts = props.billingProjectCloudPlatform === 'GCP'
 
   const signal = useCancellation()
 
@@ -162,7 +165,8 @@ export const SpendReport = (props: SpendReportProps) => {
         setUpdatingProjectCost(true)
         const endDate = new Date().toISOString().slice(0, 10)
         const startDate = subDays(spendReportLengthInDays, new Date()).toISOString().slice(0, 10)
-        const spend: SpendReportServerResponse = await Ajax(signal).Billing.getSpendReport({ billingProjectName: props.billingProjectName, startDate, endDate })
+        const aggregationKeys = includePerWorkspaceCosts ? ['Workspace~Category', 'Category'] : ['Category']
+        const spend: SpendReportServerResponse = await Ajax(signal).Billing.getSpendReport({ billingProjectName: props.billingProjectName, startDate, endDate, aggregationKeys })
         const costFormatter = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: spend.spendSummary.currency })
         const categoryDetails = _.find(details => details.aggregationKey === 'Category', spend.spendDetails) as AggregatedCategorySpendData
         console.assert(categoryDetails !== undefined, 'Spend report details do not include aggregation by Category')
@@ -182,28 +186,37 @@ export const SpendReport = (props: SpendReportProps) => {
           other: costFormatter.format(costDict.other)
         })
 
-        const workspaceDetails = _.find(details => details.aggregationKey === 'Workspace', spend.spendDetails) as AggregatedWorkspaceSpendData
-        console.assert(workspaceDetails !== undefined, 'Spend report details do not include aggregation by Workspace')
-        // Get the most expensive workspaces, sorted from most to least expensive.
-        const mostExpensiveWorkspaces = _.flow(
-          _.sortBy(({ cost }) => { return parseFloat(cost) }),
-          _.reverse,
-          _.slice(0, maxWorkspacesInChart)
-        )(workspaceDetails?.spendData) as WorkspaceSpendData[]
-        // Pull out names and costs.
-        const costPerWorkspace: WorkspaceCosts = {
-          workspaceNames: [], computeCosts: [], storageCosts: [], otherCosts: [], costFormatter, numWorkspaces: workspaceDetails?.spendData.length
+        if (includePerWorkspaceCosts) {
+          const workspaceDetails = _.find(details => details.aggregationKey === 'Workspace', spend.spendDetails) as AggregatedWorkspaceSpendData
+          console.assert(workspaceDetails !== undefined, 'Spend report details do not include aggregation by Workspace')
+          // Get the most expensive workspaces, sorted from most to least expensive.
+          const mostExpensiveWorkspaces = _.flow(
+            _.sortBy(({ cost }) => {
+              return parseFloat(cost)
+            }),
+            _.reverse,
+            _.slice(0, maxWorkspacesInChart)
+          )(workspaceDetails?.spendData) as WorkspaceSpendData[]
+          // Pull out names and costs.
+          const costPerWorkspace: WorkspaceCosts = {
+            workspaceNames: [],
+            computeCosts: [],
+            storageCosts: [],
+            otherCosts: [],
+            costFormatter,
+            numWorkspaces: workspaceDetails?.spendData.length
+          }
+          _.forEach(workspaceCostData => {
+            costPerWorkspace.workspaceNames.push(workspaceCostData.workspace.name)
+            const categoryDetails = workspaceCostData.subAggregation
+            console.assert(categoryDetails.aggregationKey === 'Category', 'Workspace spend report details do not include sub-aggregation by Category')
+            const costDict = getCategoryCosts(categoryDetails.spendData)
+            costPerWorkspace.computeCosts.push(costDict.compute)
+            costPerWorkspace.storageCosts.push(costDict.storage)
+            costPerWorkspace.otherCosts.push(costDict.other)
+          }, mostExpensiveWorkspaces)
+          setCostPerWorkspace(costPerWorkspace)
         }
-        _.forEach(workspaceCostData => {
-          costPerWorkspace.workspaceNames.push(workspaceCostData.workspace.name)
-          const categoryDetails = workspaceCostData.subAggregation
-          console.assert(categoryDetails.aggregationKey === 'Category', 'Workspace spend report details do not include sub-aggregation by Category')
-          const costDict = getCategoryCosts(categoryDetails.spendData)
-          costPerWorkspace.computeCosts.push(costDict.compute)
-          costPerWorkspace.storageCosts.push(costDict.storage)
-          costPerWorkspace.otherCosts.push(costDict.other)
-        }, mostExpensiveWorkspaces)
-        setCostPerWorkspace(costPerWorkspace)
         setUpdatingProjectCost(false)
       }
     }
@@ -211,7 +224,7 @@ export const SpendReport = (props: SpendReportProps) => {
       setErrorMessage(await (error instanceof Response ? error.text() : error))
       setUpdatingProjectCost(false)
     })
-  }, [spendReportLengthInDays, props, signal, projectCost, updatingProjectCost, errorMessage])
+  }, [spendReportLengthInDays, props, signal, projectCost, updatingProjectCost, errorMessage, includePerWorkspaceCosts])
 
   return h(Fragment, [
     div({ style: { display: 'grid', rowGap: '0.5rem' } }, [
@@ -258,7 +271,7 @@ export const SpendReport = (props: SpendReportProps) => {
         ]
       ),
       h(OtherMessaging, { cost: isProjectCostReady ? projectCost['other'] : null }),
-      costPerWorkspace.numWorkspaces > 0 && div(
+      includePerWorkspaceCosts && costPerWorkspace.numWorkspaces > 0 && div(
         {
           style: { minWidth: 500, marginTop: '1rem' }
         }, [ // Set minWidth so chart will shrink on resize
