@@ -80,9 +80,8 @@ const AzureWarning = () => {
 
 
 const GooglePermissionsWarning = () => {
-  const warningMessage = 'Google is currently synchronizing its permissions with this workspace. This can take anywhere from a couple minutes ' +
-    'to a few hours in rare cases. Access to this workspace’s bucket and running analysis in workflows or notebooks may result in errors until ' +
-    'this synchronization is complete.'
+  const warningMessage = 'Google is currently synchronizing its permissions with this workspace. This can take several minutes, ' +
+    'and in rare cases, several hours. During syncing you will be unable to access the workspace bucket (storage), notebooks, workflows, and analyses.'
 
   return TitleBarWarning(warningMessage)
 }
