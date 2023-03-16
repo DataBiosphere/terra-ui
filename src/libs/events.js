@@ -18,12 +18,7 @@ const eventsList = {
   applicationResume: 'application:resume',
   analysisEnableBeta: 'analysis:enable',
   analysisDisableBeta: 'analysis:disable',
-  analysisLaunch: 'analysis:launch',
   analysisCreate: 'analysis:create',
-
-  runtimeCreate: 'analysis:runtimeCreate',
-  analysisAzureJupyterLabCreate: 'analysis:azureJupyterLabCreate', //TODO: Combine with runtimeCreate
-
   analysisToggleJupyterLabGCP: 'analysis:toggleJupyterLabGCP',
   analysisPreviewSuccess: 'analysis:previewSuccess',
   analysisPreviewFail: 'analysis:previewFail',
@@ -51,11 +46,11 @@ const eventsList = {
   billingCreationBillingProjectCreated: 'billing:creation:billingProjectCreated',
   billingRemoveAccount: 'billing:project:account:remove',
   cloudEnvironmentConfigOpen: 'cloudEnvironment:config:open',
+  cloudEnvironmentLaunch: 'cloudEnvironment:launch',
   cloudEnvironmentCreate: 'cloudEnvironment:create',
   cloudEnvironmentDelete: 'cloudEnvironment:delete',
   cloudEnvironmentUpdate: 'cloudEnvironment:update',
   cloudEnvironmentDetailsLoad: 'analysis:details:load',
-  cloudEnvironmentCreateCustom: 'cloudEnvironment:create:custom',
   catalogFilter: 'catalog:filter',
   catalogRequestAccess: 'catalog:requestAccess',
   catalogToggle: 'catalog:toggle',

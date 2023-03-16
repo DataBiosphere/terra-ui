@@ -6,6 +6,7 @@ import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/c
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
@@ -32,10 +33,6 @@ const ApplicationLauncher = _.flow(
   name: workspaceName, sparkInterface, analysesData: { runtimes, refreshRuntimes },
   application, workspace: { azureContext, workspace: { namespace, name, workspaceId, googleProject, bucketName } }
 }, _ref) => {
-  // Ajax().Metrics.captureEvent(Events.analysisLaunch,
-  //   { origin: 'appLauncher', source: application, application, workspaceName, namespace, cloudPlatform: googleProject ? 'GCP' : 'Azure' })
-  // const platform = googleProject ? 'GCP' : 'Azure'
-
   const [busy, setBusy] = useState(true)
   const [outdatedAnalyses, setOutdatedAnalyses] = useState()
   const [fileOutdatedOpen, setFileOutdatedOpen] = useState(false)
@@ -226,8 +223,16 @@ const ApplicationLauncher = _.flow(
       clearInterval(interval.current)
       interval.current = undefined
     }
+
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [googleProject, workspaceName, runtimes, bucketName])
+
+  useEffect(() => {
+    _.includes(runtimeStatus, usableStatuses) && cookieReady &&
+    Ajax().Metrics.captureEvent(Events.cloudEnvironmentLaunch,
+      { application, workspaceName, namespace, cloudPlatform: googleProject ? 'GCP' : 'Azure' })
+  }, [application, cookieReady, googleProject, namespace, runtimeStatus, workspaceName])
 
   if (!busy && runtime === undefined) Nav.goToPath(analysisTabName, { namespace, name })
 

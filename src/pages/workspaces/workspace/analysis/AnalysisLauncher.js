@@ -326,16 +326,12 @@ const PreviewHeader = ({
         () => h(HeaderButton, {
           onClick: () => {
             Nav.goToPath(appLauncherTabName, { namespace, name, application: runtimeToolLabels.JupyterLab, cloudPlatform })
-            Ajax().Metrics.captureEvent(Events.analysisLaunch,
-              { origin: 'analysisLauncher', source: runtimeToolLabels.JupyterLab, application: runtimeToolLabels.JupyterLab, workspaceName: name, namespace, cloudPlatform })
           }
         }, openMenuIcon)],
       [isAzureWorkspace && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === runtimeToolLabels.Jupyter,
         () => h(HeaderButton, {
           onClick: () => {
             Nav.goToPath(appLauncherTabName, { namespace, name, application: runtimeToolLabels.JupyterLab, cloudPlatform })
-            Ajax().Metrics.captureEvent(Events.analysisLaunch,
-              { origin: 'analysisLauncher', source: currentRuntimeToolLabel, application: currentRuntimeToolLabel, workspaceName: name, namespace, cloudPlatform })
           }
         }, openMenuIcon)],
       [isAzureWorkspace && runtimeStatus !== 'Running', () => {}],
@@ -473,6 +469,7 @@ const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace:
   const [busy, setBusy] = useState(false)
   const [preview, setPreview] = useState()
   const frame = useRef()
+  const cloudPlatform = !!googleProject ? cloudProviderTypes.GCP : cloudProviderTypes.AZURE
 
   const loadPreview = _.flow(
     Utils.withBusyState(setBusy),
@@ -485,9 +482,9 @@ const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace:
       await Ajax(signal).AzureStorage.blob(workspaceId, analysisName).preview()
 
     if (response.status === 200) {
-      Metrics().captureEvent(Events.analysisPreviewSuccess, { fileName: analysisName, fileType: getExtension(analysisName), cloudPlatform: !!googleProject ? cloudProviderTypes.GCP : cloudProviderTypes.AZURE })
+      Metrics().captureEvent(Events.analysisPreviewSuccess, { fileName: analysisName, fileType: getExtension(analysisName), cloudPlatform })
     } else {
-      Metrics().captureEvent(Events.analysisPreviewFail, { fileName: analysisName, fileType: getExtension(analysisName), cloudPlatform: !!googleProject ? cloudProviderTypes.GCP : cloudProviderTypes.AZURE, errorText: response.statusText })
+      Metrics().captureEvent(Events.analysisPreviewFail, { fileName: analysisName, fileType: getExtension(analysisName), cloudPlatform })
     }
     const previewHtml = await response.text()
     setPreview(previewHtml)
@@ -521,7 +518,7 @@ const JupyterFrameManager = ({ onClose, frameRef, details = {} }) => {
   useOnMount(() => {
     Ajax()
       .Metrics
-      .captureEvent(Events.analysisLaunch,
+      .captureEvent(Events.cloudEnvironmentLaunch,
         { source: runtimeToolLabels.Jupyter, application: runtimeToolLabels.Jupyter, workspaceName: details.name, namespace: details.namespace, cloudPlatform: details.cloudPlatform })
 
 
@@ -579,6 +576,7 @@ const AnalysisEditorFrame = ({
   const [busy, setBusy] = useState(false)
   const [analysisSetupComplete, setAnalysisSetupComplete] = useState(false)
   const cookieReady = useStore(cookieReadyStore)
+  const cloudPlatform = !!googleProject ? cloudProviderTypes.GCP : cloudProviderTypes.AZURE
 
   const localBaseDirectory = Utils.switchCase(toolLabel,
     [runtimeToolLabels.Jupyter, () => `${name}/edit`],
@@ -631,7 +629,7 @@ const AnalysisEditorFrame = ({
       h(JupyterFrameManager, {
         frameRef,
         onClose: () => Nav.goToPath(analysisTabName, { namespace, name }),
-        details: { analysisName, name, namespace }
+        details: { analysisName, name, namespace, cloudPlatform }
       })
     ]),
     busy && copyingAnalysisMessage
@@ -652,6 +650,7 @@ const WelderDisabledNotebookEditorFrame = ({
   const [busy, setBusy] = useState(false)
   const [localized, setLocalized] = useState(false)
   const cookieReady = useStore(cookieReadyStore)
+  const cloudPlatform = !!googleProject ? cloudProviderTypes.GCP : cloudProviderTypes.AZURE
 
   const localizeNotebook = _.flow(
     Utils.withBusyState(setBusy),
@@ -697,7 +696,7 @@ const WelderDisabledNotebookEditorFrame = ({
       h(JupyterFrameManager, {
         frameRef,
         onClose: () => Nav.goToPath(analysisTabName, { namespace, name }),
-        details: { notebookName, name, namespace }
+        details: { notebookName, name, namespace, cloudPlatform }
       })
     ]),
     busy && copyingAnalysisMessage
