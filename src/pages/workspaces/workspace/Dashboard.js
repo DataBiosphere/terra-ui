@@ -487,7 +487,6 @@ const WorkspaceDashboard = _.flow(
             })
           },
           href: bucketBrowserUrl(bucketName),
-
         }, ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
         )]),
         div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
