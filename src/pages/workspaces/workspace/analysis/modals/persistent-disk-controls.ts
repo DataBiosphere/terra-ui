@@ -50,7 +50,7 @@ export const AboutPersistentDisk = ({ titleId, setViewMode, tool, onDismiss }: P
       id: titleId,
       title: 'About persistent disk',
       style: computeStyles.titleBar,
-      titleExtras: [],
+      titleChildren: [],
       hideCloseButton: true,
       onDismiss,
       onPrevious: () => setViewMode(undefined)

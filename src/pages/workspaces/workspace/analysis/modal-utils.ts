@@ -1,3 +1,4 @@
+import _ from 'lodash/fp'
 import { cloudServices } from 'src/data/gce-machines'
 import { getToolLabelFromRuntime, PersistentDisk } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
@@ -25,8 +26,9 @@ export interface IComputeConfig {
     autopauseThreshold: number
     computeRegion: string
     computeZone: string
-  }
-export const getExistingEnvironmentConfig = (computeConfig:IComputeConfig, currentRuntimeDetails:any, currentPersistentDiskDetails:PersistentDisk, toolDockerImage:string, isDataproc:boolean) => {
+}
+
+export const buildExistingEnvironmentConfig = (computeConfig:IComputeConfig, currentRuntimeDetails:any, currentPersistentDiskDetails:PersistentDisk, isDataproc:boolean) => {
   const runtimeConfig = currentRuntimeDetails?.runtimeConfig
   const cloudService = runtimeConfig?.cloudService
   const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
@@ -37,7 +39,7 @@ export const getExistingEnvironmentConfig = (computeConfig:IComputeConfig, curre
     autopauseThreshold: computeConfig.autopauseThreshold,
     runtime: currentRuntimeDetails ? {
       cloudService,
-      toolDockerImage,
+      toolDockerImage: getImageUrl(currentRuntimeDetails),
       tool: toolLabel,
       ...(currentRuntimeDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri }),
       ...(cloudService === cloudServices.GCE ? {
@@ -67,3 +69,6 @@ export const getExistingEnvironmentConfig = (computeConfig:IComputeConfig, curre
   }
 }
 
+export const getImageUrl = runtimeDetails => {
+  return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), runtimeDetails?.runtimeImages)?.imageUrl
+}

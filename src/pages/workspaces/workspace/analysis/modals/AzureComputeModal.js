@@ -16,7 +16,8 @@ import { withErrorReportingInModal } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
+import { buildExistingEnvironmentConfig } from 'src/pages/workspaces/workspace/analysis/modal-utils'
+import { DeleteEnvironment } from 'src/pages/workspaces/workspace/analysis/modals/DeleteDiskChoices'
 import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import {
   getCurrentRuntime, getIsRuntimeBusy
@@ -36,7 +37,13 @@ export const AzureComputeModalBase = ({
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(() => getCurrentRuntime(runtimes))
   const [computeConfig, setComputeConfig] = useState(defaultAzureComputeConfig)
   const updateComputeConfig = _.curry((key, value) => setComputeConfig(_.set(key, value)))
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [currentPersistentDiskDetails, setCurrentPersistentDiskDetails] = useState(persistentDisks)
+
   const persistentDiskExists = persistentDisks?.length > 0
+  const [deleteDiskSelected, setDeleteDiskSelected] = useState(false)
+
+  const getExistingEnvironmentConfig = () => buildExistingEnvironmentConfig(computeConfig, currentRuntimeDetails, currentPersistentDiskDetails, false)//TODO: ask about this, some assumptions were made, is this dataproc? how can we tell? did I do PDs right?
 
   // Lifecycle
   useOnMount(_.flow(
@@ -262,32 +269,10 @@ export const AzureComputeModalBase = ({
     ])
   }
 
-  const renderDeleteEnvironment = () => {
-    return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
-      h(TitleBar, {
-        id: titleId,
-        hideCloseButton,
-        style: computeStyles.titleBar,
-        title: h(WarningTitle, ['Delete environment']),
-        onDismiss,
-        onPrevious: () => setViewMode(undefined)
-      }),
-      div({ style: { lineHeight: '1.5rem' } }, [
-        p([
-          'Deleting your application configuration and cloud compute profile will also ',
-          span({ style: { fontWeight: 600 } }, ['delete all files on the built-in hard disk.'])
-        ])
-      ]),
-      div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-        renderActionButton()
-      ])
-    ])
-  }
-
   return h(Fragment, [
     Utils.switchCase(viewMode,
       ['aboutPersistentDisk', () => AboutPersistentDisk({ titleId, setViewMode, onDismiss, tool })],
-      ['deleteEnvironment', renderDeleteEnvironment],
+      ['deleteEnvironment', () => DeleteEnvironment({ titleId, existingEnvironmentConfig: getExistingEnvironmentConfig(), deleteDiskSelected, setDeleteDiskSelected, renderActionButton })],
       [Utils.DEFAULT, renderMainForm]
     ),
     loading && spinnerOverlay
