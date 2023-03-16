@@ -300,7 +300,7 @@ describe('ExportAnalysisModal', () => {
     // complete the form
     const nameInput = screen.getByLabelText('Name *')
     await user.clear(nameInput)
-    await user.type(nameInput, 'existing123')
+    await user.type(nameInput, analysis1.displayName)
 
     // Assert
     const buttons = screen.getAllByRole('button')

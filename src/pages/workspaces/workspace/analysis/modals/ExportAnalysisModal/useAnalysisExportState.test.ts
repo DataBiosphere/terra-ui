@@ -113,8 +113,8 @@ describe('useAnalysisExportState', () => {
       refresh: jest.fn()
     })
     asMockedFn(AnalysisProvider.listAnalyses).mockResolvedValue(([
-      { name: 'files/Analysis1.jpt' as AbsolutePath } as AnalysisFile,
-      { name: 'files/Analysis2.jpt' as AbsolutePath } as AnalysisFile,
+      analysis1,
+      analysis2
     ]))
 
     const sourceWorkspaceInfo: Partial<WorkspaceInfo> = {
@@ -149,11 +149,11 @@ describe('useAnalysisExportState', () => {
       { workspace: workspace2 as WorkspaceInfo } as WorkspaceWrapper
     ]
     expect(hookResult.workspaces).toEqual(expectedWorkspaces)
-    const expectedExistingNames: typeof hookResult.existingAnalysisFiles = {
+    const expectedExistingFiles: typeof hookResult.existingAnalysisFiles = {
       status: 'Ready',
       state: [analysis1, analysis2]
     }
-    expect(hookResult.existingAnalysisFiles).toEqual(expectedExistingNames)
+    expect(hookResult.existingAnalysisFiles).toEqual(expectedExistingFiles)
     const expectedPendingCopy: typeof hookResult.pendingCopy = {
       status: 'None'
     }

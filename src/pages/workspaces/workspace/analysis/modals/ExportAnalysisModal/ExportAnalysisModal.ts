@@ -11,7 +11,7 @@ import { isValidWsExportTarget, summarizeErrors } from 'src/libs/utils'
 import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils'
 import { useAnalysisExportState } from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal/useAnalysisExportState'
 import { analysisLauncherTabName, analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
-import { getAnalysisFileExtension, getDisplayName, stripExtension } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
+import { getAnalysisFileExtension, stripExtension } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
 import { analysisNameInput, analysisNameValidator } from 'src/pages/workspaces/workspace/analysis/utils/notebook-utils'
 import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import validate from 'validate.js'
@@ -36,7 +36,8 @@ export const ExportAnalysisModal: React.FC<ExportAnalysisModalProps> = ({ fromLa
 
   const selectedWorkspaceId = selectedWorkspace ? selectedWorkspace.workspaceId : undefined
   // TODO: better loading/error handling on existing names?
-  const existingNames = existingAnalysisFiles.status === 'Ready' ? _.map(({ name }) => getDisplayName(name), existingAnalysisFiles.state) : []
+  const existingNames = existingAnalysisFiles.status === 'Ready' ? _.map(({ displayName }) => displayName, existingAnalysisFiles.state) : []
+
   const copying = pendingCopy.status === 'Loading'
   const copiedToWorkspace: WorkspaceInfo | null = (pendingCopy.status === 'Ready' && selectedWorkspace) ?
     selectedWorkspace :
