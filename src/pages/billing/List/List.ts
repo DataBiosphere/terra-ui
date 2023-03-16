@@ -21,7 +21,7 @@ import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils'
 import { billingRoles } from 'src/pages/billing/billing-utils'
 import { CreateBillingProjectControl } from 'src/pages/billing/List/CreateBillingProjectControl'
 import { GCPNewBillingProjectModal } from 'src/pages/billing/List/GCPNewBillingProjectModal'
-import { ProjectListItem } from 'src/pages/billing/List/ProjectListItem'
+import { ProjectListItem, ProjectListItemProps } from 'src/pages/billing/List/ProjectListItem'
 import { BillingProject } from 'src/pages/billing/models/BillingProject'
 import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAccount'
 import { AzureBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureBillingProjectWizard'
@@ -30,6 +30,9 @@ import ProjectDetail from 'src/pages/billing/Project'
 
 
 const isCreatingStatus = status => _.includes(status, ['Creating', 'CreatingLandingZone'])
+const isDeletingStatus = status => _.includes(status, ['Deleting'])
+const isSyncingStatus = status => isCreatingStatus(status) || isDeletingStatus(status)
+
 
 const BillingProjectSubheader = ({ title, children }) => h(Collapse, {
   title: span({ style: { fontWeight: 'bold' } }, [title]),
@@ -118,11 +121,11 @@ export const List = (props: ListProps) => {
   })
 
   useEffect(() => {
-    const anyProjectsCreating = _.some(({ status }) => isCreatingStatus(status), billingProjects)
+    const anyProjectsSyncing = _.some(({ status }) => isSyncingStatus(status), billingProjects)
 
-    if (anyProjectsCreating && !interval.current) {
-      interval.current = window.setInterval(loadProjects, 10000)
-    } else if (!anyProjectsCreating && interval.current) {
+    if (anyProjectsSyncing && !interval.current) {
+      interval.current = window.setInterval(loadProjects, 20000)
+    } else if (!anyProjectsSyncing && interval.current) {
       clearInterval(interval.current)
       interval.current = undefined
     }
@@ -145,6 +148,15 @@ export const List = (props: ListProps) => {
 
   const azureUserWithNoBillingProjects = !isLoadingProjects && _.isEmpty(billingProjects) && Auth.isAzureUser()
   const creatingAzureBillingProject = !selectedName && creatingBillingProjectType === 'AZURE'
+
+  const makeProjectListItemProps = (project: BillingProject) : ProjectListItemProps => {
+    return {
+      project, loadProjects,
+      isActive: !!selectedName && project.projectName === selectedName,
+      isCreating: isCreatingStatus(project.status),
+      isDeleting: isDeletingStatus(project.status)
+    }
+  }
 
   return h(FooterWrapper, { fixedHeight: true }, [
     h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
@@ -172,20 +184,18 @@ export const List = (props: ListProps) => {
         ]),
         h(BillingProjectSubheader, { title: 'Owned by You' }, [
           div({ role: 'list' }, [
-            _.map(project => h(ProjectListItem, {
-              project, key: project.projectName, loadProjects,
-              isActive: !!selectedName && project.projectName === selectedName,
-              isCreatingStatus: isCreatingStatus(project.status)
-            }), projectsOwned)
+            _.map(project => h(
+              ProjectListItem,
+              { key: project.projectName, ...makeProjectListItemProps(project) }
+            ), projectsOwned)
           ])
         ]),
         h(BillingProjectSubheader, { title: 'Shared with You' }, [
           div({ role: 'list' }, [
-            _.map(project => h(ProjectListItem, {
-              project, key: project.projectName, loadProjects,
-              isActive: !!selectedName && project.projectName === selectedName,
-              isCreatingStatus: isCreatingStatus(project.status)
-            }), projectsShared)
+            _.map(project => h(
+              ProjectListItem,
+              { key: project.projectName, ...makeProjectListItemProps(project) }
+            ), projectsShared)
           ])
         ])
       ]),

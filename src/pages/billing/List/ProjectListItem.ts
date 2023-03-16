@@ -1,10 +1,10 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { Fragment, useState } from 'react'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
 import { Clickable } from 'src/components/common'
-import { spinner } from 'src/components/icons'
+import { icon } from 'src/components/icons'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -18,56 +18,93 @@ import { BillingProject } from 'src/pages/billing/models/BillingProject'
 
 
 const styles = {
-  projectListItem: selected => {
-    return {
+  projectListItem: (selected, hovered) => {
+    const listItem = {
       ...Style.navList.itemContainer(selected),
       ...Style.navList.item(selected),
       ...(selected ? { backgroundColor: colors.dark(0.1) } : {}),
-      paddingLeft: '3rem'
+      paddingLeft: '2rem'
+    }
+    if (hovered) {
+      return {
+        ...listItem,
+        ...Style.navList.itemHover(selected)
+      }
+    } else {
+      return listItem
     }
   }
 }
 
-interface ProjectListItemProps {
+export interface ProjectListItemProps {
   project: BillingProject
   loadProjects: () => void
   isActive: boolean
-  isCreatingStatus: boolean
+  isCreating: boolean
+  isDeleting: boolean
 }
 
 export const ProjectListItem = (props: ProjectListItemProps) => {
   const { projectName, roles, status, message, cloudPlatform } = props.project
   // Billing projects in an error status may have UNKNOWN for the cloudPlatform.
-  const cloudContextIcon = isKnownCloudProvider(cloudPlatform) && div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
+  const cloudContextIcon = isKnownCloudProvider(cloudPlatform) && span({ style: { marginRight: '0.5rem' } }, [
     h(CloudProviderIcon, { cloudProvider: cloudPlatform })
   ])
 
-  const selectableProject = () => h(Clickable, {
-    style: { ...styles.projectListItem(props.isActive), color: props.isActive ? colors.accent(1.1) : colors.accent() },
+  const [hovered, setHovered] = useState<boolean>()
+
+
+  const selectableProject = () => div({
+    style: { ...styles.projectListItem(props.isActive, hovered) },
+    onMouseEnter: () => setHovered(true),
+    onMouseLeave: () => setHovered(false)
+  }, [h(Clickable, {
+    style: { color: props.isActive ? colors.accent(1.1) : colors.accent() },
     href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
     onClick: () => Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, extractBillingDetails(props.project)),
-    hover: Style.navList.itemHover(props.isActive),
     'aria-current': props.isActive ? 'location' : false
-  }, [cloudContextIcon, projectName])
+  }, [
+    cloudContextIcon,
+    span({ style: { wordBreak: 'break-all', verticalAlign: 'text-top' } }, [projectName])
+  ]),
+  isOwner && h(BillingProjectActions, { projectName: props.project.projectName, loadProjects: props.loadProjects })])
 
   const unselectableProject = () => {
-    const iconAndTooltip =
-      // @ts-ignore
-      props.isCreatingStatus ? spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
-        status === 'Error' ? h(Fragment, [
-          // @ts-ignore
-          h(InfoBox, { style: { color: colors.danger(), margin: '0 0.5rem 0 0.5rem' }, side: 'right' }, [
-            div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [
-              message || 'Error during project creation.'
-            ])
-          ]),
-          //Currently, only billing projects that failed to create can have actions performed on them.
-          //If that changes in the future, this should be moved elsewhere
-          isOwner && h(BillingProjectActions, { projectName: props.project.projectName, loadProjects: props.loadProjects })
-        ]) : undefined
+    const isCreatingOrDeleting = props.isCreating || props.isDeleting
 
-    return div({ style: { ...styles.projectListItem(props.isActive), color: colors.dark() } }, [
-      cloudContextIcon, projectName, iconAndTooltip
+    const iconAndTooltip = h(Fragment, [
+      isCreatingOrDeleting && h(Fragment, [
+        icon('syncAlt', {
+          size: 14,
+          style: {
+            color: props.isCreating ? colors.success() : colors.warning(),
+            overflow: 'visible',
+            animation: 'rotation 2s infinite linear',
+            marginLeft: '0.75rem',
+            marginRight: '0.25rem'
+          }
+        }),
+        span({ style: { fontSize: 12, fontStyle: 'italic' } },
+          [props.isCreating ? 'Creating' : 'Deleting']
+        )
+      ]),
+      status === 'Error' && h(Fragment, [
+        // @ts-ignore
+        h(InfoBox, { style: { color: colors.danger(), marginLeft: '0.5rem' }, side: 'right' }, [
+          div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [
+            message || 'Error during project creation.'
+          ])
+        ]),
+        isOwner && h(BillingProjectActions, {
+          projectName: props.project.projectName,
+          loadProjects: props.loadProjects
+        })
+      ])
+    ])
+
+    return div({ style: { ...styles.projectListItem(props.isActive, false), color: colors.dark() } }, [
+      cloudContextIcon,
+      span({ style: { wordBreak: 'break-all', verticalAlign: 'text-top' } }, [projectName]), iconAndTooltip
     ])
   }
 
