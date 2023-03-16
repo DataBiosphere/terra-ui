@@ -382,7 +382,9 @@ const testDeleteBillingProjectFn = withUserToken(async ({ page, testUrl, token }
 
   await billingPage.visit()
 
-  // Assert that the errored billing project is visible
+  // Assert that the errored billing project is visible.
+  // The choice to use an errored billing project is historical in that previously
+  // only billing projects in an errored state could be deleted.
   await billingPage.assertText(erroredBillingProjectName)
 
   // Click the Delete Billing Project button

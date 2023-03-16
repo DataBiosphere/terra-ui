@@ -17,22 +17,20 @@ import { BillingProjectActions } from 'src/pages/billing/List/BillingProjectActi
 import { BillingProject } from 'src/pages/billing/models/BillingProject'
 
 
-const styles = {
-  projectListItem: (selected, hovered) => {
-    const listItem = {
-      ...Style.navList.itemContainer(selected),
-      ...Style.navList.item(selected),
-      ...(selected ? { backgroundColor: colors.dark(0.1) } : {}),
-      paddingLeft: '2rem'
+const listItemStyle = (selected, hovered) => {
+  const style = {
+    ...Style.navList.itemContainer(selected),
+    ...Style.navList.item(selected),
+    ...(selected ? { backgroundColor: colors.dark(0.1) } : {}),
+    paddingLeft: '2rem'
+  }
+  if (hovered) {
+    return {
+      ...style,
+      ...Style.navList.itemHover(selected)
     }
-    if (hovered) {
-      return {
-        ...listItem,
-        ...Style.navList.itemHover(selected)
-      }
-    } else {
-      return listItem
-    }
+  } else {
+    return style
   }
 }
 
@@ -45,17 +43,23 @@ export interface ProjectListItemProps {
 }
 
 export const ProjectListItem = (props: ProjectListItemProps) => {
+  const [hovered, setHovered] = useState<boolean>()
+
   const { projectName, roles, status, message, cloudPlatform } = props.project
+  const viewerRoles = _.intersection(roles, _.values(billingRoles))
+  const isOwner = _.includes(billingRoles.owner, roles)
+
   // Billing projects in an error status may have UNKNOWN for the cloudPlatform.
   const cloudContextIcon = isKnownCloudProvider(cloudPlatform) && span({ style: { marginRight: '0.5rem' } }, [
     h(CloudProviderIcon, { cloudProvider: cloudPlatform })
   ])
 
-  const [hovered, setHovered] = useState<boolean>()
+  const projectNameElement = span({ style: { wordBreak: 'break-all', verticalAlign: 'text-top' } }, [projectName])
 
+  const actionElement = isOwner && h(BillingProjectActions, { projectName: props.project.projectName, loadProjects: props.loadProjects })
 
-  const selectableProject = () => div({
-    style: { ...styles.projectListItem(props.isActive, hovered) },
+  const renderSelectableProject = () => div({
+    style: { ...listItemStyle(props.isActive, hovered) },
     onMouseEnter: () => setHovered(true),
     onMouseLeave: () => setHovered(false)
   }, [h(Clickable, {
@@ -63,13 +67,9 @@ export const ProjectListItem = (props: ProjectListItemProps) => {
     href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
     onClick: () => Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, extractBillingDetails(props.project)),
     'aria-current': props.isActive ? 'location' : false
-  }, [
-    cloudContextIcon,
-    span({ style: { wordBreak: 'break-all', verticalAlign: 'text-top' } }, [projectName])
-  ]),
-  isOwner && h(BillingProjectActions, { projectName: props.project.projectName, loadProjects: props.loadProjects })])
+  }, [cloudContextIcon, projectNameElement]), actionElement])
 
-  const unselectableProject = () => {
+  const renderUnselectableProject = () => {
     const isCreatingOrDeleting = props.isCreating || props.isDeleting
 
     const iconAndTooltip = h(Fragment, [
@@ -94,26 +94,18 @@ export const ProjectListItem = (props: ProjectListItemProps) => {
           div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [
             message || 'Error during project creation.'
           ])
-        ]),
-        isOwner && h(BillingProjectActions, {
-          projectName: props.project.projectName,
-          loadProjects: props.loadProjects
-        })
+        ]), actionElement
       ])
     ])
 
-    return div({ style: { ...styles.projectListItem(props.isActive, false), color: colors.dark() } }, [
-      cloudContextIcon,
-      span({ style: { wordBreak: 'break-all', verticalAlign: 'text-top' } }, [projectName]), iconAndTooltip
+    return div({ style: { ...listItemStyle(props.isActive, false), color: colors.dark() } }, [
+      cloudContextIcon, projectNameElement, iconAndTooltip
     ])
   }
 
-  const viewerRoles = _.intersection(roles, _.values(billingRoles))
-  const isOwner = _.includes(billingRoles.owner, roles)
-
   return div({ role: 'listitem' }, [
     !_.isEmpty(viewerRoles) && status === 'Ready' ?
-      selectableProject() :
-      unselectableProject()
+      renderSelectableProject() :
+      renderUnselectableProject()
   ])
 }
