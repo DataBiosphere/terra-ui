@@ -177,8 +177,8 @@ describe('useAnalysisExportState', () => {
       refresh: jest.fn()
     })
     asMockedFn(AnalysisProvider.listAnalyses).mockResolvedValue(([
-      { name: 'files/Analysis1.jpt' as AbsolutePath } as AnalysisFile,
-      { name: 'files/Analysis2.jpt' as AbsolutePath } as AnalysisFile,
+      { name: 'files/Analysis1.ipynb' as AbsolutePath } as AnalysisFile,
+      { name: 'files/Analysis2.ipynb' as AbsolutePath } as AnalysisFile,
     ]))
 
     const sourceWorkspaceInfo: Partial<WorkspaceInfo> = {
@@ -236,8 +236,8 @@ describe('useAnalysisExportState', () => {
       refresh: jest.fn()
     })
     asMockedFn(AnalysisProvider.listAnalyses).mockResolvedValue(([
-      { name: 'files/Analysis1.jpt' as AbsolutePath } as AnalysisFile,
-      { name: 'files/Analysis2.jpt' as AbsolutePath } as AnalysisFile,
+      { name: 'files/Analysis1.ipynb' as AbsolutePath } as AnalysisFile,
+      { name: 'files/Analysis2.ipynb' as AbsolutePath } as AnalysisFile,
     ]))
     // mock copy success
     asMockedFn(AnalysisProvider.copyAnalysis).mockResolvedValue(undefined)
@@ -302,8 +302,8 @@ describe('useAnalysisExportState', () => {
       refresh: jest.fn()
     })
     asMockedFn(AnalysisProvider.listAnalyses).mockResolvedValue(([
-      { name: 'files/Analysis1.jpt' as AbsolutePath } as AnalysisFile,
-      { name: 'files/Analysis2.jpt' as AbsolutePath } as AnalysisFile,
+      { name: 'files/Analysis1.ipynb' as AbsolutePath } as AnalysisFile,
+      { name: 'files/Analysis2.ipynb' as AbsolutePath } as AnalysisFile,
     ]))
     // mock copy success
     asMockedFn(AnalysisProvider.copyAnalysis).mockResolvedValue(undefined)
