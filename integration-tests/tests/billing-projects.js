@@ -38,12 +38,8 @@ const billingProjectsPage = (testPage, testUrl) => {
       return click(testPage, clickable({ text }))
     },
 
-    selectProjectMenu: async () => {
-      await click(testPage, clickable({ text: 'Billing project menu' }))
-    },
-
-    selectDeleteProjectMenuOption: async () => {
-      await click(testPage, clickable({ text: 'Delete Billing Project' }))
+    selectDeleteProjectMenuOption: async projectName => {
+      await click(testPage, clickable({ text: `Delete billing project ${projectName}` }))
     },
 
     confirmDeleteBillingProject: async () => {
@@ -389,11 +385,8 @@ const testDeleteBillingProjectFn = withUserToken(async ({ page, testUrl, token }
   // Assert that the errored billing project is visible
   await billingPage.assertText(erroredBillingProjectName)
 
-  // Click on the menu for that errored billing project
-  await billingPage.selectProjectMenu()
-
   // Click the Delete Billing Project button
-  await billingPage.selectDeleteProjectMenuOption()
+  await billingPage.selectDeleteProjectMenuOption(erroredBillingProjectName)
 
   // Assert that the confirmation modal is visible
   await billingPage.assertText('Are you sure you want to delete the billing project')

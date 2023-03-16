@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -21,10 +21,10 @@ export const BillingProjectActions = (props: BillingProjectActionsProps) => {
   const [deleting, setDeleting] = useState(false)
   const { workspaces, loading } = useWorkspaces()
 
-  const hasWorkspaces = useMemo(() => _.filter(
+  const hasWorkspaces = _.find(
     { namespace: props.projectName },
     _.map('workspace', workspaces)
-  ), [props.projectName, workspaces]).length > 0
+  ) !== undefined
 
   return div({ style: { marginLeft: 'auto' } }, [h(Link, {
     disabled: loading || hasWorkspaces,
