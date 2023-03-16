@@ -9,17 +9,16 @@ import { useCancellation } from 'src/libs/react-utils'
 import LoadedState from 'src/libs/type-utils/LoadedState'
 import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils'
 import { AnalysisFile } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
-import { getDisplayName } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
 import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
-export type LoadedAnalysisNames = LoadedState<string[], unknown>
+export type LoadedAnalysisFiles = LoadedState<AnalysisFile[], unknown>
 
 export interface AnalysisExportState {
   workspaces: WorkspaceWrapper[]
   selectWorkspace: (workspaceId: string) => void
   selectedWorkspace: WorkspaceInfo | null
-  existingAnalysisNames: LoadedAnalysisNames
+  existingAnalysisFiles: LoadedAnalysisFiles
   copyAnalysis: (newName: string) => void
   pendingCopy: LoadedState<true, unknown>
 }
@@ -29,16 +28,16 @@ export const errors = {
   noWorkspace: 'No workspace selected'
 }
 
-export const useAnalysesExportState = (sourceWorkspace: WorkspaceWrapper, printName: string, toolLabel: ToolLabel): AnalysisExportState => {
+export const useAnalysisExportState = (sourceWorkspace: WorkspaceWrapper, printName: string, toolLabel: ToolLabel): AnalysisExportState => {
   const { captureEvent } = useMetricsEvent()
   const signal = useCancellation()
   const workspaces: WorkspaceWrapper[] = useWorkspaces().workspaces
   const [selectedWorkspace, setSelectedWorkspace] = useState<WorkspaceWrapper | null>(null)
-  const [existingAnalysisNames, setExistingAnalysisNames] = useLoadedData<string[]>()
+  const [existingAnalysisFiles, setExistingAnalysisFiles] = useLoadedData<AnalysisFile[]>()
   const [pendingCopy, setPendingCopy] = useLoadedData<true>()
 
   const doSelectWorkspace = async (workspaceId: string): Promise<void> => {
-    await setExistingAnalysisNames(async () => {
+    await setExistingAnalysisFiles(async () => {
       const foundWorkspaceWrapper = _.find({ workspace: { workspaceId } }, workspaces)
       if (foundWorkspaceWrapper === undefined) {
         throw (Error(errors.badWorkspace))
@@ -47,8 +46,7 @@ export const useAnalysesExportState = (sourceWorkspace: WorkspaceWrapper, printN
       setSelectedWorkspace(foundWorkspaceWrapper)
 
       const selectedAnalyses: AnalysisFile[] = await AnalysisProvider.listAnalyses(chosenWorkspace, signal)
-      const names = _.map(({ name }) => getDisplayName(name), selectedAnalyses)
-      return names
+      return selectedAnalyses
     })
   }
 
@@ -80,7 +78,7 @@ export const useAnalysesExportState = (sourceWorkspace: WorkspaceWrapper, printN
       // fire and forget
       void doCopy(newName)
     },
-    existingAnalysisNames,
+    existingAnalysisFiles,
     pendingCopy
   })
 }

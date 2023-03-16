@@ -4,12 +4,32 @@ import { AnalysisProvider } from 'src/libs/ajax/analysis-providers/AnalysisProvi
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics'
 import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils'
 import { AnalysisFile } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
-import { AbsolutePath } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
+import { AbsolutePath, DisplayName, FileExtension, FileName } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
 import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
-import { errors, useAnalysesExportState } from './useAnalysisExportState'
+import { errors, useAnalysisExportState } from './useAnalysisExportState'
 
+
+const analysis1: AnalysisFile = {
+  name: 'myDir/Analysis1.ipynb' as AbsolutePath,
+  ext: 'ipynb' as FileExtension,
+  displayName: 'Analysis1.ipynb' as DisplayName,
+  fileName: 'Analysis1.ipynb' as FileName,
+  lastModified: 0,
+  tool: runtimeToolLabels.Jupyter,
+  cloudProvider: 'GCP',
+}
+
+const analysis2: AnalysisFile = {
+  name: 'myDir/Analysis2.ipynb' as AbsolutePath,
+  ext: 'ipynb' as FileExtension,
+  displayName: 'Analysis2.ipynb' as DisplayName,
+  fileName: 'Analysis2.ipynb' as FileName,
+  lastModified: 0,
+  tool: runtimeToolLabels.Jupyter,
+  cloudProvider: 'GCP',
+}
 
 type UseMetricsExports = typeof import('src/libs/ajax/metrics/useMetrics')
 jest.mock('src/libs/ajax/metrics/useMetrics', (): UseMetricsExports => ({
@@ -40,7 +60,7 @@ beforeEach(() => {
   asMockedFn(useMetricsEvent).mockImplementation(() => ({ captureEvent: useMetricsEventWatcher }))
 })
 
-describe('useAnalysesExportState', () => {
+describe('useAnalysisExportState', () => {
   it('handles initial state (GCP workspace)', () => {
     // Arrange
     asMockedFn(useWorkspaces).mockReturnValue({
@@ -58,7 +78,7 @@ describe('useAnalysesExportState', () => {
     }
 
     // Act
-    const renderedHook = renderHook(() => useAnalysesExportState(
+    const renderedHook = renderHook(() => useAnalysisExportState(
         sourceWorkspace as WorkspaceWrapper,
         'PrintName123',
         runtimeToolLabels.Jupyter))
@@ -67,10 +87,10 @@ describe('useAnalysesExportState', () => {
     const hookResult = renderedHook.result.current
     expect(hookResult.selectedWorkspace).toBe(null)
     expect(hookResult.workspaces).toEqual([])
-    const expectedExistingNames: typeof hookResult.existingAnalysisNames = {
+    const expectedExistingNames: typeof hookResult.existingAnalysisFiles = {
       status: 'None'
     }
-    expect(hookResult.existingAnalysisNames).toEqual(expectedExistingNames)
+    expect(hookResult.existingAnalysisFiles).toEqual(expectedExistingNames)
     const expectedPendingCopy: typeof hookResult.pendingCopy = {
       status: 'None'
     }
@@ -106,7 +126,7 @@ describe('useAnalysesExportState', () => {
     }
 
     // Act
-    const renderedHook = renderHook(() => useAnalysesExportState(
+    const renderedHook = renderHook(() => useAnalysisExportState(
         sourceWorkspace as WorkspaceWrapper,
         'PrintName123',
         runtimeToolLabels.Jupyter))
@@ -129,11 +149,11 @@ describe('useAnalysesExportState', () => {
       { workspace: workspace2 as WorkspaceInfo } as WorkspaceWrapper
     ]
     expect(hookResult.workspaces).toEqual(expectedWorkspaces)
-    const expectedExistingNames: typeof hookResult.existingAnalysisNames = {
+    const expectedExistingNames: typeof hookResult.existingAnalysisFiles = {
       status: 'Ready',
-      state: ['Analysis1', 'Analysis2']
+      state: [analysis1, analysis2]
     }
-    expect(hookResult.existingAnalysisNames).toEqual(expectedExistingNames)
+    expect(hookResult.existingAnalysisFiles).toEqual(expectedExistingNames)
     const expectedPendingCopy: typeof hookResult.pendingCopy = {
       status: 'None'
     }
@@ -170,7 +190,7 @@ describe('useAnalysesExportState', () => {
     }
 
     // Act
-    const renderedHook = renderHook(() => useAnalysesExportState(
+    const renderedHook = renderHook(() => useAnalysisExportState(
         sourceWorkspace as WorkspaceWrapper,
         'PrintName123',
         runtimeToolLabels.Jupyter))
@@ -188,12 +208,12 @@ describe('useAnalysesExportState', () => {
       { workspace: workspace2 as WorkspaceInfo } as WorkspaceWrapper
     ]
     expect(hookResult.workspaces).toEqual(expectedWorkspaces)
-    const expectedExistingNames: typeof hookResult.existingAnalysisNames = {
+    const expectedExistingNames: typeof hookResult.existingAnalysisFiles = {
       status: 'Error',
       state: null,
       error: Error(errors.badWorkspace)
     }
-    expect(hookResult.existingAnalysisNames).toEqual(expectedExistingNames)
+    expect(hookResult.existingAnalysisFiles).toEqual(expectedExistingNames)
     const expectedPendingCopy: typeof hookResult.pendingCopy = {
       status: 'None'
     }
@@ -230,7 +250,7 @@ describe('useAnalysesExportState', () => {
       workspace: sourceWorkspaceInfo as WorkspaceInfo
     }
     // get initial state to be selected
-    const renderedHook = renderHook(() => useAnalysesExportState(
+    const renderedHook = renderHook(() => useAnalysisExportState(
         sourceWorkspace as WorkspaceWrapper,
         'PrintName123',
         runtimeToolLabels.Jupyter))
@@ -296,7 +316,7 @@ describe('useAnalysesExportState', () => {
       workspace: sourceWorkspaceInfo as WorkspaceInfo
     }
     // get initial state (no selection)
-    const renderedHook = renderHook(() => useAnalysesExportState(
+    const renderedHook = renderHook(() => useAnalysisExportState(
         sourceWorkspace as WorkspaceWrapper,
         'PrintName123',
         runtimeToolLabels.Jupyter))

@@ -3,13 +3,25 @@ import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils'
 import {
-  useAnalysesExportState
+  useAnalysisExportState
 } from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal/useAnalysisExportState'
+import { AnalysisFile } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
+import { AbsolutePath, DisplayName, FileExtension, FileName } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
 import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn, setUpAutoSizerTesting } from 'src/testing/test-utils'
 
 import { ExportAnalysisModal } from './ExportAnalysisModal'
 
+
+const analysis1: AnalysisFile = {
+  name: 'myDir/Analysis1.ipynb' as AbsolutePath,
+  ext: 'ipynb' as FileExtension,
+  displayName: 'Analysis1.ipynb' as DisplayName,
+  fileName: 'Analysis1.ipynb' as FileName,
+  lastModified: 0,
+  tool: runtimeToolLabels.Jupyter,
+  cloudProvider: 'GCP',
+}
 
 type ModalExports = typeof import('src/components/Modal')
 jest.mock('src/components/Modal', (): ModalExports => {
@@ -20,7 +32,7 @@ jest.mock('src/components/Modal', (): ModalExports => {
 type ExportAnalysisModalStateExports = typeof import('./useAnalysisExportState')
 jest.mock('./useAnalysisExportState', (): ExportAnalysisModalStateExports => ({
   ...jest.requireActual('./useAnalysisExportState'),
-  useAnalysesExportState: jest.fn()
+  useAnalysisExportState: jest.fn()
 }))
 
 type UtilsExports = typeof import('src/libs/utils')
@@ -77,9 +89,9 @@ describe('ExportAnalysisModal', () => {
     const workspace: Partial<WorkspaceWrapper> = {
       workspace: workspaceInfo as WorkspaceInfo
     }
-    asMockedFn(useAnalysesExportState).mockReturnValue({
+    asMockedFn(useAnalysisExportState).mockReturnValue({
       workspaces: mockWorkspaces as WorkspaceWrapper[],
-      existingAnalysisNames: { status: 'None' },
+      existingAnalysisFiles: { status: 'None' },
       selectedWorkspace: null,
       pendingCopy: { status: 'None' },
       copyAnalysis: jest.fn(),
@@ -119,9 +131,9 @@ describe('ExportAnalysisModal', () => {
       workspace: workspaceInfo as WorkspaceInfo
     }
     const selectWorkspaceWatcher = jest.fn()
-    asMockedFn(useAnalysesExportState).mockReturnValue({
+    asMockedFn(useAnalysisExportState).mockReturnValue({
       workspaces: mockWorkspaces as WorkspaceWrapper[],
-      existingAnalysisNames: { status: 'None' },
+      existingAnalysisFiles: { status: 'None' },
       selectedWorkspace: null,
       pendingCopy: { status: 'None' },
       copyAnalysis: jest.fn(),
@@ -159,9 +171,9 @@ describe('ExportAnalysisModal', () => {
       workspace: workspaceInfo as WorkspaceInfo
     }
     const copyWatcher = jest.fn()
-    asMockedFn(useAnalysesExportState).mockReturnValue({
+    asMockedFn(useAnalysisExportState).mockReturnValue({
       workspaces: mockWorkspaces as WorkspaceWrapper[],
-      existingAnalysisNames: { status: 'None' },
+      existingAnalysisFiles: { status: 'None' },
       selectedWorkspace: (mockWorkspaces[1] as WorkspaceWrapper).workspace,
       pendingCopy: { status: 'None' },
       copyAnalysis: copyWatcher,
@@ -196,9 +208,9 @@ describe('ExportAnalysisModal', () => {
       workspace: workspaceInfo as WorkspaceInfo
     }
     const copyWatcher = jest.fn()
-    asMockedFn(useAnalysesExportState).mockReturnValue({
+    asMockedFn(useAnalysisExportState).mockReturnValue({
       workspaces: mockWorkspaces as WorkspaceWrapper[],
-      existingAnalysisNames: { status: 'None' },
+      existingAnalysisFiles: { status: 'None' },
       selectedWorkspace: (mockWorkspaces[1] as WorkspaceWrapper).workspace,
       pendingCopy: { status: 'Loading', state: null },
       copyAnalysis: copyWatcher,
@@ -226,9 +238,9 @@ describe('ExportAnalysisModal', () => {
       workspace: workspaceInfo as WorkspaceInfo
     }
     const copyWatcher = jest.fn()
-    asMockedFn(useAnalysesExportState).mockReturnValue({
+    asMockedFn(useAnalysisExportState).mockReturnValue({
       workspaces: mockWorkspaces as WorkspaceWrapper[],
-      existingAnalysisNames: { status: 'None' },
+      existingAnalysisFiles: { status: 'None' },
       selectedWorkspace: (mockWorkspaces[1] as WorkspaceWrapper).workspace,
       pendingCopy: { status: 'Ready', state: true },
       copyAnalysis: copyWatcher,
@@ -268,9 +280,9 @@ describe('ExportAnalysisModal', () => {
       workspace: workspaceInfo as WorkspaceInfo
     }
     const copyWatcher = jest.fn()
-    asMockedFn(useAnalysesExportState).mockReturnValue({
+    asMockedFn(useAnalysisExportState).mockReturnValue({
       workspaces: mockWorkspaces as WorkspaceWrapper[],
-      existingAnalysisNames: { status: 'Ready', state: ['existing123'] },
+      existingAnalysisFiles: { status: 'Ready', state: [analysis1] },
       selectedWorkspace: (mockWorkspaces[1] as WorkspaceWrapper).workspace,
       pendingCopy: { status: 'None' },
       copyAnalysis: copyWatcher,
@@ -308,9 +320,9 @@ describe('ExportAnalysisModal', () => {
     const workspace: Partial<WorkspaceWrapper> = {
       workspace: workspaceInfo as WorkspaceInfo
     }
-    asMockedFn(useAnalysesExportState).mockReturnValue({
+    asMockedFn(useAnalysisExportState).mockReturnValue({
       workspaces: mockWorkspaces as WorkspaceWrapper[],
-      existingAnalysisNames: { status: 'None' },
+      existingAnalysisFiles: { status: 'None' },
       selectedWorkspace: (mockWorkspaces[1] as WorkspaceWrapper).workspace,
       pendingCopy: { status: 'Error', state: null, error: Error('BOOM!') },
       copyAnalysis: jest.fn(),

@@ -9,9 +9,9 @@ import { FormLabel } from 'src/libs/forms'
 import { goToPath as navToPath } from 'src/libs/nav'
 import { isValidWsExportTarget, summarizeErrors } from 'src/libs/utils'
 import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils'
-import { useAnalysesExportState } from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal/useAnalysisExportState'
+import { useAnalysisExportState } from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal/useAnalysisExportState'
 import { analysisLauncherTabName, analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
-import { getAnalysisFileExtension, stripExtension } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
+import { getAnalysisFileExtension, getDisplayName, stripExtension } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
 import { analysisNameInput, analysisNameValidator } from 'src/pages/workspaces/workspace/analysis/utils/notebook-utils'
 import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import validate from 'validate.js'
@@ -31,12 +31,12 @@ export const ExportAnalysisModal: React.FC<ExportAnalysisModalProps> = ({ fromLa
   const unique = (prefix: string): string => `${prefix}-${uniqueId}`
   const [newName, setNewName] = useState<string>(stripExtension(printName))
   const {
-    workspaces, selectedWorkspace, existingAnalysisNames, pendingCopy, selectWorkspace, copyAnalysis
-  } = useAnalysesExportState(workspace, printName, toolLabel)
+    workspaces, selectedWorkspace, existingAnalysisFiles, pendingCopy, selectWorkspace, copyAnalysis
+  } = useAnalysisExportState(workspace, printName, toolLabel)
 
   const selectedWorkspaceId = selectedWorkspace ? selectedWorkspace.workspaceId : undefined
   // TODO: better loading/error handling on existing names?
-  const existingNames = existingAnalysisNames.status === 'Ready' ? existingAnalysisNames.state : []
+  const existingNames = existingAnalysisFiles.status === 'Ready' ? _.map(({ name }) => getDisplayName(name), existingAnalysisFiles.state) : []
   const copying = pendingCopy.status === 'Loading'
   const copiedToWorkspace: WorkspaceInfo | null = (pendingCopy.status === 'Ready' && selectedWorkspace) ?
     selectedWorkspace :
