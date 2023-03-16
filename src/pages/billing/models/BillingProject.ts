@@ -12,7 +12,7 @@ export interface BillingProject {
   projectName: string
   invalidBillingAccount: boolean
   roles: BillingRole[]
-  status: string
+  status: 'Creating' | 'Ready' | 'Error' | 'Deleting' | 'DeletionFailed' | 'AddingToPerimeter' | 'CreatingLandingZone'
   message?: string
 }
 

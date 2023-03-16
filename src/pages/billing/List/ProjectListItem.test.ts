@@ -89,6 +89,24 @@ describe('ProjectListItem', () => {
     expect(await axe(result.container)).toHaveNoViolations()
   })
 
+  it('does not render a cloud platform icon if platform is unknown', async () => {
+    // Arrange
+    projectListItemProps.isActive = false
+    projectListItemProps.project.cloudPlatform = 'UNKNOWN'
+
+    // Act
+    const result = render(h(ProjectListItem, projectListItemProps), { container: document.body.appendChild(listRoot) })
+
+    // Assert
+    screen.getByLabelText(`Delete billing project ${billingProject.projectName}`)
+    screen.getByRole('link')
+
+    expect(screen.queryByTitle('Google Cloud Platform')).toBeNull()
+    expect(screen.queryByTitle('Microsoft Azure')).toBeNull()
+
+    expect(await axe(result.container)).toHaveNoViolations()
+  })
+
   it('does not render Delete button or link for creating workspaces', async () => {
     // Arrange
     projectListItemProps.project.status = 'CreatingLandingZone'
@@ -129,7 +147,7 @@ describe('ProjectListItem', () => {
     expect(await axe(result.container)).toHaveNoViolations()
   })
 
-  it('renders Delete button and error message for errored billing projects', async () => {
+  it('renders Delete button and error message for errored billing project creation', async () => {
     // Arrange
     projectListItemProps.project.status = 'Error'
     projectListItemProps.project.message = 'Test error message'
@@ -148,6 +166,28 @@ describe('ProjectListItem', () => {
     const errorInfo = screen.getByLabelText('More info')
     await userEvent.click(errorInfo)
     screen.getByText('Test error message')
+
+    expect(await axe(result.container)).toHaveNoViolations()
+  })
+
+  it('renders Delete button and error message for errored billing project deletion', async () => {
+    // Arrange
+    projectListItemProps.project.status = 'DeletionFailed'
+    projectListItemProps.isActive = false
+
+    // Act
+    const result = render(h(ProjectListItem, projectListItemProps), { container: document.body.appendChild(listRoot) })
+
+    // Assert
+    screen.getByLabelText(`Delete billing project ${billingProject.projectName}`)
+    screen.getByTitle('Google Cloud Platform')
+    screen.getByText(billingProject.projectName)
+
+    expect(screen.queryByRole('link')).toBeNull()
+
+    const errorInfo = screen.getByLabelText('More info')
+    await userEvent.click(errorInfo)
+    screen.getByText('Error during billing project deletion.')
 
     expect(await axe(result.container)).toHaveNoViolations()
   })

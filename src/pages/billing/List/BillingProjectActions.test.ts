@@ -92,14 +92,7 @@ describe('BillingProjectActions', () => {
   })
 
   it('renders Delete as enabled if project has no workspaces', () => {
-    // Arrange
-    asMockedFn(useWorkspaces).mockReturnValue({
-      workspaces: [
-        { workspace: { namespace: 'aDifferentProject', name: 'testWorkspaces', workspaceId: '6771d2c8-cd58-47da-a54c-6cdafacc4175' }, accessLevel: 'WRITER' },
-      ] as WorkspaceWrapper[],
-      refresh: () => Promise.resolve(),
-      loading: false,
-    })
+    // Arrange -- common setup implements mock with no workspaces for project
 
     // Act
     render(h(BillingProjectActions, { projectName, loadProjects: jest.fn() }))

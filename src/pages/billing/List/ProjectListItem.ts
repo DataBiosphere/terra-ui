@@ -71,6 +71,7 @@ export const ProjectListItem = (props: ProjectListItemProps) => {
 
   const renderUnselectableProject = () => {
     const isCreatingOrDeleting = props.isCreating || props.isDeleting
+    const isErrorStatus = _.includes(status, ['Error', 'DeletionFailed'])
 
     const iconAndTooltip = h(Fragment, [
       isCreatingOrDeleting && h(Fragment, [
@@ -78,7 +79,6 @@ export const ProjectListItem = (props: ProjectListItemProps) => {
           size: 14,
           style: {
             color: props.isCreating ? colors.success() : colors.warning(),
-            overflow: 'visible',
             animation: 'rotation 2s infinite linear',
             marginLeft: 'auto',
             marginRight: '0.25rem'
@@ -88,11 +88,11 @@ export const ProjectListItem = (props: ProjectListItemProps) => {
           [props.isCreating ? 'Creating' : 'Deleting']
         )
       ]),
-      status === 'Error' && h(Fragment, [
+      isErrorStatus && h(Fragment, [
         // @ts-ignore
         h(InfoBox, { style: { color: colors.danger(), marginLeft: '0.5rem' }, side: 'right' }, [
           div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [
-            message || 'Error during project creation.'
+            message || `Error during billing project ${status === 'DeletionFailed' ? 'deletion' : 'creation'}.`
           ])
         ]), actionElement
       ])
