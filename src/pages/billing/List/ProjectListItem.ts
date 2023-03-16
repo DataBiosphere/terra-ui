@@ -80,7 +80,7 @@ export const ProjectListItem = (props: ProjectListItemProps) => {
             color: props.isCreating ? colors.success() : colors.warning(),
             overflow: 'visible',
             animation: 'rotation 2s infinite linear',
-            marginLeft: '0.75rem',
+            marginLeft: 'auto',
             marginRight: '0.25rem'
           }
         }),

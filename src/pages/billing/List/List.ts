@@ -140,7 +140,7 @@ export const List = (props: ListProps) => {
 
   // Render
   const breadcrumbs = 'Billing > Billing Project'
-  const billingProjectListWidth = 330
+  const billingProjectListWidth = 350
   const [projectsOwned, projectsShared] = _.partition(
     ({ roles }) => _.includes(billingRoles.owner, roles),
     billingProjects

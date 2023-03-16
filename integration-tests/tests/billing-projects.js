@@ -43,7 +43,7 @@ const billingProjectsPage = (testPage, testUrl) => {
     },
 
     confirmDeleteBillingProject: async () => {
-      await click(testPage, clickable({ textContains: 'Delete' }))
+      await click(testPage, clickable({ text: 'Delete billing project' }))
     },
 
     setSpendReportDays: async days => await select(testPage, 'Date range', `Last ${days} days`),
