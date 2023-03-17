@@ -44,6 +44,9 @@ export const AzureComputeModalBase = ({
   )(async () => {
     const currentRuntime = getCurrentRuntime(runtimes)
     const runtimeDetails = currentRuntime ? await Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).details() : null
+    Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
+      existingConfig: !!currentRuntime, ...extractWorkspaceDetails(workspace.workspace)
+    })
     setCurrentRuntimeDetails(runtimeDetails)
     setComputeConfig({
       machineType: runtimeDetails?.runtimeConfig?.machineType || defaultAzureMachineType,
