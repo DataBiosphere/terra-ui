@@ -3,7 +3,7 @@ import _ from 'lodash/fp'
 import { App } from 'src/libs/ajax/leonardo/models/app-models'
 import {
   DecoratedPersistentDisk,
-  DiskType,
+  GoogleDiskType,
   PdType,
   pdTypes,
   PersistentDisk
@@ -15,7 +15,7 @@ import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/utils
 import { AppToolLabel, appTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
-export const pdTypeFromDiskType = (type: DiskType): PdType => Utils.switchCase(type,
+export const pdTypeFromDiskType = (type: GoogleDiskType): PdType => Utils.switchCase(type,
   [pdTypes.standard.label, () => pdTypes.standard],
   [pdTypes.balanced.label, () => pdTypes.balanced],
   [pdTypes.ssd.label, () => pdTypes.ssd],

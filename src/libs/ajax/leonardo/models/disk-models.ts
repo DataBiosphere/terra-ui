@@ -1,12 +1,15 @@
 import { AuditInfo, CloudContext, LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models'
 
 
-export type DiskType = 'pd-standard' | 'pd-ssd' | 'pd-balanced'
+export type AzureDiskType = 'TBD'
+
+export type GoogleDiskType = 'pd-standard' | 'pd-ssd' | 'pd-balanced'
+
+export type DiskType = GoogleDiskType | AzureDiskType
 
 export interface DiskConfig {
   name: string
   size: number
-  //TODO: add type when we type disks, IA-4095
   diskType: DiskType
   blockSize: number
 }
@@ -37,7 +40,7 @@ export interface GetDiskItem {
   status: LeoDiskStatus
   auditInfo: AuditInfo
   size: number //In GB
-  diskType: DiskType
+  diskType: GoogleDiskType
   blockSize: number
   labels: LeoResourceLabels
   formattedBy?: string
@@ -51,7 +54,7 @@ export interface ListDiskItem {
   status: LeoDiskStatus
   auditInfo: AuditInfo
   size: number //In GB
-  diskType: DiskType
+  diskType: GoogleDiskType
   blockSize: number
   labels: LeoResourceLabels
 }
@@ -59,7 +62,7 @@ export type PersistentDisk = ListDiskItem | GetDiskItem
 export type AppDataDisk = PersistentDisk
 
 export interface PdType {
-  label: DiskType
+  label: GoogleDiskType
   displayName: string
   regionToPricesName: string
 }
