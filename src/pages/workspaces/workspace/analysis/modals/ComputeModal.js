@@ -637,8 +637,10 @@ export const ComputeModalBase = ({
       existingRuntime_cpus: existingRuntime && existingRuntimeCpus,
       existingRuntime_memory: existingRuntime && existingRuntimeMemory,
       ..._.mapKeys(key => `desiredPersistentDisk_${key}`, desiredPersistentDisk),
+      desiredPersistentDisk_diskType: desiredPersistentDisk.diskType.displayName,
       desiredPersistentDisk_costPerMonth: (desiredPersistentDisk && getPersistentDiskCostMonthly(getPendingDisk(), computeConfig.computeRegion)),
       ..._.mapKeys(key => `existingPersistentDisk_${key}`, existingPersistentDisk),
+      existingPersistentDisk_diskType: existingPersistentDisk.diskType.displayName,
       isDefaultConfig: !currentRuntimeDetails,
       selectedLeoImage,
       isCustomImage

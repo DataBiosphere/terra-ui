@@ -197,16 +197,19 @@ export const AzureComputeModalBase = ({
   const sendCloudEnvironmentMetrics = () => {
     const metricsEvent = Utils.cond(
       [(viewMode === 'deleteEnvironment'), () => 'cloudEnvironmentDelete'],
+      //[(!!existingRuntime), () => 'cloudEnvironmentUpdate'], TODO: When update is available, include in metrics
       () => 'cloudEnvironmentCreate'
     )
 
+    //TODO: When update is available include existingRuntime in metrics.
     Ajax().Metrics.captureEvent(Events[metricsEvent], {
       ...extractWorkspaceDetails(workspace),
-      region: computeConfig.region,
-      machineSize: computeConfig.machineType,
-      saturnWorkspaceNamespace: namespace,
-      saturnWorkspaceName: workspaceName,
-      diskSize: computeConfig.diskSize,
+      ..._.mapKeys(key => `desiredRuntime_${key}`, computeConfig),
+      desiredRuntime_region: computeConfig.region,
+      desiredRuntime_machineType: computeConfig.machineType,
+      desiredPersistentDisk_size: computeConfig.diskSize,
+      desiredPersistentDisk_type: 'Standard', //TODO: Hard coded - we currently don't send disk type.
+      desiredPersistentDisk_costPerMonth: getAzureDiskCostEstimate(computeConfig)
     })
   }
 
