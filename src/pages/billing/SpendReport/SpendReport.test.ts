@@ -132,6 +132,32 @@ describe('SpendReport', () => {
     expect(screen.queryByText(otherCostMessaging)).toBeNull()
   })
 
+  it('displays cost information', async () => {
+    //Arrange
+    const getSpendReport = jest.fn()
+    asMockedFn(Ajax).mockImplementation(() => ({
+      Billing: { getSpendReport } as Partial<AjaxContract['Billing']>
+    } as Partial<AjaxContract> as AjaxContract))
+    getSpendReport.mockResolvedValue(createSpendReportResult('1110'))
+
+    // Act
+    await act(async () => {
+      await render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty' }))
+    })
+
+    // Assert
+    await waitFor(() => {
+      expect(screen.getByText(/\$89.00 in other infrastructure/i)).toBeInTheDocument()
+    })
+    expect(getSpendReport).toHaveBeenCalledTimes(1)
+    expect(screen.getByTestId('spend').textContent).toBe('$1,110.00*')
+    expect(screen.getByTestId('compute').textContent).toBe('$999.00')
+    expect(screen.getByTestId('storage').textContent).toBe('$22.00')
+
+    // Highcharts content is very minimal when rendered in the unit test. Testing of "most expensive workspaces"
+    // is in the integration test. Accessibility is also tested in the integration test.
+  })
+
   it('fetches reports based on selected date range, if active', async () => {
     //Arrange
     const getSpendReport = jest.fn()
@@ -158,32 +184,6 @@ describe('SpendReport', () => {
     expect(getSpendReport).toHaveBeenCalledTimes(2)
     expect(getSpendReport).toHaveBeenNthCalledWith(1, { billingProjectName: 'thrifty', endDate: '2022-04-01', startDate: '2022-03-02' })
     expect(getSpendReport).toHaveBeenNthCalledWith(2, { billingProjectName: 'thrifty', endDate: '2022-04-01', startDate: '2022-01-01' })
-  })
-
-  it('displays cost information', async () => {
-    //Arrange
-    const getSpendReport = jest.fn()
-    asMockedFn(Ajax).mockImplementation(() => ({
-      Billing: { getSpendReport } as Partial<AjaxContract['Billing']>
-    } as Partial<AjaxContract> as AjaxContract))
-    getSpendReport.mockResolvedValue(createSpendReportResult('1110'))
-
-    // Act
-    await act(async () => {
-      await render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty' }))
-    })
-
-    // Assert
-    await waitFor(() => {
-      expect(screen.getByText(/\$89.00 in other infrastructure/i)).toBeInTheDocument()
-    })
-    expect(getSpendReport).toHaveBeenCalledTimes(1)
-    expect(screen.getByTestId('spend').textContent).toBe('$1,110.00*')
-    expect(screen.getByTestId('compute').textContent).toBe('$999.00')
-    expect(screen.getByTestId('storage').textContent).toBe('$22.00')
-
-    // Highcharts content is very minimal when rendered in the unit test. Testing of "most expensive workspaces"
-    // is in the integration test. Accessibility is also tested in the integration test.
   })
 
   it('shows an error if no cost information exists', async () => {
