@@ -49,9 +49,7 @@ describe('ProjectListItem', () => {
     projectListItemProps = {
       project: billingProject,
       loadProjects: jest.fn(),
-      isActive: true,
-      isDeleting: false,
-      isCreating: false
+      isActive: true
     }
   })
 
@@ -111,7 +109,6 @@ describe('ProjectListItem', () => {
     // Arrange
     projectListItemProps.project.status = 'CreatingLandingZone'
     projectListItemProps.isActive = false
-    projectListItemProps.isCreating = true
 
     // Act
     const result = render(h(ProjectListItem, projectListItemProps), { container: document.body.appendChild(listRoot) })
@@ -131,7 +128,6 @@ describe('ProjectListItem', () => {
     // Arrange
     projectListItemProps.project.status = 'Deleting'
     projectListItemProps.isActive = false
-    projectListItemProps.isDeleting = true
 
     // Act
     const result = render(h(ProjectListItem, projectListItemProps), { container: document.body.appendChild(listRoot) })

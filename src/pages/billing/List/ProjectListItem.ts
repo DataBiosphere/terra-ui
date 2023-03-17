@@ -14,7 +14,7 @@ import * as Style from 'src/libs/style'
 import { isKnownCloudProvider } from 'src/libs/workspace-utils'
 import { billingRoles } from 'src/pages/billing/billing-utils'
 import { BillingProjectActions } from 'src/pages/billing/List/BillingProjectActions'
-import { BillingProject } from 'src/pages/billing/models/BillingProject'
+import { BillingProject, isCreating, isDeleting, isErrored } from 'src/pages/billing/models/BillingProject'
 
 
 const listItemStyle = (selected, hovered) => {
@@ -38,8 +38,6 @@ export interface ProjectListItemProps {
   project: BillingProject
   loadProjects: () => void
   isActive: boolean
-  isCreating: boolean
-  isDeleting: boolean
 }
 
 export const ProjectListItem = (props: ProjectListItemProps) => {
@@ -54,7 +52,7 @@ export const ProjectListItem = (props: ProjectListItemProps) => {
     h(CloudProviderIcon, { cloudProvider: cloudPlatform })
   ])
 
-  const projectNameElement = span({ style: { wordBreak: 'break-all', verticalAlign: 'text-top' } }, [projectName])
+  const projectNameElement = span({ style: { wordBreak: 'break-all' } }, [projectName])
 
   const actionElement = isOwner && h(BillingProjectActions, { projectName: props.project.projectName, loadProjects: props.loadProjects })
 
@@ -63,32 +61,31 @@ export const ProjectListItem = (props: ProjectListItemProps) => {
     onMouseEnter: () => setHovered(true),
     onMouseLeave: () => setHovered(false)
   }, [h(Clickable, {
-    style: { color: props.isActive ? colors.accent(1.1) : colors.accent() },
+    style: { display: 'flex', alignItems: 'center', color: props.isActive ? colors.accent(1.1) : colors.accent() },
     href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
     onClick: () => Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, extractBillingDetails(props.project)),
     'aria-current': props.isActive ? 'location' : false
   }, [cloudContextIcon, projectNameElement]), actionElement])
 
   const renderUnselectableProject = () => {
-    const isCreatingOrDeleting = props.isCreating || props.isDeleting
-    const isErrorStatus = _.includes(status, ['Error', 'DeletionFailed'])
+    const isCreatingOrDeleting = isCreating(props.project) || isDeleting(props.project)
 
     const iconAndTooltip = h(Fragment, [
       isCreatingOrDeleting && h(Fragment, [
         icon('syncAlt', {
           size: 14,
           style: {
-            color: props.isCreating ? colors.success() : colors.warning(),
+            color: isCreating(props.project) ? colors.success() : colors.warning(),
             animation: 'rotation 2s infinite linear',
             marginLeft: 'auto',
             marginRight: '0.25rem'
           }
         }),
-        span({ style: { fontSize: 12, fontStyle: 'italic' } },
-          [props.isCreating ? 'Creating' : 'Deleting']
+        span({ style: { paddingLeft: '0.25rem', fontSize: 12, fontStyle: 'italic' } },
+          [isCreating(props.project) ? 'Creating' : 'Deleting']
         )
       ]),
-      isErrorStatus && h(Fragment, [
+      isErrored(props.project) && h(Fragment, [
         // @ts-ignore
         h(InfoBox, { style: { color: colors.danger(), marginLeft: '0.5rem' }, side: 'right' }, [
           div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [

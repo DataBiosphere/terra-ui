@@ -22,16 +22,11 @@ import { billingRoles } from 'src/pages/billing/billing-utils'
 import { CreateBillingProjectControl } from 'src/pages/billing/List/CreateBillingProjectControl'
 import { GCPNewBillingProjectModal } from 'src/pages/billing/List/GCPNewBillingProjectModal'
 import { ProjectListItem, ProjectListItemProps } from 'src/pages/billing/List/ProjectListItem'
-import { BillingProject } from 'src/pages/billing/models/BillingProject'
+import { BillingProject, isCreating, isDeleting } from 'src/pages/billing/models/BillingProject'
 import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAccount'
 import { AzureBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureBillingProjectWizard'
 import { GCPBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/GCPBillingProjectWizard'
 import ProjectDetail from 'src/pages/billing/Project'
-
-
-const isCreatingStatus = status => _.includes(status, ['Creating', 'CreatingLandingZone'])
-const isDeletingStatus = status => _.includes(status, ['Deleting'])
-const isSyncingStatus = status => isCreatingStatus(status) || isDeletingStatus(status)
 
 
 const BillingProjectSubheader = ({ title, children }) => h(Collapse, {
@@ -121,11 +116,11 @@ export const List = (props: ListProps) => {
   })
 
   useEffect(() => {
-    const anyProjectsSyncing = _.some(({ status }) => isSyncingStatus(status), billingProjects)
+    const projectsCreatingOrDeleting = _.some(project => isCreating(project) || isDeleting(project), billingProjects)
 
-    if (anyProjectsSyncing && !interval.current) {
-      interval.current = window.setInterval(loadProjects, 20000)
-    } else if (!anyProjectsSyncing && interval.current) {
+    if (projectsCreatingOrDeleting && !interval.current) {
+      interval.current = window.setInterval(loadProjects, 30000)
+    } else if (!projectsCreatingOrDeleting && interval.current) {
       clearInterval(interval.current)
       interval.current = undefined
     }
@@ -151,10 +146,7 @@ export const List = (props: ListProps) => {
 
   const makeProjectListItemProps = (project: BillingProject) : ProjectListItemProps => {
     return {
-      project, loadProjects,
-      isActive: !!selectedName && project.projectName === selectedName,
-      isCreating: isCreatingStatus(project.status),
-      isDeleting: isDeletingStatus(project.status)
+      project, loadProjects, isActive: !!selectedName && project.projectName === selectedName
     }
   }
 
