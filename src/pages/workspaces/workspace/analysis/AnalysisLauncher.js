@@ -347,7 +347,7 @@ const PreviewHeader = ({
             if (runtimeStatus === 'Running') {
               Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio', cloudPlatform })
               Ajax().Metrics.captureEvent(Events.analysisLaunch,
-                { origin: 'analysisLauncher', source: runtimeToolLabels.RStudio, application: runtimeToolLabels.RStudio, workspaceName: name, namespace, cloudPlatform })
+                { origin: 'analysisLauncher', tool: runtimeToolLabels.RStudio, workspaceName: name, namespace, cloudPlatform })
             }
           }
         },
@@ -519,7 +519,7 @@ const JupyterFrameManager = ({ onClose, frameRef, details = {} }) => {
     Ajax()
       .Metrics
       .captureEvent(Events.cloudEnvironmentLaunch,
-        { source: runtimeToolLabels.Jupyter, application: runtimeToolLabels.Jupyter, workspaceName: details.name, namespace: details.namespace, cloudPlatform: details.cloudPlatform })
+        { tool: runtimeToolLabels.Jupyter, workspaceName: details.name, namespace: details.namespace, cloudPlatform: details.cloudPlatform })
 
 
     const isSaved = Utils.atom(true)
