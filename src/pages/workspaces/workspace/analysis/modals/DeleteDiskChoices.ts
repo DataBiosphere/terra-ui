@@ -81,7 +81,7 @@ export const DeleteEnvironment = ({ id, runtime, persistentDisk, deleteDiskSelec
     }),
     div({ style: { lineHeight: '1.5rem' } }, [
       Utils.cond(
-        [runtime && persistentDisk && !runtime.persistentDiskAttached, () => {
+        [runtime && persistentDisk && persistentDisk.id !== runtime?.runtimeConfig?.persistentDiskId, () => {
           return h(Fragment, [
             h(RadioBlock, {
               name: 'delete-persistent-disk',
