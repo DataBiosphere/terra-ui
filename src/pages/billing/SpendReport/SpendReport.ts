@@ -5,11 +5,13 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import {
   customSpinnerOverlay,
   IdContainer,
+  Link,
   Select
 } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
 import { FormLabel } from 'src/libs/forms'
 import { useCancellation } from 'src/libs/react-utils'
+import * as Utils from 'src/libs/utils'
 import { CloudPlatform } from 'src/pages/billing/models/BillingProject'
 import { CostCard } from 'src/pages/billing/SpendReport/CostCard'
 import { ErrorAlert } from 'src/pages/billing/SpendReport/ErrorAlert'
@@ -18,14 +20,17 @@ import { ErrorAlert } from 'src/pages/billing/SpendReport/ErrorAlert'
 const LazyChart = lazy(() => import('src/components/Chart'))
 const maxWorkspacesInChart = 10
 
-const OtherMessaging = ({ cost }) => {
+const OtherMessaging = ({ cost, cloudPlatform }) => {
   const msg = cost !== null ?
     `Total spend includes ${cost} in other infrastructure or query costs related to the general operations of Terra.` :
-    'Total spend includes infrastructure or query costs related to the general operations of Terra'
+    'Total spend includes infrastructure or query costs related to the general operations of Terra.'
   return div({ 'aria-live': cost !== null ? 'polite' : 'off', 'aria-atomic': true }, [
     span({ 'aria-hidden': true }, ['*']),
     '',
-    msg
+    msg,
+    cloudPlatform !== 'AZURE' ? '' : [' See ',
+      h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/12029087819291-Overview-Costs-and-billing-in-Terra-on-Azure', ...Utils.newTabLinkProps }, ['our documentation']),
+      ' to learn more about these costs.']
   ])
 }
 
@@ -270,7 +275,10 @@ export const SpendReport = (props: SpendReportProps) => {
           )
         ]
       ),
-      h(OtherMessaging, { cost: isProjectCostReady ? projectCost['other'] : null }),
+      h(OtherMessaging, {
+        cost: isProjectCostReady ? projectCost['other'] : null,
+        cloudPlatform: props.billingProjectCloudPlatform
+      }),
       includePerWorkspaceCosts && costPerWorkspace.numWorkspaces > 0 && div(
         {
           style: { minWidth: 500, marginTop: '1rem' }
