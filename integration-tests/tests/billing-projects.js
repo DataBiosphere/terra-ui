@@ -273,10 +273,19 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   // Check that the Spend report tab is not visible on this page
   await billingPage.assertTextNotFound('Spend report')
 
-  // Select an Azure billing project and check that neither the Spend report tab nor the spend report configuration is visible
+  // Select an Azure billing project and check that the Spend Report tab is accessible but displaying only total cost information
   await billingPage.visit()
   await billingPage.selectProject(azureBillingProjectName, AZURE)
-  await billingPage.assertTextNotFound('Spend report')
+  await billingPage.selectSpendReport()
+  // Title and cost are in different elements, but check both in same text assert to verify that category is correctly associated to its cost.
+  await billingPage.assertText('Total spend$1,110.17')
+  await billingPage.assertText('Total compute$999.00')
+  await billingPage.assertText('Total storage$22.00')
+  await billingPage.assertText('Total spend includes $89.00 in other infrastructure or query costs related to the general operations of Terra. See our documentation to learn more about these costs.')
+  // Verify that per-workspace costs are not included
+  await billingPage.assertTextNotFound('Spend By Workspace')
+  await billingPage.assertTextNotFound('Top 10 Spending Workspaces')
+  // Verify spend report configuration is not visible
   await billingPage.assertTextNotFound('View billing account')
 
   // Check accessibility of initial view.
