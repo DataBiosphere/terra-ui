@@ -9,9 +9,8 @@ import { RadioBlock, SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpRStudio } f
 import { getPersistentDiskCostMonthly } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 
 
-export const DeleteDiskChoices = ({ existingEnvironmentConfig, deleteDiskSelected, setDeleteDiskSelected }:
-    { existingEnvironmentConfig: any; deleteDiskSelected:boolean; setDeleteDiskSelected:(p1:boolean)=>void }) => {
-  const { runtime, persistentDisk } = existingEnvironmentConfig
+export const DeleteDiskChoices = ({ runtime, persistentDisk, deleteDiskSelected, setDeleteDiskSelected }:
+    { runtime:any; persistentDisk: any; deleteDiskSelected:boolean; setDeleteDiskSelected:(p1:boolean)=>void }) => {
   const getCurrentMountDirectory = () => {
     const rstudioMountPoint = '/home/rstudio'
     const jupyterMountPoint = '/home/jupyter'
@@ -65,9 +64,8 @@ export const DeleteDiskChoices = ({ existingEnvironmentConfig, deleteDiskSelecte
 }
 
 
-export const DeleteEnvironment = ({ id, existingEnvironmentConfig, deleteDiskSelected, setDeleteDiskSelected, setViewMode, renderActionButton, hideCloseButton, onDismiss }:
-{ id:string; existingEnvironmentConfig:any; deleteDiskSelected:boolean; setDeleteDiskSelected:(p1:boolean)=>void; setViewMode: (value: React.SetStateAction<string|undefined>) => void; renderActionButton: ()=> React.ReactElement<any, any>; hideCloseButton:boolean; onDismiss: React.MouseEventHandler<Element>}) => {
-  const { runtime, persistentDisk } = existingEnvironmentConfig
+export const DeleteEnvironment = ({ id, runtime, persistentDisk, deleteDiskSelected, setDeleteDiskSelected, setViewMode, renderActionButton, hideCloseButton, onDismiss }:
+{ id:string; runtime:any; persistentDisk:any; deleteDiskSelected:boolean; setDeleteDiskSelected:(p1:boolean)=>void; setViewMode: (value: React.SetStateAction<string|undefined>) => void; renderActionButton: ()=> React.ReactElement<any, any>; hideCloseButton:boolean; onDismiss: React.MouseEventHandler<Element>}) => {
   return (div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
     h(TitleBar, {
       id,
@@ -113,14 +111,17 @@ export const DeleteEnvironment = ({ id, existingEnvironmentConfig, deleteDiskSel
             runtime.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelpAzure)
           ])
         }],
-        [runtime && persistentDisk, () => h(
-          DeleteDiskChoices,
-          {
-            existingEnvironmentConfig,
-            deleteDiskSelected,
-            setDeleteDiskSelected
-          }
-        )],
+        [runtime && persistentDisk, () => {
+          return h(
+            DeleteDiskChoices,
+            {
+              runtime,
+              persistentDisk,
+              deleteDiskSelected,
+              setDeleteDiskSelected
+            }
+          )
+        }],
         [!runtime && persistentDisk, () => {
           return h(Fragment, [
             h(RadioBlock, {

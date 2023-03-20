@@ -1518,7 +1518,7 @@ export const ComputeModalBase = ({
       ['environmentWarning', renderEnvironmentWarning],
       ['differentLocationWarning', renderDifferentLocationWarning],
       ['nonUSLocationWarning', renderNonUSLocationWarning],
-      ['deleteEnvironment', () => DeleteEnvironment({ titleId, existingEnvironmentConfig: getExistingEnvironmentConfig(), deleteDiskSelected, setDeleteDiskSelected, renderActionButton })],
+      ['deleteEnvironment', () => DeleteEnvironment({ titleId, runtime: currentRuntime, persistentDisk: currentPersistentDiskDetails, deleteDiskSelected, setDeleteDiskSelected, renderActionButton })],
       [Utils.DEFAULT, renderMainForm]
     ),
     loading && spinnerOverlay,
