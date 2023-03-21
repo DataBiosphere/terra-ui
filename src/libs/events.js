@@ -85,6 +85,8 @@ const eventsList = {
   workflowUseDefaultOutputs: 'workflow:useDefaultOutputs',
   workspaceClone: 'workspace:clone',
   workspaceCreate: 'workspace:create',
+  workspaceOpenedBucketInBrowser: 'workspace:openedBucketInBrowser',
+  workspaceOpenedProjectInConsole: 'workspace:openedProjectInCloudConsole',
   workspaceDataAddColumn: 'workspace:data:addColumn',
   workspaceDataAddRow: 'workspace:data:addRow',
   workspaceDataClearColumn: 'workspace:data:clearColumn',
