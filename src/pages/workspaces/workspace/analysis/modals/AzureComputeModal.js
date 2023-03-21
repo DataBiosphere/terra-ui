@@ -270,7 +270,7 @@ export const AzureComputeModalBase = ({
   return h(Fragment, [
     Utils.switchCase(viewMode,
       ['aboutPersistentDisk', () => AboutPersistentDisk({ titleId, setViewMode, onDismiss, tool })],
-      ['deleteEnvironment', () => DeleteEnvironment({ titleId, runtime: currentRuntime, persistentDisk: currentPersistentDisk, deleteDiskSelected, setDeleteDiskSelected, renderActionButton })],
+      ['deleteEnvironment', () => DeleteEnvironment({ titleId, runtime: currentRuntime, persistentDisk: currentPersistentDisk, deleteDiskSelected, setDeleteDiskSelected, setViewMode, renderActionButton, hideCloseButton: false, onDismiss })],
       [Utils.DEFAULT, renderMainForm]
     ),
     loading && spinnerOverlay
