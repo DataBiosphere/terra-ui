@@ -4,6 +4,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { MenuTrigger } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
 import { defaultAzureMachineType, defaultAzureRegion } from 'src/libs/azure-utils'
+import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
@@ -46,10 +47,8 @@ jest.mock('src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
 
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
+  getConfig: jest.fn().mockReturnValue({}),
   isCromwellAppVisible: () => {
-    return true
-  },
-  isCromwellOnAzureAppVisible: () => {
     return true
   }
 }))
@@ -382,7 +381,8 @@ const contextBarPropsForAzure = {
   workspace: {
     workspace: {
       namespace: 'namespace',
-      cloudPlatform: 'Azure'
+      cloudPlatform: 'Azure',
+      createdDate: '2023-02-15T19:17:15.711Z'
     },
     namespace: 'Broad Azure Test Workspace'
   }
@@ -539,6 +539,28 @@ describe('ContextBar - buttons', () => {
     expect(getByLabelText('Environment Configuration'))
     expect(getByLabelText(new RegExp(/Jupyter Environment/i)))
     expect(getByText(/Error \$0.00\/hr/))
+  })
+})
+
+describe('ContextBar - buttons (Prod config)', () => {
+  beforeEach(() => {
+    getConfig.mockReturnValue({ isProd: true })
+  })
+
+  it('will not render a Cromwell on Azure button if workspace is created before Workflows Public Preview date', () => {
+    // Arrange
+    const cromwellOnAzureContextBarProps = {
+      ...contextBarPropsForAzure,
+      apps: [cromwellOnAzureRunning],
+      appDataDisks: []
+    }
+
+    // Act
+    const { getByLabelText, queryByLabelText } = render(h(ContextBar, cromwellOnAzureContextBarProps))
+
+    //Assert
+    expect(getByLabelText('Environment Configuration'))
+    expect(queryByLabelText(new RegExp(/Cromwell Environment/i))).not.toBeInTheDocument()
   })
 })
 
