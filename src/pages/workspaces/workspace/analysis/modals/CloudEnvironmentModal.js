@@ -305,7 +305,7 @@ export const CloudEnvironmentModal = ({
       hover: isDisabled ? {} : { backgroundColor: colors.accent(0.2) },
       tooltip: Utils.cond(
         [doesCloudEnvForToolExist && !isDisabled, () => 'Open'],
-        [doesCloudEnvForToolExist && isDisabled && !doesWorkspaceSupportCromwellApp(app, cloudProvider, toolLabel), () => 'Cromwell app is not supported in this workspace. Please create a new workspace to use Cromwell app.'],
+        [doesCloudEnvForToolExist && isDisabled && !doesWorkspaceSupportCromwellApp(workspace?.workspace?.createdDate, cloudProvider, toolLabel), () => 'Cromwell app is not supported in this workspace. Please create a new workspace to use Cromwell app.'],
         [doesCloudEnvForToolExist && isDisabled && isLaunchSupported(toolLabel), () => `Please wait until ${toolLabelDisplays[toolLabel]} is running`],
         [doesCloudEnvForToolExist && isDisabled && !isLaunchSupported(toolLabel),
           () => `Select or create an analysis in the analyses tab to open ${toolLabelDisplays[toolLabel]}`],
