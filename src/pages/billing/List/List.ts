@@ -21,15 +21,13 @@ import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils'
 import { billingRoles } from 'src/pages/billing/billing-utils'
 import { CreateBillingProjectControl } from 'src/pages/billing/List/CreateBillingProjectControl'
 import { GCPNewBillingProjectModal } from 'src/pages/billing/List/GCPNewBillingProjectModal'
-import { ProjectListItem } from 'src/pages/billing/List/ProjectListItem'
-import { BillingProject } from 'src/pages/billing/models/BillingProject'
+import { ProjectListItem, ProjectListItemProps } from 'src/pages/billing/List/ProjectListItem'
+import { BillingProject, isCreating, isDeleting } from 'src/pages/billing/models/BillingProject'
 import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAccount'
 import { AzureBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureBillingProjectWizard'
 import { GCPBillingProjectWizard } from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/GCPBillingProjectWizard'
 import ProjectDetail from 'src/pages/billing/Project'
 
-
-const isCreatingStatus = status => _.includes(status, ['Creating', 'CreatingLandingZone'])
 
 const BillingProjectSubheader = ({ title, children }) => h(Collapse, {
   title: span({ style: { fontWeight: 'bold' } }, [title]),
@@ -118,11 +116,11 @@ export const List = (props: ListProps) => {
   })
 
   useEffect(() => {
-    const anyProjectsCreating = _.some(({ status }) => isCreatingStatus(status), billingProjects)
+    const projectsCreatingOrDeleting = _.some(project => isCreating(project) || isDeleting(project), billingProjects)
 
-    if (anyProjectsCreating && !interval.current) {
-      interval.current = window.setInterval(loadProjects, 10000)
-    } else if (!anyProjectsCreating && interval.current) {
+    if (projectsCreatingOrDeleting && !interval.current) {
+      interval.current = window.setInterval(loadProjects, 30000)
+    } else if (!projectsCreatingOrDeleting && interval.current) {
       clearInterval(interval.current)
       interval.current = undefined
     }
@@ -137,7 +135,7 @@ export const List = (props: ListProps) => {
 
   // Render
   const breadcrumbs = 'Billing > Billing Project'
-  const billingProjectListWidth = 330
+  const billingProjectListWidth = 350
   const [projectsOwned, projectsShared] = _.partition(
     ({ roles }) => _.includes(billingRoles.owner, roles),
     billingProjects
@@ -145,6 +143,12 @@ export const List = (props: ListProps) => {
 
   const azureUserWithNoBillingProjects = !isLoadingProjects && _.isEmpty(billingProjects) && Auth.isAzureUser()
   const creatingAzureBillingProject = !selectedName && creatingBillingProjectType === 'AZURE'
+
+  const makeProjectListItemProps = (project: BillingProject) : ProjectListItemProps => {
+    return {
+      project, loadProjects, isActive: !!selectedName && project.projectName === selectedName
+    }
+  }
 
   return h(FooterWrapper, { fixedHeight: true }, [
     h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
@@ -172,20 +176,18 @@ export const List = (props: ListProps) => {
         ]),
         h(BillingProjectSubheader, { title: 'Owned by You' }, [
           div({ role: 'list' }, [
-            _.map(project => h(ProjectListItem, {
-              project, key: project.projectName, loadProjects,
-              isActive: !!selectedName && project.projectName === selectedName,
-              isCreatingStatus: isCreatingStatus(project.status)
-            }), projectsOwned)
+            _.map(project => h(
+              ProjectListItem,
+              { key: project.projectName, ...makeProjectListItemProps(project) }
+            ), projectsOwned)
           ])
         ]),
         h(BillingProjectSubheader, { title: 'Shared with You' }, [
           div({ role: 'list' }, [
-            _.map(project => h(ProjectListItem, {
-              project, key: project.projectName, loadProjects,
-              isActive: !!selectedName && project.projectName === selectedName,
-              isCreatingStatus: isCreatingStatus(project.status)
-            }), projectsShared)
+            _.map(project => h(
+              ProjectListItem,
+              { key: project.projectName, ...makeProjectListItemProps(project) }
+            ), projectsShared)
           ])
         ])
       ]),

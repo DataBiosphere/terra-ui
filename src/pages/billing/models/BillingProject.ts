@@ -12,7 +12,7 @@ export interface BillingProject {
   projectName: string
   invalidBillingAccount: boolean
   roles: BillingRole[]
-  status: string
+  status: 'Creating' | 'Ready' | 'Error' | 'Deleting' | 'DeletionFailed' | 'AddingToPerimeter' | 'CreatingLandingZone'
   message?: string
 }
 
@@ -27,3 +27,6 @@ export interface GCPBillingProject extends BillingProject {
   servicePerimeter?: string
 }
 
+export const isCreating = (project: BillingProject) => project.status === 'Creating' || project.status === 'CreatingLandingZone'
+export const isDeleting = (project: BillingProject) => project.status === 'Deleting'
+export const isErrored = (project: BillingProject) => project.status === 'Error' || project.status === 'DeletionFailed'
