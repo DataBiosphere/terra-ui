@@ -74,10 +74,10 @@ describe('AnalysisDuplicator', () => {
     asMockedFn(useAnalysisFiles).mockImplementation(() => ({
       refreshFileStore: () => Promise.resolve(),
       loadedState: { state: [], status: 'Ready' },
-      create: () => Promise.resolve(),
+      createAnalysis: () => Promise.resolve(),
+      deleteAnalysis: () => Promise.resolve(),
       pendingCreate: { status: 'Ready', state: true },
-      pendingDelete: { status: 'Ready', state: true },
-      deleteFile: () => Promise.resolve()
+      pendingDelete: { status: 'Ready', state: true }
     }))
   })
 
@@ -112,10 +112,10 @@ describe('AnalysisDuplicator', () => {
     asMockedFn(useAnalysisFiles).mockImplementation(() => ({
       loadedState: { state: fileList, status: 'Ready' },
       refreshFileStore: () => Promise.resolve(),
-      create: () => Promise.resolve(),
+      createAnalysis: () => Promise.resolve(),
+      deleteAnalysis: () => Promise.resolve(),
       pendingCreate: { status: 'Ready', state: true },
-      pendingDelete: { status: 'Ready', state: true },
-      deleteFile: () => Promise.resolve()
+      pendingDelete: { status: 'Ready', state: true }
     }))
 
     // Act

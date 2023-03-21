@@ -47,7 +47,8 @@ export type UseLoadedDataResult<T> = [
  * }
  * @returns a tuple with [currentLoadedState, updateDataMethod]
  */
-export const useLoadedData = <T>(hookArgs: UseLoadedDataArgs<T> = {}): UseLoadedDataResult<T> => {
+export const useLoadedData = <T>(hookArgs?: UseLoadedDataArgs<T>): UseLoadedDataResult<T> => {
+  const args: UseLoadedDataArgs<T> = hookArgs ? hookArgs : {}
   const [loadedData, setLoadedData] = useState<LoadedState<T, unknown>>({ status: 'None' })
 
   const updateDataFn = async (dataCall: () => Promise<T>) => {
@@ -72,9 +73,8 @@ export const useLoadedData = <T>(hookArgs: UseLoadedDataArgs<T> = {}): UseLoaded
         error
       }
       setLoadedData(errorResult)
-
-      if (hookArgs.onError) {
-        hookArgs.onError(errorResult)
+      if (args.onError) {
+        args.onError(errorResult)
       }
     }
   }

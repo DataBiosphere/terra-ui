@@ -36,10 +36,10 @@ const defaultGcpModalProps: AnalysisModalProps = {
   analysisFileStore: {
     refreshFileStore: () => Promise.resolve(),
     loadedState: { state: [], status: 'Ready' },
-    create: createFunc,
+    createAnalysis: createFunc,
     pendingCreate: { status: 'Ready', state: true },
     pendingDelete: { status: 'Ready', state: true },
-    deleteFile: () => Promise.resolve()
+    deleteAnalysis: () => Promise.resolve()
   }
 }
 
@@ -344,10 +344,10 @@ describe('AnalysisModal', () => {
     const mockFileStore = {
       loadedState: { state: fileList, status: 'Ready' } as LoadedState<AnalysisFile[]>,
       refreshFileStore: () => Promise.resolve(),
-      create: () => Promise.resolve(),
+      createAnalysis: () => Promise.resolve(),
+      deleteAnalysis: () => Promise.resolve(),
       pendingCreate: { status: 'Ready', state: true } as LoadedState<true, unknown>,
       pendingDelete: { status: 'Ready', state: true } as LoadedState<true, unknown>,
-      deleteFile: () => Promise.resolve()
     }
 
     const user = userEvent.setup()
@@ -372,14 +372,14 @@ describe('AnalysisModal', () => {
   it('Error on create', async () => {
     // Arrange
     const fileList = [getFileFromPath('test/file1.ipynb' as AbsolutePath)]
-    const createMock = jest.fn().mockRejectedValue(new Error('MyTestError'))
+    const createAnalysisMock = jest.fn().mockRejectedValue(new Error('MyTestError'))
     const mockFileStore = {
       loadedState: { state: fileList, status: 'Ready' } as LoadedState<AnalysisFile[]>,
       refreshFileStore: () => Promise.resolve(),
-      create: createMock,
+      createAnalysis: createAnalysisMock,
+      deleteAnalysis: () => Promise.resolve(),
       pendingCreate: { status: 'Ready', state: true } as LoadedState<true, unknown>,
       pendingDelete: { status: 'Ready', state: true } as LoadedState<true, unknown>,
-      deleteFile: () => Promise.resolve()
     }
     const user = userEvent.setup()
 
@@ -401,7 +401,7 @@ describe('AnalysisModal', () => {
     })
 
     // Assert
-    expect(createMock).toHaveBeenCalled()
+    expect(createAnalysisMock).toHaveBeenCalled()
     expect(reportError).toHaveBeenCalled()
   })
 })
