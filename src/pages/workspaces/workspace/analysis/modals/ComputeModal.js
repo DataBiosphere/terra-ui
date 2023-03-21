@@ -13,6 +13,7 @@ import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { cloudServices, isMachineTypeSmaller, machineTypes } from 'src/data/gce-machines'
 import { Ajax } from 'src/libs/ajax'
+import { pdTypes } from 'src/libs/ajax/leonardo/models/disk-models'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
@@ -27,7 +28,7 @@ import { RadioBlock, SaveFilesHelp, SaveFilesHelpRStudio } from 'src/pages/works
 import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import {
   defaultDataprocMasterDiskSize,
-  defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGcePersistentDiskSize, defaultPersistentDiskType, pdTypes
+  defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGcePersistentDiskSize, defaultPersistentDiskType
 } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
 import {
   defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultGpuType, defaultLocation,
