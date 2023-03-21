@@ -78,6 +78,10 @@ export const withWorkspaces = WrappedComponent => {
 }
 
 export const WorkspaceSelector = ({ workspaces, value, onChange, id, 'aria-label': ariaLabel, ...props }) => {
+  const options = _.flow(
+    _.sortBy(ws => ws.workspace.name.toLowerCase()),
+    _.map(({ workspace: { workspaceId, name } }) => ({ value: workspaceId, label: name }))
+  )(workspaces)
   return h(VirtualizedSelect, {
     id,
     'aria-label': ariaLabel || 'Select a workspace',
@@ -85,10 +89,7 @@ export const WorkspaceSelector = ({ workspaces, value, onChange, id, 'aria-label
     disabled: !workspaces,
     value,
     onChange: ({ value }) => onChange(value),
-    options: _.flow(
-      _.sortBy(ws => ws.workspace.name.toLowerCase()),
-      _.map(({ workspace: { workspaceId, name } }) => ({ value: workspaceId, label: name }))
-    )(workspaces),
+    options,
     ...props
   })
 }

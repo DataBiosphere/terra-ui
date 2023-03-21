@@ -123,7 +123,7 @@ describe('file-utils', () => {
       workspaceStore.set(defaultGoogleWorkspace)
       const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useAnalysisFiles())
       await waitForNextUpdate()
-      await act(() => hookReturnRef.current.create('AnalysisFile', runtimeToolLabels.Jupyter, 'myContents'))
+      await act(() => hookReturnRef.current.createAnalysis('AnalysisFile', runtimeToolLabels.Jupyter, 'myContents'))
 
       // Assert
       expect(create).toHaveBeenCalledWith('myContents')
@@ -148,7 +148,7 @@ describe('file-utils', () => {
       const hookRender1 = renderHook(() => useAnalysisFiles())
       await hookRender1.waitForNextUpdate()
       const hookResult2 = hookRender1.result.current
-      await act(() => hookResult2.create('AnalysisFile', runtimeToolLabels.Jupyter, 'myContents'))
+      await act(() => hookResult2.createAnalysis('AnalysisFile', runtimeToolLabels.Jupyter, 'myContents'))
 
       // Assert
       expect(create).toHaveBeenCalledWith('myContents')
@@ -173,7 +173,7 @@ describe('file-utils', () => {
       const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useAnalysisFiles())
       await waitForNextUpdate()
       // Act
-      await act(() => hookReturnRef.current.create('AnalysisFile', runtimeToolLabels.Jupyter, 'myContents'))
+      await act(() => hookReturnRef.current.createAnalysis('AnalysisFile', runtimeToolLabels.Jupyter, 'myContents'))
 
       // Assert
       expect(create).toHaveBeenCalledWith('myContents')
@@ -198,7 +198,7 @@ describe('file-utils', () => {
     const hookRender1 = renderHook(() => useAnalysisFiles())
     await hookRender1.waitForNextUpdate()
     const hookResult2 = hookRender1.result.current
-    await act(() => hookResult2.create('AnalysisFile', runtimeToolLabels.Jupyter, 'myContents'))
+    await act(() => hookResult2.createAnalysis('AnalysisFile', runtimeToolLabels.Jupyter, 'myContents'))
 
     // Assert
     expect(create).toHaveBeenCalledWith('myContents')
@@ -228,7 +228,7 @@ describe('file-utils', () => {
     workspaceStore.set(defaultGoogleWorkspace)
     const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useAnalysisFiles())
     await waitForNextUpdate()
-    await act(() => hookReturnRef.current.deleteFile(file1Path))
+    await act(() => hookReturnRef.current.deleteAnalysis(file1Path))
 
     // Assert
     expect(analysisMock).toHaveBeenCalledWith(defaultGoogleWorkspace.workspace.googleProject, defaultGoogleWorkspace.workspace.bucketName, getFileName(file1Path), getToolLabelFromFileExtension(getExtension(file1Path)))
@@ -255,7 +255,7 @@ describe('file-utils', () => {
     const hookRender1 = renderHook(() => useAnalysisFiles())
     await hookRender1.waitForNextUpdate()
     const hookResult2 = hookRender1.result.current
-    await act(() => hookResult2.deleteFile(file1Path))
+    await act(() => hookResult2.deleteAnalysis(file1Path))
 
     // Assert
     expect(analysisMock).toHaveBeenCalledWith(defaultGoogleWorkspace.workspace.googleProject, defaultGoogleWorkspace.workspace.bucketName, getFileName(file1Path), getToolLabelFromFileExtension(getExtension(file1Path)))
@@ -282,7 +282,7 @@ describe('file-utils', () => {
     const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useAnalysisFiles())
     await waitForNextUpdate()
     // Act
-    await act(() => hookReturnRef.current.deleteFile(file1Path))
+    await act(() => hookReturnRef.current.deleteAnalysis(file1Path))
 
     // Assert
     expect(blobMock).toHaveBeenCalledWith(defaultAzureWorkspace.workspace.workspaceId, getFileName(file1Path))
@@ -308,7 +308,7 @@ describe('file-utils', () => {
     const hookRender1 = renderHook(() => useAnalysisFiles())
     await hookRender1.waitForNextUpdate()
     const hookResult2 = hookRender1.result.current
-    await act(() => hookResult2.deleteFile(file1Path))
+    await act(() => hookResult2.deleteAnalysis(file1Path))
 
     // Assert
     expect(blobMock).toHaveBeenCalledWith(defaultAzureWorkspace.workspace.workspaceId, getFileName(file1Path))

@@ -3,6 +3,7 @@ import {
   dataprocCpuPrice, ephemeralExternalIpAddressPrice, machineTypes, regionToPrices
 } from 'src/data/gce-machines'
 import { App } from 'src/libs/ajax/leonardo/models/app-models'
+import { pdTypes } from 'src/libs/ajax/leonardo/models/disk-models'
 import {
   GoogleRuntimeConfig,
   isDataprocConfig,
@@ -15,8 +16,7 @@ import * as Utils from 'src/libs/utils'
 import {
   defaultDataprocWorkerDiskSize, defaultGceBootDiskSize,
   getCurrentAttachedDataDisk,
-  getCurrentPersistentDisk,
-  pdTypes
+  getCurrentPersistentDisk
 } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
 import {
   defaultComputeRegion,

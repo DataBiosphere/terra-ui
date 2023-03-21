@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { act } from 'react-dom/test-utils'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
@@ -29,16 +29,22 @@ describe('SpendReport', () => {
     // Selecting the option by all the "usual" methods of supplying label text, selecting an option, etc. failed.
     // Perhaps this is because these options have both display text and a value?
     // Unfortunately this awkward approach was the only thing that appeared to work.
-    const getDateRangeSelect = () => screen.getByLabelText('Date range')
+    const getDateRangeSelect = screen.getByLabelText('Date range')
     // 7 days
-    fireEvent.keyDown(getDateRangeSelect(), { key: 'ArrowDown', code: 'ArrowDown' })
+    fireEvent.keyDown(getDateRangeSelect, { key: 'ArrowDown', code: 'ArrowDown' })
     // 30 days
-    fireEvent.keyDown(getDateRangeSelect(), { key: 'ArrowDown', code: 'ArrowDown' })
+    fireEvent.keyDown(getDateRangeSelect, { key: 'ArrowDown', code: 'ArrowDown' })
     // 90 days
-    fireEvent.keyDown(getDateRangeSelect(), { key: 'ArrowDown', code: 'ArrowDown' })
-    await act(async () => { // eslint-disable-line require-await
-      // Trigger the option to be selected
-      fireEvent.keyDown(getDateRangeSelect(), { key: 'Enter', code: 'Enter' })
+    fireEvent.keyDown(getDateRangeSelect, { key: 'ArrowDown', code: 'ArrowDown' })
+    // Choose the current focused option.
+    fireEvent.keyDown(getDateRangeSelect, { key: 'Enter', code: 'Enter' })
+
+    await waitFor(() => {
+      // Check that 90 days was actually selected. There will always be a DOM element present with
+      // text "Last 90 days", but if it is the selected element (which means the option dropdown has closed),
+      // it will have a class name ending in "singleValue". This is ugly, but the Select component we are
+      // using does not set the value on the input element itself.
+      expect(screen.getByText('Last 90 days').className).toContain('singleValue')
     })
   }
 
@@ -126,6 +132,32 @@ describe('SpendReport', () => {
     expect(screen.queryByText(otherCostMessaging)).toBeNull()
   })
 
+  it('displays cost information', async () => {
+    //Arrange
+    const getSpendReport = jest.fn()
+    asMockedFn(Ajax).mockImplementation(() => ({
+      Billing: { getSpendReport } as Partial<AjaxContract['Billing']>
+    } as Partial<AjaxContract> as AjaxContract))
+    getSpendReport.mockResolvedValue(createSpendReportResult('1110'))
+
+    // Act
+    await act(async () => {
+      await render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty' }))
+    })
+
+    // Assert
+    await waitFor(() => {
+      expect(screen.getByText(/\$89.00 in other infrastructure/i)).toBeInTheDocument()
+    })
+    expect(getSpendReport).toHaveBeenCalledTimes(1)
+    expect(screen.getByTestId('spend')).toHaveTextContent('$1,110.00*')
+    expect(screen.getByTestId('compute')).toHaveTextContent('$999.00')
+    expect(screen.getByTestId('storage')).toHaveTextContent('$22.00')
+
+    // Highcharts content is very minimal when rendered in the unit test. Testing of "most expensive workspaces"
+    // is in the integration test. Accessibility is also tested in the integration test.
+  })
+
   it('fetches reports based on selected date range, if active', async () => {
     //Arrange
     const getSpendReport = jest.fn()
@@ -145,35 +177,13 @@ describe('SpendReport', () => {
     await select90Days()
 
     // Assert
-    expect(screen.getByTestId('spend').textContent).toBe('$1,110.17*')
-    screen.getByText(otherCostMessaging)
+    await waitFor(() => {
+      expect(screen.getByText(otherCostMessaging)).toBeInTheDocument()
+    })
+    expect(screen.getByTestId('spend')).toHaveTextContent('$1,110.17*')
     expect(getSpendReport).toHaveBeenCalledTimes(2)
     expect(getSpendReport).toHaveBeenNthCalledWith(1, { billingProjectName: 'thrifty', endDate: '2022-04-01', startDate: '2022-03-02' })
     expect(getSpendReport).toHaveBeenNthCalledWith(2, { billingProjectName: 'thrifty', endDate: '2022-04-01', startDate: '2022-01-01' })
-  })
-
-  it('displays cost information', async () => {
-    //Arrange
-    const getSpendReport = jest.fn()
-    asMockedFn(Ajax).mockImplementation(() => ({
-      Billing: { getSpendReport } as Partial<AjaxContract['Billing']>
-    } as Partial<AjaxContract> as AjaxContract))
-    getSpendReport.mockResolvedValue(createSpendReportResult('1110'))
-
-    // Act
-    await act(async () => {
-      await render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty' }))
-    })
-
-    // Assert
-    expect(getSpendReport).toHaveBeenCalledTimes(1)
-    expect(screen.getByTestId('spend').textContent).toBe('$1,110.00*')
-    expect(screen.getByTestId('compute').textContent).toBe('$999.00')
-    expect(screen.getByTestId('storage').textContent).toBe('$22.00')
-    screen.getByText(/\$89.00 in other infrastructure/i)
-
-    // Highcharts content is very minimal when rendered in the unit test. Testing of "most expensive workspaces"
-    // is in the integration test. Accessibility is also tested in the integration test.
   })
 
   it('shows an error if no cost information exists', async () => {
@@ -189,7 +199,9 @@ describe('SpendReport', () => {
     })
 
     // Assert
-    expect(screen.getByRole('alert').textContent).toEqual('No spend data for 30 days')
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('No spend data for 30 days')
+    })
 
     // Arrange, switch error message to verify that the UI updates with the new message.
     getSpendReport = jest.fn(() => Promise.reject(new Response(JSON.stringify({ message: 'No spend data for 90 days' }), { status: 404 })))
@@ -201,7 +213,9 @@ describe('SpendReport', () => {
     await select90Days()
 
     // Assert
-    expect(screen.getByRole('alert').textContent).toEqual('No spend data for 90 days')
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('No spend data for 90 days')
+    })
   })
 })
 

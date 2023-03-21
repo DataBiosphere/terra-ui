@@ -1,7 +1,7 @@
+import { pdTypes } from 'src/libs/ajax/leonardo/models/disk-models'
 import { getAzurePricesForRegion } from 'src/libs/azure-utils'
 import { azureDisk, azureRuntime, galaxyDisk, galaxyRunning, getDisk, getGoogleRuntime, getJupyterRuntimeConfig } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import { getCostDisplayForDisk, getCostDisplayForTool, getPersistentDiskCostMonthly, getRuntimeCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
-import { pdTypes } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import { appToolLabels, runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
