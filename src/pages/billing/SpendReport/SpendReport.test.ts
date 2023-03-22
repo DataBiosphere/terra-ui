@@ -142,7 +142,7 @@ describe('SpendReport', () => {
 
     // Act
     await act(async () => {
-      await render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty' }))
+      await render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty', billingProjectCloudPlatform: 'GCP' }))
     })
 
     // Assert
