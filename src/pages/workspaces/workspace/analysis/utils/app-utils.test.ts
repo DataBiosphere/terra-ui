@@ -1,13 +1,27 @@
 import { App } from 'src/libs/ajax/leonardo/models/app-models'
 import { DecoratedPersistentDisk, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models'
+import { getConfig } from 'src/libs/config'
 import { cloudProviderTypes } from 'src/libs/workspace-utils'
 import { galaxyDeleting, galaxyDisk, galaxyRunning } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
-import { getCurrentApp, getCurrentAppIncludingDeleting, getDiskAppType, workspaceHasMultipleApps } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
+import {
+  doesWorkspaceSupportCromwellApp,
+  getCurrentApp,
+  getCurrentAppIncludingDeleting,
+  getDiskAppType,
+  workspaceHasMultipleApps
+} from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
 import {
   getCurrentAppDataDisk,
   workspaceHasMultipleDisks
 } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
-import { appTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { appToolLabels, appTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { asMockedFn } from 'src/testing/test-utils'
+
+
+jest.mock('src/libs/config', () => ({
+  ...jest.requireActual('src/libs/config'),
+  getConfig: jest.fn().mockReturnValue({})
+}))
 
 
 const cromwellRunning: App = {
@@ -402,5 +416,49 @@ describe('workspaceHasMultipleDisks', () => {
   })
   it('returns false when there is not multiple cromwell disks', () => {
     expect(workspaceHasMultipleDisks(mockAppDisksSameWorkspace, appTools.CROMWELL.label)).toBe(false)
+  })
+})
+
+describe('doesWorkspaceSupportCromwellApp - Prod', () => {
+  beforeEach(() => {
+    asMockedFn(getConfig).mockReturnValue({ isProd: true })
+  })
+
+  it('return true when Azure workspace has been created after Workflows Public Preview', () => {
+    expect(doesWorkspaceSupportCromwellApp('2023-03-28T20:28:01.998494Z', cloudProviderTypes.AZURE, appToolLabels.CROMWELL)).toBe(true)
+  })
+
+  it('return false when Azure workspace has been created before Workflows Public Preview', () => {
+    expect(doesWorkspaceSupportCromwellApp('2023-03-19T20:28:01.998494Z', cloudProviderTypes.AZURE, appToolLabels.CROMWELL)).toBe(false)
+  })
+
+  it('return true for GCP workspaces irrespective of creation date', () => {
+    expect(doesWorkspaceSupportCromwellApp('2023-03-19T20:28:01.998494Z', cloudProviderTypes.GCP, appToolLabels.CROMWELL)).toBe(true)
+  })
+
+  it('return true for any other app irrespective of creation date', () => {
+    expect(doesWorkspaceSupportCromwellApp('2023-03-19T20:28:01.998494Z', cloudProviderTypes.GCP, appToolLabels.GALAXY)).toBe(true)
+  })
+})
+//
+describe('doesWorkspaceSupportCromwellApp - Non-Prod', () => {
+  beforeEach(() => {
+    asMockedFn(getConfig).mockReturnValue({ isProd: false })
+  })
+
+  it('return true when Azure workspace has been created after Workflows Public Preview', () => {
+    expect(doesWorkspaceSupportCromwellApp('2023-03-28T20:28:01.998494Z', cloudProviderTypes.AZURE, appToolLabels.CROMWELL)).toBe(true)
+  })
+
+  it('return true when Azure workspace has been created before Workflows Public Preview', () => {
+    expect(doesWorkspaceSupportCromwellApp('2023-03-19T20:28:01.998494Z', cloudProviderTypes.AZURE, appToolLabels.CROMWELL)).toBe(true)
+  })
+
+  it('return true for GCP workspaces irrespective of creation date', () => {
+    expect(doesWorkspaceSupportCromwellApp('2023-03-19T20:28:01.998494Z', cloudProviderTypes.GCP, appToolLabels.CROMWELL)).toBe(true)
+  })
+
+  it('return true for any other app irrespective of creation date', () => {
+    expect(doesWorkspaceSupportCromwellApp('2023-03-19T20:28:01.998494Z', cloudProviderTypes.GCP, appToolLabels.GALAXY)).toBe(true)
   })
 })

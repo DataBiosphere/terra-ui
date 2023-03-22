@@ -127,7 +127,8 @@ export const defaultGoogleWorkspace = {
     googleProject: `${defaultGoogleWorkspaceNamespace}-project`,
     name: `${defaultGoogleWorkspaceNamespace}_ws`,
     namespace: defaultGoogleWorkspaceNamespace,
-    workspaceId: 'testGoogleWorkspaceId'
+    workspaceId: 'testGoogleWorkspaceId',
+    createdDate: '2023-02-15T19:17:15.711Z'
   },
   accessLevel: 'OWNER',
   canShare: true,
@@ -142,7 +143,8 @@ export const defaultAzureWorkspace = {
     bucketName: '',
     name: `${defaultAzureWorkspaceNamespace}Ws`,
     namespace: defaultAzureWorkspaceNamespace,
-    workspaceId: 'testAzureWorkspaceId'
+    workspaceId: 'testAzureWorkspaceId',
+    createdDate: '2023-02-15T19:17:15.711Z'
   },
   accessLevel: 'OWNER',
   canShare: true,

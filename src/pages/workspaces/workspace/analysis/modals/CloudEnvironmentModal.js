@@ -24,7 +24,11 @@ import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modal
 import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal'
 import { appLauncherTabName, PeriodicAzureCookieSetter } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
-import { getCurrentApp, getIsAppBusy } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
+import {
+  doesWorkspaceSupportCromwellApp,
+  getCurrentApp,
+  getIsAppBusy
+} from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
 import { getCostDisplayForDisk, getCostDisplayForTool } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import { getCurrentPersistentDisk, isCurrentGalaxyDiskDetaching } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
 import {
@@ -289,7 +293,7 @@ export const CloudEnvironmentModal = ({
     const cookieReady = Utils.cond(
       [cloudProvider === cloudProviderTypes.AZURE && toolLabel === appToolLabels.CROMWELL, () => azureCookieReady.readyForCromwellApp],
       [Utils.DEFAULT, () => leoCookieReady])
-    const isDisabled = !doesCloudEnvForToolExist || !cookieReady || !canCompute || busy || isToolBusy || !isLaunchSupported(toolLabel)
+    const isDisabled = !doesCloudEnvForToolExist || !cookieReady || !canCompute || busy || isToolBusy || !isLaunchSupported(toolLabel) || !doesWorkspaceSupportCromwellApp(workspace?.workspace?.createdDate, cloudProvider, toolLabel)
     const baseProps = {
       'aria-label': `Launch ${toolLabel}`,
       disabled: isDisabled,
@@ -301,6 +305,7 @@ export const CloudEnvironmentModal = ({
       hover: isDisabled ? {} : { backgroundColor: colors.accent(0.2) },
       tooltip: Utils.cond(
         [doesCloudEnvForToolExist && !isDisabled, () => 'Open'],
+        [doesCloudEnvForToolExist && isDisabled && !doesWorkspaceSupportCromwellApp(workspace?.workspace?.createdDate, cloudProvider, toolLabel), () => 'Cromwell app is not supported in this workspace. Please create a new workspace to use Cromwell app.'],
         [doesCloudEnvForToolExist && isDisabled && isLaunchSupported(toolLabel), () => `Please wait until ${toolLabelDisplays[toolLabel]} is running`],
         [doesCloudEnvForToolExist && isDisabled && !isLaunchSupported(toolLabel),
           () => `Select or create an analysis in the analyses tab to open ${toolLabelDisplays[toolLabel]}`],

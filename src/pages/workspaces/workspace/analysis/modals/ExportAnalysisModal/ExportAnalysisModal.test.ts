@@ -57,7 +57,8 @@ const mockWorkspaces: Partial<WorkspaceWrapper>[] = [
       name: 'name1',
       namespace: 'namespace1',
       cloudPlatform: '',
-      authorizationDomain: []
+      authorizationDomain: [],
+      createdDate: '2023-02-15T19:17:15.711Z'
     }
   },
   {
@@ -66,7 +67,8 @@ const mockWorkspaces: Partial<WorkspaceWrapper>[] = [
       name: 'name2',
       namespace: 'namespace2',
       cloudPlatform: '',
-      authorizationDomain: []
+      authorizationDomain: [],
+      createdDate: '2023-02-15T19:17:15.711Z'
     }
   },
   {
@@ -75,7 +77,8 @@ const mockWorkspaces: Partial<WorkspaceWrapper>[] = [
       name: 'name3',
       namespace: 'namespace3',
       cloudPlatform: '',
-      authorizationDomain: []
+      authorizationDomain: [],
+      createdDate: '2023-02-15T19:17:15.711Z'
     }
   }
 ]
