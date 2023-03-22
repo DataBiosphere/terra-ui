@@ -481,7 +481,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         )
       ])
     ]),
-    [spendReportKey]: h(SpendReport, { billingProjectName: billingProject.projectName, billingProjectCloudPlatform: billingProject.cloudPlatform, viewSelected: tab === spendReportKey })
+    [spendReportKey]: h(SpendReport, { billingProjectName: billingProject.projectName, cloudPlatform: billingProject.cloudPlatform, viewSelected: tab === spendReportKey })
   }
 
   const tabs = _.map(key => ({

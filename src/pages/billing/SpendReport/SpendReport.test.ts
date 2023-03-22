@@ -124,7 +124,7 @@ describe('SpendReport', () => {
 
     // Act
     await act(async () => {
-      await render(h(SpendReport, { viewSelected: false, billingProjectName: 'thrifty', billingProjectCloudPlatform: 'GCP' }))
+      await render(h(SpendReport, { viewSelected: false, billingProjectName: 'thrifty', cloudPlatform: 'GCP' }))
     })
 
     // Assert
@@ -142,7 +142,7 @@ describe('SpendReport', () => {
 
     // Act
     await act(async () => {
-      await render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty', billingProjectCloudPlatform: 'GCP' }))
+      await render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty', cloudPlatform: 'GCP' }))
     })
 
     // Assert
@@ -172,7 +172,7 @@ describe('SpendReport', () => {
 
     // Act
     await act(async () => {
-      await render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty', billingProjectCloudPlatform: 'GCP' }))
+      await render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty', cloudPlatform: 'GCP' }))
     })
     await select90Days()
 
@@ -195,7 +195,7 @@ describe('SpendReport', () => {
 
     // Act
     await act(async () => {
-      await render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty', billingProjectCloudPlatform: 'GCP' }))
+      await render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty', cloudPlatform: 'GCP' }))
     })
 
     // Assert

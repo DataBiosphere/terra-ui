@@ -5,14 +5,13 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import {
   customSpinnerOverlay,
   IdContainer,
-  Link,
   Select
 } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
 import { FormLabel } from 'src/libs/forms'
 import { useCancellation } from 'src/libs/react-utils'
-import * as Utils from 'src/libs/utils'
 import { CloudPlatform } from 'src/pages/billing/models/BillingProject'
+import { ExternalLink } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/ExternalLink'
 import { CostCard } from 'src/pages/billing/SpendReport/CostCard'
 import { ErrorAlert } from 'src/pages/billing/SpendReport/ErrorAlert'
 
@@ -28,9 +27,7 @@ const OtherMessaging = ({ cost, cloudPlatform }) => {
     span({ 'aria-hidden': true }, ['*']),
     '',
     msg,
-    cloudPlatform !== 'AZURE' ? '' : [' See ',
-      h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/12029087819291-Overview-Costs-and-billing-in-Terra-on-Azure', ...Utils.newTabLinkProps }, ['our documentation']),
-      ' to learn more about these costs.']
+    cloudPlatform !== 'AZURE' ? '' : ExternalLink({ url: 'https://support.terra.bio/hc/en-us/articles/12029087819291-Overview-Costs-and-billing-in-Terra-on-Azure', text: ' See our documentation to learn more about Azure costs.' })
   ])
 }
 
@@ -97,7 +94,7 @@ export interface SpendReportServerResponse {
 
 interface SpendReportProps {
   billingProjectName: string
-  billingProjectCloudPlatform: CloudPlatform
+  cloudPlatform: CloudPlatform
   viewSelected: boolean
 }
 
@@ -109,7 +106,7 @@ export const SpendReport = (props: SpendReportProps) => {
   const [updatingProjectCost, setUpdatingProjectCost] = useState(false)
   const [spendReportLengthInDays, setSpendReportLengthInDays] = useState(30)
   const [errorMessage, setErrorMessage] = useState()
-  const includePerWorkspaceCosts = props.billingProjectCloudPlatform === 'GCP'
+  const includePerWorkspaceCosts = props.cloudPlatform === 'GCP'
 
   const signal = useCancellation()
 
@@ -277,7 +274,7 @@ export const SpendReport = (props: SpendReportProps) => {
       ),
       h(OtherMessaging, {
         cost: isProjectCostReady ? projectCost['other'] : null,
-        cloudPlatform: props.billingProjectCloudPlatform
+        cloudPlatform: props.cloudPlatform
       }),
       includePerWorkspaceCosts && costPerWorkspace.numWorkspaces > 0 && div(
         {
