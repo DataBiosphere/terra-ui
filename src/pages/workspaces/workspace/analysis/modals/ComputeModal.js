@@ -1134,7 +1134,6 @@ export const ComputeModalBase = ({
         ])
       ]),
       div({ style: { gridColumnEnd: 'span 6', marginTop: '1.5rem' } }, [
-        // Autopause component
         h(LabeledCheckbox, {
           checked: isAutopauseEnabled(computeConfig.autopauseThreshold),
           disabled: !autoPauseCheckboxEnabled,
@@ -1151,7 +1150,6 @@ export const ComputeModalBase = ({
           'Learn more about autopause.',
           icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
         ]),
-        // end Autopause component
         div({ style: { ...gridStyle, gridGap: '0.7rem', gridTemplateColumns: '4.5rem 9.5rem', marginTop: '0.75rem' } }, [
           h(NumberInput, {
             min: 1,
