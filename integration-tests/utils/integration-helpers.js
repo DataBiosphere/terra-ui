@@ -69,7 +69,7 @@ const waitForAccessToWorkspaceBucket = async ({ page, billingProject, workspaceN
   }, { billingProject, workspaceName, timeout })
 }
 
-const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
+const makeWorkspace = () => withSignedInPage(async ({ page, billingProject }) => {
   const workspaceName = getTestWorkspaceName()
   try {
     await page.evaluate(async (name, billingProject) => {

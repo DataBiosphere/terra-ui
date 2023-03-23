@@ -1,6 +1,5 @@
 // This test is owned by the Interactive Analysis (IA) Team.
-const _ = require('lodash/fp')
-const { deleteRuntimes, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers')
+const { deleteRuntimes, performAnalysisTabSetup } = require('../utils/integration-helpers')
 const {
   click, clickable, delay, findElement, noSpinnersAfter, fillIn, findIframe, findText, dismissNotifications, getAnimatedDrawer, image, input
 } = require('../utils/integration-utils')
@@ -10,10 +9,10 @@ const { withUserToken } = require('../utils/terra-sa-utils')
 
 const notebookName = 'test-notebook'
 
-const testRunAnalysisFn = _.flowRight(
-  withUserToken,
-  withWorkspace,
+const testRunAnalysisFn = (
+  withUserToken
 )(async ({ billingProject, workspaceName, page, testUrl, token }) => {
+  console.log(global.workspaceData)
   await performAnalysisTabSetup(page, token, testUrl, workspaceName)
 
   // Create analysis file

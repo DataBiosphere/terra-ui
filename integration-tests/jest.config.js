@@ -15,5 +15,7 @@ module.exports = {
         includeConsoleOutput: true
       }
     ]
-  ]
+  ],
+  globalSetup: './setup-workspace.js',
+  globalTeardown: './teardown-workspace.js',
 }
