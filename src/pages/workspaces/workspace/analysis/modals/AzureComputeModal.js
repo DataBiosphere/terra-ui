@@ -189,7 +189,7 @@ export const AzureComputeModalBase = ({
     //each branch of the cond should return a promise
     await Utils.cond(
       [viewMode === 'deleteEnvironment',
-        () => Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).delete()], //delete runtime
+        () => Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).delete(deleteDiskSelected)], //delete runtime
       [Utils.DEFAULT, () => {
         // TODO [IA-4052]: We DO currently support re-attaching azure disks
         const disk = {
@@ -270,7 +270,18 @@ export const AzureComputeModalBase = ({
   return h(Fragment, [
     Utils.switchCase(viewMode,
       ['aboutPersistentDisk', () => AboutPersistentDisk({ titleId, setViewMode, onDismiss, tool })],
-      ['deleteEnvironment', () => DeleteEnvironment({ titleId, runtime: currentRuntime, persistentDisk: currentPersistentDisk, deleteDiskSelected, setDeleteDiskSelected, setViewMode, renderActionButton, hideCloseButton: false, onDismiss })],
+      ['deleteEnvironment', () => DeleteEnvironment({
+        id: titleId,
+        runtimeConfig: currentRuntime.runtimeConfig,
+        persistentDisk: currentPersistentDisk,
+        deleteDiskSelected,
+        setDeleteDiskSelected,
+        setViewMode,
+        renderActionButton,
+        hideCloseButton: false,
+        onDismiss,
+        toolLabel: currentRuntime.labels.tool
+      })],
       [Utils.DEFAULT, renderMainForm]
     ),
     loading && spinnerOverlay

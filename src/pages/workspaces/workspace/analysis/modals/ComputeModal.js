@@ -1319,7 +1319,11 @@ export const ComputeModalBase = ({
               'This type of cloud compute does not support the persistent disk feature.'
             ]),
             div({ style: { margin: '1rem 0 0.5rem', fontSize: 16, fontWeight: 600 } }, ['What would you like to do with your disk?']),
-            DeleteDiskChoices({ existingEnvironmentConfig: getExistingEnvironmentConfig(), deleteDiskSelected, setDeleteDiskSelected })
+            DeleteDiskChoices({
+              existingEnvironmentConfig: getExistingEnvironmentConfig(),
+              persistentDiskCost: Utils.formatUSD(getPersistentDiskCostMonthly(currentPersistentDiskDetails, computeConfig.computeRegion)),
+              deleteDiskSelected, setDeleteDiskSelected
+            })
           ])],
           [willDeleteBuiltinDisk(), () => h(Fragment, [
             p([
@@ -1518,7 +1522,19 @@ export const ComputeModalBase = ({
       ['environmentWarning', renderEnvironmentWarning],
       ['differentLocationWarning', renderDifferentLocationWarning],
       ['nonUSLocationWarning', renderNonUSLocationWarning],
-      ['deleteEnvironment', () => DeleteEnvironment({ titleId, runtime: currentRuntime, persistentDisk: currentPersistentDiskDetails, deleteDiskSelected, setDeleteDiskSelected, setViewMode, renderActionButton, hideCloseButton: false, onDismiss })],
+      ['deleteEnvironment', () => DeleteEnvironment({
+        id: titleId,
+        runtimeConfig: currentRuntime.runtimeConfig,
+        persistentDisk: currentPersistentDiskDetails,
+        deleteDiskSelected,
+        setDeleteDiskSelected,
+        setViewMode,
+        renderActionButton,
+        hideCloseButton: false,
+        onDismiss,
+        toolLabel: currentRuntime.labels.tool,
+        computeRegion: currentRuntime.runtimeConfig.computeRegion
+      })],
       [Utils.DEFAULT, renderMainForm]
     ),
     loading && spinnerOverlay,

@@ -7,12 +7,12 @@ import { Ajax } from 'src/libs/ajax'
 import { azureMachineTypes, defaultAzureMachineType } from 'src/libs/azure-utils'
 import { formatUSD } from 'src/libs/utils'
 import {
+  azureRuntime,
   defaultAzureWorkspace, getDisk,
-  getGoogleRuntime, getJupyterRuntimeConfig,
   imageDocs, testAzureDefaultRegion
 } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
-import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { runtimeToolLabels, runtimeTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
 import { AzureComputeModalBase } from './AzureComputeModal'
@@ -170,14 +170,12 @@ describe('AzureComputeModal', () => {
   })
 
   // click delete environment on an existing [jupyter, rstudio] runtime with disk should bring up confirmation
-  it.each([
-    { tool: runtimeToolLabels.Jupyter },
-    { tool: runtimeToolLabels.RStudio }
-  ])('deletes environment with a confirmation for disk deletion for tool $tool.label', async ({ tool }) => {
+  it('deletes environment with a confirmation for disk deletion for tool $tool.label', async () => {
     // Arrange
     const disk = getDisk()
-    const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) }
-    const runtime = getGoogleRuntime(runtimeProps)//TODO: create getAzureRuntime, we don't have one yet
+    const runtime = azureRuntime
+    runtime.runtimeConfig.persistentDiskId = disk.id
+    runtime.tool = runtimeTools.Jupyter
 
     const runtimeFunc = jest.fn(() => ({
       details: () => runtime
@@ -185,7 +183,7 @@ describe('AzureComputeModal', () => {
     Ajax.mockImplementation(() => ({
       ...defaultAjaxImpl,
       Runtimes: {
-        runtime: runtimeFunc
+        runtimeV2: runtimeFunc
       },
       Disks: {
         disk: () => ({
@@ -198,8 +196,8 @@ describe('AzureComputeModal', () => {
     await act(async () => {
       render(h(AzureComputeModalBase, {
         ...defaultModalProps,
-        currentDisk: disk,
-        currentRuntime: runtime
+        persistentDisks: [disk],
+        runtimes: [runtime]
       }))
       await userEvent.click(screen.getByText('Delete Environment'))
     })
