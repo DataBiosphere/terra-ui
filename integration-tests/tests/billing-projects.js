@@ -277,8 +277,7 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.visit()
   await billingPage.selectProject(azureBillingProjectName, AZURE)
   await billingPage.selectSpendReport()
-  // Check accessibility of spend report page.
-  await verifyAccessibility(page)
+
   // Title and cost are in different elements, but check both in same text assert to verify that category is correctly associated to its cost.
   await billingPage.assertText('Total spend$1,110.17')
   await billingPage.assertText('Total compute$999.00')

@@ -179,9 +179,6 @@ describe('SpendReport', () => {
     expect(screen.getByTestId('spend')).toHaveTextContent('$1,110.00*')
     expect(screen.getByTestId('compute')).toHaveTextContent('$999.00')
     expect(screen.getByTestId('storage')).toHaveTextContent('$22.00')
-
-    // Highcharts content is very minimal when rendered in the unit test. Testing of "most expensive workspaces"
-    // is in the integration test. Accessibility is also tested in the integration test.
   })
 
   it('fetches reports based on selected date range, if active', async () => {
