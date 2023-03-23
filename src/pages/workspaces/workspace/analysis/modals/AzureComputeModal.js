@@ -20,7 +20,7 @@ import * as Utils from 'src/libs/utils'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
 import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import {
-  autopauseDisabledValue, getAutopauseThreshold, getCurrentRuntime, getIsRuntimeBusy, isAutopauseEnabled
+  autopauseDisabledValue, defaultAutopauseThreshold, getAutopauseThreshold, getCurrentRuntime, getIsRuntimeBusy, isAutopauseEnabled
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
 import { computeStyles } from './modalStyles'
@@ -35,7 +35,9 @@ export const AzureComputeModalBase = ({
   const [viewMode, setViewMode] = useState(undefined)
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(() => getCurrentRuntime(runtimes))
   const [computeConfig, setComputeConfig] = useState(defaultAzureComputeConfig)
-  const updateComputeConfig = (key, value) => setComputeConfig({ ...computeConfig, [key]: value })
+  const updateComputeConfig = (key, value) => {
+    setComputeConfig(prevState => ({ ...prevState, [key]: value }))
+  }
 
   // Lifecycle
   useOnMount(_.flow(
@@ -50,7 +52,7 @@ export const AzureComputeModalBase = ({
       diskSize: runtimeDetails?.diskConfig?.size || defaultAzureDiskSize,
       // Azure workspace containers will pass the 'location' param as an Azure armRegionName, which can be used directly as the computeRegion
       region: runtimeDetails?.runtimeConfig?.region || location || defaultAzureRegion,
-      autopauseThreshold: runtimeDetails?.autopauseThreshold || autopauseDisabledValue,
+      autopauseThreshold: runtimeDetails ? (runtimeDetails.autopauseThreshold || autopauseDisabledValue) : defaultAutopauseThreshold,
     })
   }))
 
@@ -152,14 +154,18 @@ export const AzureComputeModalBase = ({
         ])
       ]),
       div({ style: { gridColumnEnd: 'span 6', marginTop: '1.5rem' } }, [
-        h(LabeledCheckbox, {
-          checked: isAutopauseEnabled(computeConfig.autopauseThreshold),
-          disabled: !autoPauseCheckboxEnabled,
-          onChange: v => updateComputeConfig('autopauseThreshold', getAutopauseThreshold(v))
-        }, [
-          span({ style: { marginLeft: '0.5rem', ...computeStyles.label, verticalAlign: 'top' } }, [
-            span([autoPauseCheckboxEnabled || isAutopauseEnabled(computeConfig.autopauseThreshold) ? 'Enable autopause' : 'Autopause disabled'])
-          ]),
+        h(IdContainer, [
+          id => h(Fragment, [
+            h(LabeledCheckbox, {
+              id,
+              checked: isAutopauseEnabled(computeConfig.autopauseThreshold),
+              disabled: !autoPauseCheckboxEnabled,
+              onChange: v => updateComputeConfig('autopauseThreshold', getAutopauseThreshold(v))
+            }),
+            label({ htmlFor: id, style: { ...computeStyles.label, marginLeft: '0.25rem' } }, [
+              'Enable autopause'
+            ]),
+          ])
         ]),
         h(Link, {
           style: { marginLeft: '1rem', verticalAlign: 'top' },
@@ -169,19 +175,27 @@ export const AzureComputeModalBase = ({
           icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
         ]),
         div({ style: { ...gridStyle, gridGap: '0.7rem', gridTemplateColumns: '4.5rem 9.5rem', marginTop: '0.75rem' } }, [
-          h(NumberInput, {
-            min: 1,
-            max: 999,
-            isClearable: false,
-            onlyInteger: true,
-            disabled: !autoPauseCheckboxEnabled,
-            value: computeConfig.autopauseThreshold,
-            hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold),
-            tooltip: !isAutopauseEnabled(computeConfig.autopauseThreshold) ? 'Autopause must be enabled to configure pause time.' : undefined,
-            onChange: v => updateComputeConfig('autopauseThreshold', v),
-            'aria-label': 'Minutes of inactivity before autopausing'
-          }),
-          span({ hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold) }, ['minutes of inactivity'])
+          h(IdContainer, [
+            id => h(Fragment, [
+              h(NumberInput, {
+                id,
+                min: 1,
+                max: 999,
+                isClearable: false,
+                onlyInteger: true,
+                disabled: !autoPauseCheckboxEnabled,
+                value: computeConfig.autopauseThreshold,
+                hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold),
+                tooltip: !isAutopauseEnabled(computeConfig.autopauseThreshold) ? 'Autopause must be enabled to configure pause time.' : undefined,
+                onChange: v => updateComputeConfig('autopauseThreshold', v),
+                'aria-label': 'Minutes of inactivity before autopausing'
+              }),
+              label({
+                htmlFor: id,
+                hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold)
+              }, ['minutes of inactivity'])
+            ])
+          ])
         ])
       ])
     ])

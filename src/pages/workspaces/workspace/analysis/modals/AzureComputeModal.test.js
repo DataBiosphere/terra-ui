@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import _ from 'lodash/fp'
 import { act } from 'react-dom/test-utils'
@@ -10,6 +10,10 @@ import {
   defaultAzureWorkspace, imageDocs, testAzureDefaultRegion
 } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
+import {
+  autopauseDisabledValue,
+  defaultAutopauseThreshold
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
@@ -112,7 +116,100 @@ describe('AzureComputeModal', () => {
         labels,
         name: expect.anything()
       }),
-      machineSize: defaultAzureMachineType
+      machineSize: defaultAzureMachineType,
+      autopauseThreshold: defaultAutopauseThreshold,
+    }))
+
+    expect(onSuccess).toHaveBeenCalled()
+  })
+
+  it('sends the proper leo API call in create case (custom autopause)', async () => {
+    // Arrange
+    const createFunc = jest.fn()
+    const runtimeFunc = jest.fn(() => ({
+      create: createFunc,
+      details: jest.fn()
+    }))
+    Ajax.mockImplementation(() => ({
+      ...defaultAjaxImpl,
+      Runtimes: {
+        runtimeV2: runtimeFunc
+      }
+    }))
+
+    // Act
+    // wrapping component init-time stateful side-effects with act()
+    await act(async () => {
+      await render(h(AzureComputeModalBase, defaultModalProps))
+
+      const numberInput = await screen.getByLabelText('minutes of inactivity')
+      expect(numberInput).toBeInTheDocument()
+      await fireEvent.change(numberInput, { target: { value: 5 } })
+      expect(numberInput.value).toBe('5')
+
+      await userEvent.click(getCreateButton())
+    })
+
+    // Assert
+    const labels = {
+      saturnWorkspaceNamespace: defaultModalProps.workspace.workspace.namespace,
+      saturnWorkspaceName: defaultModalProps.workspace.workspace.name
+    }
+    expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.workspaceId, expect.anything())
+    expect(createFunc).toHaveBeenCalledWith(expect.objectContaining({
+      labels,
+      disk: expect.objectContaining({
+        labels,
+        name: expect.anything()
+      }),
+      machineSize: defaultAzureMachineType,
+      autopauseThreshold: 5,
+    }))
+
+    expect(onSuccess).toHaveBeenCalled()
+  })
+
+  it('sends the proper leo API call in create case (autopause disabled)', async () => {
+    // Arrange
+    const createFunc = jest.fn()
+    const runtimeFunc = jest.fn(() => ({
+      create: createFunc,
+      details: jest.fn()
+    }))
+    Ajax.mockImplementation(() => ({
+      ...defaultAjaxImpl,
+      Runtimes: {
+        runtimeV2: runtimeFunc
+      }
+    }))
+
+    // Act
+    // wrapping component init-time stateful side-effects with act()
+    await act(async () => {
+      await render(h(AzureComputeModalBase, defaultModalProps))
+
+      const autopauseCheckbox = await screen.getByLabelText('Enable autopause')
+      expect(autopauseCheckbox).toBeInTheDocument()
+      await fireEvent.click(autopauseCheckbox)
+      expect(autopauseCheckbox).not.toBeInTheDocument()
+
+      await userEvent.click(getCreateButton())
+    })
+
+    // Assert
+    const labels = {
+      saturnWorkspaceNamespace: defaultModalProps.workspace.workspace.namespace,
+      saturnWorkspaceName: defaultModalProps.workspace.workspace.name
+    }
+    expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.workspaceId, expect.anything())
+    expect(createFunc).toHaveBeenCalledWith(expect.objectContaining({
+      labels,
+      disk: expect.objectContaining({
+        labels,
+        name: expect.anything()
+      }),
+      machineSize: defaultAzureMachineType,
+      autopauseThreshold: autopauseDisabledValue,
     }))
 
     expect(onSuccess).toHaveBeenCalled()
