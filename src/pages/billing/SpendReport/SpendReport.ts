@@ -8,6 +8,7 @@ import {
   Select
 } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { FormLabel } from 'src/libs/forms'
 import { useCancellation } from 'src/libs/react-utils'
 import { CloudPlatform } from 'src/pages/billing/models/BillingProject'
@@ -27,7 +28,11 @@ const OtherMessaging = ({ cost, cloudPlatform }) => {
     span({ 'aria-hidden': true }, ['*']),
     '',
     msg,
-    cloudPlatform !== 'AZURE' ? '' : ExternalLink({ url: 'https://support.terra.bio/hc/en-us/articles/12029087819291-Overview-Costs-and-billing-in-Terra-on-Azure', text: ' See our documentation to learn more about Azure costs.' })
+    cloudPlatform !== 'AZURE' ? '' : ExternalLink({
+      url: 'https://support.terra.bio/hc/en-us/articles/12029087819291-Overview-Costs-and-billing-in-Terra-on-Azure',
+      text: ' See our documentation to learn more about Azure costs.',
+      style: { color: colors.accent(1.1) } // needed to pass color contrast accessibility requirement
+    })
   ])
 }
 

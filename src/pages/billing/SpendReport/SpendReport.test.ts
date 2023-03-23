@@ -132,7 +132,7 @@ describe('SpendReport', () => {
     expect(screen.queryByText(otherCostMessaging)).toBeNull()
   })
 
-  it('displays cost information', async () => {
+  it('displays GCP cost information', async () => {
     //Arrange
     const getSpendReport = jest.fn()
     asMockedFn(Ajax).mockImplementation(() => ({
@@ -150,6 +150,32 @@ describe('SpendReport', () => {
       expect(screen.getByText(/\$89.00 in other infrastructure/i)).toBeInTheDocument()
     })
     expect(getSpendReport).toHaveBeenCalledTimes(1)
+    expect(screen.getByTestId('spend')).toHaveTextContent('$1,110.00*')
+    expect(screen.getByTestId('compute')).toHaveTextContent('$999.00')
+    expect(screen.getByTestId('storage')).toHaveTextContent('$22.00')
+
+    // Highcharts content is very minimal when rendered in the unit test. Testing of "most expensive workspaces"
+    // is in the integration test. Accessibility is also tested in the integration test.
+  })
+
+  it('displays Azure cost information but does not include per-workspace costs', async () => {
+    //Arrange
+    const getSpendReport = jest.fn()
+    asMockedFn(Ajax).mockImplementation(() => ({
+      Billing: { getSpendReport } as Partial<AjaxContract['Billing']>
+    } as Partial<AjaxContract> as AjaxContract))
+    getSpendReport.mockResolvedValue(createSpendReportResult('1110'))
+
+    // Act
+    await act(async () => {
+      await render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty', cloudPlatform: 'AZURE' }))
+    })
+
+    // Assert
+    await waitFor(() => {
+      expect(screen.getByText(/\$89.00 in other infrastructure/i)).toBeInTheDocument()
+    })
+    expect(getSpendReport).toHaveBeenCalledWith({ billingProjectName: 'thrifty', endDate: '2022-04-01', startDate: '2022-03-02', aggregationKeys: ['Category'] })
     expect(screen.getByTestId('spend')).toHaveTextContent('$1,110.00*')
     expect(screen.getByTestId('compute')).toHaveTextContent('$999.00')
     expect(screen.getByTestId('storage')).toHaveTextContent('$22.00')
