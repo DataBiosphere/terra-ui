@@ -125,7 +125,7 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
   {
     projectName: azureBillingProjectName,
     managedAppCoordinates: { managedResourceGroupId: `${azureBillingProjectName}_mrg`, subscriptionId: 'subId', tenantId: 'tenantId' },
-    invalidBillingAccount: false, roles: ['Owner'], status: 'Ready', cloudPlatform: 'AZURE'
+    invalidBillingAccount: false, roles: ['Owner'], status: 'Ready', cloudPlatform: 'AZURE', landingZoneId: 'fakeLandingZoneId'
   }])
 
   const ownedProjectMembersListResult = [{
@@ -249,6 +249,8 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.assertChartValue(3, 'Third Most Expensive Workspace', 'Storage', '$0.00')
   // Verify the spend report configuration option is present
   await billingPage.assertText('View billing account')
+  // Verify link to Azure portal is not present
+  await billingPage.assertTextNotFound('Open resources in Azure Portal')
 
   // Change the returned mock cost to mimic different date ranges.
   await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName,
@@ -274,6 +276,8 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.selectProject(azureBillingProjectName, AZURE)
   await billingPage.assertTextNotFound('Spend report')
   await billingPage.assertTextNotFound('View billing account')
+  // Verify link to Azure portal is present
+  await billingPage.assertText('Open resources in Azure Portal')
 
   // Check accessibility of initial view.
   await verifyAccessibility(page)

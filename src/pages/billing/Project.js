@@ -542,8 +542,8 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       isGcpProject && h(GcpBillingAccountControls, { authorizeAndLoadAccounts, billingAccounts, billingProject, isOwner, getShowBillingModal, setShowBillingModal, reloadBillingProject, setUpdating }),
       isAzureProject && div({ style: accountLinkStyle }, [
         h(ExternalLink, {
-          url: `https://portal.azure.com/#@${billingProject.managedAppCoordinates.tenantId}/resource/subscriptions/${billingProject.managedAppCoordinates.subscriptionId}/resourceGroups/${billingProject.managedAppCoordinates.managedResourceGroupId}/overview`,
-          text: 'Open Resource Group in Azure Portal',
+          url: `https://portal.azure.com/#view/HubsExtension/BrowseResourcesWithTag/tagName/WLZ-ID/tagValue/${billingProject.landingZoneId}`,
+          text: 'Open resources in Azure Portal',
           popoutSize: 14
         })
       ]),
