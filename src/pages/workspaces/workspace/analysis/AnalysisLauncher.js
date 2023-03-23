@@ -23,7 +23,7 @@ import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { cloudProviderTypes } from 'src/libs/workspace-utils'
+import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
 import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
 import { ComputeModal } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal/ExportAnalysisModal'
@@ -464,12 +464,13 @@ const PreviewHeader = ({
 }
 
 // This component is responsible for rendering the html preview of the analysis file
-const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace: { workspaceId, googleProject, bucketName } }, onRequesterPaysError, styles }) => {
+const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace, onRequesterPaysError, styles }) => {
   const signal = useCancellation()
   const [busy, setBusy] = useState(false)
   const [preview, setPreview] = useState()
   const frame = useRef()
-  const cloudPlatform = !!googleProject ? cloudProviderTypes.GCP : cloudProviderTypes.AZURE
+  const cloudPlatform = getCloudProviderFromWorkspace(workspace)
+  const { workspace: { workspaceId, googleProject, bucketName } } = workspace
 
   const loadPreview = _.flow(
     Utils.withBusyState(setBusy),
@@ -477,7 +478,7 @@ const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace:
     withErrorReporting('Error previewing analysis')
   )(async () => {
     // TOODO: Tracked in IA-4015. This implementation is not ideal. Introduce Error typing to better resolve the response.
-    const response = !!googleProject ?
+    const response = cloudPlatform === cloudProviderTypes.GCP ?
       await Ajax(signal).Buckets.analysis(googleProject, bucketName, analysisName, toolLabel).preview() :
       await Ajax(signal).AzureStorage.blob(workspaceId, analysisName).preview()
 
@@ -567,7 +568,7 @@ const copyingAnalysisMessage = div({ style: { paddingTop: '2rem' } }, [
 ])
 
 const AnalysisEditorFrame = ({
-  styles, mode, analysisName, toolLabel, workspace: { workspace: { googleProject, namespace, name, bucketName } },
+  styles, mode, analysisName, toolLabel, workspace,
   runtime: { runtimeName, proxyUrl, status, labels }
 }) => {
   console.assert(_.includes(status, usableStatuses), `Expected cloud environment to be one of: [${usableStatuses}]`)
@@ -576,7 +577,8 @@ const AnalysisEditorFrame = ({
   const [busy, setBusy] = useState(false)
   const [analysisSetupComplete, setAnalysisSetupComplete] = useState(false)
   const cookieReady = useStore(cookieReadyStore)
-  const cloudPlatform = !!googleProject ? cloudProviderTypes.GCP : cloudProviderTypes.AZURE
+  const cloudPlatform = getCloudProviderFromWorkspace(workspace)
+  const { workspace: { googleProject, namespace, name, bucketName } } = workspace
 
   const localBaseDirectory = Utils.switchCase(toolLabel,
     [runtimeToolLabels.Jupyter, () => `${name}/edit`],
@@ -640,8 +642,7 @@ const AnalysisEditorFrame = ({
 // do we need this anymore? (can be queried in prod DB to see if there are any VMs with welderEnabled=false with a `recent` dateAccessed
 // do we need to support this for rstudio? I don't think so because welder predates RStudio support, but not 100%
 const WelderDisabledNotebookEditorFrame = ({
-  styles, mode, notebookName, workspace: { workspace: { googleProject, namespace, name, bucketName } },
-  runtime: { runtimeName, proxyUrl, status, labels }
+  styles, mode, notebookName, workspace, runtime: { runtimeName, proxyUrl, status, labels }
 }) => {
   console.assert(status === 'Running', 'Expected cloud environment to be running')
   console.assert(!!labels.welderInstallFailed, 'Expected cloud environment to not have Welder')
@@ -650,7 +651,8 @@ const WelderDisabledNotebookEditorFrame = ({
   const [busy, setBusy] = useState(false)
   const [localized, setLocalized] = useState(false)
   const cookieReady = useStore(cookieReadyStore)
-  const cloudPlatform = !!googleProject ? cloudProviderTypes.GCP : cloudProviderTypes.AZURE
+  const cloudPlatform = getCloudProviderFromWorkspace(workspace)
+  const { workspace: { googleProject, namespace, name, bucketName } } = workspace
 
   const localizeNotebook = _.flow(
     Utils.withBusyState(setBusy),

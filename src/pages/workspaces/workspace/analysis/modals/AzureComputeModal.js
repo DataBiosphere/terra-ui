@@ -197,18 +197,19 @@ export const AzureComputeModalBase = ({
   const sendCloudEnvironmentMetrics = () => {
     const metricsEvent = Utils.cond(
       [(viewMode === 'deleteEnvironment'), () => 'cloudEnvironmentDelete'],
-      //[(!!existingRuntime), () => 'cloudEnvironmentUpdate'], TODO: When update is available, include in metrics
+      // TODO: IA-4163 -When update is available, include in metrics
+      // [(!!existingRuntime), () => 'cloudEnvironmentUpdate'],
       () => 'cloudEnvironmentCreate'
     )
 
-    //TODO: When update is available include existingRuntime in metrics.
+    //TODO: IA-4163 When update is available include existingRuntime in metrics.
     Ajax().Metrics.captureEvent(Events[metricsEvent], {
       ...extractWorkspaceDetails(workspace),
       ..._.mapKeys(key => `desiredRuntime_${key}`, computeConfig),
       desiredRuntime_region: computeConfig.region,
       desiredRuntime_machineType: computeConfig.machineType,
       desiredPersistentDisk_size: computeConfig.diskSize,
-      desiredPersistentDisk_type: 'Standard', //TODO: Hard coded - we currently don't send disk type.
+      desiredPersistentDisk_type: 'Standard', // IA-4164 - Azure disks are currently only Standard (HDD), when we add types update this.
       desiredPersistentDisk_costPerMonth: getAzureDiskCostEstimate(computeConfig)
     })
   }

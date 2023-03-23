@@ -264,7 +264,7 @@ const activeFileTransferMessage = div({
 ])
 
 export type DisplayAnalysisFile = AnalysisFile & {
-  application: ToolLabel // TODO: Shouold be renamed tool
+  application: ToolLabel
 }
 
 export const decorateAnalysisFiles = (rawAnalyses: AnalysisFile[]): DisplayAnalysisFile[] => {
