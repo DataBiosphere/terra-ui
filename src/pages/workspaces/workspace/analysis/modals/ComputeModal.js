@@ -1321,7 +1321,7 @@ export const ComputeModalBase = ({
             div({ style: { margin: '1rem 0 0.5rem', fontSize: 16, fontWeight: 600 } }, ['What would you like to do with your disk?']),
             DeleteDiskChoices({
               existingEnvironmentConfig: getExistingEnvironmentConfig(),
-              persistentDiskCost: Utils.formatUSD(getPersistentDiskCostMonthly(currentPersistentDiskDetails, computeConfig.computeRegion)),
+              persistentDiskCostLabel: Utils.formatUSD(getPersistentDiskCostMonthly(currentPersistentDiskDetails, computeConfig.computeRegion)),
               deleteDiskSelected, setDeleteDiskSelected
             })
           ])],

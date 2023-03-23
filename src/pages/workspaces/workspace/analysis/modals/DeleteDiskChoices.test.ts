@@ -6,288 +6,316 @@ import { h } from 'react-hyperscript-helpers'
 import { ButtonPrimary } from 'src/components/common'
 import { cloudServices } from 'src/data/gce-machines'
 import { formatUSD } from 'src/libs/utils'
-import { azureRuntime, getAzureDisk, getDisk, getJupyterRuntimeConfig } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
+import { azureRuntime, getAzureDisk, getDisk, getRuntimeConfig } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import { DeleteDiskChoices, DeleteEnvironment } from 'src/pages/workspaces/workspace/analysis/modals/DeleteDiskChoices'
 
 
 const renderActionButton = () => h(ButtonPrimary, {}, ['Delete'])
 
-describe('compute-modal-component', () => {
-  describe('DeleteDiskChoices', () => {
-    it.each([
-      { cloudService: cloudServices.GCE },
-      { cloudService: cloudServices.AZURE },
-    ])('Should pass through all correct values', ({ cloudService }) => {
-      // Arrange
-      const pdCost = formatUSD(1.01)
-      const deleteDiskSelected = false
-      const setDeleteDiskSelected = jest.fn()
+describe('DeleteDiskChoices', () => {
+  it.each([
+    { cloudService: cloudServices.GCE },
+    { cloudService: cloudServices.AZURE },
+  ])('Should pass through all correct values', ({ cloudService }) => {
+    // Arrange
+    const pdCost = formatUSD(1.01)
+    const deleteDiskSelected = false
+    const setDeleteDiskSelected = jest.fn()
 
-      // Act
-      render(h(DeleteDiskChoices, {
-        persistentDiskCost: pdCost,
-        toolLabel: 'RStudio',
-        cloudService,
-        deleteDiskSelected,
-        setDeleteDiskSelected
-      }))
+    // Act
+    render(h(DeleteDiskChoices, {
+      persistentDiskCostLabel: pdCost,
+      toolLabel: 'RStudio',
+      cloudService,
+      deleteDiskSelected,
+      setDeleteDiskSelected
+    }))
 
-      // Assert
-      screen.getByText('Keep persistent disk, delete application configuration and compute profile')
-      screen.getByText('/home/rstudio')
-      screen.getByText(`${pdCost} per month.`)
-      screen.getByText('Delete everything, including persistent disk')
-    })
-
-    it('Should be able to toggle setDeleteDiskSelected when option pressed', async () => {
-      // Arrange
-      const pdCost = formatUSD(1.01)
-      const deleteDiskSelected = false
-      const setDeleteDiskSelected = jest.fn()
-
-      // Act
-      render(h(DeleteDiskChoices, {
-        persistentDiskCost: pdCost,
-        toolLabel: 'RStudio',
-        cloudService: cloudServices.GCE,
-        deleteDiskSelected,
-        setDeleteDiskSelected
-      }))
-      const radio1 = screen.getByLabelText('Keep persistent disk, delete application configuration and compute profile')
-      const radio2 = screen.getByLabelText('Delete everything, including persistent disk')
-      await userEvent.click(radio2)
-
-      // Assert
-      expect(radio1).toBeChecked()
-      expect(radio2).not.toBeChecked()
-      expect(setDeleteDiskSelected).toBeCalledTimes(1)
-      expect(setDeleteDiskSelected).toBeCalledWith(true)
-    })
-
-    it('Should show safefileshelp differently for rstudio', () => {
-      // Arrange
-      const pdCost = formatUSD(1.01)
-      const deleteDiskSelected = false
-      const setDeleteDiskSelected = jest.fn()
-
-      // Act
-      render(h(DeleteDiskChoices, {
-        persistentDiskCost: pdCost,
-        toolLabel: 'RStudio',
-        cloudService: cloudServices.GCE,
-        deleteDiskSelected,
-        setDeleteDiskSelected
-      }))
-
-      // Assert
-      expect(screen.getByText('move them to the workspace bucket.')
-        .closest('a'))
-        .toHaveAttribute('aria-label', 'RStudio save help')
-    })
-
-    it('Should show safefileshelp option for jupyter', () => {
-      // Arrange
-      const pdCost = formatUSD(1.01)
-      const deleteDiskSelected = false
-      const setDeleteDiskSelected = jest.fn()
-
-      // Act
-      render(h(DeleteDiskChoices, {
-        persistentDiskCost: pdCost,
-        toolLabel: 'Jupyter',
-        cloudService: cloudServices.GCE,
-        deleteDiskSelected,
-        setDeleteDiskSelected
-      }))
-
-      // Assert
-      expect(screen.getByText('move them to the workspace bucket.')
-        .closest('a'))
-        .toHaveAttribute('aria-label', 'Save file help')
-    })
-
-    it('Should show safefileshelp option for azure', () => {
-      // Arrange
-      const pdCost = formatUSD(1.01)
-      const deleteDiskSelected = false
-      const setDeleteDiskSelected = jest.fn()
-
-      // Act
-      render(h(DeleteDiskChoices, {
-        persistentDiskCost: pdCost,
-        toolLabel: 'Jupyter',
-        cloudService: cloudServices.AZURE,
-        deleteDiskSelected,
-        setDeleteDiskSelected
-      }))
-
-      // Assert
-      expect(screen.getByText('move them to the workspace bucket.')
-        .closest('a'))
-        .toHaveAttribute('href', 'https://support.terra.bio/hc/en-us/articles/12043575737883')
-    })
+    // Assert
+    screen.getByText('Keep persistent disk, delete application configuration and compute profile')
+    screen.getByText('/home/rstudio')
+    screen.getByText(`${pdCost} per month.`)
+    screen.getByText('Delete everything, including persistent disk')
   })
 
-  describe('DeleteEnvironment', () => {
-    it('Should properly render when provided no disk/runtime', () => {
-      // Arrange
-      const setDeleteDiskSelected = jest.fn()
-      const setViewMode = jest.fn()
+  it('Should be able to toggle setDeleteDiskSelected when option pressed', async () => {
+    // Arrange
+    const pdCost = formatUSD(1.01)
+    const deleteDiskSelected = false
+    const setDeleteDiskSelected = jest.fn()
 
-      // Act
-      render(h(DeleteEnvironment, {
-        id: 'not-relevant',
-        deleteDiskSelected: false,
-        setDeleteDiskSelected,
-        setViewMode,
-        renderActionButton,
-        hideCloseButton: false,
-        onDismiss: () => {},
-        toolLabel: 'RStudio'
-      }))
+    // Act
+    render(h(DeleteDiskChoices, {
+      persistentDiskCostLabel: pdCost,
+      toolLabel: 'RStudio',
+      cloudService: cloudServices.GCE,
+      deleteDiskSelected,
+      setDeleteDiskSelected
+    }))
+    const radio1 = screen.getByLabelText('Keep persistent disk, delete application configuration and compute profile')
+    const radio2 = screen.getByLabelText('Delete everything, including persistent disk')
+    await userEvent.click(radio2)
 
-      // Assert
-      screen.getByText('Deleting your application configuration and cloud compute profile will also')
-    })
-    it.each([
-      { disk: getDisk() },
-      { disk: getAzureDisk() },
-    ])('Should properly render when provided no runtime but a disk', ({ disk }) => {
-      // Arrange
-      const setDeleteDiskSelected = jest.fn()
-      const setViewMode = jest.fn()
+    // Assert
+    expect(radio1).toBeChecked()
+    expect(radio2).not.toBeChecked()
+    expect(setDeleteDiskSelected).toBeCalledTimes(1)
+    expect(setDeleteDiskSelected).toBeCalledWith(true)
+  })
 
-      // Act
-      render(h(DeleteEnvironment, {
-        id: 'not-relevant',
-        deleteDiskSelected: false,
-        persistentDisk: disk,
-        setDeleteDiskSelected,
-        setViewMode,
-        renderActionButton,
-        hideCloseButton: false,
-        onDismiss: () => {},
-        toolLabel: 'RStudio'
-      }))
+  it('Should show SaveFilesHelp differently for RStudio', () => {
+    // Arrange
+    const pdCost = formatUSD(1.01)
+    const deleteDiskSelected = false
+    const setDeleteDiskSelected = jest.fn()
 
-      // Assert
-      screen.getByText('If you want to permanently save some files from the disk before deleting it, you will need to create a new cloud environment to access it.')
-    })
-    it('Should properly render when provided azure config', () => {
-      // Arrange
-      const setDeleteDiskSelected = jest.fn()
-      const setViewMode = jest.fn()
-      const disk = getAzureDisk()
-      const runtimeConfig = azureRuntime.runtimeConfig
+    // Act
+    render(h(DeleteDiskChoices, {
+      persistentDiskCostLabel: pdCost,
+      toolLabel: 'RStudio',
+      cloudService: cloudServices.GCE,
+      deleteDiskSelected,
+      setDeleteDiskSelected
+    }))
 
-      // Act
-      render(h(DeleteEnvironment, {
-        id: 'not-relevant',
-        runtimeConfig,
-        persistentDisk: disk,
-        deleteDiskSelected: false,
-        setDeleteDiskSelected,
-        setViewMode,
-        renderActionButton,
-        hideCloseButton: false,
-        onDismiss: () => {},
-        toolLabel: 'RStudio'
-      }))
+    // Assert
+    expect(screen.getByText('move them to the workspace bucket.')
+      .closest('a'))
+      .toHaveAttribute('aria-label', 'RStudio save help')
+  })
 
-      // Assert
-      screen.getByText('Delete application configuration and cloud compute profile')
-      screen.getByText('Delete persistent disk')
-    })
-    it('Should properly render when provided a GCE config', () => {
-      // Arrange
-      const setDeleteDiskSelected = jest.fn()
-      const setViewMode = jest.fn()
-      const disk = getDisk()
-      const runtimeConfig = getJupyterRuntimeConfig({ diskId: disk.id })
+  it('Should show SaveFilesHelp option for JupyterLab', () => {
+    // Arrange
+    const pdCost = formatUSD(1.01)
+    const deleteDiskSelected = false
+    const setDeleteDiskSelected = jest.fn()
 
-      // Act
-      render(h(DeleteEnvironment, {
-        id: 'not-relevant',
-        runtimeConfig,
-        persistentDisk: disk,
-        deleteDiskSelected: false,
-        setDeleteDiskSelected,
-        setViewMode,
-        renderActionButton,
-        hideCloseButton: false,
-        onDismiss: () => {},
-        toolLabel: 'RStudio'
-      }))
+    // Act
+    render(h(DeleteDiskChoices, {
+      persistentDiskCostLabel: pdCost,
+      toolLabel: 'JupyterLab',
+      cloudService: cloudServices.GCE,
+      deleteDiskSelected,
+      setDeleteDiskSelected
+    }))
 
-      // Assert
+    // Assert
+    expect(screen.getByText('move them to the workspace bucket.')
+      .closest('a'))
+      .toHaveAttribute('aria-label', 'Save file help')
+  })
 
-      screen.getByText('Keep persistent disk, delete application configuration and compute profile')
-      screen.getByText('/home/rstudio')
-      screen.getByText('Delete everything, including persistent disk')
-    })
-    it.each([
-      { toolLabel: 'RStudio' },
-      { toolLabel: 'Jupyter' }
-    ])('Should properly render when provided GCE config that had matching PDID', ({ toolLabel }) => {
-      // Arrange
-      const setDeleteDiskSelected = jest.fn()
-      const setViewMode = jest.fn()
-      const disk = getDisk()
-      const runtimeConfig = getJupyterRuntimeConfig({ diskId: disk.id })
-      runtimeConfig.persistentDiskId = disk.id
+  it('Should show SaveFilesHelp option for Azure', () => {
+    // Arrange
+    const pdCost = formatUSD(1.01)
+    const deleteDiskSelected = false
+    const setDeleteDiskSelected = jest.fn()
 
-      // Act
-      render(h(DeleteEnvironment, {
-        id: 'not-relevant',
-        runtimeConfig,
-        persistentDisk: disk,
-        deleteDiskSelected: false,
-        setDeleteDiskSelected,
-        setViewMode,
-        renderActionButton,
-        hideCloseButton: false,
-        onDismiss: () => {},
-        toolLabel,
-        computeRegion: 'us-central1'
-      }))
+    // Act
+    render(h(DeleteDiskChoices, {
+      persistentDiskCostLabel: pdCost,
+      toolLabel: 'JupyterLab',
+      cloudService: cloudServices.AZURE,
+      deleteDiskSelected,
+      setDeleteDiskSelected
+    }))
 
-      // Assert
+    // Assert
+    expect(screen.getByText('move them to the workspace bucket.')
+      .closest('a'))
+      .toHaveAttribute('href', 'https://support.terra.bio/hc/en-us/articles/12043575737883')
+  })
+})
 
-      screen.getByText('You will continue to incur persistent disk cost at')
-      screen.getByText(`/home/${toolLabel.toLowerCase()}`)
-      screen.getByText('$2.00 per month.')
-      screen.getByText('Also deletes your application configuration and cloud compute profile.')
-    })
+describe('DeleteEnvironment', () => {
+  it.each([
+    'RStudio',
+    'JupyterLab',
+  ])('Should properly render when provided no disk/runtime with label %s', toolLabel => {
+    // Arrange
+    const setDeleteDiskSelected = jest.fn()
+    const setViewMode = jest.fn()
 
-    it('Should properly render when provided Azure config that had matching PDID', () => {
-      // Arrange
-      const setDeleteDiskSelected = jest.fn()
-      const setViewMode = jest.fn()
-      const disk = getAzureDisk()
-      const runtimeConfig = azureRuntime.runtimeConfig
-      //this if statement is to satisfy typescript
-      if ('persistentDiskId' in runtimeConfig) runtimeConfig.persistentDiskId = disk.id
+    // Act
+    render(h(DeleteEnvironment, {
+      id: 'not-relevant',
+      deleteDiskSelected: false,
+      setDeleteDiskSelected,
+      setViewMode,
+      renderActionButton,
+      hideCloseButton: false,
+      onDismiss: () => {},
+      toolLabel
+    }))
 
-      // Act
-      render(h(DeleteEnvironment, {
-        id: 'not-relevant',
-        runtimeConfig,
-        persistentDisk: disk,
-        deleteDiskSelected: false,
-        setDeleteDiskSelected,
-        setViewMode,
-        renderActionButton,
-        hideCloseButton: false,
-        onDismiss: () => {},
-        toolLabel: 'Jupyter'
-      }))
+    // Assert
+    screen.getByText('Deleting your application configuration and cloud compute profile will also')
+  })
+  it.each([
+    { disk: getDisk(), toolLabel: 'RStudio' },
+    { disk: getDisk(), toolLabel: 'JupyterLab' },
+    { disk: getAzureDisk(), toolLabel: 'JupyterLab' },
+  ])('Should properly render when provided no runtime but a disk', ({ disk, toolLabel }) => {
+    // Arrange
+    const setDeleteDiskSelected = jest.fn()
+    const setViewMode = jest.fn()
 
-      // Assert
+    // Act
+    render(h(DeleteEnvironment, {
+      id: 'not-relevant',
+      deleteDiskSelected: false,
+      persistentDisk: disk,
+      setDeleteDiskSelected,
+      setViewMode,
+      renderActionButton,
+      hideCloseButton: false,
+      onDismiss: () => {},
+      toolLabel
+    }))
 
-      screen.getByText('You will continue to incur persistent disk cost at')
-      screen.getByText('/home/jupyter')
-      screen.getByText('$3.01 per month.')
-      screen.getByText('Also deletes your application configuration and cloud compute profile.')
-    })
+    // Assert
+    screen.getByText('If you want to permanently save some files from the disk before deleting it, you will need to create a new cloud environment to access it.')
+  })
+  it('Should properly render when provided Azure config', () => {
+    // Arrange
+    const setDeleteDiskSelected = jest.fn()
+    const setViewMode = jest.fn()
+    const disk = getAzureDisk()
+    const runtimeConfig = azureRuntime.runtimeConfig
+
+    // Act
+    render(h(DeleteEnvironment, {
+      id: 'not-relevant',
+      runtimeConfig,
+      persistentDisk: disk,
+      deleteDiskSelected: false,
+      setDeleteDiskSelected,
+      setViewMode,
+      renderActionButton,
+      hideCloseButton: false,
+      onDismiss: () => {},
+      toolLabel: 'JupyterLab'
+    }))
+
+    // Assert
+    screen.getByText('Delete application configuration and cloud compute profile')
+    screen.getByText('Delete persistent disk')
+  })
+  it.each([
+    'RStudio',
+    'JupyterLab',
+  ])('Should properly render when provided a GCEWithPD config with label %s', toolLabel => {
+    // Arrange
+    const setDeleteDiskSelected = jest.fn()
+    const setViewMode = jest.fn()
+    const disk = getDisk()
+    const runtimeConfig = getRuntimeConfig({ persistentDiskId: disk.id })
+
+    // Act
+    render(h(DeleteEnvironment, {
+      id: 'not-relevant',
+      runtimeConfig,
+      persistentDisk: disk,
+      deleteDiskSelected: false,
+      setDeleteDiskSelected,
+      setViewMode,
+      renderActionButton,
+      hideCloseButton: false,
+      onDismiss: () => {},
+      toolLabel
+    }))
+
+    // Assert
+    screen.getByText('Keep persistent disk, delete application configuration and compute profile')
+    screen.getByText(`/home/${toolLabel === 'RStudio' ? 'rstudio' : 'jupyter'}`)
+    screen.getByText('Delete everything, including persistent disk')
+  })
+  it('Should properly render when provided a GCE config', () => {
+    // Arrange
+    const setDeleteDiskSelected = jest.fn()
+    const setViewMode = jest.fn()
+    const disk = getDisk()
+    const runtimeConfig = getRuntimeConfig()
+
+    // Act
+    render(h(DeleteEnvironment, {
+      id: 'not-relevant',
+      runtimeConfig,
+      persistentDisk: disk,
+      deleteDiskSelected: false,
+      setDeleteDiskSelected,
+      setViewMode,
+      renderActionButton,
+      hideCloseButton: false,
+      onDismiss: () => {},
+      toolLabel: 'RStudio'
+    }))
+
+    // Assert
+    screen.getByText('Delete application configuration and cloud compute profile')
+    screen.getByText('Delete persistent disk')
+  })
+  it.each([
+    'RStudio',
+    'JupyterLab'
+  ])('Should properly render when provided GCE config that had matching PDID with label %s', toolLabel => {
+    // Arrange
+    const setDeleteDiskSelected = jest.fn()
+    const setViewMode = jest.fn()
+    const disk = getDisk()
+    const runtimeConfig = getRuntimeConfig({ persistentDiskId: disk.id })
+    if ('persistentDiskId' in runtimeConfig) runtimeConfig.persistentDiskId = disk.id
+
+    // Act
+    render(h(DeleteEnvironment, {
+      id: 'not-relevant',
+      runtimeConfig,
+      persistentDisk: disk,
+      deleteDiskSelected: false,
+      setDeleteDiskSelected,
+      setViewMode,
+      renderActionButton,
+      hideCloseButton: false,
+      onDismiss: () => {},
+      toolLabel,
+      computeRegion: 'us-central1'
+    }))
+
+    // Assert
+
+    screen.getByText('You will continue to incur persistent disk cost at')
+    screen.getByText(`/home/${toolLabel === 'RStudio' ? 'rstudio' : 'jupyter'}`)
+    screen.getByText('$2.00 per month.')
+    screen.getByText('Also deletes your application configuration and cloud compute profile.')
+  })
+  it('Should properly render when provided Azure config that had matching PDID', () => {
+    // Arrange
+    const setDeleteDiskSelected = jest.fn()
+    const setViewMode = jest.fn()
+    const disk = getAzureDisk()
+    const runtimeConfig = azureRuntime.runtimeConfig
+    //this if statement is to satisfy typescript
+    if ('persistentDiskId' in runtimeConfig) runtimeConfig.persistentDiskId = disk.id
+
+    // Act
+    render(h(DeleteEnvironment, {
+      id: 'not-relevant',
+      runtimeConfig,
+      persistentDisk: disk,
+      deleteDiskSelected: false,
+      setDeleteDiskSelected,
+      setViewMode,
+      renderActionButton,
+      hideCloseButton: false,
+      onDismiss: () => {},
+      toolLabel: 'JupyterLab'
+    }))
+
+    // Assert
+
+    screen.getByText('You will continue to incur persistent disk cost at')
+    screen.getByText('/home/jupyter')
+    screen.getByText('$3.01 per month.')
+    screen.getByText('Also deletes your application configuration and cloud compute profile.')
   })
 })

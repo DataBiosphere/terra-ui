@@ -38,7 +38,7 @@ export const AzureComputeModalBase = ({
   const [computeConfig, setComputeConfig] = useState(defaultAzureComputeConfig)
   const updateComputeConfig = _.curry((key, value) => setComputeConfig(_.set(key, value)))
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [currentPersistentDisk, setCurrentPersistentDiskDetails] = useState(getCurrentPersistentDisk(runtimes, persistentDisks))
+  const [currentPersistentDisk, setCurrentPersistentDisk] = useState(getCurrentPersistentDisk(runtimes, persistentDisks))
 
   const persistentDiskExists = !!currentPersistentDisk
   const [deleteDiskSelected, setDeleteDiskSelected] = useState(false)

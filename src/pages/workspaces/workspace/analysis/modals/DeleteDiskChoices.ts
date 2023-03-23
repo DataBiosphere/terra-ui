@@ -11,14 +11,14 @@ import { getPersistentDiskCostMonthly } from 'src/pages/workspaces/workspace/ana
 
 
 export const DeleteDiskChoices = ({
-  persistentDiskCost,
+  persistentDiskCostLabel,
   deleteDiskSelected,
   setDeleteDiskSelected,
   toolLabel,
   cloudService
 }:
     {
-      persistentDiskCost: String
+      persistentDiskCostLabel: String
       deleteDiskSelected:boolean
       setDeleteDiskSelected:(p1:boolean)=>void
       toolLabel:string
@@ -50,7 +50,7 @@ export const DeleteDiskChoices = ({
         p({ style: { marginBottom: 0 } }, [
           'You will continue to incur persistent disk cost at ',
           span({ style: { fontWeight: 600 } },
-            [`${persistentDiskCost} per month.`])
+            [`${persistentDiskCostLabel} per month.`])
         ])
       ]),
       h(RadioBlock, {
@@ -77,8 +77,19 @@ export const DeleteDiskChoices = ({
 }
 
 
-export const DeleteEnvironment = ({ id, runtimeConfig, persistentDisk, deleteDiskSelected, setDeleteDiskSelected, setViewMode, renderActionButton, hideCloseButton, onDismiss, toolLabel, computeRegion }:
-{
+export const DeleteEnvironment = ({
+  id,
+  runtimeConfig,
+  persistentDisk,
+  deleteDiskSelected,
+  setDeleteDiskSelected,
+  setViewMode,
+  renderActionButton,
+  hideCloseButton,
+  onDismiss,
+  toolLabel,
+  computeRegion
+}:{
   id:string
   runtimeConfig?:RuntimeConfig
   persistentDisk?:any//TODO: retype this as PersistentDisk
@@ -143,7 +154,7 @@ export const DeleteEnvironment = ({ id, runtimeConfig, persistentDisk, deleteDis
           return h(
             DeleteDiskChoices,
             {
-              persistentDiskCost: Utils.formatUSD(getPersistentDiskCostMonthly(persistentDisk!, computeRegion)),
+              persistentDiskCostLabel: Utils.formatUSD(getPersistentDiskCostMonthly(persistentDisk!, computeRegion)),
               deleteDiskSelected,
               setDeleteDiskSelected,
               toolLabel,
