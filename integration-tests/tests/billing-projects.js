@@ -281,7 +281,7 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.assertText('Total spend$1,110.17')
   await billingPage.assertText('Total compute$999.00')
   await billingPage.assertText('Total storage$22.00')
-  await billingPage.assertText('Total spend includes $89.00 in other infrastructure or query costs related to the general operations of Terra. See our documentation to learn more about these costs.')
+  await billingPage.assertText('Total spend includes $89.00 in other infrastructure or query costs related to the general operations of Terra. See our documentation to learn more about Azure costs.')
   // Verify that per-workspace costs are not included
   await billingPage.assertTextNotFound('Spend By Workspace')
   await billingPage.assertTextNotFound('Top 10 Spending Workspaces')
