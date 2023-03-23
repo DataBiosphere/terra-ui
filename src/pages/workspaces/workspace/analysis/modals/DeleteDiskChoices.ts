@@ -2,7 +2,6 @@ import { Fragment } from 'react'
 import { code, div, h, p, span } from 'react-hyperscript-helpers'
 import TitleBar from 'src/components/TitleBar'
 import { cloudServices } from 'src/data/gce-machines'
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models'
 import { isDataprocConfig, isGceConfig, isGceWithPdConfig, RuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models'
 import * as Utils from 'src/libs/utils'
 import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles'
@@ -82,7 +81,7 @@ export const DeleteEnvironment = ({ id, runtimeConfig, persistentDisk, deleteDis
 {
   id:string
   runtimeConfig?:RuntimeConfig
-  persistentDisk?:PersistentDisk
+  persistentDisk?:any//TODO: retype this as PersistentDisk
   deleteDiskSelected:boolean
   setDeleteDiskSelected:(p1:boolean)=>void
   setViewMode: (value: React.SetStateAction<string|undefined>) => void
@@ -144,7 +143,7 @@ export const DeleteEnvironment = ({ id, runtimeConfig, persistentDisk, deleteDis
           return h(
             DeleteDiskChoices,
             {
-              persistentDiskCost: Utils.formatUSD(getPersistentDiskCostMonthly(persistentDisk, computeRegion)),
+              persistentDiskCost: Utils.formatUSD(getPersistentDiskCostMonthly(persistentDisk!, computeRegion)),
               deleteDiskSelected,
               setDeleteDiskSelected,
               toolLabel,

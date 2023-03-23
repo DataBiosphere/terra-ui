@@ -265,7 +265,8 @@ describe('compute-modal-component', () => {
       const setViewMode = jest.fn()
       const disk = getAzureDisk()
       const runtimeConfig = azureRuntime.runtimeConfig
-      runtimeConfig.persistentDiskId = disk.id
+      //this if statement is to satisfy typescript
+      if ('persistentDiskId' in runtimeConfig) runtimeConfig.persistentDiskId = disk.id
 
       // Act
       render(h(DeleteEnvironment, {
