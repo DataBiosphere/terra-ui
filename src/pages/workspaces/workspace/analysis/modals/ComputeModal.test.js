@@ -5,20 +5,22 @@ import { act } from 'react-dom/test-utils'
 import { h } from 'react-hyperscript-helpers'
 import { cloudServices } from 'src/data/gce-machines'
 import { Ajax } from 'src/libs/ajax'
+import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { formatUSD } from 'src/libs/utils'
 import {
   defaultGoogleWorkspace, defaultImage, defaultRImage, defaultTestDisk, getDisk,
   getGoogleRuntime, getJupyterRuntimeConfig, hailImage,
   imageDocs, testDefaultLocation
 } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
-import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
+import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import {
-  defaultDataprocMachineType, defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize,
-  defaultGceMachineType, defaultGpuType, defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, defaultPersistentDiskType,
-  runtimeStatuses
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { runtimeTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+  defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize, defaultPersistentDiskType
+} from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import {
+  defaultDataprocMachineType, defaultGceMachineType, defaultGpuType, defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { runtimeToolLabels, runtimeTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
 
@@ -30,12 +32,12 @@ jest.mock('src/libs/notifications', () => ({
 }))
 
 jest.mock('src/libs/ajax')
-jest.mock('src/pages/workspaces/workspace/analysis/cost-utils')
+jest.mock('src/pages/workspaces/workspace/analysis/utils/cost-utils')
 
 const onSuccess = jest.fn()
 const defaultModalProps = {
   onSuccess, onDismiss: jest.fn(), onError: jest.fn(),
-  currentRuntime: undefined, currentDisk: undefined, tool: toolLabels.Jupyter, workspace: defaultGoogleWorkspace,
+  currentRuntime: undefined, currentDisk: undefined, tool: runtimeToolLabels.Jupyter, workspace: defaultGoogleWorkspace,
   location: testDefaultLocation
 }
 
@@ -86,7 +88,6 @@ describe('ComputeModal', () => {
     // Assert
     verifyEnabled(getCreateButton())
     screen.getByText('Jupyter Cloud Environment')
-    screen.getByText('Cost based on settings below')
   })
 
   it('sends the proper leo API call in default create case (no runtimes or disks)', async () => {
@@ -588,7 +589,7 @@ describe('ComputeModal', () => {
     })
 
     // Assert
-    screen.getByText(`${toolLabels.Jupyter} Cloud Environment`)
+    screen.getByText(`${runtimeToolLabels.Jupyter} Cloud Environment`)
 
     const selectText = hailImage.label
     screen.getByText(selectText)

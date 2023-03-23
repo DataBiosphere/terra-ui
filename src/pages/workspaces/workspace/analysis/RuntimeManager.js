@@ -17,8 +17,9 @@ import { useOnMount, usePrevious } from 'src/libs/react-utils'
 import { errorNotifiedApps, errorNotifiedRuntimes } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { appLauncherTabName, GalaxyLaunchButton, GalaxyWarning } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
-import { cloudProviders, getCurrentApp, getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { appTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getCurrentApp } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
+import { cloudProviders, getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { appTools, runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
@@ -134,8 +135,8 @@ const RuntimeManager = ({ namespace, name, runtimes, apps }) => {
     const createdDate = new Date(runtime?.createdDate)
     const dateNotified = getDynamic(getSessionStorage(), `notifiedOutdatedRuntime${runtime?.id}`) || {}
     const rStudioLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name, application: 'RStudio' })
-    const galaxyApp = getCurrentApp(appTools.Galaxy.appType)(apps)
-    const prevGalaxyApp = getCurrentApp(appTools.Galaxy.appType)(prevApps)
+    const galaxyApp = getCurrentApp(appTools.GALAXY.label, apps)
+    const prevGalaxyApp = getCurrentApp(appTools.GALAXY.label, prevApps)
 
     if (runtime.status === 'Error' && prevRuntime.status !== 'Error' && !_.includes(runtime.id, errorNotifiedRuntimes.get())) {
       notify('error', 'Error Creating Cloud Environment', {
@@ -144,7 +145,7 @@ const RuntimeManager = ({ namespace, name, runtimes, apps }) => {
       errorNotifiedRuntimes.update(Utils.append(runtime.id))
     } else if (
       runtime?.status === 'Running' && prevRuntime?.status && prevRuntime.status !== 'Running' &&
-      runtime?.labels?.tool === toolLabels.RStudio && window.location.hash !== rStudioLaunchLink
+      runtime?.labels?.tool === runtimeToolLabels.RStudio && window.location.hash !== rStudioLaunchLink
     ) {
       const rStudioNotificationId = notify('info', 'Your cloud environment is ready.', {
         message: h(ButtonPrimary, {

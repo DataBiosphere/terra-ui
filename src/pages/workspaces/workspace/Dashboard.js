@@ -23,7 +23,7 @@ import { getRegionFlag, getRegionLabel } from 'src/libs/azure-utils'
 import { getEnabledBrand } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
-import Events from 'src/libs/events'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
@@ -129,7 +129,7 @@ const RightBoxSection = ({ title, info, initialOpenState, afterTitle, onClick, c
   ])
 }
 
-const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace }) => {
+export const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace, storageDetails }) => {
   console.assert(!!workspace && isGoogleWorkspace(workspace), 'BucketLocation expects a Google workspace')
   const [loading, setLoading] = useState(true)
   const [{ location, locationType }, setBucketLocation] = useState({ location: undefined, locationType: undefined })
@@ -156,11 +156,21 @@ const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace 
 
   useEffect(() => {
     if (workspace?.workspaceInitialized) {
-      // storageDetails.googleBucketLocation is not used because WorkspaceContainer silently fails for requester pays workspaces.
-      // We wish to show the user more information in this case and allow them to link a workspace.
-      loadGoogleBucketLocation()
+      if (storageDetails.fetchedGoogleBucketLocation === 'ERROR') {
+        // storageDetails.fetchedGoogleBucketLocation stores if an error was encountered from the server,
+        // while storageDetails.googleBucketLocation will contain the default value.
+        // In the case of requester pays workspaces, we wish to show the user more information in this case and allow them to link a workspace.
+        loadGoogleBucketLocation()
+      } else if (storageDetails.fetchedGoogleBucketLocation === 'SUCCESS') {
+        setBucketLocation({ location: storageDetails.googleBucketLocation, locationType: storageDetails.googleBucketType })
+        setLoading(false)
+      }
     }
-  }, [loadGoogleBucketLocation, workspace])
+  }, [
+    loadGoogleBucketLocation, setBucketLocation,
+    // Explicit dependencies to avoid extra calls to loadGoogleBucketLocation
+    workspace?.workspaceInitialized, storageDetails.fetchedGoogleBucketLocation, storageDetails.googleBucketLocation, storageDetails.googleBucketType
+  ])
 
   if (loading) {
     return 'Loading'
@@ -417,7 +427,7 @@ const WorkspaceDashboard = _.flow(
         h(InfoRow, { title: 'Cloud Name' }, [
           h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16 } })
         ]),
-        h(InfoRow, { title: 'Location' }, [h(BucketLocation, { workspace })]),
+        h(InfoRow, { title: 'Location' }, [h(BucketLocation, { workspace, storageDetails })]),
         h(InfoRow, { title: 'Google Project ID' }, [
           h(TooltipCell, [googleProject]),
           h(ClipboardButton, { 'aria-label': 'Copy google project id to clipboard', text: googleProject, style: { marginLeft: '0.25rem' } })
@@ -471,12 +481,22 @@ const WorkspaceDashboard = _.flow(
         div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
           style: { margin: '1rem 0.5rem' },
           ...Utils.newTabLinkProps,
-          href: bucketBrowserUrl(bucketName)
+          onClick: () => {
+            Ajax().Metrics.captureEvent(Events.workspaceOpenedBucketInBrowser, {
+              ...extractWorkspaceDetails(workspace)
+            })
+          },
+          href: bucketBrowserUrl(bucketName),
         }, ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
         )]),
         div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
           style: { margin: '1rem 0.5rem' },
           ...Utils.newTabLinkProps,
+          onClick: () => {
+            Ajax().Metrics.captureEvent(Events.workspaceOpenedProjectInConsole, {
+              ...extractWorkspaceDetails(workspace)
+            })
+          },
           href: `https://console.cloud.google.com/welcome?project=${googleProject}`
         }, ['Open project in Google Cloud Console', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
         )])

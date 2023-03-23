@@ -9,21 +9,26 @@ import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { machineTypes } from 'src/data/gce-machines'
 import { Ajax } from 'src/libs/ajax'
+import { pdTypes } from 'src/libs/ajax/leonardo/models/disk-models'
 import colors from 'src/libs/colors'
 import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { withDisplayName } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { getGalaxyComputeCost, getGalaxyDiskCost } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
 import { GalaxyLaunchButton, GalaxyWarning, RadioBlock, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
+import { getCurrentApp } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
+import { getGalaxyComputeCost, getGalaxyDiskCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import {
-  findMachineType, getCurrentApp, getCurrentAppDataDisk, getCurrentAttachedDataDisk,
-  pdTypes
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+  getCurrentAppDataDisk,
+  getCurrentAttachedDataDisk
+} from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import {
+  findMachineType
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { appTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
-import { appTools } from '../tool-utils'
 import { computeStyles } from './modalStyles'
 
 
@@ -40,7 +45,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     onDismiss, onError, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } }, shouldHideCloseButton = true
   }) => {
     // Assumption: If there is an app defined, there must be a data disk corresponding to it.
-    const app = getCurrentApp(appTools.Galaxy.appType)(apps)
+    const app = getCurrentApp(appTools.GALAXY.label, apps)
     const attachedDataDisk = getCurrentAttachedDataDisk(app, appDataDisks)
 
     const [dataDisk, setDataDisk] = useState(attachedDataDisk || defaultDataDisk)
@@ -49,7 +54,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     const [loading, setLoading] = useState(false)
     const [shouldDeleteDisk, setShouldDeleteDisk] = useState(false)
 
-    const currentDataDisk = getCurrentAppDataDisk(appTools.Galaxy.appType, apps, appDataDisks, workspaceName)
+    const currentDataDisk = getCurrentAppDataDisk(appTools.GALAXY.label, apps, appDataDisks, workspaceName)
     const updateDataDisk = _.curry((key, value) => setDataDisk(_.set(key, value)))
 
     const createGalaxy = _.flow(
@@ -58,7 +63,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     )(async () => {
       await Ajax().Apps.app(googleProject, Utils.generateAppName()).create({
         kubernetesRuntimeConfig, diskName: !!currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: dataDisk.size,
-        diskType: dataDisk.diskType.label, appType: appTools.Galaxy.appType, namespace, bucketName, workspaceName
+        diskType: dataDisk.diskType.label, appType: appTools.GALAXY.label, namespace, bucketName, workspaceName
       })
       Ajax().Metrics.captureEvent(Events.applicationCreate, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
       return onSuccess()

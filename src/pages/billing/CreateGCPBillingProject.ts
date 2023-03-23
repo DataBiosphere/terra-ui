@@ -7,10 +7,12 @@ import { Ajax } from 'src/libs/ajax'
 import Events from 'src/libs/events'
 import { formHint, FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
-import { billingProjectNameValidator } from 'src/pages/billing/List'
+import { billingProjectNameValidator } from 'src/pages/billing/billing-utils'
 import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAccount'
 import validate from 'validate.js'
 
+
+const BillingAccountSelect = Select as typeof Select<GoogleBillingAccount>
 
 interface CreateGCPBillingProjectProps {
   billingAccounts: Record<string, GoogleBillingAccount>
@@ -55,13 +57,13 @@ const CreateGCPBillingProject = ({
     h(IdContainer, [id => h(Fragment, [
       h(FormLabel, { htmlFor: id, required: true }, ['Select billing account']),
       div({ style: { fontSize: 14 } }, [
-        h(Select, {
+        h(BillingAccountSelect, {
           id,
           isMulti: false,
           placeholder: 'Select a billing account',
-          value: chosenBillingAccount,
-          onChange: ({ value }) => {
-            setChosenBillingAccount(value)
+          value: chosenBillingAccount || null,
+          onChange: opt => {
+            setChosenBillingAccount(opt!.value)
             Ajax().Metrics.captureEvent(Events.billingCreationGCPBillingAccountSelected)
           },
           options: _.map(account => {

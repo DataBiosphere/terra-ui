@@ -13,6 +13,7 @@ import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { cloudServices, isMachineTypeSmaller, machineTypes } from 'src/data/gce-machines'
 import { Ajax } from 'src/libs/ajax'
+import { pdTypes } from 'src/libs/ajax/leonardo/models/disk-models'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
@@ -22,17 +23,20 @@ import * as Nav from 'src/libs/nav'
 import { useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
 import { RadioBlock, SaveFilesHelp, SaveFilesHelpRStudio } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
+import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import {
-  defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize,
-  defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation,
-  defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, defaultPersistentDiskType, displayNameForGpuType, findMachineType, getAutopauseThreshold,
+  defaultDataprocMasterDiskSize,
+  defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGcePersistentDiskSize, defaultPersistentDiskType
+} from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import {
+  defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultGpuType, defaultLocation,
+  defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getAutopauseThreshold,
   getDefaultMachineType, getIsRuntimeBusy, getValidGpuOptions, getValidGpuTypesForZone,
-  isAutopauseEnabled, pdTypes
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { getToolLabelForImage, getToolLabelFromRuntime, runtimeTools, terraSupportedRuntimeImageIds, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+  isAutopauseEnabled
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { getToolLabelForImage, getToolLabelFromRuntime, runtimeToolLabels, runtimeTools, terraSupportedRuntimeImageIds } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import validate from 'validate.js'
 
 import { computeStyles } from './modalStyles'
@@ -524,7 +528,6 @@ export const ComputeModalBase = ({
   const getPendingRuntimeConfig = () => {
     const { runtime: desiredRuntime, autopauseThreshold: desiredAutopauseThreshold } = getDesiredEnvironmentConfig()
     const toolLabel = getToolLabelFromRuntime(desiredRuntime)
-
     return {
       cloudService: desiredRuntime.cloudService,
       autopauseThreshold: desiredAutopauseThreshold,
@@ -541,11 +544,9 @@ export const ComputeModalBase = ({
         masterDiskSize: desiredRuntime.masterDiskSize,
         numberOfWorkers: desiredRuntime.numberOfWorkers,
         componentGatewayEnabled: computeConfig.componentGatewayEnabled,
-        ...(desiredRuntime.numberOfWorkers && {
-          numberOfPreemptibleWorkers: desiredRuntime.numberOfPreemptibleWorkers,
-          workerMachineType: desiredRuntime.workerMachineType,
-          workerDiskSize: desiredRuntime.workerDiskSize
-        })
+        numberOfPreemptibleWorkers: desiredRuntime.numberOfPreemptibleWorkers || 0,
+        workerMachineType: desiredRuntime.workerMachineType,
+        workerDiskSize: desiredRuntime.workerDiskSize || 0
       })
     }
   }
@@ -587,7 +588,7 @@ export const ComputeModalBase = ({
 
   const makeImageInfo = style => {
     const selectedImage = _.find({ image: selectedLeoImage }, leoImages)
-    const shouldDisable = _.isEmpty(leoImages) ? true : selectedImage.isCommunity || getToolLabelForImage(selectedImage.id) === toolLabels.RStudio
+    const shouldDisable = _.isEmpty(leoImages) ? true : selectedImage.isCommunity || getToolLabelForImage(selectedImage.id) === runtimeToolLabels.RStudio
     const changelogUrl = _.isEmpty(leoImages) ?
       '' :
       `https://github.com/DataBiosphere/terra-docker/blob/master/${_.replace('_legacy', '', selectedImage.id)}/CHANGELOG.md`
@@ -905,7 +906,7 @@ export const ComputeModalBase = ({
               'The software application + programming languages + packages used when you create your cloud environment. '
             ])
           ]),
-          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: tool === toolLabels.Jupyter || tool === toolLabels.RStudio })])
+          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: tool === runtimeToolLabels.Jupyter || tool === runtimeToolLabels.RStudio })])
         ])
       ]),
       Utils.switchCase(selectedLeoImage,
@@ -930,10 +931,10 @@ export const ComputeModalBase = ({
             div([
               'Custom environments ', b(['must ']), 'be based off ',
               ...Utils.switchCase(tool, [
-                toolLabels.RStudio, () => ['the ', h(Link,
+                runtimeToolLabels.RStudio, () => ['the ', h(Link,
                   { href: anVILRStudioImage, ...Utils.newTabLinkProps }, ['AnVIL RStudio image'])]
                 ], [
-                toolLabels.Jupyter, () => ['one of the ', h(Link,
+                runtimeToolLabels.Jupyter, () => ['one of the ', h(Link,
                   { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images'])]
                 ]
               )
@@ -1142,13 +1143,13 @@ export const ComputeModalBase = ({
           span({ style: { marginLeft: '0.5rem', ...computeStyles.label, verticalAlign: 'top' } }, [
             enableAutopauseSpan
           ]),
-          h(Link, {
-            style: { marginLeft: '1rem', verticalAlign: 'top' },
-            href: 'https://support.terra.bio/hc/en-us/articles/360029761352-Preventing-runaway-costs-with-Cloud-Environment-autopause-#h_27c11f46-a6a7-4860-b5e7-fac17df2b2b5', ...Utils.newTabLinkProps
-          }, [
-            'Learn more about autopause.',
-            icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
-          ])
+        ]),
+        h(Link, {
+          style: { marginLeft: '1rem', verticalAlign: 'top' },
+          href: 'https://support.terra.bio/hc/en-us/articles/360029761352-Preventing-runaway-costs-with-Cloud-Environment-autopause-#h_27c11f46-a6a7-4860-b5e7-fac17df2b2b5', ...Utils.newTabLinkProps
+        }, [
+          'Learn more about autopause.',
+          icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
         ]),
         div({ style: { ...gridStyle, gridGap: '0.7rem', gridTemplateColumns: '4.5rem 9.5rem', marginTop: '0.75rem' } }, [
           h(NumberInput, {
@@ -1279,9 +1280,9 @@ export const ComputeModalBase = ({
           'You are about to create a virtual machine using an unverified Docker image. ',
           'Please make sure that it was created by you or someone you trust using ',
           ...Utils.switchCase(tool, [
-            toolLabels.RStudio, () => ['our base ', h(Link, { href: anVILRStudioImage, ...Utils.newTabLinkProps }, ['AnVIL RStudio image.'])]
+            runtimeToolLabels.RStudio, () => ['our base ', h(Link, { href: anVILRStudioImage, ...Utils.newTabLinkProps }, ['AnVIL RStudio image.'])]
           ], [
-            toolLabels.Jupyter, () => ['one of our ', h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])]
+            runtimeToolLabels.Jupyter, () => ['one of our ', h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])]
           ]),
           ' Custom Docker images could potentially cause serious security issues.'
         ]),
@@ -1601,7 +1602,7 @@ export const ComputeModalBase = ({
       options: [
         {
           label: 'TERRA-MAINTAINED JUPYTER ENVIRONMENTS',
-          options: getImages(({ isCommunity, id }) => (!isCommunity && !(getToolLabelForImage(id) === toolLabels.RStudio)))
+          options: getImages(({ isCommunity, id }) => (!isCommunity && !(getToolLabelForImage(id) === runtimeToolLabels.RStudio)))
         },
         {
           label: 'COMMUNITY-MAINTAINED JUPYTER ENVIRONMENTS (verified partners)',
@@ -1609,7 +1610,7 @@ export const ComputeModalBase = ({
         },
         {
           label: 'COMMUNITY-MAINTAINED RSTUDIO ENVIRONMENTS (verified partners)',
-          options: getImages(image => getToolLabelForImage(image.id) === toolLabels.RStudio)
+          options: getImages(image => getToolLabelForImage(image.id) === runtimeToolLabels.RStudio)
         },
         ...(includeCustom ? [{
           label: 'OTHER ENVIRONMENTS',
@@ -1631,13 +1632,6 @@ export const ComputeModalBase = ({
           onDismiss
         }),
         div(['A cloud environment consists of application configuration, cloud compute and persistent disk(s).']),
-        h(TitleBar, {
-            id: 'compute-modal-subtitle-label',
-            style: { marginTop: '0.5rem', marginBottom: '0.5rem' },
-            title: 'Cost based on settings below',
-            hideCloseButton: shouldHideCloseButton,
-            onDismiss
-        }),
       ])
     }
     const renderBottomButtons = () => {

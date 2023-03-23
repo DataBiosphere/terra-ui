@@ -5,8 +5,8 @@ import {
   faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCircle, faClock as faClockSolid, faCloud, faCog,
   faCreditCard, faDownload, faEllipsisV, faExclamationCircle, faExclamationTriangle, faExpandArrowsAlt, faFileInvoiceDollar,
   faFolder as faFolderSolid, faGripHorizontal, faInfoCircle, faLock, faLongArrowAltDown, faLongArrowAltUp, faMinusCircle, faMoneyCheckAlt, faPause,
-  faPen, faPlay, faPlus, faPlusCircle, faQuestion, faQuestionCircle, faRocket, faSearch, faShareAlt, faSquare as faSquareSolid, faStar, faTachometerAlt,
-  faTasks, faTerminal, faTrashAlt, faUnlock, faVirus
+  faPen, faPlay, faPlus, faPlusCircle, faQuestion, faQuestionCircle, faRocket, faSearch, faShareAlt, faSquare as faSquareSolid, faStar, faSyncAlt,
+  faTachometerAlt, faTasks, faTerminal, faTrashAlt, faUnlock, faVirus
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import _ from 'lodash/fp'
@@ -112,6 +112,7 @@ const iconDict = {
   star: fa(faStar),
   'success-standard': fa(faCheckCircle),
   sync: custom(syncAlt),
+  syncAlt: fa(faSyncAlt),
   tachometer: fa(faTachometerAlt),
   tasks: fa(faTasks),
   terminal: props => fa(faTerminal, { mask: faSquareSolid, transform: 'shrink-8', ...props }),

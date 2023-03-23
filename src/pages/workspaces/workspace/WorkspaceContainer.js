@@ -21,11 +21,13 @@ import * as Utils from 'src/libs/utils'
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
 import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
-import {
-  getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, mapToPdTypes
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import RuntimeManager from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
-import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getCurrentApp, getDiskAppType } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
+import { mapToPdTypes } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import {
+  getConvertedRuntimeStatus, getCurrentRuntime
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { tools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
@@ -78,9 +80,8 @@ const AzureWarning = () => {
 
 
 const GooglePermissionsWarning = () => {
-  const warningMessage = 'This workspace is currently synchronizing its permissions with Google. This can take anywhere from a couple minutes ' +
-    'to a few hours in rare cases. Access to this workspace’s bucket and running analysis in workflows or notebooks may result in errors until ' +
-    'this synchronization is complete.'
+  const warningMessage = 'Google is currently synchronizing its permissions with this workspace. This can take several minutes, ' +
+    'and in rare cases, several hours. During syncing you will be unable to access the workspace bucket (storage), notebooks, workflows, and analyses.'
 
   return TitleBarWarning(warningMessage)
 }
@@ -295,7 +296,7 @@ const useAppPolling = workspace => {
       setApps(combinedNewApps)
       _.forOwn(tool => {
         if (tool.appType) {
-          const app = getCurrentApp(tool.appType)(combinedNewApps)
+          const app = getCurrentApp(tool.appType, combinedNewApps)
           reschedule(maybeStale || (app && _.includes(app.status, ['PROVISIONING', 'PREDELETING'])) ? 10000 : 120000)
         }
       })(tools)

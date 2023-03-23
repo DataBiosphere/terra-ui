@@ -17,11 +17,11 @@ import { withErrorReportingInModal } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/cost-utils'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
+import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import {
   getCurrentRuntime, getIsRuntimeBusy
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
 import { computeStyles } from './modalStyles'
 
@@ -269,8 +269,7 @@ export const AzureComputeModalBase = ({
         ])
       }, [
         { label: 'Running cloud compute cost', cost: Utils.formatUSD(getAzureComputeCostEstimate(computeConfig)), unitLabel: 'per hr' },
-        // TODO [IA-3993] consider implementing pause via deallocate (which changes cost) instead of powerOff (which doesn't)
-        { label: 'Paused cloud compute cost', cost: Utils.formatUSD(getAzureComputeCostEstimate(computeConfig)), unitLabel: 'per hr' },
+        { label: 'Paused cloud compute cost', cost: Utils.formatUSD(0), unitLabel: 'per hr' }, //TODO: [IA-4105] update cost
         {
           label: 'Persistent disk cost',
           cost: Utils.formatUSD(getAzureDiskCostEstimate(computeConfig)),

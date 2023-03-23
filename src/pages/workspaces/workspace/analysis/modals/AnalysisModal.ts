@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import React, { Fragment, useState } from 'react'
+import React, { Fragment, ReactElement, useState } from 'react'
 import { div, h, h2, hr, img, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, Select, spinnerOverlay, useUniqueId } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
@@ -11,6 +11,9 @@ import galaxyLogo from 'src/images/galaxy-logo.svg'
 import jupyterLogoLong from 'src/images/jupyter-logo-long.png'
 import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
+import { App } from 'src/libs/ajax/leonardo/models/app-models'
+import { AppDataDisk, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models'
+import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -18,19 +21,39 @@ import { FormLabel } from 'src/libs/forms'
 import { usePrevious, withDisplayName } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { BaseWorkspace, cloudProviderTypes, isGoogleWorkspaceInfo } from 'src/libs/workspace-utils'
-import { getFileName } from 'src/pages/workspaces/workspace/analysis/file-utils'
+import {
+  BaseWorkspace, CloudProvider,
+  cloudProviderTypes,
+  getCloudProviderFromWorkspace,
+  isGoogleWorkspaceInfo
+} from 'src/libs/workspace-utils'
 import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/AzureComputeModal'
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal'
 import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
-import { analysisNameInput, analysisNameValidator, baseRmd, notebookData } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
-import {
-  getCurrentApp, getCurrentPersistentDisk, getCurrentRuntime, isResourceDeletable
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { AppDataDisk, AppTool, cloudAppTools, cloudRuntimeTools, getAppType, getToolLabelFromFileExtension, getToolLabelFromRuntime, isAppToolLabel, PersistentDisk, Runtime, runtimeTools, Tool, toolExtensionDisplay, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { AnalysisFileStore } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
+import { getCurrentApp } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
+import { getCurrentPersistentDisk } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import { getFileName } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
+import { analysisNameInput, analysisNameValidator, baseRmd, notebookData } from 'src/pages/workspaces/workspace/analysis/utils/notebook-utils'
+import { isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/utils/resource-utils'
+import {
+  getCurrentRuntime
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import {
+  AppToolLabel, appToolLabels, cloudAppTools,
+  cloudRuntimeTools,
+  getToolLabelFromFileExtension,
+  getToolLabelFromRuntime,
+  isAppToolLabel, isToolHidden,
+  RuntimeToolLabel,
+  runtimeToolLabels,
+  runtimeTools,
+  Tool,
+  toolExtensionDisplay,
+  ToolLabel, tools
+} from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import validate from 'validate.js'
 
 
@@ -38,19 +61,21 @@ const titleId = 'analysis-modal-title'
 const analysisMode = Symbol('artifact')
 const environmentMode = Symbol('environment')
 
+const StringSelect = Select as typeof Select<string>
+
 export interface AnalysisModalProps {
   isOpen: boolean
   workspace: BaseWorkspace
   location: any
   runtimes: Runtime[]
-  apps: AppTool[]
+  apps: App[]
   appDataDisks: AppDataDisk[]
   persistentDisks: PersistentDisk[]
   onDismiss: () => void
   onError: () => void
   onSuccess: () => void
   openUploader: () => void
-  uploadFiles: () => void
+  uploadFiles: (files: File[]) => Promise<unknown>
   analysisFileStore: AnalysisFileStore
 }
 
@@ -67,21 +92,21 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     analysisFileStore
   }: AnalysisModalProps) => {
     const [viewMode, setViewMode] = useState<any>()
-    const cloudPlatform = workspace.workspace.cloudPlatform.toUpperCase()
+    const cloudProvider: CloudProvider = getCloudProviderFromWorkspace(workspace)
     const [notebookKernel, setNotebookKernel] = useState('python3')
     const [analysisName, setAnalysisName] = useState('')
     const prevAnalysisName = usePrevious(analysisName)
     const [currentToolObj, setCurrentToolObj] = useState<Tool>()
     const [fileExt, setFileExt] = useState('')
-    const currentTool = currentToolObj?.label
+    const currentTool: ToolLabel | undefined = currentToolObj?.label
 
-    const currentRuntime: any = getCurrentRuntime(runtimes)
+    const currentRuntime: Runtime | undefined = getCurrentRuntime(runtimes)
     const currentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
-    const currentRuntimeToolLabel = getToolLabelFromRuntime(currentRuntime)
-    const currentApp: any = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
+    const currentRuntimeToolLabel = currentRuntime && getToolLabelFromRuntime(currentRuntime)
+    const currentApp = (toolLabel: AppToolLabel): App | undefined => getCurrentApp(toolLabel, apps)
 
     //TODO: Bring in as props from Analyses OR bring entire AnalysisFileStore from props.
-    const { loadedState, create, pendingCreate } = analysisFileStore
+    const { loadedState, createAnalysis, pendingCreate } = analysisFileStore
     //TODO: When the above is done, this check below may not be necessary.
     const analyses = loadedState.status !== 'None' ? loadedState.state : null
     const status = loadedState.status
@@ -102,18 +127,18 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       Utils.switchCase(baseViewMode,
         [analysisMode, () => Utils.cond(
           [doesCloudEnvForToolExist, onSuccess],
-          [!doesCloudEnvForToolExist && !!currentRuntime && isResourceDeletable({ resourceType: 'runtime', resource: currentRuntime }), () => setViewMode(environmentMode)],
+          [!doesCloudEnvForToolExist && !!currentRuntime && isResourceDeletable('runtime', currentRuntime), () => setViewMode(environmentMode)],
           [!doesCloudEnvForToolExist && !currentRuntime, () => setViewMode(environmentMode)],
-          [!doesCloudEnvForToolExist && !!currentRuntime && !isResourceDeletable({ resourceType: 'runtime', resource: currentRuntime }), onSuccess]
+          [!doesCloudEnvForToolExist && !!currentRuntime && !isResourceDeletable('runtime', currentRuntime), onSuccess]
         )],
         [environmentMode, onSuccess],
         [Utils.DEFAULT, () => Utils.cond(
-          [currentTool === toolLabels.RStudio || currentTool === toolLabels.Jupyter || currentTool === toolLabels.JupyterLab, () => setViewMode(analysisMode)],
+          [currentTool === runtimeToolLabels.RStudio || currentTool === runtimeToolLabels.Jupyter || currentTool === runtimeToolLabels.JupyterLab, () => setViewMode(analysisMode)],
           [isAppToolLabel(currentTool) && !app, () => setViewMode(environmentMode)],
           [isAppToolLabel(currentTool) && !!app, () => {
             console.error(
-              `This shouldn't be possible, as you aren't allowed to create a ${_.capitalize(
-                app?.appType)} instance when one exists; the button should be disabled.`)
+              `This shouldn't be possible, as you aren't allowed to create a ${app ? _.capitalize(
+                app.appType) : 'app'} instance when one exists; the button should be disabled.`)
             resetView()
           }]
         )]
@@ -125,20 +150,20 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       [environmentMode, getEnvironmentView],
       [Utils.DEFAULT, renderSelectAnalysisBody])
 
-    const getEnvironmentView = () => Utils.switchCase(cloudPlatform,
+    const getEnvironmentView = () => Utils.switchCase(cloudProvider,
       [cloudProviderTypes.GCP, getGCPEnvironmentView],
       [cloudProviderTypes.AZURE, getAzureEnvironmentView]
     )
 
     const getGCPEnvironmentView = () => Utils.switchCase(currentTool,
-      [toolLabels.Jupyter, renderComputeModal],
-      [toolLabels.RStudio, renderComputeModal],
-      [toolLabels.Galaxy, () => renderAppModal(GalaxyModalBase, toolLabels.Galaxy)],
-      [toolLabels.Cromwell, () => renderAppModal(CromwellModalBase, toolLabels.Cromwell)]
+      [runtimeToolLabels.Jupyter, renderComputeModal],
+      [runtimeToolLabels.RStudio, renderComputeModal],
+      [appToolLabels.GALAXY, () => renderAppModal(GalaxyModalBase, appToolLabels.GALAXY)],
+      [appToolLabels.CROMWELL, () => renderAppModal(CromwellModalBase, appToolLabels.CROMWELL)]
     )
 
     const getAzureEnvironmentView = () => Utils.switchCase(currentTool,
-      [toolLabels.JupyterLab, renderAzureModal]
+      [runtimeToolLabels.JupyterLab, renderAzureModal]
     )
 
     const renderComputeModal = () => h(ComputeModalBase, {
@@ -179,29 +204,29 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       hover: { backgroundColor: colors.accent(0.3) }
     }
 
-    const availableRuntimeTools = cloudRuntimeTools[cloudPlatform]
-    const availableAppTools = cloudAppTools[cloudPlatform]
+    const availableRuntimeTools = cloudRuntimeTools[cloudProvider]
+    const availableAppTools = cloudAppTools[cloudProvider]
 
-    const currentApps = {
-      Galaxy: currentApp(toolLabels.Galaxy),
-      Cromwell: currentApp(toolLabels.Cromwell)
+    const currentApps: Record<AppToolLabel, App | undefined> = {
+      GALAXY: currentApp(appToolLabels.GALAXY),
+      CROMWELL: currentApp(appToolLabels.CROMWELL)
     }
 
-    const appDisabledMessages = {
-      Galaxy: 'You already have a Galaxy environment',
-      Cromwell: 'You already have a Cromwell instance'
+    const appDisabledMessages: Record<AppToolLabel, string> = {
+      GALAXY: 'You already have a Galaxy environment',
+      CROMWELL: 'You already have a Cromwell instance'
     }
 
-    const toolImages = {
+    const toolImages: Record<AppToolLabel | RuntimeToolLabel, ReactElement<'img'>> = {
       Jupyter: img({ src: jupyterLogoLong, alt: 'Create new notebook', style: _.merge(styles.image, { width: 111 }) }),
       RStudio: img({ src: rstudioBioLogo, alt: 'Create new R file', style: _.merge(styles.image, { width: 207 }) }),
       JupyterLab: img({ src: jupyterLogoLong, alt: 'Create new notebook', style: _.merge(styles.image, { width: 111 }) }),
-      Galaxy: img({ src: galaxyLogo, alt: 'Create new Galaxy app', style: _.merge(styles.image, { width: 139 }) }),
-      Cromwell: img({ src: cromwellImg, alt: 'Create new Cromwell app', style: styles.image })
+      GALAXY: img({ src: galaxyLogo, alt: 'Create new Galaxy app', style: _.merge(styles.image, { width: 139 }) }),
+      CROMWELL: img({ src: cromwellImg, alt: 'Create new Cromwell app', style: styles.image })
     }
 
     const runtimeToolButtons = availableRuntimeTools.map((runtimeTool => {
-      return !runtimeTool.isHidden ? h(Clickable, {
+      return !isToolHidden(runtimeTool.label, cloudProvider) ? h(Clickable, {
         style: styles.toolCard,
         onClick: () => {
           setCurrentToolObj(runtimeTool)
@@ -215,7 +240,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
 
     const appToolButtons = availableAppTools.map((appTool => {
       const currentApp = currentApps[appTool.label]
-      return !appTool.isHidden ? h(Clickable, {
+      return !isToolHidden(appTool.label, cloudProvider) ? h(Clickable, {
         style: {
           opacity: currentApp ? '0.5' : '1',
           ...styles.toolCard
@@ -244,13 +269,13 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         onDropRejected: () => reportError('Not a valid analysis file',
           `The selected file is not one of the supported types: .${runtimeTools.Jupyter.ext.join(', .')}, .${runtimeTools.RStudio.ext.join(', .')}. Ensure your file has the proper extension.`),
         onDropAccepted: files => {
-          const toolLabel = isGoogleWorkspaceInfo(workspace.workspace) ? getToolLabelFromFileExtension(files.pop().path) : toolLabels.JupyterLab
+          const toolLabel = isGoogleWorkspaceInfo(workspace.workspace) ? getToolLabelFromFileExtension(files.pop().path) : runtimeToolLabels.JupyterLab
           const tool = toolLabel ? tools[toolLabel] : undefined
           setCurrentToolObj(tool)
-          currentRuntime && !isResourceDeletable({ resourceType: 'runtime', resource: currentRuntime }) && currentRuntimeToolLabel !== toolLabel ?
+          currentRuntime && !isResourceDeletable('runtime', currentRuntime) && currentRuntimeToolLabel !== toolLabel ?
             onSuccess() :
             enterNextViewMode(tool, analysisMode)
-          uploadFiles()
+          uploadFiles(files)
         }
       },
       [() => h(Clickable, {
@@ -277,9 +302,9 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     ])
 
     const getArtifactLabel = toolLabel => Utils.switchCase(toolLabel,
-      [toolLabels.RStudio, () => 'R file'],
-      [toolLabels.Jupyter, () => 'notebook'],
-      [toolLabels.JupyterLab, () => 'notebook'],
+      [runtimeToolLabels.RStudio, () => 'R file'],
+      [runtimeToolLabels.Jupyter, () => 'notebook'],
+      [runtimeToolLabels.JupyterLab, () => 'notebook'],
       [Utils.DEFAULT, () => console.error(`Should not be calling getArtifactLabel for ${toolLabel}, artifacts not implemented`)])
 
     const renderCreateAnalysis = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1, padding: '0.5rem 1.5rem 1.5rem 1.5rem' } }, [
@@ -292,9 +317,9 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const fileTypeSelect = useUniqueId('select-file-type')
 
     const renderCreateAnalysisBody = toolLabel => {
-      const isJupyter = toolLabel === toolLabels.Jupyter
-      const isRStudio = toolLabel === toolLabels.RStudio
-      const isJupyterLab = toolLabel === toolLabels.JupyterLab
+      const isJupyter = toolLabel === runtimeToolLabels.Jupyter
+      const isRStudio = toolLabel === runtimeToolLabels.RStudio
+      const isJupyterLab = toolLabel === runtimeToolLabels.JupyterLab
       const errors = validate(
         { analysisName: `${analysisName}.${fileExt}`, notebookKernel },
         {
@@ -318,28 +343,28 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         (isJupyterLab || isJupyter) &&
           h(Fragment, [
             h(FormLabel, { htmlFor: nameSelectId, required: true }, ['Language']),
-            h(Select, {
+            h(StringSelect, {
               id: nameSelectId, isSearchable: true,
               placeholder: 'Select a language',
               getOptionLabel: ({ value }) => _.startCase(value),
               value: notebookKernel,
-              onChange: ({ value: notebookKernel }) => setNotebookKernel(notebookKernel),
+              onChange: opt => setNotebookKernel(opt!.value),
               options: ['python3', 'r']
             })
           ]),
         isRStudio && h(Fragment, [
           h(FormLabel, { htmlFor: fileTypeSelect, required: true }, ['File Type']),
-          h(Select, {
+          h(StringSelect, {
             id: fileTypeSelect, isSearchable: true,
             value: fileExt,
             onChange: v => {
-              setFileExt(v.value)
+              setFileExt(v!.value)
             },
             options: toolExtensionDisplay.RStudio!
           })
         ]),
         (isJupyterLab || isRStudio || isJupyter) &&
-        currentRuntime && !isResourceDeletable({ resourceType: 'runtime', resource: currentRuntime }) && currentRuntimeToolLabel !== toolLabel &&
+        currentRuntime && !isResourceDeletable('runtime', currentRuntime) && currentRuntimeToolLabel !== toolLabel &&
         div({ style: { backgroundColor: colors.warning(0.1), margin: '0.5rem', padding: '1rem' } }, [
           h(WarningTitle, { iconSize: 16 }, [span({ style: { fontWeight: 600 } }, ['Environment Creation'])]),
           div({ style: { marginBottom: '0.5rem', marginTop: '1rem' } }, [
@@ -360,8 +385,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
                   [isJupyterLab || isJupyter, () => JSON.stringify(notebookData[notebookKernel])],
                   [isRStudio, () => baseRmd])
                 const fullAnalysisName = `${analysisName}.${fileExt}`
-                await create(fullAnalysisName, toolLabel, contents)
-                await Ajax().Metrics.captureEvent(Events.analysisCreate, { source: toolLabel, application: toolLabel, filename: fullAnalysisName, cloudPlatform })
+                await createAnalysis(fullAnalysisName, toolLabel, contents)
+                await Ajax().Metrics.captureEvent(Events.analysisCreate, { source: toolLabel, application: toolLabel, filename: fullAnalysisName, cloudProvider })
                 setAnalysisName('')
                 enterNextViewMode(toolLabel)
               } catch (error) {

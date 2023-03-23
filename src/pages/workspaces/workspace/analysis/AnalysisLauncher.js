@@ -24,20 +24,21 @@ import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/l
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { cloudProviderTypes } from 'src/libs/workspace-utils'
-import { findPotentialNotebookLockers, getExtension, getFileName, notebookLockHash } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
 import { ComputeModal } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
-import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
+import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal/ExportAnalysisModal'
 import {
   analysisLauncherTabName, analysisTabName, appLauncherTabName, ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor,
   StatusMessage
 } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
+import { getCurrentPersistentDisk } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import { findPotentialNotebookLockers, getExtension, getFileName, notebookLockHash } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
 import {
-  getConvertedRuntimeStatus, getCurrentPersistentDisk, getCurrentRuntime, usableStatuses
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+  getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import {
-  getPatternFromRuntimeTool, getToolLabelFromFileExtension, getToolLabelFromRuntime, toolLabels
-} from 'src/pages/workspaces/workspace/analysis/tool-utils'
+  getPatternFromRuntimeTool, getToolLabelFromFileExtension, getToolLabelFromRuntime, runtimeToolLabels
+} from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 import { AzureComputeModal } from './modals/AzureComputeModal'
@@ -302,7 +303,7 @@ const PreviewHeader = ({
 
   const editModeButton = h(HeaderButton, { onClick: () => chooseMode('edit') }, openMenuIcon)
 
-  const isJupyterLabGCP = (currentFileToolLabel === toolLabels.Jupyter) && enableJupyterLabGCP
+  const isJupyterLabGCP = (currentFileToolLabel === runtimeToolLabels.Jupyter) && enableJupyterLabGCP
 
   return h(ApplicationHeader, {
     label: 'PREVIEW (READ-ONLY)',
@@ -321,16 +322,16 @@ const PreviewHeader = ({
       //we instead proxy to JupyterLab. For JupyterLab GCP, it's important to disable playground mode and not lock
       //any notebooks. We also need to keep the edit mode directory in line with what Jupyter uses, because users
       //can easily switch back and forth. This prevents users from having notebooks scattered across multiple directories.
-      [isJupyterLabGCP && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === toolLabels.Jupyter,
+      [isJupyterLabGCP && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === runtimeToolLabels.Jupyter,
         () => h(HeaderButton, {
           onClick: () => {
-            Nav.goToPath(appLauncherTabName, { namespace, name, application: toolLabels.JupyterLab, cloudPlatform })
+            Nav.goToPath(appLauncherTabName, { namespace, name, application: runtimeToolLabels.JupyterLab, cloudPlatform })
           }
         }, openMenuIcon)],
-      [isAzureWorkspace && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === toolLabels.Jupyter,
+      [isAzureWorkspace && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === runtimeToolLabels.Jupyter,
         () => h(HeaderButton, {
           onClick: () => {
-            Nav.goToPath(appLauncherTabName, { namespace, name, application: toolLabels.JupyterLab, cloudPlatform })
+            Nav.goToPath(appLauncherTabName, { namespace, name, application: runtimeToolLabels.JupyterLab, cloudPlatform })
           }
         }, openMenuIcon)],
       [isAzureWorkspace && runtimeStatus !== 'Running', () => {}],
@@ -340,7 +341,7 @@ const PreviewHeader = ({
       // If the tool is RStudio and we are in this branch, we need to either start an existing runtime or launch the app
       // Worth mentioning that the Stopped branch will launch RStudio, and then we depend on the RuntimeManager to prompt user the app is ready to launch
       // Then open can be clicked again
-      [currentFileToolLabel === toolLabels.RStudio && _.includes(runtimeStatus, ['Running', null]),
+      [currentFileToolLabel === runtimeToolLabels.RStudio && _.includes(runtimeStatus, ['Running', null]),
         () => h(HeaderButton, {
           onClick: () => {
             if (runtimeStatus === 'Running') {
@@ -350,7 +351,7 @@ const PreviewHeader = ({
         },
         openMenuIcon)],
       // Jupyter is slightly different since it interacts with editMode and playground mode flags as well. This is not applicable to JupyterLab in either cloud
-      [(currentRuntimeToolLabel === toolLabels.Jupyter && !mode) || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
+      [(currentRuntimeToolLabel === runtimeToolLabels.Jupyter && !mode) || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
         Utils.cond(
           [runtime && !welderEnabled, () => h(HeaderButton, { onClick: () => setEditModeDisabledOpen(true) }, [
             makeMenuIcon('warning-standard'), 'Open (Disabled)'
@@ -568,14 +569,14 @@ const AnalysisEditorFrame = ({
   const cookieReady = useStore(cookieReadyStore)
 
   const localBaseDirectory = Utils.switchCase(toolLabel,
-    [toolLabels.Jupyter, () => `${name}/edit`],
-    [toolLabels.JupyterLab, () => `${name}/edit`],
-    [toolLabels.RStudio, () => ''])
+    [runtimeToolLabels.Jupyter, () => `${name}/edit`],
+    [runtimeToolLabels.JupyterLab, () => `${name}/edit`],
+    [runtimeToolLabels.RStudio, () => ''])
 
   const localSafeModeBaseDirectory = Utils.switchCase(toolLabel,
-    [toolLabels.Jupyter, () => `${name}/safe`],
-    [toolLabels.JupyterLab, () => `${name}/safe`],
-    [toolLabels.RStudio, () => '']
+    [runtimeToolLabels.Jupyter, () => `${name}/safe`],
+    [runtimeToolLabels.JupyterLab, () => `${name}/safe`],
+    [runtimeToolLabels.RStudio, () => '']
   )
 
   useOnMount(() => {

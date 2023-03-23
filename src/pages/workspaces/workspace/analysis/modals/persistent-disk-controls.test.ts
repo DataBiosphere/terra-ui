@@ -8,27 +8,29 @@ import {
   PersistentDiskType,
 } from 'src/pages/workspaces/workspace/analysis/modals/persistent-disk-controls'
 import {
+  defaultDataprocMasterDiskSize,
+  defaultDataprocWorkerDiskSize,
+  defaultGcePersistentDiskSize,
+  defaultPersistentDiskType,
+} from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import {
   defaultAutopauseThreshold,
   defaultComputeRegion,
   defaultComputeZone,
   defaultDataprocMachineType,
-  defaultDataprocMasterDiskSize,
-  defaultDataprocWorkerDiskSize,
-  defaultGcePersistentDiskSize,
   defaultGpuType,
   defaultNumDataprocPreemptibleWorkers,
   defaultNumDataprocWorkers,
   defaultNumGpus,
-  defaultPersistentDiskType,
   getDefaultMachineType,
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 const defaultIComputeConfig = {
   selectedPersistentDiskSize: defaultGcePersistentDiskSize,
   selectedPersistentDiskType: defaultPersistentDiskType,
-  masterMachineType: getDefaultMachineType(false, toolLabels.RStudio),
+  masterMachineType: getDefaultMachineType(false, runtimeToolLabels.RStudio),
   masterDiskSize: defaultDataprocMasterDiskSize,
   numberOfWorkers: defaultNumDataprocWorkers,
   numberOfPreemptibleWorkers: defaultNumDataprocPreemptibleWorkers,

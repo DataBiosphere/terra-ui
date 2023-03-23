@@ -47,6 +47,7 @@ validate.validators.type.types.uuid = value => validateUuid(value)
 // @ts-ignore
 validate.validators.type.messages.uuid = 'must be a UUID'
 
+const AzureManagedAppCoordinatesSelect = Select as typeof Select<AzureManagedAppCoordinates>
 
 export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: AzureSubscriptionStepProps) => {
   const getSubscriptionIdErrors = subscriptionId => subscriptionId !== undefined && validate({ subscriptionId }, { subscriptionId: { type: 'uuid' } })
@@ -95,11 +96,16 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
     h(StepHeader, { title: 'STEP 1' }),
     h(StepFields, { style: { flexDirection: 'column' } }, [
       h(StepFieldLegend, [
-        'Link Terra to an unassigned managed application in your Azure subscription. A managed application instance can only be assigned to a single Terra billing project.',
-        p({ style: legendDetailsStyle }, [
-          ExternalLink({ text: 'Go to the Azure Portal', url: 'https://portal.azure.com/' }),
-          ' to access your Azure Subscription ID, and to find or create your managed application.'
-        ])
+        'Link Terra to an unassigned managed application in your Azure subscription. A managed application instance can only be assigned to a single Terra billing project. ',
+        h(ExternalLink, {
+          url: 'https://support.terra.bio/hc/en-us/articles/12029032057371',
+          text: 'See documentation with detailed instructions',
+          popoutSize: 16
+        })
+      ]),
+      p({ style: legendDetailsStyle }, [
+        'Need to access your Azure Subscription ID, or to find or create your managed application? ',
+        ExternalLink({ text: 'Go to the Azure Portal', url: 'https://portal.azure.com/' })
       ]),
       div({ style: rowStyle }, [
         h(LabeledField, {
@@ -122,14 +128,14 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
           formId: appSelectId, required: true, style: columnEntryStyle(false),
           label: ['Unassigned managed application']
         }, [
-          h(Select, {
+          h(AzureManagedAppCoordinatesSelect, {
             id: appSelectId,
             placeholder: 'Select a managed application',
             isMulti: false,
             isDisabled: managedApps.status !== 'Ready' || !!subscriptionIdError,
-            value: props.managedApp,
-            onChange: ({ value }) => {
-              props.onManagedAppSelected(value)
+            value: props.managedApp || null,
+            onChange: option => {
+              props.onManagedAppSelected(option!.value)
             },
             options: managedApps.status === 'Ready' ? managedAppsToOptions(managedApps.state) : []
           }),

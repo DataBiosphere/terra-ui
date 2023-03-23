@@ -29,12 +29,17 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
-import { getCostDisplayForDisk, getCostDisplayForTool, getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/pages/workspaces/workspace/analysis/cost-utils'
+import { getCloudProviderFromWorkspace, isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
 import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
-import { getCurrentApp, getCurrentAppDataDisk, getCurrentPersistentDisk, getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { appTools, getAppType, toolLabelDisplays, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import {
+  doesWorkspaceSupportCromwellApp,
+  getCurrentApp
+} from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
+import { getCostDisplayForDisk, getCostDisplayForTool, getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
+import { getCurrentAppDataDisk, getCurrentPersistentDisk } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { appToolLabels, appTools, isToolHidden, runtimeToolLabels, toolLabelDisplays } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 const contextBarStyles = {
@@ -63,9 +68,10 @@ export const ContextBar = ({
 
   const currentRuntime = getCurrentRuntime(runtimes)
   const currentRuntimeTool = currentRuntime?.labels?.tool
-  const isTerminalVisible = currentRuntimeTool === toolLabels.Jupyter && currentRuntime && currentRuntime.status !== 'Error'
+  const isTerminalVisible = currentRuntimeTool === runtimeToolLabels.Jupyter && currentRuntime && currentRuntime.status !== 'Error'
   const terminalLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: 'terminal' })
   const canCompute = !!(workspace?.canCompute || runtimes?.length)
+  const cloudProvider = getCloudProviderFromWorkspace(workspace)
 
   // Azure workspace containers' armRegionName can be used directly in cost-utils as the computeRegion
   const computeRegion = Utils.cond(
@@ -80,12 +86,11 @@ export const ContextBar = ({
   )
 
   const getImgForTool = toolLabel => Utils.switchCase(toolLabel,
-    [toolLabels.Jupyter, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
-    [toolLabels.Galaxy, () => img({ src: galaxyLogo, style: { height: 40, width: 40 }, alt: '' })],
-    [toolLabels.Cromwell, () => img({ src: cromwellImg, style: { width: 45 }, alt: '' })],
-    [toolLabels.CromwellOnAzure, () => img({ src: cromwellImg, style: { width: 45 }, alt: '' })],
-    [toolLabels.RStudio, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: '' })],
-    [toolLabels.JupyterLab, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })]
+    [runtimeToolLabels.Jupyter, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
+    [appToolLabels.GALAXY, () => img({ src: galaxyLogo, style: { height: 40, width: 40 }, alt: '' })],
+    [appToolLabels.CROMWELL, () => img({ src: cromwellImg, style: { width: 45 }, alt: '' })],
+    [runtimeToolLabels.RStudio, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: '' })],
+    [runtimeToolLabels.JupyterLab, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })]
   )
 
   const getColorForStatus = status => Utils.cond(
@@ -94,7 +99,7 @@ export const ContextBar = ({
     [_.includes('ING', _.upperCase(status)), () => colors.accent()],
     [Utils.DEFAULT, () => colors.warning()])
 
-  const currentApp = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
+  const currentApp = toolLabel => getCurrentApp(toolLabel, apps)
 
   const getIconForTool = (toolLabel, status) => {
     const app = currentApp(toolLabel)
@@ -107,7 +112,7 @@ export const ContextBar = ({
       },
       tooltipSide: 'left',
       tooltip: div([
-        div({ style: { fontWeight: 'bold' } }, `${toolLabelDisplays[toolLabel]} Environment`),
+        div({ style: { fontWeight: 'bold' } }, [`${toolLabelDisplays[toolLabel]} Environment`]),
         div(getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)),
         div(getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel))
       ]),
@@ -124,28 +129,27 @@ export const ContextBar = ({
   }
 
   const getEnvironmentStatusIcons = () => {
-    const galaxyApp = getCurrentApp(appTools.Galaxy.appType)(apps)
-    const cromwellApp = !tools.Cromwell.isHidden && isGoogleWorkspace(workspace) && getCurrentApp(appTools.Cromwell.appType)(apps)
-    const cromwellOnAzureApp = !tools.CromwellOnAzure.isHidden && isAzureWorkspace(workspace) && getCurrentApp(appTools.CromwellOnAzure.appType)(apps)
+    const galaxyApp = getCurrentApp(appTools.GALAXY.label, apps)
+    const cromwellAppObject = getCurrentApp(appTools.CROMWELL.label, apps)
+    const cromwellApp = !isToolHidden(appTools.CROMWELL.label, cloudProvider) && cromwellAppObject && doesWorkspaceSupportCromwellApp(workspace?.workspace?.createdDate, cloudProvider, appTools.CROMWELL.label)
     return h(Fragment, [
       ...(currentRuntime ? [getIconForTool(currentRuntimeTool, currentRuntime.status)] : []),
-      ...(galaxyApp ? [getIconForTool(toolLabels.Galaxy, galaxyApp.status)] : []),
-      ...(cromwellApp ? [getIconForTool(toolLabels.Cromwell, cromwellApp.status)] : []),
-      ...(cromwellOnAzureApp ? [getIconForTool(toolLabels.CromwellOnAzure, cromwellOnAzureApp.status)] : [])
+      ...(galaxyApp ? [getIconForTool(appToolLabels.GALAXY, galaxyApp.status)] : []),
+      ...(cromwellApp ? [getIconForTool(appToolLabels.CROMWELL, cromwellAppObject.status)] : []),
     ])
   }
 
   //This excludes cromwellapp in the calculation.
   const getTotalToolAndDiskCostDisplay = () => {
-    const galaxyApp = getCurrentApp(appTools.Galaxy.appType)(apps)
-    const galaxyDisk = getCurrentAppDataDisk(appTools.Galaxy.appType, apps, appDataDisks, workspaceName)
+    const galaxyApp = getCurrentApp(appTools.GALAXY.label, apps)
+    const galaxyDisk = getCurrentAppDataDisk(appTools.GALAXY.label, apps, appDataDisks, workspaceName)
     const galaxyRuntimeCost = galaxyApp ? getGalaxyComputeCost(galaxyApp) : 0
     const galaxyDiskCost = galaxyDisk ? getGalaxyDiskCost(galaxyDisk) : 0
     const runtimeCost = currentRuntime ? getRuntimeCost(currentRuntime) : 0
     const curPd = getCurrentPersistentDisk(runtimes, persistentDisks)
     const diskCost = curPd ? getPersistentDiskCostHourly(curPd, computeRegion) : 0
     const display = Utils.formatUSD(galaxyRuntimeCost + galaxyDiskCost + runtimeCost + diskCost)
-    return `${display}`
+    return display
   }
 
   return h(Fragment, [

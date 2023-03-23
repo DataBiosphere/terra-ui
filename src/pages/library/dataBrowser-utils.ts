@@ -135,7 +135,7 @@ export const DatasetAccess = ({ dataset }: DatasetAccessProps) => {
 }
 
 
-export const prepareDatasetsForDisplay = (datasets: Dataset[], dataCollectionsToInclude: string[]): Dataset[] => _.filter(
+export const prepareDatasetsForDisplay = (datasets: Dataset[], dataCollectionsToInclude: string[] | undefined): Dataset[] => _.filter(
   dataCollectionsToInclude ?
     dataset => _.intersection(
       dataCollectionsToInclude,

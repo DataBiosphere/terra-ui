@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import pluralize from 'pluralize'
-import { Fragment, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { b, div, fieldset, h, img, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import {
@@ -10,15 +10,18 @@ import { convertAttributeValue, getAttributeType } from 'src/components/data/att
 import AttributeInput, { AttributeTypeInput } from 'src/components/data/AttributeInput'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
-import { AutocompleteTextInput, PasteOnlyInput, TextInput, ValidatedInput } from 'src/components/input'
+import {
+  AutocompleteTextInput, ConfirmedSearchInput, PasteOnlyInput, TextInput, ValidatedInput
+} from 'src/components/input'
 import Interactive from 'src/components/Interactive'
 import { MenuButton } from 'src/components/MenuButton'
 import Modal from 'src/components/Modal'
-import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
+import PopupTrigger, { MenuDivider } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
 import { Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { isAzureUri, isDrs, isGs, UriViewerLink } from 'src/components/UriViewer'
+import { isAzureUri, isDrsUri, isGsUri } from 'src/components/UriViewer/uri-viewer-utils'
+import { UriViewerLink } from 'src/components/UriViewer/UriViewerLink'
 import ReferenceData from 'src/data/reference-data'
 import { Ajax } from 'src/libs/ajax'
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing'
@@ -28,12 +31,12 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
-import { notify } from 'src/libs/notifications'
+import { clearNotification, notify } from 'src/libs/notifications'
 import { requesterPaysProjectStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
-import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import validate from 'validate.js'
 
 
@@ -68,9 +71,9 @@ export const getUserProjectForWorkspace = async workspace => (workspace && await
   workspace.workspace.googleProject :
   requesterPaysProjectStore.get()
 
-const isViewableUri = (datum, workspace) => (isGoogleWorkspace(workspace) && isGs(datum)) ||
+const isViewableUri = (datum, workspace) => (isGoogleWorkspace(workspace) && isGsUri(datum)) ||
   (isAzureWorkspace(workspace) && (isAzureUri(datum))) ||
-  isDrs(datum)
+  isDrsUri(datum)
 
 export const getRootTypeForSetTable = tableName => _.replace(/(_set)+$/, '', tableName)
 
@@ -302,10 +305,10 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
 
 const supportsFireCloudDataModel = entityType => _.includes(entityType, ['pair', 'participant', 'sample'])
 
-export const notifyDataImportProgress = jobId => {
+export const notifyDataImportProgress = (jobId, message) => {
   notify('info', 'Data import in progress.', {
     id: jobId,
-    message: 'Data will show up incrementally as the job progresses.'
+    message
   })
 }
 
@@ -329,7 +332,8 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
     setUploading(true)
     try {
       await dataProvider.uploadTsv({ workspaceId, recordType, file, useFireCloudDataModel, deleteEmptyValues, namespace, name })
-      onSuccess()
+      onSuccess(recordType)
+      clearNotification(recordType)
       Ajax().Metrics.captureEvent(Events.workspaceDataUpload, {
         workspaceNamespace: namespace, workspaceName: name, providerName: dataProvider.providerName,
         cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label
@@ -370,7 +374,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
     }
   }, [
     ({ dragging, openUploader }) => h(Fragment, [
-      h(Modal, {
+      !uploading && h(Modal, {
         onDismiss,
         title: 'Import Table Data',
         width: '35rem',
@@ -543,8 +547,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
             }, [' Importing Data - Using a Template'])
           ])
         ])
-      ]),
-      uploading && spinnerOverlay
+      ])
     ])
   ])
 }
@@ -1184,13 +1187,27 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
   ])
 }
 
-export const HeaderOptions = ({ sort, field, onSort, extraActions, children }) => {
-  const columnMenu = h(MenuTrigger, {
+export const HeaderOptions = ({ sort, field, onSort, extraActions, renderSearch, searchByColumn, children }) => {
+  const popup = useRef()
+  const columnMenu = h(PopupTrigger, {
+    ref: popup,
     closeOnClick: true,
     side: 'bottom',
     content: h(Fragment, [
       h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
       h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
+      renderSearch && h(div, { style: { width: '98%' } }, [h(ConfirmedSearchInput, {
+        'aria-label': 'Exact match filter',
+        placeholder: 'Exact match filter',
+        style: { marginLeft: '0.25rem' },
+        onChange: e => {
+          if (!!e) {
+            searchByColumn(e)
+            popup.current.close()
+          }
+        },
+        onClick: e => { e.stopPropagation() }
+      })]),
       !_.isEmpty(extraActions) && h(Fragment, [
         h(MenuDivider),
         _.map(({ label, disabled, tooltip, onClick }) => h(MenuButton, { key: label, disabled, tooltip, onClick }, [label]), extraActions)

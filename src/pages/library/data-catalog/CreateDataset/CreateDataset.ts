@@ -55,6 +55,8 @@ const constraints = {
   }
 }
 
+const StorageSystemSelectInput = SelectInput as typeof SelectInput<StorageSystem>
+
 interface CreateDatasetProps {
   storageSystem: StorageSystem
   storageSourceId: string
@@ -101,12 +103,12 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
   return h(FooterWrapper, {}, [
     loading && spinnerOverlay,
     h(TopBar, { title: 'Create Dataset', href: '' }, []),
-    h(SelectInput, {
+    h(StorageSystemSelectInput, {
       title: 'Storage System',
       isClearable: false,
       onChange: option => {
-        setStorageSourceIdState(option.value === 'ext' ? uuid() : '')
-        setStorageSystemState(option.value)
+        setStorageSourceIdState(option!.value === 'ext' ? uuid() : '')
+        setStorageSystemState(option!.value)
       },
       placeholder: 'Enter the storage system',
       value: storageSystemState,
@@ -172,7 +174,7 @@ export const CreateDataset = ({ storageSystem, storageSourceId }: CreateDatasetP
     }),
     h(SelectInput, {
       title: 'Data Use Permission',
-      onChange: option => setMetadata(_.set('TerraDCAT_ap:hasDataUsePermission', option.value, metadata)),
+      onChange: option => setMetadata(_.set('TerraDCAT_ap:hasDataUsePermission', option!.value, metadata)),
       placeholder: 'Enter a data use permission',
       value: metadata['TerraDCAT_ap:hasDataUsePermission'],
       options: _.map(dataUsePermission => {

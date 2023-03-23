@@ -12,6 +12,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { useWorkspaces } from 'src/components/workspace-utils'
 import { useReplaceableAjaxExperimental } from 'src/libs/ajax'
+import { isApp } from 'src/libs/ajax/leonardo/models/app-models'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -20,17 +21,18 @@ import { useCancellation, useGetter } from 'src/libs/react-utils'
 import { contactUsActive, getUser } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
+import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
+import { getDiskAppType } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
 import {
   getAppCost, getGalaxyComputeCost, getPersistentDiskCostMonthly, getRuntimeCost
-} from 'src/pages/workspaces/workspace/analysis/cost-utils'
-import { SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
+} from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
+import { mapToPdTypes, workspaceHasMultipleDisks } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import { isComputePausable, isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/utils/resource-utils'
 import {
-  defaultComputeZone, getComputeStatusForDisplay, getCreatorForRuntime, getDiskAppType,
-  getRegionFromZone, isApp, isComputePausable, isGcpContext, isResourceDeletable, mapToPdTypes,
-  workspaceHasMultipleDisks
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
-import { appTools, getToolLabelFromRuntime, isPauseSupported } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+  defaultComputeZone, getComputeStatusForDisplay, getCreatorForRuntime, getRegionFromZone, isGcpContext
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { appTools, getToolLabelFromRuntime, isPauseSupported } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 const DeleteRuntimeModal = ({
@@ -136,7 +138,7 @@ const DeleteAppModal = ({ app: { appName, diskName, appType, cloudContext: { clo
         p([
           'Deleting this cloud environment will also ', span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk.'])
         ]),
-      appType === appTools.Galaxy.appType && h(SaveFilesHelpGalaxy)
+      appType === appTools.GALAXY.label && h(SaveFilesHelpGalaxy)
     ]),
     deleting && spinnerOverlay
   ])
@@ -162,6 +164,24 @@ const UnsupportedWorkspaceCell = ({ status, message }) => div({
     ])
   ])
 ])
+
+export const PauseButton = ({ computeType, cloudEnvironment, currentUser, pauseComputeAndRefresh }) => {
+  const shouldShowPauseButton = Utils.cond(
+    [isApp(cloudEnvironment) && !_.find(tool => tool.appType && tool.appType === cloudEnvironment.appType)(appTools)?.isPauseUnsupported, () => true],
+    [isPauseSupported(getToolLabelFromRuntime(cloudEnvironment)) && currentUser === getCreatorForRuntime(cloudEnvironment), () => true],
+    () => false)
+
+  return (
+    shouldShowPauseButton && h(Link, {
+      style: { marginRight: '1rem' },
+      disabled: !isComputePausable(computeType, cloudEnvironment),
+      tooltip: isComputePausable(computeType, cloudEnvironment) ?
+        'Pause cloud environment' :
+        `Cannot pause a cloud environment while in status ${_.upperCase(getComputeStatusForDisplay(cloudEnvironment.status))}.`,
+      onClick: () => pauseComputeAndRefresh(computeType, cloudEnvironment)
+    }, [makeMenuIcon('pause'), 'Pause'])
+  )
+}
 
 export const Environments = ({ nav = undefined }) => {
   const signal = useCancellation()
@@ -407,25 +427,6 @@ export const Environments = ({ nav = undefined }) => {
     }, [makeMenuIcon('trash'), 'Delete'])
   }
 
-  const renderPauseButton = (computeType, compute) => {
-    const { status } = compute
-    const isAzure = getCloudProvider(compute) === 'AZURE_VM'
-    const shouldShowPauseButton = Utils.cond(
-      [isApp(compute) && !_.find(tool => tool.appType && tool.appType === compute.appType)(appTools)?.isPauseUnsupported, () => true],
-      [isPauseSupported(getToolLabelFromRuntime(compute)) && currentUser === getCreatorForRuntime(compute), () => true],
-      () => false)
-
-    return shouldShowPauseButton && h(Link, { //TODO: IA-3993 enable pausing
-      style: { marginRight: '1rem' },
-      disabled: isAzure || !isComputePausable(computeType, compute),
-      tooltip: Utils.cond(
-        [isAzure, () => 'Feature coming soon'],
-        [isComputePausable(computeType, compute), () => 'Pause cloud environment'],
-        () => `Cannot pause a cloud environment while in status ${_.upperCase(getComputeStatusForDisplay(status))}.`),
-      onClick: () => pauseComputeAndRefresh(computeType, compute)
-    }, [makeMenuIcon('pause'), 'Pause'])
-  }
-
   const renderErrorApps = app => {
     const convertedAppStatus = getComputeStatusForDisplay(app.status)
     if (convertedAppStatus !== 'Error' && app.unsupportedWorkspace) {
@@ -457,7 +458,7 @@ export const Environments = ({ nav = undefined }) => {
   const renderDeleteDiskModal = disk => {
     return h(DeleteDiskModal, {
       disk,
-      isGalaxyDisk: getDiskAppType(disk) === appTools.Galaxy.appType,
+      isGalaxyDisk: getDiskAppType(disk) === appTools.GALAXY.label,
       onDismiss: () => setDeleteDiskId(undefined),
       onSuccess: () => {
         setDeleteDiskId(undefined)
@@ -578,7 +579,7 @@ export const Environments = ({ nav = undefined }) => {
                 const cloudEnvironment = filteredCloudEnvironments[rowIndex]
                 const computeType = isApp(cloudEnvironment) ? 'app' : 'runtime'
                 return h(Fragment, [
-                  renderPauseButton(computeType, cloudEnvironment),
+                  h(PauseButton, { computeType, cloudEnvironment, currentUser, pauseComputeAndRefresh }),
                   renderDeleteButton(computeType, cloudEnvironment)
                 ])
               }

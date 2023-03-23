@@ -9,14 +9,14 @@ import { formatUSD } from 'src/libs/utils'
 import {
   defaultAzureWorkspace, imageDocs, testAzureDefaultRegion
 } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
-import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/cost-utils'
-import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
+import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
 import { AzureComputeModalBase } from './AzureComputeModal'
 
 
-jest.mock('src/pages/workspaces/workspace/analysis/cost-utils')
+jest.mock('src/pages/workspaces/workspace/analysis/utils/cost-utils')
 
 jest.mock('src/libs/ajax')
 jest.mock('src/libs/notifications', () => ({
@@ -25,7 +25,7 @@ jest.mock('src/libs/notifications', () => ({
 const onSuccess = jest.fn()
 const defaultModalProps = {
   onSuccess, onDismiss: jest.fn(), onError: jest.fn(),
-  currentRuntime: undefined, currentDisk: undefined, tool: toolLabels.JupyterLab, workspace: defaultAzureWorkspace,
+  currentRuntime: undefined, currentDisk: undefined, tool: runtimeToolLabels.JupyterLab, workspace: defaultAzureWorkspace,
   location: testAzureDefaultRegion
 }
 

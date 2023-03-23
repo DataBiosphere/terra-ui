@@ -4,6 +4,7 @@ import { centeredSpinner } from 'src/components/icons'
 
 const makeBaseSpinner = ({ outerStyles = {}, innerStyles = {} }) => div(
   {
+    'data-testid': 'loading-spinner',
     style: {
       position: 'absolute',
       display: 'flex', alignItems: 'center',

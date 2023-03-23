@@ -18,7 +18,7 @@ export const Files = _.flow(
     title: 'Files',
     topBarContent: null
   })
-)(({ workspace }, _ref) => {
+)(({ workspace }: { workspace: any }, _ref) => {
   const fileBrowserProvider = useMemo(
     () => {
       if (isAzureWorkspace(workspace)) {
