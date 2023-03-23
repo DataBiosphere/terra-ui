@@ -2,7 +2,6 @@ import '@testing-library/jest-dom'
 
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MouseEvent } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { IComputeConfig } from 'src/pages/workspaces/workspace/analysis/modal-utils'
 import {
