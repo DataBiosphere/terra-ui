@@ -11,14 +11,14 @@ import { getPersistentDiskCostMonthly } from 'src/pages/workspaces/workspace/ana
 
 
 export const DeleteDiskChoices = ({
-  persistentDiskCostLabel,
+  persistentDiskCostDisplay,
   deleteDiskSelected,
   setDeleteDiskSelected,
   toolLabel,
   cloudService
 }:
     {
-      persistentDiskCostLabel: String
+      persistentDiskCostDisplay: String
       deleteDiskSelected:boolean
       setDeleteDiskSelected:(p1:boolean)=>void
       toolLabel:string
@@ -50,7 +50,7 @@ export const DeleteDiskChoices = ({
         p({ style: { marginBottom: 0 } }, [
           'You will continue to incur persistent disk cost at ',
           span({ style: { fontWeight: 600 } },
-            [`${persistentDiskCostLabel} per month.`])
+            [`${persistentDiskCostDisplay} per month.`])
         ])
       ]),
       h(RadioBlock, {
@@ -154,7 +154,7 @@ export const DeleteEnvironment = ({
           return h(
             DeleteDiskChoices,
             {
-              persistentDiskCostLabel: Utils.formatUSD(getPersistentDiskCostMonthly(persistentDisk!, computeRegion)),
+              persistentDiskCostDisplay: Utils.formatUSD(getPersistentDiskCostMonthly(persistentDisk!, computeRegion)),
               deleteDiskSelected,
               setDeleteDiskSelected,
               toolLabel,

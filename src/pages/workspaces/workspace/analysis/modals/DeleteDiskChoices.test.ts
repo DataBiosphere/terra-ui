@@ -24,7 +24,7 @@ describe('DeleteDiskChoices', () => {
 
     // Act
     render(h(DeleteDiskChoices, {
-      persistentDiskCostLabel: pdCost,
+      persistentDiskCostDisplay: pdCost,
       toolLabel: 'RStudio',
       cloudService,
       deleteDiskSelected,
@@ -46,7 +46,7 @@ describe('DeleteDiskChoices', () => {
 
     // Act
     render(h(DeleteDiskChoices, {
-      persistentDiskCostLabel: pdCost,
+      persistentDiskCostDisplay: pdCost,
       toolLabel: 'RStudio',
       cloudService: cloudServices.GCE,
       deleteDiskSelected,
@@ -71,7 +71,7 @@ describe('DeleteDiskChoices', () => {
 
     // Act
     render(h(DeleteDiskChoices, {
-      persistentDiskCostLabel: pdCost,
+      persistentDiskCostDisplay: pdCost,
       toolLabel: 'RStudio',
       cloudService: cloudServices.GCE,
       deleteDiskSelected,
@@ -92,7 +92,7 @@ describe('DeleteDiskChoices', () => {
 
     // Act
     render(h(DeleteDiskChoices, {
-      persistentDiskCostLabel: pdCost,
+      persistentDiskCostDisplay: pdCost,
       toolLabel: 'JupyterLab',
       cloudService: cloudServices.GCE,
       deleteDiskSelected,
@@ -113,7 +113,7 @@ describe('DeleteDiskChoices', () => {
 
     // Act
     render(h(DeleteDiskChoices, {
-      persistentDiskCostLabel: pdCost,
+      persistentDiskCostDisplay: pdCost,
       toolLabel: 'JupyterLab',
       cloudService: cloudServices.AZURE,
       deleteDiskSelected,
