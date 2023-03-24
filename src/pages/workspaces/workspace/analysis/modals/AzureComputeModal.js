@@ -17,11 +17,8 @@ import Events from 'src/libs/events'
 import { useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { DeleteEnvironment } from 'src/pages/workspaces/workspace/analysis/modals/DeleteDiskChoices'
-import { getCurrentPersistentDisk } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
-import {
-  getCurrentRuntime, getIsRuntimeBusy
-} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { getIsRuntimeBusy } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
 import { computeStyles } from './modalStyles'
 import { AboutPersistentDisk, PersistentDiskSection } from './persistent-disk-controls'
@@ -30,28 +27,27 @@ import { AboutPersistentDisk, PersistentDiskSection } from './persistent-disk-co
 const titleId = 'azure-compute-modal-title'
 
 export const AzureComputeModalBase = ({
-  onDismiss, onSuccess, onError = onDismiss, workspace: { workspace: { namespace, name: workspaceName, workspaceId } }, runtimes, persistentDisks, location, tool, hideCloseButton = false
+  onDismiss, onSuccess, onError = onDismiss, workspace: { workspace: { namespace, name: workspaceName, workspaceId } }, currentRuntime, currentDisk, location, tool, hideCloseButton = false
 }) => {
   const [loading, setLoading] = useState(false)
   const [viewMode, setViewMode] = useState(undefined)
-  const [currentRuntime, setCurrentRuntime] = useState(() => getCurrentRuntime(runtimes))
+  const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(currentRuntime)
+  const [currentPersistentDiskDetails, setCurrentPersistentDiskDetails] = useState(currentDisk)
   const [computeConfig, setComputeConfig] = useState(defaultAzureComputeConfig)
   const updateComputeConfig = _.curry((key, value) => setComputeConfig(_.set(key, value)))
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [currentPersistentDisk, setCurrentPersistentDisk] = useState(getCurrentPersistentDisk(runtimes, persistentDisks))
 
-  const persistentDiskExists = !!currentPersistentDisk
+  const persistentDiskExists = !!currentPersistentDiskDetails
   const [deleteDiskSelected, setDeleteDiskSelected] = useState(false)
+
 
   // Lifecycle
   useOnMount(_.flow(
     withErrorReportingInModal('Error loading cloud environment', onError),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const currentRuntime = getCurrentRuntime(runtimes)
-
-    const runtimeDetails = currentRuntime ? await Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).details() : null
-    setCurrentRuntime(runtimeDetails)
+    const runtimeDetails = currentRuntimeDetails ? await Ajax().Runtimes.runtimeV2(workspaceId, currentRuntimeDetails.runtimeName).details() : null
+    setCurrentRuntimeDetails(runtimeDetails)
     setComputeConfig({
       machineType: runtimeDetails?.runtimeConfig?.machineType || defaultAzureMachineType,
       persistentDiskSize: runtimeDetails?.diskConfig?.size || defaultAzureDiskSize,
@@ -79,7 +75,7 @@ export const AzureComputeModalBase = ({
         onClick: () => setViewMode('deleteEnvironment')
       }, [
         Utils.cond(
-          [doesRuntimeExist(), () => 'Delete Runtime'],
+          [doesRuntimeExist(), () => 'Delete Environment'],
           [persistentDiskExists, () => 'Delete Persistent Disk'],
           () => 'Delete Environment'
         )
@@ -159,17 +155,17 @@ export const AzureComputeModalBase = ({
   //   } : {}
   // }
 
-  const doesRuntimeExist = () => !!currentRuntime
+  const doesRuntimeExist = () => !!currentRuntimeDetails
 
   const renderActionButton = () => {
     const commonButtonProps = {
       tooltipSide: 'left',
       disabled: Utils.cond(
-        [viewMode === 'deleteEnvironment', () => getIsRuntimeBusy(currentRuntime)],
+        [viewMode === 'deleteEnvironment', () => getIsRuntimeBusy(currentRuntimeDetails)],
         () => doesRuntimeExist()),
       tooltip: Utils.cond(
         [viewMode === 'deleteEnvironment',
-          () => getIsRuntimeBusy(currentRuntime) ? 'Cannot delete a runtime while it is busy' : undefined],
+          () => getIsRuntimeBusy(currentRuntimeDetails) ? 'Cannot delete a runtime while it is busy' : undefined],
         [doesRuntimeExist(), () => 'Update not supported for azure runtimes'],
         () => undefined)
     }
@@ -196,7 +192,13 @@ export const AzureComputeModalBase = ({
     //each branch of the cond should return a promise
     await Utils.cond(
       [viewMode === 'deleteEnvironment',
-        () => Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).delete(deleteDiskSelected)], //delete runtime
+        () => {
+          Ajax().Runtimes.runtimeV2(workspaceId, currentRuntimeDetails.runtimeName).delete(deleteDiskSelected)
+          setCurrentRuntimeDetails(undefined)
+          if (deleteDiskSelected) {
+            setCurrentPersistentDiskDetails(undefined)
+          }
+        }], //delete runtime
       [Utils.DEFAULT, () => {
         // TODO [IA-4052]: We DO currently support re-attaching azure disks
         const disk = {
@@ -279,15 +281,15 @@ export const AzureComputeModalBase = ({
       ['aboutPersistentDisk', () => AboutPersistentDisk({ titleId, setViewMode, onDismiss, tool })],
       ['deleteEnvironment', () => DeleteEnvironment({
         id: titleId,
-        runtimeConfig: currentRuntime && currentRuntime.runtimeConfig,
-        persistentDisk: currentPersistentDisk,
+        runtimeConfig: currentRuntimeDetails && currentRuntimeDetails.runtimeConfig,
+        persistentDisk: currentPersistentDiskDetails,
         deleteDiskSelected,
         setDeleteDiskSelected,
         setViewMode,
         renderActionButton,
         hideCloseButton: false,
         onDismiss,
-        toolLabel: currentRuntime && currentRuntime.labels.tool
+        toolLabel: currentRuntimeDetails && currentRuntimeDetails.labels.tool
       })],
       [Utils.DEFAULT, renderMainForm]
     ),

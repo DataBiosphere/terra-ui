@@ -196,8 +196,8 @@ describe('AzureComputeModal', () => {
     await act(async () => {
       render(h(AzureComputeModalBase, {
         ...defaultModalProps,
-        persistentDisks: [disk],
-        runtimes: [runtime]
+        currentDisk: disk,
+        currentRuntime: runtime
       }))
       await userEvent.click(screen.getByText('Delete Environment'))
     })
@@ -233,7 +233,7 @@ describe('AzureComputeModal', () => {
     await act(async () => {
       render(h(AzureComputeModalBase, {
         ...defaultModalProps,
-        persistentDisks: [disk],
+        currentDisk: disk,
         currentRuntime: null
       }))
       await userEvent.click(screen.getByText('Delete Persistent Disk'))

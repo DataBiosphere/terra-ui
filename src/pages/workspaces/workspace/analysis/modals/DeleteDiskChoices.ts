@@ -110,7 +110,7 @@ export const DeleteEnvironment = ({
       hideCloseButton,
       onDismiss,
       titleChildren: [],
-      onPrevious: () => { //TODO: fix back arrow
+      onPrevious: () => {
         setViewMode(undefined)
         setDeleteDiskSelected(false)
       }
