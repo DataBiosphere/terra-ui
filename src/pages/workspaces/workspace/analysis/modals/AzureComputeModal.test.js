@@ -125,6 +125,7 @@ describe('AzureComputeModal', () => {
 
   it('sends the proper leo API call in create case (custom autopause)', async () => {
     // Arrange
+    const user = userEvent.setup()
     const createFunc = jest.fn()
     const runtimeFunc = jest.fn(() => ({
       create: createFunc,
@@ -144,10 +145,10 @@ describe('AzureComputeModal', () => {
 
       const numberInput = await screen.getByLabelText('minutes of inactivity')
       expect(numberInput).toBeInTheDocument()
-      await fireEvent.change(numberInput, { target: { value: 5 } })
-      expect(numberInput.value).toBe('5')
+      await user.type(numberInput, '0')
+      expect(numberInput.value).toBe('300')
 
-      await userEvent.click(getCreateButton())
+      await user.click(getCreateButton())
     })
 
     // Assert
@@ -163,7 +164,7 @@ describe('AzureComputeModal', () => {
         name: expect.anything()
       }),
       machineSize: defaultAzureMachineType,
-      autopauseThreshold: 5,
+      autopauseThreshold: 300,
     }))
 
     expect(onSuccess).toHaveBeenCalled()
@@ -190,8 +191,12 @@ describe('AzureComputeModal', () => {
 
       const autopauseCheckbox = await screen.getByLabelText('Enable autopause')
       expect(autopauseCheckbox).toBeInTheDocument()
+      await expect(autopauseCheckbox).toBeChecked()
+      await fireEvent.click(autopauseCheckbox) // click to focus?
       await fireEvent.click(autopauseCheckbox)
-      expect(autopauseCheckbox).not.toBeInTheDocument()
+      await expect(autopauseCheckbox).not.toBeChecked()
+      const numberInput = await screen.getByLabelText('minutes of inactivity')
+      await expect(numberInput).not.toBeVisible()
 
       await userEvent.click(getCreateButton())
     })

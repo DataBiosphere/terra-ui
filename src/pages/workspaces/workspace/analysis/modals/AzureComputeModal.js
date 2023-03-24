@@ -157,16 +157,13 @@ export const AzureComputeModalBase = ({
       ]),
       div({ style: { gridColumnEnd: 'span 6', marginTop: '1.5rem' } }, [
         h(IdContainer, [
-          id => h(Fragment, [
+          id1 => h(Fragment, [
             h(LabeledCheckbox, {
-              id,
+              id1,
               checked: isAutopauseEnabled(computeConfig.autopauseThreshold),
               disabled: !autoPauseCheckboxEnabled,
               onChange: v => updateComputeConfig('autopauseThreshold', getAutopauseThreshold(v))
-            }),
-            label({ htmlFor: id, style: { ...computeStyles.label, marginLeft: '0.25rem' } }, [
-              'Enable autopause'
-            ]),
+            }, ['Enable autopause']),
           ])
         ]),
         h(Link, {
@@ -189,7 +186,7 @@ export const AzureComputeModalBase = ({
                 value: computeConfig.autopauseThreshold,
                 hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold),
                 tooltip: !isAutopauseEnabled(computeConfig.autopauseThreshold) ? 'Autopause must be enabled to configure pause time.' : undefined,
-                onChange: v => updateComputeConfig('autopauseThreshold', v),
+                onChange: v => updateComputeConfig('autopauseThreshold', Number(v)),
                 'aria-label': 'Minutes of inactivity before autopausing'
               }),
               label({
