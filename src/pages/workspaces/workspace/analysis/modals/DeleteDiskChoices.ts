@@ -77,7 +77,6 @@ export const DeleteDiskChoices = ({
 }
 
 
-<<<<<<< HEAD
 export const DeleteEnvironment = ({
   id,
   runtimeConfig,
@@ -103,10 +102,6 @@ export const DeleteEnvironment = ({
   toolLabel:string
   computeRegion?:string
 }) => {
-=======
-export const DeleteEnvironment = ({ id, runtime, persistentDisk, deleteDiskSelected, setDeleteDiskSelected, setViewMode, renderActionButton, hideCloseButton, onDismiss }:
-{ id:string; runtime:any; persistentDisk:any; deleteDiskSelected:boolean; setDeleteDiskSelected:(p1:boolean)=>void; setViewMode: (value: React.SetStateAction<string|undefined>) => void; renderActionButton: ()=> React.ReactElement<any, any>; hideCloseButton:boolean; onDismiss: React.MouseEventHandler<Element>}) => {
->>>>>>> c6bcbf7a (Squashed commits.)
   return (div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
     h(TitleBar, {
       id,
@@ -122,14 +117,10 @@ export const DeleteEnvironment = ({ id, runtime, persistentDisk, deleteDiskSelec
     }),
     div({ style: { lineHeight: '1.5rem' } }, [
       Utils.cond(
-<<<<<<< HEAD
         [runtimeConfig && persistentDisk &&
           (!isGceConfig(runtimeConfig) || isGceWithPdConfig(runtimeConfig)) && // this line checks if the runtime is a GCE VM with a PD attached
           !isDataprocConfig(runtimeConfig) && //and this line makes sure it's not a Dataproc config
           persistentDisk.id !== runtimeConfig?.persistentDiskId, () => {
-=======
-        [runtime && persistentDisk && persistentDisk.id !== runtime?.runtimeConfig?.persistentDiskId, () => {
->>>>>>> c6bcbf7a (Squashed commits.)
           return h(Fragment, [
             h(RadioBlock, {
               name: 'delete-persistent-disk',
@@ -159,7 +150,6 @@ export const DeleteEnvironment = ({ id, runtime, persistentDisk, deleteDiskSelec
             toolLabel === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelpAzure)
           ])
         }],
-<<<<<<< HEAD
         [runtimeConfig && persistentDisk, () => {
           return h(
             DeleteDiskChoices,
@@ -173,20 +163,6 @@ export const DeleteEnvironment = ({ id, runtime, persistentDisk, deleteDiskSelec
           )
         }],
         [!runtimeConfig && persistentDisk, () => {
-=======
-        [runtime && persistentDisk, () => {
-          return h(
-            DeleteDiskChoices,
-            {
-              runtime,
-              persistentDisk,
-              deleteDiskSelected,
-              setDeleteDiskSelected
-            }
-          )
-        }],
-        [!runtime && persistentDisk, () => {
->>>>>>> c6bcbf7a (Squashed commits.)
           return h(Fragment, [
             h(RadioBlock, {
               name: 'delete-persistent-disk',
