@@ -1524,7 +1524,7 @@ export const ComputeModalBase = ({
       ['nonUSLocationWarning', renderNonUSLocationWarning],
       ['deleteEnvironment', () => DeleteEnvironment({
         id: titleId,
-        runtimeConfig: currentRuntime.runtimeConfig,
+        runtimeConfig: currentRuntime && currentRuntime.runtimeConfig,
         persistentDisk: currentPersistentDiskDetails,
         deleteDiskSelected,
         setDeleteDiskSelected,
@@ -1532,8 +1532,8 @@ export const ComputeModalBase = ({
         renderActionButton,
         hideCloseButton: false,
         onDismiss,
-        toolLabel: currentRuntime.labels.tool,
-        computeRegion: currentRuntime.runtimeConfig.computeRegion
+        toolLabel: currentRuntime && currentRuntime.labels.tool,
+        computeRegion: currentRuntime && currentRuntime.runtimeConfig.computeRegion
       })],
       [Utils.DEFAULT, renderMainForm]
     ),

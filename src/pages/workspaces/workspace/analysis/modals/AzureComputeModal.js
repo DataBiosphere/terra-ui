@@ -272,7 +272,7 @@ export const AzureComputeModalBase = ({
       ['aboutPersistentDisk', () => AboutPersistentDisk({ titleId, setViewMode, onDismiss, tool })],
       ['deleteEnvironment', () => DeleteEnvironment({
         id: titleId,
-        runtimeConfig: currentRuntime.runtimeConfig,
+        runtimeConfig: currentRuntime && currentRuntime.runtimeConfig,
         persistentDisk: currentPersistentDisk,
         deleteDiskSelected,
         setDeleteDiskSelected,
@@ -280,7 +280,7 @@ export const AzureComputeModalBase = ({
         renderActionButton,
         hideCloseButton: false,
         onDismiss,
-        toolLabel: currentRuntime.labels.tool
+        toolLabel: currentRuntime && currentRuntime.labels.tool
       })],
       [Utils.DEFAULT, renderMainForm]
     ),

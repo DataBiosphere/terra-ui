@@ -91,7 +91,7 @@ export const DeleteEnvironment = ({
   computeRegion
 }:{
   id:string
-  runtimeConfig?:RuntimeConfig
+  runtimeConfig?:RuntimeConfig|null
   persistentDisk?:any//TODO: retype this as PersistentDisk
   deleteDiskSelected:boolean
   setDeleteDiskSelected:(p1:boolean)=>void
