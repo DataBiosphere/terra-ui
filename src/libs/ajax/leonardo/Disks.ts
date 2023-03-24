@@ -44,7 +44,7 @@ export const Disks = signal => {
     }
   }
   return {
-    diskV1: v1Func(),
-    diskV2: v2Func(),
+    disksV1: v1Func,
+    disksV2: v2Func,
   }
 }
