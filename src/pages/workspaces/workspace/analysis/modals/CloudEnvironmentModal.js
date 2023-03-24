@@ -415,7 +415,7 @@ export const CloudEnvironmentModal = ({
   )
 
   const getAzureView = () => Utils.switchCase(viewMode,
-    [runtimeToolLabels.JupyterLab, renderAzureModal(runtimeToolLabels.JupyterLab)],
+    [runtimeToolLabels.JupyterLab, () => renderAzureModal(runtimeToolLabels.JupyterLab)],
     [Utils.DEFAULT, renderDefaultPage]
   )
 

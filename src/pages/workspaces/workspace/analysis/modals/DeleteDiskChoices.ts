@@ -2,6 +2,7 @@ import { Fragment } from 'react'
 import { code, div, h, p, span } from 'react-hyperscript-helpers'
 import TitleBar from 'src/components/TitleBar'
 import { cloudServices } from 'src/data/gce-machines'
+import { isDataprocConfig, isGceConfig, isGceWithPdConfig, RuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models'
 import * as Utils from 'src/libs/utils'
 import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
@@ -9,15 +10,26 @@ import { RadioBlock, SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpRStudio } f
 import { getPersistentDiskCostMonthly } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 
 
-export const DeleteDiskChoices = ({ existingEnvironmentConfig, deleteDiskSelected, setDeleteDiskSelected }:
-    { existingEnvironmentConfig: any; deleteDiskSelected:boolean; setDeleteDiskSelected:(p1:boolean)=>void }) => {
-  const { runtime, persistentDisk } = existingEnvironmentConfig
+export const DeleteDiskChoices = ({
+  persistentDiskCostDisplay,
+  deleteDiskSelected,
+  setDeleteDiskSelected,
+  toolLabel,
+  cloudService
+}:
+    {
+      persistentDiskCostDisplay: String
+      deleteDiskSelected:boolean
+      setDeleteDiskSelected:(p1:boolean)=>void
+      toolLabel:string
+      cloudService: any
+    }) => {
   const getCurrentMountDirectory = () => {
     const rstudioMountPoint = '/home/rstudio'
     const jupyterMountPoint = '/home/jupyter'
     const noMountDirectory = `${jupyterMountPoint} for Jupyter environments and ${rstudioMountPoint} for RStudio environments`
-    return runtime.tool ?
-      (runtime.tool === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) :
+    return toolLabel ?
+      (toolLabel === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) :
       noMountDirectory
   }
 
@@ -38,7 +50,7 @@ export const DeleteDiskChoices = ({ existingEnvironmentConfig, deleteDiskSelecte
         p({ style: { marginBottom: 0 } }, [
           'You will continue to incur persistent disk cost at ',
           span({ style: { fontWeight: 600 } },
-            [Utils.formatUSD(getPersistentDiskCostMonthly(persistentDisk, runtime.region)), ' per month.']) //TODO: switch case for azure?
+            [`${persistentDiskCostDisplay} per month.`])
         ])
       ]),
       h(RadioBlock, {
@@ -56,18 +68,40 @@ export const DeleteDiskChoices = ({ existingEnvironmentConfig, deleteDiskSelecte
         ])
       ]),
       Utils.cond(
-        [runtime.tool === 'RStudio', () => h(SaveFilesHelpRStudio)],
-        [runtime.cloudService === cloudServices.GCE, h(() => SaveFilesHelp(false))],
-        () => h(SaveFilesHelpAzure)
+        [toolLabel === 'RStudio', () => h(SaveFilesHelpRStudio)],
+        [cloudService === cloudServices.GCE, () => SaveFilesHelp(false)],
+        [Utils.DEFAULT, () => h(SaveFilesHelpAzure)]
       )
     ])
   )
 }
 
 
-export const DeleteEnvironment = ({ id, existingEnvironmentConfig, deleteDiskSelected, setDeleteDiskSelected, setViewMode, renderActionButton, hideCloseButton, onDismiss }:
-{ id:string; existingEnvironmentConfig:any; deleteDiskSelected:boolean; setDeleteDiskSelected:(p1:boolean)=>void; setViewMode: (value: React.SetStateAction<string|undefined>) => void; renderActionButton: ()=> React.ReactElement<any, any>; hideCloseButton:boolean; onDismiss: React.MouseEventHandler<Element>}) => {
-  const { runtime, persistentDisk } = existingEnvironmentConfig
+export const DeleteEnvironment = ({
+  id,
+  runtimeConfig,
+  persistentDisk,
+  deleteDiskSelected,
+  setDeleteDiskSelected,
+  setViewMode,
+  renderActionButton,
+  hideCloseButton,
+  onDismiss,
+  toolLabel,
+  computeRegion
+}:{
+  id:string
+  runtimeConfig?:RuntimeConfig
+  persistentDisk?:any//TODO: retype this as PersistentDisk
+  deleteDiskSelected:boolean
+  setDeleteDiskSelected:(p1:boolean)=>void
+  setViewMode: (value: React.SetStateAction<string|undefined>) => void
+  renderActionButton: ()=> React.ReactElement<any, any>
+  hideCloseButton:boolean
+  onDismiss: React.MouseEventHandler<Element>
+  toolLabel:string
+  computeRegion?:string
+}) => {
   return (div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
     h(TitleBar, {
       id,
@@ -83,7 +117,10 @@ export const DeleteEnvironment = ({ id, existingEnvironmentConfig, deleteDiskSel
     }),
     div({ style: { lineHeight: '1.5rem' } }, [
       Utils.cond(
-        [runtime && persistentDisk && !runtime.persistentDiskAttached, () => {
+        [runtimeConfig && persistentDisk &&
+          (!isGceConfig(runtimeConfig) || isGceWithPdConfig(runtimeConfig)) && // this line checks if the runtime is a GCE VM with a PD attached
+          !isDataprocConfig(runtimeConfig) && //and this line makes sure it's not a Dataproc config
+          persistentDisk.id !== runtimeConfig?.persistentDiskId, () => {
           return h(Fragment, [
             h(RadioBlock, {
               name: 'delete-persistent-disk',
@@ -110,18 +147,22 @@ export const DeleteEnvironment = ({ id, existingEnvironmentConfig, deleteDiskSel
                 'Since the persistent disk is not attached, the application configuration and cloud compute profile will remain.'
               ])
             ]),
-            runtime.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelpAzure)
+            toolLabel === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelpAzure)
           ])
         }],
-        [runtime && persistentDisk, () => h(
-          DeleteDiskChoices,
-          {
-            existingEnvironmentConfig,
-            deleteDiskSelected,
-            setDeleteDiskSelected
-          }
-        )],
-        [!runtime && persistentDisk, () => {
+        [runtimeConfig && persistentDisk, () => {
+          return h(
+            DeleteDiskChoices,
+            {
+              persistentDiskCostDisplay: Utils.formatUSD(getPersistentDiskCostMonthly(persistentDisk!, computeRegion)),
+              deleteDiskSelected,
+              setDeleteDiskSelected,
+              toolLabel,
+              cloudService: runtimeConfig?.cloudService
+            }
+          )
+        }],
+        [!runtimeConfig && persistentDisk, () => {
           return h(Fragment, [
             h(RadioBlock, {
               name: 'delete-persistent-disk',
@@ -140,15 +181,15 @@ export const DeleteEnvironment = ({ id, existingEnvironmentConfig, deleteDiskSel
             h(SaveFilesHelpRStudio)
           ])
         }],
-        () => {
+        [Utils.DEFAULT, () => {
           return h(Fragment, [
             p([
               'Deleting your application configuration and cloud compute profile will also ',
               span({ style: { fontWeight: 600 } }, ['delete all files on the built-in hard disk.'])
             ]),
-            runtime.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelpAzure)
+            toolLabel === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelpAzure)
           ])
-        }
+        }]
       )
     ]),
     div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
