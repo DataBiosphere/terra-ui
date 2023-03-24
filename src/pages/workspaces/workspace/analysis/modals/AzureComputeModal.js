@@ -32,7 +32,7 @@ export const AzureComputeModalBase = ({
   const [loading, setLoading] = useState(false)
   const [viewMode, setViewMode] = useState(undefined)
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(currentRuntime)
-  const [currentPersistentDiskDetails, setCurrentPersistentDiskDetails] = useState(currentDisk)
+  const [currentPersistentDiskDetails] = useState(currentDisk)
   const [computeConfig, setComputeConfig] = useState(defaultAzureComputeConfig)
   const updateComputeConfig = _.curry((key, value) => setComputeConfig(_.set(key, value)))
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -191,14 +191,12 @@ export const AzureComputeModalBase = ({
 
     //each branch of the cond should return a promise
     await Utils.cond(
-      [viewMode === 'deleteEnvironment',
-        () => {
-          Ajax().Runtimes.runtimeV2(workspaceId, currentRuntimeDetails.runtimeName).delete(deleteDiskSelected)
-          setCurrentRuntimeDetails(undefined)
-          if (deleteDiskSelected) {
-            setCurrentPersistentDiskDetails(undefined)
-          }
-        }], //delete runtime
+      [viewMode === 'deleteEnvironment', () => {
+        return Utils.cond(
+          [doesRuntimeExist(), () => Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).delete(deleteDiskSelected)], // delete runtime
+          [!!persistentDiskExists, () => Ajax().Disks.disksV2().delete(workspaceId, currentPersistentDiskDetails.name)] // delete disk
+        )
+      }],
       [Utils.DEFAULT, () => {
         // TODO [IA-4052]: We DO currently support re-attaching azure disks
         const disk = {

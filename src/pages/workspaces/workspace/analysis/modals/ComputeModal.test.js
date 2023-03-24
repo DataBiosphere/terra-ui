@@ -148,8 +148,10 @@ describe('ComputeModal', () => {
         runtime: runtimeFunc
       },
       Disks: {
-        disk: () => ({
-          details: () => disk
+        diskV1: () => ({
+          disk: () => ({
+            details: () => disk
+          })
         })
       }
     }))
@@ -194,8 +196,10 @@ describe('ComputeModal', () => {
         runtime: runtimeFunc
       },
       Disks: {
-        disk: () => ({
-          details: () => disk
+        diskV1: () => ({
+          disk: () => ({
+            details: () => disk
+          })
         })
       }
     }))
@@ -246,8 +250,10 @@ describe('ComputeModal', () => {
         runtime: runtimeFunc
       },
       Disks: {
-        disk: () => ({
-          details: () => disk
+        diskV1: () => ({
+          disk: () => ({
+            details: () => disk
+          })
         })
       }
     }))
@@ -288,8 +294,10 @@ describe('ComputeModal', () => {
         runtime: runtimeFunc
       },
       Disks: {
-        disk: () => ({
-          details: () => disk
+        diskV1: () => ({
+          disk: () => ({
+            details: () => disk
+          })
         })
       }
     }))
@@ -334,8 +342,10 @@ describe('ComputeModal', () => {
         runtime: runtimeFunc
       },
       Disks: {
-        disk: () => ({
-          details: () => disk
+        diskV1: () => ({
+          disk: () => ({
+            details: () => disk
+          })
         })
       }
     }))
@@ -377,8 +387,10 @@ describe('ComputeModal', () => {
         runtime: runtimeFunc
       },
       Disks: {
-        disk: () => ({
-          details: () => disk
+        diskV1: () => ({
+          disk: () => ({
+            details: () => disk
+          })
         })
       }
     }))
