@@ -320,7 +320,7 @@ const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) =
   await billingPage.assertText(`Google Project${ownedBillingProjectName}_project`)
 
   // Check accessibility of workspaces view (GCP).
-  await verifyAccessibility(page, 1) // Need to fix "Ensures elements with an ARIA role that require child roles contain them"
+  await verifyAccessibility(page, 1) // Need to fix "Ensures elements with an ARIA role that require child roles contain them", WOR-846
 
   // Select a billing project that is not owned by the user and verify message that shows when there are no workspaces
   await billingPage.visit()
@@ -337,7 +337,7 @@ const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) =
   await billingPage.assertText(`Resource Group ID${azureBillingProjectName}_mrg`)
 
   // Check accessibility of the Azure workspace details
-  await verifyAccessibility(page, 1) // Need to fix "Ensures elements with an ARIA role that require child roles contain them"
+  await verifyAccessibility(page, 1) // Need to fix "Ensures elements with an ARIA role that require child roles contain them", WOR-846
 })
 
 registerTest({
