@@ -83,8 +83,8 @@ export const UriViewer = _.flow(
   const downloadCommand = getDownloadCommand(fileName, gsUri, accessUrl)
 
   if (isAzureUri(uri) && azureStorage !== undefined) {
-    const fileName = _.last(uri.split('/')).split('.').join('.\u200B') // allow line break on periods
-    uri = azureStorage.azureSasStorageUrl
+    const { azureSasStorageUrl, fileName, lastModified, size } = azureStorage
+    uri = azureSasStorageUrl
     return h(Modal, {
       onDismiss,
       title: 'File Details',
@@ -101,13 +101,13 @@ export const UriViewer = _.flow(
         [azureStorage, () => h(Fragment, [
           els.cell([
             els.label('Filename'),
-            els.data(fileName)
+            els.data(fileName.split('.').join('.\u200B')) // allow line break on periods
           ]),
           azureStorage.lastModified && els.cell([
             els.label('Updated'),
-            els.data(new Date(azureStorage.lastModified).toLocaleString())
+            els.data(new Date(lastModified).toLocaleString())
           ]),
-          els.cell([els.label('File size'), els.data(filesize(azureStorage.size))]),
+          els.cell([els.label('File size'), els.data(filesize(size))]),
           h(AzureUriDownloadButton, { uri, fileName }),
           els.cell([
             els.label('Terminal download command'),
@@ -115,11 +115,11 @@ export const UriViewer = _.flow(
               div({ style: { display: 'flex' } }, [
                 input({
                   readOnly: true,
-                  value: `azcopy copy '${uri}' .`,
+                  value: `azcopy copy '${azureSasStorageUrl}' .`,
                   style: { flexGrow: 1, fontWeight: 400, fontFamily: 'Menlo, monospace' }
                 }),
                 h(ClipboardButton, {
-                  text: `azcopy copy '${uri}' .`,
+                  text: `azcopy copy '${azureSasStorageUrl}' .`,
                   style: { margin: '0 1rem' }
                 })
               ])
