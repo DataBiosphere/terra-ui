@@ -43,13 +43,14 @@ export const UriViewer = _.flow(
         const metadata = await loadObject(googleProject, bucket, name)
         setMetadata(metadata)
       } else if (isAzureUri(uri)) {
+        // assumption is made that container name guid in uri always matches the workspace Id guid it is present in
+        const workspaceId = uri.split('/')[3].replace('sc-', '')
         const fileName = _.last(uri.split('/')).split('.').join('.')
-
-        const checkFile = withRequesterPaysHandler(onRequesterPaysError, () => {
-          return Ajax(signal).AzureStorage.blob(workspace.workspace.workspaceId, fileName).getData()
+        const loadObjectMetadata = withRequesterPaysHandler(onRequesterPaysError, () => {
+          return Ajax(signal).AzureStorage.blob(workspaceId, fileName).getData()
         })
 
-        const metadata = await checkFile(workspace.workspace.workspaceId, fileName)
+        const metadata = await loadObjectMetadata(workspaceId, fileName)
         setAzureStorage(metadata)
       } else {
         // TODO: change below comment after switch to DRSHub is complete, tracked in ticket [ID-170]
@@ -66,7 +67,13 @@ export const UriViewer = _.flow(
         setMetadata(metadata)
       }
     } catch (e) {
-      setLoadingError(await e.text())
+      // azure blob storage api only returns responses in xml format at this time
+      // https://feedback.azure.com/d365community/idea/0646f944-3a25-ec11-b6e6-000d3a4f0f84
+      if (isAzureUri(uri)) {
+        setLoadingError(await e.text())
+      } else {
+        setLoadingError(await e.json())
+      }
     }
   }
 
