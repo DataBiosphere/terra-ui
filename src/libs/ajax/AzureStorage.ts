@@ -114,6 +114,18 @@ export const AzureStorage = (signal?: AbortSignal) => ({
   blob: (workspaceId: string, blobName: string) => {
     const calhounPath = 'api/convert'
 
+    const getObjectMetadata = async () => {
+      const azureStorageUrl = await getBlobUrl(workspaceId, blobName)
+      const res = await fetchOk(azureStorageUrl)
+      const text = await res.headers.entries()
+      const dict = {}
+      for (const pair of text) {
+        dict[pair[0]] = pair[1]
+      }
+
+      return { lastModified: dict['last-modified'], size: dict['content-length'], azureStorageUrl }
+    }
+
     const getObject = async () => {
       const azureStorageUrl = await getBlobUrl(workspaceId, blobName)
 
@@ -152,6 +164,8 @@ export const AzureStorage = (signal?: AbortSignal) => ({
 
     return {
       get: getObject,
+
+      getData: getObjectMetadata,
 
       preview: async () => {
         const textFileContents = await getObject()

@@ -18,7 +18,7 @@ import * as Utils from 'src/libs/utils'
 
 import els from './uri-viewer-styles'
 import { isAzureUri, isGsUri } from './uri-viewer-utils'
-import { UriDownloadButton } from './UriDownloadButton'
+import { AzureUriDownloadButton, UriDownloadButton } from './UriDownloadButton'
 import { UriPreview } from './UriPreview'
 
 
@@ -31,6 +31,7 @@ export const UriViewer = _.flow(
   const signal = useCancellation()
   const [metadata, setMetadata] = useState()
   const [loadingError, setLoadingError] = useState()
+  const [azureStorage, setAzureStorage] = useState()
 
   const loadMetadata = async () => {
     try {
@@ -41,6 +42,15 @@ export const UriViewer = _.flow(
         })
         const metadata = await loadObject(googleProject, bucket, name)
         setMetadata(metadata)
+      } else if (isAzureUri(uri)) {
+        const fileName = _.last(uri.split('/')).split('.').join('.')
+
+        const checkFile = withRequesterPaysHandler(onRequesterPaysError, () => {
+          return Ajax(signal).AzureStorage.blob(workspace.workspace.workspaceId, fileName).getData()
+        })
+
+        const metadata = await checkFile(workspace.workspace.workspaceId, fileName)
+        setAzureStorage(metadata)
       } else {
         // TODO: change below comment after switch to DRSHub is complete, tracked in ticket [ID-170]
         // Fields are mapped from the martha_v3 fields to those used by google
@@ -56,9 +66,10 @@ export const UriViewer = _.flow(
         setMetadata(metadata)
       }
     } catch (e) {
-      setLoadingError(await e.json())
+      setLoadingError(await e.text())
     }
   }
+
   useOnMount(() => {
     loadMetadata()
   })
@@ -66,18 +77,49 @@ export const UriViewer = _.flow(
   const { size, timeCreated, updated, bucket, name, fileName, accessUrl } = metadata || {}
   const gsUri = `gs://${bucket}/${name}`
   const downloadCommand = getDownloadCommand(fileName, gsUri, accessUrl)
-  if (isAzureUri(uri)) {
+
+  if (isAzureUri(uri) && azureStorage !== undefined) {
+    const fileName = _.last(uri.split('/')).split('.').join('.\u200B') // allow line break on periods
+    uri = azureStorage.azureStorageUrl
     return h(Modal, {
       onDismiss,
       title: 'File Details',
       showCancel: false,
       showX: true,
       okButton: 'Done'
-    },
-    [els.cell([
-      els.label('Filename'),
-      els.data(_.last(uri.split('/')).split('.').join('.\u200B')) // allow line break on periods
-    ]), div({ style: { marginTop: '2rem', fontSize: 14 } }, ['Download functionality for Azure files coming soon'])])
+    }, [
+      Utils.cond(
+        [loadingError, () => h(Fragment, [
+          div({ style: { paddingBottom: '1rem' } }, [
+            'Error loading data. This file does not exist or you do not have permission to view it.'
+          ])
+        ])],
+        [azureStorage, () => h(Fragment, [
+          els.cell([
+            els.label('Filename'),
+            els.data(fileName)
+          ]),
+          els.cell([els.label('File size'), els.data(filesize(azureStorage.size))]),
+          h(AzureUriDownloadButton, { uri, fileName }),
+          els.cell([
+            els.label('Terminal download command'),
+            els.data([
+              div({ style: { display: 'flex' } }, [
+                input({
+                  readOnly: true,
+                  value: `azcopy copy '${uri}' .`,
+                  style: { flexGrow: 1, fontWeight: 400, fontFamily: 'Menlo, monospace' }
+                }),
+                h(ClipboardButton, {
+                  text: `azcopy copy '${uri}' .`,
+                  style: { margin: '0 1rem' }
+                })
+              ])
+            ])
+          ]),
+        ])]
+      )
+    ])
   }
   return h(Modal, {
     onDismiss,
@@ -148,7 +190,7 @@ export const UriViewer = _.flow(
         div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
       ])],
       () => h(Fragment, [
-        isGsUri(uri) ? 'Loading metadata...' : 'Resolving DRS file...',
+        isGsUri(uri) || isAzureUri(uri) ? 'Loading metadata...' : 'Resolving DRS file...',
         spinner({ style: { marginLeft: 4 } })
       ])
     )

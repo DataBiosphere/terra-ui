@@ -12,7 +12,7 @@ import { knownBucketRequesterPaysStatuses, workspaceStore } from 'src/libs/state
 import * as Utils from 'src/libs/utils'
 
 import els from './uri-viewer-styles'
-import { isDrsUri } from './uri-viewer-utils'
+import { isAzureUri, isDrsUri } from './uri-viewer-utils'
 
 
 const getMaxDownloadCostNA = bytes => {
@@ -20,6 +20,41 @@ const getMaxDownloadCostNA = bytes => {
   const downloadPrice = bytes * nanos / DownloadPrices.pricingInfo[0].pricingExpression.baseUnitConversionFactor / 10e8
 
   return Utils.formatUSD(downloadPrice)
+}
+
+export const AzureUriDownloadButton = ({ uri, fileName }) => {
+  const [url, setUrl] = useState()
+  const getUrl = () => {
+    if (isAzureUri(uri)) {
+      setUrl(uri)
+    }
+  }
+  useOnMount(() => {
+    getUrl()
+  })
+  return els.cell([
+    url === null ?
+      'Unable to generate download link.' :
+      div({ style: { display: 'flex', justifyContent: 'center' } }, [
+        h(ButtonPrimary, {
+          disabled: !url,
+          onClick: () => {
+            Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
+              ...extractWorkspaceDetails(workspaceStore.get().workspace),
+              fileType: _.head((/\.\w+$/).exec(uri)),
+              downloadFrom: 'file direct'
+            })
+          },
+          href: url,
+          download: fileName,
+          ...Utils.newTabLinkProps
+        }, [
+          url ?
+            'Download' :
+            h(Fragment, ['Generating download link...', spinner({ style: { color: 'white', marginLeft: 4 } })])
+        ])
+      ])
+  ])
 }
 
 export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, accessUrl }) => {
