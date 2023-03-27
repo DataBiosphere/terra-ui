@@ -111,20 +111,37 @@ export const AzureStorage = (signal?: AbortSignal) => ({
     }), notebooks)
   },
 
-  blob: (workspaceId: string, blobName: string) => {
-    const calhounPath = 'api/convert'
-
+  blobMetadata: (azureStorageUrl: string) => {
     const getObjectMetadata = async () => {
-      const azureStorageUrl = await getBlobUrl(workspaceId, blobName)
-      const res = await fetchOk(azureStorageUrl)
+      // assumption is made that container name guid in uri always matches the workspace Id guid it is present in
+      const workspaceId = azureStorageUrl.split('/')[3].replace('sc-', '')
+      const fileName = _.last(azureStorageUrl?.split('/'))?.split('.')?.join('.')
+      const { sas: { url, token } } = await AzureStorage(signal).details(workspaceId)
+
+      const azureSasStorageUrl = _.flow(
+        _.split('?'),
+        _.head,
+        Utils.append(`/${fileName}?&${token}`),
+        _.join('')
+      )(url)
+
+      const res = await fetchOk(azureSasStorageUrl)
       const text = await res.headers.entries()
       const dict = {}
       for (const pair of text) {
         dict[pair[0]] = pair[1]
       }
 
-      return { lastModified: dict['last-modified'], size: dict['content-length'], azureStorageUrl }
+      return { lastModified: dict['last-modified'], size: dict['content-length'], azureSasStorageUrl, workspaceId, fileName }
     }
+
+    return {
+      getData: getObjectMetadata
+    }
+  },
+
+  blob: (workspaceId: string, blobName: string) => {
+    const calhounPath = 'api/convert'
 
     const getObject = async () => {
       const azureStorageUrl = await getBlobUrl(workspaceId, blobName)
@@ -164,8 +181,6 @@ export const AzureStorage = (signal?: AbortSignal) => ({
 
     return {
       get: getObject,
-
-      getData: getObjectMetadata,
 
       preview: async () => {
         const textFileContents = await getObject()

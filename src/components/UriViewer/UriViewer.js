@@ -43,14 +43,11 @@ export const UriViewer = _.flow(
         const metadata = await loadObject(googleProject, bucket, name)
         setMetadata(metadata)
       } else if (isAzureUri(uri)) {
-        // assumption is made that container name guid in uri always matches the workspace Id guid it is present in
-        const workspaceId = uri.split('/')[3].replace('sc-', '')
-        const fileName = _.last(uri.split('/')).split('.').join('.')
         const loadObjectMetadata = withRequesterPaysHandler(onRequesterPaysError, () => {
-          return Ajax(signal).AzureStorage.blob(workspaceId, fileName).getData()
+          return Ajax(signal).AzureStorage.blobMetadata(uri).getData()
         })
 
-        const metadata = await loadObjectMetadata(workspaceId, fileName)
+        const metadata = await loadObjectMetadata(uri)
         setAzureStorage(metadata)
       } else {
         // TODO: change below comment after switch to DRSHub is complete, tracked in ticket [ID-170]
@@ -87,7 +84,7 @@ export const UriViewer = _.flow(
 
   if (isAzureUri(uri) && azureStorage !== undefined) {
     const fileName = _.last(uri.split('/')).split('.').join('.\u200B') // allow line break on periods
-    uri = azureStorage.azureStorageUrl
+    uri = azureStorage.azureSasStorageUrl
     return h(Modal, {
       onDismiss,
       title: 'File Details',
@@ -105,6 +102,10 @@ export const UriViewer = _.flow(
           els.cell([
             els.label('Filename'),
             els.data(fileName)
+          ]),
+          azureStorage.lastModified && els.cell([
+            els.label('Updated'),
+            els.data(new Date(azureStorage.lastModified).toLocaleString())
           ]),
           els.cell([els.label('File size'), els.data(filesize(azureStorage.size))]),
           h(AzureUriDownloadButton, { uri, fileName }),
