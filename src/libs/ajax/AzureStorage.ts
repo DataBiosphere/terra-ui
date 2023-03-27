@@ -113,9 +113,23 @@ export const AzureStorage = (signal?: AbortSignal) => ({
 
   blobMetadata: (azureStorageUrl: string) => {
     const getObjectMetadata = async () => {
-      // assumption is made that container name guid in uri always matches the workspace Id guid it is present in
       const workspaceId = azureStorageUrl.split('/')[3].replace('sc-', '')
       const fileName = _.last(azureStorageUrl?.split('/'))?.split('.')?.join('.')
+      // check if file can just be fetched without sas token
+      try {
+        const res = await fetchOk(azureStorageUrl)
+        const text = await res.headers.entries()
+        const dict = {}
+        for (const pair of text) {
+          dict[pair[0]] = pair[1]
+        }
+
+        return { lastModified: dict['last-modified'], size: dict['content-length'], azureStorageUrl, workspaceId, fileName }
+      } catch (e) {
+
+      }
+
+      // assumption is made that container name guid in uri always matches the workspace Id guid it is present in
       const { sas: { url, token } } = await AzureStorage(signal).details(workspaceId)
 
       const azureSasStorageUrl = _.flow(

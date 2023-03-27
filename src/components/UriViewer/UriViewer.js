@@ -84,7 +84,7 @@ export const UriViewer = _.flow(
 
   if (isAzureUri(uri) && azureStorage !== undefined) {
     const { azureSasStorageUrl, fileName, lastModified, size } = azureStorage
-    uri = azureSasStorageUrl
+    uri = azureSasStorageUrl || uri
     return h(Modal, {
       onDismiss,
       title: 'File Details',
