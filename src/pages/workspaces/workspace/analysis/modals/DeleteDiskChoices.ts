@@ -167,8 +167,8 @@ export const DeleteEnvironment = ({
             h(RadioBlock, {
               name: 'delete-persistent-disk',
               labelText: 'Delete persistent disk',
-              checked: deleteDiskSelected,
-              onChange: () => setDeleteDiskSelected(true)
+              checked: true,
+              onChange: () => {}
             }, [
               p([
                 'Deletes your persistent disk, which will also ', span({ style: { fontWeight: 600 } }, ['delete all files on the disk.'])

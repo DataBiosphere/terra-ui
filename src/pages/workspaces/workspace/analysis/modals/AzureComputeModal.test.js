@@ -196,8 +196,8 @@ describe('AzureComputeModal', () => {
     await act(async () => {
       render(h(AzureComputeModalBase, {
         ...defaultModalProps,
-        persistentDisks: [disk],
-        runtimes: [runtime]
+        currentDisk: disk,
+        currentRuntime: runtime
       }))
       await userEvent.click(screen.getByText('Delete Environment'))
     })
@@ -208,6 +208,41 @@ describe('AzureComputeModal', () => {
     expect(radio1).toBeChecked()
     const radio2 = screen.getByLabelText('Delete everything, including persistent disk')
     expect(radio2).not.toBeChecked()
+  })
+
+  it('deletes disk when there is no runtime present.', async () => {
+    // Arrange
+    const disk = getDisk()
+
+    const runtimeFunc = jest.fn(() => ({
+      details: () => null
+    }))
+    Ajax.mockImplementation(() => ({
+      ...defaultAjaxImpl,
+      Runtimes: {
+        runtime: runtimeFunc
+      },
+      Disks: {
+        disk: () => ({
+          details: () => disk
+        })
+      }
+    }))
+
+    // Act
+    await act(async () => {
+      render(h(AzureComputeModalBase, {
+        ...defaultModalProps,
+        currentDisk: disk,
+        currentRuntime: null
+      }))
+      await userEvent.click(screen.getByText('Delete Persistent Disk'))
+    })
+
+    // Assert
+    verifyEnabled(screen.getByText('Delete'))
+    const radio1 = screen.getByLabelText('Delete persistent disk')
+    expect(radio1).toBeChecked()
   })
 })
 

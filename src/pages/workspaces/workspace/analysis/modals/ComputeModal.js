@@ -278,7 +278,7 @@ export const ComputeModalBase = ({
       await Ajax().Runtimes.runtime(googleProject, currentRuntimeDetails.runtimeName).delete(hasAttachedDisk() && shouldDeletePersistentDisk)
     }
     if (shouldDeletePersistentDisk && !hasAttachedDisk()) {
-      await Ajax().Disks.disk(googleProject, currentPersistentDiskDetails.name).delete()
+      await Ajax().Disks.disksV1().disk(googleProject, currentPersistentDiskDetails.name).delete()
     }
 
     if (shouldUpdateRuntime || shouldCreateRuntime) {
@@ -325,7 +325,7 @@ export const ComputeModalBase = ({
         )
 
         if (shouldUpdatePersistentDisk) {
-          await Ajax().Disks.disk(googleProject, currentPersistentDiskDetails.name).update(desiredPersistentDisk.size)
+          await Ajax().Disks.disksV1().disk(googleProject, currentPersistentDiskDetails.name).update(desiredPersistentDisk.size)
         }
 
         const createRuntimeConfig = { ...runtimeConfig, ...diskConfig }
@@ -649,7 +649,7 @@ export const ComputeModalBase = ({
           .Buckets
           .getObjectPreview(googleProject, getConfig().terraDockerImageBucket, getConfig().terraDockerVersionsFile, true)
           .then(r => r.json()),
-        currentDisk ? Ajax().Disks.disk(currentDisk.googleProject, currentDisk.name).details() : null
+        currentDisk ? Ajax().Disks.disksV1().disk(currentDisk.googleProject, currentDisk.name).details() : null
       ])
 
       const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, runtimeTools[tool].imageIds), newLeoImages) : newLeoImages
