@@ -1,14 +1,14 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, customSpinnerOverlay, IdContainer, Link, Select } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import { MenuButton } from 'src/components/MenuButton'
 import Modal from 'src/components/Modal'
-import { MenuTrigger } from 'src/components/PopupTrigger'
+import { InfoBox, MenuTrigger } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
 import { ariaSort, HeaderRenderer } from 'src/components/table'
 import { useWorkspaces } from 'src/components/workspace-utils'
@@ -481,7 +481,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         )
       ])
     ]),
-    [spendReportKey]: h(SpendReport, { billingProjectName: billingProject.projectName, viewSelected: tab === spendReportKey })
+    [spendReportKey]: h(SpendReport, { billingProjectName: billingProject.projectName, cloudPlatform: billingProject.cloudPlatform, viewSelected: tab === spendReportKey })
   }
 
   const tabs = _.map(key => ({
@@ -490,7 +490,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       _.capitalize(key === 'members' && !isOwner ? 'owners' : key) // Rewrite the 'Members' tab to say 'Owners' if the user has the User role
     ]),
     tableName: _.lowerCase(key)
-  }), _.filter(key => (key !== spendReportKey || (isOwner && isGcpProject)), _.keys(tabToTable)))
+  }), _.filter(key => (key !== spendReportKey || isOwner), _.keys(tabToTable)))
   useEffect(() => {
     // Note: setting undefined so that falsy values don't show up at all
     const newSearch = qs.stringify({
@@ -542,10 +542,17 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       isGcpProject && h(GcpBillingAccountControls, { authorizeAndLoadAccounts, billingAccounts, billingProject, isOwner, getShowBillingModal, setShowBillingModal, reloadBillingProject, setUpdating }),
       isAzureProject && div({ style: accountLinkStyle }, [
         h(ExternalLink, {
-          url: `https://portal.azure.com/#@${billingProject.managedAppCoordinates.tenantId}/resource/subscriptions/${billingProject.managedAppCoordinates.subscriptionId}/resourceGroups/${billingProject.managedAppCoordinates.managedResourceGroupId}/overview`,
-          text: 'Open Resource Group in Azure Portal',
+          url: `https://portal.azure.com/#view/HubsExtension/BrowseResourcesWithTag/tagName/WLZ-ID/tagValue/${billingProject.landingZoneId}`,
+          text: 'View project resources in Azure Portal',
           popoutSize: 14
-        })
+        }),
+        h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
+          "Project resources can only be viewed when you are logged into the same tenant as the project's Azure subscription.",
+          p({ style: { marginBlockEnd: 0 } }, [h(ExternalLink, {
+            url: `https://portal.azure.com/#@${billingProject.managedAppCoordinates.tenantId}/resource/subscriptions/${billingProject.managedAppCoordinates.subscriptionId}/overview`,
+            text: 'View subscription in Azure Portal',
+          })])
+        ])
       ]),
       _.size(projectUsers) > 1 && _.size(projectOwners) === 1 && div({
         style: {

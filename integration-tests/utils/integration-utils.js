@@ -470,10 +470,15 @@ const gotoPage = async (page, url) => {
   await waitForNoSpinners(page)
 }
 
-const verifyAccessibility = async page => {
+// To allow existing issues to be worked on while preventing the introduction of others,
+// use allowedViolations with number of known issues.
+const verifyAccessibility = async (page, allowedViolations) => {
   const results = await new AxePuppeteer(page).withTags(['wcag2a', 'wcag2aa']).analyze()
-  if (results.violations.length > 0) {
-    throw new Error(`Accessibility issues found:\n${JSON.stringify(results.violations, null, 2)}`)
+  if (allowedViolations === undefined) {
+    allowedViolations = 0
+  }
+  if (results.violations.length > allowedViolations) {
+    throw new Error(`Unexpected accessibility issues found:\n${JSON.stringify(results.violations, null, 2)}`)
   }
 }
 

@@ -169,19 +169,19 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["@axe-core/puppeteer", [\
-        ["npm:4.4.5", {\
-          "packageLocation": "./.yarn/cache/@axe-core-puppeteer-npm-4.4.5-35e9d98813-7b7f3cf736.zip/node_modules/@axe-core/puppeteer/",\
+        ["npm:4.6.0", {\
+          "packageLocation": "./.yarn/cache/@axe-core-puppeteer-npm-4.6.0-5100bdab24-63c1d66f14.zip/node_modules/@axe-core/puppeteer/",\
           "packageDependencies": [\
-            ["@axe-core/puppeteer", "npm:4.4.5"]\
+            ["@axe-core/puppeteer", "npm:4.6.0"]\
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:4.4.5", {\
-          "packageLocation": "./.yarn/__virtual__/@axe-core-puppeteer-virtual-54df1a5096/0/cache/@axe-core-puppeteer-npm-4.4.5-35e9d98813-7b7f3cf736.zip/node_modules/@axe-core/puppeteer/",\
+        ["virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:4.6.0", {\
+          "packageLocation": "./.yarn/__virtual__/@axe-core-puppeteer-virtual-de6f038c4f/0/cache/@axe-core-puppeteer-npm-4.6.0-5100bdab24-63c1d66f14.zip/node_modules/@axe-core/puppeteer/",\
           "packageDependencies": [\
-            ["@axe-core/puppeteer", "virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:4.4.5"],\
+            ["@axe-core/puppeteer", "virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:4.6.0"],\
             ["@types/puppeteer", null],\
-            ["axe-core", "npm:4.4.3"],\
+            ["axe-core", "npm:4.6.3"],\
             ["puppeteer", "npm:13.5.1"]\
           ],\
           "packagePeers": [\
@@ -6130,6 +6130,13 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/axe-core-npm-4.4.3-6a07ed8cf6-c3ea000d9a.zip/node_modules/axe-core/",\
           "packageDependencies": [\
             ["axe-core", "npm:4.4.3"]\
+          ],\
+          "linkType": "HARD"\
+        }],\
+        ["npm:4.6.3", {\
+          "packageLocation": "./.yarn/cache/axe-core-npm-4.6.3-9dbbe807a0-d0c46be92b.zip/node_modules/axe-core/",\
+          "packageDependencies": [\
+            ["axe-core", "npm:4.6.3"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -19197,7 +19204,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./integration-tests/",\
           "packageDependencies": [\
             ["terra-integration-tests", "workspace:integration-tests"],\
-            ["@axe-core/puppeteer", "virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:4.4.5"],\
+            ["@axe-core/puppeteer", "virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:4.6.0"],\
             ["@google-cloud/secret-manager", "npm:4.0.0"],\
             ["date-fns", "npm:2.24.0"],\
             ["google-auth-library", "npm:7.14.1"],\

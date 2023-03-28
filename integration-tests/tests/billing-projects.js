@@ -125,7 +125,7 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
   {
     projectName: azureBillingProjectName,
     managedAppCoordinates: { managedResourceGroupId: `${azureBillingProjectName}_mrg`, subscriptionId: 'subId', tenantId: 'tenantId' },
-    invalidBillingAccount: false, roles: ['Owner'], status: 'Ready', cloudPlatform: 'AZURE'
+    invalidBillingAccount: false, roles: ['Owner'], status: 'Ready', cloudPlatform: 'AZURE', landingZoneId: 'fakeLandingZoneId'
   }])
 
   const ownedProjectMembersListResult = [{
@@ -249,6 +249,8 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.assertChartValue(3, 'Third Most Expensive Workspace', 'Storage', '$0.00')
   // Verify the spend report configuration option is present
   await billingPage.assertText('View billing account')
+  // Verify link to Azure portal is not present
+  await billingPage.assertTextNotFound('View project resources in Azure Portal')
 
   // Change the returned mock cost to mimic different date ranges.
   await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName,
@@ -269,13 +271,25 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   // Check that the Spend report tab is not visible on this page
   await billingPage.assertTextNotFound('Spend report')
 
-  // Select an Azure billing project and check that neither the Spend report tab nor the spend report configuration is visible
+  // Select an Azure billing project and check that the Spend Report tab is accessible but displaying only total cost information
   await billingPage.visit()
   await billingPage.selectProject(azureBillingProjectName, AZURE)
-  await billingPage.assertTextNotFound('Spend report')
-  await billingPage.assertTextNotFound('View billing account')
+  await billingPage.selectSpendReport()
 
-  // Check accessibility of initial view.
+  // Title and cost are in different elements, but check both in same text assert to verify that category is correctly associated to its cost.
+  await billingPage.assertText('Total spend$1,110.17')
+  await billingPage.assertText('Total compute$999.00')
+  await billingPage.assertText('Total storage$22.00')
+  await billingPage.assertText('Total spend includes $89.00 in other infrastructure or query costs related to the general operations of Terra. See our documentation to learn more about Azure costs.')
+  // Verify that per-workspace costs are not included
+  await billingPage.assertTextNotFound('Spend By Workspace')
+  await billingPage.assertTextNotFound('Top 10 Spending Workspaces')
+  // Verify spend report configuration is not visible
+  await billingPage.assertTextNotFound('View billing account')
+  // Verify link to Azure portal is present
+  await billingPage.assertText('View project resources in Azure Portal')
+
+  // Check accessibility of the Azure spend report
   await verifyAccessibility(page)
 })
 
@@ -306,7 +320,7 @@ const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) =
   await billingPage.assertText(`Google Project${ownedBillingProjectName}_project`)
 
   // Check accessibility of workspaces view (GCP).
-  await verifyAccessibility(page)
+  await verifyAccessibility(page, 1) // Need to fix "Ensures elements with an ARIA role that require child roles contain them", WOR-846
 
   // Select a billing project that is not owned by the user and verify message that shows when there are no workspaces
   await billingPage.visit()
@@ -322,8 +336,8 @@ const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) =
   await billingPage.showWorkspaceDetails(`${azureBillingProjectName}_ws`)
   await billingPage.assertText(`Resource Group ID${azureBillingProjectName}_mrg`)
 
-  // Check accessibility of workspaces view (Azure).
-  await verifyAccessibility(page)
+  // Check accessibility of the Azure workspace details
+  await verifyAccessibility(page, 1) // Need to fix "Ensures elements with an ARIA role that require child roles contain them", WOR-846
 })
 
 registerTest({
