@@ -1,7 +1,8 @@
 import _ from 'lodash/fp'
 import { cloudServices } from 'src/data/gce-machines'
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models'
 import { defaultDataprocMachineType, getDefaultMachineType } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
-import { getToolLabelFromRuntime, PersistentDisk } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { getToolLabelFromRuntime } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 export interface IComputeConfig {

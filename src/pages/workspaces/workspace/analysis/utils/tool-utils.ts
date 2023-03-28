@@ -189,7 +189,3 @@ export const getCurrentMountDirectory = (toolLabel: ToolLabel) => {
   const defaultMsg = [boldCode(runtimeToolLabels.Jupyter), ' for Jupyter environments and ', boldCode(runtimeToolLabels.RStudio), ' for RStudio environments']
   return typeof toolLabel === 'string' ? [boldCode(toolLabel)] : defaultMsg // TODO: remove string check IA-4091
 }
-
-export type AppDataDisk = any
-
-export type PersistentDisk = any
