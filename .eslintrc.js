@@ -14,15 +14,26 @@ module.exports = {
       },
     },
   },
-  env: {
-    jest: true,
-  },
+  overrides: [
+    {
+      files: ['**/*.test.ts', '**/*.test.js'],
+      env: {
+        jest: true,
+      },
+    },
+    {
+      files: 'src/**/*.{js,ts}',
+      rules: {
+        'no-console': ['warn', { allow: ['assert', 'error'] }],
+      },
+    },
+  ],
   rules: {
     indent: 'off',
     'comma-dangle': 'off',
     'import/prefer-default-export': 'off',
 
-    // TODO: ticket all of these to be fixed or considered
+    // TODO: ticket all of these to be enabled or explain why they are disabled
     'react/forbid-prop-types': 'off',
     'react/prop-types': 'off',
     'react/sort-comp': 'off',
@@ -49,7 +60,6 @@ module.exports = {
 
     'no-case-declarations': 'off',
     'no-nested-ternary': 'off',
-    'no-console': 'off',
     'no-plusplus': 'off',
     'no-undef': 'off',
     'no-await-in-loop': 'off',
