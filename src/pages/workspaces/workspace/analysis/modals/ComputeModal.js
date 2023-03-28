@@ -23,6 +23,7 @@ import * as Nav from 'src/libs/nav'
 import { useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
 import { buildExistingEnvironmentConfig, getImageUrl } from 'src/pages/workspaces/workspace/analysis/modal-utils'
 import { DeleteDiskChoices } from 'src/pages/workspaces/workspace/analysis/modals/DeleteDiskChoices'
 import { DeleteEnvironment } from 'src/pages/workspaces/workspace/analysis/modals/DeleteEnvironment'
@@ -216,7 +217,7 @@ export const ComputeModalBase = ({
   })
   // State -- end
 
-  const cloudPlatform = extractWorkspaceDetails(workspace).cloudPlatform
+  const cloudPlatform = getCloudProviderFromWorkspace(workspace)
   const isPersistentDisk = shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected)
 
   const isCustomImage = selectedLeoImage === customMode

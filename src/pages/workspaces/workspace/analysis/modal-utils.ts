@@ -1,8 +1,7 @@
 import _ from 'lodash/fp'
 import { cloudServices } from 'src/data/gce-machines'
+import { defaultDataprocMachineType, getDefaultMachineType } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import { getToolLabelFromRuntime, PersistentDisk } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
-
-import { defaultDataprocMachineType, getDefaultMachineType } from './runtime-utils'
 
 
 export interface IComputeConfig {

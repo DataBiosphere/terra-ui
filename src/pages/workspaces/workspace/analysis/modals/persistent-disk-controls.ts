@@ -9,8 +9,9 @@ import { pdTypes } from 'src/libs/ajax/leonardo/models/disk-models'
 import Events from 'src/libs/events'
 import { useUniqueId } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
+import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils'
 import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles'
-import { getCurrentMountDirectory, RuntimeToolLabel, runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { getCurrentMountDirectory, RuntimeToolLabel, runtimeToolLabels, ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 import { IComputeConfig } from '../modal-utils'
 
@@ -20,8 +21,8 @@ export interface PersistentDiskProps {
   computeConfig: IComputeConfig
   updateComputeConfig: (arg: string) => (diskType: any) => void
   handleLearnMoreAboutPersistentDisk: React.MouseEventHandler
-  setViewMode: any
-  cloudPlatform: any
+  setViewMode: () => void
+  cloudPlatform: CloudProvider
 }
 
 export interface PersistentDiskTypeProps {
@@ -47,7 +48,7 @@ const PersistentDiskTypeSelect = Select as typeof Select<IComputeConfig['persist
 export interface PersistentDiskAboutProps {
   titleId: string
   setViewMode: any
-  tool: any
+  tool: ToolLabel
   onDismiss: () => void
 }
 
@@ -119,8 +120,7 @@ export const PersistentDiskSection = ({ persistentDiskExists, computeConfig, upd
         }, ['Learn more about persistent disks and where your disk is mounted.'])
       ]),
       div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
-        // TODO: we inconsistently use GCP and Gcp, once cloudPlatform is typed, make stronger comparison here
-        ['GCP', 'Gcp'].includes(cloudPlatform) ? diskType({ persistentDiskExists, computeConfig, updateComputeConfig }) : false,
+        cloudProviderTypes.GCP === cloudPlatform ? diskType({ persistentDiskExists, computeConfig, updateComputeConfig }) : false,
         h(div, [
           label({ htmlFor: diskSizeId, style: computeStyles.label }, ['Disk Size (GB)']),
           div({ style: { width: 75, marginTop: '0.5rem' } }, [
