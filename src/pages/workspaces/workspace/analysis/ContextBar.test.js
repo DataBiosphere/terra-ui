@@ -7,7 +7,7 @@ import { defaultAzureMachineType, defaultAzureRegion } from 'src/libs/azure-util
 import * as Utils from 'src/libs/utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
-import { getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
+import { getGalaxyComputeCost, getGalaxyDiskCost, getGoogleRuntimeConfigCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import { appToolLabels, runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
@@ -86,7 +86,7 @@ beforeEach(() => {
   getPersistentDiskCostHourly.mockImplementation(() => {
     return PERSISTENT_DISK_COST
   })
-  runtimeConfigCost.mockImplementation(() => {
+  getGoogleRuntimeConfigCost.mockImplementation(() => {
     return RUNTIME_COST + PERSISTENT_DISK_COST
   })
 })

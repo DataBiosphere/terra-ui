@@ -24,7 +24,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
 import { RadioBlock, SaveFilesHelp, SaveFilesHelpRStudio } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
-import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
+import { getGoogleRuntimeConfigCost, getPersistentDiskCostMonthly, runtimeConfigBaseCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import {
   defaultDataprocMasterDiskSize,
   defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGcePersistentDiskSize, defaultPersistentDiskType, pdTypes
@@ -631,8 +631,8 @@ export const ComputeModalBase = ({
       desiredRuntime_exists: !!desiredRuntime,
       desiredRuntime_cpus: desiredRuntime && desiredRuntimeCpus,
       desiredRuntime_memory: desiredRuntime && desiredRuntimeMemory,
-      desiredRuntime_costPerHour: desiredRuntime && runtimeConfigCost(getPendingRuntimeConfig(), getPendingDisk()),
-      desiredRuntime_pausedCostPerHour: desiredRuntime && runtimeConfigBaseCost(getPendingRuntimeConfig(), getPendingDisk()),
+      desiredRuntime_costPerHour: desiredRuntime && getGoogleRuntimeConfigCost(getPendingRuntimeConfig()),
+      desiredRuntime_pausedCostPerHour: desiredRuntime && runtimeConfigBaseCost(getPendingRuntimeConfig()),
       ..._.mapKeys(key => `existingRuntime_${key}`, existingRuntime),
       existingRuntime_exists: !!existingRuntime,
       existingRuntime_cpus: existingRuntime && existingRuntimeCpus,
@@ -1253,7 +1253,7 @@ export const ComputeModalBase = ({
           ])
         ])
       }, [
-        { label: 'Running cloud compute cost', cost: Utils.formatUSD(runtimeConfigCost(getPendingRuntimeConfig(), getPendingDisk())), unitLabel: 'per hr' },
+        { label: 'Running cloud compute cost', cost: Utils.formatUSD(getGoogleRuntimeConfigCost(getPendingRuntimeConfig(), getPendingDisk())), unitLabel: 'per hr' },
         { label: 'Paused cloud compute cost', cost: Utils.formatUSD(runtimeConfigBaseCost(getPendingRuntimeConfig(), getPendingDisk())), unitLabel: 'per hr' },
         {
           label: 'Persistent disk cost',

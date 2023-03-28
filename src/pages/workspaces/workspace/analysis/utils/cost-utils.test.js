@@ -1,6 +1,6 @@
 import { getAzurePricesForRegion } from 'src/libs/azure-utils'
 import { azureDisk, azureRuntime, galaxyDisk, galaxyRunning, getDisk, getGoogleRuntime, getJupyterRuntimeConfig } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
-import { getCostDisplayForDisk, getCostDisplayForTool, getPersistentDiskCostMonthly, getRuntimeCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
+import { getCostDisplayForDisk, getCostDisplayForTool, getGoogleRuntimeConfigCost, getPersistentDiskCostMonthly, getRuntimeCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import { pdTypes } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import { appToolLabels, runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
@@ -309,13 +309,13 @@ describe('getPersistentDiskCostMonthly', () => {
 describe('runtimeConfigCost for dataproc', () => {
   it('gets cost for a dataproc cluster', () => {
     // Act
-    const result = runtimeConfigCost(defaultSparkCluster)
+    const result = getGoogleRuntimeConfigCost(defaultSparkCluster)
     // Assert
     expect(result).toBeGreaterThan(0)
   })
   it('gets cost for single node cluster', () => {
     // Act
-    const result = runtimeConfigCost(defaultSparkSingleNode)
+    const result = getGoogleRuntimeConfigCost(defaultSparkSingleNode)
 
     // Assert
     expect(result).toBeGreaterThan(0)

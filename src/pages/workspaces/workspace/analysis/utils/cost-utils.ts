@@ -76,7 +76,7 @@ export const runtimeConfigBaseCost = (config: GoogleRuntimeConfig): number => {
   return _.sum([costForDataproc, costForGceWithoutUserDisk, costForGceWithUserDisk])
 }
 
-export const runtimeConfigCost = (config: GoogleRuntimeConfig): number => {
+export const getGoogleRuntimeConfigCost = (config: GoogleRuntimeConfig): number => {
   const computeRegion = getNormalizedComputeRegion(config)
 
   const machineType: string = isGceRuntimeConfig(config) ? config.machineType :
@@ -222,7 +222,7 @@ export const getRuntimeCost = ({ runtimeConfig, status, cloudContext = {} }) => 
       () => runtimeConfigBaseCost(runtimeConfig)
     ],
     ['Error', () => 0.0],
-    [Utils.DEFAULT, () => runtimeConfigCost(runtimeConfig)]
+    [Utils.DEFAULT, () => getGoogleRuntimeConfigCost(runtimeConfig)]
   )
 }
 

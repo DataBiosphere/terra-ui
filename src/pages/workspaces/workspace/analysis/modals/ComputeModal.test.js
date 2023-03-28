@@ -13,7 +13,7 @@ import {
   imageDocs, testDefaultLocation
 } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
-import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
+import { getGoogleRuntimeConfigCost, getPersistentDiskCostMonthly, runtimeConfigBaseCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import {
   defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize, defaultPersistentDiskType
 } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
@@ -1042,7 +1042,7 @@ describe('ComputeModal', () => {
     const expectedRuntimeConfigBaseCost = 0.15
     const expectedPersistentDiskCostMonthly = 0.20
 
-    asMockedFn(runtimeConfigCost).mockReturnValue(expectedRuntimeConfigCost)
+    asMockedFn(getGoogleRuntimeConfigCost).mockReturnValue(expectedRuntimeConfigCost)
     asMockedFn(runtimeConfigBaseCost).mockReturnValue(expectedRuntimeConfigBaseCost)
     asMockedFn(getPersistentDiskCostMonthly).mockReturnValue(expectedPersistentDiskCostMonthly)
 
