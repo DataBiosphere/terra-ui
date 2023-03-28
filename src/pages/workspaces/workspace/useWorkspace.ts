@@ -9,7 +9,6 @@ import { responseContainsRequesterPaysError } from 'src/libs/ajax/ajax-common'
 import { AzureStorage } from 'src/libs/ajax/AzureStorage'
 import { saToken } from 'src/libs/ajax/GoogleStorage'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
-import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { clearNotification, notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { getUser, workspaceStore } from 'src/libs/state'
@@ -63,17 +62,17 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
     workspaceStore.set(_.clone(workspace))
   }
 
-  const checkWorkspaceInitialization = (workspace, alreadyChecked = false) => {
+  const checkWorkspaceInitialization = workspace => {
     console.assert(!!workspace, 'initialization should not be called before workspace details are fetched')
 
     if (isGoogleWorkspace(workspace)) {
-      !workspaceInitialized ? checkGooglePermissions(workspace, alreadyChecked) : loadGoogleBucketLocationIgnoringError(workspace)
+      !workspaceInitialized ? checkGooglePermissions(workspace) : loadGoogleBucketLocationIgnoringError(workspace)
     } else if (isAzureWorkspace(workspace)) {
       !workspaceInitialized ? checkAzureStorageExists(workspace) : loadAzureStorageDetails(workspace)
     }
   }
 
-  const checkGooglePermissions = async (workspace, alreadyChecked) => {
+  const checkGooglePermissions = async workspace => {
     try {
       // Because checkBucketReadAccess can succeed and subsequent calls to get the bucket location or storage
       // cost estimate may fail (due to caching of previous failure results), do not consider permissions
@@ -99,10 +98,7 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
       } else {
         updateWorkspaceInStore(workspace, false)
         console.log('Google permissions are still syncing') // eslint-disable-line no-console
-        if (!alreadyChecked) {
-          await Ajax(signal).Metrics.captureEvent(Events.permissionsSynchronizationDelayDisplayed, extractWorkspaceDetails(workspace))
-        }
-        checkInitializationTimeout.current = window.setTimeout(() => checkWorkspaceInitialization(workspace, true), googlePermissionsRecheckRate)
+        checkInitializationTimeout.current = window.setTimeout(() => checkWorkspaceInitialization(workspace), googlePermissionsRecheckRate)
       }
     }
   }
@@ -139,7 +135,7 @@ export const useWorkspace = (namespace, name) : WorkspaceDetails => {
       // the handling of this with WOR-534 so that we correctly differentiate between the
       // expected transient error and a workspace that is truly missing a storage container.
       console.log(`Error thrown by AzureStorage.details: ${error}`) // eslint-disable-line no-console
-      checkInitializationTimeout.current = window.setTimeout(() => checkWorkspaceInitialization(workspace, true), azureBucketRecheckRate)
+      checkInitializationTimeout.current = window.setTimeout(() => checkWorkspaceInitialization(workspace), azureBucketRecheckRate)
     }
   }
 

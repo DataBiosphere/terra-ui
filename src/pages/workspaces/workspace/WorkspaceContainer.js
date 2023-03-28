@@ -13,6 +13,7 @@ import { Ajax } from 'src/libs/ajax'
 import { isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import { getUser } from 'src/libs/state'
@@ -137,6 +138,12 @@ const WorkspaceContainer = ({
   const [showLockWorkspaceModal, setShowLockWorkspaceModal] = useState(false)
   const [leavingWorkspace, setLeavingWorkspace] = useState(false)
   const workspaceLoaded = !!workspace
+
+  useEffect(() => {
+    if (workspaceLoaded && isGoogleWorkspace(workspace) && workspace.workspaceInitialized === false) {
+      Ajax().Metrics.captureEvent(Events.permissionsSynchronizationDelayDisplayed, extractWorkspaceDetails(workspace))
+    }
+  })
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
