@@ -16,7 +16,7 @@ import { getCurrentMountDirectory, RuntimeToolLabel, runtimeToolLabels, ToolLabe
 import { IComputeConfig } from '../modal-utils'
 
 
-export interface PersistentDiskProps {
+export interface PersistentDiskControlProps {
   persistentDiskExists: boolean
   computeConfig: IComputeConfig
   updateComputeConfig: (arg: string) => (diskType: any) => void
@@ -106,7 +106,7 @@ export const PersistentDiskType = ({ persistentDiskExists, computeConfig, update
   )
 }
 
-export const PersistentDiskSection = ({ persistentDiskExists, computeConfig, updateComputeConfig, setViewMode, cloudPlatform }: PersistentDiskProps) => {
+export const PersistentDiskSection = ({ persistentDiskExists, computeConfig, updateComputeConfig, setViewMode, cloudPlatform }: PersistentDiskControlProps) => {
   const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
   const diskSizeId = useUniqueId()
 
@@ -120,7 +120,7 @@ export const PersistentDiskSection = ({ persistentDiskExists, computeConfig, upd
         }, ['Learn more about persistent disks and where your disk is mounted.'])
       ]),
       div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
-        cloudProviderTypes.GCP === cloudPlatform ? diskType({ persistentDiskExists, computeConfig, updateComputeConfig }) : false,
+        cloudProviderTypes.GCP === cloudPlatform ? renderPersistentDiskType({ persistentDiskExists, computeConfig, updateComputeConfig }) : false,
         h(div, [
           label({ htmlFor: diskSizeId, style: computeStyles.label }, ['Disk Size (GB)']),
           div({ style: { width: 75, marginTop: '0.5rem' } }, [
@@ -140,7 +140,7 @@ export const PersistentDiskSection = ({ persistentDiskExists, computeConfig, upd
   ])
 }
 
-const diskType = ({ persistentDiskExists, computeConfig, updateComputeConfig }) => {
+const renderPersistentDiskType = ({ persistentDiskExists, computeConfig, updateComputeConfig }) => {
   return persistentDiskExists ? h(TooltipTrigger, {
     content: [
       'You already have a persistent disk in this workspace. ',

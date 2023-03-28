@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import { IComputeConfig } from 'src/pages/workspaces/workspace/analysis/modal-utils'
 import {
-  PersistentDiskProps, PersistentDiskSection,
+  PersistentDiskControlProps, PersistentDiskSection,
   PersistentDiskType, PersistentDiskTypeProps
 } from 'src/pages/workspaces/workspace/analysis/modals/persistent-disk-controls'
 import {
@@ -49,7 +49,7 @@ const defaultIComputeConfig: IComputeConfig = {
 
 const updateComputeConfig = jest.fn()
 
-const defaultPersistentDiskProps: PersistentDiskProps = {
+const defaultPersistentDiskProps: PersistentDiskControlProps = {
   persistentDiskExists: true,
   computeConfig: defaultIComputeConfig,
   updateComputeConfig: () => updateComputeConfig,
