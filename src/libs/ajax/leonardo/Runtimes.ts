@@ -67,11 +67,12 @@ export const Runtimes = signal => {
         return res.json()
       },
 
-      create: (options): Promise<void> => {
+      create: (options, useExistingDisk): Promise<void> => {
         const body = _.merge(options, {
           labels: { saturnAutoCreated: 'true', saturnVersion: version }
         })
-        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
+        return fetchLeo(`${root}${qs.stringify({ useExistingDisk }, { addQueryPrefix: true })}`,
+          _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
       },
 
       delete: (deleteDisk: boolean = true): Promise<void> => {
