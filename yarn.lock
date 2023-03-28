@@ -28,14 +28,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@axe-core/puppeteer@npm:^4.4.5":
-  version: 4.4.5
-  resolution: "@axe-core/puppeteer@npm:4.4.5"
+"@axe-core/puppeteer@npm:^4.6.0":
+  version: 4.6.0
+  resolution: "@axe-core/puppeteer@npm:4.6.0"
   dependencies:
-    axe-core: ^4.4.3
+    axe-core: ^4.6.1
   peerDependencies:
-    puppeteer: ">=1.10.0 <= 16"
-  checksum: 7b7f3cf736abcaec442711563904cb768b61ac605e947769103ae7ce1a1be0ed0ff1cf3cad515dc9c88573fc115a06c3b400fdc8ba7c67e647bc3cede3cdabbb
+    puppeteer: ">=1.10.0 <= 18"
+  checksum: 63c1d66f148bc5f13c913e02fca6241c6f01b1592e593b7392b328303ed9388f1a84738d1dddd0ebf022e8e1edfc3a6f15324407d67aa4e95d6261659d9ffd65
   languageName: node
   linkType: hard
 
@@ -4039,10 +4039,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axe-core@npm:^4.3.5, axe-core@npm:^4.4.1, axe-core@npm:^4.4.3":
+"axe-core@npm:^4.3.5, axe-core@npm:^4.4.1":
   version: 4.4.3
   resolution: "axe-core@npm:4.4.3"
   checksum: c3ea000d9ace3ba0bc747c8feafc24b0de62a0f7d93021d0f77b19c73fca15341843510f6170da563d51535d6cfb7a46c5fc0ea36170549dbb44b170208450a2
+  languageName: node
+  linkType: hard
+
+"axe-core@npm:^4.6.1":
+  version: 4.6.3
+  resolution: "axe-core@npm:4.6.3"
+  checksum: d0c46be92b9707c48b88a53cd5f471b155a2bfc8bf6beffb514ecd14e30b4863e340b5fc4f496d82a3c562048088c1f3ff5b93b9b3b026cb9c3bfacfd535da10
   languageName: node
   linkType: hard
 
@@ -14238,7 +14245,7 @@ resolve@^2.0.0-next.3:
   version: 0.0.0-use.local
   resolution: "terra-integration-tests@workspace:integration-tests"
   dependencies:
-    "@axe-core/puppeteer": ^4.4.5
+    "@axe-core/puppeteer": ^4.6.0
     "@google-cloud/secret-manager": ^4.0.0
     date-fns: ^2.24.0
     google-auth-library: ^7.9.2
