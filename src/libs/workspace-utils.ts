@@ -10,7 +10,7 @@ export const cloudProviderLabels: Record<CloudProvider, string> = {
   GCP: 'Google Cloud Platform',
 }
 
-export const isCloudProvider = (x: unknown): x is CloudProvider => {
+export const isKnownCloudProvider = (x: unknown): x is CloudProvider => {
   return x as string in cloudProviderTypes
 }
 
@@ -23,11 +23,13 @@ export interface BaseWorkspaceInfo {
 }
 
 export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
+  createdDate: string
 }
 
 export interface GoogleWorkspaceInfo extends BaseWorkspaceInfo {
   googleProject: string
   bucketName: string
+  createdDate: string
 }
 
 export type WorkspaceInfo = AzureWorkspaceInfo | GoogleWorkspaceInfo

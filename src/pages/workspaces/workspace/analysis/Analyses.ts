@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { CSSProperties, FC, Fragment, useEffect, useState } from 'react'
+import { CSSProperties, ForwardedRef, Fragment, useEffect, useState } from 'react'
 import { div, h, img, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
@@ -41,7 +41,7 @@ import * as Utils from 'src/libs/utils'
 import { isAzureWorkspace, isGoogleWorkspace, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils'
 import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
 import { AnalysisModal } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisModal'
-import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
+import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal/ExportAnalysisModal'
 import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import { AnalysisFile, useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 import {
@@ -56,9 +56,9 @@ import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/utils
 import {
   getToolLabelFromFileExtension,
   getToolLabelFromRuntime,
+  runtimeToolLabels,
   runtimeTools,
   ToolLabel,
-  toolLabels,
   tools
 } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace'
@@ -133,13 +133,13 @@ const AnalysisCard = ({
         tooltip: canWrite && 'Open without cloud compute',
         tooltipSide: 'left'
       }, [makeMenuIcon('eye'), 'Open preview']),
-      ...(toolLabel === toolLabels.Jupyter ? [
+      ...(toolLabel === runtimeToolLabels.Jupyter ? [
         h(MenuButton, {
           'aria-label': 'Edit',
           href: analysisEditLink,
-          disabled: isLocked || !canWrite || currentRuntimeToolLabel === toolLabels.RStudio,
+          disabled: isLocked || !canWrite || currentRuntimeToolLabel === runtimeToolLabels.RStudio,
           tooltip: Utils.cond([!canWrite, () => noWrite],
-            [currentRuntimeToolLabel === toolLabels.RStudio, () => 'You must have a runtime with Jupyter to edit.']),
+            [currentRuntimeToolLabel === runtimeToolLabels.RStudio, () => 'You must have a runtime with Jupyter to edit.']),
           tooltipSide: 'left'
         }, isLocked ? [makeMenuIcon('lock'), 'Open (In Use)'] : [makeMenuIcon('edit'), 'Edit']),
         h(MenuButton, {
@@ -152,9 +152,9 @@ const AnalysisCard = ({
         h(MenuButton, {
           'aria-label': 'Launch',
           href: rstudioLaunchLink,
-          disabled: !canWrite || currentRuntimeToolLabel === toolLabels.Jupyter,
+          disabled: !canWrite || currentRuntimeToolLabel === runtimeToolLabels.Jupyter,
           tooltip: Utils.cond([!canWrite, () => noWrite],
-            [currentRuntimeToolLabel === toolLabels.RStudio, () => 'You must have a runtime with RStudio to launch.']),
+            [currentRuntimeToolLabel === runtimeToolLabels.RStudio, () => 'You must have a runtime with RStudio to launch.']),
           tooltipSide: 'left'
         }, [makeMenuIcon('rocket'), 'Open'])
       ]),
@@ -216,9 +216,9 @@ const AnalysisCard = ({
   ])
 
   const toolIconSrc: string = Utils.switchCase(application,
-    [toolLabels.Jupyter, () => jupyterLogo],
-    [toolLabels.RStudio, () => rstudioSquareLogo],
-    [toolLabels.JupyterLab, () => jupyterLogo]
+    [runtimeToolLabels.Jupyter, () => jupyterLogo],
+    [runtimeToolLabels.RStudio, () => rstudioSquareLogo],
+    [runtimeToolLabels.JupyterLab, () => jupyterLogo]
   )
 
   const toolContainer = div({ role: 'cell', style: { display: 'flex', flex: 1, flexDirection: 'row', alignItems: 'center' } }, [
@@ -310,12 +310,12 @@ export interface SortOrderInfo {
   direction: 'asc' | 'desc'
 }
 
-export const BaseAnalyses: FC<AnalysesProps> = ({
+export const BaseAnalyses = ({
   workspace,
   analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
   storageDetails: { googleBucketLocation, azureContainerRegion },
   onRequesterPaysError
-}: AnalysesProps, _ref) => {
+}: AnalysesProps, _ref: ForwardedRef<unknown>) => {
   const [renamingAnalysisName, setRenamingAnalysisName] = useState<AbsolutePath>()
   const [copyingAnalysisName, setCopyingAnalysisName] = useState<AbsolutePath>()
   const [deletingAnalysisName, setDeletingAnalysisName] = useState<AbsolutePath>()
@@ -335,7 +335,7 @@ export const BaseAnalyses: FC<AnalysesProps> = ({
   const authState = useStore(authStore)
   const signal = useCancellation()
   const analysisFileStore = useAnalysisFiles()
-  const { loadedState, refreshFileStore, create, deleteFile } = analysisFileStore
+  const { loadedState, refreshFileStore, createAnalysis, deleteAnalysis } = analysisFileStore
   const currentRuntime = getCurrentRuntime(runtimes)
   const location = Utils.cond(
     [isGoogleWorkspace(workspace), () => googleBucketLocation],
@@ -355,7 +355,7 @@ export const BaseAnalyses: FC<AnalysesProps> = ({
     await Promise.all(_.map(file => {
       const uniqueFileName = getUniqueFileName(file.name, existingFileNames)
       const toolLabel: ToolLabel = getToolLabelFromFileExtension(getExtension(file.name))
-      return create(uniqueFileName, toolLabel, file)
+      return createAnalysis(uniqueFileName, toolLabel, file)
     }, files))
   })
 
@@ -410,7 +410,6 @@ export const BaseAnalyses: FC<AnalysesProps> = ({
         }, [
           label({ htmlFor: id, style: { fontWeight: 'bold', margin: '0 0.5rem', whiteSpace: 'nowrap' } }, ['Enable JupyterLab']),
           h(Switch, {
-            // @ts-expect-error
             onLabel: '', offLabel: '',
             onChange: value => {
               setEnableJupyterLabGCP(value)
@@ -420,7 +419,7 @@ export const BaseAnalyses: FC<AnalysesProps> = ({
             id,
             checked: enableJupyterLabGCP,
             width: 40, height: 20,
-          }, [])
+          })
         ])
       ])])
     ])
@@ -600,7 +599,7 @@ export const BaseAnalyses: FC<AnalysesProps> = ({
             withErrorReporting('Error deleting analysis.')
           )(async () => {
             setDeletingAnalysisName(undefined)
-            await deleteFile(deletingAnalysisName)
+            await deleteAnalysis(deletingAnalysisName)
           }),
           onDismiss: () => setDeletingAnalysisName(undefined)
         })

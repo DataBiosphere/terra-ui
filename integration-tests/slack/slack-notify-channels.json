@@ -66,9 +66,6 @@
           "name": "preview-dataset"
         },
         {
-          "name": "preview-drs-uri"
-        },
-        {
           "name": "run-catalog-filter"
         },
         {
@@ -106,6 +103,9 @@
       "tests": [
         {
           "name": "import-cohort-data"
+        },
+        {
+          "name": "preview-drs-uri"
         }
       ]
     }

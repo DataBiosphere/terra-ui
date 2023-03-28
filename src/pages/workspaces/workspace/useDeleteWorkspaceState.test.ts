@@ -3,6 +3,7 @@ import { Ajax } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import { DeepPartial } from 'src/libs/type-utils/deep-partial'
 import { AzureWorkspaceInfo, BaseWorkspace, GoogleWorkspaceInfo } from 'src/libs/workspace-utils'
+import { generateTestApp } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import {
   useDeleteWorkspaceState,
   WorkspaceResourceDeletionPollRate
@@ -66,10 +67,10 @@ describe('useDeleteWorkspace', () => {
     const mockApps: Partial<AjaxAppsContract> = {
       listWithoutProject: jest.fn()
     }
-    asMockedFn((mockApps as AjaxAppsContract).listWithoutProject).mockResolvedValue([{
+    asMockedFn((mockApps as AjaxAppsContract).listWithoutProject).mockResolvedValue([generateTestApp({
       appName: 'app1',
-      status: 'running'
-    }])
+      status: 'RUNNING'
+    })])
 
     const mockGetAcl = jest.fn().mockResolvedValue({ acl: { 'example1@example.com': {} } })
     const mockGetBucketUsage = jest.fn().mockResolvedValue({ usageInBytes: 1234 })
@@ -109,10 +110,10 @@ describe('useDeleteWorkspace', () => {
     const mockListAppsV2: Partial<AjaxAppsContract> = {
       listAppsV2: jest.fn()
     }
-    asMockedFn((mockListAppsV2 as AjaxAppsContract).listAppsV2).mockResolvedValue([{
+    asMockedFn((mockListAppsV2 as AjaxAppsContract).listAppsV2).mockResolvedValue([generateTestApp({
       appName: 'example',
-      status: 'provisioning'
-    }])
+      status: 'PROVISIONING'
+    })])
     const mockListRuntimesV2: Partial<AjaxRuntimesContract> = {
       listV2WithWorkspace: jest.fn()
     }
@@ -279,12 +280,12 @@ describe('useDeleteWorkspace', () => {
       listAppsV2: jest.fn(),
       deleteAllAppsV2: jest.fn()
     }
-    asMockedFn((mockListAppsV2 as AjaxAppsContract).listAppsV2).mockResolvedValue([
+    asMockedFn((mockListAppsV2 as AjaxAppsContract).listAppsV2).mockResolvedValue([generateTestApp(
       {
         appName: 'app1',
-        status: 'provisioning'
+        status: 'PROVISIONING'
       }
-    ])
+    )])
     const mockListRuntimesV2: Partial<AjaxRuntimesContract> = {
       listV2WithWorkspace: jest.fn()
     }

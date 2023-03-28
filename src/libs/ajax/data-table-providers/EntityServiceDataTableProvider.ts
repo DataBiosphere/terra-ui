@@ -62,7 +62,7 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
         sortField: queryOptions.sortField, sortDirection: queryOptions.sortDirection,
         ...(!!queryOptions.snapshotName ?
           { billingProject: queryOptions.googleProject, dataReference: queryOptions.snapshotName } :
-          { filterTerms: queryOptions.activeTextFilter, filterOperator: queryOptions.filterOperator })
+          { filterTerms: queryOptions.activeTextFilter, filterOperator: queryOptions.filterOperator, columnFilter: queryOptions.columnFilter })
       }))
   }
 

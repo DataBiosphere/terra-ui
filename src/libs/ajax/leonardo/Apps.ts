@@ -1,15 +1,17 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { appIdentifier, authOpts, fetchLeo, jsonBody } from 'src/libs/ajax/ajax-common'
+import { CreateAppV1Request, GetAppResponse, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models'
+import { LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models'
 
 
 export const Apps = signal => ({
-  list: async (project, labels = {}) => {
+  list: async (project: string, labels: LeoResourceLabels = {}): Promise<ListAppResponse[]> => {
     const res = await fetchLeo(`api/google/v1/apps/${project}?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },
-  listWithoutProject: async (labels = {}) => {
+  listWithoutProject: async (labels: LeoResourceLabels = {}): Promise<ListAppResponse[]> => {
     const res = await fetchLeo(`api/google/v1/apps?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
@@ -17,11 +19,11 @@ export const Apps = signal => ({
   app: (project, name) => {
     const root = `api/google/v1/apps/${project}/${name}`
     return {
-      delete: deleteDisk => {
+      delete: (deleteDisk: boolean = false): Promise<void> => {
         return fetchLeo(`${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
           _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
       },
-      create: ({ kubernetesRuntimeConfig, diskName, diskSize, diskType, appType, namespace, bucketName, workspaceName }) => {
+      create: ({ kubernetesRuntimeConfig, diskName, diskSize, diskType, appType, namespace, bucketName, workspaceName }: CreateAppV1Request): Promise<void> => {
         const body = {
           labels: {
             saturnWorkspaceNamespace: namespace,
@@ -49,24 +51,24 @@ export const Apps = signal => ({
         }
         return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
       },
-      pause: () => {
+      pause: (): Promise<void> => {
         return fetchLeo(`${root}/stop`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
       },
-      resume: () => {
+      resume: (): Promise<void> => {
         return fetchLeo(`${root}/start`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
       },
-      details: async () => {
+      details: async (): Promise<GetAppResponse> => {
         const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]))
         return res.json()
       }
     }
   },
-  listAppsV2: async workspaceId => {
+  listAppsV2: async (workspaceId: string): Promise<ListAppResponse[]> => {
     const res = await fetchLeo(`api/apps/v2/${workspaceId}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },
-  createAppV2: (appName, workspaceId) => {
+  createAppV2: (appName: string, workspaceId: string): Promise<void> => {
     const body = {
       appType: 'CROMWELL',
       labels: {
@@ -77,7 +79,7 @@ export const Apps = signal => ({
       _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
     return res
   },
-  deleteAllAppsV2: async (workspaceId, deleteDisk = true) => {
+  deleteAllAppsV2: async (workspaceId: string, deleteDisk: boolean = true): Promise<void> => {
     const res = await fetchLeo(`api/apps/v2/${workspaceId}/deleteAll${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal, method: 'POST' }]))
 

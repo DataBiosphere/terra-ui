@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Ajax } from 'src/libs/ajax'
+import { AnalysisProvider } from 'src/libs/ajax/analysis-providers/AnalysisProvider'
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import { useCancellation, useStore } from 'src/libs/react-utils'
@@ -7,7 +7,7 @@ import { workspaceStore } from 'src/libs/state'
 import LoadedState from 'src/libs/type-utils/LoadedState'
 import { withHandlers } from 'src/libs/type-utils/lodash-fp-helpers'
 import * as Utils from 'src/libs/utils'
-import { CloudProvider, cloudProviderTypes, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils'
+import { CloudProvider, cloudProviderTypes, WorkspaceWrapper } from 'src/libs/workspace-utils'
 import {
   AbsolutePath,
   DisplayName,
@@ -44,8 +44,8 @@ export type CreateAnalysisFn = (fullAnalysisName: string, toolLabel: ToolLabel, 
 export interface AnalysisFileStore {
   refreshFileStore: () => Promise<void>
   loadedState: LoadedState<AnalysisFile[], unknown>
-  create: CreateAnalysisFn
-  deleteFile: (path: AbsolutePath) => Promise<void>
+  createAnalysis: CreateAnalysisFn
+  deleteAnalysis: (path: AbsolutePath) => Promise<void>
   pendingCreate: LoadedState<true, unknown>
   pendingDelete: LoadedState<true, unknown>
 }
@@ -62,37 +62,21 @@ export const useAnalysisFiles = (): AnalysisFileStore => {
     withErrorReporting('Error loading analysis files'),
     Utils.withBusyState(setLoading)
   ], async (): Promise<void> => {
-    const workspaceInfo = workspace.workspace
-    const existingAnalyses: AnalysisFile[] = isGoogleWorkspaceInfo(workspaceInfo) ?
-      await Ajax(signal).Buckets.listAnalyses(workspaceInfo.googleProject, workspaceInfo.bucketName) :
-      await Ajax(signal).AzureStorage.listNotebooks(workspaceInfo.workspaceId)
-    setAnalyses(existingAnalyses)
+    const analysis = await AnalysisProvider.listAnalyses(workspace.workspace, signal)
+    setAnalyses(analysis)
   })
 
-  const create = async (fullAnalysisName: string, toolLabel: ToolLabel, contents: any): Promise<void> => {
+  const createAnalysis = async (fullAnalysisName: string, toolLabel: ToolLabel, contents: any): Promise<void> => {
     await setPendingCreate(async () => {
-      const workspaceInfo = workspace.workspace
-      isGoogleWorkspaceInfo(workspaceInfo) ?
-        await Ajax().Buckets.analysis(workspaceInfo.googleProject, workspaceInfo.bucketName, fullAnalysisName, toolLabel).create(contents) :
-        await Ajax().AzureStorage.blob(workspaceInfo.workspaceId, fullAnalysisName).create(contents)
+      await AnalysisProvider.createAnalysis(workspace.workspace, fullAnalysisName, toolLabel, contents, signal)
       await refresh()
       return true
     })
   }
 
-  const deleteFile = async (path: AbsolutePath): Promise<void> => {
+  const deleteAnalysis = async (path: AbsolutePath): Promise<void> => {
     await setPendingDelete(async () => {
-      const workspaceInfo = workspace.workspace
-      if (isGoogleWorkspaceInfo(workspaceInfo)) {
-        await Ajax().Buckets.analysis(
-          workspaceInfo.googleProject,
-          workspaceInfo.bucketName,
-          getFileName(path),
-          getToolLabelFromFileExtension(getExtension(path))
-        ).delete()
-      } else {
-        await Ajax(signal).AzureStorage.blob(workspaceInfo.workspaceId, getFileName(path)).delete()
-      }
+      await AnalysisProvider.deleteAnalysis(workspace.workspace, path, signal)
       await refresh()
       return true
     })
@@ -116,8 +100,8 @@ export const useAnalysisFiles = (): AnalysisFileStore => {
   }, [pendingDelete])
   return {
     refreshFileStore: refresh,
-    create,
-    deleteFile,
+    createAnalysis,
+    deleteAnalysis,
     loadedState: { status: loading ? 'Loading' : 'Ready', state: analyses },
     pendingCreate,
     pendingDelete

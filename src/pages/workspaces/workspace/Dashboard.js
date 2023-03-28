@@ -23,7 +23,7 @@ import { getRegionFlag, getRegionLabel } from 'src/libs/azure-utils'
 import { getEnabledBrand } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
-import Events from 'src/libs/events'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
@@ -481,12 +481,22 @@ const WorkspaceDashboard = _.flow(
         div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
           style: { margin: '1rem 0.5rem' },
           ...Utils.newTabLinkProps,
-          href: bucketBrowserUrl(bucketName)
+          onClick: () => {
+            Ajax().Metrics.captureEvent(Events.workspaceOpenedBucketInBrowser, {
+              ...extractWorkspaceDetails(workspace)
+            })
+          },
+          href: bucketBrowserUrl(bucketName),
         }, ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
         )]),
         div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
           style: { margin: '1rem 0.5rem' },
           ...Utils.newTabLinkProps,
+          onClick: () => {
+            Ajax().Metrics.captureEvent(Events.workspaceOpenedProjectInConsole, {
+              ...extractWorkspaceDetails(workspace)
+            })
+          },
           href: `https://console.cloud.google.com/welcome?project=${googleProject}`
         }, ['Open project in Google Cloud Console', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
         )])

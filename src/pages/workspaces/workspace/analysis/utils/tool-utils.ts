@@ -1,73 +1,72 @@
 import _ from 'lodash/fp'
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models'
-import { isCromwellAppVisible, isCromwellOnAzureAppVisible } from 'src/libs/config'
+import { isCromwellAppVisible } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
-import { CloudProvider } from 'src/libs/workspace-utils'
+import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils'
 import { FileExtension, getExtension } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
 
 export type RuntimeToolLabel = 'Jupyter' | 'RStudio' | 'JupyterLab'
-export type AppToolLabel = 'Galaxy' | 'Cromwell' | 'CromwellOnAzure'
-export type MiscToolLabel = 'spark' | 'terminal'
-export type ToolLabel = RuntimeToolLabel | AppToolLabel | MiscToolLabel
+export type AppToolLabel = 'GALAXY' | 'CROMWELL'
+export type LaunchableToolLabel = 'spark' | 'terminal' | 'RStudio' | 'JupyterLab'
+export type ToolLabel = RuntimeToolLabel | AppToolLabel
 
-export const toolLabels: Record<ToolLabel, ToolLabel> = {
-  Jupyter: 'Jupyter',
+export const launchableToolLabel: Record<LaunchableToolLabel, LaunchableToolLabel> = {
   RStudio: 'RStudio',
+  JupyterLab: 'JupyterLab',
   terminal: 'terminal',
   spark: 'spark',
+}
+
+export const runtimeToolLabels: Record<RuntimeToolLabel, RuntimeToolLabel> = {
+  Jupyter: 'Jupyter',
+  RStudio: 'RStudio',
   JupyterLab: 'JupyterLab',
-  Galaxy: 'Galaxy',
-  Cromwell: 'Cromwell',
-  CromwellOnAzure: 'CromwellOnAzure'
 }
 
 export const toolLabelDisplays: Record<ToolLabel, string> = {
   Jupyter: 'Jupyter',
   RStudio: 'RStudio',
-  terminal: 'terminal',
-  spark: 'spark',
   JupyterLab: 'JupyterLab',
-  Galaxy: 'Galaxy',
-  Cromwell: 'Cromwell',
-  CromwellOnAzure: 'Workflows on Cromwell'
+  GALAXY: 'Galaxy',
+  CROMWELL: 'Cromwell'
 }
 
-export const appToolLabelTypes: Record<AppToolLabel, AppToolLabel> = {
-  Galaxy: 'Galaxy',
-  Cromwell: 'Cromwell',
-  CromwellOnAzure: 'CromwellOnAzure'
+export const appToolLabels: Record<AppToolLabel, AppToolLabel> = {
+  GALAXY: 'GALAXY',
+  CROMWELL: 'CROMWELL'
 }
 
-export const isAppToolLabel = (x: ToolLabel): x is AppToolLabel => x in appToolLabelTypes
+export const isAppToolLabel = (x: ToolLabel): x is AppToolLabel => x in appToolLabels
 
-export interface Tool {
-  label: ToolLabel
-  isHidden?: boolean
+export interface BaseTool {
   isLaunchUnsupported?: boolean
   isPauseUnsupported?: boolean
-  isSettingsUnsupported?: boolean
 }
 
-export interface RuntimeTool extends Tool {
+export interface RuntimeTool extends BaseTool {
+  label: RuntimeToolLabel
   ext: FileExtension[]
   imageIds: string[]
   defaultImageId: string
   defaultExt: FileExtension
 }
 
-export interface AppTool extends Tool {
-  appType: string
+export interface AppTool extends BaseTool {
+  label: AppToolLabel // Alias for appType
 }
+
+export type Tool = AppTool | RuntimeTool
 
 export const terraSupportedRuntimeImageIds: string[] = [
   'terra-jupyter-bioconductor', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'RStudio'
 ]
 
-const RStudio: RuntimeTool = { label: toolLabels.RStudio, ext: ['Rmd', 'R'] as FileExtension[], imageIds: ['RStudio'], defaultImageId: 'RStudio', defaultExt: 'Rmd' as FileExtension }
+const RStudio: RuntimeTool = { label: runtimeToolLabels.RStudio, ext: ['Rmd', 'R'] as FileExtension[], imageIds: ['RStudio'], defaultImageId: 'RStudio', defaultExt: 'Rmd' as FileExtension }
 
 const Jupyter: RuntimeTool = {
-  label: toolLabels.Jupyter,
+  label: runtimeToolLabels.Jupyter,
   ext: ['ipynb' as FileExtension],
   imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'],
   defaultImageId: 'terra-jupyter-gatk',
@@ -76,7 +75,7 @@ const Jupyter: RuntimeTool = {
 }
 
 const JupyterLab: RuntimeTool = {
-  label: toolLabels.JupyterLab,
+  label: runtimeToolLabels.JupyterLab,
   ext: ['ipynb' as FileExtension],
   isLaunchUnsupported: false,
   defaultExt: 'ipynb' as FileExtension,
@@ -84,17 +83,13 @@ const JupyterLab: RuntimeTool = {
   defaultImageId: '',
 }
 
-const Galaxy: AppTool = { label: toolLabels.Galaxy, appType: 'GALAXY' }
+const Galaxy: AppTool = { label: 'GALAXY' }
 
-const Cromwell: AppTool = { label: toolLabels.Cromwell, appType: 'CROMWELL', isHidden: !isCromwellAppVisible(), isPauseUnsupported: true }
-const CromwellOnAzure: AppTool = { label: toolLabels.CromwellOnAzure, appType: 'CROMWELL', isHidden: !isCromwellOnAzureAppVisible(), isPauseUnsupported: true, isSettingsUnsupported: true }
+const Cromwell: AppTool = { label: 'CROMWELL', isPauseUnsupported: true }
 
 export const appTools: Record<AppToolLabel, AppTool> = {
-  Galaxy,
-  Cromwell,
-  // this can be combined with Cromwell app in the future(?). But for the first iteration it is simpler to have it separate
-  // so that its easy to display Cromwell card in Modal with disabled Settings button.
-  CromwellOnAzure
+  GALAXY: Galaxy,
+  CROMWELL: Cromwell
 }
 
 export const runtimeTools: Record<RuntimeToolLabel, RuntimeTool> = {
@@ -105,11 +100,9 @@ export const runtimeTools: Record<RuntimeToolLabel, RuntimeTool> = {
   JupyterLab,
 }
 
-export const tools: Record<ToolLabel, Tool> = {
+export const tools: Record<ToolLabel, AppTool | RuntimeTool> = {
   ...runtimeTools,
-  ...appTools,
-  terminal: { label: toolLabels.terminal },
-  spark: { label: toolLabels.spark }
+  ...appTools
 }
 
 //The order of the array is important, it decides the order in AnalysisModal.
@@ -129,7 +122,7 @@ export const cloudAppTools: Record<CloudProvider, AppTool[]> = {
     Cromwell
   ],
   AZURE: [
-    CromwellOnAzure
+    Cromwell
   ]
 }
 
@@ -146,12 +139,12 @@ export const toolExtensionDisplay: Partial<Record<ToolLabel, ExtensionDisplay[]>
   Jupyter: [{ label: 'IPython Notebook (.ipynb)', value: 'ipynb' as FileExtension }]
 }
 export const getPatternFromRuntimeTool = (toolLabel: RuntimeToolLabel): string => Utils.switchCase(toolLabel,
-  [toolLabels.RStudio, () => '.+(\\.R|\\.Rmd)$'],
-  [toolLabels.Jupyter, () => '.*\\.ipynb'],
-  [toolLabels.JupyterLab, () => '.*\\.ipynb']
+  [runtimeToolLabels.RStudio, () => '.+(\\.R|\\.Rmd)$'],
+  [runtimeToolLabels.Jupyter, () => '.*\\.ipynb'],
+  [runtimeToolLabels.JupyterLab, () => '.*\\.ipynb']
 )
 
-export const getToolsToDisplayForCloudProvider = (cloudProvider: CloudProvider): Tool[] => _.remove((tool: Tool) => !!tool.isHidden)(
+export const getToolsToDisplayForCloudProvider = (cloudProvider: CloudProvider): Tool[] => _.remove((tool: Tool) => isToolHidden(tool.label, cloudProvider))(
   (cloudRuntimeTools[cloudProvider] as Tool[]).concat(cloudAppTools[cloudProvider] as Tool[]))
 
 export const toolToExtensionMap: Record<ToolLabel, FileExtension> = _.flow(
@@ -175,11 +168,14 @@ export const getToolLabelFromFileExtension = (fileName: FileExtension): ToolLabe
 
 export const getToolLabelFromRuntime = (runtime: Runtime): ToolLabel => runtime?.labels?.tool
 
-export const getAppType = (label: ToolLabel): string | undefined => appTools[label]?.appType
-
 // Returns registered appTypes.
-export const allAppTypes: AppToolLabel[] = _.flow(_.map('appType'), _.compact)(appTools)
+export const allAppTypes: AppToolLabel[] = _.flow(_.map('label'), _.compact)(appTools)
 
-export const isPauseSupported = (toolLabel: ToolLabel): boolean => !_.find((tool: Tool) => tool.label === toolLabel)(tools)?.isPauseUnsupported
+export const isPauseSupported = (toolLabel: ToolLabel): boolean => !_.find((tool: AppTool | RuntimeTool) => tool.label === toolLabel)(tools)?.isPauseUnsupported
 
-export const isSettingsSupported = (toolLabel: ToolLabel): boolean => !_.find((tool: Tool) => tool.label === toolLabel)(tools)?.isSettingsUnsupported
+export const isSettingsSupported = (toolLabel: ToolLabel, cloudProvider: CloudProvider): boolean => !(toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviders.azure.label)
+
+export const isToolHidden = (toolLabel: ToolLabel, cloudProvider: CloudProvider): boolean => Utils.cond(
+  [toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviderTypes.GCP && !isCromwellAppVisible(), () => true],
+  [Utils.DEFAULT, () => false]
+)

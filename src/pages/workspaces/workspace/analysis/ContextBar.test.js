@@ -4,11 +4,12 @@ import { div, h } from 'react-hyperscript-helpers'
 import { MenuTrigger } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
 import { defaultAzureMachineType, defaultAzureRegion } from 'src/libs/azure-utils'
+import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
 import { getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
-import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { appToolLabels, runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 const GALAXY_COMPUTE_COST = 10
@@ -46,10 +47,8 @@ jest.mock('src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
 
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
+  getConfig: jest.fn().mockReturnValue({}),
   isCromwellAppVisible: () => {
-    return true
-  },
-  isCromwellOnAzureAppVisible: () => {
     return true
   }
 }))
@@ -382,7 +381,8 @@ const contextBarPropsForAzure = {
   workspace: {
     workspace: {
       namespace: 'namespace',
-      cloudPlatform: 'Azure'
+      cloudPlatform: 'Azure',
+      createdDate: '2023-02-15T19:17:15.711Z'
     },
     namespace: 'Broad Azure Test Workspace'
   }
@@ -497,7 +497,7 @@ describe('ContextBar - buttons', () => {
     //Assert
     expect(getByLabelText('Environment Configuration'))
     expect(queryByTestId('terminal-button-id')).not.toBeInTheDocument()
-    expect(getByLabelText(new RegExp(/Workflows on Cromwell Environment/i)))
+    expect(getByLabelText(new RegExp(/Cromwell Environment/i)))
   })
 
   it('will render JupyterLab Environment button', () => {
@@ -542,6 +542,28 @@ describe('ContextBar - buttons', () => {
   })
 })
 
+describe('ContextBar - buttons (Prod config)', () => {
+  beforeEach(() => {
+    getConfig.mockReturnValue({ isProd: true })
+  })
+
+  it('will not render a Cromwell on Azure button if workspace is created before Workflows Public Preview date', () => {
+    // Arrange
+    const cromwellOnAzureContextBarProps = {
+      ...contextBarPropsForAzure,
+      apps: [cromwellOnAzureRunning],
+      appDataDisks: []
+    }
+
+    // Act
+    const { getByLabelText, queryByLabelText } = render(h(ContextBar, cromwellOnAzureContextBarProps))
+
+    //Assert
+    expect(getByLabelText('Environment Configuration'))
+    expect(queryByLabelText(new RegExp(/Cromwell Environment/i))).not.toBeInTheDocument()
+  })
+})
+
 describe('ContextBar - actions', () => {
   it('clicking environment configuration opens CloudEnvironmentModal', () => {
     // Act
@@ -568,7 +590,7 @@ describe('ContextBar - actions', () => {
 
     // Assert
     getByText('Cloud Environment Details')
-    getByText(toolLabels.Jupyter)
+    getByText(runtimeToolLabels.Jupyter)
   })
 
   it('clicking Galaxy opens CloudEnvironmentModal with Galaxy as filter for tool.', () => {
@@ -585,7 +607,7 @@ describe('ContextBar - actions', () => {
 
     // Assert
     getByText('Cloud Environment Details')
-    getByText(toolLabels.Galaxy)
+    getByText(appToolLabels.GALAXY)
   })
 
   it('clicking RStudio opens CloudEnvironmentModal with RStudio as filter for tool.', () => {
@@ -604,7 +626,7 @@ describe('ContextBar - actions', () => {
 
     // Assert
     getByText('Cloud Environment Details')
-    getByText(toolLabels.RStudio)
+    getByText(runtimeToolLabels.RStudio)
   })
 
   it('clicking Terminal will attempt to start currently stopped runtime', async () => {
