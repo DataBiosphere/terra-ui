@@ -126,18 +126,20 @@ export const AzureStorage = (signal?: AbortSignal) => ({
 
         return { lastModified: dict['last-modified'], size: dict['content-length'], azureStorageUrl, workspaceId, fileName }
       } catch (e) {
-
+        // file not public, proceed to try and get it with sas token
       }
 
       // assumption is made that container name guid in uri always matches the workspace Id guid it is present in
-      const { sas: { url, token } } = await AzureStorage(signal).details(workspaceId)
+      const { sas: { token } } = await AzureStorage(signal).details(workspaceId)
 
+      // instead of taking the url returned by azure storage, take it from the incoming url since there may be a folder path
+      const urlwithFolder = azureStorageUrl.substring(0, azureStorageUrl.lastIndexOf('/'))
       const azureSasStorageUrl = _.flow(
         _.split('?'),
         _.head,
         Utils.append(`/${fileName}?&${token}`),
         _.join('')
-      )(url)
+      )(urlwithFolder)
 
       const res = await fetchOk(azureSasStorageUrl)
       const text = await res.headers.entries()
