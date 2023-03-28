@@ -543,7 +543,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       isAzureProject && div({ style: accountLinkStyle }, [
         h(ExternalLink, {
           url: `https://portal.azure.com/#view/HubsExtension/BrowseResourcesWithTag/tagName/WLZ-ID/tagValue/${billingProject.landingZoneId}`,
-          text: 'Open project resources in Azure Portal',
+          text: 'View project resources in Azure Portal',
           popoutSize: 14
         }),
         h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
