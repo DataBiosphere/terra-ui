@@ -13,6 +13,7 @@ import { Ajax } from 'src/libs/ajax'
 import { isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import { getUser } from 'src/libs/state'
@@ -79,7 +80,8 @@ const AzureWarning = () => {
 }
 
 
-const GooglePermissionsWarning = () => {
+const GooglePermissionsWarning = ({ workspace }) => {
+  Ajax().Metrics.captureEvent(Events.permissionsSynchronizationDelayDisplayed, extractWorkspaceDetails(workspace))
   const warningMessage = 'Google is currently synchronizing its permissions with this workspace. This can take several minutes, ' +
     'and in rare cases, several hours. During syncing you will be unable to access the workspace bucket (storage), notebooks, workflows, and analyses.'
 
@@ -165,7 +167,7 @@ const WorkspaceContainer = ({
       setLeavingWorkspace, setSharingWorkspace, setShowLockWorkspaceModal
     }),
     workspaceLoaded && isAzureWorkspace(workspace) && h(AzureWarning),
-    workspaceLoaded && isGoogleWorkspace(workspace) && workspace.workspaceInitialized === false && h(GooglePermissionsWarning),
+    workspaceLoaded && isGoogleWorkspace(workspace) && workspace.workspaceInitialized === false && h(GooglePermissionsWarning, { workspace }),
     div({ role: 'main', style: Style.elements.pageContentContainer },
       [div({ style: { flex: 1, display: 'flex' } }, [
         div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [
