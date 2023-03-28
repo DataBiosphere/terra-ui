@@ -1,14 +1,14 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, customSpinnerOverlay, IdContainer, Link, Select } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import { MenuButton } from 'src/components/MenuButton'
 import Modal from 'src/components/Modal'
-import { MenuTrigger } from 'src/components/PopupTrigger'
+import { InfoBox, MenuTrigger } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
 import { ariaSort, HeaderRenderer } from 'src/components/table'
 import { useWorkspaces } from 'src/components/workspace-utils'
@@ -543,9 +543,16 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       isAzureProject && div({ style: accountLinkStyle }, [
         h(ExternalLink, {
           url: `https://portal.azure.com/#view/HubsExtension/BrowseResourcesWithTag/tagName/WLZ-ID/tagValue/${billingProject.landingZoneId}`,
-          text: 'Open resources in Azure Portal',
+          text: 'Open project resources in Azure Portal',
           popoutSize: 14
-        })
+        }),
+        h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
+          "Project resources can only be viewed when you are logged into the same tenant as the project's Azure subscription.",
+          p({ style: { marginBlockEnd: 0 } }, [h(ExternalLink, {
+            url: `https://portal.azure.com/#@${billingProject.managedAppCoordinates.tenantId}/resource/subscriptions/${billingProject.managedAppCoordinates.subscriptionId}/overview`,
+            text: 'View subscription in Azure Portal',
+          })])
+        ])
       ]),
       _.size(projectUsers) > 1 && _.size(projectOwners) === 1 && div({
         style: {
