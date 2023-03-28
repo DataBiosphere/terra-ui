@@ -74,6 +74,7 @@ const eventsList = {
   notebookCopy: 'notebook:copy',
   notificationToggle: 'notification:toggle',
   pageView: 'page:view',
+  permissionsSynchronizationDelayDisplayed: 'permissions:propagationDelay',
   resourceLeave: 'resource:leave',
   userLogin: 'user:login',
   userRegister: 'user:register',
