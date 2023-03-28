@@ -10,7 +10,7 @@ import Events from 'src/libs/events'
 import { useUniqueId } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles'
-import { getCurrentMountDirectory } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { getCurrentMountDirectory, RuntimeToolLabel, runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 import { IComputeConfig } from '../modal-utils'
 
@@ -28,6 +28,18 @@ export interface PersistentDiskTypeProps {
   persistentDiskExists: boolean
   computeConfig: IComputeConfig
   updateComputeConfig: (arg: string) => (diskType: any) => void
+}
+
+export type MountPoint = '/home/rstudio' | '/home/jupyter'
+
+export const mountPoints: Record<RuntimeToolLabel, MountPoint> = {
+  RStudio: '/home/rstudio',
+  Jupyter: '/home/jupyter',
+  JupyterLab: '/home/jupyter'
+}
+
+export const getMountDir = (toolLabel: RuntimeToolLabel): MountPoint => {
+  return toolLabel === runtimeToolLabels.RStudio ? '/home/rstudio' : '/home/jupyter'
 }
 
 const PersistentDiskTypeSelect = Select as typeof Select<IComputeConfig['persistentDiskType']>

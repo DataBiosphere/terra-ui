@@ -6,15 +6,18 @@ import { h } from 'react-hyperscript-helpers'
 import { ButtonPrimary } from 'src/components/common'
 import { cloudServices } from 'src/data/gce-machines'
 import { formatUSD } from 'src/libs/utils'
+import { cloudProviderTypes } from 'src/libs/workspace-utils'
 import { azureRuntime, getAzureDisk, getDisk, getRuntimeConfig } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
-import { DeleteDiskChoices, DeleteEnvironment } from 'src/pages/workspaces/workspace/analysis/modals/DeleteDiskChoices'
+import { DeleteDiskChoices } from 'src/pages/workspaces/workspace/analysis/modals/DeleteDiskChoices'
+import { DeleteEnvironment } from 'src/pages/workspaces/workspace/analysis/modals/DeleteEnvironment'
+import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 const renderActionButton = () => h(ButtonPrimary, {}, ['Delete'])
 
 describe('DeleteDiskChoices', () => {
   it.each([
-    { cloudService: cloudServices.GCE },
+    { cloudService: cloudProviderTypes.GCP },
     { cloudService: cloudServices.AZURE },
   ])('Should pass through all correct values', ({ cloudService }) => {
     // Arrange
@@ -48,7 +51,7 @@ describe('DeleteDiskChoices', () => {
     render(h(DeleteDiskChoices, {
       persistentDiskCostDisplay: pdCost,
       toolLabel: 'RStudio',
-      cloudService: cloudServices.GCE,
+      cloudService: cloudProviderTypes.GCP,
       deleteDiskSelected,
       setDeleteDiskSelected
     }))
@@ -73,7 +76,7 @@ describe('DeleteDiskChoices', () => {
     render(h(DeleteDiskChoices, {
       persistentDiskCostDisplay: pdCost,
       toolLabel: 'RStudio',
-      cloudService: cloudServices.GCE,
+      cloudService: cloudProviderTypes.GCP,
       deleteDiskSelected,
       setDeleteDiskSelected
     }))
@@ -94,7 +97,7 @@ describe('DeleteDiskChoices', () => {
     render(h(DeleteDiskChoices, {
       persistentDiskCostDisplay: pdCost,
       toolLabel: 'JupyterLab',
-      cloudService: cloudServices.GCE,
+      cloudService: cloudProviderTypes.GCP,
       deleteDiskSelected,
       setDeleteDiskSelected
     }))
@@ -129,8 +132,9 @@ describe('DeleteDiskChoices', () => {
 
 describe('DeleteEnvironment', () => {
   it.each([
-    'RStudio',
-    'JupyterLab',
+    runtimeToolLabels.RStudio,
+    runtimeToolLabels.Jupyter,
+    runtimeToolLabels.JupyterLab,
   ])('Should properly render when provided no disk/runtime with label %s', toolLabel => {
     // Arrange
     const setDeleteDiskSelected = jest.fn()
@@ -152,9 +156,9 @@ describe('DeleteEnvironment', () => {
     screen.getByText('Deleting your application configuration and cloud compute profile will also')
   })
   it.each([
-    { disk: getDisk(), toolLabel: 'RStudio' },
-    { disk: getDisk(), toolLabel: 'JupyterLab' },
-    { disk: getAzureDisk(), toolLabel: 'JupyterLab' },
+    { disk: getDisk(), toolLabel: runtimeToolLabels.RStudio },
+    { disk: getDisk(), toolLabel: runtimeToolLabels.Jupyter },
+    { disk: getAzureDisk(), toolLabel: runtimeToolLabels.JupyterLab },
   ])('Should properly render when provided no runtime but a disk', ({ disk, toolLabel }) => {
     // Arrange
     const setDeleteDiskSelected = jest.fn()
@@ -202,8 +206,8 @@ describe('DeleteEnvironment', () => {
     screen.getByText('Delete persistent disk')
   })
   it.each([
-    'RStudio',
-    'JupyterLab',
+    runtimeToolLabels.RStudio,
+    runtimeToolLabels.JupyterLab,
   ])('Should properly render when provided a GCEWithPD config with label %s', toolLabel => {
     // Arrange
     const setDeleteDiskSelected = jest.fn()
@@ -256,8 +260,8 @@ describe('DeleteEnvironment', () => {
     screen.getByText('Delete persistent disk')
   })
   it.each([
-    'RStudio',
-    'JupyterLab'
+    runtimeToolLabels.RStudio,
+    runtimeToolLabels.JupyterLab
   ])('Should properly render when provided GCE config that had matching PDID with label %s', toolLabel => {
     // Arrange
     const setDeleteDiskSelected = jest.fn()
