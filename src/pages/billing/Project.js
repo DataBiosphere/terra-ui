@@ -481,7 +481,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         )
       ])
     ]),
-    [spendReportKey]: h(SpendReport, { billingProjectName: billingProject.projectName, viewSelected: tab === spendReportKey })
+    [spendReportKey]: h(SpendReport, { billingProjectName: billingProject.projectName, cloudPlatform: billingProject.cloudPlatform, viewSelected: tab === spendReportKey })
   }
 
   const tabs = _.map(key => ({
@@ -490,7 +490,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       _.capitalize(key === 'members' && !isOwner ? 'owners' : key) // Rewrite the 'Members' tab to say 'Owners' if the user has the User role
     ]),
     tableName: _.lowerCase(key)
-  }), _.filter(key => (key !== spendReportKey || (isOwner && isGcpProject)), _.keys(tabToTable)))
+  }), _.filter(key => (key !== spendReportKey || isOwner), _.keys(tabToTable)))
   useEffect(() => {
     // Note: setting undefined so that falsy values don't show up at all
     const newSearch = qs.stringify({
