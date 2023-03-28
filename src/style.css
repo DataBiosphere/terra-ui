@@ -133,6 +133,12 @@ a {
   color: #333f52;
 }
 
+@keyframes rotation {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes progress-bar-stripes {
   0% {
     background-position: 1rem 0

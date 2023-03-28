@@ -20,7 +20,7 @@ import {
 import {
   defaultDataprocMachineType, defaultGceMachineType, defaultGpuType, defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
-import { runtimeTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { runtimeToolLabels, runtimeTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
 
@@ -37,7 +37,7 @@ jest.mock('src/pages/workspaces/workspace/analysis/utils/cost-utils')
 const onSuccess = jest.fn()
 const defaultModalProps = {
   onSuccess, onDismiss: jest.fn(), onError: jest.fn(),
-  currentRuntime: undefined, currentDisk: undefined, tool: toolLabels.Jupyter, workspace: defaultGoogleWorkspace,
+  currentRuntime: undefined, currentDisk: undefined, tool: runtimeToolLabels.Jupyter, workspace: defaultGoogleWorkspace,
   location: testDefaultLocation
 }
 
@@ -589,7 +589,7 @@ describe('ComputeModal', () => {
     })
 
     // Assert
-    screen.getByText(`${toolLabels.Jupyter} Cloud Environment`)
+    screen.getByText(`${runtimeToolLabels.Jupyter} Cloud Environment`)
 
     const selectText = hailImage.label
     screen.getByText(selectText)

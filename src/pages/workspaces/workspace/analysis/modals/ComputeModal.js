@@ -35,8 +35,7 @@ import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost 
 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import {
   defaultDataprocMasterDiskSize,
-  defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGcePersistentDiskSize, 
-defaultPersistentDiskType
+  defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGcePersistentDiskSize, defaultPersistentDiskType
 } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
 import {
   defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, 
@@ -46,9 +45,7 @@ displayNameForGpuType, findMachineType, getAutopauseThreshold,
   getDefaultMachineType, getIsRuntimeBusy, getValidGpuOptions, getValidGpuTypesForZone,
   isAutopauseEnabled
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
-import { getToolLabelForImage, getToolLabelFromRuntime, runtimeToolLabels, 
-runtimeTools, terraSupportedRuntimeImageIds } from 
-'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { getToolLabelForImage, getToolLabelFromRuntime, runtimeToolLabels, runtimeTools, terraSupportedRuntimeImageIds } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import validate from 'validate.js'
 
 import { computeStyles } from './modalStyles'
@@ -696,8 +693,7 @@ defaultDataprocMachineType,
 
   const makeImageInfo = style => {
     const selectedImage = _.find({ image: selectedLeoImage }, leoImages)
-    const shouldDisable = _.isEmpty(leoImages) ? true : selectedImage.isCommunity || 
-getToolLabelForImage(selectedImage.id) === runtimeToolLabels.RStudio
+    const shouldDisable = _.isEmpty(leoImages) ? true : selectedImage.isCommunity || getToolLabelForImage(selectedImage.id) === runtimeToolLabels.RStudio
     const changelogUrl = _.isEmpty(leoImages) ?
       '' :
       `https://github.com/DataBiosphere/terra-docker/blob/master/${_.replace('_legacy', 
@@ -1085,8 +1081,7 @@ configuration']),
 you create your cloud environment. '
             ])
           ]),
-          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: tool 
-=== runtimeToolLabels.Jupyter || tool === runtimeToolLabels.RStudio })])
+          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: tool === runtimeToolLabels.Jupyter || tool === runtimeToolLabels.RStudio })])
         ])
       ]),
       Utils.switchCase(selectedLeoImage,
@@ -1114,12 +1109,10 @@ errors?.customEnvImage)
               'Custom environments ', b(['must ']), 'be based off ',
               ...Utils.switchCase(tool, [
                 runtimeToolLabels.RStudio, () => ['the ', h(Link,
-                  { href: anVILRStudioImage, ...Utils.newTabLinkProps }, ['AnVIL 
-RStudio image'])]
+                  { href: anVILRStudioImage, ...Utils.newTabLinkProps }, ['AnVIL RStudio image'])]
                 ], [
                 runtimeToolLabels.Jupyter, () => ['one of the ', h(Link,
-                  { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter 
-Notebook base images'])]
+                  { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images'])]
                 ]
               )
             ])
@@ -1521,11 +1514,9 @@ computeConfig.computeRegion)) : 'N/A',
 ',
           'Please make sure that it was created by you or someone you trust using ',
           ...Utils.switchCase(tool, [
-            runtimeToolLabels.RStudio, () => ['our base ', h(Link, { href: 
-anVILRStudioImage, ...Utils.newTabLinkProps }, ['AnVIL RStudio image.'])]
+            runtimeToolLabels.RStudio, () => ['our base ', h(Link, { href: anVILRStudioImage, ...Utils.newTabLinkProps }, ['AnVIL RStudio image.'])]
           ], [
-            runtimeToolLabels.Jupyter, () => ['one of our ', h(Link, { href: 
-terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])]
+            runtimeToolLabels.Jupyter, () => ['one of our ', h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])]
           ]),
           ' Custom Docker images could potentially cause serious security issues.'
         ]),
@@ -1902,8 +1893,7 @@ defaultDataprocMasterDiskSize) {
       options: [
         {
           label: 'TERRA-MAINTAINED JUPYTER ENVIRONMENTS',
-          options: getImages(({ isCommunity, id }) => (!isCommunity && 
-!(getToolLabelForImage(id) === runtimeToolLabels.RStudio)))
+          options: getImages(({ isCommunity, id }) => (!isCommunity && !(getToolLabelForImage(id) === runtimeToolLabels.RStudio)))
         },
         {
           label: 'COMMUNITY-MAINTAINED JUPYTER ENVIRONMENTS (verified partners)',
@@ -1911,8 +1901,7 @@ defaultDataprocMasterDiskSize) {
         },
         {
           label: 'COMMUNITY-MAINTAINED RSTUDIO ENVIRONMENTS (verified partners)',
-          options: getImages(image => getToolLabelForImage(image.id) === 
-runtimeToolLabels.RStudio)
+          options: getImages(image => getToolLabelForImage(image.id) === runtimeToolLabels.RStudio)
         },
         ...(includeCustom ? [{
           label: 'OTHER ENVIRONMENTS',

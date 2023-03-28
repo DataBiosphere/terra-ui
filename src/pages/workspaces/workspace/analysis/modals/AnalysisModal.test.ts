@@ -5,13 +5,15 @@ import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage'
+import { App } from 'src/libs/ajax/leonardo/models/app-models'
 import { reportError } from 'src/libs/error'
+import LoadedState from 'src/libs/type-utils/LoadedState'
 import { defaultAzureWorkspace, defaultGoogleWorkspace, galaxyDisk, galaxyRunning, getGoogleRuntime, imageDocs } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
-import { getFileFromPath } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
+import { AnalysisFile, getFileFromPath } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 import {
   AbsolutePath
 } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
-import { AppTool, tools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { tools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
 import { AnalysisModal, AnalysisModalProps } from './AnalysisModal'
@@ -23,21 +25,21 @@ const defaultGcpModalProps: AnalysisModalProps = {
   workspace: defaultGoogleWorkspace,
   location: 'US',
   runtimes: [],
-  apps: [] as AppTool[],
+  apps: [] as App[],
   appDataDisks: [],
   persistentDisks: [],
   onDismiss: () => {},
   onError: () => {},
   onSuccess: () => {},
   openUploader: () => {},
-  uploadFiles: () => {},
+  uploadFiles: files => Promise.resolve(files),
   analysisFileStore: {
     refreshFileStore: () => Promise.resolve(),
     loadedState: { state: [], status: 'Ready' },
-    create: createFunc,
+    createAnalysis: createFunc,
     pendingCreate: { status: 'Ready', state: true },
     pendingDelete: { status: 'Ready', state: true },
-    deleteFile: () => Promise.resolve()
+    deleteAnalysis: () => Promise.resolve()
   }
 }
 
@@ -340,12 +342,12 @@ describe('AnalysisModal', () => {
     // Arrange
     const fileList = [getFileFromPath('test/file1.ipynb' as AbsolutePath), getFileFromPath('test/file2.ipynb' as AbsolutePath)]
     const mockFileStore = {
-      loadedState: { state: fileList, status: 'Ready' },
+      loadedState: { state: fileList, status: 'Ready' } as LoadedState<AnalysisFile[]>,
       refreshFileStore: () => Promise.resolve(),
-      create: () => Promise.resolve(),
-      pendingCreate: { status: 'Ready', state: true },
-      pendingDelete: { status: 'Ready', state: true },
-      deleteFile: () => Promise.resolve()
+      createAnalysis: () => Promise.resolve(),
+      deleteAnalysis: () => Promise.resolve(),
+      pendingCreate: { status: 'Ready', state: true } as LoadedState<true, unknown>,
+      pendingDelete: { status: 'Ready', state: true } as LoadedState<true, unknown>,
     }
 
     const user = userEvent.setup()
@@ -370,14 +372,14 @@ describe('AnalysisModal', () => {
   it('Error on create', async () => {
     // Arrange
     const fileList = [getFileFromPath('test/file1.ipynb' as AbsolutePath)]
-    const createMock = jest.fn().mockRejectedValue(new Error('MyTestError'))
+    const createAnalysisMock = jest.fn().mockRejectedValue(new Error('MyTestError'))
     const mockFileStore = {
-      loadedState: { state: fileList, status: 'Ready' },
+      loadedState: { state: fileList, status: 'Ready' } as LoadedState<AnalysisFile[]>,
       refreshFileStore: () => Promise.resolve(),
-      create: createMock,
-      pendingCreate: { status: 'Ready', state: true },
-      pendingDelete: { status: 'Ready', state: true },
-      deleteFile: () => Promise.resolve()
+      createAnalysis: createAnalysisMock,
+      deleteAnalysis: () => Promise.resolve(),
+      pendingCreate: { status: 'Ready', state: true } as LoadedState<true, unknown>,
+      pendingDelete: { status: 'Ready', state: true } as LoadedState<true, unknown>,
     }
     const user = userEvent.setup()
 
@@ -399,7 +401,7 @@ describe('AnalysisModal', () => {
     })
 
     // Assert
-    expect(createMock).toHaveBeenCalled()
+    expect(createAnalysisMock).toHaveBeenCalled()
     expect(reportError).toHaveBeenCalled()
   })
 })

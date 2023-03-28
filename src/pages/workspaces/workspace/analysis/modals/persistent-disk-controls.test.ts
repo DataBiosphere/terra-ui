@@ -24,13 +24,13 @@ import {
   defaultNumGpus,
   getDefaultMachineType,
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
-import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 const defaultIComputeConfig = {
   selectedPersistentDiskSize: defaultGcePersistentDiskSize,
   selectedPersistentDiskType: defaultPersistentDiskType,
-  masterMachineType: getDefaultMachineType(false, toolLabels.RStudio),
+  masterMachineType: getDefaultMachineType(false, runtimeToolLabels.RStudio),
   masterDiskSize: defaultDataprocMasterDiskSize,
   numberOfWorkers: defaultNumDataprocWorkers,
   numberOfPreemptibleWorkers: defaultNumDataprocPreemptibleWorkers,

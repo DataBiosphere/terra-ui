@@ -13,15 +13,18 @@ import { ConfirmedSearchInput } from 'src/components/input'
 import { MenuButton } from 'src/components/MenuButton'
 import Modal from 'src/components/Modal'
 import { MenuTrigger } from 'src/components/PopupTrigger'
-import { GridTable, HeaderCell, paginator, Resizable } from 'src/components/table'
+import { GridTable, HeaderCell, paginator, Resizable, TooltipCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
+import { wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
 
 const entityMap = entities => {
@@ -84,6 +87,7 @@ const DataTable = props => {
   const [pageNumber, setPageNumber] = useState(1)
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
   const [activeTextFilter, setActiveTextFilter] = useState(activeCrossTableTextFilter || '')
+  const [columnFilter, setColumnFilter] = useState({ filterColAttr: '', filterColTerm: '' })
 
   const [columnWidths, setColumnWidths] = useState(() => getLocalPref(persistenceId)?.columnWidths || {})
   const [columnState, setColumnState] = useState(() => {
@@ -139,9 +143,10 @@ const DataTable = props => {
     Utils.withBusyState(setLoading),
     withErrorReporting('Error loading entities')
   )(async () => {
+    const colFilt = (!!columnFilter['filterColAttr'] && !!columnFilter['filterColTerm']) ? `${columnFilter['filterColAttr']}=${columnFilter['filterColTerm']}` : ''
     const queryOptions = {
       pageNumber, itemsPerPage, sortField: sort.field, sortDirection: sort.direction, snapshotName,
-      googleProject, activeTextFilter, filterOperator
+      googleProject, activeTextFilter, filterOperator, columnFilter: colFilt
     }
     const { results, resultMetadata: { filteredCount, unfilteredCount } } = await dataProvider.getPage(signal, entityType, queryOptions, entityMetadata)
 
@@ -222,13 +227,23 @@ const DataTable = props => {
     return entities.length && _.every(k => _.includes(k, selectedKeys), entityKeys)
   }
 
+  const searchByColumn = (field, v) => {
+    setActiveTextFilter('')
+    setColumnFilter({ filterColAttr: field, filterColTerm: v.toString().trim() })
+    setPageNumber(1)
+    Ajax().Metrics.captureEvent(Events.workspaceDataFilteredSearch, {
+      workspaceNamespace: namespace, workspaceName: name, providerName: dataProvider.providerName,
+      cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label
+    })
+  }
+
   // Lifecycle
   useEffect(() => {
     loadData()
     if (persist) {
-      StateHistory.update({ itemsPerPage, pageNumber, sort, activeTextFilter })
+      StateHistory.update({ itemsPerPage, pageNumber, sort, activeTextFilter, columnFilter })
     }
-  }, [itemsPerPage, pageNumber, sort, activeTextFilter, filterOperator, refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [itemsPerPage, pageNumber, sort, activeTextFilter, filterOperator, columnFilter, refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (persist) {
@@ -298,6 +313,7 @@ const DataTable = props => {
             'aria-label': 'Search',
             placeholder: 'Search',
             onChange: v => {
+              setColumnFilter({ filterColAttr: '', filterColTerm: '' })
               setActiveTextFilter(v.toString().trim())
               setPageNumber(1)
             },
@@ -346,6 +362,17 @@ const DataTable = props => {
               }
             }
 
+            const filterBreadCrumb = h(div, { style: { display: 'flex', overflow: 'hidden' } }, [h(TooltipCell, { tooltip: `filtered by: ${columnFilter['filterColTerm']}`, style: { fontWeight: 400, ...Style.noWrapEllipsis } },
+              [`filtered by: ${columnFilter['filterColTerm']}`]), h(Clickable, {
+              'aria-label': 'Clear filter',
+              tooltip: 'Clear filter',
+              style: { alignSelf: 'flex-start', marginLeft: '0.3rem' },
+              onClick: e => {
+                e.stopPropagation()
+                setColumnFilter({ filterColAttr: '', filterColTerm: '' })
+              }
+            }, [icon('times-circle', { color: colors.light(8), size: 16 })])])
+
             const defaultColumnsWithoutSelectRow = [{
               field: 'name',
               width: nameWidth,
@@ -354,8 +381,8 @@ const DataTable = props => {
                   setColumnWidths(_.set('name', nameWidth + delta))
                 }
               }, [
-                h(HeaderOptions, { sort, field: 'name', onSort: setSort },
-                  [h(HeaderCell, [entityMetadata[entityType].idName])])
+                h(HeaderOptions, { sort, field: 'name', onSort: setSort, renderSearch: !!googleProject, searchByColumn: v => searchByColumn(entityMetadata[entityType].idName, v) },
+                  [h(HeaderCell, [entityMetadata[entityType].idName, (columnFilter['filterColAttr'] === entityMetadata[entityType].idName) && filterBreadCrumb])])
               ]),
               cellRenderer: ({ rowIndex }) => {
                 const { name: entityName } = entities[rowIndex]
@@ -385,7 +412,7 @@ const DataTable = props => {
                   width: thisWidth, onWidthChange: delta => setColumnWidths(_.set(attributeName, thisWidth + delta))
                 }, [
                   h(HeaderOptions, {
-                    sort, field: attributeName, onSort: setSort,
+                    sort, field: attributeName, onSort: setSort, renderSearch: !!googleProject, searchByColumn: v => searchByColumn(attributeName, v),
                     extraActions: _.concat(
                       editable ? [
                         // settimeout 0 is needed to delay opening the modaals until after the popup menu closes.
@@ -398,7 +425,7 @@ const DataTable = props => {
                   }, [
                     h(HeaderCell, [
                       !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } }, [columnNamespace]),
-                      columnName
+                      columnName, (columnFilter['filterColAttr'] === attributeName) && filterBreadCrumb
                     ])
                   ])
                 ]),

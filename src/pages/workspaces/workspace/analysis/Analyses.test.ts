@@ -22,7 +22,7 @@ import { AnalysisFile, getFileFromPath, useAnalysisFiles } from 'src/pages/works
 import {
   AbsolutePath, FileName, findPotentialNotebookLockers, notebookLockHash
 } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
-import { toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
 
@@ -80,10 +80,10 @@ const defaultAnalysesData: AnalysesData = {
 const defaultUseAnalysisStore = {
   refreshFileStore: () => Promise.resolve(),
   loadedState: { status: 'Ready', state: [] as AnalysisFile[] } as LoadedState<AnalysisFile[], unknown>,
-  create: () => Promise.resolve(),
+  createAnalysis: () => Promise.resolve(),
+  deleteAnalysis: () => Promise.resolve(),
   pendingCreate: { status: 'None', state: true } as LoadedState<true, unknown>,
-  pendingDelete: { status: 'None', state: true } as LoadedState<true, unknown>,
-  deleteFile: () => Promise.resolve()
+  pendingDelete: { status: 'None', state: true } as LoadedState<true, unknown>
 }
 
 const defaultAnalysesProps: AnalysesProps = {
@@ -344,7 +344,7 @@ describe('Analyses', () => {
     asMockedFn(useAnalysisFiles).mockReturnValue({
       ...defaultUseAnalysisStore,
       loadedState: { status: 'Ready', state: files },
-      create: createObservable
+      createAnalysis: createObservable
     })
 
     // Act
@@ -354,7 +354,7 @@ describe('Analyses', () => {
       await user.upload(fileInput, [fileToDrop])
     })
 
-    expect(createObservable).toHaveBeenCalledWith(droppedFileName, toolLabels.Jupyter, fileToDrop)
+    expect(createObservable).toHaveBeenCalledWith(droppedFileName, runtimeToolLabels.Jupyter, fileToDrop)
   })
 
   it('Should open a modal when I click start', async () => {

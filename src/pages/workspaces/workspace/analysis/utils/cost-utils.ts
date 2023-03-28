@@ -2,6 +2,8 @@ import _ from 'lodash/fp'
 import {
   dataprocCpuPrice, ephemeralExternalIpAddressPrice, machineTypes, regionToPrices
 } from 'src/data/gce-machines'
+import { App } from 'src/libs/ajax/leonardo/models/app-models'
+import { pdTypes } from 'src/libs/ajax/leonardo/models/disk-models'
 import {
   GoogleRuntimeConfig,
   isDataprocConfig,
@@ -14,8 +16,7 @@ import * as Utils from 'src/libs/utils'
 import {
   defaultDataprocWorkerDiskSize, defaultGceBootDiskSize,
   getCurrentAttachedDataDisk,
-  getCurrentPersistentDisk,
-  pdTypes
+  getCurrentPersistentDisk
 } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
 import {
   defaultComputeRegion,
@@ -25,7 +26,7 @@ import {
   getRuntimeForTool,
   isAzureContext,
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
-import { appTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { appToolLabels, appTools, runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 // GOOGLE COST METHODS begin
 
@@ -116,7 +117,7 @@ export const ephemeralExternalIpAddressCost = ({ numStandardVms, numPreemptibleV
   return numStandardVms * ephemeralExternalIpAddressPrice.standard + numPreemptibleVms * ephemeralExternalIpAddressPrice.preemptible
 }
 
-export const getAppCost = (app, dataDisk) => app.appType === appTools.Galaxy.appType ? getGalaxyCost(app, dataDisk) : 0
+export const getAppCost = (app, dataDisk) => app.appType === appTools.GALAXY.label ? getGalaxyCost(app, dataDisk) : 0
 
 export const getGalaxyCost = (app, dataDisk) => {
   return getGalaxyDiskCost(dataDisk) + getGalaxyComputeCost(app)
@@ -234,7 +235,7 @@ export const getCostForDisk = (app, appDataDisks, computeRegion, currentRuntimeT
   if (currentRuntimeTool === toolLabel && persistentDisks && persistentDisks.length) {
     const { size = 0, status = 'Running', diskType = pdTypes.standard } = curPd || {}
     diskCost = getPersistentDiskCostHourly({ size, status, diskType }, computeRegion)
-  } else if (app && appDataDisks && (toolLabel === 'Galaxy')) {
+  } else if (app && appDataDisks && (toolLabel === appToolLabels.GALAXY)) {
     const currentDataDisk = getCurrentAttachedDataDisk(app, appDataDisks)
     //Occasionally currentDataDisk will be undefined on initial render.
     diskCost = currentDataDisk ? getGalaxyDiskCost(currentDataDisk) : ''
@@ -244,9 +245,9 @@ export const getCostForDisk = (app, appDataDisks, computeRegion, currentRuntimeT
 
 export const getCostDisplayForTool = (app, currentRuntime, currentRuntimeTool, toolLabel) => {
   return Utils.cond(
-    [toolLabel === toolLabels.Galaxy, () => app ? `${getComputeStatusForDisplay(app.status)} ${Utils.formatUSD(getGalaxyComputeCost(app))}/hr` : ''],
-    [toolLabel === toolLabels.Cromwell, () => ''], // We will determine what to put here later
-    [toolLabel === toolLabels.JupyterLab, () => currentRuntime ? `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getRuntimeCost(currentRuntime))}/hr` : ''],
+    [toolLabel === appToolLabels.GALAXY, () => app ? `${getComputeStatusForDisplay(app.status)} ${Utils.formatUSD(getGalaxyComputeCost(app))}/hr` : ''],
+    [toolLabel === appToolLabels.CROMWELL, () => ''], // We will determine what to put here later
+    [toolLabel === runtimeToolLabels.JupyterLab, () => currentRuntime ? `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getRuntimeCost(currentRuntime))}/hr` : ''],
     [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getRuntimeCost(currentRuntime))}/hr`],
     [Utils.DEFAULT, () => {
       return ''
@@ -254,7 +255,7 @@ export const getCostDisplayForTool = (app, currentRuntime, currentRuntimeTool, t
   )
 }
 
-export const getCostDisplayForDisk = (app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel) => {
+export const getCostDisplayForDisk = (app: App, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel) => {
   const diskCost = getCostForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
   return diskCost ? `Disk ${Utils.formatUSD(diskCost)}/hr` : ''
 }
