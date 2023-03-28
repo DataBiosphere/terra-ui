@@ -17,7 +17,7 @@
     "puppeteer-cluster": "^0.23.0"
   },
   "dependencies": {
-    "@axe-core/puppeteer": "^4.4.5",
+    "@axe-core/puppeteer": "^4.6.0",
     "@google-cloud/secret-manager": "^4.0.0",
     "date-fns": "^2.24.0",
     "google-auth-library": "^7.9.2",
