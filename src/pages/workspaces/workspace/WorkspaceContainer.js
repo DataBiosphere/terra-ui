@@ -138,12 +138,14 @@ const WorkspaceContainer = ({
   const [showLockWorkspaceModal, setShowLockWorkspaceModal] = useState(false)
   const [leavingWorkspace, setLeavingWorkspace] = useState(false)
   const workspaceLoaded = !!workspace
+  const isGoogleWorkspaceSyncing = workspaceLoaded && isGoogleWorkspace(workspace) && workspace.workspaceInitialized === false
 
   useEffect(() => {
-    if (workspaceLoaded && isGoogleWorkspace(workspace) && workspace.workspaceInitialized === false) {
+    if (isGoogleWorkspaceSyncing) {
       Ajax().Metrics.captureEvent(Events.permissionsSynchronizationDelayDisplayed, extractWorkspaceDetails(workspace))
     }
-  })
+    // Only want to event when isGoogleWorkspaceSyncing changes state, not whenever any part of workspace changes.
+  }, [isGoogleWorkspaceSyncing]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
@@ -172,7 +174,7 @@ const WorkspaceContainer = ({
       setLeavingWorkspace, setSharingWorkspace, setShowLockWorkspaceModal
     }),
     workspaceLoaded && isAzureWorkspace(workspace) && h(AzureWarning),
-    workspaceLoaded && isGoogleWorkspace(workspace) && workspace.workspaceInitialized === false && h(GooglePermissionsWarning),
+    isGoogleWorkspaceSyncing && h(GooglePermissionsWarning),
     div({ role: 'main', style: Style.elements.pageContentContainer },
       [div({ style: { flex: 1, display: 'flex' } }, [
         div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [
