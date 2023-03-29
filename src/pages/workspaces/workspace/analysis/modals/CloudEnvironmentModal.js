@@ -312,6 +312,7 @@ export const CloudEnvironmentModal = ({
         [Utils.DEFAULT, () => 'No Environment found']
       )
     }
+
     return Utils.switchCase(toolLabel,
       [appToolLabels.GALAXY, () => {
         return {
@@ -342,8 +343,6 @@ export const CloudEnvironmentModal = ({
           ...baseProps,
           href: applicationLaunchLink,
           onClick: () => {
-            Ajax().Metrics.captureEvent(Events.analysisLaunch,
-              { origin: 'contextBar', source: toolLabel, application: toolLabel, workspaceName, namespace })
             if ((toolLabel === runtimeToolLabels.Jupyter || toolLabel === runtimeToolLabels.RStudio) && currentRuntime?.status === 'Stopped') {
               startApp(toolLabel)
             }

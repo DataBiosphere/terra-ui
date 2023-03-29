@@ -230,7 +230,7 @@ export const ContextBar = ({
           href: terminalLaunchLink,
           onClick: withErrorReporting('Error starting runtime', async () => {
             await Ajax().Metrics.captureEvent(Events.analysisLaunch,
-              { origin: 'contextBar', source: 'terminal', application: 'terminal', workspaceName, namespace })
+              { origin: 'contextBar', application: 'terminal', workspaceName, namespace })
             if (currentRuntime?.status === 'Stopped') {
               await Ajax().Runtimes.runtimeWrapper(currentRuntime).start()
             }

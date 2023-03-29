@@ -623,25 +623,27 @@ export const ComputeModalBase = ({
       [(!!existingRuntime), () => 'cloudEnvironmentUpdate'],
       () => 'cloudEnvironmentCreate'
     )
-    if (isCustomImage) Ajax().Metrics.captureEvent(Events.cloudEnvironmentCreateCustom)
-
 
     Ajax().Metrics.captureEvent(Events[metricsEvent], {
       ...extractWorkspaceDetails(getWorkspaceObject()),
       ..._.mapKeys(key => `desiredRuntime_${key}`, desiredRuntime),
       desiredRuntime_exists: !!desiredRuntime,
-      desiredRuntime_cpus: desiredRuntime && desiredRuntimeCpus,
-      desiredRuntime_memory: desiredRuntime && desiredRuntimeMemory,
-      desiredRuntime_costPerHour: desiredRuntime && runtimeConfigCost(getPendingRuntimeConfig(), getPendingDisk()),
-      desiredRuntime_pausedCostPerHour: desiredRuntime && runtimeConfigBaseCost(getPendingRuntimeConfig(), getPendingDisk()),
+      desiredRuntime_cpus: desiredRuntime ? desiredRuntimeCpus : undefined,
+      desiredRuntime_memory: desiredRuntime ? desiredRuntimeMemory : undefined,
+      desiredRuntime_costPerHour: desiredRuntime ? runtimeConfigCost(getPendingRuntimeConfig(), getPendingDisk()) : undefined,
+      desiredRuntime_pausedCostPerHour: desiredRuntime ? runtimeConfigBaseCost(getPendingRuntimeConfig(), getPendingDisk()) : undefined,
       ..._.mapKeys(key => `existingRuntime_${key}`, existingRuntime),
       existingRuntime_exists: !!existingRuntime,
-      existingRuntime_cpus: existingRuntime && existingRuntimeCpus,
-      existingRuntime_memory: existingRuntime && existingRuntimeMemory,
+      existingRuntime_cpus: existingRuntime ? existingRuntimeCpus : undefined,
+      existingRuntime_memory: existingRuntime ? existingRuntimeMemory : undefined,
       ..._.mapKeys(key => `desiredPersistentDisk_${key}`, desiredPersistentDisk),
-      desiredPersistentDisk_costPerMonth: (desiredPersistentDisk && getPersistentDiskCostMonthly(getPendingDisk(), computeConfig.computeRegion)),
+      desiredPersistentDisk_diskType: desiredPersistentDisk ? desiredPersistentDisk.diskType.displayName : undefined,
+      desiredPersistentDisk_costPerMonth: desiredPersistentDisk ? getPersistentDiskCostMonthly(getPendingDisk(), computeConfig.computeRegion) : undefined,
       ..._.mapKeys(key => `existingPersistentDisk_${key}`, existingPersistentDisk),
-      isDefaultConfig: !currentRuntimeDetails
+      existingPersistentDisk_diskType: existingPersistentDisk ? existingPersistentDisk.diskType.displayName : undefined,
+      isDefaultConfig: !currentRuntimeDetails,
+      selectedLeoImage,
+      isCustomImage
     })
   }
 
