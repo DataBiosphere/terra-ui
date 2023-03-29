@@ -34,7 +34,7 @@ export const defaultAutopauseThreshold = 30
 export const autopauseDisabledValue = 0
 
 export const isAutopauseEnabled = threshold => threshold > autopauseDisabledValue
-// TODO contained within new component
+
 export const getAutopauseThreshold = isEnabled => isEnabled ? defaultAutopauseThreshold : autopauseDisabledValue
 
 export const usableStatuses: LeoRuntimeStatus[] = ['Updating', 'Running']

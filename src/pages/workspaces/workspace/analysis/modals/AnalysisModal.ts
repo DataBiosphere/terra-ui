@@ -177,7 +177,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       onSuccess
     })
 
-    const renderAzureModal: any = () => h(AzureComputeModalBase, {
+    const renderAzureModal = () => h(AzureComputeModalBase, {
       workspace,
       runtimes,
       location,
