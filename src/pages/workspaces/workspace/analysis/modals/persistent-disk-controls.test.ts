@@ -61,7 +61,7 @@ const defaultPersistentDiskProps: PersistentDiskControlProps = {
 const defaultAzurePersistentDiskProps: PersistentDiskControlProps = {
   persistentDiskExists: true,
   computeConfig: defaultIComputeConfig,
-  updateComputeConfig: () => updateComputeConfig,
+  updateComputeConfig: () => updateComputeConfigMock,
   setViewMode: jest.fn(),
   cloudPlatform: 'AZURE',
   handleLearnMoreAboutPersistentDisk: jest.fn()

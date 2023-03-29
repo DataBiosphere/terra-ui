@@ -31,7 +31,7 @@ const defaultModalProps = {
   location: testAzureDefaultRegion
 }
 
-const pesistentDiskModalProps = {
+const persistentDiskModalProps = {
   onSuccess, onDismiss: jest.fn(), onError: jest.fn(),
   currentRuntime: undefined, currentDisk: defaultTestDisk, tool: runtimeToolLabels.JupyterLab, workspace: defaultAzureWorkspace,
   location: testAzureDefaultRegion
@@ -142,7 +142,7 @@ describe('AzureComputeModal', () => {
     // Act
     // wrapping component init-time stateful side-effects with act()
     await act(async () => {
-      await render(h(AzureComputeModalBase, pesistentDiskModalProps))
+      await render(h(AzureComputeModalBase, persistentDiskModalProps))
       await userEvent.click(getCreateButton())
     })
 

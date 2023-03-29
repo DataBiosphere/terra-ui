@@ -4,7 +4,8 @@ import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes'
 
 jest.mock('src/libs/ajax/ajax-common', () => ({
   fetchLeo: jest.fn(),
-  authOpts: jest.fn()
+  authOpts: jest.fn(),
+  jsonBody: jest.fn()
 }))
 
 describe('Runtimes ajax', () => {
@@ -53,13 +54,13 @@ describe('Runtimes ajax', () => {
   ])('should call use the approprate query param based on the persistent disk status', async runtime => {
     // Arrange
     // Act
-    await Runtimes().runtimeV2(runtime.workspaceId, runtime.runtimeName).create({ test: 'test' }, runtime.persistentDiskExists)
+    await Runtimes().runtimeV2(runtime.workspaceId, runtime.runtimeName).create({}, runtime.persistentDiskExists)
 
     // Assert
     if (runtime.persistentDiskExists) {
-      expect(mockFetchLeo).toHaveBeenCalledWith(`api/v2/runtimes/${runtime.workspaceId}/${runtime.runtimeName}?useExistingDisk=true`, expect.anything())
+      expect(mockFetchLeo).toHaveBeenCalledWith(`api/v2/runtimes/${runtime.workspaceId}/azure/${runtime.runtimeName}?useExistingDisk=true`, expect.anything())
     } else {
-      expect(mockFetchLeo).toHaveBeenCalledWith(`api/v2/runtimes/${runtime.workspaceId}/${runtime.runtimeName}?useExistingDisk=false`, expect.anything())
+      expect(mockFetchLeo).toHaveBeenCalledWith(`api/v2/runtimes/${runtime.workspaceId}/azure/${runtime.runtimeName}?useExistingDisk=false`, expect.anything())
     }
   })
 })
