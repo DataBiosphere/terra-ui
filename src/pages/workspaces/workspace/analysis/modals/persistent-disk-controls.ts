@@ -97,6 +97,11 @@ export const PersistentDiskType = (props: PersistentDiskTypeProps) => {
           isDisabled: persistentDiskExists,
           onChange: e => updateComputeConfig('persistentDiskType', e?.value),
           menuPlacement: 'auto',
+          // tooltip: persistentDiskExists ? [
+          //   'You already have a persistent disk in this workspace. ',
+          //   'Disk size can only be configured at creation time. ',
+          //   'Please delete the existing disk before selecting a new size.'
+          // ] : undefined,
           options: [
             { label: pdTypes.standard.displayName, value: pdTypes.standard },
             { label: pdTypes.balanced.displayName, value: pdTypes.balanced },
@@ -133,7 +138,13 @@ export const PersistentDiskSection = (props: PersistentDiskControlProps) => {
               max: 64000,
               isClearable: false,
               onlyInteger: true,
+              tooltip: persistentDiskExists && cloudPlatform === cloudProviderTypes.AZURE ? [
+                'You already have a persistent disk in this workspace. ',
+                'Disk size can only be configured at creation time. ',
+                'Please delete the existing disk before selecting a new size.'
+              ] : undefined,
               value: computeConfig.persistentDiskSize,
+              disabled: persistentDiskExists && cloudPlatform === cloudProviderTypes.AZURE,
               onChange: value => {
                 updateComputeConfig('persistentDiskSize', value)
               },
