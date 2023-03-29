@@ -8,7 +8,7 @@ import { azureMachineTypes, defaultAzureMachineType } from 'src/libs/azure-utils
 import { formatUSD } from 'src/libs/utils'
 import {
   azureRuntime,
-  defaultAzureWorkspace, getDisk,
+  defaultAzureWorkspace, defaultTestDisk, getDisk,
   imageDocs, testAzureDefaultRegion
 } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
@@ -28,6 +28,12 @@ const onSuccess = jest.fn()
 const defaultModalProps = {
   onSuccess, onDismiss: jest.fn(), onError: jest.fn(),
   currentRuntime: undefined, currentDisk: undefined, tool: runtimeToolLabels.JupyterLab, workspace: defaultAzureWorkspace,
+  location: testAzureDefaultRegion
+}
+
+const pesistentDiskModalProps = {
+  onSuccess, onDismiss: jest.fn(), onError: jest.fn(),
+  currentRuntime: undefined, currentDisk: defaultTestDisk, tool: runtimeToolLabels.JupyterLab, workspace: defaultAzureWorkspace,
   location: testAzureDefaultRegion
 }
 
@@ -107,14 +113,53 @@ describe('AzureComputeModal', () => {
       saturnWorkspaceName: defaultModalProps.workspace.workspace.name
     }
     expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.workspaceId, expect.anything())
-    expect(createFunc).toHaveBeenCalledWith(expect.objectContaining({
+    expect(createFunc).toHaveBeenCalledWith({
       labels,
       disk: expect.objectContaining({
         labels,
         name: expect.anything()
       }),
-      machineSize: defaultAzureMachineType
+      machineSize: defaultAzureMachineType,
+    }, false)
+
+    expect(onSuccess).toHaveBeenCalled()
+  })
+
+  it('sends the proper leo API call in the case of a persistent disk', async () => {
+    // Arrange
+    const createFunc = jest.fn()
+    const runtimeFunc = jest.fn(() => ({
+      create: createFunc,
+      details: jest.fn()
     }))
+    Ajax.mockImplementation(() => ({
+      ...defaultAjaxImpl,
+      Runtimes: {
+        runtimeV2: runtimeFunc
+      }
+    }))
+
+    // Act
+    // wrapping component init-time stateful side-effects with act()
+    await act(async () => {
+      await render(h(AzureComputeModalBase, pesistentDiskModalProps))
+      await userEvent.click(getCreateButton())
+    })
+
+    // Assert
+    const labels = {
+      saturnWorkspaceNamespace: defaultModalProps.workspace.workspace.namespace,
+      saturnWorkspaceName: defaultModalProps.workspace.workspace.name
+    }
+    expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.workspaceId, expect.anything())
+    expect(createFunc).toHaveBeenCalledWith({
+      labels,
+      disk: expect.objectContaining({
+        labels,
+        name: expect.anything()
+      }),
+      machineSize: defaultAzureMachineType,
+    }, true)
 
     expect(onSuccess).toHaveBeenCalled()
   })

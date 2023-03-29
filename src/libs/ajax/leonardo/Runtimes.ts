@@ -67,7 +67,7 @@ export const Runtimes = signal => {
         return res.json()
       },
 
-      create: (options, useExistingDisk): Promise<void> => {
+      create: (options, useExistingDisk: boolean = false): Promise<void> => {
         const body = _.merge(options, {
           labels: { saturnAutoCreated: 'true', saturnVersion: version }
         })

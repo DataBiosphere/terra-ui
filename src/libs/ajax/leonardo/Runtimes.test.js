@@ -45,4 +45,21 @@ describe('Runtimes ajax', () => {
       expect(mockFetchLeo).toHaveBeenCalledWith(`api/google/v1/runtimes/${runtime.googleProject}/${runtime.runtimeName}/start`, expect.anything())
     }
   })
+
+  // TODO (LM) failing on TypeError: (0 , _ajaxCommon.jsonBody) is not a function
+  it.each([
+    { runtimeName: 'runtime1', workspaceId: 'test1', persistentDiskExists: true },
+    { runtimeName: 'runtime2', workspaceId: 'test2', persistentDiskExists: false }
+  ])('should call use the approprate query param based on the persistent disk status', async runtime => {
+    // Arrange
+    // Act
+    await Runtimes().runtimeV2(runtime.workspaceId, runtime.runtimeName).create({ test: 'test' }, runtime.persistentDiskExists)
+
+    // Assert
+    if (runtime.persistentDiskExists) {
+      expect(mockFetchLeo).toHaveBeenCalledWith(`api/v2/runtimes/${runtime.workspaceId}/${runtime.runtimeName}?useExistingDisk=true`, expect.anything())
+    } else {
+      expect(mockFetchLeo).toHaveBeenCalledWith(`api/v2/runtimes/${runtime.workspaceId}/${runtime.runtimeName}?useExistingDisk=false`, expect.anything())
+    }
+  })
 })

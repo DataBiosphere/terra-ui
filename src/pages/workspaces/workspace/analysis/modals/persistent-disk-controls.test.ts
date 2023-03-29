@@ -58,6 +58,15 @@ const defaultPersistentDiskProps: PersistentDiskControlProps = {
   handleLearnMoreAboutPersistentDisk: jest.fn()
 }
 
+const defaultAzurePersistentDiskProps: PersistentDiskControlProps = {
+  persistentDiskExists: true,
+  computeConfig: defaultIComputeConfig,
+  updateComputeConfig: () => updateComputeConfig,
+  setViewMode: jest.fn(),
+  cloudPlatform: 'AZURE',
+  handleLearnMoreAboutPersistentDisk: jest.fn()
+}
+
 const defaultPersistentDiskTypeProps: PersistentDiskTypeProps = {
   persistentDiskExists: true,
   computeConfig: defaultIComputeConfig,
@@ -131,7 +140,7 @@ describe('compute-modal-component', () => {
       expect(tipText).toBeNull()
     })
 
-    it('should show tooltip when existing PD', async () => {
+    it('should show disk type tooltip when existing PD for GCP', async () => {
       // Arrange
       render(h(PersistentDiskSection, defaultPersistentDiskProps))
 
@@ -141,6 +150,15 @@ describe('compute-modal-component', () => {
 
       // Assert
       screen.getByText(/You already have a persistent disk in this workspace. /)
+    })
+
+    it('should show disk size tooltip when existing PD for Azure', () => {
+      // Arrange
+      render(h(PersistentDiskSection, defaultAzurePersistentDiskProps))
+
+      // Act
+      // Assert
+      screen.queryByText(/You already have a persistent disk in this workspace. /)
     })
 
     // Ensuring updateComputeConfig gets called with proper value on change
