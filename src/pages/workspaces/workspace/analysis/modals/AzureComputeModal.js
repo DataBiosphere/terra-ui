@@ -38,7 +38,6 @@ export const AzureComputeModalBase = ({
   const { namespace, name: workspaceName, workspaceId } = workspace.workspace
   const persistentDiskExists = !!currentPersistentDiskDetails
   const [deleteDiskSelected, setDeleteDiskSelected] = useState(false)
-
   // Lifecycle
   useOnMount(_.flow(
     withErrorReportingInModal('Error loading cloud environment', onError),

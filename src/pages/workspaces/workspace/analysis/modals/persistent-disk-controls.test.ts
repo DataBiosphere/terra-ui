@@ -47,12 +47,12 @@ const defaultIComputeConfig: IComputeConfig = {
   computeZone: defaultComputeZone,
 }
 
-const updateComputeConfig = jest.fn()
+const updateComputeConfigMock = jest.fn()
 
 const defaultPersistentDiskProps: PersistentDiskControlProps = {
   persistentDiskExists: true,
   computeConfig: defaultIComputeConfig,
-  updateComputeConfig: () => updateComputeConfig,
+  updateComputeConfig: updateComputeConfigMock,
   setViewMode: jest.fn(),
   cloudPlatform: 'GCP',
   handleLearnMoreAboutPersistentDisk: jest.fn()
@@ -61,7 +61,7 @@ const defaultPersistentDiskProps: PersistentDiskControlProps = {
 const defaultPersistentDiskTypeProps: PersistentDiskTypeProps = {
   persistentDiskExists: true,
   computeConfig: defaultIComputeConfig,
-  updateComputeConfig: () => updateComputeConfig,
+  updateComputeConfig: updateComputeConfigMock,
 }
 
 describe('compute-modal-component', () => {
@@ -99,7 +99,7 @@ describe('compute-modal-component', () => {
       await userEvent.click(dTypeNew)
 
       // Assert
-      expect(updateComputeConfig).toBeCalledWith({ displayName: 'Balanced', label: 'pd-balanced', regionToPricesName: 'monthlyBalancedDiskPrice' })
+      expect(updateComputeConfigMock).toBeCalledWith('persistentDiskType', { displayName: 'Balanced', label: 'pd-balanced', regionToPricesName: 'monthlyBalancedDiskPrice' })
     })
   })
 
@@ -155,7 +155,7 @@ describe('compute-modal-component', () => {
       await userEvent.click(dTypeNew)
 
       // Assert
-      expect(updateComputeConfig).toBeCalledWith({ displayName: 'Balanced', label: 'pd-balanced', regionToPricesName: 'monthlyBalancedDiskPrice' })
+      expect(updateComputeConfigMock).toBeCalledWith('persistentDiskType', { displayName: 'Balanced', label: 'pd-balanced', regionToPricesName: 'monthlyBalancedDiskPrice' })
     })
 
     it('should call updateComputeConfig with proper value on changing size', async () => {
@@ -168,7 +168,7 @@ describe('compute-modal-component', () => {
       await userEvent.type(sizeInput, '70')
 
       // Assert
-      expect(updateComputeConfig).toBeCalledWith(70)
+      expect(updateComputeConfigMock).toBeCalledWith('persistentDiskSize', 70)
     })
   })
 })

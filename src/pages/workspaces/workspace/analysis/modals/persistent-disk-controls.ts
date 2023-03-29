@@ -19,7 +19,7 @@ import { IComputeConfig } from '../modal-utils'
 export interface PersistentDiskControlProps {
   persistentDiskExists: boolean
   computeConfig: IComputeConfig
-  updateComputeConfig: (arg: string) => (diskType: any) => void
+  updateComputeConfig: (key: string, value: any) => void
   handleLearnMoreAboutPersistentDisk: React.MouseEventHandler
   setViewMode: () => void
   cloudPlatform: CloudProvider
@@ -28,7 +28,7 @@ export interface PersistentDiskControlProps {
 export interface PersistentDiskTypeProps {
   persistentDiskExists: boolean
   computeConfig: IComputeConfig
-  updateComputeConfig: (arg: string) => (diskType: any) => void
+  updateComputeConfig: (key: string, value: any) => void
 }
 
 export type MountPoint = '/home/rstudio' | '/home/jupyter'
@@ -95,7 +95,7 @@ export const PersistentDiskType = (props: PersistentDiskTypeProps) => {
           id: persistentDiskId,
           value: computeConfig.persistentDiskType,
           isDisabled: persistentDiskExists,
-          onChange: e => updateComputeConfig('persistentDiskType')(e?.value),
+          onChange: e => updateComputeConfig('persistentDiskType', e?.value),
           menuPlacement: 'auto',
           options: [
             { label: pdTypes.standard.displayName, value: pdTypes.standard },
@@ -134,7 +134,9 @@ export const PersistentDiskSection = (props: PersistentDiskControlProps) => {
               isClearable: false,
               onlyInteger: true,
               value: computeConfig.persistentDiskSize,
-              onChange: updateComputeConfig('persistentDiskSize')
+              onChange: value => {
+                updateComputeConfig('persistentDiskSize', value)
+              },
             })
           ])
         ])
@@ -146,7 +148,7 @@ export const PersistentDiskSection = (props: PersistentDiskControlProps) => {
 export interface PersistentDiskTypeContainerProps {
   persistentDiskExists: boolean
   computeConfig: IComputeConfig
-  updateComputeConfig: (arg: string) => (diskType: any) => void
+  updateComputeConfig: (key: string, value: any) => void
 }
 
 const PersistentDiskTypeContainer = (props: PersistentDiskTypeContainerProps) => {
