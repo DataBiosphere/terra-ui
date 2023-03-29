@@ -16,6 +16,7 @@ import { withErrorReportingInModal } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
+import { cloudProviderTypes } from 'src/libs/workspace-utils'
 import { DeleteEnvironment } from 'src/pages/workspaces/workspace/analysis/modals/DeleteEnvironment'
 import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import { getIsRuntimeBusy } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
@@ -169,6 +170,7 @@ export const AzureComputeModalBase = ({
 
     return h(ButtonPrimary, {
       ...commonButtonProps,
+      tooltip: persistentDiskExists ? 'Mount existing Persistent disk to a new Virtual Machine.' : undefined,
       onClick: () => applyChanges()
     }, [Utils.cond(
       [viewMode === 'deleteEnvironment', () => 'Delete'],
@@ -215,7 +217,8 @@ export const AzureComputeModalBase = ({
             saturnWorkspaceName: workspaceName
           },
           disk
-        })
+        }, persistentDiskExists,
+        )
       }]
     )
 
@@ -231,7 +234,7 @@ export const AzureComputeModalBase = ({
       div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
         renderApplicationConfigurationSection(),
         renderComputeProfileSection(),
-        h(PersistentDiskSection, { persistentDiskExists, computeConfig, updateComputeConfig, setViewMode, tool }),
+        h(PersistentDiskSection, { persistentDiskExists, computeConfig, updateComputeConfig, setViewMode, cloudPlatform: cloudProviderTypes.AZURE }),
         renderBottomButtons()
       ])
     ])

@@ -9,19 +9,20 @@ import { pdTypes } from 'src/libs/ajax/leonardo/models/disk-models'
 import Events from 'src/libs/events'
 import { useUniqueId } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
+import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils'
 import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles'
-import { getCurrentMountDirectory, RuntimeToolLabel, runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { getCurrentMountDirectory, RuntimeToolLabel, runtimeToolLabels, ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 import { IComputeConfig } from '../modal-utils'
 
 
-export interface PersistentDiskProps {
+export interface PersistentDiskControlProps {
   persistentDiskExists: boolean
   computeConfig: IComputeConfig
   updateComputeConfig: (arg: string) => (diskType: any) => void
   handleLearnMoreAboutPersistentDisk: React.MouseEventHandler
-  setViewMode: any
-  cloudPlatform: any
+  setViewMode: () => void
+  cloudPlatform: CloudProvider
 }
 
 export interface PersistentDiskTypeProps {
@@ -47,7 +48,7 @@ const PersistentDiskTypeSelect = Select as typeof Select<IComputeConfig['persist
 export interface PersistentDiskAboutProps {
   titleId: string
   setViewMode: any
-  tool: any
+  tool: ToolLabel
   onDismiss: () => void
 }
 
@@ -94,6 +95,11 @@ export const PersistentDiskType = ({ persistentDiskExists, computeConfig, update
           isDisabled: persistentDiskExists,
           onChange: e => updateComputeConfig('persistentDiskType')(e?.value),
           menuPlacement: 'auto',
+          // tooltip: persistentDiskExists ? [
+          //   'You already have a persistent disk in this workspace. ',
+          //   'Disk size can only be configured at creation time. ',
+          //   'Please delete the existing disk before selecting a new size.'
+          // ] : undefined,
           options: [
             { label: pdTypes.standard.displayName, value: pdTypes.standard },
             { label: pdTypes.balanced.displayName, value: pdTypes.balanced },
@@ -105,7 +111,7 @@ export const PersistentDiskType = ({ persistentDiskExists, computeConfig, update
   )
 }
 
-export const PersistentDiskSection = ({ persistentDiskExists, computeConfig, updateComputeConfig, setViewMode, cloudPlatform }: PersistentDiskProps) => {
+export const PersistentDiskSection = ({ persistentDiskExists, computeConfig, updateComputeConfig, setViewMode, cloudPlatform }: PersistentDiskControlProps) => {
   const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
   const diskSizeId = useUniqueId()
 
@@ -119,8 +125,7 @@ export const PersistentDiskSection = ({ persistentDiskExists, computeConfig, upd
         }, ['Learn more about persistent disks and where your disk is mounted.'])
       ]),
       div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
-        // TODO: we inconsistently use GCP and Gcp, once cloudPlatform is typed, make stronger comparison here
-        ['GCP', 'Gcp'].includes(cloudPlatform) ? diskType({ persistentDiskExists, computeConfig, updateComputeConfig }) : false,
+        cloudProviderTypes.GCP === cloudPlatform ? renderPersistentDiskType({ persistentDiskExists, computeConfig, updateComputeConfig }) : false,
         h(div, [
           label({ htmlFor: diskSizeId, style: computeStyles.label }, ['Disk Size (GB)']),
           div({ style: { width: 75, marginTop: '0.5rem' } }, [
@@ -130,7 +135,13 @@ export const PersistentDiskSection = ({ persistentDiskExists, computeConfig, upd
               max: 64000,
               isClearable: false,
               onlyInteger: true,
+              tooltip: persistentDiskExists && cloudPlatform === cloudProviderTypes.AZURE ? [
+                'You already have a persistent disk in this workspace. ',
+                'Disk size can only be configured at creation time. ',
+                'Please delete the existing disk before selecting a new size.'
+              ] : undefined,
               value: computeConfig.persistentDiskSize,
+              disabled: persistentDiskExists && cloudPlatform === cloudProviderTypes.AZURE,
               onChange: updateComputeConfig('persistentDiskSize')
             })
           ])
@@ -140,7 +151,7 @@ export const PersistentDiskSection = ({ persistentDiskExists, computeConfig, upd
   ])
 }
 
-const diskType = ({ persistentDiskExists, computeConfig, updateComputeConfig }) => {
+const renderPersistentDiskType = ({ persistentDiskExists, computeConfig, updateComputeConfig }) => {
   return persistentDiskExists ? h(TooltipTrigger, {
     content: [
       'You already have a persistent disk in this workspace. ',
