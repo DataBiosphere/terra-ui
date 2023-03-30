@@ -6,20 +6,19 @@ import { getConfig } from 'src/libs/config'
 import { getUser, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { cloudProviderTypes } from 'src/libs/workspace-utils'
+import { AnalysisFile, AnalysisFileMetadata } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 import {
   AbsolutePath,
-  AnalysisFile,
-  AnalysisFileMetadata,
   getDisplayName,
   getExtension,
   getFileName
-} from 'src/pages/workspaces/workspace/analysis/file-utils'
+} from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
 import {
   getToolLabelFromFileExtension,
+  runtimeToolLabels,
   runtimeTools,
-  ToolLabel,
-  toolLabels
-} from 'src/pages/workspaces/workspace/analysis/tool-utils'
+  ToolLabel
+} from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 /*
  * Detects errors due to requester pays buckets, and adds the current workspace's billing
@@ -296,7 +295,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
         ).then(res => res.text())
         return fetchOk(`${getConfig().calhounUrlRoot}/api/convert`,
           _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
-        ).then(res => res.text())
+        ).then(res => res)
       },
 
       copy,
@@ -327,10 +326,10 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
     const bucketUrl = `storage/v1/b/${bucket}/o`
 
     const calhounPath = Utils.switchCase(toolLabel,
-      [toolLabels.Jupyter, () => 'api/convert'], [toolLabels.RStudio, () => 'api/convert/rmd'])
+      [runtimeToolLabels.Jupyter, () => 'api/convert'], [runtimeToolLabels.RStudio, () => 'api/convert/rmd'])
 
     const mimeType = Utils.switchCase(toolLabel,
-      [toolLabels.Jupyter, () => 'application/x-ipynb+json'], [toolLabels.RStudio, () => 'application/octet-stream'])
+      [runtimeToolLabels.Jupyter, () => 'application/x-ipynb+json'], [runtimeToolLabels.RStudio, () => 'application/octet-stream'])
 
     const encodeFileName = name => encodeAnalysisName(getFileName(name))
 
@@ -383,7 +382,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
         ).then(res => res.text())
         return fetchOk(`${getConfig().calhounUrlRoot}/${calhounPath}`,
           _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
-        ).then(res => res.text())
+        ).then(res => res)
       },
 
       copy,

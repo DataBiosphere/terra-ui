@@ -9,8 +9,11 @@ import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { withDisplayName } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-import { computeStyles, getCurrentApp, getCurrentAppDataDisk } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { appTools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getCurrentApp } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
+import { getCurrentAppDataDisk } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import { appTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+
+import { computeStyles } from './modalStyles'
 
 
 const defaultDataDiskSize = 500 // GB
@@ -25,9 +28,9 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
     onDismiss, onError, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
     shouldHideCloseButton = true
   }) => {
-    const app = getCurrentApp(appTools.Cromwell.appType)(apps)
+    const app = getCurrentApp(appTools.CROMWELL.label, apps)
     const [loading, setLoading] = useState(false)
-    const currentDataDisk = getCurrentAppDataDisk(appTools.Cromwell.appType, apps, appDataDisks, workspaceName)
+    const currentDataDisk = getCurrentAppDataDisk(appTools.CROMWELL.label, apps, appDataDisks, workspaceName)
 
     const createCromwell = _.flow(
       Utils.withBusyState(setLoading),
@@ -35,9 +38,9 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
     )(async () => {
       await Ajax().Apps.app(googleProject, Utils.generateAppName()).create({
         defaultKubernetesRuntimeConfig, diskName: !!currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: defaultDataDiskSize,
-        appType: appTools.Cromwell.appType, namespace, bucketName, workspaceName
+        appType: appTools.CROMWELL.label, namespace, bucketName, workspaceName
       })
-      Ajax().Metrics.captureEvent(Events.applicationCreate, { app: appTools.Cromwell.appType, ...extractWorkspaceDetails(workspace) })
+      Ajax().Metrics.captureEvent(Events.applicationCreate, { app: appTools.CROMWELL.label, ...extractWorkspaceDetails(workspace) })
       return onSuccess()
     })
 

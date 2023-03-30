@@ -5,39 +5,42 @@ import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage'
-import { CloudProviderType, cloudProviderTypes } from 'src/libs/workspace-utils'
+import { App } from 'src/libs/ajax/leonardo/models/app-models'
+import { reportError } from 'src/libs/error'
+import LoadedState from 'src/libs/type-utils/LoadedState'
+import { defaultAzureWorkspace, defaultGoogleWorkspace, galaxyDisk, galaxyRunning, getGoogleRuntime, imageDocs } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
+import { AnalysisFile, getFileFromPath } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 import {
-  AbsolutePath,
-  AnalysisFile,
-  Extension,
-  getDisplayName,
-  getExtension,
-  getFileName,
-  useAnalysisFiles
-} from 'src/pages/workspaces/workspace/analysis/file-utils'
-import { AppTool, getToolLabelFromFileExtension, ToolLabel, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+  AbsolutePath
+} from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
+import { tools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
-import { reportError } from '../../../../../libs/error'
-import { defaultAzureWorkspace, defaultGoogleWorkspace, galaxyDisk, galaxyRunning, getGoogleRuntime, imageDocs } from '../_testData/testData'
 import { AnalysisModal, AnalysisModalProps } from './AnalysisModal'
 
 
+const createFunc = jest.fn()
 const defaultGcpModalProps: AnalysisModalProps = {
   isOpen: true,
   workspace: defaultGoogleWorkspace,
   location: 'US',
   runtimes: [],
-  apps: [] as AppTool[],
+  apps: [] as App[],
   appDataDisks: [],
   persistentDisks: [],
   onDismiss: () => {},
   onError: () => {},
   onSuccess: () => {},
   openUploader: () => {},
-  uploadFiles: () => {},
-  //TODO: Temporary until Analyses.js implements useAnalysisFiles
-  refreshAnalyses: () => {}
+  uploadFiles: files => Promise.resolve(files),
+  analysisFileStore: {
+    refreshFileStore: () => Promise.resolve(),
+    loadedState: { state: [], status: 'Ready' },
+    createAnalysis: createFunc,
+    pendingCreate: { status: 'Ready', state: true },
+    pendingDelete: { status: 'Ready', state: true },
+    deleteAnalysis: () => Promise.resolve()
+  }
 }
 
 const defaultAzureModalProps: AnalysisModalProps = {
@@ -57,39 +60,20 @@ jest.mock('src/libs/notifications', () => ({
   notify: jest.fn()
 }))
 
-jest.mock('src/pages/workspaces/workspace/analysis/file-utils', () => {
-  const originalModule = jest.requireActual('src/pages/workspaces/workspace/analysis/file-utils')
+type FileUtilsExports = typeof import('src/pages/workspaces/workspace/analysis/utils/file-utils')
+jest.mock('src/pages/workspaces/workspace/analysis/utils/file-utils', (): FileUtilsExports => {
+  const originalModule = jest.requireActual('src/pages/workspaces/workspace/analysis/utils/file-utils')
   return {
     ...originalModule,
-    getExtension: jest.fn(),
-    useAnalysisFiles: jest.fn()
+    getExtension: jest.fn()
   }
 })
 
-const createFunc = jest.fn()
-
-const getTestFile = (abs: AbsolutePath, cloudProvider: CloudProviderType = cloudProviderTypes.GCP): AnalysisFile => ({
-  name: abs,
-  ext: '.ipynb' as Extension,
-  displayName: getDisplayName(abs),
-  fileName: getFileName(abs),
-  tool: getToolLabelFromFileExtension(getExtension(abs)) as ToolLabel,
-  lastModified: new Date().getTime(),
-  cloudProvider
-})
 
 type AjaxContract = ReturnType<typeof Ajax>
 
 describe('AnalysisModal', () => {
   beforeEach(() => {
-    // Arrange
-    asMockedFn(useAnalysisFiles).mockImplementation(() => ({
-      refresh: () => Promise.resolve(),
-      loadedState: { state: [], status: 'Ready' },
-      create: createFunc,
-      pendingCreate: { status: 'Ready', state: true }
-    }))
-
     asMockedFn(Ajax).mockImplementation(() => ({
       Buckets: {
         getObjectPreview: () => Promise.resolve({ json: () => Promise.resolve(imageDocs) }),
@@ -356,16 +340,21 @@ describe('AnalysisModal', () => {
 
   it('Attempts to create a file with a name that already exists', async () => {
     // Arrange
-    const fileList = [getTestFile('test/file1.ipynb' as AbsolutePath), getTestFile('test/file2.ipynb' as AbsolutePath)]
-    asMockedFn(useAnalysisFiles).mockImplementation(() => ({
-      loadedState: { state: fileList, status: 'Ready' },
-      refresh: () => Promise.resolve(),
-      create: () => Promise.resolve(),
-      pendingCreate: { status: 'Ready', state: true }
-    }))
+    const fileList = [getFileFromPath('test/file1.ipynb' as AbsolutePath), getFileFromPath('test/file2.ipynb' as AbsolutePath)]
+    const mockFileStore = {
+      loadedState: { state: fileList, status: 'Ready' } as LoadedState<AnalysisFile[]>,
+      refreshFileStore: () => Promise.resolve(),
+      createAnalysis: () => Promise.resolve(),
+      deleteAnalysis: () => Promise.resolve(),
+      pendingCreate: { status: 'Ready', state: true } as LoadedState<true, unknown>,
+      pendingDelete: { status: 'Ready', state: true } as LoadedState<true, unknown>,
+    }
 
     const user = userEvent.setup()
-    render(h(AnalysisModal, defaultGcpModalProps))
+    render(h(AnalysisModal, {
+      ...defaultGcpModalProps,
+      analysisFileStore: mockFileStore
+    }))
 
     // Act
     await act(async () => {
@@ -382,17 +371,22 @@ describe('AnalysisModal', () => {
 
   it('Error on create', async () => {
     // Arrange
-    const fileList = [getTestFile('test/file1.ipynb' as AbsolutePath)]
-    const createMock = jest.fn().mockRejectedValue(new Error('MyTestError'))
-    asMockedFn(useAnalysisFiles).mockImplementation(() => ({
-      loadedState: { state: fileList, status: 'Ready' },
-      refresh: () => Promise.resolve(),
-      create: createMock,
-      pendingCreate: { status: 'Ready', state: true }
-    }))
-
+    const fileList = [getFileFromPath('test/file1.ipynb' as AbsolutePath)]
+    const createAnalysisMock = jest.fn().mockRejectedValue(new Error('MyTestError'))
+    const mockFileStore = {
+      loadedState: { state: fileList, status: 'Ready' } as LoadedState<AnalysisFile[]>,
+      refreshFileStore: () => Promise.resolve(),
+      createAnalysis: createAnalysisMock,
+      deleteAnalysis: () => Promise.resolve(),
+      pendingCreate: { status: 'Ready', state: true } as LoadedState<true, unknown>,
+      pendingDelete: { status: 'Ready', state: true } as LoadedState<true, unknown>,
+    }
     const user = userEvent.setup()
-    render(h(AnalysisModal, defaultGcpModalProps))
+
+    render(h(AnalysisModal, {
+      ...defaultGcpModalProps,
+      analysisFileStore: mockFileStore
+    }))
 
     // Act
     await act(async () => {
@@ -407,7 +401,7 @@ describe('AnalysisModal', () => {
     })
 
     // Assert
-    expect(createMock).toHaveBeenCalled()
+    expect(createAnalysisMock).toHaveBeenCalled()
     expect(reportError).toHaveBeenCalled()
   })
 })

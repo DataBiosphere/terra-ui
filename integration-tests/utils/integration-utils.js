@@ -169,7 +169,12 @@ const fillInReplace = async (page, xpath, text) => {
 }
 
 const select = async (page, labelContains, text) => {
-  await click(page, input({ labelContains }))
+  const inputXpath = input({ labelContains })
+  await click(page, inputXpath)
+  // Some select menus have virtualized lists of options, so the desired option may not be present in
+  // the DOM if the full options list is shown. Search for the desired option to narrow down the list
+  // of options.
+  await fillInReplace(page, inputXpath, text)
   return click(page, `//div[starts-with(@id, "react-select-") and @role="option" and contains(normalize-space(.),"${text}")]`)
 }
 
@@ -395,10 +400,24 @@ const logPageResponses = page => {
     'googleapis',
     'bvdp'
   ]
-  const handle = res => {
-    const request = res.request()
-    if (terraRequests.some(urlPart => request.url().includes(urlPart))) {
-      console.log('page.http', `${request.method()} ${res.status()} ${res.url()}`)
+  const handle = response => {
+    const request = response.request()
+    const url = request.url()
+    const shouldLogRequest = terraRequests.some(urlPart => url.includes(urlPart))
+    if (shouldLogRequest) {
+      const method = request.method()
+      const status = response.status()
+      console.log('page.http', `${method} ${status} ${url}`)
+
+      const isErrorResponse = status >= 400
+      if (isErrorResponse) {
+        const responseIsJSON = response.headers()['content-type'] === 'application/json'
+        response.text().then(content => {
+          console.log('page.http.error', `${method} ${status} ${url}`, responseIsJSON ? JSON.parse(content) : content)
+        }).catch(err => {
+          console.error('page.http.error', 'Unable to get response content', err)
+        })
+      }
     }
   }
   page.on('response', handle)
@@ -451,10 +470,15 @@ const gotoPage = async (page, url) => {
   await waitForNoSpinners(page)
 }
 
-const verifyAccessibility = async page => {
+// To allow existing issues to be worked on while preventing the introduction of others,
+// use allowedViolations with number of known issues.
+const verifyAccessibility = async (page, allowedViolations) => {
   const results = await new AxePuppeteer(page).withTags(['wcag2a', 'wcag2aa']).analyze()
-  if (results.violations.length > 0) {
-    throw new Error(`Accessibility issues found:\n${JSON.stringify(results.violations, null, 2)}`)
+  if (allowedViolations === undefined) {
+    allowedViolations = 0
+  }
+  if (results.violations.length > allowedViolations) {
+    throw new Error(`Unexpected accessibility issues found:\n${JSON.stringify(results.violations, null, 2)}`)
   }
 }
 

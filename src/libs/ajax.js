@@ -2,19 +2,20 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { createContext, useContext } from 'react'
 import {
-  appIdentifier, authOpts, fetchAgora, fetchBond, fetchDataRepo, fetchDockstore,
+  appIdentifier, authOpts, fetchAgora, fetchBond, fetchDataRepo,
   fetchDrsHub,
   fetchEcm, fetchGoogleForms,
   fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, jsonBody
 } from 'src/libs/ajax/ajax-common'
-import { Apps } from 'src/libs/ajax/Apps'
 import { AzureStorage } from 'src/libs/ajax/AzureStorage'
 import { Billing } from 'src/libs/ajax/Billing'
 import { Catalog } from 'src/libs/ajax/Catalog'
-import { Disks } from 'src/libs/ajax/Disks'
+import { Dockstore } from 'src/libs/ajax/Dockstore'
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage'
+import { Apps } from 'src/libs/ajax/leonardo/Apps'
+import { Disks } from 'src/libs/ajax/leonardo/Disks'
+import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes'
 import { Metrics } from 'src/libs/ajax/Metrics'
-import { Runtimes } from 'src/libs/ajax/Runtimes'
 import { SamResources } from 'src/libs/ajax/SamResources'
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService'
 import { WorkspaceManagerResources } from 'src/libs/ajax/WorkspaceManagerResources'
@@ -35,9 +36,6 @@ window.ajaxOverrideUtils = {
   }),
   makeSuccess: body => _wrappedFetch => () => Promise.resolve(new Response(JSON.stringify(body), { status: 200 }))
 }
-
-// %23 = '#', %2F = '/'
-const dockstoreMethodPath = ({ path, isTool }) => `api/ga4gh/v1/tools/${isTool ? '' : '%23workflow%2F'}${encodeURIComponent(path)}/versions`
 
 const getFirstTimeStamp = Utils.memoizeAsync(async token => {
   const res = await fetchRex('firstTimestamps/record', _.mergeAll([authOpts(token), { method: 'POST' }]))
@@ -114,9 +112,22 @@ const User = signal => ({
     }
   },
 
-  getTermsOfServiceDetails: async () => {
+  rejectTos: async () => {
     try {
-      const res = await(fetchSam('register/user/v2/self/termsOfServiceDetails', _.merge(authOpts(), { signal })))
+      const response = await fetchSam(
+        'register/user/v1/termsofservice', _.mergeAll([authOpts(), { signal, method: 'DELETE' }])
+      )
+      return response.json()
+    } catch (error) {
+      if (error.status !== 404) {
+        throw error
+      }
+    }
+  },
+
+  getTermsOfServiceComplianceStatus: async () => {
+    try {
+      const res = await fetchSam('register/user/v2/self/termsOfServiceComplianceStatus', _.merge(authOpts(), { signal }))
       return res.json()
     } catch (error) {
       if (error.status === 404 || error.status === 403) {
@@ -950,21 +961,6 @@ const Submissions = signal => ({
     const res = await fetchRawls('submissions/queueStatus', _.merge(authOpts(), { signal }))
     return res.json()
   }
-})
-
-const Dockstore = signal => ({
-  getWdl: async ({ path, version, isTool }) => {
-    const res = await fetchDockstore(`${dockstoreMethodPath({ path, isTool })}/${encodeURIComponent(version)}/WDL/descriptor`, { signal })
-    const { url } = await res.json()
-    return fetchOk(url, { signal }).then(res => res.text())
-  },
-
-  getVersions: async ({ path, isTool }) => {
-    const res = await fetchDockstore(dockstoreMethodPath({ path, isTool }), { signal })
-    return res.json()
-  },
-
-  listTools: (params = {}) => fetchDockstore(`api/ga4gh/v1/tools?${qs.stringify(params)}`).then(r => r.json())
 })
 
 const shouldUseDrsHub = !!getConfig().shouldUseDrsHub

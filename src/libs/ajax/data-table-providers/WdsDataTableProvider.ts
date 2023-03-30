@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { notifyDataImportProgress } from 'src/components/data/data-utils'
 import { Ajax } from 'src/libs/ajax'
 import {
   AttributeArray,
@@ -11,6 +12,7 @@ import {
   UploadParameters
 } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 import { withErrorReporting } from 'src/libs/error'
+import { notificationStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 // interface definitions for WDS payload responses
@@ -285,6 +287,11 @@ export class WdsDataTableProvider implements DataTableProvider {
 
   uploadTsv = (uploadParams: UploadParameters): Promise<TsvUploadResponse> => {
     if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded')
+    setTimeout(() => {
+      if (notificationStore.get().length === 0 || !notificationStore.get().some((notif: { id: string }) => [uploadParams.recordType, `${uploadParams.recordType}_success`].includes(notif.id))) {
+        notifyDataImportProgress(uploadParams.recordType, 'Your data will show up under Tables once import is complete.')
+      }
+    }, 1000)
     return Ajax().WorkspaceData.uploadTsv(this.proxyUrl, uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
   }
 }

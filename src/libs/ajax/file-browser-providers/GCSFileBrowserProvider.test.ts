@@ -172,7 +172,7 @@ describe('GCSFileBrowserProvider', () => {
     const downloadCommand = await provider.getDownloadCommandForFile('path/to/example.txt')
 
     // Assert
-    expect(downloadCommand).toBe('gsutil cp gs://test-bucket/path/to/example.txt .')
+    expect(downloadCommand).toBe('gsutil cp \'gs://test-bucket/path/to/example.txt\' .')
   })
 
   it('uploads a file', async () => {

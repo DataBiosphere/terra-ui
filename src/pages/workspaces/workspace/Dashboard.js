@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
-import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { dd, div, dl, dt, h, h3, i, span, strong } from 'react-hyperscript-helpers'
+import { Fragment, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
+import { dd, div, dl, dt, h, h3, i, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper } from 'src/components/bucket-utils'
 import { ClipboardButton } from 'src/components/ClipboardButton'
@@ -23,17 +23,17 @@ import { getRegionFlag, getRegionLabel } from 'src/libs/azure-utils'
 import { getEnabledBrand } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
-import Events from 'src/libs/events'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { authStore, contactUsActive, requesterPaysProjectStore } from 'src/libs/state'
+import { authStore, requesterPaysProjectStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import SignIn from 'src/pages/SignIn'
 import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic'
-import { isV1Artifact, wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 const styles = {
@@ -129,71 +129,7 @@ const RightBoxSection = ({ title, info, initialOpenState, afterTitle, onClick, c
   ])
 }
 
-export const V1WorkspaceNotification = ({ showIcon, showLinks, id }) => {
-  return div({
-    style: {
-      ...Style.dashboard.rightBoxContainer,
-      display: 'flex', alignItems: 'flex-start',
-      id,
-      padding: '1rem',
-      border: '1px solid',
-      borderColor: colors.warning(),
-      backgroundColor: colors.warning(0.10)
-    }
-  }, [
-    !!showIcon &&
-    icon('warning-standard',
-      { style: { color: colors.warning(), height: '1.5rem', width: '1.5rem', marginRight: '0.5rem', marginTop: '0.25rem' } }),
-    div([
-      span(['Terra will no longer support this workspace after ', strong(['January 31, 2023']), '.']),
-      div({ style: { paddingTop: '1rem' } }, !!showLinks ?
-        [
-          'If you wish to keep this workspace, please ',
-          h(Link, {
-            href: 'https://support.terra.bio/hc/en-us/articles/360047679911',
-            style: { wordBreak: 'break-word' }, ...Utils.newTabLinkProps
-          }, [
-            'reattach a valid Google Billing Account'
-          ]),
-          ' to the billing project belonging to this workspace and contact ',
-          h(Link, {
-            style: { wordBreak: 'break-word' },
-            onClick: () => {
-              Ajax().Metrics.captureEvent(Events.billingCreationContactTerraSupport)
-              contactUsActive.set(true)
-            }
-          }, ['Terra support']),
-          ' to migrate your workspace.'
-        ] :
-        ['If you wish to keep this workspace, please reattach a valid Google Billing Account to the billing project belonging to this workspace and contact Terra support to migrate your workspace.'])
-    ])
-  ])
-}
-
-export const UnboundDiskNotification = props => {
-  return div({
-    ...props,
-    style: {
-      ...Style.dashboard.rightBoxContainer,
-      padding: '1rem',
-      border: '1px solid',
-      borderColor: colors.accent(),
-      marginTop: '1rem',
-      ...props?.style
-    }
-  }, [
-    strong(['Persistent disks can no longer be shared between workspaces. ']),
-    h(Link, { href: Nav.getLink('environments'), style: { wordBreak: 'break-word' } }, [
-      'Review your shared disks and choose where each should go'
-    ]),
-    '.',
-    div({ style: { paddingTop: '1rem' } }, [
-      'On December 31st 2022, all un-migrated shared disks will be deleted.'
-    ])
-  ])
-}
-
-const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace }) => {
+export const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace, storageDetails }) => {
   console.assert(!!workspace && isGoogleWorkspace(workspace), 'BucketLocation expects a Google workspace')
   const [loading, setLoading] = useState(true)
   const [{ location, locationType }, setBucketLocation] = useState({ location: undefined, locationType: undefined })
@@ -201,7 +137,7 @@ const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace 
   const [showRequesterPaysModal, setShowRequesterPaysModal] = useState(false)
 
   const signal = useCancellation()
-  const loadBucketLocation = useCallback(async () => {
+  const loadGoogleBucketLocation = useCallback(async () => {
     setLoading(true)
     try {
       const { namespace, name, workspace: { googleProject, bucketName } } = workspace
@@ -219,8 +155,22 @@ const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace 
   }, [workspace, signal])
 
   useEffect(() => {
-    loadBucketLocation()
-  }, [loadBucketLocation])
+    if (workspace?.workspaceInitialized) {
+      if (storageDetails.fetchedGoogleBucketLocation === 'ERROR') {
+        // storageDetails.fetchedGoogleBucketLocation stores if an error was encountered from the server,
+        // while storageDetails.googleBucketLocation will contain the default value.
+        // In the case of requester pays workspaces, we wish to show the user more information in this case and allow them to link a workspace.
+        loadGoogleBucketLocation()
+      } else if (storageDetails.fetchedGoogleBucketLocation === 'SUCCESS') {
+        setBucketLocation({ location: storageDetails.googleBucketLocation, locationType: storageDetails.googleBucketType })
+        setLoading(false)
+      }
+    }
+  }, [
+    loadGoogleBucketLocation, setBucketLocation,
+    // Explicit dependencies to avoid extra calls to loadGoogleBucketLocation
+    workspace?.workspaceInitialized, storageDetails.fetchedGoogleBucketLocation, storageDetails.googleBucketLocation, storageDetails.googleBucketType
+  ])
 
   if (loading) {
     return 'Loading'
@@ -240,7 +190,7 @@ const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace 
         onSuccess: selectedGoogleProject => {
           requesterPaysProjectStore.set(selectedGoogleProject)
           setShowRequesterPaysModal(false)
-          loadBucketLocation()
+          loadGoogleBucketLocation()
         }
       })
     ])
@@ -300,13 +250,13 @@ const WorkspaceDashboard = _.flow(
 )(({
   namespace, name,
   refreshWorkspace,
-  analysesData,
+  storageDetails,
   workspace, workspace: {
     accessLevel,
     azureContext,
     owners,
     workspace: {
-      authorizationDomain, createdDate, lastModified, bucketName, googleProject, workspaceId,
+      authorizationDomain, createdDate, lastModified, bucketName, googleProject,
       attributes, attributes: { description = '' }
     }
   }
@@ -315,9 +265,6 @@ const WorkspaceDashboard = _.flow(
   const [submissionsCount, setSubmissionsCount] = useState(undefined)
   const [storageCost, setStorageCost] = useState(undefined)
   const [bucketSize, setBucketSize] = useState(undefined)
-  /* eslint-disable @typescript-eslint/no-unused-vars */
-  const [{ storageContainerUrl, storageLocation, sas: { url } }, setAzureStorage] = useState(
-    { storageContainerUrl: undefined, storageLocation: undefined, sas: {} })
   const [editDescription, setEditDescription] = useState(undefined)
   const [saving, setSaving] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -328,7 +275,6 @@ const WorkspaceDashboard = _.flow(
   const persistenceId = `workspaces/${namespace}/${name}/dashboard`
 
   const signal = useCancellation()
-  const interval = useRef()
 
   const refresh = () => {
     loadSubmissionCount()
@@ -340,42 +286,45 @@ const WorkspaceDashboard = _.flow(
       loadAcl()
     }
 
-    if (isGoogleWorkspace(workspace)) {
+    updateGoogleBucketDetails(workspace)
+  }
+
+  const loadStorageCost = useMemo(() => withErrorReporting('Error loading storage cost data', async () => {
+    try {
+      const { estimate, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).storageCostEstimate()
+      setStorageCost({ isSuccess: true, estimate, lastUpdated })
+    } catch (error) {
+      if (error.status === 404) {
+        setStorageCost({ isSuccess: false, estimate: 'Not available' })
+      } else {
+        throw error
+      }
+    }
+  }), [namespace, name, signal])
+
+  const loadBucketSize = useMemo(() => withErrorReporting('Error loading bucket size.', async () => {
+    try {
+      const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
+      setBucketSize({ isSuccess: true, usage: Utils.formatBytes(usageInBytes), lastUpdated })
+    } catch (error) {
+      if (error.status === 404) {
+        setBucketSize({ isSuccess: false, usage: 'Not available' })
+      } else {
+        throw error
+      }
+    }
+  }), [namespace, name, signal])
+
+  const updateGoogleBucketDetails = useCallback(workspace => {
+    if (isGoogleWorkspace(workspace) && workspace.workspaceInitialized && Utils.canWrite(accessLevel)) {
       loadStorageCost()
       loadBucketSize()
     }
-    if (isAzureWorkspace(workspace)) {
-      loadAzureStorage()
-    }
-  }
-
-  const loadAzureStorage = useCallback(async () => {
-    try {
-      const { location, sas } = await Ajax(signal).AzureStorage.details(workspaceId)
-      setAzureStorage({ storageContainerUrl: _.head(_.split('?', sas.url)), storageLocation: location, sas })
-    } catch (error) {
-      // We expect to get a transient error while the workspace is cloning. We will improve
-      // the handling of this with WOR-534 so that we correctly differentiate between the
-      // expected transient error and a workspace that is truly missing a storage container.
-      console.log(`Error thrown by AzureStorage.details: ${error}`) // eslint-disable-line no-console
-    }
-  }, [workspaceId, signal])
+  }, [accessLevel, loadStorageCost, loadBucketSize])
 
   useEffect(() => {
-    if (isAzureWorkspace(workspace)) {
-      if (!storageContainerUrl && !interval.current) {
-        interval.current = setInterval(loadAzureStorage, 5000)
-      } else if (!!storageContainerUrl && interval.current) {
-        clearInterval(interval.current)
-        interval.current = undefined
-      }
-    }
-
-    return () => {
-      clearInterval(interval.current)
-      interval.current = undefined
-    }
-  }, [loadAzureStorage, workspace, storageContainerUrl])
+    updateGoogleBucketDetails(workspace)
+  }, [workspace, updateGoogleBucketDetails])
 
   useImperativeHandle(ref, () => ({ refresh }))
 
@@ -395,36 +344,6 @@ const WorkspaceDashboard = _.flow(
   const loadSubmissionCount = withErrorReporting('Error loading submission count data', async () => {
     const submissions = await Ajax(signal).Workspaces.workspace(namespace, name).listSubmissions()
     setSubmissionsCount(submissions.length)
-  })
-
-  const loadStorageCost = withErrorReporting('Error loading storage cost data', async () => {
-    if (Utils.canWrite(accessLevel)) {
-      try {
-        const { estimate, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).storageCostEstimate()
-        setStorageCost({ isSuccess: true, estimate, lastUpdated })
-      } catch (error) {
-        if (error.status === 404) {
-          setStorageCost({ isSuccess: false, estimate: 'Not available' })
-        } else {
-          throw error
-        }
-      }
-    }
-  })
-
-  const loadBucketSize = withErrorReporting('Error loading bucket size.', async () => {
-    if (Utils.canWrite(accessLevel)) {
-      try {
-        const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
-        setBucketSize({ isSuccess: true, usage: Utils.formatBytes(usageInBytes), lastUpdated })
-      } catch (error) {
-        if (error.status === 404) {
-          setBucketSize({ isSuccess: false, usage: 'Not available' })
-        } else {
-          throw error
-        }
-      }
-    }
   })
 
   const loadConsent = withErrorReporting('Error loading data', async () => {
@@ -508,7 +427,7 @@ const WorkspaceDashboard = _.flow(
         h(InfoRow, { title: 'Cloud Name' }, [
           h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16 } })
         ]),
-        h(InfoRow, { title: 'Location' }, [h(BucketLocation, { workspace })]),
+        h(InfoRow, { title: 'Location' }, [h(BucketLocation, { workspace, storageDetails })]),
         h(InfoRow, { title: 'Google Project ID' }, [
           h(TooltipCell, [googleProject]),
           h(ClipboardButton, { 'aria-label': 'Copy google project id to clipboard', text: googleProject, style: { marginLeft: '0.25rem' } })
@@ -536,7 +455,7 @@ const WorkspaceDashboard = _.flow(
           h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } })
         ]),
         h(InfoRow, { title: 'Location' }, [
-          h(TooltipCell, !!storageLocation ? [getRegionFlag(storageLocation), ' ', getRegionLabel(storageLocation)] : ['Loading'])
+          h(TooltipCell, !!storageDetails.azureContainerRegion ? [getRegionFlag(storageDetails.azureContainerRegion), ' ', getRegionLabel(storageDetails.azureContainerRegion)] : ['Loading'])
         ]),
         h(InfoRow, { title: 'Resource Group ID' }, [
           h(TooltipCell, [azureContext.managedResourceGroupId]),
@@ -544,17 +463,17 @@ const WorkspaceDashboard = _.flow(
             { 'aria-label': 'Copy resource group id to clipboard', text: azureContext.managedResourceGroupId, style: { marginLeft: '0.25rem' } })
         ]),
         h(InfoRow, { title: 'Storage Container URL' }, [
-          h(TooltipCell, [!!storageContainerUrl ? storageContainerUrl : 'Loading']),
+          h(TooltipCell, [!!storageDetails.azureContainerUrl ? storageDetails.azureContainerUrl : 'Loading']),
           h(ClipboardButton, {
             'aria-label': 'Copy storage container URL to clipboard',
-            text: storageContainerUrl, style: { marginLeft: '0.25rem' }
+            text: storageDetails.azureContainerUrl, style: { marginLeft: '0.25rem' }
           })
         ]),
         h(InfoRow, { title: 'Storage SAS URL' }, [
-          h(TooltipCell, [!!url ? url : 'Loading']),
+          h(TooltipCell, [!!storageDetails.azureContainerSasUrl ? storageDetails.azureContainerSasUrl : 'Loading']),
           h(ClipboardButton, {
             'aria-label': 'Copy SAS URL to clipboard',
-            text: url, style: { marginLeft: '0.25rem' }
+            text: storageDetails.azureContainerSasUrl, style: { marginLeft: '0.25rem' }
           })
         ])
       ]),
@@ -562,12 +481,22 @@ const WorkspaceDashboard = _.flow(
         div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
           style: { margin: '1rem 0.5rem' },
           ...Utils.newTabLinkProps,
-          href: bucketBrowserUrl(bucketName)
+          onClick: () => {
+            Ajax().Metrics.captureEvent(Events.workspaceOpenedBucketInBrowser, {
+              ...extractWorkspaceDetails(workspace)
+            })
+          },
+          href: bucketBrowserUrl(bucketName),
         }, ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
         )]),
         div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
           style: { margin: '1rem 0.5rem' },
           ...Utils.newTabLinkProps,
+          onClick: () => {
+            Ajax().Metrics.captureEvent(Events.workspaceOpenedProjectInConsole, {
+              ...extractWorkspaceDetails(workspace)
+            })
+          },
           href: `https://console.cloud.google.com/welcome?project=${googleProject}`
         }, ['Open project in Google Cloud Console', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
         )])
@@ -642,8 +571,6 @@ const WorkspaceDashboard = _.flow(
       ])
     ]),
     div({ style: Style.dashboard.rightBox }, [
-      workspace.workspace.workspaceVersion === 'v1' && h(V1WorkspaceNotification, { showIcon: true, showLinks: true }),
-      _.some(isV1Artifact(workspace.workspace), analysesData?.persistentDisks) && h(UnboundDiskNotification),
       h(RightBoxSection, {
         title: 'Workspace information',
         initialOpenState: workspaceInfoPanelOpen !== undefined ? workspaceInfoPanelOpen : true,

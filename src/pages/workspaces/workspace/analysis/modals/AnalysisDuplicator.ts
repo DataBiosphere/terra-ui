@@ -11,18 +11,19 @@ import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { isGoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils'
+import { analysisLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
+import { useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 import {
   DisplayName,
   FileName, getDisplayName,
   getExtension,
-  getFileName, useAnalysisFiles
-} from 'src/pages/workspaces/workspace/analysis/file-utils'
+  getFileName
+} from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
 import {
   analysisNameInput,
   analysisNameValidator
-} from 'src/pages/workspaces/workspace/analysis/notebook-utils'
-import { analysisLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
-import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+} from 'src/pages/workspaces/workspace/analysis/utils/notebook-utils'
+import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import validate from 'validate.js'
 
 

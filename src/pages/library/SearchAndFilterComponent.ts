@@ -291,12 +291,20 @@ const FilterSectionComponent = <ListItem>({ section, fullList, selectedSections,
   const itemsFilteredByOtherSections = getMatchingDataForSectionList(selectedSectionsWithoutSection, fullList)
   // We want to filter out values for which there are no entries. This is only really important for values that are not derived from
   // the list data itself, like dataset access levels. However, because we don't differentiate between types of filters, we need to test all of them
-  const valuesToShow = _.filter(sectionEntry => _.size(listItemsMatchForSectionEntry(sectionEntry, section.matchBy, fullList)) > 0, section.values)
+  const labelsWithEntries = _.filter(sectionEntry => _.size(listItemsMatchForSectionEntry(sectionEntry, section.matchBy, fullList)) > 0, section.values)
+  const selectedLabels = _.filter(sectionEntry => sectionEntrySelected(section, sectionEntry, selectedSections), section.values)
+  // The shown labels are the first N labels that have any catalog entries, with any selected labels added at the end,
+  // if they aren't one of the first N labels.
+  const shownLabels = _.flow(
+    _.intersection(labelsWithEntries),
+    _.concat(_.take(numLabelsToRender, labelsWithEntries)),
+    _.uniq
+  )(selectedLabels)
 
   return h(Fragment, [
-    _.map(sectionEntry => {
+    _.map((sectionEntry : string) => {
       const numMatches = listItemsMatchForSectionEntry(sectionEntry, section.matchBy, itemsFilteredByOtherSections).length
-      const sectionEntryChecked = sectionEntrySelected(section, sectionEntry, selectedSections)
+      const sectionEntryChecked = _.includes(sectionEntry, selectedLabels)
       return h(Clickable, {
         'aria-checked': sectionEntryChecked,
         role: 'checkbox',
@@ -310,8 +318,9 @@ const FilterSectionComponent = <ListItem>({ section, fullList, selectedSections,
         div({ style: { lineHeight: '1.375rem', flex: 1 } }, [section.renderer ? section.renderer(sectionEntry) : sectionEntry]),
         div({ style: styles.pill(sectionEntryChecked) }, [numMatches, div({ className: 'sr-only' }, [' matches'])])
       ])
-    }, valuesToShow),
-    _.size(valuesToShow) > numLabelsToRender && h(Link, {
+    }, shownLabels),
+    // "See more" is shown if the shown labels aren't the same as all the possible labels.
+    _.size(shownLabels) !== _.size(labelsWithEntries) && h(Link, {
       style: { display: 'block', textAlign: 'center' },
       onClick: () => { setShowAll(!showAll) }
     }, ['See more']),
@@ -358,6 +367,8 @@ export interface Sort {
   direction: SortDirection
 }
 
+const SortSelect = Select as typeof Select<Sort>
+
 export interface SearchAndFilterProps<ListItem> {
   fullList: ListItem[]
   sidebarSections: FilterSection<ListItem>[]
@@ -381,7 +392,7 @@ export const SearchAndFilterComponent = <ListItem>({
     const selectedSection = _.find(s => s.header === section.header, sidebarSections) || {}
     return { ...selectedSection, ...section } as FilterSection<ListItem>
   }, querySections)
-  const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
+  const [sort, setSort] = useState<Sort>({ field: 'created', direction: 'desc' })
   const filterRegex = new RegExp(`(${_.escapeRegExp(searchFilter)})`, 'i')
   const listItemsShown = _.filter(item => _.includes(_.toLower(searchFilter), `${getLowerName(item)} ${getLowerDescription(item)}`), getMatchingDataForSectionList(selectedSections, fullList))
   const searchBarId = useUniqueId()
@@ -483,13 +494,13 @@ export const SearchAndFilterComponent = <ListItem>({
             htmlFor: id,
             style: { margin: '0 1ch 0 1rem', whiteSpace: 'nowrap' }
           }, ['Sort by']),
-          h(Select, {
+          h(SortSelect, {
             id,
             isClearable: false,
             isSearchable: false,
             styles: { container: old => ({ ...old, flex: '0 0 content' }) },
             value: sort,
-            onChange: ({ value }) => setSort(value),
+            onChange: opt => setSort(opt!.value),
             options: [
               { value: { field: 'created', direction: 'desc' }, label: 'most recent' },
               { value: { field: 'name', direction: 'asc' }, label: 'alphabetical' }

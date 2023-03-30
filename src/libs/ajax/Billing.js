@@ -26,10 +26,16 @@ export const Billing = signal => ({
     )
   },
 
-  createAzureProject: async (projectName, tenantId, subscriptionId, managedResourceGroupId) => {
+  createAzureProject: async (projectName, tenantId, subscriptionId, managedResourceGroupId, members) => {
+    // members: an array of {email: string, role: string}
     return await fetchRawls('billing/v2',
       _.mergeAll([authOpts(), jsonBody(
-        { projectName, managedAppCoordinates: { tenantId, subscriptionId, managedResourceGroupId } }
+        {
+          projectName,
+          members,
+          managedAppCoordinates: { tenantId, subscriptionId, managedResourceGroupId },
+          inviteUsersNotFound: true
+        }
       ),
       { signal, method: 'POST' }])
     )
@@ -72,11 +78,12 @@ export const Billing = signal => ({
    * @param billingProjectName
    * @param startDate, a string of the format YYYY-MM-DD, representing the start date of the report.
    * @param endDate a string of the format YYYY-MM-DD, representing the end date of the report.
+   * @param aggregationKeys a list of strings indicating how to aggregate spend data. subAggregation can be requested by separating keys with '~' e.g. 'Workspace~Category'
    * @returns {Promise<*>}
    */
-  getSpendReport: async ({ billingProjectName, startDate, endDate }) => {
+  getSpendReport: async ({ billingProjectName, startDate, endDate, aggregationKeys }) => {
     const res = await fetchRawls(
-      `billing/v2/${billingProjectName}/spendReport?${qs.stringify({ startDate, endDate, aggregationKey: 'Workspace~Category' })}&${qs.stringify({ aggregationKey: 'Category' })}`,
+      `billing/v2/${billingProjectName}/spendReport?${qs.stringify({ startDate, endDate, aggregationKey: aggregationKeys }, { arrayFormat: 'repeat' })}`,
       _.merge(authOpts(), { signal })
     )
     return res.json()
@@ -87,13 +94,16 @@ export const Billing = signal => ({
     return res.json()
   },
 
-  addProjectUser: (projectName, roles, email) => {
-    const addRole = role => fetchRawls(
-      `billing/v2/${projectName}/members/${role}/${encodeURIComponent(email)}`,
-      _.merge(authOpts(), { signal, method: 'PUT' })
+  addProjectUser: async (projectName, roles, email) => {
+    // Build an array of {email: string, role: string}
+    let userRoles = []
+    roles.forEach(role => {
+      userRoles = _.concat(userRoles, [{ email, role }])
+    })
+    return await fetchRawls(`billing/v2/${projectName}/members?inviteUsersNotFound=true`,
+      _.mergeAll([authOpts(), jsonBody({ membersToAdd: userRoles, membersToRemove: [] }),
+        { signal, method: 'PATCH' }])
     )
-
-    return Promise.all(_.map(addRole, roles))
   },
 
   removeProjectUser: (projectName, roles, email) => {

@@ -10,7 +10,7 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import {
   collapseCromwellStatus, collapseStatus, makeSection, makeStatusLine, statusType, workflowDetailsBreadcrumbSubtitle
 } from 'src/components/job-common'
-import UriViewer from 'src/components/UriViewer'
+import { UriViewer } from 'src/components/UriViewer/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'

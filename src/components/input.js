@@ -194,16 +194,25 @@ export const NumberInput = forwardRefWithName('NumberInput', ({ onChange, onBlur
  * @param {object} [props.error] - error message content
  */
 export const ValidatedInput = ({ inputProps, width, error }) => {
+  return createValidatedInput({ inputProps, width, error }, null)
+}
+
+export const ValidatedInputWithRef = forwardRefWithName('ValidatedInput', ({ inputProps, width, error }, ref) => {
+  return createValidatedInput({ inputProps, width, error }, ref)
+})
+
+const createValidatedInput = ({ inputProps, width, error }, ref) => {
+  const props = _.merge({
+    style: error ? {
+      paddingRight: '2.25rem', // leave room for error icon
+      border: `1px solid ${colors.danger()}`
+    } : undefined
+  }, inputProps)
   return h(Fragment, [
     div({
       style: { position: 'relative', display: 'flex', alignItems: 'center', width }
     }, [
-      h(TextInput, _.merge({
-        style: error ? {
-          paddingRight: '2.25rem', // leave room for error icon
-          border: `1px solid ${colors.danger()}`
-        } : undefined
-      }, inputProps)),
+      h(TextInput, { ...props, ref }),
       error && icon('error-standard', {
         size: 24,
         style: {

@@ -19,7 +19,7 @@ import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { cloudProviderLabels, isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
-import { cloudProviders, defaultLocation } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { cloudProviders, defaultLocation } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import validate from 'validate.js'
 
 
@@ -367,7 +367,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
             h(Link, {
               href: 'https://support.terra.bio/hc/en-us/articles/12029087819291',
               ...Utils.newTabLinkProps
-            }, ['Learn more and follow changes.'])])
+            }, ['Learn more and follow changes', icon('pop-out', { size: 14, style: { marginLeft: '0.25rem' } })])])
         ]
       ),
       createError && div({

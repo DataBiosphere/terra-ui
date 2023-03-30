@@ -4,6 +4,7 @@ import { centeredSpinner } from 'src/components/icons'
 
 const makeBaseSpinner = ({ outerStyles = {}, innerStyles = {} }) => div(
   {
+    'data-testid': 'loading-spinner',
     style: {
       position: 'absolute',
       display: 'flex', alignItems: 'center',
@@ -29,3 +30,5 @@ export const fixedSpinnerOverlay = makeBaseSpinner({ innerStyles: { position: 'f
 export const transparentSpinnerOverlay = makeBaseSpinner({ innerStyles: { backgroundColor: 'rgba(255, 255, 255, 0.0)' } })
 
 export const topSpinnerOverlay = makeBaseSpinner({ innerStyles: { marginTop: 150 } })
+
+export const customSpinnerOverlay = (outerStyles = {}, innerStyles = {}) => makeBaseSpinner({ outerStyles, innerStyles })

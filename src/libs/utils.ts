@@ -10,22 +10,37 @@ import { v4 as uuid } from 'uuid'
 import { getCloudProviderFromWorkspace } from './workspace-utils'
 
 
-// TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
-export const subscribable = () => {
-  let subscribers = []
+export interface Subscribable<T extends any[]> {
+  subscribe: (fn: (...args: T) => void) => { unsubscribe: () => void }
+  next: (...args: T) => void
+}
+
+/**
+ * A mechanism for registering callbacks for some state change.
+ */
+export const subscribable = <T extends any[]>(): Subscribable<T> => {
+  let subscribers: ((...args: T) => void)[] = []
   return {
-    subscribe: fn => {
-      subscribers = append(fn, subscribers) as any
+    subscribe: (fn: (...args: T) => void) => {
+      subscribers = append(fn, subscribers)
       return {
         unsubscribe: () => {
-          subscribers = _.without([fn], subscribers) as any
+          subscribers = _.without([fn], subscribers)
         }
       }
     },
-    next: (...args) => {
-      _.forEach(fn => (fn as any)(...args), subscribers)
+    next: (...args: T) => {
+      _.forEach(fn => fn(...args), subscribers)
     }
   }
+}
+
+export interface Atom<T> {
+  subscribe: (fn: (value: T, previousValue: T) => void) => { unsubscribe: () => void }
+  get: () => T
+  set: (value: T) => void
+  update: (fn: (currentValue: T) => T) => void
+  reset: () => void
 }
 
 /**
@@ -33,11 +48,11 @@ export const subscribable = () => {
  * to lodash and Immutable. (deref => get, reset! => set, swap! => update, reset to go back to initial value)
  * Implements the Store interface
  */
-export const atom = initialValue => {
+export const atom = <T = any>(initialValue: T): Atom<T> => {
   let value = initialValue
-  const { subscribe, next } = subscribable()
+  const { subscribe, next } = subscribable<[T, T]>()
   const get = () => value
-  const set = newValue => {
+  const set = (newValue: T) => {
     const oldValue = value
     value = newValue
     next(newValue, oldValue)
@@ -90,9 +105,9 @@ export const formatNumber = new Intl.NumberFormat('en-US').format
 
 export const workspaceAccessLevels = ['NO ACCESS', 'READER', 'WRITER', 'OWNER', 'PROJECT_OWNER']
 
-export const hasAccessLevel = _.curry((required, current) => {
+export const hasAccessLevel = (required: string, current: string): boolean => {
   return workspaceAccessLevels.indexOf(current) >= workspaceAccessLevels.indexOf(required)
-})
+}
 
 export const canWrite = accessLevel => hasAccessLevel('WRITER', accessLevel)
 export const canRead = accessLevel => hasAccessLevel('READER', accessLevel)
@@ -215,9 +230,9 @@ export const computeWorkspaceError = ({ canCompute, workspace: { isLocked } }) =
   )
 }
 
-export const textMatch = _.curry((needle, haystack) => {
+export const textMatch = safeCurry((needle: string, haystack: string): boolean => {
   return haystack.toLowerCase().includes(needle.toLowerCase())
-})
+}) as ((needle: string, haystack: string) => boolean)
 
 export const nextSort = ({ field, direction }, newField) => {
   return newField === field ?
@@ -397,13 +412,13 @@ export const truncateInteger = integer => {
 
 /**
  * Polls using a given function until the pollUntil function returns true.
- * @param {() => { result: A, shouldContinue: boolean }} pollFn - The function to poll using
- * @param {number} pollTime - How much time there should be in ms between calls of the pollFn
- * @param {boolean} leading - Whether the function should wait {pollTime} ms before running for the first time
-
- * @returns {A} - The response of pollFn
+ * @param pollFn - The function to poll using
+ * @param pollTime - How much time there should be in ms between calls of the pollFn
+ * @param leading - Whether the function should wait {pollTime} ms before running for the first time
+ *
+ * @returns - The result from pollFn's return value once pollFn returns shouldContinue false
  */
-export const poll = async (pollFn, pollTime, leading = true) => {
+export const poll = async <T>(pollFn: () => Promise<{ result: T; shouldContinue: boolean }>, pollTime: number, leading: boolean = true): Promise<T> => {
   do {
     leading || await delay(pollTime)
     const r = await pollFn()
@@ -412,7 +427,7 @@ export const poll = async (pollFn, pollTime, leading = true) => {
   } while (true)
 }
 
-export const pollWithCancellation = (pollFn, pollTime, leading, signal) => {
+export const pollWithCancellation = (pollFn: () => Promise<any>, pollTime: number, leading: boolean, signal: AbortSignal): void => {
   poll(async () => {
     return { result: !signal.aborted && await pollFn(), shouldContinue: !signal.aborted }
   }, pollTime, leading)

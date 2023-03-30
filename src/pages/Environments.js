@@ -1,36 +1,38 @@
-import { differenceInDays } from 'date-fns'
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h, h2, p, span, strong } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
+import { Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import PopupTrigger, { makeMenuIcon } from 'src/components/PopupTrigger'
 import SupportRequestWrapper from 'src/components/SupportRequest'
-import { FlexTable, HeaderCell, SimpleFlexTable, Sortable, TextCell } from 'src/components/table'
+import { SimpleFlexTable, Sortable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { useWorkspaces } from 'src/components/workspace-utils'
 import { useReplaceableAjaxExperimental } from 'src/libs/ajax'
+import { isApp } from 'src/libs/ajax/leonardo/models/app-models'
 import colors from 'src/libs/colors'
-import { reportErrorAndRethrow, withErrorHandling, withErrorIgnoring, withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
+import { withErrorIgnoring, withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useGetter } from 'src/libs/react-utils'
 import { contactUsActive, getUser } from 'src/libs/state'
 import * as Style from 'src/libs/style'
-import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common'
-import {
-  defaultComputeZone, getAppCost, getComputeStatusForDisplay, getCreatorForRuntime, getDiskAppType, getGalaxyComputeCost,
-  getPersistentDiskCostMonthly,
-  getRegionFromZone, getRuntimeCost, isApp, isComputePausable, isGcpContext, isResourceDeletable, mapToPdTypes,
-  workspaceHasMultipleDisks
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
-import { appTools, getToolLabelFromRuntime, isPauseSupported } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getDiskAppType } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
+import {
+  getAppCost, getGalaxyComputeCost, getPersistentDiskCostMonthly, getRuntimeCost
+} from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
+import { mapToPdTypes, workspaceHasMultipleDisks } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import { isComputePausable, isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/utils/resource-utils'
+import {
+  defaultComputeZone, getComputeStatusForDisplay, getCreatorForRuntime, getRegionFromZone, isGcpContext
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { appTools, getToolLabelFromRuntime, isPauseSupported } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 const DeleteRuntimeModal = ({
@@ -78,8 +80,7 @@ const DeleteRuntimeModal = ({
         'Deleting your cloud environment will stop all running notebooks and associated costs. You can recreate your cloud environment later, ',
         'which will take several minutes.'
       ]),
-      !isGcpContext(cloudContext) ? h(SaveFilesHelpAzure) : h(SaveFilesHelp),
-
+      !isGcpContext(cloudContext) ? h(SaveFilesHelpAzure) : h(SaveFilesHelp)
     ]),
     deleting && spinnerOverlay
   ])
@@ -137,166 +138,49 @@ const DeleteAppModal = ({ app: { appName, diskName, appType, cloudContext: { clo
         p([
           'Deleting this cloud environment will also ', span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk.'])
         ]),
-      appType === appTools.Galaxy.appType && h(SaveFilesHelpGalaxy)
+      appType === appTools.GALAXY.label && h(SaveFilesHelpGalaxy)
     ]),
     deleting && spinnerOverlay
   ])
 }
 
-const MigratePersistentDisksBanner = ({ count }) => {
-  const deadline = new Date('2023-01-01T00:00:00.000Z')
-  return div({
-    style: {
-      position: 'absolute', top: topBarHeight, left: '50%', transform: 'translate(-50%, -50%)',
-      backgroundColor: colors.warning(0.15),
-      border: '2px solid', borderRadius: '12px', borderColor: colors.warning(),
-      zIndex: 2 // Draw over top bar but behind contact support dialog
-    }
-  }, [
-    div({ style: { display: 'flex', alignItems: 'center', margin: '0.75rem 1.5rem 0.75rem 1.5rem' } }, [
-      icon('warning-standard', { size: 32, style: { color: colors.warning(), marginRight: '0.25rem' } }),
-      div([
-        strong([
-          `You have ${differenceInDays(deadline, Date.now())} days to migrate ${count} shared persistent `,
-          `${count > 1 ? 'disks' : 'disk'}. `
-        ]),
-        `Un-migrated disks will be DELETED after ${Utils.makeCompleteDate(deadline)}.`
-      ])
-    ])
-  ])
-}
-
-const MigratePersistentDiskCell = ({ onClick }) => div({
+// These are for calling attention to resources that are most likely linked to GCP v1 workspaces.
+// Rawls will no longer return v1 workspaces, but Leo does not have a way to filter out disks/cloud environments related to them.
+const unsupportedDiskMessage = 'This disk is not associated with a supported workspace. It is recommended that you delete it to avoid additional cloud costs.'
+const unsupportedCloudEnvironmentMessage = 'This cloud environment is not associated with a supported workspace. It is recommended that you delete it to avoid additional cloud costs.'
+const UnsupportedWorkspaceCell = ({ status, message }) => div({
   style: {
-    display: 'flex', flex: 1, flexDirection: 'column', textAlign: 'center',
-    height: '100%', margin: '-1rem', padding: '0.5rem 0 0 0',
-    backgroundColor: colors.danger(0.15), color: colors.danger()
+    display: 'flex', flex: 1, flexDirection: 'column',
+    // margin/padding set to force the background color to fill the entire cell. SimpleFlexTable does
+    // not provide a way to override the styling at the cell level.
+    height: '100%', margin: '-1rem', paddingLeft: '1rem',
+    backgroundColor: colors.danger(0.15), justifyContent: 'center'
   }
 }, [
-  h(TooltipTrigger, { content: 'This disk is shared between workspaces, which is no longer supported. Click "Migrate" to make copies for relevant workspaces.' }, [
-    div(['Offline', icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } })])
-  ]),
-  h(Link, { onClick, style: { wordBreak: 'break-word' } }, ['Migrate'])
+  h(TooltipTrigger, { content: message }, [
+    div([
+      `${status}`,
+      icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() }, 'aria-label': message })
+    ])
+  ])
 ])
 
-const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, onContactSupport, onDeleteDisk }) => {
-  // show a spinner when we're copying the disk to another workspace
-  const [migrating, setMigrating] = useState()
-  // workspaceId -> boolean indicating if we should copy the disk to the workspace
-  const [isWorkspaceSelected, setIsWorkspaceSelected] = useState({})
-  // users can choose to delete their disk instead of coping via a checkbox. Mutually exclusive with `isWorkspaceSelected`
-  const [deleteDisk, setDeleteDisk] = useState(false)
-  const ajax = useReplaceableAjaxExperimental()
+export const PauseButton = ({ computeType, cloudEnvironment, currentUser, pauseComputeAndRefresh }) => {
+  const shouldShowPauseButton = Utils.cond(
+    [isApp(cloudEnvironment) && !_.find(tool => tool.appType && tool.appType === cloudEnvironment.appType)(appTools)?.isPauseUnsupported, () => true],
+    [isPauseSupported(getToolLabelFromRuntime(cloudEnvironment)) && currentUser === getCreatorForRuntime(cloudEnvironment), () => true],
+    () => false)
 
-  const copyDiskToWorkspace = ({ googleProject, namespace: saturnWorkspaceNamespace, name: saturnWorkspaceName }) => {
-    // show an error for each failed copy operation
-    return reportErrorAndRethrow(`Error copying persistent disk to workspace '${saturnWorkspaceName}'`,
-      () => ajax().Disks.disk(googleProject, disk.name).create({
-        ..._.pick(['size', 'blockSize', 'zone'], disk),
-        diskType: disk.diskType.label,
-        labels: { saturnWorkspaceNamespace, saturnWorkspaceName },
-        sourceDisk: _.pick(['googleProject', 'name'], disk)
-      })
-    )()
-  }
-
-  // dismiss the UI at most once on error
-  const migrateDisk = _.flow(withErrorHandling(onDismiss), Utils.withBusyState(setMigrating))(async () => {
-    const destinations = _.filter(({ workspaceId }) => isWorkspaceSelected[workspaceId], workspaces)
-    await Promise.all(_.map(copyDiskToWorkspace, destinations))
-    await onSuccess()
-  })
-
-  const space = { style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }
-
-  const renderDeleteDiskSelection = () => {
-    const onChange = choice => {
-      setDeleteDisk(choice)
-      if (choice) { setIsWorkspaceSelected({}) }
-    }
-
-    return div({ style: { ...space, display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
-      h(LabeledCheckbox, { checked: deleteDisk, onChange }, []),
-      span({ style: { paddingLeft: '0.5rem' } }, ['Delete this disk.'])
-    ])
-  }
-
-  const costPerCopy = getPersistentDiskCostMonthly(disk, getRegionFromZone(disk.zone))
-  const numberOfCopies = _.flow(_.values, _.compact, _.size)(isWorkspaceSelected)
-
-  return h(Modal, {
-    title: `Migrate ${disk.name}`,
-    okButton: deleteDisk || _.isEmpty(workspaces) ?
-      h(ButtonPrimary, { disabled: !deleteDisk, onClick: _.flow(onDismiss, onDeleteDisk) }, 'Delete') :
-      h(ButtonPrimary, { disabled: numberOfCopies === 0, onClick: migrateDisk }, 'Migrate'),
-    onDismiss
-  }, [
-    div({ style: { display: 'flex', flexDirection: 'column' } }, Array.prototype.concat(
-      [span(space, 'Due to data security policies, persistent disks can no longer be shared between workspaces.')],
-      _.isEmpty(workspaces) ? [
-        strong(space, ['You own this disk but do not have access to any workspaces where it can be shared.']),
-        renderDeleteDiskSelection(),
-        span(space, 'OR'),
-        div([
-          h(Link, { onClick: _.flow(onDismiss, onContactSupport) }, 'Contact Terra Support'),
-          ' to have it transferred to another user.'
-        ])
-      ] : [
-        strong(space, ['Select workspaces where you want to use a copy of this disk.']),
-        h(FlexTable, {
-          'aria-label': 'workspace-selection',
-          width: 400, height: 250, headerHeight: 24, rowHeight: 24, variant: 'light',
-          rowCount: _.size(workspaces),
-          columns: [
-            {
-              field: 'selection',
-              size: { basis: 24, grow: 0 },
-              headerRenderer: () => h(TooltipTrigger, { content: 'Select all' }, [
-                h(LabeledCheckbox, {
-                  checked: _.every(w => isWorkspaceSelected[w.workspaceId], workspaces),
-                  onChange: selected => {
-                    setDeleteDisk(false)
-                    setIsWorkspaceSelected(_.reduce((state, w) => _.set(w.workspaceId, selected, state), {}, workspaces))
-                  }
-                }, [])
-              ]),
-              cellRenderer: ({ rowIndex }) => {
-                const workspaceId = workspaces[rowIndex].workspaceId
-                return h(LabeledCheckbox, {
-                  checked: isWorkspaceSelected[workspaceId],
-                  onChange: selected => {
-                    setIsWorkspaceSelected(_.set(workspaceId, selected, isWorkspaceSelected))
-                    setDeleteDisk(false)
-                  }
-                })
-              }
-            },
-            {
-              field: 'workspace',
-              headerRenderer: () => h(HeaderCell, {}, ['Workspace name']),
-              cellRenderer: ({ rowIndex }) => {
-                const { authorizationDomain, name } = workspaces[rowIndex]
-                const authDomains = _.map('membersGroupName', authorizationDomain)?.join(', ')
-                const text = Utils.cond(
-                  [authorizationDomain.length === 1, () => `${name} (Authorization Domain: ${authDomains})`],
-                  [authorizationDomain.length > 1, () => `${name} (Authorization Domains: ${authDomains})`],
-                  [Utils.DEFAULT, () => name]
-                )
-                return h(TextCell, { title: text }, [text])
-              }
-            }
-          ]
-        }),
-        span(space, ['OR']),
-        renderDeleteDiskSelection(),
-        div({ style: { display: 'flex', flexDirection: 'column' } }, [
-          strong(space, ['Cost']),
-          `${Utils.formatUSD(costPerCopy)}/month per copy. (${Utils.formatUSD(costPerCopy * numberOfCopies)}/month total after migration)`
-        ])
-      ],
-      [migrating && spinnerOverlay]
-    ))
-  ])
+  return (
+    shouldShowPauseButton && h(Link, {
+      style: { marginRight: '1rem' },
+      disabled: !isComputePausable(computeType, cloudEnvironment),
+      tooltip: isComputePausable(computeType, cloudEnvironment) ?
+        'Pause cloud environment' :
+        `Cannot pause a cloud environment while in status ${_.upperCase(getComputeStatusForDisplay(cloudEnvironment.status))}.`,
+      onClick: () => pauseComputeAndRefresh(computeType, cloudEnvironment)
+    }, [makeMenuIcon('pause'), 'Pause'])
+  )
 }
 
 export const Environments = ({ nav = undefined }) => {
@@ -326,7 +210,6 @@ export const Environments = ({ nav = undefined }) => {
   const [deleteAppId, setDeleteAppId] = useState()
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' })
   const [diskSort, setDiskSort] = useState({ field: 'project', direction: 'asc' })
-  const [migrateDisk, setMigrateDisk] = useState()
   const [shouldFilterByCreator, setShouldFilterByCreator] = useState(true)
   const ajax = useReplaceableAjaxExperimental()
 
@@ -340,7 +223,9 @@ export const Environments = ({ nav = undefined }) => {
 
     const startTimeForLeoCallsEpochMs = Date.now()
 
-    const listArgs = shouldFilterByCreator ? { role: 'creator', includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' } : { includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }
+    const listArgs = shouldFilterByCreator ?
+      { role: 'creator', includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' } :
+      { includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }
     const [newRuntimes, newDisks, newApps] = await Promise.all([
       ajax(signal).Runtimes.listV2(listArgs),
       ajax(signal).Disks.list({ ...listArgs, includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }),
@@ -349,16 +234,17 @@ export const Environments = ({ nav = undefined }) => {
     const endTimeForLeoCallsEpochMs = Date.now()
 
     const leoCallTimeTotalMs = endTimeForLeoCallsEpochMs - startTimeForLeoCallsEpochMs
-    ajax().Metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, { leoCallTimeMs: leoCallTimeTotalMs, totalCallTimeMs: leoCallTimeTotalMs, runtimes: newRuntimes.length, disks: newDisks.length, apps: newApps.length })
-
-    const cloudObjectNeedsMigration = (cloudContext, status, workspace) => status === 'Ready' &&
-      isGcpContext(cloudContext) && cloudContext.cloudResource !== workspace?.googleProject
+    ajax().Metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, {
+      leoCallTimeMs: leoCallTimeTotalMs, totalCallTimeMs: leoCallTimeTotalMs, runtimes: newRuntimes.length, disks: newDisks.length,
+      apps: newApps.length
+    })
 
     const decorateLabeledCloudObjWithWorkspace = cloudObject => {
       const { labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = cloudObject
       const { workspace } = getWorkspace(saturnWorkspaceNamespace, saturnWorkspaceName) || {}
-      const requiresMigration = cloudObjectNeedsMigration(cloudObject.cloudContext, cloudObject.status, workspace)
-      return { ...cloudObject, workspace, requiresMigration }
+      // Attempting to catch resources related to GCP v1 workspces (Rawls no longer returns them).
+      const unsupportedWorkspace = isGcpContext(cloudObject.cloudContext) && (!workspace || cloudObject.cloudContext.cloudResource !== workspace.googleProject)
+      return { ...cloudObject, workspace, unsupportedWorkspace }
     }
 
     const [decoratedRuntimes, decoratedDisks, decoratedApps] =
@@ -453,13 +339,15 @@ export const Environments = ({ nav = undefined }) => {
   const runtimesByProject = _.groupBy('googleProject', runtimes)
   const disksByProject = _.groupBy('googleProject', disks)
 
-  const numDisksRequiringMigration = _.countBy('requiresMigration', disks).true
-
   // We start the first output string with an empty space because empty space would
   // not apply to the case where appType is not defined (e.g. Jupyter, RStudio).
   const forAppText = appType => !!appType ? ` for ${_.capitalize(appType)}` : ''
 
-  const getWorkspaceCell = (namespace, name, appType, shouldWarn) => {
+  const getWorkspaceCell = (namespace, name, appType, shouldWarn, unsupportedWorkspace) => {
+    if (unsupportedWorkspace) {
+      // Don't want to include a link because there is no workspace to link to.
+      return `${name} (unavailable)`
+    }
     return !!name ?
       h(Fragment, [
         h(Link, { href: nav.getLink('workspace-dashboard', { namespace, name }), style: { wordBreak: 'break-word' } }, [name]),
@@ -477,7 +365,7 @@ export const Environments = ({ nav = undefined }) => {
     const { appType, cloudContext: { cloudResource }, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = app
     // Here, we use the saturnWorkspaceNamespace label if its defined, otherwise use cloudResource for older runtimes
     const resolvedSaturnWorkspaceNamespace = saturnWorkspaceNamespace ? saturnWorkspaceNamespace : cloudResource
-    return getWorkspaceCell(resolvedSaturnWorkspaceNamespace, saturnWorkspaceName, appType, false)
+    return getWorkspaceCell(resolvedSaturnWorkspaceNamespace, saturnWorkspaceName, appType, false, app.unsupportedWorkspace)
   }
 
   const renderWorkspaceForRuntimes = runtime => {
@@ -486,7 +374,7 @@ export const Environments = ({ nav = undefined }) => {
     const shouldWarn =
       doesUserHaveDuplicateRuntimes(getCreatorForRuntime(runtime), runtimesByProject[googleProject]) &&
       !_.includes(status, ['Deleting', 'Error'])
-    return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, null, shouldWarn)
+    return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, null, shouldWarn, runtime.unsupportedWorkspace)
   }
 
   const doesUserHaveDuplicateRuntimes = (user, runtimes) => {
@@ -539,27 +427,11 @@ export const Environments = ({ nav = undefined }) => {
     }, [makeMenuIcon('trash'), 'Delete'])
   }
 
-  const renderPauseButton = (computeType, compute) => {
-    const { status } = compute
-
-    const shouldShowPauseButton =
-      Utils.cond(
-        [isApp(compute) && !_.find(tool => tool.appType && tool.appType === compute.appType)(appTools)?.isPauseUnsupported, () => true],
-        [isPauseSupported(getToolLabelFromRuntime(compute)) && currentUser === getCreatorForRuntime(compute), () => true],
-        () => false)
-
-    return shouldShowPauseButton && h(Link, {
-      style: { marginRight: '1rem' },
-      disabled: !isComputePausable(computeType, compute),
-      tooltip: isComputePausable(computeType, compute) ?
-        'Pause cloud environment' :
-        `Cannot pause a cloud environment while in status ${_.upperCase(getComputeStatusForDisplay(status))}.`,
-      onClick: () => pauseComputeAndRefresh(computeType, compute)
-    }, [makeMenuIcon('pause'), 'Pause'])
-  }
-
   const renderErrorApps = app => {
     const convertedAppStatus = getComputeStatusForDisplay(app.status)
+    if (convertedAppStatus !== 'Error' && app.unsupportedWorkspace) {
+      return h(UnsupportedWorkspaceCell, { status: convertedAppStatus, message: unsupportedCloudEnvironmentMessage })
+    }
     return h(Fragment, [
       convertedAppStatus,
       convertedAppStatus === 'Error' && h(Clickable, {
@@ -571,6 +443,9 @@ export const Environments = ({ nav = undefined }) => {
 
   const renderErrorRuntimes = runtime => {
     const convertedRuntimeStatus = getComputeStatusForDisplay(runtime.status)
+    if (convertedRuntimeStatus !== 'Error' && runtime.unsupportedWorkspace) {
+      return h(UnsupportedWorkspaceCell, { status: convertedRuntimeStatus, message: unsupportedCloudEnvironmentMessage })
+    }
     return h(Fragment, [
       convertedRuntimeStatus,
       convertedRuntimeStatus === 'Error' && h(Clickable, {
@@ -583,7 +458,7 @@ export const Environments = ({ nav = undefined }) => {
   const renderDeleteDiskModal = disk => {
     return h(DeleteDiskModal, {
       disk,
-      isGalaxyDisk: getDiskAppType(disk) === appTools.Galaxy.appType,
+      isGalaxyDisk: getDiskAppType(disk) === appTools.GALAXY.label,
       onDismiss: () => setDeleteDiskId(undefined),
       onSuccess: () => {
         setDeleteDiskId(undefined)
@@ -650,7 +525,7 @@ export const Environments = ({ nav = undefined }) => {
               }
             },
             {
-              size: { min: '7em', grow: 0 },
+              size: { min: '9em', grow: 0 },
               field: 'status',
               headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
               cellRenderer: ({ rowIndex }) => {
@@ -704,7 +579,7 @@ export const Environments = ({ nav = undefined }) => {
                 const cloudEnvironment = filteredCloudEnvironments[rowIndex]
                 const computeType = isApp(cloudEnvironment) ? 'app' : 'runtime'
                 return h(Fragment, [
-                  renderPauseButton(computeType, cloudEnvironment),
+                  h(PauseButton, { computeType, cloudEnvironment, currentUser, pauseComputeAndRefresh }),
                   renderDeleteButton(computeType, cloudEnvironment)
                 ])
               }
@@ -782,7 +657,7 @@ export const Environments = ({ nav = undefined }) => {
               headerRenderer: () => h(Sortable, { sort: diskSort, field: 'status', onSort: setDiskSort }, ['Status']),
               cellRenderer: ({ rowIndex }) => {
                 const disk = filteredDisks[rowIndex]
-                return disk.requiresMigration ? h(MigratePersistentDiskCell, { onClick: () => setMigrateDisk(disk) }, []) : disk.status
+                return disk.unsupportedWorkspace ? h(UnsupportedWorkspaceCell, { status: disk.status, message: unsupportedDiskMessage }) : disk.status
               }
             },
             {
@@ -870,28 +745,8 @@ export const Environments = ({ nav = undefined }) => {
           setErrorAppId(undefined)
           loadData()
         }
-      }),
-      migrateDisk && h(MigratePersistentDiskModal, {
-        disk: migrateDisk,
-        workspaces: _.flow(
-          _.get(migrateDisk.googleProject),
-          _.values,
-          _.filter(({ accessLevel, workspace: { googleProject } }) => {
-            return Utils.canWrite(accessLevel) && _.isEmpty(disksByProject[googleProject])
-          }),
-          _.map('workspace'),
-          _.sortBy(({ name }) => _.lowerCase(name))
-        )(workspaces),
-        onDismiss: () => setMigrateDisk(undefined),
-        onSuccess: () => {
-          setMigrateDisk(undefined)
-          loadData()
-        },
-        onContactSupport: () => contactUsActive.set(true),
-        onDeleteDisk: () => setDeleteDiskId(migrateDisk.id)
       })
     ]),
-    numDisksRequiringMigration > 0 && h(MigratePersistentDisksBanner, { count: numDisksRequiringMigration }, []),
     contactUsActive.get() && h(SupportRequestWrapper),
     loading && spinnerOverlay
   ])

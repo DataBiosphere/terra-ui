@@ -10,30 +10,35 @@ import { icon } from 'src/components/icons'
 import { MenuButton } from 'src/components/MenuButton'
 import Modal from 'src/components/Modal'
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger'
-import { dataSyncingDocUrl } from 'src/data/machines'
+import { dataSyncingDocUrl } from 'src/data/gce-machines'
 import { Ajax } from 'src/libs/ajax'
+import { Metrics } from 'src/libs/ajax/Metrics'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
+import { ENABLE_JUPYTERLAB_ID } from 'src/libs/feature-previews-config'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { findPotentialNotebookLockers, getFileName, notebookLockHash } from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
 import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
 import { ComputeModal } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
-import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
+import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal/ExportAnalysisModal'
 import {
   analysisLauncherTabName, analysisTabName, appLauncherTabName, ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor,
   StatusMessage
-} from 'src/pages/workspaces/workspace/analysis/runtime-common'
+} from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
+import { getCurrentPersistentDisk } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import { findPotentialNotebookLockers, getExtension, getFileName, notebookLockHash } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
 import {
-  getConvertedRuntimeStatus, getCurrentPersistentDisk, getCurrentRuntime, usableStatuses
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+  getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import {
-  getPatternFromRuntimeTool, getToolLabelFromFileExtension, getToolLabelFromRuntime, toolLabels
-} from 'src/pages/workspaces/workspace/analysis/tool-utils'
+  getPatternFromRuntimeTool, getToolLabelFromFileExtension, getToolLabelFromRuntime, runtimeToolLabels
+} from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 import { AzureComputeModal } from './modals/AzureComputeModal'
@@ -56,7 +61,8 @@ const AnalysisLauncher = _.flow(
 )(
   ({
     queryParams, analysisName, workspace, workspace: { accessLevel, canCompute },
-    analysesData: { runtimes, refreshRuntimes, persistentDisks, location }
+    analysesData: { runtimes, refreshRuntimes, persistentDisks },
+    storageDetails: { googleBucketLocation, azureContainerRegion },
   }, _ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     const currentRuntime = getCurrentRuntime(runtimes)
@@ -99,7 +105,7 @@ const AnalysisLauncher = _.flow(
           workspace,
           currentRuntime,
           currentDisk,
-          location,
+          location: googleBucketLocation,
           onDismiss: () => {
             chooseMode(undefined)
             setCreateOpen(false)
@@ -117,6 +123,7 @@ const AnalysisLauncher = _.flow(
           hideCloseButton: true,
           workspace,
           runtimes,
+          location: azureContainerRegion,
           onDismiss: () => {
             chooseMode(undefined)
             setCreateOpen(false)
@@ -259,7 +266,7 @@ const PreviewHeader = ({
   const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name, analysisName })
   const isAzureWorkspace = !!workspace.azureContext
   const currentRuntimeToolLabel = getToolLabelFromRuntime(runtime)
-  const enableJupyterLabPersistenceId = `${namespace}/${name}/enableJupyterLabGCP`
+  const enableJupyterLabPersistenceId = `${namespace}/${name}/${ENABLE_JUPYTERLAB_ID}`
   const [enableJupyterLabGCP] = useState(() => getLocalPref(enableJupyterLabPersistenceId) || false)
 
   const checkIfLocked = withErrorReporting('Error checking analysis lock status', async () => {
@@ -296,7 +303,7 @@ const PreviewHeader = ({
 
   const editModeButton = h(HeaderButton, { onClick: () => chooseMode('edit') }, openMenuIcon)
 
-  const isJupyterLabGCP = (currentFileToolLabel === toolLabels.Jupyter) && enableJupyterLabGCP
+  const isJupyterLabGCP = (currentFileToolLabel === runtimeToolLabels.Jupyter) && enableJupyterLabGCP
 
   return h(ApplicationHeader, {
     label: 'PREVIEW (READ-ONLY)',
@@ -315,16 +322,16 @@ const PreviewHeader = ({
       //we instead proxy to JupyterLab. For JupyterLab GCP, it's important to disable playground mode and not lock
       //any notebooks. We also need to keep the edit mode directory in line with what Jupyter uses, because users
       //can easily switch back and forth. This prevents users from having notebooks scattered across multiple directories.
-      [isJupyterLabGCP && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === toolLabels.Jupyter,
+      [isJupyterLabGCP && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === runtimeToolLabels.Jupyter,
         () => h(HeaderButton, {
           onClick: () => {
-            Nav.goToPath(appLauncherTabName, { namespace, name, application: toolLabels.JupyterLab, cloudPlatform })
+            Nav.goToPath(appLauncherTabName, { namespace, name, application: runtimeToolLabels.JupyterLab, cloudPlatform })
           }
         }, openMenuIcon)],
-      [isAzureWorkspace && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === toolLabels.Jupyter,
+      [isAzureWorkspace && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === runtimeToolLabels.Jupyter,
         () => h(HeaderButton, {
           onClick: () => {
-            Nav.goToPath(appLauncherTabName, { namespace, name, application: toolLabels.JupyterLab, cloudPlatform })
+            Nav.goToPath(appLauncherTabName, { namespace, name, application: runtimeToolLabels.JupyterLab, cloudPlatform })
           }
         }, openMenuIcon)],
       [isAzureWorkspace && runtimeStatus !== 'Running', () => {}],
@@ -334,17 +341,19 @@ const PreviewHeader = ({
       // If the tool is RStudio and we are in this branch, we need to either start an existing runtime or launch the app
       // Worth mentioning that the Stopped branch will launch RStudio, and then we depend on the RuntimeManager to prompt user the app is ready to launch
       // Then open can be clicked again
-      [currentFileToolLabel === toolLabels.RStudio && _.includes(runtimeStatus, ['Running', null]),
+      [currentFileToolLabel === runtimeToolLabels.RStudio && _.includes(runtimeStatus, ['Running', null]),
         () => h(HeaderButton, {
           onClick: () => {
             if (runtimeStatus === 'Running') {
               Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio', cloudPlatform })
+              Ajax().Metrics.captureEvent(Events.analysisLaunch,
+                { origin: 'analysisLauncher', tool: runtimeToolLabels.RStudio, workspaceName: name, namespace, cloudPlatform })
             }
           }
         },
         openMenuIcon)],
       // Jupyter is slightly different since it interacts with editMode and playground mode flags as well. This is not applicable to JupyterLab in either cloud
-      [(currentRuntimeToolLabel === toolLabels.Jupyter && !mode) || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
+      [(currentRuntimeToolLabel === runtimeToolLabels.Jupyter && !mode) || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
         Utils.cond(
           [runtime && !welderEnabled, () => h(HeaderButton, { onClick: () => setEditModeDisabledOpen(true) }, [
             makeMenuIcon('warning-standard'), 'Open (Disabled)'
@@ -455,20 +464,30 @@ const PreviewHeader = ({
 }
 
 // This component is responsible for rendering the html preview of the analysis file
-const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace: { workspaceId, googleProject, bucketName } }, onRequesterPaysError, styles }) => {
+const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace, onRequesterPaysError, styles }) => {
   const signal = useCancellation()
   const [busy, setBusy] = useState(false)
   const [preview, setPreview] = useState()
   const frame = useRef()
+  const cloudPlatform = getCloudProviderFromWorkspace(workspace)
+  const { workspace: { workspaceId, googleProject, bucketName } } = workspace
 
   const loadPreview = _.flow(
     Utils.withBusyState(setBusy),
     withRequesterPaysHandler(onRequesterPaysError),
     withErrorReporting('Error previewing analysis')
   )(async () => {
-    const previewHtml = !!googleProject ?
+    // TOODO: Tracked in IA-4015. This implementation is not ideal. Introduce Error typing to better resolve the response.
+    const response = cloudPlatform === cloudProviderTypes.GCP ?
       await Ajax(signal).Buckets.analysis(googleProject, bucketName, analysisName, toolLabel).preview() :
       await Ajax(signal).AzureStorage.blob(workspaceId, analysisName).preview()
+
+    if (response.status === 200) {
+      Metrics().captureEvent(Events.analysisPreviewSuccess, { fileName: analysisName, fileType: getExtension(analysisName), cloudPlatform })
+    } else {
+      Metrics().captureEvent(Events.analysisPreviewFail, { fileName: analysisName, fileType: getExtension(analysisName), cloudPlatform })
+    }
+    const previewHtml = await response.text()
     setPreview(previewHtml)
   })
   useOnMount(() => {
@@ -496,8 +515,14 @@ const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace:
 // This is the purely functional component
 // It is in charge of ensuring that navigating away from the Jupyter iframe results in a save via a custom extension located in `jupyter-iframe-extension`
 // See this ticket for RStudio impl discussion: https://broadworkbench.atlassian.net/browse/IA-2947
-const JupyterFrameManager = ({ onClose, frameRef }) => {
+const JupyterFrameManager = ({ onClose, frameRef, details = {} }) => {
   useOnMount(() => {
+    Ajax()
+      .Metrics
+      .captureEvent(Events.cloudEnvironmentLaunch,
+        { tool: runtimeToolLabels.Jupyter, workspaceName: details.name, namespace: details.namespace, cloudPlatform: details.cloudPlatform })
+
+
     const isSaved = Utils.atom(true)
     const onMessage = e => {
       switch (e.data) {
@@ -543,7 +568,7 @@ const copyingAnalysisMessage = div({ style: { paddingTop: '2rem' } }, [
 ])
 
 const AnalysisEditorFrame = ({
-  styles, mode, analysisName, toolLabel, workspace: { workspace: { googleProject, namespace, name, bucketName } },
+  styles, mode, analysisName, toolLabel, workspace,
   runtime: { runtimeName, proxyUrl, status, labels }
 }) => {
   console.assert(_.includes(status, usableStatuses), `Expected cloud environment to be one of: [${usableStatuses}]`)
@@ -552,16 +577,18 @@ const AnalysisEditorFrame = ({
   const [busy, setBusy] = useState(false)
   const [analysisSetupComplete, setAnalysisSetupComplete] = useState(false)
   const cookieReady = useStore(cookieReadyStore)
+  const cloudPlatform = getCloudProviderFromWorkspace(workspace)
+  const { workspace: { googleProject, namespace, name, bucketName } } = workspace
 
   const localBaseDirectory = Utils.switchCase(toolLabel,
-    [toolLabels.Jupyter, () => `${name}/edit`],
-    [toolLabels.JupyterLab, () => `${name}/edit`],
-    [toolLabels.RStudio, () => ''])
+    [runtimeToolLabels.Jupyter, () => `${name}/edit`],
+    [runtimeToolLabels.JupyterLab, () => `${name}/edit`],
+    [runtimeToolLabels.RStudio, () => ''])
 
   const localSafeModeBaseDirectory = Utils.switchCase(toolLabel,
-    [toolLabels.Jupyter, () => `${name}/safe`],
-    [toolLabels.JupyterLab, () => `${name}/safe`],
-    [toolLabels.RStudio, () => '']
+    [runtimeToolLabels.Jupyter, () => `${name}/safe`],
+    [runtimeToolLabels.JupyterLab, () => `${name}/safe`],
+    [runtimeToolLabels.RStudio, () => '']
   )
 
   useOnMount(() => {
@@ -604,7 +631,7 @@ const AnalysisEditorFrame = ({
       h(JupyterFrameManager, {
         frameRef,
         onClose: () => Nav.goToPath(analysisTabName, { namespace, name }),
-        details: { analysisName, name, namespace }
+        details: { analysisName, name, namespace, cloudPlatform }
       })
     ]),
     busy && copyingAnalysisMessage
@@ -615,8 +642,7 @@ const AnalysisEditorFrame = ({
 // do we need this anymore? (can be queried in prod DB to see if there are any VMs with welderEnabled=false with a `recent` dateAccessed
 // do we need to support this for rstudio? I don't think so because welder predates RStudio support, but not 100%
 const WelderDisabledNotebookEditorFrame = ({
-  styles, mode, notebookName, workspace: { workspace: { googleProject, namespace, name, bucketName } },
-  runtime: { runtimeName, proxyUrl, status, labels }
+  styles, mode, notebookName, workspace, runtime: { runtimeName, proxyUrl, status, labels }
 }) => {
   console.assert(status === 'Running', 'Expected cloud environment to be running')
   console.assert(!!labels.welderInstallFailed, 'Expected cloud environment to not have Welder')
@@ -625,6 +651,8 @@ const WelderDisabledNotebookEditorFrame = ({
   const [busy, setBusy] = useState(false)
   const [localized, setLocalized] = useState(false)
   const cookieReady = useStore(cookieReadyStore)
+  const cloudPlatform = getCloudProviderFromWorkspace(workspace)
+  const { workspace: { googleProject, namespace, name, bucketName } } = workspace
 
   const localizeNotebook = _.flow(
     Utils.withBusyState(setBusy),
@@ -670,7 +698,7 @@ const WelderDisabledNotebookEditorFrame = ({
       h(JupyterFrameManager, {
         frameRef,
         onClose: () => Nav.goToPath(analysisTabName, { namespace, name }),
-        details: { notebookName, name, namespace }
+        details: { notebookName, name, namespace, cloudPlatform }
       })
     ]),
     busy && copyingAnalysisMessage

@@ -19,9 +19,8 @@ import * as Utils from 'src/libs/utils'
 const TermsOfServicePage = () => {
   const [busy, setBusy] = useState()
   const { isSignedIn, termsOfService } = authStore.get() // can't change while viewing this without causing it to unmount, so doesn't need to subscribe
-  const needToAccept = isSignedIn && termsOfService.showTosPopup
-  const userHasAcceptedPreviousTos = !_.isUndefined(termsOfService.userAcceptedVersion)
-  const canUserContinueUnderGracePeriod = isSignedIn && termsOfService.isGracePeriodEnabled && userHasAcceptedPreviousTos
+  const acceptedLatestTos = isSignedIn && termsOfService.userHasAcceptedLatestTos
+  const usageAllowed = isSignedIn && termsOfService.permitsSystemUsage
   const [tosText, setTosText] = useState()
 
   useOnMount(() => {
@@ -38,25 +37,31 @@ const TermsOfServicePage = () => {
     try {
       setBusy(true)
       const { enabled } = await Ajax().User.acceptTos()
+      const termsOfService = await Ajax().User.getTermsOfServiceComplianceStatus()
 
       if (enabled) {
-        const newTermsOfService = {
-          ...termsOfService,
-          userCanUseTerra: true,
-          showTosPopup: false,
-          userAcceptedVersion: termsOfService.currentVersion
-        }
-
         const registrationStatus = userStatus.registeredWithTos
-        authStore.update(state => ({ ...state, registrationStatus, termsOfService: newTermsOfService }))
+        authStore.update(state => ({ ...state, registrationStatus, termsOfService }))
         Nav.goToPath('root')
       } else {
         reportError('Error accepting TOS, unexpected backend error occurred.')
-        setBusy(false)
       }
     } catch (error) {
-      reportError('Error accepting TOS', error)
+      reportError('Error accepting Terms of Service', error)
+    } finally {
       setBusy(false)
+    }
+  }
+
+  const reject = async () => {
+    try {
+      setBusy(true)
+      await Ajax().User.rejectTos()
+    } catch (error) {
+      reportError('Error rejecting Terms of Service', error)
+    } finally {
+      setBusy(false)
+      signOut()
     }
   }
 
@@ -72,7 +77,7 @@ const TermsOfServicePage = () => {
     }),
     div({ style: { backgroundColor: 'white', borderRadius: 5, width: 800, maxHeight: '100%', padding: '2rem', boxShadow: Style.standardShadow } }, [
       h1({ style: { color: colors.dark(), fontSize: 38, fontWeight: 400 } }, ['Terra Terms of Service']),
-      needToAccept && div({ style: { fontSize: 18, fontWeight: 600 } }, ['Please accept the Terms of Service to continue.']),
+      !acceptedLatestTos && div({ style: { fontSize: 18, fontWeight: 600 } }, ['Please accept the Terms of Service to continue.']),
       div({ style: { height: '50vh', overflowY: 'auto', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' } }, [
         !tosText ? centeredSpinner() : h(MarkdownViewer, {
           renderers: {
@@ -81,14 +86,14 @@ const TermsOfServicePage = () => {
           }
         }, [tosText])
       ]),
-      needToAccept && !canUserContinueUnderGracePeriod && !!tosText &&
+      !usageAllowed && !!tosText &&
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
         h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: signOut }, 'Decline and Sign Out'),
         h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept'])
       ]),
-      needToAccept && canUserContinueUnderGracePeriod && !!tosText &&
+      !acceptedLatestTos && usageAllowed && !!tosText &&
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
-        h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: signOut }, 'Decline and Sign Out'),
+        h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: reject }, 'Decline and Sign Out'),
         h(ButtonOutline, { style: { marginRight: '1rem' }, onClick: continueButton, disabled: busy }, ['Continue under grace period']),
         h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept'])
       ])

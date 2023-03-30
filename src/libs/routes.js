@@ -2,15 +2,16 @@ import _ from 'lodash/fp'
 import { compile, pathToRegexp } from 'path-to-regexp'
 import { routeHandlersStore } from 'src/libs/state'
 import * as AzurePreview from 'src/pages/AzurePreview'
-import * as Projects from 'src/pages/billing/List'
+import * as Projects from 'src/pages/billing/List/List'
 import * as Environments from 'src/pages/Environments'
 import * as FeaturePreviews from 'src/pages/FeaturePreviews'
 import * as Group from 'src/pages/groups/Group'
 import * as Groups from 'src/pages/groups/List'
 import * as ImportData from 'src/pages/ImportData'
-import * as ImportWorkflow from 'src/pages/ImportWorkflow'
+import * as ImportWorkflow from 'src/pages/ImportWorkflow/ImportWorkflow'
 import * as LandingPage from 'src/pages/LandingPage'
 import * as Code from 'src/pages/library/Code'
+import * as CreateDataset from 'src/pages/library/data-catalog/CreateDataset/CreateDataset'
 import * as DataBrowserDetails from 'src/pages/library/DataBrowserDetails'
 import * as DataBrowserPreview from 'src/pages/library/DataBrowserPreview'
 import * as Datasets from 'src/pages/library/Datasets'
@@ -67,6 +68,7 @@ const routes = _.flatten([
   Code.navPaths,
   DataBrowserDetails.navPaths,
   DataBrowserPreview.navPaths,
+  CreateDataset.navPaths,
   DataExplorer.navPaths,
   Datasets.navPaths,
   Showcase.navPaths,

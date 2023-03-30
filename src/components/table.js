@@ -181,7 +181,7 @@ export const ariaSort = (sort, field) => {
     return 'none'
   }
   // Otherwise this column is not sortable
-  return null
+  return undefined
 }
 
 const NoContentRow = ({ noContentMessage, noContentRenderer = _.noop, numColumns }) => div({
@@ -796,8 +796,8 @@ export const MiniSortable = ({ sort, field, onSort, children }) => {
   ])])
 }
 
-export const HeaderRenderer = ({ name, label, sort, onSort, style, ...props }) => h(MiniSortable, { sort, field: name, onSort }, [
-  div({ style: { fontWeight: 600, ...style }, ...props }, [label || Utils.normalizeLabel(name)])
+export const HeaderRenderer = ({ name, label = Utils.normalizeLabel(name), sort, onSort, style = {}, ...props }) => h(MiniSortable, { sort, field: name, onSort }, [
+  div({ style: { fontWeight: 600, ...style }, ...props }, [label])
 ])
 
 export const Resizable = ({ onWidthChange, width, minWidth = 100, children }) => {

@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import * as Utils from 'src/libs/utils'
-import { defaultComputeRegion } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { defaultComputeRegion } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
 // Get a { flag: ..., countryName: ... } object representing a google locationType/location input.
 // 'flag' will always be defined (even if it's a question mark).

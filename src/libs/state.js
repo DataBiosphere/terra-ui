@@ -14,7 +14,8 @@ export const authStore = Utils.atom({
   fenceStatus: {},
   cookiesAccepted: undefined,
   authContext: undefined,
-  oidcConfig: {}
+  oidcConfig: {},
+  isAzurePreviewUser: undefined
 })
 
 export const getUser = () => authStore.get().user
@@ -65,12 +66,14 @@ export const workflowSelectionStore = Utils.atom({
   entities: undefined
 })
 
+/** @type {Utils.Atom<any[]>} */
 export const asyncImportJobStore = Utils.atom([])
 
 export const snapshotsListStore = Utils.atom()
 
 export const snapshotStore = Utils.atom()
 
+/** @type {Utils.Atom<any[]>} */
 export const dataCatalogStore = Utils.atom([])
 
 /*
