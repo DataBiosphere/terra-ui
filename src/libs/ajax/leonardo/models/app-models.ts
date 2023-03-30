@@ -15,7 +15,18 @@ export interface AppError extends LeoError {
   traceId?: string
 }
 
-export type AppStatus = 'STATUS_UNSPECIFIED' | 'RUNNING' | 'ERROR' | 'DELETING' | 'DELETED' | 'PROVISIONING' | 'STOPPING' | 'STOPPED' | 'STARTING'
+export type AppStatus = 'STATUS_UNSPECIFIED'
+ | 'RUNNING' | 'ERROR' | 'DELETING' | 'DELETED' | 'PROVISIONING' | 'STOPPING' | 'STOPPED' | 'STARTING'
+
+export type DisplayAppStatus = 'Running'
+    | 'Deleted'
+    | 'Deleting'
+    | 'Creating'
+    | 'Resuming'
+    | 'Status_unspecified'
+    | 'Error'
+    | 'Pausing'
+    | 'Paused'
 
 export interface GetAppResponse {
   appName: string

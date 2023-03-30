@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { App, AppStatus } from 'src/libs/ajax/leonardo/models/app-models'
+import { App, AppStatus, DisplayAppStatus } from 'src/libs/ajax/leonardo/models/app-models'
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models'
 import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
@@ -33,6 +33,13 @@ export const doesWorkspaceSupportCromwellApp = (workspaceCreatedDate: string, cl
     [Utils.DEFAULT, () => true]
   )
 }
+
+export const getAppStatusForDisplay = (status: AppStatus): DisplayAppStatus => Utils.switchCase(status,
+  ['STARTING', () => 'Resuming'],
+  ['STOPPING', () => 'Pausing'],
+  ['STOPPED', () => 'Paused'],
+  ['PROVISIONING', () => 'Creating'],
+  [Utils.DEFAULT, () => _.capitalize(status)])
 
 export const getCurrentApp = (appType: AppToolLabel, apps: App[]): App | undefined => getCurrentAppExcludingStatuses(appType, ['DELETING'], apps)
 export const getCurrentAppIncludingDeleting = (appType: AppToolLabel, apps: App[]): App | undefined => getCurrentAppExcludingStatuses(appType, [], apps)
