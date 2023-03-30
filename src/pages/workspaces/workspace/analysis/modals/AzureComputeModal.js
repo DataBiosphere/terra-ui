@@ -178,7 +178,7 @@ export const AzureComputeModalBase = ({
             id => h(Fragment, [
               h(NumberInput, {
                 id,
-                min: 1,
+                min: 10,
                 max: 999,
                 isClearable: false,
                 onlyInteger: true,
