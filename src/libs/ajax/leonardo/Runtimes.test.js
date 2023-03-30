@@ -47,7 +47,6 @@ describe('Runtimes ajax', () => {
     }
   })
 
-  // TODO (LM) failing on TypeError: (0 , _ajaxCommon.jsonBody) is not a function
   it.each([
     { runtimeName: 'runtime1', workspaceId: 'test1', persistentDiskExists: true },
     { runtimeName: 'runtime2', workspaceId: 'test2', persistentDiskExists: false }
