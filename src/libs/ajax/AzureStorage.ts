@@ -118,13 +118,8 @@ export const AzureStorage = (signal?: AbortSignal) => ({
       // check if file can just be fetched without sas token
       try {
         const res = await fetchOk(azureStorageUrl)
-        const text = await res.headers.entries()
-        const dict = {}
-        for (const pair of text) {
-          dict[pair[0]] = pair[1]
-        }
-
-        return { lastModified: dict['last-modified'], size: dict['content-length'], azureStorageUrl, workspaceId, fileName }
+        const headerDict = ParseHeaders(res.headers)
+        return { lastModified: headerDict['last-modified'], size: headerDict['content-length'], azureStorageUrl, workspaceId, fileName }
       } catch (e) {
         // file not public, proceed to try and get it with sas token
       }
@@ -142,13 +137,18 @@ export const AzureStorage = (signal?: AbortSignal) => ({
       )(urlwithFolder)
 
       const res = await fetchOk(azureSasStorageUrl)
-      const text = await res.headers.entries()
-      const dict = {}
-      for (const pair of text) {
-        dict[pair[0]] = pair[1]
+      const headerDict = ParseHeaders(await res.headers.entries())
+
+      return { lastModified: headerDict['last-modified'], size: headerDict['content-length'], azureSasStorageUrl, workspaceId, fileName }
+    }
+
+    const ParseHeaders = headerEntires => {
+      const headerDict = {}
+      for (const pair of headerEntires) {
+        headerDict[pair[0]] = pair[1]
       }
 
-      return { lastModified: dict['last-modified'], size: dict['content-length'], azureSasStorageUrl, workspaceId, fileName }
+      return headerDict
     }
 
     return {

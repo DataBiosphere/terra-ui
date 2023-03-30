@@ -22,42 +22,7 @@ const getMaxDownloadCostNA = bytes => {
   return Utils.formatUSD(downloadPrice)
 }
 
-export const AzureUriDownloadButton = ({ uri, fileName }) => {
-  const [url, setUrl] = useState()
-  const getUrl = () => {
-    if (isAzureUri(uri)) {
-      setUrl(uri)
-    }
-  }
-  useOnMount(() => {
-    getUrl()
-  })
-  return els.cell([
-    url === null ?
-      'Unable to generate download link.' :
-      div({ style: { display: 'flex', justifyContent: 'center' } }, [
-        h(ButtonPrimary, {
-          disabled: !url,
-          onClick: () => {
-            Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
-              ...extractWorkspaceDetails(workspaceStore.get().workspace),
-              fileType: _.head((/\.\w+$/).exec(uri)),
-              downloadFrom: 'file direct'
-            })
-          },
-          href: url,
-          download: fileName,
-          ...Utils.newTabLinkProps
-        }, [
-          url ?
-            'Download' :
-            h(Fragment, ['Generating download link...', spinner({ style: { color: 'white', marginLeft: 4 } })])
-        ])
-      ])
-  ])
-}
-
-export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, accessUrl }) => {
+export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, accessUrl, workspaceId }) => {
   const signal = useCancellation()
   const [url, setUrl] = useState()
   const getUrl = async () => {
@@ -71,6 +36,8 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
       - https://stackoverflow.com/questions/51721904/make-browser-submit-additional-http-header-if-click-on-hyperlink#answer-51784608
        */
       setUrl(_.isEmpty(accessUrl.headers) ? accessUrl.url : null)
+    } else if (isAzureUri(uri)) {
+      setUrl(uri)
     } else {
       try {
         // This is still using Martha instead of DrsHub because DrsHub has not yet implemented signed URLs
@@ -90,16 +57,18 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
   useOnMount(() => {
     getUrl()
   })
+
+  const workspace = isAzureUri(url) ? workspaceId : { ...extractWorkspaceDetails(workspaceStore.get().workspace) }
   return els.cell([
     url === null ?
       'Unable to generate download link.' :
-      div({ style: { display: 'flex', justifyContent: 'center' } }, [
+      div({ style: { display: 'flex', justifyContent: isAzureUri(url) ? 'left' : 'center' } }, [
         h(ButtonPrimary, {
           disabled: !url,
           onClick: () => {
             Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
-              ...extractWorkspaceDetails(workspaceStore.get().workspace),
-              fileType: _.head((/\.\w+$/).exec(uri)),
+              workspace,
+              fileType: _.head((/\.\w+$/).exec(url)),
               downloadFrom: 'file direct'
             })
           },
@@ -114,7 +83,7 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
           ...Utils.newTabLinkProps
         }, [
           url ?
-            `Download for ${getMaxDownloadCostNA(size)}*` :
+            isAzureUri(url) ? 'Download' : `Download for ${getMaxDownloadCostNA(size)}*` :
             h(Fragment, ['Generating download link...', spinner({ style: { color: 'white', marginLeft: 4 } })])
         ])
       ])

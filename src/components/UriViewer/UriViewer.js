@@ -1,7 +1,7 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, input } from 'react-hyperscript-helpers'
+import { div, h, p, pre, span } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ClipboardButton } from 'src/components/ClipboardButton'
 import Collapse from 'src/components/Collapse'
@@ -12,13 +12,14 @@ import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
+import colors from 'src/libs/colors'
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 import els from './uri-viewer-styles'
 import { isAzureUri, isGsUri } from './uri-viewer-utils'
-import { AzureUriDownloadButton, UriDownloadButton } from './UriDownloadButton'
+import { UriDownloadButton } from './UriDownloadButton'
 import { UriPreview } from './UriPreview'
 
 
@@ -78,57 +79,81 @@ export const UriViewer = _.flow(
     loadMetadata()
   })
 
-  const { size, timeCreated, updated, bucket, name, fileName, accessUrl } = metadata || {}
-  const gsUri = `gs://${bucket}/${name}`
-  const downloadCommand = getDownloadCommand(fileName, gsUri, accessUrl)
+  const TerminalCommand = downloadCommand => h(Fragment, [
+    p({ style: { marginBottom: '0.5rem', fontWeight: 500 } }, [
+      'Terminal download command'
+    ]),
+    pre({
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        margin: 0,
+        padding: '0 0.5rem',
+        background: colors.light(0.4),
+      }
+    }, [
+      span({
+        style: {
+          overflowX: 'auto',
+          flex: '1 1 0',
+          padding: '1rem 0',
+        }
+      }, [downloadCommand || ' ']),
+      h(ClipboardButton, {
+        children: undefined,
+        disabled: !downloadCommand,
+        style: { marginLeft: '1ch' },
+        text: downloadCommand,
+        onClick: undefined,
+      })
+    ])
+  ])
+
+  const FailureMessage = loadingError => [loadingError, () => h(Fragment, [
+    div({ style: { paddingBottom: '1rem' } }, [
+      'Error loading data. This file does not exist or you do not have permission to view it.'
+    ]),
+    h(Collapse, { title: 'Details' }, [
+      div({ style: { marginTop: '0.5rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
+        JSON.stringify(loadingError, null, 2)
+      ])
+    ])
+  ])]
+
+  const LoadingSymbol = uri => h(Fragment, [
+    isGsUri(uri) || isAzureUri(uri) ? 'Loading metadata...' : 'Resolving DRS file...',
+    spinner({ style: { marginLeft: 4 } })
+  ])
 
   if (isAzureUri(uri) && azureStorage !== undefined) {
-    const { azureSasStorageUrl, fileName, lastModified, size } = azureStorage
+    const { azureSasStorageUrl, fileName, lastModified, size, workspaceId } = azureStorage
     uri = azureSasStorageUrl || uri
+    const downloadCommand = getDownloadCommand(fileName, {}, uri)
+    const metadata = { fileName, size }
     return h(Modal, {
       onDismiss,
-      title: 'File Details',
+      title: fileName,
       showCancel: false,
       showX: true,
       okButton: 'Done'
     }, [
       Utils.cond(
-        [loadingError, () => h(Fragment, [
-          div({ style: { paddingBottom: '1rem' } }, [
-            'Error loading data. This file does not exist or you do not have permission to view it.'
-          ])
-        ])],
         [azureStorage, () => h(Fragment, [
-          els.cell([
-            els.label('Filename'),
-            els.data(fileName.split('.').join('.\u200B')) // allow line break on periods
-          ]),
           azureStorage.lastModified && els.cell([
-            els.label('Updated'),
+            els.label('Last Modified'),
             els.data(new Date(lastModified).toLocaleString())
           ]),
           els.cell([els.label('File size'), els.data(filesize(size))]),
-          h(AzureUriDownloadButton, { uri, fileName }),
-          els.cell([
-            els.label('Terminal download command'),
-            els.data([
-              div({ style: { display: 'flex' } }, [
-                input({
-                  readOnly: true,
-                  value: `azcopy copy '${azureSasStorageUrl}' .`,
-                  style: { flexGrow: 1, fontWeight: 400, fontFamily: 'Menlo, monospace' }
-                }),
-                h(ClipboardButton, {
-                  text: `azcopy copy '${azureSasStorageUrl}' .`,
-                  style: { margin: '0 1rem' }
-                })
-              ])
-            ])
-          ]),
+          h(UriDownloadButton, { uri, metadata, accessUrl, workspaceId }),
+          TerminalCommand(downloadCommand),
         ])]
       )
     ])
   }
+
+  const { size, timeCreated, updated, bucket, name, fileName, accessUrl } = metadata || {}
+  const gsUri = `gs://${bucket}/${name}`
+  const downloadCommand = getDownloadCommand(fileName, gsUri, accessUrl)
   return h(Modal, {
     onDismiss,
     title: 'File Details',
@@ -137,16 +162,7 @@ export const UriViewer = _.flow(
     okButton: 'Done'
   }, [
     Utils.cond(
-      [loadingError, () => h(Fragment, [
-        div({ style: { paddingBottom: '1rem' } }, [
-          'Error loading data. This file does not exist or you do not have permission to view it.'
-        ]),
-        h(Collapse, { title: 'Details' }, [
-          div({ style: { marginTop: '0.5rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
-            JSON.stringify(loadingError, null, 2)
-          ])
-        ])
-      ])],
+      FailureMessage(loadingError),
       [metadata, () => h(Fragment, [
         els.cell([
           els.label('Filename'),
@@ -161,22 +177,7 @@ export const UriViewer = _.flow(
           }, ['View this file in the Google Cloud Storage Browser'])
         ]),
         h(UriDownloadButton, { uri, metadata, accessUrl }),
-        els.cell([
-          els.label('Terminal download command'),
-          els.data([
-            div({ style: { display: 'flex' } }, [
-              input({
-                readOnly: true,
-                value: downloadCommand,
-                style: { flexGrow: 1, fontWeight: 400, fontFamily: 'Menlo, monospace' }
-              }),
-              h(ClipboardButton, {
-                text: downloadCommand,
-                style: { margin: '0 1rem' }
-              })
-            ])
-          ])
-        ]),
+        TerminalCommand(downloadCommand),
         (timeCreated || updated) && h(Collapse, {
           title: 'More Information',
           style: { marginTop: '2rem' },
@@ -197,10 +198,7 @@ export const UriViewer = _.flow(
         ]),
         div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
       ])],
-      () => h(Fragment, [
-        isGsUri(uri) || isAzureUri(uri) ? 'Loading metadata...' : 'Resolving DRS file...',
-        spinner({ style: { marginLeft: 4 } })
-      ])
+      LoadingSymbol(uri)
     )
   ])
 })

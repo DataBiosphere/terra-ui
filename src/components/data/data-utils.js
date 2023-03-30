@@ -52,6 +52,9 @@ export const parseGsUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
 
 export const getDownloadCommand = (fileName, gsUri, accessUrl) => {
   const { url: httpUrl, headers: httpHeaders } = accessUrl || {}
+  if (isAzureUri(accessUrl)) {
+    return `azcopy copy '${accessUrl}' ${fileName || '.'}`
+  }
 
   if (httpUrl) {
     const headers = _.flow(
