@@ -63,7 +63,7 @@ export const getDownloadCommand = (fileName, gsUri, accessUrl) => {
   }
 
   if (gsUri) {
-    return `gsutil cp ${gsUri} ${fileName || '.'}`
+    return `gsutil cp '${gsUri}' ${fileName || '.'}`
   }
 }
 
