@@ -100,11 +100,10 @@ export const UriViewer = _.flow(
         }
       }, [downloadCommand || ' ']),
       h(ClipboardButton, {
-        children: undefined,
+        'aria-label': 'Copy SAS URL to clipboard',
         disabled: !downloadCommand,
         style: { marginLeft: '1ch' },
         text: downloadCommand,
-        onClick: undefined,
       })
     ])
   ])
