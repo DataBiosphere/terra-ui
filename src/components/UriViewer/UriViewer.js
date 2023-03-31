@@ -97,7 +97,8 @@ export const UriViewer = _.flow(
           overflowX: 'auto',
           flex: '1 1 0',
           padding: '1rem 0',
-        }
+        },
+        tabIndex: 0
       }, [downloadCommand || ' ']),
       h(ClipboardButton, {
         'aria-label': 'Copy SAS URL to clipboard',
@@ -127,7 +128,7 @@ export const UriViewer = _.flow(
   if (isAzureUri(uri) && azureStorage !== undefined) {
     const { azureSasStorageUrl, fileName, lastModified, size, workspaceId } = azureStorage
     uri = azureSasStorageUrl || uri
-    const downloadCommand = getDownloadCommand(fileName, {}, uri)
+    const downloadCommand = getDownloadCommand(fileName, uri)
     const metadata = { fileName, size }
     return h(Modal, {
       onDismiss,
