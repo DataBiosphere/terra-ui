@@ -12,7 +12,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
-import { reportErrorAndRethrow, withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import { reportErrorAndRethrow, withErrorReporting } from 'src/libs/error'
 import Events, { extractCrossWorkspaceDetails, extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
@@ -83,14 +83,6 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     setIsAlphaRegionalityUser(await Ajax(signal).Groups.group(getConfig().alphaRegionalityGroup).isMember())
   })
 
-  // Error is ignored here since any errors associated with Leo app creation are not communicated during workspace creation
-  // Rather when the user first visits the `Data` tab
-  const createLeoApp = withErrorIgnoring(async workspace => {
-    if (isAzureBillingProject()) {
-      await Ajax().Apps.createAppV2(`wds-${workspace.workspaceId}`, workspace.workspaceId)
-    }
-  })
-
   const create = async () => {
     try {
       setCreateError(undefined)
@@ -126,7 +118,6 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           return workspace
         })
       onSuccess(createdWorkspace)
-      createLeoApp(createdWorkspace)
     } catch (error) {
       const { message } = await error.json()
       setCreating(false)

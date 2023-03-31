@@ -11,7 +11,6 @@ import {
   TsvUploadButtonTooltipOptions,
   UploadParameters
 } from 'src/libs/ajax/data-table-providers/DataTableProvider'
-import { withErrorReporting } from 'src/libs/error'
 import { notificationStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -85,14 +84,6 @@ const getRelationParts = (val: unknown): string[] => {
   return []
 }
 
-export const createLeoAppWithErrorHandling = workspaceId => {
-  const typedWithErrorReporting : any = withErrorReporting
-  const createLeoAppCall = typedWithErrorReporting('An error occurred when creating your data tables. Please reach out to support@terra.bio', async () => {
-    await Ajax().Apps.createAppV2(`wds-${workspaceId}`, `${workspaceId}`)
-  })
-  createLeoAppCall()
-}
-
 // Invokes logic to determine the appropriate app for WDS
 // If WDS is not running, a URL will not be present -- in some cases, this function may invoke
 // a new call to Leo to instantiate a WDS being available, thus having a valid URL
@@ -127,19 +118,6 @@ export const resolveWdsApp = apps => {
       return allWdsApps[0]
     }
   }
-
-  // we could not find an app of type CROMWELL in any healthy state, regardless of its name.
-  // Self-heal and try to deploy an app, assuming shouldAutoDeployWds is true.
-  // Due to Leo naming requirements, ensure this app has a unique name; this prevents
-  // name collisions with previously-deployed apps which may be in ERROR or DELETED states.
-  //if (shouldAutoDeployWds) {
-  // David An: disabled for now. This needs to pass both the workspaceId and a random app name to
-  // createLeoAppWithErrorHandling.
-  // Additionally, it needs to be failsafe to race conditions in which the user enters the Data
-  // tab before Leo has had a chance to respond with knowledge about the app that was created
-  // during workspace creation.
-  // createLeoAppWithErrorHandling(uuid())
-  //}
 
   return ''
 }
