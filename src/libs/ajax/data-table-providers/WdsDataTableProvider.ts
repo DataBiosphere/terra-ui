@@ -102,25 +102,30 @@ export const resolveWdsApp = apps => {
   // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' -- if WDS is healthy and running, there should only be one app RUNNING
   // an app may be in the 'PROVISIONING', 'STOPPED', 'STOPPING', which can still be deemed as an OK state for WDS
   const healthyStates = ['RUNNING', 'PROVISIONING', 'STOPPED', 'STOPPING']
-  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}` && healthyStates.includes(app.status))
-  if (namedApp.length === 1) {
-    return namedApp[0]
-  }
 
-  //Failed to find an app with the proper name, look for a RUNNING CROMWELL app
-  const runningCromwellApps = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
-  if (runningCromwellApps.length > 0) {
-    // Evaluate the earliest-created WDS app
-    runningCromwellApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf())
-    return runningCromwellApps[0]
-  }
+  // WDS appType is checked first and takes precedence over CROMWELL apps in the workspace
+  const wdsAppTypes = ['WDS', 'CROMWELL']
+  for (const wdsAppType of wdsAppTypes) {
+    const namedApp = apps.filter(app => app.appType === wdsAppType && app.appName === `wds-${app.workspaceId}` && healthyStates.includes(app.status))
+    if (namedApp.length === 1) {
+      return namedApp[0]
+    }
 
-  // If we reach this logic, we have more than one Leo app with the associated workspace Id...
-  const allCromwellApps = apps.filter(app => app.appType === 'CROMWELL' && ['PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status))
-  if (allCromwellApps.length > 0) {
-    // Evaluate the earliest-created WDS app
-    allCromwellApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf())
-    return allCromwellApps[0]
+    //Failed to find an app with the proper name, look for a RUNNING WDS or CROMWELL app
+    const runningWdsApps = apps.filter(app => app.appType === wdsAppType && app.status === 'RUNNING')
+    if (runningWdsApps.length > 0) {
+      // Evaluate the earliest-created WDS app
+      runningWdsApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf())
+      return runningWdsApps[0]
+    }
+
+    // If we reach this logic, we have more than one Leo app with the associated workspace Id...
+    const allWdsApps = apps.filter(app => app.appType === wdsAppType && ['PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status))
+    if (allWdsApps.length > 0) {
+      // Evaluate the earliest-created WDS app
+      allWdsApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf())
+      return allWdsApps[0]
+    }
   }
 
   // we could not find an app of type CROMWELL in any healthy state, regardless of its name.
