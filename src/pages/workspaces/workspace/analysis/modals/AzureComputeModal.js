@@ -14,7 +14,7 @@ import {
 } from 'src/libs/azure-utils'
 import colors from 'src/libs/colors'
 import { withErrorReportingInModal } from 'src/libs/error'
-import Events from 'src/libs/events'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
@@ -29,14 +29,14 @@ import { computeStyles } from './modalStyles'
 const titleId = 'azure-compute-modal-title'
 
 export const AzureComputeModalBase = ({
-  onDismiss, onSuccess, onError = onDismiss, workspace: { workspace: { namespace, name: workspaceName, workspaceId } }, runtimes, location, hideCloseButton = false
+  onDismiss, onSuccess, onError = onDismiss, workspace, runtimes, location, hideCloseButton = false
 }) => {
   const [loading, setLoading] = useState(false)
   const [viewMode, setViewMode] = useState(undefined)
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(() => getCurrentRuntime(runtimes))
   const [computeConfig, setComputeConfig] = useState(defaultAzureComputeConfig)
   const updateComputeConfig = (key, value) => setComputeConfig(_.set(key, value, computeConfig))
-
+  const { namespace, name: workspaceName, workspaceId } = workspace.workspace
   // Lifecycle
   useOnMount(_.flow(
     withErrorReportingInModal('Error loading cloud environment', onError),
@@ -44,6 +44,9 @@ export const AzureComputeModalBase = ({
   )(async () => {
     const currentRuntime = getCurrentRuntime(runtimes)
     const runtimeDetails = currentRuntime ? await Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).details() : null
+    Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
+      existingConfig: !!currentRuntime, ...extractWorkspaceDetails(workspace.workspace)
+    })
     setCurrentRuntimeDetails(runtimeDetails)
     setComputeConfig({
       machineType: runtimeDetails?.runtimeConfig?.machineType || defaultAzureMachineType,
@@ -191,13 +194,32 @@ export const AzureComputeModalBase = ({
     )
   }
 
+  const sendCloudEnvironmentMetrics = () => {
+    const metricsEvent = Utils.cond(
+      [(viewMode === 'deleteEnvironment'), () => 'cloudEnvironmentDelete'],
+      // TODO: IA-4163 -When update is available, include in metrics
+      // [(!!existingRuntime), () => 'cloudEnvironmentUpdate'],
+      () => 'cloudEnvironmentCreate'
+    )
+
+    //TODO: IA-4163 When update is available include existingRuntime in metrics.
+    Ajax().Metrics.captureEvent(Events[metricsEvent], {
+      ...extractWorkspaceDetails(workspace),
+      ..._.mapKeys(key => `desiredRuntime_${key}`, computeConfig),
+      desiredRuntime_region: computeConfig.region,
+      desiredRuntime_machineType: computeConfig.machineType,
+      desiredPersistentDisk_size: computeConfig.diskSize,
+      desiredPersistentDisk_type: 'Standard', // IA-4164 - Azure disks are currently only Standard (HDD), when we add types update this.
+      desiredPersistentDisk_costPerMonth: getAzureDiskCostEstimate(computeConfig)
+    })
+  }
+
   // Helper functions -- begin
   const applyChanges = _.flow(
     Utils.withBusyState(setLoading),
     withErrorReportingInModal('Error modifying cloud environment', onError)
   )(async () => {
-    //TODO: metrics onclick
-    //sendCloudEnvironmentMetrics()
+    sendCloudEnvironmentMetrics()
 
     //each branch of the cond should return a promise
     await Utils.cond(
@@ -210,15 +232,6 @@ export const AzureComputeModalBase = ({
           name: Utils.generatePersistentDiskName(),
           labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: workspaceName }
         }
-
-        Ajax().Metrics.captureEvent(Events.analysisAzureJupyterLabCreate, {
-          region: computeConfig.region,
-          machineSize: computeConfig.machineType,
-          saturnWorkspaceNamespace: namespace,
-          saturnWorkspaceName: workspaceName,
-          diskSize: disk.size,
-          workspaceId
-        })
 
         return Ajax().Runtimes.runtimeV2(workspaceId, Utils.generateRuntimeName()).create({
           machineSize: computeConfig.machineType,

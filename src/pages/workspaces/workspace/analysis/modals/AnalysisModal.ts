@@ -386,7 +386,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
                   [isRStudio, () => baseRmd])
                 const fullAnalysisName = `${analysisName}.${fileExt}`
                 await createAnalysis(fullAnalysisName, toolLabel, contents)
-                await Ajax().Metrics.captureEvent(Events.analysisCreate, { source: toolLabel, application: toolLabel, filename: fullAnalysisName, cloudProvider })
+                await Ajax().Metrics.captureEvent(Events.analysisCreate, { tool: toolLabel, filename: fullAnalysisName, cloudProvider })
                 setAnalysisName('')
                 enterNextViewMode(toolLabel)
               } catch (error) {

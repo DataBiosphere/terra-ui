@@ -31,13 +31,9 @@ const ApplicationLauncher = _.flow(
   })
 )(({
   name: workspaceName, sparkInterface, analysesData: { runtimes, refreshRuntimes },
-  application, workspace: { azureContext, workspace: { namespace, name, workspaceId, googleProject, bucketName } }
+  application, workspace: { azureContext, workspace }
 }, _ref) => {
-  useEffect(() => {
-    Ajax().Metrics.captureEvent(Events.analysisLaunch,
-      { origin: 'appLauncher', source: application, application, workspaceName, namespace, cloudPlatform: googleProject ? 'GCP' : 'Azure' })
-  }, [application, namespace, googleProject, workspaceName])
-
+  const { namespace, name, workspaceId, googleProject, bucketName } = workspace
   const [busy, setBusy] = useState(true)
   const [outdatedAnalyses, setOutdatedAnalyses] = useState()
   const [fileOutdatedOpen, setFileOutdatedOpen] = useState(false)
@@ -228,8 +224,15 @@ const ApplicationLauncher = _.flow(
       clearInterval(interval.current)
       interval.current = undefined
     }
+
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [googleProject, workspaceName, runtimes, bucketName])
+
+  useEffect(() => {
+    _.includes(runtimeStatus, usableStatuses) && cookieReady &&
+    Ajax().Metrics.captureEvent(Events.cloudEnvironmentLaunch, { application, ...workspace })
+  }, [application, cookieReady, runtimeStatus, workspace])
 
   if (!busy && runtime === undefined) Nav.goToPath(analysisTabName, { namespace, name })
 
