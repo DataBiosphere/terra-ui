@@ -16,7 +16,7 @@ describe('getRootTypeForSetTable', () => {
 
 describe('getDownloadCommand', () => {
   it('gets download command for gsutil', () => {
-    expect(getDownloadCommand('test.txt', 'gs://demo-data/test.txt')).toBe('gsutil cp gs://demo-data/test.txt test.txt')
+    expect(getDownloadCommand('test.txt', 'gs://demo-data/test.txt')).toBe("gsutil cp 'gs://demo-data/test.txt' test.txt")
   })
 
   it('gets download command for azcopy', () => {
