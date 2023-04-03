@@ -24,7 +24,7 @@ module.exports = {
     {
       files: 'src/**/*.{js,ts}',
       rules: {
-        'no-console': ['warn', { allow: ['assert', 'error'] }],
+        // 'no-console': ['warn', { allow: ['assert', 'error'] }],//TODO: should be enabled
       },
     },
   ],
