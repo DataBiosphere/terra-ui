@@ -125,8 +125,8 @@ export const UriViewer = _.flow(
     spinner({ style: { marginLeft: 4 } })
   ])
 
-  if (isAzureUri(uri) && azureStorage !== undefined) {
-    const { azureSasStorageUrl, fileName, lastModified, size, workspaceId } = azureStorage
+  if (isAzureUri(uri)) {
+    const { azureSasStorageUrl, fileName, lastModified, size, workspaceId } = azureStorage || {}
     uri = azureSasStorageUrl || uri
     const downloadCommand = getDownloadCommand(fileName, uri)
     const metadata = { fileName, size }
@@ -138,6 +138,7 @@ export const UriViewer = _.flow(
       okButton: 'Done'
     }, [
       Utils.cond(
+        FailureMessage(loadingError),
         [azureStorage, () => h(Fragment, [
           azureStorage.lastModified && els.cell([
             els.label('Last Modified'),
@@ -146,7 +147,8 @@ export const UriViewer = _.flow(
           els.cell([els.label('File size'), els.data(filesize(size))]),
           h(UriDownloadButton, { uri, metadata, accessUrl, workspaceId }),
           TerminalCommand(downloadCommand),
-        ])]
+        ])],
+        LoadingSymbol(uri)
       )
     ])
   }

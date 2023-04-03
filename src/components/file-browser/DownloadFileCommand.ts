@@ -37,9 +37,11 @@ export const DownloadFileCommand = (props: DownloadFileCommandProps) => {
           overflowX: 'auto',
           flex: '1 1 0',
           padding: '1rem 0',
-        }
+        },
+        tabIndex: 0
       }, [downloadCommand || ' ']),
       h(ClipboardButton, {
+        'aria-label': 'Copy SAS URL to clipboard',
         children: undefined,
         disabled: !downloadCommand,
         style: { marginLeft: '1ch' },
