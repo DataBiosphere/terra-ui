@@ -72,7 +72,7 @@ export const AzureComputeModalBase = ({
 
   const renderBottomButtons = () => {
     return div({ style: { display: 'flex', marginTop: '2rem' } }, [
-      h(ButtonOutline, {
+      (doesRuntimeExist() || !!persistentDiskExists) && h(ButtonOutline, {
         onClick: () => setViewMode('deleteEnvironment')
       }, [
         Utils.cond(

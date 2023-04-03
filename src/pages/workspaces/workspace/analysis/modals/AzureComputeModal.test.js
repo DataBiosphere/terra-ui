@@ -84,6 +84,8 @@ describe('AzureComputeModal', () => {
     // Assert
     verifyEnabled(getCreateButton())
     screen.getByText('Azure Cloud Environment')
+    const deleteButton = screen.queryByText('Delete Environment')
+    expect(deleteButton).toBeNull()
   })
 
   it('sends the proper leo API call in default create case (no runtimes or disks)', async () => {
