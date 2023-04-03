@@ -230,8 +230,7 @@ export const AzureComputeModalBase = ({
             saturnWorkspaceName: workspaceName
           },
           disk
-        }, persistentDiskExists,
-        )
+        }, persistentDiskExists)
       }]
     )
 
@@ -290,7 +289,7 @@ export const AzureComputeModalBase = ({
       ['deleteEnvironment', () => DeleteEnvironment({
         id: titleId,
         runtimeConfig: currentRuntimeDetails && currentRuntimeDetails.runtimeConfig,
-        persistentDiskId: currentPersistentDiskDetails.id,
+        persistentDiskId: currentPersistentDiskDetails?.id,
         persistentDiskCostDisplay: Utils.formatUSD(getAzureDiskCostEstimate(computeConfig)),
         deleteDiskSelected,
         setDeleteDiskSelected,
