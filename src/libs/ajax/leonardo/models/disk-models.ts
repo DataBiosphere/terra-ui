@@ -14,7 +14,7 @@ export interface DiskConfig {
   blockSize: number
 }
 
-export type LeoDiskStatus = 'Creating' | 'Restoring' | 'Ready' | 'Failed' | 'Deleting' | 'Deleted'
+export type LeoDiskStatus = 'Creating' | 'Restoring' | 'Ready' | 'Failed' | 'Deleting' | 'Deleted' | 'Error'
 
 export interface DiskStatus {
   leoLabel: LeoDiskStatus
@@ -28,6 +28,7 @@ export const diskStatuses: { [label: string]: DiskStatus } = {
   failed: { leoLabel: 'Failed' },
   deleting: { leoLabel: 'Deleting' },
   deleted: { leoLabel: 'Deleted' },
+  error: { leoLabel: 'Error' },
 }
 
 export interface GetDiskItem {

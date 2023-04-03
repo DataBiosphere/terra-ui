@@ -58,20 +58,10 @@ const DeleteRuntimeModal = ({
   }, [
     div({ style: { lineHeight: 1.5 } }, [
       persistentDiskId ?
-        (isGcpContext(cloudContext) ? h(LabeledCheckbox, { checked: deleteDisk, onChange: setDeleteDisk }, [
+        (h(LabeledCheckbox, { checked: deleteDisk, onChange: setDeleteDisk }, [
           span({ style: { fontWeight: 600 } }, [' Also delete the persistent disk and all files on it'])
-        ]) : div({
-          style: {
-            backgroundColor: colors.accent(0.2),
-            display: 'flex',
-            borderRadius: 5,
-            padding: '0.5rem 1rem',
-            marginTop: '1rem',
-            marginBottom: '1rem'
-          }
-        }, [
-          p(['Deleting your Virtual Machine will also delete the attached persistent disk'])
-        ])) :
+        ])
+        ) :
         p([
           'Deleting this cloud environment will also ', span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk.'])
         ]),
@@ -85,14 +75,18 @@ const DeleteRuntimeModal = ({
   ])
 }
 
-const DeleteDiskModal = ({ disk: { googleProject, name }, isGalaxyDisk, onDismiss, onSuccess }) => {
+const DeleteDiskModal = ({ disk: { cloudContext, workspace, googleProject, name, id }, isGalaxyDisk, onDismiss, onSuccess }) => {
   const [busy, setBusy] = useState(false)
   const ajax = useReplaceableAjaxExperimental()
+
   const deleteDisk = _.flow(
     Utils.withBusyState(setBusy),
     withErrorReporting('Error deleting persistent disk')
   )(async () => {
-    await ajax().Disks.disk(googleProject, name).delete()
+    isGcpContext(cloudContext) ?
+      await ajax().Disks.disk(googleProject, name).delete() :
+      await ajax().Disks.disksV2(workspace.workspaceId, id).delete()
+
     onSuccess()
   })
   return h(Modal, {

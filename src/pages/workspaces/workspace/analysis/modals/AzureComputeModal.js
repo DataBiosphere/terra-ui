@@ -173,7 +173,7 @@ export const AzureComputeModalBase = ({
 
     return h(ButtonPrimary, {
       ...commonButtonProps,
-      tooltip: persistentDiskExists ? 'Mount existing Persistent disk to a new Virtual Machine.' : undefined,
+      tooltip: persistentDiskExists && viewMode !== 'deleteEnvironment' ? 'Mount existing Persistent disk to a new Virtual Machine.' : undefined,
       onClick: () => applyChanges()
     }, [Utils.cond(
       [viewMode === 'deleteEnvironment', () => 'Delete'],
