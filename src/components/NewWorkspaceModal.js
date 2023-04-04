@@ -10,6 +10,7 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import { allRegions, availableBucketRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isSupportedBucketLocation } from 'src/components/region-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
+import { authOpts, fetchRawlsVersion } from 'src/libs/ajax/ajax-common'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportErrorAndRethrow, withErrorIgnoring, withErrorReporting } from 'src/libs/error'
@@ -91,6 +92,11 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     }
   })
 
+  const getRawlsVersion = async () => {
+    const res = await fetchRawlsVersion('version', _.merge(authOpts(), { signal }))
+    return res.json()
+  }
+
   const create = async () => {
     try {
       setCreateError(undefined)
@@ -126,7 +132,16 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           return workspace
         })
       onSuccess(createdWorkspace)
-      createLeoApp(createdWorkspace)
+      // Temp code for merging Rawls fix first -- as of this PR, current rawls buildVersion from Jenkins is 8284
+      const wdsDeploymentRawlsVersion = 8284
+      await getRawlsVersion().then(
+        res => {
+          const currentRawlsBuildVersion = res.buildNumber
+          if (parseInt(currentRawlsBuildVersion) < wdsDeploymentRawlsVersion) {
+            createLeoApp(createdWorkspace)
+          }
+        }
+      )
     } catch (error) {
       const { message } = await error.json()
       setCreating(false)
