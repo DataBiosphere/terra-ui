@@ -276,6 +276,10 @@ export const Environments = ({ nav = undefined }) => {
 
   useEffect(() => {
     loadData()
+    const interval = setInterval(refreshData, 30000)
+    return () => {
+      clearInterval(interval)
+    }
   }, [shouldFilterByCreator]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const getCloudProvider = cloudEnvironment => Utils.cond(
