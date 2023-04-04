@@ -84,8 +84,8 @@ const DeleteDiskModal = ({ disk: { cloudContext, workspace, googleProject, name,
     withErrorReporting('Error deleting persistent disk')
   )(async () => {
     isGcpContext(cloudContext) ?
-      await ajax().Disks.disk(googleProject, name).delete() :
-      await ajax().Disks.disksV2(workspace.workspaceId, id).delete()
+      await ajax().Disks.disksV1().disk(googleProject, name).delete() :
+      await ajax().Disks.disksV2().delete(workspace.workspaceId, id)
 
     onSuccess()
   })
@@ -276,10 +276,6 @@ export const Environments = ({ nav = undefined }) => {
 
   useEffect(() => {
     loadData()
-    const interval = setInterval(refreshData, 30000)
-    return () => {
-      clearInterval(interval)
-    }
   }, [shouldFilterByCreator]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const getCloudProvider = cloudEnvironment => Utils.cond(
