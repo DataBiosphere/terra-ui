@@ -68,7 +68,16 @@ export const UriViewer = _.flow(
       // azure blob storage api only returns responses in xml format at this time
       // https://feedback.azure.com/d365community/idea/0646f944-3a25-ec11-b6e6-000d3a4f0f84
       if (isAzureUri(uri)) {
-        setLoadingError(await e.text())
+        const errorText = await e.text()
+        const xml = new window.DOMParser().parseFromString(errorText, 'text/xml')
+        const error = _.map(
+          text => ({
+            code: _.head(text.getElementsByTagName('Code'))?.textContent,
+            message: _.head(text.getElementsByTagName('Message'))?.textContent
+          }),
+          xml.getElementsByTagName('Error')
+        )
+        setLoadingError(error)
       } else {
         setLoadingError(await e.json())
       }
