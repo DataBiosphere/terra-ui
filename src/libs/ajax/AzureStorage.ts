@@ -121,13 +121,8 @@ export const AzureStorage = (signal?: AbortSignal) => ({
         const { sas: { token } } = await AzureStorage(signal).details(workspaceId)
 
         // instead of taking the url returned by azure storage, take it from the incoming url since there may be a folder path
-        const urlwithFolder = azureStorageUrl.substring(0, azureStorageUrl.lastIndexOf('/'))
-        const azureSasStorageUrl = _.flow(
-          _.split('?'),
-          _.head,
-          Utils.append(`/${fileName}?&${token}`),
-          _.join('')
-        )(urlwithFolder)
+        const urlwithFolder = new URL(azureStorageUrl)
+        const azureSasStorageUrl = `https://${urlwithFolder.hostname}${urlwithFolder.pathname}?&${token}`
 
         const res = await fetchOk(azureSasStorageUrl)
         const headerDict = Object.fromEntries(res.headers)
