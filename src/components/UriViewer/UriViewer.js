@@ -88,7 +88,7 @@ export const UriViewer = _.flow(
     loadMetadata()
   })
 
-  const TerminalCommand = downloadCommand => h(Fragment, [
+  const renderTerminalCommand = downloadCommand => h(Fragment, [
     p({ style: { marginBottom: '0.5rem', fontWeight: 500 } }, [
       'Terminal download command'
     ]),
@@ -110,7 +110,7 @@ export const UriViewer = _.flow(
         tabIndex: 0
       }, [downloadCommand || ' ']),
       h(ClipboardButton, {
-        'aria-label': 'Copy SAS URL to clipboard',
+        'aria-label': 'Copy download URL to clipboard',
         disabled: !downloadCommand,
         style: { marginLeft: '1ch' },
         text: downloadCommand,
@@ -118,7 +118,7 @@ export const UriViewer = _.flow(
     ])
   ])
 
-  const FailureMessage = loadingError => [loadingError, () => h(Fragment, [
+  const renderFailureMessage = loadingError => h(Fragment, [
     div({ style: { paddingBottom: '1rem' } }, [
       'Error loading data. This file does not exist or you do not have permission to view it.'
     ]),
@@ -127,15 +127,15 @@ export const UriViewer = _.flow(
         JSON.stringify(loadingError, null, 2)
       ])
     ])
-  ])]
+  ])
 
-  const LoadingSymbol = uri => h(Fragment, [
+  const renderLoadingSymbol = uri => h(Fragment, [
     isGsUri(uri) || isAzureUri(uri) ? 'Loading metadata...' : 'Resolving DRS file...',
     spinner({ style: { marginLeft: 4 } })
   ])
 
   if (isAzureUri(uri)) {
-    const { azureSasStorageUrl, fileName, lastModified, size, workspaceId } = azureStorage || {}
+    const { azureSasStorageUrl, fileName, lastModified, size } = azureStorage || {}
     uri = azureSasStorageUrl || uri
     const downloadCommand = getDownloadCommand(fileName, uri)
     const metadata = { fileName, size }
@@ -147,17 +147,17 @@ export const UriViewer = _.flow(
       okButton: 'Done'
     }, [
       Utils.cond(
-        FailureMessage(loadingError),
+        [loadingError, () => renderFailureMessage(loadingError)],
         [azureStorage, () => h(Fragment, [
           azureStorage.lastModified && els.cell([
             els.label('Last Modified'),
             els.data(new Date(lastModified).toLocaleString())
           ]),
           els.cell([els.label('File size'), els.data(filesize(size))]),
-          h(UriDownloadButton, { uri, metadata, accessUrl, workspaceId }),
-          TerminalCommand(downloadCommand),
+          h(UriDownloadButton, { uri, metadata, accessUrl, workspace }),
+          renderTerminalCommand(downloadCommand),
         ])],
-        LoadingSymbol(uri)
+        () => renderLoadingSymbol(uri)
       )
     ])
   }
@@ -173,7 +173,7 @@ export const UriViewer = _.flow(
     okButton: 'Done'
   }, [
     Utils.cond(
-      FailureMessage(loadingError),
+      [loadingError, () => renderFailureMessage(loadingError)],
       [metadata, () => h(Fragment, [
         els.cell([
           els.label('Filename'),
@@ -188,7 +188,7 @@ export const UriViewer = _.flow(
           }, ['View this file in the Google Cloud Storage Browser'])
         ]),
         h(UriDownloadButton, { uri, metadata, accessUrl }),
-        TerminalCommand(downloadCommand),
+        renderTerminalCommand(downloadCommand),
         (timeCreated || updated) && h(Collapse, {
           title: 'More Information',
           style: { marginTop: '2rem' },
@@ -209,7 +209,7 @@ export const UriViewer = _.flow(
         ]),
         div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
       ])],
-      LoadingSymbol(uri)
+      () => renderLoadingSymbol(uri)
     )
   ])
 })

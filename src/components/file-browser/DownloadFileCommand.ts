@@ -41,7 +41,7 @@ export const DownloadFileCommand = (props: DownloadFileCommandProps) => {
         tabIndex: 0
       }, [downloadCommand || ' ']),
       h(ClipboardButton, {
-        'aria-label': 'Copy SAS URL to clipboard',
+        'aria-label': 'Copy download URL to clipboard',
         children: undefined,
         disabled: !downloadCommand,
         style: { marginLeft: '1ch' },

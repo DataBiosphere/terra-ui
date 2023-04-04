@@ -22,7 +22,7 @@ const getMaxDownloadCostNA = bytes => {
   return Utils.formatUSD(downloadPrice)
 }
 
-export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, accessUrl, workspaceId }) => {
+export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, accessUrl, azureWorkspace }) => {
   const signal = useCancellation()
   const [url, setUrl] = useState()
   const getUrl = async () => {
@@ -58,7 +58,7 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
     getUrl()
   })
 
-  const workspace = isAzureUri(url) ? workspaceId : { ...extractWorkspaceDetails(workspaceStore.get().workspace) }
+  const workspace = isAzureUri(url) ? azureWorkspace : extractWorkspaceDetails(workspaceStore.get().workspace)
   return els.cell([
     url === null ?
       'Unable to generate download link.' :
@@ -68,7 +68,7 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
           onClick: () => {
             Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
               workspace,
-              fileType: _.head((/\.\w+$/).exec(url)),
+              fileType: _.head((/\.\w+$/).exec(uri)),
               downloadFrom: 'file direct'
             })
           },

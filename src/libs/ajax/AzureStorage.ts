@@ -113,11 +113,11 @@ export const AzureStorage = (signal?: AbortSignal) => ({
 
   blobMetadata: (azureStorageUrl: string) => {
     const getObjectMetadata = async () => {
+      // assumption is made that container name guid in uri always matches the workspace Id guid it is present in
       const workspaceId = azureStorageUrl.split('/')[3].replace('sc-', '')
-      const fileName = _.last(azureStorageUrl?.split('/'))?.split('.')?.join('.')
+      const fileName = _.last(azureStorageUrl.split('/'))?.split('.').join('.')
 
       try {
-        // assumption is made that container name guid in uri always matches the workspace Id guid it is present in
         const { sas: { token } } = await AzureStorage(signal).details(workspaceId)
 
         // instead of taking the url returned by azure storage, take it from the incoming url since there may be a folder path
@@ -130,28 +130,19 @@ export const AzureStorage = (signal?: AbortSignal) => ({
         )(urlwithFolder)
 
         const res = await fetchOk(azureSasStorageUrl)
-        const headerDict = ParseHeaders(await res.headers.entries())
+        const headerDict = Object.fromEntries(res.headers)
 
         return { lastModified: headerDict['last-modified'], size: headerDict['content-length'], azureSasStorageUrl, workspaceId, fileName }
       } catch (e) {
         // check if file can just be fetched without sas token
         try {
           const res = await fetchOk(azureStorageUrl)
-          const headerDict = ParseHeaders(res.headers)
+          const headerDict = Object.fromEntries(res.headers)
           return { lastModified: headerDict['last-modified'], size: headerDict['content-length'], azureStorageUrl, workspaceId, fileName }
         } catch (e) {}
 
         throw e
       }
-    }
-
-    const ParseHeaders = headerEntires => {
-      const headerDict = {}
-      for (const pair of headerEntires) {
-        headerDict[pair[0]] = pair[1]
-      }
-
-      return headerDict
     }
 
     return {
