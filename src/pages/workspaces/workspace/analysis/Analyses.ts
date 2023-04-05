@@ -205,7 +205,9 @@ const AnalysisCard = ({
 
   //the flex values for columns here correspond to the flex values in the header
   const artifactName = div({
-    onClick: () => Nav.goToPath(analysisLauncherTabName, { namespace, name: workspaceName, analysisName }),
+    onClick: () => {
+      Nav.goToPath(analysisLauncherTabName, { namespace, name: workspaceName, analysisName })
+    },
     title: getFileName(name),
     role: 'cell',
     style: {
@@ -215,7 +217,7 @@ const AnalysisCard = ({
     getFileName(name)
   ])
 
-  const toolIconSrc: string = Utils.switchCase(application,
+  const toolIconSrc: string = Utils.switchCase(currentRuntimeToolLabel,
     [runtimeToolLabels.Jupyter, () => jupyterLogo],
     [runtimeToolLabels.RStudio, () => rstudioSquareLogo],
     [runtimeToolLabels.JupyterLab, () => jupyterLogo]

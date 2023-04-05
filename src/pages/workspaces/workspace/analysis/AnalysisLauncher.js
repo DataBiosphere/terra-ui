@@ -28,7 +28,8 @@ import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/moda
 import { ComputeModal } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal/ExportAnalysisModal'
 import {
-  analysisLauncherTabName, analysisTabName, appLauncherTabName, ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor,
+  analysisLauncherTabName, analysisTabName, appLauncherTabName, appLauncherWithAnalysisTabName, ApplicationHeader, PlaygroundHeader, RuntimeKicker,
+  RuntimeStatusMonitor,
   StatusMessage
 } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import { getCurrentPersistentDisk } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
@@ -47,6 +48,9 @@ import { AzureComputeModal } from './modals/AzureComputeModal'
 const chooseMode = mode => {
   Nav.history.replace({ search: qs.stringify({ mode }) })
 }
+
+// The analysis launcher is the place the user arrives when they click a file, and is in charge of preview and redirecting to the app itself
+// The analysis launcher links to the application launcher when the open button is clicked
 
 const AnalysisLauncher = _.flow(
   forwardRefWithName('AnalysisLauncher'),
@@ -85,7 +89,7 @@ const AnalysisLauncher = _.flow(
     return h(Fragment, [
       div({ style: { flex: 1, display: 'flex' } }, [
         div({ style: { flex: 1 } }, [
-          (Utils.canWrite(accessLevel) && canCompute && !!mode && _.includes(status, usableStatuses) && currentRuntimeToolLabel === 'Jupyter') ?
+          (Utils.canWrite(accessLevel) && canCompute && !!mode && _.includes(status, usableStatuses) && currentRuntimeToolLabel === runtimeToolLabels.Jupyter) ?
             h(labels?.welderInstallFailed ? WelderDisabledNotebookEditorFrame : AnalysisEditorFrame,
               { key: runtimeName, workspace, runtime: currentRuntime, analysisName, mode, toolLabel: currentFileToolLabel, styles: iframeStyles }) :
             h(Fragment, [
@@ -325,13 +329,13 @@ const PreviewHeader = ({
       [isJupyterLabGCP && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === runtimeToolLabels.Jupyter,
         () => h(HeaderButton, {
           onClick: () => {
-            Nav.goToPath(appLauncherTabName, { namespace, name, application: runtimeToolLabels.JupyterLab, cloudPlatform })
+            Nav.goToPath(appLauncherWithAnalysisTabName, { namespace, name, application: runtimeToolLabels.JupyterLab, cloudPlatform, analysisName })
           }
         }, openMenuIcon)],
       [isAzureWorkspace && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === runtimeToolLabels.Jupyter,
         () => h(HeaderButton, {
           onClick: () => {
-            Nav.goToPath(appLauncherTabName, { namespace, name, application: runtimeToolLabels.JupyterLab, cloudPlatform })
+            Nav.goToPath(appLauncherWithAnalysisTabName, { namespace, name, application: runtimeToolLabels.JupyterLab, cloudPlatform, analysisName })
           }
         }, openMenuIcon)],
       [isAzureWorkspace && runtimeStatus !== 'Running', () => {}],
