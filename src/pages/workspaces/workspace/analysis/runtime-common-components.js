@@ -13,6 +13,7 @@ import { useCancellation, useGetter, useOnMount, usePollingEffect, usePrevious, 
 import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { cloudProviderTypes } from 'src/libs/workspace-utils'
 import { getConvertedRuntimeStatus, usableStatuses } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
 
@@ -51,12 +52,13 @@ export const RuntimeKicker = ({ runtime, refreshRuntimes }) => {
   const startRuntimeOnce = withErrorReporting('Error starting cloud environment', async () => {
     while (!signal.aborted) {
       const currentRuntime = getRuntime()
-      const { googleProject, runtimeName } = currentRuntime || {}
+      const { googleProject, runtimeName, cloudContext, workspaceId } = currentRuntime || {}
       const status = getConvertedRuntimeStatus(currentRuntime)
-
       if (status === 'Stopped') {
         setBusy(true)
-        await Ajax().Runtimes.runtime(googleProject, runtimeName).start()
+        await cloudContext.cloudProvider === cloudProviderTypes.AZURE ?
+          Ajax().Runtimes.runtimeV2(workspaceId, runtimeName).start() :
+          Ajax().Runtimes.runtime(googleProject, runtimeName).start()
         await refreshRuntimes()
         setBusy(false)
         return
