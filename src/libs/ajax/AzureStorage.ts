@@ -113,11 +113,11 @@ export const AzureStorage = (signal?: AbortSignal) => ({
 
   blobMetadata: (azureStorageUrl: string) => {
     const getObjectMetadata = async () => {
-      // assumption is made that container name guid in uri always matches the workspace Id guid it is present in
-      const workspaceId = azureStorageUrl.split('/')[3].replace('sc-', '')
       const fileName = _.last(azureStorageUrl.split('/'))?.split('.').join('.')
 
       try {
+        // assumption is made that container name guid in uri always matches the workspace Id guid it is present in
+        const workspaceId = azureStorageUrl.split('/')[3].replace('sc-', '')
         const { sas: { token } } = await AzureStorage(signal).details(workspaceId)
 
         // instead of taking the url returned by azure storage, take it from the incoming url since there may be a folder path
@@ -133,7 +133,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
         try {
           const res = await fetchOk(azureStorageUrl, { method: 'HEAD' })
           const headerDict = Object.fromEntries(res.headers)
-          return { lastModified: headerDict['last-modified'], size: headerDict['content-length'], azureStorageUrl, workspaceId, fileName }
+          return { lastModified: headerDict['last-modified'], size: headerDict['content-length'], azureStorageUrl, fileName }
         } catch (e) {}
 
         throw e
