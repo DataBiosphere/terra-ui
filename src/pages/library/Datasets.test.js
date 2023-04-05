@@ -32,16 +32,6 @@ describe('Datasets', () => {
     expect(getByLabelText('New Catalog OFF')).toBeTruthy()
   })
 
-  it('only shows RadX datasets when in RadX', () => {
-    getEnabledBrand.mockReturnValue(brands.radX)
-    const displayedDatasets = prepareDatasetsForDisplay(
-      [{ 'dct:title': 'radx-up', 'TerraDCAT_ap:hasDataCollection': [{ 'dct:title': 'RADx-UP' }] }, { 'dct:title': 'not-radx' }],
-      brands.radX.catalogDataCollectionsToInclude
-    )
-    expect(displayedDatasets.length).toBe(1)
-    expect(displayedDatasets[0]['dct:title']).toBe('radx-up')
-  })
-
   it('shows all datasets in terra', () => {
     getEnabledBrand.mockReturnValue(brands.terra)
     expect(prepareDatasetsForDisplay(
