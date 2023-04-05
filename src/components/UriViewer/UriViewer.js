@@ -65,19 +65,9 @@ export const UriViewer = _.flow(
         setMetadata(metadata)
       }
     } catch (e) {
-      // azure blob storage api only returns responses in xml format at this time
-      // https://feedback.azure.com/d365community/idea/0646f944-3a25-ec11-b6e6-000d3a4f0f84
+      // azure blob metadata storage api returns a response and it throws an error when tried to be parsed to js
       if (isAzureUri(uri)) {
-        const errorText = await e.text()
-        const xml = new window.DOMParser().parseFromString(errorText, 'text/xml')
-        const error = _.map(
-          text => ({
-            code: _.head(text.getElementsByTagName('Code'))?.textContent,
-            message: _.head(text.getElementsByTagName('Message'))?.textContent
-          }),
-          xml.getElementsByTagName('Error')
-        )
-        setLoadingError(error)
+        setLoadingError(e.statusText)
       } else {
         setLoadingError(await e.json())
       }
@@ -149,7 +139,7 @@ export const UriViewer = _.flow(
       Utils.cond(
         [loadingError, () => renderFailureMessage(loadingError)],
         [azureStorage, () => h(Fragment, [
-          azureStorage.lastModified && els.cell([
+          lastModified && els.cell([
             els.label('Last Modified'),
             els.data(new Date(lastModified).toLocaleString())
           ]),
@@ -187,7 +177,7 @@ export const UriViewer = _.flow(
             href: bucketBrowserUrl(gsUri.match(/gs:\/\/(.+)\//)[1])
           }, ['View this file in the Google Cloud Storage Browser'])
         ]),
-        h(UriDownloadButton, { uri, metadata, accessUrl }),
+        h(UriDownloadButton, { uri, metadata, accessUrl, workspace }),
         renderTerminalCommand(downloadCommand),
         (timeCreated || updated) && h(Collapse, {
           title: 'More Information',

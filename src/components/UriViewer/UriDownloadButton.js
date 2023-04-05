@@ -8,7 +8,7 @@ import DownloadPrices from 'src/data/download-prices'
 import { Ajax } from 'src/libs/ajax'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
-import { knownBucketRequesterPaysStatuses, workspaceStore } from 'src/libs/state'
+import { knownBucketRequesterPaysStatuses } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 import els from './uri-viewer-styles'
@@ -22,7 +22,7 @@ const getMaxDownloadCostNA = bytes => {
   return Utils.formatUSD(downloadPrice)
 }
 
-export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, accessUrl, azureWorkspace }) => {
+export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, accessUrl, workspace }) => {
   const signal = useCancellation()
   const [url, setUrl] = useState()
   const getUrl = async () => {
@@ -46,7 +46,6 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
           object: name,
           dataObjectUri: isDrsUri(uri) ? uri : undefined
         })
-        const workspace = workspaceStore.get()
         const userProject = await getUserProjectForWorkspace(workspace)
         setUrl(knownBucketRequesterPaysStatuses.get()[bucket] ? Utils.mergeQueryParams({ userProject }, url) : url)
       } catch (error) {
@@ -58,7 +57,6 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
     getUrl()
   })
 
-  const workspace = isAzureUri(url) ? azureWorkspace : extractWorkspaceDetails(workspaceStore.get().workspace)
   return els.cell([
     url === null ?
       'Unable to generate download link.' :
@@ -67,7 +65,7 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
           disabled: !url,
           onClick: () => {
             Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
-              workspace,
+              ...extractWorkspaceDetails(workspace),
               fileType: _.head((/\.\w+$/).exec(uri)),
               downloadFrom: 'file direct'
             })

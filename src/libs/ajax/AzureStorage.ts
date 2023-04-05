@@ -124,14 +124,14 @@ export const AzureStorage = (signal?: AbortSignal) => ({
         const urlwithFolder = new URL(azureStorageUrl)
         const azureSasStorageUrl = `https://${urlwithFolder.hostname}${urlwithFolder.pathname}?&${token}`
 
-        const res = await fetchOk(azureSasStorageUrl)
+        const res = await fetchOk(azureSasStorageUrl, { method: 'HEAD' })
         const headerDict = Object.fromEntries(res.headers)
 
         return { lastModified: headerDict['last-modified'], size: headerDict['content-length'], azureSasStorageUrl, workspaceId, fileName }
       } catch (e) {
         // check if file can just be fetched without sas token
         try {
-          const res = await fetchOk(azureStorageUrl)
+          const res = await fetchOk(azureStorageUrl, { method: 'HEAD' })
           const headerDict = Object.fromEntries(res.headers)
           return { lastModified: headerDict['last-modified'], size: headerDict['content-length'], azureStorageUrl, workspaceId, fileName }
         } catch (e) {}
