@@ -205,9 +205,7 @@ const AnalysisCard = ({
 
   //the flex values for columns here correspond to the flex values in the header
   const artifactName = div({
-    onClick: () => {
-      Nav.goToPath(analysisLauncherTabName, { namespace, name: workspaceName, analysisName })
-    },
+    onClick: () => Nav.goToPath(analysisLauncherTabName, { namespace, name: workspaceName, analysisName }),
     title: getFileName(name),
     role: 'cell',
     style: {
