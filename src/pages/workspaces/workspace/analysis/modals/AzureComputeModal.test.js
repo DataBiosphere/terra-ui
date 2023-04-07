@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import _ from 'lodash/fp'
 import { act } from 'react-dom/test-utils'
@@ -12,6 +12,10 @@ import {
   imageDocs, testAzureDefaultRegion
 } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
+import {
+  autopauseDisabledValue,
+  defaultAutopauseThreshold
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import { runtimeToolLabels, runtimeTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
@@ -122,8 +126,8 @@ describe('AzureComputeModal', () => {
         name: expect.anything()
       }),
       machineSize: defaultAzureMachineType,
+      autopauseThreshold: defaultAutopauseThreshold,
     }, false)
-
     expect(onSuccess).toHaveBeenCalled()
   })
 
@@ -139,7 +143,7 @@ describe('AzureComputeModal', () => {
       Runtimes: {
         runtimeV2: runtimeFunc
       }
-    }))
+     }))
 
     // Act
     // wrapping component init-time stateful side-effects with act()
@@ -165,6 +169,100 @@ describe('AzureComputeModal', () => {
 
     expect(onSuccess).toHaveBeenCalled()
   })
+
+  it('sends the proper leo API call in create case (custom autopause)', async () => {
+    // Arrange
+    const user = userEvent.setup()
+
+    const createFunc = jest.fn()
+    const runtimeFunc = jest.fn(() => ({
+      create: createFunc,
+      details: jest.fn()
+    }))
+    Ajax.mockImplementation(() => ({
+      ...defaultAjaxImpl,
+      Runtimes: {
+        runtimeV2: runtimeFunc
+      }
+    }))
+
+    // Act
+    // wrapping component init-time stateful side-effects with act()
+    await act(async () => {
+      await render(h(AzureComputeModalBase, defaultModalProps))
+
+      const numberInput = await screen.getByLabelText('minutes of inactivity')
+      expect(numberInput).toBeInTheDocument()
+      await user.type(numberInput, '0')
+      expect(numberInput.value).toBe('300')
+
+      await user.click(getCreateButton())
+    })
+
+    // Assert
+    const labels = {
+      saturnWorkspaceNamespace: defaultModalProps.workspace.workspace.namespace,
+      saturnWorkspaceName: defaultModalProps.workspace.workspace.name
+    }
+    expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.workspaceId, expect.anything())
+    expect(createFunc).toHaveBeenCalledWith(expect.objectContaining({
+      labels,
+      disk: expect.objectContaining({
+        labels,
+        name: expect.anything()
+      }),
+      machineSize: defaultAzureMachineType,
+      autopauseThreshold: 300,
+    }))
+
+    expect(onSuccess).toHaveBeenCalled()
+  })
+
+  it('sends the proper leo API call in create case (autopause disabled)', async () => {
+    // Arrange
+    const createFunc = jest.fn()
+    const runtimeFunc = jest.fn(() => ({
+      create: createFunc,
+      details: jest.fn()
+    }))
+    Ajax.mockImplementation(() => ({
+      ...defaultAjaxImpl,
+      Runtimes: {
+        runtimeV2: runtimeFunc
+      }
+    }))
+
+    // Act
+    // wrapping component init-time stateful side-effects with act()
+    await act(async () => {
+      await render(h(AzureComputeModalBase, defaultModalProps))
+
+      const autopauseCheckbox = await screen.getByLabelText('Enable autopause')
+      expect(autopauseCheckbox).toBeInTheDocument()
+      await expect(autopauseCheckbox).toBeChecked()
+      await fireEvent.click(autopauseCheckbox) // click to focus?
+      await fireEvent.click(autopauseCheckbox)
+      await expect(autopauseCheckbox).not.toBeChecked()
+      const numberInput = await screen.getByLabelText('minutes of inactivity')
+      await expect(numberInput).not.toBeVisible()
+
+      await userEvent.click(getCreateButton())
+    })
+
+    // Assert
+    const labels = {
+      saturnWorkspaceNamespace: defaultModalProps.workspace.workspace.namespace,
+      saturnWorkspaceName: defaultModalProps.workspace.workspace.name
+    }
+    expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.workspaceId, expect.anything())
+    expect(createFunc).toHaveBeenCalledWith(expect.objectContaining({
+      labels,
+      disk: expect.objectContaining({
+        labels,
+        name: expect.anything()
+      }),
+      machineSize: defaultAzureMachineType,
+      autopauseThreshold: autopauseDisabledValue,
 
   it('renders default cost estimate', async () => {
     // Arrange

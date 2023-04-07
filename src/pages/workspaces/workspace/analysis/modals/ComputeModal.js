@@ -892,7 +892,6 @@ export const ComputeModalBase = ({
     const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : isDataproc(runtimeType) || isRStudioImage
     const enableGpusSpan = span(['Enable GPUs ', betaVersionTag])
     const autoPauseCheckboxEnabled = true
-    const enableAutopauseSpan = span(['Enable autopause'])
     const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
     const gridItemInputStyle = { minWidth: '6rem' }
 
@@ -1058,7 +1057,7 @@ export const ComputeModalBase = ({
           onChange: v => updateComputeConfig('autopauseThreshold', getAutopauseThreshold(v))
         }, [
           span({ style: { marginLeft: '0.5rem', ...computeStyles.label, verticalAlign: 'top' } }, [
-            enableAutopauseSpan
+            span(['Enable autopause'])
           ]),
         ]),
         h(Link, {
