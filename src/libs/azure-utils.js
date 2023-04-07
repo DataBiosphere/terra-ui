@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { defaultAutopauseThreshold } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
 // AZURE REGIONS, COMPUTE TYPES, STORAGE TYPES AND PRICING
 
@@ -7,6 +8,7 @@ export const defaultAzureDiskSize = 50
 export const defaultAzureRegion = 'eastus'
 
 export const defaultAzureComputeConfig = {
+  autopauseThreshold: defaultAutopauseThreshold,
   machineType: defaultAzureMachineType,
   diskSize: defaultAzureDiskSize,
   region: defaultAzureRegion,
