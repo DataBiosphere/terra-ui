@@ -211,7 +211,7 @@ describe('DeleteEnvironment', () => {
   })
   it.each([
     runtimeToolLabels.RStudio,
-    runtimeToolLabels.JupyterLab,
+    runtimeToolLabels.Jupyter,
   ])('Should properly render when provided a GCEWithPD config with label %s', toolLabel => {
     // Arrange
     const setDeleteDiskSelected = jest.fn()
@@ -267,7 +267,7 @@ describe('DeleteEnvironment', () => {
   })
   it.each([
     runtimeToolLabels.RStudio,
-    runtimeToolLabels.JupyterLab
+    runtimeToolLabels.Jupyter
   ])('Should properly render when provided GCE config that had matching PDID with label %s', toolLabel => {
     // Arrange
     const setDeleteDiskSelected = jest.fn()
@@ -325,7 +325,7 @@ describe('DeleteEnvironment', () => {
     // Assert
 
     screen.getByText('You will continue to incur persistent disk cost at')
-    screen.getByText('/home/jupyter')
+    screen.getByText('/home/jupyter/persistent_disk')
     screen.getByText('$3.01 per month.')
     screen.getByText('Also deletes your application configuration and cloud compute profile.')
   })

@@ -31,16 +31,18 @@ export interface PersistentDiskTypeProps {
   updateComputeConfig: (key: string, value: any) => void
 }
 
-export type MountPoint = '/home/rstudio' | '/home/jupyter'
+export type MountPoint = '/home/rstudio' | '/home/jupyter' | '/home/jupyter/persistent_disk'
 
 export const mountPoints: Record<RuntimeToolLabel, MountPoint> = {
   RStudio: '/home/rstudio',
   Jupyter: '/home/jupyter',
-  JupyterLab: '/home/jupyter'
+  JupyterLab: '/home/jupyter/persistent_disk'
 }
 
 export const getMountDir = (toolLabel: RuntimeToolLabel): MountPoint => {
-  return toolLabel === runtimeToolLabels.RStudio ? '/home/rstudio' : '/home/jupyter'
+  if (toolLabel === runtimeToolLabels.RStudio) return mountPoints.RStudio
+  if (toolLabel === runtimeToolLabels.Jupyter) return mountPoints.Jupyter
+  return mountPoints.JupyterLab
 }
 
 const PersistentDiskTypeSelect = Select as typeof Select<IComputeConfig['persistentDiskType']>
