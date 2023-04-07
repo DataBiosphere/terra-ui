@@ -44,11 +44,7 @@ export const UriViewer = _.flow(
         const metadata = await loadObject(googleProject, bucket, name)
         setMetadata(metadata)
       } else if (isAzureUri(uri)) {
-        const loadObjectMetadata = withRequesterPaysHandler(onRequesterPaysError, () => {
-          return Ajax(signal).AzureStorage.blobMetadata(uri).getData()
-        })
-
-        const metadata = await loadObjectMetadata(uri)
+        const metadata = await Ajax(signal).AzureStorage.blobMetadata(uri).getData()
         setAzureStorage(metadata)
       } else {
         // TODO: change below comment after switch to DRSHub is complete, tracked in ticket [ID-170]
