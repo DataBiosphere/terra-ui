@@ -39,6 +39,5 @@ export const isDatastage = () => getEnabledBrand() === brands.datastage
 export const isElwazi = () => getEnabledBrand() === brands.elwazi
 export const isFirecloud = () => getEnabledBrand() === brands.firecloud
 export const isProjectSingular = () => getEnabledBrand() === brands.projectSingular
-export const isRadX = () => getEnabledBrand() === brands.radX
 export const isRareX = () => getEnabledBrand() === brands.rareX
 export const isTerra = () => getEnabledBrand() === brands.terra
