@@ -8,8 +8,8 @@ import { updatePdType } from 'src/pages/workspaces/workspace/analysis/utils/disk
 export const Disks = signal => {
   const diskV2Root = 'api/v2/disks'
   const v2Func = () => ({
-    delete: (workspaceId, diskId): Promise<void> => {
-      return fetchLeo(`${diskV2Root}/${diskId}/${workspaceId}`, _.mergeAll([authOpts(), appIdentifier, { signal, method: 'DELETE' }]))
+    delete: (diskId): Promise<void> => {
+      return fetchLeo(`${diskV2Root}/${diskId}`, _.mergeAll([authOpts(), appIdentifier, { signal, method: 'DELETE' }]))
     }
   })
 

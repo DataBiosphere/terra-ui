@@ -75,7 +75,7 @@ const DeleteRuntimeModal = ({
   ])
 }
 
-const DeleteDiskModal = ({ disk: { cloudContext, workspace, googleProject, name, id }, isGalaxyDisk, onDismiss, onSuccess }) => {
+const DeleteDiskModal = ({ disk: { cloudContext, googleProject, name, id }, isGalaxyDisk, onDismiss, onSuccess }) => {
   const [busy, setBusy] = useState(false)
   const ajax = useReplaceableAjaxExperimental()
 
@@ -85,7 +85,7 @@ const DeleteDiskModal = ({ disk: { cloudContext, workspace, googleProject, name,
   )(async () => {
     isGcpContext(cloudContext) ?
       await ajax().Disks.disksV1().disk(googleProject, name).delete() :
-      await ajax().Disks.disksV2().delete(workspace.workspaceId, id)
+      await ajax().Disks.disksV2().delete(id)
 
     onSuccess()
   })
