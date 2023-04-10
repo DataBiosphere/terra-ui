@@ -3,6 +3,7 @@ import { Fragment, useState } from 'react'
 import { div, h, label, p, span } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { NumberInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
@@ -20,9 +21,8 @@ import { cloudProviderTypes } from 'src/libs/workspace-utils'
 import { DeleteEnvironment } from 'src/pages/workspaces/workspace/analysis/modals/DeleteEnvironment'
 import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import {
-  autopauseDisabledValue, defaultAutopauseThreshold, getAutopauseThreshold, getCurrentRuntime, getIsRuntimeBusy, isAutopauseEnabled
+  autopauseDisabledValue, defaultAutopauseThreshold, getAutopauseThreshold, getIsRuntimeBusy, isAutopauseEnabled
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
-
 
 import { computeStyles } from './modalStyles'
 import { AboutPersistentDisk, PersistentDiskSection } from './persistent-disk-controls'
@@ -38,6 +38,7 @@ export const AzureComputeModalBase = ({
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(currentRuntime)
   const [currentPersistentDiskDetails] = useState(currentDisk)
   const [computeConfig, setComputeConfig] = useState(defaultAzureComputeConfig)
+  const updateComputeConfig = (key, value) => setComputeConfig({ ...computeConfig, [key]: value })
   const { namespace, name: workspaceName, workspaceId } = workspace.workspace
   const persistentDiskExists = !!currentPersistentDiskDetails
   const [deleteDiskSelected, setDeleteDiskSelected] = useState(false)

@@ -143,7 +143,7 @@ describe('AzureComputeModal', () => {
       Runtimes: {
         runtimeV2: runtimeFunc
       }
-     }))
+    }))
 
     // Act
     // wrapping component init-time stateful side-effects with act()
@@ -165,6 +165,7 @@ describe('AzureComputeModal', () => {
         name: expect.anything()
       }),
       machineSize: defaultAzureMachineType,
+      autopauseThreshold: defaultAutopauseThreshold,
     }, true)
 
     expect(onSuccess).toHaveBeenCalled()
@@ -205,7 +206,7 @@ describe('AzureComputeModal', () => {
       saturnWorkspaceName: defaultModalProps.workspace.workspace.name
     }
     expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.workspaceId, expect.anything())
-    expect(createFunc).toHaveBeenCalledWith(expect.objectContaining({
+    expect(createFunc).toHaveBeenCalledWith({
       labels,
       disk: expect.objectContaining({
         labels,
@@ -213,7 +214,7 @@ describe('AzureComputeModal', () => {
       }),
       machineSize: defaultAzureMachineType,
       autopauseThreshold: 300,
-    }))
+    }, false)
 
     expect(onSuccess).toHaveBeenCalled()
   })
@@ -255,7 +256,7 @@ describe('AzureComputeModal', () => {
       saturnWorkspaceName: defaultModalProps.workspace.workspace.name
     }
     expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.workspaceId, expect.anything())
-    expect(createFunc).toHaveBeenCalledWith(expect.objectContaining({
+    expect(createFunc).toHaveBeenCalledWith({
       labels,
       disk: expect.objectContaining({
         labels,
@@ -263,6 +264,8 @@ describe('AzureComputeModal', () => {
       }),
       machineSize: defaultAzureMachineType,
       autopauseThreshold: autopauseDisabledValue,
+    }, false)
+  })
 
   it('renders default cost estimate', async () => {
     // Arrange
