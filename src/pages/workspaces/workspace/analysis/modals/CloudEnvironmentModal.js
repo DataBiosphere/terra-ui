@@ -7,6 +7,7 @@ import ModalDrawer from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
 import cromwellImg from 'src/images/cromwell-logo.png'
 import galaxyLogo from 'src/images/galaxy-logo.svg'
+import hailLogo from 'src/images/hail-logo.svg'
 import jupyterLogo from 'src/images/jupyter-logo-long.png'
 import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
@@ -269,6 +270,7 @@ export const CloudEnvironmentModal = ({
     [appToolLabels.GALAXY, () => galaxyLogo],
     [runtimeToolLabels.RStudio, () => rstudioBioLogo],
     [appToolLabels.CROMWELL, () => cromwellImg],
+    [appToolLabels.HAIL_BATCH, () => hailLogo],
     [runtimeToolLabels.JupyterLab, () => jupyterLogo])
 
   const isCloudEnvModalDisabled = toolLabel => Utils.cond(
@@ -334,6 +336,17 @@ export const CloudEnvironmentModal = ({
           onClick: () => {
             onDismiss()
             Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: appTools.CROMWELL.label })
+          },
+          ...Utils.newTabLinkPropsWithReferrer
+        }
+      }],
+      [appToolLabels.HAIL_BATCH, () => {
+        return {
+          ...baseProps,
+          href: `${app?.proxyUrls['batch']}/batch`, // TODO
+          onClick: () => {
+            onDismiss()
+            Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: appTools.HAIL_BATCH.label })
           },
           ...Utils.newTabLinkPropsWithReferrer
         }
@@ -429,6 +442,7 @@ export const CloudEnvironmentModal = ({
     [runtimeToolLabels.RStudio, () => 675],
     [appToolLabels.GALAXY, () => 675],
     [appToolLabels.CROMWELL, () => 675],
+    [appToolLabels.HAIL_BATCH, () => 675],
     [runtimeToolLabels.JupyterLab, () => 675],
     [Utils.DEFAULT, () => 430]
   )

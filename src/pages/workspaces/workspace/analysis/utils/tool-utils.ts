@@ -3,9 +3,7 @@ import { code } from 'react-hyperscript-helpers'
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { isCromwellAppVisible } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
-import { isOwner } from 'src/libs/utils'
 import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils'
-import { doesWorkspaceSupportCromwellApp } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
 import { FileExtension, getExtension } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
@@ -33,12 +31,14 @@ export const toolLabelDisplays: Record<ToolLabel, string> = {
   RStudio: 'RStudio',
   JupyterLab: 'JupyterLab',
   GALAXY: 'Galaxy',
-  CROMWELL: 'Cromwell'
+  CROMWELL: 'Cromwell',
+  HAIL_BATCH: 'Hail Batch'
 }
 
 export const appToolLabels: Record<AppToolLabel, AppToolLabel> = {
   GALAXY: 'GALAXY',
-  CROMWELL: 'CROMWELL'
+  CROMWELL: 'CROMWELL',
+  HAIL_BATCH: 'HAIL_BATCH'
 }
 
 export const isAppToolLabel = (x: ToolLabel): x is AppToolLabel => x in appToolLabels
@@ -90,9 +90,12 @@ const Galaxy: AppTool = { label: 'GALAXY' }
 
 const Cromwell: AppTool = { label: 'CROMWELL', isPauseUnsupported: true }
 
+const HailBatch: AppTool = { label: 'HAIL_BATCH', isPauseUnsupported: true }
+
 export const appTools: Record<AppToolLabel, AppTool> = {
   GALAXY: Galaxy,
-  CROMWELL: Cromwell
+  CROMWELL: Cromwell,
+  HAIL_BATCH: HailBatch
 }
 
 export const runtimeTools: Record<RuntimeToolLabel, RuntimeTool> = {
@@ -125,7 +128,8 @@ export const cloudAppTools: Record<CloudProvider, AppTool[]> = {
     Cromwell
   ],
   AZURE: [
-    Cromwell
+    Cromwell,
+    HailBatch
   ]
 }
 

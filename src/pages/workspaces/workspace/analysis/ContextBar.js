@@ -19,6 +19,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import cloudIcon from 'src/icons/cloud-compute.svg'
 import cromwellImg from 'src/images/cromwell-logo.png' // To be replaced by something square
 import galaxyLogo from 'src/images/galaxy-project-logo-square.png'
+import hailLogo from 'src/images/hail-logo.svg'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
@@ -89,6 +90,7 @@ export const ContextBar = ({
     [runtimeToolLabels.Jupyter, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
     [appToolLabels.GALAXY, () => img({ src: galaxyLogo, style: { height: 40, width: 40 }, alt: '' })],
     [appToolLabels.CROMWELL, () => img({ src: cromwellImg, style: { width: 45 }, alt: '' })],
+    [appToolLabels.HAIL_BATCH, () => img({ src: hailLogo, style: { height: 45, width: 45 }, alt: '' })],
     [runtimeToolLabels.RStudio, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: '' })],
     [runtimeToolLabels.JupyterLab, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })]
   )
@@ -132,14 +134,16 @@ export const ContextBar = ({
     const galaxyApp = getCurrentApp(appTools.GALAXY.label, apps)
     const cromwellAppObject = getCurrentApp(appTools.CROMWELL.label, apps)
     const cromwellApp = !isToolHidden(appTools.CROMWELL.label, cloudProvider) && cromwellAppObject && doesWorkspaceSupportCromwellApp(workspace?.workspace?.createdDate, cloudProvider, appTools.CROMWELL.label)
+    const hailBatchApp = getCurrentApp(appTools.HAIL_BATCH.label, apps)
     return h(Fragment, [
       ...(currentRuntime ? [getIconForTool(currentRuntimeTool, currentRuntime.status)] : []),
       ...(galaxyApp ? [getIconForTool(appToolLabels.GALAXY, galaxyApp.status)] : []),
       ...(cromwellApp ? [getIconForTool(appToolLabels.CROMWELL, cromwellAppObject.status)] : []),
+      ...(hailBatchApp ? [getIconForTool(appToolLabels.HAIL_BATCH, hailBatchApp.status)] : []),
     ])
   }
 
-  //This excludes cromwellapp in the calculation.
+  //This excludes cromwellapp and hailBatchApp in the calculation.
   const getTotalToolAndDiskCostDisplay = () => {
     const galaxyApp = getCurrentApp(appTools.GALAXY.label, apps)
     const galaxyDisk = getCurrentAppDataDisk(appTools.GALAXY.label, apps, appDataDisks, workspaceName)
