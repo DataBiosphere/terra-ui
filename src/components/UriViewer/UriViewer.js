@@ -64,7 +64,7 @@ export const UriViewer = _.flow(
       // azure blob metadata storage api returns a response and it throws an error when tried to be parsed to json
       // for now just including the statusText as it appears to represent the error that the user should see
       if (isAzureUri(uri)) {
-        setLoadingError(e.statusText)
+        setLoadingError(`${e.status} : ${e.statusText}`)
       } else {
         setLoadingError(await e.json())
       }
