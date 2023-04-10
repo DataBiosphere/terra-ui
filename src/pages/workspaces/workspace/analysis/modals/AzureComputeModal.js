@@ -147,26 +147,6 @@ export const AzureComputeModalBase = ({
           ])
         ])
       ]),
-      div({ style: { marginBottom: '2rem' } }, [
-        h(IdContainer, [
-          id => h(Fragment, [
-            div({ style: { marginBottom: '.5rem' } }, [
-              label({ htmlFor: id, style: computeStyles.label }, ['Disk Size (GB)'])
-            ]),
-            div({ style: { width: 75 } }, [
-              h(NumberInput, {
-                id,
-                min: 50,
-                max: 64000,
-                isClearable: false,
-                onlyInteger: true,
-                value: computeConfig.diskSize,
-                onChange: v => updateComputeConfig('diskSize', v)
-              })
-            ])
-          ])
-        ])
-      ]),
       div({ style: { gridColumnEnd: 'span 6', marginTop: '1.5rem' } }, [
         h(IdContainer, [
           id1 => h(Fragment, [
@@ -175,11 +155,15 @@ export const AzureComputeModalBase = ({
               checked: isAutopauseEnabled(computeConfig.autopauseThreshold),
               disabled: !autoPauseCheckboxEnabled,
               onChange: v => updateComputeConfig('autopauseThreshold', getAutopauseThreshold(v))
-            }, ['Enable autopause']),
+            }, [
+              span({ style: { marginLeft: '0.5rem', ...computeStyles.label, verticalAlign: 'top' } }, [
+                span(['Enable autopause'])
+              ]),
+            ]),
           ])
         ]),
         h(Link, {
-          style: { marginLeft: '1rem', verticalAlign: 'top' },
+          style: { marginLeft: '1rem', verticalAlign: 'bottom' },
           href: 'https://support.terra.bio/hc/en-us/articles/360029761352-Preventing-runaway-costs-with-Cloud-Environment-autopause-#h_27c11f46-a6a7-4860-b5e7-fac17df2b2b5', ...Utils.newTabLinkProps
         }, [
           'Learn more about autopause.',
