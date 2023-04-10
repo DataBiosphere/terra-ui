@@ -27,7 +27,6 @@ import jupyterLogo from 'src/images/jupyter-logo.svg'
 import wdlLogo from 'src/images/wdl-logo.png'
 import { Ajax } from 'src/libs/ajax'
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider'
-import { isRadX } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { useColumnProvenance } from 'src/libs/data-table-provenance'
 import { withErrorReporting } from 'src/libs/error'
@@ -414,7 +413,7 @@ const EntitiesContent = ({
         ]),
         deleteColumnUpdateMetadata,
         controlPanelStyle: {
-          background: colors.light(isRadX() ? 0.3 : 0.5),
+          background: colors.light(0.5),
           borderBottom: `1px solid ${colors.grey(0.4)}`
         },
         border: false,
