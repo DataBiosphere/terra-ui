@@ -101,7 +101,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
         name,
         authorizationDomain: _.map(v => ({ membersGroupName: v }), [...getRequiredGroups(), ...groups]),
         attributes: { description },
-        copyFilesWithPrefix: 'notebooks/',
+        copyFilesWithPrefix: isGoogleBillingProject() ? 'notebooks/' : 'analyses/',
         ...(!!bucketLocation && isGoogleBillingProject() && { bucketLocation })
       }
       const createdWorkspace = await Utils.cond(
