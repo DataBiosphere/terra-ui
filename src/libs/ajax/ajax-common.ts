@@ -127,10 +127,9 @@ export const fetchRawls = _.flow(
   withRetryAfterReloadingExpiredAuthToken,
 )(fetchOk)
 
-export const fetchRawlsVersion = _.flow(
+export const fetchRawlsUnauthenticated = _.flow(
   withUrlPrefix(`${getConfig().rawlsUrlRoot}/`),
   withAppIdentifier,
-  withRetryAfterReloadingExpiredAuthToken,
 )(fetchOk)
 
 export const fetchBillingProfileManager = _.flow(

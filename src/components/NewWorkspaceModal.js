@@ -10,7 +10,7 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import { allRegions, availableBucketRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isSupportedBucketLocation } from 'src/components/region-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
-import { authOpts, fetchRawlsVersion } from 'src/libs/ajax/ajax-common'
+import { fetchRawlsUnauthenticated } from 'src/libs/ajax/ajax-common'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportErrorAndRethrow, withErrorIgnoring, withErrorReporting } from 'src/libs/error'
@@ -93,7 +93,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
   })
 
   const getRawlsVersion = async () => {
-    const res = await fetchRawlsVersion('version', _.merge(authOpts(), { signal }))
+    const res = await fetchRawlsUnauthenticated('version')
     return res.json()
   }
 
@@ -131,9 +131,13 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           )
           return workspace
         })
+
       onSuccess(createdWorkspace)
-      // Temp code for merging Rawls fix first -- as of this PR, current rawls buildVersion from Jenkins is 8284
-      const wdsDeploymentRawlsVersion = 8284
+
+      // Temp code for moving WDS auto-deployment out of UI code and into Rawls.
+      // if the Rawls build number is below the version that auto-deploys WDS,
+      // continue deploying from here. If Rawls is up-to-date, skip deployment.
+      const wdsDeploymentRawlsVersion = 99999 // TODO: populate with actual build number once we know what it is
       await getRawlsVersion().then(
         res => {
           const currentRawlsBuildVersion = res.buildNumber
