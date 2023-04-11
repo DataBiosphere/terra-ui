@@ -11,7 +11,7 @@
   "editor.quickSuggestions": {
     "strings": true
   },
-  "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.codeActionsOnSave": {
     "source.organizeImports": true
   },
@@ -26,5 +26,4 @@
   "editor.formatOnSave": true, // optional
   "editor.formatOnSaveMode": "file", // required to format on save
   "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
-  "vs-code-prettier-eslint.prettierLast": false
 }
