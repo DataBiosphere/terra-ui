@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, label, p, span } from 'react-hyperscript-helpers'
-import { ButtonOutline, ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NumberInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
@@ -20,7 +20,7 @@ import * as Utils from 'src/libs/utils'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
 import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
 import {
-  getCurrentRuntime, getIsRuntimeBusy
+  autopauseDisabledValue, defaultAutopauseThreshold, getAutopauseThreshold, getCurrentRuntime, getIsRuntimeBusy, isAutopauseEnabled
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
 import { computeStyles } from './modalStyles'
@@ -35,8 +35,9 @@ export const AzureComputeModalBase = ({
   const [viewMode, setViewMode] = useState(undefined)
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(() => getCurrentRuntime(runtimes))
   const [computeConfig, setComputeConfig] = useState(defaultAzureComputeConfig)
-  const updateComputeConfig = (key, value) => setComputeConfig(_.set(key, value, computeConfig))
   const { namespace, name: workspaceName, workspaceId } = workspace.workspace
+  const updateComputeConfig = (key, value) => setComputeConfig({ ...computeConfig, [key]: value })
+
   // Lifecycle
   useOnMount(_.flow(
     withErrorReportingInModal('Error loading cloud environment', onError),
@@ -52,7 +53,8 @@ export const AzureComputeModalBase = ({
       machineType: runtimeDetails?.runtimeConfig?.machineType || defaultAzureMachineType,
       diskSize: runtimeDetails?.diskConfig?.size || defaultAzureDiskSize,
       // Azure workspace containers will pass the 'location' param as an Azure armRegionName, which can be used directly as the computeRegion
-      region: runtimeDetails?.runtimeConfig?.region || location || defaultAzureRegion
+      region: runtimeDetails?.runtimeConfig?.region || location || defaultAzureRegion,
+      autopauseThreshold: runtimeDetails ? (runtimeDetails.autopauseThreshold || autopauseDisabledValue) : defaultAutopauseThreshold,
     })
   }))
 
@@ -102,6 +104,9 @@ export const AzureComputeModalBase = ({
   }
 
   const renderComputeProfileSection = () => {
+    const autoPauseCheckboxEnabled = !doesRuntimeExist()
+    const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
+
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1.5rem' } }, [
       div({ style: { marginBottom: '2rem' } }, [
         h(IdContainer, [
@@ -146,6 +151,48 @@ export const AzureComputeModalBase = ({
                 value: computeConfig.diskSize,
                 onChange: v => updateComputeConfig('diskSize', v)
               })
+            ])
+          ])
+        ])
+      ]),
+      div({ style: { gridColumnEnd: 'span 6', marginTop: '1.5rem' } }, [
+        h(IdContainer, [
+          id1 => h(Fragment, [
+            h(LabeledCheckbox, {
+              id1,
+              checked: isAutopauseEnabled(computeConfig.autopauseThreshold),
+              disabled: !autoPauseCheckboxEnabled,
+              onChange: v => updateComputeConfig('autopauseThreshold', getAutopauseThreshold(v))
+            }, ['Enable autopause']),
+          ])
+        ]),
+        h(Link, {
+          style: { marginLeft: '1rem', verticalAlign: 'top' },
+          href: 'https://support.terra.bio/hc/en-us/articles/360029761352-Preventing-runaway-costs-with-Cloud-Environment-autopause-#h_27c11f46-a6a7-4860-b5e7-fac17df2b2b5', ...Utils.newTabLinkProps
+        }, [
+          'Learn more about autopause.',
+          icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+        ]),
+        div({ style: { ...gridStyle, gridGap: '0.7rem', gridTemplateColumns: '4.5rem 9.5rem', marginTop: '0.75rem' } }, [
+          h(IdContainer, [
+            id => h(Fragment, [
+              h(NumberInput, {
+                id,
+                min: 10,
+                max: 999,
+                isClearable: false,
+                onlyInteger: true,
+                disabled: !autoPauseCheckboxEnabled,
+                value: computeConfig.autopauseThreshold,
+                hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold),
+                tooltip: !isAutopauseEnabled(computeConfig.autopauseThreshold) ? 'Autopause must be enabled to configure pause time.' : undefined,
+                onChange: v => updateComputeConfig('autopauseThreshold', Number(v)),
+                'aria-label': 'Minutes of inactivity before autopausing'
+              }),
+              label({
+                htmlFor: id,
+                hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold)
+              }, ['minutes of inactivity'])
             ])
           ])
         ])
@@ -234,6 +281,7 @@ export const AzureComputeModalBase = ({
         }
 
         return Ajax().Runtimes.runtimeV2(workspaceId, Utils.generateRuntimeName()).create({
+          autopauseThreshold: computeConfig.autopauseThreshold,
           machineSize: computeConfig.machineType,
           labels: {
             saturnWorkspaceNamespace: namespace,

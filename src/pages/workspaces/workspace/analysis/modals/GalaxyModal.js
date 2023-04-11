@@ -439,7 +439,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
         div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
           div([
             div({ style: computeStyles.headerText }, ['Application configuration']),
-            div({ style: { marginTop: '0.5rem' } }, ['Galaxy version 21.09']),
+            div({ style: { marginTop: '0.5rem' } }, ['Galaxy version 23.0']),
             h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
               'Learn more about Galaxy interactive environments',
               icon('pop-out', { size: 12, style: { marginTop: '1rem', marginLeft: '0.25rem' } })

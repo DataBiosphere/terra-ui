@@ -2,7 +2,7 @@ import { Fragment, useEffect, useState } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import { Clickable, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { isBioDataCatalyst, isRadX } from 'src/libs/brand-utils'
+import { isBioDataCatalyst } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { footerLogo } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
@@ -80,10 +80,6 @@ const FooterWrapper = ({ children, alwaysShow = false, fixedHeight = false }) =>
       link: 'https://support.terra.bio/hc/en-us/articles/360030793091-Terra-FireCloud-Security-Posture',
       displayName: 'Security'
     }),
-    isRadX() && popoutItem({
-      link: 'https://www.hhs.gov/vulnerability-disclosure-policy/index.html',
-      displayName: 'HHS Vulnerability Disclosure'
-    }),
     popoutItem({
       link: 'https://support.terra.bio/hc/en-us',
       displayName: 'Documentation'
@@ -101,25 +97,26 @@ const FooterWrapper = ({ children, alwaysShow = false, fixedHeight = false }) =>
   const footerExists = isBioDataCatalyst() || alwaysShow
   const expandedFooterVisible = isExpanded || alwaysShow
 
-  return div({ style: { display: 'flex', flexDirection: 'column', height: fixedHeight ? `calc(100vh - ${scrollBarHeight}px)` : '100%', flexGrow: 1 } }, [
-    div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1 } }, [children]),
-    footerExists && h(div, {
-      role: 'contentinfo',
-      style: styles.footer
-    }, [
-      !alwaysShow && h(Clickable, {
-        onClick: () => {
-          setIsExpanded(!isExpanded)
-        },
-        style: { fontSize: 10, padding: '0.25rem 0', height: shrunkFooterHeight }
-      }, [`${isExpanded ? 'Hide' : 'Show'} Legal and Regulatory Information`]),
-      expandedFooterVisible && div({
-        style: { display: 'flex', alignItems: 'center', height: expandedFooterHeight }
+  return div(
+    { style: { display: 'flex', flexDirection: 'column', height: fixedHeight ? `calc(100vh - ${scrollBarHeight}px)` : '100%', flexGrow: 1 } }, [
+      div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1 } }, [children]),
+      footerExists && h(div, {
+        role: 'contentinfo',
+        style: styles.footer
       }, [
-        !isBioDataCatalyst() ? standardFooterContent : bdcFooterContent
+        !alwaysShow && h(Clickable, {
+          onClick: () => {
+            setIsExpanded(!isExpanded)
+          },
+          style: { fontSize: 10, padding: '0.25rem 0', height: shrunkFooterHeight }
+        }, [`${isExpanded ? 'Hide' : 'Show'} Legal and Regulatory Information`]),
+        expandedFooterVisible && div({
+          style: { display: 'flex', alignItems: 'center', height: expandedFooterHeight }
+        }, [
+          !isBioDataCatalyst() ? standardFooterContent : bdcFooterContent
+        ])
       ])
     ])
-  ])
 }
 
 export default FooterWrapper

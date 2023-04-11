@@ -111,6 +111,40 @@ export const AzureStorage = (signal?: AbortSignal) => ({
     }), notebooks)
   },
 
+  blobMetadata: (azureStorageUrl: string) => {
+    const getObjectMetadata = async () => {
+      const fileName = _.last(azureStorageUrl.split('/'))?.split('.').join('.')
+
+      try {
+        // assumption is made that container name guid in uri always matches the workspace Id guid it is present in
+        const workspaceId = azureStorageUrl.split('/')[3].replace('sc-', '')
+        const { sas: { token } } = await AzureStorage(signal).details(workspaceId)
+
+        // instead of taking the url returned by azure storage, take it from the incoming url since there may be a folder path
+        const urlwithFolder = new URL(azureStorageUrl)
+        const azureSasStorageUrl = `https://${urlwithFolder.hostname}${urlwithFolder.pathname}?&${token}`
+
+        const res = await fetchOk(azureSasStorageUrl, { method: 'HEAD' })
+        const headerDict = Object.fromEntries(res.headers)
+
+        return { lastModified: headerDict['last-modified'], size: headerDict['content-length'], azureSasStorageUrl, workspaceId, fileName }
+      } catch (e) {
+        // check if file can just be fetched without sas token
+        try {
+          const res = await fetchOk(azureStorageUrl, { method: 'HEAD' })
+          const headerDict = Object.fromEntries(res.headers)
+          return { lastModified: headerDict['last-modified'], size: headerDict['content-length'], azureStorageUrl, fileName }
+        } catch (e) {}
+
+        throw e
+      }
+    }
+
+    return {
+      getData: getObjectMetadata
+    }
+  },
+
   blob: (workspaceId: string, blobName: string) => {
     const calhounPath = 'api/convert'
 
