@@ -267,8 +267,10 @@ export const AzureComputeModalBase = ({
 
     //each branch of the cond should return a promise
     await Utils.cond(
-      [viewMode === 'deleteEnvironment',
-        () => Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).delete(deleteDiskSelected)], // delete runtime
+      [viewMode === 'deleteEnvironment', () => Utils.cond(
+        [doesRuntimeExist(), () => Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).delete(deleteDiskSelected)], // delete runtime
+        [!!persistentDiskExists, () => Ajax().Disks.disksV2().delete(currentPersistentDiskDetails.id)] // delete disk
+      )],
       [Utils.DEFAULT, () => {
         const disk = {
           size: computeConfig.persistentDiskSize,
