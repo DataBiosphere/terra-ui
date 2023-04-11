@@ -12,8 +12,6 @@ import fcLogo from 'src/images/brands/firecloud/FireCloud-Logo.svg'
 import fcLogoWhite from 'src/images/brands/firecloud/FireCloud-Logo-White.svg'
 import projectSingularLogo from 'src/images/brands/projectSingular/project-singular-logo-black.svg'
 import projectSingularLogoWhite from 'src/images/brands/projectSingular/project-singular-logo-white.svg'
-import radXLogo from 'src/images/brands/radx/radx-logo-color.svg'
-import radXLogoWhite from 'src/images/brands/radx/radx-logo-white.svg'
 import rareXLogo from 'src/images/brands/rareX/rarex-logo-color.svg'
 import rareXLogoWhite from 'src/images/brands/rareX/rarex-logo-white.svg'
 import terraLogo from 'src/images/brands/terra/logo.svg'
@@ -197,32 +195,6 @@ export const brands: Record<string, BrandConfiguration> = {
       color: projectSingularLogo,
       white: projectSingularLogoWhite
     }
-  },
-  radX: {
-    name: 'The RADx Data Hub',
-    queryName: 'the radx data hub',
-    welcomeHeader: 'Welcome to the RADx Data Hub',
-    description: 'The RADx Data Hub is a platform for biomedical researchers to access data, run analysis tools, and collaborate.',
-    hostName: 'radxdatahub.nih.gov',
-    docLinks: [
-      {
-        link: 'https://www.nih.gov/research-training/medical-research-initiatives/radx',
-        text: 'Learn more about the Rapid Acceleration of Diagnostics (RADx) program'
-      },
-      {
-        link: 'https://radx-hub.nih.gov/home',
-        text: 'Learn more about the RADx Data Hub'
-      },
-      {
-        link: 'https://radx-hub.nih.gov/docs/',
-        text: 'Find how-to’s, documentation, tutorials, and more resources'
-      }
-    ],
-    logos: {
-      color: radXLogo,
-      white: radXLogoWhite
-    },
-    catalogDataCollectionsToInclude: ['RADx-UP', 'RADx-DHT', 'RADx-Rad', 'RADx-Tech']
   },
   rareX: {
     name: `The RARE${nonBreakingHyphen}X Data Analysis Platform`,

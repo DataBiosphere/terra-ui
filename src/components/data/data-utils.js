@@ -50,9 +50,8 @@ const errorTextStyle = { color: colors.danger(), fontWeight: 'bold', fontSize: 1
 
 export const parseGsUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
 
-export const getDownloadCommand = (fileName, gsUri, accessUrl) => {
+export const getDownloadCommand = (fileName, uri, accessUrl) => {
   const { url: httpUrl, headers: httpHeaders } = accessUrl || {}
-
   if (httpUrl) {
     const headers = _.flow(
       _.toPairs,
@@ -62,8 +61,12 @@ export const getDownloadCommand = (fileName, gsUri, accessUrl) => {
     return `curl ${headers}${output}'${httpUrl}'`
   }
 
-  if (gsUri) {
-    return `gsutil cp '${gsUri}' ${fileName || '.'}`
+  if (isAzureUri(uri)) {
+    return `azcopy copy '${uri}' ${fileName || '.'}`
+  }
+
+  if (isGsUri(uri)) {
+    return `gsutil cp '${uri}' ${fileName || '.'}`
   }
 }
 
