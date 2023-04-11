@@ -150,6 +150,22 @@ export const renderDataCell = (attributeValue, workspace) => {
     return !!bucket && bucket !== workspaceBucket
   }
 
+  const isOtherBlobStorageAzureUri = datum => {
+    const workspaceId = parseAzureUri(datum)
+    if (!isAzureUri(datum)) {
+      return false
+    } else {
+      return (!!workspaceId && workspaceId !== workspace.workspace.workspaceId)
+    }
+  }
+
+  const parseAzureUri = datum => {
+    if (datum === undefined || datum.split('/').length < 4) {
+      return null
+    }
+    return datum.split('/')[3].replace('sc-', '')
+  }
+
   const hasOtherBucketUrls = Utils.cond(
     [type === 'json' && _.isArray(attributeValue), () => _.some(isOtherBucketGsUri, attributeValue)],
     [type === 'string' && isList, () => _.some(isOtherBucketGsUri, attributeValue.items)],
@@ -157,8 +173,25 @@ export const renderDataCell = (attributeValue, workspace) => {
     () => false
   )
 
+  const hasOtherBlobStorageUrls = Utils.cond(
+    [type === 'json' && _.isArray(attributeValue), () => _.some(isOtherBlobStorageAzureUri, attributeValue)],
+    [type === 'string' && isList, () => _.some(isOtherBlobStorageAzureUri, attributeValue.items)],
+    [type === 'string', () => isOtherBlobStorageAzureUri(attributeValue)],
+    () => false
+  )
+
+  const CheckForOutsideEntities = workspace => {
+    if (isGoogleWorkspace(workspace)) {
+      return hasOtherBucketUrls
+    } else if (isAzureWorkspace(workspace)) {
+      return hasOtherBlobStorageUrls
+    } else {
+      return false
+    }
+  }
+
   return h(Fragment, [
-    isGoogleWorkspace(workspace) && hasOtherBucketUrls && h(TooltipTrigger, { content: 'Some files are located outside of the current workspace' }, [
+    (CheckForOutsideEntities(workspace)) && h(TooltipTrigger, { content: 'Some files are located outside of the current workspace' }, [
       h(Interactive, { as: 'span', tabIndex: 0, style: { marginRight: '1ch' } }, [
         icon('warning-info', { size: 20, style: { color: colors.accent(), cursor: 'help' } })
       ])
