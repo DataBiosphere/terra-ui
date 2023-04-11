@@ -563,7 +563,6 @@ export const ComputeModalBase = ({
       [(!!existingRuntime), () => 'cloudEnvironmentUpdate'],
       () => 'cloudEnvironmentCreate'
     )
-
     Ajax().Metrics.captureEvent(Events[metricsEvent], {
       ...extractWorkspaceDetails(getWorkspaceObject()),
       ..._.mapKeys(key => `desiredRuntime_${key}`, desiredRuntime),
@@ -583,7 +582,8 @@ export const ComputeModalBase = ({
       existingPersistentDisk_diskType: existingPersistentDisk ? existingPersistentDisk.diskType.displayName : undefined,
       isDefaultConfig: !currentRuntimeDetails,
       selectedLeoImage,
-      isCustomImage
+      isCustomImage,
+      tool,
     })
   }
 
