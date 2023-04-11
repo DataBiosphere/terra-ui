@@ -520,7 +520,7 @@ const JupyterFrameManager = ({ onClose, frameRef, details = {} }) => {
     Ajax()
       .Metrics
       .captureEvent(Events.cloudEnvironmentLaunch,
-        { tool: runtimeToolLabels.Jupyter, workspaceName: details.name, namespace: details.namespace, cloudPlatform: details.cloudPlatform })
+        { tool: runtimeToolLabels.Jupyter, application: runtimeToolLabels.Jupyter, workspaceName: details.name, namespace: details.namespace, cloudPlatform: details.cloudPlatform })
 
 
     const isSaved = Utils.atom(true)
