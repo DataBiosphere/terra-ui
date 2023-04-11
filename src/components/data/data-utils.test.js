@@ -99,8 +99,7 @@ describe('entityAttributeText', () => {
 
 describe('renderDataCell', () => {
   const testGoogleWorkspace = { workspace: { bucketName: 'test-bucket', cloudPlatform: 'Gcp' } }
-  const testAzureWorkspace = { workspace: { bucketName: 'test-bucket', cloudPlatform: 'Azure' } }
-  testAzureWorkspace.workspace.workspaceId = '77397ce7-bb9b-4339-bc12-95e1f52956de'
+  const testAzureWorkspace = { workspace: { bucketName: 'test-bucket', cloudPlatform: 'Azure', workspaceId: '77397ce7-bb9b-4339-bc12-95e1f52956de' } }
   describe('basic data types', () => {
     it.each([
       { testWorkspace: testGoogleWorkspace },
