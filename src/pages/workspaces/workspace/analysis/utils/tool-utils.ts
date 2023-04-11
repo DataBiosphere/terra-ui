@@ -181,10 +181,24 @@ export const isToolHidden = (toolLabel: ToolLabel, cloudProvider: CloudProvider)
   [Utils.DEFAULT, () => false]
 )
 
-export const getCurrentMountDirectory = (toolLabel: ToolLabel) => {
-  const boldCode = function(label: ToolLabel) {
-    const mydir = label.toLowerCase()
-    return code({ style: { fontWeight: 600 } }, [`/home/${mydir}`])
+export type MountPoint = '/home/rstudio' | '/home/jupyter' | '/home/jupyter/persistent_disk'
+
+export const mountPoints: Record<RuntimeToolLabel, MountPoint> = {
+  RStudio: '/home/rstudio',
+  Jupyter: '/home/jupyter',
+  JupyterLab: '/home/jupyter/persistent_disk'
+}
+
+export const getMountDir = (toolLabel:RuntimeToolLabel): MountPoint => {
+  if (toolLabel === runtimeToolLabels.RStudio) return mountPoints.RStudio
+  if (toolLabel === runtimeToolLabels.Jupyter) return mountPoints.Jupyter
+  return mountPoints.JupyterLab
+}
+
+export const getCurrentMountDirectory = (toolLabel: RuntimeToolLabel) => {
+  const boldCode = function(label: RuntimeToolLabel) {
+    const mydir = getMountDir(label)
+    return code({ style: { fontWeight: 600 } }, [`${mydir}`])
   }
   const defaultMsg = [boldCode(runtimeToolLabels.Jupyter), ' for Jupyter environments and ', boldCode(runtimeToolLabels.RStudio), ' for RStudio environments']
   return typeof toolLabel === 'string' ? [boldCode(toolLabel)] : defaultMsg // TODO: remove string check IA-4091

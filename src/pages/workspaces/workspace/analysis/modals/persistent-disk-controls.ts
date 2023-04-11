@@ -11,7 +11,7 @@ import { useUniqueId } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils'
 import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles'
-import { getCurrentMountDirectory, RuntimeToolLabel, runtimeToolLabels, ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { getCurrentMountDirectory, RuntimeToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 import { IComputeConfig } from '../modal-utils'
 
@@ -31,26 +31,12 @@ export interface PersistentDiskTypeProps {
   updateComputeConfig: (key: string, value: any) => void
 }
 
-export type MountPoint = '/home/rstudio' | '/home/jupyter' | '/home/jupyter/persistent_disk'
-
-export const mountPoints: Record<RuntimeToolLabel, MountPoint> = {
-  RStudio: '/home/rstudio',
-  Jupyter: '/home/jupyter',
-  JupyterLab: '/home/jupyter/persistent_disk'
-}
-
-export const getMountDir = (toolLabel: RuntimeToolLabel): MountPoint => {
-  if (toolLabel === runtimeToolLabels.RStudio) return mountPoints.RStudio
-  if (toolLabel === runtimeToolLabels.Jupyter) return mountPoints.Jupyter
-  return mountPoints.JupyterLab
-}
-
 const PersistentDiskTypeSelect = Select as typeof Select<IComputeConfig['persistentDiskType']>
 
 export interface PersistentDiskAboutProps {
   titleId: string
   setViewMode: any
-  tool: ToolLabel
+  tool: RuntimeToolLabel
   onDismiss: () => void
 }
 

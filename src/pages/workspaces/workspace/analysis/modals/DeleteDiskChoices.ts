@@ -2,9 +2,8 @@ import { Fragment } from 'react'
 import { code, h, p, span } from 'react-hyperscript-helpers'
 import { cloudServiceTypes, ComputeType } from 'src/libs/ajax/leonardo/models/runtime-config-models'
 import * as Utils from 'src/libs/utils'
-import { getMountDir, mountPoints } from 'src/pages/workspaces/workspace/analysis/modals/persistent-disk-controls'
 import { RadioBlock, SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpRStudio } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
-import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { getMountDir, mountPoints, ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
 type DeleteDiskChoicesProps = {
