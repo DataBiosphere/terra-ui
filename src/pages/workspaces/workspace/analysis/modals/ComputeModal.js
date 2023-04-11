@@ -584,6 +584,7 @@ export const ComputeModalBase = ({
       selectedLeoImage,
       isCustomImage,
       tool,
+      application: tool
     })
   }
 
