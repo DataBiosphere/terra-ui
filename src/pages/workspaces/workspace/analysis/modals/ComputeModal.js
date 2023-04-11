@@ -583,7 +583,9 @@ export const ComputeModalBase = ({
       existingPersistentDisk_diskType: existingPersistentDisk ? existingPersistentDisk.diskType.displayName : undefined,
       isDefaultConfig: !currentRuntimeDetails,
       selectedLeoImage,
-      isCustomImage
+      isCustomImage,
+      tool,
+      application: tool
     })
   }
 
