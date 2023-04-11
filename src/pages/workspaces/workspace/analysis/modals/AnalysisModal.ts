@@ -182,7 +182,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       workspace,
       tool: currentTool,
       currentRuntime,
-      currentDisk,
+      currentDisk: persistentDisks ? persistentDisks[0] : undefined,
       onDismiss,
       onSuccess,
     })
