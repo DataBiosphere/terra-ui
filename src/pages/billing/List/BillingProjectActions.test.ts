@@ -57,7 +57,7 @@ describe('BillingProjectActions', () => {
   it('renders Delete as disabled while workspaces are loading', () => {
     // Arrange
     const props = {
-      projectName, loadProjects: jest.fn(), workspacesLoading: true, allWorkspaces: [] as WorkspaceWrapper[]
+      projectName, loadProjects: jest.fn(), workspacesLoading: true, allWorkspaces: undefined
     }
 
     // Act
