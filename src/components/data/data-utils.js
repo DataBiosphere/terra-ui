@@ -152,7 +152,7 @@ export const renderDataCell = (attributeValue, workspace) => {
     } else if (isAzureWorkspace(workspace)) {
       if (isAzureUri(datum)) {
         const workspaceId = parseAzureUri(datum)
-        return (!!workspaceId && workspaceId !== workspace.workspace.workspaceId)
+        return workspace.workspace.workspaceId !== workspaceId
       }
     }
     return false
