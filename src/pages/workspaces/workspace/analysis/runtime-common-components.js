@@ -222,5 +222,6 @@ export const GalaxyLaunchButton = ({ app, onClick, ...props }) => {
 }
 
 export const appLauncherTabName = 'workspace-application-launch'
+export const appLauncherWithAnalysisTabName = `${appLauncherTabName}-with-analysis`
 export const analysisLauncherTabName = 'workspace-analysis-launch'
 export const analysisTabName = 'workspace-analyses'
