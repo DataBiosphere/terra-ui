@@ -82,7 +82,7 @@ export const CloudEnvironmentModal = ({
     hideCloseButton: true,
     workspace,
     currentRuntime,
-    currentDisk,
+    currentDisk: persistentDisks ? persistentDisks[0] : undefined,
     location,
     tool,
     onDismiss,
