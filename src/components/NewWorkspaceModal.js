@@ -137,11 +137,12 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
       // Temp code for moving WDS auto-deployment out of UI code and into Rawls.
       // if the Rawls build number is below the version that auto-deploys WDS,
       // continue deploying from here. If Rawls is up-to-date, skip deployment.
+      // If we can't parse the build number, skip deployment.
       const wdsDeploymentRawlsVersion = 99999 // TODO: populate with actual build number once we know what it is
       await getRawlsVersion().then(
         res => {
-          const currentRawlsBuildVersion = res.buildNumber
-          if (parseInt(currentRawlsBuildVersion) < wdsDeploymentRawlsVersion) {
+          const currentRawlsBuildVersion = parseInt(res.buildNumber)
+          if (!Number.isNan(currentRawlsBuildVersion) && currentRawlsBuildVersion < wdsDeploymentRawlsVersion) {
             createLeoApp(createdWorkspace)
           }
         }
