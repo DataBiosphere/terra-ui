@@ -52,7 +52,7 @@ export const List = (props: ListProps) => {
   const [isAuthorizing, setIsAuthorizing] = useState<boolean>(false)
   const [isLoadingAccounts, setIsLoadingAccounts] = useState<boolean>(false)
   const { isAzurePreviewUser } = useStore(authStore)
-  const { workspaces: allWorkspaces, loading: workspacesLoading } = useWorkspaces()
+  const { workspaces: allWorkspaces, loading: workspacesLoading, refresh: refreshWorkspaces } = useWorkspaces()
 
   const signal = useCancellation()
   const interval = useRef<number>()
@@ -254,7 +254,9 @@ export const List = (props: ListProps) => {
             billingAccounts,
             authorizeAndLoadAccounts,
             reloadBillingProject: () => reloadBillingProject(billingProject).catch(loadProjects),
-            isOwner: _.find({ projectName: selectedName }, projectsOwned)
+            isOwner: _.find({ projectName: selectedName }, projectsOwned),
+            workspaces: allWorkspaces,
+            refreshWorkspaces
           })
         }],
         [!_.isEmpty(projectsOwned) && !selectedName, () => {
