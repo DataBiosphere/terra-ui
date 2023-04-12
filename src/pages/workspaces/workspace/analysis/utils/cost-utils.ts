@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import {
   dataprocCpuPrice, ephemeralExternalIpAddressPrice, machineTypes, regionToPrices
 } from 'src/data/gce-machines'
-import { App } from 'src/libs/ajax/leonardo/models/app-models'
+import { App, appStatuses } from 'src/libs/ajax/leonardo/models/app-models'
 import { CloudContext } from 'src/libs/ajax/leonardo/models/core-models'
 import { DecoratedPersistentDisk, diskStatuses, LeoDiskStatus, PdType, pdTypes, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models'
 import {
@@ -14,7 +14,7 @@ import {
   isGceRuntimeConfig,
   isGceWithPdConfig,
 } from 'src/libs/ajax/leonardo/models/runtime-config-models'
-import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models'
+import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { getAzurePricesForRegion, getDiskType } from 'src/libs/azure-utils'
 import * as Utils from 'src/libs/utils'
 import { cloudProviderTypes } from 'src/libs/workspace-utils'
@@ -27,6 +27,7 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
 import {
   defaultComputeRegion,
+  defaultDataprocMachineType,
   defaultGceMachineType,
   findMachineType,
   getComputeStatusForDisplay, getNormalizedComputeRegion,
@@ -59,7 +60,7 @@ export const getGpuCost = (gpuType:string, numGpus:number, region:string):number
   return price * numGpus
 }
 
-const getDefaultIfUndefined = (input: number | undefined, alternative: number): number => input ? input : alternative
+const getDefaultIfUndefined = (input: any | undefined, alternative: any): any => input ? input : alternative
 
 // This function deals with runtimes that are paused
 // All disks referenced in this function are boot disks (aka the disk google needs to provision by default for OS storage)
@@ -71,7 +72,7 @@ export const runtimeConfigBaseCost = (config: GoogleRuntimeConfig): number => {
     (config.masterDiskSize + config.numberOfWorkers *
       getDefaultIfUndefined(config.workerDiskSize, defaultDataprocWorkerDiskSize)) *
     getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard) +
-    dataprocCost(config.masterMachineType, 1) + (config.workerMachineType ? dataprocCost(config.workerMachineType, config.numberOfWorkers) : 0) :
+    dataprocCost(config.masterMachineType, 1) + dataprocCost(getDefaultIfUndefined(config.workerMachineType, defaultDataprocMachineType), config.numberOfWorkers) :
     0
 
   const costForGceWithoutUserDisk: number = isGceConfig(config) ?
@@ -92,8 +93,8 @@ export const runtimeConfigCost = (config: GoogleRuntimeConfig): number => {
   const baseMachinePrice: number = getHourlyCostForMachineType(machineType, computeRegion, false)
 
   const additionalDataprocCost: number = isDataprocConfig(config) ? _.sum([
-    config.numberOfWorkers * getHourlyCostForMachineType(config.workerMachineType!, computeRegion, false),
-    getDefaultIfUndefined(config.numberOfPreemptibleWorkers, 0) * getHourlyCostForMachineType(config.workerMachineType!, computeRegion, true),
+    config.numberOfWorkers > 0 ? config.numberOfWorkers * getHourlyCostForMachineType(getDefaultIfUndefined(config.workerMachineType, defaultDataprocMachineType), computeRegion, false) : 0,
+    getDefaultIfUndefined(config.numberOfPreemptibleWorkers, 0) * getHourlyCostForMachineType(getDefaultIfUndefined(config.workerMachineType, defaultDataprocMachineType), computeRegion, true),
     getDefaultIfUndefined(config.numberOfPreemptibleWorkers, 0) * getDefaultIfUndefined(config.workerDiskSize, 0) * getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard),
     dataprocCost(config.workerMachineType!, getDefaultIfUndefined(config.numberOfPreemptibleWorkers, 0)),
     ephemeralExternalIpAddressCost(config.numberOfWorkers, getDefaultIfUndefined(config.numberOfPreemptibleWorkers, 0))
@@ -141,7 +142,7 @@ export const getGalaxyCost = (app:App, dataDisk:DecoratedPersistentDisk) => {
  *   conservative by adding default nodepool cost to all apps on a cluster.
  */
 export const getGalaxyComputeCost = (app:App) => {
-  const appStatus = app?.status?.toUpperCase()
+  const appStatus = app?.status
   // Galaxy uses defaultComputeRegion because we're not yet enabling other locations for Galaxy apps.
   const defaultNodepoolComputeCost = getHourlyCostForMachineType(defaultGceMachineType, defaultComputeRegion, false)
   const defaultNodepoolIpAddressCost = ephemeralExternalIpAddressCost(1, 0)
@@ -151,11 +152,12 @@ export const getGalaxyComputeCost = (app:App) => {
     getHourlyCostForMachineType(app.kubernetesRuntimeConfig.machineType, defaultComputeRegion, false) +
     ephemeralExternalIpAddressCost(app.kubernetesRuntimeConfig.numNodes, 0)
 
+
   switch (appStatus) {
-    case 'STOPPED':
+    case appStatuses.stopped.status:
       return staticCost
-    case 'DELETING':
-    case 'ERROR':
+    case appStatuses.deleting.status:
+    case appStatuses.error.status:
       return 0.0
     default:
       return staticCost + dynamicCost
@@ -227,17 +229,17 @@ export const getRuntimeCost = (runtime:Runtime):number => {
   const { runtimeConfig, status } = runtime
   if (isAzureConfig(runtimeConfig)) {
     return Utils.switchCase(status,
-      ['Stopped', () => 0.0],
-      ['Error', () => 0.0],
+      [runtimeStatuses.stopped.leoLabel, () => 0.0],
+      [runtimeStatuses.error.leoLabel, () => 0.0],
       [Utils.DEFAULT, () => getAzureComputeCostEstimate(runtimeConfig)]
     )
   } else if (isGceRuntimeConfig(runtimeConfig)) {
     return Utils.switchCase(status,
       [
-        'Stopped',
+        runtimeStatuses.stopped.leoLabel,
         () => runtimeConfigBaseCost(runtimeConfig)
       ],
-      ['Error', () => 0.0],
+      [runtimeStatuses.error.leoLabel, () => 0.0],
       [Utils.DEFAULT, () => runtimeConfigCost(runtimeConfig)]
     )
   } else {
@@ -283,5 +285,3 @@ export const getCostDisplayForDisk = (app: App, appDataDisks:PersistentDisk[], c
 const isAzureDisk = (persistentDisk:PersistentDisk|DecoratedPersistentDisk) => persistentDisk ? isAzureContext(persistentDisk.cloudContext) : false
 
 // end COMMON METHODS
-
-//TODO: switch to consuming a persistentdisk rather than destructuring the argument

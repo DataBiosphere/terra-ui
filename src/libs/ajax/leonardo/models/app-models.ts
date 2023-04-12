@@ -28,6 +28,23 @@ export type DisplayAppStatus = 'Running'
     | 'Pausing'
     | 'Paused'
 
+export interface StatusToDisplay {
+    status: AppStatus
+    displayStatus: DisplayAppStatus
+  }
+
+export const appStatuses: { [label: string]: StatusToDisplay } = {
+  running: { status: 'RUNNING', displayStatus: 'Running' },
+  error: { status: 'ERROR', displayStatus: 'Error' },
+  deleting: { status: 'DELETING', displayStatus: 'Deleting' },
+  deleted: { status: 'DELETED', displayStatus: 'Deleted' },
+  provisioning: { status: 'PROVISIONING', displayStatus: 'Creating' },
+  stopping: { status: 'STOPPING', displayStatus: 'Pausing' },
+  stopped: { status: 'STOPPED', displayStatus: 'Paused' },
+  starting: { status: 'STARTING', displayStatus: 'Resuming' },
+  status_unspecified: { status: 'STATUS_UNSPECIFIED', displayStatus: 'Status_unspecified' },
+}
+
 export interface GetAppResponse {
   appName: string
   cloudContext: CloudContext
