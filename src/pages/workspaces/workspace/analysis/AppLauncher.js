@@ -236,7 +236,7 @@ const ApplicationLauncher = _.flow(
 
   useEffect(() => {
     _.includes(runtimeStatus, usableStatuses) && cookieReady &&
-    Metrics.captureEvent(Events.cloudEnvironmentLaunch, { application, tool: application, workspaceName: workspace.name, namespace: workspace.namespace, cloudPlatform: workspace.cloudPlatform })
+    Metrics().captureEvent(Events.cloudEnvironmentLaunch, { application, tool: application, workspaceName: workspace.name, namespace: workspace.namespace, cloudPlatform: workspace.cloudPlatform })
   }, [application, cookieReady, runtimeStatus, workspace])
 
   if (!busy && runtime === undefined) Nav.goToPath(analysisTabName, { namespace, name })

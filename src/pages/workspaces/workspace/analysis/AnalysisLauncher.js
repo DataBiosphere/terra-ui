@@ -350,7 +350,7 @@ const PreviewHeader = ({
           onClick: () => {
             if (runtimeStatus === 'Running') {
               Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio', cloudPlatform })
-              Metrics.captureEvent(Events.analysisLaunch,
+              Metrics().captureEvent(Events.analysisLaunch,
                 { origin: 'analysisLauncher', tool: runtimeToolLabels.RStudio, workspaceName: name, namespace, cloudPlatform })
             }
           }
@@ -521,7 +521,7 @@ const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace, onRequesterP
 // See this ticket for RStudio impl discussion: https://broadworkbench.atlassian.net/browse/IA-2947
 const JupyterFrameManager = ({ onClose, frameRef, details = {} }) => {
   useOnMount(() => {
-    Metrics
+    Metrics()
       .captureEvent(Events.cloudEnvironmentLaunch,
         { tool: runtimeToolLabels.Jupyter, application: runtimeToolLabels.Jupyter, workspaceName: details.name, namespace: details.namespace, cloudPlatform: details.cloudPlatform })
 
