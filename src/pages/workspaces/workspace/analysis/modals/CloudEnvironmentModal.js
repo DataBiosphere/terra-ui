@@ -77,12 +77,14 @@ export const CloudEnvironmentModal = ({
     onError: onDismiss
   })
 
-  const renderAzureModal = () => h(AzureComputeModalBase, {
+  const renderAzureModal = tool => h(AzureComputeModalBase, {
     isOpen: viewMode === runtimeToolLabels.JupyterLab,
     hideCloseButton: true,
     workspace,
-    runtimes,
+    currentRuntime,
+    currentDisk: persistentDisks ? persistentDisks[0] : undefined,
     location,
+    tool,
     onDismiss,
     onSuccess,
     onError: onDismiss
@@ -412,7 +414,7 @@ export const CloudEnvironmentModal = ({
   )
 
   const getAzureView = () => Utils.switchCase(viewMode,
-    [runtimeToolLabels.JupyterLab, renderAzureModal],
+    [runtimeToolLabels.JupyterLab, () => renderAzureModal(runtimeToolLabels.JupyterLab)],
     [Utils.DEFAULT, renderDefaultPage]
   )
 

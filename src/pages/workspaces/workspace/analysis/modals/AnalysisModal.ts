@@ -178,11 +178,13 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     })
 
     const renderAzureModal = () => h(AzureComputeModalBase, {
-      workspace,
-      runtimes,
       location,
+      workspace,
+      tool: currentTool,
+      currentRuntime,
+      currentDisk: persistentDisks ? persistentDisks[0] : undefined,
       onDismiss,
-      onSuccess
+      onSuccess,
     })
 
     const renderAppModal = (appModalBase, toolLabel) => h(appModalBase, {
@@ -415,9 +417,9 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         title: 'Select an application',
         titleStyles: { margin: '1.5rem 0 0 1.5rem', display: !!viewMode ? 'none' : undefined },
         style: { width },
-        titleExtras: [],
+        titleChildren: [],
         onDismiss,
-        onPrevious: !!viewMode ? () => resetView() : undefined
+        onPrevious: !!viewMode ? () => resetView() : () => {}
       }),
       viewMode !== undefined && hr({ style: { borderTop: '1px solid', width: '100%', color: colors.accent() } }),
       getView()
