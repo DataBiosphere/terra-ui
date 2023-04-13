@@ -5,6 +5,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
+import { Metrics } from 'src/libs/ajax/Metrics'
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
@@ -235,7 +236,7 @@ const ApplicationLauncher = _.flow(
 
   useEffect(() => {
     _.includes(runtimeStatus, usableStatuses) && cookieReady &&
-    Ajax().Metrics.captureEvent(Events.cloudEnvironmentLaunch, { application, ...workspace })
+    Metrics().captureEvent(Events.cloudEnvironmentLaunch, { application, tool: application, workspaceName: workspace.name, namespace: workspace.namespace, cloudPlatform: workspace.cloudPlatform })
   }, [application, cookieReady, runtimeStatus, workspace])
 
   if (!busy && runtime === undefined) Nav.goToPath(analysisTabName, { namespace, name })
