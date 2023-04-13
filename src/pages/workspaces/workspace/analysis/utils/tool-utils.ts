@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { code } from 'react-hyperscript-helpers'
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { isCromwellAppVisible } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
@@ -179,3 +180,26 @@ export const isToolHidden = (toolLabel: ToolLabel, cloudProvider: CloudProvider)
   [toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviderTypes.GCP && !isCromwellAppVisible(), () => true],
   [Utils.DEFAULT, () => false]
 )
+
+export type MountPoint = '/home/rstudio' | '/home/jupyter' | '/home/jupyter/persistent_disk'
+
+export const mountPoints: Record<RuntimeToolLabel, MountPoint> = {
+  RStudio: '/home/rstudio',
+  Jupyter: '/home/jupyter',
+  JupyterLab: '/home/jupyter/persistent_disk'
+}
+
+export const getMountDir = (toolLabel:RuntimeToolLabel): MountPoint => {
+  if (toolLabel === runtimeToolLabels.RStudio) return mountPoints.RStudio
+  if (toolLabel === runtimeToolLabels.Jupyter) return mountPoints.Jupyter
+  return mountPoints.JupyterLab
+}
+
+export const getCurrentMountDirectory = (toolLabel: RuntimeToolLabel) => {
+  const boldCode = function(label: RuntimeToolLabel) {
+    const mydir = getMountDir(label)
+    return code({ style: { fontWeight: 600 } }, [`${mydir}`])
+  }
+  const defaultMsg = [boldCode(runtimeToolLabels.Jupyter), ' for Jupyter environments and ', boldCode(runtimeToolLabels.RStudio), ' for RStudio environments']
+  return typeof toolLabel === 'string' ? [boldCode(toolLabel)] : defaultMsg // TODO: remove string check IA-4091
+}

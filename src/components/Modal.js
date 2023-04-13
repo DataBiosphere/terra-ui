@@ -28,7 +28,7 @@ export const styles = {
   }
 }
 
-const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCancel = true, cancelText = 'Cancel', showX, xIcon = 'times-circle', showButtons = true, okButton, danger = false, ...props }) => {
+const Modal = ({ onDismiss, title, titleChildren, children, width = 450, showCancel = true, cancelText = 'Cancel', showX, xIcon = 'times-circle', showButtons = true, okButton, danger = false, ...props }) => {
   const titleId = useUniqueId()
   const modalNode = useRef()
   const previouslyFocusedNode = useRef()
@@ -61,7 +61,7 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
   }, [
     title && div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none' } }, [
       div({ id: titleId, style: { fontSize: 18, fontWeight: 600, ...Style.noWrapEllipsis } }, [title]),
-      titleExtras,
+      titleChildren,
       showX && h(Clickable, {
         'aria-label': 'Close modal',
         style: { alignSelf: 'flex-start', marginLeft: 'auto' },
@@ -89,7 +89,7 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
 export const modalPropTypes = {
   onDismiss: PropTypes.func.isRequired,
   title: PropTypes.node,
-  titleExtras: PropTypes.node,
+  titleChildren: PropTypes.node,
   width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   showCancel: PropTypes.bool,
   cancelText: PropTypes.string,

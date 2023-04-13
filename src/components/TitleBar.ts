@@ -1,10 +1,21 @@
-import PropTypes from 'prop-types'
+import { MouseEventHandler, ReactNode } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 
 
-const TitleBar = ({ id, onPrevious, title, onDismiss, titleExtras, style = {}, titleStyles = {}, hideCloseButton = false }) => {
+interface ITitleBar {
+  id: string
+  onPrevious: MouseEventHandler
+  title: ReactNode
+  onDismiss: MouseEventHandler
+  titleChildren: ReactNode
+  style?: React.CSSProperties
+  titleStyles?: React.CSSProperties
+  hideCloseButton?: boolean
+}
+
+const TitleBar = ({ id, onPrevious, title, onDismiss, titleChildren, style = {}, titleStyles = {}, hideCloseButton = false }: ITitleBar) => {
   return div({
     id,
     style: {
@@ -12,29 +23,22 @@ const TitleBar = ({ id, onPrevious, title, onDismiss, titleExtras, style = {}, t
     }
   }, [
     div({ style: { fontSize: 18, fontWeight: 600, ...titleStyles } }, [title]),
-    titleExtras,
+    titleChildren,
     div({ style: { marginLeft: 'auto', display: 'flex', alignItems: 'center' } }, [
       onPrevious && h(Link, {
         'aria-label': 'Back',
         style: { marginLeft: '2rem' },
         onClick: onPrevious
-      }, [icon('arrowLeftRegular', { size: '22' })]),
+      }, [icon('arrowLeftRegular', { size: 22 })]),
       onDismiss && h(Link, {
         'aria-label': 'Close',
         style: { marginLeft: '2rem' },
         tabIndex: hideCloseButton ? -1 : 0,
         'aria-disabled': hideCloseButton,
         onClick: onDismiss
-      }, [icon('times', { size: '25', style: hideCloseButton ? { display: 'none' } : {} })])
+      }, [icon('times', { size: 25, style: hideCloseButton ? { display: 'none' } : {} })])
     ])
   ])
-}
-
-TitleBar.propTypes = {
-  onPrevious: PropTypes.func,
-  title: PropTypes.node,
-  onDismiss: PropTypes.func,
-  titleExtras: PropTypes.node
 }
 
 export default TitleBar
