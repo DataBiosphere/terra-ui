@@ -142,7 +142,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
       await getRawlsVersion().then(
         res => {
           const currentRawlsBuildVersion = parseInt(res.buildNumber)
-          if (!Number.isNan(currentRawlsBuildVersion) && currentRawlsBuildVersion < wdsDeploymentRawlsVersion) {
+          if (!_.isNaN(currentRawlsBuildVersion) && currentRawlsBuildVersion < wdsDeploymentRawlsVersion) {
             createLeoApp(createdWorkspace)
           }
         }
