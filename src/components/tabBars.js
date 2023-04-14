@@ -71,7 +71,7 @@ export const TabBar = ({
         href
       }, [
         div({
-          style: { flex: '1 1 100%', height: 'inherit', marginBottom: selected ? -(Style.tabBar.active.borderBottomWidth) : undefined }
+          style: { flex: '1 1 100%', marginBottom: selected ? -(Style.tabBar.active.borderBottomWidth) : undefined }
         }, displayNames[currentTab] || currentTab)
       ])
     ])
@@ -86,7 +86,7 @@ export const TabBar = ({
     h(HorizontalNavigation, {
       role: 'menu',
       'aria-orientation': 'horizontal',
-      style: { display: 'flex', flexGrow: 1, height: 'inherit' },
+      style: { display: 'flex', flexGrow: 1, height: '100%' },
       ...props
     }, [
       ..._.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabNames))
