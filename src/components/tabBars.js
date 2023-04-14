@@ -78,18 +78,22 @@ export const TabBar = ({
   }
 
   return div({
-    role: 'navigation',
-    'aria-label': props['aria-label'], // duplicate the menu's label on the navigation element
-    'aria-labelledby': props['aria-labelledby'],
     style: Style.tabBar.container
   }, [
-    h(HorizontalNavigation, {
-      role: 'menu',
-      'aria-orientation': 'horizontal',
+    div({
+      role: 'navigation',
+      'aria-label': props['aria-label'], // duplicate the menu's label on the navigation element
+      'aria-labelledby': props['aria-labelledby'],
       style: { display: 'flex', flexGrow: 1, height: '100%' },
-      ...props
     }, [
-      ..._.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabNames))
+      h(HorizontalNavigation, {
+        role: 'menu',
+        'aria-orientation': 'horizontal',
+        style: { display: 'flex' },
+        ...props
+      }, [
+        ..._.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabNames))
+      ])
     ]),
     div({ style: { display: 'flex', flexGrow: 0, alignItems: 'center' } }, children)
   ])
