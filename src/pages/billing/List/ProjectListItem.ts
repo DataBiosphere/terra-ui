@@ -13,7 +13,7 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import { isKnownCloudProvider } from 'src/libs/workspace-utils'
 import { billingRoles } from 'src/pages/billing/billing-utils'
-import { BillingProjectActions } from 'src/pages/billing/List/BillingProjectActions'
+import { BillingProjectActions, BillingProjectActionsProps } from 'src/pages/billing/List/BillingProjectActions'
 import { BillingProject, isCreating, isDeleting, isErrored } from 'src/pages/billing/models/BillingProject'
 
 
@@ -36,8 +36,8 @@ const listItemStyle = (selected, hovered) => {
 
 export interface ProjectListItemProps {
   project: BillingProject
-  loadProjects: () => void
   isActive: boolean
+  billingProjectActionsProps: BillingProjectActionsProps
 }
 
 export const ProjectListItem = (props: ProjectListItemProps) => {
@@ -54,7 +54,7 @@ export const ProjectListItem = (props: ProjectListItemProps) => {
 
   const projectNameElement = span({ style: { wordBreak: 'break-all' } }, [projectName])
 
-  const actionElement = isOwner && h(BillingProjectActions, { projectName: props.project.projectName, loadProjects: props.loadProjects })
+  const actionElement = isOwner && h(BillingProjectActions, props.billingProjectActionsProps)
 
   const renderSelectableProject = () => div({
     style: { ...listItemStyle(props.isActive, hovered) },

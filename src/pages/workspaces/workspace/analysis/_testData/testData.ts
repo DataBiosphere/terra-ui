@@ -178,6 +178,11 @@ export const getDisk = ({ size = defaultGcePersistentDiskSize } = {}) => ({
   size
 })
 
+export const getAzureDisk = ({ size = defaultGcePersistentDiskSize } = {}) => ({
+  ...azureDisk,
+  id: getRandomInt(10000),
+  size
+})
 
 export const defaultWorkspaceLabels = {
   saturnWorkspaceNamespace: defaultGoogleWorkspace.workspace.namespace,

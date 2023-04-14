@@ -194,8 +194,12 @@ export const SaveFilesHelpAzure = () => {
   return h(Fragment, [
     p([
       'If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
-      'please move them to your workspace storage container.', // TODO: Link support article once published
-    ]),
+      h(Link, {
+        'aria-label': 'Save file help',
+        href: 'https://support.terra.bio/hc/en-us/articles/12043575737883',
+        ...Utils.newTabLinkProps
+      }, ['move them to the workspace bucket.'])
+    ])
   ])
 }
 
