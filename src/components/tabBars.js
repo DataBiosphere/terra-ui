@@ -71,7 +71,7 @@ export const TabBar = ({
         href
       }, [
         div({
-          style: { flex: '1 1 100%', marginBottom: selected ? -(Style.tabBar.active.borderBottomWidth) : undefined }
+          style: { flex: '1 1 100%', height: 'inherit', marginBottom: selected ? -(Style.tabBar.active.borderBottomWidth) : undefined }
         }, displayNames[currentTab] || currentTab)
       ])
     ])
@@ -80,18 +80,18 @@ export const TabBar = ({
   return div({
     role: 'navigation',
     'aria-label': props['aria-label'], // duplicate the menu's label on the navigation element
-    'aria-labelledby': props['aria-labelledby']
+    'aria-labelledby': props['aria-labelledby'],
+    style: Style.tabBar.container
   }, [
     h(HorizontalNavigation, {
       role: 'menu',
       'aria-orientation': 'horizontal',
-      style: Style.tabBar.container,
+      style: { display: 'flex', flexGrow: 1, height: 'inherit' },
       ...props
     }, [
-      ..._.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabNames)),
-      div({ style: { flexGrow: 1 } }),
-      children
-    ])
+      ..._.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabNames))
+    ]),
+    div({ style: { display: 'flex', flexGrow: 0, alignItems: 'center' } }, children)
   ])
 }
 TabBar.propTypes = {
