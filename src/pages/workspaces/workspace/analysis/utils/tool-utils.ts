@@ -2,7 +2,9 @@ import _ from 'lodash/fp'
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { isCromwellAppVisible } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
+import { isOwner } from 'src/libs/utils'
 import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils'
+import { doesWorkspaceSupportCromwellApp } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
 import { FileExtension, getExtension } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
@@ -173,7 +175,10 @@ export const allAppTypes: AppToolLabel[] = _.flow(_.map('label'), _.compact)(app
 
 export const isPauseSupported = (toolLabel: ToolLabel): boolean => !_.find((tool: AppTool | RuntimeTool) => tool.label === toolLabel)(tools)?.isPauseUnsupported
 
-export const isSettingsSupported = (toolLabel: ToolLabel, cloudProvider: CloudProvider): boolean => !(toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviders.azure.label)
+export const isSettingsSupported = (toolLabel: ToolLabel, cloudProvider: CloudProvider, accessLevel: string, createdDate: string): boolean => Utils.cond(
+  [toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviders.azure.label, () => doesWorkspaceSupportCromwellApp(createdDate, cloudProvider, toolLabel) && isOwner(accessLevel)],
+  [Utils.DEFAULT, () => true]
+)
 
 export const isToolHidden = (toolLabel: ToolLabel, cloudProvider: CloudProvider): boolean => Utils.cond(
   [toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviderTypes.GCP && !isCromwellAppVisible(), () => true],
