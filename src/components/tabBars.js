@@ -37,7 +37,7 @@ const styles = {
  *
  * @param activeTab The key of the active tab
  * @param tabNames An array of keys for each tab
- * @param displayNames An optional array of display names for each tab (otherwise the keys will be displayed)
+ * @param displayNames An optional mapping of display names for each tab (otherwise the keys will be displayed)
  * @param refresh If provided, a function to refresh the current tab
  * @param getHref A function to get the href for a given tab
  * @param getOnClick An optional click handler function, given the current tab
@@ -97,7 +97,7 @@ export const TabBar = ({
 TabBar.propTypes = {
   activeTab: PropTypes.string,
   tabNames: PropTypes.arrayOf(PropTypes.string).isRequired,
-  displayNames: PropTypes.arrayOf(PropTypes.string),
+  displayNames: PropTypes.object,
   refresh: PropTypes.func,
   getHref: PropTypes.func,
   getOnClick: PropTypes.func,
