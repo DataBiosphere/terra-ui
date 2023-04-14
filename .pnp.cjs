@@ -38,7 +38,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         [null, {\
           "packageLocation": "./",\
           "packageDependencies": [\
-            ["@axe-core/react", "npm:4.4.5"],\
+            ["@axe-core/react", "npm:4.6.1"],\
             ["@databiosphere/bard-client", "npm:0.1.0"],\
             ["@fortawesome/fontawesome-svg-core", "npm:1.2.36"],\
             ["@fortawesome/free-regular-svg-icons", "npm:5.15.4"],\
@@ -192,11 +192,11 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["@axe-core/react", [\
-        ["npm:4.4.5", {\
-          "packageLocation": "./.yarn/cache/@axe-core-react-npm-4.4.5-f096f4dbc4-8a10b84c85.zip/node_modules/@axe-core/react/",\
+        ["npm:4.6.1", {\
+          "packageLocation": "./.yarn/cache/@axe-core-react-npm-4.6.1-bc21c0862a-eaeb359393.zip/node_modules/@axe-core/react/",\
           "packageDependencies": [\
-            ["@axe-core/react", "npm:4.4.5"],\
-            ["axe-core", "npm:4.4.3"],\
+            ["@axe-core/react", "npm:4.6.1"],\
+            ["axe-core", "npm:4.6.3"],\
             ["requestidlecallback", "npm:0.3.0"]\
           ],\
           "linkType": "HARD"\
@@ -19229,7 +19229,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./",\
           "packageDependencies": [\
             ["terra-ui", "workspace:."],\
-            ["@axe-core/react", "npm:4.4.5"],\
+            ["@axe-core/react", "npm:4.6.1"],\
             ["@databiosphere/bard-client", "npm:0.1.0"],\
             ["@fortawesome/fontawesome-svg-core", "npm:1.2.36"],\
             ["@fortawesome/free-regular-svg-icons", "npm:5.15.4"],\
