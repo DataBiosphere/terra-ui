@@ -101,7 +101,7 @@ export const getAnalysesDisplayList = _.flow(
 )
 
 
-export const getConvertedRuntimeStatus = (runtime: Runtime): string => {
+export const getConvertedRuntimeStatus = (runtime: Runtime|undefined): string|undefined => {
   return runtime && (runtime.patchInProgress ? 'LeoReconfiguring' : runtime.status) // NOTE: preserves null vs undefined
 }
 
