@@ -7,21 +7,6 @@ import { ProjectListItem, ProjectListItemProps } from 'src/pages/billing/List/Pr
 import { BillingProject } from 'src/pages/billing/models/BillingProject'
 
 
-type WorkspaceUtilsExports = typeof import('src/components/workspace-utils')
-jest.mock('src/components/workspace-utils', (): WorkspaceUtilsExports => {
-  return {
-    ...jest.requireActual('src/components/workspace-utils'),
-    useWorkspaces: jest.fn().mockReturnValue({
-      workspaces: [{
-        workspace: { namespace: 'aDifferentProject', name: 'testWorkspaces', workspaceId: '6771d2c8-cd58-47da-a54c-6cdafacc4175' },
-        accessLevel: 'WRITER'
-      }] as WorkspaceWrapper[],
-      refresh: () => Promise.resolve(),
-      loading: false,
-    })
-  }
-})
-
 // Mocking for using Nav.getLink
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
@@ -48,8 +33,16 @@ describe('ProjectListItem', () => {
     }
     projectListItemProps = {
       project: billingProject,
-      loadProjects: jest.fn(),
-      isActive: true
+      isActive: true,
+      billingProjectActionsProps: {
+        projectName: billingProject.projectName,
+        loadProjects: jest.fn(),
+        allWorkspaces: [{
+          workspace: { namespace: 'aDifferentProject', name: 'testWorkspaces', workspaceId: '6771d2c8-cd58-47da-a54c-6cdafacc4175' },
+          accessLevel: 'WRITER'
+        }] as WorkspaceWrapper[],
+        workspacesLoading: false
+      }
     }
   })
 

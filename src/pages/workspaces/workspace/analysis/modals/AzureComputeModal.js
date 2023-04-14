@@ -23,6 +23,7 @@ import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages
 import {
   autopauseDisabledValue, defaultAutopauseThreshold, getAutopauseThreshold, getIsRuntimeBusy, isAutopauseEnabled
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 import { computeStyles } from './modalStyles'
 import { AboutPersistentDisk, PersistentDiskSection } from './persistent-disk-controls'
@@ -254,7 +255,9 @@ export const AzureComputeModalBase = ({
       desiredRuntime_machineType: computeConfig.machineType,
       desiredPersistentDisk_size: computeConfig.diskSize,
       desiredPersistentDisk_type: 'Standard', // IA-4164 - Azure disks are currently only Standard (HDD), when we add types update this.
-      desiredPersistentDisk_costPerMonth: getAzureDiskCostEstimate(computeConfig)
+      desiredPersistentDisk_costPerMonth: getAzureDiskCostEstimate(computeConfig),
+      tool: runtimeToolLabels.JupyterLab,
+      application: runtimeToolLabels.JupyterLab
     })
   }
 
