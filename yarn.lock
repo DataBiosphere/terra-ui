@@ -39,13 +39,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@axe-core/react@npm:^4.4.5":
-  version: 4.4.5
-  resolution: "@axe-core/react@npm:4.4.5"
+"@axe-core/react@npm:^4.6.1":
+  version: 4.6.1
+  resolution: "@axe-core/react@npm:4.6.1"
   dependencies:
-    axe-core: ^4.4.1
+    axe-core: ^4.6.3
     requestidlecallback: ^0.3.0
-  checksum: 8a10b84c8587d119d463674a122bcc960ffb9611f7ecebfc41b85c23cf8f42648a358795394ec97254d3a5412dff9f998b9a8139efddce1719a7743f588b558d
+  checksum: eaeb359393c1e393935ba186ae966408cd2cf9a7f789105bca7c999158808dc1ed33c7350a8e0e5fa2bae4fa7bb7332d9776a7912c44a09bf33151b25ec4dd2a
   languageName: node
   linkType: hard
 
@@ -4039,14 +4039,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axe-core@npm:^4.3.5, axe-core@npm:^4.4.1":
+"axe-core@npm:^4.3.5":
   version: 4.4.3
   resolution: "axe-core@npm:4.4.3"
   checksum: c3ea000d9ace3ba0bc747c8feafc24b0de62a0f7d93021d0f77b19c73fca15341843510f6170da563d51535d6cfb7a46c5fc0ea36170549dbb44b170208450a2
   languageName: node
   linkType: hard
 
-"axe-core@npm:^4.6.1":
+"axe-core@npm:^4.6.1, axe-core@npm:^4.6.3":
   version: 4.6.3
   resolution: "axe-core@npm:4.6.3"
   checksum: d0c46be92b9707c48b88a53cd5f471b155a2bfc8bf6beffb514ecd14e30b4863e340b5fc4f496d82a3c562048088c1f3ff5b93b9b3b026cb9c3bfacfd535da10
@@ -14268,7 +14268,7 @@ resolve@^2.0.0-next.3:
   version: 0.0.0-use.local
   resolution: "terra-ui@workspace:."
   dependencies:
-    "@axe-core/react": ^4.4.5
+    "@axe-core/react": ^4.6.1
     "@databiosphere/bard-client": ^0.1.0
     "@fortawesome/fontawesome-svg-core": ^1.2.36
     "@fortawesome/free-regular-svg-icons": ^5.15.4
