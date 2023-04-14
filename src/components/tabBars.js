@@ -43,7 +43,7 @@ const styles = {
  * @param getOnClick An optional click handler function, given the current tab
  * @param aria-label The ARIA label for the menu, which is required for accessibility
  * @param tabProps Optionally, properties to add to each tab
- * @param children Children, which will be appended to teh end of the tab bar
+ * @param children Children, which will be appended to the end of the tab bar
  * @param props Any additional properties to add to the container menu element
  */
 export const TabBar = ({
