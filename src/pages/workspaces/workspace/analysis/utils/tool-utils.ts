@@ -9,7 +9,7 @@ import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/ru
 
 
 export type RuntimeToolLabel = 'Jupyter' | 'RStudio' | 'JupyterLab'
-export type AppToolLabel = 'GALAXY' | 'CROMWELL'
+export type AppToolLabel = 'GALAXY' | 'CROMWELL' | 'HAIL_BATCH'
 export type LaunchableToolLabel = 'spark' | 'terminal' | 'RStudio' | 'JupyterLab'
 export type ToolLabel = RuntimeToolLabel | AppToolLabel
 
@@ -187,6 +187,7 @@ export const isSettingsSupported = (toolLabel: ToolLabel, cloudProvider: CloudPr
 
 export const isToolHidden = (toolLabel: ToolLabel, cloudProvider: CloudProvider): boolean => Utils.cond(
   [toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviderTypes.GCP && !isCromwellAppVisible(), () => true],
+  [toolLabel === appToolLabels.HAIL_BATCH && cloudProvider === cloudProviderTypes.GCP, () => true], // TODO check feature flag for Azure
   [Utils.DEFAULT, () => false]
 )
 

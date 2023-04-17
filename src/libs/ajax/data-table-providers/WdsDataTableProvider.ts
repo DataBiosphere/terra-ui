@@ -14,6 +14,7 @@ import {
 import { withErrorReporting } from 'src/libs/error'
 import { notificationStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
+import { appToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 // interface definitions for WDS payload responses
 interface AttributeSchema {
@@ -88,7 +89,7 @@ const getRelationParts = (val: unknown): string[] => {
 export const createLeoAppWithErrorHandling = workspaceId => {
   const typedWithErrorReporting : any = withErrorReporting
   const createLeoAppCall = typedWithErrorReporting('An error occurred when creating your data tables. Please reach out to support@terra.bio', async () => {
-    await Ajax().Apps.createAppV2(`wds-${workspaceId}`, `${workspaceId}`)
+    await Ajax().Apps.createAppV2(`wds-${workspaceId}`, `${workspaceId}`, appToolLabels.CROMWELL)
   })
   createLeoAppCall()
 }

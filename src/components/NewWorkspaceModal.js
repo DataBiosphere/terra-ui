@@ -21,6 +21,7 @@ import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-uti
 import * as Utils from 'src/libs/utils'
 import { cloudProviderLabels, isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { cloudProviders, defaultLocation } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import { appToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import validate from 'validate.js'
 
 
@@ -88,7 +89,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
   // Rather when the user first visits the `Data` tab
   const createLeoApp = withErrorIgnoring(async workspace => {
     if (isAzureBillingProject()) {
-      await Ajax().Apps.createAppV2(`wds-${workspace.workspaceId}`, workspace.workspaceId)
+      await Ajax().Apps.createAppV2(`wds-${workspace.workspaceId}`, workspace.workspaceId, appToolLabels.CROMWELL)
     }
   })
 

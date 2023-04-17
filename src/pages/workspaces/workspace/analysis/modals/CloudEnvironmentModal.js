@@ -23,6 +23,7 @@ import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/m
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal'
 import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal'
+import { HailBatchModalBase } from 'src/pages/workspaces/workspace/analysis/modals/HailBatchModal'
 import { appLauncherTabName, PeriodicAzureCookieSetter } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
 import {
@@ -343,7 +344,7 @@ export const CloudEnvironmentModal = ({
       [appToolLabels.HAIL_BATCH, () => {
         return {
           ...baseProps,
-          href: `${app?.proxyUrls['batch']}/batch`, // TODO
+          href: app?.proxyUrls['batch'],
           onClick: () => {
             onDismiss()
             Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: appTools.HAIL_BATCH.label })
@@ -429,6 +430,7 @@ export const CloudEnvironmentModal = ({
   const getAzureView = () => Utils.switchCase(viewMode,
     [runtimeToolLabels.JupyterLab, () => renderAzureModal(runtimeToolLabels.JupyterLab)],
     [appToolLabels.CROMWELL, () => renderAppModal(CromwellModalBase, appToolLabels.CROMWELL)],
+    [appToolLabels.HAIL_BATCH, () => renderAppModal(HailBatchModalBase, appToolLabels.HAIL_BATCH)],
     [Utils.DEFAULT, renderDefaultPage]
   )
 

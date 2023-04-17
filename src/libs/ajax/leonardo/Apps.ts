@@ -68,9 +68,9 @@ export const Apps = signal => ({
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },
-  createAppV2: (appName: string, workspaceId: string): Promise<void> => {
+  createAppV2: (appName: string, workspaceId: string, appType: string): Promise<void> => {
     const body = {
-      appType: 'CROMWELL',
+      appType,
       labels: {
         saturnAutoCreated: 'true'
       }
@@ -78,6 +78,10 @@ export const Apps = signal => ({
     const res = fetchLeo(`api/apps/v2/${workspaceId}/${appName}`,
       _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
     return res
+  },
+  deleteAppV2: (appName: string, workspaceId: string): Promise<void> => {
+    return fetchLeo(`api/apps/v2/${workspaceId}/${appName}`,
+      _.mergeAll([authOpts(), appIdentifier, { signal, method: 'DELETE' }]))
   },
   deleteAllAppsV2: async (workspaceId: string, deleteDisk: boolean = true): Promise<void> => {
     const res = await fetchLeo(`api/apps/v2/${workspaceId}/deleteAll${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
