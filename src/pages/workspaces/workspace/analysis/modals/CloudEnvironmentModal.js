@@ -290,13 +290,16 @@ export const CloudEnvironmentModal = ({
   const getToolLaunchClickableProps = (toolLabel, cloudProvider) => {
     const app = currentApp(toolLabel)
     const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || app
-    // TODO what does leoCookieReady do? Found it in the galaxy app launch code, is it needed here?
     const isToolBusy = isAppToolLabel(toolLabel) ?
       getIsAppBusy(app) || app?.status === 'STOPPED' || app?.status === 'ERROR' :
       currentRuntime?.status === 'Error'
 
+    // This defines whether we have successfully set a LeoToken cookie, used for authenticating to apps.
+    // - For Azure, apps run in their own domains; azureCookieReady stores whether a cookie has been set in that domain
+    //   (note we use readyForCromwellApp to signify _any_ Azure app).
+    // - For GCP, apps are all behind a centralized Leo proxy; leoCookieReady stores whether a cookie has been set in Leo's domain.
     const cookieReady = Utils.cond(
-      [cloudProvider === cloudProviderTypes.AZURE && toolLabel === appToolLabels.CROMWELL, () => azureCookieReady.readyForCromwellApp],
+      [cloudProvider === cloudProviderTypes.AZURE, () => azureCookieReady.readyForCromwellApp],
       [Utils.DEFAULT, () => leoCookieReady])
     const isDisabled = !doesCloudEnvForToolExist || !cookieReady || !canCompute || busy || isToolBusy || !isLaunchSupported(toolLabel) || !doesWorkspaceSupportCromwellApp(workspace?.workspace?.createdDate, cloudProvider, toolLabel)
     const baseProps = {
@@ -375,6 +378,7 @@ export const CloudEnvironmentModal = ({
     const isCloudEnvForToolDisabled = isCloudEnvModalDisabled(toolLabel)
     return h(Fragment, [
       // We cannot attach the periodic cookie setter until we have a running Cromwell app for Azure because the relay is not guaranteed to be ready until then
+      // TODO: this assumes the presence of a Cromwell app. Make more generic to key off presence of any Azure app.
       toolLabel === appToolLabels.CROMWELL && app?.cloudContext?.cloudProvider === cloudProviderTypes.AZURE && app?.status === 'RUNNING' ? h(PeriodicAzureCookieSetter, { proxyUrl: app.proxyUrls['cbas-ui'], forCromwell: true }) : null,
       div({ style: toolPanelStyles }, [
         // Label at the top for each tool

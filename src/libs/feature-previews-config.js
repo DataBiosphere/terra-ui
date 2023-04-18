@@ -29,6 +29,13 @@ const featurePreviewsConfig = [
     description: 'Enabling this feature will allow you to use the new workspace files browser.',
     groups: ['preview-workspace-files'],
     feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on workspace files browser')}`
+  },
+  {
+    id: 'hail-batch-azure',
+    title: 'Hail Batch App on Azure',
+    description: 'Enabling this feature will allow you to launch the Hail Batch app in Azure workspaces.',
+    groups: ['preview-hail-batch-azure'],
+    feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on Hail Batch (Azure)')}`
   }
 ]
 

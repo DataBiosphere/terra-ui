@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { code } from 'react-hyperscript-helpers'
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { isCromwellAppVisible } from 'src/libs/config'
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Utils from 'src/libs/utils'
 import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils'
 import { FileExtension, getExtension } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
@@ -187,7 +188,7 @@ export const isSettingsSupported = (toolLabel: ToolLabel, cloudProvider: CloudPr
 
 export const isToolHidden = (toolLabel: ToolLabel, cloudProvider: CloudProvider): boolean => Utils.cond(
   [toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviderTypes.GCP && !isCromwellAppVisible(), () => true],
-  [toolLabel === appToolLabels.HAIL_BATCH && cloudProvider === cloudProviderTypes.GCP, () => true], // TODO check feature flag for Azure
+  [toolLabel === appToolLabels.HAIL_BATCH && (cloudProvider === cloudProviderTypes.GCP || !isFeaturePreviewEnabled('hail-batch-azure')), () => true],
   [Utils.DEFAULT, () => false]
 )
 
