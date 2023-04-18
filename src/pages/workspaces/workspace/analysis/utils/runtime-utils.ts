@@ -15,6 +15,12 @@ import { CloudProvider } from 'src/libs/workspace-utils'
 import { RuntimeToolLabel, runtimeToolLabels, ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
+export const runtimeTypes = {
+  gceVm: 'Standard VM',
+  dataprocSingleNode: 'Spark single node',
+  dataprocCluster: 'Spark cluster'
+}
+
 export const defaultGceMachineType = 'n1-standard-1'
 export const defaultDataprocMachineType = 'n1-standard-4'
 export const defaultRStudioMachineType = 'n1-standard-4'
@@ -34,6 +40,7 @@ export const defaultAutopauseThreshold = 30
 export const autopauseDisabledValue = 0
 
 export const isAutopauseEnabled = threshold => threshold > autopauseDisabledValue
+
 export const getAutopauseThreshold = isEnabled => isEnabled ? defaultAutopauseThreshold : autopauseDisabledValue
 
 export const usableStatuses: LeoRuntimeStatus[] = ['Updating', 'Running']

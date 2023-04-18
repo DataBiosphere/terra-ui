@@ -260,7 +260,7 @@ const useCloudEnvironmentPolling = workspace => {
       // Disks.list API takes includeLabels to specify which labels to return in the response
       // Runtimes.listV2 API always returns all labels for a runtime
       const [newDisks, newRuntimes] = !!workspace ? await Promise.all([
-        Ajax(signal).Disks.list({ ...cloudEnvFilters, includeLabels: 'saturnApplication,saturnWorkspaceName,saturnWorkspaceNamespace' }),
+        Ajax(signal).Disks.disksV1().list({ ...cloudEnvFilters, includeLabels: 'saturnApplication,saturnWorkspaceName,saturnWorkspaceNamespace' }),
         Ajax(signal).Runtimes.listV2(cloudEnvFilters)
       ]) : [[], []]
 

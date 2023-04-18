@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react'
 import _ from 'lodash/fp'
-import { entityAttributeText, getRootTypeForSetTable, prepareAttributeForUpload, renderDataCell } from 'src/components/data/data-utils'
+import { entityAttributeText, getDownloadCommand, getRootTypeForSetTable, prepareAttributeForUpload, renderDataCell } from 'src/components/data/data-utils'
 import * as Utils from 'src/libs/utils'
 
 
@@ -11,6 +11,16 @@ describe('getRootTypeForSetTable', () => {
 
   it('gets member type for nested set tables', () => {
     expect(getRootTypeForSetTable('sample_set_set')).toBe('sample')
+  })
+})
+
+describe('getDownloadCommand', () => {
+  it('gets download command for gsutil', () => {
+    expect(getDownloadCommand('test.txt', 'gs://demo-data/test.txt')).toBe("gsutil cp 'gs://demo-data/test.txt' test.txt")
+  })
+
+  it('gets download command for azcopy', () => {
+    expect(getDownloadCommand('test.txt', 'https://lz8a3d793f17ede9b79635cc.blob.core.windows.net/sc-4b638f1f-b0a3-4161-a3fa-70e48edd981d/test.txt')).toBe("azcopy copy 'https://lz8a3d793f17ede9b79635cc.blob.core.windows.net/sc-4b638f1f-b0a3-4161-a3fa-70e48edd981d/test.txt' test.txt")
   })
 })
 
@@ -89,8 +99,7 @@ describe('entityAttributeText', () => {
 
 describe('renderDataCell', () => {
   const testGoogleWorkspace = { workspace: { bucketName: 'test-bucket', cloudPlatform: 'Gcp' } }
-  const testAzureWorkspace = { workspace: { bucketName: 'test-bucket', cloudPlatform: 'Azure' } }
-
+  const testAzureWorkspace = { workspace: { bucketName: 'test-bucket', cloudPlatform: 'Azure', workspaceId: '77397ce7-bb9b-4339-bc12-95e1f52956de' } }
   describe('basic data types', () => {
     it.each([
       { testWorkspace: testGoogleWorkspace },
@@ -208,6 +217,16 @@ describe('renderDataCell', () => {
 
     it('does not render a warning for GCS URLs in the workspace bucket', () => {
       const { queryByText } = render(renderDataCell('gs://test-bucket/file.txt', testGoogleWorkspace))
+      expect(queryByText('Some files are located outside of the current workspace')).toBeNull()
+    })
+
+    it('renders a warning for Azure URLs outside the workspace storage', () => {
+      const { getByText } = render(renderDataCell('https://lz8a3d793f17ede9b79635cc.blob.core.windows.net/testContainer/test_file.tsv', testAzureWorkspace))
+      expect(getByText('Some files are located outside of the current workspace')).toBeTruthy()
+    })
+
+    it('does not render a warning for Azure URLs in the workspace storage', () => {
+      const { queryByText } = render(renderDataCell('https://lz8a3d793f17ede9b79635cc.blob.core.windows.net/sc-77397ce7-bb9b-4339-bc12-95e1f52956de/test_file.tsv', testAzureWorkspace))
       expect(queryByText('Some files are located outside of the current workspace')).toBeNull()
     })
 

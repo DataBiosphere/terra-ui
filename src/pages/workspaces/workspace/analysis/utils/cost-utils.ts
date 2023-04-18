@@ -197,9 +197,9 @@ export const getAzureComputeCostEstimate = (runtimeConfig:AzureConfig):number =>
   return cost
 }
 
-export const getAzureDiskCostEstimate = (region:string, diskSize:number):number => {
+export const getAzureDiskCostEstimate = (region:string, persistentDiskSize:number):number => {
   const regionPriceObj = getAzurePricesForRegion(region) || {}
-  const diskType = getDiskType(diskSize)
+  const diskType = getDiskType(persistentDiskSize)
   const cost = regionPriceObj[diskType]
   return cost
 }

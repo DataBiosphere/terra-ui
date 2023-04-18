@@ -10,6 +10,7 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import { allRegions, availableBucketRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isSupportedBucketLocation } from 'src/components/region-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
+import { fetchRawlsUnauthenticated } from 'src/libs/ajax/ajax-common'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportErrorAndRethrow, withErrorIgnoring, withErrorReporting } from 'src/libs/error'
@@ -91,6 +92,11 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     }
   })
 
+  const getRawlsVersion = async () => {
+    const res = await fetchRawlsUnauthenticated('version')
+    return res.json()
+  }
+
   const create = async () => {
     try {
       setCreateError(undefined)
@@ -101,7 +107,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
         name,
         authorizationDomain: _.map(v => ({ membersGroupName: v }), [...getRequiredGroups(), ...groups]),
         attributes: { description },
-        copyFilesWithPrefix: 'notebooks/',
+        copyFilesWithPrefix: isGoogleBillingProject() ? 'notebooks/' : 'analyses/',
         ...(!!bucketLocation && isGoogleBillingProject() && { bucketLocation })
       }
       const createdWorkspace = await Utils.cond(
@@ -125,8 +131,22 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           )
           return workspace
         })
+
       onSuccess(createdWorkspace)
-      createLeoApp(createdWorkspace)
+
+      // Temp code for moving WDS auto-deployment out of UI code and into Rawls.
+      // if the Rawls build number is below the version that auto-deploys WDS,
+      // continue deploying from here. If Rawls is up-to-date, skip deployment.
+      // If we can't parse the build number, skip deployment.
+      const wdsDeploymentRawlsVersion = 8357
+      await getRawlsVersion().then(
+        res => {
+          const currentRawlsBuildVersion = parseInt(res.buildNumber)
+          if (!_.isNaN(currentRawlsBuildVersion) && currentRawlsBuildVersion < wdsDeploymentRawlsVersion) {
+            createLeoApp(createdWorkspace)
+          }
+        }
+      )
     } catch (error) {
       const { message } = await error.json()
       setCreating(false)

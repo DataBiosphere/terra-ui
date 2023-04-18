@@ -50,9 +50,8 @@ const errorTextStyle = { color: colors.danger(), fontWeight: 'bold', fontSize: 1
 
 export const parseGsUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
 
-export const getDownloadCommand = (fileName, gsUri, accessUrl) => {
+export const getDownloadCommand = (fileName, uri, accessUrl) => {
   const { url: httpUrl, headers: httpHeaders } = accessUrl || {}
-
   if (httpUrl) {
     const headers = _.flow(
       _.toPairs,
@@ -62,8 +61,12 @@ export const getDownloadCommand = (fileName, gsUri, accessUrl) => {
     return `curl ${headers}${output}'${httpUrl}'`
   }
 
-  if (gsUri) {
-    return `gsutil cp '${gsUri}' ${fileName || '.'}`
+  if (isAzureUri(uri)) {
+    return `azcopy copy '${uri}' ${fileName || '.'}`
+  }
+
+  if (isGsUri(uri)) {
+    return `gsutil cp '${uri}' ${fileName || '.'}`
   }
 }
 
@@ -142,20 +145,35 @@ export const renderDataCell = (attributeValue, workspace) => {
 
   const tooltip = renderDataCellTooltip(attributeValue)
 
-  const isOtherBucketGsUri = datum => {
-    const [bucket] = parseGsUri(datum)
-    return !!bucket && bucket !== workspaceBucket
+  const isNonCurrentWorkspaceUrls = datum => {
+    if (isGoogleWorkspace(workspace)) {
+      const [bucket] = parseGsUri(datum)
+      return !!bucket && bucket !== workspaceBucket
+    } else if (isAzureWorkspace(workspace)) {
+      if (isAzureUri(datum)) {
+        const workspaceId = parseAzureUri(datum)
+        return workspace.workspace.workspaceId !== workspaceId
+      }
+    }
+    return false
   }
 
-  const hasOtherBucketUrls = Utils.cond(
-    [type === 'json' && _.isArray(attributeValue), () => _.some(isOtherBucketGsUri, attributeValue)],
-    [type === 'string' && isList, () => _.some(isOtherBucketGsUri, attributeValue.items)],
-    [type === 'string', () => isOtherBucketGsUri(attributeValue)],
+  const parseAzureUri = datum => {
+    if (datum === undefined || datum.split('/').length < 4) {
+      return null
+    }
+    return datum.split('/')[3].replace('sc-', '')
+  }
+
+  const hasNonCurrentWorkspaceUrls = Utils.cond(
+    [type === 'json' && _.isArray(attributeValue), () => _.some(isNonCurrentWorkspaceUrls, attributeValue)],
+    [type === 'string' && isList, () => _.some(isNonCurrentWorkspaceUrls, attributeValue.items)],
+    [type === 'string', () => isNonCurrentWorkspaceUrls(attributeValue)],
     () => false
   )
 
   return h(Fragment, [
-    isGoogleWorkspace(workspace) && hasOtherBucketUrls && h(TooltipTrigger, { content: 'Some files are located outside of the current workspace' }, [
+    (hasNonCurrentWorkspaceUrls) && h(TooltipTrigger, { content: 'Some files are located outside of the current workspace' }, [
       h(Interactive, { as: 'span', tabIndex: 0, style: { marginRight: '1ch' } }, [
         icon('warning-info', { size: 20, style: { color: colors.accent(), cursor: 'help' } })
       ])
