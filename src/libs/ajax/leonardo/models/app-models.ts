@@ -28,12 +28,12 @@ export type DisplayAppStatus = 'Running'
     | 'Pausing'
     | 'Paused'
 
-export interface StatusToDisplay {
-    status: AppStatus
-    displayStatus: DisplayAppStatus
-  }
+export interface StatusObject {
+  status: AppStatus
+  displayStatus: DisplayAppStatus
+}
 
-export const appStatuses: { [label: string]: StatusToDisplay } = {
+export const appStatuses: { [label: string]: StatusObject } = {
   running: { status: 'RUNNING', displayStatus: 'Running' },
   error: { status: 'ERROR', displayStatus: 'Error' },
   deleting: { status: 'DELETING', displayStatus: 'Deleting' },
