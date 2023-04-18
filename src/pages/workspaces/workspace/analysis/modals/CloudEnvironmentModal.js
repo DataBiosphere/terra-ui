@@ -377,7 +377,7 @@ export const CloudEnvironmentModal = ({
         ]),
         // Cloud environment button
         div({ style: toolButtonDivStyles }, [
-          isSettingsSupported(toolLabel, cloudProvider, workspace?.accessLevel, workspace?.workspace?.createdDate) && h(Clickable, {
+          isSettingsSupported(toolLabel, cloudProvider, workspace.accessLevel, workspace.workspace.createdDate) && h(Clickable, {
             'aria-label': `${toolLabel} Environment`,
             style: {
               ...toolButtonStyles,
