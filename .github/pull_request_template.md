@@ -1,8 +1,19 @@
-<!---
-Hello, friend!
-Remember to mention what sort of testing/verification you performed in the course of building this PR, i.e. checking functionality in the browser locally.
-Also, so if a screen recording [1] and/or screenshots would be a helpful way to communicate context, please consider including some in your PR description.
-Thanks!
+### Jira Ticket: https://broadworkbench.atlassian.net/browse/[Ticket #]
 
-[1] https://support.apple.com/guide/quicktime-player/record-your-screen-qtp97b08e666/mac
--->
+<!-- ### Dependencies --->
+<!-- Include any dependent tickets and describe the relationship. Include any relevant Jira tickets. --->
+
+## Summary of changes:
+<!--Please give an abridged version of the ticket description here and/or fill out the following fields.-->
+
+### What
+- 
+
+### Why
+- 
+
+### Testing strategy
+- [ ] <!-- Test case 1 -->
+
+<!-- ### Visual Aids -->
+<!-- https://support.apple.com/guide/quicktime-player/record-your-screen-qtp97b08e666/mac --> 
