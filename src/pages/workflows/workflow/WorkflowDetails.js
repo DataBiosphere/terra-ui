@@ -5,7 +5,7 @@ import { Fragment, useState } from 'react'
 import { div, h, h2, label } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { ButtonSecondary, IdContainer, Link, Select } from 'src/components/common'
+import { ButtonSecondary, Link, Select } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
@@ -19,7 +19,7 @@ import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
+import { useCancellation, useOnMount, useStore, useUniqueId } from 'src/libs/react-utils'
 import { snapshotsListStore, snapshotStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -73,6 +73,7 @@ const SnapshotWrapper = ({ namespace, name, snapshotId, tabName, children }) => 
   const cachedSnapshotsList = useStore(snapshotsListStore)
   const cachedSnapshot = useStore(snapshotStore)
   const selectedSnapshot = (snapshotId * 1) || _.last(cachedSnapshotsList).snapshotId
+  const snapshotLabelId = useUniqueId()
 
   const snapshot = cachedSnapshot &&
   _.isEqual({ namespace, name, snapshotId: selectedSnapshot }, _.pick(['namespace', 'name', 'snapshotId'], cachedSnapshot)) ?
@@ -101,18 +102,16 @@ const SnapshotWrapper = ({ namespace, name, snapshotId, tabName, children }) => 
       displayNames: { configs: 'configurations' },
       getHref: currentTab => Nav.getLink(`workflow-${currentTab}`, { namespace, name, snapshotId: selectedSnapshot })
     }, [
-      h(IdContainer, [id => h(Fragment, [
-        label({ htmlFor: id, style: { marginRight: '1rem' } }, ['Snapshot:']),
-        div({ style: { width: 100 } }, [
-          h(Select, {
-            id,
-            value: selectedSnapshot,
-            isSearchable: false,
-            options: _.map('snapshotId', cachedSnapshotsList),
-            onChange: ({ value }) => Nav.goToPath(`workflow-${tabName}`, { namespace, name, snapshotId: value })
-          })
-        ])
-      ])])
+      label({ htmlFor: snapshotLabelId, style: { marginRight: '1rem' } }, ['Snapshot:']),
+      div({ style: { width: 100 } }, [
+        h(Select, {
+          id: snapshotLabelId,
+          value: selectedSnapshot,
+          isSearchable: false,
+          options: _.map('snapshotId', cachedSnapshotsList),
+          onChange: ({ value }) => Nav.goToPath(`workflow-${tabName}`, { namespace, name, snapshotId: value })
+        })
+      ])
     ]),
     snapshot ?
       children :

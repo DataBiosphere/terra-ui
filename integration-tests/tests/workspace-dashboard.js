@@ -78,7 +78,7 @@ const testGoogleWorkspace = _.flow(
   await dashboard.assertTabs(['data', 'analyses', 'workflows', 'job history'], true)
 
   // Check accessibility.
-  await verifyAccessibility(page, 1) // Need to fix: "Certain ARIA roles must contain particular children", WOR-759
+  await verifyAccessibility(page)
 
   // Verify that there is no Azure warning
   await assertTextNotFound(azureWarning)
@@ -217,7 +217,7 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
   await dashboard.assertTabs(['analyses', 'data'], true)
 
   // Check accessibility.
-  await verifyAccessibility(page, 1) // Need to fix: "Certain ARIA roles must contain particular children", WOR-759
+  await verifyAccessibility(page)
 
   // Verify Azure warning is visible
   await dashboard.assertAzureWarning()
