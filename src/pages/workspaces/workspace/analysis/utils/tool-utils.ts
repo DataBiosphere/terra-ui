@@ -4,7 +4,9 @@ import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { isCromwellAppVisible } from 'src/libs/config'
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Utils from 'src/libs/utils'
+import { isOwner } from 'src/libs/utils'
 import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils'
+import { doesWorkspaceSupportCromwellApp } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
 import { FileExtension, getExtension } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
@@ -183,6 +185,7 @@ export const isPauseSupported = (toolLabel: ToolLabel): boolean => !_.find((tool
 
 export const isSettingsSupported = (toolLabel: ToolLabel, cloudProvider: CloudProvider, accessLevel: string, createdDate: string): boolean => Utils.cond(
   [toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviders.azure.label, () => doesWorkspaceSupportCromwellApp(createdDate, cloudProvider, toolLabel) && isOwner(accessLevel)],
+  [toolLabel === appToolLabels.HAIL_BATCH && cloudProvider === cloudProviders.azure.label, () => true],
   [Utils.DEFAULT, () => true]
 )
 
