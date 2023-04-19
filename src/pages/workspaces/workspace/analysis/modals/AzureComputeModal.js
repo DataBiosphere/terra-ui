@@ -335,7 +335,7 @@ export const AzureComputeModalBase = ({
         { label: 'Paused cloud compute cost', cost: Utils.formatUSD(0), unitLabel: 'per hr' }, //TODO: [IA-4105] update cost
         {
           label: 'Persistent disk cost',
-          cost: Utils.formatUSD(getAzureDiskCostEstimate(computeConfig.zone, computeConfig.diskSize)),
+          cost: Utils.formatUSD(getAzureDiskCostEstimate(computeConfig)),
           unitLabel: 'per month'
         }
       ])

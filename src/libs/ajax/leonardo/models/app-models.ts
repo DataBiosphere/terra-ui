@@ -15,35 +15,7 @@ export interface AppError extends LeoError {
   traceId?: string
 }
 
-export type AppStatus = 'STATUS_UNSPECIFIED'
- | 'RUNNING' | 'ERROR' | 'DELETING' | 'DELETED' | 'PROVISIONING' | 'STOPPING' | 'STOPPED' | 'STARTING'
-
-export type DisplayAppStatus = 'Running'
-    | 'Deleted'
-    | 'Deleting'
-    | 'Creating'
-    | 'Resuming'
-    | 'Status_unspecified'
-    | 'Error'
-    | 'Pausing'
-    | 'Paused'
-
-export interface StatusObject {
-  status: AppStatus
-  displayStatus: DisplayAppStatus
-}
-
-export const appStatuses: { [label: string]: StatusObject } = {
-  running: { status: 'RUNNING', displayStatus: 'Running' },
-  error: { status: 'ERROR', displayStatus: 'Error' },
-  deleting: { status: 'DELETING', displayStatus: 'Deleting' },
-  deleted: { status: 'DELETED', displayStatus: 'Deleted' },
-  provisioning: { status: 'PROVISIONING', displayStatus: 'Creating' },
-  stopping: { status: 'STOPPING', displayStatus: 'Pausing' },
-  stopped: { status: 'STOPPED', displayStatus: 'Paused' },
-  starting: { status: 'STARTING', displayStatus: 'Resuming' },
-  status_unspecified: { status: 'STATUS_UNSPECIFIED', displayStatus: 'Status_unspecified' },
-}
+export type AppStatus = 'STATUS_UNSPECIFIED' | 'RUNNING' | 'ERROR' | 'DELETING' | 'DELETED' | 'PROVISIONING' | 'STOPPING' | 'STOPPED' | 'STARTING'
 
 export interface GetAppResponse {
   appName: string
