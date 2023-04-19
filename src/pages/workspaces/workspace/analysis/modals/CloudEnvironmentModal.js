@@ -377,7 +377,7 @@ export const CloudEnvironmentModal = ({
         ]),
         // Cloud environment button
         div({ style: toolButtonDivStyles }, [
-          isSettingsSupported(toolLabel, cloudProvider) && h(Clickable, {
+          isSettingsSupported(toolLabel, cloudProvider, workspace.accessLevel, workspace.workspace.createdDate) && h(Clickable, {
             'aria-label': `${toolLabel} Environment`,
             style: {
               ...toolButtonStyles,
@@ -415,6 +415,7 @@ export const CloudEnvironmentModal = ({
 
   const getAzureView = () => Utils.switchCase(viewMode,
     [runtimeToolLabels.JupyterLab, () => renderAzureModal(runtimeToolLabels.JupyterLab)],
+    [appToolLabels.CROMWELL, () => renderAppModal(CromwellModalBase, appToolLabels.CROMWELL)],
     [Utils.DEFAULT, renderDefaultPage]
   )
 
