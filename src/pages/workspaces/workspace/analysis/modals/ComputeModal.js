@@ -1531,8 +1531,8 @@ export const ComputeModalBase = ({
       ['deleteEnvironment', () => DeleteEnvironment({
         id: titleId,
         runtimeConfig: currentRuntime && currentRuntime.runtimeConfig,
-        persistentDiskId: currentPersistentDiskDetails.id,
-        persistentDiskCostDisplay: Utils.formatUSD(getPersistentDiskCostMonthly(currentPersistentDiskDetails, computeConfig.computeRegion)),
+        persistentDiskId: currentPersistentDiskDetails?.id,
+        persistentDiskCostDisplay: currentPersistentDiskDetails ? Utils.formatUSD(getPersistentDiskCostMonthly(currentPersistentDiskDetails, computeConfig.computeRegion)) : 'N/A',
         deleteDiskSelected,
         setDeleteDiskSelected,
         setViewMode,
