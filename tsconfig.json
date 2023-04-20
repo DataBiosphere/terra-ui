@@ -23,6 +23,5 @@
     "strict": true,
     "target": "es5"
   },
-  "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.eslintrc.js"],
-  "exclude": ["node_modules", ".yarn", ".vscode", ".hooks"]
+  "include": ["src", "types", "integration-tests"]
 }

@@ -155,7 +155,7 @@
   },
   "lint-staged": {
     "**/*.{js,ts}": [
-      "yarn eslint --max-warnings=0"
+      "yarn eslint src --max-warnings=0"
     ]
   }
 }

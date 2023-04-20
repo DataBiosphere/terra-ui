@@ -14,24 +14,11 @@ module.exports = {
       },
     },
   },
-  overrides: [
-    {
-      files: ["**/*.test.ts", "**/*.test.js"],
-      env: {
-        jest: true,
-      },
-    },
-    {
-      files: "src/**/*.{js,ts}",
-      rules: {
-        // 'no-console': ['warn', { allow: ['assert', 'error'] }],//TODO: should be enabled
-      },
-    },
-  ],
   rules: {
     indent: "off",
     "comma-dangle": "off",
     "import/prefer-default-export": "off",
+    "simple-import-sort/imports": "warn",
 
     // TODO: ticket all of these to be enabled or explain why they are disabled
     "react/forbid-prop-types": "off",
@@ -110,5 +97,19 @@ module.exports = {
       },
     ],
   },
+  overrides: [
+    {
+      files: ["**/*.test.ts", "**/*.test.js"],
+      env: {
+        jest: true,
+      },
+    },
+    {
+      files: "src/**/*.{js,ts}",
+      rules: {
+        // 'no-console': ['warn', { allow: ['assert', 'error'] }],//TODO: should be enabled
+      },
+    },
+  ],
   plugins: ["lodash-fp", "import", "simple-import-sort", "prettier"],
 };
