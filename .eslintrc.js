@@ -49,6 +49,7 @@ module.exports = {
     "@typescript-eslint/no-throw-literal": "off",
     "@typescript-eslint/no-unused-expressions": "off",
     "@typescript-eslint/no-use-before-define": "off",
+    "@typescript-eslint/no-var-requires": "off",
     "@typescript-eslint/return-await": "off",
     "@typescript-eslint/strict-boolean-expressions": "off", // TODO: should be 'warn',
 
