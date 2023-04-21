@@ -50,7 +50,6 @@ export const HailBatchModalBase = withDisplayName('HailBatchModal')(({ onDismiss
     return onSuccess()
   })
 
-
   const renderActionButton = () => {
     return !app ?
       h(ButtonPrimary, { onClick: createHailBatch }, ['Create']) :
