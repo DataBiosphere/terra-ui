@@ -8,8 +8,10 @@ import TitleBar from 'src/components/TitleBar'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
-import { withDisplayName } from 'src/libs/react-utils'
+import { useStore, withDisplayName } from 'src/libs/react-utils'
+import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
+import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
 import { getCurrentApp, getEnvMessageBasedOnStatus } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
 import { appToolLabels, appTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
@@ -24,6 +26,9 @@ export const HailBatchModalBase = withDisplayName('HailBatchModal')(({ onDismiss
   const app = getCurrentApp(appTools.HAIL_BATCH.label, apps)
   const [loading, setLoading] = useState(false)
   const [viewMode, setViewMode] = useState(undefined)
+  const leoCookieReady = useStore(cookieReadyStore)
+  const azureCookieReady = useStore(azureCookieReadyStore)
+  const cloudProvider = getCloudProviderFromWorkspace(workspace)
 
   // Creates hail batch app in Leo
   const createHailBatch = _.flow(
@@ -54,11 +59,18 @@ export const HailBatchModalBase = withDisplayName('HailBatchModal')(({ onDismiss
           return h(ButtonPrimary, { onClick: deleteHailBatch }, ['Delete'])
         }],
         [Utils.DEFAULT, () => {
+          const cookieReady = Utils.cond(
+            [cloudProvider === cloudProviderTypes.AZURE, () => azureCookieReady.readyForCromwellApp],
+            [Utils.DEFAULT, () => leoCookieReady])
           return h(Fragment, [
             h(ButtonOutline, { disabled: false, style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') },
               ['Delete Environment']),
             h(ButtonPrimary, {
               href: app?.proxyUrls['batch'],
+              disabled: !cookieReady,
+              tooltip: Utils.cond(
+                [cookieReady, () => 'Open'],
+                [Utils.DEFAULT, () => 'Please wait until Hail Batch is running']),
               onClick: () => {
                 Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: appTools.HAIL_BATCH.label })
               },
