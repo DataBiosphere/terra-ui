@@ -66,6 +66,7 @@ const getDefaultIfUndefined = (input: any | undefined, alternative: any): any =>
 // All disks referenced in this function are boot disks (aka the disk google needs to provision by default for OS storage)
 // The user pd cost for a runtime is calculated elsewhere
 export const runtimeConfigBaseCost = (config: GoogleRuntimeConfig): number => {
+  if (!config) return 0
   const computeRegion = getNormalizedComputeRegion(config)
 
   const costForDataproc: number = isDataprocConfig(config) ?
@@ -85,6 +86,7 @@ export const runtimeConfigBaseCost = (config: GoogleRuntimeConfig): number => {
 }
 
 export const runtimeConfigCost = (config: GoogleRuntimeConfig): number => {
+  if (!config) return 0
   const computeRegion = getNormalizedComputeRegion(config)
 
   const machineType: string = isGceRuntimeConfig(config) ? config.machineType :
@@ -100,7 +102,7 @@ export const runtimeConfigCost = (config: GoogleRuntimeConfig): number => {
     ephemeralExternalIpAddressCost(config.numberOfWorkers, getDefaultIfUndefined(config.numberOfPreemptibleWorkers, 0))
   ]) : 0
 
-  const gpuCost = isGceRuntimeConfig(config) && !_.isNil(config.gpuConfig) ? getGpuCost(config.gpuConfig.gpuType, config.gpuConfig.numOfGpus, computeRegion) : 0
+  const gpuCost = isGceRuntimeConfig(config) && config.gpuConfig ? getGpuCost(config.gpuConfig.gpuType, config.gpuConfig.numOfGpus, computeRegion) : 0
 
   const baseVmIpCost = ephemeralExternalIpAddressCost(1, 0)
 
@@ -114,20 +116,23 @@ export const runtimeConfigCost = (config: GoogleRuntimeConfig): number => {
 }
 
 // Per GB following https://cloud.google.com/compute/pricing
-export const getPersistentDiskPriceForRegionMonthly = (computeRegion:string, diskType:PdType) => {
+export const getPersistentDiskPriceForRegionMonthly = (computeRegion:string, diskType:PdType):number => {
+  if (!computeRegion || !diskType) return 0
   return _.flow(_.find({ name: _.toUpper(computeRegion) }), _.get([diskType.regionToPricesName]))(regionToPrices)
 }
 const numberOfHoursPerMonth = 730
-export const getPersistentDiskPriceForRegionHourly = (computeRegion:string, diskType:PdType) => getPersistentDiskPriceForRegionMonthly(computeRegion, diskType) / numberOfHoursPerMonth
+export const getPersistentDiskPriceForRegionHourly = (computeRegion:string, diskType:PdType):number => getPersistentDiskPriceForRegionMonthly(computeRegion, diskType) / numberOfHoursPerMonth
 
-export const ephemeralExternalIpAddressCost = (numStandardVms:number, numPreemptibleVms:number) => {
+export const ephemeralExternalIpAddressCost = (numStandardVms:number, numPreemptibleVms:number):number => {
+  if (!numStandardVms || !numPreemptibleVms) return 0
   // Google categorizes a VM as 'standard' if it is not 'pre-emptible'.
   return numStandardVms * ephemeralExternalIpAddressPrice.standard + numPreemptibleVms * ephemeralExternalIpAddressPrice.preemptible
 }
 
-export const getAppCost = (app:App, dataDisk:DecoratedPersistentDisk) => app.appType === appTools.GALAXY.label ? getGalaxyCost(app, dataDisk) : 0
+export const getAppCost = (app:App, dataDisk:DecoratedPersistentDisk):number => app && dataDisk && app.appType === appTools.GALAXY.label ? getGalaxyCost(app, dataDisk) : 0
 
-export const getGalaxyCost = (app:App, dataDisk:DecoratedPersistentDisk) => {
+export const getGalaxyCost = (app:App, dataDisk:DecoratedPersistentDisk):number => {
+  if (!app || !dataDisk) return 0
   return getGalaxyDiskCost({
     size: dataDisk.size, //In GB
     diskType: dataDisk.diskType
@@ -141,7 +146,8 @@ export const getGalaxyCost = (app:App, dataDisk:DecoratedPersistentDisk) => {
  *   be complicated to calculate that shared cost dynamically. Therefore, we are being
  *   conservative by adding default nodepool cost to all apps on a cluster.
  */
-export const getGalaxyComputeCost = (app:App) => {
+export const getGalaxyComputeCost = (app:App):number => {
+  if (!app) return 0
   const appStatus = app?.status
   // Galaxy uses defaultComputeRegion because we're not yet enabling other locations for Galaxy apps.
   const defaultNodepoolComputeCost = getHourlyCostForMachineType(defaultGceMachineType, defaultComputeRegion, false)
@@ -173,6 +179,7 @@ export const getGalaxyDiskCost = (disk:DecoratedPersistentDisk | {
   size: number //In GB
   diskType: PdType
 }):number => {
+  if (!disk) return 0
   const { size: dataDiskType, diskType } = disk
   const metadataDiskSize = 10 // GB
   const defaultNodepoolBootDiskSize = 100 // GB
@@ -191,6 +198,7 @@ export const getGalaxyDiskCost = (disk:DecoratedPersistentDisk | {
 // AZURE COST METHODS begin
 
 export const getAzureComputeCostEstimate = (runtimeConfig:AzureConfig):number => {
+  if (!runtimeConfig) return 0
   const { region, machineType } = runtimeConfig
   const regionPriceObj = getAzurePricesForRegion(region) || {}
   const cost = regionPriceObj[machineType]
@@ -198,6 +206,7 @@ export const getAzureComputeCostEstimate = (runtimeConfig:AzureConfig):number =>
 }
 
 export const getAzureDiskCostEstimate = (region:string, persistentDiskSize:number):number => {
+  if (!region || !persistentDiskSize) return 0
   const regionPriceObj = getAzurePricesForRegion(region) || {}
   const diskType = getDiskType(persistentDiskSize)
   const cost = regionPriceObj[diskType]
@@ -209,23 +218,28 @@ export const getAzureDiskCostEstimate = (region:string, persistentDiskSize:numbe
 // COMMON METHODS begin
 
 export const getPersistentDiskCostMonthly = (disk:DecoratedPersistentDisk, computeRegion:string):number => {
+  if (!disk || !computeRegion) return 0
   const { cloudContext, diskType, size, status, zone } = disk
-  const price = Utils.cond(
+  let price = 0.0
+  price = _.includes(status, [diskStatuses.deleting.leoLabel, diskStatuses.failed.leoLabel]) ? 0.0 : Utils.cond(
     [cloudContext && isAzureContext(cloudContext), () => getAzureDiskCostEstimate(zone, size)],
     [Utils.DEFAULT, () => size * getPersistentDiskPriceForRegionMonthly(computeRegion, diskType)],
   )
-  return _.includes(status, [diskStatuses.deleting.leoLabel, diskStatuses.failed.leoLabel]) ? 0.0 : price
+  return price
 }
 export const getPersistentDiskCostHourly = (disk:DecoratedPersistentDisk|{ size:number; status:LeoDiskStatus; diskType:PdType; cloudContext?:CloudContext }, computeRegion:string):number => {
+  if (!disk || !computeRegion) return 0
   const { size, status, diskType, cloudContext } = disk
-  const price = Utils.cond(
+  let price = 0.0
+  price = _.includes(status, [diskStatuses.deleting.leoLabel, diskStatuses.failed.leoLabel]) ? 0.0 : Utils.cond(
     [cloudContext && isAzureContext(cloudContext), () => getAzureDiskCostEstimate(computeRegion, size) / numberOfHoursPerMonth],
     [Utils.DEFAULT, () => size * getPersistentDiskPriceForRegionHourly(computeRegion, diskType)],
   )
-  return _.includes(status, [diskStatuses.deleting.leoLabel, diskStatuses.failed.leoLabel]) ? 0.0 : price
+  return price
 }
 
 export const getRuntimeCost = (runtime:Runtime):number => {
+  if (!runtime) return 0
   const { runtimeConfig, status } = runtime
   if (isAzureConfig(runtimeConfig)) {
     return Utils.switchCase(status,
@@ -233,7 +247,7 @@ export const getRuntimeCost = (runtime:Runtime):number => {
       [runtimeStatuses.error.leoLabel, () => 0.0],
       [Utils.DEFAULT, () => getAzureComputeCostEstimate(runtimeConfig)]
     )
-  } else if (isGceRuntimeConfig(runtimeConfig)) {
+  } else if (isGceRuntimeConfig(runtimeConfig) || isDataprocConfig(runtimeConfig)) {
     return Utils.switchCase(status,
       [
         runtimeStatuses.stopped.leoLabel,
@@ -243,7 +257,7 @@ export const getRuntimeCost = (runtime:Runtime):number => {
       [Utils.DEFAULT, () => runtimeConfigCost(runtimeConfig)]
     )
   } else {
-    throw new Error(`Unknown runtime config type ${runtimeConfig.cloudService}`)
+    throw new Error(`Unknown runtime config type ${runtimeConfig}`)
   }
 }
 
@@ -270,7 +284,7 @@ export const getCostDisplayForTool = (app:App, currentRuntime:Runtime, currentRu
     [toolLabel === appToolLabels.GALAXY, () => app ? `${getAppStatusForDisplay(app.status)} ${Utils.formatUSD(getGalaxyComputeCost(app))}/hr` : ''],
     [toolLabel === appToolLabels.CROMWELL, () => ''], // We will determine what to put here later
     [toolLabel === runtimeToolLabels.JupyterLab, () => currentRuntime ? `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getRuntimeCost(currentRuntime))}/hr` : ''],
-    [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getRuntimeCost(currentRuntime))}/hr`],
+    [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => currentRuntime ? `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getRuntimeCost(currentRuntime))}/hr` : ''],
     [Utils.DEFAULT, () => {
       return ''
     }]
