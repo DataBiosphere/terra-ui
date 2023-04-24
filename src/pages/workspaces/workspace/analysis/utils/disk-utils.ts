@@ -93,9 +93,8 @@ export const getCurrentPersistentDisk = (runtimes: Runtime[], persistentDisks: P
 }
 
 export const getReadyPersistentDisk = (persistentDisks: PersistentDisk[]): PersistentDisk | undefined => {
-  // returns persistent disk if one exists and is in ready status
-  const disk = persistentDisks ? persistentDisks[0] : undefined
-  return disk ? (disk.status === diskStatuses.ready.leoLabel ? disk : undefined) : undefined
+  // returns PD if one exists and is in ready status
+  return persistentDisks.find(disk => disk.status === diskStatuses.ready.leoLabel)
 }
 
 export const isCurrentGalaxyDiskDetaching = (apps: App[]): boolean => {
