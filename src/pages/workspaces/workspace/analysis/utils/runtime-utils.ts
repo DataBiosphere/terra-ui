@@ -15,6 +15,12 @@ import { CloudProvider } from 'src/libs/workspace-utils'
 import { RuntimeToolLabel, runtimeToolLabels, ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 
+export const runtimeTypes = {
+  gceVm: 'Standard VM',
+  dataprocSingleNode: 'Spark single node',
+  dataprocCluster: 'Spark cluster'
+}
+
 export const defaultGceMachineType = 'n1-standard-1'
 export const defaultDataprocMachineType = 'n1-standard-4'
 export const defaultRStudioMachineType = 'n1-standard-4'

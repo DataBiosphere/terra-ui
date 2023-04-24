@@ -76,7 +76,7 @@
     "postinstall": "husky install"
   },
   "devDependencies": {
-    "@axe-core/react": "^4.4.5",
+    "@axe-core/react": "^4.6.1",
     "@testing-library/dom": "^8.17.1",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^12.1.5",

@@ -5,6 +5,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
+import { Metrics } from 'src/libs/ajax/Metrics'
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
@@ -12,7 +13,9 @@ import { notify } from 'src/libs/notifications'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { analysisTabName, appLauncherTabName, PeriodicAzureCookieSetter, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
+import {
+  analysisTabName, appLauncherTabName, appLauncherWithAnalysisTabName, PeriodicAzureCookieSetter, RuntimeKicker, RuntimeStatusMonitor, StatusMessage
+} from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import { getExtension, notebookLockHash, stripExtension } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
 import { getAnalysesDisplayList, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import {
@@ -21,6 +24,8 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
+// The App launcher is where the iframe for the application lives
+// There are several different URL schemes that can be used to access the app launcher, which affect its functionality
 
 const ApplicationLauncher = _.flow(
   forwardRefWithName('ApplicationLauncher'),
@@ -31,7 +36,7 @@ const ApplicationLauncher = _.flow(
   })
 )(({
   name: workspaceName, sparkInterface, analysesData: { runtimes, refreshRuntimes },
-  application, workspace: { azureContext, workspace }
+  application, workspace: { azureContext, workspace }, analysisName
 }, _ref) => {
   const { namespace, name, workspaceId, googleProject, bucketName } = workspace
   const [busy, setBusy] = useState(true)
@@ -161,7 +166,8 @@ const ApplicationLauncher = _.flow(
         [launchableToolLabel.terminal, () => `${proxyUrl}/terminals/1`],
         [launchableToolLabel.spark, () => getSparkInterfaceSource(proxyUrl)],
         [runtimeToolLabels.RStudio, () => proxyUrl],
-        [runtimeToolLabels.JupyterLab, () => `${proxyUrl}/lab`],
+        // Jupyter lab can open to a specific file. See the docs for more details https://jupyterlab.readthedocs.io/en/stable/user/urls.html
+        [runtimeToolLabels.JupyterLab, () => analysisName ? `${proxyUrl}/lab/tree/${analysisName}` : `${proxyUrl}/lab`],
         [Utils.DEFAULT, () => console.error(`Expected ${application} to be one of terminal, spark, ${runtimeToolLabels.RStudio}, or ${runtimeToolLabels.JupyterLab}.`)]
       )
 
@@ -181,7 +187,6 @@ const ApplicationLauncher = _.flow(
       const { storageContainerName: azureStorageContainer } = !!azureContext ? await Ajax(signal).AzureStorage.details(workspaceId) : {}
       const cloudStorageDirectory = !!azureContext ? `${azureStorageContainer}/analyses` : `gs://${bucketName}/notebooks`
 
-      //TODO: fix this when relay is working https://broadworkbench.atlassian.net/browse/IA-3700
       !!googleProject ?
         await Ajax()
           .Runtimes
@@ -231,7 +236,7 @@ const ApplicationLauncher = _.flow(
 
   useEffect(() => {
     _.includes(runtimeStatus, usableStatuses) && cookieReady &&
-    Ajax().Metrics.captureEvent(Events.cloudEnvironmentLaunch, { application, ...workspace })
+    Metrics().captureEvent(Events.cloudEnvironmentLaunch, { application, tool: application, workspaceName: workspace.name, namespace: workspace.namespace, cloudPlatform: workspace.cloudPlatform })
   }, [application, cookieReady, runtimeStatus, workspace])
 
   if (!busy && runtime === undefined) Nav.goToPath(analysisTabName, { namespace, name })
@@ -288,6 +293,12 @@ export const navPaths = [
   {
     name: appLauncherTabName,
     path: '/workspaces/:namespace/:name/applications/:application',
+    component: ApplicationLauncher,
+    title: ({ name, application }) => `${name} - ${application}`
+  },
+  {
+    name: appLauncherWithAnalysisTabName,
+    path: '/workspaces/:namespace/:name/applications/:application/:analysisName',
     component: ApplicationLauncher,
     title: ({ name, application }) => `${name} - ${application}`
   },

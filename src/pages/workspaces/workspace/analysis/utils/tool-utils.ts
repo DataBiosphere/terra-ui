@@ -1,8 +1,11 @@
 import _ from 'lodash/fp'
+import { code } from 'react-hyperscript-helpers'
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models'
 import { isCromwellAppVisible } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
+import { isOwner } from 'src/libs/utils'
 import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils'
+import { doesWorkspaceSupportCromwellApp } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
 import { FileExtension, getExtension } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
@@ -173,9 +176,35 @@ export const allAppTypes: AppToolLabel[] = _.flow(_.map('label'), _.compact)(app
 
 export const isPauseSupported = (toolLabel: ToolLabel): boolean => !_.find((tool: AppTool | RuntimeTool) => tool.label === toolLabel)(tools)?.isPauseUnsupported
 
-export const isSettingsSupported = (toolLabel: ToolLabel, cloudProvider: CloudProvider): boolean => !(toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviders.azure.label)
+export const isSettingsSupported = (toolLabel: ToolLabel, cloudProvider: CloudProvider, accessLevel: string, createdDate: string): boolean => Utils.cond(
+  [toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviders.azure.label, () => doesWorkspaceSupportCromwellApp(createdDate, cloudProvider, toolLabel) && isOwner(accessLevel)],
+  [Utils.DEFAULT, () => true]
+)
 
 export const isToolHidden = (toolLabel: ToolLabel, cloudProvider: CloudProvider): boolean => Utils.cond(
   [toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviderTypes.GCP && !isCromwellAppVisible(), () => true],
   [Utils.DEFAULT, () => false]
 )
+
+export type MountPoint = '/home/rstudio' | '/home/jupyter' | '/home/jupyter/persistent_disk'
+
+export const mountPoints: Record<RuntimeToolLabel, MountPoint> = {
+  RStudio: '/home/rstudio',
+  Jupyter: '/home/jupyter',
+  JupyterLab: '/home/jupyter/persistent_disk'
+}
+
+export const getMountDir = (toolLabel:RuntimeToolLabel): MountPoint => {
+  if (toolLabel === runtimeToolLabels.RStudio) return mountPoints.RStudio
+  if (toolLabel === runtimeToolLabels.Jupyter) return mountPoints.Jupyter
+  return mountPoints.JupyterLab
+}
+
+export const getCurrentMountDirectory = (toolLabel: RuntimeToolLabel) => {
+  const boldCode = function(label: RuntimeToolLabel) {
+    const mydir = getMountDir(label)
+    return code({ style: { fontWeight: 600 } }, [`${mydir}`])
+  }
+  const defaultMsg = [boldCode(runtimeToolLabels.Jupyter), ' for Jupyter environments and ', boldCode(runtimeToolLabels.RStudio), ' for RStudio environments']
+  return typeof toolLabel === 'string' ? [boldCode(toolLabel)] : defaultMsg // TODO: remove string check IA-4091
+}

@@ -6,6 +6,7 @@ import Collapse from 'src/components/Collapse'
 import { customSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import TopBar from 'src/components/TopBar'
+import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -51,6 +52,7 @@ export const List = (props: ListProps) => {
   const [isAuthorizing, setIsAuthorizing] = useState<boolean>(false)
   const [isLoadingAccounts, setIsLoadingAccounts] = useState<boolean>(false)
   const { isAzurePreviewUser } = useStore(authStore)
+  const { workspaces: allWorkspaces, loading: workspacesLoading, refresh: refreshWorkspaces } = useWorkspaces()
 
   const signal = useCancellation()
   const interval = useRef<number>()
@@ -146,7 +148,8 @@ export const List = (props: ListProps) => {
 
   const makeProjectListItemProps = (project: BillingProject) : ProjectListItemProps => {
     return {
-      project, loadProjects, isActive: !!selectedName && project.projectName === selectedName
+      project, isActive: !!selectedName && project.projectName === selectedName,
+      billingProjectActionsProps: { allWorkspaces, workspacesLoading, loadProjects, projectName: project.projectName }
     }
   }
 
@@ -251,7 +254,9 @@ export const List = (props: ListProps) => {
             billingAccounts,
             authorizeAndLoadAccounts,
             reloadBillingProject: () => reloadBillingProject(billingProject).catch(loadProjects),
-            isOwner: _.find({ projectName: selectedName }, projectsOwned)
+            isOwner: _.find({ projectName: selectedName }, projectsOwned),
+            workspaces: allWorkspaces,
+            refreshWorkspaces
           })
         }],
         [!_.isEmpty(projectsOwned) && !selectedName, () => {

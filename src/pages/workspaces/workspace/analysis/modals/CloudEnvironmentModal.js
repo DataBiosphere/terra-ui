@@ -77,12 +77,14 @@ export const CloudEnvironmentModal = ({
     onError: onDismiss
   })
 
-  const renderAzureModal = () => h(AzureComputeModalBase, {
+  const renderAzureModal = tool => h(AzureComputeModalBase, {
     isOpen: viewMode === runtimeToolLabels.JupyterLab,
     hideCloseButton: true,
     workspace,
-    runtimes,
+    currentRuntime,
+    currentDisk: persistentDisks ? persistentDisks[0] : undefined,
     location,
+    tool,
     onDismiss,
     onSuccess,
     onError: onDismiss
@@ -375,7 +377,7 @@ export const CloudEnvironmentModal = ({
         ]),
         // Cloud environment button
         div({ style: toolButtonDivStyles }, [
-          isSettingsSupported(toolLabel, cloudProvider) && h(Clickable, {
+          isSettingsSupported(toolLabel, cloudProvider, workspace.accessLevel, workspace.workspace.createdDate) && h(Clickable, {
             'aria-label': `${toolLabel} Environment`,
             style: {
               ...toolButtonStyles,
@@ -412,7 +414,8 @@ export const CloudEnvironmentModal = ({
   )
 
   const getAzureView = () => Utils.switchCase(viewMode,
-    [runtimeToolLabels.JupyterLab, renderAzureModal],
+    [runtimeToolLabels.JupyterLab, () => renderAzureModal(runtimeToolLabels.JupyterLab)],
+    [appToolLabels.CROMWELL, () => renderAppModal(CromwellModalBase, appToolLabels.CROMWELL)],
     [Utils.DEFAULT, renderDefaultPage]
   )
 
