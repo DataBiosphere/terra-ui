@@ -1,174 +1,175 @@
-import { differenceFromNowInSeconds, formatBytes, isValidWsExportTarget, textMatch } from 'src/libs/utils'
-import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
-
+import { differenceFromNowInSeconds, formatBytes, isValidWsExportTarget, textMatch } from "src/libs/utils";
+import {
+  defaultAzureWorkspace,
+  defaultGoogleWorkspace,
+} from "src/pages/workspaces/workspace/analysis/_testData/testData";
 
 beforeAll(() => {
-  jest.useFakeTimers()
-})
+  jest.useFakeTimers();
+});
 
 afterAll(() => {
-  jest.useRealTimers()
-})
+  jest.useRealTimers();
+});
 
-describe('differenceFromNowInSeconds', () => {
-  it('returns the number of seconds between current time and server-formatted date', () => {
-    const workspaceDate = '2022-04-01T20:17:04.324Z'
+describe("differenceFromNowInSeconds", () => {
+  it("returns the number of seconds between current time and server-formatted date", () => {
+    const workspaceDate = "2022-04-01T20:17:04.324Z";
 
     // Month is 0-based, ms will create rounding.
-    jest.setSystemTime(new Date(Date.UTC(2022, 3, 1, 20, 17, 5, 0)))
-    expect(differenceFromNowInSeconds(workspaceDate)).toBe(0)
+    jest.setSystemTime(new Date(Date.UTC(2022, 3, 1, 20, 17, 5, 0)));
+    expect(differenceFromNowInSeconds(workspaceDate)).toBe(0);
 
-    jest.advanceTimersByTime(3000)
-    expect(differenceFromNowInSeconds(workspaceDate)).toBe(3)
+    jest.advanceTimersByTime(3000);
+    expect(differenceFromNowInSeconds(workspaceDate)).toBe(3);
 
-    jest.advanceTimersByTime(60000)
-    expect(differenceFromNowInSeconds(workspaceDate)).toBe(63)
-  })
-})
+    jest.advanceTimersByTime(60000);
+    expect(differenceFromNowInSeconds(workspaceDate)).toBe(63);
+  });
+});
 
-describe('isValidWsExportTarget', () => {
-  it('Returns true because source and dest workspaces are the same', () => {
+describe("isValidWsExportTarget", () => {
+  it("Returns true because source and dest workspaces are the same", () => {
     // Arrange
     const sourceWs = {
       ...defaultGoogleWorkspace,
       workspace: {
         ...defaultGoogleWorkspace,
-        authorizationDomain: [{}]
-      }
-    }
+        authorizationDomain: [{}],
+      },
+    };
 
     const destWs = {
       ...defaultGoogleWorkspace,
       workspace: {
         ...defaultGoogleWorkspace.workspace,
-        workspaceId: 'test-different-workspace-id',
-        authorizationDomain: [{}]
-      }
-    }
+        workspaceId: "test-different-workspace-id",
+        authorizationDomain: [{}],
+      },
+    };
 
     // Act
-    const result = isValidWsExportTarget(sourceWs, destWs)
+    const result = isValidWsExportTarget(sourceWs, destWs);
 
     // Assert
-    expect(result).toBe(true)
-  })
+    expect(result).toBe(true);
+  });
 
-  it('Returns false match because source and dest workspaces are the same', () => {
+  it("Returns false match because source and dest workspaces are the same", () => {
     // Arrange
-    const sourceWs = defaultGoogleWorkspace
-    const destWs = defaultGoogleWorkspace
+    const sourceWs = defaultGoogleWorkspace;
+    const destWs = defaultGoogleWorkspace;
 
     // Act
-    const result = isValidWsExportTarget(sourceWs, destWs)
+    const result = isValidWsExportTarget(sourceWs, destWs);
 
     // Assert
-    expect(result).toBe(false)
-  })
+    expect(result).toBe(false);
+  });
 
-  it('Returns false because AccessLevel does not contain Writer', () => {
+  it("Returns false because AccessLevel does not contain Writer", () => {
     // Arrange
-    const sourceWs = defaultGoogleWorkspace
+    const sourceWs = defaultGoogleWorkspace;
     const destWs = {
       ...defaultGoogleWorkspace,
-      accessLevel: 'READER',
+      accessLevel: "READER",
       workspace: {
         ...defaultGoogleWorkspace.workspace,
-        workspaceId: 'test-different-workspace-id'
-      }
-    }
+        workspaceId: "test-different-workspace-id",
+      },
+    };
 
     // Act
-    const result = isValidWsExportTarget(sourceWs, destWs)
+    const result = isValidWsExportTarget(sourceWs, destWs);
 
     // Assert
-    expect(result).toBe(false)
-  })
+    expect(result).toBe(false);
+  });
 
-
-  it('Returns false because source and destination cloud platforms are not the same.', () => {
+  it("Returns false because source and destination cloud platforms are not the same.", () => {
     // Arrange
     const sourceWs = {
       ...defaultGoogleWorkspace,
       workspace: {
         ...defaultGoogleWorkspace.workspace,
-        authorizationDomain: [{}]
-      }
-    }
+        authorizationDomain: [{}],
+      },
+    };
 
     const destWs = {
       ...defaultAzureWorkspace,
       workspace: {
         ...defaultAzureWorkspace.workspace,
-        authorizationDomain: [{}]
-      }
-    }
+        authorizationDomain: [{}],
+      },
+    };
 
     // Act
-    const result = isValidWsExportTarget(sourceWs, destWs)
+    const result = isValidWsExportTarget(sourceWs, destWs);
 
     // Assert
-    expect(result).toBe(false)
-  })
+    expect(result).toBe(false);
+  });
 
-  it('Returns false because source and destination cloud platforms are not the same.', () => {
+  it("Returns false because source and destination cloud platforms are not the same.", () => {
     // Arrange
     const sourceWs = {
       ...defaultGoogleWorkspace,
       workspace: {
         ...defaultGoogleWorkspace.workspace,
-        authorizationDomain: [{}]
-      }
-    }
+        authorizationDomain: [{}],
+      },
+    };
 
     const destWs = {
       ...defaultGoogleWorkspace,
       workspace: {
         ...defaultGoogleWorkspace.workspace,
-        authorizationDomain: [{ membersGroupName: 'wooo' }],
-        workspaceId: 'test-different-workspace-id'
-      }
-    }
+        authorizationDomain: [{ membersGroupName: "wooo" }],
+        workspaceId: "test-different-workspace-id",
+      },
+    };
 
     // Act
-    const result = isValidWsExportTarget(sourceWs, destWs)
+    const result = isValidWsExportTarget(sourceWs, destWs);
 
     // Assert
-    expect(result).toBe(false)
-  })
-})
+    expect(result).toBe(false);
+  });
+});
 
-describe('formatBytes', () => {
-  it('handles GB', () => {
+describe("formatBytes", () => {
+  it("handles GB", () => {
     // Act
-    const result = formatBytes(40000000000)
+    const result = formatBytes(40000000000);
 
     // Assert
-    expect(result).toBe('37.3 GiB')
-  })
-  it('handles MB', () => {
+    expect(result).toBe("37.3 GiB");
+  });
+  it("handles MB", () => {
     // Act
-    const result = formatBytes(40000000)
+    const result = formatBytes(40000000);
 
     // Assert
-    expect(result).toBe('38.1 MiB')
-  })
-  it('handles fallback case', () => {
+    expect(result).toBe("38.1 MiB");
+  });
+  it("handles fallback case", () => {
     // Act
-    const result = formatBytes(40)
+    const result = formatBytes(40);
 
     // Assert
-    expect(result).toBe('40 B')
-  })
-})
+    expect(result).toBe("40 B");
+  });
+});
 
-describe('textMatch', () => {
+describe("textMatch", () => {
   it.each([
-    { needle: 'success', haystack: 'success', result: true },
-    { needle: 'Succes', haystack: 'successss', result: true },
-    { needle: 'nomatch', haystack: '404', result: false }
-  ])('properly determines if the needle is in the haystack', ({ needle, haystack, result }) => {
+    { needle: "success", haystack: "success", result: true },
+    { needle: "Succes", haystack: "successss", result: true },
+    { needle: "nomatch", haystack: "404", result: false },
+  ])("properly determines if the needle is in the haystack", ({ needle, haystack, result }) => {
     // Act
-    const doesMatch = textMatch(needle, haystack)
-    expect(doesMatch).toBe(result)
-  })
-})
+    const doesMatch = textMatch(needle, haystack);
+    expect(doesMatch).toBe(result);
+  });
+});

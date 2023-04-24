@@ -65,6 +65,7 @@ module.exports = {
     "no-console": "off",
     "no-dupe-keys": "off",
     "no-empty": "off",
+    "no-continue": "off",
     "no-nested-ternary": "off",
     "no-param-reassign": "off",
     "no-plusplus": "off",

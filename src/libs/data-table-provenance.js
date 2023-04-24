@@ -1,17 +1,18 @@
-import _ from 'lodash/fp'
-import { useCallback, useEffect, useState } from 'react'
-import { parseGsUri } from 'src/components/data/data-utils'
-import { Ajax } from 'src/libs/ajax'
-import { reportError } from 'src/libs/error'
-import { useCancellation } from 'src/libs/react-utils'
-import * as Utils from 'src/libs/utils'
-import { validate as validateUUID } from 'uuid'
+import _ from "lodash/fp";
+import { useCallback, useEffect, useState } from "react";
+import { parseGsUri } from "src/components/data/data-utils";
+import { Ajax } from "src/libs/ajax";
+import { reportError } from "src/libs/error";
+import { useCancellation } from "src/libs/react-utils";
+import * as Utils from "src/libs/utils";
+import { validate as validateUUID } from "uuid";
 
-
-export const maxSubmissionsQueriedForProvenance = 25
+export const maxSubmissionsQueriedForProvenance = 25;
 
 const getSubmissionsWithRootEntityType = async (workspace, entityType, { signal } = {}) => {
-  const { workspace: { namespace, name } } = workspace
+  const {
+    workspace: { namespace, name },
+  } = workspace;
 
   // The root entity type is stored on method configurations, not submissions. To avoid fetching
   // every submission's configuration, first use the list submissions endpoint and filter by
@@ -22,166 +23,179 @@ const getSubmissionsWithRootEntityType = async (workspace, entityType, { signal 
   //
   // After fetching method configurations, another filter is required remove submissions whose root entity type
   // was a set of the desired entity type.
-  const allSubmissions = await Ajax(signal).Workspaces.workspace(namespace, name).listSubmissions()
+  const allSubmissions = await Ajax(signal).Workspaces.workspace(namespace, name).listSubmissions();
   const submissionsMaybeUsingEntityType = _.flow(
-    _.filter(submission => {
-      const submissionEntityType = submission.submissionEntity.entityType
-      return submissionEntityType === entityType || submissionEntityType === `${entityType}_set`
+    _.filter((submission) => {
+      const submissionEntityType = submission.submissionEntity.entityType;
+      return submissionEntityType === entityType || submissionEntityType === `${entityType}_set`;
     }),
     _.slice(0, maxSubmissionsQueriedForProvenance)
-  )(allSubmissions)
+  )(allSubmissions);
 
   const submissionConfigurations = await Promise.all(
     _.map(
-      submission => Ajax(signal).Workspaces.workspace(namespace, name).submission(submission.submissionId).getConfiguration(),
+      (submission) => Ajax(signal).Workspaces.workspace(namespace, name).submission(submission.submissionId).getConfiguration(),
       submissionsMaybeUsingEntityType
     )
-  )
+  );
 
   return _.flow(
     _.map(([submission, configuration]) => ({ submission, configuration })),
     _.filter(({ configuration }) => configuration.rootEntityType === entityType),
-    _.orderBy(({ submission }) => new Date(submission.submissionDate), 'desc')
-  )(_.zip(submissionsMaybeUsingEntityType, submissionConfigurations))
-}
+    _.orderBy(({ submission }) => new Date(submission.submissionDate), "desc")
+  )(_.zip(submissionsMaybeUsingEntityType, submissionConfigurations));
+};
 
-const getColumnFromOutputExpression = expr => {
-  const match = /^this\.([^.]+)$/.exec(expr)
-  return match ? match[1] : null
-}
+const getColumnFromOutputExpression = (expr) => {
+  const match = /^this\.([^.]+)$/.exec(expr);
+  return match ? match[1] : null;
+};
 
 const getColumnProvenance = async (workspace, entityType, { signal } = {}) => {
-  const submissions = await getSubmissionsWithRootEntityType(workspace, entityType, { signal })
+  const submissions = await getSubmissionsWithRootEntityType(workspace, entityType, { signal });
 
   return _.flow(
-    _.flatMap(submission => _.map(([output, expression]) => ({ ...submission, output, expression }), _.toPairs(submission.configuration.outputs))),
+    _.flatMap((submission) => _.map(([output, expression]) => ({ ...submission, output, expression }), _.toPairs(submission.configuration.outputs))),
     _.map(({ expression, ...output }) => ({ ...output, column: getColumnFromOutputExpression(expression) })),
-    _.filter(output => !!output.column),
+    _.filter((output) => !!output.column),
     _.reduce((acc, { submission, configuration, output, column }) => {
-      const provenanceEntry = { submissionId: submission.submissionId, submissionDate: submission.submissionDate, submitter: submission.submitter, configuration, output }
-      return _.update(column, _.flow(_.defaultTo([]), Utils.append(provenanceEntry)), acc)
+      const provenanceEntry = {
+        submissionId: submission.submissionId,
+        submissionDate: submission.submissionDate,
+        submitter: submission.submitter,
+        configuration,
+        output,
+      };
+      return _.update(column, _.flow(_.defaultTo([]), Utils.append(provenanceEntry)), acc);
     }, {})
-  )(submissions)
-}
+  )(submissions);
+};
 
 export const useColumnProvenance = (workspace, entityType) => {
-  const signal = useCancellation()
-  const [loading, setLoading] = useState(false)
-  const [columnProvenance, setColumnProvenance] = useState(null)
-  const [error, setError] = useState(null)
+  const signal = useCancellation();
+  const [loading, setLoading] = useState(false);
+  const [columnProvenance, setColumnProvenance] = useState(null);
+  const [error, setError] = useState(null);
 
   const loadColumnProvenance = useCallback(async () => {
-    setError(null)
-    setLoading(true)
+    setError(null);
+    setLoading(true);
     try {
-      setColumnProvenance(await getColumnProvenance(workspace, entityType, { signal }))
+      setColumnProvenance(await getColumnProvenance(workspace, entityType, { signal }));
     } catch (error) {
-      setError(error)
-      reportError('Error loading column provenance', error)
+      setError(error);
+      reportError("Error loading column provenance", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [workspace, entityType, signal])
+  }, [workspace, entityType, signal]);
 
   return {
     columnProvenance,
     loading,
     error,
-    loadColumnProvenance: loading ? _.noop : () => { loadColumnProvenance() }
-  }
-}
+    loadColumnProvenance: loading
+      ? _.noop
+      : () => {
+          loadColumnProvenance();
+        },
+  };
+};
 
-export const fileProvenanceTypes = Utils.enumify(['externalFile', 'unknown', 'maybeSubmission', 'workflowOutput', 'workflowLog'])
+export const fileProvenanceTypes = Utils.enumify(["externalFile", "unknown", "maybeSubmission", "workflowOutput", "workflowLog"]);
 
-const isLog = (url, task) => _.some(log => _.includes(url, [log.backendLogs.log, log.stdout, log.stderr]), task.logs)
+const isLog = (url, task) => _.some((log) => _.includes(url, [log.backendLogs.log, log.stdout, log.stderr]), task.logs);
 
-const isOutput = (url, task) => _.some(
-  // outputs can contain a value, a collection of values, or a collection of collections of values
-  output => output === url || _.includes(url, output) || _.some(_.includes(url), output),
-  task.outputs
-)
+const isOutput = (url, task) =>
+  _.some(
+    // outputs can contain a value, a collection of values, or a collection of collections of values
+    (output) => output === url || _.includes(url, output) || _.some(_.includes(url), output),
+    task.outputs
+  );
 
 export const getFileProvenance = async (workspace, fileUrl, { signal } = {}) => {
-  const { workspace: { namespace, name, bucketName: workspaceBucket } } = workspace
+  const {
+    workspace: { namespace, name, bucketName: workspaceBucket },
+  } = workspace;
 
-  const [bucket, path] = parseGsUri(fileUrl)
+  const [bucket, path] = parseGsUri(fileUrl);
   if (!bucket || bucket !== workspaceBucket) {
-    return { type: fileProvenanceTypes.externalFile }
+    return { type: fileProvenanceTypes.externalFile };
   }
 
-  const pathParts = path.split('/')
+  const pathParts = path.split("/");
 
   // Previously, submission roots were `gs://<workspace bucket>/<submission ID>`.
   // Now, they are `gs://<workspace bucket>/submissions/<submission ID>`.
-  if (!(validateUUID(pathParts[0]) || (pathParts[0] === 'submissions' && validateUUID(pathParts[1])))) {
-    return { type: fileProvenanceTypes.unknown }
+  if (!(validateUUID(pathParts[0]) || (pathParts[0] === "submissions" && validateUUID(pathParts[1])))) {
+    return { type: fileProvenanceTypes.unknown };
   }
 
   // Workflow outputs and logs are in submissions/<submission ID>/<workflow name>/<workflow ID>/<task name>.
-  const [submissionId, workflowId] = _.filter(validateUUID, pathParts)
+  const [submissionId, workflowId] = _.filter(validateUUID, pathParts);
   if (!workflowId) {
     return {
       type: fileProvenanceTypes.maybeSubmission,
-      submissionId
-    }
+      submissionId,
+    };
   }
 
-  const workflowOutputs = await Ajax(signal).Workspaces.workspace(namespace, name).submission(submissionId).workflow(workflowId).outputs()
+  const workflowOutputs = await Ajax(signal).Workspaces.workspace(namespace, name).submission(submissionId).workflow(workflowId).outputs();
 
   const [taskName, task] = _.flow(
     _.toPairs,
     _.find(([, task]) => isLog(fileUrl, task) || isOutput(fileUrl, task)),
     _.defaultTo([])
-  )(workflowOutputs.tasks)
+  )(workflowOutputs.tasks);
 
   if (!(taskName && task)) {
     return {
       type: fileProvenanceTypes.maybeSubmission,
-      submissionId
-    }
+      submissionId,
+    };
   }
 
   if (isLog(fileUrl, task)) {
     return {
       type: fileProvenanceTypes.workflowLog,
       submissionId,
-      workflowId
-    }
+      workflowId,
+    };
   }
 
   return {
     type: fileProvenanceTypes.workflowOutput,
     submissionId,
-    workflowId
-  }
-}
+    workflowId,
+  };
+};
 
 export const useFileProvenance = (workspace, fileUrl) => {
-  const signal = useCancellation()
-  const [loading, setLoading] = useState(true)
-  const [fileProvenance, setFileProvenance] = useState(null)
-  const [error, setError] = useState(null)
+  const signal = useCancellation();
+  const [loading, setLoading] = useState(true);
+  const [fileProvenance, setFileProvenance] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const loadFileProvenance = async () => {
-      setError(null)
-      setLoading(true)
+      setError(null);
+      setLoading(true);
       try {
-        setFileProvenance(await getFileProvenance(workspace, fileUrl, { signal }))
+        setFileProvenance(await getFileProvenance(workspace, fileUrl, { signal }));
       } catch (error) {
-        setError(error)
-        reportError('Error loading file provenance', error)
+        setError(error);
+        reportError("Error loading file provenance", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    loadFileProvenance()
-  }, [workspace, fileUrl, signal])
+    loadFileProvenance();
+  }, [workspace, fileUrl, signal]);
 
   return {
     fileProvenance,
     loading,
-    error
-  }
-}
+    error,
+  };
+};
