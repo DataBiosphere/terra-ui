@@ -42,7 +42,7 @@ module.exports = {
     "@typescript-eslint/default-param-last": "off",
     "@typescript-eslint/naming-convention": "off",
     "@typescript-eslint/no-empty-function": "off",
-    "@typescript-eslint/no-explicity-any": "off",
+    "@typescript-eslint/no-explicit-any": ["off"],
     "@typescript-eslint/no-implied-eval": "off",
     "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/no-shadow": "off",
@@ -79,7 +79,7 @@ module.exports = {
     "prefer-destructuring": "off",
     "prefer-promise-reject-errors": "off",
     "prefer-regex-literals": "off",
-    "radix": "off",
+    radix: "off",
     "symbol-description": "off",
     //
 
