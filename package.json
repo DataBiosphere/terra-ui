@@ -65,7 +65,7 @@
   },
   "scripts": {
     "analyze": "yarn build && source-map-explorer 'build/static/js/*.js' --gzip",
-    "build": "env $(yarn setenv) react-app-rewired --max_old_space_size=4096 build && rm build/config.json",
+    "build": "env $(yarn setenv) react-app-rewired build && rm build/config.json",
     "lint": "NODE_OPTIONS=--max-old-space-size=2048 yarn eslint --max-warnings=0 .",
     "optimize-image-svgs": "svgo --enable=inlineStyles,prefixIds --config '{ \"plugins\": [ { \"inlineStyles\": { \"onlyMatchedOnce\": false } }] }' --pretty -f src/images -r -p 1 --multipass",
     "preinstall": "node .hooks/check-engine-light.js",
