@@ -102,12 +102,12 @@ module.exports = {
         jest: true,
       },
     },
-    {
-      files: "src/**/*.{js,ts}",
-      rules: {
-        // 'no-console': ['warn', { allow: ['assert', 'error'] }],//TODO: should be enabled
-      },
-    },
+    // {
+    //   files: "src/**/*.{js,ts}",
+    //   rules: {
+    // 'no-console': ['warn', { allow: ['assert', 'error'] }],//TODO: should be enabled later
+    //   },
+    // },
   ],
   plugins: ["lodash-fp", "import", "simple-import-sort"],
 };
