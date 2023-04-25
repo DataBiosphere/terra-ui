@@ -6,9 +6,7 @@ const {
 } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
-
-
-const azureWarning = 'Do not store Unclassified Confidential Information in this platform, it violates US Federal Policy (ie FISMA, FIPS-199, etc), unless explicitly authorized by the dataset manager or governed by your own agreements.'
+const { azureWarningText } = require('src/libs/azure-utils.js')
 
 
 const workspaceDashboardPage = (testPage, token, workspaceName) => {
@@ -37,7 +35,7 @@ const workspaceDashboardPage = (testPage, token, workspaceName) => {
     },
 
     assertAzureWarning: async () => {
-      await testPage.waitForXPath(`//*[@role='alert']/*[contains(text(), "${azureWarning}")]`, { visible: true })
+      await testPage.waitForXPath(`//*[@role='alert']/*[contains(text(), "${azureWarningText}")]`, { visible: true })
     },
   }
 }
@@ -80,7 +78,7 @@ const testGoogleWorkspace = _.flow(
   await verifyAccessibility(page, 1) // Need to fix: "Certain ARIA roles must contain particular children", WOR-759
 
   // Verify that there is no Azure warning
-  await assertTextNotFound(azureWarning)
+  await assertTextNotFound(azureWarningText)
 })
 
 registerTest({
