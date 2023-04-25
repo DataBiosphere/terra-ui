@@ -1,8 +1,5 @@
 import _ from 'lodash/fp'
 
-
-export const azureWarningText = 'Do not store Unclassified Confidential Information in this platform, it violates US Federal Policy (ie FISMA, FIPS-199, etc) unless explicitly authorized by the dataset manager or governed by your own agreements.'
-
 // AZURE REGIONS, COMPUTE TYPES, STORAGE TYPES AND PRICING
 
 export const defaultAzureMachineType = 'Standard_DS2_v2'

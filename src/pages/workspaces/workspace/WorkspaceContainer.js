@@ -10,7 +10,6 @@ import { TabBar } from 'src/components/tabBars'
 import TitleBar from 'src/components/TitleBar'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
-import { azureWarningText } from 'src/libs/azure-utils'
 import { isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
@@ -26,7 +25,9 @@ import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime
 import RuntimeManager from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
 import { getCurrentApp, getDiskAppType } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
 import { mapToPdTypes } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
-import { getConvertedRuntimeStatus, getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
+import {
+  getConvertedRuntimeStatus, getCurrentRuntime
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 import { tools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
@@ -72,7 +73,8 @@ const TitleBarWarning = message => {
 }
 
 const AzureWarning = () => {
-  return TitleBarWarning(azureWarningText)
+  const warningMessage = 'Do not store Unclassified Confidential Information in this platform, it violates US Federal Policy (ie FISMA, FIPS-199, etc), unless explicitly authorized by the dataset manager or governed by your own agreements.'
+  return TitleBarWarning(warningMessage)
 }
 
 
