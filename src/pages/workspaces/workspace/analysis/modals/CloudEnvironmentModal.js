@@ -30,7 +30,7 @@ import {
   getIsAppBusy
 } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
 import { getCostDisplayForDisk, getCostDisplayForTool } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
-import { getCurrentPersistentDisk, isCurrentGalaxyDiskDetaching } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
+import { getCurrentPersistentDisk, getReadyPersistentDisk, isCurrentGalaxyDiskDetaching } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
 import {
   getComputeStatusForDisplay, getConvertedRuntimeStatus,
   getCurrentRuntime, getIsRuntimeBusy, getRuntimeForTool
@@ -82,7 +82,7 @@ export const CloudEnvironmentModal = ({
     hideCloseButton: true,
     workspace,
     currentRuntime,
-    currentDisk: persistentDisks ? persistentDisks[0] : undefined,
+    currentDisk: getReadyPersistentDisk(persistentDisks),
     location,
     tool,
     onDismiss,
