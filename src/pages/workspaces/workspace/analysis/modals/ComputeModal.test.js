@@ -148,8 +148,10 @@ describe('ComputeModal', () => {
         runtime: runtimeFunc
       },
       Disks: {
-        disk: () => ({
-          details: () => disk
+        disksV1: () => ({
+          disk: () => ({
+            details: () => disk
+          })
         })
       }
     }))
@@ -194,8 +196,10 @@ describe('ComputeModal', () => {
         runtime: runtimeFunc
       },
       Disks: {
-        disk: () => ({
-          details: () => disk
+        disksV1: () => ({
+          disk: () => ({
+            details: () => disk
+          })
         })
       }
     }))
@@ -246,8 +250,10 @@ describe('ComputeModal', () => {
         runtime: runtimeFunc
       },
       Disks: {
-        disk: () => ({
-          details: () => disk
+        disksV1: () => ({
+          disk: () => ({
+            details: () => disk
+          })
         })
       }
     }))
@@ -288,8 +294,10 @@ describe('ComputeModal', () => {
         runtime: runtimeFunc
       },
       Disks: {
-        disk: () => ({
-          details: () => disk
+        disksV1: () => ({
+          disk: () => ({
+            details: () => disk
+          })
         })
       }
     }))
@@ -334,8 +342,10 @@ describe('ComputeModal', () => {
         runtime: runtimeFunc
       },
       Disks: {
-        disk: () => ({
-          details: () => disk
+        disksV1: () => ({
+          disk: () => ({
+            details: () => disk
+          })
         })
       }
     }))
@@ -377,8 +387,10 @@ describe('ComputeModal', () => {
         runtime: runtimeFunc
       },
       Disks: {
-        disk: () => ({
-          details: () => disk
+        disksV1: () => ({
+          disk: () => ({
+            details: () => disk
+          })
         })
       }
     }))
@@ -863,8 +875,8 @@ describe('ComputeModal', () => {
 
   // click learn more about persistent disk
   it.each([
-    { tool: runtimeTools.Jupyter, expectedLabel: /\/home\/jupyter/ },
-    { tool: runtimeTools.RStudio, expectedLabel: /\/home\/rstudio/ }
+    { tool: runtimeTools.Jupyter, expectedLabel: '/home/jupyter' },
+    { tool: runtimeTools.RStudio, expectedLabel: '/home/rstudio' }
   ])('should render learn more about persistent disks', async ({ tool, expectedLabel }) => {
     // Arrange
     const disk = getDisk()
@@ -877,12 +889,13 @@ describe('ComputeModal', () => {
       render(h(ComputeModalBase, {
         ...defaultModalProps,
         currentDisk: disk,
-        currentRuntime: runtime
+        currentRuntime: runtime,
+        tool
       }))
     })
 
     // Assert
-    const link = screen.getByText(/Learn more about persistent disks/)
+    const link = screen.getByText('Learn more about persistent disks and where your disk is mounted.')
     await userEvent.click(link)
     screen.getByText('About persistent disk')
     screen.getByText(expectedLabel)

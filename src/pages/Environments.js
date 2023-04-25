@@ -45,10 +45,9 @@ const DeleteRuntimeModal = ({
     Utils.withBusyState(setDeleting),
     withErrorReporting('Error deleting cloud environment')
   )(async () => {
-    // delete the disk always if in azure
     isGcpContext(cloudContext) ?
       await ajax().Runtimes.runtime(googleProject, runtimeName).delete(deleteDisk) :
-      await ajax().Runtimes.runtimeV2(workspaceId, runtimeName).delete(true)
+      await ajax().Runtimes.runtimeV2(workspaceId, runtimeName).delete(deleteDisk)
     onSuccess()
   })
 
@@ -59,20 +58,10 @@ const DeleteRuntimeModal = ({
   }, [
     div({ style: { lineHeight: 1.5 } }, [
       persistentDiskId ?
-        (isGcpContext(cloudContext) ? h(LabeledCheckbox, { checked: deleteDisk, onChange: setDeleteDisk }, [
+        (h(LabeledCheckbox, { checked: deleteDisk, onChange: setDeleteDisk }, [
           span({ style: { fontWeight: 600 } }, [' Also delete the persistent disk and all files on it'])
-        ]) : div({
-          style: {
-            backgroundColor: colors.accent(0.2),
-            display: 'flex',
-            borderRadius: 5,
-            padding: '0.5rem 1rem',
-            marginTop: '1rem',
-            marginBottom: '1rem'
-          }
-        }, [
-          p(['Deleting your Virtual Machine will also delete the attached persistent disk'])
-        ])) :
+        ])
+        ) :
         p([
           'Deleting this cloud environment will also ', span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk.'])
         ]),
@@ -86,14 +75,18 @@ const DeleteRuntimeModal = ({
   ])
 }
 
-const DeleteDiskModal = ({ disk: { googleProject, name }, isGalaxyDisk, onDismiss, onSuccess }) => {
+const DeleteDiskModal = ({ disk: { cloudContext, googleProject, name, id }, isGalaxyDisk, onDismiss, onSuccess }) => {
   const [busy, setBusy] = useState(false)
   const ajax = useReplaceableAjaxExperimental()
+
   const deleteDisk = _.flow(
     Utils.withBusyState(setBusy),
     withErrorReporting('Error deleting persistent disk')
   )(async () => {
-    await ajax().Disks.disk(googleProject, name).delete()
+    isGcpContext(cloudContext) ?
+      await ajax().Disks.disksV1().disk(googleProject, name).delete() :
+      await ajax().Disks.disksV2().delete(id)
+
     onSuccess()
   })
   return h(Modal, {
@@ -228,7 +221,7 @@ export const Environments = ({ nav = undefined }) => {
       { includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }
     const [newRuntimes, newDisks, newApps] = await Promise.all([
       ajax(signal).Runtimes.listV2(listArgs),
-      ajax(signal).Disks.list({ ...listArgs, includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }),
+      ajax(signal).Disks.disksV1().list({ ...listArgs, includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }),
       ajax(signal).Apps.listWithoutProject(listArgs)
     ])
     const endTimeForLeoCallsEpochMs = Date.now()

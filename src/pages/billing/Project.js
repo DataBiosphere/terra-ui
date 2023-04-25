@@ -11,7 +11,6 @@ import Modal from 'src/components/Modal'
 import { InfoBox, MenuTrigger } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
 import { ariaSort, HeaderRenderer } from 'src/components/table'
-import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -390,11 +389,10 @@ const GcpBillingAccountControls = ({
   ])
 }
 
-const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProject, isOwner, reloadBillingProject }) => {
+const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProject, isOwner, reloadBillingProject, workspaces, refreshWorkspaces }) => {
   // State
   const { query } = Nav.useRoute()
   // Rather than using a localized StateHistory store here, we use the existing `workspaceStore` value (via the `useWorkspaces` hook)
-  const { workspaces, refresh: refreshWorkspaces } = useWorkspaces()
 
   const [projectUsers, setProjectUsers] = useState(() => StateHistory.get().projectUsers || [])
   const projectOwners = _.filter(_.flow(_.get('roles'), _.includes(billingRoles.owner)), projectUsers)

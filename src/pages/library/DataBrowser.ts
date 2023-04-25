@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import React, { CSSProperties, Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
+import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
 import { Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ColumnSelector, MiniSortable, SimpleTable } from 'src/components/table'
@@ -9,6 +10,7 @@ import { Dataset } from 'src/libs/ajax/Catalog'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
+import { CloudProvider, cloudProviderLabels } from 'src/libs/workspace-utils'
 import {
   DatasetAccess,
   datasetAccessTypes, formatDatasetTime, getAssayCategoryListFromDataset, getConsortiumTitlesFromDataset,
@@ -51,6 +53,14 @@ export const getUnique = (mapper, data) => _.flow(
 // Renderers are not tested, because typing gives all the assertions we want to make on them (We make no promises about the contents of custom renderers, just their return types)
 export const extractCatalogFilters = (dataCatalog: Dataset[]): FilterSection<Dataset>[] => {
   return [{
+    header: 'Cloud Platform',
+    matchBy: (dataset, value) => (dataset.storage || []).some(storage => storage.cloudPlatform === value),
+    renderer: value => {
+      const cloudProvider = value.toUpperCase() as CloudProvider
+      return h(Fragment, [h(CloudProviderIcon, { cloudProvider }), ' ', cloudProviderLabels[cloudProvider]])
+    },
+    values: ['azure', 'gcp']
+  }, {
     header: 'Access type',
     matchBy: (dataset, value) => getDatasetAccessType(dataset) === value,
     renderer: value => {
@@ -105,7 +115,15 @@ const allColumns = {
   lastUpdated: { title: 'Last Updated', contents: row => formatDatasetTime(row['dct:modified']) },
   assayCategory: { title: 'Assay Category', contents: row => _.join(', ', getAssayCategoryListFromDataset(row)) },
   fileType: { title: 'File type', contents: row => _.join(', ', getUnique('dcat:mediaType', row['files'])) },
-  species: { title: 'Species', contents: row => _.join(', ', getUnique('samples.genus', { row })) }
+  species: { title: 'Species', contents: row => _.join(', ', getUnique('samples.genus', { row })) },
+  cloudPlatform: {
+    title: 'Cloud Platform',
+    contents: row => h(Fragment, [
+      getUnique('cloudPlatform', row.storage).map(cloudPlatform => {
+        return h(CloudProviderIcon, { key: cloudPlatform, cloudProvider: cloudPlatform.toUpperCase() as CloudProvider })
+      })
+    ]),
+  },
 }
 
 interface ColumnSetting {
@@ -185,7 +203,7 @@ export const Browser = () => {
   const [sort, setSort] = useState<Sort>({ field: 'created', direction: 'desc' })
   // This state contains the current set of visible columns, in the order that they appear.
   // Note that the Dataset Name column isn't customizable and is always shown first.
-  const [cols, setCols] = useState(['consortiums', 'subjects', 'dataModality', 'lastUpdated'])
+  const [cols, setCols] = useState(['consortiums', 'subjects', 'dataModality', 'lastUpdated', 'cloudPlatform'])
   const { dataCatalog, loading } = useDataCatalog()
 
   return h(Fragment, [

@@ -9,6 +9,7 @@ import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { withDisplayName } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
+import { isAzureWorkspace } from 'src/libs/workspace-utils'
 import { getCurrentApp } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
 import { getCurrentAppDataDisk } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils'
 import { appTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
@@ -36,11 +37,16 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
       Utils.withBusyState(setLoading),
       withErrorReportingInModal('Error creating Cromwell', onError)
     )(async () => {
-      await Ajax().Apps.app(googleProject, Utils.generateAppName()).create({
-        defaultKubernetesRuntimeConfig, diskName: !!currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: defaultDataDiskSize,
-        appType: appTools.CROMWELL.label, namespace, bucketName, workspaceName
-      })
-      Ajax().Metrics.captureEvent(Events.applicationCreate, { app: appTools.CROMWELL.label, ...extractWorkspaceDetails(workspace) })
+      if (isAzureWorkspace(workspace)) {
+        await Ajax().Apps.createAppV2(Utils.generateAppName(), `${workspace.workspace.workspaceId}`)
+      } else {
+        await Ajax().Apps.app(googleProject, Utils.generateAppName()).create({
+          defaultKubernetesRuntimeConfig, diskName: !!currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: defaultDataDiskSize,
+          appType: appTools.CROMWELL.label, namespace, bucketName, workspaceName
+        })
+      }
+
+      await Ajax().Metrics.captureEvent(Events.applicationCreate, { app: appTools.CROMWELL.label, ...extractWorkspaceDetails(workspace) })
       return onSuccess()
     })
 
