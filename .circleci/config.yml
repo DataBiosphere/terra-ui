@@ -150,7 +150,7 @@ commands:
         default: false
       env:
         type: enum
-        enum: [ staging, alpha ]
+        enum: [staging, alpha]
         default: staging
       log_dir:
         type: string
@@ -227,7 +227,7 @@ jobs:
           keys:
             - deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
       - run: yarn install --immutable-cache
-      - run: NODE_OPTIONS=--max-old-space-size=5000 yarn eslint --max-warnings=0 .
+      - run: NODE_OPTIONS=--max_old_space_size=4096 yarn eslint --max-warnings=0 .
       - run: yarn test --coverage --maxWorkers=2
       - run: yarn check-types
       - run: DISABLE_ESLINT_PLUGIN=true yarn build # already linted above
