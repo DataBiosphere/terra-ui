@@ -35,6 +35,7 @@ const DatasetBuilderSelector = <T>({ number, header, subheader, headerAction, pl
         div({ style: { backgroundColor: colors.dark(0.3), padding: '0.5rem', borderRadius: '2rem', fontSize: 20, height: 24, width: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' } }, [number]),
         div({ style: { marginLeft: 10 } }, [
           h3({ style: { marginTop: 0, marginBottom: '0.5rem' } }, [header]),
+          // TODO: When there is no subheader, make sure there is sufficient vertical space before values display
           div([subheader])
         ]),
       ]),
@@ -72,6 +73,7 @@ const CohortSelector = () => {
         icon('plus-circle', { size: 24 })
       ]),
       number: 1,
+      // TODO: Implement cohort selection logic
       onChange<T>(values: T[]): void {},
       values: [],
       header: 'Select cohorts',
