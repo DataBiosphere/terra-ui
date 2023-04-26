@@ -58,7 +58,7 @@ const CohortSelector = () => {
   const errors = cohortNameTouched && validate({ cohortName }, { cohortName: { presence: { allowEmpty: false } } })
 
   const createCohort = cohortName => {
-    // TODO: implement create cohort (push to global state and navigate to cohort edit page
+    // TODO: implement create cohort (push to global state and navigate to cohort edit page)
     console.log(cohortName)
   }
 
