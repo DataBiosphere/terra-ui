@@ -34,8 +34,7 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
     return url
   }
   const getUrlFromSam = async () => {
-    const { url } = await Ajax(signal).SamResources.getSignedUrl(bucket, name, workspace.workspace.googleProject)
-    return url
+    return await Ajax(signal).SamResources.getSignedUrl(bucket, name, workspace.workspace.googleProject)
   }
   const getUrl = async () => {
     if (accessUrl?.url) {
