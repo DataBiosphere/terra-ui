@@ -4954,19 +4954,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"check-dts@npm:^0.6.7":
-  version: 0.6.7
-  resolution: "check-dts@npm:0.6.7"
+"check-dts@npm:^0.7.1":
+  version: 0.7.1
+  resolution: "check-dts@npm:0.7.1"
   dependencies:
-    fast-glob: ^3.2.11
+    fast-glob: ^3.2.12
     nanospinner: ^1.1.0
     picocolors: ^1.0.0
-    vfile-location: ^4.0.1
+    vfile-location: ^4.1.0
   peerDependencies:
     typescript: ">=4.0.0"
   bin:
     check-dts: bin.js
-  checksum: 662c684fe8f3655bc4881b6f8083fef289992158c54c3d08d1d7e5ed5b4d64cb38e606176d0bb30edac7ead4c3340781e42c5ac71ea478a12b58af1e20187e8d
+  checksum: 3fe599ff33fb37f0a2d6b62e864d0b0525b5f8a02eaa236c451dd11599c8a31991d01ac001d39f51474d31fcaa7ccd5e564c98860579e4438206f1724e7fee76
   languageName: node
   linkType: hard
 
@@ -7418,7 +7418,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-glob@npm:^3.2.11, fast-glob@npm:^3.2.12, fast-glob@npm:^3.2.9":
+"fast-glob@npm:^3.2.12, fast-glob@npm:^3.2.9":
   version: 3.2.12
   resolution: "fast-glob@npm:3.2.12"
   dependencies:
@@ -15317,7 +15317,7 @@ __metadata:
     array-move: ^4.0.0
     babel-plugin-prismjs: ^2.1.0
     blob-polyfill: ^7.0.20220408
-    check-dts: ^0.6.7
+    check-dts: ^0.7.1
     clipboard-polyfill: ^3.0.3
     color: ^4.0.1
     csp-html-webpack-plugin: ^5.1.0
@@ -16099,7 +16099,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vfile-location@npm:^4.0.1":
+"vfile-location@npm:^4.1.0":
   version: 4.1.0
   resolution: "vfile-location@npm:4.1.0"
   dependencies:

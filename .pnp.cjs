@@ -61,7 +61,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["array-move", "npm:4.0.0"],\
             ["babel-plugin-prismjs", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.1.0"],\
             ["blob-polyfill", "npm:7.0.20220408"],\
-            ["check-dts", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.6.7"],\
+            ["check-dts", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.7.1"],\
             ["clipboard-polyfill", "npm:3.0.3"],\
             ["color", "npm:4.2.3"],\
             ["csp-html-webpack-plugin", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.1.0"],\
@@ -7398,17 +7398,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["check-dts", [\
-        ["npm:0.6.7", {\
-          "packageLocation": "./.yarn/cache/check-dts-npm-0.6.7-3de27e3a57-662c684fe8.zip/node_modules/check-dts/",\
+        ["npm:0.7.1", {\
+          "packageLocation": "./.yarn/cache/check-dts-npm-0.7.1-64ad9928e7-3fe599ff33.zip/node_modules/check-dts/",\
           "packageDependencies": [\
-            ["check-dts", "npm:0.6.7"]\
+            ["check-dts", "npm:0.7.1"]\
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.6.7", {\
-          "packageLocation": "./.yarn/__virtual__/check-dts-virtual-6bf9c03c8c/0/cache/check-dts-npm-0.6.7-3de27e3a57-662c684fe8.zip/node_modules/check-dts/",\
+        ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.7.1", {\
+          "packageLocation": "./.yarn/__virtual__/check-dts-virtual-4a02313a6d/0/cache/check-dts-npm-0.7.1-64ad9928e7-3fe599ff33.zip/node_modules/check-dts/",\
           "packageDependencies": [\
-            ["check-dts", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.6.7"],\
+            ["check-dts", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.7.1"],\
             ["@types/typescript", null],\
             ["fast-glob", "npm:3.2.12"],\
             ["nanospinner", "npm:1.1.0"],\
@@ -20594,7 +20594,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["array-move", "npm:4.0.0"],\
             ["babel-plugin-prismjs", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.1.0"],\
             ["blob-polyfill", "npm:7.0.20220408"],\
-            ["check-dts", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.6.7"],\
+            ["check-dts", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.7.1"],\
             ["clipboard-polyfill", "npm:3.0.3"],\
             ["color", "npm:4.2.3"],\
             ["csp-html-webpack-plugin", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.1.0"],\
