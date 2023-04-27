@@ -8,7 +8,7 @@ const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
-const azureWarning = 'Do not store Unclassified Confidential Information in this platform, it violates US Federal Policy (ie FISMA, FIPS-199, etc), unless explicitly authorized by the dataset manager or governed by your own agreements.'
+const azureWarning = 'Test Azure data storage warning text'
 
 
 const workspaceDashboardPage = (testPage, token, workspaceName) => {
