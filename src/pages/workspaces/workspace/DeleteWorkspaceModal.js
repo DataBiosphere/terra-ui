@@ -82,6 +82,10 @@ const DeleteWorkspaceModal = ({
         ]);
   };
 
+  const getWorkspaceName = () => {
+    return span({ style: { fontWeight: 600, wordBreak: "break-word" } }, name);
+  };
+
   const renderAzureCleanupModal = () => {
     return h(
       Modal,
@@ -106,7 +110,7 @@ const DeleteWorkspaceModal = ({
         isDeleteDisabledFromResources &&
           !deletingResources &&
           div([
-            p(["This workspace has resources that are not deletable."]),
+            p([span("Workspace "), getWorkspaceName(), span(" has resources that are not deletable.")]),
             p(["If the resource is provisioning or deleting, try again in a few minutes. Please reach out to support@terra.bio for assistance."]),
             ul([
               workspaceResources.nonDeleteableApps.map((app) => li({ key: app.appName }, [app.appName, ` (${app.status.toLowerCase()})`])),
@@ -117,7 +121,7 @@ const DeleteWorkspaceModal = ({
           ]),
         (!isDeleteDisabledFromResources || deletingResources) &&
           div([
-            p(["This workspace cannot be deleted because of the following running cloud resources:"]),
+            p([span("Workspace "), getWorkspaceName(), span(" cannot be deleted because of the following running cloud resources:")]),
             ul([
               workspaceResources.apps.map((app) => li({ key: app.appName }, [app.appName])),
               workspaceResources.runtimes.map((runtime) => li({ key: runtime.runtimeName }, [runtime.runtimeName])),
@@ -156,7 +160,7 @@ const DeleteWorkspaceModal = ({
         styles: { modal: { background: colors.warning(0.1) } },
       },
       [
-        div(["Are you sure you want to permanently delete the workspace ", span({ style: { fontWeight: 600, wordBreak: "break-word" } }, name), "?"]),
+        div(["Are you sure you want to permanently delete the workspace ", getWorkspaceName(), "?"]),
         getStorageDeletionMessage(),
         isDeleteDisabledFromResources && div({ style: { marginTop: "1rem" } }, [getResourceDeletionMessage()]),
         !isDeleteDisabledFromResources &&

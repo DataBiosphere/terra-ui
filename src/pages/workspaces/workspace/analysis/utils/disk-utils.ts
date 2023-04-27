@@ -3,6 +3,7 @@ import _ from "lodash/fp";
 import { App } from "src/libs/ajax/leonardo/models/app-models";
 import {
   DecoratedPersistentDisk,
+  diskStatuses,
   GoogleDiskType,
   PdType,
   pdTypes,
@@ -126,6 +127,11 @@ export const getCurrentPersistentDisk = (
           _.filter(({ id, status }) => status !== "Deleting" && !_.includes(id, attachedIds), persistentDisks)
         )
       );
+};
+
+export const getReadyPersistentDisk = (persistentDisks: PersistentDisk[]): PersistentDisk | undefined => {
+  // returns PD if one exists and is in ready status
+  return persistentDisks.find((disk) => disk.status === diskStatuses.ready.leoLabel);
 };
 
 export const isCurrentGalaxyDiskDetaching = (apps: App[]): boolean => {

@@ -26,7 +26,11 @@ import { appLauncherTabName, PeriodicAzureCookieSetter } from "src/pages/workspa
 import { AppErrorModal, RuntimeErrorModal } from "src/pages/workspaces/workspace/analysis/RuntimeManager";
 import { doesWorkspaceSupportCromwellApp, getCurrentApp, getIsAppBusy } from "src/pages/workspaces/workspace/analysis/utils/app-utils";
 import { getCostDisplayForDisk, getCostDisplayForTool } from "src/pages/workspaces/workspace/analysis/utils/cost-utils";
-import { getCurrentPersistentDisk, isCurrentGalaxyDiskDetaching } from "src/pages/workspaces/workspace/analysis/utils/disk-utils";
+import {
+  getCurrentPersistentDisk,
+  getReadyPersistentDisk,
+  isCurrentGalaxyDiskDetaching,
+} from "src/pages/workspaces/workspace/analysis/utils/disk-utils";
 import {
   getComputeStatusForDisplay,
   getConvertedRuntimeStatus,
@@ -100,7 +104,7 @@ export const CloudEnvironmentModal = ({
       hideCloseButton: true,
       workspace,
       currentRuntime,
-      currentDisk: persistentDisks ? persistentDisks[0] : undefined,
+      currentDisk: getReadyPersistentDisk(persistentDisks),
       location,
       tool,
       onDismiss,

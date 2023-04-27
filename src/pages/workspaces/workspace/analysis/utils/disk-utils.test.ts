@@ -5,7 +5,10 @@ import {
   getRuntime,
   getRuntimeConfig,
 } from "src/pages/workspaces/workspace/analysis/_testData/testData";
-import { getCurrentPersistentDisk } from "src/pages/workspaces/workspace/analysis/utils/disk-utils";
+import {
+  getCurrentPersistentDisk,
+  getReadyPersistentDisk,
+} from "src/pages/workspaces/workspace/analysis/utils/disk-utils";
 
 describe("getCurrentPersistentDisk", () => {
   it("returns undefined if no disks/runtimes exist", () => {
@@ -93,5 +96,33 @@ describe("getCurrentPersistentDisk", () => {
 
     // Assert
     expect(getCurrentPersistentDisk([runtime1, runtime2], [disk1, disk2, disk3])).toStrictEqual(undefined);
+  });
+});
+
+describe("getReadyPersistentDisk", () => {
+  it("returns a disk if 1 exists and is ready", () => {
+    // Arrange
+    const disk1 = generateTestDisk();
+
+    // Assert
+    expect(getReadyPersistentDisk([disk1])).toStrictEqual(disk1);
+  });
+  it("returns undefined if no disks/runtimes exist", () => {
+    // Assert
+    expect(getReadyPersistentDisk([])).toBeUndefined();
+  });
+  it("returns undefined if only deleting disks exists", () => {
+    // Arrange
+    const disk1 = generateTestDisk({ status: diskStatuses.deleting.leoLabel });
+
+    // Assert
+    expect(getReadyPersistentDisk([disk1])).toBeUndefined();
+  });
+  it("returns undefined if only errored disks exists", () => {
+    // Arrange
+    const disk1 = generateTestDisk({ status: diskStatuses.error.leoLabel });
+
+    // Assert
+    expect(getReadyPersistentDisk([disk1])).toBeUndefined();
   });
 });
