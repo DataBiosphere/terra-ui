@@ -215,7 +215,7 @@ const AnalysisCard = ({
     getFileName(name)
   ])
 
-  const toolIconSrc: string = Utils.switchCase(currentRuntimeToolLabel,
+  const toolIconSrc: string = Utils.switchCase(application,
     [runtimeToolLabels.Jupyter, () => jupyterLogo],
     [runtimeToolLabels.RStudio, () => rstudioSquareLogo],
     [runtimeToolLabels.JupyterLab, () => jupyterLogo]
