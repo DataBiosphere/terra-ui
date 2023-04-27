@@ -37,13 +37,13 @@ const styles = {
  *
  * @param activeTab The key of the active tab
  * @param tabNames An array of keys for each tab
- * @param displayNames An optional array of display names for each tab (otherwise the keys will be displayed)
+ * @param displayNames An optional mapping of display names for each tab (otherwise the keys will be displayed)
  * @param refresh If provided, a function to refresh the current tab
  * @param getHref A function to get the href for a given tab
  * @param getOnClick An optional click handler function, given the current tab
  * @param aria-label The ARIA label for the menu, which is required for accessibility
  * @param tabProps Optionally, properties to add to each tab
- * @param children Children, which will be appended to teh end of the tab bar
+ * @param children Children, which will be appended to the end of the tab bar
  * @param props Any additional properties to add to the container menu element
  */
 export const TabBar = ({
@@ -78,26 +78,30 @@ export const TabBar = ({
   }
 
   return div({
-    role: 'navigation',
-    'aria-label': props['aria-label'], // duplicate the menu's label on the navigation element
-    'aria-labelledby': props['aria-labelledby']
+    style: Style.tabBar.container
   }, [
-    h(HorizontalNavigation, {
-      role: 'menu',
-      'aria-orientation': 'horizontal',
-      style: Style.tabBar.container,
-      ...props
+    div({
+      role: 'navigation',
+      'aria-label': props['aria-label'], // duplicate the menu's label on the navigation element
+      'aria-labelledby': props['aria-labelledby'],
+      style: { display: 'flex', flexGrow: 1, height: '100%' },
     }, [
-      ..._.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabNames)),
-      div({ style: { flexGrow: 1 } }),
-      children
-    ])
+      h(HorizontalNavigation, {
+        role: 'menu',
+        'aria-orientation': 'horizontal',
+        style: { display: 'flex' },
+        ...props
+      }, [
+        ..._.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabNames))
+      ])
+    ]),
+    div({ style: { display: 'flex', flexGrow: 0, alignItems: 'center' } }, children)
   ])
 }
 TabBar.propTypes = {
   activeTab: PropTypes.string,
   tabNames: PropTypes.arrayOf(PropTypes.string).isRequired,
-  displayNames: PropTypes.arrayOf(PropTypes.string),
+  displayNames: PropTypes.object,
   refresh: PropTypes.func,
   getHref: PropTypes.func,
   getOnClick: PropTypes.func,

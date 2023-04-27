@@ -13,6 +13,7 @@ import { useCancellation, useGetter, useOnMount, usePollingEffect, usePrevious, 
 import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { cloudProviderTypes } from 'src/libs/workspace-utils'
 import { getConvertedRuntimeStatus, usableStatuses } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
 
 
@@ -51,12 +52,13 @@ export const RuntimeKicker = ({ runtime, refreshRuntimes }) => {
   const startRuntimeOnce = withErrorReporting('Error starting cloud environment', async () => {
     while (!signal.aborted) {
       const currentRuntime = getRuntime()
-      const { googleProject, runtimeName } = currentRuntime || {}
+      const { googleProject, runtimeName, cloudContext, workspaceId } = currentRuntime || {}
       const status = getConvertedRuntimeStatus(currentRuntime)
-
       if (status === 'Stopped') {
         setBusy(true)
-        await Ajax().Runtimes.runtime(googleProject, runtimeName).start()
+        await cloudContext.cloudProvider === cloudProviderTypes.AZURE ?
+          Ajax().Runtimes.runtimeV2(workspaceId, runtimeName).start() :
+          Ajax().Runtimes.runtime(googleProject, runtimeName).start()
         await refreshRuntimes()
         setBusy(false)
         return
@@ -192,8 +194,12 @@ export const SaveFilesHelpAzure = () => {
   return h(Fragment, [
     p([
       'If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
-      'please move them to your workspace storage container.', // TODO: Link support article once published
-    ]),
+      h(Link, {
+        'aria-label': 'Save file help',
+        href: 'https://support.terra.bio/hc/en-us/articles/12043575737883',
+        ...Utils.newTabLinkProps
+      }, ['move them to the workspace bucket.'])
+    ])
   ])
 }
 
@@ -220,5 +226,6 @@ export const GalaxyLaunchButton = ({ app, onClick, ...props }) => {
 }
 
 export const appLauncherTabName = 'workspace-application-launch'
+export const appLauncherWithAnalysisTabName = `${appLauncherTabName}-with-analysis`
 export const analysisLauncherTabName = 'workspace-analysis-launch'
 export const analysisTabName = 'workspace-analyses'
