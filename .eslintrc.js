@@ -109,5 +109,5 @@ module.exports = {
       },
     },
   ],
-  plugins: ["lodash-fp", "import", "simple-import-sort"],
+  plugins: ["lodash-fp", "simple-import-sort"],
 };
