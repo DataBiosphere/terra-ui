@@ -91,7 +91,7 @@
     "@typescript-eslint/eslint-plugin": "latest",
     "babel-plugin-prismjs": "^2.1.0",
     "blob-polyfill": "^7.0.20220408",
-    "check-dts": "^0.6.7",
+    "check-dts": "^0.7.1",
     "csp-html-webpack-plugin": "^5.1.0",
     "customize-cra": "^1.0.0",
     "eslint-config-airbnb-typescript-prettier": "^5.0.0",
