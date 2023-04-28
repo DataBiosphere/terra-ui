@@ -14,6 +14,7 @@ export const DeleteFilesConfirmationModal = ({ files, ...props }: DeleteFilesCon
   const numFiles = files.length;
   return h(
     DeleteConfirmationModal,
+    // @ts-expect-error
     {
       ...props,
       title: `Delete ${pluralize("file", numFiles, true)}`,
