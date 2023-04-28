@@ -1,6 +1,6 @@
-import _ from 'lodash/fp'
-import { AnyFn, AnyPromiseFn, GenericFn, WrapFn } from 'src/libs/type-utils/general-types'
-import { SafeCurry2, SafeCurry3, SafeCurry4, SafeCurry5 } from 'src/libs/type-utils/lodash-fp-types'
+import _ from "lodash/fp";
+import { AnyFn, AnyPromiseFn, GenericFn, WrapFn } from "src/libs/type-utils/general-types";
+import { SafeCurry2, SafeCurry3, SafeCurry4, SafeCurry5 } from "src/libs/type-utils/lodash-fp-types";
 
 /*
  * The helpers in this file are to provide even better type safety then the baseline lodash-fp utils
@@ -10,13 +10,10 @@ import { SafeCurry2, SafeCurry3, SafeCurry4, SafeCurry5 } from 'src/libs/type-ut
 
 export interface WithHandlersFn {
   <P, A extends any[], F extends (...args: A) => Promise<P>>(
-      handlers: WrapFn<(...args: A) => Promise<P | unknown>>[],
-      mainFn: F
-  ): F
-  <F extends AnyFn, F2 extends F>(
-      handlers: WrapFn<GenericFn<F2>>[],
-      mainFn: F
-  ): GenericFn<F>
+    handlers: WrapFn<(...args: A) => Promise<P | unknown>>[],
+    mainFn: F
+  ): F;
+  <F extends AnyFn, F2 extends F>(handlers: WrapFn<GenericFn<F2>>[], mainFn: F): GenericFn<F>;
 }
 
 /**
@@ -28,24 +25,16 @@ export interface WithHandlersFn {
  * @param handlers - Array of handler (wrapper) functions to apply to mainFn
  * @param mainFn - The main function being wrapped with handlers
  */
-export const withHandlers : WithHandlersFn = <F extends AnyFn>(handlers: WrapFn<F>[], mainFn: F) => {
-  const resultFn = _.flow(...handlers)(mainFn)
-  return resultFn
-}
+export const withHandlers: WithHandlersFn = <F extends AnyFn>(handlers: WrapFn<F>[], mainFn: F) => {
+  const resultFn = _.flow(...handlers)(mainFn);
+  return resultFn;
+};
 
 export interface CurryLastArgFn {
-  <A, LAST, R>(
-      fn: (a: A, last: LAST) => R
-  ) : (a: A) => (last: LAST) => R
-  <A, B, LAST, R>(
-      fn: (a: A, b: B, last: LAST) => R
-  ) : (a: A, b: B) => (last: LAST) => R
-  <A, B, C, LAST, R>(
-      fn: (a: A, b: B, c: C, last: LAST) => R
-  ) : (a: A, b: B, c: C) => (last: LAST) => R
-  <A, B, C, D, LAST, R>(
-      fn: (a: A, b: B, c: C, d: D, last: LAST) => R
-  ) : (a: A, b: B, c: C, d: D) => (last: LAST) => R
+  <A, LAST, R>(fn: (a: A, last: LAST) => R): (a: A) => (last: LAST) => R;
+  <A, B, LAST, R>(fn: (a: A, b: B, last: LAST) => R): (a: A, b: B) => (last: LAST) => R;
+  <A, B, C, LAST, R>(fn: (a: A, b: B, c: C, last: LAST) => R): (a: A, b: B, c: C) => (last: LAST) => R;
+  <A, B, C, D, LAST, R>(fn: (a: A, b: B, c: C, d: D, last: LAST) => R): (a: A, b: B, c: C, d: D) => (last: LAST) => R;
 }
 
 /**
@@ -54,28 +43,19 @@ export interface CurryLastArgFn {
  * Provides better type flow then the more general _.curry(fn).
  * @param fn - Function with up to 5 arguments
  */
-export const curryLastArg: CurryLastArgFn = (fn: (
-    ...args: unknown[]) => unknown) => {
+export const curryLastArg: CurryLastArgFn = (fn: (...args: unknown[]) => unknown) => {
   return (...args2: unknown[]) => {
     return (last: unknown) => {
-      return fn(...args2, last)
-    }
-  }
-}
+      return fn(...args2, last);
+    };
+  };
+};
 
 export interface SafeCurryXFn {
-  <F extends (a: any, b: any) => any>(
-      fn: F
-  ) : SafeCurry2<F>
-  <F extends (a: any, b: any, c: any) => any>(
-      fn: F
-  ) : SafeCurry3<F>
-  <F extends (a: any, b: any, c: any, d: any) => any>(
-      fn: F
-  ) : SafeCurry4<F>
-  <F extends (a: any, b: any, c: any, d: any, e: any) => any>(
-      fn: F
-  ) : SafeCurry5<F>
+  <F extends (a: any, b: any) => any>(fn: F): SafeCurry2<F>;
+  <F extends (a: any, b: any, c: any) => any>(fn: F): SafeCurry3<F>;
+  <F extends (a: any, b: any, c: any, d: any) => any>(fn: F): SafeCurry4<F>;
+  <F extends (a: any, b: any, c: any, d: any, e: any) => any>(fn: F): SafeCurry5<F>;
 }
 
 /**
@@ -85,8 +65,8 @@ export interface SafeCurryXFn {
  * @param fn a function with up to 5 arguments, which will be curried
  */
 export const safeCurry: SafeCurryXFn = (fn: AnyFn) => {
-  return _.curry(fn)
-}
+  return _.curry(fn);
+};
 
 /**
  * (non-async) A convenience helper for creating handler-wrapper functions
@@ -99,22 +79,20 @@ export const safeCurry: SafeCurryXFn = (fn: AnyFn) => {
  * @param handler - The handler function that will use executor arg to run
  *    the original function
  */
-export const createHandler = <F extends AnyFn>(
-  handler: (executor: () => ReturnType<F>) => ReturnType<F>
-) => {
+export const createHandler = <F extends AnyFn>(handler: (executor: () => ReturnType<F>) => ReturnType<F>) => {
   const wrappedFn = (fn: (...args: Parameters<F>) => ReturnType<F>) => {
     const innerFn = (...fnArgs: Parameters<F>): ReturnType<F> => {
       const executor = (): ReturnType<F> => {
-        const result: ReturnType<F> = fn(...fnArgs)
-        return result
-      }
-      const handlerResult = handler(executor)
-      return handlerResult
-    }
-    return innerFn
-  }
-  return wrappedFn
-}
+        const result: ReturnType<F> = fn(...fnArgs);
+        return result;
+      };
+      const handlerResult = handler(executor);
+      return handlerResult;
+    };
+    return innerFn;
+  };
+  return wrappedFn;
+};
 
 /**
  * (async) A convenience helper for creating handler-wrapper functions
@@ -133,13 +111,13 @@ export const createHandlerAsync = <P, F extends AnyPromiseFn<P>>(
   const wrappedFn = (fn: (...args: Parameters<F>) => Promise<P>) => {
     const innerFn = async (...fnArgs: Parameters<F>): Promise<P> => {
       const executor = async (): Promise<P> => {
-        const result: P = await fn(...fnArgs)
-        return result
-      }
-      const handlerResult = await handler(executor)
-      return handlerResult
-    }
-    return innerFn
-  }
-  return wrappedFn
-}
+        const result: P = await fn(...fnArgs);
+        return result;
+      };
+      const handlerResult = await handler(executor);
+      return handlerResult;
+    };
+    return innerFn;
+  };
+  return wrappedFn;
+};

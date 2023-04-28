@@ -1,51 +1,52 @@
-import { act, renderHook } from '@testing-library/react-hooks'
-import { controlledPromise } from 'src/testing/test-utils'
+import { act, renderHook } from "@testing-library/react-hooks";
+import { controlledPromise } from "src/testing/test-utils";
 
-import { useUploader } from './uploads'
+import { useUploader } from "./uploads";
 
+describe("useUploader", () => {
+  const file1 = new File(["example"], "file1.txt", { type: "text/text" });
+  const file2 = new File(["some_content"], "file2.txt", { type: "text/text" });
 
-describe('useUploader', () => {
-  const file1 = new File(['example'], 'file1.txt', { type: 'text/text' })
-  const file2 = new File(['some_content'], 'file2.txt', { type: 'text/text' })
-
-  it('uploads files', async () => {
+  it("uploads files", async () => {
     // Arrange
-    const uploadFile = jest.fn(() => Promise.resolve())
-    const { result: hookReturnRef } = renderHook(() => useUploader(uploadFile))
+    const uploadFile = jest.fn(() => Promise.resolve());
+    const { result: hookReturnRef } = renderHook(() => useUploader(uploadFile));
 
     // Act
-    await act(() => hookReturnRef.current.uploadFiles([file1, file2]))
+    await act(() => hookReturnRef.current.uploadFiles([file1, file2]));
 
     // Assert
     expect(uploadFile.mock.calls).toEqual([
       [file1, expect.objectContaining({ signal: expect.any(AbortSignal) })],
       [file2, expect.objectContaining({ signal: expect.any(AbortSignal) })],
-    ])
-  })
+    ]);
+  });
 
-  it('tracks progress of upload batch', async () => {
+  it("tracks progress of upload batch", async () => {
     // Arrange
-    let finishCurrentUpload: (() => void) | null = null
+    let finishCurrentUpload: (() => void) | null = null;
     const uploadFile = jest.fn(() => {
-      const [promise, controller] = controlledPromise<void>()
-      finishCurrentUpload = controller.resolve
-      return promise
-    })
+      const [promise, controller] = controlledPromise<void>();
+      finishCurrentUpload = controller.resolve;
+      return promise;
+    });
 
-    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useUploader(uploadFile))
-    const initialState = hookReturnRef.current.uploadState
+    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useUploader(uploadFile));
+    const initialState = hookReturnRef.current.uploadState;
 
     // Act
-    act(() => { hookReturnRef.current.uploadFiles([file1, file2]) })
-    const stateAfterStartingUpload = hookReturnRef.current.uploadState
+    act(() => {
+      hookReturnRef.current.uploadFiles([file1, file2]);
+    });
+    const stateAfterStartingUpload = hookReturnRef.current.uploadState;
 
-    finishCurrentUpload!()
-    await waitForNextUpdate()
-    const stateAfterFinishingFirstUpload = hookReturnRef.current.uploadState
+    finishCurrentUpload!();
+    await waitForNextUpdate();
+    const stateAfterFinishingFirstUpload = hookReturnRef.current.uploadState;
 
-    finishCurrentUpload!()
-    await waitForNextUpdate()
-    const stateAfterFinishingSecondUpload = hookReturnRef.current.uploadState
+    finishCurrentUpload!();
+    await waitForNextUpdate();
+    const stateAfterFinishingSecondUpload = hookReturnRef.current.uploadState;
 
     // Assert
     expect(initialState).toEqual({
@@ -60,7 +61,7 @@ describe('useUploader', () => {
       errors: [],
       aborted: false,
       done: false,
-    })
+    });
 
     expect(stateAfterStartingUpload).toEqual({
       active: true,
@@ -74,7 +75,7 @@ describe('useUploader', () => {
       errors: [],
       aborted: false,
       done: false,
-    })
+    });
 
     expect(stateAfterFinishingFirstUpload).toEqual({
       active: true,
@@ -88,7 +89,7 @@ describe('useUploader', () => {
       errors: [],
       aborted: false,
       done: false,
-    })
+    });
 
     expect(stateAfterFinishingSecondUpload).toEqual({
       active: false,
@@ -102,16 +103,16 @@ describe('useUploader', () => {
       errors: [],
       aborted: false,
       done: true,
-    })
-  })
+    });
+  });
 
-  it('tracks errors during uploads', async () => {
+  it("tracks errors during uploads", async () => {
     // Arrange
-    const uploadFile = jest.fn(() => Promise.reject(new Error('Upload error')))
-    const { result: hookReturnRef } = renderHook(() => useUploader(uploadFile))
+    const uploadFile = jest.fn(() => Promise.reject(new Error("Upload error")));
+    const { result: hookReturnRef } = renderHook(() => useUploader(uploadFile));
 
     // Act
-    await act(() => hookReturnRef.current.uploadFiles([file1]))
+    await act(() => hookReturnRef.current.uploadFiles([file1]));
 
     // Assert
     expect(hookReturnRef.current.uploadState).toEqual({
@@ -123,26 +124,26 @@ describe('useUploader', () => {
       currentFile: file1,
       files: [file1],
       completedFiles: [],
-      errors: [new Error('Upload error')],
+      errors: [new Error("Upload error")],
       aborted: false,
       done: true,
-    })
-  })
+    });
+  });
 
-  it('allows canceling upload', async () => {
+  it("allows canceling upload", async () => {
     // Arrange
-    const uploadFile = jest.fn(() => Promise.resolve())
-    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useUploader(uploadFile))
+    const uploadFile = jest.fn(() => Promise.resolve());
+    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useUploader(uploadFile));
 
     // Act
     act(() => {
-      hookReturnRef.current.uploadFiles([file1, file2])
-      hookReturnRef.current.cancelUpload()
-    })
-    await waitForNextUpdate()
+      hookReturnRef.current.uploadFiles([file1, file2]);
+      hookReturnRef.current.cancelUpload();
+    });
+    await waitForNextUpdate();
 
     // Assert
-    expect(uploadFile).toHaveBeenCalledTimes(1)
+    expect(uploadFile).toHaveBeenCalledTimes(1);
 
     expect(hookReturnRef.current.uploadState).toEqual({
       active: false,
@@ -156,6 +157,6 @@ describe('useUploader', () => {
       errors: [],
       aborted: true,
       done: false,
-    })
-  })
-})
+    });
+  });
+});

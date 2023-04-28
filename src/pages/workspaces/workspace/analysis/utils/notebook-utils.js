@@ -1,134 +1,160 @@
-import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common'
-import { ValidatedInput } from 'src/components/input'
-import Modal from 'src/components/Modal'
-import { Ajax } from 'src/libs/ajax'
-import { reportError } from 'src/libs/error'
-import { FormLabel } from 'src/libs/forms'
-import * as Utils from 'src/libs/utils'
-import { addExtensionToNotebook } from 'src/pages/workspaces/workspace/analysis/utils/file-utils'
-import validate from 'validate.js'
+import _ from "lodash/fp";
+import { Fragment, useState } from "react";
+import { div, h } from "react-hyperscript-helpers";
+import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from "src/components/common";
+import { ValidatedInput } from "src/components/input";
+import Modal from "src/components/Modal";
+import { Ajax } from "src/libs/ajax";
+import { reportError } from "src/libs/error";
+import { FormLabel } from "src/libs/forms";
+import * as Utils from "src/libs/utils";
+import { addExtensionToNotebook } from "src/pages/workspaces/workspace/analysis/utils/file-utils";
+import validate from "validate.js";
 
-
-export const analysisNameValidator = existing => ({
+export const analysisNameValidator = (existing) => ({
   presence: { allowEmpty: false },
   format: {
     pattern: /^[^@#$%*+=?,[\]:;/\\]*$/,
     message: h(Fragment, [
-      div({ key: 'message' }, ['Name can\'t contain these characters:']),
-      div({ key: 'characters', style: { margin: '0.5rem 1rem' } }, ['@ # $ % * + = ? , [ ] : ; / \\ '])
-    ])
+      div({ key: "message" }, ["Name can't contain these characters:"]),
+      div({ key: "characters", style: { margin: "0.5rem 1rem" } }, ["@ # $ % * + = ? , [ ] : ; / \\ "]),
+    ]),
   },
   exclusion: {
     within: existing,
-    message: 'already exists'
-  }
-})
+    message: "already exists",
+  },
+});
 
-export const analysisNameInput = ({ inputProps, ...props }) => h(ValidatedInput, {
-  ...props,
-  inputProps: {
-    ...inputProps,
-    autoFocus: true,
-    placeholder: 'Enter a name'
-  }
-})
+export const analysisNameInput = ({ inputProps, ...props }) =>
+  h(ValidatedInput, {
+    ...props,
+    inputProps: {
+      ...inputProps,
+      autoFocus: true,
+      placeholder: "Enter a name",
+    },
+  });
 
 const baseNotebook = {
-  cells: [
-    { cell_type: 'code', execution_count: null, metadata: {}, outputs: [], source: [] }
-  ], nbformat: 4, nbformat_minor: 2
-}
+  cells: [{ cell_type: "code", execution_count: null, metadata: {}, outputs: [], source: [] }],
+  nbformat: 4,
+  nbformat_minor: 2,
+};
 
 export const notebookData = {
-  python3: _.merge({
-    metadata: {
-      kernelspec: { display_name: 'Python 3', language: 'python', name: 'python3' }
-    }
-  }, baseNotebook),
-  r: _.merge({
-    metadata: {
-      kernelspec: { display_name: 'R', language: 'R', name: 'ir' },
-      language_info: {
-        codemirror_mode: 'r', file_extension: '.r', mimetype: 'text/x-r-source', name: 'R',
-        pygments_lexer: 'r', version: '3.3.3'
-      }
-    }
-  }, baseNotebook)
-}
+  python3: _.merge(
+    {
+      metadata: {
+        kernelspec: { display_name: "Python 3", language: "python", name: "python3" },
+      },
+    },
+    baseNotebook
+  ),
+  r: _.merge(
+    {
+      metadata: {
+        kernelspec: { display_name: "R", language: "R", name: "ir" },
+        language_info: {
+          codemirror_mode: "r",
+          file_extension: ".r",
+          mimetype: "text/x-r-source",
+          name: "R",
+          pygments_lexer: "r",
+          version: "3.3.3",
+        },
+      },
+    },
+    baseNotebook
+  ),
+};
 
-export const baseRmd = '---\ntitle: Title\nauthor: Name\ndate: Date\n---'
+export const baseRmd = "---\ntitle: Title\nauthor: Name\ndate: Date\n---";
 
 export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, googleProject, bucketName, existingNames }) => {
-  const [notebookName, setNotebookName] = useState('')
-  const [notebookKernel, setNotebookKernel] = useState(undefined)
-  const [creating, setCreating] = useState(false)
-  const [nameTouched, setNameTouched] = useState(false)
+  const [notebookName, setNotebookName] = useState("");
+  const [notebookKernel, setNotebookKernel] = useState(undefined);
+  const [creating, setCreating] = useState(false);
+  const [nameTouched, setNameTouched] = useState(false);
 
   const errors = validate(
     { notebookName, notebookKernel },
     {
       notebookName: analysisNameValidator(existingNames),
-      notebookKernel: { presence: { allowEmpty: false } }
+      notebookKernel: { presence: { allowEmpty: false } },
     },
-    { prettify: v => ({ notebookName: 'Name', notebookKernel: 'Language' }[v] || validate.prettify(v)) }
-  )
+    { prettify: (v) => ({ notebookName: "Name", notebookKernel: "Language" }[v] || validate.prettify(v)) }
+  );
 
-  return h(Modal, {
-    onDismiss,
-    title: 'Create New Notebook',
-    okButton: h(ButtonPrimary, {
-      disabled: creating || errors,
-      tooltip: Utils.summarizeErrors(errors),
-      onClick: async () => {
-        setCreating(true)
-        try {
-          await Ajax().Buckets.notebook(googleProject, bucketName, addExtensionToNotebook(notebookName)).create(notebookData[notebookKernel])
-          reloadList()
-          onSuccess(notebookName, notebookKernel)
-        } catch (error) {
-          await reportError('Error creating notebook', error)
-          onDismiss()
-        }
-      }
-    }, 'Create Notebook')
-  }, [
-    h(IdContainer, [id => h(Fragment, [
-      h(FormLabel, { htmlFor: id, required: true }, ['Name']),
-      analysisNameInput({
-        error: Utils.summarizeErrors(nameTouched && errors?.notebookName),
-        inputProps: {
-          id, value: notebookName,
-          onChange: v => {
-            setNotebookName(v)
-            setNameTouched(true)
-          }
-        }
-      })
-    ])]),
-    h(IdContainer, [id => h(Fragment, [
-      h(FormLabel, { htmlFor: id, required: true }, ['Language']),
-      h(Select, {
-        id, isSearchable: true,
-        placeholder: 'Select a language',
-        getOptionLabel: ({ value }) => _.startCase(value),
-        value: notebookKernel,
-        onChange: ({ value: notebookKernel }) => setNotebookKernel(notebookKernel),
-        options: ['python3', 'r']
-      })
-    ])]),
-    creating && spinnerOverlay
-  ])
-}
+  return h(
+    Modal,
+    {
+      onDismiss,
+      title: "Create New Notebook",
+      okButton: h(
+        ButtonPrimary,
+        {
+          disabled: creating || errors,
+          tooltip: Utils.summarizeErrors(errors),
+          onClick: async () => {
+            setCreating(true);
+            try {
+              await Ajax().Buckets.notebook(googleProject, bucketName, addExtensionToNotebook(notebookName)).create(notebookData[notebookKernel]);
+              reloadList();
+              onSuccess(notebookName, notebookKernel);
+            } catch (error) {
+              await reportError("Error creating notebook", error);
+              onDismiss();
+            }
+          },
+        },
+        "Create Notebook"
+      ),
+    },
+    [
+      h(IdContainer, [
+        (id) =>
+          h(Fragment, [
+            h(FormLabel, { htmlFor: id, required: true }, ["Name"]),
+            analysisNameInput({
+              error: Utils.summarizeErrors(nameTouched && errors?.notebookName),
+              inputProps: {
+                id,
+                value: notebookName,
+                onChange: (v) => {
+                  setNotebookName(v);
+                  setNameTouched(true);
+                },
+              },
+            }),
+          ]),
+      ]),
+      h(IdContainer, [
+        (id) =>
+          h(Fragment, [
+            h(FormLabel, { htmlFor: id, required: true }, ["Language"]),
+            h(Select, {
+              id,
+              isSearchable: true,
+              placeholder: "Select a language",
+              getOptionLabel: ({ value }) => _.startCase(value),
+              value: notebookKernel,
+              onChange: ({ value: notebookKernel }) => setNotebookKernel(notebookKernel),
+              options: ["python3", "r"],
+            }),
+          ]),
+      ]),
+      creating && spinnerOverlay,
+    ]
+  );
+};
 
 // In Python notebook, use ' instead of " in code cells, to avoid formatting problems.
 // Changes from raw .ipynb:
 // - In notebook cells, change \n to \\n
 //   (This must be done manually because there is no way to distinguish
 //   between a line break and the "\n" character.)
-export const cohortNotebook = cohortName => `
+export const cohortNotebook = (cohortName) => `
 {
  "cells": [
   {
@@ -506,9 +532,9 @@ export const cohortNotebook = cohortName => `
  "nbformat": 4,
  "nbformat_minor": 2
 }
-`
+`;
 
-export const cohortRNotebook = cohortName => `
+export const cohortRNotebook = (cohortName) => `
 {
  "cells": [
   {
@@ -870,4 +896,4 @@ export const cohortRNotebook = cohortName => `
  "nbformat": 4,
  "nbformat_minor": 2
 }
-`
+`;

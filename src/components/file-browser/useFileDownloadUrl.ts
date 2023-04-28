@@ -1,36 +1,35 @@
-import { useEffect, useState } from 'react'
-import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
-import { reportError } from 'src/libs/error'
-import { useCancellation } from 'src/libs/react-utils'
-import LoadedState, { NoneState } from 'src/libs/type-utils/LoadedState'
-
+import { useEffect, useState } from "react";
+import FileBrowserProvider, { FileBrowserFile } from "src/libs/ajax/file-browser-providers/FileBrowserProvider";
+import { reportError } from "src/libs/error";
+import { useCancellation } from "src/libs/react-utils";
+import LoadedState, { NoneState } from "src/libs/type-utils/LoadedState";
 
 type UseFileDownloadUrlOptions = {
-  file: FileBrowserFile
-  provider: FileBrowserProvider
-}
+  file: FileBrowserFile;
+  provider: FileBrowserProvider;
+};
 
-type UseFileDownloadUrlResult = Exclude<LoadedState<string, unknown>, NoneState>
+type UseFileDownloadUrlResult = Exclude<LoadedState<string, unknown>, NoneState>;
 
 export const useFileDownloadUrl = (opts: UseFileDownloadUrlOptions) => {
-  const { file, provider } = opts
+  const { file, provider } = opts;
 
-  const [result, setResult] = useState<UseFileDownloadUrlResult>({ status: 'Loading', state: null })
+  const [result, setResult] = useState<UseFileDownloadUrlResult>({ status: "Loading", state: null });
 
-  const signal = useCancellation()
+  const signal = useCancellation();
 
   useEffect(() => {
     (async () => {
-      setResult({ status: 'Loading', state: null })
+      setResult({ status: "Loading", state: null });
       try {
-        const url = await provider.getDownloadUrlForFile(file.path, { signal })
-        setResult({ status: 'Ready', state: url })
+        const url = await provider.getDownloadUrlForFile(file.path, { signal });
+        setResult({ status: "Ready", state: url });
       } catch (error) {
-        reportError('Unable to get download URL', error)
-        setResult({ status: 'Error', state: null, error })
+        reportError("Unable to get download URL", error);
+        setResult({ status: "Error", state: null, error });
       }
-    })()
-  }, [file, provider, signal])
+    })();
+  }, [file, provider, signal]);
 
-  return result
-}
+  return result;
+};

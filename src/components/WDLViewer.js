@@ -1,9 +1,8 @@
-import _ from 'lodash/fp'
-import Prism from 'prismjs'
-import { useLayoutEffect, useRef } from 'react'
-import { code, pre } from 'react-hyperscript-helpers'
-import * as Style from 'src/libs/style'
-
+import _ from "lodash/fp";
+import Prism from "prismjs";
+import { useLayoutEffect, useRef } from "react";
+import { code, pre } from "react-hyperscript-helpers";
+import * as Style from "src/libs/style";
 
 /*
  * The WDL Language team maintains a TextMate Grammer for WDL syntax, which
@@ -19,31 +18,32 @@ Prism.languages.wdl = {
   comment: /#.*/,
   string: {
     pattern: /(["'])(?:\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/,
-    greedy: true
+    greedy: true,
   },
   declaration: {
     pattern: /(?:Array[\S]*|Boolean|File|Float|Int|Map|Object|String|Pair)\??\s+\w+/,
     inside: {
       builtin: /(?:Array[\S]*|Boolean|File|Float|Int|Map|Object|String|Pair)\??/,
-      variable: / \w+/
-    }
+      variable: / \w+/,
+    },
   },
-  'class-name': [
+  "class-name": [
     {
       // For workflow/task declarations and their invocations, must be before 'keyword' for lookbehind to work
       pattern: /((?:workflow|task|call)\s+)\w+/,
-      lookbehind: true
+      lookbehind: true,
     },
     // Must be after 'declaration' or this will grab "scatter" in variable names
-    /\bscatter\b/
+    /\bscatter\b/,
   ],
   // keywords before embeddable because of 'command'
-  keyword: /\b(?:^version|call|runtime|task|workflow|if|then|else|import|as|input|output|meta|parameter_meta|scatter|struct|object(?=\s*{)|command(?=\s*(<<<|{)))\b/,
+  keyword:
+    /\b(?:^version|call|runtime|task|workflow|if|then|else|import|as|input|output|meta|parameter_meta|scatter|struct|object(?=\s*{)|command(?=\s*(<<<|{)))\b/,
   boolean: /\b(?:true|false)\b/,
   number: /\b0x[\da-f]+\b|(?:\b\d+\.?\d*|\B\.\d+)(?:e[+-]?\d+)?/i,
   punctuation: /([{}[\];(),.:]|<<<|>>>)/, // before operators because of <<< & >>>
   operator: /([=!*<>+-/%]|&&)/,
-  'embedded-code': [
+  "embedded-code": [
     {
       /*
        * Note the space before the close '}' -- this is to not match on ${these} within
@@ -53,36 +53,37 @@ Prism.languages.wdl = {
       pattern: /(command\s*<<<)(?:.|\n)*?(?=>>>)|(command\s*{)(?:.|\n)*?(?=\s})/m,
       lookbehind: true,
       inside: {
-        'embedded-python': {
+        "embedded-python": {
           pattern: /(python[0-9]?\s*<<CODE)(?:.|\n)*?(?=CODE)/m,
           lookbehind: true,
           inside: {
-            rest: Prism.languages.python
-          }
+            rest: Prism.languages.python,
+          },
         },
-        rest: Prism.languages.bash
-      }
-    }
-  ]
-}
+        rest: Prism.languages.bash,
+      },
+    },
+  ],
+};
 
 const WDLViewer = ({ wdl, ...props }) => {
-  const elem = useRef()
+  const elem = useRef();
 
   useLayoutEffect(() => {
-    Prism.highlightElement(elem.current)
-  }, [wdl])
+    Prism.highlightElement(elem.current);
+  }, [wdl]);
 
-  return pre(_.merge(
-    {
-      tabIndex: 0,
-      className: 'line-numbers',
-      style: { border: Style.standardLine, backgroundColor: 'white' }
-    },
-    props),
-  [
-    code({ className: 'language-wdl', ref: elem }, [wdl])
-  ])
-}
+  return pre(
+    _.merge(
+      {
+        tabIndex: 0,
+        className: "line-numbers",
+        style: { border: Style.standardLine, backgroundColor: "white" },
+      },
+      props
+    ),
+    [code({ className: "language-wdl", ref: elem }, [wdl])]
+  );
+};
 
-export default WDLViewer
+export default WDLViewer;

@@ -6,7 +6,7 @@
  * hasNextPage: Whether or not there are more items left to load.
  */
 export default interface IncrementalResponse<T> {
-  items: T[]
-  getNextPage(options?: { signal?: AbortSignal }): Promise<IncrementalResponse<T>>
-  hasNextPage: boolean
+  items: T[];
+  getNextPage(options?: { signal?: AbortSignal }): Promise<IncrementalResponse<T>>;
+  hasNextPage: boolean;
 }

@@ -1,23 +1,23 @@
 export interface NoneState {
-  status: 'None'
+  status: "None";
 }
 
 export interface LoadingState<S> {
-  status: 'Loading'
-  state: S | null
+  status: "Loading";
+  state: S | null;
 }
 
 export interface ReadyState<S> {
-  status: 'Ready'
-  state: S
+  status: "Ready";
+  state: S;
 }
 
 export interface ErrorState<S, E = Error> {
-  status: 'Error'
-  state: S | null
-  error: E
+  status: "Error";
+  state: S | null;
+  error: E;
 }
 
-type LoadedState<S, E = Error> = NoneState | LoadingState<S> | ReadyState<S> | ErrorState<S, E>
+type LoadedState<S, E = Error> = NoneState | LoadingState<S> | ReadyState<S> | ErrorState<S, E>;
 
-export default LoadedState
+export default LoadedState;
