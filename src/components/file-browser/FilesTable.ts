@@ -24,8 +24,9 @@ const FilesTable = (props: FilesTableProps) => {
 
   return div({ style: { display: "flex", flex: "1 1 auto" } }, [
     h(AutoSizer, {}, [
-      /* @ts-expect-error */
+      // @ts-expect-error
       ({ width, height }) =>
+        // @ts-expect-error
         h(FlexTable, {
           "aria-label": ariaLabel,
           width,

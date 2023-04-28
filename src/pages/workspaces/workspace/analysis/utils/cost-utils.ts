@@ -223,8 +223,8 @@ export const getPersistentDiskCostMonthly = ({ cloudContext = {}, diskType, size
 };
 export const getPersistentDiskCostHourly = ({ size, status, diskType, cloudContext = {} }, computeRegion) => {
   const price = Utils.cond(
-    // @ts-expect-error
     [
+      // @ts-expect-error
       isAzureContext(cloudContext),
       () => getAzureDiskCostEstimate({ persistentDiskSize: size, region: computeRegion }) / numberOfHoursPerMonth,
     ],
