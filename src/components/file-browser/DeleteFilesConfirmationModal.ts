@@ -12,7 +12,6 @@ type DeleteFilesConfirmationModalProps = {
 
 export const DeleteFilesConfirmationModal = ({ files, ...props }: DeleteFilesConfirmationModalProps) => {
   const numFiles = files.length;
-  // @ts-expect-error
   return h(
     DeleteConfirmationModal,
     {
