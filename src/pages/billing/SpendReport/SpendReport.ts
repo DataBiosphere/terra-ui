@@ -144,7 +144,9 @@ export const SpendReport = (props: SpendReportProps) => {
         // eslint-disable-line object-shorthand
         // @ts-ignore
         return `<br/><span style="color:${this.color}">\u25CF</span> ${
+          // @ts-ignore
           this.series.name
+          // @ts-ignore
         }: ${costPerWorkspace.costFormatter.format(this.y)}`;
       },
     },
