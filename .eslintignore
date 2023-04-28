@@ -1,5 +1,13 @@
-.yarn
-node_modules
+*.json
+*.yaml
+*.yml
+*.md
 *.min.js
 .pnp.*js
 build
+public
+.eslintrc.js
+.hooks
+.yarn
+node_modules
+.vscode
