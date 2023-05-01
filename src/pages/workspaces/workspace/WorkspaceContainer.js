@@ -171,7 +171,12 @@ const WorkspaceContainer = ({
 
   useEffect(() => {
     if (isGoogleWorkspaceSyncing) {
-      Ajax().Metrics.captureEvent(Events.permissionsSynchronizationDelayDisplayed, extractWorkspaceDetails(workspace));
+      Ajax().Metrics.captureEvent(Events.permissionsSynchronizationDelayDisplayed, {
+        accessLevel: workspace.accessLevel,
+        createdDate: workspace.workspace.createdDate,
+        isWorkspaceCreator: workspace.workspace.createdBy === getUser().email,
+        ...extractWorkspaceDetails(workspace),
+      });
     }
     // Only want to event when isGoogleWorkspaceSyncing changes state, not whenever any part of workspace changes.
   }, [isGoogleWorkspaceSyncing]); // eslint-disable-line react-hooks/exhaustive-deps
