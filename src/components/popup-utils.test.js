@@ -1,13 +1,13 @@
-import { getPopupRoot } from "src/components/popup-utils";
+import { getPopupRoot } from 'src/components/popup-utils';
 
-describe("getPopupRoot", () => {
+describe('getPopupRoot', () => {
   afterEach(() => {
-    document.getElementById("modal-root").remove();
+    document.getElementById('modal-root').remove();
   });
 
-  it("creates root element if it does not exist", () => {
+  it('creates root element if it does not exist', () => {
     // Arrange
-    expect(document.getElementById("modal-root")).toBeNull();
+    expect(document.getElementById('modal-root')).toBeNull();
 
     // Act
     const popupRoot = getPopupRoot();
@@ -21,13 +21,13 @@ describe("getPopupRoot", () => {
     const popupRoot = getPopupRoot();
 
     // Assert
-    expect(popupRoot.role).toBe("complementary");
+    expect(popupRoot.role).toBe('complementary');
   });
 
-  it("returns root element if it exists", () => {
+  it('returns root element if it exists', () => {
     // Arrange
-    const existingPopupRoot = document.createElement("div");
-    existingPopupRoot.id = "modal-root";
+    const existingPopupRoot = document.createElement('div');
+    existingPopupRoot.id = 'modal-root';
     document.body.append(existingPopupRoot);
 
     // Act

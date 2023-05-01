@@ -1,12 +1,12 @@
-import _ from "lodash/fp";
-import { useState } from "react";
-import { Ajax } from "src/libs/ajax";
-import { getConfig } from "src/libs/config";
-import Events from "src/libs/events";
-import featurePreviewsConfig from "src/libs/feature-previews-config";
-import { getLocalPref, setLocalPref } from "src/libs/prefs";
-import { useCancellation, useOnMount } from "src/libs/react-utils";
-import * as Utils from "src/libs/utils";
+import _ from 'lodash/fp';
+import { useState } from 'react';
+import { Ajax } from 'src/libs/ajax';
+import { getConfig } from 'src/libs/config';
+import Events from 'src/libs/events';
+import featurePreviewsConfig from 'src/libs/feature-previews-config';
+import { getLocalPref, setLocalPref } from 'src/libs/prefs';
+import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import * as Utils from 'src/libs/utils';
 
 const featurePreviewPreferenceKey = (id) => `feature-preview/${id}`;
 
@@ -19,7 +19,7 @@ export const toggleFeaturePreview = (id, enabled) => {
 
 const getGroups = async ({ signal } = {}) => {
   const rawGroups = await Ajax(signal).Groups.list();
-  return _.flow(_.map("groupName"), _.uniq)(rawGroups);
+  return _.flow(_.map('groupName'), _.uniq)(rawGroups);
 };
 
 export const getAvailableFeaturePreviews = async ({ signal } = {}) => {
@@ -37,7 +37,7 @@ export const getAvailableFeaturePreviews = async ({ signal } = {}) => {
         () => true
       )
     ),
-    _.sortBy("title")
+    _.sortBy('title')
   )(featurePreviewsConfig);
 };
 

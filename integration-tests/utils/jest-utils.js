@@ -1,19 +1,19 @@
-const _ = require("lodash/fp");
-const { Cluster } = require("puppeteer-cluster");
-const rawConsole = require("console");
-const { mkdirSync, existsSync, createWriteStream } = require("fs");
-const { defaultTimeout } = require("./integration-helpers");
-const { withScreenshot, withPageLogging } = require("./integration-utils");
-const envs = require("./terra-envs");
+const _ = require('lodash/fp');
+const { Cluster } = require('puppeteer-cluster');
+const rawConsole = require('console');
+const { mkdirSync, existsSync, createWriteStream } = require('fs');
+const { defaultTimeout } = require('./integration-helpers');
+const { withScreenshot, withPageLogging } = require('./integration-utils');
+const envs = require('./terra-envs');
 
 const {
   BILLING_PROJECT: billingProject,
-  ENVIRONMENT: environment = "dev",
+  ENVIRONMENT: environment = 'dev',
   SNAPSHOT_COLUMN_NAME: snapshotColumnName,
   SNAPSHOT_ID: snapshotId,
   SNAPSHOT_TABLE_NAME: snapshotTableName,
   TEST_URL: testUrl,
-  WORKFLOW_NAME: workflowName = "echo_to_file",
+  WORKFLOW_NAME: workflowName = 'echo_to_file',
   FLAKES: flakes = false,
   RUNS: testRuns = 100,
   CONCURRENCY: maxConcurrency = 10,
@@ -52,7 +52,7 @@ const logTestState = (consoleOutputStream, logOutputStream, total) => {
     logUniqueErrors: () => {
       _.forEach((key) => {
         consoleOutputStream.write(`\n\t\x1b[31m\x1b[1mError encountered ${errorMap[key]} times`);
-        consoleOutputStream.write(`\n\t\x1b[0m${key.split("\n").join("\n\t")}\n\n`);
+        consoleOutputStream.write(`\n\t\x1b[0m${key.split('\n').join('\n\t')}\n\n`);
       }, _.keys(errorMap));
     },
     log: () => {
@@ -67,36 +67,36 @@ const logTestState = (consoleOutputStream, logOutputStream, total) => {
       if (errored) {
         consoleOutputStream.write(`\t\x1b[31m\x1b[1m${errored} errors encountered (${_.size(errorMap)} unique errors)\n`);
       } else {
-        consoleOutputStream.write("No errors encountered.\n");
+        consoleOutputStream.write('No errors encountered.\n');
       }
     },
   };
 };
 
 const flakeShaker = ({ fn, name }) => {
-  const resultsDir = "results";
+  const resultsDir = 'results';
   const screenshotDir = `${resultsDir}/screenshots`;
   const logsDir = `${resultsDir}/logs`;
   const timeoutMillis = clusterTimeout * 60 * 1000;
   const padding = 100;
   const messages = [
-    "",
+    '',
     `Number of times to run this test: ${testRuns} (adjust this by setting RUNS in your environment)`,
-    "",
+    '',
     `Number of concurrent test runs: ${maxConcurrency} (adjust this by setting CONCURRENCY in your environment)`,
-    "",
+    '',
     `Timeout (minutes): ${clusterTimeout} (if your test times out adjust CLUSTER_TIMEOUT_MINUTES in your environment)`,
-    "",
+    '',
   ];
 
-  rawConsole.log(`\n\x1b[1m${/* bold */ "╔".padEnd(padding, "═")}╗`);
+  rawConsole.log(`\n\x1b[1m${/* bold */ '╔'.padEnd(padding, '═')}╗`);
   rawConsole.log(`${`║ Running flake shaker on ${name} to flush out test flakiness...`.padEnd(padding)}║`);
-  rawConsole.log(`${"╚".padEnd(padding, "═")}╝`);
+  rawConsole.log(`${'╚'.padEnd(padding, '═')}╝`);
 
   const message = _.flow(
     _.map((line) => `${`║ ${line}`.padEnd(padding)}║\n`),
-    (list) => [...list, `${"╚".padEnd(padding, "═")}╝`],
-    _.join("")
+    (list) => [...list, `${'╚'.padEnd(padding, '═')}╝`],
+    _.join('')
   )(messages);
   rawConsole.log(`${message}`);
 
@@ -120,10 +120,10 @@ const flakeShaker = ({ fn, name }) => {
     const logOutputStream = createWriteStream(`${logsDir}/flakes.log`);
     process.stdout.write = (v) => {
       // eslint-disable-next-line no-control-regex
-      logOutputStream.write(v.replace(/\u001b\[.*?m/g, ""));
+      logOutputStream.write(v.replace(/\u001b\[.*?m/g, ''));
     };
 
-    consoleOutputStream.write("Running tests: 0%");
+    consoleOutputStream.write('Running tests: 0%');
     const logTestStatus = logTestState(consoleOutputStream, logOutputStream, testRuns);
 
     await cluster.task(async ({ page, data }) => {

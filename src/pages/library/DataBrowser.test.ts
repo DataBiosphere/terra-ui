@@ -1,16 +1,16 @@
-import * as _ from "lodash/fp";
-import { convertColsToSettings, convertSettingsToCols, extractCatalogFilters } from "src/pages/library/DataBrowser";
-import { datasetAccessTypes } from "src/pages/library/dataBrowser-utils";
-import { TEST_DATASET_ONE, TEST_DATASET_TWO, TEST_DATASETS } from "src/pages/library/test-datasets";
+import * as _ from 'lodash/fp';
+import { convertColsToSettings, convertSettingsToCols, extractCatalogFilters } from 'src/pages/library/DataBrowser';
+import { datasetAccessTypes } from 'src/pages/library/dataBrowser-utils';
+import { TEST_DATASET_ONE, TEST_DATASET_TWO, TEST_DATASETS } from 'src/pages/library/test-datasets';
 
 const settings = [
-  { name: "Consortiums", key: "consortiums", visible: true },
-  { name: "Species", key: "species", visible: false },
+  { name: 'Consortiums', key: 'consortiums', visible: true },
+  { name: 'Species', key: 'species', visible: false },
 ];
-const cols = ["consortiums"];
+const cols = ['consortiums'];
 const expectedFilterSectionsAndValuesForTestDatasets = [
   {
-    header: "Access type",
+    header: 'Access type',
     testAgainstValue: datasetAccessTypes.Granted,
     testSuccessfulMatch: TEST_DATASET_ONE,
     testFailureMatch: TEST_DATASET_TWO,
@@ -22,53 +22,53 @@ const expectedFilterSectionsAndValuesForTestDatasets = [
     ],
   },
   {
-    header: "Consortium",
-    testAgainstValue: "The Dog Land",
+    header: 'Consortium',
+    testAgainstValue: 'The Dog Land',
     testSuccessfulMatch: TEST_DATASET_ONE,
     testFailureMatch: TEST_DATASET_TWO,
-    values: ["The Dog Land", "Cats R Us"],
+    values: ['The Dog Land', 'Cats R Us'],
   },
   {
-    header: "Data use policy",
-    testAgainstValue: "DUO:0000042",
+    header: 'Data use policy',
+    testAgainstValue: 'DUO:0000042',
     testSuccessfulMatch: TEST_DATASET_ONE,
     testFailureMatch: TEST_DATASET_TWO,
-    values: ["DUO:0000042"],
+    values: ['DUO:0000042'],
   },
   {
-    header: "Data modality",
-    testAgainstValue: "Epigenomic",
+    header: 'Data modality',
+    testAgainstValue: 'Epigenomic',
     testSuccessfulMatch: TEST_DATASET_ONE,
     testFailureMatch: TEST_DATASET_TWO,
-    values: ["Epigenomic", "Genomic", "Transcriptomic"],
+    values: ['Epigenomic', 'Genomic', 'Transcriptomic'],
   },
   {
-    header: "Assay category",
-    testAgainstValue: "nuq-seq",
+    header: 'Assay category',
+    testAgainstValue: 'nuq-seq',
     testSuccessfulMatch: TEST_DATASET_ONE,
     testFailureMatch: TEST_DATASET_TWO,
-    values: ["nuq-seq", "RNA-seq"],
+    values: ['nuq-seq', 'RNA-seq'],
   },
   {
-    header: "File type",
-    testAgainstValue: "bam",
+    header: 'File type',
+    testAgainstValue: 'bam',
     testSuccessfulMatch: TEST_DATASET_ONE,
     testFailureMatch: TEST_DATASET_TWO,
-    values: ["bam", "bai"],
+    values: ['bam', 'bai'],
   },
   {
-    header: "Disease",
-    testAgainstValue: "too cute",
+    header: 'Disease',
+    testAgainstValue: 'too cute',
     testSuccessfulMatch: TEST_DATASET_ONE,
     testFailureMatch: TEST_DATASET_TWO,
-    values: ["too cute", "aww"],
+    values: ['too cute', 'aww'],
   },
   {
-    header: "Species",
-    testAgainstValue: "dogs",
+    header: 'Species',
+    testAgainstValue: 'dogs',
     testSuccessfulMatch: TEST_DATASET_ONE,
     testFailureMatch: TEST_DATASET_TWO,
-    values: ["dogs", "cats"],
+    values: ['dogs', 'cats'],
   },
 ];
 const expectedFilterHeaders = _.map(
@@ -76,19 +76,19 @@ const expectedFilterHeaders = _.map(
   expectedFilterSectionsAndValuesForTestDatasets
 );
 
-describe("DataBrowser", () => {
+describe('DataBrowser', () => {
   const extractCatalogFiltersResult = extractCatalogFilters(TEST_DATASETS);
 
-  it("converts selected columns to settings", () => {
+  it('converts selected columns to settings', () => {
     // Avoid copying entire list of columns into this test by checking for a subset of elements.
     expect(convertColsToSettings(cols)).toEqual(expect.arrayContaining(settings));
   });
 
-  it("converts settings to selected columns", () => {
+  it('converts settings to selected columns', () => {
     expect(convertSettingsToCols(settings)).toMatchObject(cols);
   });
 
-  it("generates proper filter sections for datasets", () => {
+  it('generates proper filter sections for datasets', () => {
     // Arrange is handled with test suite scoped constants
     // Act
     const extractCatalogFiltersResultHeaders = _.map((filter) => filter.header, extractCatalogFiltersResult);
@@ -99,7 +99,7 @@ describe("DataBrowser", () => {
     );
   });
 
-  it("generates the correct values for each filter section", () => {
+  it('generates the correct values for each filter section', () => {
     // This is asserting on values generated at the test suite level
     // Assert
     _.forEach((sectionAndValues) => {

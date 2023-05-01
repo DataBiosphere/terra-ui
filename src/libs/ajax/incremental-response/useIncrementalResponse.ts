@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import LoadedState, { NoneState } from "src/libs/type-utils/LoadedState";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import LoadedState, { NoneState } from 'src/libs/type-utils/LoadedState';
 
-import IncrementalResponse from "./IncrementalResponse";
+import IncrementalResponse from './IncrementalResponse';
 
 type GetIncrementalResponse<T> = (options: { signal: AbortSignal }) => Promise<IncrementalResponse<T>>;
 
@@ -15,21 +15,21 @@ type UseIncrementalResponseResult<T> = {
 
 const useIncrementalResponse = <T>(getFirstPage: GetIncrementalResponse<T>): UseIncrementalResponseResult<T> => {
   const response = useRef<IncrementalResponse<T> | null>(null);
-  const [state, setState] = useState<Exclude<LoadedState<T[]>, NoneState>>({ status: "Loading", state: [] });
+  const [state, setState] = useState<Exclude<LoadedState<T[]>, NoneState>>({ status: 'Loading', state: [] });
   const abortController = useRef(new AbortController());
 
   const loadPageAndUpdateState = useCallback(async (getPage: GetIncrementalResponse<T>) => {
     setState((previousState) => ({
-      status: "Loading",
+      status: 'Loading',
       state: previousState.state,
     }));
     try {
       const signal = abortController.current.signal;
       response.current = await getPage({ signal });
-      setState({ status: "Ready", state: response.current.items });
+      setState({ status: 'Ready', state: response.current.items });
     } catch (error) {
       setState((previousState) => ({
-        status: "Error",
+        status: 'Error',
         state: previousState.state,
         error: error as Error,
       }));
@@ -55,7 +55,7 @@ const useIncrementalResponse = <T>(getFirstPage: GetIncrementalResponse<T>): Use
   }, [loadPageAndUpdateState]);
 
   const reload = useCallback(async () => {
-    setState({ status: "Loading", state: [] });
+    setState({ status: 'Loading', state: [] });
     await loadPageAndUpdateState(getFirstPage);
   }, [loadPageAndUpdateState, getFirstPage]);
 
@@ -63,7 +63,7 @@ const useIncrementalResponse = <T>(getFirstPage: GetIncrementalResponse<T>): Use
     reload();
   }, [reload, getFirstPage]);
 
-  const isLoading = state.status === "Loading";
+  const isLoading = state.status === 'Loading';
 
   return {
     state,

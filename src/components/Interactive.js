@@ -1,17 +1,17 @@
-import _ from "lodash/fp";
-import { useState } from "react";
-import { h } from "react-hyperscript-helpers";
-import { forwardRefWithName } from "src/libs/react-utils";
-import * as Utils from "src/libs/utils";
+import _ from 'lodash/fp';
+import { useState } from 'react';
+import { h } from 'react-hyperscript-helpers';
+import { forwardRefWithName } from 'src/libs/react-utils';
+import * as Utils from 'src/libs/utils';
 
-const allowedHoverVariables = ["background", "backgroundColor", "border", "color", "boxShadow", "opacity", "textDecoration"];
-const pointerTags = ["button", "area", "a", "select"];
-const pointerTypes = ["radio", "checkbox", "submit", "button"];
+const allowedHoverVariables = ['background', 'backgroundColor', 'border', 'color', 'boxShadow', 'opacity', 'textDecoration'];
+const pointerTags = ['button', 'area', 'a', 'select'];
+const pointerTypes = ['radio', 'checkbox', 'submit', 'button'];
 
 const Interactive = forwardRefWithName(
-  "Interactive",
+  'Interactive',
   (
-    { className = "", as, type, role, onClick, onKeyDown, onMouseDown, onBlur, disabled, children, tabIndex, hover = {}, style = {}, ...props },
+    { className = '', as, type, role, onClick, onKeyDown, onMouseDown, onBlur, disabled, children, tabIndex, hover = {}, style = {}, ...props },
     ref
   ) => {
     const [outline, setOutline] = useState(undefined);
@@ -20,12 +20,12 @@ const Interactive = forwardRefWithName(
     const computedCursor = Utils.cond(
       [cursor, () => cursor],
       [disabled, () => undefined],
-      [onClick || pointerTags.includes(as) || pointerTypes.includes(type), () => "pointer"]
+      [onClick || pointerTags.includes(as) || pointerTypes.includes(type), () => 'pointer']
     );
 
     const computedTabIndex = Utils.cond([_.isNumber(tabIndex), () => tabIndex], [disabled, () => -1], [onClick, () => 0], () => undefined);
 
-    const computedRole = Utils.cond([role, () => role], [onClick && !["input", ...pointerTags].includes(as), () => "button"], () => undefined);
+    const computedRole = Utils.cond([role, () => role], [onClick && !['input', ...pointerTags].includes(as), () => 'button'], () => undefined);
 
     const cssVariables = _.flow(
       _.toPairs,
@@ -48,7 +48,7 @@ const Interactive = forwardRefWithName(
         onKeyDown:
           onKeyDown ||
           ((e) => {
-            if (e.key === "Enter" || e.key === " ") {
+            if (e.key === 'Enter' || e.key === ' ') {
               e.stopPropagation();
               e.target.click();
             }
@@ -58,7 +58,7 @@ const Interactive = forwardRefWithName(
         role: computedRole,
         tabIndex: computedTabIndex,
         onMouseDown: (e) => {
-          setOutline("none");
+          setOutline('none');
           onMouseDown && onMouseDown(e);
         },
         onBlur: (e) => {

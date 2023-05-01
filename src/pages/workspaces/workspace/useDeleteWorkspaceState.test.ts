@@ -1,58 +1,58 @@
-import { act, renderHook } from "@testing-library/react-hooks";
-import { Ajax } from "src/libs/ajax";
-import { reportError } from "src/libs/error";
-import { DeepPartial } from "src/libs/type-utils/deep-partial";
-import { AzureWorkspaceInfo, BaseWorkspace, GoogleWorkspaceInfo } from "src/libs/workspace-utils";
-import { generateTestApp } from "src/pages/workspaces/workspace/analysis/_testData/testData";
+import { act, renderHook } from '@testing-library/react-hooks';
+import { Ajax } from 'src/libs/ajax';
+import { reportError } from 'src/libs/error';
+import { DeepPartial } from 'src/libs/type-utils/deep-partial';
+import { AzureWorkspaceInfo, BaseWorkspace, GoogleWorkspaceInfo } from 'src/libs/workspace-utils';
+import { generateTestApp } from 'src/pages/workspaces/workspace/analysis/_testData/testData';
 import {
   useDeleteWorkspaceState,
   WorkspaceResourceDeletionPollRate,
-} from "src/pages/workspaces/workspace/useDeleteWorkspaceState";
-import { asMockedFn } from "src/testing/test-utils";
+} from 'src/pages/workspaces/workspace/useDeleteWorkspaceState';
+import { asMockedFn } from 'src/testing/test-utils';
 
-type AjaxExports = typeof import("src/libs/ajax");
-jest.mock("src/libs/ajax", (): AjaxExports => {
+type AjaxExports = typeof import('src/libs/ajax');
+jest.mock('src/libs/ajax', (): AjaxExports => {
   return {
-    ...jest.requireActual("src/libs/ajax"),
+    ...jest.requireActual('src/libs/ajax'),
     Ajax: jest.fn(),
   };
 });
 
-type ErrorExports = typeof import("src/libs/error");
+type ErrorExports = typeof import('src/libs/error');
 jest.mock(
-  "src/libs/error",
+  'src/libs/error',
   (): ErrorExports => ({
-    ...jest.requireActual("src/libs/error"),
+    ...jest.requireActual('src/libs/error'),
     reportError: jest.fn(),
   })
 );
 
 type AjaxContract = ReturnType<typeof Ajax>;
-type AjaxAppsContract = AjaxContract["Apps"];
-type AjaxRuntimesContract = AjaxContract["Runtimes"];
-type AjaxWorkspacesContract = AjaxContract["Workspaces"];
+type AjaxAppsContract = AjaxContract['Apps'];
+type AjaxRuntimesContract = AjaxContract['Runtimes'];
+type AjaxWorkspacesContract = AjaxContract['Workspaces'];
 
-describe("useDeleteWorkspace", () => {
+describe('useDeleteWorkspace', () => {
   const googleWorkspace = {
-    accessLevel: "writer",
+    accessLevel: 'writer',
     canShare: true,
     canCompute: true,
     workspace: {
-      name: "example",
-      namespace: "example",
-      cloudPlatform: "Gcp",
-      workspaceId: "googleWorkspaceId",
+      name: 'example',
+      namespace: 'example',
+      cloudPlatform: 'Gcp',
+      workspaceId: 'googleWorkspaceId',
     } as GoogleWorkspaceInfo,
   } as BaseWorkspace;
   const azureWorkspace = {
-    accessLevel: "writer",
+    accessLevel: 'writer',
     canShare: true,
     canCompute: true,
     workspace: {
-      name: "example",
-      namespace: "example",
-      cloudPlatform: "Azure",
-      workspaceId: "azureWorkspaceId",
+      name: 'example',
+      namespace: 'example',
+      cloudPlatform: 'Azure',
+      workspaceId: 'azureWorkspaceId',
     } as AzureWorkspaceInfo,
   } as BaseWorkspace;
   const mockOnDismiss = jest.fn(() => {});
@@ -62,19 +62,19 @@ describe("useDeleteWorkspace", () => {
     jest.useFakeTimers();
   });
 
-  it("can initialize state for a google workspace with running apps", async () => {
+  it('can initialize state for a google workspace with running apps', async () => {
     // Arrange
     const mockApps: Partial<AjaxAppsContract> = {
       listWithoutProject: jest.fn(),
     };
     asMockedFn((mockApps as AjaxAppsContract).listWithoutProject).mockResolvedValue([
       generateTestApp({
-        appName: "app1",
-        status: "RUNNING",
+        appName: 'app1',
+        status: 'RUNNING',
       }),
     ]);
 
-    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { "example1@example.com": {} } });
+    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { 'example1@example.com': {} } });
     const mockGetBucketUsage = jest.fn().mockResolvedValue({ usageInBytes: 1234 });
     const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
       workspace: () => ({
@@ -98,26 +98,26 @@ describe("useDeleteWorkspace", () => {
     // Assert
     expect(result.current.hasApps()).toBe(true);
     expect(result.current.isDeleteDisabledFromResources).toBe(false);
-    expect(result.current.collaboratorEmails).toEqual(["example1@example.com"]);
+    expect(result.current.collaboratorEmails).toEqual(['example1@example.com']);
     expect(result.current.workspaceBucketUsageInBytes).toBe(1234);
     expect(mockApps.listWithoutProject).toHaveBeenCalledTimes(1);
     expect(mockApps.listWithoutProject).toHaveBeenCalledWith({
-      role: "creator",
+      role: 'creator',
       saturnWorkspaceName: googleWorkspace.workspace.name,
     });
     expect(mockGetAcl).toHaveBeenCalledTimes(1);
     expect(mockGetBucketUsage).toHaveBeenCalledTimes(1);
   });
 
-  it("can initialize state for an azure workspace", async () => {
+  it('can initialize state for an azure workspace', async () => {
     // Arrange
     const mockListAppsV2: Partial<AjaxAppsContract> = {
       listAppsV2: jest.fn(),
     };
     asMockedFn((mockListAppsV2 as AjaxAppsContract).listAppsV2).mockResolvedValue([
       generateTestApp({
-        appName: "example",
-        status: "PROVISIONING",
+        appName: 'example',
+        status: 'PROVISIONING',
       }),
     ]);
     const mockListRuntimesV2: Partial<AjaxRuntimesContract> = {
@@ -125,7 +125,7 @@ describe("useDeleteWorkspace", () => {
     };
     asMockedFn((mockListRuntimesV2 as AjaxRuntimesContract).listV2WithWorkspace).mockResolvedValue([]);
 
-    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { "example1@example.com": {} } });
+    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { 'example1@example.com': {} } });
     const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
       workspace: () => ({
         getAcl: mockGetAcl,
@@ -152,10 +152,10 @@ describe("useDeleteWorkspace", () => {
     expect(mockListAppsV2.listAppsV2).toHaveBeenCalledWith(azureWorkspace.workspace.workspaceId);
   });
 
-  it("can delete an azure workspace", async () => {
+  it('can delete an azure workspace', async () => {
     // Arrange
     const mockDelete = jest.fn().mockResolvedValue([]);
-    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { "example1@example.com": {} } });
+    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { 'example1@example.com': {} } });
     const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
       workspace: () => ({
         delete: mockDelete,
@@ -193,7 +193,7 @@ describe("useDeleteWorkspace", () => {
     expect(mockDelete).toHaveBeenCalledTimes(1);
   });
 
-  it("can delete a google workspace", async () => {
+  it('can delete a google workspace', async () => {
     // Arrange
     const mockDelete = jest.fn().mockResolvedValue([]);
     const mockApps: Partial<AjaxAppsContract> = {
@@ -229,7 +229,7 @@ describe("useDeleteWorkspace", () => {
     expect(mockDelete).toHaveBeenCalledTimes(1);
   });
 
-  it("can handle errors when deletion fails", async () => {
+  it('can handle errors when deletion fails', async () => {
     // Arrange
     const mockApps: Partial<AjaxAppsContract> = {
       listWithoutProject: jest.fn(),
@@ -238,7 +238,7 @@ describe("useDeleteWorkspace", () => {
 
     const mockGetAcl = jest.fn().mockResolvedValue([]);
     const mockGetBucketUsage = jest.fn().mockResolvedValue([]);
-    const mockDelete = jest.fn().mockRejectedValue(new Error("testing"));
+    const mockDelete = jest.fn().mockRejectedValue(new Error('testing'));
     const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
       workspace: () => ({
         getAcl: mockGetAcl,
@@ -267,10 +267,10 @@ describe("useDeleteWorkspace", () => {
     expect(reportError).toHaveBeenCalledTimes(1);
   });
 
-  it("should not allow deletion of undeletable azure apps", async () => {
+  it('should not allow deletion of undeletable azure apps', async () => {
     // Arrange
     const mockDelete = jest.fn().mockResolvedValue([]);
-    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { "example1@example.com": {} } });
+    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { 'example1@example.com': {} } });
     const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
       workspace: () => ({
         delete: mockDelete,
@@ -283,8 +283,8 @@ describe("useDeleteWorkspace", () => {
     };
     asMockedFn((mockListAppsV2 as AjaxAppsContract).listAppsV2).mockResolvedValue([
       generateTestApp({
-        appName: "app1",
-        status: "PROVISIONING",
+        appName: 'app1',
+        status: 'PROVISIONING',
       }),
     ]);
     const mockListRuntimesV2: Partial<AjaxRuntimesContract> = {
@@ -314,10 +314,10 @@ describe("useDeleteWorkspace", () => {
     expect(mockDelete).toHaveBeenCalledTimes(0);
   });
 
-  it("polls after dispatching a call to delete workspace resources", async () => {
+  it('polls after dispatching a call to delete workspace resources', async () => {
     // Arrange
     const mockDelete = jest.fn().mockResolvedValue([]);
-    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { "example1@example.com": {} } });
+    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { 'example1@example.com': {} } });
     const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
       workspace: () => ({
         delete: mockDelete,
@@ -334,8 +334,8 @@ describe("useDeleteWorkspace", () => {
     mockListAppsFn
       .mockResolvedValueOnce([
         {
-          appName: "app1",
-          status: "running",
+          appName: 'app1',
+          status: 'running',
         },
       ])
       .mockResolvedValueOnce([]);
@@ -378,10 +378,10 @@ describe("useDeleteWorkspace", () => {
     expect(result.current.hasApps()).toBe(false);
   });
 
-  it("should report an error when initial call to delete resources fails", async () => {
+  it('should report an error when initial call to delete resources fails', async () => {
     // Arrange
     const mockDelete = jest.fn().mockResolvedValue([]);
-    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { "example1@example.com": {} } });
+    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { 'example1@example.com': {} } });
     const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
       workspace: () => ({
         delete: mockDelete,
@@ -397,12 +397,12 @@ describe("useDeleteWorkspace", () => {
     mockListAppsFn
       .mockResolvedValueOnce([
         {
-          appName: "app1",
-          status: "running",
+          appName: 'app1',
+          status: 'running',
         },
       ])
       .mockResolvedValueOnce([]);
-    const mockRuntimeDeleteAll = jest.fn().mockRejectedValue("failed");
+    const mockRuntimeDeleteAll = jest.fn().mockRejectedValue('failed');
     const mockRuntimesV2: DeepPartial<AjaxRuntimesContract> = {
       listV2WithWorkspace: jest.fn(),
       deleteAll: mockRuntimeDeleteAll,
@@ -431,10 +431,10 @@ describe("useDeleteWorkspace", () => {
     expect(reportError).toHaveBeenCalledTimes(1);
   });
 
-  it("should handle errors during resource deletion polling", async () => {
+  it('should handle errors during resource deletion polling', async () => {
     // Arrange
     const mockDelete = jest.fn().mockResolvedValue([]);
-    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { "example1@example.com": {} } });
+    const mockGetAcl = jest.fn().mockResolvedValue({ acl: { 'example1@example.com': {} } });
     const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
       workspace: () => ({
         delete: mockDelete,
@@ -449,11 +449,11 @@ describe("useDeleteWorkspace", () => {
     mockListAppsFn
       .mockResolvedValueOnce([
         {
-          appName: "app1",
-          status: "running",
+          appName: 'app1',
+          status: 'running',
         },
       ])
-      .mockRejectedValue("error");
+      .mockRejectedValue('error');
     const mockRuntimesV2: DeepPartial<AjaxRuntimesContract> = {
       listV2WithWorkspace: jest.fn(),
       deleteAll: jest.fn,

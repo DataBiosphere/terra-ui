@@ -1,9 +1,9 @@
-import "@testing-library/jest-dom";
-import "blob-polyfill";
+import '@testing-library/jest-dom';
+import 'blob-polyfill';
 
-import { toHaveNoViolations } from "jest-axe";
+import { toHaveNoViolations } from 'jest-axe';
 
-jest.mock("src/configStore", () => ({
+jest.mock('src/configStore', () => ({
   loadedConfigStore: { current: { jest: true } },
 }));
 

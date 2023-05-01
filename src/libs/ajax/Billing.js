@@ -1,32 +1,32 @@
-import _ from "lodash/fp";
-import * as qs from "qs";
-import { authOpts, fetchBillingProfileManager, fetchOrchestration, fetchRawls, jsonBody } from "src/libs/ajax/ajax-common";
+import _ from 'lodash/fp';
+import * as qs from 'qs';
+import { authOpts, fetchBillingProfileManager, fetchOrchestration, fetchRawls, jsonBody } from 'src/libs/ajax/ajax-common';
 
 export const Billing = (signal) => ({
   listProjects: async () => {
-    const res = await fetchRawls("billing/v2", _.merge(authOpts(), { signal }));
+    const res = await fetchRawls('billing/v2', _.merge(authOpts(), { signal }));
     return res.json();
   },
 
   getProject: async (projectName) => {
     const route = `billing/v2/${projectName}`;
-    const res = await fetchRawls(route, _.merge(authOpts(), { signal, method: "GET" }));
+    const res = await fetchRawls(route, _.merge(authOpts(), { signal, method: 'GET' }));
     return res.json();
   },
 
   listAccounts: async () => {
-    const res = await fetchRawls("user/billingAccounts?firecloudHasAccess=true", _.merge(authOpts(), { signal }));
+    const res = await fetchRawls('user/billingAccounts?firecloudHasAccess=true', _.merge(authOpts(), { signal }));
     return res.json();
   },
 
   createGCPProject: async (projectName, billingAccount) => {
-    return await fetchRawls("billing/v2", _.mergeAll([authOpts(), jsonBody({ projectName, billingAccount }), { signal, method: "POST" }]));
+    return await fetchRawls('billing/v2', _.mergeAll([authOpts(), jsonBody({ projectName, billingAccount }), { signal, method: 'POST' }]));
   },
 
   createAzureProject: async (projectName, tenantId, subscriptionId, managedResourceGroupId, members) => {
     // members: an array of {email: string, role: string}
     return await fetchRawls(
-      "billing/v2",
+      'billing/v2',
       _.mergeAll([
         authOpts(),
         jsonBody({
@@ -35,34 +35,34 @@ export const Billing = (signal) => ({
           managedAppCoordinates: { tenantId, subscriptionId, managedResourceGroupId },
           inviteUsersNotFound: true,
         }),
-        { signal, method: "POST" },
+        { signal, method: 'POST' },
       ])
     );
   },
 
   deleteProject: async (projectName) => {
     const route = `billing/v2/${projectName}`;
-    const res = await fetchRawls(route, _.merge(authOpts(), { signal, method: "DELETE" }));
+    const res = await fetchRawls(route, _.merge(authOpts(), { signal, method: 'DELETE' }));
     return res;
   },
 
   changeBillingAccount: async ({ billingProjectName, newBillingAccountName }) => {
     const res = await fetchOrchestration(
       `api/billing/v2/${billingProjectName}/billingAccount`,
-      _.mergeAll([authOpts(), { signal, method: "PUT" }, jsonBody({ billingAccount: newBillingAccountName })])
+      _.mergeAll([authOpts(), { signal, method: 'PUT' }, jsonBody({ billingAccount: newBillingAccountName })])
     );
     return res;
   },
 
   removeBillingAccount: async ({ billingProjectName }) => {
-    const res = await fetchOrchestration(`api/billing/v2/${billingProjectName}/billingAccount`, _.merge(authOpts(), { signal, method: "DELETE" }));
+    const res = await fetchOrchestration(`api/billing/v2/${billingProjectName}/billingAccount`, _.merge(authOpts(), { signal, method: 'DELETE' }));
     return res;
   },
 
   updateSpendConfiguration: async ({ billingProjectName, datasetGoogleProject, datasetName }) => {
     const res = await fetchOrchestration(
       `api/billing/v2/${billingProjectName}/spendReportConfiguration`,
-      _.mergeAll([authOpts(), { signal, method: "PUT" }, jsonBody({ datasetGoogleProject, datasetName })])
+      _.mergeAll([authOpts(), { signal, method: 'PUT' }, jsonBody({ datasetGoogleProject, datasetName })])
     );
     return res;
   },
@@ -81,7 +81,7 @@ export const Billing = (signal) => ({
     const res = await fetchRawls(
       `billing/v2/${billingProjectName}/spendReport?${qs.stringify(
         { startDate, endDate, aggregationKey: aggregationKeys },
-        { arrayFormat: "repeat" }
+        { arrayFormat: 'repeat' }
       )}`,
       _.merge(authOpts(), { signal })
     );
@@ -101,13 +101,13 @@ export const Billing = (signal) => ({
     });
     return await fetchRawls(
       `billing/v2/${projectName}/members?inviteUsersNotFound=true`,
-      _.mergeAll([authOpts(), jsonBody({ membersToAdd: userRoles, membersToRemove: [] }), { signal, method: "PATCH" }])
+      _.mergeAll([authOpts(), jsonBody({ membersToAdd: userRoles, membersToRemove: [] }), { signal, method: 'PATCH' }])
     );
   },
 
   removeProjectUser: (projectName, roles, email) => {
     const removeRole = (role) =>
-      fetchRawls(`billing/v2/${projectName}/members/${role}/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: "DELETE" }));
+      fetchRawls(`billing/v2/${projectName}/members/${role}/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'DELETE' }));
 
     return Promise.all(_.map(removeRole, roles));
   },
@@ -130,5 +130,5 @@ export const Billing = (signal) => ({
 });
 
 export const canUseWorkspaceProject = async ({ canCompute, workspace: { namespace } }) => {
-  return canCompute || _.some(({ projectName, roles }) => projectName === namespace && _.includes("Owner", roles), await Billing().listProjects());
+  return canCompute || _.some(({ projectName, roles }) => projectName === namespace && _.includes('Owner', roles), await Billing().listProjects());
 };

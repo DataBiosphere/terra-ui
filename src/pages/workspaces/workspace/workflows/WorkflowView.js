@@ -1,7 +1,7 @@
-import _ from "lodash/fp";
-import { Component, Fragment, useEffect, useState } from "react";
-import { b, div, h, label, span } from "react-hyperscript-helpers";
-import * as breadcrumbs from "src/components/breadcrumbs";
+import _ from 'lodash/fp';
+import { Component, Fragment, useEffect, useState } from 'react';
+import { b, div, h, label, span } from 'react-hyperscript-helpers';
+import * as breadcrumbs from 'src/components/breadcrumbs';
 import {
   ButtonPrimary,
   ButtonSecondary,
@@ -13,47 +13,47 @@ import {
   RadioButton,
   Select,
   spinnerOverlay,
-} from "src/components/common";
-import Dropzone from "src/components/Dropzone";
-import { centeredSpinner, icon } from "src/components/icons";
-import { DelayedAutocompleteTextArea, DelayedSearchInput, NumberInput } from "src/components/input";
-import { MarkdownViewer } from "src/components/markdown";
-import { MenuButton } from "src/components/MenuButton";
-import Modal from "src/components/Modal";
-import { InfoBox, makeMenuIcon, MenuTrigger } from "src/components/PopupTrigger";
-import StepButtons from "src/components/StepButtons";
-import { HeaderCell, SimpleFlexTable, SimpleTable, Sortable, TextCell } from "src/components/table";
-import TooltipTrigger from "src/components/TooltipTrigger";
-import WDLViewer from "src/components/WDLViewer";
-import { Ajax } from "src/libs/ajax";
-import colors, { terraSpecial } from "src/libs/colors";
-import { reportError, withErrorReporting } from "src/libs/error";
-import Events, { extractWorkspaceDetails } from "src/libs/events";
-import { HiddenLabel } from "src/libs/forms";
-import * as Nav from "src/libs/nav";
-import { useCancellation, useOnMount, withCancellationSignal } from "src/libs/react-utils";
-import { workflowSelectionStore } from "src/libs/state";
-import * as StateHistory from "src/libs/state-history";
-import * as Style from "src/libs/style";
-import * as Utils from "src/libs/utils";
-import { downloadIO, getWorkflowInputSuggestionsForAttributesOfSetMembers, ioTask, ioVariable } from "src/libs/workflow-utils";
-import DataStepContent from "src/pages/workspaces/workspace/workflows/DataStepContent";
-import DeleteWorkflowConfirmationModal from "src/pages/workspaces/workspace/workflows/DeleteWorkflowConfirmationModal";
-import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } from "src/pages/workspaces/workspace/workflows/EntitySelectionType";
-import ExportWorkflowModal from "src/pages/workspaces/workspace/workflows/ExportWorkflowModal";
-import LaunchAnalysisModal from "src/pages/workspaces/workspace/workflows/LaunchAnalysisModal";
-import { methodLink } from "src/pages/workspaces/workspace/workflows/methodLink";
-import { wrapWorkspace } from "src/pages/workspaces/workspace/WorkspaceContainer";
+} from 'src/components/common';
+import Dropzone from 'src/components/Dropzone';
+import { centeredSpinner, icon } from 'src/components/icons';
+import { DelayedAutocompleteTextArea, DelayedSearchInput, NumberInput } from 'src/components/input';
+import { MarkdownViewer } from 'src/components/markdown';
+import { MenuButton } from 'src/components/MenuButton';
+import Modal from 'src/components/Modal';
+import { InfoBox, makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
+import StepButtons from 'src/components/StepButtons';
+import { HeaderCell, SimpleFlexTable, SimpleTable, Sortable, TextCell } from 'src/components/table';
+import TooltipTrigger from 'src/components/TooltipTrigger';
+import WDLViewer from 'src/components/WDLViewer';
+import { Ajax } from 'src/libs/ajax';
+import colors, { terraSpecial } from 'src/libs/colors';
+import { reportError, withErrorReporting } from 'src/libs/error';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { HiddenLabel } from 'src/libs/forms';
+import * as Nav from 'src/libs/nav';
+import { useCancellation, useOnMount, withCancellationSignal } from 'src/libs/react-utils';
+import { workflowSelectionStore } from 'src/libs/state';
+import * as StateHistory from 'src/libs/state-history';
+import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
+import { downloadIO, getWorkflowInputSuggestionsForAttributesOfSetMembers, ioTask, ioVariable } from 'src/libs/workflow-utils';
+import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepContent';
+import DeleteWorkflowConfirmationModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowConfirmationModal';
+import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
+import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal';
+import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal';
+import { methodLink } from 'src/pages/workspaces/workspace/workflows/methodLink';
+import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
-const sideMargin = "3rem";
+const sideMargin = '3rem';
 
-const miniMessage = (text) => span({ style: { fontWeight: 500, fontSize: "75%", marginRight: "1rem", textTransform: "uppercase" } }, [text]);
+const miniMessage = (text) => span({ style: { fontWeight: 500, fontSize: '75%', marginRight: '1rem', textTransform: 'uppercase' } }, [text]);
 
 const augmentErrors = ({ invalidInputs, invalidOutputs, missingInputs }) => {
   return {
     inputs: {
       ...invalidInputs,
-      ..._.fromPairs(_.map((name) => [name, "This attribute is required"], missingInputs)),
+      ..._.fromPairs(_.map((name) => [name, 'This attribute is required'], missingInputs)),
     },
     outputs: invalidOutputs,
   };
@@ -61,11 +61,11 @@ const augmentErrors = ({ invalidInputs, invalidOutputs, missingInputs }) => {
 
 const styles = {
   messageContainer: {
-    height: "2.25rem",
-    display: "flex",
-    alignItems: "center",
-    position: "absolute",
-    bottom: "0.5rem",
+    height: '2.25rem',
+    display: 'flex',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: '0.5rem',
     right: sideMargin,
   },
   tabContents: {
@@ -74,19 +74,19 @@ const styles = {
   },
   cell: (optional) => ({
     fontWeight: !optional && 500,
-    fontStyle: optional && "italic",
+    fontStyle: optional && 'italic',
   }),
   outputInfoLabel: {
     color: colors.dark(),
   },
   placeholder: {
-    fontStyle: "italic",
+    fontStyle: 'italic',
   },
   checkBoxSpanMargins: {
-    margin: "0 0.5rem 0 1rem",
+    margin: '0 0.5rem 0 1rem',
   },
   checkBoxLeftMargin: {
-    marginLeft: "1rem",
+    marginLeft: '1rem',
   },
 };
 
@@ -94,7 +94,7 @@ const ioType = ({ inputType, outputType }) => (inputType || outputType).match(/(
 
 // Trim a config down based on what the `/inputsOutputs` endpoint says
 const filterConfigIO = ({ inputs, outputs }) => {
-  return _.flow(_.update("inputs", _.pick(_.map("name", inputs))), _.update("outputs", _.pick(_.map("name", outputs))));
+  return _.flow(_.update('inputs', _.pick(_.map('name', inputs))), _.update('outputs', _.pick(_.map('name', outputs))));
 };
 
 const WorkflowIOTable = ({
@@ -109,7 +109,7 @@ const WorkflowIOTable = ({
   availableSnapshots,
   readOnly,
 }) => {
-  const [sort, setSort] = useState({ field: "taskVariable", direction: "asc" });
+  const [sort, setSort] = useState({ field: 'taskVariable', direction: 'asc' });
 
   // will only match if the current root entity type comes from a snapshot
   const isSnapshot = _.some({ name: config.dataReferenceName }, availableSnapshots);
@@ -117,13 +117,13 @@ const WorkflowIOTable = ({
   const taskSort = (o) => ioTask(o.name).toLowerCase();
   const varSort = (o) => ioVariable(o.name).toLowerCase();
   const sortedData = _.orderBy(
-    sort.field === "taskVariable" ? ["optional", taskSort, varSort] : ["optional", varSort, taskSort],
-    ["asc", sort.direction, sort.direction],
+    sort.field === 'taskVariable' ? ['optional', taskSort, varSort] : ['optional', varSort, taskSort],
+    ['asc', sort.direction, sort.direction],
     data
   );
 
   return h(SimpleFlexTable, {
-    "aria-label": `workflow ${which}`,
+    'aria-label': `workflow ${which}`,
     rowCount: sortedData.length,
     noContentMessage: `No matching ${which}.`,
     sort,
@@ -131,8 +131,8 @@ const WorkflowIOTable = ({
     columns: [
       {
         size: { basis: 350, grow: 0 },
-        field: "taskVariable",
-        headerRenderer: () => h(Sortable, { sort, field: "taskVariable", onSort: setSort }, [h(HeaderCell, ["Task name"])]),
+        field: 'taskVariable',
+        headerRenderer: () => h(Sortable, { sort, field: 'taskVariable', onSort: setSort }, [h(HeaderCell, ['Task name'])]),
         cellRenderer: ({ rowIndex }) => {
           const io = sortedData[rowIndex];
           return h(TextCell, { style: { fontWeight: 500 } }, [ioTask(io.name)]);
@@ -140,8 +140,8 @@ const WorkflowIOTable = ({
       },
       {
         size: { basis: 360, grow: 0 },
-        field: "workflowVariable",
-        headerRenderer: () => h(Sortable, { sort, field: "workflowVariable", onSort: setSort }, [h(HeaderCell, ["Variable"])]),
+        field: 'workflowVariable',
+        headerRenderer: () => h(Sortable, { sort, field: 'workflowVariable', onSort: setSort }, [h(HeaderCell, ['Variable'])]),
         cellRenderer: ({ rowIndex }) => {
           const io = sortedData[rowIndex];
           return h(TextCell, { style: styles.cell(io.optional) }, [ioVariable(io.name)]);
@@ -149,7 +149,7 @@ const WorkflowIOTable = ({
       },
       {
         size: { basis: 160, grow: 0 },
-        headerRenderer: () => h(HeaderCell, ["Type"]),
+        headerRenderer: () => h(HeaderCell, ['Type']),
         cellRenderer: ({ rowIndex }) => {
           const io = sortedData[rowIndex];
           return h(TextCell, { style: styles.cell(io.optional) }, [ioType(io)]);
@@ -158,21 +158,21 @@ const WorkflowIOTable = ({
       {
         headerRenderer: () =>
           h(Fragment, [
-            h(HeaderCell, ["Attribute"]),
+            h(HeaderCell, ['Attribute']),
             !readOnly &&
               !isSnapshot &&
-              which === "outputs" &&
-              h(Fragment, [div({ style: { whiteSpace: "pre" } }, ["  |  "]), h(Link, { onClick: onSetDefaults }, ["Use defaults"])]),
+              which === 'outputs' &&
+              h(Fragment, [div({ style: { whiteSpace: 'pre' } }, ['  |  ']), h(Link, { onClick: onSetDefaults }, ['Use defaults'])]),
           ]),
         cellRenderer: ({ rowIndex }) => {
           const io = sortedData[rowIndex];
           const { name, optional, inputType } = io;
-          const value = config?.[which]?.[name] || "";
+          const value = config?.[which]?.[name] || '';
           const error = errors?.[which]?.[name];
-          const isFile = inputType === "File" || inputType === "File?";
+          const isFile = inputType === 'File' || inputType === 'File?';
           const formattedValue = JSON.stringify(Utils.maybeParseJSON(value), null, 2);
-          return div({ style: { display: "flex", alignItems: "center", width: "100%", paddingTop: "0.5rem", paddingBottom: "0.5rem" } }, [
-            div({ style: { flex: 1, display: "flex", position: "relative", minWidth: 0 } }, [
+          return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
+            div({ style: { flex: 1, display: 'flex', position: 'relative', minWidth: 0 } }, [
               !readOnly
                 ? h(IdContainer, [
                     (labelId) =>
@@ -181,9 +181,9 @@ const WorkflowIOTable = ({
                         h(DelayedAutocompleteTextArea, {
                           autosize: true,
                           spellCheck: false,
-                          placeholder: which === "inputs" && !optional ? "Required" : "Optional",
+                          placeholder: which === 'inputs' && !optional ? 'Required' : 'Optional',
                           value,
-                          style: isFile ? { paddingRight: "2rem" } : undefined,
+                          style: isFile ? { paddingRight: '2rem' } : undefined,
                           onChange: (v) => onChange(name, v),
                           suggestions,
                           labelId,
@@ -196,35 +196,35 @@ const WorkflowIOTable = ({
                 h(
                   Clickable,
                   {
-                    style: { position: "absolute", right: "0.5rem", top: 0, bottom: 0, display: "flex", alignItems: "center" },
+                    style: { position: 'absolute', right: '0.5rem', top: 0, bottom: 0, display: 'flex', alignItems: 'center' },
                     onClick: () => onBrowse(name),
-                    tooltip: "Browse bucket files",
-                    "aria-haspopup": "dialog",
+                    tooltip: 'Browse bucket files',
+                    'aria-haspopup': 'dialog',
                   },
-                  [icon("folder-open", { size: 20 })]
+                  [icon('folder-open', { size: 20 })]
                 ),
             ]),
             !readOnly &&
               h(
                 Link,
                 {
-                  style: { marginLeft: "0.25rem" },
+                  style: { marginLeft: '0.25rem' },
                   disabled: formattedValue === undefined || formattedValue === value,
                   onClick: () => onChange(name, formattedValue),
                   tooltip: Utils.cond(
-                    [formattedValue === undefined, () => "Cannot format this value"],
-                    [formattedValue === value, () => "Already formatted"],
-                    () => "Reformat"
+                    [formattedValue === undefined, () => 'Cannot format this value'],
+                    [formattedValue === value, () => 'Already formatted'],
+                    () => 'Reformat'
                   ),
                   useTooltipAsLabel: true,
                 },
-                ["{…}"]
+                ['{…}']
               ),
             error &&
               h(TooltipTrigger, { content: error }, [
-                icon("error-standard", {
+                icon('error-standard', {
                   size: 14,
-                  style: { marginLeft: "0.5rem", color: colors.warning(), cursor: "help" },
+                  style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' },
                 }),
               ]),
           ]);
@@ -241,7 +241,7 @@ const BucketContentModal = ({
   onSelect,
   onDismiss,
 }) => {
-  const [prefix, setPrefix] = useState("");
+  const [prefix, setPrefix] = useState('');
   const [prefixes, setPrefixes] = useState();
   const [objects, setObjects] = useState(undefined);
   const [loading, setLoading] = useState(false);
@@ -250,7 +250,7 @@ const BucketContentModal = ({
 
   const load = _.flow(
     Utils.withBusyState(setLoading),
-    withErrorReporting("Error loading bucket data")
+    withErrorReporting('Error loading bucket data')
   )(async (newPrefix = prefix) => {
     const { items, prefixes: newPrefixes } = await Ajax(signal).Buckets.list(googleProject, bucketName, newPrefix);
     setObjects(items);
@@ -266,12 +266,12 @@ const BucketContentModal = ({
     StateHistory.update({ objects, prefix });
   }, [objects, prefix]);
 
-  const prefixParts = _.dropRight(1, prefix.split("/"));
+  const prefixParts = _.dropRight(1, prefix.split('/'));
   return h(
     Modal,
     {
       onDismiss,
-      title: "Choose input file",
+      title: 'Choose input file',
       showX: true,
       showButtons: false,
     },
@@ -279,20 +279,20 @@ const BucketContentModal = ({
       div([
         _.map(
           ({ label, target }) => {
-            return h(Fragment, { key: target }, [h(Link, { onClick: () => load(target) }, [label]), " / "]);
+            return h(Fragment, { key: target }, [h(Link, { onClick: () => load(target) }, [label]), ' / ']);
           },
           [
-            { label: "Files", target: "" },
+            { label: 'Files', target: '' },
             ..._.map((n) => {
-              return { label: prefixParts[n], target: _.map((s) => `${s}/`, _.take(n + 1, prefixParts)).join("") };
+              return { label: prefixParts[n], target: _.map((s) => `${s}/`, _.take(n + 1, prefixParts)).join('') };
             }, _.range(0, prefixParts.length)),
           ]
         ),
       ]),
-      div({ style: { margin: "1rem -1rem 1rem -1rem", borderBottom: `1px solid ${colors.light(0.4)}` } }),
+      div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.light(0.4)}` } }),
       h(SimpleTable, {
-        "aria-label": "file browser",
-        columns: [{ header: h(HeaderCell, ["Name"]), size: { grow: 1 }, key: "name" }],
+        'aria-label': 'file browser',
+        columns: [{ header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' }],
         rows: [
           ..._.map((p) => {
             return {
@@ -316,19 +316,19 @@ const DocumentationCollapse = ({ children }) => {
 
   return div(
     {
-      style: { display: "flex", margin: "0.5rem 0" },
+      style: { display: 'flex', margin: '0.5rem 0' },
       onClick: () => setIsOpened(!isOpened),
     },
     [
-      icon(isOpened ? "angle-down" : "angle-right", { style: { marginRight: "0.5rem", color: colors.accent() }, size: 21 }),
+      icon(isOpened ? 'angle-down' : 'angle-right', { style: { marginRight: '0.5rem', color: colors.accent() }, size: 21 }),
       isOpened
-        ? h(MarkdownViewer, { style: { marginBottom: "1rem" } }, [children])
-        : div({ style: { width: "100%", ...Style.noWrapEllipsis } }, [children]),
+        ? h(MarkdownViewer, { style: { marginBottom: '1rem' } }, [children])
+        : div({ style: { width: '100%', ...Style.noWrapEllipsis } }, [children]),
     ]
   );
 };
 
-const isSet = _.endsWith("_set");
+const isSet = _.endsWith('_set');
 
 const findPossibleSets = (listOfExistingEntities) => {
   return _.reduce(
@@ -342,9 +342,9 @@ const findPossibleSets = (listOfExistingEntities) => {
 
 const WorkflowView = _.flow(
   wrapWorkspace({
-    breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceTab(props, "workflows"),
-    title: _.get("workflowName"),
-    activeTab: "workflows",
+    breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceTab(props, 'workflows'),
+    title: _.get('workflowName'),
+    activeTab: 'workflows',
   }),
   withCancellationSignal
 )(
@@ -362,7 +362,7 @@ const WorkflowView = _.flow(
       super(props);
 
       this.state = {
-        activeTab: "inputs",
+        activeTab: 'inputs',
         entitySelectionModel: { selectedEntities: {} },
         useCallCache: true,
         deleteIntermediateOutputFiles: false,
@@ -371,7 +371,7 @@ const WorkflowView = _.flow(
         retryMemoryFactor: 1.2,
         ignoreEmptyOutputs: false,
         includeOptionalInputs: true,
-        filter: "",
+        filter: '',
         errors: { inputs: {}, outputs: {} },
         ...StateHistory.get(),
       };
@@ -389,7 +389,7 @@ const WorkflowView = _.flow(
       const { modifiedConfig } = this.state;
       this.setState({
         processSingle: true,
-        modifiedConfig: _.omit("rootEntityType", modifiedConfig),
+        modifiedConfig: _.omit('rootEntityType', modifiedConfig),
       });
     }
 
@@ -445,9 +445,9 @@ const WorkflowView = _.flow(
             this.renderSummary(),
             Utils.switchCase(
               activeTab,
-              ["wdl", () => this.renderWDL()],
-              ["inputs", () => this.renderIOTable("inputs")],
-              ["outputs", () => this.renderIOTable("outputs")]
+              ['wdl', () => this.renderWDL()],
+              ['inputs', () => this.renderIOTable('inputs')],
+              ['outputs', () => this.renderIOTable('outputs')]
             ),
             launching &&
               h(LaunchAnalysisModal, {
@@ -477,9 +477,9 @@ const WorkflowView = _.flow(
                     referenceId: snapshot?.referenceId,
                     methodVersion,
                     sourceRepo,
-                    methodPath: sourceRepo === "agora" ? `${methodNamespace}/${methodName}` : methodPath,
+                    methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath,
                   });
-                  Nav.goToPath("workspace-submission-details", { submissionId, ...workspaceId });
+                  Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId });
                 },
               }),
             variableSelected &&
@@ -487,7 +487,7 @@ const WorkflowView = _.flow(
                 workspace,
                 onDismiss: () => this.setState({ variableSelected: undefined }),
                 onSelect: (v) => {
-                  this.setState({ modifiedConfig: _.set(["inputs", variableSelected], v, modifiedConfig), variableSelected: undefined });
+                  this.setState({ modifiedConfig: _.set(['inputs', variableSelected], v, modifiedConfig), variableSelected: undefined });
                 },
               }),
           ]),
@@ -505,8 +505,8 @@ const WorkflowView = _.flow(
         if (e.status === 404) {
           const errmsg = await e.text();
           // distinguish between snapshot-reference-not-found and workflow-not-found
-          if (errmsg?.includes("Reference name") && errmsg?.includes("does not exist in workspace")) {
-            this.setState(_.set(["snapshotReferenceError", errmsg]));
+          if (errmsg?.includes('Reference name') && errmsg?.includes('does not exist in workspace')) {
+            this.setState(_.set(['snapshotReferenceError', errmsg]));
             return true;
           }
           return false;
@@ -556,14 +556,14 @@ const WorkflowView = _.flow(
         const readSelection = selectionKey && selection.key === selectionKey;
 
         const { gcpDataRepoSnapshots: snapshots } = await Ajax(signal).Workspaces.workspace(namespace, name).listSnapshots(1000, 0);
-        const snapshotMetadata = _.map("metadata", snapshots);
+        const snapshotMetadata = _.map('metadata', snapshots);
 
         // Dockstore users who target floating tags can change their WDL via Github without explicitly selecting a new version in Terra.
         // Before letting the user edit the config we retrieved from the DB, drop any keys that are no longer valid. [WA-291]
         // N.B. this causes `config` and `modifiedConfig` to be unequal, so we (accurately) prompt the user to save before launching
         // DO NOT filter when a config is redacted, when there's no IO from the WDL we would erase the user's inputs
         const modifiedConfig = _.flow(
-          readSelection ? _.set("rootEntityType", selection.entityType) : _.identity,
+          readSelection ? _.set('rootEntityType', selection.entityType) : _.identity,
           !isRedacted ? filterConfigIO(inputsOutputs) : _.identity
         )(config);
 
@@ -589,30 +589,30 @@ const WorkflowView = _.flow(
             !!modifiedConfig.dataReferenceName
           ),
           workspaceAttributes: _.flow(
-            _.without(["description"]), // workspace description
-            _.remove((s) => s.includes(":")), // library, tags
-            _.remove((s) => s.startsWith("__DESCRIPTION__")) // workspace data variable descriptions
+            _.without(['description']), // workspace description
+            _.remove((s) => s.includes(':')), // library, tags
+            _.remove((s) => s.startsWith('__DESCRIPTION__')) // workspace data variable descriptions
           )(_.keys(attributes)),
         });
 
-        if (sourceRepo === "agora") {
+        if (sourceRepo === 'agora') {
           const methods = await Ajax(signal).Methods.list({ namespace: methodNamespace, name: methodName });
-          const snapshotIds = _.map("snapshotId", methods);
+          const snapshotIds = _.map('snapshotId', methods);
 
           this.setState({ versionIds: snapshotIds });
-        } else if (sourceRepo === "dockstore" || sourceRepo === "dockstoretools") {
-          const versions = await Ajax(signal).Dockstore.getVersions({ path: methodPath, isTool: sourceRepo === "dockstoretools" });
-          const versionIds = _.map("name", versions);
+        } else if (sourceRepo === 'dockstore' || sourceRepo === 'dockstoretools') {
+          const versions = await Ajax(signal).Dockstore.getVersions({ path: methodPath, isTool: sourceRepo === 'dockstoretools' });
+          const versionIds = _.map('name', versions);
 
           this.setState({ versionIds });
         } else {
-          throw new Error("unknown sourceRepo");
+          throw new Error('unknown sourceRepo');
         }
 
         this.updateSingleOrMultipleRadioState(modifiedConfig);
         this.fetchInfo(config, isRedacted);
       } catch (error) {
-        reportError("Error loading data", error);
+        reportError('Error loading data', error);
       } finally {
         this.setState({ isFreshData: true });
       }
@@ -622,16 +622,16 @@ const WorkflowView = _.flow(
       StateHistory.update(
         _.pick(
           [
-            "savedConfig",
-            "modifiedConfig",
-            "entityMetadata",
-            "savedInputsOutputs",
-            "modifiedInputsOutputs",
-            "invalid",
-            "activeTab",
-            "wdl",
-            "currentSnapRedacted",
-            "savedSnapRedacted",
+            'savedConfig',
+            'modifiedConfig',
+            'entityMetadata',
+            'savedInputsOutputs',
+            'modifiedInputsOutputs',
+            'invalid',
+            'activeTab',
+            'wdl',
+            'currentSnapRedacted',
+            'savedSnapRedacted',
           ],
           this.state
         )
@@ -644,19 +644,19 @@ const WorkflowView = _.flow(
       } = savedConfig;
       const { signal } = this.props;
       try {
-        if (sourceRepo === "agora") {
+        if (sourceRepo === 'agora') {
           if (!currentSnapRedacted) {
             const { synopsis, documentation, payload } = await Ajax(signal).Methods.method(methodNamespace, methodName, methodVersion).get();
             this.setState({ synopsis, documentation, wdl: payload });
           }
-        } else if (sourceRepo === "dockstore" || sourceRepo === "dockstoretools") {
-          const wdl = await Ajax(signal).Dockstore.getWdl({ path: methodPath, version: methodVersion, isTool: sourceRepo === "dockstoretools" });
+        } else if (sourceRepo === 'dockstore' || sourceRepo === 'dockstoretools') {
+          const wdl = await Ajax(signal).Dockstore.getWdl({ path: methodPath, version: methodVersion, isTool: sourceRepo === 'dockstoretools' });
           this.setState({ wdl });
         } else {
-          throw new Error("unknown sourceRepo");
+          throw new Error('unknown sourceRepo');
         }
       } catch (error) {
-        reportError("Error loading WDL", error);
+        reportError('Error loading WDL', error);
       }
     }
 
@@ -669,14 +669,14 @@ const WorkflowView = _.flow(
       const newSetMessage = (t) => `(will create a new ${t} named "${newSetName}")`;
       const baseEntityType = isSet(rootEntityType) ? rootEntityType.slice(0, -4) : rootEntityType;
       const setType = `${rootEntityType}_set`;
-      const pluralS = count > 1 ? "s" : "";
+      const pluralS = count > 1 ? 's' : '';
       return Utils.cond(
-        [this.isSingle() || !rootEntityType, () => ""],
-        [!count, () => "No data selected"],
-        [type === chooseSetType, () => `${rootEntityType}s from ${count} ${setType}${pluralS} ${count > 1 ? newSetMessage(setType) : ""}`],
+        [this.isSingle() || !rootEntityType, () => ''],
+        [!count, () => 'No data selected'],
+        [type === chooseSetType, () => `${rootEntityType}s from ${count} ${setType}${pluralS} ${count > 1 ? newSetMessage(setType) : ''}`],
         [type === chooseBaseType, () => `1 ${rootEntityType} containing ${count} ${baseEntityType}${pluralS} ${newSetMessage(rootEntityType)}`],
-        [type === chooseRootType, () => `${count} selected ${rootEntityType}${pluralS} ${count > 1 ? newSetMessage(setType) : ""}`],
-        [type === processSnapshotTable, () => "process entire snapshot table"]
+        [type === chooseRootType, () => `${count} selected ${rootEntityType}${pluralS} ${count > 1 ? newSetMessage(setType) : ''}`],
+        [type === processSnapshotTable, () => 'process entire snapshot table']
       );
     }
 
@@ -688,7 +688,7 @@ const WorkflowView = _.flow(
     }
 
     loadNewMethodConfig = _.flow(
-      withErrorReporting("Error updating config"),
+      withErrorReporting('Error updating config'),
       Utils.withBusyState((v) => this.setState({ updatingConfig: v }))
     )(async (newSnapshotId) => {
       const { signal } = this.props;
@@ -701,7 +701,7 @@ const WorkflowView = _.flow(
       const config = await Ajax(signal).Methods.template({ methodNamespace, methodName, methodPath, sourceRepo, methodVersion: newSnapshotId });
       const modifiedInputsOutputs = await Ajax(signal).Methods.configInputsOutputs(config);
       this.setState({ modifiedInputsOutputs, savedSnapRedacted: currentSnapRedacted, currentSnapRedacted: false });
-      this.setState(_.update("modifiedConfig", _.flow(_.set("methodRepoMethod", config.methodRepoMethod), filterConfigIO(modifiedInputsOutputs))));
+      this.setState(_.update('modifiedConfig', _.flow(_.set('methodRepoMethod', config.methodRepoMethod), filterConfigIO(modifiedInputsOutputs))));
       this.fetchInfo(config);
     });
 
@@ -752,12 +752,12 @@ const WorkflowView = _.flow(
       const possibleSetTypes = findPossibleSets(entityTypes);
       const modified = !_.isEqual(modifiedConfig, savedConfig);
       const noLaunchReason = Utils.cond(
-        [saving || modified, () => "Save or cancel to Launch Analysis"],
+        [saving || modified, () => 'Save or cancel to Launch Analysis'],
         [
           entitySelectionModel.type === processSnapshotTable && (!rootEntityType || !modifiedConfig.dataReferenceName),
-          () => "A snapshot and table must be selected",
+          () => 'A snapshot and table must be selected',
         ],
-        [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => "At least one required attribute is missing or invalid"],
+        [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
         [
           entitySelectionModel.type !== processSnapshotTable &&
             this.isMultiple() &&
@@ -767,36 +767,36 @@ const WorkflowView = _.flow(
         ],
         [
           entitySelectionModel.type !== processSnapshotTable && this.isMultiple() && !_.size(entitySelectionModel.selectedEntities),
-          () => "Select data for analysis",
+          () => 'Select data for analysis',
         ]
       );
 
       const inputsValid = _.isEmpty(errors.inputs);
       const outputsValid = _.isEmpty(errors.outputs);
-      const sourceDisplay = sourceRepo === "agora" ? `${methodNamespace}/${methodName}/${methodVersion}` : `${methodPath}:${methodVersion}`;
-      const clickToLearnMore = "Click here to learn more.";
+      const sourceDisplay = sourceRepo === 'agora' ? `${methodNamespace}/${methodName}/${methodVersion}` : `${methodPath}:${methodVersion}`;
+      const clickToLearnMore = 'Click here to learn more.';
       return div(
         {
           style: {
-            position: "relative",
-            backgroundColor: "white",
+            position: 'relative',
+            backgroundColor: 'white',
             borderBottom: `2px solid ${terraSpecial()}`,
-            boxShadow: "0 2px 5px 0 rgba(0,0,0,0.26), 0 2px 10px 0 rgba(0,0,0,0.16)",
+            boxShadow: '0 2px 5px 0 rgba(0,0,0,0.26), 0 2px 10px 0 rgba(0,0,0,0.16)',
           },
         },
         [
-          div({ style: { display: "flex", padding: `0.5rem ${sideMargin} 0`, minHeight: 120 } }, [
-            div({ style: { flex: "1", lineHeight: "1.5rem", minWidth: 0 } }, [
+          div({ style: { display: 'flex', padding: `0.5rem ${sideMargin} 0`, minHeight: 120 } }, [
+            div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0 } }, [
               h(
                 Link,
                 {
-                  href: Nav.getLink("workspace-workflows", { namespace, name: workspaceName }),
-                  style: { display: "inline-flex", alignItems: "center", padding: "0.5rem 0" },
+                  href: Nav.getLink('workspace-workflows', { namespace, name: workspaceName }),
+                  style: { display: 'inline-flex', alignItems: 'center', padding: '0.5rem 0' },
                 },
-                [icon("arrowLeft", { style: { marginRight: "0.5rem" } }), "Back to list"]
+                [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to list']
               ),
-              div({ style: { display: "flex" } }, [
-                span({ style: { marginLeft: "-2rem", width: "2rem" } }, [
+              div({ style: { display: 'flex' } }, [
+                span({ style: { marginLeft: '-2rem', width: '2rem' } }, [
                   h(
                     MenuTrigger,
                     {
@@ -807,41 +807,41 @@ const WorkflowView = _.flow(
                           {
                             onClick: () => this.setState({ exporting: true }),
                           },
-                          [makeMenuIcon("export"), "Copy to Another Workspace"]
+                          [makeMenuIcon('export'), 'Copy to Another Workspace']
                         ),
                         h(
                           MenuButton,
                           {
                             onClick: () => this.setState({ copying: true }),
                           },
-                          [makeMenuIcon("copy"), "Duplicate"]
+                          [makeMenuIcon('copy'), 'Duplicate']
                         ),
                         h(
                           MenuButton,
                           {
                             disabled: !!Utils.editWorkspaceError(ws),
                             tooltip: Utils.editWorkspaceError(ws),
-                            tooltipSide: "right",
+                            tooltipSide: 'right',
                             onClick: () => this.setState({ deleting: true }),
                           },
-                          [makeMenuIcon("trash"), "Delete"]
+                          [makeMenuIcon('trash'), 'Delete']
                         ),
                       ]),
                     },
-                    [h(Link, { "aria-label": "Workflow menu" }, [icon("cardMenuIcon", { size: 22 })])]
+                    [h(Link, { 'aria-label': 'Workflow menu' }, [icon('cardMenuIcon', { size: 22 })])]
                   ),
                 ]),
                 span({ style: { color: colors.dark(), fontSize: 24 } }, name),
               ]),
               currentSnapRedacted &&
-                div({ style: { color: colors.warning(), fontSize: 16, fontWeight: 500, marginTop: "0.5rem" } }, [
-                  "You do not have access to this workflow, or this snapshot has been removed. To use this workflow, contact the owner to request access, or select another snapshot.",
+                div({ style: { color: colors.warning(), fontSize: 16, fontWeight: 500, marginTop: '0.5rem' } }, [
+                  'You do not have access to this workflow, or this snapshot has been removed. To use this workflow, contact the owner to request access, or select another snapshot.',
                 ]),
               h(IdContainer, [
                 (id) =>
-                  div({ style: { marginTop: "0.5rem" } }, [
-                    label({ htmlFor: id }, [`${sourceRepo === "agora" ? "Snapshot" : "Version"}: `]),
-                    div({ style: { display: "inline-block", marginLeft: "0.25rem", width: sourceRepo === "agora" ? 75 : 200 } }, [
+                  div({ style: { marginTop: '0.5rem' } }, [
+                    label({ htmlFor: id }, [`${sourceRepo === 'agora' ? 'Snapshot' : 'Version'}: `]),
+                    div({ style: { display: 'inline-block', marginLeft: '0.25rem', width: sourceRepo === 'agora' ? 75 : 200 } }, [
                       h(Select, {
                         id,
                         isDisabled: !!Utils.editWorkspaceError(ws),
@@ -849,7 +849,7 @@ const WorkflowView = _.flow(
                         isSearchable: false,
                         value: methodVersion,
                         options: _.sortBy(
-                          sourceRepo === "agora" ? _.toNumber : _.identity,
+                          sourceRepo === 'agora' ? _.toNumber : _.identity,
                           _.uniq([...versionIds, savedConfig.methodRepoMethod.methodVersion])
                         ),
                         isOptionDisabled: ({ value }) =>
@@ -860,7 +860,7 @@ const WorkflowView = _.flow(
                   ]),
               ]),
               div([
-                "Source: ",
+                'Source: ',
                 currentSnapRedacted
                   ? sourceDisplay
                   : h(
@@ -872,60 +872,60 @@ const WorkflowView = _.flow(
                       [sourceDisplay]
                     ),
               ]),
-              div(`Synopsis: ${synopsis || ""}`),
+              div(`Synopsis: ${synopsis || ''}`),
               documentation
                 ? h(DocumentationCollapse, [documentation])
-                : div({ style: { fontStyle: "italic", ...styles.description } }, ["No documentation provided"]),
-              div({ role: "radiogroup", "aria-label": "Select number of target entities", style: { marginBottom: "1rem" } }, [
+                : div({ style: { fontStyle: 'italic', ...styles.description } }, ['No documentation provided']),
+              div({ role: 'radiogroup', 'aria-label': 'Select number of target entities', style: { marginBottom: '1rem' } }, [
                 div([
                   h(RadioButton, {
                     disabled: !!Utils.editWorkspaceError(ws) || currentSnapRedacted,
-                    text: "Run workflow with inputs defined by file paths",
-                    name: "process-workflows",
+                    text: 'Run workflow with inputs defined by file paths',
+                    name: 'process-workflows',
                     checked: this.isSingle(),
                     onChange: () => this.selectSingle(),
-                    labelStyle: { marginLeft: "0.5rem" },
+                    labelStyle: { marginLeft: '0.5rem' },
                   }),
                 ]),
                 div([
                   h(RadioButton, {
                     disabled: !!Utils.editWorkspaceError(ws) || currentSnapRedacted,
-                    text: "Run workflow(s) with inputs defined by data table",
-                    name: "process-workflows",
+                    text: 'Run workflow(s) with inputs defined by data table',
+                    name: 'process-workflows',
                     checked: this.isMultiple(),
                     onChange: () => this.selectMultiple(),
-                    labelStyle: { marginLeft: "0.5rem" },
+                    labelStyle: { marginLeft: '0.5rem' },
                   }),
                 ]),
                 this.isMultiple() &&
-                  div({ style: { display: "flex", margin: "0.5rem 0 0 2rem" } }, [
+                  div({ style: { display: 'flex', margin: '0.5rem 0 0 2rem' } }, [
                     div([
-                      div({ style: { height: "2rem", fontWeight: "bold" } }, ["Step 1"]),
-                      label(["Select root entity type:"]),
+                      div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 1']),
+                      label(['Select root entity type:']),
                       snapshotReferenceError &&
                         h(TooltipTrigger, { content: Utils.snapshotReferenceMissingError(modifiedConfig.dataReferenceName) }, [
-                          icon("error-standard", {
+                          icon('error-standard', {
                             size: 14,
-                            style: { marginLeft: "0.5rem", color: colors.warning(), cursor: "help" },
+                            style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' },
                           }),
                         ]),
                       h(GroupedSelect, {
-                        "aria-label": "Entity type selector",
+                        'aria-label': 'Entity type selector',
                         isClearable: false,
                         isDisabled: currentSnapRedacted || this.isSingle() || !!Utils.editWorkspaceError(ws),
                         isSearchable: true,
-                        placeholder: "Select data type...",
-                        styles: { container: (old) => ({ ...old, display: "inline-block", width: 200, marginLeft: "0.5rem" }) },
+                        placeholder: 'Select data type...',
+                        styles: { container: (old) => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
                         value: selectedEntityType,
                         onChange: async ({ value, source }) => {
                           this.setState({ snapshotReferenceError: undefined });
-                          if (source === "snapshot") {
+                          if (source === 'snapshot') {
                             const selectedSnapshotEntityMetadata = await Ajax(signal)
                               .Workspaces.workspace(namespace, workspaceName)
                               .snapshotEntityMetadata(workspace.googleProject, value);
 
-                            this.setState(_.set(["modifiedConfig", "dataReferenceName"], value));
-                            this.setState(_.unset(["modifiedConfig", "rootEntityType"]));
+                            this.setState(_.set(['modifiedConfig', 'dataReferenceName'], value));
+                            this.setState(_.unset(['modifiedConfig', 'rootEntityType']));
 
                             this.setState({
                               selectedSnapshotEntityMetadata,
@@ -933,8 +933,8 @@ const WorkflowView = _.flow(
                               entitySelectionModel: this.resetSelectionModel(value, undefined, undefined, true),
                             });
                           } else {
-                            this.setState(_.set(["modifiedConfig", "rootEntityType"], value));
-                            this.setState(_.unset(["modifiedConfig", "dataReferenceName"]));
+                            this.setState(_.set(['modifiedConfig', 'rootEntityType'], value));
+                            this.setState(_.unset(['modifiedConfig', 'dataReferenceName']));
                             this.setState({
                               selectedEntityType: value,
                               entitySelectionModel: this.resetSelectionModel(value, {}, entityMetadata, false),
@@ -944,37 +944,37 @@ const WorkflowView = _.flow(
                         },
                         options: [
                           {
-                            label: "TABLES",
+                            label: 'TABLES',
                             options: _.map(
-                              (entityType) => ({ value: entityType, source: "table" }),
+                              (entityType) => ({ value: entityType, source: 'table' }),
                               _.sortBy(_.lowerCase, [...entityTypes, ...possibleSetTypes])
                             ),
                           },
                           {
-                            label: "SNAPSHOTS",
-                            options: _.map(({ name }) => ({ value: name, source: "snapshot" }), availableSnapshots),
+                            label: 'SNAPSHOTS',
+                            options: _.map(({ name }) => ({ value: name, source: 'snapshot' }), availableSnapshots),
                           },
                         ],
                       }),
                     ]),
                     entitySelectionModel.type === processSnapshotTable
-                      ? div({ style: { margin: "2rem 0 0 2rem" } }, [
+                      ? div({ style: { margin: '2rem 0 0 2rem' } }, [
                           h(Select, {
                             isDisabled: !!Utils.editWorkspaceError(ws) || !!snapshotReferenceError,
-                            "aria-label": "Snapshot table selector",
+                            'aria-label': 'Snapshot table selector',
                             isClearable: false,
                             value: modifiedConfig.dataReferenceName && !snapshotReferenceError ? modifiedConfig.rootEntityType : undefined,
                             onChange: ({ value }) => {
-                              this.setState(_.set(["modifiedConfig", "rootEntityType"], value));
-                              this.setState(_.unset(["modifiedConfig", "entityName"]));
+                              this.setState(_.set(['modifiedConfig', 'rootEntityType'], value));
+                              this.setState(_.unset(['modifiedConfig', 'entityName']));
                             },
-                            styles: { container: (old) => ({ ...old, display: "inline-block", width: 200, marginLeft: "0.5rem" }) },
+                            styles: { container: (old) => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
                             options: _.sortBy(_.identity, _.keys(selectedSnapshotEntityMetadata)),
                           }),
                         ])
-                      : div({ style: { marginLeft: "2rem", paddingLeft: "2rem", borderLeft: `2px solid ${colors.dark(0.2)}`, flex: 1 } }, [
-                          div({ style: { height: "2rem", fontWeight: "bold" } }, ["Step 2"]),
-                          div({ style: { display: "flex", alignItems: "center" } }, [
+                      : div({ style: { marginLeft: '2rem', paddingLeft: '2rem', borderLeft: `2px solid ${colors.dark(0.2)}`, flex: 1 } }, [
+                          div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 2']),
+                          div({ style: { display: 'flex', alignItems: 'center' } }, [
                             h(
                               ButtonPrimary,
                               {
@@ -987,16 +987,16 @@ const WorkflowView = _.flow(
                                 tooltip: Utils.editWorkspaceError(ws),
                                 onClick: () => this.setState({ selectingData: true }),
                               },
-                              ["Select Data"]
+                              ['Select Data']
                             ),
-                            label({ style: { marginLeft: "1rem" } }, [`${this.describeSelectionModel()}`]),
+                            label({ style: { marginLeft: '1rem' } }, [`${this.describeSelectionModel()}`]),
                           ]),
                         ]),
                   ]),
               ]),
-              div({ style: { display: "flex", alignItems: "baseline", minWidth: "max-content" } }, [
+              div({ style: { display: 'flex', alignItems: 'baseline', minWidth: 'max-content' } }, [
                 // This span is to prevent vertical resizing when the memory retry multiplier input is visible.
-                span({ style: { marginTop: "0.5rem", marginBottom: "0.5rem" } }, [
+                span({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, [
                   span({ style: { ...styles.checkBoxSpanMargins, marginLeft: 0 } }, [
                     h(
                       LabeledCheckbox,
@@ -1005,12 +1005,12 @@ const WorkflowView = _.flow(
                         checked: useCallCache,
                         onChange: (v) => this.setState({ useCallCache: v }),
                       },
-                      [" Use call caching"]
+                      [' Use call caching']
                     ),
                   ]),
                   h(InfoBox, [
                     "Call caching detects when a job has been run in the past so that it doesn't have to re-compute results. ",
-                    h(Link, { href: this.getSupportLink("360047664872"), ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                    h(Link, { href: this.getSupportLink('360047664872'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
                   ]),
                   span({ style: styles.checkBoxSpanMargins }, [
                     h(
@@ -1020,12 +1020,12 @@ const WorkflowView = _.flow(
                         onChange: (v) => this.setState({ deleteIntermediateOutputFiles: v }),
                         style: styles.checkBoxLeftMargin,
                       },
-                      [" Delete intermediate outputs"]
+                      [' Delete intermediate outputs']
                     ),
                   ]),
                   h(InfoBox, [
-                    "If the workflow succeeds, only the final output will be saved. Subsequently, call caching cannot be used as the intermediate steps will be not available. ",
-                    h(Link, { href: this.getSupportLink("360039681632"), ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                    'If the workflow succeeds, only the final output will be saved. Subsequently, call caching cannot be used as the intermediate steps will be not available. ',
+                    h(Link, { href: this.getSupportLink('360039681632'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
                   ]),
                   span({ style: styles.checkBoxSpanMargins }, [
                     h(
@@ -1035,12 +1035,12 @@ const WorkflowView = _.flow(
                         onChange: (v) => this.setState({ useReferenceDisks: v }),
                         style: styles.checkBoxLeftMargin,
                       },
-                      [" Use reference disks"]
+                      [' Use reference disks']
                     ),
                   ]),
                   h(InfoBox, [
-                    "Use a reference disk image if available rather than localizing reference inputs. ",
-                    h(Link, { href: this.getSupportLink("360056384631"), ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                    'Use a reference disk image if available rather than localizing reference inputs. ',
+                    h(Link, { href: this.getSupportLink('360056384631'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
                   ]),
                   span({ style: styles.checkBoxSpanMargins }, [
                     h(
@@ -1050,23 +1050,23 @@ const WorkflowView = _.flow(
                         onChange: (v) => this.setState({ retryWithMoreMemory: v }),
                         style: styles.checkBoxLeftMargin,
                       },
-                      [" Retry with more memory"]
+                      [' Retry with more memory']
                     ),
                   ]),
                 ]),
                 retryWithMoreMemory &&
-                  span({ style: { margin: "0 0.5rem 0 0.5rem" } }, [
+                  span({ style: { margin: '0 0.5rem 0 0.5rem' } }, [
                     h(IdContainer, [
                       (id) =>
                         h(Fragment, [
                           label(
                             {
                               htmlFor: id,
-                              style: { ...styles.label, verticalAlign: "middle" },
+                              style: { ...styles.label, verticalAlign: 'middle' },
                             },
-                            ["Memory retry factor:"]
+                            ['Memory retry factor:']
                           ),
-                          div({ style: { display: "inline-block", marginLeft: "0.25rem" } }, [
+                          div({ style: { display: 'inline-block', marginLeft: '0.25rem' } }, [
                             h(NumberInput, {
                               id,
                               min: 1.1,
@@ -1075,7 +1075,7 @@ const WorkflowView = _.flow(
                               isClearable: false,
                               onlyInteger: false,
                               value: retryMemoryFactor,
-                              style: { width: "5rem" },
+                              style: { width: '5rem' },
                               onChange: (v) => this.setState({ retryMemoryFactor: v }),
                             }),
                           ]),
@@ -1085,13 +1085,13 @@ const WorkflowView = _.flow(
                 // We show either an info message or a warning, based on whether increasing memory on retries is
                 // enabled and the value of the retry multiplier.
                 retryWithMoreMemory && retryMemoryFactor > 2
-                  ? h(InfoBox, { style: { color: colors.warning() }, iconOverride: "warning-standard" }, [
-                      "Retry factors above 2 are not recommended. The retry factor compounds and may substantially increase costs. ",
-                      h(Link, { href: this.getSupportLink("4403215299355"), ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                  ? h(InfoBox, { style: { color: colors.warning() }, iconOverride: 'warning-standard' }, [
+                      'Retry factors above 2 are not recommended. The retry factor compounds and may substantially increase costs. ',
+                      h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
                     ])
                   : h(InfoBox, [
-                      "If a task has a maxRetries value greater than zero and fails because it ran out of memory, retry it with more memory. ",
-                      h(Link, { href: this.getSupportLink("4403215299355"), ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                      'If a task has a maxRetries value greater than zero and fails because it ran out of memory, retry it with more memory. ',
+                      h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
                     ]),
                 span({ style: styles.checkBoxSpanMargins }, [
                   h(
@@ -1101,64 +1101,64 @@ const WorkflowView = _.flow(
                       onChange: (v) => this.setState({ ignoreEmptyOutputs: v }),
                       style: styles.checkBoxLeftMargin,
                     },
-                    [" Ignore empty outputs"]
+                    [' Ignore empty outputs']
                   ),
                 ]),
-                h(InfoBox, ["Do not create output columns if the data is null/empty. "]),
+                h(InfoBox, ['Do not create output columns if the data is null/empty. ']),
               ]),
               h(StepButtons, {
                 tabs: [
-                  ...(!currentSnapRedacted ? [{ key: "wdl", title: "Script", isValid: true }] : []),
-                  { key: "inputs", title: "Inputs", isValid: inputsValid },
-                  { key: "outputs", title: "Outputs", isValid: outputsValid },
+                  ...(!currentSnapRedacted ? [{ key: 'wdl', title: 'Script', isValid: true }] : []),
+                  { key: 'inputs', title: 'Inputs', isValid: inputsValid },
+                  { key: 'outputs', title: 'Outputs', isValid: outputsValid },
                 ],
                 activeTab,
-                onChangeTab: (v) => this.setState({ activeTab: v, filter: "" }),
+                onChangeTab: (v) => this.setState({ activeTab: v, filter: '' }),
                 finalStep: h(
                   ButtonPrimary,
                   {
-                    style: { marginLeft: "1rem" },
+                    style: { marginLeft: '1rem' },
                     disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !!snapshotReferenceError,
-                    tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && "Workflow version was redacted."),
+                    tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.'),
                     onClick: () => this.setState({ launching: true }),
                   },
-                  ["Run analysis"]
+                  ['Run analysis']
                 ),
               }),
-              activeTab === "outputs" &&
+              activeTab === 'outputs' &&
                 !currentSnapRedacted &&
-                div({ style: { marginBottom: "1rem" } }, [
-                  div({ style: styles.outputInfoLabel }, "Output files will be saved to"),
-                  div({ style: { display: "flex", alignItems: "center" } }, [
-                    div({ style: { flex: "none", display: "flex", width: "1.5rem" } }, [icon("folder", { size: 18 })]),
+                div({ style: { marginBottom: '1rem' } }, [
+                  div({ style: styles.outputInfoLabel }, 'Output files will be saved to'),
+                  div({ style: { display: 'flex', alignItems: 'center' } }, [
+                    div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [icon('folder', { size: 18 })]),
                     div({ style: { flex: 1 } }, [
-                      "Files / ",
-                      span({ style: styles.placeholder }, "submission unique ID"),
-                      " / ",
-                      wdl ? wdl.match(/^\s*workflow ([^\s{]+)\s*{/m)[1] : span({ style: styles.placeholder }, "workflow name"),
-                      " / ",
-                      span({ style: styles.placeholder }, "workflow unique ID"),
+                      'Files / ',
+                      span({ style: styles.placeholder }, 'submission unique ID'),
+                      ' / ',
+                      wdl ? wdl.match(/^\s*workflow ([^\s{]+)\s*{/m)[1] : span({ style: styles.placeholder }, 'workflow name'),
+                      ' / ',
+                      span({ style: styles.placeholder }, 'workflow unique ID'),
                     ]),
                   ]),
                   !!rootEntityType &&
                     entitySelectionModel.type !== processSnapshotTable &&
                     h(Fragment, [
-                      div({ style: { margin: "0.5rem 0", borderBottom: `1px solid ${colors.dark(0.55)}` } }),
-                      div({ style: styles.outputInfoLabel }, "References to outputs will be written to"),
-                      div({ style: { display: "flex", alignItems: "center" } }, [
-                        div({ style: { flex: "none", display: "flex", width: "1.5rem" } }, [icon("listAlt")]),
+                      div({ style: { margin: '0.5rem 0', borderBottom: `1px solid ${colors.dark(0.55)}` } }),
+                      div({ style: styles.outputInfoLabel }, 'References to outputs will be written to'),
+                      div({ style: { display: 'flex', alignItems: 'center' } }, [
+                        div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [icon('listAlt')]),
                         `Tables / ${rootEntityType}`,
                       ]),
-                      "Fill in the attributes below to add or update columns in your data table",
+                      'Fill in the attributes below to add or update columns in your data table',
                     ]),
                 ]),
             ]),
           ]),
           div({ style: styles.messageContainer }, [
-            saving && miniMessage("Saving..."),
-            saved && !saving && !modified && miniMessage("Saved!"),
-            modified && h(ButtonSecondary, { style: { marginRight: "1rem" }, disabled: saving, onClick: () => this.cancel() }, "Cancel"),
-            modified && h(ButtonPrimary, { disabled: saving || !this.canSave(), onClick: () => this.save() }, "Save"),
+            saving && miniMessage('Saving...'),
+            saved && !saving && !modified && miniMessage('Saved!'),
+            modified && h(ButtonSecondary, { style: { marginRight: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel'),
+            modified && h(ButtonPrimary, { disabled: saving || !this.canSave(), onClick: () => this.save() }, 'Save'),
           ]),
           exporting &&
             h(ExportWorkflowModal, {
@@ -1172,7 +1172,7 @@ const WorkflowView = _.flow(
               methodConfig: savedConfig,
               sameWorkspace: true,
               onDismiss: () => this.setState({ copying: false }),
-              onSuccess: () => Nav.goToPath("workspace-workflows", { namespace, name: workspaceName }),
+              onSuccess: () => Nav.goToPath('workspace-workflows', { namespace, name: workspaceName }),
             }),
           deleting &&
             h(DeleteWorkflowConfirmationModal, {
@@ -1188,10 +1188,10 @@ const WorkflowView = _.flow(
                     .methodConfig(savedConfig.namespace, savedConfig.name)
                     .delete();
 
-                  Nav.goToPath("workspace-workflows", _.pick(["namespace", "name"], workspace));
+                  Nav.goToPath('workspace-workflows', _.pick(['namespace', 'name'], workspace));
                 } catch (err) {
                   this.setState({ updatingConfig: false });
-                  reportError("Error deleting workflow.", err);
+                  reportError('Error deleting workflow.', err);
                 }
               },
             }),
@@ -1222,7 +1222,7 @@ const WorkflowView = _.flow(
           rawUpdates
         );
         this.setState(({ modifiedConfig, modifiedInputsOutputs }) => {
-          const existing = _.map("name", modifiedInputsOutputs[key]);
+          const existing = _.map('name', modifiedInputsOutputs[key]);
           return {
             modifiedConfig: _.update(key, _.assign(_, _.pick(existing, updates)), modifiedConfig),
           };
@@ -1238,13 +1238,13 @@ const WorkflowView = _.flow(
           inputsOrOutputs: key,
           methodVersion,
           sourceRepo,
-          methodPath: sourceRepo === "agora" ? `${methodNamespace}/${methodName}` : methodPath,
+          methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath,
         });
       } catch (error) {
         if (error instanceof SyntaxError) {
-          reportError("Error processing file", "This json file is not formatted correctly.");
+          reportError('Error processing file', 'This json file is not formatted correctly.');
         } else {
-          reportError("Error processing file", error);
+          reportError('Error processing file', error);
         }
       }
     }
@@ -1265,7 +1265,7 @@ const WorkflowView = _.flow(
         inputsOrOutputs: key,
         methodVersion,
         sourceRepo,
-        methodPath: sourceRepo === "agora" ? `${methodNamespace}/${methodName}` : methodPath,
+        methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath,
       });
     }
 
@@ -1301,7 +1301,7 @@ const WorkflowView = _.flow(
 
       const selectedTableName = modifiedConfig.dataReferenceName ? modifiedConfig.rootEntityType : undefined;
       const selectionMetadata = selectedTableName ? selectedSnapshotEntityMetadata : entityMetadata;
-      const attributeNames = _.get([modifiedConfig.rootEntityType, "attributeNames"], selectionMetadata) || [];
+      const attributeNames = _.get([modifiedConfig.rootEntityType, 'attributeNames'], selectionMetadata) || [];
 
       const suggestions = [
         ...(!selectedTableName && !modifiedConfig.dataReferenceName && modifiedConfig.rootEntityType
@@ -1311,12 +1311,12 @@ const WorkflowView = _.flow(
         ...getWorkflowInputSuggestionsForAttributesOfSetMembers(selectedEntities, selectionMetadata),
         ..._.map((name) => `workspace.${name}`, workspaceAttributes),
       ];
-      const data = currentSnapRedacted ? _.map((k) => ({ name: k, inputType: "unknown" }), _.keys(modifiedConfig[key])) : modifiedInputsOutputs[key];
+      const data = currentSnapRedacted ? _.map((k) => ({ name: k, inputType: 'unknown' }), _.keys(modifiedConfig[key])) : modifiedInputsOutputs[key];
       const filteredData = _.filter(({ name, optional }) => {
-        return !(key === "inputs" && !includeOptionalInputs && optional) && Utils.textMatch(filter, name);
+        return !(key === 'inputs' && !includeOptionalInputs && optional) && Utils.textMatch(filter, name);
       }, data);
 
-      const isSingleAndOutputs = key === "outputs" && this.isSingle();
+      const isSingleAndOutputs = key === 'outputs' && this.isSingle();
       const isEditable = !currentSnapRedacted && !Utils.editWorkspaceError(workspace) && !isSingleAndOutputs;
 
       const linkStyle = { color: colors.accent(1.05) }; // Get to 4.5:1 contrast on the gray background
@@ -1325,21 +1325,21 @@ const WorkflowView = _.flow(
         Dropzone,
         {
           key,
-          accept: ".json",
+          accept: '.json',
           multiple: false,
           disabled: currentSnapRedacted || !!Utils.editWorkspaceError(workspace) || data.length === 0,
           style: {
             ...styles.tabContents,
-            flex: "auto",
-            display: "flex",
-            flexDirection: "column",
+            flex: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
             position: undefined,
           },
-          activeStyle: { backgroundColor: colors.accent(0.2), cursor: "copy" },
+          activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
           onDropRejected: () =>
             reportError(
-              "Not a valid inputs file",
-              "The selected file is not a json file. To import inputs for this workflow, upload a file with a .json extension."
+              'Not a valid inputs file',
+              'The selected file is not a json file. To import inputs for this workflow, upload a file with a .json extension.'
             ),
           onDropAccepted: (files) => this.uploadJson(key, files[0]),
         },
@@ -1348,43 +1348,43 @@ const WorkflowView = _.flow(
             data.length === 0
               ? `No configurable ${key}.`
               : h(Fragment, [
-                  div({ style: { flex: "none", display: "flex", alignItems: "center", marginBottom: "0.25rem" } }, [
+                  div({ style: { flex: 'none', display: 'flex', alignItems: 'center', marginBottom: '0.25rem' } }, [
                     isSingleAndOutputs &&
                       !currentSnapRedacted &&
-                      div({ style: { margin: "0 1rem 0.5rem" } }, [
-                        b(["Outputs are not mapped to the data model when processing a single workflow from files."]),
+                      div({ style: { margin: '0 1rem 0.5rem' } }, [
+                        b(['Outputs are not mapped to the data model when processing a single workflow from files.']),
                         div(['To write to the data model, select "Process multiple workflows" above.']),
                       ]),
-                    key === "inputs" && _.some("optional", modifiedInputsOutputs.inputs)
+                    key === 'inputs' && _.some('optional', modifiedInputsOutputs.inputs)
                       ? h(
                           Link,
                           {
-                            style: { marginRight: "auto", ...linkStyle },
+                            style: { marginRight: 'auto', ...linkStyle },
                             onClick: () => this.setState({ includeOptionalInputs: !includeOptionalInputs }),
                           },
-                          [includeOptionalInputs ? "Hide optional inputs" : "Show optional inputs"]
+                          [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs']
                         )
-                      : div({ style: { marginRight: "auto" } }),
-                    h(Link, { style: linkStyle, onClick: () => this.downloadJson(key) }, ["Download json"]),
+                      : div({ style: { marginRight: 'auto' } }),
+                    h(Link, { style: linkStyle, onClick: () => this.downloadJson(key) }, ['Download json']),
                     isEditable &&
                       h(Fragment, [
-                        div({ style: { whiteSpace: "pre" } }, ["  |  Drag or click to "]),
-                        h(Link, { style: linkStyle, onClick: openUploader }, ["upload json"]),
+                        div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
+                        h(Link, { style: linkStyle, onClick: openUploader }, ['upload json']),
                       ]),
                     isEditable &&
                       h(Fragment, [
-                        div({ style: { whiteSpace: "pre" } }, ["  |  "]),
+                        div({ style: { whiteSpace: 'pre' } }, ['  |  ']),
                         h(Link, { style: linkStyle, onClick: () => this.clear(key) }, [`Clear ${key}`]),
                       ]),
                     h(DelayedSearchInput, {
-                      "aria-label": `Search ${key}`,
-                      style: { marginLeft: "1rem", width: 200 },
+                      'aria-label': `Search ${key}`,
+                      style: { marginLeft: '1rem', width: 200 },
                       placeholder: `SEARCH ${key.toUpperCase()}`,
                       value: filter,
                       onChange: (filter) => this.setState({ filter }),
                     }),
                   ]),
-                  div({ style: { flex: "1 0 auto" } }, [
+                  div({ style: { flex: '1 0 auto' } }, [
                     h(WorkflowIOTable, {
                       readOnly: !isEditable,
                       which: key,
@@ -1392,12 +1392,12 @@ const WorkflowView = _.flow(
                       config: modifiedConfig,
                       errors,
                       onBrowse: (name) => this.setState({ variableSelected: name }),
-                      onChange: (name, v) => this.setState(_.set(["modifiedConfig", key, name], v)),
+                      onChange: (name, v) => this.setState(_.set(['modifiedConfig', key, name], v)),
                       onSetDefaults: () => {
                         this.setState((oldState) => {
                           return _.set(
-                            ["modifiedConfig", "outputs"],
-                            _.fromPairs(_.map(({ name }) => [name, `this.${_.last(name.split("."))}`], oldState.modifiedInputsOutputs.outputs)),
+                            ['modifiedConfig', 'outputs'],
+                            _.fromPairs(_.map(({ name }) => [name, `this.${_.last(name.split('.'))}`], oldState.modifiedInputsOutputs.outputs)),
                             oldState
                           );
                         });
@@ -1411,7 +1411,7 @@ const WorkflowView = _.flow(
                           ...extractWorkspaceDetails(workspace.workspace),
                           methodVersion,
                           sourceRepo,
-                          methodPath: sourceRepo === "agora" ? `${methodNamespace}/${methodName}` : methodPath,
+                          methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath,
                         });
                       },
                       suggestions,
@@ -1435,8 +1435,8 @@ const WorkflowView = _.flow(
 
       try {
         const trimInputOutput = _.flow(
-          _.update("inputs", _.mapValues(_.trim)),
-          _.update("outputs", this.isSingle() ? () => ({}) : _.mapValues(_.trim))
+          _.update('inputs', _.mapValues(_.trim)),
+          _.update('outputs', this.isSingle() ? () => ({}) : _.mapValues(_.trim))
         );
 
         const validationResponse = await Ajax()
@@ -1461,7 +1461,7 @@ const WorkflowView = _.flow(
           () => setTimeout(() => this.setState({ saved: false }), 3000)
         );
       } catch (error) {
-        reportError("Error saving", error);
+        reportError('Error saving', error);
       } finally {
         this.setState({ saving: false });
       }
@@ -1482,7 +1482,7 @@ const WorkflowView = _.flow(
         modifiedInputsOutputs: savedInputsOutputs,
         entitySelectionModel: this.resetSelectionModel(rootEntityType),
         currentSnapRedacted: savedSnapRedacted,
-        activeTab: activeTab === "wdl" && savedSnapRedacted ? "inputs" : activeTab,
+        activeTab: activeTab === 'wdl' && savedSnapRedacted ? 'inputs' : activeTab,
       });
       this.updateSingleOrMultipleRadioState(savedConfig);
     }
@@ -1491,14 +1491,14 @@ const WorkflowView = _.flow(
 
 export const navPaths = [
   {
-    name: "workflow",
-    path: "/workspaces/:namespace/:name/workflows/:workflowNamespace/:workflowName",
+    name: 'workflow',
+    path: '/workspaces/:namespace/:name/workflows/:workflowNamespace/:workflowName',
     component: WorkflowView,
     title: ({ name, workflowName }) => `${name} - Workflows - ${workflowName}`,
   },
   {
-    name: "tools-workflow", // legacy
-    path: "/workspaces/:namespace/:name/tools/:workflowNamespace/:workflowName",
-    component: (props) => h(Nav.Redirector, { pathname: Nav.getPath("workflow", props) }),
+    name: 'tools-workflow', // legacy
+    path: '/workspaces/:namespace/:name/tools/:workflowNamespace/:workflowName',
+    component: (props) => h(Nav.Redirector, { pathname: Nav.getPath('workflow', props) }),
   },
 ];

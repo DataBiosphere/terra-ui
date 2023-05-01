@@ -1,5 +1,5 @@
-import _ from "lodash/fp";
-import { ReactElement, useMemo, useState } from "react";
+import _ from 'lodash/fp';
+import { ReactElement, useMemo, useState } from 'react';
 
 type IdContainerProps = {
   children: (id: string) => ReactElement<any, any> | null;
@@ -9,7 +9,7 @@ type IdContainerProps = {
  * DEPRECATED - should switch to useUniqueId pattern (below)
  */
 export const IdContainer = ({ children }: IdContainerProps) => {
-  const [id] = useState(() => _.uniqueId("element-"));
+  const [id] = useState(() => _.uniqueId('element-'));
   return children(id);
 };
 
@@ -26,7 +26,7 @@ export const IdContainer = ({ children }: IdContainerProps) => {
  * // thing-one-123
  * // element-124
  */
-export const useUniqueId = (prefix = "element"): string => {
-  const uniqueId: string = useMemo(() => _.uniqueId(""), []);
+export const useUniqueId = (prefix = 'element'): string => {
+  const uniqueId: string = useMemo(() => _.uniqueId(''), []);
   return `${prefix}-${uniqueId}`;
 };

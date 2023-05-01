@@ -1,15 +1,15 @@
-import _ from "lodash/fp";
-import { useState } from "react";
-import { useWorkspaces } from "src/components/workspace-utils";
-import { AnalysisProvider } from "src/libs/ajax/analysis-providers/AnalysisProvider";
-import { useLoadedData } from "src/libs/ajax/loaded-data/useLoadedData";
-import { useMetricsEvent } from "src/libs/ajax/metrics/useMetrics";
-import Events, { extractCrossWorkspaceDetails } from "src/libs/events";
-import { useCancellation } from "src/libs/react-utils";
-import LoadedState from "src/libs/type-utils/LoadedState";
-import { WorkspaceInfo, WorkspaceWrapper } from "src/libs/workspace-utils";
-import { AnalysisFile } from "src/pages/workspaces/workspace/analysis/useAnalysisFiles";
-import { ToolLabel } from "src/pages/workspaces/workspace/analysis/utils/tool-utils";
+import _ from 'lodash/fp';
+import { useState } from 'react';
+import { useWorkspaces } from 'src/components/workspace-utils';
+import { AnalysisProvider } from 'src/libs/ajax/analysis-providers/AnalysisProvider';
+import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
+import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
+import Events, { extractCrossWorkspaceDetails } from 'src/libs/events';
+import { useCancellation } from 'src/libs/react-utils';
+import LoadedState from 'src/libs/type-utils/LoadedState';
+import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { AnalysisFile } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles';
+import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 export type LoadedAnalysisFiles = LoadedState<AnalysisFile[], unknown>;
 
@@ -23,8 +23,8 @@ export interface AnalysisExportState {
 }
 
 export const errors = {
-  badWorkspace: "Selected Workspace does not exist",
-  noWorkspace: "No workspace selected",
+  badWorkspace: 'Selected Workspace does not exist',
+  noWorkspace: 'No workspace selected',
 };
 
 export const useAnalysisExportState = (

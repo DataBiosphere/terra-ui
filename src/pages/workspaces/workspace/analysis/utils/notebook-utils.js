@@ -1,28 +1,28 @@
-import _ from "lodash/fp";
-import { Fragment, useState } from "react";
-import { div, h } from "react-hyperscript-helpers";
-import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from "src/components/common";
-import { ValidatedInput } from "src/components/input";
-import Modal from "src/components/Modal";
-import { Ajax } from "src/libs/ajax";
-import { reportError } from "src/libs/error";
-import { FormLabel } from "src/libs/forms";
-import * as Utils from "src/libs/utils";
-import { addExtensionToNotebook } from "src/pages/workspaces/workspace/analysis/utils/file-utils";
-import validate from "validate.js";
+import _ from 'lodash/fp';
+import { Fragment, useState } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
+import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common';
+import { ValidatedInput } from 'src/components/input';
+import Modal from 'src/components/Modal';
+import { Ajax } from 'src/libs/ajax';
+import { reportError } from 'src/libs/error';
+import { FormLabel } from 'src/libs/forms';
+import * as Utils from 'src/libs/utils';
+import { addExtensionToNotebook } from 'src/pages/workspaces/workspace/analysis/utils/file-utils';
+import validate from 'validate.js';
 
 export const analysisNameValidator = (existing) => ({
   presence: { allowEmpty: false },
   format: {
     pattern: /^[^@#$%*+=?,[\]:;/\\]*$/,
     message: h(Fragment, [
-      div({ key: "message" }, ["Name can't contain these characters:"]),
-      div({ key: "characters", style: { margin: "0.5rem 1rem" } }, ["@ # $ % * + = ? , [ ] : ; / \\ "]),
+      div({ key: 'message' }, ["Name can't contain these characters:"]),
+      div({ key: 'characters', style: { margin: '0.5rem 1rem' } }, ['@ # $ % * + = ? , [ ] : ; / \\ ']),
     ]),
   },
   exclusion: {
     within: existing,
-    message: "already exists",
+    message: 'already exists',
   },
 });
 
@@ -32,12 +32,12 @@ export const analysisNameInput = ({ inputProps, ...props }) =>
     inputProps: {
       ...inputProps,
       autoFocus: true,
-      placeholder: "Enter a name",
+      placeholder: 'Enter a name',
     },
   });
 
 const baseNotebook = {
-  cells: [{ cell_type: "code", execution_count: null, metadata: {}, outputs: [], source: [] }],
+  cells: [{ cell_type: 'code', execution_count: null, metadata: {}, outputs: [], source: [] }],
   nbformat: 4,
   nbformat_minor: 2,
 };
@@ -46,7 +46,7 @@ export const notebookData = {
   python3: _.merge(
     {
       metadata: {
-        kernelspec: { display_name: "Python 3", language: "python", name: "python3" },
+        kernelspec: { display_name: 'Python 3', language: 'python', name: 'python3' },
       },
     },
     baseNotebook
@@ -54,14 +54,14 @@ export const notebookData = {
   r: _.merge(
     {
       metadata: {
-        kernelspec: { display_name: "R", language: "R", name: "ir" },
+        kernelspec: { display_name: 'R', language: 'R', name: 'ir' },
         language_info: {
-          codemirror_mode: "r",
-          file_extension: ".r",
-          mimetype: "text/x-r-source",
-          name: "R",
-          pygments_lexer: "r",
-          version: "3.3.3",
+          codemirror_mode: 'r',
+          file_extension: '.r',
+          mimetype: 'text/x-r-source',
+          name: 'R',
+          pygments_lexer: 'r',
+          version: '3.3.3',
         },
       },
     },
@@ -69,10 +69,10 @@ export const notebookData = {
   ),
 };
 
-export const baseRmd = "---\ntitle: Title\nauthor: Name\ndate: Date\n---";
+export const baseRmd = '---\ntitle: Title\nauthor: Name\ndate: Date\n---';
 
 export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, googleProject, bucketName, existingNames }) => {
-  const [notebookName, setNotebookName] = useState("");
+  const [notebookName, setNotebookName] = useState('');
   const [notebookKernel, setNotebookKernel] = useState(undefined);
   const [creating, setCreating] = useState(false);
   const [nameTouched, setNameTouched] = useState(false);
@@ -83,14 +83,14 @@ export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, googleProjec
       notebookName: analysisNameValidator(existingNames),
       notebookKernel: { presence: { allowEmpty: false } },
     },
-    { prettify: (v) => ({ notebookName: "Name", notebookKernel: "Language" }[v] || validate.prettify(v)) }
+    { prettify: (v) => ({ notebookName: 'Name', notebookKernel: 'Language' }[v] || validate.prettify(v)) }
   );
 
   return h(
     Modal,
     {
       onDismiss,
-      title: "Create New Notebook",
+      title: 'Create New Notebook',
       okButton: h(
         ButtonPrimary,
         {
@@ -103,19 +103,19 @@ export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, googleProjec
               reloadList();
               onSuccess(notebookName, notebookKernel);
             } catch (error) {
-              await reportError("Error creating notebook", error);
+              await reportError('Error creating notebook', error);
               onDismiss();
             }
           },
         },
-        "Create Notebook"
+        'Create Notebook'
       ),
     },
     [
       h(IdContainer, [
         (id) =>
           h(Fragment, [
-            h(FormLabel, { htmlFor: id, required: true }, ["Name"]),
+            h(FormLabel, { htmlFor: id, required: true }, ['Name']),
             analysisNameInput({
               error: Utils.summarizeErrors(nameTouched && errors?.notebookName),
               inputProps: {
@@ -132,15 +132,15 @@ export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, googleProjec
       h(IdContainer, [
         (id) =>
           h(Fragment, [
-            h(FormLabel, { htmlFor: id, required: true }, ["Language"]),
+            h(FormLabel, { htmlFor: id, required: true }, ['Language']),
             h(Select, {
               id,
               isSearchable: true,
-              placeholder: "Select a language",
+              placeholder: 'Select a language',
               getOptionLabel: ({ value }) => _.startCase(value),
               value: notebookKernel,
               onChange: ({ value: notebookKernel }) => setNotebookKernel(notebookKernel),
-              options: ["python3", "r"],
+              options: ['python3', 'r'],
             }),
           ]),
       ]),

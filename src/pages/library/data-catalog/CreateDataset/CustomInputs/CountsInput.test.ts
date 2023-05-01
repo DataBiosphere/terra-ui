@@ -1,12 +1,12 @@
-import { render, screen } from "@testing-library/react";
-import { h } from "react-hyperscript-helpers";
-import { CountsInput } from "src/pages/library/data-catalog/CreateDataset/CustomInputs/CountsInput";
+import { render, screen } from '@testing-library/react';
+import { h } from 'react-hyperscript-helpers';
+import { CountsInput } from 'src/pages/library/data-catalog/CreateDataset/CustomInputs/CountsInput';
 
-describe("CountsInput", () => {
-  it("Renders a CountsInput with all fields", () => {
+describe('CountsInput', () => {
+  it('Renders a CountsInput with all fields', () => {
     render(
       h(CountsInput, {
-        title: "Title",
+        title: 'Title',
         counts: {
           donors: 1,
           samples: 2,
@@ -15,8 +15,8 @@ describe("CountsInput", () => {
         onChange: () => {},
       })
     );
-    expect(screen.getByLabelText("Donors").closest("input")?.value).toBe("1");
-    expect(screen.getByLabelText("Samples").closest("input")?.value).toBe("2");
-    expect(screen.getByLabelText("Files").closest("input")?.value).toBe("3");
+    expect(screen.getByLabelText('Donors').closest('input')?.value).toBe('1');
+    expect(screen.getByLabelText('Samples').closest('input')?.value).toBe('2');
+    expect(screen.getByLabelText('Files').closest('input')?.value).toBe('3');
   });
 });

@@ -1,10 +1,10 @@
-import _ from "lodash/fp";
-import { Fragment, useState } from "react";
-import { h } from "react-hyperscript-helpers";
-import { Link } from "src/components/common";
+import _ from 'lodash/fp';
+import { Fragment, useState } from 'react';
+import { h } from 'react-hyperscript-helpers';
+import { Link } from 'src/components/common';
 
-import { isAzureUri, isGsUri } from "./uri-viewer-utils";
-import { UriViewer } from "./UriViewer";
+import { isAzureUri, isGsUri } from './uri-viewer-utils';
+import { UriViewer } from './UriViewer';
 
 export const UriViewerLink = ({ uri, workspace }) => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -12,7 +12,7 @@ export const UriViewerLink = ({ uri, workspace }) => {
     h(
       Link,
       {
-        style: { textDecoration: "underline" },
+        style: { textDecoration: 'underline' },
         href: uri,
         onClick: (e) => {
           e.preventDefault();

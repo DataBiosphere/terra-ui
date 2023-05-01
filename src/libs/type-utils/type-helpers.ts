@@ -11,8 +11,8 @@ export type NominalType<BaseType, Name extends string> = BaseType & { __typeToke
 export const isFetchResponse = (obj: unknown): obj is Response => {
   const maybeResponse = obj as Response;
   const isResponse =
-    typeof maybeResponse.text === "function" &&
-    typeof maybeResponse.status === "number" &&
-    typeof maybeResponse.statusText === "string";
+    typeof maybeResponse.text === 'function' &&
+    typeof maybeResponse.status === 'number' &&
+    typeof maybeResponse.statusText === 'string';
   return isResponse;
 };

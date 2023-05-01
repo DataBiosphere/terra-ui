@@ -1,21 +1,21 @@
-import _ from "lodash/fp";
-import { Fragment, ReactNode, useEffect, useState } from "react";
-import { h } from "react-hyperscript-helpers";
-import { customSpinnerOverlay } from "src/components/common";
-import { Ajax } from "src/libs/ajax";
-import { reportErrorAndRethrow } from "src/libs/error";
-import Events from "src/libs/events";
-import { useOnMount } from "src/libs/react-utils";
-import { summarizeErrors, withBusyState } from "src/libs/utils";
-import * as Utils from "src/libs/utils";
-import { billingProjectNameValidator } from "src/pages/billing/billing-utils";
-import { AzureManagedAppCoordinates } from "src/pages/billing/models/AzureManagedAppCoordinates";
-import { BillingRole } from "src/pages/billing/models/BillingProject";
-import { AddUsersStep } from "src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AddUsersStep";
-import { AzureSubscriptionStep } from "src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureSubscriptionStep";
-import { CreateNamedProjectStep } from "src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/CreateNamedProjectStep";
-import { StepWizard } from "src/pages/billing/NewBillingProjectWizard/StepWizard/StepWizard";
-import { validate } from "validate.js";
+import _ from 'lodash/fp';
+import { Fragment, ReactNode, useEffect, useState } from 'react';
+import { h } from 'react-hyperscript-helpers';
+import { customSpinnerOverlay } from 'src/components/common';
+import { Ajax } from 'src/libs/ajax';
+import { reportErrorAndRethrow } from 'src/libs/error';
+import Events from 'src/libs/events';
+import { useOnMount } from 'src/libs/react-utils';
+import { summarizeErrors, withBusyState } from 'src/libs/utils';
+import * as Utils from 'src/libs/utils';
+import { billingProjectNameValidator } from 'src/pages/billing/billing-utils';
+import { AzureManagedAppCoordinates } from 'src/pages/billing/models/AzureManagedAppCoordinates';
+import { BillingRole } from 'src/pages/billing/models/BillingProject';
+import { AddUsersStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AddUsersStep';
+import { AzureSubscriptionStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureSubscriptionStep';
+import { CreateNamedProjectStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/CreateNamedProjectStep';
+import { StepWizard } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepWizard';
+import { validate } from 'validate.js';
 
 interface AzureBillingProjectWizardProps {
   onSuccess: (string) => void;
@@ -25,10 +25,10 @@ export const userInfoListToProjectAccessObjects = (
   emails: string,
   role: BillingRole
 ): Array<{ email: string; role: BillingRole }> => {
-  if (emails.trim() === "") {
+  if (emails.trim() === '') {
     return [];
   }
-  return _.flatten(emails.split(",").map((email) => ({ email: email.trim(), role })));
+  return _.flatten(emails.split(',').map((email) => ({ email: email.trim(), role })));
 };
 
 export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWizardProps) => {
@@ -36,8 +36,8 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
   const [subscriptionId, setSubscriptionId] = useState<string>();
   // undefined used to indicate that the user has not yet typed in the input (don't want to show error)
   const [billingProjectName, setBillingProjectName] = useState<string | undefined>(undefined);
-  const [userEmails, setUserEmails] = useState({ emails: "", hasError: false });
-  const [ownerEmails, setOwnerEmails] = useState({ emails: "", hasError: false });
+  const [userEmails, setUserEmails] = useState({ emails: '', hasError: false });
+  const [ownerEmails, setOwnerEmails] = useState({ emails: '', hasError: false });
   // undefined used to indicate that the user has not yet made a selection
   const [addUsersOrOwners, setAddUsersOrOwners] = useState<boolean | undefined>(undefined);
   const [managedApp, setManagedApp] = useState<AzureManagedAppCoordinates>();
@@ -49,12 +49,12 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
 
   const createBillingProject = _.flow(
     withBusyState(setIsBusy),
-    reportErrorAndRethrow("Error creating billing project")
+    reportErrorAndRethrow('Error creating billing project')
   )(async () => {
     if (!billingProjectName) return;
     try {
-      const users = userInfoListToProjectAccessObjects(userEmails.emails, "User");
-      const owners = userInfoListToProjectAccessObjects(ownerEmails.emails, "Owner");
+      const users = userInfoListToProjectAccessObjects(userEmails.emails, 'User');
+      const owners = userInfoListToProjectAccessObjects(ownerEmails.emails, 'Owner');
       const members = _.concat(users, owners);
       await Ajax().Billing.createAzureProject(
         billingProjectName,
@@ -90,7 +90,7 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
               )?.billingProjectName
             ),
         ],
-        [billingProjectName !== undefined, () => "A name is required to create a billing project."],
+        [billingProjectName !== undefined, () => 'A name is required to create a billing project.'],
         [Utils.DEFAULT, () => undefined]
       );
       setProjectNameErrors(errors);
@@ -134,7 +134,7 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
     h(
       StepWizard,
       {
-        title: "Link an Azure Subscription to Terra",
+        title: 'Link an Azure Subscription to Terra',
         intro: `The linked subscription is required to cover all Azure data storage, compute and egress costs incurred in a Terra workspace.
         Cloud costs are billed directly from Azure and passed through Terra billing projects with no markup.`,
       },
@@ -175,7 +175,7 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
           isActive: activeStep === 2,
         }),
         h(CreateNamedProjectStep, {
-          billingProjectName: billingProjectName ?? "",
+          billingProjectName: billingProjectName ?? '',
           onBillingProjectNameChanged: (billingProjectName) => {
             setBillingProjectName(billingProjectName);
           },
@@ -192,6 +192,6 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
         }),
       ]
     ),
-    isBusy && customSpinnerOverlay({ height: "100vh", width: "100vw", position: "fixed" }),
+    isBusy && customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'fixed' }),
   ]);
 };

@@ -1,4 +1,4 @@
-import { CSSProperties, PropsWithChildren } from "react";
+import { CSSProperties, PropsWithChildren } from 'react';
 
 export type InteractiveProps<Tag extends keyof JSX.IntrinsicElements> = PropsWithChildren<
   {
@@ -6,7 +6,7 @@ export type InteractiveProps<Tag extends keyof JSX.IntrinsicElements> = PropsWit
     disabled?: boolean;
     hover?: Pick<
       CSSProperties,
-      "background" | "backgroundColor" | "border" | "color" | "boxShadow" | "opacity" | "textDecoration"
+      'background' | 'backgroundColor' | 'border' | 'color' | 'boxShadow' | 'opacity' | 'textDecoration'
     >;
   } & JSX.IntrinsicElements[Tag]
 >;

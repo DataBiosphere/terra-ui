@@ -1,14 +1,14 @@
-import _ from "lodash/fp";
-import { Fragment, useState } from "react";
-import { div, h } from "react-hyperscript-helpers";
-import { ButtonPrimary, IdContainer, spinnerOverlay } from "src/components/common";
-import { TextArea, TextInput } from "src/components/input";
-import Modal from "src/components/Modal";
-import { Ajax } from "src/libs/ajax";
-import { withErrorIgnoring } from "src/libs/error";
-import { FormLabel } from "src/libs/forms";
-import * as Utils from "src/libs/utils";
-import validate from "validate.js";
+import _ from 'lodash/fp';
+import { Fragment, useState } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
+import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/common';
+import { TextArea, TextInput } from 'src/components/input';
+import Modal from 'src/components/Modal';
+import { Ajax } from 'src/libs/ajax';
+import { withErrorIgnoring } from 'src/libs/error';
+import { FormLabel } from 'src/libs/forms';
+import * as Utils from 'src/libs/utils';
+import validate from 'validate.js';
 
 export const FeaturePreviewFeedbackModal = ({
   onSuccess,
@@ -21,8 +21,8 @@ export const FeaturePreviewFeedbackModal = ({
   primaryQuestion,
   sourcePage,
 }) => {
-  const [contactEmail, setContactEmail] = useState("");
-  const [feedback, setFeedback] = useState("");
+  const [contactEmail, setContactEmail] = useState('');
+  const [feedback, setFeedback] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [thanksShowing, setThanksShowing] = useState(false);
 
@@ -56,7 +56,7 @@ export const FeaturePreviewFeedbackModal = ({
                 onSuccess();
               },
             },
-            ["OK"]
+            ['OK']
           ),
         },
         [div({ style: { fontWeight: 600, fontSize: 18 } }, [`Thank you for helping us improve the ${featureName} experience!`])]
@@ -67,7 +67,7 @@ export const FeaturePreviewFeedbackModal = ({
           onDismiss,
           shouldCloseOnEsc: false,
           width: 500,
-          title: "Give feedback",
+          title: 'Give feedback',
           okButton: h(
             ButtonPrimary,
             {
@@ -75,7 +75,7 @@ export const FeaturePreviewFeedbackModal = ({
               disabled: errors,
               onClick: submit,
             },
-            ["Submit"]
+            ['Submit']
           ),
         },
         [
@@ -88,22 +88,22 @@ export const FeaturePreviewFeedbackModal = ({
                   autoFocus: true,
                   value: feedback,
                   onChange: setFeedback,
-                  placeholder: "Enter feedback",
-                  style: { height: "8rem", marginTop: "0.25rem" },
+                  placeholder: 'Enter feedback',
+                  style: { height: '8rem', marginTop: '0.25rem' },
                 }),
               ]),
           ]),
-          div({ style: { display: "flex", justifyContent: "flex-end", fontSize: 12 } }, ["2000 Character limit"]),
+          div({ style: { display: 'flex', justifyContent: 'flex-end', fontSize: 12 } }, ['2000 Character limit']),
           h(IdContainer, [
             (id) =>
               h(Fragment, [
-                h(FormLabel, { htmlFor: id, style: { fontSize: 14 } }, ["Can we contact you with further questions?"]),
+                h(FormLabel, { htmlFor: id, style: { fontSize: 14 } }, ['Can we contact you with further questions?']),
                 h(TextInput, {
                   id,
                   value: contactEmail,
                   onChange: setContactEmail,
-                  placeholder: "Enter email address",
-                  style: { marginTop: "0.25rem" },
+                  placeholder: 'Enter email address',
+                  style: { marginTop: '0.25rem' },
                 }),
               ]),
           ]),

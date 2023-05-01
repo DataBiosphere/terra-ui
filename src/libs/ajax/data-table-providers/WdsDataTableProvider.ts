@@ -1,6 +1,6 @@
-import _ from "lodash/fp";
-import { notifyDataImportProgress } from "src/components/data/data-utils";
-import { Ajax } from "src/libs/ajax";
+import _ from 'lodash/fp';
+import { notifyDataImportProgress } from 'src/components/data/data-utils';
+import { Ajax } from 'src/libs/ajax';
 import {
   AttributeArray,
   DataTableFeatures,
@@ -12,10 +12,10 @@ import {
   TsvUploadButtonDisabledOptions,
   TsvUploadButtonTooltipOptions,
   UploadParameters,
-} from "src/libs/ajax/data-table-providers/DataTableProvider";
-import { withErrorReporting } from "src/libs/error";
-import { notificationStore } from "src/libs/state";
-import * as Utils from "src/libs/utils";
+} from 'src/libs/ajax/data-table-providers/DataTableProvider';
+import { withErrorReporting } from 'src/libs/error';
+import { notificationStore } from 'src/libs/state';
+import * as Utils from 'src/libs/utils';
 
 // interface definitions for WDS payload responses
 interface AttributeSchema {
@@ -34,7 +34,7 @@ export interface RecordTypeSchema {
 export interface SearchRequest {
   offset: number;
   limit: number;
-  sort: "asc" | "desc";
+  sort: 'asc' | 'desc';
   sortAttribute?: string;
 }
 
@@ -67,7 +67,7 @@ export const wdsToEntityServiceMetadata = (wdsSchema: RecordTypeSchema[]): Entit
   }, keyedSchema);
 };
 
-export const relationUriScheme = "terra-wds";
+export const relationUriScheme = 'terra-wds';
 
 // Callers outside this module should not call this function. It returns a string array of size 2
 // iff it looks like a valid relation URI; else it returns an empty array.
@@ -77,7 +77,7 @@ export const relationUriScheme = "terra-wds";
 // WDS should own that logic. Here, we only check if the type and id are nonempty.
 const getRelationParts = (val: unknown): string[] => {
   if (_.isString(val) && val.startsWith(`${relationUriScheme}:/`)) {
-    const parts: string[] = val.substring(relationUriScheme.length + 2).split("/");
+    const parts: string[] = val.substring(relationUriScheme.length + 2).split('/');
     if (parts.length === 2 && _.every((part) => !!part, parts)) {
       return parts;
     }
@@ -89,7 +89,7 @@ const getRelationParts = (val: unknown): string[] => {
 export const createLeoAppWithErrorHandling = (workspaceId) => {
   const typedWithErrorReporting: any = withErrorReporting;
   const createLeoAppCall = typedWithErrorReporting(
-    "An error occurred when creating your data tables. Please reach out to support@terra.bio",
+    'An error occurred when creating your data tables. Please reach out to support@terra.bio',
     async () => {
       await Ajax().Apps.createAppV2(`wds-${workspaceId}`, `${workspaceId}`);
     }
@@ -105,10 +105,10 @@ export const resolveWdsApp = (apps) => {
   // See here for specific enumerations -- https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
   // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' -- if WDS is healthy and running, there should only be one app RUNNING
   // an app may be in the 'PROVISIONING', 'STOPPED', 'STOPPING', which can still be deemed as an OK state for WDS
-  const healthyStates = ["RUNNING", "PROVISIONING", "STOPPED", "STOPPING"];
+  const healthyStates = ['RUNNING', 'PROVISIONING', 'STOPPED', 'STOPPING'];
 
   // WDS appType is checked first and takes precedence over CROMWELL apps in the workspace
-  const wdsAppTypes = ["WDS", "CROMWELL"];
+  const wdsAppTypes = ['WDS', 'CROMWELL'];
   for (const wdsAppType of wdsAppTypes) {
     const namedApp = apps.filter(
       (app) =>
@@ -119,7 +119,7 @@ export const resolveWdsApp = (apps) => {
     }
 
     // Failed to find an app with the proper name, look for a RUNNING WDS or CROMWELL app
-    const runningWdsApps = apps.filter((app) => app.appType === wdsAppType && app.status === "RUNNING");
+    const runningWdsApps = apps.filter((app) => app.appType === wdsAppType && app.status === 'RUNNING');
     if (runningWdsApps.length > 0) {
       // Evaluate the earliest-created WDS app
       runningWdsApps.sort(
@@ -130,7 +130,7 @@ export const resolveWdsApp = (apps) => {
 
     // If we reach this logic, we have more than one Leo app with the associated workspace Id...
     const allWdsApps = apps.filter(
-      (app) => app.appType === wdsAppType && ["PROVISIONING", "STOPPED", "STOPPING"].includes(app.status)
+      (app) => app.appType === wdsAppType && ['PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status)
     );
     if (allWdsApps.length > 0) {
       // Evaluate the earliest-created WDS app
@@ -154,19 +154,19 @@ export const resolveWdsApp = (apps) => {
   // createLeoAppWithErrorHandling(uuid())
   // }
 
-  return "";
+  return '';
 };
 
 // Extract wds URL from Leo response. exported for testing
 export const resolveWdsUrl = (apps) => {
   const foundApp = resolveWdsApp(apps);
-  if (foundApp?.status === "RUNNING") {
+  if (foundApp?.status === 'RUNNING') {
     return foundApp.proxyUrls.wds;
   }
-  return "";
+  return '';
 };
 
-export const wdsProviderName = "WDS";
+export const wdsProviderName = 'WDS';
 
 export class WdsDataTableProvider implements DataTableProvider {
   constructor(workspaceId: string, proxyUrl: string) {
@@ -194,11 +194,11 @@ export class WdsDataTableProvider implements DataTableProvider {
   tsvFeatures: TSVFeatures = {
     needsTypeInput: true,
     sampleTSVLink:
-      "https://azurefeaturedworkspace.blob.core.windows.net/featuredworkspacedata/template_data_table_Azure.txt",
-    dataImportSupportLink: "",
-    dataTableSupportLink: "",
-    textImportPlaceholder: "idcolumn(tab)column1(tab)column2...",
-    invalidFormatWarning: "Invalid format: Data does not include sys_name column.",
+      'https://azurefeaturedworkspace.blob.core.windows.net/featuredworkspacedata/template_data_table_Azure.txt',
+    dataImportSupportLink: '',
+    dataTableSupportLink: '',
+    textImportPlaceholder: 'idcolumn(tab)column1(tab)column2...',
+    invalidFormatWarning: 'Invalid format: Data does not include sys_name column.',
     isInvalid: (): boolean => {
       // WDS does not have any restrictions on what can be uploaded, as entity_id
       // is not required like in Entity Service for GCP.
@@ -209,9 +209,9 @@ export class WdsDataTableProvider implements DataTableProvider {
     },
     tooltip: (options: TsvUploadButtonTooltipOptions): string => {
       return Utils.cond(
-        [!options.recordTypePresent, () => "Please enter table name"],
-        [!options.filePresent, () => "Please select valid data to upload"],
-        () => "Upload selected data"
+        [!options.recordTypePresent, () => 'Please enter table name'],
+        [!options.filePresent, () => 'Please select valid data to upload'],
+        () => 'Upload selected data'
       );
     },
   };
@@ -229,11 +229,11 @@ export class WdsDataTableProvider implements DataTableProvider {
         const references = translated.map((parts) => {
           return { entityType: parts[0], entityName: parts[1] };
         });
-        return { itemsType: "EntityReference", items: references };
+        return { itemsType: 'EntityReference', items: references };
       }
     }
     // empty array, or the first element isn't a relation; return as attribute values.
-    return { itemsType: "AttributeValue", items: val };
+    return { itemsType: 'AttributeValue', items: val };
   };
 
   // transforms a WDS array to Entity Service array format
@@ -258,7 +258,7 @@ export class WdsDataTableProvider implements DataTableProvider {
     // translate WDS to Entity Service
     const filteredCount = wdsPage.totalRecords;
     const unfilteredCount = wdsPage.totalRecords;
-    const primaryKey = metadata[recordType] ? metadata[recordType].idName : "(unknown column)"; // for safety; recordType should always be present
+    const primaryKey = metadata[recordType] ? metadata[recordType].idName : '(unknown column)'; // for safety; recordType should always be present
     const results = _.map((rec) => {
       return {
         entityType: recordType,
@@ -274,8 +274,8 @@ export class WdsDataTableProvider implements DataTableProvider {
         pageSize: queryOptions.itemsPerPage,
         sortField: queryOptions.sortField,
         sortDirection: queryOptions.sortDirection,
-        filterTerms: "", // unused so it doesn't matter
-        filterOperator: "and", // unused so it doesn't matter
+        filterTerms: '', // unused so it doesn't matter
+        filterOperator: 'and', // unused so it doesn't matter
       },
       resultMetadata: {
         filteredCount,
@@ -291,7 +291,7 @@ export class WdsDataTableProvider implements DataTableProvider {
     queryOptions: EntityQueryOptions,
     metadata: EntityMetadata
   ): Promise<EntityQueryResponse> => {
-    if (!this.proxyUrl) return Promise.reject("Proxy Url not loaded");
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded');
     const wdsPage: RecordQueryResponse = await Ajax(signal).WorkspaceData.getRecords(
       this.proxyUrl,
       this.workspaceId,
@@ -302,24 +302,24 @@ export class WdsDataTableProvider implements DataTableProvider {
           limit: queryOptions.itemsPerPage,
           sort: queryOptions.sortDirection,
         },
-        queryOptions.sortField === "name" ? {} : { sortAttribute: queryOptions.sortField }
+        queryOptions.sortField === 'name' ? {} : { sortAttribute: queryOptions.sortField }
       )
     );
     return this.transformPage(wdsPage, entityType, queryOptions, metadata);
   };
 
   deleteTable = (entityType: string): Promise<Response> => {
-    if (!this.proxyUrl) return Promise.reject("Proxy Url not loaded");
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded');
     return Ajax().WorkspaceData.deleteTable(this.proxyUrl, this.workspaceId, entityType);
   };
 
   downloadTsv = (signal: AbortSignal, entityType: string): Promise<Blob> => {
-    if (!this.proxyUrl) return Promise.reject("Proxy Url not loaded");
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded');
     return Ajax(signal).WorkspaceData.downloadTsv(this.proxyUrl, this.workspaceId, entityType);
   };
 
   uploadTsv = (uploadParams: UploadParameters): Promise<TsvUploadResponse> => {
-    if (!this.proxyUrl) return Promise.reject("Proxy Url not loaded");
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded');
     setTimeout(() => {
       if (
         notificationStore.get().length === 0 ||
@@ -331,7 +331,7 @@ export class WdsDataTableProvider implements DataTableProvider {
       ) {
         notifyDataImportProgress(
           uploadParams.recordType,
-          "Your data will show up under Tables once import is complete."
+          'Your data will show up under Tables once import is complete.'
         );
       }
     }, 1000);

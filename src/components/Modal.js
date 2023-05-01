@@ -1,42 +1,42 @@
-import _ from "lodash/fp";
-import PropTypes from "prop-types";
-import { useRef } from "react";
-import { div, h } from "react-hyperscript-helpers";
-import RModal from "react-modal";
-import { ButtonPrimary, ButtonSecondary, Clickable } from "src/components/common";
-import { icon } from "src/components/icons";
-import { getPopupRoot } from "src/components/popup-utils";
-import { useOnMount, useUniqueId } from "src/libs/react-utils";
-import * as Style from "src/libs/style";
-import * as Utils from "src/libs/utils";
+import _ from 'lodash/fp';
+import PropTypes from 'prop-types';
+import { useRef } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
+import RModal from 'react-modal';
+import { ButtonPrimary, ButtonSecondary, Clickable } from 'src/components/common';
+import { icon } from 'src/components/icons';
+import { getPopupRoot } from 'src/components/popup-utils';
+import { useOnMount, useUniqueId } from 'src/libs/react-utils';
+import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
 
 export const styles = {
   overlay: {
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    padding: "2rem 1rem",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "flex-start",
-    position: "fixed",
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: '2rem 1rem',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    position: 'fixed',
     left: 0,
     right: 0,
     top: 0,
     bottom: 0,
-    overflowY: "auto",
+    overflowY: 'auto',
   },
   modal: {
     borderRadius: 5,
-    position: "relative",
-    padding: "1.5rem 1.25rem",
-    outline: "none",
-    backgroundColor: "white",
+    position: 'relative',
+    padding: '1.5rem 1.25rem',
+    outline: 'none',
+    backgroundColor: 'white',
     boxShadow: Style.modalShadow,
   },
   buttonRow: {
-    marginTop: "1rem",
-    display: "flex",
-    justifyContent: "flex-end",
-    alignItems: "baseline",
+    marginTop: '1rem',
+    display: 'flex',
+    justifyContent: 'flex-end',
+    alignItems: 'baseline',
   },
 };
 
@@ -47,9 +47,9 @@ function Modal({
   children,
   width = 450,
   showCancel = true,
-  cancelText = "Cancel",
+  cancelText = 'Cancel',
   showX,
-  xIcon = "times-circle",
+  xIcon = 'times-circle',
   showButtons = true,
   okButton,
   danger = false,
@@ -91,15 +91,15 @@ function Modal({
     },
     [
       title &&
-        div({ style: { display: "flex", alignItems: "baseline", marginBottom: "1rem", flex: "none" } }, [
+        div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none' } }, [
           div({ id: titleId, style: { fontSize: 18, fontWeight: 600, ...Style.noWrapEllipsis } }, [title]),
           titleChildren,
           showX &&
             h(
               Clickable,
               {
-                "aria-label": "Close modal",
-                style: { alignSelf: "flex-start", marginLeft: "auto" },
+                'aria-label': 'Close modal',
+                style: { alignSelf: 'flex-start', marginLeft: 'auto' },
                 onClick: onDismiss,
               },
               [icon(xIcon)]
@@ -112,16 +112,16 @@ function Modal({
             ? h(
                 ButtonSecondary,
                 {
-                  style: { marginRight: "1rem" },
+                  style: { marginRight: '1rem' },
                   onClick: onDismiss,
                 },
                 [cancelText]
               )
             : null,
           Utils.cond(
-            [okButton === undefined, () => h(ButtonPrimary, { onClick: onDismiss, danger }, "OK")],
+            [okButton === undefined, () => h(ButtonPrimary, { onClick: onDismiss, danger }, 'OK')],
             [_.isString(okButton), () => h(ButtonPrimary, { onClick: onDismiss, danger }, okButton)],
-            [_.isFunction(okButton), () => h(ButtonPrimary, { onClick: okButton, danger }, "OK")],
+            [_.isFunction(okButton), () => h(ButtonPrimary, { onClick: okButton, danger }, 'OK')],
             () => okButton
           ),
         ]),

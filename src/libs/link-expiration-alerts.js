@@ -1,12 +1,12 @@
-import { addDays, differenceInDays, parseJSON } from "date-fns/fp";
-import _ from "lodash/fp";
-import { Fragment, useEffect, useState } from "react";
-import { h } from "react-hyperscript-helpers";
-import { FrameworkServiceLink, ShibbolethLink, UnlinkFenceAccount } from "src/components/external-account-links";
-import { getEnabledBrand } from "src/libs/brand-utils";
-import * as Nav from "src/libs/nav";
-import allProviders from "src/libs/providers";
-import { authStore } from "src/libs/state";
+import { addDays, differenceInDays, parseJSON } from 'date-fns/fp';
+import _ from 'lodash/fp';
+import { Fragment, useEffect, useState } from 'react';
+import { h } from 'react-hyperscript-helpers';
+import { FrameworkServiceLink, ShibbolethLink, UnlinkFenceAccount } from 'src/components/external-account-links';
+import { getEnabledBrand } from 'src/libs/brand-utils';
+import * as Nav from 'src/libs/nav';
+import allProviders from 'src/libs/providers';
+import { authStore } from 'src/libs/state';
 
 const getNihLinkExpirationAlert = (status, now) => {
   // Orchestration API returns NIH link expiration time in seconds since epoch
@@ -17,17 +17,17 @@ const getNihLinkExpirationAlert = (status, now) => {
   }
 
   const hasExpired = now >= dateOfExpiration;
-  const expireStatus = hasExpired ? "has expired" : "will expire soon";
+  const expireStatus = hasExpired ? 'has expired' : 'will expire soon';
 
   return {
-    id: "nih-link-expiration",
+    id: 'nih-link-expiration',
     title: `Your access to NIH Controlled Access workspaces and data ${expireStatus}.`,
     message: h(Fragment, [
-      "To regain access, ",
-      h(ShibbolethLink, { style: { color: "unset", fontWeight: 600, textDecoration: "underline" } }, ["re-link"]),
+      'To regain access, ',
+      h(ShibbolethLink, { style: { color: 'unset', fontWeight: 600, textDecoration: 'underline' } }, ['re-link']),
       ` your eRA Commons / NIH account (${status.linkedNihUsername}) with ${getEnabledBrand().name}.`,
     ]),
-    severity: "info",
+    severity: 'info',
   };
 };
 
@@ -43,20 +43,20 @@ const getFenceLinkExpirationAlert = (provider, status, now) => {
   }
 
   const hasExpired = now >= dateOfExpiration;
-  const expireStatus = hasExpired ? "has expired" : `will expire in ${differenceInDays(now, dateOfExpiration)} day(s)`;
+  const expireStatus = hasExpired ? 'has expired' : `will expire in ${differenceInDays(now, dateOfExpiration)} day(s)`;
 
-  const redirectUrl = `${window.location.origin}/${Nav.getLink("fence-callback")}`;
+  const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`;
   return {
     id: `fence-link-expiration/${key}`,
     title: `Your access to ${name} ${expireStatus}.`,
     message: h(Fragment, [
-      "Log in to ",
-      h(FrameworkServiceLink, { linkText: expireStatus === "has expired" ? "restore " : "renew ", provider: key, redirectUrl }),
-      " your access or ",
-      h(UnlinkFenceAccount, { linkText: "unlink ", provider: { key, name } }),
-      " your account.",
+      'Log in to ',
+      h(FrameworkServiceLink, { linkText: expireStatus === 'has expired' ? 'restore ' : 'renew ', provider: key, redirectUrl }),
+      ' your access or ',
+      h(UnlinkFenceAccount, { linkText: 'unlink ', provider: { key, name } }),
+      ' your account.',
     ]),
-    severity: "info",
+    severity: 'info',
   };
 };
 
@@ -65,7 +65,7 @@ export const getLinkExpirationAlerts = (authState) => {
 
   return _.compact([
     getNihLinkExpirationAlert(authState.nihStatus, now),
-    ..._.map((provider) => getFenceLinkExpirationAlert(provider, _.get(["fenceStatus", provider.key], authState), now), allProviders),
+    ..._.map((provider) => getFenceLinkExpirationAlert(provider, _.get(['fenceStatus', provider.key], authState), now), allProviders),
   ]);
 };
 

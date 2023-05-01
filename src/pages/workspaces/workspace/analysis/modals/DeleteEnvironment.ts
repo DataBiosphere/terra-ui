@@ -1,22 +1,22 @@
-import { Fragment } from "react";
-import { div, h, p, span } from "react-hyperscript-helpers";
-import TitleBar from "src/components/TitleBar";
+import { Fragment } from 'react';
+import { div, h, p, span } from 'react-hyperscript-helpers';
+import TitleBar from 'src/components/TitleBar';
 import {
   isDataprocConfig,
   isGceConfig,
   isGceWithPdConfig,
   RuntimeConfig,
-} from "src/libs/ajax/leonardo/models/runtime-config-models";
-import * as Utils from "src/libs/utils";
-import { DeleteDiskChoices } from "src/pages/workspaces/workspace/analysis/modals/DeleteDiskChoices";
-import { computeStyles } from "src/pages/workspaces/workspace/analysis/modals/modalStyles";
-import { WarningTitle } from "src/pages/workspaces/workspace/analysis/modals/WarningTitle";
+} from 'src/libs/ajax/leonardo/models/runtime-config-models';
+import * as Utils from 'src/libs/utils';
+import { DeleteDiskChoices } from 'src/pages/workspaces/workspace/analysis/modals/DeleteDiskChoices';
+import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles';
+import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle';
 import {
   RadioBlock,
   SaveFilesHelpAzure,
   SaveFilesHelpRStudio,
-} from "src/pages/workspaces/workspace/analysis/runtime-common-components";
-import { runtimeToolLabels, ToolLabel } from "src/pages/workspaces/workspace/analysis/utils/tool-utils";
+} from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
+import { runtimeToolLabels, ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 type DeleteEnvironmentProps = {
   id: string;
@@ -49,7 +49,7 @@ export const DeleteEnvironment = ({
     h(TitleBar, {
       id,
       style: computeStyles.titleBar,
-      title: h(WarningTitle, ["Delete environment"]),
+      title: h(WarningTitle, ['Delete environment']),
       hideCloseButton,
       onDismiss,
       titleChildren: [],
@@ -58,7 +58,7 @@ export const DeleteEnvironment = ({
         setDeleteDiskSelected(false);
       },
     }),
-    div({ style: { lineHeight: "1.5rem" } }, [
+    div({ style: { lineHeight: '1.5rem' } }, [
       Utils.cond(
         [
           runtimeConfig &&
@@ -71,34 +71,34 @@ export const DeleteEnvironment = ({
               h(
                 RadioBlock,
                 {
-                  name: "delete-persistent-disk",
-                  labelText: "Delete application configuration and cloud compute profile",
+                  name: 'delete-persistent-disk',
+                  labelText: 'Delete application configuration and cloud compute profile',
                   checked: !deleteDiskSelected,
                   onChange: () => setDeleteDiskSelected(false),
                 },
                 [
                   p({ style: { marginBottom: 0 } }, [
-                    "Deletes your application configuration and cloud compute profile. This will also ",
-                    span({ style: { fontWeight: 600 } }, ["delete all files on the built-in hard disk."]),
+                    'Deletes your application configuration and cloud compute profile. This will also ',
+                    span({ style: { fontWeight: 600 } }, ['delete all files on the built-in hard disk.']),
                   ]),
                 ]
               ),
               h(
                 RadioBlock,
                 {
-                  name: "delete-persistent-disk",
-                  labelText: "Delete persistent disk",
+                  name: 'delete-persistent-disk',
+                  labelText: 'Delete persistent disk',
                   checked: deleteDiskSelected,
                   onChange: () => setDeleteDiskSelected(true),
-                  style: { marginTop: "1rem" },
+                  style: { marginTop: '1rem' },
                 },
                 [
                   p([
-                    "Deletes your persistent disk, which will also ",
-                    span({ style: { fontWeight: 600 } }, ["delete all files on the disk."]),
+                    'Deletes your persistent disk, which will also ',
+                    span({ style: { fontWeight: 600 } }, ['delete all files on the disk.']),
                   ]),
                   p({ style: { marginBottom: 0 } }, [
-                    "Since the persistent disk is not attached, the application configuration and cloud compute profile will remain.",
+                    'Since the persistent disk is not attached, the application configuration and cloud compute profile will remain.',
                   ]),
                 ]
               ),
@@ -123,18 +123,18 @@ export const DeleteEnvironment = ({
               h(
                 RadioBlock,
                 {
-                  name: "delete-persistent-disk",
-                  labelText: "Delete persistent disk",
+                  name: 'delete-persistent-disk',
+                  labelText: 'Delete persistent disk',
                   checked: true,
                   onChange: () => {},
                 },
                 [
                   p([
-                    "Deletes your persistent disk, which will also ",
-                    span({ style: { fontWeight: 600 } }, ["delete all files on the disk."]),
+                    'Deletes your persistent disk, which will also ',
+                    span({ style: { fontWeight: 600 } }, ['delete all files on the disk.']),
                   ]),
                   p({ style: { marginBottom: 0 } }, [
-                    "If you want to permanently save some files from the disk before deleting it, you will need to create a new cloud environment to access it.",
+                    'If you want to permanently save some files from the disk before deleting it, you will need to create a new cloud environment to access it.',
                   ]),
                 ]
               ),
@@ -147,14 +147,14 @@ export const DeleteEnvironment = ({
           () =>
             h(Fragment, [
               p([
-                "Deleting your application configuration and cloud compute profile will also ",
-                span({ style: { fontWeight: 600 } }, ["delete all files on the built-in hard disk."]),
+                'Deleting your application configuration and cloud compute profile will also ',
+                span({ style: { fontWeight: 600 } }, ['delete all files on the built-in hard disk.']),
               ]),
-              toolLabel === "RStudio" ? h(SaveFilesHelpRStudio) : h(SaveFilesHelpAzure),
+              toolLabel === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelpAzure),
             ]),
         ]
       ),
     ]),
-    div({ style: { display: "flex", justifyContent: "flex-end", marginTop: "1rem" } }, [renderActionButton()]),
+    div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [renderActionButton()]),
   ]);
 };

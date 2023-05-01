@@ -1,17 +1,17 @@
-import "@testing-library/jest-dom";
+import '@testing-library/jest-dom';
 
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { axe } from "jest-axe";
-import { h, ul } from "react-hyperscript-helpers";
-import { Directory } from "src/components/file-browser/DirectoryTree";
-import { useDirectoriesInDirectory } from "src/components/file-browser/file-browser-hooks";
-import FileBrowserProvider from "src/libs/ajax/file-browser-providers/FileBrowserProvider";
-import * as Utils from "src/libs/utils";
-import { asMockedFn } from "src/testing/test-utils";
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { axe } from 'jest-axe';
+import { h, ul } from 'react-hyperscript-helpers';
+import { Directory } from 'src/components/file-browser/DirectoryTree';
+import { useDirectoriesInDirectory } from 'src/components/file-browser/file-browser-hooks';
+import FileBrowserProvider from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
+import * as Utils from 'src/libs/utils';
+import { asMockedFn } from 'src/testing/test-utils';
 
-jest.mock("src/components/file-browser/file-browser-hooks", () => ({
-  ...jest.requireActual("src/components/file-browser/file-browser-hooks"),
+jest.mock('src/components/file-browser/file-browser-hooks', () => ({
+  ...jest.requireActual('src/components/file-browser/file-browser-hooks'),
   useDirectoriesInDirectory: jest.fn(),
 }));
 
@@ -19,19 +19,19 @@ type UseDirectoriesInDirectoryResult = ReturnType<typeof useDirectoriesInDirecto
 
 const mockFileBrowserProvider: FileBrowserProvider = {} as FileBrowserProvider;
 
-describe("Directory", () => {
-  it("renders the directory name", () => {
+describe('Directory', () => {
+  it('renders the directory name', () => {
     // Act
     render(
       h(Directory, {
-        activeDescendant: "node-0",
+        activeDescendant: 'node-0',
         level: 0,
-        id: "node-0",
-        path: "path/to/directory/",
+        id: 'node-0',
+        path: 'path/to/directory/',
         provider: mockFileBrowserProvider,
         reloadRequests: Utils.subscribable(),
-        rootLabel: "Workspace bucket",
-        selectedDirectory: "",
+        rootLabel: 'Workspace bucket',
+        selectedDirectory: '',
         setActiveDescendant: () => {},
         onError: () => {},
         onSelectDirectory: jest.fn(),
@@ -39,25 +39,25 @@ describe("Directory", () => {
     );
 
     // Assert
-    screen.getByText("directory");
+    screen.getByText('directory');
   });
 
-  it("immediately fetches and renders directory contents for root directory", () => {
+  it('immediately fetches and renders directory contents for root directory', () => {
     // Arrange
     const directories = [
       {
-        path: "directory1",
+        path: 'directory1',
       },
       {
-        path: "directory2",
+        path: 'directory2',
       },
       {
-        path: "directory3",
+        path: 'directory3',
       },
     ];
 
     const useDirectoriesInDirectoryResult: UseDirectoriesInDirectoryResult = {
-      state: { directories, status: "Ready" },
+      state: { directories, status: 'Ready' },
       hasNextPage: undefined,
       loadNextPage: () => Promise.resolve(),
       loadAllRemainingItems: () => Promise.resolve(),
@@ -68,16 +68,16 @@ describe("Directory", () => {
 
     // Act
     render(
-      ul({ role: "tree" }, [
+      ul({ role: 'tree' }, [
         h(Directory, {
-          activeDescendant: "node-0",
-          id: "node-0",
+          activeDescendant: 'node-0',
+          id: 'node-0',
           level: 0,
-          path: "",
+          path: '',
           provider: mockFileBrowserProvider,
           reloadRequests: Utils.subscribable(),
-          rootLabel: "Workspace bucket",
-          selectedDirectory: "",
+          rootLabel: 'Workspace bucket',
+          selectedDirectory: '',
           setActiveDescendant: () => {},
           onError: () => {},
           onSelectDirectory: jest.fn(),
@@ -88,12 +88,12 @@ describe("Directory", () => {
     // Assert
     expect(useDirectoriesInDirectory).toHaveBeenCalled();
 
-    const subdirectoryList = screen.getByRole("group");
+    const subdirectoryList = screen.getByRole('group');
     const renderedSubdirectories = Array.from(subdirectoryList.children).map((el) => el.children[1].textContent);
-    expect(renderedSubdirectories).toEqual(["directory1", "directory2", "directory3"]);
+    expect(renderedSubdirectories).toEqual(['directory1', 'directory2', 'directory3']);
   });
 
-  describe("when directory name is clicked", () => {
+  describe('when directory name is clicked', () => {
     let onSelectDirectory;
 
     beforeEach(async () => {
@@ -102,18 +102,18 @@ describe("Directory", () => {
 
       const directories = [
         {
-          path: "path/to/directory/subdirectory1",
+          path: 'path/to/directory/subdirectory1',
         },
         {
-          path: "path/to/directory/subdirectory2",
+          path: 'path/to/directory/subdirectory2',
         },
         {
-          path: "path/to/directory/subdirectory3",
+          path: 'path/to/directory/subdirectory3',
         },
       ];
 
       const useDirectoriesInDirectoryResult: UseDirectoriesInDirectoryResult = {
-        state: { directories, status: "Ready" },
+        state: { directories, status: 'Ready' },
         hasNextPage: undefined,
         loadNextPage: () => Promise.resolve(),
         loadAllRemainingItems: () => Promise.resolve(),
@@ -125,14 +125,14 @@ describe("Directory", () => {
       onSelectDirectory = jest.fn();
       render(
         h(Directory, {
-          activeDescendant: "node-0",
-          id: "node-0",
+          activeDescendant: 'node-0',
+          id: 'node-0',
           level: 0,
-          path: "path/to/directory/",
+          path: 'path/to/directory/',
           provider: mockFileBrowserProvider,
           reloadRequests: Utils.subscribable(),
-          rootLabel: "Workspace bucket",
-          selectedDirectory: "",
+          rootLabel: 'Workspace bucket',
+          selectedDirectory: '',
           setActiveDescendant: () => {},
           onError: () => {},
           onSelectDirectory,
@@ -140,44 +140,44 @@ describe("Directory", () => {
       );
 
       // Act
-      const link = screen.getByText("directory");
+      const link = screen.getByText('directory');
       await user.click(link);
     });
 
-    it("it calls onSelectDirectory callback with path when directory name is clicked", () => {
+    it('it calls onSelectDirectory callback with path when directory name is clicked', () => {
       // Assert
-      expect(onSelectDirectory).toHaveBeenCalledWith("path/to/directory/");
+      expect(onSelectDirectory).toHaveBeenCalledWith('path/to/directory/');
     });
 
-    it("fetches and renders directory contents", () => {
+    it('fetches and renders directory contents', () => {
       // Assert
       expect(useDirectoriesInDirectory).toHaveBeenCalled();
 
-      const subdirectoryList = screen.getByRole("group");
+      const subdirectoryList = screen.getByRole('group');
 
       const renderedSubdirectories = Array.from(subdirectoryList.children).map((el) => el.children[1].textContent);
-      expect(renderedSubdirectories).toEqual(["subdirectory1", "subdirectory2", "subdirectory3"]);
+      expect(renderedSubdirectories).toEqual(['subdirectory1', 'subdirectory2', 'subdirectory3']);
     });
   });
 
-  it("fetches and renders directory contents when expanded", async () => {
+  it('fetches and renders directory contents when expanded', async () => {
     // Arrange
     const user = userEvent.setup();
 
     const directories = [
       {
-        path: "path/to/directory/subdirectory1",
+        path: 'path/to/directory/subdirectory1',
       },
       {
-        path: "path/to/directory/subdirectory2",
+        path: 'path/to/directory/subdirectory2',
       },
       {
-        path: "path/to/directory/subdirectory3",
+        path: 'path/to/directory/subdirectory3',
       },
     ];
 
     const useDirectoriesInDirectoryResult: UseDirectoriesInDirectoryResult = {
-      state: { directories, status: "Ready" },
+      state: { directories, status: 'Ready' },
       hasNextPage: undefined,
       loadNextPage: () => Promise.resolve(),
       loadAllRemainingItems: () => Promise.resolve(),
@@ -187,16 +187,16 @@ describe("Directory", () => {
     asMockedFn(useDirectoriesInDirectory).mockReturnValue(useDirectoriesInDirectoryResult);
 
     const { container } = render(
-      ul({ role: "tree" }, [
+      ul({ role: 'tree' }, [
         h(Directory, {
-          activeDescendant: "node-0",
-          id: "node-0",
+          activeDescendant: 'node-0',
+          id: 'node-0',
           level: 0,
-          path: "path/to/directory/",
+          path: 'path/to/directory/',
           provider: mockFileBrowserProvider,
           reloadRequests: Utils.subscribable(),
-          rootLabel: "Workspace bucket",
-          selectedDirectory: "",
+          rootLabel: 'Workspace bucket',
+          selectedDirectory: '',
           setActiveDescendant: () => {},
           onError: () => {},
           onSelectDirectory: jest.fn(),
@@ -206,27 +206,27 @@ describe("Directory", () => {
 
     // Act
     const contentsFetchedBeforeExpanding = asMockedFn(useDirectoriesInDirectory).mock.calls.length > 0;
-    const toggle = screen.getByTestId("toggle-expanded");
+    const toggle = screen.getByTestId('toggle-expanded');
     await user.click(toggle);
     const contentsFetchedAfterExpanding = asMockedFn(useDirectoriesInDirectory).mock.calls.length > 0;
 
-    const subdirectoryList = screen.getByRole("group");
+    const subdirectoryList = screen.getByRole('group');
     const renderedSubdirectories = Array.from(subdirectoryList.children).map((el) => el.children[1].textContent);
 
     // Assert
     expect(contentsFetchedBeforeExpanding).toBe(false);
     expect(contentsFetchedAfterExpanding).toBe(true);
 
-    expect(renderedSubdirectories).toEqual(["subdirectory1", "subdirectory2", "subdirectory3"]);
+    expect(renderedSubdirectories).toEqual(['subdirectory1', 'subdirectory2', 'subdirectory3']);
 
     expect(await axe(container)).toHaveNoViolations();
   });
 
-  it("it renders a screen reader announcement while loading", async () => {
+  it('it renders a screen reader announcement while loading', async () => {
     // Arrange
     const user = userEvent.setup();
 
-    const loadingState = { status: "Loading", directories: [] } as UseDirectoriesInDirectoryResult["state"];
+    const loadingState = { status: 'Loading', directories: [] } as UseDirectoriesInDirectoryResult['state'];
 
     const useDirectoriesInDirectoryResult: UseDirectoriesInDirectoryResult = {
       state: loadingState,
@@ -240,14 +240,14 @@ describe("Directory", () => {
 
     render(
       h(Directory, {
-        activeDescendant: "node-0",
-        id: "node-0",
+        activeDescendant: 'node-0',
+        id: 'node-0',
         level: 0,
-        path: "path/to/directory/",
+        path: 'path/to/directory/',
         provider: mockFileBrowserProvider,
         reloadRequests: Utils.subscribable(),
-        rootLabel: "Workspace bucket",
-        selectedDirectory: "",
+        rootLabel: 'Workspace bucket',
+        selectedDirectory: '',
         setActiveDescendant: () => {},
         onError: () => {},
         onSelectDirectory: jest.fn(),
@@ -255,23 +255,23 @@ describe("Directory", () => {
     );
 
     // Act
-    const toggle = screen.getByTestId("toggle-expanded");
+    const toggle = screen.getByTestId('toggle-expanded');
     await user.click(toggle);
 
     // Assert
-    const announcement = screen.getByText("Loading directory subdirectories");
-    expect(announcement).toHaveClass("sr-only");
+    const announcement = screen.getByText('Loading directory subdirectories');
+    expect(announcement).toHaveClass('sr-only');
   });
 
-  it("it renders a status message if there was an error loading contents", async () => {
+  it('it renders a status message if there was an error loading contents', async () => {
     // Arrange
     const user = userEvent.setup();
 
     const errorState = {
-      status: "Error",
-      error: new Error("Something went wrong"),
+      status: 'Error',
+      error: new Error('Something went wrong'),
       directories: [],
-    } as UseDirectoriesInDirectoryResult["state"];
+    } as UseDirectoriesInDirectoryResult['state'];
 
     const useDirectoriesInDirectoryResult: UseDirectoriesInDirectoryResult = {
       state: errorState,
@@ -285,14 +285,14 @@ describe("Directory", () => {
 
     render(
       h(Directory, {
-        activeDescendant: "node-0",
-        id: "node-0",
+        activeDescendant: 'node-0',
+        id: 'node-0',
         level: 0,
-        path: "path/to/directory/",
+        path: 'path/to/directory/',
         provider: mockFileBrowserProvider,
         reloadRequests: Utils.subscribable(),
-        rootLabel: "Workspace bucket",
-        selectedDirectory: "",
+        rootLabel: 'Workspace bucket',
+        selectedDirectory: '',
         setActiveDescendant: () => {},
         onError: () => {},
         onSelectDirectory: jest.fn(),
@@ -300,22 +300,22 @@ describe("Directory", () => {
     );
 
     // Act
-    const toggle = screen.getByTestId("toggle-expanded");
+    const toggle = screen.getByTestId('toggle-expanded');
     await user.click(toggle);
 
     // Assert
-    screen.getByText("Error loading subdirectories");
+    screen.getByText('Error loading subdirectories');
   });
 
-  it("calls onError callback on errors loading directories", async () => {
+  it('calls onError callback on errors loading directories', async () => {
     // Arrange
     const user = userEvent.setup();
 
     const errorState = {
-      status: "Error",
-      error: new Error("Something went wrong"),
+      status: 'Error',
+      error: new Error('Something went wrong'),
       directories: [],
-    } as UseDirectoriesInDirectoryResult["state"];
+    } as UseDirectoriesInDirectoryResult['state'];
 
     const useDirectoriesInDirectoryResult: UseDirectoriesInDirectoryResult = {
       state: errorState,
@@ -331,14 +331,14 @@ describe("Directory", () => {
 
     render(
       h(Directory, {
-        activeDescendant: "node-0",
-        id: "node-0",
+        activeDescendant: 'node-0',
+        id: 'node-0',
         level: 0,
-        path: "path/to/directory/",
+        path: 'path/to/directory/',
         provider: mockFileBrowserProvider,
         reloadRequests: Utils.subscribable(),
-        rootLabel: "Workspace bucket",
-        selectedDirectory: "",
+        rootLabel: 'Workspace bucket',
+        selectedDirectory: '',
         setActiveDescendant: () => {},
         onError,
         onSelectDirectory: jest.fn(),
@@ -346,26 +346,26 @@ describe("Directory", () => {
     );
 
     // Act
-    const toggle = screen.getByTestId("toggle-expanded");
+    const toggle = screen.getByTestId('toggle-expanded');
     await user.click(toggle);
 
     // Assert
-    expect(onError).toHaveBeenCalledWith(new Error("Something went wrong"));
+    expect(onError).toHaveBeenCalledWith(new Error('Something went wrong'));
   });
 
-  describe("when next page is available", () => {
+  describe('when next page is available', () => {
     // Arrange
     const loadNextPage = jest.fn();
     const loadAllRemainingItems = jest.fn();
 
     const directories = [
       {
-        path: "path/to/directory/subdirectory1",
+        path: 'path/to/directory/subdirectory1',
       },
     ];
 
     const useDirectoriesInDirectoryResult: UseDirectoriesInDirectoryResult = {
-      state: { directories, status: "Ready" },
+      state: { directories, status: 'Ready' },
       hasNextPage: true,
       loadNextPage,
       loadAllRemainingItems,
@@ -376,31 +376,31 @@ describe("Directory", () => {
       asMockedFn(useDirectoriesInDirectory).mockReturnValue(useDirectoriesInDirectoryResult);
     });
 
-    it("renders a button to load next page", async () => {
+    it('renders a button to load next page', async () => {
       // Arrange
       const user = userEvent.setup();
 
       render(
         h(Directory, {
-          activeDescendant: "node-0",
-          id: "node-0",
+          activeDescendant: 'node-0',
+          id: 'node-0',
           level: 0,
-          path: "path/to/directory/",
+          path: 'path/to/directory/',
           provider: mockFileBrowserProvider,
           reloadRequests: Utils.subscribable(),
-          rootLabel: "Workspace bucket",
-          selectedDirectory: "",
+          rootLabel: 'Workspace bucket',
+          selectedDirectory: '',
           setActiveDescendant: () => {},
           onError: () => {},
           onSelectDirectory: jest.fn(),
         })
       );
 
-      const toggle = screen.getByTestId("toggle-expanded");
+      const toggle = screen.getByTestId('toggle-expanded');
       await user.click(toggle);
 
       // Assert
-      const loadNextPageButton = screen.getByText("Load next page");
+      const loadNextPageButton = screen.getByText('Load next page');
       await user.click(loadNextPageButton);
       expect(loadNextPage).toHaveBeenCalled();
     });

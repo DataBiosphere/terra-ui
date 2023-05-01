@@ -1,14 +1,14 @@
-import _ from "lodash/fp";
-import { useEffect } from "react";
-import { useAuth } from "react-oidc-context";
-import { processUser, reloadAuthToken } from "src/libs/auth";
-import { useOnMount } from "src/libs/react-utils";
-import { authStore } from "src/libs/state";
+import _ from 'lodash/fp';
+import { useEffect } from 'react';
+import { useAuth } from 'react-oidc-context';
+import { processUser, reloadAuthToken } from 'src/libs/auth';
+import { useOnMount } from 'src/libs/react-utils';
+import { authStore } from 'src/libs/state';
 
 function AuthStoreSetter() {
   const auth = useAuth();
 
-  useOnMount(() => authStore.update(_.set(["authContext"], auth)));
+  useOnMount(() => authStore.update(_.set(['authContext'], auth)));
   useEffect(() => {
     const cleanupFns = [
       auth.events.addUserLoaded((user) => processUser(user, true)),

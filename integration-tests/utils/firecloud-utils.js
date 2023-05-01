@@ -1,4 +1,4 @@
-const { click, delay, findText } = require("./integration-utils");
+const { click, delay, findText } = require('./integration-utils');
 
 const selectWorkspace = async (page, billingAccount, workspace) => {
   await click(page, '//*[@data-test-id="workspace-selector"]');
@@ -7,7 +7,7 @@ const selectWorkspace = async (page, billingAccount, workspace) => {
 
 const signIntoFirecloud = async (page, token) => {
   await page.waitForXPath('//title[text()="FireCloud | Broad Institute"]');
-  await findText(page, "content you are looking for is currently only accessible");
+  await findText(page, 'content you are looking for is currently only accessible');
 
   await page.waitForXPath('//*[@id="sign-in-button"]');
 

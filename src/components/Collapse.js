@@ -1,11 +1,11 @@
-import _ from "lodash/fp";
-import { useEffect, useRef, useState } from "react";
-import { div, h } from "react-hyperscript-helpers";
-import { Link } from "src/components/common";
-import { icon } from "src/components/icons";
-import colors from "src/libs/colors";
-import { useUniqueId } from "src/libs/react-utils";
-import * as Style from "src/libs/style";
+import _ from 'lodash/fp';
+import { useEffect, useRef, useState } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
+import { Link } from 'src/components/common';
+import { icon } from 'src/components/icons';
+import colors from 'src/libs/colors';
+import { useUniqueId } from 'src/libs/react-utils';
+import * as Style from 'src/libs/style';
 
 const Collapse = ({
   title,
@@ -23,11 +23,11 @@ const Collapse = ({
   ...props
 }) => {
   const [isOpened, setIsOpened] = useState(initialOpenState);
-  const angleIcon = icon(isOpened ? "angle-down" : "angle-right", {
+  const angleIcon = icon(isOpened ? 'angle-down' : 'angle-right', {
     style: {
       flexShrink: 0,
-      marginLeft: titleFirst ? "auto" : undefined,
-      marginRight: titleFirst ? undefined : "0.25rem",
+      marginLeft: titleFirst ? 'auto' : undefined,
+      marginRight: titleFirst ? undefined : '0.25rem',
     },
   });
 
@@ -44,9 +44,9 @@ const Collapse = ({
     div(
       {
         style: {
-          position: "relative",
-          display: "flex",
-          alignItems: "center",
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
           ...summaryStyle,
         },
       },
@@ -55,8 +55,8 @@ const Collapse = ({
         h(
           Link,
           {
-            "aria-expanded": isOpened,
-            "aria-controls": isOpened ? id : undefined,
+            'aria-expanded': isOpened,
+            'aria-controls': isOpened ? id : undefined,
             style: {
               color: colors.dark(),
               ...(noTitleWrap ? Style.noWrapEllipsis : {}),
@@ -68,9 +68,9 @@ const Collapse = ({
           },
           [
             div({
-              "aria-hidden": true,
+              'aria-hidden': true,
               // zIndex: 1 lifts this element above angleIcon, so that clicking on the icon will toggle the Collapse.
-              style: { position: "absolute", top: 0, left: 0, bottom: 0, right: 0, zIndex: 1 },
+              style: { position: 'absolute', top: 0, left: 0, bottom: 0, right: 0, zIndex: 1 },
             }),
             title,
           ]
@@ -79,7 +79,7 @@ const Collapse = ({
         // display: flex and flex: 1 causes this div to fill available space. This makes it easy to position afterTitle
         // controls just after the summary text or at the right edge of the summary section. height: 0 prevents the unused
         // space in this div from blocking clicks on the summary section.
-        afterTitle && div({ style: { display: "flex", flex: 1, alignItems: "center", height: 0, margin: "0 1ch", zIndex: 2 } }, [afterTitle]),
+        afterTitle && div({ style: { display: 'flex', flex: 1, alignItems: 'center', height: 0, margin: '0 1ch', zIndex: 2 } }, [afterTitle]),
         titleFirst && angleIcon,
       ]
     ),

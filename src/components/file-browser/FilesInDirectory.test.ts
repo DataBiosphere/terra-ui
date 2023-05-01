@@ -1,21 +1,21 @@
-import "@testing-library/jest-dom";
+import '@testing-library/jest-dom';
 
-import { act, render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { div, h } from "react-hyperscript-helpers";
-import { useFilesInDirectory } from "src/components/file-browser/file-browser-hooks";
-import FilesInDirectory from "src/components/file-browser/FilesInDirectory";
-import FilesTable from "src/components/file-browser/FilesTable";
-import FileBrowserProvider, { FileBrowserFile } from "src/libs/ajax/file-browser-providers/FileBrowserProvider";
-import { asMockedFn } from "src/testing/test-utils";
+import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { div, h } from 'react-hyperscript-helpers';
+import { useFilesInDirectory } from 'src/components/file-browser/file-browser-hooks';
+import FilesInDirectory from 'src/components/file-browser/FilesInDirectory';
+import FilesTable from 'src/components/file-browser/FilesTable';
+import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
+import { asMockedFn } from 'src/testing/test-utils';
 
-jest.mock("src/components/file-browser/file-browser-hooks", () => ({
-  ...jest.requireActual("src/components/file-browser/file-browser-hooks"),
+jest.mock('src/components/file-browser/file-browser-hooks', () => ({
+  ...jest.requireActual('src/components/file-browser/file-browser-hooks'),
   useFilesInDirectory: jest.fn(),
 }));
 
-jest.mock("src/components/file-browser/FilesTable", () => ({
-  ...jest.requireActual("src/components/file-browser/FilesTable"),
+jest.mock('src/components/file-browser/FilesTable', () => ({
+  ...jest.requireActual('src/components/file-browser/FilesTable'),
   __esModule: true,
   default: jest.fn(),
 }));
@@ -28,22 +28,22 @@ type UseFilesInDirectoryResult = ReturnType<typeof useFilesInDirectory>;
 
 // modals, popups, tooltips, etc. render into this element.
 beforeAll(() => {
-  const modalRoot = document.createElement("div");
-  modalRoot.id = "modal-root";
+  const modalRoot = document.createElement('div');
+  modalRoot.id = 'modal-root';
   document.body.append(modalRoot);
 });
 
 afterAll(() => {
-  document.getElementById("modal-root")!.remove();
+  document.getElementById('modal-root')!.remove();
 });
 
-describe("FilesInDirectory", () => {
+describe('FilesInDirectory', () => {
   const mockFileBrowserProvider: FileBrowserProvider = {} as FileBrowserProvider;
 
-  it("loads files in the given path", () => {
+  it('loads files in the given path', () => {
     // Arrange
     const useFilesInDirectoryResult: UseFilesInDirectoryResult = {
-      state: { files: [], status: "Loading" },
+      state: { files: [], status: 'Loading' },
       hasNextPage: undefined,
       loadNextPage: () => Promise.resolve(),
       loadAllRemainingItems: () => Promise.resolve(),
@@ -56,7 +56,7 @@ describe("FilesInDirectory", () => {
     render(
       h(FilesInDirectory, {
         provider: mockFileBrowserProvider,
-        path: "path/to/directory/",
+        path: 'path/to/directory/',
         selectedFiles: {},
         setSelectedFiles: () => {},
         onClickFile: jest.fn(),
@@ -67,15 +67,15 @@ describe("FilesInDirectory", () => {
     );
 
     // Assert
-    expect(asMockedFn(useFilesInDirectory)).toHaveBeenCalledWith(mockFileBrowserProvider, "path/to/directory/");
+    expect(asMockedFn(useFilesInDirectory)).toHaveBeenCalledWith(mockFileBrowserProvider, 'path/to/directory/');
   });
 
-  it("renders FilesTable with loaded files", () => {
+  it('renders FilesTable with loaded files', () => {
     // Arrange
     const files: FileBrowserFile[] = [
       {
-        path: "path/to/file.txt",
-        url: "gs://test-bucket/path/to/file.txt",
+        path: 'path/to/file.txt',
+        url: 'gs://test-bucket/path/to/file.txt',
         size: 1024,
         createdAt: 1667408400000,
         updatedAt: 1667408400000,
@@ -83,7 +83,7 @@ describe("FilesInDirectory", () => {
     ];
 
     const useFilesInDirectoryResult: UseFilesInDirectoryResult = {
-      state: { files, status: "Ready" },
+      state: { files, status: 'Ready' },
       hasNextPage: undefined,
       loadNextPage: () => Promise.resolve(),
       loadAllRemainingItems: () => Promise.resolve(),
@@ -96,7 +96,7 @@ describe("FilesInDirectory", () => {
     render(
       h(FilesInDirectory, {
         provider: mockFileBrowserProvider,
-        path: "path/to/directory/",
+        path: 'path/to/directory/',
         selectedFiles: {},
         setSelectedFiles: () => {},
         onClickFile: jest.fn(),
@@ -111,14 +111,14 @@ describe("FilesInDirectory", () => {
   });
 
   it.each([
-    { state: { status: "Loading", files: [] }, expectedMessage: "Loading files..." },
-    { state: { status: "Ready", files: [] }, expectedMessage: "No files have been uploaded yet" },
+    { state: { status: 'Loading', files: [] }, expectedMessage: 'Loading files...' },
+    { state: { status: 'Ready', files: [] }, expectedMessage: 'No files have been uploaded yet' },
     {
-      state: { status: "Error", error: new Error("Something went wrong"), files: [] },
-      expectedMessage: "Unable to load files",
+      state: { status: 'Error', error: new Error('Something went wrong'), files: [] },
+      expectedMessage: 'Unable to load files',
     },
-  ] as { state: UseFilesInDirectoryResult["state"]; expectedMessage: string }[])(
-    "renders a message based on loading state ($state.status) when no files are present",
+  ] as { state: UseFilesInDirectoryResult['state']; expectedMessage: string }[])(
+    'renders a message based on loading state ($state.status) when no files are present',
     ({ state, expectedMessage }) => {
       // Arrange
       const useFilesInDirectoryResult: UseFilesInDirectoryResult = {
@@ -135,7 +135,7 @@ describe("FilesInDirectory", () => {
       render(
         h(FilesInDirectory, {
           provider: mockFileBrowserProvider,
-          path: "path/to/directory/",
+          path: 'path/to/directory/',
           selectedFiles: {},
           setSelectedFiles: () => {},
           onClickFile: jest.fn(),
@@ -150,10 +150,10 @@ describe("FilesInDirectory", () => {
     }
   );
 
-  it("calls onError callback on errors loading files", () => {
+  it('calls onError callback on errors loading files', () => {
     // Arrange
     const useFilesInDirectoryResult: UseFilesInDirectoryResult = {
-      state: { status: "Error", error: new Error("Something went wrong"), files: [] },
+      state: { status: 'Error', error: new Error('Something went wrong'), files: [] },
       hasNextPage: false,
       loadNextPage: () => Promise.resolve(),
       loadAllRemainingItems: () => Promise.resolve(),
@@ -168,7 +168,7 @@ describe("FilesInDirectory", () => {
     render(
       h(FilesInDirectory, {
         provider: mockFileBrowserProvider,
-        path: "path/to/directory/",
+        path: 'path/to/directory/',
         selectedFiles: {},
         setSelectedFiles: () => {},
         onClickFile: jest.fn(),
@@ -179,18 +179,18 @@ describe("FilesInDirectory", () => {
     );
 
     // Assert
-    expect(onError).toHaveBeenCalledWith(new Error("Something went wrong"));
+    expect(onError).toHaveBeenCalledWith(new Error('Something went wrong'));
   });
 
-  describe("when next page is available", () => {
+  describe('when next page is available', () => {
     // Arrange
     const loadNextPage = jest.fn();
     const loadAllRemainingItems = jest.fn();
 
     const files: FileBrowserFile[] = [
       {
-        path: "path/to/file.txt",
-        url: "gs://test-bucket/path/to/file.txt",
+        path: 'path/to/file.txt',
+        url: 'gs://test-bucket/path/to/file.txt',
         size: 1024,
         createdAt: 1667408400000,
         updatedAt: 1667408400000,
@@ -198,7 +198,7 @@ describe("FilesInDirectory", () => {
     ];
 
     const useFilesInDirectoryResult: UseFilesInDirectoryResult = {
-      state: { files, status: "Ready" },
+      state: { files, status: 'Ready' },
       hasNextPage: true,
       loadNextPage,
       loadAllRemainingItems,
@@ -209,7 +209,7 @@ describe("FilesInDirectory", () => {
       asMockedFn(useFilesInDirectory).mockReturnValue(useFilesInDirectoryResult);
     });
 
-    it("renders a button to load next page", async () => {
+    it('renders a button to load next page', async () => {
       // Arrange
       const user = userEvent.setup();
 
@@ -217,7 +217,7 @@ describe("FilesInDirectory", () => {
       render(
         h(FilesInDirectory, {
           provider: mockFileBrowserProvider,
-          path: "path/to/directory/",
+          path: 'path/to/directory/',
           selectedFiles: {},
           setSelectedFiles: () => {},
           onClickFile: jest.fn(),
@@ -228,12 +228,12 @@ describe("FilesInDirectory", () => {
       );
 
       // Assert
-      const loadNextPageButton = screen.getByText("Load next page");
+      const loadNextPageButton = screen.getByText('Load next page');
       await user.click(loadNextPageButton);
       expect(loadNextPage).toHaveBeenCalled();
     });
 
-    it("renders a button to load all remaining pages", async () => {
+    it('renders a button to load all remaining pages', async () => {
       // Arrange
       const user = userEvent.setup();
 
@@ -241,7 +241,7 @@ describe("FilesInDirectory", () => {
       render(
         h(FilesInDirectory, {
           provider: mockFileBrowserProvider,
-          path: "path/to/directory/",
+          path: 'path/to/directory/',
           selectedFiles: {},
           setSelectedFiles: () => {},
           onClickFile: jest.fn(),
@@ -252,13 +252,13 @@ describe("FilesInDirectory", () => {
       );
 
       // Assert
-      const loadAllPagesButton = screen.getByText("Load all");
+      const loadAllPagesButton = screen.getByText('Load all');
       await user.click(loadAllPagesButton);
       expect(loadAllRemainingItems).toHaveBeenCalled();
     });
   });
 
-  it("uploads files", async () => {
+  it('uploads files', async () => {
     // Arrange
     const user = userEvent.setup();
 
@@ -266,7 +266,7 @@ describe("FilesInDirectory", () => {
     const mockProvider = { uploadFileToDirectory } as Partial<FileBrowserProvider> as FileBrowserProvider;
 
     const useFilesInDirectoryResult: UseFilesInDirectoryResult = {
-      state: { status: "Ready", files: [] },
+      state: { status: 'Ready', files: [] },
       hasNextPage: false,
       loadNextPage: () => Promise.resolve(),
       loadAllRemainingItems: () => Promise.resolve(),
@@ -278,7 +278,7 @@ describe("FilesInDirectory", () => {
     render(
       h(FilesInDirectory, {
         provider: mockProvider,
-        path: "path/to/directory/",
+        path: 'path/to/directory/',
         selectedFiles: {},
         setSelectedFiles: () => {},
         onClickFile: jest.fn(),
@@ -290,16 +290,16 @@ describe("FilesInDirectory", () => {
 
     const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]')!;
 
-    const file = new File(["somecontent"], "example.txt");
+    const file = new File(['somecontent'], 'example.txt');
 
     // Act
     await act(() => user.upload(fileInput, [file]));
 
     // Assert
-    expect(uploadFileToDirectory).toHaveBeenCalledWith("path/to/directory/", file);
+    expect(uploadFileToDirectory).toHaveBeenCalledWith('path/to/directory/', file);
   });
 
-  it("allows deleting empty folders", async () => {
+  it('allows deleting empty folders', async () => {
     // Arrange
     const user = userEvent.setup();
 
@@ -312,7 +312,7 @@ describe("FilesInDirectory", () => {
     const onDeleteDirectory = jest.fn();
 
     const useFilesInDirectoryResult: UseFilesInDirectoryResult = {
-      state: { status: "Ready", files: [] },
+      state: { status: 'Ready', files: [] },
       hasNextPage: false,
       loadNextPage: () => Promise.resolve(),
       loadAllRemainingItems: () => Promise.resolve(),
@@ -324,7 +324,7 @@ describe("FilesInDirectory", () => {
     render(
       h(FilesInDirectory, {
         provider: mockProvider,
-        path: "path/to/directory/",
+        path: 'path/to/directory/',
         selectedFiles: {},
         setSelectedFiles: () => {},
         onClickFile: jest.fn(),
@@ -335,11 +335,11 @@ describe("FilesInDirectory", () => {
     );
 
     // Act
-    const deleteButton = screen.getByText("Delete this folder");
+    const deleteButton = screen.getByText('Delete this folder');
     await act(() => user.click(deleteButton));
 
     // Assert
-    expect(deleteEmptyDirectory).toHaveBeenCalledWith("path/to/directory/");
+    expect(deleteEmptyDirectory).toHaveBeenCalledWith('path/to/directory/');
     expect(onDeleteDirectory).toHaveBeenCalled();
   });
 });

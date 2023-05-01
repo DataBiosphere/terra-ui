@@ -1,8 +1,8 @@
-import _ from "lodash/fp";
-import { Fragment, useEffect, useRef, useState } from "react";
-import { b, div, h, span } from "react-hyperscript-helpers";
-import { AutoSizer } from "react-virtualized";
-import { ClipboardButton } from "src/components/ClipboardButton";
+import _ from 'lodash/fp';
+import { Fragment, useEffect, useRef, useState } from 'react';
+import { b, div, h, span } from 'react-hyperscript-helpers';
+import { AutoSizer } from 'react-virtualized';
+import { ClipboardButton } from 'src/components/ClipboardButton';
 import {
   ButtonPrimary,
   ButtonSecondary,
@@ -12,33 +12,33 @@ import {
   fixedSpinnerOverlay,
   Link,
   RadioButton,
-} from "src/components/common";
-import { concatenateAttributeNames } from "src/components/data/attribute-utils";
-import { EditDataLink, entityAttributeText, EntityRenamer, HeaderOptions, renderDataCell, SingleEntityEditor } from "src/components/data/data-utils";
-import RenameColumnModal from "src/components/data/RenameColumnModal";
+} from 'src/components/common';
+import { concatenateAttributeNames } from 'src/components/data/attribute-utils';
+import { EditDataLink, entityAttributeText, EntityRenamer, HeaderOptions, renderDataCell, SingleEntityEditor } from 'src/components/data/data-utils';
+import RenameColumnModal from 'src/components/data/RenameColumnModal';
 import {
   allSavedColumnSettingsEntityTypeKey,
   allSavedColumnSettingsInWorkspace,
   ColumnSettingsWithSavedColumnSettings,
   decodeColumnSettings,
-} from "src/components/data/SavedColumnSettings";
-import { icon } from "src/components/icons";
-import { ConfirmedSearchInput } from "src/components/input";
-import { MenuButton } from "src/components/MenuButton";
-import Modal from "src/components/Modal";
-import { MenuTrigger } from "src/components/PopupTrigger";
-import { GridTable, HeaderCell, paginator, Resizable, TooltipCell } from "src/components/table";
-import { Ajax } from "src/libs/ajax";
-import { wdsProviderName } from "src/libs/ajax/data-table-providers/WdsDataTableProvider";
-import colors from "src/libs/colors";
-import { withErrorReporting } from "src/libs/error";
-import Events, { extractWorkspaceDetails } from "src/libs/events";
-import { getLocalPref, setLocalPref } from "src/libs/prefs";
-import { useCancellation } from "src/libs/react-utils";
-import * as StateHistory from "src/libs/state-history";
-import * as Style from "src/libs/style";
-import * as Utils from "src/libs/utils";
-import { cloudProviders } from "src/pages/workspaces/workspace/analysis/utils/runtime-utils";
+} from 'src/components/data/SavedColumnSettings';
+import { icon } from 'src/components/icons';
+import { ConfirmedSearchInput } from 'src/components/input';
+import { MenuButton } from 'src/components/MenuButton';
+import Modal from 'src/components/Modal';
+import { MenuTrigger } from 'src/components/PopupTrigger';
+import { GridTable, HeaderCell, paginator, Resizable, TooltipCell } from 'src/components/table';
+import { Ajax } from 'src/libs/ajax';
+import { wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
+import colors from 'src/libs/colors';
+import { withErrorReporting } from 'src/libs/error';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { getLocalPref, setLocalPref } from 'src/libs/prefs';
+import { useCancellation } from 'src/libs/react-utils';
+import * as StateHistory from 'src/libs/state-history';
+import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 
 const entityMap = (entities) => {
   return _.fromPairs(_.map((e) => [e.name, e], entities));
@@ -48,12 +48,12 @@ const applyColumnSettings = (columnSettings, columns) => {
   const lookup = _.flow(
     Utils.toIndexPairs,
     _.map(([i, v]) => ({ ...v, index: i })),
-    _.keyBy("name")
+    _.keyBy('name')
   )(columnSettings);
   return _.flow(
     _.map((name) => lookup[name] || { name, visible: true, index: -1 }),
-    _.sortBy("index"),
-    _.map(_.omit("index"))
+    _.sortBy('index'),
+    _.map(_.omit('index'))
   )(columns);
 };
 
@@ -65,14 +65,14 @@ const displayData = ({ itemsType, items }) => {
           ([i, entity]) =>
             div(
               {
-                style: { borderBottom: i !== items.length - 1 ? `1px solid ${colors.dark(0.7)}` : undefined, padding: "0.5rem" },
+                style: { borderBottom: i !== items.length - 1 ? `1px solid ${colors.dark(0.7)}` : undefined, padding: '0.5rem' },
               },
-              [itemsType === "EntityReference" ? `${entity.entityName} (${entity.entityType})` : JSON.stringify(entity)]
+              [itemsType === 'EntityReference' ? `${entity.entityName} (${entity.entityType})` : JSON.stringify(entity)]
             ),
           Utils.toIndexPairs(items)
         )
       )
-    : div({ style: { padding: "0.5rem", fontStyle: "italic" } }, ["No items"]);
+    : div({ style: { padding: '0.5rem', fontStyle: 'italic' } }, ['No items']);
 };
 
 const DataTable = (props) => {
@@ -114,9 +114,9 @@ const DataTable = (props) => {
 
   const [itemsPerPage, setItemsPerPage] = useState(100);
   const [pageNumber, setPageNumber] = useState(1);
-  const [sort, setSort] = useState({ field: "name", direction: "asc" });
-  const [activeTextFilter, setActiveTextFilter] = useState(activeCrossTableTextFilter || "");
-  const [columnFilter, setColumnFilter] = useState({ filterColAttr: "", filterColTerm: "" });
+  const [sort, setSort] = useState({ field: 'name', direction: 'asc' });
+  const [activeTextFilter, setActiveTextFilter] = useState(activeCrossTableTextFilter || '');
+  const [columnFilter, setColumnFilter] = useState({ filterColAttr: '', filterColTerm: '' });
 
   const [columnWidths, setColumnWidths] = useState(() => getLocalPref(persistenceId)?.columnWidths || {});
   const [columnState, setColumnState] = useState(() => {
@@ -132,7 +132,7 @@ const DataTable = (props) => {
 
     const {
       workspace: {
-        attributes: { "workspace-column-defaults": columnDefaultsString },
+        attributes: { 'workspace-column-defaults': columnDefaultsString },
       },
     } = workspace;
     const columnDefaults = Utils.maybeParseJSON(columnDefaultsString);
@@ -149,7 +149,7 @@ const DataTable = (props) => {
       allSavedColumnSettingsInWorkspace,
       _.getOr({}, allSavedColumnSettingsEntityTypeKey({ snapshotName, entityType }))
     )(workspace);
-    const defaultColumnSettingsName = "Default";
+    const defaultColumnSettingsName = 'Default';
     if (savedColumnSettings[defaultColumnSettingsName]) {
       return decodeColumnSettings(savedColumnSettings[defaultColumnSettingsName]);
     }
@@ -164,7 +164,7 @@ const DataTable = (props) => {
   const [deletingColumn, setDeletingColumn] = useState();
   const [clearingColumn, setClearingColumn] = useState();
 
-  const [filterOperator, setFilterOperator] = useState("AND");
+  const [filterOperator, setFilterOperator] = useState('AND');
 
   const noEdit = Utils.editWorkspaceError(workspace);
 
@@ -176,10 +176,10 @@ const DataTable = (props) => {
     !!entityMetadata &&
     _.flow(
       Utils.withBusyState(setLoading),
-      withErrorReporting("Error loading entities")
+      withErrorReporting('Error loading entities')
     )(async () => {
       const colFilt =
-        !!columnFilter.filterColAttr && !!columnFilter.filterColTerm ? `${columnFilter.filterColAttr}=${columnFilter.filterColTerm}` : "";
+        !!columnFilter.filterColAttr && !!columnFilter.filterColTerm ? `${columnFilter.filterColAttr}=${columnFilter.filterColTerm}` : '';
       const queryOptions = {
         pageNumber,
         itemsPerPage,
@@ -197,7 +197,7 @@ const DataTable = (props) => {
       } = await dataProvider.getPage(signal, entityType, queryOptions, entityMetadata);
 
       // Find all the unique attribute names contained in the current page of results.
-      const attrNamesFromResults = _.uniq(_.flatMap(_.keys, _.map("attributes", results)));
+      const attrNamesFromResults = _.uniq(_.flatMap(_.keys, _.map('attributes', results)));
       // Add any attribute names from the current page of results to those found in metadata.
       // This allows for stale metadata (e.g. the metadata cache is out of date).
       // For the time being, the uniqueness check MUST be case-insensitive (e.g. { sensitivity: 'accent' })
@@ -205,7 +205,7 @@ const DataTable = (props) => {
       const attrNamesFromMetadata = entityMetadata[entityType]?.attributeNames;
       const newAttrsForThisType = concatenateAttributeNames(attrNamesFromMetadata, attrNamesFromResults);
       if (!_.isEqual(newAttrsForThisType, attrNamesFromMetadata)) {
-        setEntityMetadata(_.set([entityType, "attributeNames"], newAttrsForThisType));
+        setEntityMetadata(_.set([entityType, 'attributeNames'], newAttrsForThisType));
       }
       setEntities(results);
       setFilteredCount(filteredCount);
@@ -220,7 +220,7 @@ const DataTable = (props) => {
 
   const deleteColumn = _.flow(
     Utils.withBusyState(setLoading),
-    withErrorReporting("Unable to delete column")
+    withErrorReporting('Unable to delete column')
   )(async (attributeName) => {
     await Ajax(signal).Workspaces.workspace(namespace, name).deleteEntityColumn(entityType, attributeName);
     deleteColumnUpdateMetadata({ entityType, attributeName });
@@ -233,26 +233,26 @@ const DataTable = (props) => {
 
   const clearColumn = _.flow(
     Utils.withBusyState(setLoading),
-    withErrorReporting("Unable to clear column.")
+    withErrorReporting('Unable to clear column.')
   )(async (attributeName) => {
     const allEntities = await getAllEntities();
     const entityUpdates = _.map(
       (entity) => ({
         name: entity.name,
         entityType: entity.entityType,
-        operations: [{ op: "AddUpdateAttribute", attributeName, addUpdateAttribute: "" }],
+        operations: [{ op: 'AddUpdateAttribute', attributeName, addUpdateAttribute: '' }],
       }),
       allEntities
     );
     await Ajax(signal).Workspaces.workspace(namespace, name).upsertEntities(entityUpdates);
 
-    const updatedEntities = _.map(_.update("attributes", _.set(attributeName, "")), entities);
+    const updatedEntities = _.map(_.update('attributes', _.set(attributeName, '')), entities);
     setEntities(updatedEntities);
   });
 
   const selectAll = _.flow(
     Utils.withBusyState(setLoading),
-    withErrorReporting("Error loading entities")
+    withErrorReporting('Error loading entities')
   )(async () => {
     const allEntities = await getAllEntities();
     setSelected(entityMap(allEntities));
@@ -276,13 +276,13 @@ const DataTable = (props) => {
   };
 
   const pageSelected = () => {
-    const entityKeys = _.map("name", entities);
+    const entityKeys = _.map('name', entities);
     const selectedKeys = _.keys(selected);
     return entities.length && _.every((k) => _.includes(k, selectedKeys), entityKeys);
   };
 
   const searchByColumn = (field, v) => {
-    setActiveTextFilter("");
+    setActiveTextFilter('');
     setColumnFilter({ filterColAttr: field, filterColTerm: v.toString().trim() });
     setPageNumber(1);
     Ajax().Metrics.captureEvent(Events.workspaceDataFilteredSearch, {
@@ -326,8 +326,8 @@ const DataTable = (props) => {
         div(
           {
             style: {
-              display: "flex",
-              padding: "1rem",
+              display: 'flex',
+              padding: '1rem',
               ...controlPanelStyle,
             },
           },
@@ -338,29 +338,29 @@ const DataTable = (props) => {
               h(
                 MenuTrigger,
                 {
-                  side: "bottom",
+                  side: 'bottom',
                   closeOnClick: false,
                   popupProps: { style: { width: 250 } },
                   content: h(Fragment, [
-                    div({ style: { padding: "1rem" } }, [
-                      div({ style: { fontWeight: 600 } }, ["Search logic"]),
-                      div({ role: "radiogroup", "aria-label": "choose an operator to use for advanced search" }, [
-                        div({ style: { paddingTop: "0.5rem" } }, [
+                    div({ style: { padding: '1rem' } }, [
+                      div({ style: { fontWeight: 600 } }, ['Search logic']),
+                      div({ role: 'radiogroup', 'aria-label': 'choose an operator to use for advanced search' }, [
+                        div({ style: { paddingTop: '0.5rem' } }, [
                           h(RadioButton, {
-                            text: "AND (rows with all terms)",
-                            name: "advanced-search-operator",
-                            checked: filterOperator === "AND",
-                            onChange: () => setFilterOperator("AND"),
-                            labelStyle: { padding: "0.5rem", fontWeight: "normal" },
+                            text: 'AND (rows with all terms)',
+                            name: 'advanced-search-operator',
+                            checked: filterOperator === 'AND',
+                            onChange: () => setFilterOperator('AND'),
+                            labelStyle: { padding: '0.5rem', fontWeight: 'normal' },
                           }),
                         ]),
-                        div({ style: { paddingTop: "0.5rem" } }, [
+                        div({ style: { paddingTop: '0.5rem' } }, [
                           h(RadioButton, {
-                            text: "OR (rows with any term)",
-                            name: "advanced-search-operator",
-                            checked: filterOperator === "OR",
-                            onChange: () => setFilterOperator("OR"),
-                            labelStyle: { padding: "0.5rem", fontWeight: "normal" },
+                            text: 'OR (rows with any term)',
+                            name: 'advanced-search-operator',
+                            checked: filterOperator === 'OR',
+                            onChange: () => setFilterOperator('OR'),
+                            labelStyle: { padding: '0.5rem', fontWeight: 'normal' },
                           }),
                         ]),
                       ]),
@@ -371,9 +371,9 @@ const DataTable = (props) => {
                   h(
                     ButtonSecondary,
                     {
-                      style: { margin: "0rem 1.5rem" },
+                      style: { margin: '0rem 1.5rem' },
                     },
-                    [icon("bars", { style: { marginRight: "0.5rem" } }), "Advanced search"]
+                    [icon('bars', { style: { marginRight: '0.5rem' } }), 'Advanced search']
                   ),
                 ]
               ),
@@ -381,10 +381,10 @@ const DataTable = (props) => {
               !snapshotName &&
               div({ style: { width: 300 } }, [
                 h(ConfirmedSearchInput, {
-                  "aria-label": "Search",
-                  placeholder: "Search",
+                  'aria-label': 'Search',
+                  placeholder: 'Search',
                   onChange: (v) => {
-                    setColumnFilter({ filterColAttr: "", filterColTerm: "" });
+                    setColumnFilter({ filterColAttr: '', filterColTerm: '' });
                     setActiveTextFilter(v.toString().trim());
                     setPageNumber(1);
                   },
@@ -396,7 +396,7 @@ const DataTable = (props) => {
         div({ style: { flex: 1 } }, [
           h(AutoSizer, [
             ({ width, height }) => {
-              const visibleColumns = _.filter("visible", columnSettings);
+              const visibleColumns = _.filter('visible', columnSettings);
 
               const selectRowColumn = {
                 width: 70,
@@ -406,25 +406,25 @@ const DataTable = (props) => {
                       checked: pageSelected(),
                       disabled: !entities.length,
                       onChange: pageSelected() ? deselectPage : selectPage,
-                      "aria-label": "Select all",
+                      'aria-label': 'Select all',
                     }),
                     h(
                       MenuTrigger,
                       {
                         closeOnClick: true,
                         content: h(Fragment, [
-                          h(MenuButton, { onClick: selectPage }, ["Page"]),
+                          h(MenuButton, { onClick: selectPage }, ['Page']),
                           !!filteredCount &&
                             h(
                               MenuButton,
                               { onClick: selectAll },
                               totalRowCount === filteredCount ? [`All (${filteredCount})`] : [`Filtered (${filteredCount})`]
                             ),
-                          h(MenuButton, { onClick: selectNone }, ["None"]),
+                          h(MenuButton, { onClick: selectNone }, ['None']),
                         ]),
-                        side: "bottom",
+                        side: 'bottom',
                       },
-                      [h(Clickable, { "aria-label": '"Select All" options' }, [icon("caretDown")])]
+                      [h(Clickable, { 'aria-label': '"Select All" options' }, [icon('caretDown')])]
                     ),
                   ]);
                 },
@@ -433,35 +433,35 @@ const DataTable = (props) => {
                   const { name } = thisEntity;
                   const checked = _.has([name], selected);
                   return h(Checkbox, {
-                    "aria-label": name,
+                    'aria-label': name,
                     checked,
                     onChange: () => setSelected((checked ? _.unset([name]) : _.set([name], thisEntity))(selected)),
                   });
                 },
               };
 
-              const filterBreadCrumb = h(div, { style: { display: "flex", overflow: "hidden" } }, [
+              const filterBreadCrumb = h(div, { style: { display: 'flex', overflow: 'hidden' } }, [
                 h(TooltipCell, { tooltip: `filtered by: ${columnFilter.filterColTerm}`, style: { fontWeight: 400, ...Style.noWrapEllipsis } }, [
                   `filtered by: ${columnFilter.filterColTerm}`,
                 ]),
                 h(
                   Clickable,
                   {
-                    "aria-label": "Clear filter",
-                    tooltip: "Clear filter",
-                    style: { alignSelf: "flex-start", marginLeft: "0.3rem" },
+                    'aria-label': 'Clear filter',
+                    tooltip: 'Clear filter',
+                    style: { alignSelf: 'flex-start', marginLeft: '0.3rem' },
                     onClick: (e) => {
                       e.stopPropagation();
-                      setColumnFilter({ filterColAttr: "", filterColTerm: "" });
+                      setColumnFilter({ filterColAttr: '', filterColTerm: '' });
                     },
                   },
-                  [icon("times-circle", { color: colors.light(8), size: 16 })]
+                  [icon('times-circle', { color: colors.light(8), size: 16 })]
                 ),
               ]);
 
               const defaultColumnsWithoutSelectRow = [
                 {
-                  field: "name",
+                  field: 'name',
                   width: nameWidth,
                   headerRenderer: () =>
                     h(
@@ -469,7 +469,7 @@ const DataTable = (props) => {
                       {
                         width: nameWidth,
                         onWidthChange: (delta) => {
-                          setColumnWidths(_.set("name", nameWidth + delta));
+                          setColumnWidths(_.set('name', nameWidth + delta));
                         },
                       },
                       [
@@ -477,7 +477,7 @@ const DataTable = (props) => {
                           HeaderOptions,
                           {
                             sort,
-                            field: "name",
+                            field: 'name',
                             onSort: setSort,
                             renderSearch: !!googleProject,
                             searchByColumn: (v) => searchByColumn(entityMetadata[entityType].idName, v),
@@ -497,14 +497,14 @@ const DataTable = (props) => {
                       renderDataCell(entityName, workspace),
                       div({ style: { flexGrow: 1 } }),
                       h(ClipboardButton, {
-                        "aria-label": `Copy ${entityName} to clipboard`,
-                        className: "cell-hover-only",
-                        style: { marginLeft: "1rem" },
+                        'aria-label': `Copy ${entityName} to clipboard`,
+                        className: 'cell-hover-only',
+                        style: { marginLeft: '1rem' },
                         text: entityName,
                       }),
                       editable &&
                         h(EditDataLink, {
-                          "aria-label": `Rename ${entityType} ${entityName}`,
+                          'aria-label': `Rename ${entityType} ${entityName}`,
                           onClick: () => setRenamingEntity(entityName),
                         }),
                     ]);
@@ -538,21 +538,21 @@ const DataTable = (props) => {
                                       // settimeout 0 is needed to delay opening the modaals until after the popup menu closes.
                                       // Without this, autofocus doesn't work in the modals.
                                       {
-                                        label: "Rename Column",
+                                        label: 'Rename Column',
                                         disabled: !!noEdit,
-                                        tooltip: noEdit || "",
+                                        tooltip: noEdit || '',
                                         onClick: () => setTimeout(() => setRenamingColumn(attributeName), 0),
                                       },
                                       {
-                                        label: "Delete Column",
+                                        label: 'Delete Column',
                                         disabled: !!noEdit,
-                                        tooltip: noEdit || "",
+                                        tooltip: noEdit || '',
                                         onClick: () => setTimeout(() => setDeletingColumn(attributeName), 0),
                                       },
                                       {
-                                        label: "Clear Column",
+                                        label: 'Clear Column',
                                         disabled: !!noEdit,
-                                        tooltip: noEdit || "",
+                                        tooltip: noEdit || '',
                                         onClick: () => setTimeout(() => setClearingColumn(attributeName), 0),
                                       },
                                     ]
@@ -563,7 +563,7 @@ const DataTable = (props) => {
                             [
                               h(HeaderCell, [
                                 !!columnNamespace &&
-                                  span({ style: { fontStyle: "italic", color: colors.dark(0.75), paddingRight: "0.2rem" } }, [columnNamespace]),
+                                  span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } }, [columnNamespace]),
                                 columnName,
                                 columnFilter.filterColAttr === attributeName && filterBreadCrumb,
                               ]),
@@ -579,27 +579,27 @@ const DataTable = (props) => {
                       const dataCell = renderDataCell(dataInfo, workspace);
                       const divider = div({ style: { flexGrow: 1 } });
                       const copyButton = h(ClipboardButton, {
-                        "aria-label": `Copy attribute ${attributeName} of ${entityType} ${entityName} to clipboard`,
-                        className: "cell-hover-only",
-                        style: { marginLeft: "1rem" },
+                        'aria-label': `Copy attribute ${attributeName} of ${entityType} ${entityName} to clipboard`,
+                        className: 'cell-hover-only',
+                        style: { marginLeft: '1rem' },
                         text: entityAttributeText(dataInfo),
                       });
                       const editLink =
                         editable &&
                         h(EditDataLink, {
-                          "aria-label": `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
-                          "aria-haspopup": "dialog",
-                          "aria-expanded": !!updatingEntity,
+                          'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
+                          'aria-haspopup': 'dialog',
+                          'aria-expanded': !!updatingEntity,
                           onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo }),
                         });
 
                       if (!!dataInfo && _.isArray(dataInfo.items)) {
                         const isPlural = dataInfo.items.length !== 1;
-                        const label = dataInfo?.itemsType === "EntityReference" ? (isPlural ? "entities" : "entity") : isPlural ? "items" : "item";
+                        const label = dataInfo?.itemsType === 'EntityReference' ? (isPlural ? 'entities' : 'entity') : isPlural ? 'items' : 'item';
                         const itemsLink = h(
                           Link,
                           {
-                            style: { display: "inline", whiteSpace: "nowrap", marginLeft: "1rem" },
+                            style: { display: 'inline', whiteSpace: 'nowrap', marginLeft: '1rem' },
                             onClick: () => setViewData(dataInfo),
                           },
                           ` (${dataInfo.items.length} ${label})`
@@ -616,7 +616,7 @@ const DataTable = (props) => {
 
               return h(GridTable, {
                 ref: table,
-                "aria-label": `${entityType} data table, page ${pageNumber} of ${Math.ceil(totalRowCount / itemsPerPage)}`,
+                'aria-label': `${entityType} data table, page ${pageNumber} of ${Math.ceil(totalRowCount / itemsPerPage)}`,
                 width,
                 height,
                 rowCount: entities.length,
@@ -636,7 +636,7 @@ const DataTable = (props) => {
           ]),
         ]),
         !_.isEmpty(entities) &&
-          div({ style: { flex: "none", margin: "1rem" } }, [
+          div({ style: { flex: 'none', margin: '1rem' } }, [
             paginator({
               filteredDataLength: filteredCount,
               unfilteredDataLength: totalRowCount,
@@ -655,18 +655,18 @@ const DataTable = (props) => {
       h(
         Modal,
         {
-          title: "Contents",
+          title: 'Contents',
           showButtons: false,
           showX: true,
           onDismiss: () => setViewData(undefined),
         },
-        [div({ style: { maxHeight: "80vh", overflowY: "auto" } }, [displayData(viewData)])]
+        [div({ style: { maxHeight: '80vh', overflowY: 'auto' } }, [displayData(viewData)])]
       ),
     updatingColumnSettings &&
       h(
         Modal,
         {
-          title: "Select columns",
+          title: 'Select columns',
           width: 800,
           onDismiss: () => setUpdatingColumnSettings(undefined),
           okButton: h(
@@ -677,7 +677,7 @@ const DataTable = (props) => {
                 setUpdatingColumnSettings(undefined);
               },
             },
-            ["Done"]
+            ['Done']
           ),
         },
         [
@@ -731,7 +731,7 @@ const DataTable = (props) => {
       }),
     !!deletingColumn &&
       h(DeleteConfirmationModal, {
-        objectType: "column",
+        objectType: 'column',
         objectName: deletingColumn,
         onConfirm: () => {
           setDeletingColumn(undefined);
@@ -744,8 +744,8 @@ const DataTable = (props) => {
       h(
         DeleteConfirmationModal,
         {
-          title: "Clear Column",
-          buttonText: "Clear column",
+          title: 'Clear Column',
+          buttonText: 'Clear column',
           onConfirm: () => {
             setClearingColumn(undefined);
             Ajax().Metrics.captureEvent(Events.workspaceDataClearColumn, extractWorkspaceDetails(workspace.workspace));
@@ -755,11 +755,11 @@ const DataTable = (props) => {
         },
         [
           div([
-            "Are you sure you want to permanently delete all data in the column ",
-            b({ style: { wordBreak: "break-word" } }, clearingColumn),
-            "?",
+            'Are you sure you want to permanently delete all data in the column ',
+            b({ style: { wordBreak: 'break-word' } }, clearingColumn),
+            '?',
           ]),
-          b({ style: { display: "block", marginTop: "1rem" } }, "This cannot be undone."),
+          b({ style: { display: 'block', marginTop: '1rem' } }, 'This cannot be undone.'),
         ]
       ),
     loading && fixedSpinnerOverlay,

@@ -1,15 +1,15 @@
-import { CSSProperties, useEffect, useState } from "react";
-import { h } from "react-hyperscript-helpers";
-import colors from "src/libs/colors";
-import { getLocalPref, setLocalPref } from "src/libs/prefs";
-import { GoogleBillingAccount } from "src/pages/billing/models/GoogleBillingAccount";
-import { StepWizard } from "src/pages/billing/NewBillingProjectWizard/StepWizard/StepWizard";
+import { CSSProperties, useEffect, useState } from 'react';
+import { h } from 'react-hyperscript-helpers';
+import colors from 'src/libs/colors';
+import { getLocalPref, setLocalPref } from 'src/libs/prefs';
+import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAccount';
+import { StepWizard } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepWizard';
 
-import { AddTerraAsBillingAccountUserStep } from "./AddTerraAsBillingAccountUserStep";
-import { BillingAccountAccessStep } from "./BillingAccountAccessStep";
-import { ContactAccountAdminToAddUserStep } from "./ContactAccountAdminToAddUserStep";
-import { CreateTerraProjectStep } from "./CreateTerraProjectStep";
-import { GoToGCPConsoleStep } from "./GoToGCPConsoleStep";
+import { AddTerraAsBillingAccountUserStep } from './AddTerraAsBillingAccountUserStep';
+import { BillingAccountAccessStep } from './BillingAccountAccessStep';
+import { ContactAccountAdminToAddUserStep } from './ContactAccountAdminToAddUserStep';
+import { CreateTerraProjectStep } from './CreateTerraProjectStep';
+import { GoToGCPConsoleStep } from './GoToGCPConsoleStep';
 
 interface GCPBillingProjectWizardProps {
   billingAccounts: Record<string, GoogleBillingAccount>;
@@ -23,7 +23,7 @@ export const GCPBillingProjectWizard = ({
   billingAccounts,
   authorizeAndLoadAccounts,
 }: GCPBillingProjectWizardProps) => {
-  const persistenceId = "billing";
+  const persistenceId = 'billing';
   const [accessToBillingAccount, setAccessToBillingAccount] = useState<boolean>(
     () => getLocalPref(persistenceId)?.accessToBillingAccount
   );
@@ -49,7 +49,7 @@ export const GCPBillingProjectWizard = ({
   return h(
     StepWizard,
     {
-      title: "Link a Google Cloud billing account to Terra",
+      title: 'Link a Google Cloud billing account to Terra',
       intro: `The linked billing account is required to cover all Google Cloud data storage, compute and egress costs incurred in a Terra workspace.
         Cloud costs are billed directly from Google and passed through Terra billing projects with no markup.`,
     },
@@ -118,10 +118,10 @@ export const GCPBillingProjectWizard = ({
 };
 
 const radioButtonLabel: CSSProperties = {
-  marginLeft: "1rem",
+  marginLeft: '1rem',
   color: colors.accent(),
   fontWeight: 500,
-  lineHeight: "22px",
+  lineHeight: '22px',
 };
 
 export const styles = {

@@ -1,10 +1,10 @@
 // This test is owned by the Workspaces Team.
-const dateFns = require("date-fns/fp");
-const _ = require("lodash/fp");
-const { testWorkspaceNamePrefix } = require("../utils/integration-helpers");
-const { signIntoTerra } = require("../utils/integration-utils");
-const { registerTest } = require("../utils/jest-utils");
-const { withUserToken } = require("../utils/terra-sa-utils");
+const dateFns = require('date-fns/fp');
+const _ = require('lodash/fp');
+const { testWorkspaceNamePrefix } = require('../utils/integration-helpers');
+const { signIntoTerra } = require('../utils/integration-utils');
+const { registerTest } = require('../utils/jest-utils');
+const { withUserToken } = require('../utils/terra-sa-utils');
 
 const olderThanDays = 2;
 
@@ -39,6 +39,6 @@ const runJanitor = withUserToken(async ({ billingProject, page, testUrl, token }
 });
 
 registerTest({
-  name: "janitor",
+  name: 'janitor',
   fn: runJanitor,
 });

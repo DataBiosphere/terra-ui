@@ -1,12 +1,12 @@
-import _ from "lodash/fp";
-import { Children, Fragment } from "react";
-import { div, h, span } from "react-hyperscript-helpers";
+import _ from 'lodash/fp';
+import { Children, Fragment } from 'react';
+import { div, h, span } from 'react-hyperscript-helpers';
 // Temporary workaround to avoid a circular import.
 // components/icons => components/common => components/common/spinners => components/icons
 // eslint-disable-next-line import/no-internal-modules
-import { DelayedRender } from "src/components/common/DelayedRender";
-import colors from "src/libs/colors";
-import iconDict from "src/libs/icon-dict";
+import { DelayedRender } from 'src/components/common/DelayedRender';
+import colors from 'src/libs/colors';
+import iconDict from 'src/libs/icon-dict';
 
 /**
  * To support accessibility, every icon must be labeled, either:
@@ -20,13 +20,13 @@ import iconDict from "src/libs/icon-dict";
  * has `aria-label` or `aria-labelledby`, or if the icon is accompanied by other child elements, then we can
  * assume the icon is labeled and no further label is needed.
  */
-export const containsUnlabelledIcon = ({ children, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy }) => {
-  if (!ariaLabel && !ariaLabelledBy && Children.count(children) === 1 && typeof children !== "string") {
+export const containsUnlabelledIcon = ({ children, 'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledBy }) => {
+  if (!ariaLabel && !ariaLabelledBy && Children.count(children) === 1 && typeof children !== 'string') {
     try {
       const onlyChild = Children.only(children);
 
       // Is there a better way to test for an icon component other than duck-typing?
-      if ("data-icon" in onlyChild.props && onlyChild.props["aria-hidden"] === true) {
+      if ('data-icon' in onlyChild.props && onlyChild.props['aria-hidden'] === true) {
         return true;
       }
     } catch (e) {
@@ -48,15 +48,15 @@ export const containsUnlabelledIcon = ({ children, "aria-label": ariaLabel, "ari
  */
 export const icon = (shape, { size = 16, ...props } = {}) => {
   // Unless we have a label, we need to hide the icon from screen readers
-  props["aria-hidden"] = !props["aria-label"] && !props["aria-labelledby"];
+  props['aria-hidden'] = !props['aria-label'] && !props['aria-labelledby'];
 
-  return _.invokeArgs(shape, [{ size, "data-icon": shape, ...props }], iconDict);
+  return _.invokeArgs(shape, [{ size, 'data-icon': shape, ...props }], iconDict);
 };
 
-export const spinner = ({ message = "Loading", ...props } = {}) =>
+export const spinner = ({ message = 'Loading', ...props } = {}) =>
   h(Fragment, [
-    icon("loadingSpinner", _.merge({ size: 24, style: { color: colors.primary() } }, props)),
-    h(DelayedRender, { delay: 150 }, [span({ className: "sr-only", role: "alert" }, [message])]),
+    icon('loadingSpinner', _.merge({ size: 24, style: { color: colors.primary() } }, props)),
+    h(DelayedRender, { delay: 150 }, [span({ className: 'sr-only', role: 'alert' }, [message])]),
   ]);
 
 export const centeredSpinner = ({ size = 48, ...props } = {}) =>
@@ -65,8 +65,8 @@ export const centeredSpinner = ({ size = 48, ...props } = {}) =>
       {
         size,
         style: {
-          display: "block",
-          position: "sticky",
+          display: 'block',
+          position: 'sticky',
           top: `calc(50% - ${size / 2}px)`,
           bottom: `calc(50% - ${size / 2}px)`,
           left: `calc(50% - ${size / 2}px)`,
@@ -81,14 +81,14 @@ export const wdlIcon = ({ style = {}, ...props } = {}) =>
   div(
     {
       style: {
-        color: "white",
+        color: 'white',
         fontSize: 6,
-        fontWeight: "bold",
+        fontWeight: 'bold',
         backgroundColor: colors.dark(),
-        padding: "10px 2px 3px 2px",
+        padding: '10px 2px 3px 2px',
         ...style,
       },
       ...props,
     },
-    ["WDL"]
+    ['WDL']
   );

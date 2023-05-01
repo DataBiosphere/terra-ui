@@ -1,22 +1,22 @@
-import _ from "lodash/fp";
-import { dataprocCpuPrice, ephemeralExternalIpAddressPrice, machineTypes, regionToPrices } from "src/data/gce-machines";
-import { App } from "src/libs/ajax/leonardo/models/app-models";
-import { pdTypes } from "src/libs/ajax/leonardo/models/disk-models";
+import _ from 'lodash/fp';
+import { dataprocCpuPrice, ephemeralExternalIpAddressPrice, machineTypes, regionToPrices } from 'src/data/gce-machines';
+import { App } from 'src/libs/ajax/leonardo/models/app-models';
+import { pdTypes } from 'src/libs/ajax/leonardo/models/disk-models';
 import {
   GoogleRuntimeConfig,
   isDataprocConfig,
   isGceConfig,
   isGceRuntimeConfig,
   isGceWithPdConfig,
-} from "src/libs/ajax/leonardo/models/runtime-config-models";
-import { getAzurePricesForRegion, getDiskType } from "src/libs/azure-utils";
-import * as Utils from "src/libs/utils";
+} from 'src/libs/ajax/leonardo/models/runtime-config-models';
+import { getAzurePricesForRegion, getDiskType } from 'src/libs/azure-utils';
+import * as Utils from 'src/libs/utils';
 import {
   defaultDataprocWorkerDiskSize,
   defaultGceBootDiskSize,
   getCurrentAttachedDataDisk,
   getCurrentPersistentDisk,
-} from "src/pages/workspaces/workspace/analysis/utils/disk-utils";
+} from 'src/pages/workspaces/workspace/analysis/utils/disk-utils';
 import {
   defaultComputeRegion,
   defaultGceMachineType,
@@ -25,8 +25,8 @@ import {
   getNormalizedComputeRegion,
   getRuntimeForTool,
   isAzureContext,
-} from "src/pages/workspaces/workspace/analysis/utils/runtime-utils";
-import { appToolLabels, appTools, runtimeToolLabels } from "src/pages/workspaces/workspace/analysis/utils/tool-utils";
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
+import { appToolLabels, appTools, runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 // GOOGLE COST METHODS begin
 
@@ -52,7 +52,7 @@ export const getHourlyCostForMachineType = (machineTypeName, region, isPreemptib
 export const getGpuCost = (gpuType, numGpus, region) => {
   const prices = _.find({ name: region }, regionToPrices) || {};
   // From a type like 'nvidia-tesla-t4', look up 't4HourlyPrice' in prices
-  const price = prices[`${_.last(_.split("-", gpuType))}HourlyPrice`];
+  const price = prices[`${_.last(_.split('-', gpuType))}HourlyPrice`];
   return price * numGpus;
 };
 
@@ -162,10 +162,10 @@ export const getGalaxyComputeCost = (app) => {
     ephemeralExternalIpAddressCost({ numStandardVms: app.kubernetesRuntimeConfig.numNodes, numPreemptibleVms: 0 });
 
   switch (appStatus) {
-    case "STOPPED":
+    case 'STOPPED':
       return staticCost;
-    case "DELETING":
-    case "ERROR":
+    case 'DELETING':
+    case 'ERROR':
       return 0.0;
     default:
       return staticCost + dynamicCost;
@@ -184,7 +184,7 @@ export const getGalaxyDiskCost = ({ size: dataDiskType, diskType }) => {
 
   return getPersistentDiskCostHourly(
     {
-      status: "Running",
+      status: 'Running',
       size: dataDiskType + metadataDiskSize + defaultNodepoolBootDiskSize + appNodepoolBootDiskSize,
       diskType,
     },
@@ -219,7 +219,7 @@ export const getPersistentDiskCostMonthly = ({ cloudContext = {}, diskType, size
     [isAzureContext(cloudContext), () => getAzureDiskCostEstimate({ persistentDiskSize: size, region: zone })],
     [Utils.DEFAULT, () => size * getPersistentDiskPriceForRegionMonthly(computeRegion, diskType)]
   );
-  return _.includes(status, ["Deleting", "Failed"]) ? 0.0 : price;
+  return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : price;
 };
 export const getPersistentDiskCostHourly = ({ size, status, diskType, cloudContext = {} }, computeRegion) => {
   const price = Utils.cond(
@@ -230,7 +230,7 @@ export const getPersistentDiskCostHourly = ({ size, status, diskType, cloudConte
     ],
     [Utils.DEFAULT, () => size * getPersistentDiskPriceForRegionHourly(computeRegion, diskType)]
   );
-  return _.includes(status, ["Deleting", "Failed"]) ? 0.0 : price;
+  return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : price;
 };
 
 export const getRuntimeCost = ({ runtimeConfig, status, cloudContext = {} }) => {
@@ -238,15 +238,15 @@ export const getRuntimeCost = ({ runtimeConfig, status, cloudContext = {} }) => 
   if (isAzureContext(cloudContext)) {
     return Utils.switchCase(
       status,
-      ["Stopped", () => 0.0],
-      ["Error", () => 0.0],
+      ['Stopped', () => 0.0],
+      ['Error', () => 0.0],
       [Utils.DEFAULT, () => getAzureComputeCostEstimate(runtimeConfig)]
     );
   }
   return Utils.switchCase(
     status,
-    ["Stopped", () => runtimeConfigBaseCost(runtimeConfig)],
-    ["Error", () => 0.0],
+    ['Stopped', () => runtimeConfigBaseCost(runtimeConfig)],
+    ['Error', () => 0.0],
     [Utils.DEFAULT, () => runtimeConfigCost(runtimeConfig)]
   );
 };
@@ -260,18 +260,18 @@ export const getCostForDisk = (
   runtimes,
   toolLabel
 ) => {
-  let diskCost = "";
+  let diskCost = '';
   const curPd = persistentDisks && persistentDisks.length && getCurrentPersistentDisk(runtimes, persistentDisks);
   if (curPd && isAzureDisk(curPd)) {
     return getAzureDiskCostEstimate({ region: computeRegion, persistentDiskSize: curPd.size }) / numberOfHoursPerMonth;
   }
   if (currentRuntimeTool === toolLabel && persistentDisks && persistentDisks.length) {
-    const { size = 0, status = "Running", diskType = pdTypes.standard } = curPd || {};
+    const { size = 0, status = 'Running', diskType = pdTypes.standard } = curPd || {};
     diskCost = getPersistentDiskCostHourly({ size, status, diskType }, computeRegion);
   } else if (app && appDataDisks && toolLabel === appToolLabels.GALAXY) {
     const currentDataDisk = getCurrentAttachedDataDisk(app, appDataDisks);
     // Occasionally currentDataDisk will be undefined on initial render.
-    diskCost = currentDataDisk ? getGalaxyDiskCost(currentDataDisk) : "";
+    diskCost = currentDataDisk ? getGalaxyDiskCost(currentDataDisk) : '';
   }
   return diskCost;
 };
@@ -280,15 +280,15 @@ export const getCostDisplayForTool = (app, currentRuntime, currentRuntimeTool, t
   return Utils.cond(
     [
       toolLabel === appToolLabels.GALAXY,
-      () => (app ? `${getComputeStatusForDisplay(app.status)} ${Utils.formatUSD(getGalaxyComputeCost(app))}/hr` : ""),
+      () => (app ? `${getComputeStatusForDisplay(app.status)} ${Utils.formatUSD(getGalaxyComputeCost(app))}/hr` : ''),
     ],
-    [toolLabel === appToolLabels.CROMWELL, () => ""], // We will determine what to put here later
+    [toolLabel === appToolLabels.CROMWELL, () => ''], // We will determine what to put here later
     [
       toolLabel === runtimeToolLabels.JupyterLab,
       () =>
         currentRuntime
           ? `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getRuntimeCost(currentRuntime))}/hr`
-          : "",
+          : '',
     ],
     [
       getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool),
@@ -298,7 +298,7 @@ export const getCostDisplayForTool = (app, currentRuntime, currentRuntimeTool, t
     [
       Utils.DEFAULT,
       () => {
-        return "";
+        return '';
       },
     ]
   );
@@ -322,7 +322,7 @@ export const getCostDisplayForDisk = (
     runtimes,
     toolLabel
   );
-  return diskCost ? `Disk ${Utils.formatUSD(diskCost)}/hr` : "";
+  return diskCost ? `Disk ${Utils.formatUSD(diskCost)}/hr` : '';
 };
 
 const isAzureDisk = (persistentDisk) => {

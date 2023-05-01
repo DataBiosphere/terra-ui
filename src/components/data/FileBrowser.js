@@ -1,24 +1,24 @@
-import filesize from "filesize";
-import _ from "lodash/fp";
-import pluralize from "pluralize";
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import { div, h, span } from "react-hyperscript-helpers";
-import { AutoSizer } from "react-virtualized";
-import { ButtonOutline, ButtonPrimary, Checkbox, DeleteConfirmationModal, Link, topSpinnerOverlay } from "src/components/common";
-import Dropzone from "src/components/Dropzone";
-import { icon } from "src/components/icons";
-import { NameModal } from "src/components/NameModal";
-import { UploadProgressModal } from "src/components/ProgressBar";
-import RequesterPaysModal from "src/components/RequesterPaysModal";
-import { FlexTable, HeaderCell, TextCell } from "src/components/table";
-import { UriViewer } from "src/components/UriViewer/UriViewer";
-import { Ajax } from "src/libs/ajax";
-import colors from "src/libs/colors";
-import { reportError, withErrorReporting } from "src/libs/error";
-import { useCancelable } from "src/libs/react-utils";
-import { requesterPaysProjectStore } from "src/libs/state";
-import { useUploader } from "src/libs/uploads";
-import * as Utils from "src/libs/utils";
+import filesize from 'filesize';
+import _ from 'lodash/fp';
+import pluralize from 'pluralize';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { div, h, span } from 'react-hyperscript-helpers';
+import { AutoSizer } from 'react-virtualized';
+import { ButtonOutline, ButtonPrimary, Checkbox, DeleteConfirmationModal, Link, topSpinnerOverlay } from 'src/components/common';
+import Dropzone from 'src/components/Dropzone';
+import { icon } from 'src/components/icons';
+import { NameModal } from 'src/components/NameModal';
+import { UploadProgressModal } from 'src/components/ProgressBar';
+import RequesterPaysModal from 'src/components/RequesterPaysModal';
+import { FlexTable, HeaderCell, TextCell } from 'src/components/table';
+import { UriViewer } from 'src/components/UriViewer/UriViewer';
+import { Ajax } from 'src/libs/ajax';
+import colors from 'src/libs/colors';
+import { reportError, withErrorReporting } from 'src/libs/error';
+import { useCancelable } from 'src/libs/react-utils';
+import { requesterPaysProjectStore } from 'src/libs/state';
+import { useUploader } from 'src/libs/uploads';
+import * as Utils from 'src/libs/utils';
 
 const useBucketContents = ({ googleProject, bucketName, prefix, pageSize = 1000 }) => {
   const [allObjects, setAllObjects] = useState([]);
@@ -58,7 +58,7 @@ const useBucketContents = ({ googleProject, bucketName, prefix, pageSize = 1000 
       setMoreToLoad(Boolean(nextPageToken.current));
     } catch (err) {
       if (!err.requesterPaysError) {
-        reportError("Error loading bucket contents", err);
+        reportError('Error loading bucket contents', err);
       }
       setError(err);
     } finally {
@@ -111,12 +111,12 @@ const useBucketContents = ({ googleProject, bucketName, prefix, pageSize = 1000 
 };
 
 const getLabelForObject = (object) => {
-  return _.last(_.split("/", object.name));
+  return _.last(_.split('/', object.name));
 };
 
 const getLabelForPrefix = (prefix) => {
   // prefixes have a trailing slash, so display the next to last item of the split array.
-  return `${_.flow(_.split("/"), _.slice(-2, -1), _.first)(prefix)}/`;
+  return `${_.flow(_.split('/'), _.slice(-2, -1), _.first)(prefix)}/`;
 };
 
 const DeleteObjectsConfirmationModal = ({ objects, ...props }) => {
@@ -125,21 +125,21 @@ const DeleteObjectsConfirmationModal = ({ objects, ...props }) => {
     DeleteConfirmationModal,
     {
       ...props,
-      title: `Delete ${pluralize("object", numObjects, true)}`,
-      buttonText: `Delete ${numObjects === 1 ? "object" : "objects"}`,
+      title: `Delete ${pluralize('object', numObjects, true)}`,
+      buttonText: `Delete ${numObjects === 1 ? 'object' : 'objects'}`,
     },
     [
       // Size the scroll container to cut off the last row to hint that there's more content to be scrolled into view
       // Row height calculation is font size * line height + padding + border
       div(
-        { style: { maxHeight: "calc((1em * 1.15 + 1rem + 1px) * 10.5)", overflowY: "auto", margin: "0 -1.25rem" } },
+        { style: { maxHeight: 'calc((1em * 1.15 + 1rem + 1px) * 10.5)', overflowY: 'auto', margin: '0 -1.25rem' } },
         _.map(
           ([i, object]) =>
             div(
               {
                 style: {
                   borderTop: i === 0 ? undefined : `1px solid ${colors.light()}`,
-                  padding: "0.5rem 1.25rem",
+                  padding: '0.5rem 1.25rem',
                 },
               },
               getLabelForObject(object)
@@ -162,7 +162,7 @@ const BucketBrowserTable = ({
   onClickObject,
 }) => {
   const allItems = _.sortBy(
-    "label",
+    'label',
     _.concat(
       _.map((object) => ({ object, label: getLabelForObject(object) }), objects),
       _.map((prefix) => ({ prefix, label: getLabelForPrefix(prefix) }), prefixes)
@@ -171,44 +171,44 @@ const BucketBrowserTable = ({
 
   const allObjectsSelected = _.size(objects) > 0 && _.every((object) => _.has(object.name, selectedObjects), objects);
 
-  return div({ style: { display: "flex", flex: "1 1 auto" } }, [
+  return div({ style: { display: 'flex', flex: '1 1 auto' } }, [
     h(AutoSizer, {}, [
       ({ width, height }) =>
         h(FlexTable, {
-          "aria-label": "File browser",
+          'aria-label': 'File browser',
           width,
           height,
           rowCount: _.size(allItems),
           noContentMessage: noObjectsMessage,
-          styleCell: () => ({ padding: "0.5em", borderRight: "none", borderLeft: "none" }),
-          styleHeader: () => ({ padding: "0.5em", borderRight: "none", borderLeft: "none" }),
+          styleCell: () => ({ padding: '0.5em', borderRight: 'none', borderLeft: 'none' }),
+          styleHeader: () => ({ padding: '0.5em', borderRight: 'none', borderLeft: 'none' }),
           hoverHighlight: true,
           border: false,
           columns: [
             {
               size: { min: 40, grow: 0 },
               headerRenderer: () => {
-                return div({ style: { flex: 1, textAlign: "center" } }, [
+                return div({ style: { flex: 1, textAlign: 'center' } }, [
                   h(Checkbox, {
                     checked: allObjectsSelected,
                     disabled: _.isEmpty(allItems),
                     onChange: allObjectsSelected
                       ? () => setSelectedObjects({})
                       : () => setSelectedObjects(_.fromPairs(_.map((object) => [object.name, object], objects))),
-                    "aria-label": "Select all",
+                    'aria-label': 'Select all',
                   }),
                 ]);
               },
               cellRenderer: ({ rowIndex }) => {
                 const { object, prefix, label } = allItems[rowIndex];
-                return div({ style: { flex: 1, textAlign: "center" } }, [
+                return div({ style: { flex: 1, textAlign: 'center' } }, [
                   Utils.cond(
                     [
                       object,
                       () => {
                         const checked = _.has([object.name], selectedObjects);
                         return h(Checkbox, {
-                          "aria-label": label,
+                          'aria-label': label,
                           checked,
                           onChange: () => setSelectedObjects(checked ? _.unset([object.name]) : _.set([object.name], object)),
                         });
@@ -217,7 +217,7 @@ const BucketBrowserTable = ({
                     [
                       prefix,
                       () => {
-                        return icon("folder-open", { size: 16, "aria-label": "folder" });
+                        return icon('folder-open', { size: 16, 'aria-label': 'folder' });
                       },
                     ]
                   ),
@@ -226,7 +226,7 @@ const BucketBrowserTable = ({
             },
             {
               size: { min: 100, grow: 1 },
-              headerRenderer: () => h(HeaderCell, ["Name"]),
+              headerRenderer: () => h(HeaderCell, ['Name']),
               cellRenderer: ({ rowIndex }) => {
                 const { object, prefix, label } = allItems[rowIndex];
                 return h(TextCell, [
@@ -238,7 +238,7 @@ const BucketBrowserTable = ({
                           h(
                             Link,
                             {
-                              style: { textDecoration: "underline" },
+                              style: { textDecoration: 'underline' },
                               href: `gs://${bucketName}/${object.name}`,
                               onClick: (e) => {
                                 e.preventDefault();
@@ -256,7 +256,7 @@ const BucketBrowserTable = ({
                         return h(
                           Link,
                           {
-                            style: { textDecoration: "underline" },
+                            style: { textDecoration: 'underline' },
                             href: `gs://${bucketName}/${prefix}`,
                             onClick: (e) => {
                               e.preventDefault();
@@ -273,7 +273,7 @@ const BucketBrowserTable = ({
             },
             {
               size: { min: 150, grow: 0 },
-              headerRenderer: () => h(HeaderCell, ["Size"]),
+              headerRenderer: () => h(HeaderCell, ['Size']),
               cellRenderer: ({ rowIndex }) => {
                 const { object } = allItems[rowIndex];
                 return object && filesize(object.size, { round: 0 });
@@ -281,7 +281,7 @@ const BucketBrowserTable = ({
             },
             {
               size: { min: 200, grow: 0 },
-              headerRenderer: () => h(HeaderCell, ["Last modified"]),
+              headerRenderer: () => h(HeaderCell, ['Last modified']),
               cellRenderer: ({ rowIndex }) => {
                 const { object } = allItems[rowIndex];
                 return object && Utils.makePrettyDate(object.updated);
@@ -295,9 +295,9 @@ const BucketBrowserTable = ({
 
 const BucketBrowser = ({
   workspace,
-  basePrefix: inputBasePrefix = "",
+  basePrefix: inputBasePrefix = '',
   pageSize = 1000,
-  noObjectsMessage = "No files have been uploaded yet",
+  noObjectsMessage = 'No files have been uploaded yet',
   allowEditingFolders = true,
   extraMenuItems,
   style,
@@ -308,7 +308,7 @@ const BucketBrowser = ({
   onDeleteFiles = _.noop,
 }) => {
   // Normalize base prefix to have a trailing slash.
-  const basePrefix = Utils.cond([!inputBasePrefix, () => ""], [inputBasePrefix.endsWith("/"), () => inputBasePrefix], () => `${inputBasePrefix}/`);
+  const basePrefix = Utils.cond([!inputBasePrefix, () => ''], [inputBasePrefix.endsWith('/'), () => inputBasePrefix], () => `${inputBasePrefix}/`);
 
   const {
     workspace: { googleProject, bucketName },
@@ -355,15 +355,15 @@ const BucketBrowser = ({
 
   const breadcrumbPath = prefix.startsWith(basePrefix) ? prefix.slice(basePrefix.length) : prefix;
   // Since prefixes have a trailing slash, the last item in the split array will be an empty string.
-  const breadcrumbs = _.flow(_.split("/"), _.dropRight(1))(breadcrumbPath);
+  const breadcrumbs = _.flow(_.split('/'), _.dropRight(1))(breadcrumbPath);
 
-  return div({ style: { minHeight: "10rem", ...style } }, [
+  return div({ style: { minHeight: '10rem', ...style } }, [
     h(
       Dropzone,
       {
         disabled: !canEditWorkspace || uploadState.active,
-        style: { display: "flex", flexFlow: "column nowrap", height: "100%" },
-        activeStyle: { backgroundColor: colors.accent(0.2), cursor: "copy" },
+        style: { display: 'flex', flexFlow: 'column nowrap', height: '100%' },
+        activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
         multiple: true,
         maxFiles: 0, // no limit on number of files
         onDropAccepted: async (files) => {
@@ -378,11 +378,11 @@ const BucketBrowser = ({
             div(
               {
                 style: {
-                  display: "flex",
-                  flexFlow: "row wrap",
-                  alignItems: "center",
-                  width: "100%",
-                  padding: "0.5rem",
+                  display: 'flex',
+                  flexFlow: 'row wrap',
+                  alignItems: 'center',
+                  width: '100%',
+                  padding: '0.5rem',
                   borderBottom: `1px solid ${colors.grey(0.4)}`,
                   ...controlPanelStyle,
                 },
@@ -391,23 +391,23 @@ const BucketBrowser = ({
                 h(
                   Link,
                   {
-                    style: { padding: "0.5rem", textDecoration: "underline" },
+                    style: { padding: '0.5rem', textDecoration: 'underline' },
                     href: `gs://${bucketName}/${basePrefix}`,
                     onClick: (e) => {
                       e.preventDefault();
                       setPrefix(basePrefix);
                     },
                   },
-                  [basePrefix ? getLabelForPrefix(basePrefix) : "Files"]
+                  [basePrefix ? getLabelForPrefix(basePrefix) : 'Files']
                 ),
                 _.map(([index, breadcrumb]) => {
-                  const breadcrumbPrefix = `${basePrefix}${_.join("/", _.slice(0, index + 1, breadcrumbs))}/`;
+                  const breadcrumbPrefix = `${basePrefix}${_.join('/', _.slice(0, index + 1, breadcrumbs))}/`;
                   return h(Fragment, { key: breadcrumbPrefix }, [
-                    span({ style: { padding: "0.5rem 0" } }, [" / "]),
+                    span({ style: { padding: '0.5rem 0' } }, [' / ']),
                     h(
                       Link,
                       {
-                        style: { padding: "0.5rem", textDecoration: "underline" },
+                        style: { padding: '0.5rem', textDecoration: 'underline' },
                         href: `gs://${bucketName}/${breadcrumbPrefix}`,
                         onClick: (e) => {
                           e.preventDefault();
@@ -419,7 +419,7 @@ const BucketBrowser = ({
                   ]);
                 }, Utils.toIndexPairs(breadcrumbs)),
 
-                div({ style: { flex: "1 1 auto" } }),
+                div({ style: { flex: '1 1 auto' } }),
 
                 h(
                   ButtonPrimary,
@@ -427,12 +427,12 @@ const BucketBrowser = ({
                     disabled: !canEditWorkspace || editDisabledForPrefix,
                     tooltip: Utils.cond(
                       [!canEditWorkspace, () => editWorkspaceError],
-                      [editDisabledForPrefix, () => "Files cannot be uploaded to this folder"]
+                      [editDisabledForPrefix, () => 'Files cannot be uploaded to this folder']
                     ),
-                    style: { padding: "0.5rem", marginRight: "0.5rem" },
+                    style: { padding: '0.5rem', marginRight: '0.5rem' },
                     onClick: openUploader,
                   },
-                  [icon("upload-cloud", { style: { marginRight: "1ch" } }), " Upload"]
+                  [icon('upload-cloud', { style: { marginRight: '1ch' } }), ' Upload']
                 ),
 
                 allowEditingFolders &&
@@ -442,12 +442,12 @@ const BucketBrowser = ({
                       disabled: !canEditWorkspace || editDisabledForPrefix,
                       tooltip: Utils.cond(
                         [!canEditWorkspace, () => editWorkspaceError],
-                        [editDisabledForPrefix, () => "Folders cannot be added to this folder"]
+                        [editDisabledForPrefix, () => 'Folders cannot be added to this folder']
                       ),
-                      style: { padding: "0.5rem" },
+                      style: { padding: '0.5rem' },
                       onClick: () => setCreatingNewFolder(true),
                     },
-                    [icon("folder"), " New folder"]
+                    [icon('folder'), ' New folder']
                   ),
 
                 h(
@@ -456,42 +456,42 @@ const BucketBrowser = ({
                     disabled: !canEditWorkspace || editDisabledForPrefix || _.isEmpty(selectedObjects),
                     tooltip: Utils.cond(
                       [!canEditWorkspace, () => editWorkspaceError],
-                      [editDisabledForPrefix, () => "Files in this folder cannot be deleted"],
-                      [_.isEmpty(selectedObjects), () => "Select files to delete"],
-                      () => "Delete selected files"
+                      [editDisabledForPrefix, () => 'Files in this folder cannot be deleted'],
+                      [_.isEmpty(selectedObjects), () => 'Select files to delete'],
+                      () => 'Delete selected files'
                     ),
-                    style: { padding: "0.5rem" },
+                    style: { padding: '0.5rem' },
                     onClick: () => setDeletingSelectedObjects(true),
                   },
-                  [icon("trash"), " Delete"]
+                  [icon('trash'), ' Delete']
                 ),
 
                 extraMenuItems,
               ]
             ),
 
-            notice && div({ style: { padding: "1rem", background: colors.accent(0.2) } }, [notice]),
+            notice && div({ style: { padding: '1rem', background: colors.accent(0.2) } }, [notice]),
 
             h(BucketBrowserTable, {
               bucketName,
               objects,
               prefixes,
               noObjectsMessage: Utils.cond(
-                [loading, () => "Loading bucket contents..."],
-                [error, () => "Unable to load bucket contents"],
+                [loading, () => 'Loading bucket contents...'],
+                [error, () => 'Unable to load bucket contents'],
                 [
                   !!prefix && prefix !== basePrefix && allowEditingFolders,
                   () =>
                     div(
                       {
-                        style: { display: "flex", flexDirection: "column", alignItems: "center" },
+                        style: { display: 'flex', flexDirection: 'column', alignItems: 'center' },
                       },
                       [
                         noObjectsMessage,
                         h(
                           ButtonOutline,
                           {
-                            style: { marginTop: "1rem", textTransform: "none" },
+                            style: { marginTop: '1rem', textTransform: 'none' },
                             onClick: Utils.withBusyState(setBusy, async () => {
                               // Attempt to delete folder placeholder object.
                               // A placeholder object may not exist for the prefix being viewed, so do not an report error for 404 responses.
@@ -500,17 +500,17 @@ const BucketBrowser = ({
                                 await Ajax().Buckets.delete(googleProject, bucketName, prefix);
                               } catch (error) {
                                 if (error.status !== 404) {
-                                  reportError("Error deleting folder", error);
+                                  reportError('Error deleting folder', error);
                                 }
                               }
 
                               // Since prefixes have a trailing slash, the last item in the split array will be an empty string.
                               // Dropping the last two items returns the parent "folder".
-                              const parentPrefix = _.flow(_.split("/"), _.dropRight(2), _.join("/"))(prefix);
-                              setPrefix(parentPrefix === "" ? "" : `${parentPrefix}/`);
+                              const parentPrefix = _.flow(_.split('/'), _.dropRight(2), _.join('/'))(prefix);
+                              setPrefix(parentPrefix === '' ? '' : `${parentPrefix}/`);
                             }),
                           },
-                          ["Delete this folder"]
+                          ['Delete this folder']
                         ),
                       ]
                     ),
@@ -524,12 +524,12 @@ const BucketBrowser = ({
             }),
 
             moreToLoad &&
-              div({ style: { padding: "1rem", borderTop: `1px solid ${colors.light()}` } }, [
+              div({ style: { padding: '1rem', borderTop: `1px solid ${colors.light()}` } }, [
                 `Showing ${numPrefixes + numObjects} results.`,
                 h(
                   Link,
                   {
-                    style: { marginLeft: "1ch" },
+                    style: { marginLeft: '1ch' },
                     onClick: () => loadNextPage(),
                   },
                   [`Load next ${pageSize}`]
@@ -537,11 +537,11 @@ const BucketBrowser = ({
                 h(
                   Link,
                   {
-                    style: { marginLeft: "1ch" },
-                    tooltip: "This may take a long time for folders containing several thousand objects.",
+                    style: { marginLeft: '1ch' },
+                    tooltip: 'This may take a long time for folders containing several thousand objects.',
                     onClick: () => loadAllRemaining(),
                   },
-                  ["Load all"]
+                  ['Load all']
                 ),
               ]),
 
@@ -560,17 +560,17 @@ const BucketBrowser = ({
 
             creatingNewFolder &&
               h(NameModal, {
-                thing: "Folder",
+                thing: 'Folder',
                 onDismiss: () => setCreatingNewFolder(false),
                 onSuccess: _.flow(
                   Utils.withBusyState(setBusy),
-                  withErrorReporting("Error creating folder")
+                  withErrorReporting('Error creating folder')
                 )(async ({ name }) => {
                   setCreatingNewFolder(false);
 
                   // Create a placeholder object for the new folder.
                   // See https://cloud.google.com/storage/docs/folders for more information.
-                  const placeholderObject = new File([""], `${name}/`, { type: "text/plain" });
+                  const placeholderObject = new File([''], `${name}/`, { type: 'text/plain' });
                   await Ajax().Buckets.upload(googleProject, bucketName, prefix, placeholderObject);
 
                   setPrefix(`${prefix}${name}/`);
@@ -586,7 +586,7 @@ const BucketBrowser = ({
                   try {
                     await Promise.all(_.map((object) => Ajax().Buckets.delete(googleProject, bucketName, object.name), _.values(selectedObjects)));
                   } catch (error) {
-                    reportError("Error deleting objects", error);
+                    reportError('Error deleting objects', error);
                   } finally {
                     setBusy(false);
                     setSelectedObjects({});

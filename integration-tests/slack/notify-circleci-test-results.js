@@ -1,15 +1,15 @@
-const _ = require("lodash/fp");
-const { getFailedTestNamesFromArtifacts } = require("./circleci-utils");
-const { getMessageBlockTemplate } = require("./message-templates");
-const { postMessage } = require("./post-message");
-const testsInfo = require("./slack-notify-channels.json");
+const _ = require('lodash/fp');
+const { getFailedTestNamesFromArtifacts } = require('./circleci-utils');
+const { getMessageBlockTemplate } = require('./message-templates');
+const { postMessage } = require('./post-message');
+const testsInfo = require('./slack-notify-channels.json');
 
 /**
  * Get array of Slack channel IDs for succeeded job notification
  * @returns {Array[string]}
  */
 const getAllSlackChannelsForPassedJob = () => {
-  return _.map("id", testsInfo.pass);
+  return _.map('id', testsInfo.pass);
 };
 
 /**
@@ -19,7 +19,7 @@ const getAllSlackChannelsForPassedJob = () => {
 const getAllSlackChannelsForFailedJob = () => {
   const allChannelsAndTests = new Map();
   _.forEach((item) => {
-    const channelId = _.get("id", item);
+    const channelId = _.get('id', item);
     const testNames = _.map((test) => test.name, item.tests);
     allChannelsAndTests.set(channelId, testNames);
   }, testsInfo.fail);

@@ -1,37 +1,37 @@
-import { arrayMoveImmutable as arrayMove } from "array-move";
-import _ from "lodash/fp";
-import PropTypes from "prop-types";
-import { Fragment, useImperativeHandle, useRef, useState } from "react";
-import Draggable from "react-draggable";
-import { button, div, h, label, option, select, span } from "react-hyperscript-helpers";
-import Pagination from "react-paginating";
-import { SortableContainer, SortableElement, SortableHandle } from "react-sortable-hoc";
-import { AutoSizer, defaultCellRangeRenderer, Grid as RVGrid, List, ScrollSync as RVScrollSync } from "react-virtualized";
-import { ButtonPrimary, Checkbox, Clickable, IdContainer, Link } from "src/components/common";
-import { icon } from "src/components/icons";
-import Interactive from "src/components/Interactive";
-import Modal from "src/components/Modal";
-import TooltipTrigger from "src/components/TooltipTrigger";
-import colors from "src/libs/colors";
-import { forwardRefWithName, useLabelAssert, useOnMount } from "src/libs/react-utils";
-import * as Style from "src/libs/style";
-import * as Utils from "src/libs/utils";
+import { arrayMoveImmutable as arrayMove } from 'array-move';
+import _ from 'lodash/fp';
+import PropTypes from 'prop-types';
+import { Fragment, useImperativeHandle, useRef, useState } from 'react';
+import Draggable from 'react-draggable';
+import { button, div, h, label, option, select, span } from 'react-hyperscript-helpers';
+import Pagination from 'react-paginating';
+import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
+import { AutoSizer, defaultCellRangeRenderer, Grid as RVGrid, List, ScrollSync as RVScrollSync } from 'react-virtualized';
+import { ButtonPrimary, Checkbox, Clickable, IdContainer, Link } from 'src/components/common';
+import { icon } from 'src/components/icons';
+import Interactive from 'src/components/Interactive';
+import Modal from 'src/components/Modal';
+import TooltipTrigger from 'src/components/TooltipTrigger';
+import colors from 'src/libs/colors';
+import { forwardRefWithName, useLabelAssert, useOnMount } from 'src/libs/react-utils';
+import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
 
 const paginatorButton = (props, label) =>
   button(
     _.merge(
       {
         style: {
-          margin: "0 2px",
-          padding: "0.25rem 0.5rem",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          border: "1px solid #ccc",
+          margin: '0 2px',
+          padding: '0.25rem 0.5rem',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          border: '1px solid #ccc',
           borderRadius: 3,
           color: props.disabled ? colors.dark(0.7) : colors.accent(),
-          backgroundColor: "white",
-          cursor: props.disabled ? "not-allowed" : "pointer",
+          backgroundColor: 'white',
+          cursor: props.disabled ? 'not-allowed' : 'pointer',
         },
       },
       props
@@ -67,24 +67,24 @@ export const paginator = ({
     [
       ({ pages, currentPage, hasNextPage, hasPreviousPage, previousPage, nextPage, totalPages, getPageItemProps }) =>
         h(Fragment, [
-          div({ style: { display: "flex", justifyContent: "flex-end", alignItems: "center", marginRight: "1rem" } }, [
+          div({ style: { display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginRight: '1rem' } }, [
             `${(pageNumber - 1) * itemsPerPage + 1} - ${_.min([filteredDataLength, pageNumber * itemsPerPage])} of ${filteredDataLength}`,
             unfilteredDataLength && filteredDataLength !== unfilteredDataLength && ` (filtered from ${unfilteredDataLength} total)`,
-            div({ style: { display: "inline-flex", padding: "0 1rem" } }, [
+            div({ style: { display: 'inline-flex', padding: '0 1rem' } }, [
               paginatorButton(
                 _.merge(
-                  { "aria-label": "First page", disabled: currentPage === 1, style: { marginRight: "0.5rem" } },
+                  { 'aria-label': 'First page', disabled: currentPage === 1, style: { marginRight: '0.5rem' } },
                   getPageItemProps({ pageValue: 1, onPageChange: setPageNumber })
                 ),
-                [icon("angle-double-left", { size: 12 })]
+                [icon('angle-double-left', { size: 12 })]
               ),
 
               paginatorButton(
                 _.merge(
-                  { "aria-label": "Previous page", disabled: !hasPreviousPage, style: { marginRight: "1rem" } },
+                  { 'aria-label': 'Previous page', disabled: !hasPreviousPage, style: { marginRight: '1rem' } },
                   getPageItemProps({ pageValue: previousPage, onPageChange: setPageNumber })
                 ),
-                [icon("angle-left", { size: 12 })]
+                [icon('angle-left', { size: 12 })]
               ),
 
               _.map(
@@ -93,11 +93,11 @@ export const paginator = ({
                     _.merge(
                       {
                         key: num,
-                        "aria-current": currentPage === num ? "page" : undefined,
+                        'aria-current': currentPage === num ? 'page' : undefined,
                         style: {
-                          minWidth: "2rem",
+                          minWidth: '2rem',
                           backgroundColor: currentPage === num ? colors.accent() : undefined,
-                          color: currentPage === num ? "white" : colors.accent(),
+                          color: currentPage === num ? 'white' : colors.accent(),
                           border: currentPage === num ? colors.accent() : undefined,
                         },
                       },
@@ -110,18 +110,18 @@ export const paginator = ({
 
               paginatorButton(
                 _.merge(
-                  { "aria-label": "Next page", disabled: !hasNextPage, style: { marginLeft: "1rem" } },
+                  { 'aria-label': 'Next page', disabled: !hasNextPage, style: { marginLeft: '1rem' } },
                   getPageItemProps({ pageValue: nextPage, onPageChange: setPageNumber })
                 ),
-                [icon("angle-right", { size: 12 })]
+                [icon('angle-right', { size: 12 })]
               ),
 
               paginatorButton(
                 _.merge(
-                  { "aria-label": "Last page", disabled: currentPage === totalPages, style: { marginLeft: "0.5rem" } },
+                  { 'aria-label': 'Last page', disabled: currentPage === totalPages, style: { marginLeft: '0.5rem' } },
                   getPageItemProps({ pageValue: totalPages, onPageChange: setPageNumber })
                 ),
-                [icon("angle-double-right", { size: 12 })]
+                [icon('angle-double-right', { size: 12 })]
               ),
             ]),
 
@@ -129,11 +129,11 @@ export const paginator = ({
               h(IdContainer, [
                 (id) =>
                   h(Fragment, [
-                    label({ htmlFor: id }, ["Items per page:"]),
+                    label({ htmlFor: id }, ['Items per page:']),
                     select(
                       {
                         id,
-                        style: { marginLeft: "0.5rem" },
+                        style: { marginLeft: '0.5rem' },
                         onChange: (e) => setItemsPerPage(parseInt(e.target.value, 10)),
                         value: itemsPerPage,
                       },
@@ -148,10 +148,10 @@ export const paginator = ({
 };
 
 const cellStyles = {
-  display: "flex",
-  alignItems: "center",
-  paddingLeft: "1rem",
-  paddingRight: "1rem",
+  display: 'flex',
+  alignItems: 'center',
+  paddingLeft: '1rem',
+  paddingRight: '1rem',
 };
 
 const styles = {
@@ -168,8 +168,8 @@ const styles = {
     borderBottom: `1px solid ${colors.dark(0.2)}`,
     borderLeft: border && col === 0 ? `1px solid ${colors.dark(0.2)}` : undefined,
     borderRight: !border && col === total - 1 ? undefined : `1px solid ${colors.dark(0.2)}`,
-    borderTopLeftRadius: border && col === 0 ? "5px" : undefined,
-    borderTopRightRadius: border && col === total - 1 ? "5px" : undefined,
+    borderTopLeftRadius: border && col === 0 ? '5px' : undefined,
+    borderTopRightRadius: border && col === total - 1 ? '5px' : undefined,
   }),
   flexCell: ({ basis = 0, grow = 1, shrink = 1, min = 0, max } = {}) => ({
     flexGrow: grow,
@@ -179,24 +179,24 @@ const styles = {
     maxWidth: max,
   }),
   columnSelector: {
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     right: 0,
     width: 48,
     height: 48,
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
     color: colors.accent(),
     backgroundColor: colors.light(0.4),
     border: `1px solid ${colors.dark(0.2)}`,
     borderRadius: 5,
   },
   columnHandle: {
-    paddingRight: "0.25rem",
-    cursor: "move",
-    display: "flex",
-    alignItems: "center",
+    paddingRight: '0.25rem',
+    cursor: 'move',
+    display: 'flex',
+    alignItems: 'center',
   },
 };
 
@@ -221,10 +221,10 @@ export const ariaSort = (sort, field) => {
   if (sort && field) {
     // If we're currently sorting by this column, return the sort direction
     if (sort.field === field) {
-      return sort.direction === "asc" ? "ascending" : "descending";
+      return sort.direction === 'asc' ? 'ascending' : 'descending';
     }
     // Otherwise this column is sortable but we're currently sorting by a different column
-    return "none";
+    return 'none';
   }
   // Otherwise this column is not sortable
   return undefined;
@@ -233,18 +233,18 @@ export const ariaSort = (sort, field) => {
 const NoContentRow = ({ noContentMessage, noContentRenderer = _.noop, numColumns }) =>
   div(
     {
-      role: "row",
-      className: "table-row",
-      style: { marginTop: "1rem", textAlign: "center", fontStyle: "italic" },
+      role: 'row',
+      className: 'table-row',
+      style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' },
     },
     [
       div(
         {
-          role: "cell",
-          className: "table-cell",
-          "aria-colspan": numColumns,
+          role: 'cell',
+          className: 'table-cell',
+          'aria-colspan': numColumns,
         },
-        [noContentMessage || noContentRenderer() || "Nothing to display"]
+        [noContentMessage || noContentRenderer() || 'Nothing to display']
       ),
     ]
   );
@@ -270,14 +270,14 @@ export function FlexTable({
   rowHeight = flexTableDefaultRowHeight,
   styleCell = () => ({}),
   styleHeader = () => ({}),
-  "aria-label": ariaLabel,
+  'aria-label': ariaLabel,
   sort = null,
   readOnly = false,
   border = true,
   tabIndex,
   ...props
 }) {
-  useLabelAssert("FlexTable", { "aria-label": ariaLabel, allowLabelledBy: false });
+  useLabelAssert('FlexTable', { 'aria-label': ariaLabel, allowLabelledBy: false });
 
   const [scrollbarSize, setScrollbarSize] = useState(0);
   const body = useRef();
@@ -288,12 +288,12 @@ export function FlexTable({
 
   return div(
     {
-      role: "table",
-      "aria-rowcount": rowCount + 1, // count the header row too
-      "aria-colcount": columns.length,
-      "aria-label": ariaLabel,
-      "aria-readonly": readOnly || undefined,
-      className: "flex-table",
+      role: 'table',
+      'aria-rowcount': rowCount + 1, // count the header row too
+      'aria-colcount': columns.length,
+      'aria-label': ariaLabel,
+      'aria-readonly': readOnly || undefined,
+      className: 'flex-table',
       tabIndex,
     },
     [
@@ -303,22 +303,22 @@ export function FlexTable({
             ...styles.headerRow,
             width: width - scrollbarSize,
             height: headerHeight,
-            display: "flex",
+            display: 'flex',
           },
-          role: "row",
+          role: 'row',
         },
         _.map(([i, { size, headerRenderer, field }]) => {
           return div(
             {
               key: i,
-              role: "columnheader",
+              role: 'columnheader',
               // ARIA row and column indexes start with 1 rather than 0 https://www.digitala11y.com/aria-colindexproperties/
-              "aria-rowindex": 1, // The header row is 1
-              "aria-colindex": i + 1, // The first column is 1
-              "aria-sort": ariaSort(sort, field),
+              'aria-rowindex': 1, // The header row is 1
+              'aria-colindex': i + 1, // The first column is 1
+              'aria-sort': ariaSort(sort, field),
               style: {
                 ...styles.flexCell(size),
-                ...(variant === "light" ? {} : styles.header(i * 1, columns.length, { border })),
+                ...(variant === 'light' ? {} : styles.header(i * 1, columns.length, { border })),
                 ...(styleHeader ? styleHeader({ columnIndex: i }) : {}),
               },
             },
@@ -328,10 +328,10 @@ export function FlexTable({
       ),
       h(RVGrid, {
         ref: body,
-        role: "rowgroup",
-        containerRole: "presentation", // Clear out unnecessary ARIA roles
-        "aria-label": `${ariaLabel} content`, // The whole table is a tab stop so it needs a label
-        "aria-readonly": null, // Clear out ARIA properties which should be at the table level, not here
+        role: 'rowgroup',
+        containerRole: 'presentation', // Clear out unnecessary ARIA roles
+        'aria-label': `${ariaLabel} content`, // The whole table is a tab stop so it needs a label
+        'aria-readonly': null, // Clear out ARIA properties which should be at the table level, not here
         width,
         height: height - headerHeight,
         columnWidth: width - scrollbarSize,
@@ -346,10 +346,10 @@ export function FlexTable({
             Interactive,
             {
               key: data.key,
-              role: "row",
-              as: "div",
-              className: "table-row",
-              style: { ...data.style, backgroundColor: "white", display: "flex" },
+              role: 'row',
+              as: 'div',
+              className: 'table-row',
+              style: { ...data.style, backgroundColor: 'white', display: 'flex' },
               hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined,
             },
             [
@@ -357,14 +357,14 @@ export function FlexTable({
                 return div(
                   {
                     key: i,
-                    role: "cell",
+                    role: 'cell',
                     // ARIA row and column indexes start with 1 https://www.digitala11y.com/aria-colindexproperties/
-                    "aria-rowindex": data.rowIndex + 2, // The header row is 1, so the first body row is 2
-                    "aria-colindex": i + 1, // The first column is 1
-                    className: "table-cell",
+                    'aria-rowindex': data.rowIndex + 2, // The header row is 1, so the first body row is 2
+                    'aria-colindex': i + 1, // The first column is 1
+                    className: 'table-cell',
                     style: {
                       ...styles.flexCell(size),
-                      ...(variant === "light" ? {} : styles.cell(i * 1, columns.length, { border })),
+                      ...(variant === 'light' ? {} : styles.cell(i * 1, columns.length, { border })),
                       ...(styleCell ? styleCell({ ...data, columnIndex: i, rowIndex: data.rowIndex }) : {}),
                     },
                   },
@@ -374,7 +374,7 @@ export function FlexTable({
             ]
           );
         },
-        style: { outline: "none" },
+        style: { outline: 'none' },
         onScroll: ({ scrollTop }) => onScroll(scrollTop),
         noContentRenderer: () => h(NoContentRow, { noContentMessage, noContentRenderer, numColumns: columns.length }),
         ...props,
@@ -388,7 +388,7 @@ FlexTable.propTypes = {
   height: PropTypes.number.isRequired,
   initialY: PropTypes.number,
   rowCount: PropTypes.number.isRequired,
-  variant: PropTypes.oneOf(["light"]),
+  variant: PropTypes.oneOf(['light']),
   noContentMessage: PropTypes.node,
   noContentRenderer: PropTypes.func,
   columns: PropTypes.arrayOf(
@@ -411,7 +411,7 @@ FlexTable.propTypes = {
   rowHeight: PropTypes.number,
   styleHeader: PropTypes.func,
   styleCell: PropTypes.func,
-  "aria-label": PropTypes.string.isRequired,
+  'aria-label': PropTypes.string.isRequired,
   sort: PropTypes.shape({
     field: PropTypes.string,
     direction: PropTypes.string,
@@ -429,33 +429,33 @@ export const SimpleFlexTable = ({
   noContentMessage,
   noContentRenderer = _.noop,
   hoverHighlight,
-  "aria-label": ariaLabel,
+  'aria-label': ariaLabel,
   sort = null,
   readOnly = false,
   border = true,
 }) => {
-  useLabelAssert("SimpleFlexTable", { "aria-label": ariaLabel, allowLabelledBy: false });
+  useLabelAssert('SimpleFlexTable', { 'aria-label': ariaLabel, allowLabelledBy: false });
 
   return div(
     {
-      role: "table",
-      "aria-label": ariaLabel,
-      "aria-readonly": readOnly || undefined,
-      className: "simple-flex-table",
+      role: 'table',
+      'aria-label': ariaLabel,
+      'aria-readonly': readOnly || undefined,
+      className: 'simple-flex-table',
     },
     [
       div(
         {
-          role: "row",
-          style: { height: 48, display: "flex" },
+          role: 'row',
+          style: { height: 48, display: 'flex' },
         },
         [
           _.map(([i, { size, headerRenderer, field }]) => {
             return div(
               {
                 key: i,
-                role: "columnheader",
-                "aria-sort": ariaSort(sort, field),
+                role: 'columnheader',
+                'aria-sort': ariaSort(sort, field),
                 style: { ...styles.flexCell(size), ...styles.header(i * 1, columns.length, { border }) },
               },
               [headerRenderer({ columnIndex: i })]
@@ -468,10 +468,10 @@ export const SimpleFlexTable = ({
           Interactive,
           {
             key: rowIndex,
-            role: "row",
-            as: "div",
-            className: "table-row",
-            style: { backgroundColor: "white", display: "flex", minHeight: 48 },
+            role: 'row',
+            as: 'div',
+            className: 'table-row',
+            style: { backgroundColor: 'white', display: 'flex', minHeight: 48 },
             hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined,
           },
           [
@@ -479,8 +479,8 @@ export const SimpleFlexTable = ({
               return div(
                 {
                   key: i,
-                  role: "cell",
-                  className: "table-cell",
+                  role: 'cell',
+                  className: 'table-cell',
                   style: { ...styles.flexCell(size), ...styles.cell(i * 1, columns.length, { border }) },
                 },
                 [cellRenderer({ columnIndex: i, rowIndex })]
@@ -499,7 +499,7 @@ export const SimpleFlexTable = ({
  * datasets which may require horizontal scrolling.
  */
 export const GridTable = forwardRefWithName(
-  "GridTable",
+  'GridTable',
   (
     {
       width,
@@ -516,14 +516,14 @@ export const GridTable = forwardRefWithName(
       styleCell = () => ({}),
       styleHeader = () => ({}),
       onScroll: customOnScroll = _.noop,
-      "aria-label": ariaLabel,
+      'aria-label': ariaLabel,
       sort = null,
       readOnly = false,
       border = true,
     },
     ref
   ) => {
-    useLabelAssert("GridTable", { "aria-label": ariaLabel, allowLabelledBy: false });
+    useLabelAssert('GridTable', { 'aria-label': ariaLabel, allowLabelledBy: false });
 
     const [scrollbarSize, setScrollbarSize] = useState(0);
     const header = useRef();
@@ -552,7 +552,7 @@ export const GridTable = forwardRefWithName(
     }));
 
     const fixedColumns = _.slice(0, numFixedColumns, columns);
-    const totalFixedColumnsWidth = _.sum(_.map("width", fixedColumns));
+    const totalFixedColumnsWidth = _.sum(_.map('width', fixedColumns));
     // The value at index i in this array is a sum of the widths of columns to the left of the column at index i.
     const fixedColumnOffsets = _.transform(
       (offsets, column) => {
@@ -569,12 +569,12 @@ export const GridTable = forwardRefWithName(
       return div(
         {
           key,
-          role: "columnheader",
+          role: 'columnheader',
           // ARIA row and column indexes start with 1 rather than 0 https://www.digitala11y.com/aria-colindexproperties/
-          "aria-rowindex": 1, // The header row is 1
-          "aria-colindex": columnIndex + 1, // The first column is 1
-          "aria-sort": ariaSort(sort, field),
-          className: "table-cell",
+          'aria-rowindex': 1, // The header row is 1
+          'aria-colindex': columnIndex + 1, // The first column is 1
+          'aria-sort': ariaSort(sort, field),
+          className: 'table-cell',
           style: {
             ...style,
             ...styles.header(columnIndex, columns.length, { border }),
@@ -590,15 +590,15 @@ export const GridTable = forwardRefWithName(
       return div(
         {
           key,
-          role: "cell",
+          role: 'cell',
           // ARIA row and column indexes start with 1 rather than 0 https://www.digitala11y.com/aria-colindexproperties/
-          "aria-rowindex": rowIndex + 2, // The header row is 1, so the first body row is 2
-          "aria-colindex": columnIndex + 1, // The first column is 1
-          className: "table-cell",
+          'aria-rowindex': rowIndex + 2, // The header row is 1, so the first body row is 2
+          'aria-colindex': columnIndex + 1, // The first column is 1
+          className: 'table-cell',
           style: {
             ...style,
             ...styles.cell(columnIndex, columns.length, { border }),
-            backgroundColor: "white",
+            backgroundColor: 'white',
             ...styleCell({ columnIndex, rowIndex }),
           },
         },
@@ -615,28 +615,28 @@ export const GridTable = forwardRefWithName(
         ({ onScroll, scrollLeft }) => {
           return div(
             {
-              role: "table",
-              "aria-label": ariaLabel,
-              "aria-rowcount": rowCount + 1, // count the header row too
-              "aria-colcount": columns.length,
-              "aria-readonly": readOnly || undefined,
-              className: "grid-table",
+              role: 'table',
+              'aria-label': ariaLabel,
+              'aria-rowcount': rowCount + 1, // count the header row too
+              'aria-colcount': columns.length,
+              'aria-readonly': readOnly || undefined,
+              className: 'grid-table',
               style: {
                 width,
                 height,
                 // Setting contain: strict on this element allows positioning fixed columns relative to this element
                 // instead of RVGrid's inner scroll container.
                 // https://developer.mozilla.org/en-US/docs/Web/CSS/Containing_block#identifying_the_containing_block
-                contain: "strict",
+                contain: 'strict',
               },
             },
             [
               h(RVGrid, {
                 ref: header,
-                role: "rowgroup",
-                containerRole: "row",
-                "aria-label": `${ariaLabel} header row`, // The whole table is a tab stop so it needs a label
-                "aria-readonly": null, // Clear out ARIA properties which have been moved one level up
+                role: 'rowgroup',
+                containerRole: 'row',
+                'aria-label': `${ariaLabel} header row`, // The whole table is a tab stop so it needs a label
+                'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
                 // Leave space for fixed columns.
                 width: width - scrollbarSize - totalFixedColumnsWidth,
                 height: headerHeight,
@@ -666,7 +666,7 @@ export const GridTable = forwardRefWithName(
                         style: {
                           height: rowDatum.size,
                           left: fixedColumnOffsets[columnIndex] + horizontalOffsetAdjustment,
-                          position: "fixed",
+                          position: 'fixed',
                           top: rowDatum.offset + verticalOffsetAdjustment,
                           width: fixedColumns[columnIndex].width,
                           // Show header cell above body cells in fixed columns when vertically scrolling the grid.
@@ -680,28 +680,28 @@ export const GridTable = forwardRefWithName(
                 style: {
                   // Leave space for fixed columns.
                   marginLeft: totalFixedColumnsWidth,
-                  outline: "none",
+                  outline: 'none',
                   // overflow: hidden prevents additional scrollbars from appearing in the header row
                   // while scrolling the grid.
                   // overflowX and overflowY must be set separately because RVGrid also sets them.
                   // Using the overflow: hidden shorthand results in a React warning:
                   // "Updating a style property during rerender (overflowX) when a conflicting property
                   // is set (overflow) can lead to styling bugs"
-                  overflowX: "hidden",
-                  overflowY: "hidden",
+                  overflowX: 'hidden',
+                  overflowY: 'hidden',
                   // Override will-change: transform set in RVGrid. This allows positioning fixed columns
                   // relative to GridTable's container instead of the RVGrid's inner scroll container.
-                  willChange: "auto",
+                  willChange: 'auto',
                 },
                 scrollLeft,
                 onScroll,
               }),
               h(RVGrid, {
                 ref: body,
-                role: "rowgroup",
-                containerRole: "presentation",
-                "aria-label": `${ariaLabel} content`, // The whole table is a tab stop so it needs a label
-                "aria-readonly": null, // Clear out ARIA properties which have been moved one level up
+                role: 'rowgroup',
+                containerRole: 'presentation',
+                'aria-label': `${ariaLabel} content`, // The whole table is a tab stop so it needs a label
+                'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
                 // Leave space for fixed columns.
                 width: width - totalFixedColumnsWidth,
                 height: height - headerHeight,
@@ -731,14 +731,14 @@ export const GridTable = forwardRefWithName(
                   // Elements with role "cell" are required to be nested in an element with role "row".
                   // https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/cell_role
                   return _.flow(
-                    _.groupBy("rowIndex"),
+                    _.groupBy('rowIndex'),
                     Utils.toIndexPairs,
                     _.map(([rowIndex, cells]) => {
                       const rowDatum = rowSizeAndPositionManager.getSizeAndPositionOfCell(rowIndex);
                       return div(
                         {
                           key: `row-${rowIndex}`,
-                          role: "row",
+                          role: 'row',
                         },
                         [
                           ..._.map((columnIndex) => {
@@ -749,7 +749,7 @@ export const GridTable = forwardRefWithName(
                               style: {
                                 height: rowDatum.size,
                                 left: fixedColumnOffsets[columnIndex] + horizontalOffsetAdjustment,
-                                position: "fixed",
+                                position: 'fixed',
                                 top: headerHeight + rowDatum.offset + verticalOffsetAdjustment - scrollTop,
                                 width: fixedColumns[columnIndex].width,
                                 // Show fixed columns above unfixed columns when horizontally scrolling the grid.
@@ -757,7 +757,7 @@ export const GridTable = forwardRefWithName(
                               },
                             });
                           }, _.range(0, numFixedColumns)),
-                          ..._.map("cell", cells),
+                          ..._.map('cell', cells),
                         ]
                       );
                     })
@@ -766,10 +766,10 @@ export const GridTable = forwardRefWithName(
                 style: {
                   // Leave space for fixed columns.
                   marginLeft: totalFixedColumnsWidth,
-                  outline: "none",
+                  outline: 'none',
                   // Override will-change: transform set in RVGrid. This allows positioning fixed columns
                   // relative to GridTable's container instead of the RVGrid's inner scroll container.
-                  willChange: "auto",
+                  willChange: 'auto',
                 },
                 scrollLeft,
                 onScroll: (details) => {
@@ -808,7 +808,7 @@ GridTable.propTypes = {
   onScroll: PropTypes.func,
   headerHeight: PropTypes.number,
   rowHeight: PropTypes.number,
-  "aria-label": PropTypes.string.isRequired,
+  'aria-label': PropTypes.string.isRequired,
   sort: PropTypes.shape({
     field: PropTypes.string,
     direction: PropTypes.string,
@@ -819,7 +819,7 @@ GridTable.propTypes = {
 export const SimpleTable = ({
   columns,
   rows,
-  "aria-label": ariaLabel,
+  'aria-label': ariaLabel,
   rowStyle = {},
   evenRowStyle = {},
   oddRowStyle = {},
@@ -828,25 +828,25 @@ export const SimpleTable = ({
   useHover = true,
   underRowKey,
 }) => {
-  useLabelAssert("SimpleTable", { "aria-label": ariaLabel, allowLabelledBy: false });
+  useLabelAssert('SimpleTable', { 'aria-label': ariaLabel, allowLabelledBy: false });
 
-  const cellStyles = { paddingTop: "0.25rem", paddingBottom: "0.25rem", ...cellStyleOverrides };
+  const cellStyles = { paddingTop: '0.25rem', paddingBottom: '0.25rem', ...cellStyleOverrides };
   return h(
     div,
     {
-      role: "table",
-      "aria-label": ariaLabel,
+      role: 'table',
+      'aria-label': ariaLabel,
     },
     [
       !_.isEmpty(columns) &&
-        div({ role: "row", style: { display: "flex", alignItems: "center", ...headerRowStyle } }, [
+        div({ role: 'row', style: { display: 'flex', alignItems: 'center', ...headerRowStyle } }, [
           _.map(([i, { key, header, size }]) => {
             return div(
               {
                 key,
-                role: "columnheader",
-                "aria-rowindex": 1, // The header row is 1
-                "aria-colindex": i + 1, // The first column is 1
+                role: 'columnheader',
+                'aria-rowindex': 1, // The header row is 1
+                'aria-colindex': i + 1, // The first column is 1
                 style: { ...cellStyles, ...styles.flexCell(size) },
               },
               [header]
@@ -858,22 +858,22 @@ export const SimpleTable = ({
           Interactive,
           {
             key: i,
-            role: "row",
-            as: "div",
+            role: 'row',
+            as: 'div',
             style: { ...rowStyle, ...(i % 2 ? oddRowStyle : evenRowStyle) },
-            className: "table-row",
+            className: 'table-row',
             hover: useHover && { backgroundColor: colors.light(0.4) },
           },
           [
-            div({ style: { display: "flex" } }, [
+            div({ style: { display: 'flex' } }, [
               _.map(([colindex, { key, size }]) => {
                 return div(
                   {
                     key,
-                    role: "cell",
-                    "aria-rowindex": i + 2, // The first row of data is 2
-                    "aria-colindex": colindex + 1, // The first column is 1
-                    className: "table-cell",
+                    role: 'cell',
+                    'aria-rowindex': i + 2, // The first row of data is 2
+                    'aria-colindex': colindex + 1, // The first column is 1
+                    className: 'table-cell',
                     style: {
                       borderTop: `1px solid ${colors.dark(0.2)}`,
                       ...cellStyles,
@@ -911,8 +911,8 @@ export const HeaderCell = (props) => {
 
 const getSortIcon = (sort, field, hovered) => {
   return Utils.cond(
-    [sort?.field === field, () => icon(sort.direction === "asc" ? "long-arrow-alt-down" : "long-arrow-alt-up")],
-    [hovered, () => icon("long-arrow-alt-down")]
+    [sort?.field === field, () => icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up')],
+    [hovered, () => icon('long-arrow-alt-down')]
   );
 };
 
@@ -924,7 +924,7 @@ export const Sortable = ({ sort, field, onSort, children }) => {
       h(
         Clickable,
         {
-          style: { flex: 1, display: "flex", alignItems: "center", cursor: "pointer", width: "100%", height: "100%", overflow: "hidden" },
+          style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', width: '100%', height: '100%', overflow: 'hidden' },
           onMouseEnter: () => {
             setHovered(true);
           },
@@ -938,19 +938,19 @@ export const Sortable = ({ sort, field, onSort, children }) => {
             setHovered(false);
           },
           onClick: () => onSort(Utils.nextSort(sort, field)),
-          "aria-describedby": id,
+          'aria-describedby': id,
         },
         [
           children,
-          div({ style: { color: colors.accent(), marginLeft: "0.1rem" } }, [getSortIcon(sort, field, hovered)]),
-          div({ id, style: { display: "none" } }, ["Click to sort by this column"]),
+          div({ style: { color: colors.accent(), marginLeft: '0.1rem' } }, [getSortIcon(sort, field, hovered)]),
+          div({ id, style: { display: 'none' } }, ['Click to sort by this column']),
         ]
       ),
   ]);
 };
 
 export const MiniSortable = ({ sort, field, onSort, children }) => {
-  const cursor = sort ? "pointer" : "default";
+  const cursor = sort ? 'pointer' : 'default';
   const [hovered, setHovered] = useState(false);
 
   return h(IdContainer, [
@@ -958,7 +958,7 @@ export const MiniSortable = ({ sort, field, onSort, children }) => {
       h(
         Clickable,
         {
-          style: { display: "flex", alignItems: "center", cursor, height: "100%" },
+          style: { display: 'flex', alignItems: 'center', cursor, height: '100%' },
           onMouseEnter: () => {
             setHovered(true);
           },
@@ -973,12 +973,12 @@ export const MiniSortable = ({ sort, field, onSort, children }) => {
           },
           disabled: !sort,
           onClick: () => onSort(Utils.nextSort(sort, field)),
-          "aria-describedby": id,
+          'aria-describedby': id,
         },
         [
           children,
-          div({ style: { color: colors.accent(), marginLeft: "1rem" } }, [getSortIcon(sort, field, hovered)]),
-          div({ id, style: { display: "none" } }, ["Click to sort by this column"]),
+          div({ style: { color: colors.accent(), marginLeft: '1rem' } }, [getSortIcon(sort, field, hovered)]),
+          div({ id, style: { display: 'none' } }, ['Click to sort by this column']),
         ]
       ),
   ]);
@@ -993,14 +993,14 @@ export const Resizable = ({ onWidthChange, width, minWidth = 100, children }) =>
 
   return div(
     {
-      style: { flex: 1, display: "flex", alignItems: "center", position: "relative", width: "100%" },
+      style: { flex: 1, display: 'flex', alignItems: 'center', position: 'relative', width: '100%' },
     },
     [
       children,
       h(
         Draggable,
         {
-          axis: "x",
+          axis: 'x',
           onStart: (e) => {
             setLastX(e.clientX);
             setDragAmount(0);
@@ -1019,16 +1019,16 @@ export const Resizable = ({ onWidthChange, width, minWidth = 100, children }) =>
           position: { x: 0, y: 0 },
         },
         [
-          icon("columnGrabber", {
+          icon('columnGrabber', {
             size: 24,
-            style: { position: "absolute", right: -20, cursor: "ew-resize" },
+            style: { position: 'absolute', right: -20, cursor: 'ew-resize' },
           }),
         ]
       ),
       !!dragAmount &&
-        icon("columnGrabber", {
+        icon('columnGrabber', {
           size: 24,
-          style: { position: "absolute", right: -20 - dragAmount, zIndex: 1, opacity: "0.5", cursor: "ew-resize" },
+          style: { position: 'absolute', right: -20 - dragAmount, zIndex: 1, opacity: '0.5', cursor: 'ew-resize' },
         }),
     ]
   );
@@ -1040,15 +1040,15 @@ const SortableHandleDiv = SortableHandle((props) => div(props));
 
 export const ColumnSettings = ({ columnSettings, onChange }) => {
   const toggleVisibility = (index) => {
-    onChange(_.update([index, "visible"], (b) => !b)(columnSettings));
+    onChange(_.update([index, 'visible'], (b) => !b)(columnSettings));
   };
 
   const setAll = (value) => {
-    onChange(_.map(_.set("visible", value))(columnSettings));
+    onChange(_.map(_.set('visible', value))(columnSettings));
   };
 
   const sort = () => {
-    onChange(_.sortBy("name")(columnSettings));
+    onChange(_.sortBy('name')(columnSettings));
   };
 
   const reorder = ({ oldIndex, newIndex }) => {
@@ -1056,19 +1056,19 @@ export const ColumnSettings = ({ columnSettings, onChange }) => {
   };
 
   return h(Fragment, [
-    div({ style: { marginBottom: "1rem", display: "flex" } }, [
-      div({ style: { fontWeight: 500 } }, ["Show:"]),
-      h(Link, { style: { padding: "0 0.5rem" }, onClick: () => setAll(true) }, ["all"]),
-      "|",
-      h(Link, { style: { padding: "0 0.5rem" }, onClick: () => setAll(false) }, ["none"]),
-      div({ style: { marginLeft: "auto", fontWeight: 500 } }, ["Sort:"]),
-      h(Link, { style: { padding: "0 0.5rem" }, onClick: () => sort() }, ["alphabetical"]),
+    div({ style: { marginBottom: '1rem', display: 'flex' } }, [
+      div({ style: { fontWeight: 500 } }, ['Show:']),
+      h(Link, { style: { padding: '0 0.5rem' }, onClick: () => setAll(true) }, ['all']),
+      '|',
+      h(Link, { style: { padding: '0 0.5rem' }, onClick: () => setAll(false) }, ['none']),
+      div({ style: { marginLeft: 'auto', fontWeight: 500 } }, ['Sort:']),
+      h(Link, { style: { padding: '0 0.5rem' }, onClick: () => sort() }, ['alphabetical']),
     ]),
     h(AutoSizer, { disableHeight: true }, [
       ({ width }) => {
         return h(SortableList, {
-          style: { outline: "none" },
-          lockAxis: "y",
+          style: { outline: 'none' },
+          lockAxis: 'y',
           useDragHandle: true,
           width,
           height: 400,
@@ -1076,8 +1076,8 @@ export const ColumnSettings = ({ columnSettings, onChange }) => {
           rowHeight: 30,
           rowRenderer: ({ index, style, key }) => {
             const { name, visible } = columnSettings[index];
-            return h(SortableDiv, { key, index, style: { ...style, display: "flex" } }, [
-              h(SortableHandleDiv, { style: styles.columnHandle }, [icon("columnGrabber", { style: { transform: "rotate(90deg)" } })]),
+            return h(SortableDiv, { key, index, style: { ...style, display: 'flex' } }, [
+              h(SortableHandleDiv, { style: styles.columnHandle }, [icon('columnGrabber', { style: { transform: 'rotate(90deg)' } })]),
               h(IdContainer, [
                 (id) =>
                   h(Fragment, [
@@ -1087,14 +1087,14 @@ export const ColumnSettings = ({ columnSettings, onChange }) => {
                         // Since attribute names don't contain spaces, word-break: break-all is necessary to
                         // wrap the attribute name instead of truncating it when the tooltip reaches its
                         // max width of 400px.
-                        content: span({ style: { wordBreak: "break-all" } }, name),
+                        content: span({ style: { wordBreak: 'break-all' } }, name),
                       },
                       [
                         label(
                           {
                             htmlFor: id,
                             style: {
-                              lineHeight: "30px", // match rowHeight of SortableList
+                              lineHeight: '30px', // match rowHeight of SortableList
                               ...Style.noWrapEllipsis,
                             },
                           },
@@ -1104,7 +1104,7 @@ export const ColumnSettings = ({ columnSettings, onChange }) => {
                               checked: visible,
                               onChange: () => toggleVisibility(index),
                             }),
-                            " ",
+                            ' ',
                             name,
                           ]
                         ),
@@ -1138,22 +1138,22 @@ export const ColumnSelector = ({ onSave, columnSettings, modalWidth = 600, style
     h(
       Clickable,
       {
-        "aria-haspopup": "dialog",
-        "aria-expanded": open,
+        'aria-haspopup': 'dialog',
+        'aria-expanded': open,
         style: { ...styles.columnSelector, ...style },
-        tooltip: "Select columns",
+        tooltip: 'Select columns',
         onClick: () => {
           setOpen(true);
           setModifiedColumnSettings(columnSettings);
         },
       },
-      [icon("cog", { size: 20 })]
+      [icon('cog', { size: 20 })]
     ),
     open &&
       h(
         Modal,
         {
-          title: "Select columns",
+          title: 'Select columns',
           width: modalWidth,
           onDismiss: () => setOpen(false),
           okButton: h(
@@ -1164,7 +1164,7 @@ export const ColumnSelector = ({ onSave, columnSettings, modalWidth = 600, style
                 setOpen(false);
               },
             },
-            ["Done"]
+            ['Done']
           ),
         },
         [

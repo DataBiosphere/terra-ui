@@ -1,8 +1,8 @@
-import _ from "lodash/fp";
-import { App } from "src/libs/ajax/leonardo/models/app-models";
-import { PersistentDisk } from "src/libs/ajax/leonardo/models/disk-models";
-import { Runtime } from "src/libs/ajax/leonardo/models/runtime-models";
-import * as Utils from "src/libs/utils";
+import _ from 'lodash/fp';
+import { App } from 'src/libs/ajax/leonardo/models/app-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
+import * as Utils from 'src/libs/utils';
 
 /**
  * 'Deletable' and 'Pausable' statuses are defined in a resource's respective model in Leonardo repo:
@@ -16,9 +16,9 @@ export const isResourceDeletable = (resourceType, resource: App | PersistentDisk
     _.lowerCase(resource?.status),
     Utils.switchCase(
       resourceType,
-      ["runtime", () => ["unknown", "running", "updating", "error", "stopping", "stopped", "starting"]],
-      ["app", () => ["unspecified", "running", "error"]],
-      ["disk", () => ["failed", "ready"]],
+      ['runtime', () => ['unknown', 'running', 'updating', 'error', 'stopping', 'stopped', 'starting']],
+      ['app', () => ['unspecified', 'running', 'error']],
+      ['disk', () => ['failed', 'ready']],
       [
         Utils.DEFAULT,
         () =>
@@ -33,8 +33,8 @@ export const isComputePausable = (computeType, compute: App | Runtime) =>
     _.lowerCase(compute?.status),
     Utils.switchCase(
       computeType,
-      ["runtime", () => ["unknown", "running", "updating", "starting"]],
-      ["app", () => ["running", "starting"]],
+      ['runtime', () => ['unknown', 'running', 'updating', 'starting']],
+      ['app', () => ['running', 'starting']],
       [
         Utils.DEFAULT,
         () => console.error(`Cannot determine pausability; compute type ${computeType} must be runtime or app.`),

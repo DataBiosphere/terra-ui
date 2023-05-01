@@ -1,8 +1,8 @@
-import { fetchOk } from "src/libs/ajax/ajax-common";
-import { AzureStorage } from "src/libs/ajax/AzureStorage";
-import FileBrowserProvider from "src/libs/ajax/file-browser-providers/FileBrowserProvider";
-import IncrementalResponse from "src/libs/ajax/incremental-response/IncrementalResponse";
-import * as Utils from "src/libs/utils";
+import { fetchOk } from 'src/libs/ajax/ajax-common';
+import { AzureStorage } from 'src/libs/ajax/AzureStorage';
+import FileBrowserProvider from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
+import IncrementalResponse from 'src/libs/ajax/incremental-response/IncrementalResponse';
+import * as Utils from 'src/libs/utils';
 
 export interface AzureBlobStorageFileBrowserProviderParams {
   workspaceId: string;
@@ -17,7 +17,7 @@ type AzureBlobStorageFileBrowserProviderGetPageParams<T> = {
   previousItems?: T[];
   sasUrl: string;
   signal: any;
-  tagName: "Blob" | "BlobPrefix";
+  tagName: 'Blob' | 'BlobPrefix';
   mapBlobOrBlobPrefix: (blobOrBlobPrefix: Element) => T;
 };
 
@@ -61,9 +61,9 @@ const AzureBlobStorageFileBrowserProvider = ({
 
         const url = Utils.mergeQueryParams(
           {
-            restype: "container",
-            comp: "list",
-            delimiter: "/",
+            restype: 'container',
+            comp: 'list',
+            delimiter: '/',
             prefix,
             ...requestOptions,
           },
@@ -72,12 +72,12 @@ const AzureBlobStorageFileBrowserProvider = ({
 
         const response = await fetchOk(url, { signal });
         const responseText = await response.text();
-        const responseXML = new window.DOMParser().parseFromString(responseText, "text/xml");
+        const responseXML = new window.DOMParser().parseFromString(responseText, 'text/xml');
 
         const blobOrBlobPrefixElements = Array.from(responseXML.getElementsByTagName(tagName));
         buffer = buffer.concat(blobOrBlobPrefixElements.map(mapBlobOrBlobPrefix));
 
-        nextPageToken = responseXML.getElementsByTagName("NextMarker").item(0)?.textContent || undefined;
+        nextPageToken = responseXML.getElementsByTagName('NextMarker').item(0)?.textContent || undefined;
       } while (buffer.length < pageSize && nextPageToken);
     }
 
@@ -101,7 +101,7 @@ const AzureBlobStorageFileBrowserProvider = ({
               signal,
             } as AzureBlobStorageFileBrowserProviderGetPageParams<T>)
         : () => {
-            throw new Error("No next page");
+            throw new Error('No next page');
           },
       hasNextPage,
     };
@@ -115,18 +115,18 @@ const AzureBlobStorageFileBrowserProvider = ({
       } = await storageDetailsPromise;
       return getNextPage({
         isFirstPage: true,
-        tagName: "Blob",
+        tagName: 'Blob',
         mapBlobOrBlobPrefix: (blob) => {
-          const name = blob.getElementsByTagName("Name").item(0)!.textContent!;
+          const name = blob.getElementsByTagName('Name').item(0)!.textContent!;
 
-          const blobProperties = blob.getElementsByTagName("Properties").item(0)!;
-          const creationTime = blobProperties.getElementsByTagName("Creation-Time").item(0)!.textContent!;
-          const lastModified = blobProperties.getElementsByTagName("Last-Modified").item(0)!.textContent!;
-          const contentLength = blobProperties.getElementsByTagName("Content-Length").item(0)!.textContent!;
+          const blobProperties = blob.getElementsByTagName('Properties').item(0)!;
+          const creationTime = blobProperties.getElementsByTagName('Creation-Time').item(0)!.textContent!;
+          const lastModified = blobProperties.getElementsByTagName('Last-Modified').item(0)!.textContent!;
+          const contentLength = blobProperties.getElementsByTagName('Content-Length').item(0)!.textContent!;
 
           const blobUrl = new URL(sasUrl);
           blobUrl.pathname += `/${name}`;
-          blobUrl.search = "";
+          blobUrl.search = '';
 
           return {
             path: name,
@@ -147,9 +147,9 @@ const AzureBlobStorageFileBrowserProvider = ({
       } = await storageDetailsPromise;
       return getNextPage({
         isFirstPage: true,
-        tagName: "BlobPrefix",
+        tagName: 'BlobPrefix',
         mapBlobOrBlobPrefix: (blobPrefix) => {
-          const name = blobPrefix.getElementsByTagName("Name").item(0)!.textContent!;
+          const name = blobPrefix.getElementsByTagName('Name').item(0)!.textContent!;
 
           return {
             path: name,
@@ -187,11 +187,11 @@ const AzureBlobStorageFileBrowserProvider = ({
       await fetchOk(blobUrl.href, {
         body: file,
         headers: {
-          "Content-Length": file.size,
-          "Content-Type": file.type,
-          "x-ms-blob-type": "BlockBlob",
+          'Content-Length': file.size,
+          'Content-Type': file.type,
+          'x-ms-blob-type': 'BlockBlob',
         },
-        method: "PUT",
+        method: 'PUT',
       });
     },
     deleteFile: async (path: string) => {
@@ -203,14 +203,14 @@ const AzureBlobStorageFileBrowserProvider = ({
       blobUrl.pathname += `/${path}`;
 
       await fetchOk(blobUrl.href, {
-        method: "DELETE",
+        method: 'DELETE',
       });
     },
     createEmptyDirectory: (_directoryPath: string) => {
-      return Promise.reject(new Error("Empty directories not supported in Azure workspaces"));
+      return Promise.reject(new Error('Empty directories not supported in Azure workspaces'));
     },
     deleteEmptyDirectory: (_directoryPath: string) => {
-      return Promise.reject(new Error("Empty directories not supported in Azure workspaces"));
+      return Promise.reject(new Error('Empty directories not supported in Azure workspaces'));
     },
   };
 };

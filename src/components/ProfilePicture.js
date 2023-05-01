@@ -1,5 +1,5 @@
-import { img } from "react-hyperscript-helpers";
-import { getUser } from "src/libs/state";
+import { img } from 'react-hyperscript-helpers';
+import { getUser } from 'src/libs/state';
 
 const ProfilePicture = ({ size, style, ...props } = {}) => {
   // Note Azure logins don't currently have an imageUrl, so don't render anything.
@@ -8,12 +8,12 @@ const ProfilePicture = ({ size, style, ...props } = {}) => {
   return (
     !!imageUrl &&
     img({
-      alt: "Google profile image",
+      alt: 'Google profile image',
       src: imageUrl,
       height: size,
       width: size,
-      style: { borderRadius: "100%", ...style },
-      referrerPolicy: "no-referrer",
+      style: { borderRadius: '100%', ...style },
+      referrerPolicy: 'no-referrer',
       ...props,
     })
   );

@@ -1,5 +1,5 @@
-import { PropsWithChildren } from "react";
-import { h3, header } from "react-hyperscript-helpers";
+import { PropsWithChildren } from 'react';
+import { h3, header } from 'react-hyperscript-helpers';
 
 type StepHeaderProps = PropsWithChildren<{
   title: React.ReactNode;
@@ -7,6 +7,6 @@ type StepHeaderProps = PropsWithChildren<{
 }>;
 
 export const StepHeader = ({ title, style }: StepHeaderProps) =>
-  header({ style: { width: "100%", display: "flex", flexDirection: "row", ...style } }, [
-    h3({ style: { fontSize: 18, marginTop: 0, marginRight: "1rem" } }, [title]),
+  header({ style: { width: '100%', display: 'flex', flexDirection: 'row', ...style } }, [
+    h3({ style: { fontSize: 18, marginTop: 0, marginRight: '1rem' } }, [title]),
   ]);

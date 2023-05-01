@@ -1,21 +1,21 @@
-import { isAfter, parseJSON } from "date-fns/fp";
-import _ from "lodash/fp";
-import { useEffect, useMemo, useState } from "react";
-import { div, h, p, span } from "react-hyperscript-helpers";
-import { AutoSizer } from "react-virtualized";
-import { CloudProviderIcon } from "src/components/CloudProviderIcon";
-import Collapse from "src/components/Collapse";
-import { Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from "src/components/common";
-import FooterWrapper from "src/components/FooterWrapper";
-import { icon } from "src/components/icons";
-import { DelayedSearchInput } from "src/components/input";
-import LeaveResourceModal from "src/components/LeaveResourceModal";
-import { FirstParagraphMarkdownViewer } from "src/components/markdown";
-import NewWorkspaceModal from "src/components/NewWorkspaceModal";
-import { SimpleTabBar } from "src/components/tabBars";
-import { FlexTable, HeaderRenderer } from "src/components/table";
-import TooltipTrigger from "src/components/TooltipTrigger";
-import TopBar from "src/components/TopBar";
+import { isAfter, parseJSON } from 'date-fns/fp';
+import _ from 'lodash/fp';
+import { useEffect, useMemo, useState } from 'react';
+import { div, h, p, span } from 'react-hyperscript-helpers';
+import { AutoSizer } from 'react-virtualized';
+import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
+import Collapse from 'src/components/Collapse';
+import { Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common';
+import FooterWrapper from 'src/components/FooterWrapper';
+import { icon } from 'src/components/icons';
+import { DelayedSearchInput } from 'src/components/input';
+import LeaveResourceModal from 'src/components/LeaveResourceModal';
+import { FirstParagraphMarkdownViewer } from 'src/components/markdown';
+import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
+import { SimpleTabBar } from 'src/components/tabBars';
+import { FlexTable, HeaderRenderer } from 'src/components/table';
+import TooltipTrigger from 'src/components/TooltipTrigger';
+import TopBar from 'src/components/TopBar';
 import {
   NoWorkspacesMessage,
   recentlyViewedPersistenceId,
@@ -24,38 +24,38 @@ import {
   WorkspaceStarControl,
   WorkspaceSubmissionStatusIcon,
   WorkspaceTagSelect,
-} from "src/components/workspace-utils";
-import { Ajax } from "src/libs/ajax";
-import { isAzureUser } from "src/libs/auth";
-import colors from "src/libs/colors";
-import { withErrorIgnoring, withErrorReporting } from "src/libs/error";
-import Events, { extractWorkspaceDetails } from "src/libs/events";
-import * as Nav from "src/libs/nav";
-import { getLocalPref, setLocalPref } from "src/libs/prefs";
-import { useCancellation, useOnMount, useStore } from "src/libs/react-utils";
-import { authStore } from "src/libs/state";
-import * as Style from "src/libs/style";
-import * as Utils from "src/libs/utils";
-import { cloudProviderLabels, cloudProviderTypes, getCloudProviderFromWorkspace } from "src/libs/workspace-utils";
-import DeleteWorkspaceModal from "src/pages/workspaces/workspace/DeleteWorkspaceModal";
-import LockWorkspaceModal from "src/pages/workspaces/workspace/LockWorkspaceModal";
-import { RequestAccessModal } from "src/pages/workspaces/workspace/RequestAccessModal";
-import ShareWorkspaceModal from "src/pages/workspaces/workspace/ShareWorkspaceModal";
-import WorkspaceMenu from "src/pages/workspaces/workspace/WorkspaceMenu";
+} from 'src/components/workspace-utils';
+import { Ajax } from 'src/libs/ajax';
+import { isAzureUser } from 'src/libs/auth';
+import colors from 'src/libs/colors';
+import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import * as Nav from 'src/libs/nav';
+import { getLocalPref, setLocalPref } from 'src/libs/prefs';
+import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
+import { authStore } from 'src/libs/state';
+import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
+import { cloudProviderLabels, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
+import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
+import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
+import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal';
+import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal';
+import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu';
 
 const styles = {
   tableCellContainer: {
-    height: "100%",
-    padding: "0.5rem 0",
-    paddingRight: "2rem",
+    height: '100%',
+    padding: '0.5rem 0',
+    paddingRight: '2rem',
     borderTop: `1px solid ${colors.light()}`,
   },
   tableCellContent: {
-    height: "50%",
-    display: "flex",
-    alignItems: "center",
+    height: '50%',
+    display: 'flex',
+    alignItems: 'center',
   },
-  filter: { marginRight: "1rem", flex: "1 1 0", minWidth: "max-content" },
+  filter: { marginRight: '1rem', flex: '1 1 0', minWidth: 'max-content' },
 };
 
 const useWorkspacesWithSubmissionStats = () => {
@@ -70,10 +70,10 @@ const useWorkspacesWithSubmissionStats = () => {
     // We don't need to reload submission stats in those cases.
     if (workspaces && !submissionStats) {
       const loadSubmissionStats = _.flow(
-        withErrorReporting("Error loading submission stats"),
+        withErrorReporting('Error loading submission stats'),
         Utils.withBusyState(setLoadingSubmissionStats)
       )(async () => {
-        const response = await Ajax(signal).Workspaces.list(["workspace.workspaceId", "workspaceSubmissionStats"]);
+        const response = await Ajax(signal).Workspaces.list(['workspace.workspaceId', 'workspaceSubmissionStats']);
         setSubmissionStats(_.fromPairs(_.map((ws) => [ws.workspace.workspaceId, ws.workspaceSubmissionStats], response)));
       });
 
@@ -82,18 +82,18 @@ const useWorkspacesWithSubmissionStats = () => {
   }, [workspaces, submissionStats, signal]);
 
   const workspacesWithSubmissionStats = useMemo(() => {
-    return _.map((ws) => _.set("workspaceSubmissionStats", _.get(ws.workspace.workspaceId, submissionStats), ws), workspaces);
+    return _.map((ws) => _.set('workspaceSubmissionStats', _.get(ws.workspace.workspaceId, submissionStats), ws), workspaces);
   }, [workspaces, submissionStats]);
 
   return { workspaces: workspacesWithSubmissionStats, refresh, loadingWorkspaces, loadingSubmissionStats };
 };
 
 const workspaceSubmissionStatus = (workspace) => {
-  const { runningSubmissionsCount, lastSuccessDate, lastFailureDate } = _.getOr({}, "workspaceSubmissionStats", workspace);
+  const { runningSubmissionsCount, lastSuccessDate, lastFailureDate } = _.getOr({}, 'workspaceSubmissionStats', workspace);
   return Utils.cond(
-    [runningSubmissionsCount, () => "running"],
-    [lastSuccessDate && (!lastFailureDate || isAfter(parseJSON(lastFailureDate), parseJSON(lastSuccessDate))), () => "success"],
-    [lastFailureDate, () => "failure"]
+    [runningSubmissionsCount, () => 'running'],
+    [lastSuccessDate && (!lastFailureDate || isAfter(parseJSON(lastFailureDate), parseJSON(lastSuccessDate))), () => 'success'],
+    [lastFailureDate, () => 'failure']
   );
 };
 
@@ -106,7 +106,7 @@ export const WorkspaceList = () => {
   const {
     profile: { starredWorkspaces },
   } = useStore(authStore);
-  const starredWorkspaceIds = _.isEmpty(starredWorkspaces) ? [] : _.split(",", starredWorkspaces);
+  const starredWorkspaceIds = _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces);
   const [stars, setStars] = useState(starredWorkspaceIds);
   const [updatingStars, setUpdatingStars] = useState(false);
 
@@ -120,18 +120,18 @@ export const WorkspaceList = () => {
     [workspaces]
   );
 
-  const persistenceId = "workspaces/list";
+  const persistenceId = 'workspaces/list';
   const [recentlyViewedOpen, setRecentlyViewedOpen] = useState(() => _.defaultTo(true, getLocalPref(persistenceId)?.recentlyViewedOpen));
 
   const { query } = Nav.useRoute();
-  const filter = query.filter || "";
+  const filter = query.filter || '';
   // Using the EMPTY_LIST constant as a default value instead of creating a new empty array on
   // each render avoids unnecessarily recomputing the memoized filteredWorkspaces value.
   const accessLevelsFilter = query.accessLevelsFilter || EMPTY_LIST;
   const projectsFilter = query.projectsFilter || undefined;
   const cloudPlatformFilter = query.cloudPlatform || undefined;
   const submissionsFilter = query.submissionsFilter || EMPTY_LIST;
-  const tab = query.tab || "myWorkspaces";
+  const tab = query.tab || 'myWorkspaces';
   const tagsFilter = query.tagsFilter || EMPTY_LIST;
 
   useOnMount(() => {
@@ -152,7 +152,7 @@ export const WorkspaceList = () => {
   const [leavingWorkspaceId, setLeavingWorkspaceId] = useState();
   const [requestingAccessWorkspaceId, setRequestingAccessWorkspaceId] = useState();
 
-  const [sort, setSort] = useState({ field: "lastModified", direction: "desc" });
+  const [sort, setSort] = useState({ field: 'lastModified', direction: 'desc' });
 
   useOnMount(() => {
     const loadFeatured = withErrorIgnoring(async () => {
@@ -169,11 +169,11 @@ export const WorkspaceList = () => {
   const getWorkspace = (id) => _.find({ workspace: { workspaceId: id } }, workspaces);
 
   const initialFiltered = useMemo(() => {
-    const [newWsList, featuredWsList] = _.partition("isNew", featuredList);
+    const [newWsList, featuredWsList] = _.partition('isNew', featuredList);
 
     return {
       myWorkspaces: _.filter((ws) => !ws.public || Utils.canWrite(ws.accessLevel), workspaces),
-      public: _.filter("public", workspaces),
+      public: _.filter('public', workspaces),
       newAndInteresting: _.flow(
         _.map(({ namespace, name }) => _.find({ workspace: { namespace, name } }, workspaces)),
         _.compact
@@ -198,7 +198,7 @@ export const WorkspaceList = () => {
             (_.isEmpty(projectsFilter) || projectsFilter === namespace) &&
             (_.isEmpty(cloudPlatformFilter) || getCloudProviderFromWorkspace(ws) === cloudPlatformFilter) &&
             (_.isEmpty(submissionsFilter) || submissionsFilter.includes(workspaceSubmissionStatus(ws))) &&
-            _.every((a) => _.includes(a, _.get(["tag:tags", "items"], attributes)), tagsFilter)
+            _.every((a) => _.includes(a, _.get(['tag:tags', 'items'], attributes)), tagsFilter)
           );
         }),
         initialFiltered
@@ -210,56 +210,56 @@ export const WorkspaceList = () => {
   const sortedWorkspaces = _.orderBy(
     [
       (ws) => _.includes(ws.workspace.workspaceId, starredWorkspaceIds),
-      sort.field === "accessLevel" ? (ws) => -Utils.workspaceAccessLevels.indexOf(ws.accessLevel) : `workspace.${sort.field}`,
+      sort.field === 'accessLevel' ? (ws) => -Utils.workspaceAccessLevels.indexOf(ws.accessLevel) : `workspace.${sort.field}`,
     ],
-    ["desc", sort.direction],
+    ['desc', sort.direction],
     filteredWorkspaces[tab]
   );
 
   const tabs = _.map(
     (key) => ({
       key,
-      title: span([_.upperCase(key), ` (${loadingWorkspaces ? "..." : filteredWorkspaces[key].length})`]),
+      title: span([_.upperCase(key), ` (${loadingWorkspaces ? '...' : filteredWorkspaces[key].length})`]),
       tableName: _.lowerCase(key),
     }),
-    ["myWorkspaces", "newAndInteresting", "featured", "public"]
+    ['myWorkspaces', 'newAndInteresting', 'featured', 'public']
   );
 
   const currentTab = _.find({ key: tab }, tabs);
 
   const makeHeaderRenderer = (name) => () => h(HeaderRenderer, { sort, name, onSort: setSort });
 
-  const renderedWorkspaces = div({ style: { flex: 1, backgroundColor: "white", padding: "0 1rem" } }, [
+  const renderedWorkspaces = div({ style: { flex: 1, backgroundColor: 'white', padding: '0 1rem' } }, [
     h(AutoSizer, [
       ({ width, height }) =>
         h(FlexTable, {
-          "aria-label": currentTab?.tableName || "workspaces",
+          'aria-label': currentTab?.tableName || 'workspaces',
           width,
           height,
           rowCount: sortedWorkspaces.length,
           noContentRenderer: () =>
             Utils.cond(
-              [loadingWorkspaces, () => "Loading..."],
+              [loadingWorkspaces, () => 'Loading...'],
               [
-                _.isEmpty(initialFiltered.myWorkspaces) && tab === "myWorkspaces",
+                _.isEmpty(initialFiltered.myWorkspaces) && tab === 'myWorkspaces',
                 () =>
                   NoWorkspacesMessage({
                     onClick: () => setCreatingNewWorkspace(true),
                   }),
               ],
-              [!_.isEmpty(submissionsFilter) && loadingSubmissionStats, () => "Loading submission statuses..."],
-              () => div({ style: { fontStyle: "italic" } }, ["No matching workspaces"])
+              [!_.isEmpty(submissionsFilter) && loadingSubmissionStats, () => 'Loading submission statuses...'],
+              () => div({ style: { fontStyle: 'italic' } }, ['No matching workspaces'])
             ),
-          variant: "light",
+          variant: 'light',
           rowHeight: 70,
           sort,
           columns: [
             {
-              field: "starred",
-              headerRenderer: () => div({ className: "sr-only" }, ["Starred"]),
+              field: 'starred',
+              headerRenderer: () => div({ className: 'sr-only' }, ['Starred']),
               cellRenderer: ({ rowIndex }) => {
                 const workspace = sortedWorkspaces[rowIndex];
-                return div({ style: { ...styles.tableCellContainer, justifyContent: "center", alignItems: "center", padding: "0.5rem 0" } }, [
+                return div({ style: { ...styles.tableCellContainer, justifyContent: 'center', alignItems: 'center', padding: '0.5rem 0' } }, [
                   h(WorkspaceStarControl, {
                     workspace,
                     setStars,
@@ -272,8 +272,8 @@ export const WorkspaceList = () => {
               size: { basis: 40, grow: 0, shrink: 0 },
             },
             {
-              field: "name",
-              headerRenderer: makeHeaderRenderer("name"),
+              field: 'name',
+              headerRenderer: makeHeaderRenderer('name'),
               cellRenderer: ({ rowIndex }) => {
                 const {
                   accessLevel,
@@ -293,22 +293,22 @@ export const WorkspaceList = () => {
                     h(
                       Link,
                       {
-                        "aria-haspopup": canView ? undefined : "dialog",
+                        'aria-haspopup': canView ? undefined : 'dialog',
                         style: {
-                          ...(canView ? {} : { color: colors.dark(0.8), fontStyle: "italic" }),
+                          ...(canView ? {} : { color: colors.dark(0.8), fontStyle: 'italic' }),
                           fontWeight: 600,
                           fontSize: 16,
                           ...Style.noWrapEllipsis,
                         },
-                        href: canView ? Nav.getLink("workspace-dashboard", { namespace, name }) : undefined,
+                        href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
                         onClick: () => {
                           canAccessWorkspace();
                           !!canView && Ajax().Metrics.captureEvent(Events.workspaceOpenFromList, extractWorkspaceDetails(workspace));
                         },
                         tooltip:
                           !canView &&
-                          "You cannot access this workspace because it is protected by an Authorization Domain. Click to learn about gaining access.",
-                        tooltipSide: "right",
+                          'You cannot access this workspace because it is protected by an Authorization Domain. Click to learn about gaining access.',
+                        tooltipSide: 'right',
                       },
                       [name]
                     ),
@@ -319,7 +319,7 @@ export const WorkspaceList = () => {
                       {
                         style: { ...Style.noWrapEllipsis, margin: 0, color: description ? undefined : colors.dark(0.75), fontSize: 14 },
                       },
-                      [description?.toString() || "No description added"]
+                      [description?.toString() || 'No description added']
                     ),
                   ]),
                 ]);
@@ -327,8 +327,8 @@ export const WorkspaceList = () => {
               size: { basis: 400, grow: 2, shrink: 0 },
             },
             {
-              field: "lastModified",
-              headerRenderer: makeHeaderRenderer("lastModified"),
+              field: 'lastModified',
+              headerRenderer: makeHeaderRenderer('lastModified'),
               cellRenderer: ({ rowIndex }) => {
                 const {
                   workspace: { lastModified },
@@ -343,8 +343,8 @@ export const WorkspaceList = () => {
               size: { basis: 100, grow: 1, shrink: 0 },
             },
             {
-              field: "createdBy",
-              headerRenderer: makeHeaderRenderer("createdBy"),
+              field: 'createdBy',
+              headerRenderer: makeHeaderRenderer('createdBy'),
               cellRenderer: ({ rowIndex }) => {
                 const {
                   workspace: { createdBy },
@@ -357,8 +357,8 @@ export const WorkspaceList = () => {
               size: { basis: 200, grow: 1, shrink: 0 },
             },
             {
-              field: "accessLevel",
-              headerRenderer: makeHeaderRenderer("accessLevel"),
+              field: 'accessLevel',
+              headerRenderer: makeHeaderRenderer('accessLevel'),
               cellRenderer: ({ rowIndex }) => {
                 const { accessLevel } = sortedWorkspaces[rowIndex];
 
@@ -367,7 +367,7 @@ export const WorkspaceList = () => {
               size: { basis: 120, grow: 1, shrink: 0 },
             },
             {
-              headerRenderer: () => div({ className: "sr-only" }, ["Last Workflow Submitted Status"]),
+              headerRenderer: () => div({ className: 'sr-only' }, ['Last Workflow Submitted Status']),
               cellRenderer: ({ rowIndex }) => {
                 const workspace = sortedWorkspaces[rowIndex];
                 const lastRunStatus = workspaceSubmissionStatus(workspace);
@@ -384,7 +384,7 @@ export const WorkspaceList = () => {
               size: { basis: 30, grow: 0, shrink: 0 },
             },
             {
-              headerRenderer: () => div({ className: "sr-only" }, ["Cloud Platform"]),
+              headerRenderer: () => div({ className: 'sr-only' }, ['Cloud Platform']),
               cellRenderer: ({ rowIndex }) => {
                 const workspace = sortedWorkspaces[rowIndex];
                 return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
@@ -394,7 +394,7 @@ export const WorkspaceList = () => {
               size: { basis: 30, grow: 0, shrink: 0 },
             },
             {
-              headerRenderer: () => div({ className: "sr-only" }, ["Actions"]),
+              headerRenderer: () => div({ className: 'sr-only' }, ['Actions']),
               cellRenderer: ({ rowIndex }) => {
                 const {
                   accessLevel,
@@ -402,7 +402,7 @@ export const WorkspaceList = () => {
                 } = sortedWorkspaces[rowIndex];
                 if (!Utils.canRead(accessLevel)) {
                   // No menu shown if user does not have read access.
-                  return div({ className: "sr-only" }, ["You do not have permission to perform actions on this workspace."]);
+                  return div({ className: 'sr-only' }, ['You do not have permission to perform actions on this workspace.']);
                 }
                 const onClone = () => setCloningWorkspaceId(workspaceId);
                 const onDelete = () => setDeletingWorkspaceId(workspaceId);
@@ -414,7 +414,7 @@ export const WorkspaceList = () => {
                   div({ style: styles.tableCellContent }, [
                     h(WorkspaceMenu, {
                       iconSize: 20,
-                      popupLocation: "left",
+                      popupLocation: 'left',
                       callbacks: { onClone, onShare, onLock, onDelete, onLeave },
                       workspaceInfo: { namespace, name },
                     }),
@@ -429,29 +429,29 @@ export const WorkspaceList = () => {
   ]);
 
   return h(FooterWrapper, [
-    h(TopBar, { title: "Workspaces" }),
-    div({ role: "main", style: { padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column" } }, [
-      div({ style: { display: "flex", alignItems: "center", marginBottom: "0.5rem" } }, [
-        div({ style: { ...Style.elements.sectionHeader, fontSize: "1.5rem" } }, ["Workspaces"]),
+    h(TopBar, { title: 'Workspaces' }),
+    div({ role: 'main', style: { padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
+      div({ style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' } }, [
+        div({ style: { ...Style.elements.sectionHeader, fontSize: '1.5rem' } }, ['Workspaces']),
         h(
           Link,
           {
             onClick: () => setCreatingNewWorkspace(true),
-            style: { marginLeft: "0.5rem" },
-            tooltip: "Create a new workspace",
+            style: { marginLeft: '0.5rem' },
+            tooltip: 'Create a new workspace',
           },
-          [icon("lighter-plus-circle", { size: 24 })]
+          [icon('lighter-plus-circle', { size: 24 })]
         ),
       ]),
-      p({ style: { margin: "0 0 1rem" } }, [
-        "Dedicated spaces for you and your collaborators to access and analyze data together. ",
+      p({ style: { margin: '0 0 1rem' } }, [
+        'Dedicated spaces for you and your collaborators to access and analyze data together. ',
         h(
           Link,
           {
             ...Utils.newTabLinkProps,
-            href: "https://support.terra.bio/hc/en-us/articles/360024743371-Working-with-workspaces",
+            href: 'https://support.terra.bio/hc/en-us/articles/360024743371-Working-with-workspaces',
           },
-          ["Learn more about workspaces."]
+          ['Learn more about workspaces.']
         ),
       ]),
       !_.isEmpty(workspaces) &&
@@ -459,17 +459,17 @@ export const WorkspaceList = () => {
         h(
           Collapse,
           {
-            title: "Recently Viewed",
+            title: 'Recently Viewed',
             initialOpenState: recentlyViewedOpen,
             noTitleWrap: true,
             onClick: () => setRecentlyViewedOpen((v) => !v),
-            summaryStyle: { margin: "0.5rem 0" },
+            summaryStyle: { margin: '0.5rem 0' },
           },
           [
             // Stop the click propagation here, otherwise using spacebar to click on a card will also collapse the Recently Viewed section
             span({ onClick: (e) => e.stopPropagation() }, [
               div(
-                { style: { display: "flex", flexWrap: "wrap", paddingBottom: "1rem" } },
+                { style: { display: 'flex', flexWrap: 'wrap', paddingBottom: '1rem' } },
                 _.map(({ workspaceId, timestamp }) => {
                   const workspace = getWorkspace(workspaceId);
                   return h(RecentlyViewedWorkspaceCard, {
@@ -483,11 +483,11 @@ export const WorkspaceList = () => {
             ]),
           ]
         ),
-      div({ style: { display: "flex", margin: "1rem 0" } }, [
+      div({ style: { display: 'flex', margin: '1rem 0' } }, [
         div({ style: { ...styles.filter, flexGrow: 1.5 } }, [
           h(DelayedSearchInput, {
-            placeholder: "Search by keyword",
-            "aria-label": "Search workspaces by keyword",
+            placeholder: 'Search by keyword',
+            'aria-label': 'Search workspaces by keyword',
             onChange: (newFilter) => Nav.updateSearch({ ...query, filter: newFilter || undefined }),
             value: filter,
           }),
@@ -498,9 +498,9 @@ export const WorkspaceList = () => {
             isMulti: true,
             formatCreateLabel: _.identity,
             value: _.map((tag) => ({ label: tag, value: tag }), tagsFilter),
-            placeholder: "Tags",
-            "aria-label": "Filter by tags",
-            onChange: (data) => Nav.updateSearch({ ...query, tagsFilter: _.map("value", data) }),
+            placeholder: 'Tags',
+            'aria-label': 'Filter by tags',
+            onChange: (data) => Nav.updateSearch({ ...query, tagsFilter: _.map('value', data) }),
           }),
         ]),
         div({ style: styles.filter }, [
@@ -508,10 +508,10 @@ export const WorkspaceList = () => {
             isClearable: true,
             isMulti: true,
             isSearchable: false,
-            placeholder: "Access levels",
-            "aria-label": "Filter by access levels",
+            placeholder: 'Access levels',
+            'aria-label': 'Filter by access levels',
             value: accessLevelsFilter,
-            onChange: (data) => Nav.updateSearch({ ...query, accessLevelsFilter: _.map("value", data) }),
+            onChange: (data) => Nav.updateSearch({ ...query, accessLevelsFilter: _.map('value', data) }),
             options: Utils.workspaceAccessLevels,
             getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
           }),
@@ -520,12 +520,12 @@ export const WorkspaceList = () => {
           h(Select, {
             isClearable: true,
             isMulti: false,
-            placeholder: "Billing project",
-            "aria-label": "Filter by billing project",
+            placeholder: 'Billing project',
+            'aria-label': 'Filter by billing project',
             value: projectsFilter,
             hideSelectedOptions: true,
             onChange: (data) => Nav.updateSearch({ ...query, projectsFilter: data?.value || undefined }),
-            options: _.flow(_.map("workspace.namespace"), _.uniq, _.sortBy(_.identity))(workspaces),
+            options: _.flow(_.map('workspace.namespace'), _.uniq, _.sortBy(_.identity))(workspaces),
           }),
         ]),
         div({ style: styles.filter }, [
@@ -533,12 +533,12 @@ export const WorkspaceList = () => {
             isClearable: true,
             isMulti: true,
             isSearchable: false,
-            placeholder: "Submission status",
-            "aria-label": "Filter by submission status",
+            placeholder: 'Submission status',
+            'aria-label': 'Filter by submission status',
             value: submissionsFilter,
             hideSelectedOptions: true,
-            onChange: (data) => Nav.updateSearch({ ...query, submissionsFilter: _.map("value", data) }),
-            options: ["running", "success", "failure"],
+            onChange: (data) => Nav.updateSearch({ ...query, submissionsFilter: _.map('value', data) }),
+            options: ['running', 'success', 'failure'],
             getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
           }),
         ]),
@@ -546,8 +546,8 @@ export const WorkspaceList = () => {
           h(Select, {
             isClearable: true,
             isMulti: false,
-            placeholder: "Cloud platform",
-            "aria-label": "Filter by cloud platform",
+            placeholder: 'Cloud platform',
+            'aria-label': 'Filter by cloud platform',
             value: cloudPlatformFilter,
             hideSelectedOptions: true,
             onChange: (data) => Nav.updateSearch({ ...query, cloudPlatform: data?.value || undefined }),
@@ -559,13 +559,13 @@ export const WorkspaceList = () => {
       h(
         SimpleTabBar,
         {
-          "aria-label": "choose a workspace collection",
+          'aria-label': 'choose a workspace collection',
           value: tab,
           onChange: (newTab) => {
             if (newTab === tab) {
               refreshWorkspaces();
             } else {
-              Nav.updateSearch({ ...query, tab: newTab === "myWorkspaces" ? undefined : newTab });
+              Nav.updateSearch({ ...query, tab: newTab === 'myWorkspaces' ? undefined : newTab });
             }
           },
           tabs,
@@ -575,13 +575,13 @@ export const WorkspaceList = () => {
       creatingNewWorkspace &&
         h(NewWorkspaceModal, {
           onDismiss: () => setCreatingNewWorkspace(false),
-          onSuccess: ({ namespace, name }) => Nav.goToPath("workspace-dashboard", { namespace, name }),
+          onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name }),
         }),
       cloningWorkspaceId &&
         h(NewWorkspaceModal, {
           cloneWorkspace: getWorkspace(cloningWorkspaceId),
           onDismiss: () => setCloningWorkspaceId(undefined),
-          onSuccess: ({ namespace, name }) => Nav.goToPath("workspace-dashboard", { namespace, name }),
+          onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name }),
         }),
       deletingWorkspaceId &&
         h(DeleteWorkspaceModal, {
@@ -603,8 +603,8 @@ export const WorkspaceList = () => {
       leavingWorkspaceId &&
         h(LeaveResourceModal, {
           samResourceId: leavingWorkspaceId,
-          samResourceType: "workspace",
-          displayName: "workspace",
+          samResourceType: 'workspace',
+          displayName: 'workspace',
           onDismiss: () => setLeavingWorkspaceId(undefined),
           onSuccess: refreshWorkspaces,
         }),
@@ -620,9 +620,9 @@ export const WorkspaceList = () => {
 
 export const navPaths = [
   {
-    name: "workspaces",
-    path: "/workspaces",
+    name: 'workspaces',
+    path: '/workspaces',
     component: WorkspaceList,
-    title: "Workspaces",
+    title: 'Workspaces',
   },
 ];

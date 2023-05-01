@@ -1,6 +1,6 @@
-import _ from "lodash/fp";
-import { Ajax } from "src/libs/ajax";
-import * as Utils from "src/libs/utils";
+import _ from 'lodash/fp';
+import { Ajax } from 'src/libs/ajax';
+import * as Utils from 'src/libs/utils';
 
 export const launch = async ({
   isSnapshot,
@@ -21,7 +21,7 @@ export const launch = async ({
   onProgress,
 }) => {
   const createSet = () => {
-    onProgress("createSet");
+    onProgress('createSet');
     return Ajax()
       .Workspaces.workspace(namespace, name)
       .createEntity({
@@ -29,18 +29,18 @@ export const launch = async ({
         entityType: `${selectedEntityType}_set`,
         attributes: {
           [`${selectedEntityType}s`]: {
-            itemsType: "EntityReference",
+            itemsType: 'EntityReference',
             items: _.map((entityName) => ({ entityName, entityType: selectedEntityType }), selectedEntityNames),
           },
         },
       });
   };
-  onProgress("checkBucketAccess");
+  onProgress('checkBucketAccess');
   try {
     await Ajax().Workspaces.workspace(namespace, name).checkBucketAccess(googleProject, bucketName, accessLevel);
   } catch (error) {
     throw new Error(
-      "Error confirming workspace bucket access. This may be a transient problem. Please try again in a few minutes. If the problem persists, please contact support."
+      'Error confirming workspace bucket access. This may be a transient problem. Please try again in a few minutes. If the problem persists, please contact support.'
     );
   }
   const { entityName, processSet = false } = await Utils.cond(
@@ -66,13 +66,13 @@ export const launch = async ({
       selectedEntityType === `${rootEntityType}_set`,
       () => {
         if (_.size(selectedEntityNames) > 1) {
-          throw new Error("Cannot launch against multiple sets");
+          throw new Error('Cannot launch against multiple sets');
         }
         return { entityName: selectedEntityNames[0], processSet: true };
       },
     ]
   );
-  onProgress("launch");
+  onProgress('launch');
   return Ajax()
     .Workspaces.workspace(namespace, name)
     .methodConfig(configNamespace, configName)

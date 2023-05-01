@@ -1,13 +1,13 @@
-import * as clipboard from "clipboard-polyfill/text";
-import FileSaver from "file-saver";
-import JSZip from "jszip";
-import _ from "lodash/fp";
-import * as qs from "qs";
-import { Fragment, useState } from "react";
-import { div, h, p } from "react-hyperscript-helpers";
-import { requesterPaysWrapper, withRequesterPaysHandler } from "src/components/bucket-utils";
-import { ButtonSecondary } from "src/components/common";
-import { DataTableColumnProvenance } from "src/components/data/data-table-provenance";
+import * as clipboard from 'clipboard-polyfill/text';
+import FileSaver from 'file-saver';
+import JSZip from 'jszip';
+import _ from 'lodash/fp';
+import * as qs from 'qs';
+import { Fragment, useState } from 'react';
+import { div, h, p } from 'react-hyperscript-helpers';
+import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils';
+import { ButtonSecondary } from 'src/components/common';
+import { DataTableColumnProvenance } from 'src/components/data/data-table-provenance';
 import {
   AddColumnModal,
   AddEntityModal,
@@ -16,37 +16,37 @@ import {
   EntityDeleter,
   ModalToolButton,
   MultipleEntityEditor,
-} from "src/components/data/data-utils";
-import DataTable from "src/components/data/DataTable";
-import ExportDataModal from "src/components/data/ExportDataModal";
-import { icon, spinner } from "src/components/icons";
-import IGVBrowser from "src/components/IGVBrowser";
-import IGVFileSelector from "src/components/IGVFileSelector";
-import { MenuButton } from "src/components/MenuButton";
-import Modal from "src/components/Modal";
-import { withModalDrawer } from "src/components/ModalDrawer";
-import { MenuDivider, MenuTrigger } from "src/components/PopupTrigger";
-import TitleBar from "src/components/TitleBar";
-import WorkflowSelector from "src/components/WorkflowSelector";
-import datasets from "src/data/datasets";
-import dataExplorerLogo from "src/images/data-explorer-logo.svg";
-import igvLogo from "src/images/igv-logo.png";
-import jupyterLogo from "src/images/jupyter-logo.svg";
-import wdlLogo from "src/images/wdl-logo.png";
-import { Ajax } from "src/libs/ajax";
-import { EntityServiceDataTableProvider } from "src/libs/ajax/data-table-providers/EntityServiceDataTableProvider";
-import colors from "src/libs/colors";
-import { useColumnProvenance } from "src/libs/data-table-provenance";
-import { withErrorReporting } from "src/libs/error";
-import Events, { extractWorkspaceDetails } from "src/libs/events";
-import { isFeaturePreviewEnabled } from "src/libs/feature-previews";
-import * as Nav from "src/libs/nav";
-import { notify } from "src/libs/notifications";
-import { useCancellation, useOnMount, withDisplayName } from "src/libs/react-utils";
-import * as Style from "src/libs/style";
-import * as Utils from "src/libs/utils";
-import { cohortNotebook, cohortRNotebook, NotebookCreator } from "src/pages/workspaces/workspace/analysis/utils/notebook-utils";
-import { tools } from "src/pages/workspaces/workspace/analysis/utils/tool-utils";
+} from 'src/components/data/data-utils';
+import DataTable from 'src/components/data/DataTable';
+import ExportDataModal from 'src/components/data/ExportDataModal';
+import { icon, spinner } from 'src/components/icons';
+import IGVBrowser from 'src/components/IGVBrowser';
+import IGVFileSelector from 'src/components/IGVFileSelector';
+import { MenuButton } from 'src/components/MenuButton';
+import Modal from 'src/components/Modal';
+import { withModalDrawer } from 'src/components/ModalDrawer';
+import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
+import TitleBar from 'src/components/TitleBar';
+import WorkflowSelector from 'src/components/WorkflowSelector';
+import datasets from 'src/data/datasets';
+import dataExplorerLogo from 'src/images/data-explorer-logo.svg';
+import igvLogo from 'src/images/igv-logo.png';
+import jupyterLogo from 'src/images/jupyter-logo.svg';
+import wdlLogo from 'src/images/wdl-logo.png';
+import { Ajax } from 'src/libs/ajax';
+import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
+import colors from 'src/libs/colors';
+import { useColumnProvenance } from 'src/libs/data-table-provenance';
+import { withErrorReporting } from 'src/libs/error';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import * as Nav from 'src/libs/nav';
+import { notify } from 'src/libs/notifications';
+import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
+import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
+import { cohortNotebook, cohortRNotebook, NotebookCreator } from 'src/pages/workspaces/workspace/analysis/utils/notebook-utils';
+import { tools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 const getDataset = (dataExplorerUrl) => {
   // Either cohort was imported from standalone Data Explorer, eg
@@ -61,14 +61,14 @@ const getDataset = (dataExplorerUrl) => {
   return dataset;
 };
 
-const toolDrawerId = "tool-drawer-title";
+const toolDrawerId = 'tool-drawer-title';
 
 const ToolDrawer = _.flow(
-  withDisplayName("ToolDrawer"),
+  withDisplayName('ToolDrawer'),
   requesterPaysWrapper({
     onDismiss: ({ onDismiss }) => onDismiss(),
   }),
-  withModalDrawer({ "aria-labelledby": toolDrawerId })
+  withModalDrawer({ 'aria-labelledby': toolDrawerId })
 )(
   ({
     workspace,
@@ -91,7 +91,7 @@ const ToolDrawer = _.flow(
     useOnMount(() => {
       const loadNotebookNames = _.flow(
         withRequesterPaysHandler(onRequesterPaysError),
-        withErrorReporting("Error loading notebooks")
+        withErrorReporting('Error loading notebooks')
       )(async () => {
         const notebooks = await Buckets.listNotebooks(googleProject, bucketName);
         // slice removes 'notebooks/' and the .ipynb suffix
@@ -102,27 +102,27 @@ const ToolDrawer = _.flow(
     });
 
     const entitiesCount = _.size(selectedEntities);
-    const isCohort = entityKey === "cohort";
+    const isCohort = entityKey === 'cohort';
 
     const dataExplorerButtonEnabled = isCohort && entitiesCount === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url !== undefined;
     const origDataExplorerUrl = dataExplorerButtonEnabled ? _.values(selectedEntities)[0].attributes.data_explorer_url : undefined;
-    const [baseURL, urlSearch] = origDataExplorerUrl ? origDataExplorerUrl.split("?") : [];
+    const [baseURL, urlSearch] = origDataExplorerUrl ? origDataExplorerUrl.split('?') : [];
     const dataExplorerUrl = origDataExplorerUrl && `${baseURL}?${qs.stringify({ ...qs.parse(urlSearch), wid: workspaceId })}`;
     const openDataExplorerInSameTab =
-      dataExplorerUrl && (dataExplorerUrl.includes("terra.bio") || _.some({ origin: new URL(dataExplorerUrl).origin }, datasets));
+      dataExplorerUrl && (dataExplorerUrl.includes('terra.bio') || _.some({ origin: new URL(dataExplorerUrl).origin }, datasets));
     const dataset = openDataExplorerInSameTab && getDataset(dataExplorerUrl);
     const linkBase =
-      openDataExplorerInSameTab && Nav.getLink(dataset.authDomain ? "data-explorer-private" : "data-explorer-public", { dataset: dataset.name });
-    const dataExplorerPath = openDataExplorerInSameTab && `${linkBase}?${dataExplorerUrl.split("?")[1]}`;
+      openDataExplorerInSameTab && Nav.getLink(dataset.authDomain ? 'data-explorer-private' : 'data-explorer-public', { dataset: dataset.name });
+    const dataExplorerPath = openDataExplorerInSameTab && `${linkBase}?${dataExplorerUrl.split('?')[1]}`;
 
     const notebookButtonEnabled = isCohort && entitiesCount === 1;
 
     const { title, drawerContent } = Utils.switchCase(
       toolMode,
       [
-        "IGV",
+        'IGV',
         () => ({
-          title: "IGV",
+          title: 'IGV',
           drawerContent: h(IGVFileSelector, {
             onSuccess: onIgvSuccess,
             selectedEntities,
@@ -130,15 +130,15 @@ const ToolDrawer = _.flow(
         }),
       ],
       [
-        "Workflow",
+        'Workflow',
         () => ({
-          title: "YOUR WORKFLOWS",
+          title: 'YOUR WORKFLOWS',
           drawerContent: h(WorkflowSelector, { workspace, selectedEntities }),
         }),
       ],
       [
         // TODO: Does this need to change with analysis tab migration? Need PO input
-        "Notebook",
+        'Notebook',
         () => ({
           drawerContent: h(NotebookCreator, {
             bucketName,
@@ -146,10 +146,10 @@ const ToolDrawer = _.flow(
             existingNames: notebookNames,
             onSuccess: async (notebookName, notebookKernel) => {
               const cohortName = _.values(selectedEntities)[0].name;
-              const contents = notebookKernel === "r" ? cohortRNotebook(cohortName) : cohortNotebook(cohortName);
+              const contents = notebookKernel === 'r' ? cohortRNotebook(cohortName) : cohortNotebook(cohortName);
               await Buckets.notebook(googleProject, bucketName, `${notebookName}.${tools.Jupyter.defaultExt}`).create(JSON.parse(contents));
               Ajax().Metrics.captureEvent(Events.workspaceDataOpenWithNotebook, extractWorkspaceDetails(workspace.workspace));
-              Nav.goToPath("workspace-notebook-launch", { namespace, name: wsName, notebookName: `${notebookName}.ipynb` });
+              Nav.goToPath('workspace-notebook-launch', { namespace, name: wsName, notebookName: `${notebookName}.ipynb` });
             },
             onDismiss: () => setToolMode(undefined),
             reloadList: _.noop,
@@ -159,23 +159,23 @@ const ToolDrawer = _.flow(
       [
         Utils.DEFAULT,
         () => ({
-          title: "OPEN WITH...",
+          title: 'OPEN WITH...',
           drawerContent: h(Fragment, [
             div({ style: Style.modalDrawer.content }, [
               div([
                 h(ModalToolButton, {
-                  onClick: () => setToolMode("IGV"),
+                  onClick: () => setToolMode('IGV'),
                   disabled: isCohort,
-                  tooltip: isCohort ? "IGV cannot be opened with cohorts" : "Open with Integrative Genomics Viewer",
+                  tooltip: isCohort ? 'IGV cannot be opened with cohorts' : 'Open with Integrative Genomics Viewer',
                   icon: igvLogo,
-                  text: "IGV",
+                  text: 'IGV',
                 }),
                 h(ModalToolButton, {
-                  onClick: () => setToolMode("Workflow"),
+                  onClick: () => setToolMode('Workflow'),
                   disabled: isCohort,
-                  tooltip: isCohort ? "Workflow cannot be opened with cohorts" : "Open with Workflow",
+                  tooltip: isCohort ? 'Workflow cannot be opened with cohorts' : 'Open with Workflow',
                   icon: wdlLogo,
-                  text: "Workflow",
+                  text: 'Workflow',
                 }),
                 h(ModalToolButton, {
                   onClick: () => {
@@ -191,27 +191,27 @@ const ToolDrawer = _.flow(
                       () =>
                         'Talk to your dataset owner about setting up a Data Explorer. See the "Making custom cohorts with Data Explorer" help article.',
                     ],
-                    [isCohort && entitiesCount > 1, () => "Select exactly one cohort to open in Data Explorer"],
-                    [isCohort && !dataExplorerUrl, () => "Cohort is too old, please recreate in Data Explorer and save to Terra again"],
-                    [!isCohort, () => "Only cohorts can be opened with Data Explorer"]
+                    [isCohort && entitiesCount > 1, () => 'Select exactly one cohort to open in Data Explorer'],
+                    [isCohort && !dataExplorerUrl, () => 'Cohort is too old, please recreate in Data Explorer and save to Terra again'],
+                    [!isCohort, () => 'Only cohorts can be opened with Data Explorer']
                   ),
                   icon: dataExplorerLogo,
-                  text: "Data Explorer",
+                  text: 'Data Explorer',
                 }),
                 h(ModalToolButton, {
-                  onClick: () => setToolMode("Notebook"),
+                  onClick: () => setToolMode('Notebook'),
                   disabled: !notebookButtonEnabled,
                   tooltip: Utils.cond(
                     [
                       !entityMetadata.cohort,
                       () => 'Unable to open with notebooks. See the "Making custom cohorts with Data Explorer" help article for more details.',
                     ],
-                    [isCohort && entitiesCount > 1, () => "Select exactly one cohort to open in notebook"],
-                    [!isCohort, () => "Only cohorts can be opened with notebooks"],
-                    [notebookButtonEnabled, () => "Create a Python 2 or 3 notebook with this cohort"]
+                    [isCohort && entitiesCount > 1, () => 'Select exactly one cohort to open in notebook'],
+                    [!isCohort, () => 'Only cohorts can be opened with notebooks'],
+                    [notebookButtonEnabled, () => 'Create a Python 2 or 3 notebook with this cohort']
                   ),
                   icon: jupyterLogo,
-                  text: "Notebook",
+                  text: 'Notebook',
                 }),
               ]),
             ]),
@@ -220,7 +220,7 @@ const ToolDrawer = _.flow(
       ]
     );
 
-    return div({ style: { padding: "1.5rem", display: "flex", flexDirection: "column", flex: 1 } }, [
+    return div({ style: { padding: '1.5rem', display: 'flex', flexDirection: 'column', flex: 1 } }, [
       h(TitleBar, {
         id: toolDrawerId,
         title,
@@ -234,15 +234,15 @@ const ToolDrawer = _.flow(
       div(
         {
           style: {
-            borderRadius: "1rem",
+            borderRadius: '1rem',
             border: `1px solid ${colors.dark(0.5)}`,
-            padding: "0.25rem 0.875rem",
-            margin: "0.5rem 0 2rem",
-            alignSelf: "flex-start",
+            padding: '0.25rem 0.875rem',
+            margin: '0.5rem 0 2rem',
+            alignSelf: 'flex-start',
             fontSize: 12,
           },
         },
-        [`${entitiesCount} ${entityKey + (entitiesCount > 1 ? "s" : "")} selected`]
+        [`${entitiesCount} ${entityKey + (entitiesCount > 1 ? 's' : '')} selected`]
       ),
       drawerContent,
     ]);
@@ -275,7 +275,7 @@ const EntitiesContent = ({
   const [refreshKey, setRefreshKey] = useState(0);
   const [showToolSelector, setShowToolSelector] = useState(false);
   const [igvFiles, setIgvFiles] = useState(undefined);
-  const [igvRefGenome, setIgvRefGenome] = useState("");
+  const [igvRefGenome, setIgvRefGenome] = useState('');
   const {
     columnProvenance,
     loading: loadingColumnProvenance,
@@ -285,10 +285,10 @@ const EntitiesContent = ({
   const [showColumnProvenance, setShowColumnProvenance] = useState(undefined);
 
   const buildTSV = (columnSettings, entities) => {
-    const sortedEntities = _.sortBy("name", entities);
-    const isSet = _.endsWith("_set", entityKey);
+    const sortedEntities = _.sortBy('name', entities);
+    const isSet = _.endsWith('_set', entityKey);
     const setRoot = entityKey.slice(0, -4);
-    const attributeNames = _.flow(_.filter("visible"), _.map("name"), isSet ? _.without([`${setRoot}s`]) : _.identity)(columnSettings);
+    const attributeNames = _.flow(_.filter('visible'), _.map('name'), isSet ? _.without([`${setRoot}s`]) : _.identity)(columnSettings);
 
     const entityTsv = Utils.makeTSV([
       [`entity:${entityKey}_id`, ...attributeNames],
@@ -307,21 +307,21 @@ const EntitiesContent = ({
 
       const zipFile = new JSZip().file(`${entityKey}_entity.tsv`, entityTsv).file(`${entityKey}_membership.tsv`, membershipTsv);
 
-      return zipFile.generateAsync({ type: "blob" });
+      return zipFile.generateAsync({ type: 'blob' });
     }
     return entityTsv;
   };
 
   const downloadSelectedRows = async (columnSettings) => {
     const tsv = buildTSV(columnSettings, selectedEntities);
-    const isSet = _.endsWith("_set", entityKey);
+    const isSet = _.endsWith('_set', entityKey);
     isSet
       ? FileSaver.saveAs(await tsv, `${entityKey}.zip`)
-      : FileSaver.saveAs(new Blob([tsv], { type: "text/tab-separated-values" }), `${entityKey}.tsv`);
+      : FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`);
     Ajax().Metrics.captureEvent(Events.workspaceDataDownloadPartial, {
       ...extractWorkspaceDetails(workspace.workspace),
-      downloadFrom: "table data",
-      fileType: ".tsv",
+      downloadFrom: 'table data',
+      fileType: '.tsv',
     });
   };
 
@@ -335,7 +335,7 @@ const EntitiesContent = ({
       h(
         MenuTrigger,
         {
-          side: "bottom",
+          side: 'bottom',
           closeOnClick: true,
           content: h(Fragment, [
             h(
@@ -343,43 +343,43 @@ const EntitiesContent = ({
               {
                 onClick: () => setAddingEntity(true),
               },
-              "Add row"
+              'Add row'
             ),
             h(
               MenuButton,
               {
                 onClick: () => setAddingColumn(true),
               },
-              ["Add column"]
+              ['Add column']
             ),
             h(MenuDivider),
             h(
               MenuButton,
               {
                 disabled: !entitiesSelected,
-                tooltip: !entitiesSelected && "Select rows to edit in the table",
+                tooltip: !entitiesSelected && 'Select rows to edit in the table',
                 onClick: () => setEditingEntities(true),
               },
-              ["Edit selected rows"]
+              ['Edit selected rows']
             ),
             h(
               MenuButton,
               {
                 disabled: !entitiesSelected,
-                tooltip: !entitiesSelected && "Select rows to delete in the table",
+                tooltip: !entitiesSelected && 'Select rows to delete in the table',
                 onClick: () => setDeletingEntities(true),
               },
-              "Delete selected rows"
+              'Delete selected rows'
             ),
             h(MenuDivider),
             h(
               MenuButton,
               {
                 disabled: !entitiesSelected,
-                tooltip: !entitiesSelected && "Select rows to save as set",
+                tooltip: !entitiesSelected && 'Select rows to save as set',
                 onClick: () => setCreatingSet(true),
               },
-              ["Save selection as set"]
+              ['Save selection as set']
             ),
           ]),
         },
@@ -388,10 +388,10 @@ const EntitiesContent = ({
             ButtonSecondary,
             {
               disabled: !canEdit,
-              tooltip: Utils.cond([!canEdit, () => editErrorMessage], () => "Edit data"),
-              style: { marginRight: "1.5rem" },
+              tooltip: Utils.cond([!canEdit, () => editErrorMessage], () => 'Edit data'),
+              style: { marginRight: '1.5rem' },
             },
-            [icon("edit", { style: { marginRight: "0.5rem" } }), "Edit"]
+            [icon('edit', { style: { marginRight: '0.5rem' } }), 'Edit']
           ),
         ]
       )
@@ -399,22 +399,22 @@ const EntitiesContent = ({
   };
 
   const renderExportMenu = ({ columnSettings }) => {
-    const isSetOfSets = entityKey.endsWith("_set_set");
+    const isSetOfSets = entityKey.endsWith('_set_set');
 
     return h(
       MenuTrigger,
       {
-        side: "bottom",
+        side: 'bottom',
         closeOnClick: true,
         content: h(Fragment, [
           h(
             MenuButton,
             {
               disabled: isSetOfSets,
-              tooltip: isSetOfSets && "Downloading sets of sets as TSV is not supported at this time.",
+              tooltip: isSetOfSets && 'Downloading sets of sets as TSV is not supported at this time.',
               onClick: () => downloadSelectedRows(columnSettings),
             },
-            "Download as TSV"
+            'Download as TSV'
           ),
           !snapshotName &&
             h(
@@ -422,24 +422,24 @@ const EntitiesContent = ({
               {
                 onClick: () => setCopyingEntities(true),
               },
-              "Export to workspace"
+              'Export to workspace'
             ),
           h(
             MenuButton,
             {
               disabled: isSetOfSets,
-              tooltip: isSetOfSets && "Copying sets of sets is not supported at this time.",
+              tooltip: isSetOfSets && 'Copying sets of sets is not supported at this time.',
               onClick: _.flow(
-                withErrorReporting("Error copying to clipboard."),
+                withErrorReporting('Error copying to clipboard.'),
                 Utils.withBusyState(setNowCopying)
               )(async () => {
                 const str = buildTSV(columnSettings, _.values(selectedEntities));
                 await clipboard.writeText(str);
-                notify("success", "Successfully copied to clipboard.", { timeout: 3000 });
+                notify('success', 'Successfully copied to clipboard.', { timeout: 3000 });
                 Ajax().Metrics.captureEvent(Events.workspaceDataCopyToClipboard, extractWorkspaceDetails(workspace.workspace));
               }),
             },
-            "Copy to clipboard"
+            'Copy to clipboard'
           ),
         ]),
       },
@@ -448,10 +448,10 @@ const EntitiesContent = ({
           ButtonSecondary,
           {
             disabled: !entitiesSelected,
-            tooltip: entitiesSelected ? "Export selected data" : "Select rows to export in the table",
-            style: { marginRight: "1.5rem" },
+            tooltip: entitiesSelected ? 'Export selected data' : 'Select rows to export in the table',
+            style: { marginRight: '1.5rem' },
           },
-          [icon(nowCopying ? "loadingSpinner" : "export", { style: { marginRight: "0.5rem" } }), "Export"]
+          [icon(nowCopying ? 'loadingSpinner' : 'export', { style: { marginRight: '0.5rem' } }), 'Export']
         ),
       ]
     );
@@ -464,11 +464,11 @@ const EntitiesContent = ({
         ButtonSecondary,
         {
           disabled: !entitiesSelected,
-          tooltip: entitiesSelected ? "Open selected data" : "Select rows to open in the table",
-          style: { marginRight: "1.5rem" },
+          tooltip: entitiesSelected ? 'Open selected data' : 'Select rows to open in the table',
+          style: { marginRight: '1.5rem' },
           onClick: () => setShowToolSelector(true),
         },
-        [icon("expand-arrows-alt", { style: { marginRight: "0.5rem" } }), "Open with..."]
+        [icon('expand-arrows-alt', { style: { marginRight: '0.5rem' } }), 'Open with...']
       )
     );
   };
@@ -501,7 +501,7 @@ const EntitiesContent = ({
             setSelected: setSelectedEntities,
           },
           childrenBefore: ({ columnSettings, showColumnSettingsModal }) =>
-            div({ style: { display: "flex", alignItems: "center", flex: "none" } }, [
+            div({ style: { display: 'flex', alignItems: 'center', flex: 'none' } }, [
               renderEditMenu(),
               renderOpenWithMenu(),
               renderExportMenu({ columnSettings }),
@@ -510,18 +510,18 @@ const EntitiesContent = ({
                   ButtonSecondary,
                   {
                     onClick: showColumnSettingsModal,
-                    tooltip: "Change the order and visibility of columns in the table",
+                    tooltip: 'Change the order and visibility of columns in the table',
                   },
-                  [icon("cog", { style: { marginRight: "0.5rem" } }), "Settings"]
+                  [icon('cog', { style: { marginRight: '0.5rem' } }), 'Settings']
                 ),
-              div({ style: { margin: "0 1.5rem", height: "100%", borderLeft: Style.standardLine } }),
+              div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
               div(
                 {
-                  role: "status",
-                  "aria-atomic": true,
-                  style: { marginRight: "0.5rem" },
+                  role: 'status',
+                  'aria-atomic': true,
+                  style: { marginRight: '0.5rem' },
                 },
-                [`${selectedLength} row${selectedLength === 1 ? "" : "s"} selected`]
+                [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]
               ),
             ]),
           deleteColumnUpdateMetadata,
@@ -530,10 +530,10 @@ const EntitiesContent = ({
             borderBottom: `1px solid ${colors.grey(0.4)}`,
           },
           border: false,
-          extraColumnActions: isFeaturePreviewEnabled("data-table-provenance")
+          extraColumnActions: isFeaturePreviewEnabled('data-table-provenance')
             ? (columnName) => [
                 {
-                  label: "Show Provenance",
+                  label: 'Show Provenance',
                   onClick: () => {
                     if (!(loadingColumnProvenance || columnProvenance)) {
                       loadColumnProvenance();
@@ -623,14 +623,14 @@ const EntitiesContent = ({
           h(
             Modal,
             {
-              title: "Column Provenance",
+              title: 'Column Provenance',
               showCancel: false,
               onDismiss: () => setShowColumnProvenance(undefined),
             },
             [
               Utils.cond(
-                [loadingColumnProvenance, () => p([spinner({ size: 12, style: { marginRight: "1ch" } }), "Loading provenance..."])],
-                [columnProvenanceError, () => p(["Error loading column provenance"])],
+                [loadingColumnProvenance, () => p([spinner({ size: 12, style: { marginRight: '1ch' } }), 'Loading provenance...'])],
+                [columnProvenanceError, () => p(['Error loading column provenance'])],
                 () =>
                   h(DataTableColumnProvenance, {
                     workspace,

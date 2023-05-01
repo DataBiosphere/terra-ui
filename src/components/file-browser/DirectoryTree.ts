@@ -1,13 +1,13 @@
-import { Dispatch, Fragment, ReactNode, SetStateAction, useEffect, useRef, useState } from "react";
-import { h, li, p, span, ul } from "react-hyperscript-helpers";
-import { Link } from "src/components/common";
-import { useDirectoriesInDirectory } from "src/components/file-browser/file-browser-hooks";
-import { basename } from "src/components/file-browser/file-browser-utils";
-import { icon } from "src/components/icons";
-import Interactive, { InteractiveProps } from "src/components/Interactive"; // eslint-disable-line import/named
-import FileBrowserProvider from "src/libs/ajax/file-browser-providers/FileBrowserProvider";
-import colors from "src/libs/colors";
-import * as Utils from "src/libs/utils";
+import { Dispatch, Fragment, ReactNode, SetStateAction, useEffect, useRef, useState } from 'react';
+import { h, li, p, span, ul } from 'react-hyperscript-helpers';
+import { Link } from 'src/components/common';
+import { useDirectoriesInDirectory } from 'src/components/file-browser/file-browser-hooks';
+import { basename } from 'src/components/file-browser/file-browser-utils';
+import { icon } from 'src/components/icons';
+import Interactive, { InteractiveProps } from 'src/components/Interactive'; // eslint-disable-line import/named
+import FileBrowserProvider from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
+import colors from 'src/libs/colors';
+import * as Utils from 'src/libs/utils';
 
 interface ReloadRequestSubscribable {
   subscribe: (fn: (path: string) => void) => { unsubscribe: () => void };
@@ -33,7 +33,7 @@ const renderDirectoryStatus = (level: number, children: ReactNode) =>
     {
       style: {
         // Match padding + border of tree items.
-        padding: "calc(0.25rem + 1px) 0.5rem",
+        padding: 'calc(0.25rem + 1px) 0.5rem',
         // Align with arrow icons of tree items.
         margin: `0 0 0 ${level + 0.75}rem`,
       },
@@ -57,7 +57,7 @@ export const Subdirectories = (props: SubdirectoriesProps) => {
     onSelectDirectory,
   } = props;
 
-  const directoryLabel = path === "" ? rootLabel : basename(path);
+  const directoryLabel = path === '' ? rootLabel : basename(path);
 
   const loadedAlertElementRef = useRef<HTMLSpanElement | null>(null);
 
@@ -66,22 +66,22 @@ export const Subdirectories = (props: SubdirectoriesProps) => {
   const { status, directories } = state;
 
   useEffect(() => {
-    if (status === "Ready" || status === "Error") {
+    if (status === 'Ready' || status === 'Error') {
       onFinishedLoading();
     }
   }, [status, onFinishedLoading]);
 
   useEffect(() => {
-    if (state.status === "Error") {
+    if (state.status === 'Error') {
       onError(state.error);
     }
   }, [state, onError]);
 
   useEffect(() => {
-    if (status === "Ready") {
+    if (status === 'Ready') {
       loadedAlertElementRef.current!.innerHTML = `Loaded ${directoryLabel} subdirectories`;
     }
-    if (status === "Error") {
+    if (status === 'Error') {
       loadedAlertElementRef.current!.innerHTML = `Error loading ${directoryLabel} subdirectories`;
     }
   }, [directoryLabel, status]);
@@ -97,29 +97,29 @@ export const Subdirectories = (props: SubdirectoriesProps) => {
   return h(Fragment, [
     span({
       ref: loadedAlertElementRef,
-      "aria-live": "polite",
-      className: "sr-only",
-      role: "alert",
+      'aria-live': 'polite',
+      className: 'sr-only',
+      role: 'alert',
     }),
-    status === "Loading" &&
+    status === 'Loading' &&
       span(
         {
-          "aria-live": "assertive",
-          className: "sr-only",
-          role: "alert",
+          'aria-live': 'assertive',
+          className: 'sr-only',
+          role: 'alert',
         },
         [`Loading ${directoryLabel} subdirectories`]
       ),
-    status === "Error" && renderDirectoryStatus(level, "Error loading subdirectories"),
-    (status === "Ready" || directories.length > 0) &&
+    status === 'Error' && renderDirectoryStatus(level, 'Error loading subdirectories'),
+    (status === 'Ready' || directories.length > 0) &&
       ul(
         {
-          "aria-label": `${directoryLabel} subdirectories`,
-          role: "group",
+          'aria-label': `${directoryLabel} subdirectories`,
+          role: 'group',
           style: {
             padding: 0,
             margin: 0,
-            listStyleType: "none",
+            listStyleType: 'none',
           },
         },
         [
@@ -143,26 +143,26 @@ export const Subdirectories = (props: SubdirectoriesProps) => {
             li(
               {
                 // aria-level starts at 1, level starts at 0.
-                "aria-level": level + 1,
+                'aria-level': level + 1,
                 id: `${parentId}-load-next`,
-                role: "treeitem",
+                role: 'treeitem',
                 style: {
-                  display: "flex",
-                  flexDirection: "column",
+                  display: 'flex',
+                  flexDirection: 'column',
                 },
               },
               [
                 h(
                   Link,
                   {
-                    role: "presentation",
+                    role: 'presentation',
                     tabIndex: -1,
                     style: {
                       // Align with directory tree item arrow icons.
                       padding: `0.25rem 0.5rem 0.25rem ${level + 1.25}rem`,
-                      borderColor: `${parentId}-load-next` === activeDescendant ? colors.accent() : "transparent",
-                      borderStyle: "solid",
-                      borderWidth: "1px 0",
+                      borderColor: `${parentId}-load-next` === activeDescendant ? colors.accent() : 'transparent',
+                      borderStyle: 'solid',
+                      borderWidth: '1px 0',
                     },
                     onClick: async (e) => {
                       const numSubdirectoriesLoaded = directories.length;
@@ -176,7 +176,7 @@ export const Subdirectories = (props: SubdirectoriesProps) => {
                       }
                     },
                   },
-                  ["Load next page"]
+                  ['Load next page']
                 ),
               ]
             ),
@@ -185,7 +185,7 @@ export const Subdirectories = (props: SubdirectoriesProps) => {
   ]);
 };
 
-const selectedDirectoryColor = "#000";
+const selectedDirectoryColor = '#000';
 
 interface DirectoryProps {
   activeDescendant: string;
@@ -218,43 +218,43 @@ export const Directory = (props: DirectoryProps) => {
   const isSelected = path === selectedDirectory;
 
   // Automatically expand root directory.
-  const [isExpanded, setIsExpanded] = useState(path === "");
+  const [isExpanded, setIsExpanded] = useState(path === '');
   const [hasLoadedContents, setHasLoadedContents] = useState(false);
 
   return li(
     {
-      "aria-expanded": isExpanded,
+      'aria-expanded': isExpanded,
       // Label with the link to read only the directory basename instead of both the basename and the subdirectories list label.
-      "aria-labelledby": `${id}-link`,
+      'aria-labelledby': `${id}-link`,
       // aria-level starts at 1, level starts at 0.
-      "aria-level": level + 1,
+      'aria-level': level + 1,
       // aria-selected: false results in every tree item being read as "selected".
-      "aria-selected": isSelected ? true : undefined,
+      'aria-selected': isSelected ? true : undefined,
       // Data attribute allows getting the directory path from the activedescendant element ID.
-      "data-path": path,
+      'data-path': path,
       id,
-      role: "treeitem",
+      role: 'treeitem',
       style: {
-        display: "flex",
-        flexDirection: "column",
-        position: "relative",
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative',
       },
     },
     [
       // Wrapper span provides a larger click target than just the icon.
       span(
         {
-          "aria-hidden": true,
-          "data-testid": "toggle-expanded",
+          'aria-hidden': true,
+          'data-testid': 'toggle-expanded',
           style: {
-            position: "absolute",
-            top: "1px",
+            position: 'absolute',
+            top: '1px',
             left: `${level - 1}rem`,
-            display: "flex",
-            justifyContent: "flex-end",
-            alignItems: "center",
-            width: "2rem",
-            height: "1.5rem",
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            width: '2rem',
+            height: '1.5rem',
           },
           onClick: () => {
             setIsExpanded(!isExpanded);
@@ -266,9 +266,9 @@ export const Directory = (props: DirectoryProps) => {
         [
           icon(
             Utils.cond(
-              [isExpanded && hasLoadedContents, () => "angle-down"],
-              [isExpanded && !hasLoadedContents, () => "loadingSpinner"],
-              [!isExpanded, () => "angle-right"]
+              [isExpanded && hasLoadedContents, () => 'angle-down'],
+              [isExpanded && !hasLoadedContents, () => 'loadingSpinner'],
+              [!isExpanded, () => 'angle-right']
             ),
             {
               // @ts-expect-error
@@ -282,18 +282,18 @@ export const Directory = (props: DirectoryProps) => {
         Link,
         {
           id: `${id}-link`,
-          role: "presentation",
+          role: 'presentation',
           tabIndex: -1,
           style: {
-            display: "inline-block",
-            overflow: "hidden",
-            maxWidth: "100%",
+            display: 'inline-block',
+            overflow: 'hidden',
+            maxWidth: '100%',
             padding: `0.25rem 0.5rem 0.25rem ${level + 1.25}rem`,
-            borderColor: id === activeDescendant ? colors.accent() : "transparent",
-            borderStyle: "solid",
-            borderWidth: "1px 0",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
+            borderColor: id === activeDescendant ? colors.accent() : 'transparent',
+            borderStyle: 'solid',
+            borderWidth: '1px 0',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
             ...(isSelected && {
               color: selectedDirectoryColor,
             }),
@@ -306,7 +306,7 @@ export const Directory = (props: DirectoryProps) => {
             setIsExpanded(true);
           },
         },
-        [path === "" ? rootLabel : basename(path)]
+        [path === '' ? rootLabel : basename(path)]
       ),
       isExpanded &&
         h(Subdirectories, {
@@ -341,30 +341,30 @@ const DirectoryTree = (props: DirectoryTreeProps) => {
 
   const treeElementRef = useRef<HTMLUListElement | null>(null);
 
-  const [activeDescendant, setActiveDescendant] = useState("node-0");
+  const [activeDescendant, setActiveDescendant] = useState('node-0');
 
   return h(
     Interactive,
     {
-      as: "ul",
+      as: 'ul',
       ref: treeElementRef,
       // aria-activedescendant tells which tree item is "focused", while actual focus stays on the tree itself.
-      "aria-activedescendant": activeDescendant,
-      "aria-label": "Workspace files",
-      role: "tree",
+      'aria-activedescendant': activeDescendant,
+      'aria-label': 'Workspace files',
+      role: 'tree',
       tabIndex: 0,
       style: {
         padding: 0,
-        border: "2px solid transparent",
+        border: '2px solid transparent',
         margin: 0,
-        listStyleType: "none",
+        listStyleType: 'none',
       },
       hover: {
         border: `2px solid ${colors.accent()}`,
       },
       onKeyDown: (e) => {
         // If the key isn't relevant to tree navigation, do nothing.
-        if (!(e.key === "Enter" || e.key.startsWith("Arrow"))) {
+        if (!(e.key === 'Enter' || e.key.startsWith('Arrow'))) {
           return;
         }
 
@@ -376,36 +376,36 @@ const DirectoryTree = (props: DirectoryTreeProps) => {
         if (!currentTreeItem) {
           // If the active descendant isn't found (for example, if it was in a group that has been collapsed),
           // then reset the active descendant to the first item in the tree.
-          setActiveDescendant("node-0");
-        } else if (e.key === "Enter") {
-          if (currentTreeItem.id.endsWith("-load-next")) {
+          setActiveDescendant('node-0');
+        } else if (e.key === 'Enter') {
+          if (currentTreeItem.id.endsWith('-load-next')) {
             // If on a load next page tree item, load the next page.
             (currentTreeItem.firstElementChild as HTMLElement)!.click();
           } else {
             // Otherwise, select the path for the current tree item.
             onSelectDirectory(currentTreeItem.dataset.path!);
           }
-        } else if (e.key === "ArrowLeft") {
-          const isExpanded = currentTreeItem.getAttribute("aria-expanded") === "true";
+        } else if (e.key === 'ArrowLeft') {
+          const isExpanded = currentTreeItem.getAttribute('aria-expanded') === 'true';
           if (isExpanded) {
             // Close the tree item if it is open.
             (currentTreeItem.firstElementChild as HTMLElement)!.click();
           } else {
             // If the tree item is closed, move to the parent tree item (if there is one).
             const parentGroup = currentTreeItem.parentElement!;
-            if (parentGroup.getAttribute("role") === "group") {
+            if (parentGroup.getAttribute('role') === 'group') {
               // If the parent group is a group within the tree, move up the tree.
               // Else if the parent group is the tree itself, do nothing.
               const parentTreeItem = parentGroup.parentElement!;
               setActiveDescendant(parentTreeItem.id);
             }
           }
-        } else if (e.key === "ArrowRight") {
-          const expanded = currentTreeItem.getAttribute("aria-expanded");
-          if (expanded === "false") {
+        } else if (e.key === 'ArrowRight') {
+          const expanded = currentTreeItem.getAttribute('aria-expanded');
+          if (expanded === 'false') {
             // Open the tree item if it is currently closed.
             (currentTreeItem.firstElementChild as HTMLElement)!.click();
-          } else if (expanded === "true") {
+          } else if (expanded === 'true') {
             // Move to the first child node.
             // If the current tree item has no children, then do nothing.
             const firstChildTreeItem = currentTreeItem.lastElementChild!.firstElementChild;
@@ -413,7 +413,7 @@ const DirectoryTree = (props: DirectoryTreeProps) => {
               setActiveDescendant(firstChildTreeItem.id);
             }
           }
-        } else if (e.key === "ArrowDown") {
+        } else if (e.key === 'ArrowDown') {
           // Move to the next tree item without opening/closing any tree items.
           const allTreeItemIds = Array.from(treeElementRef.current!.querySelectorAll('[role="treeitem"]')).map(
             (el) => el.id
@@ -422,7 +422,7 @@ const DirectoryTree = (props: DirectoryTreeProps) => {
           if (indexOfCurrentTreeItem < allTreeItemIds.length - 1) {
             setActiveDescendant(allTreeItemIds[indexOfCurrentTreeItem + 1]);
           }
-        } else if (e.key === "ArrowUp") {
+        } else if (e.key === 'ArrowUp') {
           // Move to the previous tree item without opening/closing any tree items.
           const allTreeItemIds = Array.from(treeElementRef.current!.querySelectorAll('[role="treeitem"]')).map(
             (el) => el.id
@@ -433,14 +433,14 @@ const DirectoryTree = (props: DirectoryTreeProps) => {
           }
         }
       },
-    } as InteractiveProps<"ul">,
+    } as InteractiveProps<'ul'>,
     [
       h(Directory, {
         activeDescendant,
         provider,
-        id: "node-0",
+        id: 'node-0',
         level: 0,
-        path: "",
+        path: '',
         reloadRequests,
         rootLabel,
         selectedDirectory,

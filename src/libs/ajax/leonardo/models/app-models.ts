@@ -1,5 +1,5 @@
-import { AuditInfo, CloudContext, LeoError, LeoResourceLabels } from "src/libs/ajax/leonardo/models/core-models";
-import { AppToolLabel } from "src/pages/workspaces/workspace/analysis/utils/tool-utils";
+import { AuditInfo, CloudContext, LeoError, LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models';
+import { AppToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 export interface KubernetesRuntimeConfig {
   numNodes: number;
@@ -15,15 +15,15 @@ export interface AppError extends LeoError {
 }
 
 export type AppStatus =
-  | "STATUS_UNSPECIFIED"
-  | "RUNNING"
-  | "ERROR"
-  | "DELETING"
-  | "DELETED"
-  | "PROVISIONING"
-  | "STOPPING"
-  | "STOPPED"
-  | "STARTING";
+  | 'STATUS_UNSPECIFIED'
+  | 'RUNNING'
+  | 'ERROR'
+  | 'DELETING'
+  | 'DELETED'
+  | 'PROVISIONING'
+  | 'STOPPING'
+  | 'STOPPED'
+  | 'STARTING';
 
 export interface GetAppResponse {
   appName: string;

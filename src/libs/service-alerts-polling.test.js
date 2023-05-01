@@ -1,14 +1,14 @@
-import { getServiceAlerts, serviceAlertsStore } from "src/libs/service-alerts";
-import { startPollingServiceAlerts } from "src/libs/service-alerts-polling";
+import { getServiceAlerts, serviceAlertsStore } from 'src/libs/service-alerts';
+import { startPollingServiceAlerts } from 'src/libs/service-alerts-polling';
 
-jest.mock("src/libs/service-alerts", () => ({
-  ...jest.requireActual("src/libs/service-alerts"),
+jest.mock('src/libs/service-alerts', () => ({
+  ...jest.requireActual('src/libs/service-alerts'),
   getServiceAlerts: jest.fn(),
 }));
 
-const flushPromises = () => new Promise(jest.requireActual("timers").setImmediate);
+const flushPromises = () => new Promise(jest.requireActual('timers').setImmediate);
 
-describe("startPollingServiceAlerts", () => {
+describe('startPollingServiceAlerts', () => {
   beforeAll(() => {
     jest.useFakeTimers();
   });
@@ -17,13 +17,13 @@ describe("startPollingServiceAlerts", () => {
     jest.useRealTimers();
   });
 
-  it("periodically fetches service alerts and updates store", async () => {
+  it('periodically fetches service alerts and updates store', async () => {
     getServiceAlerts.mockReturnValue(
       Promise.resolve([
         {
-          title: "Scheduled maintenance",
-          message: "Offline tomorrow",
-          severity: "info",
+          title: 'Scheduled maintenance',
+          message: 'Offline tomorrow',
+          severity: 'info',
         },
       ])
     );
@@ -34,9 +34,9 @@ describe("startPollingServiceAlerts", () => {
     expect(getServiceAlerts.mock.calls.length).toBe(1);
     expect(serviceAlertsStore.get()).toEqual([
       expect.objectContaining({
-        title: "Scheduled maintenance",
-        message: "Offline tomorrow",
-        severity: "info",
+        title: 'Scheduled maintenance',
+        message: 'Offline tomorrow',
+        severity: 'info',
       }),
     ]);
 

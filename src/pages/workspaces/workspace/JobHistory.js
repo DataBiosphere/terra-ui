@@ -1,47 +1,47 @@
-import _ from "lodash/fp";
-import { Fragment, useImperativeHandle, useRef, useState } from "react";
-import { div, h, span, table, tbody, td, tr } from "react-hyperscript-helpers";
-import { AutoSizer } from "react-virtualized";
-import * as breadcrumbs from "src/components/breadcrumbs";
-import { Clickable, Link, spinnerOverlay } from "src/components/common";
-import { icon } from "src/components/icons";
-import { DelayedSearchInput } from "src/components/input";
-import { collapseStatus, statusType } from "src/components/job-common";
-import { MenuButton } from "src/components/MenuButton";
-import Modal from "src/components/Modal";
-import { MenuTrigger } from "src/components/PopupTrigger";
-import { FlexTable, HeaderRenderer, TextCell, TooltipCell } from "src/components/table";
-import TooltipTrigger from "src/components/TooltipTrigger";
-import { Ajax } from "src/libs/ajax";
-import { bucketBrowserUrl } from "src/libs/auth";
-import colors from "src/libs/colors";
-import { reportError } from "src/libs/error";
-import * as Nav from "src/libs/nav";
-import { forwardRefWithName, useCancellation, useOnMount } from "src/libs/react-utils";
-import * as Style from "src/libs/style";
-import * as Utils from "src/libs/utils";
-import UpdateUserCommentModal from "src/pages/workspaces/workspace/jobHistory/UpdateUserCommentModal";
-import { rerunFailures } from "src/pages/workspaces/workspace/workflows/FailureRerunner";
-import { wrapWorkspace } from "src/pages/workspaces/workspace/WorkspaceContainer";
+import _ from 'lodash/fp';
+import { Fragment, useImperativeHandle, useRef, useState } from 'react';
+import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers';
+import { AutoSizer } from 'react-virtualized';
+import * as breadcrumbs from 'src/components/breadcrumbs';
+import { Clickable, Link, spinnerOverlay } from 'src/components/common';
+import { icon } from 'src/components/icons';
+import { DelayedSearchInput } from 'src/components/input';
+import { collapseStatus, statusType } from 'src/components/job-common';
+import { MenuButton } from 'src/components/MenuButton';
+import Modal from 'src/components/Modal';
+import { MenuTrigger } from 'src/components/PopupTrigger';
+import { FlexTable, HeaderRenderer, TextCell, TooltipCell } from 'src/components/table';
+import TooltipTrigger from 'src/components/TooltipTrigger';
+import { Ajax } from 'src/libs/ajax';
+import { bucketBrowserUrl } from 'src/libs/auth';
+import colors from 'src/libs/colors';
+import { reportError } from 'src/libs/error';
+import * as Nav from 'src/libs/nav';
+import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
+import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
+import UpdateUserCommentModal from 'src/pages/workspaces/workspace/jobHistory/UpdateUserCommentModal';
+import { rerunFailures } from 'src/pages/workspaces/workspace/workflows/FailureRerunner';
+import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 const styles = {
   submissionsTable: {
-    padding: "1rem",
+    padding: '1rem',
     flex: 1,
   },
   deemphasized: {
-    fontWeight: "initial",
+    fontWeight: 'initial',
   },
   statusDetailCell: {
-    align: "center",
-    style: { padding: "0.5rem" },
+    align: 'center',
+    style: { padding: '0.5rem' },
   },
   multiLineCellText: {
     fontSize: 12,
   },
 };
 
-const isTerminal = (submissionStatus) => submissionStatus === "Aborted" || submissionStatus === "Done";
+const isTerminal = (submissionStatus) => submissionStatus === 'Aborted' || submissionStatus === 'Done';
 
 const collapsedStatuses = _.flow(
   _.toPairs,
@@ -56,15 +56,15 @@ const statusCell = (workflowStatuses, status) => {
   const summary = _.flow(
     _.toPairs,
     _.map(([status, count]) => `${count} ${status}`),
-    _.join(", ")
+    _.join(', ')
   )(statuses);
 
   return h(
     TooltipTrigger,
     {
-      side: "bottom",
-      type: "light",
-      content: table({ style: { margin: "0.5rem" } }, [
+      side: 'bottom',
+      type: 'light',
+      content: table({ style: { margin: '0.5rem' } }, [
         tbody({}, [
           tr({}, [
             td(styles.statusDetailCell, [statusType.succeeded.icon()]),
@@ -82,12 +82,12 @@ const statusCell = (workflowStatuses, status) => {
       ]),
     },
     [
-      div({ style: { display: "flex", alignItems: "center" } }, [
+      div({ style: { display: 'flex', alignItems: 'center' } }, [
         span(
           {
             tabIndex: 0,
-            role: "note",
-            "aria-label": summary,
+            role: 'note',
+            'aria-label': summary,
           },
           [
             succeeded && statusType.succeeded.icon(),
@@ -99,7 +99,7 @@ const statusCell = (workflowStatuses, status) => {
         _.keys(collapsedStatuses(workflowStatuses)).length === 1 &&
           span(
             {
-              style: { marginLeft: "0.5em" },
+              style: { marginLeft: '0.5em' },
             },
             [status]
           ),
@@ -108,38 +108,38 @@ const statusCell = (workflowStatuses, status) => {
   );
 };
 
-const noJobsMessage = div({ style: { fontSize: 20, margin: "1rem" } }, [
+const noJobsMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
   div([
-    "You have not run any jobs yet. To get started, go to the ",
-    span({ style: { fontWeight: 600 } }, ["Workflows"]),
-    " tab and select a workflow to run.",
+    'You have not run any jobs yet. To get started, go to the ',
+    span({ style: { fontWeight: 600 } }, ['Workflows']),
+    ' tab and select a workflow to run.',
   ]),
-  div({ style: { marginTop: "1rem", fontSize: 16 } }, [
+  div({ style: { marginTop: '1rem', fontSize: 16 } }, [
     h(
       Link,
       {
         ...Utils.newTabLinkProps,
-        href: "https://support.terra.bio/hc/en-us/articles/360027920592",
+        href: 'https://support.terra.bio/hc/en-us/articles/360027920592',
       },
-      ["What is a job?"]
+      ['What is a job?']
     ),
   ]),
 ]);
 
 const JobHistory = _.flow(
-  forwardRefWithName("JobHistory"),
+  forwardRefWithName('JobHistory'),
   wrapWorkspace({
     breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: "Job History",
-    activeTab: "job history",
+    title: 'Job History',
+    activeTab: 'job history',
   })
 )(({ namespace, name, workspace }, ref) => {
   // State
   const [submissions, setSubmissions] = useState(undefined);
   const [loading, setLoading] = useState(false);
   const [abortingId, setAbortingId] = useState(undefined);
-  const [textFilter, setTextFilter] = useState("");
-  const [sort, setSort] = useState({ field: "submissionDate", direction: "desc" });
+  const [textFilter, setTextFilter] = useState('');
+  const [sort, setSort] = useState({ field: 'submissionDate', direction: 'desc' });
   const [updatingCommentId, setUpdatingCommentId] = useState(undefined);
 
   const scheduledRefresh = useRef();
@@ -149,7 +149,7 @@ const JobHistory = _.flow(
   const refresh = Utils.withBusyState(setLoading, async () => {
     try {
       const submissions = _.flow(
-        _.orderBy("submissionDate", "desc"),
+        _.orderBy('submissionDate', 'desc'),
         _.map((sub) => {
           const {
             methodConfigurationName,
@@ -162,7 +162,7 @@ const JobHistory = _.flow(
             userComment,
           } = sub;
 
-          const subAsText = _.join(" ", [
+          const subAsText = _.join(' ', [
             methodConfigurationName,
             methodConfigurationNamespace,
             status,
@@ -174,7 +174,7 @@ const JobHistory = _.flow(
             userComment,
           ]).toLowerCase();
 
-          return _.set("asText", subAsText, sub);
+          return _.set('asText', subAsText, sub);
         })
       )(await Ajax(signal).Workspaces.workspace(namespace, name).listSubmissions());
       setSubmissions(submissions);
@@ -183,7 +183,7 @@ const JobHistory = _.flow(
         scheduledRefresh.current = setTimeout(refresh, 1000 * 60);
       }
     } catch (error) {
-      reportError("Error loading submissions list", error);
+      reportError('Error loading submissions list', error);
       setSubmissions([]);
     }
   });
@@ -196,7 +196,7 @@ const JobHistory = _.flow(
         label,
         onSort: setSort,
         style: { fontWeight: 400 },
-        "aria-label": ariaLabel,
+        'aria-label': ariaLabel,
       });
   };
 
@@ -219,10 +219,10 @@ const JobHistory = _.flow(
   const sortedSubmissions = _.orderBy(
     Utils.switchCase(
       sort.field,
-      ["entityName", () => "submissionEntity.entityName"],
-      ["numberOfWorkflows", () => [(s) => _.sum(_.values(s.workflowStatuses))]],
+      ['entityName', () => 'submissionEntity.entityName'],
+      ['numberOfWorkflows', () => [(s) => _.sum(_.values(s.workflowStatuses))]],
       [
-        "status",
+        'status',
         () => [
           (s) => {
             const { succeeded, failed, running, submitted } = collapsedStatuses(s.workflowStatuses);
@@ -240,12 +240,12 @@ const JobHistory = _.flow(
   const { running, submitted } = abortingId ? collapsedStatuses(_.find({ submissionId: abortingId }, filteredSubmissions).workflowStatuses) : {};
 
   return h(Fragment, [
-    div({ style: { display: "flex", alignItems: "center", margin: "1rem 1rem 0" } }, [
+    div({ style: { display: 'flex', alignItems: 'center', margin: '1rem 1rem 0' } }, [
       div({ style: { flexGrow: 1 } }),
       h(DelayedSearchInput, {
-        "aria-label": "Search",
-        style: { width: 300, marginLeft: "1rem" },
-        placeholder: "Search",
+        'aria-label': 'Search',
+        style: { width: 300, marginLeft: '1rem' },
+        placeholder: 'Search',
         onChange: setTextFilter,
         value: textFilter,
       }),
@@ -255,18 +255,18 @@ const JobHistory = _.flow(
         h(AutoSizer, [
           ({ width, height }) =>
             h(FlexTable, {
-              "aria-label": "job history",
+              'aria-label': 'job history',
               width,
               height,
               rowCount: sortedSubmissions.length,
               hoverHighlight: true,
-              noContentMessage: "No matching jobs",
+              noContentMessage: 'No matching jobs',
               sort,
               columns: [
                 {
                   size: { basis: 500, grow: 0 },
-                  field: "methodConfigurationName",
-                  headerRenderer: makeHeaderRenderer("methodConfigurationName", "Submission (click for details)", true, "Submission"),
+                  field: 'methodConfigurationName',
+                  headerRenderer: makeHeaderRenderer('methodConfigurationName', 'Submission (click for details)', true, 'Submission'),
                   cellRenderer: ({ rowIndex }) => {
                     const { methodConfigurationNamespace, methodConfigurationName, submitter, submissionId, workflowStatuses } =
                       sortedSubmissions[rowIndex];
@@ -284,12 +284,12 @@ const JobHistory = _.flow(
                         },
                         style: {
                           flex: 1,
-                          alignSelf: "stretch",
-                          display: "flex",
-                          flexDirection: "column",
-                          justifyContent: "center",
-                          margin: "0 -1rem",
-                          padding: "0 1rem",
+                          alignSelf: 'stretch',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'center',
+                          margin: '0 -1rem',
+                          padding: '0 1rem',
                           minWidth: 0,
                           fontWeight: 600,
                           backgroundColor: Utils.cond(
@@ -299,26 +299,26 @@ const JobHistory = _.flow(
                           ),
                         },
                         tooltip: Utils.cond(
-                          [!!failed, () => "This job failed"],
-                          [!!running || !!submitted, () => "This job is running..."],
-                          () => "This job succeeded"
+                          [!!failed, () => 'This job failed'],
+                          [!!running || !!submitted, () => 'This job is running...'],
+                          () => 'This job succeeded'
                         ),
-                        href: Nav.getLink("workspace-submission-details", { namespace, name, submissionId }),
+                        href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId }),
                       },
                       [
                         div({ style: Style.noWrapEllipsis }, [
                           methodConfigurationNamespace !== namespace && span({ style: styles.deemphasized }, [`${methodConfigurationNamespace}/`]),
                           methodConfigurationName,
                         ]),
-                        div({ style: Style.noWrapEllipsis }, [span({ style: styles.deemphasized }, "Submitted by "), submitter]),
+                        div({ style: Style.noWrapEllipsis }, [span({ style: styles.deemphasized }, 'Submitted by '), submitter]),
                       ]
                     );
                   },
                 },
                 {
                   size: { basis: 250, grow: 0 },
-                  field: "entityName",
-                  headerRenderer: makeHeaderRenderer("entityName", "Data entity"),
+                  field: 'entityName',
+                  headerRenderer: makeHeaderRenderer('entityName', 'Data entity'),
                   cellRenderer: ({ rowIndex }) => {
                     const { submissionEntity: { entityName, entityType } = {} } = sortedSubmissions[rowIndex];
                     return h(TooltipCell, [entityName && `${entityName} (${entityType})`]);
@@ -326,8 +326,8 @@ const JobHistory = _.flow(
                 },
                 {
                   size: { basis: 160, grow: 0 },
-                  field: "numberOfWorkflomws",
-                  headerRenderer: makeHeaderRenderer("numberOfWorkflows", "No. of Workflows", true, "Number of Workflows"),
+                  field: 'numberOfWorkflomws',
+                  headerRenderer: makeHeaderRenderer('numberOfWorkflows', 'No. of Workflows', true, 'Number of Workflows'),
                   cellRenderer: ({ rowIndex }) => {
                     const { workflowStatuses } = sortedSubmissions[rowIndex];
                     return h(TextCell, Utils.formatNumber(_.sum(_.values(workflowStatuses))));
@@ -336,8 +336,8 @@ const JobHistory = _.flow(
                 {
                   // Disable shrinking so that "Submitted" and "Aborted" do not render outside of the cell
                   size: { basis: 150, grow: 0, shrink: 0 },
-                  field: "status",
-                  headerRenderer: makeHeaderRenderer("status"),
+                  field: 'status',
+                  headerRenderer: makeHeaderRenderer('status'),
                   cellRenderer: ({ rowIndex }) => {
                     const { workflowStatuses, status } = sortedSubmissions[rowIndex];
                     return statusCell(workflowStatuses, status);
@@ -345,8 +345,8 @@ const JobHistory = _.flow(
                 },
                 {
                   size: { basis: 150, grow: 0 },
-                  field: "submissionDate",
-                  headerRenderer: makeHeaderRenderer("submissionDate", "Submitted"),
+                  field: 'submissionDate',
+                  headerRenderer: makeHeaderRenderer('submissionDate', 'Submitted'),
                   cellRenderer: ({ rowIndex }) => {
                     const { submissionDate } = sortedSubmissions[rowIndex];
                     const dateParts = Utils.makeCompleteDateParts(submissionDate);
@@ -356,8 +356,8 @@ const JobHistory = _.flow(
                 {
                   // Disable shrinking so that the ID does not render outside of the cell
                   size: { basis: 150, grow: 1, shrink: 0 },
-                  field: "submissionId",
-                  headerRenderer: makeHeaderRenderer("submissionId", "Submission ID"),
+                  field: 'submissionId',
+                  headerRenderer: makeHeaderRenderer('submissionId', 'Submission ID'),
                   cellRenderer: ({ rowIndex }) => {
                     const { submissionId, submissionRoot } = sortedSubmissions[rowIndex];
                     return h(
@@ -365,7 +365,7 @@ const JobHistory = _.flow(
                       {
                         style: styles.multiLineCellText,
                         ...Utils.newTabLinkProps,
-                        href: bucketBrowserUrl(submissionRoot.replace("gs://", "")),
+                        href: bucketBrowserUrl(submissionRoot.replace('gs://', '')),
                       },
                       [submissionId]
                     );
@@ -373,7 +373,7 @@ const JobHistory = _.flow(
                 },
                 {
                   size: { basis: 250, grow: 1 },
-                  headerRenderer: makeHeaderRenderer("userComment", "Comment"),
+                  headerRenderer: makeHeaderRenderer('userComment', 'Comment'),
                   cellRenderer: ({ rowIndex }) => {
                     const { userComment } = sortedSubmissions[rowIndex];
                     return h(TooltipCell, [userComment]);
@@ -381,7 +381,7 @@ const JobHistory = _.flow(
                 },
                 {
                   size: { min: 90, max: 90 },
-                  headerRenderer: makeHeaderRenderer("actions", "Actions", false),
+                  headerRenderer: makeHeaderRenderer('actions', 'Actions', false),
                   cellRenderer: ({ rowIndex }) => {
                     const {
                       methodConfigurationNamespace,
@@ -393,10 +393,10 @@ const JobHistory = _.flow(
                       submissionEntity,
                       userComment,
                     } = sortedSubmissions[rowIndex];
-                    const canAbort = !isTerminal(status) && status !== "Aborting";
+                    const canAbort = !isTerminal(status) && status !== 'Aborting';
                     const canRelaunch =
                       isTerminal(status) && (workflowStatuses.Failed || workflowStatuses.Aborted) && submissionEntity && !methodConfigurationDeleted;
-                    return div({ style: { width: "100%", textAlign: "center" } }, [
+                    return div({ style: { width: '100%', textAlign: 'center' } }, [
                       updatingCommentId === submissionId &&
                         h(UpdateUserCommentModal, {
                           workspace: { name, namespace },
@@ -415,7 +415,7 @@ const JobHistory = _.flow(
                               {
                                 onClick: () => setUpdatingCommentId(submissionId),
                               },
-                              ["Edit Comment"]
+                              ['Edit Comment']
                             ),
                             h(
                               MenuButton,
@@ -423,7 +423,7 @@ const JobHistory = _.flow(
                                 disabled: !canAbort,
                                 onClick: () => setAbortingId(submissionId),
                               },
-                              ["Abort workflows"]
+                              ['Abort workflows']
                             ),
                             h(
                               MenuButton,
@@ -438,14 +438,14 @@ const JobHistory = _.flow(
                                     onDone: refresh,
                                   }),
                               },
-                              ["Relaunch failures"]
+                              ['Relaunch failures']
                             ),
                           ]),
-                          side: "bottom",
+                          side: 'bottom',
                         },
                         [
-                          h(Link, { "aria-label": `Menu for submission ID beginning: ${_.split("-", submissionId)[0]}` }, [
-                            icon("cardMenuIcon", { size: 24 }),
+                          h(Link, { 'aria-label': `Menu for submission ID beginning: ${_.split('-', submissionId)[0]}` }, [
+                            icon('cardMenuIcon', { size: 24 }),
                           ]),
                         ]
                       ),
@@ -461,7 +461,7 @@ const JobHistory = _.flow(
           Modal,
           {
             onDismiss: () => setAbortingId(undefined),
-            title: "Abort All Workflows",
+            title: 'Abort All Workflows',
             showX: true,
             okButton: async () => {
               try {
@@ -471,7 +471,7 @@ const JobHistory = _.flow(
                 refresh();
               } catch (e) {
                 setLoading(false);
-                reportError("Error aborting submission", e);
+                reportError('Error aborting submission', e);
               }
             },
           },
@@ -484,8 +484,8 @@ const JobHistory = _.flow(
 
 export const navPaths = [
   {
-    name: "workspace-job-history",
-    path: "/workspaces/:namespace/:name/job_history",
+    name: 'workspace-job-history',
+    path: '/workspaces/:namespace/:name/job_history',
     component: JobHistory,
     title: ({ name }) => `${name} - Job History`,
   },

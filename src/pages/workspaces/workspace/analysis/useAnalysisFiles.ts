@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
-import { AnalysisProvider } from "src/libs/ajax/analysis-providers/AnalysisProvider";
-import { useLoadedData } from "src/libs/ajax/loaded-data/useLoadedData";
-import { reportError, withErrorReporting } from "src/libs/error";
-import { useCancellation, useStore } from "src/libs/react-utils";
-import { workspaceStore } from "src/libs/state";
-import LoadedState from "src/libs/type-utils/LoadedState";
-import { withHandlers } from "src/libs/type-utils/lodash-fp-helpers";
-import * as Utils from "src/libs/utils";
-import { CloudProvider, cloudProviderTypes, WorkspaceWrapper } from "src/libs/workspace-utils";
+import { useEffect, useState } from 'react';
+import { AnalysisProvider } from 'src/libs/ajax/analysis-providers/AnalysisProvider';
+import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
+import { reportError, withErrorReporting } from 'src/libs/error';
+import { useCancellation, useStore } from 'src/libs/react-utils';
+import { workspaceStore } from 'src/libs/state';
+import LoadedState from 'src/libs/type-utils/LoadedState';
+import { withHandlers } from 'src/libs/type-utils/lodash-fp-helpers';
+import * as Utils from 'src/libs/utils';
+import { CloudProvider, cloudProviderTypes, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import {
   AbsolutePath,
   DisplayName,
@@ -16,8 +16,8 @@ import {
   getDisplayName,
   getExtension,
   getFileName,
-} from "src/pages/workspaces/workspace/analysis/utils/file-utils";
-import { getToolLabelFromFileExtension, ToolLabel } from "src/pages/workspaces/workspace/analysis/utils/tool-utils";
+} from 'src/pages/workspaces/workspace/analysis/utils/file-utils';
+import { getToolLabelFromFileExtension, ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 export interface AnalysisFileMetadata {
   lockExpiresAt: string;
@@ -58,7 +58,7 @@ export const useAnalysisFiles = (): AnalysisFileStore => {
   const [pendingDelete, setPendingDelete] = useLoadedData<true>();
 
   const refresh = withHandlers(
-    [withErrorReporting("Error loading analysis files"), Utils.withBusyState(setLoading)],
+    [withErrorReporting('Error loading analysis files'), Utils.withBusyState(setLoading)],
     async (): Promise<void> => {
       const analysis = await AnalysisProvider.listAnalyses(workspace.workspace, signal);
       setAnalyses(analysis);
@@ -87,21 +87,21 @@ export const useAnalysisFiles = (): AnalysisFileStore => {
   // refresh depends only on workspace.workspace, do not want to refresh on workspace.workspaceInitialized
 
   useEffect(() => {
-    if (pendingCreate.status === "Error") {
-      reportError("Error creating Analysis file.", pendingCreate.error);
+    if (pendingCreate.status === 'Error') {
+      reportError('Error creating Analysis file.', pendingCreate.error);
     }
   }, [pendingCreate]);
 
   useEffect(() => {
-    if (pendingDelete.status === "Error") {
-      reportError("Error deleting Analysis file.", pendingDelete.error);
+    if (pendingDelete.status === 'Error') {
+      reportError('Error deleting Analysis file.', pendingDelete.error);
     }
   }, [pendingDelete]);
   return {
     refreshFileStore: refresh,
     createAnalysis,
     deleteAnalysis,
-    loadedState: { status: loading ? "Loading" : "Ready", state: analyses },
+    loadedState: { status: loading ? 'Loading' : 'Ready', state: analyses },
     pendingCreate,
     pendingDelete,
   };

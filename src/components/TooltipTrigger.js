@@ -1,52 +1,52 @@
-import _ from "lodash/fp";
-import { Children, cloneElement, Fragment, useRef, useState } from "react";
-import { div, h, path, svg } from "react-hyperscript-helpers";
-import { containsUnlabelledIcon } from "src/components/icons";
-import { computePopupPosition, PopupPortal, useDynamicPosition } from "src/components/popup-utils";
-import colors from "src/libs/colors";
-import { useOnMount, useUniqueId } from "src/libs/react-utils";
-import * as Style from "src/libs/style";
-import * as Utils from "src/libs/utils";
+import _ from 'lodash/fp';
+import { Children, cloneElement, Fragment, useRef, useState } from 'react';
+import { div, h, path, svg } from 'react-hyperscript-helpers';
+import { containsUnlabelledIcon } from 'src/components/icons';
+import { computePopupPosition, PopupPortal, useDynamicPosition } from 'src/components/popup-utils';
+import colors from 'src/libs/colors';
+import { useOnMount, useUniqueId } from 'src/libs/react-utils';
+import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
 
 const baseToolTip = {
-  position: "fixed",
+  position: 'fixed',
   top: 0,
   left: 0,
-  pointerEvents: "none",
+  pointerEvents: 'none',
   maxWidth: 400,
   borderRadius: 4,
 };
 
 const styles = {
   tooltip: {
-    background: "#FFFFFF",
+    background: '#FFFFFF',
     color: colors.dark(),
     borderColor: colors.secondary(),
-    padding: "1rem",
-    boxShadow: "0 1px 3px 2px rgba(0,0,0,0.3)",
+    padding: '1rem',
+    boxShadow: '0 1px 3px 2px rgba(0,0,0,0.3)',
     lineHeight: 1.5,
     ...baseToolTip,
   },
   notch: {
-    fill: "#FFFFFF",
-    position: "absolute",
+    fill: '#FFFFFF',
+    position: 'absolute',
     width: 17,
     height: 8,
     marginLeft: -8,
     marginRight: -8,
     marginTop: -8,
-    transformOrigin: "bottom",
-    filter: "drop-shadow(0px -2px 1px rgba(0,0,0,0.3))",
+    transformOrigin: 'bottom',
+    filter: 'drop-shadow(0px -2px 1px rgba(0,0,0,0.3))',
   },
   lightBox: {
-    background: "white",
+    background: 'white',
     border: `1px solid ${colors.dark(0.55)}`,
     boxShadow: Style.standardShadow,
     ...baseToolTip,
   },
 };
 
-const Tooltip = ({ side = "bottom", type, target: targetId, children, id, delay }) => {
+const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay }) => {
   const [shouldRender, setShouldRender] = useState(!delay);
   const renderTimeout = useRef();
   const elementRef = useRef();
@@ -59,7 +59,7 @@ const Tooltip = ({ side = "bottom", type, target: targetId, children, id, delay 
     }
   });
 
-  const gap = type === "light" ? 5 : 10;
+  const gap = type === 'light' ? 5 : 10;
   const { side: finalSide, position } = computePopupPosition({ side, target, element, viewport, gap });
 
   const getNotchPosition = () => {
@@ -68,10 +68,10 @@ const Tooltip = ({ side = "bottom", type, target: targetId, children, id, delay 
     // Use 1 in placement below to to avoid a faint line along the base of the triangle, where it meets up with the tooltip rectangle.
     return Utils.switchCase(
       finalSide,
-      ["top", () => ({ bottom: 1, left, transform: "rotate(180deg)" })],
-      ["bottom", () => ({ top: 1, left })],
-      ["left", () => ({ right: 1, top, transform: "rotate(90deg)" })],
-      ["right", () => ({ left: 1, top, transform: "rotate(270deg)" })]
+      ['top', () => ({ bottom: 1, left, transform: 'rotate(180deg)' })],
+      ['bottom', () => ({ top: 1, left })],
+      ['left', () => ({ right: 1, top, transform: 'rotate(90deg)' })],
+      ['right', () => ({ left: 1, top, transform: 'rotate(270deg)' })]
     );
   };
 
@@ -79,16 +79,16 @@ const Tooltip = ({ side = "bottom", type, target: targetId, children, id, delay 
     div(
       {
         id,
-        role: "tooltip",
+        role: 'tooltip',
         ref: elementRef,
         style: {
-          display: shouldRender ? undefined : "none",
+          display: shouldRender ? undefined : 'none',
           transform: `translate(${position.left}px, ${position.top}px)`,
-          visibility: !viewport.width ? "hidden" : undefined,
-          ...(type === "light" ? styles.lightBox : styles.tooltip),
+          visibility: !viewport.width ? 'hidden' : undefined,
+          ...(type === 'light' ? styles.lightBox : styles.tooltip),
         },
       },
-      [children, type !== "light" && svg({ viewBox: "0 0 2 1", style: { ...getNotchPosition(), ...styles.notch } }, [path({ d: "M0,1l1,-1l1,1Z" })])]
+      [children, type !== 'light' && svg({ viewBox: '0 0 2 1', style: { ...getNotchPosition(), ...styles.notch } }, [path({ d: 'M0,1l1,-1l1,1Z' })])]
     ),
   ]);
 };
@@ -113,8 +113,8 @@ const TooltipTrigger = ({ children, content, useTooltipAsLabel, ...props }) => {
   return h(Fragment, [
     cloneElement(child, {
       id: childId,
-      "aria-labelledby": !!content && useAsLabel ? descriptionId : undefined,
-      "aria-describedby": !!content && !useAsLabel ? descriptionId : undefined,
+      'aria-labelledby': !!content && useAsLabel ? descriptionId : undefined,
+      'aria-describedby': !!content && !useAsLabel ? descriptionId : undefined,
       onMouseEnter: (...args) => {
         child.props.onMouseEnter && child.props.onMouseEnter(...args);
         setOpen(true);
@@ -133,7 +133,7 @@ const TooltipTrigger = ({ children, content, useTooltipAsLabel, ...props }) => {
       },
     }),
     open && !!content && h(Tooltip, { target: childId, id: tooltipId, ...props }, [content]),
-    !!content && div({ id: descriptionId, style: { display: "none" } }, [content]),
+    !!content && div({ id: descriptionId, style: { display: 'none' } }, [content]),
   ]);
 };
 

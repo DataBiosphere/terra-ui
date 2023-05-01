@@ -1,34 +1,34 @@
-import { subDays } from "date-fns/fp";
-import _ from "lodash/fp";
-import { Fragment, lazy, Suspense, useEffect, useState } from "react";
-import { div, h, span } from "react-hyperscript-helpers";
-import { customSpinnerOverlay, IdContainer, Select } from "src/components/common";
-import { Ajax } from "src/libs/ajax";
-import colors from "src/libs/colors";
-import { FormLabel } from "src/libs/forms";
-import { useCancellation } from "src/libs/react-utils";
-import { CloudPlatform } from "src/pages/billing/models/BillingProject";
-import { ExternalLink } from "src/pages/billing/NewBillingProjectWizard/StepWizard/ExternalLink";
-import { CostCard } from "src/pages/billing/SpendReport/CostCard";
-import { ErrorAlert } from "src/pages/billing/SpendReport/ErrorAlert";
+import { subDays } from 'date-fns/fp';
+import _ from 'lodash/fp';
+import { Fragment, lazy, Suspense, useEffect, useState } from 'react';
+import { div, h, span } from 'react-hyperscript-helpers';
+import { customSpinnerOverlay, IdContainer, Select } from 'src/components/common';
+import { Ajax } from 'src/libs/ajax';
+import colors from 'src/libs/colors';
+import { FormLabel } from 'src/libs/forms';
+import { useCancellation } from 'src/libs/react-utils';
+import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
+import { ExternalLink } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/ExternalLink';
+import { CostCard } from 'src/pages/billing/SpendReport/CostCard';
+import { ErrorAlert } from 'src/pages/billing/SpendReport/ErrorAlert';
 
-const LazyChart = lazy(() => import("src/components/Chart"));
+const LazyChart = lazy(() => import('src/components/Chart'));
 const maxWorkspacesInChart = 10;
 
 const OtherMessaging = ({ cost, cloudPlatform }) => {
   const msg =
     cost !== null
       ? `Total spend includes ${cost} in other infrastructure or query costs related to the general operations of Terra.`
-      : "Total spend includes infrastructure or query costs related to the general operations of Terra.";
-  return div({ "aria-live": cost !== null ? "polite" : "off", "aria-atomic": true }, [
-    span({ "aria-hidden": true }, ["*"]),
-    "",
+      : 'Total spend includes infrastructure or query costs related to the general operations of Terra.';
+  return div({ 'aria-live': cost !== null ? 'polite' : 'off', 'aria-atomic': true }, [
+    span({ 'aria-hidden': true }, ['*']),
+    '',
     msg,
-    cloudPlatform !== "AZURE"
-      ? ""
+    cloudPlatform !== 'AZURE'
+      ? ''
       : ExternalLink({
-          url: "https://support.terra.bio/hc/en-us/articles/12029087819291-Overview-Costs-and-billing-in-Terra-on-Azure",
-          text: " See our documentation to learn more about Azure costs.",
+          url: 'https://support.terra.bio/hc/en-us/articles/12029087819291-Overview-Costs-and-billing-in-Terra-on-Azure',
+          text: ' See our documentation to learn more about Azure costs.',
           style: { color: colors.accent(1.1) }, // needed to pass color contrast accessibility requirement
         }),
   ]);
@@ -54,7 +54,7 @@ interface ProjectCost {
 
 // Interfaces for dealing with the server SpendReport JSON response
 interface CategorySpendData {
-  category: "Compute" | "Storage" | "Other";
+  category: 'Compute' | 'Storage' | 'Other';
   cost: string;
   credits: string;
   currency: string;
@@ -65,21 +65,21 @@ interface WorkspaceSpendData {
   credits: string;
   currency: string;
   googleProjectId: string;
-  subAggregation: { aggregationKey: "Category"; spendData: CategorySpendData[] };
+  subAggregation: { aggregationKey: 'Category'; spendData: CategorySpendData[] };
   workspace: { name: string; namespace: string };
 }
 
 interface AggregatedSpendData {
-  aggregationKey: "Workspace" | "Category";
+  aggregationKey: 'Workspace' | 'Category';
 }
 
 export interface AggregatedWorkspaceSpendData extends AggregatedSpendData {
-  aggregationKey: "Workspace";
+  aggregationKey: 'Workspace';
   spendData: WorkspaceSpendData[];
 }
 
 export interface AggregatedCategorySpendData extends AggregatedSpendData {
-  aggregationKey: "Category";
+  aggregationKey: 'Category';
   spendData: CategorySpendData[];
 }
 
@@ -114,32 +114,32 @@ export const SpendReport = (props: SpendReportProps) => {
   const [updatingProjectCost, setUpdatingProjectCost] = useState(false);
   const [spendReportLengthInDays, setSpendReportLengthInDays] = useState(30);
   const [errorMessage, setErrorMessage] = useState();
-  const includePerWorkspaceCosts = props.cloudPlatform === "GCP";
+  const includePerWorkspaceCosts = props.cloudPlatform === 'GCP';
 
   const signal = useCancellation();
 
   const spendChartOptions = {
-    chart: { marginTop: 50, spacingLeft: 20, style: { fontFamily: "inherit" }, type: "bar" },
+    chart: { marginTop: 50, spacingLeft: 20, style: { fontFamily: 'inherit' }, type: 'bar' },
     credits: { enabled: false },
     legend: { reversed: true },
-    plotOptions: { series: { stacking: "normal" } },
+    plotOptions: { series: { stacking: 'normal' } },
     series: [
-      { name: "Compute", data: costPerWorkspace.computeCosts },
-      { name: "Storage", data: costPerWorkspace.storageCosts },
+      { name: 'Compute', data: costPerWorkspace.computeCosts },
+      { name: 'Storage', data: costPerWorkspace.storageCosts },
     ],
     title: {
-      align: "left",
-      style: { fontSize: "16px" },
+      align: 'left',
+      style: { fontSize: '16px' },
       y: 25,
       text:
         costPerWorkspace.numWorkspaces > maxWorkspacesInChart
           ? `Top ${maxWorkspacesInChart} Spending Workspaces`
-          : "Spend By Workspace",
+          : 'Spend By Workspace',
     },
     tooltip: {
       followPointer: true,
       shared: true,
-      headerFormat: "{point.key}",
+      headerFormat: '{point.key}',
       pointFormatter() {
         // eslint-disable-line object-shorthand
         // @ts-ignore
@@ -153,7 +153,7 @@ export const SpendReport = (props: SpendReportProps) => {
     xAxis: {
       categories: costPerWorkspace.workspaceNames,
       crosshair: true,
-      labels: { style: { fontSize: "12px" } },
+      labels: { style: { fontSize: '12px' } },
     },
     yAxis: {
       crosshair: true,
@@ -163,10 +163,10 @@ export const SpendReport = (props: SpendReportProps) => {
           // @ts-ignore
           return costPerWorkspace.costFormatter.format(this.value);
         }, // eslint-disable-line object-shorthand
-        style: { fontSize: "12px" },
+        style: { fontSize: '12px' },
       },
       title: { enabled: false },
-      width: "96%",
+      width: '96%',
     },
     accessibility: {
       point: {
@@ -189,7 +189,7 @@ export const SpendReport = (props: SpendReportProps) => {
         setUpdatingProjectCost(true);
         const endDate = new Date().toISOString().slice(0, 10);
         const startDate = subDays(spendReportLengthInDays, new Date()).toISOString().slice(0, 10);
-        const aggregationKeys = includePerWorkspaceCosts ? ["Workspace~Category", "Category"] : ["Category"];
+        const aggregationKeys = includePerWorkspaceCosts ? ['Workspace~Category', 'Category'] : ['Category'];
         const spend: SpendReportServerResponse = await Ajax(signal).Billing.getSpendReport({
           billingProjectName: props.billingProjectName,
           startDate,
@@ -197,21 +197,21 @@ export const SpendReport = (props: SpendReportProps) => {
           aggregationKeys,
         });
         const costFormatter = new Intl.NumberFormat(navigator.language, {
-          style: "currency",
+          style: 'currency',
           currency: spend.spendSummary.currency,
         });
         const categoryDetails = _.find(
-          (details) => details.aggregationKey === "Category",
+          (details) => details.aggregationKey === 'Category',
           spend.spendDetails
         ) as AggregatedCategorySpendData;
-        console.assert(categoryDetails !== undefined, "Spend report details do not include aggregation by Category");
+        console.assert(categoryDetails !== undefined, 'Spend report details do not include aggregation by Category');
         const getCategoryCosts = (
           categorySpendData: CategorySpendData[]
         ): { compute: number; storage: number; other: number } => {
           return {
-            compute: parseFloat(_.find(["category", "Compute"], categorySpendData)?.cost ?? "0"),
-            storage: parseFloat(_.find(["category", "Storage"], categorySpendData)?.cost ?? "0"),
-            other: parseFloat(_.find(["category", "Other"], categorySpendData)?.cost ?? "0"),
+            compute: parseFloat(_.find(['category', 'Compute'], categorySpendData)?.cost ?? '0'),
+            storage: parseFloat(_.find(['category', 'Storage'], categorySpendData)?.cost ?? '0'),
+            other: parseFloat(_.find(['category', 'Other'], categorySpendData)?.cost ?? '0'),
           };
         };
         const costDict = getCategoryCosts(categoryDetails.spendData);
@@ -225,12 +225,12 @@ export const SpendReport = (props: SpendReportProps) => {
 
         if (includePerWorkspaceCosts) {
           const workspaceDetails = _.find(
-            (details) => details.aggregationKey === "Workspace",
+            (details) => details.aggregationKey === 'Workspace',
             spend.spendDetails
           ) as AggregatedWorkspaceSpendData;
           console.assert(
             workspaceDetails !== undefined,
-            "Spend report details do not include aggregation by Workspace"
+            'Spend report details do not include aggregation by Workspace'
           );
           // Get the most expensive workspaces, sorted from most to least expensive.
           const mostExpensiveWorkspaces = _.flow(
@@ -253,8 +253,8 @@ export const SpendReport = (props: SpendReportProps) => {
             costPerWorkspace.workspaceNames.push(workspaceCostData.workspace.name);
             const categoryDetails = workspaceCostData.subAggregation;
             console.assert(
-              categoryDetails.aggregationKey === "Category",
-              "Workspace spend report details do not include sub-aggregation by Category"
+              categoryDetails.aggregationKey === 'Category',
+              'Workspace spend report details do not include sub-aggregation by Category'
             );
             const costDict = getCategoryCosts(categoryDetails.spendData);
             costPerWorkspace.computeCosts.push(costDict.compute);
@@ -281,15 +281,15 @@ export const SpendReport = (props: SpendReportProps) => {
   ]);
 
   return h(Fragment, [
-    div({ style: { display: "grid", rowGap: "0.5rem" } }, [
+    div({ style: { display: 'grid', rowGap: '0.5rem' } }, [
       !!errorMessage && h(ErrorAlert, { errorMessage }),
       div(
         {
           style: {
-            display: "grid",
-            gridTemplateColumns: "repeat(3, minmax(max-content, 1fr))",
-            rowGap: "1.66rem",
-            columnGap: "1.25rem",
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, minmax(max-content, 1fr))',
+            rowGap: '1.66rem',
+            columnGap: '1.25rem',
           },
         },
         [
@@ -297,7 +297,7 @@ export const SpendReport = (props: SpendReportProps) => {
             h(IdContainer, [
               (id) =>
                 h(Fragment, [
-                  h(FormLabel, { htmlFor: id }, ["Date range"]),
+                  h(FormLabel, { htmlFor: id }, ['Date range']),
                   h(Select<number>, {
                     id,
                     value: spendReportLengthInDays,
@@ -325,11 +325,11 @@ export const SpendReport = (props: SpendReportProps) => {
               h(CostCard, {
                 type: name,
                 title: `Total ${name}`,
-                amount: !isProjectCostReady ? "..." : projectCost[name],
+                amount: !isProjectCostReady ? '...' : projectCost[name],
                 isProjectCostReady,
-                showAsterisk: name === "spend",
+                showAsterisk: name === 'spend',
               }),
-            ["spend", "compute", "storage"]
+            ['spend', 'compute', 'storage']
           ),
         ]
       ),
@@ -341,7 +341,7 @@ export const SpendReport = (props: SpendReportProps) => {
         costPerWorkspace.numWorkspaces > 0 &&
         div(
           {
-            style: { minWidth: 500, marginTop: "1rem" },
+            style: { minWidth: 500, marginTop: '1rem' },
           },
           [
             // Set minWidth so chart will shrink on resize
@@ -349,6 +349,6 @@ export const SpendReport = (props: SpendReportProps) => {
           ]
         ),
     ]),
-    updatingProjectCost && customSpinnerOverlay({ height: "100vh", width: "100vw", position: "fixed" }),
+    updatingProjectCost && customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'fixed' }),
   ]);
 };

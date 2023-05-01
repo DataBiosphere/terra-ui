@@ -1,20 +1,20 @@
-import { Fragment, useCallback, useEffect, useState } from "react";
-import { div, h } from "react-hyperscript-helpers";
-import DirectoryTree from "src/components/file-browser/DirectoryTree";
-import { basename, dirname } from "src/components/file-browser/file-browser-utils";
-import { FileDetails } from "src/components/file-browser/FileDetails";
-import FilesInDirectory from "src/components/file-browser/FilesInDirectory";
-import PathBreadcrumbs from "src/components/file-browser/PathBreadcrumbs";
-import Modal from "src/components/Modal";
-import RequesterPaysModal from "src/components/RequesterPaysModal";
+import { Fragment, useCallback, useEffect, useState } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
+import DirectoryTree from 'src/components/file-browser/DirectoryTree';
+import { basename, dirname } from 'src/components/file-browser/file-browser-utils';
+import { FileDetails } from 'src/components/file-browser/FileDetails';
+import FilesInDirectory from 'src/components/file-browser/FilesInDirectory';
+import PathBreadcrumbs from 'src/components/file-browser/PathBreadcrumbs';
+import Modal from 'src/components/Modal';
+import RequesterPaysModal from 'src/components/RequesterPaysModal';
 import FileBrowserProvider, {
   FileBrowserDirectory,
   FileBrowserFile,
-} from "src/libs/ajax/file-browser-providers/FileBrowserProvider";
-import colors from "src/libs/colors";
-import { dataTableVersionsPathRoot } from "src/libs/data-table-versions";
-import { requesterPaysProjectStore } from "src/libs/state";
-import * as Utils from "src/libs/utils";
+} from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
+import colors from 'src/libs/colors';
+import { dataTableVersionsPathRoot } from 'src/libs/data-table-versions';
+import { requesterPaysProjectStore } from 'src/libs/state';
+import * as Utils from 'src/libs/utils';
 
 interface FileBrowserProps {
   provider: FileBrowserProvider;
@@ -24,7 +24,7 @@ interface FileBrowserProps {
 }
 
 const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps) => {
-  const [path, setPath] = useState("");
+  const [path, setPath] = useState('');
 
   // refreshKey is a hack to make hooks in DirectoryTree and FilesInDirectory reload
   // after selecting a workspace to bill requester pays request to.
@@ -51,7 +51,7 @@ const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps
       path.startsWith(`${dataTableVersionsPathRoot}/`),
       () => ({
         editDisabled: true,
-        editDisabledReason: "This folder is managed by data table versioning and cannot be edited here.",
+        editDisabledReason: 'This folder is managed by data table versioning and cannot be edited here.',
       }),
     ],
     () => ({ editDisabled: false, editDisabledReason: undefined })
@@ -60,14 +60,14 @@ const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps
   const reloadRequests = Utils.subscribable();
 
   return h(Fragment, [
-    div({ style: { display: "flex", height: "100%" } }, [
+    div({ style: { display: 'flex', height: '100%' } }, [
       div(
         {
           style: {
-            display: "flex",
-            flexDirection: "column",
+            display: 'flex',
+            flexDirection: 'column',
             width: 300,
-            height: "100%",
+            height: '100%',
             borderRight: `0.5px solid ${colors.dark(0.2)}`,
           },
         },
@@ -75,7 +75,7 @@ const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps
           div(
             {
               style: {
-                padding: "1rem 0.5rem",
+                padding: '1rem 0.5rem',
                 borderBottom: `0.5px solid ${colors.dark(0.2)}`,
                 backgroundColor: colors.light(0.4),
               },
@@ -85,9 +85,9 @@ const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps
           div(
             {
               style: {
-                flex: "1 0 0",
-                overflow: "hidden auto",
-                background: "#fff",
+                flex: '1 0 0',
+                overflow: 'hidden auto',
+                background: '#fff',
               },
             },
             [
@@ -109,20 +109,20 @@ const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps
       div(
         {
           style: {
-            display: "flex",
-            flexDirection: "column",
-            flex: "1 0 0",
+            display: 'flex',
+            flexDirection: 'column',
+            flex: '1 0 0',
           },
         },
         [
           div(
             {
               style: {
-                display: "flex",
-                flexFlow: "row wrap",
-                alignItems: "center",
-                width: "100%",
-                padding: "0.5rem",
+                display: 'flex',
+                flexFlow: 'row wrap',
+                alignItems: 'center',
+                width: '100%',
+                padding: '0.5rem',
                 borderBottom: `0.5px solid ${colors.dark(0.2)}`,
                 backgroundColor: colors.light(0.4),
               },
@@ -165,7 +165,7 @@ const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps
       h(
         Modal,
         {
-          "aria-label": "File details",
+          'aria-label': 'File details',
           showCancel: false,
           title: basename(focusedFile.path),
           onDismiss: () => setFocusedFile(null),

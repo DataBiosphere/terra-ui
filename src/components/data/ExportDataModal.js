@@ -1,27 +1,27 @@
-import _ from "lodash/fp";
-import { Fragment, useRef, useState } from "react";
-import { b, div, h } from "react-hyperscript-helpers";
-import { ButtonPrimary, spinnerOverlay } from "src/components/common";
-import { icon } from "src/components/icons";
-import Modal from "src/components/Modal";
-import { useWorkspaces, WorkspaceSelector } from "src/components/workspace-utils";
-import { Ajax } from "src/libs/ajax";
-import colors from "src/libs/colors";
-import { reportError } from "src/libs/error";
-import Events, { extractWorkspaceDetails } from "src/libs/events";
-import { FormLabel } from "src/libs/forms";
-import * as Nav from "src/libs/nav";
-import * as Style from "src/libs/style";
-import * as Utils from "src/libs/utils";
-import validate from "validate.js";
+import _ from 'lodash/fp';
+import { Fragment, useRef, useState } from 'react';
+import { b, div, h } from 'react-hyperscript-helpers';
+import { ButtonPrimary, spinnerOverlay } from 'src/components/common';
+import { icon } from 'src/components/icons';
+import Modal from 'src/components/Modal';
+import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils';
+import { Ajax } from 'src/libs/ajax';
+import colors from 'src/libs/colors';
+import { reportError } from 'src/libs/error';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { FormLabel } from 'src/libs/forms';
+import * as Nav from 'src/libs/nav';
+import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
+import validate from 'validate.js';
 
 const InfoTile = ({ isError = false, content }) => {
   const [style, shape, color] = isError
-    ? [Style.errorStyle, "error-standard", colors.danger()]
-    : [Style.warningStyle, "warning-standard", colors.warning()];
+    ? [Style.errorStyle, 'error-standard', colors.danger()]
+    : [Style.warningStyle, 'warning-standard', colors.warning()];
 
-  return div({ style: { ...style, display: "flex", alignItems: "center" } }, [
-    icon(shape, { size: 36, style: { color, flex: "none", marginRight: "0.5rem" } }),
+  return div({ style: { ...style, display: 'flex', alignItems: 'center' } }, [
+    icon(shape, { size: 36, style: { color, flex: 'none', marginRight: '0.5rem' } }),
     content,
   ]);
 };
@@ -33,7 +33,7 @@ const displayEntities = (entities, runningSubmissionsCount, showType) => {
         {
           style: {
             borderTop: i === 0 && runningSubmissionsCount === 0 ? undefined : Style.standardLine,
-            padding: "0.6rem 1.25rem",
+            padding: '0.6rem 1.25rem',
             ...Style.noWrapEllipsis,
           },
         },
@@ -74,7 +74,7 @@ const ExportDataModal = ({ onDismiss, selectedDataType, selectedEntities, runnin
             setCopying(false);
             return;
           default:
-            await reportError("Error deleting data entries", error);
+            await reportError('Error deleting data entries', error);
             onDismiss();
         }
       }
@@ -92,10 +92,10 @@ const ExportDataModal = ({ onDismiss, selectedDataType, selectedEntities, runnin
           setHardConflicts(hardConflicts);
           setSoftConflicts(softConflicts);
           setCopying(false);
-          scollableRef.current.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+          scollableRef.current.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
           break;
         default:
-          await reportError("Error copying data entries", error);
+          await reportError('Error copying data entries', error);
           onDismiss();
       }
     }
@@ -109,15 +109,15 @@ const ExportDataModal = ({ onDismiss, selectedDataType, selectedEntities, runnin
       Modal,
       {
         onDismiss,
-        title: "Export Data to Workspace",
+        title: 'Export Data to Workspace',
         okButton: h(
           ButtonPrimary,
           {
-            tooltip: hardConflicts.length ? "Are you sure you want to override existing data?" : Utils.summarizeErrors(errors),
+            tooltip: hardConflicts.length ? 'Are you sure you want to override existing data?' : Utils.summarizeErrors(errors),
             disabled: !!errors || copying,
             onClick: copy,
           },
-          ["Copy"]
+          ['Copy']
         ),
         overlayRef: (node) => {
           scollableRef.current = node;
@@ -128,11 +128,11 @@ const ExportDataModal = ({ onDismiss, selectedDataType, selectedEntities, runnin
           InfoTile({
             content:
               `WARNING: ${runningSubmissionsCount} workflows are currently running in this workspace. ` +
-              "Copying the following data could cause failures if a workflow is using this data.",
+              'Copying the following data could cause failures if a workflow is using this data.',
           }),
         !(!!hardConflicts.length || !!additionalDeletions.length || !!softConflicts.length) &&
           h(Fragment, [
-            h(FormLabel, { required: true }, ["Destination"]),
+            h(FormLabel, { required: true }, ['Destination']),
             h(WorkspaceSelector, {
               workspaces: _.filter(Utils.isValidWsExportTarget(workspace), workspaces),
               value: selectedWorkspaceId,
@@ -143,21 +143,21 @@ const ExportDataModal = ({ onDismiss, selectedDataType, selectedEntities, runnin
           InfoTile({
             isError: true,
             content:
-              "Some of the following data already exists in the selected workspace. Click CANCEL to go back or COPY to override the existing data.",
+              'Some of the following data already exists in the selected workspace. Click CANCEL to go back or COPY to override the existing data.',
           }),
         !!additionalDeletions.length &&
           InfoTile({
-            content: "To override the selected data entries, the following entries that reference the original data will also be deleted.",
+            content: 'To override the selected data entries, the following entries that reference the original data will also be deleted.',
           }),
         !!softConflicts.length &&
           InfoTile({
             content:
-              "The following data is linked to entries which already exist in the selected workspace. You may re-link the following data to the existing entries by clicking COPY.",
+              'The following data is linked to entries which already exist in the selected workspace. You may re-link the following data to the existing entries by clicking COPY.',
           }),
-        h(FormLabel, ["Entries selected"]),
+        h(FormLabel, ['Entries selected']),
         // Size the scroll container to cut off the last row to hint that there's more content to be scrolled into view
         // Row height calculation is font size * line height + padding + border
-        div({ style: { maxHeight: "calc((1em * 1.15 + 1.2rem + 1px) * 10.5)", overflowY: "auto", margin: "0 -1.25rem" } }, [
+        div({ style: { maxHeight: 'calc((1em * 1.15 + 1.2rem + 1px) * 10.5)', overflowY: 'auto', margin: '0 -1.25rem' } }, [
           ...Utils.cond(
             [!!additionalDeletions.length, () => displayEntities(additionalDeletions, runningSubmissionsCount, true)],
             [!!hardConflicts.length, () => displayEntities(hardConflicts, runningSubmissionsCount, true)],
@@ -167,7 +167,7 @@ const ExportDataModal = ({ onDismiss, selectedDataType, selectedEntities, runnin
         ]),
         div(
           {
-            style: { ...Style.warningStyle, textAlign: "right", marginTop: hardConflicts.length ? "1rem" : undefined },
+            style: { ...Style.warningStyle, textAlign: 'right', marginTop: hardConflicts.length ? '1rem' : undefined },
           },
           [`${selectedEntities.length} data entries to be copied.`]
         ),
@@ -182,23 +182,23 @@ const ExportDataModal = ({ onDismiss, selectedDataType, selectedEntities, runnin
     return h(
       Modal,
       {
-        title: "Copy to Workspace",
+        title: 'Copy to Workspace',
         onDismiss,
-        cancelText: "Stay Here",
+        cancelText: 'Stay Here',
         okButton: h(
           ButtonPrimary,
           {
             onClick: () => {
-              Nav.goToPath("workspace-data", {
+              Nav.goToPath('workspace-data', {
                 namespace: selectedWorkspace.namespace,
                 name: selectedWorkspace.name,
               });
             },
           },
-          ["Go to copied data"]
+          ['Go to copied data']
         ),
       },
-      ["Successfully copied data to ", b([selectedWorkspace.name]), ". Do you want to view the copied data?"]
+      ['Successfully copied data to ', b([selectedWorkspace.name]), '. Do you want to view the copied data?']
     );
   };
 

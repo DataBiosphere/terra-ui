@@ -1,6 +1,6 @@
-import _ from "lodash/fp";
-import FocusLock from "react-focus-lock";
-import { h } from "react-hyperscript-helpers";
+import _ from 'lodash/fp';
+import FocusLock from 'react-focus-lock';
+import { h } from 'react-hyperscript-helpers';
 
 // react-focus-lock does not export a type for FocusLock's props, but since FocusLock
 // is a function component, we can get the type from its parameters.
@@ -20,9 +20,9 @@ export const FocusTrapper = (props: FocusTrapperProps) => {
       lockProps: _.merge(
         {
           tabIndex: 0,
-          style: { outline: "none" },
+          style: { outline: 'none' },
           onKeyDown: (e) => {
-            if (e.key === "Escape") {
+            if (e.key === 'Escape') {
               onBreakout();
               e.stopPropagation();
             }

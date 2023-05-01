@@ -1,23 +1,23 @@
-import _ from "lodash/fp";
-import { h } from "react-hyperscript-helpers";
-import colors from "src/libs/colors";
-import { forwardRefWithName } from "src/libs/react-utils";
+import _ from 'lodash/fp';
+import { h } from 'react-hyperscript-helpers';
+import colors from 'src/libs/colors';
+import { forwardRefWithName } from 'src/libs/react-utils';
 
-import { Clickable } from "./Clickable";
+import { Clickable } from './Clickable';
 
-export const Link = forwardRefWithName("Link", ({ disabled, variant, children, baseColor = colors.accent, ...props }, ref) => {
+export const Link = forwardRefWithName('Link', ({ disabled, variant, children, baseColor = colors.accent, ...props }, ref) => {
   return h(
     Clickable,
     _.merge(
       {
         ref,
         style: {
-          color: disabled ? colors.disabled() : baseColor(variant === "light" ? 0.3 : 1),
-          cursor: disabled ? "not-allowed" : "pointer",
+          color: disabled ? colors.disabled() : baseColor(variant === 'light' ? 0.3 : 1),
+          cursor: disabled ? 'not-allowed' : 'pointer',
           fontWeight: 500,
-          display: "inline",
+          display: 'inline',
         },
-        hover: disabled ? undefined : { color: baseColor(variant === "light" ? 0.1 : 0.8) },
+        hover: disabled ? undefined : { color: baseColor(variant === 'light' ? 0.1 : 0.8) },
         disabled,
       },
       props

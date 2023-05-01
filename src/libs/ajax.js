@@ -1,6 +1,6 @@
-import _ from "lodash/fp";
-import * as qs from "qs";
-import { createContext, useContext } from "react";
+import _ from 'lodash/fp';
+import * as qs from 'qs';
+import { createContext, useContext } from 'react';
 import {
   appIdentifier,
   authOpts,
@@ -17,22 +17,22 @@ import {
   fetchRex,
   fetchSam,
   jsonBody,
-} from "src/libs/ajax/ajax-common";
-import { AzureStorage } from "src/libs/ajax/AzureStorage";
-import { Billing } from "src/libs/ajax/Billing";
-import { Catalog } from "src/libs/ajax/Catalog";
-import { Dockstore } from "src/libs/ajax/Dockstore";
-import { GoogleStorage } from "src/libs/ajax/GoogleStorage";
-import { Apps } from "src/libs/ajax/leonardo/Apps";
-import { Disks } from "src/libs/ajax/leonardo/Disks";
-import { Runtimes } from "src/libs/ajax/leonardo/Runtimes";
-import { Metrics } from "src/libs/ajax/Metrics";
-import { SamResources } from "src/libs/ajax/SamResources";
-import { WorkspaceData } from "src/libs/ajax/WorkspaceDataService";
-import { WorkspaceManagerResources } from "src/libs/ajax/WorkspaceManagerResources";
-import { getConfig } from "src/libs/config";
-import { getUser } from "src/libs/state";
-import * as Utils from "src/libs/utils";
+} from 'src/libs/ajax/ajax-common';
+import { AzureStorage } from 'src/libs/ajax/AzureStorage';
+import { Billing } from 'src/libs/ajax/Billing';
+import { Catalog } from 'src/libs/ajax/Catalog';
+import { Dockstore } from 'src/libs/ajax/Dockstore';
+import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
+import { Apps } from 'src/libs/ajax/leonardo/Apps';
+import { Disks } from 'src/libs/ajax/leonardo/Disks';
+import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
+import { Metrics } from 'src/libs/ajax/Metrics';
+import { SamResources } from 'src/libs/ajax/SamResources';
+import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService';
+import { WorkspaceManagerResources } from 'src/libs/ajax/WorkspaceManagerResources';
+import { getConfig } from 'src/libs/config';
+import { getUser } from 'src/libs/state';
+import * as Utils from 'src/libs/utils';
 
 window.ajaxOverrideUtils = {
   mapJsonBody: _.curry((fn, wrappedFetch) => async (...args) => {
@@ -40,14 +40,14 @@ window.ajaxOverrideUtils = {
     return new Response(JSON.stringify(fn(await res.json())), res);
   }),
   makeError: _.curry(({ status, frequency = 1 }, wrappedFetch) => (...args) => {
-    return Math.random() < frequency ? Promise.resolve(new Response("Instrumented error", { status })) : wrappedFetch(...args);
+    return Math.random() < frequency ? Promise.resolve(new Response('Instrumented error', { status })) : wrappedFetch(...args);
   }),
   makeSuccess: (body) => (_wrappedFetch) => () => Promise.resolve(new Response(JSON.stringify(body), { status: 200 })),
 };
 
 const getFirstTimeStamp = Utils.memoizeAsync(
   async (token) => {
-    const res = await fetchRex("firstTimestamps/record", _.mergeAll([authOpts(token), { method: "POST" }]));
+    const res = await fetchRex('firstTimestamps/record', _.mergeAll([authOpts(token), { method: 'POST' }]));
     return res.json();
   },
   { keyFn: (...args) => JSON.stringify(args) }
@@ -66,42 +66,42 @@ const getSnapshotEntityMetadata = Utils.memoizeAsync(
 
 const User = (signal) => ({
   getStatus: async () => {
-    const res = await fetchSam("register/user/v2/self/info", _.mergeAll([authOpts(), { signal }]));
+    const res = await fetchSam('register/user/v2/self/info', _.mergeAll([authOpts(), { signal }]));
     return res.json();
   },
 
   profile: {
     get: async () => {
-      const res = await fetchOrchestration("register/profile", _.merge(authOpts(), { signal }));
+      const res = await fetchOrchestration('register/profile', _.merge(authOpts(), { signal }));
       return res.json();
     },
 
     // We are not calling Thurloe directly because free credits logic was in orchestration
     set: (keysAndValues) => {
       const blankProfile = {
-        firstName: "N/A",
-        lastName: "N/A",
-        title: "N/A",
-        institute: "N/A",
-        institutionalProgram: "N/A",
-        programLocationCity: "N/A",
-        programLocationState: "N/A",
-        programLocationCountry: "N/A",
-        pi: "N/A",
-        nonProfitStatus: "N/A",
+        firstName: 'N/A',
+        lastName: 'N/A',
+        title: 'N/A',
+        institute: 'N/A',
+        institutionalProgram: 'N/A',
+        programLocationCity: 'N/A',
+        programLocationState: 'N/A',
+        programLocationCountry: 'N/A',
+        pi: 'N/A',
+        nonProfitStatus: 'N/A',
       };
       return fetchOrchestration(
-        "register/profile",
-        _.mergeAll([authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { signal, method: "POST" }])
+        'register/profile',
+        _.mergeAll([authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { signal, method: 'POST' }])
       );
     },
 
     setPreferences: (body) => {
-      return fetchOrchestration("api/profile/preferences", _.mergeAll([authOpts(), jsonBody(body), { signal, method: "POST" }]));
+      return fetchOrchestration('api/profile/preferences', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
     },
 
     preferLegacyFirecloud: () => {
-      return fetchOrchestration("api/profile/terra", _.mergeAll([authOpts(), { signal, method: "DELETE" }]));
+      return fetchOrchestration('api/profile/terra', _.mergeAll([authOpts(), { signal, method: 'DELETE' }]));
     },
   },
 
@@ -111,15 +111,15 @@ const User = (signal) => ({
   },
 
   getTos: async () => {
-    const response = await fetchSam("tos/text", _.merge(authOpts(), { signal }));
+    const response = await fetchSam('tos/text', _.merge(authOpts(), { signal }));
     return response.text();
   },
 
   acceptTos: async () => {
     try {
       const response = await fetchSam(
-        "register/user/v1/termsofservice",
-        _.mergeAll([authOpts(), { signal, method: "POST" }, jsonBody("app.terra.bio/#terms-of-service")])
+        'register/user/v1/termsofservice',
+        _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody('app.terra.bio/#terms-of-service')])
       );
       return response.json();
     } catch (error) {
@@ -131,7 +131,7 @@ const User = (signal) => ({
 
   rejectTos: async () => {
     try {
-      const response = await fetchSam("register/user/v1/termsofservice", _.mergeAll([authOpts(), { signal, method: "DELETE" }]));
+      const response = await fetchSam('register/user/v1/termsofservice', _.mergeAll([authOpts(), { signal, method: 'DELETE' }]));
       return response.json();
     } catch (error) {
       if (error.status !== 404) {
@@ -142,7 +142,7 @@ const User = (signal) => ({
 
   getTermsOfServiceComplianceStatus: async () => {
     try {
-      const res = await fetchSam("register/user/v2/self/termsOfServiceComplianceStatus", _.merge(authOpts(), { signal }));
+      const res = await fetchSam('register/user/v2/self/termsOfServiceComplianceStatus', _.merge(authOpts(), { signal }));
       return res.json();
     } catch (error) {
       if (error.status === 404 || error.status === 403) {
@@ -153,7 +153,7 @@ const User = (signal) => ({
   },
 
   getPrivacyPolicy: async () => {
-    const response = await fetchSam("privacy/text", _.merge(authOpts(), { signal }));
+    const response = await fetchSam('privacy/text', _.merge(authOpts(), { signal }));
     return response.text();
   },
 
@@ -164,9 +164,9 @@ const User = (signal) => ({
   // 4. Reply externally (ask one of the Comms team with Full Agent access) and make sure you receive an email
   createSupportRequest: ({ name, email, currUrl, subject, type, description, attachmentToken, emailAgreed, clinicalUser }) => {
     return fetchOk(
-      "https://support.terra.bio/api/v2/requests.json",
+      'https://support.terra.bio/api/v2/requests.json',
       _.merge(
-        { signal, method: "POST" },
+        { signal, method: 'POST' },
         jsonBody({
           request: {
             requester: { name, email },
@@ -192,10 +192,10 @@ const User = (signal) => ({
 
   uploadAttachment: async (file) => {
     const res = await fetchOk(`https://support.terra.bio/api/v2/uploads?filename=${file.name}`, {
-      method: "POST",
+      method: 'POST',
       body: file,
       headers: {
-        "Content-Type": "application/binary",
+        'Content-Type': 'application/binary',
       },
     });
     return (await res.json()).upload;
@@ -207,18 +207,18 @@ const User = (signal) => ({
 
   // UX is testing using AppCues. If experiment is successful, all NpsSurvey code can be deleted.
   lastNpsResponse: async () => {
-    const res = await fetchRex("npsResponses/lastTimestamp", _.merge(authOpts(), { signal }));
+    const res = await fetchRex('npsResponses/lastTimestamp', _.merge(authOpts(), { signal }));
     return res.json();
   },
 
   // UX is testing using AppCues. If experiment is successful, all NpsSurvey code can be deleted.
   postNpsResponse: (body) => {
-    return fetchRex("npsResponses/create", _.mergeAll([authOpts(), jsonBody(body), { signal, method: "POST" }]));
+    return fetchRex('npsResponses/create', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
   },
 
   getNihStatus: async () => {
     try {
-      const res = await fetchOrchestration("api/nih/status", _.merge(authOpts(), { signal }));
+      const res = await fetchOrchestration('api/nih/status', _.merge(authOpts(), { signal }));
       return res.json();
     } catch (error) {
       if (error.status === 404) {
@@ -229,12 +229,12 @@ const User = (signal) => ({
   },
 
   linkNihAccount: async (token) => {
-    const res = await fetchOrchestration("api/nih/callback", _.mergeAll([authOpts(), jsonBody({ jwt: token }), { signal, method: "POST" }]));
+    const res = await fetchOrchestration('api/nih/callback', _.mergeAll([authOpts(), jsonBody({ jwt: token }), { signal, method: 'POST' }]));
     return res.json();
   },
 
   unlinkNihAccount: async () => {
-    await fetchOrchestration("api/nih/account", _.mergeAll([authOpts(), { signal, method: "DELETE" }]));
+    await fetchOrchestration('api/nih/account', _.mergeAll([authOpts(), { signal, method: 'DELETE' }]));
   },
 
   getFenceStatus: async (provider) => {
@@ -251,7 +251,7 @@ const User = (signal) => ({
 
   getFenceAuthUrl: async (provider, redirectUri) => {
     const queryParams = {
-      scopes: ["openid", "google_credentials", "data", "user"],
+      scopes: ['openid', 'google_credentials', 'data', 'user'],
       redirect_uri: redirectUri,
       state: btoa(JSON.stringify({ provider })),
     };
@@ -268,19 +268,19 @@ const User = (signal) => ({
       redirect_uri: redirectUri,
       state,
     };
-    const res = await fetchBond(`api/link/v1/${provider}/oauthcode?${qs.stringify(queryParams)}`, _.merge(authOpts(), { signal, method: "POST" }));
+    const res = await fetchBond(`api/link/v1/${provider}/oauthcode?${qs.stringify(queryParams)}`, _.merge(authOpts(), { signal, method: 'POST' }));
     return res.json();
   },
 
   unlinkFenceAccount: (provider) => {
-    return fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal, method: "DELETE" }));
+    return fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal, method: 'DELETE' }));
   },
 
   externalAccount: (provider) => {
     const root = `api/oidc/v1/${provider}`;
     const queryParams = {
-      scopes: ["openid", "email", "ga4gh_passport_v1"],
-      redirectUri: `${window.location.hostname === "localhost" ? getConfig().devUrlRoot : window.location.origin}/ecm-callback`,
+      scopes: ['openid', 'email', 'ga4gh_passport_v1'],
+      redirectUri: `${window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin}/ecm-callback`,
     };
 
     return {
@@ -309,20 +309,20 @@ const User = (signal) => ({
       linkAccount: async (oauthcode, state) => {
         const res = await fetchEcm(
           `${root}/oauthcode?${qs.stringify({ ...queryParams, oauthcode, state }, { indices: false })}`,
-          _.merge(authOpts(), { signal, method: "POST" })
+          _.merge(authOpts(), { signal, method: 'POST' })
         );
         return res.json();
       },
 
       unlink: () => {
-        return fetchEcm(root, _.merge(authOpts(), { signal, method: "DELETE" }));
+        return fetchEcm(root, _.merge(authOpts(), { signal, method: 'DELETE' }));
       },
     };
   },
 
   isUserRegistered: async (email) => {
     try {
-      await fetchSam(`api/users/v1/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: "GET" }));
+      await fetchSam(`api/users/v1/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'GET' }));
     } catch (error) {
       if (error.status === 404) {
         return false;
@@ -333,13 +333,13 @@ const User = (signal) => ({
   },
 
   inviteUser: (email) => {
-    return fetchSam(`api/users/v1/invite/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: "POST" }));
+    return fetchSam(`api/users/v1/invite/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'POST' }));
   },
 });
 
 const Groups = (signal) => ({
   list: async () => {
-    const res = await fetchSam("api/groups/v1", _.merge(authOpts(), { signal }));
+    const res = await fetchSam('api/groups/v1', _.merge(authOpts(), { signal }));
     return res.json();
   },
 
@@ -348,20 +348,20 @@ const Groups = (signal) => ({
     const resourceRoot = `api/resources/v1/managed-group/${groupName}`;
 
     const addRole = (role, email) => {
-      return fetchSam(`${root}/${role}/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: "PUT" }));
+      return fetchSam(`${root}/${role}/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'PUT' }));
     };
 
     const removeRole = (role, email) => {
-      return fetchSam(`${root}/${role}/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: "DELETE" }));
+      return fetchSam(`${root}/${role}/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'DELETE' }));
     };
 
     return {
       create: () => {
-        return fetchSam(root, _.merge(authOpts(), { signal, method: "POST" }));
+        return fetchSam(root, _.merge(authOpts(), { signal, method: 'POST' }));
       },
 
       delete: () => {
-        return fetchSam(root, _.merge(authOpts(), { signal, method: "DELETE" }));
+        return fetchSam(root, _.merge(authOpts(), { signal, method: 'DELETE' }));
       },
 
       listAdmins: async () => {
@@ -390,7 +390,7 @@ const Groups = (signal) => ({
       },
 
       requestAccess: async () => {
-        await fetchSam(`${root}/requestAccess`, _.merge(authOpts(), { signal, method: "POST" }));
+        await fetchSam(`${root}/requestAccess`, _.merge(authOpts(), { signal, method: 'POST' }));
       },
 
       getPolicy: async (policyName) => {
@@ -399,7 +399,7 @@ const Groups = (signal) => ({
       },
 
       setPolicy: (policyName, value) => {
-        return fetchSam(`${resourceRoot}/policies/${policyName}/public`, _.mergeAll([authOpts(), { signal, method: "PUT" }, jsonBody(value)]));
+        return fetchSam(`${resourceRoot}/policies/${policyName}/public`, _.mergeAll([authOpts(), { signal, method: 'PUT' }, jsonBody(value)]));
       },
 
       isMember: async () => {
@@ -415,13 +415,13 @@ const attributesUpdateOps = _.flow(
   _.flatMap(([k, v]) => {
     return _.isArray(v)
       ? [
-          { op: "RemoveAttribute", attributeName: k },
+          { op: 'RemoveAttribute', attributeName: k },
           ...(_.isObject(v[0])
-            ? [{ op: "CreateAttributeEntityReferenceList", attributeListName: k }]
-            : [{ op: "CreateAttributeValueList", attributeName: k }]),
-          ..._.map((x) => ({ op: "AddListMember", attributeListName: k, newMember: x }), v),
+            ? [{ op: 'CreateAttributeEntityReferenceList', attributeListName: k }]
+            : [{ op: 'CreateAttributeValueList', attributeName: k }]),
+          ..._.map((x) => ({ op: 'AddListMember', attributeListName: k, newMember: x }), v),
         ]
-      : [{ op: "AddUpdateAttribute", attributeName: k, addUpdateAttribute: v }];
+      : [{ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }];
   })
 );
 
@@ -444,7 +444,7 @@ const CromIAM = (signal) => ({
 
   workflowMetadata: async (workflowId, includeKey, excludeKey) => {
     const res = await fetchOrchestration(
-      `api/workflows/v1/${workflowId}/metadata?${qs.stringify({ includeKey, excludeKey }, { arrayFormat: "repeat" })}`,
+      `api/workflows/v1/${workflowId}/metadata?${qs.stringify({ includeKey, excludeKey }, { arrayFormat: 'repeat' })}`,
       _.merge(authOpts(), { signal })
     );
     return res.json();
@@ -453,17 +453,17 @@ const CromIAM = (signal) => ({
 
 const Workspaces = (signal) => ({
   list: async (fields) => {
-    const res = await fetchRawls(`workspaces?${qs.stringify({ fields }, { arrayFormat: "comma" })}`, _.merge(authOpts(), { signal }));
+    const res = await fetchRawls(`workspaces?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`, _.merge(authOpts(), { signal }));
     return res.json();
   },
 
   create: async (body) => {
-    const res = await fetchRawls("workspaces", _.mergeAll([authOpts(), jsonBody(body), { signal, method: "POST" }]));
+    const res = await fetchRawls('workspaces', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
     return res.json();
   },
 
   getShareLog: async () => {
-    const res = await fetchOrchestration("api/sharelog/sharees?shareType=workspace", _.merge(authOpts(), { signal }));
+    const res = await fetchOrchestration('api/sharelog/sharees?shareType=workspace', _.merge(authOpts(), { signal }));
     return res.json();
   },
 
@@ -490,7 +490,7 @@ const Workspaces = (signal) => ({
       checkBucketLocation: GoogleStorage(signal).checkBucketLocation,
 
       details: async (fields) => {
-        const res = await fetchRawls(`${root}?${qs.stringify({ fields }, { arrayFormat: "comma" })}`, _.merge(authOpts(), { signal }));
+        const res = await fetchRawls(`${root}?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`, _.merge(authOpts(), { signal }));
         return res.json();
       },
 
@@ -502,17 +502,17 @@ const Workspaces = (signal) => ({
       updateAcl: async (aclUpdates, inviteNew = true) => {
         const res = await fetchOrchestration(
           `api/${root}/acl?inviteUsersNotFound=${inviteNew}`,
-          _.mergeAll([authOpts(), jsonBody(aclUpdates), { signal, method: "PATCH" }])
+          _.mergeAll([authOpts(), jsonBody(aclUpdates), { signal, method: 'PATCH' }])
         );
         return res.json();
       },
 
       lock: async () => {
-        return await fetchRawls(`${root}/lock`, _.merge(authOpts(), { signal, method: "PUT" }));
+        return await fetchRawls(`${root}/lock`, _.merge(authOpts(), { signal, method: 'PUT' }));
       },
 
       unlock: async () => {
-        return await fetchRawls(`${root}/unlock`, _.merge(authOpts(), { signal, method: "PUT" }));
+        return await fetchRawls(`${root}/unlock`, _.merge(authOpts(), { signal, method: 'PUT' }));
       },
 
       listMethodConfigs: async (allRepos = true) => {
@@ -521,7 +521,7 @@ const Workspaces = (signal) => ({
       },
 
       importMethodConfigFromDocker: (payload) => {
-        return fetchRawls(mcPath, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: "POST" }]));
+        return fetchRawls(mcPath, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]));
       },
 
       methodConfig: (configNamespace, configName) => {
@@ -534,7 +534,7 @@ const Workspaces = (signal) => ({
           },
 
           save: async (payload) => {
-            const res = await fetchRawls(path, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: "POST" }]));
+            const res = await fetchRawls(path, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]));
             return res.json();
           },
 
@@ -543,7 +543,7 @@ const Workspaces = (signal) => ({
               source: { namespace: configNamespace, name: configName, workspaceName: { namespace, name } },
               destination: { namespace: destConfigNamespace, name: destConfigName, workspaceName },
             };
-            const res = await fetchRawls("methodconfigs/copy", _.mergeAll([authOpts(), jsonBody(payload), { signal, method: "POST" }]));
+            const res = await fetchRawls('methodconfigs/copy', _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]));
             return res.json();
           },
 
@@ -562,14 +562,14 @@ const Workspaces = (signal) => ({
                   methodConfigurationNamespace: configNamespace,
                   methodConfigurationName: configName,
                 }),
-                { signal, method: "POST" },
+                { signal, method: 'POST' },
               ])
             );
             return res.json();
           },
 
           delete: () => {
-            return fetchRawls(path, _.merge(authOpts(), { signal, method: "DELETE" }));
+            return fetchRawls(path, _.merge(authOpts(), { signal, method: 'DELETE' }));
           },
         };
       },
@@ -583,7 +583,7 @@ const Workspaces = (signal) => ({
         const res = await fetchRawls(`${root}/snapshots/v2?offset=${offset}&limit=${limit}`, _.merge(authOpts(), { signal }));
         // The list snapshots endpoint returns a "snapshot" field that should really be named "snapshotId". Ideally, this should be fixed in the
         // backend, but we've sequestered it here for now.
-        return _.update("gcpDataRepoSnapshots", _.map(_.update("attributes", (a) => ({ ...a, snapshotId: a.snapshot }))), await res.json());
+        return _.update('gcpDataRepoSnapshots', _.map(_.update('attributes', (a) => ({ ...a, snapshotId: a.snapshot }))), await res.json());
       },
 
       snapshot: (snapshotId) => {
@@ -596,11 +596,11 @@ const Workspaces = (signal) => ({
           },
 
           update: (updateInfo) => {
-            return fetchRawls(snapshotPath, _.mergeAll([authOpts(), jsonBody(updateInfo), { signal, method: "PATCH" }]));
+            return fetchRawls(snapshotPath, _.mergeAll([authOpts(), jsonBody(updateInfo), { signal, method: 'PATCH' }]));
           },
 
           delete: () => {
-            return fetchRawls(snapshotPath, _.merge(authOpts(), { signal, method: "DELETE" }));
+            return fetchRawls(snapshotPath, _.merge(authOpts(), { signal, method: 'DELETE' }));
           },
         };
       },
@@ -620,12 +620,12 @@ const Workspaces = (signal) => ({
           },
 
           abort: () => {
-            return fetchRawls(submissionPath, _.merge(authOpts(), { signal, method: "DELETE" }));
+            return fetchRawls(submissionPath, _.merge(authOpts(), { signal, method: 'DELETE' }));
           },
 
           updateUserComment: (userComment) => {
             const payload = { userComment };
-            return fetchRawls(submissionPath, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: "PATCH" }]));
+            return fetchRawls(submissionPath, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]));
           },
 
           // NB: This could one day perhaps redirect to CromIAM's 'workflow' like:
@@ -640,7 +640,7 @@ const Workspaces = (signal) => ({
                       includeKey,
                       excludeKey,
                     },
-                    { arrayFormat: "repeat" }
+                    { arrayFormat: 'repeat' }
                   )}`,
                   _.merge(authOpts(), { signal })
                 );
@@ -654,22 +654,22 @@ const Workspaces = (signal) => ({
       },
 
       delete: () => {
-        return fetchRawls(root, _.merge(authOpts(), { signal, method: "DELETE" }));
+        return fetchRawls(root, _.merge(authOpts(), { signal, method: 'DELETE' }));
       },
 
       clone: async (body) => {
-        const res = await fetchRawls(`${root}/clone`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: "POST" }]));
+        const res = await fetchRawls(`${root}/clone`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
         return res.json();
       },
 
       shallowMergeNewAttributes: (attributesObject) => {
         const payload = attributesUpdateOps(attributesObject);
-        return fetchRawls(root, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: "PATCH" }]));
+        return fetchRawls(root, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]));
       },
 
       deleteAttributes: (attributeNames) => {
-        const payload = _.map((attributeName) => ({ op: "RemoveAttribute", attributeName }), attributeNames);
-        return fetchRawls(root, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: "PATCH" }]));
+        const payload = _.map((attributeName) => ({ op: 'RemoveAttribute', attributeName }), attributeNames);
+        return fetchRawls(root, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]));
       },
 
       entityMetadata: async () => {
@@ -682,31 +682,31 @@ const Workspaces = (signal) => ({
       },
 
       createEntity: async (payload) => {
-        const res = await fetchRawls(`${root}/entities`, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: "POST" }]));
+        const res = await fetchRawls(`${root}/entities`, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]));
         return res.json();
       },
 
       renameEntity: (type, name, newName) => {
         return fetchRawls(
           `${root}/entities/${type}/${name}/rename`,
-          _.mergeAll([authOpts(), jsonBody({ name: newName }), { signal, method: "POST" }])
+          _.mergeAll([authOpts(), jsonBody({ name: newName }), { signal, method: 'POST' }])
         );
       },
 
       renameEntityType: (oldName, newName) => {
         const payload = { newName };
 
-        return fetchRawls(`${root}/entityTypes/${oldName}`, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: "PATCH" }]));
+        return fetchRawls(`${root}/entityTypes/${oldName}`, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]));
       },
 
       deleteEntitiesOfType: (entityType) => {
-        return fetchRawls(`${root}/entityTypes/${entityType}`, _.merge(authOpts(), { signal, method: "DELETE" }));
+        return fetchRawls(`${root}/entityTypes/${entityType}`, _.merge(authOpts(), { signal, method: 'DELETE' }));
       },
 
       deleteEntityAttribute: (type, name, attributeName) => {
         return fetchRawls(
           `${root}/entities/${type}/${name}`,
-          _.mergeAll([authOpts(), jsonBody([{ op: "RemoveAttribute", attributeName }]), { signal, method: "PATCH" }])
+          _.mergeAll([authOpts(), jsonBody([{ op: 'RemoveAttribute', attributeName }]), { signal, method: 'PATCH' }])
         );
       },
 
@@ -715,28 +715,28 @@ const Workspaces = (signal) => ({
           (name) => ({
             entityType,
             name,
-            operations: [{ op: "RemoveAttribute", attributeName }],
+            operations: [{ op: 'RemoveAttribute', attributeName }],
           }),
           entityNames
         );
 
-        return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: "POST" }]));
+        return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
       },
 
       deleteEntityColumn: (type, attributeName) => {
-        return fetchRawls(`${root}/entities/${type}?attributeNames=${attributeName}`, _.mergeAll([authOpts(), { signal, method: "DELETE" }]));
+        return fetchRawls(`${root}/entities/${type}?attributeNames=${attributeName}`, _.mergeAll([authOpts(), { signal, method: 'DELETE' }]));
       },
 
       renameEntityColumn: (type, attributeName, newAttributeName) => {
         const payload = { newAttributeName };
         return fetchRawls(
           `${root}/entityTypes/${type}/attributes/${attributeName}`,
-          _.mergeAll([authOpts(), jsonBody(payload), { signal, method: "PATCH" }])
+          _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }])
         );
       },
 
       upsertEntities: (entityUpdates) => {
-        return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(entityUpdates), { signal, method: "POST" }]));
+        return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(entityUpdates), { signal, method: 'POST' }]));
       },
 
       paginatedEntitiesOfType: async (type, parameters) => {
@@ -745,7 +745,7 @@ const Workspaces = (signal) => ({
       },
 
       deleteEntities: (entities) => {
-        return fetchRawls(`${root}/entities/delete`, _.mergeAll([authOpts(), jsonBody(entities), { signal, method: "POST" }]));
+        return fetchRawls(`${root}/entities/delete`, _.mergeAll([authOpts(), jsonBody(entities), { signal, method: 'POST' }]));
       },
 
       getEntities: (entityType) => fetchRawls(`${root}/entities/${entityType}`, _.merge(authOpts(), { signal })).then((r) => r.json()),
@@ -765,7 +765,7 @@ const Workspaces = (signal) => ({
         };
         const res = await fetchRawls(
           `workspaces/entities/copy?linkExistingEntities=${link}`,
-          _.mergeAll([authOpts(), jsonBody(payload), { signal, method: "POST" }])
+          _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }])
         );
         return res.json();
       },
@@ -773,7 +773,7 @@ const Workspaces = (signal) => ({
       importBagit: (bagitURL) => {
         return fetchOrchestration(
           `api/workspaces/${namespace}/${name}/importBagit`,
-          _.mergeAll([authOpts(), jsonBody({ bagitURL, format: "TSV" }), { signal, method: "POST" }])
+          _.mergeAll([authOpts(), jsonBody({ bagitURL, format: 'TSV' }), { signal, method: 'POST' }])
         );
       },
 
@@ -785,34 +785,34 @@ const Workspaces = (signal) => ({
           return { name, entityType, operations: attributesUpdateOps(attributes) };
         }, payload);
 
-        return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: "POST" }]));
+        return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
       },
 
       importEntitiesFile: (file, { deleteEmptyValues = false } = {}) => {
         const formData = new FormData();
-        formData.set("entities", file);
+        formData.set('entities', file);
         return fetchOrchestration(
           `api/${root}/importEntities?${qs.stringify({ deleteEmptyValues })}`,
-          _.merge(authOpts(), { body: formData, signal, method: "POST" })
+          _.merge(authOpts(), { body: formData, signal, method: 'POST' })
         );
       },
 
       importFlexibleEntitiesFileSynchronous: async (file, { deleteEmptyValues = false } = {}) => {
         const formData = new FormData();
-        formData.set("entities", file);
+        formData.set('entities', file);
         const res = await fetchOrchestration(
           `api/${root}/flexibleImportEntities?${qs.stringify({ deleteEmptyValues, async: false })}`,
-          _.merge(authOpts(), { body: formData, signal, method: "POST" })
+          _.merge(authOpts(), { body: formData, signal, method: 'POST' })
         );
         return res;
       },
 
       importFlexibleEntitiesFileAsync: async (file, { deleteEmptyValues = false } = {}) => {
         const formData = new FormData();
-        formData.set("entities", file);
+        formData.set('entities', file);
         const res = await fetchOrchestration(
           `api/${root}/flexibleImportEntities?${qs.stringify({ deleteEmptyValues, async: true })}`,
-          _.merge(authOpts(), { body: formData, signal, method: "POST" })
+          _.merge(authOpts(), { body: formData, signal, method: 'POST' })
         );
         return res.json();
       },
@@ -820,7 +820,7 @@ const Workspaces = (signal) => ({
       importJob: async (url, filetype, options) => {
         const res = await fetchOrchestration(
           `api/${root}/importJob`,
-          _.mergeAll([authOpts(), jsonBody({ url, filetype, options }), { signal, method: "POST" }])
+          _.mergeAll([authOpts(), jsonBody({ url, filetype, options }), { signal, method: 'POST' }])
         );
         return res.json();
       },
@@ -839,15 +839,15 @@ const Workspaces = (signal) => ({
       importSnapshot: async (snapshotId, name, description) => {
         const res = await fetchRawls(
           `${root}/snapshots/v2`,
-          _.mergeAll([authOpts(), jsonBody({ snapshotId, name, description }), { signal, method: "POST" }])
+          _.mergeAll([authOpts(), jsonBody({ snapshotId, name, description }), { signal, method: 'POST' }])
         );
         return res.json();
       },
 
       importAttributes: (file) => {
         const formData = new FormData();
-        formData.set("attributes", file);
-        return fetchOrchestration(`api/${root}/importAttributesTSV`, _.merge(authOpts(), { body: formData, signal, method: "POST" }));
+        formData.set('attributes', file);
+        return fetchOrchestration(`api/${root}/importAttributesTSV`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }));
       },
 
       exportAttributes: async () => {
@@ -861,14 +861,14 @@ const Workspaces = (signal) => ({
       },
 
       getTags: async () => {
-        const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/tags`, _.merge(authOpts(), { signal, method: "GET" }));
+        const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/tags`, _.merge(authOpts(), { signal, method: 'GET' }));
         return res.json();
       },
 
       addTag: async (tag) => {
         const res = await fetchOrchestration(
           `api/workspaces/${namespace}/${name}/tags`,
-          _.mergeAll([authOpts(), jsonBody([tag]), { signal, method: "PATCH" }])
+          _.mergeAll([authOpts(), jsonBody([tag]), { signal, method: 'PATCH' }])
         );
         return res.json();
       },
@@ -876,7 +876,7 @@ const Workspaces = (signal) => ({
       deleteTag: async (tag) => {
         const res = await fetchOrchestration(
           `api/workspaces/${namespace}/${name}/tags`,
-          _.mergeAll([authOpts(), jsonBody([tag]), { signal, method: "DELETE" }])
+          _.mergeAll([authOpts(), jsonBody([tag]), { signal, method: 'DELETE' }])
         );
         return res.json();
       },
@@ -966,20 +966,20 @@ const Methods = (signal) => ({
   },
 
   definitions: async () => {
-    const res = await fetchAgora("methods/definitions", _.merge(authOpts(), { signal }));
+    const res = await fetchAgora('methods/definitions', _.merge(authOpts(), { signal }));
     return res.json();
   },
 
   configInputsOutputs: async (loadedConfig) => {
     const res = await fetchRawls(
-      "methodconfigs/inputsOutputs",
-      _.mergeAll([authOpts(), jsonBody(loadedConfig.methodRepoMethod), { signal, method: "POST" }])
+      'methodconfigs/inputsOutputs',
+      _.mergeAll([authOpts(), jsonBody(loadedConfig.methodRepoMethod), { signal, method: 'POST' }])
     );
     return res.json();
   },
 
   template: async (modifiedConfigMethod) => {
-    const res = await fetchRawls("methodconfigs/template", _.mergeAll([authOpts(), jsonBody(modifiedConfigMethod), { signal, method: "POST" }]));
+    const res = await fetchRawls('methodconfigs/template', _.mergeAll([authOpts(), jsonBody(modifiedConfigMethod), { signal, method: 'POST' }]));
     return res.json();
   },
 
@@ -1015,7 +1015,7 @@ const Methods = (signal) => ({
                   },
                   name,
                   namespace,
-                  rootEntityType: "",
+                  rootEntityType: '',
                   prerequisites: {},
                   inputs: {},
                   outputs: {},
@@ -1025,7 +1025,7 @@ const Methods = (signal) => ({
                 config.payloadObject
               )
             ),
-            { signal, method: "POST" },
+            { signal, method: 'POST' },
           ])
         );
         return res.json();
@@ -1036,7 +1036,7 @@ const Methods = (signal) => ({
 
 const Submissions = (signal) => ({
   queueStatus: async () => {
-    const res = await fetchRawls("submissions/queueStatus", _.merge(authOpts(), { signal }));
+    const res = await fetchRawls('submissions/queueStatus', _.merge(authOpts(), { signal }));
     return res.json();
   },
 });
@@ -1047,8 +1047,8 @@ const DrsUriResolver = (signal) => ({
   // Currently only Martha and not DRSHub can get a signed URL
   getSignedUrl: async ({ bucket, object, dataObjectUri }) => {
     const res = await fetchMartha(
-      "getSignedUrlV1",
-      _.mergeAll([jsonBody({ bucket, object, dataObjectUri }), authOpts(), appIdentifier, { signal, method: "POST" }])
+      'getSignedUrlV1',
+      _.mergeAll([jsonBody({ bucket, object, dataObjectUri }), authOpts(), appIdentifier, { signal, method: 'POST' }])
     );
     return res.json();
   },
@@ -1056,12 +1056,12 @@ const DrsUriResolver = (signal) => ({
   getDataObjectMetadata: async (url, fields) => {
     if (shouldUseDrsHub) {
       const res = await fetchDrsHub(
-        "/api/v4/drs/resolve",
-        _.mergeAll([jsonBody({ url, fields }), authOpts(), appIdentifier, { signal, method: "POST" }])
+        '/api/v4/drs/resolve',
+        _.mergeAll([jsonBody({ url, fields }), authOpts(), appIdentifier, { signal, method: 'POST' }])
       );
       return res.json();
     }
-    const res = await fetchMartha("martha_v3", _.mergeAll([jsonBody({ url, fields }), authOpts(), appIdentifier, { signal, method: "POST" }]));
+    const res = await fetchMartha('martha_v3', _.mergeAll([jsonBody({ url, fields }), authOpts(), appIdentifier, { signal, method: 'POST' }]));
     return res.json();
   },
 });
@@ -1075,7 +1075,7 @@ const Duos = (signal) => ({
 
 const OAuth2 = (signal) => ({
   getConfiguration: async () => {
-    const res = await fetchOrchestration("/oauth2/configuration", _.merge(authOpts(), { signal }));
+    const res = await fetchOrchestration('/oauth2/configuration', _.merge(authOpts(), { signal }));
     return res.json();
   },
 });

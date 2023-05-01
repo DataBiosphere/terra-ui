@@ -1,6 +1,6 @@
-import _ from "lodash/fp";
-import { Children, useCallback, useEffect, useRef } from "react";
-import { div, h } from "react-hyperscript-helpers";
+import _ from 'lodash/fp';
+import { Children, useCallback, useEffect, useRef } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
 import RSelect, {
   components as RSelectComponents,
   GroupBase as RSelectGroupBase,
@@ -8,12 +8,12 @@ import RSelect, {
   Props as RSelectProps,
   PropsValue as RSelectPropsValue,
   SingleValue as RSelectSingleValue,
-} from "react-select";
-import RAsyncCreatableSelect from "react-select/async-creatable";
-import { AutoSizer, List } from "react-virtualized";
-import { icon } from "src/components/icons";
-import colors from "src/libs/colors";
-import { useLabelAssert, useOnMount, useUniqueId } from "src/libs/react-utils";
+} from 'react-select';
+import RAsyncCreatableSelect from 'react-select/async-creatable';
+import { AutoSizer, List } from 'react-virtualized';
+import { icon } from 'src/components/icons';
+import colors from 'src/libs/colors';
+import { useLabelAssert, useOnMount, useUniqueId } from 'src/libs/react-utils';
 
 const commonSelectProps: Partial<RSelectProps> = {
   theme: (base) =>
@@ -28,23 +28,23 @@ const commonSelectProps: Partial<RSelectProps> = {
   styles: {
     control: (base, { isDisabled }) =>
       _.merge(base, {
-        backgroundColor: isDisabled ? colors.dark(0.25) : "white",
-        boxShadow: "none",
+        backgroundColor: isDisabled ? colors.dark(0.25) : 'white',
+        boxShadow: 'none',
       }),
     singleValue: (base) => ({ ...base, color: colors.dark() }),
     option: (base, { isSelected, isFocused, isDisabled }) =>
       _.merge(base, {
         fontWeight: isSelected ? 600 : undefined,
-        backgroundColor: isFocused ? colors.dark(0.15) : "white",
+        backgroundColor: isFocused ? colors.dark(0.15) : 'white',
         color: isDisabled ? undefined : colors.dark(),
-        ":active": { backgroundColor: colors.accent(isSelected ? 0.55 : 0.4) },
+        ':active': { backgroundColor: colors.accent(isSelected ? 0.55 : 0.4) },
       }),
     clearIndicator: (base) => ({ ...base, paddingRight: 0 }),
-    indicatorSeparator: () => ({ display: "none" }),
+    indicatorSeparator: () => ({ display: 'none' }),
     dropdownIndicator: (base, { selectProps: { isClearable } }) =>
       _.merge(base, { paddingLeft: isClearable ? 0 : undefined }),
-    multiValueLabel: (base) => ({ ...base, maxWidth: "100%" }),
-    multiValueRemove: (base) => _.merge(base, { ":hover": { backgroundColor: "unset" } }),
+    multiValueLabel: (base) => ({ ...base, maxWidth: '100%' }),
+    multiValueRemove: (base) => _.merge(base, { ':hover': { backgroundColor: 'unset' } }),
     placeholder: (base) => ({ ...base, color: colors.dark(0.8) }),
   },
   components: {
@@ -54,15 +54,15 @@ const commonSelectProps: Partial<RSelectProps> = {
         _.merge(props, {
           selectProps,
           innerProps: {
-            role: "option",
-            "aria-selected": props.isSelected,
+            role: 'option',
+            'aria-selected': props.isSelected,
           },
         }),
         [
-          div({ style: { display: "flex", alignItems: "center", minHeight: 25 } }, [
-            div({ style: { flex: 1, minWidth: 0, overflowWrap: "break-word" } }, [children]),
+          div({ style: { display: 'flex', alignItems: 'center', minHeight: 25 } }, [
+            div({ style: { flex: 1, minWidth: 0, overflowWrap: 'break-word' } }, [children]),
             props.isSelected &&
-              icon("check", { size: 14, style: { flex: "none", marginLeft: "0.5rem", color: colors.dark(0.5) } }),
+              icon('check', { size: 14, style: { flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) } }),
           ]),
         ]
       ),
@@ -72,9 +72,9 @@ const commonSelectProps: Partial<RSelectProps> = {
         _.merge(props, {
           selectProps,
           innerProps: {
-            role: "listbox",
-            "aria-label": "Options",
-            "aria-multiselectable": selectProps.isMulti,
+            role: 'listbox',
+            'aria-label': 'Options',
+            'aria-multiselectable': selectProps.isMulti,
           },
         }),
         [children]
@@ -101,7 +101,7 @@ type BaseSelectProps<
   Option extends { value: Value; label?: string | undefined },
   IsMulti extends boolean,
   Group extends RSelectGroupBase<Option>
-> = Omit<RSelectProps<Option, IsMulti, Group>, "getOptionLabel" | "value"> & {
+> = Omit<RSelectProps<Option, IsMulti, Group>, 'getOptionLabel' | 'value'> & {
   findValue: (value: Value) => Option | null;
   // react-select requires getOptionLabel. We provide a default, so it's optional.
   getOptionLabel?: (option: Option) => string;
@@ -159,7 +159,7 @@ export type SelectProps<
   Value,
   IsMulti extends boolean,
   Option extends { value: Value; label?: string | undefined }
-> = Omit<BaseSelectProps<Value, Option, IsMulti, never>, "findValue" | "options"> & {
+> = Omit<BaseSelectProps<Value, Option, IsMulti, never>, 'findValue' | 'options'> & {
   options: (Value | Option)[];
 };
 
@@ -187,7 +187,7 @@ export const Select = <
   options = [],
   ...props
 }: SelectProps<Value, IsMulti, Option>) => {
-  useLabelAssert("Select", { ...props, allowId: true });
+  useLabelAssert('Select', { ...props, allowId: true });
 
   // Allows passing options as list of values instead of options objects.
   // For example:
@@ -211,7 +211,7 @@ export type GroupedSelectProps<
   IsMulti extends boolean,
   Option extends { value: Value; label?: string | undefined },
   Group extends RSelectGroupBase<Option>
-> = Omit<BaseSelectProps<Value, Option, IsMulti, Group>, "findValue" | "options"> & {
+> = Omit<BaseSelectProps<Value, Option, IsMulti, Group>, 'findValue' | 'options'> & {
   options: Group[];
 };
 
@@ -231,10 +231,10 @@ export const GroupedSelect = <
   options = [],
   ...props
 }: GroupedSelectProps<Value, IsMulti, Option, Group>) => {
-  useLabelAssert("GroupedSelect", { ...props, allowId: true });
+  useLabelAssert('GroupedSelect', { ...props, allowId: true });
 
   // cast because types don't carry through Lodash
-  const flattenedOptions = _.flatMap("options", options) as Option[];
+  const flattenedOptions = _.flatMap('options', options) as Option[];
   const findValue = (target: Value) => (_.find({ value: target }, flattenedOptions) || null) as Option | null;
 
   const ParameterizedBaseSelect = BaseSelect as typeof BaseSelect<Value, Option, IsMulti, Group>;
@@ -301,7 +301,7 @@ const VirtualizedMenuList = (props) => {
         rowCount,
         rowHeight,
         rowRenderer: ({ index, style, key }) => div({ key, style }, [children[index]]),
-        style: { ...getStyles("menuList", props), boxSizing: "content-box" },
+        style: { ...getStyles('menuList', props), boxSizing: 'content-box' },
       });
     },
   ]);

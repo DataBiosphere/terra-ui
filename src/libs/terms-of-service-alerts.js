@@ -1,12 +1,12 @@
-import _ from "lodash/fp";
-import { Fragment, useEffect } from "react";
-import { br, h } from "react-hyperscript-helpers";
-import { Link } from "src/components/common";
-import { Ajax } from "src/libs/ajax";
-import * as Nav from "src/libs/nav";
-import { useStore } from "src/libs/react-utils";
-import { authStore } from "src/libs/state";
-import * as Utils from "src/libs/utils";
+import _ from 'lodash/fp';
+import { Fragment, useEffect } from 'react';
+import { br, h } from 'react-hyperscript-helpers';
+import { Link } from 'src/components/common';
+import { Ajax } from 'src/libs/ajax';
+import * as Nav from 'src/libs/nav';
+import { useStore } from 'src/libs/react-utils';
+import { authStore } from 'src/libs/state';
+import * as Utils from 'src/libs/utils';
 
 const getNewTermsOfServiceNeedsAcceptingAlert = async (termsOfServiceState) => {
   const shouldNotify = !termsOfServiceState.userHasAcceptedLatestTos && termsOfServiceState.permitsSystemUsage;
@@ -26,14 +26,14 @@ const getNewTermsOfServiceNeedsAcceptingAlert = async (termsOfServiceState) => {
     : responseText;
 
   return {
-    id: "terms-of-service-needs-accepting-grace-period",
-    title: "There is a new Terra Terms of Service.",
+    id: 'terms-of-service-needs-accepting-grace-period',
+    title: 'There is a new Terra Terms of Service.',
     message: h(Fragment, [
-      h(Fragment, { key: "customText" }, [gracePeriodText]),
-      h(Fragment, { key: "lineBreak" }, [br()]),
-      h(Link, { href: Nav.getLink("terms-of-service"), key: "tosLink" }, "Accept the new Terms of Service here."),
+      h(Fragment, { key: 'customText' }, [gracePeriodText]),
+      h(Fragment, { key: 'lineBreak' }, [br()]),
+      h(Link, { href: Nav.getLink('terms-of-service'), key: 'tosLink' }, 'Accept the new Terms of Service here.'),
     ]),
-    severity: "error",
+    severity: 'error',
   };
 };
 

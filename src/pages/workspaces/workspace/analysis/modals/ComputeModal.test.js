@@ -1,12 +1,12 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import _ from "lodash/fp";
-import { act } from "react-dom/test-utils";
-import { h } from "react-hyperscript-helpers";
-import { cloudServices } from "src/data/gce-machines";
-import { Ajax } from "src/libs/ajax";
-import { runtimeStatuses } from "src/libs/ajax/leonardo/models/runtime-models";
-import { formatUSD } from "src/libs/utils";
+import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import _ from 'lodash/fp';
+import { act } from 'react-dom/test-utils';
+import { h } from 'react-hyperscript-helpers';
+import { cloudServices } from 'src/data/gce-machines';
+import { Ajax } from 'src/libs/ajax';
+import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { formatUSD } from 'src/libs/utils';
 import {
   defaultGoogleWorkspace,
   defaultImage,
@@ -18,14 +18,14 @@ import {
   hailImage,
   imageDocs,
   testDefaultLocation,
-} from "src/pages/workspaces/workspace/analysis/_testData/testData";
-import { ComputeModalBase } from "src/pages/workspaces/workspace/analysis/modals/ComputeModal";
-import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from "src/pages/workspaces/workspace/analysis/utils/cost-utils";
+} from 'src/pages/workspaces/workspace/analysis/_testData/testData';
+import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal';
+import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils';
 import {
   defaultDataprocMasterDiskSize,
   defaultDataprocWorkerDiskSize,
   defaultPersistentDiskType,
-} from "src/pages/workspaces/workspace/analysis/utils/disk-utils";
+} from 'src/pages/workspaces/workspace/analysis/utils/disk-utils';
 import {
   defaultDataprocMachineType,
   defaultGceMachineType,
@@ -33,19 +33,19 @@ import {
   defaultNumDataprocPreemptibleWorkers,
   defaultNumDataprocWorkers,
   defaultNumGpus,
-} from "src/pages/workspaces/workspace/analysis/utils/runtime-utils";
-import { runtimeToolLabels, runtimeTools } from "src/pages/workspaces/workspace/analysis/utils/tool-utils";
-import { asMockedFn } from "src/testing/test-utils";
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
+import { runtimeToolLabels, runtimeTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
+import { asMockedFn } from 'src/testing/test-utils';
 
-jest.mock("src/libs/notifications", () => ({
+jest.mock('src/libs/notifications', () => ({
   notify: (...args) => {
     console.debug('######################### notify')/* eslint-disable-line */
     console.debug({ method: 'notify', args: [...args] })/* eslint-disable-line */
   },
 }));
 
-jest.mock("src/libs/ajax");
-jest.mock("src/pages/workspaces/workspace/analysis/utils/cost-utils");
+jest.mock('src/libs/ajax');
+jest.mock('src/pages/workspaces/workspace/analysis/utils/cost-utils');
 
 const onSuccess = jest.fn();
 const defaultModalProps = {
@@ -60,8 +60,8 @@ const defaultModalProps = {
 };
 
 // TODO: test utils??
-const verifyDisabled = (item) => expect(item).toHaveAttribute("disabled");
-const verifyEnabled = (item) => expect(item).not.toHaveAttribute("disabled");
+const verifyDisabled = (item) => expect(item).toHaveAttribute('disabled');
+const verifyEnabled = (item) => expect(item).not.toHaveAttribute('disabled');
 
 const defaultAjaxImpl = {
   Runtimes: {
@@ -80,7 +80,7 @@ const defaultAjaxImpl = {
   },
 };
 
-describe("ComputeModal", () => {
+describe('ComputeModal', () => {
   beforeAll(() => {});
 
   beforeEach(() => {
@@ -94,9 +94,9 @@ describe("ComputeModal", () => {
     jest.clearAllMocks();
   });
 
-  const getCreateButton = () => screen.getByText("Create");
+  const getCreateButton = () => screen.getByText('Create');
 
-  it("renders correctly with minimal state", async () => {
+  it('renders correctly with minimal state', async () => {
     // Arrange
 
     // Act
@@ -104,10 +104,10 @@ describe("ComputeModal", () => {
 
     // Assert
     verifyEnabled(getCreateButton());
-    screen.getByText("Jupyter Cloud Environment");
+    screen.getByText('Jupyter Cloud Environment');
   });
 
-  it("sends the proper leo API call in default create case (no runtimes or disks)", async () => {
+  it('sends the proper leo API call in default create case (no runtimes or disks)', async () => {
     // Arrange
     const createFunc = jest.fn();
     const runtimeFunc = jest.fn(() => ({
@@ -152,7 +152,7 @@ describe("ComputeModal", () => {
   });
 
   // create button with disk but no runtime
-  it("sends the proper API call in create case with an existing disk but no runtime", async () => {
+  it('sends the proper API call in create case with an existing disk but no runtime', async () => {
     // Arrange
     // put value into local var so its easier to refactor
     const disk = defaultTestDisk;
@@ -200,11 +200,11 @@ describe("ComputeModal", () => {
 
   // with a [jupyter, rstudio] runtime existing and, details pane is open
   it.each([{ runtimeTool: runtimeTools.Jupyter }, { runtimeTool: runtimeTools.RStudio }])(
-    "opens runtime details pane with a $runtimeTool.label runtime and a disk existing",
+    'opens runtime details pane with a $runtimeTool.label runtime and a disk existing',
     async ({ runtimeTool }) => {
       // Arrange
       const disk = getDisk();
-      const machine = { name: "n1-standard-4", cpu: 4, memory: 15 };
+      const machine = { name: 'n1-standard-4', cpu: 4, memory: 15 };
       const runtimeProps = { tool: runtimeTool, runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, machineType: machine.name }) };
       const runtime = getGoogleRuntime(runtimeProps);
 
@@ -248,17 +248,17 @@ describe("ComputeModal", () => {
       screen.getByText(machine.cpu);
       screen.getByText(machine.memory);
 
-      verifyDisabled(screen.getByLabelText("Disk Type"));
-      verifyDisabled(screen.getByLabelText("Location"));
+      verifyDisabled(screen.getByLabelText('Disk Type'));
+      verifyDisabled(screen.getByLabelText('Location'));
       screen.getByDisplayValue(disk.size);
 
-      verifyEnabled(screen.getByText("Delete Environment"));
-      verifyEnabled(screen.getByText("Update"));
+      verifyEnabled(screen.getByText('Delete Environment'));
+      verifyEnabled(screen.getByText('Update'));
     }
   );
 
   it.each([{ status: runtimeStatuses.running }, { status: runtimeStatuses.starting }])(
-    "lets the user update a runtime only in an appropriate status ($status.label, $status.canChangeCompute)",
+    'lets the user update a runtime only in an appropriate status ($status.label, $status.canChangeCompute)',
     async ({ status }) => {
       // Arrange
       const disk = getDisk();
@@ -295,16 +295,16 @@ describe("ComputeModal", () => {
 
       // Assert
       if (status.canChangeCompute) {
-        verifyEnabled(screen.getByText("Update"));
+        verifyEnabled(screen.getByText('Update'));
       } else {
-        verifyDisabled(screen.getByText("Update"));
+        verifyDisabled(screen.getByText('Update'));
       }
     }
   );
 
   // click delete environment on an existing [jupyter, rstudio] runtime with disk should bring up confirmation
   it.each([{ tool: runtimeTools.Jupyter }, { tool: runtimeTools.RStudio }])(
-    "deletes environment with a confirmation for disk deletion for tool $tool.label",
+    'deletes environment with a confirmation for disk deletion for tool $tool.label',
     async ({ tool }) => {
       // Arrange
       const disk = getDisk();
@@ -337,21 +337,21 @@ describe("ComputeModal", () => {
             currentRuntime: runtime,
           })
         );
-        await userEvent.click(screen.getByText("Delete Environment"));
+        await userEvent.click(screen.getByText('Delete Environment'));
       });
 
       // Assert
-      verifyEnabled(screen.getByText("Delete"));
-      const radio1 = screen.getByLabelText("Keep persistent disk, delete application configuration and compute profile");
+      verifyEnabled(screen.getByText('Delete'));
+      const radio1 = screen.getByLabelText('Keep persistent disk, delete application configuration and compute profile');
       expect(radio1).toBeChecked();
-      const radio2 = screen.getByLabelText("Delete everything, including persistent disk");
+      const radio2 = screen.getByLabelText('Delete everything, including persistent disk');
       expect(radio2).not.toBeChecked();
     }
   );
 
   // click delete environment on an existing [jupyter, rstudio] runtime with disk should delete
   it.each([{ tool: runtimeTools.Jupyter }, { tool: runtimeTools.RStudio }])(
-    "clicking through delete confirmation and then delete should call delete for tool $tool.label",
+    'clicking through delete confirmation and then delete should call delete for tool $tool.label',
     async ({ tool }) => {
       // Arrange
       const disk = getDisk();
@@ -387,8 +387,8 @@ describe("ComputeModal", () => {
             currentRuntime: runtime,
           })
         );
-        await userEvent.click(screen.getByText("Delete Environment"));
-        await userEvent.click(screen.getByText("Delete"));
+        await userEvent.click(screen.getByText('Delete Environment'));
+        await userEvent.click(screen.getByText('Delete'));
       });
 
       // Assert
@@ -398,7 +398,7 @@ describe("ComputeModal", () => {
   );
   // click update with downtime (and keep pd)
   it.each([{ tool: runtimeTools.Jupyter }, { tool: runtimeTools.RStudio }])(
-    "updating a runtime after changing a field that requires downtime should call update for tool $tool.label",
+    'updating a runtime after changing a field that requires downtime should call update for tool $tool.label',
     async ({ tool }) => {
       // Arrange
       const disk = getDisk();
@@ -435,19 +435,19 @@ describe("ComputeModal", () => {
           })
         );
 
-        await userEvent.click(screen.getByLabelText("CPUs"));
-        const selectOption = await screen.findByText("2");
+        await userEvent.click(screen.getByLabelText('CPUs'));
+        const selectOption = await screen.findByText('2');
         await userEvent.click(selectOption);
-        const nextButton = await screen.findByText("Next");
+        const nextButton = await screen.findByText('Next');
         await userEvent.click(nextButton);
       });
 
       // Assert
-      await screen.findByText("Downtime required");
+      await screen.findByText('Downtime required');
 
       // Act
       await act(async () => {
-        const updateButton = await screen.findByText("Update");
+        const updateButton = await screen.findByText('Update');
         await userEvent.click(updateButton);
       });
 
@@ -456,9 +456,9 @@ describe("ComputeModal", () => {
       expect(updateFunc).toHaveBeenCalledWith(
         expect.objectContaining({
           runtimeConfig: {
-            cloudService: "GCE",
-            machineType: "n1-standard-2",
-            zone: "us-central1-a",
+            cloudService: 'GCE',
+            machineType: 'n1-standard-2',
+            zone: 'us-central1-a',
           },
         })
       );
@@ -590,10 +590,10 @@ describe("ComputeModal", () => {
   // })
 
   // with a [jupyter, rstudio] runtime existing and [a disk, no disk], details pane is open
-  it("dataproc runtime should display properly in modal", async () => {
+  it('dataproc runtime should display properly in modal', async () => {
     // Arrange
-    const machine1 = { name: "n1-standard-2", cpu: 2, memory: 7.5 };
-    const machine2 = { name: "n1-standard-4", cpu: 4, memory: 15 };
+    const machine1 = { name: 'n1-standard-2', cpu: 2, memory: 7.5 };
+    const machine2 = { name: 'n1-standard-4', cpu: 4, memory: 15 };
     const runtimeProps = {
       image: hailImage.image,
       status: runtimeStatuses.stopped.leoLabel,
@@ -605,8 +605,8 @@ describe("ComputeModal", () => {
         workerDiskSize: 150,
         numberOfWorkerLocalSSDs: 0,
         numberOfPreemptibleWorkers: 0,
-        cloudService: "DATAPROC",
-        region: "us-central1",
+        cloudService: 'DATAPROC',
+        region: 'us-central1',
         componentGatewayEnabled: true,
         workerPrivateAccess: false,
       },
@@ -647,12 +647,12 @@ describe("ComputeModal", () => {
 
     screen.getByText(machine1.cpu);
     screen.getByText(machine1.memory);
-    screen.getByText("Spark cluster");
+    screen.getByText('Spark cluster');
 
-    verifyDisabled(screen.getByLabelText("Workers"));
-    verifyDisabled(screen.getByLabelText("Location"));
+    verifyDisabled(screen.getByLabelText('Workers'));
+    verifyDisabled(screen.getByLabelText('Location'));
 
-    const inputs = screen.getAllByLabelText("Disk size (GB)");
+    const inputs = screen.getAllByLabelText('Disk size (GB)');
     expect(inputs.length).toBe(2);
     expect(inputs[1]).toHaveDisplayValue(150);
     expect(inputs[0]).toHaveDisplayValue(151);
@@ -660,12 +660,12 @@ describe("ComputeModal", () => {
     screen.getByText(machine2.cpu);
     screen.getByText(machine2.memory);
 
-    verifyEnabled(screen.getByText("Delete Runtime"));
-    screen.getByText("Update");
+    verifyEnabled(screen.getByText('Delete Runtime'));
+    screen.getByText('Update');
   });
 
   // spark cluster (pass a dataproc runtime and ensure it loads correctly) (
-  it("creates a datapoc runtime", async () => {
+  it('creates a datapoc runtime', async () => {
     // Arrange
     const createFunc = jest.fn();
     const runtimeFunc = jest.fn(() => ({
@@ -688,16 +688,16 @@ describe("ComputeModal", () => {
     await act(async () => {
       await render(h(ComputeModalBase, defaultModalProps));
 
-      const selectMenu = await screen.getByLabelText("Application configuration");
+      const selectMenu = await screen.getByLabelText('Application configuration');
       await userEvent.click(selectMenu);
       const selectOption = await screen.findByText(hailImage.label);
       await userEvent.click(selectOption);
-      const computeTypeSelect = await screen.getByLabelText("Compute type");
+      const computeTypeSelect = await screen.getByLabelText('Compute type');
       await userEvent.click(computeTypeSelect);
-      const sparkClusterOption = await screen.findByText("Spark cluster");
+      const sparkClusterOption = await screen.findByText('Spark cluster');
       await userEvent.click(sparkClusterOption);
 
-      const create = await screen.getByText("Create");
+      const create = await screen.getByText('Create');
       await userEvent.click(create);
     });
 
@@ -712,8 +712,8 @@ describe("ComputeModal", () => {
           workerMachineType: defaultDataprocMachineType,
           workerDiskSize: defaultDataprocWorkerDiskSize,
           numberOfPreemptibleWorkers: defaultNumDataprocPreemptibleWorkers,
-          cloudService: "DATAPROC",
-          region: "us-central1",
+          cloudService: 'DATAPROC',
+          region: 'us-central1',
           componentGatewayEnabled: true,
         }),
       })
@@ -722,7 +722,7 @@ describe("ComputeModal", () => {
 
   // custom on image select with a [valid, invalid] custom image should function
   it.each([{ tool: runtimeTools.Jupyter }, { tool: runtimeTools.RStudio }])(
-    "custom Environment pane should behave correctly with an invalid image URI",
+    'custom Environment pane should behave correctly with an invalid image URI',
     async ({ tool }) => {
       // Arrange
       const createFunc = jest.fn();
@@ -750,17 +750,17 @@ describe("ComputeModal", () => {
       await act(async () => {
         await render(h(ComputeModalBase, defaultModalProps));
 
-        const selectMenu = await screen.getByLabelText("Application configuration");
+        const selectMenu = await screen.getByLabelText('Application configuration');
         await userEvent.click(selectMenu);
-        const selectOption = await screen.findByText("Custom Environment");
+        const selectOption = await screen.findByText('Custom Environment');
         await userEvent.click(selectOption);
 
-        const imageInput = await screen.getByLabelText("Container image");
+        const imageInput = await screen.getByLabelText('Container image');
         expect(imageInput).toBeInTheDocument();
-        const invalidImageUri = "b";
+        const invalidImageUri = 'b';
         await userEvent.type(imageInput, invalidImageUri);
 
-        const nextButton = await screen.findByText("Next");
+        const nextButton = await screen.findByText('Next');
 
         verifyDisabled(nextButton);
       });
@@ -769,7 +769,7 @@ describe("ComputeModal", () => {
 
   // custom on image select with a [valid, invalid] custom image should function
   it.each([{ tool: runtimeTools.Jupyter }, { tool: runtimeTools.RStudio }])(
-    "custom Environment pane should work with a valid image URI ",
+    'custom Environment pane should work with a valid image URI ',
     async ({ tool }) => {
       // Arrange
       const createFunc = jest.fn();
@@ -797,25 +797,25 @@ describe("ComputeModal", () => {
       await act(async () => {
         await render(h(ComputeModalBase, defaultModalProps));
 
-        const selectMenu = await screen.getByLabelText("Application configuration");
+        const selectMenu = await screen.getByLabelText('Application configuration');
         await userEvent.click(selectMenu);
-        const selectOption = await screen.findByText("Custom Environment");
+        const selectOption = await screen.findByText('Custom Environment');
         await userEvent.click(selectOption);
 
-        const imageInput = await screen.getByLabelText("Container image");
+        const imageInput = await screen.getByLabelText('Container image');
         expect(imageInput).toBeInTheDocument();
-        const customImageUri = "us";
+        const customImageUri = 'us';
         await fireEvent.change(imageInput, { target: { value: customImageUri } });
 
-        await screen.findByText("Creation Timeout Limit");
+        await screen.findByText('Creation Timeout Limit');
 
-        const nextButton = await screen.findByText("Next");
+        const nextButton = await screen.findByText('Next');
         verifyEnabled(nextButton);
         await userEvent.click(nextButton);
-        const unverifiedDockerWarningHeader = await screen.findByText("Unverified Docker image");
+        const unverifiedDockerWarningHeader = await screen.findByText('Unverified Docker image');
 
         expect(unverifiedDockerWarningHeader).toBeInTheDocument();
-        const createButton = await screen.findByText("Create");
+        const createButton = await screen.findByText('Create');
         await userEvent.click(createButton);
         expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
         expect(createFunc).toHaveBeenCalledWith(
@@ -828,19 +828,19 @@ describe("ComputeModal", () => {
   );
 
   // click learn more about persistent disk
-  it("should render learn more about persistent disks", async () => {
+  it('should render learn more about persistent disks', async () => {
     // Act
     render(h(ComputeModalBase, defaultModalProps));
-    const link = screen.getByText("Learn more about persistent disks and where your disk is mounted.");
+    const link = screen.getByText('Learn more about persistent disks and where your disk is mounted.');
     await userEvent.click(link);
 
     // Assert
-    screen.getByText("About persistent disk");
+    screen.getByText('About persistent disk');
     screen.getByText(/Your persistent disk is mounted in the directory/);
   });
 
   it.each([{ tool: runtimeTools.Jupyter }, { tool: runtimeTools.RStudio }])(
-    "should check successfully that the disk type is clickable",
+    'should check successfully that the disk type is clickable',
     async ({ tool }) => {
       // arrange
       const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ tool }) };
@@ -857,27 +857,27 @@ describe("ComputeModal", () => {
       });
 
       // Assert
-      const diskTypeDropdown = screen.getByLabelText("Disk Type");
+      const diskTypeDropdown = screen.getByLabelText('Disk Type');
       await userEvent.click(diskTypeDropdown);
     }
   );
 
-  it("should render whats installed on this environment", async () => {
+  it('should render whats installed on this environment', async () => {
     // Act
     await act(async () => {
       await render(h(ComputeModalBase, defaultModalProps));
-      const link = await screen.getByText("What’s installed on this environment?");
+      const link = await screen.getByText('What’s installed on this environment?');
       await userEvent.click(link);
     });
 
     // Assert
-    screen.getByText("Installed packages");
+    screen.getByText('Installed packages');
     screen.getByText(defaultImage.label);
-    screen.getByText("Language:");
+    screen.getByText('Language:');
   });
 
   // GPUs should function properly
-  it("creates a runtime with GPUs", async () => {
+  it('creates a runtime with GPUs', async () => {
     // Arrange
     const createFunc = jest.fn();
     const runtimeFunc = jest.fn(() => ({
@@ -894,17 +894,17 @@ describe("ComputeModal", () => {
     // Act
     await act(async () => {
       await render(h(ComputeModalBase, defaultModalProps));
-      const enableGPU = await screen.getByText("Enable GPUs");
+      const enableGPU = await screen.getByText('Enable GPUs');
       await userEvent.click(enableGPU);
     });
 
     // Assert
-    screen.getByText("GPU type");
-    screen.getByText("GPUs");
+    screen.getByText('GPU type');
+    screen.getByText('GPUs');
 
     // Act
     await act(async () => {
-      const create = screen.getByText("Create");
+      const create = screen.getByText('Create');
       await userEvent.click(create);
     });
 
@@ -920,9 +920,9 @@ describe("ComputeModal", () => {
 
   // click learn more about persistent disk
   it.each([
-    { tool: runtimeTools.Jupyter, expectedLabel: "/home/jupyter" },
-    { tool: runtimeTools.RStudio, expectedLabel: "/home/rstudio" },
-  ])("should render learn more about persistent disks", async ({ tool, expectedLabel }) => {
+    { tool: runtimeTools.Jupyter, expectedLabel: '/home/jupyter' },
+    { tool: runtimeTools.RStudio, expectedLabel: '/home/rstudio' },
+  ])('should render learn more about persistent disks', async ({ tool, expectedLabel }) => {
     // Arrange
     const disk = getDisk();
     const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
@@ -942,13 +942,13 @@ describe("ComputeModal", () => {
     });
 
     // Assert
-    const link = screen.getByText("Learn more about persistent disks and where your disk is mounted.");
+    const link = screen.getByText('Learn more about persistent disks and where your disk is mounted.');
     await userEvent.click(link);
-    screen.getByText("About persistent disk");
+    screen.getByText('About persistent disk');
     screen.getByText(expectedLabel);
   });
 
-  it("correctly renders and updates timeoutInMinutes", async () => {
+  it('correctly renders and updates timeoutInMinutes', async () => {
     await act(async () => {
       // Arrange
       const createFunc = jest.fn();
@@ -965,17 +965,17 @@ describe("ComputeModal", () => {
       await render(h(ComputeModalBase, defaultModalProps));
 
       // Act
-      const selectMenu = await screen.getByLabelText("Application configuration");
+      const selectMenu = await screen.getByLabelText('Application configuration');
       await userEvent.click(selectMenu);
       const selectOption = await screen.findByText(/Legacy GATK:/);
       await userEvent.click(selectOption);
 
-      await screen.findByText("Creation Timeout Limit");
-      const timeoutInput = await screen.getByLabelText("Creation Timeout Limit");
+      await screen.findByText('Creation Timeout Limit');
+      const timeoutInput = await screen.getByLabelText('Creation Timeout Limit');
       await fireEvent.change(timeoutInput, { target: { value: 20 } });
 
       // Assert
-      expect(timeoutInput.value).toBe("20");
+      expect(timeoutInput.value).toBe('20');
 
       // Act
       await userEvent.click(selectMenu);
@@ -987,7 +987,7 @@ describe("ComputeModal", () => {
   });
 
   it.each([{ runtimeTool: runtimeTools.Jupyter }, { runtimeTool: runtimeTools.RStudio }])(
-    "correctly sends timeoutInMinutes to create for tool $runtimeTool.label",
+    'correctly sends timeoutInMinutes to create for tool $runtimeTool.label',
     async ({ runtimeTool }) => {
       await act(async () => {
         // Arrange
@@ -1007,17 +1007,17 @@ describe("ComputeModal", () => {
         await act(async () => {
           await render(h(ComputeModalBase, { ...defaultModalProps, tool: runtimeTool.label }));
 
-          const selectMenu = await screen.getByLabelText("Application configuration");
+          const selectMenu = await screen.getByLabelText('Application configuration');
           await userEvent.click(selectMenu);
-          const customImageSelect = await screen.findByText("Custom Environment");
+          const customImageSelect = await screen.findByText('Custom Environment');
           await userEvent.click(customImageSelect);
 
-          await screen.findByText("Creation Timeout Limit");
-          const timeoutInput = await screen.getByLabelText("Creation Timeout Limit");
+          await screen.findByText('Creation Timeout Limit');
+          const timeoutInput = await screen.getByLabelText('Creation Timeout Limit');
 
-          const imageInput = await screen.getByLabelText("Container image");
+          const imageInput = await screen.getByLabelText('Container image');
           expect(imageInput).toBeInTheDocument();
-          const customImageUri = "us";
+          const customImageUri = 'us';
           await fireEvent.change(imageInput, { target: { value: customImageUri } });
 
           await fireEvent.change(timeoutInput, { target: { value: 20 } });
@@ -1026,13 +1026,13 @@ describe("ComputeModal", () => {
 
         // Act
         await act(async () => {
-          const nextButton = await screen.findByText("Next");
+          const nextButton = await screen.findByText('Next');
           verifyEnabled(nextButton);
           await userEvent.click(nextButton);
-          const unverifiedDockerWarningHeader = await screen.findByText("Unverified Docker image");
+          const unverifiedDockerWarningHeader = await screen.findByText('Unverified Docker image');
 
           expect(unverifiedDockerWarningHeader).toBeInTheDocument();
-          const createButton = await screen.findByText("Create");
+          const createButton = await screen.findByText('Create');
           await userEvent.click(createButton);
         });
 
@@ -1049,7 +1049,7 @@ describe("ComputeModal", () => {
   it.each([
     { runtimeTool: runtimeTools.Jupyter, imageLabel: defaultImage.label },
     { runtimeTool: runtimeTools.RStudio, imageLabel: defaultRImage.label },
-  ])("sends null timeout in minutes  for tool $runtimeTool.label after setting and clearing the field", async ({ runtimeTool, imageLabel }) => {
+  ])('sends null timeout in minutes  for tool $runtimeTool.label after setting and clearing the field', async ({ runtimeTool, imageLabel }) => {
     await act(async () => {
       // Arrange
       const createFunc = jest.fn();
@@ -1068,13 +1068,13 @@ describe("ComputeModal", () => {
       await act(async () => {
         await render(h(ComputeModalBase, { ...defaultModalProps, tool: runtimeTool.label }));
 
-        const selectMenu = await screen.getByLabelText("Application configuration");
+        const selectMenu = await screen.getByLabelText('Application configuration');
         await userEvent.click(selectMenu);
-        const customImageSelect = await screen.findByText("Custom Environment");
+        const customImageSelect = await screen.findByText('Custom Environment');
         await userEvent.click(customImageSelect);
 
-        await screen.findByText("Creation Timeout Limit");
-        const timeoutInput = await screen.getByLabelText("Creation Timeout Limit");
+        await screen.findByText('Creation Timeout Limit');
+        const timeoutInput = await screen.getByLabelText('Creation Timeout Limit');
         // Set the field to an arbitrary value
         await fireEvent.change(timeoutInput, { target: { value: 20 } });
         await userEvent.click(selectMenu);
@@ -1085,7 +1085,7 @@ describe("ComputeModal", () => {
 
       // Act
       await act(async () => {
-        const create = screen.getByText("Create");
+        const create = screen.getByText('Create');
         await userEvent.click(create);
       });
 
@@ -1100,7 +1100,7 @@ describe("ComputeModal", () => {
     });
   });
 
-  it("renders default cost estimate", async () => {
+  it('renders default cost estimate', async () => {
     // Arrange
     const expectedRuntimeConfigCost = 0.4;
     const expectedRuntimeConfigBaseCost = 0.15;

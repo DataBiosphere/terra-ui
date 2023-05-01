@@ -1,7 +1,7 @@
-const _ = require("lodash/fp");
-const { JWT } = require("google-auth-library");
-const fetch = require("node-fetch");
-const { getSecrets, lyleUrl } = require("./integration-config");
+const _ = require('lodash/fp');
+const { JWT } = require('google-auth-library');
+const fetch = require('node-fetch');
+const { getSecrets, lyleUrl } = require('./integration-config');
 
 const makeAuthClient = _.once(async () => {
   const { lyleKey } = await getSecrets();
@@ -20,8 +20,8 @@ const fetchLyle = async (path, email) => {
 
   try {
     const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...(await authClient.getRequestHeaders(url)) },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(await authClient.getRequestHeaders(url)) },
       body: JSON.stringify({ email }),
     });
     console.log(`fetchLyle: POST ${res.status} ${url}`);
@@ -29,7 +29,7 @@ const fetchLyle = async (path, email) => {
       return res.json();
     }
     // delegate non-2xx response to enclosing try/catch
-    throw _.set("response", res, new Error());
+    throw _.set('response', res, new Error());
   } catch (err) {
     console.error(err);
     const errorBody = await err.response.text();

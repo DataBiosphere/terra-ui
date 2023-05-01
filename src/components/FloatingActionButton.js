@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { div, h } from "react-hyperscript-helpers";
-import { Clickable } from "src/components/common";
-import { icon } from "src/components/icons";
-import colors from "src/libs/colors";
-import * as Style from "src/libs/style";
+import { useState } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
+import { Clickable } from 'src/components/common';
+import { icon } from 'src/components/icons';
+import colors from 'src/libs/colors';
+import * as Style from 'src/libs/style';
 
 const FloatingActionButton = ({ label, iconShape, onClick, bottom = 30, right = 30 }) => {
   const [hover, setHover] = useState(false);
@@ -12,16 +12,16 @@ const FloatingActionButton = ({ label, iconShape, onClick, bottom = 30, right = 
     Clickable,
     {
       style: {
-        position: "absolute",
+        position: 'absolute',
         bottom,
         right,
         backgroundColor: colors.accent(),
-        color: "white",
-        padding: "0.5rem",
+        color: 'white',
+        padding: '0.5rem',
         borderRadius: 40,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         boxShadow: Style.standardShadow,
       },
       onMouseEnter: () => setHover(true),
@@ -37,17 +37,17 @@ const FloatingActionButton = ({ label, iconShape, onClick, bottom = 30, right = 
       div(
         {
           style: {
-            padding: `0 ${hover ? "0.5rem" : "0"}`,
-            fontWeight: "bold",
+            padding: `0 ${hover ? '0.5rem' : '0'}`,
+            fontWeight: 'bold',
             maxWidth: hover ? 200 : 0,
-            overflow: "hidden",
-            whiteSpace: "pre",
-            transition: "max-width 0.5s ease-out, padding 0.1s linear 0.2s",
+            overflow: 'hidden',
+            whiteSpace: 'pre',
+            transition: 'max-width 0.5s ease-out, padding 0.1s linear 0.2s',
           },
         },
         label
       ),
-      icon(iconShape, { size: 25, style: { stroke: "white", strokeWidth: 2 } }),
+      icon(iconShape, { size: 25, style: { stroke: 'white', strokeWidth: 2 } }),
     ]
   );
 };

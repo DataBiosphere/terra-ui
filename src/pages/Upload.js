@@ -1,106 +1,106 @@
-import _ from "lodash/fp";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { code, div, h, h2, h3, li, p, span, strong, ul } from "react-hyperscript-helpers";
-import { ButtonPrimary, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from "src/components/common";
-import FileBrowser from "src/components/data/FileBrowser";
-import UploadPreviewTable from "src/components/data/UploadPreviewTable";
-import Dropzone from "src/components/Dropzone";
-import FloatingActionButton from "src/components/FloatingActionButton";
-import FooterWrapper from "src/components/FooterWrapper";
-import { icon } from "src/components/icons";
-import { DelayedSearchInput } from "src/components/input";
-import { NameModal } from "src/components/NameModal";
-import NewWorkspaceModal from "src/components/NewWorkspaceModal";
-import TopBar from "src/components/TopBar";
-import { NoWorkspacesMessage, useWorkspaces, WorkspaceTagSelect } from "src/components/workspace-utils";
-import { Ajax } from "src/libs/ajax";
-import colors from "src/libs/colors";
-import { reportError, withErrorReporting } from "src/libs/error";
-import * as Nav from "src/libs/nav";
-import { forwardRefWithName, useCancellation, useOnMount } from "src/libs/react-utils";
-import * as StateHistory from "src/libs/state-history";
-import * as Style from "src/libs/style";
-import * as Utils from "src/libs/utils";
+import _ from 'lodash/fp';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { code, div, h, h2, h3, li, p, span, strong, ul } from 'react-hyperscript-helpers';
+import { ButtonPrimary, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common';
+import FileBrowser from 'src/components/data/FileBrowser';
+import UploadPreviewTable from 'src/components/data/UploadPreviewTable';
+import Dropzone from 'src/components/Dropzone';
+import FloatingActionButton from 'src/components/FloatingActionButton';
+import FooterWrapper from 'src/components/FooterWrapper';
+import { icon } from 'src/components/icons';
+import { DelayedSearchInput } from 'src/components/input';
+import { NameModal } from 'src/components/NameModal';
+import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
+import TopBar from 'src/components/TopBar';
+import { NoWorkspacesMessage, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils';
+import { Ajax } from 'src/libs/ajax';
+import colors from 'src/libs/colors';
+import { reportError, withErrorReporting } from 'src/libs/error';
+import * as Nav from 'src/libs/nav';
+import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
+import * as StateHistory from 'src/libs/state-history';
+import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
 
 // As you add support for uploading additional types of metadata, add them here.
 // You may also need to adjust the validation logic.
-const supportedEntityTypes = ["entity"];
+const supportedEntityTypes = ['entity'];
 
-const rootPrefix = "uploads/";
+const rootPrefix = 'uploads/';
 
 const styles = {
   pageContainer: {
-    display: "flex",
+    display: 'flex',
     flex: 1,
-    flexFlow: "row no-wrap",
-    alignItems: "flex-start",
-    marginBottom: "1rem",
-    justifyContent: "space-between",
+    flexFlow: 'row no-wrap',
+    alignItems: 'flex-start',
+    marginBottom: '1rem',
+    justifyContent: 'space-between',
   },
   tableContainer: {
-    display: "flex",
+    display: 'flex',
     flex: 1,
   },
   dataTypeSelectionPanel: {
-    flex: "none",
+    flex: 'none',
     width: 280,
-    backgroundColor: "white",
-    boxShadow: "0 2px 5px 0 rgba(0,0,0,0.25)",
+    backgroundColor: 'white',
+    boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)',
   },
   dataTypeActive: {
     color: colors.light(),
     backgroundColor: colors.accent(),
   },
   tableViewPanel: {
-    padding: "1rem",
-    width: "100%",
-    height: "100%",
-    display: "flex",
-    flexFlow: "column nowrap",
+    padding: '1rem',
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    flexFlow: 'column nowrap',
   },
   workspaceTilesContainer: {
-    textAlign: "left",
+    textAlign: 'left',
     margin: 0,
     padding: 0,
-    listStyle: "none",
+    listStyle: 'none',
   },
   workspaceTile: {
-    display: "block",
-    width: "100%",
-    borderRadius: "5px",
-    padding: "1rem",
-    overflowWrap: "break-word",
-    backgroundColor: "white",
-    boxShadow: "rgba(0, 0, 0, 0.35) 0px 2px 5px 0px, rgba(0, 0, 0, 0.12) 0px 3px 2px 0px",
+    display: 'block',
+    width: '100%',
+    borderRadius: '5px',
+    padding: '1rem',
+    overflowWrap: 'break-word',
+    backgroundColor: 'white',
+    boxShadow: 'rgba(0, 0, 0, 0.35) 0px 2px 5px 0px, rgba(0, 0, 0, 0.12) 0px 3px 2px 0px',
     // minHeight: '125px',
-    margin: "0px 1rem 2rem 0px",
+    margin: '0px 1rem 2rem 0px',
   },
   workspaceTileSelected: {
     backgroundColor: colors.accent(),
-    color: "white",
+    color: 'white',
   },
   tabPanelHeader: {
-    position: "relative",
-    height: "100%",
+    position: 'relative',
+    height: '100%',
   },
   heading: {
     ...Style.elements.sectionHeader,
-    margin: "1rem 0",
-    textTransform: "uppercase",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
+    margin: '1rem 0',
+    textTransform: 'uppercase',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   instructions: {
-    lineHeight: "1.4em",
+    lineHeight: '1.4em',
   },
   nextLink: {
-    position: "absolute",
+    position: 'absolute',
     right: 0,
     top: 0,
     padding: 0,
   },
-  filter: { marginRight: "1rem", flex: "1 0 auto", minWidth: "10em" },
+  filter: { marginRight: '1rem', flex: '1 0 auto', minWidth: '10em' },
 };
 
 const NextLink = ({ step, setCurrentStep, stepIsEnabled }) => {
@@ -115,7 +115,7 @@ const NextLink = ({ step, setCurrentStep, stepIsEnabled }) => {
           disabled: !stepIsEnabled(step),
           onClick: () => setCurrentStep(step),
         },
-        ["Next >"]
+        ['Next >']
       ),
     ]
   );
@@ -127,11 +127,11 @@ const AccordionHeader = ({ iconShape, title, onClick, children, ...props }) => {
     {
       style: {
         ...Style.elements.card.container,
-        flexFlow: "row nowrap",
-        justifyContent: "stretch",
-        alignItems: "center",
-        marginBottom: "1em",
-        fontSize: "1rem",
+        flexFlow: 'row nowrap',
+        justifyContent: 'stretch',
+        alignItems: 'center',
+        marginBottom: '1em',
+        fontSize: '1rem',
       },
       onClick,
       ...props,
@@ -139,13 +139,13 @@ const AccordionHeader = ({ iconShape, title, onClick, children, ...props }) => {
     [
       div(
         {
-          style: { flex: "0 0 auto", width: "20em" },
+          style: { flex: '0 0 auto', width: '20em' },
         },
         [
-          icon(iconShape, { size: 20, style: { marginRight: "1rem" } }),
+          icon(iconShape, { size: 20, style: { marginRight: '1rem' } }),
           span(
             {
-              style: { textTransform: "uppercase" },
+              style: { textTransform: 'uppercase' },
             },
             [title]
           ),
@@ -161,14 +161,14 @@ const AccordionHeader = ({ iconShape, title, onClick, children, ...props }) => {
         {
           style: { flex: 0 },
         },
-        ["Change"]
+        ['Change']
       ),
     ]
   );
 };
 
 const WorkspaceSelectorPanel = ({ workspaces, selectedWorkspaceId, setWorkspaceId, setCreatingNewWorkspace, children, ...props }) => {
-  const [filter, setFilter] = useState(StateHistory.get().filter || "");
+  const [filter, setFilter] = useState(StateHistory.get().filter || '');
   const [projectsFilter, setProjectsFilter] = useState(StateHistory.get().projectsFilter || undefined);
   const [tagsFilter, setTagsFilter] = useState(StateHistory.get().tagsFilter || []);
 
@@ -191,7 +191,7 @@ const WorkspaceSelectorPanel = ({ workspaces, selectedWorkspaceId, setWorkspaceI
         return (
           Utils.textMatch(filter, `${namespace}/${name}`) &&
           (_.isEmpty(projectsFilter) || projectsFilter === namespace) &&
-          _.every((a) => _.includes(a, _.get(["tag:tags", "items"], attributes)), tagsFilter)
+          _.every((a) => _.includes(a, _.get(['tag:tags', 'items'], attributes)), tagsFilter)
         );
       }, workspaces),
     [workspaces, filter, projectsFilter, tagsFilter]
@@ -199,49 +199,49 @@ const WorkspaceSelectorPanel = ({ workspaces, selectedWorkspaceId, setWorkspaceI
 
   return div([
     h2({ style: styles.heading }, [
-      icon("view-cards", { size: 20, style: { marginRight: "1ch" } }),
-      span({ ref: header, tabIndex: -1 }, ["Select a Workspace"]),
+      icon('view-cards', { size: 20, style: { marginRight: '1ch' } }),
+      span({ ref: header, tabIndex: -1 }, ['Select a Workspace']),
       h(
         Link,
         {
           onClick: () => setCreatingNewWorkspace(true),
-          style: { marginLeft: "1ch" },
-          tooltip: "Create a new workspace",
+          style: { marginLeft: '1ch' },
+          tooltip: 'Create a new workspace',
         },
-        [icon("lighter-plus-circle", { size: 24 })]
+        [icon('lighter-plus-circle', { size: 24 })]
       ),
     ]),
     p({ style: styles.instructions }, [
-      "You must first select the workspace you wish to upload your files into. You have access to the following workspaces:",
+      'You must first select the workspace you wish to upload your files into. You have access to the following workspaces:',
     ]),
     children,
-    div({ style: { display: "flex", marginBottom: "2rem", alignItems: "center" } }, [
+    div({ style: { display: 'flex', marginBottom: '2rem', alignItems: 'center' } }, [
       span(
         {
-          style: { position: "absolute", left: -9999 },
-          "aria-live": "polite",
-          "aria-atomic": true,
+          style: { position: 'absolute', left: -9999 },
+          'aria-live': 'polite',
+          'aria-atomic': true,
         },
         [
           filter || tagsFilter?.length > 0 || projectsFilter
             ? span([
-                "Filtering workspaces by ",
+                'Filtering workspaces by ',
                 Utils.commaJoin(
                   _.compact([
                     filter ? `search term: ${filter}` : null,
                     tagsFilter?.length > 0 ? `tags: ${tagsFilter}` : null,
                     projectsFilter ? `project: ${projectsFilter}` : null,
                   ]),
-                  "and"
+                  'and'
                 ),
               ])
-            : "not filtering workspaces",
+            : 'not filtering workspaces',
         ]
       ),
       div({ style: styles.filter }, [
         h(DelayedSearchInput, {
-          placeholder: "Search Workspaces",
-          "aria-label": "Search workspaces",
+          placeholder: 'Search Workspaces',
+          'aria-label': 'Search workspaces',
           onChange: setFilter,
           value: filter,
         }),
@@ -252,35 +252,35 @@ const WorkspaceSelectorPanel = ({ workspaces, selectedWorkspaceId, setWorkspaceI
           isMulti: true,
           formatCreateLabel: _.identity,
           value: _.map((tag) => ({ label: tag, value: tag }), tagsFilter),
-          placeholder: "Tags",
-          "aria-label": "Filter by tags",
-          onChange: (data) => setTagsFilter(_.map("value", data)),
+          placeholder: 'Tags',
+          'aria-label': 'Filter by tags',
+          onChange: (data) => setTagsFilter(_.map('value', data)),
         }),
       ]),
       div({ style: styles.filter }, [
         h(Select, {
           isClearable: true,
           isMulti: false,
-          placeholder: "Billing project",
-          "aria-label": "Filter by billing project",
+          placeholder: 'Billing project',
+          'aria-label': 'Filter by billing project',
           value: projectsFilter,
           hideSelectedOptions: true,
           onChange: (data) => setProjectsFilter(data ? data.value : undefined),
-          options: _.flow(_.map("workspace.namespace"), _.uniq, _.sortBy(_.identity))(workspaces),
+          options: _.flow(_.map('workspace.namespace'), _.uniq, _.sortBy(_.identity))(workspaces),
         }),
       ]),
-      div({ style: { ...styles.filter, flex: "0 0 auto", minWidth: undefined } }, [
+      div({ style: { ...styles.filter, flex: '0 0 auto', minWidth: undefined } }, [
         h(
           Link,
           {
-            "aria-label": "Clear filters",
+            'aria-label': 'Clear filters',
             onClick: () => {
-              setFilter("");
+              setFilter('');
               setProjectsFilter(undefined);
               setTagsFilter([]);
             },
           },
-          ["Clear"]
+          ['Clear']
         ),
       ]),
     ]),
@@ -315,17 +315,17 @@ const WorkspaceSelectorPanel = ({ workspaces, selectedWorkspaceId, setWorkspaceI
                 h(
                   Link,
                   {
-                    "aria-selected": workspaceId === selectedWorkspaceId,
+                    'aria-selected': workspaceId === selectedWorkspaceId,
                     style: _.merge(styles.workspaceTile, workspaceId === selectedWorkspaceId ? styles.workspaceTileSelected : {}),
                     onClick: () => setWorkspaceId(workspaceId),
-                    variant: workspaceId === selectedWorkspaceId ? "light" : "dark",
+                    variant: workspaceId === selectedWorkspaceId ? 'light' : 'dark',
                   },
                   [
                     h3(
                       {
-                        style: { margin: "0 0 1rem 0" },
+                        style: { margin: '0 0 1rem 0' },
                       },
-                      [namespace, " > ", name]
+                      [namespace, ' > ', name]
                     ),
                     div(
                       {
@@ -340,35 +340,35 @@ const WorkspaceSelectorPanel = ({ workspaces, selectedWorkspaceId, setWorkspaceI
                                   color: workspaceId === selectedWorkspaceId ? colors.light(0.75) : colors.dark(0.75),
                                 },
                               },
-                              [description?.split("\n")[0] || "No description added"]
+                              [description?.split('\n')[0] || 'No description added']
                             )
                           : null,
                       ]
                     ),
                     div(
                       {
-                        style: { display: "flex", flex: "row nowrap", width: "100%", justifyContent: "space-between" },
+                        style: { display: 'flex', flex: 'row nowrap', width: '100%', justifyContent: 'space-between' },
                       },
                       [
                         div(
                           {
                             style: {
                               color: workspaceId === selectedWorkspaceId ? colors.light(0.75) : colors.dark(0.75),
-                              paddingTop: "1em",
-                              flexFlow: "1 1 auto",
+                              paddingTop: '1em',
+                              flexFlow: '1 1 auto',
                             },
                           },
-                          [span("Last Modified: "), span([Utils.makeStandardDate(lastModified)])]
+                          [span('Last Modified: '), span([Utils.makeStandardDate(lastModified)])]
                         ),
                         div(
                           {
                             style: {
                               color: workspaceId === selectedWorkspaceId ? colors.light(0.75) : colors.dark(0.75),
-                              paddingTop: "1em",
-                              flexFlow: "1 1 auto",
+                              paddingTop: '1em',
+                              flexFlow: '1 1 auto',
                             },
                           },
-                          [span("Created By: "), span([createdBy])]
+                          [span('Created By: '), span([createdBy])]
                         ),
                       ]
                     ),
@@ -407,7 +407,7 @@ const CollectionSelectorPanel = ({
 
   // Helpers
   const load = _.flow(
-    withErrorReporting("Error loading bucket data"),
+    withErrorReporting('Error loading bucket data'),
     Utils.withBusyState(setLoading)
   )(async () => {
     const { prefixes } = await Ajax(signal).Buckets.list(googleProject, bucketName, rootPrefix);
@@ -432,24 +432,24 @@ const CollectionSelectorPanel = ({
 
   return h(div, {}, [
     h2({ style: styles.heading }, [
-      icon("folder", { size: 20, style: { marginRight: "1ch" } }),
-      span({ ref: header, tabIndex: -1 }, ["Select a collection"]),
+      icon('folder', { size: 20, style: { marginRight: '1ch' } }),
+      span({ ref: header, tabIndex: -1 }, ['Select a collection']),
       h(
         Link,
         {
           onClick: () => setCreating(true),
-          style: { marginLeft: "1ch" },
-          tooltip: "Create a new collection",
+          style: { marginLeft: '1ch' },
+          tooltip: 'Create a new collection',
         },
-        [icon("lighter-plus-circle", { size: 24 })]
+        [icon('lighter-plus-circle', { size: 24 })]
       ),
     ]),
     p({ style: styles.instructions }, [
-      "Each collection represents a group of files with a single metadata file describing the table structure. ",
-      "You can create a new collection, or add files to an existing one. ",
+      'Each collection represents a group of files with a single metadata file describing the table structure. ',
+      'You can create a new collection, or add files to an existing one. ',
     ]),
     children,
-    collections?.length > 0 && h3({}, ["Choose an existing collection"]),
+    collections?.length > 0 && h3({}, ['Choose an existing collection']),
     ul(
       {
         style: styles.workspaceTilesContainer,
@@ -464,10 +464,10 @@ const CollectionSelectorPanel = ({
               h(
                 Link,
                 {
-                  "aria-selected": prefix === selectedCollection,
+                  'aria-selected': prefix === selectedCollection,
                   style: _.merge(styles.workspaceTile, prefix === selectedCollection ? styles.workspaceTileSelected : {}),
                   onClick: () => setCollection(prefix),
-                  variant: prefix === selectedCollection ? "light" : "dark",
+                  variant: prefix === selectedCollection ? 'light' : 'dark',
                 },
                 [prefix]
               ),
@@ -479,16 +479,16 @@ const CollectionSelectorPanel = ({
     h(
       Link,
       {
-        style: { margin: "2em auto 0", display: "block", width: "fit-content" },
+        style: { margin: '2em auto 0', display: 'block', width: 'fit-content' },
         onClick: () => setCreating(true),
       },
-      [icon("plus"), " Create a new collection"]
+      [icon('plus'), ' Create a new collection']
     ),
     isCreating &&
       h(NameModal, {
-        thing: "Collection",
+        thing: 'Collection',
         validator: /^[^\s/#*?\[\]]+$/, // eslint-disable-line no-useless-escape
-        validationMessage: "Collection name may not contain spaces, forward slashes, or any of the following characters: # * ? [ ]",
+        validationMessage: 'Collection name may not contain spaces, forward slashes, or any of the following characters: # * ? [ ]',
         onDismiss: () => setCreating(false),
         onSuccess: ({ name }) => setCollection(name),
       }),
@@ -518,20 +518,20 @@ const DataUploadPanel = ({ workspace, collection, setNumFiles, children }) => {
     countFiles();
   });
 
-  return div({ style: { display: "flex", flexFlow: "column nowrap", height: "100%" } }, [
+  return div({ style: { display: 'flex', flexFlow: 'column nowrap', height: '100%' } }, [
     h2({ style: { ...styles.heading, flex: 0 } }, [
-      icon("fileAlt", { size: 20, style: { marginRight: "1ch" } }),
-      span({ ref: header, tabIndex: -1 }, ["Upload Your Data Files"]),
+      icon('fileAlt', { size: 20, style: { marginRight: '1ch' } }),
+      span({ ref: header, tabIndex: -1 }, ['Upload Your Data Files']),
     ]),
     children,
     div({ style: { flex: 0 } }, [
       p({ style: styles.instructions }, [
-        "Upload the files to associate with this collection by dragging them into the table below, or clicking the Upload button.",
+        'Upload the files to associate with this collection by dragging them into the table below, or clicking the Upload button.',
       ]),
-      p({ style: styles.instructions }, [" You may upload as many files as you wish, but each filename must be unique."]),
+      p({ style: styles.instructions }, [' You may upload as many files as you wish, but each filename must be unique.']),
     ]),
     h(FileBrowser, {
-      style: { flex: "1 1 auto", minHeight: "30rem", border: `1px solid ${colors.grey(0.4)}`, borderRadius: "0.5rem", overflow: "hidden" },
+      style: { flex: '1 1 auto', minHeight: '30rem', border: `1px solid ${colors.grey(0.4)}`, borderRadius: '0.5rem', overflow: 'hidden' },
       workspace,
       basePrefix,
       allowEditingFolders: false,
@@ -576,7 +576,7 @@ const MetadataUploadPanel = ({
   // Get every filename in the bucket, so we can do substitutions
   useEffect(() => {
     const loadFiles = _.flow(
-      withErrorReporting("Error loading bucket data"),
+      withErrorReporting('Error loading bucket data'),
       Utils.withBusyState(setFilesLoading)
     )(async () => {
       // Fetch every object in the entire bucket so we don't have to do it recursively, but
@@ -586,7 +586,7 @@ const MetadataUploadPanel = ({
       // Hash the filenames without any prefixes for easy lookup
       setFilenames(
         _.flow(
-          _.map((item) => [_.last(item.name.split("/")), `gs://${bucketName}/${item.name}`]),
+          _.map((item) => [_.last(item.name.split('/')), `gs://${bucketName}/${item.name}`]),
           _.fromPairs
         )(items)
       );
@@ -610,7 +610,7 @@ const MetadataUploadPanel = ({
       const rows = _.flow(
         _.split(/\r\n|\r|\n/),
         _.compact,
-        _.map((row) => row.split("\t"))
+        _.map((row) => row.split('\t'))
       )(text);
 
       const headerRow = _.head(rows);
@@ -619,7 +619,7 @@ const MetadataUploadPanel = ({
 
       // Perform validation on the first row
       if (!idColumn) {
-        errors.push(["This does not look like a valid .tsv file."]);
+        errors.push(['This does not look like a valid .tsv file.']);
         // Return right away
         setErrors(errors);
         return;
@@ -628,17 +628,17 @@ const MetadataUploadPanel = ({
 
       // TODO Add more validation
       if (!_.some((t) => idColumn.startsWith(t), entityTypes)) {
-        errors.push(div(["The first column header ", code(idColumn), " must start with ", Utils.commaJoin(_.map((t) => code([t]), entityTypes))]));
+        errors.push(div(['The first column header ', code(idColumn), ' must start with ', Utils.commaJoin(_.map((t) => code([t]), entityTypes))]));
       }
-      if (!idColumn.endsWith("_id")) {
-        errors.push(div(["The first column header ", code(idColumn), " must end with ", code("_id")]));
+      if (!idColumn.endsWith('_id')) {
+        errors.push(div(['The first column header ', code(idColumn), ' must end with ', code('_id')]));
       }
       const matches = idColumn?.match(/^([A-Za-z_-]+):([A-Za-z0-9-_.]+)_id$/);
       if (errors.length === 0 && !matches) {
-        errors.push(div(["The first column header ", code(idColumn), " must only include alphanumeric characters, dashes, periods or underscores"]));
+        errors.push(div(['The first column header ', code(idColumn), ' must only include alphanumeric characters, dashes, periods or underscores']));
       }
       if (headerRow.length < 2) {
-        errors.push("Your metadata file must include at least 2 columns");
+        errors.push('Your metadata file must include at least 2 columns');
       }
 
       // Make sure no rows are longer than the header row (we take care of padding shorter rows later)
@@ -646,13 +646,13 @@ const MetadataUploadPanel = ({
         if (row.length > headerRow.length) {
           errors.push(
             span([
-              "Row ",
+              'Row ',
               strong(i),
-              " [",
+              ' [',
               code(row[0]),
-              "] has too many columns; expected ",
+              '] has too many columns; expected ',
               strong(headerRow.length),
-              " but found ",
+              ' but found ',
               strong(row.length),
             ])
           );
@@ -673,7 +673,7 @@ const MetadataUploadPanel = ({
             (row) =>
               _.concat(
                 row,
-                _.map(() => "", _.range(0, headerRow.length - row.length))
+                _.map(() => '', _.range(0, headerRow.length - row.length))
               ),
             // Replace any file references with bucket paths
             _.map((cell) => (cell in filenames ? filenames[cell] : cell))
@@ -684,8 +684,8 @@ const MetadataUploadPanel = ({
         setMetadataTable({ errors, entityClass, entityType, idName, idColumn, columns: headerRow, rows: otherRows });
       }
     } catch (e) {
-      console.error("Failed to parse metadata file", e);
-      setErrors(["We were unable to process the metadata file. Are you sure it is in the proper format?"]);
+      console.error('Failed to parse metadata file', e);
+      setErrors(['We were unable to process the metadata file. Are you sure it is in the proper format?']);
     }
   };
 
@@ -718,36 +718,36 @@ const MetadataUploadPanel = ({
       await workspace.importFlexibleEntitiesFileSynchronous(file);
       onSuccess && onSuccess({ file, metadata });
     } catch (error) {
-      await reportError("Failed to upload entity metadata", error);
+      await reportError('Failed to upload entity metadata', error);
     }
   });
 
   // Render
 
-  return div({ style: { height: "100%", display: "flex", flexFlow: "column nowrap" } }, [
+  return div({ style: { height: '100%', display: 'flex', flexFlow: 'column nowrap' } }, [
     h2({ style: { ...styles.heading, flex: 0 } }, [
-      icon("listAlt", { size: 20, style: { marginRight: "1ch" } }),
-      span({ ref: header, tabIndex: -1 }, ["Upload Your Metadata Files"]),
+      icon('listAlt', { size: 20, style: { marginRight: '1ch' } }),
+      span({ ref: header, tabIndex: -1 }, ['Upload Your Metadata Files']),
     ]),
     children,
     !isPreviewing &&
       div({ style: { ...styles.instructions, flex: 0 } }, [
-        p("Upload a tab-separated file describing your table structures."),
+        p('Upload a tab-separated file describing your table structures.'),
         ul([
-          li("Any columns which reference files should include just the filenames, which will be matched up to the data files in this collection."),
+          li('Any columns which reference files should include just the filenames, which will be matched up to the data files in this collection.'),
           li([
             p([
-              "The first column must contain the unique identifiers for each row. The name of the first column must start with ",
-              code("entity:"),
-              " followed by the table name, followed by ",
-              code("_id"),
-              ".",
+              'The first column must contain the unique identifiers for each row. The name of the first column must start with ',
+              code('entity:'),
+              ' followed by the table name, followed by ',
+              code('_id'),
+              '.',
             ]),
           ]),
         ]),
         p([
-          "For example, if the first column is named ",
-          code("entity:sample_id"),
+          'For example, if the first column is named ',
+          code('entity:sample_id'),
           ', a table named "sample" will be created with "sample_id" as its first column. There are no restrictions on other columns.',
         ]),
       ]),
@@ -758,16 +758,16 @@ const MetadataUploadPanel = ({
           disabled: !!Utils.editWorkspaceError(workspace),
           style: {
             flex: 0,
-            backgroundColor: "white",
+            backgroundColor: 'white',
             border: `1px dashed ${colors.dark(0.55)}`,
-            padding: "1rem",
-            position: "relative",
-            height: "7rem",
+            padding: '1rem',
+            position: 'relative',
+            height: '7rem',
           },
-          activeStyle: { backgroundColor: colors.accent(0.2), cursor: "copy" },
+          activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
           multiple: false,
           maxFiles: 1,
-          accept: ".tsv, .txt",
+          accept: '.tsv, .txt',
           onDropAccepted: ([file]) => {
             setMetadataFile(file);
           },
@@ -785,18 +785,18 @@ const MetadataUploadPanel = ({
                 {
                   style: {
                     color: colors.dark(0.75),
-                    width: "100%",
-                    margin: "2rem 0",
-                    textAlign: "center",
-                    fontSize: "1.5em",
+                    width: '100%',
+                    margin: '2rem 0',
+                    textAlign: 'center',
+                    fontSize: '1.5em',
                   },
                 },
-                ["Drag and drop your metadata .tsv or .txt file here"]
+                ['Drag and drop your metadata .tsv or .txt file here']
               ),
               !Utils.editWorkspaceError(workspace) &&
                 h(FloatingActionButton, {
-                  label: "UPLOAD",
-                  iconShape: "plus",
+                  label: 'UPLOAD',
+                  iconShape: 'plus',
                   onClick: openUploader,
                 }),
             ]),
@@ -808,8 +808,8 @@ const MetadataUploadPanel = ({
           style: { color: colors.danger(), flex: 1 },
         },
         [
-          h2(["Error!"]),
-          p("The following errors occurred. Please correct them and then try your upload again."),
+          h2(['Error!']),
+          p('The following errors occurred. Please correct them and then try your upload again.'),
           ul([_.map((e) => li({ key: e }, [e]), metadataTable.errors)]),
         ]
       ),
@@ -846,7 +846,7 @@ const DonePanel = ({
   });
 
   return div([
-    h2({ style: styles.heading }, [span({ ref: header, tabIndex: -1 }, ["Done!"])]),
+    h2({ style: styles.heading }, [span({ ref: header, tabIndex: -1 }, ['Done!'])]),
     workspace &&
       div(
         {
@@ -857,28 +857,28 @@ const DonePanel = ({
             h(
               Link,
               {
-                href: Nav.getLink("workspace-data", { namespace, name }),
+                href: Nav.getLink('workspace-data', { namespace, name }),
                 onClick: () => StateHistory.update({ selectedDataType: tableName }),
               },
-              [icon("view-cards"), " View the ", code([tableName]), " table in the workspace"]
+              [icon('view-cards'), ' View the ', code([tableName]), ' table in the workspace']
             ),
           ]),
           p([
             h(
               Link,
               {
-                onClick: () => setCurrentStep("metadata"),
+                onClick: () => setCurrentStep('metadata'),
               },
-              [icon("listAlt"), " Create a new table in the ", code([collection]), " collection"]
+              [icon('listAlt'), ' Create a new table in the ', code([collection]), ' collection']
             ),
           ]),
           p([
             h(
               Link,
               {
-                onClick: () => setCurrentStep("workspaces"),
+                onClick: () => setCurrentStep('workspaces'),
               },
-              [icon("folder"), " Start over with another workspace or collection"]
+              [icon('folder'), ' Start over with another workspace or collection']
             ),
           ]),
         ]
@@ -888,7 +888,7 @@ const DonePanel = ({
 
 const UploadData = _.flow(
   // eslint-disable-line lodash-fp/no-single-composition
-  forwardRefWithName("Upload")
+  forwardRefWithName('Upload')
 )((props, _ref) => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces();
 
@@ -899,9 +899,9 @@ const UploadData = _.flow(
   const [currentStep, setCurrentStep] = useState(
     Utils.cond(
       [!!StateHistory.get().currentStep, () => StateHistory.get().currentStep],
-      [!!workspaceId && !!collection, () => "data"],
-      [!!workspaceId && !collection, () => "collection"],
-      () => "workspaces"
+      [!!workspaceId && !!collection, () => 'data'],
+      [!!workspaceId && !collection, () => 'collection'],
+      () => 'workspaces'
     )
   );
   const [creatingNewWorkspace, setCreatingNewWorkspace] = useState(false);
@@ -923,11 +923,11 @@ const UploadData = _.flow(
 
   // Steps through the wizard
   const steps = [
-    { step: "workspaces", test: () => true },
-    { step: "collection", test: () => workspace, clear: () => setCollection(undefined) },
-    { step: "data", test: () => collection, clear: () => setNumFiles(0) },
-    { step: "metadata", test: () => numFiles > 0, clear: () => setTableName(undefined) },
-    { step: "done", test: () => tableName },
+    { step: 'workspaces', test: () => true },
+    { step: 'collection', test: () => workspace, clear: () => setCollection(undefined) },
+    { step: 'data', test: () => collection, clear: () => setNumFiles(0) },
+    { step: 'metadata', test: () => numFiles > 0, clear: () => setTableName(undefined) },
+    { step: 'done', test: () => tableName },
   ];
 
   const stepIsEnabled = (step) => {
@@ -960,66 +960,66 @@ const UploadData = _.flow(
 
   // Render
   return h(FooterWrapper, [
-    h(TopBar, { title: "Data Uploader" }),
-    div({ role: "main", style: { padding: "1.5rem", flex: "1 1 auto", fontSize: "1.2em" } }, [
+    h(TopBar, { title: 'Data Uploader' }),
+    div({ role: 'main', style: { padding: '1.5rem', flex: '1 1 auto', fontSize: '1.2em' } }, [
       filteredWorkspaces.length === 0 && !loadingWorkspaces
         ? h(NoWorkspacesMessage, { onClick: () => setCreatingNewWorkspace(true) })
         : div({ style: styles.tableViewPanel }, [
             workspace &&
-              currentStep !== "workspaces" &&
+              currentStep !== 'workspaces' &&
               h(
                 AccordionHeader,
                 {
-                  iconShape: "view-cards",
-                  title: "Workspace",
-                  onClick: () => setCurrentStep("workspaces"),
+                  iconShape: 'view-cards',
+                  title: 'Workspace',
+                  onClick: () => setCurrentStep('workspaces'),
                 },
                 [
-                  div({ style: { fontSize: "0.8em" } }, [workspace.workspace.namespace]),
-                  div({ style: { fontSize: "1.2em" } }, [workspace.workspace.name]),
+                  div({ style: { fontSize: '0.8em' } }, [workspace.workspace.namespace]),
+                  div({ style: { fontSize: '1.2em' } }, [workspace.workspace.name]),
                 ]
               ),
             collection &&
-              currentStep !== "collection" &&
+              currentStep !== 'collection' &&
               h(
                 AccordionHeader,
                 {
-                  iconShape: "folder",
-                  title: "Collection",
-                  onClick: () => setCurrentStep("collection"),
+                  iconShape: 'folder',
+                  title: 'Collection',
+                  onClick: () => setCurrentStep('collection'),
                 },
                 [strong([collection])]
               ),
             numFiles > 0 &&
-              currentStep !== "data" &&
+              currentStep !== 'data' &&
               h(
                 AccordionHeader,
                 {
-                  iconShape: "fileAlt",
-                  title: "Data Files",
-                  onClick: () => setCurrentStep("data"),
+                  iconShape: 'fileAlt',
+                  title: 'Data Files',
+                  onClick: () => setCurrentStep('data'),
                 },
-                ["Includes ", strong([numFiles]), " files"]
+                ['Includes ', strong([numFiles]), ' files']
               ),
             tableName &&
-              currentStep === "done" &&
+              currentStep === 'done' &&
               h(
                 AccordionHeader,
                 {
-                  iconShape: "listAlt",
-                  title: "Metadata Tables",
-                  onClick: () => setCurrentStep("metadata"),
+                  iconShape: 'listAlt',
+                  title: 'Metadata Tables',
+                  onClick: () => setCurrentStep('metadata'),
                 },
                 [
-                  tableMetadata?.isUpdate ? "Updated table " : "Created table ",
+                  tableMetadata?.isUpdate ? 'Updated table ' : 'Created table ',
                   strong([code([tableName])]),
-                  tableMetadata && span([", added or modified ", strong(tableMetadata.table.rows.length), " rows"]),
+                  tableMetadata && span([', added or modified ', strong(tableMetadata.table.rows.length), ' rows']),
                 ]
               ),
             Utils.switchCase(
               currentStep,
               [
-                "workspaces",
+                'workspaces',
                 () =>
                   div(
                     {
@@ -1034,16 +1034,16 @@ const UploadData = _.flow(
                           setCreatingNewWorkspace,
                           setWorkspaceId: (id) => {
                             setWorkspaceId(id);
-                            setCurrentStep("collection");
+                            setCurrentStep('collection');
                           },
                         },
-                        [h(NextLink, { step: "collection", setCurrentStep, stepIsEnabled })]
+                        [h(NextLink, { step: 'collection', setCurrentStep, stepIsEnabled })]
                       ),
                     ]
                   ),
               ],
               [
-                "collection",
+                'collection',
                 () =>
                   div(
                     {
@@ -1058,16 +1058,16 @@ const UploadData = _.flow(
                             selectedCollection: collection,
                             setCollection: (id) => {
                               setCollection(id);
-                              setCurrentStep("data");
+                              setCurrentStep('data');
                             },
                           },
-                          [h(NextLink, { step: "data", setCurrentStep, stepIsEnabled })]
+                          [h(NextLink, { step: 'data', setCurrentStep, stepIsEnabled })]
                         ),
                     ]
                   ),
               ],
               [
-                "data",
+                'data',
                 () =>
                   div(
                     {
@@ -1083,16 +1083,16 @@ const UploadData = _.flow(
                             collection,
                             setNumFiles,
                             setUploadedFiles: () => {
-                              setCurrentStep("metadata");
+                              setCurrentStep('metadata');
                             },
                           },
-                          [h(NextLink, { step: "metadata", setCurrentStep, stepIsEnabled })]
+                          [h(NextLink, { step: 'metadata', setCurrentStep, stepIsEnabled })]
                         ),
                     ]
                   ),
               ],
               [
-                "metadata",
+                'metadata',
                 () =>
                   div(
                     {
@@ -1107,14 +1107,14 @@ const UploadData = _.flow(
                           onSuccess: ({ metadata, metadata: { entityType: tableName } }) => {
                             setTableName(tableName);
                             setTableMetadata(metadata);
-                            setCurrentStep("done");
+                            setCurrentStep('done');
                           },
                         }),
                     ]
                   ),
               ],
               [
-                "done",
+                'done',
                 () =>
                   div(
                     {
@@ -1139,7 +1139,7 @@ const UploadData = _.flow(
             refreshWorkspaces();
             setWorkspaceId(workspaceId);
             setCreatingNewWorkspace(false);
-            setCurrentStep("collection");
+            setCurrentStep('collection');
           },
         }),
       loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay),
@@ -1149,9 +1149,9 @@ const UploadData = _.flow(
 
 export const navPaths = [
   {
-    name: "upload",
-    path: "/upload",
+    name: 'upload',
+    path: '/upload',
     component: UploadData,
-    title: "Upload",
+    title: 'Upload',
   },
 ];

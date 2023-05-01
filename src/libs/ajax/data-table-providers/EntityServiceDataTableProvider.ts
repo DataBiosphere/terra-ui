@@ -1,6 +1,6 @@
-import _ from "lodash/fp";
-import { notifyDataImportProgress } from "src/components/data/data-utils";
-import { Ajax } from "src/libs/ajax";
+import _ from 'lodash/fp';
+import { notifyDataImportProgress } from 'src/components/data/data-utils';
+import { Ajax } from 'src/libs/ajax';
 import {
   DataTableFeatures,
   DataTableProvider,
@@ -12,9 +12,9 @@ import {
   TsvUploadButtonDisabledOptions,
   TsvUploadButtonTooltipOptions,
   UploadParameters,
-} from "src/libs/ajax/data-table-providers/DataTableProvider";
-import { asyncImportJobStore } from "src/libs/state";
-import * as Utils from "src/libs/utils";
+} from 'src/libs/ajax/data-table-providers/DataTableProvider';
+import { asyncImportJobStore } from 'src/libs/state';
+import * as Utils from 'src/libs/utils';
 
 export class EntityServiceDataTableProvider implements DataTableProvider {
   constructor(namespace: string, name: string) {
@@ -22,7 +22,7 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     this.name = name;
   }
 
-  providerName = "Entity Service";
+  providerName = 'Entity Service';
 
   namespace: string;
 
@@ -42,11 +42,11 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
   tsvFeatures: TSVFeatures = {
     needsTypeInput: false,
     sampleTSVLink:
-      "https://storage.googleapis.com/terra-featured-workspaces/Table_templates/2-template_sample-table.tsv",
-    dataImportSupportLink: "https://support.terra.bio/hc/en-us/articles/360059242671",
-    dataTableSupportLink: "https://support.terra.bio/hc/en-us/articles/360025758392",
-    textImportPlaceholder: "entity:participant_id(tab)column1(tab)column2...",
-    invalidFormatWarning: "Invalid format: Data does not start with entity or membership definition.",
+      'https://storage.googleapis.com/terra-featured-workspaces/Table_templates/2-template_sample-table.tsv',
+    dataImportSupportLink: 'https://support.terra.bio/hc/en-us/articles/360059242671',
+    dataTableSupportLink: 'https://support.terra.bio/hc/en-us/articles/360025758392',
+    textImportPlaceholder: 'entity:participant_id(tab)column1(tab)column2...',
+    invalidFormatWarning: 'Invalid format: Data does not start with entity or membership definition.',
     isInvalid: (options: InvalidTsvOptions): boolean => {
       return options.fileImportModeMatches && options.filePresent && options.match;
     },
@@ -54,7 +54,7 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
       return !options.filePresent || options.isInvalid || options.uploading;
     },
     tooltip: (options: TsvUploadButtonTooltipOptions): string => {
-      return !options.filePresent || options.isInvalid ? "Please select valid data to upload" : "Upload selected data";
+      return !options.filePresent || options.isInvalid ? 'Please select valid data to upload' : 'Upload selected data';
     },
   };
 
@@ -110,6 +110,6 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     asyncImportJobStore.update(
       Utils.append({ targetWorkspace: { namespace: uploadParams.namespace, name: uploadParams.name }, jobId })
     );
-    notifyDataImportProgress(jobId, "Data will show up incrementally as the job progresses.");
+    notifyDataImportProgress(jobId, 'Data will show up incrementally as the job progresses.');
   };
 }

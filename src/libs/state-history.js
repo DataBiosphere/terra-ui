@@ -1,6 +1,6 @@
-import _ from "lodash/fp";
-import { getDynamic, getSessionStorage, setDynamic } from "src/libs/browser-storage";
-import { v4 as uuid } from "uuid";
+import _ from 'lodash/fp';
+import { getDynamic, getSessionStorage, setDynamic } from 'src/libs/browser-storage';
+import { v4 as uuid } from 'uuid';
 
 const getKey = () => {
   const state = window.history.state;
@@ -8,7 +8,7 @@ const getKey = () => {
     return state.key;
   }
   const key = uuid();
-  window.history.replaceState({ key }, "");
+  window.history.replaceState({ key }, '');
   return key;
 };
 

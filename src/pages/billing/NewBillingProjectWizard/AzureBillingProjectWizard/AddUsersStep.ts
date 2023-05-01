@@ -1,28 +1,28 @@
-import pluralize from "pluralize";
-import { ReactNode, useEffect, useState } from "react";
-import { div, h, p } from "react-hyperscript-helpers";
-import { useUniqueId } from "src/components/common";
-import { ValidatedInput } from "src/components/input";
-import { formHint, FormLabel } from "src/libs/forms";
-import * as Utils from "src/libs/utils";
+import pluralize from 'pluralize';
+import { ReactNode, useEffect, useState } from 'react';
+import { div, h, p } from 'react-hyperscript-helpers';
+import { useUniqueId } from 'src/components/common';
+import { ValidatedInput } from 'src/components/input';
+import { formHint, FormLabel } from 'src/libs/forms';
+import * as Utils from 'src/libs/utils';
 import {
   columnEntryStyle,
   columnStyle,
   hintStyle,
   rowStyle,
-} from "src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/styles";
+} from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/styles';
 import {
   LabeledRadioButton,
   LabeledRadioGroup,
-} from "src/pages/billing/NewBillingProjectWizard/StepWizard/LabeledRadioButton";
-import { Step } from "src/pages/billing/NewBillingProjectWizard/StepWizard/Step";
+} from 'src/pages/billing/NewBillingProjectWizard/StepWizard/LabeledRadioButton';
+import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/Step';
 import {
   legendDetailsStyle,
   StepFieldLegend,
   StepFields,
-} from "src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields";
-import { StepHeader } from "src/pages/billing/NewBillingProjectWizard/StepWizard/StepHeader";
-import { validate } from "validate.js";
+} from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields';
+import { StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepHeader';
+import { validate } from 'validate.js';
 
 interface EmailInputProps {
   emails: string;
@@ -51,7 +51,7 @@ const EmailInput = (props: EmailInputProps) => {
 
   const getIndividualEmails = (emails) =>
     emails
-      ?.split(",")
+      ?.split(',')
       .map((email) => email.trim())
       .filter((email) => !!email);
   const validateEmails = (individualEmails) => {
@@ -68,7 +68,7 @@ const EmailInput = (props: EmailInputProps) => {
     h(ValidatedInput, {
       inputProps: {
         id: inputId,
-        placeholder: "comma-separated email addresses",
+        placeholder: 'comma-separated email addresses',
         disabled: props.disabled,
         onChange: (emails) => {
           const individualEmails = getIndividualEmails(emails);
@@ -89,7 +89,7 @@ const EmailInput = (props: EmailInputProps) => {
     !debouncedErrors &&
       !!debouncedEmails &&
       div({ style: hintStyle }, [
-        formHint(`${pluralize("email", getIndividualEmails(debouncedEmails).length, true)} entered`),
+        formHint(`${pluralize('email', getIndividualEmails(debouncedEmails).length, true)} entered`),
       ]),
   ]);
 };
@@ -110,22 +110,22 @@ export const AddUsersStep = ({ isActive, inputDebounce = 1000, ...props }: AddUs
   const [userEmailErrors, setUserEmailErrors] = useState<ReactNode>();
   const [ownerEmailErrors, setOwnerEmailErrors] = useState<ReactNode>();
 
-  return h(Step, { isActive, style: { minHeight: "22.5rem", paddingBottom: "0.5rem" } }, [
-    h(StepHeader, { title: "STEP 2" }),
-    h(StepFields, { style: { flexDirection: "column" } }, [
-      h(StepFieldLegend, { style: { width: "100%" } }, [
-        "Add additional owners and users to your Terra Billing Project ",
-        p({ style: { ...legendDetailsStyle, width: "95%" } }, [
-          "Owners can assign permissions for their billing project, create new workspaces, and manage costs for all workspaces within the project. " +
-            "Users can create new workspaces and manage costs for workspaces they create within the project. " +
-            "Adding anyone to this project will mean they can incur costs to the billing associated with this project.",
+  return h(Step, { isActive, style: { minHeight: '22.5rem', paddingBottom: '0.5rem' } }, [
+    h(StepHeader, { title: 'STEP 2' }),
+    h(StepFields, { style: { flexDirection: 'column' } }, [
+      h(StepFieldLegend, { style: { width: '100%' } }, [
+        'Add additional owners and users to your Terra Billing Project ',
+        p({ style: { ...legendDetailsStyle, width: '95%' } }, [
+          'Owners can assign permissions for their billing project, create new workspaces, and manage costs for all workspaces within the project. ' +
+            'Users can create new workspaces and manage costs for workspaces they create within the project. ' +
+            'Adding anyone to this project will mean they can incur costs to the billing associated with this project.',
         ]),
       ]),
       div({ style: columnStyle }, [
         h(LabeledRadioGroup, { style: { marginTop: 0, marginBottom: 0 } }, [
           LabeledRadioButton({
             text: "I don't have additional owners or users to add at this time",
-            name: "add-users",
+            name: 'add-users',
             checked: props.addUsersOrOwners === false,
             onChange: (changed) => {
               props.onAddUsersOrOwners(!changed.target.checked);
@@ -134,14 +134,14 @@ export const AddUsersStep = ({ isActive, inputDebounce = 1000, ...props }: AddUs
               if (changed.target.checked) {
                 setOwnerEmailErrors(null);
                 setUserEmailErrors(null);
-                props.onSetUserEmails("", false);
-                props.onSetOwnerEmails("", false);
+                props.onSetUserEmails('', false);
+                props.onSetOwnerEmails('', false);
               }
             },
           }),
           LabeledRadioButton({
-            text: "Add the following owners and/or users",
-            name: "add-users",
+            text: 'Add the following owners and/or users',
+            name: 'add-users',
             onChange: (changed) => {
               props.onAddUsersOrOwners(changed.target.checked);
             },
@@ -155,7 +155,7 @@ export const AddUsersStep = ({ isActive, inputDebounce = 1000, ...props }: AddUs
             errors: ownerEmailErrors,
             setErrors: setOwnerEmailErrors,
             onFocus: props.onOwnersOrUsersInputFocused,
-            label: "Owners",
+            label: 'Owners',
             addSpacing: true,
             inputDebounce,
           }),
@@ -166,7 +166,7 @@ export const AddUsersStep = ({ isActive, inputDebounce = 1000, ...props }: AddUs
             errors: userEmailErrors,
             setErrors: setUserEmailErrors,
             onFocus: props.onOwnersOrUsersInputFocused,
-            label: "Users",
+            label: 'Users',
             addSpacing: false,
             inputDebounce,
           }),

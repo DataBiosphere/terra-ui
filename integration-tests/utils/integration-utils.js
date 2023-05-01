@@ -1,9 +1,9 @@
-const { AxePuppeteer } = require("@axe-core/puppeteer");
-const _ = require("lodash/fp");
-const { mkdirSync, writeFileSync } = require("fs");
-const { resolve } = require("path");
-const pRetry = require("p-retry");
-const { screenshotDirPath } = require("./integration-config");
+const { AxePuppeteer } = require('@axe-core/puppeteer');
+const _ = require('lodash/fp');
+const { mkdirSync, writeFileSync } = require('fs');
+const { resolve } = require('path');
+const pRetry = require('p-retry');
+const { screenshotDirPath } = require('./integration-config');
 
 const defaultToVisibleTrue = _.defaults({ visible: true });
 
@@ -24,7 +24,7 @@ const waitForFn = async ({ fn, interval = 2000, timeout = 10000 }) => {
 
 const findIframe = async (page, iframeXPath = '//*[@role="main"]/iframe') => {
   const iframeNode = await page.waitForXPath(iframeXPath);
-  const srcHandle = await iframeNode.getProperty("src");
+  const srcHandle = await iframeNode.getProperty('src');
   const src = await srcHandle.jsonValue();
   const hasFrame = () => page.frames().find((frame) => frame.url().includes(src));
 
@@ -36,7 +36,7 @@ const findInGrid = (page, textContains, options) => {
 };
 
 const getClickablePath = (path, text, textContains, isDescendant = false) => {
-  const base = `${path}${isDescendant ? "//*" : ""}`;
+  const base = `${path}${isDescendant ? '//*' : ''}`;
   if (text) {
     return `${base}[normalize-space(.)="${text}" or @title="${text}" or @alt="${text}" or @aria-label="${text}" or @aria-labelledby=//*[normalize-space(.)="${text}"]/@id]`;
   }
@@ -57,7 +57,7 @@ const clickable = ({ text, textContains, isDescendant = false, isEnabled = true 
 };
 
 const image = ({ text, textContains, isDescendant = false }) => {
-  const base = "(//img[@alt])";
+  const base = '(//img[@alt])';
   return getClickablePath(base, text, textContains, isDescendant);
 };
 
@@ -75,20 +75,20 @@ const getTableColIndex = async (page, { tableName, columnHeader }) => {
     page,
     `//*[@role="table" and @aria-label="${tableName}"]//*[@role="columnheader" and @aria-colindex][descendant-or-self::text() = "${columnHeader}"]`
   );
-  return page.evaluate((node) => node.getAttribute("aria-colindex"), colHeaderNode);
+  return page.evaluate((node) => node.getAttribute('aria-colindex'), colHeaderNode);
 };
 
 const getTableCellByContents = async (page, { tableName, columnHeader, text, isDescendant = false }) => {
   const colIndex = await getTableColIndex(page, { tableName, columnHeader });
   const baseXpath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"]//*[@role="cell" and @aria-colindex = "${colIndex}"]`;
-  const xpath = `${baseXpath}${isDescendant ? "//*" : ""}[text() = "${text}"]`;
+  const xpath = `${baseXpath}${isDescendant ? '//*' : ''}[text() = "${text}"]`;
   return xpath;
 };
 
 const getTableRowIndex = async (page, { tableName, columnHeader, text, isDescendant = false }) => {
   const colXPath = await getTableCellByContents(page, { tableName, columnHeader, text, isDescendant });
   const findCol = await findElement(page, colXPath);
-  return page.evaluate((node) => node.getAttribute("aria-rowindex"), findCol);
+  return page.evaluate((node) => node.getAttribute('aria-rowindex'), findCol);
 };
 
 const assertRowHas = async (page, { tableName, expectedColumnValues, withKey: { column, text } }) => {
@@ -113,7 +113,7 @@ const click = async (page, xpath, options) => {
   try {
     return (await page.waitForXPath(xpath, defaultToVisibleTrue(options))).click();
   } catch (e) {
-    if (e.message.includes("Node is detached from document")) {
+    if (e.message.includes('Node is detached from document')) {
       return (await page.waitForXPath(xpath, defaultToVisibleTrue(options))).click();
     }
     throw e;
@@ -221,7 +221,7 @@ const dismissNPSSurvey = async (page) => {
     return; // NPS survey was not found
   }
   try {
-    console.log("dismissing NPS survey");
+    console.log('dismissing NPS survey');
     const iframe = await element.contentFrame();
     const [closeButton] = await iframe.$x('.//*[normalize-space(.)="Ask Me Later"]');
     await closeButton.evaluate((button) => button.click());
@@ -234,7 +234,7 @@ const dismissNPSSurvey = async (page) => {
 
 // Test workaround: Retry loading of Terra UI if fails first time. This issue often happens after new deploy to Staging/Alpha.
 const signIntoTerra = async (page, { token, testUrl }) => {
-  console.log("signIntoTerra ...");
+  console.log('signIntoTerra ...');
   if (testUrl) {
     await gotoPage(page, testUrl);
   } else {
@@ -258,8 +258,8 @@ const findElement = (page, xpath, options) => {
 const heading = ({ level, text, textContains, isDescendant = false }) => {
   const tag = `h${level}`;
   const aria = `*[@role="heading" and @aria-level=${level}]`;
-  const textExpression = `${isDescendant ? "//*" : ""}[normalize-space(.)="${text}"]`;
-  const textContainsExpression = `${isDescendant ? "//*" : ""}[contains(normalize-space(.),"${textContains}")]`;
+  const textExpression = `${isDescendant ? '//*' : ''}[normalize-space(.)="${text}"]`;
+  const textContainsExpression = `${isDescendant ? '//*' : ''}[contains(normalize-space(.),"${textContains}")]`;
 
   // These are a bit verbose because the ancestor portion of the expression does not handle 'or' cases
   if (text) {
@@ -319,7 +319,7 @@ const openError = async (page) => {
 };
 
 const getScreenshotDir = () => {
-  const dir = screenshotDirPath || process.env.SCREENSHOT_DIR || process.env.LOG_DIR || resolve(__dirname, "../test-results/screenshots");
+  const dir = screenshotDirPath || process.env.SCREENSHOT_DIR || process.env.LOG_DIR || resolve(__dirname, '../test-results/screenshots');
   mkdirSync(dir, { recursive: true });
   return dir;
 };
@@ -339,7 +339,7 @@ const maybeSaveScreenshot = async (page, testName) => {
       await page.screenshot({ path: failureNotificationDetailsPath, fullPage: true });
     }
   } catch (e) {
-    console.error("Failed to capture screenshot", e);
+    console.error('Failed to capture screenshot', e);
   }
 };
 
@@ -349,10 +349,10 @@ const savePageContent = async (page, testName) => {
   const htmlContent = await page.content();
   const htmlFile = `${dir}/failure-${Date.now()}-${testName}.html`;
   try {
-    writeFileSync(htmlFile, htmlContent, { encoding: "utf8" });
+    writeFileSync(htmlFile, htmlContent, { encoding: 'utf8' });
     console.log(`Saved screenshot page content: ${htmlFile}`);
   } catch (e) {
-    console.error("Failed to save screenshot page content");
+    console.error('Failed to save screenshot page content');
     console.error(e);
     // Let test continue
   }
@@ -373,9 +373,9 @@ const logError = (page) => {
   // informative and looks incorrect at first glance since the contents would be
   // more useful but in fact this is the best we can do here since the object
   // contents cannot be easily stringified otherwise you get {}
-  const handle = (msg) => console.error("page.error", msg);
-  page.on("error", handle);
-  return () => page.off("error", handle);
+  const handle = (msg) => console.error('page.error', msg);
+  page.on('error', handle);
+  return () => page.off('error', handle);
 };
 
 // Emitted when an uncaught exception happens within the page
@@ -384,19 +384,19 @@ const logPageError = (page) => {
   // informative and looks incorrect at first glance since the contents would be
   // more useful but in fact this is the best we can do here since the object
   // contents cannot be easily stringified otherwise you get {}
-  const handle = (msg) => console.error("page.pageerror", msg);
-  page.on("pageerror", handle);
-  return () => page.off("pageerror", handle);
+  const handle = (msg) => console.error('page.pageerror', msg);
+  page.on('pageerror', handle);
+  return () => page.off('pageerror', handle);
 };
 
 const logPageConsoleMessages = (page) => {
-  const handle = (msg) => console.log("page.console", msg.text());
-  page.on("console", handle);
-  return () => page.off("console", handle);
+  const handle = (msg) => console.log('page.console', msg.text());
+  page.on('console', handle);
+  return () => page.off('console', handle);
 };
 
 const logPageResponses = (page) => {
-  const terraRequests = ["broad", "terra", "googleapis", "bvdp"];
+  const terraRequests = ['broad', 'terra', 'googleapis', 'bvdp'];
   const handle = (response) => {
     const request = response.request();
     const url = request.url();
@@ -404,24 +404,24 @@ const logPageResponses = (page) => {
     if (shouldLogRequest) {
       const method = request.method();
       const status = response.status();
-      console.log("page.http", `${method} ${status} ${url}`);
+      console.log('page.http', `${method} ${status} ${url}`);
 
       const isErrorResponse = status >= 400;
       if (isErrorResponse) {
-        const responseIsJSON = response.headers()["content-type"] === "application/json";
+        const responseIsJSON = response.headers()['content-type'] === 'application/json';
         response
           .text()
           .then((content) => {
-            console.log("page.http.error", `${method} ${status} ${url}`, responseIsJSON ? JSON.parse(content) : content);
+            console.log('page.http.error', `${method} ${status} ${url}`, responseIsJSON ? JSON.parse(content) : content);
           })
           .catch((err) => {
-            console.error("page.http.error", "Unable to get response content", err);
+            console.error('page.http.error', 'Unable to get response content', err);
           });
       }
     }
   };
-  page.on("response", handle);
-  return () => page.off("response", handle);
+  page.on('response', handle);
+  return () => page.off('response', handle);
 };
 
 const enablePageLogging = (page) => {
@@ -437,7 +437,7 @@ const withPageLogging = (fn) => async (options) => {
   return await fn(options);
 };
 
-const navOptionNetworkIdle = (timeout = 60 * 1000) => ({ waitUntil: ["networkidle0"], timeout });
+const navOptionNetworkIdle = (timeout = 60 * 1000) => ({ waitUntil: ['networkidle0'], timeout });
 
 const gotoPage = async (page, url) => {
   const retryOptions = {
@@ -458,7 +458,7 @@ const gotoPage = async (page, url) => {
     } catch (e) {
       console.error(e);
       // Stop page loading, as if you hit "X" in the browser. ignore exception.
-      await page._client.send("Page.stopLoading").catch((err) => void err);
+      await page._client.send('Page.stopLoading').catch((err) => void err);
       throw new Error(e);
     }
   };
@@ -471,7 +471,7 @@ const gotoPage = async (page, url) => {
 // To allow existing issues to be worked on while preventing the introduction of others,
 // use allowedViolations with number of known issues.
 const verifyAccessibility = async (page, allowedViolations) => {
-  const results = await new AxePuppeteer(page).withTags(["wcag2a", "wcag2aa"]).analyze();
+  const results = await new AxePuppeteer(page).withTags(['wcag2a', 'wcag2aa']).analyze();
   if (allowedViolations === undefined) {
     allowedViolations = 0;
   }

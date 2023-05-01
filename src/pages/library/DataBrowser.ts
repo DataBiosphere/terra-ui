@@ -1,16 +1,16 @@
-import _ from "lodash/fp";
-import React, { CSSProperties, Fragment, useState } from "react";
-import { div, h } from "react-hyperscript-helpers";
-import { CloudProviderIcon } from "src/components/CloudProviderIcon";
-import { Link, spinnerOverlay } from "src/components/common";
-import { icon } from "src/components/icons";
-import { ColumnSelector, MiniSortable, SimpleTable } from "src/components/table";
-import { Ajax } from "src/libs/ajax";
-import { Dataset } from "src/libs/ajax/Catalog";
-import colors from "src/libs/colors";
-import Events from "src/libs/events";
-import * as Nav from "src/libs/nav";
-import { CloudProvider, cloudProviderLabels } from "src/libs/workspace-utils";
+import _ from 'lodash/fp';
+import React, { CSSProperties, Fragment, useState } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
+import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
+import { Link, spinnerOverlay } from 'src/components/common';
+import { icon } from 'src/components/icons';
+import { ColumnSelector, MiniSortable, SimpleTable } from 'src/components/table';
+import { Ajax } from 'src/libs/ajax';
+import { Dataset } from 'src/libs/ajax/Catalog';
+import colors from 'src/libs/colors';
+import Events from 'src/libs/events';
+import * as Nav from 'src/libs/nav';
+import { CloudProvider, cloudProviderLabels } from 'src/libs/workspace-utils';
 import {
   DatasetAccess,
   datasetAccessTypes,
@@ -22,31 +22,31 @@ import {
   getDatasetReleasePoliciesDisplayInformation,
   makeDatasetReleasePolicyDisplayInformation,
   useDataCatalog,
-} from "src/pages/library/dataBrowser-utils";
+} from 'src/pages/library/dataBrowser-utils';
 import {
   commonStyles,
   FilterSection,
   SearchAndFilterComponent,
   SearchAndFilterProps,
   Sort,
-} from "src/pages/library/SearchAndFilterComponent";
+} from 'src/pages/library/SearchAndFilterComponent';
 
 const styles = {
   ...commonStyles,
   table: {
     header: {
       color: colors.accent(),
-      height: "1rem",
-      textTransform: "uppercase",
+      height: '1rem',
+      textTransform: 'uppercase',
       fontWeight: 600,
-      fontSize: "0.75rem",
+      fontSize: '0.75rem',
     },
     row: {
-      backgroundColor: "#ffffff",
+      backgroundColor: '#ffffff',
       borderRadius: 5,
-      border: "1px solid rgba(0,0,0,.15)",
-      margin: "0 -1rem 1rem",
-      padding: "1rem",
+      border: '1px solid rgba(0,0,0,.15)',
+      margin: '0 -1rem 1rem',
+      padding: '1rem',
     },
   },
 };
@@ -58,21 +58,21 @@ export const getUnique = (mapper, data) => _.flow(_.flatMap(mapper), _.compact, 
 export const extractCatalogFilters = (dataCatalog: Dataset[]): FilterSection<Dataset>[] => {
   return [
     {
-      header: "Cloud Platform",
+      header: 'Cloud Platform',
       matchBy: (dataset, value) => (dataset.storage || []).some((storage) => storage.cloudPlatform === value),
       renderer: (value) => {
         const cloudProvider = value.toUpperCase() as CloudProvider;
-        return h(Fragment, [h(CloudProviderIcon, { cloudProvider }), " ", cloudProviderLabels[cloudProvider]]);
+        return h(Fragment, [h(CloudProviderIcon, { cloudProvider }), ' ', cloudProviderLabels[cloudProvider]]);
       },
-      values: ["azure", "gcp"],
+      values: ['azure', 'gcp'],
     },
     {
-      header: "Access type",
+      header: 'Access type',
       matchBy: (dataset, value) => getDatasetAccessType(dataset) === value,
       renderer: (value) => {
         const lowerKey = _.toLower(value);
-        const iconKey = value === datasetAccessTypes.Granted ? "unlock" : "lock";
-        return div({ key: `access-filter-${lowerKey}`, style: { display: "flex" } }, [
+        const iconKey = value === datasetAccessTypes.Granted ? 'unlock' : 'lock';
+        return div({ key: `access-filter-${lowerKey}`, style: { display: 'flex' } }, [
           icon(iconKey, { style: { color: styles.access[lowerKey], marginRight: 5 } }),
           value,
         ]);
@@ -80,49 +80,49 @@ export const extractCatalogFilters = (dataCatalog: Dataset[]): FilterSection<Dat
       values: _.values(datasetAccessTypes),
     },
     {
-      header: "Consortium",
+      header: 'Consortium',
       matchBy: (dataset, value) => _.includes(value, getConsortiumTitlesFromDataset(dataset)),
       values: getUnique((dataset) => getConsortiumTitlesFromDataset(dataset), dataCatalog),
     },
     {
-      header: "Data use policy",
-      matchBy: (dataset, value) => _.isEqual(dataset["TerraDCAT_ap:hasDataUsePermission"], value),
+      header: 'Data use policy',
+      matchBy: (dataset, value) => _.isEqual(dataset['TerraDCAT_ap:hasDataUsePermission'], value),
       renderer: (value) =>
         div(
           {
             key: getDatasetReleasePoliciesDisplayInformation(value).label,
-            style: { display: "flex", flexDirection: "column" },
+            style: { display: 'flex', flexDirection: 'column' },
           },
           [makeDatasetReleasePolicyDisplayInformation(value)]
         ),
-      values: getUnique("TerraDCAT_ap:hasDataUsePermission", dataCatalog),
+      values: getUnique('TerraDCAT_ap:hasDataUsePermission', dataCatalog),
     },
     {
-      header: "Data modality",
+      header: 'Data modality',
       matchBy: (dataset, value) => _.includes(value, getDataModalityListFromDataset(dataset)),
       values: getUnique((dataset) => getDataModalityListFromDataset(dataset), dataCatalog),
     },
     {
-      header: "Assay category",
+      header: 'Assay category',
       matchBy: (dataset, value) => _.includes(value, getAssayCategoryListFromDataset(dataset)),
       values: getUnique((dataset) => getAssayCategoryListFromDataset(dataset), dataCatalog),
     },
     {
-      header: "File type",
+      header: 'File type',
       matchBy: (dataset, value) =>
         _.includes(
           value,
-          _.map((files) => files["TerraCore:hasFileFormat"], dataset.fileAggregate)
+          _.map((files) => files['TerraCore:hasFileFormat'], dataset.fileAggregate)
         ),
-      values: getUnique("TerraCore:hasFileFormat", _.flatMap("fileAggregate", dataCatalog)),
+      values: getUnique('TerraCore:hasFileFormat', _.flatMap('fileAggregate', dataCatalog)),
     },
     {
-      header: "Disease",
+      header: 'Disease',
       matchBy: (dataset, value) => _.intersection([value], dataset.samples?.disease).length > 0,
       values: getUnique((dataset) => dataset.samples?.disease, dataCatalog),
     },
     {
-      header: "Species",
+      header: 'Species',
       matchBy: (dataset, value) => _.intersection([value], dataset.samples?.species).length > 0,
       values: getUnique((dataset) => dataset.samples?.species, dataCatalog),
     },
@@ -132,18 +132,18 @@ export const extractCatalogFilters = (dataCatalog: Dataset[]): FilterSection<Dat
 // All possible columns for the catalog's table view. The default columns shown are declared below in `Browser`.
 const allColumns = {
   // A column is a key, title and a function that produces the table contents for that column, given a row.
-  consortiums: { title: "Consortiums", contents: (row) => _.join(", ", getConsortiumTitlesFromDataset(row)) },
-  subjects: { title: "No. of Subjects", contents: (row) => row?.counts?.donors },
-  dataModality: { title: "Data Modality", contents: (row) => _.join(", ", getDataModalityListFromDataset(row)) },
-  lastUpdated: { title: "Last Updated", contents: (row) => formatDatasetTime(row["dct:modified"]) },
-  assayCategory: { title: "Assay Category", contents: (row) => _.join(", ", getAssayCategoryListFromDataset(row)) },
-  fileType: { title: "File type", contents: (row) => _.join(", ", getUnique("dcat:mediaType", row.files)) },
-  species: { title: "Species", contents: (row) => _.join(", ", getUnique("samples.genus", { row })) },
+  consortiums: { title: 'Consortiums', contents: (row) => _.join(', ', getConsortiumTitlesFromDataset(row)) },
+  subjects: { title: 'No. of Subjects', contents: (row) => row?.counts?.donors },
+  dataModality: { title: 'Data Modality', contents: (row) => _.join(', ', getDataModalityListFromDataset(row)) },
+  lastUpdated: { title: 'Last Updated', contents: (row) => formatDatasetTime(row['dct:modified']) },
+  assayCategory: { title: 'Assay Category', contents: (row) => _.join(', ', getAssayCategoryListFromDataset(row)) },
+  fileType: { title: 'File type', contents: (row) => _.join(', ', getUnique('dcat:mediaType', row.files)) },
+  species: { title: 'Species', contents: (row) => _.join(', ', getUnique('samples.genus', { row })) },
   cloudPlatform: {
-    title: "Cloud Platform",
+    title: 'Cloud Platform',
     contents: (row) =>
       h(Fragment, [
-        getUnique("cloudPlatform", row.storage).map((cloudPlatform) => {
+        getUnique('cloudPlatform', row.storage).map((cloudPlatform) => {
           return h(CloudProviderIcon, {
             key: cloudPlatform,
             cloudProvider: cloudPlatform.toUpperCase() as CloudProvider,
@@ -178,16 +178,16 @@ export const convertColsToSettings = (cols: string[]): ColumnSetting[] =>
   )(allColumns);
 
 const DataBrowserTableComponent = ({ sort, setSort, cols, setCols, filteredList }) => {
-  return div({ style: { position: "relative", margin: "0 15px" } }, [
+  return div({ style: { position: 'relative', margin: '0 15px' } }, [
     h(SimpleTable, {
-      "aria-label": "dataset list",
+      'aria-label': 'dataset list',
       columns: [
         {
           header: div({ style: styles.table.header as CSSProperties }, [
-            h(MiniSortable, { sort, field: "dct:title", onSort: setSort }, ["Dataset Name"]),
+            h(MiniSortable, { sort, field: 'dct:title', onSort: setSort }, ['Dataset Name']),
           ]),
           size: { grow: 2.2 },
-          key: "name",
+          key: 'name',
         },
         ..._.map((columnKey) => {
           return {
@@ -200,9 +200,9 @@ const DataBrowserTableComponent = ({ sort, setSort, cols, setCols, filteredList 
         }, cols),
       ],
       rowStyle: styles.table.row,
-      cellStyle: { border: "none", paddingRight: 15 },
+      cellStyle: { border: 'none', paddingRight: 15 },
       useHover: false,
-      underRowKey: "underRow",
+      underRowKey: 'underRow',
       rows: _.map((datum) => {
         return {
           name: h(
@@ -211,12 +211,12 @@ const DataBrowserTableComponent = ({ sort, setSort, cols, setCols, filteredList 
               onClick: () => {
                 Ajax().Metrics.captureEvent(`${Events.catalogView}:details`, {
                   id: datum.id,
-                  title: datum["dct:title"],
+                  title: datum['dct:title'],
                 });
-                Nav.goToPath("library-details", { id: datum.id });
+                Nav.goToPath('library-details', { id: datum.id });
               },
             },
-            [datum["dct:title"]]
+            [datum['dct:title']]
           ),
           ..._.reduce(
             (reduced, columnKey) => {
@@ -225,8 +225,8 @@ const DataBrowserTableComponent = ({ sort, setSort, cols, setCols, filteredList 
             {},
             cols
           ),
-          underRow: div({ style: { display: "flex", alignItems: "flex-start", paddingTop: "1rem" } }, [
-            div({ style: { display: "flex", alignItems: "center" } }, [h(DatasetAccess, { dataset: datum })]),
+          underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
+            div({ style: { display: 'flex', alignItems: 'center' } }, [h(DatasetAccess, { dataset: datum })]),
           ]),
         };
       }, filteredList),
@@ -234,28 +234,28 @@ const DataBrowserTableComponent = ({ sort, setSort, cols, setCols, filteredList 
     h(ColumnSelector, {
       onSave: _.flow(convertSettingsToCols, setCols),
       columnSettings: convertColsToSettings(cols),
-      style: { backgroundColor: "unset", width: "auto", height: "auto", border: 0 },
+      style: { backgroundColor: 'unset', width: 'auto', height: 'auto', border: 0 },
     }),
   ]);
 };
 
 export const Browser = () => {
-  const [sort, setSort] = useState<Sort>({ field: "created", direction: "desc" });
+  const [sort, setSort] = useState<Sort>({ field: 'created', direction: 'desc' });
   // This state contains the current set of visible columns, in the order that they appear.
   // Note that the Dataset Name column isn't customizable and is always shown first.
-  const [cols, setCols] = useState(["consortiums", "subjects", "dataModality", "lastUpdated", "cloudPlatform"]);
+  const [cols, setCols] = useState(['consortiums', 'subjects', 'dataModality', 'lastUpdated', 'cloudPlatform']);
   const { dataCatalog, loading } = useDataCatalog();
 
   return h(Fragment, [
     h(SearchAndFilterComponent as React.FC<SearchAndFilterProps<Dataset>>, {
-      getLowerName: (dataset) => _.toLower(dataset["dct:title"]),
-      getLowerDescription: (dataset) => _.toLower(dataset["dct:description"]),
+      getLowerName: (dataset) => _.toLower(dataset['dct:title']),
+      getLowerDescription: (dataset) => _.toLower(dataset['dct:description']),
       fullList: dataCatalog,
       sidebarSections: extractCatalogFilters(dataCatalog),
       customSort: sort,
-      searchType: "Datasets",
-      titleField: "dct:title",
-      descField: "dct:description",
+      searchType: 'Datasets',
+      titleField: 'dct:title',
+      descField: 'dct:description',
       listView: (filteredList) => DataBrowserTableComponent({ sort, setSort, cols, setCols, filteredList }),
     }),
     loading && spinnerOverlay,

@@ -1,24 +1,24 @@
-import { Ajax } from "src/libs/ajax";
-import { DeepPartial } from "src/libs/type-utils/deep-partial";
-import { asMockedFn } from "src/testing/test-utils";
+import { Ajax } from 'src/libs/ajax';
+import { DeepPartial } from 'src/libs/type-utils/deep-partial';
+import { asMockedFn } from 'src/testing/test-utils';
 
-import { importDockstoreWorkflow } from "./importDockstoreWorkflow";
+import { importDockstoreWorkflow } from './importDockstoreWorkflow';
 
-jest.mock("src/libs/ajax");
+jest.mock('src/libs/ajax');
 
-type AjaxExports = typeof import("src/libs/ajax");
-type AjaxContract = ReturnType<AjaxExports["Ajax"]>;
+type AjaxExports = typeof import('src/libs/ajax');
+type AjaxContract = ReturnType<AjaxExports['Ajax']>;
 
-describe("importDockstoreWorkflow", () => {
+describe('importDockstoreWorkflow', () => {
   const testWorkspace = {
-    namespace: "test",
-    name: "import-workflow",
+    namespace: 'test',
+    name: 'import-workflow',
   };
 
   const testWorkflow = {
-    path: "github.com/DataBiosphere/test-workflows/test-workflow",
-    version: "v1.0.0",
-    source: "dockstore",
+    path: 'github.com/DataBiosphere/test-workflows/test-workflow',
+    version: 'v1.0.0',
+    source: 'dockstore',
   };
 
   let workspaceAjax;
@@ -32,18 +32,18 @@ describe("importDockstoreWorkflow", () => {
     importMethodConfigFromDocker = jest.fn().mockResolvedValue(undefined);
     deleteMethodConfig = jest.fn().mockResolvedValue(undefined);
 
-    const mockWorkspaceMethodConfigAjax: Partial<ReturnType<AjaxContract["Workspaces"]["workspace"]>["methodConfig"]> =
+    const mockWorkspaceMethodConfigAjax: Partial<ReturnType<AjaxContract['Workspaces']['workspace']>['methodConfig']> =
       {
         delete: deleteMethodConfig,
       };
 
     workspaceMethodConfigAjax = jest.fn().mockReturnValue(mockWorkspaceMethodConfigAjax);
 
-    const mockWorkspaceAjax: DeepPartial<ReturnType<AjaxContract["Workspaces"]["workspace"]>> = {
+    const mockWorkspaceAjax: DeepPartial<ReturnType<AjaxContract['Workspaces']['workspace']>> = {
       entityMetadata: () =>
         Promise.resolve({
-          participant: { count: 1, idName: "participant_id", attributeNames: [] },
-          sample: { count: 1, idName: "sample_id", attributeNames: [] },
+          participant: { count: 1, idName: 'participant_id', attributeNames: [] },
+          sample: { count: 1, idName: 'sample_id', attributeNames: [] },
         }),
       importMethodConfigFromDocker,
       methodConfig: workspaceMethodConfigAjax,
@@ -54,8 +54,8 @@ describe("importDockstoreWorkflow", () => {
     methodConfigInputsOutputs = jest.fn().mockResolvedValue({
       inputs: [],
       outputs: [
-        { name: "taskA.output1", outputType: "String" },
-        { name: "taskA.output2", outputType: "String" },
+        { name: 'taskA.output1', outputType: 'String' },
+        { name: 'taskA.output2', outputType: 'String' },
       ],
     });
 
@@ -66,15 +66,15 @@ describe("importDockstoreWorkflow", () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
   });
 
-  it("imports workflow into workspace", async () => {
+  it('imports workflow into workspace', async () => {
     // Act
-    await importDockstoreWorkflow({ workspace: testWorkspace, workflow: testWorkflow, workflowName: "test-workflow" });
+    await importDockstoreWorkflow({ workspace: testWorkspace, workflow: testWorkflow, workflowName: 'test-workflow' });
 
     // Assert
     expect(importMethodConfigFromDocker).toHaveBeenCalledWith(
       expect.objectContaining({
         namespace: testWorkspace.namespace,
-        name: "test-workflow",
+        name: 'test-workflow',
         methodConfigVersion: 1,
         deleted: false,
         methodRepoMethod: {
@@ -86,51 +86,51 @@ describe("importDockstoreWorkflow", () => {
     );
   });
 
-  it("sets a default root entity type", async () => {
+  it('sets a default root entity type', async () => {
     // Act
-    await importDockstoreWorkflow({ workspace: testWorkspace, workflow: testWorkflow, workflowName: "test-workflow" });
+    await importDockstoreWorkflow({ workspace: testWorkspace, workflow: testWorkflow, workflowName: 'test-workflow' });
 
     // Assert
     expect(importMethodConfigFromDocker).toHaveBeenCalledWith(
-      expect.objectContaining({ rootEntityType: "participant" })
+      expect.objectContaining({ rootEntityType: 'participant' })
     );
   });
 
-  it("configures default outputs", async () => {
+  it('configures default outputs', async () => {
     // Act
-    await importDockstoreWorkflow({ workspace: testWorkspace, workflow: testWorkflow, workflowName: "test-workflow" });
+    await importDockstoreWorkflow({ workspace: testWorkspace, workflow: testWorkflow, workflowName: 'test-workflow' });
 
     // Assert
     expect(importMethodConfigFromDocker).toHaveBeenCalledWith(
       expect.objectContaining({
         outputs: {
-          "taskA.output1": "this.output1",
-          "taskA.output2": "this.output2",
+          'taskA.output1': 'this.output1',
+          'taskA.output2': 'this.output2',
         },
       })
     );
   });
 
-  describe("when overwriting an existing workflow", () => {
-    it("attempts to delete existing workflow", async () => {
+  describe('when overwriting an existing workflow', () => {
+    it('attempts to delete existing workflow', async () => {
       // Act
       await importDockstoreWorkflow(
-        { workspace: testWorkspace, workflow: testWorkflow, workflowName: "test-workflow" },
+        { workspace: testWorkspace, workflow: testWorkflow, workflowName: 'test-workflow' },
         { overwrite: true }
       );
 
       // Assert
-      expect(workspaceMethodConfigAjax).toHaveBeenCalledWith("test", "test-workflow");
+      expect(workspaceMethodConfigAjax).toHaveBeenCalledWith('test', 'test-workflow');
       expect(deleteMethodConfig).toHaveBeenCalled();
     });
 
-    it("does not error if workflow does not exist", async () => {
+    it('does not error if workflow does not exist', async () => {
       // Arrange
-      deleteMethodConfig.mockRejectedValue(new Response("{}", { status: 404 }));
+      deleteMethodConfig.mockRejectedValue(new Response('{}', { status: 404 }));
 
       // Act
       const result = importDockstoreWorkflow(
-        { workspace: testWorkspace, workflow: testWorkflow, workflowName: "test-workflow" },
+        { workspace: testWorkspace, workflow: testWorkflow, workflowName: 'test-workflow' },
         { overwrite: true }
       );
 

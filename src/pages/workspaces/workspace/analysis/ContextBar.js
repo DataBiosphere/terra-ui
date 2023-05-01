@@ -8,31 +8,31 @@
  * $ yarn test-local analysis-context-bar
  */
 
-import _ from "lodash/fp";
-import { Fragment, useState } from "react";
-import { br, div, h, img, span } from "react-hyperscript-helpers";
-import { Clickable } from "src/components/common";
-import { icon } from "src/components/icons";
-import Interactive from "src/components/Interactive";
-import { getRegionInfo } from "src/components/region-common";
-import TooltipTrigger from "src/components/TooltipTrigger";
-import cloudIcon from "src/icons/cloud-compute.svg";
-import cromwellImg from "src/images/cromwell-logo.png"; // To be replaced by something square
-import galaxyLogo from "src/images/galaxy-project-logo-square.png";
-import jupyterLogo from "src/images/jupyter-logo.svg";
-import rstudioSquareLogo from "src/images/rstudio-logo-square.png";
-import { Ajax } from "src/libs/ajax";
-import colors from "src/libs/colors";
-import { withErrorReporting } from "src/libs/error";
-import Events from "src/libs/events";
-import { isFeaturePreviewEnabled } from "src/libs/feature-previews";
-import * as Nav from "src/libs/nav";
-import * as Style from "src/libs/style";
-import * as Utils from "src/libs/utils";
-import { getCloudProviderFromWorkspace, isAzureWorkspace, isGoogleWorkspace } from "src/libs/workspace-utils";
-import { CloudEnvironmentModal } from "src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal";
-import { appLauncherTabName } from "src/pages/workspaces/workspace/analysis/runtime-common-components";
-import { doesWorkspaceSupportCromwellApp, getCurrentApp } from "src/pages/workspaces/workspace/analysis/utils/app-utils";
+import _ from 'lodash/fp';
+import { Fragment, useState } from 'react';
+import { br, div, h, img, span } from 'react-hyperscript-helpers';
+import { Clickable } from 'src/components/common';
+import { icon } from 'src/components/icons';
+import Interactive from 'src/components/Interactive';
+import { getRegionInfo } from 'src/components/region-common';
+import TooltipTrigger from 'src/components/TooltipTrigger';
+import cloudIcon from 'src/icons/cloud-compute.svg';
+import cromwellImg from 'src/images/cromwell-logo.png'; // To be replaced by something square
+import galaxyLogo from 'src/images/galaxy-project-logo-square.png';
+import jupyterLogo from 'src/images/jupyter-logo.svg';
+import rstudioSquareLogo from 'src/images/rstudio-logo-square.png';
+import { Ajax } from 'src/libs/ajax';
+import colors from 'src/libs/colors';
+import { withErrorReporting } from 'src/libs/error';
+import Events from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import * as Nav from 'src/libs/nav';
+import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
+import { getCloudProviderFromWorkspace, isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
+import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal';
+import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
+import { doesWorkspaceSupportCromwellApp, getCurrentApp } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
 import {
   getCostDisplayForDisk,
   getCostDisplayForTool,
@@ -40,28 +40,28 @@ import {
   getGalaxyDiskCost,
   getPersistentDiskCostHourly,
   getRuntimeCost,
-} from "src/pages/workspaces/workspace/analysis/utils/cost-utils";
-import { getCurrentAppDataDisk, getCurrentPersistentDisk } from "src/pages/workspaces/workspace/analysis/utils/disk-utils";
-import { getCurrentRuntime } from "src/pages/workspaces/workspace/analysis/utils/runtime-utils";
+} from 'src/pages/workspaces/workspace/analysis/utils/cost-utils';
+import { getCurrentAppDataDisk, getCurrentPersistentDisk } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils';
+import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import {
   appToolLabels,
   appTools,
   isToolHidden,
   runtimeToolLabels,
   toolLabelDisplays,
-} from "src/pages/workspaces/workspace/analysis/utils/tool-utils";
+} from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 const contextBarStyles = {
   contextBarContainer: {
-    display: "flex",
-    flexWrap: "wrap",
+    display: 'flex',
+    flexWrap: 'wrap',
   },
   contextBarButton: {
-    display: "flex",
-    justifyContent: "center",
+    display: 'flex',
+    justifyContent: 'center',
     width: 70,
     borderBottom: `1px solid ${colors.accent()}`,
-    padding: ".75rem",
+    padding: '.75rem',
     height: 70,
     color: colors.accent(),
     backgroundColor: colors.accent(0.2),
@@ -87,8 +87,8 @@ export const ContextBar = ({
 
   const currentRuntime = getCurrentRuntime(runtimes);
   const currentRuntimeTool = currentRuntime?.labels?.tool;
-  const isTerminalVisible = currentRuntimeTool === runtimeToolLabels.Jupyter && currentRuntime && currentRuntime.status !== "Error";
-  const terminalLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: "terminal" });
+  const isTerminalVisible = currentRuntimeTool === runtimeToolLabels.Jupyter && currentRuntime && currentRuntime.status !== 'Error';
+  const terminalLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: 'terminal' });
   const canCompute = !!(workspace?.canCompute || runtimes?.length);
   const cloudProvider = getCloudProviderFromWorkspace(workspace);
 
@@ -107,18 +107,18 @@ export const ContextBar = ({
   const getImgForTool = (toolLabel) =>
     Utils.switchCase(
       toolLabel,
-      [runtimeToolLabels.Jupyter, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: "" })],
-      [appToolLabels.GALAXY, () => img({ src: galaxyLogo, style: { height: 40, width: 40 }, alt: "" })],
-      [appToolLabels.CROMWELL, () => img({ src: cromwellImg, style: { width: 45 }, alt: "" })],
-      [runtimeToolLabels.RStudio, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: "" })],
-      [runtimeToolLabels.JupyterLab, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: "" })]
+      [runtimeToolLabels.Jupyter, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
+      [appToolLabels.GALAXY, () => img({ src: galaxyLogo, style: { height: 40, width: 40 }, alt: '' })],
+      [appToolLabels.CROMWELL, () => img({ src: cromwellImg, style: { width: 45 }, alt: '' })],
+      [runtimeToolLabels.RStudio, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: '' })],
+      [runtimeToolLabels.JupyterLab, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })]
     );
 
   const getColorForStatus = (status) =>
     Utils.cond(
-      [_.upperCase(status) === "RUNNING", () => colors.success()],
-      [_.upperCase(status) === "ERROR", () => colors.danger()],
-      [_.includes("ING", _.upperCase(status)), () => colors.accent()],
+      [_.upperCase(status) === 'RUNNING', () => colors.success()],
+      [_.upperCase(status) === 'ERROR', () => colors.danger()],
+      [_.includes('ING', _.upperCase(status)), () => colors.accent()],
       [Utils.DEFAULT, () => colors.warning()]
     );
 
@@ -129,15 +129,15 @@ export const ContextBar = ({
     return h(
       Clickable,
       {
-        style: { display: "flex", flexDirection: "column", justifyContent: "center", ...contextBarStyles.contextBarButton, borderBottom: "0px" },
+        style: { display: 'flex', flexDirection: 'column', justifyContent: 'center', ...contextBarStyles.contextBarButton, borderBottom: '0px' },
         hover: contextBarStyles.hover,
         onClick: () => {
           setSelectedToolIcon(toolLabel);
           setCloudEnvOpen(true);
         },
-        tooltipSide: "left",
+        tooltipSide: 'left',
         tooltip: div([
-          div({ style: { fontWeight: "bold" } }, [`${toolLabelDisplays[toolLabel]} Environment`]),
+          div({ style: { fontWeight: 'bold' } }, [`${toolLabelDisplays[toolLabel]} Environment`]),
           div(getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)),
           div(getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)),
         ]),
@@ -145,9 +145,9 @@ export const ContextBar = ({
         useTooltipAsLabel: true,
       },
       [
-        div({ style: { display: "flex", justifyContent: "center", alignItems: "center" } }, [getImgForTool(toolLabel)]),
-        div({ style: { justifyContent: "flex-end", display: "flex", color: getColorForStatus(status) } }, [
-          icon("circle", { style: { border: "1px solid white", borderRadius: "50%" }, size: 12 }),
+        div({ style: { display: 'flex', justifyContent: 'center', alignItems: 'center' } }, [getImgForTool(toolLabel)]),
+        div({ style: { justifyContent: 'flex-end', display: 'flex', color: getColorForStatus(status) } }, [
+          icon('circle', { style: { border: '1px solid white', borderRadius: '50%' }, size: 12 }),
         ]),
       ]
     );
@@ -213,51 +213,51 @@ export const ContextBar = ({
           h(
             TooltipTrigger,
             {
-              side: "left",
+              side: 'left',
               delay: 100,
               content: [
-                div({ key: "p1" }, [
-                  "Estimated hourly rate for all applications in a running or paused state, and associated persistent disks. For details, click",
+                div({ key: 'p1' }, [
+                  'Estimated hourly rate for all applications in a running or paused state, and associated persistent disks. For details, click',
                   img({
                     src: cloudIcon,
-                    style: { height: 20, padding: "0 5px", verticalAlign: "text-bottom" },
-                    alt: "Environment Configuration Icon",
+                    style: { height: 20, padding: '0 5px', verticalAlign: 'text-bottom' },
+                    alt: 'Environment Configuration Icon',
                   }),
-                  "below.",
+                  'below.',
                 ]),
-                br({ key: "br" }),
-                div({ key: "p2" }, "Workflow and workspace storage costs\nare not included."),
+                br({ key: 'br' }),
+                div({ key: 'p2' }, 'Workflow and workspace storage costs\nare not included.'),
               ],
             },
             [
               h(
                 Interactive,
                 {
-                  as: "div",
+                  as: 'div',
                   style: {
-                    flexDirection: "column",
-                    justifyContent: "center",
+                    flexDirection: 'column',
+                    justifyContent: 'center',
                     ...contextBarStyles.contextBarButton,
-                    padding: "0",
-                    borderBottom: "0px",
-                    cursor: "default",
+                    padding: '0',
+                    borderBottom: '0px',
+                    cursor: 'default',
                   },
                   hover: { ...contextBarStyles.hover },
                 },
                 [
-                  div({ style: { textAlign: "center", color: colors.dark(), fontSize: 12 } }, "Rate:"),
+                  div({ style: { textAlign: 'center', color: colors.dark(), fontSize: 12 } }, 'Rate:'),
                   div(
                     {
                       style: {
-                        textAlign: "center",
+                        textAlign: 'center',
                         color: colors.dark(),
-                        fontWeight: "bold",
+                        fontWeight: 'bold',
                         fontSize: 16,
                       },
                     },
-                    [getTotalToolAndDiskCostDisplay(), span({ style: { fontWeight: "normal" } })]
+                    [getTotalToolAndDiskCostDisplay(), span({ style: { fontWeight: 'normal' } })]
                   ),
-                  div({ style: { textAlign: "center", color: colors.dark(), fontSize: 12 } }, "per hour"),
+                  div({ style: { textAlign: 'center', color: colors.dark(), fontSize: 12 } }, 'per hour'),
                 ]
               ),
             ]
@@ -266,20 +266,20 @@ export const ContextBar = ({
             Clickable,
             {
               style: {
-                flexDirection: "column",
-                justifyContent: "center",
-                padding: ".75rem",
+                flexDirection: 'column',
+                justifyContent: 'center',
+                padding: '.75rem',
                 ...contextBarStyles.contextBarButton,
-                borderBottom: "0px",
+                borderBottom: '0px',
               },
               hover: contextBarStyles.hover,
-              tooltipSide: "left",
+              tooltipSide: 'left',
               onClick: () => setCloudEnvOpen(true),
-              tooltip: "Environment Configuration",
+              tooltip: 'Environment Configuration',
               tooltipDelay: 100,
               useTooltipAsLabel: true,
             },
-            [img({ src: cloudIcon, style: { display: "flex", margin: "auto", height: 40, width: 40 }, alt: "" })]
+            [img({ src: cloudIcon, style: { display: 'flex', margin: 'auto', height: 40, width: 40 }, alt: '' })]
           ),
           getEnvironmentStatusIcons(),
         ]),
@@ -289,42 +289,42 @@ export const ContextBar = ({
             {
               style: {
                 borderTop: `1px solid ${colors.accent()}`,
-                paddingLeft: "1rem",
-                alignItems: "center",
+                paddingLeft: '1rem',
+                alignItems: 'center',
                 ...contextBarStyles.contextBarButton,
                 color: !isTerminalVisible ? colors.dark(0.7) : contextBarStyles.contextBarButton.color,
               },
               hover: contextBarStyles.hover,
-              "data-testid": "terminal-button-id",
-              tooltipSide: "left",
+              'data-testid': 'terminal-button-id',
+              tooltipSide: 'left',
               href: terminalLaunchLink,
-              onClick: withErrorReporting("Error starting runtime", async () => {
-                await Ajax().Metrics.captureEvent(Events.analysisLaunch, { origin: "contextBar", application: "terminal", workspaceName, namespace });
-                if (currentRuntime?.status === "Stopped") {
+              onClick: withErrorReporting('Error starting runtime', async () => {
+                await Ajax().Metrics.captureEvent(Events.analysisLaunch, { origin: 'contextBar', application: 'terminal', workspaceName, namespace });
+                if (currentRuntime?.status === 'Stopped') {
                   await Ajax().Runtimes.runtimeWrapper(currentRuntime).start();
                 }
               }),
-              tooltip: "Terminal",
+              tooltip: 'Terminal',
               tooltipDelay: 100,
               useTooltipAsLabel: false,
               ...Utils.newTabLinkProps,
             },
-            [icon("terminal", { size: 40 }), span({ className: "sr-only" }, ["Terminal button"])]
+            [icon('terminal', { size: 40 }), span({ className: 'sr-only' }, ['Terminal button'])]
           ),
-        (isAzureWorkspace(workspace) || isFeaturePreviewEnabled("workspace-files")) &&
+        (isAzureWorkspace(workspace) || isFeaturePreviewEnabled('workspace-files')) &&
           h(
             Clickable,
             {
-              style: { paddingLeft: "1rem", alignItems: "center", ...contextBarStyles.contextBarButton },
+              style: { paddingLeft: '1rem', alignItems: 'center', ...contextBarStyles.contextBarButton },
               hover: contextBarStyles.hover,
-              "data-testid": "workspace-files-link",
-              tooltipSide: "left",
-              href: Nav.getLink("workspace-files", { namespace, name: workspaceName }),
-              tooltip: "Browse workspace files",
+              'data-testid': 'workspace-files-link',
+              tooltipSide: 'left',
+              href: Nav.getLink('workspace-files', { namespace, name: workspaceName }),
+              tooltip: 'Browse workspace files',
               tooltipDelay: 100,
               useTooltipAsLabel: false,
             },
-            [icon("folderSolid", { size: 40 }), span({ className: "sr-only" }, ["Workspace files"])]
+            [icon('folderSolid', { size: 40 }), span({ className: 'sr-only' }, ['Workspace files'])]
           ),
       ]),
     ]),

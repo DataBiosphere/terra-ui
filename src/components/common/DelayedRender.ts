@@ -1,5 +1,5 @@
-import { Fragment, PropsWithChildren, useEffect, useState } from "react";
-import { h } from "react-hyperscript-helpers";
+import { Fragment, PropsWithChildren, useEffect, useState } from 'react';
+import { h } from 'react-hyperscript-helpers';
 
 type DelayedRenderProps = PropsWithChildren<{
   delay?: number;

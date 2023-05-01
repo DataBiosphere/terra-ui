@@ -1,5 +1,5 @@
-const _ = require("lodash/fp");
-const uuid = require("uuid");
+const _ = require('lodash/fp');
+const uuid = require('uuid');
 const {
   click,
   clickable,
@@ -15,8 +15,8 @@ const {
   noSpinnersAfter,
   navOptionNetworkIdle,
   enablePageLogging,
-} = require("./integration-utils");
-const { fetchLyle } = require("./lyle-utils");
+} = require('./integration-utils');
+const { fetchLyle } = require('./lyle-utils');
 
 const defaultTimeout = 5 * 60 * 1000;
 
@@ -34,7 +34,7 @@ const withSignedInPage = (fn) => async (options) => {
 
 const clipToken = (str) => str.toString().substr(-10, 10);
 
-const testWorkspaceNamePrefix = "terra-ui-test-workspace-";
+const testWorkspaceNamePrefix = 'terra-ui-test-workspace-';
 const getTestWorkspaceName = () => `${testWorkspaceNamePrefix}${uuid.v4()}`;
 
 /**
@@ -47,7 +47,7 @@ const waitForAccessToWorkspaceBucket = async ({ page, billingProject, workspaceN
     async ({ billingProject, workspaceName, timeout }) => {
       const {
         workspace: { googleProject, bucketName },
-      } = await window.Ajax().Workspaces.workspace(billingProject, workspaceName).details(["workspace", "azureContext"]);
+      } = await window.Ajax().Workspaces.workspace(billingProject, workspaceName).details(['workspace', 'azureContext']);
 
       const startTime = Date.now();
 
@@ -72,7 +72,7 @@ const waitForAccessToWorkspaceBucket = async ({ page, billingProject, workspaceN
                 await new Promise((resolve) => setTimeout(resolve, 15 * 1000));
                 continue;
               } else {
-                throw new Error("Timed out waiting for access to workspace bucket");
+                throw new Error('Timed out waiting for access to workspace bucket');
               }
             } else {
               throw response;
@@ -123,13 +123,13 @@ const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspac
 });
 
 const withWorkspace = (test) => async (options) => {
-  console.log("withWorkspace ...");
+  console.log('withWorkspace ...');
   const workspaceName = await makeWorkspace(options);
 
   try {
     await test({ ...options, workspaceName });
   } finally {
-    console.log("withWorkspace cleanup ...");
+    console.log('withWorkspace cleanup ...');
     await deleteWorkspace({ ...options, workspaceName });
   }
 };
@@ -146,21 +146,21 @@ const createEntityInWorkspace = (page, billingProject, workspaceName, testEntity
 };
 
 const makeUser = async () => {
-  const { email } = await fetchLyle("create");
-  const { accessToken: token } = await fetchLyle("token", email);
+  const { email } = await fetchLyle('create');
+  const { accessToken: token } = await fetchLyle('token', email);
   console.info(`created a user "${email}" with token: ...${clipToken(token)}`);
   return { email, token };
 };
 
 const withUser = (test) => async (args) => {
-  console.log("withUser ...");
+  console.log('withUser ...');
   const { email, token } = await makeUser();
 
   try {
     await test({ ...args, email, token });
   } finally {
-    console.log("withUser cleanup ...");
-    await fetchLyle("delete", email);
+    console.log('withUser cleanup ...');
+    await fetchLyle('delete', email);
   }
 };
 
@@ -169,13 +169,13 @@ const deleteRuntimes = async ({ page, billingProject, workspaceName }) => {
     async (billingProject, workspaceName) => {
       const {
         workspace: { googleProject },
-      } = await window.Ajax().Workspaces.workspace(billingProject, workspaceName).details(["workspace"]);
-      const runtimes = await window.Ajax().Runtimes.list({ googleProject, role: "creator" });
+      } = await window.Ajax().Workspaces.workspace(billingProject, workspaceName).details(['workspace']);
+      const runtimes = await window.Ajax().Runtimes.list({ googleProject, role: 'creator' });
       return Promise.all(
         _.map(async (runtime) => {
           await window.Ajax().Runtimes.runtime(runtime.googleProject, runtime.runtimeName).delete(true); // true = also delete persistent disk.
           return runtime.runtimeName;
-        }, _.remove({ status: "Deleting" }, runtimes))
+        }, _.remove({ status: 'Deleting' }, runtimes))
       );
     },
     billingProject,
@@ -187,15 +187,15 @@ const deleteRuntimes = async ({ page, billingProject, workspaceName }) => {
 const navigateToDataCatalog = async (page, testUrl, token) => {
   await gotoPage(page, testUrl);
   await waitForNoSpinners(page);
-  await findText(page, "Browse Data");
-  await click(page, clickable({ textContains: "Browse Data" }));
+  await findText(page, 'Browse Data');
+  await click(page, clickable({ textContains: 'Browse Data' }));
   await signIntoTerra(page, { token });
   await enableDataCatalog(page);
 };
 
 const enableDataCatalog = async (page) => {
-  await click(page, clickable({ textContains: "datasets" }));
-  await click(page, label({ labelContains: "New Catalog OFF" }));
+  await click(page, clickable({ textContains: 'datasets' }));
+  await click(page, label({ labelContains: 'New Catalog OFF' }));
   await waitForNoSpinners(page);
 };
 
@@ -207,17 +207,17 @@ const clickNavChildAndLoad = async (page, tab) => {
 const viewWorkspaceDashboard = async (page, token, workspaceName) => {
   // Sign in to handle unexpected NPS survey popup and Loading Terra... spinner
   await signIntoTerra(page, { token });
-  await click(page, clickable({ textContains: "View Workspaces" }));
+  await click(page, clickable({ textContains: 'View Workspaces' }));
   await dismissNotifications(page);
-  await fillIn(page, input({ placeholder: "Search by keyword" }), workspaceName);
+  await fillIn(page, input({ placeholder: 'Search by keyword' }), workspaceName);
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) });
 };
 
 const performAnalysisTabSetup = async (page, token, testUrl, workspaceName) => {
   await gotoPage(page, testUrl);
-  await findText(page, "View Workspaces");
+  await findText(page, 'View Workspaces');
   await viewWorkspaceDashboard(page, token, workspaceName);
-  await clickNavChildAndLoad(page, "analyses");
+  await clickNavChildAndLoad(page, 'analyses');
   await dismissNotifications(page);
 };
 

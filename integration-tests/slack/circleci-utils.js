@@ -1,6 +1,6 @@
-const _ = require("lodash/fp");
-const fetch = require("node-fetch");
-const { parse } = require("path");
+const _ = require('lodash/fp');
+const fetch = require('node-fetch');
+const { parse } = require('path');
 
 /**
  * Fetch CircleCI artifact links to tests summary JSON files (created in onRunComplete() in jest-reporter.js)
@@ -10,17 +10,17 @@ const { parse } = require("path");
  */
 const fetchJobArtifacts = async ({ buildNum = process.env.CIRCLE_BUILD_NUM } = {}) => {
   if (!buildNum) {
-    throw new Error("**  ERROR: Missing CircleCI build number. Failed to fetch CircleCI job artifacts.");
+    throw new Error('**  ERROR: Missing CircleCI build number. Failed to fetch CircleCI job artifacts.');
   }
 
   // For more arguments and details of the response, see: https://circleci.com/docs/api/v2/index.html#operation/getJobArtifacts
-  const apiUrlRoot = "https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui";
+  const apiUrlRoot = 'https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui';
   try {
     // Because terra-ui is a public repository on GitHub, API token is not required. See: https://circleci.com/docs/oss#security
     const response = await fetch(`${apiUrlRoot}/${buildNum}/artifacts`);
     const { items } = await response.json();
-    const testSummaryArtifacts = _.filter(_.flow(_.get("path"), _.includes("tests-summary")), items);
-    return _.map("url", testSummaryArtifacts);
+    const testSummaryArtifacts = _.filter(_.flow(_.get('path'), _.includes('tests-summary')), items);
+    return _.map('url', testSummaryArtifacts);
   } catch (e) {
     console.error(`**  ERROR: Encountered error when getting CircleCI JOB_BUILD_NUM: ${buildNum} artifacts.`, e);
     throw e;

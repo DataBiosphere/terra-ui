@@ -1,25 +1,25 @@
-import { act, renderHook } from "@testing-library/react-hooks";
-import { useLoadedData, UseLoadedDataResult } from "src/libs/ajax/loaded-data/useLoadedData";
-import LoadedState from "src/libs/type-utils/LoadedState";
-import { delay } from "src/libs/utils";
+import { act, renderHook } from '@testing-library/react-hooks';
+import { useLoadedData, UseLoadedDataResult } from 'src/libs/ajax/loaded-data/useLoadedData';
+import LoadedState from 'src/libs/type-utils/LoadedState';
+import { delay } from 'src/libs/utils';
 
 interface TestData {
   propA: string;
   propB: number;
 }
 
-describe("useLoadedData hook", () => {
-  it("handles initial none state", () => {
+describe('useLoadedData hook', () => {
+  it('handles initial none state', () => {
     // Act
     const hookRender = renderHook(() => useLoadedData<TestData>());
     const hookResult: UseLoadedDataResult<TestData> = hookRender.result.current;
 
     // Assert
-    const expectedState: LoadedState<TestData> = { status: "None" };
+    const expectedState: LoadedState<TestData> = { status: 'None' };
     expect(hookResult[0]).toEqual(expectedState);
   });
 
-  it("handles loading, then ready state", async () => {
+  it('handles loading, then ready state', async () => {
     // Act
     const hookRender = renderHook(() => useLoadedData<TestData>());
     const hookResult1: UseLoadedDataResult<TestData> = hookRender.result.current;
@@ -28,7 +28,7 @@ describe("useLoadedData hook", () => {
       void updateData(async (): Promise<TestData> => {
         await delay(100);
         const dataResult: TestData = {
-          propA: "abc",
+          propA: 'abc',
           propB: 123,
         };
         return dataResult;
@@ -39,12 +39,12 @@ describe("useLoadedData hook", () => {
     const hookResultFinal: UseLoadedDataResult<TestData> = hookRender.result.current;
 
     // Assert
-    const expectedState1: LoadedState<TestData> = { status: "None" };
-    const expectedState2: LoadedState<TestData> = { status: "Loading", state: null };
+    const expectedState1: LoadedState<TestData> = { status: 'None' };
+    const expectedState2: LoadedState<TestData> = { status: 'Loading', state: null };
     const expectedStateFinal: LoadedState<TestData> = {
-      status: "Ready",
+      status: 'Ready',
       state: {
-        propA: "abc",
+        propA: 'abc',
         propB: 123,
       },
     };
@@ -54,7 +54,7 @@ describe("useLoadedData hook", () => {
     expect(hookResultFinal[0]).toEqual(expectedStateFinal);
   });
 
-  it("handles loading, then error state", async () => {
+  it('handles loading, then error state', async () => {
     // Arrange
     const hookRender = renderHook(() => useLoadedData<TestData>());
     const hookResult1: UseLoadedDataResult<TestData> = hookRender.result.current;
@@ -64,7 +64,7 @@ describe("useLoadedData hook", () => {
     act(() => {
       void updateData(async (): Promise<TestData> => {
         await delay(100);
-        throw Error("BOOM!");
+        throw Error('BOOM!');
       });
     });
     const hookResult2: UseLoadedDataResult<TestData> = hookRender.result.current;
@@ -72,12 +72,12 @@ describe("useLoadedData hook", () => {
     const hookResultFinal: UseLoadedDataResult<TestData> = hookRender.result.current;
 
     // Assert
-    const expectedState1: LoadedState<TestData> = { status: "None" };
-    const expectedState2: LoadedState<TestData> = { status: "Loading", state: null };
+    const expectedState1: LoadedState<TestData> = { status: 'None' };
+    const expectedState2: LoadedState<TestData> = { status: 'Loading', state: null };
     const expectedStateFinal: LoadedState<TestData> = {
-      status: "Error",
+      status: 'Error',
       state: null,
-      error: Error("BOOM!"),
+      error: Error('BOOM!'),
     };
 
     expect(hookResult1[0]).toEqual(expectedState1);
@@ -85,7 +85,7 @@ describe("useLoadedData hook", () => {
     expect(hookResultFinal[0]).toEqual(expectedStateFinal);
   });
 
-  it("handles error state from Fetch Response as error", async () => {
+  it('handles error state from Fetch Response as error', async () => {
     // Arrange
     const hookRender = renderHook(() => useLoadedData<TestData>());
     const hookResult1: UseLoadedDataResult<TestData> = hookRender.result.current;
@@ -97,10 +97,10 @@ describe("useLoadedData hook", () => {
         await delay(100);
         const mockFetchResponse: Partial<Response> = {
           status: 500,
-          statusText: "Server Error",
+          statusText: 'Server Error',
           text: async (): Promise<string> => {
             await delay(100);
-            return "BOOM!";
+            return 'BOOM!';
           },
         };
         throw mockFetchResponse;
@@ -111,12 +111,12 @@ describe("useLoadedData hook", () => {
     const hookResultFinal: UseLoadedDataResult<TestData> = hookRender.result.current;
 
     // Assert
-    const expectedState1: LoadedState<TestData> = { status: "None" };
-    const expectedState2: LoadedState<TestData> = { status: "Loading", state: null };
+    const expectedState1: LoadedState<TestData> = { status: 'None' };
+    const expectedState2: LoadedState<TestData> = { status: 'Loading', state: null };
     const expectedStateFinal: LoadedState<TestData> = {
-      status: "Error",
+      status: 'Error',
       state: null,
-      error: Error("BOOM!"),
+      error: Error('BOOM!'),
     };
 
     expect(hookResult1[0]).toEqual(expectedState1);
@@ -124,7 +124,7 @@ describe("useLoadedData hook", () => {
     expect(hookResultFinal[0]).toEqual(expectedStateFinal);
   });
 
-  it("handles ready state, then later error state", async () => {
+  it('handles ready state, then later error state', async () => {
     const onErrorListener = jest.fn();
     // Act
     const hookRender = renderHook(() =>
@@ -140,7 +140,7 @@ describe("useLoadedData hook", () => {
       void updateData(async (): Promise<TestData> => {
         await delay(100);
         const dataResult: TestData = {
-          propA: "abc",
+          propA: 'abc',
           propB: 123,
         };
         return dataResult;
@@ -155,7 +155,7 @@ describe("useLoadedData hook", () => {
     act(() => {
       void updateData(async (): Promise<TestData> => {
         await delay(100);
-        throw Error("BOOM!");
+        throw Error('BOOM!');
       });
     });
 
@@ -164,22 +164,22 @@ describe("useLoadedData hook", () => {
     const hookResultFinal: UseLoadedDataResult<TestData> = hookRender.result.current;
 
     // Assert
-    const expectedState1: LoadedState<TestData> = { status: "None" };
-    const expectedState2: LoadedState<TestData> = { status: "Loading", state: null };
+    const expectedState1: LoadedState<TestData> = { status: 'None' };
+    const expectedState2: LoadedState<TestData> = { status: 'Loading', state: null };
     const expectedStateReady: LoadedState<TestData> = {
-      status: "Ready",
-      state: { propA: "abc", propB: 123 },
+      status: 'Ready',
+      state: { propA: 'abc', propB: 123 },
     };
 
     // later states are expected to remember last ready state
     const expectedState3: LoadedState<TestData> = {
-      status: "Loading",
-      state: { propA: "abc", propB: 123 },
+      status: 'Loading',
+      state: { propA: 'abc', propB: 123 },
     };
     const expectedStateFinal: LoadedState<TestData> = {
-      status: "Error",
-      state: { propA: "abc", propB: 123 },
-      error: Error("BOOM!"),
+      status: 'Error',
+      state: { propA: 'abc', propB: 123 },
+      error: Error('BOOM!'),
     };
 
     expect(hookResult1[0]).toEqual(expectedState1);

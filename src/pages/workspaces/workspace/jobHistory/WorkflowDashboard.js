@@ -1,12 +1,12 @@
-import _ from "lodash/fp";
-import { Fragment, useRef, useState } from "react";
-import { div, h } from "react-hyperscript-helpers";
-import ReactJson from "react-json-view";
-import * as breadcrumbs from "src/components/breadcrumbs";
-import { ClipboardButton } from "src/components/ClipboardButton";
-import Collapse from "src/components/Collapse";
-import { Link } from "src/components/common";
-import { centeredSpinner, icon } from "src/components/icons";
+import _ from 'lodash/fp';
+import { Fragment, useRef, useState } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
+import ReactJson from 'react-json-view';
+import * as breadcrumbs from 'src/components/breadcrumbs';
+import { ClipboardButton } from 'src/components/ClipboardButton';
+import Collapse from 'src/components/Collapse';
+import { Link } from 'src/components/common';
+import { centeredSpinner, icon } from 'src/components/icons';
 import {
   collapseCromwellStatus,
   collapseStatus,
@@ -14,18 +14,18 @@ import {
   makeStatusLine,
   statusType,
   workflowDetailsBreadcrumbSubtitle,
-} from "src/components/job-common";
-import { UriViewer } from "src/components/UriViewer/UriViewer";
-import WDLViewer from "src/components/WDLViewer";
-import { Ajax } from "src/libs/ajax";
-import { bucketBrowserUrl } from "src/libs/auth";
-import { getConfig } from "src/libs/config";
-import Events, { extractWorkspaceDetails } from "src/libs/events";
-import { forwardRefWithName, useCancellation, useOnMount } from "src/libs/react-utils";
-import * as Style from "src/libs/style";
-import * as Utils from "src/libs/utils";
-import CallTable from "src/pages/workspaces/workspace/jobHistory/CallTable";
-import { wrapWorkspace } from "src/pages/workspaces/workspace/WorkspaceContainer";
+} from 'src/components/job-common';
+import { UriViewer } from 'src/components/UriViewer/UriViewer';
+import WDLViewer from 'src/components/WDLViewer';
+import { Ajax } from 'src/libs/ajax';
+import { bucketBrowserUrl } from 'src/libs/auth';
+import { getConfig } from 'src/libs/config';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
+import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
+import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable';
+import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 const styles = {
   sectionTableLabel: { fontWeight: 600 },
@@ -48,14 +48,14 @@ const statusCell = ({ calls }) => {
 
   const makeRow = (count, status, labelOverride) => {
     const seeMore = status.moreInfoLink
-      ? h(Link, { href: status.moreInfoLink, style: { marginLeft: "0.50rem" }, ...Utils.newTabLinkProps }, [
+      ? h(Link, { href: status.moreInfoLink, style: { marginLeft: '0.50rem' }, ...Utils.newTabLinkProps }, [
           status.moreInfoLabel,
-          icon("pop-out", { size: 12, style: { marginLeft: "0.25rem" } }),
+          icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
         ])
-      : "";
+      : '';
     return (
       !!count &&
-      div({ style: { display: "flex", alignItems: "center", marginTop: "0.25rem" } }, [
+      div({ style: { display: 'flex', alignItems: 'center', marginTop: '0.25rem' } }, [
         status.icon(),
         ` ${count} ${labelOverride || status.label()}`,
         seeMore,
@@ -65,7 +65,7 @@ const statusCell = ({ calls }) => {
   return h(
     Fragment,
     _.concat(
-      ["submitted", "waitingForQuota", "running", "succeeded", "failed"]
+      ['submitted', 'waitingForQuota', 'running', 'succeeded', 'failed']
         .filter((s) => statusGroups[s])
         .map((s) => makeRow(statusGroups[s], statusType[s])),
       _.map(([label, count]) => makeRow(count, statusType.unknown, label), _.toPairs(unknownStatuses))
@@ -74,11 +74,11 @@ const statusCell = ({ calls }) => {
 };
 
 const WorkflowDashboard = _.flow(
-  forwardRefWithName("WorkflowDashboard"),
+  forwardRefWithName('WorkflowDashboard'),
   wrapWorkspace({
     breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: "Job History",
-    activeTab: "job history",
+    title: 'Job History',
+    activeTab: 'job history',
   })
 )(({ namespace, name, submissionId, workflowId, workspace }, _ref) => {
   /*
@@ -98,17 +98,17 @@ const WorkflowDashboard = _.flow(
   useOnMount(() => {
     const loadWorkflow = async () => {
       const includeKey = [
-        "end",
-        "executionStatus",
-        "failures",
-        "start",
-        "status",
-        "submittedFiles:workflow",
-        "workflowLog",
-        "workflowRoot",
-        "callCaching:result",
-        "callCaching:effectiveCallCachingMode",
-        "backendStatus",
+        'end',
+        'executionStatus',
+        'failures',
+        'start',
+        'status',
+        'submittedFiles:workflow',
+        'workflowLog',
+        'workflowRoot',
+        'callCaching:result',
+        'callCaching:effectiveCallCachingMode',
+        'backendStatus',
       ];
       const excludeKey = [];
 
@@ -145,7 +145,7 @@ const WorkflowDashboard = _.flow(
   } = workflow || {};
 
   const restructureFailures = (failuresArray) => {
-    const filtered = _.filter(({ message }) => !_.isEmpty(message) && !message.startsWith("Will not start job"), failuresArray);
+    const filtered = _.filter(({ message }) => !_.isEmpty(message) && !message.startsWith('Will not start job'), failuresArray);
     const sizeDiff = failuresArray.length - filtered.length;
     const newMessage =
       sizeDiff > 0
@@ -166,51 +166,51 @@ const WorkflowDashboard = _.flow(
     );
   };
 
-  const callNames = _.sortBy((callName) => _.min(_.map("start", calls[callName])), _.keys(calls));
+  const callNames = _.sortBy((callName) => _.min(_.map('start', calls[callName])), _.keys(calls));
 
-  return div({ style: { padding: "1rem 2rem 2rem", flex: 1, display: "flex", flexDirection: "column" } }, [
+  return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
     workflowDetailsBreadcrumbSubtitle(namespace, name, submissionId, workflowId),
     Utils.cond(
       [
         workflow === undefined,
-        () => h(Fragment, [div({ style: { fontStyle: "italic", marginBottom: "1rem" } }, ["Fetching workflow metadata..."]), centeredSpinner()]),
+        () => h(Fragment, [div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, ['Fetching workflow metadata...']), centeredSpinner()]),
       ],
       [
-        metadataArchiveStatus === "ArchivedAndDeleted",
+        metadataArchiveStatus === 'ArchivedAndDeleted',
         () =>
           h(Fragment, [
-            div({ style: { lineHeight: "24px", marginTop: "0.5rem", ...Style.elements.sectionHeader } }, " Workflow Details Archived"),
-            div({ style: { lineHeight: "24px", marginTop: "0.5rem" } }, [
+            div({ style: { lineHeight: '24px', marginTop: '0.5rem', ...Style.elements.sectionHeader } }, ' Workflow Details Archived'),
+            div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
               "This workflow's details have been archived. Please refer to the ",
               h(
                 Link,
                 {
-                  href: "https://support.terra.bio/hc/en-us/articles/360060601631",
+                  href: 'https://support.terra.bio/hc/en-us/articles/360060601631',
                   ...Utils.newTabLinkProps,
                 },
-                [icon("pop-out", { size: 18 }), " Workflow Details Archived"]
+                [icon('pop-out', { size: 18 }), ' Workflow Details Archived']
               ),
-              " support article for details on how to access the archive.",
+              ' support article for details on how to access the archive.',
             ]),
           ]),
       ],
       () =>
         h(Fragment, [
-          div({ style: { fontStyle: "italic", marginBottom: "1rem" } }, [`Workflow metadata fetched in ${fetchTime}ms`]),
-          div({ style: { display: "flex", flexWrap: "wrap" } }, [
-            makeSection("Workflow Status", [
-              div({ style: { lineHeight: "24px", marginTop: "0.5rem" } }, [makeStatusLine((style) => collapseStatus(status).icon(style), status)]),
+          div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, [`Workflow metadata fetched in ${fetchTime}ms`]),
+          div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
+            makeSection('Workflow Status', [
+              div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [makeStatusLine((style) => collapseStatus(status).icon(style), status)]),
             ]),
-            makeSection("Workflow Timing", [
-              div({ style: { marginTop: "0.5rem", display: "grid", gridTemplateColumns: "auto 1fr", gap: "0.5rem" } }, [
-                div({ style: styles.sectionTableLabel }, ["Start:"]),
-                div([start ? Utils.makeCompleteDate(start) : "N/A"]),
-                div({ style: styles.sectionTableLabel }, ["End:"]),
-                div([end ? Utils.makeCompleteDate(end) : "N/A"]),
+            makeSection('Workflow Timing', [
+              div({ style: { marginTop: '0.5rem', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem' } }, [
+                div({ style: styles.sectionTableLabel }, ['Start:']),
+                div([start ? Utils.makeCompleteDate(start) : 'N/A']),
+                div({ style: styles.sectionTableLabel }, ['End:']),
+                div([end ? Utils.makeCompleteDate(end) : 'N/A']),
               ]),
             ]),
-            makeSection("Links", [
-              div({ style: { display: "flex", flexFlow: "row wrap", marginTop: "0.5rem", lineHeight: "2rem" } }, [
+            makeSection('Links', [
+              div({ style: { display: 'flex', flexFlow: 'row wrap', marginTop: '0.5rem', lineHeight: '2rem' } }, [
                 h(
                   Link,
                   {
@@ -219,32 +219,32 @@ const WorkflowDashboard = _.flow(
                     onClick: () =>
                       Ajax().Metrics.captureEvent(Events.jobManagerOpenExternal, {
                         workflowId,
-                        from: "workspace-workflow-dashboard",
+                        from: 'workspace-workflow-dashboard',
                         ...extractWorkspaceDetails(workspace.workspace),
                       }),
-                    style: { display: "flex", alignItems: "center" },
-                    tooltip: "Job Manager",
+                    style: { display: 'flex', alignItems: 'center' },
+                    tooltip: 'Job Manager',
                   },
-                  [icon("tasks", { size: 18 }), " Job Manager"]
+                  [icon('tasks', { size: 18 }), ' Job Manager']
                 ),
                 workflowRoot &&
                   h(
                     Link,
                     {
                       ...Utils.newTabLinkProps,
-                      href: bucketBrowserUrl(workflowRoot.replace("gs://", "")),
-                      style: { display: "flex", marginLeft: "1rem", alignItems: "center" },
-                      tooltip: "Execution directory",
+                      href: bucketBrowserUrl(workflowRoot.replace('gs://', '')),
+                      style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' },
+                      tooltip: 'Execution directory',
                     },
-                    [icon("folder-open", { size: 18 }), " Execution Directory"]
+                    [icon('folder-open', { size: 18 }), ' Execution Directory']
                   ),
                 h(
                   Link,
                   {
                     onClick: () => setShowLog(true),
-                    style: { display: "flex", marginLeft: "1rem", alignItems: "center" },
+                    style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' },
                   },
-                  [icon("fileAlt", { size: 18 }), " View execution log"]
+                  [icon('fileAlt', { size: 18 }), ' View execution log']
                 ),
               ]),
             ]),
@@ -253,20 +253,20 @@ const WorkflowDashboard = _.flow(
             h(
               Collapse,
               {
-                style: { marginBottom: "1rem" },
+                style: { marginBottom: '1rem' },
                 initialOpenState: true,
                 title: div({ style: Style.elements.sectionHeader }, [
-                  "Workflow-Level Failures",
+                  'Workflow-Level Failures',
                   h(ClipboardButton, {
                     text: JSON.stringify(failures, null, 2),
-                    style: { marginLeft: "0.5rem" },
+                    style: { marginLeft: '0.5rem' },
                     onClick: (e) => e.stopPropagation(), // this stops the collapse when copying
                   }),
                 ]),
               },
               [
                 h(ReactJson, {
-                  style: { whiteSpace: "pre-wrap" },
+                  style: { whiteSpace: 'pre-wrap' },
                   name: false,
                   collapsed: 4,
                   enableClipboard: false,
@@ -279,36 +279,36 @@ const WorkflowDashboard = _.flow(
           h(
             Collapse,
             {
-              title: div({ style: Style.elements.sectionHeader }, ["Calls"]),
+              title: div({ style: Style.elements.sectionHeader }, ['Calls']),
               initialOpenState: true,
             },
             [
-              div({ style: { marginLeft: "1rem" } }, [
-                makeSection("Total Call Status Counts", [
+              div({ style: { marginLeft: '1rem' } }, [
+                makeSection('Total Call Status Counts', [
                   !_.isEmpty(calls)
                     ? statusCell(workflow)
-                    : div({ style: { marginTop: "0.5rem" } }, ["No calls have been started by this workflow."]),
+                    : div({ style: { marginTop: '0.5rem' } }, ['No calls have been started by this workflow.']),
                 ]),
                 !_.isEmpty(calls) &&
                   makeSection(
-                    "Call Lists",
+                    'Call Lists',
                     [
                       _.map((callName) => {
                         return h(
                           Collapse,
                           {
                             key: callName,
-                            style: { marginLeft: "1rem", marginTop: "0.5rem" },
+                            style: { marginLeft: '1rem', marginTop: '0.5rem' },
                             title: div({ style: { ...Style.codeFont, ...Style.elements.sectionHeader } }, [
                               `${callName} × ${calls[callName].length}`,
                             ]),
-                            initialOpenState: !_.every({ executionStatus: "Done" }, calls[callName]),
+                            initialOpenState: !_.every({ executionStatus: 'Done' }, calls[callName]),
                           },
                           [h(CallTable, { namespace, name, submissionId, workflowId, callName, callObjects: calls[callName] })]
                         );
                       }, callNames),
                     ],
-                    { style: { overflow: "visible" } }
+                    { style: { overflow: 'visible' } }
                   ),
               ]),
             ]
@@ -317,7 +317,7 @@ const WorkflowDashboard = _.flow(
             h(
               Collapse,
               {
-                title: div({ style: Style.elements.sectionHeader }, ["Submitted workflow script"]),
+                title: div({ style: Style.elements.sectionHeader }, ['Submitted workflow script']),
               },
               [h(WDLViewer, { wdl })]
             ),
@@ -329,8 +329,8 @@ const WorkflowDashboard = _.flow(
 
 export const navPaths = [
   {
-    name: "workspace-workflow-dashboard",
-    path: "/workspaces/:namespace/:name/job_history/:submissionId/:workflowId",
+    name: 'workspace-workflow-dashboard',
+    path: '/workspaces/:namespace/:name/job_history/:submissionId/:workflowId',
     component: WorkflowDashboard,
     title: ({ name }) => `${name} - Workflow Dashboard`,
   },

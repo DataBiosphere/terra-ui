@@ -1,11 +1,11 @@
-import { Fragment } from "react";
-import { h } from "react-hyperscript-helpers";
-import { Clickable } from "src/components/common";
-import { icon } from "src/components/icons";
-import { MenuButton } from "src/components/MenuButton";
-import { makeMenuIcon, MenuTrigger } from "src/components/PopupTrigger";
-import { useWorkspaceDetails } from "src/components/workspace-utils";
-import * as Utils from "src/libs/utils";
+import { Fragment } from 'react';
+import { h } from 'react-hyperscript-helpers';
+import { Clickable } from 'src/components/common';
+import { icon } from 'src/components/icons';
+import { MenuButton } from 'src/components/MenuButton';
+import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
+import { useWorkspaceDetails } from 'src/components/workspace-utils';
+import * as Utils from 'src/libs/utils';
 
 // In `workspaceInfo`, specify either `name and namespace` to fetch the Workspace details,
 // or `canShare, isLocked, and isOwner` to use previously fetched details.
@@ -16,9 +16,9 @@ const WorkspaceMenu = ({
   workspaceInfo: { name, namespace, canShare, isLocked, isOwner, workspaceLoaded },
 }) => {
   const navIconProps = {
-    style: { opacity: 0.65, marginRight: "1rem", height: iconSize },
+    style: { opacity: 0.65, marginRight: '1rem', height: iconSize },
     hover: { opacity: 1 },
-    focus: "hover",
+    focus: 'hover',
   };
 
   const menuContent = namespace
@@ -36,18 +36,18 @@ const WorkspaceMenu = ({
       h(
         Clickable,
         {
-          "aria-label": name ? `Action Menu for Workspace: ${name}` : "Workspace Action Menu",
-          "aria-haspopup": "menu",
+          'aria-label': name ? `Action Menu for Workspace: ${name}` : 'Workspace Action Menu',
+          'aria-haspopup': 'menu',
           ...navIconProps,
         },
-        [icon("cardMenuIcon", { size: iconSize })]
+        [icon('cardMenuIcon', { size: iconSize })]
       ),
     ]
   );
 };
 
 const DynamicWorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete, onLock, onLeave }) => {
-  const { workspace } = useWorkspaceDetails({ namespace, name }, ["accessLevel", "canShare", "workspace.cloudPlatform", "workspace.isLocked"]);
+  const { workspace } = useWorkspaceDetails({ namespace, name }, ['accessLevel', 'canShare', 'workspace.cloudPlatform', 'workspace.isLocked']);
   const canShare = workspace?.canShare;
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel);
   const isLocked = workspace?.workspace.isLocked;
@@ -66,19 +66,19 @@ const DynamicWorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDele
 };
 
 export const tooltipText = {
-  shareNoPermission: "You have not been granted permission to share this workspace",
-  deleteLocked: "You cannot delete a locked workspace",
-  deleteNoPermission: "You must be an owner of this workspace or the underlying billing project",
-  lockNoPermission: "You have not been granted permission to lock this workspace",
-  unlockNoPermission: "You have not been granted permission to unlock this workspace",
+  shareNoPermission: 'You have not been granted permission to share this workspace',
+  deleteLocked: 'You cannot delete a locked workspace',
+  deleteNoPermission: 'You must be an owner of this workspace or the underlying billing project',
+  lockNoPermission: 'You have not been granted permission to lock this workspace',
+  unlockNoPermission: 'You have not been granted permission to unlock this workspace',
 };
 
 const WorkspaceMenuContent = ({ canShare, isLocked, isOwner, onClone, onShare, onLock, onLeave, onDelete, workspaceLoaded }) => {
-  const shareTooltip = Utils.cond([workspaceLoaded && !canShare, () => tooltipText.shareNoPermission], [Utils.DEFAULT, () => ""]);
+  const shareTooltip = Utils.cond([workspaceLoaded && !canShare, () => tooltipText.shareNoPermission], [Utils.DEFAULT, () => '']);
   const deleteTooltip = Utils.cond(
     [workspaceLoaded && isLocked, () => tooltipText.deleteLocked],
     [workspaceLoaded && !isOwner, () => tooltipText.deleteNoPermission],
-    [Utils.DEFAULT, () => ""]
+    [Utils.DEFAULT, () => '']
   );
 
   return h(Fragment, [
@@ -86,30 +86,30 @@ const WorkspaceMenuContent = ({ canShare, isLocked, isOwner, onClone, onShare, o
       MenuButton,
       {
         disabled: !workspaceLoaded,
-        tooltipSide: "left",
+        tooltipSide: 'left',
         onClick: onClone,
       },
-      [makeMenuIcon("copy"), "Clone"]
+      [makeMenuIcon('copy'), 'Clone']
     ),
     h(
       MenuButton,
       {
         disabled: !workspaceLoaded || !canShare,
         tooltip: shareTooltip,
-        tooltipSide: "left",
+        tooltipSide: 'left',
         onClick: onShare,
       },
-      [makeMenuIcon("share"), "Share"]
+      [makeMenuIcon('share'), 'Share']
     ),
     h(
       MenuButton,
       {
         disabled: !workspaceLoaded || !isOwner,
         tooltip: workspaceLoaded && !isOwner && [isLocked ? tooltipText.unlockNoPermission : tooltipText.lockNoPermission],
-        tooltipSide: "left",
+        tooltipSide: 'left',
         onClick: onLock,
       },
-      isLocked ? [makeMenuIcon("unlock"), "Unlock"] : [makeMenuIcon("lock"), "Lock"]
+      isLocked ? [makeMenuIcon('unlock'), 'Unlock'] : [makeMenuIcon('lock'), 'Lock']
     ),
     h(
       MenuButton,
@@ -117,17 +117,17 @@ const WorkspaceMenuContent = ({ canShare, isLocked, isOwner, onClone, onShare, o
         disabled: !workspaceLoaded,
         onClick: onLeave,
       },
-      [makeMenuIcon("arrowRight"), "Leave"]
+      [makeMenuIcon('arrowRight'), 'Leave']
     ),
     h(
       MenuButton,
       {
         disabled: !workspaceLoaded || !isOwner || isLocked,
         tooltip: deleteTooltip,
-        tooltipSide: "left",
+        tooltipSide: 'left',
         onClick: onDelete,
       },
-      [makeMenuIcon("trash"), "Delete"]
+      [makeMenuIcon('trash'), 'Delete']
     ),
   ]);
 };

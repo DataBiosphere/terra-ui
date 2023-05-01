@@ -1,12 +1,12 @@
-import { render, screen } from "@testing-library/react";
-import { act } from "react-dom/test-utils";
-import { h } from "react-hyperscript-helpers";
-import { Ajax } from "src/libs/ajax";
-import { authStore } from "src/libs/state";
-import TermsOfServicePage from "src/pages/TermsOfService";
+import { render, screen } from '@testing-library/react';
+import { act } from 'react-dom/test-utils';
+import { h } from 'react-hyperscript-helpers';
+import { Ajax } from 'src/libs/ajax';
+import { authStore } from 'src/libs/state';
+import TermsOfServicePage from 'src/pages/TermsOfService';
 
-jest.mock("src/libs/ajax");
-jest.mock("react-notifications-component", () => {
+jest.mock('src/libs/ajax');
+jest.mock('react-notifications-component', () => {
   return {
     store: {
       addNotification: jest.fn(),
@@ -16,7 +16,7 @@ jest.mock("react-notifications-component", () => {
 });
 
 const setupMockAjax = (termsOfService) => {
-  const getTos = jest.fn().mockReturnValue(Promise.resolve("some text"));
+  const getTos = jest.fn().mockReturnValue(Promise.resolve('some text'));
   const getTermsOfServiceComplianceStatus = jest.fn().mockReturnValue(Promise.resolve(termsOfService));
   const getStatus = jest.fn().mockReturnValue(Promise.resolve({}));
   Ajax.mockImplementation(() => ({
@@ -42,11 +42,11 @@ const setupMockAjax = (termsOfService) => {
   };
 };
 
-describe("TermsOfService", () => {
+describe('TermsOfService', () => {
   afterEach(() => {
     authStore.reset();
   });
-  it("fetches the Terms of Service text from Sam", async () => {
+  it('fetches the Terms of Service text from Sam', async () => {
     // Arrange
     const termsOfService = {
       userHasAcceptedLatestTos: true,
@@ -61,7 +61,7 @@ describe("TermsOfService", () => {
     // Assert
     expect(getTosFn).toHaveBeenCalled();
 
-    const termsOfServiceText = screen.findByText("some text");
+    const termsOfServiceText = screen.findByText('some text');
     expect(termsOfServiceText).not.toBeFalsy();
   });
 
@@ -78,7 +78,7 @@ describe("TermsOfService", () => {
     await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
 
     // Assert
-    const continueUnderGracePeriodButton = screen.findByText("Continue under grace period");
+    const continueUnderGracePeriodButton = screen.findByText('Continue under grace period');
     expect(continueUnderGracePeriodButton).not.toBeFalsy();
   });
 
@@ -94,11 +94,11 @@ describe("TermsOfService", () => {
     await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
 
     // Assert
-    const continueUnderGracePeriodButton = screen.queryByText("Continue under grace period");
+    const continueUnderGracePeriodButton = screen.queryByText('Continue under grace period');
     expect(continueUnderGracePeriodButton).not.toBeInTheDocument();
   });
 
-  it("does not show any buttons when the user has accepted the latest ToS and is allowed to use Terra", async () => {
+  it('does not show any buttons when the user has accepted the latest ToS and is allowed to use Terra', async () => {
     // Arrange
     const termsOfService = {
       userHasAcceptedLatestTos: true,
@@ -111,10 +111,10 @@ describe("TermsOfService", () => {
     await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
 
     // Assert
-    const continueUnderGracePeriodButton = screen.queryByText("Continue under grace period");
+    const continueUnderGracePeriodButton = screen.queryByText('Continue under grace period');
     expect(continueUnderGracePeriodButton).not.toBeInTheDocument();
 
-    const acceptButton = screen.queryByText("Accept");
+    const acceptButton = screen.queryByText('Accept');
     expect(acceptButton).not.toBeInTheDocument();
   });
 });

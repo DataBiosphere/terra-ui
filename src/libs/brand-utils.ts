@@ -1,7 +1,7 @@
-import _ from "lodash/fp";
-import { BrandConfiguration, brands, defaultBrand } from "src/libs/brands";
-import { getConfig } from "src/libs/config";
-import { getCurrentUrl } from "src/libs/nav";
+import _ from 'lodash/fp';
+import { BrandConfiguration, brands, defaultBrand } from 'src/libs/brands';
+import { getConfig } from 'src/libs/config';
+import { getCurrentUrl } from 'src/libs/nav';
 
 export const isBrand = (brand: BrandConfiguration): boolean => {
   const currentHostname = getCurrentUrl().hostname;

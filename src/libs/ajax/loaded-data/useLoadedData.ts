@@ -1,6 +1,6 @@
-import { useState } from "react";
-import LoadedState, { ErrorState } from "src/libs/type-utils/LoadedState";
-import { isFetchResponse } from "src/libs/type-utils/type-helpers";
+import { useState } from 'react';
+import LoadedState, { ErrorState } from 'src/libs/type-utils/LoadedState';
+import { isFetchResponse } from 'src/libs/type-utils/type-helpers';
 
 export interface UseLoadedDataArgs<T> {
   /**
@@ -45,24 +45,24 @@ export type UseLoadedDataResult<T> = [LoadedState<T, unknown>, (dataCall: () => 
  */
 export const useLoadedData = <T>(hookArgs?: UseLoadedDataArgs<T>): UseLoadedDataResult<T> => {
   const args: UseLoadedDataArgs<T> = hookArgs || {};
-  const [loadedData, setLoadedData] = useState<LoadedState<T, unknown>>({ status: "None" });
+  const [loadedData, setLoadedData] = useState<LoadedState<T, unknown>>({ status: 'None' });
 
   const updateDataFn = async (dataCall: () => Promise<T>) => {
-    const previousState = loadedData.status !== "None" ? loadedData.state : null;
+    const previousState = loadedData.status !== 'None' ? loadedData.state : null;
     setLoadedData({
-      status: "Loading",
+      status: 'Loading',
       state: previousState,
     });
     try {
       const result = await dataCall();
       setLoadedData({
-        status: "Ready",
+        status: 'Ready',
         state: result,
       });
     } catch (err: unknown) {
       const error = isFetchResponse(err) ? Error(await err.text()) : err;
       const errorResult: ErrorState<T, unknown> = {
-        status: "Error",
+        status: 'Error',
         state: previousState,
         error,
       };

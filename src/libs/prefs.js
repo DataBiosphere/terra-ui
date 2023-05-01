@@ -1,5 +1,5 @@
-import { getDynamic, getLocalStorage, setDynamic } from "src/libs/browser-storage";
-import { getUser } from "src/libs/state";
+import { getDynamic, getLocalStorage, setDynamic } from 'src/libs/browser-storage';
+import { getUser } from 'src/libs/state';
 
 const withUserPrefix = (key) => `${getUser().id}/${key}`;
 const withUserPrefixForSpecifiedUserId = (userId, key) => `${userId}/${key}`;

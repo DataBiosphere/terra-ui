@@ -1,5 +1,5 @@
-import _ from "lodash/fp";
-import { authOpts, fetchWorkspaceManager } from "src/libs/ajax/ajax-common";
+import _ from 'lodash/fp';
+import { authOpts, fetchWorkspaceManager } from 'src/libs/ajax/ajax-common';
 
 export const WorkspaceManagerResources = (signal) => ({
   controlledResources: async (workspaceId) => {

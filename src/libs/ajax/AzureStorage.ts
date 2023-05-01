@@ -1,17 +1,17 @@
-import _ from "lodash/fp";
-import { Ajax } from "src/libs/ajax";
-import { authOpts, fetchOk, fetchWorkspaceManager } from "src/libs/ajax/ajax-common";
-import { getConfig } from "src/libs/config";
-import * as Utils from "src/libs/utils";
-import { cloudProviderTypes } from "src/libs/workspace-utils";
-import { AnalysisFile, AnalysisFileMetadata } from "src/pages/workspaces/workspace/analysis/useAnalysisFiles";
+import _ from 'lodash/fp';
+import { Ajax } from 'src/libs/ajax';
+import { authOpts, fetchOk, fetchWorkspaceManager } from 'src/libs/ajax/ajax-common';
+import { getConfig } from 'src/libs/config';
+import * as Utils from 'src/libs/utils';
+import { cloudProviderTypes } from 'src/libs/workspace-utils';
+import { AnalysisFile, AnalysisFileMetadata } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles';
 import {
   AbsolutePath,
   getDisplayName,
   getExtension,
   getFileName,
-} from "src/pages/workspaces/workspace/analysis/utils/file-utils";
-import { runtimeToolLabels } from "src/pages/workspaces/workspace/analysis/utils/tool-utils";
+} from 'src/pages/workspaces/workspace/analysis/utils/file-utils';
+import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 type SasInfo = {
   url: string;
@@ -37,7 +37,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
     // sas token expires after 8 hours
     const tokenResponse = await fetchWorkspaceManager(
       `workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/${containerId}/getSasToken?sasExpirationDuration=28800`,
-      _.merge(authOpts(), { signal, method: "POST" })
+      _.merge(authOpts(), { signal, method: 'POST' })
     );
 
     return tokenResponse.json();
@@ -52,8 +52,8 @@ export const AzureStorage = (signal?: AbortSignal) => ({
     const container = _.find(
       {
         metadata: {
-          resourceType: "AZURE_STORAGE_CONTAINER",
-          controlledResourceMetadata: { accessScope: "SHARED_ACCESS" },
+          resourceType: 'AZURE_STORAGE_CONTAINER',
+          controlledResourceMetadata: { accessScope: 'SHARED_ACCESS' },
         },
       },
       data.resources
@@ -63,7 +63,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
     // that they may be null, but until all the consuming code changes to handle that we will just throw an error
     // (which is what was happening anyway when we tried to access container.metadata).
     if (!container) {
-      throw new Error("The workspace does not have a shared access storage container.");
+      throw new Error('The workspace does not have a shared access storage container.');
     }
 
     const sas = await AzureStorage(signal).sasToken(workspaceId, container.metadata.resourceId);
@@ -75,7 +75,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
     };
   },
 
-  listFiles: async (workspaceId: string, suffixFilter = ""): Promise<AzureFileRaw[]> => {
+  listFiles: async (workspaceId: string, suffixFilter = ''): Promise<AzureFileRaw[]> => {
     if (!workspaceId) {
       return [];
     }
@@ -84,21 +84,21 @@ export const AzureStorage = (signal?: AbortSignal) => ({
       sas: { url, token },
     } = await AzureStorage(signal).details(workspaceId);
     const azureContainerUrl = _.flow(
-      _.split("?"),
+      _.split('?'),
       _.head,
       Utils.append(`?restype=container&comp=list&${token}`),
-      _.join("")
+      _.join('')
     )(url);
 
     const res = await fetchOk(azureContainerUrl);
     const text = await res.text();
-    const xml = new window.DOMParser().parseFromString(text, "text/xml");
+    const xml = new window.DOMParser().parseFromString(text, 'text/xml');
     const blobs = _.map(
       (blob) => ({
-        name: _.head(blob.getElementsByTagName("Name"))?.textContent,
-        lastModified: _.head(blob.getElementsByTagName("Last-Modified"))?.textContent,
+        name: _.head(blob.getElementsByTagName('Name'))?.textContent,
+        lastModified: _.head(blob.getElementsByTagName('Last-Modified'))?.textContent,
       }),
-      xml.getElementsByTagName("Blob")
+      xml.getElementsByTagName('Blob')
     ) as AzureFileRaw[];
 
     const filteredBlobs = _.filter((blob) => _.endsWith(suffixFilter, blob.name), blobs);
@@ -106,7 +106,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
   },
 
   listNotebooks: async (workspaceId: string): Promise<AnalysisFile[]> => {
-    const notebooks = await AzureStorage(signal).listFiles(workspaceId, ".ipynb");
+    const notebooks = await AzureStorage(signal).listFiles(workspaceId, '.ipynb');
     return _.map(
       (notebook) => ({
         lastModified: new Date(notebook.lastModified).getTime(),
@@ -123,11 +123,11 @@ export const AzureStorage = (signal?: AbortSignal) => ({
 
   blobMetadata: (azureStorageUrl: string) => {
     const getObjectMetadata = async () => {
-      const fileName = _.last(azureStorageUrl.split("/"))?.split(".").join(".");
+      const fileName = _.last(azureStorageUrl.split('/'))?.split('.').join('.');
 
       try {
         // assumption is made that container name guid in uri always matches the workspace Id guid it is present in
-        const workspaceId = azureStorageUrl.split("/")[3].replace("sc-", "");
+        const workspaceId = azureStorageUrl.split('/')[3].replace('sc-', '');
         const {
           sas: { token },
         } = await AzureStorage(signal).details(workspaceId);
@@ -136,12 +136,12 @@ export const AzureStorage = (signal?: AbortSignal) => ({
         const urlwithFolder = new URL(azureStorageUrl);
         const azureSasStorageUrl = `https://${urlwithFolder.hostname}${urlwithFolder.pathname}?&${token}`;
 
-        const res = await fetchOk(azureSasStorageUrl, { method: "HEAD" });
+        const res = await fetchOk(azureSasStorageUrl, { method: 'HEAD' });
         const headerDict = Object.fromEntries(res.headers);
 
         return {
-          lastModified: headerDict["last-modified"],
-          size: headerDict["content-length"],
+          lastModified: headerDict['last-modified'],
+          size: headerDict['content-length'],
           azureSasStorageUrl,
           workspaceId,
           fileName,
@@ -149,11 +149,11 @@ export const AzureStorage = (signal?: AbortSignal) => ({
       } catch (e) {
         // check if file can just be fetched without sas token
         try {
-          const res = await fetchOk(azureStorageUrl, { method: "HEAD" });
+          const res = await fetchOk(azureStorageUrl, { method: 'HEAD' });
           const headerDict = Object.fromEntries(res.headers);
           return {
-            lastModified: headerDict["last-modified"],
-            size: headerDict["content-length"],
+            lastModified: headerDict['last-modified'],
+            size: headerDict['content-length'],
             azureStorageUrl,
             fileName,
           };
@@ -169,7 +169,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
   },
 
   blob: (workspaceId: string, blobName: string) => {
-    const calhounPath = "api/convert";
+    const calhounPath = 'api/convert';
 
     const getObject = async () => {
       const azureStorageUrl = await getBlobUrl(workspaceId, blobName);
@@ -186,10 +186,10 @@ export const AzureStorage = (signal?: AbortSignal) => ({
       const encodedBlobName = encodeAzureAnalysisName(blobName);
 
       const azureStorageUrl = _.flow(
-        _.split("?"),
+        _.split('?'),
         _.head,
         Utils.append(`/${encodedBlobName}?&${token}`),
-        _.join("")
+        _.join('')
       )(url);
 
       return azureStorageUrl;
@@ -200,13 +200,13 @@ export const AzureStorage = (signal?: AbortSignal) => ({
       const destStorageUrl = await getBlobUrl(destWorkspaceId, `${destBlob}.${getExtension(blobName)}`);
       const srcStorageUrl = await getBlobUrl(workspaceId, blobName);
 
-      return fetchOk(destStorageUrl, { method: "PUT", headers: { "x-ms-copy-source": srcStorageUrl } });
+      return fetchOk(destStorageUrl, { method: 'PUT', headers: { 'x-ms-copy-source': srcStorageUrl } });
     };
 
     const doDelete = async () => {
       const storageUrl = await getBlobUrl(workspaceId, blobName);
 
-      return fetchOk(storageUrl, { method: "DELETE" });
+      return fetchOk(storageUrl, { method: 'DELETE' });
     };
 
     return {
@@ -216,7 +216,7 @@ export const AzureStorage = (signal?: AbortSignal) => ({
         const textFileContents = await getObject();
         return fetchOk(
           `${getConfig().calhounUrlRoot}/${calhounPath}`,
-          _.mergeAll([authOpts(), { signal, method: "POST", body: textFileContents }])
+          _.mergeAll([authOpts(), { signal, method: 'POST', body: textFileContents }])
         ).then((res) => res);
       },
 
@@ -224,9 +224,9 @@ export const AzureStorage = (signal?: AbortSignal) => ({
         const azureStorageUrl = await getBlobUrl(workspaceId, blobName);
 
         return fetchOk(azureStorageUrl, {
-          method: "PUT",
+          method: 'PUT',
           body: contents,
-          headers: { "Content-Type": "application/x-ipynb+json", "x-ms-blob-type": "BlockBlob" },
+          headers: { 'Content-Type': 'application/x-ipynb+json', 'x-ms-blob-type': 'BlockBlob' },
         });
       },
 

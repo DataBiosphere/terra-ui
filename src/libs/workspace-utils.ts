@@ -1,12 +1,12 @@
-export type CloudProvider = "AZURE" | "GCP";
+export type CloudProvider = 'AZURE' | 'GCP';
 export const cloudProviderTypes: Record<CloudProvider, CloudProvider> = {
-  AZURE: "AZURE",
-  GCP: "GCP",
+  AZURE: 'AZURE',
+  GCP: 'GCP',
 };
 
 export const cloudProviderLabels: Record<CloudProvider, string> = {
-  AZURE: "Microsoft Azure",
-  GCP: "Google Cloud Platform",
+  AZURE: 'Microsoft Azure',
+  GCP: 'Google Cloud Platform',
 };
 
 export const isKnownCloudProvider = (x: unknown): x is CloudProvider => {
@@ -34,7 +34,7 @@ export interface GoogleWorkspaceInfo extends BaseWorkspaceInfo {
 export type WorkspaceInfo = AzureWorkspaceInfo | GoogleWorkspaceInfo;
 
 export const isGoogleWorkspaceInfo = (workspace: WorkspaceInfo): workspace is GoogleWorkspaceInfo => {
-  return workspace.cloudPlatform === "Gcp";
+  return workspace.cloudPlatform === 'Gcp';
 };
 
 export interface BaseWorkspace {
@@ -55,7 +55,7 @@ export interface GoogleWorkspace extends BaseWorkspace {
 export type WorkspaceWrapper = GoogleWorkspace | AzureWorkspace;
 
 export const isAzureWorkspace = (workspace: BaseWorkspace): workspace is AzureWorkspace => {
-  return workspace.workspace.cloudPlatform === "Azure";
+  return workspace.workspace.cloudPlatform === 'Azure';
 };
 
 export const isGoogleWorkspace = (workspace: BaseWorkspace): workspace is GoogleWorkspace => {

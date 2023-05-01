@@ -1,11 +1,11 @@
-import _ from "lodash/fp";
-import { Children, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { useGetter, useOnMount } from "src/libs/react-utils";
-import * as Utils from "src/libs/utils";
+import _ from 'lodash/fp';
+import { Children, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useGetter, useOnMount } from 'src/libs/react-utils';
+import * as Utils from 'src/libs/utils';
 
 export const useDynamicPosition = (selectors) => {
-  const pickValues = _.pick(["top", "bottom", "left", "right", "width", "height"]);
+  const pickValues = _.pick(['top', 'bottom', 'left', 'right', 'width', 'height']);
   const [dimensions, setDimensions] = useState(
     _.map(({ viewport }) => {
       return viewport ? { width: 0, height: 0 } : { top: 0, bottom: 0, left: 0, right: 0, width: 0, height: 0 };
@@ -40,8 +40,8 @@ export const useWindowDimensions = () => {
     const onResize = () => {
       setDimensions({ width: window.innerWidth, height: window.innerHeight });
     };
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, []);
 
   return dimensions;
@@ -59,20 +59,20 @@ export const computePopupPosition = ({ side, viewport, target, element, gap }) =
     )((target.top + target.bottom) / 2 - element.height / 2);
     return Utils.switchCase(
       s,
-      ["top", () => ({ top: target.top - element.height - gap, left })],
-      ["bottom", () => ({ top: target.bottom + gap, left })],
-      ["left", () => ({ left: target.left - element.width - gap, top })],
-      ["right", () => ({ left: target.right + gap, top })]
+      ['top', () => ({ top: target.top - element.height - gap, left })],
+      ['bottom', () => ({ top: target.bottom + gap, left })],
+      ['left', () => ({ left: target.left - element.width - gap, top })],
+      ['right', () => ({ left: target.right + gap, top })]
     );
   };
   const position = getPosition(side);
   const maybeFlip = (d) => {
     return Utils.switchCase(
       d,
-      ["top", () => (position.top < 0 ? "bottom" : "top")],
-      ["bottom", () => (position.top + element.height >= viewport.height ? "top" : "bottom")],
-      ["left", () => (position.left < 0 ? "right" : "left")],
-      ["right", () => (position.left + element.width >= viewport.width ? "left" : "right")]
+      ['top', () => (position.top < 0 ? 'bottom' : 'top')],
+      ['bottom', () => (position.top + element.height >= viewport.height ? 'top' : 'bottom')],
+      ['left', () => (position.left < 0 ? 'right' : 'left')],
+      ['right', () => (position.left + element.width >= viewport.width ? 'left' : 'right')]
     );
   };
   const finalSide = maybeFlip(side);
@@ -83,11 +83,11 @@ export const computePopupPosition = ({ side, viewport, target, element, gap }) =
 // Render popups, modals, etc. into the #modal-root element.
 // Create the element if it does not exist.
 export const getPopupRoot = () => {
-  let popupRoot = document.getElementById("modal-root");
+  let popupRoot = document.getElementById('modal-root');
   if (!popupRoot) {
-    popupRoot = document.createElement("div");
-    popupRoot.id = "modal-root";
-    popupRoot.role = "complementary";
+    popupRoot = document.createElement('div');
+    popupRoot.id = 'modal-root';
+    popupRoot.role = 'complementary';
     document.body.append(popupRoot);
   }
   return popupRoot;

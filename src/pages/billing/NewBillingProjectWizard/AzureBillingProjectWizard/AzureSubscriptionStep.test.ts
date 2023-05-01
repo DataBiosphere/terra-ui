@@ -1,27 +1,27 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { h } from "react-hyperscript-helpers";
-import { Ajax } from "src/libs/ajax";
-import { AzureSubscriptionStep } from "src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureSubscriptionStep";
-import { asMockedFn } from "src/testing/test-utils";
-import { v4 as uuid } from "uuid";
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { h } from 'react-hyperscript-helpers';
+import { Ajax } from 'src/libs/ajax';
+import { AzureSubscriptionStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureSubscriptionStep';
+import { asMockedFn } from 'src/testing/test-utils';
+import { v4 as uuid } from 'uuid';
 
 type AjaxContract = ReturnType<typeof Ajax>;
-jest.mock("src/libs/ajax");
+jest.mock('src/libs/ajax');
 
-const getSubscriptionInput = () => screen.getByLabelText("Enter your Azure subscription ID *");
-const getManagedAppInput = () => screen.getByLabelText("Unassigned managed application *");
+const getSubscriptionInput = () => screen.getByLabelText('Enter your Azure subscription ID *');
+const getManagedAppInput = () => screen.getByLabelText('Unassigned managed application *');
 
-const verifyDisabled = (item) => expect(item).toHaveAttribute("disabled");
-const verifyEnabled = (item) => expect(item).not.toHaveAttribute("disabled");
+const verifyDisabled = (item) => expect(item).toHaveAttribute('disabled');
+const verifyEnabled = (item) => expect(item).not.toHaveAttribute('disabled');
 
 // Exported for wizard integration test.
 export const selectManagedApp = async (captureEvent = jest.fn(), createAzureProject = jest.fn()) => {
-  const appName = "appName";
-  const appRegion = "appRegion";
-  const tenant = "tenant";
+  const appName = 'appName';
+  const appRegion = 'appRegion';
+  const tenant = 'tenant';
   const subscription = uuid();
-  const mrg = "mrg";
+  const mrg = 'mrg';
   const selectedManagedApp = {
     applicationDeploymentName: appName,
     tenantId: tenant,
@@ -34,10 +34,10 @@ export const selectManagedApp = async (captureEvent = jest.fn(), createAzureProj
     Promise.resolve({
       managedApps: [
         {
-          applicationDeploymentName: "testApp1",
-          tenantId: "fakeTenant1",
-          subscriptionId: "fakeSub1",
-          managedResourceGroupId: "fakeMrg1",
+          applicationDeploymentName: 'testApp1',
+          tenantId: 'fakeTenant1',
+          subscriptionId: 'fakeSub1',
+          managedResourceGroupId: 'fakeMrg1',
           assigned: false,
         },
         selectedManagedApp,
@@ -47,8 +47,8 @@ export const selectManagedApp = async (captureEvent = jest.fn(), createAzureProj
   asMockedFn(Ajax).mockImplementation(
     () =>
       ({
-        Billing: { listAzureManagedApplications, createAzureProject } as Partial<AjaxContract["Billing"]>,
-        Metrics: { captureEvent } as Partial<AjaxContract["Metrics"]>,
+        Billing: { listAzureManagedApplications, createAzureProject } as Partial<AjaxContract['Billing']>,
+        Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
       } as Partial<AjaxContract> as AjaxContract)
   );
 
@@ -63,14 +63,14 @@ export const selectManagedApp = async (captureEvent = jest.fn(), createAzureProj
   return selectedManagedApp;
 };
 
-describe("AzureSubscriptionStep", () => {
+describe('AzureSubscriptionStep', () => {
   let onManagedAppSelectedEvent;
   let renderResult;
 
   const renderAzureSubscriptionStep = (props) => {
     const defaultProps = {
       isActive: true,
-      subscriptionId: "",
+      subscriptionId: '',
       onSubscriptionIdChanged: jest.fn(),
       managedApp: undefined,
       onManagedAppSelected: onManagedAppSelectedEvent,
@@ -89,23 +89,23 @@ describe("AzureSubscriptionStep", () => {
   beforeEach(() => {
     jest.resetAllMocks();
     // Don't show expected error responses in logs
-    jest.spyOn(console, "error").mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
 
     // Arrange
     onManagedAppSelectedEvent = jest.fn();
   });
 
   const captureEvent = jest.fn();
-  const invalidUuidError = "Subscription id must be a UUID";
-  const noManagedApps = "Go to the Azure Marketplace"; // Can only test for complete text in an element, in this case the link.
+  const invalidUuidError = 'Subscription id must be a UUID';
+  const noManagedApps = 'Go to the Azure Marketplace'; // Can only test for complete text in an element, in this case the link.
 
-  it("has the correct initial state", () => {
+  it('has the correct initial state', () => {
     renderAzureSubscriptionStep({});
     // Assert
     verifyDisabled(getManagedAppInput());
   });
 
-  it("validates the subscription ID", async () => {
+  it('validates the subscription ID', async () => {
     // Arrange
     renderAzureSubscriptionStep({});
     // Mock managed app Ajax call, should not be called
@@ -113,8 +113,8 @@ describe("AzureSubscriptionStep", () => {
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
-          Billing: { listAzureManagedApplications } as Partial<AjaxContract["Billing"]>,
-          Metrics: { captureEvent } as Partial<AjaxContract["Metrics"]>,
+          Billing: { listAzureManagedApplications } as Partial<AjaxContract['Billing']>,
+          Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
         } as Partial<AjaxContract> as AjaxContract)
     );
 
@@ -122,7 +122,7 @@ describe("AzureSubscriptionStep", () => {
     expect(screen.queryByText(invalidUuidError)).toBeNull();
 
     // Act - Supply invalid UUID
-    fireEvent.change(getSubscriptionInput(), { target: { value: "invalid UUID" } });
+    fireEvent.change(getSubscriptionInput(), { target: { value: 'invalid UUID' } });
 
     // Assert
     await waitFor(() => expect(screen.queryByText(invalidUuidError)).not.toBeNull());
@@ -136,8 +136,8 @@ describe("AzureSubscriptionStep", () => {
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
-          Billing: { listAzureManagedApplications } as Partial<AjaxContract["Billing"]>,
-          Metrics: { captureEvent } as Partial<AjaxContract["Metrics"]>,
+          Billing: { listAzureManagedApplications } as Partial<AjaxContract['Billing']>,
+          Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
         } as Partial<AjaxContract> as AjaxContract)
     );
 
@@ -152,10 +152,10 @@ describe("AzureSubscriptionStep", () => {
     expect(onManagedAppSelectedEvent).not.toHaveBeenCalled();
   };
 
-  it("shows the spinner overlay while the call to list managed apps is in progress", async () => {
+  it('shows the spinner overlay while the call to list managed apps is in progress', async () => {
     renderAzureSubscriptionStep({});
     const queryLoadingSpinner = () =>
-      screen.queryByRole((_, node: Element | null) => node?.getAttribute("data-icon") === "loadingSpinner");
+      screen.queryByRole((_, node: Element | null) => node?.getAttribute('data-icon') === 'loadingSpinner');
 
     expect(queryLoadingSpinner()).toBeNull();
     const listAzureManagedApplications = jest.fn(() => {
@@ -166,7 +166,7 @@ describe("AzureSubscriptionStep", () => {
     expect(queryLoadingSpinner()).toBeNull();
   });
 
-  it("shows no managed apps in subscription if there are no managed apps (valid subscription ID)", async () => {
+  it('shows no managed apps in subscription if there are no managed apps (valid subscription ID)', async () => {
     // Arrange
     renderAzureSubscriptionStep({});
     const listAzureManagedApplications = jest.fn(() => Promise.resolve({ managedApps: [] }));
@@ -175,20 +175,20 @@ describe("AzureSubscriptionStep", () => {
     await noManagedAppsTestCase(listAzureManagedApplications);
   });
 
-  it("shows no managed apps in subscription if the listAzureManagedApplications Ajax call errors", async () => {
+  it('shows no managed apps in subscription if the listAzureManagedApplications Ajax call errors', async () => {
     // Arrange
     renderAzureSubscriptionStep({});
     // Mock managed app Ajax call to return a server error.
     // We intentionally show the same message as when the subscription is valid, but no managed apps exist.
     const listAzureManagedApplications = jest.fn(() =>
-      Promise.reject("expected test failure-- ignore console.error message")
+      Promise.reject('expected test failure-- ignore console.error message')
     );
 
     // Act and Assert
     await noManagedAppsTestCase(listAzureManagedApplications);
   });
 
-  it("renders available managed applications with their regions and can select a managed app", async () => {
+  it('renders available managed applications with their regions and can select a managed app', async () => {
     // Arrange
     renderAzureSubscriptionStep({});
     const selectedManagedApp = await selectManagedApp();

@@ -1,14 +1,14 @@
-import _ from "lodash/fp";
-import { Fragment, useCallback, useEffect, useState } from "react";
-import { div, h, h2, p, span } from "react-hyperscript-helpers";
-import { Checkbox, Link, spinnerOverlay } from "src/components/common";
-import FooterWrapper from "src/components/FooterWrapper";
-import { PageBox } from "src/components/PageBox";
-import { SimpleFlexTable } from "src/components/table";
-import TopBar from "src/components/TopBar";
-import { isFeaturePreviewEnabled, toggleFeaturePreview, useAvailableFeaturePreviews } from "src/libs/feature-previews";
-import * as Style from "src/libs/style";
-import * as Utils from "src/libs/utils";
+import _ from 'lodash/fp';
+import { Fragment, useCallback, useEffect, useState } from 'react';
+import { div, h, h2, p, span } from 'react-hyperscript-helpers';
+import { Checkbox, Link, spinnerOverlay } from 'src/components/common';
+import FooterWrapper from 'src/components/FooterWrapper';
+import { PageBox } from 'src/components/PageBox';
+import { SimpleFlexTable } from 'src/components/table';
+import TopBar from 'src/components/TopBar';
+import { isFeaturePreviewEnabled, toggleFeaturePreview, useAvailableFeaturePreviews } from 'src/libs/feature-previews';
+import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
 
 export const FeaturePreviews = () => {
   const { featurePreviews, loading, error } = useAvailableFeaturePreviews();
@@ -31,23 +31,23 @@ export const FeaturePreviews = () => {
 
   return Utils.cond(
     [loading, () => spinnerOverlay],
-    [error, () => p({ style: { margin: 0 } }, ["Unable to load feature previews."])],
-    [_.isEmpty(featurePreviews), () => p({ style: { margin: 0 } }, ["No feature previews available at this time."])],
+    [error, () => p({ style: { margin: 0 } }, ['Unable to load feature previews.'])],
+    [_.isEmpty(featurePreviews), () => p({ style: { margin: 0 } }, ['No feature previews available at this time.'])],
     () =>
       h(Fragment, [
-        p(["These features are proof-of-concept and may change without notice."]),
+        p(['These features are proof-of-concept and may change without notice.']),
         h(SimpleFlexTable, {
-          "aria-label": "Features",
+          'aria-label': 'Features',
           rowCount: featurePreviews.length,
           columns: [
             {
               size: { basis: 55, grow: 0 },
-              field: "enabled",
-              headerRenderer: () => span({ className: "sr-only" }, ["Enabled"]),
+              field: 'enabled',
+              headerRenderer: () => span({ className: 'sr-only' }, ['Enabled']),
               cellRenderer: ({ rowIndex }) => {
                 const { id, title } = featurePreviews[rowIndex];
                 return h(Checkbox, {
-                  "aria-label": `Enable ${title}`,
+                  'aria-label': `Enable ${title}`,
                   checked: featurePreviewState[id],
                   onChange: (checked) => {
                     toggleFeaturePreview(id, checked);
@@ -58,18 +58,18 @@ export const FeaturePreviews = () => {
             },
             {
               size: { basis: 250 },
-              field: "description",
-              headerRenderer: () => "Description",
+              field: 'description',
+              headerRenderer: () => 'Description',
               cellRenderer: ({ rowIndex }) => {
                 const { title, description, documentationUrl, feedbackUrl } = featurePreviews[rowIndex];
                 return div([
-                  p({ style: { fontWeight: 600, margin: "0.5rem 0 0.5rem" } }, [title]),
-                  p({ style: { margin: "0.5rem 0" } }, [description]),
+                  p({ style: { fontWeight: 600, margin: '0.5rem 0 0.5rem' } }, [title]),
+                  p({ style: { margin: '0.5rem 0' } }, [description]),
                   !!(documentationUrl || feedbackUrl) &&
-                    p({ style: { margin: "0.5rem 0" } }, [
-                      documentationUrl && h(Link, { ...Utils.newTabLinkProps, href: documentationUrl }, ["Documentation"]),
-                      !!(documentationUrl && feedbackUrl) && " | ",
-                      feedbackUrl && h(Link, { ...Utils.newTabLinkProps, href: feedbackUrl }, ["Submit feedback"]),
+                    p({ style: { margin: '0.5rem 0' } }, [
+                      documentationUrl && h(Link, { ...Utils.newTabLinkProps, href: documentationUrl }, ['Documentation']),
+                      !!(documentationUrl && feedbackUrl) && ' | ',
+                      feedbackUrl && h(Link, { ...Utils.newTabLinkProps, href: feedbackUrl }, ['Submit feedback']),
                     ]),
                 ]);
               },
@@ -82,18 +82,18 @@ export const FeaturePreviews = () => {
 
 const FeaturePreviewsPage = () =>
   h(FooterWrapper, [
-    h(TopBar, { title: "Feature Preview" }),
-    h(PageBox, { role: "main" }, [
-      h2({ style: { ...Style.elements.sectionHeader, textTransform: "uppercase" } }, ["Feature Preview"]),
+    h(TopBar, { title: 'Feature Preview' }),
+    h(PageBox, { role: 'main' }, [
+      h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Feature Preview']),
       h(FeaturePreviews),
     ]),
   ]);
 
 export const navPaths = [
   {
-    name: "feature-previews",
-    path: "/feature-preview",
+    name: 'feature-previews',
+    path: '/feature-preview',
     component: FeaturePreviewsPage,
-    title: "Feature Previews",
+    title: 'Feature Previews',
   },
 ];

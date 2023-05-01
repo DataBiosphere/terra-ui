@@ -1,5 +1,5 @@
-import _ from "lodash/fp";
-import { maybeParseJSON, subscribable } from "src/libs/utils";
+import _ from 'lodash/fp';
+import { maybeParseJSON, subscribable } from 'src/libs/utils';
 
 /**
  * This library provides a higher level interface on top of localStorage and sessionStorage.
@@ -57,9 +57,9 @@ const forceSetItem = (storage, key, value) => {
       storage.setItem(key, value);
       return;
     } catch (error) {
-      const candidates = _.filter(([k]) => _.startsWith("dynamic-storage/", k), _.toPairs(storage));
+      const candidates = _.filter(([k]) => _.startsWith('dynamic-storage/', k), _.toPairs(storage));
       if (!candidates.length) {
-        console.error("Could not write to storage, and no entries to delete");
+        console.error('Could not write to storage, and no entries to delete');
         return;
       }
       const [chosenKey] = _.head(
@@ -99,7 +99,7 @@ export const setStatic = (storage, key, value) => {
 };
 
 export const listenStatic = (storage, key, fn) => {
-  window.addEventListener("storage", (e) => {
+  window.addEventListener('storage', (e) => {
     if (e.storageArea === storage && e.key === key) {
       fn(maybeParseJSON(e.newValue));
     }
@@ -134,7 +134,7 @@ export const setDynamic = (storage, key, value) => {
 
 export const listenDynamic = (storage, key, fn) => {
   const storageKey = `dynamic-storage/${key}`;
-  window.addEventListener("storage", (e) => {
+  window.addEventListener('storage', (e) => {
     if (e.storageArea === storage && e.key === storageKey) {
       const data = maybeParseJSON(e.newValue);
       fn(data?.value);

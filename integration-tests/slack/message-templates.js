@@ -3,43 +3,43 @@ const { CIRCLE_JOB, CIRCLE_BUILD_NUM, CIRCLE_SHA1 } = process.env;
 const getHeaderBlock = (numFailedTests) => {
   if (numFailedTests === 0) {
     return {
-      type: "header",
+      type: 'header',
       text: {
-        type: "plain_text",
-        text: ":circleci-pass:  Terra-UI Test has Passed on CircleCI",
+        type: 'plain_text',
+        text: ':circleci-pass:  Terra-UI Test has Passed on CircleCI',
       },
     };
   }
 
   return {
-    type: "header",
+    type: 'header',
     text: {
-      type: "plain_text",
-      text: ":circleci-fail:  Terra-UI Test has Failed on CircleCI",
+      type: 'plain_text',
+      text: ':circleci-fail:  Terra-UI Test has Failed on CircleCI',
     },
   };
 };
 
 const getJobDetailBlock = () => ({
-  type: "section",
+  type: 'section',
   fields: [
     {
-      type: "mrkdwn",
+      type: 'mrkdwn',
       text: `*Job ${CIRCLE_BUILD_NUM}*: <https://circleci.com/gh/DataBiosphere/terra-ui/${CIRCLE_BUILD_NUM} | ${CIRCLE_JOB}>`,
     },
     {
-      type: "mrkdwn",
+      type: 'mrkdwn',
       text: `*Commit*: <https://github.com/DataBiosphere/terra-ui/commit/${CIRCLE_SHA1} | ${`${CIRCLE_SHA1}`.slice(0, 7)}>`,
     },
   ],
 });
 
 const getTestsListBlock = (testNames) => ({
-  type: "section",
+  type: 'section',
   fields: [
     {
-      type: "mrkdwn",
-      text: `*  ${testNames.join("\n*  ")}`,
+      type: 'mrkdwn',
+      text: `*  ${testNames.join('\n*  ')}`,
     },
   ],
 });

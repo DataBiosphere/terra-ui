@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { Ajax } from "src/libs/ajax";
+import { useMemo } from 'react';
+import { Ajax } from 'src/libs/ajax';
 
 export type CaptureEventFn = (event: string, details?: {}) => void;
 

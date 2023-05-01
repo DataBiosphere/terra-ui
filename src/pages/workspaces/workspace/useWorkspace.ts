@@ -1,26 +1,26 @@
-import _ from "lodash/fp";
-import { Fragment, useRef, useState } from "react";
-import { div, h } from "react-hyperscript-helpers";
-import { Link } from "src/components/common";
-import { locationTypes } from "src/components/region-common";
-import { updateRecentlyViewedWorkspaces } from "src/components/workspace-utils";
-import { Ajax } from "src/libs/ajax";
-import { responseContainsRequesterPaysError } from "src/libs/ajax/ajax-common";
-import { AzureStorage } from "src/libs/ajax/AzureStorage";
-import { saToken } from "src/libs/ajax/GoogleStorage";
-import { withErrorIgnoring, withErrorReporting } from "src/libs/error";
-import { clearNotification, notify } from "src/libs/notifications";
-import { useCancellation, useOnMount, useStore } from "src/libs/react-utils";
-import { getUser, workspaceStore } from "src/libs/state";
-import * as Utils from "src/libs/utils";
-import { differenceFromNowInSeconds } from "src/libs/utils";
-import { isAzureWorkspace, isGoogleWorkspace, WorkspaceWrapper } from "src/libs/workspace-utils";
-import { defaultLocation } from "src/pages/workspaces/workspace/analysis/utils/runtime-utils";
+import _ from 'lodash/fp';
+import { Fragment, useRef, useState } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
+import { Link } from 'src/components/common';
+import { locationTypes } from 'src/components/region-common';
+import { updateRecentlyViewedWorkspaces } from 'src/components/workspace-utils';
+import { Ajax } from 'src/libs/ajax';
+import { responseContainsRequesterPaysError } from 'src/libs/ajax/ajax-common';
+import { AzureStorage } from 'src/libs/ajax/AzureStorage';
+import { saToken } from 'src/libs/ajax/GoogleStorage';
+import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
+import { clearNotification, notify } from 'src/libs/notifications';
+import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
+import { getUser, workspaceStore } from 'src/libs/state';
+import * as Utils from 'src/libs/utils';
+import { differenceFromNowInSeconds } from 'src/libs/utils';
+import { isAzureWorkspace, isGoogleWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 
 export interface StorageDetails {
   googleBucketLocation: string; // historically returns defaultLocation if bucket location cannot be retrieved or Azure
   googleBucketType: string; // historically returns locationTypes.default if bucket type cannot be retrieved or Azure
-  fetchedGoogleBucketLocation: "SUCCESS" | "ERROR" | undefined; // undefined: still fetching
+  fetchedGoogleBucketLocation: 'SUCCESS' | 'ERROR' | undefined; // undefined: still fetching
   azureContainerRegion?: string;
   azureContainerUrl?: string;
   azureContainerSasUrl?: string;
@@ -45,11 +45,11 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
   const accessNotificationId = useRef();
   const cachedWorkspace = useStore(workspaceStore);
   const workspace =
-    cachedWorkspace && _.isEqual({ namespace, name }, _.pick(["namespace", "name"], cachedWorkspace.workspace))
+    cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace))
       ? cachedWorkspace
       : undefined;
   const [{ location, locationType, fetchedLocation }, setGoogleStorage] = useState<{
-    fetchedLocation: "SUCCESS" | "ERROR" | undefined;
+    fetchedLocation: 'SUCCESS' | 'ERROR' | undefined;
     location: string;
     locationType: string;
   }>({
@@ -74,7 +74,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
   };
 
   const checkWorkspaceInitialization = (workspace) => {
-    console.assert(!!workspace, "initialization should not be called before workspace details are fetched");
+    console.assert(!!workspace, 'initialization should not be called before workspace details are fetched');
 
     if (isGoogleWorkspace(workspace)) {
       !workspaceInitialized ? checkGooglePermissions(workspace) : loadGoogleBucketLocationIgnoringError(workspace);
@@ -104,11 +104,11 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
       if (responseContainsRequesterPaysError(errorText)) {
         // loadGoogleBucketLocation will not get called in this case because checkBucketReadAccess fails first,
         // but it would also fail with the requester pays error.
-        setGoogleStorage({ fetchedLocation: "ERROR", location, locationType });
+        setGoogleStorage({ fetchedLocation: 'ERROR', location, locationType });
         updateWorkspaceInStore(workspace, true);
       } else {
         updateWorkspaceInStore(workspace, false);
-        console.log("Google permissions are still syncing"); // eslint-disable-line no-console
+        console.log('Google permissions are still syncing'); // eslint-disable-line no-console
         checkInitializationTimeout.current = window.setTimeout(
           () => checkWorkspaceInitialization(workspace),
           googlePermissionsRecheckRate
@@ -127,10 +127,10 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
       const storageDetails = await Ajax(signal)
         .Workspaces.workspace(namespace, name)
         .checkBucketLocation(workspace.workspace.googleProject, workspace.workspace.bucketName);
-      storageDetails.fetchedLocation = "SUCCESS";
+      storageDetails.fetchedLocation = 'SUCCESS';
       setGoogleStorage(storageDetails);
     } catch (error) {
-      setGoogleStorage({ fetchedLocation: "ERROR", location, locationType });
+      setGoogleStorage({ fetchedLocation: 'ERROR', location, locationType });
       throw error;
     }
   };
@@ -138,7 +138,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
   const storeAzureStorageDetails = (azureStorageDetails) => {
     const { location, sas } = azureStorageDetails;
     const sasUrl = sas.url;
-    setAzureStorage({ storageContainerUrl: _.head(_.split("?", sasUrl)), location, sasUrl });
+    setAzureStorage({ storageContainerUrl: _.head(_.split('?', sasUrl)), location, sasUrl });
   };
 
   const checkAzureStorageExists = async (workspace) => {
@@ -158,30 +158,30 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
     }
   };
 
-  const loadAzureStorageDetails = withErrorReporting("Error loading storage information", async (workspace) => {
+  const loadAzureStorageDetails = withErrorReporting('Error loading storage information', async (workspace) => {
     storeAzureStorageDetails(await AzureStorage(signal).details(workspace.workspace.workspaceId));
   });
 
   const refreshWorkspace = _.flow(
-    withErrorReporting("Error loading workspace"),
+    withErrorReporting('Error loading workspace'),
     Utils.withBusyState(setLoadingWorkspace)
   )(async () => {
     try {
       const workspace = await Ajax(signal)
         .Workspaces.workspace(namespace, name)
         .details([
-          "accessLevel",
-          "azureContext",
-          "canCompute",
-          "canShare",
-          "owners",
-          "workspace",
-          "workspace.attributes",
-          "workspace.authorizationDomain",
-          "workspace.cloudPlatform",
-          "workspace.isLocked",
-          "workspace.workspaceId",
-          "workspaceSubmissionStats",
+          'accessLevel',
+          'azureContext',
+          'canCompute',
+          'canShare',
+          'owners',
+          'workspace',
+          'workspace.attributes',
+          'workspace.authorizationDomain',
+          'workspace.cloudPlatform',
+          'workspace.isLocked',
+          'workspace.workspaceId',
+          'workspaceSubmissionStats',
         ]);
       updateWorkspaceInStore(workspace, workspaceInitialized);
       updateRecentlyViewedWorkspaces(workspace.workspace.workspaceId);
@@ -205,10 +205,10 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
         createdBy === getUser().email &&
         differenceFromNowInSeconds(createdDate) < 60
       ) {
-        accessNotificationId.current = notify("info", "Workspace access synchronizing", {
+        accessNotificationId.current = notify('info', 'Workspace access synchronizing', {
           message: h(Fragment, [
-            "It looks like you just created this workspace. It may take up to a minute before you have access to modify it. Refresh at any time to re-check.",
-            div({ style: { marginTop: "1rem" } }, [
+            'It looks like you just created this workspace. It may take up to a minute before you have access to modify it. Refresh at any time to re-check.',
+            div({ style: { marginTop: '1rem' } }, [
               h(
                 Link,
                 {
@@ -217,7 +217,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
                     clearNotification(accessNotificationId.current);
                   },
                 },
-                ["Click to refresh now"]
+                ['Click to refresh now']
               ),
             ]),
           ]),

@@ -1,19 +1,19 @@
-import { render } from "@testing-library/react";
-import { act } from "react-dom/test-utils";
-import { h } from "react-hyperscript-helpers";
-import Alerts from "src/components/Alerts";
-import { Ajax } from "src/libs/ajax";
-import { authStore } from "src/libs/state";
-import * as TosAlerts from "src/libs/terms-of-service-alerts";
+import { render } from '@testing-library/react';
+import { act } from 'react-dom/test-utils';
+import { h } from 'react-hyperscript-helpers';
+import Alerts from 'src/components/Alerts';
+import { Ajax } from 'src/libs/ajax';
+import { authStore } from 'src/libs/state';
+import * as TosAlerts from 'src/libs/terms-of-service-alerts';
 
-jest.mock("src/libs/ajax");
+jest.mock('src/libs/ajax');
 
-jest.mock("src/libs/nav", () => ({
-  ...jest.requireActual("src/libs/nav"),
-  getLink: jest.fn().mockReturnValue(""),
+jest.mock('src/libs/nav', () => ({
+  ...jest.requireActual('src/libs/nav'),
+  getLink: jest.fn().mockReturnValue(''),
 }));
 
-jest.mock("react-notifications-component", () => {
+jest.mock('react-notifications-component', () => {
   return {
     store: {
       addNotification: jest.fn(),
@@ -23,7 +23,7 @@ jest.mock("react-notifications-component", () => {
 });
 
 const setupMockAjax = (termsOfService) => {
-  const getTos = jest.fn().mockReturnValue(Promise.resolve("some text"));
+  const getTos = jest.fn().mockReturnValue(Promise.resolve('some text'));
   const getTermsOfServiceComplianceStatus = jest.fn().mockReturnValue(Promise.resolve(termsOfService));
   const getStatus = jest.fn().mockReturnValue(Promise.resolve({}));
   Ajax.mockImplementation(() => ({
@@ -57,10 +57,10 @@ const renderAlerts = async (termsOfService) => {
   await act(async () => { authStore.update(state => ({ ...state, termsOfService, isSignedIn })) })  //eslint-disable-line
 };
 
-describe("terms-of-service-alerts", () => {
-  it("adds a notification when the user has a new Terms of Service to accept", async () => {
+describe('terms-of-service-alerts', () => {
+  it('adds a notification when the user has a new Terms of Service to accept', async () => {
     // Arrange
-    jest.spyOn(TosAlerts, "useTermsOfServiceAlerts");
+    jest.spyOn(TosAlerts, 'useTermsOfServiceAlerts');
 
     const termsOfService = {
       userHasAcceptedLatestTos: false,
@@ -73,12 +73,12 @@ describe("terms-of-service-alerts", () => {
     // Assert
     expect(TosAlerts.useTermsOfServiceAlerts).toHaveBeenCalled();
     expect(TosAlerts.tosGracePeriodAlertsStore.get().length).toEqual(1);
-    expect(TosAlerts.tosGracePeriodAlertsStore.get()[0].id).toEqual("terms-of-service-needs-accepting-grace-period");
+    expect(TosAlerts.tosGracePeriodAlertsStore.get()[0].id).toEqual('terms-of-service-needs-accepting-grace-period');
   });
 
-  it("does not add a notification when the user does not have a new Terms of Service to accept", async () => {
+  it('does not add a notification when the user does not have a new Terms of Service to accept', async () => {
     // Arrange
-    jest.spyOn(TosAlerts, "useTermsOfServiceAlerts");
+    jest.spyOn(TosAlerts, 'useTermsOfServiceAlerts');
 
     const termsOfService = {
       userHasAcceptedLatestTos: true,

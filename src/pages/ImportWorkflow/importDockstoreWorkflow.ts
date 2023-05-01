@@ -1,5 +1,5 @@
-import _ from "lodash/fp";
-import { Ajax } from "src/libs/ajax";
+import _ from 'lodash/fp';
+import { Ajax } from 'src/libs/ajax';
 
 type ImportDockstoreWorkflowArgs = {
   workspace: {
@@ -53,7 +53,7 @@ export const importDockstoreWorkflow = async (
 
   const defaultOutputConfiguration = _.flow(
     _.map((output: { name: string }) => {
-      const outputExpression = `this.${_.last(_.split(".", output.name))}`;
+      const outputExpression = `this.${_.last(_.split('.', output.name))}`;
       return [output.name, outputExpression];
     }),
     _.fromPairs

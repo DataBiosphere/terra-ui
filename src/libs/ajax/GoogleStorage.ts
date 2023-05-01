@@ -1,5 +1,5 @@
-import _ from "lodash/fp";
-import * as qs from "qs";
+import _ from 'lodash/fp';
+import * as qs from 'qs';
 import {
   authOpts,
   checkRequesterPaysError,
@@ -8,25 +8,25 @@ import {
   jsonBody,
   withRetryOnError,
   withUrlPrefix,
-} from "src/libs/ajax/ajax-common";
-import { canUseWorkspaceProject } from "src/libs/ajax/Billing";
-import { getConfig } from "src/libs/config";
-import { getUser, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from "src/libs/state";
-import * as Utils from "src/libs/utils";
-import { cloudProviderTypes } from "src/libs/workspace-utils";
-import { AnalysisFile, AnalysisFileMetadata } from "src/pages/workspaces/workspace/analysis/useAnalysisFiles";
+} from 'src/libs/ajax/ajax-common';
+import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';
+import { getConfig } from 'src/libs/config';
+import { getUser, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state';
+import * as Utils from 'src/libs/utils';
+import { cloudProviderTypes } from 'src/libs/workspace-utils';
+import { AnalysisFile, AnalysisFileMetadata } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles';
 import {
   AbsolutePath,
   getDisplayName,
   getExtension,
   getFileName,
-} from "src/pages/workspaces/workspace/analysis/utils/file-utils";
+} from 'src/pages/workspaces/workspace/analysis/utils/file-utils';
 import {
   getToolLabelFromFileExtension,
   runtimeToolLabels,
   runtimeTools,
   ToolLabel,
-} from "src/pages/workspaces/workspace/analysis/utils/tool-utils";
+} from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 /*
  * Detects errors due to requester pays buckets, and adds the current workspace's billing
@@ -76,7 +76,7 @@ const withRequesterPays =
 const fetchBuckets = _.flow(
   withRequesterPays,
   withRetryOnError((error) => Boolean(error.requesterPaysError)),
-  withUrlPrefix("https://storage.googleapis.com/")
+  withUrlPrefix('https://storage.googleapis.com/')
 )(fetchOk);
 
 /**
@@ -85,10 +85,10 @@ const fetchBuckets = _.flow(
  */
 const getServiceAccountToken: (googleProject: string, token: string) => Promise<string> = Utils.memoizeAsync(
   async (googleProject, token) => {
-    const scopes = ["https://www.googleapis.com/auth/devstorage.full_control"];
+    const scopes = ['https://www.googleapis.com/auth/devstorage.full_control'];
     const res = await fetchSam(
       `api/google/v1/user/petServiceAccount/${googleProject}/token`,
-      _.mergeAll([authOpts(token), jsonBody(scopes), { method: "POST" }])
+      _.mergeAll([authOpts(token), jsonBody(scopes), { method: 'POST' }])
     );
     return res.json();
   },
@@ -131,13 +131,13 @@ export type GCSListObjectsOptions = {
   includeTrailingDelimiter?: string;
   maxResults?: number;
   pageToken?: string;
-  projection?: "full" | "noAcl";
+  projection?: 'full' | 'noAcl';
   startOffset?: string;
   versions?: boolean;
 };
 
 export type GCSListObjectsResponse = {
-  kind: "storage#objects";
+  kind: 'storage#objects';
   nextPageToken?: string;
   prefixes?: string[];
   items?: GCSItem[];
@@ -181,7 +181,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
       _.mergeAll([
         authOpts(await saToken(googleProject)),
         { signal },
-        previewFull ? {} : { headers: { Range: "bytes=0-20000" } },
+        previewFull ? {} : { headers: { Range: 'bytes=0-20000' } },
       ])
     );
   },
@@ -228,7 +228,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
     options: GCSListObjectsOptions = {}
   ): Promise<GCSListObjectsResponse> => {
     const res = await fetchBuckets(
-      `storage/v1/b/${bucket}/o?${qs.stringify({ delimiter: "/", ...options, prefix })}`,
+      `storage/v1/b/${bucket}/o?${qs.stringify({ delimiter: '/', ...options, prefix })}`,
       _.merge(authOpts(await saToken(googleProject)), { signal })
     );
     return res.json();
@@ -271,7 +271,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
   delete: async (googleProject: string, bucket: string, name: string): Promise<void> => {
     await fetchBuckets(
       `storage/v1/b/${bucket}/o/${encodeURIComponent(name)}`,
-      _.merge(authOpts(await saToken(googleProject)), { signal, method: "DELETE" })
+      _.merge(authOpts(await saToken(googleProject)), { signal, method: 'DELETE' })
     );
   },
 
@@ -280,9 +280,9 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
       `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${encodeURIComponent(prefix + file.name)}`,
       _.merge(authOpts(await saToken(googleProject)), {
         signal,
-        method: "POST",
+        method: 'POST',
         body: file,
-        headers: { "Content-Type": file.type, "Content-Length": file.size },
+        headers: { 'Content-Type': file.type, 'Content-Length': file.size },
       })
     );
   },
@@ -290,7 +290,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
   patch: async (googleProject, bucket, name, metadata) => {
     return fetchBuckets(
       `storage/v1/b/${bucket}/o/${encodeURIComponent(name)}`,
-      _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(metadata), { signal, method: "PATCH" }])
+      _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(metadata), { signal, method: 'PATCH' }])
     );
   },
 
@@ -299,23 +299,23 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
     const bucketUrl = `storage/v1/b/${bucket}/o`;
 
     const copy = async (newName, newBucket, clearMetadata) => {
-      const body = clearMetadata ? { metadata: { lastLockedBy: "" } } : {};
+      const body = clearMetadata ? { metadata: { lastLockedBy: '' } } : {};
       return fetchBuckets(
         `${bucketUrl}/${encodeAnalysisName(name)}/copyTo/b/${newBucket}/o/${encodeAnalysisName(newName)}`,
-        _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: "POST" }])
+        _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
       );
     };
     const doDelete = async () => {
       return fetchBuckets(
         `${bucketUrl}/${encodeAnalysisName(name)}`,
-        _.merge(authOpts(await saToken(googleProject)), { signal, method: "DELETE" })
+        _.merge(authOpts(await saToken(googleProject)), { signal, method: 'DELETE' })
       );
     };
 
     const getObject = async () => {
       const res = await fetchBuckets(
         `${bucketUrl}/${encodeAnalysisName(name)}`,
-        _.merge(authOpts(await saToken(googleProject)), { signal, method: "GET" })
+        _.merge(authOpts(await saToken(googleProject)), { signal, method: 'GET' })
       );
       return await res.json();
     };
@@ -328,7 +328,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
         ).then((res) => res.text());
         return fetchOk(
           `${getConfig().calhounUrlRoot}/api/convert`,
-          _.mergeAll([authOpts(), { signal, method: "POST", body: nb }])
+          _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
         ).then((res) => res);
       },
 
@@ -339,9 +339,9 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
           `upload/${bucketUrl}?uploadType=media&name=${encodeAnalysisName(name)}`,
           _.merge(authOpts(await saToken(googleProject)), {
             signal,
-            method: "POST",
+            method: 'POST',
             body: JSON.stringify(contents),
-            headers: { "Content-Type": "application/x-ipynb+json" },
+            headers: { 'Content-Type': 'application/x-ipynb+json' },
           })
         );
       },
@@ -363,14 +363,14 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
 
     const calhounPath = Utils.switchCase(
       toolLabel,
-      [runtimeToolLabels.Jupyter, () => "api/convert"],
-      [runtimeToolLabels.RStudio, () => "api/convert/rmd"]
+      [runtimeToolLabels.Jupyter, () => 'api/convert'],
+      [runtimeToolLabels.RStudio, () => 'api/convert/rmd']
     );
 
     const mimeType = Utils.switchCase(
       toolLabel,
-      [runtimeToolLabels.Jupyter, () => "application/x-ipynb+json"],
-      [runtimeToolLabels.RStudio, () => "application/octet-stream"]
+      [runtimeToolLabels.Jupyter, () => 'application/x-ipynb+json'],
+      [runtimeToolLabels.RStudio, () => 'application/octet-stream']
     );
 
     const encodeFileName = (name) => encodeAnalysisName(getFileName(name));
@@ -378,12 +378,12 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
     const doCopy = async (newName, newBucket, body) => {
       return fetchBuckets(
         `${bucketUrl}/${encodeFileName(name)}/copyTo/b/${newBucket}/o/${encodeFileName(newName)}`,
-        _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: "POST" }])
+        _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
       );
     };
 
     const copy = (newName: string, newBucket: string, clearMetadata: boolean): Promise<void> => {
-      const body = clearMetadata ? { metadata: { lastLockedBy: "" } } : {};
+      const body = clearMetadata ? { metadata: { lastLockedBy: '' } } : {};
       return doCopy(newName, newBucket, body);
     };
 
@@ -400,21 +400,21 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
       const body = { metadata: newMetadata };
       return fetchBuckets(
         `${bucketUrl}/${encodeFileName(fileName)}`,
-        _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: "PATCH" }])
+        _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'PATCH' }])
       );
     };
 
     const doDelete = async () => {
       return fetchBuckets(
         `${bucketUrl}/${encodeFileName(name)}`,
-        _.merge(authOpts(await saToken(googleProject)), { signal, method: "DELETE" })
+        _.merge(authOpts(await saToken(googleProject)), { signal, method: 'DELETE' })
       );
     };
 
     const getObject = async (): Promise<any> => {
       const res = await fetchBuckets(
         `${bucketUrl}/${encodeFileName(name)}`,
-        _.merge(authOpts(await saToken(googleProject)), { signal, method: "GET" })
+        _.merge(authOpts(await saToken(googleProject)), { signal, method: 'GET' })
       );
       return await res.json();
     };
@@ -427,7 +427,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
         ).then((res) => res.text());
         return fetchOk(
           `${getConfig().calhounUrlRoot}/${calhounPath}`,
-          _.mergeAll([authOpts(), { signal, method: "POST", body: nb }])
+          _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
         ).then((res) => res);
       },
 
@@ -440,9 +440,9 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
           `upload/${bucketUrl}?uploadType=media&name=${encodeFileName(name)}`,
           _.merge(authOpts(await saToken(googleProject)), {
             signal,
-            method: "POST",
+            method: 'POST',
             body: contents,
-            headers: { "Content-Type": mimeType },
+            headers: { 'Content-Type': mimeType },
           })
         );
       },

@@ -1,6 +1,6 @@
-import * as qs from "qs";
+import * as qs from 'qs';
 
-import { fetchDockstore, fetchOk } from "./ajax-common";
+import { fetchDockstore, fetchOk } from './ajax-common';
 
 export type DockstoreWorkflowDescriptor = {
   path: string;
@@ -12,15 +12,15 @@ export type DockstoreWorkflowVersionDescriptor = DockstoreWorkflowDescriptor & {
 };
 
 export type DockstoreWorkflowVersion = {
-  "descriptor-type": unknown[];
+  'descriptor-type': unknown[];
   dockerfile: boolean;
   id: string;
   image: string;
-  "meta-version": string;
+  'meta-version': string;
   name: string;
   url: string;
   verified: boolean;
-  "verified-source": string;
+  'verified-source': string;
 };
 
 export type DockstoreWorkflow = {
@@ -28,7 +28,7 @@ export type DockstoreWorkflow = {
   contains: unknown[];
   description: string;
   id: string;
-  "meta-version": string;
+  'meta-version': string;
   organization: string;
   signed: boolean;
   toolclass: {
@@ -39,7 +39,7 @@ export type DockstoreWorkflow = {
   toolname: string;
   url: string;
   verified: boolean;
-  "verified-source": string;
+  'verified-source': string;
   versions: DockstoreWorkflowVersion[];
 };
 
@@ -49,7 +49,7 @@ type ListToolsParams = {
 
 // %23 = '#', %2F = '/'
 const workflowVersionsPath = ({ path, isTool }: DockstoreWorkflowDescriptor) => {
-  return `api/ga4gh/v1/tools/${isTool ? "" : "%23workflow%2F"}${encodeURIComponent(path)}/versions`;
+  return `api/ga4gh/v1/tools/${isTool ? '' : '%23workflow%2F'}${encodeURIComponent(path)}/versions`;
 };
 
 export const Dockstore = (signal?: AbortSignal) => ({

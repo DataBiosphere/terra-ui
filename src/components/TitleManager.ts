@@ -1,8 +1,8 @@
-import _ from "lodash/fp";
-import { useEffect } from "react";
-import { getEnabledBrand } from "src/libs/brand-utils";
-import { useRoute } from "src/libs/nav";
-import * as Utils from "src/libs/utils";
+import _ from 'lodash/fp';
+import { useEffect } from 'react';
+import { getEnabledBrand } from 'src/libs/brand-utils';
+import { useRoute } from 'src/libs/nav';
+import * as Utils from 'src/libs/utils';
 
 export function TitleManager() {
   const { title, params, query } = useRoute();

@@ -1,23 +1,23 @@
-import { Dispatch, Fragment, SetStateAction, useEffect, useRef, useState } from "react";
-import { div, h, span } from "react-hyperscript-helpers";
-import { ButtonOutline, Link, topSpinnerOverlay } from "src/components/common";
-import Dropzone from "src/components/Dropzone";
-import { useFilesInDirectory } from "src/components/file-browser/file-browser-hooks";
-import { basename } from "src/components/file-browser/file-browser-utils";
-import { FilesMenu } from "src/components/file-browser/FilesMenu";
-import FilesTable from "src/components/file-browser/FilesTable";
-import { NoticeForPath } from "src/components/file-browser/NoticeForPath";
-import { icon } from "src/components/icons";
-import { UploadProgressModal } from "src/components/ProgressBar";
+import { Dispatch, Fragment, SetStateAction, useEffect, useRef, useState } from 'react';
+import { div, h, span } from 'react-hyperscript-helpers';
+import { ButtonOutline, Link, topSpinnerOverlay } from 'src/components/common';
+import Dropzone from 'src/components/Dropzone';
+import { useFilesInDirectory } from 'src/components/file-browser/file-browser-hooks';
+import { basename } from 'src/components/file-browser/file-browser-utils';
+import { FilesMenu } from 'src/components/file-browser/FilesMenu';
+import FilesTable from 'src/components/file-browser/FilesTable';
+import { NoticeForPath } from 'src/components/file-browser/NoticeForPath';
+import { icon } from 'src/components/icons';
+import { UploadProgressModal } from 'src/components/ProgressBar';
 import FileBrowserProvider, {
   FileBrowserDirectory,
   FileBrowserFile,
-} from "src/libs/ajax/file-browser-providers/FileBrowserProvider";
-import colors from "src/libs/colors";
-import { dataTableVersionsPathRoot } from "src/libs/data-table-versions";
-import { reportError } from "src/libs/error";
-import { useUploader } from "src/libs/uploads";
-import * as Utils from "src/libs/utils";
+} from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
+import colors from 'src/libs/colors';
+import { dataTableVersionsPathRoot } from 'src/libs/data-table-versions';
+import { reportError } from 'src/libs/error';
+import { useUploader } from 'src/libs/uploads';
+import * as Utils from 'src/libs/utils';
 
 interface FilesInDirectoryProps {
   editDisabled?: boolean;
@@ -39,7 +39,7 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
     editDisabledReason,
     path,
     provider,
-    rootLabel = "Files",
+    rootLabel = 'Files',
     selectedFiles,
     setSelectedFiles,
     onClickFile,
@@ -48,14 +48,14 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
     onError,
   } = props;
 
-  const directoryLabel = path === "" ? rootLabel : basename(path);
+  const directoryLabel = path === '' ? rootLabel : basename(path);
 
   const loadedAlertElementRef = useRef<HTMLSpanElement | null>(null);
 
   const { state, hasNextPage, loadAllRemainingItems, loadNextPage, reload } = useFilesInDirectory(provider, path);
 
   useEffect(() => {
-    if (state.status === "Error") {
+    if (state.status === 'Error') {
       onError(state.error);
     }
   }, [state, onError]);
@@ -65,14 +65,14 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
   });
 
   const { status, files } = state;
-  const isLoading = status === "Loading";
+  const isLoading = status === 'Loading';
 
   useEffect(() => {
     loadedAlertElementRef.current!.innerHTML = Utils.switchCase(
       status,
-      ["Loading", () => ""],
-      ["Ready", () => `Loaded ${files.length} files in ${directoryLabel}`],
-      ["Error", () => `Error loading files in ${directoryLabel}`]
+      ['Loading', () => ''],
+      ['Ready', () => `Loaded ${files.length} files in ${directoryLabel}`],
+      ['Error', () => `Error loading files in ${directoryLabel}`]
     );
   }, [directoryLabel, files, status]);
 
@@ -81,9 +81,9 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
   return div(
     {
       style: {
-        display: "flex",
-        flexDirection: "column",
-        flex: "1 0 0",
+        display: 'flex',
+        flexDirection: 'column',
+        flex: '1 0 0',
       },
     },
     [
@@ -91,8 +91,8 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
         Dropzone,
         {
           disabled: editDisabled || uploadState.active,
-          style: { display: "flex", flexFlow: "column nowrap", height: "100%" },
-          activeStyle: { backgroundColor: colors.accent(0.2), cursor: "copy" },
+          style: { display: 'flex', flexFlow: 'column nowrap', height: '100%' },
+          activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
           multiple: true,
           maxFiles: 0, // no limit on number of files
           onDropAccepted: async (files) => {
@@ -119,23 +119,23 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
 
               h(NoticeForPath, {
                 notices: {
-                  [`${dataTableVersionsPathRoot}/`]: "Files in this folder are managed via data table versioning.",
+                  [`${dataTableVersionsPathRoot}/`]: 'Files in this folder are managed via data table versioning.',
                 },
                 path,
               }),
 
               span({
                 ref: loadedAlertElementRef,
-                "aria-live": "polite",
-                className: "sr-only",
-                role: "alert",
+                'aria-live': 'polite',
+                className: 'sr-only',
+                role: 'alert',
               }),
-              status === "Loading" &&
+              status === 'Loading' &&
                 span(
                   {
-                    "aria-live": "assertive",
-                    className: "sr-only",
-                    role: "alert",
+                    'aria-live': 'assertive',
+                    className: 'sr-only',
+                    role: 'alert',
                   },
                   [`Loading files in ${directoryLabel}`]
                 ),
@@ -143,7 +143,7 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
               files.length > 0 &&
                 h(Fragment, [
                   h(FilesTable, {
-                    "aria-label": `Files in ${directoryLabel}`,
+                    'aria-label': `Files in ${directoryLabel}`,
                     files,
                     selectedFiles,
                     setSelectedFiles,
@@ -152,17 +152,17 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
                   div(
                     {
                       style: {
-                        display: "flex",
-                        justifyContent: "space-between",
-                        padding: "1rem",
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        padding: '1rem',
                         borderTop: `1px solid ${colors.dark(0.2)}`,
-                        background: "#fff",
+                        background: '#fff',
                       },
                     },
                     [
                       div([
                         `${files.length} files `,
-                        isLoading && h(Fragment, ["Loading more... ", icon("loadingSpinner", { size: 12 })]),
+                        isLoading && h(Fragment, ['Loading more... ', icon('loadingSpinner', { size: 12 })]),
                       ]),
                       hasNextPage !== false &&
                         div([
@@ -170,20 +170,20 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
                             Link,
                             {
                               disabled: isLoading,
-                              style: { marginLeft: "1ch" },
+                              style: { marginLeft: '1ch' },
                               onClick: () => loadNextPage(),
                             },
-                            ["Load next page"]
+                            ['Load next page']
                           ),
                           h(
                             Link,
                             {
                               disabled: isLoading,
-                              style: { marginLeft: "1ch" },
-                              tooltip: "This may take a long time for folders containing several thousand objects.",
+                              style: { marginLeft: '1ch' },
+                              tooltip: 'This may take a long time for folders containing several thousand objects.',
                               onClick: () => loadAllRemainingItems(),
                             },
-                            ["Load all"]
+                            ['Load all']
                           ),
                         ]),
                     ]
@@ -193,22 +193,22 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
                 div(
                   {
                     style: {
-                      marginTop: "1rem",
-                      fontStyle: "italic",
-                      textAlign: "center",
+                      marginTop: '1rem',
+                      fontStyle: 'italic',
+                      textAlign: 'center',
                     },
                   },
                   [
                     Utils.cond(
-                      [status === "Loading", () => "Loading files..."],
-                      [status === "Error", () => "Unable to load files"],
+                      [status === 'Loading', () => 'Loading files...'],
+                      [status === 'Error', () => 'Unable to load files'],
                       [
-                        path !== "" && provider.supportsEmptyDirectories,
+                        path !== '' && provider.supportsEmptyDirectories,
                         () =>
                           h(
                             ButtonOutline,
                             {
-                              style: { marginTop: "1rem", textTransform: "none" },
+                              style: { marginTop: '1rem', textTransform: 'none' },
                               onClick: async () => {
                                 // Attempt to delete folder placeholder object.
                                 // A placeholder object may not exist for the prefix being viewed, so do not an report error for 404 responses.
@@ -220,14 +220,14 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
                                   onDeleteDirectory();
                                 } catch (error) {
                                   setBusy(false);
-                                  reportError("Error deleting folder", error);
+                                  reportError('Error deleting folder', error);
                                 }
                               },
                             },
-                            ["Delete this folder"]
+                            ['Delete this folder']
                           ),
                       ],
-                      () => "No files have been uploaded yet"
+                      () => 'No files have been uploaded yet'
                     ),
                   ]
                 ),

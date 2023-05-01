@@ -1,16 +1,16 @@
-import { addMinutes, format } from "date-fns/fp";
-import JSZip from "jszip";
-import _ from "lodash/fp";
-import { useState } from "react";
-import { parseGsUri } from "src/components/data/data-utils";
-import { Ajax } from "src/libs/ajax";
-import Events, { extractWorkspaceDetails } from "src/libs/events";
-import { notify } from "src/libs/notifications";
-import { useCancellation } from "src/libs/react-utils";
-import { getUser } from "src/libs/state";
-import * as Utils from "src/libs/utils";
+import { addMinutes, format } from 'date-fns/fp';
+import JSZip from 'jszip';
+import _ from 'lodash/fp';
+import { useState } from 'react';
+import { parseGsUri } from 'src/components/data/data-utils';
+import { Ajax } from 'src/libs/ajax';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { notify } from 'src/libs/notifications';
+import { useCancellation } from 'src/libs/react-utils';
+import { getUser } from 'src/libs/state';
+import * as Utils from 'src/libs/utils';
 
-export const dataTableVersionsPathRoot = ".data-table-versions";
+export const dataTableVersionsPathRoot = '.data-table-versions';
 
 const getAllEntities = async (workspace, entityType) => {
   const {
@@ -52,9 +52,9 @@ export const saveDataTableVersion = async (workspace, entityType, { description 
   _.forEach(({ type, entities }) => {
     zip.file(`json/${type}.json`, JSON.stringify(entities));
   }, allEntities);
-  const zipContent = await zip.generateAsync({ type: "blob" });
+  const zipContent = await zip.generateAsync({ type: 'blob' });
 
-  const zipFile = new File([zipContent], `${versionName}.zip`, { type: "application/zip" });
+  const zipFile = new File([zipContent], `${versionName}.zip`, { type: 'application/zip' });
   await Ajax().Buckets.upload(googleProject, bucketName, `${dataTableVersionsPathRoot}/${entityType}/`, zipFile);
 
   const objectName = `${dataTableVersionsPathRoot}/${entityType}/${versionName}.zip`;
@@ -63,7 +63,7 @@ export const saveDataTableVersion = async (workspace, entityType, { description 
     metadata: {
       createdBy,
       entityType,
-      includedSetEntityTypes: _.join(",", includedSetEntityTypes),
+      includedSetEntityTypes: _.join(',', includedSetEntityTypes),
       timestamp,
       description,
     },
@@ -88,12 +88,12 @@ export const listDataTableVersions = async (workspace, entityType, { signal } = 
   const { items } = await Ajax(signal).Buckets.listAll(googleProject, bucketName, { prefix });
 
   return _.flow(
-    _.filter((item) => item.name.endsWith(".zip") && item.metadata?.entityType && item.metadata?.timestamp),
+    _.filter((item) => item.name.endsWith('.zip') && item.metadata?.entityType && item.metadata?.timestamp),
     _.map((item) => ({
       url: `gs://${item.bucket}/${item.name}`,
       createdBy: item.metadata.createdBy,
       entityType,
-      includedSetEntityTypes: _.compact(_.split(",", item.metadata.includedSetEntityTypes)),
+      includedSetEntityTypes: _.compact(_.split(',', item.metadata.includedSetEntityTypes)),
       timestamp: parseInt(item.metadata.timestamp),
       description: item.metadata.description,
     })),
@@ -117,7 +117,7 @@ export const deleteDataTableVersion = async (workspace, version) => {
 
 export const tableNameForImport = (version) => {
   const timestamp = new Date(version.timestamp);
-  return `${version.entityType}_${format("yyyy-MM-dd_HH-mm-ss", addMinutes(timestamp.getTimezoneOffset(), timestamp))}`;
+  return `${version.entityType}_${format('yyyy-MM-dd_HH-mm-ss', addMinutes(timestamp.getTimezoneOffset(), timestamp))}`;
 };
 
 export const importDataTableVersion = async (workspace, version) => {
@@ -138,12 +138,12 @@ export const importDataTableVersion = async (workspace, version) => {
   const zip = await JSZip.loadAsync(zipData);
 
   const importedTableName = tableNameForImport(version);
-  const entities = JSON.parse(await zip.file(`json/${version.entityType}.json`).async("text"));
+  const entities = JSON.parse(await zip.file(`json/${version.entityType}.json`).async('text'));
   const entityUpdates = _.map(
     ({ name, attributes }) => ({
       entityType: importedTableName,
       name,
-      operations: Object.entries(attributes).map(([k, v]) => ({ op: "AddUpdateAttribute", attributeName: k, addUpdateAttribute: v })),
+      operations: Object.entries(attributes).map(([k, v]) => ({ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v })),
     }),
     entities
   );
@@ -156,7 +156,7 @@ export const importDataTableVersion = async (workspace, version) => {
     const importedSetTableName = _.replace(version.entityType, importedTableName, setTableName);
     const importedSetTableMemberType = importedSetTableName.slice(0, -4);
 
-    const setTableEntities = JSON.parse(await zip.file(`json/${setTableName}.json`).async("text"));
+    const setTableEntities = JSON.parse(await zip.file(`json/${setTableName}.json`).async('text'));
     const setTableEntityUpdates = _.map(
       ({ name, attributes }) => ({
         entityType: importedSetTableName,
@@ -164,11 +164,11 @@ export const importDataTableVersion = async (workspace, version) => {
         operations: Object.entries({
           ...attributes,
           [`${originalSetTableMemberType}s`]: _.update(
-            "items",
-            _.map(_.set("entityType", importedSetTableMemberType)),
+            'items',
+            _.map(_.set('entityType', importedSetTableMemberType)),
             attributes[`${originalSetTableMemberType}s`]
           ),
-        }).map(([k, v]) => ({ op: "AddUpdateAttribute", attributeName: k, addUpdateAttribute: v })),
+        }).map(([k, v]) => ({ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v })),
       }),
       setTableEntities
     );
@@ -188,26 +188,26 @@ export const useDataTableVersions = (workspace) => {
     dataTableVersions,
 
     loadDataTableVersions: async (entityType) => {
-      setDataTableVersions(_.update(entityType, _.flow(_.set("loading", true), _.set("error", false))));
+      setDataTableVersions(_.update(entityType, _.flow(_.set('loading', true), _.set('error', false))));
       try {
         const versions = await listDataTableVersions(workspace, entityType, { signal });
-        setDataTableVersions(_.update(entityType, _.set("versions", versions)));
+        setDataTableVersions(_.update(entityType, _.set('versions', versions)));
       } catch (err) {
-        setDataTableVersions(_.update(entityType, _.set("error", true)));
+        setDataTableVersions(_.update(entityType, _.set('error', true)));
         throw err;
       } finally {
-        setDataTableVersions(_.update(entityType, _.set("loading", false)));
+        setDataTableVersions(_.update(entityType, _.set('loading', false)));
       }
     },
 
     saveDataTableVersion: async (entityType, options = {}) => {
-      setDataTableVersions(_.update(entityType, _.set("savingNewVersion", true)));
+      setDataTableVersions(_.update(entityType, _.set('savingNewVersion', true)));
       try {
         const newVersion = await saveDataTableVersion(workspace, entityType, options);
-        notify("success", `Saved version of ${entityType}`, { timeout: 3000 });
+        notify('success', `Saved version of ${entityType}`, { timeout: 3000 });
         setDataTableVersions(
           _.update(
-            [entityType, "versions"],
+            [entityType, 'versions'],
             _.flow(
               _.defaultTo([]),
               Utils.append(newVersion),
@@ -216,13 +216,13 @@ export const useDataTableVersions = (workspace) => {
           )
         );
       } finally {
-        setDataTableVersions(_.update(entityType, _.set("savingNewVersion", false)));
+        setDataTableVersions(_.update(entityType, _.set('savingNewVersion', false)));
       }
     },
 
     deleteDataTableVersion: async (version) => {
       await deleteDataTableVersion(workspace, version);
-      setDataTableVersions(_.update([version.entityType, "versions"], _.remove({ timestamp: version.timestamp })));
+      setDataTableVersions(_.update([version.entityType, 'versions'], _.remove({ timestamp: version.timestamp })));
     },
 
     importDataTableVersion: (version) => {

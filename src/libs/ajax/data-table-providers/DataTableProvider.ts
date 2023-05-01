@@ -9,9 +9,9 @@ export interface EntityMetadata {
   [index: string]: EntityTypeMetadata;
 }
 
-export type EntityQuerySortDirection = "asc" | "desc";
+export type EntityQuerySortDirection = 'asc' | 'desc';
 
-export type EntityQueryFilterOperator = "and" | "or";
+export type EntityQueryFilterOperator = 'and' | 'or';
 
 // define paginated query result structures
 interface EntityQuery {
@@ -81,7 +81,7 @@ export type TsvUploadButtonTooltipOptions = {
 };
 
 export interface AttributeArray {
-  itemsType: "AttributeValue" | "EntityReference";
+  itemsType: 'AttributeValue' | 'EntityReference';
   items: unknown[]; // truly "unknown" here; the backend Java representation is Object[]
 }
 

@@ -1,20 +1,20 @@
-import _ from "lodash/fp";
-import { Fragment, useState } from "react";
-import { div, h, span } from "react-hyperscript-helpers";
-import { absoluteSpinnerOverlay, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, RadioButton, Select } from "src/components/common";
-import Dropzone from "src/components/Dropzone";
-import { icon } from "src/components/icons";
-import { TextArea, TextInput } from "src/components/input";
-import { Ajax } from "src/libs/ajax";
-import colors from "src/libs/colors";
-import { reportError, withErrorReporting } from "src/libs/error";
-import { FormLabel } from "src/libs/forms";
-import { notify } from "src/libs/notifications";
-import { useStore } from "src/libs/react-utils";
-import { authStore, contactUsActive } from "src/libs/state";
-import * as Style from "src/libs/style";
-import * as Utils from "src/libs/utils";
-import validate from "validate.js";
+import _ from 'lodash/fp';
+import { Fragment, useState } from 'react';
+import { div, h, span } from 'react-hyperscript-helpers';
+import { absoluteSpinnerOverlay, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, RadioButton, Select } from 'src/components/common';
+import Dropzone from 'src/components/Dropzone';
+import { icon } from 'src/components/icons';
+import { TextArea, TextInput } from 'src/components/input';
+import { Ajax } from 'src/libs/ajax';
+import colors from 'src/libs/colors';
+import { reportError, withErrorReporting } from 'src/libs/error';
+import { FormLabel } from 'src/libs/forms';
+import { notify } from 'src/libs/notifications';
+import { useStore } from 'src/libs/react-utils';
+import { authStore, contactUsActive } from 'src/libs/state';
+import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
+import validate from 'validate.js';
 
 const constraints = {
   name: { presence: { allowEmpty: false } },
@@ -36,22 +36,22 @@ const SupportRequest = () => {
     profile: { firstName, lastName, contactEmail, email: profileEmail },
   } = useStore(authStore);
 
-  const [subject, setSubject] = useState("");
-  const [description, setDescription] = useState("");
-  const [type, setType] = useState("question");
-  const [email, setEmail] = useState(contactEmail || profileEmail || "");
-  const [nameEntered, setNameEntered] = useState("");
-  const [attachmentToken, setAttachmentToken] = useState("");
+  const [subject, setSubject] = useState('');
+  const [description, setDescription] = useState('');
+  const [type, setType] = useState('question');
+  const [email, setEmail] = useState(contactEmail || profileEmail || '');
+  const [nameEntered, setNameEntered] = useState('');
+  const [attachmentToken, setAttachmentToken] = useState('');
   const [uploadingFile, setUploadingFile] = useState(false);
-  const [attachmentName, setAttachmentName] = useState("");
+  const [attachmentName, setAttachmentName] = useState('');
   const [clinicalUser, setClinicalUser] = useState(undefined);
   const [submitting, setSubmitting] = useState(false);
 
   // Helpers
-  const hasName = !(firstName === "N/A" || firstName === undefined);
+  const hasName = !(firstName === 'N/A' || firstName === undefined);
 
   const uploadFile = _.flow(
-    withErrorReporting("Error uploading attachment"),
+    withErrorReporting('Error uploading attachment'),
     Utils.withBusyState(setUploadingFile)
   )(async (files) => {
     const {
@@ -76,26 +76,26 @@ const SupportRequest = () => {
     const currUrl = window.location.href;
     try {
       await Ajax().User.createSupportRequest({ ...requestObject, currUrl });
-      notify("success", "Message sent successfully", { timeout: 3000 });
+      notify('success', 'Message sent successfully', { timeout: 3000 });
     } catch (error) {
       notify(
-        "error",
+        'error',
         div([
-          "Error submitting support request. ",
+          'Error submitting support request. ',
           h(
             Link,
             {
-              style: { fontWeight: 800, color: "white" },
-              hover: { color: "white", textDecoration: "underline" },
+              style: { fontWeight: 800, color: 'white' },
+              hover: { color: 'white', textDecoration: 'underline' },
               href:
                 `mailto:terra-support@broadinstitute.zendesk.org?subject=${type}%3A%20${subject}&body=Original%20support%20request%3A%0A` +
                 `------------------------------------%0AContact email%3A%20${email}%0AIs clinical user%3A%20${clinicalUser}%0A%0A${description}%0A%0A------------------------------------` +
                 `%0AError%20reported%20from%20Zendesk%3A%0A%0A${JSON.stringify(error)}`,
               ...Utils.newTabLinkProps,
             },
-            "Click here to email support"
+            'Click here to email support'
           ),
-          !!attachmentToken && " and make sure to add your attachment to the email.",
+          !!attachmentToken && ' and make sure to add your attachment to the email.',
         ])
       );
     } finally {
@@ -104,17 +104,17 @@ const SupportRequest = () => {
   });
 
   // Render
-  const greetUser = hasName ? `, ${firstName}` : "";
+  const greetUser = hasName ? `, ${firstName}` : '';
   const errors = validate(requestObject, constraints);
 
   return div(
     {
       style: {
-        position: "fixed",
-        bottom: "1.5rem",
-        right: "1.5rem",
-        backgroundColor: "white",
-        borderRadius: "0.5rem",
+        position: 'fixed',
+        bottom: '1.5rem',
+        right: '1.5rem',
+        backgroundColor: 'white',
+        borderRadius: '0.5rem',
         width: 450,
         boxShadow: Style.modalShadow,
         zIndex: 2,
@@ -127,23 +127,23 @@ const SupportRequest = () => {
           maxSize: 20 * 1024 * 1024,
           multiple: false,
           style: { flexGrow: 1 },
-          activeStyle: { cursor: "copy" },
-          onDropRejected: (e) => reportError("Error uploading attachment", e),
+          activeStyle: { cursor: 'copy' },
+          onDropRejected: (e) => reportError('Error uploading attachment', e),
           onDropAccepted: uploadFile,
         },
         [
           ({ dragging, openUploader }) =>
-            div({ style: { padding: "1rem" } }, [
-              div({ style: { fontSize: 18, fontWeight: "bold", color: colors.dark() } }, ["Contact Us"]),
+            div({ style: { padding: '1rem' } }, [
+              div({ style: { fontSize: 18, fontWeight: 'bold', color: colors.dark() } }, ['Contact Us']),
               !hasName &&
                 h(Fragment, [
                   h(IdContainer, [
                     (id) =>
                       h(Fragment, [
-                        h(FormLabel, { required: true, htmlFor: id }, ["Name"]),
+                        h(FormLabel, { required: true, htmlFor: id }, ['Name']),
                         h(TextInput, {
                           id,
-                          placeholder: "What should we call you?",
+                          placeholder: 'What should we call you?',
                           autoFocus: true,
                           value: nameEntered,
                           onChange: setNameEntered,
@@ -154,15 +154,15 @@ const SupportRequest = () => {
               h(IdContainer, [
                 (id) =>
                   h(Fragment, [
-                    h(FormLabel, { required: true, htmlFor: id }, ["Type"]),
+                    h(FormLabel, { required: true, htmlFor: id }, ['Type']),
                     h(Select, {
                       id,
                       isMulti: false,
                       value: type,
                       onChange: ({ value }) => setType(value),
                       options: [
-                        { value: "question", label: "Question" },
-                        { value: "bug", label: "Bug" },
+                        { value: 'question', label: 'Question' },
+                        { value: 'bug', label: 'Bug' },
                       ],
                     }),
                   ]),
@@ -173,8 +173,8 @@ const SupportRequest = () => {
                     h(FormLabel, { required: true, htmlFor: id }, [`How can we help you${greetUser}?`]),
                     h(TextInput, {
                       id,
-                      style: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottomStyle: "dashed" },
-                      placeholder: "Enter a subject",
+                      style: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottomStyle: 'dashed' },
+                      placeholder: 'Enter a subject',
                       autoFocus: hasName,
                       value: subject,
                       onChange: setSubject,
@@ -182,42 +182,42 @@ const SupportRequest = () => {
                   ]),
               ]),
               h(TextArea, {
-                style: { height: 200, borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTopStyle: "dashed" },
-                "aria-label": "Enter a description",
-                placeholder: "Enter a description",
+                style: { height: 200, borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTopStyle: 'dashed' },
+                'aria-label': 'Enter a description',
+                placeholder: 'Enter a description',
                 value: description,
                 onChange: setDescription,
               }),
-              h(FormLabel, ["Attachment"]),
+              h(FormLabel, ['Attachment']),
               attachmentToken
-                ? div({ style: { display: "flex", alignItems: "center" } }, [
+                ? div({ style: { display: 'flex', alignItems: 'center' } }, [
                     h(
                       Clickable,
                       {
-                        tooltip: "Change file",
-                        style: { flex: "auto" },
+                        tooltip: 'Change file',
+                        style: { flex: 'auto' },
                         onClick: openUploader,
                       },
                       [
                         div(
                           {
-                            style: { marginLeft: "1rem", paddingTop: "0.5rem" },
+                            style: { marginLeft: '1rem', paddingTop: '0.5rem' },
                           },
-                          ["Successfully uploaded: ", span({ style: { color: colors.dark() } }, [attachmentName])]
+                          ['Successfully uploaded: ', span({ style: { color: colors.dark() } }, [attachmentName])]
                         ),
                       ]
                     ),
                     h(
                       Link,
                       {
-                        tooltip: "Remove file",
-                        style: { flex: 0, paddingTop: "0.5rem" },
+                        tooltip: 'Remove file',
+                        style: { flex: 0, paddingTop: '0.5rem' },
                         onClick: () => {
-                          setAttachmentToken("");
-                          setAttachmentName("");
+                          setAttachmentToken('');
+                          setAttachmentName('');
                         },
                       },
-                      [icon("times-circle", { size: 23 })]
+                      [icon('times-circle', { size: 23 })]
                     ),
                   ])
                 : h(
@@ -232,53 +232,53 @@ const SupportRequest = () => {
                       onClick: openUploader,
                     },
                     [
-                      div({ style: { fontSize: 14, lineHeight: "30px", paddingLeft: "1rem", display: "flex", alignItems: "center" } }, [
-                        "Drag or",
-                        h(Link, { style: { margin: "0 0.25rem" } }, ["Click"]),
-                        "to attach a file",
-                        icon("upload-cloud", { size: 25, style: { opacity: 0.4, marginLeft: "0.5rem" } }),
+                      div({ style: { fontSize: 14, lineHeight: '30px', paddingLeft: '1rem', display: 'flex', alignItems: 'center' } }, [
+                        'Drag or',
+                        h(Link, { style: { margin: '0 0.25rem' } }, ['Click']),
+                        'to attach a file',
+                        icon('upload-cloud', { size: 25, style: { opacity: 0.4, marginLeft: '0.5rem' } }),
                       ]),
                     ]
                   ),
               h(IdContainer, [
                 (id) =>
                   h(Fragment, [
-                    h(FormLabel, { required: true, htmlFor: id }, ["Contact email"]),
+                    h(FormLabel, { required: true, htmlFor: id }, ['Contact email']),
                     h(TextInput, {
                       id,
                       value: email,
-                      placeholder: "Enter your email address",
+                      placeholder: 'Enter your email address',
                       onChange: setEmail,
                     }),
                   ]),
               ]),
-              h(FormLabel, { required: true }, ["Are you a clinical user?"]), // neither should be checked when undefined, thus ===
+              h(FormLabel, { required: true }, ['Are you a clinical user?']), // neither should be checked when undefined, thus ===
               h(RadioButton, {
-                text: "Yes",
-                name: "is-clinical-user",
+                text: 'Yes',
+                name: 'is-clinical-user',
                 checked: clinicalUser === true,
-                labelStyle: { margin: "0 2rem 0 0.25rem" },
+                labelStyle: { margin: '0 2rem 0 0.25rem' },
                 onChange: () => setClinicalUser(true),
               }),
               h(RadioButton, {
-                text: "No",
-                name: "is-clinical-user",
+                text: 'No',
+                name: 'is-clinical-user',
                 checked: clinicalUser === false,
-                labelStyle: { margin: "0 2rem 0 0.25rem" },
+                labelStyle: { margin: '0 2rem 0 0.25rem' },
                 onChange: () => setClinicalUser(false),
               }),
               div(
                 {
-                  style: { marginTop: "1rem", display: "flex", justifyContent: "flex-end", alignItems: "baseline" },
+                  style: { marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline' },
                 },
                 [
                   h(
                     ButtonSecondary,
                     {
-                      style: { marginRight: "1rem" },
+                      style: { marginRight: '1rem' },
                       onClick: () => contactUsActive.set(false),
                     },
-                    ["Cancel"]
+                    ['Cancel']
                   ),
                   h(
                     ButtonPrimary,
@@ -287,7 +287,7 @@ const SupportRequest = () => {
                       tooltip: Utils.summarizeErrors(errors),
                       onClick: submit,
                     },
-                    ["SEND"]
+                    ['SEND']
                   ),
                 ]
               ),

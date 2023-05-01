@@ -1,16 +1,16 @@
-import "src/style.css";
+import 'src/style.css';
 
-import _ from "lodash/fp";
-import ReactDOM from "react-dom";
-import { h } from "react-hyperscript-helpers";
-import RModal from "react-modal";
-import { initializeAuth, initializeClientId } from "src/libs/auth";
-import { isAxeEnabled } from "src/libs/config";
-import { startPollingServiceAlerts } from "src/libs/service-alerts-polling";
-import { initializeTCell } from "src/libs/tcell";
-import Main from "src/pages/Main";
+import _ from 'lodash/fp';
+import ReactDOM from 'react-dom';
+import { h } from 'react-hyperscript-helpers';
+import RModal from 'react-modal';
+import { initializeAuth, initializeClientId } from 'src/libs/auth';
+import { isAxeEnabled } from 'src/libs/config';
+import { startPollingServiceAlerts } from 'src/libs/service-alerts-polling';
+import { initializeTCell } from 'src/libs/tcell';
+import Main from 'src/pages/Main';
 
-const appRoot = document.getElementById("root");
+const appRoot = document.getElementById('root');
 
 RModal.defaultStyles = { overlay: {}, content: {} };
 RModal.setAppElement(appRoot);
@@ -25,6 +25,6 @@ initializeClientId().then(() => {
   startPollingServiceAlerts();
 
   if (isAxeEnabled()) {
-    import("src/libs/axe-core");
+    import('src/libs/axe-core');
   }
 });

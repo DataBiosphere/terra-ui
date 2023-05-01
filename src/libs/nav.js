@@ -1,23 +1,23 @@
-import { createHashHistory as createHistory } from "history";
-import _ from "lodash/fp";
-import * as qs from "qs";
-import { createContext, useContext, useEffect, useState } from "react";
-import { div, h } from "react-hyperscript-helpers";
-import { useOnMount, useStore } from "src/libs/react-utils";
-import { routeHandlersStore } from "src/libs/state";
-import * as Utils from "src/libs/utils";
+import { createHashHistory as createHistory } from 'history';
+import _ from 'lodash/fp';
+import * as qs from 'qs';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
+import { useOnMount, useStore } from 'src/libs/react-utils';
+import { routeHandlersStore } from 'src/libs/state';
+import * as Utils from 'src/libs/utils';
 
 export const blockNav = Utils.atom(() => Promise.resolve());
 
 export const history = createHistory({
-  hashType: "noslash",
+  hashType: 'noslash',
   getUserConfirmation: (_, cb) =>
     blockNav
       .get()()
       .then(() => cb(true)),
 });
 
-history.block("");
+history.block('');
 
 /**
  * @param k
@@ -27,7 +27,7 @@ history.block("");
  */
 export const getPath = (name, params, options) => {
   const handler = _.find({ name }, routeHandlersStore.get());
-  console.assert(handler, `No handler found for key ${name}. Valid path keys are: ${_.map("name", routeHandlersStore.get())}`);
+  console.assert(handler, `No handler found for key ${name}. Valid path keys are: ${_.map('name', routeHandlersStore.get())}`);
   return handler.makePath(params, options);
 };
 
@@ -54,7 +54,7 @@ export function Redirector({ pathname, search }) {
 
 const parseRoute = (handlers, { pathname, search }) => {
   const handler = _.find(({ regex }) => regex.test(pathname), handlers);
-  console.assert(handler, "No handler found for path");
+  console.assert(handler, 'No handler found for path');
   return (
     handler && {
       ...handler,
@@ -93,13 +93,13 @@ export const Router = () => {
   useEffect(() => {
     window.Appcues && window.Appcues.page();
   }, [component]);
-  return div({ style: { display: "flex", flexDirection: "column", flex: "1 0 auto", position: "relative" } }, [
+  return div({ style: { display: 'flex', flexDirection: 'column', flex: '1 0 auto', position: 'relative' } }, [
     h(component, { key: history.location.pathname, ...params, queryParams: query }),
   ]);
 };
 
 export const updateSearch = (params) => {
-  const newSearch = qs.stringify(params, { addQueryPrefix: true, arrayFormat: "brackets" });
+  const newSearch = qs.stringify(params, { addQueryPrefix: true, arrayFormat: 'brackets' });
 
   if (newSearch !== history.location.search) {
     history.replace({ search: newSearch });
@@ -112,7 +112,7 @@ export function PathHashInserter() {
     const desiredPath = `${process.env.PUBLIC_URL}/`;
     if (loc.pathname !== desiredPath) {
       history.replace({ pathname: loc.pathname.substr(1), search: loc.search });
-      window.history.replaceState({}, "", desiredPath);
+      window.history.replaceState({}, '', desiredPath);
     }
   });
   return null;

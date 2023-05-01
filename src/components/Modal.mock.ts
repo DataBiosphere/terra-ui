@@ -1,6 +1,6 @@
-import { FunctionComponent } from "react";
+import { FunctionComponent } from 'react';
 
-export type ModalExports = typeof import("src/components/Modal") & { __esModule: true };
+export type ModalExports = typeof import('src/components/Modal') & { __esModule: true };
 
 /**
  * provides a mocked version of Modal module's Modal component that avoids
@@ -8,7 +8,7 @@ export type ModalExports = typeof import("src/components/Modal") & { __esModule:
  * including dom measurement calls.
  */
 export const mockModalModule = (): ModalExports => {
-  const originalModule = jest.requireActual<ModalExports>("src/components/Modal");
+  const originalModule = jest.requireActual<ModalExports>('src/components/Modal');
 
   type ModalFn = FunctionComponent & { propTypes: typeof originalModule.modalPropTypes };
 

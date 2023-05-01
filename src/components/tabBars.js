@@ -1,38 +1,38 @@
-import _ from "lodash/fp";
-import PropTypes from "prop-types";
-import { Fragment, useRef } from "react";
-import { div, h, span } from "react-hyperscript-helpers";
-import { Clickable } from "src/components/common";
-import { HorizontalNavigation } from "src/components/keyboard-nav";
-import { Ajax } from "src/libs/ajax";
-import { terraSpecial } from "src/libs/colors";
-import { useLabelAssert, useOnMount, useUniqueId } from "src/libs/react-utils";
-import * as Style from "src/libs/style";
-import * as Utils from "src/libs/utils";
+import _ from 'lodash/fp';
+import PropTypes from 'prop-types';
+import { Fragment, useRef } from 'react';
+import { div, h, span } from 'react-hyperscript-helpers';
+import { Clickable } from 'src/components/common';
+import { HorizontalNavigation } from 'src/components/keyboard-nav';
+import { Ajax } from 'src/libs/ajax';
+import { terraSpecial } from 'src/libs/colors';
+import { useLabelAssert, useOnMount, useUniqueId } from 'src/libs/react-utils';
+import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
 
 const styles = {
   tabBar: {
     container: {
-      display: "flex",
-      alignItems: "center",
+      display: 'flex',
+      alignItems: 'center',
       fontWeight: 400,
-      textTransform: "uppercase",
-      height: "2.25rem",
+      textTransform: 'uppercase',
+      height: '2.25rem',
       borderBottom: `1px solid ${terraSpecial()}`,
-      flex: "",
+      flex: '',
     },
     tab: {
-      flex: "none",
-      padding: "0 1em",
-      marginBottom: "8px",
-      height: "100%",
-      alignSelf: "stretch",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
+      flex: 'none',
+      padding: '0 1em',
+      marginBottom: '8px',
+      height: '100%',
+      alignSelf: 'stretch',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
       borderBottomWidth: 8,
-      borderBottomStyle: "solid",
-      borderBottomColor: "transparent",
+      borderBottomStyle: 'solid',
+      borderBottomColor: 'transparent',
     },
     active: {
       borderBottomColor: terraSpecial(),
@@ -57,7 +57,7 @@ const styles = {
  * @param props Any additional properties to add to the container menu element
  */
 export function TabBar({ activeTab, tabNames, displayNames = {}, refresh = _.noop, getHref, getOnClick = _.noop, children, ...props }) {
-  useLabelAssert("TabBar", props);
+  useLabelAssert('TabBar', props);
 
   const navTab = (i, currentTab) => {
     const selected = currentTab === activeTab;
@@ -66,11 +66,11 @@ export function TabBar({ activeTab, tabNames, displayNames = {}, refresh = _.noo
     return span(
       {
         key: currentTab,
-        role: "menuitem",
-        "aria-setsize": tabNames.length,
-        "aria-posinset": i + 1, // The first tab is 1
-        "aria-current": selected ? "location" : undefined,
-        style: { display: "flex", minWidth: 140, flexGrow: 0, alignSelf: "stretch", alignItems: "center", textAlign: "center" },
+        role: 'menuitem',
+        'aria-setsize': tabNames.length,
+        'aria-posinset': i + 1, // The first tab is 1
+        'aria-current': selected ? 'location' : undefined,
+        style: { display: 'flex', minWidth: 140, flexGrow: 0, alignSelf: 'stretch', alignItems: 'center', textAlign: 'center' },
       },
       [
         h(
@@ -84,7 +84,7 @@ export function TabBar({ activeTab, tabNames, displayNames = {}, refresh = _.noo
           [
             div(
               {
-                style: { flex: "1 1 100%", marginBottom: selected ? -Style.tabBar.active.borderBottomWidth : undefined },
+                style: { flex: '1 1 100%', marginBottom: selected ? -Style.tabBar.active.borderBottomWidth : undefined },
               },
               displayNames[currentTab] || currentTab
             ),
@@ -101,25 +101,25 @@ export function TabBar({ activeTab, tabNames, displayNames = {}, refresh = _.noo
     [
       div(
         {
-          role: "navigation",
-          "aria-label": props["aria-label"], // duplicate the menu's label on the navigation element
-          "aria-labelledby": props["aria-labelledby"],
-          style: { display: "flex", flexGrow: 1, height: "100%" },
+          role: 'navigation',
+          'aria-label': props['aria-label'], // duplicate the menu's label on the navigation element
+          'aria-labelledby': props['aria-labelledby'],
+          style: { display: 'flex', flexGrow: 1, height: '100%' },
         },
         [
           h(
             HorizontalNavigation,
             {
-              role: "menu",
-              "aria-orientation": "horizontal",
-              style: { display: "flex" },
+              role: 'menu',
+              'aria-orientation': 'horizontal',
+              style: { display: 'flex' },
               ...props,
             },
             [..._.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabNames))]
           ),
         ]
       ),
-      div({ style: { display: "flex", flexGrow: 0, alignItems: "center" } }, children),
+      div({ style: { display: 'flex', flexGrow: 0, alignItems: 'center' } }, children),
     ]
   );
 }
@@ -170,11 +170,11 @@ export function SimpleTabBar({
   children,
   ...props
 }) {
-  useLabelAssert("SimpleTabBar", props);
+  useLabelAssert('SimpleTabBar', props);
   const tabIds = _.map(useUniqueId, _.range(0, tabs.length));
   const panelRef = useRef();
   const maybeEmitViewMetric = (key) => {
-    !!metricsPrefix && Ajax().Metrics.captureEvent(`${metricsPrefix}:view:${_.replace(/\s/g, "-", key)}`, metricsData);
+    !!metricsPrefix && Ajax().Metrics.captureEvent(`${metricsPrefix}:view:${_.replace(/\s/g, '-', key)}`, metricsData);
   };
 
   // Determine the index of the selected tab, or choose the first one
@@ -190,7 +190,7 @@ export function SimpleTabBar({
     h(
       HorizontalNavigation,
       {
-        role: "tablist",
+        role: 'tablist',
         style: { ...styles.tabBar.container, flex: 0, ...style },
         ...props,
       },
@@ -201,10 +201,10 @@ export function SimpleTabBar({
           {
             key,
             id: tabIds[i],
-            role: "tab",
-            "aria-posinset": i + 1, // The first tab is 1
-            "aria-setsize": tabs.length,
-            "aria-selected": selected,
+            role: 'tab',
+            'aria-posinset': i + 1, // The first tab is 1
+            'aria-setsize': tabs.length,
+            'aria-selected': selected,
             style: { ...styles.tabBar.tab, ...(selected ? styles.tabBar.active : {}), width, ...tabStyle },
             hover: selected ? {} : styles.tabBar.hover,
             onClick: () => {
@@ -223,11 +223,11 @@ export function SimpleTabBar({
     children &&
       div(
         {
-          role: "tabpanel",
+          role: 'tabpanel',
           ref: panelRef,
           tabIndex: -1,
-          "aria-labelledby": tabIds[selectedId],
-          style: { flex: "1 1 auto", display: "flex", flexFlow: "column nowrap" },
+          'aria-labelledby': tabIds[selectedId],
+          style: { flex: '1 1 auto', display: 'flex', flexFlow: 'column nowrap' },
           ...panelProps,
         },
         [children]

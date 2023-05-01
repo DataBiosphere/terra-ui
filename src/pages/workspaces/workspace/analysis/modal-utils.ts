@@ -1,11 +1,11 @@
-import _ from "lodash/fp";
-import { cloudServices } from "src/data/gce-machines";
-import { PdType, PersistentDisk } from "src/libs/ajax/leonardo/models/disk-models";
+import _ from 'lodash/fp';
+import { cloudServices } from 'src/data/gce-machines';
+import { PdType, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import {
   defaultDataprocMachineType,
   getDefaultMachineType,
-} from "src/pages/workspaces/workspace/analysis/utils/runtime-utils";
-import { getToolLabelFromRuntime } from "src/pages/workspaces/workspace/analysis/utils/tool-utils";
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
+import { getToolLabelFromRuntime } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 export interface IComputeConfig {
   persistentDiskSize: number;
@@ -83,6 +83,6 @@ export const buildExistingEnvironmentConfig = (
 };
 
 export const getImageUrl = (runtimeDetails) => {
-  return _.find(({ imageType }) => _.includes(imageType, ["Jupyter", "RStudio"]), runtimeDetails?.runtimeImages)
+  return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), runtimeDetails?.runtimeImages)
     ?.imageUrl;
 };

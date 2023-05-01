@@ -1,5 +1,5 @@
-import { pdTypes } from "src/libs/ajax/leonardo/models/disk-models";
-import { getAzurePricesForRegion } from "src/libs/azure-utils";
+import { pdTypes } from 'src/libs/ajax/leonardo/models/disk-models';
+import { getAzurePricesForRegion } from 'src/libs/azure-utils';
 import {
   azureDisk,
   azureRuntime,
@@ -8,22 +8,22 @@ import {
   getDisk,
   getGoogleRuntime,
   getJupyterRuntimeConfig,
-} from "src/pages/workspaces/workspace/analysis/_testData/testData";
+} from 'src/pages/workspaces/workspace/analysis/_testData/testData';
 import {
   getCostDisplayForDisk,
   getCostDisplayForTool,
   getPersistentDiskCostMonthly,
   getRuntimeCost,
   runtimeConfigCost,
-} from "src/pages/workspaces/workspace/analysis/utils/cost-utils";
-import { cloudProviders } from "src/pages/workspaces/workspace/analysis/utils/runtime-utils";
-import { appToolLabels, runtimeToolLabels } from "src/pages/workspaces/workspace/analysis/utils/tool-utils";
+} from 'src/pages/workspaces/workspace/analysis/utils/cost-utils';
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
+import { appToolLabels, runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 const defaultSparkSingleNode = {
-  cloudService: "DATAPROC",
+  cloudService: 'DATAPROC',
   autopauseThreshold: 30,
-  region: "US-CENTRAL1",
-  masterMachineType: "n1-standard-4",
+  region: 'US-CENTRAL1',
+  masterMachineType: 'n1-standard-4',
   masterDiskSize: 150,
   numberOfWorkers: 0,
   componentGatewayEnabled: true,
@@ -33,30 +33,30 @@ const defaultSparkSingleNode = {
 };
 
 const defaultSparkCluster = {
-  cloudService: "DATAPROC",
+  cloudService: 'DATAPROC',
   autopauseThreshold: 30,
-  region: "US-CENTRAL1",
-  masterMachineType: "n1-standard-4",
+  region: 'US-CENTRAL1',
+  masterMachineType: 'n1-standard-4',
   masterDiskSize: 150,
   numberOfWorkers: 2,
   componentGatewayEnabled: true,
   numberOfPreemptibleWorkers: 0,
-  workerMachineType: "n1-standard-4",
+  workerMachineType: 'n1-standard-4',
   workerDiskSize: 150,
   workerPrivateAccess: false,
 };
 
-describe("getCostDisplayForDisk", () => {
-  it("GCP - will get the disk cost for a Galaxy AppDataDisk", () => {
+describe('getCostDisplayForDisk', () => {
+  it('GCP - will get the disk cost for a Galaxy AppDataDisk', () => {
     // Arrange
     const app = galaxyRunning;
     const appDataDisks = [galaxyDisk];
-    const computeRegion = "US-CENTRAL1";
+    const computeRegion = 'US-CENTRAL1';
     const currentRuntimeTool = undefined;
     const persistentDisks = [];
     const runtimes = [];
     const toolLabel = appToolLabels.GALAXY;
-    const expectedResult = "Disk $0.04/hr";
+    const expectedResult = 'Disk $0.04/hr';
 
     // Act
     const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel);
@@ -65,7 +65,7 @@ describe("getCostDisplayForDisk", () => {
     expect(result).toBe(expectedResult);
   });
 
-  it("GCP - will get the disk cost for a Jupyter Persistent Disk", () => {
+  it('GCP - will get the disk cost for a Jupyter Persistent Disk', () => {
     // Arrange
     const jupyterDisk = getDisk();
     const jupyterRuntime = getGoogleRuntime({
@@ -73,12 +73,12 @@ describe("getCostDisplayForDisk", () => {
     });
     const app = undefined;
     const appDataDisks = [];
-    const computeRegion = "US-CENTRAL1";
+    const computeRegion = 'US-CENTRAL1';
     const currentRuntimeTool = runtimeToolLabels.Jupyter;
     const persistentDisks = [jupyterDisk];
     const runtimes = [jupyterRuntime];
     const toolLabel = runtimeToolLabels.Jupyter;
-    const expectedResult = "Disk < $0.01/hr";
+    const expectedResult = 'Disk < $0.01/hr';
 
     // Act
     const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel);
@@ -87,16 +87,16 @@ describe("getCostDisplayForDisk", () => {
     expect(result).toBe(expectedResult);
   });
 
-  it("Will return empty string because when there is no app or runtime to get cost information from.", () => {
+  it('Will return empty string because when there is no app or runtime to get cost information from.', () => {
     // Arrange
     const app = undefined;
     const appDataDisks = [];
-    const computeRegion = "US-CENTRAL1";
+    const computeRegion = 'US-CENTRAL1';
     const currentRuntimeTool = undefined;
     const persistentDisks = [];
     const runtimes = [];
-    const toolLabel = "";
-    const expectedResult = "";
+    const toolLabel = '';
+    const expectedResult = '';
 
     // Act
     const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel);
@@ -105,16 +105,16 @@ describe("getCostDisplayForDisk", () => {
     expect(result).toBe(expectedResult);
   });
 
-  it("GCP - will return empty string because toolLabel and currentRuntimeTool are not equal.", () => {
+  it('GCP - will return empty string because toolLabel and currentRuntimeTool are not equal.', () => {
     // Arrange
     const app = undefined;
     const appDataDisks = [];
-    const computeRegion = "US-CENTRAL1";
+    const computeRegion = 'US-CENTRAL1';
     const currentRuntimeTool = runtimeToolLabels.Jupyter;
     const persistentDisks = [];
     const runtimes = [];
     const toolLabel = runtimeToolLabels.RStudio;
-    const expectedResult = "";
+    const expectedResult = '';
 
     // Act
     const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel);
@@ -123,7 +123,7 @@ describe("getCostDisplayForDisk", () => {
     expect(result).toBe(expectedResult);
   });
 
-  it("GCP - will return blank string because cost is 0 due to deleting disk.", () => {
+  it('GCP - will return blank string because cost is 0 due to deleting disk.', () => {
     // Arrange
     const jupyterDisk = getDisk();
     const jupyterRuntime = getGoogleRuntime({
@@ -131,12 +131,12 @@ describe("getCostDisplayForDisk", () => {
     });
     const app = undefined;
     const appDataDisks = [];
-    const computeRegion = "US-CENTRAL1";
+    const computeRegion = 'US-CENTRAL1';
     const currentRuntimeTool = runtimeToolLabels.Jupyter;
-    const persistentDisks = [{ ...jupyterDisk, status: "Deleting" }];
+    const persistentDisks = [{ ...jupyterDisk, status: 'Deleting' }];
     const runtimes = [jupyterRuntime];
     const toolLabel = runtimeToolLabels.Jupyter;
-    const expectedResult = "";
+    const expectedResult = '';
 
     // Act
     const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel);
@@ -146,16 +146,16 @@ describe("getCostDisplayForDisk", () => {
   });
 
   //  ---- Azure ----
-  it("Azure - will get the disk cost display for an Azure disk.", () => {
+  it('Azure - will get the disk cost display for an Azure disk.', () => {
     // Arrange
     const app = undefined;
     const appDataDisks = [];
-    const computeRegion = "eastus";
+    const computeRegion = 'eastus';
     const currentRuntimeTool = runtimeToolLabels.JupyterLab;
     const persistentDisks = [azureDisk];
     const runtimes = [azureRuntime];
     const toolLabel = runtimeToolLabels.Jupyter;
-    const expectedResult = "Disk < $0.01/hr";
+    const expectedResult = 'Disk < $0.01/hr';
 
     // Act
     const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel);
@@ -167,10 +167,10 @@ describe("getCostDisplayForDisk", () => {
   });
 });
 
-describe("GCP getCostDisplayForTool", () => {
-  it("Will get compute cost and compute status for Galaxy app", () => {
+describe('GCP getCostDisplayForTool', () => {
+  it('Will get compute cost and compute status for Galaxy app', () => {
     // Arrange
-    const expectedResult = "Running $0.53/hr";
+    const expectedResult = 'Running $0.53/hr';
     const app = galaxyRunning;
     const currentRuntime = undefined;
     const currentRuntimeTool = undefined;
@@ -183,9 +183,9 @@ describe("GCP getCostDisplayForTool", () => {
     expect(result).toBe(expectedResult);
   });
 
-  it("Will get compute cost and compute status for a running Jupyter runtime", () => {
+  it('Will get compute cost and compute status for a running Jupyter runtime', () => {
     // Arrange
-    const expectedResult = "Running $0.06/hr";
+    const expectedResult = 'Running $0.06/hr';
     const app = undefined;
     const currentRuntime = getGoogleRuntime({
       runtimeConfig: getJupyterRuntimeConfig(),
@@ -200,14 +200,14 @@ describe("GCP getCostDisplayForTool", () => {
     expect(result).toBe(expectedResult);
   });
 
-  it("Will get compute cost and compute status for a stopped Jupyter runtime", () => {
+  it('Will get compute cost and compute status for a stopped Jupyter runtime', () => {
     // Arrange
-    const expectedResult = "Paused < $0.01/hr";
+    const expectedResult = 'Paused < $0.01/hr';
     const app = undefined;
     const jupyterRuntime = getGoogleRuntime({
       runtimeConfig: getJupyterRuntimeConfig(),
     });
-    const currentRuntime = { ...jupyterRuntime, status: "Stopped" };
+    const currentRuntime = { ...jupyterRuntime, status: 'Stopped' };
     const currentRuntimeTool = runtimeToolLabels.Jupyter;
     const toolLabel = runtimeToolLabels.Jupyter;
 
@@ -218,9 +218,9 @@ describe("GCP getCostDisplayForTool", () => {
     expect(result).toBe(expectedResult);
   });
 
-  it("Will return blank because current runtime is not equal to currentRuntimeTool", () => {
+  it('Will return blank because current runtime is not equal to currentRuntimeTool', () => {
     // Arrange
-    const expectedResult = "";
+    const expectedResult = '';
     const app = undefined;
     const currentRuntime = getGoogleRuntime({
       runtimeConfig: getJupyterRuntimeConfig(),
@@ -236,8 +236,8 @@ describe("GCP getCostDisplayForTool", () => {
   });
 });
 
-describe("getRuntimeCost", () => {
-  it("Azure - will get runtime cost", () => {
+describe('getRuntimeCost', () => {
+  it('Azure - will get runtime cost', () => {
     // Arrange
     const runtime = azureRuntime;
 
@@ -248,11 +248,11 @@ describe("getRuntimeCost", () => {
     expect(result).toBeGreaterThan(0);
   });
 
-  it("GCP - Will return 0 if runtime is in error", () => {
+  it('GCP - Will return 0 if runtime is in error', () => {
     // Arrange
     const runtime = getGoogleRuntime({
       runtimeConfig: getJupyterRuntimeConfig(),
-      status: "Error",
+      status: 'Error',
     });
 
     // Act
@@ -263,8 +263,8 @@ describe("getRuntimeCost", () => {
   });
 });
 
-describe("getCostDisplayForTool", () => {
-  it("Azure - will get compute cost and compute status for a running Azure JupyterLab runtime", () => {
+describe('getCostDisplayForTool', () => {
+  it('Azure - will get compute cost and compute status for a running Azure JupyterLab runtime', () => {
     // Arrange
     const app = undefined;
     const currentRuntime = azureRuntime;
@@ -275,10 +275,10 @@ describe("getCostDisplayForTool", () => {
     const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel);
 
     // Assert
-    expect(result).toContain("Running"); // Costs may change, but we want to make sure the status prints correctly.
+    expect(result).toContain('Running'); // Costs may change, but we want to make sure the status prints correctly.
   });
 
-  it("Will get blank compute cost due to no runtime.", () => {
+  it('Will get blank compute cost due to no runtime.', () => {
     // Arrange
     const app = undefined;
     const currentRuntime = undefined;
@@ -289,43 +289,43 @@ describe("getCostDisplayForTool", () => {
     const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel);
 
     // Assert
-    expect(result).toBe("");
+    expect(result).toBe('');
   });
 });
 
-describe("getPersistentDiskCostMonthly", () => {
-  it("GCP - Cost estimate", () => {
+describe('getPersistentDiskCostMonthly', () => {
+  it('GCP - Cost estimate', () => {
     // Arrange
     const cloudContext = { cloudProvider: cloudProviders.gcp.label };
 
     // Act
-    const result = getPersistentDiskCostMonthly({ cloudContext, size: 50, diskType: pdTypes.standard }, "US-CENTRAL1");
+    const result = getPersistentDiskCostMonthly({ cloudContext, size: 50, diskType: pdTypes.standard }, 'US-CENTRAL1');
 
     // Assert
     expect(result).not.toBe(NaN); // Seems excessive to check the math, we really just want to see that it calculates a number.
   });
 
   // TODO: Need disk types for Azure
-  it("Azure - Standard disk smallest size cost estimate", () => {
+  it('Azure - Standard disk smallest size cost estimate', () => {
     // Arrange
     const cloudContext = { cloudProvider: cloudProviders.azure.label };
 
     // Act
-    const result = getPersistentDiskCostMonthly({ cloudContext, size: 50, zone: "eastus" });
+    const result = getPersistentDiskCostMonthly({ cloudContext, size: 50, zone: 'eastus' });
 
     // Assert
-    expect(result).toBe(getAzurePricesForRegion("eastus")["S6 LRS"]);
+    expect(result).toBe(getAzurePricesForRegion('eastus')['S6 LRS']);
   });
 });
 
-describe("runtimeConfigCost for dataproc", () => {
-  it("gets cost for a dataproc cluster", () => {
+describe('runtimeConfigCost for dataproc', () => {
+  it('gets cost for a dataproc cluster', () => {
     // Act
     const result = runtimeConfigCost(defaultSparkCluster);
     // Assert
     expect(result).toBeGreaterThan(0);
   });
-  it("gets cost for single node cluster", () => {
+  it('gets cost for single node cluster', () => {
     // Act
     const result = runtimeConfigCost(defaultSparkSingleNode);
 

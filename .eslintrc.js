@@ -19,6 +19,8 @@ module.exports = {
     "comma-dangle": "off",
     "import/prefer-default-export": "off",
     "simple-import-sort/imports": "warn",
+    quotes: [2, "single", { avoidEscape: true }],
+    "prettier/prettier": ["error", { singleQuote: true }],
 
     // TODO: ticket all of these to be enabled or explain why they are disabled
     "react/destructuring-assignment": "off",

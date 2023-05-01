@@ -1,50 +1,50 @@
-import _ from "lodash/fp";
-import React, { Fragment, ReactElement, useState } from "react";
-import { div, h, h2, hr, img, span } from "react-hyperscript-helpers";
-import { ButtonPrimary, Clickable, Select, spinnerOverlay, useUniqueId } from "src/components/common";
-import Dropzone from "src/components/Dropzone";
-import { icon } from "src/components/icons";
-import ModalDrawer from "src/components/ModalDrawer";
-import TitleBar from "src/components/TitleBar";
-import cromwellImg from "src/images/cromwell-logo.png";
-import galaxyLogo from "src/images/galaxy-logo.svg";
-import jupyterLogoLong from "src/images/jupyter-logo-long.png";
-import rstudioBioLogo from "src/images/r-bio-logo.svg";
-import { Ajax } from "src/libs/ajax";
-import { App } from "src/libs/ajax/leonardo/models/app-models";
-import { AppDataDisk, PersistentDisk } from "src/libs/ajax/leonardo/models/disk-models";
-import { Runtime } from "src/libs/ajax/leonardo/models/runtime-models";
-import colors from "src/libs/colors";
-import { reportError } from "src/libs/error";
-import Events from "src/libs/events";
-import { FormLabel } from "src/libs/forms";
-import { usePrevious, withDisplayName } from "src/libs/react-utils";
-import * as Style from "src/libs/style";
-import * as Utils from "src/libs/utils";
+import _ from 'lodash/fp';
+import React, { Fragment, ReactElement, useState } from 'react';
+import { div, h, h2, hr, img, span } from 'react-hyperscript-helpers';
+import { ButtonPrimary, Clickable, Select, spinnerOverlay, useUniqueId } from 'src/components/common';
+import Dropzone from 'src/components/Dropzone';
+import { icon } from 'src/components/icons';
+import ModalDrawer from 'src/components/ModalDrawer';
+import TitleBar from 'src/components/TitleBar';
+import cromwellImg from 'src/images/cromwell-logo.png';
+import galaxyLogo from 'src/images/galaxy-logo.svg';
+import jupyterLogoLong from 'src/images/jupyter-logo-long.png';
+import rstudioBioLogo from 'src/images/r-bio-logo.svg';
+import { Ajax } from 'src/libs/ajax';
+import { App } from 'src/libs/ajax/leonardo/models/app-models';
+import { AppDataDisk, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
+import colors from 'src/libs/colors';
+import { reportError } from 'src/libs/error';
+import Events from 'src/libs/events';
+import { FormLabel } from 'src/libs/forms';
+import { usePrevious, withDisplayName } from 'src/libs/react-utils';
+import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
 import {
   BaseWorkspace,
   CloudProvider,
   cloudProviderTypes,
   getCloudProviderFromWorkspace,
   isGoogleWorkspaceInfo,
-} from "src/libs/workspace-utils";
-import { AzureComputeModalBase } from "src/pages/workspaces/workspace/analysis/modals/AzureComputeModal";
-import { ComputeModalBase } from "src/pages/workspaces/workspace/analysis/modals/ComputeModal";
-import { CromwellModalBase } from "src/pages/workspaces/workspace/analysis/modals/CromwellModal";
-import { GalaxyModalBase } from "src/pages/workspaces/workspace/analysis/modals/GalaxyModal";
-import { WarningTitle } from "src/pages/workspaces/workspace/analysis/modals/WarningTitle";
-import { AnalysisFileStore } from "src/pages/workspaces/workspace/analysis/useAnalysisFiles";
-import { getCurrentApp } from "src/pages/workspaces/workspace/analysis/utils/app-utils";
-import { getCurrentPersistentDisk } from "src/pages/workspaces/workspace/analysis/utils/disk-utils";
-import { getFileName } from "src/pages/workspaces/workspace/analysis/utils/file-utils";
+} from 'src/libs/workspace-utils';
+import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/AzureComputeModal';
+import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal';
+import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal';
+import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal';
+import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle';
+import { AnalysisFileStore } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles';
+import { getCurrentApp } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
+import { getCurrentPersistentDisk } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils';
+import { getFileName } from 'src/pages/workspaces/workspace/analysis/utils/file-utils';
 import {
   analysisNameInput,
   analysisNameValidator,
   baseRmd,
   notebookData,
-} from "src/pages/workspaces/workspace/analysis/utils/notebook-utils";
-import { isResourceDeletable } from "src/pages/workspaces/workspace/analysis/utils/resource-utils";
-import { getCurrentRuntime } from "src/pages/workspaces/workspace/analysis/utils/runtime-utils";
+} from 'src/pages/workspaces/workspace/analysis/utils/notebook-utils';
+import { isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/utils/resource-utils';
+import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import {
   AppToolLabel,
   appToolLabels,
@@ -61,12 +61,12 @@ import {
   toolExtensionDisplay,
   ToolLabel,
   tools,
-} from "src/pages/workspaces/workspace/analysis/utils/tool-utils";
-import validate from "validate.js";
+} from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
+import validate from 'validate.js';
 
-const titleId = "analysis-modal-title";
-const analysisMode = Symbol("artifact");
-const environmentMode = Symbol("environment");
+const titleId = 'analysis-modal-title';
+const analysisMode = Symbol('artifact');
+const environmentMode = Symbol('environment');
 
 const StringSelect = Select as typeof Select<string>;
 
@@ -86,7 +86,7 @@ export interface AnalysisModalProps {
   analysisFileStore: AnalysisFileStore;
 }
 
-export const AnalysisModal = withDisplayName("AnalysisModal")(
+export const AnalysisModal = withDisplayName('AnalysisModal')(
   ({
     isOpen,
     onDismiss,
@@ -104,11 +104,11 @@ export const AnalysisModal = withDisplayName("AnalysisModal")(
   }: AnalysisModalProps) => {
     const [viewMode, setViewMode] = useState<any>();
     const cloudProvider: CloudProvider = getCloudProviderFromWorkspace(workspace);
-    const [notebookKernel, setNotebookKernel] = useState("python3");
-    const [analysisName, setAnalysisName] = useState("");
+    const [notebookKernel, setNotebookKernel] = useState('python3');
+    const [analysisName, setAnalysisName] = useState('');
     const prevAnalysisName = usePrevious(analysisName);
     const [currentToolObj, setCurrentToolObj] = useState<Tool>();
-    const [fileExt, setFileExt] = useState("");
+    const [fileExt, setFileExt] = useState('');
     const currentTool: ToolLabel | undefined = currentToolObj?.label;
 
     const currentRuntime: Runtime | undefined = getCurrentRuntime(runtimes);
@@ -119,13 +119,13 @@ export const AnalysisModal = withDisplayName("AnalysisModal")(
     // TODO: Bring in as props from Analyses OR bring entire AnalysisFileStore from props.
     const { loadedState, createAnalysis, pendingCreate } = analysisFileStore;
     // TODO: When the above is done, this check below may not be necessary.
-    const analyses = loadedState.status !== "None" ? loadedState.state : null;
+    const analyses = loadedState.status !== 'None' ? loadedState.state : null;
     const status = loadedState.status;
     const resetView = () => {
       setViewMode(undefined);
-      setAnalysisName("");
+      setAnalysisName('');
       setCurrentToolObj(undefined);
-      setNotebookKernel("python3");
+      setNotebookKernel('python3');
     };
 
     /**
@@ -143,12 +143,12 @@ export const AnalysisModal = withDisplayName("AnalysisModal")(
             Utils.cond(
               [doesCloudEnvForToolExist, onSuccess],
               [
-                !doesCloudEnvForToolExist && !!currentRuntime && isResourceDeletable("runtime", currentRuntime),
+                !doesCloudEnvForToolExist && !!currentRuntime && isResourceDeletable('runtime', currentRuntime),
                 () => setViewMode(environmentMode),
               ],
               [!doesCloudEnvForToolExist && !currentRuntime, () => setViewMode(environmentMode)],
               [
-                !doesCloudEnvForToolExist && !!currentRuntime && !isResourceDeletable("runtime", currentRuntime),
+                !doesCloudEnvForToolExist && !!currentRuntime && !isResourceDeletable('runtime', currentRuntime),
                 onSuccess,
               ]
             ),
@@ -170,7 +170,7 @@ export const AnalysisModal = withDisplayName("AnalysisModal")(
                 () => {
                   console.error(
                     `This shouldn't be possible, as you aren't allowed to create a ${
-                      app ? _.capitalize(app.appType) : "app"
+                      app ? _.capitalize(app.appType) : 'app'
                     } instance when one exists; the button should be disabled.`
                   );
                   resetView();
@@ -244,17 +244,17 @@ export const AnalysisModal = withDisplayName("AnalysisModal")(
 
     const styles: Record<string, React.CSSProperties> = {
       toolCard: {
-        backgroundColor: "white",
+        backgroundColor: 'white',
         borderRadius: 5,
-        padding: "1rem",
-        display: "inline-block",
-        verticalAlign: "middle",
-        marginBottom: "1rem",
-        textAlign: "center",
-        width: "100%",
+        padding: '1rem',
+        display: 'inline-block',
+        verticalAlign: 'middle',
+        marginBottom: '1rem',
+        textAlign: 'center',
+        width: '100%',
         height: 60,
       },
-      image: { verticalAlign: "middle", height: 30, width: "40%" },
+      image: { verticalAlign: 'middle', height: 30, width: '40%' },
       hover: { backgroundColor: colors.accent(0.3) },
     };
 
@@ -267,20 +267,20 @@ export const AnalysisModal = withDisplayName("AnalysisModal")(
     };
 
     const appDisabledMessages: Record<AppToolLabel, string> = {
-      GALAXY: "You already have a Galaxy environment",
-      CROMWELL: "You already have a Cromwell instance",
+      GALAXY: 'You already have a Galaxy environment',
+      CROMWELL: 'You already have a Cromwell instance',
     };
 
-    const toolImages: Record<AppToolLabel | RuntimeToolLabel, ReactElement<"img">> = {
-      Jupyter: img({ src: jupyterLogoLong, alt: "Create new notebook", style: _.merge(styles.image, { width: 111 }) }),
-      RStudio: img({ src: rstudioBioLogo, alt: "Create new R file", style: _.merge(styles.image, { width: 207 }) }),
+    const toolImages: Record<AppToolLabel | RuntimeToolLabel, ReactElement<'img'>> = {
+      Jupyter: img({ src: jupyterLogoLong, alt: 'Create new notebook', style: _.merge(styles.image, { width: 111 }) }),
+      RStudio: img({ src: rstudioBioLogo, alt: 'Create new R file', style: _.merge(styles.image, { width: 207 }) }),
       JupyterLab: img({
         src: jupyterLogoLong,
-        alt: "Create new notebook",
+        alt: 'Create new notebook',
         style: _.merge(styles.image, { width: 111 }),
       }),
-      GALAXY: img({ src: galaxyLogo, alt: "Create new Galaxy app", style: _.merge(styles.image, { width: 139 }) }),
-      CROMWELL: img({ src: cromwellImg, alt: "Create new Cromwell app", style: styles.image }),
+      GALAXY: img({ src: galaxyLogo, alt: 'Create new Galaxy app', style: _.merge(styles.image, { width: 139 }) }),
+      CROMWELL: img({ src: cromwellImg, alt: 'Create new Cromwell app', style: styles.image }),
     };
 
     const runtimeToolButtons = availableRuntimeTools.map((runtimeTool) => {
@@ -299,7 +299,7 @@ export const AnalysisModal = withDisplayName("AnalysisModal")(
             },
             [toolImages[runtimeTool.label]]
           )
-        : "";
+        : '';
     });
 
     const appToolButtons = availableAppTools.map((appTool) => {
@@ -309,7 +309,7 @@ export const AnalysisModal = withDisplayName("AnalysisModal")(
             Clickable,
             {
               style: {
-                opacity: currentApp ? "0.5" : "1",
+                opacity: currentApp ? '0.5' : '1',
                 ...styles.toolCard,
               },
               onClick: () => {
@@ -318,18 +318,18 @@ export const AnalysisModal = withDisplayName("AnalysisModal")(
               },
               hover: !currentApp ? styles.hover : undefined,
               disabled: !!currentApp,
-              tooltip: currentApp ? appDisabledMessages[appTool.label] : "",
+              tooltip: currentApp ? appDisabledMessages[appTool.label] : '',
               key: appTool.label,
             },
             [toolImages[appTool.label]]
           )
-        : "";
+        : '';
     });
 
     const renderToolButtons = () =>
       div(
         {
-          style: { display: "flex", alignItems: "center", flexDirection: "column", justifyContent: "space-between" },
+          style: { display: 'flex', alignItems: 'center', flexDirection: 'column', justifyContent: 'space-between' },
         },
         [runtimeToolButtons, appToolButtons]
       );
@@ -337,22 +337,22 @@ export const AnalysisModal = withDisplayName("AnalysisModal")(
     const renderSelectAnalysisBody = () =>
       div(
         {
-          style: { display: "flex", flexDirection: "column", flex: 1, padding: "1.5rem" },
+          style: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' },
         },
         [
           renderToolButtons(),
           h(
             Dropzone,
             {
-              accept: `.${runtimeTools.Jupyter.ext.join(", .")}, .${runtimeTools.RStudio.ext.join(", .")}`,
-              style: { flexGrow: 1, backgroundColor: colors.light(), height: "100%" },
-              activeStyle: { backgroundColor: colors.accent(0.2), cursor: "copy" },
+              accept: `.${runtimeTools.Jupyter.ext.join(', .')}, .${runtimeTools.RStudio.ext.join(', .')}`,
+              style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
+              activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
               onDropRejected: () =>
                 reportError(
-                  "Not a valid analysis file",
+                  'Not a valid analysis file',
                   `The selected file is not one of the supported types: .${runtimeTools.Jupyter.ext.join(
-                    ", ."
-                  )}, .${runtimeTools.RStudio.ext.join(", .")}. Ensure your file has the proper extension.`
+                    ', .'
+                  )}, .${runtimeTools.RStudio.ext.join(', .')}. Ensure your file has the proper extension.`
                 ),
               onDropAccepted: (files) => {
                 const toolLabel = isGoogleWorkspaceInfo(workspace.workspace)
@@ -361,7 +361,7 @@ export const AnalysisModal = withDisplayName("AnalysisModal")(
                 const tool = toolLabel ? tools[toolLabel] : undefined;
                 setCurrentToolObj(tool);
                 currentRuntime &&
-                !isResourceDeletable("runtime", currentRuntime) &&
+                !isResourceDeletable('runtime', currentRuntime) &&
                 currentRuntimeToolLabel !== toolLabel
                   ? onSuccess()
                   : enterNextViewMode(tool, analysisMode);
@@ -378,25 +378,25 @@ export const AnalysisModal = withDisplayName("AnalysisModal")(
                       openUploader();
                     },
                     style: {
-                      marginTop: "1rem",
+                      marginTop: '1rem',
                       fontSize: 16,
-                      lineHeight: "20px",
+                      lineHeight: '20px',
                       ...(Style.elements.card.container as React.CSSProperties),
-                      alignItems: "center",
-                      width: "100%",
+                      alignItems: 'center',
+                      width: '100%',
                       height: 150,
                       backgroundColor: colors.dark(0.1),
                       border: `1px dashed ${colors.dark(0.7)}`,
-                      boxShadow: "none",
+                      boxShadow: 'none',
                     },
                   },
                   [
-                    div(["Or Click / Drag to upload an analysis file"]),
-                    icon("upload-cloud", {
+                    div(['Or Click / Drag to upload an analysis file']),
+                    icon('upload-cloud', {
                       size: 25,
                       style: {
                         opacity: 0.4,
-                        marginTop: "0.5rem",
+                        marginTop: '0.5rem',
                       },
                     }),
                   ]
@@ -409,9 +409,9 @@ export const AnalysisModal = withDisplayName("AnalysisModal")(
     const getArtifactLabel = (toolLabel) =>
       Utils.switchCase(
         toolLabel,
-        [runtimeToolLabels.RStudio, () => "R file"],
-        [runtimeToolLabels.Jupyter, () => "notebook"],
-        [runtimeToolLabels.JupyterLab, () => "notebook"],
+        [runtimeToolLabels.RStudio, () => 'R file'],
+        [runtimeToolLabels.Jupyter, () => 'notebook'],
+        [runtimeToolLabels.JupyterLab, () => 'notebook'],
         [
           Utils.DEFAULT,
           () => console.error(`Should not be calling getArtifactLabel for ${toolLabel}, artifacts not implemented`),
@@ -419,14 +419,14 @@ export const AnalysisModal = withDisplayName("AnalysisModal")(
       );
 
     const renderCreateAnalysis = () =>
-      div({ style: { display: "flex", flexDirection: "column", flex: 1, padding: "0.5rem 1.5rem 1.5rem 1.5rem" } }, [
+      div({ style: { display: 'flex', flexDirection: 'column', flex: 1, padding: '0.5rem 1.5rem 1.5rem 1.5rem' } }, [
         h2({ style: { fontWeight: 600, marginBottom: 0 } }, [`Create a new ${getArtifactLabel(currentTool)}`]),
         renderCreateAnalysisBody(currentTool),
       ]);
 
-    const analysisNameInputId = useUniqueId("analysis-name-input");
-    const nameSelectId = useUniqueId("select-language");
-    const fileTypeSelect = useUniqueId("select-file-type");
+    const analysisNameInputId = useUniqueId('analysis-name-input');
+    const nameSelectId = useUniqueId('select-language');
+    const fileTypeSelect = useUniqueId('select-file-type');
 
     const renderCreateAnalysisBody = (toolLabel) => {
       const isJupyter = toolLabel === runtimeToolLabels.Jupyter;
@@ -439,7 +439,7 @@ export const AnalysisModal = withDisplayName("AnalysisModal")(
           notebookKernel: { presence: { allowEmpty: true } },
         }
       );
-      return div({ style: { display: "flex", flexDirection: "column" } }, [
+      return div({ style: { display: 'flex', flexDirection: 'column' } }, [
         h(Fragment, [
           h(FormLabel, { htmlFor: analysisNameInputId, required: true }, [
             `Name of the ${getArtifactLabel(toolLabel)}`,
@@ -457,20 +457,20 @@ export const AnalysisModal = withDisplayName("AnalysisModal")(
         ]),
         (isJupyterLab || isJupyter) &&
           h(Fragment, [
-            h(FormLabel, { htmlFor: nameSelectId, required: true }, ["Language"]),
+            h(FormLabel, { htmlFor: nameSelectId, required: true }, ['Language']),
             h(StringSelect, {
               id: nameSelectId,
               isSearchable: true,
-              placeholder: "Select a language",
+              placeholder: 'Select a language',
               getOptionLabel: ({ value }) => _.startCase(value),
               value: notebookKernel,
               onChange: (opt) => setNotebookKernel(opt!.value),
-              options: ["python3", "r"],
+              options: ['python3', 'r'],
             }),
           ]),
         isRStudio &&
           h(Fragment, [
-            h(FormLabel, { htmlFor: fileTypeSelect, required: true }, ["File Type"]),
+            h(FormLabel, { htmlFor: fileTypeSelect, required: true }, ['File Type']),
             h(StringSelect, {
               id: fileTypeSelect,
               isSearchable: true,
@@ -483,23 +483,23 @@ export const AnalysisModal = withDisplayName("AnalysisModal")(
           ]),
         (isJupyterLab || isRStudio || isJupyter) &&
           currentRuntime &&
-          !isResourceDeletable("runtime", currentRuntime) &&
+          !isResourceDeletable('runtime', currentRuntime) &&
           currentRuntimeToolLabel !== toolLabel &&
-          div({ style: { backgroundColor: colors.warning(0.1), margin: "0.5rem", padding: "1rem" } }, [
-            h(WarningTitle, { iconSize: 16 }, [span({ style: { fontWeight: 600 } }, ["Environment Creation"])]),
-            div({ style: { marginBottom: "0.5rem", marginTop: "1rem" } }, [
-              "You have a non-deletable environment associated with another application.",
+          div({ style: { backgroundColor: colors.warning(0.1), margin: '0.5rem', padding: '1rem' } }, [
+            h(WarningTitle, { iconSize: 16 }, [span({ style: { fontWeight: 600 } }, ['Environment Creation'])]),
+            div({ style: { marginBottom: '0.5rem', marginTop: '1rem' } }, [
+              'You have a non-deletable environment associated with another application.',
             ]),
             div([
-              "You may create an analysis, but must wait for your current environment to finish processing and get a suitable environment to run it.",
+              'You may create an analysis, but must wait for your current environment to finish processing and get a suitable environment to run it.',
             ]),
           ]),
-        div({ style: { display: "flex", justifyContent: "flex-end", marginTop: "1rem" } }, [
+        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(
             ButtonPrimary,
             {
               // TODO: See spinner overlay comment. Change to pendingCreate.status === 'Loading' || errors.
-              disabled: status === "Loading" || pendingCreate.status === "Loading" || errors,
+              disabled: status === 'Loading' || pendingCreate.status === 'Loading' || errors,
               tooltip: Utils.summarizeErrors(errors),
               onClick: async () => {
                 try {
@@ -514,21 +514,21 @@ export const AnalysisModal = withDisplayName("AnalysisModal")(
                     filename: fullAnalysisName,
                     cloudProvider,
                   });
-                  setAnalysisName("");
+                  setAnalysisName('');
                   enterNextViewMode(toolLabel);
                 } catch (error) {
-                  await reportError("Error creating analysis", error);
+                  await reportError('Error creating analysis', error);
                   onError();
                 }
               },
             },
-            ["Create Analysis"]
+            ['Create Analysis']
           ),
         ]),
         // TODO: Once Analyses.js is converted to implement useAnalysisFiles and refresh is called within create,
         // change next line to pendingCreate.status === 'Loading' && spinnerOverlay
         // Currently this will be close enough to the desired functionality.
-        (status === "Loading" || pendingCreate.status === "Loading") && spinnerOverlay,
+        (status === 'Loading' || pendingCreate.status === 'Loading') && spinnerOverlay,
       ]);
     };
 
@@ -542,21 +542,21 @@ export const AnalysisModal = withDisplayName("AnalysisModal")(
     const modalBody = h(Fragment, [
       h(TitleBar, {
         id: titleId,
-        title: "Select an application",
-        titleStyles: { margin: "1.5rem 0 0 1.5rem", display: viewMode ? "none" : undefined },
+        title: 'Select an application',
+        titleStyles: { margin: '1.5rem 0 0 1.5rem', display: viewMode ? 'none' : undefined },
         style: { width },
         titleChildren: [],
         onDismiss,
         onPrevious: viewMode ? () => resetView() : () => {},
       }),
-      viewMode !== undefined && hr({ style: { borderTop: "1px solid", width: "100%", color: colors.accent() } }),
+      viewMode !== undefined && hr({ style: { borderTop: '1px solid', width: '100%', color: colors.accent() } }),
       getView(),
     ]);
 
     const modalProps = {
       isOpen,
       width,
-      "aria-labelledby": titleId,
+      'aria-labelledby': titleId,
       onDismiss,
       onExited: resetView,
     };

@@ -1,6 +1,6 @@
-import _ from "lodash/fp";
-import { AnyFn, AnyPromiseFn, GenericFn, WrapFn } from "src/libs/type-utils/general-types";
-import { SafeCurry2, SafeCurry3, SafeCurry4, SafeCurry5 } from "src/libs/type-utils/lodash-fp-types";
+import _ from 'lodash/fp';
+import { AnyFn, AnyPromiseFn, GenericFn, WrapFn } from 'src/libs/type-utils/general-types';
+import { SafeCurry2, SafeCurry3, SafeCurry4, SafeCurry5 } from 'src/libs/type-utils/lodash-fp-types';
 
 /*
  * The helpers in this file are to provide even better type safety then the baseline lodash-fp utils

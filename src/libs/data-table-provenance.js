@@ -1,11 +1,11 @@
-import _ from "lodash/fp";
-import { useCallback, useEffect, useState } from "react";
-import { parseGsUri } from "src/components/data/data-utils";
-import { Ajax } from "src/libs/ajax";
-import { reportError } from "src/libs/error";
-import { useCancellation } from "src/libs/react-utils";
-import * as Utils from "src/libs/utils";
-import { validate as validateUUID } from "uuid";
+import _ from 'lodash/fp';
+import { useCallback, useEffect, useState } from 'react';
+import { parseGsUri } from 'src/components/data/data-utils';
+import { Ajax } from 'src/libs/ajax';
+import { reportError } from 'src/libs/error';
+import { useCancellation } from 'src/libs/react-utils';
+import * as Utils from 'src/libs/utils';
+import { validate as validateUUID } from 'uuid';
 
 export const maxSubmissionsQueriedForProvenance = 25;
 
@@ -42,7 +42,7 @@ const getSubmissionsWithRootEntityType = async (workspace, entityType, { signal 
   return _.flow(
     _.map(([submission, configuration]) => ({ submission, configuration })),
     _.filter(({ configuration }) => configuration.rootEntityType === entityType),
-    _.orderBy(({ submission }) => new Date(submission.submissionDate), "desc")
+    _.orderBy(({ submission }) => new Date(submission.submissionDate), 'desc')
   )(_.zip(submissionsMaybeUsingEntityType, submissionConfigurations));
 };
 
@@ -84,7 +84,7 @@ export const useColumnProvenance = (workspace, entityType) => {
       setColumnProvenance(await getColumnProvenance(workspace, entityType, { signal }));
     } catch (error) {
       setError(error);
-      reportError("Error loading column provenance", error);
+      reportError('Error loading column provenance', error);
     } finally {
       setLoading(false);
     }
@@ -102,7 +102,7 @@ export const useColumnProvenance = (workspace, entityType) => {
   };
 };
 
-export const fileProvenanceTypes = Utils.enumify(["externalFile", "unknown", "maybeSubmission", "workflowOutput", "workflowLog"]);
+export const fileProvenanceTypes = Utils.enumify(['externalFile', 'unknown', 'maybeSubmission', 'workflowOutput', 'workflowLog']);
 
 const isLog = (url, task) => _.some((log) => _.includes(url, [log.backendLogs.log, log.stdout, log.stderr]), task.logs);
 
@@ -123,11 +123,11 @@ export const getFileProvenance = async (workspace, fileUrl, { signal } = {}) => 
     return { type: fileProvenanceTypes.externalFile };
   }
 
-  const pathParts = path.split("/");
+  const pathParts = path.split('/');
 
   // Previously, submission roots were `gs://<workspace bucket>/<submission ID>`.
   // Now, they are `gs://<workspace bucket>/submissions/<submission ID>`.
-  if (!(validateUUID(pathParts[0]) || (pathParts[0] === "submissions" && validateUUID(pathParts[1])))) {
+  if (!(validateUUID(pathParts[0]) || (pathParts[0] === 'submissions' && validateUUID(pathParts[1])))) {
     return { type: fileProvenanceTypes.unknown };
   }
 
@@ -184,7 +184,7 @@ export const useFileProvenance = (workspace, fileUrl) => {
         setFileProvenance(await getFileProvenance(workspace, fileUrl, { signal }));
       } catch (error) {
         setError(error);
-        reportError("Error loading file provenance", error);
+        reportError('Error loading file provenance', error);
       } finally {
         setLoading(false);
       }

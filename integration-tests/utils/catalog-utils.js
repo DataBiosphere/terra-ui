@@ -1,5 +1,5 @@
-const { navigateToDataCatalog, testWorkspaceName } = require("./integration-helpers");
-const { click, clickable, checkbox, clickTableCell, noSpinnersAfter, waitForNoSpinners, fillIn, select, findText } = require("./integration-utils");
+const { navigateToDataCatalog, testWorkspaceName } = require('./integration-helpers');
+const { click, clickable, checkbox, clickTableCell, noSpinnersAfter, waitForNoSpinners, fillIn, select, findText } = require('./integration-utils');
 
 const eitherThrow = (testFailure, { cleanupFailure, cleanupMessage }) => {
   if (testFailure) {
@@ -12,25 +12,25 @@ const eitherThrow = (testFailure, { cleanupFailure, cleanupMessage }) => {
 
 const linkDataToWorkspace = async (page, testUrl, token, datasetName) => {
   await navigateToDataCatalog(page, testUrl, token);
-  await click(page, checkbox({ text: "Granted", isDescendant: true }));
+  await click(page, checkbox({ text: 'Granted', isDescendant: true }));
   // TODO: add test data with granted access DC-321
-  await clickTableCell(page, { tableName: "dataset list", columnHeader: "Dataset Name", text: datasetName, isDescendant: true });
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: "Prepare for analysis" })) });
+  await clickTableCell(page, { tableName: 'dataset list', columnHeader: 'Dataset Name', text: datasetName, isDescendant: true });
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Prepare for analysis' })) });
 };
 
 const testExportToNewWorkspace = async (billingProject, page, testUrl, token, datasetName) => {
   await linkDataToWorkspace(page, testUrl, token, datasetName);
   const newWorkspaceName = testWorkspaceName();
   await waitForNoSpinners(page);
-  await click(page, clickable({ textContains: "Start with a new workspace" }));
+  await click(page, clickable({ textContains: 'Start with a new workspace' }));
   await fillIn(page, '//*[@placeholder="Enter a name"]', `${newWorkspaceName}`);
-  await select(page, "Billing project", `${billingProject}`);
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: "Create Workspace" })) });
+  await select(page, 'Billing project', `${billingProject}`);
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Create Workspace' })) });
 
   const waitForWorkspacePage = async () => {
     try {
       await findText(page, `${billingProject}/${newWorkspaceName}`);
-      await findText(page, "Select a data type");
+      await findText(page, 'Select a data type');
     } catch (error) {
       return error;
     }

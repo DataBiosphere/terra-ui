@@ -1,12 +1,12 @@
-import _ from "lodash/fp";
-import { reloadAuthToken, signOutAfterSessionTimeout } from "src/libs/auth";
-import { getConfig } from "src/libs/config";
-import { ajaxOverridesStore, getUser } from "src/libs/state";
-import * as Utils from "src/libs/utils";
+import _ from 'lodash/fp';
+import { reloadAuthToken, signOutAfterSessionTimeout } from 'src/libs/auth';
+import { getConfig } from 'src/libs/config';
+import { ajaxOverridesStore, getUser } from 'src/libs/state';
+import * as Utils from 'src/libs/utils';
 
 export const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } });
-export const jsonBody = (body) => ({ body: JSON.stringify(body), headers: { "Content-Type": "application/json" } });
-export const appIdentifier = { headers: { "X-App-ID": "Saturn" } };
+export const jsonBody = (body) => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } });
+export const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } };
 
 type FetchFn = typeof fetch;
 
@@ -50,7 +50,7 @@ export const withRetryAfterReloadingExpiredAuthToken =
           return await wrappedFetch(resource, optionsWithNewAuthToken);
         }
         signOutAfterSessionTimeout();
-        throw new Error("Session timed out");
+        throw new Error('Session timed out');
       } else {
         throw error;
       }
@@ -71,7 +71,7 @@ export const checkRequesterPaysError = async (response) => {
 };
 
 export const responseContainsRequesterPaysError = (responseText) => {
-  return _.includes("requester pays", responseText);
+  return _.includes('requester pays', responseText);
 };
 
 // Allows use of ajaxOverrideStore to stub responses for testing
@@ -80,9 +80,9 @@ const withInstrumentation =
   (...args) => {
     return _.flow(
       ..._.map(
-        "fn",
+        'fn',
         _.filter(({ filter }) => {
-          const [url, { method = "GET" } = {}] = args;
+          const [url, { method = 'GET' } = {}] = args;
           return _.isFunction(filter)
             ? filter(...args)
             : url.match(filter.url) && (!filter.method || filter.method === method);
@@ -98,7 +98,7 @@ const withCancellation =
     try {
       return await wrappedFetch(...args);
     } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") {
+      if (error instanceof DOMException && error.name === 'AbortError') {
         return Utils.abandonedPromise();
       }
       throw error;
@@ -210,10 +210,10 @@ export const fetchEcm = _.flow(
 // Thus, we send the request in no-cors mode and, because the response is "opaque",
 // we do not check response.ok.
 export const fetchGoogleForms = _.flow(
-  withUrlPrefix("https://docs.google.com/forms/u/0/d/e/"),
+  withUrlPrefix('https://docs.google.com/forms/u/0/d/e/'),
   withInstrumentation,
   withCancellation,
-  (wrappedFetch) => (url, options) => wrappedFetch(url, _.merge(options, { mode: "no-cors" }))
+  (wrappedFetch) => (url, options) => wrappedFetch(url, _.merge(options, { mode: 'no-cors' }))
 )(fetch);
 
 export const fetchWDS = (wdsProxyUrlRoot) =>

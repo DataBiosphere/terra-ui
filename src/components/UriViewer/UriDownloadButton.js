@@ -1,18 +1,18 @@
-import _ from "lodash/fp";
-import { Fragment, useState } from "react";
-import { div, h } from "react-hyperscript-helpers";
-import { ButtonPrimary } from "src/components/common";
-import { getUserProjectForWorkspace } from "src/components/data/data-utils";
-import { spinner } from "src/components/icons";
-import DownloadPrices from "src/data/download-prices";
-import { Ajax } from "src/libs/ajax";
-import Events, { extractWorkspaceDetails } from "src/libs/events";
-import { useCancellation, useOnMount } from "src/libs/react-utils";
-import { knownBucketRequesterPaysStatuses } from "src/libs/state";
-import * as Utils from "src/libs/utils";
+import _ from 'lodash/fp';
+import { Fragment, useState } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
+import { ButtonPrimary } from 'src/components/common';
+import { getUserProjectForWorkspace } from 'src/components/data/data-utils';
+import { spinner } from 'src/components/icons';
+import DownloadPrices from 'src/data/download-prices';
+import { Ajax } from 'src/libs/ajax';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import { knownBucketRequesterPaysStatuses } from 'src/libs/state';
+import * as Utils from 'src/libs/utils';
 
-import els from "./uri-viewer-styles";
-import { isAzureUri, isDrsUri } from "./uri-viewer-utils";
+import els from './uri-viewer-styles';
+import { isAzureUri, isDrsUri } from './uri-viewer-utils';
 
 const getMaxDownloadCostNA = (bytes) => {
   const nanos = DownloadPrices.pricingInfo[0].pricingExpression.tieredRates[1].unitPrice.nanos;
@@ -58,8 +58,8 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
 
   return els.cell([
     url === null
-      ? "Unable to generate download link."
-      : div({ style: { display: "flex", justifyContent: isAzureUri(url) ? "left" : "center" } }, [
+      ? 'Unable to generate download link.'
+      : div({ style: { display: 'flex', justifyContent: isAzureUri(url) ? 'left' : 'center' } }, [
           h(
             ButtonPrimary,
             {
@@ -68,7 +68,7 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
                 Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
                   ...extractWorkspaceDetails(workspace),
                   fileType: _.head(/\.\w+$/.exec(uri)),
-                  downloadFrom: "file direct",
+                  downloadFrom: 'file direct',
                 });
               },
               href: url,
@@ -84,9 +84,9 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
             [
               url
                 ? isAzureUri(url)
-                  ? "Download"
+                  ? 'Download'
                   : `Download for ${getMaxDownloadCostNA(size)}*`
-                : h(Fragment, ["Generating download link...", spinner({ style: { color: "white", marginLeft: 4 } })]),
+                : h(Fragment, ['Generating download link...', spinner({ style: { color: 'white', marginLeft: 4 } })]),
             ]
           ),
         ]),

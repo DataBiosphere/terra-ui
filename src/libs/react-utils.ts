@@ -1,4 +1,4 @@
-import _ from "lodash/fp";
+import _ from 'lodash/fp';
 import {
   EffectCallback,
   forwardRef,
@@ -8,10 +8,10 @@ import {
   useEffect,
   useRef,
   useState,
-} from "react";
-import { h } from "react-hyperscript-helpers";
-import { safeCurry } from "src/libs/type-utils/lodash-fp-helpers";
-import { Atom, delay, pollWithCancellation } from "src/libs/utils";
+} from 'react';
+import { h } from 'react-hyperscript-helpers';
+import { safeCurry } from 'src/libs/type-utils/lodash-fp-helpers';
+import { Atom, delay, pollWithCancellation } from 'src/libs/utils';
 
 /**
  * Performs the given effect, but only on component mount.
@@ -55,7 +55,7 @@ export const useInstance = <T>(fn: () => T): T => {
 };
 
 export const useUniqueId = (): string => {
-  return useInstance(() => _.uniqueId("unique-id-"));
+  return useInstance(() => _.uniqueId('unique-id-'));
 };
 
 type UseCancelableResult = {
@@ -112,7 +112,7 @@ export const withDisplayName: WithDisplayNameFn = safeCurry(
 export const combineRefs = (refs) => {
   return (value) => {
     for (const ref of refs) {
-      if (_.has("current", ref)) {
+      if (_.has('current', ref)) {
         ref.current = value;
       } else if (_.isFunction(ref)) {
         ref(value);
@@ -137,7 +137,7 @@ export const memoWithName = _.curry((name, WrappedComponent) => {
 });
 
 export const withCancellationSignal = (WrappedComponent) => {
-  return withDisplayName("withCancellationSignal", (props) => {
+  return withDisplayName('withCancellationSignal', (props) => {
     const signal = useCancellation();
     return h(WrappedComponent, { ...props, signal });
   });
@@ -191,8 +191,8 @@ type UseLabelAssertOptions = {
   allowId?: boolean;
   allowLabelledBy?: boolean;
   allowTooltip?: boolean;
-  "aria-label"?: string;
-  "aria-labelledby"?: string;
+  'aria-label'?: string;
+  'aria-labelledby'?: string;
   id?: string;
   tooltip?: string;
 };
@@ -216,8 +216,8 @@ export const useLabelAssert = (componentName: string, options: UseLabelAssertOpt
     allowId = false,
     allowLabelledBy = true,
     allowTooltip = false,
-    "aria-label": ariaLabel,
-    "aria-labelledby": ariaLabelledBy,
+    'aria-label': ariaLabel,
+    'aria-labelledby': ariaLabelledBy,
     id,
     tooltip,
   } = options;
@@ -235,23 +235,23 @@ export const useLabelAssert = (componentName: string, options: UseLabelAssertOpt
           ? `
   * add a child component with textual content or a label
   * if the child is an icon, add a label to it`
-          : ""
+          : ''
       }${
         allowTooltip
           ? `
   * add a tooltip property to this component, which will also be used as the aria-label`
-          : ""
+          : ''
       }
   * add an aria-label property to this component${
     allowLabelledBy
       ? `
   * add an aria-labelledby property referencing the id of another component containing the label`
-      : ""
+      : ''
   }${
         allowId
           ? `
   * create a label component and point its htmlFor property to this component's id`
-          : ""
+          : ''
       }`);
     }
   }

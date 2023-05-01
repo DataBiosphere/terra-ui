@@ -1,11 +1,11 @@
-import { div, h } from "react-hyperscript-helpers";
-import { ButtonOutline } from "src/components/common";
-import { Ajax } from "src/libs/ajax";
-import Events from "src/libs/events";
-import * as Utils from "src/libs/utils";
-import { Step } from "src/pages/billing/NewBillingProjectWizard/StepWizard/Step";
-import { StepInfo } from "src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields";
-import { StepHeader } from "src/pages/billing/NewBillingProjectWizard/StepWizard/StepHeader";
+import { div, h } from 'react-hyperscript-helpers';
+import { ButtonOutline } from 'src/components/common';
+import { Ajax } from 'src/libs/ajax';
+import Events from 'src/libs/events';
+import * as Utils from 'src/libs/utils';
+import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/Step';
+import { StepInfo } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepFields';
+import { StepHeader } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/StepHeader';
 
 interface GoToGCPConsoleStepProps {
   isActive: boolean;
@@ -14,16 +14,16 @@ interface GoToGCPConsoleStepProps {
 
 export const GoToGCPConsoleStep = ({ isActive, ...props }: GoToGCPConsoleStepProps) => {
   return h(Step, { isActive }, [
-    h(StepHeader, { title: "STEP 1" }),
-    div({ style: { display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between" } }, [
-      h(StepInfo, { style: { maxWidth: "60%" } }, [
-        "Go to the Google Cloud Platform Billing Console and sign-in with the same user you use to login to Terra.",
+    h(StepHeader, { title: 'STEP 1' }),
+    div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } }, [
+      h(StepInfo, { style: { maxWidth: '60%' } }, [
+        'Go to the Google Cloud Platform Billing Console and sign-in with the same user you use to login to Terra.',
       ]),
       h(
         ButtonOutline,
         {
           disabled: false,
-          href: "https://console.cloud.google.com",
+          href: 'https://console.cloud.google.com',
           ...Utils.newTabLinkProps,
           onClick: () => {
             Ajax().Metrics.captureEvent(Events.billingGCPCreationStep1);
@@ -35,9 +35,9 @@ export const GoToGCPConsoleStep = ({ isActive, ...props }: GoToGCPConsoleStepPro
               props.stepFinished();
             }
           },
-          style: { textTransform: "none", backgroundColor: "none" },
+          style: { textTransform: 'none', backgroundColor: 'none' },
         },
-        ["Go to Google Cloud Console"]
+        ['Go to Google Cloud Console']
       ),
     ]),
   ]);

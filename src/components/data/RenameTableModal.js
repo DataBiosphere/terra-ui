@@ -1,18 +1,18 @@
-import _ from "lodash/fp";
-import { Fragment, useState } from "react";
-import { div, h } from "react-hyperscript-helpers";
-import { ButtonPrimary, IdContainer, RadioButton, spinnerOverlay } from "src/components/common";
-import { warningBoxStyle } from "src/components/data/data-utils";
-import { allSavedColumnSettingsEntityTypeKey } from "src/components/data/SavedColumnSettings";
-import { icon } from "src/components/icons";
-import { ValidatedInput } from "src/components/input";
-import Modal from "src/components/Modal";
-import { Ajax } from "src/libs/ajax";
-import colors from "src/libs/colors";
-import { withErrorReporting } from "src/libs/error";
-import Events from "src/libs/events";
-import { FormLabel } from "src/libs/forms";
-import * as Utils from "src/libs/utils";
+import _ from 'lodash/fp';
+import { Fragment, useState } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
+import { ButtonPrimary, IdContainer, RadioButton, spinnerOverlay } from 'src/components/common';
+import { warningBoxStyle } from 'src/components/data/data-utils';
+import { allSavedColumnSettingsEntityTypeKey } from 'src/components/data/SavedColumnSettings';
+import { icon } from 'src/components/icons';
+import { ValidatedInput } from 'src/components/input';
+import Modal from 'src/components/Modal';
+import { Ajax } from 'src/libs/ajax';
+import colors from 'src/libs/colors';
+import { withErrorReporting } from 'src/libs/error';
+import Events from 'src/libs/events';
+import { FormLabel } from 'src/libs/forms';
+import * as Utils from 'src/libs/utils';
 
 const RenameTableModal = ({
   onDismiss,
@@ -25,7 +25,7 @@ const RenameTableModal = ({
   selectedDataType,
 }) => {
   // State
-  const [newName, setNewName] = useState("");
+  const [newName, setNewName] = useState('');
   const [renaming, setRenaming] = useState(false);
   const [renameSetTables, setRenameSetTables] = useState(false);
 
@@ -57,13 +57,13 @@ const RenameTableModal = ({
     Modal,
     {
       onDismiss,
-      title: "Rename Data Table",
+      title: 'Rename Data Table',
       okButton: h(
         ButtonPrimary,
         {
           disabled: renaming,
           onClick: _.flow(
-            withErrorReporting("Error renaming data table."),
+            withErrorReporting('Error renaming data table.'),
             Utils.withBusyState(setRenaming)
           )(async () => {
             await handleTableRename({ oldName: selectedDataType, newName });
@@ -85,21 +85,21 @@ const RenameTableModal = ({
             onUpdateSuccess();
           }),
         },
-        ["Rename"]
+        ['Rename']
       ),
     },
     [
       h(IdContainer, [
         (id) =>
           h(Fragment, [
-            div("Workflow configurations that reference the current table name will need to be updated manually."),
-            h(FormLabel, { htmlFor: id, required: true }, ["New Name"]),
+            div('Workflow configurations that reference the current table name will need to be updated manually.'),
+            h(FormLabel, { htmlFor: id, required: true }, ['New Name']),
             h(ValidatedInput, {
               inputProps: {
                 id,
                 value: newName,
                 autoFocus: true,
-                placeholder: "Enter a name",
+                placeholder: 'Enter a name',
                 onChange: (v) => {
                   setNewName(v);
                 },
@@ -108,42 +108,42 @@ const RenameTableModal = ({
             !_.isEmpty(setTableNames) &&
               div(
                 {
-                  style: { ...warningBoxStyle, margin: "1rem 0 0.5rem" },
+                  style: { ...warningBoxStyle, margin: '1rem 0 0.5rem' },
                 },
                 [
-                  div({ style: { display: "flex" } }, [
-                    icon("warning-standard", {
+                  div({ style: { display: 'flex' } }, [
+                    icon('warning-standard', {
                       size: 19,
-                      style: { color: colors.warning(), flex: "none", marginRight: "0.5rem", marginLeft: "-0.5rem" },
+                      style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' },
                     }),
                     `The table that you are renaming appears to have the following set table(s): ${setTableNames.join(
-                      ", "
+                      ', '
                     )}. You may choose to also rename these set tables:`,
                   ]),
                   div(
                     {
-                      role: "radiogroup",
-                      "aria-label": `the table that you are renaming appears to have the following set tables: ${setTableNames.join(
-                        ", "
+                      role: 'radiogroup',
+                      'aria-label': `the table that you are renaming appears to have the following set tables: ${setTableNames.join(
+                        ', '
                       )}. you may choose to also rename these set tables.`,
                     },
                     [
-                      div({ style: { paddingTop: "0.5rem" } }, [
+                      div({ style: { paddingTop: '0.5rem' } }, [
                         h(RadioButton, {
-                          text: "Do not rename set tables (default)",
-                          name: "rename-set-tables",
+                          text: 'Do not rename set tables (default)',
+                          name: 'rename-set-tables',
                           checked: !renameSetTables,
                           onChange: () => setRenameSetTables(false),
-                          labelStyle: { padding: "0.5rem", fontWeight: "normal" },
+                          labelStyle: { padding: '0.5rem', fontWeight: 'normal' },
                         }),
                       ]),
-                      div({ style: { paddingTop: "0.5rem" } }, [
+                      div({ style: { paddingTop: '0.5rem' } }, [
                         h(RadioButton, {
-                          text: "Rename set tables",
-                          name: "rename-set-tables",
+                          text: 'Rename set tables',
+                          name: 'rename-set-tables',
                           checked: renameSetTables,
                           onChange: () => setRenameSetTables(true),
-                          labelStyle: { padding: "0.5rem", fontWeight: "normal" },
+                          labelStyle: { padding: '0.5rem', fontWeight: 'normal' },
                         }),
                       ]),
                     ]

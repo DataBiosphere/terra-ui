@@ -1,23 +1,23 @@
-import { differenceInCalendarDays, parseJSON } from "date-fns/fp";
-import _ from "lodash/fp";
-import { useEffect, useState } from "react";
-import { div, h, input, span } from "react-hyperscript-helpers";
-import { ButtonSecondary, Clickable } from "src/components/common";
-import { icon } from "src/components/icons";
-import { TextArea } from "src/components/input";
-import Interactive from "src/components/Interactive";
-import { Ajax } from "src/libs/ajax";
-import { getEnabledBrand } from "src/libs/brand-utils";
-import colors from "src/libs/colors";
-import { withErrorIgnoring } from "src/libs/error";
-import { useStore } from "src/libs/react-utils";
-import { authStore, userStatus } from "src/libs/state";
-import * as Style from "src/libs/style";
-import * as Utils from "src/libs/utils";
+import { differenceInCalendarDays, parseJSON } from 'date-fns/fp';
+import _ from 'lodash/fp';
+import { useEffect, useState } from 'react';
+import { div, h, input, span } from 'react-hyperscript-helpers';
+import { ButtonSecondary, Clickable } from 'src/components/common';
+import { icon } from 'src/components/icons';
+import { TextArea } from 'src/components/input';
+import Interactive from 'src/components/Interactive';
+import { Ajax } from 'src/libs/ajax';
+import { getEnabledBrand } from 'src/libs/brand-utils';
+import colors from 'src/libs/colors';
+import { withErrorIgnoring } from 'src/libs/error';
+import { useStore } from 'src/libs/react-utils';
+import { authStore, userStatus } from 'src/libs/state';
+import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
 
 const styles = {
-  questionLabel: { fontWeight: 600, marginBottom: "0.5rem" },
-  questionInput: { marginBottom: "0.75rem", height: "4rem", marginTop: "0.25rem" },
+  questionLabel: { fontWeight: 600, marginBottom: '0.5rem' },
+  questionInput: { marginBottom: '0.75rem', height: '4rem', marginTop: '0.25rem' },
 };
 
 // UX is testing using AppCues. If experiment is successful, all NpsSurvey code can be deleted.
@@ -25,8 +25,8 @@ const NpsSurvey = () => {
   const [requestable, setRequestable] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [score, setScore] = useState();
-  const [reasonComment, setReasonComment] = useState("");
-  const [changeComment, setChangeComment] = useState("");
+  const [reasonComment, setReasonComment] = useState('');
+  const [changeComment, setChangeComment] = useState('');
 
   const { registrationStatus } = useStore(authStore);
 
@@ -60,25 +60,25 @@ const NpsSurvey = () => {
     return h(
       Interactive,
       {
-        as: "label",
+        as: 'label',
         style: {
           width: 25,
-          borderRadius: "1rem",
-          lineHeight: "25px",
-          textAlign: "center",
-          cursor: "pointer",
+          borderRadius: '1rem',
+          lineHeight: '25px',
+          textAlign: 'center',
+          cursor: 'pointer',
           ...(isSelected ? { backgroundColor: bgColor, color: colors.dark() } : {}),
         },
         hover: isSelected ? {} : { backgroundColor: colors.dark(0.7) },
       },
       [
         input({
-          type: "radio",
+          type: 'radio',
           value: i,
-          name: "nps-score",
+          name: 'nps-score',
           checked: isSelected,
           onChange: () => setScore(i),
-          style: { display: "none" },
+          style: { display: 'none' },
         }),
         i,
       ]
@@ -91,12 +91,12 @@ const NpsSurvey = () => {
     requestable &&
     div(
       {
-        className: "animate__animated animate__fadeIn",
+        className: 'animate__animated animate__fadeIn',
         style: {
-          position: "fixed",
-          bottom: "1.5rem",
-          right: expanded ? "1.5rem" : 0,
-          transition: "right 0.2s linear",
+          position: 'fixed',
+          bottom: '1.5rem',
+          right: expanded ? '1.5rem' : 0,
+          transition: 'right 0.2s linear',
           zIndex: 1,
         },
       },
@@ -107,61 +107,61 @@ const NpsSurvey = () => {
             onClick: () => setExpanded(true),
             disabled: expanded,
             style: {
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-evenly",
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-evenly',
               height: expanded ? 345 : 120,
               width: expanded ? 405 : 255,
-              padding: "1rem 1.5rem 1rem 1rem",
-              overflow: "hidden",
+              padding: '1rem 1.5rem 1rem 1rem',
+              overflow: 'hidden',
               backgroundColor: colors.dark(),
-              color: "white",
-              borderRadius: expanded ? "0.5rem" : "0.5rem 0 0 0.5rem",
-              transition: "all 0.25s linear",
+              color: 'white',
+              borderRadius: expanded ? '0.5rem' : '0.5rem 0 0 0.5rem',
+              transition: 'all 0.25s linear',
               boxShadow: Style.standardShadow,
             },
           },
           !expanded
             ? [
                 div({ style: styles.questionLabel }, `How likely are you to recommend ${brand.name} to others?`),
-                div({ style: { display: "flex", justifyContent: "space-around", marginBottom: "0.5rem" } }, scoreRadios),
+                div({ style: { display: 'flex', justifyContent: 'space-around', marginBottom: '0.5rem' } }, scoreRadios),
               ]
             : [
                 div({ style: styles.questionLabel }, `How likely are you to recommend ${brand.name} to others?`),
-                div({ style: { display: "flex", justifyContent: "space-around", marginBottom: "0.5rem" } }, scoreRadios),
+                div({ style: { display: 'flex', justifyContent: 'space-around', marginBottom: '0.5rem' } }, scoreRadios),
                 div({ style: styles.questionLabel }, [
-                  "What was the reason for this score? ",
-                  span({ style: { ...styles.questionLabel, fontStyle: "italic" } }, "(Optional)"),
+                  'What was the reason for this score? ',
+                  span({ style: { ...styles.questionLabel, fontStyle: 'italic' } }, '(Optional)'),
                 ]),
                 h(TextArea, { style: styles.questionInput, value: reasonComment, onChange: setReasonComment }),
                 div({ style: styles.questionLabel }, [
-                  "What could we change? ",
-                  span({ style: { ...styles.questionLabel, fontStyle: "italic" } }, "(Optional)"),
+                  'What could we change? ',
+                  span({ style: { ...styles.questionLabel, fontStyle: 'italic' } }, '(Optional)'),
                 ]),
                 h(TextArea, { style: styles.questionInput, value: changeComment, onChange: setChangeComment }),
-                div({ style: { display: "flex", justifyContent: "flex-end" } }, [
+                div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
                   h(
                     ButtonSecondary,
                     {
-                      style: { color: "white" },
+                      style: { color: 'white' },
                       hover: { color: colors.dark(0.25) },
                       onClick: goAway(true),
                     },
-                    "Submit"
+                    'Submit'
                   ),
                 ]),
               ]
         ),
         h(Clickable, { onClick: goAway(false) }, [
-          icon("times-circle", {
+          icon('times-circle', {
             size: 20,
             style: {
-              position: "absolute",
+              position: 'absolute',
               top: -5,
               left: -5,
-              backgroundColor: "black",
-              color: "white",
-              borderRadius: "1rem",
+              backgroundColor: 'black',
+              color: 'white',
+              borderRadius: '1rem',
             },
           }),
         ]),

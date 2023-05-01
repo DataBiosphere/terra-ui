@@ -1,19 +1,19 @@
-import _ from "lodash/fp";
-import pluralize from "pluralize";
-import * as qs from "qs";
-import React, { CSSProperties, Fragment, ReactElement, useState } from "react";
-import { div, em, h, h2, label, span, strong } from "react-hyperscript-helpers";
-import Collapse from "src/components/Collapse";
-import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link, Select } from "src/components/common";
-import { icon } from "src/components/icons";
-import { DelayedAutoCompleteInput, DelayedSearchInput } from "src/components/input";
-import Modal from "src/components/Modal";
-import { Ajax } from "src/libs/ajax";
-import colors from "src/libs/colors";
-import Events from "src/libs/events";
-import * as Nav from "src/libs/nav";
-import { useUniqueId } from "src/libs/react-utils";
-import * as Utils from "src/libs/utils";
+import _ from 'lodash/fp';
+import pluralize from 'pluralize';
+import * as qs from 'qs';
+import React, { CSSProperties, Fragment, ReactElement, useState } from 'react';
+import { div, em, h, h2, label, span, strong } from 'react-hyperscript-helpers';
+import Collapse from 'src/components/Collapse';
+import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common';
+import { icon } from 'src/components/icons';
+import { DelayedAutoCompleteInput, DelayedSearchInput } from 'src/components/input';
+import Modal from 'src/components/Modal';
+import { Ajax } from 'src/libs/ajax';
+import colors from 'src/libs/colors';
+import Events from 'src/libs/events';
+import * as Nav from 'src/libs/nav';
+import { useUniqueId } from 'src/libs/react-utils';
+import * as Utils from 'src/libs/utils';
 
 export interface FilterSection<DataType> {
   header: string;
@@ -26,49 +26,49 @@ export const commonStyles = {
   access: {
     granted: colors.success(1.5),
     controlled: colors.accent(),
-    pending: "#F7981C",
+    pending: '#F7981C',
   },
 };
 
 const styles = {
   header: {
-    fontSize: "1.5rem",
+    fontSize: '1.5rem',
     color: colors.dark(),
     fontWeight: 700,
   },
   sidebarRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "baseline",
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
     margin: 0,
   },
   nav: {
     navSection: {
-      alignItems: "center",
-      flex: "none",
-      padding: "0.5rem 0",
+      alignItems: 'center',
+      flex: 'none',
+      padding: '0.5rem 0',
     },
-    title: { borderBottom: `1px solid ${colors.dark(0.3)}`, paddingBottom: "0.75rem", marginBottom: "1rem" },
+    title: { borderBottom: `1px solid ${colors.dark(0.3)}`, paddingBottom: '0.75rem', marginBottom: '1rem' },
   },
   pill: (highlight: boolean): CSSProperties => ({
-    width: "4.5rem",
-    padding: "0.25rem",
+    width: '4.5rem',
+    padding: '0.25rem',
     fontWeight: 500,
-    textAlign: "center",
-    border: "1px solid",
+    textAlign: 'center',
+    border: '1px solid',
     borderColor: colors.dark(0.25),
-    borderRadius: "1rem",
-    fontSize: "0.875rem",
-    backgroundColor: "white",
+    borderRadius: '1rem',
+    fontSize: '0.875rem',
+    backgroundColor: 'white',
     ...(highlight
-      ? { color: "white", backgroundColor: colors.primary(1.5), borderColor: colors.primary(1.5), fontWeight: "bold" }
+      ? { color: 'white', backgroundColor: colors.primary(1.5), borderColor: colors.primary(1.5), fontWeight: 'bold' }
       : {}),
   }),
 };
 
 const numLabelsToRender = 5;
 
-const FILTER_BY_COUNT = "FILTER_BY_COUNT";
+const FILTER_BY_COUNT = 'FILTER_BY_COUNT';
 
 interface FilterBarProps<ListItem> {
   section: FilterSection<ListItem>;
@@ -89,10 +89,10 @@ const FilterBar = <ListItem>({ section, onFilter, valuesFilter, onSearch, search
             backgroundColor: colors.dark(0.1),
             paddingTop: 6,
             borderRadius: 8,
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
           },
         },
         [
@@ -103,10 +103,10 @@ const FilterBar = <ListItem>({ section, onFilter, valuesFilter, onSearch, search
                 marginLeft: 20,
                 padding: 5,
                 borderRadius: 10,
-                fontWeight: "bold",
-                fontSize: "1rem",
-                textTransform: "capitalize",
-                background: valuesFilter === FILTER_BY_COUNT ? colors.accent(0.3) : "transparent",
+                fontWeight: 'bold',
+                fontSize: '1rem',
+                textTransform: 'capitalize',
+                background: valuesFilter === FILTER_BY_COUNT ? colors.accent(0.3) : 'transparent',
               },
               onClick: () => {
                 onFilter(FILTER_BY_COUNT);
@@ -117,13 +117,13 @@ const FilterBar = <ListItem>({ section, onFilter, valuesFilter, onSearch, search
           div(
             {
               style: {
-                width: "100%",
+                width: '100%',
                 maxWidth: 600,
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-around",
-                fontSize: "1rem",
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-around',
+                fontSize: '1rem',
               },
             },
             _.map(
@@ -132,16 +132,16 @@ const FilterBar = <ListItem>({ section, onFilter, valuesFilter, onSearch, search
                   Link,
                   {
                     style: {
-                      fontWeight: "bold",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
+                      fontWeight: 'bold',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
                       padding: 5,
-                      borderRadius: "50%",
+                      borderRadius: '50%',
                       minWidth: 20,
-                      background: valuesFilter === String.fromCharCode(index) ? colors.accent(0.3) : "transparent",
+                      background: valuesFilter === String.fromCharCode(index) ? colors.accent(0.3) : 'transparent',
                     },
-                    "aria-label":
+                    'aria-label':
                       valuesFilter === String.fromCharCode(index)
                         ? `Filtering by ${String.fromCharCode(index)}`
                         : `Filter option: ${String.fromCharCode(index)}`,
@@ -159,19 +159,19 @@ const FilterBar = <ListItem>({ section, onFilter, valuesFilter, onSearch, search
             Link,
             {
               onClick: () => {
-                onFilter("");
+                onFilter('');
                 setFilterType(filterMode.search);
               },
-              "aria-label": "Search by text input",
+              'aria-label': 'Search by text input',
             },
             [
-              span({ className: "fa-stack fa-2x" }, [
-                icon("circle", {
+              span({ className: 'fa-stack fa-2x' }, [
+                icon('circle', {
                   size: 40,
-                  className: "fa-stack-2x",
+                  className: 'fa-stack-2x',
                   style: { color: colors.primary(), opacity: 0.2 },
                 }),
-                icon("search", { size: 20, className: "fa-stack-1x", style: { color: colors.primary() } }),
+                icon('search', { size: 20, className: 'fa-stack-1x', style: { color: colors.primary() } }),
               ]),
             ]
           ),
@@ -179,43 +179,43 @@ const FilterBar = <ListItem>({ section, onFilter, valuesFilter, onSearch, search
       ),
     filterType === filterMode.filter &&
       valuesFilter &&
-      div({ style: { display: "flex", flexDirection: "row", justifyContent: "flex-end", marginTop: 5 } }, [
+      div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', marginTop: 5 } }, [
         h(
           Link,
           {
-            style: { fontSize: "1rem" },
-            onClick: () => onFilter(""),
+            style: { fontSize: '1rem' },
+            onClick: () => onFilter(''),
           },
-          ["Clear filter"]
+          ['Clear filter']
         ),
       ]),
     filterType === filterMode.search &&
-      div({ style: { display: "flex", alignItems: "center", flexDirection: "row" } }, [
+      div({ style: { display: 'flex', alignItems: 'center', flexDirection: 'row' } }, [
         h(DelayedSearchInput, {
           style: {
             borderRadius: 25,
             borderColor: colors.dark(0.2),
-            width: "100%",
+            width: '100%',
             maxWidth: 575,
-            height: "3rem",
+            height: '3rem',
             marginRight: 20,
           },
           value: searchTerm,
-          "aria-label": `Search for ${section.header} filter options`,
-          placeholder: "Search keyword",
-          icon: "search",
+          'aria-label': `Search for ${section.header} filter options`,
+          placeholder: 'Search keyword',
+          icon: 'search',
           onChange: (searchText) => onSearch(searchText),
         }),
         h(
           Link,
           {
-            style: { fontSize: "1rem" },
+            style: { fontSize: '1rem' },
             onClick: () => {
-              onSearch("");
+              onSearch('');
               setFilterType(filterMode.filter);
             },
           },
-          ["Close search"]
+          ['Close search']
         ),
       ]),
   ]);
@@ -239,19 +239,19 @@ const FilterModal = <ListItem>({
   // Filter Modal Vars
   const [filterChanges, setFilterChanges] = useState([] as string[]);
   // Valid values are A-Z, '', or FILTER_BY_COUNT
-  const [valuesFilter, setValuesFilter] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [valuesFilter, setValuesFilter] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const valuesToDisplay = Utils.switchCase(
     valuesFilter,
-    ["", () => section.values],
+    ['', () => section.values],
     [
       FILTER_BY_COUNT,
       () =>
         _.orderBy(
           (sectionEntry) =>
             listItemsMatchForSectionEntry(sectionEntry, section.matchBy, itemsFilteredByOtherSections).length,
-          "desc",
+          'desc',
           section.values
         ),
     ],
@@ -261,12 +261,12 @@ const FilterModal = <ListItem>({
   return h(
     Modal,
     {
-      title: div({ style: { fontSize: "1.325rem", fontWeight: 700 } }, [`Filter by: "${section.header}"`]),
-      width: "100%",
+      title: div({ style: { fontSize: '1.325rem', fontWeight: 700 } }, [`Filter by: "${section.header}"`]),
+      width: '100%',
       showButtons: true,
       styles: {
         modal: { maxWidth: 900, padding: 30 },
-        buttonRow: { width: "100%", borderTop: `6px solid ${colors.dark(0.1)}`, paddingTop: 20 },
+        buttonRow: { width: '100%', borderTop: `6px solid ${colors.dark(0.1)}`, paddingTop: 20 },
       },
       onDismiss: () => {
         setShowAll(false);
@@ -279,7 +279,7 @@ const FilterModal = <ListItem>({
             onFilterSelect(filterChanges);
           },
         },
-        ["Apply Filters"]
+        ['Apply Filters']
       ),
     },
     [
@@ -290,15 +290,15 @@ const FilterModal = <ListItem>({
         onSearch: (searchTerm) => setSearchTerm(searchTerm),
         searchTerm,
       }),
-      div({ style: { height: "calc(80vh - 250px)", minHeight: 300, overflowY: "auto" } }, [
+      div({ style: { height: 'calc(80vh - 250px)', minHeight: 300, overflowY: 'auto' } }, [
         div(
           {
             style: {
-              display: "flex",
-              flexDirection: "row",
-              flexWrap: "wrap",
-              justifyContent: "space-between",
-              fontSize: "1rem",
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              justifyContent: 'space-between',
+              fontSize: '1rem',
               marginTop: 20,
             },
           },
@@ -311,8 +311,8 @@ const FilterModal = <ListItem>({
 
             return div(
               {
-                className: "label",
-                style: { width: "25%", margin: "0 15px 10px 30px", position: "relative", minHeight: 30 },
+                className: 'label',
+                style: { width: '25%', margin: '0 15px 10px 30px', position: 'relative', minHeight: 30 },
               },
               [
                 h(
@@ -324,22 +324,22 @@ const FilterModal = <ListItem>({
                     onChange: () => {
                       setFilterChanges(_.xor(filterChanges, [sectionEntry]));
                     },
-                    style: { position: "absolute", left: -25, top: 2 },
+                    style: { position: 'absolute', left: -25, top: 2 },
                   },
                   [
                     div(
                       {
                         style: {
-                          display: "flex",
-                          width: "100%",
-                          justifyContent: "space-between",
-                          alignItems: "flex-start",
-                          lineHeight: "1.4rem",
+                          display: 'flex',
+                          width: '100%',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start',
+                          lineHeight: '1.4rem',
                         },
                       },
                       [
                         span([section.renderer ? section.renderer(sectionEntry) : sectionEntry]),
-                        span({ style: { opacity: 0.5, fontSize: ".75rem", lineHeight: "1.4rem" } }, [
+                        span({ style: { opacity: 0.5, fontSize: '.75rem', lineHeight: '1.4rem' } }, [
                           `(${numMatches})`,
                         ]),
                       ]
@@ -355,7 +355,7 @@ const FilterModal = <ListItem>({
   );
 };
 
-const reverseText = _.flow(_.reverse, _.join(""));
+const reverseText = _.flow(_.reverse, _.join(''));
 
 // truncateLeftWord
 // This will behave like Lodash's _.truncate except it will truncate from the left side of the string.
@@ -366,13 +366,13 @@ const truncateLeftWord = _.curry((options, text) =>
     reverseText, // reverses the text so we can perform a truncate
     _.truncate(options),
     reverseText, // puts the text back in its original order
-    _.replace(/\.\.\.(\S+)/, "...") // Removes the first partial word
+    _.replace(/\.\.\.(\S+)/, '...') // Removes the first partial word
   )(text)
 );
 
 const getContextualSuggestion = ([leftContext, match, rightContext]) => {
   return [
-    strong([em(["Description: "])]),
+    strong([em(['Description: '])]),
     truncateLeftWord({ length: 40 }, leftContext),
     match,
     _.truncate({ length: 40 }, rightContext),
@@ -473,23 +473,23 @@ const FilterSectionComponent = <ListItem>({
       return h(
         Clickable,
         {
-          "aria-checked": sectionEntryChecked,
-          role: "checkbox",
-          key: _.uniqueId(""),
+          'aria-checked': sectionEntryChecked,
+          role: 'checkbox',
+          key: _.uniqueId(''),
           style: {
-            display: "flex",
-            alignItems: "baseline",
-            margin: "0.5rem 0",
-            paddingBottom: "0.5rem",
+            display: 'flex',
+            alignItems: 'baseline',
+            margin: '0.5rem 0',
+            paddingBottom: '0.5rem',
             borderBottom: `1px solid ${colors.dark(0.1)}`,
           },
           onClick: () => onFilterSelect([sectionEntry]),
         },
         [
-          div({ style: { lineHeight: "1.375rem", flex: 1 } }, [
+          div({ style: { lineHeight: '1.375rem', flex: 1 } }, [
             section.renderer ? section.renderer(sectionEntry) : sectionEntry,
           ]),
-          div({ style: styles.pill(sectionEntryChecked) }, [numMatches, div({ className: "sr-only" }, [" matches"])]),
+          div({ style: styles.pill(sectionEntryChecked) }, [numMatches, div({ className: 'sr-only' }, [' matches'])]),
         ]
       );
     }, shownLabels),
@@ -498,12 +498,12 @@ const FilterSectionComponent = <ListItem>({
       h(
         Link,
         {
-          style: { display: "block", textAlign: "center" },
+          style: { display: 'block', textAlign: 'center' },
           onClick: () => {
             setShowAll(!showAll);
           },
         },
-        ["See more"]
+        ['See more']
       ),
     showAll &&
       h(FilterModal as React.FC<FilterModalProps<ListItem>>, {
@@ -517,7 +517,7 @@ const FilterSectionComponent = <ListItem>({
 };
 
 const Sidebar = ({ onSectionFilter, sections, selectedSections, fullList }) => {
-  return div({ style: { display: "flex", flexDirection: "column" } }, [
+  return div({ style: { display: 'flex', flexDirection: 'column' } }, [
     _.map((section) => {
       const { header, values } = section;
 
@@ -531,7 +531,7 @@ const Sidebar = ({ onSectionFilter, sections, selectedSections, fullList }) => {
           initialOpenState: true,
           title: h(Fragment, [
             span({ style: { fontWeight: 700 } }, [header]),
-            span({ style: { marginLeft: "0.5rem", fontWeight: 400 } }, [`(${_.size(values)})`]),
+            span({ style: { marginLeft: '0.5rem', fontWeight: 400 } }, [`(${_.size(values)})`]),
           ]),
         },
         [
@@ -557,7 +557,7 @@ interface QueryParams {
   selectedSections: FilterSectionKeys[];
 }
 
-type SortDirection = "desc" | "asc";
+type SortDirection = 'desc' | 'asc';
 
 export interface Sort {
   field: string;
@@ -584,20 +584,20 @@ export const SearchAndFilterComponent = <ListItem>({
   searchType,
   getLowerName,
   getLowerDescription,
-  titleField = "name",
-  descField = "description",
+  titleField = 'name',
+  descField = 'description',
   listView,
 }: SearchAndFilterProps<ListItem>) => {
   const query = Nav.useRoute().query as QueryParams;
-  const searchFilter = query.filter || "";
+  const searchFilter = query.filter || '';
   const querySections: FilterSectionKeys[] = query.selectedSections || [];
   // Add the match and render functions to what is stored in the query params
   const selectedSections = _.map((section) => {
     const selectedSection = _.find((s) => s.header === section.header, sidebarSections) || {};
     return { ...selectedSection, ...section } as FilterSection<ListItem>;
   }, querySections);
-  const [sort, setSort] = useState<Sort>({ field: "created", direction: "desc" });
-  const filterRegex = new RegExp(`(${_.escapeRegExp(searchFilter)})`, "i");
+  const [sort, setSort] = useState<Sort>({ field: 'created', direction: 'desc' });
+  const filterRegex = new RegExp(`(${_.escapeRegExp(searchFilter)})`, 'i');
   const listItemsShown = _.filter(
     (item) => _.includes(_.toLower(searchFilter), `${getLowerName(item)} ${getLowerDescription(item)}`),
     getMatchingDataForSectionList(selectedSections, fullList)
@@ -635,20 +635,20 @@ export const SearchAndFilterComponent = <ListItem>({
   const getContext = _.flow(
     _.split(filterRegex),
     getContextualSuggestion,
-    _.map((item) => (typeof item === "string" && _.toLower(item) === _.toLower(searchFilter) ? strong([item]) : item))
+    _.map((item) => (typeof item === 'string' && _.toLower(item) === _.toLower(searchFilter) ? strong([item]) : item))
   );
 
   return h(Fragment, [
     div(
       {
         style: {
-          display: "grid",
-          gridTemplateColumns: "19rem 1fr",
-          gridTemplateRows: "auto 3rem",
-          gap: "2rem 1rem",
-          gridAutoFlow: "column",
-          margin: "1rem 1rem 0",
-          alignItems: "baseline",
+          display: 'grid',
+          gridTemplateColumns: '19rem 1fr',
+          gridTemplateRows: 'auto 3rem',
+          gap: '2rem 1rem',
+          gridAutoFlow: 'column',
+          margin: '1rem 1rem 0',
+          alignItems: 'baseline',
         },
       },
       [
@@ -657,14 +657,14 @@ export const SearchAndFilterComponent = <ListItem>({
           div(
             {
               style: styles.pill(_.isEmpty(selectedSections)),
-              role: "status",
-              "aria-label": `${_.size(listItemsShown)} Results found`,
+              role: 'status',
+              'aria-label': `${_.size(listItemsShown)} Results found`,
             },
             [_.size(listItemsShown)]
           ),
         ]),
-        div({ style: { ...styles.nav.title, display: "flex", alignItems: "baseline" } }, [
-          div({ style: { flex: 1, fontSize: "1.125rem", fontWeight: 600 } }, ["Filters"]),
+        div({ style: { ...styles.nav.title, display: 'flex', alignItems: 'baseline' } }, [
+          div({ style: { flex: 1, fontSize: '1.125rem', fontWeight: 600 } }, ['Filters']),
           h(
             Link,
             {
@@ -672,19 +672,19 @@ export const SearchAndFilterComponent = <ListItem>({
                 navigateToFilterAndSelection({ sections: [] });
               },
             },
-            ["clear"]
+            ['clear']
           ),
         ]),
-        div({ style: { display: "flex", alignItems: "center" } }, [
+        div({ style: { display: 'flex', alignItems: 'center' } }, [
           h(Fragment, [
-            div({ id: searchBarId, className: "sr-only" }, [`Search ${searchType}`]),
+            div({ id: searchBarId, className: 'sr-only' }, [`Search ${searchType}`]),
             h(DelayedAutoCompleteInput, {
-              style: { borderRadius: 25, flex: "1 1 0" } as CSSProperties,
-              inputIcon: "search",
+              style: { borderRadius: 25, flex: '1 1 0' } as CSSProperties,
+              inputIcon: 'search',
               openOnFocus: true,
               value: searchFilter,
               labelId: searchBarId,
-              placeholder: "Search Name or Description",
+              placeholder: 'Search Name or Description',
               itemToString: (v) => v[titleField],
               onChange: onSearchChange,
               suggestionFilter: _.curry((needle, listItem) =>
@@ -694,8 +694,8 @@ export const SearchAndFilterComponent = <ListItem>({
                 return div(
                   {
                     style: {
-                      lineHeight: "1.75rem",
-                      padding: "0.375rem 0",
+                      lineHeight: '1.75rem',
+                      padding: '0.375rem 0',
                       borderBottom: `1px dotted ${colors.dark(0.7)}`,
                     },
                   },
@@ -708,7 +708,7 @@ export const SearchAndFilterComponent = <ListItem>({
                         ? [
                             // We can be confident that maybeMatch is a string because if it is a react element (strong) then it would need to have at least one match
                             _.truncate({ length: 90 }, _.head(maybeMatch) as string),
-                            div({ style: { lineHeight: "1.5rem", marginLeft: "2rem" } }, [
+                            div({ style: { lineHeight: '1.5rem', marginLeft: '2rem' } }, [
                               ...getContext(suggestion[descField]),
                             ]),
                           ]
@@ -727,32 +727,32 @@ export const SearchAndFilterComponent = <ListItem>({
                   label(
                     {
                       htmlFor: id,
-                      style: { margin: "0 1ch 0 1rem", whiteSpace: "nowrap" },
+                      style: { margin: '0 1ch 0 1rem', whiteSpace: 'nowrap' },
                     },
-                    ["Sort by"]
+                    ['Sort by']
                   ),
                   h(SortSelect, {
                     id,
                     isClearable: false,
                     isSearchable: false,
-                    styles: { container: (old) => ({ ...old, flex: "0 0 content" }) },
+                    styles: { container: (old) => ({ ...old, flex: '0 0 content' }) },
                     value: sort,
                     onChange: (opt) => setSort(opt!.value),
                     options: [
-                      { value: { field: "created", direction: "desc" }, label: "most recent" },
-                      { value: { field: "name", direction: "asc" }, label: "alphabetical" },
+                      { value: { field: 'created', direction: 'desc' }, label: 'most recent' },
+                      { value: { field: 'name', direction: 'asc' }, label: 'alphabetical' },
                     ],
                   }),
                 ]),
             ]),
         ]),
-        div({ style: { fontSize: "1rem", fontWeight: 600 } }, [
-          searchFilter ? `Results For "${searchFilter}"` : "All results",
+        div({ style: { fontSize: '1rem', fontWeight: 600 } }, [
+          searchFilter ? `Results For "${searchFilter}"` : 'All results',
         ]),
       ]
     ),
-    div({ style: { display: "flex", margin: "0 1rem", height: "100%" } }, [
-      div({ style: { width: "19rem", flex: "none" } }, [
+    div({ style: { display: 'flex', margin: '0 1rem', height: '100%' } }, [
+      div({ style: { width: '19rem', flex: 'none' } }, [
         h(Sidebar, {
           onSectionFilter: (section, sectionEntries) => {
             const sectionSelected = _.findIndex((s) => _.isEqual(s.header, section.header), selectedSections);
@@ -780,9 +780,9 @@ export const SearchAndFilterComponent = <ListItem>({
           fullList,
         }),
       ]),
-      div({ style: { marginLeft: "1rem", minWidth: 0, width: "100%", height: "100%" } }, [
+      div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
         _.isEmpty(listItemsShown)
-          ? div({ style: { margin: "auto", textAlign: "center" } }, ["No Results Found"])
+          ? div({ style: { margin: 'auto', textAlign: 'center' } }, ['No Results Found'])
           : listView(listItemsShown),
       ]),
     ]),

@@ -1,13 +1,13 @@
-import _ from "lodash/fp";
-import { useRef } from "react";
-import { div, h } from "react-hyperscript-helpers";
+import _ from 'lodash/fp';
+import { useRef } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
 
 export const ArrowKeyNavigation = ({ keyDownHandler, children, ...props }) => {
   const ref = useRef();
 
   // Figure out which child elements are focusable/clickable
   const focusableElements = () => {
-    return ref.current.querySelectorAll("a, button, input, select, textarea, [tabindex]");
+    return ref.current.querySelectorAll('a, button, input, select, textarea, [tabindex]');
   };
 
   // Figure out which focusable element sent the event
@@ -29,9 +29,9 @@ export const ArrowKeyNavigation = ({ keyDownHandler, children, ...props }) => {
       onKeyDown: (event) => {
         // Don't bother with the recursive calculation if it's the Tab, Enter or Space key
         switch (event.key) {
-          case "Tab":
-          case "Enter":
-          case " ":
+          case 'Tab':
+          case 'Enter':
+          case ' ':
             return;
 
           default:
@@ -60,16 +60,16 @@ export const HorizontalNavigation = ({ children, ...props }) =>
     {
       keyDownHandler: (event, i, focusOn) => {
         switch (event.key) {
-          case "ArrowLeft":
+          case 'ArrowLeft':
             focusOn(i - 1);
             break;
-          case "ArrowRight":
+          case 'ArrowRight':
             focusOn(i + 1);
             break;
-          case "Home":
+          case 'Home':
             focusOn(0);
             break;
-          case "End":
+          case 'End':
             focusOn(-1);
             break;
           default:
@@ -96,18 +96,18 @@ export const VerticalNavigation = ({ children, ...props }) =>
     {
       keyDownHandler: (event, i, focusOn) => {
         switch (event.key) {
-          case "ArrowUp":
+          case 'ArrowUp':
             focusOn(i - 1);
             break;
-          case "ArrowDown":
+          case 'ArrowDown':
             focusOn(i + 1);
             break;
-          case "Home":
-          case "PageUp":
+          case 'Home':
+          case 'PageUp':
             focusOn(0);
             break;
-          case "End":
-          case "PageDown":
+          case 'End':
+          case 'PageDown':
             focusOn(-1);
             break;
           default:

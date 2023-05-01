@@ -1,58 +1,58 @@
-import Downshift from "downshift";
-import _ from "lodash/fp";
-import { Fragment, useRef, useState } from "react";
-import { div, h, input, textarea } from "react-hyperscript-helpers";
-import TextAreaAutosize from "react-textarea-autosize";
-import { ButtonPrimary } from "src/components/common";
-import { icon } from "src/components/icons";
-import { PopupPortal, useDynamicPosition, useWindowDimensions } from "src/components/popup-utils";
-import TooltipTrigger from "src/components/TooltipTrigger";
-import colors from "src/libs/colors";
-import { combineRefs, forwardRefWithName, useGetter, useInstance, useLabelAssert, useOnMount } from "src/libs/react-utils";
-import * as Utils from "src/libs/utils";
+import Downshift from 'downshift';
+import _ from 'lodash/fp';
+import { Fragment, useRef, useState } from 'react';
+import { div, h, input, textarea } from 'react-hyperscript-helpers';
+import TextAreaAutosize from 'react-textarea-autosize';
+import { ButtonPrimary } from 'src/components/common';
+import { icon } from 'src/components/icons';
+import { PopupPortal, useDynamicPosition, useWindowDimensions } from 'src/components/popup-utils';
+import TooltipTrigger from 'src/components/TooltipTrigger';
+import colors from 'src/libs/colors';
+import { combineRefs, forwardRefWithName, useGetter, useInstance, useLabelAssert, useOnMount } from 'src/libs/react-utils';
+import * as Utils from 'src/libs/utils';
 
 const styles = {
   input: {
-    height: "2.25rem",
+    height: '2.25rem',
     border: `1px solid ${colors.dark(0.55)}`,
     borderRadius: 4,
   },
   suggestionsContainer: {
-    position: "fixed",
+    position: 'fixed',
     left: 0,
     maxHeight: 36 * 8 + 2,
-    overflowY: "auto",
-    backgroundColor: "white",
+    overflowY: 'auto',
+    backgroundColor: 'white',
     border: `1px solid ${colors.light()}`,
-    margin: "0.5rem 0",
+    margin: '0.5rem 0',
     borderRadius: 4,
-    boxShadow: "0 0 1px 0 rgba(0,0,0,0.12), 0 8px 8px 0 rgba(0,0,0,0.24)",
+    boxShadow: '0 0 1px 0 rgba(0,0,0,0.12), 0 8px 8px 0 rgba(0,0,0,0.24)',
   },
   suggestion: (isSelected) => ({
-    display: "block",
-    lineHeight: "2.25rem",
-    paddingLeft: "1rem",
-    paddingRight: "1rem",
-    cursor: "pointer",
+    display: 'block',
+    lineHeight: '2.25rem',
+    paddingLeft: '1rem',
+    paddingRight: '1rem',
+    cursor: 'pointer',
     backgroundColor: isSelected ? colors.light(0.4) : undefined,
   }),
   textarea: {
-    width: "100%",
-    resize: "none",
+    width: '100%',
+    resize: 'none',
     border: `1px solid ${colors.dark(0.55)}`,
     borderRadius: 4,
     fontSize: 14,
     fontWeight: 400,
-    padding: "0.5rem 1rem",
-    cursor: "text",
+    padding: '0.5rem 1rem',
+    cursor: 'text',
   },
   validationError: {
     color: colors.danger(),
     fontSize: 11,
     fontWeight: 600,
-    textTransform: "uppercase",
-    marginLeft: "1rem",
-    marginTop: "0.5rem",
+    textTransform: 'uppercase',
+    marginLeft: '1rem',
+    marginTop: '0.5rem',
   },
 };
 
@@ -79,19 +79,19 @@ export const withDebouncedChange = (WrappedComponent) => {
   return Wrapper;
 };
 
-export const TextInput = forwardRefWithName("TextInput", ({ onChange, nativeOnChange = false, ...props }, ref) => {
-  useLabelAssert("TextInput", { ...props, allowId: true });
+export const TextInput = forwardRefWithName('TextInput', ({ onChange, nativeOnChange = false, ...props }, ref) => {
+  useLabelAssert('TextInput', { ...props, allowId: true });
 
   return input({
     ..._.merge(
       {
-        className: "focus-style",
+        className: 'focus-style',
         onChange: onChange ? (e) => onChange(nativeOnChange ? e : e.target.value) : undefined,
         style: {
           ...styles.input,
-          width: "100%",
-          paddingLeft: "1rem",
-          paddingRight: "1rem",
+          width: '100%',
+          paddingLeft: '1rem',
+          paddingRight: '1rem',
           fontWeight: 400,
           fontSize: 14,
           backgroundColor: props.disabled ? colors.light() : undefined,
@@ -104,35 +104,35 @@ export const TextInput = forwardRefWithName("TextInput", ({ onChange, nativeOnCh
   });
 });
 
-export const ConfirmedSearchInput = ({ defaultValue = "", onChange = _.noop, ...props }) => {
+export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...props }) => {
   const [internalValue, setInternalValue] = useState(defaultValue);
   const inputEl = useRef();
 
   useOnMount(() => {
-    inputEl.current.addEventListener("search", (e) => {
+    inputEl.current.addEventListener('search', (e) => {
       setInternalValue(e.target.value);
       onChange(e.target.value);
     });
   });
 
-  return div({ style: { display: "inline-flex", width: "100%" } }, [
+  return div({ style: { display: 'inline-flex', width: '100%' } }, [
     h(TextInput, {
       ..._.merge(
         {
-          type: "search",
+          type: 'search',
           spellCheck: false,
-          style: { WebkitAppearance: "none", borderColor: colors.dark(0.55), borderRadius: "4px 0 0 4px" },
+          style: { WebkitAppearance: 'none', borderColor: colors.dark(0.55), borderRadius: '4px 0 0 4px' },
           value: internalValue,
           onChange: setInternalValue,
           onKeyDown: (e) => {
-            if (e.key === "Enter") {
+            if (e.key === 'Enter') {
               e.preventDefault();
               onChange(internalValue);
-            } else if (e.key === "Escape" && internalValue !== "") {
+            } else if (e.key === 'Escape' && internalValue !== '') {
               e.preventDefault();
               e.stopPropagation();
-              setInternalValue("");
-              onChange("");
+              setInternalValue('');
+              onChange('');
             }
           },
         },
@@ -144,11 +144,11 @@ export const ConfirmedSearchInput = ({ defaultValue = "", onChange = _.noop, ...
     h(
       ButtonPrimary,
       {
-        "aria-label": "Search",
-        style: { borderRadius: "0 4px 4px 0", borderLeft: "none" },
+        'aria-label': 'Search',
+        style: { borderRadius: '0 4px 4px 0', borderLeft: 'none' },
         onClick: () => onChange(internalValue),
       },
-      [icon("search", { size: 18 })]
+      [icon('search', { size: 18 })]
     ),
   ]);
 };
@@ -158,15 +158,15 @@ export const SearchInput = ({ value, onChange, ...props }) => {
     TextInput,
     _.merge(
       {
-        type: "search",
+        type: 'search',
         spellCheck: false,
-        style: { WebkitAppearance: "none", borderColor: colors.dark(0.55) },
+        style: { WebkitAppearance: 'none', borderColor: colors.dark(0.55) },
         value,
         onChange,
         onKeyDown: (e) => {
-          if (e.key === "Escape" && value !== "") {
+          if (e.key === 'Escape' && value !== '') {
             e.stopPropagation();
-            onChange("");
+            onChange('');
           }
         },
       },
@@ -178,10 +178,10 @@ export const SearchInput = ({ value, onChange, ...props }) => {
 export const DelayedSearchInput = withDebouncedChange(SearchInput);
 
 export const NumberInput = forwardRefWithName(
-  "NumberInput",
+  'NumberInput',
   ({ onChange, onBlur, min = -Infinity, max = Infinity, onlyInteger = false, isClearable = true, tooltip, value, ...props }, ref) => {
     // If the user provided a tooltip but no other label, use the tooltip as the label for the input
-    useLabelAssert("NumberInput", { tooltip, ...props, allowId: true, allowTooltip: true });
+    useLabelAssert('NumberInput', { tooltip, ...props, allowId: true, allowTooltip: true });
 
     const [internalValue, setInternalValue] = useState();
 
@@ -189,16 +189,16 @@ export const NumberInput = forwardRefWithName(
       input({
         ..._.merge(
           {
-            type: "number",
-            "aria-label": Utils.getAriaLabelOrTooltip({ tooltip, ...props }),
-            className: "focus-style",
+            type: 'number',
+            'aria-label': Utils.getAriaLabelOrTooltip({ tooltip, ...props }),
+            className: 'focus-style',
             min,
             max,
             value: internalValue !== undefined ? internalValue : _.toString(value), // eslint-disable-line lodash-fp/preferred-alias
             onChange: ({ target: { value: newValue } }) => {
               setInternalValue(newValue);
               // note: floor and clamp implicitly convert the value to a number
-              onChange(newValue === "" && isClearable ? null : _.clamp(min, max, onlyInteger ? _.floor(newValue) : newValue));
+              onChange(newValue === '' && isClearable ? null : _.clamp(min, max, onlyInteger ? _.floor(newValue) : newValue));
             },
             onBlur: (...args) => {
               onBlur && onBlur(...args);
@@ -206,9 +206,9 @@ export const NumberInput = forwardRefWithName(
             },
             style: {
               ...styles.input,
-              width: "100%",
-              paddingLeft: "1rem",
-              paddingRight: "0.25rem",
+              width: '100%',
+              paddingLeft: '1rem',
+              paddingRight: '0.25rem',
               fontWeight: 400,
               fontSize: 14,
               backgroundColor: props.disabled ? colors.dark(0.25) : undefined,
@@ -222,7 +222,7 @@ export const NumberInput = forwardRefWithName(
     ]);
 
     if (tooltip) {
-      return h(TooltipTrigger, { content: tooltip, side: "right" }, [numberInputChild]);
+      return h(TooltipTrigger, { content: tooltip, side: 'right' }, [numberInputChild]);
     }
     return numberInputChild;
   }
@@ -236,7 +236,7 @@ export const ValidatedInput = ({ inputProps, width, error }) => {
   return createValidatedInput({ inputProps, width, error }, null);
 };
 
-export const ValidatedInputWithRef = forwardRefWithName("ValidatedInput", ({ inputProps, width, error }, ref) => {
+export const ValidatedInputWithRef = forwardRefWithName('ValidatedInput', ({ inputProps, width, error }, ref) => {
   return createValidatedInput({ inputProps, width, error }, ref);
 });
 
@@ -245,7 +245,7 @@ const createValidatedInput = ({ inputProps, width, error }, ref) => {
     {
       style: error
         ? {
-            paddingRight: "2.25rem", // leave room for error icon
+            paddingRight: '2.25rem', // leave room for error icon
             border: `1px solid ${colors.danger()}`,
           }
         : undefined,
@@ -255,17 +255,17 @@ const createValidatedInput = ({ inputProps, width, error }, ref) => {
   return h(Fragment, [
     div(
       {
-        style: { position: "relative", display: "flex", alignItems: "center", width },
+        style: { position: 'relative', display: 'flex', alignItems: 'center', width },
       },
       [
         h(TextInput, { ...props, ref }),
         error &&
-          icon("error-standard", {
+          icon('error-standard', {
             size: 24,
             style: {
-              position: "absolute",
+              position: 'absolute',
               color: colors.danger(),
-              right: ".5rem",
+              right: '.5rem',
             },
           }),
       ]
@@ -274,8 +274,8 @@ const createValidatedInput = ({ inputProps, width, error }, ref) => {
       div(
         {
           style: styles.validationError,
-          "aria-live": "assertive",
-          "aria-relevant": "all",
+          'aria-live': 'assertive',
+          'aria-relevant': 'all',
         },
         [error]
       ),
@@ -304,7 +304,7 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps, children })
         style: {
           ...styles.suggestionsContainer,
           ...style,
-          visibility: !target.width ? "hidden" : undefined,
+          visibility: !target.width ? 'hidden' : undefined,
           width: target.width,
         },
       },
@@ -315,7 +315,7 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps, children })
 
 const withAutocomplete = (WrappedComponent) =>
   forwardRefWithName(
-    `withAutocomplete(${WrappedComponent.displayName || WrappedComponent.name || "Component"})`,
+    `withAutocomplete(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`,
     (
       {
         itemToString,
@@ -336,7 +336,7 @@ const withAutocomplete = (WrappedComponent) =>
       },
       ref
     ) => {
-      useLabelAssert("withAutocomplete", { id, "aria-labelledby": labelId, ...props, allowId: true });
+      useLabelAssert('withAutocomplete', { id, 'aria-labelledby': labelId, ...props, allowId: true });
 
       const suggestions = _.filter(suggestionFilter(value), rawSuggestions);
       const controlProps = itemToString ? { itemToString: (v) => (v ? itemToString(v) : value) } : { selectedItem: value };
@@ -344,7 +344,7 @@ const withAutocomplete = (WrappedComponent) =>
       const inputEl = useRef();
       const clearSelectionRef = useRef();
       useOnMount(() => {
-        inputEl.current?.addEventListener("search", (e) => {
+        inputEl.current?.addEventListener('search', (e) => {
           !e.target.value && clearSelectionRef.current?.();
         });
       });
@@ -374,33 +374,33 @@ const withAutocomplete = (WrappedComponent) =>
             return div(
               {
                 onFocus: openOnFocus ? openMenu : undefined,
-                style: { width: style?.width || "100%", display: "inline-flex", position: "relative", outline: "none" },
+                style: { width: style?.width || '100%', display: 'inline-flex', position: 'relative', outline: 'none' },
               },
               [
                 inputIcon &&
                   icon(inputIcon, {
-                    style: { transform: "translateX(1.5rem)", alignSelf: "center", color: colors.accent(), position: "absolute", ...iconStyle },
+                    style: { transform: 'translateX(1.5rem)', alignSelf: 'center', color: colors.accent(), position: 'absolute', ...iconStyle },
                     size: 18,
                   }),
                 h(
                   WrappedComponent,
                   getInputProps({
-                    style: inputIcon ? { ...style, paddingLeft: "3rem" } : style,
-                    type: "search",
+                    style: inputIcon ? { ...style, paddingLeft: '3rem' } : style,
+                    type: 'search',
                     onKeyUp: (e) => {
-                      if (e.key === "Escape") {
+                      if (e.key === 'Escape') {
                         (value || isOpen) && e.stopPropagation(); // prevent e.g. closing a modal
                         if (!value || isOpen) {
                           // don't clear if blank (prevent e.g. undefined -> '') or if menu is shown
                           e.nativeEvent.preventDownshiftDefault = true;
                           e.preventDefault();
                         }
-                      } else if (_.includes(e.key, ["ArrowUp", "ArrowDown"]) && !suggestions.length) {
+                      } else if (_.includes(e.key, ['ArrowUp', 'ArrowDown']) && !suggestions.length) {
                         e.nativeEvent.preventDownshiftDefault = true;
-                      } else if (e.key === "Enter") {
+                      } else if (e.key === 'Enter') {
                         onPick && onPick(value);
                         toggleMenu();
-                      } else if (e.key === "Backspace" && !value) {
+                      } else if (e.key === 'Backspace' && !value) {
                         clearSelection();
                         openMenu();
                       }
@@ -423,7 +423,7 @@ const withAutocomplete = (WrappedComponent) =>
                         () => [
                           div(
                             {
-                              style: { textAlign: "center", paddingTop: "0.75rem", height: "2.5rem", color: colors.dark(0.8) },
+                              style: { textAlign: 'center', paddingTop: '0.75rem', height: '2.5rem', color: colors.dark(0.8) },
                             },
                             [placeholderText]
                           ),
@@ -465,15 +465,15 @@ export const AutocompleteTextInput = withAutocomplete(TextInput);
 
 export const DelayedAutoCompleteInput = withDebouncedChange(AutocompleteTextInput);
 
-export const TextArea = forwardRefWithName("TextArea", ({ onChange, autosize = false, nativeOnChange = false, ...props }, ref) => {
-  useLabelAssert("TextArea", { ...props, allowId: true });
+export const TextArea = forwardRefWithName('TextArea', ({ onChange, autosize = false, nativeOnChange = false, ...props }, ref) => {
+  useLabelAssert('TextArea', { ...props, allowId: true });
 
   return h(
-    autosize ? TextAreaAutosize : "textarea",
+    autosize ? TextAreaAutosize : 'textarea',
     _.merge(
       {
         ref,
-        className: "focus-style",
+        className: 'focus-style',
         style: styles.textarea,
         onChange: onChange ? (e) => onChange(nativeOnChange ? e : e.target.value) : undefined,
       },
@@ -490,12 +490,12 @@ export const TextArea = forwardRefWithName("TextArea", ({ onChange, autosize = f
  */
 export const ValidatedTextArea = ({ inputProps, error }) => {
   return h(Fragment, [
-    h(TextArea, { className: error ? "error-style" : "focus-style", ...inputProps }),
+    h(TextArea, { className: error ? 'error-style' : 'focus-style', ...inputProps }),
     div(
       {
-        style: { color: colors.danger(), overflowWrap: "break-word", marginTop: "0.75rem" },
-        "aria-live": "assertive",
-        "aria-relevant": "all",
+        style: { color: colors.danger(), overflowWrap: 'break-word', marginTop: '0.75rem' },
+        'aria-live': 'assertive',
+        'aria-relevant': 'all',
       },
       [error]
     ),
@@ -505,15 +505,15 @@ export const ValidatedTextArea = ({ inputProps, error }) => {
 export const DelayedAutocompleteTextArea = withDebouncedChange(withAutocomplete(TextArea));
 
 export const PasteOnlyInput = ({ onPaste, ...props }) => {
-  useLabelAssert("PasteOnlyInput", { ...props, allowId: true });
+  useLabelAssert('PasteOnlyInput', { ...props, allowId: true });
 
   return textarea(
     _.merge(
       {
-        className: "focus-style",
-        style: { ...styles.textarea, resize: "vertical" },
+        className: 'focus-style',
+        style: { ...styles.textarea, resize: 'vertical' },
         onPaste: (e) => {
-          onPaste(e.clipboardData.getData("Text"));
+          onPaste(e.clipboardData.getData('Text'));
         },
       },
       props

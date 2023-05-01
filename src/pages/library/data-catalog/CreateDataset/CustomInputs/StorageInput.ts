@@ -1,13 +1,13 @@
-import * as _ from "lodash/fp";
-import { div, h } from "react-hyperscript-helpers";
+import * as _ from 'lodash/fp';
+import { div, h } from 'react-hyperscript-helpers';
 import {
   azureCloudRegionTypes,
   azureCloudResourceTypes,
   googleCloudRegionTypes,
   googleCloudResourceTypes,
   StorageObject,
-} from "src/libs/ajax/Catalog";
-import { SelectInput, SelectInputProps } from "src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs";
+} from 'src/libs/ajax/Catalog';
+import { SelectInput, SelectInputProps } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
 
 interface StorageInputProps {
   wrapperProps?: any;
@@ -15,7 +15,7 @@ interface StorageInputProps {
   onChange: (storageObject: StorageObject) => void;
 }
 
-const CloudPlatformStorageInput = SelectInput as typeof SelectInput<StorageObject["cloudPlatform"]>;
+const CloudPlatformStorageInput = SelectInput as typeof SelectInput<StorageObject['cloudPlatform']>;
 
 export const StorageInput = ({ wrapperProps, storageObject, onChange }: StorageInputProps) => {
   const inputWrapperProps = {
@@ -30,9 +30,9 @@ export const StorageInput = ({ wrapperProps, storageObject, onChange }: StorageI
       value: storageObject[key],
       options: (() => {
         switch (storageObject.cloudPlatform) {
-          case "gcp":
+          case 'gcp':
             return _.values(gcpTypes);
-          case "azure":
+          case 'azure':
             return _.values(azureTypes);
           default:
             return [];
@@ -43,19 +43,19 @@ export const StorageInput = ({ wrapperProps, storageObject, onChange }: StorageI
   };
 
   return div(wrapperProps, [
-    div({ style: { display: "flex", width: "100%" } }, [
+    div({ style: { display: 'flex', width: '100%' } }, [
       h(CloudPlatformStorageInput, {
-        title: "Cloud Platform",
+        title: 'Cloud Platform',
         wrapperProps: inputWrapperProps,
         value: storageObject.cloudPlatform,
-        options: ["gcp", "azure"],
+        options: ['gcp', 'azure'],
         onChange: (option) => onChange({ cloudPlatform: option!.value }),
       }),
       h(
         SelectInput,
-        generateSelectInputProps("Cloud Resource", "cloudResource", azureCloudResourceTypes, googleCloudResourceTypes)
+        generateSelectInputProps('Cloud Resource', 'cloudResource', azureCloudResourceTypes, googleCloudResourceTypes)
       ),
-      h(SelectInput, generateSelectInputProps("Region", "region", azureCloudRegionTypes, googleCloudRegionTypes)),
+      h(SelectInput, generateSelectInputProps('Region', 'region', azureCloudRegionTypes, googleCloudRegionTypes)),
     ]),
   ]);
 };

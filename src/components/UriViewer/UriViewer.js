@@ -1,29 +1,29 @@
-import filesize from "filesize";
-import _ from "lodash/fp";
-import { Fragment, useState } from "react";
-import { div, h, p, pre, span } from "react-hyperscript-helpers";
-import { requesterPaysWrapper, withRequesterPaysHandler } from "src/components/bucket-utils";
-import { ClipboardButton } from "src/components/ClipboardButton";
-import Collapse from "src/components/Collapse";
-import { Link } from "src/components/common";
-import { FileProvenance } from "src/components/data/data-table-provenance";
-import { getDownloadCommand, parseGsUri } from "src/components/data/data-utils";
-import { spinner } from "src/components/icons";
-import Modal from "src/components/Modal";
-import { Ajax } from "src/libs/ajax";
-import { bucketBrowserUrl } from "src/libs/auth";
-import colors from "src/libs/colors";
-import { isFeaturePreviewEnabled } from "src/libs/feature-previews";
-import { useCancellation, useOnMount, withDisplayName } from "src/libs/react-utils";
-import * as Utils from "src/libs/utils";
+import filesize from 'filesize';
+import _ from 'lodash/fp';
+import { Fragment, useState } from 'react';
+import { div, h, p, pre, span } from 'react-hyperscript-helpers';
+import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils';
+import { ClipboardButton } from 'src/components/ClipboardButton';
+import Collapse from 'src/components/Collapse';
+import { Link } from 'src/components/common';
+import { FileProvenance } from 'src/components/data/data-table-provenance';
+import { getDownloadCommand, parseGsUri } from 'src/components/data/data-utils';
+import { spinner } from 'src/components/icons';
+import Modal from 'src/components/Modal';
+import { Ajax } from 'src/libs/ajax';
+import { bucketBrowserUrl } from 'src/libs/auth';
+import colors from 'src/libs/colors';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
+import * as Utils from 'src/libs/utils';
 
-import els from "./uri-viewer-styles";
-import { isAzureUri, isGsUri } from "./uri-viewer-utils";
-import { UriDownloadButton } from "./UriDownloadButton";
-import { UriPreview } from "./UriPreview";
+import els from './uri-viewer-styles';
+import { isAzureUri, isGsUri } from './uri-viewer-utils';
+import { UriDownloadButton } from './UriDownloadButton';
+import { UriPreview } from './UriPreview';
 
 export const UriViewer = _.flow(
-  withDisplayName("UriViewer"),
+  withDisplayName('UriViewer'),
   requesterPaysWrapper({ onDismiss: ({ onDismiss }) => onDismiss() })
 )(({ workspace, uri, onDismiss, onRequesterPaysError }) => {
   const {
@@ -62,13 +62,13 @@ export const UriViewer = _.flow(
           fileName,
           accessUrl,
         } = await Ajax(signal).DrsUriResolver.getDataObjectMetadata(uri, [
-          "bucket",
-          "name",
-          "size",
-          "timeCreated",
-          "timeUpdated",
-          "fileName",
-          "accessUrl",
+          'bucket',
+          'name',
+          'size',
+          'timeCreated',
+          'timeUpdated',
+          'fileName',
+          'accessUrl',
         ]);
         const metadata = { bucket, name, fileName, size, timeCreated, updated, accessUrl };
         setMetadata(metadata);
@@ -90,14 +90,14 @@ export const UriViewer = _.flow(
 
   const renderTerminalCommand = (downloadCommand) =>
     h(Fragment, [
-      p({ style: { marginBottom: "0.5rem", fontWeight: 500 } }, ["Terminal download command"]),
+      p({ style: { marginBottom: '0.5rem', fontWeight: 500 } }, ['Terminal download command']),
       pre(
         {
           style: {
-            display: "flex",
-            alignItems: "center",
+            display: 'flex',
+            alignItems: 'center',
             margin: 0,
-            padding: "0 0.5rem",
+            padding: '0 0.5rem',
             background: colors.light(0.4),
           },
         },
@@ -105,18 +105,18 @@ export const UriViewer = _.flow(
           span(
             {
               style: {
-                overflowX: "auto",
-                flex: "1 1 0",
-                padding: "1rem 0",
+                overflowX: 'auto',
+                flex: '1 1 0',
+                padding: '1rem 0',
               },
               tabIndex: 0,
             },
-            [downloadCommand || " "]
+            [downloadCommand || ' ']
           ),
           h(ClipboardButton, {
-            "aria-label": "Copy download URL to clipboard",
+            'aria-label': 'Copy download URL to clipboard',
             disabled: !downloadCommand,
-            style: { marginLeft: "1ch" },
+            style: { marginLeft: '1ch' },
             text: downloadCommand,
           }),
         ]
@@ -125,16 +125,16 @@ export const UriViewer = _.flow(
 
   const renderFailureMessage = (loadingError) =>
     h(Fragment, [
-      div({ style: { paddingBottom: "1rem" } }, ["Error loading data. This file does not exist or you do not have permission to view it."]),
-      h(Collapse, { title: "Details" }, [
-        div({ style: { marginTop: "0.5rem", whiteSpace: "pre-wrap", fontFamily: "monospace", overflowWrap: "break-word" } }, [
+      div({ style: { paddingBottom: '1rem' } }, ['Error loading data. This file does not exist or you do not have permission to view it.']),
+      h(Collapse, { title: 'Details' }, [
+        div({ style: { marginTop: '0.5rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
           JSON.stringify(loadingError, null, 2),
         ]),
       ]),
     ]);
 
   const renderLoadingSymbol = (uri) =>
-    h(Fragment, [isGsUri(uri) || isAzureUri(uri) ? "Loading metadata..." : "Resolving DRS file...", spinner({ style: { marginLeft: 4 } })]);
+    h(Fragment, [isGsUri(uri) || isAzureUri(uri) ? 'Loading metadata...' : 'Resolving DRS file...', spinner({ style: { marginLeft: 4 } })]);
 
   if (isAzureUri(uri)) {
     const { azureSasStorageUrl, fileName, lastModified, size } = azureStorage || {};
@@ -148,7 +148,7 @@ export const UriViewer = _.flow(
         title: fileName,
         showCancel: false,
         showX: true,
-        okButton: "Done",
+        okButton: 'Done',
       },
       [
         Utils.cond(
@@ -157,8 +157,8 @@ export const UriViewer = _.flow(
             azureStorage,
             () =>
               h(Fragment, [
-                lastModified && els.cell([els.label("Last Modified"), els.data(new Date(lastModified).toLocaleString())]),
-                els.cell([els.label("File size"), els.data(filesize(size))]),
+                lastModified && els.cell([els.label('Last Modified'), els.data(new Date(lastModified).toLocaleString())]),
+                els.cell([els.label('File size'), els.data(filesize(size))]),
                 h(UriDownloadButton, { uri, metadata, accessUrl, workspace }),
                 renderTerminalCommand(downloadCommand),
               ]),
@@ -176,10 +176,10 @@ export const UriViewer = _.flow(
     Modal,
     {
       onDismiss,
-      title: "File Details",
+      title: 'File Details',
       showCancel: false,
       showX: true,
-      okButton: "Done",
+      okButton: 'Done',
     },
     [
       Utils.cond(
@@ -189,11 +189,11 @@ export const UriViewer = _.flow(
           () =>
             h(Fragment, [
               els.cell([
-                els.label("Filename"),
-                els.data((fileName || _.last(name.split("/"))).split(".").join(".\u200B")), // allow line break on periods
+                els.label('Filename'),
+                els.data((fileName || _.last(name.split('/'))).split('.').join('.\u200B')), // allow line break on periods
               ]),
               h(UriPreview, { metadata, googleProject }),
-              els.cell([els.label("File size"), els.data(filesize(size))]),
+              els.cell([els.label('File size'), els.data(filesize(size))]),
               !accessUrl &&
                 !!gsUri &&
                 els.cell([
@@ -203,7 +203,7 @@ export const UriViewer = _.flow(
                       ...Utils.newTabLinkProps,
                       href: bucketBrowserUrl(gsUri.match(/gs:\/\/(.+)\//)[1]),
                     },
-                    ["View this file in the Google Cloud Storage Browser"]
+                    ['View this file in the Google Cloud Storage Browser']
                   ),
                 ]),
               h(UriDownloadButton, { uri, metadata, accessUrl, workspace }),
@@ -212,18 +212,18 @@ export const UriViewer = _.flow(
                 h(
                   Collapse,
                   {
-                    title: "More Information",
-                    style: { marginTop: "2rem" },
-                    summaryStyle: { marginBottom: "0.5rem" },
+                    title: 'More Information',
+                    style: { marginTop: '2rem' },
+                    summaryStyle: { marginBottom: '0.5rem' },
                   },
                   [
-                    timeCreated && els.cell([els.label("Created"), els.data(new Date(timeCreated).toLocaleString())]),
-                    updated && els.cell([els.label("Updated"), els.data(new Date(updated).toLocaleString())]),
-                    isFeaturePreviewEnabled("data-table-provenance") &&
-                      els.cell([els.label("Where did this file come from?"), els.data([h(FileProvenance, { workspace, fileUrl: uri })])]),
+                    timeCreated && els.cell([els.label('Created'), els.data(new Date(timeCreated).toLocaleString())]),
+                    updated && els.cell([els.label('Updated'), els.data(new Date(updated).toLocaleString())]),
+                    isFeaturePreviewEnabled('data-table-provenance') &&
+                      els.cell([els.label('Where did this file come from?'), els.data([h(FileProvenance, { workspace, fileUrl: uri })])]),
                   ]
                 ),
-              div({ style: { fontSize: 10 } }, ["* Estimated. Download cost may be higher in China or Australia."]),
+              div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.']),
             ]),
         ],
         () => renderLoadingSymbol(uri)

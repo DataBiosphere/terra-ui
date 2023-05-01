@@ -1,14 +1,14 @@
-import { CSSProperties, useState } from "react";
+import { CSSProperties, useState } from 'react';
 import {
   DropzoneOptions as ReactDropzoneOptions,
   DropzoneState as ReactDropzoneState,
   useDropzone,
-} from "react-dropzone";
-import { div, input } from "react-hyperscript-helpers";
+} from 'react-dropzone';
+import { div, input } from 'react-hyperscript-helpers';
 
-type DropzoneState = Omit<ReactDropzoneState, "getInputProps" | "getRootProps" | "open"> & {
+type DropzoneState = Omit<ReactDropzoneState, 'getInputProps' | 'getRootProps' | 'open'> & {
   dragging: boolean;
-  openUploader: ReactDropzoneState["open"];
+  openUploader: ReactDropzoneState['open'];
 };
 
 type DropzoneProps = ReactDropzoneOptions & {
@@ -58,7 +58,7 @@ const Dropzone = ({
 
   return div(getRootProps({ tabIndex: -1, style: { ...style, ...(dragging ? activeStyle : {}) } }), [
     // the input is disabled by react-dropzone when noClick is true, which makes it drag only, so we couldn't even open it manually
-    input({ ...getInputProps({ disabled, "aria-hidden": true, "data-testid": "dropzone-upload" }) }),
+    input({ ...getInputProps({ disabled, 'aria-hidden': true, 'data-testid': 'dropzone-upload' }) }),
     children({ dragging, openUploader, ...dropProps }),
   ]);
 };

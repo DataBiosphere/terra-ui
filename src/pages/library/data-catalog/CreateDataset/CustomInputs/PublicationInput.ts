@@ -1,11 +1,11 @@
-import { div, h } from "react-hyperscript-helpers";
-import { Publication } from "src/libs/ajax/Catalog";
-import { FormLabel } from "src/libs/forms";
+import { div, h } from 'react-hyperscript-helpers';
+import { Publication } from 'src/libs/ajax/Catalog';
+import { FormLabel } from 'src/libs/forms';
 import {
   generateIndividualInputPropsForObjectField,
   StringInput,
-} from "src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs";
-import { validate } from "validate.js";
+} from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
+import { validate } from 'validate.js';
 
 export interface PublicationInputProps {
   onChange: (publication: Publication) => void;
@@ -23,7 +23,7 @@ export const PublicationInput = ({
   required = false,
 }: PublicationInputProps) => {
   const publicationConstraints = {
-    "dcat:accessURL": {
+    'dcat:accessURL': {
       url: true,
     },
   };
@@ -31,13 +31,13 @@ export const PublicationInput = ({
 
   return div(wrapperProps, [
     title && h(FormLabel, { required }, [title]),
-    div({ style: { display: "flex", width: "100%" } }, [
+    div({ style: { display: 'flex', width: '100%' } }, [
       h(
         StringInput,
         generateIndividualInputPropsForObjectField(
-          "Title",
-          "dct:title",
-          "Enter a publication title",
+          'Title',
+          'dct:title',
+          'Enter a publication title',
           publication,
           onChange,
           errors,
@@ -47,9 +47,9 @@ export const PublicationInput = ({
       h(
         StringInput,
         generateIndividualInputPropsForObjectField(
-          "Access URL",
-          "dcat:accessURL",
-          "Enter an access URL",
+          'Access URL',
+          'dcat:accessURL',
+          'Enter an access URL',
           publication,
           onChange,
           errors,

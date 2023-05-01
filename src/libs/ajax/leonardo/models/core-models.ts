@@ -1,4 +1,4 @@
-import { CloudProvider } from "src/libs/workspace-utils";
+import { CloudProvider } from 'src/libs/workspace-utils';
 
 export interface AuditInfo {
   creator: string;

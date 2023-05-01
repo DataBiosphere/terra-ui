@@ -1,26 +1,26 @@
-import { Ajax } from "src/libs/ajax";
-import { AnalysisProvider } from "src/libs/ajax/analysis-providers/AnalysisProvider";
-import { WorkspaceInfo } from "src/libs/workspace-utils";
-import { AbsolutePath } from "src/pages/workspaces/workspace/analysis/utils/file-utils";
-import { runtimeToolLabels } from "src/pages/workspaces/workspace/analysis/utils/tool-utils";
-import { asMockedFn } from "src/testing/test-utils";
+import { Ajax } from 'src/libs/ajax';
+import { AnalysisProvider } from 'src/libs/ajax/analysis-providers/AnalysisProvider';
+import { WorkspaceInfo } from 'src/libs/workspace-utils';
+import { AbsolutePath } from 'src/pages/workspaces/workspace/analysis/utils/file-utils';
+import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
+import { asMockedFn } from 'src/testing/test-utils';
 
-type AjaxExports = typeof import("src/libs/ajax");
-jest.mock("src/libs/ajax", (): AjaxExports => {
+type AjaxExports = typeof import('src/libs/ajax');
+jest.mock('src/libs/ajax', (): AjaxExports => {
   return {
-    ...jest.requireActual("src/libs/ajax"),
+    ...jest.requireActual('src/libs/ajax'),
     Ajax: jest.fn(),
   };
 });
 
 type AjaxContract = ReturnType<typeof Ajax>;
-type AjaxBucketsContract = AjaxContract["Buckets"];
-type AjaxBucketsAnalysisContract = ReturnType<AjaxContract["Buckets"]["analysis"]>;
-type AjaxAzureStorageContract = AjaxContract["AzureStorage"];
-type AjaxAzureStorageBlobContract = ReturnType<AjaxAzureStorageContract["blob"]>;
+type AjaxBucketsContract = AjaxContract['Buckets'];
+type AjaxBucketsAnalysisContract = ReturnType<AjaxContract['Buckets']['analysis']>;
+type AjaxAzureStorageContract = AjaxContract['AzureStorage'];
+type AjaxAzureStorageBlobContract = ReturnType<AjaxAzureStorageContract['blob']>;
 
-describe("AnalysisProvider - listAnalyses", () => {
-  it("handles GCP workspace", async () => {
+describe('AnalysisProvider - listAnalyses', () => {
+  it('handles GCP workspace', async () => {
     // Arrange
     const mockBuckets: Partial<AjaxBucketsContract> = {
       listAnalyses: jest.fn(),
@@ -33,9 +33,9 @@ describe("AnalysisProvider - listAnalyses", () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     const workspaceInfo: Partial<WorkspaceInfo> = {
-      googleProject: "GoogleProject123",
-      bucketName: "Bucket123",
-      cloudPlatform: "Gcp",
+      googleProject: 'GoogleProject123',
+      bucketName: 'Bucket123',
+      cloudPlatform: 'Gcp',
     };
 
     // Act
@@ -44,10 +44,10 @@ describe("AnalysisProvider - listAnalyses", () => {
     // Assert
     expect(results).toEqual([]);
     expect(mockBuckets.listAnalyses).toBeCalledTimes(1);
-    expect(mockBuckets.listAnalyses).toBeCalledWith("GoogleProject123", "Bucket123");
+    expect(mockBuckets.listAnalyses).toBeCalledWith('GoogleProject123', 'Bucket123');
   });
 
-  it("handles Azure workspace", async () => {
+  it('handles Azure workspace', async () => {
     // Arrange
     const mockAzureStorage: Partial<AjaxAzureStorageContract> = {
       listNotebooks: jest.fn(),
@@ -60,7 +60,7 @@ describe("AnalysisProvider - listAnalyses", () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     const workspaceInfo: Partial<WorkspaceInfo> = {
-      workspaceId: "Workspace123",
+      workspaceId: 'Workspace123',
     };
 
     // Act
@@ -69,12 +69,12 @@ describe("AnalysisProvider - listAnalyses", () => {
     // Assert
     expect(results).toEqual([]);
     expect(mockAzureStorage.listNotebooks).toBeCalledTimes(1);
-    expect(mockAzureStorage.listNotebooks).toBeCalledWith("Workspace123");
+    expect(mockAzureStorage.listNotebooks).toBeCalledWith('Workspace123');
   });
 });
 
-describe("AnalysisProvider - copyAnalysis", () => {
-  it("handles GCP workspace", async () => {
+describe('AnalysisProvider - copyAnalysis', () => {
+  it('handles GCP workspace', async () => {
     // Arrange
     const mockBuckets: Partial<AjaxBucketsContract> = {
       analysis: jest.fn(),
@@ -95,37 +95,37 @@ describe("AnalysisProvider - copyAnalysis", () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     const workspaceInfo: Partial<WorkspaceInfo> = {
-      googleProject: "GoogleProject123",
-      bucketName: "Bucket123",
-      cloudPlatform: "Gcp",
+      googleProject: 'GoogleProject123',
+      bucketName: 'Bucket123',
+      cloudPlatform: 'Gcp',
     };
     const targetWorkspace: Partial<WorkspaceInfo> = {
-      bucketName: "TargetBucket456",
+      bucketName: 'TargetBucket456',
     };
 
     // Act
     const result = await AnalysisProvider.copyAnalysis(
       workspaceInfo as WorkspaceInfo,
-      "PrintName123.jpt",
+      'PrintName123.jpt',
       runtimeToolLabels.Jupyter,
       targetWorkspace as WorkspaceInfo,
-      "NewName123"
+      'NewName123'
     );
 
     // Assert
     expect(result).toEqual(undefined);
     expect(mockBuckets.analysis).toBeCalledTimes(1);
     expect(mockBuckets.analysis).toBeCalledWith(
-      "GoogleProject123",
-      "Bucket123",
-      "PrintName123.jpt",
+      'GoogleProject123',
+      'Bucket123',
+      'PrintName123.jpt',
       runtimeToolLabels.Jupyter
     );
     expect(watchCopy).toBeCalledTimes(1);
-    expect(watchCopy).toBeCalledWith("NewName123.jpt", "TargetBucket456", false);
+    expect(watchCopy).toBeCalledWith('NewName123.jpt', 'TargetBucket456', false);
   });
 
-  it("handles Azure workspace", async () => {
+  it('handles Azure workspace', async () => {
     // Arrange
     const mockAzureStorage: Partial<AjaxAzureStorageContract> = {
       blob: jest.fn(),
@@ -146,33 +146,33 @@ describe("AnalysisProvider - copyAnalysis", () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     const workspaceInfo: Partial<WorkspaceInfo> = {
-      workspaceId: "Workspace123",
-      bucketName: "Bucket123",
+      workspaceId: 'Workspace123',
+      bucketName: 'Bucket123',
     };
     const targetWorkspace: Partial<WorkspaceInfo> = {
-      workspaceId: "Workspace456",
+      workspaceId: 'Workspace456',
     };
 
     // Act
     const result = await AnalysisProvider.copyAnalysis(
       workspaceInfo as WorkspaceInfo,
-      "PrintName123.jpt",
+      'PrintName123.jpt',
       runtimeToolLabels.Jupyter,
       targetWorkspace as WorkspaceInfo,
-      "NewName123"
+      'NewName123'
     );
 
     // Assert
     expect(result).toEqual(undefined);
     expect(mockAzureStorage.blob).toBeCalledTimes(1);
-    expect(mockAzureStorage.blob).toBeCalledWith("Workspace123", "PrintName123.jpt");
+    expect(mockAzureStorage.blob).toBeCalledWith('Workspace123', 'PrintName123.jpt');
     expect(watchCopy).toBeCalledTimes(1);
-    expect(watchCopy).toBeCalledWith("NewName123", "Workspace456");
+    expect(watchCopy).toBeCalledWith('NewName123', 'Workspace456');
   });
 });
 
-describe("AnalysisProvider - createAnalysis", () => {
-  it("handles GCP workspace", async () => {
+describe('AnalysisProvider - createAnalysis', () => {
+  it('handles GCP workspace', async () => {
     // Arrange
     const mockBuckets: Partial<AjaxBucketsContract> = {
       analysis: jest.fn(),
@@ -193,17 +193,17 @@ describe("AnalysisProvider - createAnalysis", () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     const workspaceInfo: Partial<WorkspaceInfo> = {
-      googleProject: "GoogleProject123",
-      bucketName: "Bucket123",
-      cloudPlatform: "Gcp",
+      googleProject: 'GoogleProject123',
+      bucketName: 'Bucket123',
+      cloudPlatform: 'Gcp',
     };
 
     // Act
     const result = await AnalysisProvider.createAnalysis(
       workspaceInfo as WorkspaceInfo,
-      "PrintName123.ipynb",
+      'PrintName123.ipynb',
       runtimeToolLabels.Jupyter,
-      "MyIpynbContents"
+      'MyIpynbContents'
     );
 
     // createAnalysis: (workspaceInfo: WorkspaceInfo,
@@ -213,16 +213,16 @@ describe("AnalysisProvider - createAnalysis", () => {
     expect(result).toEqual(undefined);
     expect(mockBuckets.analysis).toBeCalledTimes(1);
     expect(mockBuckets.analysis).toBeCalledWith(
-      "GoogleProject123",
-      "Bucket123",
-      "PrintName123.ipynb",
+      'GoogleProject123',
+      'Bucket123',
+      'PrintName123.ipynb',
       runtimeToolLabels.Jupyter
     );
     expect(watchCreate).toBeCalledTimes(1);
-    expect(watchCreate).toBeCalledWith("MyIpynbContents");
+    expect(watchCreate).toBeCalledWith('MyIpynbContents');
   });
 
-  it("handles Azure workspace", async () => {
+  it('handles Azure workspace', async () => {
     // Arrange
     const mockAzureStorage: Partial<AjaxAzureStorageContract> = {
       blob: jest.fn(),
@@ -243,29 +243,29 @@ describe("AnalysisProvider - createAnalysis", () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     const workspaceInfo: Partial<WorkspaceInfo> = {
-      workspaceId: "Workspace123",
-      bucketName: "Bucket123",
+      workspaceId: 'Workspace123',
+      bucketName: 'Bucket123',
     };
 
     // Act
     const result = await AnalysisProvider.createAnalysis(
       workspaceInfo as WorkspaceInfo,
-      "PrintName123.ipynb",
+      'PrintName123.ipynb',
       runtimeToolLabels.Jupyter,
-      "MyIpynbContents"
+      'MyIpynbContents'
     );
 
     // Assert
     expect(result).toEqual(undefined);
     expect(mockAzureStorage.blob).toBeCalledTimes(1);
-    expect(mockAzureStorage.blob).toBeCalledWith("Workspace123", "PrintName123.ipynb");
+    expect(mockAzureStorage.blob).toBeCalledWith('Workspace123', 'PrintName123.ipynb');
     expect(watchCreate).toBeCalledTimes(1);
-    expect(watchCreate).toBeCalledWith("MyIpynbContents");
+    expect(watchCreate).toBeCalledWith('MyIpynbContents');
   });
 });
 
-describe("AnalysisProvider - deleteAnalysis", () => {
-  it("handles GCP workspace", async () => {
+describe('AnalysisProvider - deleteAnalysis', () => {
+  it('handles GCP workspace', async () => {
     // Arrange
     const mockBuckets: Partial<AjaxBucketsContract> = {
       analysis: jest.fn(),
@@ -286,15 +286,15 @@ describe("AnalysisProvider - deleteAnalysis", () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     const workspaceInfo: Partial<WorkspaceInfo> = {
-      googleProject: "GoogleProject123",
-      bucketName: "Bucket123",
-      cloudPlatform: "Gcp",
+      googleProject: 'GoogleProject123',
+      bucketName: 'Bucket123',
+      cloudPlatform: 'Gcp',
     };
 
     // Act
     const result = await AnalysisProvider.deleteAnalysis(
       workspaceInfo as WorkspaceInfo,
-      "myDir/PrintName123.ipynb" as AbsolutePath
+      'myDir/PrintName123.ipynb' as AbsolutePath
     );
 
     // createAnalysis: (workspaceInfo: WorkspaceInfo,
@@ -304,15 +304,15 @@ describe("AnalysisProvider - deleteAnalysis", () => {
     expect(result).toEqual(undefined);
     expect(mockBuckets.analysis).toBeCalledTimes(1);
     expect(mockBuckets.analysis).toBeCalledWith(
-      "GoogleProject123",
-      "Bucket123",
-      "PrintName123.ipynb",
+      'GoogleProject123',
+      'Bucket123',
+      'PrintName123.ipynb',
       runtimeToolLabels.Jupyter
     );
     expect(watchDelete).toBeCalledTimes(1);
   });
 
-  it("handles Azure workspace", async () => {
+  it('handles Azure workspace', async () => {
     // Arrange
     const mockAzureStorage: Partial<AjaxAzureStorageContract> = {
       blob: jest.fn(),
@@ -333,20 +333,20 @@ describe("AnalysisProvider - deleteAnalysis", () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     const workspaceInfo: Partial<WorkspaceInfo> = {
-      workspaceId: "Workspace123",
-      bucketName: "Bucket123",
+      workspaceId: 'Workspace123',
+      bucketName: 'Bucket123',
     };
 
     // Act
     const result = await AnalysisProvider.deleteAnalysis(
       workspaceInfo as WorkspaceInfo,
-      "myDir/PrintName123.ipynb" as AbsolutePath
+      'myDir/PrintName123.ipynb' as AbsolutePath
     );
 
     // Assert
     expect(result).toEqual(undefined);
     expect(mockAzureStorage.blob).toBeCalledTimes(1);
-    expect(mockAzureStorage.blob).toBeCalledWith("Workspace123", "PrintName123.ipynb");
+    expect(mockAzureStorage.blob).toBeCalledWith('Workspace123', 'PrintName123.ipynb');
     expect(watchDelete).toBeCalledTimes(1);
   });
 });

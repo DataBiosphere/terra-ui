@@ -1,23 +1,23 @@
-import { Fragment, useState } from "react";
-import { div, h, img } from "react-hyperscript-helpers";
-import { Ajax } from "src/libs/ajax";
-import colors from "src/libs/colors";
-import { useCancellation, useOnMount } from "src/libs/react-utils";
-import * as Utils from "src/libs/utils";
+import { Fragment, useState } from 'react';
+import { div, h, img } from 'react-hyperscript-helpers';
+import { Ajax } from 'src/libs/ajax';
+import colors from 'src/libs/colors';
+import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import * as Utils from 'src/libs/utils';
 
-import els from "./uri-viewer-styles";
+import els from './uri-viewer-styles';
 
 const styles = {
   previewText: {
-    whiteSpace: "pre",
-    fontFamily: "Menlo, monospace",
+    whiteSpace: 'pre',
+    fontFamily: 'Menlo, monospace',
     fontSize: 12,
-    overflowY: "auto",
+    overflowY: 'auto',
     maxHeight: 206,
-    marginTop: "0.5rem",
-    padding: "0.5rem",
+    marginTop: '0.5rem',
+    padding: '0.5rem',
     background: colors.dark(0.25),
-    borderRadius: "0.2rem",
+    borderRadius: '0.2rem',
   },
 };
 
@@ -62,16 +62,16 @@ export const UriPreview = ({ metadata, metadata: { bucket, name }, googleProject
         isFilePreviewable(metadata),
         () =>
           h(Fragment, [
-            els.label("Preview"),
+            els.label('Preview'),
             Utils.cond(
-              [preview === null, () => "Unable to load preview."],
-              [preview === undefined, () => "Loading preview..."],
+              [preview === null, () => 'Unable to load preview.'],
+              [preview === undefined, () => 'Loading preview...'],
               [isImage(metadata), () => img({ src: preview, width: 400 })],
               () => div({ style: styles.previewText }, [preview])
             ),
           ]),
       ],
-      [isImage(metadata), () => els.label("Image is too large to preview")],
+      [isImage(metadata), () => els.label('Image is too large to preview')],
       () => els.label("File can't be previewed.")
     ),
   ]);

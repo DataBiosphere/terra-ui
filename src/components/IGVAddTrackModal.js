@@ -1,24 +1,24 @@
-import _ from "lodash/fp";
-import { Fragment, useState } from "react";
-import { form, h, label } from "react-hyperscript-helpers";
-import { ButtonPrimary, IdContainer } from "src/components/common";
-import { parseGsUri } from "src/components/data/data-utils";
-import { TextInput, ValidatedInput } from "src/components/input";
-import Modal from "src/components/Modal";
-import * as Utils from "src/libs/utils";
+import _ from 'lodash/fp';
+import { Fragment, useState } from 'react';
+import { form, h, label } from 'react-hyperscript-helpers';
+import { ButtonPrimary, IdContainer } from 'src/components/common';
+import { parseGsUri } from 'src/components/data/data-utils';
+import { TextInput, ValidatedInput } from 'src/components/input';
+import Modal from 'src/components/Modal';
+import * as Utils from 'src/libs/utils';
 
 const IGVAddTrackModal = ({ onDismiss, onSubmitTrack }) => {
   const [value, setValue] = useState({
-    name: "",
-    url: "",
-    indexUrl: "",
+    name: '',
+    url: '',
+    indexUrl: '',
   });
 
   const [urlInputTouched, setUrlInputTouched] = useState(false);
 
   const urlError = Utils.cond(
-    [!value.url, () => "A URL is required"],
-    [_.isEmpty(parseGsUri(value.url)), () => "A gs:// URL is required"],
+    [!value.url, () => 'A URL is required'],
+    [_.isEmpty(parseGsUri(value.url)), () => 'A gs:// URL is required'],
     () => null
   );
 
@@ -41,14 +41,14 @@ const IGVAddTrackModal = ({ onDismiss, onSubmitTrack }) => {
   return h(
     Modal,
     {
-      title: "Add track",
+      title: 'Add track',
       okButton: h(
         ButtonPrimary,
         {
           disabled: !isTrackValid,
           onClick: submit,
         },
-        ["Add track"]
+        ['Add track']
       ),
       onDismiss,
     },
@@ -67,15 +67,15 @@ const IGVAddTrackModal = ({ onDismiss, onSubmitTrack }) => {
                 label(
                   {
                     htmlFor: id,
-                    style: { display: "block", margin: "0.5rem 0 0.25rem" },
+                    style: { display: 'block', margin: '0.5rem 0 0.25rem' },
                   },
-                  ["Name (optional)"]
+                  ['Name (optional)']
                 ),
                 h(TextInput, {
                   id,
-                  placeholder: "My track",
+                  placeholder: 'My track',
                   value: value.name,
-                  onChange: (name) => setValue(_.set("name", name)),
+                  onChange: (name) => setValue(_.set('name', name)),
                 }),
               ]),
           ]),
@@ -86,17 +86,17 @@ const IGVAddTrackModal = ({ onDismiss, onSubmitTrack }) => {
                 label(
                   {
                     htmlFor: id,
-                    style: { display: "block", margin: "0.5rem 0 0.25rem" },
+                    style: { display: 'block', margin: '0.5rem 0 0.25rem' },
                   },
-                  ["URL (required)"]
+                  ['URL (required)']
                 ),
                 h(ValidatedInput, {
                   inputProps: {
                     id,
-                    placeholder: "gs://my-bucket/file.bam",
+                    placeholder: 'gs://my-bucket/file.bam',
                     value: value.url,
                     onChange: (url) => {
-                      setValue(_.set("url", url));
+                      setValue(_.set('url', url));
                       setUrlInputTouched(true);
                     },
                   },
@@ -111,15 +111,15 @@ const IGVAddTrackModal = ({ onDismiss, onSubmitTrack }) => {
                 label(
                   {
                     htmlFor: id,
-                    style: { display: "block", margin: "0.5rem 0 0.25rem" },
+                    style: { display: 'block', margin: '0.5rem 0 0.25rem' },
                   },
-                  ["Index URL (optional)"]
+                  ['Index URL (optional)']
                 ),
                 h(TextInput, {
                   id,
-                  placeholder: "gs://my-bucket/file.bai",
+                  placeholder: 'gs://my-bucket/file.bai',
                   value: value.indexUrl,
-                  onChange: (indexUrl) => setValue(_.set("indexUrl", indexUrl)),
+                  onChange: (indexUrl) => setValue(_.set('indexUrl', indexUrl)),
                 }),
               ]),
           ]),

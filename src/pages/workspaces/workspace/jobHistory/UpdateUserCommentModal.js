@@ -1,10 +1,10 @@
-import _ from "lodash/fp";
-import { useState } from "react";
-import { h } from "react-hyperscript-helpers";
-import { ButtonPrimary } from "src/components/common";
-import { ValidatedTextArea } from "src/components/input";
-import Modal from "src/components/Modal";
-import { Ajax } from "src/libs/ajax";
+import _ from 'lodash/fp';
+import { useState } from 'react';
+import { h } from 'react-hyperscript-helpers';
+import { ButtonPrimary } from 'src/components/common';
+import { ValidatedTextArea } from 'src/components/input';
+import Modal from 'src/components/Modal';
+import { Ajax } from 'src/libs/ajax';
 
 /**
  * Stores the new comment, validating its length.
@@ -45,7 +45,7 @@ const UpdateUserCommentModal = ({ onDismiss, onSuccess, workspace: { namespace, 
   return h(
     Modal,
     {
-      title: !updating ? "Comment" : "Updating Comment",
+      title: !updating ? 'Comment' : 'Updating Comment',
       onDismiss,
       showCancel: !updating,
       okButton: h(
@@ -58,7 +58,7 @@ const UpdateUserCommentModal = ({ onDismiss, onSuccess, workspace: { namespace, 
             doUpdate();
           },
         },
-        ["Save"]
+        ['Save']
       ),
     },
     [
@@ -66,8 +66,8 @@ const UpdateUserCommentModal = ({ onDismiss, onSuccess, workspace: { namespace, 
         inputProps: {
           value: updateComment,
           onChange: (v) => commentValidation(v, setUpdateComment, setUserCommentError),
-          "aria-label": "Enter comment for the submission",
-          placeholder: "Enter comment for the submission",
+          'aria-label': 'Enter comment for the submission',
+          placeholder: 'Enter comment for the submission',
           style: { height: 100 },
         },
         error: userCommentError,

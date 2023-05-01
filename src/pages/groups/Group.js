@@ -1,8 +1,8 @@
-import _ from "lodash/fp";
-import { useEffect, useState } from "react";
-import { div, h, h2 } from "react-hyperscript-helpers";
-import { spinnerOverlay } from "src/components/common";
-import FooterWrapper from "src/components/FooterWrapper";
+import _ from 'lodash/fp';
+import { useEffect, useState } from 'react';
+import { div, h, h2 } from 'react-hyperscript-helpers';
+import { spinnerOverlay } from 'src/components/common';
+import FooterWrapper from 'src/components/FooterWrapper';
 import {
   AdminNotifierCheckbox,
   DeleteUserModal,
@@ -11,21 +11,21 @@ import {
   MemberCardHeaders,
   NewUserCard,
   NewUserModal,
-} from "src/components/group-common";
-import { DelayedSearchInput } from "src/components/input";
-import { PageBox, PageBoxVariants } from "src/components/PageBox";
-import TopBar from "src/components/TopBar";
-import { Ajax } from "src/libs/ajax";
-import { withErrorReporting } from "src/libs/error";
-import * as Nav from "src/libs/nav";
-import { useCancellation, useOnMount } from "src/libs/react-utils";
-import * as StateHistory from "src/libs/state-history";
-import * as Style from "src/libs/style";
-import * as Utils from "src/libs/utils";
+} from 'src/components/group-common';
+import { DelayedSearchInput } from 'src/components/input';
+import { PageBox, PageBoxVariants } from 'src/components/PageBox';
+import TopBar from 'src/components/TopBar';
+import { Ajax } from 'src/libs/ajax';
+import { withErrorReporting } from 'src/libs/error';
+import * as Nav from 'src/libs/nav';
+import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import * as StateHistory from 'src/libs/state-history';
+import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
 
 const GroupDetails = ({ groupName }) => {
   // State
-  const [filter, setFilter] = useState(() => StateHistory.get().filter || "");
+  const [filter, setFilter] = useState(() => StateHistory.get().filter || '');
   const [members, setMembers] = useState(() => StateHistory.get().members || null);
   const [creatingNewUser, setCreatingNewUser] = useState(false);
   const [editingUser, setEditingUser] = useState(false);
@@ -34,13 +34,13 @@ const GroupDetails = ({ groupName }) => {
   const [loading, setLoading] = useState(false);
   const [adminCanEdit, setAdminCanEdit] = useState(false);
   const [allowAccessRequests, setAllowAccessRequests] = useState(false);
-  const [sort, setSort] = useState({ field: "email", direction: "asc" });
+  const [sort, setSort] = useState({ field: 'email', direction: 'asc' });
 
   const signal = useCancellation();
 
   // Helpers
   const refresh = _.flow(
-    withErrorReporting("Error loading group list"),
+    withErrorReporting('Error loading group list'),
     Utils.withBusyState(setLoading)
   )(async () => {
     setCreatingNewUser(false);
@@ -52,14 +52,14 @@ const GroupDetails = ({ groupName }) => {
     const [membersEmails, adminsEmails, allowAccessRequests] = await Promise.all([
       groupAjax.listMembers(),
       groupAjax.listAdmins(),
-      groupAjax.getPolicy("admin-notifier"),
+      groupAjax.getPolicy('admin-notifier'),
     ]);
 
     const rolesByMember = _.mergeAllWith(
       (a, b) => {
         if (_.isArray(a)) return a.concat(b);
       },
-      [_.fromPairs(_.map((email) => [email, ["admin"]], adminsEmails)), _.fromPairs(_.map((email) => [email, ["member"]], membersEmails))]
+      [_.fromPairs(_.map((email) => [email, ['admin']], adminsEmails)), _.fromPairs(_.map((email) => [email, ['member']], membersEmails))]
     );
     const members = _.flow(
       _.toPairs,
@@ -82,42 +82,42 @@ const GroupDetails = ({ groupName }) => {
 
   // Render
   return h(FooterWrapper, [
-    h(TopBar, { title: "Groups", href: Nav.getLink("groups") }, [
+    h(TopBar, { title: 'Groups', href: Nav.getLink('groups') }, [
       h(DelayedSearchInput, {
-        "aria-label": "Search group",
-        style: { marginLeft: "2rem", width: 500 },
-        placeholder: "SEARCH GROUP",
+        'aria-label': 'Search group',
+        style: { marginLeft: '2rem', width: 500 },
+        placeholder: 'SEARCH GROUP',
         onChange: setFilter,
         value: filter,
       }),
     ]),
-    h(PageBox, { role: "main", style: { flexGrow: 1 }, variant: PageBoxVariants.light }, [
+    h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.light }, [
       div({ style: Style.cardList.toolbarContainer }, [
-        h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: "uppercase" } }, [`Group Management: ${groupName}`]),
+        h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' } }, [`Group Management: ${groupName}`]),
       ]),
       h(AdminNotifierCheckbox, {
         checked: allowAccessRequests,
         onChange: _.flow(
-          withErrorReporting("Error changing access request permission"),
+          withErrorReporting('Error changing access request permission'),
           Utils.withBusyState(setUpdating)
         )(async () => {
-          await Ajax().Groups.group(groupName).setPolicy("admin-notifier", !allowAccessRequests);
+          await Ajax().Groups.group(groupName).setPolicy('admin-notifier', !allowAccessRequests);
           return refresh();
         }),
       }),
-      div({ style: { marginTop: "1rem" } }, [
+      div({ style: { marginTop: '1rem' } }, [
         h(NewUserCard, {
           onClick: () => setCreatingNewUser(true),
         }),
-        div({ role: "table", "aria-label": `users in group ${groupName}` }, [
+        div({ role: 'table', 'aria-label': `users in group ${groupName}` }, [
           h(MemberCardHeaders, { sort, onSort: setSort }),
           div(
-            { style: { flexGrow: 1, marginTop: "1rem" } },
+            { style: { flexGrow: 1, marginTop: '1rem' } },
             _.map(
               (member) => {
                 return h(MemberCard, {
-                  adminLabel: "admin",
-                  userLabel: "member",
+                  adminLabel: 'admin',
+                  userLabel: 'member',
                   member,
                   adminCanEdit,
                   onEdit: () => setEditingUser(member),
@@ -137,9 +137,9 @@ const GroupDetails = ({ groupName }) => {
       ]),
       creatingNewUser &&
         h(NewUserModal, {
-          adminLabel: "admin",
-          userLabel: "member",
-          title: "Add user to Terra Group",
+          adminLabel: 'admin',
+          userLabel: 'member',
+          title: 'Add user to Terra Group',
           addUnregisteredUser: true,
           addFunction: Ajax().Groups.group(groupName).addUser,
           onDismiss: () => setCreatingNewUser(false),
@@ -147,8 +147,8 @@ const GroupDetails = ({ groupName }) => {
         }),
       editingUser &&
         h(EditUserModal, {
-          adminLabel: "admin",
-          userLabel: "member",
+          adminLabel: 'admin',
+          userLabel: 'member',
           user: editingUser,
           saveFunction: Ajax().Groups.group(groupName).changeUserRoles,
           onDismiss: () => setEditingUser(false),
@@ -159,7 +159,7 @@ const GroupDetails = ({ groupName }) => {
           userEmail: deletingUser.email,
           onDismiss: () => setDeletingUser(false),
           onSubmit: _.flow(
-            withErrorReporting("Error removing member from group"),
+            withErrorReporting('Error removing member from group'),
             Utils.withBusyState(setUpdating)
           )(async () => {
             setDeletingUser(false);
@@ -174,8 +174,8 @@ const GroupDetails = ({ groupName }) => {
 
 export const navPaths = [
   {
-    name: "group",
-    path: "/groups/:groupName",
+    name: 'group',
+    path: '/groups/:groupName',
     component: GroupDetails,
     title: ({ groupName }) => `Group Management - ${groupName}`,
   },

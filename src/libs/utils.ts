@@ -1,13 +1,13 @@
-import { isToday, isYesterday } from "date-fns";
-import { differenceInCalendarMonths, differenceInSeconds, parseJSON } from "date-fns/fp";
-import _ from "lodash/fp";
-import * as qs from "qs";
-import { div, span } from "react-hyperscript-helpers";
-import { AnyPromiseFn, GenericPromiseFn } from "src/libs/type-utils/general-types";
-import { safeCurry } from "src/libs/type-utils/lodash-fp-helpers";
-import { v4 as uuid } from "uuid";
+import { isToday, isYesterday } from 'date-fns';
+import { differenceInCalendarMonths, differenceInSeconds, parseJSON } from 'date-fns/fp';
+import _ from 'lodash/fp';
+import * as qs from 'qs';
+import { div, span } from 'react-hyperscript-helpers';
+import { AnyPromiseFn, GenericPromiseFn } from 'src/libs/type-utils/general-types';
+import { safeCurry } from 'src/libs/type-utils/lodash-fp-helpers';
+import { v4 as uuid } from 'uuid';
 
-import { getCloudProviderFromWorkspace } from "./workspace-utils";
+import { getCloudProviderFromWorkspace } from './workspace-utils';
 
 export interface Subscribable<T extends any[]> {
   subscribe: (fn: (...args: T) => void) => { unsubscribe: () => void };
@@ -59,26 +59,26 @@ export const atom = <T = any>(initialValue: T): Atom<T> => {
   return { subscribe, get, set, update: (fn) => set(fn(get())), reset: () => set(initialValue) };
 };
 
-const dateFormat = new Intl.DateTimeFormat("default", { day: "numeric", month: "short", year: "numeric" });
-const monthYearFormat = new Intl.DateTimeFormat("default", { month: "short", year: "numeric" });
-const completeDateFormat = new Intl.DateTimeFormat("default", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-  hour: "numeric",
-  minute: "numeric",
+const dateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric' });
+const monthYearFormat = new Intl.DateTimeFormat('default', { month: 'short', year: 'numeric' });
+const completeDateFormat = new Intl.DateTimeFormat('default', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  hour: 'numeric',
+  minute: 'numeric',
 });
 const completeDateFormatParts = [
-  new Intl.DateTimeFormat("default", { day: "numeric", month: "short", year: "numeric" }),
-  new Intl.DateTimeFormat("default", { hour: "numeric", minute: "numeric" }),
+  new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric' }),
+  new Intl.DateTimeFormat('default', { hour: 'numeric', minute: 'numeric' }),
 ];
 
 export const makePrettyDate = (dateString) => {
   const date = new Date(dateString);
 
   return cond(
-    [isToday(date), () => "Today"],
-    [isYesterday(date), () => "Yesterday"],
+    [isToday(date), () => 'Today'],
+    [isYesterday(date), () => 'Yesterday'],
     [differenceInCalendarMonths(date, Date.now()) <= 6, () => dateFormat.format(date)],
     () => monthYearFormat.format(date)
   );
@@ -99,31 +99,31 @@ export const differenceFromNowInSeconds = (jsonDateString) => {
   return differenceInSeconds(parseJSON(jsonDateString), Date.now());
 };
 
-const usdFormatter = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+const usdFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 export const formatUSD = (v) =>
-  cond([_.isNaN(v), () => "unknown"], [v > 0 && v < 0.01, () => "< $0.01"], () => usdFormatter.format(v));
+  cond([_.isNaN(v), () => 'unknown'], [v > 0 && v < 0.01, () => '< $0.01'], () => usdFormatter.format(v));
 
-export const formatNumber = new Intl.NumberFormat("en-US").format;
+export const formatNumber = new Intl.NumberFormat('en-US').format;
 
-export const workspaceAccessLevels = ["NO ACCESS", "READER", "WRITER", "OWNER", "PROJECT_OWNER"];
+export const workspaceAccessLevels = ['NO ACCESS', 'READER', 'WRITER', 'OWNER', 'PROJECT_OWNER'];
 
 export const hasAccessLevel = (required: string, current: string): boolean => {
   return workspaceAccessLevels.indexOf(current) >= workspaceAccessLevels.indexOf(required);
 };
 
-export const canWrite = (accessLevel) => hasAccessLevel("WRITER", accessLevel);
-export const canRead = (accessLevel) => hasAccessLevel("READER", accessLevel);
-export const isOwner = (accessLevel) => hasAccessLevel("OWNER", accessLevel);
+export const canWrite = (accessLevel) => hasAccessLevel('WRITER', accessLevel);
+export const canRead = (accessLevel) => hasAccessLevel('READER', accessLevel);
+export const isOwner = (accessLevel) => hasAccessLevel('OWNER', accessLevel);
 
 export const workflowStatuses = [
-  "Queued",
-  "Launching",
-  "Submitted",
-  "Running",
-  "Aborting",
-  "Succeeded",
-  "Failed",
-  "Aborted",
+  'Queued',
+  'Launching',
+  'Submitted',
+  'Running',
+  'Aborting',
+  'Succeeded',
+  'Failed',
+  'Aborted',
 ];
 
 /**
@@ -152,7 +152,7 @@ export const cond = (...args) => {
     _.every((arg) => {
       return _.isFunction(arg) || (_.isArray(arg) && arg.length === 2 && _.isFunction(arg[1]));
     }, args),
-    "Invalid arguments to Utils.cond"
+    'Invalid arguments to Utils.cond'
   );
   for (const arg of args) {
     if (_.isArray(arg)) {
@@ -234,16 +234,16 @@ export const snapshotReferenceMissingError = (snapshotReferenceName) => {
 // Returns a message explaining why the user can't edit the workspace, or undefined if they can
 export const editWorkspaceError = ({ accessLevel, workspace: { isLocked } }) => {
   return cond(
-    [!canWrite(accessLevel), () => "You do not have permission to modify this workspace."],
-    [isLocked, () => "This workspace is locked."]
+    [!canWrite(accessLevel), () => 'You do not have permission to modify this workspace.'],
+    [isLocked, () => 'This workspace is locked.']
   );
 };
 
 // Returns a message explaining why the user can't compute in the workspace, or undefined if they can
 export const computeWorkspaceError = ({ canCompute, workspace: { isLocked } }) => {
   return cond(
-    [!canCompute, () => "You do not have access to run analyses on this workspace."],
-    [isLocked, () => "This workspace is locked."]
+    [!canCompute, () => 'You do not have access to run analyses on this workspace.'],
+    [isLocked, () => 'This workspace is locked.']
   );
 };
 
@@ -253,8 +253,8 @@ export const textMatch = safeCurry((needle: string, haystack: string): boolean =
 
 export const nextSort = ({ field, direction }, newField) => {
   return newField === field
-    ? { field, direction: direction === "asc" ? "desc" : "asc" }
-    : { field: newField, direction: "asc" };
+    ? { field, direction: direction === 'asc' ? 'desc' : 'asc' }
+    : { field: newField, direction: 'asc' };
 };
 
 // TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
@@ -266,7 +266,7 @@ export const summarizeErrors = (errors) => {
   );
   if (errorList.length) {
     return _.map(([k, v]) => {
-      return div({ key: k, style: { marginTop: k !== "0" ? "0.5rem" : undefined } }, [v as any]);
+      return div({ key: k, style: { marginTop: k !== '0' ? '0.5rem' : undefined } }, [v as any]);
     }, _.toPairs(errorList));
   }
 };
@@ -292,16 +292,16 @@ export const cantBeNumber = _.flow(_.toNumber, _.isNaN);
  */
 export const convertValue = _.curry((type, value) => {
   switch (type) {
-    case "string":
+    case 'string':
       // known issue where toString is incorrectly flagged:
       // eslint-disable-next-line lodash-fp/preferred-alias
       return _.toString(value);
-    case "number":
+    case 'number':
       return _.toNumber(value);
-    case "boolean":
-      return !["false", "no", "0", ""].includes(_.lowerCase(value));
+    case 'boolean':
+      return !['false', 'no', '0', ''].includes(_.lowerCase(value));
     default:
-      throw new Error("unknown type for convertValue");
+      throw new Error('unknown type for convertValue');
   }
 });
 
@@ -352,9 +352,9 @@ const withBusyStateFn =
 // Note that 'fn' does not get called during the transformation.
 export const withBusyState = safeCurry(withBusyStateFn);
 
-export const newTabLinkProps = { target: "_blank", rel: "noopener noreferrer" }; // https://mathiasbynens.github.io/rel-noopener/
+export const newTabLinkProps = { target: '_blank', rel: 'noopener noreferrer' }; // https://mathiasbynens.github.io/rel-noopener/
 
-export const newTabLinkPropsWithReferrer = { target: "_blank", rel: "noopener" };
+export const newTabLinkPropsWithReferrer = { target: '_blank', rel: 'noopener' };
 
 export const createHtmlElement = (doc, name, attrs) => {
   const element = doc.createElement(name);
@@ -380,8 +380,8 @@ export const durationToMillis = ({ hours = 0, minutes = 0, seconds = 0 }) =>
  */
 export const getAriaLabelOrTooltip = ({
   allowId = false,
-  "aria-label": ariaLabel,
-  "aria-labelledby": ariaLabelledBy,
+  'aria-label': ariaLabel,
+  'aria-labelledby': ariaLabelledBy,
   id,
   tooltip,
 }) => {
@@ -396,21 +396,21 @@ export const maybeParseJSON = (maybeJSONString) => {
   }
 };
 
-export const sanitizeEntityName = (unsafe) => unsafe.replace(/[^\w]/g, "-");
+export const sanitizeEntityName = (unsafe) => unsafe.replace(/[^\w]/g, '-');
 
 export const makeTSV = (rows) => {
   return _.join(
-    "",
-    _.map((row) => `${_.join("\t", row)}\n`, rows)
+    '',
+    _.map((row) => `${_.join('\t', row)}\n`, rows)
   );
 };
 
-export const commaJoin = (list, conjunction = "or") => {
+export const commaJoin = (list, conjunction = 'or') => {
   return span(
     _.flow(
       toIndexPairs,
       _.flatMap(([i, val]) => {
-        return [i === 0 ? "" : i === list.length - 1 ? ` ${conjunction} ` : ", ", val];
+        return [i === 0 ? '' : i === list.length - 1 ? ` ${conjunction} ` : ', ', val];
       })
     )(list)
   );
@@ -418,20 +418,20 @@ export const commaJoin = (list, conjunction = "or") => {
 
 // TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
 export const sha256 = async (message) => {
-  const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(message));
+  const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(message));
   return _.flow(
-    _.map((v: any) => v.toString(16).padStart(2, "0")),
-    _.join("")
+    _.map((v: any) => v.toString(16).padStart(2, '0')),
+    _.join('')
   )(new Uint8Array(hashBuffer));
 };
 
 export const formatBytes = (bytes: number): string => {
   const lookup: [string, number][] = [
-    ["P", 2 ** 50],
-    ["T", 2 ** 40],
-    ["G", 2 ** 30],
-    ["M", 2 ** 20],
-    ["K", 2 ** 10],
+    ['P', 2 ** 50],
+    ['T', 2 ** 40],
+    ['G', 2 ** 30],
+    ['M', 2 ** 20],
+    ['K', 2 ** 10],
   ];
   const maybeLookup = lookup.find(([_p, d]: [string, number]) => bytes >= d);
   if (maybeLookup) {

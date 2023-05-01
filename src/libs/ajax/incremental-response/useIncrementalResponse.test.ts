@@ -1,11 +1,11 @@
-import { act, renderHook } from "@testing-library/react-hooks";
-import _ from "lodash/fp";
-import { ErrorState, LoadingState, ReadyState } from "src/libs/type-utils/LoadedState";
+import { act, renderHook } from '@testing-library/react-hooks';
+import _ from 'lodash/fp';
+import { ErrorState, LoadingState, ReadyState } from 'src/libs/type-utils/LoadedState';
 
-import IncrementalResponse from "./IncrementalResponse";
-import useIncrementalResponse from "./useIncrementalResponse";
+import IncrementalResponse from './IncrementalResponse';
+import useIncrementalResponse from './useIncrementalResponse';
 
-describe("useIncrementalResponse", () => {
+describe('useIncrementalResponse', () => {
   // Returns an incremental response with 3 pages of 3 numbers each
   const getTestIncrementalResponse = (): Promise<IncrementalResponse<number>> => {
     const getNextPage = (previousItems: number[], pageNumber: number): Promise<IncrementalResponse<number>> => {
@@ -16,7 +16,7 @@ describe("useIncrementalResponse", () => {
         getNextPage: hasNextPage
           ? () => getNextPage(items, pageNumber + 1)
           : () => {
-              throw new Error("No next page");
+              throw new Error('No next page');
             },
         hasNextPage,
       });
@@ -30,7 +30,7 @@ describe("useIncrementalResponse", () => {
     });
   };
 
-  it("gets initial response", async () => {
+  it('gets initial response', async () => {
     // Act
     const { result: hookReturnRef, waitForNextUpdate } = renderHook(() =>
       useIncrementalResponse(getTestIncrementalResponse)
@@ -39,11 +39,11 @@ describe("useIncrementalResponse", () => {
     const state = hookReturnRef.current.state;
 
     // Assert
-    const expectedState: ReadyState<number[]> = { status: "Ready", state: [1, 2, 3] };
+    const expectedState: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3] };
     expect(state).toEqual(expectedState);
   });
 
-  it("has loading state", async () => {
+  it('has loading state', async () => {
     // Act
     const { result: hookReturnRef, waitForNextUpdate } = renderHook(() =>
       useIncrementalResponse(getTestIncrementalResponse)
@@ -58,16 +58,16 @@ describe("useIncrementalResponse", () => {
     await waitForNextUpdate();
 
     // Assert
-    const expectedInitialState: LoadingState<number[]> = { status: "Loading", state: [] };
+    const expectedInitialState: LoadingState<number[]> = { status: 'Loading', state: [] };
     expect(initialState).toEqual(expectedInitialState);
 
-    const expectedStateAfterLoadingNextPage: LoadingState<number[]> = { status: "Loading", state: [1, 2, 3] };
+    const expectedStateAfterLoadingNextPage: LoadingState<number[]> = { status: 'Loading', state: [1, 2, 3] };
     expect(stateAfterLoadingNextPage).toEqual(expectedStateAfterLoadingNextPage);
   });
 
-  it("has error state", async () => {
+  it('has error state', async () => {
     // Arrange
-    const throwError = () => Promise.reject(new Error("Something went wrong"));
+    const throwError = () => Promise.reject(new Error('Something went wrong'));
 
     // Act
     const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useIncrementalResponse(throwError));
@@ -76,14 +76,14 @@ describe("useIncrementalResponse", () => {
 
     // Assert
     const expectedErrorState: ErrorState<number[]> = {
-      status: "Error",
-      error: new Error("Something went wrong"),
+      status: 'Error',
+      error: new Error('Something went wrong'),
       state: [],
     };
     expect(state).toEqual(expectedErrorState);
   });
 
-  it("loads next page", async () => {
+  it('loads next page', async () => {
     // Arrange
     const { result: hookReturnRef, waitForNextUpdate } = renderHook(() =>
       useIncrementalResponse(getTestIncrementalResponse)
@@ -98,11 +98,11 @@ describe("useIncrementalResponse", () => {
     const state = hookReturnRef.current.state;
 
     // Assert
-    const expectedSecondPageState: ReadyState<number[]> = { status: "Ready", state: [1, 2, 3, 4, 5, 6] };
+    const expectedSecondPageState: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3, 4, 5, 6] };
     expect(state).toEqual(expectedSecondPageState);
   });
 
-  it("loads all remaining pages", async () => {
+  it('loads all remaining pages', async () => {
     // Arrange
     const { result: hookReturnRef, waitForNextUpdate } = renderHook(() =>
       useIncrementalResponse(getTestIncrementalResponse)
@@ -117,11 +117,11 @@ describe("useIncrementalResponse", () => {
     const state = hookReturnRef.current.state;
 
     // Assert
-    const expectedAllPagesState: ReadyState<number[]> = { status: "Ready", state: [1, 2, 3, 4, 5, 6, 7, 8, 9] };
+    const expectedAllPagesState: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3, 4, 5, 6, 7, 8, 9] };
     expect(state).toEqual(expectedAllPagesState);
   });
 
-  it("returns hasNextPage", async () => {
+  it('returns hasNextPage', async () => {
     // Arrange
     const { result: hookReturnRef, waitForNextUpdate } = renderHook(() =>
       useIncrementalResponse(getTestIncrementalResponse)
@@ -142,7 +142,7 @@ describe("useIncrementalResponse", () => {
     expect(lastPageHasNextPage).toBe(false);
   });
 
-  it("reloads / resets to first page", async () => {
+  it('reloads / resets to first page', async () => {
     // Arrange
     const { result: hookReturnRef, waitForNextUpdate } = renderHook(() =>
       useIncrementalResponse(getTestIncrementalResponse)
@@ -162,20 +162,20 @@ describe("useIncrementalResponse", () => {
     const stateAfterReloading = hookReturnRef.current.state;
 
     // Assert
-    const expectedStateBeforeReloading: ReadyState<number[]> = { status: "Ready", state: [1, 2, 3, 4, 5, 6, 7, 8, 9] };
+    const expectedStateBeforeReloading: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3, 4, 5, 6, 7, 8, 9] };
     expect(stateBeforeReloading).toEqual(expectedStateBeforeReloading);
 
-    const expectedStateAfterReloading: ReadyState<number[]> = { status: "Ready", state: [1, 2, 3] };
+    const expectedStateAfterReloading: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3] };
     expect(stateAfterReloading).toEqual(expectedStateAfterReloading);
   });
 
-  it("reloads when get first page function changes", async () => {
+  it('reloads when get first page function changes', async () => {
     // Arrange
     const getOtherTestIncrementalResponse = (): Promise<IncrementalResponse<number>> => {
       return Promise.resolve({
         items: [101, 102, 103],
         getNextPage: () => {
-          throw new Error("No next page");
+          throw new Error('No next page');
         },
         hasNextPage: false,
       });
@@ -197,10 +197,10 @@ describe("useIncrementalResponse", () => {
     const stateAfterChange = hookReturnRef.current.state;
 
     // Assert
-    const expectedStateBeforeChange: ReadyState<number[]> = { status: "Ready", state: [1, 2, 3] };
+    const expectedStateBeforeChange: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3] };
     expect(stateBeforeChange).toEqual(expectedStateBeforeChange);
 
-    const expectedStateAfterChange: ReadyState<number[]> = { status: "Ready", state: [101, 102, 103] };
+    const expectedStateAfterChange: ReadyState<number[]> = { status: 'Ready', state: [101, 102, 103] };
     expect(stateAfterChange).toEqual(expectedStateAfterChange);
   });
 });

@@ -1,24 +1,24 @@
-import _ from "lodash/fp";
-import { Fragment, useEffect, useState } from "react";
-import { b, div, h, input, label, p } from "react-hyperscript-helpers";
-import { ButtonPrimary, IdContainer, Link, spinnerOverlay } from "src/components/common";
-import { cookiesAcceptedKey } from "src/components/CookieWarning";
-import { icon, spinner } from "src/components/icons";
-import { Ajax } from "src/libs/ajax";
-import colors from "src/libs/colors";
-import { withErrorIgnoring, withErrorReporting } from "src/libs/error";
-import Events from "src/libs/events";
-import { getLocalPref } from "src/libs/prefs";
-import { useCancellation, useGetter, useOnMount, usePollingEffect, usePrevious, useStore } from "src/libs/react-utils";
-import { authStore, azureCookieReadyStore, cookieReadyStore } from "src/libs/state";
-import * as Style from "src/libs/style";
-import * as Utils from "src/libs/utils";
-import { cloudProviderTypes } from "src/libs/workspace-utils";
-import { getConvertedRuntimeStatus, usableStatuses } from "src/pages/workspaces/workspace/analysis/utils/runtime-utils";
+import _ from 'lodash/fp';
+import { Fragment, useEffect, useState } from 'react';
+import { b, div, h, input, label, p } from 'react-hyperscript-helpers';
+import { ButtonPrimary, IdContainer, Link, spinnerOverlay } from 'src/components/common';
+import { cookiesAcceptedKey } from 'src/components/CookieWarning';
+import { icon, spinner } from 'src/components/icons';
+import { Ajax } from 'src/libs/ajax';
+import colors from 'src/libs/colors';
+import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
+import Events from 'src/libs/events';
+import { getLocalPref } from 'src/libs/prefs';
+import { useCancellation, useGetter, useOnMount, usePollingEffect, usePrevious, useStore } from 'src/libs/react-utils';
+import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
+import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
+import { cloudProviderTypes } from 'src/libs/workspace-utils';
+import { getConvertedRuntimeStatus, usableStatuses } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 
 export const StatusMessage = ({ hideSpinner, children }) => {
-  return div({ style: { paddingLeft: "2rem", display: "flex", alignItems: "center" } }, [
-    !hideSpinner && spinner({ style: { marginRight: "0.5rem" } }),
+  return div({ style: { paddingLeft: '2rem', display: 'flex', alignItems: 'center' } }, [
+    !hideSpinner && spinner({ style: { marginRight: '0.5rem' } }),
     div([children]),
   ]);
 };
@@ -29,11 +29,11 @@ export const RadioBlock = ({ labelText, children, name, checked, onChange, style
       style: {
         backgroundColor: colors.warning(0.2),
         borderRadius: 3,
-        border: `1px solid ${checked ? colors.accent() : "transparent"}`,
+        border: `1px solid ${checked ? colors.accent() : 'transparent'}`,
         boxShadow: checked ? Style.standardShadow : undefined,
-        display: "flex",
-        alignItems: "baseline",
-        padding: ".75rem",
+        display: 'flex',
+        alignItems: 'baseline',
+        padding: '.75rem',
         ...style,
       },
     },
@@ -41,8 +41,8 @@ export const RadioBlock = ({ labelText, children, name, checked, onChange, style
       h(IdContainer, [
         (id) =>
           h(Fragment, [
-            input({ type: "radio", name, checked, onChange, id }),
-            div({ style: { marginLeft: ".75rem" } }, [label({ style: { fontWeight: 600, fontSize: 16 }, htmlFor: id }, [labelText]), children]),
+            input({ type: 'radio', name, checked, onChange, id }),
+            div({ style: { marginLeft: '.75rem' } }, [label({ style: { fontWeight: 600, fontSize: 16 }, htmlFor: id }, [labelText]), children]),
           ]),
       ]),
     ]
@@ -54,12 +54,12 @@ export function RuntimeKicker({ runtime, refreshRuntimes }) {
   const signal = useCancellation();
   const [busy, setBusy] = useState();
 
-  const startRuntimeOnce = withErrorReporting("Error starting cloud environment", async () => {
+  const startRuntimeOnce = withErrorReporting('Error starting cloud environment', async () => {
     while (!signal.aborted) {
       const currentRuntime = getRuntime();
       const { googleProject, runtimeName, cloudContext, workspaceId } = currentRuntime || {};
       const status = getConvertedRuntimeStatus(currentRuntime);
-      if (status === "Stopped") {
+      if (status === 'Stopped') {
         setBusy(true);
         (await cloudContext.cloudProvider) === cloudProviderTypes.AZURE
           ? Ajax().Runtimes.runtimeV2(workspaceId, runtimeName).start()
@@ -68,7 +68,7 @@ export function RuntimeKicker({ runtime, refreshRuntimes }) {
         setBusy(false);
         return;
       }
-      if (currentRuntime === undefined || status === "Stopping") {
+      if (currentRuntime === undefined || status === 'Stopping') {
         await Utils.delay(500);
       } else {
         return;
@@ -88,14 +88,14 @@ export const ApplicationHeader = ({ label, labelBgColor, bgColor, children }) =>
     {
       style: {
         backgroundColor: bgColor,
-        display: "flex",
-        alignItems: "center",
+        display: 'flex',
+        alignItems: 'center',
         borderBottom: `2px solid ${colors.dark(0.2)}`,
-        whiteSpace: "pre",
+        whiteSpace: 'pre',
       },
     },
     [
-      b({ style: { backgroundColor: labelBgColor, padding: "0.75rem 2rem", alignSelf: "stretch", display: "flex", alignItems: "center" } }, [label]),
+      b({ style: { backgroundColor: labelBgColor, padding: '0.75rem 2rem', alignSelf: 'stretch', display: 'flex', alignItems: 'center' } }, [label]),
       children,
     ]
   );
@@ -105,13 +105,13 @@ export const PlaygroundHeader = ({ children }) => {
   return h(
     ApplicationHeader,
     {
-      label: "PLAYGROUND MODE",
+      label: 'PLAYGROUND MODE',
       labelBgColor: colors.warning(0.4),
       bgColor: colors.warning(0.25),
     },
     [
-      icon("warning-standard", { style: { color: colors.warning(), marginLeft: "1rem" } }),
-      div({ style: { margin: "0.5rem 1rem", whiteSpace: "initial" } }, [children]),
+      icon('warning-standard', { style: { color: colors.warning(), marginLeft: '1rem' } }),
+      div({ style: { margin: '0.5rem 1rem', whiteSpace: 'initial' } }, [children]),
     ]
   );
 };
@@ -121,9 +121,9 @@ export function RuntimeStatusMonitor({ runtime, onRuntimeStoppedRunning = _.noop
   const prevStatus = usePrevious(currentStatus);
 
   useEffect(() => {
-    if (prevStatus === "Running" && !_.includes(currentStatus, usableStatuses)) {
+    if (prevStatus === 'Running' && !_.includes(currentStatus, usableStatuses)) {
       onRuntimeStoppedRunning();
-    } else if (prevStatus !== "Running" && _.includes(currentStatus, usableStatuses)) {
+    } else if (prevStatus !== 'Running' && _.includes(currentStatus, usableStatuses)) {
       onRuntimeStartedRunning();
     }
   }, [currentStatus, onRuntimeStartedRunning, onRuntimeStoppedRunning, prevStatus]);
@@ -156,8 +156,8 @@ export function PeriodicAzureCookieSetter({ proxyUrl, forCromwell = false }) {
   usePollingEffect(
     withErrorIgnoring(async () => {
       await Ajax(signal).Runtimes.azureProxy(proxyUrl).setAzureCookie();
-      if (forCromwell) azureCookieReadyStore.update(_.set("readyForCromwellApp", true));
-      else azureCookieReadyStore.update(_.set("readyForRuntime", true));
+      if (forCromwell) azureCookieReadyStore.update(_.set('readyForCromwellApp', true));
+      else azureCookieReadyStore.update(_.set('readyForRuntime', true));
     }),
     { ms: 5 * 60 * 1000, leading: true }
   );
@@ -167,33 +167,33 @@ export function PeriodicAzureCookieSetter({ proxyUrl, forCromwell = false }) {
 export const SaveFilesHelp = (isGalaxyDisk = false) => {
   return h(Fragment, [
     p([
-      "If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ",
+      'If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
       h(
         Link,
         {
-          "aria-label": "Save file help",
-          href: "https://support.terra.bio/hc/en-us/articles/360026639112",
+          'aria-label': 'Save file help',
+          href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
           ...Utils.newTabLinkProps,
         },
-        ["move them to the workspace bucket."]
+        ['move them to the workspace bucket.']
       ),
     ]),
-    !isGalaxyDisk && p(["Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks."]),
+    !isGalaxyDisk && p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.']),
   ]);
 };
 
 export const SaveFilesHelpRStudio = () => {
   return h(Fragment, [
     p([
-      "If you want to save files permanently, including input data, analysis outputs, installed packages or code in your session, ",
+      'If you want to save files permanently, including input data, analysis outputs, installed packages or code in your session, ',
       h(
         Link,
         {
-          "aria-label": "RStudio save help",
-          href: "https://support.terra.bio/hc/en-us/articles/360026639112",
+          'aria-label': 'RStudio save help',
+          href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
           ...Utils.newTabLinkProps,
         },
-        ["move them to the workspace bucket."]
+        ['move them to the workspace bucket.']
       ),
     ]),
   ]);
@@ -202,20 +202,20 @@ export const SaveFilesHelpRStudio = () => {
 export const SaveFilesHelpGalaxy = () => {
   return h(Fragment, [
     p([
-      "Deleting your Cloud Environment will stop your ",
-      "running Galaxy application and your application costs. You can create a new Cloud Environment ",
-      "for Galaxy later, which will take 8-10 minutes.",
+      'Deleting your Cloud Environment will stop your ',
+      'running Galaxy application and your application costs. You can create a new Cloud Environment ',
+      'for Galaxy later, which will take 8-10 minutes.',
     ]),
     p([
-      "If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ",
+      'If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
       h(
         Link,
         {
-          "aria-label": "Galaxy save help",
-          href: "https://support.terra.bio/hc/en-us/articles/360026639112",
+          'aria-label': 'Galaxy save help',
+          href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
           ...Utils.newTabLinkProps,
         },
-        ["move them to the workspace bucket."]
+        ['move them to the workspace bucket.']
       ),
     ]),
   ]);
@@ -224,15 +224,15 @@ export const SaveFilesHelpGalaxy = () => {
 export const SaveFilesHelpAzure = () => {
   return h(Fragment, [
     p([
-      "If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ",
+      'If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
       h(
         Link,
         {
-          "aria-label": "Save file help",
-          href: "https://support.terra.bio/hc/en-us/articles/12043575737883",
+          'aria-label': 'Save file help',
+          href: 'https://support.terra.bio/hc/en-us/articles/12043575737883',
           ...Utils.newTabLinkProps,
         },
-        ["move them to the workspace bucket."]
+        ['move them to the workspace bucket.']
       ),
     ]),
   ]);
@@ -240,8 +240,8 @@ export const SaveFilesHelpAzure = () => {
 
 export const GalaxyWarning = () => {
   return h(Fragment, [
-    p({ style: { fontWeight: 600 } }, "Important: Please keep this tab open and logged in to Terra while using Galaxy."),
-    p("Galaxy will open in a new tab. "),
+    p({ style: { fontWeight: 600 } }, 'Important: Please keep this tab open and logged in to Terra while using Galaxy.'),
+    p('Galaxy will open in a new tab. '),
   ]);
 };
 
@@ -250,21 +250,21 @@ export const GalaxyLaunchButton = ({ app, onClick, ...props }) => {
   return h(
     ButtonPrimary,
     {
-      disabled: !cookieReady || _.lowerCase(app.status) !== "running",
+      disabled: !cookieReady || _.lowerCase(app.status) !== 'running',
       // toolTip: _.lowerCase(app.status) == 'running' ? 'Cannot launch galaxy that is not Running' : '',
       href: app.proxyUrls.galaxy,
       onClick: () => {
         onClick();
-        Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: "Galaxy" });
+        Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: 'Galaxy' });
       },
       ...Utils.newTabLinkPropsWithReferrer, // Galaxy needs the referrer to be present so we can validate it, otherwise we fail with 401
       ...props,
     },
-    ["Open Galaxy"]
+    ['Open Galaxy']
   );
 };
 
-export const appLauncherTabName = "workspace-application-launch";
+export const appLauncherTabName = 'workspace-application-launch';
 export const appLauncherWithAnalysisTabName = `${appLauncherTabName}-with-analysis`;
-export const analysisLauncherTabName = "workspace-analysis-launch";
-export const analysisTabName = "workspace-analyses";
+export const analysisLauncherTabName = 'workspace-analysis-launch';
+export const analysisTabName = 'workspace-analyses';

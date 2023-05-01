@@ -1,4 +1,4 @@
-import _ from "lodash/fp";
+import _ from 'lodash/fp';
 
 /**
  * Allows observation of when an error occurs via `errorWatcher`, i.e.:

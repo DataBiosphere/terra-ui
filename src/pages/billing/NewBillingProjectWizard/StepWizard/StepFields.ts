@@ -1,6 +1,6 @@
-import { CSSProperties, PropsWithChildren, ReactNode } from "react";
-import { div, fieldset, h, legend } from "react-hyperscript-helpers";
-import { FormLabel } from "src/libs/forms";
+import { CSSProperties, PropsWithChildren, ReactNode } from 'react';
+import { div, fieldset, h, legend } from 'react-hyperscript-helpers';
+import { FormLabel } from 'src/libs/forms';
 
 type StepFieldsProps = PropsWithChildren<{
   style?: CSSProperties;
@@ -11,14 +11,14 @@ export const StepFields = ({ children, style, disabled = false }: StepFieldsProp
     {
       disabled,
       style: {
-        border: "none",
+        border: 'none',
         margin: 0,
         padding: 0,
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignContent: "center",
-        width: "100%",
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignContent: 'center',
+        width: '100%',
         ...style,
       },
     },
@@ -26,15 +26,15 @@ export const StepFields = ({ children, style, disabled = false }: StepFieldsProp
   );
 
 const primaryStepTextStyle = {
-  fontSize: "1rem",
-  lineHeight: "22px",
-  whiteSpace: "pre-wrap",
-  marginTop: "0.25rem",
-  marginRight: "1rem",
-  float: "left",
+  fontSize: '1rem',
+  lineHeight: '22px',
+  whiteSpace: 'pre-wrap',
+  marginTop: '0.25rem',
+  marginRight: '1rem',
+  float: 'left',
 };
 
-export const legendDetailsStyle = { fontSize: ".875rem", lineHeight: "22px" };
+export const legendDetailsStyle = { fontSize: '.875rem', lineHeight: '22px' };
 
 export const StepFieldLegend = ({ children, style }: StepFieldsProps) =>
   legend(
@@ -61,7 +61,7 @@ interface LabeledFieldProps extends StepFieldsProps {
 }
 
 export const LabeledField = ({ label, formId, required = false, children, style }: LabeledFieldProps) =>
-  div({ style: { display: "flex", flexDirection: "column", ...style } }, [
+  div({ style: { display: 'flex', flexDirection: 'column', ...style } }, [
     h(FormLabel, { htmlFor: formId, required }, [label]),
     children,
   ]);

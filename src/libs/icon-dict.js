@@ -9,7 +9,7 @@ import {
   faFolderOpen,
   faListAlt,
   faTimesCircle,
-} from "@fortawesome/free-regular-svg-icons";
+} from '@fortawesome/free-regular-svg-icons';
 import {
   faArrowLeft,
   faArrowRight,
@@ -56,48 +56,48 @@ import {
   faTrashAlt,
   faUnlock,
   faVirus,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import _ from "lodash/fp";
-import { h } from "react-hyperscript-helpers";
-import { ReactComponent as angleDoubleUp } from "src/icons/angle-double-up-regular.svg";
-import { ReactComponent as angleUp } from "src/icons/angle-up-regular.svg";
-import { ReactComponent as arrowLeftRegular } from "src/icons/arrow-left-regular.svg";
-import { ReactComponent as bars } from "src/icons/bars-light.svg";
-import { ReactComponent as books } from "src/icons/books-solid.svg";
-import { ReactComponent as cardMenuIcon } from "src/icons/card-menu-icon.svg";
-import { ReactComponent as faCloudBolt } from "src/icons/cloud-compute.svg";
-import { ReactComponent as cloudUpload } from "src/icons/cloud-upload-solid.svg";
-import { ReactComponent as columnGrabber } from "src/icons/column_grabber.svg";
-import { ReactComponent as copySolid } from "src/icons/copy-solid.svg";
-import { ReactComponent as downloadRegular } from "src/icons/download-regular.svg";
-import { ReactComponent as externalLinkAlt } from "src/icons/external-link-alt-regular.svg";
-import { ReactComponent as fileExport } from "src/icons/file-export-regular.svg";
-import { ReactComponent as fileSearchSolid } from "src/icons/file-search-solid.svg";
-import { ReactComponent as infoCircleRegular } from "src/icons/info-circle-regular.svg";
-import { ReactComponent as list } from "src/icons/list-regular.svg";
-import { ReactComponent as loadingSpinner } from "src/icons/loading-spinner.svg";
-import { ReactComponent as renameIcon } from "src/icons/rename-icon.svg";
-import { ReactComponent as squareLight } from "src/icons/square-light.svg";
-import { ReactComponent as syncAlt } from "src/icons/sync-alt-regular.svg";
-import { ReactComponent as talkBubble } from "src/icons/talk-bubble.svg";
-import { ReactComponent as times } from "src/icons/times-light.svg";
-import { ReactComponent as warningInfo } from "src/icons/warning-info.svg";
+} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import _ from 'lodash/fp';
+import { h } from 'react-hyperscript-helpers';
+import { ReactComponent as angleDoubleUp } from 'src/icons/angle-double-up-regular.svg';
+import { ReactComponent as angleUp } from 'src/icons/angle-up-regular.svg';
+import { ReactComponent as arrowLeftRegular } from 'src/icons/arrow-left-regular.svg';
+import { ReactComponent as bars } from 'src/icons/bars-light.svg';
+import { ReactComponent as books } from 'src/icons/books-solid.svg';
+import { ReactComponent as cardMenuIcon } from 'src/icons/card-menu-icon.svg';
+import { ReactComponent as faCloudBolt } from 'src/icons/cloud-compute.svg';
+import { ReactComponent as cloudUpload } from 'src/icons/cloud-upload-solid.svg';
+import { ReactComponent as columnGrabber } from 'src/icons/column_grabber.svg';
+import { ReactComponent as copySolid } from 'src/icons/copy-solid.svg';
+import { ReactComponent as downloadRegular } from 'src/icons/download-regular.svg';
+import { ReactComponent as externalLinkAlt } from 'src/icons/external-link-alt-regular.svg';
+import { ReactComponent as fileExport } from 'src/icons/file-export-regular.svg';
+import { ReactComponent as fileSearchSolid } from 'src/icons/file-search-solid.svg';
+import { ReactComponent as infoCircleRegular } from 'src/icons/info-circle-regular.svg';
+import { ReactComponent as list } from 'src/icons/list-regular.svg';
+import { ReactComponent as loadingSpinner } from 'src/icons/loading-spinner.svg';
+import { ReactComponent as renameIcon } from 'src/icons/rename-icon.svg';
+import { ReactComponent as squareLight } from 'src/icons/square-light.svg';
+import { ReactComponent as syncAlt } from 'src/icons/sync-alt-regular.svg';
+import { ReactComponent as talkBubble } from 'src/icons/talk-bubble.svg';
+import { ReactComponent as times } from 'src/icons/times-light.svg';
+import { ReactComponent as warningInfo } from 'src/icons/warning-info.svg';
 
 const fa = _.curry((shape, { size, ...props }) => h(FontAwesomeIcon, _.merge({ icon: shape, style: { height: size, width: size } }, props)));
 const custom = _.curry((shape, { size, ...props }) =>
-  h(shape, _.merge({ "aria-hidden": true, focusable: false, style: { height: size, width: size } }, props))
+  h(shape, _.merge({ 'aria-hidden': true, focusable: false, style: { height: size, width: size } }, props))
 );
 
 const rotate = _.curry((rotation, shape, props) => shape(_.merge({ style: { transform: `rotate(${rotation}deg)` } }, props)));
 
 const iconDict = {
-  "angle-down": rotate(180, custom(angleUp)),
-  "angle-left": rotate(-90, custom(angleUp)),
-  "angle-right": rotate(90, custom(angleUp)),
-  "angle-up": custom(angleUp),
-  "angle-double-left": rotate(-90, custom(angleDoubleUp)),
-  "angle-double-right": rotate(90, custom(angleDoubleUp)),
+  'angle-down': rotate(180, custom(angleUp)),
+  'angle-left': rotate(-90, custom(angleUp)),
+  'angle-right': rotate(90, custom(angleUp)),
+  'angle-up': custom(angleUp),
+  'angle-double-left': rotate(-90, custom(angleDoubleUp)),
+  'angle-double-right': rotate(90, custom(angleDoubleUp)),
   arrowLeft: fa(faArrowLeft),
   arrowLeftRegular: custom(arrowLeftRegular),
   arrowRight: fa(faArrowRight),
@@ -117,39 +117,39 @@ const iconDict = {
   columnGrabber: custom(columnGrabber),
   copy: fa(faClone),
   copySolid: custom(copySolid),
-  "copy-to-clipboard": fa(faClipboard),
+  'copy-to-clipboard': fa(faClipboard),
   creditCard: fa(faCreditCard),
   download: fa(faDownload),
   downloadRegular: custom(downloadRegular),
   edit: fa(faPen),
-  "ellipsis-v": fa(faEllipsisV),
-  "ellipsis-v-circle": (props) => fa(faEllipsisV, { mask: faCircle, transform: "shrink-8", ...props }),
-  "error-standard": fa(faExclamationCircle),
-  "expand-arrows-alt": fa(faExpandArrowsAlt),
+  'ellipsis-v': fa(faEllipsisV),
+  'ellipsis-v-circle': (props) => fa(faEllipsisV, { mask: faCircle, transform: 'shrink-8', ...props }),
+  'error-standard': fa(faExclamationCircle),
+  'expand-arrows-alt': fa(faExpandArrowsAlt),
   export: custom(fileExport),
   eye: fa(faEye),
   fileAlt: fa(faFileAlt),
   fileSearchSolid: custom(fileSearchSolid),
   folder: fa(faFolder),
   folderSolid: fa(faFolderSolid),
-  "folder-open": fa(faFolderOpen),
+  'folder-open': fa(faFolderOpen),
   help: fa(faQuestionCircle),
-  "info-circle": fa(faInfoCircle),
-  "info-circle-regular": custom(infoCircleRegular),
+  'info-circle': fa(faInfoCircle),
+  'info-circle-regular': custom(infoCircleRegular),
   library: custom(books),
   listAlt: fa(faListAlt),
   loadingSpinner: custom(loadingSpinner),
   lock: fa(faLock),
-  "long-arrow-alt-down": fa(faLongArrowAltDown),
-  "long-arrow-alt-up": fa(faLongArrowAltUp),
-  "minus-circle": fa(faMinusCircle),
-  "money-check-alt": fa(faMoneyCheckAlt),
+  'long-arrow-alt-down': fa(faLongArrowAltDown),
+  'long-arrow-alt-up': fa(faLongArrowAltUp),
+  'minus-circle': fa(faMinusCircle),
+  'money-check-alt': fa(faMoneyCheckAlt),
   pause: fa(faPause),
   play: fa(faPlay),
   plus: fa(faPlus),
-  "plus-circle": fa(faPlusCircle),
-  "lighter-plus-circle": (props) => fa(faPlus, { mask: faCircle, transform: "shrink-6", ...props }),
-  "pop-out": custom(externalLinkAlt),
+  'plus-circle': fa(faPlusCircle),
+  'lighter-plus-circle': (props) => fa(faPlus, { mask: faCircle, transform: 'shrink-6', ...props }),
+  'pop-out': custom(externalLinkAlt),
   purchaseOrder: fa(faFileInvoiceDollar),
   question: fa(faQuestion),
   renameIcon: custom(renameIcon),
@@ -159,23 +159,23 @@ const iconDict = {
   squareLight: custom(squareLight),
   squareSolid: fa(faSquareSolid),
   star: fa(faStar),
-  "success-standard": fa(faCheckCircle),
+  'success-standard': fa(faCheckCircle),
   sync: custom(syncAlt),
   syncAlt: fa(faSyncAlt),
   tachometer: fa(faTachometerAlt),
   tasks: fa(faTasks),
-  terminal: (props) => fa(faTerminal, { mask: faSquareSolid, transform: "shrink-8", ...props }),
+  terminal: (props) => fa(faTerminal, { mask: faSquareSolid, transform: 'shrink-8', ...props }),
   times: custom(times),
-  "talk-bubble": custom(talkBubble),
-  "times-circle": fa(faTimesCircle),
+  'talk-bubble': custom(talkBubble),
+  'times-circle': fa(faTimesCircle),
   trash: fa(faTrashAlt),
   unlock: fa(faUnlock),
-  "upload-cloud": custom(cloudUpload),
-  "view-cards": fa(faGripHorizontal),
-  "view-list": custom(list),
+  'upload-cloud': custom(cloudUpload),
+  'view-cards': fa(faGripHorizontal),
+  'view-list': custom(list),
   virus: fa(faVirus),
-  "warning-info": custom(warningInfo),
-  "warning-standard": fa(faExclamationTriangle),
+  'warning-info': custom(warningInfo),
+  'warning-standard': fa(faExclamationTriangle),
 };
 
 export default iconDict;

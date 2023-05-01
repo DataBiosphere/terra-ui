@@ -1,8 +1,8 @@
-import _ from "lodash/fp";
-import Prism from "prismjs";
-import { useLayoutEffect, useRef } from "react";
-import { code, pre } from "react-hyperscript-helpers";
-import * as Style from "src/libs/style";
+import _ from 'lodash/fp';
+import Prism from 'prismjs';
+import { useLayoutEffect, useRef } from 'react';
+import { code, pre } from 'react-hyperscript-helpers';
+import * as Style from 'src/libs/style';
 
 /*
  * The WDL Language team maintains a TextMate Grammer for WDL syntax, which
@@ -27,7 +27,7 @@ Prism.languages.wdl = {
       variable: / \w+/,
     },
   },
-  "class-name": [
+  'class-name': [
     {
       // For workflow/task declarations and their invocations, must be before 'keyword' for lookbehind to work
       pattern: /((?:workflow|task|call)\s+)\w+/,
@@ -43,7 +43,7 @@ Prism.languages.wdl = {
   number: /\b0x[\da-f]+\b|(?:\b\d+\.?\d*|\B\.\d+)(?:e[+-]?\d+)?/i,
   punctuation: /([{}[\];(),.:]|<<<|>>>)/, // before operators because of <<< & >>>
   operator: /([=!*<>+-/%]|&&)/,
-  "embedded-code": [
+  'embedded-code': [
     {
       /*
        * Note the space before the close '}' -- this is to not match on ${these} within
@@ -53,7 +53,7 @@ Prism.languages.wdl = {
       pattern: /(command\s*<<<)(?:.|\n)*?(?=>>>)|(command\s*{)(?:.|\n)*?(?=\s})/m,
       lookbehind: true,
       inside: {
-        "embedded-python": {
+        'embedded-python': {
           pattern: /(python[0-9]?\s*<<CODE)(?:.|\n)*?(?=CODE)/m,
           lookbehind: true,
           inside: {
@@ -77,12 +77,12 @@ const WDLViewer = ({ wdl, ...props }) => {
     _.merge(
       {
         tabIndex: 0,
-        className: "line-numbers",
-        style: { border: Style.standardLine, backgroundColor: "white" },
+        className: 'line-numbers',
+        style: { border: Style.standardLine, backgroundColor: 'white' },
       },
       props
     ),
-    [code({ className: "language-wdl", ref: elem }, [wdl])]
+    [code({ className: 'language-wdl', ref: elem }, [wdl])]
   );
 };
 

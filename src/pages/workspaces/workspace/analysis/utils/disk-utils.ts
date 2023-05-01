@@ -1,6 +1,6 @@
 // TODO: type with disks
-import _ from "lodash/fp";
-import { App } from "src/libs/ajax/leonardo/models/app-models";
+import _ from 'lodash/fp';
+import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import {
   DecoratedPersistentDisk,
   diskStatuses,
@@ -8,15 +8,15 @@ import {
   PdType,
   pdTypes,
   PersistentDisk,
-} from "src/libs/ajax/leonardo/models/disk-models";
-import { Runtime } from "src/libs/ajax/leonardo/models/runtime-models";
-import * as Utils from "src/libs/utils";
+} from 'src/libs/ajax/leonardo/models/disk-models';
+import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
+import * as Utils from 'src/libs/utils';
 import {
   getCurrentAppIncludingDeleting,
   getDiskAppType,
-} from "src/pages/workspaces/workspace/analysis/utils/app-utils";
-import { getCurrentRuntime } from "src/pages/workspaces/workspace/analysis/utils/runtime-utils";
-import { AppToolLabel, appTools } from "src/pages/workspaces/workspace/analysis/utils/tool-utils";
+} from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
+import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
+import { AppToolLabel, appTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 export const pdTypeFromDiskType = (type: GoogleDiskType): PdType =>
   Utils.switchCase(
@@ -48,7 +48,7 @@ export const getCurrentAttachedDataDisk = (
 };
 
 export const workspaceHasMultipleDisks = (disks: PersistentDisk[], diskAppType: AppToolLabel): boolean => {
-  const appTypeDisks = _.filter((disk) => getDiskAppType(disk) === diskAppType && disk.status !== "Deleting", disks);
+  const appTypeDisks = _.filter((disk) => getDiskAppType(disk) === diskAppType && disk.status !== 'Deleting', disks);
   const diskWorkspaces = _.map((currentDisk) => currentDisk.labels.saturnWorkspaceName, appTypeDisks);
   return _.uniq(diskWorkspaces).length < diskWorkspaces.length;
 };
@@ -81,12 +81,12 @@ export const getCurrentAppDataDisk = (
   const filteredDisks: PersistentDisk[] = _.filter(
     (disk: PersistentDisk) =>
       getDiskAppType(disk) === appType &&
-      disk.status !== "Deleting" &&
+      disk.status !== 'Deleting' &&
       !_.includes(disk.name, attachedDiskNames) &&
       disk.labels.saturnWorkspaceName === workspaceName,
     appDataDisks
   );
-  const sortedDisks: PersistentDisk[] = _.sortBy("auditInfo.createdDate", filteredDisks);
+  const sortedDisks: PersistentDisk[] = _.sortBy('auditInfo.createdDate', filteredDisks);
 
   const newestUnattachedDisk: PersistentDisk | undefined = _.last(sortedDisks);
   const attachedDisk: PersistentDisk | undefined = currentDiskName
@@ -113,18 +113,18 @@ export const getCurrentPersistentDisk = (
   persistentDisks: PersistentDisk[]
 ): PersistentDisk | undefined => {
   const currentRuntime = getCurrentRuntime(runtimes);
-  const id: number | undefined = _.get("persistentDiskId", currentRuntime?.runtimeConfig);
+  const id: number | undefined = _.get('persistentDiskId', currentRuntime?.runtimeConfig);
   const attachedIds: number[] = _.without(
     [undefined],
-    _.map((runtime) => _.get("persistentDiskId", runtime.runtimeConfig), runtimes)
+    _.map((runtime) => _.get('persistentDiskId', runtime.runtimeConfig), runtimes)
   );
 
   return id
     ? _.find({ id }, persistentDisks)
     : _.last(
         _.sortBy(
-          "auditInfo.createdDate",
-          _.filter(({ id, status }) => status !== "Deleting" && !_.includes(id, attachedIds), persistentDisks)
+          'auditInfo.createdDate',
+          _.filter(({ id, status }) => status !== 'Deleting' && !_.includes(id, attachedIds), persistentDisks)
         )
       );
 };
@@ -136,5 +136,5 @@ export const getReadyPersistentDisk = (persistentDisks: PersistentDisk[]): Persi
 
 export const isCurrentGalaxyDiskDetaching = (apps: App[]): boolean => {
   const currentGalaxyApp = getCurrentAppIncludingDeleting(appTools.GALAXY.label, apps);
-  return !!currentGalaxyApp && _.includes(currentGalaxyApp.status, ["DELETING", "PREDELETING"]);
+  return !!currentGalaxyApp && _.includes(currentGalaxyApp.status, ['DELETING', 'PREDELETING']);
 };

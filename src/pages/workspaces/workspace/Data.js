@@ -1,77 +1,77 @@
-import FileSaver from "file-saver";
-import _ from "lodash/fp";
-import * as qs from "qs";
-import { Fragment, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
-import { DraggableCore } from "react-draggable";
-import { div, form, h, h3, input, span } from "react-hyperscript-helpers";
-import { AutoSizer } from "react-virtualized";
-import * as breadcrumbs from "src/components/breadcrumbs";
-import Collapse from "src/components/Collapse";
-import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from "src/components/common";
-import { DataTableSaveVersionModal, DataTableVersion, DataTableVersions } from "src/components/data/data-table-versions";
-import { EntityUploader, getRootTypeForSetTable, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from "src/components/data/data-utils";
-import EntitiesContent from "src/components/data/EntitiesContent";
-import ExportDataModal from "src/components/data/ExportDataModal";
-import FileBrowser from "src/components/data/FileBrowser";
-import LocalVariablesContent from "src/components/data/LocalVariablesContent";
-import RenameTableModal from "src/components/data/RenameTableModal";
-import { useSavedColumnSettings } from "src/components/data/SavedColumnSettings";
-import WDSContent from "src/components/data/WDSContent";
-import { WdsTroubleshooter } from "src/components/data/WdsTroubleshooter";
-import { icon, spinner } from "src/components/icons";
-import { ConfirmedSearchInput, DelayedSearchInput } from "src/components/input";
-import Interactive from "src/components/Interactive";
-import { MenuButton } from "src/components/MenuButton";
-import { MenuDivider, MenuTrigger } from "src/components/PopupTrigger";
-import { FlexTable, HeaderCell } from "src/components/table";
-import { SnapshotInfo } from "src/components/workspace-utils";
-import { Ajax } from "src/libs/ajax";
-import { EntityServiceDataTableProvider } from "src/libs/ajax/data-table-providers/EntityServiceDataTableProvider";
-import { resolveWdsUrl, WdsDataTableProvider, wdsProviderName } from "src/libs/ajax/data-table-providers/WdsDataTableProvider";
-import colors from "src/libs/colors";
-import { getConfig } from "src/libs/config";
-import { dataTableVersionsPathRoot, useDataTableVersions } from "src/libs/data-table-versions";
-import { reportError, reportErrorAndRethrow, withErrorReporting } from "src/libs/error";
-import Events, { extractWorkspaceDetails } from "src/libs/events";
-import { isFeaturePreviewEnabled } from "src/libs/feature-previews";
-import * as Nav from "src/libs/nav";
-import { notify } from "src/libs/notifications";
-import { forwardRefWithName, useCancellation, useOnMount, useStore } from "src/libs/react-utils";
-import { asyncImportJobStore, getUser } from "src/libs/state";
-import * as StateHistory from "src/libs/state-history";
-import * as Style from "src/libs/style";
-import * as Utils from "src/libs/utils";
-import { cloudProviders } from "src/pages/workspaces/workspace/analysis/utils/runtime-utils";
-import { wrapWorkspace } from "src/pages/workspaces/workspace/WorkspaceContainer";
+import FileSaver from 'file-saver';
+import _ from 'lodash/fp';
+import * as qs from 'qs';
+import { Fragment, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { DraggableCore } from 'react-draggable';
+import { div, form, h, h3, input, span } from 'react-hyperscript-helpers';
+import { AutoSizer } from 'react-virtualized';
+import * as breadcrumbs from 'src/components/breadcrumbs';
+import Collapse from 'src/components/Collapse';
+import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common';
+import { DataTableSaveVersionModal, DataTableVersion, DataTableVersions } from 'src/components/data/data-table-versions';
+import { EntityUploader, getRootTypeForSetTable, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/components/data/data-utils';
+import EntitiesContent from 'src/components/data/EntitiesContent';
+import ExportDataModal from 'src/components/data/ExportDataModal';
+import FileBrowser from 'src/components/data/FileBrowser';
+import LocalVariablesContent from 'src/components/data/LocalVariablesContent';
+import RenameTableModal from 'src/components/data/RenameTableModal';
+import { useSavedColumnSettings } from 'src/components/data/SavedColumnSettings';
+import WDSContent from 'src/components/data/WDSContent';
+import { WdsTroubleshooter } from 'src/components/data/WdsTroubleshooter';
+import { icon, spinner } from 'src/components/icons';
+import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input';
+import Interactive from 'src/components/Interactive';
+import { MenuButton } from 'src/components/MenuButton';
+import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
+import { FlexTable, HeaderCell } from 'src/components/table';
+import { SnapshotInfo } from 'src/components/workspace-utils';
+import { Ajax } from 'src/libs/ajax';
+import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
+import { resolveWdsUrl, WdsDataTableProvider, wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
+import colors from 'src/libs/colors';
+import { getConfig } from 'src/libs/config';
+import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions';
+import { reportError, reportErrorAndRethrow, withErrorReporting } from 'src/libs/error';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import * as Nav from 'src/libs/nav';
+import { notify } from 'src/libs/notifications';
+import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
+import { asyncImportJobStore, getUser } from 'src/libs/state';
+import * as StateHistory from 'src/libs/state-history';
+import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
+import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 const styles = {
   tableContainer: {
-    display: "flex",
+    display: 'flex',
     flex: 1,
-    flexBasis: "15rem",
-    maxHeight: "100%",
-    overflow: "hidden",
+    flexBasis: '15rem',
+    maxHeight: '100%',
+    overflow: 'hidden',
   },
   sidebarContainer: {
-    overflow: "auto",
-    transition: "width 100ms",
+    overflow: 'auto',
+    transition: 'width 100ms',
   },
   dataTypeSelectionPanel: {
-    flex: "none",
-    backgroundColor: "white",
+    flex: 'none',
+    backgroundColor: 'white',
   },
   sidebarSeparator: {
-    width: "2px",
-    height: "100%",
-    cursor: "ew-resize",
+    width: '2px',
+    height: '100%',
+    cursor: 'ew-resize',
   },
   tableViewPanel: {
-    position: "relative",
-    overflow: "hidden",
-    width: "100%",
+    position: 'relative',
+    overflow: 'hidden',
+    width: '100%',
     flex: 1,
-    display: "flex",
-    flexDirection: "column",
+    display: 'flex',
+    flexDirection: 'column',
   },
 };
 
@@ -79,17 +79,17 @@ const SearchResultsPill = ({ filteredCount, searching }) => {
   return div(
     {
       style: {
-        width: "5ch",
-        textAlign: "center",
-        padding: "0.25rem 0rem",
+        width: '5ch',
+        textAlign: 'center',
+        padding: '0.25rem 0rem',
         fontWeight: 600,
-        borderRadius: "1rem",
-        marginRight: "0.5rem",
+        borderRadius: '1rem',
+        marginRight: '0.5rem',
         backgroundColor: colors.primary(1.2),
-        color: "white",
+        color: 'white',
       },
     },
-    searching ? [icon("loadingSpinner", { size: 13, color: "white" })] : `${Utils.truncateInteger(filteredCount)}`
+    searching ? [icon('loadingSpinner', { size: 13, color: 'white' })] : `${Utils.truncateInteger(filteredCount)}`
   );
 };
 
@@ -98,7 +98,7 @@ const DataTypeButton = ({
   entityName,
   children,
   entityCount,
-  iconName = "listAlt",
+  iconName = 'listAlt',
   iconSize = 14,
   buttonStyle,
   filteredCount,
@@ -114,109 +114,109 @@ const DataTypeButton = ({
     Interactive,
     {
       ...wrapperProps,
-      style: { ...Style.navList.itemContainer(selected), backgroundColor: selected ? colors.dark(0.1) : "white" },
+      style: { ...Style.navList.itemContainer(selected), backgroundColor: selected ? colors.dark(0.1) : 'white' },
       hover: Style.navList.itemHover(selected),
-      as: "div",
+      as: 'div',
     },
     [
       h(
         Clickable,
         {
-          style: { ...Style.navList.item(selected), flex: "1 1 auto", minWidth: 0, color: colors.accent(1.2), ...buttonStyle },
+          style: { ...Style.navList.item(selected), flex: '1 1 auto', minWidth: 0, color: colors.accent(1.2), ...buttonStyle },
           ...(isEntity
             ? {
                 tooltip: entityName
-                  ? `${entityName} (${entityCount} row${entityCount === 1 ? "" : "s"}${
-                      activeCrossTableTextFilter ? `, ${filteredCount} visible` : ""
+                  ? `${entityName} (${entityCount} row${entityCount === 1 ? '' : 's'}${
+                      activeCrossTableTextFilter ? `, ${filteredCount} visible` : ''
                     })`
                   : undefined,
                 tooltipDelay: 250,
                 useTooltipAsLabel: true,
               }
             : {}),
-          "aria-current": selected,
+          'aria-current': selected,
           ...props,
         },
         [
           activeCrossTableTextFilter && isEntity
             ? SearchResultsPill({ filteredCount, searching: crossTableSearchInProgress })
-            : div({ style: { flex: "none", width: "1.5rem" } }, [icon(iconName, { size: iconSize })]),
+            : div({ style: { flex: 'none', width: '1.5rem' } }, [icon(iconName, { size: iconSize })]),
           div({ style: { ...Style.noWrapEllipsis } }, [entityName || children]),
-          isEntity && div({ style: { marginLeft: "1ch" } }, `(${entityCount})`),
+          isEntity && div({ style: { marginLeft: '1ch' } }, `(${entityCount})`),
         ]
       ),
-      after && div({ style: { marginLeft: "1ch" } }, [after]),
+      after && div({ style: { marginLeft: '1ch' } }, [after]),
     ]
   );
 };
 
 const DataImportPlaceholder = () => {
-  return div({ style: { ...Style.navList.item(false), color: colors.dark(0.7), marginLeft: "0.5rem" } }, [
-    div({ style: { flex: "none", display: "flex", width: "1.5rem" } }, [icon("downloadRegular", { size: 14 })]),
-    div({ style: { flex: 1 } }, ["Data import in progress"]),
+  return div({ style: { ...Style.navList.item(false), color: colors.dark(0.7), marginLeft: '0.5rem' } }, [
+    div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [icon('downloadRegular', { size: 14 })]),
+    div({ style: { flex: 1 } }, ['Data import in progress']),
   ]);
 };
 
 const getReferenceData = _.flow(
   _.toPairs,
-  _.filter(([key]) => key.startsWith("referenceData_")),
+  _.filter(([key]) => key.startsWith('referenceData_')),
   _.map(([k, value]) => {
     const [, datum, key] = /referenceData_([^_]+)_(.+)/.exec(k);
     return { datum, key, value };
   }),
-  _.groupBy("datum")
+  _.groupBy('datum')
 );
 
 const ReferenceDataContent = ({ workspace, referenceKey }) => {
   const {
     workspace: { attributes },
   } = workspace;
-  const [textFilter, setTextFilter] = useState("");
+  const [textFilter, setTextFilter] = useState('');
 
   const selectedData = _.flow(
     _.filter(({ key, value }) => Utils.textMatch(textFilter, `${key} ${value}`)),
-    _.sortBy("key")
+    _.sortBy('key')
   )(getReferenceData(attributes)[referenceKey]);
 
   return h(Fragment, [
     div(
       {
         style: {
-          display: "flex",
-          justifyContent: "flex-end",
-          padding: "1rem",
+          display: 'flex',
+          justifyContent: 'flex-end',
+          padding: '1rem',
           background: colors.light(0.5),
           borderBottom: `1px solid ${colors.grey(0.4)}`,
         },
       },
       [
         h(DelayedSearchInput, {
-          "aria-label": "Search",
+          'aria-label': 'Search',
           style: { width: 300 },
-          placeholder: "Search",
+          placeholder: 'Search',
           onChange: setTextFilter,
           value: textFilter,
         }),
       ]
     ),
-    div({ style: { flex: 1, margin: "0 0 1rem" } }, [
+    div({ style: { flex: 1, margin: '0 0 1rem' } }, [
       h(AutoSizer, [
         ({ width, height }) =>
           h(FlexTable, {
-            "aria-label": "reference data",
+            'aria-label': 'reference data',
             width,
             height,
             rowCount: selectedData.length,
-            noContentMessage: "No matching data",
+            noContentMessage: 'No matching data',
             columns: [
               {
                 size: { basis: 400, grow: 0 },
-                headerRenderer: () => h(HeaderCell, ["Key"]),
+                headerRenderer: () => h(HeaderCell, ['Key']),
                 cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].key, workspace),
               },
               {
                 size: { grow: 1 },
-                headerRenderer: () => h(HeaderCell, ["Value"]),
+                headerRenderer: () => h(HeaderCell, ['Value']),
                 cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].value, workspace),
               },
             ],
@@ -249,14 +249,14 @@ const DataTypeSection = ({ title, error, retryFunction, children }) => {
   return h(
     Collapse,
     {
-      role: "listitem",
+      role: 'listitem',
       title: h3(
         {
           style: {
             margin: 0,
             fontSize: 16,
             color: colors.dark(),
-            textTransform: "uppercase",
+            textTransform: 'uppercase',
           },
         },
         title
@@ -264,7 +264,7 @@ const DataTypeSection = ({ title, error, retryFunction, children }) => {
       titleFirst: true,
       initialOpenState: true,
       summaryStyle: {
-        padding: "1.125rem 1.5rem",
+        padding: '1.125rem 1.5rem',
         borderBottom: `0.5px solid ${colors.dark(0.2)}`,
         backgroundColor: colors.light(0.4),
         fontSize: 16,
@@ -278,17 +278,17 @@ const DataTypeSection = ({ title, error, retryFunction, children }) => {
           Link,
           {
             onClick: retryFunction,
-            tooltip: "Error loading, click to retry.",
+            tooltip: 'Error loading, click to retry.',
           },
-          [icon("sync", { size: 18 })]
+          [icon('sync', { size: 18 })]
         ),
     },
     [
       !!children?.length &&
         div(
           {
-            style: { display: "flex", flexDirection: "column", width: "100%" },
-            role: "list",
+            style: { display: 'flex', flexDirection: 'column', width: '100%' },
+            role: 'list',
           },
           [children]
         ),
@@ -300,15 +300,15 @@ const NoDataPlaceholder = ({ message, buttonText, onAdd }) =>
   div(
     {
       style: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "flex-start",
-        padding: "0.5rem 1.5rem",
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        padding: '0.5rem 1.5rem',
         borderBottom: `1px solid ${colors.dark(0.2)}`,
-        backgroundColor: "white",
+        backgroundColor: 'white',
       },
     },
-    [message, h(Link, { style: { marginTop: "0.5rem" }, onClick: onAdd }, [buttonText])]
+    [message, h(Link, { style: { marginTop: '0.5rem' }, onClick: onAdd }, [buttonText])]
   );
 
 const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
@@ -327,20 +327,20 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
     const onResize = _.throttle(100, () => {
       setSidebarWidth(_.clamp(minWidth, getMaxWidth()));
     });
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   });
 
   return h(DraggableCore, { onDrag }, [
     h(Interactive, {
-      as: "div",
-      role: "separator",
-      "aria-label": "Resize sidebar",
-      "aria-valuenow": sidebarWidth,
-      "aria-valuemin": minWidth,
-      "aria-valuemax": getMaxWidth(),
+      as: 'div',
+      role: 'separator',
+      'aria-label': 'Resize sidebar',
+      'aria-valuenow': sidebarWidth,
+      'aria-valuemin': minWidth,
+      'aria-valuemax': getMaxWidth(),
       tabIndex: 0,
-      className: "custom-focus-style",
+      className: 'custom-focus-style',
       style: {
         ...styles.sidebarSeparator,
         background: colors.grey(0.4),
@@ -349,9 +349,9 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
         background: colors.accent(1.2),
       },
       onKeyDown: (e) => {
-        if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
           setSidebarWidth((w) => _.min([w + 10, getMaxWidth()]));
-        } else if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
           setSidebarWidth((w) => _.max([w - 10, minWidth]));
         }
       },
@@ -376,8 +376,8 @@ const DataTableActions = ({
     workspaceSubmissionStats: { runningSubmissionsCount },
   } = workspace;
 
-  const isSet = tableName.endsWith("_set");
-  const isSetOfSets = tableName.endsWith("_set_set");
+  const isSet = tableName.endsWith('_set');
+  const isSetOfSets = tableName.endsWith('_set_set');
   const setTableNames = _.filter((v) => v.match(`${tableName}(_set)+$`), _.keys(entityMetadata));
 
   const editWorkspaceErrorMessage = Utils.editWorkspaceError(workspace);
@@ -402,16 +402,16 @@ const DataTableActions = ({
     h(
       MenuTrigger,
       {
-        side: "bottom",
+        side: 'bottom',
         closeOnClick: true,
         content: h(Fragment, [
           form(
             {
               ref: downloadForm,
               action: `${getConfig().orchestrationUrlRoot}/cookie-authed/workspaces/${namespace}/${name}/entities/${tableName}/tsv`,
-              method: "POST",
+              method: 'POST',
             },
-            [input({ type: "hidden", name: "FCtoken", value: getUser().token }), input({ type: "hidden", name: "model", value: "flexible" })]
+            [input({ type: 'hidden', name: 'FCtoken', value: getUser().token }), input({ type: 'hidden', name: 'model', value: 'flexible' })]
           ),
           (dataProvider.features.supportsTsvDownload || dataProvider.features.supportsTsvAjaxDownload) &&
             h(
@@ -419,8 +419,8 @@ const DataTableActions = ({
               {
                 disabled: isSetOfSets,
                 tooltip: isSetOfSets
-                  ? "Downloading sets of sets as TSV is not supported at this time."
-                  : "Download a TSV file containing all rows in this table.",
+                  ? 'Downloading sets of sets as TSV is not supported at this time.'
+                  : 'Download a TSV file containing all rows in this table.',
                 onClick: () => {
                   if (dataProvider.features.supportsTsvDownload) {
                     downloadForm.current.submit();
@@ -432,12 +432,12 @@ const DataTableActions = ({
                     ...extractWorkspaceDetails(workspace.workspace),
                     providerName: dataProvider.providerName,
                     cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label,
-                    downloadFrom: "all rows",
-                    fileType: ".tsv",
+                    downloadFrom: 'all rows',
+                    fileType: '.tsv',
                   });
                 },
               },
-              "Download TSV"
+              'Download TSV'
             ),
           dataProvider.features.supportsExport &&
             h(
@@ -445,16 +445,16 @@ const DataTableActions = ({
               {
                 onClick: _.flow(
                   Utils.withBusyState(setLoading),
-                  withErrorReporting("Error loading entities.")
+                  withErrorReporting('Error loading entities.')
                 )(async () => {
                   const queryResults = await Ajax(signal)
                     .Workspaces.workspace(namespace, name)
                     .paginatedEntitiesOfType(tableName, { pageSize: rowCount });
-                  setEntities(_.map(_.get("name"), queryResults.results));
+                  setEntities(_.map(_.get('name'), queryResults.results));
                   setExporting(true);
                 }),
               },
-              "Export to workspace"
+              'Export to workspace'
             ),
           dataProvider.features.supportsTypeRenaming &&
             h(
@@ -464,9 +464,9 @@ const DataTableActions = ({
                   setRenaming(true);
                 },
                 disabled: !!editWorkspaceErrorMessage,
-                tooltip: editWorkspaceErrorMessage || "",
+                tooltip: editWorkspaceErrorMessage || '',
               },
-              "Rename table"
+              'Rename table'
             ),
           dataProvider.features.supportsTypeDeletion &&
             h(
@@ -474,14 +474,14 @@ const DataTableActions = ({
               {
                 onClick: () => setDeleting(true),
                 disabled: !!editWorkspaceErrorMessage,
-                tooltip: editWorkspaceErrorMessage || "",
+                tooltip: editWorkspaceErrorMessage || '',
               },
-              "Delete table"
+              'Delete table'
             ),
-          isFeaturePreviewEnabled("data-table-versioning") &&
+          isFeaturePreviewEnabled('data-table-versioning') &&
             h(Fragment, [
               h(MenuDivider),
-              h(MenuButton, { onClick: () => setSavingVersion(true) }, ["Save version"]),
+              h(MenuButton, { onClick: () => setSavingVersion(true) }, ['Save version']),
               h(
                 MenuButton,
                 {
@@ -495,7 +495,7 @@ const DataTableActions = ({
                     }
                   },
                 },
-                [`${isShowingVersionHistory ? "Hide" : "Show"} version history`]
+                [`${isShowingVersionHistory ? 'Hide' : 'Show'} version history`]
               ),
             ]),
         ]),
@@ -505,10 +505,10 @@ const DataTableActions = ({
           Clickable,
           {
             disabled: loading,
-            tooltip: "Table menu",
+            tooltip: 'Table menu',
             useTooltipAsLabel: true,
           },
-          [icon(loading ? "loadingSpinner" : "cardMenuIcon")]
+          [icon(loading ? 'loadingSpinner' : 'cardMenuIcon')]
         ),
       ]
     ),
@@ -549,7 +549,7 @@ const DataTableActions = ({
       }),
     deleting &&
       h(DeleteConfirmationModal, {
-        objectType: "table",
+        objectType: 'table',
         objectName: tableName,
         onDismiss: () => setDeleting(false),
         onConfirm: Utils.withBusyState(setLoading)(async () => {
@@ -565,11 +565,11 @@ const DataTableActions = ({
           } catch (error) {
             setDeleting(false);
             if (error.status === 409) {
-              notify("warn", "Unable to delete table", {
-                message: "In order to delete this table, any entries in other tables that reference it must also be deleted.",
+              notify('warn', 'Unable to delete table', {
+                message: 'In order to delete this table, any entries in other tables that reference it must also be deleted.',
               });
             } else {
-              reportError("Error deleting table", error);
+              reportError('Error deleting table', error);
             }
           }
         }),
@@ -578,10 +578,10 @@ const DataTableActions = ({
 };
 
 const DataTableFeaturePreviewFeedbackBanner = () => {
-  const isDataTableProvenanceEnabled = isFeaturePreviewEnabled("data-table-provenance");
-  const isDataTableVersioningEnabled = isFeaturePreviewEnabled("data-table-versioning");
+  const isDataTableProvenanceEnabled = isFeaturePreviewEnabled('data-table-provenance');
+  const isDataTableVersioningEnabled = isFeaturePreviewEnabled('data-table-versioning');
 
-  const label = _.join(" and ", _.compact([isDataTableVersioningEnabled && "versioning", isDataTableProvenanceEnabled && "provenance"]));
+  const label = _.join(' and ', _.compact([isDataTableVersioningEnabled && 'versioning', isDataTableProvenanceEnabled && 'provenance']));
   const feedbackUrl = `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent(`Feedback on data table ${label}`)}`;
 
   return (
@@ -589,10 +589,10 @@ const DataTableFeaturePreviewFeedbackBanner = () => {
     div(
       {
         style: {
-          padding: "1rem",
+          padding: '1rem',
           borderBottom: `1px solid ${colors.accent()}`,
-          background: "#fff",
-          textAlign: "center",
+          background: '#fff',
+          textAlign: 'center',
         },
       },
       [h(Link, { ...Utils.newTabLinkProps, href: feedbackUrl }, [`Provide feedback on data table ${label}`])]
@@ -600,14 +600,14 @@ const DataTableFeaturePreviewFeedbackBanner = () => {
   );
 };
 
-const workspaceDataTypes = Utils.enumify(["entities", "entitiesVersion", "snapshot", "referenceData", "localVariables", "bucketObjects", "wds"]);
+const workspaceDataTypes = Utils.enumify(['entities', 'entitiesVersion', 'snapshot', 'referenceData', 'localVariables', 'bucketObjects', 'wds']);
 
 const WorkspaceData = _.flow(
-  forwardRefWithName("WorkspaceData"),
+  forwardRefWithName('WorkspaceData'),
   wrapWorkspace({
     breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: "Data",
-    activeTab: "data",
+    title: 'Data',
+    activeTab: 'data',
   })
 )(
   (
@@ -636,14 +636,14 @@ const WorkspaceData = _.flow(
     const [entityMetadataError, setEntityMetadataError] = useState();
     const [snapshotMetadataError, setSnapshotMetadataError] = useState();
     const [sidebarWidth, setSidebarWidth] = useState(280);
-    const [activeCrossTableTextFilter, setActiveCrossTableTextFilter] = useState("");
+    const [activeCrossTableTextFilter, setActiveCrossTableTextFilter] = useState('');
     const [crossTableResultCounts, setCrossTableResultCounts] = useState({});
     const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false);
     const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}); // { [entityType: string]: boolean }
     const pollWdsInterval = useRef();
 
-    const [wdsProxyUrl, setWdsProxyUrl] = useState({ status: "None", state: "" });
-    const [wdsTypes, setWdsTypes] = useState({ status: "None", state: [] });
+    const [wdsProxyUrl, setWdsProxyUrl] = useState({ status: 'None', state: '' });
+    const [wdsTypes, setWdsTypes] = useState({ status: 'None', state: [] });
 
     const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } =
       useDataTableVersions(workspace);
@@ -675,7 +675,7 @@ const WorkspaceData = _.flow(
         }
         setEntityMetadata(entityMetadata);
       } catch (error) {
-        reportError("Error loading workspace entity data", error);
+        reportError('Error loading workspace entity data', error);
         setEntityMetadataError(true);
         setSelectedData(undefined);
         setEntityMetadata({});
@@ -689,15 +689,15 @@ const WorkspaceData = _.flow(
 
         const snapshots = _.reduce(
           (acc, { metadata: { name, ...metadata }, attributes }) => {
-            return _.set([name, "resource"], _.merge(metadata, attributes), acc);
+            return _.set([name, 'resource'], _.merge(metadata, attributes), acc);
           },
-          _.pick(_.map("name", _.map("metadata", snapshotBody)), snapshotDetails) || {}, // retain entities if loaded from state history, but only for snapshots that exist
+          _.pick(_.map('name', _.map('metadata', snapshotBody)), snapshotDetails) || {}, // retain entities if loaded from state history, but only for snapshots that exist
           snapshotBody
         );
 
         setSnapshotDetails(snapshots);
       } catch (error) {
-        reportError("Error loading workspace snapshot data", error);
+        reportError('Error loading workspace snapshot data', error);
         setSnapshotMetadataError(true);
         setSelectedData(undefined);
         setSnapshotDetails({});
@@ -708,14 +708,14 @@ const WorkspaceData = _.flow(
 
     const loadSnapshotEntities = async (snapshotName) => {
       try {
-        setSnapshotDetails(_.set([snapshotName, "error"], false));
+        setSnapshotDetails(_.set([snapshotName, 'error'], false));
         const entities = await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(googleProject, snapshotName);
         // Prevent duplicate id columns
-        const entitiesWithoutIds = _.mapValues((entity) => _.update(["attributeNames"], _.without([entity.idName]), entity), entities);
-        setSnapshotDetails(_.set([snapshotName, "entityMetadata"], entitiesWithoutIds));
+        const entitiesWithoutIds = _.mapValues((entity) => _.update(['attributeNames'], _.without([entity.idName]), entity), entities);
+        setSnapshotDetails(_.set([snapshotName, 'entityMetadata'], entitiesWithoutIds));
       } catch (error) {
         reportError(`Error loading entities in snapshot ${snapshotName}`, error);
-        setSnapshotDetails(_.set([snapshotName, "error"], true));
+        setSnapshotDetails(_.set([snapshotName, 'error'], true));
       }
     };
 
@@ -733,13 +733,13 @@ const WorkspaceData = _.flow(
         .then(resolveWdsUrl)
         .then((url) => {
           if (url) {
-            setWdsProxyUrl({ status: "Ready", state: url });
+            setWdsProxyUrl({ status: 'Ready', state: url });
           }
           return url;
         })
         .catch((err) => {
-          setWdsProxyUrl({ status: "Error", state: err });
-          return "";
+          setWdsProxyUrl({ status: 'Error', state: err });
+          return '';
         });
     }, []);
 
@@ -748,10 +748,10 @@ const WorkspaceData = _.flow(
         return Ajax(signal)
           .WorkspaceData.getSchema(url, workspaceId)
           .then((typesResult) => {
-            setWdsTypes({ status: "Ready", state: typesResult });
+            setWdsTypes({ status: 'Ready', state: typesResult });
           })
           .catch((err) => {
-            setWdsTypes({ status: "Error", state: err });
+            setWdsTypes({ status: 'Error', state: err });
           });
       },
       [signal]
@@ -760,7 +760,7 @@ const WorkspaceData = _.flow(
     const loadWdsData = useCallback(async () => {
       try {
         // Try to load the proxy URL
-        if (!wdsProxyUrl || wdsProxyUrl.status !== "Ready") {
+        if (!wdsProxyUrl || wdsProxyUrl.status !== 'Ready') {
           const wdsUrl = await loadWdsUrl(workspaceId);
           if (wdsUrl) {
             await loadWdsTypes(wdsUrl, workspaceId);
@@ -778,9 +778,9 @@ const WorkspaceData = _.flow(
     useEffect(() => {
       if (isAzureWorkspace) {
         // Start polling if we're missing WDS Types, and stop polling when we have them.
-        if ((!wdsTypes || wdsTypes.status !== "Ready") && !pollWdsInterval.current) {
+        if ((!wdsTypes || wdsTypes.status !== 'Ready') && !pollWdsInterval.current) {
           pollWdsInterval.current = setInterval(loadWdsData, 30 * 1000);
-        } else if (!!wdsTypes && wdsTypes.status === "Ready" && pollWdsInterval.current) {
+        } else if (!!wdsTypes && wdsTypes.status === 'Ready' && pollWdsInterval.current) {
           clearInterval(pollWdsInterval.current);
           pollWdsInterval.current = undefined;
         }
@@ -797,22 +797,22 @@ const WorkspaceData = _.flow(
     const getRunningImportJobs = async () => {
       try {
         const runningJobs = await Ajax(signal).Workspaces.workspace(namespace, name).listImportJobs(true);
-        const currentJobIds = _.map("jobId", asyncImportJobStore.get());
+        const currentJobIds = _.map('jobId', asyncImportJobStore.get());
         _.forEach((job) => {
           const jobStatus = _.lowerCase(job.status);
-          if (!_.includes(jobStatus, ["success", "error", "done"]) && !_.includes(job.jobId, currentJobIds)) {
+          if (!_.includes(jobStatus, ['success', 'error', 'done']) && !_.includes(job.jobId, currentJobIds)) {
             asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId: job.jobId }));
           }
         }, runningJobs);
       } catch (error) {
-        reportError("Error loading running import jobs in this workspace");
+        reportError('Error loading running import jobs in this workspace');
       }
     };
 
     const deleteColumnUpdateMetadata = ({ attributeName, entityType }) => {
       const newArray = _.get(entityType, entityMetadata).attributeNames;
       const attributeNamesArrayUpdated = _.without([attributeName], newArray);
-      const updatedMetadata = _.set([entityType, "attributeNames"], attributeNamesArrayUpdated, entityMetadata);
+      const updatedMetadata = _.set([entityType, 'attributeNames'], attributeNamesArrayUpdated, entityMetadata);
       setEntityMetadata(updatedMetadata);
     };
 
@@ -835,7 +835,7 @@ const WorkspaceData = _.flow(
           numTables: _.size(typeNames),
         });
       } catch (error) {
-        reportError("Error searching across tables", error);
+        reportError('Error searching across tables', error);
       }
       setCrossTableSearchInProgress(false);
     };
@@ -865,9 +865,9 @@ const WorkspaceData = _.flow(
     const canEditWorkspace = !editWorkspaceErrorMessage;
 
     // convenience vars for WDS
-    const wdsReady = wdsProxyUrl.status === "Ready" && wdsTypes.status === "Ready";
-    const wdsLoading = wdsProxyUrl.status === "Loading" || wdsTypes.status === "Loading";
-    const wdsError = wdsProxyUrl.status === "Error" || wdsTypes.status === "Error";
+    const wdsReady = wdsProxyUrl.status === 'Ready' && wdsTypes.status === 'Ready';
+    const wdsLoading = wdsProxyUrl.status === 'Loading' || wdsTypes.status === 'Loading';
+    const wdsError = wdsProxyUrl.status === 'Error' || wdsTypes.status === 'Error';
 
     const canUploadTsv = isGoogleWorkspace || (isAzureWorkspace && wdsReady);
     return div({ style: styles.tableContainer }, [
@@ -879,8 +879,8 @@ const WorkspaceData = _.flow(
                 div(
                   {
                     style: {
-                      display: "flex",
-                      padding: "1rem 1.5rem",
+                      display: 'flex',
+                      padding: '1rem 1.5rem',
                       backgroundColor: colors.light(),
                       borderBottom: `1px solid ${colors.grey(0.4)}`,
                     },
@@ -889,7 +889,7 @@ const WorkspaceData = _.flow(
                     h(
                       MenuTrigger,
                       {
-                        side: "bottom",
+                        side: 'bottom',
                         closeOnClick: true,
                         // Make the width of the dropdown menu match the width of the button.
                         popupProps: { style: { width: `calc(${sidebarWidth}px - 3rem` } },
@@ -897,27 +897,27 @@ const WorkspaceData = _.flow(
                           h(
                             MenuButton,
                             {
-                              "aria-haspopup": "dialog",
+                              'aria-haspopup': 'dialog',
                               onClick: () => (isGoogleWorkspace ? setUploadingFile(true) : setUploadingWDSFile(true)),
                             },
-                            "Upload TSV"
+                            'Upload TSV'
                           ),
                           isGoogleWorkspace &&
                             h(
                               MenuButton,
                               {
-                                href: `${Nav.getLink("upload")}?${qs.stringify({ workspace: workspaceId })}`,
+                                href: `${Nav.getLink('upload')}?${qs.stringify({ workspace: workspaceId })}`,
                               },
-                              ["Open data uploader"]
+                              ['Open data uploader']
                             ),
                           isGoogleWorkspace &&
                             h(
                               MenuButton,
                               {
-                                "aria-haspopup": "dialog",
+                                'aria-haspopup': 'dialog',
                                 onClick: () => setImportingReference(true),
                               },
-                              "Add reference data"
+                              'Add reference data'
                             ),
                         ]),
                       },
@@ -927,24 +927,24 @@ const WorkspaceData = _.flow(
                           {
                             disabled: !canEditWorkspace || uploadingWDSFile,
                             tooltip: Utils.cond(
-                              [uploadingWDSFile, "Upload in progress"],
-                              canEditWorkspace ? "Add data to this workspace" : editWorkspaceErrorMessage
+                              [uploadingWDSFile, 'Upload in progress'],
+                              canEditWorkspace ? 'Add data to this workspace' : editWorkspaceErrorMessage
                             ),
                             style: { flex: 1 },
                           },
-                          [span([icon("plus-circle", { style: { marginRight: "1ch" } }), "Import data"])]
+                          [span([icon('plus-circle', { style: { marginRight: '1ch' } }), 'Import data'])]
                         ),
                       ]
                     ),
                   ]
                 ),
-              div({ style: styles.dataTypeSelectionPanel, role: "navigation", "aria-label": "data in this workspace" }, [
-                div({ role: "list" }, [
+              div({ style: styles.dataTypeSelectionPanel, role: 'navigation', 'aria-label': 'data in this workspace' }, [
+                div({ role: 'list' }, [
                   isGoogleWorkspace &&
                     h(
                       DataTypeSection,
                       {
-                        title: "Tables",
+                        title: 'Tables',
                         error: entityMetadataError,
                         retryFunction: loadEntityMetadata,
                       },
@@ -953,15 +953,15 @@ const WorkspaceData = _.flow(
                         !_.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) &&
                           _.isEmpty(sortedEntityPairs) &&
                           h(NoDataPlaceholder, {
-                            message: "No tables have been uploaded.",
-                            buttonText: "Upload TSV",
+                            message: 'No tables have been uploaded.',
+                            buttonText: 'Upload TSV',
                             onAdd: () => setUploadingFile(true),
                           }),
                         !_.isEmpty(sortedEntityPairs) &&
-                          div({ style: { margin: "1rem" } }, [
+                          div({ style: { margin: '1rem' } }, [
                             h(ConfirmedSearchInput, {
-                              "aria-label": "Search all tables",
-                              placeholder: "Search all tables",
+                              'aria-label': 'Search all tables',
+                              placeholder: 'Search all tables',
                               onChange: (activeCrossTableTextFilter) => {
                                 setActiveCrossTableTextFilter(activeCrossTableTextFilter);
                                 searchAcrossTables(_.keys(entityMetadata), activeCrossTableTextFilter);
@@ -969,16 +969,16 @@ const WorkspaceData = _.flow(
                               defaultValue: activeCrossTableTextFilter,
                             }),
                           ]),
-                        activeCrossTableTextFilter !== "" &&
+                        activeCrossTableTextFilter !== '' &&
                           div(
-                            { style: { margin: "0rem 1rem 1rem 1rem" } },
+                            { style: { margin: '0rem 1rem 1rem 1rem' } },
                             crossTableSearchInProgress
-                              ? ["Loading...", icon("loadingSpinner", { size: 13, color: colors.primary() })]
+                              ? ['Loading...', icon('loadingSpinner', { size: 13, color: colors.primary() })]
                               : [`${_.sum(_.map((c) => c.filteredCount, crossTableResultCounts))} results`]
                           ),
                         _.map(([type, typeDetails]) => {
                           const isShowingVersionHistory = !!showDataTableVersionHistory[type];
-                          return div({ key: type, role: "listitem" }, [
+                          return div({ key: type, role: 'listitem' }, [
                             h(DataTypeButton, {
                               key: type,
                               selected: selectedData?.type === workspaceDataTypes.entities && selectedData.entityType === type,
@@ -1003,14 +1003,14 @@ const WorkspaceData = _.flow(
                                   setEntityMetadata(_.unset(tableName));
                                 },
                                 isShowingVersionHistory,
-                                onSaveVersion: withErrorReporting("Error saving version", (versionOpts) => {
+                                onSaveVersion: withErrorReporting('Error saving version', (versionOpts) => {
                                   setShowDataTableVersionHistory(_.set(type, true));
                                   return saveDataTableVersion(type, versionOpts);
                                 }),
-                                onToggleVersionHistory: withErrorReporting("Error loading version history", (showVersionHistory) => {
+                                onToggleVersionHistory: withErrorReporting('Error loading version history', (showVersionHistory) => {
                                   setShowDataTableVersionHistory(_.set(type, showVersionHistory));
                                   if (showVersionHistory) {
-                                    loadDataTableVersions(type.endsWith("_set") ? getRootTypeForSetTable(type) : type);
+                                    loadDataTableVersions(type.endsWith('_set') ? getRootTypeForSetTable(type) : type);
                                   }
                                 }),
                               }),
@@ -1019,11 +1019,11 @@ const WorkspaceData = _.flow(
                               h(DataTableVersions, {
                                 ...Utils.cond(
                                   [
-                                    type.endsWith("_set"),
+                                    type.endsWith('_set'),
                                     () => {
                                       const referencedType = getRootTypeForSetTable(type);
                                       return _.update(
-                                        "versions",
+                                        'versions',
                                         _.filter((version) => _.includes(type, version.includedSetEntityTypes)),
                                         dataTableVersions[referencedType]
                                       );
@@ -1048,22 +1048,22 @@ const WorkspaceData = _.flow(
                     h(
                       DataTypeSection,
                       {
-                        title: "Tables",
+                        title: 'Tables',
                       },
                       [
                         (wdsLoading || wdsError) &&
                           h(NoDataPlaceholder, {
-                            message: wdsLoading ? icon("loadingSpinner") : "Data tables are unavailable",
+                            message: wdsLoading ? icon('loadingSpinner') : 'Data tables are unavailable',
                           }),
                         wdsReady &&
                           _.isEmpty(wdsTypes.state) &&
                           h(NoDataPlaceholder, {
-                            message: "No tables have been uploaded.",
+                            message: 'No tables have been uploaded.',
                           }),
                         wdsReady &&
                           !_.isEmpty(wdsTypes.state) &&
                           _.map((typeDef) => {
-                            return div({ key: typeDef.name, role: "listitem" }, [
+                            return div({ key: typeDef.name, role: 'listitem' }, [
                               h(DataTypeButton, {
                                 key: typeDef.name,
                                 selected: selectedData?.type === workspaceDataTypes.wds && selectedData.entityType === typeDef.name,
@@ -1085,7 +1085,7 @@ const WorkspaceData = _.flow(
                                   onRenameTable: undefined,
                                   onDeleteTable: (tableName) => {
                                     setSelectedData(undefined);
-                                    setWdsTypes({ status: "Ready", state: _.remove((typeDef) => typeDef.name === tableName, wdsTypes.state) });
+                                    setWdsTypes({ status: 'Ready', state: _.remove((typeDef) => typeDef.name === tableName, wdsTypes.state) });
                                     forceRefresh();
                                   },
                                   isShowingVersionHistory: false,
@@ -1096,7 +1096,7 @@ const WorkspaceData = _.flow(
                             ]);
                           }, wdsTypes.state),
                         h(NoDataPlaceholder, {
-                          buttonText: "Data Table Status",
+                          buttonText: 'Data Table Status',
                           onAdd: () => setTroubleshootingWds(true),
                         }),
                       ]
@@ -1106,7 +1106,7 @@ const WorkspaceData = _.flow(
                     h(
                       DataTypeSection,
                       {
-                        title: "Snapshots",
+                        title: 'Snapshots',
                         error: snapshotMetadataError,
                         retryFunction: loadSnapshotMetadata,
                       },
@@ -1127,17 +1127,17 @@ const WorkspaceData = _.flow(
                                 key: snapshotName,
                                 titleFirst: true,
                                 noTitleWrap: true,
-                                summaryStyle: { height: 50, paddingRight: "0.5rem", fontWeight: 600 },
+                                summaryStyle: { height: 50, paddingRight: '0.5rem', fontWeight: 600 },
                                 tooltip: snapshotName,
                                 tooltipDelay: 250,
-                                style: { fontSize: 14, paddingLeft: "1.5rem", borderBottom: `1px solid ${colors.dark(0.2)}` },
+                                style: { fontSize: 14, paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
                                 title: snapshotName,
-                                role: "listitem",
+                                role: 'listitem',
                                 afterTitle: h(
                                   Link,
                                   {
-                                    style: { marginLeft: "auto" },
-                                    tooltip: "Snapshot Info",
+                                    style: { marginLeft: 'auto' },
+                                    tooltip: 'Snapshot Info',
                                     onClick: () => {
                                       setSelectedData({ type: workspaceDataTypes.snapshot, snapshotName });
                                       forceRefresh();
@@ -1147,8 +1147,8 @@ const WorkspaceData = _.flow(
                                     icon(
                                       `info-circle${
                                         selectedData?.type === workspaceDataTypes.snapshot && selectedData.snapshotName === snapshotName
-                                          ? ""
-                                          : "-regular"
+                                          ? ''
+                                          : '-regular'
                                       }`,
                                       { size: 20 }
                                     ),
@@ -1164,17 +1164,17 @@ const WorkspaceData = _.flow(
                                     () =>
                                       div(
                                         {
-                                          style: { display: "flex", alignItems: "center", marginBottom: "0.5rem" },
+                                          style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' },
                                         },
                                         [
-                                          "Failed to load tables",
+                                          'Failed to load tables',
                                           h(
                                             Link,
                                             {
                                               onClick: () => loadSnapshotEntities(snapshotName),
-                                              tooltip: "Error loading, click to retry.",
+                                              tooltip: 'Error loading, click to retry.',
                                             },
-                                            [icon("sync", { size: 24, style: { marginLeft: "1rem" } })]
+                                            [icon('sync', { size: 24, style: { marginLeft: '1rem' } })]
                                           ),
                                         ]
                                       ),
@@ -1184,32 +1184,32 @@ const WorkspaceData = _.flow(
                                     () =>
                                       div(
                                         {
-                                          style: { display: "flex", alignItems: "center", marginBottom: "0.5rem" },
+                                          style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' },
                                         },
-                                        ["Loading snapshot contents...", spinner({ style: { marginLeft: "1rem" } })]
+                                        ['Loading snapshot contents...', spinner({ style: { marginLeft: '1rem' } })]
                                       ),
                                   ],
                                   () =>
-                                    div({ role: "list", style: { fontSize: 14, lineHeight: "1.5" } }, [
+                                    div({ role: 'list', style: { fontSize: 14, lineHeight: '1.5' } }, [
                                       _.map(([tableName, { count }]) => {
                                         const canCompute = !!workspace?.canCompute;
                                         return h(
                                           DataTypeButton,
                                           {
-                                            wrapperProps: { role: "listitem" },
+                                            wrapperProps: { role: 'listitem' },
                                             buttonStyle: { borderBottom: 0, height: 40, ...(canCompute ? {} : { color: colors.dark(0.25) }) },
                                             tooltip: canCompute
                                               ? tableName
-                                                ? `${tableName} (${count} row${count === 1 ? "" : "s"})`
+                                                ? `${tableName} (${count} row${count === 1 ? '' : 's'})`
                                                 : undefined
                                               : [
                                                   div(
-                                                    { key: `${tableName}-tooltip`, style: { whiteSpace: "pre-wrap" } },
-                                                    "You must be an owner, or a writer with compute permission, to view this snapshot.\n\n" +
-                                                      "Contact the owner of this workspace to change your permissions."
+                                                    { key: `${tableName}-tooltip`, style: { whiteSpace: 'pre-wrap' } },
+                                                    'You must be an owner, or a writer with compute permission, to view this snapshot.\n\n' +
+                                                      'Contact the owner of this workspace to change your permissions.'
                                                   ),
                                                 ],
-                                            tooltipSide: canCompute ? "bottom" : "left",
+                                            tooltipSide: canCompute ? 'bottom' : 'left',
                                             key: `${snapshotName}_${tableName}`,
                                             selected:
                                               selectedData?.type === workspaceDataTypes.snapshot &&
@@ -1246,13 +1246,13 @@ const WorkspaceData = _.flow(
                     h(
                       DataTypeSection,
                       {
-                        title: "Reference Data",
+                        title: 'Reference Data',
                       },
                       [
                         _.isEmpty(referenceData) &&
                           h(NoDataPlaceholder, {
-                            message: "No references have been added.",
-                            buttonText: "Add reference data",
+                            message: 'No references have been added.',
+                            buttonText: 'Add reference data',
                             onAdd: () => setImportingReference(true),
                           }),
                         _.map(
@@ -1261,7 +1261,7 @@ const WorkspaceData = _.flow(
                               DataTypeButton,
                               {
                                 key: type,
-                                wrapperProps: { role: "listitem" },
+                                wrapperProps: { role: 'listitem' },
                                 selected: selectedData?.type === workspaceDataTypes.referenceData && selectedData.reference === type,
                                 onClick: () => {
                                   setSelectedData({ type: workspaceDataTypes.referenceData, reference: type });
@@ -1278,7 +1278,7 @@ const WorkspaceData = _.flow(
                                       setDeletingReference(type);
                                     },
                                   },
-                                  [icon("minus-circle", { size: 16 })]
+                                  [icon('minus-circle', { size: 16 })]
                                 ),
                               },
                               [type]
@@ -1332,7 +1332,7 @@ const WorkspaceData = _.flow(
                         setUploadingWDSFile(false);
                         forceRefresh();
                         loadMetadata();
-                        notify("success", `Data imported successfully to table ${recordType}.`, {
+                        notify('success', `Data imported successfully to table ${recordType}.`, {
                           id: `${recordType}_success`,
                         });
                       },
@@ -1347,26 +1347,26 @@ const WorkspaceData = _.flow(
                     h(
                       DataTypeSection,
                       {
-                        title: "Other Data",
+                        title: 'Other Data',
                       },
                       [
                         h(
                           DataTypeButton,
                           {
-                            wrapperProps: { role: "listitem" },
+                            wrapperProps: { role: 'listitem' },
                             selected: selectedData?.type === workspaceDataTypes.localVariables,
                             onClick: () => {
                               setSelectedData({ type: workspaceDataTypes.localVariables });
                               forceRefresh();
                             },
                           },
-                          ["Workspace Data"]
+                          ['Workspace Data']
                         ),
                         h(
                           DataTypeButton,
                           {
-                            wrapperProps: { role: "listitem" },
-                            iconName: "folder",
+                            wrapperProps: { role: 'listitem' },
+                            iconName: 'folder',
                             iconSize: 18,
                             selected: selectedData?.type === workspaceDataTypes.bucketObjects,
                             onClick: () => {
@@ -1374,7 +1374,7 @@ const WorkspaceData = _.flow(
                               forceRefresh();
                             },
                           },
-                          ["Files"]
+                          ['Files']
                         ),
                       ]
                     ),
@@ -1400,30 +1400,30 @@ const WorkspaceData = _.flow(
                               () =>
                                 div(
                                   {
-                                    style: { textAlign: "center", lineHeight: "1.4rem", marginTop: "1rem", marginLeft: "5rem", marginRight: "5rem" },
+                                    style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' },
                                   },
 
                                   [
-                                    icon("loadingSpinner"),
-                                    " Preparing your data tables, this may take a few minutes. ",
+                                    icon('loadingSpinner'),
+                                    ' Preparing your data tables, this may take a few minutes. ',
                                     Utils.cond(
                                       [
                                         !uploadingWDSFile,
                                         () =>
                                           div({}, [
-                                            "You can ",
-                                            h(Link, { style: { marginTop: "0.5rem" }, onClick: () => setTroubleshootingWds(true) }, [
-                                              "check the status",
+                                            'You can ',
+                                            h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, [
+                                              'check the status',
                                             ]),
-                                            " of your data table service.",
+                                            ' of your data table service.',
                                           ]),
                                       ],
-                                      ""
+                                      ''
                                     ),
                                   ]
                                 ),
                             ],
-                            () => div({ style: { textAlign: "center" } }, ["Select a data type from the navigation panel on the left"])
+                            () => div({ style: { textAlign: 'center' } }, ['Select a data type from the navigation panel on the left'])
                           ),
                       ],
                       [
@@ -1447,9 +1447,9 @@ const WorkspaceData = _.flow(
                         workspaceDataTypes.bucketObjects,
                         () =>
                           h(FileBrowser, {
-                            style: { flex: "1 1 auto" },
+                            style: { flex: '1 1 auto' },
                             controlPanelStyle: {
-                              padding: "1rem",
+                              padding: '1rem',
                               background: colors.light(0.5),
                             },
                             workspace,
@@ -1457,13 +1457,13 @@ const WorkspaceData = _.flow(
                               Link,
                               {
                                 href: `https://seqr.broadinstitute.org/workspace/${namespace}/${name}`,
-                                style: { padding: "0.5rem" },
+                                style: { padding: '0.5rem' },
                               },
-                              [icon("pop-out"), " Analyze in Seqr"]
+                              [icon('pop-out'), ' Analyze in Seqr']
                             ),
                             noticeForPrefix: (prefix) =>
                               prefix.startsWith(`${dataTableVersionsPathRoot}/`)
-                                ? "Files in this folder are managed via data table versioning."
+                                ? 'Files in this folder are managed via data table versioning.'
                                 : null,
                             shouldDisableEditForPrefix: (prefix) => prefix.startsWith(`${dataTableVersionsPathRoot}/`),
                           }),
@@ -1511,11 +1511,11 @@ const WorkspaceData = _.flow(
                           h(DataTableVersion, {
                             workspace,
                             version: selectedData.version,
-                            onDelete: reportErrorAndRethrow("Error deleting version", async () => {
+                            onDelete: reportErrorAndRethrow('Error deleting version', async () => {
                               await deleteDataTableVersion(selectedData.version);
                               setSelectedData(undefined);
                             }),
-                            onImport: reportErrorAndRethrow("Error importing version", async () => {
+                            onImport: reportErrorAndRethrow('Error importing version', async () => {
                               const { tableName } = await importDataTableVersion(selectedData.version);
                               await loadMetadata();
                               setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName });
@@ -1540,8 +1540,8 @@ const WorkspaceData = _.flow(
                     ),
                 ],
                 () =>
-                  div({ style: { textAlign: "center", lineHeight: "1.4rem", marginTop: "1rem", marginLeft: "5rem", marginRight: "5rem" } }, [
-                    "Currently, only a workspace creator can use data tables. If you were invited to this workspace, you can use the clone feature to create your own workspace to use data tables.",
+                  div({ style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' } }, [
+                    'Currently, only a workspace creator can use data tables. If you were invited to this workspace, you can use the clone feature to create your own workspace to use data tables.',
                   ])
               ),
               // ]
@@ -1553,8 +1553,8 @@ const WorkspaceData = _.flow(
 
 export const navPaths = [
   {
-    name: "workspace-data",
-    path: "/workspaces/:namespace/:name/data",
+    name: 'workspace-data',
+    path: '/workspaces/:namespace/:name/data',
     component: WorkspaceData,
     title: ({ name }) => `${name} - Data`,
   },

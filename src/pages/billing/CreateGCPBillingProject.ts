@@ -1,15 +1,15 @@
-import _ from "lodash/fp";
-import { Fragment, useState } from "react";
-import { div, h } from "react-hyperscript-helpers";
-import { IdContainer, Select } from "src/components/common";
-import { ValidatedInput } from "src/components/input";
-import { Ajax } from "src/libs/ajax";
-import Events from "src/libs/events";
-import { formHint, FormLabel } from "src/libs/forms";
-import * as Utils from "src/libs/utils";
-import { billingProjectNameValidator } from "src/pages/billing/billing-utils";
-import { GoogleBillingAccount } from "src/pages/billing/models/GoogleBillingAccount";
-import validate from "validate.js";
+import _ from 'lodash/fp';
+import { Fragment, useState } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
+import { IdContainer, Select } from 'src/components/common';
+import { ValidatedInput } from 'src/components/input';
+import { Ajax } from 'src/libs/ajax';
+import Events from 'src/libs/events';
+import { formHint, FormLabel } from 'src/libs/forms';
+import * as Utils from 'src/libs/utils';
+import { billingProjectNameValidator } from 'src/pages/billing/billing-utils';
+import { GoogleBillingAccount } from 'src/pages/billing/models/GoogleBillingAccount';
+import validate from 'validate.js';
 
 const BillingAccountSelect = Select as typeof Select<GoogleBillingAccount>;
 
@@ -40,13 +40,13 @@ const CreateGCPBillingProject = ({
     h(IdContainer, [
       (id) =>
         h(Fragment, [
-          h(FormLabel, { htmlFor: id, required: true }, ["Terra billing project"]),
+          h(FormLabel, { htmlFor: id, required: true }, ['Terra billing project']),
           h(ValidatedInput, {
             inputProps: {
               id,
               autoFocus: true,
               value: billingProjectName,
-              placeholder: "Enter a name",
+              placeholder: 'Enter a name',
               onChange: (v) => {
                 setBillingProjectName(v);
                 if (!billingProjectNameTouched) {
@@ -60,16 +60,16 @@ const CreateGCPBillingProject = ({
           }),
         ]),
     ]),
-    !(billingProjectNameTouched && errors) && formHint("Name must be unique and cannot be changed."),
+    !(billingProjectNameTouched && errors) && formHint('Name must be unique and cannot be changed.'),
     h(IdContainer, [
       (id) =>
         h(Fragment, [
-          h(FormLabel, { htmlFor: id, required: true }, ["Select billing account"]),
+          h(FormLabel, { htmlFor: id, required: true }, ['Select billing account']),
           div({ style: { fontSize: 14 } }, [
             h(BillingAccountSelect, {
               id,
               isMulti: false,
-              placeholder: "Select a billing account",
+              placeholder: 'Select a billing account',
               value: chosenBillingAccount || null,
               onChange: (opt) => {
                 setChosenBillingAccount(opt!.value);

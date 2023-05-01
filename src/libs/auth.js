@@ -1,16 +1,16 @@
-import { parseJSON } from "date-fns/fp";
-import _ from "lodash/fp";
-import { UserManager, WebStorageStateStore } from "oidc-client-ts";
-import { cookiesAcceptedKey } from "src/components/CookieWarning";
-import { Ajax } from "src/libs/ajax";
-import { fetchOk } from "src/libs/ajax/ajax-common";
-import { getLocalStorage, getSessionStorage } from "src/libs/browser-storage";
-import { getConfig } from "src/libs/config";
-import { withErrorIgnoring, withErrorReporting } from "src/libs/error";
-import Events, { captureAppcuesEvent } from "src/libs/events";
-import { clearNotification, notify, sessionTimeoutProps } from "src/libs/notifications";
-import { getLocalPref, getLocalPrefForUserId, setLocalPref } from "src/libs/prefs";
-import allProviders from "src/libs/providers";
+import { parseJSON } from 'date-fns/fp';
+import _ from 'lodash/fp';
+import { UserManager, WebStorageStateStore } from 'oidc-client-ts';
+import { cookiesAcceptedKey } from 'src/components/CookieWarning';
+import { Ajax } from 'src/libs/ajax';
+import { fetchOk } from 'src/libs/ajax/ajax-common';
+import { getLocalStorage, getSessionStorage } from 'src/libs/browser-storage';
+import { getConfig } from 'src/libs/config';
+import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
+import Events, { captureAppcuesEvent } from 'src/libs/events';
+import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications';
+import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs';
+import allProviders from 'src/libs/providers';
 import {
   asyncImportJobStore,
   authStore,
@@ -22,16 +22,16 @@ import {
   userStatus,
   workspacesStore,
   workspaceStore,
-} from "src/libs/state";
-import * as Utils from "src/libs/utils";
+} from 'src/libs/state';
+import * as Utils from 'src/libs/utils';
 
 export const getOidcConfig = () => {
   const metadata = {
     authorization_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
     token_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/token`,
     ...(isGoogleAuthority() && {
-      userinfo_endpoint: "https://openidconnect.googleapis.com/v1/userinfo",
-      revocation_endpoint: "https://oauth2.googleapis.com/revoke",
+      userinfo_endpoint: 'https://openidconnect.googleapis.com/v1/userinfo',
+      revocation_endpoint: 'https://oauth2.googleapis.com/revoke',
     }),
   };
   return {
@@ -40,8 +40,8 @@ export const getOidcConfig = () => {
     popup_redirect_uri: `${window.origin}/redirect-from-oauth`,
     silent_redirect_uri: `${window.origin}/redirect-from-oauth-silent`,
     metadata,
-    prompt: "consent login",
-    scope: "openid email profile",
+    prompt: 'consent login',
+    scope: 'openid email profile',
     loadUserInfo: isGoogleAuthority(),
     stateStore: new WebStorageStateStore({ store: getLocalStorage() }),
     userStore: new WebStorageStateStore({ store: getLocalStorage() }),
@@ -49,12 +49,12 @@ export const getOidcConfig = () => {
     // Leo's setCookie interval is currently 5 min, set refresh auth then 5 min 30 seconds to gurantee that setCookie's token won't expire between 2 setCookie api calls
     accessTokenExpiringNotificationTimeInSeconds: 330,
     includeIdTokenInSilentRenew: true,
-    extraQueryParams: { access_type: "offline" },
+    extraQueryParams: { access_type: 'offline' },
   };
 };
 
 const isGoogleAuthority = () => {
-  return _.startsWith("https://accounts.google.com", authStore.get().oidcConfig.authorityEndpoint);
+  return _.startsWith('https://accounts.google.com', authStore.get().oidcConfig.authorityEndpoint);
 };
 
 const getAuthInstance = () => {
@@ -75,7 +75,7 @@ export const signOut = () => {
 
 export const signOutAfterSessionTimeout = () => {
   signOut();
-  notify("info", "Session timed out", sessionTimeoutProps);
+  notify('info', 'Session timed out', sessionTimeoutProps);
 };
 
 const revokeTokens = async () => {
@@ -86,7 +86,7 @@ const revokeTokens = async () => {
     try {
       await auth.revokeTokens();
     } catch (e) {
-      if (e.error === "invalid_token") {
+      if (e.error === 'invalid_token') {
         return null;
       }
       throw e;
@@ -98,10 +98,10 @@ const getSigninArgs = (includeBillingScope) => {
   return Utils.cond(
     [includeBillingScope === false, () => ({})],
     // For Google just append the scope to the signin args.
-    [isGoogleAuthority(), () => ({ scope: "openid email profile https://www.googleapis.com/auth/cloud-billing" })],
+    [isGoogleAuthority(), () => ({ scope: 'openid email profile https://www.googleapis.com/auth/cloud-billing' })],
     // For B2C switch to a dedicated policy endpoint configured for the GCP cloud-billing scope.
     () => ({
-      extraQueryParams: { access_type: "offline", p: getConfig().b2cBillingPolicy },
+      extraQueryParams: { access_type: 'offline', p: getConfig().b2cBillingPolicy },
       extraTokenParams: { p: getConfig().b2cBillingPolicy },
     })
   );
@@ -126,7 +126,7 @@ export const reloadAuthToken = (includeBillingScope = false) => {
   return getAuthInstance()
     .signinSilent(args)
     .catch((e) => {
-      console.error("An unexpected exception occurred while attempting to refresh auth credentials.");
+      console.error('An unexpected exception occurred while attempting to refresh auth credentials.');
       console.error(e);
       return false;
     });
@@ -135,7 +135,7 @@ export const reloadAuthToken = (includeBillingScope = false) => {
 export const hasBillingScope = () => {
   return Utils.cond(
     // For Google check the scope directly on the user object.
-    [isGoogleAuthority(), () => _.includes("https://www.googleapis.com/auth/cloud-billing", getUser().scope)],
+    [isGoogleAuthority(), () => _.includes('https://www.googleapis.com/auth/cloud-billing', getUser().scope)],
     // For B2C check the hasGcpBillingScopeThroughB2C field in the auth store.
     () => authStore.get().hasGcpBillingScopeThroughB2C === true
   );
@@ -197,7 +197,7 @@ export const bucketBrowserUrl = (id) => {
  * Specifies whether the user has logged in via the Azure identity provider.
  */
 export const isAzureUser = () => {
-  return _.startsWith("https://login.microsoftonline.com", getUser().idp);
+  return _.startsWith('https://login.microsoftonline.com', getUser().idp);
 };
 
 export const processUser = (user, isSignInEvent) => {
@@ -210,10 +210,10 @@ export const processUser = (user, isSignInEvent) => {
     if (isSignInEvent === true && state.isSignedIn === false && isSignedIn === false) {
       // if both of these values are false, it means that the user was initially not signed in (state.isSignedIn === false),
       // tried to sign in (invoking processUser) and was still not signed in (isSignedIn === false).
-      notify("error", "Could not sign in", {
-        message: "Click for more information",
+      notify('error', 'Could not sign in', {
+        message: 'Click for more information',
         detail:
-          "If you are using privacy blockers, they may be preventing you from signing in. Please disable those tools, refresh, and try signing in again.",
+          'If you are using privacy blockers, they may be preventing you from signing in. Please disable those tools, refresh, and try signing in again.',
         timeout: 30000,
       });
     }
@@ -273,9 +273,9 @@ export const initializeClientId = _.memoize(async () => {
 });
 
 // This is intended for tests to short circuit the login flow
-window.forceSignIn = withErrorReporting("Error forcing sign in", async (token) => {
+window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) => {
   await initializeAuth(); // don't want this clobbered when real auth initializes
-  const res = await fetchOk("https://www.googleapis.com/oauth2/v3/userinfo", { headers: { Authorization: `Bearer ${token}` } });
+  const res = await fetchOk('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${token}` } });
   const data = await res.json();
   authStore.update((state) => {
     return {
@@ -299,7 +299,7 @@ window.forceSignIn = withErrorReporting("Error forcing sign in", async (token) =
 });
 
 authStore.subscribe(
-  withErrorReporting("Error checking registration", async (state, oldState) => {
+  withErrorReporting('Error checking registration', async (state, oldState) => {
     const getRegistrationStatus = async () => {
       try {
         const { enabled } = await Ajax().User.getStatus();
@@ -326,7 +326,7 @@ authStore.subscribe(
 );
 
 authStore.subscribe(
-  withErrorReporting("Error checking TOS", async (state, oldState) => {
+  withErrorReporting('Error checking TOS', async (state, oldState) => {
     if (!oldState.isSignedIn && state.isSignedIn) {
       const tosComplianceStatus = await Ajax().User.getTermsOfServiceComplianceStatus();
       // If the user is now logged in, but there's no ToS status from Sam,
@@ -349,7 +349,7 @@ authStore.subscribe(
         window.Appcues.identify(state.user.id, {
           dateJoined: parseJSON((await Ajax().User.firstTimestamp()).timestamp).getTime(),
         });
-        window.Appcues.on("all", captureAppcuesEvent);
+        window.Appcues.on('all', captureAppcuesEvent);
       }
     }
   })
@@ -366,9 +366,9 @@ authStore.subscribe((state) => {
 });
 
 authStore.subscribe(
-  withErrorReporting("Error checking groups for timeout status", async (state, oldState) => {
+  withErrorReporting('Error checking groups for timeout status', async (state, oldState) => {
     if (becameRegistered(oldState, state)) {
-      const isTimeoutEnabled = _.some({ groupName: "session_timeout" }, await Ajax().Groups.list());
+      const isTimeoutEnabled = _.some({ groupName: 'session_timeout' }, await Ajax().Groups.list());
       authStore.update((state) => ({ ...state, isTimeoutEnabled }));
     }
   })
@@ -380,7 +380,7 @@ export const refreshTerraProfile = async () => {
 };
 
 authStore.subscribe(
-  withErrorReporting("Error loading user profile", async (state, oldState) => {
+  withErrorReporting('Error loading user profile', async (state, oldState) => {
     if (!oldState.isSignedIn && state.isSignedIn) {
       await refreshTerraProfile();
     }
@@ -388,7 +388,7 @@ authStore.subscribe(
 );
 
 authStore.subscribe(
-  withErrorReporting("Error loading NIH account link status", async (state, oldState) => {
+  withErrorReporting('Error loading NIH account link status', async (state, oldState) => {
     if (becameRegistered(oldState, state)) {
       const nihStatus = await Ajax().User.getNihStatus();
       authStore.update((state) => ({ ...state, nihStatus }));
@@ -415,12 +415,12 @@ authStore.subscribe(
 );
 
 authStore.subscribe(
-  withErrorReporting("Error loading Framework Services account status", async (state, oldState) => {
+  withErrorReporting('Error loading Framework Services account status', async (state, oldState) => {
     if (becameRegistered(oldState, state)) {
       await Promise.all(
         _.map(async ({ key }) => {
           const status = await Ajax().User.getFenceStatus(key);
-          authStore.update(_.set(["fenceStatus", key], status));
+          authStore.update(_.set(['fenceStatus', key], status));
         }, allProviders)
       );
     }
@@ -444,7 +444,7 @@ workspaceStore.subscribe((newState, oldState) => {
 });
 
 authStore.subscribe(
-  withErrorReporting("Error loading azure preview group membership", async (state, oldState) => {
+  withErrorReporting('Error loading azure preview group membership', async (state, oldState) => {
     if (becameRegistered(oldState, state)) {
       const isGroupMember = await Ajax().Groups.group(getConfig().azurePreviewGroup).isMember();
       const isAzurePreviewUser = oldState.isAzurePreviewUser || isGroupMember;

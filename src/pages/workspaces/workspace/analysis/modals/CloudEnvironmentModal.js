@@ -1,43 +1,43 @@
-import _ from "lodash/fp";
-import { Fragment, useState } from "react";
-import { div, h, hr, img, span } from "react-hyperscript-helpers";
-import { Clickable, spinnerOverlay } from "src/components/common";
-import { icon } from "src/components/icons";
-import ModalDrawer from "src/components/ModalDrawer";
-import TitleBar from "src/components/TitleBar";
-import cromwellImg from "src/images/cromwell-logo.png";
-import galaxyLogo from "src/images/galaxy-logo.svg";
-import jupyterLogo from "src/images/jupyter-logo-long.png";
-import rstudioBioLogo from "src/images/r-bio-logo.svg";
-import { Ajax } from "src/libs/ajax";
-import colors from "src/libs/colors";
-import { reportError } from "src/libs/error";
-import Events from "src/libs/events";
-import * as Nav from "src/libs/nav";
-import { useStore } from "src/libs/react-utils";
-import { azureCookieReadyStore, cookieReadyStore } from "src/libs/state";
-import * as Utils from "src/libs/utils";
-import { cloudProviderTypes, getCloudProviderFromWorkspace } from "src/libs/workspace-utils";
-import { AzureComputeModalBase } from "src/pages/workspaces/workspace/analysis/modals/AzureComputeModal";
-import { ComputeModalBase } from "src/pages/workspaces/workspace/analysis/modals/ComputeModal";
-import { CromwellModalBase } from "src/pages/workspaces/workspace/analysis/modals/CromwellModal";
-import { GalaxyModalBase } from "src/pages/workspaces/workspace/analysis/modals/GalaxyModal";
-import { appLauncherTabName, PeriodicAzureCookieSetter } from "src/pages/workspaces/workspace/analysis/runtime-common-components";
-import { AppErrorModal, RuntimeErrorModal } from "src/pages/workspaces/workspace/analysis/RuntimeManager";
-import { doesWorkspaceSupportCromwellApp, getCurrentApp, getIsAppBusy } from "src/pages/workspaces/workspace/analysis/utils/app-utils";
-import { getCostDisplayForDisk, getCostDisplayForTool } from "src/pages/workspaces/workspace/analysis/utils/cost-utils";
+import _ from 'lodash/fp';
+import { Fragment, useState } from 'react';
+import { div, h, hr, img, span } from 'react-hyperscript-helpers';
+import { Clickable, spinnerOverlay } from 'src/components/common';
+import { icon } from 'src/components/icons';
+import ModalDrawer from 'src/components/ModalDrawer';
+import TitleBar from 'src/components/TitleBar';
+import cromwellImg from 'src/images/cromwell-logo.png';
+import galaxyLogo from 'src/images/galaxy-logo.svg';
+import jupyterLogo from 'src/images/jupyter-logo-long.png';
+import rstudioBioLogo from 'src/images/r-bio-logo.svg';
+import { Ajax } from 'src/libs/ajax';
+import colors from 'src/libs/colors';
+import { reportError } from 'src/libs/error';
+import Events from 'src/libs/events';
+import * as Nav from 'src/libs/nav';
+import { useStore } from 'src/libs/react-utils';
+import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
+import * as Utils from 'src/libs/utils';
+import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
+import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/AzureComputeModal';
+import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal';
+import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal';
+import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal';
+import { appLauncherTabName, PeriodicAzureCookieSetter } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
+import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager';
+import { doesWorkspaceSupportCromwellApp, getCurrentApp, getIsAppBusy } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
+import { getCostDisplayForDisk, getCostDisplayForTool } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils';
 import {
   getCurrentPersistentDisk,
   getReadyPersistentDisk,
   isCurrentGalaxyDiskDetaching,
-} from "src/pages/workspaces/workspace/analysis/utils/disk-utils";
+} from 'src/pages/workspaces/workspace/analysis/utils/disk-utils';
 import {
   getComputeStatusForDisplay,
   getConvertedRuntimeStatus,
   getCurrentRuntime,
   getIsRuntimeBusy,
   getRuntimeForTool,
-} from "src/pages/workspaces/workspace/analysis/utils/runtime-utils";
+} from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import {
   appToolLabels,
   appTools,
@@ -48,9 +48,9 @@ import {
   runtimeToolLabels,
   toolLabelDisplays,
   tools,
-} from "src/pages/workspaces/workspace/analysis/utils/tool-utils";
+} from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
-const titleId = "cloud-env-modal";
+const titleId = 'cloud-env-modal';
 
 export const CloudEnvironmentModal = ({
   isOpen,
@@ -81,7 +81,7 @@ export const CloudEnvironmentModal = ({
   const azureCookieReady = useStore(azureCookieReadyStore);
   const currentDisk = getCurrentPersistentDisk(runtimes, persistentDisks);
 
-  const noCompute = "You do not have access to run analyses on this workspace.";
+  const noCompute = 'You do not have access to run analyses on this workspace.';
 
   const resetView = () => setViewMode(undefined);
 
@@ -125,37 +125,37 @@ export const CloudEnvironmentModal = ({
 
   const renderDefaultPage = () =>
     div(
-      { style: { display: "flex", flexDirection: "column", flex: 1 } },
+      { style: { display: 'flex', flexDirection: 'column', flex: 1 } },
       _.map((tool) => renderToolButtons(tool.label, cloudProvider))(
         filterForTool ? [tools[filterForTool]] : getToolsToDisplayForCloudProvider(cloudProvider)
       )
     );
 
   const toolPanelStyles = {
-    backgroundColor: "white",
-    margin: "0 1.5rem 1rem 1.5rem",
-    padding: "0 1rem 1rem 1rem",
-    display: "flex",
-    flexDirection: "column",
+    backgroundColor: 'white',
+    margin: '0 1.5rem 1rem 1.5rem',
+    padding: '0 1rem 1rem 1rem',
+    display: 'flex',
+    flexDirection: 'column',
   };
   const toolLabelStyles = {
-    margin: "1rem 0 0.5rem 0",
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    margin: '1rem 0 0.5rem 0',
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   };
-  const toolButtonDivStyles = { display: "flex", flexDirection: "row", justifyContent: "space-evenly" };
+  const toolButtonDivStyles = { display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly' };
   const toolButtonStyles = {
-    flex: "1 1 0%",
+    flex: '1 1 0%',
     maxWidth: 105,
-    display: "flex",
-    flexDirection: "column",
-    border: ".5px solid",
+    display: 'flex',
+    flexDirection: 'column',
+    border: '.5px solid',
     borderColor: colors.grey(),
     borderRadius: 16,
-    padding: ".5rem .75rem",
-    alignItems: "center",
+    padding: '.5rem .75rem',
+    alignItems: 'center',
     fontWeight: 550,
     fontSize: 11,
     color: colors.accent(),
@@ -173,7 +173,7 @@ export const CloudEnvironmentModal = ({
     return h(
       Clickable,
       {
-        "aria-label": `${toolLabel} Status`,
+        'aria-label': `${toolLabel} Status`,
         hover: disabled ? {} : { backgroundColor: colors.accent(0.2) },
         // css takes the last thing if there are duplicate fields, the order here is important because all three things can specify color
         style: { ...toolButtonStyles, color: onClick && !disabled ? colors.accent() : colors.dark(0.3), ...style },
@@ -181,7 +181,7 @@ export const CloudEnvironmentModal = ({
         disabled,
         ...props,
       },
-      [icon(shape, { style: { marginBottom: ".25rem" }, size: 20 }), ...messageChildren]
+      [icon(shape, { style: { marginBottom: '.25rem' }, size: 20 }), ...messageChildren]
     );
   };
 
@@ -191,7 +191,7 @@ export const CloudEnvironmentModal = ({
       await promise;
       (await isAppToolLabel(toolLabel)) ? refreshApps() : refreshRuntimes();
     } catch (error) {
-      reportError("Cloud Environment Error", error);
+      reportError('Cloud Environment Error', error);
     } finally {
       setBusy(false);
     }
@@ -236,11 +236,11 @@ export const CloudEnvironmentModal = ({
   const defaultIcon = (toolLabel) =>
     isPauseSupported(toolLabel) &&
     h(RuntimeIcon, {
-      shape: "pause",
+      shape: 'pause',
       toolLabel,
       disabled: true,
-      messageChildren: [span("Pause")],
-      tooltip: "No Environment found",
+      messageChildren: [span('Pause')],
+      tooltip: 'No Environment found',
       style: { borderColor: colors.dark(0.3) },
     });
 
@@ -260,47 +260,47 @@ export const CloudEnvironmentModal = ({
   const getIconFromStatus = (toolLabel, status) => {
     // We dont use Utils.switchCase here to support the 'fallthrough' functionality
     switch (status) {
-      case "Stopped":
+      case 'Stopped':
         return h(RuntimeIcon, {
-          shape: "play",
+          shape: 'play',
           toolLabel,
           onClick: () => startApp(toolLabel),
           disabled: busy || !canCompute,
-          messageChildren: [span("Resume")],
-          tooltip: canCompute ? "Resume Environment" : noCompute,
+          messageChildren: [span('Resume')],
+          tooltip: canCompute ? 'Resume Environment' : noCompute,
         });
-      case "Running":
+      case 'Running':
         return (
           isPauseSupported(toolLabel) &&
           h(RuntimeIcon, {
-            shape: "pause",
+            shape: 'pause',
             toolLabel,
             onClick: () => stopApp(toolLabel),
             disabled: busy || !canCompute,
-            messageChildren: [span("Pause")],
-            tooltip: canCompute ? "Pause Environment" : noCompute,
+            messageChildren: [span('Pause')],
+            tooltip: canCompute ? 'Pause Environment' : noCompute,
           })
         );
-      case "Starting":
-      case "Stopping":
-      case "Updating":
-      case "Creating":
-      case "Prestopping":
-      case "Prestarting":
-      case "Precreating":
-      case "Provisioning":
-      case "LeoReconfiguring":
+      case 'Starting':
+      case 'Stopping':
+      case 'Updating':
+      case 'Creating':
+      case 'Prestopping':
+      case 'Prestarting':
+      case 'Precreating':
+      case 'Provisioning':
+      case 'LeoReconfiguring':
         return h(RuntimeIcon, {
-          shape: "sync",
+          shape: 'sync',
           toolLabel,
           disabled: true,
-          tooltip: "Environment update in progress",
+          tooltip: 'Environment update in progress',
           messageChildren: [span(getComputeStatusForDisplay(status))],
           style: { color: colors.dark(0.7) },
         });
-      case "Error":
+      case 'Error':
         return h(RuntimeIcon, {
-          shape: "warning-standard",
+          shape: 'warning-standard',
           toolLabel,
           style: { color: colors.danger(0.9) },
           onClick: () => {
@@ -310,8 +310,8 @@ export const CloudEnvironmentModal = ({
             );
           },
           disabled: busy || !canCompute,
-          messageChildren: [span("View"), span("Error")],
-          tooltip: canCompute ? "View error" : noCompute,
+          messageChildren: [span('View'), span('Error')],
+          tooltip: canCompute ? 'View error' : noCompute,
         });
       default:
         return defaultIcon(toolLabel);
@@ -353,8 +353,8 @@ export const CloudEnvironmentModal = ({
     const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || app;
     // TODO what does leoCookieReady do? Found it in the galaxy app launch code, is it needed here?
     const isToolBusy = isAppToolLabel(toolLabel)
-      ? getIsAppBusy(app) || app?.status === "STOPPED" || app?.status === "ERROR"
-      : currentRuntime?.status === "Error";
+      ? getIsAppBusy(app) || app?.status === 'STOPPED' || app?.status === 'ERROR'
+      : currentRuntime?.status === 'Error';
 
     const cookieReady = Utils.cond(
       [cloudProvider === cloudProviderTypes.AZURE && toolLabel === appToolLabels.CROMWELL, () => azureCookieReady.readyForCromwellApp],
@@ -369,7 +369,7 @@ export const CloudEnvironmentModal = ({
       !isLaunchSupported(toolLabel) ||
       !doesWorkspaceSupportCromwellApp(workspace?.workspace?.createdDate, cloudProvider, toolLabel);
     const baseProps = {
-      "aria-label": `Launch ${toolLabel}`,
+      'aria-label': `Launch ${toolLabel}`,
       disabled: isDisabled,
       style: {
         ...toolButtonStyles,
@@ -378,10 +378,10 @@ export const CloudEnvironmentModal = ({
       },
       hover: isDisabled ? {} : { backgroundColor: colors.accent(0.2) },
       tooltip: Utils.cond(
-        [doesCloudEnvForToolExist && !isDisabled, () => "Open"],
+        [doesCloudEnvForToolExist && !isDisabled, () => 'Open'],
         [
           doesCloudEnvForToolExist && isDisabled && !doesWorkspaceSupportCromwellApp(workspace?.workspace?.createdDate, cloudProvider, toolLabel),
-          () => "Cromwell app is not supported in this workspace. Please create a new workspace to use Cromwell app.",
+          () => 'Cromwell app is not supported in this workspace. Please create a new workspace to use Cromwell app.',
         ],
         [
           doesCloudEnvForToolExist && isDisabled && isLaunchSupported(toolLabel),
@@ -391,7 +391,7 @@ export const CloudEnvironmentModal = ({
           doesCloudEnvForToolExist && isDisabled && !isLaunchSupported(toolLabel),
           () => `Select or create an analysis in the analyses tab to open ${toolLabelDisplays[toolLabel]}`,
         ],
-        [Utils.DEFAULT, () => "No Environment found"]
+        [Utils.DEFAULT, () => 'No Environment found']
       ),
     };
 
@@ -405,7 +405,7 @@ export const CloudEnvironmentModal = ({
             href: app?.proxyUrls?.galaxy,
             onClick: () => {
               onDismiss();
-              Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: "Galaxy" });
+              Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: 'Galaxy' });
             },
             ...Utils.newTabLinkPropsWithReferrer,
           };
@@ -416,7 +416,7 @@ export const CloudEnvironmentModal = ({
         () => {
           return {
             ...baseProps,
-            href: cloudProvider === cloudProviderTypes.AZURE ? app?.proxyUrls["cbas-ui"] : app?.proxyUrls["cromwell-service"],
+            href: cloudProvider === cloudProviderTypes.AZURE ? app?.proxyUrls['cbas-ui'] : app?.proxyUrls['cromwell-service'],
             onClick: () => {
               onDismiss();
               Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: appTools.CROMWELL.label });
@@ -434,7 +434,7 @@ export const CloudEnvironmentModal = ({
             ...baseProps,
             href: applicationLaunchLink,
             onClick: () => {
-              if ((toolLabel === runtimeToolLabels.Jupyter || toolLabel === runtimeToolLabels.RStudio) && currentRuntime?.status === "Stopped") {
+              if ((toolLabel === runtimeToolLabels.Jupyter || toolLabel === runtimeToolLabels.RStudio) && currentRuntime?.status === 'Stopped') {
                 startApp(toolLabel);
               }
               onDismiss();
@@ -451,8 +451,8 @@ export const CloudEnvironmentModal = ({
     const isCloudEnvForToolDisabled = isCloudEnvModalDisabled(toolLabel);
     return h(Fragment, [
       // We cannot attach the periodic cookie setter until we have a running Cromwell app for Azure because the relay is not guaranteed to be ready until then
-      toolLabel === appToolLabels.CROMWELL && app?.cloudContext?.cloudProvider === cloudProviderTypes.AZURE && app?.status === "RUNNING"
-        ? h(PeriodicAzureCookieSetter, { proxyUrl: app.proxyUrls["cbas-ui"], forCromwell: true })
+      toolLabel === appToolLabels.CROMWELL && app?.cloudContext?.cloudProvider === cloudProviderTypes.AZURE && app?.status === 'RUNNING'
+        ? h(PeriodicAzureCookieSetter, { proxyUrl: app.proxyUrls['cbas-ui'], forCromwell: true })
         : null,
       div({ style: toolPanelStyles }, [
         // Label at the top for each tool
@@ -463,9 +463,9 @@ export const CloudEnvironmentModal = ({
             alt: `${toolLabel}`,
           }),
           div([
-            div({ style: { textAlign: "right" } }, getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)),
+            div({ style: { textAlign: 'right' } }, getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)),
             div(
-              { style: { textAlign: "right" } },
+              { style: { textAlign: 'right' } },
               getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
             ),
           ]),
@@ -476,28 +476,28 @@ export const CloudEnvironmentModal = ({
             h(
               Clickable,
               {
-                "aria-label": `${toolLabel} Environment`,
+                'aria-label': `${toolLabel} Environment`,
                 style: {
                   ...toolButtonStyles,
                   color: !isCloudEnvForToolDisabled ? colors.accent() : colors.dark(0.7),
                 },
                 hover: isCloudEnvForToolDisabled ? {} : { backgroundColor: colors.accent(0.2) },
                 tooltip: Utils.cond(
-                  [isCloudEnvForToolDisabled, () => "Edit disabled, processing"],
-                  [doesCloudEnvForToolExist, () => "Edit existing Environment"],
-                  [!doesCloudEnvForToolExist, () => "Create new Environment"]
+                  [isCloudEnvForToolDisabled, () => 'Edit disabled, processing'],
+                  [doesCloudEnvForToolExist, () => 'Edit existing Environment'],
+                  [!doesCloudEnvForToolExist, () => 'Create new Environment']
                 ),
                 disabled: isCloudEnvForToolDisabled,
                 onClick: () => setViewMode(toolLabel),
               },
-              [icon("cog", { size: 20 }), span({ style: { marginTop: ".25rem" } }, ["Settings"])]
+              [icon('cog', { size: 20 }), span({ style: { marginTop: '.25rem' } }, ['Settings'])]
             ),
           // Status button with stop/start functionality
           renderStatusClickable(toolLabel),
           // Launch
           h(Clickable, { ...getToolLaunchClickableProps(toolLabel, cloudProvider) }, [
-            icon("rocket", { size: 20 }),
-            span({ style: { marginTop: ".25rem" } }, ["Open"]),
+            icon('rocket', { size: 20 }),
+            span({ style: { marginTop: '.25rem' } }, ['Open']),
           ]),
         ]),
       ]),
@@ -537,13 +537,13 @@ export const CloudEnvironmentModal = ({
   const modalBody = h(Fragment, [
     h(TitleBar, {
       id: titleId,
-      title: filterForTool ? `${toolLabelDisplays[filterForTool]} Environment Details` : "Cloud Environment Details",
-      titleStyles: _.merge(viewMode === undefined ? {} : { display: "none" }, { margin: "1.5rem 0 .5rem 1rem" }),
+      title: filterForTool ? `${toolLabelDisplays[filterForTool]} Environment Details` : 'Cloud Environment Details',
+      titleStyles: _.merge(viewMode === undefined ? {} : { display: 'none' }, { margin: '1.5rem 0 .5rem 1rem' }),
       width,
       onDismiss,
       onPrevious: viewMode ? () => setViewMode(undefined) : undefined,
     }),
-    viewMode !== undefined && hr({ style: { borderTop: "1px solid", width: "100%", color: colors.accent() } }),
+    viewMode !== undefined && hr({ style: { borderTop: '1px solid', width: '100%', color: colors.accent() } }),
     getView(),
     errorAppId &&
       h(AppErrorModal, {
@@ -559,7 +559,7 @@ export const CloudEnvironmentModal = ({
   ]);
 
   const modalProps = {
-    "aria-labelledby": titleId,
+    'aria-labelledby': titleId,
     isOpen,
     width,
     onDismiss,

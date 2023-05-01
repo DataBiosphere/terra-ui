@@ -1,11 +1,11 @@
-import * as clipboard from "clipboard-polyfill/text";
-import _ from "lodash/fp";
-import * as qs from "qs";
-import { CSSProperties, ForwardedRef, Fragment, useEffect, useState } from "react";
-import { div, h, img, label, span } from "react-hyperscript-helpers";
-import * as breadcrumbs from "src/components/breadcrumbs";
-import { requesterPaysWrapper, withRequesterPaysHandler } from "src/components/bucket-utils";
-import { withViewToggle } from "src/components/CardsListToggle";
+import * as clipboard from 'clipboard-polyfill/text';
+import _ from 'lodash/fp';
+import * as qs from 'qs';
+import { CSSProperties, ForwardedRef, Fragment, useEffect, useState } from 'react';
+import { div, h, img, label, span } from 'react-hyperscript-helpers';
+import * as breadcrumbs from 'src/components/breadcrumbs';
+import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils';
+import { withViewToggle } from 'src/components/CardsListToggle';
 import {
   ButtonOutline,
   Clickable,
@@ -14,48 +14,48 @@ import {
   Link,
   spinnerOverlay,
   Switch,
-} from "src/components/common";
-import Dropzone from "src/components/Dropzone";
-import { FeaturePreviewFeedbackModal } from "src/components/FeaturePreviewFeedbackModal";
-import { icon } from "src/components/icons";
-import { DelayedSearchInput } from "src/components/input";
-import { MenuButton } from "src/components/MenuButton";
-import { PageBox } from "src/components/PageBox";
-import { makeMenuIcon, MenuTrigger } from "src/components/PopupTrigger";
-import { ariaSort, HeaderRenderer } from "src/components/table";
-import TooltipTrigger from "src/components/TooltipTrigger";
-import galaxyLogo from "src/images/galaxy-logo.svg";
-import jupyterLogo from "src/images/jupyter-logo.svg";
-import rstudioBioLogo from "src/images/r-bio-logo.svg";
-import rstudioSquareLogo from "src/images/rstudio-logo-square.png";
-import { Ajax } from "src/libs/ajax";
-import { App } from "src/libs/ajax/leonardo/models/app-models";
-import { PersistentDisk } from "src/libs/ajax/leonardo/models/disk-models";
-import { Runtime } from "src/libs/ajax/leonardo/models/runtime-models";
-import colors from "src/libs/colors";
-import { reportError, withErrorReporting } from "src/libs/error";
-import Events, { extractWorkspaceDetails } from "src/libs/events";
-import { isFeaturePreviewEnabled } from "src/libs/feature-previews";
-import { ENABLE_JUPYTERLAB_ID, JUPYTERLAB_GCP_FEATURE_ID } from "src/libs/feature-previews-config";
-import * as Nav from "src/libs/nav";
-import { notify } from "src/libs/notifications";
-import { getLocalPref, setLocalPref } from "src/libs/prefs";
-import { forwardRefWithName, useCancellation, useOnMount, useStore } from "src/libs/react-utils";
-import { authStore } from "src/libs/state";
-import * as StateHistory from "src/libs/state-history";
-import * as Style from "src/libs/style";
-import { withHandlers } from "src/libs/type-utils/lodash-fp-helpers";
-import * as Utils from "src/libs/utils";
-import { isAzureWorkspace, isGoogleWorkspace, isGoogleWorkspaceInfo, WorkspaceWrapper } from "src/libs/workspace-utils";
-import { AnalysisDuplicator } from "src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator";
-import { AnalysisModal } from "src/pages/workspaces/workspace/analysis/modals/AnalysisModal";
-import ExportAnalysisModal from "src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal/ExportAnalysisModal";
+} from 'src/components/common';
+import Dropzone from 'src/components/Dropzone';
+import { FeaturePreviewFeedbackModal } from 'src/components/FeaturePreviewFeedbackModal';
+import { icon } from 'src/components/icons';
+import { DelayedSearchInput } from 'src/components/input';
+import { MenuButton } from 'src/components/MenuButton';
+import { PageBox } from 'src/components/PageBox';
+import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
+import { ariaSort, HeaderRenderer } from 'src/components/table';
+import TooltipTrigger from 'src/components/TooltipTrigger';
+import galaxyLogo from 'src/images/galaxy-logo.svg';
+import jupyterLogo from 'src/images/jupyter-logo.svg';
+import rstudioBioLogo from 'src/images/r-bio-logo.svg';
+import rstudioSquareLogo from 'src/images/rstudio-logo-square.png';
+import { Ajax } from 'src/libs/ajax';
+import { App } from 'src/libs/ajax/leonardo/models/app-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
+import colors from 'src/libs/colors';
+import { reportError, withErrorReporting } from 'src/libs/error';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_JUPYTERLAB_ID, JUPYTERLAB_GCP_FEATURE_ID } from 'src/libs/feature-previews-config';
+import * as Nav from 'src/libs/nav';
+import { notify } from 'src/libs/notifications';
+import { getLocalPref, setLocalPref } from 'src/libs/prefs';
+import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
+import { authStore } from 'src/libs/state';
+import * as StateHistory from 'src/libs/state-history';
+import * as Style from 'src/libs/style';
+import { withHandlers } from 'src/libs/type-utils/lodash-fp-helpers';
+import * as Utils from 'src/libs/utils';
+import { isAzureWorkspace, isGoogleWorkspace, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator';
+import { AnalysisModal } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisModal';
+import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal/ExportAnalysisModal';
 import {
   analysisLauncherTabName,
   analysisTabName,
   appLauncherTabName,
-} from "src/pages/workspaces/workspace/analysis/runtime-common-components";
-import { AnalysisFile, useAnalysisFiles } from "src/pages/workspaces/workspace/analysis/useAnalysisFiles";
+} from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
+import { AnalysisFile, useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles';
 import {
   AbsolutePath,
   FileName,
@@ -64,8 +64,8 @@ import {
   getExtension,
   getFileName,
   notebookLockHash,
-} from "src/pages/workspaces/workspace/analysis/utils/file-utils";
-import { getCurrentRuntime } from "src/pages/workspaces/workspace/analysis/utils/runtime-utils";
+} from 'src/pages/workspaces/workspace/analysis/utils/file-utils';
+import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import {
   getToolLabelFromFileExtension,
   getToolLabelFromRuntime,
@@ -73,64 +73,64 @@ import {
   runtimeTools,
   ToolLabel,
   tools,
-} from "src/pages/workspaces/workspace/analysis/utils/tool-utils";
-import { StorageDetails } from "src/pages/workspaces/workspace/useWorkspace";
-import { wrapWorkspace } from "src/pages/workspaces/workspace/WorkspaceContainer";
+} from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
+import { StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace';
+import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 const tableFields = {
-  application: "application",
-  name: "name",
-  lastModified: "lastModified",
+  application: 'application',
+  name: 'name',
+  lastModified: 'lastModified',
 };
 
-export const KEY_ANALYSES_SORT_ORDER = "AnalysesSortOrder";
+export const KEY_ANALYSES_SORT_ORDER = 'AnalysesSortOrder';
 
-const noWrite = "You do not have access to modify this workspace.";
+const noWrite = 'You do not have access to modify this workspace.';
 
 const sortTokens = {
   name: (notebook: AnalysisFile) => notebook.name.toLowerCase(),
 };
 
-const defaultSort = { value: { field: tableFields.lastModified, direction: "desc" } };
+const defaultSort = { value: { field: tableFields.lastModified, direction: 'desc' } };
 
 const analysisContextMenuSize = 16;
 const centerColumnFlex: CSSProperties = { flex: 5 };
 const endColumnFlex: CSSProperties = {
-  flex: "0 0 150px",
-  display: "flex",
-  justifyContent: "flex-left",
-  whiteSpace: "nowrap",
+  flex: '0 0 150px',
+  display: 'flex',
+  justifyContent: 'flex-left',
+  whiteSpace: 'nowrap',
 };
 
 const AnalysisCardHeaders = ({ sort, onSort }) => {
   return div(
     {
-      role: "row",
+      role: 'row',
       style: {
-        display: "flex",
-        justifyContent: "space-between",
-        marginTop: "1.5rem",
-        paddingLeft: "1.5rem",
-        marginBottom: "0.5rem",
+        display: 'flex',
+        justifyContent: 'space-between',
+        marginTop: '1.5rem',
+        paddingLeft: '1.5rem',
+        marginBottom: '0.5rem',
       },
     },
     [
-      div({ role: "columnheader", "aria-sort": ariaSort(sort, tableFields.application), style: { flex: 1 } }, [
+      div({ role: 'columnheader', 'aria-sort': ariaSort(sort, tableFields.application), style: { flex: 1 } }, [
         h(HeaderRenderer, { sort, onSort, name: tableFields.application }),
       ]),
-      div({ role: "columnheader", "aria-sort": ariaSort(sort, tableFields.name), style: centerColumnFlex }, [
+      div({ role: 'columnheader', 'aria-sort': ariaSort(sort, tableFields.name), style: centerColumnFlex }, [
         h(HeaderRenderer, { sort, onSort, name: tableFields.name }),
       ]),
       div(
         {
-          role: "columnheader",
-          "aria-sort": ariaSort(sort, tableFields.lastModified),
-          style: { ...endColumnFlex, paddingRight: "1rem" },
+          role: 'columnheader',
+          'aria-sort': ariaSort(sort, tableFields.lastModified),
+          style: { ...endColumnFlex, paddingRight: '1rem' },
         },
         [h(HeaderRenderer, { sort, onSort, name: tableFields.lastModified })]
       ),
-      div({ role: "columnheader", style: { flex: `0 0 ${analysisContextMenuSize}px` } }, [
-        div({ className: "sr-only" }, ["Actions"]),
+      div({ role: 'columnheader', style: { flex: `0 0 ${analysisContextMenuSize}px` } }, [
+        div({ className: 'sr-only' }, ['Actions']),
       ]),
     ]
   );
@@ -164,137 +164,137 @@ const AnalysisCard = ({
 
   const currentRuntimeToolLabel = getToolLabelFromRuntime(currentRuntime);
 
-  const rstudioLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name, application: "RStudio" });
-  const analysisEditLink = `${analysisLink}/?${qs.stringify({ mode: "edit" })}`;
-  const analysisPlaygroundLink = `${analysisLink}/?${qs.stringify({ mode: "playground" })}`;
+  const rstudioLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name, application: 'RStudio' });
+  const analysisEditLink = `${analysisLink}/?${qs.stringify({ mode: 'edit' })}`;
+  const analysisPlaygroundLink = `${analysisLink}/?${qs.stringify({ mode: 'playground' })}`;
 
   const analysisMenu = h(
     MenuTrigger,
     {
-      "aria-label": "Analysis menu",
-      side: "right",
+      'aria-label': 'Analysis menu',
+      side: 'right',
       closeOnClick: true,
       content: h(Fragment, [
         h(
           MenuButton,
           {
-            "aria-label": "Preview",
+            'aria-label': 'Preview',
             href: analysisLink,
-            tooltip: canWrite && "Open without cloud compute",
-            tooltipSide: "left",
+            tooltip: canWrite && 'Open without cloud compute',
+            tooltipSide: 'left',
           },
-          [makeMenuIcon("eye"), "Open preview"]
+          [makeMenuIcon('eye'), 'Open preview']
         ),
         ...(toolLabel === runtimeToolLabels.Jupyter
           ? [
               h(
                 MenuButton,
                 {
-                  "aria-label": "Edit",
+                  'aria-label': 'Edit',
                   href: analysisEditLink,
                   disabled: isLocked || !canWrite || currentRuntimeToolLabel === runtimeToolLabels.RStudio,
                   tooltip: Utils.cond(
                     [!canWrite, () => noWrite],
                     [
                       currentRuntimeToolLabel === runtimeToolLabels.RStudio,
-                      () => "You must have a runtime with Jupyter to edit.",
+                      () => 'You must have a runtime with Jupyter to edit.',
                     ]
                   ),
-                  tooltipSide: "left",
+                  tooltipSide: 'left',
                 },
-                isLocked ? [makeMenuIcon("lock"), "Open (In Use)"] : [makeMenuIcon("edit"), "Edit"]
+                isLocked ? [makeMenuIcon('lock'), 'Open (In Use)'] : [makeMenuIcon('edit'), 'Edit']
               ),
               h(
                 MenuButton,
                 {
-                  "aria-label": "Playground",
+                  'aria-label': 'Playground',
                   href: analysisPlaygroundLink,
-                  tooltip: canWrite && "Open in playground mode",
-                  tooltipSide: "left",
+                  tooltip: canWrite && 'Open in playground mode',
+                  tooltipSide: 'left',
                 },
-                [makeMenuIcon("chalkboard"), "Playground"]
+                [makeMenuIcon('chalkboard'), 'Playground']
               ),
             ]
           : [
               h(
                 MenuButton,
                 {
-                  "aria-label": "Launch",
+                  'aria-label': 'Launch',
                   href: rstudioLaunchLink,
                   disabled: !canWrite || currentRuntimeToolLabel === runtimeToolLabels.Jupyter,
                   tooltip: Utils.cond(
                     [!canWrite, () => noWrite],
                     [
                       currentRuntimeToolLabel === runtimeToolLabels.RStudio,
-                      () => "You must have a runtime with RStudio to launch.",
+                      () => 'You must have a runtime with RStudio to launch.',
                     ]
                   ),
-                  tooltipSide: "left",
+                  tooltipSide: 'left',
                 },
-                [makeMenuIcon("rocket"), "Open"]
+                [makeMenuIcon('rocket'), 'Open']
               ),
             ]),
         h(
           MenuButton,
           {
-            "aria-label": "Copy",
+            'aria-label': 'Copy',
             disabled: !canWrite,
             tooltip: !canWrite ? noWrite : undefined,
-            tooltipSide: "left",
+            tooltipSide: 'left',
             onClick: () => onCopy(),
           },
-          [makeMenuIcon("copy"), "Make a copy"]
+          [makeMenuIcon('copy'), 'Make a copy']
         ),
         h(
           MenuButton,
           {
-            "aria-label": "Export",
+            'aria-label': 'Export',
             onClick: () => onExport(),
           },
-          [makeMenuIcon("export"), "Copy to another workspace"]
+          [makeMenuIcon('export'), 'Copy to another workspace']
         ),
         h(
           MenuButton,
           {
-            "aria-label": "Copy",
+            'aria-label': 'Copy',
             onClick: async () => {
               try {
                 await clipboard.writeText(`${window.location.host}/${analysisLink}`);
-                notify("success", "Successfully copied URL to clipboard", { timeout: 3000 });
+                notify('success', 'Successfully copied URL to clipboard', { timeout: 3000 });
               } catch (error) {
-                reportError("Error copying to clipboard", error);
+                reportError('Error copying to clipboard', error);
               }
             },
           },
-          [makeMenuIcon("copy-to-clipboard"), "Copy analysis URL to clipboard"]
+          [makeMenuIcon('copy-to-clipboard'), 'Copy analysis URL to clipboard']
         ),
         h(
           MenuButton,
           {
-            "aria-label": "Rename",
+            'aria-label': 'Rename',
             disabled: !canWrite,
             tooltip: !canWrite ? noWrite : undefined,
-            tooltipSide: "left",
+            tooltipSide: 'left',
             onClick: () => onRename(),
           },
-          [makeMenuIcon("renameIcon"), "Rename"]
+          [makeMenuIcon('renameIcon'), 'Rename']
         ),
         h(
           MenuButton,
           {
-            "aria-label": "Delete",
+            'aria-label': 'Delete',
             disabled: !canWrite,
             tooltip: !canWrite ? noWrite : undefined,
-            tooltipSide: "left",
+            tooltipSide: 'left',
             onClick: () => onDelete(),
           },
-          [makeMenuIcon("trash"), "Delete"]
+          [makeMenuIcon('trash'), 'Delete']
         ),
       ]),
     },
     [
-      h(Link, { "aria-label": "Analyses menu", onClick: (e) => e.preventDefault() }, [
-        icon("ellipsis-v", {
+      h(Link, { 'aria-label': 'Analyses menu', onClick: (e) => e.preventDefault() }, [
+        icon('ellipsis-v', {
           size: analysisContextMenuSize,
         }),
       ]),
@@ -306,12 +306,12 @@ const AnalysisCard = ({
     {
       onClick: () => Nav.goToPath(analysisLauncherTabName, { namespace, name: workspaceName, analysisName }),
       title: getFileName(name),
-      role: "cell",
+      role: 'cell',
       style: {
         ...Style.elements.card.title,
-        whiteSpace: "normal",
-        textAlign: "left",
-        cursor: "pointer",
+        whiteSpace: 'normal',
+        textAlign: 'left',
+        cursor: 'pointer',
         ...centerColumnFlex,
       },
     },
@@ -326,9 +326,9 @@ const AnalysisCard = ({
   );
 
   const toolContainer = div(
-    { role: "cell", style: { display: "flex", flex: 1, flexDirection: "row", alignItems: "center" } },
+    { role: 'cell', style: { display: 'flex', flex: 1, flexDirection: 'row', alignItems: 'center' } },
     [
-      img({ src: toolIconSrc, alt: "", style: { marginRight: "1rem", height: 40, width: 40 } }),
+      img({ src: toolIconSrc, alt: '', style: { marginRight: '1rem', height: 40, width: 40 } }),
       // this is the tool name, i.e. 'Jupyter'. It is named identical to the header row to simplify the sorting code at the cost of naming consistency.
       application,
     ]
@@ -336,37 +336,37 @@ const AnalysisCard = ({
 
   return div(
     {
-      role: "row",
+      role: 'row',
       style: _.merge(
         {
           ...Style.cardList.longCardShadowless,
         },
-        { marginBottom: ".75rem", paddingLeft: "1.5rem" }
+        { marginBottom: '.75rem', paddingLeft: '1.5rem' }
       ),
     },
     [
       toolContainer,
       artifactName,
-      div({ role: "cell", style: { ...endColumnFlex, flexDirection: "row" } }, [
-        div({ style: { flex: 1, display: "flex" } }, [
+      div({ role: 'cell', style: { ...endColumnFlex, flexDirection: 'row' } }, [
+        div({ style: { flex: 1, display: 'flex' } }, [
           isLocked &&
             h(
               Clickable,
               {
-                "aria-label": `${artifactName} artifact label`,
-                style: { display: "flex", paddingRight: "1rem", color: colors.dark(0.75) },
-                tooltip: `This analysis is currently being edited by ${lockedBy || "another user"}`,
+                'aria-label': `${artifactName} artifact label`,
+                style: { display: 'flex', paddingRight: '1rem', color: colors.dark(0.75) },
+                tooltip: `This analysis is currently being edited by ${lockedBy || 'another user'}`,
               },
-              [icon("lock")]
+              [icon('lock')]
             ),
           h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
-            div({ style: { fontSize: "0.8rem", display: "flex", alignItems: "center", textAlign: "left" } }, [
+            div({ style: { fontSize: '0.8rem', display: 'flex', alignItems: 'center', textAlign: 'left' } }, [
               Utils.makePrettyDate(lastModified),
             ]),
           ]),
         ]),
       ]),
-      div({ role: "cell", style: { marginLeft: "1rem" } }, [analysisMenu]),
+      div({ role: 'cell', style: { marginLeft: '1rem' } }, [analysisMenu]),
     ]
   );
 };
@@ -375,15 +375,15 @@ const activeFileTransferMessage = div(
   {
     style: _.merge(Style.elements.card.container, {
       backgroundColor: colors.warning(0.15),
-      flexDirection: "none",
-      justifyContent: "start",
-      alignItems: "center",
+      flexDirection: 'none',
+      justifyContent: 'start',
+      alignItems: 'center',
     }),
   },
   [
-    icon("warning-standard", { size: 19, style: { color: colors.warning(), flex: "none", marginRight: "1rem" } }),
-    "Copying 1 or more interactive analysis files from another workspace.",
-    span({ style: { fontWeight: "bold", marginLeft: "0.5ch" } }, ["This may take a few minutes."]),
+    icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '1rem' } }),
+    'Copying 1 or more interactive analysis files from another workspace.',
+    span({ style: { fontWeight: 'bold', marginLeft: '0.5ch' } }, ['This may take a few minutes.']),
   ]
 );
 
@@ -443,7 +443,7 @@ export interface AnalysesProps {
 
 export interface SortOrderInfo {
   field: string;
-  direction: "asc" | "desc";
+  direction: 'asc' | 'desc';
 }
 
 export const BaseAnalyses = (
@@ -463,7 +463,7 @@ export const BaseAnalyses = (
     () => getLocalPref(KEY_ANALYSES_SORT_ORDER) || defaultSort.value
   );
   const [feedbackShowing, setFeedbackShowing] = useState(false);
-  const [filter, setFilter] = useState(() => StateHistory.get().filter || "");
+  const [filter, setFilter] = useState(() => StateHistory.get().filter || '');
   const [busy, setBusy] = useState(false);
   const [creating, setCreating] = useState(false);
   const [analyses, setAnalyses] = useState<DisplayAnalysisFile[]>(() => StateHistory.get().analyses || undefined);
@@ -495,7 +495,7 @@ export const BaseAnalyses = (
 
   const existingFileNames: FileName[] = _.map((analysis: DisplayAnalysisFile) => analysis.fileName, analyses);
   const uploadFiles: (files: File[]) => Promise<unknown> = _.flow(
-    withErrorReporting("Error uploading files. Ensure the file has the proper extension"),
+    withErrorReporting('Error uploading files. Ensure the file has the proper extension'),
     Utils.withBusyState(setBusy)
   )(async (files: File[]) => {
     await Promise.all(
@@ -510,7 +510,7 @@ export const BaseAnalyses = (
   // Lifecycle
   useOnMount(() => {
     const load = _.flow(
-      withErrorReporting("Error loading analyses"),
+      withErrorReporting('Error loading analyses'),
       Utils.withBusyState(setBusy)
     )(async () => {
       const [currentUserHash, potentialLockers]: [string | undefined, any] = isGoogleWorkspace(workspace)
@@ -537,7 +537,7 @@ export const BaseAnalyses = (
   // We reference the analyses from `useAnalysisStore`, and on change, we decorate them from `AnalysisFile[]` to `DisplayAnalysisFile[]` and update state history
   useEffect(() => {
     const rawAnalyses: AnalysisFile[] =
-      loadedState.status !== "None" && loadedState.state !== null ? loadedState.state : [];
+      loadedState.status !== 'None' && loadedState.state !== null ? loadedState.state : [];
     const decoratedAnalyses = decorateAnalysisFiles(rawAnalyses);
     setAnalyses(decoratedAnalyses);
     StateHistory.update({ analyses: decoratedAnalyses, sortOrder, filter });
@@ -547,39 +547,39 @@ export const BaseAnalyses = (
     {
       style: _.merge(Style.elements.card.container, {
         backgroundColor: colors.success(0.15),
-        flexDirection: "none",
-        alignItems: "center",
+        flexDirection: 'none',
+        alignItems: 'center',
       }),
     },
     [
-      div({ style: { display: "flex", flexWrap: "wrap", whiteSpace: "pre-wrap", alignItems: "center" } }, [
-        icon("talk-bubble", { size: 19, style: { color: colors.warning(), marginRight: "1rem" } }),
-        "JupyterLab is now available in this workspace as a beta feature. Please ",
+      div({ style: { display: 'flex', flexWrap: 'wrap', whiteSpace: 'pre-wrap', alignItems: 'center' } }, [
+        icon('talk-bubble', { size: 19, style: { color: colors.warning(), marginRight: '1rem' } }),
+        'JupyterLab is now available in this workspace as a beta feature. Please ',
         h(
           Link,
           {
             style: { color: colors.accent(1.25) },
             onClick: () => setFeedbackShowing(true),
           },
-          ["fill out our survey"]
+          ['fill out our survey']
         ),
-        " to help us improve the JupyterLab experience.",
+        ' to help us improve the JupyterLab experience.',
       ]),
-      div({ style: { display: "flex" } }, [
+      div({ style: { display: 'flex' } }, [
         h(IdContainer, [
           (id) =>
             h(Fragment, [
               div(
                 {
-                  style: { display: "flex", alignItems: "center" },
+                  style: { display: 'flex', alignItems: 'center' },
                 },
                 [
-                  label({ htmlFor: id, style: { fontWeight: "bold", margin: "0 0.5rem", whiteSpace: "nowrap" } }, [
-                    "Enable JupyterLab",
+                  label({ htmlFor: id, style: { fontWeight: 'bold', margin: '0 0.5rem', whiteSpace: 'nowrap' } }, [
+                    'Enable JupyterLab',
                   ]),
                   h(Switch, {
-                    onLabel: "",
-                    offLabel: "",
+                    onLabel: '',
+                    offLabel: '',
                     onChange: (value) => {
                       setEnableJupyterLabGCP(value);
                       setLocalPref(enableJupyterLabPersistenceId, value);
@@ -602,24 +602,24 @@ export const BaseAnalyses = (
   );
 
   const noAnalysisBanner = div([
-    div({ style: { fontSize: 48 } }, ["A place for all your analyses "]),
+    div({ style: { fontSize: 48 } }, ['A place for all your analyses ']),
     div(
       {
         style: {
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-evenly",
-          alignItems: "center",
-          columnGap: "5rem",
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-evenly',
+          alignItems: 'center',
+          columnGap: '5rem',
         },
       },
       _.dropRight(isGoogleWorkspaceInfo(workspaceInfo) ? 0 : 2, [
-        img({ src: jupyterLogo, style: { height: 120, width: 80 }, alt: "Jupyter" }),
-        img({ src: rstudioBioLogo, style: { width: 400 }, alt: "RStudio Bioconductor" }),
-        img({ src: galaxyLogo, style: { height: 60, width: 208 }, alt: "Galaxy" }),
+        img({ src: jupyterLogo, style: { height: 120, width: 80 }, alt: 'Jupyter' }),
+        img({ src: rstudioBioLogo, style: { width: 400 }, alt: 'RStudio Bioconductor' }),
+        img({ src: galaxyLogo, style: { height: 60, width: 208 }, alt: 'Galaxy' }),
       ])
     ),
-    div({ style: { marginTop: "1rem", fontSize: 20 } }, ["Click the button above to create an analysis."]),
+    div({ style: { marginTop: '1rem', fontSize: 20 } }, ['Click the button above to create an analysis.']),
   ]);
 
   // Render helpers
@@ -638,7 +638,7 @@ export const BaseAnalyses = (
       ({ name, lastModified, metadata, application }) =>
         h(AnalysisCard, {
           key: name,
-          role: "rowgroup",
+          role: 'rowgroup',
           currentRuntime,
           name,
           lastModified,
@@ -658,13 +658,13 @@ export const BaseAnalyses = (
     );
 
     const basePageStyles: CSSProperties = _.isEmpty(analyses)
-      ? { alignItems: "center", height: "80%" }
-      : { flexDirection: "column" };
+      ? { alignItems: 'center', height: '80%' }
+      : { flexDirection: 'column' };
     return div(
       {
         style: {
           ..._.merge(
-            { textAlign: "center", display: "flex", justifyContent: "center", padding: "0 1rem 0 1rem" },
+            { textAlign: 'center', display: 'flex', justifyContent: 'center', padding: '0 1rem 0 1rem' },
             basePageStyles
           ),
         },
@@ -677,13 +677,13 @@ export const BaseAnalyses = (
             onSuccess: () => {
               setFeedbackShowing(false);
             },
-            featureName: "JupyterLab",
-            formId: "1FAIpQLScgSqTwp6e2AaVcwkd8mcgseijUjBmRqT7DIyQNjdwz8IT-EA",
-            feedbackId: "entry.760196566",
-            contactEmailId: "entry.11317098",
-            sourcePageId: "entry.1141779347",
-            primaryQuestion: "Please tell us about your experience using JupyterLab",
-            sourcePage: "Analyses List",
+            featureName: 'JupyterLab',
+            formId: '1FAIpQLScgSqTwp6e2AaVcwkd8mcgseijUjBmRqT7DIyQNjdwz8IT-EA',
+            feedbackId: 'entry.760196566',
+            contactEmailId: 'entry.11317098',
+            sourcePageId: 'entry.1141779347',
+            primaryQuestion: 'Please tell us about your experience using JupyterLab',
+            sourcePage: 'Analyses List',
           }),
         // Show the JupyterLab preview message only for GCP workspaces, because it's already the default for Azure workspaces
         // It's currently hidden behind a feature preview flag until the supporting documentation/blog post are ready
@@ -696,13 +696,13 @@ export const BaseAnalyses = (
           [
             !_.isEmpty(analyses) && _.isEmpty(analysisCards),
             () => {
-              return div({ style: { fontStyle: "italic" } }, ["No matching analyses"]);
+              return div({ style: { fontStyle: 'italic' } }, ['No matching analyses']);
             },
           ],
           [
             Utils.DEFAULT,
             () =>
-              div({ role: "table", "aria-label": "analyses" }, [
+              div({ role: 'table', 'aria-label': 'analyses' }, [
                 h(AnalysisCardHeaders, {
                   sort: sortOrder,
                   onSort: (newSortOrder) => {
@@ -722,16 +722,16 @@ export const BaseAnalyses = (
   return h(
     Dropzone,
     {
-      accept: `.${runtimeTools.Jupyter.ext.join(", .")}, .${runtimeTools.RStudio.ext.join(", .")}`,
+      accept: `.${runtimeTools.Jupyter.ext.join(', .')}, .${runtimeTools.RStudio.ext.join(', .')}`,
       disabled: !Utils.canWrite(accessLevel),
-      style: { flexGrow: 1, backgroundColor: colors.light(), height: "100%" },
-      activeStyle: { backgroundColor: colors.accent(0.2), cursor: "copy" },
+      style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
+      activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       onDropRejected: () =>
         reportError(
-          "Not a valid analysis file",
+          'Not a valid analysis file',
           `The selected file is not one of the supported types: .${runtimeTools.Jupyter.ext.join(
-            ", ."
-          )}, .${runtimeTools.RStudio.ext.join(", .")}. Ensure your file has the proper extension.`
+            ', .'
+          )}, .${runtimeTools.RStudio.ext.join(', .')}. Ensure your file has the proper extension.`
         ),
       onDropAccepted: uploadFiles,
     },
@@ -739,28 +739,28 @@ export const BaseAnalyses = (
       ({ openUploader }) =>
         h(Fragment, [
           analyses &&
-            h(PageBox, { style: { height: "100%", margin: "0px", padding: "3rem" } }, [
-              div({ style: { display: "flex", marginBottom: "1rem" } }, [
-                div({ style: { color: colors.dark(), fontSize: 24, fontWeight: 600 } }, ["Your Analyses"]),
+            h(PageBox, { style: { height: '100%', margin: '0px', padding: '3rem' } }, [
+              div({ style: { display: 'flex', marginBottom: '1rem' } }, [
+                div({ style: { color: colors.dark(), fontSize: 24, fontWeight: 600 } }, ['Your Analyses']),
                 h(
                   ButtonOutline,
                   {
-                    style: { marginLeft: "1.5rem" },
+                    style: { marginLeft: '1.5rem' },
                     onClick: () => setCreating(true),
                     disabled: !Utils.canWrite(accessLevel),
                     tooltip: !Utils.canWrite(accessLevel) ? noWrite : undefined,
                   },
                   [
-                    icon("plus", { size: 14, style: { color: colors.accent() } }),
-                    div({ style: { marginLeft: "0.5rem" } }, ["Start"]),
+                    icon('plus', { size: 14, style: { color: colors.accent() } }),
+                    div({ style: { marginLeft: '0.5rem' } }, ['Start']),
                   ]
                 ),
                 div({ style: { flex: 1 } }),
                 !_.isEmpty(analyses) &&
                   h(DelayedSearchInput, {
-                    "aria-label": "Search analyses",
-                    style: { marginRight: "0.75rem", width: 220 },
-                    placeholder: "Search analyses",
+                    'aria-label': 'Search analyses',
+                    style: { marginRight: '0.75rem', width: 220 },
+                    placeholder: 'Search analyses',
                     onChange: setFilter,
                     value: filter,
                   }),
@@ -831,12 +831,12 @@ export const BaseAnalyses = (
                   h(DeleteConfirmationModal, {
                     objectType: getToolLabelFromFileExtension(getExtension(deletingAnalysisName))
                       ? `${getToolLabelFromFileExtension(getExtension(deletingAnalysisName))} analysis`
-                      : "analysis",
+                      : 'analysis',
                     objectName: getFileName(deletingAnalysisName),
-                    buttonText: "Delete analysis",
+                    buttonText: 'Delete analysis',
                     onConfirm: _.flow(
                       Utils.withBusyState(setBusy),
-                      withErrorReporting("Error deleting analysis.")
+                      withErrorReporting('Error deleting analysis.')
                     )(async () => {
                       setDeletingAnalysisName(undefined);
                       await deleteAnalysis(deletingAnalysisName);
@@ -846,30 +846,30 @@ export const BaseAnalyses = (
               ]),
               renderAnalyses(),
             ]),
-          (loadedState.status === "Loading" || busy) && spinnerOverlay,
+          (loadedState.status === 'Loading' || busy) && spinnerOverlay,
         ]),
     ]
   );
 };
 
 const Analyses = _.flow(
-  forwardRefWithName("Analyses"),
+  forwardRefWithName('Analyses'),
   requesterPaysWrapper({
     onDismiss: () => Nav.history.goBack(),
   }),
   wrapWorkspace({
     breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: "Analyses",
-    activeTab: "analyses",
+    title: 'Analyses',
+    activeTab: 'analyses',
     topBarContent: null,
   }),
-  withViewToggle("analysesTab")
+  withViewToggle('analysesTab')
 )(BaseAnalyses);
 
 export const navPaths = [
   {
     name: analysisTabName,
-    path: "/workspaces/:namespace/:name/analyses",
+    path: '/workspaces/:namespace/:name/analyses',
     component: Analyses,
     title: ({ name }) => `${name} - Analysis`,
   },

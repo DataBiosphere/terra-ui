@@ -3,11 +3,11 @@ export interface GpuConfig {
   numOfGpus: number;
 }
 
-export type ComputeType = "GCE" | "DATAPROC" | "AZURE_VM";
+export type ComputeType = 'GCE' | 'DATAPROC' | 'AZURE_VM';
 export const cloudServiceTypes: Record<ComputeType, ComputeType> = {
-  GCE: "GCE",
-  DATAPROC: "DATAPROC",
-  AZURE_VM: "AZURE_VM",
+  GCE: 'GCE',
+  DATAPROC: 'DATAPROC',
+  AZURE_VM: 'AZURE_VM',
 };
 
 export interface BaseRuntimeConfig {
@@ -56,18 +56,18 @@ export type RuntimeConfig = AzureConfig | GoogleRuntimeConfig;
 
 // TODO: should really add a kind in the backend, WIP
 export const isDataprocConfig = (config: RuntimeConfig): config is DataprocConfig => {
-  return config.cloudService === "DATAPROC";
+  return config.cloudService === 'DATAPROC';
 };
 export const isGceRuntimeConfig = (config: RuntimeConfig): config is GceWithPdConfig | GceConfig => {
-  return config.cloudService === "GCE";
+  return config.cloudService === 'GCE';
 };
 export const isGceWithPdConfig = (config: RuntimeConfig): config is GceWithPdConfig => {
   const castConfig = config as GceWithPdConfig;
   return (
-    config.cloudService === "GCE" && castConfig.persistentDiskId !== undefined && castConfig.bootDiskSize !== undefined
+    config.cloudService === 'GCE' && castConfig.persistentDiskId !== undefined && castConfig.bootDiskSize !== undefined
   );
 };
 export const isGceConfig = (config: RuntimeConfig): config is GceConfig => {
   const castConfig = config as GceConfig;
-  return config.cloudService === "GCE" && castConfig.diskSize !== undefined;
+  return config.cloudService === 'GCE' && castConfig.diskSize !== undefined;
 };

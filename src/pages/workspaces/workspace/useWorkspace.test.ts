@@ -1,65 +1,65 @@
-import { renderHook } from "@testing-library/react-hooks";
-import _ from "lodash/fp";
-import { locationTypes } from "src/components/region-common";
-import * as WorkspaceUtils from "src/components/workspace-utils";
-import { Ajax } from "src/libs/ajax";
-import { AzureStorage, AzureStorageContract } from "src/libs/ajax/AzureStorage";
-import * as GoogleStorage from "src/libs/ajax/GoogleStorage";
-import * as Notifications from "src/libs/notifications";
-import { workspaceStore } from "src/libs/state";
-import { DeepPartial } from "src/libs/type-utils/deep-partial";
-import { defaultLocation } from "src/pages/workspaces/workspace/analysis/utils/runtime-utils";
+import { renderHook } from '@testing-library/react-hooks';
+import _ from 'lodash/fp';
+import { locationTypes } from 'src/components/region-common';
+import * as WorkspaceUtils from 'src/components/workspace-utils';
+import { Ajax } from 'src/libs/ajax';
+import { AzureStorage, AzureStorageContract } from 'src/libs/ajax/AzureStorage';
+import * as GoogleStorage from 'src/libs/ajax/GoogleStorage';
+import * as Notifications from 'src/libs/notifications';
+import { workspaceStore } from 'src/libs/state';
+import { DeepPartial } from 'src/libs/type-utils/deep-partial';
+import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import {
   azureBucketRecheckRate,
   googlePermissionsRecheckRate,
   useWorkspace,
-} from "src/pages/workspaces/workspace/useWorkspace";
-import { asMockedFn } from "src/testing/test-utils";
+} from 'src/pages/workspaces/workspace/useWorkspace';
+import { asMockedFn } from 'src/testing/test-utils';
 
-jest.mock("src/libs/ajax/AzureStorage");
+jest.mock('src/libs/ajax/AzureStorage');
 
-type AjaxExports = typeof import("src/libs/ajax");
-jest.mock("src/libs/ajax");
-type AjaxContract = ReturnType<AjaxExports["Ajax"]>;
+type AjaxExports = typeof import('src/libs/ajax');
+jest.mock('src/libs/ajax');
+type AjaxContract = ReturnType<AjaxExports['Ajax']>;
 
-jest.mock("src/libs/notifications");
+jest.mock('src/libs/notifications');
 
-type StateExports = typeof import("src/libs/state");
-jest.mock("src/libs/state", (): StateExports => {
+type StateExports = typeof import('src/libs/state');
+jest.mock('src/libs/state', (): StateExports => {
   return {
-    ...jest.requireActual("src/libs/state"),
-    getUser: jest.fn(() => ({ email: "christina@foo.com" })),
+    ...jest.requireActual('src/libs/state'),
+    getUser: jest.fn(() => ({ email: 'christina@foo.com' })),
   };
 });
 
-jest.mock("src/libs/config", () => ({
-  ...jest.requireActual("src/libs/config"),
+jest.mock('src/libs/config', () => ({
+  ...jest.requireActual('src/libs/config'),
   getConfig: jest.fn().mockReturnValue({}),
 }));
 
-describe("useActiveWorkspace", () => {
+describe('useActiveWorkspace', () => {
   const initializedGoogleWorkspace = {
-    accessLevel: "PROJECT_OWNER",
-    owners: ["christina@foo.com"],
+    accessLevel: 'PROJECT_OWNER',
+    owners: ['christina@foo.com'],
     workspace: {
       attributes: {
-        description: "",
+        description: '',
       },
       authorizationDomain: [],
-      billingAccount: "billingAccounts/google-billing-account",
-      bucketName: "bucket-name",
-      cloudPlatform: "Gcp",
-      completedCloneWorkspaceFileTransfer: "2023-02-03T22:29:04.319Z",
-      createdBy: "christina@foo.com",
-      createdDate: "2023-02-03T22:26:06.124Z",
-      googleProject: "google-project-id",
+      billingAccount: 'billingAccounts/google-billing-account',
+      bucketName: 'bucket-name',
+      cloudPlatform: 'Gcp',
+      completedCloneWorkspaceFileTransfer: '2023-02-03T22:29:04.319Z',
+      createdBy: 'christina@foo.com',
+      createdDate: '2023-02-03T22:26:06.124Z',
+      googleProject: 'google-project-id',
       isLocked: false,
-      lastModified: "2023-02-03T22:26:06.202Z",
-      name: "testName",
-      namespace: "testNamespace",
-      workspaceId: "google-workspace-id",
-      workspaceType: "rawls",
-      workspaceVersion: "v2",
+      lastModified: '2023-02-03T22:26:06.202Z',
+      name: 'testName',
+      namespace: 'testNamespace',
+      workspaceId: 'google-workspace-id',
+      workspaceType: 'rawls',
+      workspaceVersion: 'v2',
     },
     canShare: true,
     canCompute: true,
@@ -67,31 +67,31 @@ describe("useActiveWorkspace", () => {
   };
 
   const initializedAzureWorkspace = {
-    accessLevel: "PROJECT_OWNER",
-    owners: ["christina@foo.com"],
+    accessLevel: 'PROJECT_OWNER',
+    owners: ['christina@foo.com'],
     azureContext: {
-      managedResourceGroupId: "test-mrg",
-      subscriptionId: "test-sub-id",
-      tenantId: "test-tenant-id",
+      managedResourceGroupId: 'test-mrg',
+      subscriptionId: 'test-sub-id',
+      tenantId: 'test-tenant-id',
     },
     workspace: {
       attributes: {
-        description: "",
+        description: '',
       },
       authorizationDomain: [],
-      bucketName: "",
-      cloudPlatform: "Azure",
-      completedCloneWorkspaceFileTransfer: "2023-02-03T22:29:04.319Z",
-      createdBy: "christina@foo.com",
-      createdDate: "2023-02-03T22:26:06.124Z",
-      googleProject: "",
+      bucketName: '',
+      cloudPlatform: 'Azure',
+      completedCloneWorkspaceFileTransfer: '2023-02-03T22:29:04.319Z',
+      createdBy: 'christina@foo.com',
+      createdDate: '2023-02-03T22:26:06.124Z',
+      googleProject: '',
       isLocked: false,
-      lastModified: "2023-02-03T22:26:06.202Z",
-      name: "testName",
-      namespace: "testNamespace",
-      workspaceId: "azure-workspace-id",
-      workspaceType: "rawls",
-      workspaceVersion: "v2",
+      lastModified: '2023-02-03T22:26:06.202Z',
+      name: 'testName',
+      namespace: 'testNamespace',
+      workspaceId: 'azure-workspace-id',
+      workspaceType: 'rawls',
+      workspaceVersion: 'v2',
     },
     canShare: true,
     canCompute: true,
@@ -99,8 +99,8 @@ describe("useActiveWorkspace", () => {
   };
 
   const bucketLocationResponse = {
-    location: "bucket-location",
-    locationType: "location-type",
+    location: 'bucket-location',
+    locationType: 'location-type',
   };
 
   const defaultGoogleBucketOptions = {
@@ -110,8 +110,8 @@ describe("useActiveWorkspace", () => {
   };
 
   const azureStorageDetails = {
-    location: "container-location",
-    sas: { url: "container-url?sas-token" },
+    location: 'container-location',
+    sas: { url: 'container-url?sas-token' },
   };
 
   const defaultAzureStorageOptions = {
@@ -124,14 +124,14 @@ describe("useActiveWorkspace", () => {
     workspaceStore.reset();
     jest.useFakeTimers();
 
-    jest.spyOn(workspaceStore, "set");
-    jest.spyOn(WorkspaceUtils, "updateRecentlyViewedWorkspaces");
-    jest.spyOn(GoogleStorage, "saToken");
-    jest.spyOn(Notifications, "notify");
+    jest.spyOn(workspaceStore, 'set');
+    jest.spyOn(WorkspaceUtils, 'updateRecentlyViewedWorkspaces');
+    jest.spyOn(GoogleStorage, 'saToken');
+    jest.spyOn(Notifications, 'notify');
 
     // Don't show expected error responses in logs
-    jest.spyOn(console, "error").mockImplementation(() => {});
-    jest.spyOn(console, "log").mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   afterAll(() => {
@@ -146,7 +146,7 @@ describe("useActiveWorkspace", () => {
     expect(result.loadingWorkspace).toBe(false);
   };
 
-  it("can initialize from a Google workspace in workspaceStore", async () => {
+  it('can initialize from a Google workspace in workspaceStore', async () => {
     // Arrange
     const mockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
@@ -162,13 +162,13 @@ describe("useActiveWorkspace", () => {
       {
         googleBucketLocation: bucketLocationResponse.location,
         googleBucketType: bucketLocationResponse.locationType,
-        fetchedGoogleBucketLocation: "SUCCESS",
+        fetchedGoogleBucketLocation: 'SUCCESS',
       },
       defaultAzureStorageOptions
     );
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useWorkspace("testNamespace", "testName"));
+    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'));
     await waitForNextUpdate(); // For the bucket location call
 
     // Assert
@@ -178,12 +178,12 @@ describe("useActiveWorkspace", () => {
     expect(GoogleStorage.saToken).not.toHaveBeenCalled();
   });
 
-  it("can initialize from a requester pays Google workspace in workspaceStore", async () => {
+  it('can initialize from a requester pays Google workspace in workspaceStore', async () => {
     // Arrange
     const mockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
         workspace: () => ({
-          checkBucketLocation: () => Promise.reject(new Response("Mock requester pays error", { status: 400 })),
+          checkBucketLocation: () => Promise.reject(new Response('Mock requester pays error', { status: 400 })),
         }),
       },
     };
@@ -193,19 +193,19 @@ describe("useActiveWorkspace", () => {
     // Calling to get the bucket location fails, default options remain except for indication of error state.
     const expectedStorageDetails = _.mergeAll([
       defaultGoogleBucketOptions,
-      { fetchedGoogleBucketLocation: "ERROR" },
+      { fetchedGoogleBucketLocation: 'ERROR' },
       defaultAzureStorageOptions,
     ]);
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useWorkspace("testNamespace", "testName"));
+    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'));
     await waitForNextUpdate(); // For the bucket location call
 
     // Assert
     assertResult(result.current, initializedGoogleWorkspace, expectedStorageDetails, false);
   });
 
-  it("can initialize from an Azure workspace in workspaceStore", async () => {
+  it('can initialize from an Azure workspace in workspaceStore', async () => {
     // Arrange
     const azureStorageMock: Partial<AzureStorageContract> = {
       details: jest.fn().mockResolvedValue(azureStorageDetails),
@@ -216,14 +216,14 @@ describe("useActiveWorkspace", () => {
     const expectedStorageDetails = _.merge(
       {
         azureContainerRegion: azureStorageDetails.location,
-        azureContainerUrl: "container-url",
+        azureContainerUrl: 'container-url',
         azureContainerSasUrl: azureStorageDetails.sas.url,
       },
       defaultGoogleBucketOptions
     );
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useWorkspace("testNamespace", "testName"));
+    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'));
     await waitForNextUpdate(); // For the azure storage call
 
     // Assert
@@ -246,7 +246,7 @@ describe("useActiveWorkspace", () => {
     ]);
 
     // Act
-    const renderHookResult = renderHook(() => useWorkspace("testNamespace", "testName"));
+    const renderHookResult = renderHook(() => useWorkspace('testNamespace', 'testName'));
     const { result, waitForNextUpdate } = renderHookResult;
     await waitForNextUpdate();
 
@@ -267,7 +267,7 @@ describe("useActiveWorkspace", () => {
       {
         googleBucketLocation: bucketLocationResponse.location,
         googleBucketType: bucketLocationResponse.locationType,
-        fetchedGoogleBucketLocation: "SUCCESS",
+        fetchedGoogleBucketLocation: 'SUCCESS',
       },
       defaultAzureStorageOptions
     );
@@ -293,7 +293,7 @@ describe("useActiveWorkspace", () => {
     expect(workspaceStore.set).toHaveBeenCalledWith(initializedGoogleWorkspace);
   };
 
-  it("can read workspace details from server, and poll until permissions synced (handling checkBucketAccess failure)", async () => {
+  it('can read workspace details from server, and poll until permissions synced (handling checkBucketAccess failure)', async () => {
     // Arrange
     // remove workspaceInitialized because the server response does not include this information
     const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace;
@@ -302,7 +302,7 @@ describe("useActiveWorkspace", () => {
       Workspaces: {
         workspace: () => ({
           details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
-          checkBucketReadAccess: () => Promise.reject(new Response("Mock permissions error", { status: 500 })),
+          checkBucketReadAccess: () => Promise.reject(new Response('Mock permissions error', { status: 500 })),
         }),
       },
     };
@@ -315,7 +315,7 @@ describe("useActiveWorkspace", () => {
     await verifyGooglePermissionsSuccess(result, waitForNextUpdate);
   });
 
-  it("can read workspace details from server, and poll until permissions synced (handling storageCostEstimate failure)", async () => {
+  it('can read workspace details from server, and poll until permissions synced (handling storageCostEstimate failure)', async () => {
     // Arrange
     // remove workspaceInitialized because the server response does not include this information
     const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace;
@@ -326,7 +326,7 @@ describe("useActiveWorkspace", () => {
           details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
           checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
           checkBucketReadAccess: jest.fn(),
-          storageCostEstimate: () => Promise.reject(new Response("Mock storage cost estimate error", { status: 500 })),
+          storageCostEstimate: () => Promise.reject(new Response('Mock storage cost estimate error', { status: 500 })),
           bucketUsage: jest.fn(),
         }),
       },
@@ -340,7 +340,7 @@ describe("useActiveWorkspace", () => {
     await verifyGooglePermissionsSuccess(result, waitForNextUpdate);
   });
 
-  it("can read workspace details from server, and poll until permissions synced (handling bucketUsage failure)", async () => {
+  it('can read workspace details from server, and poll until permissions synced (handling bucketUsage failure)', async () => {
     // Arrange
     // remove workspaceInitialized because the server response does not include this information
     const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace;
@@ -352,7 +352,7 @@ describe("useActiveWorkspace", () => {
           checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
           checkBucketReadAccess: jest.fn(),
           storageCostEstimate: jest.fn(),
-          bucketUsage: () => Promise.reject(new Response("Mock bucket usage error", { status: 500 })),
+          bucketUsage: () => Promise.reject(new Response('Mock bucket usage error', { status: 500 })),
         }),
       },
     };
@@ -365,7 +365,7 @@ describe("useActiveWorkspace", () => {
     await verifyGooglePermissionsSuccess(result, waitForNextUpdate);
   });
 
-  it("can read workspace details from server, and poll until permissions synced (handling checkBucketLocation failure)", async () => {
+  it('can read workspace details from server, and poll until permissions synced (handling checkBucketLocation failure)', async () => {
     // Arrange
     // remove workspaceInitialized because the server response does not include this information
     const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace;
@@ -374,7 +374,7 @@ describe("useActiveWorkspace", () => {
       Workspaces: {
         workspace: () => ({
           details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
-          checkBucketLocation: () => Promise.reject(new Response("Mock check bucket location", { status: 500 })),
+          checkBucketLocation: () => Promise.reject(new Response('Mock check bucket location', { status: 500 })),
           checkBucketReadAccess: jest.fn(),
           storageCostEstimate: jest.fn(),
           bucketUsage: jest.fn(),
@@ -384,16 +384,16 @@ describe("useActiveWorkspace", () => {
     asMockedFn(Ajax).mockImplementation(() => errorMockAjax as AjaxContract);
 
     // Verify initial failure based on error mock.
-    const { result, waitForNextUpdate } = await verifyGooglePermissionsFailure("ERROR");
+    const { result, waitForNextUpdate } = await verifyGooglePermissionsFailure('ERROR');
 
     // Finally, change mock to pass all checks verify success.
     await verifyGooglePermissionsSuccess(result, waitForNextUpdate);
   });
 
-  it("can read workspace details from server for read-only workspace, and poll Google until permissions are synced", async () => {
+  it('can read workspace details from server for read-only workspace, and poll Google until permissions are synced', async () => {
     // Arrange
     const readOnlyWorkspace = _.clone(initializedGoogleWorkspace);
-    readOnlyWorkspace.accessLevel = "READER";
+    readOnlyWorkspace.accessLevel = 'READER';
     // remove workspaceInitialized because the server response does not include this information
     const { workspaceInitialized, ...serverWorkspaceResponse } = readOnlyWorkspace;
 
@@ -405,8 +405,8 @@ describe("useActiveWorkspace", () => {
           details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
           checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
           checkBucketReadAccess: jest.fn(),
-          storageCostEstimate: () => Promise.reject(new Response("Should not call", { status: 500 })),
-          bucketUsage: () => Promise.reject(new Response("Should not call", { status: 500 })),
+          storageCostEstimate: () => Promise.reject(new Response('Should not call', { status: 500 })),
+          bucketUsage: () => Promise.reject(new Response('Should not call', { status: 500 })),
         }),
       },
     };
@@ -416,13 +416,13 @@ describe("useActiveWorkspace", () => {
       {
         googleBucketLocation: bucketLocationResponse.location,
         googleBucketType: bucketLocationResponse.locationType,
-        fetchedGoogleBucketLocation: "SUCCESS",
+        fetchedGoogleBucketLocation: 'SUCCESS',
       },
       defaultAzureStorageOptions
     );
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useWorkspace("testNamespace", "testName"));
+    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'));
     await waitForNextUpdate(); // For the calls to checkBucketReadAccess and checkBucketLocation to execute
 
     // Assert
@@ -430,7 +430,7 @@ describe("useActiveWorkspace", () => {
     expect(workspaceStore.set).toHaveBeenCalledWith(readOnlyWorkspace);
   });
 
-  it("treats requesterPays errors as Google workspace being initialized", async () => {
+  it('treats requesterPays errors as Google workspace being initialized', async () => {
     // Arrange
     // remove workspaceInitialized because the server response does not include this information
     const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace;
@@ -440,7 +440,7 @@ describe("useActiveWorkspace", () => {
       Workspaces: {
         workspace: () => ({
           details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
-          checkBucketReadAccess: () => Promise.reject(new Response("Mock requester pays error", { status: 500 })),
+          checkBucketReadAccess: () => Promise.reject(new Response('Mock requester pays error', { status: 500 })),
         }),
       },
     };
@@ -451,13 +451,13 @@ describe("useActiveWorkspace", () => {
       {
         googleBucketLocation: defaultGoogleBucketOptions.googleBucketLocation,
         googleBucketType: defaultGoogleBucketOptions.googleBucketType,
-        fetchedGoogleBucketLocation: "ERROR",
+        fetchedGoogleBucketLocation: 'ERROR',
       },
       defaultAzureStorageOptions
     );
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useWorkspace("testNamespace", "testName"));
+    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'));
     await waitForNextUpdate(); // For the call to checkBucketReadAccess to execute
 
     // Assert
@@ -469,7 +469,7 @@ describe("useActiveWorkspace", () => {
     expect(GoogleStorage.saToken).toHaveBeenCalled();
   });
 
-  it("can read workspace details from server, and poll WSM until the container exists", async () => {
+  it('can read workspace details from server, and poll WSM until the container exists', async () => {
     // Arrange
     // remove workspaceInitialized because the server response does not include this information
     const { workspaceInitialized, ...serverWorkspaceResponse } = initializedAzureWorkspace;
@@ -484,7 +484,7 @@ describe("useActiveWorkspace", () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     const errorAzureStorageMock: Partial<AzureStorageContract> = {
-      details: () => Promise.reject(new Response("Mock container error", { status: 500 })),
+      details: () => Promise.reject(new Response('Mock container error', { status: 500 })),
     };
     asMockedFn(AzureStorage).mockImplementation(() => errorAzureStorageMock as AzureStorageContract);
 
@@ -496,14 +496,14 @@ describe("useActiveWorkspace", () => {
     const expectedSecondStorageDetails = _.merge(
       {
         azureContainerRegion: azureStorageDetails.location,
-        azureContainerUrl: "container-url",
+        azureContainerUrl: 'container-url',
         azureContainerSasUrl: azureStorageDetails.sas.url,
       },
       defaultGoogleBucketOptions
     );
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useWorkspace("testNamespace", "testName"));
+    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'));
     await waitForNextUpdate(); // For the call to AzureStorage.details to execute
 
     // Assert
@@ -531,19 +531,19 @@ describe("useActiveWorkspace", () => {
     expect(workspaceStore.set).toHaveBeenCalledWith(initializedAzureWorkspace);
   });
 
-  it("returns an access error if workspace details throws a 404", async () => {
+  it('returns an access error if workspace details throws a 404', async () => {
     // Arrange
     const mockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
         workspace: () => ({
-          details: () => Promise.reject(new Response("Mock access error", { status: 404 })),
+          details: () => Promise.reject(new Response('Mock access error', { status: 404 })),
         }),
       },
     };
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useWorkspace("testNamespace", "testName"));
+    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'));
     await waitForNextUpdate();
 
     // Assert
@@ -553,11 +553,11 @@ describe("useActiveWorkspace", () => {
     expect(GoogleStorage.saToken).not.toHaveBeenCalled();
   });
 
-  it("does not request SA token for Google workspace if not a writer", async () => {
+  it('does not request SA token for Google workspace if not a writer', async () => {
     // Arrange
     // remove workspaceInitialized because the server response does not include this information
     const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace;
-    serverWorkspaceResponse.accessLevel = "READER";
+    serverWorkspaceResponse.accessLevel = 'READER';
 
     const expectedWorkspaceResponse = _.merge(_.clone(serverWorkspaceResponse), { workspaceInitialized: true });
 
@@ -576,13 +576,13 @@ describe("useActiveWorkspace", () => {
       {
         googleBucketLocation: bucketLocationResponse.location,
         googleBucketType: bucketLocationResponse.locationType,
-        fetchedGoogleBucketLocation: "SUCCESS",
+        fetchedGoogleBucketLocation: 'SUCCESS',
       },
       defaultAzureStorageOptions
     );
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useWorkspace("testNamespace", "testName"));
+    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'));
     await waitForNextUpdate(); // For the call to checkBucketReadAccess to execute
 
     // Assert
@@ -595,11 +595,11 @@ describe("useActiveWorkspace", () => {
     expect(Notifications.notify).not.toHaveBeenCalled();
   });
 
-  it("Shows a notification if workspace just created by user, but Rawls did not return that they are the owner", async () => {
+  it('Shows a notification if workspace just created by user, but Rawls did not return that they are the owner', async () => {
     // Arrange
     // remove workspaceInitialized because the server response does not include this information
     const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace;
-    serverWorkspaceResponse.accessLevel = "READER";
+    serverWorkspaceResponse.accessLevel = 'READER';
 
     const expectedWorkspaceResponse = _.merge(_.clone(serverWorkspaceResponse), { workspaceInitialized: true });
 
@@ -618,7 +618,7 @@ describe("useActiveWorkspace", () => {
       {
         googleBucketLocation: bucketLocationResponse.location,
         googleBucketType: bucketLocationResponse.locationType,
-        fetchedGoogleBucketLocation: "SUCCESS",
+        fetchedGoogleBucketLocation: 'SUCCESS',
       },
       defaultAzureStorageOptions
     );
@@ -627,7 +627,7 @@ describe("useActiveWorkspace", () => {
     jest.setSystemTime(new Date(Date.UTC(2023, 1, 3, 22, 26, 12, 0)));
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useWorkspace("testNamespace", "testName"));
+    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'));
     await waitForNextUpdate(); // For the call to checkBucketReadAccess to execute
 
     // Assert

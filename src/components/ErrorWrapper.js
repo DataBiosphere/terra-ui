@@ -1,6 +1,6 @@
-import PropTypes from "prop-types";
-import { Component } from "react";
-import { reportError } from "src/libs/error";
+import PropTypes from 'prop-types';
+import { Component } from 'react';
+import { reportError } from 'src/libs/error';
 
 // No hook equivalent of componentDidCatch exists yet
 export default class ErrorWrapper extends Component {
@@ -18,7 +18,7 @@ export default class ErrorWrapper extends Component {
   }
 
   componentDidCatch(error) {
-    reportError("An error occurred", error);
+    reportError('An error occurred', error);
   }
 
   render() {

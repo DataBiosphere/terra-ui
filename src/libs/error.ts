@@ -1,17 +1,17 @@
-import _ from "lodash/fp";
-import { notify } from "src/libs/notifications";
-import { AnyPromiseFn, GenericPromiseFn } from "src/libs/type-utils/general-types";
-import { safeCurry } from "src/libs/type-utils/lodash-fp-helpers";
+import _ from 'lodash/fp';
+import { notify } from 'src/libs/notifications';
+import { AnyPromiseFn, GenericPromiseFn } from 'src/libs/type-utils/general-types';
+import { safeCurry } from 'src/libs/type-utils/lodash-fp-helpers';
 
 export const reportError = async (title, obj) => {
   console.error(title, obj); // helpful when the notify component fails to render
   // Do not show an error notification when a session times out.
   // Notification for this case is handled elsewhere.
-  if (obj instanceof Error && obj.message === "Session timed out") {
+  if (obj instanceof Error && obj.message === 'Session timed out') {
     return;
   }
 
-  notify("error", title, { detail: await (obj instanceof Response ? obj.text() : obj) });
+  notify('error', title, { detail: await (obj instanceof Response ? obj.text() : obj) });
 };
 
 export type ErrorCallback = (error: unknown) => void | Promise<void>;

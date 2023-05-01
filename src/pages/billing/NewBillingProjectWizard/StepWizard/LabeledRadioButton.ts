@@ -1,9 +1,9 @@
-import { PropsWithChildren } from "react";
-import { div, HTMLElementProps } from "react-hyperscript-helpers";
-import { RadioButton } from "src/components/common";
-import { styles } from "src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/GCPBillingProjectWizard";
+import { PropsWithChildren } from 'react';
+import { div, HTMLElementProps } from 'react-hyperscript-helpers';
+import { RadioButton } from 'src/components/common';
+import { styles } from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/GCPBillingProjectWizard';
 
-interface LabeledProps extends HTMLElementProps<"input"> {
+interface LabeledProps extends HTMLElementProps<'input'> {
   text: string;
   name: string;
   labelStyle?: React.CSSProperties;
@@ -11,7 +11,7 @@ interface LabeledProps extends HTMLElementProps<"input"> {
 }
 
 export const LabeledRadioButton = ({ text, name, labelStyle, style, ...props }: LabeledProps) =>
-  div({ style: { display: "flex", flexDirection: "row", margin: ".25rem", ...style } }, [
+  div({ style: { display: 'flex', flexDirection: 'row', margin: '.25rem', ...style } }, [
     RadioButton({
       text,
       name,
@@ -28,13 +28,13 @@ export const LabeledRadioGroup = ({ style, children }: LabeledRadioGroupProps) =
   div(
     {
       style: {
-        display: "flex",
-        margin: "1rem",
-        flexDirection: "column",
-        justifyContent: "space-around",
+        display: 'flex',
+        margin: '1rem',
+        flexDirection: 'column',
+        justifyContent: 'space-around',
         ...style,
       },
-      role: "radiogroup",
+      role: 'radiogroup',
     },
     [children]
   );

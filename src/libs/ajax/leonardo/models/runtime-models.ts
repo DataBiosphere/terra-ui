@@ -1,30 +1,30 @@
-import { AuditInfo, CloudContext, LeoError, LeoResourceLabels } from "src/libs/ajax/leonardo/models/core-models";
-import { DiskConfig } from "src/libs/ajax/leonardo/models/disk-models";
-import { RuntimeConfig } from "src/libs/ajax/leonardo/models/runtime-config-models";
-import { ToolLabel } from "src/pages/workspaces/workspace/analysis/utils/tool-utils";
+import { AuditInfo, CloudContext, LeoError, LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models';
+import { DiskConfig } from 'src/libs/ajax/leonardo/models/disk-models';
+import { RuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
+import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 export type LeoRuntimeStatus =
-  | "Running"
-  | "Deleted"
-  | "Deleting"
-  | "Creating"
-  | "Updating"
-  | "Starting"
-  | "Stopping"
-  | "Stopped"
-  | "Error"
-  | "PreStarting"
-  | "PreStopping";
+  | 'Running'
+  | 'Deleted'
+  | 'Deleting'
+  | 'Creating'
+  | 'Updating'
+  | 'Starting'
+  | 'Stopping'
+  | 'Stopped'
+  | 'Error'
+  | 'PreStarting'
+  | 'PreStopping';
 export type DisplayRuntimeStatus =
-  | "Running"
-  | "Deleted"
-  | "Deleting"
-  | "Creating"
-  | "Updating"
-  | "Resuming"
-  | "Error"
-  | "Pausing"
-  | "Paused";
+  | 'Running'
+  | 'Deleted'
+  | 'Deleting'
+  | 'Creating'
+  | 'Updating'
+  | 'Resuming'
+  | 'Error'
+  | 'Pausing'
+  | 'Paused';
 
 export interface RuntimeStatus {
   label: DisplayRuntimeStatus; // the UI display string for a status
@@ -34,15 +34,15 @@ export interface RuntimeStatus {
 
 // TODO: fields isAppStatus? LeoLabel? isRuntimeStatus?
 export const runtimeStatuses: { [label: string]: RuntimeStatus } = {
-  running: { label: "Running", leoLabel: "Running", canChangeCompute: true },
-  deleted: { label: "Deleted", leoLabel: "Deleted" },
-  deleting: { label: "Deleting", leoLabel: "Deleting" },
-  creating: { label: "Creating", leoLabel: "Creating" },
-  updating: { label: "Updating", leoLabel: "Updating" },
-  starting: { label: "Resuming", leoLabel: "Starting" },
-  stopping: { label: "Pausing", leoLabel: "Stopping" },
-  stopped: { label: "Paused", leoLabel: "Stopped", canChangeCompute: true },
-  error: { label: "Error", leoLabel: "Error", canChangeCompute: true },
+  running: { label: 'Running', leoLabel: 'Running', canChangeCompute: true },
+  deleted: { label: 'Deleted', leoLabel: 'Deleted' },
+  deleting: { label: 'Deleting', leoLabel: 'Deleting' },
+  creating: { label: 'Creating', leoLabel: 'Creating' },
+  updating: { label: 'Updating', leoLabel: 'Updating' },
+  starting: { label: 'Resuming', leoLabel: 'Starting' },
+  stopping: { label: 'Pausing', leoLabel: 'Stopping' },
+  stopped: { label: 'Paused', leoLabel: 'Stopped', canChangeCompute: true },
+  error: { label: 'Error', leoLabel: 'Error', canChangeCompute: true },
 };
 
 export interface RuntimeLabels extends LeoResourceLabels {

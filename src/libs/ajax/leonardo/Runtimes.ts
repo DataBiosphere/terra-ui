@@ -1,10 +1,10 @@
-import _ from "lodash/fp";
-import * as qs from "qs";
-import { version } from "src/data/gce-machines";
-import { appIdentifier, authOpts, fetchLeo, fetchOk, jsonBody } from "src/libs/ajax/ajax-common";
-import { GetRuntimeItem, ListRuntimeItem } from "src/libs/ajax/leonardo/models/runtime-models";
-import { getConfig } from "src/libs/config";
-import { CloudPlatform } from "src/pages/billing/models/BillingProject";
+import _ from 'lodash/fp';
+import * as qs from 'qs';
+import { version } from 'src/data/gce-machines';
+import { appIdentifier, authOpts, fetchLeo, fetchOk, jsonBody } from 'src/libs/ajax/ajax-common';
+import { GetRuntimeItem, ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { getConfig } from 'src/libs/config';
+import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
 
 export const Runtimes = (signal) => {
   const v1Func = (project: string, name: string) => {
@@ -18,12 +18,12 @@ export const Runtimes = (signal) => {
 
       create: (options): Promise<void> => {
         const body = _.merge(options, {
-          labels: { saturnAutoCreated: "true", saturnVersion: version },
+          labels: { saturnAutoCreated: 'true', saturnVersion: version },
           defaultClientId: getConfig().googleClientId,
           userJupyterExtensionConfig: {
             nbExtensions: {
-              "saturn-iframe-extension": `${
-                window.location.hostname === "localhost" ? getConfig().devUrlRoot : window.location.origin
+              'saturn-iframe-extension': `${
+                window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin
               }/jupyter-iframe-extension.js`,
             },
             labExtensions: {},
@@ -31,38 +31,38 @@ export const Runtimes = (signal) => {
             combinedExtensions: {},
           },
           scopes: [
-            "https://www.googleapis.com/auth/cloud-platform",
-            "https://www.googleapis.com/auth/userinfo.email",
-            "https://www.googleapis.com/auth/userinfo.profile",
+            'https://www.googleapis.com/auth/cloud-platform',
+            'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/userinfo.profile',
           ],
           enableWelder: true,
         });
-        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: "POST" }, appIdentifier]));
+        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]));
       },
 
       update: (options): Promise<void> => {
         const body = { ...options, allowStop: true };
-        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: "PATCH" }, appIdentifier]));
+        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PATCH' }, appIdentifier]));
       },
 
       start: (): Promise<void> => {
-        return fetchLeo(`${root}/start`, _.mergeAll([authOpts(), { signal, method: "POST" }, appIdentifier]));
+        return fetchLeo(`${root}/start`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]));
       },
 
       stop: (): Promise<void> => {
-        return fetchLeo(`${root}/stop`, _.mergeAll([authOpts(), { signal, method: "POST" }, appIdentifier]));
+        return fetchLeo(`${root}/stop`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]));
       },
 
       delete: (deleteDisk: boolean): Promise<void> => {
         return fetchLeo(
           `${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
-          _.mergeAll([authOpts(), { signal, method: "DELETE" }, appIdentifier])
+          _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier])
         );
       },
     };
   };
 
-  const v2Func = (workspaceId: string, name: string, cloudPlatform: CloudPlatform = "AZURE") => {
+  const v2Func = (workspaceId: string, name: string, cloudPlatform: CloudPlatform = 'AZURE') => {
     const root = `api/v2/runtimes/${workspaceId}/${_.toLower(cloudPlatform)}/${name}`;
     const noCloudProviderRoot = `api/v2/runtimes/${workspaceId}/${name}`;
 
@@ -74,32 +74,32 @@ export const Runtimes = (signal) => {
 
       create: (options, useExistingDisk = false): Promise<void> => {
         const body = _.merge(options, {
-          labels: { saturnAutoCreated: "true", saturnVersion: version },
+          labels: { saturnAutoCreated: 'true', saturnVersion: version },
         });
         return fetchLeo(
           `${root}${qs.stringify({ useExistingDisk }, { addQueryPrefix: true })}`,
-          _.mergeAll([authOpts(), jsonBody(body), { signal, method: "POST" }, appIdentifier])
+          _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier])
         );
       },
 
       delete: (deleteDisk = true): Promise<void> => {
         return fetchLeo(
           `${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
-          _.mergeAll([authOpts(), { signal, method: "DELETE" }, appIdentifier])
+          _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier])
         );
       },
 
       start: (): Promise<void> => {
         return fetchLeo(
           `${noCloudProviderRoot}/start`,
-          _.mergeAll([authOpts(), { signal, method: "POST" }, appIdentifier])
+          _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier])
         );
       },
 
       stop: (): Promise<void> => {
         return fetchLeo(
           `${noCloudProviderRoot}/stop`,
-          _.mergeAll([authOpts(), { signal, method: "POST" }, appIdentifier])
+          _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier])
         );
       },
     };
@@ -115,11 +115,11 @@ export const Runtimes = (signal) => {
     },
 
     invalidateCookie: () => {
-      return fetchLeo("proxy/invalidateToken", _.merge(authOpts(), { signal }));
+      return fetchLeo('proxy/invalidateToken', _.merge(authOpts(), { signal }));
     },
 
     setCookie: () => {
-      return fetchLeo("proxy/setCookie", _.merge(authOpts(), { signal, credentials: "include" }));
+      return fetchLeo('proxy/setCookie', _.merge(authOpts(), { signal, credentials: 'include' }));
     },
 
     runtime: v1Func,
@@ -127,7 +127,7 @@ export const Runtimes = (signal) => {
     azureProxy: (proxyUrl) => {
       return {
         setAzureCookie: () => {
-          return fetchOk(`${proxyUrl}/setCookie`, _.merge(authOpts(), { signal, credentials: "include" }));
+          return fetchOk(`${proxyUrl}/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }));
         },
 
         setStorageLinks: (localBaseDirectory, cloudStorageDirectory, pattern) => {
@@ -140,7 +140,7 @@ export const Runtimes = (signal) => {
                 cloudStorageDirectory,
                 pattern,
               }),
-              { signal, method: "POST" },
+              { signal, method: 'POST' },
             ])
           );
         },
@@ -157,8 +157,8 @@ export const Runtimes = (signal) => {
       // will be changed to JupyterLab.
       const runtimeList = await res.json();
       const runtimesWithToolLabelDecorated = _.map((runtime) => {
-        if (runtime.labels.tool === "Azure") {
-          runtime.labels.tool = "JupyterLab";
+        if (runtime.labels.tool === 'Azure') {
+          runtime.labels.tool = 'JupyterLab';
         }
         return runtime;
       }, runtimeList);
@@ -179,7 +179,7 @@ export const Runtimes = (signal) => {
     deleteAll: (workspaceId: string, deleteDisk = true): Promise<void> => {
       return fetchLeo(
         `api/v2/runtimes/${workspaceId}/deleteAll${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
-        _.mergeAll([authOpts(), { signal, method: "POST" }, appIdentifier])
+        _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier])
       );
     },
 
@@ -210,15 +210,15 @@ export const Runtimes = (signal) => {
         oldLocalize: (files) => {
           return fetchLeo(
             `notebooks/${project}/${name}/api/localize`, // this is the old root url
-            _.mergeAll([authOpts(), jsonBody(files), { signal, method: "POST" }])
+            _.mergeAll([authOpts(), jsonBody(files), { signal, method: 'POST' }])
           );
         },
 
         localize: (entries) => {
-          const body = { action: "localize", entries };
+          const body = { action: 'localize', entries };
           return fetchLeo(
             `${root}/welder/objects`,
-            _.mergeAll([authOpts(), jsonBody(body), { signal, method: "POST" }])
+            _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }])
           );
         },
 
@@ -233,7 +233,7 @@ export const Runtimes = (signal) => {
                 cloudStorageDirectory,
                 pattern,
               }),
-              { signal, method: "POST" },
+              { signal, method: 'POST' },
             ])
           );
         },
@@ -242,11 +242,11 @@ export const Runtimes = (signal) => {
           try {
             await fetchLeo(
               `${root}/welder/objects/lock`,
-              _.mergeAll([authOpts(), jsonBody({ localPath }), { signal, method: "POST" }])
+              _.mergeAll([authOpts(), jsonBody({ localPath }), { signal, method: 'POST' }])
             );
             return true;
           } catch (error: any) {
-            if ("status" in error && error.status === 409) {
+            if ('status' in error && error.status === 409) {
               return false;
             }
             throw error;

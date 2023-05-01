@@ -1,13 +1,13 @@
-import * as _ from "lodash/fp";
-import { ReactElement } from "react";
-import { div, h } from "react-hyperscript-helpers";
-import { Clickable, Select, SelectProps } from "src/components/common";
-import { icon } from "src/components/icons";
-import { NumberInput, ValidatedInput } from "src/components/input";
-import { MarkdownEditor } from "src/components/markdown";
-import { FormLabel } from "src/libs/forms";
-import { useUniqueId } from "src/libs/react-utils";
-import * as Utils from "src/libs/utils";
+import * as _ from 'lodash/fp';
+import { ReactElement } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
+import { Clickable, Select, SelectProps } from 'src/components/common';
+import { icon } from 'src/components/icons';
+import { NumberInput, ValidatedInput } from 'src/components/input';
+import { MarkdownEditor } from 'src/components/markdown';
+import { FormLabel } from 'src/libs/forms';
+import { useUniqueId } from 'src/libs/react-utils';
+import * as Utils from 'src/libs/utils';
 
 interface InputProps<T> {
   title?: string;
@@ -39,7 +39,7 @@ export const StringInput = ({
     h(ValidatedInput, {
       inputProps: {
         id,
-        "aria-label": title ? undefined : value,
+        'aria-label': title ? undefined : value,
         autoFocus,
         placeholder,
         value,
@@ -100,13 +100,13 @@ export const MarkdownInput = ({
 export type SelectInputProps<Value> = SelectProps<Value, false, { value: Value; label: string | undefined }> & {
   title: string;
   required?: boolean;
-  wrapperProps?: Omit<JSX.IntrinsicElements["div"], "children">;
+  wrapperProps?: Omit<JSX.IntrinsicElements['div'], 'children'>;
 };
 
 export const SelectInput = <Value>({
   title,
   value,
-  placeholder = "",
+  placeholder = '',
   options,
   onChange,
   isClearable = true,
@@ -149,31 +149,31 @@ export const ListInput = <T>({
   onRemove,
   listItemTitles = true,
 }: ListInputProps<T>) => {
-  return div({ style: { width: "100%" } }, [
+  return div({ style: { width: '100%' } }, [
     h(FormLabel, [title]),
     _.map(
       ([index, listItem]) =>
-        div({ style: { display: "flex" }, key: index }, [
+        div({ style: { display: 'flex' }, key: index }, [
           renderer(listItem, (newValue) => {
             onChange(newValue, index);
           }),
           h(
             Clickable,
             {
-              "aria-label": `Remove List Item ${index}`,
+              'aria-label': `Remove List Item ${index}`,
               style: {
                 marginLeft: 10,
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                marginTop: listItemTitles ? "2.5rem" : 0,
-                height: "2rem",
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginTop: listItemTitles ? '2.5rem' : 0,
+                height: '2rem',
               },
               onClick: () => {
                 onRemove(listItem);
               },
             },
-            [icon("times", { size: 24 })]
+            [icon('times', { size: 24 })]
           ),
         ]),
       Utils.toIndexPairs(list)
@@ -181,16 +181,16 @@ export const ListInput = <T>({
     h(
       Clickable,
       {
-        "aria-label": "Add List Item",
+        'aria-label': 'Add List Item',
         style: {
-          display: "flex",
-          justifyContent: "center",
-          marginTop: "0.5rem",
-          height: "2rem",
+          display: 'flex',
+          justifyContent: 'center',
+          marginTop: '0.5rem',
+          height: '2rem',
         },
         onClick: () => onChange(blankValue, list.length),
       },
-      [icon("plus-circle", { size: 24 })]
+      [icon('plus-circle', { size: 24 })]
     ),
   ]);
 };
