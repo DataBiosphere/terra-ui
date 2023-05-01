@@ -118,18 +118,11 @@ export interface AnalysisCardProps {
   potentialLockers: any
 }
 
-//currentUserHash && lastLockedBy && lastLockedBy !== currentUserHash && !isLockExpired
-export const getLocked = (isLockExpired: boolean, currentUserHash?: string, lastLockedBy?: string): boolean => {
-  const present = (currentUserHash && lastLockedBy) ? lastLockedBy !== currentUserHash : false
-  return present && !isLockExpired
-}
-
 //TODO: move to separate file
 const AnalysisCard = ({
   currentRuntime, namespace, name, lastModified, metadata, tool, workspaceName, onRename, onCopy, onDelete, onExport, canWrite,
   currentUserHash, potentialLockers
 }: AnalysisCardProps) => {
-//}) => {
   const { lockExpiresAt, lastLockedBy } = metadata || {}
   const isLockExpired: boolean = lockExpiresAt ? new Date(parseInt(lockExpiresAt)).getTime() > Date.now() : false
   // if there is a currentUserHash & lastLockedBy, they are not equal, and the lock isn't expired
