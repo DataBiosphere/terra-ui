@@ -15,8 +15,6 @@ module.exports = {
     },
   },
   rules: {
-    indent: 'off',
-    'comma-dangle': 'off',
     'import/prefer-default-export': 'off',
     'simple-import-sort/imports': 'warn',
     quotes: [2, 'single', { avoidEscape: true }],
