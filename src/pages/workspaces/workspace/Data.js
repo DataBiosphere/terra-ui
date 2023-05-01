@@ -1075,7 +1075,7 @@ const WorkspaceData = _.flow(
                   ' Preparing your data tables, this may take a few minutes. ',
                   Utils.cond(
                     [!uploadingWDSFile, () => div({}, ['You can ', h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['check the status']), ' of your data table service.'])],
-                    () => () => '')])],
+                    () => '')])],
               () => div({ style: { textAlign: 'center' } }, ['Select a data type from the navigation panel on the left']),
             )],
             [workspaceDataTypes.localVariables, () => h(LocalVariablesContent, {
