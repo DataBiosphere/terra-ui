@@ -926,8 +926,7 @@ const WorkspaceData = _.flow(
                           ButtonOutline,
                           {
                             disabled: !canEditWorkspace || uploadingWDSFile,
-                            tooltip: Utils.cond(
-                              [uploadingWDSFile, 'Upload in progress'],
+                            tooltip: Utils.cond([uploadingWDSFile, () => 'Upload in progress'], () =>
                               canEditWorkspace ? 'Add data to this workspace' : editWorkspaceErrorMessage
                             ),
                             style: { flex: 1 },
@@ -1402,7 +1401,6 @@ const WorkspaceData = _.flow(
                                   {
                                     style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' },
                                   },
-
                                   [
                                     icon('loadingSpinner'),
                                     ' Preparing your data tables, this may take a few minutes. ',
@@ -1418,7 +1416,7 @@ const WorkspaceData = _.flow(
                                             ' of your data table service.',
                                           ]),
                                       ],
-                                      ''
+                                      () => ''
                                     ),
                                   ]
                                 ),
