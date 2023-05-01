@@ -43,7 +43,7 @@ import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/moda
 import { AnalysisModal } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisModal'
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal/ExportAnalysisModal'
 import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
-import { AnalysisFile, useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
+import { AnalysisFile, AnalysisFileMetadata, useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 import {
   AbsolutePath,
   FileName,
@@ -58,8 +58,7 @@ import {
   getToolLabelFromRuntime,
   runtimeToolLabels,
   runtimeTools,
-  ToolLabel,
-  tools
+  ToolLabel
 } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 import { StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -102,21 +101,46 @@ const AnalysisCardHeaders = ({ sort, onSort }) => {
   ])
 }
 
+export interface AnalysisCardProps {
+  currentRuntime?: Runtime
+  namespace: string
+  name: AbsolutePath
+  lastModified: number
+  metadata?: AnalysisFileMetadata
+  tool: ToolLabel
+  workspaceName: string
+  onRename: () => void
+  onCopy: () => void
+  onDelete: () => void
+  onExport: () => void
+  canWrite: boolean
+  currentUserHash?: string
+  potentialLockers: any
+}
+
+//currentUserHash && lastLockedBy && lastLockedBy !== currentUserHash && !isLockExpired
+export const getLocked = (isLockExpired: boolean, currentUserHash?: string, lastLockedBy?: string): boolean => {
+  const present = (currentUserHash && lastLockedBy) ? lastLockedBy !== currentUserHash : false
+  return present && !isLockExpired
+}
+
 //TODO: move to separate file
 const AnalysisCard = ({
-  currentRuntime, namespace, name, lastModified, metadata, application, workspaceName, onRename, onCopy, onDelete, onExport, canWrite,
+  currentRuntime, namespace, name, lastModified, metadata, tool, workspaceName, onRename, onCopy, onDelete, onExport, canWrite,
   currentUserHash, potentialLockers
-}) => {
+}: AnalysisCardProps) => {
+//}) => {
   const { lockExpiresAt, lastLockedBy } = metadata || {}
-  const isLockExpired: boolean = new Date(parseInt(lockExpiresAt)).getTime() > Date.now()
-  const isLocked: boolean = currentUserHash && lastLockedBy && lastLockedBy !== currentUserHash && !isLockExpired
-  const lockedBy = potentialLockers ? potentialLockers[lastLockedBy] : null
+  const isLockExpired: boolean = lockExpiresAt ? new Date(parseInt(lockExpiresAt)).getTime() > Date.now() : false
+  // if there is a currentUserHash & lastLockedBy, they are not equal, and the lock isn't expired
+  const isLocked: boolean = (currentUserHash && lastLockedBy) ? (lastLockedBy !== currentUserHash && !isLockExpired) : false
+  const lockedBy = lastLockedBy ? potentialLockers ? potentialLockers[lastLockedBy] : null : null
+
 
   const analysisName: FileName = getFileName(name)
   const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name: workspaceName, analysisName })
-  const toolLabel: ToolLabel = getToolLabelFromFileExtension(name)
 
-  const currentRuntimeToolLabel = getToolLabelFromRuntime(currentRuntime)
+  const currentRuntimeToolLabel = currentRuntime ? getToolLabelFromRuntime(currentRuntime) : undefined
 
   const rstudioLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name, application: 'RStudio' })
   const analysisEditLink = `${analysisLink}/?${qs.stringify({ mode: 'edit' })}`
@@ -130,10 +154,10 @@ const AnalysisCard = ({
       h(MenuButton, {
         'aria-label': 'Preview',
         href: analysisLink,
-        tooltip: canWrite && 'Open without cloud compute',
+        tooltip: canWrite ? 'Open without cloud compute' : undefined,
         tooltipSide: 'left'
       }, [makeMenuIcon('eye'), 'Open preview']),
-      ...(toolLabel === runtimeToolLabels.Jupyter ? [
+      ...(tool === runtimeToolLabels.Jupyter ? [
         h(MenuButton, {
           'aria-label': 'Edit',
           href: analysisEditLink,
@@ -145,7 +169,7 @@ const AnalysisCard = ({
         h(MenuButton, {
           'aria-label': 'Playground',
           href: analysisPlaygroundLink,
-          tooltip: canWrite && 'Open in playground mode',
+          tooltip: canWrite ? 'Open in playground mode' : undefined,
           tooltipSide: 'left'
         }, [makeMenuIcon('chalkboard'), 'Playground'])
       ] : [
@@ -215,7 +239,7 @@ const AnalysisCard = ({
     getFileName(name)
   ])
 
-  const toolIconSrc: string = Utils.switchCase(application,
+  const toolIconSrc: string = Utils.switchCase(tool,
     [runtimeToolLabels.Jupyter, () => jupyterLogo],
     [runtimeToolLabels.RStudio, () => rstudioSquareLogo],
     [runtimeToolLabels.JupyterLab, () => jupyterLogo]
@@ -224,7 +248,7 @@ const AnalysisCard = ({
   const toolContainer = div({ role: 'cell', style: { display: 'flex', flex: 1, flexDirection: 'row', alignItems: 'center' } }, [
     img({ src: toolIconSrc, alt: '', style: { marginRight: '1rem', height: 40, width: 40 } }),
     // this is the tool name, i.e. 'Jupyter'. It is named identical to the header row to simplify the sorting code at the cost of naming consistency.
-    application
+    tool
   ])
 
   return div({
@@ -262,22 +286,6 @@ const activeFileTransferMessage = div({
   'Copying 1 or more interactive analysis files from another workspace.',
   span({ style: { fontWeight: 'bold', marginLeft: '0.5ch' } }, ['This may take a few minutes.'])
 ])
-
-export type DisplayAnalysisFile = AnalysisFile & {
-  application: ToolLabel
-}
-
-export const decorateAnalysisFiles = (rawAnalyses: AnalysisFile[]): DisplayAnalysisFile[] => {
-  const notebooks: AnalysisFile[] = _.filter(({ name }) => _.includes(getExtension(name), runtimeTools.Jupyter.ext), rawAnalyses)
-  const rAnalyses: AnalysisFile[] = _.filter(({ name }) => _.includes(getExtension(name), runtimeTools.RStudio.ext), rawAnalyses)
-
-  //we map the `toolLabel` corresponding header label, which simplifies the table sorting code
-  const enhancedNotebooks: DisplayAnalysisFile[] = _.map(file => ({ application: tools.Jupyter.label, ...file }), notebooks)
-  const enhancedRmd: DisplayAnalysisFile[] = _.map(file => ({ application: tools.RStudio.label, ...file }), rAnalyses)
-
-  const tempAnalyses: DisplayAnalysisFile[] = _.concat(enhancedNotebooks, enhancedRmd)
-  return _.reverse(_.sortBy(tableFields.lastModified, tempAnalyses))
-}
 
 export const getUniqueFileName = (originalName: string, existingFileNames: FileName[]): FileName => {
   const name: FileName = originalName as FileName
@@ -325,7 +333,7 @@ export const BaseAnalyses = ({
   const [filter, setFilter] = useState(() => StateHistory.get().filter || '')
   const [busy, setBusy] = useState(false)
   const [creating, setCreating] = useState(false)
-  const [analyses, setAnalyses] = useState<DisplayAnalysisFile[]>(() => StateHistory.get().analyses || undefined)
+  const [analyses, setAnalyses] = useState<AnalysisFile[]>(() => StateHistory.get().analyses || undefined)
   const [currentUserHash, setCurrentUserHash] = useState<string>()
   const [potentialLockers, setPotentialLockers] = useState()
   const [activeFileTransfers, setActiveFileTransfers] = useState(false)
@@ -347,7 +355,7 @@ export const BaseAnalyses = ({
 
   const refreshAnalyses: () => Promise<void> = withHandlers([withRequesterPaysHandler(onRequesterPaysError) as any], refreshFileStore)
 
-  const existingFileNames: FileName[] = _.map((analysis: DisplayAnalysisFile) => analysis.fileName, analyses)
+  const existingFileNames: FileName[] = _.map((analysis: AnalysisFile) => analysis.fileName, analyses)
   const uploadFiles: (files: File[]) => Promise<unknown> = _.flow(
     withErrorReporting('Error uploading files. Ensure the file has the proper extension'),
     Utils.withBusyState(setBusy)
@@ -384,9 +392,9 @@ export const BaseAnalyses = ({
   //We reference the analyses from `useAnalysisStore`, and on change, we decorate them from `AnalysisFile[]` to `DisplayAnalysisFile[]` and update state history
   useEffect(() => {
     const rawAnalyses: AnalysisFile[] = loadedState.status !== 'None' && loadedState.state !== null ? loadedState.state : []
-    const decoratedAnalyses = decorateAnalysisFiles(rawAnalyses)
-    setAnalyses(decoratedAnalyses)
-    StateHistory.update({ analyses: decoratedAnalyses, sortOrder, filter })
+    const sortedAnalyses = _.reverse(_.sortBy(tableFields.lastModified, rawAnalyses))
+    setAnalyses(sortedAnalyses)
+    StateHistory.update({ analyses: sortedAnalyses, sortOrder, filter })
   }, [loadedState.status, sortOrder, filter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const previewJupyterLabMessage = div({
@@ -443,14 +451,14 @@ export const BaseAnalyses = ({
     const { field, direction } = sortOrder
     const canWrite = Utils.canWrite(accessLevel)
 
-    const filteredAnalyses: DisplayAnalysisFile[] = _.filter((analysisFile: DisplayAnalysisFile) => Utils.textMatch(filter, getFileName(analysisFile.name)), analyses)
+    const filteredAnalyses: AnalysisFile[] = _.filter((analysisFile: AnalysisFile) => Utils.textMatch(filter, getFileName(analysisFile.name)), analyses)
     // Lodash does not have a well-typed return on this function and there are not any nice alternatives, so expect error for now
     // @ts-expect-error
-    const sortedAnalyses: DisplayAnalysisFile[] = _.orderBy(sortTokens[field] || field, direction, filteredAnalyses)
-    const analysisCards = _.map(({ name, lastModified, metadata, application }) => h(AnalysisCard, {
+    const sortedAnalyses: AnalysisFile[] = _.orderBy(sortTokens[field] || field, direction, filteredAnalyses)
+    const analysisCards = _.map(({ name, lastModified, metadata, tool }) => h(AnalysisCard, {
       key: name,
       role: 'rowgroup',
-      currentRuntime, name, lastModified, metadata, application, namespace: workspaceInfo.namespace, workspaceName: workspaceInfo.name, canWrite, currentUserHash, potentialLockers,
+      currentRuntime, name, lastModified, metadata, tool, namespace: workspaceInfo.namespace, workspaceName: workspaceInfo.name, canWrite, currentUserHash, potentialLockers,
       onRename: () => setRenamingAnalysisName(name),
       onCopy: () => setCopyingAnalysisName(name),
       onExport: () => setExportingAnalysisName(name),
