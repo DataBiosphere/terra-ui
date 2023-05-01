@@ -29,7 +29,7 @@ const styles = {
     width: 300, height: 125, margin: '0 1rem 2rem 0'
   },
   mediumCard: {
-    width: '80%', height: 150, margin: '0 1rem 2rem 0', left: '400px'
+    width: '70%', height: 150, margin: '0 1rem 2rem 0', left: '400px'
   },
   shortTitle: {
     ...Style.elements.card.title,
@@ -84,5 +84,5 @@ export const SavedWorkflows = ({ methodsData }) => {
     })
   })(methodsData)
 
-  return [workflowCards]
+  return workflowCards
 }

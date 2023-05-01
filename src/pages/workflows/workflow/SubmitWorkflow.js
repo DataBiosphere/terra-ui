@@ -52,7 +52,9 @@ export const SubmitWorkflow = _.flow(
   const refresh = withBusyState(setLoading, async () => {
     const loadRunsData = async () => {
       try {
-        const runs = await Ajax(signal).Cbas.methods.getWithoutVersions()
+        // TODO: route this through an argument
+        const root = 'https://lzf07312d05014dcfc2a6d8244c0f9b166a3801f44ec2b003d.servicebus.windows.net/wds-eda71001-6619-4a92-bb0a-7741ba650324/cbas'
+        const runs = await Ajax(signal).Cbas.methods.getWithoutVersions(root)
         setMethodsData(runs.methods)
       } catch (error) {
         notify('error', 'Error loading saved workflows', { detail: await (error instanceof Response ? error.text() : error) })

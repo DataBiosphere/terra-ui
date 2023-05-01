@@ -1042,9 +1042,9 @@ const Cbas = signal => ({
     }
   },
   methods: {
-    getWithoutVersions: async () => {
+    getWithoutVersions: async root => {
       const keyParams = qs.stringify({ show_versions: false })
-      const res = await fetchCbas(`methods?${keyParams}`, { signal, method: 'GET' })
+      const res = await fetchCbas(root)(`methods?${keyParams}`, _.mergeAll([authOpts(), { signal, method: 'GET' }]))
       return res.json()
     },
     getById: async methodId => {

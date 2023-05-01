@@ -5,7 +5,7 @@
   "bondUrlRoot": "https://broad-bond-dev.appspot.com",
   "calhounUrlRoot": "https://calhoun.dsde-dev.broadinstitute.org",
   "catalogUrlRoot": "https://catalog.dsde-dev.broadinstitute.org",
-  "cbasUrlRoot": "https://lzf07312d05014dcfc2a6d8244c0f9b166a3801f44ec2b003d.servicebus.windows.net/wds-eda71001-6619-4a92-bb0a-7741ba650324",
+  "cbasUrlRoot": "",
   "cromwellUrlRoot": "",
   "dataRepoUrlRoot": "https://jade.datarepo-dev.broadinstitute.org",
   "devUrlRoot": "https://bvdp-saturn-dev.appspot.com",
