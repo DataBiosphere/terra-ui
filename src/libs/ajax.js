@@ -2,10 +2,10 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { createContext, useContext } from 'react'
 import {
-  appIdentifier, authOpts, fetchAgora, fetchBond, fetchDataRepo,
+  appIdentifier, authOpts, fetchAgora, fetchBond, fetchCbas, fetchCromwell, fetchDataRepo,
   fetchDrsHub,
   fetchEcm, fetchGoogleForms,
-  fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, jsonBody
+  fetchLeo, fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, jsonBody
 } from 'src/libs/ajax/ajax-common'
 import { AzureStorage } from 'src/libs/ajax/AzureStorage'
 import { Billing } from 'src/libs/ajax/Billing'
@@ -1009,6 +1009,99 @@ const Surveys = signal => ({
   submitForm: (formId, data) => fetchGoogleForms(`${formId}/formResponse?${qs.stringify(data)}`, { signal })
 })
 
+const Cbas = signal => ({
+  status: async () => {
+    const res = await fetchOk(`${getConfig().cbasUrlRoot}/status`, { signal })
+    return res.json()
+  },
+  runs: {
+    get: async submissionId => {
+      const keyParams = qs.stringify({ run_set_id: submissionId })
+      const res = await fetchCbas(`runs?${keyParams}`, { signal, method: 'GET' })
+      return res.json()
+    }
+  },
+  runSets: {
+    post: async payload => {
+      const res = await fetchCbas('run_sets', _.mergeAll([{ signal, method: 'POST' }, jsonBody(payload)]))
+      return res.json()
+    },
+    get: async () => {
+      const res = await fetchCbas('run_sets', { signal, method: 'GET' })
+      return res.json()
+    },
+    getForMethod: async (methodId, pageSize) => {
+      const keyParams = qs.stringify({ method_id: methodId, page_size: pageSize }, { arrayFormat: 'repeat' })
+      const res = await fetchCbas(`run_sets?${keyParams}`, { signal, method: 'GET' })
+      return res.json()
+    },
+    cancel: async runSetId => {
+      const keyParams = qs.stringify({ run_set_id: runSetId })
+      const res = await fetchCbas(`run_sets/abort?${keyParams}`, { signal, method: 'POST' })
+      return res.json()
+    }
+  },
+  methods: {
+    getWithoutVersions: async () => {
+      const keyParams = qs.stringify({ show_versions: false })
+      const res = await fetchCbas(`methods?${keyParams}`, { signal, method: 'GET' })
+      return res.json()
+    },
+    getById: async methodId => {
+      const keyParams = qs.stringify({ method_id: methodId })
+      const res = await fetchCbas(`methods?${keyParams}`, { signal, method: 'GET' })
+      return await res.json()
+    },
+    getByMethodVersionId: async methodVersionId => {
+      const keyParams = qs.stringify({ method_version_id: methodVersionId })
+      const res = await fetchCbas(`methods?${keyParams}`, { signal, method: 'GET' })
+      return await res.json()
+    },
+    post: async payload => {
+      const res = await fetchCbas('methods', _.mergeAll([{ signal, method: 'POST' }, jsonBody(payload)]))
+      return res.json()
+    }
+  }
+})
+
+const Cromwell = signal => ({
+  workflows: workflowId => {
+    return {
+      metadata: async (includeKey, excludeKey) => {
+        const keyParams = qs.stringify({ includeKey, excludeKey }, { arrayFormat: 'repeat' })
+        const res = await fetchCromwell(`${workflowId}/metadata?${keyParams}`, { signal, method: 'GET' })
+        return res.json()
+      }
+    }
+  }
+})
+
+const WorkflowScript = signal => ({
+  get: async workflowUrl => {
+    const res = await fetchOk(workflowUrl, { signal, method: 'GET' })
+    return res.text()
+  }
+})
+
+const leoToken = () => {
+  const cookies = document.cookie.split(';')
+  const leoTokens = cookies.filter(c => c.startsWith('LeoToken=')).map(c => c.substring(9)) // token value starting after `LeoToken=`
+
+  // only 1 LeoToken should have been sent to browser, hence return the first element in array
+  return leoTokens[0]
+}
+
+const authHeader = { headers: { Authorization: `Bearer ${leoToken()}` } }
+
+const wdsInstanceId = getConfig().wdsInstanceId || '15f36863-30a5-4cab-91f7-52be439f1175'
+
+const Leonardo = signal => ({
+  listAppsV2: async () => {
+    const res = await fetchLeo(`api/apps/v2/${wdsInstanceId}`, _.mergeAll([authHeader, { signal, method: 'GET' }]))
+    return res.json()
+  }
+})
+
 export const Ajax = signal => {
   return {
     User: User(signal),
@@ -1034,7 +1127,12 @@ export const Ajax = signal => {
     OAuth2: OAuth2(signal),
     Surveys: Surveys(signal),
     WorkspaceData: WorkspaceData(signal),
-    WorkspaceManagerResources: WorkspaceManagerResources(signal)
+    WorkspaceManagerResources: WorkspaceManagerResources(signal),
+    Cbas: Cbas(signal),
+    Cromwell: Cromwell(signal),
+    // Wds: Wds(signal), // redundant, use WorkspaceData
+    WorkflowScript: WorkflowScript(signal),
+    Leonardo: Leonardo(signal)
   }
 }
 

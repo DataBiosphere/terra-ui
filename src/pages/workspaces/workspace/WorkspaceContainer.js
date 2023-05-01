@@ -96,6 +96,7 @@ const WorkspaceTabs = ({
   const isLocked = workspace?.workspace.isLocked
   const workspaceLoaded = !!workspace
   const googleWorkspace = workspaceLoaded && isGoogleWorkspace(workspace)
+  const azureWorkspace = workspaceLoaded && isAzureWorkspace(workspace)
 
   const onClone = () => setCloningWorkspace(true)
   const onDelete = () => setDeletingWorkspace(true)
@@ -107,6 +108,7 @@ const WorkspaceTabs = ({
     { name: 'dashboard', link: 'workspace-dashboard' },
     { name: 'data', link: 'workspace-data' },
     { name: 'analyses', link: analysisTabName },
+    ...(azureWorkspace ? [{ name: 'workflows', link: 'submit-workflow' }] : []),
     ...(googleWorkspace ? [{ name: 'workflows', link: 'workspace-workflows' }] : []),
     ...(googleWorkspace ? [{ name: 'job history', link: 'workspace-job-history' }] : [])
   ]

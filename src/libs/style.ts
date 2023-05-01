@@ -109,6 +109,26 @@ export const navList = {
   }
 }
 
+export const findWorkflowNavList = {
+  heading: {
+    color: colors.dark(), backgroundColor: colors.light(0.4), fontSize: 16, padding: '1rem 1.5rem',
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: 0,
+    fontWeight: 600, textTransform: 'uppercase', borderBottom: `0.5px solid ${colors.dark(0.2)}`
+  },
+  itemContainer: selected => ({
+    display: 'flex', alignItems: 'center', flex: 'none', width: '100%', height: 50,
+    padding: '0 1.5rem',
+    borderBottom: `1px solid ${colors.dark(0.4)}`,
+    boxShadow: selected ? `inset 10px 0px ${terraSpecial()}` : undefined
+  }),
+  item: selected => ({
+    display: 'flex', alignItems: 'center', height: 50, fontWeight: selected ? 700 : 500
+  }),
+  itemHover: selected => selected ? {} : {
+    boxShadow: `inset 6px 0px ${terraSpecial(0.5)}`
+  }
+}
+
 export const breadcrumb: { breadcrumb: CSSProperties; textUnderBreadcrumb: CSSProperties } = {
   breadcrumb: {
     display: 'flex', flexDirection: 'column',
