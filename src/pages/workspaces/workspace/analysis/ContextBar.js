@@ -33,7 +33,7 @@ import { getCloudProviderFromWorkspace, isAzureWorkspace, isGoogleWorkspace } fr
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
 import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components'
 import {
-  doesWorkspaceSupportCromwellApp,
+  doesWorkspaceSupportCromwellAppForUser,
   getCurrentApp
 } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
 import { getCostDisplayForDisk, getCostDisplayForTool, getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils'
@@ -131,7 +131,7 @@ export const ContextBar = ({
   const getEnvironmentStatusIcons = () => {
     const galaxyApp = getCurrentApp(appTools.GALAXY.label, apps)
     const cromwellAppObject = getCurrentApp(appTools.CROMWELL.label, apps)
-    const cromwellApp = !isToolHidden(appTools.CROMWELL.label, cloudProvider) && cromwellAppObject && doesWorkspaceSupportCromwellApp(workspace?.workspace?.createdDate, cloudProvider, appTools.CROMWELL.label)
+    const cromwellApp = !isToolHidden(appTools.CROMWELL.label, cloudProvider) && cromwellAppObject && doesWorkspaceSupportCromwellAppForUser(workspace?.workspace, cloudProvider, appTools.CROMWELL.label)
     return h(Fragment, [
       ...(currentRuntime ? [getIconForTool(currentRuntimeTool, currentRuntime.status)] : []),
       ...(galaxyApp ? [getIconForTool(appToolLabels.GALAXY, galaxyApp.status)] : []),

@@ -128,7 +128,8 @@ export const defaultGoogleWorkspace = {
     name: `${defaultGoogleWorkspaceNamespace}_ws`,
     namespace: defaultGoogleWorkspaceNamespace,
     workspaceId: 'testGoogleWorkspaceId',
-    createdDate: '2023-02-15T19:17:15.711Z'
+    createdDate: '2023-02-15T19:17:15.711Z',
+    createdBy: 'groot@gmail.com'
   },
   accessLevel: 'OWNER',
   canShare: true,
@@ -144,7 +145,8 @@ export const defaultAzureWorkspace = {
     name: `${defaultAzureWorkspaceNamespace}Ws`,
     namespace: defaultAzureWorkspaceNamespace,
     workspaceId: 'testAzureWorkspaceId',
-    createdDate: '2023-02-15T19:17:15.711Z'
+    createdDate: '2023-02-15T19:17:15.711Z',
+    createdBy: 'groot@gmail.com'
   },
   accessLevel: 'OWNER',
   canShare: true,

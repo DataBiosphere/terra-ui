@@ -24,12 +24,14 @@ export interface BaseWorkspaceInfo {
 
 export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
   createdDate: string
+  createdBy: string
 }
 
 export interface GoogleWorkspaceInfo extends BaseWorkspaceInfo {
   googleProject: string
   bucketName: string
   createdDate: string
+  createdBy: string
 }
 
 export type WorkspaceInfo = AzureWorkspaceInfo | GoogleWorkspaceInfo

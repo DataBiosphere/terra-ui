@@ -58,7 +58,8 @@ const mockWorkspaces: Partial<WorkspaceWrapper>[] = [
       namespace: 'namespace1',
       cloudPlatform: '',
       authorizationDomain: [],
-      createdDate: '2023-02-15T19:17:15.711Z'
+      createdDate: '2023-02-15T19:17:15.711Z',
+      createdBy: 'groot@gmail.com'
     }
   },
   {
@@ -68,7 +69,8 @@ const mockWorkspaces: Partial<WorkspaceWrapper>[] = [
       namespace: 'namespace2',
       cloudPlatform: '',
       authorizationDomain: [],
-      createdDate: '2023-02-15T19:17:15.711Z'
+      createdDate: '2023-02-15T19:17:15.711Z',
+      createdBy: 'groot@gmail.com'
     }
   },
   {
@@ -78,7 +80,8 @@ const mockWorkspaces: Partial<WorkspaceWrapper>[] = [
       namespace: 'namespace3',
       cloudPlatform: '',
       authorizationDomain: [],
-      createdDate: '2023-02-15T19:17:15.711Z'
+      createdDate: '2023-02-15T19:17:15.711Z',
+      createdBy: 'groot@gmail.com'
     }
   }
 ]

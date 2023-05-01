@@ -1,10 +1,10 @@
 import { App } from 'src/libs/ajax/leonardo/models/app-models'
 import { DecoratedPersistentDisk, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models'
 import { getConfig } from 'src/libs/config'
-import { cloudProviderTypes } from 'src/libs/workspace-utils'
+import { cloudProviderTypes, WorkspaceInfo } from 'src/libs/workspace-utils'
 import { galaxyDeleting, galaxyDisk, galaxyRunning } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import {
-  doesWorkspaceSupportCromwellApp,
+  doesWorkspaceSupportCromwellAppForUser,
   getCurrentApp,
   getCurrentAppIncludingDeleting,
   getDiskAppType,
@@ -22,6 +22,14 @@ jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
   getConfig: jest.fn().mockReturnValue({})
 }))
+
+type StateExports = typeof import('src/libs/state')
+jest.mock('src/libs/state', (): StateExports => {
+  return {
+    ...jest.requireActual('src/libs/state'),
+    getUser: jest.fn(() => ({ email: 'workspace-creator@gmail.com' })),
+  }
+})
 
 
 const cromwellRunning: App = {
@@ -355,6 +363,24 @@ const cromwellDisk1Workspace1: PersistentDisk = {
 
 const mockAppDisksSameWorkspace = [galaxyDisk1Workspace1, galaxyDisk2Workspace1, galaxyDisk3Workspace2, cromwellDisk1Workspace1]
 
+// note: WPP -> Workflows Public Preview
+const creatorWorkspaceBeforeWPP = {
+  createdDate: '2023-03-19T20:28:01.998494Z',
+  createdBy: 'workspace-creator@gmail.com'
+}
+const creatorWorkspaceAfterWPP = {
+  createdDate: '2023-03-28T20:28:01.998494Z',
+  createdBy: 'workspace-creator@gmail.com'
+}
+const nonCreatorWorkspaceBeforeWPP = {
+  createdDate: '2023-03-19T20:28:01.998494Z',
+  createdBy: 'non-workspace-creator@gmail.com'
+}
+const nonCreatorWorkspaceAfterWPP = {
+  createdDate: '2023-03-28T20:28:01.998494Z',
+  createdBy: 'non-workspace-creator@gmail.com'
+}
+
 describe('getCurrentApp', () => {
   it('returns undefined if no instances of the app exist', () => {
     expect(getCurrentApp(appTools.GALAXY.label, [])).toBeUndefined()
@@ -419,46 +445,54 @@ describe('workspaceHasMultipleDisks', () => {
   })
 })
 
-describe('doesWorkspaceSupportCromwellApp - Prod', () => {
+describe('doesWorkspaceSupportCromwellAppForUser - Prod', () => {
+  const testCases = [
+    // Azure workspaces
+    { workspaceInfo: creatorWorkspaceBeforeWPP, cloudProvider: cloudProviderTypes.AZURE, toolLabel: appToolLabels.CROMWELL, expectedResult: false },
+    { workspaceInfo: creatorWorkspaceAfterWPP, cloudProvider: cloudProviderTypes.AZURE, toolLabel: appToolLabels.CROMWELL, expectedResult: true },
+    { workspaceInfo: nonCreatorWorkspaceBeforeWPP, cloudProvider: cloudProviderTypes.AZURE, toolLabel: appToolLabels.CROMWELL, expectedResult: false },
+    { workspaceInfo: nonCreatorWorkspaceAfterWPP, cloudProvider: cloudProviderTypes.AZURE, toolLabel: appToolLabels.CROMWELL, expectedResult: false },
+    // GCP workspaces
+    { workspaceInfo: creatorWorkspaceBeforeWPP, cloudProvider: cloudProviderTypes.GCP, toolLabel: appToolLabels.CROMWELL, expectedResult: true },
+    { workspaceInfo: creatorWorkspaceAfterWPP, cloudProvider: cloudProviderTypes.GCP, toolLabel: appToolLabels.CROMWELL, expectedResult: true },
+    { workspaceInfo: nonCreatorWorkspaceBeforeWPP, cloudProvider: cloudProviderTypes.GCP, toolLabel: appToolLabels.CROMWELL, expectedResult: true },
+    { workspaceInfo: nonCreatorWorkspaceAfterWPP, cloudProvider: cloudProviderTypes.GCP, toolLabel: appToolLabels.CROMWELL, expectedResult: true },
+    // Other app types
+    { workspaceInfo: nonCreatorWorkspaceBeforeWPP, cloudProvider: cloudProviderTypes.GCP, toolLabel: appToolLabels.GALAXY, expectedResult: true },
+    { workspaceInfo: nonCreatorWorkspaceAfterWPP, cloudProvider: cloudProviderTypes.GCP, toolLabel: appToolLabels.GALAXY, expectedResult: true },
+  ]
+
   beforeEach(() => {
     asMockedFn(getConfig).mockReturnValue({ isProd: true })
   })
 
-  it('return true when Azure workspace has been created after Workflows Public Preview', () => {
-    expect(doesWorkspaceSupportCromwellApp('2023-03-28T20:28:01.998494Z', cloudProviderTypes.AZURE, appToolLabels.CROMWELL)).toBe(true)
-  })
-
-  it('return false when Azure workspace has been created before Workflows Public Preview', () => {
-    expect(doesWorkspaceSupportCromwellApp('2023-03-19T20:28:01.998494Z', cloudProviderTypes.AZURE, appToolLabels.CROMWELL)).toBe(false)
-  })
-
-  it('return true for GCP workspaces irrespective of creation date', () => {
-    expect(doesWorkspaceSupportCromwellApp('2023-03-19T20:28:01.998494Z', cloudProviderTypes.GCP, appToolLabels.CROMWELL)).toBe(true)
-  })
-
-  it('return true for any other app irrespective of creation date', () => {
-    expect(doesWorkspaceSupportCromwellApp('2023-03-19T20:28:01.998494Z', cloudProviderTypes.GCP, appToolLabels.GALAXY)).toBe(true)
+  test.each(testCases)('should return $expectedResult for $toolLabel app in $cloudProvider workspace based on workspace creator and creation date (Prod)', ({ workspaceInfo, cloudProvider, toolLabel, expectedResult }) => {
+    expect(doesWorkspaceSupportCromwellAppForUser(workspaceInfo as WorkspaceInfo, cloudProvider, toolLabel)).toBe(expectedResult)
   })
 })
-//
-describe('doesWorkspaceSupportCromwellApp - Non-Prod', () => {
+
+describe('doesWorkspaceSupportCromwellAppForUser - Non-Prod', () => {
+  const testCases = [
+    // Azure workspaces
+    { workspaceInfo: creatorWorkspaceBeforeWPP, cloudProvider: cloudProviderTypes.AZURE, toolLabel: appToolLabels.CROMWELL, expectedResult: true },
+    { workspaceInfo: creatorWorkspaceAfterWPP, cloudProvider: cloudProviderTypes.AZURE, toolLabel: appToolLabels.CROMWELL, expectedResult: true },
+    { workspaceInfo: nonCreatorWorkspaceBeforeWPP, cloudProvider: cloudProviderTypes.AZURE, toolLabel: appToolLabels.CROMWELL, expectedResult: false },
+    { workspaceInfo: nonCreatorWorkspaceAfterWPP, cloudProvider: cloudProviderTypes.AZURE, toolLabel: appToolLabels.CROMWELL, expectedResult: false },
+    // GCP workspaces
+    { workspaceInfo: creatorWorkspaceBeforeWPP, cloudProvider: cloudProviderTypes.GCP, toolLabel: appToolLabels.CROMWELL, expectedResult: true },
+    { workspaceInfo: creatorWorkspaceAfterWPP, cloudProvider: cloudProviderTypes.GCP, toolLabel: appToolLabels.CROMWELL, expectedResult: true },
+    { workspaceInfo: nonCreatorWorkspaceBeforeWPP, cloudProvider: cloudProviderTypes.GCP, toolLabel: appToolLabels.CROMWELL, expectedResult: true },
+    { workspaceInfo: nonCreatorWorkspaceAfterWPP, cloudProvider: cloudProviderTypes.GCP, toolLabel: appToolLabels.CROMWELL, expectedResult: true },
+    // Other app types
+    { workspaceInfo: nonCreatorWorkspaceBeforeWPP, cloudProvider: cloudProviderTypes.GCP, toolLabel: appToolLabels.GALAXY, expectedResult: true },
+    { workspaceInfo: nonCreatorWorkspaceAfterWPP, cloudProvider: cloudProviderTypes.GCP, toolLabel: appToolLabels.GALAXY, expectedResult: true },
+  ]
+
   beforeEach(() => {
     asMockedFn(getConfig).mockReturnValue({ isProd: false })
   })
 
-  it('return true when Azure workspace has been created after Workflows Public Preview', () => {
-    expect(doesWorkspaceSupportCromwellApp('2023-03-28T20:28:01.998494Z', cloudProviderTypes.AZURE, appToolLabels.CROMWELL)).toBe(true)
-  })
-
-  it('return true when Azure workspace has been created before Workflows Public Preview', () => {
-    expect(doesWorkspaceSupportCromwellApp('2023-03-19T20:28:01.998494Z', cloudProviderTypes.AZURE, appToolLabels.CROMWELL)).toBe(true)
-  })
-
-  it('return true for GCP workspaces irrespective of creation date', () => {
-    expect(doesWorkspaceSupportCromwellApp('2023-03-19T20:28:01.998494Z', cloudProviderTypes.GCP, appToolLabels.CROMWELL)).toBe(true)
-  })
-
-  it('return true for any other app irrespective of creation date', () => {
-    expect(doesWorkspaceSupportCromwellApp('2023-03-19T20:28:01.998494Z', cloudProviderTypes.GCP, appToolLabels.GALAXY)).toBe(true)
+  test.each(testCases)('should return $expectedResult for $toolLabel app in $cloudProvider workspace based on workspace creator and creation date (non-Prod)', ({ workspaceInfo, cloudProvider, toolLabel, expectedResult }) => {
+    expect(doesWorkspaceSupportCromwellAppForUser(workspaceInfo as WorkspaceInfo, cloudProvider, toolLabel)).toBe(expectedResult)
   })
 })
