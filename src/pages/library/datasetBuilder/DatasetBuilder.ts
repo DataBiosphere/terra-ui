@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react'
+import React, { Fragment, useEffect, useState } from 'react'
 import { div, h, h1, h2, h3 } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -11,16 +11,20 @@ import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import { StringInput } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs'
 import { validate } from 'validate.js'
+import {datasetBuilderCohorts, datasetBuilderConceptSets} from "src/libs/state";
+import * as _ from 'lodash/fp'
+import {Cohort, ConceptSet, DatasetBuilderType} from "src/pages/library/datasetBuilder/dataset-builder-types";
 
 
 const PAGE_PADDING_HEIGHT = 0
 const PAGE_PADDING_WIDTH = 3
 
-interface DatasetBuilderSelectorProps<T> {
+interface DatasetBuilderSelectorProps<T extends DatasetBuilderType> {
   number: number
   header: string
   subheader?: string
   values: T[]
+  selectedValues: T[]
   onChange: (values: T[]) => void
   headerAction: any
   placeholder?: any
@@ -28,30 +32,31 @@ interface DatasetBuilderSelectorProps<T> {
   width?: string | number
   maxWidth?: number
 }
-const DatasetBuilderSelector = <T>({ number, header, subheader, headerAction, placeholder, values, prepackagedValues, width = '30%', maxWidth = 450 }: DatasetBuilderSelectorProps<T>) => {
+const DatasetBuilderSelector = <T extends DatasetBuilderType>({ number, header, subheader, headerAction, placeholder, values, selectedValues, prepackagedValues, width = '30%', maxWidth = 450 }: DatasetBuilderSelectorProps<T>) => {
   return div({ style: { width, marginTop: '1rem', maxWidth } }, [
     div({ style: { display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start' } }, [
       div({ style: { display: 'flex' } }, [
-        div({ style: { backgroundColor: colors.dark(0.3), padding: '0.5rem', borderRadius: '2rem', fontSize: 20, height: 24, width: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' } }, [number]),
-        div({ style: { marginLeft: 10 } }, [
+        div({ style: { backgroundColor: colors.dark(0.2), padding: '0.5rem', borderRadius: '2rem', fontSize: 20, height: 24, width: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600 } }, [number]),
+        div({ style: { marginLeft: 10, height: '3rem' } }, [
           h3({ style: { marginTop: 0, marginBottom: '0.5rem' } }, [header]),
-          // TODO: When there is no subheader, make sure there is sufficient vertical space before values display
-          div([subheader])
+          div({ style: { fontSize: 12 } }, [subheader])
         ]),
       ]),
       headerAction
     ]),
-    div({ style: { backgroundColor: 'white', border: `1px solid ${colors.dark(0.5)}`, borderRadius: 10, height: 300, overflowY: 'scroll', padding: '1rem', marginTop: '0.5rem' } }, [
+    div({ style: { backgroundColor: 'white', border: `1px solid ${colors.dark(0.5)}`, borderRadius: 10, height: 300, padding: '1rem', marginTop: '0.5rem' } }, [
       (values && values.length > 0) || (prepackagedValues && prepackagedValues.length > 0) ?
         // TODO: Implement values display
-        div([placeholder]) :
+        div({ style: { display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' } }, [
+          _.map(value => div([value.name]), values)
+        ]) :
         div([placeholder])
     ])
 
   ])
 }
 
-const CohortSelector = () => {
+const CohortSelector = ({selectedCohorts, onChange}: { selectedCohorts: Cohort[], onChange: (cohorts: Cohort[]) => void }) => {
   const [creatingCohort, setCreatingCohort] = useState(false)
   const [cohortName, setCohortName] = useState('')
   const [cohortNameTouched, setCohortNameTouched] = useState(false)
@@ -64,7 +69,7 @@ const CohortSelector = () => {
   }
 
   return h(Fragment, [
-    h(DatasetBuilderSelector, {
+    h(DatasetBuilderSelector as React.FC<DatasetBuilderSelectorProps<Cohort>>, {
       headerAction: h(Clickable, {
         onClick: () => setCreatingCohort(true),
         'aria-label': 'Create new cohort',
@@ -74,8 +79,9 @@ const CohortSelector = () => {
       ]),
       number: 1,
       // TODO: Implement cohort selection logic
-      onChange<T>(values: T[]): void {},
-      values: [],
+      onChange,
+      values: datasetBuilderCohorts.get(),
+      selectedValues: selectedCohorts,
       header: 'Select cohorts',
       subheader: 'Which participants to include',
       placeholder: div([
@@ -107,31 +113,37 @@ const CohortSelector = () => {
   ])
 }
 
-const ConceptSetSelector = () => {
-  return h(DatasetBuilderSelector, {
+const ConceptSetSelector = ({ selectedConceptSets, onChange }: { selectedConceptSets: ConceptSet[], onChange: (conceptSets: ConceptSet[]) => void }) => {
+  return h(DatasetBuilderSelector as React.FC<DatasetBuilderSelectorProps<ConceptSet>>, {
     headerAction: h(Link, {
       // TODO: Point at correct link
       href: Nav.getLink('root'),
       'aria-label': 'Create new concept set',
+      style: { color: colors.dark() }
     }, [
       icon('plus-circle', { size: 24 })
     ]),
     number: 2,
-    onChange<T>(values: T[]): void {},
-    values: [],
+    onChange,
+    values: datasetBuilderConceptSets.get(),
+    selectedValues: selectedConceptSets,
     header: 'Select concept sets',
     subheader: 'Which information to include about participants'
     // TODO: Include prepackaged concept sets
   })
 }
 
-const ValuesSelector = () => {
-  return h(DatasetBuilderSelector, {
+
+interface Value extends DatasetBuilderType {}
+const ValuesSelector = ({ selectedValues, onChange }: { selectedValues: Value[], onChange: (values: Value[]) => void }) => {
+
+  return h(DatasetBuilderSelector as React.FC<DatasetBuilderSelectorProps<Value>>, {
     // TODO: Implement select all logic
     headerAction: div(['Select All']),
     number: 3,
-    onChange<T>(values: T[]): void {},
+    onChange,
     values: [],
+    selectedValues,
     header: 'Select values (columns)',
     placeholder: div([
       div(['No inputs selected']),
@@ -148,24 +160,29 @@ const DatasetBuilderHeader = ({ name }: { name: string }) => {
     h1([name, ' Dataset Builder']),
     div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
       'Create groups of participants based on a specific criteria. You can also save any criteria grouping as a concept set using the menu icon next to the Participant Group title.',
-      div({ style: { display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
-        div(['Have questions']),
-        div(['See supporting documentation'])
+      div({ style: { display: 'flex', flexDirection: 'column', alignItems: 'flex-end', width: '20rem' } }, [
+        div({ style: { fontWeight: 600 } }, ['Have questions']),
+        // TODO: Link to proper place
+        h(Link, { href: Nav.getLink('root') }, ['See supporting documentation'])
       ])
     ])
   ])
 }
 
 const DatasetBuilderContents = () => {
+  const [selectedCohorts, setSelectedCohorts] = useState([] as Cohort[])
+  const [selectedConceptSets, setSelectedConceptSets] = useState([] as ConceptSet[])
+  const [selectedValues, setSelectedValues] = useState([] as Value[])
+
   return div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` } }, [
     h2(['Datasets']),
     div(['Build a dataset by selecting the concept sets and values for one or more of your cohorts. Then export the completed dataset to Notebooks where you can perform your analysis']),
-    div({ style: { display: 'flex', width: '100%' } }, [
-      h(CohortSelector),
+    div({ style: { display: 'flex', width: '100%', marginTop: '1rem' } }, [
+      h(CohortSelector, { selectedCohorts, onChange: cohorts => setSelectedValues(_.xor(selectedCohorts, cohorts)) }),
       div({ style: { marginLeft: '1rem' } }),
-      h(ConceptSetSelector),
+      h(ConceptSetSelector, { selectedConceptSets, onChange: conceptSets => setSelectedValues(_.xor(selectedConceptSets, conceptSets)) }),
       div({ style: { marginLeft: '1rem' } }),
-      h(ValuesSelector)
+      h(ValuesSelector, { selectedValues, onChange: values => setSelectedValues(_.xor(selectedValues, values)) })
     ])
   ])
 }

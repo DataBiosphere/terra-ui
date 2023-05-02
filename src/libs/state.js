@@ -76,6 +76,10 @@ export const snapshotStore = Utils.atom()
 /** @type {Utils.Atom<any[]>} */
 export const dataCatalogStore = Utils.atom([])
 
+export const datasetBuilderCohorts = Utils.atom([{name: 'a'}, {name: 'b'}, {name: 'c'}, {name: 'd'}])
+
+export const datasetBuilderConceptSets = Utils.atom([])
+
 /*
  * Modifies ajax responses for testing purposes.
  * Can be set to an array of objects of the form { fn, filter }.
