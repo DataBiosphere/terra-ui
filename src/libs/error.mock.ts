@@ -1,4 +1,4 @@
-import _ from 'lodash/fp'
+import _ from 'lodash/fp';
 
 /**
  * Allows observation of when an error occurs via `errorWatcher`, i.e.:
@@ -7,7 +7,7 @@ import _ from 'lodash/fp'
  * The errorWatcher call counts and information will be cleared in between tests,
  * thanks to Jest being configured to auto-clear mock between tests at the project level.
  */
-export const errorWatcher = jest.fn()
+export const errorWatcher = jest.fn();
 
 /**
  * Provides a mocked version of error module's withErrorReportingInModal
@@ -15,11 +15,11 @@ export const errorWatcher = jest.fn()
 export const mockWithErrorReportingInModal = _.curry((title, onDismiss, fn) => {
   const errorHandler = async () => {
     try {
-      return await fn()
+      return await fn();
     } catch (error) {
-      errorWatcher(title, error)
-      onDismiss()
+      errorWatcher(title, error);
+      onDismiss();
     }
-  }
-  return errorHandler
-})
+  };
+  return errorHandler;
+});
