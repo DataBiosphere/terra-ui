@@ -1,13 +1,11 @@
-
-
 export interface DatasetResponse {
-  name: string
+  name: string;
 }
 
 export interface DatasetBuilderContract {
-  retrieveDataset: (datasetId: string) => Promise<DatasetResponse>
+  retrieveDataset: (datasetId: string) => Promise<DatasetResponse>;
 }
 
 export const DatasetBuilder = (signal?: AbortSignal): DatasetBuilderContract => ({
-  retrieveDataset: datasetId => Promise.resolve({ name: 'AnalytixIndiana' })
-})
+  retrieveDataset: (datasetId) => Promise.resolve({ name: 'AnalytixIndiana' }),
+});

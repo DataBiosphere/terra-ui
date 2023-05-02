@@ -1,7 +1,7 @@
-export interface Cohort extends DatasetBuilderType {}
+export type Cohort = DatasetBuilderType;
 
-export interface ConceptSet extends DatasetBuilderType {}
+export type ConceptSet = DatasetBuilderType;
 
 export interface DatasetBuilderType {
-  name: string
+  name: string;
 }
