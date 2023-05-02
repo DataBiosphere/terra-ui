@@ -130,7 +130,10 @@ const GroupCard = memoWithName('GroupCard', ({ group: { groupName, groupEmail, r
     ]),
     div({ role: 'cell', style: { display: 'flex', overflow: 'hidden', alignItems: 'center' } }, [
       div({ style: { ...Style.noWrapEllipsis, marginRight: '0.5rem' } }, [groupEmail]),
-      h(ClipboardButton, { text: groupEmail, className: 'hover-only', style: { marginRight: '1rem' } })
+      h(ClipboardButton, {
+        'aria-label': 'Copy group email to clipboard',
+        text: groupEmail, className: 'hover-only', style: { marginRight: '1rem' }
+      })
     ]),
     div({ role: 'cell' }, [isAdmin ? 'Admin' : 'Member']),
     div({ role: 'cell', style: { display: 'flex', alignItems: 'center' } }, [
