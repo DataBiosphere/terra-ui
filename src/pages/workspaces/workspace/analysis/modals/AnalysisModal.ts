@@ -50,8 +50,8 @@ import {
   appToolLabels,
   cloudAppTools,
   cloudRuntimeTools,
+  getToolLabelFromCloudEnv,
   getToolLabelFromFileExtension,
-  getToolLabelFromRuntime,
   isAppToolLabel,
   isToolHidden,
   RuntimeToolLabel,
@@ -113,7 +113,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
 
     const currentRuntime: Runtime | undefined = getCurrentRuntime(runtimes);
     const currentDisk = getCurrentPersistentDisk(runtimes, persistentDisks);
-    const currentRuntimeToolLabel = currentRuntime && getToolLabelFromRuntime(currentRuntime);
+    const currentRuntimeToolLabel = currentRuntime && getToolLabelFromCloudEnv(currentRuntime);
     const currentApp = (toolLabel: AppToolLabel): App | undefined => getCurrentApp(toolLabel, apps);
 
     // TODO: Bring in as props from Analyses OR bring entire AnalysisFileStore from props.

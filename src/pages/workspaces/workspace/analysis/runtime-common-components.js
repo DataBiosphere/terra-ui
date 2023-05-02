@@ -164,7 +164,7 @@ export function PeriodicAzureCookieSetter({ proxyUrl, forCromwell = false }) {
   return null;
 }
 
-export const SaveFilesHelp = (isGalaxyDisk = false) => {
+export const SaveFilesHelp = ({ isGalaxyDisk = false }) => {
   return h(Fragment, [
     p([
       'If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
@@ -177,8 +177,8 @@ export const SaveFilesHelp = (isGalaxyDisk = false) => {
         },
         ['move them to the workspace bucket.']
       ),
+      !isGalaxyDisk ? 'Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.' : '',
     ]),
-    !isGalaxyDisk && p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.']),
   ]);
 };
 

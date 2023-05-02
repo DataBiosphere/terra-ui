@@ -37,7 +37,7 @@ import {
   defaultDataprocMachineType,
   defaultGceMachineType,
   findMachineType,
-  getComputeStatusForDisplay,
+  getDisplayRuntimeStatus,
   getNormalizedComputeRegion,
   isAzureContext,
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
@@ -363,17 +363,10 @@ export const getCostDisplayForTool = (
     ],
     [toolLabel === appToolLabels.CROMWELL, () => ''], // We will determine what to put here later
     [
-      toolLabel === runtimeToolLabels.JupyterLab,
-      () =>
-        currentRuntime
-          ? `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getRuntimeCost(currentRuntime))}/hr`
-          : '',
-    ],
-    [
       toolLabel === currentRuntimeToolLabel,
       () =>
         currentRuntime
-          ? `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getRuntimeCost(currentRuntime))}/hr`
+          ? `${getDisplayRuntimeStatus(currentRuntime.status)} ${Utils.formatUSD(getRuntimeCost(currentRuntime))}/hr`
           : '',
     ],
     [Utils.DEFAULT, () => '']

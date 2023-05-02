@@ -2,10 +2,10 @@ import _ from 'lodash/fp';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { cloudServiceTypes, RuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
-import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { ListRuntimeItem, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { defaultAzureRegion } from 'src/libs/azure-utils';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderTypes } from 'src/libs/workspace-utils';
+import { AzureWorkspace, cloudProviderTypes, GoogleWorkspace } from 'src/libs/workspace-utils';
 import {
   defaultGceBootDiskSize,
   defaultGcePersistentDiskSize,
@@ -16,7 +16,6 @@ import { runtimeToolLabels, tools } from 'src/pages/workspaces/workspace/analysi
 import { v4 as uuid } from 'uuid';
 
 const defaultGoogleWorkspaceNamespace = 'test-ws';
-const defaultAzureWorkspaceNamespace = 'test-azure-ws';
 
 // this is important, so the test impl can diverge
 export const testDefaultLocation = defaultLocation;
@@ -138,17 +137,61 @@ export const defaultGoogleWorkspace = {
   canCompute: true,
 };
 
-export const defaultAzureWorkspace = {
+export const generateGoogleWorkspace = (prefix: string = uuid().substring(0, 8)): GoogleWorkspace => ({
+  workspace: {
+    authorizationDomain: [],
+    cloudPlatform: 'Gcp',
+    bucketName: 'test-bucket',
+    googleProject: `${prefix}-project`,
+    name: `${prefix}_ws`,
+    namespace: prefix,
+    workspaceId: uuid().substring(0, 8),
+    createdDate: '2023-02-15T19:17:15.711Z',
+    createdBy: 'justin@gmail.com',
+  },
+  accessLevel: 'OWNER',
+  canShare: true,
+  canCompute: true,
+});
+
+export const generateAzureWorkspace = (prefix: string = uuid().substring(0, 8)): AzureWorkspace => ({
   workspace: {
     authorizationDomain: [],
     cloudPlatform: 'Azure',
     googleProject: '',
     bucketName: '',
-    name: `${defaultAzureWorkspaceNamespace}Ws`,
-    namespace: defaultAzureWorkspaceNamespace,
-    workspaceId: 'testAzureWorkspaceId',
+    name: `${prefix}-azure-ws-name`,
+    namespace: `${prefix}-azure-ws-namespace`,
+    workspaceId: uuid().substring(0, 8),
     createdDate: '2023-02-15T19:17:15.711Z',
     createdBy: 'groot@gmail.com',
+  },
+  azureContext: {
+    managedResourceGroupId: 'test-mrg',
+    subscriptionId: 'test-sub-id',
+    tenantId: 'test-tenant-id',
+  },
+  accessLevel: 'OWNER',
+  canShare: true,
+  canCompute: true,
+});
+
+export const defaultAzureWorkspace: AzureWorkspace = {
+  workspace: {
+    authorizationDomain: [],
+    cloudPlatform: 'Azure',
+    googleProject: '',
+    bucketName: '',
+    name: 'test-azure-ws-name',
+    namespace: 'test-azure-ws-namespace',
+    workspaceId: 'fafbb550-62eb-4135-8b82-3ce4d53446af',
+    createdDate: '2023-02-15T19:17:15.711Z',
+    createdBy: 'justin@gmail.com',
+  },
+  azureContext: {
+    managedResourceGroupId: 'test-mrg',
+    subscriptionId: 'test-sub-id',
+    tenantId: 'test-tenant-id',
   },
   accessLevel: 'OWNER',
   canShare: true,
@@ -226,13 +269,13 @@ export const getRuntimeConfig = (overrides: Partial<RuntimeConfig> = {}): Runtim
   ...overrides,
 });
 
-export const getRuntime = (overrides: Partial<Runtime> = {}): Runtime => {
+export const generateTestGoogleRuntime = (overrides: Partial<Runtime> = {}): Runtime => {
   const runtime: Runtime = {
     id: getRandomInt(randomMaxInt),
     runtimeName: 'test-runtime',
     cloudContext: {
       cloudProvider: cloudProviderTypes.GCP,
-      cloudResource: 'terra-test-e4000484',
+      cloudResource: defaultGoogleWorkspace.workspace.googleProject,
     },
     googleProject: 'terra-test-e4000484',
     serviceAccount: 'testuser123@broad.com',
@@ -291,6 +334,7 @@ export const getRuntime = (overrides: Partial<Runtime> = {}): Runtime => {
   return runtime;
 };
 
+// TODO: deprecate this in favor of more robust `generateTestGoogleRuntime`
 export const getGoogleRuntime = ({
   workspace = defaultGoogleWorkspace,
   runtimeName = Utils.generateRuntimeName(),
@@ -298,7 +342,7 @@ export const getGoogleRuntime = ({
   tool = tools.Jupyter,
   runtimeConfig = getJupyterRuntimeConfig(),
   image = undefined,
-} = {}) => {
+} = {}): Runtime => {
   const googleProject = workspace.workspace.googleProject;
   const imageUri =
     image ||
@@ -310,7 +354,7 @@ export const getGoogleRuntime = ({
 
   return {
     id: getRandomInt(randomMaxInt),
-    workspaceId: null,
+    workspaceId: undefined,
     runtimeName,
     googleProject,
     cloudContext: {
@@ -343,7 +387,6 @@ export const getGoogleRuntime = ({
       {
         imageType: 'Proxy',
         imageUrl: 'broadinstitute/openidc-proxy:2.3.1_2',
-        homeDirectory: null,
         timestamp: '2022-09-19T15:37:11.035465Z',
       },
       {
@@ -355,19 +398,16 @@ export const getGoogleRuntime = ({
       {
         imageType: 'Welder',
         imageUrl: 'us.gcr.io/broad-dsp-gcr-public/welder-server:ef956b2',
-        homeDirectory: null,
         timestamp: '2022-09-19T15:37:11.035465Z',
       },
       {
         imageType: 'BootSource',
         imageUrl: 'projects/broad-dsp-gcr-public/global/images/nl-825-2-gce-cos-image-e06f7d9',
-        homeDirectory: null,
         timestamp: '2022-09-19T15:37:12.119Z',
       },
       {
         imageType: 'CryptoDetector',
         imageUrl: 'us.gcr.io/broad-dsp-gcr-public/cryptomining-detector:0.0.2',
-        homeDirectory: null,
         timestamp: '2022-09-19T15:37:11.035465Z',
       },
     ],
@@ -444,6 +484,120 @@ export const generateTestApp = (overrides: Partial<App>): App => ({
   ...overrides,
 });
 
+export const generateTestAppWithGoogleWorkspace = (
+  overrides: Partial<App> = {},
+  workspace: GoogleWorkspace = defaultGoogleWorkspace
+): App => ({
+  cloudContext: {
+    cloudProvider: cloudProviderTypes.GCP,
+    cloudResource: workspace.workspace.googleProject,
+  },
+  appName: 'terra-app-69200c2f-89c3-47db-874c-b770d8de737f',
+  appType: 'GALAXY',
+  auditInfo: {
+    creator: 'cahrens@gmail.com',
+    createdDate: '2021-11-29T20:19:13.162484Z',
+    dateAccessed: '2021-11-29T20:19:13.162484Z',
+  },
+  diskName: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
+  errors: [],
+  kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+  labels: {
+    saturnWorkspaceName: workspace.workspace.name,
+    saturnWorkspaceNamespace: workspace.workspace.namespace,
+  },
+  proxyUrls: {
+    galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy',
+  },
+  status: 'RUNNING',
+  ...overrides,
+});
+
+export const generateTestAppWithAzureWorkspace = (
+  overrides: Partial<App> = {},
+  workspace: AzureWorkspace = defaultAzureWorkspace
+): App => ({
+  cloudContext: {
+    cloudProvider: 'AZURE',
+    cloudResource: `${workspace.azureContext.tenantId}/${workspace.azureContext.subscriptionId}/${workspace.azureContext.managedResourceGroupId}`,
+  },
+  appName: 'terra-app-69200c2f-89c3-47db-874c-b770d8de737f',
+  appType: 'CROMWELL',
+  auditInfo: {
+    creator: 'cahrens@gmail.com',
+    createdDate: '2021-11-29T20:19:13.162484Z',
+    dateAccessed: '2021-11-29T20:19:13.162484Z',
+  },
+  diskName: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
+  errors: [],
+  kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+  labels: {
+    saturnWorkspaceName: workspace.workspace.name,
+    saturnWorkspaceNamespace: workspace.workspace.namespace,
+  },
+  proxyUrls: {
+    galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy',
+  },
+  status: 'RUNNING',
+  ...overrides,
+});
+
+export const generateTestDiskWithGoogleWorkspace = (
+  overrides: Partial<PersistentDisk> = {},
+  workspace: GoogleWorkspace = defaultGoogleWorkspace
+): PersistentDisk => ({
+  auditInfo: {
+    creator: 'cahrens@gmail.com',
+    createdDate: '2021-11-29T20:19:13.162484Z',
+    dateAccessed: '2021-11-29T20:19:14.114Z',
+  },
+  blockSize: 4096,
+  diskType: 'pd-standard',
+  cloudContext: {
+    cloudProvider: cloudProviderTypes.GCP,
+    cloudResource: workspace.workspace.googleProject,
+  },
+  id: getRandomInt(randomMaxInt),
+  labels: {
+    saturnApplication: 'galaxy',
+    saturnWorkspaceName: workspace.workspace.name,
+    saturnWorkspaceNamespace: workspace.workspace.namespace,
+  }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
+  name: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
+  size: 500,
+  status: 'Ready',
+  zone: 'us-central1-a',
+  ...overrides,
+});
+
+export const generateTestDiskWithAzureWorkspace = (
+  overrides: Partial<PersistentDisk> = {},
+  workspace: AzureWorkspace = defaultAzureWorkspace
+): PersistentDisk => ({
+  auditInfo: {
+    creator: 'cahrens@gmail.com',
+    createdDate: '2021-11-29T20:19:13.162484Z',
+    dateAccessed: '2021-11-29T20:19:14.114Z',
+  },
+  blockSize: 4096,
+  diskType: 'pd-standard',
+  cloudContext: {
+    cloudProvider: cloudProviderTypes.AZURE,
+    cloudResource: `${workspace.azureContext.tenantId}/${workspace.azureContext.subscriptionId}/${workspace.azureContext.managedResourceGroupId}`,
+  },
+  id: getRandomInt(randomMaxInt),
+  labels: {
+    saturnApplication: 'galaxy',
+    saturnWorkspaceName: workspace.workspace.name,
+    saturnWorkspaceNamespace: workspace.workspace.namespace,
+  }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
+  name: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
+  size: 500,
+  status: 'Ready',
+  zone: 'us-central1-a',
+  ...overrides,
+});
+
 export const generateTestDisk = (overrides: Partial<PersistentDisk> = {}): PersistentDisk => ({
   auditInfo: {
     creator: 'cahrens@gmail.com',
@@ -503,14 +657,14 @@ export const azureDisk: PersistentDisk = {
   diskType: 'pd-standard', // TODO: This should be stored in backend as STANDARD_LRS
   blockSize: 4096,
   labels: {
-    saturnWorkspaceNamespace: 'azure-dev-2023-01-23',
-    saturnWorkspaceName: 'N8AzureWS-2-1-2',
+    saturnWorkspaceNamespace: defaultAzureWorkspace.workspace.namespace,
+    saturnWorkspaceName: defaultAzureWorkspace.workspace.name,
   },
 };
 
-export const azureRuntime: Runtime = {
+export const azureRuntime: ListRuntimeItem = {
   id: 79771,
-  workspaceId: 'fafbb550-62eb-4135-8b82-3ce4d53446af',
+  workspaceId: defaultAzureWorkspace.workspace.workspaceId,
   runtimeName: 'saturn-42a4398b-10f8-4626-9025-7abda26aedab',
   googleProject:
     '0cb7a640-45a2-4ed6-be9f-63519f86e04b/3efc5bdf-be0e-44e7-b1d7-c08931e3c16c/mrg-terra-dev-jan23-20230123125907',
@@ -520,7 +674,7 @@ export const azureRuntime: Runtime = {
       '0cb7a640-45a2-4ed6-be9f-63519f86e04b/3efc5bdf-be0e-44e7-b1d7-c08931e3c16c/mrg-terra-dev-jan23-20230123125907',
   },
   auditInfo: {
-    creator: 'ncl.hedwig@gmail.com',
+    creator: 'testuser123@broad.com',
     createdDate: '2023-02-01T20:40:50.428281Z',
     dateAccessed: '2023-02-01T20:41:00.357Z',
   },
@@ -534,17 +688,60 @@ export const azureRuntime: Runtime = {
     'https://lzf07312d05014dcfc2a6d8244c0f9b166a3801f44ec2b003d.servicebus.windows.net/saturn-42a4398b-10f8-4626-9025-7abda26aedab',
   status: 'Running',
   labels: {
-    saturnWorkspaceNamespace: 'azure-dev-2023-01-23',
-    creator: 'ncl.hedwig@gmail.com',
-    clusterServiceAccount: 'ncl.hedwig@gmail.com',
+    saturnWorkspaceNamespace: defaultAzureWorkspace.workspace.namespace,
+    creator: 'testuser123@broad.com',
+    clusterServiceAccount: 'testuser123@broad.com',
     saturnAutoCreated: 'true',
     clusterName: 'saturn-42a4398b-10f8-4626-9025-7abda26aedab',
-    saturnWorkspaceName: 'N8AzureWS-2-1-2',
+    saturnWorkspaceName: defaultAzureWorkspace.workspace.name,
     saturnVersion: '6',
     tool: 'JupyterLab',
     runtimeName: 'saturn-42a4398b-10f8-4626-9025-7abda26aedab',
     cloudContext:
       'Azure/0cb7a640-45a2-4ed6-be9f-63519f86e04b/3efc5bdf-be0e-44e7-b1d7-c08931e3c16c/mrg-terra-dev-jan23-20230123125907',
+  },
+  patchInProgress: false,
+};
+
+export const dataprocRuntime: ListRuntimeItem = {
+  id: 81666,
+  runtimeName: 'saturn-a5eec7f3-857d-4fab-b26c-6f1291082641',
+  googleProject: defaultGoogleWorkspace.workspace.googleProject,
+  cloudContext: { cloudProvider: 'GCP', cloudResource: defaultGoogleWorkspace.workspace.googleProject },
+  auditInfo: {
+    creator: 'jcanas@broadinstitute.org',
+    createdDate: '2023-05-03T19:53:22.510154Z',
+    dateAccessed: '2023-05-03T19:53:23.559367Z',
+  },
+  runtimeConfig: {
+    numberOfWorkers: 2,
+    masterMachineType: 'n1-standard-4',
+    masterDiskSize: 150,
+    workerMachineType: 'n1-standard-4',
+    workerDiskSize: 150,
+    numberOfWorkerLocalSSDs: 0,
+    numberOfPreemptibleWorkers: 1,
+    cloudService: 'DATAPROC',
+    region: 'us-central1',
+    componentGatewayEnabled: true,
+    workerPrivateAccess: false,
+  },
+  proxyUrl:
+    'https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-dev-941380db/saturn-a5eec7f3-857d-4fab-b26c-6f1291082641/jupyter',
+  status: 'Creating',
+  labels: {
+    saturnWorkspaceNamespace: defaultGoogleWorkspace.workspace.namespace,
+    'saturn-iframe-extension': 'https://bvdp-saturn-dev.appspot.com/jupyter-iframe-extension.js',
+    creator: 'jcanas@broadinstitute.org',
+    clusterServiceAccount: 'pet-116683946280099005020@terra-dev-941380db.iam.gserviceaccount.com',
+    saturnAutoCreated: 'true',
+    clusterName: 'saturn-a5eec7f3-857d-4fab-b26c-6f1291082641',
+    saturnWorkspaceName: defaultGoogleWorkspace.workspace.name,
+    saturnVersion: '6',
+    tool: 'Jupyter',
+    runtimeName: 'saturn-a5eec7f3-857d-4fab-b26c-6f1291082641',
+    cloudContext: 'Gcp/terra-dev-941380db',
+    googleProject: 'terra-dev-941380db',
   },
   patchInProgress: false,
 };

@@ -1,5 +1,6 @@
 import _ from 'lodash/fp';
 import { code } from 'react-hyperscript-helpers';
+import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { isCromwellAppVisible } from 'src/libs/config';
 import * as Utils from 'src/libs/utils';
@@ -179,7 +180,7 @@ export const getToolLabelForImage = (image: string): ToolLabel | undefined =>
 export const getToolLabelFromFileExtension = (fileName: FileExtension): ToolLabel =>
   extensionToToolMap[getExtension(fileName)];
 
-export const getToolLabelFromRuntime = (runtime: Runtime): ToolLabel => runtime?.labels?.tool;
+export const getToolLabelFromCloudEnv = (cloudEnv: Runtime | App): ToolLabel => cloudEnv?.labels?.tool;
 
 // Returns registered appTypes.
 export const allAppTypes: AppToolLabel[] = _.flow(_.map('label'), _.compact)(appTools);
