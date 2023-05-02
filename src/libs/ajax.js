@@ -1030,9 +1030,9 @@ const Cbas = signal => ({
       const res = await fetchCbas('run_sets', { signal, method: 'GET' })
       return res.json()
     },
-    getForMethod: async (methodId, pageSize) => {
+    getForMethod: async (root, methodId, pageSize) => {
       const keyParams = qs.stringify({ method_id: methodId, page_size: pageSize }, { arrayFormat: 'repeat' })
-      const res = await fetchCbas(`run_sets?${keyParams}`, { signal, method: 'GET' })
+      const res = await fetchCbas(root)(`run_sets?${keyParams}`, _.mergeAll([authOpts(), { signal, method: 'GET' }]))
       return res.json()
     },
     cancel: async runSetId => {
@@ -1047,9 +1047,9 @@ const Cbas = signal => ({
       const res = await fetchCbas(root)(`methods?${keyParams}`, _.mergeAll([authOpts(), { signal, method: 'GET' }]))
       return res.json()
     },
-    getById: async methodId => {
+    getById: async (root, methodId) => {
       const keyParams = qs.stringify({ method_id: methodId })
-      const res = await fetchCbas(`methods?${keyParams}`, { signal, method: 'GET' })
+      const res = await fetchCbas(root)(`methods?${keyParams}`, _.mergeAll([authOpts(), { signal, method: 'GET' }]))
       return await res.json()
     },
     getByMethodVersionId: async methodVersionId => {

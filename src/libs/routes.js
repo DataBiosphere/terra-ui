@@ -23,6 +23,7 @@ import * as Profile from 'src/pages/Profile'
 import * as TermsOfService from 'src/pages/TermsOfService'
 import * as Upload from 'src/pages/Upload'
 import * as WorkflowsList from 'src/pages/workflows/List'
+import * as SubmissionConfig from 'src/pages/workflows/workflow/SubmissionConfig'
 import * as SubmitWorkflow from 'src/pages/workflows/workflow/SubmitWorkflow'
 import * as WorkflowDetails from 'src/pages/workflows/workflow/WorkflowDetails'
 import * as WorkspaceList from 'src/pages/workspaces/List'
@@ -78,6 +79,7 @@ const routes = _.flatten([
   WorkflowsList.navPaths,
   WorkflowDetails.navPaths,
   SubmitWorkflow.navPaths,
+  SubmissionConfig.navPaths,
   Upload.navPaths,
   FeaturePreviews.navPaths,
   WorkspaceFiles.navPaths,

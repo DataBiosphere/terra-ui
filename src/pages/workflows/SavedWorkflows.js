@@ -63,7 +63,7 @@ const styles = {
 
 export const SavedWorkflows = ({ methodsData }) => {
   const WorkflowCard = memoWithName('WorkflowCard', ({ name, lastRun, description, source, methodId }) => {
-    return div({ onClick: () => { Nav.goToPath('submission-config', { methodId }) }, style: { ...styles.card, ...styles.mediumCard, cursor: 'pointer' } }, [
+    return div({ onClick: () => { Nav.goToPath('submission-config', { methodId, workspaceId: 'eda71001-6619-4a92-bb0a-7741ba650324' }) }, style: { ...styles.card, ...styles.mediumCard, cursor: 'pointer' } }, [
       div({ style: { paddingTop: '0.75rem', ...styles.innerContent, display: 'flex', alignItems: 'center' } }, [
         div({ style: { ...styles.longTitle, paddingRight: '1.5rem' } }, [`${name}`]),
         div({ style: { flex: 1 } }, ['Last run: ', lastRun.previously_run ? `Version ${lastRun.method_version_name} on ${Utils.makeCompleteDate(lastRun.timestamp)}` : '(Never run)']),

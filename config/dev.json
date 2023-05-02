@@ -7,6 +7,7 @@
   "catalogUrlRoot": "https://catalog.dsde-dev.broadinstitute.org",
   "cbasUrlRoot": "",
   "cromwellUrlRoot": "",
+  "wdsAppTypeNames": ["WDS", "CROMWELL"],
   "dataRepoUrlRoot": "https://jade.datarepo-dev.broadinstitute.org",
   "devUrlRoot": "https://bvdp-saturn-dev.appspot.com",
   "dockstoreUrlRoot": "https://staging.dockstore.org",

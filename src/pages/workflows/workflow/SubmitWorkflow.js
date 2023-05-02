@@ -1,9 +1,12 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { Fragment, useCallback, useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonOutline, Clickable } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
+import {
+  loadAppUrls
+} from 'src/components/workflows/submission-common'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { isFindWorkflowEnabled } from 'src/libs/config'
@@ -33,33 +36,38 @@ export const SubmitWorkflow = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Workflows', activeTab: 'workflows'
   })
-)(({ namespace, name, workspace, workspace: { workspace: { createdBy, attributes, workspaceId } }, refreshWorkspace }, ref) => {
-  console.log('namespace', namespace) // eslint-disable-line no-console
-  console.log('name', name) // eslint-disable-line no-console
-  console.log('workspace', workspaceId) // eslint-disable-line no-console
-  console.log('workspace', workspace) // eslint-disable-line no-console
-  console.log('createdBy', createdBy) // eslint-disable-line no-console
-  console.log('attributes', attributes) // eslint-disable-line no-console
-  console.log('refreshWorkspace', refreshWorkspace) // eslint-disable-line no-console
-  console.log('refreshWorkspace', ref) // eslint-disable-line no-console
-
+)(({ workspace: { workspace: { workspaceId } } }) => {
   const [methodsData, setMethodsData] = useState()
   const [loading, setLoading] = useState(false)
   const [viewFindWorkflowModal, setViewFindWorkflowModal] = useState(false)
+  // const [wdsProxyUrl, setWdsProxyUrl] = useState({ status: 'None', state: '' })
+  // const [cbasProxyUrl, setCbasProxyUrl] = useState({ status: 'None', state: '' })
 
   const signal = useCancellation()
 
-  const refresh = withBusyState(setLoading, async () => {
-    const loadRunsData = async () => {
-      try {
-        // TODO: route this through an argument
-        const root = 'https://lzf07312d05014dcfc2a6d8244c0f9b166a3801f44ec2b003d.servicebus.windows.net/wds-eda71001-6619-4a92-bb0a-7741ba650324/cbas'
-        const runs = await Ajax(signal).Cbas.methods.getWithoutVersions(root)
-        setMethodsData(runs.methods)
-      } catch (error) {
-        notify('error', 'Error loading saved workflows', { detail: await (error instanceof Response ? error.text() : error) })
-      }
+  const refreshAppUrls = useCallback(async () => {
+    const {
+      wds: { state: wdsUrlRoot },
+      cbas: { state: cbasUrlRoot }
+    } = await loadAppUrls(workspaceId)
+
+    // setCbasProxyUrl(cbasUrlRoot)
+    // setWdsProxyUrl(wdsUrlRoot)
+
+    return { wdsUrlRoot, cbasUrlRoot }
+  }, [workspaceId])
+
+  const loadRunsData = useCallback(async () => {
+    const { cbasUrlRoot } = await refreshAppUrls()
+    try {
+      const runs = await Ajax(signal).Cbas.methods.getWithoutVersions(cbasUrlRoot)
+      setMethodsData(runs.methods)
+    } catch (error) {
+      notify('error', 'Error loading saved workflows', { detail: await (error instanceof Response ? error.text() : error) })
     }
+  }, [refreshAppUrls, signal])
+
+  const refresh = withBusyState(setLoading, async () => {
     await loadRunsData()
   })
 
