@@ -354,7 +354,7 @@ const ApplicationLauncher = _.flow(
                     () => h(StatusMessage, ['Creating cloud environment. You can navigate away, this may take up to 10 minutes.']),
                   ],
                   [
-                    runtimeStatus === 'Creating' && !azureContext,
+                    runtimeStatus === 'Creating' && !!googleProject,
                     () => h(StatusMessage, ['Creating cloud environment. You can navigate away and return in 3-5 minutes.']),
                   ],
                   [runtimeStatus === 'Starting', () => 'Starting cloud environment, this may take up to 2 minutes.'],
