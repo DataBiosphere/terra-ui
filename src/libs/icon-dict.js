@@ -1,46 +1,95 @@
 import {
-  faBell, faClipboard, faClock, faClone, faEye, faFileAlt, faFolder, faFolderOpen, faListAlt, faTimesCircle
-} from '@fortawesome/free-regular-svg-icons'
+  faBell,
+  faClipboard,
+  faClock,
+  faClone,
+  faEye,
+  faFileAlt,
+  faFolder,
+  faFolderOpen,
+  faListAlt,
+  faTimesCircle,
+} from '@fortawesome/free-regular-svg-icons';
 import {
-  faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCircle, faClock as faClockSolid, faCloud, faCog,
-  faCreditCard, faDownload, faEllipsisV, faExclamationCircle, faExclamationTriangle, faExpandArrowsAlt, faFileInvoiceDollar,
-  faFolder as faFolderSolid, faGripHorizontal, faInfoCircle, faLock, faLongArrowAltDown, faLongArrowAltUp, faMinusCircle, faMoneyCheckAlt, faPause,
-  faPen, faPlay, faPlus, faPlusCircle, faQuestion, faQuestionCircle, faRocket, faSearch, faShareAlt, faSquare as faSquareSolid, faStar, faTachometerAlt,
-  faTasks, faTerminal, faTrashAlt, faUnlock, faVirus
-} from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import _ from 'lodash/fp'
-import { h } from 'react-hyperscript-helpers'
-import { ReactComponent as angleDoubleUp } from 'src/icons/angle-double-up-regular.svg'
-import { ReactComponent as angleUp } from 'src/icons/angle-up-regular.svg'
-import { ReactComponent as arrowLeftRegular } from 'src/icons/arrow-left-regular.svg'
-import { ReactComponent as bars } from 'src/icons/bars-light.svg'
-import { ReactComponent as books } from 'src/icons/books-solid.svg'
-import { ReactComponent as cardMenuIcon } from 'src/icons/card-menu-icon.svg'
-import { ReactComponent as faCloudBolt } from 'src/icons/cloud-compute.svg'
-import { ReactComponent as cloudUpload } from 'src/icons/cloud-upload-solid.svg'
-import { ReactComponent as columnGrabber } from 'src/icons/column_grabber.svg'
-import { ReactComponent as copySolid } from 'src/icons/copy-solid.svg'
-import { ReactComponent as downloadRegular } from 'src/icons/download-regular.svg'
-import { ReactComponent as externalLinkAlt } from 'src/icons/external-link-alt-regular.svg'
-import { ReactComponent as fileExport } from 'src/icons/file-export-regular.svg'
-import { ReactComponent as fileSearchSolid } from 'src/icons/file-search-solid.svg'
-import { ReactComponent as infoCircleRegular } from 'src/icons/info-circle-regular.svg'
-import { ReactComponent as list } from 'src/icons/list-regular.svg'
-import { ReactComponent as loadingSpinner } from 'src/icons/loading-spinner.svg'
-import { ReactComponent as renameIcon } from 'src/icons/rename-icon.svg'
-import { ReactComponent as squareLight } from 'src/icons/square-light.svg'
-import { ReactComponent as syncAlt } from 'src/icons/sync-alt-regular.svg'
-import { ReactComponent as talkBubble } from 'src/icons/talk-bubble.svg'
-import { ReactComponent as times } from 'src/icons/times-light.svg'
-import { ReactComponent as warningInfo } from 'src/icons/warning-info.svg'
+  faArrowLeft,
+  faArrowRight,
+  faBan,
+  faCaretDown,
+  faChalkboard,
+  faCheck,
+  faCheckCircle,
+  faCircle,
+  faClock as faClockSolid,
+  faCloud,
+  faCog,
+  faCreditCard,
+  faDownload,
+  faEllipsisV,
+  faExclamationCircle,
+  faExclamationTriangle,
+  faExpandArrowsAlt,
+  faFileInvoiceDollar,
+  faFolder as faFolderSolid,
+  faGripHorizontal,
+  faInfoCircle,
+  faLock,
+  faLongArrowAltDown,
+  faLongArrowAltUp,
+  faMinusCircle,
+  faMoneyCheckAlt,
+  faPause,
+  faPen,
+  faPlay,
+  faPlus,
+  faPlusCircle,
+  faQuestion,
+  faQuestionCircle,
+  faRocket,
+  faSearch,
+  faShareAlt,
+  faSquare as faSquareSolid,
+  faStar,
+  faSyncAlt,
+  faTachometerAlt,
+  faTasks,
+  faTerminal,
+  faTrashAlt,
+  faUnlock,
+  faVirus,
+} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import _ from 'lodash/fp';
+import { h } from 'react-hyperscript-helpers';
+import { ReactComponent as angleDoubleUp } from 'src/icons/angle-double-up-regular.svg';
+import { ReactComponent as angleUp } from 'src/icons/angle-up-regular.svg';
+import { ReactComponent as arrowLeftRegular } from 'src/icons/arrow-left-regular.svg';
+import { ReactComponent as bars } from 'src/icons/bars-light.svg';
+import { ReactComponent as books } from 'src/icons/books-solid.svg';
+import { ReactComponent as cardMenuIcon } from 'src/icons/card-menu-icon.svg';
+import { ReactComponent as faCloudBolt } from 'src/icons/cloud-compute.svg';
+import { ReactComponent as cloudUpload } from 'src/icons/cloud-upload-solid.svg';
+import { ReactComponent as columnGrabber } from 'src/icons/column_grabber.svg';
+import { ReactComponent as copySolid } from 'src/icons/copy-solid.svg';
+import { ReactComponent as downloadRegular } from 'src/icons/download-regular.svg';
+import { ReactComponent as externalLinkAlt } from 'src/icons/external-link-alt-regular.svg';
+import { ReactComponent as fileExport } from 'src/icons/file-export-regular.svg';
+import { ReactComponent as fileSearchSolid } from 'src/icons/file-search-solid.svg';
+import { ReactComponent as infoCircleRegular } from 'src/icons/info-circle-regular.svg';
+import { ReactComponent as list } from 'src/icons/list-regular.svg';
+import { ReactComponent as loadingSpinner } from 'src/icons/loading-spinner.svg';
+import { ReactComponent as renameIcon } from 'src/icons/rename-icon.svg';
+import { ReactComponent as squareLight } from 'src/icons/square-light.svg';
+import { ReactComponent as syncAlt } from 'src/icons/sync-alt-regular.svg';
+import { ReactComponent as talkBubble } from 'src/icons/talk-bubble.svg';
+import { ReactComponent as times } from 'src/icons/times-light.svg';
+import { ReactComponent as warningInfo } from 'src/icons/warning-info.svg';
 
+const fa = _.curry((shape, { size, ...props }) => h(FontAwesomeIcon, _.merge({ icon: shape, style: { height: size, width: size } }, props)));
+const custom = _.curry((shape, { size, ...props }) =>
+  h(shape, _.merge({ 'aria-hidden': true, focusable: false, style: { height: size, width: size } }, props))
+);
 
-const fa = _.curry((shape, { size, ...props }) => h(FontAwesomeIcon, _.merge({ icon: shape, style: { height: size, width: size } }, props)))
-const custom = _.curry((shape, { size, ...props }) => h(shape,
-  _.merge({ 'aria-hidden': true, focusable: false, style: { height: size, width: size } }, props)))
-
-const rotate = _.curry((rotation, shape, props) => shape(_.merge({ style: { transform: `rotate(${rotation}deg)` } }, props)))
+const rotate = _.curry((rotation, shape, props) => shape(_.merge({ style: { transform: `rotate(${rotation}deg)` } }, props)));
 
 const iconDict = {
   'angle-down': rotate(180, custom(angleUp)),
@@ -74,7 +123,7 @@ const iconDict = {
   downloadRegular: custom(downloadRegular),
   edit: fa(faPen),
   'ellipsis-v': fa(faEllipsisV),
-  'ellipsis-v-circle': props => fa(faEllipsisV, { mask: faCircle, transform: 'shrink-8', ...props }),
+  'ellipsis-v-circle': (props) => fa(faEllipsisV, { mask: faCircle, transform: 'shrink-8', ...props }),
   'error-standard': fa(faExclamationCircle),
   'expand-arrows-alt': fa(faExpandArrowsAlt),
   export: custom(fileExport),
@@ -99,7 +148,7 @@ const iconDict = {
   play: fa(faPlay),
   plus: fa(faPlus),
   'plus-circle': fa(faPlusCircle),
-  'lighter-plus-circle': props => fa(faPlus, { mask: faCircle, transform: 'shrink-6', ...props }),
+  'lighter-plus-circle': (props) => fa(faPlus, { mask: faCircle, transform: 'shrink-6', ...props }),
   'pop-out': custom(externalLinkAlt),
   purchaseOrder: fa(faFileInvoiceDollar),
   question: fa(faQuestion),
@@ -112,9 +161,10 @@ const iconDict = {
   star: fa(faStar),
   'success-standard': fa(faCheckCircle),
   sync: custom(syncAlt),
+  syncAlt: fa(faSyncAlt),
   tachometer: fa(faTachometerAlt),
   tasks: fa(faTasks),
-  terminal: props => fa(faTerminal, { mask: faSquareSolid, transform: 'shrink-8', ...props }),
+  terminal: (props) => fa(faTerminal, { mask: faSquareSolid, transform: 'shrink-8', ...props }),
   times: custom(times),
   'talk-bubble': custom(talkBubble),
   'times-circle': fa(faTimesCircle),
@@ -125,7 +175,7 @@ const iconDict = {
   'view-list': custom(list),
   virus: fa(faVirus),
   'warning-info': custom(warningInfo),
-  'warning-standard': fa(faExclamationTriangle)
-}
+  'warning-standard': fa(faExclamationTriangle),
+};
 
-export default iconDict
+export default iconDict;

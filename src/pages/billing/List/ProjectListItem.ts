@@ -1,82 +1,125 @@
-import _ from 'lodash/fp'
-import * as qs from 'qs'
-import { Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
-import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
-import { Clickable } from 'src/components/common'
-import { spinner } from 'src/components/icons'
-import { InfoBox } from 'src/components/PopupTrigger'
-import { Ajax } from 'src/libs/ajax'
-import colors from 'src/libs/colors'
-import Events, { extractBillingDetails } from 'src/libs/events'
-import * as Nav from 'src/libs/nav'
-import * as Style from 'src/libs/style'
-import { isKnownCloudProvider } from 'src/libs/workspace-utils'
-import { billingRoles } from 'src/pages/billing/billing-utils'
-import { BillingProjectActions } from 'src/pages/billing/List/BillingProjectActions'
-import { BillingProject } from 'src/pages/billing/models/BillingProject'
+import _ from 'lodash/fp';
+import * as qs from 'qs';
+import { Fragment, useState } from 'react';
+import { div, h, span } from 'react-hyperscript-helpers';
+import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
+import { Clickable } from 'src/components/common';
+import { icon } from 'src/components/icons';
+import { InfoBox } from 'src/components/PopupTrigger';
+import { Ajax } from 'src/libs/ajax';
+import colors from 'src/libs/colors';
+import Events, { extractBillingDetails } from 'src/libs/events';
+import * as Nav from 'src/libs/nav';
+import * as Style from 'src/libs/style';
+import { isKnownCloudProvider } from 'src/libs/workspace-utils';
+import { billingRoles } from 'src/pages/billing/billing-utils';
+import { BillingProjectActions, BillingProjectActionsProps } from 'src/pages/billing/List/BillingProjectActions';
+import { BillingProject, isCreating, isDeleting, isErrored } from 'src/pages/billing/models/BillingProject';
 
-
-const styles = {
-  projectListItem: selected => {
+const listItemStyle = (selected, hovered) => {
+  const style = {
+    ...Style.navList.itemContainer(selected),
+    ...Style.navList.item(selected),
+    ...(selected ? { backgroundColor: colors.dark(0.1) } : {}),
+    paddingLeft: '2rem',
+  };
+  if (hovered) {
     return {
-      ...Style.navList.itemContainer(selected),
-      ...Style.navList.item(selected),
-      ...(selected ? { backgroundColor: colors.dark(0.1) } : {}),
-      paddingLeft: '3rem'
-    }
+      ...style,
+      ...Style.navList.itemHover(selected),
+    };
   }
-}
+  return style;
+};
 
-interface ProjectListItemProps {
-  project: BillingProject
-  loadProjects: () => void
-  isActive: boolean
-  isCreatingStatus: boolean
+export interface ProjectListItemProps {
+  project: BillingProject;
+  isActive: boolean;
+  billingProjectActionsProps: BillingProjectActionsProps;
 }
 
 export const ProjectListItem = (props: ProjectListItemProps) => {
-  const { projectName, roles, status, message, cloudPlatform } = props.project
+  const [hovered, setHovered] = useState<boolean>();
+
+  const { projectName, roles, status, message, cloudPlatform } = props.project;
+  const viewerRoles = _.intersection(roles, _.values(billingRoles));
+  const isOwner = _.includes(billingRoles.owner, roles);
+
   // Billing projects in an error status may have UNKNOWN for the cloudPlatform.
-  const cloudContextIcon = isKnownCloudProvider(cloudPlatform) && div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
-    h(CloudProviderIcon, { cloudProvider: cloudPlatform })
-  ])
+  const cloudContextIcon =
+    isKnownCloudProvider(cloudPlatform) &&
+    span({ style: { marginRight: '0.5rem' } }, [h(CloudProviderIcon, { cloudProvider: cloudPlatform })]);
 
-  const selectableProject = () => h(Clickable, {
-    style: { ...styles.projectListItem(props.isActive), color: props.isActive ? colors.accent(1.1) : colors.accent() },
-    href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
-    onClick: () => Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, extractBillingDetails(props.project)),
-    hover: Style.navList.itemHover(props.isActive),
-    'aria-current': props.isActive ? 'location' : false
-  }, [cloudContextIcon, projectName])
+  const projectNameElement = span({ style: { wordBreak: 'break-all' } }, [projectName]);
 
-  const unselectableProject = () => {
-    const iconAndTooltip =
-      // @ts-ignore
-      props.isCreatingStatus ? spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
-        status === 'Error' ? h(Fragment, [
-          // @ts-ignore
-          h(InfoBox, { style: { color: colors.danger(), margin: '0 0.5rem 0 0.5rem' }, side: 'right' }, [
-            div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [
-              message || 'Error during project creation.'
-            ])
+  const actionElement = isOwner && h(BillingProjectActions, props.billingProjectActionsProps);
+
+  const renderSelectableProject = () =>
+    div(
+      {
+        style: { ...listItemStyle(props.isActive, hovered) },
+        onMouseEnter: () => setHovered(true),
+        onMouseLeave: () => setHovered(false),
+      },
+      [
+        h(
+          Clickable,
+          {
+            style: {
+              display: 'flex',
+              alignItems: 'center',
+              color: props.isActive ? colors.accent(1.1) : colors.accent(),
+            },
+            href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
+            onClick: () =>
+              Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, extractBillingDetails(props.project)),
+            'aria-current': props.isActive ? 'location' : false,
+          },
+          [cloudContextIcon, projectNameElement]
+        ),
+        actionElement,
+      ]
+    );
+
+  const renderUnselectableProject = () => {
+    const isCreatingOrDeleting = isCreating(props.project) || isDeleting(props.project);
+
+    const iconAndTooltip = h(Fragment, [
+      isCreatingOrDeleting &&
+        h(Fragment, [
+          icon('syncAlt', {
+            size: 14,
+            style: {
+              color: isCreating(props.project) ? colors.success() : colors.warning(),
+              animation: 'rotation 2s infinite linear',
+              marginLeft: 'auto',
+              marginRight: '0.25rem',
+            },
+          }),
+          span({ style: { paddingLeft: '0.25rem', fontSize: 12, fontStyle: 'italic' } }, [
+            isCreating(props.project) ? 'Creating' : 'Deleting',
           ]),
-          //Currently, only billing projects that failed to create can have actions performed on them.
-          //If that changes in the future, this should be moved elsewhere
-          isOwner && h(BillingProjectActions, { projectName: props.project.projectName, loadProjects: props.loadProjects })
-        ]) : undefined
+        ]),
+      isErrored(props.project) &&
+        h(Fragment, [
+          // @ts-ignore
+          h(InfoBox, { style: { color: colors.danger(), marginLeft: '0.5rem' }, side: 'right' }, [
+            div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [
+              message || `Error during billing project ${status === 'DeletionFailed' ? 'deletion' : 'creation'}.`,
+            ]),
+          ]),
+          actionElement,
+        ]),
+    ]);
 
-    return div({ style: { ...styles.projectListItem(props.isActive), color: colors.dark() } }, [
-      cloudContextIcon, projectName, iconAndTooltip
-    ])
-  }
-
-  const viewerRoles = _.intersection(roles, _.values(billingRoles))
-  const isOwner = _.includes(billingRoles.owner, roles)
+    return div({ style: { ...listItemStyle(props.isActive, false), color: colors.dark() } }, [
+      cloudContextIcon,
+      projectNameElement,
+      iconAndTooltip,
+    ]);
+  };
 
   return div({ role: 'listitem' }, [
-    !_.isEmpty(viewerRoles) && status === 'Ready' ?
-      selectableProject() :
-      unselectableProject()
-  ])
-}
+    !_.isEmpty(viewerRoles) && status === 'Ready' ? renderSelectableProject() : renderUnselectableProject(),
+  ]);
+};

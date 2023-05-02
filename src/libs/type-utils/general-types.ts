@@ -6,10 +6,8 @@
   Note that the use of type 'any' is not otherwise encouraged.
  */
 
-export type WrapFn<F> = (fn: F) => F
-export type AnyFn = (...args: any[]) => any
-export type AnyPromiseFn<P = any> = (...args: any[]) => Promise<P>
-export type GenericFn<F extends AnyFn> = (...args: Parameters<F>) => ReturnType<F>
-export type GenericPromiseFn<F extends AnyPromiseFn, P> = (...args: Parameters<F>) => Promise<P>
-
-
+export type WrapFn<F> = (fn: F) => F;
+export type AnyFn = (...args: any[]) => any;
+export type AnyPromiseFn<P = any> = (...args: any[]) => Promise<P>;
+export type GenericFn<F extends AnyFn> = (...args: Parameters<F>) => ReturnType<F>;
+export type GenericPromiseFn<F extends AnyPromiseFn, P> = (...args: Parameters<F>) => Promise<P>;

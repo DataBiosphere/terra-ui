@@ -1,7 +1,7 @@
-import _ from 'lodash/fp'
-import { useEffect } from 'react'
-import { Ajax } from 'src/libs/ajax'
-import { useRoute } from 'src/libs/nav'
+import _ from 'lodash/fp';
+import { useEffect } from 'react';
+import { Ajax } from 'src/libs/ajax';
+import { useRoute } from 'src/libs/nav';
 
 /*
  * NOTE: In order to show up in reports, new events MUST be marked as expected in the Mixpanel
@@ -18,10 +18,8 @@ const eventsList = {
   applicationResume: 'application:resume',
   analysisEnableBeta: 'analysis:enable',
   analysisDisableBeta: 'analysis:disable',
-  analysisLaunch: 'analysis:launch',
   analysisCreate: 'analysis:create',
   analysisToggleJupyterLabGCP: 'analysis:toggleJupyterLabGCP',
-  analysisAzureJupyterLabCreate: 'analysis:azureJupyterLabCreate',
   analysisPreviewSuccess: 'analysis:previewSuccess',
   analysisPreviewFail: 'analysis:previewFail',
   billingProjectExpandWorkspace: 'billing:project:workspace:expand',
@@ -48,11 +46,11 @@ const eventsList = {
   billingCreationBillingProjectCreated: 'billing:creation:billingProjectCreated',
   billingRemoveAccount: 'billing:project:account:remove',
   cloudEnvironmentConfigOpen: 'cloudEnvironment:config:open',
+  cloudEnvironmentLaunch: 'cloudEnvironment:launch',
   cloudEnvironmentCreate: 'cloudEnvironment:create',
   cloudEnvironmentDelete: 'cloudEnvironment:delete',
   cloudEnvironmentUpdate: 'cloudEnvironment:update',
   cloudEnvironmentDetailsLoad: 'analysis:details:load',
-  cloudEnvironmentCreateCustom: 'cloudEnvironment:create:custom',
   catalogFilter: 'catalog:filter',
   catalogRequestAccess: 'catalog:requestAccess',
   catalogToggle: 'catalog:toggle',
@@ -74,6 +72,7 @@ const eventsList = {
   notebookCopy: 'notebook:copy',
   notificationToggle: 'notification:toggle',
   pageView: 'page:view',
+  permissionsSynchronizationDelayDisplayed: 'permissions:propagationDelay',
   resourceLeave: 'resource:leave',
   userLogin: 'user:login',
   userRegister: 'user:register',
@@ -85,6 +84,8 @@ const eventsList = {
   workflowUseDefaultOutputs: 'workflow:useDefaultOutputs',
   workspaceClone: 'workspace:clone',
   workspaceCreate: 'workspace:create',
+  workspaceOpenedBucketInBrowser: 'workspace:openedBucketInBrowser',
+  workspaceOpenedProjectInConsole: 'workspace:openedProjectInCloudConsole',
   workspaceDataAddColumn: 'workspace:data:addColumn',
   workspaceDataAddRow: 'workspace:data:addRow',
   workspaceDataClearColumn: 'workspace:data:clearColumn',
@@ -98,6 +99,7 @@ const eventsList = {
   workspaceDataDownloadPartial: 'workspace:data:downloadpartial',
   workspaceDataEditMultiple: 'workspace:data:editMultiple',
   workspaceDataEditOne: 'workspace:data:editOne',
+  workspaceDataFilteredSearch: 'workspace:data:filteredSearch',
   workspaceDataOpenWithIGV: 'workspace:data:igv',
   workspaceDataOpenWithWorkflow: 'workspace:data:workflow',
   workspaceDataOpenWithDataExplorer: 'workspace:data:dataexplorer',
@@ -115,24 +117,24 @@ const eventsList = {
   workspaceShareWithSupport: 'workspace:shareWithSupport',
   workspaceSnapshotDelete: 'workspace:snapshot:delete',
   workspaceSnapshotContentsView: 'workspace:snapshot:contents:view',
-  workspaceStar: 'workspace:star'
-}
+  workspaceStar: 'workspace:star',
+};
 
 /**
  * Extracts name, namespace, and cloudPlatform (if present) from an object. The object can either have these
  * as top-level properties (such as would be returned from parseNav), or nested within a workspace object
  * (such as would be returned from the ajax workspace details API).
  */
-export const extractWorkspaceDetails = workspaceObject => {
+export const extractWorkspaceDetails = (workspaceObject) => {
   // A "workspace" as returned from the workspace list or details API method has as "workspace" object within it
   // containing the workspace details.
-  const workspaceDetails = 'workspace' in workspaceObject ? workspaceObject.workspace : workspaceObject
-  const { name, namespace, cloudPlatform } = workspaceDetails
-  const data = { workspaceName: name, workspaceNamespace: namespace }
+  const workspaceDetails = 'workspace' in workspaceObject ? workspaceObject.workspace : workspaceObject;
+  const { name, namespace, cloudPlatform } = workspaceDetails;
+  const data = { workspaceName: name, workspaceNamespace: namespace };
   // When workspace details are obtained from the nav path, the cloudPlatform will not be available.
   // Uppercase cloud platform because we mix camelcase and uppercase depending on which server API it came from (rawls/workspace vs. leo).
-  return _.isUndefined(cloudPlatform) ? data : _.merge(data, { cloudPlatform: _.toUpper(cloudPlatform) })
-}
+  return _.isUndefined(cloudPlatform) ? data : _.merge(data, { cloudPlatform: _.toUpper(cloudPlatform) });
+};
 
 export const extractCrossWorkspaceDetails = (fromWorkspace, toWorkspace) => {
   return {
@@ -141,30 +143,27 @@ export const extractCrossWorkspaceDetails = (fromWorkspace, toWorkspace) => {
     fromWorkspaceCloudPlatform: _.toUpper(fromWorkspace.workspace.cloudPlatform),
     toWorkspaceNamespace: toWorkspace.workspace.namespace,
     toWorkspaceName: toWorkspace.workspace.name,
-    toWorkspaceCloudPlatform: _.toUpper(toWorkspace.workspace.cloudPlatform)
-  }
-}
+    toWorkspaceCloudPlatform: _.toUpper(toWorkspace.workspace.cloudPlatform),
+  };
+};
 
-export const extractBillingDetails = billingProject => {
+export const extractBillingDetails = (billingProject) => {
   return {
     billingProjectName: billingProject.projectName,
-    cloudPlatform: _.toUpper(billingProject.cloudPlatform) // Should already be uppercase, but enforce for consistency.
-  }
-}
+    cloudPlatform: _.toUpper(billingProject.cloudPlatform), // Should already be uppercase, but enforce for consistency.
+  };
+};
 
-export const PageViewReporter = () => {
-  const { name, params } = useRoute()
+export function PageViewReporter() {
+  const { name, params } = useRoute();
 
   useEffect(() => {
-    const isWorkspace = /^#workspaces\/.+\/.+/.test(window.location.hash)
+    const isWorkspace = /^#workspaces\/.+\/.+/.test(window.location.hash);
 
-    Ajax().Metrics.captureEvent(
-      `${eventsList.pageView}:${name}`,
-      isWorkspace ? extractWorkspaceDetails(params) : undefined
-    )
-  }, [name, params])
+    Ajax().Metrics.captureEvent(`${eventsList.pageView}:${name}`, isWorkspace ? extractWorkspaceDetails(params) : undefined);
+  }, [name, params]);
 
-  return null
+  return null;
 }
 
 export const captureAppcuesEvent = (eventName, event) => {
@@ -180,10 +179,11 @@ export const captureAppcuesEvent = (eventName, event) => {
     'step_aborted',
     'step_interacted',
     'form_submitted',
-    'form_field_submitted'
-  ]
+    'form_field_submitted',
+  ];
   if (_.includes(eventName, publicEvents)) {
-    const eventProps = { // Building the props manually to make sure we're resilient to any changes in Appcues
+    const eventProps = {
+      // Building the props manually to make sure we're resilient to any changes in Appcues
       'appcues.flowId': event.flowId,
       'appcues.flowName': event.flowName,
       'appcues.flowType': event.flowType,
@@ -205,10 +205,10 @@ export const captureAppcuesEvent = (eventName, event) => {
       'appcues.stepId': event.stepId,
       'appcues.stepNumber': event.stepNumber,
       'appcues.stepType': event.stepType,
-      'appcues.timestamp': event.timestamp
-    }
-    return Ajax().Metrics.captureEvent(eventsList.appcuesEvent, eventProps)
+      'appcues.timestamp': event.timestamp,
+    };
+    return Ajax().Metrics.captureEvent(eventsList.appcuesEvent, eventProps);
   }
-}
+};
 
-export default eventsList
+export default eventsList;

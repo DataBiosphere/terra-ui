@@ -1,16 +1,15 @@
-const { click, delay, findText } = require('./integration-utils')
-
+const { click, delay, findText } = require('./integration-utils');
 
 const selectWorkspace = async (page, billingAccount, workspace) => {
-  await click(page, '//*[@data-test-id="workspace-selector"]')
-  return click(page, `//ul/li[contains(normalize-space(.),"${billingAccount}/${workspace}")]`)
-}
+  await click(page, '//*[@data-test-id="workspace-selector"]');
+  return click(page, `//ul/li[contains(normalize-space(.),"${billingAccount}/${workspace}")]`);
+};
 
 const signIntoFirecloud = async (page, token) => {
-  await page.waitForXPath('//title[text()="FireCloud | Broad Institute"]')
-  await findText(page, 'content you are looking for is currently only accessible')
+  await page.waitForXPath('//title[text()="FireCloud | Broad Institute"]');
+  await findText(page, 'content you are looking for is currently only accessible');
 
-  await page.waitForXPath('//*[@id="sign-in-button"]')
+  await page.waitForXPath('//*[@id="sign-in-button"]');
 
   /*
    * The FireCloud not-signed-in page renders the sign-in button while it is still doing some
@@ -39,14 +38,14 @@ const signIntoFirecloud = async (page, token) => {
    * we want it to always be enough, whether running 10 parallel executions on a developer laptop or
    * running in a CI server.
    */
-  await delay(1500)
+  await delay(1500);
 
-  console.log(`Sign in Firecloud: ${page.url()}`)
-  await page.waitForFunction('!!window["forceSignedIn"]')
-  await page.evaluate(token => window.forceSignedIn(token), token) // Note: function for Fire Cloud is forceSignedIn() while Terra is forceSignIn()
-}
+  console.log(`Sign in Firecloud: ${page.url()}`);
+  await page.waitForFunction('!!window["forceSignedIn"]');
+  await page.evaluate((token) => window.forceSignedIn(token), token); // Note: function for Fire Cloud is forceSignedIn() while Terra is forceSignIn()
+};
 
 module.exports = {
   selectWorkspace,
-  signIntoFirecloud
-}
+  signIntoFirecloud,
+};
