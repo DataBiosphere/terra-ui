@@ -1,7 +1,6 @@
+import axe from '@axe-core/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
-
-const axe = require('@axe-core/react');
 
 const config = {
   tags: ['wcag2a', 'wcag2aa'],
