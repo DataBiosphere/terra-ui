@@ -1,1 +1,1 @@
-beforeEach(async () => await jestPuppeteer.resetPage())
+beforeEach(async () => await jestPuppeteer.resetPage());

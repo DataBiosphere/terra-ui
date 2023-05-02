@@ -1,7 +1,6 @@
-import { useState } from 'react'
-import LoadedState, { ErrorState } from 'src/libs/type-utils/LoadedState'
-import { isFetchResponse } from 'src/libs/type-utils/type-helpers'
-
+import { useState } from 'react';
+import LoadedState, { ErrorState } from 'src/libs/type-utils/LoadedState';
+import { isFetchResponse } from 'src/libs/type-utils/type-helpers';
 
 export interface UseLoadedDataArgs<T> {
   /**
@@ -15,16 +14,13 @@ export interface UseLoadedDataArgs<T> {
    *   onError: (errState) => ReportError(errState.error)
    * })
    */
-  onError?: (state: ErrorState<T, unknown>) => void
+  onError?: (state: ErrorState<T, unknown>) => void;
 }
 
 /**
  * The Tuple returned by useLoadedData custom helper hook
  */
-export type UseLoadedDataResult<T> = [
-  LoadedState<T, unknown>,
-  (dataCall: () => Promise<T>) => Promise<void>
-]
+export type UseLoadedDataResult<T> = [LoadedState<T, unknown>, (dataCall: () => Promise<T>) => Promise<void>];
 
 /**
  * A custom helper hook that will handle typical async data call mechanics and translate the possible outcomes to
@@ -48,39 +44,34 @@ export type UseLoadedDataResult<T> = [
  * @returns a tuple with [currentLoadedState, updateDataMethod]
  */
 export const useLoadedData = <T>(hookArgs?: UseLoadedDataArgs<T>): UseLoadedDataResult<T> => {
-  const args: UseLoadedDataArgs<T> = hookArgs ? hookArgs : {}
-  const [loadedData, setLoadedData] = useState<LoadedState<T, unknown>>({ status: 'None' })
+  const args: UseLoadedDataArgs<T> = hookArgs || {};
+  const [loadedData, setLoadedData] = useState<LoadedState<T, unknown>>({ status: 'None' });
 
   const updateDataFn = async (dataCall: () => Promise<T>) => {
-    const previousState = loadedData.status !== 'None' ? loadedData.state : null
+    const previousState = loadedData.status !== 'None' ? loadedData.state : null;
     setLoadedData({
       status: 'Loading',
-      state: previousState
-    })
+      state: previousState,
+    });
     try {
-      const result = await dataCall()
+      const result = await dataCall();
       setLoadedData({
         status: 'Ready',
-        state: result
-      })
+        state: result,
+      });
     } catch (err: unknown) {
-      const error = isFetchResponse(err) ?
-        Error(await err.text()) :
-        err
+      const error = isFetchResponse(err) ? Error(await err.text()) : err;
       const errorResult: ErrorState<T, unknown> = {
         status: 'Error',
         state: previousState,
-        error
-      }
-      setLoadedData(errorResult)
+        error,
+      };
+      setLoadedData(errorResult);
       if (args.onError) {
-        args.onError(errorResult)
+        args.onError(errorResult);
       }
     }
-  }
+  };
 
-  return ([
-    loadedData,
-    updateDataFn
-  ])
-}
+  return [loadedData, updateDataFn];
+};

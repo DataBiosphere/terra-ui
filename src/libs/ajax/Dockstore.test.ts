@@ -1,97 +1,99 @@
-import { asMockedFn } from 'src/testing/test-utils'
+import { asMockedFn } from 'src/testing/test-utils';
 
-import { fetchDockstore, fetchOk } from './ajax-common'
-import { Dockstore } from './Dockstore'
+import { fetchDockstore, fetchOk } from './ajax-common';
+import { Dockstore } from './Dockstore';
 
-
-type AjaxCommonExports = typeof import('./ajax-common')
+type AjaxCommonExports = typeof import('./ajax-common');
 jest.mock('./ajax-common', (): Partial<AjaxCommonExports> => {
   return {
     fetchDockstore: jest.fn(),
     fetchOk: jest.fn(),
-  }
-})
+  };
+});
 
 describe('Dockstore', () => {
   afterEach(() => {
-    jest.resetAllMocks()
-  })
+    jest.resetAllMocks();
+  });
 
-  const testWorkflowPath = 'github.com/DataBiosphere/test-workflows/test-workflow'
-  const testWorkflowVersion = 'v1.0.0'
+  const testWorkflowPath = 'github.com/DataBiosphere/test-workflows/test-workflow';
+  const testWorkflowVersion = 'v1.0.0';
 
   describe('getWdl', () => {
     beforeEach(() => {
       // Arrange
       asMockedFn(fetchDockstore).mockResolvedValue(
-        new Response(JSON.stringify({
-          descriptor: 'Test workflow',
-          type: 'WDL',
-          url: 'https://raw.githubusercontent.com/DataBiosphere/test-workflows/v1.0.0/test-workflow.wdl',
-        }))
-      )
+        new Response(
+          JSON.stringify({
+            descriptor: 'Test workflow',
+            type: 'WDL',
+            url: 'https://raw.githubusercontent.com/DataBiosphere/test-workflows/v1.0.0/test-workflow.wdl',
+          })
+        )
+      );
 
-      asMockedFn(fetchOk).mockResolvedValue(new Response('workflow TestWorkflow {}'))
-    })
+      asMockedFn(fetchOk).mockResolvedValue(new Response('workflow TestWorkflow {}'));
+    });
 
     it('fetches WDL descriptor from Dockstore', async () => {
       // Act
-      await Dockstore().getWdl({ path: testWorkflowPath, isTool: false, version: testWorkflowVersion })
+      await Dockstore().getWdl({ path: testWorkflowPath, isTool: false, version: testWorkflowVersion });
 
       // Assert
       expect(fetchDockstore).toHaveBeenCalledWith(
-        `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(testWorkflowPath)}/versions/${encodeURIComponent(testWorkflowVersion)}/WDL/descriptor`,
-        { signal: undefined },
-      )
-    })
+        `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(testWorkflowPath)}/versions/${encodeURIComponent(
+          testWorkflowVersion
+        )}/WDL/descriptor`,
+        { signal: undefined }
+      );
+    });
 
     it('fetches WDL code', async () => {
       // Act
-      const wdl = await Dockstore().getWdl({ path: testWorkflowPath, isTool: false, version: testWorkflowVersion })
+      const wdl = await Dockstore().getWdl({ path: testWorkflowPath, isTool: false, version: testWorkflowVersion });
 
       // Assert
       expect(fetchOk).toHaveBeenCalledWith(
         'https://raw.githubusercontent.com/DataBiosphere/test-workflows/v1.0.0/test-workflow.wdl',
-        { signal: undefined },
-      )
+        { signal: undefined }
+      );
 
-      expect(wdl).toBe('workflow TestWorkflow {}')
-    })
-  })
+      expect(wdl).toBe('workflow TestWorkflow {}');
+    });
+  });
 
   describe('listVersions', () => {
     it('fetches workflow versions', async () => {
       // Arrange
-      asMockedFn(fetchDockstore).mockResolvedValue(new Response('[]'))
+      asMockedFn(fetchDockstore).mockResolvedValue(new Response('[]'));
 
       // Act
-      const versions = await Dockstore().getVersions({ path: testWorkflowPath, isTool: false })
+      const versions = await Dockstore().getVersions({ path: testWorkflowPath, isTool: false });
 
       // Assert
       expect(fetchDockstore).toHaveBeenCalledWith(
         `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(testWorkflowPath)}/versions`,
-        { signal: undefined },
-      )
+        { signal: undefined }
+      );
 
-      expect(versions).toEqual([])
-    })
-  })
+      expect(versions).toEqual([]);
+    });
+  });
 
   describe('listTools', () => {
     it('fetches workflows', async () => {
       // Arrange
-      asMockedFn(fetchDockstore).mockResolvedValue(new Response('[]'))
+      asMockedFn(fetchDockstore).mockResolvedValue(new Response('[]'));
 
       // Act
-      const tools = await Dockstore().listTools({ organization: 'gatk-workflows' })
+      const tools = await Dockstore().listTools({ organization: 'gatk-workflows' });
 
       // Assert
-      expect(fetchDockstore).toHaveBeenCalledWith(
-        'api/ga4gh/v1/tools?organization=gatk-workflows',
-        { signal: undefined },
-      )
+      expect(fetchDockstore).toHaveBeenCalledWith('api/ga4gh/v1/tools?organization=gatk-workflows', {
+        signal: undefined,
+      });
 
-      expect(tools).toEqual([])
-    })
-  })
-})
+      expect(tools).toEqual([]);
+    });
+  });
+});
