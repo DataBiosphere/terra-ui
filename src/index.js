@@ -1,15 +1,14 @@
-import 'src/outdated-browser-message'
+import 'src/outdated-browser-message';
 
-import { loadedConfigStore } from 'src/configStore'
-
+import { loadedConfigStore } from 'src/configStore';
 
 const loadApp = async () => {
-  const res = await fetch(`${process.env.PUBLIC_URL}/config.json`)
-  loadedConfigStore.current = await res.json()
+  const res = await fetch(`${process.env.PUBLIC_URL}/config.json`);
+  loadedConfigStore.current = await res.json();
 
-  import('src/appLoader')
-}
+  import('src/appLoader');
+};
 
-const loadOauthRedirect = () => import('src/oauthRedirectLoader')
+const loadOauthRedirect = () => import('src/oauthRedirectLoader');
 
-window.location.pathname.startsWith('/redirect-from-oauth') ? loadOauthRedirect() : loadApp()
+window.location.pathname.startsWith('/redirect-from-oauth') ? loadOauthRedirect() : loadApp();

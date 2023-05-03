@@ -1,12 +1,19 @@
-import Color from 'color'
-import _ from 'lodash/fp'
+import Color from 'color';
+import _ from 'lodash/fp';
 import {
-  isAnvil, isBaseline, isBioDataCatalyst, isDatastage, isElwazi, isFirecloud, isProjectSingular, isRareX, isTerra
-} from 'src/libs/brand-utils'
-import * as Utils from 'src/libs/utils'
+  isAnvil,
+  isBaseline,
+  isBioDataCatalyst,
+  isDatastage,
+  isElwazi,
+  isFirecloud,
+  isProjectSingular,
+  isRareX,
+  isTerra,
+} from 'src/libs/brand-utils';
+import * as Utils from 'src/libs/utils';
 
-
-const ALL_COLORS = ['primary', 'secondary', 'accent', 'success', 'warning', 'danger', 'light', 'dark', 'grey', 'disabled']
+const ALL_COLORS = ['primary', 'secondary', 'accent', 'success', 'warning', 'danger', 'light', 'dark', 'grey', 'disabled'];
 
 const baseColors = {
   primary: '#4d72aa', // Used as accent on header, loading spinner, background of beta version tag and some buttons
@@ -18,8 +25,8 @@ const baseColors = {
   light: '#e9ecef', // Used as header background color, lightened for background of cells, panels, etc.
   dark: '#333f52', // Used as text color, menu background (lightened), selected background (lightened)
   grey: '#808080',
-  disabled: '#b6b7b8'
-}
+  disabled: '#b6b7b8',
+};
 
 const colorPalette = Utils.cond(
   [isFirecloud(), () => baseColors],
@@ -31,13 +38,21 @@ const colorPalette = Utils.cond(
   [isProjectSingular(), () => ({ ...baseColors, primary: '#521b93', secondary: '#011c48', accent: '#521b93' })],
   [isRareX(), () => ({ ...baseColors, primary: '#26355c', secondary: '#26355c', dark: '#414042', accent: '#4e6888', light: '#f4efea' })],
   () => ({ ...baseColors, primary: '#74ae43' })
-)
+);
 
-const colors = _.fromPairs(_.map(
-  color => [color, (intensity = 1) => Color(colorPalette[color]).mix(Color('white'), 1 - intensity).hex()],
-  ALL_COLORS
-))
+const colors = _.fromPairs(
+  _.map(
+    (color) => [
+      color,
+      (intensity = 1) =>
+        Color(colorPalette[color])
+          .mix(Color('white'), 1 - intensity)
+          .hex(),
+    ],
+    ALL_COLORS
+  )
+);
 
-export const terraSpecial = intensity => isTerra() ? colors.primary(intensity) : colors.accent(intensity)
+export const terraSpecial = (intensity) => (isTerra() ? colors.primary(intensity) : colors.accent(intensity));
 
-export default colors
+export default colors;

@@ -4,7 +4,7 @@ import {
 } from 'src/data/gce-machines'
 import { App, appStatuses } from 'src/libs/ajax/leonardo/models/app-models'
 import { CloudContext } from 'src/libs/ajax/leonardo/models/core-models'
-import { DecoratedPersistentDisk, diskStatuses, LeoDiskStatus, PdType, pdTypes, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models'
+import { DecoratedPersistentDisk, LeoDiskStatus, PdType, PersistentDisk, diskStatuses, pdTypes } from 'src/libs/ajax/leonardo/models/disk-models'
 import {
   AzureConfig,
   GoogleRuntimeConfig,
@@ -20,7 +20,8 @@ import * as Utils from 'src/libs/utils'
 import { cloudProviderTypes } from 'src/libs/workspace-utils'
 import { getAppStatusForDisplay } from 'src/pages/workspaces/workspace/analysis/utils/app-utils'
 import {
-  defaultDataprocWorkerDiskSize, defaultGceBootDiskSize,
+  defaultDataprocWorkerDiskSize,
+  defaultGceBootDiskSize,
   getCurrentAttachedDataDisk,
   getCurrentPersistentDisk,
   updatePdType
@@ -30,19 +31,20 @@ import {
   defaultDataprocMachineType,
   defaultGceMachineType,
   findMachineType,
-  getComputeStatusForDisplay, getNormalizedComputeRegion,
+  getComputeStatusForDisplay,
+  getNormalizedComputeRegion,
   getRuntimeForTool,
   isAzureContext,
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils'
-import { appToolLabels, appTools, RuntimeToolLabel, runtimeToolLabels, ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+import { RuntimeToolLabel, ToolLabel, appToolLabels, appTools, runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
 
 // GOOGLE COST METHODS begin
 
 export const dataprocCost = (machineType:string, numInstances:number):number => {
   const { cpu: cpuPrice } = findMachineType(machineType)
 
-  return cpuPrice * numInstances * dataprocCpuPrice
-}
+  return cpuPrice * numInstances * dataprocCpuPrice;
+};
 
 export const getHourlyCostForMachineType = (machineTypeName:string, region:string, isPreemptible:boolean):number => {
   const { cpu, memory } = _.find({ name: machineTypeName }, machineTypes) || { cpu: 0, memory: 0 }
@@ -56,9 +58,9 @@ export const getHourlyCostForMachineType = (machineTypeName:string, region:strin
 export const getGpuCost = (gpuType:string, numGpus:number, region:string):number => {
   const prices = _.find({ name: region }, regionToPrices) || {}
   // From a type like 'nvidia-tesla-t4', look up 't4HourlyPrice' in prices
-  const price = prices[`${_.last(_.split('-', gpuType))}HourlyPrice`]
-  return price * numGpus
-}
+  const price = prices[`${_.last(_.split('-', gpuType))}HourlyPrice`];
+  return price * numGpus;
+};
 
 const getDefaultIfUndefined = (input: any | undefined, alternative: any): any => input ? input : alternative
 
@@ -76,23 +78,28 @@ export const runtimeConfigBaseCost = (config: GoogleRuntimeConfig): number => {
     dataprocCost(config.masterMachineType, 1) + dataprocCost(getDefaultIfUndefined(config.workerMachineType, defaultDataprocMachineType), config.numberOfWorkers) :
     0
 
-  const costForGceWithoutUserDisk: number = isGceConfig(config) ?
-    getDefaultIfUndefined(config.bootDiskSize, defaultGceBootDiskSize) * getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard) :
-    0
+  const costForGceWithoutUserDisk: number = isGceConfig(config)
+    ? getDefaultIfUndefined(config.bootDiskSize, defaultGceBootDiskSize) *
+      getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard)
+    : 0;
 
-  const costForGceWithUserDisk: number = isGceWithPdConfig(config) ?
-    (config.bootDiskSize) * getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard) : 0
-  return _.sum([costForDataproc, costForGceWithoutUserDisk, costForGceWithUserDisk])
-}
+  const costForGceWithUserDisk: number = isGceWithPdConfig(config)
+    ? config.bootDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard)
+    : 0;
+  return _.sum([costForDataproc, costForGceWithoutUserDisk, costForGceWithUserDisk]);
+};
 
 export const runtimeConfigCost = (config: GoogleRuntimeConfig): number => {
   if (!config) return 0
   const computeRegion = getNormalizedComputeRegion(config)
 
-  const machineType: string = isGceRuntimeConfig(config) ? config.machineType :
-    isDataprocConfig(config) ? config.masterMachineType : defaultGceMachineType
+  const machineType: string = isGceRuntimeConfig(config)
+    ? config.machineType
+    : isDataprocConfig(config)
+    ? config.masterMachineType
+    : defaultGceMachineType;
 
-  const baseMachinePrice: number = getHourlyCostForMachineType(machineType, computeRegion, false)
+  const baseMachinePrice: number = getHourlyCostForMachineType(machineType, computeRegion, false);
 
   const additionalDataprocCost: number = isDataprocConfig(config) ? _.sum([
     config.numberOfWorkers > 0 ? config.numberOfWorkers * getHourlyCostForMachineType(getDefaultIfUndefined(config.workerMachineType, defaultDataprocMachineType), computeRegion, false) : 0,
@@ -126,8 +133,11 @@ export const getPersistentDiskPriceForRegionHourly = (computeRegion:string, disk
 export const ephemeralExternalIpAddressCost = (numStandardVms:number, numPreemptibleVms:number):number => {
   if (!numStandardVms || !numPreemptibleVms) return 0
   // Google categorizes a VM as 'standard' if it is not 'pre-emptible'.
-  return numStandardVms * ephemeralExternalIpAddressPrice.standard + numPreemptibleVms * ephemeralExternalIpAddressPrice.preemptible
-}
+  return (
+    numStandardVms * ephemeralExternalIpAddressPrice.standard +
+    numPreemptibleVms * ephemeralExternalIpAddressPrice.preemptible
+  );
+};
 
 export const getAppCost = (app:App, dataDisk:DecoratedPersistentDisk):number => app && dataDisk && app.appType === appTools.GALAXY.label ? getGalaxyCost(app, dataDisk) : 0
 
@@ -166,9 +176,9 @@ export const getGalaxyComputeCost = (app:App):number => {
     case appStatuses.error.status:
       return 0.0
     default:
-      return staticCost + dynamicCost
+      return staticCost + dynamicCost;
   }
-}
+};
 
 /*
  * - Disk cost is incurred regardless of app status.
@@ -276,8 +286,8 @@ export const getCostForDisk = (app:App, appDataDisks:PersistentDisk[], computeRe
     //Occasionally currentDataDisk will be undefined on initial render.
     diskCost = currentDataDisk ? getGalaxyDiskCost(currentDataDisk) : 0
   }
-  return diskCost
-}
+  return diskCost;
+};
 
 export const getCostDisplayForTool = (app:App, currentRuntime:Runtime, currentRuntimeTool:RuntimeToolLabel, toolLabel:ToolLabel):string => {
   return Utils.cond(
