@@ -1,7 +1,7 @@
 import * as _ from 'lodash/fp';
 import React, { Fragment, useEffect, useState } from 'react';
-import { div, h, h1, h2, h3 } from 'react-hyperscript-helpers';
-import { ButtonPrimary, Clickable, Link, spinnerOverlay } from 'src/components/common';
+import { div, h, h1, h2, h3, label } from 'react-hyperscript-helpers';
+import { ButtonPrimary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
@@ -38,6 +38,7 @@ const DatasetBuilderSelector = <T extends DatasetBuilderType>({
   headerAction,
   placeholder,
   values,
+  onChange,
   selectedValues,
   prepackagedValues,
   width = '30%',
@@ -83,9 +84,22 @@ const DatasetBuilderSelector = <T extends DatasetBuilderType>({
       },
       [
         (values && values.length > 0) || (prepackagedValues && prepackagedValues.length > 0)
-          ? // TODO: Implement values display
-            div({ style: { display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' } }, [
-              _.map((value) => div([value.name]), values),
+          ? div({ style: { display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' } }, [
+              _.map(
+                (value, i) =>
+                  div({ style: { display: 'flex' } }, [
+                    h(
+                      LabeledCheckbox,
+                      {
+                        checked: _.includes(value, selectedValues),
+                        onChange: () => onChange([value]),
+                        key: i,
+                      },
+                      [label([value.name])]
+                    ),
+                  ]),
+                values
+              ),
             ])
           : div([placeholder]),
       ]
@@ -246,11 +260,18 @@ const DatasetBuilderContents = () => {
       'Build a dataset by selecting the concept sets and values for one or more of your cohorts. Then export the completed dataset to Notebooks where you can perform your analysis',
     ]),
     div({ style: { display: 'flex', width: '100%', marginTop: '1rem' } }, [
-      h(CohortSelector, { selectedCohorts, onChange: (cohorts) => setSelectedValues(_.xor(selectedCohorts, cohorts)) }),
+      h(CohortSelector, {
+        selectedCohorts,
+        onChange: (cohorts) => {
+          console.log(cohorts);
+          console.log(selectedCohorts);
+          setSelectedCohorts(_.xor(selectedCohorts, cohorts));
+        },
+      }),
       div({ style: { marginLeft: '1rem' } }),
       h(ConceptSetSelector, {
         selectedConceptSets,
-        onChange: (conceptSets) => setSelectedValues(_.xor(selectedConceptSets, conceptSets)),
+        onChange: (conceptSets) => setSelectedConceptSets(_.xor(selectedConceptSets, conceptSets)),
       }),
       div({ style: { marginLeft: '1rem' } }),
       h(ValuesSelector, { selectedValues, onChange: (values) => setSelectedValues(_.xor(selectedValues, values)) }),
