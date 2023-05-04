@@ -1,3 +1,36 @@
+import _ from 'lodash/fp';
+import { Fragment, useState } from 'react';
+import { div, h, hr, img, span } from 'react-hyperscript-helpers';
+import { Clickable, spinnerOverlay } from 'src/components/common';
+import { icon } from 'src/components/icons';
+import ModalDrawer from 'src/components/ModalDrawer';
+import TitleBar from 'src/components/TitleBar';
+import cromwellImg from 'src/images/cromwell-logo.png';
+import galaxyLogo from 'src/images/galaxy-logo.svg';
+import jupyterLogo from 'src/images/jupyter-logo-long.png';
+import rstudioBioLogo from 'src/images/r-bio-logo.svg';
+import { Ajax } from 'src/libs/ajax';
+import colors from 'src/libs/colors';
+import { reportError } from 'src/libs/error';
+import Events from 'src/libs/events';
+import * as Nav from 'src/libs/nav';
+import { useStore } from 'src/libs/react-utils';
+import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
+import * as Utils from 'src/libs/utils';
+import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
+import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/AzureComputeModal';
+import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal';
+import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal';
+import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal';
+import { appLauncherTabName, PeriodicAzureCookieSetter } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
+import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager';
+import { doesWorkspaceSupportCromwellAppForUser, getCurrentApp, getIsAppBusy } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
+import { getCostDisplayForDisk, getCostDisplayForTool } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils';
+import {
+  getCurrentPersistentDisk,
+  getReadyPersistentDisk,
+  isCurrentGalaxyDiskDetaching,
+} from 'src/pages/workspaces/workspace/analysis/utils/disk-utils';
 import {
   getComputeStatusForDisplay,
   getConvertedRuntimeStatus,
@@ -333,7 +366,7 @@ export const CloudEnvironmentModal = ({
       busy ||
       isToolBusy ||
       !isLaunchSupported(toolLabel) ||
-      !doesWorkspaceSupportCromwellAppForUser(workspace?.workspace, cloudProvider, toolLabel);
+      !doesWorkspaceSupportCromwellAppForUser(workspace.workspace, cloudProvider, toolLabel);
     const baseProps = {
       'aria-label': `Launch ${toolLabel}`,
       disabled: isDisabled,
@@ -346,7 +379,7 @@ export const CloudEnvironmentModal = ({
       tooltip: Utils.cond(
         [doesCloudEnvForToolExist && !isDisabled, () => 'Open'],
         [
-          isDisabled && !doesWorkspaceSupportCromwellAppForUser(workspace?.workspace, cloudProvider, toolLabel),
+          isDisabled && !doesWorkspaceSupportCromwellAppForUser(workspace.workspace, cloudProvider, toolLabel),
           () =>
             'Cromwell app is either not supported in this workspace or you need to be a workspace creator to access the app. Please create a new workspace to use Cromwell app.',
         ],

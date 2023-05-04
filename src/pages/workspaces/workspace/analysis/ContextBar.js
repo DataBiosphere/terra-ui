@@ -32,7 +32,7 @@ import * as Utils from 'src/libs/utils';
 import { getCloudProviderFromWorkspace, isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal';
 import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
-import { getCurrentApp } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
+import { doesWorkspaceSupportCromwellAppForUser, getCurrentApp } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
 import {
   getCostDisplayForDisk,
   getCostDisplayForTool,
