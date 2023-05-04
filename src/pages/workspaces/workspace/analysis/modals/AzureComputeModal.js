@@ -350,34 +350,40 @@ export const AzureComputeModalBase = ({
 
   // TODO [IA-3348] parameterize and make it a shared function between the equivalent in ComputeModal
   const renderCostBreakdown = () => {
-    return div({
-      style: {
-        backgroundColor: colors.accent(0.2),
-        display: 'flex',
-        borderRadius: 5,
-        padding: '0.5rem 1rem',
-        marginTop: '1rem'
-      }
-    }, [
-      _.map(({ cost, label, unitLabel }) => {
-        return div({ key: label, style: { flex: 1, ...computeStyles.label } }, [
-          div({ style: { fontSize: 10 } }, [label]),
-          div({ style: { color: colors.accent(1.1), marginTop: '0.25rem' } }, [
-            span({ style: { fontSize: 20 } }, [cost]),
-            span([' ', unitLabel])
-          ])
-        ])
-      }, [
-        { label: 'Running cloud compute cost', cost: Utils.formatUSD(getAzureComputeCostEstimate(computeConfig)), unitLabel: 'per hr' },
-        { label: 'Paused cloud compute cost', cost: Utils.formatUSD(0), unitLabel: 'per hr' }, //TODO: [IA-4105] update cost
-        {
-          label: 'Persistent disk cost',
-          cost: Utils.formatUSD(getAzureDiskCostEstimate(computeConfig.zone, computeConfig.diskSize)),
-          unitLabel: 'per month'
-        }
-      ])
-    ])
-  }
+    return div(
+      {
+        style: {
+          backgroundColor: colors.accent(0.2),
+          display: 'flex',
+          borderRadius: 5,
+          padding: '0.5rem 1rem',
+          marginTop: '1rem',
+        },
+      },
+      [
+        _.map(
+          ({ cost, label, unitLabel }) => {
+            return div({ key: label, style: { flex: 1, ...computeStyles.label } }, [
+              div({ style: { fontSize: 10 } }, [label]),
+              div({ style: { color: colors.accent(1.1), marginTop: '0.25rem' } }, [
+                span({ style: { fontSize: 20 } }, [cost]),
+                span([' ', unitLabel]),
+              ]),
+            ]);
+          },
+          [
+            { label: 'Running cloud compute cost', cost: Utils.formatUSD(getAzureComputeCostEstimate(computeConfig)), unitLabel: 'per hr' },
+            { label: 'Paused cloud compute cost', cost: Utils.formatUSD(0), unitLabel: 'per hr' }, // TODO: [IA-4105] update cost
+            {
+              label: 'Persistent disk cost',
+              cost: Utils.formatUSD(getAzureDiskCostEstimate(computeConfig.zone, computeConfig.diskSize)),
+              unitLabel: 'per month',
+            },
+          ]
+        ),
+      ]
+    );
+  };
 
   return h(Fragment, [
     Utils.switchCase(

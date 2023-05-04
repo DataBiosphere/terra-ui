@@ -68,9 +68,9 @@ export const isGceWithPdConfig = (config: RuntimeConfig): config is GceWithPdCon
   );
 };
 export const isGceConfig = (config: RuntimeConfig): config is GceConfig => {
-  const castConfig = config as GceConfig
-  return config.cloudService === 'GCE' && castConfig.diskSize !== undefined
-}
+  const castConfig = config as GceConfig;
+  return config.cloudService === 'GCE' && castConfig.diskSize !== undefined;
+};
 export const isAzureConfig = (config: RuntimeConfig): config is AzureConfig => {
-  return config.cloudService === 'AZURE_VM'
-}
+  return config.cloudService === 'AZURE_VM';
+};

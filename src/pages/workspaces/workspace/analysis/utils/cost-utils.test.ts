@@ -1,10 +1,18 @@
-import { pdTypes } from 'src/libs/ajax/leonardo/models/disk-models';
+import {
+  DecoratedPersistentDisk,
+  diskStatuses,
+  pdTypes,
+  PersistentDisk,
+} from 'src/libs/ajax/leonardo/models/disk-models';
+import { cloudServiceTypes, GoogleRuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
+import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getAzurePricesForRegion } from 'src/libs/azure-utils';
 import {
   azureDisk,
   azureRuntime,
   galaxyDisk,
   galaxyRunning,
+  getAzureDisk,
   getDisk,
   getGoogleRuntime,
   getJupyterRuntimeConfig,
@@ -16,35 +24,54 @@ import {
   getRuntimeCost,
   runtimeConfigCost,
 } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils';
-import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import { appToolLabels, runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
-const defaultSparkSingleNode = {
-  cloudService: 'DATAPROC',
-  autopauseThreshold: 30,
-  region: 'US-CENTRAL1',
-  masterMachineType: 'n1-standard-4',
-  masterDiskSize: 150,
-  numberOfWorkers: 0,
-  componentGatewayEnabled: true,
-  numberOfPreemptibleWorkers: 0,
-  workerDiskSize: 0,
-  workerPrivateAccess: false,
+const jupyterDisk: PersistentDisk = {
+  auditInfo: {
+    creator: 'cahrens@gmail.com',
+    createdDate: '2021-12-02T16:38:13.777424Z',
+    dateAccessed: '2021-12-02T16:40:23.464Z',
+  },
+  blockSize: 4096,
+  cloudContext: { cloudProvider: 'GCP', cloudResource: 'terra-test-f828b4cd' },
+  diskType: 'pd-standard',
+  id: 29,
+  labels: {},
+  name: 'saturn-pd-bd0d0405-c048-4212-bccf-568435933081',
+  size: 50,
+  status: 'Ready',
+  zone: 'us-central1-a',
 };
 
-const defaultSparkCluster = {
-  cloudService: 'DATAPROC',
-  autopauseThreshold: 30,
-  region: 'US-CENTRAL1',
-  masterMachineType: 'n1-standard-4',
-  masterDiskSize: 150,
-  numberOfWorkers: 2,
-  componentGatewayEnabled: true,
-  numberOfPreemptibleWorkers: 0,
-  workerMachineType: 'n1-standard-4',
-  workerDiskSize: 150,
-  workerPrivateAccess: false,
-};
+jest.mock('src/data/gce-machines', () => {
+  const originalModule = jest.requireActual('src/data/gce-machines');
+
+  return {
+    ...originalModule,
+    regionToPrices: [
+      {
+        name: 'US-CENTRAL1',
+        monthlyStandardDiskPrice: 0.04,
+        monthlySSDDiskPrice: 0.17,
+        monthlyBalancedDiskPrice: 0.1,
+        n1HourlyGBRamPrice: 0.004237,
+        n1HourlyCpuPrice: 0.031611,
+        preemptibleN1HourlyGBRamPrice: 0.000892,
+        preemptibleN1HourlyCpuPrice: 0.006655,
+        t4HourlyPrice: 0.35,
+        p4HourlyPrice: 0.6,
+        k80HourlyPrice: 0.45,
+        v100HourlyPrice: 2.48,
+        p100HourlyPrice: 1.46,
+        preemptibleT4HourlyPrice: 0.11,
+        preemptibleP4HourlyPrice: 0.216,
+        preemptibleK80HourlyPrice: 0.0375,
+        preemptibleV100HourlyPrice: 0.74,
+        preemptibleP100HourlyPrice: 0.43,
+      },
+    ],
+  };
+});
 
 describe('getCostDisplayForDisk', () => {
   it('GCP - will get the disk cost for a Galaxy AppDataDisk', () => {
@@ -52,14 +79,22 @@ describe('getCostDisplayForDisk', () => {
     const app = galaxyRunning;
     const appDataDisks = [galaxyDisk];
     const computeRegion = 'US-CENTRAL1';
-    const currentRuntimeTool = undefined;
+    const currentRuntimeTool = runtimeToolLabels.Jupyter;
     const persistentDisks = [];
     const runtimes = [];
     const toolLabel = appToolLabels.GALAXY;
     const expectedResult = 'Disk $0.04/hr';
 
     // Act
-    const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel);
+    const result = getCostDisplayForDisk(
+      app,
+      appDataDisks,
+      computeRegion,
+      currentRuntimeTool,
+      persistentDisks,
+      runtimes,
+      toolLabel
+    );
 
     // Assert
     expect(result).toBe(expectedResult);
@@ -67,7 +102,6 @@ describe('getCostDisplayForDisk', () => {
 
   it('GCP - will get the disk cost for a Jupyter Persistent Disk', () => {
     // Arrange
-    const jupyterDisk = getDisk();
     const jupyterRuntime = getGoogleRuntime({
       runtimeConfig: getJupyterRuntimeConfig({ diskId: jupyterDisk.id }),
     });
@@ -81,7 +115,15 @@ describe('getCostDisplayForDisk', () => {
     const expectedResult = 'Disk < $0.01/hr';
 
     // Act
-    const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel);
+    const result = getCostDisplayForDisk(
+      app,
+      appDataDisks,
+      computeRegion,
+      currentRuntimeTool,
+      persistentDisks,
+      runtimes,
+      toolLabel
+    );
 
     // Assert
     expect(result).toBe(expectedResult);
@@ -92,14 +134,22 @@ describe('getCostDisplayForDisk', () => {
     const app = undefined;
     const appDataDisks = [];
     const computeRegion = 'US-CENTRAL1';
-    const currentRuntimeTool = undefined;
+    const currentRuntimeTool = runtimeToolLabels.Jupyter;
     const persistentDisks = [];
     const runtimes = [];
-    const toolLabel = '';
+    const toolLabel = runtimeToolLabels.Jupyter;
     const expectedResult = '';
 
     // Act
-    const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel);
+    const result = getCostDisplayForDisk(
+      app,
+      appDataDisks,
+      computeRegion,
+      currentRuntimeTool,
+      persistentDisks,
+      runtimes,
+      toolLabel
+    );
 
     // Assert
     expect(result).toBe(expectedResult);
@@ -117,7 +167,15 @@ describe('getCostDisplayForDisk', () => {
     const expectedResult = '';
 
     // Act
-    const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel);
+    const result = getCostDisplayForDisk(
+      app,
+      appDataDisks,
+      computeRegion,
+      currentRuntimeTool,
+      persistentDisks,
+      runtimes,
+      toolLabel
+    );
 
     // Assert
     expect(result).toBe(expectedResult);
@@ -125,7 +183,6 @@ describe('getCostDisplayForDisk', () => {
 
   it('GCP - will return blank string because cost is 0 due to deleting disk.', () => {
     // Arrange
-    const jupyterDisk = getDisk();
     const jupyterRuntime = getGoogleRuntime({
       runtimeConfig: getJupyterRuntimeConfig({ diskId: jupyterDisk.id }),
     });
@@ -133,13 +190,21 @@ describe('getCostDisplayForDisk', () => {
     const appDataDisks = [];
     const computeRegion = 'US-CENTRAL1';
     const currentRuntimeTool = runtimeToolLabels.Jupyter;
-    const persistentDisks = [{ ...jupyterDisk, status: 'Deleting' }];
+    const persistentDisks = [{ ...jupyterDisk, status: diskStatuses.deleting.leoLabel }];
     const runtimes = [jupyterRuntime];
     const toolLabel = runtimeToolLabels.Jupyter;
     const expectedResult = '';
 
     // Act
-    const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel);
+    const result = getCostDisplayForDisk(
+      app,
+      appDataDisks,
+      computeRegion,
+      currentRuntimeTool,
+      persistentDisks,
+      runtimes,
+      toolLabel
+    );
 
     // Assert
     expect(result).toBe(expectedResult);
@@ -158,9 +223,15 @@ describe('getCostDisplayForDisk', () => {
     const expectedResult = 'Disk < $0.01/hr';
 
     // Act
-    const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel);
-    // Act
-    getCostDisplayForDisk(azureRuntime);
+    const result = getCostDisplayForDisk(
+      app,
+      appDataDisks,
+      computeRegion,
+      currentRuntimeTool,
+      persistentDisks,
+      runtimes,
+      toolLabel
+    );
 
     // Assert
     expect(result).toBe(expectedResult);
@@ -170,7 +241,7 @@ describe('getCostDisplayForDisk', () => {
 describe('GCP getCostDisplayForTool', () => {
   it('Will get compute cost and compute status for Galaxy app', () => {
     // Arrange
-    const expectedResult = 'Running $0.53/hr';
+    const expectedResult = 'Running $0.52/hr';
     const app = galaxyRunning;
     const currentRuntime = undefined;
     const currentRuntimeTool = undefined;
@@ -185,7 +256,7 @@ describe('GCP getCostDisplayForTool', () => {
 
   it('Will get compute cost and compute status for a running Jupyter runtime', () => {
     // Arrange
-    const expectedResult = 'Running $0.06/hr';
+    const expectedResult = 'Running $0.05/hr';
     const app = undefined;
     const currentRuntime = getGoogleRuntime({
       runtimeConfig: getJupyterRuntimeConfig(),
@@ -207,7 +278,7 @@ describe('GCP getCostDisplayForTool', () => {
     const jupyterRuntime = getGoogleRuntime({
       runtimeConfig: getJupyterRuntimeConfig(),
     });
-    const currentRuntime = { ...jupyterRuntime, status: 'Stopped' };
+    const currentRuntime = { ...jupyterRuntime, status: runtimeStatuses.stopped.leoLabel };
     const currentRuntimeTool = runtimeToolLabels.Jupyter;
     const toolLabel = runtimeToolLabels.Jupyter;
 
@@ -296,10 +367,25 @@ describe('getCostDisplayForTool', () => {
 describe('getPersistentDiskCostMonthly', () => {
   it('GCP - Cost estimate', () => {
     // Arrange
-    const cloudContext = { cloudProvider: cloudProviders.gcp.label };
+    const gcpDiskAttached: DecoratedPersistentDisk = {
+      ...getDisk({ size: 50 }),
+      cloudContext: {
+        cloudProvider: 'GCP',
+        cloudResource: 'disk',
+      },
+      labels: [],
+      status: diskStatuses.ready.leoLabel,
+      auditInfo: {
+        creator: 'trock@broadinstitute.org',
+        createdDate: '2020-10-13T15:00:00.000Z',
+        dateAccessed: '2020-10-13T15:00:00.000Z',
+        destroyedDate: undefined,
+      },
+      // diskType: pdTypes.standard,
+    };
 
     // Act
-    const result = getPersistentDiskCostMonthly({ cloudContext, size: 50, diskType: pdTypes.standard }, 'US-CENTRAL1');
+    const result = getPersistentDiskCostMonthly(gcpDiskAttached, 'US-CENTRAL1');
 
     // Assert
     expect(result).not.toBe(NaN); // Seems excessive to check the math, we really just want to see that it calculates a number.
@@ -308,17 +394,46 @@ describe('getPersistentDiskCostMonthly', () => {
   // TODO: Need disk types for Azure
   it('Azure - Standard disk smallest size cost estimate', () => {
     // Arrange
-    const cloudContext = { cloudProvider: cloudProviders.azure.label };
+    const azureDiskAttached = {
+      ...getAzureDisk({ size: 50 }),
+      diskType: pdTypes.standard,
+    };
 
     // Act
-    const result = getPersistentDiskCostMonthly({ cloudContext, size: 50, zone: 'eastus' });
+    const result = getPersistentDiskCostMonthly(azureDiskAttached, 'NORTHAMERICA-NORTHEAST1');
 
     // Assert
-    expect(result).toBe(getAzurePricesForRegion('eastus')['S6 LRS']);
+    expect(result).toBe(getAzurePricesForRegion('eastus')!['S6 LRS']);
   });
 });
 
 describe('runtimeConfigCost for dataproc', () => {
+  const defaultSparkSingleNode: GoogleRuntimeConfig = {
+    cloudService: cloudServiceTypes.DATAPROC,
+    autopauseThreshold: 30,
+    region: 'US-CENTRAL1',
+    masterMachineType: 'n1-standard-4',
+    masterDiskSize: 150,
+    numberOfWorkers: 0,
+    componentGatewayEnabled: true,
+    numberOfPreemptibleWorkers: 0,
+    workerDiskSize: 0,
+    workerPrivateAccess: false,
+  };
+
+  const defaultSparkCluster: GoogleRuntimeConfig = {
+    cloudService: cloudServiceTypes.DATAPROC,
+    autopauseThreshold: 30,
+    region: 'US-CENTRAL1',
+    masterMachineType: 'n1-standard-4',
+    masterDiskSize: 150,
+    numberOfWorkers: 2,
+    componentGatewayEnabled: true,
+    numberOfPreemptibleWorkers: 0,
+    workerMachineType: 'n1-standard-4',
+    workerDiskSize: 150,
+    workerPrivateAccess: false,
+  };
   it('gets cost for a dataproc cluster', () => {
     // Act
     const result = runtimeConfigCost(defaultSparkCluster);

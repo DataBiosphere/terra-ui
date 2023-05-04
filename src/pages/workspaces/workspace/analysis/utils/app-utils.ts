@@ -1,15 +1,15 @@
-import _ from 'lodash/fp'
-import { App, AppStatus, DisplayAppStatus } from 'src/libs/ajax/leonardo/models/app-models'
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models'
-import { getConfig } from 'src/libs/config'
-import * as Utils from 'src/libs/utils'
-import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils'
+import _ from 'lodash/fp';
+import { App, AppStatus, appStatuses, DisplayAppStatus } from 'src/libs/ajax/leonardo/models/app-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { getConfig } from 'src/libs/config';
+import * as Utils from 'src/libs/utils';
+import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils';
 import {
-  AppToolLabel,
-  ToolLabel,
   allAppTypes,
+  AppToolLabel,
   appToolLabels,
-} from 'src/pages/workspaces/workspace/analysis/utils/tool-utils'
+  ToolLabel,
+} from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 const getCurrentAppExcludingStatuses = (appType: AppToolLabel, statuses: AppStatus[], apps: App[]): App | undefined =>
   _.flow(
@@ -41,15 +41,14 @@ export const doesWorkspaceSupportCromwellApp = (
   );
 };
 
-export const getAppStatusForDisplay = (status: AppStatus): DisplayAppStatus => Utils.switchCase(status,
-  ['STARTING', () => 'Resuming'],
-  ['STOPPING', () => 'Pausing'],
-  ['STOPPED', () => 'Paused'],
-  ['PROVISIONING', () => 'Creating'],
-  [Utils.DEFAULT, () => _.capitalize(status)])
+export const getAppStatusForDisplay = (statusType: AppStatus): DisplayAppStatus | string =>
+  Object.values(appStatuses).find(({ status }) => String(status) === statusType)?.displayStatus ||
+  _.capitalize(statusType);
 
-export const getCurrentApp = (appType: AppToolLabel, apps: App[]): App | undefined => getCurrentAppExcludingStatuses(appType, ['DELETING'], apps)
-export const getCurrentAppIncludingDeleting = (appType: AppToolLabel, apps: App[]): App | undefined => getCurrentAppExcludingStatuses(appType, [], apps)
+export const getCurrentApp = (appType: AppToolLabel, apps: App[]): App | undefined =>
+  getCurrentAppExcludingStatuses(appType, ['DELETING'], apps);
+export const getCurrentAppIncludingDeleting = (appType: AppToolLabel, apps: App[]): App | undefined =>
+  getCurrentAppExcludingStatuses(appType, [], apps);
 
 // If the disk was attached to an app, return the appType. Otherwise return undefined.
 export const getDiskAppType = (disk: PersistentDisk): AppToolLabel | undefined => {
