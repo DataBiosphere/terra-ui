@@ -66,6 +66,7 @@ const mockWorkspaces: Partial<WorkspaceWrapper>[] = [
       cloudPlatform: '',
       authorizationDomain: [],
       createdDate: '2023-02-15T19:17:15.711Z',
+      createdBy: 'groot@gmail.com',
     },
   },
   {
@@ -76,6 +77,7 @@ const mockWorkspaces: Partial<WorkspaceWrapper>[] = [
       cloudPlatform: '',
       authorizationDomain: [],
       createdDate: '2023-02-15T19:17:15.711Z',
+      createdBy: 'groot@gmail.com',
     },
   },
   {
@@ -86,6 +88,7 @@ const mockWorkspaces: Partial<WorkspaceWrapper>[] = [
       cloudPlatform: '',
       authorizationDomain: [],
       createdDate: '2023-02-15T19:17:15.711Z',
+      createdBy: 'groot@gmail.com',
     },
   },
 ];

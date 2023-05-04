@@ -24,7 +24,7 @@ import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modal
 import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal';
 import { appLauncherTabName, PeriodicAzureCookieSetter } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager';
-import { doesWorkspaceSupportCromwellApp, getCurrentApp, getIsAppBusy } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
+import { doesWorkspaceSupportCromwellAppForUser, getCurrentApp, getIsAppBusy } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
 import { getCostDisplayForDisk, getCostDisplayForTool } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils';
 import {
   getCurrentPersistentDisk,
@@ -44,7 +44,6 @@ import {
   getToolsToDisplayForCloudProvider,
   isAppToolLabel,
   isPauseSupported,
-  isSettingsSupported,
   runtimeToolLabels,
   toolLabelDisplays,
   tools,
@@ -367,7 +366,7 @@ export const CloudEnvironmentModal = ({
       busy ||
       isToolBusy ||
       !isLaunchSupported(toolLabel) ||
-      !doesWorkspaceSupportCromwellApp(workspace?.workspace?.createdDate, cloudProvider, toolLabel);
+      !doesWorkspaceSupportCromwellAppForUser(workspace.workspace, cloudProvider, toolLabel);
     const baseProps = {
       'aria-label': `Launch ${toolLabel}`,
       disabled: isDisabled,
@@ -380,8 +379,9 @@ export const CloudEnvironmentModal = ({
       tooltip: Utils.cond(
         [doesCloudEnvForToolExist && !isDisabled, () => 'Open'],
         [
-          doesCloudEnvForToolExist && isDisabled && !doesWorkspaceSupportCromwellApp(workspace?.workspace?.createdDate, cloudProvider, toolLabel),
-          () => 'Cromwell app is not supported in this workspace. Please create a new workspace to use Cromwell app.',
+          isDisabled && !doesWorkspaceSupportCromwellAppForUser(workspace.workspace, cloudProvider, toolLabel),
+          () =>
+            'Cromwell app is either not supported in this workspace or you need to be a workspace creator to access the app. Please create a new workspace to use Cromwell app.',
         ],
         [
           doesCloudEnvForToolExist && isDisabled && isLaunchSupported(toolLabel),
@@ -472,7 +472,7 @@ export const CloudEnvironmentModal = ({
         ]),
         // Cloud environment button
         div({ style: toolButtonDivStyles }, [
-          isSettingsSupported(toolLabel, cloudProvider, workspace.accessLevel, workspace.workspace.createdDate) &&
+          doesWorkspaceSupportCromwellAppForUser(workspace.workspace, cloudProvider, toolLabel) &&
             h(
               Clickable,
               {

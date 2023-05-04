@@ -32,7 +32,7 @@ import * as Utils from 'src/libs/utils';
 import { getCloudProviderFromWorkspace, isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal';
 import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
-import { doesWorkspaceSupportCromwellApp, getCurrentApp } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
+import { doesWorkspaceSupportCromwellAppForUser, getCurrentApp } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
 import {
   getCostDisplayForDisk,
   getCostDisplayForTool,
@@ -159,7 +159,7 @@ export const ContextBar = ({
     const cromwellApp =
       !isToolHidden(appTools.CROMWELL.label, cloudProvider) &&
       cromwellAppObject &&
-      doesWorkspaceSupportCromwellApp(workspace?.workspace?.createdDate, cloudProvider, appTools.CROMWELL.label);
+      doesWorkspaceSupportCromwellAppForUser(workspace?.workspace, cloudProvider, appTools.CROMWELL.label);
     return h(Fragment, [
       ...(currentRuntime ? [getIconForTool(currentRuntimeTool, currentRuntime.status)] : []),
       ...(galaxyApp ? [getIconForTool(appToolLabels.GALAXY, galaxyApp.status)] : []),
