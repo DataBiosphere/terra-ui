@@ -1,34 +1,36 @@
-import { Dispatch, Fragment, SetStateAction, useEffect, useRef, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
-import { ButtonOutline, Link, topSpinnerOverlay } from 'src/components/common'
-import Dropzone from 'src/components/Dropzone'
-import { useFilesInDirectory } from 'src/components/file-browser/file-browser-hooks'
-import { basename } from 'src/components/file-browser/file-browser-utils'
-import { FilesMenu } from 'src/components/file-browser/FilesMenu'
-import FilesTable from 'src/components/file-browser/FilesTable'
-import { NoticeForPath } from 'src/components/file-browser/NoticeForPath'
-import { icon } from 'src/components/icons'
-import { UploadProgressModal } from 'src/components/ProgressBar'
-import FileBrowserProvider, { FileBrowserDirectory, FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
-import colors from 'src/libs/colors'
-import { dataTableVersionsPathRoot } from 'src/libs/data-table-versions'
-import { reportError } from 'src/libs/error'
-import { useUploader } from 'src/libs/uploads'
-import * as Utils from 'src/libs/utils'
-
+import { Dispatch, Fragment, SetStateAction, useEffect, useRef, useState } from 'react';
+import { div, h, span } from 'react-hyperscript-helpers';
+import { ButtonOutline, Link, topSpinnerOverlay } from 'src/components/common';
+import Dropzone from 'src/components/Dropzone';
+import { useFilesInDirectory } from 'src/components/file-browser/file-browser-hooks';
+import { basename } from 'src/components/file-browser/file-browser-utils';
+import { FilesMenu } from 'src/components/file-browser/FilesMenu';
+import FilesTable from 'src/components/file-browser/FilesTable';
+import { NoticeForPath } from 'src/components/file-browser/NoticeForPath';
+import { icon } from 'src/components/icons';
+import { UploadProgressModal } from 'src/components/ProgressBar';
+import FileBrowserProvider, {
+  FileBrowserDirectory,
+  FileBrowserFile,
+} from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
+import colors from 'src/libs/colors';
+import { dataTableVersionsPathRoot } from 'src/libs/data-table-versions';
+import { reportError } from 'src/libs/error';
+import { useUploader } from 'src/libs/uploads';
+import * as Utils from 'src/libs/utils';
 
 interface FilesInDirectoryProps {
-  editDisabled?: boolean
-  editDisabledReason?: string
-  provider: FileBrowserProvider
-  path: string
-  rootLabel?: string
-  selectedFiles: { [path: string]: FileBrowserFile }
-  setSelectedFiles: Dispatch<SetStateAction<{ [path: string]: FileBrowserFile }>>
-  onClickFile: (file: FileBrowserFile) => void
-  onCreateDirectory: (directory: FileBrowserDirectory) => void
-  onDeleteDirectory: () => void
-  onError: (error: Error) => void
+  editDisabled?: boolean;
+  editDisabledReason?: string;
+  provider: FileBrowserProvider;
+  path: string;
+  rootLabel?: string;
+  selectedFiles: { [path: string]: FileBrowserFile };
+  setSelectedFiles: Dispatch<SetStateAction<{ [path: string]: FileBrowserFile }>>;
+  onClickFile: (file: FileBrowserFile) => void;
+  onCreateDirectory: (directory: FileBrowserDirectory) => void;
+  onDeleteDirectory: () => void;
+  onError: (error: Error) => void;
 }
 
 const FilesInDirectory = (props: FilesInDirectoryProps) => {
@@ -44,171 +46,203 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
     onCreateDirectory,
     onDeleteDirectory,
     onError,
-  } = props
+  } = props;
 
-  const directoryLabel = path === '' ? rootLabel : basename(path)
+  const directoryLabel = path === '' ? rootLabel : basename(path);
 
-  const loadedAlertElementRef = useRef<HTMLSpanElement | null>(null)
+  const loadedAlertElementRef = useRef<HTMLSpanElement | null>(null);
 
-  const {
-    state,
-    hasNextPage,
-    loadAllRemainingItems,
-    loadNextPage,
-    reload,
-  } = useFilesInDirectory(provider, path)
+  const { state, hasNextPage, loadAllRemainingItems, loadNextPage, reload } = useFilesInDirectory(provider, path);
 
   useEffect(() => {
     if (state.status === 'Error') {
-      onError(state.error)
+      onError(state.error);
     }
-  }, [state, onError])
+  }, [state, onError]);
 
-  const { uploadState, uploadFiles, cancelUpload } = useUploader(file => {
-    return provider.uploadFileToDirectory(path, file)
-  })
+  const { uploadState, uploadFiles, cancelUpload } = useUploader((file) => {
+    return provider.uploadFileToDirectory(path, file);
+  });
 
-  const { status, files } = state
-  const isLoading = status === 'Loading'
+  const { status, files } = state;
+  const isLoading = status === 'Loading';
 
   useEffect(() => {
-    loadedAlertElementRef.current!.innerHTML = Utils.switchCase(status,
+    loadedAlertElementRef.current!.innerHTML = Utils.switchCase(
+      status,
       ['Loading', () => ''],
       ['Ready', () => `Loaded ${files.length} files in ${directoryLabel}`],
       ['Error', () => `Error loading files in ${directoryLabel}`]
-    )
-  }, [directoryLabel, files, status])
+    );
+  }, [directoryLabel, files, status]);
 
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useState(false);
 
-  return div({
-    style: {
-      display: 'flex',
-      flexDirection: 'column',
-      flex: '1 0 0'
-    }
-  }, [
-    h(Dropzone, {
-      disabled: editDisabled || uploadState.active,
-      style: { display: 'flex', flexFlow: 'column nowrap', height: '100%' },
-      activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
-      multiple: true,
-      maxFiles: 0, // no limit on number of files
-      onDropAccepted: async files => {
-        await uploadFiles(files)
-        reload()
-      }
-    }, [({ openUploader }) => h(Fragment, [
-      h(FilesMenu, {
-        disabled: editDisabled,
-        disabledReason: editDisabledReason,
-        path,
-        provider,
-        selectedFiles,
-        onClickUpload: openUploader,
-        onCreateDirectory,
-        onDeleteFiles: () => {
-          setSelectedFiles({})
-          reload()
+  return div(
+    {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        flex: '1 0 0',
+      },
+    },
+    [
+      h(
+        Dropzone,
+        {
+          disabled: editDisabled || uploadState.active,
+          style: { display: 'flex', flexFlow: 'column nowrap', height: '100%' },
+          activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
+          multiple: true,
+          maxFiles: 0, // no limit on number of files
+          onDropAccepted: async (files) => {
+            await uploadFiles(files);
+            reload();
+          },
         },
-      }),
+        [
+          ({ openUploader }) =>
+            h(Fragment, [
+              h(FilesMenu, {
+                disabled: editDisabled,
+                disabledReason: editDisabledReason,
+                path,
+                provider,
+                selectedFiles,
+                onClickUpload: openUploader,
+                onCreateDirectory,
+                onDeleteFiles: () => {
+                  setSelectedFiles({});
+                  reload();
+                },
+              }),
 
-      h(NoticeForPath, {
-        notices: {
-          [`${dataTableVersionsPathRoot}/`]: 'Files in this folder are managed via data table versioning.'
-        },
-        path
-      }),
+              h(NoticeForPath, {
+                notices: {
+                  [`${dataTableVersionsPathRoot}/`]: 'Files in this folder are managed via data table versioning.',
+                },
+                path,
+              }),
 
-      span({
-        ref: loadedAlertElementRef,
-        'aria-live': 'polite',
-        className: 'sr-only',
-        role: 'alert',
-      }),
-      status === 'Loading' && span({
-        'aria-live': 'assertive',
-        className: 'sr-only',
-        role: 'alert',
-      }, [`Loading files in ${directoryLabel}`]),
+              span({
+                ref: loadedAlertElementRef,
+                'aria-live': 'polite',
+                className: 'sr-only',
+                role: 'alert',
+              }),
+              status === 'Loading' &&
+                span(
+                  {
+                    'aria-live': 'assertive',
+                    className: 'sr-only',
+                    role: 'alert',
+                  },
+                  [`Loading files in ${directoryLabel}`]
+                ),
 
-      files.length > 0 && h(Fragment, [
-        h(FilesTable, {
-          'aria-label': `Files in ${directoryLabel}`,
-          files,
-          selectedFiles,
-          setSelectedFiles,
-          onClickFile
+              files.length > 0 &&
+                h(Fragment, [
+                  h(FilesTable, {
+                    'aria-label': `Files in ${directoryLabel}`,
+                    files,
+                    selectedFiles,
+                    setSelectedFiles,
+                    onClickFile,
+                  }),
+                  div(
+                    {
+                      style: {
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        padding: '1rem',
+                        borderTop: `1px solid ${colors.dark(0.2)}`,
+                        background: '#fff',
+                      },
+                    },
+                    [
+                      div([
+                        `${files.length} files `,
+                        isLoading && h(Fragment, ['Loading more... ', icon('loadingSpinner', { size: 12 })]),
+                      ]),
+                      hasNextPage !== false &&
+                        div([
+                          h(
+                            Link,
+                            {
+                              disabled: isLoading,
+                              style: { marginLeft: '1ch' },
+                              onClick: () => loadNextPage(),
+                            },
+                            ['Load next page']
+                          ),
+                          h(
+                            Link,
+                            {
+                              disabled: isLoading,
+                              style: { marginLeft: '1ch' },
+                              tooltip: 'This may take a long time for folders containing several thousand objects.',
+                              onClick: () => loadAllRemainingItems(),
+                            },
+                            ['Load all']
+                          ),
+                        ]),
+                    ]
+                  ),
+                ]),
+              files.length === 0 &&
+                div(
+                  {
+                    style: {
+                      marginTop: '1rem',
+                      fontStyle: 'italic',
+                      textAlign: 'center',
+                    },
+                  },
+                  [
+                    Utils.cond(
+                      [status === 'Loading', () => 'Loading files...'],
+                      [status === 'Error', () => 'Unable to load files'],
+                      [
+                        path !== '' && provider.supportsEmptyDirectories,
+                        () =>
+                          h(
+                            ButtonOutline,
+                            {
+                              style: { marginTop: '1rem', textTransform: 'none' },
+                              onClick: async () => {
+                                // Attempt to delete folder placeholder object.
+                                // A placeholder object may not exist for the prefix being viewed, so do not an report error for 404 responses.
+                                // See https://cloud.google.com/storage/docs/folders for more information on placeholder objects.
+                                setBusy(true);
+                                try {
+                                  await provider.deleteEmptyDirectory(path);
+                                  setBusy(false);
+                                  onDeleteDirectory();
+                                } catch (error) {
+                                  setBusy(false);
+                                  reportError('Error deleting folder', error);
+                                }
+                              },
+                            },
+                            ['Delete this folder']
+                          ),
+                      ],
+                      () => 'No files have been uploaded yet'
+                    ),
+                  ]
+                ),
+            ]),
+        ]
+      ),
+      uploadState.active &&
+        h(UploadProgressModal, {
+          status: uploadState,
+          abort: cancelUpload,
         }),
-        div({
-          style: {
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '1rem',
-            borderTop: `1px solid ${colors.dark(0.2)}`,
-            background: '#fff'
-          }
-        }, [
-          div([
-            `${files.length} files `,
-            isLoading && h(Fragment, [
-              'Loading more... ',
-              icon('loadingSpinner', { size: 12 })
-            ])
-          ]),
-          hasNextPage !== false && div([
-            h(Link, {
-              disabled: isLoading,
-              style: { marginLeft: '1ch' },
-              onClick: () => loadNextPage()
-            }, ['Load next page']),
-            h(Link, {
-              disabled: isLoading,
-              style: { marginLeft: '1ch' },
-              tooltip: 'This may take a long time for folders containing several thousand objects.',
-              onClick: () => loadAllRemainingItems()
-            }, ['Load all'])
-          ])
-        ])
-      ]),
-      files.length === 0 && div({
-        style: {
-          marginTop: '1rem',
-          fontStyle: 'italic',
-          textAlign: 'center',
-        }
-      }, [
-        Utils.cond(
-          [status === 'Loading', () => 'Loading files...'],
-          [status === 'Error', () => 'Unable to load files'],
-          [path !== '' && provider.supportsEmptyDirectories, () => h(ButtonOutline, {
-            style: { marginTop: '1rem', textTransform: 'none' },
-            onClick: async () => {
-              // Attempt to delete folder placeholder object.
-              // A placeholder object may not exist for the prefix being viewed, so do not an report error for 404 responses.
-              // See https://cloud.google.com/storage/docs/folders for more information on placeholder objects.
-              setBusy(true)
-              try {
-                await provider.deleteEmptyDirectory(path)
-                setBusy(false)
-                onDeleteDirectory()
-              } catch (error) {
-                setBusy(false)
-                reportError('Error deleting folder', error)
-              }
-            }
-          }, ['Delete this folder'])],
-          () => 'No files have been uploaded yet'
-        )
-      ])
-    ])]),
-    uploadState.active && h(UploadProgressModal, {
-      status: uploadState,
-      abort: cancelUpload
-    }),
 
-    busy && topSpinnerOverlay,
-  ])
-}
+      busy && topSpinnerOverlay,
+    ]
+  );
+};
 
-export default FilesInDirectory
+export default FilesInDirectory;
