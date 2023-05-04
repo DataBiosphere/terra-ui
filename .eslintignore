@@ -11,3 +11,4 @@ public
 .yarn
 node_modules
 .vscode
+coverage

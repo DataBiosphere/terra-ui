@@ -15,41 +15,37 @@ module.exports = {
     },
   },
   rules: {
-    'import/prefer-default-export': 'off',
     'simple-import-sort/imports': 'warn',
     quotes: [2, 'single', { avoidEscape: true }],
     'prettier/prettier': 'error',
 
     // TODO: ticket all of these to be enabled or explain why they are disabled
+    // Destructuring props is not required because it clutters the function type signature.
+    // Props can be destructured in a separate line.
     'react/destructuring-assignment': 'off',
+    // Use TypeScript instead of PropTypes for new code.
     'react/forbid-prop-types': 'off',
-    'react/hooks/exhaustive-deps': 'off',
     'react/prop-types': 'off',
     'react/require-default-props': 'off',
     'react/sort-comp': 'off',
     'react/static-property-placement': 'off',
 
-    'import/extensions': 'off',
     'import/named': 'off',
     'import/no-cycle': 'off',
-    'import/no-extraneous-dependencies': 'off',
     'import/no-named-as-default': 'off',
-    'import/no-named-as-default-member': 'off',
-    'import/no-relative-parent-imports': 'off',
+    // Named exports are more convenient for mocking.
+    'import/prefer-default-export': 'off',
 
+    // TS directive comments will be necessary during transition from JS to TS.
     '@typescript-eslint/ban-ts-comment': 'off',
     '@typescript-eslint/ban-types': 'off',
-    '@typescript-eslint/default-param-last': 'off',
-    '@typescript-eslint/naming-convention': 'off',
     '@typescript-eslint/no-empty-function': 'off',
-    '@typescript-eslint/no-explicit-any': ['off'],
-    '@typescript-eslint/no-implied-eval': 'off',
+    // `any` is useful for incremental type improvements during the transition from JS to TS.
+    '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/no-shadow': 'off',
     '@typescript-eslint/no-throw-literal': 'off',
-    '@typescript-eslint/no-unused-expressions': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
-    '@typescript-eslint/no-var-requires': 'off',
     '@typescript-eslint/return-await': 'off',
     '@typescript-eslint/strict-boolean-expressions': 'off', // TODO: should be 'warn',
 
@@ -57,13 +53,13 @@ module.exports = {
     'consistent-return': 'off',
     'default-param-last': 'off',
     'func-names': 'off',
-    'implicit-arrow-linebreak': 'off',
-    'max-len': 'off', // TODO: should be: ['warn', { code: 120 }],
+    // Formatting is handled by Prettier.
+    'max-len': 'off',
     'no-await-in-loop': 'off',
     'no-case-declarations': 'off',
-    'no-constant-condition': 'off',
     'no-console': 'off',
-    'no-dupe-keys': 'off',
+    // Allow `while (true) {...}`
+    'no-constant-condition': ['error', {checkLoops: false}],
     'no-empty': 'off',
     'no-continue': 'off',
     'no-nested-ternary': 'off',
@@ -72,11 +68,9 @@ module.exports = {
     'no-promise-executor-return': 'off',
     'no-restricted-syntax': 'off',
     'no-return-await': 'off',
-    'no-undef': 'off',
     'no-underscore-dangle': 'off',
     'no-unused-expressions': 'off',
     'no-void': 'off',
-    'operator-linebreak': 'off',
     'prefer-destructuring': 'off',
     'prefer-promise-reject-errors': 'off',
     'prefer-regex-literals': 'off',
@@ -97,7 +91,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['**/*.test.ts', '**/*.test.js'],
+      files: ['**/*.test.ts', '**/*.test.js', 'src/setupTests.js'],
       env: {
         jest: true,
       },
@@ -108,6 +102,22 @@ module.exports = {
         // 'no-console': ['warn', { allow: ['assert', 'error'] }],//TODO: should be enabled
       },
     },
+    {
+      files: ['integration-tests/**'],
+      rules: {
+        // Integration tests use CommonJS instead of ESM.
+        '@typescript-eslint/no-var-requires': 'off',
+        // TODO: Add dependencies to package.json.
+        'import/no-extraneous-dependencies': 'off'
+      }
+    },
+    {
+      files: ['config-overrides.js'],
+      rules: {
+        // Webpack config uses CommonJS instead of ESM.
+        '@typescript-eslint/no-var-requires': 'off',
+      }
+    }
   ],
   plugins: ['lodash-fp', 'simple-import-sort'],
 };
