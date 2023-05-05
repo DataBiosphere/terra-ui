@@ -75,7 +75,7 @@ export const snapshotStore = Utils.atom();
 /** @type {Utils.Atom<any[]>} */
 export const dataCatalogStore = Utils.atom([]);
 
-export const datasetBuilderCohorts = Utils.atom([{ name: 'a' }, { name: 'b' }, { name: 'c' }, { name: 'd' }]);
+export const datasetBuilderCohorts = Utils.atom([]);
 
 export const datasetBuilderConceptSets = Utils.atom([]);
 

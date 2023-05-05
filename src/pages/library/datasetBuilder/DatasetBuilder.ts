@@ -1,7 +1,7 @@
 import * as _ from 'lodash/fp';
 import React, { Fragment, useEffect, useState } from 'react';
-import { div, h, h1, h2, h3, label } from 'react-hyperscript-helpers';
-import { ButtonPrimary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
+import { div, h, h2, h3, label } from 'react-hyperscript-helpers';
+import { ButtonPrimary, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
@@ -11,15 +11,18 @@ import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/libs/state';
+import * as Utils from 'src/libs/utils';
 import { StringInput } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
+import {
+  PAGE_PADDING_HEIGHT,
+  PAGE_PADDING_WIDTH,
+  PREPACKAGED_CONCEPT_SETS,
+} from 'src/pages/library/datasetBuilder/constants';
 import { Cohort, ConceptSet, DatasetBuilderType } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import { DatasetBuilderHeader } from 'src/pages/library/datasetBuilder/DatasetBuilderHeader';
 import { validate } from 'validate.js';
 
-const PAGE_PADDING_HEIGHT = 0;
-const PAGE_PADDING_WIDTH = 3;
-
-const DatasetBuilderSelectorSubHeader = ({ key, children }) =>
-  div({ style: { fontSize: 12, fontWeight: 600 }, key }, children);
+const DatasetBuilderSelectorSubHeader = ({ children }) => div({ style: { fontSize: 12, fontWeight: 600 } }, children);
 
 interface ValuesSet<T extends DatasetBuilderType> {
   header: string;
@@ -55,7 +58,7 @@ const DatasetBuilderSelector = <T extends DatasetBuilderType>({
         div(
           {
             style: {
-              backgroundColor: colors.accent(0.4),
+              backgroundColor: colors.accent(0.2),
               color: colors.dark(),
               padding: '0.5rem',
               borderRadius: '2rem',
@@ -89,65 +92,66 @@ const DatasetBuilderSelector = <T extends DatasetBuilderType>({
         },
       },
       [
-        valuesSets && valuesSets.length > 0
+        valuesSets && valuesSets.length > 0 && _.flatMap((valuesSet) => valuesSet.values, valuesSets).length > 0
           ? div(
               { style: { display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' } },
               _.map(
-                (valuesSet, i) =>
+                ([i, valuesSet]) =>
+                  // valuesSet.values.length > 0 &&
+                  valuesSet.values &&
                   valuesSet.values.length > 0 &&
                   h(Fragment, [
-                    h(DatasetBuilderSelectorSubHeader, { key: i }, [valuesSet.header]),
-                    _.map(
-                      (value, j) =>
-                        div(
-                          {
-                            style: {
-                              display: 'flex',
-                              padding: '0.5rem',
-                              border: `1px solid ${colors.light()}`,
-                              width: '100%',
-                              marginTop: '0.3rem',
-                              fontSize: 13,
-                            },
-                            key: j,
+                    h(DatasetBuilderSelectorSubHeader, { key: `${valuesSet.header}-${i}` }, [valuesSet.header]),
+                    _.map(([j, value]) => {
+                      return div(
+                        {
+                          style: {
+                            display: 'flex',
+                            padding: '0.5rem',
+                            border: `1px solid ${colors.light()}`,
+                            width: '100%',
+                            marginTop: '0.3rem',
+                            fontSize: 13,
                           },
-                          [
-                            h(
-                              LabeledCheckbox,
-                              {
-                                checked: _.flow(
-                                  _.filter(
-                                    (selectedValuesSet: ValuesSet<T>) => selectedValuesSet.header === valuesSet.header
-                                  ),
-                                  _.flatMap((selectedValuesSet: ValuesSet<T>) => selectedValuesSet.values),
-                                  _.map((selectedValue) => selectedValue.name),
-                                  _.includes(value.name)
-                                )(selectedValuesSets),
-                                onChange: () => {
-                                  const index = _.findIndex(
-                                    (selectedValuesSet) => selectedValuesSet.header === valuesSet.header,
-                                    selectedValuesSets
-                                  );
+                          key: `${valuesSet.header}-${value.name}-${j}`,
+                        },
+                        [
+                          h(
+                            LabeledCheckbox,
+                            {
+                              key: `${valuesSet.header}-${value.name}-${j}-checkbox`,
+                              checked: _.flow(
+                                _.filter(
+                                  (selectedValuesSet: ValuesSet<T>) => selectedValuesSet.header === valuesSet.header
+                                ),
+                                _.flatMap((selectedValuesSet: ValuesSet<T>) => selectedValuesSet.values),
+                                _.map((selectedValue) => selectedValue.name),
+                                _.includes(value.name)
+                              )(selectedValuesSets),
+                              onChange: () => {
+                                const index = _.findIndex(
+                                  (selectedValuesSet) => selectedValuesSet.header === valuesSet.header,
+                                  selectedValuesSets
+                                );
 
-                                  onChange(
-                                    index === -1
-                                      ? selectedValuesSets.concat({ header: valuesSet.header, values: [value] })
-                                      : _.set(
-                                          `[${index}].values`,
-                                          _.xorWith(_.isEqual, selectedValuesSets[index].values, [value]),
-                                          selectedValuesSets
-                                        )
-                                  );
-                                },
+                                onChange(
+                                  index === -1
+                                    ? selectedValuesSets.concat({ header: valuesSet.header, values: [value] })
+                                    : _.set(
+                                        `[${index}].values`,
+                                        _.xorWith(_.isEqual, selectedValuesSets[index].values, [value]),
+                                        selectedValuesSets
+                                      )
+                                );
                               },
-                              [label({ style: { paddingLeft: '0.5rem' } }, [value.name])]
-                            ),
-                          ]
-                        ),
-                      valuesSet.values
-                    ),
+                            },
+                            [label({ style: { paddingLeft: '0.5rem' } }, [value.name])]
+                          ),
+                        ]
+                      );
+                    }, Utils.toIndexPairs(valuesSet.values)),
                   ]),
-                valuesSets
+                Utils.toIndexPairs(valuesSets)
               )
             )
           : div([placeholder]),
@@ -156,7 +160,7 @@ const DatasetBuilderSelector = <T extends DatasetBuilderType>({
   ]);
 };
 
-const CohortSelector = ({
+export const CohortSelector = ({
   selectedCohorts,
   onChange,
 }: {
@@ -170,14 +174,17 @@ const CohortSelector = ({
   const errors = cohortNameTouched && validate({ cohortName }, { cohortName: { presence: { allowEmpty: false } } });
 
   const createCohort = (cohortName) => {
-    // TODO: implement create cohort (push to global state and navigate to cohort edit page)
+    // TODO: Once state is typed, the ts-ignore should go away
+    // @ts-ignore
     datasetBuilderCohorts.set(datasetBuilderCohorts.get().concat({ name: cohortName }));
+    // TODO: navigate to cohortEdit page
+    setCreatingCohort(false);
   };
 
   return h(Fragment, [
     h(DatasetBuilderSelector as React.FC<DatasetBuilderSelectorProps<Cohort>>, {
       headerAction: h(
-        Clickable,
+        Link,
         {
           onClick: () => setCreatingCohort(true),
           'aria-label': 'Create new cohort',
@@ -186,7 +193,6 @@ const CohortSelector = ({
         [icon('plus-circle', { size: 24 })]
       ),
       number: 1,
-      // TODO: Implement cohort selection logic
       onChange,
       valuesSets: [
         {
@@ -235,7 +241,7 @@ const CohortSelector = ({
   ]);
 };
 
-const ConceptSetSelector = ({
+export const ConceptSetSelector = ({
   selectedConceptSets,
   onChange,
 }: {
@@ -249,7 +255,6 @@ const ConceptSetSelector = ({
         // TODO: Point at correct link
         href: Nav.getLink('root'),
         'aria-label': 'Create new concept set',
-        style: { color: colors.dark() },
       },
       [icon('plus-circle', { size: 24 })]
     ),
@@ -262,30 +267,40 @@ const ConceptSetSelector = ({
       },
       {
         header: 'Prepackaged concept sets',
-        values: [{ name: 'Demographics' }, { name: 'All surveys' }],
+        values: PREPACKAGED_CONCEPT_SETS,
       },
     ],
     selectedValuesSets: selectedConceptSets,
     header: 'Select concept sets',
     subheader: 'Which information to include about participants',
-    // TODO: Include prepackaged concept sets
   });
 };
 
 type Value = DatasetBuilderType;
-const ValuesSelector = ({
+export const ValuesSelector = ({
   selectedValues,
+  values,
   onChange,
 }: {
   selectedValues: ValuesSet<Value>[];
+  values: ValuesSet<Value>[];
   onChange: (values: ValuesSet<Value>[]) => void;
 }) => {
   return h(DatasetBuilderSelector as React.FC<DatasetBuilderSelectorProps<Value>>, {
-    // TODO: Implement select all logic
-    headerAction: div(['Select All']),
+    headerAction: div([
+      h(
+        LabeledCheckbox,
+        {
+          checked: values.length !== 0 && _.isEqual(values, selectedValues),
+          onChange: (checked) => (checked ? onChange(values) : onChange([])),
+          disabled: values.length === 0,
+        },
+        [label({ style: { paddingLeft: '0.5rem' } }, ['Select All'])]
+      ),
+    ]),
     number: 3,
     onChange,
-    valuesSets: [],
+    valuesSets: values,
     selectedValuesSets: selectedValues,
     header: 'Select values (columns)',
     placeholder: div([
@@ -294,24 +309,6 @@ const ValuesSelector = ({
     ]),
     width: '40%',
   });
-};
-
-const DatasetBuilderHeader = ({ name }: { name: string }) => {
-  return div(
-    { style: { borderBottom: '1px solid black', padding: `${PAGE_PADDING_HEIGHT + 1}rem ${PAGE_PADDING_WIDTH}rem` } },
-    [
-      div(['Data Browser / ', name]),
-      h1([name, ' Dataset Builder']),
-      div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-        'Create groups of participants based on a specific criteria. You can also save any criteria grouping as a concept set using the menu icon next to the Participant Group title.',
-        div({ style: { display: 'flex', flexDirection: 'column', alignItems: 'flex-end', width: '20rem' } }, [
-          div({ style: { fontWeight: 600 } }, ['Have questions']),
-          // TODO: Link to proper place
-          h(Link, { href: Nav.getLink('root') }, ['See supporting documentation']),
-        ]),
-      ]),
-    ]
-  );
 };
 
 const DatasetBuilderContents = () => {
@@ -337,7 +334,7 @@ const DatasetBuilderContents = () => {
         onChange: (conceptSets) => setSelectedConceptSets(conceptSets),
       }),
       div({ style: { marginLeft: '1rem' } }),
-      h(ValuesSelector, { selectedValues, onChange: (values) => setSelectedValues(values) }),
+      h(ValuesSelector, { selectedValues, values: [], onChange: (values) => setSelectedValues(values) }),
     ]),
   ]);
 };
