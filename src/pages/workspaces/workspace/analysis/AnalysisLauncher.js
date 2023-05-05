@@ -377,6 +377,7 @@ const PreviewHeader = ({
   const { mode } = queryParams;
   const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name, analysisName });
   const isAzureWorkspace = !!workspace.azureContext;
+  const isGcpWorkspace = !!workspace.workspace.googleProject;
   const currentRuntimeToolLabel = getToolLabelFromRuntime(runtime);
   const enableJupyterLabPersistenceId = `${namespace}/${name}/${ENABLE_JUPYTERLAB_ID}`;
   const [enableJupyterLabGCP] = useState(() => getLocalPref(enableJupyterLabPersistenceId) || false);
@@ -561,7 +562,14 @@ const PreviewHeader = ({
       // Status specific messaging which is not specific to an app
       Utils.cond(
         [_.includes(runtimeStatus, usableStatuses), () => h(StatusMessage, { hideSpinner: true }, ['Cloud environment is ready.'])],
-        [runtimeStatus === 'Creating', () => h(StatusMessage, ['Creating cloud environment. You can navigate away and return in 3-5 minutes.'])],
+        [
+          runtimeStatus === 'Creating' && isAzureWorkspace,
+          () => h(StatusMessage, ['Creating cloud environment. You can navigate away, this may take up to 10 minutes.']),
+        ],
+        [
+          runtimeStatus === 'Creating' && isGcpWorkspace,
+          () => h(StatusMessage, ['Creating cloud environment. You can navigate away and return in 3-5 minutes.']),
+        ],
         [runtimeStatus === 'Starting', () => h(StatusMessage, ['Starting cloud environment, this may take up to 2 minutes.'])],
         [
           runtimeStatus === 'Stopping',

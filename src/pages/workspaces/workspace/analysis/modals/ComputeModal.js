@@ -67,7 +67,7 @@ import {
 import validate from 'validate.js';
 
 import { computeStyles } from './modalStyles';
-import { AboutPersistentDisk, handleLearnMoreAboutPersistentDisk, PersistentDiskSection } from './persistent-disk-controls.ts';
+import { AboutPersistentDisk, handleLearnMoreAboutPersistentDisk, PersistentDiskSection } from './persistent-disk-controls';
 
 // Change to true to enable a debugging panel (intended for dev mode only)
 const showDebugPanel = false;

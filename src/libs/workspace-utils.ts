@@ -19,16 +19,15 @@ export interface BaseWorkspaceInfo {
   workspaceId: string;
   cloudPlatform: string;
   authorizationDomain: string[];
+  createdDate: string;
+  createdBy: string;
 }
 
-export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
-  createdDate: string;
-}
+export type AzureWorkspaceInfo = BaseWorkspaceInfo;
 
 export interface GoogleWorkspaceInfo extends BaseWorkspaceInfo {
   googleProject: string;
   bucketName: string;
-  createdDate: string;
 }
 
 export type WorkspaceInfo = AzureWorkspaceInfo | GoogleWorkspaceInfo;

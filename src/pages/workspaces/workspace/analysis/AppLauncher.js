@@ -349,7 +349,14 @@ const ApplicationLauncher = _.flow(
             !busy &&
               h(StatusMessage, { hideSpinner: ['Error', 'Stopped', null].includes(runtimeStatus) }, [
                 Utils.cond(
-                  [runtimeStatus === 'Creating', () => 'Creating cloud environment. You can navigate away and return in 3-5 minutes.'],
+                  [
+                    runtimeStatus === 'Creating' && azureContext,
+                    () => h(StatusMessage, ['Creating cloud environment. You can navigate away, this may take up to 10 minutes.']),
+                  ],
+                  [
+                    runtimeStatus === 'Creating' && !!googleProject,
+                    () => h(StatusMessage, ['Creating cloud environment. You can navigate away and return in 3-5 minutes.']),
+                  ],
                   [runtimeStatus === 'Starting', () => 'Starting cloud environment, this may take up to 2 minutes.'],
                   [_.includes(runtimeStatus, usableStatuses), () => 'Almost ready...'],
                   [
