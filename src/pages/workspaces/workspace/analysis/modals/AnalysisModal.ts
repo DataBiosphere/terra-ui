@@ -29,8 +29,8 @@ import {
   getCloudProviderFromWorkspace,
   isGoogleWorkspaceInfo,
 } from 'src/libs/workspace-utils';
-import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/AzureComputeModal';
-import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal';
+import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal';
+import { GCPComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GCPComputeModal';
 import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal';
 import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal';
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle';
@@ -210,7 +210,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       Utils.switchCase(currentTool, [runtimeToolLabels.JupyterLab, renderAzureModal]);
 
     const renderComputeModal = () =>
-      h(ComputeModalBase, {
+      h(GCPComputeModalBase, {
         location,
         workspace,
         tool: currentTool,

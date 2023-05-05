@@ -45,18 +45,23 @@ const stubReactModal = ({ modalName }) => {
   return p(modalName);
 };
 
-type AzureComputeModalExports = typeof import('src/pages/workspaces/workspace/analysis/modals/AzureComputeModal');
-jest.mock('src/pages/workspaces/workspace/analysis/modals/AzureComputeModal', (): AzureComputeModalExports => {
+type AzureComputeModalExports =
+  typeof import('src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal');
+jest.mock(
+  'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal',
+  (): AzureComputeModalExports => {
+    return {
+      ...jest.requireActual('src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal'),
+      AzureComputeModalBase: (_obj: any) => stubReactModal({ modalName: 'AzureComputeModalBase' }),
+    };
+  }
+);
+type GCPComputeModalExports =
+  typeof import('src/pages/workspaces/workspace/analysis/modals/ComputeModal/GCPComputeModal');
+jest.mock('src/pages/workspaces/workspace/analysis/modals/ComputeModal/GCPComputeModal', (): GCPComputeModalExports => {
   return {
-    ...jest.requireActual('src/pages/workspaces/workspace/analysis/modals/AzureComputeModal'),
-    AzureComputeModalBase: (_obj: any) => stubReactModal({ modalName: 'AzureComputeModalBase' }),
-  };
-});
-type ComputeModalExports = typeof import('src/pages/workspaces/workspace/analysis/modals/ComputeModal');
-jest.mock('src/pages/workspaces/workspace/analysis/modals/ComputeModal', (): ComputeModalExports => {
-  return {
-    ...jest.requireActual('src/pages/workspaces/workspace/analysis/modals/ComputeModal'),
-    ComputeModalBase: (_obj: any) => stubReactModal({ modalName: 'ComputeModalBase' }),
+    ...jest.requireActual('src/pages/workspaces/workspace/analysis/modals/ComputeModal/GCPComputeModal'),
+    GCPComputeModalBase: (_obj: any) => stubReactModal({ modalName: 'GCPComputeModalBase' }),
   };
 });
 type CromwellComputeModalExports = typeof import('src/pages/workspaces/workspace/analysis/modals/CromwellModal');
@@ -612,7 +617,7 @@ describe('CloudEnvironmentModal', () => {
         appDataDisks: [defaultTestDisk],
       },
       buttonIndex: 0,
-      modalName: 'ComputeModalBase',
+      modalName: 'GCPComputeModalBase',
       toolName: 'Jupyter',
     },
     {
@@ -627,7 +632,7 @@ describe('CloudEnvironmentModal', () => {
         appDataDisks: [defaultTestDisk],
       },
       buttonIndex: 1,
-      modalName: 'ComputeModalBase',
+      modalName: 'GCPComputeModalBase',
       toolName: 'RStudio',
     },
     {

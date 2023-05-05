@@ -13,7 +13,7 @@ import TitleBar from 'src/components/TitleBar';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { cloudServices, isMachineTypeSmaller, machineTypes } from 'src/data/gce-machines';
 import { Ajax } from 'src/libs/ajax';
-import { pdTypes } from 'src/libs/ajax/leonardo/models/disk-models';
+import { googlePdTypes } from 'src/libs/ajax/leonardo/models/disk-models';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error';
@@ -25,6 +25,9 @@ import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
 import { buildExistingEnvironmentConfig, getImageUrl } from 'src/pages/workspaces/workspace/analysis/modal-utils';
+import { AboutPersistentDiskView } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AboutPersistentDiskView';
+import { GCPPersistentDiskSection } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GCPPersistentDiskSection';
+import { handleLearnMoreAboutPersistentDisk } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/persistent-disk-controls';
 import { DeleteDiskChoices } from 'src/pages/workspaces/workspace/analysis/modals/DeleteDiskChoices';
 import { DeleteEnvironment } from 'src/pages/workspaces/workspace/analysis/modals/DeleteEnvironment';
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle';
@@ -66,8 +69,7 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 import validate from 'validate.js';
 
-import { computeStyles } from './modalStyles';
-import { AboutPersistentDisk, handleLearnMoreAboutPersistentDisk, PersistentDiskSection } from './persistent-disk-controls';
+import { computeStyles } from '../modalStyles';
 
 // Change to true to enable a debugging panel (intended for dev mode only)
 const showDebugPanel = false;
@@ -212,7 +214,7 @@ const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelecte
   isGce(runtimeType) && (!runtimeDetails?.runtimeConfig?.diskSize || upgradeDiskSelected);
 // Auxiliary functions -- end
 
-export const ComputeModalBase = ({
+export const GCPComputeModalBase = ({
   onDismiss,
   onError,
   onSuccess,
@@ -238,8 +240,8 @@ export const ComputeModalBase = ({
   const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState('');
   const [runtimeType, setRuntimeType] = useState(runtimeTypes.gceVm);
   const [computeConfig, setComputeConfig] = useState({
-    diskSize: defaultGcePersistentDiskSize,
-    diskType: defaultPersistentDiskType,
+    persistentDiskSize: defaultGcePersistentDiskSize,
+    persistentDiskType: defaultPersistentDiskType, // TODO: Switch type to DiskType.
     // The false here is valid because the modal never opens to dataproc as the default
     masterMachineType: getDefaultMachineType(false, tool),
     masterDiskSize: defaultDataprocMasterDiskSize,
@@ -372,7 +374,7 @@ export const ComputeModalBase = ({
               persistentDisk: {
                 name: Utils.generatePersistentDiskName(),
                 size: desiredPersistentDisk.size,
-                diskType: desiredPersistentDisk.diskType.label,
+                diskType: desiredPersistentDisk.diskType.value, // TODO: Disk type should already be the correct string
                 labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name },
               },
             }),
@@ -522,7 +524,7 @@ export const ComputeModalBase = ({
    * is necessary to compute the cost for potential new disk configurations.
    */
   const getPendingDisk = () => {
-    const { persistentDisk: { size = 0, diskType = pdTypes.standard } = {} } = getDesiredEnvironmentConfig();
+    const { persistentDisk: { size = 0, diskType = googlePdTypes.standard } = {} } = getDesiredEnvironmentConfig();
     return { size, status: 'Ready', diskType };
   };
 
@@ -1647,9 +1649,12 @@ export const ComputeModalBase = ({
         renderApplicationConfigurationSection(),
         renderComputeProfileSection(existingRuntime),
         !!isPersistentDisk &&
-          h(PersistentDiskSection, {
+          h(GCPPersistentDiskSection, {
             persistentDiskExists: !!existingPersistentDisk,
-            computeConfig,
+            persistentDiskSize: computeConfig.diskSize,
+            persistentDiskType: computeConfig.diskType,
+            updatePersistentDiskSize: (value) => updateComputeConfig('diskSize', value),
+            updatePersistentDiskType: (value) => updateComputeConfig('diskType', value),
             updateComputeConfig,
             setViewMode,
             cloudPlatform,
@@ -1659,7 +1664,7 @@ export const ComputeModalBase = ({
           !isPersistentDisk &&
           div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
-              'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
+              "Time to upgrade your cloud environment. Terra's new persistent disk feature will safeguard your work and data.",
               h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent disks and where your disk is mounted']),
             ]),
             h(
@@ -1726,7 +1731,7 @@ export const ComputeModalBase = ({
     Utils.switchCase(
       viewMode,
       ['packages', renderPackages],
-      ['aboutPersistentDisk', () => AboutPersistentDisk({ titleId, setViewMode, onDismiss, tool })],
+      ['aboutPersistentDisk', () => AboutPersistentDiskView({ titleId, setViewMode, onDismiss, tool })],
       ['sparkConsole', renderSparkConsole],
       ['customImageWarning', renderCustomImageWarning],
       ['environmentWarning', renderEnvironmentWarning],
@@ -1758,4 +1763,4 @@ export const ComputeModalBase = ({
   ]);
 };
 
-export const ComputeModal = withModalDrawer({ width: 675, 'aria-labelledby': titleId })(ComputeModalBase);
+export const GCPComputeModal = withModalDrawer({ width: 675, 'aria-labelledby': titleId })(GCPComputeModalBase);
