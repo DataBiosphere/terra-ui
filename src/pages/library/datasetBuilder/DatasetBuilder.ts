@@ -220,7 +220,7 @@ export const CohortSelector = ({
           title: 'Create a new cohort',
           okButton: h(
             ButtonPrimary,
-            { onClick: () => createCohort(cohortName), disabled: !cohortNameTouched || (errors && errors.cohortName) },
+            { onClick: () => createCohort(cohortName), disabled: !cohortNameTouched || errors?.cohortName },
             ['Create cohort']
           ),
         },
@@ -232,7 +232,7 @@ export const CohortSelector = ({
               setCohortName(value);
             },
             value: cohortName,
-            errors: errors && errors.cohortName,
+            errors: errors?.cohortName,
             placeholder: 'Enter the cohort name',
             required: true,
           }),
@@ -350,7 +350,7 @@ export const DatasetBuilderView = ({ datasetId }: DatasetBuilderProps) => {
     () => {
       loadDatasetDetails(() => DatasetBuilder().retrieveDataset(datasetId));
     },
-    // loadWdlData changes on each render, so cannot depend on it
+    // loadDatasetDetails changes on each render, so cannot depend on it
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
