@@ -416,7 +416,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                     h(
                       DropDownSubItem,
                       {
-                        href: 'https://support.terra.bio/hc/en-us/community/topics/360000500432',
+                        href: 'https://support.terra.bio/hc/en-us/community/topics',
                         onClick: hideNav,
                         ...Utils.newTabLinkProps,
                       },
