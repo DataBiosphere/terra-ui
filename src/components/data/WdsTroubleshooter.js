@@ -52,12 +52,8 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
             setWdsStatus(res.status);
             setWdsDbStatus(res.components?.db?.status);
             setWdsPingStatus(res.components?.ping?.status);
-            // "Permissions" component only exists in later WDS versions; be resilient
-            if (res.components?.Permissions) {
-              setWdsIamStatus(res.components?.Permissions?.status);
-            } else {
-              setWdsIamStatus('unknown');
-            }
+            // "Permissions" component only exists in WDS after 3da9bfc; be resilient
+            setWdsIamStatus(res.components?.Permissions ? res.components?.Permissions?.status : 'disabled');
           })
           .catch((_) => {
             setWdsStatus('unresponsive');
