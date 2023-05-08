@@ -1,10 +1,11 @@
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import * as Nav from 'src/libs/nav';
 import { dataCatalogStore, datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/libs/state';
 import { PREPACKAGED_CONCEPT_SETS } from 'src/pages/library/datasetBuilder/constants';
-import { ConceptSet } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import { Cohort, ConceptSet } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { CohortSelector, ConceptSetSelector, ValuesSelector } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 
 jest.mock('src/libs/nav', () => ({
@@ -27,6 +28,29 @@ describe('DatasetBuilder', () => {
 
     expect(getByText('cohort 1')).toBeTruthy();
     expect(getByText('cohort 2')).toBeTruthy();
+  });
+
+  it('allows creating cohorts', async () => {
+    const user = userEvent.setup();
+
+    // @ts-ignore
+    datasetBuilderCohorts.set([{ name: 'cohort 1' }, { name: 'cohort 2' }]);
+    const { getByText, getByLabelText } = render(
+      h(CohortSelector, { selectedCohorts: [], onChange: (cohorts) => cohorts })
+    );
+
+    await user.click(getByLabelText('Create new cohort'));
+    expect(getByText('Create a new cohort')).toBeTruthy();
+    await user.type(screen.getByLabelText('Cohort name *'), 'cohort 3');
+    // @ts-ignore
+    await user.click(getByText('Create cohort'));
+    expect(datasetBuilderCohorts.get().length).toBe(3);
+    expect(
+      _.flow(
+        _.map((cohort: Cohort) => cohort.name),
+        _.includes('cohort 3')
+      )(datasetBuilderCohorts.get())
+    ).toBeTruthy();
   });
 
   it('renders concept sets and prepackaged concept sets', () => {

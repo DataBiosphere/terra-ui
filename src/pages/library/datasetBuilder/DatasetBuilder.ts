@@ -174,7 +174,7 @@ export const CohortSelector = ({
   const errors = cohortNameTouched && validate({ cohortName }, { cohortName: { presence: { allowEmpty: false } } });
 
   const createCohort = (cohortName) => {
-    // TODO: Once state is typed, the ts-ignore should go away
+    // Once state is typed, the ts-ignore should go away
     // @ts-ignore
     datasetBuilderCohorts.set(datasetBuilderCohorts.get().concat({ name: cohortName }));
     // TODO: navigate to cohortEdit page
