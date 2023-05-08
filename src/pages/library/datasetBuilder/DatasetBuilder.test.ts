@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
@@ -6,13 +6,24 @@ import * as Nav from 'src/libs/nav';
 import { dataCatalogStore, datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/libs/state';
 import { PREPACKAGED_CONCEPT_SETS } from 'src/pages/library/datasetBuilder/constants';
 import { Cohort, ConceptSet } from 'src/pages/library/datasetBuilder/dataset-builder-types';
-import { CohortSelector, ConceptSetSelector, ValuesSelector } from 'src/pages/library/datasetBuilder/DatasetBuilder';
+import {
+  CohortSelector,
+  ConceptSetSelector,
+  CreateCohortModal,
+  ValuesSelector,
+} from 'src/pages/library/datasetBuilder/DatasetBuilder';
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
   getLink: jest.fn(),
   useRoute: jest.fn(),
 }));
+
+type ModalMockExports = typeof import('src/components/Modal.mock');
+jest.mock('src/components/Modal', () => {
+  const mockModal = jest.requireActual<ModalMockExports>('src/components/Modal.mock');
+  return mockModal.mockModalModule();
+});
 
 describe('DatasetBuilder', () => {
   beforeEach(() => {
@@ -30,7 +41,8 @@ describe('DatasetBuilder', () => {
     expect(getByText('cohort 2')).toBeTruthy();
   });
 
-  it('allows creating cohorts', async () => {
+  it('opens the create cohort model when clicking plus', async () => {
+    // Arrange
     const user = userEvent.setup();
 
     // @ts-ignore
@@ -38,12 +50,23 @@ describe('DatasetBuilder', () => {
     const { getByText, getByLabelText } = render(
       h(CohortSelector, { selectedCohorts: [], onChange: (cohorts) => cohorts })
     );
-
+    // Act
     await user.click(getByLabelText('Create new cohort'));
+    // Assert
     expect(getByText('Create a new cohort')).toBeTruthy();
-    await user.type(screen.getByLabelText('Cohort name *'), 'cohort 3');
+  });
+
+  it('creates a cohort when the cohort creation modal is filled out', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
     // @ts-ignore
+    datasetBuilderCohorts.set([{ name: 'cohort 1' }, { name: 'cohort 2' }]);
+    const { getByText, findByLabelText } = render(h(CreateCohortModal, { onDismiss: () => {} }));
+    // Act
+    fireEvent.change(await findByLabelText('Cohort name *'), { target: { value: 'cohort 3' } });
     await user.click(getByText('Create cohort'));
+    // Assert
     expect(datasetBuilderCohorts.get().length).toBe(3);
     expect(
       _.flow(

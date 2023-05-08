@@ -160,16 +160,9 @@ const DatasetBuilderSelector = <T extends DatasetBuilderType>({
   ]);
 };
 
-export const CohortSelector = ({
-  selectedCohorts,
-  onChange,
-}: {
-  selectedCohorts: ValuesSet<Cohort>[];
-  onChange: (cohorts: ValuesSet<Cohort>[]) => void;
-}) => {
-  const [creatingCohort, setCreatingCohort] = useState(false);
-  const [cohortName, setCohortName] = useState('');
+export const CreateCohortModal = ({ onDismiss }: { onDismiss: () => void }) => {
   const [cohortNameTouched, setCohortNameTouched] = useState(false);
+  const [cohortName, setCohortName] = useState('');
 
   const errors = cohortNameTouched && validate({ cohortName }, { cohortName: { presence: { allowEmpty: false } } });
 
@@ -178,8 +171,49 @@ export const CohortSelector = ({
     // @ts-ignore
     datasetBuilderCohorts.set(datasetBuilderCohorts.get().concat({ name: cohortName }));
     // TODO: navigate to cohortEdit page
-    setCreatingCohort(false);
   };
+
+  return h(
+    Modal,
+    {
+      onDismiss,
+      title: 'Create a new cohort',
+      okButton: h(
+        ButtonPrimary,
+        {
+          onClick: () => {
+            createCohort(cohortName);
+            onDismiss();
+          },
+          disabled: !cohortNameTouched || errors?.cohortName,
+        },
+        ['Create cohort']
+      ),
+    },
+    [
+      h(StringInput, {
+        title: 'Cohort name',
+        onChange: (value) => {
+          !cohortNameTouched && setCohortNameTouched(true);
+          setCohortName(value);
+        },
+        value: cohortName,
+        errors: errors?.cohortName,
+        placeholder: 'Enter the cohort name',
+        required: true,
+      }),
+    ]
+  );
+};
+
+export const CohortSelector = ({
+  selectedCohorts,
+  onChange,
+}: {
+  selectedCohorts: ValuesSet<Cohort>[];
+  onChange: (cohorts: ValuesSet<Cohort>[]) => void;
+}) => {
+  const [creatingCohort, setCreatingCohort] = useState(false);
 
   return h(Fragment, [
     h(DatasetBuilderSelector as React.FC<DatasetBuilderSelectorProps<Cohort>>, {
@@ -208,36 +242,7 @@ export const CohortSelector = ({
         div(["Create a cohort by clicking on the '+' icon"]),
       ]),
     }),
-    creatingCohort &&
-      h(
-        Modal,
-        {
-          onDismiss: () => {
-            setCohortName('');
-            setCohortNameTouched(false);
-            setCreatingCohort(false);
-          },
-          title: 'Create a new cohort',
-          okButton: h(
-            ButtonPrimary,
-            { onClick: () => createCohort(cohortName), disabled: !cohortNameTouched || errors?.cohortName },
-            ['Create cohort']
-          ),
-        },
-        [
-          h(StringInput, {
-            title: 'Cohort name',
-            onChange: (value) => {
-              !cohortNameTouched && setCohortNameTouched(true);
-              setCohortName(value);
-            },
-            value: cohortName,
-            errors: errors?.cohortName,
-            placeholder: 'Enter the cohort name',
-            required: true,
-          }),
-        ]
-      ),
+    creatingCohort && h(CreateCohortModal, { onDismiss: () => setCreatingCohort(false) }),
   ]);
 };
 
@@ -348,7 +353,7 @@ export const DatasetBuilderView = ({ datasetId }: DatasetBuilderProps) => {
 
   useEffect(
     () => {
-      loadDatasetDetails(() => DatasetBuilder().retrieveDataset(datasetId));
+      void loadDatasetDetails(() => DatasetBuilder().retrieveDataset(datasetId));
     },
     // loadDatasetDetails changes on each render, so cannot depend on it
     // eslint-disable-next-line react-hooks/exhaustive-deps
