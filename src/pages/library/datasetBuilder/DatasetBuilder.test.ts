@@ -122,4 +122,25 @@ describe('DatasetBuilder', () => {
     expect(getByText('Select concept sets')).toBeTruthy();
     expect(getByText('Select values (columns)')).toBeTruthy();
   });
+
+  it('allows selecting cohorts and concept sets', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    // @ts-ignore
+    datasetBuilderCohorts.set([{ name: 'cohort 1' }, { name: 'cohort 2' }]);
+    // @ts-ignore
+    datasetBuilderConceptSets.set([{ name: 'concept set 1' }, { name: 'concept set 2' }]);
+    const { getByLabelText } = render(h(DatasetBuilderContents));
+    // Act
+    await user.click(getByLabelText('cohort 1'));
+    await user.click(getByLabelText('cohort 2'));
+    await user.click(getByLabelText('concept set 1'));
+    await user.click(getByLabelText('concept set 2'));
+
+    // Assert
+    expect(getByLabelText('cohort 1').getAttribute('aria-checked')).toBeTruthy();
+    expect(getByLabelText('cohort 2').getAttribute('aria-checked')).toBeTruthy();
+    expect(getByLabelText('concept set 1').getAttribute('aria-checked')).toBeTruthy();
+    expect(getByLabelText('concept set 2').getAttribute('aria-checked')).toBeTruthy();
+  });
 });
