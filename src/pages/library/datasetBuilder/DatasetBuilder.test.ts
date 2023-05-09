@@ -120,6 +120,6 @@ describe('DatasetBuilder', () => {
     // Assert
     expect(getByText('Select cohorts')).toBeTruthy();
     expect(getByText('Select concept sets')).toBeTruthy();
-    expect(getByText('Select values')).toBeTruthy();
+    expect(getByText('Select values (columns)')).toBeTruthy();
   });
 });
