@@ -1,4 +1,3 @@
-
 export const displayLibraryAttributes = [
   { key: 'library:diseaseOntologyLabel', title: 'Cohort Phenotype/Indication (Disease Ontology)' },
   { key: 'library:numSubjects', title: 'No. of Subjects' },
@@ -28,18 +27,35 @@ export const displayLibraryAttributes = [
   { key: 'library:requiresExternalApproval', title: 'Requires External Approval' },
   { key: 'library:lmsvn', title: 'Library Metadata Schema Version Number' },
   { key: 'library:dulvn', title: 'Structured Data Use Limitations Version Number' },
-  { key: 'library:orsp', title: 'ORSP Consent Code' }
-]
+  { key: 'library:orsp', title: 'ORSP Consent Code' },
+];
 
 export const displayConsentCodes = [
-  { key: 'library:GRU', title: 'For health/medical/biomedical purposes and other biological research, including the study of population origins or ancestry.' },
-  { key: 'library:HMB', title: 'Use of the data is limited to health/medical/biomedical purposes, does not include the study of population origins or ancestry.' },
+  {
+    key: 'library:GRU',
+    title: 'For health/medical/biomedical purposes and other biological research, including the study of population origins or ancestry.',
+  },
+  {
+    key: 'library:HMB',
+    title: 'Use of the data is limited to health/medical/biomedical purposes, does not include the study of population origins or ancestry.',
+  },
   { key: 'library:DS', title: 'Use of the data must be related to a particular disease.' },
   { key: 'library:NCU', title: 'Use of the data is limited to non-commercial use.' },
   { key: 'library:NPU', title: 'Use of the data is limited to not-for-profit organizations.' },
-  { key: 'library:NMDS', title: 'Use of the data includes methods development research (e.g., development of software or algorithms) ONLY within the bounds of other specified data use limitations.' },
-  { key: 'library:NAGR', title: 'Use of the data includes aggregate level analysis to address research questions (e.g., determine variant frequencies across the general population) ONLY within the bounds of other specified data use limitations.' },
-  { key: 'library:NCTRL', title: 'Data can be used as a control set ONLY within the bounds of other specified data use limitations (e.g. only for cancer studies).' },
+  {
+    key: 'library:NMDS',
+    title:
+      'Use of the data includes methods development research (e.g., development of software or algorithms) ONLY within the bounds of other specified data use limitations.',
+  },
+  {
+    key: 'library:NAGR',
+    title:
+      'Use of the data includes aggregate level analysis to address research questions (e.g., determine variant frequencies across the general population) ONLY within the bounds of other specified data use limitations.',
+  },
+  {
+    key: 'library:NCTRL',
+    title: 'Data can be used as a control set ONLY within the bounds of other specified data use limitations (e.g. only for cancer studies).',
+  },
   { key: 'library:RS-G', title: 'Use of the data is limited to studies of particular gender.' },
-  { key: 'library:RS-PD', title: 'Use of the data is limited to pediatric research.' }
-]
+  { key: 'library:RS-PD', title: 'Use of the data is limited to pediatric research.' },
+];

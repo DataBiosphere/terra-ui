@@ -1,5 +1,5 @@
 export interface GoogleBillingAccount {
-  accountName: string
-  firecloudHasAccess?: boolean
-  displayName: string
+  accountName: string;
+  firecloudHasAccess?: boolean;
+  displayName: string;
 }

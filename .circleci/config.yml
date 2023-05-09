@@ -220,7 +220,7 @@ commands:
 jobs:
   build:
     executor: node
-    resource_class: medium+
+    resource_class: large
     steps:
       - checkout
       - restore_cache:
