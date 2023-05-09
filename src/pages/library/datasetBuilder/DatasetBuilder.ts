@@ -1,5 +1,5 @@
 import * as _ from 'lodash/fp';
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { Fragment, useState } from 'react';
 import { div, h, h2, h3, label } from 'react-hyperscript-helpers';
 import { ButtonPrimary, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
@@ -10,6 +10,7 @@ import { DatasetBuilder, DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
+import { useOnMount } from 'src/libs/react-utils';
 import { datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { StringInput } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
@@ -24,7 +25,7 @@ import { validate } from 'validate.js';
 
 const DatasetBuilderSelectorSubHeader = ({ children }) => div({ style: { fontSize: 12, fontWeight: 600 } }, children);
 
-interface ValuesSet<T extends DatasetBuilderType> {
+interface DatasetBuilderObjectSet<T extends DatasetBuilderType> {
   header: string;
   values: T[];
 }
@@ -33,9 +34,9 @@ interface DatasetBuilderSelectorProps<T extends DatasetBuilderType> {
   number: number;
   header: string;
   subheader?: string;
-  valuesSets: ValuesSet<T>[];
-  selectedValuesSets: ValuesSet<T>[];
-  onChange: (newValuesSets: ValuesSet<T>[]) => void;
+  datasetBuilderObjectSets: DatasetBuilderObjectSet<T>[];
+  selectedDatasetBuilderObjectSets: DatasetBuilderObjectSet<T>[];
+  onChange: (newDatasetBuilderObjectSets: DatasetBuilderObjectSet<T>[]) => void;
   headerAction: any;
   placeholder?: any;
   width?: string | number;
@@ -47,11 +48,23 @@ const DatasetBuilderSelector = <T extends DatasetBuilderType>({
   subheader,
   headerAction,
   placeholder,
-  valuesSets,
+  datasetBuilderObjectSets,
   onChange,
-  selectedValuesSets,
+  selectedDatasetBuilderObjectSets,
   width = '30%',
 }: DatasetBuilderSelectorProps<T>) => {
+  const isChecked = (datasetBuilderObjectSet, value) => {
+    return _.flow(
+      _.filter(
+        (selectedDatasetBuilderObjectSet: DatasetBuilderObjectSet<T>) =>
+          selectedDatasetBuilderObjectSet.header === datasetBuilderObjectSet.header
+      ),
+      _.flatMap((selectedDatasetBuilderObjectSet) => selectedDatasetBuilderObjectSet.values),
+      _.map((selectedValue) => selectedValue.name),
+      _.includes(value.name)
+    )(selectedDatasetBuilderObjectSets);
+  };
+
   return div({ style: { width, marginTop: '1rem' } }, [
     div({ style: { display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start' } }, [
       div({ style: { display: 'flex' } }, [
@@ -92,16 +105,16 @@ const DatasetBuilderSelector = <T extends DatasetBuilderType>({
         },
       },
       [
-        valuesSets && valuesSets.length > 0 && _.flatMap((valuesSet) => valuesSet.values, valuesSets).length > 0
+        datasetBuilderObjectSets &&
+        _.flatMap((datasetBuilderObjectSet) => datasetBuilderObjectSet.values, datasetBuilderObjectSets).length > 0
           ? div(
               { style: { display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' } },
               _.map(
-                ([i, valuesSet]) =>
-                  // valuesSet.values.length > 0 &&
-                  valuesSet.values &&
-                  valuesSet.values.length > 0 &&
+                ([i, datasetBuilderObjectSet]) =>
                   h(Fragment, [
-                    h(DatasetBuilderSelectorSubHeader, { key: `${valuesSet.header}-${i}` }, [valuesSet.header]),
+                    h(DatasetBuilderSelectorSubHeader, { key: `${datasetBuilderObjectSet.header}-${i}` }, [
+                      datasetBuilderObjectSet.header,
+                    ]),
                     _.map(([j, value]) => {
                       return div(
                         {
@@ -113,34 +126,31 @@ const DatasetBuilderSelector = <T extends DatasetBuilderType>({
                             marginTop: '0.3rem',
                             fontSize: 13,
                           },
-                          key: `${valuesSet.header}-${value.name}-${j}`,
+                          key: `${datasetBuilderObjectSet.header}-${value.name}-${j}`,
                         },
                         [
                           h(
                             LabeledCheckbox,
                             {
-                              key: `${valuesSet.header}-${value.name}-${j}-checkbox`,
-                              checked: _.flow(
-                                _.filter(
-                                  (selectedValuesSet: ValuesSet<T>) => selectedValuesSet.header === valuesSet.header
-                                ),
-                                _.flatMap((selectedValuesSet: ValuesSet<T>) => selectedValuesSet.values),
-                                _.map((selectedValue) => selectedValue.name),
-                                _.includes(value.name)
-                              )(selectedValuesSets),
+                              key: `${datasetBuilderObjectSet.header}-${value.name}-${j}-checkbox`,
+                              checked: isChecked(datasetBuilderObjectSet, value),
                               onChange: () => {
                                 const index = _.findIndex(
-                                  (selectedValuesSet) => selectedValuesSet.header === valuesSet.header,
-                                  selectedValuesSets
+                                  (selectedDatasetBuilderObjectSet) =>
+                                    selectedDatasetBuilderObjectSet.header === datasetBuilderObjectSet.header,
+                                  selectedDatasetBuilderObjectSets
                                 );
 
                                 onChange(
                                   index === -1
-                                    ? selectedValuesSets.concat({ header: valuesSet.header, values: [value] })
+                                    ? selectedDatasetBuilderObjectSets.concat({
+                                        header: datasetBuilderObjectSet.header,
+                                        values: [value],
+                                      })
                                     : _.set(
                                         `[${index}].values`,
-                                        _.xorWith(_.isEqual, selectedValuesSets[index].values, [value]),
-                                        selectedValuesSets
+                                        _.xorWith(_.isEqual, selectedDatasetBuilderObjectSets[index].values, [value]),
+                                        selectedDatasetBuilderObjectSets
                                       )
                                 );
                               },
@@ -149,9 +159,14 @@ const DatasetBuilderSelector = <T extends DatasetBuilderType>({
                           ),
                         ]
                       );
-                    }, Utils.toIndexPairs(valuesSet.values)),
+                    }, Utils.toIndexPairs(datasetBuilderObjectSet.values)),
                   ]),
-                Utils.toIndexPairs(valuesSets)
+                Utils.toIndexPairs(
+                  _.filter(
+                    (datasetBuilderObjectSet) => datasetBuilderObjectSet.values?.length > 0,
+                    datasetBuilderObjectSets
+                  )
+                )
               )
             )
           : div([placeholder]),
@@ -164,13 +179,28 @@ export const CreateCohortModal = ({ onDismiss }: { onDismiss: () => void }) => {
   const [cohortNameTouched, setCohortNameTouched] = useState(false);
   const [cohortName, setCohortName] = useState('');
 
-  const errors = cohortNameTouched && validate({ cohortName }, { cohortName: { presence: { allowEmpty: false } } });
+  const errors =
+    cohortNameTouched &&
+    validate(
+      { cohortName },
+      {
+        cohortName: {
+          presence: {
+            allowEmpty: false,
+          },
+          exclusion: {
+            within: _.map((cohort: Cohort) => cohort.name, datasetBuilderCohorts.get()),
+            message: 'already exists',
+          },
+        },
+      }
+    );
 
   const createCohort = (cohortName) => {
     // Once state is typed, the ts-ignore should go away
     // @ts-ignore
     datasetBuilderCohorts.set(datasetBuilderCohorts.get().concat({ name: cohortName }));
-    // TODO: navigate to cohortEdit page
+    // TODO (DC-701): navigate to cohortEdit page
   };
 
   return h(
@@ -210,8 +240,8 @@ export const CohortSelector = ({
   selectedCohorts,
   onChange,
 }: {
-  selectedCohorts: ValuesSet<Cohort>[];
-  onChange: (cohorts: ValuesSet<Cohort>[]) => void;
+  selectedCohorts: DatasetBuilderObjectSet<Cohort>[];
+  onChange: (cohorts: DatasetBuilderObjectSet<Cohort>[]) => void;
 }) => {
   const [creatingCohort, setCreatingCohort] = useState(false);
 
@@ -228,13 +258,13 @@ export const CohortSelector = ({
       ),
       number: 1,
       onChange,
-      valuesSets: [
+      datasetBuilderObjectSets: [
         {
           values: datasetBuilderCohorts.get(),
           header: 'Saved cohorts',
         },
       ],
-      selectedValuesSets: selectedCohorts,
+      selectedDatasetBuilderObjectSets: selectedCohorts,
       header: 'Select cohorts',
       subheader: 'Which participants to include',
       placeholder: div([
@@ -250,14 +280,14 @@ export const ConceptSetSelector = ({
   selectedConceptSets,
   onChange,
 }: {
-  selectedConceptSets: ValuesSet<ConceptSet>[];
-  onChange: (conceptSets: ValuesSet<ConceptSet>[]) => void;
+  selectedConceptSets: DatasetBuilderObjectSet<ConceptSet>[];
+  onChange: (conceptSets: DatasetBuilderObjectSet<ConceptSet>[]) => void;
 }) => {
   return h(DatasetBuilderSelector as React.FC<DatasetBuilderSelectorProps<ConceptSet>>, {
     headerAction: h(
       Link,
       {
-        // TODO: Point at correct link
+        // TODO (DC-715): Point at correct link
         href: Nav.getLink('root'),
         'aria-label': 'Create new concept set',
       },
@@ -265,7 +295,7 @@ export const ConceptSetSelector = ({
     ),
     number: 2,
     onChange,
-    valuesSets: [
+    datasetBuilderObjectSets: [
       {
         header: 'Concept sets',
         values: datasetBuilderConceptSets.get(),
@@ -275,7 +305,7 @@ export const ConceptSetSelector = ({
         values: PREPACKAGED_CONCEPT_SETS,
       },
     ],
-    selectedValuesSets: selectedConceptSets,
+    selectedDatasetBuilderObjectSets: selectedConceptSets,
     header: 'Select concept sets',
     subheader: 'Which information to include about participants',
   });
@@ -287,9 +317,9 @@ export const ValuesSelector = ({
   values,
   onChange,
 }: {
-  selectedValues: ValuesSet<Value>[];
-  values: ValuesSet<Value>[];
-  onChange: (values: ValuesSet<Value>[]) => void;
+  selectedValues: DatasetBuilderObjectSet<Value>[];
+  values: DatasetBuilderObjectSet<Value>[];
+  onChange: (values: DatasetBuilderObjectSet<Value>[]) => void;
 }) => {
   return h(DatasetBuilderSelector as React.FC<DatasetBuilderSelectorProps<Value>>, {
     headerAction: div([
@@ -305,8 +335,8 @@ export const ValuesSelector = ({
     ]),
     number: 3,
     onChange,
-    valuesSets: values,
-    selectedValuesSets: selectedValues,
+    datasetBuilderObjectSets: values,
+    selectedDatasetBuilderObjectSets: selectedValues,
     header: 'Select values (columns)',
     placeholder: div([
       div(['No inputs selected']),
@@ -317,9 +347,9 @@ export const ValuesSelector = ({
 };
 
 export const DatasetBuilderContents = () => {
-  const [selectedCohorts, setSelectedCohorts] = useState([] as ValuesSet<Cohort>[]);
-  const [selectedConceptSets, setSelectedConceptSets] = useState([] as ValuesSet<ConceptSet>[]);
-  const [selectedValues, setSelectedValues] = useState([] as ValuesSet<Value>[]);
+  const [selectedCohorts, setSelectedCohorts] = useState([] as DatasetBuilderObjectSet<Cohort>[]);
+  const [selectedConceptSets, setSelectedConceptSets] = useState([] as DatasetBuilderObjectSet<ConceptSet>[]);
+  const [selectedValues, setSelectedValues] = useState([] as DatasetBuilderObjectSet<Value>[]);
 
   return div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` } }, [
     h2(['Datasets']),
@@ -351,14 +381,9 @@ interface DatasetBuilderProps {
 export const DatasetBuilderView = ({ datasetId }: DatasetBuilderProps) => {
   const [datasetDetails, loadDatasetDetails] = useLoadedData<DatasetResponse>();
 
-  useEffect(
-    () => {
-      void loadDatasetDetails(() => DatasetBuilder().retrieveDataset(datasetId));
-    },
-    // loadDatasetDetails changes on each render, so cannot depend on it
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
+  useOnMount(() => {
+    void loadDatasetDetails(() => DatasetBuilder().retrieveDataset(datasetId));
+  });
   return datasetDetails.status === 'Ready'
     ? h(FooterWrapper, {}, [
         h(TopBar, { title: 'Preview', href: '' }, []),

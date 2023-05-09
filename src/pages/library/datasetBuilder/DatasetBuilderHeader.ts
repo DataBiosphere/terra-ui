@@ -19,7 +19,7 @@ export const DatasetBuilderHeader = ({ name }: { name: string }) => {
         'Create groups of participants based on a specific criteria. You can also save any criteria grouping as a concept set using the menu icon next to the Participant Group title.',
         div({ style: { display: 'flex', flexDirection: 'column', alignItems: 'flex-end', width: '20rem' } }, [
           div({ style: { fontWeight: 600 } }, ['Have questions']),
-          // TODO: Link to proper place
+          // TODO (DC-705): Link to proper place
           h(Link, { href: Nav.getLink('root'), style: { textDecoration: 'underline' } }, [
             'See supporting documentation',
           ]),
