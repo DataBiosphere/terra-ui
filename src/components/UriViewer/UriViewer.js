@@ -48,8 +48,8 @@ export const UriViewer = _.flow(
         setAzureStorage(metadata)
       } else {
         // TODO: change below comment after switch to DRSHub is complete, tracked in ticket [ID-170]
-        // Fields are mapped from the martha_v3 fields to those used by google
-        // https://github.com/broadinstitute/martha#martha-v3
+        // Fields are mapped from the drshub_v4 fields to those used by google
+        // https://github.com/DataBiosphere/terra-drs-hub
         // https://cloud.google.com/storage/docs/json_api/v1/objects#resource-representations
         // The time formats returned are in ISO 8601 vs. RFC 3339 but should be ok for parsing by `new Date()`
         const { bucket, name, size, timeCreated, timeUpdated: updated, fileName, accessUrl } =

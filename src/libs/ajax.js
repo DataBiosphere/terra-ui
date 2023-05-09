@@ -966,12 +966,19 @@ const Submissions = signal => ({
 const shouldUseDrsHub = !!getConfig().shouldUseDrsHub
 
 const DrsUriResolver = signal => ({
-  //Currently only Martha and not DRSHub can get a signed URL
-  getSignedUrl: async ({ bucket, object, dataObjectUri }) => {
-    const res = await fetchMartha(
-      'getSignedUrlV1',
-      _.mergeAll([jsonBody({ bucket, object, dataObjectUri }), authOpts(), appIdentifier, { signal, method: 'POST' }]))
-    return res.json()
+  // Currently both Martha and DRSHub can get a signed URL
+  getSignedUrl: async ({ bucket, object, dataObjectUri, googleProject }) => {
+    if (shouldUseDrsHub) {
+      const res = await fetchDrsHub(
+        '/api/v4/gcs/getSignedUrl',
+        _.mergeAll([jsonBody({ bucket, object, dataObjectUri, googleProject }), authOpts(), appIdentifier, { signal, method: 'POST' }]))
+      return res.json()
+    } else {
+      const res = await fetchMartha(
+        'getSignedUrlV1',
+        _.mergeAll([jsonBody({ bucket, object, dataObjectUri }), authOpts(), appIdentifier, { signal, method: 'POST' }]))
+      return res.json()
+    }
   },
 
   getDataObjectMetadata: async (url, fields) => {

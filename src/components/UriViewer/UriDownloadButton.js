@@ -29,6 +29,7 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
     const { url } = await Ajax(signal).DrsUriResolver.getSignedUrl({
       bucket,
       object: name,
+      googleProject: workspace.workspace.googleProject,
       dataObjectUri: uri
     })
     return url
