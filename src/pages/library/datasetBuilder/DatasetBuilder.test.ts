@@ -10,6 +10,7 @@ import {
   CohortSelector,
   ConceptSetSelector,
   CreateCohortModal,
+  DatasetBuilderContents,
   ValuesSelector,
 } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 
@@ -111,5 +112,14 @@ describe('DatasetBuilder', () => {
       expect(getByText(valueSet.header)).toBeTruthy();
       _.forEach((value) => expect(getByText(value.name)).toBeTruthy(), valueSet.values);
     }, valuesValueSets);
+  });
+
+  it('renders dataset builder contents with cohorts and concept sets', () => {
+    // Arrange
+    const { getByText } = render(h(DatasetBuilderContents));
+    // Assert
+    expect(getByText('Select cohorts')).toBeTruthy();
+    expect(getByText('Select concept sets')).toBeTruthy();
+    expect(getByText('Select values')).toBeTruthy();
   });
 });

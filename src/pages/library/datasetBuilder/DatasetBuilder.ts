@@ -316,7 +316,7 @@ export const ValuesSelector = ({
   });
 };
 
-const DatasetBuilderContents = () => {
+export const DatasetBuilderContents = () => {
   const [selectedCohorts, setSelectedCohorts] = useState([] as ValuesSet<Cohort>[]);
   const [selectedConceptSets, setSelectedConceptSets] = useState([] as ValuesSet<ConceptSet>[]);
   const [selectedValues, setSelectedValues] = useState([] as ValuesSet<Value>[]);
