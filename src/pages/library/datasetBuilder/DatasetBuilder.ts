@@ -1,6 +1,6 @@
 import * as _ from 'lodash/fp';
 import React, { Fragment, useState } from 'react';
-import { div, h, h2, h3, label } from 'react-hyperscript-helpers';
+import { div, h, h2, h3, label, li, ul } from 'react-hyperscript-helpers';
 import { ButtonPrimary, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
@@ -39,8 +39,7 @@ interface DatasetBuilderSelectorProps<T extends DatasetBuilderType> {
   onChange: (newDatasetBuilderObjectSets: DatasetBuilderObjectSet<T>[]) => void;
   headerAction: any;
   placeholder?: any;
-  width?: string | number;
-  maxWidth?: number;
+  style?: React.CSSProperties;
 }
 const DatasetBuilderSelector = <T extends DatasetBuilderType>({
   number,
@@ -51,7 +50,7 @@ const DatasetBuilderSelector = <T extends DatasetBuilderType>({
   datasetBuilderObjectSets,
   onChange,
   selectedDatasetBuilderObjectSets,
-  width = '30%',
+  style,
 }: DatasetBuilderSelectorProps<T>) => {
   const isChecked = (datasetBuilderObjectSet, value) => {
     return _.flow(
@@ -65,7 +64,7 @@ const DatasetBuilderSelector = <T extends DatasetBuilderType>({
     )(selectedDatasetBuilderObjectSets);
   };
 
-  return div({ style: { width, marginTop: '1rem' } }, [
+  return li({ style: { width: '30%', ...style } }, [
     div({ style: { display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start' } }, [
       div({ style: { display: 'flex' } }, [
         div(
@@ -308,6 +307,7 @@ export const ConceptSetSelector = ({
     selectedDatasetBuilderObjectSets: selectedConceptSets,
     header: 'Select concept sets',
     subheader: 'Which information to include about participants',
+    style: { marginLeft: '1rem' },
   });
 };
 
@@ -342,7 +342,7 @@ export const ValuesSelector = ({
       div(['No inputs selected']),
       div(['You can view the available values by selecting at least one cohort and concept set']),
     ]),
-    width: '40%',
+    style: { width: '40%', marginLeft: '1rem' },
   });
 };
 
@@ -356,19 +356,17 @@ export const DatasetBuilderContents = () => {
     div([
       'Build a dataset by selecting the concept sets and values for one or more of your cohorts. Then export the completed dataset to Notebooks where you can perform your analysis',
     ]),
-    div({ style: { display: 'flex', width: '100%', marginTop: '1rem' } }, [
+    ul({ style: { display: 'flex', width: '100%', marginTop: '2rem', listStyleType: 'none', padding: 0 } }, [
       h(CohortSelector, {
         selectedCohorts,
         onChange: (cohorts) => {
           setSelectedCohorts(cohorts);
         },
       }),
-      div({ style: { marginLeft: '1rem' } }),
       h(ConceptSetSelector, {
         selectedConceptSets,
         onChange: (conceptSets) => setSelectedConceptSets(conceptSets),
       }),
-      div({ style: { marginLeft: '1rem' } }),
       h(ValuesSelector, { selectedValues, values: [], onChange: (values) => setSelectedValues(values) }),
     ]),
   ]);
