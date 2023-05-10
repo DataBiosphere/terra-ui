@@ -9,7 +9,6 @@ import TopBar from 'src/components/TopBar';
 import { DatasetBuilder, DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
-import * as Nav from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
 import { datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
@@ -174,7 +173,13 @@ const DatasetBuilderSelector = <T extends DatasetBuilderType>({
   ]);
 };
 
-export const CreateCohortModal = ({ onDismiss }: { onDismiss: () => void }) => {
+export const CreateCohortModal = ({
+  onDismiss,
+  onStateChange,
+}: {
+  onDismiss: () => void;
+  onStateChange: OnStateChangeType;
+}) => {
   const [cohortNameTouched, setCohortNameTouched] = useState(false);
   const [cohortName, setCohortName] = useState('');
 
@@ -199,7 +204,7 @@ export const CreateCohortModal = ({ onDismiss }: { onDismiss: () => void }) => {
     // Once state is typed, the ts-ignore should go away
     // @ts-ignore
     datasetBuilderCohorts.set(datasetBuilderCohorts.get().concat({ name: cohortName }));
-    // TODO (DC-701): navigate to cohortEdit page
+    onStateChange('cohort-editor');
   };
 
   return h(
@@ -238,9 +243,11 @@ export const CreateCohortModal = ({ onDismiss }: { onDismiss: () => void }) => {
 export const CohortSelector = ({
   selectedCohorts,
   onChange,
+  onStateChange,
 }: {
   selectedCohorts: DatasetBuilderObjectSet<Cohort>[];
   onChange: (cohorts: DatasetBuilderObjectSet<Cohort>[]) => void;
+  onStateChange: OnStateChangeType;
 }) => {
   const [creatingCohort, setCreatingCohort] = useState(false);
 
@@ -271,23 +278,24 @@ export const CohortSelector = ({
         div(["Create a cohort by clicking on the '+' icon"]),
       ]),
     }),
-    creatingCohort && h(CreateCohortModal, { onDismiss: () => setCreatingCohort(false) }),
+    creatingCohort && h(CreateCohortModal, { onDismiss: () => setCreatingCohort(false), onStateChange }),
   ]);
 };
 
 export const ConceptSetSelector = ({
   selectedConceptSets,
   onChange,
+  onStateChange,
 }: {
   selectedConceptSets: DatasetBuilderObjectSet<ConceptSet>[];
   onChange: (conceptSets: DatasetBuilderObjectSet<ConceptSet>[]) => void;
+  onStateChange: OnStateChangeType;
 }) => {
   return h(DatasetBuilderSelector as React.FC<DatasetBuilderSelectorProps<ConceptSet>>, {
     headerAction: h(
       Link,
       {
-        // TODO (DC-715): Point at correct link
-        href: Nav.getLink('root'),
+        onClick: () => onStateChange('concept-set-creator'),
         'aria-label': 'Create new concept set',
       },
       [icon('plus-circle', { size: 24 })]
@@ -346,7 +354,7 @@ export const ValuesSelector = ({
   });
 };
 
-export const DatasetBuilderContents = () => {
+export const DatasetBuilderContents = ({ onStateChange }: { onStateChange: OnStateChangeType }) => {
   const [selectedCohorts, setSelectedCohorts] = useState([] as DatasetBuilderObjectSet<Cohort>[]);
   const [selectedConceptSets, setSelectedConceptSets] = useState([] as DatasetBuilderObjectSet<ConceptSet>[]);
   const [selectedValues, setSelectedValues] = useState([] as DatasetBuilderObjectSet<Value>[]);
@@ -362,15 +370,20 @@ export const DatasetBuilderContents = () => {
         onChange: (cohorts) => {
           setSelectedCohorts(cohorts);
         },
+        onStateChange,
       }),
       h(ConceptSetSelector, {
         selectedConceptSets,
         onChange: (conceptSets) => setSelectedConceptSets(conceptSets),
+        onStateChange,
       }),
       h(ValuesSelector, { selectedValues, values: [], onChange: (values) => setSelectedValues(values) }),
     ]),
   ]);
 };
+
+type DatasetBuilderState = 'homepage' | 'cohort-editor' | 'concept-selector' | 'concept-set-creator';
+type OnStateChangeType = (state: DatasetBuilderState) => void;
 
 interface DatasetBuilderProps {
   datasetId: string;
@@ -378,6 +391,7 @@ interface DatasetBuilderProps {
 
 export const DatasetBuilderView = ({ datasetId }: DatasetBuilderProps) => {
   const [datasetDetails, loadDatasetDetails] = useLoadedData<DatasetResponse>();
+  const [datasetBuilderState, setDatasetBuilderState] = useState<DatasetBuilderState>('homepage');
 
   useOnMount(() => {
     void loadDatasetDetails(() => DatasetBuilder().retrieveDataset(datasetId));
@@ -386,7 +400,11 @@ export const DatasetBuilderView = ({ datasetId }: DatasetBuilderProps) => {
     ? h(FooterWrapper, {}, [
         h(TopBar, { title: 'Preview', href: '' }, []),
         h(DatasetBuilderHeader, { name: datasetDetails.state.name }),
-        h(DatasetBuilderContents),
+        Utils.switchCase(
+          datasetBuilderState,
+          ['homepage', () => h(DatasetBuilderContents, { onStateChange: (state) => setDatasetBuilderState(state) })],
+          [Utils.DEFAULT, () => div([datasetBuilderState])]
+        ),
       ])
     : spinnerOverlay;
 };

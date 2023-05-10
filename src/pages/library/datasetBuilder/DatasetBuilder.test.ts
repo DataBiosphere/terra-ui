@@ -36,7 +36,9 @@ describe('DatasetBuilder', () => {
   it('renders cohorts', () => {
     // @ts-ignore
     datasetBuilderCohorts.set([{ name: 'cohort 1' }, { name: 'cohort 2' }]);
-    const { getByText } = render(h(CohortSelector, { selectedCohorts: [], onChange: (cohorts) => cohorts }));
+    const { getByText } = render(
+      h(CohortSelector, { selectedCohorts: [], onChange: (cohorts) => cohorts, onStateChange: (state) => state })
+    );
 
     expect(getByText('cohort 1')).toBeTruthy();
     expect(getByText('cohort 2')).toBeTruthy();
@@ -49,7 +51,7 @@ describe('DatasetBuilder', () => {
     // @ts-ignore
     datasetBuilderCohorts.set([{ name: 'cohort 1' }, { name: 'cohort 2' }]);
     const { getByText, getByLabelText } = render(
-      h(CohortSelector, { selectedCohorts: [], onChange: (cohorts) => cohorts })
+      h(CohortSelector, { selectedCohorts: [], onChange: (cohorts) => cohorts, onStateChange: (state) => state })
     );
     // Act
     await user.click(getByLabelText('Create new cohort'));
@@ -63,7 +65,9 @@ describe('DatasetBuilder', () => {
 
     // @ts-ignore
     datasetBuilderCohorts.set([{ name: 'cohort 1' }, { name: 'cohort 2' }]);
-    const { getByText, findByLabelText } = render(h(CreateCohortModal, { onDismiss: () => {} }));
+    const { getByText, findByLabelText } = render(
+      h(CreateCohortModal, { onDismiss: () => {}, onStateChange: (state) => state })
+    );
     // Act
     fireEvent.change(await findByLabelText('Cohort name *'), { target: { value: 'cohort 3' } });
     await user.click(getByText('Create cohort'));
@@ -81,7 +85,11 @@ describe('DatasetBuilder', () => {
     // @ts-ignore
     datasetBuilderConceptSets.set([{ name: 'concept set 1' }, { name: 'concept set 2' }]);
     const { getByText } = render(
-      h(ConceptSetSelector, { selectedConceptSets: [], onChange: (conceptSets) => conceptSets })
+      h(ConceptSetSelector, {
+        selectedConceptSets: [],
+        onChange: (conceptSets) => conceptSets,
+        onStateChange: (state) => state,
+      })
     );
 
     expect(getByText('concept set 1')).toBeTruthy();
@@ -116,7 +124,7 @@ describe('DatasetBuilder', () => {
 
   it('renders dataset builder contents with cohorts and concept sets', () => {
     // Arrange
-    const { getByText } = render(h(DatasetBuilderContents));
+    const { getByText } = render(h(DatasetBuilderContents, { onStateChange: (state) => state }));
     // Assert
     expect(getByText('Select cohorts')).toBeTruthy();
     expect(getByText('Select concept sets')).toBeTruthy();
@@ -130,7 +138,7 @@ describe('DatasetBuilder', () => {
     datasetBuilderCohorts.set([{ name: 'cohort 1' }, { name: 'cohort 2' }]);
     // @ts-ignore
     datasetBuilderConceptSets.set([{ name: 'concept set 1' }, { name: 'concept set 2' }]);
-    const { getByLabelText } = render(h(DatasetBuilderContents));
+    const { getByLabelText } = render(h(DatasetBuilderContents, { onStateChange: (state) => state }));
     // Act
     await user.click(getByLabelText('cohort 1'));
     await user.click(getByLabelText('cohort 2'));
