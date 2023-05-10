@@ -35,6 +35,29 @@ export const withRetryOnError = _.curry((shouldNotRetryFn, wrappedFetch) => asyn
   return wrappedFetch(...args);
 });
 
+const TIMEOUT_DURATION = 10000;
+
+export function makeRequestRetry(request: Function, retriesLeft: number) {
+  return Promise.race([
+    request(),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), TIMEOUT_DURATION)),
+  ])
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      }
+      throw new Error('Network response was not ok.');
+    })
+    .catch((error) => {
+      if (retriesLeft === 0) {
+        throw error;
+      }
+      return new Promise((resolve) => {
+        setTimeout(resolve, TIMEOUT_DURATION);
+      }).then(() => makeRequestRetry(request, retriesLeft - 1));
+    });
+}
+
 export const withRetryAfterReloadingExpiredAuthToken =
   (wrappedFetch: FetchFn): FetchFn =>
   async (resource: RequestInfo | URL, options?: RequestInit) => {

@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { version } from 'src/data/gce-machines';
-import { appIdentifier, authOpts, fetchLeo, fetchOk, jsonBody } from 'src/libs/ajax/ajax-common';
+import { appIdentifier, authOpts, fetchLeo, fetchOk, jsonBody, makeRequestRetry } from 'src/libs/ajax/ajax-common';
 import { GetRuntimeItem, ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getConfig } from 'src/libs/config';
 import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
@@ -131,17 +131,21 @@ export const Runtimes = (signal) => {
         },
 
         setStorageLinks: (localBaseDirectory, cloudStorageDirectory, pattern) => {
-          return fetchOk(
-            `${proxyUrl}/welder/storageLinks`,
-            _.mergeAll([
-              authOpts(),
-              jsonBody({
-                localBaseDirectory,
-                cloudStorageDirectory,
-                pattern,
-              }),
-              { signal, method: 'POST' },
-            ])
+          return makeRequestRetry(
+            () =>
+              fetchOk(
+                `${proxyUrl}/welder/storageLinks`,
+                _.mergeAll([
+                  authOpts(),
+                  jsonBody({
+                    localBaseDirectory,
+                    cloudStorageDirectory,
+                    pattern,
+                  }),
+                  { signal, method: 'POST' },
+                ])
+              ),
+            5
           );
         },
       };
@@ -256,3 +260,27 @@ export const Runtimes = (signal) => {
     },
   };
 };
+
+// const MAX_RETRIES = 5;
+// const TIMEOUT_DURATION = 10000;
+
+// function makeRequestRetry(request, retriesLeft) {
+//   return Promise.race([
+//     request(),
+//     new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), TIMEOUT_DURATION)),
+//   ])
+//     .then((response) => {
+//       if (response.ok) {
+//         return response.json();
+//       }
+//       throw new Error('Network response was not ok.');
+//     })
+//     .catch((error) => {
+//       if (retriesLeft === 0) {
+//         throw error;
+//       }
+//       return new Promise((resolve) => {
+//         setTimeout(resolve, TIMEOUT_DURATION);
+//       }).then(() => makeRequestRetry(request, retriesLeft - 1));
+//     });
+// }
