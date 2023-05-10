@@ -260,27 +260,3 @@ export const Runtimes = (signal) => {
     },
   };
 };
-
-// const MAX_RETRIES = 5;
-// const TIMEOUT_DURATION = 10000;
-
-// function makeRequestRetry(request, retriesLeft) {
-//   return Promise.race([
-//     request(),
-//     new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), TIMEOUT_DURATION)),
-//   ])
-//     .then((response) => {
-//       if (response.ok) {
-//         return response.json();
-//       }
-//       throw new Error('Network response was not ok.');
-//     })
-//     .catch((error) => {
-//       if (retriesLeft === 0) {
-//         throw error;
-//       }
-//       return new Promise((resolve) => {
-//         setTimeout(resolve, TIMEOUT_DURATION);
-//       }).then(() => makeRequestRetry(request, retriesLeft - 1));
-//     });
-// }
