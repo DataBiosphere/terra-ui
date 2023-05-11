@@ -19,6 +19,7 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
   const [wdsStatus, setWdsStatus] = useState(null);
   const [wdsDbStatus, setWdsDbStatus] = useState(null);
   const [wdsPingStatus, setWdsPingStatus] = useState(null);
+  const [wdsIamStatus, setWdsIamStatus] = useState(null);
   const [appFound, setAppFound] = useState(null);
   const [appRunning, setAppRunning] = useState(null);
   const [proxyUrl, setProxyUrl] = useState(null);
@@ -51,11 +52,14 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
             setWdsStatus(res.status);
             setWdsDbStatus(res.components?.db?.status);
             setWdsPingStatus(res.components?.ping?.status);
+            // "Permissions" component only exists in WDS after 3da9bfc; be resilient
+            setWdsIamStatus(res.components?.Permissions ? res.components?.Permissions?.status : 'disabled');
           })
           .catch((_) => {
             setWdsStatus('unresponsive');
             setWdsDbStatus('unknown');
             setWdsPingStatus('unknown');
+            setWdsIamStatus('unknown');
           });
         Ajax(signal)
           .WorkspaceData.listInstances(foundApp?.proxyUrls?.wds)
@@ -76,6 +80,7 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
         setWdsStatus('unresponsive');
         setWdsDbStatus('unknown');
         setWdsPingStatus('unknown');
+        setWdsIamStatus('unknown');
         setDefaultInstanceExists('unknown');
       });
   });
@@ -120,6 +125,7 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     ['Data app status', wdsStatus, wdsStatus == null, !!wdsStatus && wdsStatus !== 'unresponsive' && wdsStatus !== 'DOWN'],
     ['Data app DB status', wdsDbStatus, wdsDbStatus == null, !!wdsDbStatus && wdsDbStatus !== 'unknown' && wdsDbStatus !== 'DOWN'],
     ['Data app ping status', wdsPingStatus, wdsPingStatus == null, !!wdsPingStatus && wdsPingStatus !== 'unknown' && wdsPingStatus !== 'DOWN'],
+    ['Data app IAM status', wdsIamStatus, wdsIamStatus == null, !!wdsIamStatus && wdsIamStatus !== 'unknown' && wdsIamStatus !== 'DOWN'],
     [
       'Default Instance exists',
       `${defaultInstanceExists}`,
