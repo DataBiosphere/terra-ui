@@ -372,7 +372,10 @@ const useAppPolling = (workspace) => {
         !!workspace && isGoogleWorkspace(workspace)
           ? await Ajax(signal).Apps.list(workspace.workspace.googleProject, { role: 'creator', saturnWorkspaceName: workspace.workspace.name })
           : [];
-      const newAzureApps = !!workspace && isAzureWorkspace(workspace) ? await Ajax(signal).Apps.listAppsV2(workspace.workspace.workspaceId) : [];
+      const newAzureApps =
+        !!workspace && isAzureWorkspace(workspace, { role: 'creator', saturnWorkspaceName: workspace.workspace.name })
+          ? await Ajax(signal).Apps.listAppsV2(workspace.workspace.workspaceId)
+          : [];
       const combinedNewApps = [...newGoogleApps, ...newAzureApps];
 
       setApps(combinedNewApps);

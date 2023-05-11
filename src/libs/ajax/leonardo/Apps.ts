@@ -77,8 +77,11 @@ export const Apps = (signal) => ({
       },
     };
   },
-  listAppsV2: async (workspaceId: string): Promise<ListAppResponse[]> => {
-    const res = await fetchLeo(`api/apps/v2/${workspaceId}`, _.mergeAll([authOpts(), appIdentifier, { signal }]));
+  listAppsV2: async (workspaceId: string, labels: LeoResourceLabels = {}): Promise<ListAppResponse[]> => {
+    const res = await fetchLeo(
+      `api/apps/v2/${workspaceId}?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
+      _.mergeAll([authOpts(), appIdentifier, { signal }])
+    );
     return res.json();
   },
   createAppV2: (appName: string, workspaceId: string, appType: string): Promise<void> => {
