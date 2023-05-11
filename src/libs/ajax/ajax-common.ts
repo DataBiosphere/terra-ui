@@ -35,6 +35,33 @@ export const withRetryOnError = _.curry((shouldNotRetryFn, wrappedFetch) => asyn
   return wrappedFetch(...args);
 });
 
+export const DEFAULT_TIMEOUT_DURATION = 10000;
+export const DEFAULT_RETRY_COUNT = 5;
+
+export async function makeRequestRetry(request: Function, retryCount: number, timeoutInMs: number): Promise<any> {
+  let retriesLeft = retryCount;
+  while (retriesLeft >= 0) {
+    try {
+      const response = await Promise.race([
+        request(),
+        // If the request takes longer than 10 seconds, reject it and try again.
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), timeoutInMs)),
+      ]);
+
+      if (response.ok) {
+        return response.json();
+      }
+    } catch (error) {
+      if (retriesLeft === 0) {
+        throw error;
+      }
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, timeoutInMs));
+    retriesLeft--;
+  }
+}
+
 export const withRetryAfterReloadingExpiredAuthToken =
   (wrappedFetch: FetchFn): FetchFn =>
   async (resource: RequestInfo | URL, options?: RequestInit) => {
