@@ -17,10 +17,9 @@ import {
 } from 'src/components/region-common';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
-import { fetchRawlsUnauthenticated } from 'src/libs/ajax/ajax-common';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
-import { reportErrorAndRethrow, withErrorIgnoring, withErrorReporting } from 'src/libs/error';
+import { reportErrorAndRethrow, withErrorReporting } from 'src/libs/error';
 import Events, { extractCrossWorkspaceDetails, extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
@@ -92,19 +91,6 @@ const NewWorkspaceModal = withDisplayName(
       setIsAlphaRegionalityUser(await Ajax(signal).Groups.group(getConfig().alphaRegionalityGroup).isMember());
     });
 
-    // Error is ignored here since any errors associated with Leo app creation are not communicated during workspace creation
-    // Rather when the user first visits the `Data` tab
-    const createLeoApp = withErrorIgnoring(async (workspace) => {
-      if (isAzureBillingProject()) {
-        await Ajax().Apps.createAppV2(`wds-${workspace.workspaceId}`, workspace.workspaceId);
-      }
-    });
-
-    const getRawlsVersion = async () => {
-      const res = await fetchRawlsUnauthenticated('version');
-      return res.json();
-    };
-
     const create = async () => {
       try {
         setCreateError(undefined);
@@ -148,18 +134,6 @@ const NewWorkspaceModal = withDisplayName(
         );
 
         onSuccess(createdWorkspace);
-
-        // Temp code for moving WDS auto-deployment out of UI code and into Rawls.
-        // if the Rawls build number is below the version that auto-deploys WDS,
-        // continue deploying from here. If Rawls is up-to-date, skip deployment.
-        // If we can't parse the build number, skip deployment.
-        const wdsDeploymentRawlsVersion = 8357;
-        await getRawlsVersion().then((res) => {
-          const currentRawlsBuildVersion = parseInt(res.buildNumber);
-          if (!_.isNaN(currentRawlsBuildVersion) && currentRawlsBuildVersion < wdsDeploymentRawlsVersion) {
-            createLeoApp(createdWorkspace);
-          }
-        });
       } catch (error) {
         const { message } = await error.json();
         setCreating(false);
