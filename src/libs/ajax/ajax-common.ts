@@ -162,11 +162,6 @@ export const fetchRawls = _.flow(
   withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 
-export const fetchRawlsUnauthenticated = _.flow(
-  withUrlPrefix(`${getConfig().rawlsUrlRoot}/`),
-  withAppIdentifier
-)(fetchOk);
-
 export const fetchBillingProfileManager = _.flow(
   withUrlPrefix(`${getConfig().billingProfileManagerUrlRoot}/api/`),
   withAppIdentifier,
