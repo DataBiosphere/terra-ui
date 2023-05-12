@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { PauseButton } from 'src/pages/Environments';
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
+import { describe, expect, it, vi } from 'vitest';
 
 describe('Environments', () => {
   it.each([
@@ -10,7 +11,7 @@ describe('Environments', () => {
     { cloudContext: cloudProviders.azure.label, label: 'CromwellOnAzure' },
   ])('should enable pause for azure and google', async ({ cloudContext, label }) => {
     // Arrange
-    const pauseComputeAndRefresh = jest.fn();
+    const pauseComputeAndRefresh = vi.fn();
     const testCompute = {
       appName: 'test-app',
       cloudContext,

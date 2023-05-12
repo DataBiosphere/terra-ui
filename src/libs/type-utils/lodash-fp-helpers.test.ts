@@ -1,4 +1,5 @@
 import { delay } from 'src/libs/utils';
+import { describe, expect, it, vi } from 'vitest';
 
 import { AnyFn, AnyPromiseFn, GenericFn, GenericPromiseFn } from './general-types';
 import { createHandler, createHandlerAsync, curryLastArg, safeCurry, withHandlers } from './lodash-fp-helpers';
@@ -17,7 +18,7 @@ describe('Lodash FP Helpers', () => {
 
     it('handles basic handler wrapper fns', () => {
       // Arrange
-      const handlersWatcher = jest.fn();
+      const handlersWatcher = vi.fn();
       const handler1 = <F extends AnyFn>(fn: GenericFn<F>): GenericFn<F> => {
         return (...args: Parameters<F>): ReturnType<F> => {
           // simulate typical pattern of calling fn, then do handling
@@ -34,7 +35,7 @@ describe('Lodash FP Helpers', () => {
           return result;
         };
       };
-      const watcher = jest.fn();
+      const watcher = vi.fn();
       const mainFn = (a: string, b: string): string => {
         watcher(a, b);
         return `${a} ${b}!`;
@@ -59,7 +60,7 @@ describe('Lodash FP Helpers', () => {
 
     it('handles curried handler wrapper fns', () => {
       // Arrange
-      const handlersWatcher = jest.fn();
+      const handlersWatcher = vi.fn();
       const handler1Fn = <F extends AnyFn>(arg: string, fn: GenericFn<F>): GenericFn<F> => {
         return (...args: Parameters<F>): ReturnType<F> => {
           // simulate typical pattern of calling fn, then do handling
@@ -80,7 +81,7 @@ describe('Lodash FP Helpers', () => {
       };
       const handler2 = safeCurry(handler2Fn);
 
-      const watcher = jest.fn();
+      const watcher = vi.fn();
       const mainFn = (a: string, b: string): string => {
         watcher(a, b);
         return `${a} ${b}!`;
@@ -105,7 +106,7 @@ describe('Lodash FP Helpers', () => {
 
     it('handles handler wrapper fns created with curryLastArg', () => {
       // Arrange
-      const handlersWatcher = jest.fn();
+      const handlersWatcher = vi.fn();
 
       const handler1Fn = <F extends AnyFn>(arg: string, fn: GenericFn<F>): GenericFn<F> => {
         return (...args: Parameters<F>): ReturnType<F> => {
@@ -129,7 +130,7 @@ describe('Lodash FP Helpers', () => {
 
       const handler2 = curryLastArg(handler2Fn);
 
-      const watcher = jest.fn();
+      const watcher = vi.fn();
       const mainFn = (a: string, b: string): string => {
         watcher(a, b);
         return `${a} ${b}!`;
@@ -154,7 +155,7 @@ describe('Lodash FP Helpers', () => {
     /* top recommendation */
     it('handles handler wrapper fns created with createHandler', () => {
       // Arrange
-      const handlersWatcher = jest.fn();
+      const handlersWatcher = vi.fn();
 
       const handler1 = <F extends AnyFn>(arg: string) => {
         return createHandler<F>((executeInner: () => ReturnType<F>) => {
@@ -172,7 +173,7 @@ describe('Lodash FP Helpers', () => {
         });
       };
 
-      const watcher = jest.fn();
+      const watcher = vi.fn();
       const mainFn = (a: string, b: string): string => {
         watcher(a, b);
         return `${a} ${b}!`;
@@ -207,7 +208,7 @@ describe('Lodash FP Helpers', () => {
 
     it('handles basic handler wrapper promise-fns', async () => {
       // Arrange
-      const handlersWatcher = jest.fn();
+      const handlersWatcher = vi.fn();
 
       const handler1 = <F extends AnyPromiseFn, P>(fn: GenericPromiseFn<F, P>): GenericPromiseFn<F, P> => {
         return async (...args: Parameters<F>): Promise<P> => {
@@ -225,7 +226,7 @@ describe('Lodash FP Helpers', () => {
           return result;
         };
       };
-      const watcher = jest.fn();
+      const watcher = vi.fn();
 
       const mainFn = async (a: string, b: string): Promise<string> => {
         watcher(a, b);
@@ -252,7 +253,7 @@ describe('Lodash FP Helpers', () => {
 
     it('handles curried handler wrapper promise-fns', async () => {
       // Arrange
-      const handlersWatcher = jest.fn();
+      const handlersWatcher = vi.fn();
       const handler1Fn = <F extends AnyPromiseFn, P>(
         arg: string,
         fn: GenericPromiseFn<F, P>
@@ -280,7 +281,7 @@ describe('Lodash FP Helpers', () => {
       };
       const handler2 = safeCurry(handler2Fn);
 
-      const watcher = jest.fn();
+      const watcher = vi.fn();
 
       const mainFn = async (a: string, b: string): Promise<string> => {
         watcher(a, b);
@@ -307,7 +308,7 @@ describe('Lodash FP Helpers', () => {
 
     it('handles handler wrapper promise-fns created with curryLastArg', async () => {
       // Arrange
-      const handlersWatcher = jest.fn();
+      const handlersWatcher = vi.fn();
 
       const handler1Fn = <F extends AnyPromiseFn, P>(
         arg: string,
@@ -338,7 +339,7 @@ describe('Lodash FP Helpers', () => {
 
       const handler2 = curryLastArg(handler2Fn);
 
-      const watcher = jest.fn();
+      const watcher = vi.fn();
       const mainFn = async (a: string, b: string): Promise<string> => {
         watcher(a, b);
         await delay(100);
@@ -364,7 +365,7 @@ describe('Lodash FP Helpers', () => {
     /* top recommendation */
     it('handles handler wrapper promise-fns created with createHandlerAsync', async () => {
       // Arrange
-      const handlersWatcher = jest.fn();
+      const handlersWatcher = vi.fn();
 
       const handler1 = <F extends AnyPromiseFn, P>(arg: string) => {
         return createHandlerAsync<P, F>(async (executeInner: () => Promise<P>) => {
@@ -382,7 +383,7 @@ describe('Lodash FP Helpers', () => {
         });
       };
 
-      const watcher = jest.fn();
+      const watcher = vi.fn();
 
       // Act
       // great type safety - example with inline mainFn arg

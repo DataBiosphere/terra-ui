@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import _ from 'lodash/fp';
 import { ErrorState, LoadingState, ReadyState } from 'src/libs/type-utils/LoadedState';
+import { describe, expect, it } from 'vitest';
 
 import IncrementalResponse from './IncrementalResponse';
 import useIncrementalResponse from './useIncrementalResponse';

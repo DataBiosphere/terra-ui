@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { formatTableCell } from 'src/pages/library/DataBrowserPreview';
+import { describe, expect, it } from 'vitest';
 
 describe('DataBrowserPreview', () => {
   const testJsonButton = async (cellContent, cellContentTransformation = (cellContent) => cellContent) => {

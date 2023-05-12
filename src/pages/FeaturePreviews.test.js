@@ -2,9 +2,10 @@ import { fireEvent, getByText, render } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { isFeaturePreviewEnabled, toggleFeaturePreview, useAvailableFeaturePreviews } from 'src/libs/feature-previews';
 import { FeaturePreviews } from 'src/pages/FeaturePreviews';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/libs/ajax');
-jest.mock('src/libs/feature-previews');
+vi.mock('src/libs/ajax');
+vi.mock('src/libs/feature-previews');
 
 describe('FeaturePreviews', () => {
   beforeEach(() => {

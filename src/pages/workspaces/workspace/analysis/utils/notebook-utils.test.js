@@ -1,4 +1,5 @@
 import { allAppTypes, appToolLabels, appTools, isAppToolLabel, runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
+import { describe, expect, it } from 'vitest';
 
 describe('getAllAppTypes and isToolAnApp', () => {
   it('getAllAppTypes includes tools with a defined appType', () => {

@@ -1,4 +1,5 @@
 import { getWorkflowInputSuggestionsForAttributesOfSetMembers } from 'src/libs/workflow-utils';
+import { describe, expect, it } from 'vitest';
 
 describe('getWorkflowInputSuggestionsForAttributesOfSetMembers', () => {
   it('returns workflow input expressions for attributes of entities reference by selected data', () => {

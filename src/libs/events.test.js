@@ -1,4 +1,5 @@
 import { extractBillingDetails, extractCrossWorkspaceDetails, extractWorkspaceDetails } from 'src/libs/events';
+import { describe, expect, it } from 'vitest';
 
 const gcpWorkspace = {
   workspace: {

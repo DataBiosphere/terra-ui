@@ -1,4 +1,5 @@
 import { sidebarSections } from 'src/pages/library/Showcase';
+import { describe, expect, it } from 'vitest';
 
 describe('Showcase', () => {
   it('matches on tags', () => {

@@ -1,7 +1,8 @@
 import { Ajax } from 'src/libs/ajax';
 import { fileProvenanceTypes, getFileProvenance } from 'src/libs/data-table-provenance';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/libs/ajax');
+vi.mock('src/libs/ajax');
 
 describe('getFileProvenance', () => {
   const workspace = { workspace: { namespace: 'test', name: 'test', bucketName: 'workspace-bucket' } };
@@ -12,7 +13,7 @@ describe('getFileProvenance', () => {
         workspace: () => ({
           submission: () => ({
             workflow: () => ({
-              outputs: jest.fn().mockReturnValue(
+              outputs: vi.fn().mockReturnValue(
                 Promise.resolve({
                   tasks: {
                     workflow: {

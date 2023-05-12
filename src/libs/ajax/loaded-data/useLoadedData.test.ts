@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react-hooks';
 import { useLoadedData, UseLoadedDataResult } from 'src/libs/ajax/loaded-data/useLoadedData';
 import LoadedState from 'src/libs/type-utils/LoadedState';
 import { delay } from 'src/libs/utils';
+import { describe, expect, it, vi } from 'vitest';
 
 interface TestData {
   propA: string;
@@ -125,7 +126,7 @@ describe('useLoadedData hook', () => {
   });
 
   it('handles ready state, then later error state', async () => {
-    const onErrorListener = jest.fn();
+    const onErrorListener = vi.fn();
     // Act
     const hookRender = renderHook(() =>
       useLoadedData<TestData>({
