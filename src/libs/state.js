@@ -75,6 +75,26 @@ export const snapshotStore = Utils.atom();
 /** @type {Utils.Atom<any[]>} */
 export const dataCatalogStore = Utils.atom([]);
 
+export const datasetBuilderCohorts = Utils.atom([
+  {
+    name: 'My Cohort',
+    criteriaGroups: [
+      { criteria: [], mustMeet: true, meetAll: false },
+      { criteria: [{ category: 'Condition', name: 'Heart Disease', id: 100, count: 100 }], mustMeet: true, meetAll: false },
+      {
+        criteria: [
+          { name: 'Ethnicity', id: 99, count: 100, value: 'white', valueId: 101 },
+          { name: 'Age', id: 99, count: 100, low: 50, high: 55 },
+        ],
+        mustMeet: false,
+        meetAll: false,
+      },
+    ],
+  },
+]);
+
+export const datasetBuilderConceptSets = Utils.atom([]);
+
 /*
  * Modifies ajax responses for testing purposes.
  * Can be set to an array of objects of the form { fn, filter }.

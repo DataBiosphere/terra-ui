@@ -170,12 +170,11 @@ export const switchCase = (value, ...pairs) => {
   const match = _.find(([v]) => v === value || v === DEFAULT, pairs);
   return match && match[1]();
 };
-
-// TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
-export const toIndexPairs = _.flow(
-  _.toPairs,
-  _.map(([k, v]) => [(k as any) * 1, v])
-);
+export const toIndexPairs = <T>(obj: T[]) =>
+  _.flow(
+    _.toPairs,
+    _.map(([k, v]: [string, T]): [number, T] => [(k as any) * 1, v])
+  )(obj);
 
 // TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
 /**
