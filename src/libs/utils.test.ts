@@ -3,13 +3,14 @@ import {
   defaultAzureWorkspace,
   defaultGoogleWorkspace,
 } from 'src/pages/workspaces/workspace/analysis/_testData/testData';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 beforeAll(() => {
-  jest.useFakeTimers();
+  vi.useFakeTimers();
 });
 
 afterAll(() => {
-  jest.useRealTimers();
+  vi.useRealTimers();
 });
 
 describe('differenceFromNowInSeconds', () => {
@@ -17,13 +18,13 @@ describe('differenceFromNowInSeconds', () => {
     const workspaceDate = '2022-04-01T20:17:04.324Z';
 
     // Month is 0-based, ms will create rounding.
-    jest.setSystemTime(new Date(Date.UTC(2022, 3, 1, 20, 17, 5, 0)));
+    vi.setSystemTime(new Date(Date.UTC(2022, 3, 1, 20, 17, 5, 0)));
     expect(differenceFromNowInSeconds(workspaceDate)).toBe(0);
 
-    jest.advanceTimersByTime(3000);
+    vi.advanceTimersByTime(3000);
     expect(differenceFromNowInSeconds(workspaceDate)).toBe(3);
 
-    jest.advanceTimersByTime(60000);
+    vi.advanceTimersByTime(60000);
     expect(differenceFromNowInSeconds(workspaceDate)).toBe(63);
   });
 });

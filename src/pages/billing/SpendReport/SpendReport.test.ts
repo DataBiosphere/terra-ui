@@ -9,20 +9,21 @@ import {
   SpendReportServerResponse,
 } from 'src/pages/billing/SpendReport/SpendReport';
 import { asMockedFn } from 'src/testing/test-utils';
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 type AjaxContract = ReturnType<typeof Ajax>;
-jest.mock('src/libs/ajax');
+vi.mock('src/libs/ajax');
 
 describe('SpendReport', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
-    jest.useFakeTimers();
+    vi.resetAllMocks();
+    vi.useFakeTimers();
     // Note that month is 0-based. This is April 1st, 2022.
-    jest.setSystemTime(new Date(Date.UTC(2022, 3, 1, 20, 17, 5, 0)));
+    vi.setSystemTime(new Date(Date.UTC(2022, 3, 1, 20, 17, 5, 0)));
   });
 
   afterAll(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   const select90Days = async () => {
@@ -127,7 +128,7 @@ describe('SpendReport', () => {
 
   it('does not call the server if view is not active', async () => {
     // Arrange
-    const getSpendReport = jest.fn(() => Promise.resolve());
+    const getSpendReport = vi.fn(() => Promise.resolve());
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
@@ -147,7 +148,7 @@ describe('SpendReport', () => {
 
   it('displays GCP cost information', async () => {
     // Arrange
-    const getSpendReport = jest.fn();
+    const getSpendReport = vi.fn();
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
@@ -176,7 +177,7 @@ describe('SpendReport', () => {
 
   it('displays Azure cost information but does not include per-workspace costs', async () => {
     // Arrange
-    const getSpendReport = jest.fn();
+    const getSpendReport = vi.fn();
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
@@ -207,7 +208,7 @@ describe('SpendReport', () => {
 
   it('fetches reports based on selected date range, if active', async () => {
     // Arrange
-    const getSpendReport = jest.fn();
+    const getSpendReport = vi.fn();
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
@@ -246,7 +247,7 @@ describe('SpendReport', () => {
 
   it('shows an error if no cost information exists', async () => {
     // Arrange
-    let getSpendReport = jest.fn(() =>
+    let getSpendReport = vi.fn(() =>
       Promise.reject(new Response(JSON.stringify({ message: 'No spend data for 30 days' }), { status: 404 }))
     );
     asMockedFn(Ajax).mockImplementation(
@@ -267,7 +268,7 @@ describe('SpendReport', () => {
     });
 
     // Arrange, switch error message to verify that the UI updates with the new message.
-    getSpendReport = jest.fn(() =>
+    getSpendReport = vi.fn(() =>
       Promise.reject(new Response(JSON.stringify({ message: 'No spend data for 90 days' }), { status: 404 }))
     );
     asMockedFn(Ajax).mockImplementation(

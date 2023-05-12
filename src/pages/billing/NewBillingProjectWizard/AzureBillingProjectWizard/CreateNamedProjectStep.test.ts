@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { h } from 'react-hyperscript-helpers';
 import { CreateNamedProjectStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/CreateNamedProjectStep';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Exported for wizard integration test.
 export const nameBillingProject = async (billingProjectName) => {
@@ -22,9 +23,9 @@ export const verifyCreateBillingProjectDisabled = () => {
   verifyDisabled(getCreateButton());
 };
 
-const onBillingProjectNameChanged = jest.fn();
-const onBillingProjectInputFocused = jest.fn();
-const createBillingProject = jest.fn();
+const onBillingProjectNameChanged = vi.fn();
+const onBillingProjectInputFocused = vi.fn();
+const createBillingProject = vi.fn();
 const getBillingProjectInput = () => screen.getByLabelText('Billing project name *');
 const getCreateButton = () => screen.getByText('Create Terra Billing Project');
 const uniqueBillingProjectNameMsg = 'Name must be unique and cannot be changed';
@@ -43,7 +44,7 @@ const defaultProps = {
 
 describe('CreateNamedProjectStep', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it('has the correct initial state', () => {

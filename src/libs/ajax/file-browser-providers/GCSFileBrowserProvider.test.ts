@@ -4,8 +4,9 @@ import GCSFileBrowserProvider from 'src/libs/ajax/file-browser-providers/GCSFile
 import { GCSItem, GCSListObjectsResponse, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage';
 import * as Utils from 'src/libs/utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/libs/ajax');
+vi.mock('src/libs/ajax');
 
 const gcsObject = (name: string): GCSItem => ({
   bucket: 'test-bucket',
@@ -38,7 +39,7 @@ describe('GCSFileBrowserProvider', () => {
   let list;
 
   beforeEach(() => {
-    list = jest.fn().mockImplementation((_googleProject, _bucket, _prefix, options = {}) => {
+    list = vi.fn().mockImplementation((_googleProject, _bucket, _prefix, options = {}) => {
       const { pageToken } = options;
 
       const response: GCSListObjectsResponse = Utils.switchCase(
@@ -143,7 +144,7 @@ describe('GCSFileBrowserProvider', () => {
 
   it('gets a signed URL for downloads', async () => {
     // Arrange
-    const getSignedUrl = jest.fn(() => Promise.resolve({ url: 'signedUrl' }));
+    const getSignedUrl = vi.fn(() => Promise.resolve({ url: 'signedUrl' }));
     asMockedFn(Ajax).mockImplementation(() => {
       return {
         DrsUriResolver: { getSignedUrl } as Partial<ReturnType<typeof Ajax>['DrsUriResolver']>,
@@ -178,7 +179,7 @@ describe('GCSFileBrowserProvider', () => {
 
   it('uploads a file', async () => {
     // Arrange
-    const upload = jest.fn(() => Promise.resolve());
+    const upload = vi.fn(() => Promise.resolve());
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
@@ -199,7 +200,7 @@ describe('GCSFileBrowserProvider', () => {
 
   it('deletes files', async () => {
     // Arrange
-    const del = jest.fn(() => Promise.resolve());
+    const del = vi.fn(() => Promise.resolve());
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
@@ -218,7 +219,7 @@ describe('GCSFileBrowserProvider', () => {
 
   it('creates empty directories', async () => {
     // Arrange
-    const upload = jest.fn(() => Promise.resolve());
+    const upload = vi.fn(() => Promise.resolve());
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
@@ -244,7 +245,7 @@ describe('GCSFileBrowserProvider', () => {
 
   it('deletes empty directories', async () => {
     // Arrange
-    const del = jest.fn(() => Promise.resolve());
+    const del = vi.fn(() => Promise.resolve());
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({

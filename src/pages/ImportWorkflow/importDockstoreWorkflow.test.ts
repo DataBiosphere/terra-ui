@@ -1,10 +1,11 @@
 import { Ajax } from 'src/libs/ajax';
 import { DeepPartial } from 'src/libs/type-utils/deep-partial';
 import { asMockedFn } from 'src/testing/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { importDockstoreWorkflow } from './importDockstoreWorkflow';
 
-jest.mock('src/libs/ajax');
+vi.mock('src/libs/ajax');
 
 type AjaxExports = typeof import('src/libs/ajax');
 type AjaxContract = ReturnType<AjaxExports['Ajax']>;
@@ -29,15 +30,15 @@ describe('importDockstoreWorkflow', () => {
 
   beforeEach(() => {
     // Arrange
-    importMethodConfigFromDocker = jest.fn().mockResolvedValue(undefined);
-    deleteMethodConfig = jest.fn().mockResolvedValue(undefined);
+    importMethodConfigFromDocker = vi.fn().mockResolvedValue(undefined);
+    deleteMethodConfig = vi.fn().mockResolvedValue(undefined);
 
     const mockWorkspaceMethodConfigAjax: Partial<ReturnType<AjaxContract['Workspaces']['workspace']>['methodConfig']> =
       {
         delete: deleteMethodConfig,
       };
 
-    workspaceMethodConfigAjax = jest.fn().mockReturnValue(mockWorkspaceMethodConfigAjax);
+    workspaceMethodConfigAjax = vi.fn().mockReturnValue(mockWorkspaceMethodConfigAjax);
 
     const mockWorkspaceAjax: DeepPartial<ReturnType<AjaxContract['Workspaces']['workspace']>> = {
       entityMetadata: () =>
@@ -49,9 +50,9 @@ describe('importDockstoreWorkflow', () => {
       methodConfig: workspaceMethodConfigAjax,
     };
 
-    workspaceAjax = jest.fn().mockReturnValue(mockWorkspaceAjax);
+    workspaceAjax = vi.fn().mockReturnValue(mockWorkspaceAjax);
 
-    methodConfigInputsOutputs = jest.fn().mockResolvedValue({
+    methodConfigInputsOutputs = vi.fn().mockResolvedValue({
       inputs: [],
       outputs: [
         { name: 'taskA.output1', outputType: 'String' },

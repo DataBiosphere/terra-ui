@@ -8,9 +8,10 @@ import Events from 'src/libs/events';
 import * as Preferences from 'src/libs/prefs';
 import GCPBillingProjectWizard from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/GCPBillingProjectWizard';
 import { asMockedFn } from 'src/testing/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/libs/ajax');
-jest.spyOn(Preferences, 'getLocalPref');
+vi.mock('src/libs/ajax');
+vi.spyOn(Preferences, 'getLocalPref');
 
 type AjaxContract = ReturnType<typeof Ajax>;
 
@@ -148,14 +149,14 @@ const testStep4Enabled = () => {
 
 const accountName = 'Billing_Account_Name';
 const displayName = 'Billing_Account_Display_Name';
-const createGCPProject = jest.fn(() => Promise.resolve());
-const captureEvent = jest.fn();
+const createGCPProject = vi.fn(() => Promise.resolve());
+const captureEvent = vi.fn();
 
 describe('GCPBillingProjectWizard Steps', () => {
   let wizardComponent;
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
 
     // Arrange
     asMockedFn(Ajax).mockImplementation(
@@ -168,9 +169,9 @@ describe('GCPBillingProjectWizard Steps', () => {
 
     wizardComponent = render(
       h(GCPBillingProjectWizard, {
-        onSuccess: jest.fn(),
+        onSuccess: vi.fn(),
         billingAccounts: { accountName: { accountName, displayName } },
-        authorizeAndLoadAccounts: jest.fn(),
+        authorizeAndLoadAccounts: vi.fn(),
       })
     );
   });
@@ -419,9 +420,9 @@ describe('Step 4 Warning Message', () => {
 
     render(
       h(GCPBillingProjectWizard, {
-        onSuccess: jest.fn(),
+        onSuccess: vi.fn(),
         billingAccounts: {},
-        authorizeAndLoadAccounts: jest.fn(),
+        authorizeAndLoadAccounts: vi.fn(),
       })
     );
 
@@ -467,9 +468,9 @@ describe('Changing prior answers', () => {
     );
     render(
       h(GCPBillingProjectWizard, {
-        onSuccess: jest.fn(),
+        onSuccess: vi.fn(),
         billingAccounts: { accountName: { accountName, displayName } },
-        authorizeAndLoadAccounts: jest.fn(),
+        authorizeAndLoadAccounts: vi.fn(),
       })
     );
   });

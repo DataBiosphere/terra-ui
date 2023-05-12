@@ -17,6 +17,7 @@ import {
 import { DeleteDiskChoices } from 'src/pages/workspaces/workspace/analysis/modals/DeleteDiskChoices';
 import { DeleteEnvironment } from 'src/pages/workspaces/workspace/analysis/modals/DeleteEnvironment';
 import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
+import { describe, expect, it, vi } from 'vitest';
 
 const renderActionButton = () => h(ButtonPrimary, {}, ['Delete']);
 
@@ -27,7 +28,7 @@ describe('DeleteDiskChoices', () => {
       // Arrange
       const pdCost = formatUSD(1.01);
       const deleteDiskSelected = false;
-      const setDeleteDiskSelected = jest.fn();
+      const setDeleteDiskSelected = vi.fn();
 
       // Act
       render(
@@ -52,7 +53,7 @@ describe('DeleteDiskChoices', () => {
     // Arrange
     const pdCost = formatUSD(1.01);
     const deleteDiskSelected = false;
-    const setDeleteDiskSelected = jest.fn();
+    const setDeleteDiskSelected = vi.fn();
 
     // Act
     render(
@@ -79,7 +80,7 @@ describe('DeleteDiskChoices', () => {
     // Arrange
     const pdCost = formatUSD(1.01);
     const deleteDiskSelected = false;
-    const setDeleteDiskSelected = jest.fn();
+    const setDeleteDiskSelected = vi.fn();
 
     // Act
     render(
@@ -103,7 +104,7 @@ describe('DeleteDiskChoices', () => {
     // Arrange
     const pdCost = formatUSD(1.01);
     const deleteDiskSelected = false;
-    const setDeleteDiskSelected = jest.fn();
+    const setDeleteDiskSelected = vi.fn();
 
     // Act
     render(
@@ -127,7 +128,7 @@ describe('DeleteDiskChoices', () => {
     // Arrange
     const pdCost = formatUSD(1.01);
     const deleteDiskSelected = false;
-    const setDeleteDiskSelected = jest.fn();
+    const setDeleteDiskSelected = vi.fn();
 
     // Act
     render(
@@ -153,8 +154,8 @@ describe('DeleteEnvironment', () => {
     'Should properly render when provided no disk/runtime with label %s',
     (toolLabel) => {
       // Arrange
-      const setDeleteDiskSelected = jest.fn();
-      const setViewMode = jest.fn();
+      const setDeleteDiskSelected = vi.fn();
+      const setViewMode = vi.fn();
 
       // Act
       render(
@@ -181,8 +182,8 @@ describe('DeleteEnvironment', () => {
     { disk: getAzureDisk(), toolLabel: runtimeToolLabels.JupyterLab },
   ])('Should properly render when provided no runtime but a disk', ({ disk, toolLabel }) => {
     // Arrange
-    const setDeleteDiskSelected = jest.fn();
-    const setViewMode = jest.fn();
+    const setDeleteDiskSelected = vi.fn();
+    const setViewMode = vi.fn();
 
     // Act
     render(
@@ -207,8 +208,8 @@ describe('DeleteEnvironment', () => {
   });
   it('Should properly render when provided Azure config', () => {
     // Arrange
-    const setDeleteDiskSelected = jest.fn();
-    const setViewMode = jest.fn();
+    const setDeleteDiskSelected = vi.fn();
+    const setViewMode = vi.fn();
     const disk = getAzureDisk();
     const runtimeConfig = azureRuntime.runtimeConfig;
 
@@ -237,8 +238,8 @@ describe('DeleteEnvironment', () => {
     'Should properly render when provided a GCEWithPD config with label %s',
     (toolLabel) => {
       // Arrange
-      const setDeleteDiskSelected = jest.fn();
-      const setViewMode = jest.fn();
+      const setDeleteDiskSelected = vi.fn();
+      const setViewMode = vi.fn();
       const disk = getDisk();
       const runtimeConfig = getRuntimeConfig({ persistentDiskId: disk.id });
 
@@ -267,8 +268,8 @@ describe('DeleteEnvironment', () => {
   );
   it('Should properly render when provided a GCE config', () => {
     // Arrange
-    const setDeleteDiskSelected = jest.fn();
-    const setViewMode = jest.fn();
+    const setDeleteDiskSelected = vi.fn();
+    const setViewMode = vi.fn();
     const disk = getDisk();
     const runtimeConfig = getRuntimeConfig();
 
@@ -297,8 +298,8 @@ describe('DeleteEnvironment', () => {
     'Should properly render when provided GCE config that had matching PDID with label %s',
     (toolLabel) => {
       // Arrange
-      const setDeleteDiskSelected = jest.fn();
-      const setViewMode = jest.fn();
+      const setDeleteDiskSelected = vi.fn();
+      const setViewMode = vi.fn();
       const disk = getDisk();
       const runtimeConfig = getRuntimeConfig({ persistentDiskId: disk.id });
       if ('persistentDiskId' in runtimeConfig) runtimeConfig.persistentDiskId = disk.id;
@@ -330,8 +331,8 @@ describe('DeleteEnvironment', () => {
   );
   it('Should properly render when provided Azure config that had matching PDID', () => {
     // Arrange
-    const setDeleteDiskSelected = jest.fn();
-    const setViewMode = jest.fn();
+    const setDeleteDiskSelected = vi.fn();
+    const setViewMode = vi.fn();
     const disk = getAzureDisk();
     const runtimeConfig = azureRuntime.runtimeConfig;
     // this if statement is to satisfy typescript

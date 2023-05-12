@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import { controlledPromise } from 'src/testing/test-utils';
+import { describe, expect, it, vi } from 'vitest';
 
 import { useUploader } from './uploads';
 
@@ -9,7 +10,7 @@ describe('useUploader', () => {
 
   it('uploads files', async () => {
     // Arrange
-    const uploadFile = jest.fn(() => Promise.resolve());
+    const uploadFile = vi.fn(() => Promise.resolve());
     const { result: hookReturnRef } = renderHook(() => useUploader(uploadFile));
 
     // Act
@@ -25,7 +26,7 @@ describe('useUploader', () => {
   it('tracks progress of upload batch', async () => {
     // Arrange
     let finishCurrentUpload: (() => void) | null = null;
-    const uploadFile = jest.fn(() => {
+    const uploadFile = vi.fn(() => {
       const [promise, controller] = controlledPromise<void>();
       finishCurrentUpload = controller.resolve;
       return promise;
@@ -108,7 +109,7 @@ describe('useUploader', () => {
 
   it('tracks errors during uploads', async () => {
     // Arrange
-    const uploadFile = jest.fn(() => Promise.reject(new Error('Upload error')));
+    const uploadFile = vi.fn(() => Promise.reject(new Error('Upload error')));
     const { result: hookReturnRef } = renderHook(() => useUploader(uploadFile));
 
     // Act
@@ -132,7 +133,7 @@ describe('useUploader', () => {
 
   it('allows canceling upload', async () => {
     // Arrange
-    const uploadFile = jest.fn(() => Promise.resolve());
+    const uploadFile = vi.fn(() => Promise.resolve());
     const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useUploader(uploadFile));
 
     // Act

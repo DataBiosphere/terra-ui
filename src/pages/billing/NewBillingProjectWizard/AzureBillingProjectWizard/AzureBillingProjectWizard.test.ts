@@ -19,14 +19,15 @@ import {
   verifyCreateBillingProjectDisabled,
 } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/CreateNamedProjectStep.test';
 import { asMockedFn } from 'src/testing/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Note that mocking is done by selectManagedApp (as well as default mocking in setUp).
 type AjaxContract = ReturnType<typeof Ajax>;
-jest.mock('src/libs/ajax');
+vi.mock('src/libs/ajax');
 
 describe('transforming user info to the request object', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it('splits lists of emails and maps them to roles', () => {
@@ -56,11 +57,11 @@ const testStepActive = (stepNumber) => {
 
 describe('AzureBillingProjectWizard', () => {
   let renderResult;
-  const onSuccess = jest.fn();
-  const captureEvent = jest.fn();
+  const onSuccess = vi.fn();
+  const captureEvent = vi.fn();
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
@@ -81,7 +82,7 @@ describe('AzureBillingProjectWizard', () => {
 
   it('should support happy path of submitting with no users/owners', async () => {
     // Integration test of steps (act/arrange/assert not really possible)
-    const createAzureProject = jest.fn().mockResolvedValue({});
+    const createAzureProject = vi.fn().mockResolvedValue({});
     const billingProjectName = 'LotsOfCash';
 
     testStepActive(1);
@@ -114,7 +115,7 @@ describe('AzureBillingProjectWizard', () => {
 
   it('should support happy path of submitting with owners and users', async () => {
     // Integration test of steps (act/arrange/assert not really possible)
-    const createAzureProject = jest.fn().mockResolvedValue({ ok: true });
+    const createAzureProject = vi.fn().mockResolvedValue({ ok: true });
     const billingProjectName = 'LotsOfCashForAll';
 
     testStepActive(1);
@@ -152,7 +153,7 @@ describe('AzureBillingProjectWizard', () => {
 
   it('shows error if billing project already exists with the name', async () => {
     // Integration test of steps (act/arrange/assert not really possible)
-    const createAzureProject = jest.fn().mockRejectedValue({ status: 409 });
+    const createAzureProject = vi.fn().mockRejectedValue({ status: 409 });
     const billingProjectName = 'ProjectNameInUse';
 
     const managedApp = await selectManagedApp(captureEvent, createAzureProject);

@@ -3,11 +3,12 @@ import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { h } from 'react-hyperscript-helpers';
 import { AddUsersStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AddUsersStep';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const onSetUserEmails = jest.fn();
-const onSetOwnerEmails = jest.fn();
-const onAddUsersOrOwners = jest.fn();
-const onOwnersOrUsersInputFocused = jest.fn();
+const onSetUserEmails = vi.fn();
+const onSetOwnerEmails = vi.fn();
+const onAddUsersOrOwners = vi.fn();
+const onOwnersOrUsersInputFocused = vi.fn();
 const getUsersInput = () => screen.getByLabelText('Users');
 const getOwnersInput = () => screen.getByLabelText('Owners');
 
@@ -33,7 +34,7 @@ const defaultProps = {
 
 describe('AddUsersStep', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   const verifyDisabled = (item) => expect(item).toHaveAttribute('disabled');
@@ -54,7 +55,7 @@ describe('AddUsersStep', () => {
 
   it('Disables and clears the input fields based on radio button selection', async () => {
     // Arrange
-    const mockAddUsersOrOwners = jest.fn((addUsers) => {
+    const mockAddUsersOrOwners = vi.fn((addUsers) => {
       renderResult.rerender(
         h(AddUsersStep, {
           ...defaultProps,

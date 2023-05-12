@@ -6,6 +6,7 @@ import {
   listItemsMatchForSectionEntry,
   sectionEntrySelected,
 } from 'src/pages/library/SearchAndFilterComponent';
+import { describe, expect, it } from 'vitest';
 
 type TestStrings = 'A quick brown fox jumped over a lazy gray dog' | 'aeio' | 'stock' | 'styx' | 'xylophone';
 

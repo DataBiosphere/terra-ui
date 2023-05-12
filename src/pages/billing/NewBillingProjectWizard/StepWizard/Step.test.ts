@@ -4,6 +4,7 @@ import { render } from '@testing-library/react';
 import { sum } from 'lodash/fp';
 import { div, h } from 'react-hyperscript-helpers';
 import { Step } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/Step';
+import { describe, expect, it } from 'vitest';
 
 describe('Step', () => {
   it('renders all child props in order', () => {

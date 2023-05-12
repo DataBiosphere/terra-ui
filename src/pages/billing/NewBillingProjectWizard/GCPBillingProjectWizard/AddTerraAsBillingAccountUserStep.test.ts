@@ -7,9 +7,10 @@ import {
   AddTerraAsBillingAccountUserStepProps,
 } from 'src/pages/billing/NewBillingProjectWizard/GCPBillingProjectWizard/AddTerraAsBillingAccountUserStep';
 import { asMockedFn } from 'src/testing/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/libs/ajax');
-jest.spyOn(Preferences, 'getLocalPref');
+vi.mock('src/libs/ajax');
+vi.spyOn(Preferences, 'getLocalPref');
 
 type AjaxContract = ReturnType<typeof Ajax>;
 
@@ -32,11 +33,11 @@ const getUserAddedButton = () =>
     screen.queryByLabelText('I have added terra-billing as a billing account user (requires reauthentication)')
   );
 
-const createGCPProject = jest.fn(() => Promise.resolve());
-const captureEvent = jest.fn();
+const createGCPProject = vi.fn(() => Promise.resolve());
+const captureEvent = vi.fn();
 describe('AddTerraAsBillingAccountUserStep', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
 
     asMockedFn(Ajax).mockImplementation(
       () =>
@@ -52,7 +53,7 @@ describe('AddTerraAsBillingAccountUserStep', () => {
       render(
         h(AddTerraAsBillingAccountUserStep, {
           isActive: true,
-          setAccessToAddBillingAccountUser: jest.fn,
+          setAccessToAddBillingAccountUser: vi.fn,
           isFinished: false,
         })
       );
@@ -82,7 +83,7 @@ describe('AddTerraAsBillingAccountUserStep', () => {
   describe('the behavior of the buttons', () => {
     const defaultProps = {
       isActive: true,
-      setAccessToAddBillingAccountUser: jest.fn(),
+      setAccessToAddBillingAccountUser: vi.fn(),
       isFinished: false,
     };
 

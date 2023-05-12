@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { ContributorInput } from 'src/pages/library/data-catalog/CreateDataset/CustomInputs/ContributorInput';
+import { describe, expect, it } from 'vitest';
 
 describe('ContributorInput', () => {
   it('Renders a ContributorInput with all fields and email validation', () => {

@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { CountsInput } from 'src/pages/library/data-catalog/CreateDataset/CustomInputs/CountsInput';
+import { describe, expect, it } from 'vitest';
 
 describe('CountsInput', () => {
   it('Renders a CountsInput with all fields', () => {

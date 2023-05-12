@@ -9,6 +9,7 @@ import {
   getCurrentPersistentDisk,
   getReadyPersistentDisk,
 } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils';
+import { describe, expect, it } from 'vitest';
 
 describe('getCurrentPersistentDisk', () => {
   it('returns undefined if no disks/runtimes exist', () => {

@@ -28,6 +28,7 @@ import {
   getDefaultMachineType,
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
+import { describe, expect, it, vi } from 'vitest';
 
 const defaultIComputeConfig: IComputeConfig = {
   persistentDiskSize: defaultGcePersistentDiskSize,
@@ -48,24 +49,24 @@ const defaultIComputeConfig: IComputeConfig = {
   computeZone: defaultComputeZone,
 };
 
-const updateComputeConfigMock = jest.fn();
+const updateComputeConfigMock = vi.fn();
 
 const defaultPersistentDiskProps: PersistentDiskControlProps = {
   persistentDiskExists: true,
   computeConfig: defaultIComputeConfig,
   updateComputeConfig: updateComputeConfigMock,
-  setViewMode: jest.fn(),
+  setViewMode: vi.fn(),
   cloudPlatform: 'GCP',
-  handleLearnMoreAboutPersistentDisk: jest.fn(),
+  handleLearnMoreAboutPersistentDisk: vi.fn(),
 };
 
 const defaultAzurePersistentDiskProps: PersistentDiskControlProps = {
   persistentDiskExists: true,
   computeConfig: defaultIComputeConfig,
   updateComputeConfig: () => updateComputeConfigMock,
-  setViewMode: jest.fn(),
+  setViewMode: vi.fn(),
   cloudPlatform: 'AZURE',
-  handleLearnMoreAboutPersistentDisk: jest.fn(),
+  handleLearnMoreAboutPersistentDisk: vi.fn(),
 };
 
 const defaultPersistentDiskTypeProps: PersistentDiskTypeProps = {
@@ -121,7 +122,7 @@ describe('compute-modal-component', () => {
     // click learn more about persistent disk
     it('should render learn more about persistent disks', async () => {
       // Arrange
-      const setViewModeMock = jest.fn();
+      const setViewModeMock = vi.fn();
       render(h(PersistentDiskSection, { ...defaultPersistentDiskProps, setViewMode: setViewModeMock }));
 
       // Act

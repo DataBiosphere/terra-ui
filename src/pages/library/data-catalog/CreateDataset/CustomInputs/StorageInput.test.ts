@@ -3,11 +3,12 @@ import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { StorageInput } from 'src/pages/library/data-catalog/CreateDataset/CustomInputs/StorageInput';
+import { describe, expect, it, vi } from 'vitest';
 
 // For some reason this seemed to want to import files from
 // this file. For some reason fetchBuckets errors here, but
 // we are not doing any special testing here of that method
-jest.mock('src/libs/ajax/GoogleStorage.ts');
+vi.mock('src/libs/ajax/GoogleStorage.ts');
 
 const StorageInputWithState = ({ initialValue, props }) => {
   const [value, setValue] = useState(initialValue);
