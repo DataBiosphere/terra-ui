@@ -14,7 +14,8 @@
     "jest-puppeteer": "^6.0.2",
     "node-fetch": "^2.6.7",
     "prompts": "^2.4.1",
-    "puppeteer-cluster": "^0.23.0"
+    "puppeteer-cluster": "^0.23.0",
+    "vitest": "^0.31.0"
   },
   "dependencies": {
     "@axe-core/puppeteer": "^4.6.0",
