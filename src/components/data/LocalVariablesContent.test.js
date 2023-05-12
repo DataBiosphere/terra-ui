@@ -1,4 +1,5 @@
 import { convertInitialAttributes, getDisplayedAttribute, renameAttribute } from 'src/components/data/LocalVariablesContent';
+import { describe, expect, it } from 'vitest';
 
 describe('getDisplayedAttribute', () => {
   it('gets a displayed attribute with a description', () => {

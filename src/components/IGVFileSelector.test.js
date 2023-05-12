@@ -1,4 +1,5 @@
 import { getValidIgvFiles, getValidIgvFilesFromAttributeValues } from 'src/components/IGVFileSelector';
+import { describe, expect, it } from 'vitest';
 
 describe('getValidIgvFiles', () => {
   it('allows BAM files with indices', () => {

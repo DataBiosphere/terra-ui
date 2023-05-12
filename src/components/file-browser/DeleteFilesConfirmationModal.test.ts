@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
+import { describe, it } from 'vitest';
 
 import { DeleteFilesConfirmationModal } from './DeleteFilesConfirmationModal';
 

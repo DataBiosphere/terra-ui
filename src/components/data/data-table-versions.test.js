@@ -2,6 +2,7 @@ import { fireEvent, render } from '@testing-library/react';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { DataTableSaveVersionModal, DataTableVersion } from 'src/components/data/data-table-versions';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('DataTableSaveVersionModal', () => {
   it('renders input for description', () => {
@@ -39,7 +40,7 @@ describe('DataTableSaveVersionModal', () => {
   });
 
   it('calls onSubmit with entered description and selected set tables', () => {
-    const onSubmit = jest.fn();
+    const onSubmit = vi.fn();
 
     const { getAllByRole, getByLabelText, getByText } = render(
       h(DataTableSaveVersionModal, {
@@ -80,7 +81,7 @@ describe('DataTableVersion', () => {
     let renderResult;
 
     beforeEach(() => {
-      renderResult = render(h(DataTableVersion, { version: testVersion, onDelete: jest.fn(), onImport: jest.fn() }));
+      renderResult = render(h(DataTableVersion, { version: testVersion, onDelete: vi.fn(), onImport: vi.fn() }));
     });
 
     it('renders entity type and timestamp', () => {
@@ -107,8 +108,8 @@ describe('DataTableVersion', () => {
   });
 
   it('renders import button and confirms import', () => {
-    const onImport = jest.fn();
-    const { getByTestId, getByText } = render(h(DataTableVersion, { version: testVersion, onDelete: jest.fn(), onImport }));
+    const onImport = vi.fn();
+    const { getByTestId, getByText } = render(h(DataTableVersion, { version: testVersion, onDelete: vi.fn(), onImport }));
 
     const importButton = getByText('Import');
     fireEvent.click(importButton);
@@ -122,8 +123,8 @@ describe('DataTableVersion', () => {
   });
 
   it('renders delete button and confirms delete', () => {
-    const onDelete = jest.fn();
-    const { getByTestId, getByText } = render(h(DataTableVersion, { version: testVersion, onDelete, onImport: jest.fn() }));
+    const onDelete = vi.fn();
+    const { getByTestId, getByText } = render(h(DataTableVersion, { version: testVersion, onDelete, onImport: vi.fn() }));
 
     const deleteButton = getByText('Delete');
     fireEvent.click(deleteButton);

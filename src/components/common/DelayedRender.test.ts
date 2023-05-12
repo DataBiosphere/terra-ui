@@ -1,12 +1,13 @@
 import { act, render, screen } from '@testing-library/react';
 import { div, h } from 'react-hyperscript-helpers';
+import { describe, expect, it, vi } from 'vitest';
 
 import { DelayedRender } from './DelayedRender';
 
 describe('DelayedRender', () => {
   it('renders children after a delay', () => {
     // Arrange
-    jest.useFakeTimers();
+    vi.useFakeTimers();
 
     // Act
     render(h(DelayedRender, { delay: 3000 }, [div(['Hello world'])]));
@@ -14,7 +15,7 @@ describe('DelayedRender', () => {
     const isRenderedInitially = screen.queryByText('Hello world') !== null;
 
     act(() => {
-      jest.advanceTimersByTime(3000);
+      vi.advanceTimersByTime(3000);
     });
     const isRenderedAfterDelay = screen.queryByText('Hello world') !== null;
 

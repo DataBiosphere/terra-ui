@@ -4,6 +4,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import PathBreadcrumbs from 'src/components/file-browser/PathBreadcrumbs';
+import { describe, expect, it, vi } from 'vitest';
 
 describe('PathBreadcrumbs', () => {
   it('renders path segments (including root path) as buttons', () => {
@@ -12,7 +13,7 @@ describe('PathBreadcrumbs', () => {
       h(PathBreadcrumbs, {
         path: 'path/to/directory/',
         rootLabel: 'Files',
-        onClickPath: jest.fn(),
+        onClickPath: vi.fn(),
       })
     );
     const buttons = screen.getAllByRole('button');
@@ -26,7 +27,7 @@ describe('PathBreadcrumbs', () => {
     // Arrange
     userEvent.setup();
 
-    const onClickPath = jest.fn();
+    const onClickPath = vi.fn();
     render(
       h(PathBreadcrumbs, {
         path: 'path/to/directory/',

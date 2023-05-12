@@ -8,6 +8,7 @@ import {
   renderDataCell,
 } from 'src/components/data/data-utils';
 import * as Utils from 'src/libs/utils';
+import { describe, expect, it } from 'vitest';
 
 describe('getRootTypeForSetTable', () => {
   it('gets member type for set tables', () => {

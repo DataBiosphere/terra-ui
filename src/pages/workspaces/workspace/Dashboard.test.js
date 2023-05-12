@@ -10,17 +10,18 @@ import { authStore } from 'src/libs/state';
 import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import { BucketLocation, WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard';
 import { asMockedFn } from 'src/testing/test-utils';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/libs/ajax');
+vi.mock('src/libs/ajax');
 
-jest.mock('src/libs/notifications');
+vi.mock('src/libs/notifications');
 
 describe('WorkspaceNotifications', () => {
   const testWorkspace = { workspace: { namespace: 'test', name: 'test' } };
 
   afterEach(() => {
     authStore.reset();
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it.each([
@@ -55,14 +56,14 @@ describe('WorkspaceNotifications', () => {
   it('updates preferences when checkbox is clicked', async () => {
     const user = userEvent.setup();
 
-    const setPreferences = jest.fn().mockReturnValue(Promise.resolve());
+    const setPreferences = vi.fn().mockReturnValue(Promise.resolve());
     Ajax.mockImplementation(() => ({
       Metrics: {
-        captureEvent: jest.fn(),
+        captureEvent: vi.fn(),
       },
       User: {
         profile: {
-          get: jest.fn().mockReturnValue(Promise.resolve({ keyValuePairs: [] })),
+          get: vi.fn().mockReturnValue(Promise.resolve({ keyValuePairs: [] })),
           setPreferences,
         },
       },
@@ -115,7 +116,7 @@ describe('BucketLocation', () => {
   };
 
   afterEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it('shows Loading initially when uninitialized and should not fail any accessibility tests', async () => {
@@ -172,7 +173,7 @@ describe('BucketLocation', () => {
     const mockAjax = {
       Workspaces: {
         workspace: () => ({
-          checkBucketLocation: jest.fn().mockResolvedValue({
+          checkBucketLocation: vi.fn().mockResolvedValue({
             location: 'bermuda',
             locationType: 'triangle',
           }),

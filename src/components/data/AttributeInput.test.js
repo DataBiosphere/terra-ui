@@ -1,13 +1,14 @@
 import { fireEvent, render } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import AttributeInput, { AttributeTypeInput } from 'src/components/data/AttributeInput';
+import { describe, expect, it, vi } from 'vitest';
 
 describe('AttributeTypeInput', () => {
   it('renders radio buttons for available types', () => {
     const { getAllByRole } = render(
       h(AttributeTypeInput, {
         value: { type: 'string' },
-        onChange: jest.fn(),
+        onChange: vi.fn(),
       })
     );
 
@@ -22,7 +23,7 @@ describe('AttributeTypeInput', () => {
     const { queryByLabelText } = render(
       h(AttributeTypeInput, {
         value: { type: 'string' },
-        onChange: jest.fn(),
+        onChange: vi.fn(),
         showJsonTypeOption: true,
       })
     );
@@ -32,7 +33,7 @@ describe('AttributeTypeInput', () => {
   });
 
   it('calls onChange callback when a type is selected', () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     const { getByLabelText } = render(
       h(AttributeTypeInput, {
         value: { type: 'string' },
@@ -51,7 +52,7 @@ describe('AttributeTypeInput', () => {
         h(AttributeTypeInput, {
           value: { type: 'reference', entityType: 'foo' },
           entityTypes: ['foo', 'bar', 'baz'],
-          onChange: jest.fn(),
+          onChange: vi.fn(),
         })
       );
 
@@ -60,7 +61,7 @@ describe('AttributeTypeInput', () => {
     });
 
     it('selecting reference type uses the default reference entity type if one is provided', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { getByLabelText } = render(
         h(AttributeTypeInput, {
           value: { type: 'string' },
@@ -76,7 +77,7 @@ describe('AttributeTypeInput', () => {
     });
 
     it('selecting reference type uses the alphabetically first entity type if no default reference entity type is provided', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { getByLabelText } = render(
         h(AttributeTypeInput, {
           value: { type: 'string' },
@@ -97,7 +98,7 @@ describe('AttributeInput', () => {
     it('renders radio buttons for available types', () => {
       const { getAllByRole } = render(
         h(AttributeInput, {
-          onChange: jest.fn(),
+          onChange: vi.fn(),
         })
       );
 
@@ -113,7 +114,7 @@ describe('AttributeInput', () => {
         h(AttributeInput, {
           value: { entityType: 'foo', entityName: 'foo_1' },
           entityTypes: ['foo', 'bar', 'baz'],
-          onChange: jest.fn(),
+          onChange: vi.fn(),
         })
       );
 
@@ -125,7 +126,7 @@ describe('AttributeInput', () => {
       const { queryByLabelText } = render(
         h(AttributeInput, {
           value: { key: 'value' },
-          onChange: jest.fn(),
+          onChange: vi.fn(),
         })
       );
 
@@ -136,7 +137,7 @@ describe('AttributeInput', () => {
     it('renders a radio button for JSON type if requested', () => {
       const { queryByLabelText } = render(
         h(AttributeInput, {
-          onChange: jest.fn(),
+          onChange: vi.fn(),
           showJsonTypeOption: true,
         })
       );
@@ -148,7 +149,7 @@ describe('AttributeInput', () => {
 
   describe('selecting a type', () => {
     it('converts value to the selected type', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
           value: '123',
@@ -164,7 +165,7 @@ describe('AttributeInput', () => {
     it('if an initial value is provided, converts initial value to the selected type', () => {
       // When editing an attribute, this allows previewing the effect of a type change without
       // performing the lossy conversion.
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
           value: '123',
@@ -181,7 +182,7 @@ describe('AttributeInput', () => {
 
   describe('renders a value input based on the attribute type', () => {
     it('renders a text input for string attributes', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
           value: 'value',
@@ -199,7 +200,7 @@ describe('AttributeInput', () => {
     });
 
     it('renders a text input for reference attributes', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
           value: { entityType: 'thing', entityName: 'thing_one' },
@@ -217,7 +218,7 @@ describe('AttributeInput', () => {
     });
 
     it('renders a number input for number attributes', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
           value: 123,
@@ -235,7 +236,7 @@ describe('AttributeInput', () => {
     });
 
     it('renders a switch for boolean attributes', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
           value: true,
@@ -258,7 +259,7 @@ describe('AttributeInput', () => {
       const { getByLabelText } = render(
         h(AttributeInput, {
           value: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
-          onChange: jest.fn(),
+          onChange: vi.fn(),
         })
       );
 
@@ -268,7 +269,7 @@ describe('AttributeInput', () => {
     });
 
     it('it converts single value to a list when list checkbox is checked', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
           value: 'foo',
@@ -283,7 +284,7 @@ describe('AttributeInput', () => {
     });
 
     it('it converts list to a single value when list checkbox is unchecked', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
           value: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
@@ -298,7 +299,7 @@ describe('AttributeInput', () => {
     });
 
     it('renders an input for each list item', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { getAllByLabelText } = render(
         h(AttributeInput, {
           value: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
@@ -315,7 +316,7 @@ describe('AttributeInput', () => {
     });
 
     it('renders buttons to remove items from list', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { getAllByLabelText } = render(
         h(AttributeInput, {
           value: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
@@ -331,7 +332,7 @@ describe('AttributeInput', () => {
     });
 
     it('renders button to add item to list', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { getByText } = render(
         h(AttributeInput, {
           value: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },

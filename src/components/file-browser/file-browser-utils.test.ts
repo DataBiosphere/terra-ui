@@ -1,4 +1,5 @@
 import { basename, dirname } from 'src/components/file-browser/file-browser-utils';
+import { describe, expect, it } from 'vitest';
 
 describe('basename', () => {
   it('returns file basename from path', () => {

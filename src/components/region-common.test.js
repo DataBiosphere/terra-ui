@@ -6,6 +6,7 @@ import {
   isSupportedBucketLocation,
   locationTypes,
 } from 'src/components/region-common';
+import { describe, expect, it } from 'vitest';
 
 const us = {
   label: 'US multi-regional',

@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
+import { describe, expect, it } from 'vitest';
 
 import { NoticeForPath } from './NoticeForPath';
 

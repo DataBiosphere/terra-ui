@@ -1,4 +1,5 @@
 import { getPopupRoot } from 'src/components/popup-utils';
+import { afterEach, describe, expect, it } from 'vitest';
 
 describe('getPopupRoot', () => {
   afterEach(() => {

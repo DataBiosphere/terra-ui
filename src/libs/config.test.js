@@ -1,4 +1,5 @@
 import { isAxeEnabled } from 'src/libs/config';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 describe('isAxeEnabled', () => {
   let env;
@@ -8,7 +9,7 @@ describe('isAxeEnabled', () => {
 
     // isAxeEnabled logs a notice and instructions for developers.
     // Those should not be shown in test output.
-    jest.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   afterAll(() => {
