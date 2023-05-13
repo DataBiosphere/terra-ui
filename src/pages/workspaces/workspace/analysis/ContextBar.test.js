@@ -16,49 +16,50 @@ import {
   runtimeConfigCost,
 } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils';
 import { appToolLabels, runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const GALAXY_COMPUTE_COST = 10;
 const GALAXY_DISK_COST = 1;
 const RUNTIME_COST = 0.1;
 const PERSISTENT_DISK_COST = 0.01;
 
-jest.mock('src/pages/workspaces/workspace/analysis/utils/cost-utils', () => ({
-  ...jest.requireActual('src/pages/workspaces/workspace/analysis/utils/cost-utils'),
-  getGalaxyComputeCost: jest.fn(),
-  getGalaxyDiskCost: jest.fn(),
-  getPersistentDiskCostHourly: jest.fn(),
-  getRuntimeCost: jest.fn(),
-  runtimeConfigCost: jest.fn(),
+vi.mock('src/pages/workspaces/workspace/analysis/utils/cost-utils', () => ({
+  ...vi.importActual('src/pages/workspaces/workspace/analysis/utils/cost-utils'),
+  getGalaxyComputeCost: vi.fn(),
+  getGalaxyDiskCost: vi.fn(),
+  getPersistentDiskCostHourly: vi.fn(),
+  getRuntimeCost: vi.fn(),
+  runtimeConfigCost: vi.fn(),
 }));
 
 // Mocking for terminalLaunchLink using Nav.getLink
-jest.mock('src/libs/nav', () => ({
-  ...jest.requireActual('src/libs/nav'),
-  getPath: jest.fn(() => '/test/'),
-  getLink: jest.fn(() => '/'),
+vi.mock('src/libs/nav', () => ({
+  ...vi.importActual('src/libs/nav'),
+  getPath: vi.fn(() => '/test/'),
+  getLink: vi.fn(() => '/'),
 }));
 
 // Mocking PopupTrigger to avoid test environment issues with React Portal's requirement to use
 // DOM measure services which are not available in jest environment
-jest.mock('src/components/PopupTrigger', () => ({
-  ...jest.requireActual('src/components/PopupTrigger'),
-  MenuTrigger: jest.fn(),
+vi.mock('src/components/PopupTrigger', () => ({
+  ...vi.importActual('src/components/PopupTrigger'),
+  MenuTrigger: vi.fn(),
 }));
 
-jest.mock('src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal', () => ({
-  ...jest.requireActual('src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'),
-  CloudEnvironmentModal: jest.fn(),
+vi.mock('src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal', () => ({
+  ...vi.importActual('src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'),
+  CloudEnvironmentModal: vi.fn(),
 }));
 
-jest.mock('src/libs/config', () => ({
-  ...jest.requireActual('src/libs/config'),
-  getConfig: jest.fn().mockReturnValue({}),
+vi.mock('src/libs/config', () => ({
+  ...vi.importActual('src/libs/config'),
+  getConfig: vi.fn().mockReturnValue({}),
   isCromwellAppVisible: () => {
     return true;
   },
 }));
 
-jest.mock('src/libs/ajax');
+vi.mock('src/libs/ajax');
 
 beforeEach(() => {
   MenuTrigger.mockImplementation(({ content }) => {
@@ -99,7 +100,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
 });
 
 // Note - These constants are copied from ./runtime-utils.test.ts
@@ -650,8 +651,8 @@ describe('ContextBar - actions', () => {
 
   it('clicking Terminal will attempt to start currently stopped runtime', async () => {
     // Arrange
-    const mockRuntimesStartFn = jest.fn();
-    const mockRuntimeWrapper = jest.fn(() => ({
+    const mockRuntimesStartFn = vi.fn();
+    const mockRuntimeWrapper = vi.fn(() => ({
       start: mockRuntimesStartFn,
     }));
     Ajax.mockImplementation(() => ({
@@ -659,7 +660,7 @@ describe('ContextBar - actions', () => {
         runtimeWrapper: mockRuntimeWrapper,
       },
       Metrics: {
-        captureEvent: jest.fn(),
+        captureEvent: vi.fn(),
       },
     }));
 
@@ -701,8 +702,8 @@ describe('ContextBar - actions', () => {
 
   it('clicking Terminal will not attempt to start an already running Jupyter notebook', () => {
     // Arrange
-    const mockRuntimesStartFn = jest.fn();
-    const mockRuntimeWrapper = jest.fn(() => ({
+    const mockRuntimesStartFn = vi.fn();
+    const mockRuntimeWrapper = vi.fn(() => ({
       start: mockRuntimesStartFn,
     }));
     Ajax.mockImplementation(() => ({
@@ -710,7 +711,7 @@ describe('ContextBar - actions', () => {
         runtimeWrapper: mockRuntimeWrapper,
       },
       Metrics: {
-        captureEvent: jest.fn(),
+        captureEvent: vi.fn(),
       },
     }));
 

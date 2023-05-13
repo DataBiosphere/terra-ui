@@ -2,9 +2,10 @@ import { addDays, subDays } from 'date-fns';
 import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getGoogleRuntime } from 'src/pages/workspaces/workspace/analysis/_testData/testData';
 import { getAnalysesDisplayList, getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
+import { describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/data/gce-machines', () => {
-  const originalModule = jest.requireActual('src/data/gce-machines');
+vi.mock('src/data/gce-machines', async () => {
+  const originalModule = <any>await vi.importActual('src/data/gce-machines');
 
   return {
     ...originalModule,

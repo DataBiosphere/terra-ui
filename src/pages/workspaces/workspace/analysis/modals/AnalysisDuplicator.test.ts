@@ -22,41 +22,41 @@ import {
 import { AbsolutePath, getExtension } from 'src/pages/workspaces/workspace/analysis/utils/file-utils';
 import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 type ModalMockExports = typeof import('src/components/Modal.mock');
-jest.mock('src/components/Modal', () => {
-  const mockModal = jest.requireActual<ModalMockExports>('src/components/Modal.mock');
+vi.mock('src/components/Modal', async () => {
+  const mockModal = await vi.importActual<ModalMockExports>('src/components/Modal.mock');
   return mockModal.mockModalModule();
 });
 
-jest.mock('src/libs/notifications', () => ({
-  notify: jest.fn(),
+vi.mock('src/libs/notifications', () => ({
+  notify: vi.fn(),
 }));
 
-jest.mock('src/libs/ajax/GoogleStorage');
-jest.mock('src/libs/ajax/AzureStorage');
+vi.mock('src/libs/ajax/GoogleStorage');
+vi.mock('src/libs/ajax/AzureStorage');
 
 type UseAnalysisFilesExport = typeof import('src/pages/workspaces/workspace/analysis/useAnalysisFiles');
-jest.mock('src/pages/workspaces/workspace/analysis/useAnalysisFiles', (): UseAnalysisFilesExport => {
-  const originalModule = jest.requireActual('src/pages/workspaces/workspace/analysis/useAnalysisFiles');
+vi.mock('src/pages/workspaces/workspace/analysis/useAnalysisFiles', async (): Promise<UseAnalysisFilesExport> => {
   return {
-    ...originalModule,
-    useAnalysisFiles: jest.fn(),
+    ...(await vi.importActual('src/pages/workspaces/workspace/analysis/useAnalysisFiles')),
+    useAnalysisFiles: vi.fn(),
   };
 });
 
 type MockErrorExports = typeof import('src/libs/error.mock');
-jest.mock('src/libs/error', () => {
-  const errorModule = jest.requireActual('src/libs/error');
-  const mockErrorModule = jest.requireActual<MockErrorExports>('src/libs/error.mock');
+vi.mock('src/libs/error', async () => {
+  const errorModule = vi.importActual('src/libs/error');
+  const mockErrorModule = await vi.importActual<MockErrorExports>('src/libs/error.mock');
   return {
     ...errorModule,
     withErrorReportingInModal: mockErrorModule.mockWithErrorReportingInModal,
   };
 });
 
-const onDismiss = jest.fn();
-const onSuccess = jest.fn();
+const onDismiss = vi.fn();
+const onSuccess = vi.fn();
 
 const baseTestFile: AnalysisFile = getFileFromPath('test/file0.ipynb' as AbsolutePath);
 
@@ -141,9 +141,9 @@ describe('AnalysisDuplicator', () => {
       getFileFromPath('test/file1.ipynb' as AbsolutePath),
       getFileFromPath('test/file2.ipynb' as AbsolutePath),
     ];
-    const copy = jest.fn();
+    const copy = vi.fn();
 
-    const analysisMock: Partial<GoogleStorageContract['analysis']> = jest.fn(() => ({
+    const analysisMock: Partial<GoogleStorageContract['analysis']> = vi.fn(() => ({
       copy,
     }));
 
@@ -179,8 +179,8 @@ describe('AnalysisDuplicator', () => {
 
   it('renames for a google workspace correctly', async () => {
     // Arrange
-    const rename = jest.fn();
-    const analysisMock: Partial<GoogleStorageContract['analysis']> = jest.fn(() => ({
+    const rename = vi.fn();
+    const analysisMock: Partial<GoogleStorageContract['analysis']> = vi.fn(() => ({
       rename,
     }));
     const googleStorageMock: Partial<GoogleStorageContract> = {
@@ -209,8 +209,8 @@ describe('AnalysisDuplicator', () => {
 
   it('copies for an azure workspace correctly', async () => {
     // Arrange
-    const copy = jest.fn();
-    const analysisMock: Partial<AzureStorageContract['blob']> = jest.fn(() => ({
+    const copy = vi.fn();
+    const analysisMock: Partial<AzureStorageContract['blob']> = vi.fn(() => ({
       copy,
     }));
 
@@ -235,8 +235,8 @@ describe('AnalysisDuplicator', () => {
 
   it('renames for an azure workspace correctly', async () => {
     // Arrange
-    const rename = jest.fn();
-    const analysisMock: Partial<AzureStorageContract['blob']> = jest.fn(() => ({
+    const rename = vi.fn();
+    const analysisMock: Partial<AzureStorageContract['blob']> = vi.fn(() => ({
       rename,
     }));
 
@@ -268,15 +268,15 @@ describe('AnalysisDuplicator', () => {
       getFileFromPath('test/file1.ipynb' as AbsolutePath),
       getFileFromPath('test/file2.ipynb' as AbsolutePath),
     ];
-    const renameMock = jest.fn().mockRejectedValue(new Error(testExceptionMessage));
-    const analysisMock: Partial<GoogleStorageContract['analysis']> = jest.fn(() => ({
+    const renameMock = vi.fn().mockRejectedValue(new Error(testExceptionMessage));
+    const analysisMock: Partial<GoogleStorageContract['analysis']> = vi.fn(() => ({
       rename: renameMock,
     }));
     const googleStorageMock: Partial<GoogleStorageContract> = {
       listAnalyses: () => Promise.resolve(fileList),
       analysis: analysisMock as GoogleStorageContract['analysis'],
     };
-    const onDismiss = jest.fn();
+    const onDismiss = vi.fn();
 
     asMockedFn(GoogleStorage).mockImplementation(() => googleStorageMock as GoogleStorageContract);
 

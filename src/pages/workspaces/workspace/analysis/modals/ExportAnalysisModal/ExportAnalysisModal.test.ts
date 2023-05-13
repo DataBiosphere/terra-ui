@@ -12,6 +12,7 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/utils/file-utils';
 import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 import { asMockedFn, setUpAutoSizerTesting } from 'src/testing/test-utils';
+import { describe, expect, it, vi } from 'vitest';
 
 import { ExportAnalysisModal } from './ExportAnalysisModal';
 
@@ -26,27 +27,27 @@ const analysis1: AnalysisFile = {
 };
 
 type ModalExports = typeof import('src/components/Modal');
-jest.mock('src/components/Modal', (): ModalExports => {
-  const modalMock = jest.requireActual('src/components/Modal.mock');
+vi.mock('src/components/Modal', async (): Promise<ModalExports> => {
+  const modalMock = <any>await vi.importActual('src/components/Modal.mock');
   return modalMock.mockModalModule();
 });
 
 type ExportAnalysisModalStateExports = typeof import('./useAnalysisExportState');
-jest.mock(
+vi.mock(
   './useAnalysisExportState',
-  (): ExportAnalysisModalStateExports => ({
-    ...jest.requireActual('./useAnalysisExportState'),
-    useAnalysisExportState: jest.fn(),
+  async (): Promise<ExportAnalysisModalStateExports> => ({
+    ...(await vi.importActual('./useAnalysisExportState')),
+    useAnalysisExportState: vi.fn(),
   })
 );
 
 type UtilsExports = typeof import('src/libs/utils');
 type LodashFpExports = typeof import('lodash/fp');
-jest.mock('src/libs/utils', (): UtilsExports => {
-  const _ = jest.requireActual<LodashFpExports>('lodash/fp');
+vi.mock('src/libs/utils', async (): Promise<UtilsExports> => {
+  const _ = await vi.importActual<LodashFpExports>('lodash/fp');
   return {
-    ...jest.requireActual('src/libs/utils'),
-    isValidWsExportTarget: jest.fn().mockImplementation(
+    ...(await vi.importActual('src/libs/utils')),
+    isValidWsExportTarget: vi.fn().mockImplementation(
       _.curry((sourceWs: WorkspaceWrapper, destWs: WorkspaceWrapper) => {
         // mock this to have a much simpler check then the real implementation
         return sourceWs.workspace.workspaceId !== destWs.workspace.workspaceId;
@@ -105,8 +106,8 @@ describe('ExportAnalysisModal', () => {
       existingAnalysisFiles: { status: 'None' },
       selectedWorkspace: null,
       pendingCopy: { status: 'None' },
-      copyAnalysis: jest.fn(),
-      selectWorkspace: jest.fn(),
+      copyAnalysis: vi.fn(),
+      selectWorkspace: vi.fn(),
     });
 
     // Act
@@ -143,13 +144,13 @@ describe('ExportAnalysisModal', () => {
     const workspace: Partial<WorkspaceWrapper> = {
       workspace: workspaceInfo as WorkspaceInfo,
     };
-    const selectWorkspaceWatcher = jest.fn();
+    const selectWorkspaceWatcher = vi.fn();
     asMockedFn(useAnalysisExportState).mockReturnValue({
       workspaces: mockWorkspaces as WorkspaceWrapper[],
       existingAnalysisFiles: { status: 'None' },
       selectedWorkspace: null,
       pendingCopy: { status: 'None' },
-      copyAnalysis: jest.fn(),
+      copyAnalysis: vi.fn(),
       selectWorkspace: selectWorkspaceWatcher,
     });
 
@@ -185,14 +186,14 @@ describe('ExportAnalysisModal', () => {
     const workspace: Partial<WorkspaceWrapper> = {
       workspace: workspaceInfo as WorkspaceInfo,
     };
-    const copyWatcher = jest.fn();
+    const copyWatcher = vi.fn();
     asMockedFn(useAnalysisExportState).mockReturnValue({
       workspaces: mockWorkspaces as WorkspaceWrapper[],
       existingAnalysisFiles: { status: 'None' },
       selectedWorkspace: (mockWorkspaces[1] as WorkspaceWrapper).workspace,
       pendingCopy: { status: 'None' },
       copyAnalysis: copyWatcher,
-      selectWorkspace: jest.fn(),
+      selectWorkspace: vi.fn(),
     });
 
     render(
@@ -224,14 +225,14 @@ describe('ExportAnalysisModal', () => {
     const workspace: Partial<WorkspaceWrapper> = {
       workspace: workspaceInfo as WorkspaceInfo,
     };
-    const copyWatcher = jest.fn();
+    const copyWatcher = vi.fn();
     asMockedFn(useAnalysisExportState).mockReturnValue({
       workspaces: mockWorkspaces as WorkspaceWrapper[],
       existingAnalysisFiles: { status: 'None' },
       selectedWorkspace: (mockWorkspaces[1] as WorkspaceWrapper).workspace,
       pendingCopy: { status: 'Loading', state: null },
       copyAnalysis: copyWatcher,
-      selectWorkspace: jest.fn(),
+      selectWorkspace: vi.fn(),
     });
 
     // Act
@@ -256,14 +257,14 @@ describe('ExportAnalysisModal', () => {
     const workspace: Partial<WorkspaceWrapper> = {
       workspace: workspaceInfo as WorkspaceInfo,
     };
-    const copyWatcher = jest.fn();
+    const copyWatcher = vi.fn();
     asMockedFn(useAnalysisExportState).mockReturnValue({
       workspaces: mockWorkspaces as WorkspaceWrapper[],
       existingAnalysisFiles: { status: 'None' },
       selectedWorkspace: (mockWorkspaces[1] as WorkspaceWrapper).workspace,
       pendingCopy: { status: 'Ready', state: true },
       copyAnalysis: copyWatcher,
-      selectWorkspace: jest.fn(),
+      selectWorkspace: vi.fn(),
     });
 
     // Act
@@ -299,14 +300,14 @@ describe('ExportAnalysisModal', () => {
     const workspace: Partial<WorkspaceWrapper> = {
       workspace: workspaceInfo as WorkspaceInfo,
     };
-    const copyWatcher = jest.fn();
+    const copyWatcher = vi.fn();
     asMockedFn(useAnalysisExportState).mockReturnValue({
       workspaces: mockWorkspaces as WorkspaceWrapper[],
       existingAnalysisFiles: { status: 'Ready', state: [analysis1] },
       selectedWorkspace: (mockWorkspaces[1] as WorkspaceWrapper).workspace,
       pendingCopy: { status: 'None' },
       copyAnalysis: copyWatcher,
-      selectWorkspace: jest.fn(),
+      selectWorkspace: vi.fn(),
     });
 
     render(
@@ -347,8 +348,8 @@ describe('ExportAnalysisModal', () => {
       existingAnalysisFiles: { status: 'None' },
       selectedWorkspace: (mockWorkspaces[1] as WorkspaceWrapper).workspace,
       pendingCopy: { status: 'Error', state: null, error: Error('BOOM!') },
-      copyAnalysis: jest.fn(),
-      selectWorkspace: jest.fn(),
+      copyAnalysis: vi.fn(),
+      selectWorkspace: vi.fn(),
     });
 
     // Act

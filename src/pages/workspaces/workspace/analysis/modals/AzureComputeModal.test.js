@@ -18,20 +18,21 @@ import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages
 import { autopauseDisabledValue, defaultAutopauseThreshold } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import { runtimeToolLabels, runtimeTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AzureComputeModalBase } from './AzureComputeModal';
 
-jest.mock('src/pages/workspaces/workspace/analysis/utils/cost-utils');
+vi.mock('src/pages/workspaces/workspace/analysis/utils/cost-utils');
 
-jest.mock('src/libs/ajax');
-jest.mock('src/libs/notifications', () => ({
-  notify: jest.fn(),
+vi.mock('src/libs/ajax');
+vi.mock('src/libs/notifications', () => ({
+  notify: vi.fn(),
 }));
-const onSuccess = jest.fn();
+const onSuccess = vi.fn();
 const defaultModalProps = {
   onSuccess,
-  onDismiss: jest.fn(),
-  onError: jest.fn(),
+  onDismiss: vi.fn(),
+  onError: vi.fn(),
   currentRuntime: undefined,
   currentDisk: undefined,
   tool: runtimeToolLabels.JupyterLab,
@@ -41,8 +42,8 @@ const defaultModalProps = {
 
 const persistentDiskModalProps = {
   onSuccess,
-  onDismiss: jest.fn(),
-  onError: jest.fn(),
+  onDismiss: vi.fn(),
+  onError: vi.fn(),
   currentRuntime: undefined,
   currentDisk: defaultTestDisk,
   tool: runtimeToolLabels.JupyterLab,
@@ -53,17 +54,17 @@ const persistentDiskModalProps = {
 const defaultAjaxImpl = {
   Runtimes: {
     runtime: () => ({
-      details: jest.fn(),
+      details: vi.fn(),
     }),
   },
   Buckets: { getObjectPreview: () => Promise.resolve({ json: () => Promise.resolve(imageDocs) }) },
   Disks: {
     disk: () => ({
-      details: jest.fn(),
+      details: vi.fn(),
     }),
   },
   Metrics: {
-    captureEvent: () => jest.fn(),
+    captureEvent: () => vi.fn(),
   },
 };
 
@@ -80,7 +81,7 @@ describe('AzureComputeModal', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   const getCreateButton = () => screen.getByText('Create');
@@ -102,10 +103,10 @@ describe('AzureComputeModal', () => {
 
   it('sends the proper leo API call in default create case (no runtimes or disks)', async () => {
     // Arrange
-    const createFunc = jest.fn();
-    const runtimeFunc = jest.fn(() => ({
+    const createFunc = vi.fn();
+    const runtimeFunc = vi.fn(() => ({
       create: createFunc,
-      details: jest.fn(),
+      details: vi.fn(),
     }));
     Ajax.mockImplementation(() => ({
       ...defaultAjaxImpl,
@@ -144,10 +145,10 @@ describe('AzureComputeModal', () => {
 
   it('sends the proper leo API call in the case of a persistent disk', async () => {
     // Arrange
-    const createFunc = jest.fn();
-    const runtimeFunc = jest.fn(() => ({
+    const createFunc = vi.fn();
+    const runtimeFunc = vi.fn(() => ({
       create: createFunc,
-      details: jest.fn(),
+      details: vi.fn(),
     }));
     Ajax.mockImplementation(() => ({
       ...defaultAjaxImpl,
@@ -189,10 +190,10 @@ describe('AzureComputeModal', () => {
     // Arrange
     const user = userEvent.setup();
 
-    const createFunc = jest.fn();
-    const runtimeFunc = jest.fn(() => ({
+    const createFunc = vi.fn();
+    const runtimeFunc = vi.fn(() => ({
       create: createFunc,
-      details: jest.fn(),
+      details: vi.fn(),
     }));
     Ajax.mockImplementation(() => ({
       ...defaultAjaxImpl,
@@ -238,10 +239,10 @@ describe('AzureComputeModal', () => {
 
   it('sends the proper leo API call in create case (autopause disabled)', async () => {
     // Arrange
-    const createFunc = jest.fn();
-    const runtimeFunc = jest.fn(() => ({
+    const createFunc = vi.fn();
+    const runtimeFunc = vi.fn(() => ({
       create: createFunc,
-      details: jest.fn(),
+      details: vi.fn(),
     }));
     Ajax.mockImplementation(() => ({
       ...defaultAjaxImpl,
@@ -345,7 +346,7 @@ describe('AzureComputeModal', () => {
     runtime.runtimeConfig.persistentDiskId = disk.id;
     runtime.tool = runtimeTools.Jupyter;
 
-    const runtimeFunc = jest.fn(() => ({
+    const runtimeFunc = vi.fn(() => ({
       details: () => runtime,
     }));
     Ajax.mockImplementation(() => ({
@@ -384,7 +385,7 @@ describe('AzureComputeModal', () => {
     // Arrange
     const disk = getDisk();
 
-    const runtimeFunc = jest.fn(() => ({
+    const runtimeFunc = vi.fn(() => ({
       details: () => null,
     }));
     Ajax.mockImplementation(() => ({

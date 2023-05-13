@@ -3,13 +3,14 @@ import { getConfig } from 'src/libs/config';
 import Events from 'src/libs/events';
 import { getAvailableFeaturePreviews, isFeaturePreviewEnabled, toggleFeaturePreview } from 'src/libs/feature-previews';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/libs/ajax');
-jest.mock('src/libs/config', () => ({
-  ...jest.requireActual('src/libs/config'),
-  getConfig: jest.fn().mockReturnValue({}),
+vi.mock('src/libs/ajax');
+vi.mock('src/libs/config', () => ({
+  ...vi.importActual('src/libs/config'),
+  getConfig: vi.fn().mockReturnValue({}),
 }));
-jest.mock('src/libs/feature-previews-config', () => ({
+vi.mock('src/libs/feature-previews-config', () => ({
   __esModule: true,
   default: [
     {
@@ -25,7 +26,7 @@ jest.mock('src/libs/feature-previews-config', () => ({
     },
   ],
 }));
-jest.mock('src/libs/prefs');
+vi.mock('src/libs/prefs');
 
 beforeEach(() => {
   getConfig.mockReturnValue({ isProd: true });
@@ -41,14 +42,14 @@ describe('isFeaturePreviewEnabled', () => {
 
 describe('toggleFeaturePreview', () => {
   it('sets local preference', () => {
-    Ajax.mockImplementation(() => ({ Metrics: { captureEvent: jest.fn() } }));
+    Ajax.mockImplementation(() => ({ Metrics: { captureEvent: vi.fn() } }));
 
     toggleFeaturePreview('test-feature', false);
     expect(setLocalPref).toHaveBeenCalledWith('feature-preview/test-feature', false);
   });
 
   it('captures metrics', () => {
-    const captureEvent = jest.fn();
+    const captureEvent = vi.fn();
     Ajax.mockImplementation(() => ({ Metrics: { captureEvent } }));
 
     toggleFeaturePreview('test-feature', true);
@@ -62,7 +63,7 @@ describe('getAvailableFeaturePreviews', () => {
 
     Ajax.mockImplementation(() => ({
       Groups: {
-        list: jest.fn().mockReturnValue(Promise.resolve([])),
+        list: vi.fn().mockReturnValue(Promise.resolve([])),
       },
     }));
 
@@ -76,7 +77,7 @@ describe('getAvailableFeaturePreviews', () => {
 
     Ajax.mockImplementation(() => ({
       Groups: {
-        list: jest.fn().mockReturnValue(
+        list: vi.fn().mockReturnValue(
           Promise.resolve([
             {
               groupName: 'preview-group',
@@ -108,7 +109,7 @@ describe('getAvailableFeaturePreviews', () => {
 
     Ajax.mockImplementation(() => ({
       Groups: {
-        list: jest.fn().mockReturnValue(Promise.resolve([])),
+        list: vi.fn().mockReturnValue(Promise.resolve([])),
       },
     }));
 
@@ -133,7 +134,7 @@ describe('getAvailableFeaturePreviews', () => {
 
     Ajax.mockImplementation(() => ({
       Groups: {
-        list: jest.fn().mockReturnValue(Promise.resolve([])),
+        list: vi.fn().mockReturnValue(Promise.resolve([])),
       },
     }));
 

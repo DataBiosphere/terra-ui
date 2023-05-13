@@ -9,10 +9,11 @@ import { useDirectoriesInDirectory } from 'src/components/file-browser/file-brow
 import FileBrowserProvider from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import * as Utils from 'src/libs/utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/components/file-browser/file-browser-hooks', () => ({
-  ...jest.requireActual('src/components/file-browser/file-browser-hooks'),
-  useDirectoriesInDirectory: jest.fn(),
+vi.mock('src/components/file-browser/file-browser-hooks', () => ({
+  ...vi.importActual('src/components/file-browser/file-browser-hooks'),
+  useDirectoriesInDirectory: vi.fn(),
 }));
 
 type UseDirectoriesInDirectoryResult = ReturnType<typeof useDirectoriesInDirectory>;
@@ -34,7 +35,7 @@ describe('Directory', () => {
         selectedDirectory: '',
         setActiveDescendant: () => {},
         onError: () => {},
-        onSelectDirectory: jest.fn(),
+        onSelectDirectory: vi.fn(),
       })
     );
 
@@ -80,7 +81,7 @@ describe('Directory', () => {
           selectedDirectory: '',
           setActiveDescendant: () => {},
           onError: () => {},
-          onSelectDirectory: jest.fn(),
+          onSelectDirectory: vi.fn(),
         }),
       ])
     );
@@ -122,7 +123,7 @@ describe('Directory', () => {
 
       asMockedFn(useDirectoriesInDirectory).mockReturnValue(useDirectoriesInDirectoryResult);
 
-      onSelectDirectory = jest.fn();
+      onSelectDirectory = vi.fn();
       render(
         h(Directory, {
           activeDescendant: 'node-0',
@@ -199,7 +200,7 @@ describe('Directory', () => {
           selectedDirectory: '',
           setActiveDescendant: () => {},
           onError: () => {},
-          onSelectDirectory: jest.fn(),
+          onSelectDirectory: vi.fn(),
         }),
       ])
     );
@@ -250,7 +251,7 @@ describe('Directory', () => {
         selectedDirectory: '',
         setActiveDescendant: () => {},
         onError: () => {},
-        onSelectDirectory: jest.fn(),
+        onSelectDirectory: vi.fn(),
       })
     );
 
@@ -295,7 +296,7 @@ describe('Directory', () => {
         selectedDirectory: '',
         setActiveDescendant: () => {},
         onError: () => {},
-        onSelectDirectory: jest.fn(),
+        onSelectDirectory: vi.fn(),
       })
     );
 
@@ -327,7 +328,7 @@ describe('Directory', () => {
 
     asMockedFn(useDirectoriesInDirectory).mockReturnValue(useDirectoriesInDirectoryResult);
 
-    const onError = jest.fn();
+    const onError = vi.fn();
 
     render(
       h(Directory, {
@@ -341,7 +342,7 @@ describe('Directory', () => {
         selectedDirectory: '',
         setActiveDescendant: () => {},
         onError,
-        onSelectDirectory: jest.fn(),
+        onSelectDirectory: vi.fn(),
       })
     );
 
@@ -355,8 +356,8 @@ describe('Directory', () => {
 
   describe('when next page is available', () => {
     // Arrange
-    const loadNextPage = jest.fn();
-    const loadAllRemainingItems = jest.fn();
+    const loadNextPage = vi.fn();
+    const loadAllRemainingItems = vi.fn();
 
     const directories = [
       {
@@ -392,7 +393,7 @@ describe('Directory', () => {
           selectedDirectory: '',
           setActiveDescendant: () => {},
           onError: () => {},
-          onSelectDirectory: jest.fn(),
+          onSelectDirectory: vi.fn(),
         })
       );
 

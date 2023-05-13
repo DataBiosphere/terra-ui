@@ -12,6 +12,7 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/utils/file-utils';
 import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { errors, useAnalysisExportState } from './useAnalysisExportState';
 
@@ -36,38 +37,38 @@ const analysis2: AnalysisFile = {
 };
 
 type UseMetricsExports = typeof import('src/libs/ajax/metrics/useMetrics');
-jest.mock(
+vi.mock(
   'src/libs/ajax/metrics/useMetrics',
   (): UseMetricsExports => ({
-    ...jest.requireActual('src/libs/ajax/metrics/useMetrics'),
-    useMetricsEvent: jest.fn(),
+    ...vi.importActual('src/libs/ajax/metrics/useMetrics'),
+    useMetricsEvent: vi.fn(),
   })
 );
 
 type WorkspaceUtilsExports = typeof import('src/components/workspace-utils');
-jest.mock(
+vi.mock(
   'src/components/workspace-utils',
-  (): WorkspaceUtilsExports => ({
-    ...jest.requireActual('src/components/workspace-utils'),
-    useWorkspaces: jest.fn(),
+  async (): Promise<WorkspaceUtilsExports> => ({
+    ...(await vi.importActual('src/components/workspace-utils')),
+    useWorkspaces: vi.fn(),
   })
 );
 
 type AnalysisProviderExports = typeof import('src/libs/ajax/analysis-providers/AnalysisProvider');
-jest.mock(
+vi.mock(
   'src/libs/ajax/analysis-providers/AnalysisProvider',
   (): AnalysisProviderExports => ({
-    ...jest.requireActual('src/libs/ajax/analysis-providers/AnalysisProvider'),
+    ...vi.importActual('src/libs/ajax/analysis-providers/AnalysisProvider'),
     AnalysisProvider: {
-      listAnalyses: jest.fn(),
-      copyAnalysis: jest.fn(),
-      deleteAnalysis: jest.fn(),
-      createAnalysis: jest.fn(),
+      listAnalyses: vi.fn(),
+      copyAnalysis: vi.fn(),
+      deleteAnalysis: vi.fn(),
+      createAnalysis: vi.fn(),
     },
   })
 );
 
-const useMetricsEventWatcher = jest.fn();
+const useMetricsEventWatcher = vi.fn();
 
 beforeEach(() => {
   asMockedFn(useMetricsEvent).mockImplementation(() => ({ captureEvent: useMetricsEventWatcher }));
@@ -79,7 +80,7 @@ describe('useAnalysisExportState', () => {
     asMockedFn(useWorkspaces).mockReturnValue({
       workspaces: [],
       loading: false,
-      refresh: jest.fn(),
+      refresh: vi.fn(),
     });
 
     const sourceWorkspaceInfo: Partial<WorkspaceInfo> = {
@@ -122,7 +123,7 @@ describe('useAnalysisExportState', () => {
         { workspace: workspace2 as WorkspaceInfo } as WorkspaceWrapper,
       ],
       loading: false,
-      refresh: jest.fn(),
+      refresh: vi.fn(),
     });
     asMockedFn(AnalysisProvider.listAnalyses).mockResolvedValue([analysis1, analysis2]);
 
@@ -182,7 +183,7 @@ describe('useAnalysisExportState', () => {
         { workspace: workspace2 as WorkspaceInfo } as WorkspaceWrapper,
       ],
       loading: false,
-      refresh: jest.fn(),
+      refresh: vi.fn(),
     });
     asMockedFn(AnalysisProvider.listAnalyses).mockResolvedValue([
       { name: 'files/Analysis1.ipynb' as AbsolutePath } as AnalysisFile,
@@ -240,7 +241,7 @@ describe('useAnalysisExportState', () => {
         { workspace: workspace2 as WorkspaceInfo } as WorkspaceWrapper,
       ],
       loading: false,
-      refresh: jest.fn(),
+      refresh: vi.fn(),
     });
     asMockedFn(AnalysisProvider.listAnalyses).mockResolvedValue([
       { name: 'files/Analysis1.ipynb' as AbsolutePath } as AnalysisFile,
@@ -306,7 +307,7 @@ describe('useAnalysisExportState', () => {
         { workspace: workspace2 as WorkspaceInfo } as WorkspaceWrapper,
       ],
       loading: false,
-      refresh: jest.fn(),
+      refresh: vi.fn(),
     });
     asMockedFn(AnalysisProvider.listAnalyses).mockResolvedValue([
       { name: 'files/Analysis1.ipynb' as AbsolutePath } as AnalysisFile,

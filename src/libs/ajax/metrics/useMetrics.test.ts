@@ -1,14 +1,15 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { Ajax } from 'src/libs/ajax';
 import { asMockedFn } from 'src/testing/test-utils';
+import { describe, expect, it, vi } from 'vitest';
 
 import { useMetricsEvent } from './useMetrics';
 
 type AjaxExports = typeof import('src/libs/ajax');
-jest.mock('src/libs/ajax', (): AjaxExports => {
+vi.mock('src/libs/ajax', async (): Promise<AjaxExports> => {
   return {
-    ...jest.requireActual('src/libs/ajax'),
-    Ajax: jest.fn(),
+    ...(await vi.importActual('src/libs/ajax')),
+    Ajax: vi.fn(),
   };
 });
 
@@ -18,7 +19,7 @@ type AjaxMetricsContract = AjaxContract['Metrics'];
 describe('useMetricsEvent', () => {
   it('calls event logger', () => {
     // Arrange
-    const watchCaptureEvent = jest.fn();
+    const watchCaptureEvent = vi.fn();
     const mockMetrics: Partial<AjaxMetricsContract> = {
       captureEvent: (event, details) => watchCaptureEvent(event, details),
     };

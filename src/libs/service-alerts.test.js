@@ -1,12 +1,13 @@
 import _ from 'lodash/fp';
 import { Ajax } from 'src/libs/ajax';
 import { getServiceAlerts } from 'src/libs/service-alerts';
+import { describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/libs/ajax');
+vi.mock('src/libs/ajax');
 
-jest.mock('src/libs/utils', () => {
-  const originalModule = jest.requireActual('src/libs/utils');
-  const crypto = jest.requireActual('crypto');
+vi.mock('src/libs/utils', () => {
+  const originalModule = vi.importActual('src/libs/utils');
+  const crypto = vi.importActual('crypto');
   return {
     ...originalModule,
     // The Web Crypto API used by Utils.sha256 is not available in Jest / JS DOM.
@@ -16,12 +17,12 @@ jest.mock('src/libs/utils', () => {
 });
 
 afterEach(() => {
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
 });
 
 describe('getServiceAlerts', () => {
   it('fetches service alerts from GCS', async () => {
-    const mockGetServiceAlerts = jest.fn().mockReturnValue(Promise.resolve([]));
+    const mockGetServiceAlerts = vi.fn().mockReturnValue(Promise.resolve([]));
     Ajax.mockReturnValue({ FirecloudBucket: { getServiceAlerts: mockGetServiceAlerts } });
 
     await getServiceAlerts();

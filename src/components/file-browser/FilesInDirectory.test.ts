@@ -8,16 +8,17 @@ import FilesInDirectory from 'src/components/file-browser/FilesInDirectory';
 import FilesTable from 'src/components/file-browser/FilesTable';
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import { asMockedFn } from 'src/testing/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/components/file-browser/file-browser-hooks', () => ({
-  ...jest.requireActual('src/components/file-browser/file-browser-hooks'),
-  useFilesInDirectory: jest.fn(),
+vi.mock('src/components/file-browser/file-browser-hooks', () => ({
+  ...vi.importActual('src/components/file-browser/file-browser-hooks'),
+  useFilesInDirectory: vi.fn(),
 }));
 
-jest.mock('src/components/file-browser/FilesTable', () => ({
-  ...jest.requireActual('src/components/file-browser/FilesTable'),
+vi.mock('src/components/file-browser/FilesTable', () => ({
+  ...vi.importActual('src/components/file-browser/FilesTable'),
   __esModule: true,
-  default: jest.fn(),
+  default: vi.fn(),
 }));
 
 beforeEach(() => {
@@ -59,7 +60,7 @@ describe('FilesInDirectory', () => {
         path: 'path/to/directory/',
         selectedFiles: {},
         setSelectedFiles: () => {},
-        onClickFile: jest.fn(),
+        onClickFile: vi.fn(),
         onCreateDirectory: () => {},
         onDeleteDirectory: () => {},
         onError: () => {},
@@ -99,7 +100,7 @@ describe('FilesInDirectory', () => {
         path: 'path/to/directory/',
         selectedFiles: {},
         setSelectedFiles: () => {},
-        onClickFile: jest.fn(),
+        onClickFile: vi.fn(),
         onCreateDirectory: () => {},
         onDeleteDirectory: () => {},
         onError: () => {},
@@ -138,7 +139,7 @@ describe('FilesInDirectory', () => {
           path: 'path/to/directory/',
           selectedFiles: {},
           setSelectedFiles: () => {},
-          onClickFile: jest.fn(),
+          onClickFile: vi.fn(),
           onCreateDirectory: () => {},
           onDeleteDirectory: () => {},
           onError: () => {},
@@ -162,7 +163,7 @@ describe('FilesInDirectory', () => {
 
     asMockedFn(useFilesInDirectory).mockReturnValue(useFilesInDirectoryResult);
 
-    const onError = jest.fn();
+    const onError = vi.fn();
 
     // Act
     render(
@@ -171,7 +172,7 @@ describe('FilesInDirectory', () => {
         path: 'path/to/directory/',
         selectedFiles: {},
         setSelectedFiles: () => {},
-        onClickFile: jest.fn(),
+        onClickFile: vi.fn(),
         onCreateDirectory: () => {},
         onDeleteDirectory: () => {},
         onError,
@@ -184,8 +185,8 @@ describe('FilesInDirectory', () => {
 
   describe('when next page is available', () => {
     // Arrange
-    const loadNextPage = jest.fn();
-    const loadAllRemainingItems = jest.fn();
+    const loadNextPage = vi.fn();
+    const loadAllRemainingItems = vi.fn();
 
     const files: FileBrowserFile[] = [
       {
@@ -220,7 +221,7 @@ describe('FilesInDirectory', () => {
           path: 'path/to/directory/',
           selectedFiles: {},
           setSelectedFiles: () => {},
-          onClickFile: jest.fn(),
+          onClickFile: vi.fn(),
           onCreateDirectory: () => {},
           onDeleteDirectory: () => {},
           onError: () => {},
@@ -244,7 +245,7 @@ describe('FilesInDirectory', () => {
           path: 'path/to/directory/',
           selectedFiles: {},
           setSelectedFiles: () => {},
-          onClickFile: jest.fn(),
+          onClickFile: vi.fn(),
           onCreateDirectory: () => {},
           onDeleteDirectory: () => {},
           onError: () => {},
@@ -262,7 +263,7 @@ describe('FilesInDirectory', () => {
     // Arrange
     const user = userEvent.setup();
 
-    const uploadFileToDirectory = jest.fn(() => Promise.resolve());
+    const uploadFileToDirectory = vi.fn(() => Promise.resolve());
     const mockProvider = { uploadFileToDirectory } as Partial<FileBrowserProvider> as FileBrowserProvider;
 
     const useFilesInDirectoryResult: UseFilesInDirectoryResult = {
@@ -281,7 +282,7 @@ describe('FilesInDirectory', () => {
         path: 'path/to/directory/',
         selectedFiles: {},
         setSelectedFiles: () => {},
-        onClickFile: jest.fn(),
+        onClickFile: vi.fn(),
         onCreateDirectory: () => {},
         onDeleteDirectory: () => {},
         onError: () => {},
@@ -303,13 +304,13 @@ describe('FilesInDirectory', () => {
     // Arrange
     const user = userEvent.setup();
 
-    const deleteEmptyDirectory = jest.fn(() => Promise.resolve());
+    const deleteEmptyDirectory = vi.fn(() => Promise.resolve());
     const mockProvider = {
       supportsEmptyDirectories: true,
       deleteEmptyDirectory,
     } as Partial<FileBrowserProvider> as FileBrowserProvider;
 
-    const onDeleteDirectory = jest.fn();
+    const onDeleteDirectory = vi.fn();
 
     const useFilesInDirectoryResult: UseFilesInDirectoryResult = {
       state: { status: 'Ready', files: [] },
@@ -327,7 +328,7 @@ describe('FilesInDirectory', () => {
         path: 'path/to/directory/',
         selectedFiles: {},
         setSelectedFiles: () => {},
-        onClickFile: jest.fn(),
+        onClickFile: vi.fn(),
         onCreateDirectory: () => {},
         onDeleteDirectory,
         onError: () => {},

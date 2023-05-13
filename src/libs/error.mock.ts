@@ -1,4 +1,5 @@
 import _ from 'lodash/fp';
+import { vi } from 'vitest';
 
 /**
  * Allows observation of when an error occurs via `errorWatcher`, i.e.:
@@ -7,7 +8,7 @@ import _ from 'lodash/fp';
  * The errorWatcher call counts and information will be cleared in between tests,
  * thanks to Jest being configured to auto-clear mock between tests at the project level.
  */
-export const errorWatcher = jest.fn();
+export const errorWatcher = vi.fn();
 
 /**
  * Provides a mocked version of error module's withErrorReportingInModal

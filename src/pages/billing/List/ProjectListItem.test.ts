@@ -5,12 +5,13 @@ import { h } from 'react-hyperscript-helpers';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { ProjectListItem, ProjectListItemProps } from 'src/pages/billing/List/ProjectListItem';
 import { BillingProject } from 'src/pages/billing/models/BillingProject';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mocking for using Nav.getLink
-jest.mock('src/libs/nav', () => ({
-  ...jest.requireActual('src/libs/nav'),
-  getPath: jest.fn(() => '/test/'),
-  getLink: jest.fn(() => '/'),
+vi.mock('src/libs/nav', () => ({
+  ...vi.importActual('src/libs/nav'),
+  getPath: vi.fn(() => '/test/'),
+  getLink: vi.fn(() => '/'),
 }));
 
 describe('ProjectListItem', () => {
@@ -35,7 +36,7 @@ describe('ProjectListItem', () => {
       isActive: true,
       billingProjectActionsProps: {
         projectName: billingProject.projectName,
-        loadProjects: jest.fn(),
+        loadProjects: vi.fn(),
         allWorkspaces: [
           {
             workspace: {

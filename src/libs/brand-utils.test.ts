@@ -3,13 +3,14 @@ import { BrandConfiguration, brands, defaultBrand } from 'src/libs/brands';
 import { getCurrentUrl } from 'src/libs/nav';
 import { configOverridesStore } from 'src/libs/state';
 import { asMockedFn } from 'src/testing/test-utils';
+import { describe, expect, it, vi } from 'vitest';
 
 type NavExports = typeof import('src/libs/nav');
-jest.mock(
+vi.mock(
   'src/libs/nav',
-  (): NavExports => ({
-    ...jest.requireActual('src/libs/nav'),
-    getCurrentUrl: jest.fn(),
+  async (): Promise<NavExports> => ({
+    ...(await vi.importActual('src/libs/nav')),
+    getCurrentUrl: vi.fn(),
   })
 );
 
@@ -69,8 +70,8 @@ describe('brand-utils', () => {
     beforeAll(() => {
       // For invalid brands, getEnabledBrand logs a notice and instructions for developers.
       // Those should not be shown in test output.
-      jest.spyOn(console, 'log').mockImplementation(() => {});
-      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      vi.spyOn(console, 'log').mockImplementation(() => {});
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
     });
 
     it('returns forced brand when a valid one is set', () => {

@@ -32,63 +32,64 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/utils/file-utils';
 import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 type NavExports = typeof import('src/libs/nav');
-jest.mock(
+vi.mock(
   'src/libs/nav',
-  (): NavExports => ({
-    ...jest.requireActual('src/libs/nav'),
-    getLink: jest.fn(),
-    goToPath: jest.fn(),
+  async (): Promise<NavExports> => ({
+    ...(await vi.importActual('src/libs/nav')),
+    getLink: vi.fn(),
+    goToPath: vi.fn(),
   })
 );
 
 type FileUtilsExports = typeof import('src/pages/workspaces/workspace/analysis/utils/file-utils');
-jest.mock(
+vi.mock(
   'src/pages/workspaces/workspace/analysis/utils/file-utils',
-  (): FileUtilsExports => ({
-    ...jest.requireActual('src/pages/workspaces/workspace/analysis/utils/file-utils'),
-    notebookLockHash: jest.fn(),
-    findPotentialNotebookLockers: jest.fn(),
+  async (): Promise<FileUtilsExports> => ({
+    ...(await vi.importActual('src/pages/workspaces/workspace/analysis/utils/file-utils')),
+    notebookLockHash: vi.fn(),
+    findPotentialNotebookLockers: vi.fn(),
   })
 );
 
 type UseAnalysisFilesExport = typeof import('src/pages/workspaces/workspace/analysis/useAnalysisFiles');
-jest.mock(
+vi.mock(
   'src/pages/workspaces/workspace/analysis/useAnalysisFiles',
-  (): UseAnalysisFilesExport => ({
-    ...jest.requireActual('src/pages/workspaces/workspace/analysis/useAnalysisFiles'),
-    useAnalysisFiles: jest.fn(),
+  async (): Promise<UseAnalysisFilesExport> => ({
+    ...(await vi.importActual('src/pages/workspaces/workspace/analysis/useAnalysisFiles')),
+    useAnalysisFiles: vi.fn(),
   })
 );
 
-jest.mock('src/libs/ajax');
+vi.mock('src/libs/ajax');
 
 type NotificationExports = typeof import('src/libs/notifications');
-jest.mock(
+vi.mock(
   'src/libs/notifications',
-  (): NotificationExports => ({
-    ...jest.requireActual('src/libs/notifications'),
-    notify: jest.fn(),
+  async (): Promise<NotificationExports> => ({
+    ...(await vi.importActual('src/libs/notifications')),
+    notify: vi.fn(),
   })
 );
 
 type PrefsExports = typeof import('src/libs/prefs');
-jest.mock(
+vi.mock(
   'src/libs/prefs',
-  (): PrefsExports => ({
-    ...jest.requireActual('src/libs/prefs'),
-    getLocalPref: jest.fn(),
-    setLocalPref: jest.fn(),
+  async (): Promise<PrefsExports> => ({
+    ...(await vi.importActual('src/libs/prefs')),
+    getLocalPref: vi.fn(),
+    setLocalPref: vi.fn(),
   })
 );
 
 type FeaturePrev = typeof import('src/libs/feature-previews');
-jest.mock(
+vi.mock(
   'src/libs/feature-previews',
-  (): FeaturePrev => ({
-    ...jest.requireActual('src/libs/feature-previews'),
-    isFeaturePreviewEnabled: jest.fn(),
+  async (): Promise<FeaturePrev> => ({
+    ...(await vi.importActual('src/libs/feature-previews')),
+    isFeaturePreviewEnabled: vi.fn(),
   })
 );
 
@@ -117,13 +118,13 @@ const defaultAnalysesProps: AnalysesProps = {
   storageDetails: { googleBucketLocation: '', googleBucketType: '', fetchedGoogleBucketLocation: undefined },
 };
 
-const watchCaptureEvent = jest.fn();
+const watchCaptureEvent = vi.fn();
 type AjaxContract = ReturnType<typeof Ajax>;
 type AjaxMetricsContract = AjaxContract['Metrics'];
 type OuterWorkspacesContract = AjaxContract['Workspaces'];
 type InnerWorkspacesContract = AjaxContract['Workspaces']['workspace'];
-const mockInnerWorkspaces = jest.fn().mockReturnValue({
-  listActiveFileTransfers: jest.fn(),
+const mockInnerWorkspaces = vi.fn().mockReturnValue({
+  listActiveFileTransfers: vi.fn(),
 }) as InnerWorkspacesContract;
 const mockOuterWorkspaces: Partial<OuterWorkspacesContract> = {
   workspace: mockInnerWorkspaces,
@@ -269,7 +270,7 @@ describe('Analyses', () => {
 
   it('Properly navigates to launcher on clicking an analysis', async () => {
     // Arrange
-    const navGoToPathObservable = jest.fn();
+    const navGoToPathObservable = vi.fn();
     asMockedFn(goToPath).mockImplementation(navGoToPathObservable);
 
     const fileName1 = 'file1.ipynb';
@@ -317,7 +318,7 @@ describe('Analyses', () => {
     asMockedFn(isFeaturePreviewEnabled).mockImplementation((key) => {
       return key === JUPYTERLAB_GCP_FEATURE_ID;
     });
-    const setLocalPrefObservable = jest.fn();
+    const setLocalPrefObservable = vi.fn();
     asMockedFn(setLocalPref).mockImplementation(setLocalPrefObservable);
 
     // Act
@@ -351,7 +352,7 @@ describe('Analyses', () => {
       loadedState: { status: 'Ready', state: files },
     });
 
-    const mockInnerWorkspaces = jest.fn().mockReturnValue({
+    const mockInnerWorkspaces = vi.fn().mockReturnValue({
       // TODO: once this function is typed this will need to return something valid, not a number[]
       listActiveFileTransfers: () => Promise.resolve([1]),
     }) as InnerWorkspacesContract;
@@ -396,7 +397,7 @@ describe('Analyses', () => {
     const droppedFileName = 'file3.ipynb';
     const droppedFileContents = 'testContent';
     const fileToDrop = new File([droppedFileContents], droppedFileName);
-    const createObservable = jest.fn();
+    const createObservable = vi.fn();
     const user = userEvent.setup();
 
     asMockedFn(useAnalysisFiles).mockReturnValue({

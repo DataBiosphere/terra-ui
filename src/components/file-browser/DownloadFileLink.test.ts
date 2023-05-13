@@ -2,13 +2,14 @@ import { render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import { asMockedFn } from 'src/testing/test-utils';
+import { describe, expect, it, vi } from 'vitest';
 
 import { DownloadFileLink } from './DownloadFileLink';
 import { useFileDownloadUrl } from './useFileDownloadUrl';
 
-jest.mock('./useFileDownloadUrl', () => ({
-  ...jest.requireActual('./useFileDownloadUrl'),
-  useFileDownloadUrl: jest.fn(),
+vi.mock('./useFileDownloadUrl', () => ({
+  ...vi.importActual('./useFileDownloadUrl'),
+  useFileDownloadUrl: vi.fn(),
 }));
 
 describe('DownloadFileLink', () => {

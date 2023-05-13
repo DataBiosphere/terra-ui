@@ -1,20 +1,21 @@
 import { renderHook } from '@testing-library/react-hooks';
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import { controlledPromise } from 'src/testing/test-utils';
+import { describe, expect, it, vi } from 'vitest';
 
 import { reportError } from '../../libs/error';
 import { useFileDownloadUrl } from './useFileDownloadUrl';
 
-jest.mock('src/libs/error', () => ({
-  ...jest.requireActual('src/libs/error'),
-  reportError: jest.fn(),
+vi.mock('src/libs/error', () => ({
+  ...vi.importActual('src/libs/error'),
+  reportError: vi.fn(),
 }));
 
 describe('useFileDownloadUrl', () => {
   let getDownloadUrlForFileController;
 
   const mockProvider = {
-    getDownloadUrlForFile: jest.fn(() => {
+    getDownloadUrlForFile: vi.fn(() => {
       const [promise, controller] = controlledPromise<string>();
       getDownloadUrlForFileController = controller;
       return promise;

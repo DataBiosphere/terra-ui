@@ -2,14 +2,15 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { CreateDataset } from 'src/pages/library/data-catalog/CreateDataset/CreateDataset';
+import { describe, expect, it, vi } from 'vitest';
 
 type NavExports = typeof import('src/libs/nav');
-jest.mock(
+vi.mock(
   'src/libs/nav',
   (): Partial<NavExports> => ({
-    getCurrentUrl: jest.fn().mockReturnValue(new URL('https://app.terra.bio')),
-    getLink: jest.fn(),
-    goToPath: jest.fn(),
+    getCurrentUrl: vi.fn().mockReturnValue(new URL('https://app.terra.bio')),
+    getLink: vi.fn(),
+    goToPath: vi.fn(),
   })
 );
 

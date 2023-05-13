@@ -5,22 +5,23 @@ import { Ajax } from 'src/libs/ajax';
 import { signOut } from 'src/libs/auth';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { authStore, azurePreviewStore } from 'src/libs/state';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import AzurePreview, { submittedPreviewFormPrefKey } from './AzurePreview';
 
-jest.mock('src/libs/ajax', () => ({
-  ...jest.requireActual('src/libs/ajax'),
-  Ajax: jest.fn(),
+vi.mock('src/libs/ajax', () => ({
+  ...vi.importActual('src/libs/ajax'),
+  Ajax: vi.fn(),
 }));
 
-jest.mock('src/libs/auth', () => ({
-  ...jest.requireActual('src/libs/auth'),
-  signOut: jest.fn(),
+vi.mock('src/libs/auth', () => ({
+  ...vi.importActual('src/libs/auth'),
+  signOut: vi.fn(),
 }));
 
-jest.mock('src/libs/prefs', () => ({
-  getLocalPref: jest.fn(),
-  setLocalPref: jest.fn(),
+vi.mock('src/libs/prefs', () => ({
+  getLocalPref: vi.fn(),
+  setLocalPref: vi.fn(),
 }));
 
 describe('AzurePreview', () => {
@@ -50,7 +51,7 @@ describe('AzurePreview', () => {
       // Arrange
       const user = userEvent.setup();
 
-      jest.spyOn(azurePreviewStore, 'set');
+      vi.spyOn(azurePreviewStore, 'set');
 
       // Act
       render(h(AzurePreview));
@@ -149,7 +150,7 @@ describe('AzurePreview', () => {
         let user;
 
         beforeAll(() => {
-          submitForm = jest.fn(() => Promise.resolve());
+          submitForm = vi.fn(() => Promise.resolve());
           Ajax.mockImplementation(() => ({ Surveys: { submitForm } }));
         });
 

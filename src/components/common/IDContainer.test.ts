@@ -1,17 +1,17 @@
 import { renderHook } from '@testing-library/react-hooks';
 import _ from 'lodash/fp';
 import { asMockedFn } from 'src/testing/test-utils';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useUniqueId } from './IdContainer';
 
 type LodashExports = typeof import('lodash/fp');
-jest.mock('lodash/fp', (): LodashExports => {
-  const actual = jest.requireActual<LodashExports>('lodash/fp');
+vi.mock('lodash/fp', async (): Promise<LodashExports> => {
+  const actual = await vi.importActual<LodashExports>('lodash/fp');
 
   return {
     ...actual,
-    uniqueId: jest.fn(),
+    uniqueId: vi.fn(),
   };
 });
 

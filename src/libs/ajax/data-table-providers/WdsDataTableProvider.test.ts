@@ -3,6 +3,7 @@ import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ListAppResponse } from '../leonardo/models/app-models';
 import {
@@ -21,13 +22,13 @@ import {
   wdsToEntityServiceMetadata,
 } from './WdsDataTableProvider';
 
-jest.mock('src/libs/ajax');
+vi.mock('src/libs/ajax');
 
-jest.mock('react-notifications-component', () => {
+vi.mock('react-notifications-component', () => {
   return {
     store: {
-      addNotification: jest.fn(),
-      removeNotification: jest.fn(),
+      addNotification: vi.fn(),
+      removeNotification: vi.fn(),
     },
   };
 });
@@ -161,18 +162,18 @@ describe('WdsDataTableProvider', () => {
     return Promise.resolve(testProxyUrlResponse);
   };
 
-  let getRecords: jest.MockedFunction<WorkspaceDataContract['getRecords']>;
-  let deleteTable: jest.MockedFunction<WorkspaceDataContract['deleteTable']>;
-  let downloadTsv: jest.MockedFunction<WorkspaceDataContract['downloadTsv']>;
-  let uploadTsv: jest.MockedFunction<WorkspaceDataContract['uploadTsv']>;
-  let listAppsV2: jest.MockedFunction<AppsContract['listAppsV2']>;
+  let getRecords: vi.mockedFunction<WorkspaceDataContract['getRecords']>;
+  let deleteTable: vi.mockedFunction<WorkspaceDataContract['deleteTable']>;
+  let downloadTsv: vi.mockedFunction<WorkspaceDataContract['downloadTsv']>;
+  let uploadTsv: vi.mockedFunction<WorkspaceDataContract['uploadTsv']>;
+  let listAppsV2: vi.mockedFunction<AppsContract['listAppsV2']>;
 
   beforeEach(() => {
-    getRecords = jest.fn().mockImplementation(getRecordsMockImpl);
-    deleteTable = jest.fn().mockImplementation(deleteTableMockImpl);
-    downloadTsv = jest.fn().mockImplementation(downloadTsvMockImpl);
-    uploadTsv = jest.fn().mockImplementation(uploadTsvMockImpl);
-    listAppsV2 = jest.fn().mockImplementation(listAppsV2MockImpl);
+    getRecords = vi.fn().mockImplementation(getRecordsMockImpl);
+    deleteTable = vi.fn().mockImplementation(deleteTableMockImpl);
+    downloadTsv = vi.fn().mockImplementation(downloadTsvMockImpl);
+    uploadTsv = vi.fn().mockImplementation(uploadTsvMockImpl);
+    listAppsV2 = vi.fn().mockImplementation(listAppsV2MockImpl);
 
     asMockedFn(Ajax).mockImplementation(
       () =>

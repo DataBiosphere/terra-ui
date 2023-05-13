@@ -21,16 +21,17 @@ import {
   runtimeToolLabels,
 } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/libs/ajax/GoogleStorage');
-jest.mock('src/libs/ajax/AzureStorage');
-jest.mock('src/libs/error', () => ({
-  ...jest.requireActual('src/libs/error'),
-  reportError: jest.fn(),
+vi.mock('src/libs/ajax/GoogleStorage');
+vi.mock('src/libs/ajax/AzureStorage');
+vi.mock('src/libs/error', () => ({
+  ...vi.importActual('src/libs/error'),
+  reportError: vi.fn(),
 }));
 
-jest.mock('src/libs/notifications', () => ({
-  notify: jest.fn((...args) => {
+vi.mock('src/libs/notifications', () => ({
+  notify: vi.fn((...args) => {
     console.debug('######################### notify')/* eslint-disable-line */
     console.debug({ method: 'notify', args: [...args] })/* eslint-disable-line */
   }),
@@ -41,12 +42,12 @@ describe('file-utils', () => {
     beforeEach(() => {
       workspaceStore.reset();
       const googleStorageMock: Partial<GoogleStorageContract> = {
-        listAnalyses: jest.fn(() => Promise.resolve([])),
+        listAnalyses: vi.fn(() => Promise.resolve([])),
       };
       asMockedFn(GoogleStorage).mockImplementation(() => googleStorageMock as GoogleStorageContract);
 
       const azureStorageMock: Partial<AzureStorageContract> = {
-        listNotebooks: jest.fn(() => Promise.resolve([])),
+        listNotebooks: vi.fn(() => Promise.resolve([])),
       };
       asMockedFn(AzureStorage).mockImplementation(() => azureStorageMock as AzureStorageContract);
     });
@@ -58,7 +59,7 @@ describe('file-utils', () => {
         getFileFromPath('test/file2.ipynb' as AbsolutePath),
       ];
 
-      const listAnalyses = jest.fn(() => Promise.resolve(fileList));
+      const listAnalyses = vi.fn(() => Promise.resolve(fileList));
       const googleStorageMock: Partial<GoogleStorageContract> = {
         listAnalyses,
       };
@@ -82,7 +83,7 @@ describe('file-utils', () => {
         getFileFromPath('test/file2.ipynb' as AbsolutePath),
       ];
 
-      const listAnalyses = jest.fn(() => Promise.resolve(fileList));
+      const listAnalyses = vi.fn(() => Promise.resolve(fileList));
       const googleStorageMock: Partial<GoogleStorageContract> = {
         listAnalyses,
       };
@@ -107,7 +108,7 @@ describe('file-utils', () => {
         getFileFromPath('test/file2.ipynb' as AbsolutePath),
       ];
 
-      const calledMock = jest.fn(() => Promise.resolve(fileList));
+      const calledMock = vi.fn(() => Promise.resolve(fileList));
       const azureStorageMock: Partial<AzureStorageContract> = {
         listNotebooks: calledMock,
       };
@@ -129,9 +130,9 @@ describe('file-utils', () => {
         getFileFromPath('test/file2.ipynb' as AbsolutePath),
       ];
 
-      const listAnalyses = jest.fn(() => Promise.resolve(fileList));
-      const create = jest.fn(() => Promise.resolve());
-      const analysisMock: Partial<GoogleStorageContract['analysis']> = jest.fn(() => ({
+      const listAnalyses = vi.fn(() => Promise.resolve(fileList));
+      const create = vi.fn(() => Promise.resolve());
+      const analysisMock: Partial<GoogleStorageContract['analysis']> = vi.fn(() => ({
         create,
       }));
       const googleStorageMock: Partial<GoogleStorageContract> = {
@@ -152,11 +153,11 @@ describe('file-utils', () => {
 
     it('Fails to create a file with a GCP workspace', async () => {
       // Arrange
-      const listAnalyses = jest.fn(() => Promise.resolve([]));
-      const create = jest.fn(() => Promise.reject(new Error('myError')));
-      const analysisMock: Partial<GoogleStorageContract['analysis']> = jest.fn(() => ({
+      const listAnalyses = vi.fn(() => Promise.resolve([]));
+      const create = vi.fn(() => Promise.reject(new Error('myError')));
+      const analysisMock: Partial<GoogleStorageContract['analysis']> = vi.fn(() => ({
         create,
-        refresh: jest.fn(() => Promise.reject(new Error('ee'))),
+        refresh: vi.fn(() => Promise.reject(new Error('ee'))),
       }));
       const googleStorageMock: Partial<GoogleStorageContract> = {
         listAnalyses,
@@ -183,9 +184,9 @@ describe('file-utils', () => {
         getFileFromPath('test/file2.ipynb' as AbsolutePath),
       ];
 
-      const listNotebooks = jest.fn(() => Promise.resolve(fileList));
-      const create = jest.fn(() => Promise.resolve());
-      const blobMock: Partial<AzureStorageContract['blob']> = jest.fn(() => ({
+      const listNotebooks = vi.fn(() => Promise.resolve(fileList));
+      const create = vi.fn(() => Promise.resolve());
+      const blobMock: Partial<AzureStorageContract['blob']> = vi.fn(() => ({
         create,
       }));
       const azureStorageMock: Partial<AzureStorageContract> = {
@@ -206,9 +207,9 @@ describe('file-utils', () => {
 
   it('Fails to create a file with an Azure workspace', async () => {
     // Arrange
-    const listNotebooks = jest.fn(() => Promise.resolve([]));
-    const create = jest.fn(() => Promise.reject(new Error('myError')));
-    const blobMock: Partial<AzureStorageContract['blob']> = jest.fn(() => ({
+    const listNotebooks = vi.fn(() => Promise.resolve([]));
+    const create = vi.fn(() => Promise.reject(new Error('myError')));
+    const blobMock: Partial<AzureStorageContract['blob']> = vi.fn(() => ({
       create,
     }));
     const googleStorageMock: Partial<AzureStorageContract> = {
@@ -236,9 +237,9 @@ describe('file-utils', () => {
     const file1Path = 'test/file1.ipynb' as AbsolutePath;
     const fileList: AnalysisFile[] = [getFileFromPath(file1Path), getFileFromPath('test/file2.ipynb' as AbsolutePath)];
 
-    const listAnalyses = jest.fn(() => Promise.resolve(fileList));
-    const doDelete = jest.fn(() => Promise.resolve());
-    const analysisMock: Partial<GoogleStorageContract['analysis']> = jest.fn(() => ({
+    const listAnalyses = vi.fn(() => Promise.resolve(fileList));
+    const doDelete = vi.fn(() => Promise.resolve());
+    const analysisMock: Partial<GoogleStorageContract['analysis']> = vi.fn(() => ({
       delete: doDelete,
     }));
     const googleStorageMock: Partial<GoogleStorageContract> = {
@@ -266,11 +267,11 @@ describe('file-utils', () => {
   it('Fails to create a file with a GCP workspace', async () => {
     // Arrange
     const file1Path = 'test/file1.ipynb' as AbsolutePath;
-    const listAnalyses = jest.fn(() => Promise.resolve([]));
-    const doDelete = jest.fn(() => Promise.reject(new Error('myError')));
-    const analysisMock: Partial<GoogleStorageContract['analysis']> = jest.fn(() => ({
+    const listAnalyses = vi.fn(() => Promise.resolve([]));
+    const doDelete = vi.fn(() => Promise.reject(new Error('myError')));
+    const analysisMock: Partial<GoogleStorageContract['analysis']> = vi.fn(() => ({
       delete: doDelete,
-      refresh: jest.fn(() => Promise.reject(new Error('ee'))),
+      refresh: vi.fn(() => Promise.reject(new Error('ee'))),
     }));
     const googleStorageMock: Partial<GoogleStorageContract> = {
       listAnalyses,
@@ -301,9 +302,9 @@ describe('file-utils', () => {
     const file1Path = 'test/file1.ipynb' as AbsolutePath;
     const fileList: AnalysisFile[] = [getFileFromPath(file1Path), getFileFromPath('test/file2.ipynb' as AbsolutePath)];
 
-    const listNotebooks = jest.fn(() => Promise.resolve(fileList));
-    const doDelete = jest.fn(() => Promise.resolve());
-    const blobMock: Partial<AzureStorageContract['blob']> = jest.fn(() => ({
+    const listNotebooks = vi.fn(() => Promise.resolve(fileList));
+    const doDelete = vi.fn(() => Promise.resolve());
+    const blobMock: Partial<AzureStorageContract['blob']> = vi.fn(() => ({
       delete: doDelete,
     }));
     const azureStorageMock: Partial<AzureStorageContract> = {
@@ -325,9 +326,9 @@ describe('file-utils', () => {
   it('Fails to create a file with an Azure workspace', async () => {
     // Arrange
     const file1Path = 'test/file1.ipynb' as AbsolutePath;
-    const listNotebooks = jest.fn(() => Promise.resolve([]));
-    const doDelete = jest.fn(() => Promise.reject(new Error('myError')));
-    const blobMock: Partial<AzureStorageContract['blob']> = jest.fn(() => ({
+    const listNotebooks = vi.fn(() => Promise.resolve([]));
+    const doDelete = vi.fn(() => Promise.reject(new Error('myError')));
+    const blobMock: Partial<AzureStorageContract['blob']> = vi.fn(() => ({
       delete: doDelete,
     }));
     const azureStorageMock: Partial<AzureStorageContract> = {

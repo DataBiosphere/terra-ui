@@ -1,11 +1,12 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
+import { describe, expect, it, vi } from 'vitest';
 
 import { NameModal } from './NameModal';
 
-jest.mock('src/components/Modal', () => {
-  const { mockModalModule } = jest.requireActual('src/components/Modal.mock');
+vi.mock('src/components/Modal', () => {
+  const { mockModalModule } = vi.importActual('src/components/Modal.mock');
   return mockModalModule();
 });
 
@@ -49,7 +50,7 @@ describe('NameModal', () => {
     // Arrange
     const user = userEvent.setup();
 
-    const onSuccess = jest.fn();
+    const onSuccess = vi.fn();
     render(
       h(NameModal, {
         thing: 'Thing',
@@ -73,7 +74,7 @@ describe('NameModal', () => {
     // Arrange
     const user = userEvent.setup();
 
-    const onDismiss = jest.fn();
+    const onDismiss = vi.fn();
     render(
       h(NameModal, {
         thing: 'Thing',

@@ -1,19 +1,20 @@
 import { asMockedFn } from 'src/testing/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { fetchDockstore, fetchOk } from './ajax-common';
 import { Dockstore } from './Dockstore';
 
 type AjaxCommonExports = typeof import('./ajax-common');
-jest.mock('./ajax-common', (): Partial<AjaxCommonExports> => {
+vi.mock('./ajax-common', (): Partial<AjaxCommonExports> => {
   return {
-    fetchDockstore: jest.fn(),
-    fetchOk: jest.fn(),
+    fetchDockstore: vi.fn(),
+    fetchOk: vi.fn(),
   };
 });
 
 describe('Dockstore', () => {
   afterEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   const testWorkflowPath = 'github.com/DataBiosphere/test-workflows/test-workflow';

@@ -1,4 +1,5 @@
 import { FunctionComponent } from 'react';
+import { vi } from 'vitest';
 
 export type ModalExports = typeof import('src/components/Modal') & { __esModule: true };
 
@@ -7,8 +8,8 @@ export type ModalExports = typeof import('src/components/Modal') & { __esModule:
  * pitfalls specific to missing services in jest simulated browser environment
  * including dom measurement calls.
  */
-export const mockModalModule = (): ModalExports => {
-  const originalModule = jest.requireActual<ModalExports>('src/components/Modal');
+export const mockModalModule = async (): Promise<ModalExports> => {
+  const originalModule = <any>await vi.importActual<ModalExports>('src/components/Modal');
 
   type ModalFn = FunctionComponent & { propTypes: typeof originalModule.modalPropTypes };
 
@@ -18,12 +19,12 @@ export const mockModalModule = (): ModalExports => {
   // internal implementation of react-modal only hits onAfterOpen as part of
   // a requestAnimationFrame async flow.
   function modalFn(props) {
-    return originalModule.default({ onAfterOpen: jest.fn(), ...props });
+    return originalModule.default({ onAfterOpen: vi.fn(), ...props });
   }
   modalFn.propTypes = originalModule.modalPropTypes;
 
-  type MockedModalFn = ModalFn & jest.Mock;
-  const mockModalFn: MockedModalFn = jest.fn(modalFn) as MockedModalFn;
+  type MockedModalFn = ModalFn & vi.mock;
+  const mockModalFn: MockedModalFn = vi.fn(modalFn) as MockedModalFn;
 
   return {
     ...originalModule,

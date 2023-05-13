@@ -8,27 +8,28 @@ import FilesTable from 'src/components/file-browser/FilesTable';
 import RequesterPaysModal from 'src/components/RequesterPaysModal';
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import { asMockedFn } from 'src/testing/test-utils';
+import { describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/components/file-browser/file-browser-hooks', () => ({
-  ...jest.requireActual('src/components/file-browser/file-browser-hooks'),
-  useFilesInDirectory: jest.fn(),
+vi.mock('src/components/file-browser/file-browser-hooks', () => ({
+  ...vi.importActual('src/components/file-browser/file-browser-hooks'),
+  useFilesInDirectory: vi.fn(),
 }));
 
-jest.mock('src/components/file-browser/FilesTable', () => {
-  const { div } = jest.requireActual('react-hyperscript-helpers');
+vi.mock('src/components/file-browser/FilesTable', async () => {
+  const { div } = <any>await vi.importActual('react-hyperscript-helpers');
   return {
-    ...jest.requireActual('src/components/file-browser/FilesTable'),
+    ...vi.importActual('src/components/file-browser/FilesTable'),
     __esModule: true,
-    default: jest.fn().mockReturnValue(div()),
+    default: vi.fn().mockReturnValue(div()),
   };
 });
 
-jest.mock('src/components/RequesterPaysModal', () => {
-  const { div } = jest.requireActual('react-hyperscript-helpers');
+vi.mock('src/components/RequesterPaysModal', async () => {
+  const { div } = <any>await vi.importActual('react-hyperscript-helpers');
   return {
-    ...jest.requireActual('src/components/RequesterPaysModal'),
+    ...vi.importActual('src/components/RequesterPaysModal'),
     __esModule: true,
-    default: jest.fn().mockReturnValue(div()),
+    default: vi.fn().mockReturnValue(div()),
   };
 });
 

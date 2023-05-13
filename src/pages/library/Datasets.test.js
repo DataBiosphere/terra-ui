@@ -6,16 +6,17 @@ import * as Nav from 'src/libs/nav';
 import { dataCatalogStore } from 'src/libs/state';
 import { prepareDatasetsForDisplay } from 'src/pages/library/dataBrowser-utils';
 import { Datasets } from 'src/pages/library/Datasets';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/libs/brand-utils', () => ({
-  ...jest.requireActual('src/libs/brand-utils'),
-  getEnabledBrand: jest.fn(),
+vi.mock('src/libs/brand-utils', () => ({
+  ...vi.importActual('src/libs/brand-utils'),
+  getEnabledBrand: vi.fn(),
 }));
 
-jest.mock('src/libs/nav', () => ({
-  ...jest.requireActual('src/libs/nav'),
-  getLink: jest.fn(),
-  useRoute: jest.fn(),
+vi.mock('src/libs/nav', () => ({
+  ...vi.importActual('src/libs/nav'),
+  getLink: vi.fn(),
+  useRoute: vi.fn(),
 }));
 
 beforeEach(() => {

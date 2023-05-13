@@ -7,31 +7,32 @@ import TooltipTrigger from 'src/components/TooltipTrigger';
 import { useWorkspaceDetails } from 'src/components/workspace-utils';
 import * as Utils from 'src/libs/utils';
 import WorkspaceMenu, { tooltipText } from 'src/pages/workspaces/workspace/WorkspaceMenu';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/components/workspace-utils', () => {
-  const originalModule = jest.requireActual('src/components/workspace-utils');
+vi.mock('src/components/workspace-utils', () => {
+  const originalModule = vi.importActual('src/components/workspace-utils');
   return {
     ...originalModule,
-    useWorkspaceDetails: jest.fn(),
+    useWorkspaceDetails: vi.fn(),
   };
 });
 
 // Mocking PopupTrigger to avoid test environment issues with React Portal's requirement to use
 // DOM measure services which are not available in jest environment
-jest.mock('src/components/PopupTrigger', () => {
-  const originalModule = jest.requireActual('src/components/PopupTrigger');
+vi.mock('src/components/PopupTrigger', () => {
+  const originalModule = vi.importActual('src/components/PopupTrigger');
   return {
     ...originalModule,
-    MenuTrigger: jest.fn(),
+    MenuTrigger: vi.fn(),
   };
 });
 
 // Mocking TooltipTrigger to avoid test environment issues with React Portal's requirement to use
 // DOM measure services which are not available in jest environment
-jest.mock('src/components/TooltipTrigger', () => ({
-  ...jest.requireActual('src/components/TooltipTrigger'),
+vi.mock('src/components/TooltipTrigger', () => ({
+  ...vi.importActual('src/components/TooltipTrigger'),
   __esModule: true,
-  default: jest.fn(),
+  default: vi.fn(),
 }));
 
 const workspaceMenuProps = {

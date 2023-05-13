@@ -15,26 +15,27 @@ import {
   useWorkspace,
 } from 'src/pages/workspaces/workspace/useWorkspace';
 import { asMockedFn } from 'src/testing/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/libs/ajax/AzureStorage');
+vi.mock('src/libs/ajax/AzureStorage');
 
 type AjaxExports = typeof import('src/libs/ajax');
-jest.mock('src/libs/ajax');
+vi.mock('src/libs/ajax');
 type AjaxContract = ReturnType<AjaxExports['Ajax']>;
 
-jest.mock('src/libs/notifications');
+vi.mock('src/libs/notifications');
 
 type StateExports = typeof import('src/libs/state');
-jest.mock('src/libs/state', (): StateExports => {
+vi.mock('src/libs/state', async (): Promise<StateExports> => {
   return {
-    ...jest.requireActual('src/libs/state'),
-    getUser: jest.fn(() => ({ email: 'christina@foo.com' })),
+    ...(await vi.importActual('src/libs/state')),
+    getUser: vi.fn(() => ({ email: 'christina@foo.com' })),
   };
 });
 
-jest.mock('src/libs/config', () => ({
-  ...jest.requireActual('src/libs/config'),
-  getConfig: jest.fn().mockReturnValue({}),
+vi.mock('src/libs/config', () => ({
+  ...vi.importActual('src/libs/config'),
+  getConfig: vi.fn().mockReturnValue({}),
 }));
 
 describe('useActiveWorkspace', () => {
@@ -122,20 +123,20 @@ describe('useActiveWorkspace', () => {
 
   beforeEach(() => {
     workspaceStore.reset();
-    jest.useFakeTimers();
+    vi.useFakeTimers();
 
-    jest.spyOn(workspaceStore, 'set');
-    jest.spyOn(WorkspaceUtils, 'updateRecentlyViewedWorkspaces');
-    jest.spyOn(GoogleStorage, 'saToken');
-    jest.spyOn(Notifications, 'notify');
+    vi.spyOn(workspaceStore, 'set');
+    vi.spyOn(WorkspaceUtils, 'updateRecentlyViewedWorkspaces');
+    vi.spyOn(GoogleStorage, 'saToken');
+    vi.spyOn(Notifications, 'notify');
 
     // Don't show expected error responses in logs
-    jest.spyOn(console, 'error').mockImplementation(() => {});
-    jest.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   afterAll(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   const assertResult = (result, expectedWorkspace, expectedStorageDetails, expectedAccessError) => {
@@ -151,7 +152,7 @@ describe('useActiveWorkspace', () => {
     const mockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
         workspace: () => ({
-          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
+          checkBucketLocation: vi.fn().mockResolvedValue(bucketLocationResponse),
         }),
       },
     };
@@ -208,7 +209,7 @@ describe('useActiveWorkspace', () => {
   it('can initialize from an Azure workspace in workspaceStore', async () => {
     // Arrange
     const azureStorageMock: Partial<AzureStorageContract> = {
-      details: jest.fn().mockResolvedValue(azureStorageDetails),
+      details: vi.fn().mockResolvedValue(azureStorageDetails),
     };
     asMockedFn(AzureStorage).mockImplementation(() => azureStorageMock as AzureStorageContract);
 
@@ -275,17 +276,17 @@ describe('useActiveWorkspace', () => {
     const successMockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
         workspace: () => ({
-          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
-          checkBucketReadAccess: jest.fn(),
-          storageCostEstimate: jest.fn(),
-          bucketUsage: jest.fn(),
+          checkBucketLocation: vi.fn().mockResolvedValue(bucketLocationResponse),
+          checkBucketReadAccess: vi.fn(),
+          storageCostEstimate: vi.fn(),
+          bucketUsage: vi.fn(),
         }),
       },
     };
     asMockedFn(Ajax).mockImplementation(() => successMockAjax as AjaxContract);
 
     // Act
-    jest.advanceTimersByTime(googlePermissionsRecheckRate);
+    vi.advanceTimersByTime(googlePermissionsRecheckRate);
     await waitForNextUpdate();
 
     // Assert
@@ -301,7 +302,7 @@ describe('useActiveWorkspace', () => {
     const errorMockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
         workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+          details: vi.fn().mockResolvedValue(serverWorkspaceResponse),
           checkBucketReadAccess: () => Promise.reject(new Response('Mock permissions error', { status: 500 })),
         }),
       },
@@ -323,11 +324,11 @@ describe('useActiveWorkspace', () => {
     const errorMockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
         workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
-          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
-          checkBucketReadAccess: jest.fn(),
+          details: vi.fn().mockResolvedValue(serverWorkspaceResponse),
+          checkBucketLocation: vi.fn().mockResolvedValue(bucketLocationResponse),
+          checkBucketReadAccess: vi.fn(),
           storageCostEstimate: () => Promise.reject(new Response('Mock storage cost estimate error', { status: 500 })),
-          bucketUsage: jest.fn(),
+          bucketUsage: vi.fn(),
         }),
       },
     };
@@ -348,10 +349,10 @@ describe('useActiveWorkspace', () => {
     const errorMockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
         workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
-          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
-          checkBucketReadAccess: jest.fn(),
-          storageCostEstimate: jest.fn(),
+          details: vi.fn().mockResolvedValue(serverWorkspaceResponse),
+          checkBucketLocation: vi.fn().mockResolvedValue(bucketLocationResponse),
+          checkBucketReadAccess: vi.fn(),
+          storageCostEstimate: vi.fn(),
           bucketUsage: () => Promise.reject(new Response('Mock bucket usage error', { status: 500 })),
         }),
       },
@@ -373,11 +374,11 @@ describe('useActiveWorkspace', () => {
     const errorMockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
         workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+          details: vi.fn().mockResolvedValue(serverWorkspaceResponse),
           checkBucketLocation: () => Promise.reject(new Response('Mock check bucket location', { status: 500 })),
-          checkBucketReadAccess: jest.fn(),
-          storageCostEstimate: jest.fn(),
-          bucketUsage: jest.fn(),
+          checkBucketReadAccess: vi.fn(),
+          storageCostEstimate: vi.fn(),
+          bucketUsage: vi.fn(),
         }),
       },
     };
@@ -402,9 +403,9 @@ describe('useActiveWorkspace', () => {
     const successMockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
         workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
-          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
-          checkBucketReadAccess: jest.fn(),
+          details: vi.fn().mockResolvedValue(serverWorkspaceResponse),
+          checkBucketLocation: vi.fn().mockResolvedValue(bucketLocationResponse),
+          checkBucketReadAccess: vi.fn(),
           storageCostEstimate: () => Promise.reject(new Response('Should not call', { status: 500 })),
           bucketUsage: () => Promise.reject(new Response('Should not call', { status: 500 })),
         }),
@@ -439,7 +440,7 @@ describe('useActiveWorkspace', () => {
     const mockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
         workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+          details: vi.fn().mockResolvedValue(serverWorkspaceResponse),
           checkBucketReadAccess: () => Promise.reject(new Response('Mock requester pays error', { status: 500 })),
         }),
       },
@@ -477,7 +478,7 @@ describe('useActiveWorkspace', () => {
     const mockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
         workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+          details: vi.fn().mockResolvedValue(serverWorkspaceResponse),
         }),
       },
     };
@@ -517,13 +518,13 @@ describe('useActiveWorkspace', () => {
     // Arrange
     // Now return success for the next call to AzureStorage.details
     const successAzureStorageMock: Partial<AzureStorageContract> = {
-      details: jest.fn().mockResolvedValue(azureStorageDetails),
+      details: vi.fn().mockResolvedValue(azureStorageDetails),
     };
     asMockedFn(AzureStorage).mockImplementation(() => successAzureStorageMock as AzureStorageContract);
 
     // Act
     // next call to AzureStorage.details is on a timer
-    jest.advanceTimersByTime(azureBucketRecheckRate);
+    vi.advanceTimersByTime(azureBucketRecheckRate);
     await waitForNextUpdate();
 
     // Assert
@@ -564,9 +565,9 @@ describe('useActiveWorkspace', () => {
     const mockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
         workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
-          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
-          checkBucketReadAccess: jest.fn(),
+          details: vi.fn().mockResolvedValue(serverWorkspaceResponse),
+          checkBucketLocation: vi.fn().mockResolvedValue(bucketLocationResponse),
+          checkBucketReadAccess: vi.fn(),
         }),
       },
     };
@@ -606,9 +607,9 @@ describe('useActiveWorkspace', () => {
     const mockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
         workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
-          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
-          checkBucketReadAccess: jest.fn(),
+          details: vi.fn().mockResolvedValue(serverWorkspaceResponse),
+          checkBucketLocation: vi.fn().mockResolvedValue(bucketLocationResponse),
+          checkBucketReadAccess: vi.fn(),
         }),
       },
     };
@@ -624,7 +625,7 @@ describe('useActiveWorkspace', () => {
     );
 
     // Created time is '2023-02-03T22:26:06.124Z',
-    jest.setSystemTime(new Date(Date.UTC(2023, 1, 3, 22, 26, 12, 0)));
+    vi.setSystemTime(new Date(Date.UTC(2023, 1, 3, 22, 26, 12, 0)));
 
     // Act
     const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'));

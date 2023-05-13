@@ -2,16 +2,17 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { mockModalModule } from 'src/components/Modal.mock';
+import { describe, expect, it, vi } from 'vitest';
 
 import RequesterPaysModal from './RequesterPaysModal';
 
-jest.mock('src/components/Modal', () => {
+vi.mock('src/components/Modal', () => {
   return mockModalModule();
 });
 
-jest.mock('src/components/workspace-utils', () => ({
-  ...jest.requireActual('src/components/workspace-utils'),
-  useWorkspaces: jest.fn().mockReturnValue({
+vi.mock('src/components/workspace-utils', () => ({
+  ...vi.importActual('src/components/workspace-utils'),
+  useWorkspaces: vi.fn().mockReturnValue({
     loading: false,
     workspaces: [
       {
@@ -63,7 +64,7 @@ describe('RequesterPaysModal', () => {
     // Arrange
     const user = userEvent.setup();
 
-    const onSuccess = jest.fn();
+    const onSuccess = vi.fn();
     render(
       h(RequesterPaysModal, {
         onDismiss: () => {},

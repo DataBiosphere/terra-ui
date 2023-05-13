@@ -1,29 +1,30 @@
 import { reloadAuthToken, signOutAfterSessionTimeout } from 'src/libs/auth';
 import { getUser } from 'src/libs/state';
 import { asMockedFn } from 'src/testing/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { authOpts, makeRequestRetry, withRetryAfterReloadingExpiredAuthToken } from './ajax-common';
 
 type AuthExports = typeof import('src/libs/auth');
-jest.mock('src/libs/auth', (): Partial<AuthExports> => {
+vi.mock('src/libs/auth', (): Partial<AuthExports> => {
   return {
-    reloadAuthToken: jest.fn(),
-    signOutAfterSessionTimeout: jest.fn(),
+    reloadAuthToken: vi.fn(),
+    signOutAfterSessionTimeout: vi.fn(),
   };
 });
 
 type StateExports = typeof import('src/libs/state');
-jest.mock('src/libs/state', (): StateExports => {
+vi.mock('src/libs/state', async (): Promise<StateExports> => {
   return {
-    ...jest.requireActual('src/libs/state'),
-    getUser: jest.fn(() => ({ token: 'testtoken' })),
+    ...(await vi.importActual('src/libs/state')),
+    getUser: vi.fn(() => ({ token: 'testtoken' })),
   };
 });
 
 describe('withRetryAfterReloadingExpiredAuthToken', () => {
   it('passes args through to wrapped fetch', async () => {
     // Arrange
-    const originalFetch = jest.fn(() =>
+    const originalFetch = vi.fn(() =>
       Promise.resolve(new Response(JSON.stringify({ success: true }), { status: 200 }))
     );
     const wrappedFetch = withRetryAfterReloadingExpiredAuthToken(originalFetch);
@@ -39,7 +40,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
 
   it('returns result of successful request', async () => {
     // Arrange
-    const originalFetch = jest.fn(() =>
+    const originalFetch = vi.fn(() =>
       Promise.resolve(new Response(JSON.stringify({ success: true }), { status: 200 }))
     );
     const wrappedFetch = withRetryAfterReloadingExpiredAuthToken(originalFetch);
@@ -55,7 +56,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
 
   describe('if an authenticated request fails with a 401 status', () => {
     // Arrange
-    const originalFetch = jest.fn(() =>
+    const originalFetch = vi.fn(() =>
       Promise.reject(new Response(JSON.stringify({ success: false }), { status: 401 }))
     );
     const wrappedFetch = withRetryAfterReloadingExpiredAuthToken(originalFetch);
@@ -123,7 +124,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
 describe('makeRequestRetry', () => {
   it('fails after max retries', async () => {
     // Arrange
-    const fetchFunction = jest.fn(
+    const fetchFunction = vi.fn(
       () =>
         new Promise<void>((resolve) => {
           setTimeout(() => resolve(), 51);
@@ -145,7 +146,7 @@ describe('makeRequestRetry', () => {
   it('succeeds after one fail', async () => {
     // Arrange
     let callCount = 0;
-    const fetchFunction = jest.fn(
+    const fetchFunction = vi.fn(
       () =>
         new Promise((resolve) => {
           if (callCount === 0) {

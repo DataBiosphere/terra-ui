@@ -36,22 +36,23 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import { runtimeToolLabels, runtimeTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/libs/notifications', () => ({
+vi.mock('src/libs/notifications', () => ({
   notify: (...args) => {
     console.debug('######################### notify')/* eslint-disable-line */
     console.debug({ method: 'notify', args: [...args] })/* eslint-disable-line */
   },
 }));
 
-jest.mock('src/libs/ajax');
-jest.mock('src/pages/workspaces/workspace/analysis/utils/cost-utils');
+vi.mock('src/libs/ajax');
+vi.mock('src/pages/workspaces/workspace/analysis/utils/cost-utils');
 
-const onSuccess = jest.fn();
+const onSuccess = vi.fn();
 const defaultModalProps = {
   onSuccess,
-  onDismiss: jest.fn(),
-  onError: jest.fn(),
+  onDismiss: vi.fn(),
+  onError: vi.fn(),
   currentRuntime: undefined,
   currentDisk: undefined,
   tool: runtimeToolLabels.Jupyter,
@@ -66,17 +67,17 @@ const verifyEnabled = (item) => expect(item).not.toHaveAttribute('disabled');
 const defaultAjaxImpl = {
   Runtimes: {
     runtime: () => ({
-      details: jest.fn(),
+      details: vi.fn(),
     }),
   },
   Buckets: { getObjectPreview: () => Promise.resolve({ json: () => Promise.resolve(imageDocs) }) },
   Disks: {
     disk: () => ({
-      details: jest.fn(),
+      details: vi.fn(),
     }),
   },
   Metrics: {
-    captureEvent: () => jest.fn(),
+    captureEvent: () => vi.fn(),
   },
 };
 
@@ -91,7 +92,7 @@ describe('ComputeModal', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   const getCreateButton = () => screen.getByText('Create');
@@ -109,10 +110,10 @@ describe('ComputeModal', () => {
 
   it('sends the proper leo API call in default create case (no runtimes or disks)', async () => {
     // Arrange
-    const createFunc = jest.fn();
-    const runtimeFunc = jest.fn(() => ({
+    const createFunc = vi.fn();
+    const runtimeFunc = vi.fn(() => ({
       create: createFunc,
-      details: jest.fn(),
+      details: vi.fn(),
     }));
     Ajax.mockImplementation(() => ({
       ...defaultAjaxImpl,
@@ -156,10 +157,10 @@ describe('ComputeModal', () => {
     // Arrange
     // put value into local var so its easier to refactor
     const disk = defaultTestDisk;
-    const createFunc = jest.fn();
-    const runtimeFunc = jest.fn(() => ({
+    const createFunc = vi.fn();
+    const runtimeFunc = vi.fn(() => ({
       create: createFunc,
-      details: jest.fn(),
+      details: vi.fn(),
     }));
     Ajax.mockImplementation(() => ({
       ...defaultAjaxImpl,
@@ -208,8 +209,8 @@ describe('ComputeModal', () => {
       const runtimeProps = { tool: runtimeTool, runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, machineType: machine.name }) };
       const runtime = getGoogleRuntime(runtimeProps);
 
-      const runtimeFunc = jest.fn(() => ({
-        create: jest.fn(),
+      const runtimeFunc = vi.fn(() => ({
+        create: vi.fn(),
         details: () => runtime,
       }));
       Ajax.mockImplementation(() => ({
@@ -265,7 +266,7 @@ describe('ComputeModal', () => {
       const runtimeProps = { status: status.leoLabel, runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id }) };
       const runtime = getGoogleRuntime(runtimeProps);
 
-      const runtimeFunc = jest.fn(() => ({
+      const runtimeFunc = vi.fn(() => ({
         details: () => runtime,
       }));
       Ajax.mockImplementation(() => ({
@@ -311,7 +312,7 @@ describe('ComputeModal', () => {
       const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
       const runtime = getGoogleRuntime(runtimeProps);
 
-      const runtimeFunc = jest.fn(() => ({
+      const runtimeFunc = vi.fn(() => ({
         details: () => runtime,
       }));
       Ajax.mockImplementation(() => ({
@@ -358,9 +359,9 @@ describe('ComputeModal', () => {
       const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
       const runtime = getGoogleRuntime(runtimeProps);
 
-      const deleteFunc = jest.fn();
+      const deleteFunc = vi.fn();
 
-      const runtimeFunc = jest.fn(() => ({
+      const runtimeFunc = vi.fn(() => ({
         details: () => runtime,
         delete: deleteFunc,
       }));
@@ -405,9 +406,9 @@ describe('ComputeModal', () => {
       const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
       const runtime = getGoogleRuntime(runtimeProps);
 
-      const updateFunc = jest.fn();
+      const updateFunc = vi.fn();
 
-      const runtimeFunc = jest.fn(() => ({
+      const runtimeFunc = vi.fn(() => ({
         details: () => runtime,
         update: updateFunc,
       }));
@@ -476,9 +477,9 @@ describe('ComputeModal', () => {
   //   const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) }
   //   const runtime = getGoogleRuntime(runtimeProps)
   //
-  //   const updateFunc = jest.fn()
+  //   const updateFunc = vi.fn()
   //
-  //   const runtimeFunc = jest.fn(() => ({
+  //   const runtimeFunc = vi.fn(() => ({
   //     details: () => runtime,
   //     update: updateFunc
   //   }))
@@ -533,10 +534,10 @@ describe('ComputeModal', () => {
   //   const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) }
   //   const runtime = getGoogleRuntime(runtimeProps)
   //
-  //   const createFunc = jest.fn()
-  //   const deleteFunc = jest.fn()
+  //   const createFunc = vi.fn()
+  //   const deleteFunc = vi.fn()
   //
-  //   const runtimeFunc = jest.fn(() => ({
+  //   const runtimeFunc = vi.fn(() => ({
   //     details: () => runtime,
   //     create: createFunc,
   //     delete: deleteFunc
@@ -613,8 +614,8 @@ describe('ComputeModal', () => {
     };
     const runtime = getGoogleRuntime(runtimeProps);
 
-    const runtimeFunc = jest.fn(() => ({
-      create: jest.fn(),
+    const runtimeFunc = vi.fn(() => ({
+      create: vi.fn(),
       details: () => runtime,
     }));
     Ajax.mockImplementation(() => ({
@@ -624,7 +625,7 @@ describe('ComputeModal', () => {
       },
       Disks: {
         disk: () => ({
-          details: jest.fn(),
+          details: vi.fn(),
         }),
       },
     }));
@@ -667,10 +668,10 @@ describe('ComputeModal', () => {
   // spark cluster (pass a dataproc runtime and ensure it loads correctly) (
   it('creates a datapoc runtime', async () => {
     // Arrange
-    const createFunc = jest.fn();
-    const runtimeFunc = jest.fn(() => ({
+    const createFunc = vi.fn();
+    const runtimeFunc = vi.fn(() => ({
       create: createFunc,
-      details: jest.fn(),
+      details: vi.fn(),
     }));
     Ajax.mockImplementation(() => ({
       ...defaultAjaxImpl,
@@ -679,7 +680,7 @@ describe('ComputeModal', () => {
       },
       Disks: {
         disk: () => ({
-          details: jest.fn(),
+          details: vi.fn(),
         }),
       },
     }));
@@ -725,12 +726,12 @@ describe('ComputeModal', () => {
     'custom Environment pane should behave correctly with an invalid image URI',
     async ({ tool }) => {
       // Arrange
-      const createFunc = jest.fn();
+      const createFunc = vi.fn();
       const disk = getDisk();
       const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
       const runtime = getGoogleRuntime(runtimeProps);
 
-      const runtimeFunc = jest.fn(() => ({
+      const runtimeFunc = vi.fn(() => ({
         details: () => runtime,
         create: createFunc,
       }));
@@ -772,12 +773,12 @@ describe('ComputeModal', () => {
     'custom Environment pane should work with a valid image URI ',
     async ({ tool }) => {
       // Arrange
-      const createFunc = jest.fn();
+      const createFunc = vi.fn();
       const disk = getDisk();
       const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
       const runtime = getGoogleRuntime(runtimeProps);
 
-      const runtimeFunc = jest.fn(() => ({
+      const runtimeFunc = vi.fn(() => ({
         details: () => runtime,
         create: createFunc,
       }));
@@ -879,10 +880,10 @@ describe('ComputeModal', () => {
   // GPUs should function properly
   it('creates a runtime with GPUs', async () => {
     // Arrange
-    const createFunc = jest.fn();
-    const runtimeFunc = jest.fn(() => ({
+    const createFunc = vi.fn();
+    const runtimeFunc = vi.fn(() => ({
       create: createFunc,
-      details: jest.fn(),
+      details: vi.fn(),
     }));
     Ajax.mockImplementation(() => ({
       ...defaultAjaxImpl,
@@ -951,10 +952,10 @@ describe('ComputeModal', () => {
   it('correctly renders and updates timeoutInMinutes', async () => {
     await act(async () => {
       // Arrange
-      const createFunc = jest.fn();
-      const runtimeFunc = jest.fn(() => ({
+      const createFunc = vi.fn();
+      const runtimeFunc = vi.fn(() => ({
         create: createFunc,
-        details: jest.fn(),
+        details: vi.fn(),
       }));
       Ajax.mockImplementation(() => ({
         ...defaultAjaxImpl,
@@ -991,10 +992,10 @@ describe('ComputeModal', () => {
     async ({ runtimeTool }) => {
       await act(async () => {
         // Arrange
-        const createFunc = jest.fn();
-        const runtimeFunc = jest.fn(() => ({
+        const createFunc = vi.fn();
+        const runtimeFunc = vi.fn(() => ({
           create: createFunc,
-          details: jest.fn(),
+          details: vi.fn(),
         }));
         Ajax.mockImplementation(() => ({
           ...defaultAjaxImpl,
@@ -1052,10 +1053,10 @@ describe('ComputeModal', () => {
   ])('sends null timeout in minutes  for tool $runtimeTool.label after setting and clearing the field', async ({ runtimeTool, imageLabel }) => {
     await act(async () => {
       // Arrange
-      const createFunc = jest.fn();
-      const runtimeFunc = jest.fn(() => ({
+      const createFunc = vi.fn();
+      const runtimeFunc = vi.fn(() => ({
         create: createFunc,
-        details: jest.fn(),
+        details: vi.fn(),
       }));
       Ajax.mockImplementation(() => ({
         ...defaultAjaxImpl,

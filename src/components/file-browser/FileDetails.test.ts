@@ -7,15 +7,16 @@ import { DownloadFileLink } from 'src/components/file-browser/DownloadFileLink';
 import { FileDetails } from 'src/components/file-browser/FileDetails';
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import { asMockedFn } from 'src/testing/test-utils';
+import { describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/components/file-browser/DownloadFileLink', () => ({
-  ...jest.requireActual('src/components/file-browser/DownloadFileLink'),
-  DownloadFileLink: jest.fn(),
+vi.mock('src/components/file-browser/DownloadFileLink', () => ({
+  ...vi.importActual('src/components/file-browser/DownloadFileLink'),
+  DownloadFileLink: vi.fn(),
 }));
 
-jest.mock('src/components/file-browser/DownloadFileCommand', () => ({
-  ...jest.requireActual('src/components/file-browser/DownloadFileCommand'),
-  DownloadFileCommand: jest.fn(),
+vi.mock('src/components/file-browser/DownloadFileCommand', () => ({
+  ...vi.importActual('src/components/file-browser/DownloadFileCommand'),
+  DownloadFileCommand: vi.fn(),
 }));
 
 beforeAll(() => {

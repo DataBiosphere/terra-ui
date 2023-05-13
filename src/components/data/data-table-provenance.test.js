@@ -3,15 +3,16 @@ import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { FileProvenance } from 'src/components/data/data-table-provenance';
 import { fileProvenanceTypes, useFileProvenance } from 'src/libs/data-table-provenance';
+import { describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/libs/nav', () => ({
-  ...jest.requireActual('src/libs/nav'),
+vi.mock('src/libs/nav', () => ({
+  ...vi.importActual('src/libs/nav'),
   getLink: () => '',
 }));
 
-jest.mock('src/libs/data-table-provenance', () => ({
-  ...jest.requireActual('src/libs/data-table-provenance'),
-  useFileProvenance: jest.fn(),
+vi.mock('src/libs/data-table-provenance', () => ({
+  ...vi.importActual('src/libs/data-table-provenance'),
+  useFileProvenance: vi.fn(),
 }));
 
 describe('FileProvenance', () => {

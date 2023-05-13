@@ -4,18 +4,19 @@ import { h } from 'react-hyperscript-helpers';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { describe, expect, it, vi } from 'vitest';
 
 import { importDockstoreWorkflow } from './importDockstoreWorkflow';
 import { ImportWorkflow } from './ImportWorkflow';
 import { useDockstoreWdl } from './useDockstoreWdl';
 
 type WorkspaceUtilsExports = typeof import('src/components/workspace-utils');
-jest.mock('src/components/workspace-utils', (): WorkspaceUtilsExports => {
-  const { h } = jest.requireActual('react-hyperscript-helpers');
+vi.mock('src/components/workspace-utils', async (): Promise<WorkspaceUtilsExports> => {
+  const { h } = <any>await vi.importActual('react-hyperscript-helpers');
 
-  const useWorkspaces = jest.fn();
+  const useWorkspaces = vi.fn();
   return {
-    ...jest.requireActual('src/components/workspace-utils'),
+    ...vi.importActual('src/components/workspace-utils'),
     useWorkspaces,
     // WorkspaceImporter is wrapped in withWorkspaces to fetch the list of workspaces.
     // withWorkspaces calls useWorkspaces.
@@ -39,26 +40,26 @@ jest.mock('src/components/workspace-utils', (): WorkspaceUtilsExports => {
   };
 });
 
-jest.mock('./importDockstoreWorkflow', () => ({
-  importDockstoreWorkflow: jest.fn().mockResolvedValue(undefined),
+vi.mock('./importDockstoreWorkflow', () => ({
+  importDockstoreWorkflow: vi.fn().mockResolvedValue(undefined),
 }));
 
-jest.mock('./useDockstoreWdl', () => ({
-  useDockstoreWdl: jest.fn().mockReturnValue({
+vi.mock('./useDockstoreWdl', () => ({
+  useDockstoreWdl: vi.fn().mockReturnValue({
     status: 'Ready',
     wdl: 'workflow TestWorkflow {}',
   }),
 }));
 
-jest.mock('src/libs/nav', () => ({
-  ...jest.requireActual('src/libs/nav'),
-  goToPath: jest.fn(),
+vi.mock('src/libs/nav', () => ({
+  ...vi.importActual('src/libs/nav'),
+  goToPath: vi.fn(),
 }));
 
 // The workspace menu uses react-virtualized's AutoSizer to size the options menu.
 // This makes the virtualized window large enough for options to be rendered.
-jest.mock('react-virtualized', () => ({
-  ...jest.requireActual('react-virtualized'),
+vi.mock('react-virtualized', () => ({
+  ...vi.importActual('react-virtualized'),
   AutoSizer: ({ children }) => children({ width: 300 }),
 }));
 

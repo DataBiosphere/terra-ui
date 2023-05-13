@@ -4,12 +4,13 @@ import { WorkspaceInfo } from 'src/libs/workspace-utils';
 import { AbsolutePath } from 'src/pages/workspaces/workspace/analysis/utils/file-utils';
 import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { describe, expect, it, vi } from 'vitest';
 
 type AjaxExports = typeof import('src/libs/ajax');
-jest.mock('src/libs/ajax', (): AjaxExports => {
+vi.mock('src/libs/ajax', async (): Promise<AjaxExports> => {
   return {
-    ...jest.requireActual('src/libs/ajax'),
-    Ajax: jest.fn(),
+    ...(await vi.importActual('src/libs/ajax')),
+    Ajax: vi.fn(),
   };
 });
 
@@ -23,7 +24,7 @@ describe('AnalysisProvider - listAnalyses', () => {
   it('handles GCP workspace', async () => {
     // Arrange
     const mockBuckets: Partial<AjaxBucketsContract> = {
-      listAnalyses: jest.fn(),
+      listAnalyses: vi.fn(),
     };
     asMockedFn((mockBuckets as AjaxBucketsContract).listAnalyses).mockResolvedValue([]);
 
@@ -50,7 +51,7 @@ describe('AnalysisProvider - listAnalyses', () => {
   it('handles Azure workspace', async () => {
     // Arrange
     const mockAzureStorage: Partial<AjaxAzureStorageContract> = {
-      listNotebooks: jest.fn(),
+      listNotebooks: vi.fn(),
     };
     asMockedFn((mockAzureStorage as AjaxAzureStorageContract).listNotebooks).mockResolvedValue([]);
 
@@ -77,9 +78,9 @@ describe('AnalysisProvider - copyAnalysis', () => {
   it('handles GCP workspace', async () => {
     // Arrange
     const mockBuckets: Partial<AjaxBucketsContract> = {
-      analysis: jest.fn(),
+      analysis: vi.fn(),
     };
-    const watchCopy = jest.fn();
+    const watchCopy = vi.fn();
     asMockedFn((mockBuckets as AjaxBucketsContract).analysis).mockImplementation(() => {
       const mockAnalysisContract: Partial<AjaxBucketsAnalysisContract> = {
         copy: watchCopy,
@@ -128,9 +129,9 @@ describe('AnalysisProvider - copyAnalysis', () => {
   it('handles Azure workspace', async () => {
     // Arrange
     const mockAzureStorage: Partial<AjaxAzureStorageContract> = {
-      blob: jest.fn(),
+      blob: vi.fn(),
     };
-    const watchCopy = jest.fn();
+    const watchCopy = vi.fn();
     asMockedFn((mockAzureStorage as AjaxAzureStorageContract).blob).mockImplementation(() => {
       const mockBlobContract: Partial<AjaxAzureStorageBlobContract> = {
         copy: watchCopy,
@@ -175,9 +176,9 @@ describe('AnalysisProvider - createAnalysis', () => {
   it('handles GCP workspace', async () => {
     // Arrange
     const mockBuckets: Partial<AjaxBucketsContract> = {
-      analysis: jest.fn(),
+      analysis: vi.fn(),
     };
-    const watchCreate = jest.fn();
+    const watchCreate = vi.fn();
     asMockedFn((mockBuckets as AjaxBucketsContract).analysis).mockImplementation(() => {
       const mockAnalysisContract: Partial<AjaxBucketsAnalysisContract> = {
         create: watchCreate,
@@ -225,9 +226,9 @@ describe('AnalysisProvider - createAnalysis', () => {
   it('handles Azure workspace', async () => {
     // Arrange
     const mockAzureStorage: Partial<AjaxAzureStorageContract> = {
-      blob: jest.fn(),
+      blob: vi.fn(),
     };
-    const watchCreate = jest.fn();
+    const watchCreate = vi.fn();
     asMockedFn((mockAzureStorage as AjaxAzureStorageContract).blob).mockImplementation(() => {
       const mockBlobContract: Partial<AjaxAzureStorageBlobContract> = {
         create: watchCreate,
@@ -268,9 +269,9 @@ describe('AnalysisProvider - deleteAnalysis', () => {
   it('handles GCP workspace', async () => {
     // Arrange
     const mockBuckets: Partial<AjaxBucketsContract> = {
-      analysis: jest.fn(),
+      analysis: vi.fn(),
     };
-    const watchDelete = jest.fn();
+    const watchDelete = vi.fn();
     asMockedFn((mockBuckets as AjaxBucketsContract).analysis).mockImplementation(() => {
       const mockAnalysisContract: Partial<AjaxBucketsAnalysisContract> = {
         delete: watchDelete,
@@ -315,9 +316,9 @@ describe('AnalysisProvider - deleteAnalysis', () => {
   it('handles Azure workspace', async () => {
     // Arrange
     const mockAzureStorage: Partial<AjaxAzureStorageContract> = {
-      blob: jest.fn(),
+      blob: vi.fn(),
     };
-    const watchDelete = jest.fn();
+    const watchDelete = vi.fn();
     asMockedFn((mockAzureStorage as AjaxAzureStorageContract).blob).mockImplementation(() => {
       const mockBlobContract: Partial<AjaxAzureStorageBlobContract> = {
         delete: watchDelete,

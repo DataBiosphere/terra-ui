@@ -2,12 +2,13 @@ import JSZip from 'jszip';
 import { Ajax } from 'src/libs/ajax';
 import { importDataTableVersion, saveDataTableVersion, tableNameForImport } from 'src/libs/data-table-versions';
 import { getUser } from 'src/libs/state';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/libs/ajax');
+vi.mock('src/libs/ajax');
 
-jest.mock('src/libs/state', () => ({
-  ...jest.requireActual('src/libs/state'),
-  getUser: jest.fn(),
+vi.mock('src/libs/state', () => ({
+  ...vi.importActual('src/libs/state'),
+  getUser: vi.fn(),
 }));
 
 describe('tableNameForImport', () => {
@@ -91,8 +92,8 @@ describe('saveDataTableVersion', () => {
   let patchObject;
 
   beforeEach(() => {
-    getEntityMetadata = jest.fn().mockReturnValue(Promise.resolve(entityMetadata));
-    paginatedEntitiesOfType = jest.fn().mockImplementation((entityType, { page }) =>
+    getEntityMetadata = vi.fn().mockReturnValue(Promise.resolve(entityMetadata));
+    paginatedEntitiesOfType = vi.fn().mockImplementation((entityType, { page }) =>
       Promise.resolve({
         resultMetadata: {
           filteredPageCount: Math.ceil((entities[entityType] || []).length / 2),
@@ -100,8 +101,8 @@ describe('saveDataTableVersion', () => {
         results: (entities[entityType] || []).slice(2 * (page - 1), 2 * page),
       })
     );
-    uploadObject = jest.fn();
-    patchObject = jest.fn();
+    uploadObject = vi.fn();
+    patchObject = vi.fn();
 
     Ajax.mockImplementation(() => ({
       Buckets: {
@@ -109,7 +110,7 @@ describe('saveDataTableVersion', () => {
         patch: patchObject,
       },
       Metrics: {
-        captureEvent: jest.fn(),
+        captureEvent: vi.fn(),
       },
       Workspaces: {
         workspace: () => ({
@@ -144,7 +145,7 @@ describe('saveDataTableVersion', () => {
     let file;
 
     beforeEach(async () => {
-      jest.spyOn(Date, 'now').mockReturnValue(1664838597117);
+      vi.spyOn(Date, 'now').mockReturnValue(1664838597117);
       await saveDataTableVersion(workspace, 'thing', { includedSetEntityTypes: ['thing_set'] });
       file = uploadObject.mock.calls[0][3];
     });
@@ -209,7 +210,7 @@ describe('saveDataTableVersion', () => {
   });
 
   it('attaches metadata to uploaded zip file', async () => {
-    jest.spyOn(Date, 'now').mockReturnValue(1664838597117);
+    vi.spyOn(Date, 'now').mockReturnValue(1664838597117);
     await saveDataTableVersion(workspace, 'thing', {
       description: 'This is a test',
       includedSetEntityTypes: ['thing_set'],
@@ -291,12 +292,12 @@ describe('importDataTableVersion', () => {
   let upsertEntities;
 
   beforeEach(() => {
-    getObjectPreview = jest.fn().mockReturnValue(Promise.resolve({ blob: () => versionFile.generateAsync({ type: 'blob' }) }));
-    upsertEntities = jest.fn().mockReturnValue(Promise.resolve({}));
+    getObjectPreview = vi.fn().mockReturnValue(Promise.resolve({ blob: () => versionFile.generateAsync({ type: 'blob' }) }));
+    upsertEntities = vi.fn().mockReturnValue(Promise.resolve({}));
 
     Ajax.mockImplementation(() => ({
       Buckets: { getObjectPreview },
-      Metrics: { captureEvent: jest.fn() },
+      Metrics: { captureEvent: vi.fn() },
       Workspaces: { workspace: () => ({ upsertEntities }) },
     }));
   });

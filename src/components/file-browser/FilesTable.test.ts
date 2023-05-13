@@ -7,11 +7,12 @@ import { h } from 'react-hyperscript-helpers';
 import { basename } from 'src/components/file-browser/file-browser-utils';
 import FilesTable, { FilesTableProps } from 'src/components/file-browser/FilesTable';
 import { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // FileBrowserTable uses react-virtualized's AutoSizer to size the table.
 // This makes the virtualized window large enough for all rows/columns to be rendered in tests.
-jest.mock('react-virtualized', () => ({
-  ...jest.requireActual('react-virtualized'),
+vi.mock('react-virtualized', () => ({
+  ...vi.importActual('react-virtualized'),
   AutoSizer: ({ children }) => children({ width: 1000, height: 1000 }),
 }));
 
@@ -51,7 +52,7 @@ describe('FilesTable', () => {
         files,
         selectedFiles: {},
         setSelectedFiles: () => {},
-        onClickFile: jest.fn(),
+        onClickFile: vi.fn(),
       })
     );
 
@@ -70,7 +71,7 @@ describe('FilesTable', () => {
         files,
         selectedFiles: {},
         setSelectedFiles: () => {},
-        onClickFile: jest.fn(),
+        onClickFile: vi.fn(),
       })
     );
 
@@ -90,7 +91,7 @@ describe('FilesTable', () => {
     // Arrange
     const user = userEvent.setup();
 
-    const onClickFile = jest.fn();
+    const onClickFile = vi.fn();
     render(
       h(FilesTable, {
         files,

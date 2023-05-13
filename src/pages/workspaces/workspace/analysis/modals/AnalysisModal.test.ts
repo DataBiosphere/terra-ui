@@ -20,10 +20,11 @@ import { AnalysisFile, getFileFromPath } from 'src/pages/workspaces/workspace/an
 import { AbsolutePath } from 'src/pages/workspaces/workspace/analysis/utils/file-utils';
 import { tools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AnalysisModal, AnalysisModalProps } from './AnalysisModal';
 
-const createFunc = jest.fn();
+const createFunc = vi.fn();
 const defaultGcpModalProps: AnalysisModalProps = {
   isOpen: true,
   workspace: defaultGoogleWorkspace,
@@ -52,24 +53,23 @@ const defaultAzureModalProps: AnalysisModalProps = {
   workspace: defaultAzureWorkspace,
 };
 
-jest.mock('src/libs/ajax/GoogleStorage');
-jest.mock('src/libs/ajax');
+vi.mock('src/libs/ajax/GoogleStorage');
+vi.mock('src/libs/ajax');
 
-jest.mock('src/libs/error', () => ({
-  ...jest.requireActual('src/libs/error'),
-  reportError: jest.fn(),
+vi.mock('src/libs/error', () => ({
+  ...vi.importActual('src/libs/error'),
+  reportError: vi.fn(),
 }));
 
-jest.mock('src/libs/notifications', () => ({
-  notify: jest.fn(),
+vi.mock('src/libs/notifications', () => ({
+  notify: vi.fn(),
 }));
 
 type FileUtilsExports = typeof import('src/pages/workspaces/workspace/analysis/utils/file-utils');
-jest.mock('src/pages/workspaces/workspace/analysis/utils/file-utils', (): FileUtilsExports => {
-  const originalModule = jest.requireActual('src/pages/workspaces/workspace/analysis/utils/file-utils');
+vi.mock('src/pages/workspaces/workspace/analysis/utils/file-utils', async (): Promise<FileUtilsExports> => {
   return {
-    ...originalModule,
-    getExtension: jest.fn(),
+    ...(await vi.importActual('src/pages/workspaces/workspace/analysis/utils/file-utils')),
+    getExtension: vi.fn(),
   };
 });
 
@@ -83,7 +83,7 @@ describe('AnalysisModal', () => {
           Buckets: {
             getObjectPreview: () => Promise.resolve({ json: () => Promise.resolve(imageDocs) }),
           } as Partial<AjaxContract['Buckets']>,
-          Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
+          Metrics: { captureEvent: vi.fn() } as Partial<AjaxContract['Metrics']>,
         } as Partial<AjaxContract> as AjaxContract)
     );
   });
@@ -141,8 +141,8 @@ describe('AnalysisModal', () => {
     'GCP - Creates a new $fileType for Jupyter when no apps or runtimes are present and opens environment creation modal.',
     async ({ fileType }) => {
       // Arrange
-      const createMock = jest.fn();
-      const analysisMock: Partial<GoogleStorageContract['analysis']> = jest.fn(() => ({
+      const createMock = vi.fn();
+      const analysisMock: Partial<GoogleStorageContract['analysis']> = vi.fn(() => ({
         create: createMock,
       }));
       const googleStorageMock: Partial<GoogleStorageContract> = {
@@ -385,7 +385,7 @@ describe('AnalysisModal', () => {
   it('Error on create', async () => {
     // Arrange
     const fileList = [getFileFromPath('test/file1.ipynb' as AbsolutePath)];
-    const createAnalysisMock = jest.fn().mockRejectedValue(new Error('MyTestError'));
+    const createAnalysisMock = vi.fn().mockRejectedValue(new Error('MyTestError'));
     const mockFileStore = {
       loadedState: { state: fileList, status: 'Ready' } as LoadedState<AnalysisFile[]>,
       refreshFileStore: () => Promise.resolve(),

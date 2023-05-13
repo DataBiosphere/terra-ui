@@ -3,30 +3,31 @@ import { store } from 'react-notifications-component';
 import * as Notifications from 'src/libs/notifications';
 import * as Preferences from 'src/libs/prefs';
 import { notificationStore } from 'src/libs/state';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-jest.mock('react-notifications-component', () => {
+vi.mock('react-notifications-component', () => {
   return {
     store: {
-      addNotification: jest.fn(),
-      removeNotification: jest.fn(),
+      addNotification: vi.fn(),
+      removeNotification: vi.fn(),
     },
   };
 });
 
 beforeAll(() => {
-  jest.useFakeTimers();
+  vi.useFakeTimers();
 });
 
 afterAll(() => {
-  jest.useRealTimers();
+  vi.useRealTimers();
 });
 
 beforeEach(() => {
-  jest.spyOn(Preferences, 'getLocalPref');
+  vi.spyOn(Preferences, 'getLocalPref');
 });
 
 afterEach(() => {
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
   notificationStore.reset();
 });
 
@@ -105,7 +106,7 @@ describe('isNotificationMuted', () => {
 
 describe('muteNotification', () => {
   beforeEach(() => {
-    jest.spyOn(Preferences, 'setLocalPref');
+    vi.spyOn(Preferences, 'setLocalPref');
   });
 
   it('sets preference', () => {

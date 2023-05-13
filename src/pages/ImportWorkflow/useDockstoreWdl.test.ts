@@ -2,24 +2,25 @@ import { renderHook } from '@testing-library/react-hooks';
 import { Dockstore, DockstoreContract } from 'src/libs/ajax/Dockstore';
 import { reportError } from 'src/libs/error';
 import { asMockedFn } from 'src/testing/test-utils';
+import { describe, expect, it, vi } from 'vitest';
 
 import { useDockstoreWdl } from './useDockstoreWdl';
 
-jest.mock('src/libs/ajax/Dockstore', () => ({ Dockstore: jest.fn() }));
+vi.mock('src/libs/ajax/Dockstore', () => ({ Dockstore: vi.fn() }));
 
 type ErrorExports = typeof import('src/libs/error');
-jest.mock(
+vi.mock(
   'src/libs/error',
-  (): ErrorExports => ({
-    ...jest.requireActual('src/libs/error'),
-    reportError: jest.fn(),
+  async (): Promise<ErrorExports> => ({
+    ...(await vi.importActual('src/libs/error')),
+    reportError: vi.fn(),
   })
 );
 
 describe('useDockstoreWdl', () => {
   it('returns WDL for workflow', async () => {
     // Arrange
-    const getWdl = jest.fn(() => Promise.resolve('workflow TestWorkflow {}'));
+    const getWdl = vi.fn(() => Promise.resolve('workflow TestWorkflow {}'));
     asMockedFn(Dockstore).mockImplementation(() => ({ getWdl } as Partial<DockstoreContract> as DockstoreContract));
 
     const testWorkflow = {

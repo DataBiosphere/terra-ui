@@ -4,17 +4,18 @@ import { AzureStorageContract } from 'src/libs/ajax/AzureStorage';
 import AzureBlobStorageFileBrowserProvider from 'src/libs/ajax/file-browser-providers/AzureBlobStorageFileBrowserProvider';
 import { FileBrowserDirectory, FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import { asMockedFn } from 'src/testing/test-utils';
+import { describe, expect, it, vi } from 'vitest';
 
 import * as Utils from '../../utils';
 
-jest.mock('src/libs/ajax/ajax-common', () => ({
-  fetchOk: jest.fn(),
+vi.mock('src/libs/ajax/ajax-common', () => ({
+  fetchOk: vi.fn(),
 }));
 
-jest.mock('src/libs/ajax/AzureStorage', () => ({
+vi.mock('src/libs/ajax/AzureStorage', () => ({
   AzureStorage: () =>
     ({
-      details: jest.fn(() =>
+      details: vi.fn(() =>
         Promise.resolve({
           location: 'Unknown',
           storageContainerName: 'test-storage-container',

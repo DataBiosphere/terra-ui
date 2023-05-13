@@ -4,28 +4,29 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { authStore } from 'src/libs/state';
 import TermsOfServicePage from 'src/pages/TermsOfService';
+import { describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/libs/ajax');
-jest.mock('react-notifications-component', () => {
+vi.mock('src/libs/ajax');
+vi.mock('react-notifications-component', () => {
   return {
     store: {
-      addNotification: jest.fn(),
-      removeNotification: jest.fn(),
+      addNotification: vi.fn(),
+      removeNotification: vi.fn(),
     },
   };
 });
 
 const setupMockAjax = (termsOfService) => {
-  const getTos = jest.fn().mockReturnValue(Promise.resolve('some text'));
-  const getTermsOfServiceComplianceStatus = jest.fn().mockReturnValue(Promise.resolve(termsOfService));
-  const getStatus = jest.fn().mockReturnValue(Promise.resolve({}));
+  const getTos = vi.fn().mockReturnValue(Promise.resolve('some text'));
+  const getTermsOfServiceComplianceStatus = vi.fn().mockReturnValue(Promise.resolve(termsOfService));
+  const getStatus = vi.fn().mockReturnValue(Promise.resolve({}));
   Ajax.mockImplementation(() => ({
     Metrics: {
-      captureEvent: jest.fn(),
+      captureEvent: vi.fn(),
     },
     User: {
       profile: {
-        get: jest.fn().mockReturnValue(Promise.resolve({ keyValuePairs: [] })),
+        get: vi.fn().mockReturnValue(Promise.resolve({ keyValuePairs: [] })),
       },
       getTos,
       getTermsOfServiceComplianceStatus,

@@ -3,8 +3,9 @@ import { addDays, addHours, setMilliseconds } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import { getLinkExpirationAlerts } from 'src/libs/link-expiration-alerts';
 import * as Nav from 'src/libs/nav';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/libs/providers', () => [
+vi.mock('src/libs/providers', () => [
   {
     key: 'anvil',
     name: 'NHGRI AnVIL Data Commons Framework Services',
@@ -15,11 +16,11 @@ jest.mock('src/libs/providers', () => [
 
 describe('getLinkExpirationAlerts', () => {
   beforeAll(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   afterAll(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   describe('NIH link', () => {
@@ -78,7 +79,7 @@ describe('getLinkExpirationAlerts', () => {
 
   describe('fence links', () => {
     beforeEach(() => {
-      jest.spyOn(Nav, 'getLink').mockReturnValue('fence-callback');
+      vi.spyOn(Nav, 'getLink').mockReturnValue('fence-callback');
     });
 
     it('includes alert if link has expired', () => {

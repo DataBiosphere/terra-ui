@@ -8,41 +8,42 @@ import * as Nav from 'src/libs/nav';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { BillingProjectActions } from 'src/pages/billing/List/BillingProjectActions';
 import { asMockedFn } from 'src/testing/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 type AjaxContract = ReturnType<typeof Ajax>;
-jest.mock('src/libs/ajax');
+vi.mock('src/libs/ajax');
 
 type WorkspaceUtilsExports = typeof import('src/components/workspace-utils');
-jest.mock('src/components/workspace-utils', (): WorkspaceUtilsExports => {
+vi.mock('src/components/workspace-utils', async (): Promise<WorkspaceUtilsExports> => {
   return {
-    ...jest.requireActual('src/components/workspace-utils'),
-    useWorkspaces: jest.fn(),
+    ...(await vi.importActual('src/components/workspace-utils')),
+    useWorkspaces: vi.fn(),
   };
 });
 
 type ModalExports = typeof import('src/components/Modal');
-jest.mock('src/components/Modal', (): ModalExports => {
-  const { mockModalModule } = jest.requireActual('src/components/Modal.mock');
-  return mockModalModule();
+vi.mock('src/components/Modal', async (): Promise<ModalExports> => {
+  const modalMock = <any>await vi.importActual('src/components/Modal.mock');
+  return modalMock.mockModalModule();
 });
 
 type ErrorExports = typeof import('src/libs/error');
-jest.mock(
+vi.mock(
   'src/libs/error',
-  (): ErrorExports => ({
-    ...jest.requireActual('src/libs/error'),
-    reportError: jest.fn(),
+  async (): Promise<ErrorExports> => ({
+    ...(await vi.importActual('src/libs/error')),
+    reportError: vi.fn(),
   })
 );
 
 describe('BillingProjectActions', () => {
   const verifyDisabled = (item) => expect(item).toHaveAttribute('disabled');
   const verifyEnabled = (item) => expect(item).not.toHaveAttribute('disabled');
-  const deleteProjectMock = jest.fn(() => Promise.resolve());
+  const deleteProjectMock = vi.fn(() => Promise.resolve());
   const projectName = 'testProject';
   const propsWithNoWorkspacesInProject = {
     projectName,
-    loadProjects: jest.fn(),
+    loadProjects: vi.fn(),
     workspacesLoading: false,
     allWorkspaces: [
       {
@@ -71,7 +72,7 @@ describe('BillingProjectActions', () => {
     // Arrange
     const props = {
       projectName,
-      loadProjects: jest.fn(),
+      loadProjects: vi.fn(),
       workspacesLoading: true,
       allWorkspaces: undefined,
     };
@@ -88,7 +89,7 @@ describe('BillingProjectActions', () => {
     // Arrange
     const props = {
       projectName,
-      loadProjects: jest.fn(),
+      loadProjects: vi.fn(),
       workspacesLoading: false,
       allWorkspaces: [
         {
@@ -123,7 +124,7 @@ describe('BillingProjectActions', () => {
 
   it('calls the server to delete a billing project', async () => {
     // Arrange
-    const loadProjects = jest.fn();
+    const loadProjects = vi.fn();
     propsWithNoWorkspacesInProject.loadProjects = loadProjects;
 
     // Act
@@ -141,7 +142,7 @@ describe('BillingProjectActions', () => {
 
   it('does not call the server to delete a billing project if the user cancels', async () => {
     // Arrange
-    const loadProjects = jest.fn();
+    const loadProjects = vi.fn();
     propsWithNoWorkspacesInProject.loadProjects = loadProjects;
 
     // Act
@@ -162,10 +163,10 @@ describe('BillingProjectActions', () => {
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
-          Billing: { deleteProject: jest.fn().mockRejectedValue({ status: 500 }) } as Partial<AjaxContract['Billing']>,
+          Billing: { deleteProject: vi.fn().mockRejectedValue({ status: 500 }) } as Partial<AjaxContract['Billing']>,
         } as Partial<AjaxContract> as AjaxContract)
     );
-    const loadProjects = jest.fn();
+    const loadProjects = vi.fn();
     propsWithNoWorkspacesInProject.loadProjects = loadProjects;
 
     // Act

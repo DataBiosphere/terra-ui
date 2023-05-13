@@ -16,17 +16,18 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils';
 import { appToolLabels, appTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/libs/config', () => ({
-  ...jest.requireActual('src/libs/config'),
-  getConfig: jest.fn().mockReturnValue({}),
+vi.mock('src/libs/config', () => ({
+  ...vi.importActual('src/libs/config'),
+  getConfig: vi.fn().mockReturnValue({}),
 }));
 
 type StateExports = typeof import('src/libs/state');
-jest.mock('src/libs/state', (): StateExports => {
+vi.mock('src/libs/state', async (): Promise<StateExports> => {
   return {
-    ...jest.requireActual('src/libs/state'),
-    getUser: jest.fn(() => ({ email: 'workspace-creator@gmail.com' })),
+    ...(await vi.importActual('src/libs/state')),
+    getUser: vi.fn(() => ({ email: 'workspace-creator@gmail.com' })),
   };
 });
 

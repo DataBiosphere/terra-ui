@@ -1,17 +1,18 @@
 import { authOpts, fetchLeo } from 'src/libs/ajax/ajax-common';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-jest.mock('src/libs/ajax/ajax-common', () => ({
-  fetchLeo: jest.fn(),
-  authOpts: jest.fn(),
-  jsonBody: jest.fn(),
+vi.mock('src/libs/ajax/ajax-common', () => ({
+  fetchLeo: vi.fn(),
+  authOpts: vi.fn(),
+  jsonBody: vi.fn(),
 }));
 
 describe('Runtimes ajax', () => {
-  const mockFetchLeo = jest.fn();
+  const mockFetchLeo = vi.fn();
   beforeEach(() => {
     fetchLeo.mockImplementation(mockFetchLeo);
-    authOpts.mockImplementation(jest.fn());
+    authOpts.mockImplementation(vi.fn());
   });
 
   it.each([

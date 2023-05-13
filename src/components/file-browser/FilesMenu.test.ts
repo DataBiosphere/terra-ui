@@ -2,17 +2,18 @@ import { act, getByText, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { FilesMenu } from './FilesMenu';
 
-jest.mock('src/components/Modal', () => {
-  const { mockModalModule } = jest.requireActual('src/components/Modal.mock');
+vi.mock('src/components/Modal', async () => {
+  const { mockModalModule } = <any>await vi.importActual('src/components/Modal.mock');
   return mockModalModule();
 });
 
 describe('FilesMenu', () => {
   describe('deleting files', () => {
-    const deleteFile = jest.fn((_path: string) => Promise.resolve());
+    const deleteFile = vi.fn((_path: string) => Promise.resolve());
     const mockProvider = { deleteFile } as Partial<FileBrowserProvider> as FileBrowserProvider;
 
     const selectedFiles: { [path: string]: FileBrowserFile } = {
@@ -39,7 +40,7 @@ describe('FilesMenu', () => {
       },
     };
 
-    const onDeleteFiles = jest.fn();
+    const onDeleteFiles = vi.fn();
 
     let user;
 
@@ -96,13 +97,13 @@ describe('FilesMenu', () => {
     // Arrange
     const user = userEvent.setup();
 
-    const createEmptyDirectory = jest.fn((path: string) => Promise.resolve({ path }));
+    const createEmptyDirectory = vi.fn((path: string) => Promise.resolve({ path }));
     const mockProvider = {
       supportsEmptyDirectories: true,
       createEmptyDirectory,
     } as Partial<FileBrowserProvider> as FileBrowserProvider;
 
-    const onCreateDirectory = jest.fn();
+    const onCreateDirectory = vi.fn();
 
     render(
       h(FilesMenu, {
