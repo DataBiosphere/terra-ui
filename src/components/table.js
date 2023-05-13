@@ -534,6 +534,7 @@ export const GridTable = forwardRefWithName(
       if (rowCount > 0) {
         body.current.measureAllCells();
 
+        // eslint-disable-next-line no-underscore-dangle
         scrollSync.current._onScroll({ scrollLeft: initialX }); // BEWARE: utilizing private method from scrollSync that is not intended to be used
 
         body.current.scrollToPosition({ scrollLeft: initialX, scrollTop: initialY }); // waiting to let ScrollSync initialize

@@ -656,9 +656,6 @@ const WorkspaceData = _.flow(
 
     const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name);
 
-    // auto-deploy WDS for a user who is: 1) the workspace creator, and 2) still an OWNER of the workspace
-    // disablied: const shouldAutoDeployWds = workspace?.accessLevel === 'OWNER' && createdBy === getUser()?.email
-
     const wdsDataTableProvider = useMemo(() => {
       const proxyUrl = !!wdsProxyUrl && wdsProxyUrl.state;
       return new WdsDataTableProvider(workspaceId, proxyUrl);
