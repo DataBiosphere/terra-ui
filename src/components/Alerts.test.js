@@ -6,8 +6,8 @@ import { useServiceAlerts } from 'src/libs/service-alerts';
 import * as Utils from 'src/libs/utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('src/libs/service-alerts', () => {
-  const originalModule = vi.importActual('src/libs/service-alerts');
+vi.mock('src/libs/service-alerts', async () => {
+  const originalModule = await vi.importActual('src/libs/service-alerts');
   return {
     ...originalModule,
     useServiceAlerts: vi.fn(),

@@ -5,9 +5,9 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('src/libs/ajax');
 
-vi.mock('src/libs/utils', () => {
-  const originalModule = vi.importActual('src/libs/utils');
-  const crypto = vi.importActual('crypto');
+vi.mock('src/libs/utils', async () => {
+  const originalModule = await vi.importActual('src/libs/utils');
+  const crypto = await vi.importActual('crypto');
   return {
     ...originalModule,
     // The Web Crypto API used by Utils.sha256 is not available in Jest / JS DOM.

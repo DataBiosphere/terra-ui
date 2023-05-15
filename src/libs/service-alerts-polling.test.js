@@ -2,10 +2,13 @@ import { getServiceAlerts, serviceAlertsStore } from 'src/libs/service-alerts';
 import { startPollingServiceAlerts } from 'src/libs/service-alerts-polling';
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('src/libs/service-alerts', () => ({
-  ...vi.importActual('src/libs/service-alerts'),
-  getServiceAlerts: vi.fn(),
-}));
+vi.mock('src/libs/service-alerts', async () => {
+  const originalModule = await vi.importActual('src/libs/service-alerts');
+  return {
+    ...originalModule,
+    getServiceAlerts: vi.fn(),
+  };
+});
 
 const flushPromises = () => new Promise(vi.importActual('timers').setImmediate);
 

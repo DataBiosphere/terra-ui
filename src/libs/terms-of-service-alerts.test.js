@@ -9,10 +9,13 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('src/libs/ajax');
 
-vi.mock('src/libs/nav', () => ({
-  ...vi.importActual('src/libs/nav'),
-  getLink: vi.fn().mockReturnValue(''),
-}));
+vi.mock('src/libs/nav', async () => {
+  const originalModule = await vi.importActual('src/libs/nav');
+  return {
+    ...originalModule,
+    getLink: vi.fn().mockReturnValue(''),
+  };
+});
 
 vi.mock('react-notifications-component', () => {
   return {

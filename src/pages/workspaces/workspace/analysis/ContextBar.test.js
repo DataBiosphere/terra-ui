@@ -23,8 +23,8 @@ const GALAXY_DISK_COST = 1;
 const RUNTIME_COST = 0.1;
 const PERSISTENT_DISK_COST = 0.01;
 
-vi.mock('src/pages/workspaces/workspace/analysis/utils/cost-utils', () => ({
-  ...vi.importActual('src/pages/workspaces/workspace/analysis/utils/cost-utils'),
+vi.mock('src/pages/workspaces/workspace/analysis/utils/cost-utils', async () => ({
+  ...(await vi.importActual('src/pages/workspaces/workspace/analysis/utils/cost-utils')),
   getGalaxyComputeCost: vi.fn(),
   getGalaxyDiskCost: vi.fn(),
   getPersistentDiskCostHourly: vi.fn(),
@@ -33,26 +33,26 @@ vi.mock('src/pages/workspaces/workspace/analysis/utils/cost-utils', () => ({
 }));
 
 // Mocking for terminalLaunchLink using Nav.getLink
-vi.mock('src/libs/nav', () => ({
-  ...vi.importActual('src/libs/nav'),
+vi.mock('src/libs/nav', async () => ({
+  ...(await vi.importActual('src/libs/nav')),
   getPath: vi.fn(() => '/test/'),
   getLink: vi.fn(() => '/'),
 }));
 
 // Mocking PopupTrigger to avoid test environment issues with React Portal's requirement to use
 // DOM measure services which are not available in jest environment
-vi.mock('src/components/PopupTrigger', () => ({
-  ...vi.importActual('src/components/PopupTrigger'),
+vi.mock('src/components/PopupTrigger', async () => ({
+  ...(await vi.importActual('src/components/PopupTrigger')),
   MenuTrigger: vi.fn(),
 }));
 
-vi.mock('src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal', () => ({
-  ...vi.importActual('src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'),
+vi.mock('src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal', async () => ({
+  ...(await vi.importActual('src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal')),
   CloudEnvironmentModal: vi.fn(),
 }));
 
-vi.mock('src/libs/config', () => ({
-  ...vi.importActual('src/libs/config'),
+vi.mock('src/libs/config', async () => ({
+  ...(await vi.importActual('src/libs/config')),
   getConfig: vi.fn().mockReturnValue({}),
   isCromwellAppVisible: () => {
     return true;

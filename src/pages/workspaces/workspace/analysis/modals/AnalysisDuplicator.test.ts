@@ -39,15 +39,19 @@ vi.mock('src/libs/ajax/AzureStorage');
 
 type UseAnalysisFilesExport = typeof import('src/pages/workspaces/workspace/analysis/useAnalysisFiles');
 vi.mock('src/pages/workspaces/workspace/analysis/useAnalysisFiles', async (): Promise<UseAnalysisFilesExport> => {
+  const originalModule = await vi.importActual<UseAnalysisFilesExport>(
+    'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
+  );
   return {
-    ...(await vi.importActual('src/pages/workspaces/workspace/analysis/useAnalysisFiles')),
+    ...originalModule,
     useAnalysisFiles: vi.fn(),
   };
 });
 
+type ErrorExports = typeof import('src/libs/error');
 type MockErrorExports = typeof import('src/libs/error.mock');
 vi.mock('src/libs/error', async () => {
-  const errorModule = vi.importActual('src/libs/error');
+  const errorModule = await vi.importActual<ErrorExports>('src/libs/error');
   const mockErrorModule = await vi.importActual<MockErrorExports>('src/libs/error.mock');
   return {
     ...errorModule,

@@ -56,10 +56,14 @@ const defaultAzureModalProps: AnalysisModalProps = {
 vi.mock('src/libs/ajax/GoogleStorage');
 vi.mock('src/libs/ajax');
 
-vi.mock('src/libs/error', () => ({
-  ...vi.importActual('src/libs/error'),
-  reportError: vi.fn(),
-}));
+type ErrorExports = typeof import('src/libs/error');
+vi.mock('src/libs/error', async () => {
+  const originalModule = await vi.importActual<ErrorExports>('src/libs/error');
+  return {
+    ...originalModule,
+    reportError: vi.fn(),
+  };
+});
 
 vi.mock('src/libs/notifications', () => ({
   notify: vi.fn(),
@@ -67,8 +71,11 @@ vi.mock('src/libs/notifications', () => ({
 
 type FileUtilsExports = typeof import('src/pages/workspaces/workspace/analysis/utils/file-utils');
 vi.mock('src/pages/workspaces/workspace/analysis/utils/file-utils', async (): Promise<FileUtilsExports> => {
+  const originalModule = await vi.importActual<FileUtilsExports>(
+    'src/pages/workspaces/workspace/analysis/utils/file-utils'
+  );
   return {
-    ...(await vi.importActual('src/pages/workspaces/workspace/analysis/utils/file-utils')),
+    ...originalModule,
     getExtension: vi.fn(),
   };
 });

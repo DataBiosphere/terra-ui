@@ -10,16 +10,25 @@ import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser
 import { asMockedFn } from 'src/testing/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('src/components/file-browser/file-browser-hooks', () => ({
-  ...vi.importActual('src/components/file-browser/file-browser-hooks'),
-  useFilesInDirectory: vi.fn(),
-}));
+type FileBrowserHooksExports = typeof import('src/components/file-browser/file-browser-hooks');
+vi.mock('src/components/file-browser/file-browser-hooks', async () => {
+  const originalModule = await vi.importActual<FileBrowserHooksExports>(
+    'src/components/file-browser/file-browser-hooks'
+  );
+  return {
+    ...originalModule,
+    useFilesInDirectory: vi.fn(),
+  };
+});
 
-vi.mock('src/components/file-browser/FilesTable', () => ({
-  ...vi.importActual('src/components/file-browser/FilesTable'),
-  __esModule: true,
-  default: vi.fn(),
-}));
+type FilesTableExports = typeof import('src/components/file-browser/FilesTable');
+vi.mock('src/components/file-browser/FilesTable', async () => {
+  const originalModule = await vi.importActual<FilesTableExports>('src/components/file-browser/FilesTable');
+  return {
+    ...originalModule,
+    default: vi.fn(),
+  };
+});
 
 beforeEach(() => {
   asMockedFn(FilesTable).mockReturnValue(div());

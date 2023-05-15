@@ -9,15 +9,21 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import AzurePreview, { submittedPreviewFormPrefKey } from './AzurePreview';
 
-vi.mock('src/libs/ajax', () => ({
-  ...vi.importActual('src/libs/ajax'),
-  Ajax: vi.fn(),
-}));
+vi.mock('src/libs/ajax', async () => {
+  const originalModule = await vi.importActual('src/libs/ajax');
+  return {
+    ...originalModule,
+    Ajax: vi.fn(),
+  };
+});
 
-vi.mock('src/libs/auth', () => ({
-  ...vi.importActual('src/libs/auth'),
-  signOut: vi.fn(),
-}));
+vi.mock('src/libs/auth', async () => {
+  const originalModule = await vi.importActual('src/libs/auth');
+  return {
+    ...originalModule,
+    signOut: vi.fn(),
+  };
+});
 
 vi.mock('src/libs/prefs', () => ({
   getLocalPref: vi.fn(),

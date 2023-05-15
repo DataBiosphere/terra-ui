@@ -8,11 +8,15 @@ import { BillingProject } from 'src/pages/billing/models/BillingProject';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mocking for using Nav.getLink
-vi.mock('src/libs/nav', () => ({
-  ...vi.importActual('src/libs/nav'),
-  getPath: vi.fn(() => '/test/'),
-  getLink: vi.fn(() => '/'),
-}));
+type NavExports = typeof import('src/libs/nav');
+vi.mock('src/libs/nav', async () => {
+  const originalModule = await vi.importActual<NavExports>('src/libs/nav');
+  return {
+    ...originalModule,
+    getPath: vi.fn(() => '/test/'),
+    getLink: vi.fn(() => '/'),
+  };
+});
 
 describe('ProjectListItem', () => {
   let billingProject: BillingProject;

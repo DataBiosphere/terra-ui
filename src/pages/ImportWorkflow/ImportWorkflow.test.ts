@@ -10,13 +10,15 @@ import { importDockstoreWorkflow } from './importDockstoreWorkflow';
 import { ImportWorkflow } from './ImportWorkflow';
 import { useDockstoreWdl } from './useDockstoreWdl';
 
+type RHHExports = typeof import('react-hyperscript-helpers');
 type WorkspaceUtilsExports = typeof import('src/components/workspace-utils');
 vi.mock('src/components/workspace-utils', async (): Promise<WorkspaceUtilsExports> => {
-  const { h } = <any>await vi.importActual('react-hyperscript-helpers');
+  const originalModule = await vi.importActual<WorkspaceUtilsExports>('src/components/workspace-utils');
+  const { h } = await vi.importActual<RHHExports>('react-hyperscript-helpers');
 
   const useWorkspaces = vi.fn();
   return {
-    ...vi.importActual('src/components/workspace-utils'),
+    ...originalModule,
     useWorkspaces,
     // WorkspaceImporter is wrapped in withWorkspaces to fetch the list of workspaces.
     // withWorkspaces calls useWorkspaces.
@@ -51,17 +53,25 @@ vi.mock('./useDockstoreWdl', () => ({
   }),
 }));
 
-vi.mock('src/libs/nav', () => ({
-  ...vi.importActual('src/libs/nav'),
-  goToPath: vi.fn(),
-}));
+type NavExports = typeof import('src/libs/nav');
+vi.mock('src/libs/nav', async () => {
+  const originalModule = await vi.importActual<NavExports>('src/libs/nav');
+  return {
+    ...originalModule,
+    goToPath: vi.fn(),
+  };
+});
 
 // The workspace menu uses react-virtualized's AutoSizer to size the options menu.
 // This makes the virtualized window large enough for options to be rendered.
-vi.mock('react-virtualized', () => ({
-  ...vi.importActual('react-virtualized'),
-  AutoSizer: ({ children }) => children({ width: 300 }),
-}));
+type ReactVirtualizedExports = typeof import('react-virtualized');
+vi.mock('react-virtualized', async () => {
+  const originalModule = await vi.importActual<ReactVirtualizedExports>('react-virtualized');
+  return {
+    ...originalModule,
+    AutoSizer: ({ children }) => children({ width: 300 }),
+  };
+});
 
 describe('ImportWorkflow', () => {
   beforeAll(() => {

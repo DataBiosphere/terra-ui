@@ -6,12 +6,15 @@ import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('src/libs/ajax');
-vi.mock('src/libs/config', () => ({
-  ...vi.importActual('src/libs/config'),
-  getConfig: vi.fn().mockReturnValue({}),
-}));
+vi.mock('src/libs/config', async () => {
+  const originalModule = await vi.importActual('src/libs/config');
+  return {
+    ...originalModule,
+    getConfig: vi.fn().mockReturnValue({}),
+  };
+});
+
 vi.mock('src/libs/feature-previews-config', () => ({
-  __esModule: true,
   default: [
     {
       id: 'feature1',

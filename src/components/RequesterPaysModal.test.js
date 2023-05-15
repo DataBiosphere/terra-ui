@@ -1,17 +1,17 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { mockModalModule } from 'src/components/Modal.mock';
 import { describe, expect, it, vi } from 'vitest';
 
 import RequesterPaysModal from './RequesterPaysModal';
 
-vi.mock('src/components/Modal', () => {
+vi.mock('src/components/Modal', async () => {
+  const { mockModalModule } = await vi.importActual('src/components/Modal.mock');
   return mockModalModule();
 });
 
-vi.mock('src/components/workspace-utils', () => ({
-  ...vi.importActual('src/components/workspace-utils'),
+vi.mock('src/components/workspace-utils', async () => ({
+  ...(await vi.importActual('src/components/workspace-utils')),
   useWorkspaces: vi.fn().mockReturnValue({
     loading: false,
     workspaces: [

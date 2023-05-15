@@ -9,15 +9,25 @@ import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser
 import { asMockedFn } from 'src/testing/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('src/components/file-browser/DownloadFileLink', () => ({
-  ...vi.importActual('src/components/file-browser/DownloadFileLink'),
-  DownloadFileLink: vi.fn(),
-}));
+type DownloadFileLinkExports = typeof import('src/components/file-browser/DownloadFileLink');
+vi.mock('src/components/file-browser/DownloadFileLink', async () => {
+  const originalModule = await vi.importActual<DownloadFileLinkExports>('src/components/file-browser/DownloadFileLink');
+  return {
+    ...originalModule,
+    DownloadFileLink: vi.fn(),
+  };
+});
 
-vi.mock('src/components/file-browser/DownloadFileCommand', () => ({
-  ...vi.importActual('src/components/file-browser/DownloadFileCommand'),
-  DownloadFileCommand: vi.fn(),
-}));
+type DownloadFileCommandExports = typeof import('src/components/file-browser/DownloadFileCommand');
+vi.mock('src/components/file-browser/DownloadFileCommand', async () => {
+  const originalModule = await vi.importActual<DownloadFileCommandExports>(
+    'src/components/file-browser/DownloadFileCommand'
+  );
+  return {
+    ...originalModule,
+    DownloadFileCommand: vi.fn(),
+  };
+});
 
 beforeAll(() => {
   asMockedFn(DownloadFileLink).mockImplementation(() => div(['Download file']));

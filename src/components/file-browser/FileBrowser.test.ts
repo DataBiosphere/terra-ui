@@ -10,25 +10,34 @@ import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser
 import { asMockedFn } from 'src/testing/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('src/components/file-browser/file-browser-hooks', () => ({
-  ...vi.importActual('src/components/file-browser/file-browser-hooks'),
-  useFilesInDirectory: vi.fn(),
-}));
-
-vi.mock('src/components/file-browser/FilesTable', async () => {
-  const { div } = <any>await vi.importActual('react-hyperscript-helpers');
+type FileBrowserHooksExports = typeof import('src/components/file-browser/file-browser-hooks');
+vi.mock('src/components/file-browser/file-browser-hooks', async () => {
+  const originalModule = await vi.importActual<FileBrowserHooksExports>(
+    'src/components/file-browser/file-browser-hooks'
+  );
   return {
-    ...vi.importActual('src/components/file-browser/FilesTable'),
-    __esModule: true,
+    ...originalModule,
+    useFilesInDirectory: vi.fn(),
+  };
+});
+
+type RHHExports = typeof import('react-hyperscript-helpers');
+type FilesTableExports = typeof import('src/components/file-browser/FilesTable');
+vi.mock('src/components/file-browser/FilesTable', async () => {
+  const originalModule = await vi.importActual<FilesTableExports>('src/components/file-browser/FilesTable');
+  const { div } = await vi.importActual<RHHExports>('react-hyperscript-helpers');
+  return {
+    ...originalModule,
     default: vi.fn().mockReturnValue(div()),
   };
 });
 
+type RequesterPaysModalExports = typeof import('src/components/RequesterPaysModal');
 vi.mock('src/components/RequesterPaysModal', async () => {
-  const { div } = <any>await vi.importActual('react-hyperscript-helpers');
+  const originalModule = await vi.importActual<RequesterPaysModalExports>('src/components/RequesterPaysModal');
+  const { div } = await vi.importActual<RHHExports>('react-hyperscript-helpers');
   return {
-    ...vi.importActual('src/components/RequesterPaysModal'),
-    __esModule: true,
+    ...originalModule,
     default: vi.fn().mockReturnValue(div()),
   };
 });

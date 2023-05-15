@@ -5,8 +5,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { NameModal } from './NameModal';
 
-vi.mock('src/components/Modal', () => {
-  const { mockModalModule } = vi.importActual('src/components/Modal.mock');
+vi.mock('src/components/Modal', async () => {
+  const { mockModalModule } = await vi.importActual('src/components/Modal.mock');
   return mockModalModule();
 });
 

@@ -6,10 +6,14 @@ import { describe, expect, it, vi } from 'vitest';
 import { reportError } from '../../libs/error';
 import { useFileDownloadUrl } from './useFileDownloadUrl';
 
-vi.mock('src/libs/error', () => ({
-  ...vi.importActual('src/libs/error'),
-  reportError: vi.fn(),
-}));
+type ErrorExports = typeof import('src/libs/error');
+vi.mock('src/libs/error', async () => {
+  const originalModule = await vi.importActual<ErrorExports>('src/libs/error');
+  return {
+    ...originalModule,
+    reportError: vi.fn(),
+  };
+});
 
 describe('useFileDownloadUrl', () => {
   let getDownloadUrlForFileController;

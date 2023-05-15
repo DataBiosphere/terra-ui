@@ -18,15 +18,20 @@ import { appToolLabels, appTools } from 'src/pages/workspaces/workspace/analysis
 import { asMockedFn } from 'src/testing/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('src/libs/config', () => ({
-  ...vi.importActual('src/libs/config'),
-  getConfig: vi.fn().mockReturnValue({}),
-}));
+type ConfigExports = typeof import('src/libs/config');
+vi.mock('src/libs/config', async () => {
+  const originalModule = await vi.importActual<ConfigExports>('src/libs/config');
+  return {
+    ...originalModule,
+    getConfig: vi.fn().mockReturnValue({}),
+  };
+});
 
 type StateExports = typeof import('src/libs/state');
 vi.mock('src/libs/state', async (): Promise<StateExports> => {
+  const originalModule = await vi.importActual<StateExports>('src/libs/state');
   return {
-    ...(await vi.importActual('src/libs/state')),
+    ...originalModule,
     getUser: vi.fn(() => ({ email: 'workspace-creator@gmail.com' })),
   };
 });

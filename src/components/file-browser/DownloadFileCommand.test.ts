@@ -7,10 +7,14 @@ import { describe, expect, it, vi } from 'vitest';
 import { DownloadFileCommand } from './DownloadFileCommand';
 import { useFileDownloadCommand } from './useFileDownloadCommand';
 
-vi.mock('./useFileDownloadCommand', () => ({
-  ...vi.importActual('./useFileDownloadCommand'),
-  useFileDownloadCommand: vi.fn(),
-}));
+type UseFileDownloadCommandExports = typeof import('./useFileDownloadCommand');
+vi.mock('./useFileDownloadCommand', async () => {
+  const originalModule = await vi.importActual<UseFileDownloadCommandExports>('./useFileDownloadCommand');
+  return {
+    ...originalModule,
+    useFileDownloadCommand: vi.fn(),
+  };
+});
 
 describe('DownloadFileComamnd', () => {
   // Arrange

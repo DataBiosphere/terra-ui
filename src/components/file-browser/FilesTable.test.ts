@@ -11,10 +11,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // FileBrowserTable uses react-virtualized's AutoSizer to size the table.
 // This makes the virtualized window large enough for all rows/columns to be rendered in tests.
-vi.mock('react-virtualized', () => ({
-  ...vi.importActual('react-virtualized'),
-  AutoSizer: ({ children }) => children({ width: 1000, height: 1000 }),
-}));
+type ReactVirtualizedExports = typeof import('react-virtualized');
+vi.mock('react-virtualized', async () => {
+  const originalModule = await vi.importActual<ReactVirtualizedExports>('react-virtualized');
+  return {
+    ...originalModule,
+    AutoSizer: ({ children }) => children({ width: 1000, height: 1000 }),
+  };
+});
 
 describe('FilesTable', () => {
   const files: FileBrowserFile[] = [

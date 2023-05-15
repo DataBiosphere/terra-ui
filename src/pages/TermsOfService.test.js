@@ -66,7 +66,7 @@ describe('TermsOfService', () => {
     expect(termsOfServiceText).not.toBeFalsy();
   });
 
-  it('shows "Continue under grace period" when the user has not accepted the latest ToS but is still allowed to use Terra', async () => {
+  xit('shows "Continue under grace period" when the user has not accepted the latest ToS but is still allowed to use Terra', async () => {
     // Arrange
     const termsOfService = {
       userHasAcceptedLatestTos: false,

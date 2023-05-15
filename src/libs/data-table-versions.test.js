@@ -6,10 +6,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('src/libs/ajax');
 
-vi.mock('src/libs/state', () => ({
-  ...vi.importActual('src/libs/state'),
-  getUser: vi.fn(),
-}));
+vi.mock('src/libs/state', async () => {
+  const originalModule = await vi.importActual('src/libs/state');
+  return {
+    ...originalModule,
+    getUser: vi.fn(),
+  };
+});
 
 describe('tableNameForImport', () => {
   it('names imported table with version timestamp', () => {

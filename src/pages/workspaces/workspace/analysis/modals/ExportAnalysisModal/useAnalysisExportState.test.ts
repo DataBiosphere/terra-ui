@@ -37,36 +37,38 @@ const analysis2: AnalysisFile = {
 };
 
 type UseMetricsExports = typeof import('src/libs/ajax/metrics/useMetrics');
-vi.mock(
-  'src/libs/ajax/metrics/useMetrics',
-  (): UseMetricsExports => ({
-    ...vi.importActual('src/libs/ajax/metrics/useMetrics'),
+vi.mock('src/libs/ajax/metrics/useMetrics', async (): Promise<UseMetricsExports> => {
+  const originalModule = await vi.importActual<UseMetricsExports>('src/libs/ajax/metrics/useMetrics');
+  return {
+    ...originalModule,
     useMetricsEvent: vi.fn(),
-  })
-);
+  };
+});
 
 type WorkspaceUtilsExports = typeof import('src/components/workspace-utils');
-vi.mock(
-  'src/components/workspace-utils',
-  async (): Promise<WorkspaceUtilsExports> => ({
-    ...(await vi.importActual('src/components/workspace-utils')),
+vi.mock('src/components/workspace-utils', async (): Promise<WorkspaceUtilsExports> => {
+  const originalModule = await vi.importActual<WorkspaceUtilsExports>('src/components/workspace-utils');
+  return {
+    ...originalModule,
     useWorkspaces: vi.fn(),
-  })
-);
+  };
+});
 
 type AnalysisProviderExports = typeof import('src/libs/ajax/analysis-providers/AnalysisProvider');
-vi.mock(
-  'src/libs/ajax/analysis-providers/AnalysisProvider',
-  (): AnalysisProviderExports => ({
-    ...vi.importActual('src/libs/ajax/analysis-providers/AnalysisProvider'),
+vi.mock('src/libs/ajax/analysis-providers/AnalysisProvider', async (): Promise<AnalysisProviderExports> => {
+  const originalModule = await vi.importActual<AnalysisProviderExports>(
+    'src/libs/ajax/analysis-providers/AnalysisProvider'
+  );
+  return {
+    ...originalModule,
     AnalysisProvider: {
       listAnalyses: vi.fn(),
       copyAnalysis: vi.fn(),
       deleteAnalysis: vi.fn(),
       createAnalysis: vi.fn(),
     },
-  })
-);
+  };
+});
 
 const useMetricsEventWatcher = vi.fn();
 

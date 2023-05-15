@@ -11,10 +11,16 @@ import * as Utils from 'src/libs/utils';
 import { asMockedFn } from 'src/testing/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('src/components/file-browser/file-browser-hooks', () => ({
-  ...vi.importActual('src/components/file-browser/file-browser-hooks'),
-  useDirectoriesInDirectory: vi.fn(),
-}));
+type FileBrowserHooksExports = typeof import('src/components/file-browser/file-browser-hooks');
+vi.mock('src/components/file-browser/file-browser-hooks', async () => {
+  const originalModule = await vi.importActual<FileBrowserHooksExports>(
+    'src/components/file-browser/file-browser-hooks'
+  );
+  return {
+    ...originalModule,
+    useDirectoriesInDirectory: vi.fn(),
+  };
+});
 
 type UseDirectoriesInDirectoryResult = ReturnType<typeof useDirectoriesInDirectory>;
 
