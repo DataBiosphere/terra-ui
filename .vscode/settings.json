@@ -3,6 +3,7 @@
     "**/.yarn": true,
     "**/.pnp.*": true
   },
+  "eslint.format.enable": true,
   "eslint.nodePath": ".yarn/sdks",
   "typescript.tsdk": ".yarn/sdks/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
