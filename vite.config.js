@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import { defineConfig, loadEnv } from 'vite'
@@ -31,8 +32,15 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 3000
-    }
+    },
+    test: {
+      clearMocks: true,
+      environment: 'jsdom',
+      globals: true,
+      mockReset: false,
+      setupFiles: [
+        'src/setupTests.js'
+      ]
+    },
   }
 })
-
-

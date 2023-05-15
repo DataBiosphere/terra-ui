@@ -2,8 +2,9 @@ import '@testing-library/jest-dom';
 import 'blob-polyfill';
 
 import { toHaveNoViolations } from 'jest-axe';
+import { vi } from 'vitest';
 
-jest.mock('src/configStore', () => ({
+vi.mock('src/configStore', () => ({
   loadedConfigStore: { current: { jest: true } },
 }));
 
