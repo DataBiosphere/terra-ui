@@ -1,7 +1,16 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { version } from 'src/data/gce-machines';
-import { appIdentifier, authOpts, fetchLeo, fetchOk, jsonBody } from 'src/libs/ajax/ajax-common';
+import {
+  appIdentifier,
+  authOpts,
+  DEFAULT_RETRY_COUNT,
+  DEFAULT_TIMEOUT_DURATION,
+  fetchLeo,
+  fetchOk,
+  jsonBody,
+  makeRequestRetry,
+} from 'src/libs/ajax/ajax-common';
 import { GetRuntimeItem, ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getConfig } from 'src/libs/config';
 import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
@@ -131,17 +140,22 @@ export const Runtimes = (signal) => {
         },
 
         setStorageLinks: (localBaseDirectory, cloudStorageDirectory, pattern) => {
-          return fetchOk(
-            `${proxyUrl}/welder/storageLinks`,
-            _.mergeAll([
-              authOpts(),
-              jsonBody({
-                localBaseDirectory,
-                cloudStorageDirectory,
-                pattern,
-              }),
-              { signal, method: 'POST' },
-            ])
+          return makeRequestRetry(
+            () =>
+              fetchOk(
+                `${proxyUrl}/welder/storageLinks`,
+                _.mergeAll([
+                  authOpts(),
+                  jsonBody({
+                    localBaseDirectory,
+                    cloudStorageDirectory,
+                    pattern,
+                  }),
+                  { signal, method: 'POST' },
+                ])
+              ),
+            DEFAULT_RETRY_COUNT,
+            DEFAULT_TIMEOUT_DURATION
           );
         },
       };

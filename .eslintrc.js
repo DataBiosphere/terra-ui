@@ -38,16 +38,15 @@ module.exports = {
 
     // TS directive comments will be necessary during transition from JS to TS.
     '@typescript-eslint/ban-ts-comment': 'off',
-    '@typescript-eslint/ban-types': 'off',
+    // TODO: Replace these types with alternatives recommended by this rule.
+    '@typescript-eslint/ban-types': ['error', { types: { Function: false, Object: false, '{}': false } }],
+    // No-ops are often used in tests and sometimes as default values for callback props.
     '@typescript-eslint/no-empty-function': 'off',
     // `any` is useful for incremental type improvements during the transition from JS to TS.
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/no-shadow': 'off',
-    '@typescript-eslint/no-throw-literal': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
-    '@typescript-eslint/return-await': 'off',
-    '@typescript-eslint/strict-boolean-expressions': 'off', // TODO: should be 'warn',
 
     'class-methods-use-this': 'off',
     'consistent-return': 'off',
@@ -57,10 +56,11 @@ module.exports = {
     'max-len': 'off',
     'no-await-in-loop': 'off',
     'no-case-declarations': 'off',
-    'no-console': 'off',
+    // Allow some console methods.
+    'no-console': ['error', { allow: ['assert', 'error'] }],
     // Allow `while (true) {...}`
     'no-constant-condition': ['error', {checkLoops: false}],
-    'no-empty': 'off',
+    'no-empty': ['error', { allowEmptyCatch: true }],
     'no-continue': 'off',
     'no-nested-ternary': 'off',
     'no-param-reassign': 'off',
@@ -68,17 +68,14 @@ module.exports = {
     'no-promise-executor-return': 'off',
     'no-restricted-syntax': 'off',
     'no-return-await': 'off',
-    'no-underscore-dangle': 'off',
     'no-unused-expressions': 'off',
     'no-void': 'off',
     'prefer-destructuring': 'off',
     'prefer-promise-reject-errors': 'off',
     'prefer-regex-literals': 'off',
     radix: 'off',
-    'symbol-description': 'off',
     //
 
-    'no-unsafe-optional-chaining': 'warn',
     '@typescript-eslint/no-unused-vars': [
       'warn',
       {
@@ -108,7 +105,9 @@ module.exports = {
         // Integration tests use CommonJS instead of ESM.
         '@typescript-eslint/no-var-requires': 'off',
         // TODO: Add dependencies to package.json.
-        'import/no-extraneous-dependencies': 'off'
+        'import/no-extraneous-dependencies': 'off',
+        // Integration tests frequently log.
+        'no-console': 'off',
       }
     },
     {
