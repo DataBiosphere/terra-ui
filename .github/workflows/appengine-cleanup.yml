@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CLOUDSDK_CORE_DISABLE_PROMPTS: 1
+      TERM: xterm
     permissions:
       contents: 'read'
       id-token: 'write'
