@@ -88,3 +88,6 @@ export const pdTypes: Record<PDLabels, PdType> = {
 export type DecoratedPersistentDisk = {
   diskType: PdType;
 } & Omit<PersistentDisk, 'diskType'>;
+
+export const isUndecoratedPersistentDisk = (disk: PersistentDisk | DecoratedPersistentDisk): disk is PersistentDisk =>
+  typeof disk === 'string' && Object.values(pdTypes).map((pdt) => pdt.label) === disk;

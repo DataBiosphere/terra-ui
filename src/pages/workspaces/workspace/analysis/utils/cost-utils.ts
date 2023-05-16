@@ -5,6 +5,7 @@ import { CloudContext } from 'src/libs/ajax/leonardo/models/core-models';
 import {
   DecoratedPersistentDisk,
   diskStatuses,
+  isUndecoratedPersistentDisk,
   LeoDiskStatus,
   PdType,
   pdTypes,
@@ -325,7 +326,13 @@ export const getCostForDisk = (
 ): number => {
   let diskCost = 0;
   const rawPd = persistentDisks && persistentDisks.length && getCurrentPersistentDisk(runtimes, persistentDisks);
-  const curPd = rawPd && rawPd.diskType && updatePdType(rawPd);
+  const curPd =
+    rawPd &&
+    rawPd.diskType &&
+    (isUndecoratedPersistentDisk(rawPd)
+      ? updatePdType(rawPd)
+      : updatePdType({ ...rawPd, diskType: rawPd.diskType.label }));
+
   if (curPd && isAzureDisk(curPd)) {
     return getAzureDiskCostEstimate(computeRegion, curPd.size) / numberOfHoursPerMonth;
   }
