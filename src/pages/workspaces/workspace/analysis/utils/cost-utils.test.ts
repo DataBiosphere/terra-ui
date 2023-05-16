@@ -79,7 +79,7 @@ describe('getCostDisplayForDisk', () => {
     const app = galaxyRunning;
     const appDataDisks = [galaxyDisk];
     const computeRegion = 'US-CENTRAL1';
-    const currentRuntimeTool = runtimeToolLabels.Jupyter;
+    const currentRuntimeToolLabel = runtimeToolLabels.Jupyter;
     const persistentDisks = [];
     const runtimes = [];
     const toolLabel = appToolLabels.GALAXY;
@@ -90,7 +90,7 @@ describe('getCostDisplayForDisk', () => {
       app,
       appDataDisks,
       computeRegion,
-      currentRuntimeTool,
+      currentRuntimeToolLabel,
       persistentDisks,
       runtimes,
       toolLabel
@@ -108,7 +108,7 @@ describe('getCostDisplayForDisk', () => {
     const app = undefined;
     const appDataDisks = [];
     const computeRegion = 'US-CENTRAL1';
-    const currentRuntimeTool = runtimeToolLabels.Jupyter;
+    const currentRuntimeToolLabel = runtimeToolLabels.Jupyter;
     const persistentDisks = [jupyterDisk];
     const runtimes = [jupyterRuntime];
     const toolLabel = runtimeToolLabels.Jupyter;
@@ -119,7 +119,7 @@ describe('getCostDisplayForDisk', () => {
       app,
       appDataDisks,
       computeRegion,
-      currentRuntimeTool,
+      currentRuntimeToolLabel,
       persistentDisks,
       runtimes,
       toolLabel
@@ -134,7 +134,7 @@ describe('getCostDisplayForDisk', () => {
     const app = undefined;
     const appDataDisks = [];
     const computeRegion = 'US-CENTRAL1';
-    const currentRuntimeTool = runtimeToolLabels.Jupyter;
+    const currentRuntimeToolLabel = runtimeToolLabels.Jupyter;
     const persistentDisks = [];
     const runtimes = [];
     const toolLabel = runtimeToolLabels.Jupyter;
@@ -145,7 +145,7 @@ describe('getCostDisplayForDisk', () => {
       app,
       appDataDisks,
       computeRegion,
-      currentRuntimeTool,
+      currentRuntimeToolLabel,
       persistentDisks,
       runtimes,
       toolLabel
@@ -155,12 +155,12 @@ describe('getCostDisplayForDisk', () => {
     expect(result).toBe(expectedResult);
   });
 
-  it('GCP - will return empty string because toolLabel and currentRuntimeTool are not equal.', () => {
+  it('GCP - will return empty string because toolLabel and currentRuntimeToolLabel are not equal.', () => {
     // Arrange
     const app = undefined;
     const appDataDisks = [];
     const computeRegion = 'US-CENTRAL1';
-    const currentRuntimeTool = runtimeToolLabels.Jupyter;
+    const currentRuntimeToolLabel = runtimeToolLabels.Jupyter;
     const persistentDisks = [];
     const runtimes = [];
     const toolLabel = runtimeToolLabels.RStudio;
@@ -171,7 +171,7 @@ describe('getCostDisplayForDisk', () => {
       app,
       appDataDisks,
       computeRegion,
-      currentRuntimeTool,
+      currentRuntimeToolLabel,
       persistentDisks,
       runtimes,
       toolLabel
@@ -189,7 +189,7 @@ describe('getCostDisplayForDisk', () => {
     const app = undefined;
     const appDataDisks = [];
     const computeRegion = 'US-CENTRAL1';
-    const currentRuntimeTool = runtimeToolLabels.Jupyter;
+    const currentRuntimeToolLabel = runtimeToolLabels.Jupyter;
     const persistentDisks = [{ ...jupyterDisk, status: diskStatuses.deleting.leoLabel }];
     const runtimes = [jupyterRuntime];
     const toolLabel = runtimeToolLabels.Jupyter;
@@ -200,7 +200,7 @@ describe('getCostDisplayForDisk', () => {
       app,
       appDataDisks,
       computeRegion,
-      currentRuntimeTool,
+      currentRuntimeToolLabel,
       persistentDisks,
       runtimes,
       toolLabel
@@ -216,7 +216,7 @@ describe('getCostDisplayForDisk', () => {
     const app = undefined;
     const appDataDisks = [];
     const computeRegion = 'eastus';
-    const currentRuntimeTool = runtimeToolLabels.JupyterLab;
+    const currentRuntimeToolLabel = runtimeToolLabels.JupyterLab;
     const persistentDisks = [azureDisk];
     const runtimes = [azureRuntime];
     const toolLabel = runtimeToolLabels.Jupyter;
@@ -227,7 +227,7 @@ describe('getCostDisplayForDisk', () => {
       app,
       appDataDisks,
       computeRegion,
-      currentRuntimeTool,
+      currentRuntimeToolLabel,
       persistentDisks,
       runtimes,
       toolLabel
@@ -244,11 +244,11 @@ describe('GCP getCostDisplayForTool', () => {
     const expectedResult = 'Running $0.52/hr';
     const app = galaxyRunning;
     const currentRuntime = undefined;
-    const currentRuntimeTool = undefined;
+    const currentRuntimeToolLabel = undefined;
     const toolLabel = appToolLabels.GALAXY;
 
     // Act
-    const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel);
+    const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeToolLabel, toolLabel);
 
     // Assert
     expect(result).toBe(expectedResult);
@@ -261,11 +261,11 @@ describe('GCP getCostDisplayForTool', () => {
     const currentRuntime = getGoogleRuntime({
       runtimeConfig: getJupyterRuntimeConfig(),
     });
-    const currentRuntimeTool = runtimeToolLabels.Jupyter;
+    const currentRuntimeToolLabel = runtimeToolLabels.Jupyter;
     const toolLabel = runtimeToolLabels.Jupyter;
 
     // Act
-    const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel);
+    const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeToolLabel, toolLabel);
 
     // Assert
     expect(result).toBe(expectedResult);
@@ -279,28 +279,28 @@ describe('GCP getCostDisplayForTool', () => {
       runtimeConfig: getJupyterRuntimeConfig(),
     });
     const currentRuntime = { ...jupyterRuntime, status: runtimeStatuses.stopped.leoLabel };
-    const currentRuntimeTool = runtimeToolLabels.Jupyter;
+    const currentRuntimeToolLabel = runtimeToolLabels.Jupyter;
     const toolLabel = runtimeToolLabels.Jupyter;
 
     // Act
-    const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel);
+    const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeToolLabel, toolLabel);
 
     // Assert
     expect(result).toBe(expectedResult);
   });
 
-  it('Will return blank because current runtime is not equal to currentRuntimeTool', () => {
+  it('Will return blank because current runtime is not equal to currentRuntimeToolLabel', () => {
     // Arrange
     const expectedResult = '';
     const app = undefined;
     const currentRuntime = getGoogleRuntime({
       runtimeConfig: getJupyterRuntimeConfig(),
     });
-    const currentRuntimeTool = runtimeToolLabels.RStudio;
+    const currentRuntimeToolLabel = runtimeToolLabels.RStudio;
     const toolLabel = runtimeToolLabels.Jupyter;
 
     // Act
-    const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel);
+    const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeToolLabel, toolLabel);
 
     // Assert
     expect(result).toBe(expectedResult);
@@ -339,11 +339,11 @@ describe('getCostDisplayForTool', () => {
     // Arrange
     const app = undefined;
     const currentRuntime = azureRuntime;
-    const currentRuntimeTool = runtimeToolLabels.JupyterLab;
+    const currentRuntimeToolLabel = runtimeToolLabels.JupyterLab;
     const toolLabel = runtimeToolLabels.JupyterLab;
 
     // Act
-    const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel);
+    const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeToolLabel, toolLabel);
 
     // Assert
     expect(result).toContain('Running'); // Costs may change, but we want to make sure the status prints correctly.
@@ -353,11 +353,11 @@ describe('getCostDisplayForTool', () => {
     // Arrange
     const app = undefined;
     const currentRuntime = undefined;
-    const currentRuntimeTool = runtimeToolLabels.JupyterLab;
+    const currentRuntimeToolLabel = runtimeToolLabels.JupyterLab;
     const toolLabel = runtimeToolLabels.JupyterLab;
 
     // Act
-    const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel);
+    const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeToolLabel, toolLabel);
 
     // Assert
     expect(result).toBe('');

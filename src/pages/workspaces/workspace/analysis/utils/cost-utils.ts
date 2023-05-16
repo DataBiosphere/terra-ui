@@ -29,7 +29,6 @@ import {
   defaultGceBootDiskSize,
   getCurrentAttachedDataDisk,
   getCurrentPersistentDisk,
-  updatePdType,
 } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils';
 import {
   defaultComputeRegion,
@@ -318,20 +317,23 @@ export const getCostForDisk = (
   app: App | undefined,
   appDataDisks: PersistentDisk[],
   computeRegion: string,
-  currentRuntimeTool: RuntimeToolLabel,
+  currentRuntimeToolLabel: RuntimeToolLabel,
   persistentDisks: PersistentDisk[],
   runtimes: Runtime[],
   toolLabel: ToolLabel
 ): number => {
   let diskCost = 0;
   const rawPd = persistentDisks && persistentDisks.length && getCurrentPersistentDisk(runtimes, persistentDisks);
-  const curPd = rawPd && rawPd.diskType && updatePdType(rawPd);
+  // eslint-disable-next-line no-console
+  // console.log(rawPd.diskType.label);
+  const curPd = rawPd; // && rawPd.diskType && updatePdType(rawPd.diskType.label!);
   if (curPd && isAzureDisk(curPd)) {
     return getAzureDiskCostEstimate(computeRegion, curPd.size) / numberOfHoursPerMonth;
   }
-  if (currentRuntimeTool === toolLabel && persistentDisks && persistentDisks.length) {
+  if (currentRuntimeToolLabel === toolLabel && persistentDisks && persistentDisks.length) {
     const { size = 0, status = diskStatuses.ready.leoLabel, diskType = pdTypes.standard } = curPd || {};
-    diskCost = getPersistentDiskCostHourly({ size, status, diskType }, computeRegion);
+    if (diskType === pdTypes.standard || diskType === pdTypes.balanced || diskType === pdTypes.ssd)
+      diskCost = getPersistentDiskCostHourly({ size, status, diskType }, computeRegion);
   } else if (app && appDataDisks && toolLabel === appToolLabels.GALAXY) {
     const currentDataDisk = getCurrentAttachedDataDisk(app, appDataDisks);
     // Occasionally currentDataDisk will be undefined on initial render.
@@ -343,7 +345,7 @@ export const getCostForDisk = (
 export const getCostDisplayForTool = (
   app: App | undefined,
   currentRuntime: Runtime | undefined,
-  currentRuntimeTool: RuntimeToolLabel | undefined,
+  currentRuntimeToolLabel: RuntimeToolLabel | undefined,
   toolLabel: ToolLabel | undefined
 ): string => {
   return Utils.cond(
@@ -360,7 +362,7 @@ export const getCostDisplayForTool = (
           : '',
     ],
     [
-      toolLabel === currentRuntimeTool,
+      toolLabel === currentRuntimeToolLabel,
       () =>
         currentRuntime
           ? `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getRuntimeCost(currentRuntime))}/hr`
@@ -374,7 +376,7 @@ export const getCostDisplayForDisk = (
   app: App | undefined,
   appDataDisks: PersistentDisk[],
   computeRegion: string,
-  currentRuntimeTool: RuntimeToolLabel,
+  currentRuntimeToolLabel: RuntimeToolLabel,
   persistentDisks: PersistentDisk[],
   runtimes: Runtime[],
   toolLabel: ToolLabel
@@ -383,7 +385,7 @@ export const getCostDisplayForDisk = (
     app,
     appDataDisks,
     computeRegion,
-    currentRuntimeTool,
+    currentRuntimeToolLabel,
     persistentDisks,
     runtimes,
     toolLabel

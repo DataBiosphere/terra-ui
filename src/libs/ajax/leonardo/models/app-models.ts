@@ -25,7 +25,7 @@ export type AppStatus =
   | 'STOPPED'
   | 'STARTING';
 
-export type DisplayAppStatus =
+export type AppStatusDisplay =
   | 'Running'
   | 'Deleted'
   | 'Deleting'
@@ -38,19 +38,19 @@ export type DisplayAppStatus =
 
 export interface AppStatusObject {
   status: AppStatus;
-  displayStatus: DisplayAppStatus;
+  statusDisplay: AppStatusDisplay;
 }
 
 export const appStatuses: { [label: string]: AppStatusObject } = {
-  running: { status: 'RUNNING', displayStatus: 'Running' },
-  error: { status: 'ERROR', displayStatus: 'Error' },
-  deleting: { status: 'DELETING', displayStatus: 'Deleting' },
-  deleted: { status: 'DELETED', displayStatus: 'Deleted' },
-  provisioning: { status: 'PROVISIONING', displayStatus: 'Creating' },
-  stopping: { status: 'STOPPING', displayStatus: 'Pausing' },
-  stopped: { status: 'STOPPED', displayStatus: 'Paused' },
-  starting: { status: 'STARTING', displayStatus: 'Resuming' },
-  status_unspecified: { status: 'STATUS_UNSPECIFIED', displayStatus: 'Status_unspecified' },
+  running: { status: 'RUNNING', statusDisplay: 'Running' },
+  error: { status: 'ERROR', statusDisplay: 'Error' },
+  deleting: { status: 'DELETING', statusDisplay: 'Deleting' },
+  deleted: { status: 'DELETED', statusDisplay: 'Deleted' },
+  provisioning: { status: 'PROVISIONING', statusDisplay: 'Creating' },
+  stopping: { status: 'STOPPING', statusDisplay: 'Pausing' },
+  stopped: { status: 'STOPPED', statusDisplay: 'Paused' },
+  starting: { status: 'STARTING', statusDisplay: 'Resuming' },
+  status_unspecified: { status: 'STATUS_UNSPECIFIED', statusDisplay: 'Status_unspecified' },
 };
 
 export interface GetAppResponse {
