@@ -30,7 +30,6 @@ describe('DatasetBuilder', () => {
   beforeEach(() => {
     datasetBuilderCohorts.reset();
     datasetBuilderConceptSets.reset();
-    git;
     // @ts-ignore
     Nav.useRoute.mockReturnValue({ title: 'Build Dataset', params: {}, query: {} });
   });
