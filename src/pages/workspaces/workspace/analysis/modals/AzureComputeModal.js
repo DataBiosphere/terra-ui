@@ -73,7 +73,7 @@ export const AzureComputeModalBase = ({
       setCurrentRuntimeDetails(runtimeDetails);
       setComputeConfig({
         machineType: runtimeDetails?.runtimeConfig?.machineType || defaultAzureMachineType,
-        persistentDiskSize: runtimeDetails?.diskConfig?.size || defaultAzureDiskSize,
+        diskSize: runtimeDetails?.diskConfig?.size || defaultAzureDiskSize,
         // Azure workspace containers will pass the 'location' param as an Azure armRegionName, which can be used directly as the computeRegion
         region: runtimeDetails?.runtimeConfig?.region || location || defaultAzureRegion,
         autopauseThreshold: runtimeDetails ? runtimeDetails.autopauseThreshold || autopauseDisabledValue : defaultAutopauseThreshold,
@@ -310,7 +310,7 @@ export const AzureComputeModalBase = ({
         Utils.DEFAULT,
         () => {
           const disk = {
-            size: computeConfig.persistentDiskSize,
+            size: computeConfig.diskSize,
             name: Utils.generatePersistentDiskName(),
             labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: workspaceName },
           };
@@ -376,7 +376,7 @@ export const AzureComputeModalBase = ({
             { label: 'Paused cloud compute cost', cost: Utils.formatUSD(0), unitLabel: 'per hr' }, // TODO: [IA-4105] update cost
             {
               label: 'Persistent disk cost',
-              cost: Utils.formatUSD(getAzureDiskCostEstimate(computeConfig.zone, computeConfig.diskSize)),
+              cost: Utils.formatUSD(getAzureDiskCostEstimate(computeConfig.region, computeConfig.diskSize)),
               unitLabel: 'per month',
             },
           ]

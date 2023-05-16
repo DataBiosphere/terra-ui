@@ -29,6 +29,7 @@ import {
   defaultGceBootDiskSize,
   getCurrentAttachedDataDisk,
   getCurrentPersistentDisk,
+  updatePdType,
 } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils';
 import {
   defaultComputeRegion,
@@ -324,16 +325,13 @@ export const getCostForDisk = (
 ): number => {
   let diskCost = 0;
   const rawPd = persistentDisks && persistentDisks.length && getCurrentPersistentDisk(runtimes, persistentDisks);
-  // eslint-disable-next-line no-console
-  // console.log(rawPd.diskType.label);
-  const curPd = rawPd; // && rawPd.diskType && updatePdType(rawPd.diskType.label!);
+  const curPd = rawPd && rawPd.diskType && updatePdType(rawPd);
   if (curPd && isAzureDisk(curPd)) {
     return getAzureDiskCostEstimate(computeRegion, curPd.size) / numberOfHoursPerMonth;
   }
   if (currentRuntimeToolLabel === toolLabel && persistentDisks && persistentDisks.length) {
     const { size = 0, status = diskStatuses.ready.leoLabel, diskType = pdTypes.standard } = curPd || {};
-    if (diskType === pdTypes.standard || diskType === pdTypes.balanced || diskType === pdTypes.ssd)
-      diskCost = getPersistentDiskCostHourly({ size, status, diskType }, computeRegion);
+    diskCost = getPersistentDiskCostHourly({ size, status, diskType }, computeRegion);
   } else if (app && appDataDisks && toolLabel === appToolLabels.GALAXY) {
     const currentDataDisk = getCurrentAttachedDataDisk(app, appDataDisks);
     // Occasionally currentDataDisk will be undefined on initial render.
