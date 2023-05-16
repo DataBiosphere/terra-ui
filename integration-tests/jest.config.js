@@ -12,8 +12,8 @@ module.exports = {
       {
         suiteName: 'Integration tests',
         addFileAttribute: 'true',
-        includeConsoleOutput: true
-      }
-    ]
-  ]
-}
+        includeConsoleOutput: true,
+      },
+    ],
+  ],
+};

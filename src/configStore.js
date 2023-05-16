@@ -1,1 +1,1 @@
-export const loadedConfigStore = { current: undefined }
+export const loadedConfigStore = { current: undefined };
