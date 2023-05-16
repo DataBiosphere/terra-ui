@@ -298,7 +298,6 @@ const WorkspaceDashboard = _.flow(
     ref
   ) => {
     // State
-    const [submissionsCount, setSubmissionsCount] = useState(undefined);
     const [storageCost, setStorageCost] = useState(undefined);
     const [bucketSize, setBucketSize] = useState(undefined);
     const [editDescription, setEditDescription] = useState(undefined);
@@ -313,7 +312,6 @@ const WorkspaceDashboard = _.flow(
     const signal = useCancellation();
 
     const refresh = () => {
-      loadSubmissionCount();
       loadConsent();
       loadWsTags();
 
@@ -394,11 +392,6 @@ const WorkspaceDashboard = _.flow(
     }, [persistenceId, workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen, notificationsPanelOpen]);
 
     // Helpers
-    const loadSubmissionCount = withErrorReporting('Error loading submission count data', async () => {
-      const submissions = await Ajax(signal).Workspaces.workspace(namespace, name).listSubmissions();
-      setSubmissionsCount(submissions.length);
-    });
-
     const loadConsent = withErrorReporting('Error loading data', async () => {
       const orspId = attributes['library:orsp'];
       if (orspId) {
@@ -701,7 +694,6 @@ const WorkspaceDashboard = _.flow(
             dl({}, [
               h(InfoRow, { title: 'Last Updated' }, [new Date(lastModified).toLocaleDateString()]),
               h(InfoRow, { title: 'Creation Date' }, [new Date(createdDate).toLocaleDateString()]),
-              h(InfoRow, { title: 'Workflow Submissions' }, [submissionsCount]),
               h(InfoRow, { title: 'Access Level' }, [roleString[accessLevel]]),
             ]),
           ]
