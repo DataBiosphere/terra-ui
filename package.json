@@ -69,7 +69,7 @@
     "optimize-image-svgs": "svgo --enable=inlineStyles,prefixIds --config '{ \"plugins\": [ { \"inlineStyles\": { \"onlyMatchedOnce\": false } }] }' --pretty -f src/images -r -p 1 --multipass",
     "preinstall": "node .hooks/check-engine-light.js",
     "setenv": "echo VITE_APP_VERSION=$(git rev-parse HEAD) VITE_APP_BUILD_TIMESTAMP=$(date -u \"+%s000\")",
-    "test": "TZ=UTC react-scripts test",
+    "test": "TZ=UTC vitest",
     "check-types": "check-dts types/**/*.ts",
     "serve": "vite preview",
     "start": "env $(yarn setenv) vite",
