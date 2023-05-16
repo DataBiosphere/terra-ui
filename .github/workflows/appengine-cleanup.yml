@@ -1,4 +1,4 @@
-name: Automated AppEngine cleanup script
+name: Automated App Engine Cleanup
 on:
   # Run once every week on Sunday
   schedule:
