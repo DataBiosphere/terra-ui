@@ -1,23 +1,12 @@
 import { renderHook } from '@testing-library/react-hooks';
 import _ from 'lodash/fp';
-import { asMockedFn } from 'src/testing/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useUniqueId } from './IdContainer';
 
-type LodashExports = typeof import('lodash/fp');
-vi.mock('lodash/fp', async (): Promise<LodashExports> => {
-  const actual = await vi.importActual<LodashExports>('lodash/fp');
-
-  return {
-    ...actual,
-    uniqueId: vi.fn(),
-  };
-});
-
 beforeEach(() => {
   let uniqueSeed = 123;
-  asMockedFn(_.uniqueId).mockImplementation(() => {
+  vi.spyOn(_, 'uniqueId').mockImplementation(() => {
     const result = uniqueSeed;
     uniqueSeed++;
     return result.toString(10);

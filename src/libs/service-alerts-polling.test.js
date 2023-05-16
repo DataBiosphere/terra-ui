@@ -10,7 +10,11 @@ vi.mock('src/libs/service-alerts', async () => {
   };
 });
 
-const flushPromises = () => new Promise(vi.importActual('timers').setImmediate);
+const flushPromises = () => {
+  return new Promise((resolve) => {
+    vi.importActual('timers').then((timers) => timers.setImmediate(resolve));
+  });
+};
 
 describe('startPollingServiceAlerts', () => {
   beforeAll(() => {
