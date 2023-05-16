@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import * as Nav from 'src/libs/nav';
-import { dataCatalogStore, datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/libs/state';
 import { PREPACKAGED_CONCEPT_SETS } from 'src/pages/library/datasetBuilder/constants';
 import { Cohort, ConceptSet } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import {
@@ -13,6 +12,7 @@ import {
   DatasetBuilderContents,
   ValuesSelector,
 } from 'src/pages/library/datasetBuilder/DatasetBuilder';
+import { datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/pages/library/datasetBuilder/state';
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
@@ -28,7 +28,9 @@ jest.mock('src/components/Modal', () => {
 
 describe('DatasetBuilder', () => {
   beforeEach(() => {
-    dataCatalogStore.reset();
+    datasetBuilderCohorts.reset();
+    datasetBuilderConceptSets.reset();
+    git;
     // @ts-ignore
     Nav.useRoute.mockReturnValue({ title: 'Build Dataset', params: {}, query: {} });
   });
@@ -48,7 +50,6 @@ describe('DatasetBuilder', () => {
     // Arrange
     const user = userEvent.setup();
 
-    // @ts-ignore
     datasetBuilderCohorts.set([{ name: 'cohort 1' }, { name: 'cohort 2' }]);
     const { getByText, getByLabelText } = render(
       h(CohortSelector, { selectedCohorts: [], onChange: (cohorts) => cohorts, onStateChange: (state) => state })
@@ -82,7 +83,6 @@ describe('DatasetBuilder', () => {
   });
 
   it('renders concept sets and prepackaged concept sets', () => {
-    // @ts-ignore
     datasetBuilderConceptSets.set([{ name: 'concept set 1' }, { name: 'concept set 2' }]);
     const { getByText } = render(
       h(ConceptSetSelector, {

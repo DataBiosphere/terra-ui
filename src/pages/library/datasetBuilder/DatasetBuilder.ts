@@ -10,7 +10,6 @@ import { DatasetBuilder, DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 import { useOnMount } from 'src/libs/react-utils';
-import { datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { StringInput } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
 import {
@@ -20,6 +19,7 @@ import {
 } from 'src/pages/library/datasetBuilder/constants';
 import { Cohort, ConceptSet, DatasetBuilderType } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { DatasetBuilderHeader } from 'src/pages/library/datasetBuilder/DatasetBuilderHeader';
+import { datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/pages/library/datasetBuilder/state';
 import { validate } from 'validate.js';
 
 const DatasetBuilderSelectorSubHeader = ({ children }) => div({ style: { fontSize: 12, fontWeight: 600 } }, children);
