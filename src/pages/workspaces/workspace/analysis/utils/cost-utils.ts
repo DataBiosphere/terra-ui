@@ -249,8 +249,6 @@ export const getAzureComputeCostEstimate = (runtimeConfig: AzureConfig): number 
 };
 
 export const getAzureDiskCostEstimate = ({ region, diskSize }: { region: string; diskSize: number }): number => {
-  // eslint-disable-next-line no-console
-  console.log('getAzureDiskCostEstimate', region, diskSize);
   if (!region || !diskSize) return 0;
   const regionPriceObj = getAzurePricesForRegion(region) || {};
   const diskType = getDiskType(diskSize ?? diskSize);
