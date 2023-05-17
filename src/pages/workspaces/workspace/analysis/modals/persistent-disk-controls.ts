@@ -30,7 +30,7 @@ export interface PersistentDiskTypeProps {
   updateComputeConfig: (key: string, value: any) => void;
 }
 
-const PersistentDiskTypeSelect = Select as typeof Select<IComputeConfig['persistentDiskType']>;
+const PersistentDiskTypeSelect = Select as typeof Select<IComputeConfig['diskType']>;
 
 export interface PersistentDiskAboutProps {
   titleId: string;
@@ -88,7 +88,7 @@ export const PersistentDiskType = (props: PersistentDiskTypeProps) => {
     div({ style: { marginTop: '0.5rem' } }, [
       h(PersistentDiskTypeSelect, {
         id: persistentDiskId,
-        value: computeConfig.persistentDiskType,
+        value: computeConfig.diskType,
         isDisabled: persistentDiskExists,
         onChange: (e) => updateComputeConfig('persistentDiskType', e?.value),
         menuPlacement: 'auto',
@@ -141,10 +141,10 @@ export const PersistentDiskSection = (props: PersistentDiskControlProps) => {
                       'Please delete the existing disk before selecting a new size.',
                     ]
                   : undefined,
-              value: computeConfig.persistentDiskSize,
+              value: computeConfig.diskSize,
               disabled: persistentDiskExists && cloudPlatform === cloudProviderTypes.AZURE,
               onChange: (value) => {
-                updateComputeConfig('persistentDiskSize', value);
+                updateComputeConfig('diskSize', value);
               },
             }),
           ]),

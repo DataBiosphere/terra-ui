@@ -248,10 +248,12 @@ export const getAzureComputeCostEstimate = (runtimeConfig: AzureConfig): number 
   return cost;
 };
 
-export const getAzureDiskCostEstimate = (region: string, persistentDiskSize: number): number => {
-  if (!region || !persistentDiskSize) return 0;
+export const getAzureDiskCostEstimate = ({ region, diskSize }: { region: string; diskSize: number }): number => {
+  // eslint-disable-next-line no-console
+  console.log('getAzureDiskCostEstimate', region, diskSize);
+  if (!region || !diskSize) return 0;
   const regionPriceObj = getAzurePricesForRegion(region) || {};
-  const diskType = getDiskType(persistentDiskSize);
+  const diskType = getDiskType(diskSize ?? diskSize);
   const cost = regionPriceObj[diskType];
   return cost;
 };
@@ -267,7 +269,10 @@ export const getPersistentDiskCostMonthly = (disk: DecoratedPersistentDisk, comp
   price = _.includes(status, [diskStatuses.deleting.leoLabel, diskStatuses.failed.leoLabel])
     ? 0.0
     : Utils.cond(
-        [cloudContext && isAzureContext(cloudContext), () => getAzureDiskCostEstimate(zone, size)],
+        [
+          cloudContext && isAzureContext(cloudContext),
+          () => getAzureDiskCostEstimate({ region: zone, diskSize: size }),
+        ],
         [Utils.DEFAULT, () => size * getPersistentDiskPriceForRegionMonthly(computeRegion, diskType)]
       );
   return price;
@@ -286,7 +291,7 @@ export const getPersistentDiskCostHourly = (
     : Utils.cond(
         [
           cloudContext && isAzureContext(cloudContext),
-          () => getAzureDiskCostEstimate(computeRegion, size) / numberOfHoursPerMonth,
+          () => getAzureDiskCostEstimate({ region: computeRegion, diskSize: size }) / numberOfHoursPerMonth,
         ],
         [Utils.DEFAULT, () => size * getPersistentDiskPriceForRegionHourly(computeRegion, diskType)]
       );
@@ -334,7 +339,7 @@ export const getCostForDisk = (
       : updatePdType({ ...rawPd, diskType: rawPd.diskType.label }));
 
   if (curPd && isAzureDisk(curPd)) {
-    return getAzureDiskCostEstimate(computeRegion, curPd.size) / numberOfHoursPerMonth;
+    return getAzureDiskCostEstimate({ region: computeRegion, diskSize: curPd.size }) / numberOfHoursPerMonth;
   }
   if (currentRuntimeToolLabel === toolLabel && persistentDisks && persistentDisks.length) {
     const { size = 0, status = diskStatuses.ready.leoLabel, diskType = pdTypes.standard } = curPd || {};
