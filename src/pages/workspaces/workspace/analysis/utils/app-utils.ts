@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { App, AppStatus } from 'src/libs/ajax/leonardo/models/app-models';
+import { App, AppStatus, AppStatusDisplay, appStatuses } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { getConfig } from 'src/libs/config';
 import { getUser } from 'src/libs/state';
@@ -48,6 +48,10 @@ export const doesWorkspaceSupportCromwellAppForUser = (
     [Utils.DEFAULT, () => true]
   );
 };
+
+export const getAppStatusForDisplay = (statusType: AppStatus): AppStatusDisplay | string =>
+  Object.values(appStatuses).find(({ status }) => String(status) === statusType)?.statusDisplay ||
+  _.capitalize(statusType);
 
 export const getCurrentApp = (appType: AppToolLabel, apps: App[]): App | undefined =>
   getCurrentAppExcludingStatuses(appType, ['DELETING'], apps);

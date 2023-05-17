@@ -8,8 +8,8 @@ import {
 import { getToolLabelFromRuntime } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 export interface IComputeConfig {
-  persistentDiskSize: number;
-  persistentDiskType: PdType;
+  diskSize: number;
+  diskType: PdType;
   masterMachineType: string;
   masterDiskSize: number;
   numberOfWorkers: number;
