@@ -1,4 +1,4 @@
-name: Automated AppEngine cleanup script
+name: Automated App Engine Cleanup
 on:
   # Run once every week on Sunday
   schedule:
@@ -25,8 +25,5 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v1'
       # Delete old AppEngine versions in each environment
       - run: ./scripts/delete-old-app-engine-versions.sh dev
-        continue-on-error: true
       - run: ./scripts/delete-old-app-engine-versions.sh alpha
-        continue-on-error: true
       - run: ./scripts/delete-old-app-engine-versions.sh staging
-        continue-on-error: true
