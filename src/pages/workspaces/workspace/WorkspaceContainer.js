@@ -78,7 +78,7 @@ const TitleBarWarning = (message) => {
 
 const AzureWarning = () => {
   const warningMessage =
-    'Do not store Unclassified Confidential Information in this platform, it violates US Federal Policy (ie FISMA, FIPS-199, etc) unless explicitly authorized by the dataset manager or governed by your own agreements.';
+    'Do not store Unclassified Confidential Information in this platform, as it violates US Federal Policy (ie FISMA, FIPS-199, etc) unless explicitly authorized by the dataset manager or governed by your own agreements.';
   return TitleBarWarning(warningMessage);
 };
 
