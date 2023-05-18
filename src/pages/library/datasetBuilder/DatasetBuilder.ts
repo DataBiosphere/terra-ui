@@ -22,25 +22,25 @@ import { DatasetBuilderHeader } from 'src/pages/library/datasetBuilder/DatasetBu
 import { datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/pages/library/datasetBuilder/state';
 import { validate } from 'validate.js';
 
-const DatasetBuilderSelectorSubHeader = ({ children }) => div({ style: { fontSize: 12, fontWeight: 600 } }, children);
+const SelectorSubHeader = ({ children }) => div({ style: { fontSize: 12, fontWeight: 600 } }, children);
 
-interface DatasetBuilderObjectSet<T extends DatasetBuilderType> {
+interface HeaderAndValues<T extends DatasetBuilderType> {
   header: string;
   values: T[];
 }
 
-interface DatasetBuilderSelectorProps<T extends DatasetBuilderType> {
+interface SelectorProps<T extends DatasetBuilderType> {
   number: number;
   header: string;
   subheader?: string;
-  datasetBuilderObjectSets: DatasetBuilderObjectSet<T>[];
-  selectedDatasetBuilderObjectSets: DatasetBuilderObjectSet<T>[];
-  onChange: (newDatasetBuilderObjectSets: DatasetBuilderObjectSet<T>[]) => void;
+  datasetBuilderObjectSets: HeaderAndValues<T>[];
+  selectedDatasetBuilderObjectSets: HeaderAndValues<T>[];
+  onChange: (newDatasetBuilderObjectSets: HeaderAndValues<T>[]) => void;
   headerAction: any;
   placeholder?: any;
   style?: React.CSSProperties;
 }
-const DatasetBuilderSelector = <T extends DatasetBuilderType>({
+const Selector = <T extends DatasetBuilderType>({
   number,
   header,
   subheader,
@@ -50,11 +50,11 @@ const DatasetBuilderSelector = <T extends DatasetBuilderType>({
   onChange,
   selectedDatasetBuilderObjectSets,
   style,
-}: DatasetBuilderSelectorProps<T>) => {
+}: SelectorProps<T>) => {
   const isChecked = (datasetBuilderObjectSet, value) => {
     return _.flow(
       _.filter(
-        (selectedDatasetBuilderObjectSet: DatasetBuilderObjectSet<T>) =>
+        (selectedDatasetBuilderObjectSet: HeaderAndValues<T>) =>
           selectedDatasetBuilderObjectSet.header === datasetBuilderObjectSet.header
       ),
       _.flatMap((selectedDatasetBuilderObjectSet) => selectedDatasetBuilderObjectSet.values),
@@ -110,7 +110,7 @@ const DatasetBuilderSelector = <T extends DatasetBuilderType>({
               _.map(
                 ([i, datasetBuilderObjectSet]) =>
                   h(Fragment, [
-                    h(DatasetBuilderSelectorSubHeader, { key: `${datasetBuilderObjectSet.header}-${i}` }, [
+                    h(SelectorSubHeader, { key: `${datasetBuilderObjectSet.header}-${i}` }, [
                       datasetBuilderObjectSet.header,
                     ]),
                     _.map(([j, value]) => {
@@ -245,14 +245,14 @@ export const CohortSelector = ({
   onChange,
   onStateChange,
 }: {
-  selectedCohorts: DatasetBuilderObjectSet<Cohort>[];
-  onChange: (cohorts: DatasetBuilderObjectSet<Cohort>[]) => void;
+  selectedCohorts: HeaderAndValues<Cohort>[];
+  onChange: (cohorts: HeaderAndValues<Cohort>[]) => void;
   onStateChange: OnStateChangeType;
 }) => {
   const [creatingCohort, setCreatingCohort] = useState(false);
 
   return h(Fragment, [
-    h(DatasetBuilderSelector as React.FC<DatasetBuilderSelectorProps<Cohort>>, {
+    h(Selector, {
       headerAction: h(
         Link,
         {
@@ -274,7 +274,7 @@ export const CohortSelector = ({
       header: 'Select cohorts',
       subheader: 'Which participants to include',
       placeholder: div([
-        h(DatasetBuilderSelectorSubHeader, ['No cohorts yet']),
+        h(SelectorSubHeader, ['No cohorts yet']),
         div(["Create a cohort by clicking on the '+' icon"]),
       ]),
     }),
@@ -287,11 +287,11 @@ export const ConceptSetSelector = ({
   onChange,
   onStateChange,
 }: {
-  selectedConceptSets: DatasetBuilderObjectSet<ConceptSet>[];
-  onChange: (conceptSets: DatasetBuilderObjectSet<ConceptSet>[]) => void;
+  selectedConceptSets: HeaderAndValues<ConceptSet>[];
+  onChange: (conceptSets: HeaderAndValues<ConceptSet>[]) => void;
   onStateChange: OnStateChangeType;
 }) => {
-  return h(DatasetBuilderSelector as React.FC<DatasetBuilderSelectorProps<ConceptSet>>, {
+  return h(Selector, {
     headerAction: h(
       Link,
       {
@@ -325,11 +325,11 @@ export const ValuesSelector = ({
   values,
   onChange,
 }: {
-  selectedValues: DatasetBuilderObjectSet<Value>[];
-  values: DatasetBuilderObjectSet<Value>[];
-  onChange: (values: DatasetBuilderObjectSet<Value>[]) => void;
+  selectedValues: HeaderAndValues<Value>[];
+  values: HeaderAndValues<Value>[];
+  onChange: (values: HeaderAndValues<Value>[]) => void;
 }) => {
-  return h(DatasetBuilderSelector as React.FC<DatasetBuilderSelectorProps<Value>>, {
+  return h(Selector, {
     headerAction: div([
       h(
         LabeledCheckbox,
@@ -355,9 +355,9 @@ export const ValuesSelector = ({
 };
 
 export const DatasetBuilderContents = ({ onStateChange }: { onStateChange: OnStateChangeType }) => {
-  const [selectedCohorts, setSelectedCohorts] = useState([] as DatasetBuilderObjectSet<Cohort>[]);
-  const [selectedConceptSets, setSelectedConceptSets] = useState([] as DatasetBuilderObjectSet<ConceptSet>[]);
-  const [selectedValues, setSelectedValues] = useState([] as DatasetBuilderObjectSet<Value>[]);
+  const [selectedCohorts, setSelectedCohorts] = useState([] as HeaderAndValues<Cohort>[]);
+  const [selectedConceptSets, setSelectedConceptSets] = useState([] as HeaderAndValues<ConceptSet>[]);
+  const [selectedValues, setSelectedValues] = useState([] as HeaderAndValues<Value>[]);
 
   return div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` } }, [
     h2(['Datasets']),
