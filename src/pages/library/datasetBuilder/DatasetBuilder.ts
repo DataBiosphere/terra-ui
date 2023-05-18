@@ -10,10 +10,9 @@ import { DatasetBuilder, DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
-import { datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/libs/state';
 import { StringInput } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
 import { Cohort, ConceptSet, DatasetBuilderType } from 'src/pages/library/datasetBuilder/dataset-builder-types';
-import { validate } from 'validate.js';
+import { datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/pages/library/datasetBuilder/state';
 
 const PAGE_PADDING_HEIGHT = 0;
 const PAGE_PADDING_WIDTH = 3;
@@ -120,9 +119,9 @@ const CohortSelector = ({
 
   const errors = cohortNameTouched && validate({ cohortName }, { cohortName: { presence: { allowEmpty: false } } });
 
-  const createCohort = (cohortName) => {
+  const createCohort = (_cohortName) => {
     // TODO: implement create cohort (push to global state and navigate to cohort edit page)
-    console.log(cohortName);
+    // console.log(cohortName);
   };
 
   return h(Fragment, [
@@ -263,8 +262,8 @@ const DatasetBuilderContents = () => {
       h(CohortSelector, {
         selectedCohorts,
         onChange: (cohorts) => {
-          console.log(cohorts);
-          console.log(selectedCohorts);
+          // console.log(cohorts);
+          // console.log(selectedCohorts);
           setSelectedCohorts(_.xor(selectedCohorts, cohorts));
         },
       }),

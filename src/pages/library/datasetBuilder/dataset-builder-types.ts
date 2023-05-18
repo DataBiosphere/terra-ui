@@ -37,6 +37,7 @@ export interface CriteriaGroup {
   criteria: Criteria[];
   mustMeet: boolean;
   meetAll: boolean;
+  count: number;
 }
 export interface Cohort extends DatasetBuilderType {
   criteriaGroups: CriteriaGroup[];
