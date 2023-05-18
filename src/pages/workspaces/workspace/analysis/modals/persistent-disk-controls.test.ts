@@ -30,8 +30,8 @@ import {
 import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 const defaultIComputeConfig: IComputeConfig = {
-  persistentDiskSize: defaultGcePersistentDiskSize,
-  persistentDiskType: defaultPersistentDiskType,
+  diskSize: defaultGcePersistentDiskSize,
+  diskType: defaultPersistentDiskType,
   masterMachineType: getDefaultMachineType(false, runtimeToolLabels.RStudio),
   masterDiskSize: defaultDataprocMasterDiskSize,
   numberOfWorkers: defaultNumDataprocWorkers,
@@ -195,7 +195,7 @@ describe('compute-modal-component', () => {
       await userEvent.type(sizeInput, '70');
 
       // Assert
-      expect(updateComputeConfigMock).toBeCalledWith('persistentDiskSize', 70);
+      expect(updateComputeConfigMock).toBeCalledWith('diskSize', 70);
     });
   });
 });

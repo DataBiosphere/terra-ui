@@ -17,11 +17,13 @@ check_color_support() {
         BLD="$(tput bold)"
         RED="$(tput setaf 1)"
         GRN="$(tput setaf 2)"
+        YLW="$(tput setaf 3)"
         RST="$(tput sgr0)"
     else
         BLD=""
         RED=""
         GRN=""
+        YLW=""
         RST=""
     fi
     INFO="${BLD}+${RST}"
@@ -43,6 +45,12 @@ error() {
 abort() {
     printf "${RED}ABORT: %s${RST}\n" "$1" >&2
     exit 1
+}
+
+# print out warning to stderr and exit
+warn() {
+    printf "${YLW}WARNING: %s${RST}\n" "$1" >&2
+    exit 0
 }
 
 # ensure that jq is installed
@@ -82,7 +90,7 @@ set_dev_deletion_date() {
 
     printf "${INFO} ${GRN}%s${RST} is the oldest PR and was deployed on ${GRN}%s${RST}\n" "${OLDEST_PR_NAME}" "${OLDEST_PR_DATE}"
 
-    OLDEST_PR_DELETION_TIME=$(echo "${OLDEST_PR_TIME}" | jq -r '. - (24 * 60 * 60)') # 1 day
+    OLDEST_PR_DELETION_TIME=$(echo "${OLDEST_PR_TIME}" | jq -r '. - (24 * 60 * 60) | floor') # 1 day
     if [ "${DELETION_TIME}" -gt "${OLDEST_PR_DELETION_TIME}" ]; then
         DELETION_DATE=$(unix_epoch_to_date "${OLDEST_PR_DELETION_TIME}")
     fi
@@ -98,7 +106,7 @@ check_remaining_items() {
     REMAIN_LIST_ITEMS=($(filter_app_engine_versions "version.createTime.date('%Y-%m-%d', Z)>'${DELETION_DATE}'"))
     REMAIN_LIST_COUNT="${#REMAIN_LIST_ITEMS[@]}"
     if [ "$REMAIN_LIST_COUNT" -lt 5 ]; then
-        abort "less than 5 deployments would remain"
+        warn "less than 5 deployments would remain"
     fi
 }
 
@@ -107,9 +115,9 @@ check_deletion_items() {
     DELETE_LIST_ITEMS=($(filter_app_engine_versions "version.createTime.date('%Y-%m-%d', Z)<='${DELETION_DATE}'"))
     DELETE_LIST_COUNT="${#DELETE_LIST_ITEMS[@]}"
     if [ "${DELETE_LIST_COUNT}" -lt 1 ]; then
-        abort "no deployments to delete"
+        warn "no deployments to delete"
     elif [ "${DELETE_LIST_COUNT}" -lt 10 ]; then
-        abort "less than 10 deployments to delete"
+        warn "less than 10 deployments to delete"
     fi
 }
 
@@ -153,7 +161,7 @@ check_user_permissions
 
 printf "${INFO} Selected project ${GRN}%s${RST}\n" "${NEW_PROJECT}"
 
-DELETION_TIME=$(jq -n 'now - (10 * 24 * 60 * 60)') # 10 days
+DELETION_TIME=$(jq -n 'now - (10 * 24 * 60 * 60) | floor') # 10 days
 DELETION_DATE=$(unix_epoch_to_date "${DELETION_TIME}")
 if [ "$1" == "dev" ]; then
     set_dev_deletion_date
