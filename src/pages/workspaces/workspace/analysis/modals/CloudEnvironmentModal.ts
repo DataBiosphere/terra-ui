@@ -243,11 +243,7 @@ export const CloudEnvironmentModal = ({
       ],
       [
         Utils.DEFAULT,
-        () =>
-          currentRuntime &&
-          // 'workspaceId' in currentRuntime &&
-          // currentRuntime.workspaceId &&
-          executeAndRefresh(toolLabel, Runtimes(signal).runtimeWrapper(currentRuntime).start()),
+        () => currentRuntime && executeAndRefresh(toolLabel, Runtimes(signal).runtimeWrapper(currentRuntime).start()),
       ]
     );
 
@@ -262,11 +258,7 @@ export const CloudEnvironmentModal = ({
       ],
       [
         Utils.DEFAULT,
-        () =>
-          currentRuntime &&
-          // 'workspaceId' in currentRuntime &&
-          // currentRuntime.workspaceId &&
-          executeAndRefresh(toolLabel, Runtimes(signal).runtimeWrapper(currentRuntime).stop()),
+        () => currentRuntime && executeAndRefresh(toolLabel, Runtimes(signal).runtimeWrapper(currentRuntime).stop()),
       ]
     );
 
