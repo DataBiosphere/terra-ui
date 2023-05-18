@@ -51,17 +51,16 @@ const Selector = <T extends DatasetBuilderType>({
   selectedDatasetBuilderObjectSets,
   style,
 }: SelectorProps<T>) => {
-  const isChecked = (datasetBuilderObjectSet, value) => {
-    return _.flow(
-      _.filter(
-        (selectedDatasetBuilderObjectSet: HeaderAndValues<T>) =>
-          selectedDatasetBuilderObjectSet.header === datasetBuilderObjectSet.header
+  const selectedValues = _.flatMap(
+    (selectedDatasetBuilderObjectSet) =>
+      _.map(
+        (value) => ({ header: selectedDatasetBuilderObjectSet.header, value }),
+        selectedDatasetBuilderObjectSet.values
       ),
-      _.flatMap((selectedDatasetBuilderObjectSet) => selectedDatasetBuilderObjectSet.values),
-      _.map((selectedValue) => selectedValue.name),
-      _.includes(value.name)
-    )(selectedDatasetBuilderObjectSets);
-  };
+    selectedDatasetBuilderObjectSets
+  );
+  const isChecked = (datasetBuilderObjectSet, value) =>
+    _.intersectionWith(_.isEqual, [{ header: datasetBuilderObjectSet.header, value }], selectedValues).length > 0;
 
   return li({ style: { width: '30%', ...style } }, [
     div({ style: { display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start' } }, [
