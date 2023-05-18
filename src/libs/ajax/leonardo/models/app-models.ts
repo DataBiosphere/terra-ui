@@ -25,6 +25,34 @@ export type AppStatus =
   | 'STOPPED'
   | 'STARTING';
 
+export type AppStatusDisplay =
+  | 'Running'
+  | 'Deleted'
+  | 'Deleting'
+  | 'Creating'
+  | 'Resuming'
+  | 'Status_unspecified'
+  | 'Error'
+  | 'Pausing'
+  | 'Paused';
+
+export interface AppStatusObject {
+  status: AppStatus;
+  statusDisplay: AppStatusDisplay;
+}
+
+export const appStatuses: { [label: string]: AppStatusObject } = {
+  running: { status: 'RUNNING', statusDisplay: 'Running' },
+  error: { status: 'ERROR', statusDisplay: 'Error' },
+  deleting: { status: 'DELETING', statusDisplay: 'Deleting' },
+  deleted: { status: 'DELETED', statusDisplay: 'Deleted' },
+  provisioning: { status: 'PROVISIONING', statusDisplay: 'Creating' },
+  stopping: { status: 'STOPPING', statusDisplay: 'Pausing' },
+  stopped: { status: 'STOPPED', statusDisplay: 'Paused' },
+  starting: { status: 'STARTING', statusDisplay: 'Resuming' },
+  status_unspecified: { status: 'STATUS_UNSPECIFIED', statusDisplay: 'Status_unspecified' },
+};
+
 export interface GetAppResponse {
   appName: string;
   cloudContext: CloudContext;

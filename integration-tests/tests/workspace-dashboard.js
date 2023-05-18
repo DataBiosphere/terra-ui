@@ -15,9 +15,7 @@ const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
 
 const azureWarning =
-  'It is a violation of US Federal Policy to store any Unclassified Confidential Information (ie FISMA, FIPS-199, etc.) ' +
-  'in this platform at this time. Do not put this data in this platform unless you are explicitly authorized to by the manager of the Dataset ' +
-  'or you have your own agreements in place.';
+  'Do not store Unclassified Confidential Information in this platform, as it violates US Federal Policy (ie FISMA, FIPS-199, etc) unless explicitly authorized by the dataset manager or governed by your own agreements.';
 
 const workspaceDashboardPage = (testPage, token, workspaceName) => {
   return {

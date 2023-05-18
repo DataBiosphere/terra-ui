@@ -24,7 +24,10 @@ export const pdTypeFromDiskType = (type: GoogleDiskType): PdType =>
     [pdTypes.standard.label, () => pdTypes.standard],
     [pdTypes.balanced.label, () => pdTypes.balanced],
     [pdTypes.ssd.label, () => pdTypes.ssd],
-    [Utils.DEFAULT, () => console.error(`Invalid disk type: Should not be calling pdTypes.fromString for ${type}`)]
+    [
+      Utils.DEFAULT,
+      () => console.error(`Invalid disk type: Should not be calling pdTypes.fromString for ${JSON.stringify(type)}`),
+    ]
   );
 export const updatePdType = (disk: PersistentDisk): DecoratedPersistentDisk => ({
   ...disk,
@@ -111,7 +114,7 @@ export const getCurrentAppDataDisk = (
 export const getCurrentPersistentDisk = (
   runtimes: Runtime[],
   persistentDisks: PersistentDisk[]
-): PersistentDisk | undefined => {
+): DecoratedPersistentDisk | PersistentDisk | undefined => {
   const currentRuntime = getCurrentRuntime(runtimes);
   const id: number | undefined = _.get('persistentDiskId', currentRuntime?.runtimeConfig);
   const attachedIds: number[] = _.without(

@@ -164,7 +164,7 @@ export const cond = (...args) => {
   }
 };
 
-export const DEFAULT = Symbol();
+export const DEFAULT = Symbol('Default switch case');
 
 export const switchCase = (value, ...pairs) => {
   const match = _.find(([v]) => v === value || v === DEFAULT, pairs);

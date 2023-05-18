@@ -161,16 +161,11 @@ describe('WdsDataTableProvider', () => {
     return Promise.resolve(testProxyUrlResponse);
   };
 
-  const createAppV2MockImpl: AppsContract['createAppV2'] = (_workspaceId: string) => {
-    return Promise.resolve();
-  };
-
   let getRecords: jest.MockedFunction<WorkspaceDataContract['getRecords']>;
   let deleteTable: jest.MockedFunction<WorkspaceDataContract['deleteTable']>;
   let downloadTsv: jest.MockedFunction<WorkspaceDataContract['downloadTsv']>;
   let uploadTsv: jest.MockedFunction<WorkspaceDataContract['uploadTsv']>;
   let listAppsV2: jest.MockedFunction<AppsContract['listAppsV2']>;
-  let createAppV2: jest.MockedFunction<AppsContract['createAppV2']>;
 
   beforeEach(() => {
     getRecords = jest.fn().mockImplementation(getRecordsMockImpl);
@@ -178,13 +173,12 @@ describe('WdsDataTableProvider', () => {
     downloadTsv = jest.fn().mockImplementation(downloadTsvMockImpl);
     uploadTsv = jest.fn().mockImplementation(uploadTsvMockImpl);
     listAppsV2 = jest.fn().mockImplementation(listAppsV2MockImpl);
-    createAppV2 = jest.fn().mockImplementation(createAppV2MockImpl);
 
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
           WorkspaceData: { getRecords, deleteTable, downloadTsv, uploadTsv } as Partial<WorkspaceDataContract>,
-          Apps: { listAppsV2, createAppV2 } as Partial<AppsContract>,
+          Apps: { listAppsV2 } as Partial<AppsContract>,
         } as Partial<AjaxContract> as AjaxContract)
     );
   });

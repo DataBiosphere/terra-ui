@@ -43,8 +43,7 @@ export const importDockstoreWorkflow = async (
           .methodConfig(namespace, workflowName)
           .delete()
           .catch((err) => {
-            if ((err as Response).status === 404) {
-            } else {
+            if ((err as Response).status !== 404) {
               throw err;
             }
           })

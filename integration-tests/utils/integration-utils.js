@@ -458,6 +458,7 @@ const gotoPage = async (page, url) => {
     } catch (e) {
       console.error(e);
       // Stop page loading, as if you hit "X" in the browser. ignore exception.
+      // eslint-disable-next-line no-underscore-dangle
       await page._client.send('Page.stopLoading').catch((err) => void err);
       throw new Error(e);
     }
