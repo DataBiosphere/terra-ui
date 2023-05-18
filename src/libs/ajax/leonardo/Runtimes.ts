@@ -199,7 +199,15 @@ export const Runtimes = (signal) => {
 
     runtimeV2: v2Func,
 
-    runtimeWrapper: ({ googleProject, runtimeName, workspaceId }) => {
+    runtimeWrapper: ({
+      googleProject,
+      runtimeName,
+      workspaceId,
+    }: {
+      googleProject: string;
+      runtimeName: string;
+      workspaceId?: string;
+    }) => {
       return {
         stop: () => {
           const stopFunc = workspaceId
