@@ -1,66 +1,65 @@
-
-export type CloudProvider = 'AZURE' | 'GCP'
+export type CloudProvider = 'AZURE' | 'GCP';
 export const cloudProviderTypes: Record<CloudProvider, CloudProvider> = {
   AZURE: 'AZURE',
-  GCP: 'GCP'
-}
+  GCP: 'GCP',
+};
 
 export const cloudProviderLabels: Record<CloudProvider, string> = {
   AZURE: 'Microsoft Azure',
   GCP: 'Google Cloud Platform',
-}
+};
 
 export const isKnownCloudProvider = (x: unknown): x is CloudProvider => {
-  return x as string in cloudProviderTypes
-}
+  return (x as string) in cloudProviderTypes;
+};
 
 export interface BaseWorkspaceInfo {
-  namespace: string
-  name: string
-  workspaceId: string
-  cloudPlatform: string
-  authorizationDomain: string[]
+  namespace: string;
+  name: string;
+  workspaceId: string;
+  cloudPlatform: string;
+  authorizationDomain: string[];
+  createdDate: string;
+  createdBy: string;
 }
 
-export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
-  createdDate: string
-}
+export type AzureWorkspaceInfo = BaseWorkspaceInfo;
 
 export interface GoogleWorkspaceInfo extends BaseWorkspaceInfo {
-  googleProject: string
-  bucketName: string
-  createdDate: string
+  googleProject: string;
+  bucketName: string;
 }
 
-export type WorkspaceInfo = AzureWorkspaceInfo | GoogleWorkspaceInfo
+export type WorkspaceInfo = AzureWorkspaceInfo | GoogleWorkspaceInfo;
 
 export const isGoogleWorkspaceInfo = (workspace: WorkspaceInfo): workspace is GoogleWorkspaceInfo => {
-  return workspace.cloudPlatform === 'Gcp'
-}
+  return workspace.cloudPlatform === 'Gcp';
+};
 
 export interface BaseWorkspace {
-  accessLevel: string
-  canShare: boolean
-  canCompute: boolean
-  workspace: WorkspaceInfo
+  accessLevel: string;
+  canShare: boolean;
+  canCompute: boolean;
+  workspace: WorkspaceInfo;
 }
 
 export interface AzureWorkspace extends BaseWorkspace {
-  azureContext: any
+  azureContext: any;
 }
 
 export interface GoogleWorkspace extends BaseWorkspace {
-  workspace: GoogleWorkspaceInfo
+  workspace: GoogleWorkspaceInfo;
 }
 
-export type WorkspaceWrapper = GoogleWorkspace | AzureWorkspace
+export type WorkspaceWrapper = GoogleWorkspace | AzureWorkspace;
 
 export const isAzureWorkspace = (workspace: BaseWorkspace): workspace is AzureWorkspace => {
-  return workspace.workspace.cloudPlatform === 'Azure'
-}
+  return workspace.workspace.cloudPlatform === 'Azure';
+};
 
 export const isGoogleWorkspace = (workspace: BaseWorkspace): workspace is GoogleWorkspace => {
-  return isGoogleWorkspaceInfo(workspace.workspace)
-}
+  return isGoogleWorkspaceInfo(workspace.workspace);
+};
 
-export const getCloudProviderFromWorkspace = (workspace: BaseWorkspace): CloudProvider => isAzureWorkspace(workspace) ? cloudProviderTypes.AZURE : cloudProviderTypes.GCP
+export const getCloudProviderFromWorkspace = (workspace: BaseWorkspace): CloudProvider =>
+  isAzureWorkspace(workspace) ? cloudProviderTypes.AZURE : cloudProviderTypes.GCP;

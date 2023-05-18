@@ -8,11 +8,9 @@ export default {
     serviceDisplayName: 'Cloud Storage',
     resourceFamily: 'Network',
     resourceGroup: 'PremiumInternetEgress',
-    usageType: 'OnDemand'
+    usageType: 'OnDemand',
   },
-  serviceRegions: [
-    'global'
-  ],
+  serviceRegions: ['global'],
   pricingInfo: [
     {
       summary: '',
@@ -29,43 +27,43 @@ export default {
             unitPrice: {
               currencyCode: 'USD',
               units: '0',
-              nanos: 0
-            }
+              nanos: 0,
+            },
           },
           {
             startUsageAmount: 1,
             unitPrice: {
               currencyCode: 'USD',
               units: '0',
-              nanos: 120000000
-            }
+              nanos: 120000000,
+            },
           },
           {
             startUsageAmount: 1024,
             unitPrice: {
               currencyCode: 'USD',
               units: '0',
-              nanos: 110000000
-            }
+              nanos: 110000000,
+            },
           },
           {
             startUsageAmount: 10240,
             unitPrice: {
               currencyCode: 'USD',
               units: '0',
-              nanos: 80000000
-            }
-          }
-        ]
+              nanos: 80000000,
+            },
+          },
+        ],
       },
       aggregationInfo: {
         aggregationLevel: 'ACCOUNT',
         aggregationInterval: 'MONTHLY',
-        aggregationCount: 1
+        aggregationCount: 1,
       },
       currencyConversionRate: 1,
-      effectiveTime: '2018-07-13T17:17:33.677Z'
-    }
+      effectiveTime: '2018-07-13T17:17:33.677Z',
+    },
   ],
-  serviceProviderName: 'Google'
-}
+  serviceProviderName: 'Google',
+};
