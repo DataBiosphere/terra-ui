@@ -162,7 +162,8 @@ export const ContextBar = ({
       !isToolHidden(appTools.CROMWELL.label, cloudProvider) &&
       cromwellAppObject &&
       doesWorkspaceSupportCromwellAppForUser(workspace?.workspace, cloudProvider, appTools.CROMWELL.label);
-    const hailBatchApp = getCurrentApp(appTools.HAIL_BATCH.label, apps);
+    const hailBatchAppObject = getCurrentApp(appTools.HAIL_BATCH.label, apps);
+    const hailBatchApp = !isToolHidden(appTools.HAIL_BATCH.label, cloudProvider) && hailBatchAppObject;
     return h(Fragment, [
       ...(currentRuntime ? [getIconForTool(currentRuntimeTool, currentRuntime.status)] : []),
       ...(galaxyApp ? [getIconForTool(appToolLabels.GALAXY, galaxyApp.status)] : []),
