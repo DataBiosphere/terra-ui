@@ -426,7 +426,6 @@ describe('CloudEnvironmentModal', () => {
     async ({ input, buttonIndex }) => {
       // Arrange
       const dismissFn = jest.fn();
-      const user = userEvent.setup();
       const modalInput = {
         ...input,
         onDismiss: dismissFn,
@@ -445,8 +444,6 @@ describe('CloudEnvironmentModal', () => {
     'Invokes dismiss call for launch button on a populated azure cloud environments instance',
     async (buttonIndex) => {
       // Arrange
-      const user = userEvent.setup();
-
       const cloneAzure = {
         ...AzureCloudEnvironmentModalDefaultProps,
         // workspace: defaultAzureWorkspace,
