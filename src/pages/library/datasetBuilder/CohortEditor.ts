@@ -14,8 +14,11 @@ import {
   Cohort,
   Criteria,
   DomainCriteria,
+  DomainType,
   ProgramDataListCriteria,
+  ProgramDataListType,
   ProgramDataRangeCriteria,
+  ProgramDataRangeType,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { DatasetBuilderHeader } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
@@ -39,6 +42,8 @@ const renderCriteria = (deleteCriteria: (criteria) => void) => (criteria: Criter
           Link,
           {
             onClick: () => {
+              // eslint-disable-next-line no-console
+              console.log(criteria);
               deleteCriteria(criteria);
             },
           },
@@ -73,7 +78,46 @@ const renderCriteria = (deleteCriteria: (criteria) => void) => (criteria: Criter
     ]
   );
 
-const renderCohort = (cohort: Cohort | undefined, updateCohort: (cohort: Cohort) => void) => {
+function createCriteriaFromType(
+  type: DomainType | ProgramDataRangeType | ProgramDataListType
+): DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria {
+  // return Utils.cond(
+  //   [
+  //     'category' in type,
+  //     () => {
+  //       const domainCriteria = criteria as DomainCriteria;
+  //       return div([`Domain: ${domainCriteria.category}: ${criteria.name}`]);
+  //     },
+  //   ],
+  //   [
+  //     'valueId' in criteria,
+  //     () => {
+  //       const listCriteria = criteria as ProgramDataListCriteria;
+  //       return div([`Program Data: ${criteria.name} Value: ${listCriteria.value}`]);
+  //     },
+  //   ],
+  //   [
+  //     'low' in criteria,
+  //     () => {
+  //       const rangeCriteria = criteria as ProgramDataRangeCriteria;
+  //       return div([`Program Data: ${criteria.name} Value: ${rangeCriteria.low} - ${rangeCriteria.high}`]);
+  //     },
+  //   ],
+  //   [Utils.DEFAULT, () => div(['Unknown criteria type'])]
+  // );
+  console.log(type);
+  return { name: 'test', count: 0, id: 0, category: 'test' };
+}
+
+const RenderCohort = ({
+  datasetDetails,
+  cohort,
+  updateCohort,
+}: {
+  cohort: Cohort | undefined;
+  datasetDetails: DatasetResponse;
+  updateCohort: (cohort: Cohort) => void;
+}) => {
   return div([
     cohort == null
       ? 'No cohort found'
@@ -157,50 +201,41 @@ const renderCohort = (cohort: Cohort | undefined, updateCohort: (cohort: Cohort)
                           ]),
                       ]),
                       div({ style: { margin: '5px 0px', borderBottom: `1px solid ${colors.dark(0.35)}` } }),
-                      h(Select, {
-                        isClearable: false,
-                        isSearchable: false,
-                        options: [
-                          {
-                            label: 'Domains',
-                            options: _.map(
-                              (value) => {
+                      div({ style: { width: '205px' } }, [
+                        h(Select, {
+                          isClearable: false,
+                          isSearchable: false,
+                          options: [
+                            {
+                              label: 'Domains',
+                              options: _.map((domainType) => {
                                 return {
-                                  value: { category: value, name: 'condition', id: 0, count: 10 } as DomainCriteria,
-                                  label: value,
+                                  value: domainType,
+                                  label: domainType.name,
                                 };
-                              },
-                              ['Conditions', 'Procedures', 'Drugs', 'Measurements', 'Visits']
-                            ),
-                          },
-                          {
-                            label: 'Program Data',
-                            options: _.map(
-                              (value) => {
+                              }, datasetDetails.domainTypes),
+                            },
+                            {
+                              label: 'Program Data',
+                              options: _.map((programDataType) => {
                                 return {
-                                  value: {
-                                    name: value,
-                                    id: 0,
-                                    count: 10,
-                                    valueId: 0,
-                                    value: 'something',
-                                  } as ProgramDataListCriteria,
-                                  label: value,
+                                  value: programDataType,
+                                  label: programDataType.name,
                                 };
-                              },
-                              ['Ethnicity', 'Gender identity', 'Race', 'Year of birth']
-                            ),
+                              }, datasetDetails.programDataTypes),
+                            },
+                          ],
+                          placeholder: 'Add criteria',
+                          value: undefined,
+                          onChange: (x) => {
+                            const criteria = createCriteriaFromType((x as any).value);
+                            _.flow(
+                              _.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, criteria),
+                              updateCohort
+                            )(cohort);
                           },
-                        ],
-                        placeholder: 'Add criteria',
-                        value: undefined,
-                        onChange: (value) => {
-                          _.flow(
-                            _.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, value),
-                            updateCohort
-                          )(cohort);
-                        },
-                      }),
+                        }),
+                      ]),
                     ]
                   ),
                   // make this part of the group count div
@@ -218,15 +253,19 @@ const renderCohort = (cohort: Cohort | undefined, updateCohort: (cohort: Cohort)
   ]);
 };
 
-const CohortEditorContents = ({ cohortName }) => {
+const CohortEditorContents = ({ cohortName, datasetDetails }) => {
   const cohorts: Cohort[] = useStore(datasetBuilderCohorts);
   const cohortIndex = _.findIndex((cohort) => cohort.name === cohortName, cohorts);
   return div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem`, backgroundColor: '#E9ECEF' } }, [
     h2([icon('circle-chevron-left', { className: 'regular' }), cohortName]),
     h3(['To be included in the cohort, participants...']),
     div({ style: { display: 'flex' } }, [
-      renderCohort(cohorts[cohortIndex], (cohort) => {
-        datasetBuilderCohorts.set(_.set(`[${cohortIndex}]`, cohort, cohorts));
+      h(RenderCohort, {
+        datasetDetails,
+        cohort: cohorts[cohortIndex],
+        updateCohort: (cohort) => {
+          datasetBuilderCohorts.set(_.set(`[${cohortIndex}]`, cohort, cohorts));
+        },
       }),
     ]),
   ]);
@@ -243,7 +282,7 @@ export const CohortEditorView = ({ datasetId, cohortName }: CohortEditorProps) =
     () => {
       loadDatasetDetails(() => DatasetBuilder().retrieveDataset(datasetId));
     },
-    // loadWdlData changes on each render, so cannot depend on it
+    // loadDatasetDetails changes on each render, so cannot depend on it
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
@@ -252,7 +291,7 @@ export const CohortEditorView = ({ datasetId, cohortName }: CohortEditorProps) =
     ? h(FooterWrapper, {}, [
         h(TopBar, { title: 'Preview', href: '' }, []),
         h(DatasetBuilderHeader, { name: datasetDetails.state.name }),
-        h(CohortEditorContents, { cohortName }),
+        h(CohortEditorContents, { cohortName, datasetDetails: datasetDetails.state }),
       ])
     : spinnerOverlay;
 };
