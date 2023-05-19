@@ -45,7 +45,6 @@ import {
   appToolLabels,
   appTools,
   RuntimeToolLabel,
-  runtimeToolLabels,
   ToolLabel,
 } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
