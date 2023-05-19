@@ -79,7 +79,7 @@ export const Apps = (signal) => ({
   },
   listAppsV2: async (workspaceId: string, labels: LeoResourceLabels = {}): Promise<ListAppResponse[]> => {
     const res = await fetchLeo(
-      `api/apps/v2/${workspaceId}?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
+      `api/apps/v2/${workspaceId}?${qs.stringify(labels)}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }])
     );
     return res.json();
