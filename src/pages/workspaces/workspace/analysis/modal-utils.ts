@@ -5,7 +5,7 @@ import {
   defaultDataprocMachineType,
   getDefaultMachineType,
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
-import { getToolLabelFromRuntime } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
+import { getToolLabelFromCloudEnv } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 export interface IComputeConfig {
   diskSize: number;
@@ -36,7 +36,7 @@ export const buildExistingEnvironmentConfig = (
   const cloudService = runtimeConfig?.cloudService;
   const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0;
   const gpuConfig = runtimeConfig?.gpuConfig;
-  const toolLabel = getToolLabelFromRuntime(currentRuntimeDetails);
+  const toolLabel = getToolLabelFromCloudEnv(currentRuntimeDetails);
   return {
     hasGpu: computeConfig.hasGpu,
     autopauseThreshold: computeConfig.autopauseThreshold,

@@ -12,7 +12,10 @@ import TooltipTrigger from 'src/components/TooltipTrigger';
 import TopBar from 'src/components/TopBar';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { useReplaceableAjaxExperimental } from 'src/libs/ajax';
-import { isApp } from 'src/libs/ajax/leonardo/models/app-models';
+import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
+import { DecoratedPersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { isGceConfig, isGceWithPdConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
+import { isRuntime, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import colors from 'src/libs/colors';
 import { withErrorIgnoring, withErrorReporting, withErrorReportingInModal } from 'src/libs/error';
 import Events from 'src/libs/events';
@@ -21,7 +24,12 @@ import { useCancellation, useGetter } from 'src/libs/react-utils';
 import { contactUsActive, getUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
+import { isGoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils';
+import {
+  SaveFilesHelp,
+  SaveFilesHelpAzure,
+  SaveFilesHelpGalaxy,
+} from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager';
 import { getDiskAppType } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
 import {
@@ -31,29 +39,34 @@ import {
   getRuntimeCost,
 } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils';
 import { mapToPdTypes, workspaceHasMultipleDisks } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils';
-import { isComputePausable, isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/utils/resource-utils';
+import {
+  getCreatorForCompute,
+  getDisplayStatus,
+  isComputePausable,
+  isResourceDeletable,
+} from 'src/pages/workspaces/workspace/analysis/utils/resource-utils';
 import {
   defaultComputeZone,
-  getComputeStatusForDisplay,
-  getCreatorForRuntime,
+  getDisplayRuntimeStatus,
+  getNormalizedComputeRegion,
   getRegionFromZone,
   isGcpContext,
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
-import { appTools, getToolLabelFromRuntime, isPauseSupported } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
+import {
+  AppToolLabel,
+  appTools,
+  getToolLabelFromCloudEnv,
+  isPauseSupported,
+} from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 const DeleteRuntimeModal = ({
-  runtime: {
-    cloudContext,
-    googleProject,
-    runtimeName,
-    runtimeConfig: { persistentDiskId },
-    workspaceId,
-  },
+  runtime: { cloudContext, googleProject, runtimeName, runtimeConfig },
+  workspaceId,
   onDismiss,
   onSuccess,
 }) => {
   const [deleteDisk, setDeleteDisk] = useState(false);
-  const [deleting, setDeleting] = useState();
+  const [deleting, setDeleting] = useState(false);
   const ajax = useReplaceableAjaxExperimental();
   const deleteRuntime = _.flow(
     Utils.withBusyState(setDeleting),
@@ -74,7 +87,7 @@ const DeleteRuntimeModal = ({
     },
     [
       div({ style: { lineHeight: 1.5 } }, [
-        persistentDiskId
+        runtimeConfig.persistentDiskId
           ? h(LabeledCheckbox, { checked: deleteDisk, onChange: setDeleteDisk }, [
               span({ style: { fontWeight: 600 } }, [' Also delete the persistent disk and all files on it']),
             ])
@@ -101,7 +114,9 @@ const DeleteDiskModal = ({ disk: { cloudContext, googleProject, name, id }, isGa
     Utils.withBusyState(setBusy),
     withErrorReporting('Error deleting persistent disk')
   )(async () => {
-    isGcpContext(cloudContext) ? await ajax().Disks.disksV1().disk(googleProject, name).delete() : await ajax().Disks.disksV2().delete(id);
+    isGcpContext(cloudContext)
+      ? await ajax().Disks.disksV1().disk(googleProject, name).delete()
+      : await ajax().Disks.disksV2().delete(id);
 
     onSuccess();
   });
@@ -114,24 +129,26 @@ const DeleteDiskModal = ({ disk: { cloudContext, googleProject, name, id }, isGa
     },
     [
       p(['Deleting the persistent disk will ', span({ style: { fontWeight: 600 } }, ['delete all files on it.'])]),
-      isGalaxyDisk && h(SaveFilesHelp, [false]),
+      isGalaxyDisk && h(SaveFilesHelp),
       busy && spinnerOverlay,
     ]
   );
 };
 
-const DeleteAppModal = ({
-  app: {
+interface DeleteAppModalProps {
+  app: App;
+  onDismiss: () => void;
+  onSuccess: () => void;
+}
+
+const DeleteAppModal = ({ app, onDismiss, onSuccess }: DeleteAppModalProps) => {
+  const [deleteDisk, setDeleteDisk] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const {
     appName,
-    diskName,
     appType,
     cloudContext: { cloudProvider, cloudResource },
-  },
-  onDismiss,
-  onSuccess,
-}) => {
-  const [deleteDisk, setDeleteDisk] = useState(false);
-  const [deleting, setDeleting] = useState();
+  } = app;
   const ajax = useReplaceableAjaxExperimental();
   const deleteApp = _.flow(
     Utils.withBusyState(setDeleting),
@@ -154,7 +171,7 @@ const DeleteAppModal = ({
     },
     [
       div({ style: { lineHeight: 1.5 } }, [
-        diskName
+        app.diskName
           ? h(LabeledCheckbox, { checked: deleteDisk, onChange: setDeleteDisk }, [
               span({ style: { fontWeight: 600 } }, [' Also delete the persistent disk and all files on it']),
             ])
@@ -193,39 +210,57 @@ const UnsupportedWorkspaceCell = ({ status, message }) =>
     },
     [
       h(TooltipTrigger, { content: message }, [
-        div([`${status}`, icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() }, 'aria-label': message })]),
+        div({ 'aria-label': message }, [
+          `${status}`,
+          icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } }),
+        ]),
       ]),
     ]
   );
 
-export const PauseButton = ({ computeType, cloudEnvironment, currentUser, pauseComputeAndRefresh }) => {
-  const shouldShowPauseButton = Utils.cond(
-    [
-      isApp(cloudEnvironment) && !_.find((tool) => tool.appType && tool.appType === cloudEnvironment.appType)(appTools)?.isPauseUnsupported,
-      () => true,
-    ],
-    [isPauseSupported(getToolLabelFromRuntime(cloudEnvironment)) && currentUser === getCreatorForRuntime(cloudEnvironment), () => true],
-    () => false
-  );
+interface PauseButtonProps {
+  cloudEnvironment: App | Runtime;
+  currentUser: string;
+  pauseComputeAndRefresh: any;
+}
 
-  return (
-    shouldShowPauseButton &&
-    h(
-      Link,
-      {
-        style: { marginRight: '1rem' },
-        disabled: !isComputePausable(computeType, cloudEnvironment),
-        tooltip: isComputePausable(computeType, cloudEnvironment)
-          ? 'Pause cloud environment'
-          : `Cannot pause a cloud environment while in status ${_.upperCase(getComputeStatusForDisplay(cloudEnvironment.status))}.`,
-        onClick: () => pauseComputeAndRefresh(computeType, cloudEnvironment),
-      },
-      [makeMenuIcon('pause'), 'Pause']
-    )
-  );
-};
+export function PauseButton({ cloudEnvironment, currentUser, pauseComputeAndRefresh }: PauseButtonProps) {
+  const shouldShowPauseButton =
+    isPauseSupported(getToolLabelFromCloudEnv(cloudEnvironment)) &&
+    currentUser === getCreatorForCompute(cloudEnvironment);
 
-export const Environments = ({ nav = undefined }) => {
+  return shouldShowPauseButton
+    ? h(
+        Link,
+        {
+          style: { marginRight: '1rem' },
+          disabled: !isComputePausable(cloudEnvironment),
+          tooltip: isComputePausable(cloudEnvironment)
+            ? 'Pause cloud environment'
+            : `Cannot pause a cloud environment while in status ${getDisplayStatus(cloudEnvironment)}.`,
+          onClick: () => pauseComputeAndRefresh(cloudEnvironment),
+        },
+        [makeMenuIcon('pause'), 'Pause']
+      )
+    : null;
+}
+
+interface DecoratedResourceAttributes {
+  workspace: WorkspaceInfo;
+  unsupportedWorkspace: boolean;
+}
+
+type RuntimeWithWorkspace = DecoratedResourceAttributes & Runtime;
+type DiskWithWorkspace = DecoratedResourceAttributes & DecoratedPersistentDisk;
+type AppWithWorkspace = DecoratedResourceAttributes & App;
+
+type DecoratedComputeResource = RuntimeWithWorkspace | AppWithWorkspace;
+type DecoratedResource = DecoratedComputeResource | DiskWithWorkspace;
+
+interface EnvironmentsProps {
+  nav?: any;
+}
+export const Environments = ({ nav = undefined }: EnvironmentsProps) => {
   const signal = useCancellation();
   const { workspaces, refresh: refreshWorkspaces } = _.flow(
     useWorkspaces,
@@ -233,9 +268,9 @@ export const Environments = ({ nav = undefined }) => {
   )();
 
   const getWorkspaces = useGetter(workspaces);
-  const [runtimes, setRuntimes] = useState();
-  const [apps, setApps] = useState();
-  const [disks, setDisks] = useState();
+  const [runtimes, setRuntimes] = useState<RuntimeWithWorkspace[]>();
+  const [apps, setApps] = useState<AppWithWorkspace[]>();
+  const [disks, setDisks] = useState<DiskWithWorkspace[]>();
   const [loading, setLoading] = useState(false);
   const [errorRuntimeId, setErrorRuntimeId] = useState();
   const getErrorRuntimeId = useGetter(errorRuntimeId);
@@ -260,7 +295,7 @@ export const Environments = ({ nav = undefined }) => {
 
     const startTimeForLeoCallsEpochMs = Date.now();
 
-    const listArgs = shouldFilterByCreator
+    const listArgs: Record<string, string> = shouldFilterByCreator
       ? { role: 'creator', includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }
       : { includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' };
     const [newRuntimes, newDisks, newApps] = await Promise.all([
@@ -273,7 +308,7 @@ export const Environments = ({ nav = undefined }) => {
     const endTimeForLeoCallsEpochMs = Date.now();
 
     const leoCallTimeTotalMs = endTimeForLeoCallsEpochMs - startTimeForLeoCallsEpochMs;
-    ajax().Metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, {
+    ajax(signal).Metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, {
       leoCallTimeMs: leoCallTimeTotalMs,
       totalCallTimeMs: leoCallTimeTotalMs,
       runtimes: newRuntimes.length,
@@ -281,22 +316,30 @@ export const Environments = ({ nav = undefined }) => {
       apps: newApps.length,
     });
 
-    const decorateLabeledCloudObjWithWorkspace = (cloudObject) => {
+    const decorateLabeledResourceWithWorkspace = (
+      cloudObject: Runtime | DecoratedPersistentDisk | App
+    ): DecoratedResource => {
       const {
         labels: { saturnWorkspaceNamespace, saturnWorkspaceName },
       } = cloudObject;
-      const { workspace } = getWorkspace(saturnWorkspaceNamespace, saturnWorkspaceName) || {};
+      const { workspace = {} } = getWorkspace(saturnWorkspaceNamespace, saturnWorkspaceName) || {};
       // Attempting to catch resources related to GCP v1 workspces (Rawls no longer returns them).
       const unsupportedWorkspace =
-        isGcpContext(cloudObject.cloudContext) && (!workspace || cloudObject.cloudContext.cloudResource !== workspace.googleProject);
+        isGcpContext(cloudObject.cloudContext) &&
+        (!workspace || cloudObject.cloudContext.cloudResource !== workspace.googleProject);
+
       return { ...cloudObject, workspace, unsupportedWorkspace };
     };
 
-    const [decoratedRuntimes, decoratedDisks, decoratedApps] = _.map(_.map(decorateLabeledCloudObjWithWorkspace), [newRuntimes, newDisks, newApps]);
+    const [decoratedRuntimes, decoratedDisks, decoratedApps] = _.map(_.map(decorateLabeledResourceWithWorkspace), [
+      newRuntimes,
+      mapToPdTypes(newDisks),
+      newApps,
+    ]);
 
-    setRuntimes(decoratedRuntimes);
-    setDisks(decoratedDisks);
-    setApps(decoratedApps);
+    setRuntimes(decoratedRuntimes as RuntimeWithWorkspace[]);
+    setDisks(decoratedDisks as DiskWithWorkspace[]);
+    setApps(decoratedApps as AppWithWorkspace[]);
 
     if (!_.some({ id: getErrorRuntimeId() }, newRuntimes)) {
       setErrorRuntimeId(undefined);
@@ -316,12 +359,30 @@ export const Environments = ({ nav = undefined }) => {
   });
   const loadData = withErrorIgnoring(refreshData);
 
-  const pauseComputeAndRefresh = Utils.withBusyState(setLoading, async (computeType, compute) => {
+  const pauseComputeAndRefresh = Utils.withBusyState(setLoading, async (compute: DecoratedComputeResource) => {
     const wrappedPauseCompute = withErrorReporting('Error pausing compute', () =>
-      computeType === 'runtime'
-        ? ajax().Runtimes.runtimeWrapper(compute).stop()
-        : // TODO: AKS vs GKE apps
-          ajax().Apps.app(compute.workspace.googleProject, compute.appName).pause()
+      Utils.cond(
+        [
+          isRuntime(compute) && isGoogleWorkspaceInfo(compute.workspace),
+          () =>
+            ajax()
+              .Runtimes.runtimeWrapper(compute as RuntimeWithWorkspace)
+              .stop(),
+        ],
+        [
+          isRuntime(compute),
+          () =>
+            ajax()
+              .Runtimes.runtimeWrapper(compute as RuntimeWithWorkspace)
+              .stop(),
+        ],
+        [
+          isApp(compute) && isGoogleWorkspaceInfo(compute.workspace),
+          // @ts-expect-error
+          () => ajax().Apps.app(compute.workspace.googleProject, compute.appName).pause(),
+        ],
+        [Utils.DEFAULT, () => console.error('Pause is not currently implemented for azure apps')]
+      )
     );
     await wrappedPauseCompute();
     await loadData();
@@ -359,26 +420,26 @@ export const Environments = ({ nav = undefined }) => {
         cost: getRuntimeCost,
       }[sort.field],
     ],
+    // @ts-expect-error
     [sort.direction],
     runtimes
   );
 
-  const filteredDisks = mapToPdTypes(
-    _.orderBy(
-      [
-        {
-          project: 'googleProject',
-          workspace: 'labels.saturnWorkspaceName',
-          status: 'status',
-          created: 'auditInfo.createdDate',
-          accessed: 'auditInfo.dateAccessed',
-          cost: getPersistentDiskCostMonthly,
-          size: 'size',
-        }[diskSort.field],
-      ],
-      [diskSort.direction],
-      disks
-    )
+  const filteredDisks = _.orderBy(
+    [
+      {
+        project: 'googleProject',
+        workspace: 'labels.saturnWorkspaceName',
+        status: 'status',
+        created: 'auditInfo.createdDate',
+        accessed: 'auditInfo.dateAccessed',
+        cost: getPersistentDiskCostMonthly,
+        size: 'size',
+      }[diskSort.field],
+    ],
+    // @ts-expect-error
+    [diskSort.direction],
+    disks
   );
 
   const filteredApps = _.orderBy(
@@ -392,16 +453,20 @@ export const Environments = ({ nav = undefined }) => {
         cost: getAppCost,
       }[sort.field],
     ],
+    // @ts-expect-error
     [sort.direction],
     apps
   );
 
-  const filteredCloudEnvironments = _.concat(filteredRuntimes, filteredApps);
+  // @ts-expect-error
+  const filteredCloudEnvironments: DecoratedComputeResource[] = _.concat(filteredRuntimes, filteredApps);
 
   const totalRuntimeCost = _.sum(_.map(getRuntimeCost, runtimes));
   const totalAppCost = _.sum(_.map(getGalaxyComputeCost, apps));
   const totalCost = totalRuntimeCost + totalAppCost;
-  const totalDiskCost = _.sum(_.map((disk) => getPersistentDiskCostMonthly(disk, getRegionFromZone(disk.zone)), mapToPdTypes(disks)));
+  const totalDiskCost = disks
+    ? _.sum(_.map((disk) => getPersistentDiskCostMonthly(disk, getRegionFromZone(disk.zone)), disks))
+    : 0;
 
   const runtimesByProject = _.groupBy('googleProject', runtimes);
   const disksByProject = _.groupBy('googleProject', disks);
@@ -417,12 +482,18 @@ export const Environments = ({ nav = undefined }) => {
     }
     return name
       ? h(Fragment, [
-          h(Link, { href: nav.getLink('workspace-dashboard', { namespace, name }), style: { wordBreak: 'break-word' } }, [name]),
+          h(
+            Link,
+            { href: nav.getLink('workspace-dashboard', { namespace, name }), style: { wordBreak: 'break-word' } },
+            [name]
+          ),
           shouldWarn &&
             h(
               TooltipTrigger,
               {
-                content: `This workspace has multiple active cloud environments${forAppText(appType)}. Only the latest one will be used.`,
+                content: `This workspace has multiple active cloud environments${forAppText(
+                  appType
+                )}. Only the latest one will be used.`,
               },
               [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })]
             ),
@@ -441,19 +512,36 @@ export const Environments = ({ nav = undefined }) => {
     } = app;
     // Here, we use the saturnWorkspaceNamespace label if its defined, otherwise use cloudResource for older runtimes
     const resolvedSaturnWorkspaceNamespace = saturnWorkspaceNamespace || cloudResource;
-    return getWorkspaceCell(resolvedSaturnWorkspaceNamespace, saturnWorkspaceName, appType, false, app.unsupportedWorkspace);
+    return getWorkspaceCell(
+      resolvedSaturnWorkspaceNamespace,
+      saturnWorkspaceName,
+      appType,
+      false,
+      app.unsupportedWorkspace
+    );
   };
 
   const renderWorkspaceForRuntimes = (runtime) => {
-    const { status, googleProject, labels: { saturnWorkspaceNamespace = googleProject, saturnWorkspaceName } = {} } = runtime;
+    const {
+      status,
+      googleProject,
+      labels: { saturnWorkspaceNamespace = googleProject, saturnWorkspaceName = undefined } = {},
+    } = runtime;
     // TODO: Azure runtimes are not covered in this logic
     const shouldWarn =
-      doesUserHaveDuplicateRuntimes(getCreatorForRuntime(runtime), runtimesByProject[googleProject]) && !_.includes(status, ['Deleting', 'Error']);
-    return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, null, shouldWarn, runtime.unsupportedWorkspace);
+      doesUserHaveDuplicateRuntimes(getCreatorForCompute(runtime), runtimesByProject[googleProject]) &&
+      !_.includes(status, ['Deleting', 'Error']);
+    return getWorkspaceCell(
+      saturnWorkspaceNamespace,
+      saturnWorkspaceName,
+      null,
+      shouldWarn,
+      runtime.unsupportedWorkspace
+    );
   };
 
   const doesUserHaveDuplicateRuntimes = (user, runtimes) => {
-    const runtimesForUser = _.flow(_.map(getCreatorForRuntime), _.filter(!_.eq(user)))(runtimes);
+    const runtimesForUser = _.flow(_.map(getCreatorForCompute), _.filter(!_.eq(user)))(runtimes);
     return runtimesForUser.length > 1;
   };
 
@@ -469,6 +557,7 @@ export const Environments = ({ nav = undefined }) => {
           !!disk && div([strong(['Persistent Disk: ']), disk.name]),
         ]),
       },
+      // @ts-expect-error
       [h(Link, ['view'])]
     );
   };
@@ -476,19 +565,20 @@ export const Environments = ({ nav = undefined }) => {
   const renderDetailsApp = (app, disks) => {
     const {
       appName,
+      cloudContext,
       diskName,
       auditInfo: { creator },
-      workspace: { workspaceId, googleProject } = {},
+      workspace: { workspaceId = undefined } = {},
     } = app;
     const disk = _.find({ name: diskName }, disks);
-    return getDetailsPopup(appName, googleProject, disk, creator, workspaceId);
+    return getDetailsPopup(appName, cloudContext?.cloudResource, disk, creator, workspaceId);
   };
 
   const renderDetailsRuntime = (runtime, disks) => {
     const {
       runtimeName,
       cloudContext,
-      runtimeConfig: { persistentDiskId } = {},
+      runtimeConfig: { persistentDiskId = undefined } = {},
       auditInfo: { creator },
       workspace,
     } = runtime;
@@ -512,7 +602,9 @@ export const Environments = ({ nav = undefined }) => {
         disabled: !isDeletable,
         tooltip: isDeletable
           ? 'Delete cloud environment'
-          : `Cannot delete a cloud environment while in status ${_.upperCase(getComputeStatusForDisplay(resource.status))}.`,
+          : `Cannot delete a cloud environment while in status ${_.upperCase(
+              getDisplayRuntimeStatus(resource.status)
+            )}.`,
         onClick: () => action(resourceId),
       },
       [makeMenuIcon('trash'), 'Delete']
@@ -520,7 +612,7 @@ export const Environments = ({ nav = undefined }) => {
   };
 
   const renderErrorApps = (app) => {
-    const convertedAppStatus = getComputeStatusForDisplay(app.status);
+    const convertedAppStatus = getDisplayRuntimeStatus(app.status);
     if (convertedAppStatus !== 'Error' && app.unsupportedWorkspace) {
       return h(UnsupportedWorkspaceCell, { status: convertedAppStatus, message: unsupportedCloudEnvironmentMessage });
     }
@@ -539,9 +631,12 @@ export const Environments = ({ nav = undefined }) => {
   };
 
   const renderErrorRuntimes = (runtime) => {
-    const convertedRuntimeStatus = getComputeStatusForDisplay(runtime.status);
+    const convertedRuntimeStatus = getDisplayRuntimeStatus(runtime.status);
     if (convertedRuntimeStatus !== 'Error' && runtime.unsupportedWorkspace) {
-      return h(UnsupportedWorkspaceCell, { status: convertedRuntimeStatus, message: unsupportedCloudEnvironmentMessage });
+      return h(UnsupportedWorkspaceCell, {
+        status: convertedRuntimeStatus,
+        message: unsupportedCloudEnvironmentMessage,
+      });
     }
     return h(Fragment, [
       convertedRuntimeStatus,
@@ -569,7 +664,7 @@ export const Environments = ({ nav = undefined }) => {
     });
   };
 
-  const multipleDisksError = (disks, appType) => {
+  const multipleDisksError = (disks: DecoratedPersistentDisk[], appType: AppToolLabel | undefined) => {
     // appType is undefined for runtimes (ie Jupyter, RStudio) so the first part of the ternary is for processing app
     // disks. the second part is for processing runtime disks so it filters out app disks
     return appType
@@ -577,9 +672,14 @@ export const Environments = ({ nav = undefined }) => {
       : _.remove((disk) => getDiskAppType(disk) !== appType || disk.status === 'Deleting', disks).length > 1;
   };
 
+  const runtimeToDelete: RuntimeWithWorkspace | undefined = _.find({ id: deleteRuntimeId }, runtimes);
+  const appToDelete: AppWithWorkspace | undefined = _.find({ appName: deleteAppId }, apps);
+
   return h(Fragment, [
     div({ role: 'main', style: { padding: '1rem', flexGrow: 1 } }, [
-      h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '0 0 1rem 0', padding: 0 } }, ['Your cloud environments']),
+      h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '0 0 1rem 0', padding: 0 } }, [
+        'Your cloud environments',
+      ]),
       div({ style: { marginBottom: '.5rem' } }, [
         h(LabeledCheckbox, { checked: shouldFilterByCreator, onChange: setShouldFilterByCreator }, [
           span({ style: { fontWeight: 600 } }, [' Hide resources you did not create']),
@@ -589,6 +689,7 @@ export const Environments = ({ nav = undefined }) => {
         div({ style: { overflow: 'scroll', overflowWrap: 'break-word', wordBreak: 'break-all' } }, [
           h(SimpleFlexTable, {
             'aria-label': 'cloud environments',
+            // @ts-expect-error
             sort,
             rowCount: filteredCloudEnvironments.length,
             columns: [
@@ -597,10 +698,11 @@ export const Environments = ({ nav = undefined }) => {
                 field: 'project',
                 headerRenderer: () => h(Sortable, { sort, field: 'project', onSort: setSort }, ['Billing project']),
                 cellRenderer: ({ rowIndex }) => {
+                  const cloudEnv: DecoratedComputeResource = filteredCloudEnvironments[rowIndex];
+                  const workspaceNamespace = cloudEnv.workspace.namespace;
                   const {
-                    googleProject,
-                    labels: { saturnWorkspaceNamespace = googleProject },
-                  } = filteredCloudEnvironments[rowIndex];
+                    labels: { saturnWorkspaceNamespace = workspaceNamespace },
+                  } = cloudEnv;
                   return saturnWorkspaceNamespace;
                 },
               },
@@ -610,7 +712,9 @@ export const Environments = ({ nav = undefined }) => {
                 headerRenderer: () => h(Sortable, { sort, field: 'workspace', onSort: setSort }, ['Workspace']),
                 cellRenderer: ({ rowIndex }) => {
                   const cloudEnvironment = filteredCloudEnvironments[rowIndex];
-                  return cloudEnvironment.appName ? renderWorkspaceForApps(cloudEnvironment) : renderWorkspaceForRuntimes(cloudEnvironment);
+                  return isApp(cloudEnvironment)
+                    ? renderWorkspaceForApps(cloudEnvironment)
+                    : renderWorkspaceForRuntimes(cloudEnvironment);
                 },
               },
               {
@@ -628,7 +732,9 @@ export const Environments = ({ nav = undefined }) => {
                 headerRenderer: () => 'Details',
                 cellRenderer: ({ rowIndex }) => {
                   const cloudEnvironment = filteredCloudEnvironments[rowIndex];
-                  return cloudEnvironment.appName ? renderDetailsApp(cloudEnvironment, disks) : renderDetailsRuntime(cloudEnvironment, disks);
+                  return isApp(cloudEnvironment)
+                    ? renderDetailsApp(cloudEnvironment, disks)
+                    : renderDetailsRuntime(cloudEnvironment, disks);
                 },
               },
               {
@@ -637,7 +743,9 @@ export const Environments = ({ nav = undefined }) => {
                 headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
                   const cloudEnvironment = filteredCloudEnvironments[rowIndex];
-                  return cloudEnvironment.appName ? renderErrorApps(cloudEnvironment) : renderErrorRuntimes(cloudEnvironment);
+                  return isApp(cloudEnvironment)
+                    ? renderErrorApps(cloudEnvironment)
+                    : renderErrorRuntimes(cloudEnvironment);
                 },
               },
               {
@@ -645,11 +753,14 @@ export const Environments = ({ nav = undefined }) => {
                 headerRenderer: () => 'Location',
                 cellRenderer: ({ rowIndex }) => {
                   const cloudEnvironment = filteredCloudEnvironments[rowIndex];
-                  const zone = cloudEnvironment?.runtimeConfig?.zone;
-                  const region = cloudEnvironment?.runtimeConfig?.region;
                   // We assume that all apps get created in zone 'us-central1-a'.
                   // If zone or region is not present then cloudEnvironment is an app so we return 'us-central1-a'.
-                  return zone || region || defaultComputeZone.toLowerCase();
+                  const location = isRuntime(cloudEnvironment)
+                    ? isGceConfig(cloudEnvironment.runtimeConfig) || isGceWithPdConfig(cloudEnvironment.runtimeConfig)
+                      ? cloudEnvironment.runtimeConfig.zone
+                      : _.toLower(getNormalizedComputeRegion(cloudEnvironment.runtimeConfig))
+                    : defaultComputeZone.toLowerCase();
+                  return location;
                 },
               },
               {
@@ -671,10 +782,13 @@ export const Environments = ({ nav = undefined }) => {
               {
                 size: { min: '14em', grow: 0 },
                 field: 'cost',
-                headerRenderer: () => h(Sortable, { sort, field: 'cost', onSort: setSort }, [`Cost / hr (${Utils.formatUSD(totalCost)} total)`]),
+                headerRenderer: () =>
+                  h(Sortable, { sort, field: 'cost', onSort: setSort }, [
+                    `Cost / hr (${Utils.formatUSD(totalCost)} total)`,
+                  ]),
                 cellRenderer: ({ rowIndex }) => {
                   const cloudEnvironment = filteredCloudEnvironments[rowIndex];
-                  return cloudEnvironment.appName
+                  return isApp(cloudEnvironment)
                     ? Utils.formatUSD(getGalaxyComputeCost(cloudEnvironment))
                     : Utils.formatUSD(getRuntimeCost(cloudEnvironment));
                 },
@@ -686,7 +800,7 @@ export const Environments = ({ nav = undefined }) => {
                   const cloudEnvironment = filteredCloudEnvironments[rowIndex];
                   const computeType = isApp(cloudEnvironment) ? 'app' : 'runtime';
                   return h(Fragment, [
-                    h(PauseButton, { computeType, cloudEnvironment, currentUser, pauseComputeAndRefresh }),
+                    h(PauseButton, { cloudEnvironment, currentUser, pauseComputeAndRefresh }),
                     renderDeleteButton(computeType, cloudEnvironment),
                   ]);
                 },
@@ -694,18 +808,22 @@ export const Environments = ({ nav = undefined }) => {
             ],
           }),
         ]),
-      h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '1rem 0', padding: 0 } }, ['Your persistent disks']),
+      h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '1rem 0', padding: 0 } }, [
+        'Your persistent disks',
+      ]),
       disks &&
         div({ style: { overflow: 'scroll', overflowWrap: 'break-word', wordBreak: 'break-all' } }, [
           h(SimpleFlexTable, {
             'aria-label': 'persistent disks',
+            // @ts-expect-error
             sort: diskSort,
             rowCount: filteredDisks.length,
             columns: [
               {
                 size: { min: '12em' },
                 field: 'project',
-                headerRenderer: () => h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
+                headerRenderer: () =>
+                  h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
                 cellRenderer: ({ rowIndex }) => {
                   const {
                     googleProject,
@@ -717,21 +835,36 @@ export const Environments = ({ nav = undefined }) => {
               {
                 size: { min: '10em' },
                 field: 'workspace',
-                headerRenderer: () => h(Sortable, { sort: diskSort, field: 'workspace', onSort: setDiskSort }, ['Workspace']),
+                headerRenderer: () =>
+                  h(Sortable, { sort: diskSort, field: 'workspace', onSort: setDiskSort }, ['Workspace']),
                 cellRenderer: ({ rowIndex }) => {
-                  const { status: diskStatus, googleProject, workspace, creator } = filteredDisks[rowIndex];
-                  const appType = getDiskAppType(filteredDisks[rowIndex]);
+                  const {
+                    status: diskStatus,
+                    googleProject,
+                    workspace: { namespace, name },
+                    creator,
+                  } = filteredDisks[rowIndex];
+                  const appType: AppToolLabel | undefined = getDiskAppType(filteredDisks[rowIndex]);
                   const multipleDisks = multipleDisksError(disksByProject[googleProject], appType);
-                  return workspace
+                  return !!namespace && !!name
                     ? h(Fragment, [
-                        h(Link, { href: nav.getLink('workspace-dashboard', workspace), style: { wordBreak: 'break-word' } }, [workspace.name]),
+                        h(
+                          Link,
+                          {
+                            href: nav.getLink('workspace-dashboard', { namespace, name }),
+                            style: { wordBreak: 'break-word' },
+                          },
+                          [name]
+                        ),
                         currentUser === creator &&
                           diskStatus !== 'Deleting' &&
                           multipleDisks &&
                           h(
                             TooltipTrigger,
                             {
-                              content: `This workspace has multiple active persistent disks${forAppText(appType)}. Only the latest one will be used.`,
+                              content: `This workspace has multiple active persistent disks${forAppText(
+                                appType
+                              )}. Only the latest one will be used.`,
                             },
                             [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })]
                           ),
@@ -764,6 +897,7 @@ export const Environments = ({ nav = undefined }) => {
                         app && div([strong([`${_.capitalize(app.appType)}: `]), app.appName]),
                       ]),
                     },
+                    // @ts-expect-error
                     [h(Link, ['view'])]
                   );
                 },
@@ -771,7 +905,8 @@ export const Environments = ({ nav = undefined }) => {
               {
                 size: { min: '5em', grow: 0 },
                 field: 'size',
-                headerRenderer: () => h(Sortable, { sort: diskSort, field: 'size', onSort: setDiskSort }, ['Size (GB)']),
+                headerRenderer: () =>
+                  h(Sortable, { sort: diskSort, field: 'size', onSort: setDiskSort }, ['Size (GB)']),
                 cellRenderer: ({ rowIndex }) => {
                   const disk = filteredDisks[rowIndex];
                   return disk.size;
@@ -799,7 +934,8 @@ export const Environments = ({ nav = undefined }) => {
               {
                 size: { min: '10em', grow: 0 },
                 field: 'created',
-                headerRenderer: () => h(Sortable, { sort: diskSort, field: 'created', onSort: setDiskSort }, ['Created']),
+                headerRenderer: () =>
+                  h(Sortable, { sort: diskSort, field: 'created', onSort: setDiskSort }, ['Created']),
                 cellRenderer: ({ rowIndex }) => {
                   return Utils.makeCompleteDate(filteredDisks[rowIndex].auditInfo.createdDate);
                 },
@@ -807,7 +943,8 @@ export const Environments = ({ nav = undefined }) => {
               {
                 size: { min: '11em', grow: 0 },
                 field: 'accessed',
-                headerRenderer: () => h(Sortable, { sort: diskSort, field: 'accessed', onSort: setDiskSort }, ['Last accessed']),
+                headerRenderer: () =>
+                  h(Sortable, { sort: diskSort, field: 'accessed', onSort: setDiskSort }, ['Last accessed']),
                 cellRenderer: ({ rowIndex }) => {
                   return Utils.makeCompleteDate(filteredDisks[rowIndex].auditInfo.dateAccessed);
                 },
@@ -836,7 +973,8 @@ export const Environments = ({ nav = undefined }) => {
                     [status === 'Deleting', () => 'The disk is being deleted.'],
                     [
                       _.some({ runtimeConfig: { persistentDiskId: id } }, runtimes) || _.some({ diskName: name }, apps),
-                      () => 'Cannot delete this disk because it is attached. You must delete the cloud environment first.',
+                      () =>
+                        'Cannot delete this disk because it is attached. You must delete the cloud environment first.',
                     ]
                   );
                   return h(
@@ -859,8 +997,10 @@ export const Environments = ({ nav = undefined }) => {
           onDismiss: () => setErrorRuntimeId(undefined),
         }),
       deleteRuntimeId &&
+        runtimeToDelete &&
         h(DeleteRuntimeModal, {
-          runtime: _.find({ id: deleteRuntimeId }, runtimes),
+          runtime: runtimeToDelete,
+          workspaceId: runtimeToDelete.workspace.workspaceId,
           onDismiss: () => setDeleteRuntimeId(undefined),
           onSuccess: () => {
             setDeleteRuntimeId(undefined);
@@ -869,8 +1009,9 @@ export const Environments = ({ nav = undefined }) => {
         }),
       deleteDiskId && renderDeleteDiskModal(_.find({ id: deleteDiskId }, disks)),
       deleteAppId &&
+        appToDelete &&
         h(DeleteAppModal, {
-          app: _.find({ appName: deleteAppId }, apps),
+          app: appToDelete,
           onDismiss: () => setDeleteAppId(undefined),
           onSuccess: () => {
             setDeleteAppId(undefined);
@@ -881,10 +1022,6 @@ export const Environments = ({ nav = undefined }) => {
         h(AppErrorModal, {
           app: _.find({ appName: errorAppId }, apps),
           onDismiss: () => setErrorAppId(undefined),
-          onSuccess: () => {
-            setErrorAppId(undefined);
-            loadData();
-          },
         }),
     ]),
     contactUsActive.get() && h(SupportRequestWrapper),
@@ -898,7 +1035,7 @@ export { ajaxContext } from 'src/libs/ajax';
 
 const EnvironmentsPage = () =>
   h(FooterWrapper, [
-    h(TopBar, { title: 'Cloud Environments' }),
+    h(TopBar, { title: 'Cloud Environments', href: '' }, []),
     // Passing Nav here allows overriding when this component is used outside of Terra UI.
     h(Environments, { nav: Nav }),
   ]);

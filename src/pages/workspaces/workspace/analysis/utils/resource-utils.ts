@@ -1,8 +1,10 @@
 import _ from 'lodash/fp';
-import { App } from 'src/libs/ajax/leonardo/models/app-models';
+import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
-import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { isRuntime, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import * as Utils from 'src/libs/utils';
+import { getAppStatusForDisplay } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
+import { getDisplayRuntimeStatus } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 
 /**
  * 'Deletable' and 'Pausable' statuses are defined in a resource's respective model in Leonardo repo:
@@ -28,16 +30,29 @@ export const isResourceDeletable = (resourceType, resource: App | PersistentDisk
       ]
     )
   );
-export const isComputePausable = (computeType, compute: App | Runtime) =>
-  _.includes(
-    _.lowerCase(compute?.status),
-    Utils.switchCase(
-      computeType,
-      ['runtime', () => ['unknown', 'running', 'updating', 'starting']],
-      ['app', () => ['running', 'starting']],
-      [
-        Utils.DEFAULT,
-        () => console.error(`Cannot determine pausability; compute type ${computeType} must be runtime or app.`),
-      ]
-    )
+export const isComputePausable = (compute: App | Runtime): boolean =>
+  Utils.cond(
+    [
+      isRuntime(compute),
+      () =>
+        _.includes(_.capitalize(compute.status), [
+          runtimeStatuses.running.leoLabel,
+          runtimeStatuses.updating.leoLabel,
+          runtimeStatuses.starting.leoLabel,
+        ]),
+    ],
+    [isApp(compute), () => _.includes(_.capitalize(compute.status), ['Running', 'Starting'])],
+    [Utils.DEFAULT, () => console.error(`Cannot determine pausability; compute ${compute} must be runtime or app.`)]
   );
+
+export const getCreatorForCompute = (compute: Runtime | App): string => compute?.auditInfo?.creator;
+
+export const getDisplayStatus = (compute: Runtime | App): string => {
+  if (isApp(compute)) {
+    return getAppStatusForDisplay(compute.status);
+  }
+  if (isRuntime(compute)) {
+    return getDisplayRuntimeStatus(compute.status);
+  }
+  throw Error('unimplemented compute type detected');
+};

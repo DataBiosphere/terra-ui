@@ -71,8 +71,8 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/utils/file-utils';
 import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import {
+  getToolLabelFromCloudEnv,
   getToolLabelFromFileExtension,
-  getToolLabelFromRuntime,
   runtimeToolLabels,
   runtimeTools,
   ToolLabel,
@@ -183,7 +183,7 @@ const AnalysisCard = ({
   const analysisName: FileName = getFileName(name);
   const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name: workspaceName, analysisName });
 
-  const currentRuntimeToolLabel = currentRuntime ? getToolLabelFromRuntime(currentRuntime) : undefined;
+  const currentRuntimeToolLabel = currentRuntime ? getToolLabelFromCloudEnv(currentRuntime) : undefined;
 
   const rstudioLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name, application: 'RStudio' });
   const analysisEditLink = `${analysisLink}/?${qs.stringify({ mode: 'edit' })}`;

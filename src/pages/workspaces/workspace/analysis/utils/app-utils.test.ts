@@ -12,6 +12,7 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
 import {
   getCurrentAppDataDisk,
+  mapToPdTypes,
   workspaceHasMultipleDisks,
 } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils';
 import { appToolLabels, appTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
@@ -498,10 +499,10 @@ describe('workspaceHasMultipleApps', () => {
 
 describe('workspaceHasMultipleDisks', () => {
   it('returns true when there are multiple galaxy disks in the same project and workspace', () => {
-    expect(workspaceHasMultipleDisks(mockAppDisksSameWorkspace, appTools.GALAXY.label)).toBe(true);
+    expect(workspaceHasMultipleDisks(mapToPdTypes(mockAppDisksSameWorkspace), appTools.GALAXY.label)).toBe(true);
   });
   it('returns false when there is not multiple cromwell disks', () => {
-    expect(workspaceHasMultipleDisks(mockAppDisksSameWorkspace, appTools.CROMWELL.label)).toBe(false);
+    expect(workspaceHasMultipleDisks(mapToPdTypes(mockAppDisksSameWorkspace), appTools.CROMWELL.label)).toBe(false);
   });
 });
 
