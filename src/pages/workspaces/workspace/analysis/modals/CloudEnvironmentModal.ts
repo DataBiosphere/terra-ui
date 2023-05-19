@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
-import { Fragment, useState } from 'react';
-import { div, h, hr, img, span } from 'react-hyperscript-helpers';
+import { Fragment, ReactElement, useState } from 'react';
+import { Component, div, h, hr, img, span } from 'react-hyperscript-helpers';
 import { Clickable, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import ModalDrawer from 'src/components/ModalDrawer';
@@ -12,7 +12,7 @@ import rstudioBioLogo from 'src/images/r-bio-logo.svg';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
-import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { LeoRuntimeStatus, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
@@ -24,6 +24,7 @@ import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import {
   AzureWorkspace,
+  CloudProvider,
   cloudProviderTypes,
   getCloudProviderFromWorkspace,
   GoogleWorkspace,
@@ -49,6 +50,7 @@ import {
   isCurrentGalaxyDiskDetaching,
 } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils';
 import {
+  appStatusToLeoRuntimeStatus,
   getComputeStatusForDisplay,
   getConvertedRuntimeStatus,
   getCurrentRuntime,
@@ -117,7 +119,7 @@ export const CloudEnvironmentModal = ({
 
   const resetView = () => setViewMode(undefined);
 
-  const renderComputeModal = (tool) =>
+  const renderComputeModal = (tool: ToolLabel) =>
     h(ComputeModalBase, {
       // isOpen: viewMode === runtimeToolLabels.Jupyter || viewMode === runtimeToolLabels.RStudio,
       workspace,
@@ -130,7 +132,7 @@ export const CloudEnvironmentModal = ({
       onError: onDismiss,
     });
 
-  const renderAzureModal = (tool) =>
+  const renderAzureModal = (tool: ToolLabel): ReactElement<any> =>
     h(AzureComputeModalBase, {
       isOpen: viewMode === runtimeToolLabels.JupyterLab,
       hideCloseButton: true,
@@ -144,7 +146,18 @@ export const CloudEnvironmentModal = ({
       onError: onDismiss,
     });
 
-  const renderAppModal = (appModalBase, appMode) =>
+  const renderAppModal = (
+    appModalBase: Component<{
+      isOpen: boolean;
+      workspace: GoogleWorkspace | AzureWorkspace;
+      apps: App[];
+      appDataDisks: PersistentDisk[];
+      onDismiss: () => void;
+      onSuccess: (string: string) => void;
+      onError: () => void;
+    }>,
+    appMode: ToolLabel | undefined
+  ): ReactElement<any> =>
     h(appModalBase, {
       isOpen: viewMode === appMode,
       workspace,
@@ -197,12 +210,30 @@ export const CloudEnvironmentModal = ({
   const currentRuntimeStatus = getConvertedRuntimeStatus(currentRuntime);
   const currentRuntimeTool = currentRuntime?.labels?.tool;
 
-  const currentApp = (toolLabel) => getCurrentApp(toolLabel, apps);
+  const currentApp = (toolLabel: ToolLabel) => getCurrentApp(toolLabel, apps);
 
-  const isLaunchSupported = (toolLabel) =>
+  const isLaunchSupported = (toolLabel: ToolLabel) =>
     Object.values(tools).find((tool) => tool.label === toolLabel)!.isLaunchUnsupported;
 
-  const RuntimeIcon = ({ shape, onClick, disabled, messageChildren, toolLabel, style, ...props }) => {
+  const RuntimeIcon = ({
+    shape,
+    onClick,
+    disabled,
+    messageChildren,
+    toolLabel,
+    tooltip,
+    style,
+    ...props
+  }: {
+    shape: string;
+    onClick: undefined | (() => any);
+    disabled: boolean;
+    messageChildren: ReactElement[];
+    toolLabel: ToolLabel;
+    tooltip?: string;
+    style: any;
+    props?: any;
+  }): ReactElement<any, any> => {
     return h(
       Clickable,
       {
@@ -211,6 +242,7 @@ export const CloudEnvironmentModal = ({
         // css takes the last thing if there are duplicate fields, the order here is important because all three things can specify color
         style: { ...toolButtonStyles, color: onClick && !disabled ? colors.accent() : colors.dark(0.3), ...style },
         onClick,
+        tooltip,
         disabled,
         ...props,
       },
@@ -218,7 +250,7 @@ export const CloudEnvironmentModal = ({
     );
   };
 
-  const executeAndRefresh = async (toolLabel, promise) => {
+  const executeAndRefresh = async (toolLabel: ToolLabel, promise: Promise<void>) => {
     try {
       setBusy(true);
       await promise;
@@ -232,37 +264,25 @@ export const CloudEnvironmentModal = ({
 
   // TODO: add azure start
   // We assume here that button disabling is working properly, so the only thing to check is whether it's an app or the current (assumed to be existing) runtime
-  const startApp = (toolLabel) =>
-    Utils.cond(
-      [
-        isAppToolLabel(toolLabel),
-        () => {
-          const { appName, cloudContext } = currentApp(toolLabel)!;
-          executeAndRefresh(toolLabel, Apps(signal).app(cloudContext.cloudResource, appName).resume());
-        },
-      ],
-      [
-        Utils.DEFAULT,
-        () => currentRuntime && executeAndRefresh(toolLabel, Runtimes(signal).runtimeWrapper(currentRuntime).start()),
-      ]
-    );
+  const startApp = (toolLabel: ToolLabel) => {
+    if (isAppToolLabel(toolLabel)) {
+      const { appName, cloudContext } = currentApp(toolLabel)!;
+      executeAndRefresh(toolLabel, Apps(signal).app(cloudContext.cloudResource, appName).resume());
+    } else {
+      currentRuntime && executeAndRefresh(toolLabel, Runtimes(signal).runtimeWrapper(currentRuntime).start());
+    }
+  };
 
-  const stopApp = (toolLabel) =>
-    Utils.cond(
-      [
-        isAppToolLabel(toolLabel),
-        () => {
-          const { appName, cloudContext } = currentApp(toolLabel)!;
-          executeAndRefresh(toolLabel, Apps(signal).app(cloudContext.cloudResource, appName).pause());
-        },
-      ],
-      [
-        Utils.DEFAULT,
-        () => currentRuntime && executeAndRefresh(toolLabel, Runtimes(signal).runtimeWrapper(currentRuntime).stop()),
-      ]
-    );
+  const stopApp = (toolLabel: ToolLabel) => {
+    if (isAppToolLabel(toolLabel)) {
+      const { appName, cloudContext } = currentApp(toolLabel)!;
+      executeAndRefresh(toolLabel, Apps(signal).app(cloudContext.cloudResource, appName).pause());
+    } else {
+      currentRuntime && executeAndRefresh(toolLabel, Runtimes(signal).runtimeWrapper(currentRuntime).stop());
+    }
+  };
 
-  const defaultIcon = (toolLabel) =>
+  const defaultIcon = (toolLabel: ToolLabel) =>
     isPauseSupported(toolLabel) &&
     h(RuntimeIcon, {
       onClick: () => {},
@@ -274,20 +294,18 @@ export const CloudEnvironmentModal = ({
       style: { borderColor: colors.dark(0.3) },
     });
 
-  const renderStatusClickable = (toolLabel) =>
-    Utils.cond(
-      [toolLabel === currentRuntimeTool, () => getIconFromStatus(toolLabel, currentRuntimeStatus)],
-      [
-        isAppToolLabel(toolLabel),
-        () => {
-          const normalizedAppStatus = _.capitalize(currentApp(toolLabel)?.status || '');
-          return getIconFromStatus(toolLabel, normalizedAppStatus);
-        },
-      ],
-      [Utils.DEFAULT, () => defaultIcon(toolLabel)]
-    );
+  const renderStatusClickable = (toolLabel: ToolLabel) => {
+    if (toolLabel === currentRuntimeTool) {
+      return getIconFromStatus(toolLabel, currentRuntimeStatus);
+    }
+    if (isAppToolLabel(toolLabel)) {
+      const normalizedAppStatus = appStatusToLeoRuntimeStatus(currentApp(toolLabel)?.status);
+      return getIconFromStatus(toolLabel, normalizedAppStatus);
+    }
+    return defaultIcon(toolLabel);
+  };
 
-  const getIconFromStatus = (toolLabel, status) => {
+  const getIconFromStatus = (toolLabel: ToolLabel, status: LeoRuntimeStatus | undefined) => {
     // We dont use Utils.switchCase here to support the 'fallthrough' functionality
     switch (status) {
       case 'Stopped':
@@ -317,11 +335,11 @@ export const CloudEnvironmentModal = ({
       case 'Stopping':
       case 'Updating':
       case 'Creating':
-      case 'Prestopping':
-      case 'Prestarting':
-      case 'Precreating':
-      case 'Provisioning':
-      case 'LeoReconfiguring':
+      case 'PreStopping':
+      case 'PreStarting':
+        // case 'PreCreating':
+        // case 'Provisioning':
+        // case 'LeoReconfiguring':
         return h(RuntimeIcon, {
           onClick: () => {},
           shape: 'sync',
@@ -337,10 +355,11 @@ export const CloudEnvironmentModal = ({
           toolLabel,
           style: { color: colors.danger(0.9) },
           onClick: () => {
-            Utils.cond(
-              [isAppToolLabel(toolLabel), () => setErrorAppId(currentApp(toolLabel)?.appName)],
-              [Utils.DEFAULT, () => currentRuntime && setErrorRuntimeId(currentRuntime!.id)]
-            );
+            if (isAppToolLabel(toolLabel)) {
+              setErrorAppId(currentApp(toolLabel)?.appName);
+            } else {
+              currentRuntime && setErrorRuntimeId(currentRuntime!.id);
+            }
           },
           disabled: busy || !canCompute,
           messageChildren: [span(['View']), span(['Error'])],
@@ -351,7 +370,7 @@ export const CloudEnvironmentModal = ({
     }
   };
 
-  const getToolIcon = (toolLabel) =>
+  const getToolIcon = (toolLabel: ToolLabel) =>
     Utils.switchCase(
       toolLabel,
       [runtimeToolLabels.Jupyter, () => jupyterLogo],
@@ -361,34 +380,27 @@ export const CloudEnvironmentModal = ({
       [runtimeToolLabels.JupyterLab, () => jupyterLogo]
     );
 
-  const isCloudEnvModalDisabled = (toolLabel) =>
-    Utils.cond(
-      [
-        isAppToolLabel(toolLabel),
-        () =>
-          !canCompute ||
-          busy ||
-          (toolLabel === appToolLabels.GALAXY && isCurrentGalaxyDiskDetaching(apps)) ||
-          getIsAppBusy(currentApp(toolLabel)),
-      ],
-      [
-        Utils.DEFAULT,
-        () => {
-          const runtime = toolLabel === currentRuntimeTool ? currentRuntime : undefined;
-          // This asks 'does this tool have a runtime'
-          //  if yes, then we allow cloud env modal to open (and ComputeModal determines if it should be read-only mode)
-          //  if no, then we want to disallow the cloud env modal opening if the other tool's runtime is busy
-          //  this check is not needed if we allow multiple runtimes, and cloud env modal will never be disabled in this case
-          return runtime ? false : !canCompute || busy || getIsRuntimeBusy(currentRuntime!);
-        },
-      ]
-    );
+  const isCloudEnvModalDisabled = (toolLabel: ToolLabel) => {
+    if (isAppToolLabel(toolLabel)) {
+      !canCompute ||
+        busy ||
+        (toolLabel === appToolLabels.GALAXY && isCurrentGalaxyDiskDetaching(apps)) ||
+        getIsAppBusy(currentApp(toolLabel));
+    } else {
+      const runtime = toolLabel === currentRuntimeTool ? currentRuntime : undefined;
+      // This asks 'does this tool have a runtime'
+      //  if yes, then we allow cloud env modal to open (and ComputeModal determines if it should be read-only mode)
+      //  if no, then we want to disallow the cloud env modal opening if the other tool's runtime is busy
+      //  this check is not needed if we allow multiple runtimes, and cloud env modal will never be disabled in this case
+      return runtime ? false : !canCompute || busy || getIsRuntimeBusy(currentRuntime!);
+    }
+  };
 
-  const getToolLaunchClickableProps = (toolLabel, cloudProvider) => {
-    const app = currentApp(toolLabel);
+  const getToolLaunchClickableProps = (toolLabel: ToolLabel, cloudProvider: CloudProvider) => {
+    const app = isAppToolLabel(toolLabel) && currentApp(toolLabel);
     const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || app;
     // TODO what does leoCookieReady do? Found it in the galaxy app launch code, is it needed here?
-    const isToolBusy = isAppToolLabel(toolLabel)
+    const isToolBusy = app
       ? getIsAppBusy(app) || app?.status === 'STOPPED' || app?.status === 'ERROR'
       : currentRuntime?.status === 'Error';
 
@@ -442,7 +454,7 @@ export const CloudEnvironmentModal = ({
         () => {
           return {
             ...baseProps,
-            href: app?.proxyUrls?.galaxy,
+            href: app && app?.proxyUrls?.galaxy,
             onClick: () => {
               onDismiss();
               Metrics(signal).captureEvent(Events.applicationLaunch, { app: 'Galaxy' });
@@ -457,9 +469,10 @@ export const CloudEnvironmentModal = ({
           return {
             ...baseProps,
             href:
-              cloudProvider === cloudProviderTypes.AZURE
+              app &&
+              (cloudProvider === cloudProviderTypes.AZURE
                 ? app?.proxyUrls['cbas-ui']
-                : app?.proxyUrls['cromwell-service'],
+                : app?.proxyUrls['cromwell-service']),
             onClick: () => {
               onDismiss();
               Metrics(signal).captureEvent(Events.applicationLaunch, { app: appTools.CROMWELL.label });
@@ -495,7 +508,7 @@ export const CloudEnvironmentModal = ({
     );
   };
 
-  const renderToolButtons = (toolLabel, cloudProvider) => {
+  const renderToolButtons = (toolLabel: ToolLabel, cloudProvider: CloudProvider) => {
     const app = currentApp(toolLabel);
     const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || app;
     const isCloudEnvForToolDisabled = isCloudEnvModalDisabled(toolLabel);
