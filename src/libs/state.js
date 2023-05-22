@@ -29,7 +29,7 @@ export const userStatus = {
 export const cookieReadyStore = Utils.atom(false);
 export const azureCookieReadyStore = Utils.atom({
   readyForRuntime: false,
-  readyForCromwellApp: false,
+  readyForApp: false,
 });
 
 export const lastActiveTimeStore = staticStorageSlot(getLocalStorage(), 'idleTimeout');
