@@ -1,6 +1,5 @@
 import _ from 'lodash/fp';
 import { gpuTypes, machineTypes, zonesToGpus } from 'src/data/gce-machines';
-import { AppStatus } from 'src/libs/ajax/leonardo/models/app-models';
 import { CloudContext } from 'src/libs/ajax/leonardo/models/core-models';
 import {
   AzureConfig,
@@ -130,24 +129,6 @@ export const getAnalysesDisplayList = _.flow(
 
 export const getConvertedRuntimeStatus = (runtime: Runtime | undefined): LeoRuntimeStatus | undefined => {
   return runtime && (runtime.patchInProgress ? ('Updating' as const) : runtime.status); // NOTE: preserves null vs undefined
-};
-
-export const appStatusToLeoRuntimeStatus = (appStatus: AppStatus | undefined): LeoRuntimeStatus | undefined => {
-  return (
-    appStatus &&
-    Utils.switchCase(
-      _.lowerCase(appStatus),
-      ['status_unspecified', () => 'PreStarting'],
-      ['running', () => 'Running'],
-      ['error', () => 'Error'],
-      ['deleting', () => 'Deleting'],
-      ['deleted', () => 'Deleted'],
-      ['provisioning', () => 'Creating'],
-      ['stopping', () => 'Stopping'],
-      ['stopped', () => 'Stopped'],
-      ['starting', () => 'Starting']
-    )
-  ); // NOTE: preserves null vs undefined
 };
 
 export const getDisplayRuntimeStatus = (status: LeoRuntimeStatus): DisplayRuntimeStatus =>

@@ -339,11 +339,6 @@ export const CloudEnvironmentModal = ({
       case runtimeStatuses.stopping.leoLabel:
       case runtimeStatuses.updating.leoLabel:
       case runtimeStatuses.creating.leoLabel:
-      case runtimeStatuses.prestopping.leoLabel:
-      case runtimeStatuses.prestarting.leoLabel:
-        // case 'PreCreating':
-        // case 'Provisioning':
-        // case 'LeoReconfiguring':
         return h(RuntimeIcon, {
           onClick: () => {},
           shape: 'sync',
