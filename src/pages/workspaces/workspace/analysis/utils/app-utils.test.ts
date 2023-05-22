@@ -711,4 +711,20 @@ describe('getEnvMessageBasedOnStatus', () => {
   it('displays a message for an errored app', () => {
     expect(getEnvMessageBasedOnStatus(cromwellError)).toBe('An error has occurred on your cloud environment.');
   });
+  it('displays a message for a stopped app', () => {
+    const cromwellStopped: App = { ...cromwellRunning, status: 'STOPPED' };
+    expect(getEnvMessageBasedOnStatus(cromwellStopped)).toBe('The cloud compute is paused.');
+  });
+  it('displays a message for a stopping app', () => {
+    const cromwellStopping: App = { ...cromwellRunning, status: 'STOPPING' };
+    expect(getEnvMessageBasedOnStatus(cromwellStopping)).toBe(
+      'The cloud compute is pausing. This process will take up to a few minutes.'
+    );
+  });
+  it('displays a message for a starting app', () => {
+    const cromwellStarting: App = { ...cromwellRunning, status: 'STARTING' };
+    expect(getEnvMessageBasedOnStatus(cromwellStarting)).toBe(
+      'The cloud compute is resuming. This process will take up to a few minutes.'
+    );
+  });
 });
