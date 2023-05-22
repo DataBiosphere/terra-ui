@@ -1,5 +1,6 @@
 export const JUPYTERLAB_GCP_FEATURE_ID = 'jupyterlab-gcp';
 export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP';
+export const HAIL_BATCH_AZURE_FEATURE_ID = 'hail-batch-azure';
 
 const featurePreviewsConfig = [
   {
@@ -32,7 +33,7 @@ const featurePreviewsConfig = [
     feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on workspace files browser')}`,
   },
   {
-    id: 'hail-batch-azure',
+    id: HAIL_BATCH_AZURE_FEATURE_ID,
     title: 'Hail Batch App on Azure',
     description: 'Enabling this feature will allow you to launch the Hail Batch app in Azure workspaces.',
     groups: ['preview-hail-batch-azure'],

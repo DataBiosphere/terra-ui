@@ -3,15 +3,17 @@ import { Fragment, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonOutline, ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { withModalDrawer } from 'src/components/ModalDrawer';
+import ModalDrawer from 'src/components/ModalDrawer';
 import TitleBar from 'src/components/TitleBar';
-import { Ajax } from 'src/libs/ajax';
+import { Apps } from 'src/libs/ajax/leonardo/Apps';
+import { App } from 'src/libs/ajax/leonardo/models/app-models';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { useStore, withDisplayName } from 'src/libs/react-utils';
+import { useCancellation, useStore, withDisplayName } from 'src/libs/react-utils';
 import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
+import { BaseWorkspace, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle';
 import { getCurrentApp, getEnvMessageBasedOnStatus } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
 import { appToolLabels, appTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
@@ -20,21 +22,23 @@ import { SaveFilesHelpAzure } from '../runtime-common-components';
 import { computeStyles } from './modalStyles';
 
 const titleId = 'hail-batch-modal-title';
+const deleteWarnMode = Symbol('deleteWarn');
 
-export const HailBatchModalBase = withDisplayName('HailBatchModal')(
-  ({
-    onDismiss,
-    onError,
-    onSuccess,
-    apps,
-    workspace,
-    workspace: {
-      workspace: { workspaceId },
-    },
-  }) => {
+export type HailBatchModalProps = {
+  onDismiss: () => void;
+  onError: () => void;
+  onSuccess: () => void;
+  apps: App[];
+  workspace: BaseWorkspace;
+};
+
+export const HailBatchModal = withDisplayName('HailBatchModal')(
+  ({ onDismiss, onError, onSuccess, apps, workspace }: HailBatchModalProps) => {
+    const signal = useCancellation();
     const app = getCurrentApp(appTools.HAIL_BATCH.label, apps);
+    const workspaceId = workspace.workspace.workspaceId;
     const [loading, setLoading] = useState(false);
-    const [viewMode, setViewMode] = useState(undefined);
+    const [viewMode, setViewMode] = useState<any>(undefined);
     const leoCookieReady = useStore(cookieReadyStore);
     const azureCookieReady = useStore(azureCookieReadyStore);
     const cloudProvider = getCloudProviderFromWorkspace(workspace);
@@ -44,8 +48,11 @@ export const HailBatchModalBase = withDisplayName('HailBatchModal')(
       Utils.withBusyState(setLoading),
       withErrorReportingInModal('Error creating Hail Batch', onError)
     )(async () => {
-      await Ajax().Apps.createAppV2(Utils.generateAppName(), workspaceId, appToolLabels.HAIL_BATCH);
-      Ajax().Metrics.captureEvent(Events.applicationCreate, { app: appTools.CROMWELL.label, ...extractWorkspaceDetails(workspace) });
+      await Apps(signal).createAppV2(Utils.generateAppName(), workspaceId, appToolLabels.HAIL_BATCH);
+      Metrics().captureEvent(Events.applicationCreate, {
+        app: appTools.CROMWELL.label,
+        ...extractWorkspaceDetails(workspace),
+      });
       return onSuccess();
     });
 
@@ -54,8 +61,13 @@ export const HailBatchModalBase = withDisplayName('HailBatchModal')(
       Utils.withBusyState(setLoading),
       withErrorReportingInModal('Error deleting Hail Batch', onError)
     )(async () => {
-      await Ajax().Apps.deleteAppV2(app.appName, workspaceId);
-      Ajax().Metrics.captureEvent(Events.applicationDelete, { app: appTools.HAIL_BATCH.label, ...extractWorkspaceDetails(workspace) });
+      if (app) {
+        await Apps(signal).deleteAppV2(app.appName, workspaceId);
+        Metrics().captureEvent(Events.applicationDelete, {
+          app: appTools.HAIL_BATCH.label,
+          ...extractWorkspaceDetails(workspace),
+        });
+      }
       return onSuccess();
     });
 
@@ -65,7 +77,7 @@ export const HailBatchModalBase = withDisplayName('HailBatchModal')(
         : Utils.switchCase(
             viewMode,
             [
-              'deleteWarn',
+              deleteWarnMode,
               () => {
                 return h(ButtonPrimary, { onClick: deleteHailBatch }, ['Delete']);
               },
@@ -78,17 +90,26 @@ export const HailBatchModalBase = withDisplayName('HailBatchModal')(
                   [Utils.DEFAULT, () => leoCookieReady]
                 );
                 return h(Fragment, [
-                  h(ButtonOutline, { disabled: false, style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, [
-                    'Delete Environment',
-                  ]),
+                  h(
+                    ButtonOutline,
+                    {
+                      disabled: false,
+                      style: { marginRight: 'auto' },
+                      onClick: () => setViewMode(deleteWarnMode),
+                    },
+                    ['Delete Environment']
+                  ),
                   h(
                     ButtonPrimary,
                     {
                       href: app?.proxyUrls?.batch,
                       disabled: !cookieReady,
-                      tooltip: Utils.cond([cookieReady, () => 'Open'], [Utils.DEFAULT, () => 'Please wait until Hail Batch is running']),
+                      tooltip: Utils.cond(
+                        [cookieReady, () => 'Open'],
+                        [Utils.DEFAULT, () => 'Please wait until Hail Batch is running']
+                      ),
                       onClick: () => {
-                        Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: appTools.HAIL_BATCH.label });
+                        Metrics().captureEvent(Events.applicationLaunch, { app: appTools.HAIL_BATCH.label });
                       },
                       ...Utils.newTabLinkPropsWithReferrer,
                     },
@@ -110,6 +131,7 @@ export const HailBatchModalBase = withDisplayName('HailBatchModal')(
           onPrevious: () => {
             setViewMode(undefined);
           },
+          titleChildren: [],
         }),
         div({ style: { lineHeight: '1.5rem' } }, [h(SaveFilesHelpAzure)]),
         div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-end' } }, [renderActionButton()]),
@@ -123,7 +145,8 @@ export const HailBatchModalBase = withDisplayName('HailBatchModal')(
           title: 'Hail Batch Cloud Environment',
           style: { marginBottom: '0.5rem' },
           onDismiss,
-          onPrevious: viewMode ? () => setViewMode(undefined) : undefined,
+          onPrevious: () => setViewMode(undefined),
+          titleChildren: [],
         }),
         div([getEnvMessageBasedOnStatus(app)]),
         div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
@@ -141,11 +164,19 @@ export const HailBatchModalBase = withDisplayName('HailBatchModal')(
     };
 
     const renderMessaging = () => {
-      return Utils.switchCase(viewMode, ['deleteWarn', renderDeleteWarn], [Utils.DEFAULT, renderDefaultCase]);
+      return Utils.switchCase(viewMode, [deleteWarnMode, renderDeleteWarn], [Utils.DEFAULT, renderDefaultCase]);
     };
 
-    return h(Fragment, [renderMessaging(), loading && spinnerOverlay]);
+    const modalBody = h(Fragment, [renderMessaging(), loading && spinnerOverlay]);
+
+    const modalProps = {
+      isOpen: true,
+      width: 675,
+      'aria-labelledby': titleId,
+      onDismiss,
+      onExited: onDismiss,
+    };
+
+    return h(ModalDrawer, { ...modalProps, children: modalBody });
   }
 );
-
-export const HailBatchModal = withModalDrawer({ width: 675, 'aria-labelledby': titleId })(HailBatchModalBase);

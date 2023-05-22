@@ -23,7 +23,7 @@ import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/m
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal';
 import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal';
 import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal';
-import { HailBatchModalBase } from 'src/pages/workspaces/workspace/analysis/modals/HailBatchModal';
+import { HailBatchModal } from 'src/pages/workspaces/workspace/analysis/modals/HailBatchModal';
 import { appLauncherTabName, PeriodicAzureCookieSetter } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager';
 import { doesWorkspaceSupportCromwellAppForUser, getCurrentApp, getIsAppBusy } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
@@ -532,7 +532,7 @@ export const CloudEnvironmentModal = ({
       [runtimeToolLabels.RStudio, () => renderComputeModal(runtimeToolLabels.RStudio)],
       [appToolLabels.GALAXY, () => renderAppModal(GalaxyModalBase, appToolLabels.GALAXY)],
       [appToolLabels.CROMWELL, () => renderAppModal(CromwellModalBase, appToolLabels.CROMWELL)],
-      [appToolLabels.HAIL_BATCH, () => renderAppModal(HailBatchModalBase, appToolLabels.HAIL_BATCH)],
+      [appToolLabels.HAIL_BATCH, () => renderAppModal(HailBatchModal, appToolLabels.HAIL_BATCH)],
       [Utils.DEFAULT, renderDefaultPage]
     );
 
@@ -541,7 +541,7 @@ export const CloudEnvironmentModal = ({
       viewMode,
       [runtimeToolLabels.JupyterLab, () => renderAzureModal(runtimeToolLabels.JupyterLab)],
       [appToolLabels.CROMWELL, () => renderAppModal(CromwellModalBase, appToolLabels.CROMWELL)],
-      [appToolLabels.HAIL_BATCH, () => renderAppModal(HailBatchModalBase, appToolLabels.HAIL_BATCH)],
+      [appToolLabels.HAIL_BATCH, () => renderAppModal(HailBatchModal, appToolLabels.HAIL_BATCH)],
       [Utils.DEFAULT, renderDefaultPage]
     );
 
