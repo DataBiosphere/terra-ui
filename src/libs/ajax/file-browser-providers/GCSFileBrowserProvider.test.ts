@@ -146,7 +146,7 @@ describe('GCSFileBrowserProvider', () => {
     const getSignedUrl = jest.fn(() => Promise.resolve({ url: 'signedUrl' }));
     asMockedFn(Ajax).mockImplementation(() => {
       return {
-        DrsUriResolver: { getSignedUrl } as Partial<ReturnType<typeof Ajax>['DrsUriResolver']>,
+        SamResources: { getSignedUrl } as Partial<ReturnType<typeof Ajax>['DrsUriResolver']>,
       } as ReturnType<typeof Ajax>;
     });
 
