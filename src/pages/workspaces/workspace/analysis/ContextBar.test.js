@@ -5,6 +5,7 @@ import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
 import { defaultAzureMachineType, defaultAzureRegion } from 'src/libs/azure-utils';
 import { getConfig } from 'src/libs/config';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import * as Utils from 'src/libs/utils';
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar';
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal';
@@ -16,6 +17,7 @@ import {
   runtimeConfigCost,
 } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils';
 import { appToolLabels, runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
+import { asMockedFn } from 'src/testing/test-utils';
 
 const GALAXY_COMPUTE_COST = 10;
 const GALAXY_DISK_COST = 1;
@@ -59,6 +61,7 @@ jest.mock('src/libs/config', () => ({
 }));
 
 jest.mock('src/libs/ajax');
+jest.mock('src/libs/feature-previews');
 
 beforeEach(() => {
   MenuTrigger.mockImplementation(({ content }) => {
@@ -404,6 +407,39 @@ const contextBarPropsForAzure = {
       createdDate: '2023-02-15T19:17:15.711Z',
     },
     namespace: 'Broad Azure Test Workspace',
+  },
+};
+
+const hailBatchAppRunning = {
+  appName: 'test-hail-batch-app',
+  cloudContext: {
+    cloudProvider: 'AZURE',
+    cloudResource: 'path/to/cloud/resource',
+  },
+  kubernetesRuntimeConfig: {
+    numNodes: 1,
+    machineType: 'Standard_A2_v2',
+    autoscalingEnabled: false,
+  },
+  errors: [],
+  status: 'RUNNING',
+  proxyUrls: {
+    batch: 'https://lz123.servicebus.windows.net/test-hail-batch-app/batch',
+  },
+  diskName: null,
+  customEnvironmentVariables: {},
+  auditInfo: {
+    creator: 'abc.testerson@gmail.com',
+    createdDate: '2023-01-18T23:28:47.605176Z',
+    destroyedDate: null,
+    dateAccessed: '2023-01-18T23:28:47.605176Z',
+  },
+  appType: 'HAIL_BATCH',
+  labels: {
+    cloudContext: 'path/to/cloud/context',
+    appName: 'test-cromwell-app',
+    clusterServiceAccount: '/subscriptions/123/pet-101',
+    creator: 'abc.testerson@gmail.com',
   },
 };
 
@@ -758,5 +794,41 @@ describe('ContextBar - actions', () => {
 
     // Assert
     expect(queryByText('Cloud Environment Details')).toBeFalsy();
+  });
+
+  it('will not render Hail Batch if the feature flag is disabled', () => {
+    // Arrange
+    const hailBatchContextBarProps = {
+      ...contextBarPropsForAzure,
+      apps: [hailBatchAppRunning],
+      appDataDisks: [],
+    };
+
+    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(false);
+
+    // Act
+    const { getByLabelText, queryByLabelText } = render(h(ContextBar, hailBatchContextBarProps));
+
+    // Assert
+    expect(getByLabelText('Environment Configuration'));
+    expect(queryByLabelText(new RegExp(/Hail Batch Environment/i))).not.toBeInTheDocument();
+  });
+
+  it('will render Hail Batch app if the feature flag is enabled', () => {
+    // Arrange
+    const hailBatchContextBarProps = {
+      ...contextBarPropsForAzure,
+      apps: [hailBatchAppRunning],
+      appDataDisks: [],
+    };
+
+    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true);
+
+    // Act
+    const { getByLabelText, queryByLabelText } = render(h(ContextBar, hailBatchContextBarProps));
+
+    // Assert
+    expect(getByLabelText('Environment Configuration'));
+    expect(queryByLabelText(new RegExp(/Hail Batch Environment/i)));
   });
 });
