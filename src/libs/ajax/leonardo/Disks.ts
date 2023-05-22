@@ -13,7 +13,7 @@ export const Disks = (signal) => {
   });
 
   const v1Func = () => ({
-    list: async (labels = {}): Promise<ListDiskItem> => {
+    list: async (labels = {}): Promise<ListDiskItem[]> => {
       const res = await fetchLeo(
         `api/google/v1/disks${qs.stringify(labels, { addQueryPrefix: true })}`,
         _.mergeAll([authOpts(), appIdentifier, { signal }])

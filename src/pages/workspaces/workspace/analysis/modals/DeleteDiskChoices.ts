@@ -11,7 +11,7 @@ import {
 import { getMountDir, mountPoints, ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 type DeleteDiskChoicesProps = {
-  persistentDiskCostDisplay: String;
+  persistentDiskCostDisplay: string;
   deleteDiskSelected: boolean;
   setDeleteDiskSelected: (p1: boolean) => void;
   toolLabel?: ToolLabel;
@@ -74,7 +74,7 @@ export const DeleteDiskChoices = ({
     ),
     Utils.cond(
       [toolLabel === 'RStudio', () => h(SaveFilesHelpRStudio)],
-      [cloudService === cloudServiceTypes.GCE, () => SaveFilesHelp(false)],
+      [cloudService === cloudServiceTypes.GCE, () => SaveFilesHelp({ isGalaxyDisk: false })],
       [Utils.DEFAULT, () => h(SaveFilesHelpAzure)]
     ),
   ]);

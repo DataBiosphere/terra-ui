@@ -14,7 +14,7 @@ export interface AppError extends LeoError {
   traceId?: string;
 }
 
-export type AppStatus =
+export type LeoAppStatus =
   | 'STATUS_UNSPECIFIED'
   | 'RUNNING'
   | 'ERROR'
@@ -24,13 +24,41 @@ export type AppStatus =
   | 'STOPPING'
   | 'STOPPED'
   | 'STARTING';
+export type DisplayAppStatus =
+  | 'Running'
+  | 'Deleted'
+  | 'Deleting'
+  | 'Creating'
+  | 'Resuming'
+  | 'Error'
+  | 'Pausing'
+  | 'Paused'
+  | 'Status_unspecified'
+  | 'Unknown';
+
+export interface AppStatusObject {
+  status: LeoAppStatus;
+  statusDisplay: DisplayAppStatus;
+}
+
+export const appStatuses: { [label: string]: AppStatusObject } = {
+  running: { status: 'RUNNING', statusDisplay: 'Running' },
+  error: { status: 'ERROR', statusDisplay: 'Error' },
+  deleting: { status: 'DELETING', statusDisplay: 'Deleting' },
+  deleted: { status: 'DELETED', statusDisplay: 'Deleted' },
+  provisioning: { status: 'PROVISIONING', statusDisplay: 'Creating' },
+  stopping: { status: 'STOPPING', statusDisplay: 'Pausing' },
+  stopped: { status: 'STOPPED', statusDisplay: 'Paused' },
+  starting: { status: 'STARTING', statusDisplay: 'Resuming' },
+  status_unspecified: { status: 'STATUS_UNSPECIFIED', statusDisplay: 'Status_unspecified' },
+};
 
 export interface GetAppResponse {
   appName: string;
   cloudContext: CloudContext;
   kubernetesRuntimeConfig: KubernetesRuntimeConfig;
   errors: AppError[];
-  status: AppStatus;
+  status: LeoAppStatus;
   proxyUrls: Record<string, string>;
   diskName?: string;
   customEnvironmentVariables: Record<string, string>;
@@ -45,7 +73,7 @@ export interface ListAppResponse {
   cloudContext: CloudContext;
   kubernetesRuntimeConfig: KubernetesRuntimeConfig;
   errors: AppError[];
-  status: AppStatus;
+  status: LeoAppStatus;
   proxyUrls: Record<string, string>;
   diskName?: string;
   auditInfo: AuditInfo;

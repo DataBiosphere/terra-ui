@@ -1,10 +1,33 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { version } from 'src/data/gce-machines';
-import { appIdentifier, authOpts, fetchLeo, fetchOk, jsonBody } from 'src/libs/ajax/ajax-common';
+import {
+  appIdentifier,
+  authOpts,
+  DEFAULT_RETRY_COUNT,
+  DEFAULT_TIMEOUT_DURATION,
+  fetchLeo,
+  fetchOk,
+  jsonBody,
+  makeRequestRetry,
+} from 'src/libs/ajax/ajax-common';
 import { GetRuntimeItem, ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getConfig } from 'src/libs/config';
 import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
+
+export interface GoogleRuntimeWrapper {
+  googleProject: string;
+  runtimeName: string;
+}
+export interface AzureRuntimeWrapper {
+  workspaceId: string;
+  runtimeName: string;
+}
+
+const isAzureRuntimeWrapper = (obj: any): obj is AzureRuntimeWrapper => {
+  const castObj = obj as AzureRuntimeWrapper;
+  return castObj && castObj.workspaceId !== undefined && castObj.runtimeName !== undefined;
+};
 
 export const Runtimes = (signal) => {
   const v1Func = (project: string, name: string) => {
@@ -131,17 +154,22 @@ export const Runtimes = (signal) => {
         },
 
         setStorageLinks: (localBaseDirectory, cloudStorageDirectory, pattern) => {
-          return fetchOk(
-            `${proxyUrl}/welder/storageLinks`,
-            _.mergeAll([
-              authOpts(),
-              jsonBody({
-                localBaseDirectory,
-                cloudStorageDirectory,
-                pattern,
-              }),
-              { signal, method: 'POST' },
-            ])
+          return makeRequestRetry(
+            () =>
+              fetchOk(
+                `${proxyUrl}/welder/storageLinks`,
+                _.mergeAll([
+                  authOpts(),
+                  jsonBody({
+                    localBaseDirectory,
+                    cloudStorageDirectory,
+                    pattern,
+                  }),
+                  { signal, method: 'POST' },
+                ])
+              ),
+            DEFAULT_RETRY_COUNT,
+            DEFAULT_TIMEOUT_DURATION
           );
         },
       };
@@ -185,19 +213,20 @@ export const Runtimes = (signal) => {
 
     runtimeV2: v2Func,
 
-    runtimeWrapper: ({ googleProject, runtimeName, workspaceId }) => {
+    // TODO: Consider refactoring to not use this wrapper
+    runtimeWrapper: (props: GoogleRuntimeWrapper | AzureRuntimeWrapper) => {
       return {
         stop: () => {
-          const stopFunc = workspaceId
-            ? () => v2Func(workspaceId, runtimeName).stop()
-            : () => v1Func(googleProject, runtimeName).stop();
+          const stopFunc = isAzureRuntimeWrapper(props)
+            ? () => v2Func(props.workspaceId, props.runtimeName).stop()
+            : () => v1Func(props.googleProject, props.runtimeName).stop();
           return stopFunc();
         },
 
         start: () => {
-          const startFunc = workspaceId
-            ? () => v2Func(workspaceId, runtimeName).start()
-            : () => v1Func(googleProject, runtimeName).start();
+          const startFunc = isAzureRuntimeWrapper(props)
+            ? () => v2Func(props.workspaceId, props.runtimeName).start()
+            : () => v1Func(props.googleProject, props.runtimeName).start();
           return startFunc();
         },
       };

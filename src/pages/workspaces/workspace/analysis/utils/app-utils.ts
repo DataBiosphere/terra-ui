@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
-import { App, AppStatus } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { App, DisplayAppStatus, LeoAppStatus } from 'src/libs/ajax/leonardo/models/app-models';
+import { DecoratedPersistentDisk, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { getConfig } from 'src/libs/config';
 import { getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
@@ -12,7 +12,11 @@ import {
   ToolLabel,
 } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
-const getCurrentAppExcludingStatuses = (appType: AppToolLabel, statuses: AppStatus[], apps: App[]): App | undefined =>
+const getCurrentAppExcludingStatuses = (
+  appType: AppToolLabel,
+  statuses: LeoAppStatus[],
+  apps: App[]
+): App | undefined =>
   _.flow(
     _.filter({ appType }),
     _.remove((app: App) => _.includes(app.status, statuses)),
@@ -55,7 +59,7 @@ export const getCurrentAppIncludingDeleting = (appType: AppToolLabel, apps: App[
   getCurrentAppExcludingStatuses(appType, [], apps);
 
 // If the disk was attached to an app, return the appType. Otherwise return undefined.
-export const getDiskAppType = (disk: PersistentDisk): AppToolLabel | undefined => {
+export const getDiskAppType = (disk: PersistentDisk | DecoratedPersistentDisk): AppToolLabel | undefined => {
   const saturnApp = disk.labels.saturnApplication;
   // Do a case-insensitive match as disks have been created with both "galaxy" and "GALAXY".
   const appType = _.find((type) => type.toLowerCase() === saturnApp?.toLowerCase(), allAppTypes);
@@ -73,3 +77,16 @@ export const workspaceHasMultipleApps = (apps: App[], appType: AppToolLabel): bo
 
 export const getIsAppBusy = (app: App | undefined): boolean =>
   app?.status !== 'RUNNING' && _.includes('ING', app?.status);
+
+export const getAppStatusForDisplay = (status: LeoAppStatus): DisplayAppStatus =>
+  Utils.switchCase(
+    _.lowerCase(status),
+    ['status_unspecified', () => 'Unknown'],
+    ['starting', () => 'Resuming'],
+    ['stopping', () => 'Pausing'],
+    ['stopped', () => 'Paused'],
+    ['prestarting', () => 'Resuming'],
+    ['prestopping', () => 'Pausing'],
+    ['provisioning', () => 'Creating'],
+    [Utils.DEFAULT, () => _.capitalize(status)]
+  );

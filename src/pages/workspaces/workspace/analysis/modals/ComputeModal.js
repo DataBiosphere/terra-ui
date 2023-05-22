@@ -59,7 +59,7 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import {
   getToolLabelForImage,
-  getToolLabelFromRuntime,
+  getToolLabelFromCloudEnv,
   runtimeToolLabels,
   runtimeTools,
   terraSupportedRuntimeImageIds,
@@ -238,8 +238,8 @@ export const ComputeModalBase = ({
   const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState('');
   const [runtimeType, setRuntimeType] = useState(runtimeTypes.gceVm);
   const [computeConfig, setComputeConfig] = useState({
-    persistentDiskSize: defaultGcePersistentDiskSize,
-    persistentDiskType: defaultPersistentDiskType,
+    diskSize: defaultGcePersistentDiskSize,
+    diskType: defaultPersistentDiskType,
     // The false here is valid because the modal never opens to dataproc as the default
     masterMachineType: getDefaultMachineType(false, tool),
     masterDiskSize: defaultDataprocMasterDiskSize,
@@ -307,7 +307,7 @@ export const ComputeModalBase = ({
     const shouldDeleteRuntime = existingRuntime && !canUpdateRuntime();
     const shouldCreateRuntime = !canUpdateRuntime() && !!desiredRuntime;
     const { namespace, name, bucketName, googleProject } = getWorkspaceObject();
-    const desiredToolLabel = getToolLabelFromRuntime(desiredRuntime);
+    const desiredToolLabel = getToolLabelFromCloudEnv(desiredRuntime);
 
     const customEnvVars = {
       WORKSPACE_NAME: name,
@@ -476,7 +476,7 @@ export const ComputeModalBase = ({
                 ? {
                     zone: computeConfig.computeZone,
                     region: computeConfig.computeRegion,
-                    machineType: computeConfig.masterMachineType || getDefaultMachineType(false, getToolLabelFromRuntime(existingRuntime)),
+                    machineType: computeConfig.masterMachineType || getDefaultMachineType(false, getToolLabelFromCloudEnv(existingRuntime)),
                     ...(computeConfig.gpuEnabled ? { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } } : {}),
                     bootDiskSize: existingRuntime?.bootDiskSize,
                     ...(shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected)
@@ -509,7 +509,7 @@ export const ComputeModalBase = ({
         [deleteDiskSelected, () => undefined],
         [
           viewMode !== 'deleteEnvironment' && shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected),
-          () => ({ size: computeConfig.persistentDiskSize, diskType: computeConfig.persistentDiskType }),
+          () => ({ size: computeConfig.diskSize, diskType: computeConfig.diskType }),
         ],
         () => existingPersistentDisk
       ),
@@ -533,7 +533,7 @@ export const ComputeModalBase = ({
    */
   const getPendingRuntimeConfig = () => {
     const { runtime: desiredRuntime, autopauseThreshold: desiredAutopauseThreshold } = getDesiredEnvironmentConfig();
-    const toolLabel = getToolLabelFromRuntime(desiredRuntime);
+    const toolLabel = getToolLabelFromCloudEnv(desiredRuntime);
     return {
       cloudService: desiredRuntime.cloudService,
       autopauseThreshold: desiredAutopauseThreshold,
@@ -783,8 +783,8 @@ export const ComputeModalBase = ({
 
       setRuntimeType(newRuntimeType);
       setComputeConfig({
-        persistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
-        persistentDiskType: (!!currentPersistentDiskDetails?.diskType && currentPersistentDiskDetails.diskType) || defaultPersistentDiskType,
+        diskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
+        diskType: (!!currentPersistentDiskDetails?.diskType && currentPersistentDiskDetails.diskType) || defaultPersistentDiskType,
         masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
         masterDiskSize: diskSize,
         numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
@@ -1149,7 +1149,7 @@ export const ComputeModalBase = ({
                       value: runtimeType,
                       onChange: ({ value }) => {
                         setRuntimeType(value);
-                        const defaultMachineTypeForSelectedValue = getDefaultMachineType(isDataproc(value), getToolLabelFromRuntime(value));
+                        const defaultMachineTypeForSelectedValue = getDefaultMachineType(isDataproc(value), getToolLabelFromCloudEnv(value));
                         // we need to update the compute config if the current value is smaller than the default for the dropdown option
                         if (isMachineTypeSmaller(computeConfig.masterMachineType, defaultMachineTypeForSelectedValue)) {
                           updateComputeConfig('masterMachineType', defaultMachineTypeForSelectedValue);
@@ -1485,7 +1485,7 @@ export const ComputeModalBase = ({
                   persistentDiskCostDisplay: Utils.formatUSD(getPersistentDiskCostMonthly(currentPersistentDiskDetails, computeConfig.computeRegion)),
                   deleteDiskSelected,
                   setDeleteDiskSelected,
-                  toolLabel: existingRuntime ? getToolLabelFromRuntime(existingRuntime) : undefined,
+                  toolLabel: existingRuntime ? getToolLabelFromCloudEnv(existingRuntime) : undefined,
                   cloudService: existingRuntime?.cloudService,
                 }),
               ]),

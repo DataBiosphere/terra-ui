@@ -32,9 +32,9 @@ import {
   isCurrentGalaxyDiskDetaching,
 } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils';
 import {
-  getComputeStatusForDisplay,
   getConvertedRuntimeStatus,
   getCurrentRuntime,
+  getDisplayRuntimeStatus,
   getIsRuntimeBusy,
   getRuntimeForTool,
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
@@ -294,7 +294,7 @@ export const CloudEnvironmentModal = ({
           toolLabel,
           disabled: true,
           tooltip: 'Environment update in progress',
-          messageChildren: [span(getComputeStatusForDisplay(status))],
+          messageChildren: [span(getDisplayRuntimeStatus(status))],
           style: { color: colors.dark(0.7) },
         });
       case 'Error':
