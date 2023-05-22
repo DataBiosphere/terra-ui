@@ -43,8 +43,14 @@ export interface BaseWorkspace {
   workspace: WorkspaceInfo;
 }
 
+export interface AzureContext {
+  managedResourceGroupId: string;
+  subscriptionId: string;
+  tenantId: string;
+}
+
 export interface AzureWorkspace extends BaseWorkspace {
-  azureContext: any;
+  azureContext: AzureContext;
 }
 
 export interface GoogleWorkspace extends BaseWorkspace {

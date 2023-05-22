@@ -10,9 +10,9 @@ import galaxyLogo from 'src/images/galaxy-logo.svg';
 import jupyterLogo from 'src/images/jupyter-logo-long.png';
 import rstudioBioLogo from 'src/images/r-bio-logo.svg';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
-import { App } from 'src/libs/ajax/leonardo/models/app-models';
+import { App, appStatuses, LeoAppStatus } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
-import { LeoRuntimeStatus, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { LeoRuntimeStatus, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
@@ -50,8 +50,6 @@ import {
   isCurrentGalaxyDiskDetaching,
 } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils';
 import {
-  appStatusToLeoRuntimeStatus,
-  getComputeStatusForDisplay,
   getConvertedRuntimeStatus,
   getCurrentRuntime,
   getIsRuntimeBusy,
@@ -299,16 +297,16 @@ export const CloudEnvironmentModal = ({
       return getIconFromStatus(toolLabel, currentRuntimeStatus);
     }
     if (isAppToolLabel(toolLabel)) {
-      const normalizedAppStatus = appStatusToLeoRuntimeStatus(currentApp(toolLabel)?.status);
-      return getIconFromStatus(toolLabel, normalizedAppStatus);
+      return getIconFromStatus(toolLabel, currentApp(toolLabel)?.status);
     }
     return defaultIcon(toolLabel);
   };
 
-  const getIconFromStatus = (toolLabel: ToolLabel, status: LeoRuntimeStatus | undefined) => {
+  const getIconFromStatus = (toolLabel: ToolLabel, status: LeoAppStatus | LeoRuntimeStatus | undefined) => {
     // We dont use Utils.switchCase here to support the 'fallthrough' functionality
     switch (status) {
-      case 'Stopped':
+      case runtimeStatuses.stopped.leoLabel:
+      case appStatuses.stopped.status:
         return h(RuntimeIcon, {
           style: {},
           shape: 'play',
@@ -318,7 +316,8 @@ export const CloudEnvironmentModal = ({
           messageChildren: [span(['Resume'])],
           tooltip: canCompute ? 'Resume Environment' : noCompute,
         });
-      case 'Running':
+      case runtimeStatuses.running.leoLabel:
+      case appStatuses.running.status:
         return (
           isPauseSupported(toolLabel) &&
           h(RuntimeIcon, {
@@ -331,12 +330,17 @@ export const CloudEnvironmentModal = ({
             tooltip: canCompute ? 'Pause Environment' : noCompute,
           })
         );
-      case 'Starting':
-      case 'Stopping':
-      case 'Updating':
-      case 'Creating':
-      case 'PreStopping':
-      case 'PreStarting':
+      case appStatuses.starting.status:
+      case appStatuses.stopping.status:
+      case appStatuses.provisioning.status:
+      case appStatuses.deleting.status:
+      case appStatuses.status_unspecified.status:
+      case runtimeStatuses.starting.leoLabel:
+      case runtimeStatuses.stopping.leoLabel:
+      case runtimeStatuses.updating.leoLabel:
+      case runtimeStatuses.creating.leoLabel:
+      case runtimeStatuses.prestopping.leoLabel:
+      case runtimeStatuses.prestarting.leoLabel:
         // case 'PreCreating':
         // case 'Provisioning':
         // case 'LeoReconfiguring':
@@ -346,10 +350,11 @@ export const CloudEnvironmentModal = ({
           toolLabel,
           disabled: true,
           tooltip: 'Environment update in progress',
-          messageChildren: [span([getComputeStatusForDisplay(status)])],
+          messageChildren: [span([_.capitalize(status)])],
           style: { color: colors.dark(0.7) },
         });
-      case 'Error':
+      case appStatuses.error.status:
+      case runtimeStatuses.error.leoLabel:
         return h(RuntimeIcon, {
           shape: 'warning-standard',
           toolLabel,

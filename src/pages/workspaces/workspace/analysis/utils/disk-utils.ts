@@ -50,7 +50,7 @@ export const getCurrentAttachedDataDisk = (
   return currentDisk ? updatePdType(currentDisk) : currentDisk;
 };
 
-export const workspaceHasMultipleDisks = (disks: PersistentDisk[], diskAppType: AppToolLabel): boolean => {
+export const workspaceHasMultipleDisks = (disks: DecoratedPersistentDisk[], diskAppType: AppToolLabel): boolean => {
   const appTypeDisks = _.filter((disk) => getDiskAppType(disk) === diskAppType && disk.status !== 'Deleting', disks);
   const diskWorkspaces = _.map((currentDisk) => currentDisk.labels.saturnWorkspaceName, appTypeDisks);
   return _.uniq(diskWorkspaces).length < diskWorkspaces.length;

@@ -3,7 +3,9 @@ import { gpuTypes, machineTypes, zonesToGpus } from 'src/data/gce-machines';
 import { AppStatus } from 'src/libs/ajax/leonardo/models/app-models';
 import { CloudContext } from 'src/libs/ajax/leonardo/models/core-models';
 import {
+  AzureConfig,
   GoogleRuntimeConfig,
+  isAzureConfig,
   isDataprocConfig,
   isGceConfig,
   isGceWithPdConfig,
@@ -61,11 +63,14 @@ export const getRegionFromZone = (zone: string) => zone.slice(0, -2);
 export type NormalizedComputeRegion = NominalType<string, 'ComputeRegion'>;
 
 // TODO: test when zone and region have types
-export const getNormalizedComputeRegion = (config: GoogleRuntimeConfig): NormalizedComputeRegion => {
+export const getNormalizedComputeRegion = (config: GoogleRuntimeConfig | AzureConfig): NormalizedComputeRegion => {
   if (isGceConfig(config) || isGceWithPdConfig(config)) {
     return getRegionFromZone(config.zone).toUpperCase() as NormalizedComputeRegion;
   }
   if (isDataprocConfig(config)) {
+    return config.region.toUpperCase() as NormalizedComputeRegion;
+  }
+  if (isAzureConfig(config)) {
     return config.region.toUpperCase() as NormalizedComputeRegion;
   }
   return defaultComputeRegion as NormalizedComputeRegion;
@@ -145,7 +150,7 @@ export const appStatusToLeoRuntimeStatus = (appStatus: AppStatus | undefined): L
   ); // NOTE: preserves null vs undefined
 };
 
-export const getComputeStatusForDisplay = (status: LeoRuntimeStatus): DisplayRuntimeStatus =>
+export const getDisplayRuntimeStatus = (status: LeoRuntimeStatus): DisplayRuntimeStatus =>
   Utils.switchCase(
     _.lowerCase(status),
     ['leoreconfiguring', () => 'Updating'],
@@ -190,5 +195,3 @@ export const isGcpContext = (cloudContext: CloudContext): boolean =>
   cloudContext.cloudProvider === cloudProviders.gcp.label;
 export const isAzureContext = (cloudContext: CloudContext): boolean =>
   cloudContext.cloudProvider === cloudProviders.azure.label;
-
-export const getCreatorForRuntime = (runtime: Runtime): string => runtime?.auditInfo?.creator;

@@ -15,6 +15,20 @@ import { GetRuntimeItem, ListRuntimeItem } from 'src/libs/ajax/leonardo/models/r
 import { getConfig } from 'src/libs/config';
 import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
 
+export interface GoogleRuntimeWrapper {
+  googleProject: string;
+  runtimeName: string;
+}
+export interface AzureRuntimeWrapper {
+  workspaceId: string;
+  runtimeName: string;
+}
+
+const isAzureRuntimeWrapper = (obj: any): obj is AzureRuntimeWrapper => {
+  const castObj = obj as AzureRuntimeWrapper;
+  return castObj && castObj.workspaceId !== undefined && castObj.runtimeName !== undefined;
+};
+
 export const Runtimes = (signal) => {
   const v1Func = (project: string, name: string) => {
     const root = `api/google/v1/runtimes/${project}/${name}`;
@@ -199,27 +213,20 @@ export const Runtimes = (signal) => {
 
     runtimeV2: v2Func,
 
-    runtimeWrapper: ({
-      googleProject,
-      runtimeName,
-      workspaceId,
-    }: {
-      googleProject: string;
-      runtimeName: string;
-      workspaceId?: string;
-    }) => {
+    // TODO: Consider refactoring to not use this wrapper
+    runtimeWrapper: (props: GoogleRuntimeWrapper | AzureRuntimeWrapper) => {
       return {
         stop: () => {
-          const stopFunc = workspaceId
-            ? () => v2Func(workspaceId, runtimeName).stop()
-            : () => v1Func(googleProject, runtimeName).stop();
+          const stopFunc = isAzureRuntimeWrapper(props)
+            ? () => v2Func(props.workspaceId, props.runtimeName).stop()
+            : () => v1Func(props.googleProject, props.runtimeName).stop();
           return stopFunc();
         },
 
         start: () => {
-          const startFunc = workspaceId
-            ? () => v2Func(workspaceId, runtimeName).start()
-            : () => v1Func(googleProject, runtimeName).start();
+          const startFunc = isAzureRuntimeWrapper(props)
+            ? () => v2Func(props.workspaceId, props.runtimeName).start()
+            : () => v1Func(props.googleProject, props.runtimeName).start();
           return startFunc();
         },
       };
