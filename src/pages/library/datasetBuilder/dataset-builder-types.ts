@@ -53,6 +53,6 @@ export interface ProgramDataListType extends ProgramDataType {
 
 export interface DomainType {
   id: number;
-  name: string;
+  category: string;
   values: string[];
 }

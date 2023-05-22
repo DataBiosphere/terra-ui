@@ -146,8 +146,29 @@ const maybeCall = (maybeFn) => (_.isFunction(maybeFn) ? maybeFn() : maybeFn);
  *
  * DEPRECATED: If a value is not a function, it will be returned directly instead.
  * This behavior is deprecated, and will be removed in the future.
+ *
+ * @Deprecated use condTyped instead
  */
 export const cond = (...args) => {
+  console.assert(
+    _.every((arg) => {
+      return _.isFunction(arg) || (_.isArray(arg) && arg.length === 2 && _.isFunction(arg[1]));
+    }, args),
+    'Invalid arguments to Utils.cond'
+  );
+  for (const arg of args) {
+    if (_.isArray(arg)) {
+      const [predicate, value] = arg;
+      if (predicate) return maybeCall(value);
+    } else {
+      return maybeCall(arg);
+    }
+  }
+};
+
+type CondArgType<T> = [boolean, T | (() => T)];
+
+export const condTyped = <T>(...args: CondArgType<T>[]): T | undefined => {
   console.assert(
     _.every((arg) => {
       return _.isFunction(arg) || (_.isArray(arg) && arg.length === 2 && _.isFunction(arg[1]));

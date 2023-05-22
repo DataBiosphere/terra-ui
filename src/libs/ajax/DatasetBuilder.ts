@@ -31,11 +31,11 @@ export const DatasetBuilder = (_signal?: AbortSignal): DatasetBuilderContract =>
         },
       ],
       domainTypes: [
-        { id: 10, name: 'Condition', values: ['Heart Disease', 'Diabetes', 'Cancer'] },
-        { id: 11, name: 'Procedure', values: ['Heart Surgery', 'Knee Surgery', 'Cancer Surgery'] },
-        { id: 12, name: 'Observation', values: ['Blood Pressure', 'Weight', 'Height'] },
-        { id: 13, name: 'Drug', values: ['Lipitor', 'Metformin', 'Insulin'] },
-        { id: 14, name: 'Labs and measurements', values: ['Blood Pressure', 'Weight', 'Height'] },
+        { id: 10, category: 'Condition', values: ['Heart Disease', 'Diabetes', 'Cancer'] },
+        { id: 11, category: 'Procedure', values: ['Heart Surgery', 'Knee Surgery', 'Cancer Surgery'] },
+        { id: 12, category: 'Observation', values: ['Blood Pressure', 'Weight', 'Height'] },
+        { id: 13, category: 'Drug', values: ['Lipitor', 'Metformin', 'Insulin'] },
+        { id: 14, category: 'Labs and measurements', values: ['Blood Pressure', 'Weight', 'Height'] },
       ],
     }),
 });

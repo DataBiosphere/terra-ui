@@ -81,32 +81,31 @@ const renderCriteria = (deleteCriteria: (criteria) => void) => (criteria: Criter
 function createCriteriaFromType(
   type: DomainType | ProgramDataRangeType | ProgramDataListType
 ): DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria {
-  // return Utils.cond(
-  //   [
-  //     'category' in type,
-  //     () => {
-  //       const domainCriteria = criteria as DomainCriteria;
-  //       return div([`Domain: ${domainCriteria.category}: ${criteria.name}`]);
-  //     },
-  //   ],
-  //   [
-  //     'valueId' in criteria,
-  //     () => {
-  //       const listCriteria = criteria as ProgramDataListCriteria;
-  //       return div([`Program Data: ${criteria.name} Value: ${listCriteria.value}`]);
-  //     },
-  //   ],
-  //   [
-  //     'low' in criteria,
-  //     () => {
-  //       const rangeCriteria = criteria as ProgramDataRangeCriteria;
-  //       return div([`Program Data: ${criteria.name} Value: ${rangeCriteria.low} - ${rangeCriteria.high}`]);
-  //     },
-  //   ],
-  //   [Utils.DEFAULT, () => div(['Unknown criteria type'])]
-  // );
-  console.log(type);
-  return { name: 'test', count: 0, id: 0, category: 'test' };
+  return (
+    Utils.condTyped<DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria>(
+      [
+        'category' in type,
+        () => {
+          const domainType = type as DomainType;
+          return { name: domainType.values[0], id: domainType.id, category: domainType.category, count: 0 };
+        },
+      ],
+      [
+        'values' in type,
+        () => {
+          const listType = type as ProgramDataListType;
+          return { name: listType.name, id: listType.id, count: 0, valueId: 0, value: listType.values[0] };
+        },
+      ],
+      [
+        'min' in type,
+        () => {
+          const rangeType = type as ProgramDataRangeType;
+          return { name: rangeType.name, id: rangeType.id, count: 0, low: rangeType.min, high: rangeType.max };
+        },
+      ]
+    ) || { category: 'unknown', name: 'unknown', count: 0, id: 0 }
+  );
 }
 
 const RenderCohort = ({
@@ -211,7 +210,7 @@ const RenderCohort = ({
                               options: _.map((domainType) => {
                                 return {
                                   value: domainType,
-                                  label: domainType.name,
+                                  label: domainType.category,
                                 };
                               }, datasetDetails.domainTypes),
                             },
@@ -228,6 +227,7 @@ const RenderCohort = ({
                           placeholder: 'Add criteria',
                           value: undefined,
                           onChange: (x) => {
+                            // FIXME: remove any
                             const criteria = createCriteriaFromType((x as any).value);
                             _.flow(
                               _.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, criteria),
