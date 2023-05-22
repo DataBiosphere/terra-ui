@@ -8,6 +8,7 @@ import {
   getCurrentApp,
   getCurrentAppIncludingDeleting,
   getDiskAppType,
+  getEnvMessageBasedOnStatus,
   workspaceHasMultipleApps,
 } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
 import {
@@ -430,6 +431,29 @@ const nonCreatorWorkspaceAfterWPP = {
   createdBy: 'non-workspace-creator@gmail.com',
 };
 
+const cromwellError: App = {
+  cloudContext: {
+    cloudProvider: cloudProviderTypes.GCP,
+    cloudResource: 'terra-test-e4000484',
+  },
+  appName: 'terra-app-83f46705-524c-4fc8-xcyc-97fdvcfby14f',
+  appType: 'CROMWELL',
+  auditInfo: {
+    creator: 'cahrens@gmail.com',
+    createdDate: '2021-11-28T20:28:01.998494Z',
+    dateAccessed: '2021-11-28T20:28:01.998494Z',
+  },
+  diskName: 'saturn-pd-693a9707-634d-4134-bb3a-xyz73cd5a8ce',
+  errors: [],
+  kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+  labels: {},
+  proxyUrls: {
+    'cromwell-service':
+      'https://leonardo-fiab.dsde-dev.broadinstitute.org/fd0cfbb14f/cromwell-service/swagger/cromwell.yaml',
+  },
+  status: 'ERROR',
+};
+
 describe('getCurrentApp', () => {
   it('returns undefined if no instances of the app exist', () => {
     expect(getCurrentApp(appTools.GALAXY.label, [])).toBeUndefined();
@@ -666,4 +690,25 @@ describe('doesWorkspaceSupportCromwellAppForUser - Non-Prod', () => {
       );
     }
   );
+});
+
+describe('getEnvMessageBasedOnStatus', () => {
+  it('displays a generic message if there is no app', () => {
+    expect(getEnvMessageBasedOnStatus(undefined)).toBe(
+      'A cloud environment consists of application configuration, cloud compute and persistent disk(s).'
+    );
+  });
+  it('displays a generic message for a running app', () => {
+    expect(getEnvMessageBasedOnStatus(cromwellRunning)).toBe(
+      'A cloud environment consists of application configuration, cloud compute and persistent disk(s).'
+    );
+  });
+  it('displays a message for a provisioning app', () => {
+    expect(getEnvMessageBasedOnStatus(cromwellProvisioning)).toBe(
+      'The cloud compute is provisioning, which may take several minutes.'
+    );
+  });
+  it('displays a message for an errored app', () => {
+    expect(getEnvMessageBasedOnStatus(cromwellError)).toBe('An error has occurred on your cloud environment.');
+  });
 });
