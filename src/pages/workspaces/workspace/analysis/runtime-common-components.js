@@ -151,12 +151,12 @@ export function PeriodicCookieSetter() {
   return null;
 }
 
-export function PeriodicAzureCookieSetter({ proxyUrl, forCromwell = false }) {
+export function PeriodicAzureCookieSetter({ proxyUrl, forApp = false }) {
   const signal = useCancellation();
   usePollingEffect(
     withErrorIgnoring(async () => {
       await Ajax(signal).Runtimes.azureProxy(proxyUrl).setAzureCookie();
-      if (forCromwell) azureCookieReadyStore.update(_.set('readyForCromwellApp', true));
+      if (forApp) azureCookieReadyStore.update(_.set('readyForApp', true));
       else azureCookieReadyStore.update(_.set('readyForRuntime', true));
     }),
     { ms: 5 * 60 * 1000, leading: true }

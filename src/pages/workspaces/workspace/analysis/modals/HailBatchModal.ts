@@ -86,7 +86,7 @@ export const HailBatchModal = withDisplayName('HailBatchModal')(
               Utils.DEFAULT,
               () => {
                 const cookieReady = Utils.cond(
-                  [cloudProvider === cloudProviderTypes.AZURE, () => azureCookieReady.readyForCromwellApp],
+                  [cloudProvider === cloudProviderTypes.AZURE, () => azureCookieReady.readyForApp],
                   [Utils.DEFAULT, () => leoCookieReady]
                 );
                 return h(Fragment, [

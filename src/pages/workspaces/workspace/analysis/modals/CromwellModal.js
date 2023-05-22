@@ -70,7 +70,7 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
 
     const renderActionButton = () => {
       const cookieReady = Utils.cond(
-        [cloudProvider === cloudProviderTypes.AZURE, () => azureCookieReady.readyForCromwellApp],
+        [cloudProvider === cloudProviderTypes.AZURE, () => azureCookieReady.readyForApp],
         [Utils.DEFAULT, () => leoCookieReady]
       );
       return !app
