@@ -26,7 +26,7 @@ export interface AzureRuntimeWrapper {
 
 const isAzureRuntimeWrapper = (obj: any): obj is AzureRuntimeWrapper => {
   const castObj = obj as AzureRuntimeWrapper;
-  return castObj && castObj.workspaceId !== undefined && castObj.runtimeName !== undefined;
+  return castObj && !!castObj.workspaceId && !!castObj.runtimeName;
 };
 
 export const Runtimes = (signal) => {
