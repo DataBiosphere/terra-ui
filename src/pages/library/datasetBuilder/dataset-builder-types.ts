@@ -59,7 +59,7 @@ export const createCriteriaGroup = (): CriteriaGroup => {
   return {
     criteria: [],
     mustMeet: true,
-    meetAll: true,
+    meetAll: false,
     count: 0,
   };
 };

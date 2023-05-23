@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment, useEffect } from 'react';
+import { Fragment } from 'react';
 import { div, h, h2, h3 } from 'react-hyperscript-helpers';
 import { ButtonOutline, Link, Select, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
@@ -8,7 +8,7 @@ import TopBar from 'src/components/TopBar';
 import { DatasetBuilder, DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
-import { useStore } from 'src/libs/react-utils';
+import { useOnMount, useStore } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import {
   Cohort,
@@ -121,7 +121,7 @@ function createCriteriaFromType(
       ['category' in type, () => selectDomainCriteria(type as DomainType)],
       ['values' in type, () => createDefaultListCriteria(type as ProgramDataListType)],
       ['min' in type, () => createDefaultRangeCriteria(type as ProgramDataRangeType)]
-    ) || { category: 'unknown', name: 'unknown', count: 0, id: 0 }
+    ) ?? { category: 'unknown', name: 'unknown', count: 0, id: 0 }
   );
 }
 
@@ -357,14 +357,9 @@ interface CohortEditorProps {
 
 export const CohortEditorView = ({ datasetId, cohortName }: CohortEditorProps) => {
   const [datasetDetails, loadDatasetDetails] = useLoadedData<DatasetResponse>();
-  useEffect(
-    () => {
-      loadDatasetDetails(() => DatasetBuilder().retrieveDataset(datasetId));
-    },
-    // loadDatasetDetails changes on each render, so cannot depend on it
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
+  useOnMount(() => {
+    void loadDatasetDetails(() => DatasetBuilder().retrieveDataset(datasetId));
+  });
 
   return datasetDetails.status === 'Ready'
     ? h(FooterWrapper, { alwaysShow: true }, [
