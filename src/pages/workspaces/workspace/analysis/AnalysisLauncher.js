@@ -43,8 +43,8 @@ import { findPotentialNotebookLockers, getExtension, getFileName, notebookLockHa
 import { getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import {
   getPatternFromRuntimeTool,
+  getToolLabelFromCloudEnv,
   getToolLabelFromFileExtension,
-  getToolLabelFromRuntime,
   runtimeToolLabels,
 } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
@@ -90,7 +90,7 @@ const AnalysisLauncher = _.flow(
     // note that here, the file tool is either Jupyter or RStudio, and cannot be azure (as .ipynb extensions are used for azure as well)
     // hence, currentRuntimeToolLabel is not always currentFileToolLabel
     const currentFileToolLabel = getToolLabelFromFileExtension(analysisName);
-    const currentRuntimeToolLabel = getToolLabelFromRuntime(currentRuntime);
+    const currentRuntimeToolLabel = getToolLabelFromCloudEnv(currentRuntime);
     const iframeStyles = { height: '100%', width: '100%' };
     const isAzureWorkspace = !!workspace.azureContext;
 
@@ -378,7 +378,7 @@ const PreviewHeader = ({
   const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name, analysisName });
   const isAzureWorkspace = !!workspace.azureContext;
   const isGcpWorkspace = !!workspace.workspace.googleProject;
-  const currentRuntimeToolLabel = getToolLabelFromRuntime(runtime);
+  const currentRuntimeToolLabel = getToolLabelFromCloudEnv(runtime);
   const enableJupyterLabPersistenceId = `${namespace}/${name}/${ENABLE_JUPYTERLAB_ID}`;
   const [enableJupyterLabGCP] = useState(() => getLocalPref(enableJupyterLabPersistenceId) || false);
 

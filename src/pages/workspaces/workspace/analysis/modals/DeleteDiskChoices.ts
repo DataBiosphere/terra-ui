@@ -74,7 +74,7 @@ export const DeleteDiskChoices = ({
     ),
     Utils.cond(
       [toolLabel === 'RStudio', () => h(SaveFilesHelpRStudio)],
-      [cloudService === cloudServiceTypes.GCE, () => SaveFilesHelp(false)],
+      [cloudService === cloudServiceTypes.GCE, () => SaveFilesHelp({ isGalaxyDisk: false })],
       [Utils.DEFAULT, () => h(SaveFilesHelpAzure)]
     ),
   ]);

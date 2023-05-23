@@ -23,7 +23,7 @@ import {
   RadioBlock,
   SaveFilesHelpGalaxy,
 } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
-import { getCurrentApp } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
+import { getCurrentApp, getEnvMessageBasedOnStatus } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
 import { getGalaxyComputeCost, getGalaxyDiskCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils';
 import { getCurrentAppDataDisk, getCurrentAttachedDataDisk } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils';
 import { findMachineType } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
@@ -283,24 +283,6 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
         div({ style: { lineHeight: '22px' } }, [h(GalaxyWarning)]),
         div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-end' } }, [renderActionButton()]),
       ]);
-    };
-
-    const getEnvMessageBasedOnStatus = (app) => {
-      const waitMessage = 'This process will take up to a few minutes.';
-      const nonStatusSpecificMessage = 'A cloud environment consists of application configuration, cloud compute and persistent disk(s).';
-
-      return !app
-        ? nonStatusSpecificMessage
-        : Utils.switchCase(
-            app.status,
-            ['STOPPED', () => 'The cloud compute is paused.'],
-            ['PRESTOPPING', () => 'The cloud compute is preparing to pause.'],
-            ['STOPPING', () => `The cloud compute is pausing. ${waitMessage}`],
-            ['PRESTARTING', () => 'The cloud compute is preparing to resume.'],
-            ['STARTING', () => `The cloud compute is resuming. ${waitMessage}`],
-            ['RUNNING', () => nonStatusSpecificMessage],
-            ['ERROR', () => 'An error has occurred on your cloud environment.']
-          );
     };
 
     // TODO Refactor this and the duplicate in ComputeModal.js

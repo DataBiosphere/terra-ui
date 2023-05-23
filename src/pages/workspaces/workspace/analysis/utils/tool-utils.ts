@@ -1,13 +1,15 @@
 import _ from 'lodash/fp';
 import { code } from 'react-hyperscript-helpers';
+import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { isCromwellAppVisible } from 'src/libs/config';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import * as Utils from 'src/libs/utils';
 import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils';
 import { FileExtension, getExtension } from 'src/pages/workspaces/workspace/analysis/utils/file-utils';
 
 export type RuntimeToolLabel = 'Jupyter' | 'RStudio' | 'JupyterLab';
-export type AppToolLabel = 'GALAXY' | 'CROMWELL';
+export type AppToolLabel = 'GALAXY' | 'CROMWELL' | 'HAIL_BATCH';
 export type LaunchableToolLabel = 'spark' | 'terminal' | 'RStudio' | 'JupyterLab';
 export type ToolLabel = RuntimeToolLabel | AppToolLabel;
 
@@ -30,11 +32,13 @@ export const toolLabelDisplays: Record<ToolLabel, string> = {
   JupyterLab: 'JupyterLab',
   GALAXY: 'Galaxy',
   CROMWELL: 'Cromwell',
+  HAIL_BATCH: 'Hail Batch',
 };
 
 export const appToolLabels: Record<AppToolLabel, AppToolLabel> = {
   GALAXY: 'GALAXY',
   CROMWELL: 'CROMWELL',
+  HAIL_BATCH: 'HAIL_BATCH',
 };
 
 export const isAppToolLabel = (x: ToolLabel): x is AppToolLabel => x in appToolLabels;
@@ -104,9 +108,12 @@ const Galaxy: AppTool = { label: 'GALAXY' };
 
 const Cromwell: AppTool = { label: 'CROMWELL', isPauseUnsupported: true };
 
+const HailBatch: AppTool = { label: 'HAIL_BATCH', isPauseUnsupported: true };
+
 export const appTools: Record<AppToolLabel, AppTool> = {
   GALAXY: Galaxy,
   CROMWELL: Cromwell,
+  HAIL_BATCH: HailBatch,
 };
 
 export const runtimeTools: Record<RuntimeToolLabel, RuntimeTool> = {
@@ -130,7 +137,7 @@ export const cloudRuntimeTools: Record<CloudProvider, RuntimeTool[]> = {
 
 export const cloudAppTools: Record<CloudProvider, AppTool[]> = {
   GCP: [Galaxy, Cromwell],
-  AZURE: [Cromwell],
+  AZURE: [Cromwell, HailBatch],
 };
 
 export interface ExtensionDisplay {
@@ -179,7 +186,7 @@ export const getToolLabelForImage = (image: string): ToolLabel | undefined =>
 export const getToolLabelFromFileExtension = (fileName: FileExtension): ToolLabel =>
   extensionToToolMap[getExtension(fileName)];
 
-export const getToolLabelFromRuntime = (runtime: Runtime): ToolLabel => runtime?.labels?.tool;
+export const getToolLabelFromCloudEnv = (cloudEnv: Runtime | App): ToolLabel => cloudEnv?.labels?.tool;
 
 // Returns registered appTypes.
 export const allAppTypes: AppToolLabel[] = _.flow(_.map('label'), _.compact)(appTools);
@@ -191,6 +198,11 @@ export const isToolHidden = (toolLabel: ToolLabel, cloudProvider: CloudProvider)
   Utils.cond(
     [
       toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviderTypes.GCP && !isCromwellAppVisible(),
+      () => true,
+    ],
+    [
+      toolLabel === appToolLabels.HAIL_BATCH &&
+        (cloudProvider === cloudProviderTypes.GCP || !isFeaturePreviewEnabled('hail-batch-azure')),
       () => true,
     ],
     [Utils.DEFAULT, () => false]

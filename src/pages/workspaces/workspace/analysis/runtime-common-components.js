@@ -151,12 +151,12 @@ export function PeriodicCookieSetter() {
   return null;
 }
 
-export function PeriodicAzureCookieSetter({ proxyUrl, forCromwell = false }) {
+export function PeriodicAzureCookieSetter({ proxyUrl, forApp = false }) {
   const signal = useCancellation();
   usePollingEffect(
     withErrorIgnoring(async () => {
       await Ajax(signal).Runtimes.azureProxy(proxyUrl).setAzureCookie();
-      if (forCromwell) azureCookieReadyStore.update(_.set('readyForCromwellApp', true));
+      if (forApp) azureCookieReadyStore.update(_.set('readyForApp', true));
       else azureCookieReadyStore.update(_.set('readyForRuntime', true));
     }),
     { ms: 5 * 60 * 1000, leading: true }
@@ -164,7 +164,7 @@ export function PeriodicAzureCookieSetter({ proxyUrl, forCromwell = false }) {
   return null;
 }
 
-export const SaveFilesHelp = (isGalaxyDisk = false) => {
+export const SaveFilesHelp = ({ isGalaxyDisk = false }) => {
   return h(Fragment, [
     p([
       'If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
@@ -177,8 +177,8 @@ export const SaveFilesHelp = (isGalaxyDisk = false) => {
         },
         ['move them to the workspace bucket.']
       ),
+      !isGalaxyDisk ? 'Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.' : '',
     ]),
-    !isGalaxyDisk && p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.']),
   ]);
 };
 

@@ -32,7 +32,7 @@ export interface GceWithPdConfig extends BaseRuntimeConfig {
 
 export interface DataprocConfig extends BaseRuntimeConfig {
   numberOfWorkers: number;
-  autopauseThreshold: number; // TODO: Add to base config
+  autopauseThreshold?: number; // TODO: Add to base config
   masterMachineType: string;
   masterDiskSize: number;
   workerMachineType?: string;
@@ -71,6 +71,5 @@ export const isGceConfig = (config: RuntimeConfig): config is GceConfig => {
   const castConfig = config as GceConfig;
   return config.cloudService === 'GCE' && castConfig.diskSize !== undefined;
 };
-export const isAzureConfig = (config: RuntimeConfig): config is AzureConfig => {
-  return config.cloudService === 'AZURE_VM';
-};
+
+export const isAzureConfig = (config: RuntimeConfig): config is AzureConfig => config.cloudService === 'AZURE_VM';

@@ -24,6 +24,18 @@ const getMaxDownloadCostNA = (bytes) => {
 export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, accessUrl, workspace }) => {
   const signal = useCancellation();
   const [url, setUrl] = useState();
+  const getUrlFromDrsProvider = async () => {
+    const { url } = await Ajax(signal).DrsUriResolver.getSignedUrl({
+      bucket,
+      object: name,
+      googleProject: workspace.workspace.googleProject,
+      dataObjectUri: uri,
+    });
+    return url;
+  };
+  const getUrlFromSam = async () => {
+    return await Ajax(signal).SamResources.getSignedUrl(bucket, name, workspace.workspace.googleProject);
+  };
   const getUrl = async () => {
     if (accessUrl?.url) {
       /*
@@ -39,13 +51,8 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
       setUrl(uri);
     } else {
       try {
-        // This is still using Martha instead of DrsHub because DrsHub has not yet implemented signed URLs
-        const { url } = await Ajax(signal).DrsUriResolver.getSignedUrl({
-          bucket,
-          object: name,
-          dataObjectUri: isDrsUri(uri) ? uri : undefined,
-        });
         const userProject = await getUserProjectForWorkspace(workspace);
+        const url = isDrsUri(uri) ? await getUrlFromDrsProvider() : await getUrlFromSam();
         setUrl(knownBucketRequesterPaysStatuses.get()[bucket] ? Utils.mergeQueryParams({ userProject }, url) : url);
       } catch (error) {
         setUrl(null);
