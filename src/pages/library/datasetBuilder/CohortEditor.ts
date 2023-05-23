@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { Fragment, useEffect } from 'react';
 import { div, h, h2, h3 } from 'react-hyperscript-helpers';
-import { ButtonPrimary, Link, Select, spinnerOverlay } from 'src/components/common';
+import { ButtonOutline, Link, Select, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
 import TopBar from 'src/components/TopBar';
@@ -12,6 +12,7 @@ import { useStore } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import {
   Cohort,
+  createCriteriaGroup,
   Criteria,
   CriteriaGroup,
   DomainCriteria,
@@ -26,6 +27,9 @@ import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
 
 const PAGE_PADDING_HEIGHT = 0;
 const PAGE_PADDING_WIDTH = 3;
+
+const pickRandom = <T>(array: T[]): T => array[Math.floor(Math.random() * array.length)];
+const randomInt = (): number => Math.floor(Math.random() * 1000);
 
 const renderCriteria = (deleteCriteria: (criteria) => void) => (criteria: Criteria) =>
   div(
@@ -61,10 +65,10 @@ const renderCriteria = (deleteCriteria: (criteria) => void) => (criteria: Criter
             },
           ],
           [
-            'valueId' in criteria,
+            'value' in criteria,
             () => {
               const listCriteria = criteria as ProgramDataListCriteria;
-              return div([`${criteria.name}: ${listCriteria.value}`]);
+              return div([`${criteria.name}: ${listCriteria.value.name}`]);
             },
           ],
           [
@@ -81,32 +85,42 @@ const renderCriteria = (deleteCriteria: (criteria) => void) => (criteria: Criter
     ]
   );
 
+const selectDomainCriteria = (domainType: DomainType): DomainCriteria => {
+  return {
+    name: pickRandom(domainType.values),
+    id: domainType.id,
+    category: domainType.category,
+    count: randomInt(),
+  };
+};
+
+const createDefaultListCriteria = (listType: ProgramDataListType): ProgramDataListCriteria => {
+  return {
+    name: listType.name,
+    id: listType.id,
+    count: randomInt(),
+    value: listType.values[0],
+  };
+};
+
+const createDefaultRangeCriteria = (rangeType: ProgramDataRangeType): ProgramDataRangeCriteria => {
+  return {
+    name: rangeType.name,
+    id: rangeType.id,
+    count: randomInt(),
+    low: rangeType.min,
+    high: rangeType.max,
+  };
+};
+
 function createCriteriaFromType(
   type: DomainType | ProgramDataRangeType | ProgramDataListType
 ): DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria {
   return (
     Utils.condTyped<DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria>(
-      [
-        'category' in type,
-        () => {
-          const domainType = type as DomainType;
-          return { name: domainType.values[0], id: domainType.id, category: domainType.category, count: 0 };
-        },
-      ],
-      [
-        'values' in type,
-        () => {
-          const listType = type as ProgramDataListType;
-          return { name: listType.name, id: listType.id, count: 0, valueId: 0, value: listType.values[0] };
-        },
-      ],
-      [
-        'min' in type,
-        () => {
-          const rangeType = type as ProgramDataRangeType;
-          return { name: rangeType.name, id: rangeType.id, count: 0, low: rangeType.min, high: rangeType.max };
-        },
-      ]
+      ['category' in type, () => selectDomainCriteria(type as DomainType)],
+      ['values' in type, () => createDefaultListCriteria(type as ProgramDataListType)],
+      ['min' in type, () => createDefaultRangeCriteria(type as ProgramDataRangeType)]
     ) || { category: 'unknown', name: 'unknown', count: 0, id: 0 }
   );
 }
@@ -120,7 +134,7 @@ const CriteriaGroupView = ({
 }: {
   index: number;
   criteriaGroup: CriteriaGroup;
-  updateCohort: (cohort: Cohort) => void;
+  updateCohort: CohortUpdater;
   cohort: Cohort;
   datasetDetails: DatasetResponse;
 }) => {
@@ -128,7 +142,6 @@ const CriteriaGroupView = ({
     {
       style: {
         backgroundColor: 'white',
-        width: '47rem',
         borderRadius: '5px',
         border: `1px solid ${colors.dark(0.35)}`,
       },
@@ -164,34 +177,36 @@ const CriteriaGroupView = ({
                   h(Select, {
                     options: ['Must', 'Must not'],
                     value: criteriaGroup.mustMeet ? 'Must' : 'Must not',
-                    onChange: () =>
-                      _.flow(_.set(`criteriaGroups.${index}.mustMeet`, !criteriaGroup.mustMeet), updateCohort)(cohort),
+                    onChange: () => updateCohort(_.set(`criteriaGroups.${index}.mustMeet`, !criteriaGroup.mustMeet)),
                   }),
                   div(['meet']),
                   h(Select, {
                     options: ['any', 'all'],
                     value: criteriaGroup.meetAll ? 'all' : 'any',
-                    onChange: () =>
-                      _.flow(_.set(`criteriaGroups.${index}.meetAll`, !criteriaGroup.meetAll), updateCohort)(cohort),
+                    onChange: () => updateCohort(_.set(`criteriaGroups.${index}.meetAll`, !criteriaGroup.meetAll)),
                   }),
                   div(['of the following criteria:']),
                 ]
               ),
               div({ style: { alignItems: 'center', display: 'flex' } }, [
                 `Group ${index + 1}`,
-                icon('ellipsis-v-circle', { size: 32 }),
+                h(
+                  Link,
+                  {
+                    onClick: () =>
+                      updateCohort(_.set('criteriaGroups', _.without([criteriaGroup], cohort.criteriaGroups))),
+                  },
+                  [icon('ellipsis-v-circle', { size: 32 })]
+                ),
               ]),
             ]
           ),
           div([
             (criteriaGroup.criteria.length !== 0 &&
               _.map(
-                renderCriteria((criteria: Criteria) => {
-                  _.flow(
-                    _.set(`criteriaGroups.${index}.criteria`, _.without([criteria], criteriaGroup.criteria)),
-                    updateCohort
-                  )(cohort);
-                }),
+                renderCriteria((criteria: Criteria) =>
+                  updateCohort(_.set(`criteriaGroups.${index}.criteria`, _.without([criteria], criteriaGroup.criteria)))
+                ),
                 criteriaGroup.criteria
               )) ||
               div([
@@ -201,7 +216,7 @@ const CriteriaGroupView = ({
           ]),
           div([
             h(Select, {
-              styles: { container: (provided) => ({ ...provided, width: '205px' }) },
+              styles: { container: (provided) => ({ ...provided, width: '230px' }) },
               isClearable: false,
               isSearchable: false,
               options: [
@@ -229,10 +244,7 @@ const CriteriaGroupView = ({
               onChange: (x) => {
                 // FIXME: remove any
                 const criteria = createCriteriaFromType((x as any).value);
-                _.flow(
-                  _.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, criteria),
-                  updateCohort
-                )(cohort);
+                updateCohort(_.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, criteria));
               },
             }),
           ]),
@@ -262,9 +274,9 @@ const RenderCohort = ({
 }: {
   cohort: Cohort | undefined;
   datasetDetails: DatasetResponse;
-  updateCohort: (cohort: Cohort) => void;
+  updateCohort: CohortUpdater;
 }) => {
-  return div([
+  return div({ style: { width: '47rem' } }, [
     cohort == null
       ? 'No cohort found'
       : div([
@@ -300,47 +312,42 @@ const RenderCohort = ({
   ]);
 };
 
-function createCriteriaGroup(): CriteriaGroup {
-  return {
-    criteria: [],
-    mustMeet: true,
-    meetAll: true,
-    count: 0,
-  };
-}
+const editorBackgroundColor = colors.light(0.7);
+
+type CohortUpdater = (updater: (cohort: Cohort) => Cohort) => void;
 
 const CohortEditorContents = ({ cohortName, datasetDetails }) => {
   const cohorts: Cohort[] = useStore(datasetBuilderCohorts);
   const cohortIndex = _.findIndex((cohort) => cohort.name === cohortName, cohorts);
   const cohort = cohorts[cohortIndex];
 
-  // Possibly make this accept a function to update the cohort, to avoid having to pass the cohort around.
-  const updateCohort = (updatedCohort) => {
-    datasetBuilderCohorts.set(_.set(`[${cohortIndex}]`, updatedCohort, cohorts));
+  const updateCohort: CohortUpdater = (updateCohort: (Cohort) => Cohort) => {
+    datasetBuilderCohorts.set(_.set(`[${cohortIndex}]`, updateCohort(cohort), cohorts));
   };
 
-  return div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem`, backgroundColor: '#E9ECEF' } }, [
-    h2([icon('circle-chevron-left', { size: 32, className: 'regular' }), cohortName]),
-    h3(['To be included in the cohort, participants...']),
-    div({ style: { display: 'flow' } }, [
-      h(RenderCohort, {
-        datasetDetails,
-        cohort,
-        updateCohort,
-      }),
-      h(
-        ButtonPrimary,
-        {
-          onClick: () =>
-            _.flow(
-              _.set(`criteriaGroups.${cohort.criteriaGroups.length}`, createCriteriaGroup()),
-              updateCohort
-            )(cohort),
-        },
-        ['Add group']
-      ),
-    ]),
-  ]);
+  return div(
+    {
+      style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem`, backgroundColor: editorBackgroundColor },
+    },
+    [
+      h2([icon('circle-chevron-left', { size: 32, className: 'regular' }), cohortName]),
+      h3(['To be included in the cohort, participants...']),
+      div({ style: { display: 'flow' } }, [
+        h(RenderCohort, {
+          datasetDetails,
+          cohort,
+          updateCohort,
+        }),
+        h(
+          ButtonOutline,
+          {
+            onClick: () => updateCohort(_.set(`criteriaGroups.${cohort.criteriaGroups.length}`, createCriteriaGroup())),
+          },
+          ['Add group']
+        ),
+      ]),
+    ]
+  );
 };
 
 interface CohortEditorProps {
@@ -360,10 +367,12 @@ export const CohortEditorView = ({ datasetId, cohortName }: CohortEditorProps) =
   );
 
   return datasetDetails.status === 'Ready'
-    ? h(FooterWrapper, {}, [
+    ? h(FooterWrapper, { alwaysShow: true }, [
         h(TopBar, { title: 'Preview', href: '' }, []),
         h(DatasetBuilderHeader, { name: datasetDetails.state.name }),
         h(CohortEditorContents, { cohortName, datasetDetails: datasetDetails.state }),
+        // add div to cover page to footer
+        div({ style: { display: 'flex', height: '100%', backgroundColor: editorBackgroundColor } }),
       ])
     : spinnerOverlay;
 };

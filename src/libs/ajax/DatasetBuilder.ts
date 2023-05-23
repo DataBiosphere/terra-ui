@@ -20,14 +20,33 @@ export const DatasetBuilder = (_signal?: AbortSignal): DatasetBuilderContract =>
           id: 2,
           name: 'Ethnicity',
           dataType: 'list',
-          values: ['Hispanic or Latino', 'Not Hispanic or Latino', 'No Matching Concept'],
+          values: [
+            { name: 'Hispanic or Latino', id: 20 },
+            { name: 'Not Hispanic or Latino', id: 21 },
+            { name: 'No Matching Concept', id: 0 },
+          ],
         },
-        { id: 3, name: 'Gender identity', dataType: 'list', values: ['FEMALE', 'MALE', 'No Matching Concept'] },
+        {
+          id: 3,
+          name: 'Gender identity',
+          dataType: 'list',
+          values: [
+            { name: 'FEMALE', id: 22 },
+            { name: 'MALE', id: 23 },
+            { name: 'No Matching Concept', id: 0 },
+          ],
+        },
         {
           id: 4,
           name: 'Race',
           dataType: 'list',
-          values: ['American Indian or Alaska Native', 'Asian', 'Black', 'White', 'No Matching Concept'],
+          values: [
+            { name: 'American Indian or Alaska Native', id: 24 },
+            { name: 'Asian', id: 25 },
+            { name: 'Black', id: 26 },
+            { name: 'White', id: 27 },
+            { name: 'No Matching Concept', id: 0 },
+          ],
         },
       ],
       domainTypes: [
