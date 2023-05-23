@@ -48,7 +48,6 @@ export const UriViewer = _.flow(
         const metadata = await Ajax(signal).AzureStorage.blobMetadata(uri).getData();
         setAzureStorage(metadata);
       } else {
-        // TODO: change below comment after switch to DRSHub is complete, tracked in ticket [ID-170]
         // Fields are mapped from the drshub_v4 fields to those used by google
         // https://github.com/DataBiosphere/terra-drs-hub
         // https://cloud.google.com/storage/docs/json_api/v1/objects#resource-representations
