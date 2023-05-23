@@ -197,8 +197,6 @@ describe('CloudEnvironmentModal', () => {
     expect(vdom.getAllByText(/Running/).length).toBe(2);
     expect(vdom.getAllByText('Pause').length).toBe(3);
     expect(vdom.getAllByText('Open').length).toBe(3);
-    // expect(vdom.getAllByText('Edit existing Environment').length).toBe(2)
-    // expect(vdom.getAllByText('Edit existing Environment')[0]).not.toBeVisible()
   });
 
   it('Renders populated azure cloud environment modal', () => {
@@ -218,6 +216,139 @@ describe('CloudEnvironmentModal', () => {
     expect(vdom.getAllByText('Open').length).toBe(2);
     expect(vdom.getAllByText('No Environment found').length).toBe(2);
     expect(vdom.getAllByText('No Environment found')[0]).not.toBeVisible();
+  });
+
+  // runtime/app status checks
+
+  it.each([
+    {
+      // Deleting
+      runtimeStatus: 'DELETING',
+      appStatus: 'DELETING',
+      runtimeRegex: /Deleting/,
+      appRegex: /Deleting/,
+      opName: 'Deleting',
+    },
+    {
+      // Error
+      runtimeStatus: 'ERROR',
+      appStatus: 'ERROR',
+      runtimeRegex: /Error/,
+      appRegex: /Error/,
+      opName: 'Error',
+    },
+    {
+      // stopped/stopped
+      runtimeStatus: 'STOPPED',
+      appStatus: 'STOPPED',
+      runtimeRegex: /Paused/,
+      appRegex: /Paused/,
+      opName: 'Stopped',
+    },
+    {
+      // stopped/stopping
+      runtimeStatus: 'STOPPED',
+      appStatus: 'STOPPING',
+      runtimeRegex: /Paused/,
+      appRegex: /Stopping/,
+      opName: 'stopped/stopping',
+    },
+    {
+      // stopped/provisioning
+      runtimeStatus: 'STOPPED',
+      appStatus: 'PROVISIONING',
+      runtimeRegex: /Paused/,
+      appRegex: /Provisioning/,
+      opName: 'stopped/provisioning',
+    },
+    {
+      // stopped/starting
+      runtimeStatus: 'STOPPED',
+      appStatus: 'STARTING',
+      runtimeRegex: /Paused/,
+      appRegex: /Starting/,
+      opName: 'stopped/starting',
+    },
+  ])('Shows indicators for $opName on GCE', (props) => {
+    // Arrange
+    const { runtimeStatus, appStatus, runtimeRegex, appRegex } = props;
+    const CloneCEM = {
+      ...CloudEnvironmentModalDefaultProps,
+      runtimes: [{ ...getGoogleRuntime(), status: runtimeStatus }],
+      apps: [{ ...generateTestApp({}), status: appStatus }],
+      appDataDisks: [defaultTestDisk],
+    };
+    // Act
+    const vdom = render(h(CloudEnvironmentModal, CloneCEM));
+    // Assert
+    expect(vdom.getAllByText(runtimeRegex).length > 0);
+    expect(vdom.getAllByText(appRegex).length > 0);
+  });
+
+  it.each([
+    {
+      // Deleting
+      runtimeStatus: 'DELETING',
+      appStatus: 'DELETING',
+      runtimeRegex: /Deleting/,
+      appRegex: /Deleting/,
+      opName: 'Deleting',
+    },
+    {
+      // Error
+      runtimeStatus: 'ERROR',
+      appStatus: 'ERROR',
+      runtimeRegex: /Error/,
+      appRegex: /Error/,
+      opName: 'Error',
+    },
+    {
+      // stopped/stopped
+      runtimeStatus: 'STOPPED',
+      appStatus: 'STOPPED',
+      runtimeRegex: /Paused/,
+      appRegex: /Paused/,
+      opName: 'Stopped',
+    },
+    {
+      // stopped/stopping
+      runtimeStatus: 'STOPPED',
+      appStatus: 'STOPPING',
+      runtimeRegex: /Paused/,
+      appRegex: /Paused/,
+      opName: 'stopped/stopping',
+    },
+    {
+      // stopped/provisioning
+      runtimeStatus: 'STOPPED',
+      appStatus: 'PROVISIONING',
+      runtimeRegex: /Paused/,
+      appRegex: /Paused/,
+      opName: 'stopped/provisioning',
+    },
+    {
+      // stopped/starting
+      runtimeStatus: 'STOPPED',
+      appStatus: 'STARTING',
+      runtimeRegex: /Paused/,
+      appRegex: /Paused/,
+      opName: 'stopped/starting',
+    },
+  ])('Shows indicators for $opName on Azure', (props) => {
+    // Arrange
+    const { runtimeStatus, appStatus, runtimeRegex, appRegex } = props;
+    const cloneAzure = {
+      ...AzureCloudEnvironmentModalDefaultProps,
+      runtimes: [{ ...azureRuntime, status: runtimeStatus }],
+      apps: [{ ...generateTestApp({}), status: appStatus }],
+      workspace: defaultAzureWorkspace,
+      persistentDisks: [azureDisk],
+    };
+    // Act
+    const vdom = render(h(CloudEnvironmentModal, cloneAzure));
+    // Assert
+    expect(vdom.getAllByText(runtimeRegex).length > 0);
+    expect(vdom.getAllByText(appRegex).length > 0);
   });
 
   // button tests(pause)
@@ -240,6 +371,7 @@ describe('CloudEnvironmentModal', () => {
         stopTimes: 1,
         pauseTimes: 0,
       },
+      toolName: 'Jupyter',
     },
     {
       // RStudio
@@ -257,6 +389,7 @@ describe('CloudEnvironmentModal', () => {
         stopTimes: 1,
         pauseTimes: 0,
       },
+      toolName: 'RStudio',
     },
     {
       // Galaxy
@@ -271,9 +404,10 @@ describe('CloudEnvironmentModal', () => {
         stopTimes: 0,
         pauseTimes: 1,
       },
+      toolName: 'Galaxy',
     },
   ])(
-    'Invokes ajax call for pause button on a populated google cloud environments instance',
+    'Invokes ajax call for pause button for $toolName on a populated google cloud environments instance',
     async ({ input, expectedOutput }) => {
       // Arrange
       const user = userEvent.setup();
@@ -397,6 +531,7 @@ describe('CloudEnvironmentModal', () => {
         appDataDisks: [defaultTestDisk],
       },
       buttonIndex: 0,
+      toolName: 'Jupyter',
     },
     {
       // RStudio
@@ -410,6 +545,7 @@ describe('CloudEnvironmentModal', () => {
         appDataDisks: [defaultTestDisk],
       },
       buttonIndex: 1,
+      toolName: 'RStudio',
     },
     {
       // Galaxy
@@ -420,9 +556,10 @@ describe('CloudEnvironmentModal', () => {
         appDataDisks: [defaultTestDisk],
       },
       buttonIndex: 2,
+      toolName: 'Galaxy',
     },
   ])(
-    'Invokes dismiss call for launch button on a populated google cloud environments instance',
+    'Invokes dismiss call for launch button for $toolName on a populated google cloud environments instance',
     async ({ input, buttonIndex }) => {
       // Arrange
       const dismissFn = jest.fn();
@@ -456,9 +593,6 @@ describe('CloudEnvironmentModal', () => {
       const startButtons = screen.getAllByText('Open');
       expect(startButtons.length).toBe(2);
       expect(startButtons[buttonIndex]).toBeEnabled(); // TODO: can't check dismissed is called becuase HREF redirects
-      // await act(async () => { await user.click(startButtons[buttonIndex]) })
-      // expect(dismissFn).toBeCalledTimes(1)
-      // dismissFn.mockClear()
     }
   );
 
@@ -479,6 +613,7 @@ describe('CloudEnvironmentModal', () => {
       },
       buttonIndex: 0,
       modalName: 'ComputeModalBase',
+      toolName: 'Jupyter',
     },
     {
       // RStudio
@@ -493,6 +628,7 @@ describe('CloudEnvironmentModal', () => {
       },
       buttonIndex: 1,
       modalName: 'ComputeModalBase',
+      toolName: 'RStudio',
     },
     {
       // Galaxy
@@ -504,8 +640,9 @@ describe('CloudEnvironmentModal', () => {
       },
       buttonIndex: 2,
       modalName: 'GalaxyModalBase',
+      toolName: 'Galaxy',
     },
-  ])('Shows corresponding Compute Modal component for GCP', async ({ input, buttonIndex, modalName }) => {
+  ])('Shows corresponding $toolName Compute Modal component for GCP', async ({ input, buttonIndex, modalName }) => {
     // Arrange
     const user = userEvent.setup();
 

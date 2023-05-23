@@ -121,7 +121,6 @@ export const CloudEnvironmentModal = ({
 
   const renderComputeModal = (tool: ToolLabel) =>
     h(ComputeModalBase, {
-      // isOpen: viewMode === runtimeToolLabels.Jupyter || viewMode === runtimeToolLabels.RStudio,
       workspace,
       tool,
       currentRuntime,
@@ -215,7 +214,7 @@ export const CloudEnvironmentModal = ({
     ...props
   }: {
     shape: string;
-    onClick: undefined | (() => any);
+    onClick?: () => any;
     disabled: boolean;
     messageChildren: ReactElement[];
     toolLabel: ToolLabel;
@@ -274,7 +273,6 @@ export const CloudEnvironmentModal = ({
   const defaultIcon = (toolLabel: ToolLabel) =>
     isPauseSupported(toolLabel) &&
     h(RuntimeIcon, {
-      onClick: () => {},
       shape: 'pause',
       toolLabel,
       disabled: true,
@@ -331,7 +329,6 @@ export const CloudEnvironmentModal = ({
       case runtimeStatuses.updating.leoLabel:
       case runtimeStatuses.creating.leoLabel:
         return h(RuntimeIcon, {
-          onClick: () => {},
           shape: 'sync',
           toolLabel,
           disabled: true,
