@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import { Fragment } from 'react';
-import { div, h, h2, h3 } from 'react-hyperscript-helpers';
+import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
 import { ButtonOutline, Link, Select, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
@@ -143,125 +143,122 @@ const CriteriaGroupView = ({
       style: {
         backgroundColor: 'white',
         borderRadius: '5px',
+        marginTop: 5,
         border: `1px solid ${colors.dark(0.35)}`,
       },
     },
     [
-      div(
-        {
-          style: {
-            padding: '1rem',
-            marginTop: '1rem',
-          },
-        },
-        [
-          div(
-            {
-              style: {
-                display: 'flex',
-                width: '100%',
-                justifyContent: 'space-between',
-                alignItems: 'baseline',
-              },
+      div({ style: { padding: '1rem' } }, [
+        div(
+          {
+            style: {
+              display: 'flex',
+              width: '100%',
+              justifyContent: 'space-between',
+              alignItems: 'baseline',
             },
-            [
-              div(
-                {
-                  style: {
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'baseline',
-                  },
+          },
+          [
+            div(
+              {
+                style: {
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'baseline',
                 },
-                [
-                  h(Select, {
-                    options: ['Must', 'Must not'],
-                    value: criteriaGroup.mustMeet ? 'Must' : 'Must not',
-                    onChange: () => updateCohort(_.set(`criteriaGroups.${index}.mustMeet`, !criteriaGroup.mustMeet)),
-                  }),
-                  div(['meet']),
-                  h(Select, {
-                    options: ['any', 'all'],
-                    value: criteriaGroup.meetAll ? 'all' : 'any',
-                    onChange: () => updateCohort(_.set(`criteriaGroups.${index}.meetAll`, !criteriaGroup.meetAll)),
-                  }),
-                  div(['of the following criteria:']),
-                ]
-              ),
-              div({ style: { alignItems: 'center', display: 'flex' } }, [
-                `Group ${index + 1}`,
-                h(
-                  Link,
-                  {
-                    onClick: () =>
-                      updateCohort(_.set('criteriaGroups', _.without([criteriaGroup], cohort.criteriaGroups))),
-                  },
-                  [icon('ellipsis-v-circle', { size: 32 })]
-                ),
-              ]),
-            ]
-          ),
-          div([
-            (criteriaGroup.criteria.length !== 0 &&
-              _.map(
-                renderCriteria((criteria: Criteria) =>
-                  updateCohort(_.set(`criteriaGroups.${index}.criteria`, _.without([criteria], criteriaGroup.criteria)))
-                ),
-                criteriaGroup.criteria
-              )) ||
-              div([
-                div({ style: { fontWeight: 'bold' } }, ['No criteria yet']),
-                div({ style: { fontStyle: 'italic' } }, ["You can add a criteria by clicking on 'Add criteria'"]),
-              ]),
-          ]),
-          div([
-            h(Select, {
-              styles: { container: (provided) => ({ ...provided, width: '230px' }) },
-              isClearable: false,
-              isSearchable: false,
-              options: [
-                {
-                  label: 'Domains',
-                  options: _.map((domainType) => {
-                    return {
-                      value: domainType,
-                      label: domainType.category,
-                    };
-                  }, datasetDetails.domainTypes),
-                },
-                {
-                  label: 'Program Data',
-                  options: _.map((programDataType) => {
-                    return {
-                      value: programDataType,
-                      label: programDataType.name,
-                    };
-                  }, datasetDetails.programDataTypes),
-                },
-              ],
-              placeholder: 'Add criteria',
-              value: undefined,
-              onChange: (x) => {
-                // FIXME: remove any
-                const criteria = createCriteriaFromType((x as any).value);
-                updateCohort(_.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, criteria));
               },
-            }),
-          ]),
-        ]
-      ),
+              [
+                h(Select, {
+                  options: ['Must', 'Must not'],
+                  value: criteriaGroup.mustMeet ? 'Must' : 'Must not',
+                  onChange: () => updateCohort(_.set(`criteriaGroups.${index}.mustMeet`, !criteriaGroup.mustMeet)),
+                }),
+                div({ style: { margin: '0 10px' } }, ['meet']),
+                h(Select, {
+                  styles: { container: (provided) => ({ ...provided, style: { marginLeft: 10 } }) },
+                  options: ['any', 'all'],
+                  value: criteriaGroup.meetAll ? 'all' : 'any',
+                  onChange: () => updateCohort(_.set(`criteriaGroups.${index}.meetAll`, !criteriaGroup.meetAll)),
+                }),
+                div({ style: { marginLeft: 10 } }, ['of the following criteria:']),
+              ]
+            ),
+            div({ style: { alignItems: 'center', display: 'flex' } }, [
+              strong({ style: { marginRight: 10, fontSize: 16 } }, [`Group ${index + 1}`]),
+              h(
+                Link,
+                {
+                  onClick: () =>
+                    updateCohort(_.set('criteriaGroups', _.without([criteriaGroup], cohort.criteriaGroups))),
+                },
+                [icon('ellipsis-v-circle', { size: 32 })]
+              ),
+            ]),
+          ]
+        ),
+        div([
+          (criteriaGroup.criteria.length !== 0 &&
+            _.map(
+              renderCriteria((criteria: Criteria) =>
+                updateCohort(_.set(`criteriaGroups.${index}.criteria`, _.without([criteria], criteriaGroup.criteria)))
+              ),
+              criteriaGroup.criteria
+            )) ||
+            div({ style: { marginTop: 20 } }, [
+              div({ style: { fontWeight: 'bold', fontStyle: 'italic' } }, ['No criteria yet']),
+              div({ style: { fontStyle: 'italic', marginTop: 5 } }, [
+                "You can add a criteria by clicking on 'Add criteria'",
+              ]),
+            ]),
+        ]),
+        div({ style: { marginTop: 10 } }, [
+          h(Select, {
+            styles: { container: (provided) => ({ ...provided, width: '230px' }) },
+            isClearable: false,
+            isSearchable: false,
+            options: [
+              {
+                label: 'Domains',
+                options: _.map((domainType) => {
+                  return {
+                    value: domainType,
+                    label: domainType.category,
+                  };
+                }, datasetDetails.domainTypes),
+              },
+              {
+                label: 'Program Data',
+                options: _.map((programDataType) => {
+                  return {
+                    value: programDataType,
+                    label: programDataType.name,
+                  };
+                }, datasetDetails.programDataTypes),
+              },
+            ],
+            placeholder: 'Add criteria',
+            value: undefined,
+            onChange: (x) => {
+              // FIXME: remove any
+              const criteria = createCriteriaFromType((x as any).value);
+              updateCohort(_.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, criteria));
+            },
+          }),
+        ]),
+      ]),
       div(
         {
           style: {
             paddingTop: 5,
-            marginTop: 5,
+            marginTop: 10,
+            marginBottom: 10,
             borderTop: `1px solid ${colors.dark(0.35)}`,
             display: 'flex',
             justifyContent: 'flex-end',
             fontWeight: 'bold',
           },
         },
-        [`Group count: ${criteriaGroup.count}`]
+        [div({ style: { marginRight: 10 } }, [`Group count: ${criteriaGroup.count}`])]
       ),
     ]
   );
@@ -330,7 +327,10 @@ const CohortEditorContents = ({ cohortName, datasetDetails }) => {
       style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem`, backgroundColor: editorBackgroundColor },
     },
     [
-      h2([icon('circle-chevron-left', { size: 32, className: 'regular' }), cohortName]),
+      h2({ style: { display: 'flex', alignItems: 'center' } }, [
+        icon('circle-chevron-left', { size: 32, className: 'regular', style: { marginRight: 5 } }),
+        cohortName,
+      ]),
       h3(['To be included in the cohort, participants...']),
       div({ style: { display: 'flow' } }, [
         h(RenderCohort, {
@@ -341,6 +341,7 @@ const CohortEditorContents = ({ cohortName, datasetDetails }) => {
         h(
           ButtonOutline,
           {
+            style: { marginTop: 10 },
             onClick: () => updateCohort(_.set(`criteriaGroups.${cohort.criteriaGroups.length}`, createCriteriaGroup())),
           },
           ['Add group']
