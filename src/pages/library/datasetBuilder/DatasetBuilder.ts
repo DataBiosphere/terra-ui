@@ -24,6 +24,66 @@ import { validate } from 'validate.js';
 
 const SelectorSubHeader = ({ children }) => div({ style: { fontSize: 12, fontWeight: 600 } }, children);
 
+interface ObjectSetListItemProps<T extends DatasetBuilderType> {
+  value: T;
+  checked: boolean;
+  onChange: (value: T) => void;
+}
+
+const ObjectSetListItem = <T extends DatasetBuilderType>({ value, checked, onChange }: ObjectSetListItemProps<T>) => {
+  return div(
+    {
+      style: {
+        display: 'flex',
+        padding: '0.5rem',
+        border: `1px solid ${colors.light()}`,
+        width: '100%',
+        marginTop: '0.3rem',
+        fontSize: 13,
+      },
+    },
+    [
+      h(
+        LabeledCheckbox,
+        {
+          checked,
+          onChange: () => onChange(value),
+        },
+        [label({ style: { paddingLeft: '0.5rem' } }, [value.name])]
+      ),
+    ]
+  );
+};
+
+interface ObjectSetListSectionProps<T extends DatasetBuilderType> {
+  objectSet: HeaderAndValues<T>;
+  selectedValues: { header: string; value: T }[];
+  onChange: (value, header) => void;
+}
+
+const ObjectSetListSection = <T extends DatasetBuilderType>({
+  objectSet,
+  selectedValues,
+  onChange,
+}: ObjectSetListSectionProps<T>) => {
+  const isChecked = (datasetBuilderObjectSet, value) =>
+    _.intersectionWith(_.isEqual, [{ header: datasetBuilderObjectSet.header, value }], selectedValues).length > 0;
+
+  return h(Fragment, [
+    h(SelectorSubHeader, [objectSet.header]),
+    _.map(
+      (value) =>
+        h(ObjectSetListItem, {
+          key: _.uniqueId(''),
+          value,
+          checked: isChecked(objectSet, value),
+          onChange: (value) => onChange(value, objectSet.header),
+        }),
+      objectSet.values
+    ),
+  ]);
+};
+
 interface HeaderAndValues<T extends DatasetBuilderType> {
   header: string;
   values: T[];
@@ -33,8 +93,8 @@ interface SelectorProps<T extends DatasetBuilderType> {
   number: number;
   header: string;
   subheader?: string;
-  datasetBuilderObjectSets: HeaderAndValues<T>[];
-  selectedDatasetBuilderObjectSets: HeaderAndValues<T>[];
+  objectSets: HeaderAndValues<T>[];
+  selectedObjectSets: HeaderAndValues<T>[];
   onChange: (newDatasetBuilderObjectSets: HeaderAndValues<T>[]) => void;
   headerAction: any;
   placeholder?: any;
@@ -46,9 +106,9 @@ const Selector = <T extends DatasetBuilderType>({
   subheader,
   headerAction,
   placeholder,
-  datasetBuilderObjectSets,
+  objectSets,
   onChange,
-  selectedDatasetBuilderObjectSets,
+  selectedObjectSets,
   style,
 }: SelectorProps<T>) => {
   const selectedValues = _.flatMap(
@@ -57,10 +117,12 @@ const Selector = <T extends DatasetBuilderType>({
         (value) => ({ header: selectedDatasetBuilderObjectSet.header, value }),
         selectedDatasetBuilderObjectSet.values
       ),
-    selectedDatasetBuilderObjectSets
+    selectedObjectSets
   );
-  const isChecked = (datasetBuilderObjectSet, value) =>
-    _.intersectionWith(_.isEqual, [{ header: datasetBuilderObjectSet.header, value }], selectedValues).length > 0;
+
+  const datasetBuilderSectionHasListItems = (datasetBuilderObjectSets) =>
+    datasetBuilderObjectSets &&
+    _.flatMap((datasetBuilderObjectSet) => datasetBuilderObjectSet.values, datasetBuilderObjectSets).length > 0;
 
   return li({ style: { width: '30%', ...style } }, [
     div({ style: { display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start' } }, [
@@ -102,68 +164,36 @@ const Selector = <T extends DatasetBuilderType>({
         },
       },
       [
-        datasetBuilderObjectSets &&
-        _.flatMap((datasetBuilderObjectSet) => datasetBuilderObjectSet.values, datasetBuilderObjectSets).length > 0
+        datasetBuilderSectionHasListItems(objectSets)
           ? div(
               { style: { display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' } },
               _.map(
-                ([i, datasetBuilderObjectSet]) =>
-                  h(Fragment, [
-                    h(SelectorSubHeader, { key: `${datasetBuilderObjectSet.header}-${i}` }, [
-                      datasetBuilderObjectSet.header,
-                    ]),
-                    _.map(([j, value]) => {
-                      return div(
-                        {
-                          style: {
-                            display: 'flex',
-                            padding: '0.5rem',
-                            border: `1px solid ${colors.light()}`,
-                            width: '100%',
-                            marginTop: '0.3rem',
-                            fontSize: 13,
-                          },
-                          key: `${datasetBuilderObjectSet.header}-${value.name}-${j}`,
-                        },
-                        [
-                          h(
-                            LabeledCheckbox,
-                            {
-                              key: `${datasetBuilderObjectSet.header}-${value.name}-${j}-checkbox`,
-                              checked: isChecked(datasetBuilderObjectSet, value),
-                              onChange: () => {
-                                const index = _.findIndex(
-                                  (selectedDatasetBuilderObjectSet) =>
-                                    selectedDatasetBuilderObjectSet.header === datasetBuilderObjectSet.header,
-                                  selectedDatasetBuilderObjectSets
-                                );
-
-                                onChange(
-                                  index === -1
-                                    ? selectedDatasetBuilderObjectSets.concat({
-                                        header: datasetBuilderObjectSet.header,
-                                        values: [value],
-                                      })
-                                    : _.set(
-                                        `[${index}].values`,
-                                        _.xorWith(_.isEqual, selectedDatasetBuilderObjectSets[index].values, [value]),
-                                        selectedDatasetBuilderObjectSets
-                                      )
-                                );
-                              },
-                            },
-                            [label({ style: { paddingLeft: '0.5rem' } }, [value.name])]
-                          ),
-                        ]
+                (objectSet: HeaderAndValues<T>) =>
+                  h(ObjectSetListSection, {
+                    key: _.uniqueId(''),
+                    objectSet,
+                    selectedValues,
+                    onChange: (value, header) => {
+                      const index = _.findIndex(
+                        (selectedObjectSet) => selectedObjectSet.header === header,
+                        selectedObjectSets
                       );
-                    }, Utils.toIndexPairs(datasetBuilderObjectSet.values)),
-                  ]),
-                Utils.toIndexPairs(
-                  _.filter(
-                    (datasetBuilderObjectSet) => datasetBuilderObjectSet.values?.length > 0,
-                    datasetBuilderObjectSets
-                  )
-                )
+
+                      onChange(
+                        index === -1
+                          ? selectedObjectSets.concat({
+                              header,
+                              values: [value],
+                            })
+                          : _.set(
+                              `[${index}].values`,
+                              _.xorWith(_.isEqual, selectedObjectSets[index].values, [value]),
+                              selectedObjectSets
+                            )
+                      );
+                    },
+                  }),
+                _.filter((objectSet) => objectSet.values?.length > 0, objectSets)
               )
             )
           : div([placeholder]),
@@ -263,13 +293,13 @@ export const CohortSelector = ({
       ),
       number: 1,
       onChange,
-      datasetBuilderObjectSets: [
+      objectSets: [
         {
           values: datasetBuilderCohorts.get(),
           header: 'Saved cohorts',
         },
       ],
-      selectedDatasetBuilderObjectSets: selectedCohorts,
+      selectedObjectSets: selectedCohorts,
       header: 'Select cohorts',
       subheader: 'Which participants to include',
       placeholder: div([
@@ -301,7 +331,7 @@ export const ConceptSetSelector = ({
     ),
     number: 2,
     onChange,
-    datasetBuilderObjectSets: [
+    objectSets: [
       {
         header: 'Concept sets',
         values: datasetBuilderConceptSets.get(),
@@ -311,7 +341,7 @@ export const ConceptSetSelector = ({
         values: PREPACKAGED_CONCEPT_SETS,
       },
     ],
-    selectedDatasetBuilderObjectSets: selectedConceptSets,
+    selectedObjectSets: selectedConceptSets,
     header: 'Select concept sets',
     subheader: 'Which information to include about participants',
     style: { marginLeft: '1rem' },
@@ -342,8 +372,8 @@ export const ValuesSelector = ({
     ]),
     number: 3,
     onChange,
-    datasetBuilderObjectSets: values,
-    selectedDatasetBuilderObjectSets: selectedValues,
+    objectSets: values,
+    selectedObjectSets: selectedValues,
     header: 'Select values (columns)',
     placeholder: div([
       div(['No inputs selected']),
@@ -396,7 +426,7 @@ export const DatasetBuilderView = ({ datasetId }: DatasetBuilderProps) => {
     void loadDatasetDetails(() => DatasetBuilder().retrieveDataset(datasetId));
   });
   return datasetDetails.status === 'Ready'
-    ? h(FooterWrapper, {}, [
+    ? h(FooterWrapper, { alwaysShow: true }, [
         h(TopBar, { title: 'Preview', href: '' }, []),
         h(DatasetBuilderHeader, { name: datasetDetails.state.name }),
         Utils.switchCase(
