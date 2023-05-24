@@ -1,12 +1,11 @@
-import { Ajax } from 'src/libs/ajax'
-import { FileBrowserDirectory, FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
-import GCSFileBrowserProvider from 'src/libs/ajax/file-browser-providers/GCSFileBrowserProvider'
-import { GCSItem, GCSListObjectsResponse, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage'
-import * as Utils from 'src/libs/utils'
-import { asMockedFn } from 'src/testing/test-utils'
+import { Ajax } from 'src/libs/ajax';
+import { FileBrowserDirectory, FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
+import GCSFileBrowserProvider from 'src/libs/ajax/file-browser-providers/GCSFileBrowserProvider';
+import { GCSItem, GCSListObjectsResponse, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage';
+import * as Utils from 'src/libs/utils';
+import { asMockedFn } from 'src/testing/test-utils';
 
-
-jest.mock('src/libs/ajax')
+jest.mock('src/libs/ajax');
 
 const gcsObject = (name: string): GCSItem => ({
   bucket: 'test-bucket',
@@ -24,202 +23,213 @@ const gcsObject = (name: string): GCSItem => ({
   storageClass: 'STANDARD',
   timeCreated: '2022-10-26T13:56:30.000Z',
   timeStorageClassUpdated: '2022-10-26T13:56:30.000Z',
-  updated: '2022-10-26T13:56:30.000Z'
-})
+  updated: '2022-10-26T13:56:30.000Z',
+});
 
 const expectedFile = (path: string): FileBrowserFile => ({
   path,
   url: `gs://test-bucket/${path}`,
   size: 1,
   createdAt: 1666792590000,
-  updatedAt: 1666792590000
-})
+  updatedAt: 1666792590000,
+});
 
 describe('GCSFileBrowserProvider', () => {
-  let list
+  let list;
 
   beforeEach(() => {
     list = jest.fn().mockImplementation((_googleProject, _bucket, _prefix, options = {}) => {
-      const { pageToken } = options
+      const { pageToken } = options;
 
-      const response: GCSListObjectsResponse = Utils.switchCase(pageToken,
-        [undefined, () => ({
-          items: [
-            gcsObject('a-file.txt'),
-            gcsObject('b-file.txt')
-          ],
-          prefixes: [
-            'a-prefix/'
-          ],
-          nextPageToken: '2'
-        })],
-        ['2', () => ({
-          items: [
-            gcsObject('c-file.txt'),
-            gcsObject('d-file.txt')
-          ],
-          prefixes: [
-            'b-prefix/'
-          ],
-          nextPageToken: '3'
-        })],
-        ['3', () => ({
-          prefixes: [
-            'c-prefix/',
-            'd-prefix/'
-          ]
-        })],
-        [Utils.DEFAULT, () => {
-          throw new Error('Unrecognized page token')
-        }]
-      )
+      const response: GCSListObjectsResponse = Utils.switchCase(
+        pageToken,
+        [
+          undefined,
+          () => ({
+            items: [gcsObject('a-file.txt'), gcsObject('b-file.txt')],
+            prefixes: ['a-prefix/'],
+            nextPageToken: '2',
+          }),
+        ],
+        [
+          '2',
+          () => ({
+            items: [gcsObject('c-file.txt'), gcsObject('d-file.txt')],
+            prefixes: ['b-prefix/'],
+            nextPageToken: '3',
+          }),
+        ],
+        [
+          '3',
+          () => ({
+            prefixes: ['c-prefix/', 'd-prefix/'],
+          }),
+        ],
+        [
+          Utils.DEFAULT,
+          () => {
+            throw new Error('Unrecognized page token');
+          },
+        ]
+      );
 
-      return Promise.resolve(response)
-    })
+      return Promise.resolve(response);
+    });
 
-    asMockedFn(Ajax).mockImplementation(() => ({ Buckets: { list } } as ReturnType<typeof Ajax>))
-  })
+    asMockedFn(Ajax).mockImplementation(() => ({ Buckets: { list } } as ReturnType<typeof Ajax>));
+  });
 
   it('pages through files (objects)', async () => {
     // Arrange
-    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 })
+    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 });
 
     // Act
-    const firstResponse = await provider.getFilesInDirectory('')
-    const numGCSRequestsAfterFirstResponse = list.mock.calls.length
-    const secondResponse = await firstResponse.getNextPage()
-    const numGCSRequestsAfterSecondResponse = list.mock.calls.length
+    const firstResponse = await provider.getFilesInDirectory('');
+    const numGCSRequestsAfterFirstResponse = list.mock.calls.length;
+    const secondResponse = await firstResponse.getNextPage();
+    const numGCSRequestsAfterSecondResponse = list.mock.calls.length;
 
     // Assert
     const expectedFirstPageFiles: FileBrowserFile[] = [
       expectedFile('a-file.txt'),
       expectedFile('b-file.txt'),
-      expectedFile('c-file.txt')
-    ]
-    expect(firstResponse.items).toEqual(expectedFirstPageFiles)
-    expect(firstResponse.hasNextPage).toBe(true)
-    expect(numGCSRequestsAfterFirstResponse).toBe(2)
+      expectedFile('c-file.txt'),
+    ];
+    expect(firstResponse.items).toEqual(expectedFirstPageFiles);
+    expect(firstResponse.hasNextPage).toBe(true);
+    expect(numGCSRequestsAfterFirstResponse).toBe(2);
 
     const expectedSecondPageFiles: FileBrowserFile[] = [
       expectedFile('a-file.txt'),
       expectedFile('b-file.txt'),
       expectedFile('c-file.txt'),
-      expectedFile('d-file.txt')
-    ]
-    expect(secondResponse.items).toEqual(expectedSecondPageFiles)
-    expect(secondResponse.hasNextPage).toBe(false)
-    expect(numGCSRequestsAfterSecondResponse).toBe(3)
-  })
+      expectedFile('d-file.txt'),
+    ];
+    expect(secondResponse.items).toEqual(expectedSecondPageFiles);
+    expect(secondResponse.hasNextPage).toBe(false);
+    expect(numGCSRequestsAfterSecondResponse).toBe(3);
+  });
 
   it('pages through directories (prefixes)', async () => {
     // Arrange
-    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 })
+    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 });
 
     // Act
-    const firstResponse = await provider.getDirectoriesInDirectory('')
-    const numGCSRequestsAfterFirstResponse = list.mock.calls.length
-    const secondResponse = await firstResponse.getNextPage()
-    const numGCSRequestsAfterSecondResponse = list.mock.calls.length
+    const firstResponse = await provider.getDirectoriesInDirectory('');
+    const numGCSRequestsAfterFirstResponse = list.mock.calls.length;
+    const secondResponse = await firstResponse.getNextPage();
+    const numGCSRequestsAfterSecondResponse = list.mock.calls.length;
 
     // Assert
     const expectedFirstPageDirectories: FileBrowserDirectory[] = [
       { path: 'a-prefix/' },
       { path: 'b-prefix/' },
-      { path: 'c-prefix/' }
-    ]
-    expect(firstResponse.items).toEqual(expectedFirstPageDirectories)
-    expect(firstResponse.hasNextPage).toBe(true)
-    expect(numGCSRequestsAfterFirstResponse).toBe(3)
+      { path: 'c-prefix/' },
+    ];
+    expect(firstResponse.items).toEqual(expectedFirstPageDirectories);
+    expect(firstResponse.hasNextPage).toBe(true);
+    expect(numGCSRequestsAfterFirstResponse).toBe(3);
 
     const expectedSecondPageDirectories: FileBrowserDirectory[] = [
       { path: 'a-prefix/' },
       { path: 'b-prefix/' },
       { path: 'c-prefix/' },
-      { path: 'd-prefix/' }
-    ]
-    expect(secondResponse.items).toEqual(expectedSecondPageDirectories)
-    expect(secondResponse.hasNextPage).toBe(false)
-    expect(numGCSRequestsAfterSecondResponse).toBe(3)
-  })
+      { path: 'd-prefix/' },
+    ];
+    expect(secondResponse.items).toEqual(expectedSecondPageDirectories);
+    expect(secondResponse.hasNextPage).toBe(false);
+    expect(numGCSRequestsAfterSecondResponse).toBe(3);
+  });
 
   it('gets a signed URL for downloads', async () => {
     // Arrange
-    const getSignedUrl = jest.fn(() => Promise.resolve({ url: 'signedUrl' }))
+    const getSignedUrl = jest.fn(() => Promise.resolve({ url: 'signedUrl' }));
     asMockedFn(Ajax).mockImplementation(() => {
       return {
-        DrsUriResolver: { getSignedUrl } as Partial<ReturnType<typeof Ajax>['DrsUriResolver']>
-      } as ReturnType<typeof Ajax>
-    })
+        SamResources: { getSignedUrl } as Partial<ReturnType<typeof Ajax>['DrsUriResolver']>,
+      } as ReturnType<typeof Ajax>;
+    });
 
-    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' })
+    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' });
 
     // Act
-    const downloadUrl = await provider.getDownloadUrlForFile('path/to/example.txt')
+    const downloadUrl = await provider.getDownloadUrlForFile('path/to/example.txt');
 
     // Assert
-    expect(getSignedUrl).toHaveBeenCalledWith(expect.objectContaining({
-      bucket: 'test-bucket',
-      object: 'path/to/example.txt',
-    }))
-    expect(downloadUrl).toBe('signedUrl')
-  })
+    expect(getSignedUrl).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bucket: 'test-bucket',
+        object: 'path/to/example.txt',
+      })
+    );
+    expect(downloadUrl).toBe('signedUrl');
+  });
 
   it('returns a gsutil download command', async () => {
     // Arrange
-    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' })
+    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' });
 
     // Act
-    const downloadCommand = await provider.getDownloadCommandForFile('path/to/example.txt')
+    const downloadCommand = await provider.getDownloadCommandForFile('path/to/example.txt');
 
     // Assert
-    expect(downloadCommand).toBe('gsutil cp \'gs://test-bucket/path/to/example.txt\' .')
-  })
+    expect(downloadCommand).toBe("gsutil cp 'gs://test-bucket/path/to/example.txt' .");
+  });
 
   it('uploads a file', async () => {
     // Arrange
-    const upload = jest.fn(() => Promise.resolve())
-    asMockedFn(Ajax).mockImplementation(() => ({
-      Buckets: { upload } as Partial<GoogleStorageContract>
-    }) as ReturnType<typeof Ajax>)
+    const upload = jest.fn(() => Promise.resolve());
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Buckets: { upload } as Partial<GoogleStorageContract>,
+        } as ReturnType<typeof Ajax>)
+    );
 
-    const testFile = new File(['somecontent'], 'example.txt', { type: 'text/text' })
+    const testFile = new File(['somecontent'], 'example.txt', { type: 'text/text' });
 
-    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' })
+    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' });
 
     // Act
-    await provider.uploadFileToDirectory('path/to/directory/', testFile)
+    await provider.uploadFileToDirectory('path/to/directory/', testFile);
 
     // Assert
-    expect(upload).toHaveBeenCalledWith('test-project', 'test-bucket', 'path/to/directory/', testFile)
-  })
+    expect(upload).toHaveBeenCalledWith('test-project', 'test-bucket', 'path/to/directory/', testFile);
+  });
 
   it('deletes files', async () => {
     // Arrange
-    const del = jest.fn(() => Promise.resolve())
-    asMockedFn(Ajax).mockImplementation(() => ({
-      Buckets: { delete: del } as Partial<GoogleStorageContract>
-    }) as ReturnType<typeof Ajax>)
+    const del = jest.fn(() => Promise.resolve());
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Buckets: { delete: del } as Partial<GoogleStorageContract>,
+        } as ReturnType<typeof Ajax>)
+    );
 
-    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' })
+    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' });
 
     // Act
-    await provider.deleteFile('path/to/file.txt')
+    await provider.deleteFile('path/to/file.txt');
 
     // Assert
-    expect(del).toHaveBeenCalledWith('test-project', 'test-bucket', 'path/to/file.txt')
-  })
+    expect(del).toHaveBeenCalledWith('test-project', 'test-bucket', 'path/to/file.txt');
+  });
 
   it('creates empty directories', async () => {
     // Arrange
-    const upload = jest.fn(() => Promise.resolve())
-    asMockedFn(Ajax).mockImplementation(() => ({
-      Buckets: { upload } as Partial<GoogleStorageContract>
-    }) as ReturnType<typeof Ajax>)
+    const upload = jest.fn(() => Promise.resolve());
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Buckets: { upload } as Partial<GoogleStorageContract>,
+        } as ReturnType<typeof Ajax>)
+    );
 
-    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' })
+    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' });
 
     // Act
-    const directory = await provider.createEmptyDirectory('foo/bar/baz/')
+    const directory = await provider.createEmptyDirectory('foo/bar/baz/');
 
     // Assert
     expect(upload).toHaveBeenCalledWith(
@@ -227,28 +237,27 @@ describe('GCSFileBrowserProvider', () => {
       'test-bucket',
       'foo/bar/',
       new File([], 'baz/', { type: 'text/plain' })
-    )
+    );
 
-    expect(directory).toEqual({ path: 'foo/bar/baz/' })
-  })
+    expect(directory).toEqual({ path: 'foo/bar/baz/' });
+  });
 
   it('deletes empty directories', async () => {
     // Arrange
-    const del = jest.fn(() => Promise.resolve())
-    asMockedFn(Ajax).mockImplementation(() => ({
-      Buckets: { delete: del } as Partial<GoogleStorageContract>
-    }) as ReturnType<typeof Ajax>)
+    const del = jest.fn(() => Promise.resolve());
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Buckets: { delete: del } as Partial<GoogleStorageContract>,
+        } as ReturnType<typeof Ajax>)
+    );
 
-    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' })
+    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' });
 
     // Act
-    await provider.deleteEmptyDirectory('foo/bar/baz/')
+    await provider.deleteEmptyDirectory('foo/bar/baz/');
 
     // Assert
-    expect(del).toHaveBeenCalledWith(
-      'test-project',
-      'test-bucket',
-      'foo/bar/baz/',
-    )
-  })
-})
+    expect(del).toHaveBeenCalledWith('test-project', 'test-bucket', 'foo/bar/baz/');
+  });
+});

@@ -1,0 +1,29 @@
+name: Automated App Engine Cleanup
+on:
+  # Run once every week on Sunday
+  schedule:
+    - cron: "0 0 * * 0"
+  # To manually trigger workflow
+  workflow_dispatch: {}
+jobs:
+  appengine_cleanup:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDSDK_CORE_DISABLE_PROMPTS: 1
+      TERM: xterm
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    steps:
+      - uses: actions/checkout@v3
+      - name: 'Authenticate with Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
+          service_account: 'appengine-cleanup-non-prod@bvdp-saturn-dev.iam.gserviceaccount.com'
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v1'
+      # Delete old AppEngine versions in each environment
+      - run: ./scripts/delete-old-app-engine-versions.sh dev
+      - run: ./scripts/delete-old-app-engine-versions.sh alpha
+      - run: ./scripts/delete-old-app-engine-versions.sh staging

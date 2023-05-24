@@ -1,139 +1,122 @@
-/* eslint-disable quote-props */
 module.exports = {
-  'plugins': ['lodash-fp', 'simple-import-sort'],
-  'extends': 'react-app',
-  'settings': {
+  extends: ['airbnb-typescript-prettier'],
+  parserOptions: {
+    project: './tsconfig.json',
+  },
+  settings: {
     'import/resolver': {
       'eslint-import-resolver-custom-alias': {
-        'alias': {
-          'src': './src',
-          'types': './types'
+        alias: {
+          src: './src',
+          types: './types',
         },
-        'extensions': ['.js', '.ts']
-      }
-    }
+        extensions: ['.js', '.ts'],
+      },
+    },
   },
-  'rules': {
-    // Best Practices
-    'no-multi-spaces': 'warn',
-    'require-await': 'warn',
-    // Stylistic Issues
-    'array-bracket-newline': ['warn', 'consistent'],
-    'array-bracket-spacing': 'warn',
-    'block-spacing': 'warn',
-    'brace-style': ['warn', '1tbs', { 'allowSingleLine': true }],
-    'camelcase': ['warn', { 'properties': 'never' }],
-    'comma-dangle': ['warn', 'only-multiline'],
-    'comma-spacing': 'warn',
-    'comma-style': 'warn',
-    'computed-property-spacing': 'warn',
-    'eol-last': 'warn',
-    'func-call-spacing': 'warn',
-    'implicit-arrow-linebreak': 'warn',
-    'indent': ['warn', 2, { 'SwitchCase': 1, 'CallExpression': { 'arguments': 1 } }],
-    'key-spacing': 'warn',
-    'keyword-spacing': 'warn',
-    'lines-between-class-members': 'warn',
-    '@typescript-eslint/member-delimiter-style': ['warn', { 'multiline': { 'delimiter': 'none' } }],
-    'no-floating-decimal': 'warn',
-    'no-lonely-if': 'warn',
-    'no-multi-assign': 'warn',
-    'no-multiple-empty-lines': 'warn',
-    'no-trailing-spaces': 'warn',
-    'no-unneeded-ternary': 'warn',
-    'no-unused-vars': 'off', // prefer @typescript-eslint/no-unused-vars
-    '@typescript-eslint/no-unused-vars': [
-      'warn', {
-        'vars': 'all',
-        'args': 'all',
-        'argsIgnorePattern': '^_|^props',
-        'ignoreRestSiblings': true,
-      }
-    ],
-    'no-whitespace-before-property': 'warn',
-    'nonblock-statement-body-position': 'warn',
-    'object-curly-newline': ['warn', { 'multiline': true, 'consistent': true }],
-    'object-curly-spacing': ['warn', 'always'],
-    'one-var': ['warn', 'never'],
-    'operator-linebreak': ['warn', 'after'],
-    'padded-blocks': ['warn', 'never'],
-    'quote-props': ['warn', 'as-needed'],
-    'quotes': ['warn', 'single', { 'avoidEscape': true }],
-    'semi': ['warn', 'never'],
-    'space-before-blocks': 'warn',
-    'space-before-function-paren': ['warn', { 'anonymous': 'never', 'named': 'never', 'asyncArrow': 'always' }],
-    'space-in-parens': 'warn',
-    'space-infix-ops': 'warn',
-
-    // ES6
-    'arrow-parens': ['warn', 'as-needed'],
-    'arrow-spacing': 'warn',
-    'no-duplicate-imports': 'warn',
-    'no-restricted-syntax': [
-      'warn',
-      { 'selector': 'TSEnumDeclaration', 'message': 'Use a union of literals instead of an enum' },
-      { 'selector': 'JSXElement', 'message': 'Use react-hyperscript-helpers instead of JSX' }
-    ],
-    // TODO: Set 'variables' to 'true' after fixing the existing issues
-    'no-use-before-define': ['warn', { 'functions': true, 'classes': true, 'variables': false }],
-    'no-useless-rename': 'warn',
-    'no-var': 'warn',
-    'object-shorthand': 'warn',
-    'prefer-arrow-callback': 'warn',
-    'prefer-const': 'warn',
-    'prefer-template': 'warn',
-    'prefer-rest-params': 'warn',
-    'prefer-spread': 'warn',
-    'rest-spread-spacing': 'warn',
-    'template-curly-spacing': 'warn',
-    'vars-on-top': 'warn',
-
-
-    'lodash-fp/consistent-name': ['warn', '_'],
-    'lodash-fp/no-argumentless-calls': 'warn',
-    'lodash-fp/no-chain': 'warn',
-    'lodash-fp/no-extraneous-args': 'warn',
-    'lodash-fp/no-extraneous-function-wrapping': 'warn',
-    'lodash-fp/no-extraneous-iteratee-args': 'warn',
-    // 'lodash-fp/no-extraneous-partials': 'warn', // available in eslint-plugin-lodash-fp 2.2.0+
-    'lodash-fp/no-partial-of-curried': 'warn',
-    'lodash-fp/no-single-composition': 'warn',
-    'lodash-fp/no-submodule-destructuring': 'warn',
-    'lodash-fp/no-unused-result': 'warn',
-    'lodash-fp/prefer-compact': 'warn',
-    'lodash-fp/prefer-composition-grouping': 'warn',
-    'lodash-fp/prefer-flat-map': 'warn',
-    'lodash-fp/prefer-get': 'warn',
-    'lodash-fp/prefer-identity': ['warn', { 'arrowFunctions': false }],
-    'lodash-fp/preferred-alias': 'warn',
-    'lodash-fp/use-fp': 'warn',
-
-
-    'react/default-props-match-prop-types': 'warn',
-    'react/no-children-prop': 'warn',
-    'react/no-unused-state': 'warn',
-
-    'react-hooks/rules-of-hooks': 'warn',
-    'react-hooks/exhaustive-deps': 'warn',
-
+  rules: {
     'simple-import-sort/imports': 'warn',
+    quotes: [2, 'single', { avoidEscape: true }],
+    'prettier/prettier': 'error',
 
-    'import/named': 'warn',
-    'import/newline-after-import': ['warn', { 'count': 2 }],
-    'import/no-anonymous-default-export': ['warn', { 'allowObject': true }],
-    'import/no-internal-modules': ['warn', {
-      'forbid': ['src/components/common/*']
-    }],
-    'import/no-unresolved': 'warn',
+    // TODO: ticket all of these to be enabled or explain why they are disabled
+    // Destructuring props is not required because it clutters the function type signature.
+    // Props can be destructured in a separate line.
+    'react/destructuring-assignment': 'off',
+    // Use TypeScript instead of PropTypes for new code.
+    'react/forbid-prop-types': 'off',
+    'react/prop-types': 'off',
+    'react/require-default-props': 'off',
+    'react/sort-comp': 'off',
+    'react/static-property-placement': 'off',
 
-    'no-debugger': 'warn'
+    'import/named': 'off',
+    'import/no-cycle': 'off',
+    'import/no-named-as-default': 'off',
+    // Named exports are more convenient for mocking.
+    'import/prefer-default-export': 'off',
+
+    // TS directive comments will be necessary during transition from JS to TS.
+    '@typescript-eslint/ban-ts-comment': 'off',
+    // TODO: Replace these types with alternatives recommended by this rule.
+    '@typescript-eslint/ban-types': ['error', { types: { Function: false, Object: false, '{}': false } }],
+    // No-ops are often used in tests and sometimes as default values for callback props.
+    '@typescript-eslint/no-empty-function': 'off',
+    // `any` is useful for incremental type improvements during the transition from JS to TS.
+    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-non-null-assertion': 'off',
+    '@typescript-eslint/no-shadow': 'off',
+    '@typescript-eslint/no-use-before-define': 'off',
+
+    'class-methods-use-this': 'off',
+    'consistent-return': 'off',
+    'default-param-last': 'off',
+    'func-names': 'off',
+    // Formatting is handled by Prettier.
+    'max-len': 'off',
+    'no-await-in-loop': 'off',
+    'no-case-declarations': 'off',
+    // Allow some console methods.
+    'no-console': ['error', { allow: ['assert', 'error'] }],
+    // Allow `while (true) {...}`
+    'no-constant-condition': ['error', {checkLoops: false}],
+    'no-empty': ['error', { allowEmptyCatch: true }],
+    'no-continue': 'off',
+    'no-nested-ternary': 'off',
+    'no-param-reassign': 'off',
+    'no-plusplus': 'off',
+    'no-promise-executor-return': 'off',
+    'no-restricted-syntax': 'off',
+    'no-return-await': 'off',
+    'no-unused-expressions': 'off',
+    'no-void': 'off',
+    'prefer-destructuring': 'off',
+    'prefer-promise-reject-errors': 'off',
+    'prefer-regex-literals': 'off',
+    radix: 'off',
+    //
+
+    '@typescript-eslint/no-unused-vars': [
+      'warn',
+      {
+        vars: 'all',
+        args: 'all',
+        argsIgnorePattern: '_|^_|^props',
+        ignoreRestSiblings: true,
+      },
+    ],
   },
-  'overrides': [
+  overrides: [
     {
-      'files': 'src/**/*.{js,ts}',
-      'rules': {
-        'no-console': ['warn', { 'allow': ['assert', 'error'] }]
+      files: ['**/*.test.ts', '**/*.test.js', 'src/setupTests.js'],
+      env: {
+        jest: true,
+      },
+    },
+    {
+      files: 'src/**/*.{js,ts}',
+      rules: {
+        // 'no-console': ['warn', { allow: ['assert', 'error'] }],//TODO: should be enabled
+      },
+    },
+    {
+      files: ['integration-tests/**'],
+      rules: {
+        // Integration tests use CommonJS instead of ESM.
+        '@typescript-eslint/no-var-requires': 'off',
+        // TODO: Add dependencies to package.json.
+        'import/no-extraneous-dependencies': 'off',
+        // Integration tests frequently log.
+        'no-console': 'off',
+      }
+    },
+    {
+      files: ['config-overrides.js'],
+      rules: {
+        // Webpack config uses CommonJS instead of ESM.
+        '@typescript-eslint/no-var-requires': 'off',
       }
     }
-  ]
-}
+  ],
+  plugins: ['lodash-fp', 'simple-import-sort'],
+};

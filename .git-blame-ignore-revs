@@ -1,0 +1,5 @@
+# To configure git to use this file when using `git blame`:
+# $ git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# ignores ESLint/prettier pr: UIE-77: https://github.com/DataBiosphere/terra-ui/pull/3902
+50fed6216bdedbef846a0e0fa5e40c38622d7560
