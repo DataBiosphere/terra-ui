@@ -56,30 +56,32 @@ const renderCriteria = (deleteCriteria: (criteria) => void) => (criteria: Criter
           },
           [icon('minus-circle', { size: 24, style: { color: colors.danger() } })]
         ),
-        Utils.cond(
-          [
-            'category' in criteria,
-            () => {
-              const domainCriteria = criteria as DomainCriteria;
-              return div([`${domainCriteria.category}: ${criteria.name}`]);
-            },
-          ],
-          [
-            'value' in criteria,
-            () => {
-              const listCriteria = criteria as ProgramDataListCriteria;
-              return div([`${criteria.name}: ${listCriteria.value.name}`]);
-            },
-          ],
-          [
-            'low' in criteria,
-            () => {
-              const rangeCriteria = criteria as ProgramDataRangeCriteria;
-              return div([`${criteria.name}: ${rangeCriteria.low} - ${rangeCriteria.high}`]);
-            },
-          ],
-          [Utils.DEFAULT, () => div(['Unknown criteria type'])]
-        ),
+        div({ style: { marginLeft: 5 } }, [
+          Utils.cond(
+            [
+              'category' in criteria,
+              () => {
+                const domainCriteria = criteria as DomainCriteria;
+                return h(Fragment, [strong([`${domainCriteria.category}:`]), ` ${domainCriteria.name}`]);
+              },
+            ],
+            [
+              'value' in criteria,
+              () => {
+                const listCriteria = criteria as ProgramDataListCriteria;
+                return h(Fragment, [strong([`${criteria.name}:`]), ` ${listCriteria.value.name}`]);
+              },
+            ],
+            [
+              'low' in criteria,
+              () => {
+                const rangeCriteria = criteria as ProgramDataRangeCriteria;
+                return h(Fragment, [strong([`${criteria.name}:`]), ` ${rangeCriteria.low} - ${rangeCriteria.high}`]);
+              },
+            ],
+            [Utils.DEFAULT, () => div(['Unknown criteria type'])]
+          ),
+        ]),
       ]),
       `Count: ${criteria.count}`,
     ]
