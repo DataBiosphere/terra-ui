@@ -3,7 +3,7 @@ import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, MockedFunction, vi } from 'vitest';
 
 import { ListAppResponse } from '../leonardo/models/app-models';
 import {
@@ -142,7 +142,7 @@ describe('WdsDataTableProvider', () => {
   };
 
   const deleteTableMockImpl: WorkspaceDataContract['deleteTable'] = (_instanceId: string, _recordType: string) => {
-    return Promise.resolve(new Response('', { status: 204 }));
+    return Promise.resolve(new Response(null, { status: 204 }));
   };
 
   const downloadTsvMockImpl: WorkspaceDataContract['downloadTsv'] = (_instanceId: string, _recordType: string) => {
@@ -162,11 +162,11 @@ describe('WdsDataTableProvider', () => {
     return Promise.resolve(testProxyUrlResponse);
   };
 
-  let getRecords: vi.mockedFunction<WorkspaceDataContract['getRecords']>;
-  let deleteTable: vi.mockedFunction<WorkspaceDataContract['deleteTable']>;
-  let downloadTsv: vi.mockedFunction<WorkspaceDataContract['downloadTsv']>;
-  let uploadTsv: vi.mockedFunction<WorkspaceDataContract['uploadTsv']>;
-  let listAppsV2: vi.mockedFunction<AppsContract['listAppsV2']>;
+  let getRecords: MockedFunction<WorkspaceDataContract['getRecords']>;
+  let deleteTable: MockedFunction<WorkspaceDataContract['deleteTable']>;
+  let downloadTsv: MockedFunction<WorkspaceDataContract['downloadTsv']>;
+  let uploadTsv: MockedFunction<WorkspaceDataContract['uploadTsv']>;
+  let listAppsV2: MockedFunction<AppsContract['listAppsV2']>;
 
   beforeEach(() => {
     getRecords = vi.fn().mockImplementation(getRecordsMockImpl);

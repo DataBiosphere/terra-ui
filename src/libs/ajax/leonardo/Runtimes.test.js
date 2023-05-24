@@ -3,6 +3,7 @@ import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('src/libs/ajax/ajax-common', () => ({
+  appIdentifier: {},
   fetchLeo: vi.fn(),
   authOpts: vi.fn(),
   jsonBody: vi.fn(),

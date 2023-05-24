@@ -188,7 +188,7 @@ commands:
             <<# parameters.local >>
             export TEST_URL=http://localhost:3000
             <</ parameters.local >>
-            yarn test $TESTS_TO_RUN --maxWorkers=2
+            yarn test $TESTS_TO_RUN
       - store_test_results:
           path: << parameters.log_dir >>/<< parameters.env >>/test-results/junit
       - store_artifacts:
@@ -228,7 +228,7 @@ jobs:
             - deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
       - run: yarn install --immutable-cache
       - run: yarn eslint --max-warnings=0 .
-      - run: yarn test --coverage --maxWorkers=2
+      - run: yarn test --coverage
       - run: yarn check-types
       - run: DISABLE_ESLINT_PLUGIN=true yarn build # already linted above
       - save_cache:
