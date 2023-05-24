@@ -66,26 +66,35 @@ const WorkspacePermissionNotice = ({ workspace }) => {
   );
 };
 
-const TitleBarWarning = (message) => {
+const TitleBarWarning = (messageComponents) => {
   return h(TitleBar, {
     title: div({ role: 'alert', style: { display: 'flex', alignItems: 'center', margin: '1rem' } }, [
       icon('warning-standard', { size: 32, style: { color: colors.danger(), marginRight: '0.5rem' } }),
-      span({ style: { color: colors.dark(), fontSize: 14 } }, [message]),
+      span({ style: { color: colors.dark(), fontSize: 14 } }, messageComponents),
     ]),
     style: { backgroundColor: colors.accent(0.35), borderBottom: `1px solid ${colors.accent()}` },
   });
 };
 
 const AzureWarning = () => {
-  const warningMessage =
-    'Do not store Unclassified Confidential Information in this platform, as it violates US Federal Policy (ie FISMA, FIPS-199, etc) unless explicitly authorized by the dataset manager or governed by your own agreements.';
+  const warningMessage = [
+    'Do not store Unclassified Confidential Information in this platform, as it violates US Federal Policy (ie FISMA, FIPS-199, etc) unless explicitly authorized by the dataset manager or governed by your own agreements.',
+  ];
   return TitleBarWarning(warningMessage);
 };
 
 const GooglePermissionsWarning = () => {
-  const warningMessage =
-    'Google is currently synchronizing its permissions with this workspace. This can take several minutes, ' +
-    'and in rare cases, several hours. During syncing you will be unable to access the workspace bucket (storage), notebooks, workflows, and analyses.';
+  const warningMessage = [
+    'Google is syncing permissions for this workspace, which may take a few minutes or longer. During this time, access to workspace features will be unavailable. ',
+    h(
+      Link,
+      {
+        href: 'https://support.terra.bio/hc/en-us/community/posts/12380560785819-Delays-in-Google-IAM-permissions-propagating',
+        ...Utils.newTabLinkProps,
+      },
+      [div(['Learn more here.'])]
+    ),
+  ];
 
   return TitleBarWarning(warningMessage);
 };
