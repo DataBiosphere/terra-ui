@@ -206,7 +206,7 @@ const CriteriaGroupView = ({
               ),
               criteriaGroup.criteria
             )) ||
-            div({ style: { marginTop: 20 } }, [
+            div({ style: { marginTop: 15 } }, [
               div({ style: { fontWeight: 'bold', fontStyle: 'italic' } }, ['No criteria yet']),
               div({ style: { fontStyle: 'italic', marginTop: 5 } }, [
                 "You can add a criteria by clicking on 'Add criteria'",
