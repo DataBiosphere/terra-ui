@@ -395,14 +395,14 @@ export const CloudEnvironmentModal = ({
 
     // This defines whether we have successfully set a LeoToken cookie, used for authenticating to apps.
     // - For Azure, apps run in the domain of the Relay namespace in the landing zone; azureCookieReady stores whether a cookie has been set in that domain
+    // - For Azure Runtimes, the cookie is set when opening the runtime.
     // - For GCP, apps are all behind a centralized Leo proxy; leoCookieReady stores whether a cookie has been set in Leo's domain.
+
     const cookieReady = Utils.cond(
-      [
-        cloudProvider === cloudProviderTypes.AZURE && toolLabel === appToolLabels.CROMWELL,
-        () => azureCookieReady.readyForApp,
-      ],
+      [cloudProvider === cloudProviderTypes.AZURE && toolLabel in appToolLabels, () => azureCookieReady.readyForApp],
       [Utils.DEFAULT, () => leoCookieReady]
     );
+
     const isDisabled =
       !doesCloudEnvForToolExist ||
       !cookieReady ||
