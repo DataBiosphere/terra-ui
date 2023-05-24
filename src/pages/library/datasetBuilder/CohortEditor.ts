@@ -1,16 +1,16 @@
 import _ from 'lodash/fp';
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
 import { ButtonOutline, ButtonPrimary, Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
 import colors from 'src/libs/colors';
-import { useStore } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import {
   Cohort,
   Criteria,
   CriteriaGroup,
+  DatasetBuilderState,
   DomainCriteria,
   DomainType,
   newCriteriaGroup,
@@ -20,6 +20,7 @@ import {
   ProgramDataRangeCriteria,
   ProgramDataRangeType,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import { HomepageState } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
 
 const PAGE_PADDING_HEIGHT = 0;
@@ -310,31 +311,33 @@ const RenderCohort = ({
 
 const editorBackgroundColor = colors.light(0.7);
 
-type CohortUpdater = (updater: (cohort: Cohort) => Cohort) => void;
-
 const CohortEditorContents = ({
-  cohortName,
+  updateCohort,
+  cohort,
   datasetDetails,
+  onStateChange,
 }: {
-  cohortName: string;
+  updateCohort: CohortUpdater;
+  cohort: Cohort;
   datasetDetails: DatasetResponse;
+  onStateChange: OnStateChangeType;
 }) => {
-  const cohorts: Cohort[] = useStore(datasetBuilderCohorts);
-  const cohortIndex = _.findIndex((cohort) => cohort.name === cohortName, cohorts);
-  const cohort = cohorts[cohortIndex];
-
-  const updateCohort: CohortUpdater = (updateCohort: (Cohort) => Cohort) => {
-    datasetBuilderCohorts.set(_.set(`[${cohortIndex}]`, updateCohort(cohort), cohorts));
-  };
-
   return div(
     {
       style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem`, backgroundColor: editorBackgroundColor },
     },
     [
       h2({ style: { display: 'flex', alignItems: 'center' } }, [
-        icon('circle-chevron-left', { size: 32, className: 'regular', style: { marginRight: 5 } }),
-        cohortName,
+        h(
+          Link,
+          {
+            onClick: () => {
+              onStateChange(new HomepageState());
+            },
+          },
+          [icon('circle-chevron-left', { size: 32, className: 'regular', style: { marginRight: 5 } })]
+        ),
+        cohort.name,
       ]),
       h3(['To be included in the cohort, participants...']),
       div({ style: { display: 'flow' } }, [
@@ -359,12 +362,19 @@ const CohortEditorContents = ({
 interface CohortEditorProps {
   onStateChange: OnStateChangeType;
   datasetDetails: DatasetResponse;
-  cohortName: string;
+  originalCohort: Cohort;
 }
 
-export const CohortEditor = ({ onStateChange, datasetDetails, cohortName }: CohortEditorProps) => {
+type CohortUpdater = (updater: (cohort: Cohort) => Cohort) => void;
+
+export const CohortEditor = ({ onStateChange, datasetDetails, originalCohort }: CohortEditorProps) => {
+  const [cohort, setCohort] = useState(originalCohort);
+  const updateCohort: CohortUpdater = (updateCohort: (Cohort) => Cohort) => {
+    _.flow(updateCohort, setCohort)(cohort);
+  };
+
   return h(Fragment, [
-    h(CohortEditorContents, { cohortName, datasetDetails }),
+    h(CohortEditorContents, { updateCohort, cohort, datasetDetails, onStateChange }),
     // add div to cover page to footer
     div(
       {
@@ -382,6 +392,11 @@ export const CohortEditor = ({ onStateChange, datasetDetails, cohortName }: Coho
           ButtonPrimary,
           {
             onClick: () => {
+              const cohorts: Cohort[] = datasetBuilderCohorts.get();
+              const cohortIndex = _.findIndex((c) => _.equals(c, originalCohort), cohorts);
+              datasetBuilderCohorts.set(
+                _.set(`[${cohortIndex === -1 ? cohorts.length : cohortIndex}]`, cohort, cohorts)
+              );
               onStateChange({ type: 'homepage' });
             },
           },
@@ -391,3 +406,15 @@ export const CohortEditor = ({ onStateChange, datasetDetails, cohortName }: Coho
     ),
   ]);
 };
+
+export class CohortEditorState implements DatasetBuilderState {
+  get type(): 'cohort-editor' {
+    return 'cohort-editor';
+  }
+
+  readonly cohort: Cohort;
+
+  public constructor(cohort: Cohort) {
+    this.cohort = cohort;
+  }
+}

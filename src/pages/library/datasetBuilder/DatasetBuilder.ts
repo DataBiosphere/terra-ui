@@ -12,7 +12,7 @@ import colors from 'src/libs/colors';
 import { useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { StringInput } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
-import { CohortEditor } from 'src/pages/library/datasetBuilder/CohortEditor';
+import { CohortEditor, CohortEditorState } from 'src/pages/library/datasetBuilder/CohortEditor';
 import {
   PAGE_PADDING_HEIGHT,
   PAGE_PADDING_WIDTH,
@@ -238,10 +238,7 @@ export const CreateCohortModal = ({
     );
 
   const createCohort = (cohortName) => {
-    // Once state is typed, the ts-ignore should go away
-    // @ts-ignore
-    datasetBuilderCohorts.set(datasetBuilderCohorts.get().concat(newCohort(cohortName)));
-    onStateChange({ type: 'cohort-editor', cohortName });
+    onStateChange(new CohortEditorState(newCohort(cohortName)));
   };
 
   return h(
@@ -423,9 +420,15 @@ interface DatasetBuilderProps {
   datasetId: string;
 }
 
+export class HomepageState implements DatasetBuilderState {
+  get type(): 'homepage' {
+    return 'homepage';
+  }
+}
+
 export const DatasetBuilderView = ({ datasetId }: DatasetBuilderProps) => {
   const [datasetDetails, loadDatasetDetails] = useLoadedData<DatasetResponse>();
-  const [datasetBuilderState, setDatasetBuilderState] = useState<DatasetBuilderState>({ type: 'homepage' });
+  const [datasetBuilderState, setDatasetBuilderState] = useState<DatasetBuilderState>(new HomepageState());
 
   useOnMount(() => {
     void loadDatasetDetails(() => DatasetBuilder().retrieveDataset(datasetId));
@@ -442,7 +445,7 @@ export const DatasetBuilderView = ({ datasetId }: DatasetBuilderProps) => {
             () =>
               h(CohortEditor, {
                 onStateChange: (state) => setDatasetBuilderState(state),
-                cohortName: datasetBuilderState?.cohortName || 'unknown',
+                originalCohort: (datasetBuilderState as CohortEditorState).cohort,
                 datasetDetails: datasetDetails.state,
               }),
           ],
