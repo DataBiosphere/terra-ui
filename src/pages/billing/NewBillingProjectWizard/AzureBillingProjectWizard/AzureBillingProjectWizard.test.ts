@@ -12,12 +12,12 @@ import {
   AzureBillingProjectWizard,
   userInfoListToProjectAccessObjects,
 } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureBillingProjectWizard';
-import { selectManagedApp } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureSubscriptionStep.test';
 import {
   clickCreateBillingProject,
   nameBillingProject,
   verifyCreateBillingProjectDisabled,
 } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/CreateNamedProjectStep.test';
+import { selectManagedApp } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/SelectManagedAppTestHelper';
 import { asMockedFn } from 'src/testing/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
