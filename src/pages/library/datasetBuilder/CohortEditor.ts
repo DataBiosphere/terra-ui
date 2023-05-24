@@ -1,28 +1,25 @@
 import _ from 'lodash/fp';
 import { Fragment } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
-import { ButtonOutline, ButtonPrimary, Link, Select, spinnerOverlay } from 'src/components/common';
-import FooterWrapper from 'src/components/FooterWrapper';
+import { ButtonOutline, ButtonPrimary, Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import TopBar from 'src/components/TopBar';
-import { DatasetBuilder, DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
-import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
+import { DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
 import colors from 'src/libs/colors';
-import { useOnMount, useStore } from 'src/libs/react-utils';
+import { useStore } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import {
   Cohort,
-  createCriteriaGroup,
   Criteria,
   CriteriaGroup,
   DomainCriteria,
   DomainType,
+  newCriteriaGroup,
+  OnStateChangeType,
   ProgramDataListCriteria,
   ProgramDataListType,
   ProgramDataRangeCriteria,
   ProgramDataRangeType,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
-import { DatasetBuilderHeader } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
 
 const PAGE_PADDING_HEIGHT = 0;
@@ -350,7 +347,7 @@ const CohortEditorContents = ({
           ButtonOutline,
           {
             style: { marginTop: 10 },
-            onClick: () => updateCohort(_.set(`criteriaGroups.${cohort.criteriaGroups.length}`, createCriteriaGroup())),
+            onClick: () => updateCohort(_.set(`criteriaGroups.${cohort.criteriaGroups.length}`, newCriteriaGroup())),
           },
           ['Add group']
         ),
@@ -360,44 +357,37 @@ const CohortEditorContents = ({
 };
 
 interface CohortEditorProps {
-  datasetId: string;
+  onStateChange: OnStateChangeType;
+  datasetDetails: DatasetResponse;
   cohortName: string;
 }
 
-export const CohortEditorView = ({ datasetId, cohortName }: CohortEditorProps) => {
-  const [datasetDetails, loadDatasetDetails] = useLoadedData<DatasetResponse>();
-  useOnMount(() => {
-    void loadDatasetDetails(() => DatasetBuilder().retrieveDataset(datasetId));
-  });
-
-  return datasetDetails.status === 'Ready'
-    ? h(FooterWrapper, [
-        h(TopBar, { title: 'Preview', href: '' }, []),
-        h(DatasetBuilderHeader, { name: datasetDetails.state.name }),
-        h(CohortEditorContents, { cohortName, datasetDetails: datasetDetails.state }),
-        // add div to cover page to footer
-        div(
+export const CohortEditor = ({ onStateChange, datasetDetails, cohortName }: CohortEditorProps) => {
+  return h(Fragment, [
+    h(CohortEditorContents, { cohortName, datasetDetails }),
+    // add div to cover page to footer
+    div(
+      {
+        style: {
+          display: 'flex',
+          height: '100%',
+          backgroundColor: editorBackgroundColor,
+          alignItems: 'end',
+          flexDirection: 'row-reverse',
+          padding: 10,
+        },
+      },
+      [
+        h(
+          ButtonPrimary,
           {
-            style: {
-              display: 'flex',
-              height: '100%',
-              backgroundColor: editorBackgroundColor,
-              alignItems: 'end',
-              flexDirection: 'row-reverse',
-              padding: 10,
+            onClick: () => {
+              onStateChange({ type: 'homepage' });
             },
           },
-          [h(ButtonPrimary, {}, ['Save cohort'])]
+          ['Save cohort']
         ),
-      ])
-    : spinnerOverlay;
+      ]
+    ),
+  ]);
 };
-
-export const navPaths = [
-  {
-    name: 'edit-cohort',
-    path: '/library/builder/:datasetId/cohort/:cohortName',
-    component: CohortEditorView,
-    title: 'Edit Dataset Cohort',
-  },
-];

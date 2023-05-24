@@ -12,12 +12,20 @@ import colors from 'src/libs/colors';
 import { useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { StringInput } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
+import { CohortEditor } from 'src/pages/library/datasetBuilder/CohortEditor';
 import {
   PAGE_PADDING_HEIGHT,
   PAGE_PADDING_WIDTH,
   PREPACKAGED_CONCEPT_SETS,
 } from 'src/pages/library/datasetBuilder/constants';
-import { Cohort, ConceptSet, DatasetBuilderType } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import {
+  Cohort,
+  ConceptSet,
+  DatasetBuilderState,
+  DatasetBuilderType,
+  newCohort,
+  OnStateChangeType,
+} from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { DatasetBuilderHeader } from 'src/pages/library/datasetBuilder/DatasetBuilderHeader';
 import { datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/pages/library/datasetBuilder/state';
 import { validate } from 'validate.js';
@@ -232,8 +240,8 @@ export const CreateCohortModal = ({
   const createCohort = (cohortName) => {
     // Once state is typed, the ts-ignore should go away
     // @ts-ignore
-    datasetBuilderCohorts.set(datasetBuilderCohorts.get().concat({ name: cohortName }));
-    onStateChange('cohort-editor');
+    datasetBuilderCohorts.set(datasetBuilderCohorts.get().concat(newCohort(cohortName)));
+    onStateChange({ type: 'cohort-editor', cohortName });
   };
 
   return h(
@@ -281,7 +289,7 @@ export const CohortSelector = ({
   const [creatingCohort, setCreatingCohort] = useState(false);
 
   return h(Fragment, [
-    h(Selector, {
+    h(Selector as React.FC<SelectorProps<Cohort>>, {
       headerAction: h(
         Link,
         {
@@ -324,7 +332,7 @@ export const ConceptSetSelector = ({
     headerAction: h(
       Link,
       {
-        onClick: () => onStateChange('concept-set-creator'),
+        onClick: () => onStateChange({ type: 'concept-set-creator' }),
         'aria-label': 'Create new concept set',
       },
       [icon('plus-circle', { size: 24 })]
@@ -411,16 +419,13 @@ export const DatasetBuilderContents = ({ onStateChange }: { onStateChange: OnSta
   ]);
 };
 
-type DatasetBuilderState = 'homepage' | 'cohort-editor' | 'concept-selector' | 'concept-set-creator';
-type OnStateChangeType = (state: DatasetBuilderState) => void;
-
 interface DatasetBuilderProps {
   datasetId: string;
 }
 
 export const DatasetBuilderView = ({ datasetId }: DatasetBuilderProps) => {
   const [datasetDetails, loadDatasetDetails] = useLoadedData<DatasetResponse>();
-  const [datasetBuilderState, setDatasetBuilderState] = useState<DatasetBuilderState>('homepage');
+  const [datasetBuilderState, setDatasetBuilderState] = useState<DatasetBuilderState>({ type: 'homepage' });
 
   useOnMount(() => {
     void loadDatasetDetails(() => DatasetBuilder().retrieveDataset(datasetId));
@@ -430,9 +435,18 @@ export const DatasetBuilderView = ({ datasetId }: DatasetBuilderProps) => {
         h(TopBar, { title: 'Preview', href: '' }, []),
         h(DatasetBuilderHeader, { name: datasetDetails.state.name }),
         Utils.switchCase(
-          datasetBuilderState,
+          datasetBuilderState.type,
           ['homepage', () => h(DatasetBuilderContents, { onStateChange: (state) => setDatasetBuilderState(state) })],
-          [Utils.DEFAULT, () => div([datasetBuilderState])]
+          [
+            'cohort-editor',
+            () =>
+              h(CohortEditor, {
+                onStateChange: (state) => setDatasetBuilderState(state),
+                cohortName: datasetBuilderState?.cohortName || 'unknown',
+                datasetDetails: datasetDetails.state,
+              }),
+          ],
+          [Utils.DEFAULT, () => div([datasetBuilderState.type])]
         ),
       ])
     : spinnerOverlay;

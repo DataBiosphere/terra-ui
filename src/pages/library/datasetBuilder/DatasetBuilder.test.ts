@@ -49,7 +49,10 @@ describe('DatasetBuilder', () => {
     // Arrange
     const user = userEvent.setup();
 
-    datasetBuilderCohorts.set([{ name: 'cohort 1' }, { name: 'cohort 2' }]);
+    datasetBuilderCohorts.set([
+      { name: 'cohort 1', criteriaGroups: [] },
+      { name: 'cohort 2', criteriaGroups: [] },
+    ]);
     const { getByText, getByLabelText } = render(
       h(CohortSelector, { selectedCohorts: [], onChange: (cohorts) => cohorts, onStateChange: (state) => state })
     );

@@ -57,7 +57,7 @@ export interface CriteriaGroup {
 }
 
 let groupCount = 1;
-export const createCriteriaGroup = (): CriteriaGroup => {
+export const newCriteriaGroup = (): CriteriaGroup => {
   return {
     name: `Group ${groupCount++}`,
     criteria: [],
@@ -71,8 +71,22 @@ export interface Cohort extends DatasetBuilderType {
   criteriaGroups: CriteriaGroup[];
 }
 
+export const newCohort = (name: string): Cohort => {
+  return {
+    name,
+    criteriaGroups: [],
+  };
+};
+
 export type ConceptSet = DatasetBuilderType;
 
 export interface DatasetBuilderType {
   name: string;
 }
+
+export interface DatasetBuilderState {
+  type: 'homepage' | 'cohort-editor' | 'concept-selector' | 'concept-set-creator';
+  cohortName?: string;
+}
+
+export type OnStateChangeType = (state: DatasetBuilderState) => void;
