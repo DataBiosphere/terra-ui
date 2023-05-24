@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { Fragment } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
-import { ButtonOutline, Link, Select, spinnerOverlay } from 'src/components/common';
+import { ButtonOutline, ButtonPrimary, Link, Select, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
 import TopBar from 'src/components/TopBar';
@@ -186,7 +186,7 @@ const CriteriaGroupView = ({
               ]
             ),
             div({ style: { alignItems: 'center', display: 'flex' } }, [
-              strong({ style: { marginRight: 10, fontSize: 16 } }, [criteriaGroup.name]),
+              strong({ style: { marginRight: 5, fontSize: 16 } }, [criteriaGroup.name]),
               h(
                 Link,
                 {
@@ -376,7 +376,19 @@ export const CohortEditorView = ({ datasetId, cohortName }: CohortEditorProps) =
         h(DatasetBuilderHeader, { name: datasetDetails.state.name }),
         h(CohortEditorContents, { cohortName, datasetDetails: datasetDetails.state }),
         // add div to cover page to footer
-        div({ style: { display: 'flex', height: '100%', backgroundColor: editorBackgroundColor } }),
+        div(
+          {
+            style: {
+              display: 'flex',
+              height: '100%',
+              backgroundColor: editorBackgroundColor,
+              alignItems: 'end',
+              flexDirection: 'row-reverse',
+              padding: 10,
+            },
+          },
+          [h(ButtonPrimary, {}, ['Save cohort'])]
+        ),
       ])
     : spinnerOverlay;
 };
