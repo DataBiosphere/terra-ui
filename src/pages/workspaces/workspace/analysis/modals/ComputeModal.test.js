@@ -665,7 +665,7 @@ describe('ComputeModal', () => {
   });
 
   // spark cluster (pass a dataproc runtime and ensure it loads correctly) (
-  it('creates a datapoc runtime', async () => {
+  it('creates a dataproc runtime', async () => {
     // Arrange
     const createFunc = jest.fn();
     const runtimeFunc = jest.fn(() => ({

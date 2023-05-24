@@ -31,7 +31,7 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import {
   getPatternFromRuntimeTool,
-  getToolLabelFromRuntime,
+  getToolLabelFromCloudEnv,
   launchableToolLabel,
   runtimeToolLabels,
   runtimeTools,
@@ -266,10 +266,10 @@ const ApplicationLauncher = _.flow(
         googleProject
           ? await Ajax()
               .Runtimes.fileSyncing(googleProject, runtime.runtimeName)
-              .setStorageLinks(localBaseDirectory, '', cloudStorageDirectory, getPatternFromRuntimeTool(getToolLabelFromRuntime(runtime)))
+              .setStorageLinks(localBaseDirectory, '', cloudStorageDirectory, getPatternFromRuntimeTool(getToolLabelFromCloudEnv(runtime)))
           : await Ajax()
               .Runtimes.azureProxy(runtime.proxyUrl)
-              .setStorageLinks(localBaseDirectory, cloudStorageDirectory, getPatternFromRuntimeTool(getToolLabelFromRuntime(runtime)));
+              .setStorageLinks(localBaseDirectory, cloudStorageDirectory, getPatternFromRuntimeTool(getToolLabelFromCloudEnv(runtime)));
       });
 
       if (shouldSetupWelder && runtimeStatus === 'Running') {

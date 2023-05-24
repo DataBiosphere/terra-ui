@@ -8,6 +8,7 @@ import ModalDrawer from 'src/components/ModalDrawer';
 import TitleBar from 'src/components/TitleBar';
 import cromwellImg from 'src/images/cromwell-logo.png';
 import galaxyLogo from 'src/images/galaxy-logo.svg';
+import hailLogo from 'src/images/hail-logo.svg';
 import jupyterLogoLong from 'src/images/jupyter-logo-long.png';
 import rstudioBioLogo from 'src/images/r-bio-logo.svg';
 import { Ajax } from 'src/libs/ajax';
@@ -50,8 +51,8 @@ import {
   appToolLabels,
   cloudAppTools,
   cloudRuntimeTools,
+  getToolLabelFromCloudEnv,
   getToolLabelFromFileExtension,
-  getToolLabelFromRuntime,
   isAppToolLabel,
   isToolHidden,
   RuntimeToolLabel,
@@ -113,7 +114,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
 
     const currentRuntime: Runtime | undefined = getCurrentRuntime(runtimes);
     const currentDisk = getCurrentPersistentDisk(runtimes, persistentDisks);
-    const currentRuntimeToolLabel = currentRuntime && getToolLabelFromRuntime(currentRuntime);
+    const currentRuntimeToolLabel = currentRuntime && getToolLabelFromCloudEnv(currentRuntime);
     const currentApp = (toolLabel: AppToolLabel): App | undefined => getCurrentApp(toolLabel, apps);
 
     // TODO: Bring in as props from Analyses OR bring entire AnalysisFileStore from props.
@@ -264,11 +265,13 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const currentApps: Record<AppToolLabel, App | undefined> = {
       GALAXY: currentApp(appToolLabels.GALAXY),
       CROMWELL: currentApp(appToolLabels.CROMWELL),
+      HAIL_BATCH: currentApp(appToolLabels.HAIL_BATCH),
     };
 
     const appDisabledMessages: Record<AppToolLabel, string> = {
       GALAXY: 'You already have a Galaxy environment',
       CROMWELL: 'You already have a Cromwell instance',
+      HAIL_BATCH: 'You already have a Hail Batch instance',
     };
 
     const toolImages: Record<AppToolLabel | RuntimeToolLabel, ReactElement<'img'>> = {
@@ -281,6 +284,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       }),
       GALAXY: img({ src: galaxyLogo, alt: 'Create new Galaxy app', style: _.merge(styles.image, { width: 139 }) }),
       CROMWELL: img({ src: cromwellImg, alt: 'Create new Cromwell app', style: styles.image }),
+      HAIL_BATCH: img({ src: hailLogo, alt: 'Create new Hail Batch app', style: styles.image }),
     };
 
     const runtimeToolButtons = availableRuntimeTools.map((runtimeTool) => {

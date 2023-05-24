@@ -29,7 +29,7 @@ export const userStatus = {
 export const cookieReadyStore = Utils.atom(false);
 export const azureCookieReadyStore = Utils.atom({
   readyForRuntime: false,
-  readyForCromwellApp: false,
+  readyForApp: false,
 });
 
 export const lastActiveTimeStore = staticStorageSlot(getLocalStorage(), 'idleTimeout');
@@ -58,6 +58,8 @@ export const errorNotifiedApps = Utils.atom([]);
 export const knownBucketRequesterPaysStatuses = Utils.atom({});
 
 export const requesterPaysProjectStore = Utils.atom();
+
+export const runtimesStore = Utils.atom();
 
 export const workflowSelectionStore = Utils.atom({
   key: undefined,

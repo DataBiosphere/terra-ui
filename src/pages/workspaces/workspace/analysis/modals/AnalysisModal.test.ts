@@ -7,6 +7,7 @@ import { Ajax } from 'src/libs/ajax';
 import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { reportError } from 'src/libs/error';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import LoadedState from 'src/libs/type-utils/LoadedState';
 import {
   defaultAzureWorkspace,
@@ -72,6 +73,8 @@ jest.mock('src/pages/workspaces/workspace/analysis/utils/file-utils', (): FileUt
     getExtension: jest.fn(),
   };
 });
+
+jest.mock('src/libs/feature-previews');
 
 type AjaxContract = ReturnType<typeof Ajax>;
 
@@ -293,6 +296,22 @@ describe('AnalysisModal', () => {
     // Assert
     screen.getByText('Select an application');
     screen.getByAltText('Create new notebook');
+    screen.getByAltText('Create new Cromwell app');
+    expect(screen.queryByAltText('Create new R file')).toBeNull();
+    expect(screen.queryByAltText('Create new Galaxy app')).toBeNull();
+    expect(screen.queryByAltText('Create new Hail Batch app')).toBeNull();
+  });
+
+  it('Azure - Renders Hail Batch when feature flag is enabled', () => {
+    // Arrange
+    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true);
+    // Act
+    render(h(AnalysisModal, defaultAzureModalProps));
+    // Assert
+    screen.getByText('Select an application');
+    screen.getByAltText('Create new notebook');
+    screen.getByAltText('Create new Cromwell app');
+    screen.getByAltText('Create new Hail Batch app');
     expect(screen.queryByAltText('Create new R file')).toBeNull();
     expect(screen.queryByAltText('Create new Galaxy app')).toBeNull();
   });

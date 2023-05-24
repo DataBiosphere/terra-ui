@@ -3,6 +3,7 @@ import * as qs from 'qs';
 import { appIdentifier, authOpts, fetchLeo, jsonBody } from 'src/libs/ajax/ajax-common';
 import { CreateAppV1Request, GetAppResponse, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models';
+import { AppToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 export const Apps = (signal) => ({
   list: async (project: string, labels: LeoResourceLabels = {}): Promise<ListAppResponse[]> => {
@@ -77,13 +78,16 @@ export const Apps = (signal) => ({
       },
     };
   },
-  listAppsV2: async (workspaceId: string): Promise<ListAppResponse[]> => {
-    const res = await fetchLeo(`api/apps/v2/${workspaceId}`, _.mergeAll([authOpts(), appIdentifier, { signal }]));
+  listAppsV2: async (workspaceId: string, labels: LeoResourceLabels = {}): Promise<ListAppResponse[]> => {
+    const res = await fetchLeo(
+      `api/apps/v2/${workspaceId}?${qs.stringify(labels)}`,
+      _.mergeAll([authOpts(), appIdentifier, { signal }])
+    );
     return res.json();
   },
-  createAppV2: (appName: string, workspaceId: string): Promise<void> => {
+  createAppV2: (appName: string, workspaceId: string, appType: AppToolLabel): Promise<void> => {
     const body = {
-      appType: 'CROMWELL',
+      appType,
       labels: {
         saturnAutoCreated: 'true',
       },
@@ -93,6 +97,12 @@ export const Apps = (signal) => ({
       _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }])
     );
     return res;
+  },
+  deleteAppV2: (appName: string, workspaceId: string): Promise<void> => {
+    return fetchLeo(
+      `api/apps/v2/${workspaceId}/${appName}`,
+      _.mergeAll([authOpts(), appIdentifier, { signal, method: 'DELETE' }])
+    );
   },
   deleteAllAppsV2: async (workspaceId: string, deleteDisk = true): Promise<void> => {
     const res = await fetchLeo(

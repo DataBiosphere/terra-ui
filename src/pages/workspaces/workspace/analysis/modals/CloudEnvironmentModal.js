@@ -7,6 +7,7 @@ import ModalDrawer from 'src/components/ModalDrawer';
 import TitleBar from 'src/components/TitleBar';
 import cromwellImg from 'src/images/cromwell-logo.png';
 import galaxyLogo from 'src/images/galaxy-logo.svg';
+import hailLogo from 'src/images/hail-logo.svg';
 import jupyterLogo from 'src/images/jupyter-logo-long.png';
 import rstudioBioLogo from 'src/images/r-bio-logo.svg';
 import { Ajax } from 'src/libs/ajax';
@@ -22,6 +23,7 @@ import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/m
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal';
 import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal';
 import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal';
+import { HailBatchModal } from 'src/pages/workspaces/workspace/analysis/modals/HailBatchModal';
 import { appLauncherTabName, PeriodicAzureCookieSetter } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager';
 import { doesWorkspaceSupportCromwellAppForUser, getCurrentApp, getIsAppBusy } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
@@ -32,9 +34,9 @@ import {
   isCurrentGalaxyDiskDetaching,
 } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils';
 import {
-  getComputeStatusForDisplay,
   getConvertedRuntimeStatus,
   getCurrentRuntime,
+  getDisplayRuntimeStatus,
   getIsRuntimeBusy,
   getRuntimeForTool,
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
@@ -294,7 +296,7 @@ export const CloudEnvironmentModal = ({
           toolLabel,
           disabled: true,
           tooltip: 'Environment update in progress',
-          messageChildren: [span(getComputeStatusForDisplay(status))],
+          messageChildren: [span(getDisplayRuntimeStatus(status))],
           style: { color: colors.dark(0.7) },
         });
       case 'Error':
@@ -324,6 +326,7 @@ export const CloudEnvironmentModal = ({
       [appToolLabels.GALAXY, () => galaxyLogo],
       [runtimeToolLabels.RStudio, () => rstudioBioLogo],
       [appToolLabels.CROMWELL, () => cromwellImg],
+      [appToolLabels.HAIL_BATCH, () => hailLogo],
       [runtimeToolLabels.JupyterLab, () => jupyterLogo]
     );
 
@@ -350,15 +353,20 @@ export const CloudEnvironmentModal = ({
   const getToolLaunchClickableProps = (toolLabel, cloudProvider) => {
     const app = currentApp(toolLabel);
     const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || app;
-    // TODO what does leoCookieReady do? Found it in the galaxy app launch code, is it needed here?
     const isToolBusy = isAppToolLabel(toolLabel)
       ? getIsAppBusy(app) || app?.status === 'STOPPED' || app?.status === 'ERROR'
       : currentRuntime?.status === 'Error';
 
+    // This defines whether we have successfully set a LeoToken cookie, used for authenticating to apps.
+    // - For Azure, apps run in the domain of the Relay namespace in the landing zone; azureCookieReady stores whether a cookie has been set in that domain
+    // - For Azure Runtimes, the cookie is set when opening the runtime.
+    // - For GCP, apps are all behind a centralized Leo proxy; leoCookieReady stores whether a cookie has been set in Leo's domain.
+
     const cookieReady = Utils.cond(
-      [cloudProvider === cloudProviderTypes.AZURE && toolLabel === appToolLabels.CROMWELL, () => azureCookieReady.readyForCromwellApp],
+      [cloudProvider === cloudProviderTypes.AZURE && toolLabel in appToolLabels, () => azureCookieReady.readyForApp],
       [Utils.DEFAULT, () => leoCookieReady]
     );
+
     const isDisabled =
       !doesCloudEnvForToolExist ||
       !cookieReady ||
@@ -426,6 +434,20 @@ export const CloudEnvironmentModal = ({
         },
       ],
       [
+        appToolLabels.HAIL_BATCH,
+        () => {
+          return {
+            ...baseProps,
+            href: app?.proxyUrls?.batch,
+            onClick: () => {
+              onDismiss();
+              Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: appTools.HAIL_BATCH.label });
+            },
+            ...Utils.newTabLinkPropsWithReferrer,
+          };
+        },
+      ],
+      [
         Utils.DEFAULT,
         () => {
           // TODO: Jupyter link isn't currently valid, and button will always be disabled for Jupyter because launching directly into tree view is problematic in terms of welder/nbextensions. We are investigating alternatives in https://broadworkbench.atlassian.net/browse/IA-2873
@@ -450,9 +472,19 @@ export const CloudEnvironmentModal = ({
     const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || app;
     const isCloudEnvForToolDisabled = isCloudEnvModalDisabled(toolLabel);
     return h(Fragment, [
-      // We cannot attach the periodic cookie setter until we have a running Cromwell app for Azure because the relay is not guaranteed to be ready until then
-      toolLabel === appToolLabels.CROMWELL && app?.cloudContext?.cloudProvider === cloudProviderTypes.AZURE && app?.status === 'RUNNING'
-        ? h(PeriodicAzureCookieSetter, { proxyUrl: app.proxyUrls['cbas-ui'], forCromwell: true })
+      // We cannot attach the periodic cookie setter until we have a running app for Azure because the relay is not guaranteed to be ready until then
+      app?.cloudContext?.cloudProvider === cloudProviderTypes.AZURE && app?.status === 'RUNNING'
+        ? Utils.cond(
+            [toolLabel === appToolLabels.CROMWELL, () => h(PeriodicAzureCookieSetter, { proxyUrl: app.proxyUrls['cbas-ui'], forApp: true })],
+            [
+              toolLabel === appToolLabels.HAIL_BATCH,
+              () => {
+                const batchUrl = app?.proxyUrls?.batch;
+                return h(PeriodicAzureCookieSetter, { proxyUrl: batchUrl.substring(0, batchUrl.lastIndexOf('/') + 1), forApp: true });
+              },
+            ],
+            [Utils.DEFAULT, () => null]
+          )
         : null,
       div({ style: toolPanelStyles }, [
         // Label at the top for each tool
@@ -511,6 +543,7 @@ export const CloudEnvironmentModal = ({
       [runtimeToolLabels.RStudio, () => renderComputeModal(runtimeToolLabels.RStudio)],
       [appToolLabels.GALAXY, () => renderAppModal(GalaxyModalBase, appToolLabels.GALAXY)],
       [appToolLabels.CROMWELL, () => renderAppModal(CromwellModalBase, appToolLabels.CROMWELL)],
+      [appToolLabels.HAIL_BATCH, () => renderAppModal(HailBatchModal, appToolLabels.HAIL_BATCH)],
       [Utils.DEFAULT, renderDefaultPage]
     );
 
@@ -519,6 +552,7 @@ export const CloudEnvironmentModal = ({
       viewMode,
       [runtimeToolLabels.JupyterLab, () => renderAzureModal(runtimeToolLabels.JupyterLab)],
       [appToolLabels.CROMWELL, () => renderAppModal(CromwellModalBase, appToolLabels.CROMWELL)],
+      [appToolLabels.HAIL_BATCH, () => renderAppModal(HailBatchModal, appToolLabels.HAIL_BATCH)],
       [Utils.DEFAULT, renderDefaultPage]
     );
 
@@ -530,6 +564,7 @@ export const CloudEnvironmentModal = ({
     [runtimeToolLabels.RStudio, () => 675],
     [appToolLabels.GALAXY, () => 675],
     [appToolLabels.CROMWELL, () => 675],
+    [appToolLabels.HAIL_BATCH, () => 675],
     [runtimeToolLabels.JupyterLab, () => 675],
     [Utils.DEFAULT, () => 430]
   );
