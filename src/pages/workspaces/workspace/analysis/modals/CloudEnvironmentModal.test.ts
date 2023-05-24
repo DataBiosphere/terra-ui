@@ -327,8 +327,6 @@ describe('CloudEnvironmentModal', () => {
 
     const cloneAzure = {
       ...AzureCloudEnvironmentModalDefaultProps,
-      // workspace: defaultAzureWorkspace,
-      // runtime: azureRuntime,
     }
 
     // Act
@@ -394,8 +392,6 @@ describe('CloudEnvironmentModal', () => {
 
     const cloneAzure = {
       ...AzureCloudEnvironmentModalDefaultProps,
-      // workspace: defaultAzureWorkspace,
-      // runtime: azureRuntime,
     }
 
     // Act
