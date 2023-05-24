@@ -426,7 +426,7 @@ export const DatasetBuilderView = ({ datasetId }: DatasetBuilderProps) => {
     void loadDatasetDetails(() => DatasetBuilder().retrieveDataset(datasetId));
   });
   return datasetDetails.status === 'Ready'
-    ? h(FooterWrapper, { alwaysShow: true }, [
+    ? h(FooterWrapper, [
         h(TopBar, { title: 'Preview', href: '' }, []),
         h(DatasetBuilderHeader, { name: datasetDetails.state.name }),
         Utils.switchCase(
