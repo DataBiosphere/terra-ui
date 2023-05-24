@@ -186,14 +186,14 @@ const CriteriaGroupView = ({
               ]
             ),
             div({ style: { alignItems: 'center', display: 'flex' } }, [
-              strong({ style: { marginRight: 10, fontSize: 16 } }, [`Group ${index + 1}`]),
+              strong({ style: { marginRight: 10, fontSize: 16 } }, [criteriaGroup.name]),
               h(
                 Link,
                 {
                   onClick: () =>
                     updateCohort(_.set('criteriaGroups', _.without([criteriaGroup], cohort.criteriaGroups))),
                 },
-                [icon('ellipsis-v-circle', { size: 32 })]
+                [icon('trash')]
               ),
             ]),
           ]
@@ -315,7 +315,13 @@ const editorBackgroundColor = colors.light(0.7);
 
 type CohortUpdater = (updater: (cohort: Cohort) => Cohort) => void;
 
-const CohortEditorContents = ({ cohortName, datasetDetails }) => {
+const CohortEditorContents = ({
+  cohortName,
+  datasetDetails,
+}: {
+  cohortName: string;
+  datasetDetails: DatasetResponse;
+}) => {
   const cohorts: Cohort[] = useStore(datasetBuilderCohorts);
   const cohortIndex = _.findIndex((cohort) => cohort.name === cohortName, cohorts);
   const cohort = cohorts[cohortIndex];

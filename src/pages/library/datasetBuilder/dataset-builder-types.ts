@@ -49,14 +49,17 @@ export interface ProgramDataListCriteria extends Criteria {
 
 /** A group of criteria. */
 export interface CriteriaGroup {
+  name: string;
   criteria: Criteria[];
   mustMeet: boolean;
   meetAll: boolean;
   count: number;
 }
 
+let groupCount = 1;
 export const createCriteriaGroup = (): CriteriaGroup => {
   return {
+    name: `Group ${groupCount++}`,
     criteria: [],
     mustMeet: true,
     meetAll: false,
