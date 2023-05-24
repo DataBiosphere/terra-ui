@@ -57,6 +57,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/testing-library__jest-dom", "npm:5.14.5"],\
             ["@typescript-eslint/eslint-plugin", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.59.1"],\
             ["@vitejs/plugin-react", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:4.0.0"],\
+            ["@vitest/coverage-c8", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.31.1"],\
             ["animate.css", "npm:4.1.1"],\
             ["array-move", "npm:4.0.0"],\
             ["blob-polyfill", "npm:7.0.20220408"],\
@@ -151,6 +152,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["@ampproject/remapping", "npm:2.2.0"],\
             ["@jridgewell/gen-mapping", "npm:0.1.1"],\
+            ["@jridgewell/trace-mapping", "npm:0.3.17"]\
+          ],\
+          "linkType": "HARD"\
+        }],\
+        ["npm:2.2.1", {\
+          "packageLocation": "./.yarn/cache/@ampproject-remapping-npm-2.2.1-3da3d624be-03c04fd526.zip/node_modules/@ampproject/remapping/",\
+          "packageDependencies": [\
+            ["@ampproject/remapping", "npm:2.2.1"],\
+            ["@jridgewell/gen-mapping", "npm:0.3.2"],\
             ["@jridgewell/trace-mapping", "npm:0.3.17"]\
           ],\
           "linkType": "HARD"\
@@ -4576,6 +4586,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@jridgewell/sourcemap-codec", "npm:1.4.14"]\
           ],\
           "linkType": "HARD"\
+        }],\
+        ["npm:0.3.18", {\
+          "packageLocation": "./.yarn/cache/@jridgewell-trace-mapping-npm-0.3.18-cd96571385-0572669f85.zip/node_modules/@jridgewell/trace-mapping/",\
+          "packageDependencies": [\
+            ["@jridgewell/trace-mapping", "npm:0.3.18"],\
+            ["@jridgewell/resolve-uri", "npm:3.1.0"],\
+            ["@jridgewell/sourcemap-codec", "npm:1.4.14"]\
+          ],\
+          "linkType": "HARD"\
         }]\
       ]],\
       ["@nicolo-ribaudo/eslint-scope-5-internals", [\
@@ -6458,6 +6477,33 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["@vitest/coverage-c8", [\
+        ["npm:0.31.1", {\
+          "packageLocation": "./.yarn/cache/@vitest-coverage-c8-npm-0.31.1-e2ef08ef36-e9924c652c.zip/node_modules/@vitest/coverage-c8/",\
+          "packageDependencies": [\
+            ["@vitest/coverage-c8", "npm:0.31.1"]\
+          ],\
+          "linkType": "SOFT"\
+        }],\
+        ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.31.1", {\
+          "packageLocation": "./.yarn/__virtual__/@vitest-coverage-c8-virtual-adb53d7ff0/0/cache/@vitest-coverage-c8-npm-0.31.1-e2ef08ef36-e9924c652c.zip/node_modules/@vitest/coverage-c8/",\
+          "packageDependencies": [\
+            ["@vitest/coverage-c8", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.31.1"],\
+            ["@ampproject/remapping", "npm:2.2.1"],\
+            ["@types/vitest", null],\
+            ["c8", "npm:7.13.0"],\
+            ["magic-string", "npm:0.30.0"],\
+            ["picocolors", "npm:1.0.0"],\
+            ["std-env", "npm:3.3.3"],\
+            ["vitest", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.31.0"]\
+          ],\
+          "packagePeers": [\
+            "@types/vitest",\
+            "vitest"\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["@vitest/expect", [\
         ["npm:0.31.0", {\
           "packageLocation": "./.yarn/cache/@vitest-expect-npm-0.31.0-d7219f0669-a752592040.zip/node_modules/@vitest/expect/",\
@@ -8054,6 +8100,27 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/bytes-npm-3.1.2-28b8643004-e4bcd3948d.zip/node_modules/bytes/",\
           "packageDependencies": [\
             ["bytes", "npm:3.1.2"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["c8", [\
+        ["npm:7.13.0", {\
+          "packageLocation": "./.yarn/cache/c8-npm-7.13.0-9ac8f17e2c-491abf4cf3.zip/node_modules/c8/",\
+          "packageDependencies": [\
+            ["c8", "npm:7.13.0"],\
+            ["@bcoe/v8-coverage", "npm:0.2.3"],\
+            ["@istanbuljs/schema", "npm:0.1.3"],\
+            ["find-up", "npm:5.0.0"],\
+            ["foreground-child", "npm:2.0.0"],\
+            ["istanbul-lib-coverage", "npm:3.2.0"],\
+            ["istanbul-lib-report", "npm:3.0.0"],\
+            ["istanbul-reports", "npm:3.1.5"],\
+            ["rimraf", "npm:3.0.2"],\
+            ["test-exclude", "npm:6.0.0"],\
+            ["v8-to-istanbul", "npm:9.1.0"],\
+            ["yargs", "npm:16.2.0"],\
+            ["yargs-parser", "npm:20.2.9"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -12032,6 +12099,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["foreground-child", [\
+        ["npm:2.0.0", {\
+          "packageLocation": "./.yarn/cache/foreground-child-npm-2.0.0-80c976b61e-f77ec9aff6.zip/node_modules/foreground-child/",\
+          "packageDependencies": [\
+            ["foreground-child", "npm:2.0.0"],\
+            ["cross-spawn", "npm:7.0.3"],\
+            ["signal-exit", "npm:3.0.7"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["fork-ts-checker-webpack-plugin", [\
         ["npm:6.5.0", {\
           "packageLocation": "./.yarn/cache/fork-ts-checker-webpack-plugin-npm-6.5.0-47c96d60fd-95d145ab79.zip/node_modules/fork-ts-checker-webpack-plugin/",\
@@ -13911,6 +13989,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/istanbul-reports-npm-3.1.4-5faaa9636c-2132983355.zip/node_modules/istanbul-reports/",\
           "packageDependencies": [\
             ["istanbul-reports", "npm:3.1.4"],\
+            ["html-escaper", "npm:2.0.2"],\
+            ["istanbul-lib-report", "npm:3.0.0"]\
+          ],\
+          "linkType": "HARD"\
+        }],\
+        ["npm:3.1.5", {\
+          "packageLocation": "./.yarn/cache/istanbul-reports-npm-3.1.5-fb11324e3e-7867228f83.zip/node_modules/istanbul-reports/",\
+          "packageDependencies": [\
+            ["istanbul-reports", "npm:3.1.5"],\
             ["html-escaper", "npm:2.0.2"],\
             ["istanbul-lib-report", "npm:3.0.0"]\
           ],\
@@ -22103,6 +22190,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/testing-library__jest-dom", "npm:5.14.5"],\
             ["@typescript-eslint/eslint-plugin", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.59.1"],\
             ["@vitejs/plugin-react", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:4.0.0"],\
+            ["@vitest/coverage-c8", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.31.1"],\
             ["animate.css", "npm:4.1.1"],\
             ["array-move", "npm:4.0.0"],\
             ["blob-polyfill", "npm:7.0.20220408"],\
@@ -23065,6 +23153,16 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/istanbul-lib-coverage", "npm:2.0.3"],\
             ["convert-source-map", "npm:1.8.0"],\
             ["source-map", "npm:0.7.3"]\
+          ],\
+          "linkType": "HARD"\
+        }],\
+        ["npm:9.1.0", {\
+          "packageLocation": "./.yarn/cache/v8-to-istanbul-npm-9.1.0-04cd324682-2069d59ee4.zip/node_modules/v8-to-istanbul/",\
+          "packageDependencies": [\
+            ["v8-to-istanbul", "npm:9.1.0"],\
+            ["@jridgewell/trace-mapping", "npm:0.3.18"],\
+            ["@types/istanbul-lib-coverage", "npm:2.0.3"],\
+            ["convert-source-map", "npm:1.8.0"]\
           ],\
           "linkType": "HARD"\
         }]\
