@@ -3,8 +3,9 @@ import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import * as Nav from 'src/libs/nav';
+import { CohortEditorState } from 'src/pages/library/datasetBuilder/CohortEditor';
 import { PREPACKAGED_CONCEPT_SETS } from 'src/pages/library/datasetBuilder/constants';
-import { Cohort, ConceptSet } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import { ConceptSet, newCohort } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import {
   CohortSelector,
   ConceptSetSelector,
@@ -36,7 +37,7 @@ describe('DatasetBuilder', () => {
 
   it('renders cohorts', () => {
     // @ts-ignore
-    datasetBuilderCohorts.set([{ name: 'cohort 1' }, { name: 'cohort 2' }]);
+    datasetBuilderCohorts.set([newCohort('cohort 1'), newCohort('cohort 2')]);
     const { getByText } = render(
       h(CohortSelector, { selectedCohorts: [], onChange: (cohorts) => cohorts, onStateChange: (state) => state })
     );
@@ -49,10 +50,7 @@ describe('DatasetBuilder', () => {
     // Arrange
     const user = userEvent.setup();
 
-    datasetBuilderCohorts.set([
-      { name: 'cohort 1', criteriaGroups: [] },
-      { name: 'cohort 2', criteriaGroups: [] },
-    ]);
+    datasetBuilderCohorts.set([newCohort('cohort 1'), newCohort('cohort 2')]);
     const { getByText, getByLabelText } = render(
       h(CohortSelector, { selectedCohorts: [], onChange: (cohorts) => cohorts, onStateChange: (state) => state })
     );
@@ -65,23 +63,16 @@ describe('DatasetBuilder', () => {
   it('creates a cohort when the cohort creation modal is filled out', async () => {
     // Arrange
     const user = userEvent.setup();
+    const onStateChange = jest.fn();
 
     // @ts-ignore
-    datasetBuilderCohorts.set([{ name: 'cohort 1' }, { name: 'cohort 2' }]);
-    const { getByText, findByLabelText } = render(
-      h(CreateCohortModal, { onDismiss: () => {}, onStateChange: (state) => state })
-    );
+    const { getByText, findByLabelText } = render(h(CreateCohortModal, { onDismiss: () => {}, onStateChange }));
     // Act
-    fireEvent.change(await findByLabelText('Cohort name *'), { target: { value: 'cohort 3' } });
+    const cohortName = 'new cohort';
+    fireEvent.change(await findByLabelText('Cohort name *'), { target: { value: cohortName } });
     await user.click(getByText('Create cohort'));
     // Assert
-    expect(datasetBuilderCohorts.get().length).toBe(3);
-    expect(
-      _.flow(
-        _.map((cohort: Cohort) => cohort.name),
-        _.includes('cohort 3')
-      )(datasetBuilderCohorts.get())
-    ).toBeTruthy();
+    expect(onStateChange).toHaveBeenCalledWith(new CohortEditorState(newCohort(cohortName)));
   });
 
   it('renders concept sets and prepackaged concept sets', () => {
