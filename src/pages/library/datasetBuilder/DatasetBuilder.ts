@@ -439,12 +439,12 @@ export const DatasetBuilderView = ({ datasetId }: DatasetBuilderProps) => {
         h(DatasetBuilderHeader, { name: datasetDetails.state.name }),
         Utils.switchCase(
           datasetBuilderState.type,
-          ['homepage', () => h(DatasetBuilderContents, { onStateChange: (state) => setDatasetBuilderState(state) })],
+          ['homepage', () => h(DatasetBuilderContents, { onStateChange: setDatasetBuilderState })],
           [
             'cohort-editor',
             () =>
               h(CohortEditor, {
-                onStateChange: (state) => setDatasetBuilderState(state),
+                onStateChange: setDatasetBuilderState,
                 originalCohort: (datasetBuilderState as CohortEditorState).cohort,
                 datasetDetails: datasetDetails.state,
               }),
