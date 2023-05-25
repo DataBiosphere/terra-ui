@@ -350,7 +350,11 @@ const CohortEditorContents = ({
           ButtonOutline,
           {
             style: { marginTop: 10 },
-            onClick: () => updateCohort(_.set(`criteriaGroups.${cohort.criteriaGroups.length}`, newCriteriaGroup())),
+            onClick: (e) => {
+              updateCohort(_.set(`criteriaGroups.${cohort.criteriaGroups.length}`, newCriteriaGroup()));
+              // Lose button focus, since button moves out from under the user's cursor.
+              e.currentTarget.blur();
+            },
           },
           ['Add group']
         ),
