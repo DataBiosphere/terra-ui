@@ -24,7 +24,6 @@ import {
   DatasetBuilderState,
   DatasetBuilderType,
   newCohort,
-  OnStateChangeType,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { DatasetBuilderHeader } from 'src/pages/library/datasetBuilder/DatasetBuilderHeader';
 import { datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/pages/library/datasetBuilder/state';
@@ -210,6 +209,7 @@ const Selector = <T extends DatasetBuilderType>({
   ]);
 };
 
+export type OnStateChangeType = (state: DatasetBuilderState) => void;
 export const CreateCohortModal = ({
   onDismiss,
   onStateChange,

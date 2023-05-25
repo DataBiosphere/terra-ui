@@ -14,13 +14,12 @@ import {
   DomainCriteria,
   DomainType,
   newCriteriaGroup,
-  OnStateChangeType,
   ProgramDataListCriteria,
   ProgramDataListType,
   ProgramDataRangeCriteria,
   ProgramDataRangeType,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
-import { HomepageState } from 'src/pages/library/datasetBuilder/DatasetBuilder';
+import { HomepageState, OnStateChangeType } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
 
 const PAGE_PADDING_HEIGHT = 0;

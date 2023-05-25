@@ -87,5 +87,3 @@ export interface DatasetBuilderType {
 export interface DatasetBuilderState {
   type: 'homepage' | 'cohort-editor' | 'concept-selector' | 'concept-set-creator';
 }
-
-export type OnStateChangeType = (state: DatasetBuilderState) => void;
