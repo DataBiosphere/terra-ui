@@ -5,14 +5,28 @@ import { getLinkExpirationAlerts } from 'src/libs/link-expiration-alerts';
 import * as Nav from 'src/libs/nav';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('src/libs/providers', () => [
-  {
-    key: 'anvil',
-    name: 'NHGRI AnVIL Data Commons Framework Services',
-    expiresAfter: 30,
-    short: 'NHGRI',
-  },
-]);
+vi.mock('src/libs/notifications');
+
+vi.mock('src/libs/config', async () => {
+  const originalModule = await vi.importActual('src/libs/config');
+  return {
+    ...originalModule,
+    getConfig: vi.fn().mockReturnValue({ bondUrlRoot: 'http://bond' }),
+  };
+});
+
+vi.mock('src/libs/providers', () => {
+  return {
+    default: [
+      {
+        key: 'anvil',
+        name: 'NHGRI AnVIL Data Commons Framework Services',
+        expiresAfter: 30,
+        short: 'NHGRI',
+      },
+    ],
+  };
+});
 
 describe('getLinkExpirationAlerts', () => {
   beforeAll(() => {
