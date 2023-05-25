@@ -44,6 +44,7 @@ const renderCriteria = (deleteCriteria: (criteria) => void) => (criteria: Criter
         h(
           Link,
           {
+            'aria-label': 'delete criteria',
             onClick: () => {
               deleteCriteria(criteria);
             },
@@ -168,12 +169,14 @@ const CriteriaGroupView = ({
               },
               [
                 h(Select, {
+                  'aria-label': 'must or must not meet',
                   options: ['Must', 'Must not'],
                   value: criteriaGroup.mustMeet ? 'Must' : 'Must not',
                   onChange: () => updateCohort(_.set(`criteriaGroups.${index}.mustMeet`, !criteriaGroup.mustMeet)),
                 }),
                 div({ style: { margin: '0 10px' } }, ['meet']),
                 h(Select, {
+                  'aria-label': 'all or any',
                   styles: { container: (provided) => ({ ...provided, style: { marginLeft: 10 } }) },
                   options: ['any', 'all'],
                   value: criteriaGroup.meetAll ? 'all' : 'any',
@@ -187,6 +190,7 @@ const CriteriaGroupView = ({
               h(
                 Link,
                 {
+                  'aria-label': 'delete group',
                   onClick: () =>
                     updateCohort(_.set('criteriaGroups', _.without([criteriaGroup], cohort.criteriaGroups))),
                 },
@@ -235,6 +239,7 @@ const CriteriaGroupView = ({
                 }, datasetDetails.programDataTypes),
               },
             ],
+            'aria-label': 'add criteria',
             placeholder: 'Add criteria',
             value: undefined,
             onChange: (x) => {
@@ -278,7 +283,7 @@ const RenderCohort = ({
       : div([
           _.map(
             ([index, criteriaGroup]) =>
-              h(Fragment, [
+              h(Fragment, { key: criteriaGroup.name }, [
                 h(CriteriaGroupView, { index, criteriaGroup, updateCohort, cohort, datasetDetails }),
                 div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'center' } }, [
                   div(
@@ -333,6 +338,7 @@ const CohortEditorContents = ({
             onClick: () => {
               onStateChange(new HomepageState());
             },
+            'aria-label': 'cancel',
           },
           [icon('circle-chevron-left', { size: 32, className: 'regular', style: { marginRight: 5 } })]
         ),
