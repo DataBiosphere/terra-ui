@@ -99,7 +99,7 @@ export const getRegionLabel = (key) => (_.has(key, azureRegions) ? azureRegions[
 export const getRegionFlag = (key) => (_.has(key, azureRegions) ? azureRegions[key].flag : '❓');
 
 export const azureMachineTypes = {
-  Standard_DS2_v2: { cpu: 2, ramInGb: 7 },
+  Standard_NV4as_v4: { cpu: 4, ramInGb: 14 },
   Standard_DS3_v2: { cpu: 4, ramInGb: 14 },
   Standard_DS4_v2: { cpu: 8, ramInGb: 28 },
   Standard_DS5_v2: { cpu: 16, ramInGb: 56 },
