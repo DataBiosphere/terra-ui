@@ -26,9 +26,6 @@ import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
 const PAGE_PADDING_HEIGHT = 0;
 const PAGE_PADDING_WIDTH = 3;
 
-const pickRandom = <T>(array: T[]): T => array[Math.floor(Math.random() * array.length)];
-const randomInt = (): number => Math.floor(Math.random() * 1000);
-
 const renderCriteria = (deleteCriteria: (criteria) => void) => (criteria: Criteria) =>
   div(
     {
@@ -86,11 +83,14 @@ const renderCriteria = (deleteCriteria: (criteria) => void) => (criteria: Criter
   );
 
 const selectDomainCriteria = (domainType: DomainType): DomainCriteria => {
+  // This needs to be replaced with a UI that lets users select the criteria they want from
+  // the list of concepts for this domain.
   return {
-    name: pickRandom(domainType.values),
+    name: domainType.values[0],
     id: domainType.id,
     category: domainType.category,
-    count: randomInt(),
+    // Need to call the API service to get the count for this criteria.
+    count: 100,
   };
 };
 
@@ -98,7 +98,7 @@ const createDefaultListCriteria = (listType: ProgramDataListType): ProgramDataLi
   return {
     name: listType.name,
     id: listType.id,
-    count: randomInt(),
+    count: 100,
     value: listType.values[0],
   };
 };
@@ -107,7 +107,7 @@ const createDefaultRangeCriteria = (rangeType: ProgramDataRangeType): ProgramDat
   return {
     name: rangeType.name,
     id: rangeType.id,
-    count: randomInt(),
+    count: 100,
     low: rangeType.min,
     high: rangeType.max,
   };
@@ -239,7 +239,7 @@ const CriteriaGroupView = ({
             placeholder: 'Add criteria',
             value: undefined,
             onChange: (x) => {
-              // FIXME: remove any
+              // FIXME: is there a way to remove any?
               const criteria = createCriteriaFromType((x as any).value);
               updateCohort(_.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, criteria));
             },
