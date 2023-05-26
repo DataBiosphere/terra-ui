@@ -318,7 +318,7 @@ export class WdsDataTableProvider implements DataTableProvider {
     );
   };
 
-  importTdr = (workspaceId: string, snapshotId: string): Promise<TsvUploadResponse> => {
+  importTdr = (workspaceId: string, snapshotId: string): Promise<Response> => {
     if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded');
     return Ajax().WorkspaceData.importTdr(this.proxyUrl, workspaceId, snapshotId);
   };

@@ -403,26 +403,17 @@ const ImportData = () => {
   }, []);
 
   const importTdrExport = (workspace) => {
-    const { namespace, name } = workspace;
-    const isAzureWorkspace = workspace.cloudPlatform === 'Azure';
-    if (isAzureWorkspace) {
+    if (workspace.cloudPlatform === 'Azure') {
       return async () => {
         // find wds for this workspace
-
         const wdsUrl = await loadWdsUrl(workspace.workspaceId);
-
         const wdsDataTableProvider = new WdsDataTableProvider(workspace.workspaceId, wdsUrl);
 
         // call importsnapshot
         wdsDataTableProvider.importTdr(workspace.workspaceId, snapshotId);
-        //   const { jobId } = await Ajax()
-        // need root, instanceId, snapshotId
-        //     .WorkspaceData.importTdr(tdrmanifest, 'tdrexport', { tdrSyncPermissions: tdrSyncPermissions === 'true' });
-        //   asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
-        //   notifyDataImportProgress(jobId);
-        // };
       };
     }
+    const { namespace, name } = workspace;
     return async () => {
       const { jobId } = await Ajax()
         .Workspaces.workspace(namespace, name)
