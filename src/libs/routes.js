@@ -14,6 +14,7 @@ import * as Code from 'src/pages/library/Code';
 import * as CreateDataset from 'src/pages/library/data-catalog/CreateDataset/CreateDataset';
 import * as DataBrowserDetails from 'src/pages/library/DataBrowserDetails';
 import * as DataBrowserPreview from 'src/pages/library/DataBrowserPreview';
+import * as DatasetBuilder from 'src/pages/library/datasetBuilder/DatasetBuilder';
 import * as Datasets from 'src/pages/library/Datasets';
 import * as DataExplorer from 'src/pages/library/datasets/DataExplorer';
 import * as Showcase from 'src/pages/library/Showcase';
@@ -67,6 +68,7 @@ const routes = _.flatten([
   Code.navPaths,
   DataBrowserDetails.navPaths,
   DataBrowserPreview.navPaths,
+  DatasetBuilder.navPaths,
   CreateDataset.navPaths,
   DataExplorer.navPaths,
   Datasets.navPaths,
