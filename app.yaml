@@ -29,3 +29,5 @@ handlers:
     Strict-Transport-Security: "max-age=31536000; includeSubdomains; preload"
     X-Content-Type-Options: "nosniff"
     X-XSS-Protection: "1; mode=block"
+    X-Terra-Feature-Flags: "this-is-a-test"
+    X-Terra-Request-Id: "12345678"
