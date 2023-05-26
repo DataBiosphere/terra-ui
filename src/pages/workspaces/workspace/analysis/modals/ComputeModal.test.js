@@ -13,6 +13,7 @@ import {
   defaultRImage,
   defaultTestDisk,
   getDisk,
+  getGoogleDataProcRuntime,
   getGoogleRuntime,
   getJupyterRuntimeConfig,
   hailImage,
@@ -465,7 +466,7 @@ describe('ComputeModal', () => {
     }
   );
 
-  // TODO: this is a bug that this doesn't work... needs moore investigation
+  // TODO: this is a bug that this doesn't work... needs more investigation
   // click update with no downtime (and keep pd)
   // it.each([
   //   { tool: tools.Jupyter },
@@ -588,6 +589,168 @@ describe('ComputeModal', () => {
   //     })
   //   }))
   // })
+
+  // should create dataproc spark cluster successfully
+  it('should create dataproc spark cluster successfully', async () => {
+    // Arrange
+    const createFunc = jest.fn();
+    const runtimeFunc = jest.fn(() => ({
+      create: createFunc,
+      details: jest.fn(),
+    }));
+    Ajax.mockImplementation(() => ({
+      ...defaultAjaxImpl,
+      Runtimes: {
+        runtime: runtimeFunc,
+      },
+      Disks: {
+        disk: () => ({
+          details: jest.fn(),
+        }),
+      },
+    }));
+
+    // Act
+    await act(async () => {
+      await render(h(ComputeModalBase, defaultModalProps));
+
+      const selectMenu = await screen.getByLabelText('Application configuration');
+      await userEvent.click(selectMenu);
+      const selectOption = await screen.findByText(hailImage.label);
+      await userEvent.click(selectOption);
+
+      const computeTypeSelect = await screen.getByLabelText('Compute type');
+      await userEvent.click(computeTypeSelect);
+      const sparkClusterOption = await screen.findByText('Spark cluster');
+      await userEvent.click(sparkClusterOption);
+
+      const create = await screen.getByText('Create');
+      await userEvent.click(create);
+    });
+
+    expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
+    expect(createFunc).toHaveBeenCalledWith(
+      expect.objectContaining({
+        toolDockerImage: hailImage.image,
+        runtimeConfig: expect.objectContaining({
+          numberOfWorkers: defaultNumDataprocWorkers,
+          masterMachineType: defaultDataprocMachineType,
+          masterDiskSize: defaultDataprocMasterDiskSize,
+          workerMachineType: defaultDataprocMachineType,
+          workerDiskSize: defaultDataprocWorkerDiskSize,
+          numberOfPreemptibleWorkers: defaultNumDataprocPreemptibleWorkers,
+          cloudService: 'DATAPROC',
+          region: 'us-central1',
+          componentGatewayEnabled: true,
+        }),
+      })
+    );
+  });
+
+  // should create dataproc spark single node successfully
+  it('should create dataproc spark single node successfully', async () => {
+    // Arrange
+    const createFunc = jest.fn();
+    const runtimeFunc = jest.fn(() => ({
+      create: createFunc,
+      details: jest.fn(),
+    }));
+    Ajax.mockImplementation(() => ({
+      ...defaultAjaxImpl,
+      Runtimes: {
+        runtime: runtimeFunc,
+      },
+      Disks: {
+        disk: () => ({
+          details: jest.fn(),
+        }),
+      },
+    }));
+
+    // Act
+    await act(async () => {
+      await render(h(ComputeModalBase, defaultModalProps));
+
+      const selectMenu = await screen.getByLabelText('Application configuration');
+      await userEvent.click(selectMenu);
+      const selectOption = await screen.findByText(hailImage.label);
+      await userEvent.click(selectOption);
+
+      const computeTypeSelect = await screen.getByLabelText('Compute type');
+      await userEvent.click(computeTypeSelect);
+
+      const sparkSingleNodeOption = await screen.findByText('Spark single node')[0];
+      await userEvent.click(sparkSingleNodeOption);
+
+      const create = await screen.getByText('Create');
+      await userEvent.click(create);
+    });
+
+    expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
+
+    expect(createFunc).toHaveBeenCalledWith(
+      expect.objectContaining({
+        toolDockerImage: hailImage.image,
+        runtimeConfig: expect.objectContaining({
+          numberOfWorkers: 0,
+          masterMachineType: defaultDataprocMachineType,
+          masterDiskSize: defaultDataprocMasterDiskSize,
+          cloudService: 'DATAPROC',
+          region: 'us-central1',
+          componentGatewayEnabled: true,
+        }),
+      })
+    );
+  });
+
+  // should delete spark single node successfully
+  it('should delete spark single node successfully', async () => {
+    // Arrange
+    const runtimeProps = {
+      runtimeConfig: getJupyterRuntimeConfig({
+        diskId: undefined,
+        tool: runtimeTools.Jupyter,
+      }),
+    };
+    const runtime = getGoogleDataProcRuntime(runtimeProps);
+
+    const deleteFunc = jest.fn();
+
+    const runtimeFunc = jest.fn(() => ({
+      details: () => runtime,
+      delete: deleteFunc,
+    }));
+    Ajax.mockImplementation(() => ({
+      ...defaultAjaxImpl,
+      Runtimes: {
+        runtime: runtimeFunc,
+      },
+      Disks: {
+        disksV1: () => ({
+          disk: () => ({
+            details: () => undefined,
+          }),
+        }),
+      },
+    }));
+
+    // Act
+    await act(async () => {
+      await render(
+        h(ComputeModalBase, {
+          ...defaultModalProps,
+          currentDisk: undefined,
+          currentRuntime: runtime,
+        })
+      );
+      await userEvent.click(screen.getByText('Delete Runtime'));
+      await userEvent.click(screen.getByText('Delete'));
+    });
+
+    // Assert
+    expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
+    expect(deleteFunc).toHaveBeenCalled();
+  });
 
   // with a [jupyter, rstudio] runtime existing and [a disk, no disk], details pane is open
   it('dataproc runtime should display properly in modal', async () => {
