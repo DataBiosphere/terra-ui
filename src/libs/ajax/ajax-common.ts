@@ -6,7 +6,9 @@ import * as Utils from 'src/libs/utils';
 
 export const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } });
 export const jsonBody = (body) => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } });
-export const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } };
+export const appIdentifier = {
+  headers: { 'X-App-ID': 'Saturn', 'X-Feature-Flags': 'test-flag-101', 'X-Terra-Request-Id': '12345' },
+};
 
 type FetchFn = typeof fetch;
 
