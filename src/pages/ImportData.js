@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment, useState } from 'react';
+import { Fragment, useCallback, useState } from 'react';
 import { div, h, h2, img, li, p, span, strong, ul } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, RadioButton, spinnerOverlay } from 'src/components/common';
@@ -12,6 +12,7 @@ import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils
 import jupyterLogo from 'src/images/jupyter-logo.svg';
 import scienceBackground from 'src/images/science-background.jpg';
 import { Ajax } from 'src/libs/ajax';
+import { resolveWdsUrl, WdsDataTableProvider } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -392,17 +393,35 @@ const ImportData = () => {
     };
   };
 
-  const importTdrExport = (namespace, name, azureWorkspace) => {
-    if (azureWorkspace) {
-      // find wds for this workspace
-      // call importsnapshot
-      // return async () => {
-      //   const { jobId } = await Ajax()
-      // need root, instanceId, snapshotId
-      //     .WorkspaceData.importTdr(tdrmanifest, 'tdrexport', { tdrSyncPermissions: tdrSyncPermissions === 'true' });
-      //   asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
-      //   notifyDataImportProgress(jobId);
-      // };
+  const loadWdsUrl = useCallback((workspaceId) => {
+    return Ajax()
+      .Apps.listAppsV2(workspaceId)
+      .then(resolveWdsUrl)
+      .then((url) => {
+        return url;
+      });
+  }, []);
+
+  const importTdrExport = (workspace) => {
+    const { namespace, name } = workspace;
+    const isAzureWorkspace = workspace.cloudPlatform === 'Azure';
+    if (isAzureWorkspace) {
+      return async () => {
+        // find wds for this workspace
+
+        const wdsUrl = await loadWdsUrl(workspace.workspaceId);
+
+        const wdsDataTableProvider = new WdsDataTableProvider(workspace.workspaceId, wdsUrl);
+
+        // call importsnapshot
+        wdsDataTableProvider.importTdr(workspace.workspaceId, snapshotId);
+        //   const { jobId } = await Ajax()
+        // need root, instanceId, snapshotId
+        //     .WorkspaceData.importTdr(tdrmanifest, 'tdrexport', { tdrSyncPermissions: tdrSyncPermissions === 'true' });
+        //   asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
+        //   notifyDataImportProgress(jobId);
+        // };
+      };
     }
     return async () => {
       const { jobId } = await Ajax()
@@ -454,16 +473,13 @@ const ImportData = () => {
     Utils.withBusyState(setIsImporting),
     withErrorReporting('Import Error')
   )(async (workspace) => {
-    console.log(workspace); // eslint-disable-line no-console
-    console.log(tdrmanifest); // eslint-disable-line no-console
     const { namespace, name } = workspace;
-    const azureWorkspace = workspace.cloudPlatform === 'Azure';
 
     await Utils.switchCase(
       format,
       ['PFB', importPFB(namespace, name)],
       ['entitiesJson', importEntitiesJson(namespace, name)],
-      ['tdrexport', importTdrExport(namespace, name, azureWorkspace)],
+      ['tdrexport', importTdrExport(workspace)],
       ['snapshot', importSnapshot(namespace, name)],
       ['catalog', exportCatalog(workspace.workspaceId)],
       [

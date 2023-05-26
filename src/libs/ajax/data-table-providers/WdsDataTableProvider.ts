@@ -318,23 +318,8 @@ export class WdsDataTableProvider implements DataTableProvider {
     );
   };
 
-  importTdr = (uploadParams: UploadParameters): Promise<TsvUploadResponse> => {
+  importTdr = (workspaceId: string, snapshotId: string): Promise<TsvUploadResponse> => {
     if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded');
-    setTimeout(() => {
-      if (
-        notificationStore.get().length === 0 ||
-        !notificationStore
-          .get()
-          .some((notif: { id: string }) =>
-            [uploadParams.recordType, `${uploadParams.recordType}_success`].includes(notif.id)
-          )
-      ) {
-        notifyDataImportProgress(
-          uploadParams.recordType,
-          'Your data will show up under Tables once import is complete.'
-        );
-      }
-    }, 1000);
-    return Ajax().WorkspaceData.importTdr(this.proxyUrl, uploadParams.workspaceId, uploadParams.recordType);
+    return Ajax().WorkspaceData.importTdr(this.proxyUrl, workspaceId, snapshotId);
   };
 }
