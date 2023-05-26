@@ -320,6 +320,19 @@ export class WdsDataTableProvider implements DataTableProvider {
 
   importTdr = (workspaceId: string, snapshotId: string): Promise<Response> => {
     if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded');
+    setTimeout(() => {
+      if (
+        notificationStore.get().length === 0 ||
+        !notificationStore
+          .get()
+          .some((notif: { id: string }) => ['tdr-imports', 'tdr-import_success'].includes(notif.id))
+      ) {
+        notifyDataImportProgress(
+          'tdr-import',
+          'Your data will show up under Tables once import is complete.  Please refresh the page to see your changes.'
+        );
+      }
+    }, 1000);
     return Ajax().WorkspaceData.importTdr(this.proxyUrl, workspaceId, snapshotId);
   };
 }
