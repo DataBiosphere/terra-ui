@@ -403,7 +403,8 @@ const ImportData = () => {
   }, []);
 
   const importTdrExport = (workspace) => {
-    if (workspace.cloudPlatform === 'Azure') {
+    // For new workspaces, cloudPlatform is blank
+    if (workspace.cloudPlatform === 'Azure' || workspace.googleProject === '') {
       return async () => {
         // find wds for this workspace
         const wdsUrl = await loadWdsUrl(workspace.workspaceId);
