@@ -981,7 +981,7 @@ export const ComputeModalBase = ({
                     href: 'https://support.terra.bio/hc/en-us/articles/360058193872-Preconfigure-a-Cloud-Environment-with-a-startup-script',
                     ...Utils.newTabLinkProps,
                   },
-                  ['Learn more.', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
+                  ['Learn more about startup scripts.', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
                 ),
               ]),
             ]),
