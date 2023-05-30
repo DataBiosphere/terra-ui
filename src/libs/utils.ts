@@ -139,7 +139,7 @@ export const log = (...args) => {
 
 const maybeCall = (maybeFn) => (_.isFunction(maybeFn) ? maybeFn() : maybeFn);
 
-type CondArgType<T> = [boolean, T | (() => T)];
+type CondArgType<T> = [boolean | typeof DEFAULT, T | (() => T)] | (() => T);
 
 export const condTyped = <T>(...args: CondArgType<T>[]): T | undefined => {
   console.assert(
