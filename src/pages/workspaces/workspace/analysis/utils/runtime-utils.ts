@@ -127,8 +127,8 @@ export const getAnalysesDisplayList = _.flow(
   _.join(', ')
 );
 
-export const getConvertedRuntimeStatus = (runtime: Runtime): string => {
-  return runtime && (runtime.patchInProgress ? 'LeoReconfiguring' : runtime.status); // NOTE: preserves null vs undefined
+export const getConvertedRuntimeStatus = (runtime: Runtime | undefined): LeoRuntimeStatus | undefined => {
+  return runtime && (runtime.patchInProgress ? ('Updating' as const) : runtime.status); // NOTE: preserves null vs undefined
 };
 
 export const getDisplayRuntimeStatus = (status: LeoRuntimeStatus): DisplayRuntimeStatus =>
