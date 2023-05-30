@@ -29,8 +29,10 @@ import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
 const PAGE_PADDING_HEIGHT = 0;
 const PAGE_PADDING_WIDTH = 3;
 
-const CriteriaView = (deleteCriteria: (criteria: Criteria) => void) => (criteria: Criteria) =>
-  div(
+type CriteriaViewProps = { criteria: Criteria; deleteCriteria: (criteria: Criteria) => void };
+
+const CriteriaView = ({ criteria, deleteCriteria }: CriteriaViewProps) => {
+  return div(
     {
       style: {
         display: 'flex',
@@ -58,21 +60,21 @@ const CriteriaView = (deleteCriteria: (criteria: Criteria) => void) => (criteria
         div({ style: { marginLeft: 5 } }, [
           Utils.cond(
             [
-              'category' in criteria,
+              'domainType' in criteria,
               () => {
                 const domainCriteria = criteria as DomainCriteria;
-                return h(Fragment, [strong([`${domainCriteria.category}:`]), ` ${domainCriteria.name}`]);
+                return h(Fragment, [strong([`${domainCriteria.domainType.category}:`]), ` ${domainCriteria.name}`]);
               },
             ],
             [
-              'value' in criteria,
+              'listType' in criteria,
               () => {
                 const listCriteria = criteria as ProgramDataListCriteria;
                 return h(Fragment, [strong([`${criteria.name}:`]), ` ${listCriteria.value.name}`]);
               },
             ],
             [
-              'low' in criteria,
+              'rangeType' in criteria,
               () => {
                 const rangeCriteria = criteria as ProgramDataRangeCriteria;
                 return h(Fragment, [strong([`${criteria.name}:`]), ` ${rangeCriteria.low} - ${rangeCriteria.high}`]);
@@ -85,14 +87,19 @@ const CriteriaView = (deleteCriteria: (criteria: Criteria) => void) => (criteria
       `Count: ${criteria.count}`,
     ]
   );
+};
 
+const renderCriteriaView = (deleteCriteria: (criteria: Criteria) => void) => (criteria: Criteria) =>
+  h(CriteriaView, { deleteCriteria, criteria, key: criteria.id });
+
+let criteriaCount = 1;
 const selectDomainCriteria = (domainType: DomainType): DomainCriteria => {
   // This needs to be replaced with a UI that lets users select the criteria they want from
   // the list of concepts for this domain.
   return {
+    domainType,
     name: domainType.values[0],
-    id: domainType.id,
-    category: domainType.category,
+    id: criteriaCount++,
     // Need to call the API service to get the count for this criteria.
     count: 100,
   };
@@ -100,8 +107,9 @@ const selectDomainCriteria = (domainType: DomainType): DomainCriteria => {
 
 const createDefaultListCriteria = (listType: ProgramDataListType): ProgramDataListCriteria => {
   return {
+    listType,
     name: listType.name,
-    id: listType.id,
+    id: criteriaCount++,
     count: 100,
     value: listType.values[0],
   };
@@ -109,8 +117,9 @@ const createDefaultListCriteria = (listType: ProgramDataListType): ProgramDataLi
 
 const createDefaultRangeCriteria = (rangeType: ProgramDataRangeType): ProgramDataRangeCriteria => {
   return {
+    rangeType,
     name: rangeType.name,
-    id: rangeType.id,
+    id: criteriaCount++,
     count: 100,
     low: rangeType.min,
     high: rangeType.max,
@@ -118,13 +127,12 @@ const createDefaultRangeCriteria = (rangeType: ProgramDataRangeType): ProgramDat
 };
 
 function createCriteriaFromType(type: CriteriaType): AnyCriteria {
-  console.log(type.constructor);
   return (
     Utils.condTyped<AnyCriteria>(
       ['category' in type, () => selectDomainCriteria(type as DomainType)],
       ['values' in type, () => createDefaultListCriteria(type as ProgramDataListType)],
       ['min' in type, () => createDefaultRangeCriteria(type as ProgramDataRangeType)]
-    ) ?? { category: 'unknown', name: 'unknown', count: 0, id: 0 } // FIXME: Why is this not a TS error? It needs category to be a valid DomainCriteria.
+    ) ?? { domainType: { id: 0, category: 'unknown', values: [] }, name: 'unknown', count: 0, id: 0 }
   );
 }
 
@@ -139,6 +147,7 @@ type CriteriaGroupViewProps = {
 const CriteriaGroupView = ({ index, criteriaGroup, updateCohort, cohort, datasetDetails }: CriteriaGroupViewProps) => {
   return div(
     {
+      // key: criteriaGroup.name,
       style: {
         backgroundColor: 'white',
         borderRadius: '5px',
@@ -201,7 +210,7 @@ const CriteriaGroupView = ({ index, criteriaGroup, updateCohort, cohort, dataset
         div([
           (criteriaGroup.criteria.length !== 0 &&
             _.map(
-              CriteriaView((criteria: Criteria) =>
+              renderCriteriaView((criteria: Criteria) =>
                 updateCohort(_.set(`criteriaGroups.${index}.criteria`, _.without([criteria], criteriaGroup.criteria)))
               ),
               criteriaGroup.criteria
@@ -268,12 +277,12 @@ const CriteriaGroupView = ({ index, criteriaGroup, updateCohort, cohort, dataset
   );
 };
 
-type CohortListItemProps = {
+type CohortGroupsProps = {
   cohort: Cohort | undefined;
   datasetDetails: DatasetResponse;
   updateCohort: CohortUpdater;
 };
-const CohortListItem = ({ datasetDetails, cohort, updateCohort }: CohortListItemProps) => {
+const CohortGroups = ({ datasetDetails, cohort, updateCohort }: CohortGroupsProps) => {
   return div({ style: { width: '47rem' } }, [
     cohort == null
       ? 'No cohort found'
@@ -339,7 +348,8 @@ const CohortEditorContents = ({ updateCohort, cohort, datasetDetails, onStateCha
       ]),
       h3(['To be included in the cohort, participants...']),
       div({ style: { display: 'flow' } }, [
-        h(CohortListItem, {
+        h(CohortGroups, {
+          key: cohort.name,
           datasetDetails,
           cohort,
           updateCohort,

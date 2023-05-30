@@ -1,4 +1,9 @@
-import { ProgramDataListTypeValue } from 'src/libs/ajax/DatasetBuilder';
+import {
+  DomainType,
+  ProgramDataListType,
+  ProgramDataListTypeValue,
+  ProgramDataRangeType,
+} from 'src/libs/ajax/DatasetBuilder';
 
 /** A specific criteria based on a type. */
 export interface Criteria {
@@ -8,14 +13,16 @@ export interface Criteria {
 }
 
 export interface DomainCriteria extends Criteria {
-  category: string;
+  domainType: DomainType;
 }
 
 export interface ProgramDataRangeCriteria extends Criteria {
+  rangeType: ProgramDataRangeType;
   low: number;
   high: number;
 }
 export interface ProgramDataListCriteria extends Criteria {
+  listType: ProgramDataListType;
   value: ProgramDataListTypeValue;
 }
 
