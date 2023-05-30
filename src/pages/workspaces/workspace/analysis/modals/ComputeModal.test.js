@@ -590,7 +590,6 @@ describe('ComputeModal', () => {
   //   }))
   // })
 
-  // should create dataproc spark cluster successfully
   it('should create dataproc spark cluster successfully', async () => {
     // Arrange
     const createFunc = jest.fn();
@@ -647,7 +646,6 @@ describe('ComputeModal', () => {
     );
   });
 
-  // should create dataproc spark single node successfully
   it('should create dataproc spark single node successfully', async () => {
     // Arrange
     const createFunc = jest.fn();
@@ -703,7 +701,6 @@ describe('ComputeModal', () => {
     );
   });
 
-  // should delete spark single node successfully
   it('should delete spark single node successfully', async () => {
     // Arrange
     const runtimeProps = {
