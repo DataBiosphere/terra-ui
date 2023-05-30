@@ -1,4 +1,36 @@
-import { DomainType, ProgramDataType } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+// Types that can be used to create a criteria.
+
+export interface DomainType {
+  id: number;
+  category: string;
+  values: string[];
+}
+
+type DataType = 'range' | 'list';
+
+export interface ProgramDataType {
+  id: number;
+  name: string;
+  dataType: DataType;
+}
+
+export interface ProgramDataRangeType extends ProgramDataType {
+  min: number;
+  max: number;
+}
+
+export interface ProgramDataListTypeValue {
+  id: number;
+  name: string;
+}
+
+export interface ProgramDataListType extends ProgramDataType {
+  values: ProgramDataListTypeValue[];
+}
+
+// discriminating union
+// define the three types
+export type CriteriaType = DomainType | ProgramDataRangeType | ProgramDataListType;
 
 export interface DatasetResponse {
   name: string;

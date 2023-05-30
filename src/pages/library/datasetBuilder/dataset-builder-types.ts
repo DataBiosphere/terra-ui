@@ -1,32 +1,4 @@
-// Types that can be used to create a criteria.
-
-type DataType = 'range' | 'list';
-
-export interface ProgramDataType {
-  id: number;
-  name: string;
-  dataType: DataType;
-}
-
-export interface ProgramDataRangeType extends ProgramDataType {
-  min: number;
-  max: number;
-}
-
-export interface ProgramDataListTypeValue {
-  id: number;
-  name: string;
-}
-
-export interface ProgramDataListType extends ProgramDataType {
-  values: ProgramDataListTypeValue[];
-}
-
-export interface DomainType {
-  id: number;
-  category: string;
-  values: string[];
-}
+import { ProgramDataListTypeValue } from 'src/libs/ajax/DatasetBuilder';
 
 /** A specific criteria based on a type. */
 export interface Criteria {
@@ -46,6 +18,8 @@ export interface ProgramDataRangeCriteria extends Criteria {
 export interface ProgramDataListCriteria extends Criteria {
   value: ProgramDataListTypeValue;
 }
+
+export type AnyCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
 
 /** A group of criteria. */
 export interface CriteriaGroup {

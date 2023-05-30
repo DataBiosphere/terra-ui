@@ -3,21 +3,25 @@ import { Fragment, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
 import { ButtonOutline, ButtonPrimary, Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
+import {
+  CriteriaType,
+  DatasetResponse,
+  DomainType,
+  ProgramDataListType,
+  ProgramDataRangeType,
+} from 'src/libs/ajax/DatasetBuilder';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 import {
+  AnyCriteria,
   Cohort,
   Criteria,
   CriteriaGroup,
   DatasetBuilderState,
   DomainCriteria,
-  DomainType,
   newCriteriaGroup,
   ProgramDataListCriteria,
-  ProgramDataListType,
   ProgramDataRangeCriteria,
-  ProgramDataRangeType,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { HomepageState, OnStateChangeType } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
@@ -25,7 +29,7 @@ import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
 const PAGE_PADDING_HEIGHT = 0;
 const PAGE_PADDING_WIDTH = 3;
 
-const renderCriteria = (deleteCriteria: (criteria) => void) => (criteria: Criteria) =>
+const CriteriaView = (deleteCriteria: (criteria: Criteria) => void) => (criteria: Criteria) =>
   div(
     {
       style: {
@@ -113,31 +117,26 @@ const createDefaultRangeCriteria = (rangeType: ProgramDataRangeType): ProgramDat
   };
 };
 
-function createCriteriaFromType(
-  type: DomainType | ProgramDataRangeType | ProgramDataListType
-): DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria {
+function createCriteriaFromType(type: CriteriaType): AnyCriteria {
+  console.log(type.constructor);
   return (
-    Utils.condTyped<DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria>(
+    Utils.condTyped<AnyCriteria>(
       ['category' in type, () => selectDomainCriteria(type as DomainType)],
       ['values' in type, () => createDefaultListCriteria(type as ProgramDataListType)],
       ['min' in type, () => createDefaultRangeCriteria(type as ProgramDataRangeType)]
-    ) ?? { category: 'unknown', name: 'unknown', count: 0, id: 0 }
+    ) ?? { category: 'unknown', name: 'unknown', count: 0, id: 0 } // FIXME: Why is this not a TS error? It needs category to be a valid DomainCriteria.
   );
 }
 
-const CriteriaGroupView = ({
-  index,
-  criteriaGroup,
-  updateCohort,
-  cohort,
-  datasetDetails,
-}: {
+type CriteriaGroupViewProps = {
   index: number;
   criteriaGroup: CriteriaGroup;
   updateCohort: CohortUpdater;
   cohort: Cohort;
   datasetDetails: DatasetResponse;
-}) => {
+};
+
+const CriteriaGroupView = ({ index, criteriaGroup, updateCohort, cohort, datasetDetails }: CriteriaGroupViewProps) => {
   return div(
     {
       style: {
@@ -202,7 +201,7 @@ const CriteriaGroupView = ({
         div([
           (criteriaGroup.criteria.length !== 0 &&
             _.map(
-              renderCriteria((criteria: Criteria) =>
+              CriteriaView((criteria: Criteria) =>
                 updateCohort(_.set(`criteriaGroups.${index}.criteria`, _.without([criteria], criteriaGroup.criteria)))
               ),
               criteriaGroup.criteria
@@ -244,6 +243,7 @@ const CriteriaGroupView = ({
             value: undefined,
             onChange: (x) => {
               // FIXME: is there a way to remove any?
+              // See SortSelect in SearchAndFilterComponent.ts
               const criteria = createCriteriaFromType((x as any).value);
               updateCohort(_.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, criteria));
             },
@@ -268,15 +268,12 @@ const CriteriaGroupView = ({
   );
 };
 
-const RenderCohort = ({
-  datasetDetails,
-  cohort,
-  updateCohort,
-}: {
+type CohortListItemProps = {
   cohort: Cohort | undefined;
   datasetDetails: DatasetResponse;
   updateCohort: CohortUpdater;
-}) => {
+};
+const CohortListItem = ({ datasetDetails, cohort, updateCohort }: CohortListItemProps) => {
   return div({ style: { width: '47rem' } }, [
     cohort == null
       ? 'No cohort found'
@@ -315,17 +312,13 @@ const RenderCohort = ({
 
 const editorBackgroundColor = colors.light(0.7);
 
-const CohortEditorContents = ({
-  updateCohort,
-  cohort,
-  datasetDetails,
-  onStateChange,
-}: {
+type CohortEditorContentsProps = {
   updateCohort: CohortUpdater;
   cohort: Cohort;
   datasetDetails: DatasetResponse;
   onStateChange: OnStateChangeType;
-}) => {
+};
+const CohortEditorContents = ({ updateCohort, cohort, datasetDetails, onStateChange }: CohortEditorContentsProps) => {
   return div(
     {
       style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem`, backgroundColor: editorBackgroundColor },
@@ -346,7 +339,7 @@ const CohortEditorContents = ({
       ]),
       h3(['To be included in the cohort, participants...']),
       div({ style: { display: 'flow' } }, [
-        h(RenderCohort, {
+        h(CohortListItem, {
           datasetDetails,
           cohort,
           updateCohort,
