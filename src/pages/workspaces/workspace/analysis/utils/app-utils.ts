@@ -9,6 +9,7 @@ import {
   allAppTypes,
   AppToolLabel,
   appToolLabels,
+  isAppToolLabel,
   ToolLabel,
 } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
@@ -53,8 +54,9 @@ export const doesWorkspaceSupportCromwellAppForUser = (
   );
 };
 
-export const getCurrentApp = (appType: AppToolLabel, apps: App[]): App | undefined =>
-  getCurrentAppExcludingStatuses(appType, ['DELETING'], apps);
+export const getCurrentApp = (appType: ToolLabel, apps: App[]): App | undefined =>
+  isAppToolLabel(appType) ? getCurrentAppExcludingStatuses(appType, ['DELETING'], apps) : undefined;
+
 export const getCurrentAppIncludingDeleting = (appType: AppToolLabel, apps: App[]): App | undefined =>
   getCurrentAppExcludingStatuses(appType, [], apps);
 

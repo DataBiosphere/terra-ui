@@ -5,7 +5,7 @@ import { icon } from 'src/components/icons';
 
 interface ITitleBar {
   id: string;
-  onPrevious: MouseEventHandler;
+  onPrevious: MouseEventHandler | undefined;
   title: ReactNode;
   onDismiss: MouseEventHandler;
   titleChildren: ReactNode;
