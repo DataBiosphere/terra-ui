@@ -285,8 +285,7 @@ const ccdg = () =>
         ButtonPrimary,
         {
           'aria-label': 'Browse CCDG data',
-          tooltip: browseTooltip,
-          href: `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().queryName}&project=AnVIL CCDG&project=AnVIL CCDG CVD#library`,
+          href: 'https://anvilproject.org/data/consortia/CCDG',
           onClick: () => captureBrowseDataEvent('CCDG'),
           ...Utils.newTabLinkProps,
         },
@@ -311,8 +310,7 @@ const cmg = () =>
         ButtonPrimary,
         {
           'aria-label': 'Browse CMG data',
-          tooltip: browseTooltip,
-          href: `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().queryName}&project=AnVIL CMG#library`,
+          href: 'https://anvilproject.org/data/consortia/CMG',
           onClick: () => captureBrowseDataEvent('CMG'),
           ...Utils.newTabLinkProps,
         },
