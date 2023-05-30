@@ -100,9 +100,12 @@ export const getRegionFlag = (key) => (_.has(key, azureRegions) ? azureRegions[k
 
 export const azureMachineTypes = {
   Standard_DS2_v2: { cpu: 2, ramInGb: 7 },
-  Standard_NC6s_v3: { cpu: 6, ramInGb: 112 },
-  Standard_F64s_v2: { cpu: 64, ramInGb: 128 },
+  Standard_DS3_v2: { cpu: 4, ramInGb: 14 },
+  Standard_DS4_v2: { cpu: 8, ramInGb: 28 },
   Standard_DS5_v2: { cpu: 16, ramInGb: 56 },
+  Standard_F64s_v2: { cpu: 64, ramInGb: 128 },
+  Standard_NC6s_v3: { cpu: 6, ramInGb: 112 },
+  Standard_NC12s_v3: { cpu: 12, ramInGb: 224 },
 };
 export const getMachineTypeLabel = (key) =>
   _.has(key, azureMachineTypes) ? `${key}, ${azureMachineTypes[key].cpu} CPU(s), ${azureMachineTypes[key].ramInGb} GBs` : 'Unknown machine type';
