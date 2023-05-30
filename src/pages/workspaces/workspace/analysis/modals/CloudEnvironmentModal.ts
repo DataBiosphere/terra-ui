@@ -54,6 +54,7 @@ import {
 import {
   getConvertedRuntimeStatus,
   getCurrentRuntime,
+  getDisplayRuntimeStatus,
   getIsRuntimeBusy,
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import {
@@ -201,7 +202,7 @@ export const CloudEnvironmentModal = ({
   const currentApp = (toolLabel: ToolLabel) => getCurrentApp(toolLabel, apps);
 
   const isLaunchSupported = (toolLabel: ToolLabel) =>
-    Object.values(tools).find((tool) => tool.label === toolLabel)!.isLaunchUnsupported;
+    !Object.values(tools).find((tool) => tool.label === toolLabel)!.isLaunchUnsupported;
 
   const RuntimeIcon = ({
     shape,
@@ -324,6 +325,14 @@ export const CloudEnvironmentModal = ({
       case appStatuses.provisioning.status:
       case appStatuses.deleting.status:
       case appStatuses.status_unspecified.status:
+        return h(RuntimeIcon, {
+          shape: 'sync',
+          toolLabel,
+          disabled: true,
+          tooltip: 'Environment update in progress',
+          messageChildren: [span([_.capitalize(status)])],
+          style: { color: colors.dark(0.7) },
+        });
       case runtimeStatuses.starting.leoLabel:
       case runtimeStatuses.stopping.leoLabel:
       case runtimeStatuses.updating.leoLabel:
@@ -333,7 +342,7 @@ export const CloudEnvironmentModal = ({
           toolLabel,
           disabled: true,
           tooltip: 'Environment update in progress',
-          messageChildren: [span([_.capitalize(status)])],
+          messageChildren: [span([getDisplayRuntimeStatus(status)])],
           style: { color: colors.dark(0.7) },
         });
       case appStatuses.error.status:
@@ -628,7 +637,7 @@ export const CloudEnvironmentModal = ({
       titleStyles: _.merge(viewMode === undefined ? {} : { display: 'none' }, { width, margin: '1.5rem 0 .5rem 1rem' }),
       titleChildren: [],
       onDismiss,
-      onPrevious: () => (viewMode ? setViewMode(undefined) : undefined),
+      onPrevious: viewMode ? () => setViewMode(undefined) : undefined,
     }),
     viewMode !== undefined && hr({ style: { borderTop: '1px solid', width: '100%', color: colors.accent() } }),
     getView(),
