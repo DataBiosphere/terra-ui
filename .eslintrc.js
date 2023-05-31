@@ -57,7 +57,7 @@ module.exports = {
     'no-await-in-loop': 'off',
     'no-case-declarations': 'off',
     // Allow some console methods.
-    'no-console': 'warn',
+    'no-console': ['warn', { allow: ['assert', 'error'] }],
     // Allow `while (true) {...}`
     'no-constant-condition': ['error', {checkLoops: false}],
     'no-empty': ['error', { allowEmptyCatch: true }],
