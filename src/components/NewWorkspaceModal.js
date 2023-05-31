@@ -451,8 +451,8 @@ const NewWorkspaceModal = withDisplayName(
             ),
           },
           [
-            div({ style: { color: colors.warning() } }, [
-              icon('error-standard', { size: 16, style: { marginRight: '0.5rem' } }),
+            div([
+              icon('error-standard', { size: 16, style: { marginRight: '0.5rem', color: colors.warning() } }),
               'You need a billing project to ',
               cloneWorkspace ? 'clone a' : 'create a new',
               ' workspace.',
