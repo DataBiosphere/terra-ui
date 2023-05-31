@@ -137,17 +137,11 @@ export const log = (...args) => {
   return _.last(args);
 };
 
-const maybeCall = (maybeFn) => (_.isFunction(maybeFn) ? maybeFn() : maybeFn);
+const maybeCall = <T>(maybeFn: T | (() => T)) => (_.isFunction(maybeFn) ? maybeFn() : maybeFn);
 
 type CondArgType<T> = [boolean | typeof DEFAULT, T | (() => T)] | (() => T);
 
 export const condTyped = <T>(...args: CondArgType<T>[]): T | undefined => {
-  console.assert(
-    _.every((arg) => {
-      return _.isFunction(arg) || (_.isArray(arg) && arg.length === 2 && _.isFunction(arg[1]));
-    }, args),
-    'Invalid arguments to Utils.cond'
-  );
   for (const arg of args) {
     if (_.isArray(arg)) {
       const [predicate, value] = arg;
@@ -168,7 +162,15 @@ export const condTyped = <T>(...args: CondArgType<T>[]): T | undefined => {
  *
  * @Deprecated use condTyped instead
  */
-export const cond: (...args: any[]) => any = condTyped;
+export const cond = (...args: any[]): any => {
+  console.assert(
+    _.every((arg) => {
+      return _.isFunction(arg) || (_.isArray(arg) && arg.length === 2 && _.isFunction(arg[1]));
+    }, args),
+    'Invalid arguments to Utils.cond'
+  );
+  return condTyped(...args);
+};
 
 export const DEFAULT = Symbol('Default switch case');
 
@@ -176,10 +178,10 @@ export const switchCase = (value, ...pairs) => {
   const match = _.find(([v]) => v === value || v === DEFAULT, pairs);
   return match && match[1]();
 };
-export const toIndexPairs = <T>(obj: T[]) =>
+export const toIndexPairs = <T>(obj: T[]): [number, T][] =>
   _.flow(
     _.toPairs,
-    _.map(([k, v]: [string, T]): [number, T] => [(k as any) * 1, v])
+    _.map(([k, v]: [string, T]) => [+k, v])
   )(obj);
 
 // TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
