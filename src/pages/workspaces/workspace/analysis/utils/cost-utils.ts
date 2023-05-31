@@ -42,6 +42,7 @@ import {
   isAzureContext,
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import {
+  AppToolLabel,
   appToolLabels,
   appTools,
   RuntimeToolLabel,
@@ -321,7 +322,7 @@ export const getCostForDisk = (
   app: App | undefined,
   appDataDisks: PersistentDisk[],
   computeRegion: string,
-  currentRuntimeToolLabel: RuntimeToolLabel,
+  currentRuntimeToolLabel: RuntimeToolLabel | ToolLabel | undefined,
   persistentDisks: PersistentDisk[],
   runtimes: Runtime[],
   toolLabel: ToolLabel
@@ -352,7 +353,7 @@ export const getCostForDisk = (
 export const getCostDisplayForTool = (
   app: App | undefined,
   currentRuntime: Runtime | undefined,
-  currentRuntimeToolLabel: RuntimeToolLabel | undefined,
+  currentRuntimeToolLabel: RuntimeToolLabel | AppToolLabel | undefined,
   toolLabel: ToolLabel | undefined
 ): string => {
   return Utils.cond(
@@ -376,7 +377,7 @@ export const getCostDisplayForDisk = (
   app: App | undefined,
   appDataDisks: PersistentDisk[],
   computeRegion: string,
-  currentRuntimeToolLabel: RuntimeToolLabel,
+  currentRuntimeToolLabel: RuntimeToolLabel | ToolLabel | undefined,
   persistentDisks: PersistentDisk[],
   runtimes: Runtime[],
   toolLabel: ToolLabel
