@@ -330,7 +330,7 @@ type CohortEditorContentsProps = {
 const CohortEditorContents = ({ updateCohort, cohort, datasetDetails, onStateChange }: CohortEditorContentsProps) => {
   return div(
     {
-      style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem`, backgroundColor: editorBackgroundColor },
+      style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` },
     },
     [
       h2({ style: { display: 'flex', alignItems: 'center' } }, [
@@ -392,7 +392,6 @@ export const CohortEditor = ({ onStateChange, datasetDetails, originalCohort }: 
       {
         style: {
           display: 'flex',
-          height: '100%',
           backgroundColor: editorBackgroundColor,
           alignItems: 'end',
           flexDirection: 'row-reverse',

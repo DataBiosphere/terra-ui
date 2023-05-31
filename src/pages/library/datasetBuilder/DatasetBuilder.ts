@@ -425,6 +425,7 @@ export class HomepageState implements DatasetBuilderState {
     return 'homepage';
   }
 }
+const editorBackgroundColor = colors.light(0.7);
 
 export const DatasetBuilderView = ({ datasetId }: DatasetBuilderProps) => {
   const [datasetDetails, loadDatasetDetails] = useLoadedData<DatasetResponse>();
@@ -437,20 +438,23 @@ export const DatasetBuilderView = ({ datasetId }: DatasetBuilderProps) => {
     ? h(FooterWrapper, [
         h(TopBar, { title: 'Preview', href: '' }, []),
         h(DatasetBuilderHeader, { name: datasetDetails.state.name }),
-        Utils.switchCase(
-          datasetBuilderState.type,
-          ['homepage', () => h(DatasetBuilderContents, { onStateChange: setDatasetBuilderState })],
-          [
-            'cohort-editor',
-            () =>
-              h(CohortEditor, {
-                onStateChange: setDatasetBuilderState,
-                originalCohort: (datasetBuilderState as CohortEditorState).cohort,
-                datasetDetails: datasetDetails.state,
-              }),
-          ],
-          [Utils.DEFAULT, () => div([datasetBuilderState.type])]
-        ),
+        div({ style: { backgroundColor: editorBackgroundColor } }, [
+          Utils.switchCase(
+            datasetBuilderState.type,
+            ['homepage', () => h(DatasetBuilderContents, { onStateChange: setDatasetBuilderState })],
+            [
+              'cohort-editor',
+              () =>
+                h(CohortEditor, {
+                  onStateChange: setDatasetBuilderState,
+                  originalCohort: (datasetBuilderState as CohortEditorState).cohort,
+                  datasetDetails: datasetDetails.state,
+                }),
+            ],
+            [Utils.DEFAULT, () => div([datasetBuilderState.type])]
+          ),
+        ]),
+        div({ style: { backgroundColor: editorBackgroundColor, height: '100%' } }, []),
       ])
     : spinnerOverlay;
 };
