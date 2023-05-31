@@ -410,7 +410,7 @@ const ImportData = () => {
         const wdsUrl = await loadWdsUrl(workspace.workspaceId);
         const wdsDataTableProvider = new WdsDataTableProvider(workspace.workspaceId, wdsUrl);
 
-        // call importsnapshot
+        // call import snapshot
         wdsDataTableProvider.importTdr(workspace.workspaceId, snapshotId);
       };
     }

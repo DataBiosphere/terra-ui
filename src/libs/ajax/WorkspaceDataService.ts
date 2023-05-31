@@ -62,6 +62,6 @@ export const WorkspaceData = (signal) => ({
       `${instanceId}/snapshots/v0.2/${snapshotId}`,
       _.mergeAll([authOpts(), { signal, method: 'POST' }])
     );
-    return res.json();
+    return res;
   },
 });
