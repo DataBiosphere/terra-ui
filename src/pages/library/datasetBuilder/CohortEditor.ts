@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
-import { ButtonOutline, ButtonPrimary, Link, Select } from 'src/components/common';
+import { ButtonOutline, ButtonPrimary, GroupedSelect, Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import {
   CriteriaType,
@@ -223,7 +223,7 @@ const CriteriaGroupView = ({ index, criteriaGroup, updateCohort, cohort, dataset
             ]),
         ]),
         div({ style: { marginTop: 10 } }, [
-          h(Select, {
+          h(GroupedSelect<CriteriaType>, {
             styles: { container: (provided) => ({ ...provided, width: '230px' }) },
             isClearable: false,
             isSearchable: false,
@@ -249,12 +249,12 @@ const CriteriaGroupView = ({ index, criteriaGroup, updateCohort, cohort, dataset
             ],
             'aria-label': 'add criteria',
             placeholder: 'Add criteria',
-            value: undefined,
+            value: null,
             onChange: (x) => {
-              // FIXME: is there a way to remove any?
-              // See SortSelect in SearchAndFilterComponent.ts
-              const criteria = createCriteriaFromType((x as any).value);
-              updateCohort(_.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, criteria));
+              if (x !== null) {
+                const criteria = createCriteriaFromType(x.value);
+                updateCohort(_.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, criteria));
+              }
             },
           }),
         ]),

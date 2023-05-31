@@ -34,7 +34,7 @@ export type CriteriaType = DomainType | ProgramDataRangeType | ProgramDataListTy
 
 export interface DatasetResponse {
   name: string;
-  programDataTypes: ProgramDataType[];
+  programDataTypes: (ProgramDataRangeType | ProgramDataListType)[];
   domainTypes: DomainType[];
 }
 
