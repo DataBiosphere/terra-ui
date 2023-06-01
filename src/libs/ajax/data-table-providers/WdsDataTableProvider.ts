@@ -325,9 +325,7 @@ export class WdsDataTableProvider implements DataTableProvider {
     setTimeout(() => {
       if (
         notificationStore.get().length === 0 ||
-        !notificationStore
-          .get()
-          .some((notif: { id: string }) => ['tdr-imports', 'tdr-import_success'].includes(notif.id))
+        !notificationStore.get().some((notif: { title: string }) => ['Error importing'].includes(notif.title))
       ) {
         notifyDataImportProgress('tdr-import', 'Your data will show up under Tables once import is complete.');
       }
