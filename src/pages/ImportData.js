@@ -394,12 +394,7 @@ const ImportData = () => {
   };
 
   const loadWdsUrl = useCallback((workspaceId) => {
-    return Ajax()
-      .Apps.listAppsV2(workspaceId)
-      .then(resolveWdsUrl)
-      .then((url) => {
-        return url;
-      });
+    return Ajax().Apps.listAppsV2(workspaceId).then(resolveWdsUrl);
   }, []);
 
   const importTdrExport = (workspace) => {
