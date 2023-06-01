@@ -141,7 +141,13 @@ type CriteriaGroupViewProps = {
   datasetDetails: DatasetResponse;
 };
 
-const CriteriaGroupView = ({ index, criteriaGroup, updateCohort, cohort, datasetDetails }: CriteriaGroupViewProps) => {
+export const CriteriaGroupView = ({
+  index,
+  criteriaGroup,
+  updateCohort,
+  cohort,
+  datasetDetails,
+}: CriteriaGroupViewProps) => {
   return div(
     {
       // key: criteriaGroup.name,
