@@ -12,10 +12,10 @@ import {
 } from 'src/libs/ajax/DatasetBuilder';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
+import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from 'src/pages/library/datasetBuilder/constants';
 import {
   AnyCriteria,
   Cohort,
-  Criteria,
   CriteriaGroup,
   DatasetBuilderState,
   DomainCriteria,
@@ -26,10 +26,7 @@ import {
 import { HomepageState, OnStateChangeType } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
 
-const PAGE_PADDING_HEIGHT = 0;
-const PAGE_PADDING_WIDTH = 3;
-
-type CriteriaViewProps = { criteria: Criteria; deleteCriteria: (criteria: Criteria) => void };
+type CriteriaViewProps = { criteria: AnyCriteria; deleteCriteria: (criteria: AnyCriteria) => void };
 
 const CriteriaView = ({ criteria, deleteCriteria }: CriteriaViewProps) => {
   return div(
@@ -89,7 +86,7 @@ const CriteriaView = ({ criteria, deleteCriteria }: CriteriaViewProps) => {
   );
 };
 
-const renderCriteriaView = (deleteCriteria: (criteria: Criteria) => void) => (criteria: Criteria) =>
+export const renderCriteriaView = (deleteCriteria: (criteria: AnyCriteria) => void) => (criteria: AnyCriteria) =>
   h(CriteriaView, { deleteCriteria, criteria, key: criteria.id });
 
 let criteriaCount = 1;
@@ -126,7 +123,7 @@ const createDefaultRangeCriteria = (rangeType: ProgramDataRangeType): ProgramDat
   };
 };
 
-function createCriteriaFromType(type: CriteriaType): AnyCriteria {
+export function createCriteriaFromType(type: CriteriaType): AnyCriteria {
   return (
     Utils.condTyped<AnyCriteria>(
       ['category' in type, () => selectDomainCriteria(type as DomainType)],
@@ -210,7 +207,7 @@ const CriteriaGroupView = ({ index, criteriaGroup, updateCohort, cohort, dataset
         div([
           (criteriaGroup.criteria.length !== 0 &&
             _.map(
-              renderCriteriaView((criteria: Criteria) =>
+              renderCriteriaView((criteria: AnyCriteria) =>
                 updateCohort(_.set(`criteriaGroups.${index}.criteria`, _.without([criteria], criteriaGroup.criteria)))
               ),
               criteriaGroup.criteria
