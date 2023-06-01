@@ -972,7 +972,18 @@ export const ComputeModalBase = ({
           div({ style: { marginTop: '0.5rem' } }, [
             label({ htmlFor: id, style: computeStyles.label }, [
               'Startup script',
-              span({ style: { ...computeStyles.value, fontStyle: 'italic' } }, [' Optional']),
+              span({ style: { ...computeStyles.value, fontStyle: 'italic' } }, [
+                ' Optional',
+                h(
+                  Link,
+                  {
+                    style: { marginLeft: '1rem', verticalAlign: 'top' },
+                    href: 'https://support.terra.bio/hc/en-us/articles/360058193872-Preconfigure-a-Cloud-Environment-with-a-startup-script',
+                    ...Utils.newTabLinkProps,
+                  },
+                  ['Learn more about startup scripts.', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
+                ),
+              ]),
             ]),
             div({ style: { marginTop: '0.5rem' } }, [
               h(TextInput, {
