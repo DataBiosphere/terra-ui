@@ -441,7 +441,7 @@ export const DatasetBuilderView = ({ datasetId }: DatasetBuilderProps) => {
 export const navPaths = [
   {
     name: 'create-dataset',
-    path: '/library/builder/:datasetId',
+    path: '/library/builder/:datasetId/build',
     component: DatasetBuilderView,
     title: 'Build Dataset',
   },
