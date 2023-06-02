@@ -3,13 +3,7 @@ import { Fragment, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
 import { ButtonOutline, ButtonPrimary, GroupedSelect, Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import {
-  CriteriaType,
-  DatasetResponse,
-  DomainType,
-  ProgramDataListType,
-  ProgramDataRangeType,
-} from 'src/libs/ajax/DatasetBuilder';
+import { DatasetResponse, DomainType, ProgramDataListType, ProgramDataRangeType } from 'src/libs/ajax/DatasetBuilder';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from 'src/pages/library/datasetBuilder/constants';
@@ -28,14 +22,18 @@ import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
 
 type CriteriaViewProps = { criteria: AnyCriteria; deleteCriteria: (criteria: AnyCriteria) => void };
 
+const flexWithBaseline = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'baseline',
+};
+
 const CriteriaView = ({ criteria, deleteCriteria }: CriteriaViewProps) => {
   return div(
     {
       style: {
-        display: 'flex',
+        ...flexWithBaseline,
         width: '100%',
-        justifyContent: 'space-between',
-        alignItems: 'baseline',
         paddingBottom: 5,
         marginTop: 10,
         marginBottom: 5,
@@ -97,7 +95,7 @@ const selectDomainCriteria = (domainType: DomainType): DomainCriteria => {
     domainType,
     name: domainType.values[0],
     id: criteriaCount++,
-    // Need to call the API service to get the count for this criteria.
+    // Need to call the API service to get the count for the criteria.
     count: 100,
   };
 };
@@ -122,6 +120,8 @@ const createDefaultRangeCriteria = (rangeType: ProgramDataRangeType): ProgramDat
     high: rangeType.max,
   };
 };
+
+type CriteriaType = DomainType | ProgramDataRangeType | ProgramDataListType;
 
 export function createCriteriaFromType(type: CriteriaType): AnyCriteria {
   return (
@@ -162,21 +162,12 @@ export const CriteriaGroupView = ({
       div({ style: { padding: '1rem' } }, [
         div(
           {
-            style: {
-              display: 'flex',
-              width: '100%',
-              justifyContent: 'space-between',
-              alignItems: 'baseline',
-            },
+            style: { ...flexWithBaseline, width: '100%' },
           },
           [
             div(
               {
-                style: {
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'baseline',
-                },
+                style: flexWithBaseline,
               },
               [
                 h(Select, {
@@ -345,9 +336,9 @@ const CohortEditorContents = ({ updateCohort, cohort, datasetDetails, onStateCha
             },
             'aria-label': 'cancel',
           },
-          [icon('circle-chevron-left', { size: 32, className: 'regular', style: { marginRight: 5 } })]
+          [icon('circle-chevron-left', { size: 32, className: 'regular' })]
         ),
-        cohort.name,
+        div({ style: { marginLeft: 5 } }, [cohort.name]),
       ]),
       h3(['To be included in the cohort, participants...']),
       div({ style: { display: 'flow' } }, [

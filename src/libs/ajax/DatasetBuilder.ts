@@ -28,10 +28,6 @@ export interface ProgramDataListType extends ProgramDataType {
   values: ProgramDataListTypeValue[];
 }
 
-// discriminating union
-// define the three types
-export type CriteriaType = DomainType | ProgramDataRangeType | ProgramDataListType;
-
 export interface DatasetResponse {
   name: string;
   programDataTypes: (ProgramDataRangeType | ProgramDataListType)[];

@@ -7,23 +7,32 @@ import {
   CriteriaGroupView,
   renderCriteriaView,
 } from 'src/pages/library/datasetBuilder/CohortEditor';
-import { Cohort, newCohort, newCriteriaGroup } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import {
+  Cohort,
+  DomainCriteria,
+  newCohort,
+  newCriteriaGroup,
+  ProgramDataListCriteria,
+  ProgramDataRangeCriteria,
+} from 'src/pages/library/datasetBuilder/dataset-builder-types';
 
 describe('CohortEditor', () => {
   it('renders unknown criteria', () => {
-    const criteria = { bogus: 'criteria' };
+    const criteria = { name: 'bogus', invalid: 'property' };
+
+    // This is required to create an invalid "criteria" for testing purposes.
     // @ts-ignore
     const { queryByText } = render(renderCriteriaView(_.noop)(criteria));
 
-    expect(queryByText('bogus')).toBeFalsy();
+    expect(queryByText(criteria.name)).toBeFalsy();
     expect(queryByText('Unknown criteria type')).toBeTruthy();
   });
 
   it('renders domain criteria', () => {
-    const criteria = createCriteriaFromType({ id: 0, category: 'category', values: ['value'] });
+    const criteria = createCriteriaFromType({ id: 0, category: 'category', values: ['value'] }) as DomainCriteria;
     const { getByText } = render(renderCriteriaView(_.noop)(criteria));
 
-    expect(getByText('category', { exact: false })).toBeTruthy();
+    expect(getByText(criteria.domainType.category, { exact: false })).toBeTruthy();
     expect(getByText('value')).toBeTruthy();
   });
 
@@ -33,20 +42,26 @@ describe('CohortEditor', () => {
       name: 'list',
       dataType: 'list',
       values: [{ id: 0, name: 'value' }],
-    });
+    }) as ProgramDataListCriteria;
     const { getByText } = render(renderCriteriaView(_.noop)(criteria));
 
-    expect(getByText('list', { exact: false })).toBeTruthy();
-    expect(getByText('value')).toBeTruthy();
+    expect(getByText(criteria.name, { exact: false })).toBeTruthy();
+    expect(getByText(criteria.value.name)).toBeTruthy();
   });
 
   it('renders range criteria', () => {
-    const criteria = createCriteriaFromType({ id: 0, name: 'range', dataType: 'range', min: 55, max: 99 });
+    const criteria = createCriteriaFromType({
+      id: 0,
+      name: 'range',
+      dataType: 'range',
+      min: 55,
+      max: 99,
+    }) as ProgramDataRangeCriteria;
     const { getByText } = render(renderCriteriaView(_.noop)(criteria));
 
-    expect(getByText('range', { exact: false })).toBeTruthy();
-    expect(getByText('55', { exact: false })).toBeTruthy();
-    expect(getByText('99', { exact: false })).toBeTruthy();
+    expect(getByText(criteria.name, { exact: false })).toBeTruthy();
+    expect(getByText(criteria.low, { exact: false })).toBeTruthy();
+    expect(getByText(criteria.high, { exact: false })).toBeTruthy();
   });
 
   it('can delete criteria', async () => {
