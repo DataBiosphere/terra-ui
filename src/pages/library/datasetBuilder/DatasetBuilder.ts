@@ -428,7 +428,7 @@ export const DatasetBuilderView = ({ datasetId }: DatasetBuilderProps) => {
   return datasetDetails.status === 'Ready'
     ? h(FooterWrapper, [
         h(TopBar, { title: 'Preview', href: '' }, []),
-        h(DatasetBuilderHeader, { name: datasetDetails.state.name }),
+        h(DatasetBuilderHeader, { name: datasetDetails.state.name, datasetId }),
         Utils.switchCase(
           datasetBuilderState,
           ['homepage', () => h(DatasetBuilderContents, { onStateChange: (state) => setDatasetBuilderState(state) })],
