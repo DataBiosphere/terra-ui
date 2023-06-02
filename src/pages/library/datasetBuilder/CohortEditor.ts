@@ -144,13 +144,8 @@ type CriteriaGroupViewProps = {
   datasetDetails: DatasetResponse;
 };
 
-export const CriteriaGroupView = ({
-  index,
-  criteriaGroup,
-  updateCohort,
-  cohort,
-  datasetDetails,
-}: CriteriaGroupViewProps) => {
+export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
+  const { index, criteriaGroup, updateCohort, cohort, datasetDetails } = props;
   return div(
     {
       // key: criteriaGroup.name,
@@ -279,7 +274,8 @@ type CohortGroupsProps = {
   datasetDetails: DatasetResponse;
   updateCohort: CohortUpdater;
 };
-const CohortGroups = ({ datasetDetails, cohort, updateCohort }: CohortGroupsProps) => {
+const CohortGroups: React.FC<CohortGroupsProps> = (props) => {
+  const { datasetDetails, cohort, updateCohort } = props;
   return div({ style: { width: '47rem' } }, [
     cohort == null
       ? 'No cohort found'
@@ -324,7 +320,8 @@ type CohortEditorContentsProps = {
   datasetDetails: DatasetResponse;
   onStateChange: OnStateChangeType;
 };
-const CohortEditorContents = ({ updateCohort, cohort, datasetDetails, onStateChange }: CohortEditorContentsProps) => {
+const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
+  const { updateCohort, cohort, datasetDetails, onStateChange } = props;
   return div(
     {
       style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` },
@@ -376,7 +373,8 @@ interface CohortEditorProps {
 
 type CohortUpdater = (updater: (cohort: Cohort) => Cohort) => void;
 
-export const CohortEditor = ({ onStateChange, datasetDetails, originalCohort }: CohortEditorProps) => {
+export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
+  const { onStateChange, datasetDetails, originalCohort } = props;
   const [cohort, setCohort] = useState(originalCohort);
   const updateCohort: CohortUpdater = (updateCohort: (Cohort) => Cohort) => {
     _.flow(updateCohort, setCohort)(cohort);
