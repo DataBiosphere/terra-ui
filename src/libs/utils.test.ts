@@ -1,4 +1,11 @@
-import { differenceFromNowInSeconds, formatBytes, isValidWsExportTarget, textMatch } from 'src/libs/utils';
+import {
+  condTyped,
+  DEFAULT,
+  differenceFromNowInSeconds,
+  formatBytes,
+  isValidWsExportTarget,
+  textMatch,
+} from 'src/libs/utils';
 import {
   defaultAzureWorkspace,
   defaultGoogleWorkspace,
@@ -171,5 +178,18 @@ describe('textMatch', () => {
     // Act
     const doesMatch = textMatch(needle, haystack);
     expect(doesMatch).toBe(result);
+  });
+
+  // add test for condTyped
+  describe('condTyped', () => {
+    it('handles constant results', () => {
+      expect(condTyped<string>([false, () => 'def'], [true, 'abc'])).toBe('abc');
+    });
+    it('handles function results', () => {
+      expect(condTyped<string>([false, 'def'], [true, () => 'abc'])).toBe('abc');
+    });
+    it('handles DEFAULT', () => {
+      expect(condTyped<string>([false, 'def'], [DEFAULT, 'abc'])).toBe('abc');
+    });
   });
 });
