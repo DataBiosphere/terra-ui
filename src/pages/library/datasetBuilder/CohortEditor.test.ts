@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
+import { h } from 'react-hyperscript-helpers';
 import { dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
 import {
   createCriteriaFromType,
@@ -85,7 +86,9 @@ describe('CohortEditor', () => {
     criteriaGroup.count = 1234;
     const updateCohort = jest.fn();
 
-    const { getByText } = render(CriteriaGroupView({ index: 0, criteriaGroup, updateCohort, cohort, datasetDetails }));
+    const { getByText } = render(
+      h(CriteriaGroupView, { index: 0, criteriaGroup, updateCohort, cohort, datasetDetails })
+    );
 
     expect(getByText('Must not')).toBeTruthy();
     expect(getByText('any')).toBeTruthy();
@@ -100,7 +103,7 @@ describe('CohortEditor', () => {
     cohort.criteriaGroups.push(criteriaGroup);
     const updateCohort = jest.fn();
     const { getByLabelText } = render(
-      CriteriaGroupView({ index: 0, criteriaGroup, updateCohort, cohort, datasetDetails })
+      h(CriteriaGroupView, { index: 0, criteriaGroup, updateCohort, cohort, datasetDetails })
     );
 
     const user = userEvent.setup();
@@ -119,7 +122,7 @@ describe('CohortEditor', () => {
     cohort.criteriaGroups.push(criteriaGroup);
     const updateCohort = jest.fn();
     const { getByText, getByLabelText } = render(
-      CriteriaGroupView({ index: 0, criteriaGroup, updateCohort, cohort, datasetDetails })
+      h(CriteriaGroupView, { index: 0, criteriaGroup, updateCohort, cohort, datasetDetails })
     );
     const user = userEvent.setup();
 
@@ -147,7 +150,7 @@ describe('CohortEditor', () => {
     cohort.criteriaGroups.push(criteriaGroup);
     const updateCohort = jest.fn();
     const { getByText, getByLabelText } = render(
-      CriteriaGroupView({ index: 0, criteriaGroup, updateCohort, cohort, datasetDetails })
+      h(CriteriaGroupView, { index: 0, criteriaGroup, updateCohort, cohort, datasetDetails })
     );
 
     const user = userEvent.setup();
@@ -171,7 +174,7 @@ describe('CohortEditor', () => {
     cohort.criteriaGroups.push(criteriaGroup);
     const updateCohort = jest.fn();
     const { getByLabelText } = render(
-      CriteriaGroupView({ index: 0, criteriaGroup, updateCohort, cohort, datasetDetails })
+      h(CriteriaGroupView, { index: 0, criteriaGroup, updateCohort, cohort, datasetDetails })
     );
 
     const user = userEvent.setup();
