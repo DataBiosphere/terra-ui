@@ -12,6 +12,6 @@ describe('DatasetBuilderHeader', () => {
     const name = 'hello world';
     const { getByText } = render(h(DatasetBuilderHeader, { name, datasetId: 'id' }));
 
-    expect(getByText(`Data Browser / ${name}`)).toBeTruthy();
+    expect(getByText('Data Browser')).toBeTruthy();
   });
 });

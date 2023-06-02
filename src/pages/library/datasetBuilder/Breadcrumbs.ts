@@ -14,7 +14,7 @@ export const DatasetBuilderBreadcrumbs = ({ breadcrumbs }: { breadcrumbs: Breadc
   div({ style: { display: 'flex' } }, [
     _.map(
       ([i, breadcrumb]) =>
-        h(Fragment, [
+        h(Fragment, { key: i }, [
           h(Link, { href: breadcrumb.link }, [breadcrumb.title]),
           i < breadcrumbs.length - 1 && div({ style: { margin: '0 5px' } }, ['/']),
         ]),
