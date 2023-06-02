@@ -529,13 +529,24 @@ export const CloudEnvironmentModal = ({
     const isCloudEnvForToolDisabled = isCloudEnvModalDisabled(toolLabel);
     return h(Fragment, [
       // We cannot attach the periodic cookie setter until we have a running Cromwell app for Azure because the relay is not guaranteed to be ready until then
-      toolLabel === appToolLabels.CROMWELL &&
-      app?.cloudContext?.cloudProvider === cloudProviderTypes.AZURE &&
-      app?.status === 'RUNNING'
-        ? h(PeriodicAzureCookieSetter, {
-            proxyUrl: app.proxyUrls['cbas-ui'],
-            // forCromwell: true //TODO: this is not yet supported behaviour
-          })
+      app?.cloudContext?.cloudProvider === cloudProviderTypes.AZURE && app?.status === 'RUNNING'
+        ? Utils.cond(
+            [
+              toolLabel === appToolLabels.CROMWELL,
+              () => h(PeriodicAzureCookieSetter, { proxyUrl: app.proxyUrls['cbas-ui'], forApp: true }),
+            ],
+            [
+              toolLabel === appToolLabels.HAIL_BATCH,
+              () => {
+                const batchUrl = app?.proxyUrls?.batch;
+                return h(PeriodicAzureCookieSetter, {
+                  proxyUrl: batchUrl.substring(0, batchUrl.lastIndexOf('/') + 1),
+                  forApp: true,
+                });
+              },
+            ],
+            [Utils.DEFAULT, () => null]
+          )
         : null,
       div({ style: toolPanelStyles }, [
         // Label at the top for each tool
