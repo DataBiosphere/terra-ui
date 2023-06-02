@@ -35,7 +35,7 @@ import ReferenceData from 'src/data/reference-data';
 import { Ajax } from 'src/libs/ajax';
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';
 import { wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
-import { getRegionLabel } from 'src/libs/azure-utils';
+import { getRegionFlag, getRegionLabel } from 'src/libs/azure-utils';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
@@ -376,10 +376,8 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   const [recordType, setRecordType] = useState(undefined);
   const [recordTypeInputTouched, setRecordTypeInputTouched] = useState(false);
 
-  // TODO: https://broadworkbench.atlassian.net/browse/WOR-614
-  // This value is mostly hard-coded for now for Azure public preview. Once WOR-614 is complete, this value can be dynamically updated
-  // const regionLabelToDisplay = isGoogleWorkspace ? 'US' : getRegionLabel(defaultAzureRegion);
   const regionLabelToDisplay = isGoogleWorkspace ? 'US' : getRegionLabel(region);
+  const regionFlagToDisplay = isGoogleWorkspace ? '🇺🇸' : getRegionFlag(region);
 
   const doUpload = async () => {
     setUploading(true);
@@ -466,7 +464,12 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
                       },
                       ['Click here for more info on the table.']
                     ),
-                  p(['Data will be saved in location: 🇺🇸  ', span({ style: { fontWeight: 'bold' } }, regionLabelToDisplay), ' (Terra-managed).']),
+                  p([
+                    'Data will be saved in location:  ',
+                    regionFlagToDisplay,
+                    span({ style: { fontWeight: 'bold' } }, regionLabelToDisplay),
+                    ' (Terra-managed).',
+                  ]),
                 ]),
                 dataProvider.tsvFeatures.needsTypeInput &&
                   div({ style: { paddingTop: '0.1rem', paddingBottom: '2rem' } }, [
