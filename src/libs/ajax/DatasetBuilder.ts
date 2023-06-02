@@ -85,5 +85,6 @@ export const dummyDatasetDetails: DatasetResponse = {
 };
 
 export const DatasetBuilder = (_signal?: AbortSignal): DatasetBuilderContract => ({
+  // TODO: Implement stub code, see DC-722.
   retrieveDataset: (_datasetId) => Promise.resolve(dummyDatasetDetails),
 });
