@@ -4,6 +4,7 @@ import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
 import {
+  CohortEditor,
   createCriteriaFromType,
   CriteriaGroupView,
   renderCriteriaView,
@@ -16,6 +17,8 @@ import {
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import { HomepageState } from 'src/pages/library/datasetBuilder/DatasetBuilder';
+import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
 
 describe('CohortEditor', () => {
   it('renders unknown criteria', () => {
@@ -183,5 +186,58 @@ describe('CohortEditor', () => {
     expect(updateCohort).toHaveBeenCalled();
     const updatedCohort: Cohort = updateCohort.mock.calls[0][0](cohort);
     expect(updatedCohort.criteriaGroups[0].criteria).toMatchObject([]);
+  });
+
+  it('renders a cohort', () => {
+    const datasetDetails = dummyDatasetDetails;
+    const originalCohort = newCohort('my cohort name');
+
+    const { getByText } = render(h(CohortEditor, { onStateChange: _.noop, datasetDetails, originalCohort }));
+
+    expect(getByText(originalCohort.name)).toBeTruthy();
+  });
+
+  it('saves a cohort', async () => {
+    const datasetDetails = dummyDatasetDetails;
+    const originalCohort = newCohort('my cohort name');
+    const onStateChange = jest.fn();
+    const user = userEvent.setup();
+    datasetBuilderCohorts.set([]);
+
+    const { getByText } = render(h(CohortEditor, { onStateChange, datasetDetails, originalCohort }));
+    await user.click(getByText('Save cohort'));
+
+    expect(onStateChange).toBeCalledWith(new HomepageState());
+    expect(datasetBuilderCohorts.get()).toStrictEqual([originalCohort]);
+  });
+
+  it('cancels editing a cohort', async () => {
+    const datasetDetails = dummyDatasetDetails;
+    const originalCohort = newCohort('my cohort name');
+    const onStateChange = jest.fn();
+    const user = userEvent.setup();
+    datasetBuilderCohorts.set([]);
+
+    const { getByLabelText } = render(h(CohortEditor, { onStateChange, datasetDetails, originalCohort }));
+    await user.click(getByLabelText('cancel'));
+
+    expect(onStateChange).toBeCalledWith(new HomepageState());
+    expect(datasetBuilderCohorts.get()).toStrictEqual([]);
+  });
+
+  it('can add a criteria group', async () => {
+    const datasetDetails = dummyDatasetDetails;
+    const originalCohort = newCohort('my cohort name');
+    const user = userEvent.setup();
+    datasetBuilderCohorts.set([]);
+
+    const { getByText } = render(h(CohortEditor, { onStateChange: _.noop, datasetDetails, originalCohort }));
+
+    await user.click(getByText('Add group'));
+    await user.click(getByText('Save cohort'));
+
+    // Don't compare name since it's generated.
+    const { name: _unused, ...expectedCriteriaGroup } = newCriteriaGroup();
+    expect(datasetBuilderCohorts.get()).toMatchObject([{ ...originalCohort, criteriaGroups: [expectedCriteriaGroup] }]);
   });
 });

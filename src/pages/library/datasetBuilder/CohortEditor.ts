@@ -413,7 +413,7 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
               datasetBuilderCohorts.set(
                 _.set(`[${cohortIndex === -1 ? cohorts.length : cohortIndex}]`, cohort, cohorts)
               );
-              onStateChange({ type: 'homepage' });
+              onStateChange(new HomepageState());
             },
           },
           ['Save cohort']
