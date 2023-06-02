@@ -28,15 +28,18 @@ const flexWithBaseline = {
   alignItems: 'baseline',
 };
 
+const narrowMargin = 5;
+const wideMargin = 10;
+
 const CriteriaView = ({ criteria, deleteCriteria }: CriteriaViewProps) => {
   return div(
     {
       style: {
         ...flexWithBaseline,
         width: '100%',
-        paddingBottom: 5,
-        marginTop: 10,
-        marginBottom: 5,
+        paddingBottom: narrowMargin,
+        marginTop: wideMargin,
+        marginBottom: narrowMargin,
         borderBottom: `1px solid ${colors.dark(0.35)}`,
       },
     },
@@ -52,7 +55,7 @@ const CriteriaView = ({ criteria, deleteCriteria }: CriteriaViewProps) => {
           },
           [icon('minus-circle', { size: 24, style: { color: colors.danger() } })]
         ),
-        div({ style: { marginLeft: 5 } }, [
+        div({ style: { marginLeft: narrowMargin } }, [
           Utils.cond(
             [
               'domainType' in criteria,
@@ -154,7 +157,7 @@ export const CriteriaGroupView = ({
       style: {
         backgroundColor: 'white',
         borderRadius: '5px',
-        marginTop: 5,
+        marginTop: narrowMargin,
         border: `1px solid ${colors.dark(0.35)}`,
       },
     },
@@ -179,16 +182,16 @@ export const CriteriaGroupView = ({
                 div({ style: { margin: '0 10px' } }, ['meet']),
                 h(Select, {
                   'aria-label': 'all or any',
-                  styles: { container: (provided) => ({ ...provided, style: { marginLeft: 10 } }) },
+                  styles: { container: (provided) => ({ ...provided, style: { marginLeft: wideMargin } }) },
                   options: ['any', 'all'],
                   value: criteriaGroup.meetAll ? 'all' : 'any',
                   onChange: () => updateCohort(_.set(`criteriaGroups.${index}.meetAll`, !criteriaGroup.meetAll)),
                 }),
-                div({ style: { marginLeft: 10 } }, ['of the following criteria:']),
+                div({ style: { marginLeft: wideMargin } }, ['of the following criteria:']),
               ]
             ),
             div({ style: { alignItems: 'center', display: 'flex' } }, [
-              strong({ style: { marginRight: 5, fontSize: 16 } }, [criteriaGroup.name]),
+              strong({ style: { marginRight: narrowMargin, fontSize: 16 } }, [criteriaGroup.name]),
               h(
                 Link,
                 {
@@ -211,12 +214,12 @@ export const CriteriaGroupView = ({
             )) ||
             div({ style: { marginTop: 15 } }, [
               div({ style: { fontWeight: 'bold', fontStyle: 'italic' } }, ['No criteria yet']),
-              div({ style: { fontStyle: 'italic', marginTop: 5 } }, [
+              div({ style: { fontStyle: 'italic', marginTop: narrowMargin } }, [
                 "You can add a criteria by clicking on 'Add criteria'",
               ]),
             ]),
         ]),
-        div({ style: { marginTop: 10 } }, [
+        div({ style: { marginTop: wideMargin } }, [
           h(GroupedSelect<CriteriaType>, {
             styles: { container: (provided) => ({ ...provided, width: '230px' }) },
             isClearable: false,
@@ -256,16 +259,16 @@ export const CriteriaGroupView = ({
       div(
         {
           style: {
-            paddingTop: 5,
-            marginTop: 10,
-            marginBottom: 10,
+            paddingTop: narrowMargin,
+            marginTop: wideMargin,
+            marginBottom: wideMargin,
             borderTop: `1px solid ${colors.dark(0.35)}`,
             display: 'flex',
             justifyContent: 'flex-end',
             fontWeight: 'bold',
           },
         },
-        [div({ style: { marginRight: 10 } }, [`Group count: ${criteriaGroup.count}`])]
+        [div({ style: { marginRight: wideMargin } }, [`Group count: ${criteriaGroup.count}`])]
       ),
     ]
   );
@@ -303,7 +306,7 @@ const CohortGroups = ({ datasetDetails, cohort, updateCohort }: CohortGroupsProp
                     ['And']
                   ),
                   div({
-                    style: { marginLeft: 5, flexGrow: 1, borderTop: `1px solid ${colors.dark(0.35)}` },
+                    style: { marginLeft: narrowMargin, flexGrow: 1, borderTop: `1px solid ${colors.dark(0.35)}` },
                   }),
                 ]),
               ]),
@@ -338,7 +341,7 @@ const CohortEditorContents = ({ updateCohort, cohort, datasetDetails, onStateCha
           },
           [icon('circle-chevron-left', { size: 32, className: 'regular' })]
         ),
-        div({ style: { marginLeft: 5 } }, [cohort.name]),
+        div({ style: { marginLeft: narrowMargin } }, [cohort.name]),
       ]),
       h3(['To be included in the cohort, participants...']),
       div({ style: { display: 'flow' } }, [
@@ -351,7 +354,7 @@ const CohortEditorContents = ({ updateCohort, cohort, datasetDetails, onStateCha
         h(
           ButtonOutline,
           {
-            style: { marginTop: 10 },
+            style: { marginTop: wideMargin },
             onClick: (e) => {
               updateCohort(_.set(`criteriaGroups.${cohort.criteriaGroups.length}`, newCriteriaGroup()));
               // Lose button focus, since button moves out from under the user's cursor.
@@ -389,7 +392,7 @@ export const CohortEditor = ({ onStateChange, datasetDetails, originalCohort }: 
           backgroundColor: editorBackgroundColor,
           alignItems: 'end',
           flexDirection: 'row-reverse',
-          padding: 10,
+          padding: wideMargin,
         },
       },
       [
