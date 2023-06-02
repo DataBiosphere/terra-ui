@@ -1,16 +1,18 @@
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { DatasetBuilderBreadcrumbs } from 'src/pages/library/datasetBuilder/Breadcrumbs';
 
 describe('Breadcrumbs', () => {
   it('renders a single breadcrumb', () => {
-    const { getByText } = render(h(DatasetBuilderBreadcrumbs, { breadcrumbs: [{ title: 'a', link: '' }] }));
-
-    expect(getByText('a')).toBeTruthy();
+    // Arrange
+    render(h(DatasetBuilderBreadcrumbs, { breadcrumbs: [{ title: 'a', link: '' }] }));
+    // Assert
+    expect(screen.getByText('a')).toBeTruthy();
   });
 
   it('renders multiple breadcrumb with only one slash', () => {
-    const { getByText, getAllByText } = render(
+    // Arrange
+    render(
       h(DatasetBuilderBreadcrumbs, {
         breadcrumbs: [
           { title: 'a', link: '' },
@@ -18,9 +20,9 @@ describe('Breadcrumbs', () => {
         ],
       })
     );
-
-    expect(getByText('a')).toBeTruthy();
-    expect(getByText('b')).toBeTruthy();
-    expect(getAllByText('/').length).toBe(1);
+    // Assert
+    expect(screen.getByText('a')).toBeTruthy();
+    expect(screen.getByText('b')).toBeTruthy();
+    expect(screen.getAllByText('/').length).toBe(1);
   });
 });

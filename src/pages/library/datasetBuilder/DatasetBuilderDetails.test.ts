@@ -32,8 +32,9 @@ describe('DatasetBuilderDetails', () => {
   });
 
   it('renders', async () => {
+    // Arrange
     render(h(DatasetBuilderDetails, { datasetId: 'id' }));
-
+    // Assert
     expect(await screen.findByText('AnalytiXIN')).toBeTruthy();
   });
 });
