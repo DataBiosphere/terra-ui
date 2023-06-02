@@ -136,6 +136,51 @@ export function createCriteriaFromType(type: CriteriaType): AnyCriteria {
   );
 }
 
+type AddCriteriaSelectorProps = {
+  index: number;
+  criteriaGroup: CriteriaGroup;
+  updateCohort: CohortUpdater;
+  datasetDetails: DatasetResponse;
+};
+
+const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
+  const { index, criteriaGroup, updateCohort, datasetDetails } = props;
+  return h(GroupedSelect<CriteriaType>, {
+    styles: { container: (provided) => ({ ...provided, width: '230px', marginTop: wideMargin }) },
+    isClearable: false,
+    isSearchable: false,
+    options: [
+      {
+        label: 'Domains',
+        options: _.map((domainType) => {
+          return {
+            value: domainType,
+            label: domainType.category,
+          };
+        }, datasetDetails.domainTypes),
+      },
+      {
+        label: 'Program Data',
+        options: _.map((programDataType) => {
+          return {
+            value: programDataType,
+            label: programDataType.name,
+          };
+        }, datasetDetails.programDataTypes),
+      },
+    ],
+    'aria-label': 'add criteria',
+    placeholder: 'Add criteria',
+    value: null,
+    onChange: (x) => {
+      if (x !== null) {
+        const criteria = createCriteriaFromType(x.value);
+        updateCohort(_.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, criteria));
+      }
+    },
+  });
+};
+
 type CriteriaGroupViewProps = {
   index: number;
   criteriaGroup: CriteriaGroup;
@@ -214,42 +259,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
               ]),
             ]),
         ]),
-        div({ style: { marginTop: wideMargin } }, [
-          h(GroupedSelect<CriteriaType>, {
-            styles: { container: (provided) => ({ ...provided, width: '230px' }) },
-            isClearable: false,
-            isSearchable: false,
-            options: [
-              {
-                label: 'Domains',
-                options: _.map((domainType) => {
-                  return {
-                    value: domainType,
-                    label: domainType.category,
-                  };
-                }, datasetDetails.domainTypes),
-              },
-              {
-                label: 'Program Data',
-                options: _.map((programDataType) => {
-                  return {
-                    value: programDataType,
-                    label: programDataType.name,
-                  };
-                }, datasetDetails.programDataTypes),
-              },
-            ],
-            'aria-label': 'add criteria',
-            placeholder: 'Add criteria',
-            value: null,
-            onChange: (x) => {
-              if (x !== null) {
-                const criteria = createCriteriaFromType(x.value);
-                updateCohort(_.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, criteria));
-              }
-            },
-          }),
-        ]),
+        h(AddCriteriaSelector, { index, criteriaGroup, updateCohort, datasetDetails }),
       ]),
       div(
         {
