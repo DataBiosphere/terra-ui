@@ -25,6 +25,7 @@ import * as Utils from 'src/libs/utils';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
 import { AboutPersistentDiskView } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AboutPersistentDiskView';
 import { AzurePersistentDiskSection } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzurePersistentDiskSection';
+import { handleLearnMoreAboutPersistentDisk } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/persistent-disk-controls';
 import { DeleteEnvironment } from 'src/pages/workspaces/workspace/analysis/modals/DeleteEnvironment';
 import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles';
 import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils';
@@ -346,11 +347,11 @@ export const AzureComputeModalBase = ({
         renderComputeProfileSection(),
         h(AzurePersistentDiskSection, {
           persistentDiskExists,
-          setViewMode,
+          onClickAbout: () => handleLearnMoreAboutPersistentDisk({ setViewMode }),
           persistentDiskSize: computeConfig.persistentDiskSize,
           persistentDiskType: computeConfig.persistentDiskType,
-          updatePersistentDiskSize: (v) => updateComputeConfig('persistentDiskSize', v),
-          updatePersistentDiskType: (v) => updateComputeConfig('persistentDiskType', v),
+          onChangePersistentDiskSize: (v) => updateComputeConfig('persistentDiskSize', v),
+          onChangePersistentDiskType: (v) => updateComputeConfig('persistentDiskType', v),
           cloudPlatform: cloudProviderTypes.AZURE,
         }),
         renderBottomButtons(),

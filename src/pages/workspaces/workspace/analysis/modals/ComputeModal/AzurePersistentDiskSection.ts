@@ -1,36 +1,45 @@
 import { div } from 'react-hyperscript-helpers';
-import { AzurePdType, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
+import { SingleValue } from 'react-select';
+import { AzurePdType, AzurePersistentDiskOptions, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
 import { AboutPersistentDiskSection } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AboutPersistentDiskSection';
-import { AzurePersistentDiskInput } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzurePersistentDiskInput';
+import { AzurePersistentDiskSizeSelectInput } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzurePersistentDiskSizeSelectInput';
+import { PersistentDiskTypeInputContainer } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/PersistentDiskTypeInputContainer';
 import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles';
 
 export interface AzurePersistentDiskSectionProps {
   persistentDiskExists: boolean;
   persistentDiskSize: number;
   persistentDiskType: AzurePdType;
-  updatePersistentDiskSize: (size: number) => void;
-  updatePersistentDiskType: (type: SharedPdType) => void;
-  setViewMode: () => void;
+  onChangePersistentDiskType: (type: SharedPdType) => void;
+  onChangePersistentDiskSize: (size: SingleValue<number | undefined>) => void;
+  onClickAbout: () => void;
 }
 
 export const AzurePersistentDiskSection = (props: AzurePersistentDiskSectionProps) => {
   const {
-    setViewMode,
+    onClickAbout,
     persistentDiskType,
     persistentDiskSize,
-    updatePersistentDiskType,
-    updatePersistentDiskSize,
+    onChangePersistentDiskType,
+    onChangePersistentDiskSize,
     persistentDiskExists,
   } = props;
 
+  const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' };
   return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
-    AboutPersistentDiskSection({ setViewMode }),
-    AzurePersistentDiskInput({
-      persistentDiskType,
-      persistentDiskSize,
-      onChangePersistentDiskType: updatePersistentDiskType,
-      onChangePersistentDiskSize: updatePersistentDiskSize,
-      persistentDiskExists,
-    }),
+    AboutPersistentDiskSection({ onClick: onClickAbout }),
+    div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
+      PersistentDiskTypeInputContainer({
+        persistentDiskExists,
+        value: persistentDiskType?.value,
+        onChange: (e) => onChangePersistentDiskType(e),
+        options: AzurePersistentDiskOptions,
+      }),
+      AzurePersistentDiskSizeSelectInput({
+        persistentDiskSize,
+        onChangePersistentDiskSize,
+        persistentDiskExists,
+      }),
+    ]),
   ]);
 };

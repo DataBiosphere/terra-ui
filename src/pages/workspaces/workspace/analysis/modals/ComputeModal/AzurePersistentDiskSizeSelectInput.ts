@@ -27,7 +27,9 @@ export const AzurePersistentDiskSizeSelectInput = (props: AzurePersistentDiskSiz
         isDisabled: persistentDiskExists,
         menuPlacement: 'auto',
         options: azureDiskSizes,
-        onChange: (e) => onChangePersistentDiskSize(e ? e.value : defaultAzureDiskSize), // Unable to replicate a null case
+        onChange: (e) => {
+          onChangePersistentDiskSize(e ? e.value : defaultAzureDiskSize);
+        }, // Unable to replicate a null case
       }),
     ]),
   ]);

@@ -9,7 +9,7 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AboutPersistentDiskSection';
 
 const defaultAboutPersistentDiskSectionProps: AboutPersistentDiskSectionProps = {
-  setViewMode: jest.fn(),
+  onClick: jest.fn(),
 };
 
 describe('AboutPersistentDiskSection', () => {
@@ -27,6 +27,6 @@ describe('AboutPersistentDiskSection', () => {
     await userEvent.click(screen.getByText('Learn more about persistent disks and where your disk is mounted.'));
 
     // Assert
-    expect(defaultAboutPersistentDiskSectionProps.setViewMode).toBeCalledWith('aboutPersistentDisk');
+    expect(defaultAboutPersistentDiskSectionProps.onClick).toBeCalled();
   });
 });

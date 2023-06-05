@@ -5,11 +5,11 @@ import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { defaultAzureDiskSize } from 'src/libs/azure-utils';
 import {
-  AzurePersistentDiskInput,
-  AzurePersistentDiskInputProps,
-} from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzurePersistentDiskInput';
+  AzurePersistentDiskSection,
+  AzurePersistentDiskSectionProps,
+} from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzurePersistentDiskSection';
 
-const defaultAzurePersistentDiskInputProps: AzurePersistentDiskInputProps = {
+const defaultAzurePersistentDiskSectionProps: AzurePersistentDiskSectionProps = {
   persistentDiskType: {
     value: 'Standard_LRS',
     label: 'Standard HDD',
@@ -18,12 +18,13 @@ const defaultAzurePersistentDiskInputProps: AzurePersistentDiskInputProps = {
   onChangePersistentDiskType: jest.fn(),
   onChangePersistentDiskSize: jest.fn(),
   persistentDiskExists: false,
+  onClickAbout: jest.fn(),
 };
 
-describe('AzurePersistentDiskInput', () => {
+describe('AzurePersistentDiskSection', () => {
   it('should render with default props', () => {
     // Arrange
-    render(h(AzurePersistentDiskInput, defaultAzurePersistentDiskInputProps));
+    render(h(AzurePersistentDiskSection, defaultAzurePersistentDiskSectionProps));
     // Assert
     expect(screen.getByLabelText('Disk Type')).toBeTruthy();
     expect(screen.getByLabelText('Disk Size (GB)')).toBeTruthy();
@@ -32,19 +33,19 @@ describe('AzurePersistentDiskInput', () => {
   it('should call onChangePersistentDiskSize when updating size', async () => {
     // Arrange
 
-    render(h(AzurePersistentDiskInput, defaultAzurePersistentDiskInputProps));
+    render(h(AzurePersistentDiskSection, defaultAzurePersistentDiskSectionProps));
     // Act
     const diskSizeInput = screen.getByLabelText('Disk Size (GB)');
     await userEvent.click(diskSizeInput);
     const newDiskSize = screen.getByText('1024');
     await userEvent.click(newDiskSize);
     // Assert
-    expect(defaultAzurePersistentDiskInputProps.onChangePersistentDiskSize).toHaveBeenCalledWith(1024);
+    expect(defaultAzurePersistentDiskSectionProps.onChangePersistentDiskSize).toHaveBeenCalledWith(1024);
   });
 
   // it('should call onChangePersistentDiskType when updating type', async () => {
   //   // Arrange
-  //   render(h(AzurePersistentDiskInput, defaultAzurePersistentDiskInputProps));
+  //   render(h(AzurePersistentDiskSection, defaultAzurePersistentDiskSectionProps));
 
   //   // Act
   //   const diskTypeSelect = screen.getByLabelText('Disk Type');
@@ -52,14 +53,14 @@ describe('AzurePersistentDiskInput', () => {
   //   const balancedDiskType = screen.getByText('Balanced');
   //   await userEvent.click(balancedDiskType);
   //   // Assert
-  //   expect(defaultAzurePersistentDiskInputProps.onChangePersistentDiskType).toHaveBeenCalledWith('StandardSSD_LRS');
+  //   expect(defaultAzurePersistentDiskSectionProps.onChangePersistentDiskType).toHaveBeenCalledWith('StandardSSD_LRS');
   // });
 
   it('should be disabled when persistentDiskExists is true', () => {
     // Arrange
     render(
-      h(AzurePersistentDiskInput, {
-        ...defaultAzurePersistentDiskInputProps,
+      h(AzurePersistentDiskSection, {
+        ...defaultAzurePersistentDiskSectionProps,
         persistentDiskExists: true,
       })
     );

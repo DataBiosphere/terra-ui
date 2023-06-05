@@ -16,9 +16,9 @@ const defaultGcpPersistentDiskSectionProps: GcpPersistentDiskSectionProps = {
     label: 'Standard',
     regionToPricesName: 'monthlyStandardDiskPrice',
   },
-  updatePersistentDiskSize: jest.fn(),
-  updatePersistentDiskType: jest.fn(),
-  setViewMode: jest.fn(),
+  onChangePersistentDiskSize: jest.fn(),
+  onChangePersistentDiskType: jest.fn(),
+  onClickAbout: jest.fn(),
   cloudPlatform: 'GCP',
 };
 
@@ -32,7 +32,7 @@ describe('GCPPersistentDiskSection', () => {
     expect(screen.getByLabelText('Disk Size (GB)')).toBeTruthy();
   });
 
-  it('should call updatePersistentDiskSize when updating size', async () => {
+  it('should call onChangePersistentDiskSize when updating size', async () => {
     // Arrange
     render(h(GCPPersistentDiskSection, defaultGcpPersistentDiskSectionProps));
 
@@ -42,11 +42,11 @@ describe('GCPPersistentDiskSection', () => {
     await userEvent.type(diskTypeInput, '100');
 
     // Assert
-    expect(defaultGcpPersistentDiskSectionProps.updatePersistentDiskSize).toHaveBeenCalledWith(10);
-    expect(defaultGcpPersistentDiskSectionProps.updatePersistentDiskSize).toHaveBeenCalledWith(100);
+    expect(defaultGcpPersistentDiskSectionProps.onChangePersistentDiskSize).toHaveBeenCalledWith(10);
+    expect(defaultGcpPersistentDiskSectionProps.onChangePersistentDiskSize).toHaveBeenCalledWith(100);
   });
 
-  it('should call updatePersistentDiskType when updating type', async () => {
+  it('should call onChangePersistentDiskType when updating type', async () => {
     // Arrange
     render(h(GCPPersistentDiskSection, defaultGcpPersistentDiskSectionProps));
     // Act
@@ -56,7 +56,7 @@ describe('GCPPersistentDiskSection', () => {
     await userEvent.click(balancedDiskType);
 
     // Assert
-    expect(defaultGcpPersistentDiskSectionProps.updatePersistentDiskType).toHaveBeenCalledWith({
+    expect(defaultGcpPersistentDiskSectionProps.onChangePersistentDiskType).toHaveBeenCalledWith({
       value: 'pd-balanced',
       label: 'Balanced',
       regionToPricesName: 'monthlyBalancedDiskPrice',
