@@ -19,7 +19,7 @@ import {
   imageDocs,
   testDefaultLocation,
 } from 'src/pages/workspaces/workspace/analysis/_testData/testData';
-import { GcpComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal';
+import { GcpComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal';
 import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils';
 import {
   defaultDataprocMasterDiskSize,

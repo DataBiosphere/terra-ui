@@ -7,7 +7,7 @@ import { defaultAzureDiskSize } from 'src/libs/azure-utils';
 import {
   AzurePersistentDiskSection,
   AzurePersistentDiskSectionProps,
-} from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzurePersistentDiskSection';
+} from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal/AzurePersistentDiskSection';
 
 const defaultAzurePersistentDiskSectionProps: AzurePersistentDiskSectionProps = {
   persistentDiskType: {

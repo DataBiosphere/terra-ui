@@ -26,7 +26,7 @@ import * as Utils from 'src/libs/utils';
 import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
 import { buildExistingEnvironmentConfig, getImageUrl } from 'src/pages/workspaces/workspace/analysis/modal-utils';
 import { AboutPersistentDiskView } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AboutPersistentDiskView';
-import { GcpPersistentDiskSection } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpPersistentDiskSection';
+import { GcpPersistentDiskSection } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal/GcpPersistentDiskSection';
 import { handleLearnMoreAboutPersistentDisk } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/persistent-disk-controls';
 import { DeleteDiskChoices } from 'src/pages/workspaces/workspace/analysis/modals/DeleteDiskChoices';
 import { DeleteEnvironment } from 'src/pages/workspaces/workspace/analysis/modals/DeleteEnvironment';
@@ -69,7 +69,7 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 import validate from 'validate.js';
 
-import { computeStyles } from '../modalStyles';
+import { computeStyles } from '../../modalStyles';
 
 // Change to true to enable a debugging panel (intended for dev mode only)
 const showDebugPanel = false;

@@ -6,7 +6,7 @@ import { h } from 'react-hyperscript-helpers';
 import {
   GcpPersistentDiskSizeNumberInput,
   GcpPersistentDiskSizeNumberInputProps,
-} from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpPersistentDiskSizeNumberInput';
+} from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal/GcpPersistentDiskSizeNumberInput';
 
 const defaultGcpPersistentDiskSizeNumberInput: GcpPersistentDiskSizeNumberInputProps = {
   persistentDiskSize: 64,

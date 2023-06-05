@@ -2,7 +2,7 @@ import { div } from 'react-hyperscript-helpers';
 import { GcpPersistentDiskOptions, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
 import { CloudProvider } from 'src/libs/workspace-utils';
 import { AboutPersistentDiskSection } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AboutPersistentDiskSection';
-import { GcpPersistentDiskSizeNumberInput } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpPersistentDiskSizeNumberInput';
+import { GcpPersistentDiskSizeNumberInput } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal/GcpPersistentDiskSizeNumberInput';
 import { PersistentDiskTypeInputContainer } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/PersistentDiskTypeInputContainer';
 import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles';
 

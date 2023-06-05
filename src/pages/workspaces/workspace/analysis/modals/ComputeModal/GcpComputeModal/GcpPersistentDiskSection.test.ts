@@ -6,7 +6,7 @@ import { h } from 'react-hyperscript-helpers';
 import {
   GcpPersistentDiskSection,
   GcpPersistentDiskSectionProps,
-} from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpPersistentDiskSection';
+} from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal/GcpPersistentDiskSection';
 
 const defaultGcpPersistentDiskSectionProps: GcpPersistentDiskSectionProps = {
   persistentDiskExists: false,

@@ -7,7 +7,7 @@ import { defaultAzureDiskSize } from 'src/libs/azure-utils';
 import {
   AzurePersistentDiskSizeSelectInput,
   AzurePersistentDiskSizeSelectInputProps,
-} from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzurePersistentDiskSizeSelectInput';
+} from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal/AzurePersistentDiskSizeSelectInput';
 
 const defaultAzurePersistentDiskSizeSelectInputProps: AzurePersistentDiskSizeSelectInputProps = {
   persistentDiskSize: defaultAzureDiskSize,

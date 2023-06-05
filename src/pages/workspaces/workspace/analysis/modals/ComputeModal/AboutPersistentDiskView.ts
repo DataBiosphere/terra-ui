@@ -8,6 +8,7 @@ import { getCurrentMountDirectory, RuntimeToolLabel } from 'src/pages/workspaces
 
 export interface PersistentDiskAboutProps {
   titleId: string;
+  // TODO: Remove this and use the same type as the one in AzurePersistentDiskSection.ts
   setViewMode: (viewMode: string | undefined) => void;
   tool: RuntimeToolLabel;
   onDismiss: () => void;

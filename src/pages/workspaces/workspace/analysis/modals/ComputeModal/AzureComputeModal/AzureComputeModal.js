@@ -24,7 +24,7 @@ import { useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
 import { AboutPersistentDiskView } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AboutPersistentDiskView';
-import { AzurePersistentDiskSection } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzurePersistentDiskSection';
+import { AzurePersistentDiskSection } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal/AzurePersistentDiskSection';
 import { handleLearnMoreAboutPersistentDisk } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/persistent-disk-controls';
 import { DeleteEnvironment } from 'src/pages/workspaces/workspace/analysis/modals/DeleteEnvironment';
 import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles';

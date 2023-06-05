@@ -1,22 +1,21 @@
 import { div } from 'react-hyperscript-helpers';
-import { GcpPersistentDiskOptions, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
-import { CloudProvider } from 'src/libs/workspace-utils';
+import { SingleValue } from 'react-select';
+import { AzurePdType, AzurePersistentDiskOptions, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
 import { AboutPersistentDiskSection } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AboutPersistentDiskSection';
-import { GcpPersistentDiskSizeNumberInput } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpPersistentDiskSizeNumberInput';
+import { AzurePersistentDiskSizeSelectInput } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal/AzurePersistentDiskSizeSelectInput';
 import { PersistentDiskTypeInputContainer } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/PersistentDiskTypeInputContainer';
 import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles';
 
-export interface GcpPersistentDiskSectionProps {
+export interface AzurePersistentDiskSectionProps {
   persistentDiskExists: boolean;
   persistentDiskSize: number;
-  persistentDiskType: SharedPdType;
+  persistentDiskType: AzurePdType;
   onChangePersistentDiskType: (type: SharedPdType) => void;
-  onChangePersistentDiskSize: (size: number) => void;
+  onChangePersistentDiskSize: (size: SingleValue<number | undefined>) => void;
   onClickAbout: () => void;
-  cloudPlatform: CloudProvider;
 }
 
-export const GcpPersistentDiskSection = (props: GcpPersistentDiskSectionProps) => {
+export const AzurePersistentDiskSection = (props: AzurePersistentDiskSectionProps) => {
   const {
     onClickAbout,
     persistentDiskType,
@@ -32,16 +31,14 @@ export const GcpPersistentDiskSection = (props: GcpPersistentDiskSectionProps) =
     div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
       PersistentDiskTypeInputContainer({
         persistentDiskExists,
-        value: persistentDiskType,
-        onChange: (e) => {
-          onChangePersistentDiskType(e.value);
-        },
-        options: GcpPersistentDiskOptions,
+        value: persistentDiskType?.value,
+        onChange: (e) => onChangePersistentDiskType(e),
+        options: AzurePersistentDiskOptions,
       }),
-      GcpPersistentDiskSizeNumberInput({
+      AzurePersistentDiskSizeSelectInput({
         persistentDiskSize,
-        isDisabled: persistentDiskExists,
         onChangePersistentDiskSize,
+        persistentDiskExists,
       }),
     ]),
   ]);

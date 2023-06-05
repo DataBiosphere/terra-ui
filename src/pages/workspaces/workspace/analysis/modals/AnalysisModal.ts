@@ -29,8 +29,8 @@ import {
   getCloudProviderFromWorkspace,
   isGoogleWorkspaceInfo,
 } from 'src/libs/workspace-utils';
-import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal';
-import { GcpComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal';
+import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal/AzureComputeModal';
+import { GcpComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal';
 import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal';
 import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal';
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle';

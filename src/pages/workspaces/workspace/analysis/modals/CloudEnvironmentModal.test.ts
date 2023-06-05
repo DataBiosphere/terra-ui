@@ -46,24 +46,31 @@ const stubReactModal = ({ modalName }) => {
 };
 
 type AzureComputeModalExports =
-  typeof import('src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal');
+  typeof import('src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal/AzureComputeModal');
 jest.mock(
-  'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal',
+  'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal/AzureComputeModal',
   (): AzureComputeModalExports => {
     return {
-      ...jest.requireActual('src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal'),
+      ...jest.requireActual(
+        'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal/AzureComputeModal'
+      ),
       AzureComputeModalBase: (_obj: any) => stubReactModal({ modalName: 'AzureComputeModalBase' }),
     };
   }
 );
-type GCPComputeModalExports =
-  typeof import('src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal');
-jest.mock('src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal', (): GCPComputeModalExports => {
-  return {
-    ...jest.requireActual('src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal'),
-    GcpComputeModalBase: (_obj: any) => stubReactModal({ modalName: 'GcpComputeModalBase' }),
-  };
-});
+type GcpComputeModalExports =
+  typeof import('src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal');
+jest.mock(
+  'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal',
+  (): GcpComputeModalExports => {
+    return {
+      ...jest.requireActual(
+        'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal'
+      ),
+      GcpComputeModalBase: (_obj: any) => stubReactModal({ modalName: 'GcpComputeModalBase' }),
+    };
+  }
+);
 type CromwellComputeModalExports = typeof import('src/pages/workspaces/workspace/analysis/modals/CromwellModal');
 jest.mock('src/pages/workspaces/workspace/analysis/modals/CromwellModal', (): CromwellComputeModalExports => {
   return {
