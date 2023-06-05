@@ -109,7 +109,7 @@ describe('compute-modal-component', () => {
       await userEvent.click(dTypeNew);
 
       // Assert
-      expect(updateComputeConfigMock).toBeCalledWith('persistentDiskType', {
+      expect(updateComputeConfigMock).toBeCalledWith('diskType', {
         displayName: 'Balanced',
         label: 'pd-balanced',
         regionToPricesName: 'monthlyBalancedDiskPrice',
@@ -178,7 +178,7 @@ describe('compute-modal-component', () => {
       await userEvent.click(dTypeNew);
 
       // Assert
-      expect(updateComputeConfigMock).toBeCalledWith('persistentDiskType', {
+      expect(updateComputeConfigMock).toBeCalledWith('diskType', {
         displayName: 'Balanced',
         label: 'pd-balanced',
         regionToPricesName: 'monthlyBalancedDiskPrice',
