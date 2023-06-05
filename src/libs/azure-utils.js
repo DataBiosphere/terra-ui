@@ -1,4 +1,5 @@
 import _ from 'lodash/fp';
+import * as Utils from 'src/libs/utils';
 import { defaultAutopauseThreshold } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 
 // AZURE REGIONS, COMPUTE TYPES, STORAGE TYPES AND PRICING
@@ -95,8 +96,10 @@ const azureRegions = {
   uaecentral: { flag: '', label: 'UAE Central' },
   brazilsoutheast: { flag: '', label: 'Brazil Southeast' },
 };
-export const getRegionLabel = (key) => (_.has(key, azureRegions) ? azureRegions[key].label : 'Unknown azure region');
-export const getRegionFlag = (key) => (_.has(key, azureRegions) ? azureRegions[key].flag : '❓');
+
+export const getRegionLabel = (key) =>
+  Utils.cond([!key, () => 'Loading'], [_.has(key, azureRegions), () => azureRegions[key].label], () => 'Unknown azure region');
+export const getRegionFlag = (key) => Utils.cond([!key, () => ''], [_.has(key, azureRegions), () => azureRegions[key].flag], () => '❓');
 
 export const azureMachineTypes = {
   Standard_DS2_v2: { cpu: 2, ramInGb: 7 },
