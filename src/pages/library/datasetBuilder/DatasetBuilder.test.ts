@@ -1,16 +1,18 @@
 import { fireEvent, render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
+import { act } from 'react-dom/test-utils';
 import { h } from 'react-hyperscript-helpers';
 import * as Nav from 'src/libs/nav';
 import { CohortEditorState } from 'src/pages/library/datasetBuilder/CohortEditor';
 import { PREPACKAGED_CONCEPT_SETS } from 'src/pages/library/datasetBuilder/constants';
-import { ConceptSet, newCohort } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import { ConceptSet, DatasetBuilderState, newCohort } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import {
   CohortSelector,
   ConceptSetSelector,
   CreateCohortModal,
   DatasetBuilderContents,
+  DatasetBuilderView,
   ValuesSelector,
 } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 import { datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/pages/library/datasetBuilder/state';
@@ -143,5 +145,26 @@ describe('DatasetBuilder', () => {
     expect(getByLabelText('cohort 2').getAttribute('aria-checked')).toBeTruthy();
     expect(getByLabelText('concept set 1').getAttribute('aria-checked')).toBeTruthy();
     expect(getByLabelText('concept set 2').getAttribute('aria-checked')).toBeTruthy();
+  });
+
+  it('shows the home page by default', async () => {
+    const { getByText, getByTestId } = render(h(DatasetBuilderView));
+    expect(getByTestId('loading-spinner')).toBeTruthy();
+    await act(() => Promise.resolve());
+    expect(getByText('Datasets')).toBeTruthy();
+  });
+
+  it('shows the cohort editor page', async () => {
+    const initialState = new CohortEditorState(newCohort('my test cohort'));
+    const { getByText } = render(h(DatasetBuilderView, { datasetId: 'ignored', initialState }));
+    await act(() => Promise.resolve());
+    expect(getByText(initialState.cohort.name)).toBeTruthy();
+  });
+
+  it('shows a placeholder page', async () => {
+    const initialState: DatasetBuilderState = { type: 'concept-selector' };
+    const { getByText } = render(h(DatasetBuilderView, { datasetId: 'ignored', initialState }));
+    await act(() => Promise.resolve());
+    expect(getByText(initialState.type)).toBeTruthy();
   });
 });

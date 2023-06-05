@@ -418,6 +418,7 @@ export const DatasetBuilderContents = ({ onStateChange }: { onStateChange: OnSta
 
 interface DatasetBuilderProps {
   datasetId: string;
+  initialState?: DatasetBuilderState;
 }
 
 export class HomepageState implements DatasetBuilderState {
@@ -427,9 +428,12 @@ export class HomepageState implements DatasetBuilderState {
 }
 const editorBackgroundColor = colors.light(0.7);
 
-export const DatasetBuilderView = ({ datasetId }: DatasetBuilderProps) => {
+export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
+  const { datasetId, initialState } = props;
   const [datasetDetails, loadDatasetDetails] = useLoadedData<DatasetResponse>();
-  const [datasetBuilderState, setDatasetBuilderState] = useState<DatasetBuilderState>(new HomepageState());
+  const [datasetBuilderState, setDatasetBuilderState] = useState<DatasetBuilderState>(
+    initialState || new HomepageState()
+  );
 
   useOnMount(() => {
     void loadDatasetDetails(() => DatasetBuilder().retrieveDataset(datasetId));
