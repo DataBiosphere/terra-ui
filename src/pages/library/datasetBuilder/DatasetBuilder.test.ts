@@ -1,7 +1,6 @@
-import { fireEvent, render } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
-import { act } from 'react-dom/test-utils';
 import { h } from 'react-hyperscript-helpers';
 import * as Nav from 'src/libs/nav';
 import { CohortEditorState } from 'src/pages/library/datasetBuilder/CohortEditor';
@@ -148,23 +147,20 @@ describe('DatasetBuilder', () => {
   });
 
   it('shows the home page by default', async () => {
-    const { getByText, getByTestId } = render(h(DatasetBuilderView));
-    expect(getByTestId('loading-spinner')).toBeTruthy();
-    await act(() => Promise.resolve());
-    expect(getByText('Datasets')).toBeTruthy();
+    render(h(DatasetBuilderView));
+    expect(screen.getByTestId('loading-spinner')).toBeTruthy();
+    expect(await screen.findByText('Datasets')).toBeTruthy();
   });
 
   it('shows the cohort editor page', async () => {
     const initialState = new CohortEditorState(newCohort('my test cohort'));
-    const { getByText } = render(h(DatasetBuilderView, { datasetId: 'ignored', initialState }));
-    await act(() => Promise.resolve());
-    expect(getByText(initialState.cohort.name)).toBeTruthy();
+    render(h(DatasetBuilderView, { datasetId: 'ignored', initialState }));
+    expect(await screen.findByText(initialState.cohort.name)).toBeTruthy();
   });
 
   it('shows a placeholder page', async () => {
     const initialState: DatasetBuilderState = { type: 'concept-selector' };
-    const { getByText } = render(h(DatasetBuilderView, { datasetId: 'ignored', initialState }));
-    await act(() => Promise.resolve());
-    expect(getByText(initialState.type)).toBeTruthy();
+    render(h(DatasetBuilderView, { datasetId: 'ignored', initialState }));
+    expect(await screen.findByText(initialState.type)).toBeTruthy();
   });
 });
