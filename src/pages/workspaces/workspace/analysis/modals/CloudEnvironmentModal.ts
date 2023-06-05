@@ -31,7 +31,7 @@ import {
   GoogleWorkspace,
 } from 'src/libs/workspace-utils';
 import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal';
-import { GCPComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GCPComputeModal';
+import { GcpComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal';
 import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal';
 import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal';
 import { HailBatchModal } from 'src/pages/workspaces/workspace/analysis/modals/HailBatchModal';
@@ -121,7 +121,7 @@ export const CloudEnvironmentModal = ({
   const resetView = () => setViewMode(undefined);
 
   const renderComputeModal = (tool: ToolLabel) =>
-    h(GCPComputeModalBase, {
+    h(GcpComputeModalBase, {
       workspace,
       tool,
       currentRuntime,

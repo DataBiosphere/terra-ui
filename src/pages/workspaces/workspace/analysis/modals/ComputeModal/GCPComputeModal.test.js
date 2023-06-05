@@ -19,7 +19,7 @@ import {
   imageDocs,
   testDefaultLocation,
 } from 'src/pages/workspaces/workspace/analysis/_testData/testData';
-import { GCPComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GCPComputeModal';
+import { GcpComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal';
 import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils';
 import {
   defaultDataprocMasterDiskSize,
@@ -80,7 +80,7 @@ const defaultAjaxImpl = {
   },
 };
 
-describe('GCPComputeModal', () => {
+describe('GcpComputeModal', () => {
   beforeAll(() => {});
 
   beforeEach(() => {
@@ -100,7 +100,7 @@ describe('GCPComputeModal', () => {
     // Arrange
 
     // Act
-    await act(async () => await render(h(GCPComputeModalBase, defaultModalProps)));
+    await act(async () => await render(h(GcpComputeModalBase, defaultModalProps)));
 
     // Assert
     verifyEnabled(getCreateButton());
@@ -123,7 +123,7 @@ describe('GCPComputeModal', () => {
 
     // Act
     await act(async () => {
-      await render(h(GCPComputeModalBase, defaultModalProps));
+      await render(h(GcpComputeModalBase, defaultModalProps));
       await userEvent.click(getCreateButton());
     });
 
@@ -178,7 +178,7 @@ describe('GCPComputeModal', () => {
     // Act
     await act(async () => {
       await render(
-        h(GCPComputeModalBase, {
+        h(GcpComputeModalBase, {
           ...defaultModalProps,
           currentDisk: disk,
         })
@@ -229,7 +229,7 @@ describe('GCPComputeModal', () => {
       // Act
       await act(async () => {
         await render(
-          h(GCPComputeModalBase, {
+          h(GcpComputeModalBase, {
             ...defaultModalProps,
             currentDisk: disk,
             currentRuntime: runtime,
@@ -285,7 +285,7 @@ describe('GCPComputeModal', () => {
       // Act
       await act(async () => {
         await render(
-          h(GCPComputeModalBase, {
+          h(GcpComputeModalBase, {
             ...defaultModalProps,
             currentDisk: disk,
             currentRuntime: runtime,
@@ -331,7 +331,7 @@ describe('GCPComputeModal', () => {
       // Act
       await act(async () => {
         render(
-          h(GCPComputeModalBase, {
+          h(GcpComputeModalBase, {
             ...defaultModalProps,
             currentDisk: disk,
             currentRuntime: runtime,
@@ -381,7 +381,7 @@ describe('GCPComputeModal', () => {
       // Act
       await act(async () => {
         render(
-          h(GCPComputeModalBase, {
+          h(GcpComputeModalBase, {
             ...defaultModalProps,
             currentDisk: disk,
             currentRuntime: runtime,
@@ -428,7 +428,7 @@ describe('GCPComputeModal', () => {
       // Act
       await act(async () => {
         await render(
-          h(GCPComputeModalBase, {
+          h(GcpComputeModalBase, {
             ...defaultModalProps,
             currentDisk: disk,
             currentRuntime: runtime,
@@ -632,7 +632,7 @@ describe('GCPComputeModal', () => {
     // Act
     await act(async () => {
       await render(
-        h(GCPComputeModalBase, {
+        h(GcpComputeModalBase, {
           ...defaultModalProps,
           currentRuntime: runtime,
         })
@@ -686,7 +686,7 @@ describe('GCPComputeModal', () => {
 
     // Act
     await act(async () => {
-      await render(h(GCPComputeModalBase, defaultModalProps));
+      await render(h(GcpComputeModalBase, defaultModalProps));
 
       const selectMenu = await screen.getByLabelText('Application configuration');
       await userEvent.click(selectMenu);
@@ -748,7 +748,7 @@ describe('GCPComputeModal', () => {
 
       // Act and assert
       await act(async () => {
-        await render(h(GCPComputeModalBase, defaultModalProps));
+        await render(h(GcpComputeModalBase, defaultModalProps));
 
         const selectMenu = await screen.getByLabelText('Application configuration');
         await userEvent.click(selectMenu);
@@ -795,7 +795,7 @@ describe('GCPComputeModal', () => {
 
       // Act and assert
       await act(async () => {
-        await render(h(GCPComputeModalBase, defaultModalProps));
+        await render(h(GcpComputeModalBase, defaultModalProps));
 
         const selectMenu = await screen.getByLabelText('Application configuration');
         await userEvent.click(selectMenu);
@@ -830,7 +830,7 @@ describe('GCPComputeModal', () => {
   // click learn more about persistent disk
   it('should render learn more about persistent disks', async () => {
     // Act
-    render(h(GCPComputeModalBase, defaultModalProps));
+    render(h(GcpComputeModalBase, defaultModalProps));
     const link = screen.getByText('Learn more about persistent disks and where your disk is mounted.');
     await userEvent.click(link);
 
@@ -849,7 +849,7 @@ describe('GCPComputeModal', () => {
       // Act
       await act(async () => {
         await render(
-          h(GCPComputeModalBase, {
+          h(GcpComputeModalBase, {
             ...defaultModalProps,
             currentRuntime: runtime,
           })
@@ -865,7 +865,7 @@ describe('GCPComputeModal', () => {
   it('should render whats installed on this environment', async () => {
     // Act
     await act(async () => {
-      await render(h(GCPComputeModalBase, defaultModalProps));
+      await render(h(GcpComputeModalBase, defaultModalProps));
       const link = await screen.getByText('What’s installed on this environment?');
       await userEvent.click(link);
     });
@@ -893,7 +893,7 @@ describe('GCPComputeModal', () => {
 
     // Act
     await act(async () => {
-      await render(h(GCPComputeModalBase, defaultModalProps));
+      await render(h(GcpComputeModalBase, defaultModalProps));
       const enableGPU = await screen.getByText('Enable GPUs');
       await userEvent.click(enableGPU);
     });
@@ -932,7 +932,7 @@ describe('GCPComputeModal', () => {
     // eslint-disable-next-line require-await
     await act(async () => {
       render(
-        h(GCPComputeModalBase, {
+        h(GcpComputeModalBase, {
           ...defaultModalProps,
           currentDisk: disk,
           currentRuntime: runtime,
@@ -962,7 +962,7 @@ describe('GCPComputeModal', () => {
           runtime: runtimeFunc,
         },
       }));
-      await render(h(GCPComputeModalBase, defaultModalProps));
+      await render(h(GcpComputeModalBase, defaultModalProps));
 
       // Act
       const selectMenu = await screen.getByLabelText('Application configuration');
@@ -1005,7 +1005,7 @@ describe('GCPComputeModal', () => {
 
         // Act
         await act(async () => {
-          await render(h(GCPComputeModalBase, { ...defaultModalProps, tool: runtimeTool.label }));
+          await render(h(GcpComputeModalBase, { ...defaultModalProps, tool: runtimeTool.label }));
 
           const selectMenu = await screen.getByLabelText('Application configuration');
           await userEvent.click(selectMenu);
@@ -1066,7 +1066,7 @@ describe('GCPComputeModal', () => {
 
       // Act
       await act(async () => {
-        await render(h(GCPComputeModalBase, { ...defaultModalProps, tool: runtimeTool.label }));
+        await render(h(GcpComputeModalBase, { ...defaultModalProps, tool: runtimeTool.label }));
 
         const selectMenu = await screen.getByLabelText('Application configuration');
         await userEvent.click(selectMenu);
@@ -1112,7 +1112,7 @@ describe('GCPComputeModal', () => {
 
     // Act
     await act(async () => {
-      await render(h(GCPComputeModalBase, defaultModalProps));
+      await render(h(GcpComputeModalBase, defaultModalProps));
     });
 
     // Assert

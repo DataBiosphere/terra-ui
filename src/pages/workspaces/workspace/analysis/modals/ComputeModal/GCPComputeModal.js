@@ -26,7 +26,7 @@ import * as Utils from 'src/libs/utils';
 import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
 import { buildExistingEnvironmentConfig, getImageUrl } from 'src/pages/workspaces/workspace/analysis/modal-utils';
 import { AboutPersistentDiskView } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AboutPersistentDiskView';
-import { GCPPersistentDiskSection } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GCPPersistentDiskSection';
+import { GcpPersistentDiskSection } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpPersistentDiskSection';
 import { handleLearnMoreAboutPersistentDisk } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/persistent-disk-controls';
 import { DeleteDiskChoices } from 'src/pages/workspaces/workspace/analysis/modals/DeleteDiskChoices';
 import { DeleteEnvironment } from 'src/pages/workspaces/workspace/analysis/modals/DeleteEnvironment';
@@ -214,7 +214,7 @@ const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelecte
   isGce(runtimeType) && (!runtimeDetails?.runtimeConfig?.diskSize || upgradeDiskSelected);
 // Auxiliary functions -- end
 
-export const GCPComputeModalBase = ({
+export const GcpComputeModalBase = ({
   onDismiss,
   onError,
   onSuccess,
@@ -1649,7 +1649,7 @@ export const GCPComputeModalBase = ({
         renderApplicationConfigurationSection(),
         renderComputeProfileSection(existingRuntime),
         !!isPersistentDisk &&
-          h(GCPPersistentDiskSection, {
+          h(GcpPersistentDiskSection, {
             persistentDiskExists: !!existingPersistentDisk,
             persistentDiskSize: computeConfig.diskSize,
             persistentDiskType: computeConfig.diskType,
@@ -1763,4 +1763,4 @@ export const GCPComputeModalBase = ({
   ]);
 };
 
-export const GCPComputeModal = withModalDrawer({ width: 675, 'aria-labelledby': titleId })(GCPComputeModalBase);
+export const GcpComputeModal = withModalDrawer({ width: 675, 'aria-labelledby': titleId })(GcpComputeModalBase);

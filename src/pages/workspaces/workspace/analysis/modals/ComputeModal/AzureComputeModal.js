@@ -359,7 +359,7 @@ export const AzureComputeModalBase = ({
     ]);
   };
 
-  // TODO [IA-3348] parameterize and make it a shared function between the equivalent in GCPComputeModal
+  // TODO [IA-3348] parameterize and make it a shared function between the equivalent in GcpComputeModal
   const renderCostBreakdown = () => {
     return div(
       {

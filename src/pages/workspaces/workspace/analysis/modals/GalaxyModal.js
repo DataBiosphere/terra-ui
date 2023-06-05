@@ -9,7 +9,7 @@ import TitleBar from 'src/components/TitleBar';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { machineTypes } from 'src/data/gce-machines';
 import { Ajax } from 'src/libs/ajax';
-import { GCPPersistentDiskOptions, googlePdTypes } from 'src/libs/ajax/leonardo/models/disk-models';
+import { GcpPersistentDiskOptions, googlePdTypes } from 'src/libs/ajax/leonardo/models/disk-models';
 import colors from 'src/libs/colors';
 import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -285,7 +285,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
       ]);
     };
 
-    // TODO Refactor this and the duplicate in GCPComputeModal.js
+    // TODO Refactor this and the duplicate in GcpComputeModal.js
     const renderGalaxyCostBreakdown = (kubernetesRuntimeConfig, dataDisk) => {
       const runningComputeCost = getGalaxyComputeCost({ status: 'RUNNING', kubernetesRuntimeConfig });
       const pausedComputeCost = getGalaxyComputeCost({ status: 'STOPPED', kubernetesRuntimeConfig });
@@ -381,7 +381,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
                   isDisabled: disabled,
                   onChange: ({ value }) => updateDataDisk('diskType', value),
                   menuPlacement: 'auto',
-                  options: GCPPersistentDiskOptions,
+                  options: GcpPersistentDiskOptions,
                 }),
               ]),
             ]),

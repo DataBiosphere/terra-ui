@@ -1,8 +1,8 @@
 import { div } from 'react-hyperscript-helpers';
-import { GCPPersistentDiskOptions, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
+import { GcpPersistentDiskOptions, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
 import { CloudProvider } from 'src/libs/workspace-utils';
 import { AboutPersistentDiskSection } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AboutPersistentDiskSection';
-import { GCPPersistentDiskSizeNumberInput } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GCPPersistentDiskSizeNumberInput';
+import { GcpPersistentDiskSizeNumberInput } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpPersistentDiskSizeNumberInput';
 import { PersistentDiskTypeInputContainer } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/PersistentDiskTypeInputContainer';
 import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles';
 
@@ -16,7 +16,7 @@ export interface GcpPersistentDiskSectionProps {
   cloudPlatform: CloudProvider;
 }
 
-export const GCPPersistentDiskSection = (props: GcpPersistentDiskSectionProps) => {
+export const GcpPersistentDiskSection = (props: GcpPersistentDiskSectionProps) => {
   const {
     onClickAbout,
     persistentDiskType,
@@ -36,9 +36,9 @@ export const GCPPersistentDiskSection = (props: GcpPersistentDiskSectionProps) =
         onChange: (e) => {
           onChangePersistentDiskType(e.value);
         },
-        options: GCPPersistentDiskOptions,
+        options: GcpPersistentDiskOptions,
       }),
-      GCPPersistentDiskSizeNumberInput({
+      GcpPersistentDiskSizeNumberInput({
         persistentDiskSize,
         isDisabled: persistentDiskExists,
         onChangePersistentDiskSize,

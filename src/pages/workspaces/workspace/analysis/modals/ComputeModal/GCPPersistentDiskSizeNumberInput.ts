@@ -3,13 +3,13 @@ import { NumberInput } from 'src/components/input';
 import { useUniqueId } from 'src/libs/react-utils';
 import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles';
 
-export interface GCPPersistentDiskSizeNumberInputProps {
+export interface GcpPersistentDiskSizeNumberInputProps {
   persistentDiskSize: number;
   isDisabled: boolean;
   onChangePersistentDiskSize: (size: number) => void;
 }
 
-export const GCPPersistentDiskSizeNumberInput = (props: GCPPersistentDiskSizeNumberInputProps) => {
+export const GcpPersistentDiskSizeNumberInput = (props: GcpPersistentDiskSizeNumberInputProps) => {
   const { persistentDiskSize, isDisabled, onChangePersistentDiskSize } = props;
 
   const diskSizeId = useUniqueId();

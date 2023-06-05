@@ -5,7 +5,7 @@ export type AzureDiskType = 'Standard_LRS' | 'StandardSSD_LRS';
 export type GoogleDiskType = 'pd-standard' | 'pd-ssd' | 'pd-balanced';
 
 // TODO: Use this in the select dropdown instead of the object.
-// TODO: Will require refactoring in GCPComputeModal
+// TODO: Will require refactoring in GcpComputeModal
 export type DiskType = GoogleDiskType | AzureDiskType;
 
 export interface DiskConfig {
@@ -112,7 +112,7 @@ export type DecoratedPersistentDisk = {
   diskType: GooglePdType;
 } & Omit<PersistentDisk, 'diskType'>;
 
-export const GCPPersistentDiskOptions = [
+export const GcpPersistentDiskOptions = [
   { label: googlePdTypes.standard.label, value: googlePdTypes.standard },
   { label: googlePdTypes.balanced.label, value: googlePdTypes.balanced },
   { label: googlePdTypes.ssd.label, value: googlePdTypes.ssd },

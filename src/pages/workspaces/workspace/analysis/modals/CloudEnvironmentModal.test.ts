@@ -57,11 +57,11 @@ jest.mock(
   }
 );
 type GCPComputeModalExports =
-  typeof import('src/pages/workspaces/workspace/analysis/modals/ComputeModal/GCPComputeModal');
-jest.mock('src/pages/workspaces/workspace/analysis/modals/ComputeModal/GCPComputeModal', (): GCPComputeModalExports => {
+  typeof import('src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal');
+jest.mock('src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal', (): GCPComputeModalExports => {
   return {
-    ...jest.requireActual('src/pages/workspaces/workspace/analysis/modals/ComputeModal/GCPComputeModal'),
-    GCPComputeModalBase: (_obj: any) => stubReactModal({ modalName: 'GCPComputeModalBase' }),
+    ...jest.requireActual('src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal'),
+    GcpComputeModalBase: (_obj: any) => stubReactModal({ modalName: 'GcpComputeModalBase' }),
   };
 });
 type CromwellComputeModalExports = typeof import('src/pages/workspaces/workspace/analysis/modals/CromwellModal');
@@ -617,7 +617,7 @@ describe('CloudEnvironmentModal', () => {
         appDataDisks: [defaultTestDisk],
       },
       buttonIndex: 0,
-      modalName: 'GCPComputeModalBase',
+      modalName: 'GcpComputeModalBase',
       toolName: 'Jupyter',
     },
     {
@@ -632,7 +632,7 @@ describe('CloudEnvironmentModal', () => {
         appDataDisks: [defaultTestDisk],
       },
       buttonIndex: 1,
-      modalName: 'GCPComputeModalBase',
+      modalName: 'GcpComputeModalBase',
       toolName: 'RStudio',
     },
     {

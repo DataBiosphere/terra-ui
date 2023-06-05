@@ -4,9 +4,9 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import {
-  GCPPersistentDiskSection,
+  GcpPersistentDiskSection,
   GcpPersistentDiskSectionProps,
-} from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GCPPersistentDiskSection';
+} from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpPersistentDiskSection';
 
 const defaultGcpPersistentDiskSectionProps: GcpPersistentDiskSectionProps = {
   persistentDiskExists: false,
@@ -22,10 +22,10 @@ const defaultGcpPersistentDiskSectionProps: GcpPersistentDiskSectionProps = {
   cloudPlatform: 'GCP',
 };
 
-describe('GCPPersistentDiskSection', () => {
+describe('GcpPersistentDiskSection', () => {
   it('should render with default props', () => {
     // Arrange
-    render(h(GCPPersistentDiskSection, defaultGcpPersistentDiskSectionProps));
+    render(h(GcpPersistentDiskSection, defaultGcpPersistentDiskSectionProps));
 
     // Assert
     expect(screen.getByLabelText('Disk Type')).toBeTruthy();
@@ -34,7 +34,7 @@ describe('GCPPersistentDiskSection', () => {
 
   it('should call onChangePersistentDiskSize when updating size', async () => {
     // Arrange
-    render(h(GCPPersistentDiskSection, defaultGcpPersistentDiskSectionProps));
+    render(h(GcpPersistentDiskSection, defaultGcpPersistentDiskSectionProps));
 
     // Act
     const diskTypeInput = screen.getByLabelText('Disk Size (GB)');
@@ -48,7 +48,7 @@ describe('GCPPersistentDiskSection', () => {
 
   it('should call onChangePersistentDiskType when updating type', async () => {
     // Arrange
-    render(h(GCPPersistentDiskSection, defaultGcpPersistentDiskSectionProps));
+    render(h(GcpPersistentDiskSection, defaultGcpPersistentDiskSectionProps));
     // Act
     const diskTypeSelect = screen.getByLabelText('Disk Type');
     await userEvent.click(diskTypeSelect);
@@ -66,7 +66,7 @@ describe('GCPPersistentDiskSection', () => {
   it('should be disabled when persistentDiskExists is true', () => {
     // Arrange
     render(
-      h(GCPPersistentDiskSection, {
+      h(GcpPersistentDiskSection, {
         ...defaultGcpPersistentDiskSectionProps,
         persistentDiskExists: true,
       })

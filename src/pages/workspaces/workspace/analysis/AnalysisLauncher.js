@@ -25,7 +25,7 @@ import { authStore, cookieReadyStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
 import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator';
-import { GCPComputeModal } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GCPComputeModal';
+import { GcpComputeModal } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal';
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal/ExportAnalysisModal';
 import {
   analysisLauncherTabName,
@@ -132,7 +132,7 @@ const AnalysisLauncher = _.flow(
         ]),
         mode && h(RuntimeKicker, { runtime: currentRuntime, refreshRuntimes }),
         mode && h(RuntimeStatusMonitor, { runtime: currentRuntime }),
-        h(GCPComputeModal, {
+        h(GcpComputeModal, {
           isOpen: createOpen && !isAzureWorkspace,
           tool: currentFileToolLabel,
           shouldHideCloseButton: false,

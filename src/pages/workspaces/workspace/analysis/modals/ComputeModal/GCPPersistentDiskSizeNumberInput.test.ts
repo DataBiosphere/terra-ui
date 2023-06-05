@@ -4,20 +4,20 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import {
-  GCPPersistentDiskSizeNumberInput,
-  GCPPersistentDiskSizeNumberInputProps,
-} from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GCPPersistentDiskSizeNumberInput';
+  GcpPersistentDiskSizeNumberInput,
+  GcpPersistentDiskSizeNumberInputProps,
+} from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpPersistentDiskSizeNumberInput';
 
-const defaultGCPPersistentDiskSizeNumberInput: GCPPersistentDiskSizeNumberInputProps = {
+const defaultGcpPersistentDiskSizeNumberInput: GcpPersistentDiskSizeNumberInputProps = {
   persistentDiskSize: 64,
   onChangePersistentDiskSize: jest.fn(),
   isDisabled: false,
 };
 
-describe('GCPPersistentDiskSizeNumberInput', () => {
+describe('GcpPersistentDiskSizeNumberInput', () => {
   it('should render with default props', () => {
     // Arrange
-    render(h(GCPPersistentDiskSizeNumberInput, defaultGCPPersistentDiskSizeNumberInput));
+    render(h(GcpPersistentDiskSizeNumberInput, defaultGcpPersistentDiskSizeNumberInput));
 
     // Assert
     expect(screen.getByLabelText('Disk Size (GB)')).toBeTruthy();
@@ -25,26 +25,26 @@ describe('GCPPersistentDiskSizeNumberInput', () => {
 
   it('should call onChange when value is updated.', async () => {
     // Arrange
-    render(h(GCPPersistentDiskSizeNumberInput, defaultGCPPersistentDiskSizeNumberInput));
+    render(h(GcpPersistentDiskSizeNumberInput, defaultGcpPersistentDiskSizeNumberInput));
     // Act
     const diskSizeNumberInput = screen.getByLabelText('Disk Size (GB)');
     await userEvent.clear(diskSizeNumberInput);
     await userEvent.type(diskSizeNumberInput, '1024');
 
     // Assert
-    expect(defaultGCPPersistentDiskSizeNumberInput.onChangePersistentDiskSize).toBeCalledWith(10);
-    expect(defaultGCPPersistentDiskSizeNumberInput.onChangePersistentDiskSize).toBeCalledWith(102);
-    expect(defaultGCPPersistentDiskSizeNumberInput.onChangePersistentDiskSize).toBeCalledWith(1024);
+    expect(defaultGcpPersistentDiskSizeNumberInput.onChangePersistentDiskSize).toBeCalledWith(10);
+    expect(defaultGcpPersistentDiskSizeNumberInput.onChangePersistentDiskSize).toBeCalledWith(102);
+    expect(defaultGcpPersistentDiskSizeNumberInput.onChangePersistentDiskSize).toBeCalledWith(1024);
   });
 
   it('should be disabled when isDisabled is true', () => {
     // Arrange
-    render(h(GCPPersistentDiskSizeNumberInput, { ...defaultGCPPersistentDiskSizeNumberInput, isDisabled: true }));
+    render(h(GcpPersistentDiskSizeNumberInput, { ...defaultGcpPersistentDiskSizeNumberInput, isDisabled: true }));
 
     // Assert
     expect(screen.getByLabelText('Disk Size (GB)')).toBeDisabled();
     expect(screen.getByLabelText('Disk Size (GB)')).toHaveValue(
-      defaultGCPPersistentDiskSizeNumberInput.persistentDiskSize
+      defaultGcpPersistentDiskSizeNumberInput.persistentDiskSize
     );
   });
 });
