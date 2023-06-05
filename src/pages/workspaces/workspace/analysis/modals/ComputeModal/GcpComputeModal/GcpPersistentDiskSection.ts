@@ -34,8 +34,8 @@ export const GcpPersistentDiskSection: React.FC<GcpPersistentDiskSectionProps> =
     div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
       PersistentDiskTypeInputContainer({
         persistentDiskExists,
-        value: persistentDiskType,
-        onChange: (e) => onChangePersistentDiskType(e.value),
+        value: persistentDiskType.value,
+        onChange: (e) => onChangePersistentDiskType(e),
         options: GcpPersistentDiskOptions,
       }),
       GcpPersistentDiskSizeNumberInput({

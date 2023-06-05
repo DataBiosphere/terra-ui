@@ -112,11 +112,7 @@ export type DecoratedPersistentDisk = {
   diskType: GooglePdType;
 } & Omit<PersistentDisk, 'diskType'>;
 
-export const GcpPersistentDiskOptions = [
-  { label: googlePdTypes.standard.label, value: googlePdTypes.standard },
-  { label: googlePdTypes.balanced.label, value: googlePdTypes.balanced },
-  { label: googlePdTypes.ssd.label, value: googlePdTypes.ssd },
-];
+export const GcpPersistentDiskOptions = [googlePdTypes.standard, googlePdTypes.balanced, googlePdTypes.ssd];
 
 export interface PdSelectOption {
   value: SharedPdType;
