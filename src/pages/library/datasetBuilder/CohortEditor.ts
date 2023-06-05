@@ -3,7 +3,12 @@ import { Fragment, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
 import { ButtonOutline, ButtonPrimary, GroupedSelect, Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { DatasetResponse, DomainType, ProgramDataListType, ProgramDataRangeType } from 'src/libs/ajax/DatasetBuilder';
+import {
+  DatasetResponse,
+  DomainOption,
+  ProgramDataListOption,
+  ProgramDataRangeOption,
+} from 'src/libs/ajax/DatasetBuilder';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from 'src/pages/library/datasetBuilder/constants';
@@ -58,21 +63,21 @@ const CriteriaView = ({ criteria, deleteCriteria }: CriteriaViewProps) => {
         div({ style: { marginLeft: narrowMargin } }, [
           Utils.cond(
             [
-              'domainType' in criteria,
+              'domainOption' in criteria,
               () => {
                 const domainCriteria = criteria as DomainCriteria;
-                return h(Fragment, [strong([`${domainCriteria.domainType.category}:`]), ` ${domainCriteria.name}`]);
+                return h(Fragment, [strong([`${domainCriteria.domainOption.category}:`]), ` ${domainCriteria.name}`]);
               },
             ],
             [
-              'listType' in criteria,
+              'listOption' in criteria,
               () => {
                 const listCriteria = criteria as ProgramDataListCriteria;
                 return h(Fragment, [strong([`${criteria.name}:`]), ` ${listCriteria.value.name}`]);
               },
             ],
             [
-              'rangeType' in criteria,
+              'rangeOption' in criteria,
               () => {
                 const rangeCriteria = criteria as ProgramDataRangeCriteria;
                 return h(Fragment, [strong([`${criteria.name}:`]), ` ${rangeCriteria.low} - ${rangeCriteria.high}`]);
@@ -87,15 +92,16 @@ const CriteriaView = ({ criteria, deleteCriteria }: CriteriaViewProps) => {
   );
 };
 
-export const renderCriteriaView = (deleteCriteria: (criteria: AnyCriteria) => void) => (criteria: AnyCriteria) =>
-  h(CriteriaView, { deleteCriteria, criteria, key: criteria.id });
+export const createCriteriaViewComponent =
+  (deleteCriteria: (criteria: AnyCriteria) => void) => (criteria: AnyCriteria) =>
+    h(CriteriaView, { deleteCriteria, criteria, key: criteria.id });
 
 let criteriaCount = 1;
-const selectDomainCriteria = (domainType: DomainType): DomainCriteria => {
+const selectDomainCriteria = (domainType: DomainOption): DomainCriteria => {
   // This needs to be replaced with a UI that lets users select the criteria they want from
   // the list of concepts for this domain.
   return {
-    domainType,
+    domainOption: domainType,
     name: domainType.values[0],
     id: criteriaCount++,
     // Need to call the API service to get the count for the criteria.
@@ -103,9 +109,9 @@ const selectDomainCriteria = (domainType: DomainType): DomainCriteria => {
   };
 };
 
-const createDefaultListCriteria = (listType: ProgramDataListType): ProgramDataListCriteria => {
+const createDefaultListCriteria = (listType: ProgramDataListOption): ProgramDataListCriteria => {
   return {
-    listType,
+    listOption: listType,
     name: listType.name,
     id: criteriaCount++,
     count: 100,
@@ -113,9 +119,9 @@ const createDefaultListCriteria = (listType: ProgramDataListType): ProgramDataLi
   };
 };
 
-const createDefaultRangeCriteria = (rangeType: ProgramDataRangeType): ProgramDataRangeCriteria => {
+const createDefaultRangeCriteria = (rangeType: ProgramDataRangeOption): ProgramDataRangeCriteria => {
   return {
-    rangeType,
+    rangeOption: rangeType,
     name: rangeType.name,
     id: criteriaCount++,
     count: 100,
@@ -124,15 +130,15 @@ const createDefaultRangeCriteria = (rangeType: ProgramDataRangeType): ProgramDat
   };
 };
 
-type CriteriaType = DomainType | ProgramDataRangeType | ProgramDataListType;
+type CriteriaType = DomainOption | ProgramDataRangeOption | ProgramDataListOption;
 
 export function createCriteriaFromType(type: CriteriaType): AnyCriteria {
   return (
     Utils.condTyped<AnyCriteria>(
-      ['category' in type, () => selectDomainCriteria(type as DomainType)],
-      ['values' in type, () => createDefaultListCriteria(type as ProgramDataListType)],
-      ['min' in type, () => createDefaultRangeCriteria(type as ProgramDataRangeType)]
-    ) ?? { domainType: { id: 0, category: 'unknown', values: [] }, name: 'unknown', count: 0, id: 0 }
+      ['category' in type, () => selectDomainCriteria(type as DomainOption)],
+      ['values' in type, () => createDefaultListCriteria(type as ProgramDataListOption)],
+      ['min' in type, () => createDefaultRangeCriteria(type as ProgramDataRangeOption)]
+    ) ?? { domainOption: { id: 0, category: 'unknown', values: [] }, name: 'unknown', count: 0, id: 0 }
   );
 }
 
@@ -157,7 +163,7 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
             value: domainType,
             label: domainType.category,
           };
-        }, datasetDetails.domainTypes),
+        }, datasetDetails.domainOptions),
       },
       {
         label: 'Program Data',
@@ -166,7 +172,7 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
             value: programDataType,
             label: programDataType.name,
           };
-        }, datasetDetails.programDataTypes),
+        }, datasetDetails.programDataOptions),
       },
     ],
     'aria-label': 'add criteria',
@@ -247,7 +253,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
         div([
           (criteriaGroup.criteria.length !== 0 &&
             _.map(
-              renderCriteriaView((criteria: AnyCriteria) =>
+              createCriteriaViewComponent((criteria: AnyCriteria) =>
                 updateCohort(_.set(`criteriaGroups.${index}.criteria`, _.without([criteria], criteriaGroup.criteria)))
               ),
               criteriaGroup.criteria

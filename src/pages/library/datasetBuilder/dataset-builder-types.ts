@@ -1,8 +1,8 @@
 import {
-  DomainType,
-  ProgramDataListType,
-  ProgramDataListTypeValue,
-  ProgramDataRangeType,
+  DomainOption,
+  ProgramDataListOption,
+  ProgramDataListValueOption,
+  ProgramDataRangeOption,
 } from 'src/libs/ajax/DatasetBuilder';
 
 /** A specific criteria based on a type. */
@@ -13,17 +13,17 @@ export interface Criteria {
 }
 
 export interface DomainCriteria extends Criteria {
-  domainType: DomainType;
+  domainOption: DomainOption;
 }
 
 export interface ProgramDataRangeCriteria extends Criteria {
-  rangeType: ProgramDataRangeType;
+  rangeOption: ProgramDataRangeOption;
   low: number;
   high: number;
 }
 export interface ProgramDataListCriteria extends Criteria {
-  listType: ProgramDataListType;
-  value: ProgramDataListTypeValue;
+  listOption: ProgramDataListOption;
+  value: ProgramDataListValueOption;
 }
 
 export type AnyCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;

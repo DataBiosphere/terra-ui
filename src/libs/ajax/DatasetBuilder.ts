@@ -1,6 +1,6 @@
 // Types that can be used to create a criteria.
 
-export interface DomainType {
+export interface DomainOption {
   id: number;
   category: string;
   values: string[];
@@ -8,32 +8,32 @@ export interface DomainType {
 
 type DataType = 'range' | 'list';
 
-export interface ProgramDataType {
+export interface ProgramDataOption {
   dataType: DataType;
   id: number;
   name: string;
 }
 
-export interface ProgramDataRangeType extends ProgramDataType {
+export interface ProgramDataRangeOption extends ProgramDataOption {
   dataType: 'range';
   min: number;
   max: number;
 }
 
-export interface ProgramDataListTypeValue {
+export interface ProgramDataListValueOption {
   id: number;
   name: string;
 }
 
-export interface ProgramDataListType extends ProgramDataType {
+export interface ProgramDataListOption extends ProgramDataOption {
   dataType: 'list';
-  values: ProgramDataListTypeValue[];
+  values: ProgramDataListValueOption[];
 }
 
 export interface DatasetResponse {
   name: string;
-  programDataTypes: (ProgramDataRangeType | ProgramDataListType)[];
-  domainTypes: DomainType[];
+  programDataOptions: (ProgramDataRangeOption | ProgramDataListOption)[];
+  domainOptions: DomainOption[];
 }
 
 export interface DatasetBuilderContract {
@@ -42,7 +42,7 @@ export interface DatasetBuilderContract {
 
 export const dummyDatasetDetails: DatasetResponse = {
   name: 'AnalytixIndiana',
-  programDataTypes: [
+  programDataOptions: [
     { id: 1, name: 'Year of birth', dataType: 'range', min: 1900, max: 2023 },
     {
       id: 2,
@@ -77,7 +77,7 @@ export const dummyDatasetDetails: DatasetResponse = {
       ],
     },
   ],
-  domainTypes: [
+  domainOptions: [
     { id: 10, category: 'Condition', values: ['Heart Disease', 'Diabetes', 'Cancer'] },
     { id: 11, category: 'Procedure', values: ['Heart Surgery', 'Knee Surgery', 'Cancer Surgery'] },
     { id: 12, category: 'Observation', values: ['Blood Pressure', 'Weight', 'Height'] },
