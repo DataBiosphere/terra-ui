@@ -9,12 +9,13 @@ export interface DomainType {
 type DataType = 'range' | 'list';
 
 export interface ProgramDataType {
+  dataType: DataType;
   id: number;
   name: string;
-  dataType: DataType;
 }
 
 export interface ProgramDataRangeType extends ProgramDataType {
+  dataType: 'range';
   min: number;
   max: number;
 }
@@ -25,6 +26,7 @@ export interface ProgramDataListTypeValue {
 }
 
 export interface ProgramDataListType extends ProgramDataType {
+  dataType: 'list';
   values: ProgramDataListTypeValue[];
 }
 
