@@ -43,18 +43,18 @@ describe('AzurePersistentDiskSection', () => {
     expect(defaultAzurePersistentDiskSectionProps.onChangePersistentDiskSize).toHaveBeenCalledWith(1024);
   });
 
-  // it('should call onChangePersistentDiskType when updating type', async () => {
-  //   // Arrange
-  //   render(h(AzurePersistentDiskSection, defaultAzurePersistentDiskSectionProps));
+  it('should call onChangePersistentDiskType when updating type - same selection as previous.', async () => {
+    // Arrange
+    render(h(AzurePersistentDiskSection, defaultAzurePersistentDiskSectionProps));
 
-  //   // Act
-  //   const diskTypeSelect = screen.getByLabelText('Disk Type');
-  //   await userEvent.click(diskTypeSelect);
-  //   const balancedDiskType = screen.getByText('Balanced');
-  //   await userEvent.click(balancedDiskType);
-  //   // Assert
-  //   expect(defaultAzurePersistentDiskSectionProps.onChangePersistentDiskType).toHaveBeenCalledWith('StandardSSD_LRS');
-  // });
+    // Act
+    const diskTypeSelect = screen.getByLabelText('Disk Type');
+    await userEvent.click(diskTypeSelect);
+    const standardHdd = screen.getByText('Standard HDD');
+    await userEvent.click(standardHdd);
+    // Assert
+    expect(defaultAzurePersistentDiskSectionProps.onChangePersistentDiskType).toHaveBeenCalledWith('Standard_LRS');
+  });
 
   it('should be disabled when persistentDiskExists is true', () => {
     // Arrange

@@ -6,10 +6,7 @@ import { defaultAutopauseThreshold } from 'src/pages/workspaces/workspace/analys
 export const defaultAzureMachineType = 'Standard_DS2_v2';
 export const defaultAzureDiskSize = 64;
 export const defaultAzureRegion = 'eastus';
-export const defaultAzurePersistentDiskType = {
-  value: 'Standard_LRS',
-  label: 'Standard HDD',
-};
+export const defaultAzurePersistentDiskType = 'Standard_LRS';
 
 export const defaultAzureComputeConfig = {
   autopauseThreshold: defaultAutopauseThreshold,
