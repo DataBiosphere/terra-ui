@@ -70,4 +70,16 @@ describe('AzurePersistentDiskSection', () => {
     expect(screen.findByText('Standard HDD')).toBeTruthy();
     expect(screen.getByLabelText('Disk Size (GB)')).toBeDisabled();
   });
+
+  it('should call onClickAbout when clicking the about link', async () => {
+    // Arrange
+    render(h(AzurePersistentDiskSection, defaultAzurePersistentDiskSectionProps));
+
+    // Act
+    const aboutLink = screen.getByText('Learn more about persistent disks and where your disk is mounted.');
+    await userEvent.click(aboutLink);
+
+    // Assert
+    expect(defaultAzurePersistentDiskSectionProps.onClickAbout).toHaveBeenCalled();
+  });
 });
