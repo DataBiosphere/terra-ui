@@ -128,23 +128,7 @@ export interface AzurePdSelectOption {
   label: string;
 }
 
-export type AzureDiskSize = {
-  value: number;
-  label: string;
-};
-
-// TODO: Add link to Azure pricing page.
-export const azureDiskSizes: AzureDiskSize[] = [
-  { value: 32, label: '32' },
-  { value: 64, label: '64' },
-  { value: 128, label: '128' },
-  { value: 256, label: '256' },
-  { value: 512, label: '512' },
-  { value: 1024, label: '1024' },
-  { value: 2048, label: '2048' },
-  { value: 4096, label: '4096' },
-  { value: 8192, label: '8192' },
-];
+export const azureDiskSizes: number[] = [32, 64, 128, 256, 512, 1024, 2048, 4096, 8192];
 
 export const isUndecoratedPersistentDisk = (disk: PersistentDisk | DecoratedPersistentDisk): disk is PersistentDisk =>
   typeof disk === 'string' && Object.values(googlePdTypes).map((pdt) => pdt.value) === disk;
