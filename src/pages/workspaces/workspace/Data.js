@@ -656,7 +656,7 @@ const WorkspaceData = _.flow(
     const asyncImportJobs = useStore(asyncImportJobStore);
 
     const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name);
-    const region = isAzureWorkspace ? storageDetails.azureContainerRegion : storageDetails.googleBucketLocation;
+    const region = isAzureWorkspace ? storageDetails?.azureContainerRegion : storageDetails?.googleBucketLocation;
 
     const wdsDataTableProvider = useMemo(() => {
       const proxyUrl = !!wdsProxyUrl && wdsProxyUrl.state;
