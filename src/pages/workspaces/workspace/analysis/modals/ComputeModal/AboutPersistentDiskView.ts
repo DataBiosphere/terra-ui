@@ -1,3 +1,4 @@
+import React from 'react';
 import { br, div, h, p } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
@@ -14,7 +15,7 @@ export interface PersistentDiskAboutProps {
   onDismiss: () => void;
 }
 
-export const AboutPersistentDiskView = (props: PersistentDiskAboutProps) => {
+export const AboutPersistentDiskView: React.FC<PersistentDiskAboutProps> = (props: PersistentDiskAboutProps) => {
   const { titleId, setViewMode, tool, onDismiss } = props;
   return div({ style: computeStyles.drawerContent }, [
     h(TitleBar, {

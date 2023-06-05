@@ -16,7 +16,9 @@ export interface GcpPersistentDiskSectionProps {
   cloudPlatform: CloudProvider;
 }
 
-export const GcpPersistentDiskSection = (props: GcpPersistentDiskSectionProps) => {
+export const GcpPersistentDiskSection: React.FC<GcpPersistentDiskSectionProps> = (
+  props: GcpPersistentDiskSectionProps
+) => {
   const {
     onClickAbout,
     persistentDiskType,

@@ -1,3 +1,4 @@
+import React from 'react';
 import { div } from 'react-hyperscript-helpers';
 import { SingleValue } from 'react-select';
 import { AzurePdType, AzurePersistentDiskOptions, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
@@ -15,7 +16,9 @@ export interface AzurePersistentDiskSectionProps {
   onClickAbout: () => void;
 }
 
-export const AzurePersistentDiskSection = (props: AzurePersistentDiskSectionProps) => {
+export const AzurePersistentDiskSection: React.FC<AzurePersistentDiskSectionProps> = (
+  props: AzurePersistentDiskSectionProps
+) => {
   const {
     onClickAbout,
     persistentDiskType,

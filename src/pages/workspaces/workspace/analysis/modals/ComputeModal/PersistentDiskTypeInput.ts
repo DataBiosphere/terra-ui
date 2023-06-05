@@ -1,3 +1,4 @@
+import React from 'react';
 import { div, h, label } from 'react-hyperscript-helpers';
 import { SingleValue } from 'react-select';
 import { Select } from 'src/components/common';
@@ -15,7 +16,9 @@ export interface PersistentDiskTypeInputProps {
 
 const PersistentDiskTypeSelect = Select as typeof Select<IComputeConfig['persistentDiskType']>;
 
-export const PersistentDiskTypeInput = (props: PersistentDiskTypeInputProps) => {
+export const PersistentDiskTypeInput: React.FC<PersistentDiskTypeInputProps> = (
+  props: PersistentDiskTypeInputProps
+) => {
   const { value, onChange, isDisabled, options } = props;
   const persistentDiskId = useUniqueId();
 

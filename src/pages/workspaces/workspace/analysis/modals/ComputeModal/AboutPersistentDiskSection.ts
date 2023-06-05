@@ -6,7 +6,7 @@ export interface AboutPersistentDiskSectionProps {
   onClick: () => void;
 }
 
-export const AboutPersistentDiskSection = (props) => {
+export const AboutPersistentDiskSection: React.FC<AboutPersistentDiskSectionProps> = (props) => {
   const { onClick } = props;
   return div({ style: { display: 'flex', flexDirection: 'column' } }, [
     label({ style: computeStyles.label }, ['Persistent disk']),

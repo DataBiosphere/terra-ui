@@ -9,7 +9,9 @@ export interface GcpPersistentDiskSizeNumberInputProps {
   onChangePersistentDiskSize: (size: number) => void;
 }
 
-export const GcpPersistentDiskSizeNumberInput = (props: GcpPersistentDiskSizeNumberInputProps) => {
+export const GcpPersistentDiskSizeNumberInput: React.FC<GcpPersistentDiskSizeNumberInputProps> = (
+  props: GcpPersistentDiskSizeNumberInputProps
+) => {
   const { persistentDiskSize, isDisabled, onChangePersistentDiskSize } = props;
 
   const diskSizeId = useUniqueId();

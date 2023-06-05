@@ -1,3 +1,4 @@
+import React from 'react';
 import { div, h, label } from 'react-hyperscript-helpers';
 import { SingleValue } from 'react-select';
 import { Select } from 'src/components/common';
@@ -15,7 +16,9 @@ export interface AzurePersistentDiskSizeSelectInputProps {
 
 const AzurePersistentDiskSizeSelect = Select as typeof Select<IComputeConfig['persistentDiskSize']>;
 
-export const AzurePersistentDiskSizeSelectInput = (props: AzurePersistentDiskSizeSelectInputProps) => {
+export const AzurePersistentDiskSizeSelectInput: React.FC<AzurePersistentDiskSizeSelectInputProps> = (
+  props: AzurePersistentDiskSizeSelectInputProps
+) => {
   const { persistentDiskSize, onChangePersistentDiskSize, persistentDiskExists } = props;
   const diskSizeId = useUniqueId();
   return h(div, [

@@ -12,7 +12,9 @@ export interface PersistentDiskTypeContainerProps {
 // TODO: Move into the AzurePersistentDiskInput component
 // Is there an easy way to remove the duplicate PersistentDiskTypeInputs while
 // keeping the correct functionality and appearance?
-export const PersistentDiskTypeInputContainer = (props: PersistentDiskTypeContainerProps) => {
+export const PersistentDiskTypeInputContainer: React.FC<PersistentDiskTypeContainerProps> = (
+  props: PersistentDiskTypeContainerProps
+) => {
   const { persistentDiskExists, value, onChange, options } = props;
   return persistentDiskExists
     ? h(
