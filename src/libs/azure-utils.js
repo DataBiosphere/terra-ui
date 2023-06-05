@@ -118,6 +118,7 @@ export const azureDiskTypes = {
     label: 'Standard HDD',
     skuLetter: 'S',
   },
+  // TODO: Uncomment when enabling SSDs
   // ssd: {
   //   value: 'StandardSSD_LRS',
   //   displayName: 'Standard SSD',
@@ -177,19 +178,6 @@ export const azureStandardDiskTypes = {
  * TODO [IA-3390] calculate differently
  */
 export const getDiskType = (diskSize) => _.findKey((diskType) => diskSize <= diskType.size, azureStandardDiskTypes);
-
-// TODO: Build the string from disk properties to get the correct price.
-// For example, 64gb maps to 6
-// Standard_LRS maps to S and LRS, StandardSSDLRS maps to E and LRS
-// const azureDiskSizeToSKU = {
-//   64: '6',
-//   128: '10',
-//   256: '15',
-//   512: '20',
-//   1024: '30',
-//   2048: '40',
-//   4096: '50',
-// };
 
 // TODO [IA-4007] Explore replacing the hardcoded, manually synced script output below with a dynamic solution for price quotes.
 

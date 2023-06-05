@@ -23,11 +23,10 @@ import * as Nav from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
+import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
 import { buildExistingEnvironmentConfig, getImageUrl } from 'src/pages/workspaces/workspace/analysis/modal-utils';
 import { AboutPersistentDiskView } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AboutPersistentDiskView';
 import { GcpPersistentDiskSection } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal/GcpPersistentDiskSection';
-import { handleLearnMoreAboutPersistentDisk } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/persistent-disk-controls';
 import { DeleteDiskChoices } from 'src/pages/workspaces/workspace/analysis/modals/DeleteDiskChoices';
 import { DeleteEnvironment } from 'src/pages/workspaces/workspace/analysis/modals/DeleteEnvironment';
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle';
@@ -240,8 +239,8 @@ export const GcpComputeModalBase = ({
   const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState('');
   const [runtimeType, setRuntimeType] = useState(runtimeTypes.gceVm);
   const [computeConfig, setComputeConfig] = useState({
-    persistentDiskSize: defaultGcePersistentDiskSize,
-    persistentDiskType: defaultPersistentDiskType, // TODO: Switch type to DiskType.
+    diskSize: defaultGcePersistentDiskSize,
+    diskType: defaultPersistentDiskType,
     // The false here is valid because the modal never opens to dataproc as the default
     masterMachineType: getDefaultMachineType(false, tool),
     masterDiskSize: defaultDataprocMasterDiskSize,
@@ -1656,7 +1655,10 @@ export const GcpComputeModalBase = ({
             onChangePersistentDiskSize: (value) => updateComputeConfig('diskSize', value),
             onChangePersistentDiskType: (value) => updateComputeConfig('diskType', value),
             updateComputeConfig,
-            onClickAbout: () => handleLearnMoreAboutPersistentDisk({ setViewMode }),
+            onClickAbout: () => {
+              setViewMode('aboutPersistentDisk');
+              Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, { cloudPlatform: cloudProviderTypes.GCP });
+            },
             cloudPlatform,
             tool,
           }),
@@ -1665,7 +1667,16 @@ export const GcpComputeModalBase = ({
           div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
               "Time to upgrade your cloud environment. Terra's new persistent disk feature will safeguard your work and data.",
-              h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent disks and where your disk is mounted']),
+              h(
+                Link,
+                {
+                  onClick: () => {
+                    setViewMode('aboutPersistentDisk');
+                    Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, { cloudPlatform: cloudProviderTypes.GCP });
+                  },
+                },
+                ['Learn more about Persistent disks and where your disk is mounted']
+              ),
             ]),
             h(
               ButtonOutline,

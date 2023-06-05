@@ -31,8 +31,8 @@ export const AzurePersistentDiskSection = (props: AzurePersistentDiskSectionProp
     div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
       PersistentDiskTypeInputContainer({
         persistentDiskExists,
-        value: persistentDiskType?.value,
-        onChange: (e) => onChangePersistentDiskType(e),
+        value: persistentDiskType,
+        onChange: (e) => onChangePersistentDiskType(e.value),
         options: AzurePersistentDiskOptions,
       }),
       AzurePersistentDiskSizeSelectInput({
