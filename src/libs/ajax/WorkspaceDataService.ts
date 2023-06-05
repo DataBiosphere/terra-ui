@@ -57,4 +57,11 @@ export const WorkspaceData = (signal) => ({
     const res = await fetchWDS(root)('instances/v0.2', _.merge(authOpts(), { signal }));
     return res.json();
   },
+  importTdr: async (root: string, instanceId: string, snapshotId: string): Promise<Response> => {
+    const res = await fetchWDS(root)(
+      `${instanceId}/snapshots/v0.2/${snapshotId}`,
+      _.mergeAll([authOpts(), { method: 'POST' }])
+    );
+    return res;
+  },
 });

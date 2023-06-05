@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment, useState } from 'react';
+import { Fragment, useCallback, useState } from 'react';
 import { div, h, h2, img, li, p, span, strong, ul } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, RadioButton, spinnerOverlay } from 'src/components/common';
@@ -12,6 +12,7 @@ import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils
 import jupyterLogo from 'src/images/jupyter-logo.svg';
 import scienceBackground from 'src/images/science-background.jpg';
 import { Ajax } from 'src/libs/ajax';
+import { resolveWdsUrl, WdsDataTableProvider } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -392,7 +393,23 @@ const ImportData = () => {
     };
   };
 
-  const importTdrExport = (namespace, name) => {
+  const loadWdsUrl = useCallback((workspaceId) => {
+    return Ajax().Apps.listAppsV2(workspaceId).then(resolveWdsUrl);
+  }, []);
+
+  const importTdrExport = (workspace) => {
+    // For new workspaces, cloudPlatform is blank
+    if (workspace.cloudPlatform === 'Azure' || workspace.googleProject === '') {
+      return async () => {
+        // find wds for this workspace
+        const wdsUrl = await loadWdsUrl(workspace.workspaceId);
+        const wdsDataTableProvider = new WdsDataTableProvider(workspace.workspaceId, wdsUrl);
+
+        // call import snapshot
+        wdsDataTableProvider.importTdr(workspace.workspaceId, snapshotId);
+      };
+    }
+    const { namespace, name } = workspace;
     return async () => {
       const { jobId } = await Ajax()
         .Workspaces.workspace(namespace, name)
@@ -449,7 +466,7 @@ const ImportData = () => {
       format,
       ['PFB', importPFB(namespace, name)],
       ['entitiesJson', importEntitiesJson(namespace, name)],
-      ['tdrexport', importTdrExport(namespace, name)],
+      ['tdrexport', importTdrExport(workspace)],
       ['snapshot', importSnapshot(namespace, name)],
       ['catalog', exportCatalog(workspace.workspaceId)],
       [
