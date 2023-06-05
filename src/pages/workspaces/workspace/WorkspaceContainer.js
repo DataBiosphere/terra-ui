@@ -23,10 +23,9 @@ import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar';
 import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
 import RuntimeManager from 'src/pages/workspaces/workspace/analysis/RuntimeManager';
-import { getCurrentApp, getDiskAppType } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
+import { getDiskAppType } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
 import { mapToPdTypes } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils';
 import { getConvertedRuntimeStatus, getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
-import { tools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal';
@@ -346,10 +345,9 @@ const useCloudEnvironmentPolling = (workspace) => {
       setRuntimes(newRuntimes);
       setAppDataDisks(_.remove((disk) => _.isUndefined(getDiskAppType(disk)), newDisks));
       setPersistentDisks(mapToPdTypes(_.filter((disk) => _.isUndefined(getDiskAppType(disk)), newDisks)));
-
       const runtime = getCurrentRuntime(newRuntimes);
       reschedule(
-        maybeStale || _.includes(getConvertedRuntimeStatus(runtime), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring'])
+        maybeStale || ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring'].includes(getConvertedRuntimeStatus(runtime))
           ? 10000
           : 120000
       );
@@ -371,6 +369,7 @@ const useAppPolling = (workspace) => {
   const signal = useCancellation();
   const timeout = useRef();
   const [apps, setApps] = useState();
+
   const reschedule = (ms) => {
     clearTimeout(timeout.current);
     timeout.current = setTimeout(refreshAppsSilently, ms);
@@ -386,12 +385,9 @@ const useAppPolling = (workspace) => {
       const combinedNewApps = [...newGoogleApps, ...newAzureApps];
 
       setApps(combinedNewApps);
-      _.forOwn((tool) => {
-        if (tool.appType) {
-          const app = getCurrentApp(tool.appType, combinedNewApps);
-          reschedule(maybeStale || (app && _.includes(app.status, ['PROVISIONING', 'PREDELETING'])) ? 10000 : 120000);
-        }
-      })(tools);
+      Object.values(combinedNewApps).forEach((app) => {
+        reschedule(maybeStale || (app && ['PROVISIONING', 'PREDELETING'].includes(app.status)) ? 10000 : 120000);
+      });
     } catch (error) {
       reschedule(30000);
       throw error;
@@ -423,8 +419,6 @@ export const wrapWorkspace =
         refreshApps(true);
       }, [workspace]); // eslint-disable-line react-hooks/exhaustive-deps
 
-      const analysesData = { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks };
-
       if (accessError) {
         return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)]);
       }
@@ -440,7 +434,7 @@ export const wrapWorkspace =
           title: _.isFunction(title) ? title(props) : title,
           breadcrumbs: breadcrumbs(props),
           topBarContent: topBarContent && topBarContent({ workspace, ...props }),
-          analysesData,
+          analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
           storageDetails,
           refresh: async () => {
             await refreshWorkspace();
@@ -455,7 +449,7 @@ export const wrapWorkspace =
               ref: child,
               workspace,
               refreshWorkspace,
-              analysesData,
+              analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
               storageDetails,
               ...props,
             }),
