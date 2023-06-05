@@ -354,7 +354,6 @@ export const AzureComputeModalBase = ({
           persistentDiskType: computeConfig.persistentDiskType,
           onChangePersistentDiskSize: (v) => updateComputeConfig('persistentDiskSize', v),
           onChangePersistentDiskType: (v) => updateComputeConfig('persistentDiskType', v),
-          cloudPlatform: cloudProviderTypes.AZURE,
         }),
         renderBottomButtons(),
       ]),
