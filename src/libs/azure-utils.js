@@ -4,14 +4,16 @@ import { defaultAutopauseThreshold } from 'src/pages/workspaces/workspace/analys
 // AZURE REGIONS, COMPUTE TYPES, STORAGE TYPES AND PRICING
 
 export const defaultAzureMachineType = 'Standard_DS2_v2';
-export const defaultAzureDiskSize = 50;
+export const defaultAzureDiskSize = 64;
 export const defaultAzureRegion = 'eastus';
+export const defaultAzurePersistentDiskType = 'Standard_LRS';
 
 export const defaultAzureComputeConfig = {
   autopauseThreshold: defaultAutopauseThreshold,
   machineType: defaultAzureMachineType,
-  diskSize: defaultAzureDiskSize,
+  persistentDiskSize: defaultAzureDiskSize,
   region: defaultAzureRegion,
+  persistentDiskType: defaultAzurePersistentDiskType,
 };
 
 // TODO [] other countries' flags
@@ -109,9 +111,16 @@ export const getMachineTypeLabel = (key) =>
 
 export const azureDiskTypes = {
   standard: {
-    value: 'STANDARD_LRS',
-    displayName: 'Standard HDD',
+    value: 'Standard_LRS',
+    label: 'Standard HDD',
+    skuLetter: 'S',
   },
+  // TODO: Uncomment when enabling SSDs
+  // ssd: {
+  //   value: 'StandardSSD_LRS',
+  //   displayName: 'Standard SSD',
+  //   skuLetter: 'E',
+  // },
 };
 
 // max GB of each azure standard storage disk; per https://learn.microsoft.com/en-us/azure/virtual-machines/disks-types#standard-hdds
@@ -161,11 +170,6 @@ export const azureStandardDiskTypes = {
     size: 32767,
   },
 };
-
-export const azureDiskTypeToOffering = {
-  STANDARD_LRS: azureStandardDiskTypes,
-};
-
 /** Get Azure disk type (S4, S6 etc) whose storage is large enough to hold the requested size (in Gb).
  * Note that the largest (S80 LRS) will not hold more than 32767 Gb, according to the Azure docs.
  * TODO [IA-3390] calculate differently

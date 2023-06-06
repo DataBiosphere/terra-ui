@@ -13,6 +13,7 @@ import {
   defaultAzureComputeConfig,
   defaultAzureDiskSize,
   defaultAzureMachineType,
+  defaultAzurePersistentDiskType,
   defaultAzureRegion,
   getMachineTypeLabel,
 } from 'src/libs/azure-utils';
@@ -22,7 +23,10 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
+import { AboutPersistentDiskView } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AboutPersistentDiskView';
+import { AzurePersistentDiskSection } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal/AzurePersistentDiskSection';
 import { DeleteEnvironment } from 'src/pages/workspaces/workspace/analysis/modals/DeleteEnvironment';
+import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles';
 import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils';
 import {
   autopauseDisabledValue,
@@ -32,9 +36,6 @@ import {
   isAutopauseEnabled,
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
-
-import { computeStyles } from './modalStyles';
-import { AboutPersistentDisk, PersistentDiskSection } from './persistent-disk-controls';
 
 const titleId = 'azure-compute-modal-title';
 
@@ -73,7 +74,8 @@ export const AzureComputeModalBase = ({
       setCurrentRuntimeDetails(runtimeDetails);
       setComputeConfig({
         machineType: runtimeDetails?.runtimeConfig?.machineType || defaultAzureMachineType,
-        diskSize: runtimeDetails?.diskConfig?.size || defaultAzureDiskSize,
+        persistentDiskSize: runtimeDetails?.diskConfig?.size || defaultAzureDiskSize,
+        persistentDiskType: runtimeDetails?.diskConfig?.type || defaultAzurePersistentDiskType,
         // Azure workspace containers will pass the 'location' param as an Azure armRegionName, which can be used directly as the computeRegion
         region: runtimeDetails?.runtimeConfig?.region || location || defaultAzureRegion,
         autopauseThreshold: runtimeDetails ? runtimeDetails.autopauseThreshold || autopauseDisabledValue : defaultAutopauseThreshold,
@@ -238,7 +240,7 @@ export const AzureComputeModalBase = ({
   // const adaptRuntimeDetailsToFormConfig = () => {
   //   return currentRuntimeDetails ? {
   //     machineType: currentRuntimeDetails.runtimeConfig?.machineType || defaultAzureMachineType,
-  //     diskSize: currentRuntimeDetails.diskConfig?.size || defaultAzureDiskSize,
+  //     persistentDiskSize: currentRuntimeDetails.diskConfig?.size || defaultAzureDiskSize,
   //     region: currentRuntimeDetails.runtimeConfig?.region || defaultAzureRegion
   //   } : {}
   // }
@@ -281,7 +283,7 @@ export const AzureComputeModalBase = ({
       ..._.mapKeys((key) => `desiredRuntime_${key}`, computeConfig),
       desiredRuntime_region: computeConfig.region,
       desiredRuntime_machineType: computeConfig.machineType,
-      desiredPersistentDisk_size: computeConfig.diskSize,
+      desiredPersistentDisk_size: computeConfig.persistentDiskSize,
       desiredPersistentDisk_type: 'Standard', // IA-4164 - Azure disks are currently only Standard (HDD), when we add types update this.
       desiredPersistentDisk_costPerMonth: getAzureDiskCostEstimate(computeConfig),
       tool: runtimeToolLabels.JupyterLab,
@@ -310,7 +312,7 @@ export const AzureComputeModalBase = ({
         Utils.DEFAULT,
         () => {
           const disk = {
-            size: computeConfig.diskSize,
+            size: computeConfig.persistentDiskSize,
             name: Utils.generatePersistentDiskName(),
             labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: workspaceName },
           };
@@ -342,13 +344,23 @@ export const AzureComputeModalBase = ({
       div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
         renderApplicationConfigurationSection(),
         renderComputeProfileSection(),
-        h(PersistentDiskSection, { persistentDiskExists, computeConfig, updateComputeConfig, setViewMode, cloudPlatform: cloudProviderTypes.AZURE }),
+        h(AzurePersistentDiskSection, {
+          persistentDiskExists,
+          onClickAbout: () => {
+            setViewMode('aboutPersistentDisk');
+            Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, { cloudPlatform: cloudProviderTypes.AZURE });
+          },
+          persistentDiskSize: computeConfig.persistentDiskSize,
+          persistentDiskType: computeConfig.persistentDiskType,
+          onChangePersistentDiskSize: (v) => updateComputeConfig('persistentDiskSize', v),
+          onChangePersistentDiskType: (v) => updateComputeConfig('persistentDiskType', v),
+        }),
         renderBottomButtons(),
       ]),
     ]);
   };
 
-  // TODO [IA-3348] parameterize and make it a shared function between the equivalent in ComputeModal
+  // TODO [IA-3348] parameterize and make it a shared function between the equivalent in GcpComputeModal
   const renderCostBreakdown = () => {
     return div(
       {
@@ -388,7 +400,7 @@ export const AzureComputeModalBase = ({
   return h(Fragment, [
     Utils.switchCase(
       viewMode,
-      ['aboutPersistentDisk', () => AboutPersistentDisk({ titleId, setViewMode, onDismiss, tool })],
+      ['aboutPersistentDisk', () => AboutPersistentDiskView({ titleId, setViewMode, onDismiss, tool })],
       [
         'deleteEnvironment',
         () =>

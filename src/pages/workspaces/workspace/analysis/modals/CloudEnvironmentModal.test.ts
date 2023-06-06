@@ -45,20 +45,32 @@ const stubReactModal = ({ modalName }) => {
   return p(modalName);
 };
 
-type AzureComputeModalExports = typeof import('src/pages/workspaces/workspace/analysis/modals/AzureComputeModal');
-jest.mock('src/pages/workspaces/workspace/analysis/modals/AzureComputeModal', (): AzureComputeModalExports => {
-  return {
-    ...jest.requireActual('src/pages/workspaces/workspace/analysis/modals/AzureComputeModal'),
-    AzureComputeModalBase: (_obj: any) => stubReactModal({ modalName: 'AzureComputeModalBase' }),
-  };
-});
-type ComputeModalExports = typeof import('src/pages/workspaces/workspace/analysis/modals/ComputeModal');
-jest.mock('src/pages/workspaces/workspace/analysis/modals/ComputeModal', (): ComputeModalExports => {
-  return {
-    ...jest.requireActual('src/pages/workspaces/workspace/analysis/modals/ComputeModal'),
-    ComputeModalBase: (_obj: any) => stubReactModal({ modalName: 'ComputeModalBase' }),
-  };
-});
+type AzureComputeModalExports =
+  typeof import('src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal/AzureComputeModal');
+jest.mock(
+  'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal/AzureComputeModal',
+  (): AzureComputeModalExports => {
+    return {
+      ...jest.requireActual(
+        'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal/AzureComputeModal'
+      ),
+      AzureComputeModalBase: (_obj: any) => stubReactModal({ modalName: 'AzureComputeModalBase' }),
+    };
+  }
+);
+type GcpComputeModalExports =
+  typeof import('src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal');
+jest.mock(
+  'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal',
+  (): GcpComputeModalExports => {
+    return {
+      ...jest.requireActual(
+        'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal'
+      ),
+      GcpComputeModalBase: (_obj: any) => stubReactModal({ modalName: 'GcpComputeModalBase' }),
+    };
+  }
+);
 type CromwellComputeModalExports = typeof import('src/pages/workspaces/workspace/analysis/modals/CromwellModal');
 jest.mock('src/pages/workspaces/workspace/analysis/modals/CromwellModal', (): CromwellComputeModalExports => {
   return {
@@ -612,7 +624,7 @@ describe('CloudEnvironmentModal', () => {
         appDataDisks: [defaultTestDisk],
       },
       buttonIndex: 0,
-      modalName: 'ComputeModalBase',
+      modalName: 'GcpComputeModalBase',
       toolName: 'Jupyter',
     },
     {
@@ -627,7 +639,7 @@ describe('CloudEnvironmentModal', () => {
         appDataDisks: [defaultTestDisk],
       },
       buttonIndex: 1,
-      modalName: 'ComputeModalBase',
+      modalName: 'GcpComputeModalBase',
       toolName: 'RStudio',
     },
     {

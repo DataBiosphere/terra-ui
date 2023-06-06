@@ -9,7 +9,7 @@ import TitleBar from 'src/components/TitleBar';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { machineTypes } from 'src/data/gce-machines';
 import { Ajax } from 'src/libs/ajax';
-import { pdTypes } from 'src/libs/ajax/leonardo/models/disk-models';
+import { GcpPersistentDiskOptions, googlePdTypes } from 'src/libs/ajax/leonardo/models/disk-models';
 import colors from 'src/libs/colors';
 import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -31,7 +31,7 @@ import { appTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-uti
 
 import { computeStyles } from './modalStyles';
 
-const defaultDataDisk = { size: 500, diskType: pdTypes.standard };
+const defaultDataDisk = { size: 500, diskType: googlePdTypes.standard };
 const defaultKubernetesRuntimeConfig = { machineType: 'n1-highmem-8', numNodes: 1, autoscalingEnabled: false };
 const maxNodepoolSize = 1000; // per zone according to https://cloud.google.com/kubernetes-engine/quotas
 
@@ -75,7 +75,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
           kubernetesRuntimeConfig,
           diskName: currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(),
           diskSize: dataDisk.size,
-          diskType: dataDisk.diskType.label,
+          diskType: dataDisk.diskType.value,
           appType: appTools.GALAXY.label,
           namespace,
           bucketName,
@@ -285,7 +285,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
       ]);
     };
 
-    // TODO Refactor this and the duplicate in ComputeModal.js
+    // TODO Refactor this and the duplicate in GcpComputeModal.js
     const renderGalaxyCostBreakdown = (kubernetesRuntimeConfig, dataDisk) => {
       const runningComputeCost = getGalaxyComputeCost({ status: 'RUNNING', kubernetesRuntimeConfig });
       const pausedComputeCost = getGalaxyComputeCost({ status: 'STOPPED', kubernetesRuntimeConfig });
@@ -381,11 +381,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
                   isDisabled: disabled,
                   onChange: ({ value }) => updateDataDisk('diskType', value),
                   menuPlacement: 'auto',
-                  options: [
-                    { label: pdTypes.standard.displayName, value: pdTypes.standard },
-                    { label: pdTypes.balanced.displayName, value: pdTypes.balanced },
-                    { label: pdTypes.ssd.displayName, value: pdTypes.ssd },
-                  ],
+                  options: GcpPersistentDiskOptions,
                 }),
               ]),
             ]),
