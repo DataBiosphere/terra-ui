@@ -58,7 +58,7 @@ const CriteriaView = ({ criteria, deleteCriteria }: CriteriaViewProps) => {
               deleteCriteria(criteria);
             },
           },
-          [icon('minus-circle', { size: 24, style: { color: colors.danger() } })]
+          [icon('minus-circle-red', { size: 24, style: { color: colors.danger() } })]
         ),
         div({ style: { marginLeft: narrowMargin } }, [
           Utils.cond(
@@ -245,7 +245,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
                   onClick: () =>
                     updateCohort(_.set('criteriaGroups', _.without([criteriaGroup], cohort.criteriaGroups))),
                 },
-                [icon('trash')]
+                [icon('trash-circle-filled')]
               ),
             ]),
           ]
@@ -352,9 +352,9 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
             },
             'aria-label': 'cancel',
           },
-          [icon('circle-chevron-left', { size: 32, className: 'regular' })]
+          [icon('left-circle-filled', { size: 32 })]
         ),
-        div({ style: { marginLeft: narrowMargin } }, [cohort.name]),
+        div({ style: { marginLeft: 15 } }, [cohort.name]),
       ]),
       h3(['To be included in the cohort, participants...']),
       div({ style: { display: 'flow' } }, [

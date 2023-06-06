@@ -294,7 +294,7 @@ export const CohortSelector = ({
           'aria-label': 'Create new cohort',
           'aria-haspopup': 'dialog',
         },
-        [icon('plus-circle', { size: 24 })]
+        [icon('plus-circle-filled', { size: 24 })]
       ),
       number: 1,
       onChange,
@@ -332,7 +332,7 @@ export const ConceptSetSelector = ({
         onClick: () => onStateChange({ type: 'concept-set-creator' }),
         'aria-label': 'Create new concept set',
       },
-      [icon('plus-circle', { size: 24 })]
+      [icon('plus-circle-filled', { size: 24 })]
     ),
     number: 2,
     onChange,
