@@ -1,7 +1,7 @@
 import {
   DecoratedPersistentDisk,
   diskStatuses,
-  pdTypes,
+  googlePdTypes,
   PersistentDisk,
 } from 'src/libs/ajax/leonardo/models/disk-models';
 import { cloudServiceTypes, GoogleRuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
@@ -381,7 +381,7 @@ describe('getPersistentDiskCostMonthly', () => {
         dateAccessed: '2020-10-13T15:00:00.000Z',
         destroyedDate: undefined,
       },
-      // diskType: pdTypes.standard,
+      // diskType: googlePdTypes.standard,
     };
 
     // Act
@@ -396,7 +396,7 @@ describe('getPersistentDiskCostMonthly', () => {
     // Arrange
     const azureDiskAttached = {
       ...getAzureDisk({ size: 50 }),
-      diskType: pdTypes.standard,
+      diskType: googlePdTypes.standard,
     };
 
     // Act

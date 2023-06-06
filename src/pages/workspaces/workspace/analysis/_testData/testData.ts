@@ -697,7 +697,7 @@ export const azureDisk: PersistentDisk = {
     dateAccessed: '2023-02-01T20:41:00.357Z',
   },
   size: 50,
-  diskType: 'pd-standard', // TODO: This should be stored in backend as STANDARD_LRS
+  diskType: 'pd-standard', // TODO: This should be stored in backend as Standard_LRS
   blockSize: 4096,
   labels: {
     saturnWorkspaceNamespace: defaultAzureWorkspace.workspace.namespace,
