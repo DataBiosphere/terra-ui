@@ -1,5 +1,6 @@
 import { div, h, label } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
+import { icon } from 'src/components/icons';
 import { computeStyles } from 'src/pages/workspaces/workspace/analysis/modals/modalStyles';
 
 export interface AboutPersistentDiskSectionProps {
@@ -17,7 +18,10 @@ export const AboutPersistentDiskSection: React.FC<AboutPersistentDiskSectionProp
         {
           onClick,
         },
-        ['Learn more about persistent disks and where your disk is mounted.']
+        [
+          'Learn more about persistent disks and where your disk is mounted.',
+          icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
+        ]
       ),
     ]),
   ]);
