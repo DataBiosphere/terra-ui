@@ -8,4 +8,4 @@ COPY --from=0 /terra-ui/build /usr/share/nginx/html
 COPY nginx-bees.conf /etc/nginx/conf.d
 
 # App port forwarding.
-EXPOSE 80
+EXPOSE 8080

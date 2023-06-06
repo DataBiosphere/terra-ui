@@ -334,6 +334,49 @@ export const generateTestGoogleRuntime = (overrides: Partial<Runtime> = {}): Run
   return runtime;
 };
 
+export const getGoogleDataProcRuntime = ({
+  workspace = defaultGoogleWorkspace,
+  runtimeName = Utils.generateRuntimeName(),
+  status = runtimeStatuses.running.leoLabel,
+  tool = tools.HAIL_BATCH.label,
+  runtimeConfig = getRuntimeConfig(),
+} = {}): Runtime => {
+  return {
+    id: getRandomInt(randomMaxInt),
+    workspaceId: undefined,
+    runtimeName,
+    googleProject: workspace.workspace.googleProject,
+    cloudContext: {
+      cloudProvider: 'GCP',
+      cloudResource: workspace.workspace.googleProject,
+    },
+    auditInfo: {
+      creator: 'broadterraui@gmail.com',
+      createdDate: '2023-05-24T20:38:27.993689Z',
+      destroyedDate: undefined,
+      dateAccessed: '2023-05-24T20:38:28.651Z',
+    },
+    runtimeConfig,
+    proxyUrl: `https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-dev-21d47fdd/${runtimeName}/jupyter`,
+    status,
+    labels: {
+      saturnWorkspaceNamespace: 'general-dev-billing-account',
+      'saturn-iframe-extension': 'https://bvdp-saturn-dev.appspot.com/jupyter-iframe-extension.js',
+      creator: 'broadterraui@gmail.com',
+      clusterServiceAccount: 'pet-26745071641841ae8f81e@terra-dev-21d47fdd.iam.gserviceaccount.com',
+      saturnAutoCreated: 'true',
+      clusterName: runtimeName,
+      saturnWorkspaceName: 'trock-google',
+      saturnVersion: '6',
+      tool,
+      runtimeName,
+      cloudContext: 'Gcp/terra-dev-21d47fdd',
+      googleProject: workspace.workspace.googleProject,
+    },
+    patchInProgress: false,
+  };
+};
+
 // TODO: deprecate this in favor of more robust `generateTestGoogleRuntime`
 export const getGoogleRuntime = ({
   workspace = defaultGoogleWorkspace,
