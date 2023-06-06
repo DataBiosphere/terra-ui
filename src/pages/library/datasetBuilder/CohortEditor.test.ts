@@ -11,6 +11,7 @@ import {
 } from 'src/pages/library/datasetBuilder/CohortEditor';
 import {
   Cohort,
+  CriteriaGroup,
   DomainCriteria,
   newCohort,
   newCriteriaGroup,
@@ -21,6 +22,8 @@ import { HomepageState } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
 
 describe('CohortEditor', () => {
+  const datasetDetails = dummyDatasetDetails;
+
   it('renders unknown criteria', () => {
     const criteria = { name: 'bogus', invalid: 'property' };
 
@@ -80,30 +83,34 @@ describe('CohortEditor', () => {
     expect(deleteCriteria).toBeCalledWith(criteria);
   });
 
-  it('renders criteria group', () => {
+  function showCriteriaGroup(initializeGroup: ((criteriaGroup: CriteriaGroup) => void) | undefined = undefined) {
     const cohort = newCohort('cohort');
-    const datasetDetails = dummyDatasetDetails;
     const criteriaGroup = newCriteriaGroup();
-    criteriaGroup.meetAll = false;
-    criteriaGroup.mustMeet = false;
-    criteriaGroup.count = 1234;
+    if (initializeGroup) {
+      initializeGroup(criteriaGroup);
+    }
+    cohort.criteriaGroups.push(criteriaGroup);
     const updateCohort = jest.fn();
-
     render(h(CriteriaGroupView, { index: 0, criteriaGroup, updateCohort, cohort, datasetDetails }));
+    return { cohort, updateCohort };
+  }
+
+  it('renders criteria group', () => {
+    const { cohort } = showCriteriaGroup((criteriaGroup) => {
+      criteriaGroup.meetAll = false;
+      criteriaGroup.mustMeet = false;
+      criteriaGroup.count = 1234;
+    });
 
     expect(screen.getByText('Must not')).toBeTruthy();
     expect(screen.getByText('any')).toBeTruthy();
+    const criteriaGroup = cohort.criteriaGroups[0];
     expect(screen.getByText(`${criteriaGroup.count}`, { exact: false })).toBeTruthy();
     expect(screen.getByText(criteriaGroup.name)).toBeTruthy();
   });
 
   it('can delete criteria group', async () => {
-    const cohort = newCohort('cohort');
-    const datasetDetails = dummyDatasetDetails;
-    const criteriaGroup = newCriteriaGroup();
-    cohort.criteriaGroups.push(criteriaGroup);
-    const updateCohort = jest.fn();
-    render(h(CriteriaGroupView, { index: 0, criteriaGroup, updateCohort, cohort, datasetDetails }));
+    const { cohort, updateCohort } = showCriteriaGroup();
 
     const user = userEvent.setup();
     await user.click(screen.getByLabelText('delete group'));
@@ -113,14 +120,10 @@ describe('CohortEditor', () => {
   });
 
   it('can modify criteria group', async () => {
-    const cohort = newCohort('cohort');
-    const datasetDetails = dummyDatasetDetails;
-    const criteriaGroup = newCriteriaGroup();
-    criteriaGroup.meetAll = false;
-    criteriaGroup.mustMeet = false;
-    cohort.criteriaGroups.push(criteriaGroup);
-    const updateCohort = jest.fn();
-    render(h(CriteriaGroupView, { index: 0, criteriaGroup, updateCohort, cohort, datasetDetails }));
+    const { cohort, updateCohort } = showCriteriaGroup((criteriaGroup) => {
+      criteriaGroup.meetAll = false;
+      criteriaGroup.mustMeet = false;
+    });
     const user = userEvent.setup();
 
     await user.click(screen.getByLabelText('must or must not meet'));
@@ -141,34 +144,25 @@ describe('CohortEditor', () => {
   });
 
   it('can add new criteria to criteria group', async () => {
-    const cohort = newCohort('cohort');
-    const datasetDetails = dummyDatasetDetails;
-    const criteriaGroup = newCriteriaGroup();
-    cohort.criteriaGroups.push(criteriaGroup);
-    const updateCohort = jest.fn();
-    render(h(CriteriaGroupView, { index: 0, criteriaGroup, updateCohort, cohort, datasetDetails }));
+    const { cohort, updateCohort } = showCriteriaGroup();
 
     const user = userEvent.setup();
     await user.click(screen.getByLabelText('add criteria'));
-    const domainType = datasetDetails.domainOptions[0];
-    const domainItem = screen.getByText(domainType.category);
+    const domainOption = datasetDetails.domainOptions[0];
+    const domainItem = screen.getByText(domainOption.category);
     await user.click(domainItem);
 
     expect(updateCohort).toHaveBeenCalled();
     const updatedCohort: Cohort = updateCohort.mock.calls[0][0](cohort);
     // Remove ID since it won't match up.
-    const { id: _, ...expectedCriteria } = createCriteriaFromType(domainType);
+    const { id: _, ...expectedCriteria } = createCriteriaFromType(domainOption);
     expect(updatedCohort.criteriaGroups[0].criteria).toMatchObject([expectedCriteria]);
   });
 
   it('can delete criteria from the criteria group', async () => {
-    const cohort = newCohort('cohort');
-    const datasetDetails = dummyDatasetDetails;
-    const criteriaGroup = newCriteriaGroup();
-    criteriaGroup.criteria.push(createCriteriaFromType(datasetDetails.domainOptions[0]));
-    cohort.criteriaGroups.push(criteriaGroup);
-    const updateCohort = jest.fn();
-    render(h(CriteriaGroupView, { index: 0, criteriaGroup, updateCohort, cohort, datasetDetails }));
+    const { cohort, updateCohort } = showCriteriaGroup((criteriaGroup) =>
+      criteriaGroup.criteria.push(createCriteriaFromType(datasetDetails.domainOptions[0]))
+    );
 
     const user = userEvent.setup();
     await user.click(screen.getByLabelText('delete criteria'));
@@ -187,14 +181,18 @@ describe('CohortEditor', () => {
     expect(screen.getByText(originalCohort.name)).toBeTruthy();
   });
 
-  it('saves a cohort', async () => {
-    const datasetDetails = dummyDatasetDetails;
+  function showCohortEditor() {
     const originalCohort = newCohort('my cohort name');
     const onStateChange = jest.fn();
-    const user = userEvent.setup();
     datasetBuilderCohorts.set([]);
 
     render(h(CohortEditor, { onStateChange, datasetDetails, originalCohort }));
+    return { originalCohort, onStateChange };
+  }
+
+  it('saves a cohort', async () => {
+    const { originalCohort, onStateChange } = showCohortEditor();
+    const user = userEvent.setup();
     await user.click(screen.getByText('Save cohort'));
 
     expect(onStateChange).toBeCalledWith(new HomepageState());
@@ -202,13 +200,8 @@ describe('CohortEditor', () => {
   });
 
   it('cancels editing a cohort', async () => {
-    const datasetDetails = dummyDatasetDetails;
-    const originalCohort = newCohort('my cohort name');
-    const onStateChange = jest.fn();
+    const { onStateChange } = showCohortEditor();
     const user = userEvent.setup();
-    datasetBuilderCohorts.set([]);
-
-    render(h(CohortEditor, { onStateChange, datasetDetails, originalCohort }));
     await user.click(screen.getByLabelText('cancel'));
 
     expect(onStateChange).toBeCalledWith(new HomepageState());
@@ -216,12 +209,8 @@ describe('CohortEditor', () => {
   });
 
   it('can add a criteria group', async () => {
-    const datasetDetails = dummyDatasetDetails;
-    const originalCohort = newCohort('my cohort name');
+    const { originalCohort } = showCohortEditor();
     const user = userEvent.setup();
-    datasetBuilderCohorts.set([]);
-
-    render(h(CohortEditor, { onStateChange: _.noop, datasetDetails, originalCohort }));
 
     await user.click(screen.getByText('Add group'));
     await user.click(screen.getByText('Save cohort'));
