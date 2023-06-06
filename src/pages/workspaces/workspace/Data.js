@@ -619,6 +619,7 @@ const WorkspaceData = _.flow(
         workspace: { googleProject, attributes, workspaceId },
       },
       refreshWorkspace,
+      storageDetails,
     },
     ref
   ) => {
@@ -655,6 +656,7 @@ const WorkspaceData = _.flow(
     const asyncImportJobs = useStore(asyncImportJobStore);
 
     const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name);
+    const region = isAzureWorkspace ? storageDetails.azureContainerRegion : storageDetails.googleBucketLocation;
 
     const wdsDataTableProvider = useMemo(() => {
       const proxyUrl = !!wdsProxyUrl && wdsProxyUrl.state;
@@ -1320,6 +1322,7 @@ const WorkspaceData = _.flow(
                       entityTypes: _.keys(entityMetadata),
                       dataProvider: entityServiceDataTableProvider,
                       isGoogleWorkspace,
+                      region,
                     }),
                   uploadingWDSFile &&
                     h(EntityUploader, {
@@ -1338,6 +1341,7 @@ const WorkspaceData = _.flow(
                       entityTypes: wdsTypes.state.map((item) => item.name),
                       dataProvider: wdsDataTableProvider,
                       isGoogleWorkspace,
+                      region,
                     }),
                   isGoogleWorkspace &&
                     h(
