@@ -21,6 +21,14 @@ export const AzurePersistentDiskSizeSelectInput: React.FC<AzurePersistentDiskSiz
 ) => {
   const { persistentDiskSize, onChangePersistentDiskSize, persistentDiskExists } = props;
   const diskSizeId = useUniqueId();
+
+  // If the user created a PD before the select implementation, we should still
+  // show the correct disk size.
+  let extendedAzureDiskSizes = azureDiskSizes;
+  if (!azureDiskSizes.includes(persistentDiskSize)) {
+    extendedAzureDiskSizes = azureDiskSizes.concat(persistentDiskSize);
+  }
+
   return h(div, [
     label({ htmlFor: diskSizeId, style: computeStyles.label }, ['Disk Size (GB)']),
     div({ style: { width: 110, marginTop: '0.5rem' } }, [
@@ -29,7 +37,7 @@ export const AzurePersistentDiskSizeSelectInput: React.FC<AzurePersistentDiskSiz
         value: persistentDiskSize,
         isDisabled: persistentDiskExists,
         menuPlacement: 'auto',
-        options: azureDiskSizes,
+        options: extendedAzureDiskSizes,
         onChange: (e) => {
           onChangePersistentDiskSize(e ? e.value : defaultAzureDiskSize);
         }, // Unable to replicate a null case

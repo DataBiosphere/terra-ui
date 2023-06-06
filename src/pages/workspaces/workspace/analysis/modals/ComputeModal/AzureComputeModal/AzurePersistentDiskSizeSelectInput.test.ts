@@ -49,4 +49,17 @@ describe('AzurePersistentDiskSizeSelectInput', () => {
     expect(screen.getByLabelText('Disk Size (GB)')).toBeDisabled();
     expect(screen.getByText(defaultAzureDiskSize)).toBeTruthy();
   });
+
+  it('should show a disk size even if it is not in the list of default options.', () => {
+    // Arrange
+    render(
+      h(AzurePersistentDiskSizeSelectInput, {
+        ...defaultAzurePersistentDiskSizeSelectInputProps,
+        persistentDiskSize: 30,
+      })
+    );
+
+    // Assert
+    expect(screen.findByText('30')).toBeTruthy();
+  });
 });
