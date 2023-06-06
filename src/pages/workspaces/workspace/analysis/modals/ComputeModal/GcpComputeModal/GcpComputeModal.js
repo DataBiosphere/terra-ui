@@ -13,7 +13,7 @@ import TitleBar from 'src/components/TitleBar';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { cloudServices, isMachineTypeSmaller, machineTypes } from 'src/data/gce-machines';
 import { Ajax } from 'src/libs/ajax';
-import { pdTypes } from 'src/libs/ajax/leonardo/models/disk-models';
+import { googlePdTypes } from 'src/libs/ajax/leonardo/models/disk-models';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error';
@@ -23,8 +23,10 @@ import * as Nav from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
+import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
 import { buildExistingEnvironmentConfig, getImageUrl } from 'src/pages/workspaces/workspace/analysis/modal-utils';
+import { AboutPersistentDiskView } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AboutPersistentDiskView';
+import { GcpPersistentDiskSection } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal/GcpPersistentDiskSection';
 import { DeleteDiskChoices } from 'src/pages/workspaces/workspace/analysis/modals/DeleteDiskChoices';
 import { DeleteEnvironment } from 'src/pages/workspaces/workspace/analysis/modals/DeleteEnvironment';
 import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle';
@@ -66,8 +68,7 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 import validate from 'validate.js';
 
-import { computeStyles } from './modalStyles';
-import { AboutPersistentDisk, handleLearnMoreAboutPersistentDisk, PersistentDiskSection } from './persistent-disk-controls';
+import { computeStyles } from '../../modalStyles';
 
 // Change to true to enable a debugging panel (intended for dev mode only)
 const showDebugPanel = false;
@@ -80,7 +81,7 @@ const anVILRStudioImage = 'https://github.com/anvilproject/anvil-docker/tree/mas
 const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/360034669811';
 
 // Distilled from https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
-const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/;
+const imageValidationRegexp = /^[A-Za-z0-9][\w./-]+(:\w[\w.-]*)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/;
 
 // Enums -- start
 /** Dataproc can consist of one of the two architectures below:
@@ -212,7 +213,7 @@ const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelecte
   isGce(runtimeType) && (!runtimeDetails?.runtimeConfig?.diskSize || upgradeDiskSelected);
 // Auxiliary functions -- end
 
-export const ComputeModalBase = ({
+export const GcpComputeModalBase = ({
   onDismiss,
   onError,
   onSuccess,
@@ -372,7 +373,7 @@ export const ComputeModalBase = ({
               persistentDisk: {
                 name: Utils.generatePersistentDiskName(),
                 size: desiredPersistentDisk.size,
-                diskType: desiredPersistentDisk.diskType.label,
+                diskType: desiredPersistentDisk.diskType.value, // TODO: Disk type should already be the correct string
                 labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name },
               },
             }),
@@ -522,7 +523,7 @@ export const ComputeModalBase = ({
    * is necessary to compute the cost for potential new disk configurations.
    */
   const getPendingDisk = () => {
-    const { persistentDisk: { size = 0, diskType = pdTypes.standard } = {} } = getDesiredEnvironmentConfig();
+    const { persistentDisk: { size = 0, diskType = googlePdTypes.standard } = {} } = getDesiredEnvironmentConfig();
     return { size, status: 'Ready', diskType };
   };
 
@@ -972,7 +973,18 @@ export const ComputeModalBase = ({
           div({ style: { marginTop: '0.5rem' } }, [
             label({ htmlFor: id, style: computeStyles.label }, [
               'Startup script',
-              span({ style: { ...computeStyles.value, fontStyle: 'italic' } }, [' Optional']),
+              span({ style: { ...computeStyles.value, fontStyle: 'italic' } }, [
+                ' Optional',
+                h(
+                  Link,
+                  {
+                    style: { marginLeft: '1rem', verticalAlign: 'top' },
+                    href: 'https://support.terra.bio/hc/en-us/articles/360058193872-Preconfigure-a-Cloud-Environment-with-a-startup-script',
+                    ...Utils.newTabLinkProps,
+                  },
+                  ['Learn more about startup scripts.', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
+                ),
+              ]),
             ]),
             div({ style: { marginTop: '0.5rem' } }, [
               h(TextInput, {
@@ -1636,11 +1648,17 @@ export const ComputeModalBase = ({
         renderApplicationConfigurationSection(),
         renderComputeProfileSection(existingRuntime),
         !!isPersistentDisk &&
-          h(PersistentDiskSection, {
+          h(GcpPersistentDiskSection, {
             persistentDiskExists: !!existingPersistentDisk,
-            computeConfig,
+            persistentDiskSize: computeConfig.diskSize,
+            persistentDiskType: computeConfig.diskType,
+            onChangePersistentDiskSize: (value) => updateComputeConfig('diskSize', value),
+            onChangePersistentDiskType: (value) => updateComputeConfig('diskType', value),
             updateComputeConfig,
-            setViewMode,
+            onClickAbout: () => {
+              setViewMode('aboutPersistentDisk');
+              Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, { cloudPlatform: cloudProviderTypes.GCP });
+            },
             cloudPlatform,
             tool,
           }),
@@ -1648,8 +1666,17 @@ export const ComputeModalBase = ({
           !isPersistentDisk &&
           div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
-              'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
-              h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent disks and where your disk is mounted']),
+              "Time to upgrade your cloud environment. Terra's new persistent disk feature will safeguard your work and data.",
+              h(
+                Link,
+                {
+                  onClick: () => {
+                    setViewMode('aboutPersistentDisk');
+                    Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, { cloudPlatform: cloudProviderTypes.GCP });
+                  },
+                },
+                ['Learn more about Persistent disks and where your disk is mounted']
+              ),
             ]),
             h(
               ButtonOutline,
@@ -1715,7 +1742,7 @@ export const ComputeModalBase = ({
     Utils.switchCase(
       viewMode,
       ['packages', renderPackages],
-      ['aboutPersistentDisk', () => AboutPersistentDisk({ titleId, setViewMode, onDismiss, tool })],
+      ['aboutPersistentDisk', () => AboutPersistentDiskView({ titleId, setViewMode, onDismiss, tool })],
       ['sparkConsole', renderSparkConsole],
       ['customImageWarning', renderCustomImageWarning],
       ['environmentWarning', renderEnvironmentWarning],
@@ -1747,4 +1774,4 @@ export const ComputeModalBase = ({
   ]);
 };
 
-export const ComputeModal = withModalDrawer({ width: 675, 'aria-labelledby': titleId })(ComputeModalBase);
+export const GcpComputeModal = withModalDrawer({ width: 675, 'aria-labelledby': titleId })(GcpComputeModalBase);

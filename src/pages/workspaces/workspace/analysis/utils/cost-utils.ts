@@ -5,10 +5,10 @@ import { CloudContext } from 'src/libs/ajax/leonardo/models/core-models';
 import {
   DecoratedPersistentDisk,
   diskStatuses,
+  GooglePdType,
+  googlePdTypes,
   isUndecoratedPersistentDisk,
   LeoDiskStatus,
-  PdType,
-  pdTypes,
   PersistentDisk,
 } from 'src/libs/ajax/leonardo/models/disk-models';
 import {
@@ -42,6 +42,7 @@ import {
   isAzureContext,
 } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import {
+  AppToolLabel,
   appToolLabels,
   appTools,
   RuntimeToolLabel,
@@ -89,18 +90,18 @@ export const runtimeConfigBaseCost = (config: GoogleRuntimeConfig): number => {
 
   const costForDataproc: number = isDataprocConfig(config)
     ? (config.masterDiskSize + config.numberOfWorkers * (config.workerDiskSize ?? defaultDataprocWorkerDiskSize)) *
-        getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard) +
+        getPersistentDiskPriceForRegionHourly(computeRegion, googlePdTypes.standard) +
       dataprocCost(config.masterMachineType, 1) +
       dataprocCost(config.workerMachineType ?? defaultDataprocMachineType, config.numberOfWorkers)
     : 0;
 
   const costForGceWithoutUserDisk: number = isGceConfig(config)
     ? (config.bootDiskSize ?? defaultGceBootDiskSize) *
-      getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard)
+      getPersistentDiskPriceForRegionHourly(computeRegion, googlePdTypes.standard)
     : 0;
 
   const costForGceWithUserDisk: number = isGceWithPdConfig(config)
-    ? config.bootDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard)
+    ? config.bootDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion, googlePdTypes.standard)
     : 0;
   return _.sum([costForDataproc, costForGceWithoutUserDisk, costForGceWithUserDisk]);
 };
@@ -127,7 +128,7 @@ export const runtimeConfigCost = (config: GoogleRuntimeConfig): number => {
           getHourlyCostForMachineType(config.workerMachineType ?? defaultDataprocMachineType, computeRegion, true),
         (config.numberOfPreemptibleWorkers ?? 0) *
           (config.workerDiskSize ?? 0) *
-          getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard),
+          getPersistentDiskPriceForRegionHourly(computeRegion, googlePdTypes.standard),
         dataprocCost(config.workerMachineType!, config.numberOfPreemptibleWorkers ?? 0),
         ephemeralExternalIpAddressCost(config.numberOfWorkers, config.numberOfPreemptibleWorkers ?? 0),
       ])
@@ -144,12 +145,12 @@ export const runtimeConfigCost = (config: GoogleRuntimeConfig): number => {
 };
 
 // Per GB following https://cloud.google.com/compute/pricing
-export const getPersistentDiskPriceForRegionMonthly = (computeRegion: string, diskType: PdType): number => {
+export const getPersistentDiskPriceForRegionMonthly = (computeRegion: string, diskType: GooglePdType): number => {
   if (!computeRegion || !diskType) return 0;
   return _.flow(_.find({ name: _.toUpper(computeRegion) }), _.get([diskType.regionToPricesName]))(regionToPrices);
 };
 const numberOfHoursPerMonth = 730;
-export const getPersistentDiskPriceForRegionHourly = (computeRegion: string, diskType: PdType): number =>
+export const getPersistentDiskPriceForRegionHourly = (computeRegion: string, diskType: GooglePdType): number =>
   getPersistentDiskPriceForRegionMonthly(computeRegion, diskType) / numberOfHoursPerMonth;
 
 export const ephemeralExternalIpAddressCost = (numStandardVms: number, numPreemptibleVms: number): number => {
@@ -215,7 +216,7 @@ export const getGalaxyDiskCost = (
     | DecoratedPersistentDisk
     | {
         size: number; // In GB
-        diskType: PdType;
+        diskType: GooglePdType;
       }
 ): number => {
   if (!disk) return 0;
@@ -277,7 +278,7 @@ export const getPersistentDiskCostMonthly = (disk: DecoratedPersistentDisk, comp
 export const getPersistentDiskCostHourly = (
   disk:
     | DecoratedPersistentDisk
-    | { size: number; status: LeoDiskStatus; diskType: PdType; cloudContext?: CloudContext },
+    | { size: number; status: LeoDiskStatus; diskType: GooglePdType; cloudContext?: CloudContext },
   computeRegion: string
 ): number => {
   if (!disk || !computeRegion) return 0;
@@ -321,7 +322,7 @@ export const getCostForDisk = (
   app: App | undefined,
   appDataDisks: PersistentDisk[],
   computeRegion: string,
-  currentRuntimeToolLabel: RuntimeToolLabel,
+  currentRuntimeToolLabel: RuntimeToolLabel | ToolLabel | undefined,
   persistentDisks: PersistentDisk[],
   runtimes: Runtime[],
   toolLabel: ToolLabel
@@ -333,13 +334,13 @@ export const getCostForDisk = (
     rawPd.diskType &&
     (isUndecoratedPersistentDisk(rawPd)
       ? updatePdType(rawPd)
-      : updatePdType({ ...rawPd, diskType: rawPd.diskType.label }));
+      : updatePdType({ ...rawPd, diskType: rawPd.diskType.value }));
 
   if (curPd && isAzureDisk(curPd)) {
     return getAzureDiskCostEstimate({ region: computeRegion, diskSize: curPd.size }) / numberOfHoursPerMonth;
   }
   if (currentRuntimeToolLabel === toolLabel && persistentDisks && persistentDisks.length) {
-    const { size = 0, status = diskStatuses.ready.leoLabel, diskType = pdTypes.standard } = curPd || {};
+    const { size = 0, status = diskStatuses.ready.leoLabel, diskType = googlePdTypes.standard } = curPd || {};
     diskCost = getPersistentDiskCostHourly({ size, status, diskType }, computeRegion);
   } else if (app && appDataDisks && toolLabel === appToolLabels.GALAXY) {
     const currentDataDisk = getCurrentAttachedDataDisk(app, appDataDisks);
@@ -352,7 +353,7 @@ export const getCostForDisk = (
 export const getCostDisplayForTool = (
   app: App | undefined,
   currentRuntime: Runtime | undefined,
-  currentRuntimeToolLabel: RuntimeToolLabel | undefined,
+  currentRuntimeToolLabel: RuntimeToolLabel | AppToolLabel | undefined,
   toolLabel: ToolLabel | undefined
 ): string => {
   return Utils.cond(
@@ -376,7 +377,7 @@ export const getCostDisplayForDisk = (
   app: App | undefined,
   appDataDisks: PersistentDisk[],
   computeRegion: string,
-  currentRuntimeToolLabel: RuntimeToolLabel,
+  currentRuntimeToolLabel: RuntimeToolLabel | ToolLabel | undefined,
   persistentDisks: PersistentDisk[],
   runtimes: Runtime[],
   toolLabel: ToolLabel
