@@ -376,6 +376,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   const [recordType, setRecordType] = useState(undefined);
   const [recordTypeInputTouched, setRecordTypeInputTouched] = useState(false);
 
+  // Google workspace regions are hardcoded for now, as GCP uploads to the Rawls service which is only on uscentral-1
   const regionLabelToDisplay = isGoogleWorkspace ? 'US' : getRegionLabel(region);
   const regionFlagToDisplay = isGoogleWorkspace ? '🇺🇸' : getRegionFlag(region);
 
