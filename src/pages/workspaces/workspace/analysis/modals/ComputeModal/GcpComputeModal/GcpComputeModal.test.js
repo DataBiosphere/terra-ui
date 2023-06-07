@@ -13,13 +13,14 @@ import {
   defaultRImage,
   defaultTestDisk,
   getDisk,
+  getGoogleDataProcRuntime,
   getGoogleRuntime,
   getJupyterRuntimeConfig,
   hailImage,
   imageDocs,
   testDefaultLocation,
 } from 'src/pages/workspaces/workspace/analysis/_testData/testData';
-import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal';
+import { GcpComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal';
 import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/utils/cost-utils';
 import {
   defaultDataprocMasterDiskSize,
@@ -46,6 +47,11 @@ jest.mock('src/libs/notifications', () => ({
 
 jest.mock('src/libs/ajax');
 jest.mock('src/pages/workspaces/workspace/analysis/utils/cost-utils');
+jest.mock('src/libs/config', () => ({
+  getConfig: () => ({
+    terraDeploymentEnv: 'unitTest',
+  }),
+}));
 
 const onSuccess = jest.fn();
 const defaultModalProps = {
@@ -80,7 +86,7 @@ const defaultAjaxImpl = {
   },
 };
 
-describe('ComputeModal', () => {
+describe('GcpComputeModal', () => {
   beforeAll(() => {});
 
   beforeEach(() => {
@@ -100,11 +106,43 @@ describe('ComputeModal', () => {
     // Arrange
 
     // Act
-    await act(async () => await render(h(ComputeModalBase, defaultModalProps)));
+    await act(async () => await render(h(GcpComputeModalBase, defaultModalProps)));
 
     // Assert
     verifyEnabled(getCreateButton());
     screen.getByText('Jupyter Cloud Environment');
+  });
+
+  it('passes the TERRA_DEPLOYMENT_ENV env var through to the notebook through custom env vars', async () => {
+    // Arrange
+    const createFunc = jest.fn();
+    const runtimeFunc = jest.fn(() => ({
+      create: createFunc,
+      details: jest.fn(),
+    }));
+    Ajax.mockImplementation(() => ({
+      ...defaultAjaxImpl,
+      Runtimes: {
+        runtime: runtimeFunc,
+      },
+    }));
+
+    // Act
+    await act(async () => {
+      await render(h(GcpComputeModalBase, defaultModalProps));
+      await userEvent.click(getCreateButton());
+    });
+
+    // Assert
+    expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
+    expect(createFunc).toHaveBeenCalledWith(
+      expect.objectContaining({
+        customEnvironmentVariables: expect.objectContaining({
+          TERRA_DEPLOYMENT_ENV: 'unitTest',
+        }),
+      })
+    );
+    expect(onSuccess).toHaveBeenCalled();
   });
 
   it('sends the proper leo API call in default create case (no runtimes or disks)', async () => {
@@ -123,7 +161,7 @@ describe('ComputeModal', () => {
 
     // Act
     await act(async () => {
-      await render(h(ComputeModalBase, defaultModalProps));
+      await render(h(GcpComputeModalBase, defaultModalProps));
       await userEvent.click(getCreateButton());
     });
 
@@ -140,7 +178,7 @@ describe('ComputeModal', () => {
           cloudService: cloudServices.GCE,
           machineType: defaultGceMachineType,
           persistentDisk: expect.objectContaining({
-            diskType: defaultPersistentDiskType.label,
+            diskType: defaultPersistentDiskType.value,
             labels,
             name: expect.anything(),
           }),
@@ -178,7 +216,7 @@ describe('ComputeModal', () => {
     // Act
     await act(async () => {
       await render(
-        h(ComputeModalBase, {
+        h(GcpComputeModalBase, {
           ...defaultModalProps,
           currentDisk: disk,
         })
@@ -229,7 +267,7 @@ describe('ComputeModal', () => {
       // Act
       await act(async () => {
         await render(
-          h(ComputeModalBase, {
+          h(GcpComputeModalBase, {
             ...defaultModalProps,
             currentDisk: disk,
             currentRuntime: runtime,
@@ -285,7 +323,7 @@ describe('ComputeModal', () => {
       // Act
       await act(async () => {
         await render(
-          h(ComputeModalBase, {
+          h(GcpComputeModalBase, {
             ...defaultModalProps,
             currentDisk: disk,
             currentRuntime: runtime,
@@ -331,7 +369,7 @@ describe('ComputeModal', () => {
       // Act
       await act(async () => {
         render(
-          h(ComputeModalBase, {
+          h(GcpComputeModalBase, {
             ...defaultModalProps,
             currentDisk: disk,
             currentRuntime: runtime,
@@ -381,7 +419,7 @@ describe('ComputeModal', () => {
       // Act
       await act(async () => {
         render(
-          h(ComputeModalBase, {
+          h(GcpComputeModalBase, {
             ...defaultModalProps,
             currentDisk: disk,
             currentRuntime: runtime,
@@ -428,7 +466,7 @@ describe('ComputeModal', () => {
       // Act
       await act(async () => {
         await render(
-          h(ComputeModalBase, {
+          h(GcpComputeModalBase, {
             ...defaultModalProps,
             currentDisk: disk,
             currentRuntime: runtime,
@@ -465,7 +503,7 @@ describe('ComputeModal', () => {
     }
   );
 
-  // TODO: this is a bug that this doesn't work... needs moore investigation
+  // TODO: this is a bug that this doesn't work... needs more investigation
   // click update with no downtime (and keep pd)
   // it.each([
   //   { tool: tools.Jupyter },
@@ -496,7 +534,7 @@ describe('ComputeModal', () => {
   //
   //   // Act
   //   await act(async () => {
-  //     await render(h(ComputeModalBase, {
+  //     await render(h(GcpComputeModalBase, {
   //       ...defaultModalProps,
   //       currentDisk: disk,
   //       currentRuntime: runtime
@@ -555,7 +593,7 @@ describe('ComputeModal', () => {
   //
   //   // Act
   //   await act(async () => {
-  //     await render(h(ComputeModalBase, {
+  //     await render(h(GcpComputeModalBase, {
   //       ...defaultModalProps,
   //       currentDisk: disk,
   //       currentRuntime: runtime
@@ -588,6 +626,165 @@ describe('ComputeModal', () => {
   //     })
   //   }))
   // })
+
+  it('should create dataproc spark cluster successfully', async () => {
+    // Arrange
+    const createFunc = jest.fn();
+    const runtimeFunc = jest.fn(() => ({
+      create: createFunc,
+      details: jest.fn(),
+    }));
+    Ajax.mockImplementation(() => ({
+      ...defaultAjaxImpl,
+      Runtimes: {
+        runtime: runtimeFunc,
+      },
+      Disks: {
+        disk: () => ({
+          details: jest.fn(),
+        }),
+      },
+    }));
+
+    // Act
+    await act(async () => {
+      await render(h(GcpComputeModalBase, defaultModalProps));
+
+      const selectMenu = await screen.getByLabelText('Application configuration');
+      await userEvent.click(selectMenu);
+      const selectOption = await screen.findByText(hailImage.label);
+      await userEvent.click(selectOption);
+
+      const computeTypeSelect = await screen.getByLabelText('Compute type');
+      await userEvent.click(computeTypeSelect);
+      const sparkClusterOption = await screen.findByText('Spark cluster');
+      await userEvent.click(sparkClusterOption);
+
+      const create = await screen.getByText('Create');
+      await userEvent.click(create);
+    });
+
+    expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
+    expect(createFunc).toHaveBeenCalledWith(
+      expect.objectContaining({
+        toolDockerImage: hailImage.image,
+        runtimeConfig: expect.objectContaining({
+          numberOfWorkers: defaultNumDataprocWorkers,
+          masterMachineType: defaultDataprocMachineType,
+          masterDiskSize: defaultDataprocMasterDiskSize,
+          workerMachineType: defaultDataprocMachineType,
+          workerDiskSize: defaultDataprocWorkerDiskSize,
+          numberOfPreemptibleWorkers: defaultNumDataprocPreemptibleWorkers,
+          cloudService: 'DATAPROC',
+          region: 'us-central1',
+          componentGatewayEnabled: true,
+        }),
+      })
+    );
+  });
+
+  it('should create dataproc spark single node successfully', async () => {
+    // Arrange
+    const createFunc = jest.fn();
+    const runtimeFunc = jest.fn(() => ({
+      create: createFunc,
+      details: jest.fn(),
+    }));
+    Ajax.mockImplementation(() => ({
+      ...defaultAjaxImpl,
+      Runtimes: {
+        runtime: runtimeFunc,
+      },
+      Disks: {
+        disk: () => ({
+          details: jest.fn(),
+        }),
+      },
+    }));
+
+    // Act
+    await act(async () => {
+      await render(h(GcpComputeModalBase, defaultModalProps));
+
+      const selectMenu = await screen.getByLabelText('Application configuration');
+      await userEvent.click(selectMenu);
+      const selectOption = await screen.findByText(hailImage.label);
+      await userEvent.click(selectOption);
+
+      const computeTypeSelect = await screen.getByLabelText('Compute type');
+      await userEvent.click(computeTypeSelect);
+
+      const sparkSingleNodeOption = await screen.findByText('Spark single node')[0];
+      await userEvent.click(sparkSingleNodeOption);
+
+      const create = await screen.getByText('Create');
+      await userEvent.click(create);
+    });
+
+    expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
+
+    expect(createFunc).toHaveBeenCalledWith(
+      expect.objectContaining({
+        toolDockerImage: hailImage.image,
+        runtimeConfig: expect.objectContaining({
+          numberOfWorkers: 0,
+          masterMachineType: defaultDataprocMachineType,
+          masterDiskSize: defaultDataprocMasterDiskSize,
+          cloudService: 'DATAPROC',
+          region: 'us-central1',
+          componentGatewayEnabled: true,
+        }),
+      })
+    );
+  });
+
+  it('should delete spark single node successfully', async () => {
+    // Arrange
+    const runtimeProps = {
+      runtimeConfig: getJupyterRuntimeConfig({
+        diskId: undefined,
+        tool: runtimeTools.Jupyter,
+      }),
+    };
+    const runtime = getGoogleDataProcRuntime(runtimeProps);
+
+    const deleteFunc = jest.fn();
+
+    const runtimeFunc = jest.fn(() => ({
+      details: () => runtime,
+      delete: deleteFunc,
+    }));
+    Ajax.mockImplementation(() => ({
+      ...defaultAjaxImpl,
+      Runtimes: {
+        runtime: runtimeFunc,
+      },
+      Disks: {
+        disksV1: () => ({
+          disk: () => ({
+            details: () => undefined,
+          }),
+        }),
+      },
+    }));
+
+    // Act
+    await act(async () => {
+      await render(
+        h(GcpComputeModalBase, {
+          ...defaultModalProps,
+          currentDisk: undefined,
+          currentRuntime: runtime,
+        })
+      );
+      await userEvent.click(screen.getByText('Delete Runtime'));
+      await userEvent.click(screen.getByText('Delete'));
+    });
+
+    // Assert
+    expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
+    expect(deleteFunc).toHaveBeenCalled();
+  });
 
   // with a [jupyter, rstudio] runtime existing and [a disk, no disk], details pane is open
   it('dataproc runtime should display properly in modal', async () => {
@@ -632,7 +829,7 @@ describe('ComputeModal', () => {
     // Act
     await act(async () => {
       await render(
-        h(ComputeModalBase, {
+        h(GcpComputeModalBase, {
           ...defaultModalProps,
           currentRuntime: runtime,
         })
@@ -686,7 +883,7 @@ describe('ComputeModal', () => {
 
     // Act
     await act(async () => {
-      await render(h(ComputeModalBase, defaultModalProps));
+      await render(h(GcpComputeModalBase, defaultModalProps));
 
       const selectMenu = await screen.getByLabelText('Application configuration');
       await userEvent.click(selectMenu);
@@ -748,7 +945,7 @@ describe('ComputeModal', () => {
 
       // Act and assert
       await act(async () => {
-        await render(h(ComputeModalBase, defaultModalProps));
+        await render(h(GcpComputeModalBase, defaultModalProps));
 
         const selectMenu = await screen.getByLabelText('Application configuration');
         await userEvent.click(selectMenu);
@@ -795,7 +992,7 @@ describe('ComputeModal', () => {
 
       // Act and assert
       await act(async () => {
-        await render(h(ComputeModalBase, defaultModalProps));
+        await render(h(GcpComputeModalBase, defaultModalProps));
 
         const selectMenu = await screen.getByLabelText('Application configuration');
         await userEvent.click(selectMenu);
@@ -830,7 +1027,7 @@ describe('ComputeModal', () => {
   // click learn more about persistent disk
   it('should render learn more about persistent disks', async () => {
     // Act
-    render(h(ComputeModalBase, defaultModalProps));
+    render(h(GcpComputeModalBase, defaultModalProps));
     const link = screen.getByText('Learn more about persistent disks and where your disk is mounted.');
     await userEvent.click(link);
 
@@ -849,7 +1046,7 @@ describe('ComputeModal', () => {
       // Act
       await act(async () => {
         await render(
-          h(ComputeModalBase, {
+          h(GcpComputeModalBase, {
             ...defaultModalProps,
             currentRuntime: runtime,
           })
@@ -865,7 +1062,7 @@ describe('ComputeModal', () => {
   it('should render whats installed on this environment', async () => {
     // Act
     await act(async () => {
-      await render(h(ComputeModalBase, defaultModalProps));
+      await render(h(GcpComputeModalBase, defaultModalProps));
       const link = await screen.getByText('What’s installed on this environment?');
       await userEvent.click(link);
     });
@@ -893,7 +1090,7 @@ describe('ComputeModal', () => {
 
     // Act
     await act(async () => {
-      await render(h(ComputeModalBase, defaultModalProps));
+      await render(h(GcpComputeModalBase, defaultModalProps));
       const enableGPU = await screen.getByText('Enable GPUs');
       await userEvent.click(enableGPU);
     });
@@ -932,7 +1129,7 @@ describe('ComputeModal', () => {
     // eslint-disable-next-line require-await
     await act(async () => {
       render(
-        h(ComputeModalBase, {
+        h(GcpComputeModalBase, {
           ...defaultModalProps,
           currentDisk: disk,
           currentRuntime: runtime,
@@ -962,7 +1159,7 @@ describe('ComputeModal', () => {
           runtime: runtimeFunc,
         },
       }));
-      await render(h(ComputeModalBase, defaultModalProps));
+      await render(h(GcpComputeModalBase, defaultModalProps));
 
       // Act
       const selectMenu = await screen.getByLabelText('Application configuration');
@@ -1005,7 +1202,7 @@ describe('ComputeModal', () => {
 
         // Act
         await act(async () => {
-          await render(h(ComputeModalBase, { ...defaultModalProps, tool: runtimeTool.label }));
+          await render(h(GcpComputeModalBase, { ...defaultModalProps, tool: runtimeTool.label }));
 
           const selectMenu = await screen.getByLabelText('Application configuration');
           await userEvent.click(selectMenu);
@@ -1066,7 +1263,7 @@ describe('ComputeModal', () => {
 
       // Act
       await act(async () => {
-        await render(h(ComputeModalBase, { ...defaultModalProps, tool: runtimeTool.label }));
+        await render(h(GcpComputeModalBase, { ...defaultModalProps, tool: runtimeTool.label }));
 
         const selectMenu = await screen.getByLabelText('Application configuration');
         await userEvent.click(selectMenu);
@@ -1112,7 +1309,7 @@ describe('ComputeModal', () => {
 
     // Act
     await act(async () => {
-      await render(h(ComputeModalBase, defaultModalProps));
+      await render(h(GcpComputeModalBase, defaultModalProps));
     });
 
     // Assert

@@ -13,6 +13,8 @@ import {
   TsvUploadButtonTooltipOptions,
   UploadParameters,
 } from 'src/libs/ajax/data-table-providers/DataTableProvider';
+import { withErrorReporting } from 'src/libs/error';
+import { notify } from 'src/libs/notifications';
 import { notificationStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
@@ -317,4 +319,21 @@ export class WdsDataTableProvider implements DataTableProvider {
       uploadParams.file
     );
   };
+
+  importTdr = withErrorReporting('Error importing')(async (workspaceId: string, snapshotId: string): Promise<any> => {
+    if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded');
+    setTimeout(() => {
+      if (
+        notificationStore.get().length === 0 ||
+        !notificationStore.get().some((notif: { title: string }) => ['Error importing'].includes(notif.title))
+      ) {
+        notifyDataImportProgress('tdr-import', 'Your data will show up under Tables once import is complete.');
+      }
+    }, 1000);
+    await Ajax().WorkspaceData.importTdr(this.proxyUrl, workspaceId, snapshotId);
+    notify('success', 'Snapshot successfully imported', {
+      message: 'Successfully imported snapshot.  Please refresh the page to see your changes.',
+      timeout: 3000,
+    });
+  });
 }

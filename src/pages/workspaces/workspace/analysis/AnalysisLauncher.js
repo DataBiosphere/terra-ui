@@ -25,7 +25,7 @@ import { authStore, cookieReadyStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
 import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator';
-import { ComputeModal } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal';
+import { GcpComputeModal } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal';
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal/ExportAnalysisModal';
 import {
   analysisLauncherTabName,
@@ -49,7 +49,7 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
-import { AzureComputeModal } from './modals/AzureComputeModal';
+import { AzureComputeModal } from './modals/ComputeModal/AzureComputeModal/AzureComputeModal';
 
 const chooseMode = (mode) => {
   Nav.history.replace({ search: qs.stringify({ mode }) });
@@ -132,7 +132,7 @@ const AnalysisLauncher = _.flow(
         ]),
         mode && h(RuntimeKicker, { runtime: currentRuntime, refreshRuntimes }),
         mode && h(RuntimeStatusMonitor, { runtime: currentRuntime }),
-        h(ComputeModal, {
+        h(GcpComputeModal, {
           isOpen: createOpen && !isAzureWorkspace,
           tool: currentFileToolLabel,
           shouldHideCloseButton: false,
