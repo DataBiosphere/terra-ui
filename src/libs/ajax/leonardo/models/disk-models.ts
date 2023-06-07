@@ -124,7 +124,7 @@ export interface AzurePdSelectOption {
   label: string;
 }
 
-export const azureDiskSizes: number[] = [32, 64, 128, 256, 512, 1024, 2048, 4096, 8192];
+export const azureDiskSizes: number[] = [32, 64, 128, 256, 512, 1024, 2048, 4095];
 
 export const isUndecoratedPersistentDisk = (disk: PersistentDisk | DecoratedPersistentDisk): disk is PersistentDisk =>
   typeof disk === 'string' && Object.values(googlePdTypes).map((pdt) => pdt.value) === disk;
