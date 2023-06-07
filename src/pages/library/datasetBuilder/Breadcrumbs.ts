@@ -10,7 +10,9 @@ interface Breadcrumb {
   link: string;
 }
 
-export const DatasetBuilderBreadcrumbs = ({ breadcrumbs }: { breadcrumbs: Breadcrumb[] }) =>
+type DatasetBuilderBreadcrumbsProps = { breadcrumbs: Breadcrumb[] };
+
+export const DatasetBuilderBreadcrumbs = ({ breadcrumbs }: DatasetBuilderBreadcrumbsProps) =>
   div({ style: { display: 'flex' } }, [
     _.map(
       ([i, breadcrumb]) =>

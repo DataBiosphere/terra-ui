@@ -1,5 +1,6 @@
 export interface DatasetResponse {
   name: string;
+  id: string;
   description: string;
 }
 

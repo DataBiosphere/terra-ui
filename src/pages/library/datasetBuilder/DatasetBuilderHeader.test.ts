@@ -10,7 +10,7 @@ jest.mock('src/libs/nav', () => ({
 describe('DatasetBuilderHeader', () => {
   it('renders', () => {
     const name = 'hello world';
-    const { getByText } = render(h(DatasetBuilderHeader, { name, datasetId: 'id' }));
+    const { getByText } = render(h(DatasetBuilderHeader, { datasetDetails: { name, id: 'id', description: '' } }));
 
     expect(getByText('Data Browser')).toBeTruthy();
   });
