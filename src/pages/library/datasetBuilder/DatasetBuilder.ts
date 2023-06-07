@@ -6,7 +6,7 @@ import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
 import TopBar from 'src/components/TopBar';
-import { DatasetBuilder, DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
+import { DatasetBuilder, DatasetBuilderValue, DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 import { useOnMount } from 'src/libs/react-utils';
@@ -320,7 +320,7 @@ export const ConceptSetSelector = ({
   onChange: (conceptSets: HeaderAndValues<ConceptSet>[]) => void;
   onStateChange: OnStateChangeType;
 }) => {
-  return h(Selector, {
+  return h(Selector as React.FC<SelectorProps<ConceptSet>>, {
     headerAction: h(
       Link,
       {
@@ -348,15 +348,14 @@ export const ConceptSetSelector = ({
   });
 };
 
-type Value = DatasetBuilderType;
 export const ValuesSelector = ({
   selectedValues,
   values,
   onChange,
 }: {
-  selectedValues: HeaderAndValues<Value>[];
-  values: HeaderAndValues<Value>[];
-  onChange: (values: HeaderAndValues<Value>[]) => void;
+  selectedValues: HeaderAndValues<DatasetBuilderValue>[];
+  values: HeaderAndValues<DatasetBuilderValue>[];
+  onChange: (values: HeaderAndValues<DatasetBuilderValue>[]) => void;
 }) => {
   return h(Selector, {
     headerAction: div([
@@ -383,10 +382,17 @@ export const ValuesSelector = ({
   });
 };
 
-export const DatasetBuilderContents = ({ onStateChange }: { onStateChange: OnStateChangeType }) => {
+export const DatasetBuilderContents = ({
+  onStateChange,
+  datasetId,
+}: {
+  onStateChange: OnStateChangeType;
+  datasetId: string;
+}) => {
   const [selectedCohorts, setSelectedCohorts] = useState([] as HeaderAndValues<Cohort>[]);
   const [selectedConceptSets, setSelectedConceptSets] = useState([] as HeaderAndValues<ConceptSet>[]);
-  const [selectedValues, setSelectedValues] = useState([] as HeaderAndValues<Value>[]);
+  const [selectedValues, setSelectedValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
+  const [values, setValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
 
   return div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` } }, [
     h2(['Datasets']),
@@ -403,10 +409,24 @@ export const DatasetBuilderContents = ({ onStateChange }: { onStateChange: OnSta
       }),
       h(ConceptSetSelector, {
         selectedConceptSets,
-        onChange: (conceptSets) => setSelectedConceptSets(conceptSets),
+        onChange: async (conceptSets) => {
+          setSelectedConceptSets(conceptSets);
+          const uniqueDomains = _.uniq(
+            _.map(
+              (conceptSet: ConceptSet) => {
+                return conceptSet.domain;
+              },
+              _.flatMap((headerAndValues) => headerAndValues.values, conceptSets)
+            )
+          );
+          const domainValuesList = await DatasetBuilder().getValuesFromDomains(datasetId, uniqueDomains);
+          setValues(
+            _.map((domainValues) => ({ header: domainValues.domain, values: domainValues.values }), domainValuesList)
+          );
+        },
         onStateChange,
       }),
-      h(ValuesSelector, { selectedValues, values: [], onChange: (values) => setSelectedValues(values) }),
+      h(ValuesSelector, { selectedValues, values, onChange: (values) => setSelectedValues(values) }),
     ]),
   ]);
 };
@@ -431,7 +451,10 @@ export const DatasetBuilderView = ({ datasetId }: DatasetBuilderProps) => {
         h(DatasetBuilderHeader, { name: datasetDetails.state.name }),
         Utils.switchCase(
           datasetBuilderState,
-          ['homepage', () => h(DatasetBuilderContents, { onStateChange: (state) => setDatasetBuilderState(state) })],
+          [
+            'homepage',
+            () => h(DatasetBuilderContents, { onStateChange: (state) => setDatasetBuilderState(state), datasetId }),
+          ],
           [Utils.DEFAULT, () => div([datasetBuilderState])]
         ),
       ])

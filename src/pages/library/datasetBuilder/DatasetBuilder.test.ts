@@ -82,7 +82,10 @@ describe('DatasetBuilder', () => {
   });
 
   it('renders concept sets and prepackaged concept sets', () => {
-    datasetBuilderConceptSets.set([{ name: 'concept set 1' }, { name: 'concept set 2' }]);
+    datasetBuilderConceptSets.set([
+      { name: 'concept set 1', domain: 'a' },
+      { name: 'concept set 2', domain: 'b' },
+    ]);
     const { getByText } = render(
       h(ConceptSetSelector, {
         selectedConceptSets: [],
@@ -123,7 +126,7 @@ describe('DatasetBuilder', () => {
 
   it('renders dataset builder contents with cohorts and concept sets', () => {
     // Arrange
-    const { getByText } = render(h(DatasetBuilderContents, { onStateChange: (state) => state }));
+    const { getByText } = render(h(DatasetBuilderContents, { onStateChange: (state) => state, datasetId: 'id' }));
     // Assert
     expect(getByText('Select cohorts')).toBeTruthy();
     expect(getByText('Select concept sets')).toBeTruthy();
@@ -137,7 +140,7 @@ describe('DatasetBuilder', () => {
     datasetBuilderCohorts.set([{ name: 'cohort 1' }, { name: 'cohort 2' }]);
     // @ts-ignore
     datasetBuilderConceptSets.set([{ name: 'concept set 1' }, { name: 'concept set 2' }]);
-    const { getByLabelText } = render(h(DatasetBuilderContents, { onStateChange: (state) => state }));
+    const { getByLabelText } = render(h(DatasetBuilderContents, { onStateChange: (state) => state, datasetId: 'id' }));
     // Act
     await user.click(getByLabelText('cohort 1'));
     await user.click(getByLabelText('cohort 2'));
