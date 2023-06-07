@@ -245,7 +245,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
                   onClick: () =>
                     updateCohort(_.set('criteriaGroups', _.without([criteriaGroup], cohort.criteriaGroups))),
                 },
-                [icon('trash-circle-filled')]
+                [icon('trash-circle-filled', { size: 24 })]
               ),
             ]),
           ]
