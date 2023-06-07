@@ -380,10 +380,23 @@ const ImportData = () => {
 
   const importPFB = (namespace, name) => {
     return async () => {
+      // TODO: AJ-1104 will error if there is a policy conflict for protected data
+      if (isProtected(url, 'pfb')) {
+        // eslint-disable-next-line no-console
+        console.log('Protected data identified');
+      }
       const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importJob(url, 'pfb', null);
       asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
       notifyDataImportProgress(jobId);
     };
+  };
+
+  // This method identifies whether an import source is considered protected data;
+  // For now this means pfb imports from AnVIL.
+  const isProtected = (url, filetype) => {
+    const hostname = new URL(url).hostname;
+    const protectedHosts = ['anvil.gi.ucsc.edu', 'anvilproject.org'];
+    return Utils.cond([filetype !== 'pfb', () => false], () => protectedHosts.some((host) => hostname.endsWith(host)));
   };
 
   const importEntitiesJson = (namespace, name) => {
