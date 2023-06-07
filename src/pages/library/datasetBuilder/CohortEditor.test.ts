@@ -172,15 +172,6 @@ describe('CohortEditor', () => {
     expect(updatedCohort.criteriaGroups[0].criteria).toMatchObject([]);
   });
 
-  it('renders a cohort', () => {
-    const datasetDetails = dummyDatasetDetails;
-    const originalCohort = newCohort('my cohort name');
-
-    render(h(CohortEditor, { onStateChange: _.noop, datasetDetails, originalCohort }));
-
-    expect(screen.getByText(originalCohort.name)).toBeTruthy();
-  });
-
   function showCohortEditor() {
     const originalCohort = newCohort('my cohort name');
     const onStateChange = jest.fn();
@@ -189,6 +180,12 @@ describe('CohortEditor', () => {
     render(h(CohortEditor, { onStateChange, datasetDetails, originalCohort }));
     return { originalCohort, onStateChange };
   }
+
+  it('renders a cohort', () => {
+    const { originalCohort } = showCohortEditor();
+    0;
+    expect(screen.getByText(originalCohort.name)).toBeTruthy();
+  });
 
   it('saves a cohort', async () => {
     const { originalCohort, onStateChange } = showCohortEditor();
