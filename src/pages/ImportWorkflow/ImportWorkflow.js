@@ -13,9 +13,13 @@ import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
+import { useCancellation } from 'src/libs/react-utils';
+import { getUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { workflowNameValidation } from 'src/libs/workflow-utils';
+import { isGoogleWorkspaceInfo } from 'src/libs/workspace-utils';
+import { setAzureCookieOnUrl } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
 import validate from 'validate.js';
 
 import { importDockstoreWorkflow } from './importDockstoreWorkflow';
@@ -50,32 +54,79 @@ const styles = {
   },
 };
 
+export const resolveRunningCromwellAppUrl = (apps, currentUser) => {
+  // it looks for Kubernetes deployment status RUNNING expressed by Leo
+  // See here for specific enumerations -- https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
+  // We explicitly look for a RUNNING app because if the CBAS app is not Running, we won't be able to send import method request.
+  const healthyState = 'RUNNING';
+  const cromwellAppType = 'CROMWELL';
+
+  // note: the requirement for checking if the app was created by user will not be needed when we move to multi-user Workflows app where users with
+  // OWNER and WRITER roles will be able to import methods to app created by another user
+  const filteredApps = apps.filter((app) => app.appType === cromwellAppType && app.status === healthyState && app.auditInfo.creator === currentUser);
+  if (filteredApps.length === 1) {
+    return {
+      cbasUrl: filteredApps[0].proxyUrls.cbas,
+      cbasUiUrl: filteredApps[0].proxyUrls['cbas-ui'],
+    };
+  }
+  // if there are no Running Cromwell apps or if there are more than one then it's an error state and return empty string
+  return '';
+};
+
+const MethodSource = Object.freeze({
+  GitHub: 'GitHub',
+  Dockstore: 'Dockstore',
+});
+
 export const ImportWorkflow = ({ path, version, source }) => {
   const [isBusy, setIsBusy] = useState(false);
   const [confirmOverwriteInWorkspace, setConfirmOverwriteInWorkspace] = useState();
   const [workflowName, setWorkflowName] = useState(_.last(path.split('/')));
 
+  const signal = useCancellation();
   const { wdl, status: wdlStatus } = useDockstoreWdl({ path, version, isTool: source === 'dockstoretools' });
+
+  const importToAzureCromwellApp = async (workspaceId) => {
+    const appUrls = await Ajax(signal)
+      .Apps.listAppsV2(workspaceId)
+      .then((apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email));
+
+    if (appUrls) {
+      const res = await Ajax(signal).Cbas.methods.post(appUrls.cbasUrl, workflowName, null, MethodSource.Dockstore, version, path, [], []);
+
+      await setAzureCookieOnUrl(signal, appUrls.cbasUiUrl, true);
+      window.open(`${appUrls.cbasUiUrl}#submission-config/${res.method_id}`, '_self');
+    } else {
+      throw new Error(
+        "Error finding a Cromwell app in Running state that was created by the current user in the workspace. Either there exists more than one Cromwell app in Running state or there isn't one in Running state."
+      );
+    }
+  };
 
   const doImport = _.flow(
     Utils.withBusyState(setIsBusy),
     withErrorReporting('Error importing workflow')
   )(async (workspace, options = {}) => {
-    const { name, namespace } = workspace;
+    const { name, namespace, workspaceId } = workspace;
     const eventData = { source, ...extractWorkspaceDetails(workspace) };
 
     setConfirmOverwriteInWorkspace(undefined);
     try {
-      await importDockstoreWorkflow(
-        {
-          workspace,
-          workflow: { path, version, source },
-          workflowName,
-        },
-        options
-      );
-      Ajax().Metrics.captureEvent(Events.workflowImport, { ...eventData, success: true });
-      Nav.goToPath('workflow', { namespace, name, workflowNamespace: namespace, workflowName });
+      if (isGoogleWorkspaceInfo(workspace)) {
+        await importDockstoreWorkflow(
+          {
+            workspace,
+            workflow: { path, version, source },
+            workflowName,
+          },
+          options
+        );
+        Ajax(signal).Metrics.captureEvent(Events.workflowImport, { ...eventData, success: true });
+        Nav.goToPath('workflow', { namespace, name, workflowNamespace: namespace, workflowName });
+      } else {
+        await importToAzureCromwellApp(workspaceId);
+      }
     } catch (error) {
       if (error.status === 409) {
         setConfirmOverwriteInWorkspace(workspace);

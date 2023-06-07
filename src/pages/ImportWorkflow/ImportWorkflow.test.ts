@@ -2,14 +2,21 @@ import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { useWorkspaces } from 'src/components/workspace-utils';
+import { Ajax } from 'src/libs/ajax';
+import { getUser } from 'src/libs/state';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { setAzureCookieOnUrl } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { importDockstoreWorkflow } from './importDockstoreWorkflow';
-import { ImportWorkflow } from './ImportWorkflow';
+import { ImportWorkflow, resolveRunningCromwellAppUrl } from './ImportWorkflow';
 import { useDockstoreWdl } from './useDockstoreWdl';
 
+type AjaxContract = ReturnType<typeof Ajax>;
 type WorkspaceUtilsExports = typeof import('src/components/workspace-utils');
+
+jest.mock('src/libs/ajax');
+
 jest.mock('src/components/workspace-utils', (): WorkspaceUtilsExports => {
   const { h } = jest.requireActual('react-hyperscript-helpers');
 
@@ -50,6 +57,10 @@ jest.mock('./useDockstoreWdl', () => ({
   }),
 }));
 
+jest.mock('src/pages/workspaces/workspace/analysis/runtime-common-components.js', () => ({
+  setAzureCookieOnUrl: jest.fn().mockResolvedValue(undefined),
+}));
+
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
   goToPath: jest.fn(),
@@ -62,22 +73,96 @@ jest.mock('react-virtualized', () => ({
   AutoSizer: ({ children }) => children({ width: 300 }),
 }));
 
+jest.mock('src/libs/state', () => ({
+  ...jest.requireActual('src/libs/state'),
+  getUser: jest.fn(),
+}));
+
+jest.mock('react-notifications-component', () => {
+  return {
+    store: {
+      addNotification: jest.fn(),
+      removeNotification: jest.fn(),
+    },
+  };
+});
+
 describe('ImportWorkflow', () => {
+  const mockAppResponse = [
+    {
+      workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
+      cloudContext: {
+        cloudProvider: 'AZURE',
+      },
+      status: 'RUNNING',
+      proxyUrls: {
+        cbas: 'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas',
+        'cbas-ui':
+          'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/',
+        cromwell:
+          'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cromwell',
+      },
+      appName: 'terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374',
+      appType: 'CROMWELL',
+      auditInfo: {
+        creator: 'abc@gmail.com',
+      },
+    },
+    {
+      workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
+      cloudContext: {
+        cloudProvider: 'AZURE',
+      },
+      status: 'RUNNING',
+      proxyUrls: {
+        wds: 'https://abc.servicebus.windows.net/wds-79201ea6-519a-4077-a9a4-75b2a7c4cdeb-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/',
+      },
+      appName: 'wds-79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
+      appType: 'WDS',
+      auditInfo: {
+        creator: 'abc@gmail.com',
+      },
+    },
+  ];
+
   beforeAll(() => {
     // Arrange
     asMockedFn(useWorkspaces).mockReturnValue({
       workspaces: [
         {
-          workspace: { namespace: 'test', name: 'workspace1', workspaceId: '6771d2c8-cd58-47da-a54c-6cdafacc4175' },
+          workspace: {
+            namespace: 'test',
+            name: 'workspace1',
+            workspaceId: '6771d2c8-cd58-47da-a54c-6cdafacc4175',
+            cloudPlatform: 'Gcp',
+          },
           accessLevel: 'WRITER',
         },
         {
-          workspace: { namespace: 'test', name: 'workspace2', workspaceId: '5cfa16d8-d604-4de8-8e8a-acde05d71b99' },
+          workspace: {
+            namespace: 'test',
+            name: 'workspace2',
+            workspaceId: '5cfa16d8-d604-4de8-8e8a-acde05d71b99',
+            cloudPlatform: 'Gcp',
+          },
+          accessLevel: 'WRITER',
+        },
+        {
+          workspace: {
+            namespace: 'azure-test',
+            name: 'azure-workspace1',
+            workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
+            cloudPlatform: 'Azure',
+          },
           accessLevel: 'WRITER',
         },
       ] as WorkspaceWrapper[],
       refresh: () => Promise.resolve(),
       loading: false,
+    });
+
+    asMockedFn(getUser).mockReturnValue({
+      email: 'abc@gmail.com',
     });
   });
 
@@ -172,6 +257,68 @@ describe('ImportWorkflow', () => {
     );
   });
 
+  it('it imports the workflow into the selected Azure workspace', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mockPostMethodResponse = {
+      method_id: '031e1da5-b977-4467-b1d7-acc7054fe72d',
+      run_set_id: 'd250fe2e-d5c2-4ccc-8484-3cd6179e312c',
+    };
+    const mockListAppsFn = jest.fn(() => Promise.resolve(mockAppResponse));
+    const mockPostMethodAppsFn = jest.fn(() => Promise.resolve(mockPostMethodResponse));
+
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Apps: {
+            listAppsV2: mockListAppsFn,
+          } as Partial<AjaxContract['ListAppResponse']>,
+          Cbas: {
+            methods: {
+              post: mockPostMethodAppsFn,
+            },
+          } as Partial<AjaxContract['Cbas']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
+
+    const testWorkflow = {
+      path: 'github.com/DataBiosphere/test-workflows/test-workflow',
+      version: 'v1.0.0',
+      source: 'dockstore',
+    };
+
+    render(h(ImportWorkflow, { ...testWorkflow }));
+
+    // Act
+    const workspaceMenu = screen.getByLabelText('Destination Workspace');
+    await user.click(workspaceMenu);
+    const option = screen.getAllByRole('option').find((el) => el.textContent === 'azure-workspace1')!;
+    await user.click(option);
+
+    const importButton = screen.getByText('Import');
+    await act(() => user.click(importButton));
+
+    // Assert
+    expect(mockListAppsFn).toHaveBeenCalledWith('79201ea6-519a-4077-a9a4-75b2a7c4cdeb');
+
+    expect(mockPostMethodAppsFn).toHaveBeenCalledWith(
+      'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas',
+      'test-workflow',
+      null,
+      'Dockstore',
+      'v1.0.0',
+      'github.com/DataBiosphere/test-workflows/test-workflow',
+      [],
+      []
+    );
+
+    expect(setAzureCookieOnUrl).toHaveBeenCalledWith(
+      expect.anything(),
+      'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/',
+      true
+    );
+  });
+
   it('confirms overwrite if workflow already exists', async () => {
     // Arrange
     const user = userEvent.setup();
@@ -221,5 +368,98 @@ describe('ImportWorkflow', () => {
       }),
       { overwrite: true },
     ]);
+  });
+});
+
+describe('resolveRunningCromwellAppUrl', () => {
+  const mockCbasUrl =
+    'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas';
+  const mockCbasUiUrl =
+    'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/';
+
+  const mockCurrentUserEmail = 'abc@gmail.com';
+
+  it.each([
+    { appStatus: 'RUNNING', expectedUrl: { cbasUrl: mockCbasUrl, cbasUiUrl: mockCbasUiUrl } },
+    { appStatus: 'PROVISIONING', expectedUrl: '' },
+    { appStatus: 'STOPPED', expectedUrl: '' },
+    { appStatus: 'STOPPING', expectedUrl: '' },
+    { appStatus: 'ERROR', expectedUrl: '' },
+  ])('returns correct value for Cromwell app in $appStatus from the Leo response', ({ appStatus, expectedUrl }) => {
+    const mockAppsResponse: Array<Object> = [
+      {
+        appType: 'CROMWELL',
+        status: appStatus,
+        proxyUrls: {
+          cbas: mockCbasUrl,
+          'cbas-ui': mockCbasUiUrl,
+        },
+        auditInfo: { creator: mockCurrentUserEmail },
+      },
+    ];
+    expect(resolveRunningCromwellAppUrl(mockAppsResponse, mockCurrentUserEmail)).toEqual(expectedUrl);
+  });
+
+  it('return empty string for Cromwell app not created by current user in the workspace', () => {
+    const mockApps: Array<Object> = [
+      {
+        appType: 'CROMWELL',
+        status: 'RUNNING',
+        proxyUrls: {
+          cbas: mockCbasUrl,
+          'cbas-ui': mockCbasUiUrl,
+        },
+        auditInfo: { creator: 'not-abc@gmail.com' },
+      },
+    ];
+
+    expect(resolveRunningCromwellAppUrl(mockApps, mockCurrentUserEmail)).toBe('');
+  });
+
+  it('return empty string if there exists only WDS app in the workspace', () => {
+    const mockApps: Array<Object> = [
+      {
+        appType: 'WDS',
+        status: 'RUNNING',
+        proxyUrls: {
+          wds: 'https://abc.servicebus.windows.net/wds-79201ea6-519a-4077-a9a4-75b2a7c4cdeb-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/',
+        },
+        auditInfo: { creator: mockCurrentUserEmail },
+      },
+    ];
+
+    expect(resolveRunningCromwellAppUrl(mockApps, mockCurrentUserEmail)).toBe('');
+  });
+
+  it('return the urls from Cromwell app when both Cromwell and WDS app exist in workspace', () => {
+    const mockApps: Array<Object> = [
+      {
+        appType: 'CROMWELL',
+        workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
+        appName: 'terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374',
+        status: 'RUNNING',
+        proxyUrls: { cbas: mockCbasUrl, 'cbas-ui': mockCbasUiUrl },
+        auditInfo: {
+          creator: mockCurrentUserEmail,
+        },
+      },
+      {
+        appType: 'WDS',
+        workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
+        appName: 'wds-79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
+        status: 'RUNNING',
+        proxyUrls: {
+          wds: 'https://abc.servicebus.windows.net/wds-79201ea6-519a-4077-a9a4-75b2a7c4cdeb-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/',
+        },
+        auditInfo: {
+          creator: mockCurrentUserEmail,
+        },
+      },
+    ];
+
+    expect(resolveRunningCromwellAppUrl(mockApps, mockCurrentUserEmail)).toEqual({
+      cbasUrl: mockCbasUrl,
+      cbasUiUrl: mockCbasUiUrl,
+    });
   });
 });
