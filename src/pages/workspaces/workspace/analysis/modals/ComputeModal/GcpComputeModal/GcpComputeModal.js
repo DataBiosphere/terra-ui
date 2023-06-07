@@ -309,6 +309,7 @@ export const GcpComputeModalBase = ({
     const shouldCreateRuntime = !canUpdateRuntime() && !!desiredRuntime;
     const { namespace, name, bucketName, googleProject } = getWorkspaceObject();
     const desiredToolLabel = getToolLabelFromCloudEnv(desiredRuntime);
+    const terraDeploymentEnv = getConfig().terraDeploymentEnv;
 
     const customEnvVars = {
       WORKSPACE_NAME: name,
@@ -316,6 +317,7 @@ export const GcpComputeModalBase = ({
       WORKSPACE_BUCKET: `gs://${bucketName}`,
       GOOGLE_PROJECT: googleProject,
       CUSTOM_IMAGE: isCustomImage.toString(),
+      ...(!!terraDeploymentEnv && { TERRA_DEPLOYMENT_ENV: terraDeploymentEnv }),
     };
 
     sendCloudEnvironmentMetrics();
