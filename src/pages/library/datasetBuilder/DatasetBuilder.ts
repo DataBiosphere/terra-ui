@@ -411,17 +411,18 @@ export const DatasetBuilderContents = ({
         selectedConceptSets,
         onChange: async (conceptSets) => {
           setSelectedConceptSets(conceptSets);
-          const uniqueDomains = _.uniq(
-            _.map(
-              (conceptSet: ConceptSet) => {
-                return conceptSet.domain;
-              },
-              _.flatMap((headerAndValues) => headerAndValues.values, conceptSets)
-            )
-          );
+          const uniqueDomains = _.flow(
+            _.flatMap((headerAndValues: HeaderAndValues<ConceptSet>) => headerAndValues.values),
+            _.map((conceptSet: ConceptSet) => conceptSet.domain),
+            _.uniq,
+            _.sortBy((domain) => domain)
+          )(conceptSets);
           const domainValuesList = await DatasetBuilder().getValuesFromDomains(datasetId, uniqueDomains);
           setValues(
             _.map((domainValues) => ({ header: domainValues.domain, values: domainValues.values }), domainValuesList)
+          );
+          setSelectedValues(
+            _.filter((selectedValueGroup) => _.includes(selectedValueGroup.header, uniqueDomains), selectedValues)
           );
         },
         onStateChange,
