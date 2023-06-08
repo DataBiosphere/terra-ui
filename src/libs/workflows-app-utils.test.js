@@ -27,7 +27,7 @@ describe('resolveRunningCromwellAppUrl', () => {
     expect(resolveRunningCromwellAppUrl(mockAppsResponse, mockCurrentUserEmail)).toEqual(expectedUrl);
   });
 
-  it('return empty string for Cromwell app not created by current user in the workspace', () => {
+  it('returns null for Cromwell app not created by current user in the workspace', () => {
     const mockApps = [
       {
         appType: 'CROMWELL',
@@ -43,7 +43,7 @@ describe('resolveRunningCromwellAppUrl', () => {
     expect(resolveRunningCromwellAppUrl(mockApps, mockCurrentUserEmail)).toBe(null);
   });
 
-  it('return empty string if there exists only WDS app in the workspace', () => {
+  it('returns null if there exists only WDS app in the workspace', () => {
     const mockApps = [
       {
         appType: 'WDS',
