@@ -13,6 +13,7 @@ import { useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { StringInput } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
 import { CohortEditor, CohortEditorState } from 'src/pages/library/datasetBuilder/CohortEditor';
+import { ConceptSetCreator } from 'src/pages/library/datasetBuilder/ConceptSetCreator';
 import {
   PAGE_PADDING_HEIGHT,
   PAGE_PADDING_WIDTH,
@@ -455,6 +456,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   datasetDetails: datasetDetails.state,
                 }),
             ],
+            ['concept-set-creator', () => h(ConceptSetCreator, { onStateChange: setDatasetBuilderState })],
             [Utils.DEFAULT, () => div([datasetBuilderState.type])]
           ),
         ]),

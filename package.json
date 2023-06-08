@@ -8,6 +8,7 @@
     "@fortawesome/free-regular-svg-icons": "^5.15.4",
     "@fortawesome/free-solid-svg-icons": "^5.15.4",
     "@fortawesome/react-fontawesome": "^0.1.15",
+    "@types/react-virtualized": "^9.21.22",
     "animate.css": "^4.1.1",
     "array-move": "^4.0.0",
     "clipboard-polyfill": "^3.0.3",
