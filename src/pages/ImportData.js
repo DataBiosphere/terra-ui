@@ -333,6 +333,16 @@ const ImportDataDestination = ({
   ]);
 };
 
+// This method identifies whether an import source is considered protected data;
+// For now this means pfb imports from AnVIL.
+export const isProtected = (url, filetype) => {
+  const hostname = new URL(url).hostname;
+  const protectedHosts = ['anvil.gi.ucsc.edu', 'anvilproject.org', 'gen3.biodatacatalyst.nhlbi.nih.gov'];
+  return Utils.cond([!filetype || !url, () => false], [filetype.toLowerCase() !== 'pfb', () => false], () =>
+    protectedHosts.some((host) => hostname.endsWith(host))
+  );
+};
+
 // ImportData handles all the information relating to the page itself - this includes:
 // * Reading from the URL
 // * Loading initial Data
@@ -389,14 +399,6 @@ const ImportData = () => {
       asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
       notifyDataImportProgress(jobId);
     };
-  };
-
-  // This method identifies whether an import source is considered protected data;
-  // For now this means pfb imports from AnVIL.
-  const isProtected = (url, filetype) => {
-    const hostname = new URL(url).hostname;
-    const protectedHosts = ['anvil.gi.ucsc.edu', 'anvilproject.org'];
-    return Utils.cond([filetype !== 'pfb', () => false], () => protectedHosts.some((host) => hostname.endsWith(host)));
   };
 
   const importEntitiesJson = (namespace, name) => {
