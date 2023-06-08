@@ -286,7 +286,7 @@ export const CohortSelector = ({
   const [creatingCohort, setCreatingCohort] = useState(false);
 
   return h(Fragment, [
-    h(Selector as React.FC<SelectorProps<Cohort>>, {
+    h(Selector<Cohort>, {
       headerAction: h(
         Link,
         {
