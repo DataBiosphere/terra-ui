@@ -70,8 +70,8 @@ export const resolveRunningCromwellAppUrl = (apps, currentUser) => {
       cbasUiUrl: filteredApps[0].proxyUrls['cbas-ui'],
     };
   }
-  // if there are no Running Cromwell apps or if there are more than one then it's an error state and return empty string
-  return '';
+  // if there are no Running Cromwell apps or if there are more than one then it's an error state and return null
+  return null;
 };
 
 const MethodSource = Object.freeze({
@@ -93,7 +93,16 @@ export const ImportWorkflow = ({ path, version, source }) => {
       .then((apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email));
 
     if (appUrls) {
-      const res = await Ajax(signal).Cbas.methods.post(appUrls.cbasUrl, workflowName, null, MethodSource.Dockstore, version, path, [], []);
+      const postRequestBody = {
+        method_name: workflowName,
+        method_description: null,
+        method_source: MethodSource.Dockstore,
+        method_version: version,
+        method_url: path,
+        method_input_mappings: [],
+        method_output_mappings: [],
+      };
+      const res = await Ajax(signal).Cbas.methods.post(appUrls.cbasUrl, postRequestBody);
 
       await setAzureCookieOnUrl(signal, appUrls.cbasUiUrl, true);
       window.location = `${appUrls.cbasUiUrl}#submission-config/${res.method_id}`;

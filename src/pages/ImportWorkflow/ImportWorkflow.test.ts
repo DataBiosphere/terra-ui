@@ -303,13 +303,15 @@ describe('ImportWorkflow', () => {
 
     expect(mockPostMethodAppsFn).toHaveBeenCalledWith(
       'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas',
-      'test-workflow',
-      null,
-      'Dockstore',
-      'v1.0.0',
-      'github.com/DataBiosphere/test-workflows/test-workflow',
-      [],
-      []
+      expect.objectContaining({
+        method_name: 'test-workflow',
+        method_description: null,
+        method_source: 'Dockstore',
+        method_version: 'v1.0.0',
+        method_url: 'github.com/DataBiosphere/test-workflows/test-workflow',
+        method_input_mappings: [],
+        method_output_mappings: [],
+      })
     );
 
     expect(setAzureCookieOnUrl).toHaveBeenCalledWith(
@@ -381,10 +383,10 @@ describe('resolveRunningCromwellAppUrl', () => {
 
   it.each([
     { appStatus: 'RUNNING', expectedUrl: { cbasUrl: mockCbasUrl, cbasUiUrl: mockCbasUiUrl } },
-    { appStatus: 'PROVISIONING', expectedUrl: '' },
-    { appStatus: 'STOPPED', expectedUrl: '' },
-    { appStatus: 'STOPPING', expectedUrl: '' },
-    { appStatus: 'ERROR', expectedUrl: '' },
+    { appStatus: 'PROVISIONING', expectedUrl: null },
+    { appStatus: 'STOPPED', expectedUrl: null },
+    { appStatus: 'STOPPING', expectedUrl: null },
+    { appStatus: 'ERROR', expectedUrl: null },
   ])('returns correct value for Cromwell app in $appStatus from the Leo response', ({ appStatus, expectedUrl }) => {
     const mockAppsResponse: Array<Object> = [
       {
@@ -413,7 +415,7 @@ describe('resolveRunningCromwellAppUrl', () => {
       },
     ];
 
-    expect(resolveRunningCromwellAppUrl(mockApps, mockCurrentUserEmail)).toBe('');
+    expect(resolveRunningCromwellAppUrl(mockApps, mockCurrentUserEmail)).toBe(null);
   });
 
   it('return empty string if there exists only WDS app in the workspace', () => {
@@ -428,7 +430,7 @@ describe('resolveRunningCromwellAppUrl', () => {
       },
     ];
 
-    expect(resolveRunningCromwellAppUrl(mockApps, mockCurrentUserEmail)).toBe('');
+    expect(resolveRunningCromwellAppUrl(mockApps, mockCurrentUserEmail)).toBe(null);
   });
 
   it('return the urls from Cromwell app when both Cromwell and WDS app exist in workspace', () => {
