@@ -2891,6 +2891,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/hyperscript@npm:^0.0.4":
+  version: 0.0.4
+  resolution: "@types/hyperscript@npm:0.0.4"
+  checksum: fc0a11cf047c5d0befe1e4c3ef8ca6c5af24b0aee41d04da9b006804832574a014644d055b84efbc3c6bb20669d240e0bbf1efbf5ebf35912906f08f80412c00
+  languageName: node
+  linkType: hard
+
 "@types/istanbul-lib-coverage@npm:*, @types/istanbul-lib-coverage@npm:^2.0.0, @types/istanbul-lib-coverage@npm:^2.0.1":
   version: 2.0.3
   resolution: "@types/istanbul-lib-coverage@npm:2.0.3"
@@ -2940,10 +2947,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:^4.14.184":
-  version: 4.14.184
-  resolution: "@types/lodash@npm:4.14.184"
-  checksum: 6d9a4d67f7f9d0ec3fd21174f3dd3d00629dc1227eb469450eace53adbc1f7e2330699c28d0fe093e5f0fef0f0e763098be1f779268857213224af082b62be21
+"@types/lodash@npm:^4.14.195":
+  version: 4.14.195
+  resolution: "@types/lodash@npm:4.14.195"
+  checksum: 39b75ca635b3fa943d17d3d3aabc750babe4c8212485a4df166fe0516e39288e14b0c60afc6e21913cc0e5a84734633c71e617e2bd14eaa1cf51b8d7799c432e
   languageName: node
   linkType: hard
 
@@ -14648,8 +14655,9 @@ __metadata:
     "@testing-library/react": ^12.1.5
     "@testing-library/react-hooks": ^8.0.1
     "@testing-library/user-event": ^14.4.3
+    "@types/hyperscript": ^0.0.4
     "@types/jest": ^28.1.8
-    "@types/lodash": ^4.14.184
+    "@types/lodash": ^4.14.195
     "@types/node": ^18.7.16
     "@types/react": ^18.0.18
     "@types/react-dom": ^18.0.6
