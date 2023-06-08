@@ -14,7 +14,7 @@ describe('isProtected', () => {
     { url: 'https://nonanvil.site.org/file', format: 'tdrexport' },
     { url: 'https://prod.anvil.gi.ucsc.edu/file', format: 'snapshot' },
     { url: 'https://anvilproject.org/', format: 'catalog' },
-    { url: 'https://gen3.biodatacatalyst.nhlbi.nih.gov/explorer', format: 'pfB' },
+    { url: 'https://gen3.biodatacatalyst.nhlbi.nih.gov/explorer', format: 'snapShot' },
   ];
 
   test.each(protectedUrls)('%f with filetype %f should not be protected', ({ url, format }) => {
