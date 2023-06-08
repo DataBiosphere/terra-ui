@@ -18,6 +18,7 @@ import { getUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { workflowNameValidation } from 'src/libs/workflow-utils';
+import { resolveRunningCromwellAppUrl } from 'src/libs/workflows-app-utils';
 import { isGoogleWorkspaceInfo } from 'src/libs/workspace-utils';
 import { setAzureCookieOnUrl } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
 import validate from 'validate.js';
@@ -52,26 +53,6 @@ const styles = {
     minWidth: 0,
     boxShadow: '0 1px 5px 0 rgba(0,0,0,0.26), 0 2px 10px 0 rgba(0,0,0,0.16)',
   },
-};
-
-export const resolveRunningCromwellAppUrl = (apps, currentUser) => {
-  // it looks for Kubernetes deployment status RUNNING expressed by Leo
-  // See here for specific enumerations -- https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
-  // We explicitly look for a RUNNING app because if the CBAS app is not Running, we won't be able to send import method request.
-  const healthyState = 'RUNNING';
-  const cromwellAppType = 'CROMWELL';
-
-  // note: the requirement for checking if the app was created by user will not be needed when we move to multi-user Workflows app where users with
-  // OWNER and WRITER roles will be able to import methods to app created by another user
-  const filteredApps = apps.filter((app) => app.appType === cromwellAppType && app.status === healthyState && app.auditInfo.creator === currentUser);
-  if (filteredApps.length === 1) {
-    return {
-      cbasUrl: filteredApps[0].proxyUrls.cbas,
-      cbasUiUrl: filteredApps[0].proxyUrls['cbas-ui'],
-    };
-  }
-  // if there are no Running Cromwell apps or if there are more than one then it's an error state and return null
-  return null;
 };
 
 const MethodSource = Object.freeze({
