@@ -144,20 +144,26 @@ describe('DatasetBuilder', () => {
   });
 
   it('shows the home page by default', async () => {
+    // Arrange
     render(h(DatasetBuilderView));
     expect(screen.getByTestId('loading-spinner')).toBeTruthy();
+    // Assert
     expect(await screen.findByText('Datasets')).toBeTruthy();
   });
 
   it('shows the cohort editor page', async () => {
+    // Arrange
     const initialState = new CohortEditorState(newCohort('my test cohort'));
     render(h(DatasetBuilderView, { datasetId: 'ignored', initialState }));
+    // Assert
     expect(await screen.findByText(initialState.cohort.name)).toBeTruthy();
   });
 
   it('shows a placeholder page', async () => {
+    // Arrange
     const initialState: DatasetBuilderState = { type: 'concept-selector' };
     render(h(DatasetBuilderView, { datasetId: 'ignored', initialState }));
+    // Assert
     expect(await screen.findByText(initialState.type)).toBeTruthy();
   });
 });
