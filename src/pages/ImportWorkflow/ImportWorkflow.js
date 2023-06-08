@@ -96,7 +96,7 @@ export const ImportWorkflow = ({ path, version, source }) => {
       const res = await Ajax(signal).Cbas.methods.post(appUrls.cbasUrl, workflowName, null, MethodSource.Dockstore, version, path, [], []);
 
       await setAzureCookieOnUrl(signal, appUrls.cbasUiUrl, true);
-      window.open(`${appUrls.cbasUiUrl}#submission-config/${res.method_id}`, '_self');
+      window.location = `${appUrls.cbasUiUrl}#submission-config/${res.method_id}`;
     } else {
       throw new Error(
         "Error finding a Cromwell app in Running state that was created by the current user in the workspace. Either there exists more than one Cromwell app in Running state or there isn't one in Running state."
