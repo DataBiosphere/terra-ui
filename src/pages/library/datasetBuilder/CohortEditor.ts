@@ -22,7 +22,7 @@ import {
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
-import { HomepageState, OnStateChangeType } from 'src/pages/library/datasetBuilder/DatasetBuilder';
+import { HomepageState, OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
 
 type CriteriaViewProps = { criteria: AnyCriteria; deleteCriteria: (criteria: AnyCriteria) => void };
@@ -334,7 +334,7 @@ type CohortEditorContentsProps = {
   updateCohort: CohortUpdater;
   cohort: Cohort;
   datasetDetails: DatasetResponse;
-  onStateChange: OnStateChangeType;
+  onStateChange: OnStateChangeHandler;
 };
 const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
   const { updateCohort, cohort, datasetDetails, onStateChange } = props;
@@ -382,7 +382,7 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
 };
 
 interface CohortEditorProps {
-  onStateChange: OnStateChangeType;
+  onStateChange: OnStateChangeHandler;
   datasetDetails: DatasetResponse;
   originalCohort: Cohort;
 }

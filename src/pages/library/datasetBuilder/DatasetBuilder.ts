@@ -209,13 +209,13 @@ const Selector = <T extends DatasetBuilderType>({
   ]);
 };
 
-export type OnStateChangeType = (state: DatasetBuilderState) => void;
+export type OnStateChangeHandler = (state: DatasetBuilderState) => void;
 export const CreateCohortModal = ({
   onDismiss,
   onStateChange,
 }: {
   onDismiss: () => void;
-  onStateChange: OnStateChangeType;
+  onStateChange: OnStateChangeHandler;
 }) => {
   const [cohortNameTouched, setCohortNameTouched] = useState(false);
   const [cohortName, setCohortName] = useState('');
@@ -281,7 +281,7 @@ export const CohortSelector = ({
 }: {
   selectedCohorts: HeaderAndValues<Cohort>[];
   onChange: (cohorts: HeaderAndValues<Cohort>[]) => void;
-  onStateChange: OnStateChangeType;
+  onStateChange: OnStateChangeHandler;
 }) => {
   const [creatingCohort, setCreatingCohort] = useState(false);
 
@@ -323,7 +323,7 @@ export const ConceptSetSelector = ({
 }: {
   selectedConceptSets: HeaderAndValues<ConceptSet>[];
   onChange: (conceptSets: HeaderAndValues<ConceptSet>[]) => void;
-  onStateChange: OnStateChangeType;
+  onStateChange: OnStateChangeHandler;
 }) => {
   return h(Selector, {
     headerAction: h(
@@ -388,7 +388,7 @@ export const ValuesSelector = ({
   });
 };
 
-export const DatasetBuilderContents = ({ onStateChange }: { onStateChange: OnStateChangeType }) => {
+export const DatasetBuilderContents = ({ onStateChange }: { onStateChange: OnStateChangeHandler }) => {
   const [selectedCohorts, setSelectedCohorts] = useState([] as HeaderAndValues<Cohort>[]);
   const [selectedConceptSets, setSelectedConceptSets] = useState([] as HeaderAndValues<ConceptSet>[]);
   const [selectedValues, setSelectedValues] = useState([] as HeaderAndValues<Value>[]);
