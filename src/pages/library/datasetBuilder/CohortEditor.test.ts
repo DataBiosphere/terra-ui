@@ -27,9 +27,8 @@ describe('CohortEditor', () => {
   it('renders unknown criteria', () => {
     const criteria = { name: 'bogus', invalid: 'property' };
 
-    // This is required to create an invalid "criteria" for testing purposes.
-    // @ts-ignore
-    render(createCriteriaViewComponent(_.noop)(criteria));
+    // The 'as any' is required to create an invalid criteria for testing purposes.
+    render(createCriteriaViewComponent(_.noop)(criteria as any));
 
     expect(screen.queryByText(criteria.name)).toBeFalsy();
     expect(screen.queryByText('Unknown criteria type')).toBeTruthy();

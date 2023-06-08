@@ -15,6 +15,7 @@ import {
   ValuesSelector,
 } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 import { datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/pages/library/datasetBuilder/state';
+import { asMockedFn } from 'src/testing/test-utils';
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
@@ -32,12 +33,10 @@ describe('DatasetBuilder', () => {
   beforeEach(() => {
     datasetBuilderCohorts.reset();
     datasetBuilderConceptSets.reset();
-    // @ts-ignore
-    Nav.useRoute.mockReturnValue({ title: 'Build Dataset', params: {}, query: {} });
+    asMockedFn(Nav.useRoute).mockReturnValue({ title: 'Build Dataset', params: {}, query: {} });
   });
 
   it('renders cohorts', () => {
-    // @ts-ignore
     datasetBuilderCohorts.set([newCohort('cohort 1'), newCohort('cohort 2')]);
     const { getByText } = render(
       h(CohortSelector, { selectedCohorts: [], onChange: (cohorts) => cohorts, onStateChange: (state) => state })
@@ -66,7 +65,6 @@ describe('DatasetBuilder', () => {
     const user = userEvent.setup();
     const onStateChange = jest.fn();
 
-    // @ts-ignore
     const { getByText, findByLabelText } = render(h(CreateCohortModal, { onDismiss: () => {}, onStateChange }));
     // Act
     const cohortName = 'new cohort';
@@ -128,9 +126,8 @@ describe('DatasetBuilder', () => {
   it('allows selecting cohorts and concept sets', async () => {
     // Arrange
     const user = userEvent.setup();
-    // @ts-ignore
-    datasetBuilderCohorts.set([{ name: 'cohort 1' }, { name: 'cohort 2' }]);
-    // @ts-ignore
+
+    datasetBuilderCohorts.set([newCohort('cohort 1'), newCohort('cohort 2')]);
     datasetBuilderConceptSets.set([{ name: 'concept set 1' }, { name: 'concept set 2' }]);
     const { getByLabelText } = render(h(DatasetBuilderContents, { onStateChange: (state) => state }));
     // Act
