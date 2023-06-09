@@ -15,8 +15,6 @@ import {
   DomainCriteria,
   newCohort,
   newCriteriaGroup,
-  ProgramDataListCriteria,
-  ProgramDataRangeCriteria,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { HomepageState } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
@@ -37,7 +35,7 @@ describe('CohortEditor', () => {
 
   it('renders domain criteria', () => {
     // Arrange
-    const criteria = createCriteriaFromType({ id: 0, category: 'category', values: ['value'] }) as DomainCriteria;
+    const criteria: DomainCriteria = createCriteriaFromType({ id: 0, category: 'category', values: ['value'] });
     render(createCriteriaViewComponent(_.noop)(criteria));
     // Assert
     expect(screen.getByText(criteria.domainOption.category, { exact: false })).toBeTruthy();
@@ -51,7 +49,7 @@ describe('CohortEditor', () => {
       name: 'list',
       dataType: 'list',
       values: [{ id: 0, name: 'value' }],
-    }) as ProgramDataListCriteria;
+    });
     render(createCriteriaViewComponent(_.noop)(criteria));
 
     expect(screen.getByText(criteria.name, { exact: false })).toBeTruthy();
@@ -66,7 +64,7 @@ describe('CohortEditor', () => {
       dataType: 'range',
       min: 55,
       max: 99,
-    }) as ProgramDataRangeCriteria;
+    });
     render(createCriteriaViewComponent(_.noop)(criteria));
     // Assert
     expect(screen.getByText(criteria.name, { exact: false })).toBeTruthy();
@@ -187,7 +185,7 @@ describe('CohortEditor', () => {
     const onStateChange = jest.fn();
     datasetBuilderCohorts.set([]);
 
-    render(h(CohortEditor, { onStateChange, datasetDetails, originalCohort }));
+    render(h(CohortEditor, { onStateChangeHandler: onStateChange, datasetDetails, originalCohort }));
     return { originalCohort, onStateChange };
   }
 

@@ -130,9 +130,14 @@ const createDefaultRangeCriteria = (rangeType: ProgramDataRangeOption): ProgramD
   };
 };
 
-type CriteriaType = DomainOption | ProgramDataRangeOption | ProgramDataListOption;
+type CriteriaOption = DomainOption | ProgramDataRangeOption | ProgramDataListOption;
 
-export function createCriteriaFromType(type: CriteriaType): AnyCriteria {
+export function createCriteriaFromType(type: DomainOption): DomainCriteria;
+export function createCriteriaFromType(type: ProgramDataListOption): ProgramDataListCriteria;
+export function createCriteriaFromType(type: ProgramDataRangeOption): ProgramDataRangeCriteria;
+export function createCriteriaFromType(type: CriteriaOption): AnyCriteria;
+
+export function createCriteriaFromType(type: CriteriaOption): AnyCriteria {
   return (
     Utils.condTyped<AnyCriteria>(
       ['category' in type, () => selectDomainCriteria(type as DomainOption)],
@@ -151,7 +156,7 @@ type AddCriteriaSelectorProps = {
 
 const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
   const { index, criteriaGroup, updateCohort, datasetDetails } = props;
-  return h(GroupedSelect<CriteriaType>, {
+  return h(GroupedSelect<CriteriaOption>, {
     styles: { container: (provided) => ({ ...provided, width: '230px', marginTop: wideMargin }) },
     isClearable: false,
     isSearchable: false,
@@ -334,10 +339,10 @@ type CohortEditorContentsProps = {
   updateCohort: CohortUpdater;
   cohort: Cohort;
   datasetDetails: DatasetResponse;
-  onStateChange: OnStateChangeHandler;
+  onStateChangeHandler: OnStateChangeHandler;
 };
 const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
-  const { updateCohort, cohort, datasetDetails, onStateChange } = props;
+  const { updateCohort, cohort, datasetDetails, onStateChangeHandler } = props;
   return div(
     {
       style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` },
@@ -348,7 +353,7 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
           Link,
           {
             onClick: () => {
-              onStateChange(new HomepageState());
+              onStateChangeHandler(new HomepageState());
             },
             'aria-label': 'cancel',
           },
@@ -382,7 +387,7 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
 };
 
 interface CohortEditorProps {
-  onStateChange: OnStateChangeHandler;
+  onStateChangeHandler: OnStateChangeHandler;
   datasetDetails: DatasetResponse;
   originalCohort: Cohort;
 }
@@ -390,14 +395,14 @@ interface CohortEditorProps {
 type CohortUpdater = (updater: (cohort: Cohort) => Cohort) => void;
 
 export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
-  const { onStateChange, datasetDetails, originalCohort } = props;
+  const { onStateChangeHandler, datasetDetails, originalCohort } = props;
   const [cohort, setCohort] = useState(originalCohort);
   const updateCohort: CohortUpdater = (updateCohort: (Cohort) => Cohort) => {
     _.flow(updateCohort, setCohort)(cohort);
   };
 
   return h(Fragment, [
-    h(CohortEditorContents, { updateCohort, cohort, datasetDetails, onStateChange }),
+    h(CohortEditorContents, { updateCohort, cohort, datasetDetails, onStateChangeHandler }),
     // add div to cover page to footer
     div(
       {
@@ -419,7 +424,7 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
               datasetBuilderCohorts.set(
                 _.set(`[${cohortIndex === -1 ? cohorts.length : cohortIndex}]`, cohort, cohorts)
               );
-              onStateChange(new HomepageState());
+              onStateChangeHandler(new HomepageState());
             },
           },
           ['Save cohort']
