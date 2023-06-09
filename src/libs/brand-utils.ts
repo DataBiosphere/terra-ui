@@ -30,7 +30,7 @@ export const pickBrandLogo = (color = false): string => {
   return color ? logos.color : logos.white;
 };
 
-export const isAnalyiXIN = () => getEnabledBrand() === brands.analytiXin;
+export const isAnalyiXIN = () => getEnabledBrand() === brands.analytixin;
 export const isAnvil = () => getEnabledBrand() === brands.anvil;
 export const isBaseline = () => getEnabledBrand() === brands.baseline;
 export const isBioDataCatalyst = () => getEnabledBrand() === brands.bioDataCatalyst;
