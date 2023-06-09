@@ -63,7 +63,7 @@ describe('GcpPersistentDiskSection', () => {
     });
   });
 
-  it('should be disabled when persistentDiskExists is true', () => {
+  it('should not be disabled when persistentDiskExists is true', () => {
     // Arrange
     render(
       h(GcpPersistentDiskSection, {
@@ -75,6 +75,6 @@ describe('GcpPersistentDiskSection', () => {
     // Assert
     expect(screen.getByLabelText('Disk Type')).toBeDisabled();
     expect(screen.getByText('Standard')).toBeTruthy();
-    expect(screen.getByLabelText('Disk Size (GB)')).toBeDisabled();
+    expect(screen.getByLabelText('Disk Size (GB)')).toBeEnabled();
   });
 });
