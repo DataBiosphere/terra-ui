@@ -1,3 +1,5 @@
+import analytiXinLogo from 'src/images/brands/analytiXin/analytixin-logo-color.svg';
+import analytiXinLogoWhite from 'src/images/brands/analytiXin/analytixin-logo-white.svg';
 import anvilLogo from 'src/images/brands/anvil/ANVIL-Logo.svg';
 import anvilLogoWhite from 'src/images/brands/anvil/ANVIL-Logo-White.svg';
 import baselineLogo from 'src/images/brands/baseline/baseline-logo-color.svg';
@@ -67,6 +69,24 @@ export interface BrandConfiguration {
  * https://broadworkbench.atlassian.net/wiki/spaces/WOR/pages/2369388553/Cobranding+and+White+Label+Sites
  */
 export const brands: Record<string, BrandConfiguration> = {
+  analytiXin: {
+    name: 'AnalytiXIN',
+    queryName: 'analytixin',
+    welcomeHeader: 'Welcome to the AnalytiXIN Health Data Platform',
+    description:
+      'The AnalytiXIN Health Data Platform is powered by Terra for biomedical researchers to access AnalytiXIN health data, run analysis tools, and collaborate.',
+    hostName: 'anvil.terra.bio',
+    docLinks: [
+      {
+        link: 'https://support.terra.bio/hc/en-us',
+        text: "Find how-to's, documentation, video tutorials, and discussion forums",
+      },
+    ],
+    logos: {
+      color: analytiXinLogo,
+      white: analytiXinLogoWhite,
+    },
+  },
   anvil: {
     name: 'AnVIL',
     queryName: 'anvil',
