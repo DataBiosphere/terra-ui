@@ -1005,7 +1005,7 @@ export const GcpComputeModalBase = ({
     const { currentNumCpus, currentMemory, validGpuName, validGpuNames, validGpuOptions, validNumGpus, validNumGpusOptions } =
       getValidCpuGpuConfig(mainMachineType);
 
-    const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : isDataproc(runtimeType);
+    const gpuCheckboxDisabled = isDataproc(runtimeType);
     const autoPauseCheckboxEnabled = true;
     const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' };
     const gridItemInputStyle = { minWidth: '6rem' };
@@ -1077,7 +1077,7 @@ export const GcpComputeModalBase = ({
               {
                 checked: computeConfig.gpuEnabled,
                 disabled: gpuCheckboxDisabled,
-                onChange: (v) => updateComputeConfig('gpuEnabled', v || computeConfig.hasGpu),
+                onChange: (v) => updateComputeConfig('gpuEnabled', v),
               },
               [
                 span(['Enable GPUs ', betaVersionTag]),
