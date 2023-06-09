@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
+import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { getUser } from 'src/libs/state';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { setAzureCookieOnUrl } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
@@ -13,9 +14,11 @@ import { ImportWorkflow } from './ImportWorkflow';
 import { useDockstoreWdl } from './useDockstoreWdl';
 
 type AjaxContract = ReturnType<typeof Ajax>;
+type AppsContract = ReturnType<typeof Apps>;
 type WorkspaceUtilsExports = typeof import('src/components/workspace-utils');
 
 jest.mock('src/libs/ajax');
+jest.mock('src/libs/ajax/leonardo/Apps');
 
 jest.mock('src/components/workspace-utils', (): WorkspaceUtilsExports => {
   const { h } = jest.requireActual('react-hyperscript-helpers');
@@ -270,15 +273,19 @@ describe('ImportWorkflow', () => {
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
-          Apps: {
-            listAppsV2: mockListAppsFn,
-          } as Partial<AjaxContract['ListAppResponse']>,
           Cbas: {
             methods: {
               post: mockPostMethodAppsFn,
             },
           } as Partial<AjaxContract['Cbas']>,
         } as Partial<AjaxContract> as AjaxContract)
+    );
+
+    asMockedFn(Apps).mockImplementation(
+      () =>
+        ({
+          listAppsV2: mockListAppsFn as Partial<AjaxContract['Apps']>,
+        } as Partial<AppsContract> as AppsContract)
     );
 
     const testWorkflow = {
