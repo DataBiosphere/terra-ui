@@ -146,8 +146,8 @@ describe('DatasetBuilder', () => {
   it('shows the home page by default', async () => {
     // Arrange
     render(h(DatasetBuilderView));
-    expect(screen.getByTestId('loading-spinner')).toBeTruthy();
     // Assert
+    expect(screen.getByTestId('loading-spinner')).toBeTruthy();
     expect(await screen.findByText('Datasets')).toBeTruthy();
   });
 
