@@ -1,6 +1,7 @@
 import Color from 'color';
 import _ from 'lodash/fp';
 import {
+  isAnalyiXIN,
   isAnvil,
   isBaseline,
   isBioDataCatalyst,
@@ -37,6 +38,7 @@ const colorPalette = Utils.cond(
   [isElwazi(), () => ({ ...baseColors, primary: '#c13f27', secondary: '#c13f27', dark: '#1d1d1b', accent: '#6e3d3b', success: '#9eb642' })],
   [isProjectSingular(), () => ({ ...baseColors, primary: '#521b93', secondary: '#011c48', accent: '#521b93' })],
   [isRareX(), () => ({ ...baseColors, primary: '#26355c', secondary: '#26355c', dark: '#414042', accent: '#4e6888', light: '#f4efea' })],
+  [isAnalyiXIN(), () => ({ ...baseColors, primary: '#0c4da2', secondary: '#000000', dark: '#4f4d51', accent: '#14386e', light: '#a90533' })],
   () => ({ ...baseColors, primary: '#74ae43' })
 );
 
