@@ -90,7 +90,7 @@ export const ImportWorkflow = ({ path, version, source }) => {
       window.location = `${appUrls.cbasUiUrl}#submission-config/${res.method_id}`;
     } else {
       throw new Error(
-        'Error identifying a unique and valid Cromwell App. Cromwell Apps  are valid if they were created by the current user in the workspace and are in a Running state.'
+        'Error identifying a unique and valid Cromwell App. Cromwell Apps are valid if they were created by the current user in the workspace and are in a Running state.'
       );
     }
   };
