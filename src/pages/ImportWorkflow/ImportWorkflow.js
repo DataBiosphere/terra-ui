@@ -9,6 +9,7 @@ import TopBar from 'src/components/TopBar';
 import WDLViewer from 'src/components/WDLViewer';
 import importBackground from 'src/images/hex-import-background.svg';
 import { Ajax } from 'src/libs/ajax';
+import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -69,8 +70,8 @@ export const ImportWorkflow = ({ path, version, source }) => {
   const { wdl, status: wdlStatus } = useDockstoreWdl({ path, version, isTool: source === 'dockstoretools' });
 
   const importToAzureCromwellApp = async (workspaceId) => {
-    const appUrls = await Ajax(signal)
-      .Apps.listAppsV2(workspaceId)
+    const appUrls = await Apps(signal)
+      .listAppsV2(workspaceId)
       .then((apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email));
 
     if (appUrls) {
@@ -89,7 +90,7 @@ export const ImportWorkflow = ({ path, version, source }) => {
       window.location = `${appUrls.cbasUiUrl}#submission-config/${res.method_id}`;
     } else {
       throw new Error(
-        "Error finding a Cromwell app in Running state that was created by the current user in the workspace. Either there exists more than one Cromwell app in Running state or there isn't one in Running state."
+        'Error identifying a unique and valid Cromwell App. Cromwell Apps  are valid if they were created by the current user in the workspace and are in a Running state.'
       );
     }
   };
