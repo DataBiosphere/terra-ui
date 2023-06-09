@@ -1,5 +1,5 @@
-import analytiXinLogo from 'src/images/brands/analytiXin/analytixin-logo-color.svg';
-import analytiXinLogoWhite from 'src/images/brands/analytiXin/analytixin-logo-white.svg';
+import analytixinLogo from 'src/images/brands/analytiXin/analytixin-logo-color.svg';
+import analytixinLogoWhite from 'src/images/brands/analytiXin/analytixin-logo-white.svg';
 import anvilLogo from 'src/images/brands/anvil/ANVIL-Logo.svg';
 import anvilLogoWhite from 'src/images/brands/anvil/ANVIL-Logo-White.svg';
 import baselineLogo from 'src/images/brands/baseline/baseline-logo-color.svg';
@@ -69,7 +69,7 @@ export interface BrandConfiguration {
  * https://broadworkbench.atlassian.net/wiki/spaces/WOR/pages/2369388553/Cobranding+and+White+Label+Sites
  */
 export const brands: Record<string, BrandConfiguration> = {
-  analytiXin: {
+  analytixin: {
     name: 'AnalytiXIN',
     queryName: 'analytixin',
     welcomeHeader: 'Welcome to the AnalytiXIN Health Data Platform',
@@ -83,8 +83,8 @@ export const brands: Record<string, BrandConfiguration> = {
       },
     ],
     logos: {
-      color: analytiXinLogo,
-      white: analytiXinLogoWhite,
+      color: analytixinLogo,
+      white: analytixinLogoWhite,
     },
   },
   anvil: {
