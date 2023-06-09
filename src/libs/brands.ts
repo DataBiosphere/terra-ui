@@ -75,7 +75,7 @@ export const brands: Record<string, BrandConfiguration> = {
     welcomeHeader: 'Welcome to the AnalytiXIN Health Data Platform',
     description:
       'The AnalytiXIN Health Data Platform is powered by Terra for biomedical researchers to access AnalytiXIN health data, run analysis tools, and collaborate.',
-    hostName: 'anvil.terra.bio',
+    hostName: 'analytixin.terra.bio',
     docLinks: [
       {
         link: 'https://support.terra.bio/hc/en-us',
