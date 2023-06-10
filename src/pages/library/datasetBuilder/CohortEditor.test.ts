@@ -5,18 +5,18 @@ import { h } from 'react-hyperscript-helpers';
 import { dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
 import {
   CohortEditor,
-  createCriteriaFromType,
   createCriteriaViewComponent,
+  criteriaFromOption,
   CriteriaGroupView,
 } from 'src/pages/library/datasetBuilder/CohortEditor';
 import {
   Cohort,
   CriteriaGroup,
   DomainCriteria,
+  homepageState,
   newCohort,
   newCriteriaGroup,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
-import { HomepageState } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
 
 describe('CohortEditor', () => {
@@ -35,7 +35,12 @@ describe('CohortEditor', () => {
 
   it('renders domain criteria', () => {
     // Arrange
-    const criteria: DomainCriteria = createCriteriaFromType({ id: 0, category: 'category', values: ['value'] });
+    const criteria: DomainCriteria = criteriaFromOption({
+      kind: 'domain',
+      id: 0,
+      category: 'category',
+      values: ['value'],
+    });
     render(createCriteriaViewComponent(_.noop)(criteria));
     // Assert
     expect(screen.getByText(criteria.domainOption.category, { exact: false })).toBeTruthy();
@@ -44,10 +49,10 @@ describe('CohortEditor', () => {
 
   it('renders list criteria', () => {
     // Arrange
-    const criteria = createCriteriaFromType({
+    const criteria = criteriaFromOption({
       id: 0,
       name: 'list',
-      dataType: 'list',
+      kind: 'list',
       values: [{ id: 0, name: 'value' }],
     });
     render(createCriteriaViewComponent(_.noop)(criteria));
@@ -58,10 +63,10 @@ describe('CohortEditor', () => {
 
   it('renders range criteria', () => {
     // Arrange
-    const criteria = createCriteriaFromType({
+    const criteria = criteriaFromOption({
       id: 0,
       name: 'range',
-      dataType: 'range',
+      kind: 'range',
       min: 55,
       max: 99,
     });
@@ -74,7 +79,7 @@ describe('CohortEditor', () => {
 
   it('can delete criteria', async () => {
     // Arrange
-    const criteria = createCriteriaFromType({ id: 0, name: 'range', dataType: 'range', min: 55, max: 99 });
+    const criteria = criteriaFromOption({ id: 0, name: 'range', kind: 'range', min: 55, max: 99 });
     const deleteCriteria = jest.fn();
 
     render(createCriteriaViewComponent(deleteCriteria)(criteria));
@@ -162,14 +167,14 @@ describe('CohortEditor', () => {
     expect(updateCohort).toHaveBeenCalled();
     const updatedCohort: Cohort = updateCohort.mock.calls[0][0](cohort);
     // Remove ID since it won't match up.
-    const { id: _, ...expectedCriteria } = createCriteriaFromType(domainOption);
+    const { id: _, ...expectedCriteria } = criteriaFromOption(domainOption);
     expect(updatedCohort.criteriaGroups[0].criteria).toMatchObject([expectedCriteria]);
   });
 
   it('can delete criteria from the criteria group', async () => {
     // Arrange
     const { cohort, updateCohort } = showCriteriaGroup((criteriaGroup) =>
-      criteriaGroup.criteria.push(createCriteriaFromType(datasetDetails.domainOptions[0]))
+      criteriaGroup.criteria.push(criteriaFromOption(datasetDetails.domainOptions[0]))
     );
     const user = userEvent.setup();
     // Act
@@ -203,7 +208,7 @@ describe('CohortEditor', () => {
     // Act
     await user.click(screen.getByText('Save cohort'));
     // Assert
-    expect(onStateChange).toBeCalledWith(new HomepageState());
+    expect(onStateChange).toBeCalledWith(homepageState.new());
     expect(datasetBuilderCohorts.get()).toStrictEqual([originalCohort]);
   });
 
@@ -214,7 +219,7 @@ describe('CohortEditor', () => {
     // Act
     await user.click(screen.getByLabelText('cancel'));
     // Assert
-    expect(onStateChange).toBeCalledWith(new HomepageState());
+    expect(onStateChange).toBeCalledWith(homepageState.new());
     expect(datasetBuilderCohorts.get()).toStrictEqual([]);
   });
 

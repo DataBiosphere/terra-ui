@@ -7,21 +7,25 @@ import {
 
 /** A specific criteria based on a type. */
 export interface Criteria {
+  kind: 'domain' | 'range' | 'list';
   name: string;
   id: number;
   count: number;
 }
 
 export interface DomainCriteria extends Criteria {
+  kind: 'domain';
   domainOption: DomainOption;
 }
 
 export interface ProgramDataRangeCriteria extends Criteria {
+  kind: 'range';
   rangeOption: ProgramDataRangeOption;
   low: number;
   high: number;
 }
 export interface ProgramDataListCriteria extends Criteria {
+  kind: 'list';
   listOption: ProgramDataListOption;
   value: ProgramDataListValueOption;
 }
@@ -65,6 +69,35 @@ export interface DatasetBuilderType {
   name: string;
 }
 
+type DatasetBuilderMode = 'homepage' | 'cohort-editor' | 'concept-selector' | 'concept-set-creator';
+
 export interface DatasetBuilderState {
-  type: 'homepage' | 'cohort-editor' | 'concept-selector' | 'concept-set-creator';
+  mode: DatasetBuilderMode;
 }
+
+export interface HomepageState extends DatasetBuilderState {
+  mode: 'homepage';
+}
+
+export const homepageState = {
+  new: (): HomepageState => ({ mode: 'homepage' }),
+};
+
+export interface CohortEditorState extends DatasetBuilderState {
+  mode: 'cohort-editor';
+  readonly cohort: Cohort;
+}
+
+export const cohortEditorState = {
+  new: (cohort: Cohort): CohortEditorState => ({ mode: 'cohort-editor', cohort }),
+};
+
+export interface ConceptSelectorState extends DatasetBuilderState {
+  mode: 'concept-selector';
+}
+
+export interface ConceptSetCreatorState extends DatasetBuilderState {
+  mode: 'concept-set-creator';
+}
+
+export type AnyDatasetBuilderState = HomepageState | CohortEditorState | ConceptSelectorState | ConceptSetCreatorState;

@@ -1,21 +1,20 @@
 // Types that can be used to create a criteria.
 
 export interface DomainOption {
+  kind: 'domain';
   id: number;
   category: string;
   values: string[];
 }
 
-type DataType = 'range' | 'list';
-
 export interface ProgramDataOption {
-  dataType: DataType;
+  kind: 'range' | 'list';
   id: number;
   name: string;
 }
 
 export interface ProgramDataRangeOption extends ProgramDataOption {
-  dataType: 'range';
+  kind: 'range';
   min: number;
   max: number;
 }
@@ -26,7 +25,7 @@ export interface ProgramDataListValueOption {
 }
 
 export interface ProgramDataListOption extends ProgramDataOption {
-  dataType: 'list';
+  kind: 'list';
   values: ProgramDataListValueOption[];
 }
 
@@ -43,11 +42,11 @@ export interface DatasetBuilderContract {
 export const dummyDatasetDetails: DatasetResponse = {
   name: 'AnalytixIndiana',
   programDataOptions: [
-    { id: 1, name: 'Year of birth', dataType: 'range', min: 1900, max: 2023 },
+    { id: 1, name: 'Year of birth', kind: 'range', min: 1900, max: 2023 },
     {
       id: 2,
       name: 'Ethnicity',
-      dataType: 'list',
+      kind: 'list',
       values: [
         { name: 'Hispanic or Latino', id: 20 },
         { name: 'Not Hispanic or Latino', id: 21 },
@@ -57,7 +56,7 @@ export const dummyDatasetDetails: DatasetResponse = {
     {
       id: 3,
       name: 'Gender identity',
-      dataType: 'list',
+      kind: 'list',
       values: [
         { name: 'FEMALE', id: 22 },
         { name: 'MALE', id: 23 },
@@ -67,7 +66,7 @@ export const dummyDatasetDetails: DatasetResponse = {
     {
       id: 4,
       name: 'Race',
-      dataType: 'list',
+      kind: 'list',
       values: [
         { name: 'American Indian or Alaska Native', id: 24 },
         { name: 'Asian', id: 25 },
@@ -78,11 +77,11 @@ export const dummyDatasetDetails: DatasetResponse = {
     },
   ],
   domainOptions: [
-    { id: 10, category: 'Condition', values: ['Heart Disease', 'Diabetes', 'Cancer'] },
-    { id: 11, category: 'Procedure', values: ['Heart Surgery', 'Knee Surgery', 'Cancer Surgery'] },
-    { id: 12, category: 'Observation', values: ['Blood Pressure', 'Weight', 'Height'] },
-    { id: 13, category: 'Drug', values: ['Lipitor', 'Metformin', 'Insulin'] },
-    { id: 14, category: 'Labs and measurements', values: ['Blood Pressure', 'Weight', 'Height'] },
+    { kind: 'domain', id: 10, category: 'Condition', values: ['Heart Disease', 'Diabetes', 'Cancer'] },
+    { kind: 'domain', id: 11, category: 'Procedure', values: ['Heart Surgery', 'Knee Surgery', 'Cancer Surgery'] },
+    { kind: 'domain', id: 12, category: 'Observation', values: ['Blood Pressure', 'Weight', 'Height'] },
+    { kind: 'domain', id: 13, category: 'Drug', values: ['Lipitor', 'Metformin', 'Insulin'] },
+    { kind: 'domain', id: 14, category: 'Labs and measurements', values: ['Blood Pressure', 'Weight', 'Height'] },
   ],
 };
 

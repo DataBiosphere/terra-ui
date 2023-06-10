@@ -3,9 +3,13 @@ import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import * as Nav from 'src/libs/nav';
-import { CohortEditorState } from 'src/pages/library/datasetBuilder/CohortEditor';
 import { PREPACKAGED_CONCEPT_SETS } from 'src/pages/library/datasetBuilder/constants';
-import { ConceptSet, DatasetBuilderState, newCohort } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import {
+  AnyDatasetBuilderState,
+  cohortEditorState,
+  ConceptSet,
+  newCohort,
+} from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import {
   CohortSelector,
   ConceptSetSelector,
@@ -71,7 +75,7 @@ describe('DatasetBuilder', () => {
     fireEvent.change(await findByLabelText('Cohort name *'), { target: { value: cohortName } });
     await user.click(getByText('Create cohort'));
     // Assert
-    expect(onStateChange).toHaveBeenCalledWith(new CohortEditorState(newCohort(cohortName)));
+    expect(onStateChange).toHaveBeenCalledWith(cohortEditorState.new(newCohort(cohortName)));
   });
 
   it('renders concept sets and prepackaged concept sets', () => {
@@ -153,7 +157,7 @@ describe('DatasetBuilder', () => {
 
   it('shows the cohort editor page', async () => {
     // Arrange
-    const initialState = new CohortEditorState(newCohort('my test cohort'));
+    const initialState = cohortEditorState.new(newCohort('my test cohort'));
     render(h(DatasetBuilderView, { datasetId: 'ignored', initialState }));
     // Assert
     expect(await screen.findByText(initialState.cohort.name)).toBeTruthy();
@@ -161,9 +165,9 @@ describe('DatasetBuilder', () => {
 
   it('shows a placeholder page', async () => {
     // Arrange
-    const initialState: DatasetBuilderState = { type: 'concept-selector' };
+    const initialState: AnyDatasetBuilderState = { mode: 'concept-selector' };
     render(h(DatasetBuilderView, { datasetId: 'ignored', initialState }));
     // Assert
-    expect(await screen.findByText(initialState.type)).toBeTruthy();
+    expect(await screen.findByText(initialState.mode)).toBeTruthy();
   });
 });

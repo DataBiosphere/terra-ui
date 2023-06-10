@@ -10,19 +10,20 @@ import { DatasetBuilder, DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 import { useOnMount } from 'src/libs/react-utils';
-import * as Utils from 'src/libs/utils';
 import { StringInput } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
-import { CohortEditor, CohortEditorState } from 'src/pages/library/datasetBuilder/CohortEditor';
+import { CohortEditor } from 'src/pages/library/datasetBuilder/CohortEditor';
 import {
   PAGE_PADDING_HEIGHT,
   PAGE_PADDING_WIDTH,
   PREPACKAGED_CONCEPT_SETS,
 } from 'src/pages/library/datasetBuilder/constants';
 import {
+  AnyDatasetBuilderState,
   Cohort,
+  cohortEditorState,
   ConceptSet,
-  DatasetBuilderState,
   DatasetBuilderType,
+  homepageState,
   newCohort,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { DatasetBuilderHeader } from 'src/pages/library/datasetBuilder/DatasetBuilderHeader';
@@ -209,7 +210,7 @@ const Selector = <T extends DatasetBuilderType>({
   ]);
 };
 
-export type OnStateChangeHandler = (state: DatasetBuilderState) => void;
+export type OnStateChangeHandler = (state: AnyDatasetBuilderState) => void;
 export const CreateCohortModal = ({
   onDismiss,
   onStateChange,
@@ -238,7 +239,7 @@ export const CreateCohortModal = ({
     );
 
   const createCohort = (cohortName) => {
-    onStateChange(new CohortEditorState(newCohort(cohortName)));
+    onStateChange(cohortEditorState.new(newCohort(cohortName)));
   };
 
   return h(
@@ -329,7 +330,7 @@ export const ConceptSetSelector = ({
     headerAction: h(
       Link,
       {
-        onClick: () => onStateChange({ type: 'concept-set-creator' }),
+        onClick: () => onStateChange({ mode: 'concept-set-creator' }),
         'aria-label': 'Create new concept set',
       },
       [icon('plus-circle-filled', { size: 24 })]
@@ -418,21 +419,16 @@ export const DatasetBuilderContents = ({ onStateChange }: { onStateChange: OnSta
 
 interface DatasetBuilderProps {
   datasetId: string;
-  initialState?: DatasetBuilderState;
+  initialState?: AnyDatasetBuilderState;
 }
 
-export class HomepageState implements DatasetBuilderState {
-  get type(): 'homepage' {
-    return 'homepage';
-  }
-}
 const editorBackgroundColor = colors.light(0.7);
 
 export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const { datasetId, initialState } = props;
   const [datasetDetails, loadDatasetDetails] = useLoadedData<DatasetResponse>();
-  const [datasetBuilderState, setDatasetBuilderState] = useState<DatasetBuilderState>(
-    initialState || new HomepageState()
+  const [datasetBuilderState, setDatasetBuilderState] = useState<AnyDatasetBuilderState>(
+    initialState || homepageState.new()
   );
 
   useOnMount(() => {
@@ -443,20 +439,20 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
         h(TopBar, { title: 'Preview', href: '' }, []),
         h(DatasetBuilderHeader, { name: datasetDetails.state.name }),
         div({ style: { backgroundColor: editorBackgroundColor } }, [
-          Utils.switchCase(
-            datasetBuilderState.type,
-            ['homepage', () => h(DatasetBuilderContents, { onStateChange: setDatasetBuilderState })],
-            [
-              'cohort-editor',
-              () =>
-                h(CohortEditor, {
+          (() => {
+            switch (datasetBuilderState.mode) {
+              case 'homepage':
+                return h(DatasetBuilderContents, { onStateChange: setDatasetBuilderState });
+              case 'cohort-editor':
+                return h(CohortEditor, {
                   onStateChangeHandler: setDatasetBuilderState,
-                  originalCohort: (datasetBuilderState as CohortEditorState).cohort,
+                  originalCohort: datasetBuilderState.cohort,
                   datasetDetails: datasetDetails.state,
-                }),
-            ],
-            [Utils.DEFAULT, () => div([datasetBuilderState.type])]
-          ),
+                });
+              default:
+                return div([datasetBuilderState.mode]);
+            }
+          })(),
         ]),
         div({ style: { backgroundColor: editorBackgroundColor, height: '100%' } }, []),
       ])

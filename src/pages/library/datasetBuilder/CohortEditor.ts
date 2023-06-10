@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment, useState } from 'react';
+import React, { Fragment, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
 import { ButtonOutline, ButtonPrimary, GroupedSelect, Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
@@ -16,16 +16,14 @@ import {
   AnyCriteria,
   Cohort,
   CriteriaGroup,
-  DatasetBuilderState,
   DomainCriteria,
+  homepageState,
   newCriteriaGroup,
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
-import { HomepageState, OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
+import { OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
-
-type CriteriaViewProps = { criteria: AnyCriteria; deleteCriteria: (criteria: AnyCriteria) => void };
 
 const flexWithBaseline = {
   display: 'flex',
@@ -35,6 +33,8 @@ const flexWithBaseline = {
 
 const narrowMargin = 5;
 const wideMargin = 10;
+
+type CriteriaViewProps = { criteria: AnyCriteria; deleteCriteria: (criteria: AnyCriteria) => void };
 
 const CriteriaView = ({ criteria, deleteCriteria }: CriteriaViewProps) => {
   return div(
@@ -61,30 +61,18 @@ const CriteriaView = ({ criteria, deleteCriteria }: CriteriaViewProps) => {
           [icon('minus-circle-red', { size: 24, style: { color: colors.danger() } })]
         ),
         div({ style: { marginLeft: narrowMargin } }, [
-          Utils.cond(
-            [
-              'domainOption' in criteria,
-              () => {
-                const domainCriteria = criteria as DomainCriteria;
-                return h(Fragment, [strong([`${domainCriteria.domainOption.category}:`]), ` ${domainCriteria.name}`]);
-              },
-            ],
-            [
-              'listOption' in criteria,
-              () => {
-                const listCriteria = criteria as ProgramDataListCriteria;
-                return h(Fragment, [strong([`${criteria.name}:`]), ` ${listCriteria.value.name}`]);
-              },
-            ],
-            [
-              'rangeOption' in criteria,
-              () => {
-                const rangeCriteria = criteria as ProgramDataRangeCriteria;
-                return h(Fragment, [strong([`${criteria.name}:`]), ` ${rangeCriteria.low} - ${rangeCriteria.high}`]);
-              },
-            ],
-            [Utils.DEFAULT, () => div(['Unknown criteria type'])]
-          ),
+          (() => {
+            switch (criteria.kind) {
+              case 'domain':
+                return h(Fragment, [strong([`${criteria.domainOption.category}:`]), ` ${criteria.name}`]);
+              case 'list':
+                return h(Fragment, [strong([`${criteria.name}:`]), ` ${criteria.value.name}`]);
+              case 'range':
+                return h(Fragment, [strong([`${criteria.name}:`]), ` ${criteria.low} - ${criteria.high}`]);
+              default:
+                return div(['Unknown criteria']);
+            }
+          })(),
         ]),
       ]),
       `Count: ${criteria.count}`,
@@ -97,54 +85,66 @@ export const createCriteriaViewComponent =
     h(CriteriaView, { deleteCriteria, criteria, key: criteria.id });
 
 let criteriaCount = 1;
-const selectDomainCriteria = (domainType: DomainOption): DomainCriteria => {
+const selectDomainCriteria = (domainOption: DomainOption): DomainCriteria => {
   // This needs to be replaced with a UI that lets users select the criteria they want from
   // the list of concepts for this domain.
   return {
-    domainOption: domainType,
-    name: domainType.values[0],
+    kind: 'domain',
+    domainOption,
+    name: domainOption.values[0],
     id: criteriaCount++,
     // Need to call the API service to get the count for the criteria.
     count: 100,
   };
 };
 
-const createDefaultListCriteria = (listType: ProgramDataListOption): ProgramDataListCriteria => {
+const createDefaultListCriteria = (listOption: ProgramDataListOption): ProgramDataListCriteria => {
   return {
-    listOption: listType,
-    name: listType.name,
+    kind: 'list',
+    listOption,
+    name: listOption.name,
     id: criteriaCount++,
     count: 100,
-    value: listType.values[0],
+    value: listOption.values[0],
   };
 };
 
-const createDefaultRangeCriteria = (rangeType: ProgramDataRangeOption): ProgramDataRangeCriteria => {
+const createDefaultRangeCriteria = (rangeOption: ProgramDataRangeOption): ProgramDataRangeCriteria => {
   return {
-    rangeOption: rangeType,
-    name: rangeType.name,
+    kind: 'range',
+    rangeOption,
+    name: rangeOption.name,
     id: criteriaCount++,
     count: 100,
-    low: rangeType.min,
-    high: rangeType.max,
+    low: rangeOption.min,
+    high: rangeOption.max,
   };
 };
 
 type CriteriaOption = DomainOption | ProgramDataRangeOption | ProgramDataListOption;
 
-export function createCriteriaFromType(type: DomainOption): DomainCriteria;
-export function createCriteriaFromType(type: ProgramDataListOption): ProgramDataListCriteria;
-export function createCriteriaFromType(type: ProgramDataRangeOption): ProgramDataRangeCriteria;
-export function createCriteriaFromType(type: CriteriaOption): AnyCriteria;
+export function criteriaFromOption(option: DomainOption): DomainCriteria;
+export function criteriaFromOption(option: ProgramDataListOption): ProgramDataListCriteria;
+export function criteriaFromOption(option: ProgramDataRangeOption): ProgramDataRangeCriteria;
+export function criteriaFromOption(option: CriteriaOption): AnyCriteria;
 
-export function createCriteriaFromType(type: CriteriaOption): AnyCriteria {
-  return (
-    Utils.condTyped<AnyCriteria>(
-      ['category' in type, () => selectDomainCriteria(type as DomainOption)],
-      ['values' in type, () => createDefaultListCriteria(type as ProgramDataListOption)],
-      ['min' in type, () => createDefaultRangeCriteria(type as ProgramDataRangeOption)]
-    ) ?? { domainOption: { id: 0, category: 'unknown', values: [] }, name: 'unknown', count: 0, id: 0 }
-  );
+export function criteriaFromOption(option: CriteriaOption): AnyCriteria {
+  switch (option.kind) {
+    case 'domain':
+      return selectDomainCriteria(option);
+    case 'list':
+      return createDefaultListCriteria(option);
+    case 'range':
+      return createDefaultRangeCriteria(option);
+    default:
+      return {
+        kind: 'domain',
+        domainOption: { kind: 'domain', id: 0, category: 'unknown', values: [] },
+        name: 'unknown',
+        count: 0,
+        id: 0,
+      };
+  }
 }
 
 type AddCriteriaSelectorProps = {
@@ -163,19 +163,19 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
     options: [
       {
         label: 'Domains',
-        options: _.map((domainType) => {
+        options: _.map((domainOption) => {
           return {
-            value: domainType,
-            label: domainType.category,
+            value: domainOption,
+            label: domainOption.category,
           };
         }, datasetDetails.domainOptions),
       },
       {
         label: 'Program Data',
-        options: _.map((programDataType) => {
+        options: _.map((programDataOption) => {
           return {
-            value: programDataType,
-            label: programDataType.name,
+            value: programDataOption,
+            label: programDataOption.name,
           };
         }, datasetDetails.programDataOptions),
       },
@@ -185,7 +185,7 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
     value: null,
     onChange: (x) => {
       if (x !== null) {
-        const criteria = createCriteriaFromType(x.value);
+        const criteria = criteriaFromOption(x.value);
         updateCohort(_.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, criteria));
       }
     },
@@ -353,7 +353,7 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
           Link,
           {
             onClick: () => {
-              onStateChangeHandler(new HomepageState());
+              onStateChangeHandler(homepageState.new());
             },
             'aria-label': 'cancel',
           },
@@ -396,10 +396,8 @@ type CohortUpdater = (updater: (cohort: Cohort) => Cohort) => void;
 
 export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
   const { onStateChangeHandler, datasetDetails, originalCohort } = props;
-  const [cohort, setCohort] = useState(originalCohort);
-  const updateCohort: CohortUpdater = (updateCohort: (Cohort) => Cohort) => {
-    _.flow(updateCohort, setCohort)(cohort);
-  };
+  const [cohort, setCohort] = useState<Cohort>(originalCohort);
+  const updateCohort: CohortUpdater = (updateCohort: (Cohort) => Cohort) => _.flow(updateCohort, setCohort)(cohort);
 
   return h(Fragment, [
     h(CohortEditorContents, { updateCohort, cohort, datasetDetails, onStateChangeHandler }),
@@ -424,7 +422,7 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
               datasetBuilderCohorts.set(
                 _.set(`[${cohortIndex === -1 ? cohorts.length : cohortIndex}]`, cohort, cohorts)
               );
-              onStateChangeHandler(new HomepageState());
+              onStateChangeHandler(homepageState.new());
             },
           },
           ['Save cohort']
@@ -433,15 +431,3 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
     ),
   ]);
 };
-
-export class CohortEditorState implements DatasetBuilderState {
-  get type(): 'cohort-editor' {
-    return 'cohort-editor';
-  }
-
-  readonly cohort: Cohort;
-
-  public constructor(cohort: Cohort) {
-    this.cohort = cohort;
-  }
-}
