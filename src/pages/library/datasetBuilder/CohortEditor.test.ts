@@ -30,7 +30,7 @@ describe('CohortEditor', () => {
     render(createCriteriaViewComponent(_.noop)(criteria as any));
     // Assert
     expect(screen.queryByText(criteria.name)).toBeFalsy();
-    expect(screen.queryByText('Unknown criteria type')).toBeTruthy();
+    expect(screen.queryByText('Unknown criteria')).toBeTruthy();
   });
 
   it('renders domain criteria', () => {
