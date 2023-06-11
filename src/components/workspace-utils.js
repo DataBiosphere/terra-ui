@@ -47,10 +47,17 @@ export const useWorkspaces = () => {
     const ws = await ajax(signal).Workspaces.list([
       'accessLevel',
       'public',
-      'workspace',
       'workspace.attributes.description',
       'workspace.attributes.tag:tags',
-      'workspace.workspaceVersion',
+      'workspace.authorizationDomain',
+      'workspace.cloudPlatform',
+      'workspace.createdBy',
+      // 'workspace.isLocked', // do we actually need this?
+      'workspace.lastModified',
+      'workspace.name',
+      'workspace.namespace',
+      'workspace.workspaceId',
+      // 'workspace.workspaceVersion', // do we actually need this?
     ]);
     workspacesStore.set(ws);
   });
