@@ -1074,7 +1074,7 @@ describe('GcpComputeModal', () => {
   });
 
   // GPUs should function properly
-  it('creates a runtime with GPUs', async () => {
+  it.each([{ tool: runtimeTools.Jupyter }, { tool: runtimeTools.RStudio }])('creates a runtime with GPUs for $tool', async ({ tool }) => {
     // Arrange
     const createFunc = jest.fn();
     const runtimeFunc = jest.fn(() => ({
@@ -1087,10 +1087,14 @@ describe('GcpComputeModal', () => {
         runtime: runtimeFunc,
       },
     }));
-
     // Act
     await act(async () => {
-      await render(h(GcpComputeModalBase, defaultModalProps));
+      await render(
+        h(GcpComputeModalBase, {
+          ...defaultModalProps,
+          tool,
+        })
+      );
       const enableGPU = await screen.getByText('Enable GPUs');
       await userEvent.click(enableGPU);
     });

@@ -1102,7 +1102,7 @@ export const GcpComputeModalBase = ({
                 (id) =>
                   h(Fragment, [
                     label({ htmlFor: id, style: computeStyles.label }, ['GPU type']),
-                    div({ style: { height: 45 } }, [
+                    div([
                       h(Select, {
                         id,
                         isSearchable: false,
