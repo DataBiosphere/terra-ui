@@ -334,7 +334,7 @@ const ImportDataDestination = ({
 };
 
 // This method identifies whether an import source is considered protected data;
-// For now this means pfb imports from AnVIL.
+// For now this means pfb imports from AnVIL or Biodata Catalyst.
 export const isProtected = (url, filetype) => {
   const hostname = new URL(url).hostname;
   const protectedHosts = ['anvil.gi.ucsc.edu', 'anvilproject.org', 'gen3.biodatacatalyst.nhlbi.nih.gov'];
