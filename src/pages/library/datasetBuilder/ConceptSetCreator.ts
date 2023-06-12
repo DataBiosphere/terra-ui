@@ -6,8 +6,36 @@ type Column = {
   name: string;
   width: number;
 };
+
+type Concept = {
+  id: number;
+  name: string;
+  count: number;
+  depth: number;
+  isLeaf: boolean;
+  isVisible: boolean;
+  isExpanded: boolean;
+};
+
+const createConcept = (id: number, name: string, count: number, depth: number, isLeaf: boolean): Concept => {
+  return {
+    id,
+    name,
+    count,
+    isLeaf,
+    depth,
+    isVisible: true,
+    isExpanded: false,
+  };
+};
+
+const getSubConcepts = (concept: Concept): Concept[] => {
+  // Add sub concepts after concept
+  const subConcepts: Concept[] = [];
+};
+
 export const ConceptSetCreator = (props) => {
-  const data = [
+  const data: Concept[] = [
     ['data1', 'prop1'],
     ['data2', 'prop2'],
     ['data3', 'prop3'],
