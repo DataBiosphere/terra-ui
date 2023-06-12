@@ -1,5 +1,8 @@
 // Types that can be used to create a criteria.
 
+import { getRandomInt } from 'src/pages/workspaces/workspace/analysis/_testData/testData';
+import _ from 'lodash/fp';
+
 export interface DomainOption {
   id: number;
   category: string;
@@ -36,8 +39,20 @@ export interface DatasetResponse {
   domainOptions: DomainOption[];
 }
 
+export interface GetConceptsResponse {
+  result: Concept[];
+}
+
+export interface Concept {
+  id: number;
+  name: string;
+  count: number;
+  isLeaf: boolean;
+}
+
 export interface DatasetBuilderContract {
   retrieveDataset: (datasetId: string) => Promise<DatasetResponse>;
+  getConcepts: (parent?: Concept) => Promise<GetConceptsResponse>;
 }
 
 export const dummyDatasetDetails: DatasetResponse = {
@@ -86,7 +101,21 @@ export const dummyDatasetDetails: DatasetResponse = {
   ],
 };
 
+export const generateDummyConcept = (): Concept => ({
+  id: getRandomInt(10000),
+  name: _.uniqueId('name-'),
+  count: getRandomInt(10000),
+  isLeaf: false,
+});
+
+const generateDummyConcepts = (): GetConceptsResponse => {
+  return {
+    result: _.times(generateDummyConcept, 3),
+  };
+};
+
 export const DatasetBuilder = (_signal?: AbortSignal): DatasetBuilderContract => ({
   // TODO: Implement stub code, see DC-722.
   retrieveDataset: (_datasetId) => Promise.resolve(dummyDatasetDetails),
+  getConcepts: (_parent?: Concept) => Promise.resolve(generateDummyConcepts()),
 });

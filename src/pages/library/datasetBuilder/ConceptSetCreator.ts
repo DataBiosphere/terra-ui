@@ -1,45 +1,37 @@
 import _ from 'lodash/fp';
 import { div, h } from 'react-hyperscript-helpers';
 import { Grid } from 'react-virtualized';
+import { Concept, DatasetBuilder, generateDummyConcept } from 'src/libs/ajax/DatasetBuilder';
+import { switchCase } from 'src/libs/utils';
 
 type Column = {
   name: string;
   width: number;
 };
 
-type Concept = {
-  id: number;
-  name: string;
-  count: number;
+type UIConcept = {
+  concept: Concept;
   depth: number;
-  isLeaf: boolean;
   isVisible: boolean;
   isExpanded: boolean;
 };
 
-const createConcept = (id: number, name: string, count: number, depth: number, isLeaf: boolean): Concept => {
-  return {
-    id,
-    name,
-    count,
-    isLeaf,
+const convertConceptToUIConceptCurry =
+  (depth: number) =>
+  (concept: Concept): UIConcept => ({
+    concept,
     depth,
     isVisible: true,
     isExpanded: false,
-  };
-};
+  });
 
-const getSubConcepts = (concept: Concept): Concept[] => {
-  // Add sub concepts after concept
-  const subConcepts: Concept[] = [];
+const getConcepts = async (concept?: UIConcept): Promise<UIConcept[]> => {
+  const result = await DatasetBuilder().getConcepts(concept?.concept);
+  return _.map(convertConceptToUIConceptCurry(concept ? concept.depth + 1 : 0), result.result);
 };
 
 export const ConceptSetCreator = (props) => {
-  const data: Concept[] = [
-    ['data1', 'prop1'],
-    ['data2', 'prop2'],
-    ['data3', 'prop3'],
-  ];
+  const data: UIConcept[] = _.map(convertConceptToUIConceptCurry(0), _.times(generateDummyConcept, 3));
   const columns: Column[] = [
     { name: 'data', width: 300 },
     { name: 'property', width: 50 },
@@ -49,11 +41,14 @@ export const ConceptSetCreator = (props) => {
     rowHeight,
     height: rowHeight * data.length,
     rowCount: data.length,
-    columnCount: data[0].length,
+    columnCount: columns.length,
     columnWidth: (index) => columns[index.index].width,
     width: _.sum(_.map((c) => c.width, columns)),
     noContentMessage: 'No matching data',
-    cellRenderer: ({ rowIndex, columnIndex, style }) => div({ style }, [data[rowIndex][columnIndex]]),
+    cellRenderer: ({ rowIndex, columnIndex, style }) =>
+      div({ style }, [
+        switchCase(columnIndex, [0, () => data[rowIndex].concept.name], [1, () => data[rowIndex].concept.count]),
+      ]),
     border: false,
   });
 };
