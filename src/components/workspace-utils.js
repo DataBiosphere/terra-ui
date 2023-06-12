@@ -44,21 +44,22 @@ export const useWorkspaces = () => {
     withErrorReporting('Error loading workspace list'),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const ws = await ajax(signal).Workspaces.list([
-      'accessLevel',
-      'public',
-      'workspace.attributes.description',
-      'workspace.attributes.tag:tags',
-      'workspace.authorizationDomain',
-      'workspace.cloudPlatform',
-      'workspace.createdBy',
-      // 'workspace.isLocked', // do we actually need this?
-      'workspace.lastModified',
-      'workspace.name',
-      'workspace.namespace',
-      'workspace.workspaceId',
-      // 'workspace.workspaceVersion', // do we actually need this?
-    ]);
+    const ws = await ajax(signal).Workspaces.list(
+      [
+        'accessLevel',
+        'public',
+        'workspace.attributes.description',
+        'workspace.attributes.tag:tags',
+        'workspace.authorizationDomain',
+        'workspace.cloudPlatform',
+        'workspace.createdBy',
+        'workspace.lastModified',
+        'workspace.name',
+        'workspace.namespace',
+        'workspace.workspaceId',
+      ],
+      250
+    );
     workspacesStore.set(ws);
   });
   useOnMount(() => {
