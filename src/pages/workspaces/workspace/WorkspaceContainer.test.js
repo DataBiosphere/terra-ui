@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
-import { WorkspacePermissionNotice, WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+import { WorkspaceContainer, WorkspacePermissionNotice, WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 // Mocking for Nav.getLink
 jest.mock('src/libs/nav', () => ({
@@ -134,5 +134,54 @@ describe('WorkspaceTabs', () => {
         workspaceInfo: { canShare: undefined, isLocked: undefined, isOwner: undefined, workspaceLoaded: false },
       })
     );
+  });
+});
+
+describe('WorkspaceContainer', () => {
+  it('shows a warning for Azure workspaces', async () => {
+    // Arrange
+    const props = {
+      namespace: 'mock-namespace',
+      name: 'mock-name',
+      workspace: { workspace: { cloudPlatform: 'Azure' } },
+      analysesData: {},
+      storageDetails: {},
+    };
+    // Act
+    render(h(WorkspaceContainer, props));
+    // Assert
+    const alert = screen.getByRole('alert');
+    expect(within(alert).getByText(/Do not store Unclassified Confidential Information in this platform/)).not.toBeNull();
+  });
+
+  it('shows a propagation warning for uninitialized Gcp workspaces', async () => {
+    // Arrange
+    const props = {
+      namespace: 'mock-namespace',
+      name: 'mock-name',
+      workspace: { workspaceInitialized: false, workspace: { cloudPlatform: 'Gcp' } },
+      analysesData: {},
+      storageDetails: {},
+    };
+    // Act
+    render(h(WorkspaceContainer, props));
+    // Assert
+    const alert = screen.getByRole('alert');
+    expect(within(alert).getByText(/Google is syncing permissions for this workspace/)).not.toBeNull();
+  });
+
+  it('shows no alerts for initialized Gcp workspaces', async () => {
+    // Arrange
+    const props = {
+      namespace: 'mock-namespace',
+      name: 'mock-name',
+      workspace: { workspaceInitialized: true, workspace: { cloudPlatform: 'Gcp' } },
+      analysesData: {},
+      storageDetails: {},
+    };
+    // Act
+    render(h(WorkspaceContainer, props));
+    // Assert
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 });

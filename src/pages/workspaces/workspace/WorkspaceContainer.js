@@ -151,7 +151,7 @@ export const WorkspaceTabs = ({
   ]);
 };
 
-const WorkspaceContainer = ({
+export const WorkspaceContainer = ({
   namespace,
   name,
   breadcrumbs,
