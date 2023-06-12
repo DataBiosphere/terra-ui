@@ -453,7 +453,7 @@ const CromIAM = (signal) => ({
 
 const Workspaces = (signal) => ({
   list: async (fields, stringAttributeMaxLength) => {
-    const lenParam = stringAttributeMaxLength ? `stringAttributeMaxLength=${stringAttributeMaxLength}&` : '';
+    const lenParam = _.isNil(stringAttributeMaxLength) ? '' : `stringAttributeMaxLength=${stringAttributeMaxLength}&`;
     const res = await fetchRawls(`workspaces?${lenParam}${qs.stringify({ fields }, { arrayFormat: 'comma' })}`, _.merge(authOpts(), { signal }));
     return res.json();
   },
