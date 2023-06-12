@@ -1,7 +1,7 @@
 // Types that can be used to create a criteria.
 
-import { getRandomInt } from 'src/pages/workspaces/workspace/analysis/_testData/testData';
 import _ from 'lodash/fp';
+import { getRandomInt } from 'src/pages/workspaces/workspace/analysis/_testData/testData';
 
 export interface DomainOption {
   id: number;
@@ -105,7 +105,7 @@ export const generateDummyConcept = (): Concept => ({
   id: getRandomInt(10000),
   name: _.uniqueId('name-'),
   count: getRandomInt(10000),
-  isLeaf: false,
+  isLeaf: getRandomInt(10) < 2,
 });
 
 const generateDummyConcepts = (): GetConceptsResponse => {
