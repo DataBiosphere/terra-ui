@@ -17,11 +17,11 @@ describe('isProtected', () => {
     { url: 'https://gen3.biodatacatalyst.nhlbi.nih.gov/explorer', format: 'snapShot' },
   ];
 
-  test.each(protectedUrls)('%o should  be protected', ({ url, format }) => {
+  it.each(protectedUrls)('%o should  be protected', ({ url, format }) => {
     expect(isProtected(url, format)).toBe(true);
   });
 
-  test.each(nonProtectedUrls)('%o should not be protected', ({ url, format }) => {
+  it.each(nonProtectedUrls)('%o should not be protected', ({ url, format }) => {
     expect(isProtected(url, format)).toBe(false);
   });
 });
