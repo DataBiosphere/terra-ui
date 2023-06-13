@@ -317,7 +317,13 @@ export const WorkspaceList = () => {
                     h(
                       FirstParagraphMarkdownViewer,
                       {
-                        style: { ...Style.noWrapEllipsis, margin: 0, color: description ? undefined : colors.dark(0.75), fontSize: 14 },
+                        style: {
+                          height: '1.5rem',
+                          margin: 0,
+                          ...Style.noWrapEllipsis,
+                          color: description ? undefined : colors.dark(0.75),
+                          fontSize: 14,
+                        },
                       },
                       [description?.toString() || 'No description added']
                     ),
