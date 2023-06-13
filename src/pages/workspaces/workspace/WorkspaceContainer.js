@@ -32,9 +32,8 @@ import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceMo
 import { useWorkspace } from 'src/pages/workspaces/workspace/useWorkspace';
 import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu';
 
-const WorkspacePermissionNotice = ({ workspace }) => {
-  const isReadOnly = !Utils.canWrite(workspace.accessLevel);
-  const isLocked = workspace.workspace.isLocked;
+export const WorkspacePermissionNotice = ({ accessLevel, isLocked }) => {
+  const isReadOnly = !Utils.canWrite(accessLevel);
 
   return (
     (isReadOnly || isLocked) &&
@@ -98,7 +97,7 @@ const GooglePermissionsWarning = () => {
   return TitleBarWarning(warningMessage);
 };
 
-const WorkspaceTabs = ({
+export const WorkspaceTabs = ({
   namespace,
   name,
   workspace,
@@ -140,7 +139,7 @@ const WorkspaceTabs = ({
         getHref: (currentTab) => Nav.getLink(_.find({ name: currentTab }, tabs).link, { namespace, name }),
       },
       [
-        workspace && h(WorkspacePermissionNotice, { workspace }),
+        workspace && h(WorkspacePermissionNotice, { accessLevel: workspace.accessLevel, isLocked }),
         h(WorkspaceMenu, {
           iconSize: 27,
           popupLocation: 'bottom',
@@ -152,7 +151,7 @@ const WorkspaceTabs = ({
   ]);
 };
 
-const WorkspaceContainer = ({
+export const WorkspaceContainer = ({
   namespace,
   name,
   breadcrumbs,

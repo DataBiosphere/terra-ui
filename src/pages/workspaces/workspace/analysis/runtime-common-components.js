@@ -151,13 +151,17 @@ export function PeriodicCookieSetter() {
   return null;
 }
 
+export async function setAzureCookieOnUrl(signal, proxyUrl, forApp) {
+  await Ajax(signal).Runtimes.azureProxy(proxyUrl).setAzureCookie();
+  if (forApp) azureCookieReadyStore.update(_.set('readyForApp', true));
+  else azureCookieReadyStore.update(_.set('readyForRuntime', true));
+}
+
 export function PeriodicAzureCookieSetter({ proxyUrl, forApp = false }) {
   const signal = useCancellation();
   usePollingEffect(
     withErrorIgnoring(async () => {
-      await Ajax(signal).Runtimes.azureProxy(proxyUrl).setAzureCookie();
-      if (forApp) azureCookieReadyStore.update(_.set('readyForApp', true));
-      else azureCookieReadyStore.update(_.set('readyForRuntime', true));
+      await setAzureCookieOnUrl(signal, proxyUrl, forApp);
     }),
     { ms: 5 * 60 * 1000, leading: true }
   );
