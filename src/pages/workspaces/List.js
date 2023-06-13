@@ -59,7 +59,26 @@ const styles = {
 };
 
 const useWorkspacesWithSubmissionStats = () => {
-  const { workspaces, loading: loadingWorkspaces, refresh } = useWorkspaces();
+  const {
+    workspaces,
+    loading: loadingWorkspaces,
+    refresh,
+  } = useWorkspaces(
+    [
+      'accessLevel',
+      'public',
+      'workspace.attributes.description',
+      'workspace.attributes.tag:tags',
+      'workspace.authorizationDomain',
+      'workspace.cloudPlatform',
+      'workspace.createdBy',
+      'workspace.lastModified',
+      'workspace.name',
+      'workspace.namespace',
+      'workspace.workspaceId',
+    ],
+    250
+  );
 
   const signal = useCancellation();
   const [loadingSubmissionStats, setLoadingSubmissionStats] = useState(true);
