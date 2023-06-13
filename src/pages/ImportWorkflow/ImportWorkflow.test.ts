@@ -2,14 +2,24 @@ import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { useWorkspaces } from 'src/components/workspace-utils';
+import { Ajax } from 'src/libs/ajax';
+import { Apps } from 'src/libs/ajax/leonardo/Apps';
+import { getUser } from 'src/libs/state';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { setAzureCookieOnUrl } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { importDockstoreWorkflow } from './importDockstoreWorkflow';
 import { ImportWorkflow } from './ImportWorkflow';
 import { useDockstoreWdl } from './useDockstoreWdl';
 
+type AjaxContract = ReturnType<typeof Ajax>;
+type AppsContract = ReturnType<typeof Apps>;
 type WorkspaceUtilsExports = typeof import('src/components/workspace-utils');
+
+jest.mock('src/libs/ajax');
+jest.mock('src/libs/ajax/leonardo/Apps');
+
 jest.mock('src/components/workspace-utils', (): WorkspaceUtilsExports => {
   const { h } = jest.requireActual('react-hyperscript-helpers');
 
@@ -50,6 +60,10 @@ jest.mock('./useDockstoreWdl', () => ({
   }),
 }));
 
+jest.mock('src/pages/workspaces/workspace/analysis/runtime-common-components.js', () => ({
+  setAzureCookieOnUrl: jest.fn().mockResolvedValue(undefined),
+}));
+
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
   goToPath: jest.fn(),
@@ -62,22 +76,107 @@ jest.mock('react-virtualized', () => ({
   AutoSizer: ({ children }) => children({ width: 300 }),
 }));
 
+jest.mock('src/libs/state', () => ({
+  ...jest.requireActual('src/libs/state'),
+  getUser: jest.fn(),
+}));
+
+jest.mock('react-notifications-component', () => {
+  return {
+    store: {
+      addNotification: jest.fn(),
+      removeNotification: jest.fn(),
+    },
+  };
+});
+
 describe('ImportWorkflow', () => {
+  const mockAppResponse = [
+    {
+      workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
+      cloudContext: {
+        cloudProvider: 'AZURE',
+      },
+      status: 'RUNNING',
+      proxyUrls: {
+        cbas: 'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas',
+        'cbas-ui':
+          'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/',
+        cromwell:
+          'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cromwell',
+      },
+      appName: 'terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374',
+      appType: 'CROMWELL',
+      auditInfo: {
+        creator: 'abc@gmail.com',
+      },
+    },
+    {
+      workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
+      cloudContext: {
+        cloudProvider: 'AZURE',
+      },
+      status: 'RUNNING',
+      proxyUrls: {
+        wds: 'https://abc.servicebus.windows.net/wds-79201ea6-519a-4077-a9a4-75b2a7c4cdeb-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/',
+      },
+      appName: 'wds-79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
+      appType: 'WDS',
+      auditInfo: {
+        creator: 'abc@gmail.com',
+      },
+    },
+  ];
+
   beforeAll(() => {
     // Arrange
     asMockedFn(useWorkspaces).mockReturnValue({
       workspaces: [
         {
-          workspace: { namespace: 'test', name: 'workspace1', workspaceId: '6771d2c8-cd58-47da-a54c-6cdafacc4175' },
+          workspace: {
+            namespace: 'test',
+            name: 'workspace1',
+            workspaceId: '6771d2c8-cd58-47da-a54c-6cdafacc4175',
+            cloudPlatform: 'Gcp',
+          },
           accessLevel: 'WRITER',
         },
         {
-          workspace: { namespace: 'test', name: 'workspace2', workspaceId: '5cfa16d8-d604-4de8-8e8a-acde05d71b99' },
+          workspace: {
+            namespace: 'test',
+            name: 'workspace2',
+            workspaceId: '5cfa16d8-d604-4de8-8e8a-acde05d71b99',
+            cloudPlatform: 'Gcp',
+          },
+          accessLevel: 'WRITER',
+        },
+        {
+          workspace: {
+            namespace: 'azure-test1',
+            name: 'azure-workspace1',
+            workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
+            cloudPlatform: 'Azure',
+            createdBy: 'abc@gmail.com',
+          },
+          accessLevel: 'OWNER',
+        },
+        {
+          workspace: {
+            namespace: 'azure-test2',
+            name: 'azure-workspace2',
+            workspaceId: 'c2486653-f5dc-4a86-826a-4ba8c6624d10',
+            cloudPlatform: 'Azure',
+            createdBy: 'not-abc@gmail.com',
+          },
           accessLevel: 'WRITER',
         },
       ] as WorkspaceWrapper[],
       refresh: () => Promise.resolve(),
       loading: false,
+    });
+
+    asMockedFn(getUser).mockReturnValue({
+      email: 'abc@gmail.com',
     });
   });
 
@@ -170,6 +269,107 @@ describe('ImportWorkflow', () => {
       }),
       { overwrite: false }
     );
+  });
+
+  it('it imports the workflow into the selected Azure workspace', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mockPostMethodResponse = {
+      method_id: '031e1da5-b977-4467-b1d7-acc7054fe72d',
+      run_set_id: 'd250fe2e-d5c2-4ccc-8484-3cd6179e312c',
+    };
+    const mockListAppsFn = jest.fn(() => Promise.resolve(mockAppResponse));
+    const mockPostMethodAppsFn = jest.fn(() => Promise.resolve(mockPostMethodResponse));
+
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Cbas: {
+            methods: {
+              post: mockPostMethodAppsFn,
+            },
+          } as Partial<AjaxContract['Cbas']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
+
+    asMockedFn(Apps).mockImplementation(
+      () =>
+        ({
+          listAppsV2: mockListAppsFn as Partial<AjaxContract['Apps']>,
+        } as Partial<AppsContract> as AppsContract)
+    );
+
+    const testWorkflow = {
+      path: 'github.com/DataBiosphere/test-workflows/test-workflow',
+      version: 'v1.0.0',
+      source: 'dockstore',
+    };
+
+    render(h(ImportWorkflow, { ...testWorkflow }));
+
+    // Act
+    const workspaceMenu = screen.getByLabelText('Destination Workspace');
+    await user.click(workspaceMenu);
+    const option = screen.getAllByRole('option').find((el) => el.textContent === 'azure-workspace1')!;
+    await user.click(option);
+
+    const importButton = screen.getByText('Import');
+    await act(() => user.click(importButton));
+
+    // Assert
+    expect(mockListAppsFn).toHaveBeenCalledWith('79201ea6-519a-4077-a9a4-75b2a7c4cdeb');
+
+    expect(mockPostMethodAppsFn).toHaveBeenCalledWith(
+      'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas',
+      expect.objectContaining({
+        method_name: 'test-workflow',
+        method_description: null,
+        method_source: 'Dockstore',
+        method_version: 'v1.0.0',
+        method_url: 'github.com/DataBiosphere/test-workflows/test-workflow',
+        method_input_mappings: [],
+        method_output_mappings: [],
+      })
+    );
+
+    expect(setAzureCookieOnUrl).toHaveBeenCalledWith(
+      expect.anything(),
+      'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/',
+      true
+    );
+  });
+
+  it("it should not import workflow into workspace where workspace wasn't created by current user", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mockListAppsFn = jest.fn(() => Promise.resolve(mockAppResponse));
+
+    asMockedFn(Apps).mockImplementation(
+      () =>
+        ({
+          listAppsV2: mockListAppsFn as Partial<AjaxContract['Apps']>,
+        } as Partial<AppsContract> as AppsContract)
+    );
+
+    const testWorkflow = {
+      path: 'github.com/DataBiosphere/test-workflows/test-workflow',
+      version: 'v1.0.0',
+      source: 'dockstore',
+    };
+
+    render(h(ImportWorkflow, { ...testWorkflow }));
+
+    // Act
+    const workspaceMenu = screen.getByLabelText('Destination Workspace');
+    await user.click(workspaceMenu);
+    const option = screen.getAllByRole('option').find((el) => el.textContent === 'azure-workspace2')!;
+    await user.click(option);
+
+    const importButton = screen.getByText('Import');
+    await act(() => user.click(importButton));
+
+    // Assert
+    expect(mockListAppsFn).toBeCalledTimes(0);
   });
 
   it('confirms overwrite if workflow already exists', async () => {
