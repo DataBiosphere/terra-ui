@@ -116,6 +116,10 @@ export const ImportWorkflow = ({ path, version, source }) => {
         Ajax(signal).Metrics.captureEvent(Events.workflowImport, { ...eventData, success: true });
         Nav.goToPath('workflow', { namespace, name, workflowNamespace: namespace, workflowName });
       } else {
+        if (workspace.createdBy !== getUser()?.email) {
+          throw new Error('Currently only a workspace creator can import workflow to their Azure workspace.');
+        }
+
         await importToAzureCromwellApp(workspaceId);
       }
     } catch (error) {

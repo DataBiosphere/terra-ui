@@ -152,10 +152,21 @@ describe('ImportWorkflow', () => {
         },
         {
           workspace: {
-            namespace: 'azure-test',
+            namespace: 'azure-test1',
             name: 'azure-workspace1',
             workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
             cloudPlatform: 'Azure',
+            createdBy: 'abc@gmail.com',
+          },
+          accessLevel: 'OWNER',
+        },
+        {
+          workspace: {
+            namespace: 'azure-test2',
+            name: 'azure-workspace2',
+            workspaceId: 'c2486653-f5dc-4a86-826a-4ba8c6624d10',
+            cloudPlatform: 'Azure',
+            createdBy: 'not-abc@gmail.com',
           },
           accessLevel: 'WRITER',
         },
@@ -326,6 +337,39 @@ describe('ImportWorkflow', () => {
       'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/',
       true
     );
+  });
+
+  it("it should not import workflow into workspace where workspace wasn't created by current user", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mockListAppsFn = jest.fn(() => Promise.resolve(mockAppResponse));
+
+    asMockedFn(Apps).mockImplementation(
+      () =>
+        ({
+          listAppsV2: mockListAppsFn as Partial<AjaxContract['Apps']>,
+        } as Partial<AppsContract> as AppsContract)
+    );
+
+    const testWorkflow = {
+      path: 'github.com/DataBiosphere/test-workflows/test-workflow',
+      version: 'v1.0.0',
+      source: 'dockstore',
+    };
+
+    render(h(ImportWorkflow, { ...testWorkflow }));
+
+    // Act
+    const workspaceMenu = screen.getByLabelText('Destination Workspace');
+    await user.click(workspaceMenu);
+    const option = screen.getAllByRole('option').find((el) => el.textContent === 'azure-workspace2')!;
+    await user.click(option);
+
+    const importButton = screen.getByText('Import');
+    await act(() => user.click(importButton));
+
+    // Assert
+    expect(mockListAppsFn).toBeCalledTimes(0);
   });
 
   it('confirms overwrite if workflow already exists', async () => {
