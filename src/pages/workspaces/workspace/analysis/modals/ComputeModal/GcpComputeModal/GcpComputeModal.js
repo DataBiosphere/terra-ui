@@ -10,7 +10,6 @@ import { withModalDrawer } from 'src/components/ModalDrawer';
 import { InfoBox } from 'src/components/PopupTrigger';
 import { getAvailableComputeRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isUSLocation } from 'src/components/region-common';
 import TitleBar from 'src/components/TitleBar';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import { cloudServices, isMachineTypeSmaller, machineTypes } from 'src/data/gce-machines';
 import { Ajax } from 'src/libs/ajax';
 import { googlePdTypes } from 'src/libs/ajax/leonardo/models/disk-models';
@@ -1006,8 +1005,7 @@ export const GcpComputeModalBase = ({
     const { currentNumCpus, currentMemory, validGpuName, validGpuNames, validGpuOptions, validNumGpus, validNumGpusOptions } =
       getValidCpuGpuConfig(mainMachineType);
 
-    const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : isDataproc(runtimeType) || isRStudioImage;
-    const enableGpusSpan = span(['Enable GPUs ', betaVersionTag]);
+    const gpuCheckboxDisabled = isDataproc(runtimeType);
     const autoPauseCheckboxEnabled = true;
     const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' };
     const gridItemInputStyle = { minWidth: '6rem' };
@@ -1079,23 +1077,10 @@ export const GcpComputeModalBase = ({
               {
                 checked: computeConfig.gpuEnabled,
                 disabled: gpuCheckboxDisabled,
-                onChange: (v) => updateComputeConfig('gpuEnabled', v || computeConfig.hasGpu),
+                onChange: (v) => updateComputeConfig('gpuEnabled', v),
               },
               [
-                span({ style: { marginLeft: '0.5rem', ...computeStyles.label, verticalAlign: 'top' } }, [
-                  gpuCheckboxDisabled
-                    ? h(
-                        TooltipTrigger,
-                        {
-                          content: isRStudioImage
-                            ? 'GPUs are not currently supported for the selected application configuration.'
-                            : 'GPUs can be added only to Standard VM compute at creation time.',
-                          side: 'right',
-                        },
-                        [enableGpusSpan]
-                      )
-                    : enableGpusSpan,
-                ]),
+                span(['Enable GPUs ', betaVersionTag]),
                 h(
                   Link,
                   {
@@ -1117,7 +1102,7 @@ export const GcpComputeModalBase = ({
                 (id) =>
                   h(Fragment, [
                     label({ htmlFor: id, style: computeStyles.label }, ['GPU type']),
-                    div({ style: { height: 45 } }, [
+                    div([
                       h(Select, {
                         id,
                         isSearchable: false,
