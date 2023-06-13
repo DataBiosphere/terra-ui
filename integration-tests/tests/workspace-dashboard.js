@@ -63,7 +63,9 @@ const testGoogleWorkspace = _.flow(
 
   // Check selected items in cloud information
   const currentDate = new Date().toLocaleDateString();
-  await dashboard.assertCloudInformation(['Cloud NameGoogle Cloud Platform', `Bucket SizeUpdated on ${currentDate}0 B`]);
+  await dashboard.assertCloudInformation([`Bucket SizeUpdated on ${currentDate}0 B`]);
+  // Different versions have different ways of dealing with the SVG text.
+  await page.waitForXPath('//*[contains(normalize-space(.),"Cloud NameGoogle Cloud Platform") or @title="Google Cloud Platform"]');
 
   // Verify expected tabs are present.
   await dashboard.assertTabs(['data', 'analyses', 'workflows', 'job history'], true);
