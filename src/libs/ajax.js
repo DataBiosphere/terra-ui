@@ -6,7 +6,6 @@ import {
   authOpts,
   fetchAgora,
   fetchBond,
-  fetchCbas,
   fetchDataRepo,
   fetchDrsHub,
   fetchEcm,
@@ -22,7 +21,6 @@ import {
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import { Billing } from 'src/libs/ajax/Billing';
 import { Catalog } from 'src/libs/ajax/Catalog';
-import { Cbas } from 'src/libs/ajax/Cbas';
 import { Dockstore } from 'src/libs/ajax/Dockstore';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
@@ -1094,14 +1092,6 @@ const Surveys = (signal) => ({
   submitForm: (formId, data) => fetchGoogleForms(`${formId}/formResponse?${qs.stringify(data)}`, { signal }),
 });
 
-const Cbas = (signal) => ({
-  status: async () => {
-    const res = await fetchCbas('/status', { signal });
-    // console.log(res.json());
-    return res.json();
-  },
-});
-
 export const Ajax = (signal) => {
   return {
     User: User(signal),
@@ -1128,7 +1118,6 @@ export const Ajax = (signal) => {
     Surveys: Surveys(signal),
     WorkspaceData: WorkspaceData(signal),
     WorkspaceManagerResources: WorkspaceManagerResources(signal),
-    Cbas: Cbas(signal),
   };
 };
 
