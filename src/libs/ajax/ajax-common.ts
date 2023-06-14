@@ -240,3 +240,6 @@ export const fetchGoogleForms = _.flow(
 
 export const fetchWDS = (wdsProxyUrlRoot) =>
   _.flow(withUrlPrefix(`${wdsProxyUrlRoot}/`), withRetryAfterReloadingExpiredAuthToken)(fetchOk);
+
+export const fetchCbas = (cbasProxyUrlRoot) =>
+  _.flow(withUrlPrefix(`${cbasProxyUrlRoot}/`), withRetryAfterReloadingExpiredAuthToken)(fetchOk);

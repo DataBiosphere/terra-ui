@@ -157,8 +157,8 @@ const galaxyDiskUpdatedPd: DecoratedPersistentDisk = {
   },
   blockSize: 4096,
   diskType: {
-    displayName: 'Standard',
-    label: 'pd-standard',
+    label: 'Standard',
+    value: 'pd-standard',
     regionToPricesName: 'monthlyStandardDiskPrice',
   },
   cloudContext: {
@@ -202,8 +202,8 @@ const galaxyDeletingDiskUpdatedPd: DecoratedPersistentDisk = {
   },
   blockSize: 4096,
   diskType: {
-    displayName: 'Standard',
-    label: 'pd-standard',
+    label: 'Standard',
+    value: 'pd-standard',
     regionToPricesName: 'monthlyStandardDiskPrice',
   },
   cloudContext: {
@@ -246,8 +246,8 @@ const cromwellUnattachedDiskUpdatedPd: DecoratedPersistentDisk = {
   },
   blockSize: 4096,
   diskType: {
-    displayName: 'Standard',
-    label: 'pd-standard',
+    label: 'Standard',
+    value: 'pd-standard',
     regionToPricesName: 'monthlyStandardDiskPrice',
   },
   cloudContext: {
@@ -291,8 +291,8 @@ const cromwellProvisioningDiskUpdatedPd: DecoratedPersistentDisk = {
   },
   blockSize: 4096,
   diskType: {
-    displayName: 'Standard',
-    label: 'pd-standard',
+    label: 'Standard',
+    value: 'pd-standard',
     regionToPricesName: 'monthlyStandardDiskPrice',
   },
   cloudContext: {

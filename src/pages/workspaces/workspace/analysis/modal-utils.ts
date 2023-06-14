@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import { cloudServices } from 'src/data/gce-machines';
-import { PdType, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { GooglePdType, PersistentDisk, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
 import {
   defaultDataprocMachineType,
   getDefaultMachineType,
@@ -9,7 +9,9 @@ import { getToolLabelFromCloudEnv } from 'src/pages/workspaces/workspace/analysi
 
 export interface IComputeConfig {
   diskSize: number;
-  diskType: PdType;
+  diskType: GooglePdType;
+  persistentDiskSize: number;
+  persistentDiskType: SharedPdType; // TODO: Switch to DiskType
   masterMachineType: string;
   masterDiskSize: number;
   numberOfWorkers: number;

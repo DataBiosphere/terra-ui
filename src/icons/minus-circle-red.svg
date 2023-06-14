@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>remove</title>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Tanagra-2-conditions---disease" transform="translate(-189.000000, -652.000000)" fill="#DB3214" fill-rule="nonzero">
+            <g id="Group-5" transform="translate(57.000000, 636.000000)">
+                <g id="remove" transform="translate(132.000000, 16.000000)">
+                    <path d="M10.75,7.25 C11.1656246,7.25 11.5,7.5843749 11.5,8 C11.5,8.41562462 11.1656246,8.75 10.75,8.75 L5.25,8.75 C4.8343749,8.75 4.5,8.41562462 4.5,8 C4.5,7.5843749 4.8343749,7.25 5.25,7.25 L10.75,7.25 Z M16,8 C16,12.4187498 12.4187498,16 8,16 C3.58125019,16 0,12.4187498 0,8 C0,3.58125019 3.58125019,0 8,0 C12.4187498,0 16,3.58125019 16,8 Z M8,1.5 C4.40937519,1.5 1.5,4.40937519 1.5,8 C1.5,11.5906248 4.40937519,14.5 8,14.5 C11.5906248,14.5 14.5,11.5906248 14.5,8 C14.5,4.40937519 11.5906248,1.5 8,1.5 Z" id="Shape"></path>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

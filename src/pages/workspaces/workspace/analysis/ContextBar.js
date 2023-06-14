@@ -193,13 +193,13 @@ export const ContextBar = ({
         setCloudEnvOpen(false);
         setSelectedToolIcon(undefined);
         await refreshRuntimes(true);
-        await refreshApps();
+        await refreshApps(true);
       },
       onDismiss: async () => {
         setCloudEnvOpen(false);
         setSelectedToolIcon(undefined);
         await refreshRuntimes(true);
-        await refreshApps();
+        await refreshApps(true);
       },
       runtimes,
       apps,

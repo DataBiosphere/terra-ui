@@ -137,23 +137,11 @@ export const log = (...args) => {
   return _.last(args);
 };
 
-const maybeCall = (maybeFn) => (_.isFunction(maybeFn) ? maybeFn() : maybeFn);
+const maybeCall = <T>(maybeFn: T | (() => T)) => (_.isFunction(maybeFn) ? maybeFn() : maybeFn);
 
-/**
- * Takes any number of [predicate, value] pairs, followed by an optional default value.
- * Returns value() for the first truthy predicate, otherwise returns the default value().
- * Returns undefined if no predicate matches and there is no default value.
- *
- * DEPRECATED: If a value is not a function, it will be returned directly instead.
- * This behavior is deprecated, and will be removed in the future.
- */
-export const cond = (...args) => {
-  console.assert(
-    _.every((arg) => {
-      return _.isFunction(arg) || (_.isArray(arg) && arg.length === 2 && _.isFunction(arg[1]));
-    }, args),
-    'Invalid arguments to Utils.cond'
-  );
+type CondArgType<T> = [boolean | typeof DEFAULT, T | (() => T)] | (() => T);
+
+export const condTyped = <T>(...args: CondArgType<T>[]): T | undefined => {
   for (const arg of args) {
     if (_.isArray(arg)) {
       const [predicate, value] = arg;
@@ -164,18 +152,37 @@ export const cond = (...args) => {
   }
 };
 
+/**
+ * Takes any number of [predicate, value] pairs, followed by an optional default value.
+ * Returns value() for the first truthy predicate, otherwise returns the default value().
+ * Returns undefined if no predicate matches and there is no default value.
+ *
+ * DEPRECATED: If a value is not a function, it will be returned directly instead.
+ * This behavior is deprecated, and will be removed in the future.
+ *
+ * @Deprecated use condTyped instead
+ */
+export const cond = (...args: any[]): any => {
+  console.assert(
+    _.every((arg) => {
+      return _.isFunction(arg) || (_.isArray(arg) && arg.length === 2 && _.isFunction(arg[1]));
+    }, args),
+    'Invalid arguments to Utils.cond'
+  );
+  return condTyped(...args);
+};
+
 export const DEFAULT = Symbol('Default switch case');
 
 export const switchCase = (value, ...pairs) => {
   const match = _.find(([v]) => v === value || v === DEFAULT, pairs);
   return match && match[1]();
 };
-
-// TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
-export const toIndexPairs = _.flow(
-  _.toPairs,
-  _.map(([k, v]) => [(k as any) * 1, v])
-);
+export const toIndexPairs = <T>(obj: T[]): [number, T][] =>
+  _.flow(
+    _.toPairs,
+    _.map(([k, v]: [string, T]) => [+k, v])
+  )(obj);
 
 // TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
 /**

@@ -5,8 +5,8 @@ import {
   DecoratedPersistentDisk,
   diskStatuses,
   GoogleDiskType,
-  PdType,
-  pdTypes,
+  GooglePdType,
+  googlePdTypes,
   PersistentDisk,
 } from 'src/libs/ajax/leonardo/models/disk-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
@@ -18,15 +18,16 @@ import {
 import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import { AppToolLabel, appTools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
-export const pdTypeFromDiskType = (type: GoogleDiskType): PdType =>
+export const pdTypeFromDiskType = (type: GoogleDiskType): GooglePdType =>
   Utils.switchCase(
     type,
-    [pdTypes.standard.label, () => pdTypes.standard],
-    [pdTypes.balanced.label, () => pdTypes.balanced],
-    [pdTypes.ssd.label, () => pdTypes.ssd],
+    [googlePdTypes.standard.value, () => googlePdTypes.standard],
+    [googlePdTypes.balanced.value, () => googlePdTypes.balanced],
+    [googlePdTypes.ssd.value, () => googlePdTypes.ssd],
     [
       Utils.DEFAULT,
-      () => console.error(`Invalid disk type: Should not be calling pdTypes.fromString for ${JSON.stringify(type)}`),
+      () =>
+        console.error(`Invalid disk type: Should not be calling googlePdTypes.fromString for ${JSON.stringify(type)}`),
     ]
   );
 export const updatePdType = (disk: PersistentDisk): DecoratedPersistentDisk => ({
@@ -41,7 +42,7 @@ export const defaultDataprocWorkerDiskSize = 150;
 // with a PD has been non-user-customizable. Terra UI uses the value below for cost estimate calculations only.
 export const defaultGceBootDiskSize = 120;
 export const defaultGcePersistentDiskSize = 50;
-export const defaultPersistentDiskType = pdTypes.standard;
+export const defaultPersistentDiskType = googlePdTypes.standard;
 export const getCurrentAttachedDataDisk = (
   app: App,
   appDataDisks: PersistentDisk[]
