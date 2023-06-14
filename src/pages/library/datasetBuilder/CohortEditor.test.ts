@@ -20,7 +20,7 @@ import {
 import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
 
 describe('CohortEditor', () => {
-  const datasetDetails = dummyDatasetDetails('axin');
+  const datasetDetails = dummyDatasetDetails('unused');
 
   it('renders unknown criteria', () => {
     // Arrange

@@ -38,7 +38,7 @@ const TileDisplay = (props: DomainDisplayProps) => {
                 marginRight: '1rem',
                 border: `1px solid ${colors.light()}`,
               },
-              key: _.uniqueId(''),
+              key: displayTile.category,
             },
             [
               h3([displayTile.category]),
