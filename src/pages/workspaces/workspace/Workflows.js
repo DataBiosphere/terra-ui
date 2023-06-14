@@ -481,6 +481,52 @@ export const Workflows = _.flow(
   ]);
 });
 
+// export const AzureWorkflows = _.flow(
+//   forwardRefWithName('Azure Workflows'),
+//   wrapWorkspace({
+//     breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
+//     title: '',
+//     activeTab: 'workflows',
+//   })
+// )(({ namespace, name }, ref) => {
+//   // State
+//   // const [loading, setLoading] = useState(true);
+//   // const [sortOrder, setSortOrder] = useState(() => StateHistory.get().sortOrder || defaultSort.value);
+//   // const [filter, setFilter] = useState(() => StateHistory.get().filter || '');
+//   // const [configs, setConfigs] = useState(() => StateHistory.get().configs || undefined);
+//   // const [statuses, setStatuses] = useState();
+//
+//   const signal = useCancellation();
+//
+//   // Helpers
+//   // const refresh = _.flow(
+//   //   // Utils.withBusyState(setLoading),
+//   //   withErrorReporting('Error loading configs')
+//   // )(async () => {
+//   //   const configs = await Ajax(signal).Workspaces.workspace(namespace, name).listMethodConfigs();
+//   //   //setConfigs(configs);
+//   // });
+//
+//   // Lifecycle
+//   // useOnMount(() => {
+//   //   refresh();
+//   //   // const loadCbasStatuses = async (signal) => {
+//   //   //   try {
+//   //   //     const status = await Ajax(signal).Cbas.status();
+//   //   //     setStatuses(status);
+//   //   //   } catch (error) {
+//   //   //     notify('error', 'Error loading statuses', { detail: await (error instanceof Response ? error.text() : error) });
+//   //   //   }
+//   //   // };
+//   //   // loadCbasStatuses().then((s) => console.log(s));
+//   // });
+//
+//   // useImperativeHandle(ref, () => ({ refresh }));
+//   // console.log(`STATUSES: ${statuses}`);
+//
+//   return div({}, [h(TextCell, {}, ['CBAS: ']), h(TextCell, {}, ['Cromwell: '])]);
+// });
+
 export const navPaths = [
   {
     name: 'workspace-workflows',
@@ -493,4 +539,10 @@ export const navPaths = [
     path: '/workspaces/:namespace/:name/tools',
     component: (props) => h(Nav.Redirector, { pathname: Nav.getPath('workspace-workflows', props) }),
   },
+  // {
+  //   name: 'workspace-cbas-workflows',
+  //   path: '/workspaces/:namespace/:name/cbas',
+  //   component: AzureWorkflows,
+  //   title: ({ name }) => `${name} - Workflows`,
+  // },
 ];
