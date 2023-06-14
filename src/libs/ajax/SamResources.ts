@@ -8,11 +8,11 @@ export const SamResources = (signal: AbortSignal) => ({
       _.mergeAll([authOpts(), appIdentifier, { method: 'DELETE' }])
     ),
 
-  getSignedUrl: async (bucket: string, object: string, project: string, noRequesterPays = false): Promise<string> => {
+  getSignedUrl: async (bucket: string, object: string, project: string, requesterPays = false): Promise<string> => {
     const res = await fetchSam(
       `api/google/v1/user/petServiceAccount/${project}/signedUrlForBlob`,
       _.mergeAll([
-        jsonBody({ bucketName: bucket, blobName: object, noRequesterPays }),
+        jsonBody({ bucketName: bucket, blobName: object, requesterPays }),
         authOpts(),
         appIdentifier,
         { signal, method: 'POST' },
