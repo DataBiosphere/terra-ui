@@ -228,11 +228,6 @@ export const fetchEcm = _.flow(
   withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 
-export const fetchCbas = _.flow(
-  withUrlPrefix(`${getConfig().cbasUrlRoot}/api/batch/v1/`),
-  withRetryAfterReloadingExpiredAuthToken
-)(fetchOk);
-
 // Google Forms does not set a CORS header that allows Terra to access the response.
 // Thus, we send the request in no-cors mode and, because the response is "opaque",
 // we do not check response.ok.
@@ -245,6 +240,3 @@ export const fetchGoogleForms = _.flow(
 
 export const fetchWDS = (wdsProxyUrlRoot) =>
   _.flow(withUrlPrefix(`${wdsProxyUrlRoot}/`), withRetryAfterReloadingExpiredAuthToken)(fetchOk);
-
-export const fetchCbas = (cbasProxyUrlRoot) =>
-  _.flow(withUrlPrefix(`${cbasProxyUrlRoot}/`), withRetryAfterReloadingExpiredAuthToken)(fetchOk);
