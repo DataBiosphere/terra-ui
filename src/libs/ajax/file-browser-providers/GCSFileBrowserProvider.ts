@@ -131,6 +131,7 @@ const GCSFileBrowserProvider = ({
         bucket,
         object: path,
         project,
+        noRequesterPays: false,
       });
       return url;
     },
