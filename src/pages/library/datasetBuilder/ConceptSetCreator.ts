@@ -11,12 +11,11 @@ const getChildren = async (concept: Concept): Promise<Concept[]> => {
 export const ConceptSetCreator = (props) => {
   return h(TreeGrid<Concept>, {
     columns: [
-      { name: 'data', width: 300 },
-      { name: 'id', width: 50 },
-      { name: 'count', width: 50 },
+      { name: 'data', width: 300, render: (row) => row.name },
+      { name: 'id', width: 50, render: (row) => row.id },
+      { name: 'count', width: 50, render: (row) => row.count },
     ],
     initialRows: _.times(generateDummyConcept, 3),
-    renderColumn: [(row) => row.name, (row) => row.id, (row) => row.count],
     getChildren,
   });
 };

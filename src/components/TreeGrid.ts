@@ -6,13 +6,14 @@ import { Link } from 'src/components/common/Link';
 import { icon } from 'src/components/icons';
 import { DEFAULT, switchCase } from 'src/libs/utils';
 
-export type Column = {
-  name: string;
-  width: number;
-};
-
 export type RowContents = {
   isLeaf: boolean;
+};
+
+export type Column<T extends RowContents> = {
+  name: string;
+  width: number;
+  render: (row: T) => string | ReactNode;
 };
 
 export type Row<T extends RowContents> = {
@@ -32,9 +33,8 @@ const wrapContent =
   });
 
 export type TreeGridProps<T extends RowContents> = {
-  columns: Column[];
+  columns: Column<T>[];
   initialRows: T[];
-  renderColumn: ((row: T) => string | ReactNode)[];
   getChildren: (row: T) => Promise<T[]>;
 };
 
@@ -43,7 +43,7 @@ export type TreeGridProps<T extends RowContents> = {
 //  - config row height, no content message
 
 export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
-  const { columns, initialRows, getChildren, renderColumn } = props;
+  const { columns, initialRows, getChildren } = props;
   const [data, setData] = useState(_.map(wrapContent(0), initialRows));
   const rowHeight = 20;
   const expand = async (row: Row<T>) => {
@@ -84,11 +84,11 @@ export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
                     ? h(Link, { onClick: () => collapse(data[rowIndex]) }, [icon('minus-circle', { size: 16 })])
                     : h(Link, { onClick: () => expand(data[rowIndex]) }, [icon('plus-circle', { size: 16 })])),
                 div({ style: { marginLeft: data[rowIndex].contents.isLeaf ? 20 : 4 } }, [
-                  renderColumn[columnIndex](data[rowIndex].contents),
+                  columns[columnIndex].render(data[rowIndex].contents),
                 ]),
               ]),
           ],
-          [DEFAULT, () => renderColumn[columnIndex](data[rowIndex].contents)]
+          [DEFAULT, () => columns[columnIndex].render(data[rowIndex].contents)]
         ),
       ]),
     border: false,
