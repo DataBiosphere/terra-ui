@@ -390,11 +390,7 @@ const ImportData = () => {
 
   const importPFB = (namespace, name) => {
     return async () => {
-      // TODO: AJ-1104 will error if there is a policy conflict for protected data
-      if (isProtected(url, 'pfb')) {
-        // eslint-disable-next-line no-console
-        console.log('Protected data identified');
-      }
+      // TODO: AJ-1103 Indicate that an auth domain or enhanced logging is required if data is protected using isProtected(url, 'pfb')
       const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importJob(url, 'pfb', null);
       asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
       notifyDataImportProgress(jobId);
