@@ -2,7 +2,7 @@ import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, p, strong } from 'react-hyperscript-helpers';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
-import { ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common';
+import { ButtonPrimary, Checkbox, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TextArea, ValidatedInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
@@ -63,7 +63,7 @@ const ariaInvalidBillingAccountMsg = (invalidBillingAccount) => {
 
 const NewWorkspaceModal = withDisplayName(
   'NewWorkspaceModal',
-  ({ cloneWorkspace, onSuccess, onDismiss, customMessage, requiredAuthDomain, title, buttonText }) => {
+  ({ cloneWorkspace, onSuccess, onDismiss, customMessage, requiredAuthDomain, requiredEnhancedBucketLogging, title, buttonText }) => {
     // State
     const [billingProjects, setBillingProjects] = useState();
     const [allGroups, setAllGroups] = useState();
@@ -71,6 +71,7 @@ const NewWorkspaceModal = withDisplayName(
     const [namespace, setNamespace] = useState(cloneWorkspace ? cloneWorkspace.workspace.namespace : undefined);
     const [description, setDescription] = useState(cloneWorkspace ? cloneWorkspace.workspace.attributes.description : '');
     const [groups, setGroups] = useState([]);
+    const [enhancedBucketLogging, setEnhancedBucketLogging] = useState(!!requiredEnhancedBucketLogging);
     const [nameModified, setNameModified] = useState(false);
     const [loading, setLoading] = useState(false);
     const [creating, setCreating] = useState(false);
@@ -103,6 +104,7 @@ const NewWorkspaceModal = withDisplayName(
           attributes: { description },
           copyFilesWithPrefix: isGoogleBillingProject() ? 'notebooks/' : 'analyses/',
           ...(!!bucketLocation && isGoogleBillingProject() && { bucketLocation }),
+          enhancedBucketLogging,
         };
         const createdWorkspace = await Utils.cond(
           [
@@ -371,6 +373,34 @@ const NewWorkspaceModal = withDisplayName(
                     }),
                   ]),
               ]),
+              isGoogleBillingProject() &&
+                h(IdContainer, [
+                  (id) =>
+                    h(Fragment, [
+                      h(FormLabel, { htmlFor: id }, [
+                        h(Checkbox, {
+                          'aria-label': 'enhancedBucketLoggingToggle',
+                          style: { margin: '0.25rem 0.25rem 0.25rem 0' },
+                          id,
+                          checked: enhancedBucketLogging,
+                          disabled: requiredEnhancedBucketLogging,
+                          onChange: () => setEnhancedBucketLogging(!enhancedBucketLogging),
+                        }),
+                        'Enhanced Bucket Logging',
+                        h(InfoBox, { style: { marginLeft: '0.25rem', padding: '0' } }, [
+                          '"Enhanced Bucket Logging" means ...',
+                          h(
+                            Link,
+                            {
+                              href: 'https://youtu.be/E4WlUXrJgy4',
+                              ...Utils.newTabLinkProps,
+                            },
+                            ['Read more about Enhanced Bucket Logging']
+                          ),
+                        ]),
+                      ]),
+                    ]),
+                ]),
               isGoogleBillingProject() &&
                 h(IdContainer, [
                   (id) =>
