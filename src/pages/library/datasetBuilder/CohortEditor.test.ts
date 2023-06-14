@@ -20,7 +20,7 @@ import {
 import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
 
 describe('CohortEditor', () => {
-  const datasetDetails = dummyDatasetDetails;
+  const datasetDetails = dummyDatasetDetails('unused');
 
   it('renders unknown criteria', () => {
     // Arrange
@@ -39,6 +39,8 @@ describe('CohortEditor', () => {
       kind: 'domain',
       id: 0,
       category: 'category',
+      participantCount: 0,
+      conceptCount: 0,
       values: ['value'],
     });
     render(createCriteriaViewComponent(_.noop)(criteria));

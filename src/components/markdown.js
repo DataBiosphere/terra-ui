@@ -145,7 +145,7 @@ const renderAndSanitizeMarkdown = (text, renderers = {}) =>
   );
 
 /**
- * @param {string} children - markdown content
+ * @param {string | string[]} children - markdown content
  * @param {Object} renderers - element-specific renderers
  * @param {Object} props - properties for wrapper div
  * @returns div containing rendered markdown
