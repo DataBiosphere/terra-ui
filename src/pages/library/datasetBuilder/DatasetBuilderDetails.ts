@@ -1,4 +1,5 @@
-import { div, h, h1 } from 'react-hyperscript-helpers';
+import _ from 'lodash/fp';
+import { div, h, h1, h3 } from 'react-hyperscript-helpers';
 import { ButtonOutline, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { MarkdownViewer } from 'src/components/markdown';
@@ -10,12 +11,58 @@ import * as Nav from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
 import { DatasetBuilderBreadcrumbs } from 'src/pages/library/datasetBuilder/Breadcrumbs';
 
+interface DomainDisplayProps {
+  title: string;
+  displayInformation: {
+    category: string;
+    participantCount: number;
+    conceptCount: number;
+  }[];
+}
+
+const TileDisplay = (props: DomainDisplayProps) => {
+  const { title, displayInformation } = props;
+  return div([
+    h3([title]),
+    div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
+      _.map(
+        (displayTile) =>
+          div(
+            {
+              style: {
+                width: '30%',
+                height: '10rem',
+                backgroundColor: 'white',
+                padding: '0.5rem 2rem',
+                marginTop: '1rem',
+                marginRight: '1rem',
+                border: `1px solid ${colors.light()}`,
+              },
+              key: _.uniqueId(''),
+            },
+            [
+              h3([displayTile.category]),
+              div({ style: { display: 'flex', alignItems: 'baseline' } }, [
+                div({ style: { fontSize: 30, fontWeight: 600 } }, [`${displayTile.conceptCount / 1000}K`]),
+                div({ style: { fontSize: 20, marginLeft: '0.5rem' } }, ['concepts']),
+              ]),
+              div({ style: { fontSize: 20, marginTop: '0.5rem' } }, [`${displayTile.participantCount} participants`]),
+            ]
+          ),
+        displayInformation
+      ),
+    ]),
+  ]);
+};
+
 interface DatasetBuilderDetailsProps {
   datasetId: string;
 }
 
 export const DatasetBuilderDetails = ({ datasetId }: DatasetBuilderDetailsProps) => {
   const [datasetDetails, loadDatasetDetails] = useLoadedData<DatasetResponse>();
+  const hasAggregateDataViewerAccess =
+    datasetDetails.status === 'Ready' ? datasetDetails.state.accessLevel !== 'Discoverer' : false;
 
   useOnMount(() => {
     void loadDatasetDetails(() => DatasetBuilder().retrieveDataset(datasetId));
@@ -38,15 +85,19 @@ export const DatasetBuilderDetails = ({ datasetId }: DatasetBuilderDetailsProps)
                 ButtonOutline,
                 {
                   style: { width: '100%', borderRadius: 0, marginTop: '1rem', textTransform: 'none' },
-                  href: Nav.getLink('create-dataset', { datasetId }),
+                  // TODO: Get link for learn how to get access
+                  href: hasAggregateDataViewerAccess
+                    ? Nav.getLink('create-dataset', { datasetId })
+                    : encodeURIComponent(datasetDetails.state.learnMoreLink),
                 },
-                ['Learn how to gain access']
+                [hasAggregateDataViewerAccess ? 'Start creating datasets' : 'Learn how to gain access']
               ),
               div({ style: { marginTop: '1rem', color: colors.dark(), fontStyle: 'italic' } }, [
                 '* All datasets will need to be reviewed and approved before any analyses can be done',
               ]),
             ]),
           ]),
+          h(TileDisplay, { title: 'EHR Domains', displayInformation: datasetDetails.state.domainOptions }),
         ]),
       ])
     : spinnerOverlay;

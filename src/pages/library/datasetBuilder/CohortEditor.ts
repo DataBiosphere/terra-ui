@@ -139,7 +139,7 @@ export function criteriaFromOption(option: CriteriaOption): AnyCriteria {
     default:
       return {
         kind: 'domain',
-        domainOption: { kind: 'domain', id: 0, category: 'unknown', values: [] },
+        domainOption: { kind: 'domain', id: 0, category: 'unknown', values: [], conceptCount: 0, participantCount: 0 },
         name: 'unknown',
         count: 0,
         id: 0,
