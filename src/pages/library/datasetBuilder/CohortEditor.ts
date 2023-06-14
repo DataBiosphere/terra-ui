@@ -339,10 +339,10 @@ type CohortEditorContentsProps = {
   updateCohort: CohortUpdater;
   cohort: Cohort;
   datasetDetails: DatasetResponse;
-  onStateChangeHandler: OnStateChangeHandler;
+  onStateChange: OnStateChangeHandler;
 };
 const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
-  const { updateCohort, cohort, datasetDetails, onStateChangeHandler } = props;
+  const { updateCohort, cohort, datasetDetails, onStateChange } = props;
   return div(
     {
       style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` },
@@ -353,7 +353,7 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
           Link,
           {
             onClick: () => {
-              onStateChangeHandler(homepageState.new());
+              onStateChange(homepageState.new());
             },
             'aria-label': 'cancel',
           },
@@ -387,7 +387,7 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
 };
 
 interface CohortEditorProps {
-  onStateChangeHandler: OnStateChangeHandler;
+  onStateChange: OnStateChangeHandler;
   datasetDetails: DatasetResponse;
   originalCohort: Cohort;
 }
@@ -395,12 +395,12 @@ interface CohortEditorProps {
 type CohortUpdater = (updater: (cohort: Cohort) => Cohort) => void;
 
 export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
-  const { onStateChangeHandler, datasetDetails, originalCohort } = props;
+  const { onStateChange, datasetDetails, originalCohort } = props;
   const [cohort, setCohort] = useState<Cohort>(originalCohort);
   const updateCohort: CohortUpdater = (updateCohort: (Cohort) => Cohort) => _.flow(updateCohort, setCohort)(cohort);
 
   return h(Fragment, [
-    h(CohortEditorContents, { updateCohort, cohort, datasetDetails, onStateChangeHandler }),
+    h(CohortEditorContents, { updateCohort, cohort, datasetDetails, onStateChange }),
     // add div to cover page to footer
     div(
       {
@@ -422,7 +422,7 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
               datasetBuilderCohorts.set(
                 _.set(`[${cohortIndex === -1 ? cohorts.length : cohortIndex}]`, cohort, cohorts)
               );
-              onStateChangeHandler(homepageState.new());
+              onStateChange(homepageState.new());
             },
           },
           ['Save cohort']

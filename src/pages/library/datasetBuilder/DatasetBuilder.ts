@@ -445,7 +445,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                 return h(DatasetBuilderContents, { onStateChange: setDatasetBuilderState });
               case 'cohort-editor':
                 return h(CohortEditor, {
-                  onStateChangeHandler: setDatasetBuilderState,
+                  onStateChange: setDatasetBuilderState,
                   originalCohort: datasetBuilderState.cohort,
                   datasetDetails: datasetDetails.state,
                 });

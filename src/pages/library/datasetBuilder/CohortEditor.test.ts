@@ -190,7 +190,7 @@ describe('CohortEditor', () => {
     const onStateChange = jest.fn();
     datasetBuilderCohorts.set([]);
 
-    render(h(CohortEditor, { onStateChangeHandler: onStateChange, datasetDetails, originalCohort }));
+    render(h(CohortEditor, { onStateChange, datasetDetails, originalCohort }));
     return { originalCohort, onStateChange };
   }
 
