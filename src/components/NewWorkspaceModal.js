@@ -64,9 +64,10 @@ const ariaInvalidBillingAccountMsg = (invalidBillingAccount) => {
 
 const NewWorkspaceModal = withDisplayName(
   'NewWorkspaceModal',
-  ({ cloneWorkspace, onSuccess, onDismiss, customMessage, requiredAuthDomain, requireEnhancedBucketLogging, title, buttonText }) => {
+  ({ cloneWorkspace, onSuccess, onDismiss, customMessage, requiredAuthDomain, requireEnhancedBucketLogging, title, buttonText, workflowImport }) => {
     // State
     const [billingProjects, setBillingProjects] = useState();
+    const [azureBillingProjectsExist, setAzureBillingProjectsExist] = useState(false);
     const [allGroups, setAllGroups] = useState();
     const [name, setName] = useState(cloneWorkspace ? `${cloneWorkspace.workspace.name} copy` : '');
     const [namespace, setNamespace] = useState(cloneWorkspace ? cloneWorkspace.workspace.namespace : undefined);
@@ -152,6 +153,13 @@ const NewWorkspaceModal = withDisplayName(
         Ajax(signal)
           .Billing.listProjects()
           .then(_.filter({ status: 'Ready' }))
+          .then(
+            _.forEach((project) => {
+              if (isAzureBillingProject(project)) {
+                setAzureBillingProjectsExist(true);
+              }
+            })
+          )
           .then(_.filter((project) => isBillingProjectApplicable(project)))
           .then((projects) => {
             setBillingProjects(projects);
@@ -192,6 +200,7 @@ const NewWorkspaceModal = withDisplayName(
       // Only support cloning a workspace to the same cloud environment. If this changes, also update
       // the Events.workspaceClone event data.
       return Utils.cond(
+        [!!workflowImport, () => !isAzureBillingProject(project)],
         [!!cloneWorkspace && isAzureWorkspace(cloneWorkspace), () => isAzureBillingProject(project)],
         [!!cloneWorkspace && isGoogleWorkspace(cloneWorkspace), () => isGoogleBillingProject(project)],
         [Utils.DEFAULT, () => true]
@@ -436,6 +445,22 @@ const NewWorkspaceModal = withDisplayName(
                     ]),
                 ]),
               customMessage && div({ style: { marginTop: '1rem', lineHeight: '1.5rem' } }, [customMessage]),
+              workflowImport &&
+                azureBillingProjectsExist &&
+                div({ style: { paddingTop: '1.0rem', display: 'flex' } }, [
+                  icon('info-circle', { size: 16, style: { marginRight: '0.5rem', color: colors.accent() } }),
+                  div([
+                    'Importing directly into new Azure workspaces is not currently supported. To create a new workspace with an Azure billing project, visit the main ',
+                    h(
+                      Link,
+                      {
+                        href: Nav.getLink('workspaces'),
+                      },
+                      ['Workspaces']
+                    ),
+                    ' page.',
+                  ]),
+                ]),
               isAzureBillingProject() &&
                 div({ style: { paddingTop: '1.0rem', display: 'flex' } }, [
                   icon('warning-standard', { size: 16, style: { marginRight: '0.5rem', color: colors.warning() } }),

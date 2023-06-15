@@ -67,6 +67,7 @@ jest.mock('src/pages/workspaces/workspace/analysis/runtime-common-components.js'
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
   goToPath: jest.fn(),
+  getLink: jest.fn().mockReturnValue(''),
 }));
 
 // The workspace menu uses react-virtualized's AutoSizer to size the options menu.
@@ -128,6 +129,46 @@ describe('ImportWorkflow', () => {
     },
   ];
 
+  const mockAjax = {
+    Billing: {
+      listProjects: async () => [
+        {
+          billingAccount: 'billingAccounts/FOO-BAR-BAZ',
+          cloudPlatform: 'GCP',
+          invalidBillingAccount: false,
+          projectName: 'Google Billing Project',
+          roles: ['Owner'],
+          status: 'Ready',
+        },
+        {
+          billingAccount: 'billingAccounts/BAA-RAM-EWE',
+          cloudPlatform: 'AZURE',
+          invalidBillingAccount: false,
+          projectName: 'Azure Billing Project',
+          roles: ['Owner'],
+          status: 'Ready',
+        },
+      ],
+    } as Partial<AjaxContract['Billing']>,
+    Groups: {
+      list: async () => {
+        return [];
+      },
+      group: (_groupName) => {
+        return {
+          isMember: async () => {
+            return true;
+          },
+        };
+      },
+    } as Partial<AjaxContract['Groups']>,
+    Metrics: {
+      captureEvent: async (_name, _details) => {
+        // Do nothing
+      },
+    } as Partial<AjaxContract['Metrics']>,
+  };
+
   beforeAll(() => {
     // Arrange
     asMockedFn(useWorkspaces).mockReturnValue({
@@ -178,6 +219,8 @@ describe('ImportWorkflow', () => {
     asMockedFn(getUser).mockReturnValue({
       email: 'abc@gmail.com',
     });
+
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as Partial<AjaxContract> as AjaxContract);
   });
 
   it('fetches and renders WDL', () => {
@@ -289,6 +332,7 @@ describe('ImportWorkflow', () => {
               post: mockPostMethodAppsFn,
             },
           } as Partial<AjaxContract['Cbas']>,
+          ...mockAjax,
         } as Partial<AjaxContract> as AjaxContract)
     );
 
@@ -370,6 +414,28 @@ describe('ImportWorkflow', () => {
 
     // Assert
     expect(mockListAppsFn).toBeCalledTimes(0);
+  });
+
+  it('opens new workspace modal with azure disabled', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    const testWorkflow = {
+      path: 'github.com/DataBiosphere/test-workflows/test-workflow',
+      version: 'v1.0.0',
+      source: 'dockstore',
+    };
+
+    render(h(ImportWorkflow, { ...testWorkflow }));
+
+    // Act
+    const createWorkspaceButton = screen.getByText('create a new workspace');
+    await act(() => user.click(createWorkspaceButton));
+
+    screen.getByText(
+      'Importing directly into new Azure workspaces is not currently supported. To create a new workspace with an Azure billing project, visit the main',
+      { exact: false }
+    );
   });
 
   it('confirms overwrite if workflow already exists', async () => {

@@ -86,6 +86,7 @@ export const WorkspaceImporter: (props: WorkspaceImporterInnerProps) => ReactEle
       creatingWorkspace &&
         h(NewWorkspaceModal, {
           requiredAuthDomain: ad,
+          workflowImport: true,
           onDismiss: () => setCreatingWorkspace(false),
           onSuccess: (w) => {
             setCreatingWorkspace(false);

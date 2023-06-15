@@ -437,7 +437,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   return datasetDetails.status === 'Ready'
     ? h(FooterWrapper, [
         h(TopBar, { title: 'Preview', href: '' }, []),
-        h(DatasetBuilderHeader, { name: datasetDetails.state.name }),
+        h(DatasetBuilderHeader, { datasetDetails: datasetDetails.state }),
         div({ style: { backgroundColor: editorBackgroundColor } }, [
           (() => {
             switch (datasetBuilderState.mode) {
@@ -462,7 +462,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
 export const navPaths = [
   {
     name: 'create-dataset',
-    path: '/library/builder/:datasetId',
+    path: '/library/builder/:datasetId/build',
     component: DatasetBuilderView,
     title: 'Build Dataset',
   },
