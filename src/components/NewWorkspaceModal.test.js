@@ -55,6 +55,32 @@ const nonBillingAjax = {
   },
 };
 
+const hasGroupsAjax = {
+  Groups: {
+    list: async () => {
+      return [
+        {
+          groupEmail: 'AuthDomain@test.firecloud.org',
+          groupName: 'AuthDomain',
+          role: 'member',
+        },
+      ];
+    },
+    group: (_groupName) => {
+      return {
+        isMember: async () => {
+          return true;
+        },
+      };
+    },
+  },
+  Metrics: {
+    captureEvent: async (_name, _details) => {
+      // Do nothing
+    },
+  },
+};
+
 describe('NewWorkspaceModal', () => {
   it('Shows all available billing projects by default', async () => {
     // Arrange
@@ -172,5 +198,129 @@ describe('NewWorkspaceModal', () => {
         { exact: false }
       )
     ).toBeNull();
+  });
+
+  it('shows an option for Enhanced Bucket Logging if a Google billing project is selected', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    Ajax.mockImplementation(() => ({
+      Billing: {
+        listProjects: async () => [gcpBillingProject, azureBillingProject],
+      },
+      ...nonBillingAjax,
+    }));
+
+    await act(async () => {
+      // eslint-disable-line require-await
+      render(
+        h(NewWorkspaceModal, {
+          cloneWorkspace: false,
+          onSuccess: () => null,
+          onDismiss: () => null,
+          customMessage: null,
+          requiredAuthDomain: false,
+          title: null,
+          buttonText: null,
+          // workflowImport: false <== Not specified. False should be the default
+        })
+      );
+    });
+
+    const projectSelector = screen.getByText('Select a billing project');
+    await user.click(projectSelector);
+
+    const googleBillingProject = screen.getByText('Google Billing Project');
+    await user.click(googleBillingProject);
+
+    // Assert
+    // getByText throws an error if the element is not found:
+    screen.getByText('Enhanced Bucket Logging');
+  });
+
+  it('does not let the user disable Enhanced Bucket Logging if its required', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    Ajax.mockImplementation(() => ({
+      Billing: {
+        listProjects: async () => [gcpBillingProject, azureBillingProject],
+      },
+      ...nonBillingAjax,
+    }));
+
+    await act(async () => {
+      // eslint-disable-line require-await
+      render(
+        h(NewWorkspaceModal, {
+          cloneWorkspace: false,
+          onSuccess: () => null,
+          onDismiss: () => null,
+          customMessage: null,
+          requiredAuthDomain: false,
+          requireEnhancedBucketLogging: true,
+          title: null,
+          buttonText: null,
+          // workflowImport: false <== Not specified. False should be the default
+        })
+      );
+    });
+
+    const projectSelector = screen.getByText('Select a billing project');
+    await user.click(projectSelector);
+
+    const googleBillingProject = screen.getByText('Google Billing Project');
+    await user.click(googleBillingProject);
+
+    // Assert
+    // getByText throws an error if the element is not found:
+    expect(screen.getByRole('checkbox')).toHaveAttribute('disabled');
+  });
+
+  it('checks and disables Enhanced Bucket Logging if an auth domain is chosen', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    Ajax.mockImplementation(() => ({
+      Billing: {
+        listProjects: async () => [gcpBillingProject, azureBillingProject],
+      },
+      ...hasGroupsAjax,
+    }));
+
+    await act(async () => {
+      // eslint-disable-line require-await
+      render(
+        h(NewWorkspaceModal, {
+          cloneWorkspace: false,
+          onSuccess: () => null,
+          onDismiss: () => null,
+          customMessage: null,
+          requiredAuthDomain: false,
+          requireEnhancedBucketLogging: true,
+          title: null,
+          buttonText: null,
+          // workflowImport: false <== Not specified. False should be the default
+        })
+      );
+    });
+
+    const projectSelector = screen.getByText('Select a billing project');
+    await user.click(projectSelector);
+
+    const googleBillingProject = screen.getByText('Google Billing Project');
+    await user.click(googleBillingProject);
+
+    const groupsSelector = screen.getByText('Select groups');
+    await user.click(groupsSelector);
+
+    const authDomain = screen.getByText('AuthDomain');
+    await user.click(authDomain);
+
+    // Assert
+    // getByText throws an error if the element is not found:
+    const checkbox = screen.getByRole('checkbox');
+    expect(checkbox).toHaveAttribute('disabled');
+    expect(checkbox).toBeChecked();
   });
 });

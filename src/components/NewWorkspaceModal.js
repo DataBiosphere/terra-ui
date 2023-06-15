@@ -384,25 +384,21 @@ const NewWorkspaceModal = withDisplayName(
                   ]),
               ]),
               isGoogleBillingProject() &&
-                h(IdContainer, [
-                  (id) =>
-                    div({ style: { margin: '1rem 0.25rem 0.25rem 0' } }, [
-                      h(
-                        LabeledCheckbox,
-                        {
-                          style: { margin: '0rem 0.25rem 0.25rem 0' },
-                          id,
-                          checked: enhancedBucketLogging,
-                          disabled: requireEnhancedBucketLogging || groups.length > 0,
-                          onChange: () => setEnhancedBucketLogging(!enhancedBucketLogging),
-                        },
-                        [label({ style: { ...Style.elements.sectionHeader } }, ['Enhanced Bucket Logging'])]
-                      ),
-                      h(InfoBox, { style: { marginLeft: '0.25rem', verticalAlign: 'middle' } }, [
-                        'Enabling Enhanced Bucket Logging tells the Terra to log all data access requests to the workspace bucket. ' +
-                          'This feature is automatically enabled when a workspace is created with Authorization Domains.',
-                      ]),
-                    ]),
+                div({ style: { margin: '1rem 0.25rem 0.25rem 0' } }, [
+                  h(
+                    LabeledCheckbox,
+                    {
+                      style: { margin: '0rem 0.25rem 0.25rem 0' },
+                      checked: enhancedBucketLogging,
+                      disabled: !!requireEnhancedBucketLogging || groups.length > 0,
+                      onChange: () => setEnhancedBucketLogging(!enhancedBucketLogging),
+                    },
+                    [label({ style: { ...Style.elements.sectionHeader } }, ['Enhanced Bucket Logging'])]
+                  ),
+                  h(InfoBox, { style: { marginLeft: '0.25rem', verticalAlign: 'middle' } }, [
+                    'Enabling Enhanced Bucket Logging tells the Terra to log all data access requests to the workspace bucket. ' +
+                      'This feature is automatically enabled when a workspace is created with Authorization Domains.',
+                  ]),
                 ]),
               isGoogleBillingProject() &&
                 h(IdContainer, [
