@@ -392,7 +392,7 @@ export const DatasetBuilderContents = ({
   onStateChange,
   datasetId,
 }: {
-  onStateChange: OnStateChangeType;
+  onStateChange: OnStateChangeHandler;
   datasetId: string;
 }) => {
   const [selectedCohorts, setSelectedCohorts] = useState([] as HeaderAndValues<Cohort>[]);
@@ -463,7 +463,10 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
           (() => {
             switch (datasetBuilderState.mode) {
               case 'homepage':
-                return h(DatasetBuilderContents, { onStateChange: setDatasetBuilderState });
+                return h(DatasetBuilderContents, {
+                  onStateChange: setDatasetBuilderState,
+                  datasetId: datasetDetails.state.id,
+                });
               case 'cohort-editor':
                 return h(CohortEditor, {
                   onStateChange: setDatasetBuilderState,

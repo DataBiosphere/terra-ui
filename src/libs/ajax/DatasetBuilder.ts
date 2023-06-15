@@ -1,6 +1,7 @@
 // Types that can be used to create a criteria.
 
 import _ from 'lodash/fp';
+import { DatasetBuilderType } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 
 export interface DomainOption {
   kind: 'domain';

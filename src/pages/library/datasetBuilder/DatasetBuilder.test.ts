@@ -135,7 +135,10 @@ describe('DatasetBuilder', () => {
     const user = userEvent.setup();
 
     datasetBuilderCohorts.set([newCohort('cohort 1'), newCohort('cohort 2')]);
-    datasetBuilderConceptSets.set([{ name: 'concept set 1' }, { name: 'concept set 2' }]);
+    datasetBuilderConceptSets.set([
+      { name: 'concept set 1', domain: 'Condition' },
+      { name: 'concept set 2', domain: 'Procedure' },
+    ]);
     const { getByLabelText } = render(h(DatasetBuilderContents, { onStateChange: (state) => state, datasetId: 'id' }));
     // Act
     await user.click(getByLabelText('cohort 1'));
