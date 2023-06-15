@@ -1,8 +1,8 @@
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
-import { div, h, p, strong } from 'react-hyperscript-helpers';
+import { div, h, label, p, strong } from 'react-hyperscript-helpers';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
-import { ButtonPrimary, Checkbox, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common';
+import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TextArea, ValidatedInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
@@ -24,6 +24,7 @@ import Events, { extractCrossWorkspaceDetails, extractWorkspaceDetails } from 's
 import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
+import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderLabels, isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
 import { cloudProviders, defaultLocation } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
@@ -71,7 +72,7 @@ const NewWorkspaceModal = withDisplayName(
     const [namespace, setNamespace] = useState(cloneWorkspace ? cloneWorkspace.workspace.namespace : undefined);
     const [description, setDescription] = useState(cloneWorkspace ? cloneWorkspace.workspace.attributes.description : '');
     const [groups, setGroups] = useState([]);
-    const [enhancedBucketLogging, setEnhancedBucketLogging] = useState(requireEnhancedBucketLogging);
+    const [enhancedBucketLogging, setEnhancedBucketLogging] = useState(!!requireEnhancedBucketLogging);
     const [nameModified, setNameModified] = useState(false);
     const [loading, setLoading] = useState(false);
     const [creating, setCreating] = useState(false);
@@ -376,21 +377,21 @@ const NewWorkspaceModal = withDisplayName(
               isGoogleBillingProject() &&
                 h(IdContainer, [
                   (id) =>
-                    h(Fragment, [
-                      h(FormLabel, { htmlFor: id }, [
-                        h(Checkbox, {
-                          // 'aria-label': 'enhancedBucketLoggingToggle',
-                          style: { margin: '0 0.25rem 0.25rem 0' },
+                    div({ style: { margin: '1rem 0.25rem 0.25rem 0' } }, [
+                      h(
+                        LabeledCheckbox,
+                        {
+                          style: { margin: '0rem 0.25rem 0.25rem 0' },
                           id,
                           checked: enhancedBucketLogging,
                           disabled: requireEnhancedBucketLogging || groups.length > 0,
                           onChange: () => setEnhancedBucketLogging(!enhancedBucketLogging),
-                        }),
-                        'Enhanced Bucket Logging',
-                        h(InfoBox, { style: { marginLeft: '0.25rem', padding: '0' } }, [
-                          'Enabling Enhanced Bucket Logging tells the Terra to log all data access requests to the workspace bucket. ' +
-                            'This feature is automatically enabled when a workspace is created with Authorization Domains.',
-                        ]),
+                        },
+                        [label({ style: { ...Style.elements.sectionHeader } }, ['Enhanced Bucket Logging'])]
+                      ),
+                      h(InfoBox, { style: { marginLeft: '0.25rem', verticalAlign: 'middle' } }, [
+                        'Enabling Enhanced Bucket Logging tells the Terra to log all data access requests to the workspace bucket. ' +
+                          'This feature is automatically enabled when a workspace is created with Authorization Domains.',
                       ]),
                     ]),
                 ]),
