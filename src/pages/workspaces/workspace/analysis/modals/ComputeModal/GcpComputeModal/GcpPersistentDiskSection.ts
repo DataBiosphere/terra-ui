@@ -40,7 +40,8 @@ export const GcpPersistentDiskSection: React.FC<GcpPersistentDiskSectionProps> =
       }),
       GcpPersistentDiskSizeNumberInput({
         persistentDiskSize,
-        isDisabled: persistentDiskExists,
+        // GCP disk size may be updated after creation
+        isDisabled: false,
         onChangePersistentDiskSize,
       }),
     ]),

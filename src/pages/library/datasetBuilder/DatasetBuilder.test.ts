@@ -1,18 +1,25 @@
-import { fireEvent, render } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import * as Nav from 'src/libs/nav';
 import { PREPACKAGED_CONCEPT_SETS } from 'src/pages/library/datasetBuilder/constants';
-import { Cohort, ConceptSet } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import {
+  AnyDatasetBuilderState,
+  cohortEditorState,
+  ConceptSet,
+  newCohort,
+} from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import {
   CohortSelector,
   ConceptSetSelector,
   CreateCohortModal,
   DatasetBuilderContents,
+  DatasetBuilderView,
   ValuesSelector,
 } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 import { datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/pages/library/datasetBuilder/state';
+import { asMockedFn } from 'src/testing/test-utils';
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
@@ -30,13 +37,11 @@ describe('DatasetBuilder', () => {
   beforeEach(() => {
     datasetBuilderCohorts.reset();
     datasetBuilderConceptSets.reset();
-    // @ts-ignore
-    Nav.useRoute.mockReturnValue({ title: 'Build Dataset', params: {}, query: {} });
+    asMockedFn(Nav.useRoute).mockReturnValue({ title: 'Build Dataset', params: {}, query: {} });
   });
 
   it('renders cohorts', () => {
-    // @ts-ignore
-    datasetBuilderCohorts.set([{ name: 'cohort 1' }, { name: 'cohort 2' }]);
+    datasetBuilderCohorts.set([newCohort('cohort 1'), newCohort('cohort 2')]);
     const { getByText } = render(
       h(CohortSelector, { selectedCohorts: [], onChange: (cohorts) => cohorts, onStateChange: (state) => state })
     );
@@ -49,7 +54,7 @@ describe('DatasetBuilder', () => {
     // Arrange
     const user = userEvent.setup();
 
-    datasetBuilderCohorts.set([{ name: 'cohort 1' }, { name: 'cohort 2' }]);
+    datasetBuilderCohorts.set([newCohort('cohort 1'), newCohort('cohort 2')]);
     const { getByText, getByLabelText } = render(
       h(CohortSelector, { selectedCohorts: [], onChange: (cohorts) => cohorts, onStateChange: (state) => state })
     );
@@ -62,23 +67,15 @@ describe('DatasetBuilder', () => {
   it('creates a cohort when the cohort creation modal is filled out', async () => {
     // Arrange
     const user = userEvent.setup();
+    const onStateChange = jest.fn();
 
-    // @ts-ignore
-    datasetBuilderCohorts.set([{ name: 'cohort 1' }, { name: 'cohort 2' }]);
-    const { getByText, findByLabelText } = render(
-      h(CreateCohortModal, { onDismiss: () => {}, onStateChange: (state) => state })
-    );
+    const { getByText, findByLabelText } = render(h(CreateCohortModal, { onDismiss: () => {}, onStateChange }));
     // Act
-    fireEvent.change(await findByLabelText('Cohort name *'), { target: { value: 'cohort 3' } });
+    const cohortName = 'new cohort';
+    fireEvent.change(await findByLabelText('Cohort name *'), { target: { value: cohortName } });
     await user.click(getByText('Create cohort'));
     // Assert
-    expect(datasetBuilderCohorts.get().length).toBe(3);
-    expect(
-      _.flow(
-        _.map((cohort: Cohort) => cohort.name),
-        _.includes('cohort 3')
-      )(datasetBuilderCohorts.get())
-    ).toBeTruthy();
+    expect(onStateChange).toHaveBeenCalledWith(cohortEditorState.new(newCohort(cohortName)));
   });
 
   it('renders concept sets and prepackaged concept sets', () => {
@@ -136,9 +133,8 @@ describe('DatasetBuilder', () => {
   it('allows selecting cohorts and concept sets', async () => {
     // Arrange
     const user = userEvent.setup();
-    // @ts-ignore
-    datasetBuilderCohorts.set([{ name: 'cohort 1' }, { name: 'cohort 2' }]);
-    // @ts-ignore
+
+    datasetBuilderCohorts.set([newCohort('cohort 1'), newCohort('cohort 2')]);
     datasetBuilderConceptSets.set([{ name: 'concept set 1' }, { name: 'concept set 2' }]);
     const { getByLabelText } = render(h(DatasetBuilderContents, { onStateChange: (state) => state, datasetId: 'id' }));
     // Act
@@ -152,5 +148,29 @@ describe('DatasetBuilder', () => {
     expect(getByLabelText('cohort 2').getAttribute('aria-checked')).toBeTruthy();
     expect(getByLabelText('concept set 1').getAttribute('aria-checked')).toBeTruthy();
     expect(getByLabelText('concept set 2').getAttribute('aria-checked')).toBeTruthy();
+  });
+
+  it('shows the home page by default', async () => {
+    // Arrange
+    render(h(DatasetBuilderView));
+    // Assert
+    expect(screen.getByTestId('loading-spinner')).toBeTruthy();
+    expect(await screen.findByText('Datasets')).toBeTruthy();
+  });
+
+  it('shows the cohort editor page', async () => {
+    // Arrange
+    const initialState = cohortEditorState.new(newCohort('my test cohort'));
+    render(h(DatasetBuilderView, { datasetId: 'ignored', initialState }));
+    // Assert
+    expect(await screen.findByText(initialState.cohort.name)).toBeTruthy();
+  });
+
+  it('shows a placeholder page', async () => {
+    // Arrange
+    const initialState: AnyDatasetBuilderState = { mode: 'concept-selector' };
+    render(h(DatasetBuilderView, { datasetId: 'ignored', initialState }));
+    // Assert
+    expect(await screen.findByText(initialState.mode)).toBeTruthy();
   });
 });

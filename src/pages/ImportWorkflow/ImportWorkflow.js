@@ -9,13 +9,19 @@ import TopBar from 'src/components/TopBar';
 import WDLViewer from 'src/components/WDLViewer';
 import importBackground from 'src/images/hex-import-background.svg';
 import { Ajax } from 'src/libs/ajax';
+import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
+import { useCancellation } from 'src/libs/react-utils';
+import { getUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { workflowNameValidation } from 'src/libs/workflow-utils';
+import { resolveRunningCromwellAppUrl } from 'src/libs/workflows-app-utils';
+import { isGoogleWorkspaceInfo } from 'src/libs/workspace-utils';
+import { setAzureCookieOnUrl } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
 import validate from 'validate.js';
 
 import { importDockstoreWorkflow } from './importDockstoreWorkflow';
@@ -50,32 +56,72 @@ const styles = {
   },
 };
 
+const MethodSource = Object.freeze({
+  GitHub: 'GitHub',
+  Dockstore: 'Dockstore',
+});
+
 export const ImportWorkflow = ({ path, version, source }) => {
   const [isBusy, setIsBusy] = useState(false);
   const [confirmOverwriteInWorkspace, setConfirmOverwriteInWorkspace] = useState();
   const [workflowName, setWorkflowName] = useState(_.last(path.split('/')));
 
+  const signal = useCancellation();
   const { wdl, status: wdlStatus } = useDockstoreWdl({ path, version, isTool: source === 'dockstoretools' });
+
+  const importToAzureCromwellApp = async (workspaceId) => {
+    const appUrls = await Apps(signal)
+      .listAppsV2(workspaceId)
+      .then((apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email));
+
+    if (appUrls) {
+      const postRequestBody = {
+        method_name: workflowName,
+        method_description: null,
+        method_source: MethodSource.Dockstore,
+        method_version: version,
+        method_url: path,
+        method_input_mappings: [],
+        method_output_mappings: [],
+      };
+      const res = await Ajax(signal).Cbas.methods.post(appUrls.cbasUrl, postRequestBody);
+
+      await setAzureCookieOnUrl(signal, appUrls.cbasUiUrl, true);
+      window.location = `${appUrls.cbasUiUrl}#submission-config/${res.method_id}`;
+    } else {
+      throw new Error(
+        'Error identifying a unique and valid Cromwell App. Cromwell Apps are valid if they were created by the current user in the workspace and are in a Running state.'
+      );
+    }
+  };
 
   const doImport = _.flow(
     Utils.withBusyState(setIsBusy),
     withErrorReporting('Error importing workflow')
   )(async (workspace, options = {}) => {
-    const { name, namespace } = workspace;
+    const { name, namespace, workspaceId } = workspace;
     const eventData = { source, ...extractWorkspaceDetails(workspace) };
 
     setConfirmOverwriteInWorkspace(undefined);
     try {
-      await importDockstoreWorkflow(
-        {
-          workspace,
-          workflow: { path, version, source },
-          workflowName,
-        },
-        options
-      );
-      Ajax().Metrics.captureEvent(Events.workflowImport, { ...eventData, success: true });
-      Nav.goToPath('workflow', { namespace, name, workflowNamespace: namespace, workflowName });
+      if (isGoogleWorkspaceInfo(workspace)) {
+        await importDockstoreWorkflow(
+          {
+            workspace,
+            workflow: { path, version, source },
+            workflowName,
+          },
+          options
+        );
+        Ajax(signal).Metrics.captureEvent(Events.workflowImport, { ...eventData, success: true });
+        Nav.goToPath('workflow', { namespace, name, workflowNamespace: namespace, workflowName });
+      } else {
+        if (workspace.createdBy !== getUser()?.email) {
+          throw new Error('Currently only a workspace creator can import workflow to their Azure workspace.');
+        }
+
+        await importToAzureCromwellApp(workspaceId);
+      }
     } catch (error) {
       if (error.status === 409) {
         setConfirmOverwriteInWorkspace(workspace);

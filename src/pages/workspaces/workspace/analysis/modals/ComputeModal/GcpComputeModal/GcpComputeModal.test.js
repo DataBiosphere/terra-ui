@@ -47,6 +47,11 @@ jest.mock('src/libs/notifications', () => ({
 
 jest.mock('src/libs/ajax');
 jest.mock('src/pages/workspaces/workspace/analysis/utils/cost-utils');
+jest.mock('src/libs/config', () => ({
+  getConfig: () => ({
+    terraDeploymentEnv: 'unitTest',
+  }),
+}));
 
 const onSuccess = jest.fn();
 const defaultModalProps = {
@@ -106,6 +111,38 @@ describe('GcpComputeModal', () => {
     // Assert
     verifyEnabled(getCreateButton());
     screen.getByText('Jupyter Cloud Environment');
+  });
+
+  it('passes the TERRA_DEPLOYMENT_ENV env var through to the notebook through custom env vars', async () => {
+    // Arrange
+    const createFunc = jest.fn();
+    const runtimeFunc = jest.fn(() => ({
+      create: createFunc,
+      details: jest.fn(),
+    }));
+    Ajax.mockImplementation(() => ({
+      ...defaultAjaxImpl,
+      Runtimes: {
+        runtime: runtimeFunc,
+      },
+    }));
+
+    // Act
+    await act(async () => {
+      await render(h(GcpComputeModalBase, defaultModalProps));
+      await userEvent.click(getCreateButton());
+    });
+
+    // Assert
+    expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
+    expect(createFunc).toHaveBeenCalledWith(
+      expect.objectContaining({
+        customEnvironmentVariables: expect.objectContaining({
+          TERRA_DEPLOYMENT_ENV: 'unitTest',
+        }),
+      })
+    );
+    expect(onSuccess).toHaveBeenCalled();
   });
 
   it('sends the proper leo API call in default create case (no runtimes or disks)', async () => {
@@ -1037,7 +1074,7 @@ describe('GcpComputeModal', () => {
   });
 
   // GPUs should function properly
-  it('creates a runtime with GPUs', async () => {
+  it.each([{ tool: runtimeTools.Jupyter }, { tool: runtimeTools.RStudio }])('creates a runtime with GPUs for $tool', async ({ tool }) => {
     // Arrange
     const createFunc = jest.fn();
     const runtimeFunc = jest.fn(() => ({
@@ -1050,10 +1087,14 @@ describe('GcpComputeModal', () => {
         runtime: runtimeFunc,
       },
     }));
-
     // Act
     await act(async () => {
-      await render(h(GcpComputeModalBase, defaultModalProps));
+      await render(
+        h(GcpComputeModalBase, {
+          ...defaultModalProps,
+          tool,
+        })
+      );
       const enableGPU = await screen.getByText('Enable GPUs');
       await userEvent.click(enableGPU);
     });
