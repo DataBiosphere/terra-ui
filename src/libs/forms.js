@@ -21,10 +21,6 @@ export const FormLabel = ({ style = {}, required = false, children, ...props }) 
   return label({ ...props, style: { ...styles.formLabel, ...style } }, [children, required && ' *']);
 };
 
-export const CheckboxLabel = ({ style = {}, required = false, children, ...props }) => {
-  return label({ ...props, style: { ...styles.checkboxLabel, ...style } }, [children, required && ' *']);
-};
-
 export const FormLegend = ({ style = {}, children, ...props }) => {
   return legend({ ...props, style: { ...styles.formLabel, ...style } }, [children]);
 };
