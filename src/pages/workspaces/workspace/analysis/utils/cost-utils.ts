@@ -248,10 +248,16 @@ export const getAzureComputeCostEstimate = (runtimeConfig: AzureConfig): number 
   return cost;
 };
 
-export const getAzureDiskCostEstimate = ({ region, diskSize }: { region: string; diskSize: number }): number => {
-  if (!region || !diskSize) return 0;
+export const getAzureDiskCostEstimate = ({
+  region,
+  persistentDiskSize,
+}: {
+  region: string;
+  persistentDiskSize: number;
+}): number => {
+  if (!region || !persistentDiskSize) return 0;
   const regionPriceObj = getAzurePricesForRegion(region) || {};
-  const diskType = getDiskType(diskSize ?? diskSize);
+  const diskType = getDiskType(persistentDiskSize ?? persistentDiskSize);
   const cost = regionPriceObj[diskType];
   return cost;
 };
@@ -263,13 +269,12 @@ export const getAzureDiskCostEstimate = ({ region, diskSize }: { region: string;
 export const getPersistentDiskCostMonthly = (disk: DecoratedPersistentDisk, computeRegion: string): number => {
   if (!disk || !computeRegion) return 0;
   const { cloudContext, diskType, size, status, zone } = disk;
-  let price = 0.0;
-  price = _.includes(status, [diskStatuses.deleting.leoLabel, diskStatuses.failed.leoLabel])
+  const price = _.includes(status, [diskStatuses.deleting.leoLabel, diskStatuses.failed.leoLabel])
     ? 0.0
     : Utils.cond(
         [
           cloudContext && isAzureContext(cloudContext),
-          () => getAzureDiskCostEstimate({ region: zone, diskSize: size }),
+          () => getAzureDiskCostEstimate({ region: zone, persistentDiskSize: size }),
         ],
         [Utils.DEFAULT, () => size * getPersistentDiskPriceForRegionMonthly(computeRegion, diskType)]
       );
@@ -283,13 +288,12 @@ export const getPersistentDiskCostHourly = (
 ): number => {
   if (!disk || !computeRegion) return 0;
   const { size, status, diskType, cloudContext } = disk;
-  let price = 0.0;
-  price = _.includes(status, [diskStatuses.deleting.leoLabel, diskStatuses.failed.leoLabel])
+  const price = _.includes(status, [diskStatuses.deleting.leoLabel, diskStatuses.failed.leoLabel])
     ? 0.0
     : Utils.cond(
         [
           cloudContext && isAzureContext(cloudContext),
-          () => getAzureDiskCostEstimate({ region: computeRegion, diskSize: size }) / numberOfHoursPerMonth,
+          () => getAzureDiskCostEstimate({ region: computeRegion, persistentDiskSize: size }) / numberOfHoursPerMonth,
         ],
         [Utils.DEFAULT, () => size * getPersistentDiskPriceForRegionHourly(computeRegion, diskType)]
       );
@@ -337,7 +341,7 @@ export const getCostForDisk = (
       : updatePdType({ ...rawPd, diskType: rawPd.diskType.value }));
 
   if (curPd && isAzureDisk(curPd)) {
-    return getAzureDiskCostEstimate({ region: computeRegion, diskSize: curPd.size }) / numberOfHoursPerMonth;
+    return getAzureDiskCostEstimate({ region: computeRegion, persistentDiskSize: curPd.size }) / numberOfHoursPerMonth;
   }
   if (currentRuntimeToolLabel === toolLabel && persistentDisks && persistentDisks.length) {
     const { size = 0, status = diskStatuses.ready.leoLabel, diskType = googlePdTypes.standard } = curPd || {};
