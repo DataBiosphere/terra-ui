@@ -1,5 +1,5 @@
+import { AppToolLabel } from 'src/analysis/utils/tool-utils';
 import { AuditInfo, CloudContext, LeoError, LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models';
-import { AppToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 export interface KubernetesRuntimeConfig {
   numNodes: number;

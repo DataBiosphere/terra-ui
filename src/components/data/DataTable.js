@@ -2,6 +2,7 @@ import _ from 'lodash/fp';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { b, div, h, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
+import { cloudProviders } from 'src/analysis/utils/runtime-utils';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import {
   ButtonPrimary,
@@ -38,7 +39,6 @@ import { useCancellation } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 
 const entityMap = (entities) => {
   return _.fromPairs(_.map((e) => [e.name, e], entities));

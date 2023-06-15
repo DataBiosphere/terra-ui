@@ -2,6 +2,7 @@ import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { div, h, p, span } from 'react-hyperscript-helpers';
+import { cloudProviders } from 'src/analysis/utils/runtime-utils';
 import { ButtonPrimary, customSpinnerOverlay, IdContainer, Link, Select } from 'src/components/common';
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common';
 import { icon } from 'src/components/icons';
@@ -27,7 +28,6 @@ import * as Utils from 'src/libs/utils';
 import { billingRoles } from 'src/pages/billing/billing-utils';
 import { ExternalLink } from 'src/pages/billing/NewBillingProjectWizard/StepWizard/ExternalLink';
 import { SpendReport } from 'src/pages/billing/SpendReport/SpendReport';
-import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 
 const workspaceLastModifiedWidth = 150;
 const workspaceExpandIconSize = 20;
