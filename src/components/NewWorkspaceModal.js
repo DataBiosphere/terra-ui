@@ -380,7 +380,7 @@ const NewWorkspaceModal = withDisplayName(
                       h(FormLabel, { htmlFor: id }, [
                         h(Checkbox, {
                           // 'aria-label': 'enhancedBucketLoggingToggle',
-                          style: { margin: '0.25rem 0.25rem 0.25rem 0' },
+                          style: { margin: '0 0.25rem 0.25rem 0' },
                           id,
                           checked: enhancedBucketLogging,
                           disabled: requireEnhancedBucketLogging || groups.length > 0,
