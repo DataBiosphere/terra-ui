@@ -379,7 +379,7 @@ const NewWorkspaceModal = withDisplayName(
                     h(Fragment, [
                       h(FormLabel, { htmlFor: id }, [
                         h(Checkbox, {
-                          'aria-label': 'enhancedBucketLoggingToggle',
+                          // 'aria-label': 'enhancedBucketLoggingToggle',
                           style: { margin: '0.25rem 0.25rem 0.25rem 0' },
                           id,
                           checked: enhancedBucketLogging,
@@ -388,15 +388,8 @@ const NewWorkspaceModal = withDisplayName(
                         }),
                         'Enhanced Bucket Logging',
                         h(InfoBox, { style: { marginLeft: '0.25rem', padding: '0' } }, [
-                          '"Enhanced Bucket Logging" means ...',
-                          h(
-                            Link,
-                            {
-                              href: 'https://youtu.be/E4WlUXrJgy4',
-                              ...Utils.newTabLinkProps,
-                            },
-                            ['Read more about Enhanced Bucket Logging']
-                          ),
+                          'Enabling Enhanced Bucket Logging tells the Terra to log all data access requests to the workspace bucket. ' +
+                            'This feature is automatically enabled when a workspace is created with Authorization Domains.',
                         ]),
                       ]),
                     ]),
