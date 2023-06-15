@@ -28,9 +28,9 @@ jest.mock(
 
 type FileUtilsExports = typeof import('src/analysis/utils/file-utils');
 jest.mock(
-  'src/pages/workspaces/workspace/analysis/utils/file-utils',
+  'src/analysis/utils/file-utils',
   (): FileUtilsExports => ({
-    ...jest.requireActual('src/pages/workspaces/workspace/analysis/utils/file-utils'),
+    ...jest.requireActual('src/analysis/utils/file-utils'),
     notebookLockHash: jest.fn(),
     findPotentialNotebookLockers: jest.fn(),
   })
@@ -38,9 +38,9 @@ jest.mock(
 
 type UseAnalysisFilesExport = typeof import('src/analysis/useAnalysisFiles');
 jest.mock(
-  'src/pages/workspaces/workspace/analysis/useAnalysisFiles',
+  'src/analysis/useAnalysisFiles',
   (): UseAnalysisFilesExport => ({
-    ...jest.requireActual('src/pages/workspaces/workspace/analysis/useAnalysisFiles'),
+    ...jest.requireActual('src/analysis/useAnalysisFiles'),
     useAnalysisFiles: jest.fn(),
   })
 );

@@ -24,8 +24,8 @@ const GALAXY_DISK_COST = 1;
 const RUNTIME_COST = 0.1;
 const PERSISTENT_DISK_COST = 0.01;
 
-jest.mock('src/pages/workspaces/workspace/analysis/utils/cost-utils', () => ({
-  ...jest.requireActual('src/pages/workspaces/workspace/analysis/utils/cost-utils'),
+jest.mock('src/analysis/utils/cost-utils', () => ({
+  ...jest.requireActual('src/analysis/utils/cost-utils'),
   getGalaxyComputeCost: jest.fn(),
   getGalaxyDiskCost: jest.fn(),
   getPersistentDiskCostHourly: jest.fn(),
@@ -47,8 +47,8 @@ jest.mock('src/components/PopupTrigger', () => ({
   MenuTrigger: jest.fn(),
 }));
 
-jest.mock('src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal', () => ({
-  ...jest.requireActual('src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'),
+jest.mock('src/analysis/modals/CloudEnvironmentModal', () => ({
+  ...jest.requireActual('src/analysis/modals/CloudEnvironmentModal'),
   CloudEnvironmentModal: jest.fn(),
 }));
 

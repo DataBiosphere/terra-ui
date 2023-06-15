@@ -60,7 +60,7 @@ jest.mock('./useDockstoreWdl', () => ({
   }),
 }));
 
-jest.mock('src/pages/workspaces/workspace/analysis/runtime-common-components.js', () => ({
+jest.mock('src/analysis/runtime-common-components.js', () => ({
   setAzureCookieOnUrl: jest.fn().mockResolvedValue(undefined),
 }));
 

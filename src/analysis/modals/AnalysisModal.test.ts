@@ -66,8 +66,8 @@ jest.mock('src/libs/notifications', () => ({
 }));
 
 type FileUtilsExports = typeof import('src/analysis/utils/file-utils');
-jest.mock('src/pages/workspaces/workspace/analysis/utils/file-utils', (): FileUtilsExports => {
-  const originalModule = jest.requireActual('src/pages/workspaces/workspace/analysis/utils/file-utils');
+jest.mock('src/analysis/utils/file-utils', (): FileUtilsExports => {
+  const originalModule = jest.requireActual('src/analysis/utils/file-utils');
   return {
     ...originalModule,
     getExtension: jest.fn(),

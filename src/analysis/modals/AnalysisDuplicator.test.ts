@@ -27,8 +27,8 @@ jest.mock('src/libs/ajax/GoogleStorage');
 jest.mock('src/libs/ajax/AzureStorage');
 
 type UseAnalysisFilesExport = typeof import('src/analysis/useAnalysisFiles');
-jest.mock('src/pages/workspaces/workspace/analysis/useAnalysisFiles', (): UseAnalysisFilesExport => {
-  const originalModule = jest.requireActual('src/pages/workspaces/workspace/analysis/useAnalysisFiles');
+jest.mock('src/analysis/useAnalysisFiles', (): UseAnalysisFilesExport => {
+  const originalModule = jest.requireActual('src/analysis/useAnalysisFiles');
   return {
     ...originalModule,
     useAnalysisFiles: jest.fn(),

@@ -46,40 +46,30 @@ const stubReactModal = ({ modalName }) => {
 };
 
 type AzureComputeModalExports = typeof import('src/analysis/modals/ComputeModal/AzureComputeModal/AzureComputeModal');
-jest.mock(
-  'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal/AzureComputeModal',
-  (): AzureComputeModalExports => {
-    return {
-      ...jest.requireActual(
-        'src/pages/workspaces/workspace/analysis/modals/ComputeModal/AzureComputeModal/AzureComputeModal'
-      ),
-      AzureComputeModalBase: (_obj: any) => stubReactModal({ modalName: 'AzureComputeModalBase' }),
-    };
-  }
-);
-type GcpComputeModalExports = typeof import('src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal');
-jest.mock(
-  'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal',
-  (): GcpComputeModalExports => {
-    return {
-      ...jest.requireActual(
-        'src/pages/workspaces/workspace/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal'
-      ),
-      GcpComputeModalBase: (_obj: any) => stubReactModal({ modalName: 'GcpComputeModalBase' }),
-    };
-  }
-);
-type CromwellComputeModalExports = typeof import('src/analysis/modals/CromwellModal');
-jest.mock('src/pages/workspaces/workspace/analysis/modals/CromwellModal', (): CromwellComputeModalExports => {
+jest.mock('src/analysis/modals/ComputeModal/AzureComputeModal/AzureComputeModal', (): AzureComputeModalExports => {
   return {
-    ...jest.requireActual('src/pages/workspaces/workspace/analysis/modals/CromwellModal'),
+    ...jest.requireActual('src/analysis/modals/ComputeModal/AzureComputeModal/AzureComputeModal'),
+    AzureComputeModalBase: (_obj: any) => stubReactModal({ modalName: 'AzureComputeModalBase' }),
+  };
+});
+type GcpComputeModalExports = typeof import('src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal');
+jest.mock('src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal', (): GcpComputeModalExports => {
+  return {
+    ...jest.requireActual('src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal'),
+    GcpComputeModalBase: (_obj: any) => stubReactModal({ modalName: 'GcpComputeModalBase' }),
+  };
+});
+type CromwellComputeModalExports = typeof import('src/analysis/modals/CromwellModal');
+jest.mock('src/analysis/modals/CromwellModal', (): CromwellComputeModalExports => {
+  return {
+    ...jest.requireActual('src/analysis/modals/CromwellModal'),
     CromwellModalBase: (_obj: any) => stubReactModal({ modalName: 'CromwellModalBase' }),
   };
 });
 type GalaxyComputeModalExports = typeof import('src/analysis/modals/GalaxyModal');
-jest.mock('src/pages/workspaces/workspace/analysis/modals/GalaxyModal', (): GalaxyComputeModalExports => {
+jest.mock('src/analysis/modals/GalaxyModal', (): GalaxyComputeModalExports => {
   return {
-    ...jest.requireActual('src/pages/workspaces/workspace/analysis/modals/GalaxyModal'),
+    ...jest.requireActual('src/analysis/modals/GalaxyModal'),
     GalaxyModalBase: (_obj: any) => stubReactModal({ modalName: 'GalaxyModalBase' }),
   };
 });
