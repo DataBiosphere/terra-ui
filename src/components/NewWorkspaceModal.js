@@ -63,7 +63,7 @@ const ariaInvalidBillingAccountMsg = (invalidBillingAccount) => {
 
 const NewWorkspaceModal = withDisplayName(
   'NewWorkspaceModal',
-  ({ cloneWorkspace, onSuccess, onDismiss, customMessage, requiredAuthDomain, requiredEnhancedBucketLogging, title, buttonText }) => {
+  ({ cloneWorkspace, onSuccess, onDismiss, customMessage, requiredAuthDomain, requireEnhancedBucketLogging, title, buttonText }) => {
     // State
     const [billingProjects, setBillingProjects] = useState();
     const [allGroups, setAllGroups] = useState();
@@ -71,7 +71,7 @@ const NewWorkspaceModal = withDisplayName(
     const [namespace, setNamespace] = useState(cloneWorkspace ? cloneWorkspace.workspace.namespace : undefined);
     const [description, setDescription] = useState(cloneWorkspace ? cloneWorkspace.workspace.attributes.description : '');
     const [groups, setGroups] = useState([]);
-    const [enhancedBucketLogging, setEnhancedBucketLogging] = useState(!!requiredEnhancedBucketLogging);
+    const [enhancedBucketLogging, setEnhancedBucketLogging] = useState(requireEnhancedBucketLogging);
     const [nameModified, setNameModified] = useState(false);
     const [loading, setLoading] = useState(false);
     const [creating, setCreating] = useState(false);
@@ -383,7 +383,7 @@ const NewWorkspaceModal = withDisplayName(
                           style: { margin: '0.25rem 0.25rem 0.25rem 0' },
                           id,
                           checked: enhancedBucketLogging,
-                          disabled: requiredEnhancedBucketLogging,
+                          disabled: requireEnhancedBucketLogging || groups.length > 0,
                           onChange: () => setEnhancedBucketLogging(!enhancedBucketLogging),
                         }),
                         'Enhanced Bucket Logging',
@@ -433,7 +433,10 @@ const NewWorkspaceModal = withDisplayName(
                         placeholder: 'Select groups',
                         disabled: !allGroups || !billingProjects,
                         value: groups,
-                        onChange: (data) => setGroups(_.map('value', data)),
+                        onChange: (data) => {
+                          setGroups(_.map('value', data));
+                          setEnhancedBucketLogging(data.length > 0);
+                        },
                         options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort(),
                       }),
                     ]),
