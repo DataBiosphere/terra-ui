@@ -333,6 +333,16 @@ const ImportDataDestination = ({
   ]);
 };
 
+// This method identifies whether an import source is considered protected data;
+// For now this means pfb imports from AnVIL or Biodata Catalyst.
+export const isProtected = (url, filetype) => {
+  const hostname = new URL(url).hostname;
+  const protectedHosts = ['anvil.gi.ucsc.edu', 'anvilproject.org', 'gen3.biodatacatalyst.nhlbi.nih.gov'];
+  return Utils.cond([!filetype || !url, () => false], [filetype.toLowerCase() !== 'pfb', () => false], () =>
+    protectedHosts.some((host) => hostname.endsWith(host))
+  );
+};
+
 // ImportData handles all the information relating to the page itself - this includes:
 // * Reading from the URL
 // * Loading initial Data
@@ -380,6 +390,7 @@ const ImportData = () => {
 
   const importPFB = (namespace, name) => {
     return async () => {
+      // TODO: AJ-1103 Indicate that an auth domain or enhanced logging is required if data is protected using isProtected(url, 'pfb')
       const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importJob(url, 'pfb', null);
       asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
       notifyDataImportProgress(jobId);
