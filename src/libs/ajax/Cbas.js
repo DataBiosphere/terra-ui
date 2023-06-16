@@ -2,8 +2,8 @@ import _ from 'lodash/fp';
 import { authOpts, fetchCbas, jsonBody } from 'src/libs/ajax/ajax-common';
 
 export const Cbas = (signal) => ({
-  status: async () => {
-    const res = fetchCbas(fetchCbas)('api/batch/v1/status', { signal });
+  status: async (cbasUrlRoot) => {
+    const res = await fetchCbas(cbasUrlRoot)('status', _.mergeAll([authOpts(), { signal, method: 'GET' }]));
     return res.json();
   },
   methods: {

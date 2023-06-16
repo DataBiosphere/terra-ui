@@ -11,15 +11,21 @@ import { MenuButton } from 'src/components/MenuButton';
 import Modal from 'src/components/Modal';
 import { PageBox } from 'src/components/PageBox';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
+import { TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
+import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
+import { notify } from 'src/libs/notifications';
 import { forwardRefWithName, memoWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
+import { getUser } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { resolveRunningCromwellAppUrl } from 'src/libs/workflows-app-utils';
+import { isAzureWorkspace } from 'src/libs/workspace-utils';
 import { DockstoreTile, MethodCard, MethodRepoTile } from 'src/pages/library/Code';
 import DeleteWorkflowConfirmationModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowConfirmationModal';
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal';
@@ -342,6 +348,7 @@ export const Workflows = _.flow(
   const [findingWorkflow, setFindingWorkflow] = useState(false);
 
   const [listView, setListView] = useViewToggle('workflowsTab');
+
   const signal = useCancellation();
 
   // Helpers
@@ -386,6 +393,13 @@ export const Workflows = _.flow(
       });
     })
   )(configs);
+
+  const renderCbasWorkflowsPage = () => {
+    return h(AzureW, ws);
+  };
+  if (isAzureWorkspace(ws)) {
+    return renderCbasWorkflowsPage();
+  }
 
   return h(PageBox, [
     div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
@@ -481,51 +495,78 @@ export const Workflows = _.flow(
   ]);
 });
 
-// export const AzureWorkflows = _.flow(
-//   forwardRefWithName('Azure Workflows'),
-//   wrapWorkspace({
-//     breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
-//     title: '',
-//     activeTab: 'workflows',
-//   })
-// )(({ namespace, name }, ref) => {
-//   // State
-//   // const [loading, setLoading] = useState(true);
-//   // const [sortOrder, setSortOrder] = useState(() => StateHistory.get().sortOrder || defaultSort.value);
-//   // const [filter, setFilter] = useState(() => StateHistory.get().filter || '');
-//   // const [configs, setConfigs] = useState(() => StateHistory.get().configs || undefined);
-//   // const [statuses, setStatuses] = useState();
-//
-//   const signal = useCancellation();
-//
-//   // Helpers
-//   // const refresh = _.flow(
-//   //   // Utils.withBusyState(setLoading),
-//   //   withErrorReporting('Error loading configs')
-//   // )(async () => {
-//   //   const configs = await Ajax(signal).Workspaces.workspace(namespace, name).listMethodConfigs();
-//   //   //setConfigs(configs);
-//   // });
-//
-//   // Lifecycle
-//   // useOnMount(() => {
-//   //   refresh();
-//   //   // const loadCbasStatuses = async (signal) => {
-//   //   //   try {
-//   //   //     const status = await Ajax(signal).Cbas.status();
-//   //   //     setStatuses(status);
-//   //   //   } catch (error) {
-//   //   //     notify('error', 'Error loading statuses', { detail: await (error instanceof Response ? error.text() : error) });
-//   //   //   }
-//   //   // };
-//   //   // loadCbasStatuses().then((s) => console.log(s));
-//   // });
-//
-//   // useImperativeHandle(ref, () => ({ refresh }));
-//   // console.log(`STATUSES: ${statuses}`);
-//
-//   return div({}, [h(TextCell, {}, ['CBAS: ']), h(TextCell, {}, ['Cromwell: '])]);
-// });
+export const AzureWorkflows = _.flow(
+  forwardRefWithName('Azure Workflows'),
+  wrapWorkspace({
+    breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
+    title: '',
+    activeTab: 'workflows',
+  })
+)(({ workspace }) => {
+  // State
+  const [cbasStatus, setCbasStatus] = useState();
+  const [cromwellStatus, setCromwellStatus] = useState();
+
+  const signal = useCancellation();
+
+  const loadCbasStatuses = async () => {
+    try {
+      const workspaceId = await workspace.workspace.workspaceId;
+
+      const appUrl = (
+        await Apps(signal)
+          .listAppsV2(workspaceId)
+          .then((apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email))
+      ).cbasUrl;
+
+      const status = await Ajax(signal).Cbas.status(appUrl);
+      setCbasStatus(JSON.stringify(status.ok));
+      setCromwellStatus(JSON.stringify(status.systems.cromwell.ok));
+    } catch (error) {
+      notify('error', 'Error loading statuses', { detail: await (error instanceof Response ? error.text() : error) });
+    }
+  };
+
+  // Lifecycle
+  useOnMount(() => {
+    loadCbasStatuses();
+  });
+
+  return div({}, [h(TextCell, {}, [`CBAS: ${cbasStatus}`]), h(TextCell, {}, [`Cromwell: ${cromwellStatus}`])]);
+});
+
+const AzureW = ({ workspace }) => {
+  // State
+  const [cbasStatus, setCbasStatus] = useState();
+  const [cromwellStatus, setCromwellStatus] = useState();
+
+  const signal = useCancellation();
+
+  const loadCbasStatuses = async () => {
+    try {
+      const workspaceId = await workspace.workspace.workspaceId;
+
+      const appUrl = (
+        await Apps(signal)
+          .listAppsV2(workspaceId)
+          .then((apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email))
+      ).cbasUrl;
+
+      const status = await Ajax(signal).Cbas.status(appUrl);
+      setCbasStatus(JSON.stringify(status.ok));
+      setCromwellStatus(JSON.stringify(status.systems.cromwell.ok));
+    } catch (error) {
+      notify('error', 'Error loading statuses', { detail: await (error instanceof Response ? error.text() : error) });
+    }
+  };
+
+  // Lifecycle
+  useOnMount(() => {
+    loadCbasStatuses();
+  });
+
+  return div({}, [h(TextCell, {}, [`CBAS: ${cbasStatus}`]), h(TextCell, {}, [`Cromwell: ${cromwellStatus}`])]);
+};
 
 export const navPaths = [
   {
