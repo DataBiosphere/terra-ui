@@ -394,11 +394,8 @@ export const Workflows = _.flow(
     })
   )(configs);
 
-  const renderCbasWorkflowsPage = () => {
-    return h(AzureW, ws);
-  };
   if (isAzureWorkspace(ws)) {
-    return renderCbasWorkflowsPage();
+    return h(AzureWorkflows, ws);
   }
 
   return h(PageBox, [
@@ -495,14 +492,7 @@ export const Workflows = _.flow(
   ]);
 });
 
-export const AzureWorkflows = _.flow(
-  forwardRefWithName('Azure Workflows'),
-  wrapWorkspace({
-    breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: '',
-    activeTab: 'workflows',
-  })
-)(({ workspace }) => {
+const AzureWorkflows = ({ workspace }) => {
   // State
   const [cbasStatus, setCbasStatus] = useState();
   const [cromwellStatus, setCromwellStatus] = useState();
@@ -511,40 +501,7 @@ export const AzureWorkflows = _.flow(
 
   const loadCbasStatuses = async () => {
     try {
-      const workspaceId = await workspace.workspace.workspaceId;
-
-      const appUrl = (
-        await Apps(signal)
-          .listAppsV2(workspaceId)
-          .then((apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email))
-      ).cbasUrl;
-
-      const status = await Ajax(signal).Cbas.status(appUrl);
-      setCbasStatus(JSON.stringify(status.ok));
-      setCromwellStatus(JSON.stringify(status.systems.cromwell.ok));
-    } catch (error) {
-      notify('error', 'Error loading statuses', { detail: await (error instanceof Response ? error.text() : error) });
-    }
-  };
-
-  // Lifecycle
-  useOnMount(() => {
-    loadCbasStatuses();
-  });
-
-  return div({}, [h(TextCell, {}, [`CBAS: ${cbasStatus}`]), h(TextCell, {}, [`Cromwell: ${cromwellStatus}`])]);
-});
-
-const AzureW = ({ workspace }) => {
-  // State
-  const [cbasStatus, setCbasStatus] = useState();
-  const [cromwellStatus, setCromwellStatus] = useState();
-
-  const signal = useCancellation();
-
-  const loadCbasStatuses = async () => {
-    try {
-      const workspaceId = await workspace.workspace.workspaceId;
+      const workspaceId = workspace.workspaceId;
 
       const appUrl = (
         await Apps(signal)
@@ -580,10 +537,4 @@ export const navPaths = [
     path: '/workspaces/:namespace/:name/tools',
     component: (props) => h(Nav.Redirector, { pathname: Nav.getPath('workspace-workflows', props) }),
   },
-  // {
-  //   name: 'workspace-cbas-workflows',
-  //   path: '/workspaces/:namespace/:name/cbas',
-  //   component: AzureWorkflows,
-  //   title: ({ name }) => `${name} - Workflows`,
-  // },
 ];
