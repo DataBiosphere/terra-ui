@@ -1,6 +1,4 @@
 // Types that can be used to create a criteria.
-
-import _ from 'lodash/fp';
 import { DatasetBuilderType } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 
 export interface DomainOption {
@@ -42,18 +40,19 @@ export interface DatasetResponse {
   domainOptions: DomainOption[];
   learnMoreLink: string;
   accessLevel: AccessLevel;
+  featureValueGroups: FeatureValueGroup[];
 }
 
 export type DatasetBuilderValue = DatasetBuilderType;
 
-type DatasetBuilderDomainResponse = {
+export type FeatureValueGroup = {
   values: DatasetBuilderValue[];
-  domain: string;
+  name: string;
+  id: number;
 };
 
 export interface DatasetBuilderContract {
   retrieveDataset: (datasetId: string) => Promise<DatasetResponse>;
-  getValuesFromDomains: (datasetId: string, domains: string[]) => Promise<DatasetBuilderDomainResponse[]>;
 }
 
 type AccessLevel = 'Owner' | 'Reader' | 'Discoverer';
@@ -142,12 +141,35 @@ export const dummyDatasetDetails = (datasetId: string): DatasetResponse => ({
   ],
   learnMoreLink: '',
   accessLevel: 'Reader',
+  featureValueGroups: [
+    {
+      values: [{ name: 'condition column 1' }, { name: 'condition column 2' }],
+      name: 'Condition',
+      id: 0,
+    },
+    {
+      values: [{ name: 'observation column 1' }, { name: 'observation column 2' }],
+      name: 'Observation',
+      id: 1,
+    },
+    {
+      values: [{ name: 'procedure column 1' }, { name: 'procedure column 2' }],
+      name: 'Procedure',
+      id: 2,
+    },
+    {
+      values: [{ name: 'surveys column 1' }, { name: 'surveys column 2' }],
+      name: 'Surveys',
+      id: 2,
+    },
+    {
+      values: [{ name: 'demographics column 1' }, { name: 'demographics column 2' }],
+      name: 'Person',
+      id: 3,
+    },
+  ],
 });
 
 export const DatasetBuilder = (): DatasetBuilderContract => ({
   retrieveDataset: (datasetId) => Promise.resolve(dummyDatasetDetails(datasetId)),
-  getValuesFromDomains: (_datasetId, domains) =>
-    Promise.resolve(
-      _.map((domain) => ({ domain, values: [{ name: 'value 1' }, { name: 'value 2' }, { name: 'value 3' }] }), domains)
-    ),
 });

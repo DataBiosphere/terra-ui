@@ -64,7 +64,7 @@ export const newCohort = (name: string): Cohort => {
 };
 
 export type ConceptSet = DatasetBuilderType & {
-  domain: string;
+  featureValueGroupName: string;
 };
 
 export interface DatasetBuilderType {
