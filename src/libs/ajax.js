@@ -1097,7 +1097,7 @@ export const Ajax = (signal) => {
   return {
     User: User(signal),
     Groups: Groups(signal),
-    SamResources: SamResources(),
+    SamResources: SamResources(signal),
     Billing: Billing(signal),
     Workspaces: Workspaces(signal),
     Catalog: Catalog(signal),

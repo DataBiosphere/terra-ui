@@ -10,14 +10,22 @@ import { DatasetBuilder, DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 import { useOnMount } from 'src/libs/react-utils';
-import * as Utils from 'src/libs/utils';
 import { StringInput } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
+import { CohortEditor } from 'src/pages/library/datasetBuilder/CohortEditor';
 import {
   PAGE_PADDING_HEIGHT,
   PAGE_PADDING_WIDTH,
   PREPACKAGED_CONCEPT_SETS,
 } from 'src/pages/library/datasetBuilder/constants';
-import { Cohort, ConceptSet, DatasetBuilderType } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import {
+  AnyDatasetBuilderState,
+  Cohort,
+  cohortEditorState,
+  ConceptSet,
+  DatasetBuilderType,
+  homepageState,
+  newCohort,
+} from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { DatasetBuilderHeader } from 'src/pages/library/datasetBuilder/DatasetBuilderHeader';
 import { datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/pages/library/datasetBuilder/state';
 import { validate } from 'validate.js';
@@ -202,12 +210,13 @@ const Selector = <T extends DatasetBuilderType>({
   ]);
 };
 
+export type OnStateChangeHandler = (state: AnyDatasetBuilderState) => void;
 export const CreateCohortModal = ({
   onDismiss,
   onStateChange,
 }: {
   onDismiss: () => void;
-  onStateChange: OnStateChangeType;
+  onStateChange: OnStateChangeHandler;
 }) => {
   const [cohortNameTouched, setCohortNameTouched] = useState(false);
   const [cohortName, setCohortName] = useState('');
@@ -230,10 +239,7 @@ export const CreateCohortModal = ({
     );
 
   const createCohort = (cohortName) => {
-    // Once state is typed, the ts-ignore should go away
-    // @ts-ignore
-    datasetBuilderCohorts.set(datasetBuilderCohorts.get().concat({ name: cohortName }));
-    onStateChange('cohort-editor');
+    onStateChange(cohortEditorState.new(newCohort(cohortName)));
   };
 
   return h(
@@ -276,12 +282,12 @@ export const CohortSelector = ({
 }: {
   selectedCohorts: HeaderAndValues<Cohort>[];
   onChange: (cohorts: HeaderAndValues<Cohort>[]) => void;
-  onStateChange: OnStateChangeType;
+  onStateChange: OnStateChangeHandler;
 }) => {
   const [creatingCohort, setCreatingCohort] = useState(false);
 
   return h(Fragment, [
-    h(Selector, {
+    h(Selector<Cohort>, {
       headerAction: h(
         Link,
         {
@@ -289,7 +295,7 @@ export const CohortSelector = ({
           'aria-label': 'Create new cohort',
           'aria-haspopup': 'dialog',
         },
-        [icon('plus-circle', { size: 24 })]
+        [icon('plus-circle-filled', { size: 24 })]
       ),
       number: 1,
       onChange,
@@ -318,16 +324,16 @@ export const ConceptSetSelector = ({
 }: {
   selectedConceptSets: HeaderAndValues<ConceptSet>[];
   onChange: (conceptSets: HeaderAndValues<ConceptSet>[]) => void;
-  onStateChange: OnStateChangeType;
+  onStateChange: OnStateChangeHandler;
 }) => {
   return h(Selector, {
     headerAction: h(
       Link,
       {
-        onClick: () => onStateChange('concept-set-creator'),
+        onClick: () => onStateChange({ mode: 'concept-set-creator' }),
         'aria-label': 'Create new concept set',
       },
-      [icon('plus-circle', { size: 24 })]
+      [icon('plus-circle-filled', { size: 24 })]
     ),
     number: 2,
     onChange,
@@ -383,7 +389,7 @@ export const ValuesSelector = ({
   });
 };
 
-export const DatasetBuilderContents = ({ onStateChange }: { onStateChange: OnStateChangeType }) => {
+export const DatasetBuilderContents = ({ onStateChange }: { onStateChange: OnStateChangeHandler }) => {
   const [selectedCohorts, setSelectedCohorts] = useState([] as HeaderAndValues<Cohort>[]);
   const [selectedConceptSets, setSelectedConceptSets] = useState([] as HeaderAndValues<ConceptSet>[]);
   const [selectedValues, setSelectedValues] = useState([] as HeaderAndValues<Value>[]);
@@ -411,16 +417,19 @@ export const DatasetBuilderContents = ({ onStateChange }: { onStateChange: OnSta
   ]);
 };
 
-type DatasetBuilderState = 'homepage' | 'cohort-editor' | 'concept-selector' | 'concept-set-creator';
-type OnStateChangeType = (state: DatasetBuilderState) => void;
-
 interface DatasetBuilderProps {
   datasetId: string;
+  initialState?: AnyDatasetBuilderState;
 }
 
-export const DatasetBuilderView = ({ datasetId }: DatasetBuilderProps) => {
+const editorBackgroundColor = colors.light(0.7);
+
+export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
+  const { datasetId, initialState } = props;
   const [datasetDetails, loadDatasetDetails] = useLoadedData<DatasetResponse>();
-  const [datasetBuilderState, setDatasetBuilderState] = useState<DatasetBuilderState>('homepage');
+  const [datasetBuilderState, setDatasetBuilderState] = useState<AnyDatasetBuilderState>(
+    initialState || homepageState.new()
+  );
 
   useOnMount(() => {
     void loadDatasetDetails(() => DatasetBuilder().retrieveDataset(datasetId));
@@ -428,12 +437,24 @@ export const DatasetBuilderView = ({ datasetId }: DatasetBuilderProps) => {
   return datasetDetails.status === 'Ready'
     ? h(FooterWrapper, [
         h(TopBar, { title: 'Preview', href: '' }, []),
-        h(DatasetBuilderHeader, { name: datasetDetails.state.name }),
-        Utils.switchCase(
-          datasetBuilderState,
-          ['homepage', () => h(DatasetBuilderContents, { onStateChange: (state) => setDatasetBuilderState(state) })],
-          [Utils.DEFAULT, () => div([datasetBuilderState])]
-        ),
+        h(DatasetBuilderHeader, { datasetDetails: datasetDetails.state }),
+        div({ style: { backgroundColor: editorBackgroundColor } }, [
+          (() => {
+            switch (datasetBuilderState.mode) {
+              case 'homepage':
+                return h(DatasetBuilderContents, { onStateChange: setDatasetBuilderState });
+              case 'cohort-editor':
+                return h(CohortEditor, {
+                  onStateChange: setDatasetBuilderState,
+                  originalCohort: datasetBuilderState.cohort,
+                  datasetDetails: datasetDetails.state,
+                });
+              default:
+                return div([datasetBuilderState.mode]);
+            }
+          })(),
+        ]),
+        div({ style: { backgroundColor: editorBackgroundColor, height: '100%' } }, []),
       ])
     : spinnerOverlay;
 };
@@ -441,7 +462,7 @@ export const DatasetBuilderView = ({ datasetId }: DatasetBuilderProps) => {
 export const navPaths = [
   {
     name: 'create-dataset',
-    path: '/library/builder/:datasetId',
+    path: '/library/builder/:datasetId/build',
     component: DatasetBuilderView,
     title: 'Build Dataset',
   },

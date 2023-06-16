@@ -18,6 +18,7 @@ import {
   faChalkboard,
   faCheck,
   faCheckCircle,
+  faChevronCircleLeft,
   faCircle,
   faClock as faClockSolid,
   faCloud,
@@ -75,13 +76,17 @@ import { ReactComponent as externalLinkAlt } from 'src/icons/external-link-alt-r
 import { ReactComponent as fileExport } from 'src/icons/file-export-regular.svg';
 import { ReactComponent as fileSearchSolid } from 'src/icons/file-search-solid.svg';
 import { ReactComponent as infoCircleRegular } from 'src/icons/info-circle-regular.svg';
+import { ReactComponent as leftCircleFilled } from 'src/icons/left-circle-filled.svg';
 import { ReactComponent as list } from 'src/icons/list-regular.svg';
 import { ReactComponent as loadingSpinner } from 'src/icons/loading-spinner.svg';
+import { ReactComponent as minusCircleRed } from 'src/icons/minus-circle-red.svg';
+import { ReactComponent as plusCircleFilled } from 'src/icons/plus-circle-filled.svg';
 import { ReactComponent as renameIcon } from 'src/icons/rename-icon.svg';
 import { ReactComponent as squareLight } from 'src/icons/square-light.svg';
 import { ReactComponent as syncAlt } from 'src/icons/sync-alt-regular.svg';
 import { ReactComponent as talkBubble } from 'src/icons/talk-bubble.svg';
 import { ReactComponent as times } from 'src/icons/times-light.svg';
+import { ReactComponent as trashCircleFilled } from 'src/icons/trash-circle-filled.svg';
 import { ReactComponent as warningInfo } from 'src/icons/warning-info.svg';
 
 const fa = _.curry((shape, { size, ...props }) => h(FontAwesomeIcon, _.merge({ icon: shape, style: { height: size, width: size } }, props)));
@@ -109,6 +114,7 @@ const iconDict = {
   chalkboard: fa(faChalkboard),
   check: fa(faCheck),
   circle: fa(faCircle),
+  'circle-chevron-left': fa(faChevronCircleLeft),
   clock: fa(faClock),
   clockSolid: fa(faClockSolid),
   cloud: fa(faCloud),
@@ -136,6 +142,7 @@ const iconDict = {
   help: fa(faQuestionCircle),
   'info-circle': fa(faInfoCircle),
   'info-circle-regular': custom(infoCircleRegular),
+  'left-circle-filled': custom(leftCircleFilled),
   library: custom(books),
   listAlt: fa(faListAlt),
   loadingSpinner: custom(loadingSpinner),
@@ -143,11 +150,13 @@ const iconDict = {
   'long-arrow-alt-down': fa(faLongArrowAltDown),
   'long-arrow-alt-up': fa(faLongArrowAltUp),
   'minus-circle': fa(faMinusCircle),
+  'minus-circle-red': custom(minusCircleRed),
   'money-check-alt': fa(faMoneyCheckAlt),
   pause: fa(faPause),
   play: fa(faPlay),
   plus: fa(faPlus),
   'plus-circle': fa(faPlusCircle),
+  'plus-circle-filled': custom(plusCircleFilled),
   'lighter-plus-circle': (props) => fa(faPlus, { mask: faCircle, transform: 'shrink-6', ...props }),
   'pop-out': custom(externalLinkAlt),
   purchaseOrder: fa(faFileInvoiceDollar),
@@ -169,6 +178,7 @@ const iconDict = {
   'talk-bubble': custom(talkBubble),
   'times-circle': fa(faTimesCircle),
   trash: fa(faTrashAlt),
+  'trash-circle-filled': custom(trashCircleFilled),
   unlock: fa(faUnlock),
   'upload-cloud': custom(cloudUpload),
   'view-cards': fa(faGripHorizontal),
