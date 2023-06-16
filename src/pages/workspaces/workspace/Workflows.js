@@ -518,8 +518,8 @@ const AzureWorkflows = ({ workspace }) => {
   };
 
   // Lifecycle
-  useOnMount(() => {
-    loadCbasStatuses();
+  useOnMount(async () => {
+    await loadCbasStatuses();
   });
 
   return div({}, [h(TextCell, {}, [`CBAS: ${cbasStatus}`]), h(TextCell, {}, [`Cromwell: ${cromwellStatus}`])]);
