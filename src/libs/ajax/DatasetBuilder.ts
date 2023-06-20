@@ -110,7 +110,7 @@ export const generateDummyConcept = (): Concept => ({
 
 const generateDummyConcepts = (): GetConceptsResponse => {
   return {
-    result: _.times(generateDummyConcept, 3),
+    result: _.times(generateDummyConcept, getRandomInt(7) + 2),
   };
 };
 

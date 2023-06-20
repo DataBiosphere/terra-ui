@@ -1,9 +1,10 @@
 import _ from 'lodash/fp';
 import { ReactNode, useState } from 'react';
-import { div, h } from 'react-hyperscript-helpers';
+import { div, h, strong } from 'react-hyperscript-helpers';
 import { Grid } from 'react-virtualized';
 import { Link } from 'src/components/common/Link';
 import { icon } from 'src/components/icons';
+import colors from 'src/libs/colors';
 import { DEFAULT, switchCase } from 'src/libs/utils';
 
 export type RowContents = {
@@ -40,12 +41,14 @@ export type TreeGridProps<T extends RowContents> = {
 
 // TODO
 //  - column headers
-//  - config row height, no content message
-
+//  - props arguments for row height, no content message
+//  - collapse by hiding, not by deleting and preserve expansion state
+//  - pending indicator for async children fetch
+//  - auto-size based on content (?)
 export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
   const { columns, initialRows, getChildren } = props;
   const [data, setData] = useState(_.map(wrapContent(0), initialRows));
-  const rowHeight = 20;
+  const rowHeight = 48;
   const expand = async (row: Row<T>) => {
     const children = await getChildren(row.contents);
     const index = _.findIndex(_.isEqual(row), data);
@@ -72,18 +75,18 @@ export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
     width: _.sum(_.map((c) => c.width, columns)),
     noContentMessage: 'No matching data',
     cellRenderer: ({ rowIndex, columnIndex, style }) =>
-      div({ style }, [
+      div({ style: { ...style, borderTop: `1px solid ${colors.dark(0.3)}`, paddingTop: 5, alignItems: 'center' } }, [
         switchCase(
           columnIndex,
           [
             0,
             () =>
-              div({ style: { paddingLeft: `${data[rowIndex].depth}rem`, display: 'flex', alignItems: 'center' } }, [
+              div({ style: { paddingLeft: `${data[rowIndex].depth}rem`, display: 'flex' } }, [
                 !data[rowIndex].contents.isLeaf &&
                   (data[rowIndex].isExpanded
-                    ? h(Link, { onClick: () => collapse(data[rowIndex]) }, [icon('minus-circle', { size: 16 })])
-                    : h(Link, { onClick: () => expand(data[rowIndex]) }, [icon('plus-circle', { size: 16 })])),
-                div({ style: { marginLeft: data[rowIndex].contents.isLeaf ? 20 : 4 } }, [
+                    ? h(Link, { onClick: () => collapse(data[rowIndex]) }, [icon('angle-up', { size: 16 })])
+                    : h(Link, { onClick: () => expand(data[rowIndex]) }, [icon('angle-down', { size: 16 })])),
+                div({ style: { display: 'flex', marginLeft: data[rowIndex].contents.isLeaf ? 20 : 4 } }, [
                   columns[columnIndex].render(data[rowIndex].contents),
                 ]),
               ]),
@@ -93,4 +96,14 @@ export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
       ]),
     border: false,
   });
+};
+
+export const TreeGridView = <T extends RowContents>(props: TreeGridProps<T>) => {
+  // generate a header row
+  return div([
+    div({ style: { height: '100%', display: 'flex', paddingTop: 20, paddingBottom: 20 } }, [
+      _.map((c) => div({ style: { width: c.width, marginTop: 5 } }, [strong([c.name])]), props.columns),
+    ]),
+    h(TreeGrid<T>, props),
+  ]);
 };
