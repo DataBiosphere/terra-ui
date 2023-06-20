@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, h2, label } from 'react-hyperscript-helpers';
+import { setAzureCookieOnUrl } from 'src/analysis/runtime-common-components';
 import { DeleteConfirmationModal, IdContainer, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
@@ -21,7 +22,6 @@ import * as Utils from 'src/libs/utils';
 import { workflowNameValidation } from 'src/libs/workflow-utils';
 import { resolveRunningCromwellAppUrl } from 'src/libs/workflows-app-utils';
 import { isGoogleWorkspaceInfo } from 'src/libs/workspace-utils';
-import { setAzureCookieOnUrl } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
 import validate from 'validate.js';
 
 import { importDockstoreWorkflow } from './importDockstoreWorkflow';
