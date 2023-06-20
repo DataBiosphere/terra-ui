@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, p, strong } from 'react-hyperscript-helpers';
+import { cloudProviders, defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import { ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
@@ -26,7 +27,6 @@ import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderLabels, isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
-import { cloudProviders, defaultLocation } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import validate from 'validate.js';
 
 const warningStyle = {

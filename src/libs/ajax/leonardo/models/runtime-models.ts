@@ -1,7 +1,7 @@
+import { ToolLabel } from 'src/analysis/utils/tool-utils';
 import { AuditInfo, CloudContext, LeoError, LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models';
 import { DiskConfig } from 'src/libs/ajax/leonardo/models/disk-models';
 import { RuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
-import { ToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 export type LeoRuntimeStatus =
   | 'Running'
