@@ -48,6 +48,7 @@ import * as WorkflowView from 'src/pages/workspaces/workspace/workflows/Workflow
  */
 const routes = _.flatten([
   LandingPage.navPaths,
+  Workflows.navPaths,
   WorkspaceList.navPaths,
   WorkflowView.navPaths,
   ImportData.navPaths,
@@ -59,7 +60,6 @@ const routes = _.flatten([
   JobHistory.navPaths,
   SubmissionDetails.navPaths,
   WorkflowDashboard.navPaths,
-  Workflows.navPaths,
   AnalysisLauncher.navPaths,
   Profile.navPaths,
   Groups.navPaths,

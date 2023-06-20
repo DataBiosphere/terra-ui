@@ -12,18 +12,14 @@ import Modal from 'src/components/Modal';
 import { PageBox } from 'src/components/PageBox';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
-import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
-import { notify } from 'src/libs/notifications';
 import { forwardRefWithName, memoWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
-import { getUser } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { resolveRunningCromwellAppUrl } from 'src/libs/workflows-app-utils';
 import { isAzureWorkspace } from 'src/libs/workspace-utils';
 import { DockstoreTile, MethodCard, MethodRepoTile } from 'src/pages/library/Code';
 import DeleteWorkflowConfirmationModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowConfirmationModal';
@@ -94,6 +90,20 @@ const styles = {
     flex: 1,
     paddingRight: '1rem',
     ...Style.noWrapEllipsis,
+  },
+  sidebarPageContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+  },
+  sidebar: {
+    display: 'flex',
+    flexDirection: 'column',
+    margin: '2rem',
+  },
+  innerPageContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    margin: '2rem',
   },
 };
 
@@ -496,6 +506,7 @@ export const Workflows = _.flow(
 });
 
 export const AzureWorkflows = ({ workspace }) => {
+  /*
   // State
   const [cbasStatus, setCbasStatus] = useState();
   const [cromwellStatus, setCromwellStatus] = useState();
@@ -523,15 +534,88 @@ export const AzureWorkflows = ({ workspace }) => {
   useOnMount(async () => {
     await loadCbasStatuses();
   });
+   */
 
-  return div({}, [`CBAS: ${cbasStatus}\n Cromwell: ${cromwellStatus}`]); // div({}, [h(TextCell, {}, [`CBAS: ${cbasStatus}\n\n Cromwell: ${cromwellStatus}`])]);
+  return div({ style: styles.sidebarPageContainer }, [
+    h(WorkflowsSidebar, { namespace, name }),
+    div({ style: styles.innerPageContainer }, [
+      ..._.map((id) =>
+        h(div, [h(Link, { href: Nav.getLink('workspace-workflows-submission-config', { namespace, name, id }) }, [`Workflow ${id}`])])
+      )(['foo', 'bar']),
+    ]),
+  ]);
 };
+
+const WorkflowsSidebar = ({ namespace, name }) => {
+  const { name: currentPage } = Nav.getCurrentRoute();
+  return div({ style: styles.sidebar }, [
+    h(Link, { href: Nav.getLink('workspace-workflows', { namespace, name }), disabled: currentPage === 'workspace-workflows' }, [
+      'Workspace Workflows',
+    ]),
+    h(
+      Link,
+      {
+        href: Nav.getLink('workspace-workflows-submission-history', { namespace, name }),
+        disabled: currentPage === 'workspace-workflows-submission-history',
+      },
+      ['History']
+    ),
+  ]);
+};
+
+export const wrapWorkflowsPage = ({ name, sidebar = true }) =>
+  _.flow(
+    forwardRefWithName(`Inner ${name}`),
+    (page) => (props, ref) => h(div, { style: styles.innerPageContainer }, [h(page, { ...props, ref })]),
+    forwardRefWithName(`Non-sidebar ${name}`),
+    (page) => (props, ref) =>
+      sidebar ? h(div, { style: styles.sidebarPageContainer }, [h(WorkflowsSidebar, props), h(page, { ...props, ref })]) : h(page, { ...props, ref }),
+    forwardRefWithName(name),
+    wrapWorkspace({
+      breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
+      title: 'Workflows',
+      activeTab: 'workflows',
+    })
+  );
+
+const SubmissionHistory = wrapWorkflowsPage({ name: 'Submission History' })(({ namespace }, _ref) => {
+  return h(TextCell, {}, [`Submission history for workspace ${namespace}`]);
+});
+
+const SubmissionConfig = wrapWorkflowsPage({ name: 'Submission Configuration', sidebar: false })(({ namespace, name, id }, _ref) => {
+  return div({}, [
+    h(TextCell, {}, [`Submission config page for workflow with id ${id}`]),
+    h(Link, { href: Nav.getLink('workspace-workflows-submission-details', { namespace, name, id }) }, ['Submit']),
+  ]);
+});
+
+const SubmissionDetails = wrapWorkflowsPage({ name: 'Submission Details' })(({ id }, _ref) => {
+  return h(TextCell, {}, [`Submission details for workflow with id ${id}`]);
+});
 
 export const navPaths = [
   {
     name: 'workspace-workflows',
     path: '/workspaces/:namespace/:name/workflows',
     component: Workflows,
+    title: ({ name }) => `${name} - Workflows`,
+  },
+  {
+    name: 'workspace-workflows-submission-history',
+    path: '/workspaces/:namespace/:name/workflows/history',
+    component: SubmissionHistory,
+    title: ({ name }) => `${name} - Workflows`,
+  },
+  {
+    name: 'workspace-workflows-submission-details',
+    path: '/workspaces/:namespace/:name/workflows/history/:id',
+    component: SubmissionDetails,
+    title: ({ name }) => `${name} - Workflows`,
+  },
+  {
+    name: 'workspace-workflows-submission-config',
+    path: '/workspaces/:namespace/:name/workflows/:id',
+    component: SubmissionConfig,
     title: ({ name }) => `${name} - Workflows`,
   },
   {
