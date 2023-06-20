@@ -63,7 +63,6 @@ interface AclInputProps extends AclSelectProps {
   maxAccessLevel: WorkspaceAccessLevel;
   isAzureWorkspace: boolean | undefined;
   disabled: boolean | undefined;
-  // autoFocus: boolean | undefined
   onChange: (AccessEntry) => void;
 }
 
@@ -272,7 +271,6 @@ const ShareWorkspaceModal = ({
 
   const currentTerraSupportAccessLevel = terraSupportAccessLevel(originalAcl);
   const newTerraSupportAccessLevel = terraSupportAccessLevel(acl);
-  // _.find(aclEntryIsTerraSupport, acl)?.accessLevel;
   const addTerraSupportToAcl = () => addCollaborator(terraSupportEmail);
   const removeTerraSupportFromAcl = () => setAcl(_.remove(aclEntryIsTerraSupport));
   // {[Key1]: _, ...updatedMyMap} = myMap
