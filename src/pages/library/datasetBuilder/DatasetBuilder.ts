@@ -110,7 +110,7 @@ interface SelectorProps<T extends DatasetBuilderType> {
 }
 
 type SelectorComponent = <T extends DatasetBuilderType>(props: SelectorProps<T>) => ReactElement;
-const Selector: SelectorComponent = <T extends DatasetBuilderType>(props: SelectorProps<T>) => {
+const Selector: SelectorComponent = <T extends DatasetBuilderType>(props) => {
   const { number, header, subheader, headerAction, placeholder, objectSets, onChange, selectedObjectSets, style } =
     props;
   const selectedValues = _.flatMap(
@@ -177,7 +177,7 @@ const Selector: SelectorComponent = <T extends DatasetBuilderType>(props: Select
                     selectedValues,
                     onChange: (value, header) => {
                       const index = _.findIndex(
-                        (selectedObjectSet) => selectedObjectSet.header === header,
+                        (selectedObjectSet: HeaderAndValues<T>) => selectedObjectSet.header === header,
                         selectedObjectSets
                       );
 
@@ -413,31 +413,23 @@ export const DatasetBuilderContents = ({
           setSelectedConceptSets(conceptSets);
           const uniqueFeatureValueGroups = _.flow(
             _.flatMap((headerAndValues: HeaderAndValues<ConceptSet>) => headerAndValues.values),
-            _.map((conceptSet: ConceptSet) => conceptSet.featureValueGroupName),
-            _.uniq
+            _.map((conceptSet: ConceptSet) => conceptSet.featureValueGroupName)
           )(conceptSets);
-          setValues(
-            _.flow(
-              _.filter((featureValueGroup: FeatureValueGroup) =>
-                _.includes(featureValueGroup.name, uniqueFeatureValueGroups)
-              ),
-              _.sortBy('name'),
-              _.map((featureValueGroup: FeatureValueGroup) => ({
-                header: featureValueGroup.name,
-                values: featureValueGroup.values,
-              }))
-            )(dataset.featureValueGroups)
-          );
-          setSelectedValues(
-            _.filter(
-              (selectedValueGroup) => _.includes(selectedValueGroup.header, uniqueFeatureValueGroups),
-              selectedValues
-            )
-          );
+          _.flow(
+            _.filter((featureValueGroup: FeatureValueGroup) =>
+              _.includes(featureValueGroup.name, uniqueFeatureValueGroups)
+            ),
+            _.sortBy('name'),
+            _.map((featureValueGroup: FeatureValueGroup) => ({
+              header: featureValueGroup.name,
+              values: featureValueGroup.values,
+            })),
+            setValues
+          )(dataset.featureValueGroups);
         },
         onStateChange,
       }),
-      h(ValuesSelector, { selectedValues, values, onChange: (values) => setSelectedValues(values) }),
+      h(ValuesSelector, { selectedValues, values, onChange: setSelectedValues }),
     ]),
   ]);
 };

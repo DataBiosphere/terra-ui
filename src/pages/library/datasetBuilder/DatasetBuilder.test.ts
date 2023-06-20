@@ -137,17 +137,21 @@ describe('DatasetBuilder', () => {
       { name: 'concept set 2', featureValueGroupName: 'Procedure' },
     ]);
     render(h(DatasetBuilderContents, { onStateChange: (state) => state, dataset: dummyDatasetDetails('id') }));
+    const cohortOne = screen.getByLabelText('cohort 1');
+    const cohortTwo = screen.getByLabelText('cohort 2');
+    const conceptSetOne = screen.getByLabelText('concept set 1');
+    const conceptSetTwo = screen.getByLabelText('concept set 2');
     // Act
-    await user.click(screen.getByLabelText('cohort 1'));
-    await user.click(screen.getByLabelText('cohort 2'));
-    await user.click(screen.getByLabelText('concept set 1'));
-    await user.click(screen.getByLabelText('concept set 2'));
+    await user.click(cohortOne);
+    await user.click(cohortTwo);
+    await user.click(conceptSetOne);
+    await user.click(conceptSetTwo);
 
     // Assert
-    expect(screen.getByLabelText('cohort 1').getAttribute('aria-checked')).toBeTruthy();
-    expect(screen.getByLabelText('cohort 2').getAttribute('aria-checked')).toBeTruthy();
-    expect(screen.getByLabelText('concept set 1').getAttribute('aria-checked')).toBeTruthy();
-    expect(screen.getByLabelText('concept set 2').getAttribute('aria-checked')).toBeTruthy();
+    expect(cohortOne.getAttribute('aria-checked')).toBeTruthy();
+    expect(cohortTwo.getAttribute('aria-checked')).toBeTruthy();
+    expect(conceptSetOne.getAttribute('aria-checked')).toBeTruthy();
+    expect(conceptSetTwo.getAttribute('aria-checked')).toBeTruthy();
   });
 
   it('places selectable values when concept set is selected', async () => {
@@ -158,10 +162,11 @@ describe('DatasetBuilder', () => {
     render(h(DatasetBuilderContents, { onStateChange: (state) => state, dataset: dummyDatasetDetails('id') }));
     // Act
     await user.click(screen.getByLabelText('concept set 1'));
-    await user.click(screen.getByLabelText('condition column 1'));
+    const conditionColumnOne = screen.getByLabelText('condition column 1');
+    await user.click(conditionColumnOne);
 
     // Assert
-    expect(screen.getByLabelText('condition column 1').getAttribute('aria-checked')).toBeTruthy();
+    expect(conditionColumnOne.getAttribute('aria-checked')).toBeTruthy();
     expect(screen.getByText('Condition')).toBeTruthy();
   });
 
