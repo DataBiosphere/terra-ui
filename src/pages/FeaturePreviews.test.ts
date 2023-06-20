@@ -1,13 +1,10 @@
 import { act, fireEvent, getByText, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
+import { generateTestAppWithAzureWorkspace, generateTestAppWithGoogleWorkspace } from 'src/analysis/_testData/testData';
+import { PauseButton } from 'src/analysis/Environments';
 import { isFeaturePreviewEnabled, toggleFeaturePreview, useAvailableFeaturePreviews } from 'src/libs/feature-previews';
-import { PauseButton } from 'src/pages/Environments';
 import { FeaturePreviews } from 'src/pages/FeaturePreviews';
-import {
-  generateTestAppWithAzureWorkspace,
-  generateTestAppWithGoogleWorkspace,
-} from 'src/pages/workspaces/workspace/analysis/_testData/testData';
 import { asMockedFn } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax');

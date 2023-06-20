@@ -1,8 +1,8 @@
+import { AbsolutePath } from 'src/analysis/utils/file-utils';
+import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
 import { AnalysisProvider } from 'src/libs/ajax/analysis-providers/AnalysisProvider';
 import { WorkspaceInfo } from 'src/libs/workspace-utils';
-import { AbsolutePath } from 'src/pages/workspaces/workspace/analysis/utils/file-utils';
-import { runtimeToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 import { asMockedFn } from 'src/testing/test-utils';
 
 type AjaxExports = typeof import('src/libs/ajax');

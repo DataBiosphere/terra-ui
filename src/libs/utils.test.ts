@@ -1,3 +1,4 @@
+import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/analysis/_testData/testData';
 import {
   condTyped,
   DEFAULT,
@@ -6,10 +7,6 @@ import {
   isValidWsExportTarget,
   textMatch,
 } from 'src/libs/utils';
-import {
-  defaultAzureWorkspace,
-  defaultGoogleWorkspace,
-} from 'src/pages/workspaces/workspace/analysis/_testData/testData';
 
 beforeAll(() => {
   jest.useFakeTimers();
