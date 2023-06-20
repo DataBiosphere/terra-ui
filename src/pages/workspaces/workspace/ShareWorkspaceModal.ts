@@ -1,7 +1,17 @@
 import _ from 'lodash/fp';
-import { Fragment, useLayoutEffect, useRef, useState } from 'react';
+import React, { Fragment, useLayoutEffect, useRef, useState } from 'react';
 import { div, h, h2, label, p, span } from 'react-hyperscript-helpers';
-import { ButtonPrimary, ButtonSecondary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay, Switch } from 'src/components/common';
+import {
+  ButtonPrimary,
+  ButtonSecondary,
+  IdContainer,
+  LabeledCheckbox,
+  Link,
+  Select,
+  SelectProps,
+  spinnerOverlay,
+  Switch,
+} from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { AutocompleteTextInput } from 'src/components/input';
 import Modal, { styles as modalStyles } from 'src/components/Modal';
@@ -16,12 +26,17 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { getUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { isAzureWorkspace } from 'src/libs/workspace-utils';
+import { isAzureWorkspace, WorkspaceAccessLevel, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import {
+  AccessEntry,
+  aclEntryIsTerraSupport,
+  terraSupportAccessLevel,
+  terraSupportEmail,
+  WorkspaceAcl,
+} from 'src/pages/workspaces/workspace/WorkspaceAcl';
 import validate from 'validate.js';
 
-const terraSupportEmail = 'Terra-Support@firecloud.org';
-
-const styles = {
+const styles: { currentCollaboratorsArea: React.CSSProperties; pending: React.CSSProperties } = {
   currentCollaboratorsArea: {
     margin: '0.5rem -1.25rem 0',
     padding: '1rem 1.25rem',
@@ -37,11 +52,34 @@ const styles = {
   },
 };
 
-const AclInput = ({ value, onChange, disabled, maxAccessLevel, isAzureWorkspace, autoFocus, ...props }) => {
+const AclSelect = Select as typeof Select<WorkspaceAccessLevel>;
+type AclSelectProps = Omit<
+  SelectProps<WorkspaceAccessLevel, false, { value: WorkspaceAccessLevel; label: string | undefined }>,
+  'value' | 'onChange' | 'options'
+>;
+
+interface AclInputProps extends AclSelectProps {
+  value: AccessEntry;
+  maxAccessLevel: WorkspaceAccessLevel;
+  isAzureWorkspace: boolean | undefined;
+  disabled: boolean | undefined;
+  // autoFocus: boolean | undefined
+  onChange: (AccessEntry) => void;
+}
+
+const AclInput = ({
+  value,
+  onChange,
+  disabled,
+  maxAccessLevel,
+  isAzureWorkspace,
+  autoFocus,
+  ...props
+}: AclInputProps) => {
   const { accessLevel, canShare, canCompute } = value;
   return div({ style: { display: 'flex', marginTop: '0.25rem' } }, [
     div({ style: { width: isAzureWorkspace ? 425 : 200 } }, [
-      h(Select, {
+      h(AclSelect, {
         autoFocus,
         isSearchable: false,
         isDisabled: disabled,
@@ -51,15 +89,15 @@ const AclInput = ({ value, onChange, disabled, maxAccessLevel, isAzureWorkspace,
         onChange: (o) =>
           onChange({
             ...value,
-            accessLevel: o.value,
+            accessLevel: o?.value,
             ...Utils.switchCase(
-              o.value,
+              o?.value,
               ['READER', () => ({ canCompute: false, canShare: false })],
               ['WRITER', () => ({ canCompute: !isAzureWorkspace, canShare: false })],
               ['OWNER', () => ({ canCompute: true, canShare: true })]
             ),
           }),
-        options: accessLevel === 'PROJECT_OWNER' ? ['PROJECT_OWNER'] : ['READER', 'WRITER', 'OWNER'],
+        options: (accessLevel === 'PROJECT_OWNER' ? ['PROJECT_OWNER'] : ['READER', 'WRITER', 'OWNER']) as any,
         menuPortalTarget: getPopupRoot(),
         ...props,
       }),
@@ -92,26 +130,37 @@ const AclInput = ({ value, onChange, disabled, maxAccessLevel, isAzureWorkspace,
   ]);
 };
 
+interface ShareWorkspaceModalProps {
+  workspace: WorkspaceWrapper;
+  onDismiss: () => void;
+}
 const ShareWorkspaceModal = ({
   onDismiss,
   workspace,
   workspace: {
     workspace: { namespace, name },
   },
-}) => {
+}: ShareWorkspaceModalProps) => {
   // State
   const [shareSuggestions, setShareSuggestions] = useState([]);
   const [groups, setGroups] = useState([]);
-  const [originalAcl, setOriginalAcl] = useState([]);
+  const [originalAcl, setOriginalAcl] = useState<WorkspaceAcl>([]);
   const [searchValue, setSearchValue] = useState('');
-  const [acl, setAcl] = useState([]);
+  const [acl, setAcl] = useState<WorkspaceAcl>([]);
   const [loaded, setLoaded] = useState(false);
   const [working, setWorking] = useState(false);
   const [updateError, setUpdateError] = useState(undefined);
   const [lastAddedEmail, setLastAddedEmail] = useState(undefined);
   const [searchHasFocus, setSearchHasFocus] = useState(true);
 
-  const list = useRef();
+  const list = useRef<HTMLDivElement>(null);
+
+  /*
+  div({ref: list, role: 'list', style: styles.currentCollaboratorsArea}, [
+          h(Fragment, _.flow(_.remove(aclEntryIsTerraSupport), Utils.toIndexPairs, _.map(renderCollaborator))(acl)),
+          !loaded && centeredSpinner(),
+        ]),
+   */
   const signal = useCancellation();
 
   // Helpers
@@ -153,7 +202,10 @@ const ShareWorkspaceModal = ({
             Link,
             {
               tooltip: 'Remove',
-              onClick: () => setAcl(_.remove({ email })),
+              onClick: () => {
+                const newAcl = _.remove({ email }, acl);
+                setAcl(newAcl);
+              },
             },
             [icon('times', { size: 20, style: { marginRight: '0.5rem' } })]
           ),
@@ -171,7 +223,7 @@ const ShareWorkspaceModal = ({
           Ajax(signal).Groups.list(),
         ]);
 
-        const fixedAcl = _.flow(
+        const fixedAcl: WorkspaceAcl = _.flow(
           _.toPairs,
           _.map(([email, data]) => ({ email, ...data })),
           _.sortBy((x) => -Utils.workspaceAccessLevels.indexOf(x.accessLevel))
@@ -192,14 +244,19 @@ const ShareWorkspaceModal = ({
   });
 
   useLayoutEffect(() => {
-    !!lastAddedEmail && list.current.scrollTo({ top: list.current.scrollHeight, behavior: 'smooth' });
+    !!lastAddedEmail && list?.current?.scrollTo({ top: list?.current?.scrollHeight, behavior: 'smooth' });
   }, [lastAddedEmail]);
 
   // Render
   const searchValueValid = !validate({ searchValue }, { searchValue: { email: true } });
   const aclEmails = _.map('email', acl);
 
-  const suggestions = _.flow(_.map('groupEmail'), _.concat(shareSuggestions), (list) => _.difference(list, aclEmails), _.uniq)(groups);
+  const suggestions = _.flow(
+    _.map('groupEmail'),
+    _.concat(shareSuggestions),
+    (list) => _.difference(list, aclEmails),
+    _.uniq
+  )(groups);
 
   const remainingSuggestions = _.difference(suggestions, _.map('email', acl));
 
@@ -213,16 +270,12 @@ const ShareWorkspaceModal = ({
     }
   };
 
-  // The get workspace ACL API endpoint returns emails capitalized as they are registered in Terra.
-  // However, a user may type in the support email using different capitalization (terra-support, TERRA-SUPPORT, etc.)
-  // The email they entered will appear in the ACL stored in this component's state until updates are saved.
-  // We want the share with support switch to function with any variation of the support email.
-  const aclEntryIsTerraSupport = ({ email }) => _.toLower(email) === _.toLower(terraSupportEmail);
-  const currentTerraSupportAccessLevel = _.find(aclEntryIsTerraSupport, originalAcl)?.accessLevel;
-  const newTerraSupportAccessLevel = _.find(aclEntryIsTerraSupport, acl)?.accessLevel;
+  const currentTerraSupportAccessLevel = terraSupportAccessLevel(originalAcl);
+  const newTerraSupportAccessLevel = terraSupportAccessLevel(acl);
+  // _.find(aclEntryIsTerraSupport, acl)?.accessLevel;
   const addTerraSupportToAcl = () => addCollaborator(terraSupportEmail);
   const removeTerraSupportFromAcl = () => setAcl(_.remove(aclEntryIsTerraSupport));
-
+  // {[Key1]: _, ...updatedMyMap} = myMap
   const save = Utils.withBusyState(setWorking, async () => {
     const aclEmails = _.map('email', acl);
     const needsDelete = _.remove((entry) => aclEmails.includes(entry.email), originalAcl);
@@ -230,7 +283,10 @@ const ShareWorkspaceModal = ({
     const eventData = { numAdditions, ...extractWorkspaceDetails(workspace.workspace) };
 
     const aclUpdates = [
-      ..._.flow(_.remove({ accessLevel: 'PROJECT_OWNER' }), _.map(_.pick(['email', 'accessLevel', 'canShare', 'canCompute'])))(acl),
+      ..._.flow(
+        _.remove({ accessLevel: 'PROJECT_OWNER' }),
+        _.map(_.pick(['email', 'accessLevel', 'canShare', 'canCompute']))
+      )(acl),
       ..._.map(({ email }) => ({ email, accessLevel: 'NO ACCESS' }), needsDelete),
     ];
 
@@ -241,7 +297,7 @@ const ShareWorkspaceModal = ({
         Ajax().Metrics.captureEvent(Events.workspaceShareWithSupport, extractWorkspaceDetails(workspace.workspace));
       }
       onDismiss();
-    } catch (error) {
+    } catch (error: any) {
       !!numAdditions && Ajax().Metrics.captureEvent(Events.workspaceShare, { ...eventData, success: false });
       setUpdateError(await error.text());
     }
@@ -298,7 +354,7 @@ const ShareWorkspaceModal = ({
           ['Add']
         ),
       ]),
-      searchValueValid && !searchHasFocus && p(addUserReminder),
+      searchValueValid && !searchHasFocus && p([addUserReminder]),
       h2({ style: { ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' } }, ['Current Collaborators']),
       div({ ref: list, role: 'list', style: styles.currentCollaboratorsArea }, [
         h(Fragment, _.flow(_.remove(aclEntryIsTerraSupport), Utils.toIndexPairs, _.map(renderCollaborator))(acl)),
@@ -312,10 +368,16 @@ const ShareWorkspaceModal = ({
               TooltipTrigger,
               {
                 content: Utils.cond(
-                  [!currentTerraSupportAccessLevel && !newTerraSupportAccessLevel, () => 'Allow Terra Support to view this workspace'],
+                  [
+                    !currentTerraSupportAccessLevel && !newTerraSupportAccessLevel,
+                    () => 'Allow Terra Support to view this workspace',
+                  ],
                   [
                     !currentTerraSupportAccessLevel && newTerraSupportAccessLevel,
-                    () => `Saving will grant Terra Support ${_.toLower(newTerraSupportAccessLevel)} access to this workspace`,
+                    () =>
+                      `Saving will grant Terra Support ${_.toLower(
+                        newTerraSupportAccessLevel
+                      )} access to this workspace`,
                   ],
                   [
                     currentTerraSupportAccessLevel && !newTerraSupportAccessLevel,
@@ -336,7 +398,7 @@ const ShareWorkspaceModal = ({
               },
               [
                 label({ htmlFor: id }, [
-                  span({ style: { marginRight: '1ch' } }, 'Share with Support'),
+                  span({ style: { marginRight: '1ch' } }, ['Share with Support']),
                   h(Switch, {
                     id,
                     checked: !!newTerraSupportAccessLevel,
@@ -362,7 +424,7 @@ const ShareWorkspaceModal = ({
               style: { marginRight: '1rem' },
               onClick: onDismiss,
             },
-            'Cancel'
+            ['Cancel']
           ),
           h(
             ButtonPrimary,
@@ -371,7 +433,7 @@ const ShareWorkspaceModal = ({
               tooltip: searchValueValid && addUserReminder,
               onClick: save,
             },
-            'Save'
+            ['Save']
           ),
         ]),
       ]),

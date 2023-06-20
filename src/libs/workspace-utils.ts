@@ -36,8 +36,10 @@ export const isGoogleWorkspaceInfo = (workspace: WorkspaceInfo): workspace is Go
   return workspace.cloudPlatform === 'Gcp';
 };
 
+export type WorkspaceAccessLevel = 'PROJECT_OWNER' | 'OWNER' | 'WRITER' | 'READER' | 'NO ACCESS';
+
 export interface BaseWorkspace {
-  accessLevel: string;
+  accessLevel: WorkspaceAccessLevel;
   canShare: boolean;
   canCompute: boolean;
   workspace: WorkspaceInfo;
