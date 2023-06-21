@@ -11,7 +11,6 @@ import { MenuButton } from 'src/components/MenuButton';
 import Modal from 'src/components/Modal';
 import { PageBox } from 'src/components/PageBox';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
-import { TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import colors from 'src/libs/colors';
@@ -373,6 +372,10 @@ export const Workflows = _.flow(
 
   useImperativeHandle(ref, () => ({ refresh }));
 
+  if (isAzureWorkspace(ws)) {
+    return h(AzureWorkflows, ws);
+  }
+
   // Render
   const { field, direction } = sortOrder;
 
@@ -393,10 +396,6 @@ export const Workflows = _.flow(
       });
     })
   )(configs);
-
-  if (isAzureWorkspace(ws)) {
-    return h(AzureWorkflows, ws);
-  }
 
   return h(PageBox, [
     div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
@@ -492,11 +491,10 @@ export const Workflows = _.flow(
   ]);
 });
 
-const AzureWorkflows = ({ workspace }) => {
+export const AzureWorkflows = ({ workspace }) => {
   // State
   const [cbasStatus, setCbasStatus] = useState();
   const [cromwellStatus, setCromwellStatus] = useState();
-
   const signal = useCancellation();
 
   const loadCbasStatuses = async () => {
@@ -522,7 +520,7 @@ const AzureWorkflows = ({ workspace }) => {
     await loadCbasStatuses();
   });
 
-  return div({}, [h(TextCell, {}, [`CBAS: ${cbasStatus}`]), h(TextCell, {}, [`Cromwell: ${cromwellStatus}`])]);
+  return div({}, [`CBAS: ${cbasStatus}\n Cromwell: ${cromwellStatus}`]); // div({}, [h(TextCell, {}, [`CBAS: ${cbasStatus}\n\n Cromwell: ${cromwellStatus}`])]);
 };
 
 export const navPaths = [
