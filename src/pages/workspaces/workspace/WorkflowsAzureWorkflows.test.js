@@ -100,8 +100,8 @@ describe('AzureWorkflows tab', () => {
       expect(getStatusFunction).toHaveBeenCalledWith(
         'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas'
       );
-      expect(screen.getByText('CBAS: true')).toBeInTheDocument();
-      expect(screen.getByText('Cromwell: true')).toBeInTheDocument();
+      expect(screen.getByText(/CBAS: true/)).toBeInTheDocument();
+      expect(screen.getByText(/Cromwell: true/)).toBeInTheDocument();
     });
   });
 });
