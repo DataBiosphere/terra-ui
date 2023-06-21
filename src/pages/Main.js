@@ -3,6 +3,7 @@ import 'src/libs/routes';
 import { h } from 'react-hyperscript-helpers';
 import ReactNotification from 'react-notifications-component';
 import { AuthProvider } from 'react-oidc-context';
+import { AuthenticatedCookieSetter } from 'src/analysis/runtime-common-components';
 import AuthContainer from 'src/components/AuthContainer';
 import AuthStoreSetter from 'src/components/AuthStoreSetter';
 import ConfigOverridesWarning from 'src/components/ConfigOverridesWarning';
@@ -18,7 +19,6 @@ import { TitleManager } from 'src/components/TitleManager';
 import { getOidcConfig } from 'src/libs/auth';
 import { PageViewReporter } from 'src/libs/events';
 import { LocationProvider, PathHashInserter, Router } from 'src/libs/nav';
-import { AuthenticatedCookieSetter } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
 
 const Main = () => {
   return h(LocationProvider, [

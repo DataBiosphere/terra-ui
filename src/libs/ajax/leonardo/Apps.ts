@@ -1,9 +1,9 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
+import { AppToolLabel } from 'src/analysis/utils/tool-utils';
 import { appIdentifier, authOpts, fetchLeo, jsonBody } from 'src/libs/ajax/ajax-common';
 import { CreateAppV1Request, GetAppResponse, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models';
-import { AppToolLabel } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 export const Apps = (signal) => ({
   list: async (project: string, labels: LeoResourceLabels = {}): Promise<ListAppResponse[]> => {

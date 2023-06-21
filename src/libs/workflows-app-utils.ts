@@ -1,5 +1,5 @@
+import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
-import { appToolLabels } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 export const resolveRunningCromwellAppUrl = (apps: ListAppResponse[], currentUser: string) => {
   // it looks for Kubernetes deployment status RUNNING expressed by Leo

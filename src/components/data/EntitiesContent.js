@@ -5,6 +5,8 @@ import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { Fragment, useState } from 'react';
 import { div, h, p } from 'react-hyperscript-helpers';
+import { cohortNotebook, cohortRNotebook, NotebookCreator } from 'src/analysis/utils/notebook-utils';
+import { tools } from 'src/analysis/utils/tool-utils';
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils';
 import { ButtonSecondary } from 'src/components/common';
 import { DataTableColumnProvenance } from 'src/components/data/data-table-provenance';
@@ -45,8 +47,6 @@ import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { cohortNotebook, cohortRNotebook, NotebookCreator } from 'src/pages/workspaces/workspace/analysis/utils/notebook-utils';
-import { tools } from 'src/pages/workspaces/workspace/analysis/utils/tool-utils';
 
 const getDataset = (dataExplorerUrl) => {
   // Either cohort was imported from standalone Data Explorer, eg

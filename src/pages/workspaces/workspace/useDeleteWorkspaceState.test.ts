@@ -1,9 +1,9 @@
 import { act, renderHook } from '@testing-library/react-hooks';
+import { generateTestApp } from 'src/analysis/_testData/testData';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 import { DeepPartial } from 'src/libs/type-utils/deep-partial';
 import { AzureWorkspaceInfo, BaseWorkspace, GoogleWorkspaceInfo } from 'src/libs/workspace-utils';
-import { generateTestApp } from 'src/pages/workspaces/workspace/analysis/_testData/testData';
 import {
   useDeleteWorkspaceState,
   WorkspaceResourceDeletionPollRate,

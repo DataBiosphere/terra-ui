@@ -1,8 +1,8 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
+import { updatePdType } from 'src/analysis/utils/disk-utils';
 import { appIdentifier, authOpts, fetchLeo, jsonBody } from 'src/libs/ajax/ajax-common';
 import { DecoratedPersistentDisk, GetDiskItem, ListDiskItem } from 'src/libs/ajax/leonardo/models/disk-models';
-import { updatePdType } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils';
 
 export const Disks = (signal) => {
   const diskV2Root = 'api/v2/disks';
