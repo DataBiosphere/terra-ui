@@ -12,6 +12,7 @@ import colors from 'src/libs/colors';
 import { useOnMount } from 'src/libs/react-utils';
 import { StringInput } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
 import { CohortEditor } from 'src/pages/library/datasetBuilder/CohortEditor';
+import { ConceptSetCreator } from 'src/pages/library/datasetBuilder/ConceptSetCreator';
 import {
   PAGE_PADDING_HEIGHT,
   PAGE_PADDING_WIDTH,
@@ -27,6 +28,7 @@ import {
   newCohort,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { DatasetBuilderHeader } from 'src/pages/library/datasetBuilder/DatasetBuilderHeader';
+import { DomainCriteriaSelector } from 'src/pages/library/datasetBuilder/DomainCriteriaSelector';
 import { datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/pages/library/datasetBuilder/state';
 import { validate } from 'validate.js';
 
@@ -449,6 +451,10 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   originalCohort: datasetBuilderState.cohort,
                   datasetDetails: datasetDetails.state,
                 });
+              case 'domain-criteria-selector':
+                return h(DomainCriteriaSelector, { state: datasetBuilderState });
+              case 'concept-set-creator':
+                return h(ConceptSetCreator, { onStateChange: setDatasetBuilderState });
               default:
                 return div([datasetBuilderState.mode]);
             }

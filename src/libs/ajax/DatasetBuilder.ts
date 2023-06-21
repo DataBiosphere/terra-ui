@@ -1,5 +1,8 @@
 // Types that can be used to create a criteria.
 
+import _ from 'lodash/fp';
+import { getRandomInt } from 'src/analysis/_testData/testData';
+
 export interface DomainOption {
   kind: 'domain';
   id: number;
@@ -41,8 +44,20 @@ export interface DatasetResponse {
   accessLevel: AccessLevel;
 }
 
+export interface GetConceptsResponse {
+  result: Concept[];
+}
+
+export interface Concept {
+  id: number;
+  name: string;
+  count: number;
+  isLeaf: boolean;
+}
+
 export interface DatasetBuilderContract {
   retrieveDataset: (datasetId: string) => Promise<DatasetResponse>;
+  getConcepts: (parent?: Concept) => Promise<GetConceptsResponse>;
 }
 
 type AccessLevel = 'Owner' | 'Reader' | 'Discoverer';
@@ -133,6 +148,20 @@ export const dummyDatasetDetails = (datasetId: string): DatasetResponse => ({
   accessLevel: 'Reader',
 });
 
+export const generateDummyConcept = (): Concept => ({
+  id: getRandomInt(10000),
+  name: _.uniqueId('name-'),
+  count: getRandomInt(10000),
+  isLeaf: getRandomInt(10) < 2,
+});
+
+const generateDummyConcepts = (): GetConceptsResponse => {
+  return {
+    result: _.times(generateDummyConcept, getRandomInt(7) + 2),
+  };
+};
+
 export const DatasetBuilder = (): DatasetBuilderContract => ({
   retrieveDataset: (datasetId) => Promise.resolve(dummyDatasetDetails(datasetId)),
+  getConcepts: (_parent?: Concept) => Promise.resolve(generateDummyConcepts()),
 });
