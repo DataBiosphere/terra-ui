@@ -409,17 +409,14 @@ export const DatasetBuilderContents = ({
       includedFeatureValueGroups
     );
 
-  const updateAvailableValues = (includedFeatureValueGroups: string[]) =>
+  const getAvailableValuesFromFeatureGroups = (featureValueGroups: string[]): HeaderAndValues<DatasetBuilderValue>[] =>
     _.flow(
-      _.filter((featureValueGroup: FeatureValueGroup) =>
-        _.includes(featureValueGroup.name, includedFeatureValueGroups)
-      ),
+      _.filter((featureValueGroup: FeatureValueGroup) => _.includes(featureValueGroup.name, featureValueGroups)),
       _.sortBy('name'),
       _.map((featureValueGroup: FeatureValueGroup) => ({
         header: featureValueGroup.name,
         values: featureValueGroup.values,
-      })),
-      setValues
+      }))
     )(dataset.featureValueGroups);
 
   const createHeaderAndValuesFromFeatureValueGroups = (
@@ -456,7 +453,7 @@ export const DatasetBuilderContents = ({
           const newFeatureValueGroups = getNewFeatureValueGroups(includedFeatureValueGroups);
           setSelectedValues([...selectedValues, ...createHeaderAndValuesFromFeatureValueGroups(newFeatureValueGroups)]);
           setSelectedConceptSets(conceptSets);
-          updateAvailableValues(includedFeatureValueGroups);
+          setValues(getAvailableValuesFromFeatureGroups(includedFeatureValueGroups));
         },
         onStateChange,
       }),
