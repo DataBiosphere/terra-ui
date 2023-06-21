@@ -143,10 +143,10 @@ describe('GCSFileBrowserProvider', () => {
 
   it('gets a signed URL for downloads', async () => {
     // Arrange
-    const getSignedUrl = jest.fn(() => Promise.resolve({ url: 'signedUrl' }));
+    const getSignedUrl = jest.fn(() => Promise.resolve('signedUrl'));
     asMockedFn(Ajax).mockImplementation(() => {
       return {
-        SamResources: { getSignedUrl } as Partial<ReturnType<typeof Ajax>['DrsUriResolver']>,
+        SamResources: { getSignedUrl } as Partial<ReturnType<typeof Ajax>['SamResources']>,
       } as ReturnType<typeof Ajax>;
     });
 
@@ -156,12 +156,7 @@ describe('GCSFileBrowserProvider', () => {
     const downloadUrl = await provider.getDownloadUrlForFile('path/to/example.txt');
 
     // Assert
-    expect(getSignedUrl).toHaveBeenCalledWith(
-      expect.objectContaining({
-        bucket: 'test-bucket',
-        object: 'path/to/example.txt',
-      })
-    );
+    expect(getSignedUrl).toHaveBeenCalledWith('test-bucket', 'path/to/example.txt', 'test-project', false);
     expect(downloadUrl).toBe('signedUrl');
   });
 

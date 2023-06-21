@@ -31,5 +31,6 @@
   "alphaRegionalityGroup": "Alpha_Regionality_Users",
   "terraDockerVersionsFile": "terra-docker-versions-dev.json",
   "terraDockerImageBucket": "terra-docker-image-documentation-dev",
-  "b2cBillingPolicy": "b2c_1a_signup_signin_billing_dev"
+  "b2cBillingPolicy": "b2c_1a_signup_signin_billing_dev",
+  "terraDeploymentEnv": "dev"
 }

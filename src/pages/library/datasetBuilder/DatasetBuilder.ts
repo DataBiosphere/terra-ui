@@ -10,20 +10,20 @@ import { DatasetBuilder, DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 import { useOnMount } from 'src/libs/react-utils';
-import * as Utils from 'src/libs/utils';
 import { StringInput } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
-import { CohortEditor, CohortEditorState } from 'src/pages/library/datasetBuilder/CohortEditor';
-import { ConceptSetCreator } from 'src/pages/library/datasetBuilder/ConceptSetCreator';
+import { CohortEditor } from 'src/pages/library/datasetBuilder/CohortEditor';
 import {
   PAGE_PADDING_HEIGHT,
   PAGE_PADDING_WIDTH,
   PREPACKAGED_CONCEPT_SETS,
 } from 'src/pages/library/datasetBuilder/constants';
 import {
+  AnyDatasetBuilderState,
   Cohort,
+  cohortEditorState,
   ConceptSet,
-  DatasetBuilderState,
   DatasetBuilderType,
+  homepageState,
   newCohort,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { DatasetBuilderHeader } from 'src/pages/library/datasetBuilder/DatasetBuilderHeader';
@@ -210,13 +210,13 @@ const Selector = <T extends DatasetBuilderType>({
   ]);
 };
 
-export type OnStateChangeType = (state: DatasetBuilderState) => void;
+export type OnStateChangeHandler = (state: AnyDatasetBuilderState) => void;
 export const CreateCohortModal = ({
   onDismiss,
   onStateChange,
 }: {
   onDismiss: () => void;
-  onStateChange: OnStateChangeType;
+  onStateChange: OnStateChangeHandler;
 }) => {
   const [cohortNameTouched, setCohortNameTouched] = useState(false);
   const [cohortName, setCohortName] = useState('');
@@ -239,7 +239,7 @@ export const CreateCohortModal = ({
     );
 
   const createCohort = (cohortName) => {
-    onStateChange(new CohortEditorState(newCohort(cohortName)));
+    onStateChange(cohortEditorState.new(newCohort(cohortName)));
   };
 
   return h(
@@ -282,12 +282,12 @@ export const CohortSelector = ({
 }: {
   selectedCohorts: HeaderAndValues<Cohort>[];
   onChange: (cohorts: HeaderAndValues<Cohort>[]) => void;
-  onStateChange: OnStateChangeType;
+  onStateChange: OnStateChangeHandler;
 }) => {
   const [creatingCohort, setCreatingCohort] = useState(false);
 
   return h(Fragment, [
-    h(Selector as React.FC<SelectorProps<Cohort>>, {
+    h(Selector<Cohort>, {
       headerAction: h(
         Link,
         {
@@ -324,13 +324,13 @@ export const ConceptSetSelector = ({
 }: {
   selectedConceptSets: HeaderAndValues<ConceptSet>[];
   onChange: (conceptSets: HeaderAndValues<ConceptSet>[]) => void;
-  onStateChange: OnStateChangeType;
+  onStateChange: OnStateChangeHandler;
 }) => {
   return h(Selector, {
     headerAction: h(
       Link,
       {
-        onClick: () => onStateChange({ type: 'concept-set-creator' }),
+        onClick: () => onStateChange({ mode: 'concept-set-creator' }),
         'aria-label': 'Create new concept set',
       },
       [icon('plus-circle-filled', { size: 24 })]
@@ -389,7 +389,7 @@ export const ValuesSelector = ({
   });
 };
 
-export const DatasetBuilderContents = ({ onStateChange }: { onStateChange: OnStateChangeType }) => {
+export const DatasetBuilderContents = ({ onStateChange }: { onStateChange: OnStateChangeHandler }) => {
   const [selectedCohorts, setSelectedCohorts] = useState([] as HeaderAndValues<Cohort>[]);
   const [selectedConceptSets, setSelectedConceptSets] = useState([] as HeaderAndValues<ConceptSet>[]);
   const [selectedValues, setSelectedValues] = useState([] as HeaderAndValues<Value>[]);
@@ -419,21 +419,16 @@ export const DatasetBuilderContents = ({ onStateChange }: { onStateChange: OnSta
 
 interface DatasetBuilderProps {
   datasetId: string;
-  initialState?: DatasetBuilderState;
+  initialState?: AnyDatasetBuilderState;
 }
 
-export class HomepageState implements DatasetBuilderState {
-  get type(): 'homepage' {
-    return 'homepage';
-  }
-}
 const editorBackgroundColor = colors.light(0.7);
 
 export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const { datasetId, initialState } = props;
   const [datasetDetails, loadDatasetDetails] = useLoadedData<DatasetResponse>();
-  const [datasetBuilderState, setDatasetBuilderState] = useState<DatasetBuilderState>(
-    initialState || new HomepageState()
+  const [datasetBuilderState, setDatasetBuilderState] = useState<AnyDatasetBuilderState>(
+    initialState || homepageState.new()
   );
 
   useOnMount(() => {
@@ -442,23 +437,22 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   return datasetDetails.status === 'Ready'
     ? h(FooterWrapper, [
         h(TopBar, { title: 'Preview', href: '' }, []),
-        h(DatasetBuilderHeader, { name: datasetDetails.state.name }),
+        h(DatasetBuilderHeader, { datasetDetails: datasetDetails.state }),
         div({ style: { backgroundColor: editorBackgroundColor } }, [
-          Utils.switchCase(
-            datasetBuilderState.type,
-            ['homepage', () => h(DatasetBuilderContents, { onStateChange: setDatasetBuilderState })],
-            [
-              'cohort-editor',
-              () =>
-                h(CohortEditor, {
+          (() => {
+            switch (datasetBuilderState.mode) {
+              case 'homepage':
+                return h(DatasetBuilderContents, { onStateChange: setDatasetBuilderState });
+              case 'cohort-editor':
+                return h(CohortEditor, {
                   onStateChange: setDatasetBuilderState,
-                  originalCohort: (datasetBuilderState as CohortEditorState).cohort,
+                  originalCohort: datasetBuilderState.cohort,
                   datasetDetails: datasetDetails.state,
-                }),
-            ],
-            ['concept-set-creator', () => h(ConceptSetCreator, { onStateChange: setDatasetBuilderState })],
-            [Utils.DEFAULT, () => div([datasetBuilderState.type])]
-          ),
+                });
+              default:
+                return div([datasetBuilderState.mode]);
+            }
+          })(),
         ]),
         div({ style: { backgroundColor: editorBackgroundColor, height: '100%' } }, []),
       ])
@@ -468,7 +462,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
 export const navPaths = [
   {
     name: 'create-dataset',
-    path: '/library/builder/:datasetId',
+    path: '/library/builder/:datasetId/build',
     component: DatasetBuilderView,
     title: 'Build Dataset',
   },

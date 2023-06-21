@@ -4,11 +4,11 @@ import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
 import { act } from 'react-dom/test-utils';
 import { h } from 'react-hyperscript-helpers';
+import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { locationTypes } from 'src/components/region-common';
 import { Ajax } from 'src/libs/ajax';
 import { authStore } from 'src/libs/state';
-import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
-import { BucketLocation, WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard';
+import { AzureStorageDetails, BucketLocation, WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard';
 import { asMockedFn } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax');
@@ -101,18 +101,19 @@ describe('WorkspaceNotifications', () => {
   });
 });
 
+const defaultGoogleBucketOptions = {
+  googleBucketLocation: defaultLocation,
+  googleBucketType: locationTypes.default,
+  fetchedGoogleBucketLocation: undefined,
+};
+const defaultAzureStorageOptions = {
+  azureContainerRegion: undefined,
+  azureContainerUrl: undefined,
+  azureContainerSasUrl: undefined,
+};
+
 describe('BucketLocation', () => {
   const workspace = { workspace: { namespace: 'test', name: 'test', cloudPlatform: 'Gcp' }, workspaceInitialized: true };
-  const defaultGoogleBucketOptions = {
-    googleBucketLocation: defaultLocation,
-    googleBucketType: locationTypes.default,
-    fetchedGoogleBucketLocation: undefined,
-  };
-  const defaultAzureStorageOptions = {
-    azureContainerRegion: undefined,
-    azureContainerUrl: undefined,
-    azureContainerSasUrl: undefined,
-  };
 
   afterEach(() => {
     jest.resetAllMocks();
@@ -212,5 +213,58 @@ describe('BucketLocation', () => {
     // Assert
     expect(screen.queryByText('Loading')).toBeNull();
     expect(screen.getAllByText(/bucket is requester pays/)).not.toBeNull();
+  });
+});
+
+describe('AzureDetails', () => {
+  const azureContext = {
+    managedResourceGroupId: 'dummy-mrg-id',
+    subscriptionId: 'dummy-subscription-id',
+    tenantId: 'dummy-tenant-id',
+  };
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('shows Loading initially when uninitialized and should not fail any accessibility tests', async () => {
+    // Arrange
+    const props = {
+      azureContext,
+      storageDetails: _.merge(defaultGoogleBucketOptions, defaultAzureStorageOptions),
+    };
+
+    // Act
+    const { container } = render(h(AzureStorageDetails, props), { container: document.body.appendChild(document.createElement('dl')) });
+
+    // Assert
+    expect(screen.queryByTitle('Microsoft Azure')).not.toBeNull();
+    expect(screen.getAllByText('dummy-mrg-id')).not.toBeNull();
+    // (Location, Storage Container URL, Storage Container SAS) x 2 because of tooltips
+    expect(screen.getAllByText('Loading').length).toEqual(6);
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it('shows storage information when present', async () => {
+    // Arrange
+    const props = {
+      azureContext,
+      storageDetails: _.merge(defaultGoogleBucketOptions, {
+        azureContainerRegion: 'westus',
+        azureContainerUrl: 'only-container-url',
+        azureContainerSasUrl: 'url-with-sas-token',
+      }),
+    };
+
+    // Act
+    const { container } = render(h(AzureStorageDetails, props), { container: document.body.appendChild(document.createElement('dl')) });
+
+    // Assert
+    expect(screen.queryByText('Loading')).toBeNull();
+    expect(screen.getAllByText(/West US/)).not.toBeNull();
+    expect(screen.getAllByText(/🇺🇸/)).not.toBeNull();
+    expect(screen.getAllByText(/only-container-url/)).not.toBeNull();
+    expect(screen.getAllByText(/url-with-sas-token/)).not.toBeNull();
+    expect(await axe(container)).toHaveNoViolations();
   });
 });

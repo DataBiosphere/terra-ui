@@ -3,9 +3,13 @@ import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import * as Nav from 'src/libs/nav';
-import { CohortEditorState } from 'src/pages/library/datasetBuilder/CohortEditor';
 import { PREPACKAGED_CONCEPT_SETS } from 'src/pages/library/datasetBuilder/constants';
-import { ConceptSet, DatasetBuilderState, newCohort } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import {
+  AnyDatasetBuilderState,
+  cohortEditorState,
+  ConceptSet,
+  newCohort,
+} from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import {
   CohortSelector,
   ConceptSetSelector,
@@ -15,6 +19,7 @@ import {
   ValuesSelector,
 } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 import { datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/pages/library/datasetBuilder/state';
+import { asMockedFn } from 'src/testing/test-utils';
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
@@ -32,12 +37,10 @@ describe('DatasetBuilder', () => {
   beforeEach(() => {
     datasetBuilderCohorts.reset();
     datasetBuilderConceptSets.reset();
-    // @ts-ignore
-    Nav.useRoute.mockReturnValue({ title: 'Build Dataset', params: {}, query: {} });
+    asMockedFn(Nav.useRoute).mockReturnValue({ title: 'Build Dataset', params: {}, query: {} });
   });
 
   it('renders cohorts', () => {
-    // @ts-ignore
     datasetBuilderCohorts.set([newCohort('cohort 1'), newCohort('cohort 2')]);
     const { getByText } = render(
       h(CohortSelector, { selectedCohorts: [], onChange: (cohorts) => cohorts, onStateChange: (state) => state })
@@ -66,14 +69,13 @@ describe('DatasetBuilder', () => {
     const user = userEvent.setup();
     const onStateChange = jest.fn();
 
-    // @ts-ignore
     const { getByText, findByLabelText } = render(h(CreateCohortModal, { onDismiss: () => {}, onStateChange }));
     // Act
     const cohortName = 'new cohort';
     fireEvent.change(await findByLabelText('Cohort name *'), { target: { value: cohortName } });
     await user.click(getByText('Create cohort'));
     // Assert
-    expect(onStateChange).toHaveBeenCalledWith(new CohortEditorState(newCohort(cohortName)));
+    expect(onStateChange).toHaveBeenCalledWith(cohortEditorState.new(newCohort(cohortName)));
   });
 
   it('renders concept sets and prepackaged concept sets', () => {
@@ -128,9 +130,8 @@ describe('DatasetBuilder', () => {
   it('allows selecting cohorts and concept sets', async () => {
     // Arrange
     const user = userEvent.setup();
-    // @ts-ignore
-    datasetBuilderCohorts.set([{ name: 'cohort 1' }, { name: 'cohort 2' }]);
-    // @ts-ignore
+
+    datasetBuilderCohorts.set([newCohort('cohort 1'), newCohort('cohort 2')]);
     datasetBuilderConceptSets.set([{ name: 'concept set 1' }, { name: 'concept set 2' }]);
     const { getByLabelText } = render(h(DatasetBuilderContents, { onStateChange: (state) => state }));
     // Act
@@ -147,20 +148,26 @@ describe('DatasetBuilder', () => {
   });
 
   it('shows the home page by default', async () => {
+    // Arrange
     render(h(DatasetBuilderView));
+    // Assert
     expect(screen.getByTestId('loading-spinner')).toBeTruthy();
     expect(await screen.findByText('Datasets')).toBeTruthy();
   });
 
   it('shows the cohort editor page', async () => {
-    const initialState = new CohortEditorState(newCohort('my test cohort'));
+    // Arrange
+    const initialState = cohortEditorState.new(newCohort('my test cohort'));
     render(h(DatasetBuilderView, { datasetId: 'ignored', initialState }));
+    // Assert
     expect(await screen.findByText(initialState.cohort.name)).toBeTruthy();
   });
 
   it('shows a placeholder page', async () => {
-    const initialState: DatasetBuilderState = { type: 'concept-selector' };
+    // Arrange
+    const initialState: AnyDatasetBuilderState = { mode: 'concept-selector' };
     render(h(DatasetBuilderView, { datasetId: 'ignored', initialState }));
-    expect(await screen.findByText(initialState.type)).toBeTruthy();
+    // Assert
+    expect(await screen.findByText(initialState.mode)).toBeTruthy();
   });
 });

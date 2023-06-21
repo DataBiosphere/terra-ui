@@ -1,6 +1,12 @@
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers';
+import { ContextBar } from 'src/analysis/ContextBar';
+import { analysisTabName } from 'src/analysis/runtime-common-components';
+import RuntimeManager from 'src/analysis/RuntimeManager';
+import { getDiskAppType } from 'src/analysis/utils/app-utils';
+import { mapToPdTypes } from 'src/analysis/utils/disk-utils';
+import { getConvertedRuntimeStatus, getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
@@ -20,21 +26,14 @@ import { getUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
-import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar';
-import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
-import RuntimeManager from 'src/pages/workspaces/workspace/analysis/RuntimeManager';
-import { getDiskAppType } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
-import { mapToPdTypes } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils';
-import { getConvertedRuntimeStatus, getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal';
 import { useWorkspace } from 'src/pages/workspaces/workspace/useWorkspace';
 import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu';
 
-const WorkspacePermissionNotice = ({ workspace }) => {
-  const isReadOnly = !Utils.canWrite(workspace.accessLevel);
-  const isLocked = workspace.workspace.isLocked;
+export const WorkspacePermissionNotice = ({ accessLevel, isLocked }) => {
+  const isReadOnly = !Utils.canWrite(accessLevel);
 
   return (
     (isReadOnly || isLocked) &&
@@ -98,7 +97,7 @@ const GooglePermissionsWarning = () => {
   return TitleBarWarning(warningMessage);
 };
 
-const WorkspaceTabs = ({
+export const WorkspaceTabs = ({
   namespace,
   name,
   workspace,
@@ -140,7 +139,7 @@ const WorkspaceTabs = ({
         getHref: (currentTab) => Nav.getLink(_.find({ name: currentTab }, tabs).link, { namespace, name }),
       },
       [
-        workspace && h(WorkspacePermissionNotice, { workspace }),
+        workspace && h(WorkspacePermissionNotice, { accessLevel: workspace.accessLevel, isLocked }),
         h(WorkspaceMenu, {
           iconSize: 27,
           popupLocation: 'bottom',
@@ -152,7 +151,7 @@ const WorkspaceTabs = ({
   ]);
 };
 
-const WorkspaceContainer = ({
+export const WorkspaceContainer = ({
   namespace,
   name,
   breadcrumbs,

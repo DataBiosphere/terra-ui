@@ -16,7 +16,6 @@ const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
 
 const AZURE = 'AZURE';
-const GCP = 'GCP';
 
 const billingProjectsPage = (testPage, testUrl) => {
   return {
@@ -40,9 +39,8 @@ const billingProjectsPage = (testPage, testUrl) => {
       await click(testPage, clickable({ text: 'Owners' }));
     },
 
-    selectProject: (billingProjectName, cloudPlatform = GCP) => {
-      const text = cloudPlatform === GCP ? `Google Cloud Platform${billingProjectName}` : `Microsoft Azure${billingProjectName}`;
-      return click(testPage, clickable({ text }));
+    selectProject: (billingProjectName) => {
+      return click(testPage, clickable({ textContains: billingProjectName }));
     },
 
     selectDeleteProjectMenuOption: async (projectName) => {
@@ -400,7 +398,7 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
 
   // Select an Azure billing project and check that the Spend Report tab is accessible but displaying only total cost information
   await billingPage.visit();
-  await billingPage.selectProject(azureBillingProjectName, AZURE);
+  await billingPage.selectProject(azureBillingProjectName);
   await billingPage.selectSpendReport();
 
   // Title and cost are in different elements, but check both in same text assert to verify that category is correctly associated to its cost.
