@@ -127,7 +127,7 @@ describe('DatasetBuilder', () => {
     expect(screen.getByText('Select values (columns)')).toBeTruthy();
   });
 
-  it('allows selecting cohorts and concept sets', async () => {
+  it('allows selecting cohorts, concept sets, and values', async () => {
     // Arrange
     const user = userEvent.setup();
 
@@ -137,24 +137,21 @@ describe('DatasetBuilder', () => {
       { name: 'concept set 2', featureValueGroupName: 'Procedure' },
     ]);
     render(h(DatasetBuilderContents, { onStateChange: (state) => state, dataset: dummyDatasetDetails('id') }));
-    const cohortOne = screen.getByLabelText('cohort 1');
-    const cohortTwo = screen.getByLabelText('cohort 2');
-    const conceptSetOne = screen.getByLabelText('concept set 1');
-    const conceptSetTwo = screen.getByLabelText('concept set 2');
     // Act
-    await user.click(cohortOne);
-    await user.click(cohortTwo);
-    await user.click(conceptSetOne);
-    await user.click(conceptSetTwo);
+    await user.click(screen.getByLabelText('cohort 1'));
+    await user.click(screen.getByLabelText('concept set 1'));
+    await user.click(screen.getByLabelText('condition column 1'));
 
     // Assert
-    expect(cohortOne.getAttribute('aria-checked')).toBeTruthy();
-    expect(cohortTwo.getAttribute('aria-checked')).toBeTruthy();
-    expect(conceptSetOne.getAttribute('aria-checked')).toBeTruthy();
-    expect(conceptSetTwo.getAttribute('aria-checked')).toBeTruthy();
+    expect(screen.getByLabelText('cohort 1')).toBeChecked();
+    expect(screen.getByLabelText('cohort 2')).not.toBeChecked();
+    expect(screen.getByLabelText('concept set 1')).toBeChecked();
+    expect(screen.getByLabelText('concept set 2')).not.toBeChecked();
+    expect(screen.getByLabelText('condition column 1')).not.toBeChecked();
+    expect(screen.getByLabelText('condition column 2')).toBeChecked();
   });
 
-  it('places selectable values when concept set is selected', async () => {
+  it('places selectable values defaulted to selected when concept set is selected', async () => {
     // Arrange
     const user = userEvent.setup();
 
@@ -162,11 +159,8 @@ describe('DatasetBuilder', () => {
     render(h(DatasetBuilderContents, { onStateChange: (state) => state, dataset: dummyDatasetDetails('id') }));
     // Act
     await user.click(screen.getByLabelText('concept set 1'));
-    const conditionColumnOne = screen.getByLabelText('condition column 1');
-    await user.click(conditionColumnOne);
-
     // Assert
-    expect(conditionColumnOne.getAttribute('aria-checked')).toBeTruthy();
+    expect(screen.getByLabelText('condition column 1')).toBeChecked();
     expect(screen.getByText('Condition')).toBeTruthy();
   });
 

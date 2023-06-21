@@ -394,6 +394,45 @@ export const DatasetBuilderContents = ({
   const [selectedValues, setSelectedValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
   const [values, setValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
 
+  const getNewFeatureValueGroups = (includedFeatureValueGroups: string[]): string[] =>
+    _.without(
+      [
+        ..._.flatMap(
+          (selectedValueGroups: HeaderAndValues<DatasetBuilderValue>) => selectedValueGroups.header,
+          selectedValues
+        ),
+        ..._.flow(
+          _.flatMap((selectedConceptSetGroup: HeaderAndValues<ConceptSet>) => selectedConceptSetGroup.values),
+          _.map((selectedConceptSet) => selectedConceptSet.featureValueGroupName)
+        )(selectedConceptSets),
+      ],
+      includedFeatureValueGroups
+    );
+
+  const updateAvailableValues = (includedFeatureValueGroups: string[]) =>
+    _.flow(
+      _.filter((featureValueGroup: FeatureValueGroup) =>
+        _.includes(featureValueGroup.name, includedFeatureValueGroups)
+      ),
+      _.sortBy('name'),
+      _.map((featureValueGroup: FeatureValueGroup) => ({
+        header: featureValueGroup.name,
+        values: featureValueGroup.values,
+      })),
+      setValues
+    )(dataset.featureValueGroups);
+
+  const createHeaderAndValuesFromFeatureValueGroups = (
+    featureValueGroups: string[]
+  ): HeaderAndValues<DatasetBuilderValue>[] =>
+    _.flow(
+      _.filter((featureValueGroup: FeatureValueGroup) => _.includes(featureValueGroup.name, featureValueGroups)),
+      _.map((featureValueGroup: FeatureValueGroup) => ({
+        header: featureValueGroup.name,
+        values: featureValueGroup.values,
+      }))
+    )(dataset.featureValueGroups);
+
   return div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` } }, [
     h2(['Datasets']),
     div([
@@ -410,22 +449,14 @@ export const DatasetBuilderContents = ({
       h(ConceptSetSelector, {
         selectedConceptSets,
         onChange: async (conceptSets) => {
-          setSelectedConceptSets(conceptSets);
-          const uniqueFeatureValueGroups = _.flow(
+          const includedFeatureValueGroups = _.flow(
             _.flatMap((headerAndValues: HeaderAndValues<ConceptSet>) => headerAndValues.values),
             _.map((conceptSet: ConceptSet) => conceptSet.featureValueGroupName)
           )(conceptSets);
-          _.flow(
-            _.filter((featureValueGroup: FeatureValueGroup) =>
-              _.includes(featureValueGroup.name, uniqueFeatureValueGroups)
-            ),
-            _.sortBy('name'),
-            _.map((featureValueGroup: FeatureValueGroup) => ({
-              header: featureValueGroup.name,
-              values: featureValueGroup.values,
-            })),
-            setValues
-          )(dataset.featureValueGroups);
+          const newFeatureValueGroups = getNewFeatureValueGroups(includedFeatureValueGroups);
+          setSelectedValues([...selectedValues, ...createHeaderAndValuesFromFeatureValueGroups(newFeatureValueGroups)]);
+          setSelectedConceptSets(conceptSets);
+          updateAvailableValues(includedFeatureValueGroups);
         },
         onStateChange,
       }),
