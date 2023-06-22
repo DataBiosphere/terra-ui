@@ -515,7 +515,7 @@ export const AzureWorkflows = ({ workspace }) => {
       setCbasStatus(JSON.stringify(status.ok));
       setCromwellStatus(JSON.stringify(status.systems.cromwell.ok));
     } catch (error) {
-      notify('error', 'Error loading statuses', { detail: await (error instanceof Response ? error.text() : error) });
+      notify('error', 'Error loading statuses', { detail: error instanceof Response ? await error.text() : error });
     }
   };
 
@@ -524,7 +524,7 @@ export const AzureWorkflows = ({ workspace }) => {
     await loadCbasStatuses();
   });
 
-  return div({}, [`CBAS: ${cbasStatus}\n Cromwell: ${cromwellStatus}`]); // div({}, [h(TextCell, {}, [`CBAS: ${cbasStatus}\n\n Cromwell: ${cromwellStatus}`])]);
+  return div({}, [`CBAS: ${cbasStatus}\n Cromwell: ${cromwellStatus}`]);
 };
 
 export const navPaths = [
