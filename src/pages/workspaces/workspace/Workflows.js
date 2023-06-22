@@ -328,14 +328,7 @@ const noWorkflowsMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
   ]),
 ]);
 
-export const Workflows = _.flow(
-  forwardRefWithName('Workflows'),
-  wrapWorkspace({
-    breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: 'Workflows',
-    activeTab: 'workflows',
-  })
-)(({ namespace, name, workspace: ws, workspace: { workspace } }, ref) => {
+export const GcpWorkflows = ({ namespace, name, ws, workspace, ref }) => {
   // State
   const [loading, setLoading] = useState(true);
   const [sortOrder, setSortOrder] = useState(() => StateHistory.get().sortOrder || defaultSort.value);
@@ -371,10 +364,6 @@ export const Workflows = _.flow(
   }, [configs, sortOrder, filter]);
 
   useImperativeHandle(ref, () => ({ refresh }));
-
-  if (isAzureWorkspace(ws)) {
-    return h(AzureWorkflows, ws);
-  }
 
   // Render
   const { field, direction } = sortOrder;
@@ -489,6 +478,21 @@ export const Workflows = _.flow(
       loading && spinnerOverlay,
     ]),
   ]);
+};
+
+export const Workflows = _.flow(
+  forwardRefWithName('Workflows'),
+  wrapWorkspace({
+    breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
+    title: 'Workflows',
+    activeTab: 'workflows',
+  })
+)(({ namespace, name, workspace: ws, workspace: { workspace } }, ref) => {
+  if (isAzureWorkspace(ws)) {
+    return h(AzureWorkflows, ws);
+  }
+
+  return h(GcpWorkflows, { namespace, name, ws, workspace, ref });
 });
 
 export const AzureWorkflows = ({ workspace }) => {
