@@ -98,6 +98,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["lint-staged", "npm:13.0.3"],\
             ["lodash", "npm:4.17.21"],\
             ["marked", "npm:4.0.10"],\
+            ["nth-check", "npm:2.0.1"],\
             ["oidc-client-ts", "npm:2.0.4"],\
             ["outdated-browser-rework", "npm:3.0.1"],\
             ["path-to-regexp", "npm:5.0.0"],\
@@ -14612,6 +14613,14 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["boolbase", "npm:1.0.0"]\
           ],\
           "linkType": "HARD"\
+        }],\
+        ["npm:2.0.1", {\
+          "packageLocation": "./.yarn/cache/nth-check-npm-2.0.1-69558042d2-5386d035c4.zip/node_modules/nth-check/",\
+          "packageDependencies": [\
+            ["nth-check", "npm:2.0.1"],\
+            ["boolbase", "npm:1.0.0"]\
+          ],\
+          "linkType": "HARD"\
         }]\
       ]],\
       ["number-is-nan", [\
@@ -19925,6 +19934,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["lint-staged", "npm:13.0.3"],\
             ["lodash", "npm:4.17.21"],\
             ["marked", "npm:4.0.10"],\
+            ["nth-check", "npm:2.0.1"],\
             ["oidc-client-ts", "npm:2.0.4"],\
             ["outdated-browser-rework", "npm:3.0.1"],\
             ["path-to-regexp", "npm:5.0.0"],\
