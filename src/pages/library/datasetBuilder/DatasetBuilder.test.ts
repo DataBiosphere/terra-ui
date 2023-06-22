@@ -151,6 +151,25 @@ describe('DatasetBuilder', () => {
     expect(screen.getByLabelText('condition column 2')).toBeChecked();
   });
 
+  it('maintains old values selections', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    datasetBuilderCohorts.set([newCohort('cohort 1'), newCohort('cohort 2')]);
+    datasetBuilderConceptSets.set([{ name: 'concept set 1', featureValueGroupName: 'Condition' }]);
+    render(h(DatasetBuilderContents, { onStateChange: (state) => state, dataset: dummyDatasetDetails('id') }));
+    // Act
+    await user.click(screen.getByLabelText('cohort 1'));
+    await user.click(screen.getByLabelText('concept set 1'));
+    await user.click(screen.getByLabelText('condition column 1'));
+    await user.click(screen.getByLabelText('concept set 1'));
+    await user.click(screen.getByLabelText('concept set 1'));
+
+    // Assert
+    expect(screen.getByLabelText('condition column 1')).not.toBeChecked();
+    expect(screen.getByLabelText('condition column 2')).toBeChecked();
+  });
+
   it('places selectable values defaulted to selected when concept set is selected', async () => {
     // Arrange
     const user = userEvent.setup();
