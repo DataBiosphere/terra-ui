@@ -2,6 +2,7 @@ import _ from 'lodash/fp';
 import pluralize from 'pluralize';
 import { Fragment, useRef, useState } from 'react';
 import { b, div, fieldset, h, img, label, legend, li, p, span, ul } from 'react-hyperscript-helpers';
+import { cloudProviders } from 'src/analysis/utils/runtime-utils';
 import Collapse from 'src/components/Collapse';
 import {
   absoluteSpinnerOverlay,
@@ -45,7 +46,6 @@ import { requesterPaysProjectStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
-import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import validate from 'validate.js';
 
 export const warningBoxStyle = {

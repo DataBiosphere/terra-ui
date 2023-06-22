@@ -15,7 +15,7 @@ jest.mock(
   () =>
     function (props) {
       mockWorkspaceMenu(props);
-      return <mock-workspaceMenu />; // eslint-disable-line
+      return null;
     }
 );
 

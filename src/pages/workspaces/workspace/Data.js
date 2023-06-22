@@ -5,6 +5,7 @@ import { Fragment, useCallback, useEffect, useImperativeHandle, useMemo, useRef,
 import { DraggableCore } from 'react-draggable';
 import { div, form, h, h3, input, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
+import { cloudProviders } from 'src/analysis/utils/runtime-utils';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import Collapse from 'src/components/Collapse';
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common';
@@ -41,7 +42,6 @@ import { asyncImportJobStore, getUser } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 const styles = {

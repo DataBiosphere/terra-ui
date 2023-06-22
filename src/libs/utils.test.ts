@@ -1,8 +1,12 @@
-import { differenceFromNowInSeconds, formatBytes, isValidWsExportTarget, textMatch } from 'src/libs/utils';
+import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/analysis/_testData/testData';
 import {
-  defaultAzureWorkspace,
-  defaultGoogleWorkspace,
-} from 'src/pages/workspaces/workspace/analysis/_testData/testData';
+  condTyped,
+  DEFAULT,
+  differenceFromNowInSeconds,
+  formatBytes,
+  isValidWsExportTarget,
+  textMatch,
+} from 'src/libs/utils';
 
 beforeAll(() => {
   jest.useFakeTimers();
@@ -171,5 +175,18 @@ describe('textMatch', () => {
     // Act
     const doesMatch = textMatch(needle, haystack);
     expect(doesMatch).toBe(result);
+  });
+
+  // add test for condTyped
+  describe('condTyped', () => {
+    it('handles constant results', () => {
+      expect(condTyped<string>([false, () => 'def'], [true, 'abc'])).toBe('abc');
+    });
+    it('handles function results', () => {
+      expect(condTyped<string>([false, 'def'], [true, () => 'abc'])).toBe('abc');
+    });
+    it('handles DEFAULT', () => {
+      expect(condTyped<string>([false, 'def'], [DEFAULT, 'abc'])).toBe('abc');
+    });
   });
 });

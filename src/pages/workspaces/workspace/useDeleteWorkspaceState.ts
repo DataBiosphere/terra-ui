@@ -1,5 +1,6 @@
 import _ from 'lodash/fp';
 import { useRef, useState } from 'react';
+import { isResourceDeletable } from 'src/analysis/utils/resource-utils';
 import { Ajax } from 'src/libs/ajax';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
@@ -8,7 +9,6 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { BaseWorkspace, isAzureWorkspace, isGoogleWorkspace, WorkspaceInfo } from 'src/libs/workspace-utils';
-import { isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/utils/resource-utils';
 
 export const WorkspaceResourceDeletionPollRate = 5000;
 

@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import _ from 'lodash/fp';
+import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { locationTypes } from 'src/components/region-common';
 import * as WorkspaceUtils from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
@@ -8,7 +9,6 @@ import * as GoogleStorage from 'src/libs/ajax/GoogleStorage';
 import * as Notifications from 'src/libs/notifications';
 import { workspaceStore } from 'src/libs/state';
 import { DeepPartial } from 'src/libs/type-utils/deep-partial';
-import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import {
   azureBucketRecheckRate,
   googlePermissionsRecheckRate,

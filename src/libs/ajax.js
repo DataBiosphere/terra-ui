@@ -453,8 +453,9 @@ const CromIAM = (signal) => ({
 });
 
 const Workspaces = (signal) => ({
-  list: async (fields) => {
-    const res = await fetchRawls(`workspaces?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`, _.merge(authOpts(), { signal }));
+  list: async (fields, stringAttributeMaxLength) => {
+    const lenParam = _.isNil(stringAttributeMaxLength) ? '' : `stringAttributeMaxLength=${stringAttributeMaxLength}&`;
+    const res = await fetchRawls(`workspaces?${lenParam}${qs.stringify({ fields }, { arrayFormat: 'comma' })}`, _.merge(authOpts(), { signal }));
     return res.json();
   },
 
@@ -1096,7 +1097,7 @@ export const Ajax = (signal) => {
   return {
     User: User(signal),
     Groups: Groups(signal),
-    SamResources: SamResources(),
+    SamResources: SamResources(signal),
     Billing: Billing(signal),
     Workspaces: Workspaces(signal),
     Catalog: Catalog(signal),
