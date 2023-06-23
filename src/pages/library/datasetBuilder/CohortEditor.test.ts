@@ -101,7 +101,16 @@ describe('CohortEditor', () => {
     }
     cohort.criteriaGroups.push(criteriaGroup);
     const updateCohort = jest.fn();
-    render(h(CriteriaGroupView, { index: 0, criteriaGroup, updateCohort, cohort, datasetDetails }));
+    render(
+      h(CriteriaGroupView, {
+        index: 0,
+        criteriaGroup,
+        updateCohort,
+        cohort,
+        datasetDetails,
+        onStateChange: _.noop,
+      })
+    );
     return { cohort, updateCohort };
   }
 

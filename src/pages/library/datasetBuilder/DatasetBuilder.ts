@@ -432,6 +432,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const [datasetBuilderState, setDatasetBuilderState] = useState<AnyDatasetBuilderState>(
     initialState || homepageState.new()
   );
+  const onStateChange = setDatasetBuilderState;
 
   useOnMount(() => {
     void loadDatasetDetails(() => DatasetBuilder().retrieveDataset(datasetId));
@@ -444,17 +445,17 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
           (() => {
             switch (datasetBuilderState.mode) {
               case 'homepage':
-                return h(DatasetBuilderContents, { onStateChange: setDatasetBuilderState });
+                return h(DatasetBuilderContents, { onStateChange });
               case 'cohort-editor':
                 return h(CohortEditor, {
-                  onStateChange: setDatasetBuilderState,
+                  onStateChange,
                   originalCohort: datasetBuilderState.cohort,
                   datasetDetails: datasetDetails.state,
                 });
               case 'domain-criteria-selector':
-                return h(DomainCriteriaSelector, { state: datasetBuilderState });
+                return h(DomainCriteriaSelector, { state: datasetBuilderState, onStateChange });
               case 'concept-set-creator':
-                return h(ConceptSetCreator, { onStateChange: setDatasetBuilderState });
+                return h(ConceptSetCreator, { onStateChange });
               default:
                 return div([datasetBuilderState.mode]);
             }
