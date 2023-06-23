@@ -611,10 +611,10 @@ const rareX = () =>
         {
           'aria-label': 'Request access to RareX data',
           tooltip: 'View details on data and request access',
-          href: 'https://rare-x.terra.bio/#workspaces/Rare-x-Terra-Billing/RARE-X',
+          href: 'https://rare-x.terra.bio/#workspaces/rare-x_gg/RAREX_Researcher_Dashboard',
           onClick: () => captureBrowseDataEvent('RARE-X'),
         },
-        ['Browse Data']
+        ['Access Data']
       ),
     ]
   );
