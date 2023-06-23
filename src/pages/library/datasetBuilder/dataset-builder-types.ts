@@ -63,7 +63,9 @@ export const newCohort = (name: string): Cohort => {
   };
 };
 
-export type ConceptSet = DatasetBuilderType;
+export interface ConceptSet extends DatasetBuilderType {
+  featureValueGroupName: string;
+}
 
 export interface DatasetBuilderType {
   name: string;

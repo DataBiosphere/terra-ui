@@ -1,7 +1,7 @@
 // Types that can be used to create a criteria.
-
 import _ from 'lodash/fp';
 import { getRandomInt } from 'src/analysis/_testData/testData';
+import { DatasetBuilderType } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 
 export interface DomainOption {
   kind: 'domain';
@@ -42,7 +42,16 @@ export interface DatasetResponse {
   domainOptions: DomainOption[];
   learnMoreLink: string;
   accessLevel: AccessLevel;
+  featureValueGroups: FeatureValueGroup[];
 }
+
+export type DatasetBuilderValue = DatasetBuilderType;
+
+export type FeatureValueGroup = {
+  values: DatasetBuilderValue[];
+  name: string;
+  id: number;
+};
 
 export interface GetConceptsResponse {
   result: Concept[];
@@ -146,6 +155,33 @@ export const dummyDatasetDetails = (datasetId: string): DatasetResponse => ({
   ],
   learnMoreLink: '',
   accessLevel: 'Reader',
+  featureValueGroups: [
+    {
+      values: [{ name: 'condition column 1' }, { name: 'condition column 2' }],
+      name: 'Condition',
+      id: 0,
+    },
+    {
+      values: [{ name: 'observation column 1' }, { name: 'observation column 2' }],
+      name: 'Observation',
+      id: 1,
+    },
+    {
+      values: [{ name: 'procedure column 1' }, { name: 'procedure column 2' }],
+      name: 'Procedure',
+      id: 2,
+    },
+    {
+      values: [{ name: 'surveys column 1' }, { name: 'surveys column 2' }],
+      name: 'Surveys',
+      id: 2,
+    },
+    {
+      values: [{ name: 'demographics column 1' }, { name: 'demographics column 2' }],
+      name: 'Person',
+      id: 3,
+    },
+  ],
 });
 
 export const generateDummyConcept = (): Concept => ({

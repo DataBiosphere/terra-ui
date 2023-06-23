@@ -1,9 +1,9 @@
 # Each line is a file pattern followed by one or more owners.
 # See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners#codeowners-syntax
+/src/analysis @DataBiosphere/broad-interactive-analysis
 /src/data/datasets.js @DataBiosphere/data-explorer-eng
 /src/libs/brand*.js @DataBiosphere/terra-cobranding
 /src/libs/colors.js @DataBiosphere/terra-cobranding
-/src/pages/Environments.js @DataBiosphere/broad-interactive-analysis
 /src/libs/ajax/Apps.ts @DataBiosphere/broad-interactive-analysis
 /src/libs/ajax/Runtimes.ts @DataBiosphere/broad-interactive-analysis
 /src/libs/ajax/AzureStorage.js @DataBiosphere/broad-interactive-analysis
@@ -20,7 +20,6 @@
 /src/pages/workspaces/* @DataBiosphere/broadworkspaces
 /src/pages/workspaces/workspace/*Dashboard* @DataBiosphere/broadworkspaces
 /src/pages/workspaces/workspace/*Workspace* @DataBiosphere/broadworkspaces
-/src/pages/workspaces/workspace/analysis @DataBiosphere/broad-interactive-analysis
 /src/components/*Workspace* @DataBiosphere/broadworkspaces
 /src/components/workspace-utils* @DataBiosphere/broadworkspaces
 /integration-tests/tests/billing-projects.js @DataBiosphere/broadworkspaces
