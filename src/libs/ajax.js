@@ -21,7 +21,7 @@ import {
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import { Billing } from 'src/libs/ajax/Billing';
 import { Catalog } from 'src/libs/ajax/Catalog';
-import { Cbas } from 'src/libs/ajax/Cbas';
+import { Cbas, Cromwell, Leonardo, WorkflowScript } from 'src/libs/ajax/Cbas';
 import { Dockstore } from 'src/libs/ajax/Dockstore';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
@@ -1120,6 +1120,9 @@ export const Ajax = (signal) => {
     WorkspaceData: WorkspaceData(signal),
     WorkspaceManagerResources: WorkspaceManagerResources(signal),
     Cbas: Cbas(signal),
+    Cromwell: Cromwell(signal),
+    WorkflowScript: WorkflowScript(signal),
+    Leonardo: Leonardo(signal),
   };
 };
 

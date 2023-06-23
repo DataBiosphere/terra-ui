@@ -242,4 +242,6 @@ export const fetchWDS = (wdsProxyUrlRoot) =>
   _.flow(withUrlPrefix(`${wdsProxyUrlRoot}/`), withRetryAfterReloadingExpiredAuthToken)(fetchOk);
 
 export const fetchCbas = (cbasProxyUrlRoot) =>
-  _.flow(withUrlPrefix(`${cbasProxyUrlRoot}/`), withRetryAfterReloadingExpiredAuthToken)(fetchOk);
+  _.flow(withUrlPrefix(`${cbasProxyUrlRoot}/api/batch/v1/`), withRetryAfterReloadingExpiredAuthToken)(fetchOk);
+
+export const fetchCromwell = withUrlPrefix(`${getConfig().cromwellUrlRoot}/api/workflows/v1/`, fetchOk);

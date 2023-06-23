@@ -99,6 +99,10 @@ export const differenceFromNowInSeconds = (jsonDateString) => {
   return differenceInSeconds(parseJSON(jsonDateString), Date.now());
 };
 
+export const differenceFromDatesInSeconds = (jsonDateStringStart, jsonDateStringEnd) => {
+  return differenceInSeconds(parseJSON(jsonDateStringStart), parseJSON(jsonDateStringEnd));
+};
+
 const usdFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 export const formatUSD = (v) =>
   cond([_.isNaN(v), () => 'unknown'], [v > 0 && v < 0.01, () => '< $0.01'], () => usdFormatter.format(v));
