@@ -97,15 +97,10 @@ export const loadAllRunSets = async (signal) => {
   }
 };
 
-/** *
- NOTE: This function has been modified during the experimental port from cbas repo into terra UI.
- It's Michael's best guess effort on adapting this function for more general use.
- ** */
-
 // Invokes logic to determine the appropriate app for WDS
 // If WDS is not running, a URL will not be present, in this case we return empty string
 // Note: This logic has been copied from how DataTable finds WDS app in Terra UI (https://github.com/DataBiosphere/terra-ui/blob/ac13bdf3954788ca7c8fd27b8fd4cfc755f150ff/src/libs/ajax/data-table-providers/WdsDataTableProvider.ts#L94-L147)
-export const resolveApp = (apps, prefix) => {
+export const resolveWdsApp = (apps) => {
   // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by Leo
   // See here for specific enumerations -- https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
   // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' -- if WDS is healthy and running, there should only be one app RUNNING
@@ -115,7 +110,7 @@ export const resolveApp = (apps, prefix) => {
   // WDS appType is checked first and takes precedence over CROMWELL apps in the workspace
   for (const appTypeName of getConfig().wdsAppTypeNames) {
     const namedApp = apps.filter(
-      (app) => app.appType === appTypeName && app.appName === `${prefix}-${app.workspaceId}` && healthyStates.includes(app.status)
+      (app) => app.appType === appTypeName && app.appName === `wds-${app.workspaceId}` && healthyStates.includes(app.status)
     );
     if (namedApp.length === 1) {
       return namedApp[0];
@@ -143,67 +138,11 @@ export const resolveApp = (apps, prefix) => {
 
 // Extract WDS proxy URL from Leo response. Exported for testing
 export const resolveWdsUrl = (apps) => {
-  const foundApp = resolveApp(apps, 'wds');
+  const foundApp = resolveWdsApp(apps);
   if (foundApp?.status === 'RUNNING') {
     return foundApp.proxyUrls.wds;
   }
   return '';
-};
-
-// Extract CBAS proxy URL from Leo response. Exported for testing
-export const resolveCbasUrl = (apps) => {
-  const foundApp = resolveApp(apps, 'cbas');
-  if (foundApp?.status === 'RUNNING') {
-    return foundApp.proxyUrls.cbas;
-  }
-  return '';
-};
-
-export const loadAppUrls = async (workspaceId) => {
-  // for local testing - since we use local WDS setup, we don't need to call Leo to get proxy url
-  // for CBAS UI deployed in app - we don't want to decouple CBAS and WDS yet. Until then we keep using WDS url passed in config.
-  //                               When we are ready for that change to be released, we should remove `wdsUrlRoot` from cromwhelm configs
-  //                               and then CBAS UI will talk to Leo to get WDS url root.
-
-  const wdsUrlRoot = getConfig().wdsUrlRoot;
-  const cbasUrlRoot = getConfig().cbasUrlRoot;
-
-  let wdsProxyUrlResponse = { status: 'None', state: '' };
-  let cbasProxyUrlResponse = { status: 'None', state: '' };
-
-  if (wdsUrlRoot) {
-    wdsProxyUrlResponse = { status: 'Ready', state: wdsUrlRoot };
-    // setWdsProxyUrl(wdsProxyUrlResponse)
-  } else {
-    try {
-      const wdsUrl = await Ajax().Apps.listAppsV2(workspaceId).then(resolveWdsUrl);
-      if (wdsUrl) {
-        wdsProxyUrlResponse = { status: 'Ready', state: wdsUrl };
-      }
-    } catch (error) {
-      if (error.status === 401) wdsProxyUrlResponse = { status: 'Unauthorized', state: error };
-      else wdsProxyUrlResponse = { status: 'Error', state: error };
-    }
-  }
-
-  if (cbasUrlRoot) {
-    cbasProxyUrlResponse = { status: 'Ready', state: cbasUrlRoot };
-  } else {
-    try {
-      const cbasUrl = await Ajax().Apps.listAppsV2(workspaceId).then(resolveCbasUrl);
-      if (cbasUrl) {
-        cbasProxyUrlResponse = { status: 'Ready', state: cbasUrl };
-      }
-    } catch (error) {
-      if (error.status === 401) cbasProxyUrlResponse = { status: 'Unauthorized', state: error };
-      else cbasProxyUrlResponse = { status: 'Error', state: error };
-    }
-  }
-
-  return {
-    wds: wdsProxyUrlResponse,
-    cbas: cbasProxyUrlResponse,
-  };
 };
 
 export const parseMethodString = (methodString) => {
@@ -255,66 +194,90 @@ export const RecordLookupSelect = (props) => {
 };
 
 export const WithWarnings = (props) => {
-  const { baseComponent, warningMessage } = props;
+  const { baseComponent, message } = props;
+
+  const [iconShape, iconColor] = Utils.switchCase(
+    message.type,
+    ['error', () => ['error-standard', colors.warning()]],
+    ['info', () => ['info-circle', colors.accent()]],
+    ['success', () => ['success-standard', colors.success()]],
+    ['none', () => [undefined, undefined]]
+  );
 
   return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
     baseComponent,
-    warningMessage &&
-      h(TooltipTrigger, { content: warningMessage }, [
-        icon('error-standard', {
+    message.type !== 'none' &&
+      h(TooltipTrigger, { content: message.message }, [
+        icon(iconShape, {
           size: 14,
-          style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' },
+          style: { marginLeft: '0.5rem', color: iconColor, cursor: 'help' },
         }),
       ]),
   ]);
 };
 
+export const unwrapOptional = (input) => (input.type === 'optional' ? input.optional_type : input);
+
 export const ParameterValueTextInput = (props) => {
   const { id, inputType, source, setSource } = props;
 
-  const updateSourceValueToExpectedType = (primitiveType, value) => {
-    if (isPrimitiveTypeInputValid(primitiveType, value)) {
-      const updatedValue = convertToPrimitiveType(primitiveType, value);
+  const updateSourceValueToExpectedType = (value) => {
+    const unwrappedType = unwrapOptional(inputType);
+    if (unwrappedType.type === 'primitive' && isPrimitiveTypeInputValid(unwrappedType.primitive_type, value)) {
+      const updatedValue = convertToPrimitiveType(unwrappedType.primitive_type, value);
 
       const newSource = {
         type: source.type,
         parameter_value: updatedValue,
       };
       setSource(newSource);
+      return true;
     }
   };
+
+  const placeholder = Utils.cond(
+    [unwrapOptional(inputType).type === 'primitive' && unwrapOptional(inputType).primitive_type === 'String', () => '(Empty string)'],
+    [
+      unwrapOptional(inputType).type === 'array',
+      () =>
+        Utils.switchCase(
+          unwrapOptional(unwrapOptional(inputType).array_type).primitive_type,
+          ['Int', () => '[1, 2, 3]'],
+          ['Float', () => '[1.5, 2.0, 5]'],
+          ['String', () => '["value1", "value2", "value3"]'],
+          ['Boolean', () => '[true, false, true]'],
+          ['File', () => '["file1", "file2", "file3"]']
+        ),
+    ],
+    () => '' // no placeholder for other types
+  );
 
   return h(TextInput, {
     id,
     'aria-label': 'Enter a value',
     style: { display: 'block', width: '100%' },
-    value: source.parameter_value,
+    value: Array.isArray(source.parameter_value) ? JSON.stringify(source.parameter_value) : source.parameter_value,
     onChange: (value) => {
-      const newSource = {
-        type: source.type,
-        parameter_value: value,
-      };
-      setSource(newSource);
-    },
-    onBlur: () => {
-      if (source.parameter_value) {
-        // for primitive and optional primitive inputs we convert value of these inputs to expected types
-        if (inputType.type === 'primitive') {
-          updateSourceValueToExpectedType(inputType.primitive_type, source.parameter_value);
-        }
-
-        if (inputType.type === 'optional' && inputType.optional_type.type === 'primitive') {
-          updateSourceValueToExpectedType(inputType.optional_type.primitive_type, source.parameter_value);
-        }
+      if (!updateSourceValueToExpectedType(value)) {
+        const newSource = {
+          type: source.type,
+          parameter_value: value,
+        };
+        setSource(newSource);
       }
     },
+    placeholder,
   });
 };
 
 export const InputSourceSelect = (props) => {
   const { source, setSource, inputType } = props;
   const isOptional = inputType.type === 'optional';
-  const innerInputType = isOptional ? inputType.optional_type.type : inputType.type;
+  const unwrappedType = unwrapOptional(inputType);
+  const innerInputType = unwrappedType.type;
+  const isArray = innerInputType === 'array';
+  const unwrappedArrayType = isArray ? unwrapOptional(unwrappedType.array_type) : undefined;
+  const simpleInnerArrayType = isArray && unwrappedArrayType.type === 'primitive';
   const editorType = innerInputType === 'struct' ? 'object_builder' : 'literal';
 
   return h(Select, {
@@ -340,7 +303,11 @@ export const InputSourceSelect = (props) => {
       setSource(newSource);
     },
     placeholder: 'Select Source',
-    options: [inputSourceLabels[editorType], inputSourceLabels.record_lookup, ...(isOptional ? [inputSourceLabels.none] : [])],
+    options: [
+      ...(!isArray || simpleInnerArrayType ? [inputSourceLabels[editorType]] : []),
+      inputSourceLabels.record_lookup,
+      ...(isOptional ? [inputSourceLabels.none] : []),
+    ],
     // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
     styles: { container: (old) => ({ ...old, display: 'inline-block', width: '100%' }), menuPortal: (base) => ({ ...base, zIndex: 9999 }) },
     menuPortalTarget: document.body,
@@ -361,47 +328,63 @@ export const StructBuilderLink = (props) => {
   );
 };
 
-const validateRequirements = (inputSource, inputType) => {
+const validateRequiredHasSource = (inputSource, inputType) => {
   if (inputType.type === 'optional') {
     return true;
   }
 
   if (inputSource) {
     if (inputSource.type === 'none') {
-      return false;
+      return { type: 'error', message: 'This attribute is required' };
     }
     if (inputSource.type === 'object_builder') {
-      if (_.isEmpty(inputSource.fields)) {
-        return false;
-      }
+      const sourceFieldsFilled = _.flow(
+        _.toPairs,
+        _.map(([idx, _field]) => inputSource.fields[idx] || { source: { type: 'none' } })
+      )(inputType.fields);
 
-      const fieldsValidated = _.map((field) => validateRequirements(field.source, field.field_type), _.merge(inputSource.fields, inputType.fields));
-      return _.every(Boolean, fieldsValidated);
+      const fieldsValidated = _.map(
+        (field) => validateRequiredHasSource(field.source, field.field_type) === true,
+        _.merge(sourceFieldsFilled, inputType.fields)
+      );
+      return _.every(Boolean, fieldsValidated) || { type: 'error', message: 'This struct is missing a required input' };
     }
     if (inputSource.type === 'literal') {
-      return !!inputSource.parameter_value;
-    }
-  } else return false;
+      // this condition is specifically added to allow '' and '0' and 'false' as valid values because
+      // '!!inputSource.parameter_value' considers '0' and 'false' as empty values
+      // Note: '!=' null check also covers if value is undefined
+      if (
+        inputSource.parameter_value != null &&
+        (inputSource.parameter_value === 0 || inputSource.parameter_value === false || inputSource.parameter_value === '')
+      ) {
+        return true;
+      }
 
-  return true;
+      return !!inputSource.parameter_value || { type: 'error', message: 'This attribute is required' };
+    }
+    if (inputSource.type === 'record_lookup' && inputSource.record_attribute === '') {
+      return { type: 'error', message: 'This attribute is required' };
+    }
+    return true;
+  }
+  return { type: 'error', message: 'This attribute is required' };
 };
 
-const validateRecordLookups = (source, recordAttributes) => {
+const validateRecordLookup = (source, recordAttributes) => {
   if (source) {
     if (source.type === 'record_lookup' && !recordAttributes.includes(source.record_attribute)) {
-      return false;
+      return { type: 'error', message: "This attribute doesn't exist in the data table" };
     }
     if (source.type === 'object_builder') {
       if (source.fields) {
-        const fieldsValidated = _.map((field) => field && validateRecordLookups(field.source, recordAttributes), source.fields);
-        return _.every(Boolean, fieldsValidated);
+        const fieldsValidated = _.map((field) => field && validateRecordLookup(field.source, recordAttributes) === true, source.fields);
+        return _.every(Boolean, fieldsValidated) || { type: 'error', message: "One of this struct's inputs has an invalid configuration" };
       }
-      return false;
+      return { type: 'error', message: "One of this struct's inputs has an invalid configuration" };
     }
-
     return true;
   }
-  return false;
+  return true;
 };
 
 // Note: this conversion function is called only after checking that values being converted are valid.
@@ -417,24 +400,101 @@ export const convertToPrimitiveType = (primitiveType, value) => {
 
 export const isPrimitiveTypeInputValid = (primitiveType, value) => {
   return Utils.cond(
-    [primitiveType === 'Int', () => !Number.isNaN(value) && Number.isInteger(Number(value))],
+    // last condition ensures empty strings are not accepted as valid Int because Number(value) in second condition converts empty strings to 0
+    [primitiveType === 'Int', () => !Number.isNaN(value) && Number.isInteger(Number(value)) && !Number.isNaN(parseInt(value))],
     [primitiveType === 'Float', () => !Number.isNaN(value) && !Number.isNaN(parseFloat(value))],
     [primitiveType === 'Boolean', () => value.toString().toLowerCase() === 'true' || value.toString().toLowerCase() === 'false'],
     () => true
   );
 };
 
-const validateParameterValueSelect = (inputSource, inputType) => {
+export const convertArrayType = ({ input_type: inputType, source: inputSource, ...input }) => {
+  if (unwrapOptional(inputType).type === 'array' && inputSource.type === 'literal') {
+    let value = inputSource.parameter_value;
+    if (!Array.isArray(value)) {
+      try {
+        value = JSON.parse(inputSource.parameter_value);
+      } catch (e) {
+        value = [value];
+      }
+    }
+    value = _.map((element) => convertToPrimitiveType(unwrapOptional(unwrapOptional(inputType).array_type).primitive_type, element))(value);
+    return { ...input, input_type: inputType, source: { ...inputSource, parameter_value: value } };
+  }
+  if (unwrapOptional(inputType).type === 'struct' && inputSource.type === 'object_builder') {
+    return {
+      ...input,
+      input_type: inputType,
+      source: {
+        ...inputSource,
+        fields: _.map((field) => ({
+          name: field.name,
+          source: convertArrayType({ input_type: field.field_type, source: field.source }).source,
+        }))(_.merge(inputSource.fields, unwrapOptional(inputType).fields)),
+      },
+    };
+  }
+  return { ...input, input_type: inputType, source: inputSource };
+};
+
+const validateLiteralInput = (inputSource, inputType) => {
   if (inputSource) {
     // for user entered values and inputs that have primitive type, we validate that value matches expected type
     if (inputSource.type === 'literal') {
-      if (inputType.type === 'primitive') {
-        return isPrimitiveTypeInputValid(inputType.primitive_type, inputSource.parameter_value);
+      if (unwrapOptional(inputType).type === 'primitive') {
+        if (inputSource.parameter_value === '') {
+          return unwrapOptional(inputType).primitive_type === 'String'
+            ? { type: 'info', message: 'This will be sent as an empty string' }
+            : { type: 'error', message: 'Value is empty' };
+        }
+        return (
+          isPrimitiveTypeInputValid(unwrapOptional(inputType).primitive_type, inputSource.parameter_value) || {
+            type: 'error',
+            message: "Value doesn't match expected input type",
+          }
+        );
       }
 
-      if (inputType.type === 'optional' && inputType.optional_type.type === 'primitive') {
-        return isPrimitiveTypeInputValid(inputType.optional_type.primitive_type, inputSource.parameter_value);
+      if (unwrapOptional(inputType).type === 'array') {
+        let value = inputSource.parameter_value;
+        if (value === '') {
+          return {
+            type: 'error',
+            message: 'Array inputs should follow JSON array literal syntax. This input is empty. To submit an empty array, enter []',
+          };
+        }
+        if (!Array.isArray(inputSource.parameter_value)) {
+          try {
+            value = JSON.parse(inputSource.parameter_value);
+          } catch (e) {
+            return validateLiteralInput(inputSource, unwrapOptional(inputType).array_type) === true
+              ? {
+                  type: 'info',
+                  message: `Array inputs should follow JSON array literal syntax. This will be submitted as an array with one value: ${JSON.stringify(
+                    inputSource.parameter_value
+                  )}`,
+                }
+              : { type: 'error', message: 'Array inputs should follow JSON array literal syntax. This input cannot be parsed' };
+          }
+          if (!Array.isArray(value)) {
+            return {
+              type: 'info',
+              message: `Array inputs should follow JSON array literal syntax. This will be submitted as an array with one value: ${inputSource.parameter_value}`,
+            };
+          }
+        }
+        if (value.length === 0 && unwrapOptional(inputType).non_empty) {
+          return { type: 'error', message: 'This array cannot be empty' };
+        }
+        return _.every(
+          (arrayElement) =>
+            validateLiteralInput({ ...inputSource, parameter_value: arrayElement }, unwrapOptional(unwrapOptional(inputType).array_type)) === true
+        )(value)
+          ? { type: 'success', message: `Successfully detected an array with ${value.length} element(s).` }
+          : { type: 'error', message: 'One or more of the values in the array does not match the expected type' };
       }
+
+      return { type: 'error', message: 'Input type does not support literal input' };
     }
 
     // for object_builder source type, we check that each field with user entered values and inputs that have
@@ -442,25 +502,46 @@ const validateParameterValueSelect = (inputSource, inputType) => {
     if (inputSource.type === 'object_builder') {
       if (inputSource.fields) {
         const fieldsValidated = _.map(
-          (field) => field && validateParameterValueSelect(field.source, field.field_type),
+          (field) => field && validateLiteralInput(field.source, field.field_type),
           _.merge(inputSource.fields, inputType.fields)
         );
-        return _.every(Boolean, fieldsValidated);
+        return _.every(Boolean, fieldsValidated) || { type: 'error', message: "One of this struct's inputs has an invalid configuration" };
       }
+      return true;
     }
+
+    return true;
   }
 
   return true;
 };
 
-export const requiredInputsWithoutSource = (inputDefinition) => {
-  return _.filter((i) => !validateRequirements(i.source, i.input_type || i.field_type), inputDefinition);
+const validateInput = (input, dataTableAttributes) => {
+  const inputType = input.input_type || input.field_type;
+  // first validate that required inputs have a source
+  const requiredHasSource = validateRequiredHasSource(input.source, inputType);
+  if (requiredHasSource !== true) {
+    return requiredHasSource;
+  }
+  // then validate that record lookups are good (exist in table)
+  const validRecordLookup = validateRecordLookup(input.source, _.keys(dataTableAttributes));
+  if (validRecordLookup !== true) {
+    return validRecordLookup;
+  }
+  // then validate that literal inputs are good (have correct type)
+  const validLiteralInput = validateLiteralInput(input.source, inputType);
+  if (validLiteralInput !== true) {
+    return validLiteralInput;
+  }
+  // otherwise no errors!
+  return { type: 'none' };
 };
 
-export const inputsMissingRequiredAttributes = (inputDefinition, dataTableAttributes) => {
-  return _.filter((i) => !validateRecordLookups(i.source, _.keys(dataTableAttributes)), inputDefinition);
-};
-
-export const inputsWithIncorrectValues = (inputDefinition) => {
-  return _.filter((i) => !validateParameterValueSelect(i.source, i.input_type || i.field_type), inputDefinition);
-};
+export const validateInputs = (inputDefinition, dataTableAttributes) =>
+  _.flow(
+    _.map((input) => {
+      const inputMessage = validateInput(input, dataTableAttributes);
+      return { name: input.input_name || input.field_name, ...inputMessage };
+    }),
+    _.compact
+  )(inputDefinition);
