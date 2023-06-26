@@ -10,12 +10,12 @@ export const Cbas = (signal) => ({
   },
   methods: {
     post: async (cbasUrlRoot, payload) => {
-      const res = await fetchCbas(cbasUrlRoot)('api/batch/v1/methods', _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]));
+      const res = await fetchCbas(cbasUrlRoot)('methods', _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]));
       return res.json();
     },
     getWithoutVersions: async (cbasUrlRoot) => {
       const keyParams = qs.stringify({ show_versions: false });
-      const res = await fetchCbas(cbasUrlRoot)(`api/batch/v1/methods?${keyParams}`, _.mergeAll([authOpts(), { signal, method: 'GET' }]));
+      const res = await fetchCbas(cbasUrlRoot)(`methods?${keyParams}`, _.mergeAll([authOpts(), { signal, method: 'GET' }]));
       return res.json();
     },
   },
