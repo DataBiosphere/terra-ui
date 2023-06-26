@@ -447,11 +447,12 @@ export const convertToPrimitiveType = (primitiveType, value) => {
   );
 };
 
+// eslint-ignore
 export const isPrimitiveTypeInputValid = (primitiveType, value) => {
   return Utils.cond(
     // last condition ensures empty strings are not accepted as valid Int because Number(value) in second condition converts empty strings to 0
     [primitiveType === 'Int', () => !Number.isNaN(value) && Number.isInteger(Number(value)) && !Number.isNaN(parseInt(value))],
-    [primitiveType === 'Float', () => !Number.isNaN(value) && !Number.isNaN(parseFloat(value))],
+    [primitiveType === 'Float', () => !Number.isNaN(value) && !Number.isNaN(Number(value)) && !Number.isNaN(parseFloat(value))],
     [primitiveType === 'Boolean', () => value.toString().toLowerCase() === 'true' || value.toString().toLowerCase() === 'false'],
     () => true
   );
