@@ -100,7 +100,7 @@ export const loadAllRunSets = async (signal) => {
 // Invokes logic to determine the appropriate app for WDS
 // If WDS is not running, a URL will not be present, in this case we return empty string
 // Note: This logic has been copied from how DataTable finds WDS app in Terra UI (https://github.com/DataBiosphere/terra-ui/blob/ac13bdf3954788ca7c8fd27b8fd4cfc755f150ff/src/libs/ajax/data-table-providers/WdsDataTableProvider.ts#L94-L147)
-export const resolveWdsApp = (apps) => {
+export const resolveApp = (apps, prefix) => {
   // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by Leo
   // See here for specific enumerations -- https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
   // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' -- if WDS is healthy and running, there should only be one app RUNNING
@@ -110,7 +110,7 @@ export const resolveWdsApp = (apps) => {
   // WDS appType is checked first and takes precedence over CROMWELL apps in the workspace
   for (const appTypeName of getConfig().wdsAppTypeNames) {
     const namedApp = apps.filter(
-      (app) => app.appType === appTypeName && app.appName === `wds-${app.workspaceId}` && healthyStates.includes(app.status)
+      (app) => app.appType === appTypeName && app.appName === `${prefix}-${app.workspaceId}` && healthyStates.includes(app.status)
     );
     if (namedApp.length === 1) {
       return namedApp[0];
@@ -138,11 +138,60 @@ export const resolveWdsApp = (apps) => {
 
 // Extract WDS proxy URL from Leo response. Exported for testing
 export const resolveWdsUrl = (apps) => {
-  const foundApp = resolveWdsApp(apps);
+  const foundApp = resolveApp(apps, 'wds');
   if (foundApp?.status === 'RUNNING') {
     return foundApp.proxyUrls.wds;
   }
   return '';
+};
+// Extract CBAS proxy URL from Leo response. Exported for testing
+export const resolveCbasUrl = (apps) => {
+  const foundApp = resolveApp(apps, 'cbas');
+  if (foundApp?.status === 'RUNNING') {
+    return foundApp.proxyUrls.cbas;
+  }
+  return '';
+};
+export const loadAppUrls = async (workspaceId) => {
+  // for local testing - since we use local WDS setup, we don't need to call Leo to get proxy url
+  // for CBAS UI deployed in app - we don't want to decouple CBAS and WDS yet. Until then we keep using WDS url passed in config.
+  // When we are ready for that change to be released, we should remove `wdsUrlRoot` from cromwhelm configs
+  // and then CBAS UI will talk to Leo to get WDS url root.
+  const wdsUrlRoot = getConfig().wdsUrlRoot;
+  const cbasUrlRoot = getConfig().cbasUrlRoot;
+  let wdsProxyUrlResponse = { status: 'None', state: '' };
+  let cbasProxyUrlResponse = { status: 'None', state: '' };
+  if (wdsUrlRoot) {
+    wdsProxyUrlResponse = { status: 'Ready', state: wdsUrlRoot };
+    // setWdsProxyUrl(wdsProxyUrlResponse)
+  } else {
+    try {
+      const wdsUrl = await Ajax().Apps.listAppsV2(workspaceId).then(resolveWdsUrl);
+      if (wdsUrl) {
+        wdsProxyUrlResponse = { status: 'Ready', state: wdsUrl };
+      }
+    } catch (error) {
+      if (error.status === 401) wdsProxyUrlResponse = { status: 'Unauthorized', state: error };
+      else wdsProxyUrlResponse = { status: 'Error', state: error };
+    }
+  }
+  if (cbasUrlRoot) {
+    cbasProxyUrlResponse = { status: 'Ready', state: cbasUrlRoot };
+  } else {
+    try {
+      const cbasUrl = await Ajax().Apps.listAppsV2(workspaceId).then(resolveCbasUrl);
+      if (cbasUrl) {
+        cbasProxyUrlResponse = { status: 'Ready', state: cbasUrl };
+      }
+    } catch (error) {
+      if (error.status === 401) cbasProxyUrlResponse = { status: 'Unauthorized', state: error };
+      else cbasProxyUrlResponse = { status: 'Error', state: error };
+    }
+  }
+  return {
+    wds: wdsProxyUrlResponse,
+    cbas: cbasProxyUrlResponse,
+  };
 };
 
 export const parseMethodString = (methodString) => {
