@@ -31,6 +31,8 @@ const styles = {
 export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
   (
     {
+      name,
+      namespace,
       workspace: {
         workspace: { workspaceId },
       },
@@ -40,8 +42,6 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     const [methodsData, setMethodsData] = useState();
     const [loading, setLoading] = useState(false);
     const [viewFindWorkflowModal, setViewFindWorkflowModal] = useState(false);
-    // const [wdsProxyUrl, setWdsProxyUrl] = useState({ status: 'None', state: '' })
-    // const [cbasProxyUrl, setCbasProxyUrl] = useState({ status: 'None', state: '' })
 
     const signal = useCancellation();
 
@@ -50,9 +50,6 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
         wds: { state: wdsUrlRoot },
         cbas: { state: cbasUrlRoot },
       } = await loadAppUrls(workspaceId);
-
-      // setCbasProxyUrl(cbasUrlRoot)
-      // setWdsProxyUrl(wdsUrlRoot)
 
       return { wdsUrlRoot, cbasUrlRoot };
     }, [workspaceId]);
@@ -84,7 +81,11 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
               h(
                 ButtonOutline,
                 {
-                  onClick: () => Nav.goToPath('submission-history'),
+                  onClick: () =>
+                    Nav.goToPath('workspace-workflows-cbas-submission-history', {
+                      name,
+                      namespace,
+                    }),
                 },
                 ['Submission history']
               ),
@@ -107,9 +108,9 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
                 },
                 ['Find a Workflow', icon('plus-circle', { size: 32 })]
               ),
-              h(Fragment, [h(SavedWorkflows, { methodsData })]),
+              h(Fragment, [h(SavedWorkflows, { name, namespace, methodsData })]),
             ]),
-            viewFindWorkflowModal && h(FindWorkflowModal, { onDismiss: () => setViewFindWorkflowModal(false) }),
+            viewFindWorkflowModal && h(FindWorkflowModal, { name, namespace, onDismiss: () => setViewFindWorkflowModal(false) }),
           ]),
         ]);
   }
