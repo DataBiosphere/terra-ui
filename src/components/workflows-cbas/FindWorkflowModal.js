@@ -103,7 +103,7 @@ const suggestedWorkflowsList = [
   },
 ];
 
-const FindWorkflowModal = ({ onDismiss }) => {
+const FindWorkflowModal = ({ name, namespace, onDismiss }) => {
   const [selectedSubHeader, setSelectedSubHeader] = useState('browse-suggested-workflows');
   const [loading, setLoading] = useState();
 
@@ -121,7 +121,9 @@ const FindWorkflowModal = ({ onDismiss }) => {
 
       const methodObject = await Ajax(signal).Cbas.methods.post(methodPayload);
       onDismiss();
-      Nav.goToPath('submission-config', {
+      Nav.goToPath('workspace-workflows-cbas-submission-config', {
+        name,
+        namespace,
         methodId: methodObject.method_id,
       });
     } catch (error) {
