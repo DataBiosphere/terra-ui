@@ -127,8 +127,13 @@ export const WorkspaceTabs = ({
     { name: 'dashboard', link: 'workspace-dashboard' },
     { name: 'data', link: 'workspace-data' },
     { name: 'analyses', link: analysisTabName },
-    ...(googleWorkspace || (azureWorkspace && getConfig().isAzureWorkflowsTabVisible) ? [{ name: 'workflows', link: 'workspace-workflows' }] : []),
-    ...(googleWorkspace ? [{ name: 'job history', link: 'workspace-job-history' }] : []),
+    ...(googleWorkspace
+      ? [
+          { name: 'workflows', link: 'workspace-workflows' },
+          { name: 'job history', link: 'workspace-job-workflows' },
+        ]
+      : []),
+    ...(azureWorkspace && getConfig().isAzureWorkflowsTabVisible ? [{ name: 'workflows', link: 'workspace-workflows-cbas' }] : []),
   ];
   return h(Fragment, [
     h(
