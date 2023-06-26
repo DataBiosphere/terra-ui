@@ -447,7 +447,6 @@ export const convertToPrimitiveType = (primitiveType, value) => {
   );
 };
 
-// eslint-ignore
 export const isPrimitiveTypeInputValid = (primitiveType, value) => {
   return Utils.cond(
     // last condition ensures empty strings are not accepted as valid Int because Number(value) in second condition converts empty strings to 0
