@@ -77,12 +77,12 @@ const styles = {
   },
 };
 
-export const SavedWorkflows = ({ methodsData }) => {
+export const SavedWorkflows = ({ workspaceName, namespace, methodsData }) => {
   const WorkflowCard = memoWithName('WorkflowCard', ({ name, lastRun, description, source, methodId }) => {
     return div(
       {
         onClick: () => {
-          Nav.goToPath('submission-config', { methodId });
+          Nav.goToPath('workspace-workflows-cbas-submission-config', { name: workspaceName, namespace, methodId });
         },
         style: { ...styles.card, ...styles.mediumCard, cursor: 'pointer' },
       },
