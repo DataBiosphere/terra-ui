@@ -17,7 +17,6 @@ import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
-import { notify } from 'src/libs/notifications';
 import { forwardRefWithName, memoWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
 import { getUser } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
@@ -501,27 +500,22 @@ export const AzureWorkflows = ({ workspace }) => {
   const [cromwellStatus, setCromwellStatus] = useState();
   const signal = useCancellation();
 
-  const loadCbasStatuses = async () => {
-    try {
-      const workspaceId = workspace.workspaceId;
+  const loadCbasStatuses = _.flow(withErrorReporting('Error loading statuses'))(async () => {
+    const workspaceId = workspace.workspaceId;
+    const appUrl = (
+      await Apps(signal)
+        .listAppsV2(workspaceId)
+        .then((apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email))
+    ).cbasUrl;
 
-      const appUrl = (
-        await Apps(signal)
-          .listAppsV2(workspaceId)
-          .then((apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email))
-      ).cbasUrl;
-
-      const status = await Ajax(signal).Cbas.status(appUrl);
-      setCbasStatus(JSON.stringify(status.ok));
-      setCromwellStatus(JSON.stringify(status.systems.cromwell.ok));
-    } catch (error) {
-      notify('error', 'Error loading statuses', { detail: error instanceof Response ? await error.text() : error });
-    }
-  };
+    const status = await Ajax(signal).Cbas.status(appUrl);
+    setCbasStatus(JSON.stringify(status.ok));
+    setCromwellStatus(JSON.stringify(status.systems.cromwell.ok));
+  });
 
   // Lifecycle
-  useOnMount(async () => {
-    await loadCbasStatuses();
+  useOnMount(() => {
+    loadCbasStatuses();
   });
 
   return div({}, [`CBAS: ${cbasStatus}\n Cromwell: ${cromwellStatus}`]);
