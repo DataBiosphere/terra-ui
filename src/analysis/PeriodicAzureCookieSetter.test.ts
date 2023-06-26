@@ -2,7 +2,7 @@ import '@testing-library/jest-dom';
 
 import { render } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { PeriodicAzureCookieSetter, setAzureCookieOnUrl } from 'src/analysis/runtime-common-components';
+import { PeriodicAzureCookieSetter } from 'src/analysis/runtime-common-components';
 import { withErrorIgnoring } from 'src/libs/error';
 import { usePollingEffect } from 'src/libs/react-utils';
 
@@ -58,44 +58,5 @@ describe('PeriodicAzureCookieSetter', () => {
     expect(withErrorIgnoring).toHaveBeenCalled();
     expect(withErrorIgnoring).toHaveBeenCalledWith(expect.any(Function));
     expect(withErrorIgnoring).toHaveBeenCalledWith(undefined, { ms: 5 * 60 * 1000, leading: true });
-  });
-
-  it('should call setAzureCookieOnUrl', async () => {
-    withErrorIgnoring.mockImplementation(() => {
-      setAzureCookieOnUrl();
-    });
-
-    await usePollingEffect.mockImplementation(() => withErrorIgnoring());
-
-    // Arrange
-    await render(h(PeriodicAzureCookieSetter));
-    // Act
-
-    // Assert
-    expect(usePollingEffect).toHaveBeenCalled();
-    expect(withErrorIgnoring).toHaveBeenCalled();
-    expect(setAzureCookieOnUrl).toHaveBeenCalled();
-  });
-});
-
-describe('setAzureCookieOnUrl', () => {
-  it('when forApp is true, sets cookie at "readyForApp"', async () => {
-    // Arrange
-    const forApp = true;
-    const url = 'https://app.terra.bio/#workspaces';
-    // Act
-    await setAzureCookieOnUrl(forApp, url);
-    // Assert
-    expect(setAzureCookieOnUrl).toHaveBeenCalled();
-  });
-
-  it('when forApp is false, sets cookie at "readyForRuntime"', async () => {
-    // Arrange
-    const forApp = false;
-    const url = 'https://app.terra.bio/#workspaces';
-    // Act
-    await setAzureCookieOnUrl(forApp, url);
-    // Assert
-    expect(setAzureCookieOnUrl).toHaveBeenCalled();
   });
 });
