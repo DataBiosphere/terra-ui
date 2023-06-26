@@ -13,6 +13,8 @@ jest.mock('src/analysis/runtime-common-components', () => {
   };
 });
 
+const usePollingEffectMock = usePollingEffect as jest.MockedFunction<any>;
+
 jest.mock('src/libs/react-utils', () => {
   return {
     ...jest.requireActual('src/libs/react-utils'),
@@ -38,7 +40,7 @@ describe('PeriodicAzureCookieSetter', () => {
   });
 
   it('should call usePollingEffect', async () => {
-    usePollingEffect.mockImplementationOnce(() => withErrorIgnoring);
+    usePollingEffectMock.mockImplementationOnce(() => withErrorIgnoring);
     // Arrange
     await render(h(PeriodicAzureCookieSetter));
     // Act
@@ -47,8 +49,11 @@ describe('PeriodicAzureCookieSetter', () => {
     expect(usePollingEffect).toHaveBeenCalled();
     expect(withErrorIgnoring).toHaveBeenCalled();
   });
+
   it('should call withErrorIgnoring', async () => {
-    usePollingEffect.mockImplementation((effectFn, { ms, leading }) => withErrorIgnoring(effectFn, { ms, leading }));
+    usePollingEffectMock.mockImplementation((effectFn, { ms, leading }) =>
+      withErrorIgnoring(effectFn, { ms, leading })
+    );
     // Arrange
     await render(h(PeriodicAzureCookieSetter));
     // Act
