@@ -1,5 +1,7 @@
 import { extractLeoTokenFromCookies } from 'src/libs/ajax/Cbas';
 
+jest.mock('../ajax');
+
 describe('Leo Tokens', () => {
   it('should get LeoToken from a one-cookie string', () => {
     const input = 'LeoToken=1234';
