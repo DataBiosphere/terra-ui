@@ -84,7 +84,7 @@ describe('resolveWdsUrl', () => {
   test.each(testCases)(
     "properly extracts the correct value for a WDS app in '$appStatus' state from the Leo response ",
     ({ appStatus, expectedUrl }) => {
-      const mockAppList = [generateMockApp('CROMWELL', appStatus, mockWdsProxyUrl, '2022-01-24T14:27:28.740880Z')];
+      const mockAppList = [generateMockApp('WDS', appStatus, mockWdsProxyUrl, '2022-01-24T14:27:28.740880Z')];
       expect(resolveWdsUrl(mockAppList)).toBe(expectedUrl);
     }
   );
@@ -96,8 +96,8 @@ describe('resolveWdsUrl', () => {
 
   it('returns the earliest created RUNNING app url if more than one exists', () => {
     const mockAppList = [
-      generateMockApp('CROMWELL', 'RUNNING', firstWdsProxyUrl, '2022-01-24T14:27:28.740880Z'),
-      generateMockApp('CROMWELL', 'RUNNING', mockWdsProxyUrl, '2023-01-24T15:27:28.740880Z'),
+      generateMockApp('WDS', 'RUNNING', firstWdsProxyUrl, '2022-01-24T14:27:28.740880Z'),
+      generateMockApp('WDS', 'RUNNING', mockWdsProxyUrl, '2023-01-24T15:27:28.740880Z'),
     ];
     expect(resolveWdsUrl(mockAppList)).toBe(firstWdsProxyUrl);
   });
