@@ -30,11 +30,9 @@ export const CurrentCollaborators = ({ acl, loaded, ...props }: CurrentCollabora
       _.flow(
         _.remove(aclEntryIsTerraSupport),
         Utils.toIndexPairs,
-        _.map(([index, aclItem]) =>
+        _.map(([_, aclItem]) =>
           h(Collaborator, {
-            // FIXME: the index won't always be correct because of terra support in the original acl
             aclItem,
-            index,
             acl,
             ...props,
           })
