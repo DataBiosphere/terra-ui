@@ -18,7 +18,7 @@ import TopBar from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import { isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
-import { getConfig } from 'src/libs/config';
+import { isAzureWorkflowsTabVisible } from 'src/libs/config';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
@@ -133,7 +133,7 @@ export const WorkspaceTabs = ({
           { name: 'job history', link: 'workspace-job-workflows' },
         ]
       : []),
-    ...(azureWorkspace && getConfig().isAzureWorkflowsTabVisible ? [{ name: 'workflows', link: 'workspace-workflows-cbas' }] : []),
+    ...(azureWorkspace && isAzureWorkflowsTabVisible() ? [{ name: 'workflows', link: 'workspace-workflows-cbas' }] : []),
   ];
   return h(Fragment, [
     h(
