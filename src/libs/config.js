@@ -11,6 +11,7 @@ export const getConfig = () => {
  * Flags for hidden features
  */
 export const isCromwellAppVisible = () => getConfig().isCromwellAppVisible;
+export const isAzureWorkflowsTabVisible = () => getConfig().isAzureWorkflowsTabVisible;
 export const isAxeEnabled = () => {
   const storedValue = getConfig().isAxeEnabled;
   const isDev = process.env.NODE_ENV === 'development';
