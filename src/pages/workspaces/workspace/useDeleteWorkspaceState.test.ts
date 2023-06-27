@@ -34,7 +34,7 @@ type AjaxWorkspacesContract = AjaxContract['Workspaces'];
 
 describe('useDeleteWorkspace', () => {
   const googleWorkspace = {
-    accessLevel: 'writer',
+    accessLevel: 'WRITER',
     canShare: true,
     canCompute: true,
     workspace: {
@@ -45,7 +45,7 @@ describe('useDeleteWorkspace', () => {
     } as GoogleWorkspaceInfo,
   } as BaseWorkspace;
   const azureWorkspace = {
-    accessLevel: 'writer',
+    accessLevel: 'WRITER',
     canShare: true,
     canCompute: true,
     workspace: {
