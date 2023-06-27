@@ -142,8 +142,8 @@ export const loadAppUrls = async (workspaceId) => {
   // and then CBAS UI will talk to Leo to get WDS url root.
   const wdsUrlRoot = getConfig().wdsUrlRoot;
   const cbasUrlRoot = getConfig().cbasUrlRoot;
-  const wdsProxyUrlResponse = getProxyUrl(wdsUrlRoot, workspaceId, resolveWdsUrl);
-  const cbasProxyUrlResponse = getProxyUrl(cbasUrlRoot, workspaceId, resolveCbasUrl);
+  const wdsProxyUrlResponse = await getProxyUrl(wdsUrlRoot, workspaceId, resolveWdsUrl);
+  const cbasProxyUrlResponse = await getProxyUrl(cbasUrlRoot, workspaceId, resolveCbasUrl);
   return {
     wds: wdsProxyUrlResponse,
     cbas: cbasProxyUrlResponse,
