@@ -259,6 +259,7 @@ const AzurePreviewUserForm = ({ value: formValue, onChange, onSubmit }) => {
           value: formValue.organizationDescription,
           onChange: (opt) => onChange({ ...formValue, organizationDescription: opt.value }),
           options: organizationDescriptions,
+          menuPlacement: 'auto',
         }),
 
         formValue.organizationDescription.includes('Other') &&
@@ -287,6 +288,7 @@ const AzurePreviewUserForm = ({ value: formValue, onChange, onSubmit }) => {
           value: formValue.organizationRegion,
           onChange: (opt) => onChange({ ...formValue, organizationRegion: opt.value }),
           options: organizationRegions,
+          menuPlacement: 'auto',
         }),
       ]),
 
