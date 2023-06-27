@@ -40,7 +40,7 @@ import { cloudProviderLabels, cloudProviderTypes, getCloudProviderFromWorkspace 
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
 import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal';
-import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal';
+import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
 import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu';
 
 const styles = {
