@@ -4,38 +4,10 @@ import * as Nav from 'src/libs/nav';
 import { memoWithName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { styles as gcpWorkflowStyles } from 'src/pages/workspaces/workspace/Workflows';
 
 const styles = {
-  cardContainer: (listView) => ({
-    display: 'flex',
-    flexWrap: 'wrap',
-    marginRight: listView ? undefined : '-1rem',
-  }),
-  // Card's position: relative and the outer/inner styles are a little hack to fake nested links
-  card: {
-    ...Style.elements.card.container,
-    position: 'relative',
-  },
-  outerLink: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-  },
-  innerContent: {
-    position: 'relative',
-    pointerEvents: 'none',
-  },
-  innerLink: {
-    pointerEvents: 'auto',
-  },
-  // (end link hacks)
-  shortCard: {
-    width: 300,
-    height: 125,
-    margin: '0 1rem 2rem 0',
-  },
+  ...gcpWorkflowStyles,
   mediumCard: {
     width: '80%',
     height: 150,
