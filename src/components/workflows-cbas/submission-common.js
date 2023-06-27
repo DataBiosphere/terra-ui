@@ -118,6 +118,23 @@ export const resolveCbasUrl = (apps) => {
   }
   return '';
 };
+
+const getProxyUrl = async (root, workspaceId, resolver) => {
+  if (root) {
+    return { status: 'Ready', state: root };
+  }
+  try {
+    const url = await Ajax().Apps.listAppsV2(workspaceId).then(resolver);
+    if (url) {
+      return { status: 'Ready', state: url };
+    }
+    return { status: 'None', state: '' };
+  } catch (error) {
+    if (error.status === 401) return { status: 'Unauthorized', state: error };
+    return { status: 'Error', state: error };
+  }
+};
+
 export const loadAppUrls = async (workspaceId) => {
   // for local testing - since we use local WDS setup, we don't need to call Leo to get proxy url
   // for CBAS UI deployed in app - we don't want to decouple CBAS and WDS yet. Until then we keep using WDS url passed in config.
@@ -125,34 +142,8 @@ export const loadAppUrls = async (workspaceId) => {
   // and then CBAS UI will talk to Leo to get WDS url root.
   const wdsUrlRoot = getConfig().wdsUrlRoot;
   const cbasUrlRoot = getConfig().cbasUrlRoot;
-  let wdsProxyUrlResponse = { status: 'None', state: '' };
-  let cbasProxyUrlResponse = { status: 'None', state: '' };
-  if (wdsUrlRoot) {
-    wdsProxyUrlResponse = { status: 'Ready', state: wdsUrlRoot };
-  } else {
-    try {
-      const wdsUrl = await Ajax().Apps.listAppsV2(workspaceId).then(resolveWdsUrl);
-      if (wdsUrl) {
-        wdsProxyUrlResponse = { status: 'Ready', state: wdsUrl };
-      }
-    } catch (error) {
-      if (error.status === 401) wdsProxyUrlResponse = { status: 'Unauthorized', state: error };
-      else wdsProxyUrlResponse = { status: 'Error', state: error };
-    }
-  }
-  if (cbasUrlRoot) {
-    cbasProxyUrlResponse = { status: 'Ready', state: cbasUrlRoot };
-  } else {
-    try {
-      const cbasUrl = await Ajax().Apps.listAppsV2(workspaceId).then(resolveCbasUrl);
-      if (cbasUrl) {
-        cbasProxyUrlResponse = { status: 'Ready', state: cbasUrl };
-      }
-    } catch (error) {
-      if (error.status === 401) cbasProxyUrlResponse = { status: 'Unauthorized', state: error };
-      else cbasProxyUrlResponse = { status: 'Error', state: error };
-    }
-  }
+  const wdsProxyUrlResponse = getProxyUrl(wdsUrlRoot, workspaceId, resolveWdsUrl);
+  const cbasProxyUrlResponse = getProxyUrl(cbasUrlRoot, workspaceId, resolveCbasUrl);
   return {
     wds: wdsProxyUrlResponse,
     cbas: cbasProxyUrlResponse,
@@ -347,41 +338,42 @@ const validateRequiredHasSource = (inputSource, inputType) => {
     return true;
   }
 
-  if (inputSource) {
-    if (inputSource.type === 'none') {
-      return { type: 'error', message: 'This attribute is required' };
-    }
-    if (inputSource.type === 'object_builder') {
-      const sourceFieldsFilled = _.flow(
-        _.toPairs,
-        _.map(([idx, _field]) => inputSource.fields[idx] || { source: { type: 'none' } })
-      )(inputType.fields);
-
-      const fieldsValidated = _.map(
-        (field) => validateRequiredHasSource(field.source, field.field_type) === true,
-        _.merge(sourceFieldsFilled, inputType.fields)
-      );
-      return _.every(Boolean, fieldsValidated) || { type: 'error', message: 'This struct is missing a required input' };
-    }
-    if (inputSource.type === 'literal') {
-      // this condition is specifically added to allow '' and '0' and 'false' as valid values because
-      // '!!inputSource.parameter_value' considers '0' and 'false' as empty values
-      // Note: '!=' null check also covers if value is undefined
-      if (
-        inputSource.parameter_value != null &&
-        (inputSource.parameter_value === 0 || inputSource.parameter_value === false || inputSource.parameter_value === '')
-      ) {
-        return true;
-      }
-
-      return !!inputSource.parameter_value || { type: 'error', message: 'This attribute is required' };
-    }
-    if (inputSource.type === 'record_lookup' && inputSource.record_attribute === '') {
-      return { type: 'error', message: 'This attribute is required' };
-    }
-    return true;
+  if (!inputSource) {
+    return { type: 'error', message: 'This attribute is required' };
   }
-  return { type: 'error', message: 'This attribute is required' };
+
+  if (inputSource.type === 'none') {
+    return { type: 'error', message: 'This attribute is required' };
+  }
+  if (inputSource.type === 'object_builder') {
+    const sourceFieldsFilled = _.flow(
+      _.toPairs,
+      _.map(([idx, _field]) => inputSource.fields[idx] || { source: { type: 'none' } })
+    )(inputType.fields);
+
+    const fieldsValidated = _.map(
+      (field) => validateRequiredHasSource(field.source, field.field_type) === true,
+      _.merge(sourceFieldsFilled, inputType.fields)
+    );
+    return _.every(Boolean, fieldsValidated) || { type: 'error', message: 'This struct is missing a required input' };
+  }
+  if (inputSource.type === 'literal') {
+    // this condition is specifically added to allow '' and '0' and 'false' as valid values because
+    // '!!inputSource.parameter_value' considers '0' and 'false' as empty values
+    // Note: '!=' null check also covers if value is undefined
+    if (
+      inputSource.parameter_value != null &&
+      (inputSource.parameter_value === 0 || inputSource.parameter_value === false || inputSource.parameter_value === '')
+    ) {
+      return true;
+    }
+
+    return !!inputSource.parameter_value || { type: 'error', message: 'This attribute is required' };
+  }
+  if (inputSource.type === 'record_lookup' && inputSource.record_attribute === '') {
+    return { type: 'error', message: 'This attribute is required' };
+  }
+  return true;
 };
 
 const validateRecordLookup = (source, recordAttributes) => {
@@ -452,79 +444,76 @@ export const convertArrayType = ({ input_type: inputType, source: inputSource, .
 };
 
 const validateLiteralInput = (inputSource, inputType) => {
-  if (inputSource) {
-    // for user entered values and inputs that have primitive type, we validate that value matches expected type
-    if (inputSource.type === 'literal') {
-      if (unwrapOptional(inputType).type === 'primitive') {
-        if (inputSource.parameter_value === '') {
-          return unwrapOptional(inputType).primitive_type === 'String'
-            ? { type: 'info', message: 'This will be sent as an empty string' }
-            : { type: 'error', message: 'Value is empty' };
-        }
-        return (
-          isPrimitiveTypeInputValid(unwrapOptional(inputType).primitive_type, inputSource.parameter_value) || {
-            type: 'error',
-            message: "Value doesn't match expected input type",
-          }
-        );
-      }
+  if (!inputSource) {
+    return true;
+  }
 
-      if (unwrapOptional(inputType).type === 'array') {
-        let value = inputSource.parameter_value;
-        if (value === '') {
+  // for user entered values and inputs that have primitive type, we validate that value matches expected type
+  if (inputSource.type === 'literal') {
+    if (unwrapOptional(inputType).type === 'primitive') {
+      if (inputSource.parameter_value === '') {
+        return unwrapOptional(inputType).primitive_type === 'String'
+          ? { type: 'info', message: 'This will be sent as an empty string' }
+          : { type: 'error', message: 'Value is empty' };
+      }
+      return (
+        isPrimitiveTypeInputValid(unwrapOptional(inputType).primitive_type, inputSource.parameter_value) || {
+          type: 'error',
+          message: "Value doesn't match expected input type",
+        }
+      );
+    }
+
+    if (unwrapOptional(inputType).type === 'array') {
+      let value = inputSource.parameter_value;
+      if (value === '') {
+        return {
+          type: 'error',
+          message: 'Array inputs should follow JSON array literal syntax. This input is empty. To submit an empty array, enter []',
+        };
+      }
+      if (!Array.isArray(inputSource.parameter_value)) {
+        try {
+          value = JSON.parse(inputSource.parameter_value);
+        } catch (e) {
+          return validateLiteralInput(inputSource, unwrapOptional(inputType).array_type) === true
+            ? {
+                type: 'info',
+                message: `Array inputs should follow JSON array literal syntax. This will be submitted as an array with one value: ${JSON.stringify(
+                  inputSource.parameter_value
+                )}`,
+              }
+            : { type: 'error', message: 'Array inputs should follow JSON array literal syntax. This input cannot be parsed' };
+        }
+        if (!Array.isArray(value)) {
           return {
-            type: 'error',
-            message: 'Array inputs should follow JSON array literal syntax. This input is empty. To submit an empty array, enter []',
+            type: 'info',
+            message: `Array inputs should follow JSON array literal syntax. This will be submitted as an array with one value: ${inputSource.parameter_value}`,
           };
         }
-        if (!Array.isArray(inputSource.parameter_value)) {
-          try {
-            value = JSON.parse(inputSource.parameter_value);
-          } catch (e) {
-            return validateLiteralInput(inputSource, unwrapOptional(inputType).array_type) === true
-              ? {
-                  type: 'info',
-                  message: `Array inputs should follow JSON array literal syntax. This will be submitted as an array with one value: ${JSON.stringify(
-                    inputSource.parameter_value
-                  )}`,
-                }
-              : { type: 'error', message: 'Array inputs should follow JSON array literal syntax. This input cannot be parsed' };
-          }
-          if (!Array.isArray(value)) {
-            return {
-              type: 'info',
-              message: `Array inputs should follow JSON array literal syntax. This will be submitted as an array with one value: ${inputSource.parameter_value}`,
-            };
-          }
-        }
-        if (value.length === 0 && unwrapOptional(inputType).non_empty) {
-          return { type: 'error', message: 'This array cannot be empty' };
-        }
-        return _.every(
-          (arrayElement) =>
-            validateLiteralInput({ ...inputSource, parameter_value: arrayElement }, unwrapOptional(unwrapOptional(inputType).array_type)) === true
-        )(value)
-          ? { type: 'success', message: `Successfully detected an array with ${value.length} element(s).` }
-          : { type: 'error', message: 'One or more of the values in the array does not match the expected type' };
       }
-
-      return { type: 'error', message: 'Input type does not support literal input' };
+      if (value.length === 0 && unwrapOptional(inputType).non_empty) {
+        return { type: 'error', message: 'This array cannot be empty' };
+      }
+      return _.every(
+        (arrayElement) =>
+          validateLiteralInput({ ...inputSource, parameter_value: arrayElement }, unwrapOptional(unwrapOptional(inputType).array_type)) === true
+      )(value)
+        ? { type: 'success', message: `Successfully detected an array with ${value.length} element(s).` }
+        : { type: 'error', message: 'One or more of the values in the array does not match the expected type' };
     }
 
-    // for object_builder source type, we check that each field with user entered values and inputs that have
-    // primitive type have values that match the expected input type
-    if (inputSource.type === 'object_builder') {
-      if (inputSource.fields) {
-        const fieldsValidated = _.map(
-          (field) => field && validateLiteralInput(field.source, field.field_type),
-          _.merge(inputSource.fields, inputType.fields)
-        );
-        return _.every(Boolean, fieldsValidated) || { type: 'error', message: "One of this struct's inputs has an invalid configuration" };
-      }
-      return true;
-    }
+    return { type: 'error', message: 'Input type does not support literal input' };
+  }
 
-    return true;
+  // for object_builder source type, we check that each field with user entered values and inputs that have
+  // primitive type have values that match the expected input type
+  if (inputSource.type === 'object_builder' && inputSource.fields) {
+    const fieldsValidated = _.map(
+      (field) => field && validateLiteralInput(field.source, field.field_type),
+      _.merge(inputSource.fields, inputType.fields)
+    );
+    return _.every(Boolean, fieldsValidated) || { type: 'error', message: "One of this struct's inputs has an invalid configuration" };
   }
 
   return true;
