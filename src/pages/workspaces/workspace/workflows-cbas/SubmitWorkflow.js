@@ -60,7 +60,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
         const runs = await Ajax(signal).Cbas.methods.getWithoutVersions(cbasUrlRoot);
         setMethodsData(runs.methods);
       } catch (error) {
-        notify('error', 'Error loading saved workflows', { detail: await (error instanceof Response ? error.text() : error) });
+        notify('error', 'Error loading saved workflows', { detail: error instanceof Response ? await error.text() : error });
       }
     }, [refreshAppUrls, signal]);
 
@@ -68,8 +68,8 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       await loadRunsData();
     });
 
-    useOnMount(async () => {
-      await refresh();
+    useOnMount(() => {
+      refresh();
     });
 
     return loading
