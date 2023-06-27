@@ -100,37 +100,34 @@ export const loadAllRunSets = async (signal) => {
 // Invokes logic to determine the appropriate app for WDS
 // If WDS is not running, a URL will not be present, in this case we return empty string
 // Note: This logic has been copied from how DataTable finds WDS app in Terra UI (https://github.com/DataBiosphere/terra-ui/blob/ac13bdf3954788ca7c8fd27b8fd4cfc755f150ff/src/libs/ajax/data-table-providers/WdsDataTableProvider.ts#L94-L147)
-export const resolveApp = (apps, prefix) => {
+export const resolveApp = (apps, appTypeName, prefix) => {
   // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by Leo
   // See here for specific enumerations -- https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
   // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' -- if WDS is healthy and running, there should only be one app RUNNING
   // an app may be in the 'PROVISIONING', 'STOPPED', 'STOPPING', which can still be deemed as an OK state for WDS
   const healthyStates = ['RUNNING', 'PROVISIONING', 'STOPPED', 'STOPPING'];
 
-  // WDS appType is checked first and takes precedence over CROMWELL apps in the workspace
-  for (const appTypeName of getConfig().wdsAppTypeNames) {
-    const namedApp = apps.filter(
-      (app) => app.appType === appTypeName && app.appName === `${prefix}-${app.workspaceId}` && healthyStates.includes(app.status)
-    );
-    if (namedApp.length === 1) {
-      return namedApp[0];
-    }
+  const namedApp = apps.filter(
+    (app) => app.appType === appTypeName && app.appName === `${prefix}-${app.workspaceId}` && healthyStates.includes(app.status)
+  );
+  if (namedApp.length === 1) {
+    return namedApp[0];
+  }
 
-    // Failed to find an app with the proper name, look for a RUNNING WDS app
-    const runningWdsApps = apps.filter((app) => app.appType === appTypeName && app.status === 'RUNNING');
-    if (runningWdsApps.length > 0) {
-      // Evaluate the earliest-created WDS app
-      runningWdsApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf());
-      return runningWdsApps[0];
-    }
+  // Failed to find an app with the proper name, look for a RUNNING WDS app
+  const runningAppsCorrectType = apps.filter((app) => app.appType === appTypeName && app.status === 'RUNNING');
+  if (runningAppsCorrectType.length > 0) {
+    // Evaluate the earliest-created app
+    runningAppsCorrectType.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf());
+    return runningAppsCorrectType[0];
+  }
 
-    // If we reach this logic, we have more than one Leo app with the associated workspace Id...
-    const allWdsApps = apps.filter((app) => app.appType === appTypeName && ['PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status));
-    if (allWdsApps.length > 0) {
-      // Evaluate the earliest-created WDS app
-      allWdsApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf());
-      return allWdsApps[0];
-    }
+  // If we reach this logic, we have more than one Leo app with the associated workspace Id...
+  const allAppsCorrectType = apps.filter((app) => app.appType === appTypeName && ['PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status));
+  if (allAppsCorrectType.length > 0) {
+    // Evaluate the earliest-created WDS app
+    allAppsCorrectType.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf());
+    return allAppsCorrectType[0];
   }
 
   return '';
@@ -138,7 +135,7 @@ export const resolveApp = (apps, prefix) => {
 
 // Extract WDS proxy URL from Leo response. Exported for testing
 export const resolveWdsUrl = (apps) => {
-  const foundApp = resolveApp(apps, 'wds');
+  const foundApp = resolveApp(apps, 'WDS', 'wds');
   if (foundApp?.status === 'RUNNING') {
     return foundApp.proxyUrls.wds;
   }
@@ -146,7 +143,7 @@ export const resolveWdsUrl = (apps) => {
 };
 // Extract CBAS proxy URL from Leo response. Exported for testing
 export const resolveCbasUrl = (apps) => {
-  const foundApp = resolveApp(apps, 'cbas');
+  const foundApp = resolveApp(apps, 'CROMWELL', 'terra-app');
   if (foundApp?.status === 'RUNNING') {
     return foundApp.proxyUrls.cbas;
   }
@@ -163,7 +160,6 @@ export const loadAppUrls = async (workspaceId) => {
   let cbasProxyUrlResponse = { status: 'None', state: '' };
   if (wdsUrlRoot) {
     wdsProxyUrlResponse = { status: 'Ready', state: wdsUrlRoot };
-    // setWdsProxyUrl(wdsProxyUrlResponse)
   } else {
     try {
       const wdsUrl = await Ajax().Apps.listAppsV2(workspaceId).then(resolveWdsUrl);
