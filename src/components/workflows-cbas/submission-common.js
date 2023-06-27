@@ -443,66 +443,75 @@ export const convertArrayType = ({ input_type: inputType, source: inputSource, .
   return { ...input, input_type: inputType, source: inputSource };
 };
 
+const validateArrayLiteral = (inputSource, inputType) => {
+  let value = inputSource.parameter_value;
+  if (value === '') {
+    return {
+      type: 'error',
+      message: 'Array inputs should follow JSON array literal syntax. This input is empty. To submit an empty array, enter []',
+    };
+  }
+  const singletonValidation =
+    validateLiteralInput(inputSource, inputType.array_type) === true
+      ? {
+          type: 'info',
+          message: `Array inputs should follow JSON array literal syntax. This will be submitted as an array with one value: ${JSON.stringify(
+            inputSource.parameter_value
+          )}`,
+        }
+      : { type: 'error', message: 'Array inputs should follow JSON array literal syntax. This input cannot be parsed' };
+
+  try {
+    if (!Array.isArray(inputSource.parameter_value)) {
+      value = JSON.parse(inputSource.parameter_value);
+    }
+  } catch (e) {
+    return singletonValidation;
+  }
+  if (!Array.isArray(value)) {
+    return {
+      type: 'info',
+      message: `Array inputs should follow JSON array literal syntax. This will be submitted as an array with one value: ${inputSource.parameter_value}`,
+    };
+  }
+  if (value.length === 0 && inputType.non_empty) {
+    return { type: 'error', message: 'This array cannot be empty' };
+  }
+  return _.every(
+    (arrayElement) => validateLiteralInput({ ...inputSource, parameter_value: arrayElement }, unwrapOptional(inputType.array_type)) === true
+  )(value)
+    ? { type: 'success', message: `Successfully detected an array with ${value.length} element(s).` }
+    : { type: 'error', message: 'One or more of the values in the array does not match the expected type' };
+};
+
 const validateLiteralInput = (inputSource, inputType) => {
   if (!inputSource) {
     return true;
   }
 
+  const unwrappedInputType = unwrapOptional(inputType);
+
   // for user entered values and inputs that have primitive type, we validate that value matches expected type
+  if (inputSource.type === 'literal' && unwrappedInputType.type === 'primitive') {
+    if (inputSource.parameter_value === '' && unwrappedInputType.primitive_type === 'String') {
+      return { type: 'info', message: 'This will be sent as an empty string' };
+    }
+    if (inputSource.parameter_value === '') {
+      return { type: 'error', message: 'Value is empty' };
+    }
+    return (
+      isPrimitiveTypeInputValid(unwrappedInputType.primitive_type, inputSource.parameter_value) || {
+        type: 'error',
+        message: "Value doesn't match expected input type",
+      }
+    );
+  }
+
+  if (inputSource.type === 'literal' && unwrappedInputType.type === 'array') {
+    return validateArrayLiteral(inputSource, unwrappedInputType);
+  }
+
   if (inputSource.type === 'literal') {
-    if (unwrapOptional(inputType).type === 'primitive') {
-      if (inputSource.parameter_value === '') {
-        return unwrapOptional(inputType).primitive_type === 'String'
-          ? { type: 'info', message: 'This will be sent as an empty string' }
-          : { type: 'error', message: 'Value is empty' };
-      }
-      return (
-        isPrimitiveTypeInputValid(unwrapOptional(inputType).primitive_type, inputSource.parameter_value) || {
-          type: 'error',
-          message: "Value doesn't match expected input type",
-        }
-      );
-    }
-
-    if (unwrapOptional(inputType).type === 'array') {
-      let value = inputSource.parameter_value;
-      if (value === '') {
-        return {
-          type: 'error',
-          message: 'Array inputs should follow JSON array literal syntax. This input is empty. To submit an empty array, enter []',
-        };
-      }
-      if (!Array.isArray(inputSource.parameter_value)) {
-        try {
-          value = JSON.parse(inputSource.parameter_value);
-        } catch (e) {
-          return validateLiteralInput(inputSource, unwrapOptional(inputType).array_type) === true
-            ? {
-                type: 'info',
-                message: `Array inputs should follow JSON array literal syntax. This will be submitted as an array with one value: ${JSON.stringify(
-                  inputSource.parameter_value
-                )}`,
-              }
-            : { type: 'error', message: 'Array inputs should follow JSON array literal syntax. This input cannot be parsed' };
-        }
-        if (!Array.isArray(value)) {
-          return {
-            type: 'info',
-            message: `Array inputs should follow JSON array literal syntax. This will be submitted as an array with one value: ${inputSource.parameter_value}`,
-          };
-        }
-      }
-      if (value.length === 0 && unwrapOptional(inputType).non_empty) {
-        return { type: 'error', message: 'This array cannot be empty' };
-      }
-      return _.every(
-        (arrayElement) =>
-          validateLiteralInput({ ...inputSource, parameter_value: arrayElement }, unwrapOptional(unwrapOptional(inputType).array_type)) === true
-      )(value)
-        ? { type: 'success', message: `Successfully detected an array with ${value.length} element(s).` }
-        : { type: 'error', message: 'One or more of the values in the array does not match the expected type' };
-    }
-
     return { type: 'error', message: 'Input type does not support literal input' };
   }
 
