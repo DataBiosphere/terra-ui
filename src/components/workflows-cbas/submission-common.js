@@ -443,6 +443,21 @@ export const convertArrayType = ({ input_type: inputType, source: inputSource, .
   return { ...input, input_type: inputType, source: inputSource };
 };
 
+const validatePrimitiveLiteral = (inputSource, inputType) => {
+  if (inputSource.parameter_value === '' && inputType.primitive_type === 'String') {
+    return { type: 'info', message: 'This will be sent as an empty string' };
+  }
+  if (inputSource.parameter_value === '') {
+    return { type: 'error', message: 'Value is empty' };
+  }
+  return (
+    isPrimitiveTypeInputValid(inputType.primitive_type, inputSource.parameter_value) || {
+      type: 'error',
+      message: "Value doesn't match expected input type",
+    }
+  );
+};
+
 const validateArrayLiteral = (inputSource, inputType) => {
   let value = inputSource.parameter_value;
   if (value === '') {
@@ -493,18 +508,7 @@ const validateLiteralInput = (inputSource, inputType) => {
 
   // for user entered values and inputs that have primitive type, we validate that value matches expected type
   if (inputSource.type === 'literal' && unwrappedInputType.type === 'primitive') {
-    if (inputSource.parameter_value === '' && unwrappedInputType.primitive_type === 'String') {
-      return { type: 'info', message: 'This will be sent as an empty string' };
-    }
-    if (inputSource.parameter_value === '') {
-      return { type: 'error', message: 'Value is empty' };
-    }
-    return (
-      isPrimitiveTypeInputValid(unwrappedInputType.primitive_type, inputSource.parameter_value) || {
-        type: 'error',
-        message: "Value doesn't match expected input type",
-      }
-    );
+    return validatePrimitiveLiteral(inputSource, unwrappedInputType);
   }
 
   if (inputSource.type === 'literal' && unwrappedInputType.type === 'array') {
