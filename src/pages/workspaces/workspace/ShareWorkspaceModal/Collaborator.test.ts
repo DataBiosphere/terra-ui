@@ -70,7 +70,6 @@ describe('a Collaborator component', () => {
     render(
       h(Collaborator, {
         aclItem: item,
-        index: 0,
         acl,
         setAcl,
         originalAcl: acl,
@@ -96,7 +95,6 @@ describe('a Collaborator component', () => {
     render(
       h(Collaborator, {
         aclItem: item,
-        index: 0,
         acl,
         setAcl,
         originalAcl: acl,
@@ -124,7 +122,6 @@ describe('a Collaborator component', () => {
     render(
       h(Collaborator, {
         aclItem: item,
-        index: 0,
         acl,
         setAcl,
         originalAcl: acl,
@@ -170,7 +167,6 @@ describe('a Collaborator component', () => {
     render(
       h(Collaborator, {
         aclItem: removeItem,
-        index: 0,
         acl,
         setAcl: aclMock,
         originalAcl: acl,
@@ -182,6 +178,52 @@ describe('a Collaborator component', () => {
     const removeButton = screen.getByRole('button'); // this appears to be the only button in the component
     expect(removeButton).not.toBeNull();
     fireEvent.click(removeButton);
+    expect(setAcl).toHaveBeenCalledTimes(1);
+  });
+
+  it('can change the permission of the user with setAcl', async () => {
+    const item: AccessEntry = {
+      email: 'user1@test.com',
+      pending: false,
+      canShare: true,
+      canCompute: true,
+      accessLevel: 'OWNER',
+    };
+    const currentItem: AccessEntry = {
+      email: 'user2@test.com',
+      pending: false,
+      canShare: true,
+      canCompute: true,
+      accessLevel: 'OWNER',
+    };
+
+    const setAcl = jest.fn((val) => {
+      expect(val).toHaveLength(2);
+      expect(val[0]).toBe(item);
+      expect(val[1].email).toEqual(currentItem.email);
+      expect(val[1].accessLevel).toEqual('READER');
+      // .toContainEqual(item);
+      expect(val).not.toContainEqual(currentItem);
+    });
+    const aclMock = asMockedFn(setAcl);
+    const acl = [item, currentItem];
+
+    render(
+      h(Collaborator, {
+        aclItem: currentItem,
+        acl,
+        setAcl: aclMock,
+        originalAcl: acl,
+        workspace: { ...workspace, accessLevel: 'PROJECT_OWNER' },
+      })
+    );
+
+    expect(screen.getByLabelText(`permissions for ${currentItem.email}`)).not.toBeNull();
+    openMenu(currentItem.email);
+
+    const writterPermission = screen.getByText('Reader');
+    expect(writterPermission).not.toBeNull();
+    fireEvent.click(writterPermission);
     expect(setAcl).toHaveBeenCalledTimes(1);
   });
 });

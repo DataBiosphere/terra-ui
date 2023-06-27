@@ -12,7 +12,6 @@ import { AccessEntry, WorkspaceAcl } from 'src/pages/workspaces/workspace/Worksp
 
 interface CollaboratorProps {
   aclItem: AccessEntry; // the item to render
-  index: number; // the index of the current item in the acl
   acl: WorkspaceAcl; // the entire current acl
   setAcl: Dispatch<SetStateAction<WorkspaceAcl>>;
   originalAcl: WorkspaceAcl; // the original acl, to determine new items
@@ -24,15 +23,7 @@ interface CollaboratorProps {
  *  Note: the select menu of each Collaborator item NOT focusable via keyboard
  *  tab will only focus on the remove buttons
  */
-export const Collaborator = ({
-  originalAcl,
-  aclItem,
-  acl,
-  setAcl,
-  workspace,
-  lastAddedEmail,
-  index,
-}: CollaboratorProps) => {
+export const Collaborator = ({ originalAcl, aclItem, acl, setAcl, workspace, lastAddedEmail }: CollaboratorProps) => {
   const { email, accessLevel, pending } = aclItem;
   const POAccessLevel = 'PROJECT_OWNER';
   const disabled = accessLevel === POAccessLevel || email === getUser().email;
@@ -59,7 +50,7 @@ export const Collaborator = ({
           'aria-label': `permissions for ${email}`,
           autoFocus: email === lastAddedEmail,
           value: aclItem,
-          onChange: (v) => setAcl(_.set([index], v)),
+          onChange: (v) => setAcl(_.map((entry) => (entry.email === email ? v : entry), acl)),
           disabled,
           maxAccessLevel: workspace.accessLevel,
           isAzureWorkspace: isAzureWorkspace(workspace),
