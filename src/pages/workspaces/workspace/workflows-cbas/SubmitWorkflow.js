@@ -108,7 +108,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
                 },
                 ['Find a Workflow', icon('plus-circle', { size: 32 })]
               ),
-              h(Fragment, [h(SavedWorkflows, { name, namespace, methodsData })]),
+              h(Fragment, [h(SavedWorkflows, { workspaceName: name, namespace, methodsData })]),
             ]),
             viewFindWorkflowModal && h(FindWorkflowModal, { name, namespace, onDismiss: () => setViewFindWorkflowModal(false) }),
           ]),
@@ -119,7 +119,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
 export const navPaths = [
   {
     name: 'workspace-workflows-cbas',
-    path: '/workspaces/:namespace/:name/workflows-cbas/',
+    path: '/workspaces/:namespace/:name/workflows-cbas',
     component: SubmitWorkflow,
     title: ({ name }) => `${name} - Workflows`,
   },
