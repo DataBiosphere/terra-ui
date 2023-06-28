@@ -168,4 +168,56 @@ describe('the share workspace modal', () => {
 
     expect(updateAcl).toHaveBeenCalledTimes(1);
   });
+
+  it('displays the error if saving updates fails', async () => {
+    const acl: RawWorkspaceAcl = {
+      'user1@test.com': {
+        pending: false,
+        canShare: true,
+        canCompute: true,
+        accessLevel: 'OWNER',
+      },
+      'user2@test.com': {
+        pending: false,
+        canShare: true,
+        canCompute: true,
+        accessLevel: 'READER',
+      },
+    };
+
+    const expectedErrorText = 'This is the expected error';
+    const updateAcl = jest.fn(() => {
+      const error = { text: () => Promise.resolve(expectedErrorText), message: expectedErrorText };
+      throw error;
+    });
+    mockAjax(acl, [], [], updateAcl);
+
+    render(
+      h(ShareWorkspaceModal, {
+        onDismiss: jest.fn(() => {}),
+        workspace,
+      })
+    );
+
+    const permissionSelect = await screen.findByLabelText(`permissions for ${'user2@test.com'}`);
+    expect(permissionSelect).not.toBeNull();
+    act(() => {
+      fireEvent.click(permissionSelect);
+      fireEvent.keyDown(permissionSelect, { key: 'ArrowDown', code: 'ArrowDown' });
+    });
+
+    const permissionSelection = await screen.findByText('Writer');
+    expect(permissionSelection).not.toBeNull();
+    act(() => {
+      fireEvent.click(permissionSelection);
+    });
+    const saveButton = await screen.findByText('Save');
+    expect(saveButton).not.toBeNull();
+    act(() => {
+      fireEvent.click(saveButton);
+    });
+
+    const errorMessage = await screen.findByText(expectedErrorText);
+    expect(errorMessage).not.toBeNull();
+  });
 });
