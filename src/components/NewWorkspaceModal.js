@@ -396,7 +396,7 @@ const NewWorkspaceModal = withDisplayName(
                     [label({ style: { ...Style.elements.sectionHeader } }, ['Workspace will have protected data'])]
                   ),
                   h(InfoBox, { style: { marginLeft: '0.25rem', verticalAlign: 'middle' } }, [
-                    'Enabling Enhanced Bucket Logging tells the Terra to log all data access requests to the workspace bucket. ' +
+                    'If checked, Terra will log all data access requests to the workspace bucket. ' +
                       'This feature is automatically enabled when a workspace is created with Authorization Domains.',
                   ]),
                   p({ style: { marginTop: '.25rem' } }, ['Access to data will be logged by Terra']),
