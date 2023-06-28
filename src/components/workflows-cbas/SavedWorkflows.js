@@ -9,7 +9,7 @@ import { styles as gcpWorkflowStyles } from 'src/pages/workspaces/workspace/Work
 const styles = {
   ...gcpWorkflowStyles,
   mediumCard: {
-    width: '80%',
+    width: 'calc(100% - 400px)',
     height: 150,
     margin: '0 1rem 2rem 0',
     left: '400px',
