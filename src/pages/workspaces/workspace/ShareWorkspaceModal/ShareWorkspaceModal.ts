@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import { useLayoutEffect, useRef, useState } from 'react';
-import { div, h, h2, label, p, span } from 'react-hyperscript-helpers';
+import { div, h, label, p, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, ButtonSecondary, IdContainer, spinnerOverlay, Switch } from 'src/components/common';
 import { AutocompleteTextInput } from 'src/components/input';
 import Modal, { styles as modalStyles } from 'src/components/Modal';
@@ -10,7 +10,6 @@ import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
-import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { CurrentCollaborators } from 'src/pages/workspaces/workspace/ShareWorkspaceModal/CurrentCollaborators';
@@ -35,7 +34,7 @@ const ShareWorkspaceModal = ({
   },
 }: ShareWorkspaceModalProps) => {
   // State
-  const [shareSuggestions, setShareSuggestions] = useState([]);
+  const [shareSuggestions, setShareSuggestions] = useState<string[]>([]);
   const [groups, setGroups] = useState([]);
   const [originalAcl, setOriginalAcl] = useState<WorkspaceAcl>([]);
   const [searchValue, setSearchValue] = useState('');
@@ -186,12 +185,7 @@ const ShareWorkspaceModal = ({
         ),
       ]),
       searchValueValid && !searchHasFocus && p([addUserReminder]),
-      h2({ style: { ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' } }, ['Current Collaborators']),
       h(CurrentCollaborators, { acl, setAcl, originalAcl, lastAddedEmail, workspace, loaded }),
-      /* div({ ref: list, role: 'list', style: styles.currentCollaboratorsArea }, [
-        h(Fragment, _.flow(_.remove(aclEntryIsTerraSupport), Utils.toIndexPairs, _.map(renderCollaborator))(acl)),
-        !loaded && centeredSpinner(),
-      ]), */
       updateError && div({ style: { marginTop: '1rem' } }, [div(['An error occurred:']), updateError]),
       div({ style: { ...modalStyles.buttonRow, justifyContent: 'space-between' } }, [
         h(IdContainer, [
