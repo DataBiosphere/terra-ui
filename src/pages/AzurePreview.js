@@ -1,6 +1,6 @@
 import { Fragment, useCallback, useEffect, useState } from 'react';
 import { div, fieldset, form, h, h1, input, label, p, span } from 'react-hyperscript-helpers';
-import { ButtonOutline, ButtonPrimary, Checkbox } from 'src/components/common';
+import { ButtonOutline, ButtonPrimary, Checkbox, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TextArea, ValidatedInput } from 'src/components/input';
 import planet from 'src/images/register-planet.svg';
@@ -89,6 +89,30 @@ const AzurePreviewUserForm = ({ value: formValue, onChange, onSubmit }) => {
     'Access data',
     'Complete interactive analyses',
     'Collaborate with others outside of your organization',
+  ];
+
+  const organizationDescriptions = [
+    'Healthcare (Academic Research Institute)',
+    'Healthcare (Hospital/Medical Center)',
+    'Healthcare (Other)',
+    'Healthcare/Genomic Data Generator',
+    'Public Health/Infectious Disease',
+    'Pharmaceutical',
+    'BioPharma',
+    'Biotech',
+    'Biobank',
+    'Prefer not to answer',
+  ];
+
+  const organizationRegions = [
+    'Asia',
+    'Australia and Oceania',
+    'Central America and the Caribbean',
+    'Europe',
+    'Middle East, North Africa, and Greater Arabia',
+    'North America',
+    'South America',
+    'Sub-Saharan Africa',
   ];
 
   return form(
@@ -225,6 +249,49 @@ const AzurePreviewUserForm = ({ value: formValue, onChange, onSubmit }) => {
         ),
       ]),
 
+      fieldset({ style: { padding: 0, border: 'none', margin: '1rem 0', width: '100%' } }, [
+        h(FormLabel, { htmlFor: 'azure-preview-interest-org-description', required: true }, [
+          'Which of the following best describes your organization?',
+        ]),
+        h(Select, {
+          id: 'azure-preview-interest-org-description',
+          getOptionLabel: ({ value }) => value,
+          value: formValue.organizationDescription,
+          onChange: (opt) => onChange({ ...formValue, organizationDescription: opt.value }),
+          options: organizationDescriptions,
+          menuPlacement: 'auto',
+        }),
+
+        formValue.organizationDescription.includes('Other') &&
+          h(Fragment, [
+            h(FormLabel, { htmlFor: 'azure-preview-interest-org-description-other', required: true }, ['Please specify']),
+            h(ValidatedInput, {
+              inputProps: {
+                id: 'azure-preview-interest-org-description-other',
+                placeholder: 'Description',
+                value: formValue.organizationDescriptionOther,
+                onChange: (value) => {
+                  setFieldsTouched((v) => ({ ...v, organizationDescriptionOther: true }));
+                  onChange({ ...formValue, organizationDescriptionOther: value });
+                },
+              },
+              error: fieldsTouched.organizationDescriptionOther && !formValue.organizationDescriptionOther ? 'A description is required' : undefined,
+            }),
+          ]),
+      ]),
+
+      div({ style: { width: '100%' } }, [
+        h(FormLabel, { htmlFor: 'azure-preview-interest-org-region', required: true }, ['In which region is your organization located?']),
+        h(Select, {
+          id: 'azure-preview-interest-org-region',
+          getOptionLabel: ({ value }) => value,
+          value: formValue.organizationRegion,
+          onChange: (opt) => onChange({ ...formValue, organizationRegion: opt.value }),
+          options: organizationRegions,
+          menuPlacement: 'auto',
+        }),
+      ]),
+
       // Submit input allows submitting form by pressing the enter key.
       input({ type: 'submit', value: 'submit', style: { display: 'none' } }),
     ]
@@ -233,6 +300,9 @@ const AzurePreviewUserForm = ({ value: formValue, onChange, onSubmit }) => {
 
 const formId = '1FAIpQLSegf8c7LxlVOS8BLNUrpqkiB7l8L7c135ntdgaBSV2kdrqSAQ';
 
+// To find the entry IDs for each question, select "Get pre-filled link" from the Google Form,
+// answer each question with the question title / ID, and get the link. The query parameters
+// in the URL will contain the entry IDs.
 const formInputMap = {
   firstName: 'entry.1708226507',
   lastName: 'entry.677313431',
@@ -242,6 +312,9 @@ const formInputMap = {
   terraEmail: 'entry.1938956483',
   useCases: 'entry.768184594',
   otherUseCase: 'entry.1274069507',
+  organizationDescription: 'entry.1230284397',
+  organizationDescriptionOther: 'entry.548834294',
+  organizationRegion: 'entry.2049653730',
 };
 
 const AzurePreviewForNonPreviewUser = () => {
@@ -270,10 +343,26 @@ const AzurePreviewForNonPreviewUser = () => {
       terraEmail: user.email,
       useCases: [],
       otherUseCase: '',
+      organizationDescription: '',
+      organizationDescriptionOther: '',
+      organizationRegion: '',
     };
   });
 
-  const requiredFields = ['firstName', 'lastName', 'title', 'organization', 'contactEmail', 'terraEmail'];
+  const requiredFields = [
+    'firstName',
+    'lastName',
+    'title',
+    'organization',
+    'contactEmail',
+    'terraEmail',
+    'organizationDescription',
+    'organizationRegion',
+  ];
+  if (userInfo.organizationDescription.includes('Other')) {
+    requiredFields.push('organizationDescriptionOther');
+  }
+
   const useCasesChecked = !!userInfo.otherUseCase || userInfo.useCases.length > 0;
 
   const submitEnabled = requiredFields.every((field) => !!userInfo[field]) && useCasesChecked && !busy;
