@@ -200,7 +200,7 @@ describe('NewWorkspaceModal', () => {
     ).toBeNull();
   });
 
-  it('shows an option for Enhanced Bucket Logging if a Google billing project is selected', async () => {
+  it('shows an option for Workspace will have protected data (enhanced bucket logging) if a Google billing project is selected', async () => {
     // Arrange
     const user = userEvent.setup();
 
@@ -235,10 +235,10 @@ describe('NewWorkspaceModal', () => {
 
     // Assert
     // getByText throws an error if the element is not found:
-    screen.getByText('Enhanced Bucket Logging');
+    screen.getByText('Workspace will have protected data');
   });
 
-  it('does not let the user disable Enhanced Bucket Logging if its required', async () => {
+  it('does not let the user disable Workspace will have protected data (enhanced bucket logging) if its required', async () => {
     // Arrange
     const user = userEvent.setup();
 
@@ -277,7 +277,7 @@ describe('NewWorkspaceModal', () => {
     expect(screen.getByRole('checkbox')).toHaveAttribute('disabled');
   });
 
-  it('checks and disables Enhanced Bucket Logging if an auth domain is chosen', async () => {
+  it('checks and disables Workspace will have protected data (enhanced bucket logging) if an auth domain is chosen', async () => {
     // Arrange
     const user = userEvent.setup();
 
