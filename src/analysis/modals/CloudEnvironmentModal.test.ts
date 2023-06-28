@@ -19,6 +19,7 @@ import { PeriodicAzureCookieSetter } from 'src/analysis/runtime-common-component
 import { appToolLabels, tools } from 'src/analysis/utils/tool-utils';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
+import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
@@ -154,22 +155,22 @@ const CloudEnvironmentModalDefaultProps: any = {
   filterForTool: undefined,
 };
 
-const cromwellRunning = {
+const cromwellRunning: App = {
   appName: 'terra-app-83f46705-524c-4fc8-xcyc-97fdvcfby14f',
   appType: 'CROMWELL',
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-28T20:28:01.998494Z',
-    destroyedDate: null,
+    destroyedDate: undefined,
     dateAccessed: '2021-11-28T20:28:01.998494Z',
   },
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-55fe36f5b4e8',
   errors: [],
-  googleProject: 'terra-test-e4000484',
   kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
   labels: {},
   cloudContext: {
     cloudProvider: cloudProviderTypes.AZURE,
+    cloudResource: 'path/to/cloud/resource',
   },
   proxyUrls: {
     'cromwell-service':
@@ -179,7 +180,7 @@ const cromwellRunning = {
   status: 'RUNNING',
 };
 
-const hailBatchAppRunning = {
+const hailBatchAppRunning: App = {
   appName: 'test-hail-batch-app',
   cloudContext: {
     cloudProvider: 'AZURE',
@@ -195,12 +196,12 @@ const hailBatchAppRunning = {
   proxyUrls: {
     batch: 'https://lz123.servicebus.windows.net/test-hail-batch-app/batch',
   },
-  diskName: null,
+  diskName: undefined,
   customEnvironmentVariables: {},
   auditInfo: {
     creator: 'abc.testerson@gmail.com',
     createdDate: '2023-01-18T23:28:47.605176Z',
-    destroyedDate: null,
+    destroyedDate: undefined,
     dateAccessed: '2023-01-18T23:28:47.605176Z',
   },
   appType: appToolLabels.HAIL_BATCH,
