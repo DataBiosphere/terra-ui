@@ -33,17 +33,15 @@ describe('PeriodicAzureCookieSetter', () => {
   it('should call usePollingEffect', async () => {
     // Arrange
     await render(h(PeriodicAzureCookieSetter));
-    // Act
 
     // Assert
     expect(usePollingEffect).toHaveBeenCalled();
   });
 
-  it('should call usePollingEffect', async () => {
+  it('should call usePollingEffect and withErrorIgnoring', async () => {
     usePollingEffectMock.mockImplementationOnce(() => withErrorIgnoring);
     // Arrange
     await render(h(PeriodicAzureCookieSetter));
-    // Act
 
     // Assert
     expect(usePollingEffect).toHaveBeenCalled();
@@ -56,7 +54,6 @@ describe('PeriodicAzureCookieSetter', () => {
     );
     // Arrange
     await render(h(PeriodicAzureCookieSetter));
-    // Act
 
     // Assert
     expect(usePollingEffect).toHaveBeenCalled();

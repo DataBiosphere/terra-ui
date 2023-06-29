@@ -24,8 +24,10 @@ describe('setAzureCookieOnUrl', () => {
     azureCookieReadyStore.reset();
     const forApp = true;
     const url = 'https://app.terra.bio/#workspaces';
+
     // Act
     await setAzureCookieOnUrl(undefined, url, forApp);
+
     // Assert
     expect(mockSetAzureCookie).toHaveBeenCalled();
     expect(azureCookieReadyStore.get().readyForApp).toBe(true);
@@ -37,8 +39,10 @@ describe('setAzureCookieOnUrl', () => {
     azureCookieReadyStore.reset();
     const forApp = false;
     const url = 'https://app.terra.bio/#workspaces';
+
     // Act
     await setAzureCookieOnUrl(null, url, forApp);
+
     // Assert
     expect(mockSetAzureCookie).toHaveBeenCalled();
     expect(azureCookieReadyStore.get().readyForRuntime).toBe(true);
@@ -48,6 +52,7 @@ describe('setAzureCookieOnUrl', () => {
   it('should call setAzureCookieOnUrl on cookie setter render', async () => {
     // Arrange
     await render(h(PeriodicAzureCookieSetter));
+
     // Assert
     expect(mockSetAzureCookie).toHaveBeenCalled();
   });
