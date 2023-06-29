@@ -398,27 +398,27 @@ export const typeMatch = (cbasType, wdsType) => {
 };
 
 const validateRecordLookup = (inputSource, inputType, recordAttributes) => {
-  if (inputSource) {
-    if (inputSource.type === 'record_lookup') {
-      if (!_.has(inputSource.record_attribute)(recordAttributes)) {
-        return { type: 'error', message: "This attribute doesn't exist in the data table" };
-      }
-      if (!typeMatch(inputType, _.get(`${inputSource.record_attribute}.datatype`)(recordAttributes))) {
-        return { type: 'error', message: 'Provided type does not match expected type' };
-      }
-      return true;
+  if (!inputSource) {
+    return true;
+  }
+  if (inputSource.type === 'record_lookup') {
+    if (!_.has(inputSource.record_attribute)(recordAttributes)) {
+      return { type: 'error', message: "This attribute doesn't exist in the data table" };
     }
-    if (inputSource.type === 'object_builder') {
-      if (inputSource.fields) {
-        const fieldsValidated = _.map(
-          (field) => field && validateRecordLookup(field.source, field.field_type, recordAttributes) === true,
-          _.merge(inputType.fields, inputSource.fields)
-        );
-        return _.every(Boolean, fieldsValidated) || { type: 'error', message: "One of this struct's inputs has an invalid configuration" };
-      }
-      return { type: 'error', message: "One of this struct's inputs has an invalid configuration" };
+    if (!typeMatch(inputType, _.get(`${inputSource.record_attribute}.datatype`)(recordAttributes))) {
+      return { type: 'error', message: 'Provided type does not match expected type' };
     }
     return true;
+  }
+  if (inputSource.type === 'object_builder') {
+    if (inputSource.fields) {
+      const fieldsValidated = _.map(
+        (field) => field && validateRecordLookup(field.source, field.field_type, recordAttributes) === true,
+        _.merge(inputType.fields, inputSource.fields)
+      );
+      return _.every(Boolean, fieldsValidated) || { type: 'error', message: "One of this struct's inputs has an invalid configuration" };
+    }
+    return { type: 'error', message: "One of this struct's inputs has an invalid configuration" };
   }
   return true;
 };
