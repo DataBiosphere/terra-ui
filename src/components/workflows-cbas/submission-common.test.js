@@ -6,6 +6,7 @@ import {
   isRunInTerminalState,
   isRunSetInTerminalState,
   resolveWdsUrl,
+  typeMatch,
   validateInputs,
 } from 'src/components/workflows-cbas/submission-common';
 import { getConfig } from 'src/libs/config';
@@ -396,5 +397,52 @@ describe('validateInputs', () => {
         'validStringArray',
       ])
     );
+  });
+});
+
+describe('typeMatch', () => {
+  const optional = (type) => ({ type: 'optional', optional_type: type });
+  const primitive = (primitiveType) => ({ type: 'primitive', primitive_type: primitiveType });
+  const array = (arrayType) => ({ type: 'array', array_type: arrayType });
+  const arrayWDS = (wdsType) => `ARRAY_OF_${wdsType}`;
+
+  const testCases = [
+    ['Int', 'NUMBER', true],
+    ['Int', 'BOOLEAN', false],
+    ['Int', 'STRING', false],
+    ['Int', 'FILE', false],
+    ['Float', 'NUMBER', true],
+    ['Float', 'BOOLEAN', false],
+    ['Float', 'STRING', false],
+    ['Float', 'FILE', false],
+    ['Boolean', 'NUMBER', false],
+    ['Boolean', 'BOOLEAN', true],
+    ['Boolean', 'STRING', false],
+    ['Boolean', 'FILE', false],
+    ['String', 'NUMBER', true],
+    ['String', 'BOOLEAN', true],
+    ['String', 'STRING', true],
+    ['String', 'FILE', true],
+    ['File', 'NUMBER', false],
+    ['File', 'BOOLEAN', false],
+    ['File', 'STRING', true],
+    ['File', 'FILE', true],
+  ];
+
+  test.each(testCases)('(CBAS) %s does or does not match (WDS) %s regardless of optional', (cbas, wds, _shouldMatch) => {
+    expect(typeMatch(primitive(cbas), wds)).toBe(typeMatch(optional(primitive(cbas)), wds));
+  });
+
+  test.each(testCases)('CBAS primitive %s can be fulfilled by WDS type %s: %s', (cbas, wds, shouldMatch) => {
+    expect(typeMatch(primitive(cbas), wds)).toBe(shouldMatch);
+  });
+
+  test.each(testCases)('CBAS array %s can be fulfilled by WDS ARRAY_OF_%s: %s', (cbas, wds, shouldMatch) => {
+    // if CBAS expects array but WDS does not provide, it's no good
+    expect(typeMatch(array(primitive(cbas)), wds)).toBe(false);
+    // if CBAS expects a string but WDS provides arrays... we can convert that to a string
+    expect(typeMatch(primitive(cbas), arrayWDS(wds))).toBe(cbas === 'String');
+    // Otherwise arrays should typematch the same as if comparing their children
+    expect(typeMatch(array(primitive(cbas)), arrayWDS(wds))).toBe(shouldMatch);
   });
 });
