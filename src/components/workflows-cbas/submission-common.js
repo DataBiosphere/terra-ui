@@ -376,14 +376,44 @@ const validateRequiredHasSource = (inputSource, inputType) => {
   return true;
 };
 
-const validateRecordLookup = (source, recordAttributes) => {
-  if (source) {
-    if (source.type === 'record_lookup' && !recordAttributes.includes(source.record_attribute)) {
-      return { type: 'error', message: "This attribute doesn't exist in the data table" };
+export const typeMatch = (cbasType, wdsType) => {
+  const unwrappedCbasType = unwrapOptional(cbasType);
+  if (unwrappedCbasType.type === 'primitive') {
+    return Utils.switchCase(
+      unwrappedCbasType.primitive_type,
+      ['Int', () => wdsType === 'NUMBER'],
+      ['Float', () => wdsType === 'NUMBER'],
+      ['Boolean', () => wdsType === 'BOOLEAN'],
+      ['File', () => wdsType === 'FILE' || wdsType === 'STRING'],
+      [Utils.DEFAULT, () => true]
+    );
+  }
+  if (unwrappedCbasType.type === 'array') {
+    return _.startsWith('ARRAY_OF_')(wdsType) && typeMatch(unwrappedCbasType.array_type, _.replace('ARRAY_OF_', '')(wdsType));
+  }
+  if (unwrappedCbasType.type === 'struct') {
+    return wdsType === 'JSON';
+  }
+  return true;
+};
+
+const validateRecordLookup = (inputSource, inputType, recordAttributes) => {
+  if (inputSource) {
+    if (inputSource.type === 'record_lookup') {
+      if (!_.has(inputSource.record_attribute)(recordAttributes)) {
+        return { type: 'error', message: "This attribute doesn't exist in the data table" };
+      }
+      if (!typeMatch(inputType, _.get(`${inputSource.record_attribute}.datatype`)(recordAttributes))) {
+        return { type: 'error', message: 'Provided type does not match expected type' };
+      }
+      return true;
     }
-    if (source.type === 'object_builder') {
-      if (source.fields) {
-        const fieldsValidated = _.map((field) => field && validateRecordLookup(field.source, recordAttributes) === true, source.fields);
+    if (inputSource.type === 'object_builder') {
+      if (inputSource.fields) {
+        const fieldsValidated = _.map(
+          (field) => field && validateRecordLookup(field.source, field.field_type, recordAttributes) === true,
+          _.merge(inputType.fields, inputSource.fields)
+        );
         return _.every(Boolean, fieldsValidated) || { type: 'error', message: "One of this struct's inputs has an invalid configuration" };
       }
       return { type: 'error', message: "One of this struct's inputs has an invalid configuration" };
