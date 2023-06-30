@@ -503,7 +503,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
               case 'domain-criteria-selector':
                 return h(DomainCriteriaSelector, { state: datasetBuilderState, onStateChange });
               case 'concept-set-creator':
-                return h(ConceptSetCreator, { onStateChange });
+                return h(ConceptSetCreator, { onStateChange, datasetDetails: datasetDetails.state });
               default:
                 return div([datasetBuilderState.mode]);
             }

@@ -1,6 +1,5 @@
 // Types that can be used to create a criteria.
 import _ from 'lodash/fp';
-import { getRandomInt } from 'src/analysis/_testData/testData';
 import { DatasetBuilderType } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 
 export interface DomainOption {
@@ -9,7 +8,7 @@ export interface DomainOption {
   category: string;
   conceptCount: number;
   participantCount: number;
-  values: string[];
+  root: Concept;
 }
 
 export interface ProgramDataOption {
@@ -54,6 +53,7 @@ export type FeatureValueGroup = {
 };
 
 export interface GetConceptsResponse {
+  // Maybe this should be result: Concept[] | null in case the `isLeaf` state is wrong.
   result: Concept[];
 }
 
@@ -66,10 +66,44 @@ export interface Concept {
 
 export interface DatasetBuilderContract {
   retrieveDataset: (datasetId: string) => Promise<DatasetResponse>;
-  getConcepts: (parent?: Concept) => Promise<GetConceptsResponse>;
+  getConcepts: (parent: Concept) => Promise<GetConceptsResponse>;
 }
 
 type AccessLevel = 'Owner' | 'Reader' | 'Discoverer';
+
+const dummyConcepts = [
+  { id: 100, name: 'Condition', count: 100, isLeaf: false },
+  { id: 101, name: 'Clinical Finding', count: 100, isLeaf: false },
+  { id: 102, name: 'Heart Disease', count: 100, isLeaf: true },
+  { id: 103, name: 'Diabetes', count: 100, isLeaf: true },
+  { id: 104, name: 'Cancer', count: 100, isLeaf: true },
+
+  { id: 200, name: 'Procedure', count: 100, isLeaf: false },
+  { id: 201, name: 'Procedure', count: 100, isLeaf: false },
+  { id: 202, name: 'Surgery', count: 100, isLeaf: true },
+  { id: 203, name: 'Heart Surgery', count: 100, isLeaf: true },
+  { id: 204, name: 'Cancer Surgery', count: 100, isLeaf: true },
+
+  { id: 300, name: 'Observation', count: 100, isLeaf: false },
+  { id: 301, name: 'Blood Pressure', count: 100, isLeaf: true },
+  { id: 302, name: 'Weight', count: 100, isLeaf: true },
+  { id: 303, name: 'Height', count: 100, isLeaf: true },
+];
+
+const dummyConceptToParent = [
+  // the parent of 101 is 100, etc
+  [101, 100],
+  [102, 101],
+  [103, 101],
+  [104, 101],
+  [201, 200],
+  [202, 201],
+  [203, 201],
+  [204, 201],
+  [301, 300],
+  [302, 300],
+  [303, 300],
+];
 
 export const dummyDatasetDetails = (datasetId: string): DatasetResponse => ({
   name: 'AnalytiXIN',
@@ -118,7 +152,7 @@ export const dummyDatasetDetails = (datasetId: string): DatasetResponse => ({
       category: 'Condition',
       conceptCount: 18000,
       participantCount: 12500,
-      values: ['Heart Disease', 'Diabetes', 'Cancer'],
+      root: _.find({ id: 100 }, dummyConcepts)!,
     },
     {
       kind: 'domain',
@@ -126,7 +160,7 @@ export const dummyDatasetDetails = (datasetId: string): DatasetResponse => ({
       category: 'Procedure',
       conceptCount: 22500,
       participantCount: 11328,
-      values: ['Heart Surgery', 'Knee Surgery', 'Cancer Surgery'],
+      root: _.find({ id: 200 }, dummyConcepts)!,
     },
     {
       kind: 'domain',
@@ -134,23 +168,7 @@ export const dummyDatasetDetails = (datasetId: string): DatasetResponse => ({
       category: 'Observation',
       conceptCount: 12300,
       participantCount: 23223,
-      values: ['Blood Pressure', 'Weight', 'Height'],
-    },
-    {
-      kind: 'domain',
-      id: 13,
-      category: 'Drug',
-      conceptCount: 21000,
-      participantCount: 12352,
-      values: ['Lipitor', 'Metformin', 'Insulin'],
-    },
-    {
-      kind: 'domain',
-      id: 14,
-      category: 'Labs and measurements',
-      conceptCount: 32000,
-      participantCount: 25341,
-      values: ['Blood Pressure', 'Weight', 'Height'],
+      root: _.find({ id: 300 }, dummyConcepts)!,
     },
   ],
   learnMoreLink: '',
@@ -184,20 +202,21 @@ export const dummyDatasetDetails = (datasetId: string): DatasetResponse => ({
   ],
 });
 
-export const generateDummyConcept = (): Concept => ({
-  id: getRandomInt(10000),
-  name: _.uniqueId('name-'),
-  count: getRandomInt(10000),
-  isLeaf: getRandomInt(10) < 2,
-});
+export const getConceptForId = (id: number): Concept => {
+  return dummyConcepts.find((c) => c.id === id)!;
+};
 
-const generateDummyConcepts = (): GetConceptsResponse => {
+const getDummyConcepts = (parent: Concept): GetConceptsResponse => {
   return {
-    result: _.times(generateDummyConcept, getRandomInt(7) + 2),
+    result: _.flow(
+      _.filter(([_childId, parentId]) => parent.id === parentId),
+      _.map(_.head),
+      _.map(getConceptForId)
+    )(dummyConceptToParent),
   };
 };
 
 export const DatasetBuilder = (): DatasetBuilderContract => ({
   retrieveDataset: (datasetId) => Promise.resolve(dummyDatasetDetails(datasetId)),
-  getConcepts: (_parent?: Concept) => Promise.resolve(generateDummyConcepts()),
+  getConcepts: (parent: Concept) => Promise.resolve(getDummyConcepts(parent)),
 });

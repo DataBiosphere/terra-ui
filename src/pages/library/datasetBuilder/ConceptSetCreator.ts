@@ -4,14 +4,21 @@ import { div, h } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TreeGridView } from 'src/components/TreeGrid';
-import { Concept, DatasetBuilder, generateDummyConcept } from 'src/libs/ajax/DatasetBuilder';
+import { Concept, DatasetBuilder, DatasetResponse, getConceptForId } from 'src/libs/ajax/DatasetBuilder';
+import { OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 
 const getChildren = async (concept: Concept): Promise<Concept[]> => {
   const result = await DatasetBuilder().getConcepts(concept);
   return result.result;
 };
 
-export const ConceptSetCreator = (props) => {
+export type ConceptSetCreatorProps = {
+  onStateChange: OnStateChangeHandler;
+  datasetDetails: DatasetResponse;
+};
+
+export const ConceptSetCreator: React.FC<ConceptSetCreatorProps> = (props) => {
+  const { datasetDetails } = props;
   const [cart, setCart] = useState<number[]>([]);
   return div([
     h(TreeGridView<Concept>, {
@@ -30,7 +37,7 @@ export const ConceptSetCreator = (props) => {
         { name: 'Concept ID', width: 195, render: _.get('id') },
         { name: 'Roll-up count', width: 205, render: _.get('count') },
       ],
-      initialRows: [generateDummyConcept()],
+      initialRows: _.map(_.flow((option) => option.root, getConceptForId))(datasetDetails.domainOptions),
       getChildren,
     }),
     div({ style: { display: 'float' } }, [

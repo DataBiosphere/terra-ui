@@ -16,7 +16,6 @@ import {
   AnyCriteria,
   Cohort,
   CriteriaGroup,
-  DomainCriteria,
   domainCriteriaSelectorState,
   homepageState,
   newCriteriaGroup,
@@ -86,19 +85,6 @@ export const createCriteriaViewComponent =
     h(CriteriaView, { deleteCriteria, criteria, key: criteria.id });
 
 let criteriaCount = 1;
-const selectDomainCriteria = (domainOption: DomainOption): DomainCriteria => {
-  // This needs to be replaced with a UI that lets users select the criteria they want from
-  // the list of concepts for this domain.
-  return {
-    kind: 'domain',
-    domainOption,
-    name: domainOption.values[0],
-    id: criteriaCount++,
-    // Need to call the API service to get the count for the criteria.
-    count: 100,
-  };
-};
-
 const createDefaultListCriteria = (listOption: ProgramDataListOption): ProgramDataListCriteria => {
   return {
     kind: 'list',
@@ -124,27 +110,20 @@ const createDefaultRangeCriteria = (rangeOption: ProgramDataRangeOption): Progra
 
 type CriteriaOption = DomainOption | ProgramDataRangeOption | ProgramDataListOption;
 
-export function criteriaFromOption(option: DomainOption): DomainCriteria;
+export function criteriaFromOption(option: DomainOption): undefined;
 export function criteriaFromOption(option: ProgramDataListOption): ProgramDataListCriteria;
 export function criteriaFromOption(option: ProgramDataRangeOption): ProgramDataRangeCriteria;
 export function criteriaFromOption(option: CriteriaOption): AnyCriteria;
 
-export function criteriaFromOption(option: CriteriaOption): AnyCriteria {
+export function criteriaFromOption(option: CriteriaOption): AnyCriteria | undefined {
   switch (option.kind) {
-    case 'domain':
-      return selectDomainCriteria(option);
     case 'list':
       return createDefaultListCriteria(option);
     case 'range':
       return createDefaultRangeCriteria(option);
+    case 'domain':
     default:
-      return {
-        kind: 'domain',
-        domainOption: { kind: 'domain', id: 0, category: 'unknown', values: [], conceptCount: 0, participantCount: 0 },
-        name: 'unknown',
-        count: 0,
-        id: 0,
-      };
+      return undefined;
   }
 }
 
@@ -192,7 +171,9 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
           onStateChange(domainCriteriaSelectorState.new(cohort, criteriaGroup, x.value));
         } else {
           const criteria = criteriaFromOption(x.value);
-          updateCohort(_.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, criteria));
+          if (criteria !== undefined) {
+            updateCohort(_.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, criteria));
+          }
         }
       }
     },
