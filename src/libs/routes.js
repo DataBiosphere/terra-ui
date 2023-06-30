@@ -38,7 +38,7 @@ import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/Su
 import * as WorkflowDashboard from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard';
 import * as Workflows from 'src/pages/workspaces/workspace/Workflows';
 import * as WorkflowView from 'src/pages/workspaces/workspace/workflows/WorkflowView';
-import * as CbasWorkflows from 'src/pages/workspaces/workspace/workflows-cbas/navPaths';
+import * as WorkflowsApp from 'src/workflows-app/routes';
 
 /*
  * NOTE: In order to show up in reports, new events[^1] MUST be marked as expected in the Mixpanel
@@ -84,7 +84,7 @@ const routes = _.flatten([
   FeaturePreviews.navPaths,
   WorkspaceFiles.navPaths,
   AzurePreview.navPaths,
-  CbasWorkflows.navPaths,
+  WorkflowsApp.navPaths,
   NotFound.navPaths, // must be last
 ]);
 

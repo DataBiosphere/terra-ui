@@ -6,6 +6,7 @@ import { TextInput } from 'src/components/input';
 import { statusType as jobStatusType } from 'src/components/job-common';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
+import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { notify } from 'src/libs/notifications';
@@ -66,53 +67,47 @@ export const loadAllRunSets = async (signal) => {
   }
 };
 
-// Invokes logic to determine the appropriate app for WDS
-// If WDS is not running, a URL will not be present, in this case we return empty string
-// Note: This logic has been copied from how DataTable finds WDS app in Terra UI (https://github.com/DataBiosphere/terra-ui/blob/ac13bdf3954788ca7c8fd27b8fd4cfc755f150ff/src/libs/ajax/data-table-providers/WdsDataTableProvider.ts#L94-L147)
-export const resolveApp = (apps, appTypeName, prefix) => {
-  // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by Leo
+// Invokes logic to determine the appropriate app for Cromwell
+export const resolveCromwellApp = (apps) => {
+  // Cromwell looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by Leo
   // See here for specific enumerations -- https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
-  // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' -- if WDS is healthy and running, there should only be one app RUNNING
-  // an app may be in the 'PROVISIONING', 'STOPPED', 'STOPPING', which can still be deemed as an OK state for WDS
+  // look explicitly for a RUNNING app named 'terra-app-${app.workspaceId}' -- if Cromwell is healthy and running, there should only be one app RUNNING
+  // an app may be in the 'PROVISIONING', 'STOPPED', 'STOPPING', which can still be deemed as an OK state for Cromwell
   const healthyStates = ['RUNNING', 'PROVISIONING', 'STOPPED', 'STOPPING'];
 
-  const namedApp = apps.filter(
-    (app) => app.appType === appTypeName && app.appName === `${prefix}-${app.workspaceId}` && healthyStates.includes(app.status)
-  );
-  if (namedApp.length === 1) {
-    return namedApp[0];
-  }
+  // CROMWELL appType is checked first and takes precedence over WDS apps in the workspace
+  const cromwellAppTypes = ['CROMWELL', 'WDS'];
+  for (const cromwellAppType of cromwellAppTypes) {
+    const namedApp = apps.filter(
+      (app) => app.appType === cromwellAppType && app.appName === `terra-app-${app.workspaceId}` && healthyStates.includes(app.status)
+    );
+    if (namedApp.length === 1) {
+      return namedApp[0];
+    }
 
-  // Failed to find an app with the proper name, look for a RUNNING WDS app
-  const runningAppsCorrectType = apps.filter((app) => app.appType === appTypeName && app.status === 'RUNNING');
-  if (runningAppsCorrectType.length > 0) {
-    // Evaluate the earliest-created app
-    runningAppsCorrectType.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf());
-    return runningAppsCorrectType[0];
-  }
+    // Failed to find an app with the proper name, look for a RUNNING CROMWELL or WDS app
+    const runningCromwellApps = apps.filter((app) => app.appType === cromwellAppType && app.status === 'RUNNING');
+    if (runningCromwellApps.length > 0) {
+      // Evaluate the earliest-created Cromwell app
+      runningCromwellApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf());
+      return runningCromwellApps[0];
+    }
 
-  // If we reach this logic, we have more than one Leo app with the associated workspace Id...
-  const allAppsCorrectType = apps.filter((app) => app.appType === appTypeName && ['PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status));
-  if (allAppsCorrectType.length > 0) {
-    // Evaluate the earliest-created WDS app
-    allAppsCorrectType.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf());
-    return allAppsCorrectType[0];
+    // If we reach this logic, we have more than one Leo app with the associated workspace Id...
+    const allCromwellApps = apps.filter((app) => app.appType === allCromwellApps && ['PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status));
+    if (allCromwellApps.length > 0) {
+      // Evaluate the earliest-created Cromwell app
+      allCromwellApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf());
+      return allCromwellApps[0];
+    }
   }
 
   return '';
 };
 
-// Extract WDS proxy URL from Leo response. Exported for testing
-export const resolveWdsUrl = (apps) => {
-  const foundApp = resolveApp(apps, 'WDS', 'wds');
-  if (foundApp?.status === 'RUNNING') {
-    return foundApp.proxyUrls.wds;
-  }
-  return '';
-};
 // Extract CBAS proxy URL from Leo response. Exported for testing
 export const resolveCbasUrl = (apps) => {
-  const foundApp = resolveApp(apps, 'CROMWELL', 'terra-app');
+  const foundApp = resolveCromwellApp(apps);
   if (foundApp?.status === 'RUNNING') {
     return foundApp.proxyUrls.cbas;
   }

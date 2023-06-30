@@ -54,7 +54,7 @@ export const SavedWorkflows = ({ workspaceName, namespace, methodsData }) => {
     return div(
       {
         onClick: () => {
-          Nav.goToPath('workspace-workflows-cbas-submission-config', { name: workspaceName, namespace, methodId });
+          Nav.goToPath('workspace-workflows-app-submission-config', { name: workspaceName, namespace, methodId });
         },
         style: { ...styles.card, ...styles.mediumCard, cursor: 'pointer' },
       },

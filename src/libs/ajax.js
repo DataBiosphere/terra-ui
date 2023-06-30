@@ -21,7 +21,6 @@ import {
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import { Billing } from 'src/libs/ajax/Billing';
 import { Catalog } from 'src/libs/ajax/Catalog';
-import { Cbas, Cromwell, Leonardo, WorkflowScript } from 'src/libs/ajax/Cbas';
 import { Dockstore } from 'src/libs/ajax/Dockstore';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
@@ -29,6 +28,9 @@ import { Disks } from 'src/libs/ajax/leonardo/Disks';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { SamResources } from 'src/libs/ajax/SamResources';
+import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
+import { CromwellApp } from 'src/libs/ajax/workflows-app/CromwellApp';
+import { WorkflowScript } from 'src/libs/ajax/workflows-app/WorkflowScript';
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService';
 import { WorkspaceManagerResources } from 'src/libs/ajax/WorkspaceManagerResources';
 import { getConfig } from 'src/libs/config';
@@ -1120,9 +1122,8 @@ export const Ajax = (signal) => {
     WorkspaceData: WorkspaceData(signal),
     WorkspaceManagerResources: WorkspaceManagerResources(signal),
     Cbas: Cbas(signal),
-    Cromwell: Cromwell(signal),
+    CromwellApp: CromwellApp(signal),
     WorkflowScript: WorkflowScript(signal),
-    Leonardo: Leonardo(signal),
   };
 };
 

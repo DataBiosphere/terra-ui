@@ -2,9 +2,6 @@ import { Fragment, useCallback, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { ButtonOutline, Clickable } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
-import FindWorkflowModal from 'src/components/workflows-cbas/FindWorkflowModal';
-import { SavedWorkflows } from 'src/components/workflows-cbas/SavedWorkflows';
-import { loadAppUrls } from 'src/components/workflows-cbas/submission-common';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { isFindWorkflowEnabled } from 'src/libs/config';
@@ -13,7 +10,10 @@ import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import { withBusyState } from 'src/libs/utils';
-import { wrapWorkflowsPage } from 'src/pages/workspaces/workspace/workflows-cbas/WorkflowsContainer';
+import FindWorkflowModal from 'src/workflows-app/components/FindWorkflowModal';
+import { SavedWorkflows } from 'src/workflows-app/components/SavedWorkflows';
+import { loadAppUrls } from 'src/workflows-app/components/submission-common';
+import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 const styles = {
   // Card's position: relative and the outer/inner styles are a little hack to fake nested links
@@ -82,7 +82,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
                 ButtonOutline,
                 {
                   onClick: () =>
-                    Nav.goToPath('workspace-workflows-cbas-submission-history', {
+                    Nav.goToPath('workspace-workflows-app-submission-history', {
                       name,
                       namespace,
                     }),
@@ -118,8 +118,8 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
 
 export const navPaths = [
   {
-    name: 'workspace-workflows-cbas',
-    path: '/workspaces/:namespace/:name/workflows-cbas',
+    name: 'workspace-workflows-app',
+    path: '/workspaces/:namespace/:name/workflows-app',
     component: SubmitWorkflow,
     title: ({ name }) => `${name} - Workflows`,
   },

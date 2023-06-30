@@ -1,4 +1,5 @@
 import _ from 'lodash/fp';
+import { getConfig } from 'src/libs/config';
 import {
   convertToPrimitiveType,
   getDuration,
@@ -8,8 +9,7 @@ import {
   resolveWdsUrl,
   typeMatch,
   validateInputs,
-} from 'src/components/workflows-cbas/submission-common';
-import { getConfig } from 'src/libs/config';
+} from 'src/workflows-app/components/submission-common';
 
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),

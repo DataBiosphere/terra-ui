@@ -133,7 +133,7 @@ export const WorkspaceTabs = ({
           { name: 'job history', link: 'workspace-job-workflows' },
         ]
       : []),
-    ...(azureWorkspace && isAzureWorkflowsTabVisible() ? [{ name: 'workflows', link: 'workspace-workflows-cbas' }] : []),
+    ...(azureWorkspace && isAzureWorkflowsTabVisible() ? [{ name: 'workflows', link: 'workspace-workflows-app' }] : []),
   ];
   return h(Fragment, [
     h(
