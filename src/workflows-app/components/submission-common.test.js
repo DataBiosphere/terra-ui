@@ -1,4 +1,5 @@
 import _ from 'lodash/fp';
+import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { getConfig } from 'src/libs/config';
 import {
   convertToPrimitiveType,
@@ -6,7 +7,6 @@ import {
   isPrimitiveTypeInputValid,
   isRunInTerminalState,
   isRunSetInTerminalState,
-  resolveWdsUrl,
   typeMatch,
   validateInputs,
 } from 'src/workflows-app/components/submission-common';
