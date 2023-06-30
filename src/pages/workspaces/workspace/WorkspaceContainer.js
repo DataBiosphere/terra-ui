@@ -130,7 +130,7 @@ export const WorkspaceTabs = ({
     ...(googleWorkspace
       ? [
           { name: 'workflows', link: 'workspace-workflows' },
-          { name: 'job history', link: 'workspace-job-workflows' },
+          { name: 'job history', link: 'workspace-job-history' },
         ]
       : []),
     ...(azureWorkspace && isAzureWorkflowsTabVisible() ? [{ name: 'workflows', link: 'workspace-workflows-app' }] : []),
