@@ -41,7 +41,6 @@ describe('DatasetBuilder', () => {
     render(h(DatasetBuilderContents, { onStateChange: (state) => state, dataset: dummyDatasetDetails('id') }));
     await user.click(screen.getByLabelText('cohort 1'));
     await user.click(screen.getByLabelText('concept set 1'));
-    await user.click(screen.getByLabelText('condition column 1'));
   };
 
   beforeEach(() => {
@@ -163,13 +162,7 @@ describe('DatasetBuilder', () => {
   it('maintains old values selections', async () => {
     // Arrange
     const user = userEvent.setup();
-
-    datasetBuilderCohorts.set([newCohort('cohort 1'), newCohort('cohort 2')]);
-    datasetBuilderConceptSets.set([{ name: 'concept set 1', featureValueGroupName: 'Condition' }]);
-    render(h(DatasetBuilderContents, { onStateChange: (state) => state, dataset: dummyDatasetDetails('id') }));
-    // Act
-    await user.click(screen.getByLabelText('cohort 1'));
-    await user.click(screen.getByLabelText('concept set 1'));
+    await initializeValidDatasetRequest(user);
     await user.click(screen.getByLabelText('condition column 1'));
     await user.click(screen.getByLabelText('concept set 1'));
     await user.click(screen.getByLabelText('concept set 1'));

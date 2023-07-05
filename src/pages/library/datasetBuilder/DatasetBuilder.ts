@@ -490,22 +490,9 @@ export const DatasetBuilderContents = ({
       setDatasetRequestParticipantCount(async () =>
         DatasetBuilder().getParticipantCount({
           cohorts: allCohorts,
-          conceptSets: allConceptSets,
-          valuesSets: _.map(
-            (selectedValueSet) => ({ domain: selectedValueSet.header, values: selectedValueSet.values }),
-            selectedValues
-          ),
         })
       );
-  }, [
-    selectedCohorts,
-    selectedConceptSets,
-    selectedValues,
-    setDatasetRequestParticipantCount,
-    allCohorts,
-    allConceptSets,
-    requestValid,
-  ]);
+  }, [selectedValues, setDatasetRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
 
   const getNewFeatureValueGroups = (includedFeatureValueGroups: string[]): string[] =>
     _.without(

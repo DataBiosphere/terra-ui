@@ -63,10 +63,14 @@ type DatasetAccessRequest = {
   datasetRequest: DatasetRequest;
 };
 
+type DatasetParticipantCountRequest = {
+  cohorts: Cohort[];
+};
+
 export interface DatasetBuilderContract {
   retrieveDataset: (datasetId: string) => Promise<DatasetResponse>;
   requestAccess: (request: DatasetAccessRequest) => Promise<void>;
-  getParticipantCount: (request: DatasetRequest) => Promise<number>;
+  getParticipantCount: (request: DatasetParticipantCountRequest) => Promise<number>;
 }
 
 type AccessLevel = 'Owner' | 'Reader' | 'Discoverer';
