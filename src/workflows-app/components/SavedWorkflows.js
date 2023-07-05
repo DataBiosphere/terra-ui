@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { div, h } from 'react-hyperscript-helpers';
+import { a, div, h } from 'react-hyperscript-helpers';
 import * as Nav from 'src/libs/nav';
 import { memoWithName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
@@ -53,12 +53,14 @@ export const SavedWorkflows = ({ workspaceName, namespace, methodsData }) => {
   const WorkflowCard = memoWithName('WorkflowCard', ({ name, lastRun, description, source, methodId }) => {
     return div(
       {
-        onClick: () => {
-          Nav.goToPath('workspace-workflows-app-submission-config', { name: workspaceName, namespace, methodId });
-        },
         style: { ...styles.card, ...styles.mediumCard, cursor: 'pointer' },
       },
       [
+        a({
+          'aria-label': name,
+          href: Nav.getLink('workspace-workflows-app-submission-config', { namespace, name: workspaceName, methodId }),
+          style: styles.outerLink,
+        }),
         div({ style: { paddingTop: '0.75rem', ...styles.innerContent, display: 'flex', alignItems: 'center' } }, [
           div({ style: { ...styles.longTitle, paddingRight: '1.5rem' } }, [`${name}`]),
           div({ style: { flex: 1 } }, [
