@@ -12,3 +12,7 @@ const loadApp = async () => {
 const loadOauthRedirect = () => import('src/oauthRedirectLoader');
 
 window.location.pathname.startsWith('/redirect-from-oauth') ? loadOauthRedirect() : loadApp();
+
+// This is needed for libraries that assume access to global, as vite does not define globla.
+// react-collapse in particular requires this.
+window.global ||= window;
