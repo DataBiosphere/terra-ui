@@ -35,7 +35,6 @@ type AjaxContract = ReturnType<AjaxExports['Ajax']>;
 
 describe('the share workspace modal', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
     asMockedFn(getUser).mockReturnValue({
       email: 'owner@test.com',
     });
