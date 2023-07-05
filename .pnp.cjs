@@ -118,7 +118,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["prop-types", "npm:15.8.1"],\
             ["qs", "npm:6.11.0"],\
             ["react", "npm:17.0.2"],\
-            ["react-app-polyfill", "npm:3.0.0"],\
             ["react-collapse", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.1.0"],\
             ["react-dom", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:17.0.2"],\
             ["react-draggable", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:4.4.4"],\
@@ -148,7 +147,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["validate.js", "npm:0.13.1"],\
             ["vite", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:4.3.9"],\
             ["vite-plugin-svgr", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:3.2.0"],\
-            ["webpack", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.88.1"]\
+            ["webpack", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.88.1"],\
+            ["whatwg-fetch", "npm:3.6.2"]\
           ],\
           "linkType": "SOFT"\
         }]\
@@ -7433,15 +7433,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
-      ["core-js", [\
-        ["npm:3.21.1", {\
-          "packageLocation": "./.yarn/cache/core-js-npm-3.21.1-4b064616b4-d68eddd831.zip/node_modules/core-js/",\
-          "packageDependencies": [\
-            ["core-js", "npm:3.21.1"]\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
       ["core-js-compat", [\
         ["npm:3.29.0", {\
           "packageLocation": "./.yarn/cache/core-js-compat-npm-3.29.0-284d968840-ca5d370296.zip/node_modules/core-js-compat/",\
@@ -13590,15 +13581,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
-      ["performance-now", [\
-        ["npm:2.1.0", {\
-          "packageLocation": "./.yarn/cache/performance-now-npm-2.1.0-45e3ce7e49-534e641aa8.zip/node_modules/performance-now/",\
-          "packageDependencies": [\
-            ["performance-now", "npm:2.1.0"]\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
       ["picocolors", [\
         ["npm:1.0.0", {\
           "packageLocation": "./.yarn/cache/picocolors-npm-1.0.0-d81e0b1927-a2e8092dd8.zip/node_modules/picocolors/",\
@@ -14583,14 +14565,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["asap", "npm:2.0.6"]\
           ],\
           "linkType": "HARD"\
-        }],\
-        ["npm:8.1.0", {\
-          "packageLocation": "./.yarn/cache/promise-npm-8.1.0-09977f1805-89b71a5615.zip/node_modules/promise/",\
-          "packageDependencies": [\
-            ["promise", "npm:8.1.0"],\
-            ["asap", "npm:2.0.6"]\
-          ],\
-          "linkType": "HARD"\
         }]\
       ]],\
       ["promise-inflight", [\
@@ -14800,16 +14774,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
-      ["raf", [\
-        ["npm:3.4.1", {\
-          "packageLocation": "./.yarn/cache/raf-npm-3.4.1-c25d48d76e-50ba284e48.zip/node_modules/raf/",\
-          "packageDependencies": [\
-            ["raf", "npm:3.4.1"],\
-            ["performance-now", "npm:2.1.0"]\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
       ["randombytes", [\
         ["npm:2.1.0", {\
           "packageLocation": "./.yarn/cache/randombytes-npm-2.1.0-e3da76bccf-d779499376.zip/node_modules/randombytes/",\
@@ -14827,21 +14791,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react", "npm:17.0.2"],\
             ["loose-envify", "npm:1.4.0"],\
             ["object-assign", "npm:4.1.1"]\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
-      ["react-app-polyfill", [\
-        ["npm:3.0.0", {\
-          "packageLocation": "./.yarn/cache/react-app-polyfill-npm-3.0.0-e607e071bd-1bb031080a.zip/node_modules/react-app-polyfill/",\
-          "packageDependencies": [\
-            ["react-app-polyfill", "npm:3.0.0"],\
-            ["core-js", "npm:3.21.1"],\
-            ["object-assign", "npm:4.1.1"],\
-            ["promise", "npm:8.1.0"],\
-            ["raf", "npm:3.4.1"],\
-            ["regenerator-runtime", "npm:0.13.11"],\
-            ["whatwg-fetch", "npm:3.6.2"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -16791,7 +16740,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["prop-types", "npm:15.8.1"],\
             ["qs", "npm:6.11.0"],\
             ["react", "npm:17.0.2"],\
-            ["react-app-polyfill", "npm:3.0.0"],\
             ["react-collapse", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.1.0"],\
             ["react-dom", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:17.0.2"],\
             ["react-draggable", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:4.4.4"],\
@@ -16821,7 +16769,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["validate.js", "npm:0.13.1"],\
             ["vite", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:4.3.9"],\
             ["vite-plugin-svgr", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:3.2.0"],\
-            ["webpack", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.88.1"]\
+            ["webpack", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.88.1"],\
+            ["whatwg-fetch", "npm:3.6.2"]\
           ],\
           "linkType": "SOFT"\
         }]\
