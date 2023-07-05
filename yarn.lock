@@ -4212,15 +4212,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"babel-plugin-named-asset-import@npm:^0.3.8":
-  version: 0.3.8
-  resolution: "babel-plugin-named-asset-import@npm:0.3.8"
-  peerDependencies:
-    "@babel/core": ^7.1.0
-  checksum: d1e58df8cb75d91d070feea31087bc989906d3465144bde7e9f3c3690b514a90a55d3aebf3e65e76c5d4c743ecedde5f640f09f43a21fa60f1a5d413cb3f7a67
-  languageName: node
-  linkType: hard
-
 "babel-plugin-polyfill-corejs2@npm:^0.3.3":
   version: 0.3.3
   resolution: "babel-plugin-polyfill-corejs2@npm:0.3.3"
@@ -12319,7 +12310,6 @@ __metadata:
     animate.css: ^4.1.1
     array-move: ^4.0.0
     babel-jest: ^27.4.2
-    babel-plugin-named-asset-import: ^0.3.8
     babel-preset-react-app: ^10.0.1
     blob-polyfill: ^7.0.20220408
     browserslist: ^4.18.1

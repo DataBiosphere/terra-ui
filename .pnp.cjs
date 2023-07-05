@@ -61,7 +61,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["animate.css", "npm:4.1.1"],\
             ["array-move", "npm:4.0.0"],\
             ["babel-jest", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:27.5.1"],\
-            ["babel-plugin-named-asset-import", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.3.8"],\
             ["babel-preset-react-app", "npm:10.0.1"],\
             ["blob-polyfill", "npm:7.0.20220408"],\
             ["browserslist", "npm:4.21.5"],\
@@ -6536,28 +6535,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@babel/runtime", "npm:7.21.0"],\
             ["cosmiconfig", "npm:7.0.1"],\
             ["resolve", "patch:resolve@npm%3A1.22.3#~builtin<compat/resolve>::version=1.22.3&hash=07638b"]\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
-      ["babel-plugin-named-asset-import", [\
-        ["npm:0.3.8", {\
-          "packageLocation": "./.yarn/cache/babel-plugin-named-asset-import-npm-0.3.8-7b65aea867-d1e58df8cb.zip/node_modules/babel-plugin-named-asset-import/",\
-          "packageDependencies": [\
-            ["babel-plugin-named-asset-import", "npm:0.3.8"]\
-          ],\
-          "linkType": "SOFT"\
-        }],\
-        ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.3.8", {\
-          "packageLocation": "./.yarn/__virtual__/babel-plugin-named-asset-import-virtual-f9d62d33c9/0/cache/babel-plugin-named-asset-import-npm-0.3.8-7b65aea867-d1e58df8cb.zip/node_modules/babel-plugin-named-asset-import/",\
-          "packageDependencies": [\
-            ["babel-plugin-named-asset-import", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.3.8"],\
-            ["@babel/core", "npm:7.21.0"],\
-            ["@types/babel__core", null]\
-          ],\
-          "packagePeers": [\
-            "@babel/core",\
-            "@types/babel__core"\
           ],\
           "linkType": "HARD"\
         }]\
@@ -16683,7 +16660,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["animate.css", "npm:4.1.1"],\
             ["array-move", "npm:4.0.0"],\
             ["babel-jest", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:27.5.1"],\
-            ["babel-plugin-named-asset-import", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.3.8"],\
             ["babel-preset-react-app", "npm:10.0.1"],\
             ["blob-polyfill", "npm:7.0.20220408"],\
             ["browserslist", "npm:4.21.5"],\
