@@ -16,6 +16,13 @@ jest.mock('src/libs/state', () => ({
   getUser: jest.fn(),
 }));
 
+type ModalMockExports = typeof import('src/components/Modal.mock');
+
+jest.mock('src/components/Modal', () => {
+  const mockModal = jest.requireActual<ModalMockExports>('src/components/Modal.mock');
+  return mockModal.mockModalModule();
+});
+
 jest.mock('src/libs/ajax');
 
 type AjaxExports = typeof import('src/libs/ajax');
