@@ -2,8 +2,7 @@ import '@testing-library/jest-dom';
 
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import _ from 'lodash/fp';
-import { div, h } from 'react-hyperscript-helpers';
-import { getPopupRoot } from 'src/components/popup-utils';
+import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { getUser } from 'src/libs/state';
 import { DeepPartial } from 'src/libs/type-utils/deep-partial';
@@ -17,11 +16,6 @@ jest.mock('src/libs/state', () => ({
   getUser: jest.fn(),
 }));
 
-jest.mock('src/components/popup-utils', () => ({
-  ...jest.requireActual('src/libs/state'),
-  getPopupRoot: jest.fn(),
-}));
-
 jest.mock('src/libs/ajax');
 
 type AjaxExports = typeof import('src/libs/ajax');
@@ -29,7 +23,7 @@ type AjaxContract = ReturnType<AjaxExports['Ajax']>;
 
 /**
  * Select and open the permissions menu for the email passed
- * The ArrowDown input is needed because the select component doesn't render it's options until opened
+ * The ArrowDown input is needed because the select component doesn't render its options until opened
  */
 
 describe('the share workspace modal', () => {
@@ -38,9 +32,6 @@ describe('the share workspace modal', () => {
     asMockedFn(getUser).mockReturnValue({
       email: 'owner@test.com',
     });
-
-    const popupResult = render(div({ id: 'modal-root', role: 'complementary' }));
-    asMockedFn(getPopupRoot).mockReturnValue(popupResult.baseElement);
   });
 
   const workspace: GoogleWorkspace = {
@@ -66,9 +57,11 @@ describe('the share workspace modal', () => {
     groups: string[],
     updateAcl?: (aclUpdates: Partial<AccessEntry>[]) => Promise<any>
   ) => {
+    const updateFn: (aclUpdates: Partial<AccessEntry>[]) => Promise<any> =
+      updateAcl ?? jest.fn(() => Promise.resolve({ success: true }));
     const mockWorkspaceAjax: DeepPartial<ReturnType<AjaxContract['Workspaces']['workspace']>> = {
       getAcl: jest.fn(() => Promise.resolve({ acl })),
-      updateAcl,
+      updateAcl: updateFn,
     };
 
     const workspaceAjax = jest.fn().mockReturnValue(mockWorkspaceAjax);
@@ -99,14 +92,14 @@ describe('the share workspace modal', () => {
       },
     };
     mockAjax(acl, [], []);
-
-    render(
-      h(ShareWorkspaceModal, {
-        onDismiss: () => {},
-        workspace,
-      })
-    );
-
+    act(() => {
+      render(
+        h(ShareWorkspaceModal, {
+          onDismiss: jest.fn(),
+          workspace,
+        })
+      );
+    });
     const email1 = await screen.findByText('user1@test.com');
     expect(email1).not.toBeNull();
     const email2 = await screen.findByText('user2@test.com');
@@ -141,13 +134,14 @@ describe('the share workspace modal', () => {
     });
     mockAjax(acl, [], [], updateAcl);
 
-    render(
-      h(ShareWorkspaceModal, {
-        onDismiss: jest.fn(() => {}),
-        workspace,
-      })
-    );
-
+    act(() => {
+      render(
+        h(ShareWorkspaceModal, {
+          onDismiss: () => {},
+          workspace,
+        })
+      );
+    });
     const permissionSelect = await screen.findByLabelText(`permissions for ${'user2@test.com'}`);
     expect(permissionSelect).not.toBeNull();
     act(() => {
@@ -187,17 +181,18 @@ describe('the share workspace modal', () => {
 
     const expectedErrorText = 'This is the expected error';
     const updateAcl = jest.fn(() => {
-      const error = { text: () => Promise.resolve(expectedErrorText), message: expectedErrorText };
-      throw error;
+      const err = { text: () => Promise.resolve(expectedErrorText), message: expectedErrorText };
+      throw err;
     });
     mockAjax(acl, [], [], updateAcl);
-
-    render(
-      h(ShareWorkspaceModal, {
-        onDismiss: jest.fn(() => {}),
-        workspace,
-      })
-    );
+    act(() => {
+      render(
+        h(ShareWorkspaceModal, {
+          onDismiss: () => {},
+          workspace,
+        })
+      );
+    });
 
     const permissionSelect = await screen.findByLabelText(`permissions for ${'user2@test.com'}`);
     expect(permissionSelect).not.toBeNull();

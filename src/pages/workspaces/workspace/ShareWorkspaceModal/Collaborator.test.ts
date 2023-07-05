@@ -2,8 +2,7 @@ import '@testing-library/jest-dom';
 
 import { fireEvent, render, screen } from '@testing-library/react';
 import { Dispatch, SetStateAction } from 'react';
-import { div, h } from 'react-hyperscript-helpers';
-import { getPopupRoot } from 'src/components/popup-utils';
+import { h } from 'react-hyperscript-helpers';
 import { getUser } from 'src/libs/state';
 import { BaseWorkspace } from 'src/libs/workspace-utils';
 import { Collaborator } from 'src/pages/workspaces/workspace/ShareWorkspaceModal/Collaborator';
@@ -35,9 +34,6 @@ describe('a Collaborator component', () => {
     asMockedFn(getUser).mockReturnValue({
       email: 'owner@test.com',
     });
-
-    const popupResult = render(div({ id: 'modal-root', role: 'complementary' }));
-    asMockedFn(getPopupRoot).mockReturnValue(popupResult.baseElement);
   });
 
   const workspace: BaseWorkspace = {
