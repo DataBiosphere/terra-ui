@@ -8523,7 +8523,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-resolve@npm:^27.4.2, jest-resolve@npm:^27.5.1":
+"jest-resolve@npm:^27.5.1":
   version: 27.5.1
   resolution: "jest-resolve@npm:27.5.1"
   dependencies:
@@ -12401,7 +12401,6 @@ __metadata:
     igv: 2.11.2
     jest: ^27.4.3
     jest-axe: ^6.0.0
-    jest-resolve: ^27.4.2
     jest-watch-typeahead: ^1.0.0
     jszip: ^3.10.1
     jwt-decode: ^3.1.2
