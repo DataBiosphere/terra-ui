@@ -123,12 +123,12 @@
     "postcss-normalize": "^10.0.1",
     "postcss-preset-env": "^7.8.2",
     "prettier": "^2.8.8",
-    "react-app-polyfill": "^3.0.0",
     "source-map-explorer": "^2.5.2",
     "svgo": "^1.3.2",
     "typescript": "^4.9.5",
     "vite": "^4.3.9",
-    "vite-plugin-svgr": "^3.2.0"
+    "vite-plugin-svgr": "^3.2.0",
+    "whatwg-fetch": "^3.6.2"
   },
   "resolutions": {
     "fbjs/ua-parser-js": "^1.0.33",
@@ -172,9 +172,6 @@
     "collectCoverageFrom": [
       "src/**/*.{js,jsx,ts,tsx}",
       "!src/**/*.d.ts"
-    ],
-    "setupFiles": [
-      "react-app-polyfill/jsdom"
     ],
     "setupFilesAfterEnv": [
       "<rootDir>/src/setupTests.js"
