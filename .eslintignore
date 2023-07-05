@@ -14,3 +14,4 @@ node_modules
 coverage
 lint-staged.config.mjs
 vite.config.js
+jest/*
