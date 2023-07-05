@@ -1,5 +1,5 @@
 // Types that can be used to create a criteria.
-import { DatasetBuilderType } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import { Cohort, ConceptSet, DatasetBuilderType } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 
 export interface DomainOption {
   kind: 'domain';
@@ -51,8 +51,22 @@ export type FeatureValueGroup = {
   id: number;
 };
 
+type DatasetRequest = {
+  cohorts: Cohort[];
+  conceptSets: ConceptSet[];
+  valuesSets: { domain: string; values: DatasetBuilderValue[] }[];
+};
+
+type DatasetAccessRequest = {
+  name: string;
+  researchPurposeStatement: string;
+  datasetRequest: DatasetRequest;
+};
+
 export interface DatasetBuilderContract {
   retrieveDataset: (datasetId: string) => Promise<DatasetResponse>;
+  requestAccess: (request: DatasetAccessRequest) => Promise<void>;
+  getParticipantCount: (request: DatasetRequest) => Promise<number>;
 }
 
 type AccessLevel = 'Owner' | 'Reader' | 'Discoverer';
@@ -172,4 +186,6 @@ export const dummyDatasetDetails = (datasetId: string): DatasetResponse => ({
 
 export const DatasetBuilder = (): DatasetBuilderContract => ({
   retrieveDataset: (datasetId) => Promise.resolve(dummyDatasetDetails(datasetId)),
+  requestAccess: (_request) => Promise.resolve(),
+  getParticipantCount: (_request) => Promise.resolve(100),
 });
