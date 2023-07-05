@@ -452,6 +452,10 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
             id: researchPurposeId,
             'aria-label': 'Research purpose statement',
             placeholder: 'Enter a research purpose statement',
+            style: {
+              marginTop: '1rem',
+              height: 200,
+            },
             value: researchPurposeStatement,
             onChange: setResearchPurposeStatement,
           },
