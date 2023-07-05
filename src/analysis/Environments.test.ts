@@ -69,6 +69,11 @@ jest.mock('src/libs/state', () => ({
   getUser: jest.fn(),
 }));
 
+jest.mock('src/components/Modal', () => {
+  const { mockModalModule } = jest.requireActual('src/components/Modal.mock');
+  return mockModalModule();
+});
+
 const listRuntimesV2: () => Promise<ListRuntimeItem[]> = jest.fn();
 const listWithoutProject: () => Promise<ListAppResponse[]> = jest.fn();
 const list: () => Promise<ListDiskItem[]> = jest.fn();
