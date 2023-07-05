@@ -10,8 +10,10 @@ import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTablePr
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { notify } from 'src/libs/notifications';
+import { getUser } from 'src/libs/state';
 import { differenceFromDatesInSeconds, differenceFromNowInSeconds } from 'src/libs/utils';
 import * as Utils from 'src/libs/utils';
+import { resolveRunningCromwellAppUrl } from 'src/libs/workflows-app-utils';
 
 export const AutoRefreshInterval = 1000 * 60; // 1 minute
 export const WdsPollInterval = 1000 * 30; // 30 seconds
@@ -67,53 +69,6 @@ export const loadAllRunSets = async (signal) => {
   }
 };
 
-// Invokes logic to determine the appropriate app for Cromwell
-export const resolveCromwellApp = (apps) => {
-  // Cromwell looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by Leo
-  // See here for specific enumerations -- https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
-  // look explicitly for a RUNNING app named 'terra-app-${app.workspaceId}' -- if Cromwell is healthy and running, there should only be one app RUNNING
-  // an app may be in the 'PROVISIONING', 'STOPPED', 'STOPPING', which can still be deemed as an OK state for Cromwell
-  const healthyStates = ['RUNNING', 'PROVISIONING', 'STOPPED', 'STOPPING'];
-
-  // CROMWELL appType is checked first and takes precedence over WDS apps in the workspace
-  const cromwellAppTypes = ['CROMWELL', 'WDS'];
-  for (const cromwellAppType of cromwellAppTypes) {
-    const namedApp = apps.filter(
-      (app) => app.appType === cromwellAppType && app.appName === `terra-app-${app.workspaceId}` && healthyStates.includes(app.status)
-    );
-    if (namedApp.length === 1) {
-      return namedApp[0];
-    }
-
-    // Failed to find an app with the proper name, look for a RUNNING CROMWELL or WDS app
-    const runningCromwellApps = apps.filter((app) => app.appType === cromwellAppType && app.status === 'RUNNING');
-    if (runningCromwellApps.length > 0) {
-      // Evaluate the earliest-created Cromwell app
-      runningCromwellApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf());
-      return runningCromwellApps[0];
-    }
-
-    // If we reach this logic, we have more than one Leo app with the associated workspace Id...
-    const allCromwellApps = apps.filter((app) => app.appType === allCromwellApps && ['PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status));
-    if (allCromwellApps.length > 0) {
-      // Evaluate the earliest-created Cromwell app
-      allCromwellApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf());
-      return allCromwellApps[0];
-    }
-  }
-
-  return '';
-};
-
-// Extract CBAS proxy URL from Leo response. Exported for testing
-export const resolveCbasUrl = (apps) => {
-  const foundApp = resolveCromwellApp(apps);
-  if (foundApp?.status === 'RUNNING') {
-    return foundApp.proxyUrls.cbas;
-  }
-  return '';
-};
-
 const getProxyUrl = async (root, workspaceId, resolver) => {
   if (root) {
     return { status: 'Ready', state: root };
@@ -132,13 +87,10 @@ const getProxyUrl = async (root, workspaceId, resolver) => {
 
 export const loadAppUrls = async (workspaceId) => {
   // for local testing - since we use local WDS setup, we don't need to call Leo to get proxy url
-  // for CBAS UI deployed in app - we don't want to decouple CBAS and WDS yet. Until then we keep using WDS url passed in config.
-  // When we are ready for that change to be released, we should remove `wdsUrlRoot` from cromwhelm configs
-  // and then CBAS UI will talk to Leo to get WDS url root.
   const wdsUrlRoot = getConfig().wdsUrlRoot;
   const cbasUrlRoot = getConfig().cbasUrlRoot;
   const wdsProxyUrlResponse = await getProxyUrl(wdsUrlRoot, workspaceId, resolveWdsUrl);
-  const cbasProxyUrlResponse = await getProxyUrl(cbasUrlRoot, workspaceId, resolveCbasUrl);
+  const cbasProxyUrlResponse = await getProxyUrl(cbasUrlRoot, workspaceId, (apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email).cbasUrl);
   return {
     wds: wdsProxyUrlResponse,
     cbas: cbasProxyUrlResponse,

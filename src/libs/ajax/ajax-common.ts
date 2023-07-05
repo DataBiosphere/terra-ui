@@ -241,8 +241,5 @@ export const fetchGoogleForms = _.flow(
 export const fetchWDS = (wdsProxyUrlRoot) =>
   _.flow(withUrlPrefix(`${wdsProxyUrlRoot}/`), withRetryAfterReloadingExpiredAuthToken)(fetchOk);
 
-export const fetchCbas = (cbasProxyUrlRoot) =>
-  _.flow(withUrlPrefix(`${cbasProxyUrlRoot}/`), withRetryAfterReloadingExpiredAuthToken)(fetchOk);
-
-export const fetchCromwellApp = (cromwellAppProxyUrlRoot) =>
-  _.flow(withUrlPrefix(`${cromwellAppProxyUrlRoot}/`), withRetryAfterReloadingExpiredAuthToken)(fetchOk);
+export const fetchFromProxy = (proxyUrlRoot) =>
+  _.flow(withUrlPrefix(`${proxyUrlRoot}/`), withRetryAfterReloadingExpiredAuthToken)(fetchOk);
