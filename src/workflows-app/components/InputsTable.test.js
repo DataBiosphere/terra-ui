@@ -38,8 +38,12 @@ jest.mock('src/libs/config', () => ({
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth');
 
-const setupInputTableTest = ({ selectedDataTable = typesResponse[0], configuredInputDefinition = runSetInputDef, renderFn = render } = {}) => {
-  const setConfiguredInputDefinition = jest.fn();
+const setupInputTableTest = ({
+  selectedDataTable = typesResponse[0],
+  configuredInputDefinition = runSetInputDef,
+  setConfiguredInputDefinition = jest.fn(),
+  renderFn = render,
+} = {}) => {
   const inputValidations = validateInputs(configuredInputDefinition, _.keyBy('name', selectedDataTable.attributes));
 
   const { rerender } = renderFn(
@@ -56,14 +60,16 @@ const setupInputTableTest = ({ selectedDataTable = typesResponse[0], configuredI
       typeof newInputDefinitionOrFn === 'function' ? newInputDefinitionOrFn(configuredInputDefinition) : newInputDefinitionOrFn;
     setupInputTableTest({
       selectedDataTable,
+      setConfiguredInputDefinition,
       configuredInputDefinition: newInputDefinition,
       renderFn: rerender,
     });
+    return newInputDefinition;
   });
 
   return {
     selectedDataTable,
-    configuredInputDefinition,
+    getConfiguredInputDefinition: () => setConfiguredInputDefinition(_.identity),
     setConfiguredInputDefinition,
     inputValidations,
   };
@@ -549,7 +555,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
   });
 
   it('should populate fields from data table on click', async () => {
-    setupInputTableTest({ configuredInputDefinition: runSetInputDefSameInputNames });
+    const { getConfiguredInputDefinition } = setupInputTableTest({ configuredInputDefinition: runSetInputDefSameInputNames });
 
     const table = await screen.findByRole('table');
     const rows = within(table).queryAllByRole('row');
@@ -587,6 +593,15 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
       await fireEvent.click(inputFillButton);
     });
 
+    expect(getConfiguredInputDefinition()).toStrictEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          input_name: 'target_workflow_1.foo.foo_rating',
+          source: { type: 'record_lookup', record_attribute: 'foo_rating' },
+        }),
+      ])
+    );
+
     screen.getByText('Autofill (1) from data table');
 
     within(cells1[0]).getByText('foo');
@@ -615,6 +630,10 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
       await userEvent.click(selectOptionNone);
     });
 
+    expect(getConfiguredInputDefinition()).toStrictEqual(
+      expect.arrayContaining([expect.objectContaining({ input_name: 'target_workflow_1.foo.foo_rating', source: { type: 'none' } })])
+    );
+
     within(cells1[0]).getByText('foo');
     within(cells1[1]).getByText('foo_rating');
     within(cells1[2]).getByText('Int');
@@ -641,6 +660,16 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
       const fillAllButton = await screen.findByText('Autofill (2) from data table');
       await fireEvent.click(fillAllButton);
     });
+
+    expect(getConfiguredInputDefinition()).toStrictEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          input_name: 'target_workflow_1.foo.foo_rating',
+          source: { type: 'record_lookup', record_attribute: 'foo_rating' },
+        }),
+        expect.objectContaining({ input_name: 'target_workflow_1.bar_string', source: { type: 'record_lookup', record_attribute: 'bar_string' } }),
+      ])
+    );
 
     await screen.findByText('Autofill (0) from data table');
 
