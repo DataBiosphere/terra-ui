@@ -18,6 +18,7 @@ import TopBar from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import { isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
+import { isAzureWorkflowsTabVisible } from 'src/libs/config';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
@@ -114,6 +115,7 @@ export const WorkspaceTabs = ({
   const isLocked = workspace?.workspace.isLocked;
   const workspaceLoaded = !!workspace;
   const googleWorkspace = workspaceLoaded && isGoogleWorkspace(workspace);
+  const azureWorkspace = workspaceLoaded && isAzureWorkspace(workspace);
 
   const onClone = () => setCloningWorkspace(true);
   const onDelete = () => setDeletingWorkspace(true);
@@ -125,8 +127,13 @@ export const WorkspaceTabs = ({
     { name: 'dashboard', link: 'workspace-dashboard' },
     { name: 'data', link: 'workspace-data' },
     { name: 'analyses', link: analysisTabName },
-    ...(googleWorkspace ? [{ name: 'workflows', link: 'workspace-workflows' }] : []),
-    ...(googleWorkspace ? [{ name: 'job history', link: 'workspace-job-history' }] : []),
+    ...(googleWorkspace
+      ? [
+          { name: 'workflows', link: 'workspace-workflows' },
+          { name: 'job history', link: 'workspace-job-history' },
+        ]
+      : []),
+    ...(azureWorkspace && isAzureWorkflowsTabVisible() ? [{ name: 'workflows', link: 'workspace-workflows-app' }] : []),
   ];
   return h(Fragment, [
     h(
