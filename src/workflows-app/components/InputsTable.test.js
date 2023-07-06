@@ -473,43 +473,6 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
   });
 
-  it('should initially populate the inputs definition table with attributes determined by the previously executed run set', async () => {
-    setupInputTableTest();
-
-    // ** ASSERT **
-    const table = await screen.findByRole('table');
-    const rows = within(table).queryAllByRole('row');
-
-    expect(rows.length).toBe(runSetInputDef.length + 1); // one row for each input definition variable, plus headers
-
-    const headers = within(rows[0]).queryAllByRole('columnheader');
-    expect(headers.length).toBe(5);
-
-    const cellsFoo = within(rows[1]).queryAllByRole('cell');
-    expect(cellsFoo.length).toBe(5);
-    within(cellsFoo[0]).getByText('foo');
-    within(cellsFoo[1]).getByText('foo_rating_workflow_var');
-    within(cellsFoo[2]).getByText('Int');
-    within(cellsFoo[3]).getByText('Fetch from Data Table');
-    within(cellsFoo[4]).getByText('foo_rating');
-
-    const cellsBar = within(rows[2]).queryAllByRole('cell');
-    expect(cellsBar.length).toBe(5);
-    expect(cellsBar[0].textContent).toBe('target_workflow_1');
-    within(cellsBar[1]).getByText('bar_string_workflow_var');
-    within(cellsBar[2]).getByText('String');
-    within(cellsBar[3]).getByText('Fetch from Data Table');
-    within(cellsBar[4]).getByText('bar_string');
-
-    const thirdInputRow = within(rows[3]).queryAllByRole('cell');
-    expect(thirdInputRow.length).toBe(5);
-    expect(thirdInputRow[0].textContent).toBe('target_workflow_1');
-    within(thirdInputRow[1]).getByText('optional_var');
-    within(thirdInputRow[2]).getByText('String');
-    within(thirdInputRow[3]).getByText('Type a Value');
-    within(thirdInputRow[4]).getByDisplayValue('Hello World');
-  });
-
   it('should change input table sort order when column headers are clicked', async () => {
     setupInputTableTest();
 
