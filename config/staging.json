@@ -17,7 +17,6 @@
   "marthaUrlRoot": "https://us-central1-broad-dsde-staging.cloudfunctions.net",
   "orchestrationUrlRoot": "https://firecloud-orchestration.dsde-staging.broadinstitute.org",
   "rawlsUrlRoot": "https://rawls.dsde-staging.broadinstitute.org",
-  "rexUrlRoot": "https://terra-rex-staging.appspot.com",
   "samUrlRoot": "https://sam.dsde-staging.broadinstitute.org",
   "shibbolethUrlRoot": "https://broad-shibboleth-prod.appspot.com/dev",
   "shouldUseDrsHub": false,
