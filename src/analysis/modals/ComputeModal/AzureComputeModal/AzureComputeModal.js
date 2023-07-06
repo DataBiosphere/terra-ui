@@ -61,7 +61,6 @@ export const AzureComputeModalBase = ({
   const persistentDiskExists = !!currentPersistentDiskDetails;
   const [deleteDiskSelected, setDeleteDiskSelected] = useState(false);
   const [hasGpu, setHasGpu] = useState(false);
-
   // Lifecycle
   useOnMount(
     _.flow(
@@ -82,6 +81,7 @@ export const AzureComputeModalBase = ({
         region: runtimeDetails?.runtimeConfig?.region || location || defaultAzureRegion,
         autopauseThreshold: runtimeDetails ? runtimeDetails.autopauseThreshold || autopauseDisabledValue : defaultAutopauseThreshold,
       });
+      setHasGpu(Object.keys(azureMachineTypesWithGpu).includes(runtimeDetails?.runtimeConfig?.machineType));
     })
   );
 

@@ -410,7 +410,7 @@ describe('AzureComputeModal', () => {
     expect(radio1).toBeChecked();
   });
 
-  it('renders GPU on azure warning when GPU cloud compute profile is selected', async () => {
+  it('toggles GPU on azure warning when GPU cloud compute profile is selected and unselected', async () => {
     // Arrange
     await render(h(AzureComputeModalBase, defaultModalProps));
 
@@ -422,5 +422,12 @@ describe('AzureComputeModal', () => {
 
     // Assert
     expect(screen.getByText('This VM is powered by an NVIDIA GPU. Learn more about enabling GPUs.')).toBeInTheDocument();
+
+    // Act
+    await userEvent.click(selectCompute);
+    await userEvent.click(screen.getByText(getMachineTypeLabel('Standard_DS2_v2')));
+
+    // Assert
+    expect(screen.queryByText('This VM is powered by an NVIDIA GPU. Learn more about enabling GPUs.')).not.toBeInTheDocument();
   });
 });
