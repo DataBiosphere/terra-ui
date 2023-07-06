@@ -418,7 +418,7 @@ describe('AzureComputeModal', () => {
     const selectCompute = screen.getByLabelText('Cloud compute profile');
     await userEvent.click(selectCompute);
 
-    await userEvent.click(screen.getByText(getMachineTypeLabel('Standard_F64s_v2')));
+    await userEvent.click(screen.getByText(getMachineTypeLabel('Standard_NC6s_v3')));
 
     // Assert
     expect(screen.getByText('This VM is powered by an NVIDIA GPU. Learn more about enabling GPUs.')).toBeInTheDocument();
