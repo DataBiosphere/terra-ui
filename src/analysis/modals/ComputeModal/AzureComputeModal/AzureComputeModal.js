@@ -23,6 +23,7 @@ import TitleBar from 'src/components/TitleBar';
 import { Ajax } from 'src/libs/ajax';
 import {
   azureMachineTypes,
+  azureMachineTypesWithGpu,
   defaultAzureComputeConfig,
   defaultAzureDiskSize,
   defaultAzureMachineType,
@@ -59,6 +60,7 @@ export const AzureComputeModalBase = ({
   const { namespace, name: workspaceName, workspaceId } = workspace.workspace;
   const persistentDiskExists = !!currentPersistentDiskDetails;
   const [deleteDiskSelected, setDeleteDiskSelected] = useState(false);
+  const [hasGpu, setHasGpu] = useState(false);
 
   // Lifecycle
   useOnMount(
@@ -143,6 +145,11 @@ export const AzureComputeModalBase = ({
     ]);
   };
 
+  const onChangeComputeConfig = (value) => {
+    setHasGpu(Object.keys(azureMachineTypesWithGpu).includes(value));
+    updateComputeConfig('machineType', value);
+  };
+
   const renderComputeProfileSection = () => {
     const autoPauseCheckboxEnabled = !doesRuntimeExist();
     const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' };
@@ -159,7 +166,9 @@ export const AzureComputeModalBase = ({
                   isSearchable: false,
                   isClearable: false,
                   value: computeConfig.machineType,
-                  onChange: ({ value }) => updateComputeConfig('machineType', value),
+                  onChange: ({ value }) => {
+                    onChangeComputeConfig(value);
+                  },
                   options: _.keys(azureMachineTypes),
                   getOptionLabel: ({ value }) => getMachineTypeLabel(value),
                   styles: { width: '400' },
@@ -167,6 +176,14 @@ export const AzureComputeModalBase = ({
               ]),
             ]),
         ]),
+        hasGpu &&
+          div({ style: { display: 'flex', marginTop: '.5rem' } }, [
+            icon('warning-standard', { size: 16, style: { color: colors.warning(), marginRight: '0.5rem' } }),
+            h(Link, { href: '', ...Utils.newTabLinkProps }, [
+              'This VM is powered by an NVIDIA GPU. Learn more about enabling GPUs.',
+              icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
+            ]),
+          ]),
         div({ style: { display: 'flex', marginTop: '.5rem' } }, [
           h(Link, { href: 'https://azure.microsoft.com/en-us/pricing/details/virtual-machines/series/', ...Utils.newTabLinkProps }, [
             'Learn more about cloud compute profiles',
