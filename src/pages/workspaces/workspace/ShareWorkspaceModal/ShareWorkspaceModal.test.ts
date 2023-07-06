@@ -98,14 +98,12 @@ describe('the share workspace modal', () => {
       },
     };
     mockAjax(acl, [], []);
-    act(() => {
-      render(
-        h(ShareWorkspaceModal, {
-          onDismiss: jest.fn(),
-          workspace,
-        })
-      );
-    });
+    render(
+      h(ShareWorkspaceModal, {
+        onDismiss: jest.fn(),
+        workspace,
+      })
+    );
     const email1 = await screen.findByText('user1@test.com');
     expect(email1).not.toBeNull();
     const email2 = await screen.findByText('user2@test.com');
@@ -140,14 +138,12 @@ describe('the share workspace modal', () => {
     });
     mockAjax(acl, [], [], updateAcl);
 
-    act(() => {
-      render(
-        h(ShareWorkspaceModal, {
-          onDismiss: () => {},
-          workspace,
-        })
-      );
-    });
+    render(
+      h(ShareWorkspaceModal, {
+        onDismiss: () => {},
+        workspace,
+      })
+    );
     const permissionSelect = await screen.findByLabelText(`permissions for ${'user2@test.com'}`);
     expect(permissionSelect).not.toBeNull();
     act(() => {
@@ -162,7 +158,7 @@ describe('the share workspace modal', () => {
     });
     const saveButton = await screen.findByText('Save');
     expect(saveButton).not.toBeNull();
-    act(() => {
+    await act(async () => {
       fireEvent.click(saveButton);
     });
 
@@ -191,14 +187,12 @@ describe('the share workspace modal', () => {
       throw err;
     });
     mockAjax(acl, [], [], updateAcl);
-    act(() => {
-      render(
-        h(ShareWorkspaceModal, {
-          onDismiss: () => {},
-          workspace,
-        })
-      );
-    });
+    render(
+      h(ShareWorkspaceModal, {
+        onDismiss: () => {},
+        workspace,
+      })
+    );
 
     const permissionSelect = await screen.findByLabelText(`permissions for ${'user2@test.com'}`);
     expect(permissionSelect).not.toBeNull();
@@ -214,7 +208,7 @@ describe('the share workspace modal', () => {
     });
     const saveButton = await screen.findByText('Save');
     expect(saveButton).not.toBeNull();
-    act(() => {
+    await act(async () => {
       fireEvent.click(saveButton);
     });
 
