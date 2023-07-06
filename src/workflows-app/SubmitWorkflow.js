@@ -33,6 +33,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     {
       name,
       namespace,
+      workspace,
       workspace: {
         workspace: { workspaceId },
       },
@@ -110,7 +111,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
               ),
               h(Fragment, [h(SavedWorkflows, { workspaceName: name, namespace, methodsData })]),
             ]),
-            viewFindWorkflowModal && h(FindWorkflowModal, { name, namespace, onDismiss: () => setViewFindWorkflowModal(false) }),
+            viewFindWorkflowModal && h(FindWorkflowModal, { name, namespace, workspace, onDismiss: () => setViewFindWorkflowModal(false) }),
           ]),
         ]);
   }
