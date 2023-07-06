@@ -2811,6 +2811,35 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@terra-ui-packages/components@*, @terra-ui-packages/components@workspace:packages/components":
+  version: 0.0.0-use.local
+  resolution: "@terra-ui-packages/components@workspace:packages/components"
+  dependencies:
+    "@terra-ui-packages/test-utils": "*"
+    "@types/jest": ^28.1.8
+    "@types/lodash": ^4.14.184
+    "@types/react": ^18.2.15
+    jest: ^27.4.3
+    lodash: ^4.17.21
+    react: 18.2.0
+    react-hyperscript-helpers: ^2.0.0
+  peerDependencies:
+    react: 18.2.0
+  languageName: unknown
+  linkType: soft
+
+"@terra-ui-packages/core-utils@workspace:packages/core-utils":
+  version: 0.0.0-use.local
+  resolution: "@terra-ui-packages/core-utils@workspace:packages/core-utils"
+  dependencies:
+    "@terra-ui-packages/test-utils": "*"
+    "@types/jest": ^28.1.8
+    "@types/lodash": ^4.14.184
+    jest: ^27.4.3
+    lodash: ^4.17.21
+  languageName: unknown
+  linkType: soft
+
 "@terra-ui-packages/test-utils@*, @terra-ui-packages/test-utils@workspace:packages/test-utils":
   version: 0.0.0-use.local
   resolution: "@terra-ui-packages/test-utils@workspace:packages/test-utils"
@@ -11749,6 +11778,7 @@ __metadata:
     "@fortawesome/free-solid-svg-icons": ^5.15.4
     "@fortawesome/react-fontawesome": ^0.1.15
     "@microlink/react-json-view": ^1.22.2
+    "@terra-ui-packages/components": "*"
     "@terra-ui-packages/test-utils": "*"
     "@testing-library/dom": ^9.3.1
     "@testing-library/react": ^14.0.0

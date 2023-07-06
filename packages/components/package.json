@@ -1,0 +1,24 @@
+{
+  "name": "@terra-ui-packages/components",
+  "version": "0.0.1",
+  "private": true,
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "jest"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "react-hyperscript-helpers": "^2.0.0"
+  },
+  "devDependencies": {
+    "@terra-ui-packages/test-utils": "*",
+    "@types/jest": "^28.1.8",
+    "@types/lodash": "^4.14.184",
+    "@types/react": "^18.2.15",
+    "jest": "^27.4.3",
+    "react": "18.2.0"
+  },
+  "peerDependencies": {
+    "react": "18.2.0"
+  }
+}

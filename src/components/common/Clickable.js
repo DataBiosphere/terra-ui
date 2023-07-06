@@ -1,7 +1,7 @@
+import { Interactive } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { containsUnlabelledIcon } from 'src/components/icons';
-import Interactive from 'src/components/Interactive';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { forwardRefWithName, useLabelAssert } from 'src/libs/react-utils';
 
