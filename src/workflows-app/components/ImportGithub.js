@@ -8,7 +8,6 @@ import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
 import * as Utils from 'src/libs/utils';
 import { withBusyState } from 'src/libs/utils';
-import { submitMethod } from 'src/workflows-app/components/method-common';
 import { getMethodVersionName, submitMethod } from 'src/workflows-app/components/method-common';
 import validate from 'validate.js';
 
