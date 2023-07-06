@@ -1,8 +1,16 @@
 import { div, h, p } from 'react-hyperscript-helpers';
+import { div, h, h4, p } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
+import { isCovid19Method } from 'src/workflows-app/components/submission-common';
+
+const HelpfulLinksBox = ({ method }) => {
+  return div(
+    { style: { backgroundColor: colors.accent(0.2), paddingTop: '0.25em', paddingBottom: '0.25em', paddingLeft: '1em', paddingRight: '1em' } },
+    [
+      h4('Have questions?'),
 import { isCovid19Method } from 'src/workflows-app/utils/method-common';
 
 const HelpfulLinksBox = ({ method }) => {
