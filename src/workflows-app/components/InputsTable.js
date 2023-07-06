@@ -5,14 +5,16 @@ import { AutoSizer } from 'react-virtualized';
 import { Link } from 'src/components/common';
 import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table';
 import * as Utils from 'src/libs/utils';
-import * as CbasUtils from 'src/libs/workflows-app-utils';
 import { StructBuilderModal } from 'src/workflows-app/components/StructBuilder';
 import {
   InputsButtonRow,
   InputSourceSelect,
+  inputTypeStyle,
+  isInputOptional,
   ParameterValueTextInput,
   parseMethodString,
   RecordLookupSelect,
+  renderTypeText,
   StructBuilderLink,
   typeMatch,
   WithWarnings,
@@ -34,9 +36,9 @@ const InputsTable = ({ selectedDataTable, configuredInputDefinition, setConfigur
       return _.flow([
         _.set('taskName', call || workflow || ''),
         _.set('variable', variable || ''),
-        _.set('inputTypeStr', CbasUtils.renderTypeText(row.input_type)),
+        _.set('inputTypeStr', renderTypeText(row.input_type)),
         _.set('configurationIndex', parseInt(index)),
-        _.set('optional', CbasUtils.isInputOptional(row.input_type)),
+        _.set('optional', isInputOptional(row.input_type)),
       ])(row);
     }),
     _.orderBy([({ variable }) => _.lowerCase(variable)], ['asc']),
@@ -96,7 +98,7 @@ const InputsTable = ({ selectedDataTable, configuredInputDefinition, setConfigur
   const sourceNone = (rowIndex) => {
     return h(
       TextCell,
-      { style: CbasUtils.inputTypeStyle(inputTableData[rowIndex].input_type) },
+      { style: inputTypeStyle(inputTableData[rowIndex].input_type) },
       Utils.cond(
         [
           _.some((input) => input.variable === inputTableData[rowIndex].variable)(inputRowsInDataTable),
@@ -184,7 +186,7 @@ const InputsTable = ({ selectedDataTable, configuredInputDefinition, setConfigur
                   headerRenderer: () =>
                     h(Sortable, { sort: inputTableSort, field: 'variable', onSort: setInputTableSort }, [h(HeaderCell, ['Variable'])]),
                   cellRenderer: ({ rowIndex }) => {
-                    return h(TextCell, { style: CbasUtils.inputTypeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].variable]);
+                    return h(TextCell, { style: inputTypeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].variable]);
                   },
                 },
                 {
@@ -192,9 +194,7 @@ const InputsTable = ({ selectedDataTable, configuredInputDefinition, setConfigur
                   field: 'inputTypeStr',
                   headerRenderer: () => h(HeaderCell, ['Type']),
                   cellRenderer: ({ rowIndex }) => {
-                    return h(TextCell, { style: CbasUtils.inputTypeStyle(inputTableData[rowIndex].input_type) }, [
-                      inputTableData[rowIndex].inputTypeStr,
-                    ]);
+                    return h(TextCell, { style: inputTypeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].inputTypeStr]);
                   },
                 },
                 {
