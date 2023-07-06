@@ -12,25 +12,21 @@ import Modal from 'src/components/Modal';
 import { PageBox } from 'src/components/PageBox';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
-import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { forwardRefWithName, memoWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
-import { getUser } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { resolveRunningCromwellAppUrl } from 'src/libs/workflows-app-utils';
-import { isAzureWorkspace } from 'src/libs/workspace-utils';
 import { DockstoreTile, MethodCard, MethodRepoTile } from 'src/pages/library/Code';
 import DeleteWorkflowConfirmationModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowConfirmationModal';
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal';
 import { methodLink } from 'src/pages/workspaces/workspace/workflows/methodLink';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
-const styles = {
+export const styles = {
   cardContainer: (listView) => ({
     display: 'flex',
     flexWrap: 'wrap',
@@ -327,7 +323,14 @@ const noWorkflowsMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
   ]),
 ]);
 
-export const GcpWorkflows = ({ namespace, name, ws, workspace, ref }) => {
+export const Workflows = _.flow(
+  forwardRefWithName('Workflows'),
+  wrapWorkspace({
+    breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
+    title: 'Workflows',
+    activeTab: 'workflows',
+  })
+)(({ namespace, name, workspace: ws, workspace: { workspace } }, ref) => {
   // State
   const [loading, setLoading] = useState(true);
   const [sortOrder, setSortOrder] = useState(() => StateHistory.get().sortOrder || defaultSort.value);
@@ -339,7 +342,6 @@ export const GcpWorkflows = ({ namespace, name, ws, workspace, ref }) => {
   const [findingWorkflow, setFindingWorkflow] = useState(false);
 
   const [listView, setListView] = useViewToggle('workflowsTab');
-
   const signal = useCancellation();
 
   // Helpers
@@ -477,49 +479,7 @@ export const GcpWorkflows = ({ namespace, name, ws, workspace, ref }) => {
       loading && spinnerOverlay,
     ]),
   ]);
-};
-
-export const Workflows = _.flow(
-  forwardRefWithName('Workflows'),
-  wrapWorkspace({
-    breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: 'Workflows',
-    activeTab: 'workflows',
-  })
-)(({ namespace, name, workspace: ws, workspace: { workspace } }, ref) => {
-  if (isAzureWorkspace(ws)) {
-    return h(AzureWorkflows, ws);
-  }
-
-  return h(GcpWorkflows, { namespace, name, ws, workspace, ref });
 });
-
-export const AzureWorkflows = ({ workspace }) => {
-  // State
-  const [cbasStatus, setCbasStatus] = useState();
-  const [cromwellStatus, setCromwellStatus] = useState();
-  const signal = useCancellation();
-
-  const loadCbasStatuses = _.flow(withErrorReporting('Error loading statuses'))(async () => {
-    const workspaceId = workspace.workspaceId;
-    const appUrl = (
-      await Apps(signal)
-        .listAppsV2(workspaceId)
-        .then((apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email))
-    ).cbasUrl;
-
-    const status = await Ajax(signal).Cbas.status(appUrl);
-    setCbasStatus(JSON.stringify(status.ok));
-    setCromwellStatus(JSON.stringify(status.systems.cromwell.ok));
-  });
-
-  // Lifecycle
-  useOnMount(() => {
-    loadCbasStatuses();
-  });
-
-  return div({}, [`CBAS: ${cbasStatus}\n Cromwell: ${cromwellStatus}`]);
-};
 
 export const navPaths = [
   {

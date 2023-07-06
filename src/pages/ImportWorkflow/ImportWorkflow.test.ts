@@ -6,6 +6,7 @@ import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { getUser } from 'src/libs/state';
+import { DeepPartial } from 'src/libs/type-utils/deep-partial';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
 
@@ -331,7 +332,7 @@ describe('ImportWorkflow', () => {
             methods: {
               post: mockPostMethodAppsFn,
             },
-          } as Partial<AjaxContract['Cbas']>,
+          } as DeepPartial<AjaxContract['Cbas']>,
           ...mockAjax,
         } as Partial<AjaxContract> as AjaxContract)
     );
