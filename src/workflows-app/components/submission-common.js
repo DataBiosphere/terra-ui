@@ -2,8 +2,9 @@ import _ from 'lodash/fp';
 import { div, h } from 'react-hyperscript-helpers';
 import { Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { TextInput } from 'src/components/input';
+import { DelayedSearchInput, TextInput } from 'src/components/input';
 import { statusType as jobStatusType } from 'src/components/job-common';
+import { InfoBox } from 'src/components/PopupTrigger';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
 import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
@@ -104,6 +105,70 @@ export const parseMethodString = (methodString) => {
     call: methodNameParts.length === 3 ? methodNameParts[1] : '',
     variable: methodNameParts[methodNameParts.length - 1],
   };
+};
+
+const inputButtonRowStyle = {
+  height: '2.5rem',
+  width: '100%',
+  display: 'flex',
+  alignItems: 'center',
+};
+
+export const InputsButtonRow = ({
+  optionalButtonProps: { includeOptionalInputs, setIncludeOptionalInputs },
+  setFromDataTableButtonProps: { inputRowsInDataTable, setConfiguredInputDefinition } = {},
+  searchProps: { searchFilter, setSearchFilter },
+  ...props
+}) => {
+  return h(div, { style: inputButtonRowStyle, ...props }, [
+    h(
+      Link,
+      {
+        style: { marginRight: 'auto' },
+        onClick: () => setIncludeOptionalInputs((includeOptionalInputs) => !includeOptionalInputs),
+      },
+      [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs']
+    ),
+    inputRowsInDataTable &&
+      div({}, [
+        h(
+          Link,
+          {
+            style: { marginLeft: 'auto', marginRight: '0.5rem' },
+            onClick: () =>
+              setConfiguredInputDefinition(
+                _.reduce(
+                  (defSoFar, row) => _.set(`[${row.configurationIndex}].source`, { type: 'record_lookup', record_attribute: row.variable }, defSoFar),
+                  _,
+                  inputRowsInDataTable
+                )
+              ),
+          },
+          [`Autofill (${inputRowsInDataTable.length}) from data table`]
+        ),
+        h(
+          InfoBox,
+          {
+            side: 'top',
+          },
+          [
+            div({ style: { maxHeight: 105, overflow: 'auto' } }, [
+              `Inputs that can be auto-filled:\n${_.flow(
+                _.map((row) => `${row.taskName}.${row.variable}`),
+                _.join('\n')
+              )(inputRowsInDataTable)}`,
+            ]),
+          ]
+        ),
+      ]),
+    h(DelayedSearchInput, {
+      style: { marginLeft: '1rem', width: 200 },
+      value: searchFilter,
+      onChange: setSearchFilter,
+      'aria-label': 'Search inputs',
+      placeholder: 'SEARCH INPUTS',
+    }),
+  ]);
 };
 
 export const inputSourceLabels = {
@@ -517,7 +582,7 @@ const validateInput = (input, dataTableAttributes) => {
     return requiredHasSource;
   }
   // then validate that record lookups are good (exist in table)
-  const validRecordLookup = validateRecordLookup(input.source, _.keys(dataTableAttributes));
+  const validRecordLookup = validateRecordLookup(input.source, inputType, dataTableAttributes);
   if (validRecordLookup !== true) {
     return validRecordLookup;
   }
