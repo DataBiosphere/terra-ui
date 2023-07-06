@@ -134,14 +134,14 @@ export const navList = {
     textTransform: 'uppercase',
     borderBottom: `0.5px solid ${colors.dark(0.2)}`,
   },
-  itemContainer: (selected) => ({
+  itemContainer: (selected, ...isAzure) => ({
     display: 'flex',
     alignItems: 'center',
     flex: 'none',
     width: '100%',
     height: 50,
     padding: '0 1.5rem',
-    backgroundColor: 'white',
+    backgroundColor: !isAzure ? 'white' : undefined,
     borderBottom: `1px solid ${colors.dark(0.2)}`,
     boxShadow: selected ? `inset -10px 0px ${terraSpecial()}` : undefined,
   }),
