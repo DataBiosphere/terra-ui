@@ -6,12 +6,14 @@ import { ButtonPrimary, Link } from 'src/components/common';
 import Modal from 'src/components/Modal';
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table';
 import * as Utils from 'src/libs/utils';
-import * as CbasUtils from 'src/libs/workflows-app-utils';
 import {
   InputsButtonRow,
   InputSourceSelect,
+  inputTypeStyle,
+  isInputOptional,
   ParameterValueTextInput,
   RecordLookupSelect,
+  renderTypeText,
   StructBuilderLink,
   typeMatch,
   validateInputs,
@@ -71,9 +73,9 @@ export const StructBuilder = (props) => {
     _.entries,
     _.map(([index, row]) => {
       return _.flow([
-        _.set('inputTypeStr', CbasUtils.renderTypeText(row.field_type)),
+        _.set('inputTypeStr', renderTypeText(row.field_type)),
         _.set('configurationIndex', parseInt(index)),
-        _.set('optional', CbasUtils.isInputOptional(row.field_type)),
+        _.set('optional', isInputOptional(row.field_type)),
       ])(row);
     }),
     _.orderBy([({ field_name: name }) => _.lowerCase(name)], ['asc']),
@@ -149,9 +151,7 @@ export const StructBuilder = (props) => {
                   field: 'field',
                   headerRenderer: () => h(HeaderCell, ['Variable']),
                   cellRenderer: ({ rowIndex }) => {
-                    return h(TextCell, { style: CbasUtils.inputTypeStyle(inputTableData[rowIndex].field_type) }, [
-                      inputTableData[rowIndex].field_name,
-                    ]);
+                    return h(TextCell, { style: inputTypeStyle(inputTableData[rowIndex].field_type) }, [inputTableData[rowIndex].field_name]);
                   },
                 },
                 {
@@ -159,9 +159,7 @@ export const StructBuilder = (props) => {
                   field: 'type',
                   headerRenderer: () => h(HeaderCell, ['Type']),
                   cellRenderer: ({ rowIndex }) => {
-                    return h(TextCell, { style: CbasUtils.inputTypeStyle(inputTableData[rowIndex].field_type) }, [
-                      inputTableData[rowIndex].inputTypeStr,
-                    ]);
+                    return h(TextCell, { style: inputTypeStyle(inputTableData[rowIndex].field_type) }, [inputTableData[rowIndex].inputTypeStr]);
                   },
                 },
                 {
@@ -238,7 +236,7 @@ export const StructBuilder = (props) => {
                         [
                           'none',
                           () =>
-                            h(TextCell, { style: CbasUtils.inputTypeStyle(inputTableData[rowIndex].field_type) }, [
+                            h(TextCell, { style: inputTypeStyle(inputTableData[rowIndex].field_type) }, [
                               inputTableData[rowIndex].optional ? 'Optional' : 'This input is required',
                             ]),
                         ]
