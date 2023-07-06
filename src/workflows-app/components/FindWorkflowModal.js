@@ -85,7 +85,7 @@ const FindWorkflowModal = ({ onDismiss, workspace }) => {
   return h(
     ModalDrawer,
     {
-      'aria-label': 'find-workflow-modal',
+      'aria-label': 'Find a Workflow Modal',
       isOpen: true,
       width: '70%',
       onDismiss,
