@@ -8,6 +8,7 @@ import colors from 'src/libs/colors';
 import { DEFAULT, switchCase } from 'src/libs/utils';
 
 export type RowContents = {
+  id: number;
   isLeaf: boolean;
 };
 
@@ -17,20 +18,22 @@ export type Column<T extends RowContents> = {
   render: (row: T) => string | ReactNode;
 };
 
-export type Row<T extends RowContents> = {
+type RowState = 'closed' | 'opening' | 'open';
+
+type Row<T extends RowContents> = {
   contents: T;
   depth: number;
   isVisible: boolean;
-  isExpanded: boolean;
+  state: RowState;
 };
 
 const wrapContent =
-  (depth: number) =>
+  (depth: number, isVisible: boolean) =>
   <T extends RowContents>(contents: T): Row<T> => ({
     contents,
     depth,
-    isVisible: true,
-    isExpanded: false,
+    isVisible,
+    state: 'closed',
   });
 
 export type TreeGridProps<T extends RowContents> = {
@@ -40,21 +43,36 @@ export type TreeGridProps<T extends RowContents> = {
 };
 
 // TODO
-//  - column headers
 //  - props arguments for row height, no content message
 //  - collapse by hiding, not by deleting and preserve expansion state
-//  - pending indicator for async children fetch
+//  - UX, styling
 //  - auto-size based on content (?)
 export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
   const { columns, initialRows, getChildren } = props;
-  const [data, setData] = useState(_.map(wrapContent(0), initialRows));
+  const [data, setData] = useState(_.map(wrapContent(0, true), initialRows));
   const rowHeight = 48;
   const expand = async (row: Row<T>) => {
+    // Mark as loading.
+    setData((currentData) => {
+      const index = _.findIndex((r) => r.contents.id === row.contents.id, data);
+      return _.flow(_.cloneDeep, _.set(`[${index}].state`, 'opening'))(currentData);
+    });
+
+    // Fetch children.
     const children = await getChildren(row.contents);
-    const index = _.findIndex(_.isEqual(row), data);
-    const newData = _.set(`[${index}].isExpanded`, true, _.cloneDeep(data));
-    newData.splice(index + 1, 0, ..._.map(wrapContent(row.depth + 1), children));
-    setData(newData);
+
+    // Mark as loaded and insert children.
+    setData((currentData) => {
+      const index = _.findIndex((r) => r.contents.id === row.contents.id, data);
+      // Node was deleted while loading.
+      if (index === -1) {
+        return currentData;
+      }
+      const currentRow = currentData[index];
+      const newData = _.flow(_.cloneDeep, _.set(`[${index}].state`, 'open'))(currentData);
+      newData.splice(index + 1, 0, ..._.map(wrapContent(currentRow.depth + 1, currentRow.isVisible), children));
+      return newData;
+    });
   };
   const collapse = async (row: Row<T>) => {
     const index = _.findIndex(_.isEqual(row), data);
@@ -63,7 +81,7 @@ export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
       _.slice(index + 1, data.length),
       _.dropWhile((dataRow: Row<T>) => dataRow.depth > row.depth)
     )(data);
-    setData([...before, { ...row, isExpanded: false }, ...after]);
+    setData([...before, { ...row, state: 'closed' }, ...after]);
   };
 
   return h(Grid, {
@@ -74,26 +92,40 @@ export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
     columnWidth: (index) => columns[index.index].width,
     width: _.sum(_.map((c) => c.width, columns)),
     noContentMessage: 'No matching data',
-    cellRenderer: ({ rowIndex, columnIndex, style }) =>
-      div({ style: { ...style, borderTop: `1px solid ${colors.dark(0.3)}`, paddingTop: 5, alignItems: 'center' } }, [
-        switchCase(
-          columnIndex,
-          [
-            0,
-            () =>
-              div({ style: { paddingLeft: `${data[rowIndex].depth}rem`, display: 'flex' } }, [
-                !data[rowIndex].contents.isLeaf &&
-                  (data[rowIndex].isExpanded
-                    ? h(Link, { onClick: () => collapse(data[rowIndex]) }, [icon('angle-up', { size: 16 })])
-                    : h(Link, { onClick: () => expand(data[rowIndex]) }, [icon('angle-down', { size: 16 })])),
-                div({ style: { display: 'flex', marginLeft: data[rowIndex].contents.isLeaf ? 20 : 4 } }, [
-                  columns[columnIndex].render(data[rowIndex].contents),
+    cellRenderer: ({ rowIndex, columnIndex, style }) => {
+      const row = data[rowIndex];
+      const [handler, iconName] = (() => {
+        switch (row.state) {
+          case 'closed':
+            return [expand, 'angle-up'];
+          case 'opening':
+            return [_.noop, 'loadingSpinner'];
+          case 'open':
+          default:
+            return [collapse, 'angle-down'];
+        }
+      })();
+      return div(
+        { style: { ...style, borderTop: `1px solid ${colors.dark(0.3)}`, paddingTop: 5, alignItems: 'center' } },
+        [
+          switchCase(
+            columnIndex,
+            [
+              0,
+              () =>
+                div({ style: { paddingLeft: `${row.depth}rem`, display: 'flex' } }, [
+                  !data[rowIndex].contents.isLeaf &&
+                    h(Link, { onClick: () => handler(row) }, [icon(iconName, { size: 16 })]),
+                  div({ style: { display: 'flex', marginLeft: row.contents.isLeaf ? 20 : 4 } }, [
+                    columns[columnIndex].render(row.contents),
+                  ]),
                 ]),
-              ]),
-          ],
-          [DEFAULT, () => columns[columnIndex].render(data[rowIndex].contents)]
-        ),
-      ]),
+            ],
+            [DEFAULT, () => columns[columnIndex].render(row.contents)]
+          ),
+        ]
+      );
+    },
     border: false,
   });
 };

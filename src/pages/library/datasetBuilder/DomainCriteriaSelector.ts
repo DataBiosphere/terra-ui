@@ -85,24 +85,25 @@ export const DomainCriteriaSelector: React.FC<DomainSelectorProps> = (props) => 
           getChildren,
         })
       : spinnerOverlay,
-    div({ style: { display: 'float' } }, [
-      cart.length === 1 ? '1 concept selected' : `${cart.length} concepts selected`,
-      h(
-        ButtonPrimary,
-        {
-          onClick: () => {
-            const cartCriteria = _.map(_.flow(getConceptForId, conceptToCriteria(state.domainOption)), cart);
-            const groupIndex = _.findIndex({ name: state.criteriaGroup.name }, state.cohort.criteriaGroups);
-            // add/remove all cart elements to the domain group's criteria list in the cohort
-            _.flow(
-              _.update(`criteriaGroups.${groupIndex}.criteria`, _.xor(cartCriteria)),
-              cohortEditorState.new,
-              onStateChange
-            )(state.cohort);
+    cart.length !== 0 &&
+      div({ style: { display: 'float' } }, [
+        cart.length === 1 ? '1 concept selected' : `${cart.length} concepts selected`,
+        h(
+          ButtonPrimary,
+          {
+            onClick: () => {
+              const cartCriteria = _.map(_.flow(getConceptForId, conceptToCriteria(state.domainOption)), cart);
+              const groupIndex = _.findIndex({ name: state.criteriaGroup.name }, state.cohort.criteriaGroups);
+              // add/remove all cart elements to the domain group's criteria list in the cohort
+              _.flow(
+                _.update(`criteriaGroups.${groupIndex}.criteria`, _.xor(cartCriteria)),
+                cohortEditorState.new,
+                onStateChange
+              )(state.cohort);
+            },
           },
-        },
-        ['Add to group']
-      ),
-    ]),
+          ['Add to group']
+        ),
+      ]),
   ]);
 };

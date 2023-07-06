@@ -72,6 +72,7 @@ export interface DatasetBuilderContract {
 type AccessLevel = 'Owner' | 'Reader' | 'Discoverer';
 
 const dummyConcepts = [
+  // IDs must be unique.
   { id: 100, name: 'Condition', count: 100, isLeaf: false },
   { id: 101, name: 'Clinical Finding', count: 100, isLeaf: false },
   { id: 102, name: 'Heart Disease', count: 100, isLeaf: true },
@@ -206,7 +207,9 @@ export const getConceptForId = (id: number): Concept => {
   return dummyConcepts.find((c) => c.id === id)!;
 };
 
-const getDummyConcepts = (parent: Concept): GetConceptsResponse => {
+const getDummyConcepts = async (parent: Concept): Promise<GetConceptsResponse> => {
+  // Use a 1s delay to simulate server response time.
+  await new Promise((resolve) => setTimeout(resolve, 1000));
   return {
     result: _.flow(
       _.filter(([_childId, parentId]) => parent.id === parentId),

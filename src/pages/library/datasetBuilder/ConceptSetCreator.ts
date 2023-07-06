@@ -4,7 +4,7 @@ import { div, h } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TreeGridView } from 'src/components/TreeGrid';
-import { Concept, DatasetBuilder, DatasetResponse, getConceptForId } from 'src/libs/ajax/DatasetBuilder';
+import { Concept, DatasetBuilder, DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
 import { OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 
 const getChildren = async (concept: Concept): Promise<Concept[]> => {
@@ -37,11 +37,12 @@ export const ConceptSetCreator: React.FC<ConceptSetCreatorProps> = (props) => {
         { name: 'Concept ID', width: 195, render: _.get('id') },
         { name: 'Roll-up count', width: 205, render: _.get('count') },
       ],
-      initialRows: _.map(_.flow((option) => option.root, getConceptForId))(datasetDetails.domainOptions),
+      initialRows: _.map(_.get('root'), datasetDetails.domainOptions),
       getChildren,
     }),
-    div({ style: { display: 'float' } }, [
-      cart.length === 1 ? '1 concept selected' : `${cart.length} concepts selected`,
-    ]),
+    cart.length !== 0 &&
+      div({ style: { display: 'float' } }, [
+        cart.length === 1 ? '1 concept selected' : `${cart.length} concepts selected`,
+      ]),
   ]);
 };
