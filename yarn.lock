@@ -1870,6 +1870,38 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@databiosphere/components@*, @databiosphere/components@workspace:packages/components":
+  version: 0.0.0-use.local
+  resolution: "@databiosphere/components@workspace:packages/components"
+  dependencies:
+    "@databiosphere/core-utils": ^0.0.1
+    "@types/jest": ^28.1.8
+    "@types/lodash": ^4.14.184
+    "@types/react": ^18.0.18
+    jest: ^27.4.3
+    jest-axe: ^6.0.0
+    jest-watch-typeahead: ^1.0.0
+    lodash: ^4.17.21
+    react: 17.0.2
+    react-hyperscript-helpers: ^2.0.0
+  peerDependencies:
+    react: 17.0.2
+  languageName: unknown
+  linkType: soft
+
+"@databiosphere/core-utils@^0.0.1, @databiosphere/core-utils@workspace:packages/core-utils":
+  version: 0.0.0-use.local
+  resolution: "@databiosphere/core-utils@workspace:packages/core-utils"
+  dependencies:
+    "@types/jest": ^28.1.8
+    "@types/lodash": ^4.14.184
+    jest: ^27.4.3
+    jest-axe: ^6.0.0
+    jest-watch-typeahead: ^1.0.0
+    lodash: ^4.17.21
+  languageName: unknown
+  linkType: soft
+
 "@emotion/cache@npm:^11.4.0":
   version: 11.4.0
   resolution: "@emotion/cache@npm:11.4.0"
@@ -12290,6 +12322,7 @@ __metadata:
     "@axe-core/react": ^4.6.1
     "@babel/core": ^7.16.0
     "@databiosphere/bard-client": ^0.1.0
+    "@databiosphere/components": "*"
     "@fortawesome/fontawesome-svg-core": ^1.2.36
     "@fortawesome/free-regular-svg-icons": ^5.15.4
     "@fortawesome/free-solid-svg-icons": ^5.15.4

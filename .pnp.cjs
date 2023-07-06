@@ -23,11 +23,21 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
       {\
         "name": "terra-integration-tests",\
         "reference": "workspace:integration-tests"\
+      },\
+      {\
+        "name": "@databiosphere/components",\
+        "reference": "workspace:packages/components"\
+      },\
+      {\
+        "name": "@databiosphere/core-utils",\
+        "reference": "workspace:packages/core-utils"\
       }\
     ],\
     "enableTopLevelFallback": true,\
     "ignorePatternData": "(^(?:\\\\.yarn\\\\/sdks(?:\\\\/(?!\\\\.{1,2}(?:\\\\/|$))(?:(?:(?!(?:^|\\\\/)\\\\.{1,2}(?:\\\\/|$)).)*?)|$))$)",\
     "fallbackExclusionList": [\
+      ["@databiosphere/components", ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/components", "workspace:packages/components"]],\
+      ["@databiosphere/core-utils", ["workspace:packages/core-utils"]],\
       ["terra-integration-tests", ["workspace:integration-tests"]],\
       ["terra-ui", ["workspace:."]]\
     ],\
@@ -41,6 +51,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@axe-core/react", "npm:4.6.1"],\
             ["@babel/core", "npm:7.21.0"],\
             ["@databiosphere/bard-client", "npm:0.1.0"],\
+            ["@databiosphere/components", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/components"],\
             ["@fortawesome/fontawesome-svg-core", "npm:1.2.36"],\
             ["@fortawesome/free-regular-svg-icons", "npm:5.15.4"],\
             ["@fortawesome/free-solid-svg-icons", "npm:5.15.4"],\
@@ -3506,6 +3517,61 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@databiosphere/bard-client", "npm:0.1.0"]\
           ],\
           "linkType": "HARD"\
+        }]\
+      ]],\
+      ["@databiosphere/components", [\
+        ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/components", {\
+          "packageLocation": "./.yarn/__virtual__/@databiosphere-components-virtual-41edf6d8c3/1/packages/components/",\
+          "packageDependencies": [\
+            ["@databiosphere/components", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/components"],\
+            ["@databiosphere/core-utils", "workspace:packages/core-utils"],\
+            ["@types/jest", "npm:28.1.8"],\
+            ["@types/lodash", "npm:4.14.184"],\
+            ["@types/react", "npm:18.0.18"],\
+            ["jest", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:27.5.1"],\
+            ["jest-axe", "npm:6.0.0"],\
+            ["jest-watch-typeahead", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:1.0.0"],\
+            ["lodash", "npm:4.17.21"],\
+            ["react", "npm:17.0.2"],\
+            ["react-hyperscript-helpers", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.0.0"]\
+          ],\
+          "packagePeers": [\
+            "@types/react",\
+            "react"\
+          ],\
+          "linkType": "SOFT"\
+        }],\
+        ["workspace:packages/components", {\
+          "packageLocation": "./packages/components/",\
+          "packageDependencies": [\
+            ["@databiosphere/components", "workspace:packages/components"],\
+            ["@databiosphere/core-utils", "workspace:packages/core-utils"],\
+            ["@types/jest", "npm:28.1.8"],\
+            ["@types/lodash", "npm:4.14.184"],\
+            ["@types/react", "npm:18.0.18"],\
+            ["jest", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:27.5.1"],\
+            ["jest-axe", "npm:6.0.0"],\
+            ["jest-watch-typeahead", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:1.0.0"],\
+            ["lodash", "npm:4.17.21"],\
+            ["react", "npm:17.0.2"],\
+            ["react-hyperscript-helpers", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.0.0"]\
+          ],\
+          "linkType": "SOFT"\
+        }]\
+      ]],\
+      ["@databiosphere/core-utils", [\
+        ["workspace:packages/core-utils", {\
+          "packageLocation": "./packages/core-utils/",\
+          "packageDependencies": [\
+            ["@databiosphere/core-utils", "workspace:packages/core-utils"],\
+            ["@types/jest", "npm:28.1.8"],\
+            ["@types/lodash", "npm:4.14.184"],\
+            ["jest", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:27.5.1"],\
+            ["jest-axe", "npm:6.0.0"],\
+            ["jest-watch-typeahead", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:1.0.0"],\
+            ["lodash", "npm:4.17.21"]\
+          ],\
+          "linkType": "SOFT"\
         }]\
       ]],\
       ["@emotion/cache", [\
@@ -16640,6 +16706,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@axe-core/react", "npm:4.6.1"],\
             ["@babel/core", "npm:7.21.0"],\
             ["@databiosphere/bard-client", "npm:0.1.0"],\
+            ["@databiosphere/components", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/components"],\
             ["@fortawesome/fontawesome-svg-core", "npm:1.2.36"],\
             ["@fortawesome/free-regular-svg-icons", "npm:5.15.4"],\
             ["@fortawesome/free-solid-svg-icons", "npm:5.15.4"],\

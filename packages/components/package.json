@@ -1,0 +1,60 @@
+{
+  "name": "@databiosphere/components",
+  "version": "0.0.1",
+  "private": true,
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "jest"
+  },
+  "dependencies": {
+    "@databiosphere/core-utils": "^0.0.1",
+    "lodash": "^4.17.21",
+    "react-hyperscript-helpers": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^28.1.8",
+    "@types/lodash": "^4.14.184",
+    "@types/react": "^18.0.18",
+    "jest": "^27.4.3",
+    "jest-axe": "^6.0.0",
+    "jest-watch-typeahead": "^1.0.0",
+    "react": "17.0.2"
+  },
+  "peerDependencies": {
+    "react": "17.0.2"
+  },
+  "jest": {
+    "roots": [
+      "<rootDir>/src"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.{js,jsx,ts,tsx}",
+      "!src/**/*.d.ts"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/../../jest/setupTests.js"
+    ],
+    "testMatch": [
+      "<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}",
+      "<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}"
+    ],
+    "testEnvironment": "jsdom",
+    "transform": {
+      "^.+\\.(js|jsx|mjs|cjs|ts|tsx)$": "<rootDir>/../../jest/babelTransform.js",
+      "^.+\\.css$": "<rootDir>/../../jest/cssTransform.js",
+      "^(?!.*\\.(js|jsx|mjs|cjs|ts|tsx|css|json)$)": "<rootDir>/../../jest/fileTransform.js"
+    },
+    "transformIgnorePatterns": [],
+    "modulePaths": [],
+    "moduleNameMapper": {
+      "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy",
+      "^src/(.*)$": "<rootDir>/src/$1"
+    },
+    "watchPlugins": [
+      "jest-watch-typeahead/filename",
+      "jest-watch-typeahead/testname"
+    ],
+    "resetMocks": false,
+    "clearMocks": true
+  }
+}

@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@databiosphere/bard-client": "^0.1.0",
+    "@databiosphere/components": "*",
     "@fortawesome/fontawesome-svg-core": "^1.2.36",
     "@fortawesome/free-regular-svg-icons": "^5.15.4",
     "@fortawesome/free-solid-svg-icons": "^5.15.4",
@@ -155,6 +156,7 @@
   },
   "packageManager": "yarn@3.2.3",
   "workspaces": [
+    "packages/*",
     "integration-tests"
   ],
   "jest": {
@@ -166,6 +168,7 @@
       "!src/**/*.d.ts"
     ],
     "setupFilesAfterEnv": [
+      "<rootDir>/jest/setupTests.js",
       "<rootDir>/src/setupTests.js"
     ],
     "testMatch": [
