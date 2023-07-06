@@ -484,4 +484,8 @@ describe('Workflow input type helpers', () => {
     expect(inputTypeStyle(inputType)).toStrictEqual(inputStyle);
     expect(renderTypeText(inputType)).toStrictEqual(inputTypeStr);
   });
+
+  it('Unsupported type recognized', () => {
+    expect(renderTypeText({ type: 'foo' })).toStrictEqual('Unsupported Type');
+  });
 });
