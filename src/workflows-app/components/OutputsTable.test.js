@@ -1,12 +1,15 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import OutputsTable from 'src/workflows-app/components/OutputsTable';
 import { runSetOutputDef, runSetOutputDefWithDefaults } from 'src/workflows-app/components/test-data';
 
-const setupOutputTableTest = ({ configuredOutputDefinition = runSetOutputDef, renderFn = render } = {}) => {
-  const setConfiguredOutputDefinition = jest.fn();
-
+const setupOutputTableTest = ({
+  configuredOutputDefinition = runSetOutputDef,
+  setConfiguredOutputDefinition = jest.fn(),
+  renderFn = render,
+} = {}) => {
   const { rerender } = renderFn(
     h(OutputsTable, {
       configuredOutputDefinition,
@@ -17,14 +20,16 @@ const setupOutputTableTest = ({ configuredOutputDefinition = runSetOutputDef, re
   setConfiguredOutputDefinition.mockImplementation((newOutputDefinitionOrFn) => {
     const newOutputDefinition =
       typeof newOutputDefinitionOrFn === 'function' ? newOutputDefinitionOrFn(configuredOutputDefinition) : newOutputDefinitionOrFn;
-    return setupOutputTableTest({
+    setupOutputTableTest({
       configuredOutputDefinition: newOutputDefinition,
+      setConfiguredOutputDefinition,
       renderFn: rerender,
     });
+    return newOutputDefinition;
   });
 
   return {
-    configuredOutputDefinition,
+    getConfiguredOutputDefinition: () => setConfiguredOutputDefinition(_.identity),
     setConfiguredOutputDefinition,
   };
 };
@@ -40,7 +45,7 @@ describe('Output table', () => {
   });
 
   it('should set output variable names when set defaults button is clicked', async () => {
-    const { setConfiguredOutputDefinition } = setupOutputTableTest();
+    const { getConfiguredOutputDefinition } = setupOutputTableTest();
 
     const table = await screen.findByRole('table');
     const rows = within(table).queryAllByRole('row');
@@ -64,7 +69,7 @@ describe('Output table', () => {
       await userEvent.click(within(headers[3]).getByRole('button'));
     });
 
-    expect(setConfiguredOutputDefinition).toHaveBeenCalledWith(runSetOutputDefWithDefaults);
+    expect(getConfiguredOutputDefinition()).toStrictEqual(runSetOutputDefWithDefaults);
 
     // default values
     within(cells1[0]).getByText('target_workflow_1');
