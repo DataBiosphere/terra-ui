@@ -75,7 +75,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     return loading
       ? centeredSpinner()
       : div([
-          div({ style: { margin: '4rem' } }, [
+          div({ style: { margin: '2rem 4rem' } }, [
             div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
               h2(['Submit a workflow']),
               h(
