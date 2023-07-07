@@ -1,4 +1,4 @@
-import { workspaceAccessLevels } from 'src/libs/utils';
+import { workspaceAccessLevels } from 'src/libs/workspace-utils';
 import {
   aclEntryIsTerraSupport,
   RawWorkspaceAcl,

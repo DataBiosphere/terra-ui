@@ -38,6 +38,10 @@ export const isGoogleWorkspaceInfo = (workspace: WorkspaceInfo): workspace is Go
 
 export type WorkspaceAccessLevel = 'PROJECT_OWNER' | 'OWNER' | 'WRITER' | 'READER' | 'NO ACCESS';
 
+export const hasAccessLevel = (required: WorkspaceAccessLevel, current: WorkspaceAccessLevel): boolean => {
+  return workspaceAccessLevels.indexOf(current) >= workspaceAccessLevels.indexOf(required);
+};
+
 export interface BaseWorkspace {
   accessLevel: WorkspaceAccessLevel;
   canShare: boolean;

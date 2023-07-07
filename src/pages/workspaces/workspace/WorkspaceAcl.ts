@@ -1,6 +1,5 @@
 import _ from 'lodash/fp';
-import { workspaceAccessLevels } from 'src/libs/utils';
-import { WorkspaceAccessLevel } from 'src/libs/workspace-utils';
+import { WorkspaceAccessLevel, workspaceAccessLevels } from 'src/libs/workspace-utils';
 
 // a map of email -> AccessEntry
 export type RawWorkspaceAcl = { [key: string]: RawAccessEntry };

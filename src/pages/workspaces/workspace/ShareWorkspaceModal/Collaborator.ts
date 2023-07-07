@@ -7,7 +7,7 @@ import { getPopupRoot } from 'src/components/popup-utils';
 import colors from 'src/libs/colors';
 import { getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { BaseWorkspace, isAzureWorkspace, WorkspaceAccessLevel } from 'src/libs/workspace-utils';
+import { BaseWorkspace, hasAccessLevel, isAzureWorkspace, WorkspaceAccessLevel } from 'src/libs/workspace-utils';
 import { AccessEntry, WorkspaceAcl } from 'src/pages/workspaces/workspace/WorkspaceAcl';
 
 /**
@@ -107,7 +107,7 @@ export const AclInput = ({
         isSearchable: false,
         isDisabled: disabled,
         getOptionLabel: (o) => Utils.normalizeLabel(o.value),
-        isOptionDisabled: (o) => !Utils.hasAccessLevel(o.value, maxAccessLevel),
+        isOptionDisabled: (o) => !hasAccessLevel(o.value, maxAccessLevel),
         value: accessLevel,
         onChange: (o) =>
           onChange({
