@@ -10,22 +10,26 @@ import * as Utils from 'src/libs/utils';
 import { BaseWorkspace, isAzureWorkspace, WorkspaceAccessLevel } from 'src/libs/workspace-utils';
 import { AccessEntry, WorkspaceAcl } from 'src/pages/workspaces/workspace/WorkspaceAcl';
 
+/**
+ * @param aclItem {AccessEntry} the item to render
+ * @param acl {WorkspaceAcl} the entire current Access Control List
+ * @param setAcl {Dispatch<SetStateAction<WorkspaceAcl>>} called to modify the Access Control list when the aclItem changes or is removed
+ * @param originalAcl {WorkspaceAcl} the original acl, to determine new items
+ * @param workspace {BaseWorkspace} the workspace the acl belongs to
+ * @param lastAddedEmail {string | undefined}  the most recently added email to the list
+ */
 interface CollaboratorProps {
-  aclItem: AccessEntry; // the item to render
-  acl: WorkspaceAcl; // the entire current acl
+  aclItem: AccessEntry;
+  acl: WorkspaceAcl;
   setAcl: Dispatch<SetStateAction<WorkspaceAcl>>;
-  originalAcl: WorkspaceAcl; // the original acl, to determine new items
-  workspace: BaseWorkspace; // the workspace the acl belongs to
-  lastAddedEmail?: string; // the most recently added email to the list
+  originalAcl: WorkspaceAcl;
+  workspace: BaseWorkspace;
+  lastAddedEmail?: string;
 }
 
-/**
- *  Note: the select menu of each Collaborator item NOT focusable via keyboard
- *  tab will only focus on the remove buttons
- */
 export const Collaborator = ({ originalAcl, aclItem, acl, setAcl, workspace, lastAddedEmail }: CollaboratorProps) => {
   const { email, accessLevel, pending } = aclItem;
-  const POAccessLevel = 'PROJECT_OWNER';
+  const POAccessLevel: WorkspaceAccessLevel = 'PROJECT_OWNER';
   const disabled = accessLevel === POAccessLevel || email === getUser().email;
   const isOld = _.find({ email }, originalAcl);
 
