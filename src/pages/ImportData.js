@@ -2,7 +2,7 @@ import _ from 'lodash/fp';
 import { Fragment, useCallback, useState } from 'react';
 import { div, h, h2, img, li, p, span, strong, ul } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
-import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, RadioButton, spinnerOverlay } from 'src/components/common';
+import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, RadioButton, spinnerOverlay } from 'src/components/common';
 import { notifyDataImportProgress } from 'src/components/data/data-utils';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon, wdlIcon } from 'src/components/icons';
@@ -97,7 +97,7 @@ const ResponseFragment = ({ title, snapshotResponses, responseIndex }) => {
 
 const ImportDataOverview = ({ header, snapshots, isDataset, snapshotResponses, url, format }) =>
   div({ style: styles.card }, [
-    h2({ style: styles.title }, [header]),
+    h2({ style: styles.title, tabindex: 0 }, [header]),
     !_.isEmpty(snapshots)
       ? div({ style: { marginTop: 20, marginBottom: 60 } }, [
           'Dataset(s):',
@@ -127,8 +127,18 @@ const ImportDataOverview = ({ header, snapshots, isDataset, snapshotResponses, u
       Utils.cond(
         [
           isProtected(url, format),
-          () =>
-            '⚠️ The data you chose to import to Terra are identified as protected and require additional security settings. Please select a workspace that has an Authorization Domain and/or protected data setting. Learn more.',
+          () => [
+            '⚠️ The data you chose to import to Terra are identified as protected and require additional security settings. Please select a workspace that has an Authorization Domain and/or protected data setting.',
+            h(
+              Link,
+              {
+                style: { marginLeft: '1rem', verticalAlign: 'middle' },
+                href: 'https://support.terra.bio/hc/en-us/articles/360026775691-Overview-Managing-access-to-controlled-data-with-Authorization-Domains',
+                ...Utils.newTabLinkProps,
+              },
+              ['Learn more ', icon('pop-out', { size: 12 })]
+            ),
+          ],
         ],
         () => `The ${isDataset ? 'dataset' : 'snapshot'}(s) you just chose to import to Terra will be made available to you `,
         'within a workspace of your choice where you can then perform analysis.'
@@ -512,7 +522,7 @@ const ImportData = () => {
         alt: '',
         style: { position: 'fixed', top: 0, left: 0, zIndex: -1 },
       }),
-      h(ImportDataOverview, { snapshots, snapshotResponses, url, isDataset, header, format }),
+      h(ImportDataOverview, { header, snapshots, isDataset, snapshotResponses, url, format }),
       h(ImportDataDestination, {
         workspaceId: wid,
         templateWorkspaces,
