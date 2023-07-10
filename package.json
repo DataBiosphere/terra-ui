@@ -75,7 +75,7 @@
     "test": "jest",
     "check-types": "check-dts types/**/*.ts",
     "serve": "vite preview",
-    "start": "env $(yarn setenv) vite",
+    "start": "concurrently \"tsc --build --watch\" \"env $(yarn setenv) vite\"",
     "postinstall": "husky install"
   },
   "devDependencies": {
@@ -95,6 +95,7 @@
     "@vitejs/plugin-react": "^4.0.0",
     "browserslist": "^4.18.1",
     "check-dts": "^0.7.1",
+    "concurrently": "^8.2.0",
     "eslint": "^8.3.0",
     "eslint-config-airbnb-typescript-prettier": "^5.0.0",
     "eslint-import-resolver-custom-alias": "^1.3.0",
