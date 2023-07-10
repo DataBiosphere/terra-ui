@@ -1,3 +1,4 @@
+import { Interactive } from '@terra-ui-packages/components';
 import FileSaver from 'file-saver';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
@@ -21,7 +22,6 @@ import WDSContent from 'src/components/data/WDSContent';
 import { WdsTroubleshooter } from 'src/components/data/WdsTroubleshooter';
 import { icon, spinner } from 'src/components/icons';
 import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input';
-import Interactive from 'src/components/Interactive';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
 import { FlexTable, HeaderCell } from 'src/components/table';

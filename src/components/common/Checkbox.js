@@ -1,8 +1,8 @@
+import { Interactive } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment } from 'react';
 import { h, span } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
-import Interactive from 'src/components/Interactive';
 import colors from 'src/libs/colors';
 import { useLabelAssert } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
