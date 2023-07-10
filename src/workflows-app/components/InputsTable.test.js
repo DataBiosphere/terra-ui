@@ -4,16 +4,18 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { getConfig } from 'src/libs/config';
 import { delay } from 'src/libs/utils';
 import InputsTable from 'src/workflows-app/components/InputsTable';
 import { validateInputs } from 'src/workflows-app/components/submission-common';
 import {
   runSetInputDef,
   runSetInputDefSameInputNames,
-  runSetInputDefWithArrays,
+  runSetInputDefWithArrayMessages,
+  runSetInputDefWithCompleteStruct,
+  runSetInputDefWithEmptySources,
   runSetInputDefWithSourceNone,
   runSetInputDefWithStruct,
+  runSetInputDefWithWrongTypes,
   typesResponse,
   typesResponseWithoutFooRating,
 } from 'src/workflows-app/components/test-data';
@@ -38,96 +40,41 @@ jest.mock('src/libs/config', () => ({
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth');
 
-const setupInputTableTest = ({
-  selectedDataTable = typesResponse[0],
-  configuredInputDefinition = runSetInputDef,
-  setConfiguredInputDefinition = jest.fn(),
-  renderFn = render,
-} = {}) => {
+const setupInputTableTest = ({ selectedDataTable = typesResponse[0], configuredInputDefinition = runSetInputDef } = {}) => {
+  const setConfiguredInputDefinition = jest.fn();
   const inputValidations = validateInputs(configuredInputDefinition, _.keyBy('name', selectedDataTable.attributes));
 
-  const { rerender } = renderFn(
+  const { rerender } = render(
     h(InputsTable, {
       selectedDataTable,
       configuredInputDefinition,
       setConfiguredInputDefinition,
       inputValidations,
     })
-  ) || { rerender: renderFn };
-
-  setConfiguredInputDefinition.mockImplementation((newInputDefinitionOrFn) => {
-    const newInputDefinition =
-      typeof newInputDefinitionOrFn === 'function' ? newInputDefinitionOrFn(configuredInputDefinition) : newInputDefinitionOrFn;
-    setupInputTableTest({
-      selectedDataTable,
-      setConfiguredInputDefinition,
-      configuredInputDefinition: newInputDefinition,
-      renderFn: rerender,
-    });
-    return newInputDefinition;
-  });
+  );
 
   return {
     selectedDataTable,
-    getConfiguredInputDefinition: () => setConfiguredInputDefinition(_.identity),
+    configuredInputDefinition,
     setConfiguredInputDefinition,
     inputValidations,
+    rerender,
   };
 };
 
-describe('Input table source updates', () => {
+describe('Input table rendering', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 });
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('Record lookup only shows attributes with matching type', async () => {
-    setupInputTableTest();
-
-    const table = await screen.findByRole('table');
-    const rows = within(table).queryAllByRole('row');
-    expect(rows.length).toBe(4);
-    const cells1 = within(rows[1]).queryAllByRole('cell');
-    const cells2 = within(rows[2]).queryAllByRole('cell');
-
-    within(cells1[0]).getByText('foo');
-    within(cells1[1]).getByText('foo_rating_workflow_var');
-    within(cells1[2]).getByText('Int');
-    within(cells1[3]).getByText('Fetch from Data Table');
-    const fooRecord = within(cells1[4]).getByText('foo_rating');
-
-    within(cells2[0]).getByText('target_workflow_1');
-    within(cells2[1]).getByText('bar_string_workflow_var');
-    within(cells2[2]).getByText('String');
-    within(cells2[3]).getByText('Fetch from Data Table');
-    const barRecord = within(cells2[4]).getByText('bar_string');
-
-    // see what records are available for Int input (foo)
-    // foo_rating is the only NUMBER attribute
-    await userEvent.click(fooRecord);
-    const fooRecordOptions = within(screen.getByRole('listbox')).getAllByText(/[[a-z]|[A-Z]|[0-9]]+/i);
-    expect(fooRecordOptions).toHaveLength(1);
-
-    // see what records are available for String input (bar)
-    // bar_string and sys_name are STRING attributes, and foo_rating (NUMBER) can be coerced to string
-    await userEvent.click(barRecord);
-    const barRecordOptions = within(screen.getByRole('listbox')).getAllByText(/[[a-z]|[A-Z]|[0-9]]+/i);
-    expect(barRecordOptions).toHaveLength(3);
-  });
-});
-
-describe('Input table filters', () => {
-  beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 });
-    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
+  afterAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
   });
 
   it('Searching filters the displayed rows', async () => {
@@ -190,293 +137,39 @@ describe('Input table filters', () => {
     within(cells1[3]).getByText('Fetch from Data Table');
     within(cells1[4]).getByText('foo_rating');
   });
-});
 
-describe('Input source and requirements validation', () => {
-  beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 });
-    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
-  });
-
-  beforeEach(() => {
-    getConfig.mockReturnValue({ wdsUrlRoot: 'http://localhost:3000/wds' });
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
-  });
-
-  it('should display warning icon for required inputs with missing attributes and disappear when attribute is supplied', async () => {
-    setupInputTableTest({ configuredInputDefinition: runSetInputDefWithStruct, selectedDataTable: typesResponseWithoutFooRating[0] });
-
-    // ** ASSERT **
-    const table = await screen.findByRole('table');
-    const rows = within(table).queryAllByRole('row');
-
-    expect(rows.length).toBe(runSetInputDefWithStruct.length + 1); // one row for each input definition variable, plus headers
-
-    const cellsFoo = within(rows[1]).queryAllByRole('cell');
-    expect(cellsFoo.length).toBe(5);
-    within(cellsFoo[0]).getByText('foo');
-    within(cellsFoo[1]).getByText('foo_rating_workflow_var');
-    within(cellsFoo[2]).getByText('Int');
-    within(cellsFoo[3]).getByText('Fetch from Data Table');
-    // input configuration expects attribute 'foo_rating' to be present, but it isn't available in the data table.
-    // Hence, the select box will be empty and defaulted to the attribute name as its placeholder,
-    // but there will be a warning message next to it
-
-    within(cellsFoo[4]).getByText('foo_rating');
-    const warningMessageActive = within(cellsFoo[4]).queryByText("This attribute doesn't exist in the data table");
-    expect(warningMessageActive).not.toBeNull();
-
-    // ** ACT **
-    // user selects the attribute 'rating_for_foo' for input 'foo_rating_workflow_var'
-    await userEvent.click(within(cellsFoo[4]).getByText('foo_rating'));
-    const selectOption = await screen.findByText('rating_for_foo');
-    await userEvent.click(selectOption);
-
-    // ** ASSERT **
-    within(cellsFoo[4]).getByText('rating_for_foo');
-    const warningMessageInactive = within(cellsFoo[4]).queryByText("This attribute doesn't exist in the data table");
-    expect(warningMessageInactive).toBeNull(); // once user has selected an attribute, warning message should disappear
-  });
-
-  it('should display warning icon/message at each level of the struct builder when a field has a missing attribute', async () => {
-    setupInputTableTest({ configuredInputDefinition: runSetInputDefWithStruct, selectedDataTable: typesResponseWithoutFooRating[0] });
-
-    // ** ASSERT **
-    const table = await screen.findByRole('table');
-    const rows = within(table).queryAllByRole('row');
-    const viewStructLink = within(rows[2]).getByText('View Struct');
-    const inputWarningMessageActive = within(rows[2]).queryByText('This struct is missing a required input');
-    expect(inputWarningMessageActive).not.toBeNull();
-
-    // ** ACT **
-    await userEvent.click(viewStructLink);
-
-    // ** ASSERT **
-    const structTable = await screen.getByLabelText('struct-table');
-    const structRows = within(structTable).queryAllByRole('row');
-    expect(structRows.length).toBe(6);
-
-    const structCells = within(structRows[2]).queryAllByRole('cell');
-    within(structCells[1]).getByText('myInnerStruct');
-    const viewMyInnerStructLink = within(structCells[4]).getByText('View Struct');
-    const structWarningMessageActive = within(structCells[4]).getByText('This struct is missing a required input');
-    expect(structWarningMessageActive).not.toBeNull();
-
-    // ** ACT **
-    await userEvent.click(viewMyInnerStructLink);
-
-    // ** ASSERT **
-    const innerStructTable = await screen.getByLabelText('struct-table');
-    const innerStructRows = within(innerStructTable).queryAllByRole('row');
-    expect(innerStructRows.length).toBe(3);
-
-    const innerStructCells = within(innerStructRows[2]).queryAllByRole('cell');
-    within(innerStructCells[1]).getByText('myInnermostRecordLookup');
-    within(innerStructCells[4]).getByText('foo_rating');
-    const innerStructWarningMessageActive = within(innerStructCells[4]).queryByText("This attribute doesn't exist in the data table");
-    expect(innerStructWarningMessageActive).not.toBeNull();
-
-    // ** ACT **
-    // user selects the attribute 'rating_for_foo' for input 'foo_rating_workflow_var'
-    await userEvent.click(within(innerStructCells[4]).getByText('foo_rating'));
-    const selectOption = await screen.findByText('rating_for_foo');
-    await userEvent.click(selectOption);
-
-    // ** ASSERT **
-    within(innerStructCells[4]).getByText('rating_for_foo');
-    const innerStructWarningMessageInactive = within(innerStructCells[4]).queryByText("This attribute doesn't exist in the data table");
-    expect(innerStructWarningMessageInactive).toBeNull(); // once user has selected an attribute, warning message should disappear
-  });
-
-  it('should display warning for required inputs for a newly imported method', async () => {
-    setupInputTableTest({ configuredInputDefinition: runSetInputDefWithSourceNone });
-
-    // ** ASSERT **
-    // check that warnings appear next to empty required inputs
-    const table = await screen.findByRole('table');
-    const rows = within(table).queryAllByRole('row');
-
-    // inputs sorted according to task name -> variable name
-    const firstInputRowCells = within(rows[1]).queryAllByRole('cell');
-    within(firstInputRowCells[4]).getByText('This input is required');
-
-    const thirdInputRowCells = within(rows[3]).queryAllByRole('cell');
-    within(thirdInputRowCells[4]).getByText('Optional');
-
-    // struct input
-    const secondInputRowCells = within(rows[2]).queryAllByRole('cell');
-    within(secondInputRowCells[4]).getByText('This input is required');
-
-    // ** ACT **
-    // user sets the source to 'Fetch from data table' for struct input
-    await userEvent.click(within(secondInputRowCells[3]).getByText('Select Source'));
-    const selectOption1 = await screen.findByText('Fetch from Data Table');
-    await userEvent.click(selectOption1);
-
-    // ** ASSERT **
-    // check that the warning message for struct input hasn't changed since no attribute has been selected yet
-    within(secondInputRowCells[4]).getByText('This attribute is required');
-
-    // ** ACT **
-    // user sets the source to 'Use Struct Builder' for struct input
-    await userEvent.click(within(secondInputRowCells[3]).getByText('Fetch from Data Table'));
-    const selectOption2 = await screen.findByText('Use Struct Builder');
-    await userEvent.click(selectOption2);
-
-    // ** ASSERT **
-    // check that the warning message for struct input has changed
-    within(secondInputRowCells[4]).getByText('This struct is missing a required input');
-
-    // ** ACT **
-    // click on View struct to open modal
-    const viewStructLink = within(secondInputRowCells[4]).getByText('View Struct');
-    await userEvent.click(viewStructLink);
-
-    // ** ASSERT **
-    const innerStructTable = await screen.getByLabelText('struct-table');
-    const innerStructRows = within(innerStructTable).queryAllByRole('row');
-    expect(innerStructRows.length).toBe(3);
-
-    // check that warnings appear next to empty required inputs inside struct modal
-    const innerStructRow1Cells = within(innerStructRows[2]).queryAllByRole('cell');
-    within(innerStructRow1Cells[4]).getByText('This input is required');
-
-    const innerStructRow2Cells = within(innerStructRows[1]).queryAllByRole('cell');
-    within(innerStructRow2Cells[4]).getByText('Optional');
-
-    // ** ACT **
-    // user sets the source to 'Fetch from data table' for required struct input
-    await userEvent.click(within(innerStructRow1Cells[3]).getByText('Select Source'));
-    const selectOptionForStructInput = await screen.findByText('Fetch from Data Table');
-    await userEvent.click(selectOptionForStructInput);
-
-    // user exits the struct modal
-    await userEvent.click(screen.getByText('Done'));
-
-    // ** ASSERT **
-    // check that the warning message for struct input still exists as it still has invalid input configurations
-    within(secondInputRowCells[4]).getByText('This struct is missing a required input');
-  });
-
-  it('should display warning icon for input with value not matching expected type', async () => {
-    setupInputTableTest({ configuredInputDefinition: runSetInputDefWithSourceNone });
+  it('Record lookup only shows attributes with matching type', async () => {
+    setupInputTableTest();
 
     const table = await screen.findByRole('table');
     const rows = within(table).queryAllByRole('row');
+    expect(rows.length).toBe(4);
+    const cells1 = within(rows[1]).queryAllByRole('cell');
+    const cells2 = within(rows[2]).queryAllByRole('cell');
 
-    const firstInputRowCells = within(rows[1]).queryAllByRole('cell');
+    within(cells1[0]).getByText('foo');
+    within(cells1[1]).getByText('foo_rating_workflow_var');
+    within(cells1[2]).getByText('Int');
+    within(cells1[3]).getByText('Fetch from Data Table');
+    const fooRecord = within(cells1[4]).getByText('foo_rating');
 
-    // user sets the source to 'Type a Value' for Int input
-    await userEvent.click(within(firstInputRowCells[3]).getByText('Select Source'));
-    const selectOption = await screen.findByText('Type a Value');
-    await userEvent.click(selectOption);
+    within(cells2[0]).getByText('target_workflow_1');
+    within(cells2[1]).getByText('bar_string_workflow_var');
+    within(cells2[2]).getByText('String');
+    within(cells2[3]).getByText('Fetch from Data Table');
+    const barRecord = within(cells2[4]).getByText('bar_string');
 
-    // ** ASSERT **
-    // check that the warning message for input exists
-    within(firstInputRowCells[4]).getByText('Value is empty');
+    // see what records are available for Int input (foo)
+    // foo_rating is the only NUMBER attribute
+    await userEvent.click(fooRecord);
+    const fooRecordOptions = within(screen.getByRole('listbox')).getAllByText(/[[a-z]|[A-Z]|[0-9]]+/i);
+    expect(fooRecordOptions).toHaveLength(1);
 
-    // ** ACT **
-    // user types value for the Int input
-    await userEvent.type(screen.getByLabelText('Enter a value'), '123X');
-
-    // ** ASSERT **
-    // check that the warning message for incorrect value is displayed
-    within(firstInputRowCells[4]).getByText("Value doesn't match expected input type");
-
-    // ** ACT **
-    // user deletes the extra character
-    await userEvent.type(screen.getByLabelText('Enter a value'), '{backspace}');
-
-    // ** ASSERT **
-    // check that the warning message for incorrect value is gone
-    expect(within(firstInputRowCells[4]).queryByText(/Value is empty|Value doesn't match expected input type/)).toBeNull();
-  });
-
-  it('should display tooltips for array literals and convert inputs to array types', async () => {
-    setupInputTableTest({ configuredInputDefinition: runSetInputDefWithArrays });
-
-    const table = await screen.findByRole('table');
-    const rows = within(table).queryAllByRole('row');
-
-    const firstInputRowCells = within(rows[1]).queryAllByRole('cell');
-
-    // Value is already set to literal source from previous run
-    await userEvent.click(within(firstInputRowCells[3]).getByText('Type a Value'));
-
-    // ** ASSERT **
-    // check the info message exists for `[]` input
-    within(firstInputRowCells[4]).getByText('Successfully detected an array with 0 element(s).');
-
-    // ** ACT **
-    // user types value for the Array[Int] input
-    await userEvent.click(within(firstInputRowCells[4]).getByLabelText('Enter a value'));
-    await userEvent.keyboard('{ArrowLeft}X');
-
-    // ** ASSERT **
-    // check that the warning message for incorrect value is displayed
-    within(firstInputRowCells[4]).getByText('Array inputs should follow JSON array literal syntax. This input cannot be parsed');
-
-    // ** ACT **
-    // user replaces with new array
-    await userEvent.clear(within(firstInputRowCells[4]).getByLabelText('Enter a value'));
-    expect(within(firstInputRowCells[4]).getByLabelText('Enter a value')).toHaveValue('');
-    await userEvent.type(within(firstInputRowCells[4]).getByLabelText('Enter a value'), '[[1, 2]');
-
-    // ** ASSERT **
-    // check that validation message is updated
-    within(firstInputRowCells[4]).getByText('Successfully detected an array with 2 element(s).');
-
-    const secondInputRowCells = within(rows[2]).queryAllByRole('cell');
-
-    // Value is not yet set
-    await userEvent.click(within(secondInputRowCells[3]).getByText('None'));
-    const selectOption = await within(screen.getByRole('listbox')).findByText('Type a Value');
-    await userEvent.click(selectOption);
-
-    // ** ASSERT **
-    // check the warning message exists for empty input
-    within(secondInputRowCells[4]).getByText(
-      'Array inputs should follow JSON array literal syntax. This input is empty. To submit an empty array, enter []'
-    );
-
-    // ** ACT **
-    // user types value for the Array[String] input
-    await userEvent.click(within(secondInputRowCells[4]).getByLabelText('Enter a value'));
-    await userEvent.keyboard('not an array');
-
-    // ** ASSERT **
-    // check that the warning message for incorrect value is displayed
-    within(secondInputRowCells[4]).getByText(
-      'Array inputs should follow JSON array literal syntax. This will be submitted as an array with one value: "not an array"'
-    );
-  });
-});
-
-describe('SubmissionConfig inputs/outputs definitions', () => {
-  beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 });
-    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
-  });
-
-  beforeEach(() => {
-    getConfig.mockReturnValue({ wdsUrlRoot: 'http://localhost:3000/wds' });
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
+    // see what records are available for String input (bar)
+    // bar_string and sys_name are STRING attributes, and foo_rating (NUMBER) can be coerced to string
+    await userEvent.click(barRecord);
+    const barRecordOptions = within(screen.getByRole('listbox')).getAllByText(/[[a-z]|[A-Z]|[0-9]]+/i);
+    expect(barRecordOptions).toHaveLength(3);
   });
 
   it('should change input table sort order when column headers are clicked', async () => {
@@ -552,144 +245,6 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(cells3[2]).getByText('String');
     within(cells3[3]).getByText('Fetch from Data Table');
     within(cells3[4]).getByText('bar_string');
-  });
-
-  it('should populate fields from data table on click', async () => {
-    const { getConfiguredInputDefinition } = setupInputTableTest({ configuredInputDefinition: runSetInputDefSameInputNames });
-
-    const table = await screen.findByRole('table');
-    const rows = within(table).queryAllByRole('row');
-    const cells1 = within(rows[1]).queryAllByRole('cell');
-    const cells2 = within(rows[2]).queryAllByRole('cell');
-    const cells3 = within(rows[3]).queryAllByRole('cell');
-
-    screen.getByText('Autofill (2) from data table');
-
-    within(cells1[0]).getByText('foo');
-    within(cells1[1]).getByText('foo_rating');
-    within(cells1[2]).getByText('Int');
-    within(cells1[3]).getByText('None');
-    within(cells1[4]).getByText(/Autofill /);
-    const inputFillButton = within(cells1[4]).getByText('foo_rating');
-    within(cells1[4]).getByText(/ from data table/);
-
-    within(cells2[0]).getByText('target_workflow_1');
-    within(cells2[1]).getByText('bar_string');
-    within(cells2[2]).getByText('String');
-    within(cells2[3]).getByText('Select Source');
-    within(cells2[4]).getByText(/Autofill /);
-    within(cells2[4]).getByText('bar_string');
-    within(cells2[4]).getByText(/ from data table/);
-    within(cells2[4]).getByText('This attribute is required');
-
-    within(cells3[0]).getByText('target_workflow_1');
-    within(cells3[1]).getByText('not_in_table');
-    within(cells3[2]).getByText('String');
-    within(cells3[3]).getByText('None');
-    within(cells3[4]).getByText('Optional');
-
-    // fill single input from click
-    await act(async () => {
-      await fireEvent.click(inputFillButton);
-    });
-
-    expect(getConfiguredInputDefinition()).toStrictEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          input_name: 'target_workflow_1.foo.foo_rating',
-          source: { type: 'record_lookup', record_attribute: 'foo_rating' },
-        }),
-      ])
-    );
-
-    screen.getByText('Autofill (1) from data table');
-
-    within(cells1[0]).getByText('foo');
-    within(cells1[1]).getByText('foo_rating');
-    within(cells1[2]).getByText('Int');
-    const selectSourceDropdown = within(cells1[3]).getByText('Fetch from Data Table');
-    within(cells1[4]).getByText('foo_rating');
-
-    within(cells2[0]).getByText('target_workflow_1');
-    within(cells2[1]).getByText('bar_string');
-    within(cells2[2]).getByText('String');
-    within(cells2[4]).getByText(/Autofill /);
-    within(cells2[4]).getByText('bar_string');
-    within(cells2[4]).getByText(/ from data table/);
-
-    within(cells3[0]).getByText('target_workflow_1');
-    within(cells3[1]).getByText('not_in_table');
-    within(cells3[2]).getByText('String');
-    within(cells3[3]).getByText('None');
-    within(cells3[4]).getByText('Optional');
-
-    // reset input
-    await act(async () => {
-      await userEvent.click(selectSourceDropdown);
-      const selectOptionNone = within(screen.getByRole('listbox')).getByText('None');
-      await userEvent.click(selectOptionNone);
-    });
-
-    expect(getConfiguredInputDefinition()).toStrictEqual(
-      expect.arrayContaining([expect.objectContaining({ input_name: 'target_workflow_1.foo.foo_rating', source: { type: 'none' } })])
-    );
-
-    within(cells1[0]).getByText('foo');
-    within(cells1[1]).getByText('foo_rating');
-    within(cells1[2]).getByText('Int');
-    within(cells1[3]).getByText('None');
-    within(cells1[4]).getByText(/Autofill /);
-    within(cells1[4]).getByText('foo_rating');
-    within(cells1[4]).getByText(/ from data table/);
-
-    within(cells2[0]).getByText('target_workflow_1');
-    within(cells2[1]).getByText('bar_string');
-    within(cells2[2]).getByText('String');
-    within(cells2[4]).getByText(/Autofill /);
-    within(cells2[4]).getByText('bar_string');
-    within(cells2[4]).getByText(/ from data table/);
-
-    within(cells3[0]).getByText('target_workflow_1');
-    within(cells3[1]).getByText('not_in_table');
-    within(cells3[2]).getByText('String');
-    within(cells3[3]).getByText('None');
-    within(cells3[4]).getByText('Optional');
-
-    // fill all from data table
-    await act(async () => {
-      const fillAllButton = await screen.findByText('Autofill (2) from data table');
-      await fireEvent.click(fillAllButton);
-    });
-
-    expect(getConfiguredInputDefinition()).toStrictEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          input_name: 'target_workflow_1.foo.foo_rating',
-          source: { type: 'record_lookup', record_attribute: 'foo_rating' },
-        }),
-        expect.objectContaining({ input_name: 'target_workflow_1.bar_string', source: { type: 'record_lookup', record_attribute: 'bar_string' } }),
-      ])
-    );
-
-    await screen.findByText('Autofill (0) from data table');
-
-    within(cells1[0]).getByText('foo');
-    within(cells1[1]).getByText('foo_rating');
-    within(cells1[2]).getByText('Int');
-    within(cells1[3]).getByText('Fetch from Data Table');
-    within(cells1[4]).getByText('foo_rating');
-
-    within(cells2[0]).getByText('target_workflow_1');
-    within(cells2[1]).getByText('bar_string');
-    within(cells2[2]).getByText('String');
-    within(cells2[3]).getByText('Fetch from Data Table');
-    within(cells2[4]).getByText('bar_string');
-
-    within(cells3[0]).getByText('target_workflow_1');
-    within(cells3[1]).getByText('not_in_table');
-    within(cells3[2]).getByText('String');
-    within(cells3[3]).getByText('None');
-    within(cells3[4]).getByText('Optional');
   });
 
   it('should hide/show optional inputs when respective button is clicked', async () => {
@@ -808,5 +363,455 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     const modalDoneButton = await screen.getByText('Done');
     fireEvent.click(modalDoneButton);
     await screen.findByRole('table'); // there should be only one table again
+  });
+
+  it('should suggest fields from data table with matching names', async () => {
+    setupInputTableTest({ configuredInputDefinition: runSetInputDefSameInputNames });
+
+    const table = await screen.findByRole('table');
+    const rows = within(table).queryAllByRole('row');
+    const cells1 = within(rows[1]).queryAllByRole('cell');
+    const cells2 = within(rows[2]).queryAllByRole('cell');
+    const cells3 = within(rows[3]).queryAllByRole('cell');
+
+    screen.getByText('Autofill (2) from data table');
+
+    within(cells1[0]).getByText('foo');
+    within(cells1[1]).getByText('foo_rating');
+    within(cells1[2]).getByText('Int');
+    within(cells1[3]).getByText('None');
+    within(cells1[4]).getByText(/Autofill /);
+    within(cells1[4]).getByText('foo_rating');
+    within(cells1[4]).getByText(/ from data table/);
+
+    within(cells2[0]).getByText('target_workflow_1');
+    within(cells2[1]).getByText('bar_string');
+    within(cells2[2]).getByText('String');
+    within(cells2[3]).getByText('Select Source');
+    within(cells2[4]).getByText(/Autofill /);
+    within(cells2[4]).getByText('bar_string');
+    within(cells2[4]).getByText(/ from data table/);
+    within(cells2[4]).getByText('This attribute is required');
+
+    within(cells3[0]).getByText('target_workflow_1');
+    within(cells3[1]).getByText('not_in_table');
+    within(cells3[2]).getByText('String');
+    within(cells3[3]).getByText('None');
+    within(cells3[4]).getByText('Optional');
+  });
+
+  it('should not display warning icon for valid lookups', async () => {
+    setupInputTableTest({ configuredInputDefinition: runSetInputDefWithStruct });
+
+    // ** ASSERT **
+    const table = await screen.findByRole('table');
+    const rows = within(table).queryAllByRole('row');
+
+    expect(rows.length).toBe(runSetInputDefWithStruct.length + 1); // one row for each input definition variable, plus headers
+
+    const cellsFoo = within(rows[1]).queryAllByRole('cell');
+    expect(cellsFoo.length).toBe(5);
+    within(cellsFoo[0]).getByText('foo');
+    within(cellsFoo[1]).getByText('foo_rating_workflow_var');
+    within(cellsFoo[2]).getByText('Int');
+    within(cellsFoo[3]).getByText('Fetch from Data Table');
+    // input configuration expects attribute 'foo_rating' to be present, but it isn't available in the data table.
+    // Hence, the select box will be empty and defaulted to the attribute name as its placeholder,
+    // but there will be a warning message next to it
+
+    within(cellsFoo[4]).getByText('foo_rating');
+    const warningMessageActive = within(cellsFoo[4]).queryByText("This attribute doesn't exist in the data table");
+    expect(warningMessageActive).toBeNull();
+  });
+
+  it('should display warning icon for required inputs with missing attributes', async () => {
+    setupInputTableTest({ configuredInputDefinition: runSetInputDefWithStruct, selectedDataTable: typesResponseWithoutFooRating[0] });
+
+    // ** ASSERT **
+    const table = await screen.findByRole('table');
+    const rows = within(table).queryAllByRole('row');
+
+    expect(rows.length).toBe(runSetInputDefWithStruct.length + 1); // one row for each input definition variable, plus headers
+
+    const cellsFoo = within(rows[1]).queryAllByRole('cell');
+    expect(cellsFoo.length).toBe(5);
+    within(cellsFoo[0]).getByText('foo');
+    within(cellsFoo[1]).getByText('foo_rating_workflow_var');
+    within(cellsFoo[2]).getByText('Int');
+    within(cellsFoo[3]).getByText('Fetch from Data Table');
+    // input configuration expects attribute 'foo_rating' to be present, but it isn't available in the data table.
+    // Hence, the select box will be empty and defaulted to the attribute name as its placeholder,
+    // but there will be a warning message next to it
+
+    within(cellsFoo[4]).getByText('foo_rating');
+    const warningMessageActive = within(cellsFoo[4]).queryByText("This attribute doesn't exist in the data table");
+    expect(warningMessageActive).not.toBeNull();
+  });
+
+  it('should not display warning icon for valid structs using struct builder', async () => {
+    setupInputTableTest({ configuredInputDefinition: runSetInputDefWithCompleteStruct });
+
+    // ** ASSERT **
+    const table = await screen.findByRole('table');
+    const rows = within(table).queryAllByRole('row');
+    const viewStructLink = within(rows[2]).getByText('View Struct');
+    const inputWarningMessageActive = within(rows[2]).queryByText('This struct is missing a required input');
+    expect(inputWarningMessageActive).toBeNull();
+
+    // ** ACT **
+    await userEvent.click(viewStructLink);
+
+    // ** ASSERT **
+    const structTable = await screen.getByLabelText('struct-table');
+    const structRows = within(structTable).queryAllByRole('row');
+    expect(structRows.length).toBe(6);
+
+    const structCells = within(structRows[2]).queryAllByRole('cell');
+    within(structCells[1]).getByText('myInnerStruct');
+    const viewMyInnerStructLink = within(structCells[4]).getByText('View Struct');
+    const structWarningMessageActive = within(structCells[4]).queryByText('This struct is missing a required input');
+    expect(structWarningMessageActive).toBeNull();
+
+    // ** ACT **
+    await userEvent.click(viewMyInnerStructLink);
+
+    // ** ASSERT **
+    const innerStructTable = await screen.getByLabelText('struct-table');
+    const innerStructRows = within(innerStructTable).queryAllByRole('row');
+    expect(innerStructRows.length).toBe(3);
+
+    const innerStructRow1 = within(innerStructRows[1]).queryAllByRole('cell');
+    within(innerStructRow1[1]).getByText('myInnermostPrimitive');
+    within(innerStructRow1[4]).getByDisplayValue('2');
+    const innerPrimitiveWarningMessageActive = within(innerStructRow1[4]).queryByText('This attribute is required');
+    expect(innerPrimitiveWarningMessageActive).toBeNull();
+
+    const innerStructRow2 = within(innerStructRows[2]).queryAllByRole('cell');
+    within(innerStructRow2[1]).getByText('myInnermostRecordLookup');
+    within(innerStructRow2[4]).getByText('foo_rating');
+    const innerLookupWarningMessageActive = within(innerStructRow2[4]).queryByText("This attribute doesn't exist in the data table");
+    expect(innerLookupWarningMessageActive).toBeNull();
+  });
+
+  it('should display warning icon/message at each level of the struct builder when a field has a missing attribute', async () => {
+    setupInputTableTest({ configuredInputDefinition: runSetInputDefWithStruct, selectedDataTable: typesResponseWithoutFooRating[0] });
+
+    // ** ASSERT **
+    const table = await screen.findByRole('table');
+    const rows = within(table).queryAllByRole('row');
+    const viewStructLink = within(rows[2]).getByText('View Struct');
+    const inputWarningMessageActive = within(rows[2]).queryByText('This struct is missing a required input');
+    expect(inputWarningMessageActive).not.toBeNull();
+
+    // ** ACT **
+    await userEvent.click(viewStructLink);
+
+    // ** ASSERT **
+    const structTable = await screen.getByLabelText('struct-table');
+    const structRows = within(structTable).queryAllByRole('row');
+    expect(structRows.length).toBe(6);
+
+    const structCells = within(structRows[2]).queryAllByRole('cell');
+    within(structCells[1]).getByText('myInnerStruct');
+    const viewMyInnerStructLink = within(structCells[4]).getByText('View Struct');
+    const structWarningMessageActive = within(structCells[4]).getByText('This struct is missing a required input');
+    expect(structWarningMessageActive).not.toBeNull();
+
+    // ** ACT **
+    await userEvent.click(viewMyInnerStructLink);
+
+    // ** ASSERT **
+    const innerStructTable = await screen.getByLabelText('struct-table');
+    const innerStructRows = within(innerStructTable).queryAllByRole('row');
+    expect(innerStructRows.length).toBe(3);
+
+    const innerStructRow1 = within(innerStructRows[1]).queryAllByRole('cell');
+    within(innerStructRow1[1]).getByText('myInnermostPrimitive');
+    within(innerStructRow1[3]).getByText('Select Source');
+    const innerPrimitiveWarningMessageActive = within(innerStructRow1[4]).queryByText('This attribute is required');
+    expect(innerPrimitiveWarningMessageActive).not.toBeNull();
+
+    const innerStructRow2 = within(innerStructRows[2]).queryAllByRole('cell');
+    within(innerStructRow2[1]).getByText('myInnermostRecordLookup');
+    within(innerStructRow2[4]).getByText('foo_rating');
+    const innerLookupWarningMessageActive = within(innerStructRow2[4]).queryByText("This attribute doesn't exist in the data table");
+    expect(innerLookupWarningMessageActive).not.toBeNull();
+  });
+
+  it('should display warning for inputs without source', async () => {
+    setupInputTableTest({ configuredInputDefinition: runSetInputDefWithSourceNone });
+
+    // ** ASSERT **
+    // check that warnings appear next to empty required inputs
+    const table = await screen.findByRole('table');
+    const rows = within(table).queryAllByRole('row');
+
+    // inputs sorted according to task name -> variable name
+    const firstInputRowCells = within(rows[1]).queryAllByRole('cell');
+    within(firstInputRowCells[4]).getByText('This input is required');
+
+    const thirdInputRowCells = within(rows[3]).queryAllByRole('cell');
+    within(thirdInputRowCells[4]).getByText('Optional');
+
+    // struct input
+    const secondInputRowCells = within(rows[2]).queryAllByRole('cell');
+    within(secondInputRowCells[4]).getByText('This input is required');
+  });
+
+  it('should display warning for empty required inputs', async () => {
+    setupInputTableTest({ configuredInputDefinition: runSetInputDefWithEmptySources });
+
+    // ** ASSERT **
+    // check that warnings appear next to empty required inputs
+    const table = await screen.findByRole('table');
+    const rows = within(table).queryAllByRole('row');
+
+    // inputs sorted according to task name -> variable name
+    const firstInputRowCells = within(rows[1]).queryAllByRole('cell');
+    within(firstInputRowCells[4]).getByText('This attribute is required');
+
+    const thirdInputRowCells = within(rows[3]).queryAllByRole('cell');
+    within(thirdInputRowCells[4]).getByText('Optional');
+
+    // struct input
+    const secondInputRowCells = within(rows[2]).queryAllByRole('cell');
+    within(secondInputRowCells[4]).getByText('This struct is missing a required input');
+  });
+
+  it('should display warning icon for input with value not matching expected type', async () => {
+    setupInputTableTest({ configuredInputDefinition: runSetInputDefWithWrongTypes });
+
+    const table = await screen.findByRole('table');
+    const rows = within(table).queryAllByRole('row');
+
+    const firstInputRowCells = within(rows[1]).queryAllByRole('cell');
+    const secondInputRowCells = within(rows[2]).queryAllByRole('cell');
+    const thirdInputRowCells = within(rows[3]).queryAllByRole('cell');
+
+    // ** ASSERT **
+    // check that the warning message for empty value is displayed
+    within(firstInputRowCells[1]).getByText('empty_rating_workflow_var');
+    within(firstInputRowCells[4]).getByText('Value is empty');
+
+    // check that the warning message for incorrect value is displayed
+    within(secondInputRowCells[1]).getByText('foo_rating_workflow_var');
+    within(secondInputRowCells[4]).getByText("Value doesn't match expected input type");
+
+    // check that the warning message for correct value is not displayed
+    within(thirdInputRowCells[1]).getByText('bar_rating_workflow_var');
+    expect(within(thirdInputRowCells[4]).queryByText(/Value is empty|Value doesn't match expected input type/)).toBeNull();
+  });
+
+  it('should display tooltips for array literals', async () => {
+    setupInputTableTest({ configuredInputDefinition: runSetInputDefWithArrayMessages });
+
+    const table = await screen.findByRole('table');
+    const rows = within(table).queryAllByRole('row');
+
+    const emptyIntRowCells = within(rows[1]).queryAllByRole('cell');
+    within(emptyIntRowCells[1]).getByText('empty_int_array');
+    within(emptyIntRowCells[4]).getByText('Successfully detected an array with 0 element(s).');
+
+    const invalidIntRowCells = within(rows[2]).queryAllByRole('cell');
+    within(invalidIntRowCells[1]).getByText('invalid_int_array');
+    within(invalidIntRowCells[4]).getByText('Array inputs should follow JSON array literal syntax. This input cannot be parsed');
+
+    const validIntRowCells = within(rows[3]).queryAllByRole('cell');
+    within(validIntRowCells[1]).getByText('valid_int_array');
+    within(validIntRowCells[4]).getByText('Successfully detected an array with 2 element(s).');
+
+    const stringNoSourceRowCells = within(rows[4]).queryAllByRole('cell');
+    within(stringNoSourceRowCells[1]).getByText('string_array_no_source');
+    within(stringNoSourceRowCells[4]).getByText('This input is required');
+
+    const emptyStringRowCells = within(rows[5]).queryAllByRole('cell');
+    within(emptyStringRowCells[1]).getByText('string_array_empty_source');
+    within(emptyStringRowCells[4]).getByText(
+      'Array inputs should follow JSON array literal syntax. This input is empty. To submit an empty array, enter []'
+    );
+
+    const singletonStringRowCells = within(rows[6]).queryAllByRole('cell');
+    within(singletonStringRowCells[1]).getByText('string_array_string_value');
+    within(singletonStringRowCells[4]).getByText(
+      'Array inputs should follow JSON array literal syntax. This will be submitted as an array with one value: "not an array"'
+    );
+  });
+});
+
+describe('Input table definition updates', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  beforeAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 });
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
+  });
+
+  afterAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
+  });
+
+  it('should populate fields from data table on click', async () => {
+    const { setConfiguredInputDefinition } = setupInputTableTest({ configuredInputDefinition: runSetInputDefSameInputNames });
+
+    const table = await screen.findByRole('table');
+    const rows = within(table).queryAllByRole('row');
+    const cells1 = within(rows[1]).queryAllByRole('cell');
+
+    within(cells1[4]).getByText(/Autofill /);
+    const inputFillButton = within(cells1[4]).getByText('foo_rating');
+    within(cells1[4]).getByText(/ from data table/);
+
+    // fill single input from click
+    await act(async () => {
+      await fireEvent.click(inputFillButton);
+    });
+
+    expect(setConfiguredInputDefinition.mock.lastCall[0]).toStrictEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          input_name: 'target_workflow_1.foo.foo_rating',
+          source: { type: 'record_lookup', record_attribute: 'foo_rating' },
+        }),
+      ])
+    );
+
+    const prevState = setConfiguredInputDefinition.mock.lastCall[0];
+
+    // fill all from data table
+    await act(async () => {
+      const fillAllButton = await screen.findByText('Autofill (2) from data table');
+      await fireEvent.click(fillAllButton);
+    });
+
+    const setFn = setConfiguredInputDefinition.mock.lastCall[0];
+
+    expect(setFn(prevState)).toStrictEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          input_name: 'target_workflow_1.foo.foo_rating',
+          source: { type: 'record_lookup', record_attribute: 'foo_rating' },
+        }),
+        expect.objectContaining({ input_name: 'target_workflow_1.bar_string', source: { type: 'record_lookup', record_attribute: 'bar_string' } }),
+      ])
+    );
+  });
+
+  it('should alter definition on record lookup', async () => {
+    const { configuredInputDefinition, setConfiguredInputDefinition } = setupInputTableTest({
+      configuredInputDefinition: runSetInputDefWithStruct,
+      selectedDataTable: typesResponseWithoutFooRating[0],
+    });
+
+    // ** ASSERT **
+    const table = await screen.findByRole('table');
+    const rows = within(table).queryAllByRole('row');
+
+    const cellsFoo = within(rows[1]).queryAllByRole('cell');
+    expect(cellsFoo.length).toBe(5);
+    within(cellsFoo[0]).getByText('foo');
+    within(cellsFoo[1]).getByText('foo_rating_workflow_var');
+    within(cellsFoo[2]).getByText('Int');
+    within(cellsFoo[3]).getByText('Fetch from Data Table');
+    within(cellsFoo[4]).getByText('foo_rating');
+
+    // ** ACT **
+    // user selects the attribute 'rating_for_foo' for input 'foo_rating_workflow_var'
+    await userEvent.click(within(cellsFoo[4]).getByText('foo_rating'));
+    const selectOption = await screen.findByText('rating_for_foo');
+    await userEvent.click(selectOption);
+
+    expect(setConfiguredInputDefinition).toBeCalledWith(
+      _.set('[0].source', { type: 'record_lookup', record_attribute: 'rating_for_foo' }, configuredInputDefinition)
+    );
+  });
+
+  it('should alter definition on struct builder updates', async () => {
+    const { configuredInputDefinition, setConfiguredInputDefinition } = setupInputTableTest({
+      configuredInputDefinition: runSetInputDefWithStruct,
+      selectedDataTable: typesResponseWithoutFooRating[0],
+    });
+
+    // ** ASSERT **
+    const table = await screen.findByRole('table');
+    const rows = within(table).queryAllByRole('row');
+    const viewStructLink = within(rows[2]).getByText('View Struct');
+
+    // ** ACT **
+    await userEvent.click(viewStructLink);
+
+    // ** ASSERT **
+    const structTable = await screen.getByLabelText('struct-table');
+    const structRows = within(structTable).queryAllByRole('row');
+    const structCells = within(structRows[2]).queryAllByRole('cell');
+    within(structCells[1]).getByText('myInnerStruct');
+    const viewMyInnerStructLink = within(structCells[4]).getByText('View Struct');
+
+    // ** ACT **
+    await userEvent.click(viewMyInnerStructLink);
+
+    // ** ASSERT **
+    const innerStructTable = await screen.getByLabelText('struct-table');
+    const innerStructRows = within(innerStructTable).queryAllByRole('row');
+    expect(innerStructRows.length).toBe(3);
+
+    const innerStructCells = within(innerStructRows[2]).queryAllByRole('cell');
+    within(innerStructCells[1]).getByText('myInnermostRecordLookup');
+    within(innerStructCells[4]).getByText('foo_rating');
+
+    // ** ACT **
+    // user selects the attribute 'rating_for_foo' for input 'foo_rating_workflow_var'
+    await userEvent.click(within(innerStructCells[4]).getByText('foo_rating'));
+    const selectOption = await screen.findByText('rating_for_foo');
+    await userEvent.click(selectOption);
+
+    // ** ASSERT **
+    expect(setConfiguredInputDefinition).toBeCalledWith(
+      _.set('[3].source.fields[4].source.fields[1].source', { type: 'record_lookup', record_attribute: 'rating_for_foo' }, configuredInputDefinition)
+    );
+  });
+
+  it('should alter definition on literal input', async () => {
+    const { configuredInputDefinition, setConfiguredInputDefinition } = setupInputTableTest({ configuredInputDefinition: runSetInputDef });
+
+    // ** ASSERT **
+    const table = await screen.findByRole('table');
+    const rows = within(table).queryAllByRole('row');
+
+    const cellsOptional = within(rows[3]).queryAllByRole('cell');
+    within(cellsOptional[1]).getByText('optional_var');
+    within(cellsOptional[3]).getByText('Type a Value');
+    const input = within(cellsOptional[4]).getByDisplayValue('Hello World');
+
+    // ** ACT **
+    // user adds exclamation point to input
+    await userEvent.type(input, '!');
+
+    expect(setConfiguredInputDefinition).toBeCalledWith(
+      _.set('[2].source', { type: 'literal', parameter_value: 'Hello World!' }, configuredInputDefinition)
+    );
+  });
+
+  it('should alter definition on source to none', async () => {
+    const { configuredInputDefinition, setConfiguredInputDefinition } = setupInputTableTest({ configuredInputDefinition: runSetInputDef });
+
+    // ** ASSERT **
+    const table = await screen.findByRole('table');
+    const rows = within(table).queryAllByRole('row');
+
+    const cellsOptional = within(rows[3]).queryAllByRole('cell');
+    within(cellsOptional[1]).getByText('optional_var');
+    const selectSource = within(cellsOptional[3]).getByText('Type a Value');
+    within(cellsOptional[4]).getByDisplayValue('Hello World');
+
+    // ** ACT **
+    // user selects source none for 'optional_var'
+    await userEvent.click(selectSource);
+    const selectOption = await screen.findByText('None');
+    await userEvent.click(selectOption);
+
+    expect(setConfiguredInputDefinition).toBeCalledWith(_.set('[2].source', { type: 'none' }, configuredInputDefinition));
   });
 });
