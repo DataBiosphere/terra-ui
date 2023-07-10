@@ -20,8 +20,8 @@ interface CurrentCollaboratorsProps {
   setAcl: Dispatch<SetStateAction<WorkspaceAcl>>;
   originalAcl: WorkspaceAcl;
   workspace: BaseWorkspace;
-  lastAddedEmail: string | undefined;
   loaded: boolean;
+  lastAddedEmail?: string;
 }
 
 export const CurrentCollaborators: React.FC<CurrentCollaboratorsProps> = (props: CurrentCollaboratorsProps) => {
