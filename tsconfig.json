@@ -8,8 +8,7 @@
     "paths": {
       "react-hyperscript-helpers": ["./types/react-hyperscript-helpers"],
       "src/*": ["./src/*"]
-    },
-    "rootDir": "src"
+    }
   },
   "include": ["src"],
   "references": [

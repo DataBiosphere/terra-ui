@@ -1,5 +1,5 @@
 declare module '*.png' {
-  const value: string;
+  const value: number;
   export = value;
 }
 

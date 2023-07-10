@@ -2836,6 +2836,7 @@ __metadata:
     "@terra-ui-packages/test-utils": "*"
     "@types/jest": ^28.1.8
     "@types/lodash": ^4.14.184
+    check-dts: ^0.7.2
     jest: ^27.4.3
     lodash: ^4.17.21
     typescript: ^4.9.5
@@ -4295,9 +4296,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"check-dts@npm:^0.7.1":
-  version: 0.7.1
-  resolution: "check-dts@npm:0.7.1"
+"check-dts@npm:^0.7.2":
+  version: 0.7.2
+  resolution: "check-dts@npm:0.7.2"
   dependencies:
     fast-glob: ^3.2.12
     nanospinner: ^1.1.0
@@ -4307,7 +4308,7 @@ __metadata:
     typescript: ">=4.0.0"
   bin:
     check-dts: bin.js
-  checksum: 3fe599ff33fb37f0a2d6b62e864d0b0525b5f8a02eaa236c451dd11599c8a31991d01ac001d39f51474d31fcaa7ccd5e564c98860579e4438206f1724e7fee76
+  checksum: c870c7196949d1ea9acf6fea68d1047c2f53d4c7d9603b13288b9bde0932f9b38adab0d990586d184fb09d70640bba1fc8a515f8ece857ad634efbd49cb03b24
   languageName: node
   linkType: hard
 
@@ -11849,7 +11850,7 @@ __metadata:
     animate.css: ^4.1.1
     array-move: ^4.0.0
     browserslist: ^4.18.1
-    check-dts: ^0.7.1
+    check-dts: ^0.7.2
     clipboard-polyfill: ^3.0.3
     color: ^4.0.1
     concurrently: ^8.2.0
