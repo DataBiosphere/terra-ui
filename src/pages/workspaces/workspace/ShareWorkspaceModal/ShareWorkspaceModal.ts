@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import React, { Fragment, useLayoutEffect, useRef, useState } from 'react';
 import { div, h, label, p, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, ButtonSecondary, IdContainer, spinnerOverlay, Switch } from 'src/components/common';
 import { icon } from 'src/components/icons';
@@ -13,7 +13,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { append, cond, withBusyState } from 'src/libs/utils';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { hasProtectedData, isAzureWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { CurrentCollaborators } from 'src/pages/workspaces/workspace/ShareWorkspaceModal/CurrentCollaborators';
 import {
   aclEntryIsTerraSupport,
@@ -44,7 +44,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
   const [updateError, setUpdateError] = useState(undefined);
   const [lastAddedEmail, setLastAddedEmail] = useState(undefined);
   const [searchHasFocus, setSearchHasFocus] = useState(true);
-
+  const [protectedAzureData, setProtectedAzureData] = useState<boolean>();
   const list = useRef<HTMLDivElement>(null);
 
   const signal = useCancellation();
@@ -53,8 +53,11 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
   useOnMount(() => {
     const load = async () => {
       try {
-        const [{ acl }, shareSuggestions, groups] = await Promise.all([
+        const [{ acl }, { policies }, shareSuggestions, groups] = await Promise.all([
           Ajax(signal).Workspaces.workspace(namespace, name).getAcl(),
+          isAzureWorkspace(workspace)
+            ? Ajax(signal).Workspaces.workspace(namespace, name).details(['policies'])
+            : Promise.resolve({ policies: [] }),
           Ajax(signal).Workspaces.getShareLog(),
           Ajax(signal).Groups.list(),
         ]);
@@ -64,6 +67,9 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
         setOriginalAcl(fixedAcl);
         setGroups(groups);
         setShareSuggestions(shareSuggestions);
+        setProtectedAzureData(
+          isAzureWorkspace(workspace) && hasProtectedData({ ...workspace, policies: policies ?? [] })
+        );
         setLoaded(true);
       } catch (error) {
         onDismiss();
@@ -142,7 +148,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
       onDismiss,
     },
     [
-      h(ProtectedDataWarning),
+      protectedAzureData ? h(ProtectedDataWarning) : h(Fragment),
       div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
         h(IdContainer, [
           (id) =>

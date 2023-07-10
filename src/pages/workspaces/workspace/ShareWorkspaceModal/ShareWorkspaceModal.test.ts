@@ -6,7 +6,7 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { getUser } from 'src/libs/state';
 import { DeepPartial } from 'src/libs/type-utils/deep-partial';
-import { GoogleWorkspace } from 'src/libs/workspace-utils';
+import { AzureWorkspace, GoogleWorkspace } from 'src/libs/workspace-utils';
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
 import { AccessEntry, RawWorkspaceAcl } from 'src/pages/workspaces/workspace/WorkspaceAcl';
 import { asMockedFn } from 'src/testing/test-utils';
@@ -56,12 +56,16 @@ describe('the share workspace modal', () => {
     acl: RawWorkspaceAcl,
     shareLog: string[],
     groups: string[],
-    updateAcl?: (aclUpdates: Partial<AccessEntry>[]) => Promise<any>
+    updateAcl?: (aclUpdates: Partial<AccessEntry>[]) => Promise<any>,
+    details?: (fields: string[]) => Promise<any>
   ) => {
+    const detailFn: (fields: string[]) => Promise<any> = details ?? jest.fn(() => Promise.resolve({}));
+
     const updateFn: (aclUpdates: Partial<AccessEntry>[]) => Promise<any> =
       updateAcl ?? jest.fn(() => Promise.resolve({ success: true }));
     const mockWorkspaceAjax: DeepPartial<ReturnType<AjaxContract['Workspaces']['workspace']>> = {
       getAcl: jest.fn(() => Promise.resolve({ acl })),
+      details: detailFn,
       updateAcl: updateFn,
     };
 
@@ -209,5 +213,105 @@ describe('the share workspace modal', () => {
 
     const errorMessage = await screen.findByText(expectedErrorText);
     expect(errorMessage).not.toBeNull();
+  });
+
+  describe('the warning for sharing protected azure data', () => {
+    // findByText et al won't find partial matches without writing a custom matcher
+    const warningText =
+      'Do not share Unclassified Confidential Information with anyone unauthorized to access such information, ' +
+      'as it violates US Federal Policy (ie FISMA, FIPS-199, etc) ' +
+      'unless explicitly authorized by the dataset manager or governed by your own agreements';
+
+    const azureWorkspace: AzureWorkspace = {
+      accessLevel: 'PROJECT_OWNER',
+      canShare: true,
+      canCompute: true,
+      azureContext: {
+        managedResourceGroupId: 'mrg-id',
+        tenantId: 'tenant-id',
+        subscriptionId: 'sub-id,',
+      },
+      workspace: {
+        namespace: 'namespace',
+        name: 'name',
+        workspaceId: 'test-ws-id',
+        cloudPlatform: 'Azure',
+        authorizationDomain: [],
+        createdDate: '',
+        createdBy: '',
+        bucketName: 'test-bucket',
+      },
+    };
+
+    it('shows a warning when sharing a workspace with protected data', async () => {
+      const detailsFn = jest.fn((fields: string[]) => {
+        expect(fields).toContainEqual('policies');
+        return Promise.resolve({
+          policies: [
+            {
+              additionalData: {},
+              name: 'protected-data',
+              namespace: 'terra',
+            },
+          ],
+        });
+      });
+      mockAjax({}, [], [], jest.fn(), detailsFn);
+      await act(async () => {
+        render(
+          h(ShareWorkspaceModal, {
+            onDismiss: jest.fn(),
+            workspace: azureWorkspace,
+          })
+        );
+      });
+      const warning = await screen.queryByText(warningText);
+      expect(warning).not.toBeNull();
+    });
+
+    it('does not show a warning for azure workspaces without a protected data policy', async () => {
+      const detailsFn = jest.fn((fields: string[]) => {
+        expect(fields).toContainEqual('policies');
+        return Promise.resolve({
+          policies: [
+            {
+              additionalData: {},
+              name: 'not-protected-data',
+              namespace: 'terra',
+            },
+          ],
+        });
+      });
+      mockAjax({}, [], [], jest.fn(), detailsFn);
+      await act(async () => {
+        render(
+          h(ShareWorkspaceModal, {
+            onDismiss: jest.fn(),
+            workspace: azureWorkspace,
+          })
+        );
+      });
+      const warning = await screen.queryByText(warningText);
+      expect(warning).toBeNull();
+    });
+
+    it('does not get workspace detail or display a warning for a gcp workspace', async () => {
+      const detailsFn = jest.fn((fields: string[]) => {
+        expect(fields).toContainEqual('policies');
+        expect(false).toBeTruthy();
+        return Promise.resolve({});
+      });
+      mockAjax({}, [], [], jest.fn(), detailsFn);
+      await act(async () => {
+        render(
+          h(ShareWorkspaceModal, {
+            onDismiss: jest.fn(),
+            workspace,
+          })
+        );
+      });
+      const warning = await screen.queryByText(warningText);
+      expect(warning).toBeNull();
+    });
   });
 });
