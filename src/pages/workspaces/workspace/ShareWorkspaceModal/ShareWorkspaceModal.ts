@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { useLayoutEffect, useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { div, h, label, p, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, ButtonSecondary, IdContainer, spinnerOverlay, Switch } from 'src/components/common';
 import { AutocompleteTextInput } from 'src/components/input';
@@ -10,7 +10,7 @@ import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
-import * as Utils from 'src/libs/utils';
+import { append, cond, withBusyState } from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { CurrentCollaborators } from 'src/pages/workspaces/workspace/ShareWorkspaceModal/CurrentCollaborators';
 import {
@@ -26,14 +26,13 @@ interface ShareWorkspaceModalProps {
   workspace: WorkspaceWrapper;
   onDismiss: () => void;
 }
-const ShareWorkspaceModal = ({
+
+const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = ({
   onDismiss,
   workspace,
-  workspace: {
-    workspace: { namespace, name },
-  },
 }: ShareWorkspaceModalProps) => {
   // State
+  const { namespace, name } = workspace.workspace;
   const [shareSuggestions, setShareSuggestions] = useState<string[]>([]);
   const [groups, setGroups] = useState([]);
   const [originalAcl, setOriginalAcl] = useState<WorkspaceAcl>([]);
@@ -96,7 +95,7 @@ const ShareWorkspaceModal = ({
   const addCollaborator = (collaboratorEmail) => {
     if (!validate.single(collaboratorEmail, { email: true, exclusion: aclEmails })) {
       setSearchValue('');
-      setAcl(Utils.append({ email: collaboratorEmail, accessLevel: 'READER' }));
+      setAcl(append({ email: collaboratorEmail, accessLevel: 'READER' }));
       setLastAddedEmail(collaboratorEmail);
     }
   };
@@ -106,7 +105,7 @@ const ShareWorkspaceModal = ({
   const addTerraSupportToAcl = () => addCollaborator(terraSupportEmail);
   const removeTerraSupportFromAcl = () => setAcl(_.remove(aclEntryIsTerraSupport));
 
-  const save = Utils.withBusyState(setWorking, async () => {
+  const save = withBusyState(setWorking, async () => {
     const aclEmails = _.map('email', acl);
     const needsDelete = _.remove((entry) => aclEmails.includes(entry.email), originalAcl);
     const numAdditions = _.filter(({ email }) => !_.some({ email }, originalAcl), acl).length;
@@ -163,7 +162,7 @@ const ShareWorkspaceModal = ({
                   setSearchHasFocus(false);
                 },
                 onChange: setSearchValue,
-                suggestions: Utils.cond(
+                suggestions: cond(
                   [searchValueValid && !_.includes(searchValue, aclEmails), () => [searchValue]],
                   [remainingSuggestions.length, () => remainingSuggestions],
                   () => []
@@ -193,7 +192,7 @@ const ShareWorkspaceModal = ({
             h(
               TooltipTrigger,
               {
-                content: Utils.cond(
+                content: cond(
                   [
                     !currentTerraSupportAccessLevel && !newTerraSupportAccessLevel,
                     () => 'Allow Terra Support to view this workspace',
@@ -202,7 +201,7 @@ const ShareWorkspaceModal = ({
                     !currentTerraSupportAccessLevel && newTerraSupportAccessLevel,
                     () =>
                       `Saving will grant Terra Support ${_.toLower(
-                        newTerraSupportAccessLevel
+                        newTerraSupportAccessLevel!
                       )} access to this workspace`,
                   ],
                   [
@@ -213,12 +212,12 @@ const ShareWorkspaceModal = ({
                     currentTerraSupportAccessLevel !== newTerraSupportAccessLevel,
                     () =>
                       `Saving will change Terra Support's level of access to this workspace from ${_.toLower(
-                        currentTerraSupportAccessLevel
-                      )} to ${_.toLower(newTerraSupportAccessLevel)}`,
+                        currentTerraSupportAccessLevel!
+                      )} to ${_.toLower(newTerraSupportAccessLevel!)}`,
                   ],
                   [
                     currentTerraSupportAccessLevel === newTerraSupportAccessLevel,
-                    () => `Terra Support has ${_.toLower(newTerraSupportAccessLevel)} access to this workspace`,
+                    () => `Terra Support has ${_.toLower(newTerraSupportAccessLevel!)} access to this workspace`,
                   ]
                 ),
               },

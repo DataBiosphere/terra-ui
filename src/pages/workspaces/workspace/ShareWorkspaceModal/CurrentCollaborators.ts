@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { CSSProperties, Dispatch, Fragment, SetStateAction, useLayoutEffect, useRef } from 'react';
+import React, { CSSProperties, Dispatch, Fragment, SetStateAction, useLayoutEffect, useRef } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { centeredSpinner } from 'src/components/icons';
 import * as Style from 'src/libs/style';
@@ -24,7 +24,8 @@ interface CurrentCollaboratorsProps {
   loaded: boolean;
 }
 
-export const CurrentCollaborators = ({ acl, loaded, ...props }: CurrentCollaboratorsProps) => {
+export const CurrentCollaborators: React.FC<CurrentCollaboratorsProps> = (props: CurrentCollaboratorsProps) => {
+  const { acl, loaded } = props;
   const list = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -39,7 +40,7 @@ export const CurrentCollaborators = ({ acl, loaded, ...props }: CurrentCollabora
         Fragment,
         _.flow(
           _.remove(aclEntryIsTerraSupport),
-          _.map((aclItem) => h(Collaborator, { aclItem, acl, ...props }))
+          _.map((aclItem) => h(Collaborator, { aclItem, ...props }))
         )(acl)
       ),
       !loaded && centeredSpinner(),

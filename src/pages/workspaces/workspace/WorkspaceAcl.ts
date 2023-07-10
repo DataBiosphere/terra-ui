@@ -35,6 +35,5 @@ export const terraSupportEmail = 'Terra-Support@firecloud.org';
 export const aclEntryIsTerraSupport: (AccessEntry) => boolean = ({ email }) =>
   _.toLower(email) === _.toLower(terraSupportEmail);
 
-// TODO: should this return 'NO ACCESS' as a default? atm, this will return undefined if the support entry is not in the list
-export const terraSupportAccessLevel: (WorkspaceAcl) => WorkspaceAccessLevel = (acl) =>
+export const terraSupportAccessLevel: (WorkspaceAcl) => WorkspaceAccessLevel | undefined = (acl) =>
   _.find(aclEntryIsTerraSupport, acl)?.accessLevel;

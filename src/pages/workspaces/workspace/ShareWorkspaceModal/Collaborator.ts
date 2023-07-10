@@ -27,7 +27,8 @@ interface CollaboratorProps {
   lastAddedEmail?: string;
 }
 
-export const Collaborator = ({ originalAcl, aclItem, acl, setAcl, workspace, lastAddedEmail }: CollaboratorProps) => {
+export const Collaborator: React.FC<CollaboratorProps> = (props: CollaboratorProps) => {
+  const { originalAcl, aclItem, acl, setAcl, workspace, lastAddedEmail } = props;
   const { email, accessLevel, pending } = aclItem;
   const POAccessLevel: WorkspaceAccessLevel = 'PROJECT_OWNER';
   const disabled = accessLevel === POAccessLevel || email === getUser().email;
@@ -90,15 +91,8 @@ interface AclInputProps extends AclSelectProps {
   onChange: (AccessEntry) => void;
 }
 
-export const AclInput = ({
-  value,
-  onChange,
-  disabled,
-  maxAccessLevel,
-  isAzureWorkspace,
-  autoFocus,
-  ...props
-}: AclInputProps) => {
+export const AclInput: React.FC<AclInputProps> = (props: AclInputProps) => {
+  const { value, onChange, disabled, maxAccessLevel, isAzureWorkspace, autoFocus, ...rest } = props;
   const { accessLevel, canShare, canCompute } = value;
   return div({ style: { display: 'flex', marginTop: '0.25rem' } }, [
     div({ style: { width: isAzureWorkspace ? 425 : 200 } }, [
@@ -122,7 +116,7 @@ export const AclInput = ({
           }),
         options: accessLevel === 'PROJECT_OWNER' ? ['PROJECT_OWNER'] : ['READER', 'WRITER', 'OWNER'],
         menuPortalTarget: getPopupRoot(),
-        ...props,
+        ...rest,
       }),
     ]),
     !isAzureWorkspace &&

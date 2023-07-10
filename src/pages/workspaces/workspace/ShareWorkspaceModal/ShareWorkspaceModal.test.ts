@@ -28,11 +28,6 @@ jest.mock('src/libs/ajax');
 type AjaxExports = typeof import('src/libs/ajax');
 type AjaxContract = ReturnType<AjaxExports['Ajax']>;
 
-/**
- * Select and open the permissions menu for the email passed
- * The ArrowDown input is needed because the select component doesn't render its options until opened
- */
-
 describe('the share workspace modal', () => {
   beforeEach(() => {
     asMockedFn(getUser).mockReturnValue({
