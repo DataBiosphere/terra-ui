@@ -1,12 +1,13 @@
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
+import { setAzureCookieOnUrl } from 'src/analysis/runtime-common-components';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { getUser } from 'src/libs/state';
+import { DeepPartial } from 'src/libs/type-utils/deep-partial';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { setAzureCookieOnUrl } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { importDockstoreWorkflow } from './importDockstoreWorkflow';
@@ -60,7 +61,7 @@ jest.mock('./useDockstoreWdl', () => ({
   }),
 }));
 
-jest.mock('src/pages/workspaces/workspace/analysis/runtime-common-components.js', () => ({
+jest.mock('src/analysis/runtime-common-components.js', () => ({
   setAzureCookieOnUrl: jest.fn().mockResolvedValue(undefined),
 }));
 
@@ -331,7 +332,7 @@ describe('ImportWorkflow', () => {
             methods: {
               post: mockPostMethodAppsFn,
             },
-          } as Partial<AjaxContract['Cbas']>,
+          } as DeepPartial<AjaxContract['Cbas']>,
           ...mockAjax,
         } as Partial<AjaxContract> as AjaxContract)
     );

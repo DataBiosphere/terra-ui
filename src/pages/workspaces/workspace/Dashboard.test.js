@@ -4,10 +4,10 @@ import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
 import { act } from 'react-dom/test-utils';
 import { h } from 'react-hyperscript-helpers';
+import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { locationTypes } from 'src/components/region-common';
 import { Ajax } from 'src/libs/ajax';
 import { authStore } from 'src/libs/state';
-import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import { AzureStorageDetails, BucketLocation, WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard';
 import { asMockedFn } from 'src/testing/test-utils';
 

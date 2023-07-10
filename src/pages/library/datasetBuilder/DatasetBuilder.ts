@@ -1,15 +1,18 @@
 import * as _ from 'lodash/fp';
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, ReactElement, useEffect, useMemo, useState } from 'react';
 import { div, h, h2, h3, label, li, ul } from 'react-hyperscript-helpers';
 import { ButtonPrimary, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { icon } from 'src/components/icons';
+import { icon, spinner } from 'src/components/icons';
+import { ValidatedInput, ValidatedTextArea } from 'src/components/input';
 import Modal from 'src/components/Modal';
 import TopBar from 'src/components/TopBar';
-import { DatasetBuilder, DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
+import { DatasetBuilder, DatasetBuilderValue, DatasetResponse, FeatureValueGroup } from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
+import { FormLabel } from 'src/libs/forms';
 import { useOnMount } from 'src/libs/react-utils';
+import * as Utils from 'src/libs/utils';
 import { StringInput } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
 import { CohortEditor } from 'src/pages/library/datasetBuilder/CohortEditor';
 import {
@@ -108,17 +111,11 @@ interface SelectorProps<T extends DatasetBuilderType> {
   placeholder?: any;
   style?: React.CSSProperties;
 }
-const Selector = <T extends DatasetBuilderType>({
-  number,
-  header,
-  subheader,
-  headerAction,
-  placeholder,
-  objectSets,
-  onChange,
-  selectedObjectSets,
-  style,
-}: SelectorProps<T>) => {
+
+type SelectorComponent = <T extends DatasetBuilderType>(props: SelectorProps<T>) => ReactElement;
+const Selector: SelectorComponent = <T extends DatasetBuilderType>(props) => {
+  const { number, header, subheader, headerAction, placeholder, objectSets, onChange, selectedObjectSets, style } =
+    props;
   const selectedValues = _.flatMap(
     (selectedDatasetBuilderObjectSet) =>
       _.map(
@@ -183,7 +180,7 @@ const Selector = <T extends DatasetBuilderType>({
                     selectedValues,
                     onChange: (value, header) => {
                       const index = _.findIndex(
-                        (selectedObjectSet) => selectedObjectSet.header === header,
+                        (selectedObjectSet: HeaderAndValues<T>) => selectedObjectSet.header === header,
                         selectedObjectSets
                       );
 
@@ -326,7 +323,7 @@ export const ConceptSetSelector = ({
   onChange: (conceptSets: HeaderAndValues<ConceptSet>[]) => void;
   onStateChange: OnStateChangeHandler;
 }) => {
-  return h(Selector, {
+  return h(Selector<ConceptSet>, {
     headerAction: h(
       Link,
       {
@@ -354,15 +351,14 @@ export const ConceptSetSelector = ({
   });
 };
 
-type Value = DatasetBuilderType;
 export const ValuesSelector = ({
   selectedValues,
   values,
   onChange,
 }: {
-  selectedValues: HeaderAndValues<Value>[];
-  values: HeaderAndValues<Value>[];
-  onChange: (values: HeaderAndValues<Value>[]) => void;
+  selectedValues: HeaderAndValues<DatasetBuilderValue>[];
+  values: HeaderAndValues<DatasetBuilderValue>[];
+  onChange: (values: HeaderAndValues<DatasetBuilderValue>[]) => void;
 }) => {
   return h(Selector, {
     headerAction: div([
@@ -389,31 +385,224 @@ export const ValuesSelector = ({
   });
 };
 
-export const DatasetBuilderContents = ({ onStateChange }: { onStateChange: OnStateChangeHandler }) => {
+interface RequestAccessModalProps {
+  cohorts: Cohort[];
+  conceptSets: ConceptSet[];
+  valuesSets: HeaderAndValues<DatasetBuilderValue>[];
+  onDismiss: () => void;
+}
+
+const RequestAccessModal = (props: RequestAccessModalProps) => {
+  const { onDismiss, cohorts, conceptSets, valuesSets } = props;
+  const [name, setName] = useState('');
+  const [researchPurposeStatement, setResearchPurposeStatement] = useState('');
+
+  const required = { presence: { allowEmpty: false } };
+  const errors = validate({ name, researchPurposeStatement }, { name: required, researchPurposeStatement: required });
+
+  const nameId = _.uniqueId('');
+  const researchPurposeId = _.uniqueId('');
+
+  return h(
+    Modal,
+    {
+      title: 'Requesting access',
+      showX: false,
+      onDismiss,
+      okButton: h(
+        ButtonPrimary,
+        {
+          disabled: errors,
+          tooltip: errors && Utils.summarizeErrors(errors),
+          onClick: async () => {
+            await DatasetBuilder().requestAccess({
+              name,
+              researchPurposeStatement,
+              datasetRequest: {
+                cohorts,
+                conceptSets,
+                valuesSets: _.map((valuesSet) => ({ domain: valuesSet.header, values: valuesSet.values }), valuesSets),
+              },
+            });
+            onDismiss();
+          },
+        },
+        ['Request access']
+      ),
+    },
+    [
+      div([
+        div([
+          "A request of the dataset created will be generated and may take up to 72 hours for approval. Once approved you'll be notified by email. We'll send you a copy of this request",
+        ]),
+        h(FormLabel, { htmlFor: nameId, required }, ['Dataset name']),
+        h(ValidatedInput, {
+          inputProps: {
+            id: nameId,
+            'aria-label': 'Dataset name',
+            autoFocus: true,
+            placeholder: 'Enter a name',
+            value: name,
+            onChange: setName,
+          },
+        }),
+        h(FormLabel, { htmlFor: researchPurposeId, required }, ['Research purpose statement']),
+        h(ValidatedTextArea, {
+          inputProps: {
+            id: researchPurposeId,
+            'aria-label': 'Research purpose statement',
+            placeholder: 'Enter a research purpose statement',
+            style: {
+              marginTop: '1rem',
+              height: 200,
+            },
+            value: researchPurposeStatement,
+            onChange: setResearchPurposeStatement,
+          },
+        }),
+      ]),
+    ]
+  );
+};
+
+export const DatasetBuilderContents = ({
+  onStateChange,
+  dataset,
+}: {
+  onStateChange: OnStateChangeHandler;
+  dataset: DatasetResponse;
+}) => {
   const [selectedCohorts, setSelectedCohorts] = useState([] as HeaderAndValues<Cohort>[]);
   const [selectedConceptSets, setSelectedConceptSets] = useState([] as HeaderAndValues<ConceptSet>[]);
-  const [selectedValues, setSelectedValues] = useState([] as HeaderAndValues<Value>[]);
+  const [selectedValues, setSelectedValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
+  const [values, setValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
+  const [requestingAccess, setRequestingAccess] = useState(false);
+  const [datasetRequestParticipantCount, setDatasetRequestParticipantCount] = useLoadedData<number>();
 
-  return div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` } }, [
-    h2(['Datasets']),
-    div([
-      'Build a dataset by selecting the concept sets and values for one or more of your cohorts. Then export the completed dataset to Notebooks where you can perform your analysis',
+  const allCohorts: Cohort[] = useMemo(() => _.flatMap('values', selectedCohorts), [selectedCohorts]);
+  const allConceptSets: ConceptSet[] = useMemo(() => _.flatMap('values', selectedConceptSets), [selectedConceptSets]);
+
+  const requestValid =
+    allCohorts.length > 0 && allConceptSets.length > 0 && _.flatMap('values', selectedValues).length > 0;
+
+  useEffect(() => {
+    requestValid &&
+      setDatasetRequestParticipantCount(async () =>
+        DatasetBuilder().getParticipantCount({
+          cohorts: allCohorts,
+        })
+      );
+  }, [selectedValues, setDatasetRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
+
+  const getNewFeatureValueGroups = (includedFeatureValueGroups: string[]): string[] =>
+    _.without(
+      [
+        ..._.flatMap(
+          (selectedValueGroups: HeaderAndValues<DatasetBuilderValue>) => selectedValueGroups.header,
+          selectedValues
+        ),
+        ..._.flow(
+          _.flatMap((selectedConceptSetGroup: HeaderAndValues<ConceptSet>) => selectedConceptSetGroup.values),
+          _.map((selectedConceptSet) => selectedConceptSet.featureValueGroupName)
+        )(selectedConceptSets),
+      ],
+      includedFeatureValueGroups
+    );
+
+  const getAvailableValuesFromFeatureGroups = (featureValueGroups: string[]): HeaderAndValues<DatasetBuilderValue>[] =>
+    _.flow(
+      _.filter((featureValueGroup: FeatureValueGroup) => _.includes(featureValueGroup.name, featureValueGroups)),
+      _.sortBy('name'),
+      _.map((featureValueGroup: FeatureValueGroup) => ({
+        header: featureValueGroup.name,
+        values: featureValueGroup.values,
+      }))
+    )(dataset.featureValueGroups);
+
+  const createHeaderAndValuesFromFeatureValueGroups = (
+    featureValueGroups: string[]
+  ): HeaderAndValues<DatasetBuilderValue>[] =>
+    _.flow(
+      _.filter((featureValueGroup: FeatureValueGroup) => _.includes(featureValueGroup.name, featureValueGroups)),
+      _.map((featureValueGroup: FeatureValueGroup) => ({
+        header: featureValueGroup.name,
+        values: featureValueGroup.values,
+      }))
+    )(dataset.featureValueGroups);
+
+  return h(Fragment, [
+    div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }, [
+      div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` } }, [
+        h2(['Datasets']),
+        div([
+          'Build a dataset by selecting the concept sets and values for one or more of your cohorts. Then export the completed dataset to Notebooks where you can perform your analysis',
+        ]),
+        ul({ style: { display: 'flex', width: '100%', marginTop: '2rem', listStyleType: 'none', padding: 0 } }, [
+          h(CohortSelector, {
+            selectedCohorts,
+            onChange: setSelectedCohorts,
+            onStateChange,
+          }),
+          h(ConceptSetSelector, {
+            selectedConceptSets,
+            onChange: async (conceptSets) => {
+              const includedFeatureValueGroups = _.flow(
+                _.flatMap((headerAndValues: HeaderAndValues<ConceptSet>) => headerAndValues.values),
+                _.map((conceptSet: ConceptSet) => conceptSet.featureValueGroupName)
+              )(conceptSets);
+              const newFeatureValueGroups = getNewFeatureValueGroups(includedFeatureValueGroups);
+              setSelectedValues([
+                ...selectedValues,
+                ...createHeaderAndValuesFromFeatureValueGroups(newFeatureValueGroups),
+              ]);
+              setSelectedConceptSets(conceptSets);
+              setValues(getAvailableValuesFromFeatureGroups(includedFeatureValueGroups));
+            },
+            onStateChange,
+          }),
+          h(ValuesSelector, {
+            selectedValues,
+            values,
+            onChange: setSelectedValues,
+          }),
+        ]),
+      ]),
+      requestValid &&
+        div(
+          {
+            style: {
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              height: '5rem',
+              position: 'absolute',
+              bottom: 0,
+              backgroundColor: 'white',
+              boxShadow: '0 0 4px 0 rgba(0,0,0,0.5)',
+              alignItems: 'center',
+              padding: '1rem 2rem',
+            },
+          },
+          [
+            div({ style: { display: 'flex', alignItems: 'center' } }, [
+              datasetRequestParticipantCount.status === 'Ready' ? datasetRequestParticipantCount.state : spinner(),
+              ' Participants in this dataset',
+            ]),
+            h(
+              ButtonPrimary,
+              { style: { marginLeft: '2rem', borderRadius: 0 }, onClick: () => setRequestingAccess(true) },
+              ['Request access to this dataset']
+            ),
+          ]
+        ),
     ]),
-    ul({ style: { display: 'flex', width: '100%', marginTop: '2rem', listStyleType: 'none', padding: 0 } }, [
-      h(CohortSelector, {
-        selectedCohorts,
-        onChange: (cohorts) => {
-          setSelectedCohorts(cohorts);
-        },
-        onStateChange,
+    requestingAccess &&
+      h(RequestAccessModal, {
+        cohorts: allCohorts,
+        conceptSets: allConceptSets,
+        valuesSets: selectedValues,
+        onDismiss: () => setRequestingAccess(false),
       }),
-      h(ConceptSetSelector, {
-        selectedConceptSets,
-        onChange: (conceptSets) => setSelectedConceptSets(conceptSets),
-        onStateChange,
-      }),
-      h(ValuesSelector, { selectedValues, values: [], onChange: (values) => setSelectedValues(values) }),
-    ]),
   ]);
 };
 
@@ -442,7 +631,10 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
           (() => {
             switch (datasetBuilderState.mode) {
               case 'homepage':
-                return h(DatasetBuilderContents, { onStateChange: setDatasetBuilderState });
+                return h(DatasetBuilderContents, {
+                  onStateChange: setDatasetBuilderState,
+                  dataset: datasetDetails.state,
+                });
               case 'cohort-editor':
                 return h(CohortEditor, {
                   onStateChange: setDatasetBuilderState,

@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import { Fragment, useRef, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
+import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { Link } from 'src/components/common';
 import { locationTypes } from 'src/components/region-common';
 import { updateRecentlyViewedWorkspaces } from 'src/components/workspace-utils';
@@ -15,7 +16,6 @@ import { getUser, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { differenceFromNowInSeconds } from 'src/libs/utils';
 import { isAzureWorkspace, isGoogleWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 
 export interface StorageDetails {
   googleBucketLocation: string; // historically returns defaultLocation if bucket location cannot be retrieved or Azure

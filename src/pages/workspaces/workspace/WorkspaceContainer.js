@@ -1,6 +1,12 @@
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers';
+import { ContextBar } from 'src/analysis/ContextBar';
+import { analysisTabName } from 'src/analysis/runtime-common-components';
+import RuntimeManager from 'src/analysis/RuntimeManager';
+import { getDiskAppType } from 'src/analysis/utils/app-utils';
+import { mapToPdTypes } from 'src/analysis/utils/disk-utils';
+import { getConvertedRuntimeStatus, getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
@@ -12,6 +18,7 @@ import TopBar from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import { isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
+import { isAzureWorkflowsTabVisible } from 'src/libs/config';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
@@ -20,12 +27,6 @@ import { getUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
-import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar';
-import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common-components';
-import RuntimeManager from 'src/pages/workspaces/workspace/analysis/RuntimeManager';
-import { getDiskAppType } from 'src/pages/workspaces/workspace/analysis/utils/app-utils';
-import { mapToPdTypes } from 'src/pages/workspaces/workspace/analysis/utils/disk-utils';
-import { getConvertedRuntimeStatus, getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal';
@@ -114,6 +115,7 @@ export const WorkspaceTabs = ({
   const isLocked = workspace?.workspace.isLocked;
   const workspaceLoaded = !!workspace;
   const googleWorkspace = workspaceLoaded && isGoogleWorkspace(workspace);
+  const azureWorkspace = workspaceLoaded && isAzureWorkspace(workspace);
 
   const onClone = () => setCloningWorkspace(true);
   const onDelete = () => setDeletingWorkspace(true);
@@ -125,8 +127,13 @@ export const WorkspaceTabs = ({
     { name: 'dashboard', link: 'workspace-dashboard' },
     { name: 'data', link: 'workspace-data' },
     { name: 'analyses', link: analysisTabName },
-    ...(googleWorkspace ? [{ name: 'workflows', link: 'workspace-workflows' }] : []),
-    ...(googleWorkspace ? [{ name: 'job history', link: 'workspace-job-history' }] : []),
+    ...(googleWorkspace
+      ? [
+          { name: 'workflows', link: 'workspace-workflows' },
+          { name: 'job history', link: 'workspace-job-history' },
+        ]
+      : []),
+    ...(azureWorkspace && isAzureWorkflowsTabVisible() ? [{ name: 'workflows', link: 'workspace-workflows-app' }] : []),
   ];
   return h(Fragment, [
     h(

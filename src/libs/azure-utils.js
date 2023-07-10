@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
+import { defaultAutopauseThreshold } from 'src/analysis/utils/runtime-utils';
 import * as Utils from 'src/libs/utils';
-import { defaultAutopauseThreshold } from 'src/pages/workspaces/workspace/analysis/utils/runtime-utils';
 
 // AZURE REGIONS, COMPUTE TYPES, STORAGE TYPES AND PRICING
 

@@ -1,9 +1,12 @@
 import _ from 'lodash/fp';
 import { compile, pathToRegexp } from 'path-to-regexp';
+import * as Analysis from 'src/analysis/Analyses';
+import * as AnalysisLauncher from 'src/analysis/AnalysisLauncher';
+import * as AppLauncher from 'src/analysis/AppLauncher';
+import * as Environments from 'src/analysis/Environments';
 import { routeHandlersStore } from 'src/libs/state';
 import * as AzurePreview from 'src/pages/AzurePreview';
 import * as Projects from 'src/pages/billing/List/List';
-import * as Environments from 'src/pages/Environments';
 import * as FeaturePreviews from 'src/pages/FeaturePreviews';
 import * as Group from 'src/pages/groups/Group';
 import * as Groups from 'src/pages/groups/List';
@@ -27,9 +30,6 @@ import * as Upload from 'src/pages/Upload';
 import * as WorkflowsList from 'src/pages/workflows/List';
 import * as WorkflowDetails from 'src/pages/workflows/workflow/WorkflowDetails';
 import * as WorkspaceList from 'src/pages/workspaces/List';
-import * as Analysis from 'src/pages/workspaces/workspace/analysis/Analyses';
-import * as AnalysisLauncher from 'src/pages/workspaces/workspace/analysis/AnalysisLauncher';
-import * as AppLauncher from 'src/pages/workspaces/workspace/analysis/AppLauncher';
 import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard';
 import * as Data from 'src/pages/workspaces/workspace/Data';
 import * as WorkspaceFiles from 'src/pages/workspaces/workspace/Files';
@@ -38,6 +38,7 @@ import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/Su
 import * as WorkflowDashboard from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard';
 import * as Workflows from 'src/pages/workspaces/workspace/Workflows';
 import * as WorkflowView from 'src/pages/workspaces/workspace/workflows/WorkflowView';
+import * as WorkflowsApp from 'src/workflows-app/routes';
 
 /*
  * NOTE: In order to show up in reports, new events[^1] MUST be marked as expected in the Mixpanel
@@ -83,6 +84,7 @@ const routes = _.flatten([
   FeaturePreviews.navPaths,
   WorkspaceFiles.navPaths,
   AzurePreview.navPaths,
+  WorkflowsApp.navPaths,
   NotFound.navPaths, // must be last
 ]);
 
