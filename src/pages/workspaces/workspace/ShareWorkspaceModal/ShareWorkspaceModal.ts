@@ -2,10 +2,12 @@ import _ from 'lodash/fp';
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import { div, h, label, p, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, ButtonSecondary, IdContainer, spinnerOverlay, Switch } from 'src/components/common';
+import { icon } from 'src/components/icons';
 import { AutocompleteTextInput } from 'src/components/input';
 import Modal, { styles as modalStyles } from 'src/components/Modal';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
+import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
@@ -140,6 +142,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
       onDismiss,
     },
     [
+      h(ProtectedDataWarning),
       div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
         h(IdContainer, [
           (id) =>
@@ -262,6 +265,34 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
         ]),
       ]),
       working && spinnerOverlay,
+    ]
+  );
+};
+
+const ProtectedDataWarning: React.FC = () => {
+  const msg =
+    'Do not share Unclassified Confidential Information with anyone unauthorized to access such information, ' +
+    'as it violates US Federal Policy (ie FISMA, FIPS-199, etc) ' +
+    'unless explicitly authorized by the dataset manager or governed by your own agreements';
+
+  return div(
+    {
+      role: 'textbox',
+      style: {
+        display: 'flex',
+        flexDirection: 'row',
+        padding: '0.5rem',
+        fontWeight: 'bold',
+        backgroundColor: colors.dark(0.25),
+      },
+    },
+    [
+      icon('warning-standard', {
+        // 'aria-label': 'warning notification',
+        size: 26,
+        style: { color: colors.danger(1), flexShrink: 0, margin: '0.5rem' },
+      }),
+      msg,
     ]
   );
 };
