@@ -103,24 +103,16 @@ export const getRegionLabel = (key) =>
   Utils.cond([!key, () => 'Loading'], [_.has(key, azureRegions), () => azureRegions[key].label], () => 'Unknown azure region');
 export const getRegionFlag = (key) => Utils.cond([!key, () => ''], [_.has(key, azureRegions), () => azureRegions[key].flag], () => '❓');
 
-export const azureMachineTypesNoGpu = {
+export const azureMachineTypes = {
   Standard_DS2_v2: { cpu: 2, ramInGb: 7 },
   Standard_DS3_v2: { cpu: 4, ramInGb: 14 },
   Standard_DS4_v2: { cpu: 8, ramInGb: 28 },
   Standard_DS5_v2: { cpu: 16, ramInGb: 56 },
+  Standard_NC6s_v3: { cpu: 6, ramInGb: 112, hasGpu: true },
+  Standard_NC12s_v3: { cpu: 12, ramInGb: 224, hasGpu: true },
   Standard_F64s_v2: { cpu: 64, ramInGb: 128 },
 };
 
-export const azureMachineTypesWithGpu = {
-  Standard_NC6s_v3: { cpu: 6, ramInGb: 112 },
-  Standard_NC12s_v3: { cpu: 12, ramInGb: 224 },
-};
-
-export const azureMachineTypes = {
-  // GPU enabled below
-  ...azureMachineTypesNoGpu,
-  ...azureMachineTypesWithGpu,
-};
 export const getMachineTypeLabel = (key) =>
   _.has(key, azureMachineTypes) ? `${key}, ${azureMachineTypes[key].cpu} CPU(s), ${azureMachineTypes[key].ramInGb} GBs` : 'Unknown machine type';
 

@@ -23,7 +23,6 @@ import TitleBar from 'src/components/TitleBar';
 import { Ajax } from 'src/libs/ajax';
 import {
   azureMachineTypes,
-  azureMachineTypesWithGpu,
   defaultAzureComputeConfig,
   defaultAzureDiskSize,
   defaultAzureMachineType,
@@ -81,7 +80,7 @@ export const AzureComputeModalBase = ({
         region: runtimeDetails?.runtimeConfig?.region || location || defaultAzureRegion,
         autopauseThreshold: runtimeDetails ? runtimeDetails.autopauseThreshold || autopauseDisabledValue : defaultAutopauseThreshold,
       });
-      setHasGpu(Object.keys(azureMachineTypesWithGpu).includes(runtimeDetails?.runtimeConfig?.machineType));
+      setHasGpu(!!azureMachineTypes[runtimeDetails?.runtimeConfig?.machineType]?.hasGpu);
     })
   );
 
@@ -146,7 +145,7 @@ export const AzureComputeModalBase = ({
   };
 
   const onChangeComputeConfig = (value) => {
-    setHasGpu(Object.keys(azureMachineTypesWithGpu).includes(value));
+    setHasGpu(!!azureMachineTypes[value]?.hasGpu);
     updateComputeConfig('machineType', value);
   };
 
@@ -179,10 +178,14 @@ export const AzureComputeModalBase = ({
         hasGpu &&
           div({ style: { display: 'flex', marginTop: '.5rem' } }, [
             icon('warning-standard', { size: 16, style: { color: colors.warning(), marginRight: '0.5rem' } }),
-            h(Link, { href: '', ...Utils.newTabLinkProps }, [
-              'This VM is powered by an NVIDIA GPU. Learn more about enabling GPUs.',
-              icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
-            ]),
+            h(
+              Link,
+              { href: 'https://support.terra.bio/hc/en-us/articles/16921184286491-How-to-use-GPUs-in-a-notebook-Azure-', ...Utils.newTabLinkProps },
+              [
+                'This VM is powered by an NVIDIA GPU. Learn more about enabling GPUs.',
+                icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
+              ]
+            ),
           ]),
         div({ style: { display: 'flex', marginTop: '.5rem' } }, [
           h(Link, { href: 'https://azure.microsoft.com/en-us/pricing/details/virtual-machines/series/', ...Utils.newTabLinkProps }, [
