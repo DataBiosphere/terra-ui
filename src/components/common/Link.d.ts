@@ -1,8 +1,8 @@
 import type { ClickableProps } from './Clickable';
 
-type LinkProps<T extends keyof JSX.IntrinsicElements> = {
+type LinkProps = {
   variant?: 'light';
   baseColor?: () => string;
-} & ClickableProps<T>;
+} & ClickableProps;
 
-export const Link: <T extends keyof JSX.IntrinsicElements = 'a'>(props: LinkProps<T>) => JSX.Element;
+export const Link: (props: LinkProps) => JSX.Element;

@@ -344,7 +344,6 @@ export const ContextBar = ({
                 color: !isTerminalVisible ? colors.dark(0.7) : contextBarStyles.contextBarButton.color,
               },
               hover: contextBarStyles.hover,
-              // @ts-expect-error
               'data-testid': 'terminal-button-id',
               tooltipSide: 'left',
               href: terminalLaunchLink,
