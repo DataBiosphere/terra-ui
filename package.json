@@ -67,7 +67,7 @@
   },
   "scripts": {
     "analyze": "yarn build && source-map-explorer 'build/static/js/*.js' --gzip",
-    "build": "yarn install && env $(yarn setenv) vite build && rm build/config.json",
+    "build": "tsc --build && env $(yarn setenv) vite build && rm build/config.json",
     "lint": "eslint --fix --max-warnings=0 .",
     "optimize-image-svgs": "svgo --enable=inlineStyles,prefixIds --config '{ \"plugins\": [ { \"inlineStyles\": { \"onlyMatchedOnce\": false } }] }' --pretty -f src/images -r -p 1 --multipass",
     "preinstall": "node .hooks/check-engine-light.js",
