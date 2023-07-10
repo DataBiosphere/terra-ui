@@ -1,6 +1,6 @@
+import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act } from '@testing-library/react';
 import { Ajax } from 'src/libs/ajax';
-import { DeepPartial } from 'src/libs/type-utils/deep-partial';
 import { asMockedFn, renderHookInAct } from 'src/testing/test-utils';
 
 import { useWorkspaceById } from './workspace-hooks';

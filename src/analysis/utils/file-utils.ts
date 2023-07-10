@@ -1,7 +1,7 @@
+import { NominalType } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { runtimeTools, ToolLabel, toolToExtensionMap } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
-import { NominalType } from 'src/libs/type-utils/type-helpers';
 import * as Utils from 'src/libs/utils';
 import { GoogleWorkspace, hasAccessLevel } from 'src/libs/workspace-utils';
 

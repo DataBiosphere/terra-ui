@@ -2829,7 +2829,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terra-ui-packages/core-utils@workspace:packages/core-utils":
+"@terra-ui-packages/core-utils@*, @terra-ui-packages/core-utils@workspace:packages/core-utils":
   version: 0.0.0-use.local
   resolution: "@terra-ui-packages/core-utils@workspace:packages/core-utils"
   dependencies:
@@ -11834,6 +11834,7 @@ __metadata:
     "@fortawesome/react-fontawesome": ^0.1.15
     "@microlink/react-json-view": ^1.22.2
     "@terra-ui-packages/components": "*"
+    "@terra-ui-packages/core-utils": "*"
     "@terra-ui-packages/test-utils": "*"
     "@testing-library/dom": ^9.3.1
     "@testing-library/react": ^14.0.0

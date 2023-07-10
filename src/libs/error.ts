@@ -1,7 +1,6 @@
+import { AnyPromiseFn, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { notify } from 'src/libs/notifications';
-import { AnyPromiseFn, GenericPromiseFn } from 'src/libs/type-utils/general-types';
-import { safeCurry } from 'src/libs/type-utils/lodash-fp-helpers';
 
 export const reportError = async (title, obj) => {
   console.error(title, obj); // helpful when the notify component fails to render

@@ -13,6 +13,7 @@
     "@fortawesome/react-fontawesome": "^0.1.15",
     "@microlink/react-json-view": "^1.22.2",
     "@terra-ui-packages/components": "*",
+    "@terra-ui-packages/core-utils": "*",
     "animate.css": "^4.1.1",
     "array-move": "^4.0.0",
     "clipboard-polyfill": "^3.0.3",
