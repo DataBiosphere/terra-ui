@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { createElement, forwardRef, useState } from 'react';
+import { createElement, forwardRef, ReactNode, useState } from 'react';
 
 import * as Utils from './utils';
 
@@ -17,7 +17,7 @@ const pointerTypes = ['radio', 'checkbox', 'submit', 'button'];
 
 export type InteractiveProps = {
   as: keyof JSX.IntrinsicElements;
-  children?: React.ReactElement | React.ReactElement[];
+  children?: ReactNode;
   className?: string;
   disabled?: boolean;
   hover?: React.CSSProperties;
