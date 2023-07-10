@@ -121,7 +121,7 @@ const eventsList = {
 };
 
 /**
- * Extracts name, namespace, and cloudPlatform (if present) from an object. The object can either have these
+ * Extracts name, namespace, and cloudPlatform and policies (if present) from an object. The object can either have these
  * as top-level properties (such as would be returned from parseNav), or nested within a workspace object
  * (such as would be returned from the ajax workspace details API).
  */
@@ -130,7 +130,8 @@ export const extractWorkspaceDetails = (workspaceObject) => {
   // containing the workspace details.
   const workspaceDetails = 'workspace' in workspaceObject ? workspaceObject.workspace : workspaceObject;
   const { name, namespace, cloudPlatform } = workspaceDetails;
-  const data = { workspaceName: name, workspaceNamespace: namespace };
+  const policies = workspaceObject.policies ?? workspaceDetails.policies;
+  const data = { workspaceName: name, workspaceNamespace: namespace, policies };
   // When workspace details are obtained from the nav path, the cloudPlatform will not be available.
   // Uppercase cloud platform because we mix camelcase and uppercase depending on which server API it came from (rawls/workspace vs. leo).
   return _.isUndefined(cloudPlatform) ? data : _.merge(data, { cloudPlatform: _.toUpper(cloudPlatform) });
