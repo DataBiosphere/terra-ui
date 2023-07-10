@@ -7,10 +7,6 @@ const styles = {
     display: 'block',
     margin: '1rem 0 0.25rem',
   },
-  checkboxLabel: {
-    display: 'block',
-    margin: '1rem 0 0.25rem',
-  },
   formHint: {
     fontSize: 'smaller',
     marginTop: '0.25rem',
