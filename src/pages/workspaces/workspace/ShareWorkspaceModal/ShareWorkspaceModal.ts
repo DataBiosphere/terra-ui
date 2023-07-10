@@ -27,12 +27,11 @@ interface ShareWorkspaceModalProps {
   onDismiss: () => void;
 }
 
-const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = ({
-  onDismiss,
-  workspace,
-}: ShareWorkspaceModalProps) => {
-  // State
+const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWorkspaceModalProps) => {
+  const { onDismiss, workspace } = props;
   const { namespace, name } = workspace.workspace;
+
+  // State
   const [shareSuggestions, setShareSuggestions] = useState<string[]>([]);
   const [groups, setGroups] = useState([]);
   const [originalAcl, setOriginalAcl] = useState<WorkspaceAcl>([]);
