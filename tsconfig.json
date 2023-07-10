@@ -10,7 +10,7 @@
       "src/*": ["./src/*"]
     }
   },
-  "include": ["src"],
+  "include": ["src", "types/images"],
   "references": [
     {
       "path": "./packages/components/tsconfig.json"

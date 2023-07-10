@@ -1,5 +1,10 @@
+declare module '*.jpg' {
+  const value: string;
+  export = value;
+}
+
 declare module '*.png' {
-  const value: number;
+  const value: string;
   export = value;
 }
 
