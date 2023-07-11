@@ -23,9 +23,9 @@ export const mockWithErrorReporting = _.curry((title, fn) => {
  * Provides a mocked version of error module's withErrorReportingInModal
  */
 export const mockWithErrorReportingInModal = _.curry((title, onDismiss, fn) => {
-  const errorHandler = async () => {
+  const errorHandler = async (...args) => {
     try {
-      return await fn();
+      return await fn(...args);
     } catch (error) {
       errorWatcher(title, error);
       onDismiss();
