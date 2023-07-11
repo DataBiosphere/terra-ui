@@ -16,6 +16,7 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { maybeParseJSON } from 'src/libs/utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
+import OutputsTable from 'src/workflows-app/components/OutputsTable';
 import { convertArrayType, loadAppUrls, validateInputs, WdsPollInterval } from 'src/workflows-app/components/submission-common';
 import ViewWorkflowScriptModal from 'src/workflows-app/components/ViewWorkflowScriptModal';
 import { convertToRawUrl } from 'src/workflows-app/utils/method-common';
@@ -493,7 +494,7 @@ export const SubmissionConfig = wrapWorkflowsPage({ name: 'SubmissionConfig' })(
                 activeTab.key || 'select-data',
                 ['select-data', () => h2('TODO')],
                 ['inputs', () => h2('TODO')],
-                ['outputs', () => h2('TODO')]
+                ['outputs', () => h(OutputsTable, { configuredOutputDefinition, setConfiguredOutputDefinition })]
               ),
             ]
           ),
