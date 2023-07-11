@@ -212,12 +212,6 @@ describe('the share workspace modal', () => {
   });
 
   describe('the warning for sharing protected azure data', () => {
-    // findByText et al won't find partial matches without writing a custom matcher
-    const warningText =
-      'Do not share Unclassified Confidential Information with anyone unauthorized to access such information, ' +
-      'as it violates US Federal Policy (ie FISMA, FIPS-199, etc) ' +
-      'unless explicitly authorized by the dataset manager or governed by your own agreements';
-
     const azureWorkspace: AzureWorkspace = {
       accessLevel: 'PROJECT_OWNER',
       canShare: true,
@@ -258,8 +252,7 @@ describe('the share workspace modal', () => {
           })
         );
       });
-      const warning = await screen.queryByText(warningText);
-      expect(warning).not.toBeNull();
+      expect(screen.queryByText(/Do not share Unclassified Confidential Information/i)).toBeInTheDocument();
     });
 
     it('does not show a warning for azure workspaces without a protected data policy', async () => {
@@ -286,8 +279,7 @@ describe('the share workspace modal', () => {
           })
         );
       });
-      const warning = await screen.queryByText(warningText);
-      expect(warning).toBeNull();
+      expect(screen.queryByText(/Do not share Unclassified Confidential Information/i)).not.toBeInTheDocument();
     });
 
     it('does not get workspace detail or display a warning for a gcp workspace', async () => {
@@ -300,8 +292,7 @@ describe('the share workspace modal', () => {
           })
         );
       });
-      const warning = await screen.queryByText(warningText);
-      expect(warning).toBeNull();
+      expect(screen.queryByText(/Do not share Unclassified Confidential Information/i)).not.toBeInTheDocument();
     });
   });
 });
