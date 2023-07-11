@@ -132,10 +132,10 @@ export const extractWorkspaceDetails = (workspaceObject) => {
   const workspaceDetails = 'workspace' in workspaceObject ? workspaceObject.workspace : workspaceObject;
   const { name, namespace, cloudPlatform } = workspaceDetails;
   const hasProtectedData = containsProtectedDataPolicy(workspaceObject.policies ?? workspaceDetails.policies);
-  const data = { workspaceName: name, workspaceNamespace: namespace, hasProtectedData };
+  const data = { workspaceName: name, workspaceNamespace: namespace };
   // When workspace details are obtained from the nav path, the cloudPlatform will not be available.
   // Uppercase cloud platform because we mix camelcase and uppercase depending on which server API it came from (rawls/workspace vs. leo).
-  return _.isUndefined(cloudPlatform) ? data : _.merge(data, { cloudPlatform: _.toUpper(cloudPlatform) });
+  return _.isUndefined(cloudPlatform) ? data : _.merge(data, { cloudPlatform: _.toUpper(cloudPlatform), hasProtectedData });
 };
 
 export const extractCrossWorkspaceDetails = (fromWorkspace, toWorkspace) => {
