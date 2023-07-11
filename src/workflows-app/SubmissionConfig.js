@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment, useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { a, div, h, h2, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link, Select } from 'src/components/common';
 import { styles as errorStyles } from 'src/components/ErrorView';
@@ -41,10 +41,8 @@ export const SubmissionConfig = wrapWorkflowsPage({ name: 'SubmissionConfig' })(
     const [records, setRecords] = useState([]);
     const [loading, setLoading] = useState(false);
     const [workflowScript, setWorkflowScript] = useState();
-    // this state is used with WDS url polling. If polling is removed there is no need of this state
     const [runSetRecordType, setRunSetRecordType] = useState();
     const [wdsProxyUrl, setWdsProxyUrl] = useState({ status: 'None', state: '' });
-    // const [cbasProxyUrl, setCbasProxyUrl] = useState({ status: 'None', state: '' });
 
     // Options chosen on this page:
     const [selectedRecordType, setSelectedRecordType] = useState();
@@ -62,17 +60,13 @@ export const SubmissionConfig = wrapWorkflowsPage({ name: 'SubmissionConfig' })(
     const [displayLaunchModal, setDisplayLaunchModal] = useState(false);
     const [noRecordTypeData, setNoRecordTypeData] = useState(null);
 
-    // const dataTableRef = useRef();
     const signal = useCancellation();
-    // const pollWdsInterval = useRef()
+    const pollWdsInterval = useRef();
     const errorMessageCount = _.filter((message) => message.type === 'error')(inputValidations).length;
 
     const loadAppProxyUrls = useCallback(async () => {
       const { wds: wdsProxyUrlResponse, cbas: cbasProxyUrlResponse } = await loadAppUrls(workspaceId);
-
       setWdsProxyUrl(wdsProxyUrlResponse);
-      // setCbasProxyUrl(cbasProxyUrlResponse);
-
       return { wdsProxyUrlResponse, cbasProxyUrlResponse };
     }, [workspaceId]);
 
@@ -143,7 +137,6 @@ export const SubmissionConfig = wrapWorkflowsPage({ name: 'SubmissionConfig' })(
             const {
               wdsProxyUrlResponse: { status, state: wdsUrlRoot },
             } = await loadAppProxyUrls();
-            // const { status, state: wdsUrlRoot } = await loadWdsUrl()
             if (status === 'Unauthorized') {
               notify('warn', 'Error loading data tables', {
                 detail: 'Service returned Unauthorized error. Session might have expired. Please close the tab and re-open it.',
@@ -217,9 +210,8 @@ export const SubmissionConfig = wrapWorkflowsPage({ name: 'SubmissionConfig' })(
         cbasProxyUrlResponse: { status, state: cbasUrlRoot },
       } = await loadAppProxyUrls();
 
-      // TODO: Can Unauthorized be a case here ???
       if (status === 'Unauthorized') {
-        notify('warn', 'Error loading workflow data', {
+        notify('warn', 'Error loading workflows app', {
           detail: 'Service returned Unauthorized error. Session might have expired. Please refresh the page or login again.',
         });
       } else if (cbasUrlRoot) {
@@ -229,12 +221,6 @@ export const SubmissionConfig = wrapWorkflowsPage({ name: 'SubmissionConfig' })(
           loadWdsData({ recordType: runSetRecordType });
         });
       }
-      // TODO: does this still make sense now?
-      // else {
-      //   const errorDetails = await (wdsUrlRoot instanceof Response ? wdsUrlRoot.text() : wdsUrlRoot)
-      //   // to avoid stacked warning banners due to auto-poll for WDS url, we remove the current banner at 29th second
-      //   notify('warn', 'Error loading data tables', { detail: `Data Table app not found. Will retry in 30 seconds. Error details: ${errorDetails}`, timeout: WdsPollInterval - 1000 })
-      // }
     });
 
     useEffect(() => {
@@ -273,21 +259,20 @@ export const SubmissionConfig = wrapWorkflowsPage({ name: 'SubmissionConfig' })(
       }
     }, [signal, selectedMethodVersion, method]);
 
-    // TODO: redo this when caching works
-    // useEffect(() => {
-    //   // Start polling if we're missing WDS proxy url and stop polling when we have it
-    //   if ((!wdsProxyUrl || (wdsProxyUrl.status !== 'Ready')) && wdsProxyUrl.status !== 'Unauthorized' && !pollWdsInterval.current) {
-    //     pollWdsInterval.current = setInterval(() => loadWdsData({ recordType: runSetRecordType }), WdsPollInterval)
-    //   } else if (!!wdsProxyUrl && wdsProxyUrl.status === 'Ready' && pollWdsInterval.current) {
-    //     clearInterval(pollWdsInterval.current)
-    //     pollWdsInterval.current = undefined
-    //   }
-    //
-    //   return () => {
-    //     clearInterval(pollWdsInterval.current)
-    //     pollWdsInterval.current = undefined
-    //   }
-    // }, [loadWdsData, wdsProxyUrl, runSetRecordType])
+    useEffect(() => {
+      // Start polling if we're missing WDS proxy url and stop polling when we have it
+      if ((!wdsProxyUrl || wdsProxyUrl.status !== 'Ready') && wdsProxyUrl.status !== 'Unauthorized' && !pollWdsInterval.current) {
+        pollWdsInterval.current = setInterval(() => loadWdsData({ recordType: runSetRecordType }), WdsPollInterval);
+      } else if (!!wdsProxyUrl && wdsProxyUrl.status === 'Ready' && pollWdsInterval.current) {
+        clearInterval(pollWdsInterval.current);
+        pollWdsInterval.current = undefined;
+      }
+
+      return () => {
+        clearInterval(pollWdsInterval.current);
+        pollWdsInterval.current = undefined;
+      };
+    }, [loadWdsData, wdsProxyUrl, runSetRecordType]);
 
     const renderSummary = () => {
       return div({ style: { marginLeft: '2em', marginTop: '1rem', display: 'flex', justifyContent: 'space-between' } }, [
@@ -506,9 +491,9 @@ export const SubmissionConfig = wrapWorkflowsPage({ name: 'SubmissionConfig' })(
             [
               Utils.switchCase(
                 activeTab.key || 'select-data',
-                ['select-data', () => h2('TODO: Migrate Data tab to Terra UI')],
-                ['inputs', () => h2('TODO: Migrate Inputs tab to Terra UI')],
-                ['outputs', () => h2('TODO: Migrate Outputs tab to Terra UI')]
+                ['select-data', () => h2('TODO')],
+                ['inputs', () => h2('TODO')],
+                ['outputs', () => h2('TODO')]
               ),
             ]
           ),
