@@ -127,17 +127,19 @@ export const ImportDataOverview = ({ header, snapshots, isDataset, snapshotRespo
       Utils.cond(
         [
           isProtected(url, format),
-          () =>
-            '⚠️  The data you chose to import to Terra are identified as protected and require additional security settings. Please select a workspace that has an Authorization Domain and/or protected data setting.',
-          h(
-            Link,
-            {
-              style: { marginLeft: '1rem', verticalAlign: 'middle' },
-              href: 'https://support.terra.bio/hc/en-us/articles/360026775691-Overview-Managing-access-to-controlled-data-with-Authorization-Domains',
-              ...Utils.newTabLinkProps,
-            },
-            ['Learn more about protected data', icon('pop-out', { size: 12 })]
-          ),
+          () => [
+            icon('warning-standard'),
+            ' The data you chose to import to Terra are identified as protected and require additional security settings. Please select a workspace that has an Authorization Domain and/or protected data setting.',
+            h(
+              Link,
+              {
+                style: { marginLeft: '1rem', verticalAlign: 'middle' },
+                href: 'https://support.terra.bio/hc/en-us/articles/360026775691-Overview-Managing-access-to-controlled-data-with-Authorization-Domains',
+                ...Utils.newTabLinkProps,
+              },
+              ['Learn more about protected data', icon('pop-out', { size: 12 })]
+            ),
+          ],
         ],
         () => `The ${isDataset ? 'dataset' : 'snapshot'}(s) you just chose to import to Terra will be made available to you `,
         'within a workspace of your choice where you can then perform analysis.'
