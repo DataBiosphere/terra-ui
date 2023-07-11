@@ -2,6 +2,7 @@ import _ from 'lodash/fp';
 import { useEffect } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { useRoute } from 'src/libs/nav';
+import { containsProtectedDataPolicy } from 'src/libs/workspace-utils';
 
 /*
  * NOTE: In order to show up in reports, new events MUST be marked as expected in the Mixpanel
@@ -130,8 +131,8 @@ export const extractWorkspaceDetails = (workspaceObject) => {
   // containing the workspace details.
   const workspaceDetails = 'workspace' in workspaceObject ? workspaceObject.workspace : workspaceObject;
   const { name, namespace, cloudPlatform } = workspaceDetails;
-  const policies = workspaceObject.policies ?? workspaceDetails.policies;
-  const data = { workspaceName: name, workspaceNamespace: namespace, policies };
+  const hasProtectedData = containsProtectedDataPolicy(workspaceObject.policies ?? workspaceDetails.policies);
+  const data = { workspaceName: name, workspaceNamespace: namespace, hasProtectedData };
   // When workspace details are obtained from the nav path, the cloudPlatform will not be available.
   // Uppercase cloud platform because we mix camelcase and uppercase depending on which server API it came from (rawls/workspace vs. leo).
   return _.isUndefined(cloudPlatform) ? data : _.merge(data, { cloudPlatform: _.toUpper(cloudPlatform) });
