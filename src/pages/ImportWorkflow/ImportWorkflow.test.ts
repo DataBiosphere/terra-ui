@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { setAzureCookieOnUrl } from 'src/analysis/runtime-common-components';
@@ -313,7 +313,7 @@ describe('ImportWorkflow', () => {
     await user.click(option);
 
     const importButton = screen.getByText('Import');
-    await act(() => user.click(importButton));
+    await user.click(importButton);
 
     // Assert
     expect(importDockstoreWorkflow).toHaveBeenCalledWith(
@@ -369,7 +369,7 @@ describe('ImportWorkflow', () => {
     await user.click(option);
 
     const importButton = screen.getByText('Import');
-    await act(() => user.click(importButton));
+    await user.click(importButton);
 
     // Assert
     expect(mockListAppsFn).toHaveBeenCalledWith('79201ea6-519a-4077-a9a4-75b2a7c4cdeb');
@@ -421,7 +421,7 @@ describe('ImportWorkflow', () => {
     await user.click(option);
 
     const importButton = screen.getByText('Import');
-    await act(() => user.click(importButton));
+    await user.click(importButton);
 
     // Assert
     expect(mockListAppsFn).toBeCalledTimes(0);
@@ -442,7 +442,7 @@ describe('ImportWorkflow', () => {
 
     // Act
     const createWorkspaceButton = screen.getByText('create a new workspace');
-    await act(() => user.click(createWorkspaceButton));
+    await user.click(createWorkspaceButton);
 
     screen.getByText(
       'Importing directly into new Azure workspaces is not currently supported. To create a new workspace with an Azure billing project, visit the main',
@@ -471,14 +471,14 @@ describe('ImportWorkflow', () => {
     await user.click(option);
 
     const importButton = screen.getByText('Import');
-    await act(() => user.click(importButton));
+    await user.click(importButton);
     const firstImportDockstoreWorkflowCallArgs = asMockedFn(importDockstoreWorkflow).mock.calls[0];
 
     const confirmationMessageShown = !!screen.queryByText(
       'The selected workspace already contains a workflow named "test-workflow". Are you sure you want to overwrite it?'
     );
     const confirmButton = screen.getByText('Overwrite');
-    await act(() => user.click(confirmButton));
+    await user.click(confirmButton);
     const secondImportDockstoreWorkflowCallArgs = asMockedFn(importDockstoreWorkflow).mock.calls[1];
 
     // Assert
