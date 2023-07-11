@@ -466,6 +466,15 @@ export const SubmissionConfig = wrapWorkflowsPage({ name: 'SubmissionConfig' })(
       ]);
     };
 
+    const renderOutputs = () => {
+      return configuredOutputDefinition
+        ? h(OutputsTable, {
+            configuredOutputDefinition,
+            setConfiguredOutputDefinition,
+          })
+        : 'No previous run set data...';
+    };
+
     return loading
       ? centeredSpinner()
       : h(Fragment, [
@@ -494,7 +503,7 @@ export const SubmissionConfig = wrapWorkflowsPage({ name: 'SubmissionConfig' })(
                 activeTab.key || 'select-data',
                 ['select-data', () => h2('TODO')],
                 ['inputs', () => h2('TODO')],
-                ['outputs', () => h(OutputsTable, { configuredOutputDefinition, setConfiguredOutputDefinition })]
+                ['outputs', () => renderOutputs()]
               ),
             ]
           ),
