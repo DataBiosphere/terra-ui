@@ -277,7 +277,7 @@ const ProtectedDataWarning: React.FC = () => {
 
   return div(
     {
-      role: 'alert',
+      role: 'textbox',
       style: {
         display: 'flex',
         flexDirection: 'row',
