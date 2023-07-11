@@ -47,13 +47,7 @@ const WorkspaceMenu = ({
 };
 
 const DynamicWorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete, onLock, onLeave }) => {
-  const { workspace } = useWorkspaceDetails({ namespace, name }, [
-    'accessLevel',
-    'policies',
-    'canShare',
-    'workspace.cloudPlatform',
-    'workspace.isLocked',
-  ]);
+  const { workspace } = useWorkspaceDetails({ namespace, name }, ['accessLevel', 'policies', 'canShare', 'workspace.isLocked']);
 
   const canShare = workspace?.canShare;
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel);
