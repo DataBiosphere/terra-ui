@@ -263,7 +263,9 @@ describe('useAnalysisExportState', () => {
 
     // Act
     const hookResult2 = renderedHook.result.current;
-    hookResult2.copyAnalysis('NewName123');
+    act(() => {
+      hookResult2.copyAnalysis('NewName123');
+    });
     await renderedHook.waitForNextUpdate();
 
     // Assert
@@ -324,7 +326,9 @@ describe('useAnalysisExportState', () => {
 
     // Act
     const hookResult2 = renderedHook.result.current;
-    hookResult2.copyAnalysis('NewName123');
+    act(() => {
+      hookResult2.copyAnalysis('NewName123');
+    });
     await renderedHook.waitForNextUpdate();
 
     // Assert
