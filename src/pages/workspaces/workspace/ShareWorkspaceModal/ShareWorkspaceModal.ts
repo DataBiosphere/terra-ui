@@ -44,7 +44,6 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
   const [updateError, setUpdateError] = useState(undefined);
   const [lastAddedEmail, setLastAddedEmail] = useState(undefined);
   const [searchHasFocus, setSearchHasFocus] = useState(true);
-  const [protectedAzureData, setProtectedAzureData] = useState<boolean>();
   const list = useRef<HTMLDivElement>(null);
 
   const signal = useCancellation();
@@ -53,11 +52,8 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
   useOnMount(() => {
     const load = async () => {
       try {
-        const [{ acl }, { policies }, shareSuggestions, groups] = await Promise.all([
+        const [{ acl }, shareSuggestions, groups] = await Promise.all([
           Ajax(signal).Workspaces.workspace(namespace, name).getAcl(),
-          isAzureWorkspace(workspace)
-            ? Ajax(signal).Workspaces.workspace(namespace, name).details(['policies'])
-            : Promise.resolve({ policies: [] }),
           Ajax(signal).Workspaces.getShareLog(),
           Ajax(signal).Groups.list(),
         ]);
@@ -67,9 +63,6 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
         setOriginalAcl(fixedAcl);
         setGroups(groups);
         setShareSuggestions(shareSuggestions);
-        setProtectedAzureData(
-          isAzureWorkspace(workspace) && hasProtectedData({ ...workspace, policies: policies ?? [] })
-        );
         setLoaded(true);
       } catch (error) {
         onDismiss();
@@ -148,7 +141,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
       onDismiss,
     },
     [
-      protectedAzureData ? h(ProtectedDataWarning) : h(Fragment),
+      isAzureWorkspace(workspace) && hasProtectedData(workspace) ? h(ProtectedDataWarning) : h(Fragment),
       div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
         h(IdContainer, [
           (id) =>
@@ -294,7 +287,6 @@ const ProtectedDataWarning: React.FC = () => {
     },
     [
       icon('warning-standard', {
-        // 'aria-label': 'warning notification',
         size: 26,
         style: { color: colors.danger(1), flexShrink: 0, margin: '0.5rem' },
       }),

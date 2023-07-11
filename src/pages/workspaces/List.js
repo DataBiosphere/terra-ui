@@ -167,7 +167,7 @@ export const WorkspaceList = () => {
   const [cloningWorkspaceId, setCloningWorkspaceId] = useState();
   const [deletingWorkspaceId, setDeletingWorkspaceId] = useState();
   const [lockingWorkspaceId, setLockingWorkspaceId] = useState();
-  const [sharingWorkspaceId, setSharingWorkspaceId] = useState();
+  const [sharingWorkspace, setSharingWorkspace] = useState(undefined);
   const [leavingWorkspaceId, setLeavingWorkspaceId] = useState();
   const [requestingAccessWorkspaceId, setRequestingAccessWorkspaceId] = useState();
 
@@ -432,7 +432,7 @@ export const WorkspaceList = () => {
                 const onClone = () => setCloningWorkspaceId(workspaceId);
                 const onDelete = () => setDeletingWorkspaceId(workspaceId);
                 const onLock = () => setLockingWorkspaceId(workspaceId);
-                const onShare = () => setSharingWorkspaceId(workspaceId);
+                const onShare = (policies) => setSharingWorkspace({ ...getWorkspace(workspaceId), policies });
                 const onLeave = () => setLeavingWorkspaceId(workspaceId);
 
                 return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
@@ -620,10 +620,10 @@ export const WorkspaceList = () => {
           onDismiss: () => setLockingWorkspaceId(undefined),
           onSuccess: refreshWorkspaces,
         }),
-      sharingWorkspaceId &&
+      !!sharingWorkspace &&
         h(ShareWorkspaceModal, {
-          workspace: getWorkspace(sharingWorkspaceId),
-          onDismiss: () => setSharingWorkspaceId(undefined),
+          workspace: sharingWorkspace,
+          onDismiss: () => setSharingWorkspace(undefined),
         }),
       leavingWorkspaceId &&
         h(LeaveResourceModal, {

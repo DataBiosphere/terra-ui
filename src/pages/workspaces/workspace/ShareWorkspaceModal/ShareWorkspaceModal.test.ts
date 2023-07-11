@@ -56,16 +56,12 @@ describe('the share workspace modal', () => {
     acl: RawWorkspaceAcl,
     shareLog: string[],
     groups: string[],
-    updateAcl?: (aclUpdates: Partial<AccessEntry>[]) => Promise<any>,
-    details?: (fields: string[]) => Promise<any>
+    updateAcl?: (aclUpdates: Partial<AccessEntry>[]) => Promise<any>
   ) => {
-    const detailFn: (fields: string[]) => Promise<any> = details ?? jest.fn(() => Promise.resolve({}));
-
     const updateFn: (aclUpdates: Partial<AccessEntry>[]) => Promise<any> =
       updateAcl ?? jest.fn(() => Promise.resolve({ success: true }));
     const mockWorkspaceAjax: DeepPartial<ReturnType<AjaxContract['Workspaces']['workspace']>> = {
       getAcl: jest.fn(() => Promise.resolve({ acl })),
-      details: detailFn,
       updateAcl: updateFn,
     };
 
@@ -244,24 +240,21 @@ describe('the share workspace modal', () => {
     };
 
     it('shows a warning when sharing a workspace with protected data', async () => {
-      const detailsFn = jest.fn((fields: string[]) => {
-        expect(fields).toContainEqual('policies');
-        return Promise.resolve({
-          policies: [
-            {
-              additionalData: {},
-              name: 'protected-data',
-              namespace: 'terra',
-            },
-          ],
-        });
-      });
-      mockAjax({}, [], [], jest.fn(), detailsFn);
+      mockAjax({}, [], [], jest.fn());
       await act(async () => {
         render(
           h(ShareWorkspaceModal, {
             onDismiss: jest.fn(),
-            workspace: azureWorkspace,
+            workspace: {
+              ...azureWorkspace,
+              policies: [
+                {
+                  additionalData: {},
+                  name: 'protected-data',
+                  namespace: 'terra',
+                },
+              ],
+            },
           })
         );
       });
@@ -270,24 +263,26 @@ describe('the share workspace modal', () => {
     });
 
     it('does not show a warning for azure workspaces without a protected data policy', async () => {
-      const detailsFn = jest.fn((fields: string[]) => {
-        expect(fields).toContainEqual('policies');
-        return Promise.resolve({
-          policies: [
-            {
-              additionalData: {},
-              name: 'not-protected-data',
-              namespace: 'terra',
-            },
-          ],
-        });
-      });
-      mockAjax({}, [], [], jest.fn(), detailsFn);
+      mockAjax({}, [], [], jest.fn());
       await act(async () => {
         render(
           h(ShareWorkspaceModal, {
             onDismiss: jest.fn(),
-            workspace: azureWorkspace,
+            workspace: {
+              ...azureWorkspace,
+              policies: [
+                {
+                  additionalData: {},
+                  name: 'not-protected-data',
+                  namespace: 'terra',
+                },
+                {
+                  additionalData: {},
+                  name: 'protected-data',
+                  namespace: 'something-besides-terra',
+                },
+              ],
+            },
           })
         );
       });
@@ -296,12 +291,7 @@ describe('the share workspace modal', () => {
     });
 
     it('does not get workspace detail or display a warning for a gcp workspace', async () => {
-      const detailsFn = jest.fn((fields: string[]) => {
-        expect(fields).toContainEqual('policies');
-        expect(false).toBeTruthy();
-        return Promise.resolve({});
-      });
-      mockAjax({}, [], [], jest.fn(), detailsFn);
+      mockAjax({}, [], [], jest.fn());
       await act(async () => {
         render(
           h(ShareWorkspaceModal, {
