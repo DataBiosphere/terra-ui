@@ -415,6 +415,12 @@ export const wrapWorkspace =
       const { namespace, name } = props;
       const child = useRef();
 
+      // console.log('############################');
+      // console.log(`namespace: ${namespace}`);
+      // console.log(`name: ${name}`);
+      // // console.log(`workspace: ${JSON.stringify(workspace)}`)
+      // console.log('############################');
+
       const { workspace, accessError, loadingWorkspace, storageDetails, refreshWorkspace } = useWorkspace(namespace, name);
       const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(workspace);
       const { apps, refreshApps } = useAppPolling(workspace);
