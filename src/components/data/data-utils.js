@@ -364,6 +364,16 @@ export const notifyDataImportProgress = (jobId, message) => {
   });
 };
 
+/** Use the first column heading in the TSV as a suggested name for the table. */
+export const getSuggestedTableName = (tsv) => {
+  const indexOfFirstTab = tsv.indexOf('\t');
+  if (indexOfFirstTab === -1) {
+    return undefined;
+  }
+  const firstColumnHeading = tsv.slice(0, indexOfFirstTab);
+  return firstColumnHeading.replace(/_id$/, '').replace(/^entity:/, '');
+};
+
 export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTypes, workspaceId, dataProvider, isGoogleWorkspace, region }) => {
   const [useFireCloudDataModel, setUseFireCloudDataModel] = useState(false);
   const [isFileImportCurrMode, setIsFileImportCurrMode] = useState(true);
@@ -373,7 +383,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   const [showInvalidEntryMethodWarning, setShowInvalidEntryMethodWarning] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [deleteEmptyValues, setDeleteEmptyValues] = useState(false);
-  const [recordType, setRecordType] = useState(undefined);
+  const [recordType, setRecordType] = useState('');
   const [recordTypeInputTouched, setRecordTypeInputTouched] = useState(false);
 
   // Google workspace regions are hardcoded for now, as GCP uploads to the Rawls service which is only on uscentral-1
@@ -429,7 +439,11 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
       activeStyle: { cursor: 'copy' },
       onDropAccepted: async ([file]) => {
         setFile(file);
-        setFileContents(await Utils.readFileAsText(file.slice(0, 1000)));
+        const fileContentPreview = await Utils.readFileAsText(file.slice(0, 1000));
+        setFileContents(fileContentPreview);
+        if (!recordType) {
+          setRecordType(getSuggestedTableName(fileContentPreview) || '');
+        }
         setIsFileImportLastUsedMode(true);
       },
     },
