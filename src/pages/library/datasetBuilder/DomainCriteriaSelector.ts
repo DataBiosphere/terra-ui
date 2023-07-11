@@ -13,6 +13,7 @@ import {
 } from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { useOnMount } from 'src/libs/react-utils';
+import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from 'src/pages/library/datasetBuilder/constants';
 import {
   cohortEditorState,
   DomainCriteria,
@@ -50,7 +51,7 @@ export const DomainCriteriaSelector: React.FC<DomainSelectorProps> = (props) => 
   useOnMount(() => {
     void loadRootConcepts(() => DatasetBuilder().getConcepts(state.domainOption.root));
   });
-  return h(Fragment, [
+  return div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` } }, [
     h2({ style: { display: 'flex', alignItems: 'center' } }, [
       h(
         Link,

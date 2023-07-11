@@ -193,7 +193,6 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
   const { index, criteriaGroup, updateCohort, cohort, datasetDetails, onStateChange } = props;
   return div(
     {
-      // key: criteriaGroup.name,
       style: {
         backgroundColor: 'white',
         borderRadius: '5px',
@@ -386,8 +385,6 @@ interface CohortEditorProps {
 type CohortUpdater = (updater: (cohort: Cohort) => Cohort) => void;
 
 export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
-  // It looks like I'll need both originalCohort and cohort, to support editing the domain criteria in a different mode.
-  // This is because this page contains two different states: the cohort being edited and the original cohort.
   const { onStateChange, datasetDetails, originalCohort } = props;
   const [cohort, setCohort] = useState<Cohort>(originalCohort);
   const updateCohort: CohortUpdater = (updateCohort: (Cohort) => Cohort) => _.flow(updateCohort, setCohort)(cohort);
@@ -411,7 +408,7 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
           {
             onClick: () => {
               const cohorts: Cohort[] = datasetBuilderCohorts.get();
-              const cohortIndex = _.findIndex((c) => _.equals(c.name, originalCohort.name), cohorts);
+              const cohortIndex = _.findIndex((c) => _.equals(c.name, cohort.name), cohorts);
               datasetBuilderCohorts.set(
                 _.set(`[${cohortIndex === -1 ? cohorts.length : cohortIndex}]`, cohort, cohorts)
               );
