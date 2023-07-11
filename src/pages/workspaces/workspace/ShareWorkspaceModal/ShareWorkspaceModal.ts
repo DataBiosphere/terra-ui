@@ -2,7 +2,7 @@ import _ from 'lodash/fp';
 import React, { Fragment, useLayoutEffect, useRef, useState } from 'react';
 import { div, h, label, p, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, ButtonSecondary, IdContainer, spinnerOverlay, Switch } from 'src/components/common';
-import { icon } from 'src/components/icons';
+import { centeredSpinner, icon } from 'src/components/icons';
 import { AutocompleteTextInput } from 'src/components/input';
 import Modal, { styles as modalStyles } from 'src/components/Modal';
 import TooltipTrigger from 'src/components/TooltipTrigger';
@@ -185,7 +185,8 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
         ),
       ]),
       searchValueValid && !searchHasFocus && p([addUserReminder]),
-      h(CurrentCollaborators, { acl, setAcl, originalAcl, lastAddedEmail, workspace, loaded }),
+      h(CurrentCollaborators, { acl, setAcl, originalAcl, lastAddedEmail, workspace }),
+      !loaded && centeredSpinner(),
       updateError && div({ style: { marginTop: '1rem' } }, [div(['An error occurred:']), updateError]),
       div({ style: { ...modalStyles.buttonRow, justifyContent: 'space-between' } }, [
         h(IdContainer, [
