@@ -36,11 +36,11 @@ import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderLabels, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
+import { cloudProviderLabels, cloudProviderTypes, getCloudProviderFromWorkspace, workspaceAccessLevels } from 'src/libs/workspace-utils';
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
 import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal';
-import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal';
+import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
 import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu';
 
 const styles = {
@@ -229,7 +229,7 @@ export const WorkspaceList = () => {
   const sortedWorkspaces = _.orderBy(
     [
       (ws) => _.includes(ws.workspace.workspaceId, starredWorkspaceIds),
-      sort.field === 'accessLevel' ? (ws) => -Utils.workspaceAccessLevels.indexOf(ws.accessLevel) : `workspace.${sort.field}`,
+      sort.field === 'accessLevel' ? (ws) => -workspaceAccessLevels.indexOf(ws.accessLevel) : `workspace.${sort.field}`,
     ],
     ['desc', sort.direction],
     filteredWorkspaces[tab]
@@ -537,7 +537,7 @@ export const WorkspaceList = () => {
             'aria-label': 'Filter by access levels',
             value: accessLevelsFilter,
             onChange: (data) => Nav.updateSearch({ ...query, accessLevelsFilter: _.map('value', data) }),
-            options: Utils.workspaceAccessLevels,
+            options: workspaceAccessLevels,
             getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
           }),
         ]),

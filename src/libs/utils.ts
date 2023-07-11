@@ -7,7 +7,7 @@ import { AnyPromiseFn, GenericPromiseFn } from 'src/libs/type-utils/general-type
 import { safeCurry } from 'src/libs/type-utils/lodash-fp-helpers';
 import { v4 as uuid } from 'uuid';
 
-import { getCloudProviderFromWorkspace } from './workspace-utils';
+import { getCloudProviderFromWorkspace, hasAccessLevel } from './workspace-utils';
 
 export interface Subscribable<T extends any[]> {
   subscribe: (fn: (...args: T) => void) => { unsubscribe: () => void };
@@ -108,12 +108,6 @@ export const formatUSD = (v) =>
   cond([_.isNaN(v), () => 'unknown'], [v > 0 && v < 0.01, () => '< $0.01'], () => usdFormatter.format(v));
 
 export const formatNumber = new Intl.NumberFormat('en-US').format;
-
-export const workspaceAccessLevels = ['NO ACCESS', 'READER', 'WRITER', 'OWNER', 'PROJECT_OWNER'];
-
-export const hasAccessLevel = (required: string, current: string): boolean => {
-  return workspaceAccessLevels.indexOf(current) >= workspaceAccessLevels.indexOf(required);
-};
 
 export const canWrite = (accessLevel) => hasAccessLevel('WRITER', accessLevel);
 export const canRead = (accessLevel) => hasAccessLevel('READER', accessLevel);
