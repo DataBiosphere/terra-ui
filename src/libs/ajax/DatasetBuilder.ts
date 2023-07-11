@@ -1,6 +1,6 @@
 // Types that can be used to create a criteria.
 import _ from 'lodash/fp';
-import { DatasetBuilderType } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import { Cohort, ConceptSet, DatasetBuilderType } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 
 export interface DomainOption {
   kind: 'domain';
@@ -64,9 +64,27 @@ export interface Concept {
   isLeaf: boolean;
 }
 
+type DatasetRequest = {
+  cohorts: Cohort[];
+  conceptSets: ConceptSet[];
+  valuesSets: { domain: string; values: DatasetBuilderValue[] }[];
+};
+
+type DatasetAccessRequest = {
+  name: string;
+  researchPurposeStatement: string;
+  datasetRequest: DatasetRequest;
+};
+
+type DatasetParticipantCountRequest = {
+  cohorts: Cohort[];
+};
+
 export interface DatasetBuilderContract {
   retrieveDataset: (datasetId: string) => Promise<DatasetResponse>;
   getConcepts: (parent: Concept) => Promise<GetConceptsResponse>;
+  requestAccess: (request: DatasetAccessRequest) => Promise<void>;
+  getParticipantCount: (request: DatasetParticipantCountRequest) => Promise<number>;
 }
 
 type AccessLevel = 'Owner' | 'Reader' | 'Discoverer';
@@ -222,4 +240,6 @@ const getDummyConcepts = async (parent: Concept): Promise<GetConceptsResponse> =
 export const DatasetBuilder = (): DatasetBuilderContract => ({
   retrieveDataset: (datasetId) => Promise.resolve(dummyDatasetDetails(datasetId)),
   getConcepts: (parent: Concept) => Promise.resolve(getDummyConcepts(parent)),
+  requestAccess: (_request) => Promise.resolve(),
+  getParticipantCount: (_request) => Promise.resolve(100),
 });

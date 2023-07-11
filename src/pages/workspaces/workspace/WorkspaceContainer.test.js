@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
-import { getConfig } from 'src/libs/config';
+import { isAzureWorkflowsTabVisible } from 'src/libs/config';
 import { WorkspaceContainer, WorkspacePermissionNotice, WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 // Mocking for Nav.getLink
@@ -12,7 +12,7 @@ jest.mock('src/libs/nav', () => ({
 // Mocking Azure Workflows tab
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
-  getConfig: jest.fn().mockReturnValue({}),
+  isAzureWorkflowsTabVisible: jest.fn(),
 }));
 
 const mockWorkspaceMenu = jest.fn();
@@ -98,7 +98,7 @@ describe('WorkspaceTabs', () => {
 
   it('renders subset of tabs for Azure workspace with flag enabled, with no accessibility issues', async () => {
     // Enable config
-    getConfig.mockReturnValue({ isAzureWorkflowsTabVisible: true });
+    isAzureWorkflowsTabVisible.mockReturnValue(true);
     // Arrange
     const props = { workspace: { workspace: { cloudPlatform: 'Azure' } } };
     // Act

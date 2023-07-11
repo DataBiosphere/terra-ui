@@ -36,8 +36,18 @@ export const isGoogleWorkspaceInfo = (workspace: WorkspaceInfo): workspace is Go
   return workspace.cloudPlatform === 'Gcp';
 };
 
+export const workspaceAccessLevels = ['NO ACCESS', 'READER', 'WRITER', 'OWNER', 'PROJECT_OWNER'] as const;
+
+export type WorkspaceAccessLevels = typeof workspaceAccessLevels;
+
+export type WorkspaceAccessLevel = WorkspaceAccessLevels[number];
+
+export const hasAccessLevel = (required: WorkspaceAccessLevel, current: WorkspaceAccessLevel): boolean => {
+  return workspaceAccessLevels.indexOf(current) >= workspaceAccessLevels.indexOf(required);
+};
+
 export interface BaseWorkspace {
-  accessLevel: string;
+  accessLevel: WorkspaceAccessLevel;
   canShare: boolean;
   canCompute: boolean;
   workspace: WorkspaceInfo;

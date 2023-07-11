@@ -2,6 +2,7 @@ import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/analysis/_tes
 import {
   condTyped,
   DEFAULT,
+  differenceFromDatesInSeconds,
   differenceFromNowInSeconds,
   formatBytes,
   isValidWsExportTarget,
@@ -29,6 +30,20 @@ describe('differenceFromNowInSeconds', () => {
 
     jest.advanceTimersByTime(60000);
     expect(differenceFromNowInSeconds(workspaceDate)).toBe(63);
+  });
+});
+
+describe('differenceFromDatesInSeconds', () => {
+  it('returns the number of seconds between two server-formatted dates', () => {
+    const startDate = '2022-04-01T20:17:04.324Z';
+    const threeSecondsLater = '2022-04-01T20:17:07.324Z';
+    const oneMinuteLater = '2022-04-01T20:18:04.324Z';
+    const twoDaysLater = '2022-04-03T20:17:04.324Z';
+
+    expect(differenceFromDatesInSeconds(startDate, startDate)).toBe(0);
+    expect(differenceFromDatesInSeconds(startDate, threeSecondsLater)).toBe(3);
+    expect(differenceFromDatesInSeconds(startDate, oneMinuteLater)).toBe(60);
+    expect(differenceFromDatesInSeconds(startDate, twoDaysLater)).toBe(172800);
   });
 });
 
