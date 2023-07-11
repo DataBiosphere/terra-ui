@@ -9,6 +9,16 @@ import _ from 'lodash/fp';
  */
 export const errorWatcher = jest.fn();
 
+export const mockWithErrorReporting = _.curry((title, fn) => {
+  return async (...args) => {
+    try {
+      return await fn(...args);
+    } catch (error) {
+      errorWatcher(title, error);
+    }
+  };
+});
+
 /**
  * Provides a mocked version of error module's withErrorReportingInModal
  */

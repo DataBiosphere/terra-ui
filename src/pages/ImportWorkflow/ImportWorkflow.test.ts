@@ -5,6 +5,7 @@ import { setAzureCookieOnUrl } from 'src/analysis/runtime-common-components';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
+import { errorWatcher } from 'src/libs/error.mock';
 import { getUser } from 'src/libs/state';
 import { DeepPartial } from 'src/libs/type-utils/deep-partial';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
@@ -77,6 +78,15 @@ jest.mock('react-virtualized', () => ({
   ...jest.requireActual('react-virtualized'),
   AutoSizer: ({ children }) => children({ width: 300 }),
 }));
+
+jest.mock('src/libs/error', () => {
+  const errorModule = jest.requireActual('src/libs/error');
+  const mockErrorModule = jest.requireActual('src/libs/error.mock');
+  return {
+    ...errorModule,
+    withErrorReporting: mockErrorModule.mockWithErrorReporting,
+  };
+});
 
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
@@ -415,6 +425,7 @@ describe('ImportWorkflow', () => {
 
     // Assert
     expect(mockListAppsFn).toBeCalledTimes(0);
+    expect(errorWatcher).toHaveBeenCalledWith('Error importing workflow', expect.any(Error));
   });
 
   it('opens new workspace modal with azure disabled', async () => {
