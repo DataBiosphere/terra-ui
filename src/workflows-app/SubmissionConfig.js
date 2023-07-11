@@ -16,6 +16,7 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { maybeParseJSON } from 'src/libs/utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
+import InputsTable from 'src/workflows-app/components/InputsTable';
 import { convertArrayType, loadAppUrls, validateInputs, WdsPollInterval } from 'src/workflows-app/components/submission-common';
 import ViewWorkflowScriptModal from 'src/workflows-app/components/ViewWorkflowScriptModal';
 import { convertToRawUrl } from 'src/workflows-app/utils/method-common';
@@ -465,6 +466,17 @@ export const SubmissionConfig = wrapWorkflowsPage({ name: 'SubmissionConfig' })(
       ]);
     };
 
+    const renderInputs = () => {
+      return configuredInputDefinition && recordTypes && records.length
+        ? h(InputsTable, {
+            selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
+            configuredInputDefinition,
+            setConfiguredInputDefinition,
+            inputValidations,
+          })
+        : 'No data table rows available or input definition is not configured...';
+    };
+
     return loading
       ? centeredSpinner()
       : h(Fragment, [
@@ -492,7 +504,7 @@ export const SubmissionConfig = wrapWorkflowsPage({ name: 'SubmissionConfig' })(
               Utils.switchCase(
                 activeTab.key || 'select-data',
                 ['select-data', () => h2('TODO')],
-                ['inputs', () => h2('TODO')],
+                ['inputs', () => renderInputs()],
                 ['outputs', () => h2('TODO')]
               ),
             ]
