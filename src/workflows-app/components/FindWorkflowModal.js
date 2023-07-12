@@ -134,10 +134,7 @@ const FindWorkflowModal = ({ onDismiss, workspace }) => {
                 (method) =>
                   h(MethodCard, {
                     method,
-                    onClick: () =>
-                      Utils.withBusyState(setLoading, async () => {
-                        await submitMethod(signal, onDismiss, method, workspace);
-                      }),
+                    onClick: () => Utils.withBusyState(setLoading, submitMethod(signal, onDismiss, method, workspace)),
                     key: method.method_name,
                   }),
                 suggestedWorkflowsList
