@@ -67,3 +67,14 @@ export const convertToRawUrl = (methodPath, methodVersion, methodSource) => {
     }
   );
 };
+
+export const getMethodVersionName = (url) => {
+  let segmentedUrlPath;
+  // handle raw urls
+  if (url.includes('https://raw.githubusercontent.com')) {
+    segmentedUrlPath = url.split('/', 6).slice(-1)[0];
+  } else {
+    segmentedUrlPath = url.split('/', 7).slice(-1)[0];
+  }
+  return segmentedUrlPath;
+};
