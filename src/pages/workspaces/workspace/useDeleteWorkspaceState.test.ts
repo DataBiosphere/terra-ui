@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react-hooks';
+import { act } from '@testing-library/react-hooks';
 import { generateTestApp } from 'src/analysis/_testData/testData';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
@@ -8,7 +8,7 @@ import {
   useDeleteWorkspaceState,
   WorkspaceResourceDeletionPollRate,
 } from 'src/pages/workspaces/workspace/useDeleteWorkspaceState';
-import { asMockedFn } from 'src/testing/test-utils';
+import { asMockedFn, renderHookInAct } from 'src/testing/test-utils';
 
 type AjaxExports = typeof import('src/libs/ajax');
 jest.mock('src/libs/ajax', (): AjaxExports => {
@@ -94,11 +94,9 @@ describe('useDeleteWorkspaceState', () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     // Act
-    const { result } = await act(async () => {
-      return renderHook(() =>
-        useDeleteWorkspaceState({ workspace: googleWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess })
-      );
-    });
+    const { result } = await renderHookInAct(() =>
+      useDeleteWorkspaceState({ workspace: googleWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess })
+    );
 
     // Assert
     expect(result.current.hasApps()).toBe(true);
@@ -144,11 +142,9 @@ describe('useDeleteWorkspaceState', () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     // Act
-    const { result } = await act(async () => {
-      return renderHook(() =>
-        useDeleteWorkspaceState({ workspace: azureWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess })
-      );
-    });
+    const { result } = await renderHookInAct(() =>
+      useDeleteWorkspaceState({ workspace: azureWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess })
+    );
 
     // Assert
     expect(result.current.hasApps()).toBe(true);
@@ -186,11 +182,9 @@ describe('useDeleteWorkspaceState', () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     // Act
-    const { result } = await act(async () => {
-      return renderHook(() =>
-        useDeleteWorkspaceState({ workspace: azureWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess })
-      );
-    });
+    const { result } = await renderHookInAct(() =>
+      useDeleteWorkspaceState({ workspace: azureWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess })
+    );
     await act(() => result.current.deleteWorkspace());
 
     // Assert
@@ -225,11 +219,9 @@ describe('useDeleteWorkspaceState', () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     // Act
-    const { result } = await act(async () => {
-      return renderHook(() =>
-        useDeleteWorkspaceState({ workspace: googleWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess })
-      );
-    });
+    const { result } = await renderHookInAct(() =>
+      useDeleteWorkspaceState({ workspace: googleWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess })
+    );
     await act(() => result.current.deleteWorkspace());
 
     // Assert
@@ -262,11 +254,9 @@ describe('useDeleteWorkspaceState', () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     // Act
-    const { result } = await act(async () => {
-      return renderHook(() =>
-        useDeleteWorkspaceState({ workspace: googleWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess })
-      );
-    });
+    const { result } = await renderHookInAct(() =>
+      useDeleteWorkspaceState({ workspace: googleWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess })
+    );
 
     await act(() => result.current.deleteWorkspace());
 
@@ -309,11 +299,9 @@ describe('useDeleteWorkspaceState', () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     // Act
-    const { result } = await act(async () => {
-      return renderHook(() =>
-        useDeleteWorkspaceState({ workspace: azureWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess })
-      );
-    });
+    const { result } = await renderHookInAct(() =>
+      useDeleteWorkspaceState({ workspace: azureWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess })
+    );
 
     await act(() => result.current.deleteWorkspaceResources());
 
@@ -365,11 +353,9 @@ describe('useDeleteWorkspaceState', () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     // Act
-    const { result } = await act(async () => {
-      return renderHook(() =>
-        useDeleteWorkspaceState({ workspace: azureWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess })
-      );
-    });
+    const { result } = await renderHookInAct(() =>
+      useDeleteWorkspaceState({ workspace: azureWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess })
+    );
     await act(() => result.current.deleteWorkspaceResources());
 
     // Assert
@@ -429,15 +415,13 @@ describe('useDeleteWorkspaceState', () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     // Act
-    const { result } = await act(async () => {
-      return renderHook(() =>
-        useDeleteWorkspaceState({
-          workspace: azureWorkspace,
-          onDismiss: mockOnDismiss,
-          onSuccess: mockOnSuccess,
-        })
-      );
-    });
+    const { result } = await renderHookInAct(() =>
+      useDeleteWorkspaceState({
+        workspace: azureWorkspace,
+        onDismiss: mockOnDismiss,
+        onSuccess: mockOnSuccess,
+      })
+    );
     await act(() => result.current.deleteWorkspaceResources());
 
     expect(mockRuntimeDeleteAll).toHaveBeenCalledTimes(1);
@@ -481,11 +465,9 @@ describe('useDeleteWorkspaceState', () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     // Act
-    const { result } = await act(async () => {
-      return renderHook(() =>
-        useDeleteWorkspaceState({ workspace: azureWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess })
-      );
-    });
+    const { result } = await renderHookInAct(() =>
+      useDeleteWorkspaceState({ workspace: azureWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess })
+    );
     await act(() => result.current.deleteWorkspaceResources());
 
     // Assert

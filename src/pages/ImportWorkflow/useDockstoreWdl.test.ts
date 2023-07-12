@@ -1,7 +1,6 @@
-import { act, renderHook } from '@testing-library/react-hooks';
 import { Dockstore, DockstoreContract } from 'src/libs/ajax/Dockstore';
 import { reportError } from 'src/libs/error';
-import { asMockedFn } from 'src/testing/test-utils';
+import { asMockedFn, renderHookInAct } from 'src/testing/test-utils';
 
 import { useDockstoreWdl } from './useDockstoreWdl';
 
@@ -29,9 +28,7 @@ describe('useDockstoreWdl', () => {
     };
 
     // Act
-    const { result: hookReturnRef } = await act(async () => {
-      return renderHook(() => useDockstoreWdl(testWorkflow));
-    });
+    const { result: hookReturnRef } = await renderHookInAct(() => useDockstoreWdl(testWorkflow));
     const result = hookReturnRef.current;
 
     // Assert
@@ -52,9 +49,7 @@ describe('useDockstoreWdl', () => {
     };
 
     // Act
-    const { result: hookReturnRef } = await act(async () => {
-      return renderHook(() => useDockstoreWdl(testWorkflow));
-    });
+    const { result: hookReturnRef } = await renderHookInAct(() => useDockstoreWdl(testWorkflow));
     const result = hookReturnRef.current;
 
     // Assert

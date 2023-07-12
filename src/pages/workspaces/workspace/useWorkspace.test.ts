@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react-hooks';
+import { act } from '@testing-library/react-hooks';
 import _ from 'lodash/fp';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { locationTypes } from 'src/components/region-common';
@@ -14,7 +14,7 @@ import {
   googlePermissionsRecheckRate,
   useWorkspace,
 } from 'src/pages/workspaces/workspace/useWorkspace';
-import { asMockedFn } from 'src/testing/test-utils';
+import { asMockedFn, renderHookInAct } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax/AzureStorage');
 
@@ -168,9 +168,8 @@ describe('useActiveWorkspace', () => {
     );
 
     // Act
-    const { result } = await act(async () => {
-      return renderHook(() => useWorkspace('testNamespace', 'testName'));
-    });
+    // Wait for the bucket location call.
+    const { result } = await renderHookInAct(() => useWorkspace('testNamespace', 'testName'));
 
     // Assert
     assertResult(result.current, initializedGoogleWorkspace, expectedStorageDetails, false);
@@ -199,9 +198,8 @@ describe('useActiveWorkspace', () => {
     ]);
 
     // Act
-    const { result } = await act(async () => {
-      return renderHook(() => useWorkspace('testNamespace', 'testName'));
-    });
+    // Wait for the bucket location call.
+    const { result } = await renderHookInAct(() => useWorkspace('testNamespace', 'testName'));
 
     // Assert
     assertResult(result.current, initializedGoogleWorkspace, expectedStorageDetails, false);
@@ -226,9 +224,7 @@ describe('useActiveWorkspace', () => {
 
     // Act
     // Wait for the Azure storage call.
-    const { result } = await act(async () => {
-      return renderHook(() => useWorkspace('testNamespace', 'testName'));
-    });
+    const { result } = await renderHookInAct(() => useWorkspace('testNamespace', 'testName'));
 
     // Assert
     assertResult(result.current, initializedAzureWorkspace, expectedStorageDetails, false);
@@ -250,9 +246,7 @@ describe('useActiveWorkspace', () => {
     ]);
 
     // Act
-    const renderHookResult = await act(async () => {
-      return renderHook(() => useWorkspace('testNamespace', 'testName'));
-    });
+    const renderHookResult = await renderHookInAct(() => useWorkspace('testNamespace', 'testName'));
     const { result } = renderHookResult;
 
     // Assert
@@ -429,9 +423,7 @@ describe('useActiveWorkspace', () => {
 
     // Act
     // Wait for the calls to checkBucketReadAccess and checkBucketLocation to execute
-    const { result } = await act(async () => {
-      return renderHook(() => useWorkspace('testNamespace', 'testName'));
-    });
+    const { result } = await renderHookInAct(() => useWorkspace('testNamespace', 'testName'));
 
     // Assert
     assertResult(result.current, readOnlyWorkspace, expectedAllSyncedDetails, false);
@@ -466,9 +458,7 @@ describe('useActiveWorkspace', () => {
 
     // Act
     // Wait for the call to checkBucketReadAccess to execute
-    const { result } = await act(async () => {
-      return renderHook(() => useWorkspace('testNamespace', 'testName'));
-    });
+    const { result } = await renderHookInAct(() => useWorkspace('testNamespace', 'testName'));
 
     // Assert
     assertResult(result.current, initializedGoogleWorkspace, expectedStorageDetails, false);
@@ -514,9 +504,7 @@ describe('useActiveWorkspace', () => {
 
     // Act
     // Wait for the call to AzureStorage.details to execute.
-    const { result } = await act(async () => {
-      return renderHook(() => useWorkspace('testNamespace', 'testName'));
-    });
+    const { result } = await renderHookInAct(() => useWorkspace('testNamespace', 'testName'));
 
     // Assert
     assertResult(result.current, uninitializedAzureWorkspace, expectedFirstStorageDetails, false);
@@ -556,9 +544,7 @@ describe('useActiveWorkspace', () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     // Act
-    const { result } = await act(async () => {
-      return renderHook(() => useWorkspace('testNamespace', 'testName'));
-    });
+    const { result } = await renderHookInAct(() => useWorkspace('testNamespace', 'testName'));
 
     // Assert
     assertResult(result.current, undefined, _.merge(defaultGoogleBucketOptions, defaultAzureStorageOptions), true);
@@ -597,9 +583,7 @@ describe('useActiveWorkspace', () => {
 
     // Act
     // Wait for the call to checkBucketReadAccess to execute
-    const { result } = await act(async () => {
-      return renderHook(() => useWorkspace('testNamespace', 'testName'));
-    });
+    const { result } = await renderHookInAct(() => useWorkspace('testNamespace', 'testName'));
 
     // Assert
     assertResult(result.current, expectedWorkspaceResponse, expectStorageDetails, false);
@@ -644,9 +628,7 @@ describe('useActiveWorkspace', () => {
 
     // Act
     // Wait for the call to checkBucketReadAccess to execute
-    const { result } = await act(async () => {
-      return renderHook(() => useWorkspace('testNamespace', 'testName'));
-    });
+    const { result } = await renderHookInAct(() => useWorkspace('testNamespace', 'testName'));
 
     // Assert
     assertResult(result.current, expectedWorkspaceResponse, expectStorageDetails, false);

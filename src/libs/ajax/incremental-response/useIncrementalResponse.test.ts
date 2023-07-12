@@ -1,7 +1,7 @@
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react-hooks';
 import _ from 'lodash/fp';
 import { ErrorState, LoadingState, ReadyState } from 'src/libs/type-utils/LoadedState';
-import { controlledPromise, PromiseController } from 'src/testing/test-utils';
+import { controlledPromise, PromiseController, renderHookInAct } from 'src/testing/test-utils';
 
 import IncrementalResponse from './IncrementalResponse';
 import useIncrementalResponse from './useIncrementalResponse';
@@ -33,9 +33,7 @@ describe('useIncrementalResponse', () => {
 
   it('gets initial response', async () => {
     // Act
-    const { result: hookReturnRef } = await act(async () => {
-      return renderHook(() => useIncrementalResponse(getTestIncrementalResponse));
-    });
+    const { result: hookReturnRef } = await renderHookInAct(() => useIncrementalResponse(getTestIncrementalResponse));
     const state = hookReturnRef.current.state;
 
     // Assert
@@ -81,9 +79,7 @@ describe('useIncrementalResponse', () => {
     const throwError = () => Promise.reject(new Error('Something went wrong'));
 
     // Act
-    const { result: hookReturnRef } = await act(async () => {
-      return renderHook(() => useIncrementalResponse(throwError));
-    });
+    const { result: hookReturnRef } = await renderHookInAct(() => useIncrementalResponse(throwError));
     const state = hookReturnRef.current.state;
 
     // Assert
@@ -97,9 +93,7 @@ describe('useIncrementalResponse', () => {
 
   it('loads next page', async () => {
     // Arrange
-    const { result: hookReturnRef } = await act(async () => {
-      return renderHook(() => useIncrementalResponse(getTestIncrementalResponse));
-    });
+    const { result: hookReturnRef } = await renderHookInAct(() => useIncrementalResponse(getTestIncrementalResponse));
 
     // Act
     await act(() => hookReturnRef.current.loadNextPage());
@@ -112,9 +106,7 @@ describe('useIncrementalResponse', () => {
 
   it('loads all remaining pages', async () => {
     // Arrange
-    const { result: hookReturnRef } = await act(async () => {
-      return renderHook(() => useIncrementalResponse(getTestIncrementalResponse));
-    });
+    const { result: hookReturnRef } = await renderHookInAct(() => useIncrementalResponse(getTestIncrementalResponse));
 
     // Act
     await act(() => hookReturnRef.current.loadAllRemainingItems());
@@ -127,9 +119,7 @@ describe('useIncrementalResponse', () => {
 
   it('returns hasNextPage', async () => {
     // Arrange
-    const { result: hookReturnRef } = await act(async () => {
-      return renderHook(() => useIncrementalResponse(getTestIncrementalResponse));
-    });
+    const { result: hookReturnRef } = await renderHookInAct(() => useIncrementalResponse(getTestIncrementalResponse));
 
     // Act
     const firstPageHasNextPage = hookReturnRef.current.hasNextPage;
@@ -144,9 +134,7 @@ describe('useIncrementalResponse', () => {
 
   it('reloads / resets to first page', async () => {
     // Arrange
-    const { result: hookReturnRef } = await act(async () => {
-      return renderHook(() => useIncrementalResponse(getTestIncrementalResponse));
-    });
+    const { result: hookReturnRef } = await renderHookInAct(() => useIncrementalResponse(getTestIncrementalResponse));
     await act(() => hookReturnRef.current.loadAllRemainingItems());
 
     // Act
@@ -174,11 +162,12 @@ describe('useIncrementalResponse', () => {
       });
     };
 
-    const { rerender, result: hookReturnRef } = await act(async () => {
-      return renderHook(({ getFirstPage }) => useIncrementalResponse(getFirstPage), {
+    const { rerender, result: hookReturnRef } = await renderHookInAct(
+      ({ getFirstPage }) => useIncrementalResponse(getFirstPage),
+      {
         initialProps: { getFirstPage: getTestIncrementalResponse },
-      });
-    });
+      }
+    );
 
     // Act
     const stateBeforeChange = hookReturnRef.current.state;
