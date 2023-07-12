@@ -366,8 +366,8 @@ export const notifyDataImportProgress = (jobId, message) => {
 
 /** Use the first column heading in the TSV as a suggested name for the table. */
 export const getSuggestedTableName = (tsv) => {
-  const match = /(?:(?:membership|entity):)?([^\s]+)\s/.exec(tsv);
-  return match ? match[1].replace(/_id$/, '') : undefined;
+  const match = /([^\s]+)\s/.exec(tsv);
+  return match ? match[1].replace(/_id$/, '').replace(/^(membership|entity):/, '') : undefined;
 };
 
 export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTypes, workspaceId, dataProvider, isGoogleWorkspace, region }) => {
