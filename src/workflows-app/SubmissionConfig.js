@@ -489,9 +489,9 @@ export const BaseSubmissionConfig = (
           [
             Utils.switchCase(
               activeTab.key || 'select-data',
-              ['select-data', () => h2('TODO')],
-              ['inputs', () => h2('TODO')],
-              ['outputs', () => h2('TODO')]
+              ['select-data', () => h2('TODO')], // https://broadworkbench.atlassian.net/browse/WM-2020
+              ['inputs', () => h2('TODO')], // https://broadworkbench.atlassian.net/browse/WM-2021
+              ['outputs', () => h2('TODO')] // https://broadworkbench.atlassian.net/browse/WM-2022
             ),
           ]
         ),
