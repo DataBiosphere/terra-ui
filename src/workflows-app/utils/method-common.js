@@ -6,6 +6,9 @@ const MethodSource = Object.freeze({
   Dockstore: 'Dockstore',
 });
 
+const Covid19Methods = ['fetch_sra_to_bam', 'assemble_refbased', 'sarscov2_nextstrain'];
+export const isCovid19Method = (methodName) => Covid19Methods.includes(methodName);
+
 export const convertToRawUrl = (methodPath, methodVersion, methodSource) => {
   return Utils.cond(
     // the case-insensitive check is to maintain backwards compatibility as 3 Covid-19 workflows have 'Github' as source

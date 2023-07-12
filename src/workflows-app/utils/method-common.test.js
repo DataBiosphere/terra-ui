@@ -1,5 +1,5 @@
 import { Ajax } from 'src/libs/ajax';
-import { convertToRawUrl } from 'src/workflows-app/utils/method-common';
+import { convertToRawUrl, isCovid19Method } from 'src/workflows-app/utils/method-common';
 
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
@@ -7,6 +7,19 @@ jest.mock('src/libs/config', () => ({
 }));
 
 jest.mock('src/libs/ajax');
+
+describe('isCovid19Method', () => {
+  const testCases = [
+    { methodName: 'fetch_sra_to_bam', expectedResult: true },
+    { methodName: 'assemble_refbased', expectedResult: true },
+    { methodName: 'sarscov2_nextstrain', expectedResult: true },
+    { methodName: 'my_workflow', expectedResult: false },
+  ];
+
+  test.each(testCases)('returns $expectedResult for method $methodName', ({ methodName, expectedResult }) => {
+    expect(isCovid19Method(methodName)).toBe(expectedResult);
+  });
+});
 
 describe('convertToRawUrl', () => {
   const nonDockstoreValidTestCases = [

@@ -3,7 +3,7 @@ import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
-import { isCovid19Method } from 'src/workflows-app/components/submission-common';
+import { isCovid19Method } from 'src/workflows-app/utils/method-common';
 
 const HelpfulLinksBox = ({ method }) => {
   return div(

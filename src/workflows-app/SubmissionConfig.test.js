@@ -110,6 +110,7 @@ describe('BaseSubmissionConfig renders workflow details', () => {
       expect(mockLeoResponse).toHaveBeenCalledTimes(0);
     });
 
+    expect(screen.getByText('Submission Configuration for Target Workflow 1')).toBeInTheDocument();
     expect(screen.getByText('Workflow Version:')).toBeInTheDocument();
     expect(screen.getByText('1.0')).toBeInTheDocument();
 
@@ -118,9 +119,17 @@ describe('BaseSubmissionConfig renders workflow details', () => {
       screen.getByText('https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_1/target_workflow_1.wdl')
     ).toBeInTheDocument();
 
+    expect(screen.getAllByText('Select a data table')[0]).toBeInTheDocument();
+    expect(screen.getByText('FOO')).toBeInTheDocument();
+
     const workflowScriptLink = screen.getByRole('button', { name: 'View Workflow Script' });
     expect(workflowScriptLink).toBeInTheDocument();
     expect(workflowScriptLink.getAttribute('aria-disabled')).toBe('false');
+
+    // check helpful links box is rendered
+    // note: only 1 link will show up as the workflow rendered is not a Covid-19 workflow
+    expect(screen.getByText('Have questions?')).toBeInTheDocument();
+    expect(screen.getByText('How to set up and run a workflow')).toBeInTheDocument();
 
     // ** ACT **
     // user clicks on View Workflow Script to open the modal
