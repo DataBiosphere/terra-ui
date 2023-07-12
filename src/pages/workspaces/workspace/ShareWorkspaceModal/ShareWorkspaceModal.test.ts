@@ -6,7 +6,7 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { getUser } from 'src/libs/state';
 import { DeepPartial } from 'src/libs/type-utils/deep-partial';
-import { GoogleWorkspace } from 'src/libs/workspace-utils';
+import { AzureWorkspace, GoogleWorkspace } from 'src/libs/workspace-utils';
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
 import { AccessEntry, RawWorkspaceAcl } from 'src/pages/workspaces/workspace/WorkspaceAcl';
 import { asMockedFn } from 'src/testing/test-utils';
@@ -209,5 +209,84 @@ describe('the share workspace modal', () => {
 
     const errorMessage = await screen.findByText(expectedErrorText);
     expect(errorMessage).not.toBeNull();
+  });
+
+  describe('the warning for sharing protected azure data', () => {
+    const azureWorkspace: AzureWorkspace = {
+      accessLevel: 'PROJECT_OWNER',
+      canShare: true,
+      canCompute: true,
+      azureContext: {
+        managedResourceGroupId: 'mrg-id',
+        tenantId: 'tenant-id',
+        subscriptionId: 'sub-id,',
+      },
+      workspace: {
+        namespace: 'namespace',
+        name: 'name',
+        workspaceId: 'test-ws-id',
+        cloudPlatform: 'Azure',
+        authorizationDomain: [],
+        createdDate: '',
+        createdBy: '',
+        bucketName: 'test-bucket',
+      },
+    };
+
+    it('shows a warning when sharing a workspace with protected data', async () => {
+      mockAjax({}, [], [], jest.fn());
+      render(
+        h(ShareWorkspaceModal, {
+          onDismiss: jest.fn(),
+          workspace: {
+            ...azureWorkspace,
+            policies: [
+              {
+                additionalData: {},
+                name: 'protected-data',
+                namespace: 'terra',
+              },
+            ],
+          },
+        })
+      );
+      expect(screen.queryByText(/Do not share Unclassified Confidential Information/i)).toBeInTheDocument();
+    });
+
+    it('does not show a warning for azure workspaces without a protected data policy', async () => {
+      mockAjax({}, [], [], jest.fn());
+      render(
+        h(ShareWorkspaceModal, {
+          onDismiss: jest.fn(),
+          workspace: {
+            ...azureWorkspace,
+            policies: [
+              {
+                additionalData: {},
+                name: 'not-protected-data',
+                namespace: 'terra',
+              },
+              {
+                additionalData: {},
+                name: 'protected-data',
+                namespace: 'something-besides-terra',
+              },
+            ],
+          },
+        })
+      );
+      expect(screen.queryByText(/Do not share Unclassified Confidential Information/i)).not.toBeInTheDocument();
+    });
+
+    it('does not get workspace detail or display a warning for a gcp workspace', async () => {
+      mockAjax({}, [], [], jest.fn());
+      render(
+        h(ShareWorkspaceModal, {
+          onDismiss: jest.fn(),
+          workspace,
+        })
+      );
+      expect(screen.queryByText(/Do not share Unclassified Confidential Information/i)).not.toBeInTheDocument();
+    });
   });
 });
