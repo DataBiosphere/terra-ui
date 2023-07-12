@@ -467,6 +467,36 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
   );
 };
 
+type ActionBarProps = {
+  prompt: string | ReactElement;
+  actionText: string | ReactElement;
+  onClick: () => void;
+};
+
+export const ActionBar = (props: ActionBarProps) => {
+  const { prompt, actionText, onClick } = props;
+  return div(
+    {
+      style: {
+        width: '100%',
+        display: 'flex',
+        justifyContent: 'flex-end',
+        height: '5rem',
+        position: 'absolute',
+        bottom: 0,
+        backgroundColor: 'white',
+        boxShadow: '0 0 4px 0 rgba(0,0,0,0.5)',
+        alignItems: 'center',
+        padding: '1rem 2rem',
+      },
+    },
+    [
+      div({ style: { display: 'flex', alignItems: 'center' } }, [prompt]),
+      h(ButtonPrimary, { style: { marginLeft: '2rem', borderRadius: 0 }, onClick }, [actionText]),
+    ]
+  );
+};
+
 export const DatasetBuilderContents = ({
   onStateChange,
   dataset,
@@ -570,33 +600,14 @@ export const DatasetBuilderContents = ({
         ]),
       ]),
       requestValid &&
-        div(
-          {
-            style: {
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'flex-end',
-              height: '5rem',
-              position: 'absolute',
-              bottom: 0,
-              backgroundColor: 'white',
-              boxShadow: '0 0 4px 0 rgba(0,0,0,0.5)',
-              alignItems: 'center',
-              padding: '1rem 2rem',
-            },
-          },
-          [
-            div({ style: { display: 'flex', alignItems: 'center' } }, [
-              datasetRequestParticipantCount.status === 'Ready' ? datasetRequestParticipantCount.state : spinner(),
-              ' Participants in this dataset',
-            ]),
-            h(
-              ButtonPrimary,
-              { style: { marginLeft: '2rem', borderRadius: 0 }, onClick: () => setRequestingAccess(true) },
-              ['Request access to this dataset']
-            ),
-          ]
-        ),
+        h(ActionBar, {
+          prompt: h(Fragment, [
+            datasetRequestParticipantCount.status === 'Ready' ? datasetRequestParticipantCount.state : spinner(),
+            ' Participants in this dataset',
+          ]),
+          actionText: 'Request access to this dataset',
+          onClick: () => setRequestingAccess(true),
+        }),
     ]),
     requestingAccess &&
       h(RequestAccessModal, {
