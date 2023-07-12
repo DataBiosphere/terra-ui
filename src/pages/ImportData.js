@@ -126,9 +126,9 @@ export const ImportDataOverview = ({ header, snapshots, isDataset, snapshotRespo
     div({ style: { marginTop: '1rem' } }, [
       Utils.cond(
         [
-          isProtected(url, format),
+          !!url && isProtected(url, format),
           () => [
-            icon('warning-standard'),
+            icon('warning-standard', { size: 15, style: { marginRight: '0.25rem' }, color: colors.warning() }),
             ' The data you chose to import to Terra are identified as protected and require additional security settings. Please select a workspace that has an Authorization Domain and/or protected data setting.',
             h(
               Link,
@@ -354,17 +354,22 @@ const ImportDataDestination = ({
 // This method identifies whether an import source is considered protected data;
 // For now this means pfb imports from AnVIL or Biodata Catalyst.
 export const isProtected = (url, filetype) => {
-  const hostname = new URL(url).hostname;
-  const protectedHosts = [
-    'anvil.gi.ucsc.edu',
-    'anvilproject.org',
-    'gen3.biodatacatalyst.nhlbi.nih.gov',
-    'gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export.s3.amazonaws.com',
-    'gen3-theanvil-io-pfb-export.s3.amazonaws.com',
-  ];
-  return Utils.cond([!filetype || !url, () => false], [filetype.toLowerCase() !== 'pfb', () => false], () =>
-    protectedHosts.some((host) => hostname.endsWith(host))
-  );
+  try {
+    const hostname = new URL(url).hostname;
+    const protectedHosts = [
+      'anvil.gi.ucsc.edu',
+      'anvilproject.org',
+      'gen3.biodatacatalyst.nhlbi.nih.gov',
+      'gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export.s3.amazonaws.com',
+      'gen3-theanvil-io-pfb-export.s3.amazonaws.com',
+    ];
+    return Utils.cond([!filetype || !url, () => false], [filetype.toLowerCase() !== 'pfb', () => false], () =>
+      protectedHosts.some((host) => hostname.endsWith(host))
+    );
+  } catch (e) {
+    console.error(`Unable to parse url: ${url}`);
+    return false;
+  }
 };
 
 // ImportData handles all the information relating to the page itself - this includes:

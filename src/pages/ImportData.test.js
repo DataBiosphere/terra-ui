@@ -19,6 +19,7 @@ const nonProtectedUrls = [
   { url: 'https://prod.anvil.gi.ucsc.edu/file', format: 'snapshot' },
   { url: 'https://anvilproject.org/', format: 'catalog' },
   { url: 'https://gen3.biodatacatalyst.nhlbi.nih.gov/explorer', format: 'snapShot' },
+  { url: 'http://localhost:3000', format: '' },
 ];
 
 describe('isProtected', () => {
