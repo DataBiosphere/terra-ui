@@ -98,7 +98,7 @@ export const BaseSubmissionConfig = (
         notify('error', 'Error loading methods data', { detail: 'Method not found.' });
       }
     } catch (error) {
-      notify('error', 'Error loading methods data', { detail: await (error instanceof Response ? error.text() : error) });
+      notify('error', 'Error loading methods data', { detail: error instanceof Response ? await error.text() : error });
     }
   };
 
