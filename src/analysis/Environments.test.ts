@@ -32,6 +32,13 @@ import { ListAppResponse } from '../libs/ajax/leonardo/models/app-models';
 import { ListDiskItem } from '../libs/ajax/leonardo/models/disk-models';
 import { DeepPartial } from '../libs/type-utils/deep-partial';
 
+type ModalMockExports = typeof import('src/components/Modal.mock');
+
+jest.mock('src/components/Modal', () => {
+  const mockModal = jest.requireActual<ModalMockExports>('src/components/Modal.mock');
+  return mockModal.mockModalModule();
+});
+
 jest.mock('src/libs/ajax');
 type NavExports = typeof import('src/libs/nav');
 jest.mock(
