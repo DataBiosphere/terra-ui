@@ -658,7 +658,7 @@ const Workspaces = (signal) => ({
       },
 
       delete: () => {
-        return fetchRawls(`workspaces/v2/${namespace}/${name}`, _.merge(authOpts(), { signal, method: 'POST' }));
+        return fetchRawls(root, _.merge(authOpts(), { signal, method: 'POST' }));
       },
 
       clone: async (body) => {
