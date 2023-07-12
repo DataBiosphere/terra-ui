@@ -9,7 +9,7 @@ import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
-import { withBusyState } from 'src/libs/utils';
+import * as Utils from 'src/libs/utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
 import ImportGithub from 'src/workflows-app/components/ImportGithub';
 import { submitMethod } from 'src/workflows-app/components/method-common';
@@ -70,7 +70,7 @@ const suggestedWorkflowsList = [
 
 const FindWorkflowModal = ({ onDismiss, workspace }) => {
   const [selectedSubHeader, setSelectedSubHeader] = useState('browse-suggested-workflows');
-  const [loading, setLoading] = useState();
+  const [loading, setLoading] = useState(false);
 
   const signal = useCancellation();
 import { TextCell } from 'src/components/table';
@@ -203,7 +203,10 @@ const FindWorkflowModal = ({ onDismiss, workspace }) => {
                 (method) =>
                   h(MethodCard, {
                     method,
-                    onClick: () => withBusyState(setLoading, submitMethod(signal, onDismiss, method, workspace)),
+                    onClick: () =>
+                      Utils.withBusyState(setLoading, async () => {
+                        await submitMethod(signal, onDismiss, method, workspace);
+                      }),
                     key: method.method_name,
                   }),
                 suggestedWorkflowsList
