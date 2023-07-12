@@ -1,7 +1,6 @@
-import { fireEvent, getAllByRole, render, screen } from '@testing-library/react';
+import { act, fireEvent, getAllByRole, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
-import { act } from 'react-dom/test-utils';
 import { h } from 'react-hyperscript-helpers';
 import {
   azureRuntime,

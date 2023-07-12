@@ -1,14 +1,13 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
-import { act } from 'react-dom/test-utils';
 import { h } from 'react-hyperscript-helpers';
 import { azureRuntime, defaultAzureWorkspace, defaultTestDisk, getDisk, imageDocs, testAzureDefaultRegion } from 'src/analysis/_testData/testData';
 import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/analysis/utils/cost-utils';
 import { autopauseDisabledValue, defaultAutopauseThreshold } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels, runtimeTools } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
-import { azureMachineTypes, defaultAzureMachineType } from 'src/libs/azure-utils';
+import { azureMachineTypes, defaultAzureMachineType, getMachineTypeLabel } from 'src/libs/azure-utils';
 import { formatUSD } from 'src/libs/utils';
 import { asMockedFn } from 'src/testing/test-utils';
 
@@ -408,5 +407,26 @@ describe('AzureComputeModal', () => {
     verifyEnabled(screen.getByText('Delete'));
     const radio1 = screen.getByLabelText('Delete persistent disk');
     expect(radio1).toBeChecked();
+  });
+
+  it('toggles GPU on azure warning when GPU cloud compute profile is selected and unselected', async () => {
+    // Arrange
+    await render(h(AzureComputeModalBase, defaultModalProps));
+
+    // Act
+    const selectCompute = screen.getByLabelText('Cloud compute profile');
+    await userEvent.click(selectCompute);
+
+    await userEvent.click(screen.getByText(getMachineTypeLabel('Standard_NC6s_v3')));
+
+    // Assert
+    expect(screen.getByText('Learn more about enabling GPUs.')).toBeInTheDocument();
+
+    // Act
+    await userEvent.click(selectCompute);
+    await userEvent.click(screen.getByText(getMachineTypeLabel('Standard_DS2_v2')));
+
+    // Assert
+    expect(screen.queryByText('Learn more about enabling GPUs.')).not.toBeInTheDocument();
   });
 });
