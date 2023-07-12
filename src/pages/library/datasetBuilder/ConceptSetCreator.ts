@@ -44,13 +44,20 @@ export const ConceptSetCreator = (props: ConceptSetCreatorProps) => {
           {
             name: 'Concept Name',
             width: 710,
-            render: (concept) =>
-              h(Fragment, [
-                h(Link, { onClick: () => setCart(_.xor(cart, [concept.id])) }, [
-                  icon(_.contains(concept.id, cart) ? 'minus-circle-red' : 'plus-circle-filled', { size: 16 }),
+            render: (concept) => {
+              const [label, iconName] = (() => {
+                if (_.contains(concept.id, cart)) {
+                  return ['remove', 'minus-circle-red'];
+                }
+                return ['add', 'plus-circle-filled'];
+              })();
+              return h(Fragment, [
+                h(Link, { 'aria-label': label, onClick: () => setCart(_.xor(cart, [concept.id])) }, [
+                  icon(iconName, { size: 16 }),
                 ]),
                 div({ style: { marginLeft: 5 } }, [concept.name]),
-              ]),
+              ]);
+            },
           },
           { name: 'Concept ID', width: 195, render: _.get('id') },
           { name: 'Roll-up count', width: 205, render: _.get('count') },

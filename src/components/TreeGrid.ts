@@ -118,15 +118,15 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridProps<T>) => {
     noContentMessage: 'No matching data',
     cellRenderer: ({ rowIndex, columnIndex, style }) => {
       const row = visibleRows[rowIndex];
-      const [handler, iconName] = (() => {
+      const [handler, iconName, label] = (() => {
         switch (row.state) {
           case 'closed':
-            return [expand, 'angle-up'];
+            return [expand, 'angle-up', 'expand'];
           case 'opening':
-            return [_.noop, 'loadingSpinner'];
+            return [undefined, 'loadingSpinner', ''];
           case 'open':
           default:
-            return [collapse, 'angle-down'];
+            return [collapse, 'angle-down', 'collapse'];
         }
       })();
       return div(
@@ -147,7 +147,11 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridProps<T>) => {
               () =>
                 div({ style: { paddingLeft: `${1 + row.depth}rem`, display: 'flex' } }, [
                   row.contents.hasChildren &&
-                    h(Link, { onClick: () => handler(row), style: { paddingLeft: 5 } }, [icon(iconName, { size: 16 })]),
+                    (handler
+                      ? h(Link, { onClick: () => handler(row), 'aria-label': label, style: { paddingLeft: 5 } }, [
+                          icon(iconName, { size: 16 }),
+                        ])
+                      : icon(iconName, { size: 16, style: { marginLeft: 5 } })),
                   div({ style: { display: 'flex', marginLeft: row.contents.hasChildren ? 10 : 5 + 16 + 10 } }, [
                     columns[columnIndex].render(row.contents),
                   ]),
