@@ -1,3 +1,5 @@
+import _ from 'lodash/fp';
+
 export type CloudProvider = 'AZURE' | 'GCP';
 export const cloudProviderTypes: Record<CloudProvider, CloudProvider> = {
   AZURE: 'AZURE',
@@ -59,8 +61,15 @@ export interface AzureContext {
   tenantId: string;
 }
 
+interface WorkspacePolicy {
+  name: string;
+  namespace: string;
+  additionalData: { [key: string]: string };
+}
+
 export interface AzureWorkspace extends BaseWorkspace {
   azureContext: AzureContext;
+  policies?: WorkspacePolicy[];
 }
 
 export interface GoogleWorkspace extends BaseWorkspace {
@@ -79,3 +88,8 @@ export const isGoogleWorkspace = (workspace: BaseWorkspace): workspace is Google
 
 export const getCloudProviderFromWorkspace = (workspace: BaseWorkspace): CloudProvider =>
   isAzureWorkspace(workspace) ? cloudProviderTypes.AZURE : cloudProviderTypes.GCP;
+
+export const hasProtectedData = (workspace: AzureWorkspace): boolean => containsProtectedDataPolicy(workspace.policies);
+
+export const containsProtectedDataPolicy = (policies: WorkspacePolicy[] | undefined): boolean =>
+  _.any((policy) => policy.namespace === 'terra' && policy.name === 'protected-data', policies);
