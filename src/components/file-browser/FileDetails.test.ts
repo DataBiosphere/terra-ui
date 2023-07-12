@@ -1,5 +1,3 @@
-import '@testing-library/jest-dom';
-
 import { render, screen } from '@testing-library/react';
 import { div, h } from 'react-hyperscript-helpers';
 import { DownloadFileCommand } from 'src/components/file-browser/DownloadFileCommand';
