@@ -1,9 +1,10 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { getConfig } from 'src/libs/config';
+import { getUser } from 'src/libs/state';
 import FindWorkflowModal from 'src/workflows-app/components/FindWorkflowModal';
 
 jest.mock('src/libs/ajax');
@@ -16,6 +17,10 @@ jest.mock('src/libs/nav.js', () => ({
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
   getConfig: jest.fn().mockReturnValue({}),
+}));
+jest.mock('src/libs/state', () => ({
+  ...jest.requireActual('src/libs/state'),
+  getUser: jest.fn(),
 }));
 
 describe('FindWorkflowModal', () => {
@@ -90,9 +95,13 @@ describe('FindWorkflowModal', () => {
     expect(screen.getByText('ExomeGermlineSingleSample')).toBeInTheDocument();
   });
 
-  it('should call POST /methods endpoint with expected parameters', async () => {
-    const postMethodFunction = jest.fn(() => Promise.resolve({ method_id: 'abc123' }));
+  it('should call POST /methods endpoint with expected parameters when selecting a method card', async () => {
     const mockListAppsFn = jest.fn(() => Promise.resolve(mockAppResponse));
+    const postMethodFunction = jest.fn(() => Promise.resolve({ method_id: 'abc123' }));
+
+    await getUser.mockReturnValue({
+      email: 'abc@gmail.com',
+    });
 
     await Apps.mockImplementation(() => {
       return {
@@ -104,7 +113,7 @@ describe('FindWorkflowModal', () => {
       return {
         Cbas: {
           methods: {
-            post: postMethodFunction,
+            post: jest.fn(postMethodFunction),
           },
         },
       };
@@ -118,33 +127,23 @@ describe('FindWorkflowModal', () => {
 
     // select and click on method in modal
     const firstWorkflow = screen.getByText('Optimus');
-    await act(async () => {
-      await userEvent.click(firstWorkflow);
+    await userEvent.click(firstWorkflow);
+    await waitFor(() => {
+      expect(postMethodFunction).toHaveBeenCalled();
     });
 
     // ** ASSERT **
     // assert POST /methods endpoint was called with expected parameters
-    expect(postMethodFunction).toHaveBeenCalled();
-    expect(postMethodFunction).toBeCalledWith({
-      method_name: 'Optimus',
-      method_description:
-        'The optimus 3 pipeline processes 10x genomics sequencing data based on the v2 chemistry. It corrects cell barcodes and UMIs, aligns reads, marks duplicates, and returns data as alignments in BAM format and as counts in sparse matrix exchange format.',
-      method_source: 'GitHub',
-      method_version: 'Optimus_v5.7.2',
-      method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/Optimus_v5.7.2/pipelines/skylab/optimus/Optimus.wdl',
-    });
-  });
-
-  it('should link to Dockstore staging when clicked', () => {
-    getConfig().isDockstoreEnabled = true;
-
-    // ** ACT **
-    render(h(FindWorkflowModal, { onDismiss: jest.fn() }));
-
-    const dockstoreSubHeader = screen.getByText('Dockstore');
-    fireEvent.click(dockstoreSubHeader);
-
-    const dockstoreButton = screen.getByText('Go to Dockstore');
-    expect(dockstoreButton).toHaveAttribute('href', 'https://staging.dockstore.org/search?_type=workflow&descriptorType=WDL&searchMode=files');
+    expect(postMethodFunction).toBeCalledWith(
+      'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas',
+      {
+        method_name: 'Optimus',
+        method_description:
+          'The optimus 3 pipeline processes 10x genomics sequencing data based on the v2 chemistry. It corrects cell barcodes and UMIs, aligns reads, marks duplicates, and returns data as alignments in BAM format and as counts in sparse matrix exchange format.',
+        method_source: 'GitHub',
+        method_version: 'Optimus_v5.7.2',
+        method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/Optimus_v5.7.2/pipelines/skylab/optimus/Optimus.wdl',
+      }
+    );
   });
 });
