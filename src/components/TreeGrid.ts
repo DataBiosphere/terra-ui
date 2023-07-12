@@ -33,7 +33,10 @@ type Row<T extends RowContents> = {
   state: RowState;
 };
 
-// Given raw data `contents`, wrap it in a Row object.
+/**
+ *  Wrap a RowContents in a Row object.
+ *  @param depth the tree depth of the wrapped row
+ */
 const wrapContent =
   (depth: number) =>
   <T extends RowContents>(contents: T): Row<T> => ({
@@ -45,20 +48,48 @@ const wrapContent =
 
 export type TreeGridProps<T extends RowContents> = {
   /** the columns to display */
-  columns: Column<T>[];
+  readonly columns: Column<T>[];
   /** the initial rows to display */
-  initialRows: T[];
-  /** Given a row, return its children. Will only be called if row.hasChildren is true. */
-  getChildren: (row: T) => Promise<T[]>;
+  readonly initialRows: T[];
+  /** Given a row, return its children. This is only called if row.hasChildren is true. */
+  readonly getChildren: (row: T) => Promise<T[]>;
 };
+
+type TreeGridPropsInner<T extends RowContents> = TreeGridProps<T> & {
+  readonly gridWidth: number;
+};
+
+/**
+ * Given a list of rows, return the rows that are currently visible.
+ */
+function getVisibleRows<T extends RowContents>(data: Row<T>[]) {
+  const visibleRows: Row<T>[] = [];
+  // Root elements are always visible.
+  let visibleDepth = 0;
+  for (const row of data) {
+    // A row is visible if it's not deeper than the current deepest visible row.
+    if (row.depth > visibleDepth) {
+      continue;
+    }
+    if (row.state === 'open') {
+      // If a row is open, then all rows deeper than it are also visible.
+      visibleDepth = row.depth + 1;
+    } else {
+      // For closed or regular rows, set the visible depth to the current row's depth.
+      visibleDepth = row.depth;
+    }
+    visibleRows.push(row);
+  }
+  return visibleRows;
+}
 
 // TODO
 //  - unit tests
-//  - accessibility
 //  - props arguments for row height, no content message
+
 //  - auto-size based on content (?)
-const TreeGridInner = <T extends RowContents>(props: TreeGridProps<T>) => {
-  const { columns, initialRows, getChildren } = props;
+const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
+  const { columns, initialRows, getChildren, gridWidth } = props;
   const [data, setData] = useState(_.map(wrapContent(0), initialRows));
   const rowHeight = 40;
   const expand = async (row: Row<T>) => {
@@ -89,24 +120,7 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridProps<T>) => {
     setData(_.flow(_.cloneDeep, _.set(`[${index}].state`, 'closed'))(data));
   };
 
-  // Create the visible row sublist.
-  const visibleRows: Row<T>[] = [];
-  // Root elements are always visible.
-  let visibleDepth = 0;
-  for (const row of data) {
-    // A row is visible if it's not deeper than the current deepest open row.
-    if (row.depth > visibleDepth) {
-      continue;
-    }
-    if (row.state === 'open') {
-      // If a row is open, then all rows deeper than it are visible.
-      visibleDepth = row.depth + 1;
-    } else {
-      // Reset the visible depth to the current row's depth.
-      visibleDepth = row.depth;
-    }
-    visibleRows.push(row);
-  }
+  const visibleRows = getVisibleRows(data);
 
   return h(Grid, {
     rowHeight,
@@ -114,7 +128,7 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridProps<T>) => {
     rowCount: visibleRows.length,
     columnCount: columns.length,
     columnWidth: (index) => columns[index.index].width,
-    width: _.sum(_.map((c) => c.width, columns)),
+    width: gridWidth,
     noContentMessage: 'No matching data',
     cellRenderer: ({ rowIndex, columnIndex, style }) => {
       const row = visibleRows[rowIndex];
@@ -170,13 +184,15 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridProps<T>) => {
  * A grid that displays hierarchical data in a tree-like structure.
  */
 export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
+  const { columns } = props;
+  const gridWidth = _.sum(_.map((c) => c.width, columns));
   return div([
     // generate a header row
     div(
       {
         style: {
           height: '100%',
-          width: _.sum(_.map((c) => c.width, props.columns)),
+          width: _.sum(_.map((c) => c.width, columns)),
           display: 'flex',
           paddingTop: 15,
           paddingBottom: 15,
@@ -191,10 +207,10 @@ export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
             div({ style: { width: c.width, marginTop: 5, paddingRight: 5, paddingLeft: index === 0 ? 20 : 0 } }, [
               strong([c.name]),
             ]),
-          toIndexPairs(props.columns)
+          toIndexPairs(columns)
         ),
       ]
     ),
-    h(TreeGridInner<T>, props),
+    h(TreeGridInner<T>, { ...props, gridWidth }),
   ]);
 };
