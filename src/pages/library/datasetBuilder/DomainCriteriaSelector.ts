@@ -1,20 +1,10 @@
 import _ from 'lodash/fp';
-import React, { Fragment, useState } from 'react';
-import { div, h, h2 } from 'react-hyperscript-helpers';
-import { ActionBar } from 'src/components/ActionBar';
-import { Link, spinnerOverlay } from 'src/components/common';
-import { icon } from 'src/components/icons';
-import { TreeGrid } from 'src/components/TreeGrid';
-import {
-  Concept,
-  DatasetBuilder,
-  DomainOption,
-  getConceptForId,
-  GetConceptsResponse,
-} from 'src/libs/ajax/DatasetBuilder';
+import { h } from 'react-hyperscript-helpers';
+import { spinnerOverlay } from 'src/components/common';
+import { Concept, DatasetBuilder, DomainOption, GetConceptsResponse } from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { useOnMount } from 'src/libs/react-utils';
-import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from 'src/pages/library/datasetBuilder/constants';
+import { ConceptSelector } from 'src/pages/library/datasetBuilder/ConceptSelector';
 import {
   cohortEditorState,
   DomainCriteria,
@@ -22,17 +12,12 @@ import {
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 
-const getChildren = async (concept: Concept): Promise<Concept[]> => {
-  const result = await DatasetBuilder().getConcepts(concept);
-  return result.result;
-};
-
-interface DomainSelectorProps {
-  state: DomainCriteriaSelectorState;
-  onStateChange: OnStateChangeHandler;
+interface DomainCriteriaSelectorProps {
+  readonly state: DomainCriteriaSelectorState;
+  readonly onStateChange: OnStateChangeHandler;
 }
 
-const conceptToCriteria =
+const toCriteria =
   (domainOption: DomainOption) =>
   (concept: Concept): DomainCriteria => {
     return {
@@ -44,64 +29,19 @@ const conceptToCriteria =
     };
   };
 
-export const DomainCriteriaSelector: React.FC<DomainSelectorProps> = (props) => {
+export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
   const [rootConcepts, loadRootConcepts] = useLoadedData<GetConceptsResponse>();
   const { state, onStateChange } = props;
-  const [cart, setCart] = useState<number[]>([]);
-
   useOnMount(() => {
     void loadRootConcepts(() => DatasetBuilder().getConcepts(state.domainOption.root));
   });
-  return h(Fragment, [
-    div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem` } }, [
-      h2({ style: { display: 'flex', alignItems: 'center' } }, [
-        h(
-          Link,
-          {
-            onClick: () => {
-              onStateChange(cohortEditorState.new(state.cohort));
-            },
-            'aria-label': 'cancel',
-          },
-          [icon('left-circle-filled', { size: 32 })]
-        ),
-        div({ style: { marginLeft: 15 } }, [state.domainOption.category]),
-      ]),
-      rootConcepts.status === 'Ready'
-        ? h(TreeGrid<Concept>, {
-            columns: [
-              {
-                name: 'Concept name',
-                width: 710,
-                render: (concept) => {
-                  const [label, iconName] = (() => {
-                    if (_.contains(concept.id, cart)) {
-                      return ['remove', 'minus-circle-red'];
-                    }
-                    return ['add', 'plus-circle-filled'];
-                  })();
-                  return h(Fragment, [
-                    h(Link, { 'aria-label': label, onClick: () => setCart(_.xor(cart, [concept.id])) }, [
-                      icon(iconName, { size: 16 }),
-                    ]),
-                    div({ style: { marginLeft: 5 } }, [concept.name]),
-                  ]);
-                },
-              },
-              { name: 'Concept ID', width: 195, render: _.get('id') },
-              { name: 'Roll-up count', width: 205, render: _.get('count') },
-            ],
-            initialRows: rootConcepts.state.result,
-            getChildren,
-          })
-        : spinnerOverlay,
-    ]),
-    cart.length !== 0 &&
-      h(ActionBar, {
-        prompt: cart.length === 1 ? '1 concept selected' : `${cart.length} concepts selected`,
-        actionText: 'Add to group',
-        onClick: () => {
-          const cartCriteria = _.map(_.flow(getConceptForId, conceptToCriteria(state.domainOption)), cart);
+  return rootConcepts.status === 'Ready'
+    ? h(ConceptSelector, {
+        initialRows: rootConcepts.state.result,
+        title: state.domainOption.category,
+        onCancel: () => onStateChange(cohortEditorState.new(state.cohort)),
+        onCommit: (selected: Concept[]) => {
+          const cartCriteria = _.map(toCriteria(state.domainOption), selected);
           const groupIndex = _.findIndex({ name: state.criteriaGroup.name }, state.cohort.criteriaGroups);
           // add/remove all cart elements to the domain group's criteria list in the cohort
           _.flow(
@@ -110,6 +50,7 @@ export const DomainCriteriaSelector: React.FC<DomainSelectorProps> = (props) => 
             onStateChange
           )(state.cohort);
         },
-      }),
-  ]);
+        actionText: 'Add to group',
+      })
+    : spinnerOverlay;
 };
