@@ -446,9 +446,9 @@ workspaceStore.subscribe((newState, oldState) => {
 authStore.subscribe(
   withErrorReporting('Error loading azure preview group membership', async (state, oldState) => {
     if (becameRegistered(oldState, state)) {
-      // Note that `azurePreviewGroup` is set to true in all non-prod config files, so only call Sam group for prod.
-      const bypassSam = getConfig().azurePreviewGroup !== true;
-      const isGroupMember = bypassSam || (await Ajax().Groups.group(getConfig().azurePreviewGroup).isMember());
+      // Note that `azurePreviewGroup` is set to true in all non-prod config files, so only call Sam if we have a non-boolean value (prod).
+      const configValue = getConfig().azurePreviewGroup;
+      const isGroupMember = _.isBoolean(configValue) ? configValue : await Ajax().Groups.group(configValue).isMember();
       const isAzurePreviewUser = oldState.isAzurePreviewUser || isGroupMember;
       authStore.update((state) => ({ ...state, isAzurePreviewUser }));
     }
