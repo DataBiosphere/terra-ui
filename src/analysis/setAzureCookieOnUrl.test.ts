@@ -1,5 +1,3 @@
-import '@testing-library/jest-dom';
-
 import { render } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { PeriodicAzureCookieSetter, setAzureCookieOnUrl } from 'src/analysis/runtime-common-components';
