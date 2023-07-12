@@ -1,5 +1,4 @@
-import { render, screen } from '@testing-library/react';
-import { act } from 'react-dom/test-utils';
+import { act, render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { authStore } from 'src/libs/state';
