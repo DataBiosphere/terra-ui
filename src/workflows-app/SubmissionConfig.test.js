@@ -6,10 +6,9 @@ import { act } from 'react-dom/test-utils';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
-import { workspaceStore } from 'src/libs/state';
-import { SubmissionConfig } from 'src/workflows-app/SubmissionConfig';
+import * as Nav from 'src/libs/nav';
+import { BaseSubmissionConfig } from 'src/workflows-app/SubmissionConfig';
 import {
-  azureStorageDetails,
   methodsResponse,
   mockApps,
   mockAzureWorkspace,
@@ -33,11 +32,6 @@ jest.mock('src/libs/nav', () => ({
   goToPath: jest.fn(),
 }));
 
-jest.mock('src/libs/error', () => ({
-  ...jest.requireActual('src/libs/error'),
-  reportError: jest.fn(),
-}));
-
 // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
 // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
 // values and render the component properly. Without this the tests will be break.
@@ -45,7 +39,7 @@ jest.mock('src/libs/error', () => ({
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth');
 
-describe('SubmissionConfig renders workflow details', () => {
+describe('BaseSubmissionConfig renders workflow details', () => {
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 });
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
@@ -93,23 +87,16 @@ describe('SubmissionConfig renders workflow details', () => {
         Apps: {
           listAppsV2: mockLeoResponse,
         },
-        Workspaces: {
-          workspace: jest.fn().mockReturnValue({
-            details: jest.fn(() => Promise.resolve(azureStorageDetails)),
-          }),
-        },
       };
     });
 
-    workspaceStore.set(mockAzureWorkspace);
-
     // ** ACT **
     render(
-      h(SubmissionConfig, {
+      h(BaseSubmissionConfig, {
         methodId: '123',
         name: 'test-azure-ws-name',
         namespace: 'test-azure-ws-namespace',
-        mockAzureWorkspace,
+        workspace: mockAzureWorkspace,
       })
     );
 
@@ -145,5 +132,145 @@ describe('SubmissionConfig renders workflow details', () => {
     // verify that modal was rendered on screen
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Workflow Script')).toBeInTheDocument();
+  });
+
+  it('should render a back to workflows button', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]));
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
+    const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockApps));
+
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse,
+          },
+          methods: {
+            getById: mockMethodsResponse,
+          },
+        },
+        WorkspaceData: {
+          queryRecords: mockSearchResponse,
+          describeAllRecordTypes: mockTypesResponse,
+        },
+        WorkflowScript: {
+          get: mockWdlResponse,
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
+        },
+      };
+    });
+
+    // ** ACT **
+    render(
+      h(BaseSubmissionConfig, {
+        methodId: '123',
+        name: 'test-azure-ws-name',
+        namespace: 'test-azure-ws-namespace',
+        workspace: mockAzureWorkspace,
+      })
+    );
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1);
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1);
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1);
+      expect(mockWdlResponse).toHaveBeenCalledTimes(1);
+      expect(mockLeoResponse).toHaveBeenCalledTimes(0);
+    });
+
+    const backButton = screen.getByText('Back to workflows');
+
+    // ** ACT **
+    // user clicks on back button
+    await act(async () => {
+      await userEvent.click(backButton);
+    });
+
+    expect(Nav.goToPath).toHaveBeenCalledWith('workspace-workflows-app', {
+      name: 'test-azure-ws-name',
+      namespace: 'test-azure-ws-namespace',
+      workspace: { workspace: { workspaceId: 'unique-id-abc-123' } },
+    });
+  });
+});
+
+describe('BaseSubmissionConfig gets proxy urls from Leo', () => {
+  beforeAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 });
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
+  });
+
+  beforeEach(() => {
+    getConfig.mockReturnValue({ leoUrlRoot: 'https://leonardo.mock.org/' });
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
+  });
+
+  it('should call Leo to get proxy urls', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]));
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
+    const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockApps));
+
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse,
+          },
+          methods: {
+            getById: mockMethodsResponse,
+          },
+        },
+        WorkspaceData: {
+          queryRecords: mockSearchResponse,
+          describeAllRecordTypes: mockTypesResponse,
+        },
+        WorkflowScript: {
+          get: mockWdlResponse,
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
+        },
+      };
+    });
+
+    // ** ACT **
+    render(
+      h(BaseSubmissionConfig, {
+        methodId: '123',
+        name: 'test-azure-ws-name',
+        namespace: 'test-azure-ws-namespace',
+        workspace: mockAzureWorkspace,
+      })
+    );
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1);
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1);
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1);
+      expect(mockWdlResponse).toHaveBeenCalledTimes(1);
+      expect(mockLeoResponse).toHaveBeenCalledTimes(4);
+    });
   });
 });
