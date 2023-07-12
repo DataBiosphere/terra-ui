@@ -113,7 +113,7 @@ export const BaseSubmissionConfig = (
 
       return newRunSetData;
     } catch (error) {
-      notify('error', 'Error loading run set data', { detail: await (error instanceof Response ? error.text() : error) });
+      notify('error', 'Error loading run set data', { detail: error instanceof Response ? await error.text() : error });
     }
   };
 
@@ -122,7 +122,7 @@ export const BaseSubmissionConfig = (
       try {
         setRecordTypes(await Ajax(signal).WorkspaceData.describeAllRecordTypes(wdsUrlRoot, workspaceId));
       } catch (error) {
-        notify('error', 'Error loading data types', { detail: await (error instanceof Response ? error.text() : error) });
+        notify('error', 'Error loading data types', { detail: error instanceof Response ? await error.text() : error });
       }
     },
     [signal, workspaceId]
@@ -162,7 +162,7 @@ export const BaseSubmissionConfig = (
           await loadRecordsData(recordType, wdsUrlRoot);
         }
       } catch (error) {
-        notify('error', 'Error loading data tables', { detail: await (error instanceof Response ? error.text() : error) });
+        notify('error', 'Error loading data tables', { detail: error instanceof Response ? await error.text() : error });
       }
     },
     [loadRecordsData, loadRecordTypes, loadAppProxyUrls]
@@ -250,7 +250,7 @@ export const BaseSubmissionConfig = (
         const script = await Ajax(signal).WorkflowScript.get(workflowUrlRaw);
         setWorkflowScript(script);
       } catch (error) {
-        notify('error', 'Error loading workflow script', { detail: await (error instanceof Response ? error.text() : error) });
+        notify('error', 'Error loading workflow script', { detail: error instanceof Response ? await error.text() : error });
       }
     }
 
