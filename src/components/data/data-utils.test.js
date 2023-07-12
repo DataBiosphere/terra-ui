@@ -368,6 +368,17 @@ describe('getSuggestedTableName', () => {
     expect(suggestedTableName).toBe('sample');
   });
 
+  it('handles one column heading', () => {
+    // Arrange
+    const tsv = 'sample_id\nfoo\nbar\nbaz\n';
+
+    // Act
+    const suggestedTableName = getSuggestedTableName(tsv);
+
+    // Assert
+    expect(suggestedTableName).toBe('sample');
+  });
+
   it('returns undefined if no name can be determined', () => {
     // Arrange
     const notATsv = 'abcdefghijklmnopqrstuvwxyz';
