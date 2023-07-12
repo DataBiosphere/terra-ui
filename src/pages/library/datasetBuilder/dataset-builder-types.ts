@@ -27,7 +27,7 @@ export interface ProgramDataRangeCriteria extends Criteria {
 export interface ProgramDataListCriteria extends Criteria {
   kind: 'list';
   listOption: ProgramDataListOption;
-  value: ProgramDataListValueOption;
+  valuesSelected: ProgramDataListValueOption[];
 }
 
 export type AnyCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;

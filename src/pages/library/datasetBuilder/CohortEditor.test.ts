@@ -5,9 +5,9 @@ import { h } from 'react-hyperscript-helpers';
 import { dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
 import {
   CohortEditor,
-  createCriteriaViewComponent,
   criteriaFromOption,
   CriteriaGroupView,
+  CriteriaView,
 } from 'src/pages/library/datasetBuilder/CohortEditor';
 import {
   Cohort,
@@ -27,7 +27,14 @@ describe('CohortEditor', () => {
     const criteria = { name: 'bogus', invalid: 'property' };
 
     // The 'as any' is required to create an invalid criteria for testing purposes.
-    render(createCriteriaViewComponent(_.noop)(criteria as any));
+    render(
+      h(CriteriaView, {
+        deleteCriteria: _.noop,
+        updateCriteria: _.noop,
+        criteria: criteria as any,
+        key: '1',
+      })
+    );
     // Assert
     expect(screen.queryByText(criteria.name)).toBeFalsy();
     expect(screen.queryByText('Unknown criteria')).toBeTruthy();
@@ -43,7 +50,14 @@ describe('CohortEditor', () => {
       conceptCount: 0,
       values: ['value'],
     });
-    render(createCriteriaViewComponent(_.noop)(criteria));
+    render(
+      h(CriteriaView, {
+        deleteCriteria: _.noop,
+        updateCriteria: _.noop,
+        criteria,
+        key: criteria.id,
+      })
+    );
     // Assert
     expect(screen.getByText(criteria.domainOption.category, { exact: false })).toBeTruthy();
     expect(screen.getByText('value')).toBeTruthy();
@@ -57,10 +71,17 @@ describe('CohortEditor', () => {
       kind: 'list',
       values: [{ id: 0, name: 'value' }],
     });
-    render(createCriteriaViewComponent(_.noop)(criteria));
+    render(
+      h(CriteriaView, {
+        deleteCriteria: _.noop,
+        updateCriteria: _.noop,
+        criteria,
+        key: criteria.id,
+      })
+    );
 
     expect(screen.getByText(criteria.name, { exact: false })).toBeTruthy();
-    expect(screen.getByText(criteria.value.name)).toBeTruthy();
+    expect(screen.getByText(criteria.valuesSelected[0].name)).toBeTruthy();
   });
 
   it('renders range criteria', () => {
@@ -72,7 +93,14 @@ describe('CohortEditor', () => {
       min: 55,
       max: 99,
     });
-    render(createCriteriaViewComponent(_.noop)(criteria));
+    render(
+      h(CriteriaView, {
+        deleteCriteria: _.noop,
+        updateCriteria: _.noop,
+        criteria,
+        key: criteria.id,
+      })
+    );
     // Assert
     expect(screen.getByText(criteria.name, { exact: false })).toBeTruthy();
     expect(screen.getByText(criteria.low, { exact: false })).toBeTruthy();
@@ -84,7 +112,14 @@ describe('CohortEditor', () => {
     const criteria = criteriaFromOption({ id: 0, name: 'range', kind: 'range', min: 55, max: 99 });
     const deleteCriteria = jest.fn();
 
-    render(createCriteriaViewComponent(deleteCriteria)(criteria));
+    render(
+      h(CriteriaView, {
+        deleteCriteria,
+        updateCriteria: _.noop,
+        criteria,
+        key: criteria.id,
+      })
+    );
     const user = userEvent.setup();
     // Act
     expect(screen.getByText('range', { exact: false })).toBeTruthy();

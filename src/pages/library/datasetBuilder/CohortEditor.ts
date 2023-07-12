@@ -34,10 +34,19 @@ const flexWithBaseline = {
 const narrowMargin = 5;
 const wideMargin = 10;
 
-type CriteriaViewProps = { criteria: AnyCriteria; deleteCriteria: (criteria: AnyCriteria) => void };
+type CriteriaViewProps = {
+  criteria: AnyCriteria;
+  deleteCriteria: (criteria: AnyCriteria) => void;
+  updateCriteria: (criteria: AnyCriteria) => void;
+};
 
-const CriteriaView = ({ criteria, deleteCriteria }: CriteriaViewProps) => {
-  return div(
+type Option = {
+  value: number;
+  label: string;
+};
+
+export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: CriteriaViewProps) =>
+  div(
     {
       style: {
         ...flexWithBaseline,
@@ -66,7 +75,29 @@ const CriteriaView = ({ criteria, deleteCriteria }: CriteriaViewProps) => {
               case 'domain':
                 return h(Fragment, [strong([`${criteria.domainOption.category}:`]), ` ${criteria.name}`]);
               case 'list':
-                return h(Fragment, [strong([`${criteria.name}:`]), ` ${criteria.value.name}`]);
+                return h(Fragment, [
+                  strong([`${criteria.name}: ${_.flow(_.map('name'), _.join(','))(criteria.valuesSelected)}`]),
+                  h(Select, {
+                    isClearable: true,
+                    isMulti: true,
+                    options: _.map((value) => ({ label: value.name, value: value.id }), criteria.listOption.values),
+                    value: _.map((value) => ({ label: value.name, value: value.id }), criteria.valuesSelected),
+                    onChange: (values) =>
+                      updateCriteria(
+                        _.set(
+                          'valuesSelected',
+                          _.flow(
+                            _.map((value: Option) => ({
+                              name: value.label,
+                              id: value.value,
+                            })),
+                            _.xorWith(_.isEqual, criteria.valuesSelected)
+                          )((values as Option[]) || null),
+                          criteria
+                        )
+                      ),
+                  }),
+                ]);
               case 'range':
                 return h(Fragment, [strong([`${criteria.name}:`]), ` ${criteria.low} - ${criteria.high}`]);
               default:
@@ -78,11 +109,6 @@ const CriteriaView = ({ criteria, deleteCriteria }: CriteriaViewProps) => {
       `Count: ${criteria.count}`,
     ]
   );
-};
-
-export const createCriteriaViewComponent =
-  (deleteCriteria: (criteria: AnyCriteria) => void) => (criteria: AnyCriteria) =>
-    h(CriteriaView, { deleteCriteria, criteria, key: criteria.id });
 
 let criteriaCount = 1;
 const selectDomainCriteria = (domainOption: DomainOption): DomainCriteria => {
@@ -105,7 +131,7 @@ const createDefaultListCriteria = (listOption: ProgramDataListOption): ProgramDa
     name: listOption.name,
     id: criteriaCount++,
     count: 100,
-    value: listOption.values[0],
+    valuesSelected: [listOption.values[0]],
   };
 };
 
@@ -202,6 +228,13 @@ type CriteriaGroupViewProps = {
 
 export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
   const { index, criteriaGroup, updateCohort, cohort, datasetDetails } = props;
+
+  const deleteCriteria = (criteria: AnyCriteria) =>
+    updateCohort(_.set(`criteriaGroups.${index}.criteria`, _.without([criteria], criteriaGroup.criteria)));
+
+  const updateCriteria = (criteria: AnyCriteria, criteriaIndex: number) =>
+    updateCohort(_.set(`criteriaGroups.${index}.criteria.${criteriaIndex}`, criteria));
+
   return div(
     {
       // key: criteriaGroup.name,
@@ -256,19 +289,23 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
           ]
         ),
         div([
-          (criteriaGroup.criteria.length !== 0 &&
-            _.map(
-              createCriteriaViewComponent((criteria: AnyCriteria) =>
-                updateCohort(_.set(`criteriaGroups.${index}.criteria`, _.without([criteria], criteriaGroup.criteria)))
-              ),
-              criteriaGroup.criteria
-            )) ||
-            div({ style: { marginTop: 15 } }, [
-              div({ style: { fontWeight: 'bold', fontStyle: 'italic' } }, ['No criteria yet']),
-              div({ style: { fontStyle: 'italic', marginTop: narrowMargin } }, [
-                "You can add a criteria by clicking on 'Add criteria'",
+          criteriaGroup.criteria.length !== 0
+            ? _.map(
+                ([i, criteria]: [number, AnyCriteria]) =>
+                  h(CriteriaView, {
+                    deleteCriteria,
+                    updateCriteria: (criteria) => updateCriteria(criteria, i),
+                    criteria,
+                    key: criteria.id,
+                  }),
+                Utils.toIndexPairs(criteriaGroup.criteria)
+              )
+            : div({ style: { marginTop: 15 } }, [
+                div({ style: { fontWeight: 'bold', fontStyle: 'italic' } }, ['No criteria yet']),
+                div({ style: { fontStyle: 'italic', marginTop: narrowMargin } }, [
+                  "You can add a criteria by clicking on 'Add criteria'",
+                ]),
               ]),
-            ]),
         ]),
         h(AddCriteriaSelector, { index, criteriaGroup, updateCohort, datasetDetails }),
       ]),
