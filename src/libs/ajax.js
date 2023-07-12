@@ -6,7 +6,6 @@ import {
   authOpts,
   fetchAgora,
   fetchBond,
-  fetchCbas,
   fetchDataRepo,
   fetchDrsHub,
   fetchEcm,
@@ -1094,14 +1093,6 @@ const OAuth2 = (signal) => ({
 
 const Surveys = (signal) => ({
   submitForm: (formId, data) => fetchGoogleForms(`${formId}/formResponse?${qs.stringify(data)}`, { signal }),
-});
-
-const Cbas = (signal) => ({
-  status: async () => {
-    const res = await fetchCbas('/status', { signal });
-    // console.log(res.json());
-    return res.json();
-  },
 });
 
 export const Ajax = (signal) => {
