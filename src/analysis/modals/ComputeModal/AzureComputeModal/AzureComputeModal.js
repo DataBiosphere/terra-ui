@@ -59,7 +59,7 @@ export const AzureComputeModalBase = ({
   const { namespace, name: workspaceName, workspaceId } = workspace.workspace;
   const persistentDiskExists = !!currentPersistentDiskDetails;
   const [deleteDiskSelected, setDeleteDiskSelected] = useState(false);
-  const [hasGpu, setHasGpu] = useState(false);
+  const hasGpu = () => !!azureMachineTypes[computeConfig.machineType]?.hasGpu;
   // Lifecycle
   useOnMount(
     _.flow(
@@ -80,7 +80,6 @@ export const AzureComputeModalBase = ({
         region: runtimeDetails?.runtimeConfig?.region || location || defaultAzureRegion,
         autopauseThreshold: runtimeDetails ? runtimeDetails.autopauseThreshold || autopauseDisabledValue : defaultAutopauseThreshold,
       });
-      setHasGpu(!!azureMachineTypes[runtimeDetails?.runtimeConfig?.machineType]?.hasGpu);
     })
   );
 
@@ -144,11 +143,6 @@ export const AzureComputeModalBase = ({
     ]);
   };
 
-  const onChangeComputeConfig = (value) => {
-    setHasGpu(!!azureMachineTypes[value]?.hasGpu);
-    updateComputeConfig('machineType', value);
-  };
-
   const renderComputeProfileSection = () => {
     const autoPauseCheckboxEnabled = !doesRuntimeExist();
     const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' };
@@ -181,7 +175,7 @@ export const AzureComputeModalBase = ({
                   isClearable: false,
                   value: computeConfig.machineType,
                   onChange: ({ value }) => {
-                    onChangeComputeConfig(value);
+                    updateComputeConfig('machineType', value);
                   },
                   options: _.keys(azureMachineTypes),
                   getOptionLabel: ({ value }) => getMachineTypeLabel(value),
@@ -190,7 +184,7 @@ export const AzureComputeModalBase = ({
               ]),
             ]),
         ]),
-        hasGpu &&
+        hasGpu() &&
           div({ style: { display: 'flex', marginTop: '.5rem' } }, [
             icon('warning-standard', { size: 16, style: { marginRight: '0.5rem', color: colors.warning() } }),
             div([
