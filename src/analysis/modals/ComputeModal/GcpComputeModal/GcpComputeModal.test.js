@@ -73,8 +73,10 @@ const defaultAjaxImpl = {
   },
   Buckets: { getObjectPreview: () => Promise.resolve({ json: () => Promise.resolve(imageDocs) }) },
   Disks: {
-    disk: () => ({
-      details: jest.fn(),
+    disksV1: () => ({
+      disk: () => ({
+        details: jest.fn(),
+      }),
     }),
   },
   Metrics: {
@@ -682,6 +684,7 @@ describe('GcpComputeModal', () => {
   it('should create dataproc spark single node successfully', async () => {
     // Arrange
     const createFunc = jest.fn();
+    const user = userEvent.setup();
     const runtimeFunc = jest.fn(() => ({
       create: createFunc,
       details: jest.fn(),
@@ -700,21 +703,13 @@ describe('GcpComputeModal', () => {
 
     // Act
     await act(async () => {
-      await render(h(GcpComputeModalBase, defaultModalProps));
-
-      const selectMenu = await screen.getByLabelText('Application configuration');
-      await userEvent.click(selectMenu);
+      render(h(GcpComputeModalBase, defaultModalProps));
+      const selectMenu = screen.getByLabelText('Application configuration');
+      await user.click(selectMenu);
       const selectOption = await screen.findByText(hailImage.label);
-      await userEvent.click(selectOption);
-
-      const computeTypeSelect = await screen.getByLabelText('Compute type');
-      await userEvent.click(computeTypeSelect);
-
-      const sparkSingleNodeOption = await screen.findByText('Spark single node')[0];
-      await userEvent.click(sparkSingleNodeOption);
-
-      const create = await screen.getByText('Create');
-      await userEvent.click(create);
+      await user.click(selectOption);
+      const create = screen.getByText('Create');
+      await user.click(create);
     });
 
     expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
@@ -734,6 +729,8 @@ describe('GcpComputeModal', () => {
     );
   });
 
+  // TODO: This causes a warning, but because of the underlying components implementation
+  // Strongly recommend typing the compute modal before attempting to fix
   it('should delete spark single node successfully', async () => {
     // Arrange
     const runtimeProps = {
@@ -1070,7 +1067,7 @@ describe('GcpComputeModal', () => {
   });
 
   // GPUs should function properly
-  it.each([{ tool: runtimeTools.Jupyter }, { tool: runtimeTools.RStudio }])('creates a runtime with GPUs for $tool', async ({ tool }) => {
+  it.each([{ tool: runtimeTools.Jupyter.label }, { tool: runtimeTools.RStudio.label }])('creates a runtime with GPUs for $tool', async ({ tool }) => {
     // Arrange
     const createFunc = jest.fn();
     const runtimeFunc = jest.fn(() => ({
@@ -1117,8 +1114,8 @@ describe('GcpComputeModal', () => {
 
   // click learn more about persistent disk
   it.each([
-    { tool: runtimeTools.Jupyter, expectedLabel: '/home/jupyter' },
-    { tool: runtimeTools.RStudio, expectedLabel: '/home/rstudio' },
+    { tool: runtimeTools.Jupyter.label, expectedLabel: '/home/jupyter' },
+    { tool: runtimeTools.RStudio.label, expectedLabel: '/home/rstudio' },
   ])('should render learn more about persistent disks', async ({ tool, expectedLabel }) => {
     // Arrange
     const disk = getDisk();
