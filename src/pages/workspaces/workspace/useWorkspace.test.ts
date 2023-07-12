@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-hooks';
 import _ from 'lodash/fp';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { locationTypes } from 'src/components/region-common';
@@ -168,8 +168,9 @@ describe('useActiveWorkspace', () => {
     );
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'));
-    await waitForNextUpdate(); // For the bucket location call
+    const { result } = await act(async () => {
+      return renderHook(() => useWorkspace('testNamespace', 'testName'));
+    });
 
     // Assert
     assertResult(result.current, initializedGoogleWorkspace, expectedStorageDetails, false);
@@ -198,8 +199,9 @@ describe('useActiveWorkspace', () => {
     ]);
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'));
-    await waitForNextUpdate(); // For the bucket location call
+    const { result } = await act(async () => {
+      return renderHook(() => useWorkspace('testNamespace', 'testName'));
+    });
 
     // Assert
     assertResult(result.current, initializedGoogleWorkspace, expectedStorageDetails, false);
@@ -223,8 +225,10 @@ describe('useActiveWorkspace', () => {
     );
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'));
-    await waitForNextUpdate(); // For the azure storage call
+    // Wait for the Azure storage call.
+    const { result } = await act(async () => {
+      return renderHook(() => useWorkspace('testNamespace', 'testName'));
+    });
 
     // Assert
     assertResult(result.current, initializedAzureWorkspace, expectedStorageDetails, false);
@@ -246,9 +250,10 @@ describe('useActiveWorkspace', () => {
     ]);
 
     // Act
-    const renderHookResult = renderHook(() => useWorkspace('testNamespace', 'testName'));
-    const { result, waitForNextUpdate } = renderHookResult;
-    await waitForNextUpdate();
+    const renderHookResult = await act(async () => {
+      return renderHook(() => useWorkspace('testNamespace', 'testName'));
+    });
+    const { result } = renderHookResult;
 
     // Assert
     assertResult(result.current, uninitializedGoogleWorkspace, expectedStillSyncingDetails, false);
@@ -261,7 +266,7 @@ describe('useActiveWorkspace', () => {
     return renderHookResult;
   };
 
-  const verifyGooglePermissionsSuccess = async (result, waitForNextUpdate) => {
+  const verifyGooglePermissionsSuccess = async (result) => {
     // Arrange
     const expectedAllSyncedDetails = _.merge(
       {
@@ -285,8 +290,9 @@ describe('useActiveWorkspace', () => {
     asMockedFn(Ajax).mockImplementation(() => successMockAjax as AjaxContract);
 
     // Act
-    jest.advanceTimersByTime(googlePermissionsRecheckRate);
-    await waitForNextUpdate();
+    await act(async () => {
+      jest.advanceTimersByTime(googlePermissionsRecheckRate);
+    });
 
     // Assert
     assertResult(result.current, initializedGoogleWorkspace, expectedAllSyncedDetails, false);
@@ -309,10 +315,10 @@ describe('useActiveWorkspace', () => {
     asMockedFn(Ajax).mockImplementation(() => errorMockAjax as AjaxContract);
 
     // Verify initial failure based on error mock.
-    const { result, waitForNextUpdate } = await verifyGooglePermissionsFailure();
+    const { result } = await verifyGooglePermissionsFailure();
 
     // Finally, change mock to pass all checks verify success.
-    await verifyGooglePermissionsSuccess(result, waitForNextUpdate);
+    await verifyGooglePermissionsSuccess(result);
   });
 
   it('can read workspace details from server, and poll until permissions synced (handling storageCostEstimate failure)', async () => {
@@ -334,10 +340,10 @@ describe('useActiveWorkspace', () => {
     asMockedFn(Ajax).mockImplementation(() => errorMockAjax as AjaxContract);
 
     // Verify initial failure based on error mock.
-    const { result, waitForNextUpdate } = await verifyGooglePermissionsFailure();
+    const { result } = await verifyGooglePermissionsFailure();
 
     // Finally, change mock to pass all checks verify success.
-    await verifyGooglePermissionsSuccess(result, waitForNextUpdate);
+    await verifyGooglePermissionsSuccess(result);
   });
 
   it('can read workspace details from server, and poll until permissions synced (handling bucketUsage failure)', async () => {
@@ -359,10 +365,10 @@ describe('useActiveWorkspace', () => {
     asMockedFn(Ajax).mockImplementation(() => errorMockAjax as AjaxContract);
 
     // Verify initial failure based on error mock.
-    const { result, waitForNextUpdate } = await verifyGooglePermissionsFailure();
+    const { result } = await verifyGooglePermissionsFailure();
 
     // Finally, change mock to pass all checks verify success.
-    await verifyGooglePermissionsSuccess(result, waitForNextUpdate);
+    await verifyGooglePermissionsSuccess(result);
   });
 
   it('can read workspace details from server, and poll until permissions synced (handling checkBucketLocation failure)', async () => {
@@ -384,10 +390,10 @@ describe('useActiveWorkspace', () => {
     asMockedFn(Ajax).mockImplementation(() => errorMockAjax as AjaxContract);
 
     // Verify initial failure based on error mock.
-    const { result, waitForNextUpdate } = await verifyGooglePermissionsFailure('ERROR');
+    const { result } = await verifyGooglePermissionsFailure('ERROR');
 
     // Finally, change mock to pass all checks verify success.
-    await verifyGooglePermissionsSuccess(result, waitForNextUpdate);
+    await verifyGooglePermissionsSuccess(result);
   });
 
   it('can read workspace details from server for read-only workspace, and poll Google until permissions are synced', async () => {
@@ -422,8 +428,10 @@ describe('useActiveWorkspace', () => {
     );
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'));
-    await waitForNextUpdate(); // For the calls to checkBucketReadAccess and checkBucketLocation to execute
+    // Wait for the calls to checkBucketReadAccess and checkBucketLocation to execute
+    const { result } = await act(async () => {
+      return renderHook(() => useWorkspace('testNamespace', 'testName'));
+    });
 
     // Assert
     assertResult(result.current, readOnlyWorkspace, expectedAllSyncedDetails, false);
@@ -457,8 +465,10 @@ describe('useActiveWorkspace', () => {
     );
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'));
-    await waitForNextUpdate(); // For the call to checkBucketReadAccess to execute
+    // Wait for the call to checkBucketReadAccess to execute
+    const { result } = await act(async () => {
+      return renderHook(() => useWorkspace('testNamespace', 'testName'));
+    });
 
     // Assert
     assertResult(result.current, initializedGoogleWorkspace, expectedStorageDetails, false);
@@ -503,8 +513,10 @@ describe('useActiveWorkspace', () => {
     );
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'));
-    await waitForNextUpdate(); // For the call to AzureStorage.details to execute
+    // Wait for the call to AzureStorage.details to execute.
+    const { result } = await act(async () => {
+      return renderHook(() => useWorkspace('testNamespace', 'testName'));
+    });
 
     // Assert
     assertResult(result.current, uninitializedAzureWorkspace, expectedFirstStorageDetails, false);
@@ -523,8 +535,9 @@ describe('useActiveWorkspace', () => {
 
     // Act
     // next call to AzureStorage.details is on a timer
-    jest.advanceTimersByTime(azureBucketRecheckRate);
-    await waitForNextUpdate();
+    await act(async () => {
+      jest.advanceTimersByTime(azureBucketRecheckRate);
+    });
 
     // Assert
     assertResult(result.current, initializedAzureWorkspace, expectedSecondStorageDetails, false);
@@ -543,8 +556,9 @@ describe('useActiveWorkspace', () => {
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'));
-    await waitForNextUpdate();
+    const { result } = await act(async () => {
+      return renderHook(() => useWorkspace('testNamespace', 'testName'));
+    });
 
     // Assert
     assertResult(result.current, undefined, _.merge(defaultGoogleBucketOptions, defaultAzureStorageOptions), true);
@@ -582,8 +596,10 @@ describe('useActiveWorkspace', () => {
     );
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'));
-    await waitForNextUpdate(); // For the call to checkBucketReadAccess to execute
+    // Wait for the call to checkBucketReadAccess to execute
+    const { result } = await act(async () => {
+      return renderHook(() => useWorkspace('testNamespace', 'testName'));
+    });
 
     // Assert
     assertResult(result.current, expectedWorkspaceResponse, expectStorageDetails, false);
@@ -627,8 +643,10 @@ describe('useActiveWorkspace', () => {
     jest.setSystemTime(new Date(Date.UTC(2023, 1, 3, 22, 26, 12, 0)));
 
     // Act
-    const { result, waitForNextUpdate } = renderHook(() => useWorkspace('testNamespace', 'testName'));
-    await waitForNextUpdate(); // For the call to checkBucketReadAccess to execute
+    // Wait for the call to checkBucketReadAccess to execute
+    const { result } = await act(async () => {
+      return renderHook(() => useWorkspace('testNamespace', 'testName'));
+    });
 
     // Assert
     assertResult(result.current, expectedWorkspaceResponse, expectStorageDetails, false);
