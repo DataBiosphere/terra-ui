@@ -129,10 +129,10 @@ export const BaseSubmissionConfig = (
   );
 
   const loadWdsData = useCallback(
-    async ({ recordType, includeLoadRecordTypes = true }) => {
+    async ({ wdsProxyUrlState, recordType, includeLoadRecordTypes = true }) => {
       try {
         // try to load WDS proxy URL if one doesn't exist
-        if (!wdsProxyUrl || wdsProxyUrl.status !== 'Ready') {
+        if (!wdsProxyUrlState || wdsProxyUrlState.status !== 'Ready') {
           const {
             wdsProxyUrlResponse: { status, state: wdsUrlRoot },
           } = await loadAppProxyUrls();
@@ -155,7 +155,7 @@ export const BaseSubmissionConfig = (
           }
         } else {
           // if we have the WDS proxy URL load the WDS data
-          const wdsUrlRoot = wdsProxyUrl.state;
+          const wdsUrlRoot = wdsProxyUrlState.state;
           if (includeLoadRecordTypes) {
             await loadRecordTypes(wdsUrlRoot);
           }
@@ -165,7 +165,7 @@ export const BaseSubmissionConfig = (
         notify('error', 'Error loading data tables', { detail: await (error instanceof Response ? error.text() : error) });
       }
     },
-    [loadRecordsData, loadRecordTypes, loadAppProxyUrls, wdsProxyUrl]
+    [loadRecordsData, loadRecordTypes, loadAppProxyUrls]
   );
 
   const updateRunSetName = () => {
@@ -207,6 +207,7 @@ export const BaseSubmissionConfig = (
   useOnMount(async () => {
     const {
       cbasProxyUrlResponse: { status, state: cbasUrlRoot },
+      wdsProxyUrlResponse,
     } = await loadAppProxyUrls();
 
     if (status === 'Unauthorized') {
@@ -217,7 +218,7 @@ export const BaseSubmissionConfig = (
       loadRunSet(cbasUrlRoot).then((runSet) => {
         setRunSetRecordType(runSet.record_type);
         loadMethodsData(cbasUrlRoot, runSet.method_id, runSet.method_version_id);
-        loadWdsData({ recordType: runSetRecordType });
+        loadWdsData({ wdsProxyUrlState: wdsProxyUrlResponse, recordType: runSetRecordType });
       });
     }
   });
@@ -261,7 +262,7 @@ export const BaseSubmissionConfig = (
   useEffect(() => {
     // Start polling if we're missing WDS proxy url and stop polling when we have it
     if ((!wdsProxyUrl || wdsProxyUrl.status !== 'Ready') && wdsProxyUrl.status !== 'Unauthorized' && !pollWdsInterval.current) {
-      pollWdsInterval.current = setInterval(() => loadWdsData({ recordType: runSetRecordType }), WdsPollInterval);
+      pollWdsInterval.current = setInterval(() => loadWdsData({ wdsProxyUrlState: wdsProxyUrl, recordType: runSetRecordType }), WdsPollInterval);
     } else if (!!wdsProxyUrl && wdsProxyUrl.status === 'Ready' && pollWdsInterval.current) {
       clearInterval(pollWdsInterval.current);
       pollWdsInterval.current = undefined;
@@ -336,7 +337,7 @@ export const BaseSubmissionConfig = (
               setNoRecordTypeData(null);
               setSelectedRecordType(value);
               setSelectedRecords(null);
-              loadWdsData({ recordType: value, includeLoadRecordTypes: false });
+              loadWdsData({ wdsProxyUrlState: wdsProxyUrl, recordType: value, includeLoadRecordTypes: false });
             },
             placeholder: 'None selected',
             styles: { container: (old) => ({ ...old, display: 'inline-block', width: 200 }), paddingRight: '2rem' },

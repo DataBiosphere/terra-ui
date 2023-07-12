@@ -270,7 +270,9 @@ describe('BaseSubmissionConfig gets proxy urls from Leo', () => {
       expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
       expect(mockSearchResponse).toHaveBeenCalledTimes(1);
       expect(mockWdlResponse).toHaveBeenCalledTimes(1);
-      expect(mockLeoResponse).toHaveBeenCalledTimes(4);
+      // currently the component calls Leo twice, once to get WDS url and second time to get CBAS url
+      // this might be reduced to 1 in a follow-up ticket: https://broadworkbench.atlassian.net/browse/WM-2076
+      expect(mockLeoResponse).toHaveBeenCalledTimes(2);
     });
   });
 });
