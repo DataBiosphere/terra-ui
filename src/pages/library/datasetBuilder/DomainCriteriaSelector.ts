@@ -1,9 +1,10 @@
 import _ from 'lodash/fp';
 import React, { Fragment, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
+import { ActionBar } from 'src/components/ActionBar';
 import { Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { TreeGridView } from 'src/components/TreeGrid';
+import { TreeGrid } from 'src/components/TreeGrid';
 import {
   Concept,
   DatasetBuilder,
@@ -19,7 +20,7 @@ import {
   DomainCriteria,
   DomainCriteriaSelectorState,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
-import { ActionBar, OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
+import { OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 
 const getChildren = async (concept: Concept): Promise<Concept[]> => {
   const result = await DatasetBuilder().getConcepts(concept);
@@ -67,7 +68,7 @@ export const DomainCriteriaSelector: React.FC<DomainSelectorProps> = (props) => 
         div({ style: { marginLeft: 15 } }, [state.domainOption.category]),
       ]),
       rootConcepts.status === 'Ready'
-        ? h(TreeGridView<Concept>, {
+        ? h(TreeGrid<Concept>, {
             columns: [
               {
                 name: 'Concept name',

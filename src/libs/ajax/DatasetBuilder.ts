@@ -53,7 +53,7 @@ export type FeatureValueGroup = {
 };
 
 export interface GetConceptsResponse {
-  // Maybe this should be result: Concept[] | null in case the `isLeaf` state is wrong.
+  // Maybe this should be result: Concept[] | null in case the `hasChildren` state is wrong.
   result: Concept[];
 }
 
@@ -61,7 +61,7 @@ export interface Concept {
   id: number;
   name: string;
   count: number;
-  isLeaf: boolean;
+  hasChildren: boolean;
 }
 
 type DatasetRequest = {
@@ -91,26 +91,26 @@ type AccessLevel = 'Owner' | 'Reader' | 'Discoverer';
 
 const dummyConcepts = [
   // IDs must be unique.
-  { id: 100, name: 'Condition', count: 100, isLeaf: false },
-  { id: 101, name: 'Clinical Finding', count: 100, isLeaf: false },
-  { id: 102, name: 'Disease', count: 100, isLeaf: false },
-  { id: 103, name: 'Disorder by body site', count: 100, isLeaf: true },
-  { id: 104, name: 'Inflammatory disorder', count: 100, isLeaf: true },
-  { id: 105, name: 'Degenerative disorder', count: 100, isLeaf: true },
-  { id: 106, name: 'Metabolic disease', count: 100, isLeaf: true },
-  { id: 107, name: 'Finding by site', count: 100, isLeaf: true },
-  { id: 108, name: 'Neurological finding', count: 100, isLeaf: true },
+  { id: 100, name: 'Condition', count: 100, hasChildren: true },
+  { id: 101, name: 'Clinical Finding', count: 100, hasChildren: true },
+  { id: 102, name: 'Disease', count: 100, hasChildren: true },
+  { id: 103, name: 'Disorder by body site', count: 100, hasChildren: false },
+  { id: 104, name: 'Inflammatory disorder', count: 100, hasChildren: false },
+  { id: 105, name: 'Degenerative disorder', count: 100, hasChildren: false },
+  { id: 106, name: 'Metabolic disease', count: 100, hasChildren: false },
+  { id: 107, name: 'Finding by site', count: 100, hasChildren: false },
+  { id: 108, name: 'Neurological finding', count: 100, hasChildren: false },
 
-  { id: 200, name: 'Procedure', count: 100, isLeaf: false },
-  { id: 201, name: 'Procedure', count: 100, isLeaf: false },
-  { id: 202, name: 'Surgery', count: 100, isLeaf: true },
-  { id: 203, name: 'Heart Surgery', count: 100, isLeaf: true },
-  { id: 204, name: 'Cancer Surgery', count: 100, isLeaf: true },
+  { id: 200, name: 'Procedure', count: 100, hasChildren: true },
+  { id: 201, name: 'Procedure', count: 100, hasChildren: true },
+  { id: 202, name: 'Surgery', count: 100, hasChildren: false },
+  { id: 203, name: 'Heart Surgery', count: 100, hasChildren: false },
+  { id: 204, name: 'Cancer Surgery', count: 100, hasChildren: false },
 
-  { id: 300, name: 'Observation', count: 100, isLeaf: false },
-  { id: 301, name: 'Blood Pressure', count: 100, isLeaf: true },
-  { id: 302, name: 'Weight', count: 100, isLeaf: true },
-  { id: 303, name: 'Height', count: 100, isLeaf: true },
+  { id: 300, name: 'Observation', count: 100, hasChildren: true },
+  { id: 301, name: 'Blood Pressure', count: 100, hasChildren: false },
+  { id: 302, name: 'Weight', count: 100, hasChildren: false },
+  { id: 303, name: 'Height', count: 100, hasChildren: false },
 ];
 
 const dummyConceptToParent = [

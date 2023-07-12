@@ -46,7 +46,7 @@ describe('CohortEditor', () => {
         category: 'test category',
         participantCount: 0,
         conceptCount: 0,
-        root: { id: 0, name: 'test concept', count: 0, isLeaf: true },
+        root: { id: 0, name: 'test concept', count: 0, hasChildren: false },
       },
     };
     render(createCriteriaViewComponent(_.noop)(criteria));

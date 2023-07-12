@@ -1,13 +1,14 @@
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
+import { ActionBar } from 'src/components/ActionBar';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { TreeGridView } from 'src/components/TreeGrid';
+import { TreeGrid } from 'src/components/TreeGrid';
 import { Concept, DatasetBuilder, DatasetResponse, getConceptForId } from 'src/libs/ajax/DatasetBuilder';
 import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from 'src/pages/library/datasetBuilder/constants';
 import { homepageState } from 'src/pages/library/datasetBuilder/dataset-builder-types';
-import { ActionBar, OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
+import { OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 import { datasetBuilderConceptSets } from 'src/pages/library/datasetBuilder/state';
 
 const getChildren = async (concept: Concept): Promise<Concept[]> => {
@@ -38,7 +39,7 @@ export const ConceptSetCreator = (props: ConceptSetCreatorProps) => {
         ),
         div({ style: { marginLeft: 15 } }, ['Add concept']),
       ]),
-      h(TreeGridView<Concept>, {
+      h(TreeGrid<Concept>, {
         columns: [
           {
             name: 'Concept Name',

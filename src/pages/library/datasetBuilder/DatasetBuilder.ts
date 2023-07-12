@@ -1,6 +1,7 @@
 import * as _ from 'lodash/fp';
 import React, { Fragment, ReactElement, useEffect, useMemo, useState } from 'react';
 import { div, h, h2, h3, label, li, ul } from 'react-hyperscript-helpers';
+import { ActionBar } from 'src/components/ActionBar';
 import { ButtonPrimary, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon, spinner } from 'src/components/icons';
@@ -463,36 +464,6 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
           },
         }),
       ]),
-    ]
-  );
-};
-
-type ActionBarProps = {
-  prompt: string | ReactElement;
-  actionText: string | ReactElement;
-  onClick: () => void;
-};
-
-export const ActionBar = (props: ActionBarProps) => {
-  const { prompt, actionText, onClick } = props;
-  return div(
-    {
-      style: {
-        width: '100%',
-        display: 'flex',
-        justifyContent: 'flex-end',
-        height: '5rem',
-        position: 'absolute',
-        bottom: 0,
-        backgroundColor: 'white',
-        boxShadow: '0 0 4px 0 rgba(0,0,0,0.5)',
-        alignItems: 'center',
-        padding: '1rem 2rem',
-      },
-    },
-    [
-      div({ style: { display: 'flex', alignItems: 'center' } }, [prompt]),
-      h(ButtonPrimary, { style: { marginLeft: '2rem', borderRadius: 0 }, onClick }, [actionText]),
     ]
   );
 };
