@@ -1,6 +1,6 @@
 import { CSSProperties, PropsWithChildren } from 'react';
 
-export type InteractiveProps<Tag extends keyof JSX.IntrinsicElements = 'div'> = PropsWithChildren<
+export type InteractiveProps<Tag extends keyof JSX.IntrinsicElements> = PropsWithChildren<
   {
     as: Tag;
     disabled?: boolean;

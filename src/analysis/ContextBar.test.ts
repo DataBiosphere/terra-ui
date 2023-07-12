@@ -693,17 +693,6 @@ describe('ContextBar - actions', () => {
     };
     asMockedFn(Ajax).mockImplementation(() => newMockAjax as AjaxContract);
 
-    const myWindow = Object.create(window);
-    const url = 'http://dummy.com';
-    Object.defineProperty(myWindow, 'location', {
-      value: {
-        href: url,
-      },
-      writable: true,
-      // @ts-expect-error
-      // TODO: is this needed?
-      hash: '/',
-    });
     const runtime: Runtime = {
       ...jupyter,
       status: 'Stopped',
@@ -750,17 +739,6 @@ describe('ContextBar - actions', () => {
     };
     asMockedFn(Ajax).mockImplementation(() => newMockAjax as AjaxContract);
 
-    const myWindow = Object.create(window);
-    const url = 'http://dummy.com';
-    Object.defineProperty(myWindow, 'location', {
-      value: {
-        href: url,
-      },
-      writable: true,
-      // @ts-expect-error
-      // TODO: is this needed?
-      hash: '/',
-    });
     const jupyterContextBarProps = {
       ...contextBarProps,
       runtimes: [jupyter],

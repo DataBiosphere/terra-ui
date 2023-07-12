@@ -100,7 +100,7 @@ export const ContextBar = ({
   apps,
   appDataDisks,
   refreshRuntimes,
-  storageDetails, // : { azureContainerRegion, googleBucketLocation, googleBucketType },
+  storageDetails,
   refreshApps,
   workspace,
   persistentDisks,
@@ -374,7 +374,6 @@ export const ContextBar = ({
             {
               style: { paddingLeft: '1rem', alignItems: 'center', ...contextBarStyles.contextBarButton },
               hover: contextBarStyles.hover,
-              // 'data-testid': 'workspace-files-link',
               tooltipSide: 'left',
               href: Nav.getLink('workspace-files', { namespace, name }),
               tooltip: 'Browse workspace files',
