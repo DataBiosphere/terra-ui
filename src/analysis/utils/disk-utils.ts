@@ -27,11 +27,20 @@ export const pdTypeFromDiskType = (type: GoogleDiskType): GooglePdType =>
         console.error(`Invalid disk type: Should not be calling googlePdTypes.fromString for ${JSON.stringify(type)}`),
     ]
   );
+
 export const updatePdType = (disk: PersistentDisk): DecoratedPersistentDisk => ({
   ...disk,
   diskType: pdTypeFromDiskType(disk.diskType),
 });
 export const mapToPdTypes = (disks: PersistentDisk[]): DecoratedPersistentDisk[] => _.map(updatePdType, disks);
+
+export const undecoratePd = (disk: DecoratedPersistentDisk): PersistentDisk => ({
+  ...disk,
+  diskType: disk.diskType.value,
+});
+
+export const mapToUndecoratedPd = (disks: DecoratedPersistentDisk[]): PersistentDisk[] => _.map(undecoratePd, disks);
+
 // Dataproc clusters don't have persistent disks.
 export const defaultDataprocMasterDiskSize = 150;
 export const defaultDataprocWorkerDiskSize = 150;
@@ -112,7 +121,7 @@ export const getCurrentAppDataDisk = (
 export const getCurrentPersistentDisk = (
   runtimes: Runtime[],
   persistentDisks: PersistentDisk[]
-): DecoratedPersistentDisk | PersistentDisk | undefined => {
+): PersistentDisk | undefined => {
   const currentRuntime = getCurrentRuntime(runtimes);
   const id: number | undefined = _.get('persistentDiskId', currentRuntime?.runtimeConfig);
   const attachedIds: number[] = _.without(

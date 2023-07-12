@@ -1,9 +1,10 @@
+import React from 'react';
 import type { InteractiveProps } from 'src/components/Interactive';
 
 export type ClickableProps<T extends keyof JSX.IntrinsicElements = 'div'> = {
   as?: T;
   href?: string;
-  tooltip?: string;
+  tooltip?: string | React.ReactElement<any, any>;
   tooltipSide?: 'top' | 'bottom' | 'left' | 'right';
   tooltipDelay?: number;
   useTooltipAsLabel?: boolean;

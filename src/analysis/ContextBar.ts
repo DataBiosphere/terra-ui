@@ -9,7 +9,7 @@
  */
 
 import _ from 'lodash/fp';
-import { Fragment, useState } from 'react';
+import React, { Fragment, useState } from 'react';
 import { br, div, h, img, span } from 'react-hyperscript-helpers';
 import { CloudEnvironmentModal } from 'src/analysis/modals/CloudEnvironmentModal';
 import { appLauncherTabName } from 'src/analysis/runtime-common-components';
@@ -22,9 +22,20 @@ import {
   getPersistentDiskCostHourly,
   getRuntimeCost,
 } from 'src/analysis/utils/cost-utils';
-import { getCurrentAppDataDisk, getCurrentPersistentDisk } from 'src/analysis/utils/disk-utils';
+import {
+  getCurrentAppDataDisk,
+  getCurrentPersistentDisk,
+  mapToUndecoratedPd,
+  updatePdType,
+} from 'src/analysis/utils/disk-utils';
 import { getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
-import { appToolLabels, appTools, isToolHidden, runtimeToolLabels, toolLabelDisplays } from 'src/analysis/utils/tool-utils';
+import {
+  appToolLabels,
+  appTools,
+  isToolHidden,
+  runtimeToolLabels,
+  toolLabelDisplays,
+} from 'src/analysis/utils/tool-utils';
 import { Clickable } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import Interactive from 'src/components/Interactive';
@@ -37,6 +48,9 @@ import hailLogo from 'src/images/hail-logo.svg';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png';
 import { Ajax } from 'src/libs/ajax';
+import { App } from 'src/libs/ajax/leonardo/models/app-models';
+import { DecoratedPersistentDisk, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
@@ -44,9 +58,15 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { getCloudProviderFromWorkspace, isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
+import {
+  BaseWorkspace,
+  getCloudProviderFromWorkspace,
+  isAzureWorkspace,
+  isGoogleWorkspace,
+} from 'src/libs/workspace-utils';
+import { StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace';
 
-const contextBarStyles = {
+const contextBarStyles: { [label: string]: React.CSSProperties } = {
   contextBarContainer: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -64,26 +84,38 @@ const contextBarStyles = {
   hover: { backgroundColor: colors.accent(0.4) },
 };
 
+export interface ContextBarProps {
+  runtimes: Runtime[];
+  apps: App[];
+  appDataDisks: PersistentDisk[];
+  refreshRuntimes: (maybeStale?: boolean) => Promise<void>;
+  storageDetails: StorageDetails;
+  refreshApps: (maybeStale?: boolean) => Promise<void>;
+  workspace: BaseWorkspace;
+  persistentDisks: DecoratedPersistentDisk[];
+}
+
 export const ContextBar = ({
   runtimes,
   apps,
   appDataDisks,
   refreshRuntimes,
-  storageDetails: { azureContainerRegion, googleBucketLocation, googleBucketType },
+  storageDetails, // : { azureContainerRegion, googleBucketLocation, googleBucketType },
   refreshApps,
   workspace,
   persistentDisks,
-  workspace: {
-    workspace: { namespace, name: workspaceName },
-  },
-}) => {
+}: ContextBarProps) => {
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false);
   const [selectedToolIcon, setSelectedToolIcon] = useState(undefined);
 
+  const { name, namespace } = workspace.workspace;
+  const { azureContainerRegion, googleBucketLocation, googleBucketType } = storageDetails;
+
   const currentRuntime = getCurrentRuntime(runtimes);
   const currentRuntimeTool = currentRuntime?.labels?.tool;
-  const isTerminalVisible = currentRuntimeTool === runtimeToolLabels.Jupyter && currentRuntime && currentRuntime.status !== 'Error';
-  const terminalLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: 'terminal' });
+  const isTerminalVisible =
+    currentRuntimeTool === runtimeToolLabels.Jupyter && currentRuntime && currentRuntime.status !== 'Error';
+  const terminalLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name, application: 'terminal' });
   const canCompute = !!(workspace?.canCompute || runtimes?.length);
   const cloudProvider = getCloudProviderFromWorkspace(workspace);
 
@@ -125,7 +157,13 @@ export const ContextBar = ({
     return h(
       Clickable,
       {
-        style: { display: 'flex', flexDirection: 'column', justifyContent: 'center', ...contextBarStyles.contextBarButton, borderBottom: '0px' },
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          ...contextBarStyles.contextBarButton,
+          borderBottom: '0px',
+        },
         hover: contextBarStyles.hover,
         onClick: () => {
           setSelectedToolIcon(toolLabel);
@@ -134,8 +172,18 @@ export const ContextBar = ({
         tooltipSide: 'left',
         tooltip: div([
           div({ style: { fontWeight: 'bold' } }, [`${toolLabelDisplays[toolLabel]} Environment`]),
-          div(getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)),
-          div(getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)),
+          div([getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)]),
+          div([
+            getCostDisplayForDisk(
+              app,
+              appDataDisks,
+              computeRegion,
+              currentRuntimeTool,
+              mapToUndecoratedPd(persistentDisks),
+              runtimes,
+              toolLabel
+            ),
+          ]),
         ]),
         tooltipDelay: 100,
         useTooltipAsLabel: true,
@@ -152,10 +200,12 @@ export const ContextBar = ({
   const getEnvironmentStatusIcons = () => {
     const galaxyApp = getCurrentApp(appTools.GALAXY.label, apps);
     const cromwellAppObject = getCurrentApp(appTools.CROMWELL.label, apps);
+
     const cromwellApp =
       !isToolHidden(appTools.CROMWELL.label, cloudProvider) &&
       cromwellAppObject &&
       doesWorkspaceSupportCromwellAppForUser(workspace?.workspace, cloudProvider, appTools.CROMWELL.label);
+
     const hailBatchAppObject = getCurrentApp(appTools.HAIL_BATCH.label, apps);
     const hailBatchApp = !isToolHidden(appTools.HAIL_BATCH.label, cloudProvider) && hailBatchAppObject;
     return h(Fragment, [
@@ -169,12 +219,12 @@ export const ContextBar = ({
   // This excludes cromwellapp and hailBatchApp in the calculation.
   const getTotalToolAndDiskCostDisplay = () => {
     const galaxyApp = getCurrentApp(appTools.GALAXY.label, apps);
-    const galaxyDisk = getCurrentAppDataDisk(appTools.GALAXY.label, apps, appDataDisks, workspaceName);
+    const galaxyDisk = getCurrentAppDataDisk(appTools.GALAXY.label, apps, appDataDisks, name);
     const galaxyRuntimeCost = galaxyApp ? getGalaxyComputeCost(galaxyApp) : 0;
     const galaxyDiskCost = galaxyDisk ? getGalaxyDiskCost(galaxyDisk) : 0;
     const runtimeCost = currentRuntime ? getRuntimeCost(currentRuntime) : 0;
-    const curPd = getCurrentPersistentDisk(runtimes, persistentDisks);
-    const diskCost = curPd ? getPersistentDiskCostHourly(curPd, computeRegion) : 0;
+    const curPd = getCurrentPersistentDisk(runtimes, mapToUndecoratedPd(persistentDisks));
+    const diskCost = curPd ? getPersistentDiskCostHourly(updatePdType(curPd), computeRegion) : 0;
     const display = Utils.formatUSD(galaxyRuntimeCost + galaxyDiskCost + runtimeCost + diskCost);
     return display;
   };
@@ -202,7 +252,7 @@ export const ContextBar = ({
       refreshApps,
       workspace,
       canCompute,
-      persistentDisks,
+      persistentDisks: mapToUndecoratedPd(persistentDisks),
       location,
       computeRegion,
     }),
@@ -225,7 +275,7 @@ export const ContextBar = ({
                   'below.',
                 ]),
                 br({ key: 'br' }),
-                div({ key: 'p2' }, 'Workflow and workspace storage costs\nare not included.'),
+                div({ key: 'p2' }, ['Workflow and workspace storage costs\nare not included.']),
               ],
             },
             [
@@ -233,6 +283,8 @@ export const ContextBar = ({
                 Interactive,
                 {
                   as: 'div',
+                  // TODO: debug
+                  // @ts-expect-error
                   style: {
                     flexDirection: 'column',
                     justifyContent: 'center',
@@ -244,7 +296,7 @@ export const ContextBar = ({
                   hover: { ...contextBarStyles.hover },
                 },
                 [
-                  div({ style: { textAlign: 'center', color: colors.dark(), fontSize: 12 } }, 'Rate:'),
+                  div({ style: { textAlign: 'center', color: colors.dark(), fontSize: 12 } }, ['Rate:']),
                   div(
                     {
                       style: {
@@ -256,7 +308,7 @@ export const ContextBar = ({
                     },
                     [getTotalToolAndDiskCostDisplay(), span({ style: { fontWeight: 'normal' } })]
                   ),
-                  div({ style: { textAlign: 'center', color: colors.dark(), fontSize: 12 } }, 'per hour'),
+                  div({ style: { textAlign: 'center', color: colors.dark(), fontSize: 12 } }, ['per hour']),
                 ]
               ),
             ]
@@ -294,11 +346,17 @@ export const ContextBar = ({
                 color: !isTerminalVisible ? colors.dark(0.7) : contextBarStyles.contextBarButton.color,
               },
               hover: contextBarStyles.hover,
+              // @ts-expect-error
               'data-testid': 'terminal-button-id',
               tooltipSide: 'left',
               href: terminalLaunchLink,
               onClick: withErrorReporting('Error starting runtime', async () => {
-                await Ajax().Metrics.captureEvent(Events.analysisLaunch, { origin: 'contextBar', application: 'terminal', workspaceName, namespace });
+                await Ajax().Metrics.captureEvent(Events.analysisLaunch, {
+                  origin: 'contextBar',
+                  application: 'terminal',
+                  workspaceName: name,
+                  namespace,
+                });
                 if (currentRuntime?.status === 'Stopped') {
                   await Ajax().Runtimes.runtimeWrapper(currentRuntime).start();
                 }
@@ -316,9 +374,9 @@ export const ContextBar = ({
             {
               style: { paddingLeft: '1rem', alignItems: 'center', ...contextBarStyles.contextBarButton },
               hover: contextBarStyles.hover,
-              'data-testid': 'workspace-files-link',
+              // 'data-testid': 'workspace-files-link',
               tooltipSide: 'left',
-              href: Nav.getLink('workspace-files', { namespace, name: workspaceName }),
+              href: Nav.getLink('workspace-files', { namespace, name }),
               tooltip: 'Browse workspace files',
               tooltipDelay: 100,
               useTooltipAsLabel: false,
