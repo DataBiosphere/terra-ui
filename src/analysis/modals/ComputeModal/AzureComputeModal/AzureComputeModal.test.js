@@ -421,13 +421,13 @@ describe('AzureComputeModal', () => {
     await userEvent.click(screen.getByText(getMachineTypeLabel('Standard_NC6s_v3')));
 
     // Assert
-    expect(screen.getByText('This VM is powered by an NVIDIA GPU. Learn more about enabling GPUs.')).toBeInTheDocument();
+    expect(screen.getByText('Learn more about enabling GPUs.')).toBeInTheDocument();
 
     // Act
     await userEvent.click(selectCompute);
     await userEvent.click(screen.getByText(getMachineTypeLabel('Standard_DS2_v2')));
 
     // Assert
-    expect(screen.queryByText('This VM is powered by an NVIDIA GPU. Learn more about enabling GPUs.')).not.toBeInTheDocument();
+    expect(screen.queryByText('Learn more about enabling GPUs.')).not.toBeInTheDocument();
   });
 });
