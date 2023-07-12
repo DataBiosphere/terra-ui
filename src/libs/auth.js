@@ -231,9 +231,9 @@ export const processUser = (user, isSignInEvent) => {
       cookiesAccepted: isSignedIn ? state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey) : undefined,
       isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
       hasGcpBillingScopeThroughB2C: isSignedIn ? state.hasGcpBillingScopeThroughB2C : undefined,
-      // A user is an Azure preview user if they are a member of the Sam group _or_ they have the `azurePreviewUser` claim set from B2C.
-      // Only enforce the Azure preview allow-list on prod.
-      isAzurePreviewUser: isSignedIn ? !getConfig().isProd || state.isAzurePreviewUser || profile.isAzurePreviewUser : undefined,
+      // A user is an Azure preview user if state.isAzurePreviewUser is set to true (in Sam group or environment where we don't restrict)
+      // _or_ they have the `azurePreviewUser` claim set from B2C.
+      isAzurePreviewUser: isSignedIn ? state.isAzurePreviewUser || profile.isAzurePreviewUser : undefined,
       user: {
         token: user?.access_token,
         scope: user?.scope,
@@ -446,7 +446,9 @@ workspaceStore.subscribe((newState, oldState) => {
 authStore.subscribe(
   withErrorReporting('Error loading azure preview group membership', async (state, oldState) => {
     if (becameRegistered(oldState, state)) {
-      const isGroupMember = await Ajax().Groups.group(getConfig().azurePreviewGroup).isMember();
+      // Note that `azurePreviewGroup` is set to true in all non-prod config files, so only call Sam group for prod.
+      const bypassSam = getConfig().azurePreviewGroup !== true;
+      const isGroupMember = bypassSam || (await Ajax().Groups.group(getConfig().azurePreviewGroup).isMember());
       const isAzurePreviewUser = oldState.isAzurePreviewUser || isGroupMember;
       authStore.update((state) => ({ ...state, isAzurePreviewUser }));
     }
