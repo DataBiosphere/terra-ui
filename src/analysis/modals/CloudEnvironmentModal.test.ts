@@ -1,8 +1,7 @@
 import '@testing-library/jest-dom';
 
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 import { h, p } from 'react-hyperscript-helpers';
 import {
   azureDisk,

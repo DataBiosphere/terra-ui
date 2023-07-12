@@ -1,5 +1,4 @@
-import { render } from '@testing-library/react';
-import { act } from 'react-dom/test-utils';
+import { act, render } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import Alerts from 'src/components/Alerts';
 import { Ajax } from 'src/libs/ajax';
