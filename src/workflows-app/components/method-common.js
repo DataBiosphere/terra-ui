@@ -12,7 +12,7 @@ const MethodSource = Object.freeze({
 });
 
 export const submitMethod = async (signal, onDismiss, method, workspace) => {
-  const namespace = workspace.workspace.namespace;
+  const namespace = await workspace.workspace.namespace;
   try {
     const cbasUrl = (
       await Apps(signal)
