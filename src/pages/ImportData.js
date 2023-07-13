@@ -96,7 +96,7 @@ const ResponseFragment = ({ title, snapshotResponses, responseIndex }) => {
   ]);
 };
 
-export const ImportDataOverview = ({ header, snapshots, isDataset, snapshotResponses, url, format }) =>
+export const ImportDataOverview = ({ header, snapshots, isDataset, snapshotResponses, url, isProtectedData }) =>
   div({ style: styles.card }, [
     h2({ style: styles.title }, [header]),
     !_.isEmpty(snapshots)
@@ -125,7 +125,7 @@ export const ImportDataOverview = ({ header, snapshots, isDataset, snapshotRespo
         ])
       : url && div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
     div({ style: { marginTop: '1rem' } }, [
-      !!url && isProtected(url, format)
+      isProtectedData
         ? [
             icon('warning-standard', { size: 15, style: { marginRight: '0.25rem' }, color: colors.warning() }),
             ' The data you chose to import to Terra are identified as protected and require additional security settings. Please select a workspace that has an Authorization Domain and/or protected data setting.',
@@ -171,6 +171,8 @@ const ImportDataDestination = ({
     _.filter(({ name, namespace }) => _.some({ workspace: { namespace, name } }, workspaces))
   )(_.castArray(template));
 
+  const cannotImport = isProtectedData && !!selectedWorkspace && !isProtectedWorkspace(selectedWorkspace);
+
   // const nonProtectedWorkspaces = _.flow(_.filter((workspace) => !isProtectedWorkspace(workspace)))(workspaces);
 
   // const justNames = _.flow(_.flatMap((ws) => ws.workspace.name))(nonProtectedWorkspaces);
@@ -205,15 +207,19 @@ const ImportDataDestination = ({
             }),
           ]),
       ]),
-      isProtectedData && !!selectedWorkspace && !isProtectedWorkspace(selectedWorkspace) && div('Test'),
-      importMayTakeTime && div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [importMayTakeTimeMessage]),
+      cannotImport &&
+        div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [
+          icon('warning-standard', { size: 15, style: { marginRight: '0.25rem' }, color: colors.danger() }),
+          ' Unable to import to this workspace because it does not have the required security settings. Please select a workspace with an authorization domain and/or protected data setting checked.',
+        ]),
+      !cannotImport && importMayTakeTime && div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [importMayTakeTimeMessage]),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
         h(ButtonSecondary, { onClick: setMode, style: { marginLeft: 'auto' } }, ['Back']),
         h(
           ButtonPrimary,
           {
             style: { marginLeft: '2rem' },
-            disabled: !selectedWorkspace,
+            disabled: !selectedWorkspace || cannotImport,
             onClick: () => onImport(selectedWorkspace.workspace),
           },
           ['Import']
@@ -412,6 +418,8 @@ const ImportData = () => {
     [Utils.DEFAULT, () => ['Import Snapshot', `Snapshot ${snapshotName}`]]
   );
 
+  const isProtectedData = !!url && isProtected(url, format);
+
   // Normalize the snapshot name:
   // Importing snapshot will throw an "enum" error if the name has any spaces or special characters
   // Replace all whitespace characters with _
@@ -542,7 +550,7 @@ const ImportData = () => {
         alt: '',
         style: { position: 'fixed', top: 0, left: 0, zIndex: -1 },
       }),
-      h(ImportDataOverview, { header, snapshots, isDataset, snapshotResponses, url, format }),
+      h(ImportDataOverview, { header, snapshots, isDataset, snapshotResponses, url, isProtectedData }),
       h(ImportDataDestination, {
         workspaceId: wid,
         templateWorkspaces,
@@ -552,7 +560,7 @@ const ImportData = () => {
         authorizationDomain: ad,
         onImport,
         isImporting,
-        isProtectedData: isProtected(url, format),
+        isProtectedData,
       }),
     ]),
   ]);
