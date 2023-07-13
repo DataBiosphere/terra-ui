@@ -85,7 +85,7 @@ jest.mock('src/libs/state', () => ({
 
 jest.mock('react-notifications-component', () => {
   return {
-    store: {
+    Store: {
       addNotification: jest.fn(),
       removeNotification: jest.fn(),
     },

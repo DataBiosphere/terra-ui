@@ -15,7 +15,7 @@ jest.mock('src/libs/nav', () => ({
 
 jest.mock('react-notifications-component', () => {
   return {
-    store: {
+    Store: {
       addNotification: jest.fn(),
       removeNotification: jest.fn(),
     },
@@ -50,11 +50,15 @@ afterEach(() => {
 });
 
 const renderAlerts = async (termsOfService) => {
-  await act(async () => { render(h(Alerts)) }) //eslint-disable-line
+  await act(async () => {
+    render(h(Alerts));
+  }); //eslint-disable-line
   setupMockAjax(termsOfService);
 
   const isSignedIn = true;
-  await act(async () => { authStore.update(state => ({ ...state, termsOfService, isSignedIn })) })  //eslint-disable-line
+  await act(async () => {
+    authStore.update((state) => ({ ...state, termsOfService, isSignedIn }));
+  }); //eslint-disable-line
 };
 
 describe('terms-of-service-alerts', () => {

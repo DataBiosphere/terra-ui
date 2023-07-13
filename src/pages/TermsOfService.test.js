@@ -8,7 +8,7 @@ import TermsOfServicePage from 'src/pages/TermsOfService';
 jest.mock('src/libs/ajax');
 jest.mock('react-notifications-component', () => {
   return {
-    store: {
+    Store: {
       addNotification: jest.fn(),
       removeNotification: jest.fn(),
     },
@@ -56,7 +56,9 @@ describe('TermsOfService', () => {
     const { getTosFn } = setupMockAjax(termsOfService);
 
     // Act
-    await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
+    await act(async () => {
+      render(h(TermsOfServicePage));
+    }); //eslint-disable-line
 
     // Assert
     expect(getTosFn).toHaveBeenCalled();
@@ -75,7 +77,9 @@ describe('TermsOfService', () => {
     setupMockAjax(termsOfService);
 
     // Act
-    await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
+    await act(async () => {
+      render(h(TermsOfServicePage));
+    }); //eslint-disable-line
 
     // Assert
     const continueUnderGracePeriodButton = screen.findByText('Continue under grace period');
@@ -91,7 +95,9 @@ describe('TermsOfService', () => {
     setupMockAjax(termsOfService);
 
     // Act
-    await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
+    await act(async () => {
+      render(h(TermsOfServicePage));
+    }); //eslint-disable-line
 
     // Assert
     const continueUnderGracePeriodButton = screen.queryByText('Continue under grace period');
@@ -108,7 +114,9 @@ describe('TermsOfService', () => {
     setupMockAjax(termsOfService);
 
     // Act
-    await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
+    await act(async () => {
+      render(h(TermsOfServicePage));
+    }); //eslint-disable-line
 
     // Assert
     const continueUnderGracePeriodButton = screen.queryByText('Continue under grace period');

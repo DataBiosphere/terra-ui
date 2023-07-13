@@ -25,7 +25,7 @@ jest.mock('src/libs/ajax');
 
 jest.mock('react-notifications-component', () => {
   return {
-    store: {
+    Store: {
       addNotification: jest.fn(),
       removeNotification: jest.fn(),
     },
