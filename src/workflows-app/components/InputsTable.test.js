@@ -18,7 +18,7 @@ import {
   runSetInputDefWithWrongTypes,
   typesResponse,
   typesResponseWithoutFooRating,
-} from 'src/workflows-app/components/test-data';
+} from 'src/workflows-app/utils/mock-responses';
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
