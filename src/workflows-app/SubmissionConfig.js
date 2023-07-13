@@ -493,7 +493,6 @@ export const SubmissionConfig = wrapWorkflowsPage({ name: 'SubmissionConfig' })(
           div(
             {
               style: {
-                backgroundColor: 'rgb(235, 236, 238)',
                 display: 'flex',
                 flex: '1 1 auto',
                 flexDirection: 'column',
