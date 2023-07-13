@@ -1,4 +1,6 @@
-import { isProtected } from './ImportData';
+import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/analysis/_testData/testData';
+
+import { isProtected, isProtectedWorkspace } from './ImportData';
 
 describe('isProtected', () => {
   const protectedUrls = [
@@ -23,5 +25,20 @@ describe('isProtected', () => {
 
   it.each(nonProtectedUrls)('%o should not be protected', ({ url, format }) => {
     expect(isProtected(url, format)).toBe(false);
+  });
+});
+
+describe('isProtectedWorkspace', () => {
+  const unprotectedWorkspaces = [defaultAzureWorkspace, defaultGoogleWorkspace];
+
+  it.each(unprotectedWorkspaces)('%o should not be protected', (workspace) => {
+    expect(isProtectedWorkspace(workspace)).toBe(false);
+  });
+
+  it('should recognize a protected workspace', () => {
+    const protectedWorkspace = { ...defaultGoogleWorkspace };
+    protectedWorkspace.workspace.bucketName = `fc-secure-${defaultGoogleWorkspace.workspace.bucketName}`;
+
+    expect(isProtectedWorkspace(protectedWorkspace)).toBe(true);
   });
 });

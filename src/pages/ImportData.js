@@ -23,6 +23,7 @@ import { useOnMount } from 'src/libs/react-utils';
 import { asyncImportJobStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { isGoogleWorkspace } from 'src/libs/workspace-utils';
 import { useDataCatalog } from 'src/pages/library/dataBrowser-utils';
 
 const styles = {
@@ -155,6 +156,11 @@ const ImportDataDestination = ({
     _.filter(({ name, namespace }) => _.some({ workspace: { namespace, name } }, workspaces))
   )(_.castArray(template));
 
+  // const nonProtectedWorkspaces = _.flow(_.filter((workspace) => !isProtectedWorkspace(workspace)))(workspaces);
+
+  // const justNames = _.flow(_.flatMap((ws) => ws.workspace.name))(nonProtectedWorkspaces);
+  // console.log(justNames);
+
   const importMayTakeTimeMessage = 'Note that the import process may take some time after you are redirected into your destination workspace.';
 
   const linkAccountPrompt = () => {
@@ -181,6 +187,7 @@ const ImportDataDestination = ({
               }, workspaces),
               value: selectedWorkspaceId,
               onChange: setSelectedWorkspaceId,
+              style: { color: 'red', fontSize: '30px' },
             }),
           ]),
       ]),
@@ -341,6 +348,16 @@ export const isProtected = (url, filetype) => {
   return Utils.cond([!filetype || !url, () => false], [filetype.toLowerCase() !== 'pfb', () => false], () =>
     protectedHosts.some((host) => hostname.endsWith(host))
   );
+};
+
+// This method identifies whether a workspace qualifies as protected.
+// 'Protected' here means that it has enhanced logging - either on its own or because it has an auth domain.
+// For now this also means only GCP workspaces are included.
+export const isProtectedWorkspace = (workspace) => {
+  if (!isGoogleWorkspace(workspace)) {
+    return false;
+  }
+  return !!workspace.workspace.bucketName && workspace.workspace.bucketName.startsWith('fc-secure');
 };
 
 // ImportData handles all the information relating to the page itself - this includes:

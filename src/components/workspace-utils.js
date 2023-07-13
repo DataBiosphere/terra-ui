@@ -95,6 +95,16 @@ export const withWorkspaces = (WrappedComponent) => {
 };
 
 export const WorkspaceSelector = ({ workspaces, value, onChange, id, 'aria-label': ariaLabel, ...props }) => {
+  // const generateOptionStyle = (option) => {
+  //   // Customize the style based on the associated variable or option properties
+  //   // For example:
+  //   const optionStyle = {
+  //     color: option.workspace.name === 'aj-513' ? 'red' : 'blue',
+  //     // Add more style properties as needed
+  //   };
+  //   return optionStyle;
+  // };
+
   const options = _.flow(
     _.sortBy((ws) => ws.workspace.name.toLowerCase()),
     _.map(({ workspace: { workspaceId, name } }) => ({ value: workspaceId, label: name }))
@@ -107,6 +117,10 @@ export const WorkspaceSelector = ({ workspaces, value, onChange, id, 'aria-label
     value,
     onChange: ({ value }) => onChange(value),
     options,
+    // optionRenderer: (option) => {
+    //   const optionStyle = generateOptionStyle(option);
+    //   return <div style={optionStyle}>{option.label}</div>;
+    // },
     ...props,
   });
 };
