@@ -38,7 +38,7 @@ import {
 } from 'src/analysis/utils/tool-utils';
 import { Clickable } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import Interactive from 'src/components/Interactive';
+import Interactive, { InteractiveProps } from 'src/components/Interactive';
 import { getRegionInfo } from 'src/components/region-common';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import cloudIcon from 'src/icons/cloud-compute.svg';
@@ -283,8 +283,6 @@ export const ContextBar = ({
                 Interactive,
                 {
                   as: 'div',
-                  // TODO: debug
-                  // @ts-expect-error
                   style: {
                     flexDirection: 'column',
                     justifyContent: 'center',
@@ -294,7 +292,7 @@ export const ContextBar = ({
                     cursor: 'default',
                   },
                   hover: { ...contextBarStyles.hover },
-                },
+                } as InteractiveProps<'div'>,
                 [
                   div({ style: { textAlign: 'center', color: colors.dark(), fontSize: 12 } }, ['Rate:']),
                   div(
