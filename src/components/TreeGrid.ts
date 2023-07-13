@@ -204,9 +204,13 @@ export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
       [
         _.map(
           ([index, c]) =>
-            div({ style: { width: c.width, marginTop: 5, paddingRight: 5, paddingLeft: index === 0 ? 20 : 0 } }, [
-              strong([c.name]),
-            ]),
+            div(
+              {
+                key: index,
+                style: { width: c.width, marginTop: 5, paddingRight: 5, paddingLeft: index === 0 ? 20 : 0 },
+              },
+              [strong([c.name])]
+            ),
           toIndexPairs(columns)
         ),
       ]
