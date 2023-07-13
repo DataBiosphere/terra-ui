@@ -107,7 +107,11 @@ export const WorkspaceSelector = ({ workspaces, value, onChange, id, 'aria-label
 
   const options = _.flow(
     _.sortBy((ws) => ws.workspace.name.toLowerCase()),
-    _.map(({ workspace: { workspaceId, name } }) => ({ value: workspaceId, label: name }))
+    _.map(({ workspace: { workspaceId, name, cloudPlatform, bucketName } }) => ({
+      value: workspaceId,
+      label: name,
+      workspace: { cloudPlatform, bucketName },
+    }))
   )(workspaces);
   return h(VirtualizedSelect, {
     id,
@@ -117,10 +121,6 @@ export const WorkspaceSelector = ({ workspaces, value, onChange, id, 'aria-label
     value,
     onChange: ({ value }) => onChange(value),
     options,
-    // optionRenderer: (option) => {
-    //   const optionStyle = generateOptionStyle(option);
-    //   return <div style={optionStyle}>{option.label}</div>;
-    // },
     ...props,
   });
 };

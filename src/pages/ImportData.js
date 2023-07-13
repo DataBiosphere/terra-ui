@@ -145,7 +145,7 @@ export const ImportDataOverview = ({ header, snapshots, isDataset, snapshotRespo
   ]);
 
 // ImportDataDestination handles selecting which workspace to import to
-const ImportDataDestination = ({
+export const ImportDataDestination = ({
   workspaceId,
   templateWorkspaces,
   template,
@@ -204,6 +204,7 @@ const ImportDataDestination = ({
               }, workspaces),
               value: selectedWorkspaceId,
               onChange: setSelectedWorkspaceId,
+              isOptionDisabled: (workspace) => isProtectedData && !isProtectedWorkspace(workspace),
             }),
           ]),
       ]),
