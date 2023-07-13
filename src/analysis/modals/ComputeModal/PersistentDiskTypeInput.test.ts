@@ -40,18 +40,19 @@ describe('PersistentDiskTypeInput', () => {
     render(h(PersistentDiskTypeInput, defaultPersistentDiskTypeInputProps));
 
     // Assert
-    expect(screen.findByText('Standard')).toBeTruthy();
+    screen.getByText('Standard');
   });
 
   it('should call onChange when value is updated.', async () => {
     // Arrange
+    const user = userEvent.setup();
     render(h(PersistentDiskTypeInput, defaultPersistentDiskTypeInputProps));
 
     // Act
     const diskTypeSelect = screen.getByLabelText('Disk Type');
-    await userEvent.click(diskTypeSelect);
+    await user.click(diskTypeSelect);
     const balancedDiskType = screen.getByText('Balanced');
-    await userEvent.click(balancedDiskType);
+    await user.click(balancedDiskType);
 
     // Assert
     expect(screen.findByText('Balanced')).toBeTruthy();
@@ -74,6 +75,6 @@ describe('PersistentDiskTypeInput', () => {
 
     // Assert
     expect(diskTypeSelect).toBeDisabled();
-    expect(screen.findByText('Standard')).toBeTruthy();
+    screen.getByText('Standard');
   });
 });

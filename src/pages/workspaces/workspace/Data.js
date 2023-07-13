@@ -35,10 +35,11 @@ import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-t
 import { reportError, reportErrorAndRethrow, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { useImportJobs } from 'src/libs/import-jobs';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
-import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
-import { asyncImportJobStore, getUser } from 'src/libs/state';
+import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
+import { getUser } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -652,8 +653,8 @@ const WorkspaceData = _.flow(
     const isGoogleWorkspace = !!googleProject;
     const isAzureWorkspace = !isGoogleWorkspace;
 
+    const { runningJobs: runningImportJobs, refresh: refreshRunningImportJobs } = useImportJobs(workspace);
     const signal = useCancellation();
-    const asyncImportJobs = useStore(asyncImportJobStore);
 
     const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name);
     const region = isAzureWorkspace ? storageDetails.azureContainerRegion : storageDetails.googleBucketLocation;
@@ -703,7 +704,7 @@ const WorkspaceData = _.flow(
       }
     };
 
-    const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs(), loadWdsSchema()]);
+    const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), refreshRunningImportJobs(), loadWdsSchema()]);
 
     const loadSnapshotEntities = async (snapshotName) => {
       try {
@@ -792,21 +793,6 @@ const WorkspaceData = _.flow(
     }, [loadWdsData, workspaceId, wdsProxyUrl, wdsTypes, isAzureWorkspace]);
 
     const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first));
-
-    const getRunningImportJobs = async () => {
-      try {
-        const runningJobs = await Ajax(signal).Workspaces.workspace(namespace, name).listImportJobs(true);
-        const currentJobIds = _.map('jobId', asyncImportJobStore.get());
-        _.forEach((job) => {
-          const jobStatus = _.lowerCase(job.status);
-          if (!_.includes(jobStatus, ['success', 'error', 'done']) && !_.includes(job.jobId, currentJobIds)) {
-            asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId: job.jobId }));
-          }
-        }, runningJobs);
-      } catch (error) {
-        reportError('Error loading running import jobs in this workspace');
-      }
-    };
 
     const deleteColumnUpdateMetadata = ({ attributeName, entityType }) => {
       const newArray = _.get(entityType, entityMetadata).attributeNames;
@@ -947,8 +933,8 @@ const WorkspaceData = _.flow(
                         retryFunction: loadEntityMetadata,
                       },
                       [
-                        _.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) && h(DataImportPlaceholder),
-                        !_.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) &&
+                        runningImportJobs.length > 0 && h(DataImportPlaceholder),
+                        runningImportJobs.length === 0 &&
                           _.isEmpty(sortedEntityPairs) &&
                           h(NoDataPlaceholder, {
                             message: 'No tables have been uploaded.',
