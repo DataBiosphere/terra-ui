@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { usePrevious } from 'src/libs/react-utils';
 import LoadedState, { ErrorState } from 'src/libs/type-utils/LoadedState';
 import { isFetchResponse } from 'src/libs/type-utils/type-helpers';
 
@@ -45,13 +46,21 @@ export type UseLoadedDataResult<T> = [LoadedState<T, unknown>, (dataCall: () => 
  */
 export const useLoadedData = <T>(hookArgs?: UseLoadedDataArgs<T>): UseLoadedDataResult<T> => {
   const args: UseLoadedDataArgs<T> = hookArgs || {};
+  const { onError } = args;
   const [loadedData, setLoadedData] = useState<LoadedState<T, unknown>>({ status: 'None' });
-
-  const updateDataFn = async (dataCall: () => Promise<T>) => {
-    const previousState = loadedData.status !== 'None' ? loadedData.state : null;
-    setLoadedData({
-      status: 'Loading',
-      state: previousState,
+  const previousStatus = usePrevious(loadedData.status);
+  useEffect(() => {
+    if (loadedData.status === 'Error' && previousStatus !== 'Error') {
+      onError?.(loadedData);
+    }
+  }, [loadedData, previousStatus, onError]);
+  const updateDataFn = useCallback(async (dataCall: () => Promise<T>) => {
+    setLoadedData((previousLoadedData) => {
+      const previousState = previousLoadedData.status !== 'None' ? previousLoadedData.state : null;
+      return {
+        status: 'Loading',
+        state: previousState,
+      };
     });
     try {
       const result = await dataCall();
@@ -61,17 +70,16 @@ export const useLoadedData = <T>(hookArgs?: UseLoadedDataArgs<T>): UseLoadedData
       });
     } catch (err: unknown) {
       const error = isFetchResponse(err) ? Error(await err.text()) : err;
-      const errorResult: ErrorState<T, unknown> = {
-        status: 'Error',
-        state: previousState,
-        error,
-      };
-      setLoadedData(errorResult);
-      if (args.onError) {
-        args.onError(errorResult);
-      }
+      setLoadedData((previousLoadedData) => {
+        const previousState = previousLoadedData.status !== 'None' ? previousLoadedData.state : null;
+        const errorResult: ErrorState<T, unknown> = {
+          status: 'Error',
+          state: previousState,
+          error,
+        };
+        return errorResult;
+      });
     }
-  };
-
+  }, []);
   return [loadedData, updateDataFn];
 };

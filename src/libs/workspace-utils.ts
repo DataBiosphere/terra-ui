@@ -1,3 +1,5 @@
+import _ from 'lodash/fp';
+
 export type CloudProvider = 'AZURE' | 'GCP';
 export const cloudProviderTypes: Record<CloudProvider, CloudProvider> = {
   AZURE: 'AZURE',
@@ -36,8 +38,18 @@ export const isGoogleWorkspaceInfo = (workspace: WorkspaceInfo): workspace is Go
   return workspace.cloudPlatform === 'Gcp';
 };
 
+export const workspaceAccessLevels = ['NO ACCESS', 'READER', 'WRITER', 'OWNER', 'PROJECT_OWNER'] as const;
+
+export type WorkspaceAccessLevels = typeof workspaceAccessLevels;
+
+export type WorkspaceAccessLevel = WorkspaceAccessLevels[number];
+
+export const hasAccessLevel = (required: WorkspaceAccessLevel, current: WorkspaceAccessLevel): boolean => {
+  return workspaceAccessLevels.indexOf(current) >= workspaceAccessLevels.indexOf(required);
+};
+
 export interface BaseWorkspace {
-  accessLevel: string;
+  accessLevel: WorkspaceAccessLevel;
   canShare: boolean;
   canCompute: boolean;
   workspace: WorkspaceInfo;
@@ -49,8 +61,15 @@ export interface AzureContext {
   tenantId: string;
 }
 
+interface WorkspacePolicy {
+  name: string;
+  namespace: string;
+  additionalData: { [key: string]: string };
+}
+
 export interface AzureWorkspace extends BaseWorkspace {
   azureContext: AzureContext;
+  policies?: WorkspacePolicy[];
 }
 
 export interface GoogleWorkspace extends BaseWorkspace {
@@ -69,3 +88,8 @@ export const isGoogleWorkspace = (workspace: BaseWorkspace): workspace is Google
 
 export const getCloudProviderFromWorkspace = (workspace: BaseWorkspace): CloudProvider =>
   isAzureWorkspace(workspace) ? cloudProviderTypes.AZURE : cloudProviderTypes.GCP;
+
+export const hasProtectedData = (workspace: AzureWorkspace): boolean => containsProtectedDataPolicy(workspace.policies);
+
+export const containsProtectedDataPolicy = (policies: WorkspacePolicy[] | undefined): boolean =>
+  _.any((policy) => policy.namespace === 'terra' && policy.name === 'protected-data', policies);

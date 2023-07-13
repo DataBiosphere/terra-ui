@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import OutputsTable from 'src/workflows-app/components/OutputsTable';
-import { runSetOutputDef, runSetOutputDefWithDefaults } from 'src/workflows-app/components/test-data';
+import { runSetOutputDef, runSetOutputDefWithDefaults } from 'src/workflows-app/utils/mock-responses';
 
 const setupOutputTableTest = ({ configuredOutputDefinition = runSetOutputDef } = {}) => {
   const setConfiguredOutputDefinition = jest.fn();

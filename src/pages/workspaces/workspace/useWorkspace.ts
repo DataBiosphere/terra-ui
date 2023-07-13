@@ -175,6 +175,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
           'canCompute',
           'canShare',
           'owners',
+          'policies',
           'workspace',
           'workspace.attributes',
           'workspace.authorizationDomain',
