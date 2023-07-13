@@ -53,7 +53,6 @@ export type FeatureValueGroup = {
 };
 
 export interface GetConceptsResponse {
-  // Maybe this should be result: Concept[] | null in case the `hasChildren` state is wrong.
   result: Concept[];
 }
 

@@ -37,7 +37,7 @@ const columns = [
 
 describe('TreeGrid', () => {
   let getChildrenCount = 0;
-  function renderTree() {
+  const renderTree = () => {
     getChildrenCount = 0;
     render(
       TreeGrid({
@@ -49,7 +49,7 @@ describe('TreeGrid', () => {
         columns,
       })
     );
-  }
+  };
 
   it('renders a tree, header and root visible, children initially hidden', () => {
     // Arrange
