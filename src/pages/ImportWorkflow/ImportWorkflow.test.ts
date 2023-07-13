@@ -17,11 +17,11 @@ import { useDockstoreWdl } from './useDockstoreWdl';
 
 type AjaxContract = ReturnType<typeof Ajax>;
 type AppsContract = ReturnType<typeof Apps>;
-type WorkspaceUtilsExports = typeof import('src/components/workspace-utils');
 
 jest.mock('src/libs/ajax');
 jest.mock('src/libs/ajax/leonardo/Apps');
 
+type WorkspaceUtilsExports = typeof import('src/components/workspace-utils');
 jest.mock('src/components/workspace-utils', (): WorkspaceUtilsExports => {
   const { h } = jest.requireActual('react-hyperscript-helpers');
 
@@ -51,35 +51,56 @@ jest.mock('src/components/workspace-utils', (): WorkspaceUtilsExports => {
   };
 });
 
-jest.mock('./importDockstoreWorkflow', () => ({
-  importDockstoreWorkflow: jest.fn().mockResolvedValue(undefined),
-}));
+type ImportDockstoreWorkflowExports = typeof import('./importDockstoreWorkflow');
+jest.mock(
+  './importDockstoreWorkflow',
+  (): ImportDockstoreWorkflowExports => ({
+    importDockstoreWorkflow: jest.fn().mockResolvedValue(undefined),
+  })
+);
 
-jest.mock('./useDockstoreWdl', () => ({
-  useDockstoreWdl: jest.fn().mockReturnValue({
-    status: 'Ready',
-    wdl: 'workflow TestWorkflow {}',
-  }),
-}));
+type UseDockstoreWdlExports = typeof import('./useDockstoreWdl');
+jest.mock(
+  './useDockstoreWdl',
+  (): UseDockstoreWdlExports => ({
+    useDockstoreWdl: jest.fn().mockReturnValue({
+      status: 'Ready',
+      wdl: 'workflow TestWorkflow {}',
+    }),
+  })
+);
 
-jest.mock('src/analysis/runtime-common-components.js', () => ({
-  setAzureCookieOnUrl: jest.fn().mockResolvedValue(undefined),
-}));
+type RuntimeCommonComponentsExports = typeof import('src/analysis/runtime-common-components.js');
+jest.mock(
+  'src/analysis/runtime-common-components.js',
+  (): Partial<RuntimeCommonComponentsExports> => ({
+    setAzureCookieOnUrl: jest.fn().mockResolvedValue(undefined),
+  })
+);
 
-jest.mock('src/libs/nav', () => ({
-  ...jest.requireActual('src/libs/nav'),
-  goToPath: jest.fn(),
-  getLink: jest.fn().mockReturnValue(''),
-}));
+type NavExports = typeof import('src/libs/nav');
+jest.mock(
+  'src/libs/nav',
+  (): NavExports => ({
+    ...jest.requireActual('src/libs/nav'),
+    goToPath: jest.fn(),
+    getLink: jest.fn().mockReturnValue(''),
+  })
+);
 
 // The workspace menu uses react-virtualized's AutoSizer to size the options menu.
 // This makes the virtualized window large enough for options to be rendered.
-jest.mock('react-virtualized', () => ({
-  ...jest.requireActual('react-virtualized'),
-  AutoSizer: ({ children }) => children({ width: 300 }),
-}));
+type ReactVirtualizedExports = typeof import('react-virtualized');
+jest.mock(
+  'react-virtualized',
+  (): ReactVirtualizedExports => ({
+    ...jest.requireActual('react-virtualized'),
+    AutoSizer: ({ children }) => children({ width: 300 }),
+  })
+);
 
-jest.mock('src/libs/error', () => {
+type ErrorExports = typeof import('src/libs/error');
+jest.mock('src/libs/error', (): ErrorExports => {
   const errorModule = jest.requireActual('src/libs/error');
   const mockErrorModule = jest.requireActual('src/libs/error.mock');
   return {
@@ -88,12 +109,17 @@ jest.mock('src/libs/error', () => {
   };
 });
 
-jest.mock('src/libs/state', () => ({
-  ...jest.requireActual('src/libs/state'),
-  getUser: jest.fn(),
-}));
+type StateExports = typeof import('src/libs/state');
+jest.mock(
+  'src/libs/state',
+  (): StateExports => ({
+    ...jest.requireActual('src/libs/state'),
+    getUser: jest.fn(),
+  })
+);
 
-jest.mock('react-notifications-component', () => {
+type ReactNotificationsComponentExports = typeof import('react-notifications-component');
+jest.mock('react-notifications-component', (): ReactNotificationsComponentExports => {
   return {
     store: {
       addNotification: jest.fn(),
