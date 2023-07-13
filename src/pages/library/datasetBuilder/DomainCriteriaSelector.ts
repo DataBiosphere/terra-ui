@@ -17,7 +17,7 @@ interface DomainCriteriaSelectorProps {
   readonly onStateChange: OnStateChangeHandler;
 }
 
-const toCriteria =
+export const toCriteria =
   (domainOption: DomainOption) =>
   (concept: Concept): DomainCriteria => {
     return {
