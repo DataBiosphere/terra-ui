@@ -13071,12 +13071,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-notifications-component@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "react-notifications-component@npm:3.1.0"
+"react-notifications-component@npm:^3.4.1":
+  version: 3.4.1
+  resolution: "react-notifications-component@npm:3.4.1"
   peerDependencies:
     react: ^17.0.1
-  checksum: f841faccf627ea70d85756a0538e37230eb6f3cadcb75d6c6963c6928d4aa477939db01c44d375391619a2c76b8425fb33720aa3b18f99721c56fa68a7cfd5f8
+  checksum: 2bdfadfa23278137b14f70ecb2a5b0a6f5bee8a14d21749fe8fdbb23b10cf7c8b7f74a5d153ac73d80b70a63a57fd16706d32268e2c3d8f4cf17776c145c9570
   languageName: node
   linkType: hard
 
@@ -14970,7 +14970,7 @@ __metadata:
     react-hyperscript-helpers: ^2.0.0
     react-json-view: ^1.21.3
     react-modal: ^3.16.1
-    react-notifications-component: ^3.1.0
+    react-notifications-component: ^3.4.1
     react-oidc-context: ^2.1.0
     react-onclickoutside: ^6.12.0
     react-paginating: ^1.4.0
