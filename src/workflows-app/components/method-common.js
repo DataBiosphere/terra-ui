@@ -37,7 +37,7 @@ export const submitMethod = async (signal, onDismiss, method, workspace) => {
       });
     }
   } catch (error) {
-    notify('error', 'Error creating new method', { detail: await (error instanceof Response ? error.text() : error) });
+    notify('error', 'Error creating new method', { detail: error instanceof Response ? await error.text() : error });
     onDismiss();
   }
 };
