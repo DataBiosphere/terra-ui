@@ -1,7 +1,6 @@
 import _ from 'lodash/fp';
 import React, { CSSProperties, Dispatch, Fragment, SetStateAction, useLayoutEffect, useRef } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
-import { centeredSpinner } from 'src/components/icons';
 import * as Style from 'src/libs/style';
 import { BaseWorkspace } from 'src/libs/workspace-utils';
 import { Collaborator } from 'src/pages/workspaces/workspace/ShareWorkspaceModal/Collaborator';
@@ -20,12 +19,11 @@ interface CurrentCollaboratorsProps {
   setAcl: Dispatch<SetStateAction<WorkspaceAcl>>;
   originalAcl: WorkspaceAcl;
   workspace: BaseWorkspace;
-  loaded: boolean;
   lastAddedEmail?: string;
 }
 
 export const CurrentCollaborators: React.FC<CurrentCollaboratorsProps> = (props: CurrentCollaboratorsProps) => {
-  const { acl, loaded } = props;
+  const { acl } = props;
   const list = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -43,7 +41,6 @@ export const CurrentCollaborators: React.FC<CurrentCollaboratorsProps> = (props:
           _.map((aclItem) => h(Collaborator, { aclItem, ...props }))
         )(acl)
       ),
-      !loaded && centeredSpinner(),
     ]),
   ]);
 };
