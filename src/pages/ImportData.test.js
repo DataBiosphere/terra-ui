@@ -1,8 +1,9 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/analysis/_testData/testData';
 
-import { /* ImportDataDestination, */ ImportDataOverview, isProtected, isProtectedWorkspace } from './ImportData';
+import { ImportDataDestination, ImportDataOverview, isProtected, isProtectedWorkspace } from './ImportData';
 
 const protectedUrls = [
   { url: 'https://prod.anvil.gi.ucsc.edu/file', format: 'pfb' },
@@ -86,50 +87,99 @@ jest.mock('src/components/workspace-utils', () => ({
     loading: false,
     workspaces: [
       {
-        workspace: { namespace: 'test-namespace', name: 'protected-google', cloudPlatform: 'Gcp', googleProject: 'test-project-1' },
+        workspace: {
+          namespace: 'test-namespace',
+          name: 'protected-google',
+          cloudPlatform: 'Gcp',
+          googleProject: 'test-project-1',
+          workspaceId: 'ws-1',
+          bucketName: 'fc-secure-ws-1',
+        },
         accessLevel: 'PROJECT_OWNER',
       },
       {
-        workspace: { namespace: 'test-namespace', name: 'unprotected-google', cloudPlatform: 'Gcp', googleProject: 'test-project-2' },
+        workspace: {
+          namespace: 'test-namespace',
+          name: 'unprotected-google',
+          cloudPlatform: 'Gcp',
+          googleProject: 'test-project-2',
+          workspaceId: 'ws-2',
+          bucketName: 'fc-ws-2',
+        },
         accessLevel: 'OWNER',
       },
       {
-        workspace: { namespace: 'test-namespace', name: 'azure', cloudPlatform: 'Azure' },
+        workspace: { namespace: 'test-namespace', name: 'azure', cloudPlatform: 'Azure', workspaceId: 'ws-3' },
         accessLevel: 'WRITER',
       },
     ],
   }),
 }));
 
-// describe('ImportDataDestination', () => {
-//   const header = 'Linking data to a workspace';
-//   const snapshots = [];
-//   const isDataset = true;
-//   const snapshotResponses = [];
-//
-//   it('should render warning about protected data from %o', ({ url, format }) => {
-//     render(h(ImportDataDestination, {
-//       workspaceId,
-//       templateWorkspaces: [],
-//       template: [],
-//       userHasBillingProjects: true,
-//       importMayTakeTime: true,
-//       authorizationDomain: '',
-//       onImport: () => {},
-//       isImporting: false,
-//       isProtectedData: true,
-//     }));
-//     const protectedWarning = screen.queryByText('The data you chose to import to Terra are identified as protected', { exact: false });
-//     expect(protectedWarning).not.toBeNull();
-//     const noWarning = screen.queryByText('The dataset(s) you just chose to import to Terra will be made available to you', { exact: false });
-//     expect(noWarning).toBeNull();
-//   });
-//
-//   it.each(nonProtectedUrls)('should not render warning about protected data from %o', ({ url, format }) => {
-//     render(h(ImportDataOverview, { header, snapshots, isDataset, snapshotResponses, url, format }));
-//     const protectedWarning = screen.queryByText('The data you chose to import to Terra are identified as protected', { exact: false });
-//     expect(protectedWarning).toBeNull();
-//     const noWarning = screen.queryByText('The dataset(s) you just chose to import to Terra will be made available to you', { exact: false });
-//     expect(noWarning).not.toBeNull();
-//   });
-// });
+describe('ImportDataDestination', () => {
+  it('should explain protected data restricts eligible workspaces', () => {
+    render(
+      h(ImportDataDestination, {
+        workspaceId: null,
+        templateWorkspaces: [],
+        template: [],
+        userHasBillingProjects: true,
+        importMayTakeTime: true,
+        authorizationDomain: '',
+        onImport: () => {},
+        isImporting: false,
+        isProtectedData: true,
+      })
+    );
+    // const protectedWarning = screen.queryByText('Unable to import into workspaces without required security settings', { exact: false });
+    const protectedWarning = screen.queryByText('Select one of your workspaces', { exact: false });
+    expect(protectedWarning).not.toBeNull();
+  });
+
+  it('should not inform about protected data', () => {
+    render(
+      h(ImportDataDestination, {
+        workspaceId: null,
+        templateWorkspaces: [],
+        template: [],
+        userHasBillingProjects: true,
+        importMayTakeTime: true,
+        authorizationDomain: '',
+        onImport: () => {},
+        isImporting: false,
+        isProtectedData: false,
+      })
+    );
+    const protectedWarning = screen.queryByText('Unable to import into workspaces without required security settings', { exact: false });
+    expect(protectedWarning).toBeNull();
+  });
+
+  it('should disable noncompliant workspaces', async () => {
+    render(
+      h(ImportDataDestination, {
+        workspaceId: null,
+        templateWorkspaces: [],
+        template: [],
+        userHasBillingProjects: true,
+        importMayTakeTime: true,
+        authorizationDomain: '',
+        onImport: () => {},
+        isImporting: false,
+        isProtectedData: true,
+      })
+    );
+    const selectInput = screen.queryByPlaceholderText('Select a workspace', { exact: false });
+    await userEvent.click(selectInput); // Open the dropdown
+
+    // Only the protected google workspace should be available
+    const option1 = screen.queryByText('protected-google', { exact: false });
+    expect(option1).not.toBeDisabled();
+
+    // Azure and unprotected googles workspaces should be disabled
+    const option2 = screen.queryByText('unprotected-google', { exact: false });
+    expect(option2).toBeDisabled();
+
+    const option3 = screen.queryByText('azure', { exact: false });
+    expect(option3).not.toBeDisabled();
+  });
+});

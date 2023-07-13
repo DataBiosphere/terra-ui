@@ -124,7 +124,8 @@ export const ImportDataOverview = ({ header, snapshots, isDataset, snapshotRespo
           ]),
         ])
       : url && div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
-    div({ style: { marginTop: '1rem' } }, [
+    div(
+      { style: { marginTop: '1rem' } },
       isProtectedData
         ? [
             icon('warning-standard', { size: 15, style: { marginRight: '0.25rem' }, color: colors.warning() }),
@@ -140,8 +141,8 @@ export const ImportDataOverview = ({ header, snapshots, isDataset, snapshotRespo
             ),
           ]
         : `The ${isDataset ? 'dataset' : 'snapshot'}(s) you just chose to import to Terra will be made available to you `,
-      'within a workspace of your choice where you can then perform analysis.',
-    ]),
+      'within a workspace of your choice where you can then perform analysis.'
+    ),
   ]);
 
 // ImportDataDestination handles selecting which workspace to import to
@@ -170,13 +171,6 @@ export const ImportDataDestination = ({
     _.flatMap((id) => (templateWorkspaces && templateWorkspaces[id]) || []),
     _.filter(({ name, namespace }) => _.some({ workspace: { namespace, name } }, workspaces))
   )(_.castArray(template));
-
-  const cannotImport = isProtectedData && !!selectedWorkspace && !isProtectedWorkspace(selectedWorkspace);
-
-  // const nonProtectedWorkspaces = _.flow(_.filter((workspace) => !isProtectedWorkspace(workspace)))(workspaces);
-
-  // const justNames = _.flow(_.flatMap((ws) => ws.workspace.name))(nonProtectedWorkspaces);
-  // console.log(justNames);
 
   const importMayTakeTimeMessage = 'Note that the import process may take some time after you are redirected into your destination workspace.';
 
@@ -208,19 +202,19 @@ export const ImportDataDestination = ({
             }),
           ]),
       ]),
-      cannotImport &&
+      isProtectedData &&
         div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [
-          icon('warning-standard', { size: 15, style: { marginRight: '0.25rem' }, color: colors.danger() }),
-          ' Unable to import to this workspace because it does not have the required security settings. Please select a workspace with an authorization domain and/or protected data setting checked.',
+          icon('info-circle', { size: 15, style: { marginRight: '0.25rem' }, color: colors.accent() }),
+          ' Unable to import into workspaces without required security settings. Only workspaces with an authorization domain and/or protected data setting checked are eligible.',
         ]),
-      !cannotImport && importMayTakeTime && div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [importMayTakeTimeMessage]),
+      importMayTakeTime && div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [importMayTakeTimeMessage]),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
         h(ButtonSecondary, { onClick: setMode, style: { marginLeft: 'auto' } }, ['Back']),
         h(
           ButtonPrimary,
           {
             style: { marginLeft: '2rem' },
-            disabled: !selectedWorkspace || cannotImport,
+            disabled: !selectedWorkspace,
             onClick: () => onImport(selectedWorkspace.workspace),
           },
           ['Import']
