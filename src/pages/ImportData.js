@@ -140,6 +140,7 @@ const ImportDataDestination = ({
   authorizationDomain,
   onImport,
   isImporting,
+  isProtectedData,
 }) => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces();
   const [mode, setMode] = useState(workspaceId ? 'existing' : undefined);
@@ -187,10 +188,10 @@ const ImportDataDestination = ({
               }, workspaces),
               value: selectedWorkspaceId,
               onChange: setSelectedWorkspaceId,
-              style: { color: 'red', fontSize: '30px' },
             }),
           ]),
       ]),
+      isProtectedData && !!selectedWorkspace && !isProtectedWorkspace(selectedWorkspace) && div('Test'),
       importMayTakeTime && div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [importMayTakeTimeMessage]),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
         h(ButtonSecondary, { onClick: setMode, style: { marginLeft: 'auto' } }, ['Back']),
@@ -527,6 +528,7 @@ const ImportData = () => {
         authorizationDomain: ad,
         onImport,
         isImporting,
+        isProtectedData: isProtected(url, format),
       }),
     ]),
   ]);
