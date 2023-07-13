@@ -30,6 +30,7 @@ describe('extractWorkspaceDetails', () => {
       workspaceName: 'wsName',
       workspaceNamespace: 'wsNamespace',
       cloudPlatform: 'WSCLOUDPLATFORM',
+      hasProtectedData: false,
     });
   });
 
@@ -41,7 +42,12 @@ describe('extractWorkspaceDetails', () => {
   });
 
   it('Handles nested workspace details (like from workspace object)', () => {
-    expect(extractWorkspaceDetails(gcpWorkspace)).toEqual({ workspaceName: 'wsName', workspaceNamespace: 'wsNamespace', cloudPlatform: 'GCP' });
+    expect(extractWorkspaceDetails(gcpWorkspace)).toEqual({
+      workspaceName: 'wsName',
+      workspaceNamespace: 'wsNamespace',
+      cloudPlatform: 'GCP',
+      hasProtectedData: false,
+    });
   });
 });
 

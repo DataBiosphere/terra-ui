@@ -1,6 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 import { h } from 'react-hyperscript-helpers';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/analysis/_testData/testData';
 import { AnalysesData, AnalysesProps, BaseAnalyses, getUniqueFileName } from 'src/analysis/Analyses';

@@ -3,7 +3,7 @@ import { runtimeTools, ToolLabel, toolToExtensionMap } from 'src/analysis/utils/
 import { Ajax } from 'src/libs/ajax';
 import { NominalType } from 'src/libs/type-utils/type-helpers';
 import * as Utils from 'src/libs/utils';
-import { GoogleWorkspace } from 'src/libs/workspace-utils';
+import { GoogleWorkspace, hasAccessLevel } from 'src/libs/workspace-utils';
 
 export type FileName = NominalType<string, 'FileName'>; // represents a file with an extension and no path, eg `dir/file.ipynb` =>  `file.ipynb`
 export type AbsolutePath = NominalType<string, 'AbsolutePath'>; // represents an absolute path in the context of a cloud storage directory structure, i.e. `dir/file.ipynb`
@@ -37,7 +37,7 @@ export const findPotentialNotebookLockers = async (workspace: GoogleWorkspace): 
   const potentialLockers = _.flow(
     _.toPairs,
     _.map(([email, data]) => ({ email, ...data })),
-    _.filter(({ accessLevel }) => Utils.hasAccessLevel('WRITER', accessLevel))
+    _.filter(({ accessLevel }) => hasAccessLevel('WRITER', accessLevel))
   )(acl);
   const lockHolderPromises = _.map(async ({ email }) => {
     const lockHash = await notebookLockHash(bucketName, email);

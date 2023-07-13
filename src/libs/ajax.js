@@ -835,7 +835,6 @@ const Workspaces = (signal) => ({
       },
 
       listImportJobs: async (isRunning) => {
-        // ToDo: This endpoint should be deprecated in favor of more generic "importJob" endpoint
         const res = await fetchOrchestration(`api/${root}/importJob?running_only=${isRunning}`, _.merge(authOpts(), { signal }));
         return res.json();
       },

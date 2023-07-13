@@ -32,9 +32,9 @@ type AjaxAppsContract = AjaxContract['Apps'];
 type AjaxRuntimesContract = AjaxContract['Runtimes'];
 type AjaxWorkspacesContract = AjaxContract['Workspaces'];
 
-describe('useDeleteWorkspace', () => {
+describe('useDeleteWorkspaceState', () => {
   const googleWorkspace = {
-    accessLevel: 'writer',
+    accessLevel: 'WRITER',
     canShare: true,
     canCompute: true,
     workspace: {
@@ -45,7 +45,7 @@ describe('useDeleteWorkspace', () => {
     } as GoogleWorkspaceInfo,
   } as BaseWorkspace;
   const azureWorkspace = {
-    accessLevel: 'writer',
+    accessLevel: 'WRITER',
     canShare: true,
     canCompute: true,
     workspace: {
@@ -57,6 +57,10 @@ describe('useDeleteWorkspace', () => {
   } as BaseWorkspace;
   const mockOnDismiss = jest.fn(() => {});
   const mockOnSuccess = jest.fn(() => {});
+
+  beforeAll(() => {
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+  });
 
   beforeEach(() => {
     jest.useFakeTimers();
