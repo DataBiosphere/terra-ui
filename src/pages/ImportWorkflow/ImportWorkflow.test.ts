@@ -119,9 +119,9 @@ jest.mock(
 );
 
 type ReactNotificationsComponentExports = typeof import('react-notifications-component');
-jest.mock('react-notifications-component', (): ReactNotificationsComponentExports => {
+jest.mock('react-notifications-component', (): DeepPartial<ReactNotificationsComponentExports> => {
   return {
-    store: {
+    Store: {
       addNotification: jest.fn(),
       removeNotification: jest.fn(),
     },

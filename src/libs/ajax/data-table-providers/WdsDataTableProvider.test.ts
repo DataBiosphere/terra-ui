@@ -1,6 +1,7 @@
 import { Ajax } from 'src/libs/ajax';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService';
+import { DeepPartial } from 'src/libs/type-utils/deep-partial';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
 
@@ -23,9 +24,10 @@ import {
 
 jest.mock('src/libs/ajax');
 
-jest.mock('react-notifications-component', () => {
+type ReactNotificationsComponentExports = typeof import('react-notifications-component');
+jest.mock('react-notifications-component', (): DeepPartial<ReactNotificationsComponentExports> => {
   return {
-    store: {
+    Store: {
       addNotification: jest.fn(),
       removeNotification: jest.fn(),
     },

@@ -1,12 +1,12 @@
 import { addDays } from 'date-fns/fp';
-import { store } from 'react-notifications-component';
+import { Store } from 'react-notifications-component';
 import * as Notifications from 'src/libs/notifications';
 import * as Preferences from 'src/libs/prefs';
 import { notificationStore } from 'src/libs/state';
 
 jest.mock('react-notifications-component', () => {
   return {
-    store: {
+    Store: {
       addNotification: jest.fn(),
       removeNotification: jest.fn(),
     },
@@ -44,7 +44,7 @@ describe('notify', () => {
         message: 'This is only a test',
       }),
     ]);
-    expect(store.addNotification).toHaveBeenCalledWith(expect.objectContaining({ id: 'test-notification' }));
+    expect(Store.addNotification).toHaveBeenCalledWith(expect.objectContaining({ id: 'test-notification' }));
   });
 
   it('does not add notification to store if notification is muted', () => {
@@ -53,14 +53,14 @@ describe('notify', () => {
     });
     Notifications.notify('info', 'Test notification', { id: 'test-notification' });
     expect(notificationStore.get()).toEqual([]);
-    expect(store.addNotification).not.toHaveBeenCalled();
+    expect(Store.addNotification).not.toHaveBeenCalled();
   });
 });
 
 describe('clearNotification', () => {
   it('removes notification from react-notifications-component store', () => {
     Notifications.clearNotification('test-notification');
-    expect(store.removeNotification).toHaveBeenCalledWith('test-notification');
+    expect(Store.removeNotification).toHaveBeenCalledWith('test-notification');
   });
 });
 
@@ -68,7 +68,7 @@ describe('clearMatchingNotifications', () => {
   it('clears all notifications in store with IDs matching prefix', () => {
     notificationStore.set([{ id: 'category1/foo' }, { id: 'category1/bar' }, { id: 'category2/foo' }]);
     Notifications.clearMatchingNotifications('category1/');
-    expect(store.removeNotification.mock.calls).toEqual([['category1/foo'], ['category1/bar']]);
+    expect(Store.removeNotification.mock.calls).toEqual([['category1/foo'], ['category1/bar']]);
   });
 });
 
