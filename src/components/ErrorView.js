@@ -5,7 +5,7 @@ import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 
-const styles = {
+export const styles = {
   htmlFrame: {
     width: '100%',
     border: Style.standardLine,

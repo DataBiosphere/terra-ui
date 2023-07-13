@@ -1,7 +1,7 @@
 import 'src/libs/routes';
 
 import { h } from 'react-hyperscript-helpers';
-import ReactNotification from 'react-notifications-component';
+import { ReactNotifications } from 'react-notifications-component';
 import { AuthProvider } from 'react-oidc-context';
 import { AuthenticatedCookieSetter } from 'src/analysis/runtime-common-components';
 import AuthContainer from 'src/components/AuthContainer';
@@ -25,7 +25,7 @@ const Main = () => {
     h(PathHashInserter),
     h(CookieRejectModal),
     h(CookieWarning),
-    h(ReactNotification),
+    h(ReactNotifications),
     h(ImportStatus),
     h(Favicon),
     h(IdleStatusMonitor),

@@ -5,6 +5,7 @@ import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/analysis/_tes
 
 import { ImportDataDestination, ImportDataOverview, isProtected, isProtectedWorkspace } from './ImportData';
 
+
 const protectedUrls = [
   { url: 'https://prod.anvil.gi.ucsc.edu/file', format: 'pfb' },
   { url: 'https://anvilproject.org/file2', format: 'PFB' },
@@ -66,6 +67,7 @@ describe('ImportDataOverview', () => {
         isProtectedData: true,
       })
     );
+
     const protectedWarning = screen.queryByText('The data you chose to import to Terra are identified as protected', { exact: false });
     expect(protectedWarning).not.toBeNull();
     const noWarning = screen.queryByText('The dataset(s) you just chose to import to Terra will be made available to you', { exact: false });
