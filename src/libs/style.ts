@@ -141,7 +141,7 @@ export const navList = {
     width: '100%',
     height: 50,
     padding: '0 1.5rem',
-    backgroundColor: !isAzure ? 'white' : undefined,
+    backgroundColor: !isAzure ? 'white' : 'white',
     borderBottom: `1px solid ${colors.dark(0.2)}`,
     boxShadow: selected ? `inset -10px 0px ${terraSpecial()}` : undefined,
   }),
