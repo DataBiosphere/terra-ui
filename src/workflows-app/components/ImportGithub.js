@@ -35,7 +35,6 @@ const ImportGithub = ({ setLoading, signal, onDismiss, workspace }) => {
   const updateWorkflowName = (url) => {
     setMethodName(url.substring(url.lastIndexOf('/') + 1).replace('.wdl', ''));
   };
-
   return div({ style: { marginLeft: '4rem', width: '50%' } }, [
     div({ style: { fontSize: 30, display: 'flex', alignItems: 'center' } }, [
       h(FormLabel, { htmlFor: 'methodurl', required: true }, ['Workflow Link']),
