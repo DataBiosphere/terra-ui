@@ -11,7 +11,7 @@ export type ConceptSetCreatorProps = {
   readonly datasetDetails: DatasetResponse;
 };
 
-const toConceptSet = (concept: Concept): ConceptSet => {
+export const toConceptSet = (concept: Concept): ConceptSet => {
   return {
     name: concept.name,
     featureValueGroupName: concept.name,
