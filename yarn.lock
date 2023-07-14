@@ -13119,12 +13119,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-favicon@npm:^0.0.23":
-  version: 0.0.23
-  resolution: "react-favicon@npm:0.0.23"
+"react-favicon@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "react-favicon@npm:2.0.3"
+  dependencies:
+    prop-types: ^15.8.1
   peerDependencies:
-    react: ^16.0.0 || ^17.0.0
-  checksum: d5b2b8bf97ba5c7790b9cc287c45461175aaba8b5d17113ea72e886bebfb470258049d689941438306a417a5888a97ecc96cef3a1105b5b5faf14c7151b57cbe
+    react: ^16.0.0 || ^17.0.0 || ^18.0.0
+  checksum: b100552343d69dd970d16d0707cfb9140cd8f31163ee92b82e2fe901ab8192e244d4b6b554d52898bf7bb70ddd8af0fc72762eb6f7b21dc40367650507715b82
   languageName: node
   linkType: hard
 
@@ -15138,7 +15140,7 @@ __metadata:
     react-dom: 17.0.2
     react-draggable: ^4.4.4
     react-dropzone: ^11.4.0
-    react-favicon: ^0.0.23
+    react-favicon: ^2.0.3
     react-focus-lock: ^2.9.5
     react-hyperscript-helpers: ^2.0.0
     react-json-view: ^1.21.3
