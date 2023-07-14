@@ -292,7 +292,7 @@ const VirtualizedMenuList = (props) => {
 
   return h(AutoSizer, { disableHeight: true }, [
     ({ width }) => {
-      // @ts-ignore
+      // @ts-expect-error
       return h(List, {
         ref: list,
         height,
