@@ -69,7 +69,7 @@ export const ImportWorkflow = ({ path, version, source }) => {
   const signal = useCancellation();
   const { wdl, status: wdlStatus } = useDockstoreWdl({ path, version, isTool: source === 'dockstoretools' });
 
-  const importToAzureCromwellApp = async (workspaceId) => {
+  const importToAzureCromwellApp = async (workspaceId, namespace, name) => {
     const appUrls = await Apps(signal)
       .listAppsV2(workspaceId)
       .then((apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email));
@@ -85,7 +85,10 @@ export const ImportWorkflow = ({ path, version, source }) => {
         method_output_mappings: [],
       };
       const res = await Ajax(signal).Cbas.methods.post(appUrls.cbasUrl, postRequestBody);
+      const methodId = res.method_id;
 
+      await setAzureCookieOnUrl(signal, appUrls.cbasUiUrl, true);
+      Nav.goToPath('workspace-workflows-app-submission-config', { name, namespace, methodId });
       await setAzureCookieOnUrl(signal, appUrls.cbasUiUrl, true);
       window.location = `${appUrls.cbasUiUrl}#submission-config/${res.method_id}`;
     } else {
@@ -120,7 +123,7 @@ export const ImportWorkflow = ({ path, version, source }) => {
           throw new Error('Currently only a workspace creator can import workflow to their Azure workspace.');
         }
 
-        await importToAzureCromwellApp(workspaceId);
+        await importToAzureCromwellApp(workspaceId, namespace, name);
       }
     } catch (error) {
       if (error.status === 409) {

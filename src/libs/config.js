@@ -13,6 +13,8 @@ export const getConfig = () => {
 export const isCromwellAppVisible = () => getConfig().isCromwellAppVisible;
 export const isAzureWorkflowsTabVisible = () => getConfig().isAzureWorkflowsTabVisible;
 export const isFindWorkflowEnabled = () => getConfig().isFindWorkflowEnabled;
+export const isURLEnabled = () => getConfig().isURLEnabled;
+export const isDockstoreEnabled = () => getConfig().isDockstoreEnabled;
 
 export const isAxeEnabled = () => {
   const storedValue = getConfig().isAxeEnabled;
