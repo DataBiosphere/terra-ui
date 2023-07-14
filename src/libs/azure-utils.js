@@ -109,9 +109,10 @@ export const azureMachineTypes = {
   Standard_DS4_v2: { cpu: 8, ramInGb: 28 },
   Standard_DS5_v2: { cpu: 16, ramInGb: 56 },
   Standard_F64s_v2: { cpu: 64, ramInGb: 128 },
-  Standard_NC6s_v3: { cpu: 6, ramInGb: 112 },
-  Standard_NC12s_v3: { cpu: 12, ramInGb: 224 },
+  Standard_NC6s_v3: { cpu: 6, ramInGb: 112, hasGpu: true },
+  Standard_NC12s_v3: { cpu: 12, ramInGb: 224, hasGpu: true },
 };
+
 export const getMachineTypeLabel = (key) =>
   _.has(key, azureMachineTypes) ? `${key}, ${azureMachineTypes[key].cpu} CPU(s), ${azureMachineTypes[key].ramInGb} GBs` : 'Unknown machine type';
 

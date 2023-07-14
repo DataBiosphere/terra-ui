@@ -1,5 +1,3 @@
-import '@testing-library/jest-dom';
-
 import { act, renderHook } from '@testing-library/react-hooks';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/analysis/_testData/testData';
 import { AnalysisFile, getFileFromPath, useAnalysisFiles } from 'src/analysis/useAnalysisFiles';

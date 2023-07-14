@@ -2,7 +2,7 @@ import _ from 'lodash/fp';
 import { Fragment, useCallback, useState } from 'react';
 import { div, h, h2, img, li, p, span, strong, ul } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
-import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, RadioButton, spinnerOverlay } from 'src/components/common';
+import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, RadioButton, spinnerOverlay } from 'src/components/common';
 import { notifyDataImportProgress } from 'src/components/data/data-utils';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon, wdlIcon } from 'src/components/icons';
@@ -95,7 +95,7 @@ const ResponseFragment = ({ title, snapshotResponses, responseIndex }) => {
   ]);
 };
 
-const ImportDataOverview = ({ header, snapshots, isDataset, snapshotResponses, url }) =>
+export const ImportDataOverview = ({ header, snapshots, isDataset, snapshotResponses, url, format }) =>
   div({ style: styles.card }, [
     h2({ style: styles.title }, [header]),
     !_.isEmpty(snapshots)
@@ -124,7 +124,21 @@ const ImportDataOverview = ({ header, snapshots, isDataset, snapshotResponses, u
         ])
       : url && div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
     div({ style: { marginTop: '1rem' } }, [
-      `The ${isDataset ? 'dataset' : 'snapshot'}(s) you just chose to import to Terra will be made available to you `,
+      !!url && isProtected(url, format)
+        ? [
+            icon('warning-standard', { size: 15, style: { marginRight: '0.25rem' }, color: colors.warning() }),
+            ' The data you chose to import to Terra are identified as protected and require additional security settings. Please select a workspace that has an Authorization Domain and/or protected data setting.',
+            h(
+              Link,
+              {
+                style: { marginLeft: '1rem', verticalAlign: 'middle' },
+                href: 'https://support.terra.bio/hc/en-us/articles/360026775691-Overview-Managing-access-to-controlled-data-with-Authorization-Domains',
+                ...Utils.newTabLinkProps,
+              },
+              ['Learn more about protected data', icon('pop-out', { size: 12 })]
+            ),
+          ]
+        : `The ${isDataset ? 'dataset' : 'snapshot'}(s) you just chose to import to Terra will be made available to you `,
       'within a workspace of your choice where you can then perform analysis.',
     ]),
   ]);
@@ -336,11 +350,22 @@ const ImportDataDestination = ({
 // This method identifies whether an import source is considered protected data;
 // For now this means pfb imports from AnVIL or Biodata Catalyst.
 export const isProtected = (url, filetype) => {
-  const hostname = new URL(url).hostname;
-  const protectedHosts = ['anvil.gi.ucsc.edu', 'anvilproject.org', 'gen3.biodatacatalyst.nhlbi.nih.gov'];
-  return Utils.cond([!filetype || !url, () => false], [filetype.toLowerCase() !== 'pfb', () => false], () =>
-    protectedHosts.some((host) => hostname.endsWith(host))
-  );
+  try {
+    const hostname = new URL(url).hostname;
+    const protectedHosts = [
+      'anvil.gi.ucsc.edu',
+      'anvilproject.org',
+      'gen3.biodatacatalyst.nhlbi.nih.gov',
+      'gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export.s3.amazonaws.com',
+      'gen3-theanvil-io-pfb-export.s3.amazonaws.com',
+    ];
+    return Utils.cond([!filetype || !url, () => false], [filetype.toLowerCase() !== 'pfb', () => false], () =>
+      protectedHosts.some((host) => hostname.endsWith(host))
+    );
+  } catch (e) {
+    console.error(`Unable to parse url: ${url}`);
+    return false;
+  }
 };
 
 // ImportData handles all the information relating to the page itself - this includes:
@@ -390,7 +415,6 @@ const ImportData = () => {
 
   const importPFB = (namespace, name) => {
     return async () => {
-      // TODO: AJ-1103 Indicate that an auth domain or enhanced logging is required if data is protected using isProtected(url, 'pfb')
       const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importJob(url, 'pfb', null);
       asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
       notifyDataImportProgress(jobId);
@@ -500,7 +524,7 @@ const ImportData = () => {
         alt: '',
         style: { position: 'fixed', top: 0, left: 0, zIndex: -1 },
       }),
-      h(ImportDataOverview, { snapshots, snapshotResponses, url, isDataset, header }),
+      h(ImportDataOverview, { header, snapshots, isDataset, snapshotResponses, url, format }),
       h(ImportDataDestination, {
         workspaceId: wid,
         templateWorkspaces,

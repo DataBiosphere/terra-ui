@@ -1,5 +1,4 @@
-import { fireEvent, render } from '@testing-library/react';
-import { act } from 'react-dom/test-utils';
+import { act, fireEvent, render } from '@testing-library/react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ContextBar } from 'src/analysis/ContextBar';
 import { CloudEnvironmentModal } from 'src/analysis/modals/CloudEnvironmentModal';
