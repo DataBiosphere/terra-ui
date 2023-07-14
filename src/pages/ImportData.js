@@ -125,7 +125,7 @@ export const ImportDataOverview = ({ header, snapshots, isDataset, snapshotRespo
       : url && div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
     div({ style: { marginTop: '1rem' } }, [
       !!url && isProtected(url, format)
-        ? [
+        ? h(Fragment, [
             icon('warning-standard', { size: 15, style: { marginRight: '0.25rem' }, color: colors.warning() }),
             ' The data you chose to import to Terra are identified as protected and require additional security settings. Please select a workspace that has an Authorization Domain and/or protected data setting.',
             h(
@@ -137,7 +137,7 @@ export const ImportDataOverview = ({ header, snapshots, isDataset, snapshotRespo
               },
               ['Learn more about protected data', icon('pop-out', { size: 12 })]
             ),
-          ]
+          ])
         : `The ${isDataset ? 'dataset' : 'snapshot'}(s) you just chose to import to Terra will be made available to you `,
       'within a workspace of your choice where you can then perform analysis.',
     ]),

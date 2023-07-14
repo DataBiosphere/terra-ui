@@ -31,7 +31,7 @@ describe('useUploader', () => {
       return promise;
     });
 
-    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useUploader(uploadFile));
+    const { result: hookReturnRef } = renderHook(() => useUploader(uploadFile));
     const initialState = hookReturnRef.current.uploadState;
 
     // Act
@@ -40,12 +40,14 @@ describe('useUploader', () => {
     });
     const stateAfterStartingUpload = hookReturnRef.current.uploadState;
 
-    finishCurrentUpload!();
-    await waitForNextUpdate();
+    await act(async () => {
+      finishCurrentUpload!();
+    });
     const stateAfterFinishingFirstUpload = hookReturnRef.current.uploadState;
 
-    finishCurrentUpload!();
-    await waitForNextUpdate();
+    await act(async () => {
+      finishCurrentUpload!();
+    });
     const stateAfterFinishingSecondUpload = hookReturnRef.current.uploadState;
 
     // Assert
@@ -133,14 +135,13 @@ describe('useUploader', () => {
   it('allows canceling upload', async () => {
     // Arrange
     const uploadFile = jest.fn(() => Promise.resolve());
-    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useUploader(uploadFile));
+    const { result: hookReturnRef } = renderHook(() => useUploader(uploadFile));
 
     // Act
-    act(() => {
+    await act(async () => {
       hookReturnRef.current.uploadFiles([file1, file2]);
       hookReturnRef.current.cancelUpload();
     });
-    await waitForNextUpdate();
 
     // Assert
     expect(uploadFile).toHaveBeenCalledTimes(1);
