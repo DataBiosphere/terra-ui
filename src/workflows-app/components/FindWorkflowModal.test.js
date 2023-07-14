@@ -26,7 +26,6 @@ jest.mock('src/libs/state', () => ({
 describe('FindWorkflowModal', () => {
   beforeEach(() => {
     getConfig.mockReturnValue({ isDockstoreEnabled: false });
-    getConfig.mockReturnValue({ isURLEnabled: false });
     getConfig.mockReturnValue({ dockstoreRootUrl: 'https://staging.dockstore.org/' });
   });
 

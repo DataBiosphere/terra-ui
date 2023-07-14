@@ -4,7 +4,6 @@ import { ButtonOutline, Clickable } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
-import { isFindWorkflowEnabled } from 'src/libs/config';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
@@ -97,11 +96,10 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
                 Clickable,
                 {
                   'aria-haspopup': 'dialog',
-                  disabled: !isFindWorkflowEnabled(),
                   style: {
                     ...styles.card,
                     ...styles.shortCard,
-                    color: isFindWorkflowEnabled() ? colors.accent() : colors.dark(0.7),
+                    color: colors.accent(),
                     fontSize: 18,
                     lineHeight: '22px',
                   },
