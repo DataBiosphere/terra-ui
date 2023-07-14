@@ -9,14 +9,15 @@ export interface AboutPersistentDiskSectionProps {
 
 export const AboutPersistentDiskSection: React.FC<AboutPersistentDiskSectionProps> = (props) => {
   const { onClick } = props;
-  return div({ style: { display: 'flex', flexDirection: 'column' } }, [
+  return div([
     label({ style: computeStyles.label }, ['Persistent disk']),
     div({ style: { marginTop: '0.5rem' } }, [
-      'Persistent disks store analysis data. ',
+      'Persistent disks store analysis data.',
       h(
         Link,
         {
           onClick,
+          style: { marginLeft: '0.5rem' },
         },
         [
           'Learn more about persistent disks and where your disk is mounted.',

@@ -59,7 +59,7 @@ export const AzureComputeModalBase = ({
   const { namespace, name: workspaceName, workspaceId } = workspace.workspace;
   const persistentDiskExists = !!currentPersistentDiskDetails;
   const [deleteDiskSelected, setDeleteDiskSelected] = useState(false);
-
+  const hasGpu = () => !!azureMachineTypes[computeConfig.machineType]?.hasGpu;
   // Lifecycle
   useOnMount(
     _.flow(
@@ -127,7 +127,7 @@ export const AzureComputeModalBase = ({
               label({ htmlFor: id, style: computeStyles.label }, ['Application configuration']),
               h(InfoBox, { style: { marginLeft: '0.5rem' } }, ['Currently, the Azure VM is pre-configured. ']),
             ]),
-            p({ style: { marginBottom: '1.5rem' } }, ['Azure Data Science Virtual Machine']),
+            p({}, ['Azure Data Science Virtual Machine']),
             div([
               h(
                 Link,
@@ -135,7 +135,7 @@ export const AzureComputeModalBase = ({
                   href: 'https://azure.microsoft.com/en-us/services/virtual-machines/data-science-virtual-machines/#product-overview',
                   ...Utils.newTabLinkProps,
                 },
-                ['Learn more about this Azure Data Science VMs', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
+                ['Learn more about Azure Data Science VMs.', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
               ),
             ]),
           ]),
@@ -148,18 +148,35 @@ export const AzureComputeModalBase = ({
     const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' };
 
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1.5rem' } }, [
-      div({ style: { marginBottom: '2rem' } }, [
+      div({ style: { marginBottom: '1.5rem' } }, [
         h(IdContainer, [
           (id) =>
             h(Fragment, [
-              div({ style: { marginBottom: '1rem' } }, [label({ htmlFor: id, style: computeStyles.label }, ['Cloud compute profile'])]),
+              div({ style: { marginBottom: '1rem', display: 'flex' } }, [
+                label(
+                  {
+                    htmlFor: id,
+                    style: {
+                      ...computeStyles.label,
+                      marginRight: '1rem',
+                    },
+                  },
+                  ['Cloud compute profile']
+                ),
+                h(Link, { href: 'https://azure.microsoft.com/en-us/pricing/details/virtual-machines/series/', ...Utils.newTabLinkProps }, [
+                  'Learn more about cloud compute profiles.',
+                  icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
+                ]),
+              ]),
               div({ style: { width: 400 } }, [
                 h(Select, {
                   id,
                   isSearchable: false,
                   isClearable: false,
                   value: computeConfig.machineType,
-                  onChange: ({ value }) => updateComputeConfig('machineType', value),
+                  onChange: ({ value }) => {
+                    updateComputeConfig('machineType', value);
+                  },
                   options: _.keys(azureMachineTypes),
                   getOptionLabel: ({ value }) => getMachineTypeLabel(value),
                   styles: { width: '400' },
@@ -167,14 +184,24 @@ export const AzureComputeModalBase = ({
               ]),
             ]),
         ]),
-        div({ style: { display: 'flex', marginTop: '.5rem' } }, [
-          h(Link, { href: 'https://azure.microsoft.com/en-us/pricing/details/virtual-machines/series/', ...Utils.newTabLinkProps }, [
-            'Learn more about cloud compute profiles',
-            icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
+        hasGpu() &&
+          div({ style: { display: 'flex', marginTop: '.5rem' } }, [
+            icon('warning-standard', { size: 16, style: { marginRight: '0.5rem', color: colors.warning() } }),
+            div([
+              span({ style: { marginRight: '0.5rem' } }, 'This VM is powered by an NVIDIA GPU; availability may vary.'),
+              h(
+                Link,
+                {
+                  style: { marginRight: '0.25rem' },
+                  href: 'https://support.terra.bio/hc/en-us/articles/16921184286491-How-to-use-GPUs-in-a-notebook-Azure-',
+                  ...Utils.newTabLinkProps,
+                },
+                ['Learn more about enabling GPUs.', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
+              ),
+            ]),
           ]),
-        ]),
       ]),
-      div({ style: { gridColumnEnd: 'span 6', marginTop: '1.5rem' } }, [
+      div({ style: { gridColumnEnd: 'span 6' } }, [
         h(IdContainer, [
           (id1) =>
             h(Fragment, [
@@ -186,7 +213,7 @@ export const AzureComputeModalBase = ({
                   disabled: !autoPauseCheckboxEnabled,
                   onChange: (v) => updateComputeConfig('autopauseThreshold', getAutopauseThreshold(v)),
                 },
-                [span({ style: { marginLeft: '0.5rem', ...computeStyles.label, verticalAlign: 'top' } }, [span(['Enable autopause'])])]
+                [span({ style: { ...computeStyles.label } }, ['Enable autopause'])]
               ),
             ]),
         ]),
