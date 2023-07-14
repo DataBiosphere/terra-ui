@@ -112,6 +112,10 @@ const dummyConcepts = [
   { id: 303, name: 'Height', count: 100, hasChildren: false },
 ];
 
+export const getConceptForId = (id: number): Concept => {
+  return _.find({ id }, dummyConcepts)!;
+};
+
 const dummyConceptToParent = [
   // the parent of 101 is 100, etc
   [101, 100],
@@ -178,7 +182,7 @@ export const dummyDatasetDetails = (datasetId: string): DatasetResponse => ({
       category: 'Condition',
       conceptCount: 18000,
       participantCount: 12500,
-      root: _.find({ id: 100 }, dummyConcepts)!,
+      root: getConceptForId(100),
     },
     {
       kind: 'domain',
@@ -186,7 +190,7 @@ export const dummyDatasetDetails = (datasetId: string): DatasetResponse => ({
       category: 'Procedure',
       conceptCount: 22500,
       participantCount: 11328,
-      root: _.find({ id: 200 }, dummyConcepts)!,
+      root: getConceptForId(200),
     },
     {
       kind: 'domain',
@@ -194,7 +198,7 @@ export const dummyDatasetDetails = (datasetId: string): DatasetResponse => ({
       category: 'Observation',
       conceptCount: 12300,
       participantCount: 23223,
-      root: _.find({ id: 300 }, dummyConcepts)!,
+      root: getConceptForId(300),
     },
   ],
   learnMoreLink: '',
@@ -227,10 +231,6 @@ export const dummyDatasetDetails = (datasetId: string): DatasetResponse => ({
     },
   ],
 });
-
-export const getConceptForId = (id: number): Concept => {
-  return dummyConcepts.find((c) => c.id === id)!;
-};
 
 const getDummyConcepts = async (parent: Concept): Promise<GetConceptsResponse> => {
   // Use a 1s delay to simulate server response time.

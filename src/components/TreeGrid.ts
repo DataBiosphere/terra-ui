@@ -83,12 +83,15 @@ function getVisibleRows<T extends RowContents>(allRows: Row<T>[]) {
   return visibleRows;
 }
 
+const getRowIndex = <T extends RowContents>(row: Row<T>, rows: Row<T>[]) =>
+  _.findIndex((r) => r.contents.id === row.contents.id, rows);
+
 const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
   const { columns, initialRows, getChildren, gridWidth } = props;
   const [data, setData] = useState(_.map(wrapContent(0), initialRows));
   const rowHeight = 40;
   const expand = async (row: Row<T>) => {
-    const index = _.findIndex((r) => r.contents.id === row.contents.id, data);
+    const index = getRowIndex(row, data);
     if (row.isFetched) {
       // Children already fetched, mark as open and return.
       setData(_.set(`[${index}].state`, 'open', data));
@@ -102,7 +105,7 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
 
     // Mark as fetched and insert children.
     setData((currentData) => {
-      const currentIndex = _.findIndex((r) => r.contents.id === row.contents.id, currentData);
+      const currentIndex = getRowIndex(row, currentData);
       const currentRow = currentData[currentIndex];
       const newData = _.set(`[${currentIndex}]`, { ...currentRow, state: 'open', isFetched: true }, currentData);
       newData.splice(currentIndex + 1, 0, ..._.map(wrapContent(currentRow.depth + 1), children));
@@ -110,9 +113,7 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
     });
   };
   const collapse = (row: Row<T>) => {
-    // A row that's opening doesn't respond to clicks, so there's no need to handle it here.
-    const index = _.findIndex((r) => r.contents.id === row.contents.id, data);
-    setData(_.flow(_.cloneDeep, _.set(`[${index}].state`, 'closed'))(data));
+    setData(_.flow(_.cloneDeep, _.set(`[${getRowIndex(row, data)}].state`, 'closed'))(data));
   };
 
   const visibleRows = getVisibleRows(data);
