@@ -9,11 +9,11 @@ import { datasetBuilderConceptSets } from 'src/pages/library/datasetBuilder/stat
 describe('ConceptSetCreator', () => {
   const datasetDetails = dummyDatasetDetails('0');
 
-  it('renders the domain criteria selector', () => {
+  it('renders the domain criteria selector', async () => {
     // Arrange
     render(h(ConceptSetCreator, { datasetDetails, onStateChange: jest.fn() }));
     // Assert
-    expect(screen.findByText(datasetDetails.domainOptions[0].root.name)).toBeTruthy();
+    expect(await screen.findByText(datasetDetails.domainOptions[0].root.name)).toBeTruthy();
   });
 
   it('updates the builder concept sets on save', async () => {
