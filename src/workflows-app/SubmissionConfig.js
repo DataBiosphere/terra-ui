@@ -2,10 +2,12 @@ import _ from 'lodash/fp';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { a, div, h, h2, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link, Select } from 'src/components/common';
+import { Switch } from 'src/components/common/Switch';
 import { styles as errorStyles } from 'src/components/ErrorView';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { TextArea, TextInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
+import { InfoBox } from 'src/components/PopupTrigger';
 import StepButtons from 'src/components/StepButtons';
 import { TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
@@ -50,6 +52,7 @@ export const BaseSubmissionConfig = (
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState();
   const [inputValidations, setInputValidations] = useState([]);
   const [viewWorkflowScriptModal, setViewWorkflowScriptModal] = useState(false);
+  const [isCallCachingEnabled, setIsCallCachingEnabled] = useState(false);
 
   const [runSetName, setRunSetName] = useState('');
   const [runSetDescription, setRunSetDescription] = useState('');
@@ -274,6 +277,10 @@ export const BaseSubmissionConfig = (
     };
   }, [loadWdsData, wdsProxyUrl, runSetRecordType]);
 
+  const getSupportLink = (article) => {
+    return `https://support.terra.bio/hc/en-us/articles/${article}`;
+  };
+
   const renderSummary = () => {
     return div({ style: { marginLeft: '2em', marginTop: '1rem', display: 'flex', justifyContent: 'space-between' } }, [
       div([
@@ -326,7 +333,26 @@ export const BaseSubmissionConfig = (
             ),
           ]),
         ]),
-        div({ style: { marginTop: '2rem', height: '2rem', fontWeight: 'bold' } }, ['Select a data table']),
+        div({ style: { marginTop: '1rem' } }, [
+          div({ style: { height: '2rem', marginRight: '0.25rem', fontWeight: 'bold', display: 'inline-block' } }, ['Call Caching:']),
+          div({ style: { display: 'inline-block', marginRight: '1rem' } }, [
+            h(InfoBox, [
+              "Call caching detects when a job has been run in the past so that it doesn't have to re-compute results. ",
+              h(Link, { href: getSupportLink('360047664872'), ...Utils.newTabLinkProps }, ['Click here to learn more.']),
+            ]),
+          ]),
+          div({ style: { display: 'inline-block' } }, [
+            h(Switch, {
+              checked: isCallCachingEnabled,
+              onChange: (newValue) => {
+                setIsCallCachingEnabled(newValue);
+              },
+              onLabel: 'On',
+              offLabel: 'Off',
+            }),
+          ]),
+        ]),
+        div({ style: { marginTop: '1rem', height: '2rem', fontWeight: 'bold' } }, ['Select a data table:']),
         div({}, [
           h(Select, {
             isDisabled: false,
