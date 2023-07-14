@@ -113,7 +113,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react-dom", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:17.0.2"],\
             ["react-draggable", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:4.4.4"],\
             ["react-dropzone", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:11.4.0"],\
-            ["react-favicon", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.0.23"],\
+            ["react-favicon", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.0.3"],\
             ["react-focus-lock", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.9.5"],\
             ["react-hyperscript-helpers", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.0.0"],\
             ["react-json-view", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:1.21.3"],\
@@ -17975,18 +17975,19 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["react-favicon", [\
-        ["npm:0.0.23", {\
-          "packageLocation": "./.yarn/cache/react-favicon-npm-0.0.23-468e48eb06-d5b2b8bf97.zip/node_modules/react-favicon/",\
+        ["npm:2.0.3", {\
+          "packageLocation": "./.yarn/cache/react-favicon-npm-2.0.3-259fa80178-b100552343.zip/node_modules/react-favicon/",\
           "packageDependencies": [\
-            ["react-favicon", "npm:0.0.23"]\
+            ["react-favicon", "npm:2.0.3"]\
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.0.23", {\
-          "packageLocation": "./.yarn/__virtual__/react-favicon-virtual-1a5adae4f7/0/cache/react-favicon-npm-0.0.23-468e48eb06-d5b2b8bf97.zip/node_modules/react-favicon/",\
+        ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.0.3", {\
+          "packageLocation": "./.yarn/__virtual__/react-favicon-virtual-d7a3c8970c/0/cache/react-favicon-npm-2.0.3-259fa80178-b100552343.zip/node_modules/react-favicon/",\
           "packageDependencies": [\
-            ["react-favicon", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.0.23"],\
+            ["react-favicon", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.0.3"],\
             ["@types/react", "npm:18.0.18"],\
+            ["prop-types", "npm:15.8.1"],\
             ["react", "npm:17.0.2"]\
           ],\
           "packagePeers": [\
@@ -20430,7 +20431,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react-dom", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:17.0.2"],\
             ["react-draggable", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:4.4.4"],\
             ["react-dropzone", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:11.4.0"],\
-            ["react-favicon", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.0.23"],\
+            ["react-favicon", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.0.3"],\
             ["react-focus-lock", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.9.5"],\
             ["react-hyperscript-helpers", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.0.0"],\
             ["react-json-view", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:1.21.3"],\
