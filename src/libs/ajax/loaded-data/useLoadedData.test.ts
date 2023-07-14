@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import { useLoadedData, UseLoadedDataResult } from 'src/libs/ajax/loaded-data/useLoadedData';
 import LoadedState from 'src/libs/type-utils/LoadedState';
-import { delay } from 'src/libs/utils';
+import { controlledPromise } from 'src/testing/test-utils';
 
 interface TestData {
   propA: string;
@@ -24,18 +24,18 @@ describe('useLoadedData hook', () => {
     const hookRender = renderHook(() => useLoadedData<TestData>());
     const hookResult1: UseLoadedDataResult<TestData> = hookRender.result.current;
     const updateData = hookResult1[1];
+
+    const [promise, controller] = controlledPromise<TestData>();
     act(() => {
-      void updateData(async (): Promise<TestData> => {
-        await delay(100);
-        const dataResult: TestData = {
-          propA: 'abc',
-          propB: 123,
-        };
-        return dataResult;
-      });
+      updateData(() => promise);
     });
     const hookResult2: UseLoadedDataResult<TestData> = hookRender.result.current;
-    await hookRender.waitForNextUpdate();
+    await act(async () => {
+      controller.resolve({
+        propA: 'abc',
+        propB: 123,
+      });
+    });
     const hookResultFinal: UseLoadedDataResult<TestData> = hookRender.result.current;
 
     // Assert
@@ -61,14 +61,14 @@ describe('useLoadedData hook', () => {
     const updateData = hookResult1[1];
 
     // Act
+    const [promise, controller] = controlledPromise<TestData>();
     act(() => {
-      void updateData(async (): Promise<TestData> => {
-        await delay(100);
-        throw Error('BOOM!');
-      });
+      updateData(() => promise);
     });
     const hookResult2: UseLoadedDataResult<TestData> = hookRender.result.current;
-    await hookRender.waitForNextUpdate();
+    await act(async () => {
+      controller.reject(new Error('BOOM!'));
+    });
     const hookResultFinal: UseLoadedDataResult<TestData> = hookRender.result.current;
 
     // Assert
@@ -92,22 +92,20 @@ describe('useLoadedData hook', () => {
     const updateData = hookResult1[1];
 
     // Act
+    const [promise, controller] = controlledPromise<TestData>();
     act(() => {
-      void updateData(async (): Promise<TestData> => {
-        await delay(100);
-        const mockFetchResponse: Partial<Response> = {
-          status: 500,
-          statusText: 'Server Error',
-          text: async (): Promise<string> => {
-            await delay(100);
-            return 'BOOM!';
-          },
-        };
-        throw mockFetchResponse;
-      });
+      updateData(() => promise);
     });
     const hookResult2: UseLoadedDataResult<TestData> = hookRender.result.current;
-    await hookRender.waitForNextUpdate();
+
+    const mockFetchResponse: Partial<Response> = {
+      status: 500,
+      statusText: 'Server Error',
+      text: () => Promise.resolve('BOOM!'),
+    };
+    await act(async () => {
+      controller.reject(mockFetchResponse);
+    });
     const hookResultFinal: UseLoadedDataResult<TestData> = hookRender.result.current;
 
     // Assert
@@ -136,31 +134,30 @@ describe('useLoadedData hook', () => {
     let updateData = hookResult1[1];
 
     // produce ready result
+    const [promise1, controller1] = controlledPromise<TestData>();
     act(() => {
-      void updateData(async (): Promise<TestData> => {
-        await delay(100);
-        const dataResult: TestData = {
-          propA: 'abc',
-          propB: 123,
-        };
-        return dataResult;
-      });
+      updateData(() => promise1);
     });
     const hookResult2: UseLoadedDataResult<TestData> = hookRender.result.current;
-    await hookRender.waitForNextUpdate();
+    await act(async () => {
+      controller1.resolve({
+        propA: 'abc',
+        propB: 123,
+      });
+    });
     const hookResultReady: UseLoadedDataResult<TestData> = hookRender.result.current;
     updateData = hookResultReady[1];
 
     // produce error result
+    const [promise2, controller2] = controlledPromise<TestData>();
     act(() => {
-      void updateData(async (): Promise<TestData> => {
-        await delay(100);
-        throw Error('BOOM!');
-      });
+      updateData(() => promise2);
     });
 
     const hookResult3: UseLoadedDataResult<TestData> = hookRender.result.current;
-    await hookRender.waitForNextUpdate();
+    await act(async () => {
+      controller2.reject(new Error('BOOM!'));
+    });
     const hookResultFinal: UseLoadedDataResult<TestData> = hookRender.result.current;
 
     // Assert
