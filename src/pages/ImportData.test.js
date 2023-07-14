@@ -1,10 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/analysis/_testData/testData';
 
 import { ImportDataDestination, ImportDataOverview, isProtected, isProtectedWorkspace } from './ImportData';
-
 
 const protectedUrls = [
   { url: 'https://prod.anvil.gi.ucsc.edu/file', format: 'pfb' },
@@ -119,7 +118,7 @@ jest.mock('src/components/workspace-utils', () => ({
 }));
 
 describe('ImportDataDestination', () => {
-  it('should explain protected data restricts eligible workspaces', () => {
+  it('should explain protected data restricts eligible workspaces', async () => {
     render(
       h(ImportDataDestination, {
         workspaceId: null,
@@ -133,12 +132,14 @@ describe('ImportDataDestination', () => {
         isProtectedData: true,
       })
     );
-    // const protectedWarning = screen.queryByText('Unable to import into workspaces without required security settings', { exact: false });
-    const protectedWarning = screen.queryByText('Select one of your workspaces', { exact: false });
+    const existingWorkspace = screen.queryByText('Start with an existing workspace', { exact: false });
+    await userEvent.click(existingWorkspace); // select start with existing workspace
+
+    const protectedWarning = screen.queryByText('Unable to import into workspaces without required security settings', { exact: false });
     expect(protectedWarning).not.toBeNull();
   });
 
-  it('should not inform about protected data', () => {
+  it('should not inform about protected data', async () => {
     render(
       h(ImportDataDestination, {
         workspaceId: null,
@@ -152,6 +153,8 @@ describe('ImportDataDestination', () => {
         isProtectedData: false,
       })
     );
+    const existingWorkspace = screen.queryByText('Start with an existing workspace', { exact: false });
+    await userEvent.click(existingWorkspace); // select start with existing workspace
     const protectedWarning = screen.queryByText('Unable to import into workspaces without required security settings', { exact: false });
     expect(protectedWarning).toBeNull();
   });
@@ -170,17 +173,23 @@ describe('ImportDataDestination', () => {
         isProtectedData: true,
       })
     );
-    const selectInput = screen.queryByPlaceholderText('Select a workspace', { exact: false });
+    const existingWorkspace = screen.queryByText('Start with an existing workspace', { exact: false });
+    await userEvent.click(existingWorkspace); // select start with existing workspace
+
+    const selectInput = screen.getByText('Select a workspace', { exact: false });
     await userEvent.click(selectInput); // Open the dropdown
+    fireEvent.keyDown(selectInput, { key: 'ArrowDown', code: 'ArrowDown' });
 
     // Only the protected google workspace should be available
     const option1 = screen.queryByText('protected-google', { exact: false });
     expect(option1).not.toBeDisabled();
 
     // Azure and unprotected googles workspaces should be disabled
+    fireEvent.keyDown(selectInput, { key: 'ArrowDown', code: 'ArrowDown' });
     const option2 = screen.queryByText('unprotected-google', { exact: false });
     expect(option2).toBeDisabled();
 
+    fireEvent.keyDown(selectInput, { key: 'ArrowDown', code: 'ArrowDown' });
     const option3 = screen.queryByText('azure', { exact: false });
     expect(option3).not.toBeDisabled();
   });
