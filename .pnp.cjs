@@ -84,7 +84,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["file-saver", "npm:2.0.5"],\
             ["filesize", "npm:7.0.0"],\
             ["github-markdown-css", "npm:4.0.0"],\
-            ["has-bigints", "npm:1.0.2"],\
             ["highcharts", "npm:9.3.3"],\
             ["highcharts-react-official", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:3.1.0"],\
             ["history", "npm:4.10.1"],\
@@ -12320,10 +12319,11 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["is-bigint", [\
-        ["npm:1.0.3", {\
-          "packageLocation": "./.yarn/cache/is-bigint-npm-1.0.3-fad085c654-d52ab4fa64.zip/node_modules/is-bigint/",\
+        ["npm:1.0.4", {\
+          "packageLocation": "./.yarn/cache/is-bigint-npm-1.0.4-31c2eecbc9-c56edfe09b.zip/node_modules/is-bigint/",\
           "packageDependencies": [\
-            ["is-bigint", "npm:1.0.3"]\
+            ["is-bigint", "npm:1.0.4"],\
+            ["has-bigints", "npm:1.0.2"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -20389,7 +20389,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["file-saver", "npm:2.0.5"],\
             ["filesize", "npm:7.0.0"],\
             ["github-markdown-css", "npm:4.0.0"],\
-            ["has-bigints", "npm:1.0.2"],\
             ["highcharts", "npm:9.3.3"],\
             ["highcharts-react-official", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:3.1.0"],\
             ["history", "npm:4.10.1"],\
@@ -21798,7 +21797,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/which-boxed-primitive-npm-1.0.2-e214f9ae5a-53ce774c73.zip/node_modules/which-boxed-primitive/",\
           "packageDependencies": [\
             ["which-boxed-primitive", "npm:1.0.2"],\
-            ["is-bigint", "npm:1.0.3"],\
+            ["is-bigint", "npm:1.0.4"],\
             ["is-boolean-object", "npm:1.1.2"],\
             ["is-number-object", "npm:1.0.6"],\
             ["is-string", "npm:1.0.7"],\

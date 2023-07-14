@@ -103,7 +103,6 @@
     "eslint-plugin-react": "7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-simple-import-sort": "^7.0.0",
-    "has-bigints": "^1.0.2",
     "husky": "^7.0.2",
     "jest-axe": "^6.0.0",
     "lint-staged": "^13.0.3",
