@@ -109,7 +109,6 @@ describe('CreateDatasetInputs', () => {
     );
     // Assert
     expect(screen.getByText('Title')).toBeTruthy();
-    // Cannot test for value because the it gets into testing underlying library behavior
     expect(MarkdownEditor).toHaveBeenCalledWith(
       expect.objectContaining({
         value: 'Abc',
