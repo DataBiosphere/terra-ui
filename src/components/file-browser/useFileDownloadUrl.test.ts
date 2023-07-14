@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-hooks';
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import { controlledPromise } from 'src/testing/test-utils';
 
@@ -43,13 +43,12 @@ describe('useFileDownloadUrl', () => {
 
   it('returns URL', async () => {
     // Act
-    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() =>
-      useFileDownloadUrl({ file, provider: mockProvider })
-    );
-    getDownloadUrlForFileController.resolve(
-      'https://storage.googleapis.com/test-bucket/path/to/example.txt?downloadToken=somevalue'
-    );
-    await waitForNextUpdate();
+    const { result: hookReturnRef } = renderHook(() => useFileDownloadUrl({ file, provider: mockProvider }));
+    await act(async () => {
+      getDownloadUrlForFileController.resolve(
+        'https://storage.googleapis.com/test-bucket/path/to/example.txt?downloadToken=somevalue'
+      );
+    });
     const result = hookReturnRef.current;
 
     // Assert
@@ -61,11 +60,10 @@ describe('useFileDownloadUrl', () => {
 
   it('handles errors', async () => {
     // Act
-    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() =>
-      useFileDownloadUrl({ file, provider: mockProvider })
-    );
-    getDownloadUrlForFileController.reject(new Error('Something went wrong'));
-    await waitForNextUpdate();
+    const { result: hookReturnRef } = renderHook(() => useFileDownloadUrl({ file, provider: mockProvider }));
+    await act(async () => {
+      getDownloadUrlForFileController.reject(new Error('Something went wrong'));
+    });
     const result = hookReturnRef.current;
 
     // Assert
