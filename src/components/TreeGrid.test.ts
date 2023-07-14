@@ -36,7 +36,7 @@ const columns = [
 ];
 
 describe('TreeGrid', () => {
-  let getChildrenCount = 0;
+  let getChildrenCount;
   const renderTree = () => {
     getChildrenCount = 0;
     render(
@@ -101,15 +101,12 @@ describe('TreeGrid', () => {
 
     // Act
     const user = userEvent.setup();
-    // Click the expand button.
     await user.click(screen.getByLabelText('expand'));
-    // Click the collapse button.
     await user.click(screen.getByLabelText('collapse'));
-    // Expand again.
     await user.click(screen.getByLabelText('expand'));
 
     // Assert
-    // Only one call to getChildren.
+    // Expanded twice, but only one call to getChildren.
     expect(getChildrenCount).toBe(1);
   });
 });
