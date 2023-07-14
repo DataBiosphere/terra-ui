@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
@@ -183,7 +183,7 @@ describe('AzurePreview', () => {
 
           // Act
           const submitButton = screen.getByText('Submit');
-          await act(() => user.click(submitButton));
+          await user.click(submitButton);
         });
 
         it('submits user info', () => {

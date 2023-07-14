@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { div, h } from 'react-hyperscript-helpers';
 import { useFilesInDirectory } from 'src/components/file-browser/file-browser-hooks';
@@ -291,7 +291,7 @@ describe('FilesInDirectory', () => {
     const file = new File(['somecontent'], 'example.txt');
 
     // Act
-    await act(() => user.upload(fileInput, [file]));
+    await user.upload(fileInput, [file]);
 
     // Assert
     expect(uploadFileToDirectory).toHaveBeenCalledWith('path/to/directory/', file);
@@ -334,7 +334,7 @@ describe('FilesInDirectory', () => {
 
     // Act
     const deleteButton = screen.getByText('Delete this folder');
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
 
     // Assert
     expect(deleteEmptyDirectory).toHaveBeenCalledWith('path/to/directory/');
