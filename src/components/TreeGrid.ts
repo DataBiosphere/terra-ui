@@ -128,15 +128,15 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
     noContentMessage: 'No matching data',
     cellRenderer: ({ rowIndex, columnIndex, style }) => {
       const row = visibleRows[rowIndex];
-      const [handler, iconName, label] = (() => {
+      const [iconName, handler, label] = (() => {
         switch (row.state) {
           case 'closed':
-            return [expand, 'angle-up', 'expand'];
-          case 'opening':
-            return [undefined, 'loadingSpinner', ''];
+            return ['angle-up', expand, 'expand'];
           case 'open':
+            return ['angle-down', collapse, 'collapse'];
+          case 'opening':
           default:
-            return [collapse, 'angle-down', 'collapse'];
+            return ['loadingSpinner'];
         }
       })();
       return div(
