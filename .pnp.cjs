@@ -132,7 +132,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["source-map-explorer", "npm:2.5.2"],\
             ["svgo", "npm:1.3.2"],\
             ["typescript", "patch:typescript@npm%3A4.8.3#~builtin<compat/typescript>::version=4.8.3&hash=a1c5e5"],\
-            ["ua-parser-js", "npm:1.0.33"],\
             ["use-memo-one", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:1.1.3"],\
             ["uuid", "npm:8.3.2"],\
             ["validate.js", "npm:0.13.1"],\
@@ -10662,7 +10661,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["loose-envify", "npm:1.4.0"],\
             ["object-assign", "npm:4.1.1"],\
             ["promise", "npm:7.3.1"],\
-            ["setimmediate", "npm:1.0.5"]\
+            ["setimmediate", "npm:1.0.5"],\
+            ["ua-parser-js", "npm:1.0.33"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -15285,7 +15285,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         ["npm:3.0.1", {\
           "packageLocation": "./.yarn/cache/outdated-browser-rework-npm-3.0.1-c88216a104-ac23a952ba.zip/node_modules/outdated-browser-rework/",\
           "packageDependencies": [\
-            ["outdated-browser-rework", "npm:3.0.1"]\
+            ["outdated-browser-rework", "npm:3.0.1"],\
+            ["ua-parser-js", "npm:1.0.33"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -20438,7 +20439,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["source-map-explorer", "npm:2.5.2"],\
             ["svgo", "npm:1.3.2"],\
             ["typescript", "patch:typescript@npm%3A4.8.3#~builtin<compat/typescript>::version=4.8.3&hash=a1c5e5"],\
-            ["ua-parser-js", "npm:1.0.33"],\
             ["use-memo-one", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:1.1.3"],\
             ["uuid", "npm:8.3.2"],\
             ["validate.js", "npm:0.13.1"],\

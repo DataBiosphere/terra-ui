@@ -7490,6 +7490,7 @@ __metadata:
     object-assign: ^4.1.0
     promise: ^7.1.1
     setimmediate: ^1.0.5
+    ua-parser-js: ^0.7.30
   checksum: ebb1dc7a8caff563e4bf07b6e5e59a4052ea94d59faf73522b7e3ab20f7147c076aa565dfd04b648f5eb0ff357e1e18682dd17c490060b508f4fde8c70cfae06
   languageName: node
   linkType: hard
@@ -11503,6 +11504,8 @@ __metadata:
 "outdated-browser-rework@npm:^3.0.1":
   version: 3.0.1
   resolution: "outdated-browser-rework@npm:3.0.1"
+  dependencies:
+    ua-parser-js: ^0.7.22
   checksum: ac23a952ba26a64cd20c5b8e2cbaa38f85c4f018d5b5ab99288ef0be84ec3694fcc3fa3f0bbef00eef177684a82814bae623a51771405756b28e3d14d3fa9668
   languageName: node
   linkType: hard
@@ -15160,7 +15163,6 @@ __metadata:
     source-map-explorer: ^2.5.2
     svgo: ^1.3.2
     typescript: ^4.8.3
-    ua-parser-js: ^1.0.33
     use-memo-one: ^1.1.3
     uuid: ^8.3.2
     validate.js: ^0.13.1
