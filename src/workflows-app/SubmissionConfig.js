@@ -12,7 +12,8 @@ import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
-import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
+import { workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { maybeParseJSON } from 'src/libs/utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
@@ -42,6 +43,7 @@ export const BaseSubmissionConfig = (
   const [workflowScript, setWorkflowScript] = useState();
   const [runSetRecordType, setRunSetRecordType] = useState();
   const [wdsProxyUrl, setWdsProxyUrl] = useState({ status: 'None', state: '' });
+  const { wdsProxyUrlState, cbasProxyUrlState } = useStore(workflowsAppStore);
 
   // Options chosen on this page:
   const [selectedRecordType, setSelectedRecordType] = useState();
@@ -128,6 +130,7 @@ export const BaseSubmissionConfig = (
     [signal, workspaceId]
   );
 
+  // TODO: simplify this logic now that caching is introduced???
   const loadWdsData = useCallback(
     async ({ wdsProxyUrlState, recordType, includeLoadRecordTypes = true }) => {
       try {
@@ -205,20 +208,26 @@ export const BaseSubmissionConfig = (
   };
 
   useOnMount(async () => {
-    const {
-      cbasProxyUrlResponse: { status, state: cbasUrlRoot },
-      wdsProxyUrlResponse,
-    } = await loadAppProxyUrls();
+    if (cbasProxyUrlState.status !== 'Ready' || wdsProxyUrlState.status !== 'Ready') {
+      const { wdsProxyUrlState, cbasProxyUrlState, cromwellProxyUrlState } = await loadAppUrls(workspaceId);
+      // TODO: what happens if the state is error?
 
-    if (status === 'Unauthorized') {
-      notify('warn', 'Error loading workflows app', {
-        detail: 'Service returned Unauthorized error. Session might have expired. Please refresh the page or login again.',
+      workflowsAppStore.set({
+        wdsProxyUrlState,
+        cbasProxyUrlState,
+        cromwellProxyUrlState,
       });
-    } else if (cbasUrlRoot) {
-      loadRunSet(cbasUrlRoot).then((runSet) => {
+
+      loadRunSet(cbasProxyUrlState.state).then((runSet) => {
         setRunSetRecordType(runSet.record_type);
-        loadMethodsData(cbasUrlRoot, runSet.method_id, runSet.method_version_id);
-        loadWdsData({ wdsProxyUrlState: wdsProxyUrlResponse, recordType: runSetRecordType });
+        loadMethodsData(cbasProxyUrlState.state, runSet.method_id, runSet.method_version_id);
+        loadWdsData({ wdsProxyUrlState, recordType: runSetRecordType });
+      });
+    } else {
+      loadRunSet(cbasProxyUrlState.state).then((runSet) => {
+        setRunSetRecordType(runSet.record_type);
+        loadMethodsData(cbasProxyUrlState.state, runSet.method_id, runSet.method_version_id);
+        loadWdsData({ wdsProxyUrlState, recordType: runSetRecordType });
       });
     }
   });

@@ -66,31 +66,63 @@ export const loadAllRunSets = async (signal) => {
   }
 };
 
-const getProxyUrl = async (root, workspaceId, resolver) => {
-  if (root) {
-    return { status: 'Ready', state: root };
+// const getProxyUrl = async (root, workspaceId, resolver) => {
+//   if (root) {
+//     return { status: 'Ready', state: root };
+//   }
+//   try {
+//     const url = await Ajax().Apps.listAppsV2(workspaceId).then(resolver);
+//     if (url) {
+//       return { status: 'Ready', state: url };
+//     }
+//     return { status: 'None', state: '' };
+//   } catch (error) {
+//     if (error.status === 401) return { status: 'Unauthorized', state: error };
+//     return { status: 'Error', state: error };
+//   }
+// };
+
+const resolveProxyUrl = (configRoot, appsList, resolver) => {
+  if (configRoot) {
+    return { status: 'Ready', state: configRoot };
   }
-  try {
-    const url = await Ajax().Apps.listAppsV2(workspaceId).then(resolver);
-    if (url) {
-      return { status: 'Ready', state: url };
-    }
-    return { status: 'None', state: '' };
-  } catch (error) {
-    if (error.status === 401) return { status: 'Unauthorized', state: error };
-    return { status: 'Error', state: error };
+  const proxyUrl = resolver(appsList);
+  if (proxyUrl) {
+    return { status: 'Ready', state: proxyUrl };
   }
+  return { status: 'None', state: '' };
 };
 
 export const loadAppUrls = async (workspaceId) => {
   // for local testing - since we use local WDS setup, we don't need to call Leo to get proxy url
   const wdsUrlRoot = getConfig().wdsUrlRoot;
   const cbasUrlRoot = getConfig().cbasUrlRoot;
-  const wdsProxyUrlResponse = await getProxyUrl(wdsUrlRoot, workspaceId, resolveWdsUrl);
-  const cbasProxyUrlResponse = await getProxyUrl(cbasUrlRoot, workspaceId, (apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email).cbasUrl);
+  const cromwellUrlRoot = getConfig().cromwellUrlRoot;
+
+  if (wdsUrlRoot && cbasUrlRoot && cromwellUrlRoot) {
+    return {
+      wdsProxyUrlState: { status: 'Ready', state: wdsUrlRoot },
+      cbasProxyUrlState: { status: 'Ready', state: cbasUrlRoot },
+      cromwellProxyUrlState: { status: 'Ready', state: cromwellUrlRoot },
+    };
+  }
+  const appsList = await Ajax().Apps.listAppsV2(workspaceId);
+  const wdsProxyUrlState = resolveProxyUrl(wdsUrlRoot, appsList, (appsList) => resolveWdsUrl(appsList));
+  const cbasProxyUrlState = resolveProxyUrl(cbasUrlRoot, appsList, (appsList) => resolveRunningCromwellAppUrl(appsList, getUser()?.email).cbasUrl);
+  const cromwellProxyUrlState = resolveProxyUrl(
+    cromwellUrlRoot,
+    appsList,
+    (appsList) => resolveRunningCromwellAppUrl(appsList, getUser()?.email).cromwellUrl
+  );
+
+  // console.log(`### In loadAppUrls- wdsProxyUrlState: ${JSON.stringify(wdsProxyUrlState)}`)
+  // console.log(`### In loadAppUrls- cbasProxyUrlState: ${JSON.stringify(cbasProxyUrlState)}`)
+  // console.log(`### In loadAppUrls- cromwellProxyUrlState: ${JSON.stringify(cromwellProxyUrlState)}`)
+
   return {
-    wds: wdsProxyUrlResponse,
-    cbas: cbasProxyUrlResponse,
+    wdsProxyUrlState,
+    cbasProxyUrlState,
+    cromwellProxyUrlState,
   };
 };
 

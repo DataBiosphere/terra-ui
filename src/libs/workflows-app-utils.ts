@@ -15,6 +15,7 @@ export const resolveRunningCromwellAppUrl = (apps: ListAppResponse[], currentUse
     return {
       cbasUrl: filteredApps[0].proxyUrls.cbas,
       cbasUiUrl: filteredApps[0].proxyUrls['cbas-ui'],
+      cromwellUrl: filteredApps[0].proxyUrls.cromwell,
     };
   }
   // if there are no Running Cromwell apps or if there are more than one then it's an error state and return null

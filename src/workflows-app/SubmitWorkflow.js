@@ -7,7 +7,8 @@ import colors from 'src/libs/colors';
 import { isFindWorkflowEnabled } from 'src/libs/config';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
-import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
+import { workflowsAppStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import { withBusyState } from 'src/libs/utils';
 import FindWorkflowModal from 'src/workflows-app/components/FindWorkflowModal';
@@ -42,35 +43,41 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     const [methodsData, setMethodsData] = useState();
     const [loading, setLoading] = useState(false);
     const [viewFindWorkflowModal, setViewFindWorkflowModal] = useState(false);
+    const { cbasProxyUrlState } = useStore(workflowsAppStore);
 
     const signal = useCancellation();
 
-    const refreshAppUrls = useCallback(async () => {
-      const {
-        wds: { state: wdsUrlRoot },
-        cbas: { state: cbasUrlRoot },
-      } = await loadAppUrls(workspaceId);
+    const loadRunsData = useCallback(
+      async (cbasUrlRoot) => {
+        try {
+          const runs = await Ajax(signal).Cbas.methods.getWithoutVersions(cbasUrlRoot);
+          setMethodsData(runs.methods);
+        } catch (error) {
+          notify('error', 'Error loading saved workflows', { detail: error instanceof Response ? await error.text() : error });
+        }
+      },
+      [signal]
+    );
 
-      return { wdsUrlRoot, cbasUrlRoot };
-    }, [workspaceId]);
+    useOnMount(
+      withBusyState(setLoading, async () => {
+        if (cbasProxyUrlState.status !== 'Ready') {
+          const { wdsProxyUrlState, cbasProxyUrlState, cromwellProxyUrlState } = await loadAppUrls(workspaceId);
 
-    const loadRunsData = useCallback(async () => {
-      const { cbasUrlRoot } = await refreshAppUrls();
-      try {
-        const runs = await Ajax(signal).Cbas.methods.getWithoutVersions(cbasUrlRoot);
-        setMethodsData(runs.methods);
-      } catch (error) {
-        notify('error', 'Error loading saved workflows', { detail: error instanceof Response ? await error.text() : error });
-      }
-    }, [refreshAppUrls, signal]);
+          // TODO: what happens if the state is error?
 
-    const refresh = withBusyState(setLoading, async () => {
-      await loadRunsData();
-    });
+          workflowsAppStore.set({
+            wdsProxyUrlState,
+            cbasProxyUrlState,
+            cromwellProxyUrlState,
+          });
 
-    useOnMount(() => {
-      refresh();
-    });
+          await loadRunsData(cbasProxyUrlState.state);
+        } else {
+          await loadRunsData(cbasProxyUrlState.state);
+        }
+      })
+    );
 
     return loading
       ? centeredSpinner()
