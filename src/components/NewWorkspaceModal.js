@@ -1,9 +1,9 @@
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
-import { div, h, p, strong } from 'react-hyperscript-helpers';
+import { div, h, label, p, strong } from 'react-hyperscript-helpers';
 import { cloudProviders, defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
-import { ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common';
+import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TextArea, ValidatedInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
@@ -25,6 +25,7 @@ import Events, { extractCrossWorkspaceDetails, extractWorkspaceDetails } from 's
 import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
+import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderLabels, isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
 import validate from 'validate.js';
@@ -63,7 +64,7 @@ const ariaInvalidBillingAccountMsg = (invalidBillingAccount) => {
 
 const NewWorkspaceModal = withDisplayName(
   'NewWorkspaceModal',
-  ({ cloneWorkspace, onSuccess, onDismiss, customMessage, requiredAuthDomain, title, buttonText, workflowImport }) => {
+  ({ cloneWorkspace, onSuccess, onDismiss, customMessage, requiredAuthDomain, requireEnhancedBucketLogging, title, buttonText, workflowImport }) => {
     // State
     const [billingProjects, setBillingProjects] = useState();
     const [azureBillingProjectsExist, setAzureBillingProjectsExist] = useState(false);
@@ -72,6 +73,7 @@ const NewWorkspaceModal = withDisplayName(
     const [namespace, setNamespace] = useState(cloneWorkspace ? cloneWorkspace.workspace.namespace : undefined);
     const [description, setDescription] = useState(cloneWorkspace ? cloneWorkspace.workspace.attributes.description : '');
     const [groups, setGroups] = useState([]);
+    const [enhancedBucketLogging, setEnhancedBucketLogging] = useState(!!requireEnhancedBucketLogging);
     const [nameModified, setNameModified] = useState(false);
     const [loading, setLoading] = useState(false);
     const [creating, setCreating] = useState(false);
@@ -104,6 +106,7 @@ const NewWorkspaceModal = withDisplayName(
           attributes: { description },
           copyFilesWithPrefix: isGoogleBillingProject() ? 'notebooks/' : 'analyses/',
           ...(!!bucketLocation && isGoogleBillingProject() && { bucketLocation }),
+          enhancedBucketLogging,
         };
         const createdWorkspace = await Utils.cond(
           [
@@ -381,6 +384,23 @@ const NewWorkspaceModal = withDisplayName(
                   ]),
               ]),
               isGoogleBillingProject() &&
+                div({ style: { margin: '1rem 0.25rem 0.25rem 0' } }, [
+                  h(
+                    LabeledCheckbox,
+                    {
+                      style: { margin: '0rem 0.25rem 0.25rem 0' },
+                      checked: enhancedBucketLogging,
+                      disabled: !!requireEnhancedBucketLogging || groups.length > 0,
+                      onChange: () => setEnhancedBucketLogging(!enhancedBucketLogging),
+                    },
+                    [label({ style: { ...Style.elements.sectionHeader } }, ['Enhanced Bucket Logging'])]
+                  ),
+                  h(InfoBox, { style: { marginLeft: '0.25rem', verticalAlign: 'middle' } }, [
+                    'Enabling Enhanced Bucket Logging tells the Terra to log all data access requests to the workspace bucket. ' +
+                      'This feature is automatically enabled when a workspace is created with Authorization Domains.',
+                  ]),
+                ]),
+              isGoogleBillingProject() &&
                 h(IdContainer, [
                   (id) =>
                     h(Fragment, [
@@ -412,7 +432,10 @@ const NewWorkspaceModal = withDisplayName(
                         placeholder: 'Select groups',
                         disabled: !allGroups || !billingProjects,
                         value: groups,
-                        onChange: (data) => setGroups(_.map('value', data)),
+                        onChange: (data) => {
+                          setGroups(_.map('value', data));
+                          setEnhancedBucketLogging(data.length > 0);
+                        },
                         options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort(),
                       }),
                     ]),
