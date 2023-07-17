@@ -116,10 +116,6 @@ export const domainCriteriaSelectorState = {
   }),
 };
 
-export interface ConceptSelectorState extends DatasetBuilderState {
-  mode: 'concept-selector';
-}
-
 export interface ConceptSetCreatorState extends DatasetBuilderState {
   mode: 'concept-set-creator';
 }
@@ -127,6 +123,5 @@ export interface ConceptSetCreatorState extends DatasetBuilderState {
 export type AnyDatasetBuilderState =
   | HomepageState
   | CohortEditorState
-  | ConceptSelectorState
   | ConceptSetCreatorState
   | DomainCriteriaSelectorState;

@@ -631,7 +631,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
               case 'concept-set-creator':
                 return h(ConceptSetCreator, { onStateChange, datasetDetails: datasetDetails.state });
               default:
-                return div([datasetBuilderState.mode]);
+                return datasetBuilderState;
             }
           })(),
         ]),
