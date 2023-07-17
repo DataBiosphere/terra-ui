@@ -184,6 +184,11 @@ export const ImportDataDestination = ({
   const renderSelectExistingWorkspace = () =>
     h(Fragment, [
       h2({ style: styles.title }, ['Start with an existing workspace']),
+      isProtectedData &&
+        div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [
+          icon('info-circle', { size: 15, style: { marginRight: '0.25rem' }, color: colors.accent() }),
+          ' You may only import to workspaces with an Authorization Domain and/or protected data setting.',
+        ]),
       h(IdContainer, [
         (id) =>
           h(Fragment, [
@@ -202,11 +207,6 @@ export const ImportDataDestination = ({
             }),
           ]),
       ]),
-      isProtectedData &&
-        div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [
-          icon('info-circle', { size: 15, style: { marginRight: '0.25rem' }, color: colors.accent() }),
-          ' Unable to import into workspaces without required security settings. Only workspaces with an authorization domain and/or protected data setting checked are eligible.',
-        ]),
       importMayTakeTime && div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [importMayTakeTimeMessage]),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
         h(ButtonSecondary, { onClick: setMode, style: { marginLeft: 'auto' } }, ['Back']),
