@@ -16,6 +16,7 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { maybeParseJSON } from 'src/libs/utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
+import OutputsTable from 'src/workflows-app/components/OutputsTable';
 import { convertArrayType, loadAppUrls, validateInputs, WdsPollInterval } from 'src/workflows-app/components/submission-common';
 import ViewWorkflowScriptModal from 'src/workflows-app/components/ViewWorkflowScriptModal';
 import { convertToRawUrl } from 'src/workflows-app/utils/method-common';
@@ -463,6 +464,15 @@ export const BaseSubmissionConfig = (
     ]);
   };
 
+  const renderOutputs = () => {
+    return configuredOutputDefinition
+      ? h(OutputsTable, {
+          configuredOutputDefinition,
+          setConfiguredOutputDefinition,
+        })
+      : 'No previous run set data...';
+  };
+
   return loading
     ? centeredSpinner()
     : h(Fragment, [
@@ -491,7 +501,7 @@ export const BaseSubmissionConfig = (
               activeTab.key || 'select-data',
               ['select-data', () => h2('TODO')], // https://broadworkbench.atlassian.net/browse/WM-2020
               ['inputs', () => h2('TODO')], // https://broadworkbench.atlassian.net/browse/WM-2021
-              ['outputs', () => h2('TODO')] // https://broadworkbench.atlassian.net/browse/WM-2022
+              ['outputs', () => renderOutputs()]
             ),
           ]
         ),
