@@ -134,10 +134,9 @@ describe('useAnalysisExportState', () => {
       useAnalysisExportState(sourceWorkspace as WorkspaceWrapper, 'PrintName123', runtimeToolLabels.Jupyter)
     );
     const hookResult1 = renderedHook.result.current;
-    act(() => {
+    await act(async () => {
       hookResult1.selectWorkspace('Workspace2');
     });
-    await renderedHook.waitForNextUpdate();
 
     // Assert
     const hookResult = renderedHook.result.current;
@@ -197,10 +196,9 @@ describe('useAnalysisExportState', () => {
       useAnalysisExportState(sourceWorkspace as WorkspaceWrapper, 'PrintName123', runtimeToolLabels.Jupyter)
     );
     const hookResult1 = renderedHook.result.current;
-    act(() => {
+    await act(async () => {
       hookResult1.selectWorkspace('Workspace3');
     });
-    await renderedHook.waitForNextUpdate();
 
     // Assert
     const hookResult = renderedHook.result.current;
@@ -256,15 +254,15 @@ describe('useAnalysisExportState', () => {
       useAnalysisExportState(sourceWorkspace as WorkspaceWrapper, 'PrintName123', runtimeToolLabels.Jupyter)
     );
     const hookResult1 = renderedHook.result.current;
-    act(() => {
+    await act(async () => {
       hookResult1.selectWorkspace('Workspace2');
     });
-    await renderedHook.waitForNextUpdate();
 
     // Act
     const hookResult2 = renderedHook.result.current;
-    hookResult2.copyAnalysis('NewName123');
-    await renderedHook.waitForNextUpdate();
+    await act(async () => {
+      hookResult2.copyAnalysis('NewName123');
+    });
 
     // Assert
     const hookResult = renderedHook.result.current;
@@ -324,8 +322,9 @@ describe('useAnalysisExportState', () => {
 
     // Act
     const hookResult2 = renderedHook.result.current;
-    hookResult2.copyAnalysis('NewName123');
-    await renderedHook.waitForNextUpdate();
+    await act(async () => {
+      hookResult2.copyAnalysis('NewName123');
+    });
 
     // Assert
     const hookResult = renderedHook.result.current;

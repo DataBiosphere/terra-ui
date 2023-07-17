@@ -1,4 +1,4 @@
-import { act, getByText, render, screen } from '@testing-library/react';
+import { getByText, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
@@ -72,9 +72,7 @@ describe('FilesMenu', () => {
     it('deletes selected files', async () => {
       // Act
       const confirmDeleteButton = screen.getByText('Delete files');
-      await act(async () => {
-        await user.click(confirmDeleteButton);
-      });
+      await user.click(confirmDeleteButton);
 
       // Assert
       expect(deleteFile.mock.calls).toEqual([['path/to/file1.txt'], ['path/to/file2.bam'], ['path/to/file3.vcf']]);
@@ -83,9 +81,7 @@ describe('FilesMenu', () => {
     it('calls onDeleteFiles callback', async () => {
       // Act
       const confirmDeleteButton = screen.getByText('Delete files');
-      await act(async () => {
-        await user.click(confirmDeleteButton);
-      });
+      await user.click(confirmDeleteButton);
 
       // Assert
       expect(onDeleteFiles).toHaveBeenCalled();
@@ -123,7 +119,7 @@ describe('FilesMenu', () => {
     await user.type(nameInput, 'test-folder');
 
     const createButton = screen.getByText('Create Folder');
-    await act(() => user.click(createButton));
+    await user.click(createButton);
 
     // Assert
     expect(createEmptyDirectory).toHaveBeenCalledWith('path/to/directory/test-folder/');

@@ -761,7 +761,7 @@ export const GcpComputeModalBase = ({
       setLeoImages(filteredNewLeoImages);
       setCurrentRuntimeDetails(currentRuntimeDetails);
       setCurrentPersistentDiskDetails(currentPersistentDiskDetails);
-      setCustomEnvImage(!foundImage ? imageUrl : '');
+      setCustomEnvImage(!foundImage && imageUrl ? imageUrl : '');
       setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '');
 
       const locationType = getLocationType(location);

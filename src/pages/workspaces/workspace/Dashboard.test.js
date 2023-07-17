@@ -78,7 +78,7 @@ describe('WorkspaceNotifications', () => {
     const { getByLabelText } = render(h(WorkspaceNotifications, { workspace: testWorkspace }));
     const submissionNotificationsCheckbox = getByLabelText('Receive submission notifications');
 
-    await act(() => user.click(submissionNotificationsCheckbox));
+    await user.click(submissionNotificationsCheckbox);
     expect(setPreferences).toHaveBeenCalledWith({
       'notifications/SuccessfulSubmissionNotification/test/test': 'true',
       'notifications/FailedSubmissionNotification/test/test': 'true',
