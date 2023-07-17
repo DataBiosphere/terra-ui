@@ -16,6 +16,7 @@ import {
   homepageState,
   newCohort,
   newCriteriaGroup,
+  ProgramDataListCriteria,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
 
@@ -82,6 +83,40 @@ describe('CohortEditor', () => {
 
     expect(screen.getByText(criteria.name, { exact: false })).toBeTruthy();
     expect(screen.getByText(criteria.valuesSelected[0].name, { exact: false })).toBeTruthy();
+  });
+
+  it('updates when list updated', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const criteria = criteriaFromOption({
+      id: 0,
+      name: 'list',
+      kind: 'list',
+      values: [{ id: 0, name: 'value' }],
+    });
+    let newCriteria = criteriaFromOption({
+      id: 0,
+      name: 'list',
+      kind: 'list',
+      values: [{ id: 0, name: 'value' }],
+    });
+    render(
+      h(CriteriaView, {
+        deleteCriteria: _.noop,
+        updateCriteria: (updatedCriteria) => {
+          newCriteria = updatedCriteria as ProgramDataListCriteria;
+        },
+        criteria,
+        key: criteria.id,
+      })
+    );
+    // Act
+    const select = screen.getByLabelText('Select one or more list');
+    await user.click(select);
+    const valueOption = await screen.findAllByText('value');
+    await user.click(valueOption[0]);
+    // Assert
+    expect(newCriteria.valuesSelected.length).toBe(0);
   });
 
   it('renders range criteria', () => {
