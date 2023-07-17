@@ -13,6 +13,7 @@ import {
   Cohort,
   CriteriaGroup,
   DomainCriteria,
+  domainCriteriaSelectorState,
   homepageState,
   newCohort,
   newCriteriaGroup,
@@ -178,8 +179,8 @@ describe('CohortEditor', () => {
     // Act
     await user.click(screen.getByLabelText('add criteria'));
     const option = datasetDetails.programDataOptions[0];
-    const domainItem = screen.getByText(option.name);
-    await user.click(domainItem);
+    const dataOptionMenuItem = screen.getByText(option.name);
+    await user.click(dataOptionMenuItem);
     // Assert
     expect(updateCohort).toHaveBeenCalled();
     const updatedCohort: Cohort = updateCohort.mock.calls[0][0](cohort);
@@ -251,5 +252,21 @@ describe('CohortEditor', () => {
     // Don't compare name since it's generated.
     const { name: _unused, ...expectedCriteriaGroup } = newCriteriaGroup();
     expect(datasetBuilderCohorts.get()).toMatchObject([{ ...originalCohort, criteriaGroups: [expectedCriteriaGroup] }]);
+  });
+
+  it('shows the domain criteria selector', async () => {
+    // Arrange
+    const { onStateChange } = showCohortEditor();
+    const user = userEvent.setup();
+    // Act
+    await user.click(screen.getByText('Add group'));
+    await user.click(screen.getByLabelText('add criteria'));
+    const domainOption = datasetDetails.domainOptions[0];
+    const domainMenuItem = screen.getByText(domainOption.category);
+    await user.click(domainMenuItem);
+    // Assert
+    expect(onStateChange).toBeCalledWith(
+      domainCriteriaSelectorState.new(expect.anything(), expect.anything(), domainOption)
+    );
   });
 });
