@@ -78,6 +78,7 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                 return h(Fragment, [
                   strong([`${criteria.name}: ${_.flow(_.map('name'), _.join(','))(criteria.valuesSelected)}`]),
                   h(Select, {
+                    'aria-label': `Select one or more ${criteria.name}`,
                     isClearable: true,
                     isMulti: true,
                     options: _.map((value) => ({ label: value.name, value: value.id }), criteria.listOption.values),

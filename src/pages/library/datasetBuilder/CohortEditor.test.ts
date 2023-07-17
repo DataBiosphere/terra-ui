@@ -81,7 +81,7 @@ describe('CohortEditor', () => {
     );
 
     expect(screen.getByText(criteria.name, { exact: false })).toBeTruthy();
-    expect(screen.getByText(criteria.valuesSelected[0].name)).toBeTruthy();
+    expect(screen.getByText(criteria.valuesSelected[0].name, { exact: false })).toBeTruthy();
   });
 
   it('renders range criteria', () => {
