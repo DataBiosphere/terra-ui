@@ -324,6 +324,7 @@ export const ImportDataDestination = ({
               h(NewWorkspaceModal, {
                 requiredAuthDomain: authorizationDomain,
                 customMessage: importMayTakeTime && importMayTakeTimeMessage,
+                requireEnhancedBucketLogging: isProtectedData,
                 onDismiss: () => setIsCreateOpen(false),
                 onSuccess: (w) => {
                   setMode('existing');
