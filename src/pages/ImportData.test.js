@@ -142,7 +142,9 @@ describe('ImportDataDestination', () => {
     const existingWorkspace = screen.queryByText('Start with an existing workspace', { exact: false });
     await userEvent.click(existingWorkspace); // select start with existing workspace
 
-    const protectedWarning = screen.queryByText('Unable to import into workspaces without required security settings', { exact: false });
+    const protectedWarning = screen.queryByText('You may only import to workspaces with an Authorization Domain and/or protected data setting.', {
+      exact: false,
+    });
     expect(protectedWarning).not.toBeNull();
   });
 
@@ -162,7 +164,9 @@ describe('ImportDataDestination', () => {
     );
     const existingWorkspace = screen.queryByText('Start with an existing workspace', { exact: false });
     await userEvent.click(existingWorkspace); // select start with existing workspace
-    const protectedWarning = screen.queryByText('Unable to import into workspaces without required security settings', { exact: false });
+    const protectedWarning = screen.queryByText('You may only import to workspaces with an Authorization Domain and/or protected data setting.', {
+      exact: false,
+    });
     expect(protectedWarning).toBeNull();
   });
 
