@@ -290,11 +290,10 @@ const VirtualizedMenuList = (props) => {
   const rowHeight = 40;
   const height = _.clamp(rowHeight, maxHeight, rowHeight * rowCount);
 
-  // @ts-expect-error
   return h(AutoSizer, { disableHeight: true }, [
     ({ width }) => {
+      // @ts-expect-error
       return h(List, {
-        // @ts-expect-error
         ref: list,
         height,
         width,
