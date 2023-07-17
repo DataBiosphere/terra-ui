@@ -113,7 +113,7 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
     });
   };
   const collapse = (row: Row<T>) => {
-    setData(_.flow(_.cloneDeep, _.set(`[${getRowIndex(row, data)}].state`, 'closed'))(data));
+    setData(_.set(`[${getRowIndex(row, data)}].state`, 'closed', data));
   };
 
   const visibleRows = getVisibleRows(data);
