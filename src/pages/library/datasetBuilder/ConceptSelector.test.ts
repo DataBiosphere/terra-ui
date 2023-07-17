@@ -95,4 +95,22 @@ describe('ConceptSelector', () => {
     // Assert
     expect(getConceptsMock).toHaveBeenCalledWith(initialRows[0]);
   });
+
+  it('supports multiple add to cart', async () => {
+    // Arrange
+    renderSelector();
+    const mockDatasetResponse: Partial<DatasetBuilderContract> = {
+      getConcepts: jest.fn(),
+    };
+    const getConceptsMock = (mockDatasetResponse as DatasetBuilderContract).getConcepts;
+    asMockedFn(getConceptsMock).mockResolvedValue({ result: [getConceptForId(102)] });
+    asMockedFn(DatasetBuilder).mockImplementation(() => mockDatasetResponse as DatasetBuilderContract);
+    // Act
+    const user = userEvent.setup();
+    await user.click(screen.getByLabelText('expand'));
+    await user.click(screen.getAllByLabelText('add')[0]);
+    await user.click(screen.getAllByLabelText('add')[0]);
+    // Assert
+    expect(screen.getByText('2 concepts', { exact: false })).toBeTruthy();
+  });
 });
