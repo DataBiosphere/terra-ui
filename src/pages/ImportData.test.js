@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { getAllByRole, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/analysis/_testData/testData';
@@ -23,6 +23,13 @@ const nonProtectedUrls = [
   { url: 'https://gen3.biodatacatalyst.nhlbi.nih.gov/explorer', format: 'snapShot' },
   { url: 'http://localhost:3000', format: '' },
 ];
+
+// The workspace menu uses react-virtualized's AutoSizer to size the options menu.
+// This makes the virtualized window large enough for options to be rendered.
+jest.mock('react-virtualized', () => ({
+  ...jest.requireActual('react-virtualized'),
+  AutoSizer: ({ children }) => children({ width: 300 }),
+}));
 
 describe('isProtected', () => {
   it.each(protectedUrls)('%o should  be protected', ({ url, format }) => {
@@ -173,24 +180,29 @@ describe('ImportDataDestination', () => {
         isProtectedData: true,
       })
     );
+    const user = userEvent.setup();
     const existingWorkspace = screen.queryByText('Start with an existing workspace', { exact: false });
     await userEvent.click(existingWorkspace); // select start with existing workspace
 
-    const selectInput = screen.getByText('Select a workspace', { exact: false });
-    await userEvent.click(selectInput); // Open the dropdown
-    fireEvent.keyDown(selectInput, { key: 'ArrowDown', code: 'ArrowDown' });
+    const selectInput = screen.getByLabelText('Select a workspace');
+    await user.click(selectInput);
 
-    // Only the protected google workspace should be available
-    const option1 = screen.queryByText('protected-google', { exact: false });
-    expect(option1).not.toBeDisabled();
+    const listboxId = selectInput.getAttribute('aria-controls');
+    const listbox = document.getElementById(listboxId);
 
-    // Azure and unprotected googles workspaces should be disabled
-    fireEvent.keyDown(selectInput, { key: 'ArrowDown', code: 'ArrowDown' });
-    const option2 = screen.queryByText('unprotected-google', { exact: false });
-    expect(option2).toBeDisabled();
+    const options = getAllByRole(listbox, 'option');
 
-    fireEvent.keyDown(selectInput, { key: 'ArrowDown', code: 'ArrowDown' });
-    const option3 = screen.queryByText('azure', { exact: false });
-    expect(option3).not.toBeDisabled();
+    // only the google protected workspace should be enabled
+    const protectedOpt = options.find((opt) => opt.textContent === 'protected-google');
+    expect(protectedOpt).not.toBeNull();
+    expect(protectedOpt.getAttribute('aria-disabled')).toBe('false');
+
+    const unprotected1 = options.find((opt) => opt.textContent === 'unprotected-google');
+    expect(unprotected1).not.toBeNull();
+    expect(unprotected1.getAttribute('aria-disabled')).toBe('true');
+
+    const unprotected2 = options.find((opt) => opt.textContent === 'azure');
+    expect(unprotected2).not.toBeNull();
+    expect(unprotected2.getAttribute('aria-disabled')).toBe('true');
   });
 });
