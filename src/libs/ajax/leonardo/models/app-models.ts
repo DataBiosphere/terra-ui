@@ -75,10 +75,11 @@ export interface ListAppResponse {
   errors: AppError[];
   status: LeoAppStatus;
   proxyUrls: Record<string, string>;
-  diskName?: string;
+  diskName?: string | null;
   auditInfo: AuditInfo;
   appType: AppToolLabel;
   labels: LeoResourceLabels;
+  accessScope?: string;
 }
 
 export interface CreateAppV1Request {

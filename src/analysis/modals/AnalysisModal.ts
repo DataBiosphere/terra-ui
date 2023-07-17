@@ -261,12 +261,14 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       GALAXY: currentApp(appToolLabels.GALAXY),
       CROMWELL: currentApp(appToolLabels.CROMWELL),
       HAIL_BATCH: currentApp(appToolLabels.HAIL_BATCH),
+      WDS: currentApp(appToolLabels.WDS),
     };
 
     const appDisabledMessages: Record<AppToolLabel, string> = {
       GALAXY: 'You already have a Galaxy environment',
       CROMWELL: 'You already have a Cromwell instance',
       HAIL_BATCH: 'You already have a Hail Batch instance',
+      WDS: 'You already have a WDS instance',
     };
 
     const toolImages: Record<AppToolLabel | RuntimeToolLabel, ReactElement<'img'>> = {
@@ -280,6 +282,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       GALAXY: img({ src: galaxyLogo, alt: 'Create new Galaxy app', style: _.merge(styles.image, { width: 139 }) }),
       CROMWELL: img({ src: cromwellImg, alt: 'Create new Cromwell app', style: styles.image }),
       HAIL_BATCH: img({ src: hailLogo, alt: 'Create new Hail Batch app', style: styles.image }),
+      WDS: img({ src: undefined, alt: 'Create new WDS app', style: styles.image }),
     };
 
     const runtimeToolButtons = availableRuntimeTools.map((runtimeTool) => {

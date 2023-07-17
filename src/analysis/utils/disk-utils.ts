@@ -44,7 +44,9 @@ export const getCurrentAttachedDataDisk = (
   app: App,
   appDataDisks: PersistentDisk[]
 ): DecoratedPersistentDisk | undefined => {
-  const currentDisk: PersistentDisk | undefined = _.find({ name: app?.diskName }, appDataDisks);
+  const currentDisk: PersistentDisk | undefined = app?.diskName
+    ? _.find({ name: app?.diskName }, appDataDisks)
+    : undefined;
   return currentDisk ? updatePdType(currentDisk) : currentDisk;
 };
 
