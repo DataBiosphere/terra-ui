@@ -5,15 +5,20 @@ import { ButtonPrimary, Clickable, Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import ModalDrawer from 'src/components/ModalDrawer';
 import { TextCell } from 'src/components/table';
+import { Ajax } from 'src/libs/ajax';
+import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
+import * as Nav from 'src/libs/nav';
+import { notify } from 'src/libs/notifications';
 import { useCancellation } from 'src/libs/react-utils';
+import { getUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { resolveRunningCromwellAppUrl } from 'src/libs/workflows-app-utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
 import ImportGithub from 'src/workflows-app/components/ImportGithub';
 import { MethodCard } from 'src/workflows-app/components/MethodCard';
-import { submitMethod } from 'src/workflows-app/utils/method-common';
 
 const styles = {
   findWorkflowSubHeader: (selected) => {
@@ -82,6 +87,37 @@ const FindWorkflowModal = ({ onDismiss, workspace }) => {
 
   const isSubHeaderActive = (subHeader) => selectedSubHeader === subHeader;
 
+  const submitMethod = async (signal, onDismiss, method, workspace) => {
+    const namespace = await workspace.workspace.namespace;
+    try {
+      const cbasUrl = (
+        await Apps(signal)
+          .listAppsV2(workspace.workspace.workspaceId)
+          .then((apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email))
+      ).cbasUrl;
+
+      if (cbasUrl) {
+        const methodPayload = {
+          method_name: method.method_name,
+          method_description: method.method_description,
+          method_source: method.method_source,
+          method_version: method.method_version,
+          method_url: method.method_url,
+        };
+        const methodObject = await Ajax(signal).Cbas.methods.post(cbasUrl, methodPayload);
+        onDismiss();
+        Nav.goToPath('workspace-workflows-app-submission-config', {
+          name: workspace.workspace.name,
+          namespace,
+          methodId: methodObject.method_id,
+        });
+      }
+    } catch (error) {
+      notify('error', 'Error creating new method', { detail: error instanceof Response ? await error.text() : error });
+      onDismiss();
+    }
+  };
+
   return h(
     ModalDrawer,
     {
@@ -141,7 +177,7 @@ const FindWorkflowModal = ({ onDismiss, workspace }) => {
               ),
             ]),
           ]),
-        isSubHeaderActive('add-a-workflow-link') && h(ImportGithub, { setLoading, signal, onDismiss, workspace }),
+        isSubHeaderActive('add-a-workflow-link') && h(ImportGithub, { setLoading, signal, onDismiss, workspace, submitMethod }),
         isSubHeaderActive('go-to-dockstore') &&
           div({ style: { marginLeft: '4rem', width: '50%' } }, [
             h(
