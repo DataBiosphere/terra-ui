@@ -62,7 +62,7 @@ const MethodSource = Object.freeze({
   Dockstore: 'Dockstore',
 });
 
-export const ImportWorkflow = ({ path, version, source, ...isAzure }) => {
+export const ImportWorkflow = ({ path, version, source }) => {
   const [isBusy, setIsBusy] = useState(false);
   const [confirmOverwriteInWorkspace, setConfirmOverwriteInWorkspace] = useState();
   const [workflowName, setWorkflowName] = useState(_.last(path.split('/')));
@@ -70,7 +70,7 @@ export const ImportWorkflow = ({ path, version, source, ...isAzure }) => {
   const signal = useCancellation();
   const { wdl, status: wdlStatus } = useDockstoreWdl({ path, version, isTool: source === 'dockstoretools' });
 
-  const importToAzureCromwellApp = async (workspaceId, namespace, name, isAzure) => {
+  const importToAzureCromwellApp = async (workspaceId, namespace, name) => {
     const appUrls = await Apps(signal)
       .listAppsV2(workspaceId)
       .then((apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email));
@@ -88,12 +88,12 @@ export const ImportWorkflow = ({ path, version, source, ...isAzure }) => {
       const res = await Ajax(signal).Cbas.methods.post(appUrls.cbasUrl, postRequestBody);
       const methodId = res.method_id;
 
-      await setAzureCookieOnUrl(signal, appUrls.cbasUiUrl, true);
       // TODO: Remove this logic when fully migrated into Terra-UI and Cbas UI has been deprecated
-      if (isAzure) {
+      if (isAzureWorkflowsTabVisible()) {
         Nav.goToPath('workspace-workflows-app-submission-config', { name, namespace, methodId });
       } else {
-        window.location = `${appUrls.cbasUiUrl}#submission-config/${res.method_id}`;
+        await setAzureCookieOnUrl(signal, appUrls.cbasUiUrl, true);
+        window.location = `${appUrls.cbasUiUrl}#submission-config/${methodId}`;
       }
     } else {
       throw new Error(
@@ -127,7 +127,7 @@ export const ImportWorkflow = ({ path, version, source, ...isAzure }) => {
           throw new Error('Currently only a workspace creator can import workflow to their Azure workspace.');
         }
 
-        await importToAzureCromwellApp(workspaceId, namespace, name, isAzure);
+        await importToAzureCromwellApp(workspaceId, namespace, name);
       }
     } catch (error) {
       if (error.status === 409) {
@@ -208,13 +208,12 @@ export const ImportWorkflow = ({ path, version, source, ...isAzure }) => {
 
 const ImportWorkflowPage = ({ source, item }) => {
   const [path, version] = item.split(':');
-  const isAzure = isAzureWorkflowsTabVisible();
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Import Workflow' }),
     div({ role: 'main', style: { flexGrow: 1 } }, [
       Utils.cond(
-        [source === 'dockstore' || source === 'dockstoretools', () => h(ImportWorkflow, { path, version, source, isAzure })],
+        [source === 'dockstore' || source === 'dockstoretools', () => h(ImportWorkflow, { path, version, source })],
         () => `Unknown source '${source}'`
       ),
     ]),
