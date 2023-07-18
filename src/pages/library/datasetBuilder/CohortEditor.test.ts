@@ -18,7 +18,6 @@ import {
   newCohort,
   newCriteriaGroup,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
-import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
 
 describe('CohortEditor', () => {
   const datasetDetails = dummyDatasetDetails('unused');
@@ -206,10 +205,10 @@ describe('CohortEditor', () => {
   function showCohortEditor() {
     const originalCohort = newCohort('my cohort name');
     const onStateChange = jest.fn();
-    datasetBuilderCohorts.set([]);
+    const updateCohorts = jest.fn();
 
-    render(h(CohortEditor, { onStateChange, datasetDetails, originalCohort }));
-    return { originalCohort, onStateChange };
+    render(h(CohortEditor, { onStateChange, datasetDetails, originalCohort, updateCohorts }));
+    return { originalCohort, onStateChange, updateCohorts };
   }
 
   it('renders a cohort', () => {
@@ -221,29 +220,29 @@ describe('CohortEditor', () => {
 
   it('saves a cohort', async () => {
     // Arrange
-    const { originalCohort, onStateChange } = showCohortEditor();
+    const { originalCohort, onStateChange, updateCohorts } = showCohortEditor();
     const user = userEvent.setup();
     // Act
     await user.click(screen.getByText('Save cohort'));
     // Assert
     expect(onStateChange).toBeCalledWith(homepageState.new());
-    expect(datasetBuilderCohorts.get()).toStrictEqual([originalCohort]);
+    expect(updateCohorts.mock.calls[0][0]([])).toStrictEqual([originalCohort]);
   });
 
   it('cancels editing a cohort', async () => {
     // Arrange
-    const { onStateChange } = showCohortEditor();
+    const { onStateChange, updateCohorts } = showCohortEditor();
     const user = userEvent.setup();
     // Act
     await user.click(screen.getByLabelText('cancel'));
     // Assert
     expect(onStateChange).toBeCalledWith(homepageState.new());
-    expect(datasetBuilderCohorts.get()).toStrictEqual([]);
+    expect(updateCohorts).not.toHaveBeenCalled();
   });
 
   it('can add a criteria group', async () => {
     // Arrange
-    const { originalCohort } = showCohortEditor();
+    const { originalCohort, updateCohorts } = showCohortEditor();
     const user = userEvent.setup();
     // Act
     await user.click(screen.getByText('Add group'));
@@ -251,7 +250,9 @@ describe('CohortEditor', () => {
     // Assert
     // Don't compare name since it's generated.
     const { name: _unused, ...expectedCriteriaGroup } = newCriteriaGroup();
-    expect(datasetBuilderCohorts.get()).toMatchObject([{ ...originalCohort, criteriaGroups: [expectedCriteriaGroup] }]);
+    expect(updateCohorts.mock.calls[0][0]([])).toMatchObject([
+      { ...originalCohort, criteriaGroups: [expectedCriteriaGroup] },
+    ]);
   });
 
   it('shows the domain criteria selector', async () => {
