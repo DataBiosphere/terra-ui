@@ -10,7 +10,8 @@ import RSelect, {
   SingleValue as RSelectSingleValue,
 } from 'react-select';
 import RAsyncCreatableSelect from 'react-select/async-creatable';
-import { AutoSizer, List } from 'react-virtualized';
+import { List } from 'react-virtualized';
+import { AutoSizer } from 'src/components/common/VirtualizedSelectAutoSizer';
 import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import { useLabelAssert, useOnMount, useUniqueId } from 'src/libs/react-utils';
@@ -296,7 +297,7 @@ const VirtualizedMenuList = (props) => {
       return h(List, {
         ref: list,
         height,
-        width: process.env.NODE_ENV === 'test' ? 300 : width,
+        width,
         rowCount,
         rowHeight,
         rowRenderer: ({ index, style, key }) => div({ key, style }, [children[index]]),
