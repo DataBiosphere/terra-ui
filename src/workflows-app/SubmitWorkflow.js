@@ -75,7 +75,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     );
 
     useEffect(() => {
-      // start polling if we're missing CBAS proxy url and stop polling when we have it
+      // Start polling if we're missing CBAS proxy url and stop polling when we have it
       if (!cbasReady && !pollCbasInterval.current) {
         pollCbasInterval.current = setInterval(() => loadRunsData(workflowsAppStore.get().cbasProxyUrlState), CbasPollInterval);
       } else if (cbasReady && pollCbasInterval.current) {

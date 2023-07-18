@@ -101,7 +101,6 @@ window.ajaxOverridesStore = ajaxOverridesStore;
 export const configOverridesStore = staticStorageSlot(getSessionStorage(), 'config-overrides');
 window.configOverridesStore = configOverridesStore;
 
-// TODO: Can status be unauthorized?
 /*
  * Stores the proxy urls for WDS and Azure Workflows apps.
  * Status can be one of None, Ready and Error. The proxy url will be in 'state' field when 'status' is Ready.
