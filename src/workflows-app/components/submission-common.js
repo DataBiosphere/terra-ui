@@ -17,6 +17,7 @@ import { resolveRunningCromwellAppUrl } from 'src/libs/workflows-app-utils';
 
 export const AutoRefreshInterval = 1000 * 60; // 1 minute
 export const WdsPollInterval = 1000 * 30; // 30 seconds
+export const CbasPollInterval = 1000 * 30; // 30 seconds
 
 const iconSize = 24;
 export const addCountSuffix = (label, count = undefined) => {
@@ -66,39 +67,29 @@ export const loadAllRunSets = async (signal) => {
   }
 };
 
-// const getProxyUrl = async (root, workspaceId, resolver) => {
-//   if (root) {
-//     return { status: 'Ready', state: root };
-//   }
-//   try {
-//     const url = await Ajax().Apps.listAppsV2(workspaceId).then(resolver);
-//     if (url) {
-//       return { status: 'Ready', state: url };
-//     }
-//     return { status: 'None', state: '' };
-//   } catch (error) {
-//     if (error.status === 401) return { status: 'Unauthorized', state: error };
-//     return { status: 'Error', state: error };
-//   }
-// };
-
 const resolveProxyUrl = (configRoot, appsList, resolver) => {
   if (configRoot) {
     return { status: 'Ready', state: configRoot };
   }
-  const proxyUrl = resolver(appsList);
-  if (proxyUrl) {
-    return { status: 'Ready', state: proxyUrl };
+
+  try {
+    const proxyUrl = resolver(appsList);
+    if (proxyUrl) {
+      return { status: 'Ready', state: proxyUrl };
+    }
+    return { status: 'None', state: '' };
+  } catch (error) {
+    return { status: 'Error', state: error };
   }
-  return { status: 'None', state: '' };
 };
 
 export const loadAppUrls = async (workspaceId) => {
-  // for local testing - since we use local WDS setup, we don't need to call Leo to get proxy url
+  // we can set these configs in dev.json if we want local Terra UI to connect to local WDS or Workflows related services.
   const wdsUrlRoot = getConfig().wdsUrlRoot;
   const cbasUrlRoot = getConfig().cbasUrlRoot;
   const cromwellUrlRoot = getConfig().cromwellUrlRoot;
 
+  // don't call Leonardo if Terra UI needs to ping all 3 services locally
   if (wdsUrlRoot && cbasUrlRoot && cromwellUrlRoot) {
     return {
       wdsProxyUrlState: { status: 'Ready', state: wdsUrlRoot },
@@ -106,24 +97,29 @@ export const loadAppUrls = async (workspaceId) => {
       cromwellProxyUrlState: { status: 'Ready', state: cromwellUrlRoot },
     };
   }
-  const appsList = await Ajax().Apps.listAppsV2(workspaceId);
-  const wdsProxyUrlState = resolveProxyUrl(wdsUrlRoot, appsList, (appsList) => resolveWdsUrl(appsList));
-  const cbasProxyUrlState = resolveProxyUrl(cbasUrlRoot, appsList, (appsList) => resolveRunningCromwellAppUrl(appsList, getUser()?.email).cbasUrl);
-  const cromwellProxyUrlState = resolveProxyUrl(
-    cromwellUrlRoot,
-    appsList,
-    (appsList) => resolveRunningCromwellAppUrl(appsList, getUser()?.email).cromwellUrl
-  );
 
-  // console.log(`### In loadAppUrls- wdsProxyUrlState: ${JSON.stringify(wdsProxyUrlState)}`)
-  // console.log(`### In loadAppUrls- cbasProxyUrlState: ${JSON.stringify(cbasProxyUrlState)}`)
-  // console.log(`### In loadAppUrls- cromwellProxyUrlState: ${JSON.stringify(cromwellProxyUrlState)}`)
+  try {
+    const appsList = await Ajax().Apps.listAppsV2(workspaceId);
+    const wdsProxyUrlState = resolveProxyUrl(wdsUrlRoot, appsList, (appsList) => resolveWdsUrl(appsList));
+    const cbasProxyUrlState = resolveProxyUrl(cbasUrlRoot, appsList, (appsList) => resolveRunningCromwellAppUrl(appsList, getUser()?.email).cbasUrl);
+    const cromwellProxyUrlState = resolveProxyUrl(
+      cromwellUrlRoot,
+      appsList,
+      (appsList) => resolveRunningCromwellAppUrl(appsList, getUser()?.email).cromwellUrl
+    );
 
-  return {
-    wdsProxyUrlState,
-    cbasProxyUrlState,
-    cromwellProxyUrlState,
-  };
+    return {
+      wdsProxyUrlState,
+      cbasProxyUrlState,
+      cromwellProxyUrlState,
+    };
+  } catch (error) {
+    return {
+      wdsProxyUrlState: { status: 'Error', state: error },
+      cbasProxyUrlState: { status: 'Error', state: error },
+      cromwellProxyUrlState: { status: 'Error', state: error },
+    };
+  }
 };
 
 export const parseMethodString = (methodString) => {

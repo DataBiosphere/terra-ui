@@ -12,12 +12,12 @@ import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
-import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
+import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { maybeParseJSON } from 'src/libs/utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
-import { convertArrayType, loadAppUrls, validateInputs, WdsPollInterval } from 'src/workflows-app/components/submission-common';
+import { CbasPollInterval, convertArrayType, loadAppUrls, validateInputs, WdsPollInterval } from 'src/workflows-app/components/submission-common';
 import ViewWorkflowScriptModal from 'src/workflows-app/components/ViewWorkflowScriptModal';
 import { convertToRawUrl } from 'src/workflows-app/utils/method-common';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
@@ -42,8 +42,6 @@ export const BaseSubmissionConfig = (
   const [loading, setLoading] = useState(false);
   const [workflowScript, setWorkflowScript] = useState();
   const [runSetRecordType, setRunSetRecordType] = useState();
-  const [wdsProxyUrl, setWdsProxyUrl] = useState({ status: 'None', state: '' });
-  const { wdsProxyUrlState, cbasProxyUrlState } = useStore(workflowsAppStore);
 
   // Options chosen on this page:
   const [selectedRecordType, setSelectedRecordType] = useState();
@@ -63,13 +61,10 @@ export const BaseSubmissionConfig = (
 
   const signal = useCancellation();
   const pollWdsInterval = useRef();
+  const pollCbasInterval = useRef();
   const errorMessageCount = _.filter((message) => message.type === 'error')(inputValidations).length;
-
-  const loadAppProxyUrls = useCallback(async () => {
-    const { wds: wdsProxyUrlResponse, cbas: cbasProxyUrlResponse } = await loadAppUrls(workspaceId);
-    setWdsProxyUrl(wdsProxyUrlResponse);
-    return { wdsProxyUrlResponse, cbasProxyUrlResponse };
-  }, [workspaceId]);
+  const cbasReady = workflowsAppStore.get().cbasProxyUrlState.status === 'Ready';
+  const wdsReady = workflowsAppStore.get().wdsProxyUrlState.status === 'Ready';
 
   const loadRecordsData = useCallback(
     async (recordType, wdsUrlRoot) => {
@@ -87,37 +82,43 @@ export const BaseSubmissionConfig = (
     [signal, workspaceId]
   );
 
-  const loadMethodsData = async (cbasUrlRoot, methodId, methodVersionId) => {
-    try {
-      const methodsResponse = await Ajax(signal).Cbas.methods.getById(cbasUrlRoot, methodId);
-      const method = methodsResponse.methods[0];
-      if (method) {
-        const selectedVersion = _.filter((mv) => mv.method_version_id === methodVersionId, method.method_versions)[0];
-        setMethod(method);
-        setAvailableMethodVersions(method.method_versions);
-        setSelectedMethodVersion(selectedVersion);
-      } else {
-        notify('error', 'Error loading methods data', { detail: 'Method not found.' });
+  const loadMethodsData = useCallback(
+    async (cbasUrlRoot, methodId, methodVersionId) => {
+      try {
+        const methodsResponse = await Ajax(signal).Cbas.methods.getById(cbasUrlRoot, methodId);
+        const method = methodsResponse.methods[0];
+        if (method) {
+          const selectedVersion = _.filter((mv) => mv.method_version_id === methodVersionId, method.method_versions)[0];
+          setMethod(method);
+          setAvailableMethodVersions(method.method_versions);
+          setSelectedMethodVersion(selectedVersion);
+        } else {
+          notify('error', 'Error loading methods data', { detail: 'Method not found.' });
+        }
+      } catch (error) {
+        notify('error', 'Error loading methods data', { detail: error instanceof Response ? await error.text() : error });
       }
-    } catch (error) {
-      notify('error', 'Error loading methods data', { detail: error instanceof Response ? await error.text() : error });
-    }
-  };
+    },
+    [signal]
+  );
 
-  const loadRunSet = async (cbasUrlRoot) => {
-    try {
-      const runSet = await Ajax(signal).Cbas.runSets.getForMethod(cbasUrlRoot, methodId, 1);
-      const newRunSetData = runSet.run_sets[0];
+  const loadRunSet = useCallback(
+    async (cbasUrlRoot) => {
+      try {
+        const runSet = await Ajax(signal).Cbas.runSets.getForMethod(cbasUrlRoot, methodId, 1);
+        const newRunSetData = runSet.run_sets[0];
 
-      setConfiguredInputDefinition(maybeParseJSON(newRunSetData.input_definition));
-      setConfiguredOutputDefinition(maybeParseJSON(newRunSetData.output_definition));
-      setSelectedRecordType(newRunSetData.record_type);
+        setConfiguredInputDefinition(maybeParseJSON(newRunSetData.input_definition));
+        setConfiguredOutputDefinition(maybeParseJSON(newRunSetData.output_definition));
+        setSelectedRecordType(newRunSetData.record_type);
 
-      return newRunSetData;
-    } catch (error) {
-      notify('error', 'Error loading run set data', { detail: error instanceof Response ? await error.text() : error });
-    }
-  };
+        return newRunSetData;
+      } catch (error) {
+        notify('error', 'Error loading run set data', { detail: error instanceof Response ? await error.text() : error });
+      }
+    },
+    [methodId, signal]
+  );
 
   const loadRecordTypes = useCallback(
     async (wdsUrlRoot) => {
@@ -130,35 +131,77 @@ export const BaseSubmissionConfig = (
     [signal, workspaceId]
   );
 
-  // TODO: simplify this logic now that caching is introduced???
+  const loadConfigData = useCallback(
+    async (cbasProxyUrlDetails, wdsProxyUrlDetails) => {
+      try {
+        // try to load CBAS proxy url if one doesn't exist
+        if (cbasProxyUrlDetails.status !== 'Ready') {
+          const { wdsProxyUrlState, cbasProxyUrlState, cromwellProxyUrlState } = await loadAppUrls(workspaceId);
+
+          // we update states of WDS proxy url as well since it is used in loadWdsData call below
+          workflowsAppStore.set({
+            wdsProxyUrlState,
+            cbasProxyUrlState,
+            cromwellProxyUrlState,
+          });
+
+          if (cbasProxyUrlState.status === 'Ready') {
+            loadRunSet(cbasProxyUrlState.state).then((runSet) => {
+              setRunSetRecordType(runSet.record_type);
+              loadMethodsData(cbasProxyUrlState.state, runSet.method_id, runSet.method_version_id);
+              loadWdsData({ wdsProxyUrlDetails: wdsProxyUrlState, recordType: runSetRecordType });
+            });
+          } else {
+            const cbasUrlState = cbasProxyUrlState.state;
+            const errorDetails = await (cbasUrlState instanceof Response ? cbasUrlState.text() : cbasUrlState);
+            const additionalDetails = errorDetails ? `Error details: ${errorDetails}` : '';
+            // to avoid stacked warning banners due to auto-poll for CBAS url, we remove the current banner at 29th second
+            notify('warn', 'Error loading Workflows app', {
+              detail: `Workflows app not found. Will retry in 30 seconds. ${additionalDetails}`,
+              timeout: CbasPollInterval - 1000,
+            });
+          }
+        } else {
+          loadRunSet(cbasProxyUrlDetails.state).then((runSet) => {
+            setRunSetRecordType(runSet.record_type);
+            loadMethodsData(cbasProxyUrlDetails.state, runSet.method_id, runSet.method_version_id);
+            loadWdsData({ wdsProxyUrlDetails, recordType: runSetRecordType });
+          });
+        }
+      } catch (error) {
+        notify('error', 'Error loading Workflows app', { detail: error instanceof Response ? await error.text() : error });
+      }
+    },
+    [loadMethodsData, loadRunSet, loadWdsData, runSetRecordType, workspaceId]
+  );
+
   const loadWdsData = useCallback(
-    async ({ wdsProxyUrlState, recordType, includeLoadRecordTypes = true }) => {
+    async ({ wdsProxyUrlDetails, recordType, includeLoadRecordTypes = true }) => {
       try {
         // try to load WDS proxy URL if one doesn't exist
-        if (!wdsProxyUrlState || wdsProxyUrlState.status !== 'Ready') {
-          const {
-            wdsProxyUrlResponse: { status, state: wdsUrlRoot },
-          } = await loadAppProxyUrls();
-          if (status === 'Unauthorized') {
-            notify('warn', 'Error loading data tables', {
-              detail: 'Service returned Unauthorized error. Session might have expired. Please close the tab and re-open it.',
-            });
-          } else if (wdsUrlRoot) {
+        if (wdsProxyUrlDetails.status !== 'Ready') {
+          const { wdsProxyUrlState } = await loadAppUrls(workspaceId);
+          // update only WDS proxy url state. CBAS proxy url will be updated during its own separate scheduled poll
+          workflowsAppStore.update((state) => ({ ...state, wdsProxyUrlState }));
+
+          if (wdsProxyUrlState.status === 'Ready') {
             if (includeLoadRecordTypes) {
-              await loadRecordTypes(wdsUrlRoot);
+              await loadRecordTypes(wdsProxyUrlState.state);
             }
-            await loadRecordsData(recordType, wdsUrlRoot);
+            await loadRecordsData(recordType, wdsProxyUrlState.state);
           } else {
-            const errorDetails = await (wdsUrlRoot instanceof Response ? wdsUrlRoot.text() : wdsUrlRoot);
+            const wdsUrlState = wdsProxyUrlState.state;
+            const errorDetails = await (wdsUrlState instanceof Response ? wdsUrlState.text() : wdsUrlState);
+            const additionalDetails = errorDetails ? `Error details: ${errorDetails}` : '';
             // to avoid stacked warning banners due to auto-poll for WDS url, we remove the current banner at 29th second
             notify('warn', 'Error loading data tables', {
-              detail: `Data Table app not found. Will retry in 30 seconds. Error details: ${errorDetails}`,
+              detail: `Data Table app not found. Will retry in 30 seconds. ${additionalDetails}`,
               timeout: WdsPollInterval - 1000,
             });
           }
         } else {
           // if we have the WDS proxy URL load the WDS data
-          const wdsUrlRoot = wdsProxyUrlState.state;
+          const wdsUrlRoot = wdsProxyUrlDetails.state;
           if (includeLoadRecordTypes) {
             await loadRecordTypes(wdsUrlRoot);
           }
@@ -168,7 +211,7 @@ export const BaseSubmissionConfig = (
         notify('error', 'Error loading data tables', { detail: error instanceof Response ? await error.text() : error });
       }
     },
-    [loadRecordsData, loadRecordTypes, loadAppProxyUrls]
+    [loadRecordsData, loadRecordTypes, workspaceId]
   );
 
   const updateRunSetName = () => {
@@ -208,9 +251,11 @@ export const BaseSubmissionConfig = (
   };
 
   useOnMount(async () => {
-    if (cbasProxyUrlState.status !== 'Ready' || wdsProxyUrlState.status !== 'Ready') {
+    const cbasProxyUrlDetails = workflowsAppStore.get().cbasProxyUrlState;
+    const wdsProxyUrlDetails = workflowsAppStore.get().wdsProxyUrlState;
+
+    if (cbasProxyUrlDetails.status !== 'Ready' || wdsProxyUrlDetails.status !== 'Ready') {
       const { wdsProxyUrlState, cbasProxyUrlState, cromwellProxyUrlState } = await loadAppUrls(workspaceId);
-      // TODO: what happens if the state is error?
 
       workflowsAppStore.set({
         wdsProxyUrlState,
@@ -218,16 +263,18 @@ export const BaseSubmissionConfig = (
         cromwellProxyUrlState,
       });
 
-      loadRunSet(cbasProxyUrlState.state).then((runSet) => {
-        setRunSetRecordType(runSet.record_type);
-        loadMethodsData(cbasProxyUrlState.state, runSet.method_id, runSet.method_version_id);
-        loadWdsData({ wdsProxyUrlState, recordType: runSetRecordType });
-      });
+      if (cbasProxyUrlState.status === 'Ready') {
+        loadRunSet(cbasProxyUrlState.state).then((runSet) => {
+          setRunSetRecordType(runSet.record_type);
+          loadMethodsData(cbasProxyUrlState.state, runSet.method_id, runSet.method_version_id);
+          loadWdsData({ wdsProxyUrlDetails: wdsProxyUrlState, recordType: runSetRecordType });
+        });
+      }
     } else {
-      loadRunSet(cbasProxyUrlState.state).then((runSet) => {
+      loadRunSet(cbasProxyUrlDetails.state).then((runSet) => {
         setRunSetRecordType(runSet.record_type);
-        loadMethodsData(cbasProxyUrlState.state, runSet.method_id, runSet.method_version_id);
-        loadWdsData({ wdsProxyUrlState, recordType: runSetRecordType });
+        loadMethodsData(cbasProxyUrlDetails.state, runSet.method_id, runSet.method_version_id);
+        loadWdsData({ wdsProxyUrlDetails, recordType: runSetRecordType });
       });
     }
   });
@@ -269,10 +316,31 @@ export const BaseSubmissionConfig = (
   }, [signal, selectedMethodVersion, method]);
 
   useEffect(() => {
+    // Start polling if we're missing CBAS proxy url and stop polling when we have it
+    if (!cbasReady && !pollCbasInterval.current) {
+      pollCbasInterval.current = setInterval(
+        () => loadConfigData(workflowsAppStore.get().cbasProxyUrlState, workflowsAppStore.get().wdsProxyUrlState),
+        CbasPollInterval
+      );
+    } else if (cbasReady && pollCbasInterval.current) {
+      clearInterval(pollCbasInterval.current);
+      pollCbasInterval.current = undefined;
+    }
+
+    return () => {
+      clearInterval(pollCbasInterval.current);
+      pollCbasInterval.current = undefined;
+    };
+  }, [loadConfigData, cbasReady]);
+
+  useEffect(() => {
     // Start polling if we're missing WDS proxy url and stop polling when we have it
-    if ((!wdsProxyUrl || wdsProxyUrl.status !== 'Ready') && wdsProxyUrl.status !== 'Unauthorized' && !pollWdsInterval.current) {
-      pollWdsInterval.current = setInterval(() => loadWdsData({ wdsProxyUrlState: wdsProxyUrl, recordType: runSetRecordType }), WdsPollInterval);
-    } else if (!!wdsProxyUrl && wdsProxyUrl.status === 'Ready' && pollWdsInterval.current) {
+    if (!wdsReady && !pollWdsInterval.current) {
+      pollWdsInterval.current = setInterval(
+        () => loadWdsData({ wdsProxyUrlDetails: workflowsAppStore.get().wdsProxyUrlState, recordType: runSetRecordType }),
+        WdsPollInterval
+      );
+    } else if (wdsReady && pollWdsInterval.current) {
       clearInterval(pollWdsInterval.current);
       pollWdsInterval.current = undefined;
     }
@@ -281,7 +349,7 @@ export const BaseSubmissionConfig = (
       clearInterval(pollWdsInterval.current);
       pollWdsInterval.current = undefined;
     };
-  }, [loadWdsData, wdsProxyUrl, runSetRecordType]);
+  }, [loadWdsData, runSetRecordType, wdsReady]);
 
   const renderSummary = () => {
     return div({ style: { marginLeft: '2em', marginTop: '1rem', display: 'flex', justifyContent: 'space-between' } }, [
@@ -346,7 +414,7 @@ export const BaseSubmissionConfig = (
               setNoRecordTypeData(null);
               setSelectedRecordType(value);
               setSelectedRecords(null);
-              loadWdsData({ wdsProxyUrlState: wdsProxyUrl, recordType: value, includeLoadRecordTypes: false });
+              loadWdsData({ wdsProxyUrlDetails: workflowsAppStore.get().wdsProxyUrlState, recordType: value, includeLoadRecordTypes: false });
             },
             placeholder: 'None selected',
             styles: { container: (old) => ({ ...old, display: 'inline-block', width: 200 }), paddingRight: '2rem' },

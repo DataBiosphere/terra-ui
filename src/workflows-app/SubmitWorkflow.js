@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { ButtonOutline, Clickable } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
@@ -7,13 +7,13 @@ import colors from 'src/libs/colors';
 import { isFindWorkflowEnabled } from 'src/libs/config';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
-import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
+import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { workflowsAppStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import { withBusyState } from 'src/libs/utils';
 import FindWorkflowModal from 'src/workflows-app/components/FindWorkflowModal';
 import { SavedWorkflows } from 'src/workflows-app/components/SavedWorkflows';
-import { loadAppUrls } from 'src/workflows-app/components/submission-common';
+import { CbasPollInterval, loadAppUrls } from 'src/workflows-app/components/submission-common';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 const styles = {
@@ -43,28 +43,58 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     const [methodsData, setMethodsData] = useState();
     const [loading, setLoading] = useState(false);
     const [viewFindWorkflowModal, setViewFindWorkflowModal] = useState(false);
-    const { cbasProxyUrlState } = useStore(workflowsAppStore);
 
     const signal = useCancellation();
+    const pollCbasInterval = useRef();
+    const cbasReady = workflowsAppStore.get().cbasProxyUrlState.status === 'Ready';
 
     const loadRunsData = useCallback(
-      async (cbasUrlRoot) => {
+      async (cbasProxyUrlDetails) => {
         try {
-          const runs = await Ajax(signal).Cbas.methods.getWithoutVersions(cbasUrlRoot);
-          setMethodsData(runs.methods);
+          if (cbasProxyUrlDetails.status !== 'Ready') {
+            const { wdsProxyUrlState, cbasProxyUrlState, cromwellProxyUrlState } = await loadAppUrls(workspaceId);
+
+            workflowsAppStore.set({
+              wdsProxyUrlState,
+              cbasProxyUrlState,
+              cromwellProxyUrlState,
+            });
+            if (cbasProxyUrlState.status === 'Ready') {
+              const runs = await Ajax(signal).Cbas.methods.getWithoutVersions(cbasProxyUrlState.state);
+              setMethodsData(runs.methods);
+            }
+          } else {
+            const runs = await Ajax(signal).Cbas.methods.getWithoutVersions(cbasProxyUrlDetails.state);
+            setMethodsData(runs.methods);
+          }
         } catch (error) {
           notify('error', 'Error loading saved workflows', { detail: error instanceof Response ? await error.text() : error });
         }
       },
-      [signal]
+      [signal, workspaceId]
     );
+
+    useEffect(() => {
+      // start polling if we're missing CBAS proxy url and stop polling when we have it
+      if (!cbasReady && !pollCbasInterval.current) {
+        pollCbasInterval.current = setInterval(() => loadRunsData(workflowsAppStore.get().cbasProxyUrlState), CbasPollInterval);
+      } else if (cbasReady && pollCbasInterval.current) {
+        clearInterval(pollCbasInterval.current);
+        pollCbasInterval.current = undefined;
+      }
+
+      return () => {
+        clearInterval(pollCbasInterval.current);
+        pollCbasInterval.current = undefined;
+      };
+    }, [cbasReady, loadRunsData]);
 
     useOnMount(
       withBusyState(setLoading, async () => {
-        if (cbasProxyUrlState.status !== 'Ready') {
-          const { wdsProxyUrlState, cbasProxyUrlState, cromwellProxyUrlState } = await loadAppUrls(workspaceId);
+        const cbasProxyUrlDetails = workflowsAppStore.get().cbasProxyUrlState;
 
-          // TODO: what happens if the state is error?
+        if (cbasProxyUrlDetails.status !== 'Ready') {
+          const { wdsProxyUrlState, cbasProxyUrlState, cromwellProxyUrlState } = await loadAppUrls(workspaceId);
 
           workflowsAppStore.set({
             wdsProxyUrlState,
@@ -72,9 +102,11 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
             cromwellProxyUrlState,
           });
 
-          await loadRunsData(cbasProxyUrlState.state);
+          if (cbasProxyUrlState.status === 'Ready') {
+            await loadRunsData(cbasProxyUrlState);
+          }
         } else {
-          await loadRunsData(cbasProxyUrlState.state);
+          await loadRunsData(cbasProxyUrlDetails);
         }
       })
     );
@@ -98,25 +130,28 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
               ),
             ]),
             div(['Run a workflow in Terra using Cromwell engine. Full feature workflow submission coming soon.']),
-            div({ style: { marginTop: '3rem' } }, [
-              h(
-                Clickable,
-                {
-                  'aria-haspopup': 'dialog',
-                  disabled: !isFindWorkflowEnabled(),
-                  style: {
-                    ...styles.card,
-                    ...styles.shortCard,
-                    color: isFindWorkflowEnabled() ? colors.accent() : colors.dark(0.7),
-                    fontSize: 18,
-                    lineHeight: '22px',
+            !cbasReady &&
+              div({ style: { marginTop: '2rem' } }, [icon('loadingSpinner'), ' Loading your Workflows app, this may take a few minutes.']),
+            cbasReady &&
+              div({ style: { marginTop: '3rem' } }, [
+                h(
+                  Clickable,
+                  {
+                    'aria-haspopup': 'dialog',
+                    disabled: !isFindWorkflowEnabled(),
+                    style: {
+                      ...styles.card,
+                      ...styles.shortCard,
+                      color: isFindWorkflowEnabled() ? colors.accent() : colors.dark(0.7),
+                      fontSize: 18,
+                      lineHeight: '22px',
+                    },
+                    onClick: () => setViewFindWorkflowModal(true),
                   },
-                  onClick: () => setViewFindWorkflowModal(true),
-                },
-                ['Find a Workflow', icon('plus-circle', { size: 32 })]
-              ),
-              h(Fragment, [h(SavedWorkflows, { workspaceName: name, namespace, methodsData })]),
-            ]),
+                  ['Find a Workflow', icon('plus-circle', { size: 32 })]
+                ),
+                h(Fragment, [h(SavedWorkflows, { workspaceName: name, namespace, methodsData })]),
+              ]),
             viewFindWorkflowModal && h(FindWorkflowModal, { name, namespace, onDismiss: () => setViewFindWorkflowModal(false) }),
           ]),
         ]);
