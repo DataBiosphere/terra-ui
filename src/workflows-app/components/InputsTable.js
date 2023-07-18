@@ -9,16 +9,12 @@ import { StructBuilderModal } from 'src/workflows-app/components/StructBuilder';
 import {
   InputsButtonRow,
   InputSourceSelect,
-  inputTypeStyle,
-  isInputOptional,
   ParameterValueTextInput,
-  parseMethodString,
   RecordLookupSelect,
-  renderTypeText,
   StructBuilderLink,
-  typeMatch,
   WithWarnings,
 } from 'src/workflows-app/components/submission-common';
+import { inputTypeStyle, isInputOptional, parseMethodString, renderTypeText, typeMatch } from 'src/workflows-app/utils/submission-utils';
 
 const InputsTable = ({ selectedDataTable, configuredInputDefinition, setConfiguredInputDefinition, inputValidations }) => {
   const [inputTableSort, setInputTableSort] = useState({ field: '', direction: 'asc' });

@@ -18,9 +18,9 @@ import { maybeParseJSON } from 'src/libs/utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
 import InputsTable from 'src/workflows-app/components/InputsTable';
 import OutputsTable from 'src/workflows-app/components/OutputsTable';
-import { convertArrayType, loadAppUrls, validateInputs, WdsPollInterval } from 'src/workflows-app/components/submission-common';
 import ViewWorkflowScriptModal from 'src/workflows-app/components/ViewWorkflowScriptModal';
 import { convertToRawUrl } from 'src/workflows-app/utils/method-common';
+import { convertArrayType, loadAppUrls, validateInputs, WdsPollInterval } from 'src/workflows-app/utils/submission-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 export const BaseSubmissionConfig = (

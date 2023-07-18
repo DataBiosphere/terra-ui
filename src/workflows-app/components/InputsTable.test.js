@@ -6,7 +6,6 @@ import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { delay } from 'src/libs/utils';
 import InputsTable from 'src/workflows-app/components/InputsTable';
-import { validateInputs } from 'src/workflows-app/components/submission-common';
 import {
   runSetInputDef,
   runSetInputDefSameInputNames,
@@ -19,6 +18,7 @@ import {
   typesResponse,
   typesResponseWithoutFooRating,
 } from 'src/workflows-app/utils/mock-responses';
+import { validateInputs } from 'src/workflows-app/utils/submission-utils';
 
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),

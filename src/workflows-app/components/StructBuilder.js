@@ -9,16 +9,12 @@ import * as Utils from 'src/libs/utils';
 import {
   InputsButtonRow,
   InputSourceSelect,
-  inputTypeStyle,
-  isInputOptional,
   ParameterValueTextInput,
   RecordLookupSelect,
-  renderTypeText,
   StructBuilderLink,
-  typeMatch,
-  validateInputs,
   WithWarnings,
 } from 'src/workflows-app/components/submission-common';
+import { inputTypeStyle, isInputOptional, renderTypeText, typeMatch, validateInputs } from 'src/workflows-app/utils/submission-utils';
 
 const buildStructTypePath = (indexPath) =>
   _.join(

@@ -12,7 +12,7 @@ import {
   renderTypeText,
   typeMatch,
   validateInputs,
-} from 'src/workflows-app/components/submission-common';
+} from 'src/workflows-app/utils/submission-utils';
 
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
