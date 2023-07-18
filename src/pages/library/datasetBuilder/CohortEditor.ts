@@ -81,7 +81,6 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                       (value) => ({
                         label: value.name,
                         value: value.id,
-                        isSelected: _.includes(value, criteria.valuesSelected),
                       }),
                       criteria.listOption.values
                     ),
