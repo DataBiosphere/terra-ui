@@ -595,8 +595,6 @@ interface DatasetBuilderProps {
   initialState?: AnyDatasetBuilderState;
 }
 
-export type Updater<T> = (updater: (value: T) => T) => void;
-
 const editorBackgroundColor = colors.light(0.7);
 
 export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {

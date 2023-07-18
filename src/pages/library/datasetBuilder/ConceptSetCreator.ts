@@ -2,13 +2,13 @@ import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { Concept, DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
 import { ConceptSelector } from 'src/pages/library/datasetBuilder/ConceptSelector';
-import { ConceptSet, homepageState } from 'src/pages/library/datasetBuilder/dataset-builder-types';
-import { ConceptSetsUpdater, OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
+import { ConceptSet, homepageState, Updater } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import { OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 
 export type ConceptSetCreatorProps = {
   readonly onStateChange: OnStateChangeHandler;
   readonly datasetDetails: DatasetResponse;
-  readonly conceptSetUpdater: ConceptSetsUpdater;
+  readonly conceptSetUpdater: Updater<ConceptSet[]>;
 };
 
 export const toConceptSet = (concept: Concept): ConceptSet => {

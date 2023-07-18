@@ -21,8 +21,9 @@ import {
   newCriteriaGroup,
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
+  Updater,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
-import { OnStateChangeHandler, Updater } from 'src/pages/library/datasetBuilder/DatasetBuilder';
+import { OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 
 const flexWithBaseline = {
   display: 'flex',
