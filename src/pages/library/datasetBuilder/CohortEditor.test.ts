@@ -106,6 +106,7 @@ describe('CohortEditor', () => {
     await user.click((await screen.findAllByText('value0'))[0]);
     await user.click(screen.getByLabelText('Select one or more list'));
     await user.click((await screen.findAllByText('value1'))[0]);
+    // Assert
     expect(updateCriteria).toBeCalledWith({
       ...criteria,
       valuesSelected: [
