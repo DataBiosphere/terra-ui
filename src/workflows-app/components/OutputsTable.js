@@ -5,7 +5,7 @@ import { AutoSizer } from 'react-virtualized';
 import { Link } from 'src/components/common';
 import { TextInput } from 'src/components/input';
 import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table';
-import { WithWarnings } from 'src/workflows-app/components/submission-common';
+import { WithWarnings } from 'src/workflows-app/components/inputs-common';
 import { parseMethodString, renderTypeText } from 'src/workflows-app/utils/submission-utils';
 
 const OutputsTable = (props) => {

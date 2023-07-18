@@ -5,7 +5,6 @@ import { AutoSizer } from 'react-virtualized';
 import { Link } from 'src/components/common';
 import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table';
 import * as Utils from 'src/libs/utils';
-import { StructBuilderModal } from 'src/workflows-app/components/StructBuilder';
 import {
   InputsButtonRow,
   InputSourceSelect,
@@ -13,7 +12,8 @@ import {
   RecordLookupSelect,
   StructBuilderLink,
   WithWarnings,
-} from 'src/workflows-app/components/submission-common';
+} from 'src/workflows-app/components/inputs-common';
+import { StructBuilderModal } from 'src/workflows-app/components/StructBuilder';
 import { inputTypeStyle, isInputOptional, parseMethodString, renderTypeText, typeMatch } from 'src/workflows-app/utils/submission-utils';
 
 const InputsTable = ({ selectedDataTable, configuredInputDefinition, setConfiguredInputDefinition, inputValidations }) => {

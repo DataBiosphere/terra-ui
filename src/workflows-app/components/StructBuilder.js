@@ -13,7 +13,7 @@ import {
   RecordLookupSelect,
   StructBuilderLink,
   WithWarnings,
-} from 'src/workflows-app/components/submission-common';
+} from 'src/workflows-app/components/inputs-common';
 import { inputTypeStyle, isInputOptional, renderTypeText, typeMatch, validateInputs } from 'src/workflows-app/utils/submission-utils';
 
 const buildStructTypePath = (indexPath) =>
