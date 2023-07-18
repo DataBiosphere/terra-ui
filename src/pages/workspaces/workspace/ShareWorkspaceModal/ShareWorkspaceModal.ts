@@ -1,17 +1,19 @@
 import _ from 'lodash/fp';
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import React, { Fragment, useLayoutEffect, useRef, useState } from 'react';
 import { div, h, label, p, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, ButtonSecondary, IdContainer, spinnerOverlay, Switch } from 'src/components/common';
+import { centeredSpinner, icon } from 'src/components/icons';
 import { AutocompleteTextInput } from 'src/components/input';
 import Modal, { styles as modalStyles } from 'src/components/Modal';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
+import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { append, cond, withBusyState } from 'src/libs/utils';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { hasProtectedData, isAzureWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { CurrentCollaborators } from 'src/pages/workspaces/workspace/ShareWorkspaceModal/CurrentCollaborators';
 import {
   aclEntryIsTerraSupport,
@@ -42,7 +44,6 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
   const [updateError, setUpdateError] = useState(undefined);
   const [lastAddedEmail, setLastAddedEmail] = useState(undefined);
   const [searchHasFocus, setSearchHasFocus] = useState(true);
-
   const list = useRef<HTMLDivElement>(null);
 
   const signal = useCancellation();
@@ -140,6 +141,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
       onDismiss,
     },
     [
+      isAzureWorkspace(workspace) && hasProtectedData(workspace) ? h(ProtectedDataWarning) : h(Fragment),
       div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
         h(IdContainer, [
           (id) =>
@@ -183,7 +185,8 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
         ),
       ]),
       searchValueValid && !searchHasFocus && p([addUserReminder]),
-      h(CurrentCollaborators, { acl, setAcl, originalAcl, lastAddedEmail, workspace, loaded }),
+      h(CurrentCollaborators, { acl, setAcl, originalAcl, lastAddedEmail, workspace }),
+      !loaded && centeredSpinner(),
       updateError && div({ style: { marginTop: '1rem' } }, [div(['An error occurred:']), updateError]),
       div({ style: { ...modalStyles.buttonRow, justifyContent: 'space-between' } }, [
         h(IdContainer, [
@@ -262,6 +265,33 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
         ]),
       ]),
       working && spinnerOverlay,
+    ]
+  );
+};
+
+const ProtectedDataWarning: React.FC = () => {
+  const msg =
+    'Do not share Unclassified Confidential Information with anyone unauthorized to access such information, ' +
+    'as it violates US Federal Policy (ie FISMA, FIPS-199, etc) ' +
+    'unless explicitly authorized by the dataset manager or governed by your own agreements';
+
+  return div(
+    {
+      role: 'textbox',
+      style: {
+        display: 'flex',
+        flexDirection: 'row',
+        padding: '0.5rem',
+        fontWeight: 'bold',
+        backgroundColor: colors.dark(0.25),
+      },
+    },
+    [
+      icon('warning-standard', {
+        size: 26,
+        style: { color: colors.danger(1), flexShrink: 0, margin: '0.5rem' },
+      }),
+      msg,
     ]
   );
 };

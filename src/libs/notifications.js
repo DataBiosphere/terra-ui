@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { store } from 'react-notifications-component';
+import { Store } from 'react-notifications-component';
 import { ButtonPrimary, Clickable, IdContainer, Link } from 'src/components/common';
 import ErrorView from 'src/components/ErrorView';
 import { icon } from 'src/components/icons';
@@ -35,12 +35,12 @@ export const notify = (type, title, props) => {
   return notification.id;
 };
 
-export const clearNotification = (id) => store.removeNotification(id);
+export const clearNotification = (id) => Store.removeNotification(id);
 
 export const clearMatchingNotifications = (idPrefix) => {
   const matchingNotificationIds = _.flow(_.map(_.get('id')), _.filter(_.startsWith(idPrefix)))(notificationStore.get());
   matchingNotificationIds.forEach((id) => {
-    store.removeNotification(id);
+    Store.removeNotification(id);
   });
 };
 
@@ -134,7 +134,7 @@ const NotificationDisplay = ({ id }) => {
                           style: { marginTop: '0.25rem', textDecoration: 'underline' },
                           onClick: () => {
                             action.callback();
-                            store.removeNotification(id);
+                            Store.removeNotification(id);
                           },
                         },
                         [action.label]
@@ -148,7 +148,7 @@ const NotificationDisplay = ({ id }) => {
                     'aria-label': type ? `Dismiss ${type} notification` : 'Dismiss notification',
                     title: 'Dismiss notification',
                     onClick: () => {
-                      store.removeNotification(id);
+                      Store.removeNotification(id);
                       onDismiss?.();
                     },
                   },
@@ -216,7 +216,7 @@ const refreshPage = () => {
 };
 
 const showNotification = ({ id, timeout }) => {
-  store.addNotification({
+  Store.addNotification({
     id,
     onRemoval: () => notificationStore.update(_.reject({ id })),
     content: div({ style: { width: '100%' } }, [h(NotificationDisplay, { id })]),

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import * as _ from 'lodash/fp';
 import { useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
+import { MarkdownEditor } from 'src/components/markdown';
 import {
   CatalogNumberInput,
   ListInput,
@@ -10,6 +11,14 @@ import {
   SelectInput,
   StringInput,
 } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
+
+type MarkdownExports = typeof import('src/components/markdown');
+jest.mock('src/components/markdown', (): Partial<MarkdownExports> => {
+  const { createElement } = jest.requireActual('react');
+  return {
+    MarkdownEditor: jest.fn().mockImplementation(() => createElement('div')),
+  };
+});
 
 // These components are needed to test inputs, because they are designed with their value being managed in a parent component's state
 const InputWithState = ({ initialValue, input, props }) => {
@@ -100,7 +109,12 @@ describe('CreateDatasetInputs', () => {
     );
     // Assert
     expect(screen.getByText('Title')).toBeTruthy();
-    // Cannot test for value because the it gets into testing underlying library behavior
+    expect(MarkdownEditor).toHaveBeenCalledWith(
+      expect.objectContaining({
+        value: 'Abc',
+      }),
+      expect.any(Object)
+    );
   });
 
   it('Renders a Select input with the title and value and selectable options', async () => {

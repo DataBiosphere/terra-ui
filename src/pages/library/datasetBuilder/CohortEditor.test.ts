@@ -14,6 +14,7 @@ import {
   Cohort,
   CriteriaGroup,
   DomainCriteria,
+  domainCriteriaSelectorState,
   homepageState,
   newCohort,
   newCriteriaGroup,
@@ -51,18 +52,24 @@ describe('CohortEditor', () => {
 
   it('renders domain criteria', () => {
     // Arrange
-    const criteria: DomainCriteria = criteriaFromOption({
+    const criteria: DomainCriteria = {
       kind: 'domain',
       id: 0,
-      category: 'category',
-      participantCount: 0,
-      conceptCount: 0,
-      values: ['value'],
-    });
+      name: 'test criteria',
+      count: 0,
+      domainOption: {
+        kind: 'domain',
+        id: 0,
+        category: 'test category',
+        participantCount: 0,
+        conceptCount: 0,
+        root: { id: 0, name: 'test concept', count: 0, hasChildren: false },
+      },
+    };
     renderCriteriaView({ criteria });
     // Assert
     expect(screen.getByText(criteria.domainOption.category, { exact: false })).toBeTruthy();
-    expect(screen.getByText('value')).toBeTruthy();
+    expect(screen.getByText(criteria.name)).toBeTruthy();
   });
 
   it('renders list criteria', () => {
@@ -155,7 +162,16 @@ describe('CohortEditor', () => {
     }
     cohort.criteriaGroups.push(criteriaGroup);
     const updateCohort = jest.fn();
-    render(h(CriteriaGroupView, { index: 0, criteriaGroup, updateCohort, cohort, datasetDetails }));
+    render(
+      h(CriteriaGroupView, {
+        index: 0,
+        criteriaGroup,
+        updateCohort,
+        cohort,
+        datasetDetails,
+        onStateChange: _.noop,
+      })
+    );
     return { cohort, updateCohort };
   }
 
@@ -216,21 +232,21 @@ describe('CohortEditor', () => {
     const user = userEvent.setup();
     // Act
     await user.click(screen.getByLabelText('add criteria'));
-    const domainOption = datasetDetails.domainOptions[0];
-    const domainItem = screen.getByText(domainOption.category);
-    await user.click(domainItem);
+    const option = datasetDetails.programDataOptions[0];
+    const dataOptionMenuItem = screen.getByText(option.name);
+    await user.click(dataOptionMenuItem);
     // Assert
     expect(updateCohort).toHaveBeenCalled();
     const updatedCohort: Cohort = updateCohort.mock.calls[0][0](cohort);
     // Remove ID since it won't match up.
-    const { id: _, ...expectedCriteria } = criteriaFromOption(domainOption);
+    const { id: _, ...expectedCriteria } = criteriaFromOption(option);
     expect(updatedCohort.criteriaGroups[0].criteria).toMatchObject([expectedCriteria]);
   });
 
   it('can delete criteria from the criteria group', async () => {
     // Arrange
     const { cohort, updateCohort } = showCriteriaGroup((criteriaGroup) =>
-      criteriaGroup.criteria.push(criteriaFromOption(datasetDetails.domainOptions[0]))
+      criteriaGroup.criteria.push(criteriaFromOption(datasetDetails.programDataOptions[0]))
     );
     const user = userEvent.setup();
     // Act
@@ -290,5 +306,21 @@ describe('CohortEditor', () => {
     // Don't compare name since it's generated.
     const { name: _unused, ...expectedCriteriaGroup } = newCriteriaGroup();
     expect(datasetBuilderCohorts.get()).toMatchObject([{ ...originalCohort, criteriaGroups: [expectedCriteriaGroup] }]);
+  });
+
+  it('shows the domain criteria selector', async () => {
+    // Arrange
+    const { onStateChange } = showCohortEditor();
+    const user = userEvent.setup();
+    // Act
+    await user.click(screen.getByText('Add group'));
+    await user.click(screen.getByLabelText('add criteria'));
+    const domainOption = datasetDetails.domainOptions[0];
+    const domainMenuItem = screen.getByText(domainOption.category);
+    await user.click(domainMenuItem);
+    // Assert
+    expect(onStateChange).toBeCalledWith(
+      domainCriteriaSelectorState.new(expect.anything(), expect.anything(), domainOption)
+    );
   });
 });

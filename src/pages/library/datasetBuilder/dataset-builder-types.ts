@@ -71,7 +71,12 @@ export interface DatasetBuilderType {
   name: string;
 }
 
-type DatasetBuilderMode = 'homepage' | 'cohort-editor' | 'concept-selector' | 'concept-set-creator';
+type DatasetBuilderMode =
+  | 'homepage'
+  | 'cohort-editor'
+  | 'concept-selector'
+  | 'concept-set-creator'
+  | 'domain-criteria-selector';
 
 export interface DatasetBuilderState {
   mode: DatasetBuilderMode;
@@ -94,12 +99,29 @@ export const cohortEditorState = {
   new: (cohort: Cohort): CohortEditorState => ({ mode: 'cohort-editor', cohort }),
 };
 
-export interface ConceptSelectorState extends DatasetBuilderState {
-  mode: 'concept-selector';
+export interface DomainCriteriaSelectorState extends DatasetBuilderState {
+  mode: 'domain-criteria-selector';
+
+  readonly cohort: Cohort;
+  readonly criteriaGroup: CriteriaGroup;
+  readonly domainOption: DomainOption;
 }
+
+export const domainCriteriaSelectorState = {
+  new: (cohort: Cohort, criteriaGroup: CriteriaGroup, domainOption: DomainOption): DomainCriteriaSelectorState => ({
+    mode: 'domain-criteria-selector',
+    cohort,
+    criteriaGroup,
+    domainOption,
+  }),
+};
 
 export interface ConceptSetCreatorState extends DatasetBuilderState {
   mode: 'concept-set-creator';
 }
 
-export type AnyDatasetBuilderState = HomepageState | CohortEditorState | ConceptSelectorState | ConceptSetCreatorState;
+export type AnyDatasetBuilderState =
+  | HomepageState
+  | CohortEditorState
+  | ConceptSetCreatorState
+  | DomainCriteriaSelectorState;
