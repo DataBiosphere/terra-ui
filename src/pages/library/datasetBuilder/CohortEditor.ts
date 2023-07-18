@@ -84,7 +84,7 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                     options: _.map((value) => ({ label: value.name, value: value.id }), criteria.listOption.values),
                     value: _.map((value) => ({ label: value.name, value: value.id }), criteria.valuesSelected),
                     onChange: (values) =>
-                      updateCriteria(
+                      _.flow(
                         _.set(
                           'valuesSelected',
                           _.flow(
@@ -94,9 +94,9 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                             })),
                             _.xorWith(_.isEqual, criteria.valuesSelected)
                           )((values as Option[]) || null),
-                          criteria
-                        )
-                      ),
+                        ),
+                         updateCriteria
+                      )(criteria),
                   }),
                 ]);
               case 'range':
