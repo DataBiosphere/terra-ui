@@ -4,12 +4,15 @@ import { getConfig } from 'src/libs/config';
 import {
   convertToPrimitiveType,
   getDuration,
+  inputTypeStyle,
+  isInputOptional,
   isPrimitiveTypeInputValid,
   isRunInTerminalState,
   isRunSetInTerminalState,
+  renderTypeText,
   typeMatch,
   validateInputs,
-} from 'src/workflows-app/components/submission-common';
+} from 'src/workflows-app/utils/submission-utils';
 
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
@@ -400,10 +403,13 @@ describe('validateInputs', () => {
   });
 });
 
+const optional = (type) => ({ type: 'optional', optional_type: type });
+const primitive = (primitiveType) => ({ type: 'primitive', primitive_type: primitiveType });
+const array = (arrayType) => ({ type: 'array', array_type: arrayType });
+const map = (valueType) => ({ type: 'map', key_type: 'String', value_type: valueType });
+const struct = (...types) => ({ type: 'struct', fields: types });
+
 describe('typeMatch', () => {
-  const optional = (type) => ({ type: 'optional', optional_type: type });
-  const primitive = (primitiveType) => ({ type: 'primitive', primitive_type: primitiveType });
-  const array = (arrayType) => ({ type: 'array', array_type: arrayType });
   const arrayWDS = (wdsType) => `ARRAY_OF_${wdsType}`;
 
   const testCases = [
@@ -444,5 +450,42 @@ describe('typeMatch', () => {
     expect(typeMatch(primitive(cbas), arrayWDS(wds))).toBe(cbas === 'String');
     // Otherwise arrays should typematch the same as if comparing their children
     expect(typeMatch(array(primitive(cbas)), arrayWDS(wds))).toBe(shouldMatch);
+  });
+});
+
+describe('Workflow input type helpers', () => {
+  const cases = _.flow(
+    _.map((baseType) => {
+      const primitiveType = primitive(baseType);
+      const arrayType = array(primitiveType);
+      const mapType = map(primitiveType);
+      const structType = struct(primitiveType, arrayType, mapType);
+      return _.flow(
+        _.map(([type, str]) => [
+          { inputType: type, isOptional: false, inputStyle: {}, inputTypeStr: str },
+          { inputType: optional(type), isOptional: true, inputStyle: { fontStyle: 'italic' }, inputTypeStr: str },
+        ]),
+        _.flatten
+      )([
+        [primitiveType, baseType],
+        [arrayType, `Array[${baseType}]`],
+        [mapType, `Map[String, ${baseType}]`],
+        [structType, 'Struct'],
+      ]);
+    }),
+    _.flatten
+  )(['Int', 'Float', 'Boolean', 'String', 'File']);
+
+  it.each(cases)('$inputType is optional: isOptional', ({ inputType, isOptional }) => {
+    expect(isInputOptional(inputType)).toStrictEqual(isOptional);
+  });
+
+  it.each(cases)('$inputType renders as $inputTypeStr and with proper styling', ({ inputType, inputStyle, inputTypeStr }) => {
+    expect(inputTypeStyle(inputType)).toStrictEqual(inputStyle);
+    expect(renderTypeText(inputType)).toStrictEqual(inputTypeStr);
+  });
+
+  it('Unsupported type recognized', () => {
+    expect(renderTypeText({ type: 'foo' })).toStrictEqual('Unsupported Type');
   });
 });
