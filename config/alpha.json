@@ -29,8 +29,8 @@
   },
   "azurePreviewGroup": true,
   "alphaRegionalityGroup": "Alpha_Regionality_Users",
-  "terraDockerVersionsFile": "terra-docker-versions-alpha.json",
-  "terraDockerImageBucket": "terra-docker-image-documentation-alpha",
+  "terraDockerVersionsFile": "terra-docker-versions-test-hail-219.json",
+  "terraDockerImageBucket": "terra-docker-image-documentation",
   "b2cBillingPolicy": "b2c_1a_signup_signin_billing_alpha",
   "terraDeploymentEnv": "alpha"
 }
