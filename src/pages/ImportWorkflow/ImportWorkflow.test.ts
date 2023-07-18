@@ -101,6 +101,7 @@ jest.mock(
   'react-virtualized',
   (): ReactVirtualizedExports => ({
     ...jest.requireActual('react-virtualized'),
+    // @ts-expect-error
     AutoSizer: ({ children }) => children({ width: 300 }),
   })
 );

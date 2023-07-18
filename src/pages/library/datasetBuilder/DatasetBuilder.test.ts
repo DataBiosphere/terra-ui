@@ -5,12 +5,7 @@ import { h } from 'react-hyperscript-helpers';
 import { dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
 import * as Nav from 'src/libs/nav';
 import { PREPACKAGED_CONCEPT_SETS } from 'src/pages/library/datasetBuilder/constants';
-import {
-  AnyDatasetBuilderState,
-  cohortEditorState,
-  ConceptSet,
-  newCohort,
-} from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import { cohortEditorState, ConceptSet, newCohort } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import {
   CohortSelector,
   ConceptSetSelector,
@@ -201,14 +196,6 @@ describe('DatasetBuilder', () => {
     expect(await screen.findByText(initialState.cohort.name)).toBeTruthy();
   });
 
-  it('shows a placeholder page', async () => {
-    // Arrange
-    const initialState: AnyDatasetBuilderState = { mode: 'concept-selector' };
-    render(h(DatasetBuilderView, { datasetId: 'ignored', initialState }));
-    // Assert
-    expect(await screen.findByText(initialState.mode)).toBeTruthy();
-  });
-
   it('shows the participant count and request access buttons when request is valid', async () => {
     // Arrange
     const user = userEvent.setup();
@@ -225,5 +212,16 @@ describe('DatasetBuilder', () => {
     await user.click(await screen.findByText('Request access to this dataset'));
     // Assert
     expect(await screen.findByText('Requesting access')).toBeTruthy();
+  });
+
+  it('shows the concept set creator', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onStateChange = jest.fn();
+    render(h(DatasetBuilderContents, { onStateChange, dataset: dummyDatasetDetails('id') }));
+    // Act
+    await user.click(await screen.findByLabelText('Create new concept set'));
+    // Assert
+    expect(onStateChange).toHaveBeenCalledWith({ mode: 'concept-set-creator' });
   });
 });
