@@ -97,10 +97,10 @@ export const withWorkspaces = (WrappedComponent) => {
 export const WorkspaceSelector = ({ workspaces, value, onChange, id, 'aria-label': ariaLabel, ...props }) => {
   const options = _.flow(
     _.sortBy((ws) => ws.workspace.name.toLowerCase()),
-    _.map((workspace) => ({
-      value: workspace.workspace.workspaceId,
-      label: workspace.workspace.name,
-      workspace: workspace.workspace,
+    _.map(({ workspace: { workspaceId, name, cloudPlatform, bucketName } }) => ({
+      value: workspaceId,
+      label: name,
+      workspace: { cloudPlatform, bucketName },
     }))
   )(workspaces);
   return h(VirtualizedSelect, {
