@@ -100,6 +100,11 @@ export const parseMethodString = (methodString) => {
   };
 };
 
+export const parseAttributeName = (attributeName) => {
+  const [, columnNamespace, columnName] = /(.+:)?(.+)/.exec(attributeName);
+  return { columnNamespace, columnName };
+};
+
 export const inputSourceLabels = {
   literal: 'Type a Value',
   record_lookup: 'Fetch from Data Table',

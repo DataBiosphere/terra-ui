@@ -5,6 +5,7 @@ import { AutoSizer } from 'react-virtualized';
 import { Checkbox } from 'src/components/common';
 import { GridTable, HeaderCell, Resizable, Sortable, TextCell } from 'src/components/table';
 import colors from 'src/libs/colors';
+import { parseAttributeName } from 'src/workflows-app/utils/submission-utils';
 
 const recordMap = (records) => {
   return _.fromPairs(_.map((e) => [e.id, e], records));
@@ -141,7 +142,7 @@ const RecordsTable = (props) => {
             },
             ..._.map(({ name: attributeName }) => {
               const columnWidth = dataTableColumnWidths[withDataTableNamePrefix(attributeName)] || 300;
-              const [, columnNamespace, columnName] = /(.+:)?(.+)/.exec(attributeName);
+              const { columnNamespace, columnName } = parseAttributeName(attributeName);
               return {
                 field: attributeName,
                 width: columnWidth,

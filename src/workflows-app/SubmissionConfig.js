@@ -19,7 +19,6 @@ import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
 import InputsTable from 'src/workflows-app/components/InputsTable';
 import OutputsTable from 'src/workflows-app/components/OutputsTable';
 import RecordsTable from 'src/workflows-app/components/RecordsTable';
-import { convertArrayType, loadAppUrls, validateInputs, WdsPollInterval } from 'src/workflows-app/components/submission-common';
 import ViewWorkflowScriptModal from 'src/workflows-app/components/ViewWorkflowScriptModal';
 import { convertToRawUrl } from 'src/workflows-app/utils/method-common';
 import { convertArrayType, loadAppUrls, validateInputs, WdsPollInterval } from 'src/workflows-app/utils/submission-utils';
@@ -495,7 +494,7 @@ export const BaseSubmissionConfig = (
         })
       : 'No previous run set data...';
   };
-  
+
   const renderRecordSelector = () => {
     return recordTypes && records.length
       ? h(RecordsTable, {
