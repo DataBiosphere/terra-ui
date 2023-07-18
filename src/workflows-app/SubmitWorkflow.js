@@ -12,7 +12,7 @@ import * as Style from 'src/libs/style';
 import { withBusyState } from 'src/libs/utils';
 import FindWorkflowModal from 'src/workflows-app/components/FindWorkflowModal';
 import { SavedWorkflows } from 'src/workflows-app/components/SavedWorkflows';
-import { loadAppUrls } from 'src/workflows-app/components/submission-common';
+import { loadAppUrls } from 'src/workflows-app/utils/submission-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 const styles = {
