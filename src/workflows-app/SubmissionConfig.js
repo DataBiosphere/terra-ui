@@ -133,6 +133,45 @@ export const BaseSubmissionConfig = (
     [signal, workspaceId]
   );
 
+  const loadWdsData = useCallback(
+    async ({ wdsProxyUrlDetails, recordType, includeLoadRecordTypes = true }) => {
+      try {
+        // try to load WDS proxy URL if one doesn't exist
+        if (wdsProxyUrlDetails.status !== 'Ready') {
+          const { wdsProxyUrlState } = await loadAppUrls(workspaceId);
+          // update only WDS proxy url state. CBAS proxy url will be updated during its own separate scheduled poll
+          workflowsAppStore.update((state) => ({ ...state, wdsProxyUrlState }));
+
+          if (wdsProxyUrlState.status === 'Ready') {
+            if (includeLoadRecordTypes) {
+              await loadRecordTypes(wdsProxyUrlState.state);
+            }
+            await loadRecordsData(recordType, wdsProxyUrlState.state);
+          } else {
+            const wdsUrlState = wdsProxyUrlState.state;
+            const errorDetails = await (wdsUrlState instanceof Response ? wdsUrlState.text() : wdsUrlState);
+            const additionalDetails = errorDetails ? `Error details: ${errorDetails}` : '';
+            // to avoid stacked warning banners due to auto-poll for WDS url, we remove the current banner at 29th second
+            notify('warn', 'Error loading data tables', {
+              detail: `Data Table app not found. Will retry in 30 seconds. ${additionalDetails}`,
+              timeout: WdsPollInterval - 1000,
+            });
+          }
+        } else {
+          // if we have the WDS proxy URL load the WDS data
+          const wdsUrlRoot = wdsProxyUrlDetails.state;
+          if (includeLoadRecordTypes) {
+            await loadRecordTypes(wdsUrlRoot);
+          }
+          await loadRecordsData(recordType, wdsUrlRoot);
+        }
+      } catch (error) {
+        notify('error', 'Error loading data tables', { detail: error instanceof Response ? await error.text() : error });
+      }
+    },
+    [loadRecordsData, loadRecordTypes, workspaceId]
+  );
+
   const loadConfigData = useCallback(
     async (cbasProxyUrlDetails, wdsProxyUrlDetails) => {
       try {
@@ -175,45 +214,6 @@ export const BaseSubmissionConfig = (
       }
     },
     [loadMethodsData, loadRunSet, loadWdsData, runSetRecordType, workspaceId]
-  );
-
-  const loadWdsData = useCallback(
-    async ({ wdsProxyUrlDetails, recordType, includeLoadRecordTypes = true }) => {
-      try {
-        // try to load WDS proxy URL if one doesn't exist
-        if (wdsProxyUrlDetails.status !== 'Ready') {
-          const { wdsProxyUrlState } = await loadAppUrls(workspaceId);
-          // update only WDS proxy url state. CBAS proxy url will be updated during its own separate scheduled poll
-          workflowsAppStore.update((state) => ({ ...state, wdsProxyUrlState }));
-
-          if (wdsProxyUrlState.status === 'Ready') {
-            if (includeLoadRecordTypes) {
-              await loadRecordTypes(wdsProxyUrlState.state);
-            }
-            await loadRecordsData(recordType, wdsProxyUrlState.state);
-          } else {
-            const wdsUrlState = wdsProxyUrlState.state;
-            const errorDetails = await (wdsUrlState instanceof Response ? wdsUrlState.text() : wdsUrlState);
-            const additionalDetails = errorDetails ? `Error details: ${errorDetails}` : '';
-            // to avoid stacked warning banners due to auto-poll for WDS url, we remove the current banner at 29th second
-            notify('warn', 'Error loading data tables', {
-              detail: `Data Table app not found. Will retry in 30 seconds. ${additionalDetails}`,
-              timeout: WdsPollInterval - 1000,
-            });
-          }
-        } else {
-          // if we have the WDS proxy URL load the WDS data
-          const wdsUrlRoot = wdsProxyUrlDetails.state;
-          if (includeLoadRecordTypes) {
-            await loadRecordTypes(wdsUrlRoot);
-          }
-          await loadRecordsData(recordType, wdsUrlRoot);
-        }
-      } catch (error) {
-        notify('error', 'Error loading data tables', { detail: error instanceof Response ? await error.text() : error });
-      }
-    },
-    [loadRecordsData, loadRecordTypes, workspaceId]
   );
 
   const updateRunSetName = () => {
