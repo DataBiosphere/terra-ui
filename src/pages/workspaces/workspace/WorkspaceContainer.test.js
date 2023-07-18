@@ -2,7 +2,6 @@ import { render, screen, within } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { WORKFLOWS_TAB_AZURE_FEATURE_ID } from 'src/libs/feature-previews-config';
 import { WorkspaceContainer, WorkspacePermissionNotice, WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 // Mocking for Nav.getLink
@@ -99,7 +98,7 @@ describe('WorkspaceTabs', () => {
 
   it('renders subset of tabs for Azure workspace with flag enabled, with no accessibility issues', async () => {
     // Enable config
-    isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID).mockReturnValue(true);
+    isFeaturePreviewEnabled.mockReturnValue(true);
     // Arrange
     const props = { workspace: { workspace: { cloudPlatform: 'Azure' } } };
     // Act
