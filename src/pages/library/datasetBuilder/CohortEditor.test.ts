@@ -76,7 +76,7 @@ describe('CohortEditor', () => {
     renderCriteriaView({ criteria });
 
     expect(screen.getByText(criteria.name, { exact: false })).toBeTruthy();
-    expect(screen.getByText(criteria.valuesSelected[0].name, { exact: false })).toBeTruthy();
+    expect(screen.getByText(criteria.valuesSelected[0].name)).toBeTruthy();
   });
 
   it('updates when list updated', async () => {
@@ -97,8 +97,7 @@ describe('CohortEditor', () => {
       criteria,
     });
     // Act
-    await user.click(screen.getByLabelText('Select one or more list'));
-    await user.click((await screen.findAllByText('value0'))[0]);
+    await user.click(await screen.findByLabelText('Remove value0'));
     // Assert
     expect(updateCriteria).toBeCalledWith({ ...criteria, valuesSelected: [] });
     // Act

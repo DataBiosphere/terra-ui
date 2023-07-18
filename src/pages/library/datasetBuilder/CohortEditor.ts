@@ -7,6 +7,7 @@ import {
   DatasetResponse,
   DomainOption,
   ProgramDataListOption,
+  ProgramDataListValueOption,
   ProgramDataRangeOption,
 } from 'src/libs/ajax/DatasetBuilder';
 import colors from 'src/libs/colors';
@@ -38,11 +39,6 @@ type CriteriaViewProps = {
   criteria: AnyCriteria;
   deleteCriteria: (criteria: AnyCriteria) => void;
   updateCriteria: (criteria: AnyCriteria) => void;
-};
-
-type Option = {
-  value: number;
-  label: string;
 };
 
 export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: CriteriaViewProps) =>
@@ -81,19 +77,23 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                     'aria-label': `Select one or more ${criteria.name}`,
                     isClearable: true,
                     isMulti: true,
-                    options: _.map((value) => ({ label: value.name, value: value.id }), criteria.listOption.values),
-                    value: _.map((value) => ({ label: value.name, value: value.id }), criteria.valuesSelected),
+                    options: _.map(
+                      (value) => ({
+                        label: value.name,
+                        value: value.id,
+                        isSelected: _.includes(value, criteria.valuesSelected),
+                      }),
+                      criteria.listOption.values
+                    ),
+                    value: _.map('id', criteria.valuesSelected),
                     onChange: (values) =>
                       _.flow(
                         _.set(
                           'valuesSelected',
-                          _.flow(
-                            _.map((value: Option) => ({
-                              name: value.label,
-                              id: value.value,
-                            })),
-                            _.xorWith(_.isEqual, criteria.valuesSelected)
-                          )((values as Option[]) || null)
+                          _.filter(
+                            (value: ProgramDataListValueOption) => _.flow(_.map('value'), _.includes(value.id))(values),
+                            criteria.listOption.values
+                          )
                         ),
                         updateCriteria
                       )(criteria),
