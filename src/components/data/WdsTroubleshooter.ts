@@ -62,10 +62,9 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
 
   /** For each piece of information we want to include in the troubleshooter, we want:
    * 1. A label
-   * 2. The value of information
+   * 2. The rendered information
    * 3. A function or variable that evaluates to boolean, determining whether the info/validation is still running
    * 4. A function or variable that evaluates to boolean, determining whether the info/validation is successful
-   * 5. An optional element to use in place of the standard defined in troubleShooterRow
    * */
   const troubleShooterText: [string, ReactNode, boolean, boolean][] = [
     ['Workspace Id', workspaceId, false, !!workspaceId],
