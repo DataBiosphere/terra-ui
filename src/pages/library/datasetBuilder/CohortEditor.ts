@@ -76,7 +76,7 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                 return h(Fragment, [strong([`${criteria.domainOption.category}:`]), ` ${criteria.name}`]);
               case 'list':
                 return h(Fragment, [
-                  strong([`${criteria.name}: ${_.flow(_.map('name'), _.join(','))(criteria.valuesSelected)}`]),
+                  strong([`${criteria.name}: ${_.flow(_.map('name'), _.join(', '))(criteria.valuesSelected)}`]),
                   h(Select, {
                     'aria-label': `Select one or more ${criteria.name}`,
                     isClearable: true,
@@ -93,9 +93,9 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                               id: value.value,
                             })),
                             _.xorWith(_.isEqual, criteria.valuesSelected)
-                          )((values as Option[]) || null),
+                          )((values as Option[]) || null)
                         ),
-                         updateCriteria
+                        updateCriteria
                       )(criteria),
                   }),
                 ]);
@@ -295,7 +295,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
                 ([i, criteria]: [number, AnyCriteria]) =>
                   h(CriteriaView, {
                     deleteCriteria,
-                    updateCriteria: (criteria) => updateCriteria(criteria, i),
+                    updateCriteria: (updatedCriteria) => updateCriteria(updatedCriteria, i),
                     criteria,
                     key: criteria.id,
                   }),

@@ -16,7 +16,6 @@ import {
   homepageState,
   newCohort,
   newCriteriaGroup,
-  ProgramDataListCriteria,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
 
@@ -94,27 +93,20 @@ describe('CohortEditor', () => {
       kind: 'list',
       values: [{ id: 0, name: 'value' }],
     });
-    let newCriteria = criteriaFromOption({
-      id: 0,
-      name: 'list',
-      kind: 'list',
-      values: [{ id: 0, name: 'value' }],
-    });
+    let newCriteria;
     render(
       h(CriteriaView, {
         deleteCriteria: _.noop,
         updateCriteria: (updatedCriteria) => {
-          newCriteria = updatedCriteria as ProgramDataListCriteria;
+          newCriteria = updatedCriteria;
         },
         criteria,
         key: criteria.id,
       })
     );
     // Act
-    const select = screen.getByLabelText('Select one or more list');
-    await user.click(select);
-    const valueOption = await screen.findAllByText('value');
-    await user.click(valueOption[0]);
+    await user.click(screen.getByLabelText('Select one or more list'));
+    await user.click((await screen.findAllByText('value'))[0]);
     // Assert
     expect(newCriteria.valuesSelected.length).toBe(0);
   });
