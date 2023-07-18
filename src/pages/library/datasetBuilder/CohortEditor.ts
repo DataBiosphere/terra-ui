@@ -16,7 +16,7 @@ import {
   AnyCriteria,
   Cohort,
   CriteriaGroup,
-  DomainCriteria,
+  domainCriteriaSelectorState,
   homepageState,
   newCriteriaGroup,
   ProgramDataListCriteria,
@@ -85,19 +85,6 @@ export const createCriteriaViewComponent =
     h(CriteriaView, { deleteCriteria, criteria, key: criteria.id });
 
 let criteriaCount = 1;
-const selectDomainCriteria = (domainOption: DomainOption): DomainCriteria => {
-  // This needs to be replaced with a UI that lets users select the criteria they want from
-  // the list of concepts for this domain.
-  return {
-    kind: 'domain',
-    domainOption,
-    name: domainOption.values[0],
-    id: criteriaCount++,
-    // Need to call the API service to get the count for the criteria.
-    count: 100,
-  };
-};
-
 const createDefaultListCriteria = (listOption: ProgramDataListOption): ProgramDataListCriteria => {
   return {
     kind: 'list',
@@ -123,27 +110,20 @@ const createDefaultRangeCriteria = (rangeOption: ProgramDataRangeOption): Progra
 
 type CriteriaOption = DomainOption | ProgramDataRangeOption | ProgramDataListOption;
 
-export function criteriaFromOption(option: DomainOption): DomainCriteria;
+export function criteriaFromOption(option: DomainOption): undefined;
 export function criteriaFromOption(option: ProgramDataListOption): ProgramDataListCriteria;
 export function criteriaFromOption(option: ProgramDataRangeOption): ProgramDataRangeCriteria;
 export function criteriaFromOption(option: CriteriaOption): AnyCriteria;
 
-export function criteriaFromOption(option: CriteriaOption): AnyCriteria {
+export function criteriaFromOption(option: CriteriaOption): AnyCriteria | undefined {
   switch (option.kind) {
-    case 'domain':
-      return selectDomainCriteria(option);
     case 'list':
       return createDefaultListCriteria(option);
     case 'range':
       return createDefaultRangeCriteria(option);
+    case 'domain':
     default:
-      return {
-        kind: 'domain',
-        domainOption: { kind: 'domain', id: 0, category: 'unknown', values: [], conceptCount: 0, participantCount: 0 },
-        name: 'unknown',
-        count: 0,
-        id: 0,
-      };
+      return undefined;
   }
 }
 
@@ -152,10 +132,12 @@ type AddCriteriaSelectorProps = {
   criteriaGroup: CriteriaGroup;
   updateCohort: CohortUpdater;
   datasetDetails: DatasetResponse;
+  onStateChange: OnStateChangeHandler;
+  cohort: Cohort;
 };
 
 const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
-  const { index, criteriaGroup, updateCohort, datasetDetails } = props;
+  const { index, criteriaGroup, updateCohort, datasetDetails, onStateChange, cohort } = props;
   return h(GroupedSelect<CriteriaOption>, {
     styles: { container: (provided) => ({ ...provided, width: '230px', marginTop: wideMargin }) },
     isClearable: false,
@@ -185,8 +167,14 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
     value: null,
     onChange: (x) => {
       if (x !== null) {
-        const criteria = criteriaFromOption(x.value);
-        updateCohort(_.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, criteria));
+        if (x.value.kind === 'domain') {
+          onStateChange(domainCriteriaSelectorState.new(cohort, criteriaGroup, x.value));
+        } else {
+          const criteria = criteriaFromOption(x.value);
+          if (criteria !== undefined) {
+            updateCohort(_.set(`criteriaGroups.${index}.criteria.${criteriaGroup.criteria.length}`, criteria));
+          }
+        }
       }
     },
   });
@@ -198,13 +186,13 @@ type CriteriaGroupViewProps = {
   updateCohort: CohortUpdater;
   cohort: Cohort;
   datasetDetails: DatasetResponse;
+  onStateChange: OnStateChangeHandler;
 };
 
 export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
-  const { index, criteriaGroup, updateCohort, cohort, datasetDetails } = props;
+  const { index, criteriaGroup, updateCohort, cohort, datasetDetails, onStateChange } = props;
   return div(
     {
-      // key: criteriaGroup.name,
       style: {
         backgroundColor: 'white',
         borderRadius: '5px',
@@ -270,7 +258,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
               ]),
             ]),
         ]),
-        h(AddCriteriaSelector, { index, criteriaGroup, updateCohort, datasetDetails }),
+        h(AddCriteriaSelector, { index, criteriaGroup, updateCohort, datasetDetails, onStateChange, cohort }),
       ]),
       div(
         {
@@ -294,9 +282,10 @@ type CohortGroupsProps = {
   cohort: Cohort | undefined;
   datasetDetails: DatasetResponse;
   updateCohort: CohortUpdater;
+  onStateChange: OnStateChangeHandler;
 };
 const CohortGroups: React.FC<CohortGroupsProps> = (props) => {
-  const { datasetDetails, cohort, updateCohort } = props;
+  const { datasetDetails, cohort, updateCohort, onStateChange } = props;
   return div({ style: { width: '47rem' } }, [
     cohort == null
       ? 'No cohort found'
@@ -304,7 +293,7 @@ const CohortGroups: React.FC<CohortGroupsProps> = (props) => {
           _.map(
             ([index, criteriaGroup]) =>
               h(Fragment, { key: criteriaGroup.name }, [
-                h(CriteriaGroupView, { index, criteriaGroup, updateCohort, cohort, datasetDetails }),
+                h(CriteriaGroupView, { index, criteriaGroup, updateCohort, cohort, datasetDetails, onStateChange }),
                 div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'center' } }, [
                   div(
                     {
@@ -368,6 +357,7 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
           datasetDetails,
           cohort,
           updateCohort,
+          onStateChange,
         }),
         h(
           ButtonOutline,
@@ -418,7 +408,7 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
           {
             onClick: () => {
               const cohorts: Cohort[] = datasetBuilderCohorts.get();
-              const cohortIndex = _.findIndex((c) => _.equals(c, originalCohort), cohorts);
+              const cohortIndex = _.findIndex((c) => _.equals(c.name, cohort.name), cohorts);
               datasetBuilderCohorts.set(
                 _.set(`[${cohortIndex === -1 ? cohorts.length : cohortIndex}]`, cohort, cohorts)
               );

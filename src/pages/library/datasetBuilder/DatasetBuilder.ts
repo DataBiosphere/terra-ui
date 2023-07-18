@@ -1,6 +1,7 @@
 import * as _ from 'lodash/fp';
 import React, { Fragment, ReactElement, useEffect, useMemo, useState } from 'react';
 import { div, h, h2, h3, label, li, ul } from 'react-hyperscript-helpers';
+import { ActionBar } from 'src/components/ActionBar';
 import { ButtonPrimary, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon, spinner } from 'src/components/icons';
@@ -15,6 +16,7 @@ import { useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { StringInput } from 'src/pages/library/data-catalog/CreateDataset/CreateDatasetInputs';
 import { CohortEditor } from 'src/pages/library/datasetBuilder/CohortEditor';
+import { ConceptSetCreator } from 'src/pages/library/datasetBuilder/ConceptSetCreator';
 import {
   PAGE_PADDING_HEIGHT,
   PAGE_PADDING_WIDTH,
@@ -30,6 +32,7 @@ import {
   newCohort,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { DatasetBuilderHeader } from 'src/pages/library/datasetBuilder/DatasetBuilderHeader';
+import { DomainCriteriaSelector } from 'src/pages/library/datasetBuilder/DomainCriteriaSelector';
 import { datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/pages/library/datasetBuilder/state';
 import { validate } from 'validate.js';
 
@@ -568,33 +571,14 @@ export const DatasetBuilderContents = ({
         ]),
       ]),
       requestValid &&
-        div(
-          {
-            style: {
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'flex-end',
-              height: '5rem',
-              position: 'absolute',
-              bottom: 0,
-              backgroundColor: 'white',
-              boxShadow: '0 0 4px 0 rgba(0,0,0,0.5)',
-              alignItems: 'center',
-              padding: '1rem 2rem',
-            },
-          },
-          [
-            div({ style: { display: 'flex', alignItems: 'center' } }, [
-              datasetRequestParticipantCount.status === 'Ready' ? datasetRequestParticipantCount.state : spinner(),
-              ' Participants in this dataset',
-            ]),
-            h(
-              ButtonPrimary,
-              { style: { marginLeft: '2rem', borderRadius: 0 }, onClick: () => setRequestingAccess(true) },
-              ['Request access to this dataset']
-            ),
-          ]
-        ),
+        h(ActionBar, {
+          prompt: h(Fragment, [
+            datasetRequestParticipantCount.status === 'Ready' ? datasetRequestParticipantCount.state : spinner(),
+            ' Participants in this dataset',
+          ]),
+          actionText: 'Request access to this dataset',
+          onClick: () => setRequestingAccess(true),
+        }),
     ]),
     requestingAccess &&
       h(RequestAccessModal, {
@@ -619,6 +603,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const [datasetBuilderState, setDatasetBuilderState] = useState<AnyDatasetBuilderState>(
     initialState || homepageState.new()
   );
+  const onStateChange = setDatasetBuilderState;
 
   useOnMount(() => {
     void loadDatasetDetails(() => DatasetBuilder().retrieveDataset(datasetId));
@@ -632,17 +617,21 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
             switch (datasetBuilderState.mode) {
               case 'homepage':
                 return h(DatasetBuilderContents, {
-                  onStateChange: setDatasetBuilderState,
+                  onStateChange,
                   dataset: datasetDetails.state,
                 });
               case 'cohort-editor':
                 return h(CohortEditor, {
-                  onStateChange: setDatasetBuilderState,
+                  onStateChange,
                   originalCohort: datasetBuilderState.cohort,
                   datasetDetails: datasetDetails.state,
                 });
+              case 'domain-criteria-selector':
+                return h(DomainCriteriaSelector, { state: datasetBuilderState, onStateChange });
+              case 'concept-set-creator':
+                return h(ConceptSetCreator, { onStateChange, datasetDetails: datasetDetails.state });
               default:
-                return div([datasetBuilderState.mode]);
+                return datasetBuilderState;
             }
           })(),
         ]),
