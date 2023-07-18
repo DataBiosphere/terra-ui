@@ -296,7 +296,7 @@ const VirtualizedMenuList = (props) => {
       return h(List, {
         ref: list,
         height,
-        width,
+        width: process.env.NODE_ENV === 'test' ? 300 : width,
         rowCount,
         rowHeight,
         rowRenderer: ({ index, style, key }) => div({ key, style }, [children[index]]),
