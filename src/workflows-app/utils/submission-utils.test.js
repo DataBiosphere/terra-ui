@@ -492,7 +492,7 @@ describe('Workflow input type helpers', () => {
 });
 
 describe('parseAttributeName', () => {
-  expect(parseAttributeName('foo')).toStrictEqual({ columnNamespace: undefined, columnName: 'foo' });
+  expect(parseAttributeName('foo')).toStrictEqual({ columnNamespace: '', columnName: 'foo' });
   expect(parseAttributeName('foo:bar')).toStrictEqual({ columnNamespace: 'foo:', columnName: 'bar' });
   expect(parseAttributeName('foo:bar:baz')).toStrictEqual({ columnNamespace: 'foo:bar:', columnName: 'baz' });
 });
