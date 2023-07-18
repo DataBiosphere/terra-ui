@@ -358,7 +358,10 @@ export const ImportDataDestination = ({
 
 // This method identifies whether an import source is considered protected data;
 // For now this means pfb imports from AnVIL or Biodata Catalyst.
-export const isProtected = (url, filetype) => {
+export const isProtectedSource = (url, filetype) => {
+  if (!url) {
+    return false;
+  }
   try {
     const hostname = new URL(url).hostname;
     const protectedHosts = [
@@ -413,7 +416,7 @@ const ImportData = () => {
     [Utils.DEFAULT, () => ['Import Snapshot', `Snapshot ${snapshotName}`]]
   );
 
-  const isProtectedData = !!url && isProtected(url, format);
+  const isProtectedData = isProtectedSource(url, format);
 
   // Normalize the snapshot name:
   // Importing snapshot will throw an "enum" error if the name has any spaces or special characters
