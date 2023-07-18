@@ -8255,7 +8255,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"has-bigints@npm:^1.0.2":
+"has-bigints@npm:^1.0.1, has-bigints@npm:^1.0.2":
   version: 1.0.2
   resolution: "has-bigints@npm:1.0.2"
   checksum: 390e31e7be7e5c6fe68b81babb73dfc35d413604d7ee5f56da101417027a4b4ce6a27e46eff97ad040c835b5d228676eae99a9b5c3bc0e23c8e81a49241ff45b
@@ -8832,9 +8832,11 @@ __metadata:
   linkType: hard
 
 "is-bigint@npm:^1.0.1":
-  version: 1.0.3
-  resolution: "is-bigint@npm:1.0.3"
-  checksum: d52ab4fa6491a315b0c1d09f91cc538c242dd134d2ace3751341f3f38c036d37b5d6b6153b927b57bb78ed9f839415144a966c9141132ed870c65368cba0bf9c
+  version: 1.0.4
+  resolution: "is-bigint@npm:1.0.4"
+  dependencies:
+    has-bigints: ^1.0.1
+  checksum: c56edfe09b1154f8668e53ebe8252b6f185ee852a50f9b41e8d921cb2bed425652049fbe438723f6cb48a63ca1aa051e948e7e401e093477c99c84eba244f666
   languageName: node
   linkType: hard
 
@@ -15025,7 +15027,6 @@ __metadata:
     file-saver: ^2.0.5
     filesize: ^7.0.0
     github-markdown-css: ^4.0.0
-    has-bigints: ^1.0.2
     highcharts: ^9.3.3
     highcharts-react-official: ^3.1.0
     history: ^4.10.1
