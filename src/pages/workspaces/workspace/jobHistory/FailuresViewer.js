@@ -1,6 +1,6 @@
+import ReactJson from '@microlink/react-json-view';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import ReactJson from 'react-json-view';
 import Modal from 'src/components/Modal';
 
 export const FailuresViewer = ({ failures }) => {
