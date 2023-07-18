@@ -10,6 +10,7 @@ import {
   CriteriaView,
 } from 'src/pages/library/datasetBuilder/CohortEditor';
 import {
+  AnyCriteria,
   Cohort,
   CriteriaGroup,
   DomainCriteria,
@@ -20,21 +21,29 @@ import {
 import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
 
 describe('CohortEditor', () => {
+  type CriteriaViewPropsOverrides = {
+    criteria: AnyCriteria;
+    deleteCriteria?: (criteria: AnyCriteria) => void;
+    updateCriteria?: (criteria: AnyCriteria) => void;
+  };
+
   const datasetDetails = dummyDatasetDetails('unused');
+  const renderCriteriaView = (propsOverrides: CriteriaViewPropsOverrides) =>
+    render(
+      h(CriteriaView, {
+        deleteCriteria: _.noop,
+        updateCriteria: _.noop,
+        key: '1',
+        ...propsOverrides,
+      })
+    );
 
   it('renders unknown criteria', () => {
     // Arrange
     const criteria = { name: 'bogus', invalid: 'property' };
 
     // The 'as any' is required to create an invalid criteria for testing purposes.
-    render(
-      h(CriteriaView, {
-        deleteCriteria: _.noop,
-        updateCriteria: _.noop,
-        criteria: criteria as any,
-        key: '1',
-      })
-    );
+    renderCriteriaView({ criteria: criteria as any });
     // Assert
     expect(screen.queryByText(criteria.name)).toBeFalsy();
     expect(screen.queryByText('Unknown criteria')).toBeTruthy();
@@ -50,14 +59,7 @@ describe('CohortEditor', () => {
       conceptCount: 0,
       values: ['value'],
     });
-    render(
-      h(CriteriaView, {
-        deleteCriteria: _.noop,
-        updateCriteria: _.noop,
-        criteria,
-        key: criteria.id,
-      })
-    );
+    renderCriteriaView({ criteria });
     // Assert
     expect(screen.getByText(criteria.domainOption.category, { exact: false })).toBeTruthy();
     expect(screen.getByText('value')).toBeTruthy();
@@ -71,14 +73,7 @@ describe('CohortEditor', () => {
       kind: 'list',
       values: [{ id: 0, name: 'value' }],
     });
-    render(
-      h(CriteriaView, {
-        deleteCriteria: _.noop,
-        updateCriteria: _.noop,
-        criteria,
-        key: criteria.id,
-      })
-    );
+    renderCriteriaView({ criteria });
 
     expect(screen.getByText(criteria.name, { exact: false })).toBeTruthy();
     expect(screen.getByText(criteria.valuesSelected[0].name, { exact: false })).toBeTruthy();
@@ -87,28 +82,37 @@ describe('CohortEditor', () => {
   it('updates when list updated', async () => {
     // Arrange
     const user = userEvent.setup();
+    const updateCriteria = jest.fn();
     const criteria = criteriaFromOption({
       id: 0,
       name: 'list',
       kind: 'list',
-      values: [{ id: 0, name: 'value' }],
+      values: [
+        { id: 0, name: 'value0' },
+        { id: 1, name: 'value1' },
+      ],
     });
-    let newCriteria;
-    render(
-      h(CriteriaView, {
-        deleteCriteria: _.noop,
-        updateCriteria: (updatedCriteria) => {
-          newCriteria = updatedCriteria;
-        },
-        criteria,
-        key: criteria.id,
-      })
-    );
+    renderCriteriaView({
+      updateCriteria,
+      criteria,
+    });
     // Act
     await user.click(screen.getByLabelText('Select one or more list'));
-    await user.click((await screen.findAllByText('value'))[0]);
+    await user.click((await screen.findAllByText('value0'))[0]);
     // Assert
-    expect(newCriteria.valuesSelected.length).toBe(0);
+    expect(updateCriteria).toBeCalledWith({ ...criteria, valuesSelected: [] });
+    // Act
+    await user.click(screen.getByLabelText('Select one or more list'));
+    await user.click((await screen.findAllByText('value0'))[0]);
+    await user.click(screen.getByLabelText('Select one or more list'));
+    await user.click((await screen.findAllByText('value1'))[0]);
+    expect(updateCriteria).toBeCalledWith({
+      ...criteria,
+      valuesSelected: [
+        { id: 0, name: 'value0' },
+        { id: 1, name: 'value1' },
+      ],
+    });
   });
 
   it('renders range criteria', () => {
@@ -120,14 +124,9 @@ describe('CohortEditor', () => {
       min: 55,
       max: 99,
     });
-    render(
-      h(CriteriaView, {
-        deleteCriteria: _.noop,
-        updateCriteria: _.noop,
-        criteria,
-        key: criteria.id,
-      })
-    );
+    renderCriteriaView({
+      criteria,
+    });
     // Assert
     expect(screen.getByText(criteria.name, { exact: false })).toBeTruthy();
     expect(screen.getByText(criteria.low, { exact: false })).toBeTruthy();
@@ -139,14 +138,7 @@ describe('CohortEditor', () => {
     const criteria = criteriaFromOption({ id: 0, name: 'range', kind: 'range', min: 55, max: 99 });
     const deleteCriteria = jest.fn();
 
-    render(
-      h(CriteriaView, {
-        deleteCriteria,
-        updateCriteria: _.noop,
-        criteria,
-        key: criteria.id,
-      })
-    );
+    renderCriteriaView({ deleteCriteria, criteria });
     const user = userEvent.setup();
     // Act
     expect(screen.getByText('range', { exact: false })).toBeTruthy();
