@@ -17,9 +17,11 @@ import { workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { maybeParseJSON } from 'src/libs/utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
-import { CbasPollInterval, convertArrayType, loadAppUrls, validateInputs, WdsPollInterval } from 'src/workflows-app/components/submission-common';
+import InputsTable from 'src/workflows-app/components/InputsTable';
+import OutputsTable from 'src/workflows-app/components/OutputsTable';
 import ViewWorkflowScriptModal from 'src/workflows-app/components/ViewWorkflowScriptModal';
 import { convertToRawUrl } from 'src/workflows-app/utils/method-common';
+import { CbasPollInterval, convertArrayType, loadAppUrls, validateInputs, WdsPollInterval } from 'src/workflows-app/utils/submission-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 export const BaseSubmissionConfig = (
@@ -540,6 +542,26 @@ export const BaseSubmissionConfig = (
     ]);
   };
 
+  const renderInputs = () => {
+    return configuredInputDefinition && recordTypes && records.length
+      ? h(InputsTable, {
+          selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
+          configuredInputDefinition,
+          setConfiguredInputDefinition,
+          inputValidations,
+        })
+      : 'No data table rows available or input definition is not configured...';
+  };
+
+  const renderOutputs = () => {
+    return configuredOutputDefinition
+      ? h(OutputsTable, {
+          configuredOutputDefinition,
+          setConfiguredOutputDefinition,
+        })
+      : 'No previous run set data...';
+  };
+
   return loading
     ? centeredSpinner()
     : h(Fragment, [
@@ -556,7 +578,6 @@ export const BaseSubmissionConfig = (
         div(
           {
             style: {
-              backgroundColor: 'rgb(235, 236, 238)',
               display: 'flex',
               flex: '1 1 auto',
               flexDirection: 'column',
@@ -567,8 +588,8 @@ export const BaseSubmissionConfig = (
             Utils.switchCase(
               activeTab.key || 'select-data',
               ['select-data', () => h2('TODO')], // https://broadworkbench.atlassian.net/browse/WM-2020
-              ['inputs', () => h2('TODO')], // https://broadworkbench.atlassian.net/browse/WM-2021
-              ['outputs', () => h2('TODO')] // https://broadworkbench.atlassian.net/browse/WM-2022
+              ['inputs', () => renderInputs()],
+              ['outputs', () => renderOutputs()]
             ),
           ]
         ),

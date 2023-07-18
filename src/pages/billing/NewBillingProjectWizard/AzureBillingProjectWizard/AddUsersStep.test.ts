@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { AddUsersStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AddUsersStep';
@@ -20,6 +20,7 @@ export const addUserAndOwner = (userEmail, ownerEmail) => {
 };
 
 const defaultProps = {
+  inputDebounce: 0,
   isActive: true,
   userEmails: '',
   ownerEmails: '',
@@ -53,6 +54,8 @@ describe('AddUsersStep', () => {
 
   it('Disables and clears the input fields based on radio button selection', async () => {
     // Arrange
+    const user = userEvent.setup();
+
     const mockAddUsersOrOwners = jest.fn((addUsers) => {
       renderResult.rerender(
         h(AddUsersStep, {
@@ -65,7 +68,7 @@ describe('AddUsersStep', () => {
     const renderResult = render(h(AddUsersStep, { ...defaultProps, onAddUsersOrOwners: mockAddUsersOrOwners }));
 
     // Act
-    fireEvent.click(getAddUsersRadio());
+    await user.click(getAddUsersRadio());
 
     // Assert
     expect(mockAddUsersOrOwners).toBeCalledWith(true);
@@ -75,22 +78,18 @@ describe('AddUsersStep', () => {
     verifyEnabled(getOwnersInput());
 
     // Act and Assert
-    await act(async () => {
-      await userEvent.click(getUsersInput());
-    });
+    await user.click(getUsersInput());
     expect(onOwnersOrUsersInputFocused).toBeCalled();
     fireEvent.change(getUsersInput(), { target: { value: 'user@foo.com' } });
     expect(onSetUserEmails).toBeCalledWith('user@foo.com', false);
 
     onOwnersOrUsersInputFocused.mockReset();
-    await act(async () => {
-      await userEvent.click(getOwnersInput());
-    });
+    await user.click(getOwnersInput());
     expect(onOwnersOrUsersInputFocused).toBeCalled();
     fireEvent.change(getOwnersInput(), { target: { value: 'owner@foo.com' } });
     expect(onSetOwnerEmails).toBeCalledWith('owner@foo.com', false);
 
-    fireEvent.click(getNoUsersRadio());
+    await user.click(getNoUsersRadio());
     expect(mockAddUsersOrOwners).toBeCalledWith(false);
     expect(onSetOwnerEmails).toHaveBeenLastCalledWith('', false);
     expect(onSetUserEmails).toHaveBeenLastCalledWith('', false);

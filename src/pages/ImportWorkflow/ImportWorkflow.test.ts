@@ -21,6 +21,12 @@ type AppsContract = ReturnType<typeof Apps>;
 jest.mock('src/libs/ajax');
 jest.mock('src/libs/ajax/leonardo/Apps');
 
+type ModalExports = typeof import('src/components/Modal');
+jest.mock('src/components/Modal', (): ModalExports => {
+  const { mockModalModule } = jest.requireActual('src/components/Modal.mock');
+  return mockModalModule();
+});
+
 type WorkspaceUtilsExports = typeof import('src/components/workspace-utils');
 jest.mock('src/components/workspace-utils', (): WorkspaceUtilsExports => {
   const { h } = jest.requireActual('react-hyperscript-helpers');
@@ -95,6 +101,7 @@ jest.mock(
   'react-virtualized',
   (): ReactVirtualizedExports => ({
     ...jest.requireActual('react-virtualized'),
+    // @ts-expect-error
     AutoSizer: ({ children }) => children({ width: 300 }),
   })
 );
