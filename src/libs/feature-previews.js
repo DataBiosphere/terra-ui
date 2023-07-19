@@ -25,19 +25,16 @@ const getGroups = async ({ signal } = {}) => {
 export const getAvailableFeaturePreviews = async ({ signal } = {}) => {
   const userGroups = await getGroups({ signal });
 
-  return _.flow(
-    _.filter(({ id, groups: previewGroups }) =>
-      Utils.cond(
-        // Allow access to all feature previews in development.
-        [!getConfig().isProd, () => true],
-        // Feature previews may be configured to only be available for members of certain groups.
-        // Any enabled feature previews should always be shown to allow users to turn them off
-        // even if they've been removed from the preview group.
-        [!_.isNil(previewGroups), () => _.size(_.intersection(userGroups, previewGroups)) > 0 || isFeaturePreviewEnabled(id)],
-        () => true
-      )
-    ),
-    _.sortBy('order')
+  return _.filter(({ id, groups: previewGroups }) =>
+    Utils.cond(
+      // Allow access to all feature previews in development.
+      [!getConfig().isProd, () => true],
+      // Feature previews may be configured to only be available for members of certain groups.
+      // Any enabled feature previews should always be shown to allow users to turn them off
+      // even if they've been removed from the preview group.
+      [!_.isNil(previewGroups), () => _.size(_.intersection(userGroups, previewGroups)) > 0 || isFeaturePreviewEnabled(id)],
+      () => true
+    )
   )(featurePreviewsConfig);
 };
 
