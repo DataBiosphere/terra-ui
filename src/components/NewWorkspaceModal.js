@@ -391,7 +391,7 @@ const NewWorkspaceModal = withDisplayName(
                     LabeledCheckbox,
                     {
                       style: { margin: '0rem 0.25rem 0.25rem 0' },
-                      checked: enhancedBucketLogging,
+                      checked: !!requireEnhancedBucketLogging || enhancedBucketLogging,
                       disabled: !!requireEnhancedBucketLogging || groups.length > 0,
                       onChange: () => setEnhancedBucketLogging(!enhancedBucketLogging),
                     },

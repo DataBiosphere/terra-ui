@@ -323,4 +323,56 @@ describe('NewWorkspaceModal', () => {
     expect(checkbox).toHaveAttribute('disabled');
     expect(checkbox).toBeChecked();
   });
+
+  it('enables Enhanced Bucket Logging if an auth domain is removed', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    Ajax.mockImplementation(() => ({
+      Billing: {
+        listProjects: async () => [gcpBillingProject, azureBillingProject],
+      },
+      ...hasGroupsAjax,
+    }));
+
+    await act(async () => {
+      // eslint-disable-line require-await
+      render(
+        h(NewWorkspaceModal, {
+          cloneWorkspace: false,
+          onSuccess: () => null,
+          onDismiss: () => null,
+          customMessage: null,
+          requiredAuthDomain: false,
+          requireEnhancedBucketLogging: true,
+          title: null,
+          buttonText: null,
+          // workflowImport: false <== Not specified. False should be the default
+        })
+      );
+    });
+
+    const projectSelector = screen.getByText('Select a billing project');
+    await user.click(projectSelector);
+
+    const googleBillingProject = screen.getByText('Google Billing Project');
+    await user.click(googleBillingProject);
+
+    const groupsSelector = screen.getByText('Select groups');
+    await user.click(groupsSelector);
+
+    const authDomain = screen.getByText('AuthDomain');
+    await user.click(authDomain);
+
+    // Assert
+    // getByText throws an error if the element is not found:
+    const checkbox = screen.getByRole('checkbox');
+    expect(checkbox).toHaveAttribute('disabled');
+    expect(checkbox).toBeChecked();
+
+    const removeAuthDomain = screen.getByRole('button', { name: 'Remove AuthDomain' });
+    await user.click(removeAuthDomain);
+    expect(checkbox).toHaveAttribute('disabled');
+    expect(checkbox).toBeChecked();
+  });
 });
