@@ -12,7 +12,6 @@ export const getConfig = () => {
  * NB: Prefer the feature previews page instead of these config overrides for any future flags
  */
 export const isCromwellAppVisible = () => getConfig().isCromwellAppVisible;
-export const isDockstoreEnabled = () => getConfig().isDockstoreEnabled;
 
 export const isAxeEnabled = () => {
   const storedValue = getConfig().isAxeEnabled;

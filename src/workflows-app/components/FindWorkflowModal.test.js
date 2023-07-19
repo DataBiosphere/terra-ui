@@ -4,6 +4,7 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { getConfig } from 'src/libs/config';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { getUser } from 'src/libs/state';
 import FindWorkflowModal from 'src/workflows-app/components/FindWorkflowModal';
 
@@ -22,10 +23,15 @@ jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
   getUser: jest.fn(),
 }));
+// Mocking feature preview setup
+jest.mock('src/libs/feature-previews', () => ({
+  ...jest.requireActual('src/libs/feature-previews'),
+  isFeaturePreviewEnabled: jest.fn(),
+}));
 
 describe('FindWorkflowModal', () => {
   beforeEach(() => {
-    getConfig.mockReturnValue({ isDockstoreEnabled: false });
+    isFeaturePreviewEnabled.mockReturnValue(true);
     getConfig.mockReturnValue({ dockstoreRootUrl: 'https://staging.dockstore.org/' });
   });
 

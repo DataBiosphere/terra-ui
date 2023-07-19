@@ -12,9 +12,10 @@ import importBackground from 'src/images/hex-import-background.svg';
 import { Ajax } from 'src/libs/ajax';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import colors from 'src/libs/colors';
-import { isAzureWorkflowsTabVisible } from 'src/libs/config';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { WORKFLOWS_TAB_AZURE_FEATURE_ID } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { useCancellation } from 'src/libs/react-utils';
 import { getUser } from 'src/libs/state';
@@ -89,7 +90,7 @@ export const ImportWorkflow = ({ path, version, source }) => {
       const methodId = res.method_id;
 
       // TODO: Remove this logic when fully migrated into Terra-UI and Cbas UI has been deprecated
-      if (isAzureWorkflowsTabVisible()) {
+      if (isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID)) {
         Nav.goToPath('workspace-workflows-app-submission-config', { name, namespace, methodId });
       } else {
         await setAzureCookieOnUrl(signal, appUrls.cbasUiUrl, true);
