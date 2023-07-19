@@ -1,7 +1,7 @@
+import ReactJson from '@microlink/react-json-view';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { div, fieldset, h, label, legend, span } from 'react-hyperscript-helpers';
-import ReactJson from 'react-json-view';
 import { IdContainer, LabeledCheckbox, Link, RadioButton, Select, Switch } from 'src/components/common';
 import { convertAttributeValue, getAttributeType } from 'src/components/data/attribute-utils';
 import { icon } from 'src/components/icons';

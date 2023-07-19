@@ -47,7 +47,8 @@ const WorkspaceMenu = ({
 };
 
 const DynamicWorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete, onLock, onLeave }) => {
-  const { workspace } = useWorkspaceDetails({ namespace, name }, ['accessLevel', 'canShare', 'workspace.cloudPlatform', 'workspace.isLocked']);
+  const { workspace } = useWorkspaceDetails({ namespace, name }, ['accessLevel', 'policies', 'canShare', 'workspace.isLocked']);
+
   const canShare = workspace?.canShare;
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel);
   const isLocked = workspace?.workspace.isLocked;
@@ -57,7 +58,9 @@ const DynamicWorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDele
     isLocked,
     isOwner,
     onClone,
-    onShare,
+    // the list component doesn't have workspace details, so we need to pass policies so it can add it for the ShareWorkspaceModal modal
+    // the dashboard component already has the field, so it will ignore the parameter of onShare
+    onShare: () => onShare(workspace?.policies),
     onLock,
     onLeave,
     onDelete,

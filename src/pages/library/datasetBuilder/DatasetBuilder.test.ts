@@ -5,12 +5,7 @@ import { h } from 'react-hyperscript-helpers';
 import { dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
 import * as Nav from 'src/libs/nav';
 import { PREPACKAGED_CONCEPT_SETS } from 'src/pages/library/datasetBuilder/constants';
-import {
-  AnyDatasetBuilderState,
-  cohortEditorState,
-  ConceptSet,
-  newCohort,
-} from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import { cohortEditorState, ConceptSet, newCohort } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import {
   CohortSelector,
   ConceptSetSelector,
@@ -35,6 +30,14 @@ jest.mock('src/components/Modal', () => {
 });
 
 describe('DatasetBuilder', () => {
+  const initializeValidDatasetRequest = async (user) => {
+    datasetBuilderCohorts.set([newCohort('cohort 1')]);
+    datasetBuilderConceptSets.set([{ name: 'concept set 1', featureValueGroupName: 'Condition' }]);
+    render(h(DatasetBuilderContents, { onStateChange: (state) => state, dataset: dummyDatasetDetails('id') }));
+    await user.click(screen.getByLabelText('cohort 1'));
+    await user.click(screen.getByLabelText('concept set 1'));
+  };
+
   beforeEach(() => {
     datasetBuilderCohorts.reset();
     datasetBuilderConceptSets.reset();
@@ -154,13 +157,7 @@ describe('DatasetBuilder', () => {
   it('maintains old values selections', async () => {
     // Arrange
     const user = userEvent.setup();
-
-    datasetBuilderCohorts.set([newCohort('cohort 1'), newCohort('cohort 2')]);
-    datasetBuilderConceptSets.set([{ name: 'concept set 1', featureValueGroupName: 'Condition' }]);
-    render(h(DatasetBuilderContents, { onStateChange: (state) => state, dataset: dummyDatasetDetails('id') }));
-    // Act
-    await user.click(screen.getByLabelText('cohort 1'));
-    await user.click(screen.getByLabelText('concept set 1'));
+    await initializeValidDatasetRequest(user);
     await user.click(screen.getByLabelText('condition column 1'));
     await user.click(screen.getByLabelText('concept set 1'));
     await user.click(screen.getByLabelText('concept set 1'));
@@ -199,11 +196,32 @@ describe('DatasetBuilder', () => {
     expect(await screen.findByText(initialState.cohort.name)).toBeTruthy();
   });
 
-  it('shows a placeholder page', async () => {
+  it('shows the participant count and request access buttons when request is valid', async () => {
     // Arrange
-    const initialState: AnyDatasetBuilderState = { mode: 'concept-selector' };
-    render(h(DatasetBuilderView, { datasetId: 'ignored', initialState }));
+    const user = userEvent.setup();
+    await initializeValidDatasetRequest(user);
     // Assert
-    expect(await screen.findByText(initialState.mode)).toBeTruthy();
+    expect(await screen.findByText('100 Participants in this dataset')).toBeTruthy();
+    expect(await screen.findByText('Request access to this dataset')).toBeTruthy();
+  });
+
+  it('opens the modal when requesting access to the dataset', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await initializeValidDatasetRequest(user);
+    await user.click(await screen.findByText('Request access to this dataset'));
+    // Assert
+    expect(await screen.findByText('Requesting access')).toBeTruthy();
+  });
+
+  it('shows the concept set creator', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onStateChange = jest.fn();
+    render(h(DatasetBuilderContents, { onStateChange, dataset: dummyDatasetDetails('id') }));
+    // Act
+    await user.click(await screen.findByLabelText('Create new concept set'));
+    // Assert
+    expect(onStateChange).toHaveBeenCalledWith({ mode: 'concept-set-creator' });
   });
 });

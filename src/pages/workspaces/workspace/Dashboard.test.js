@@ -1,8 +1,7 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
-import { act } from 'react-dom/test-utils';
 import { h } from 'react-hyperscript-helpers';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { locationTypes } from 'src/components/region-common';
@@ -79,7 +78,7 @@ describe('WorkspaceNotifications', () => {
     const { getByLabelText } = render(h(WorkspaceNotifications, { workspace: testWorkspace }));
     const submissionNotificationsCheckbox = getByLabelText('Receive submission notifications');
 
-    await act(() => user.click(submissionNotificationsCheckbox));
+    await user.click(submissionNotificationsCheckbox);
     expect(setPreferences).toHaveBeenCalledWith({
       'notifications/SuccessfulSubmissionNotification/test/test': 'true',
       'notifications/FailedSubmissionNotification/test/test': 'true',

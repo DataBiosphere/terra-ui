@@ -17,6 +17,7 @@ export const codeFont = { fontFamily: 'Courier New' };
 
 const cardStyles: Record<string, CSSProperties> = {
   title: { color: colors.accent(), fontSize: 16, overflow: 'hidden' },
+  mediumTitle: { fontSize: 20, color: colors.accent(), overflow: 'hidden', fontWeight: 'bold' },
   container: {
     display: 'flex',
     flexDirection: 'column',

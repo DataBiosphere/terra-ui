@@ -120,7 +120,7 @@ export const imageDocs = [
   },
 ];
 
-export const defaultGoogleWorkspace = {
+export const defaultGoogleWorkspace: GoogleWorkspace = {
   workspace: {
     authorizationDomain: [],
     cloudPlatform: 'Gcp',
