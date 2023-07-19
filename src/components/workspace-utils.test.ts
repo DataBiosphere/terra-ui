@@ -4,19 +4,6 @@ import { h } from 'react-hyperscript-helpers';
 
 import { WorkspaceSelector } from './workspace-utils';
 
-// The workspace menu uses react-virtualized's AutoSizer to size the options menu.
-// Left to its own devices, in the unit test environment, AutoSizer makes the menu
-// list 0px wide and no options are rendered. Mocking AutoSizer makes the virtualized
-// window large enough for options to be rendered.
-type ReactVirtualizedExports = typeof import('react-virtualized');
-jest.mock('react-virtualized', (): ReactVirtualizedExports => {
-  return {
-    ...jest.requireActual('react-virtualized'),
-    // @ts-expect-error
-    AutoSizer: ({ children }) => children({ height: 300, width: 300 }),
-  };
-});
-
 describe('WorkspaceSelector', () => {
   const workspaces = [
     { workspace: { workspaceId: 'workspace-a', name: 'Workspace A' } },
