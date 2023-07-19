@@ -20,6 +20,8 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     proxyUrl,
     wdsResponsive,
     version,
+    chartVersion,
+    image,
     wdsStatus,
     wdsDbStatus,
     wdsPingStatus,
@@ -82,6 +84,8 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     ['Data app proxy url', proxyUrl, proxyUrl == null, !!proxyUrl && proxyUrl !== 'unknown', proxyElement],
     ['Data app responding', `${wdsResponsive}`, wdsResponsive == null, !!wdsResponsive && wdsResponsive !== 'unknown'],
     ['Data app version', version, version == null, !!version && version !== 'unknown'],
+    ['Data app chart version', chartVersion, chartVersion === null, !!chartVersion && chartVersion !== 'unknown'],
+    ['Data app image', image, image === null, !!image && image !== 'unknown'],
     [
       'Data app status',
       wdsStatus,
