@@ -8,7 +8,7 @@ import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
 import * as Utils from 'src/libs/utils';
 import { withBusyState } from 'src/libs/utils';
-import { getMethodVersionName } from 'src/workflows-app/utils/method-common';
+import { getMethodVersionName, submitMethod } from 'src/workflows-app/utils/method-common';
 import validate from 'validate.js';
 
 const constraints = {
@@ -21,7 +21,7 @@ const constraints = {
   },
 };
 
-const ImportGithub = ({ setLoading, signal, onDismiss, workspace, submitMethod }) => {
+const ImportGithub = ({ setLoading, signal, onDismiss, workspace }) => {
   const [methodName, setMethodName] = useState('');
   const [methodVersionName, setMethodVersionName] = useState('');
   const [methodUrl, setMethodUrl] = useState('');
