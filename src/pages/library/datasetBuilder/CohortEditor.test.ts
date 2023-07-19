@@ -102,7 +102,7 @@ describe('CohortEditor', () => {
     // Act
     await user.click(await screen.findByLabelText('Remove value0'));
     // Assert
-    expect(updateCriteria).toBeCalledWith({ ...criteria, valuesSelected: [] });
+    expect(updateCriteria).toBeCalledWith({ ...criteria, values: [] });
     // Act
     await user.click(screen.getByLabelText('Select one or more list'));
     await user.click((await screen.findAllByText('value0'))[0]);
@@ -111,7 +111,7 @@ describe('CohortEditor', () => {
     // Assert
     expect(updateCriteria).toBeCalledWith({
       ...criteria,
-      valuesSelected: [
+      values: [
         { id: 0, name: 'value0' },
         { id: 1, name: 'value1' },
       ],
