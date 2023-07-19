@@ -184,6 +184,11 @@ export const ImportDataDestination = ({
   const renderSelectExistingWorkspace = () =>
     h(Fragment, [
       h2({ style: styles.title }, ['Start with an existing workspace']),
+      isProtectedData &&
+        div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [
+          icon('info-circle', { size: 15, style: { marginRight: '0.25rem' }, color: colors.accent() }),
+          ' You may only import to workspaces with an Authorization Domain and/or protected data setting.',
+        ]),
       h(IdContainer, [
         (id) =>
           h(Fragment, [
@@ -359,7 +364,10 @@ export const ImportDataDestination = ({
 
 // This method identifies whether an import source is considered protected data;
 // For now this means pfb imports from AnVIL or Biodata Catalyst.
-export const isProtected = (url, filetype) => {
+export const isProtectedSource = (url, filetype) => {
+  if (!url) {
+    return false;
+  }
   try {
     const hostname = new URL(url).hostname;
     const protectedHosts = [
@@ -414,7 +422,7 @@ const ImportData = () => {
     [Utils.DEFAULT, () => ['Import Snapshot', `Snapshot ${snapshotName}`]]
   );
 
-  const isProtectedData = !!url && isProtected(url, format);
+  const isProtectedData = isProtectedSource(url, format);
 
   // Normalize the snapshot name:
   // Importing snapshot will throw an "enum" error if the name has any spaces or special characters

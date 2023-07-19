@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/analysis/_testData/testData';
 
-import { ImportDataDestination, ImportDataOverview, isProtected, isProtectedWorkspace } from './ImportData';
+import { ImportDataDestination, ImportDataOverview, isProtectedSource, isProtectedWorkspace } from './ImportData';
 
 const protectedUrls = [
   { url: 'https://prod.anvil.gi.ucsc.edu/file', format: 'pfb' },
@@ -22,6 +22,8 @@ const nonProtectedUrls = [
   { url: 'https://anvilproject.org/', format: 'catalog' },
   { url: 'https://gen3.biodatacatalyst.nhlbi.nih.gov/explorer', format: 'snapShot' },
   { url: 'http://localhost:3000', format: '' },
+  { url: '', format: 'pfb' },
+  { url: null, format: 'PFB' },
 ];
 
 // The workspace menu uses react-virtualized's AutoSizer to size the options menu.
@@ -31,13 +33,13 @@ jest.mock('react-virtualized', () => ({
   AutoSizer: ({ children }) => children({ width: 300 }),
 }));
 
-describe('isProtected', () => {
+describe('isProtectedSource', () => {
   it.each(protectedUrls)('%o should  be protected', ({ url, format }) => {
-    expect(isProtected(url, format)).toBe(true);
+    expect(isProtectedSource(url, format)).toBe(true);
   });
 
   it.each(nonProtectedUrls)('%o should not be protected', ({ url, format }) => {
-    expect(isProtected(url, format)).toBe(false);
+    expect(isProtectedSource(url, format)).toBe(false);
   });
 });
 
@@ -142,7 +144,9 @@ describe('ImportDataDestination', () => {
     const existingWorkspace = screen.queryByText('Start with an existing workspace', { exact: false });
     await userEvent.click(existingWorkspace); // select start with existing workspace
 
-    const protectedWarning = screen.queryByText('Unable to import into workspaces without required security settings', { exact: false });
+    const protectedWarning = screen.queryByText('You may only import to workspaces with an Authorization Domain and/or protected data setting.', {
+      exact: false,
+    });
     expect(protectedWarning).not.toBeNull();
   });
 
@@ -162,7 +166,10 @@ describe('ImportDataDestination', () => {
     );
     const existingWorkspace = screen.queryByText('Start with an existing workspace', { exact: false });
     await userEvent.click(existingWorkspace); // select start with existing workspace
-    const protectedWarning = screen.queryByText('Unable to import into workspaces without required security settings', { exact: false });
+
+    const protectedWarning = screen.queryByText('You may only import to workspaces with an Authorization Domain and/or protected data setting.', {
+      exact: false,
+    });
     expect(protectedWarning).toBeNull();
   });
 
