@@ -1,3 +1,5 @@
+import { act, Renderer, renderHook, RenderHookOptions, RenderHookResult } from '@testing-library/react-hooks';
+
 /*
  * Use when working with a jest.fn() mocked method to get better type safety and IDE hinting on
  * the function signature of what's being mocked.
@@ -54,4 +56,15 @@ export const setUpAutoSizerTesting = () => {
       },
     },
   });
+};
+
+export const renderHookInAct = async <T, U>(
+  callback: (args: T) => U,
+  options?: RenderHookOptions<T>
+): Promise<RenderHookResult<T, U, Renderer<T>>> => {
+  let result: RenderHookResult<T, U, Renderer<T>>;
+  await act(async () => {
+    result = renderHook(callback, options);
+  });
+  return result!;
 };

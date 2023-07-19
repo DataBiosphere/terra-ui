@@ -1,5 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { act } from 'react-dom/test-utils';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import {
@@ -37,7 +36,9 @@ describe('SpendReport', () => {
     // 90 days
     fireEvent.keyDown(getDateRangeSelect, { key: 'ArrowDown', code: 'ArrowDown' });
     // Choose the current focused option.
-    fireEvent.keyDown(getDateRangeSelect, { key: 'Enter', code: 'Enter' });
+    await act(async () => {
+      fireEvent.keyDown(getDateRangeSelect, { key: 'Enter', code: 'Enter' });
+    });
 
     await waitFor(() => {
       // Check that 90 days was actually selected. There will always be a DOM element present with
@@ -137,7 +138,7 @@ describe('SpendReport', () => {
 
     // Act
     await act(async () => {
-      await render(h(SpendReport, { viewSelected: false, billingProjectName: 'thrifty', cloudPlatform: 'GCP' }));
+      render(h(SpendReport, { viewSelected: false, billingProjectName: 'thrifty', cloudPlatform: 'GCP' }));
     });
 
     // Assert
@@ -158,7 +159,7 @@ describe('SpendReport', () => {
 
     // Act
     await act(async () => {
-      await render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty', cloudPlatform: 'GCP' }));
+      render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty', cloudPlatform: 'GCP' }));
     });
 
     // Assert
@@ -187,7 +188,7 @@ describe('SpendReport', () => {
 
     // Act
     await act(async () => {
-      await render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty', cloudPlatform: 'AZURE' }));
+      render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty', cloudPlatform: 'AZURE' }));
     });
 
     // Assert
@@ -258,7 +259,7 @@ describe('SpendReport', () => {
 
     // Act
     await act(async () => {
-      await render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty', cloudPlatform: 'GCP' }));
+      render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty', cloudPlatform: 'GCP' }));
     });
 
     // Assert

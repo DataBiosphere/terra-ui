@@ -1,7 +1,7 @@
+import ReactJson from '@microlink/react-json-view';
 import _ from 'lodash/fp';
 import { useEffect, useState } from 'react';
 import { div, h, h1, h2 } from 'react-hyperscript-helpers';
-import ReactJson from 'react-json-view';
 import { ButtonPrimary, GroupedSelect, Link } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { centeredSpinner, icon } from 'src/components/icons';
