@@ -231,7 +231,7 @@ describe('useWdsStatus', () => {
           const mockVersion = {
             app: {
               'chart-version': 'wds-0.24.0',
-              image: 'us.gcr.io/broad-dsp-gcr-public/terra-workspace-data-service',
+              image: 'us.gcr.io/broad-dsp-gcr-public/terra-workspace-data-service:eaf3f31',
             },
             git: { branch: 'main', commit: { id: 'c87286c', time: '2023-06-29T17:06:07Z' } },
             build: {
@@ -263,7 +263,7 @@ describe('useWdsStatus', () => {
               wdsResponsive: 'true',
               version: 'c87286c',
               chartVersion: 'wds-0.24.0',
-              image: 'us.gcr.io/broad-dsp-gcr-public/terra-workspace-data-service',
+              image: 'us.gcr.io/broad-dsp-gcr-public/terra-workspace-data-service:eaf3f31',
             })
           );
         });
