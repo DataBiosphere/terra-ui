@@ -102,11 +102,12 @@ export const configOverridesStore = staticStorageSlot(getSessionStorage(), 'conf
 window.configOverridesStore = configOverridesStore;
 
 /*
- * Stores the proxy urls for WDS and Azure Workflows apps.
+ * Stores the proxy urls for WDS and Azure Workflows apps for a workspace.
  * Status can be one of None, Ready and Error. The proxy url will be in 'state' field when 'status' is Ready.
  * When 'state' is Error the 'state' field will contain the error that was returned from Leo (if any).
  */
 export const workflowsAppStore = Utils.atom({
+  workspaceId: undefined,
   wdsProxyUrlState: { status: 'None', state: '' },
   cbasProxyUrlState: { status: 'None', state: '' },
   cromwellProxyUrlState: { status: 'None', state: '' },

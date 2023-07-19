@@ -7,7 +7,7 @@ import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTablePr
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { notify } from 'src/libs/notifications';
-import { getUser } from 'src/libs/state';
+import { getUser, workflowsAppStore } from 'src/libs/state';
 import { differenceFromDatesInSeconds, differenceFromNowInSeconds } from 'src/libs/utils';
 import * as Utils from 'src/libs/utils';
 import { resolveRunningCromwellAppUrl } from 'src/libs/workflows-app-utils';
@@ -64,6 +64,11 @@ export const loadAllRunSets = async (signal) => {
   }
 };
 
+export const doesAppProxyUrlExist = (workspaceId, proxyUrlStateField) => {
+  const workflowsAppStoreLocal = workflowsAppStore.get();
+  return workflowsAppStoreLocal.workspaceId === workspaceId && workflowsAppStoreLocal[proxyUrlStateField].status === 'Ready';
+};
+
 const resolveProxyUrl = (configRoot, appsList, resolver) => {
   if (configRoot) {
     return { status: 'Ready', state: configRoot };
@@ -76,7 +81,7 @@ const resolveProxyUrl = (configRoot, appsList, resolver) => {
     }
     return { status: 'None', state: '' };
   } catch (error) {
-    return { status: 'Error', state: error };
+    return { status: 'None', state: '' };
   }
 };
 

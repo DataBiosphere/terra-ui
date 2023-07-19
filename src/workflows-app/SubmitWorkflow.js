@@ -14,7 +14,7 @@ import * as Style from 'src/libs/style';
 import { withBusyState } from 'src/libs/utils';
 import FindWorkflowModal from 'src/workflows-app/components/FindWorkflowModal';
 import { SavedWorkflows } from 'src/workflows-app/components/SavedWorkflows';
-import { CbasPollInterval, loadAppUrls } from 'src/workflows-app/utils/submission-utils';
+import { CbasPollInterval, doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/submission-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 const styles = {
@@ -47,7 +47,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
 
     const signal = useCancellation();
     const pollCbasInterval = useRef();
-    const cbasReady = workflowsAppStore.get().cbasProxyUrlState.status === 'Ready';
+    const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
 
     const loadRunsData = useCallback(
       async (cbasProxyUrlDetails) => {
@@ -56,10 +56,12 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
             const { wdsProxyUrlState, cbasProxyUrlState, cromwellProxyUrlState } = await loadAppUrls(workspaceId);
 
             workflowsAppStore.set({
+              workspaceId,
               wdsProxyUrlState,
               cbasProxyUrlState,
               cromwellProxyUrlState,
             });
+
             if (cbasProxyUrlState.status === 'Ready') {
               const runs = await Ajax(signal).Cbas.methods.getWithoutVersions(cbasProxyUrlState.state);
               setMethodsData(runs.methods);
@@ -92,12 +94,11 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
 
     useOnMount(
       withBusyState(setLoading, async () => {
-        const cbasProxyUrlDetails = workflowsAppStore.get().cbasProxyUrlState;
-
-        if (cbasProxyUrlDetails.status !== 'Ready') {
+        if (!cbasReady) {
           const { wdsProxyUrlState, cbasProxyUrlState, cromwellProxyUrlState } = await loadAppUrls(workspaceId);
 
           workflowsAppStore.set({
+            workspaceId,
             wdsProxyUrlState,
             cbasProxyUrlState,
             cromwellProxyUrlState,
@@ -107,7 +108,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
             await loadRunsData(cbasProxyUrlState);
           }
         } else {
-          await loadRunsData(cbasProxyUrlDetails);
+          await loadRunsData(workflowsAppStore.get().cbasProxyUrlState);
         }
       })
     );

@@ -21,7 +21,14 @@ import InputsTable from 'src/workflows-app/components/InputsTable';
 import OutputsTable from 'src/workflows-app/components/OutputsTable';
 import ViewWorkflowScriptModal from 'src/workflows-app/components/ViewWorkflowScriptModal';
 import { convertToRawUrl } from 'src/workflows-app/utils/method-common';
-import { CbasPollInterval, convertArrayType, loadAppUrls, validateInputs, WdsPollInterval } from 'src/workflows-app/utils/submission-utils';
+import {
+  CbasPollInterval,
+  convertArrayType,
+  doesAppProxyUrlExist,
+  loadAppUrls,
+  validateInputs,
+  WdsPollInterval,
+} from 'src/workflows-app/utils/submission-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 export const BaseSubmissionConfig = (
@@ -65,8 +72,8 @@ export const BaseSubmissionConfig = (
   const pollWdsInterval = useRef();
   const pollCbasInterval = useRef();
   const errorMessageCount = _.filter((message) => message.type === 'error')(inputValidations).length;
-  const cbasReady = workflowsAppStore.get().cbasProxyUrlState.status === 'Ready';
-  const wdsReady = workflowsAppStore.get().wdsProxyUrlState.status === 'Ready';
+  const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
+  const wdsReady = doesAppProxyUrlExist(workspaceId, 'wdsProxyUrlState');
 
   const loadRecordsData = useCallback(
     async (recordType, wdsUrlRoot) => {
@@ -140,7 +147,7 @@ export const BaseSubmissionConfig = (
         if (wdsProxyUrlDetails.status !== 'Ready') {
           const { wdsProxyUrlState } = await loadAppUrls(workspaceId);
           // update only WDS proxy url state. CBAS proxy url will be updated during its own separate scheduled poll
-          workflowsAppStore.update((state) => ({ ...state, wdsProxyUrlState }));
+          workflowsAppStore.update((state) => ({ ...state, workspaceId, wdsProxyUrlState }));
 
           if (wdsProxyUrlState.status === 'Ready') {
             if (includeLoadRecordTypes) {
@@ -181,6 +188,7 @@ export const BaseSubmissionConfig = (
 
           // we update states of WDS proxy url as well since it is used in loadWdsData call below
           workflowsAppStore.set({
+            workspaceId,
             wdsProxyUrlState,
             cbasProxyUrlState,
             cromwellProxyUrlState,
@@ -253,13 +261,11 @@ export const BaseSubmissionConfig = (
   };
 
   useOnMount(async () => {
-    const cbasProxyUrlDetails = workflowsAppStore.get().cbasProxyUrlState;
-    const wdsProxyUrlDetails = workflowsAppStore.get().wdsProxyUrlState;
-
-    if (cbasProxyUrlDetails.status !== 'Ready' || wdsProxyUrlDetails.status !== 'Ready') {
+    if (!cbasReady || !wdsReady) {
       const { wdsProxyUrlState, cbasProxyUrlState, cromwellProxyUrlState } = await loadAppUrls(workspaceId);
 
       workflowsAppStore.set({
+        workspaceId,
         wdsProxyUrlState,
         cbasProxyUrlState,
         cromwellProxyUrlState,
@@ -273,10 +279,12 @@ export const BaseSubmissionConfig = (
         });
       }
     } else {
+      const cbasProxyUrlDetails = workflowsAppStore.get().cbasProxyUrlState;
+
       loadRunSet(cbasProxyUrlDetails.state).then((runSet) => {
         setRunSetRecordType(runSet.record_type);
         loadMethodsData(cbasProxyUrlDetails.state, runSet.method_id, runSet.method_version_id);
-        loadWdsData({ wdsProxyUrlDetails, recordType: runSetRecordType });
+        loadWdsData({ wdsProxyUrlDetails: workflowsAppStore.get().wdsProxyUrlState, recordType: runSetRecordType });
       });
     }
   });
