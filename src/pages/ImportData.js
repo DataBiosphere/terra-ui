@@ -23,6 +23,7 @@ import { useOnMount } from 'src/libs/react-utils';
 import { asyncImportJobStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { isGoogleWorkspace } from 'src/libs/workspace-utils';
 import { useDataCatalog } from 'src/pages/library/dataBrowser-utils';
 
 const styles = {
@@ -95,7 +96,7 @@ const ResponseFragment = ({ title, snapshotResponses, responseIndex }) => {
   ]);
 };
 
-export const ImportDataOverview = ({ header, snapshots, isDataset, snapshotResponses, url, format }) =>
+export const ImportDataOverview = ({ header, snapshots, isDataset, snapshotResponses, url, isProtectedData }) =>
   div({ style: styles.card }, [
     h2({ style: styles.title }, [header]),
     !_.isEmpty(snapshots)
@@ -123,9 +124,10 @@ export const ImportDataOverview = ({ header, snapshots, isDataset, snapshotRespo
           ]),
         ])
       : url && div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
-    div({ style: { marginTop: '1rem' } }, [
-      !!url && isProtected(url, format)
-        ? h(Fragment, [
+    div(
+      { style: { marginTop: '1rem' } },
+      isProtectedData
+        ? [
             icon('warning-standard', { size: 15, style: { marginRight: '0.25rem' }, color: colors.warning() }),
             ' The data you chose to import to Terra are identified as protected and require additional security settings. Please select a workspace that has an Authorization Domain and/or protected data setting.',
             h(
@@ -137,14 +139,14 @@ export const ImportDataOverview = ({ header, snapshots, isDataset, snapshotRespo
               },
               ['Learn more about protected data', icon('pop-out', { size: 12 })]
             ),
-          ])
+          ]
         : `The ${isDataset ? 'dataset' : 'snapshot'}(s) you just chose to import to Terra will be made available to you `,
-      'within a workspace of your choice where you can then perform analysis.',
-    ]),
+      'within a workspace of your choice where you can then perform analysis.'
+    ),
   ]);
 
 // ImportDataDestination handles selecting which workspace to import to
-const ImportDataDestination = ({
+export const ImportDataDestination = ({
   workspaceId,
   templateWorkspaces,
   template,
@@ -153,6 +155,7 @@ const ImportDataDestination = ({
   authorizationDomain,
   onImport,
   isImporting,
+  isProtectedData,
 }) => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces();
   const [mode, setMode] = useState(workspaceId ? 'existing' : undefined);
@@ -181,6 +184,11 @@ const ImportDataDestination = ({
   const renderSelectExistingWorkspace = () =>
     h(Fragment, [
       h2({ style: styles.title }, ['Start with an existing workspace']),
+      isProtectedData &&
+        div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [
+          icon('info-circle', { size: 15, style: { marginRight: '0.25rem' }, color: colors.accent() }),
+          ' You may only import to workspaces with an Authorization Domain and/or protected data setting.',
+        ]),
       h(IdContainer, [
         (id) =>
           h(Fragment, [
@@ -195,6 +203,7 @@ const ImportDataDestination = ({
               }, workspaces),
               value: selectedWorkspaceId,
               onChange: setSelectedWorkspaceId,
+              isOptionDisabled: (workspace) => isProtectedData && !isProtectedWorkspace(workspace),
             }),
           ]),
       ]),
@@ -349,7 +358,10 @@ const ImportDataDestination = ({
 
 // This method identifies whether an import source is considered protected data;
 // For now this means pfb imports from AnVIL or Biodata Catalyst.
-export const isProtected = (url, filetype) => {
+export const isProtectedSource = (url, filetype) => {
+  if (!url) {
+    return false;
+  }
   try {
     const hostname = new URL(url).hostname;
     const protectedHosts = [
@@ -366,6 +378,16 @@ export const isProtected = (url, filetype) => {
     console.error(`Unable to parse url: ${url}`);
     return false;
   }
+};
+
+// This method identifies whether a workspace qualifies as protected.
+// 'Protected' here means that it has enhanced logging - either on its own or because it has an auth domain.
+// For now this also means only GCP workspaces are included.
+export const isProtectedWorkspace = (workspace) => {
+  if (!isGoogleWorkspace(workspace)) {
+    return false;
+  }
+  return !!workspace.workspace.bucketName && workspace.workspace.bucketName.startsWith('fc-secure');
 };
 
 // ImportData handles all the information relating to the page itself - this includes:
@@ -393,6 +415,8 @@ const ImportData = () => {
     [isDataset, () => ['Import Data', `Dataset ${snapshotName}`]],
     [Utils.DEFAULT, () => ['Import Snapshot', `Snapshot ${snapshotName}`]]
   );
+
+  const isProtectedData = isProtectedSource(url, format);
 
   // Normalize the snapshot name:
   // Importing snapshot will throw an "enum" error if the name has any spaces or special characters
@@ -524,7 +548,7 @@ const ImportData = () => {
         alt: '',
         style: { position: 'fixed', top: 0, left: 0, zIndex: -1 },
       }),
-      h(ImportDataOverview, { header, snapshots, isDataset, snapshotResponses, url, format }),
+      h(ImportDataOverview, { header, snapshots, isDataset, snapshotResponses, url, isProtectedData }),
       h(ImportDataDestination, {
         workspaceId: wid,
         templateWorkspaces,
@@ -534,6 +558,7 @@ const ImportData = () => {
         authorizationDomain: ad,
         onImport,
         isImporting,
+        isProtectedData,
       }),
     ]),
   ]);

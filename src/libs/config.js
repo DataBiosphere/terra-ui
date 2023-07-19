@@ -9,9 +9,9 @@ export const getConfig = () => {
 
 /**
  * Flags for hidden features
+ * NB: Prefer the feature previews page instead of these config overrides for any future flags
  */
 export const isCromwellAppVisible = () => getConfig().isCromwellAppVisible;
-export const isAzureWorkflowsTabVisible = () => getConfig().isAzureWorkflowsTabVisible;
 export const isDockstoreEnabled = () => getConfig().isDockstoreEnabled;
 
 export const isAxeEnabled = () => {
