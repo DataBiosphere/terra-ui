@@ -37,7 +37,7 @@ export const getAvailableFeaturePreviews = async ({ signal } = {}) => {
         () => true
       )
     ),
-    _.sortBy('title')
+    _.sortBy('order')
   )(featurePreviewsConfig);
 };
 
