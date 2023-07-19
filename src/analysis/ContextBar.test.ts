@@ -36,48 +36,76 @@ const GALAXY_DISK_COST = 1;
 const RUNTIME_COST = 0.1;
 const PERSISTENT_DISK_COST = 0.01;
 
-jest.mock('src/analysis/utils/cost-utils', () => ({
-  ...jest.requireActual('src/analysis/utils/cost-utils'),
-  getGalaxyComputeCost: jest.fn(),
-  getGalaxyDiskCost: jest.fn(),
-  getPersistentDiskCostHourly: jest.fn(),
-  getRuntimeCost: jest.fn(),
-  runtimeConfigCost: jest.fn(),
-}));
+type CostUtilsExports = typeof import('src/analysis/utils/cost-utils');
+jest.mock(
+  'src/analysis/utils/cost-utils',
+  (): CostUtilsExports => ({
+    ...jest.requireActual('src/analysis/utils/cost-utils'),
+    getGalaxyComputeCost: jest.fn(),
+    getGalaxyDiskCost: jest.fn(),
+    getPersistentDiskCostHourly: jest.fn(),
+    getRuntimeCost: jest.fn(),
+    runtimeConfigCost: jest.fn(),
+  })
+);
 
-jest.mock('src/analysis/utils/app-utils', () => ({
-  ...jest.requireActual('src/analysis/utils/app-utils'),
-  doesWorkspaceSupportCromwellAppForUser: jest.fn(),
-}));
+type AppUtilsExports = typeof import('src/analysis/utils/app-utils');
+jest.mock(
+  'src/analysis/utils/app-utils',
+  (): AppUtilsExports => ({
+    ...jest.requireActual('src/analysis/utils/app-utils'),
+    doesWorkspaceSupportCromwellAppForUser: jest.fn(),
+  })
+);
 
-jest.mock('src/analysis/utils/tool-utils', () => ({
-  ...jest.requireActual('src/analysis/utils/tool-utils'),
-  isToolHidden: jest.fn(),
-}));
+type ToolUtilsExports = typeof import('src/analysis/utils/tool-utils');
+jest.mock(
+  'src/analysis/utils/tool-utils',
+  (): ToolUtilsExports => ({
+    ...jest.requireActual('src/analysis/utils/tool-utils'),
+    isToolHidden: jest.fn(),
+  })
+);
 
 // Mocking for terminalLaunchLink using Nav.getLink
-jest.mock('src/libs/nav', () => ({
-  ...jest.requireActual('src/libs/nav'),
-  getPath: jest.fn(() => '/test/'),
-  getLink: jest.fn(() => '/'),
-}));
+type NavExports = typeof import('src/libs/nav');
+jest.mock(
+  'src/libs/nav',
+  (): NavExports => ({
+    ...jest.requireActual('src/libs/nav'),
+    getPath: jest.fn(() => '/test/'),
+    getLink: jest.fn(() => '/'),
+  })
+);
 
 // Mocking PopupTrigger to avoid test environment issues with React Portal's requirement to use
 // DOM measure services which are not available in jest environment
-jest.mock('src/components/PopupTrigger', () => ({
-  ...jest.requireActual('src/components/PopupTrigger'),
-  MenuTrigger: jest.fn(),
-}));
+type PopupTriggerExports = typeof import('src/components/PopupTrigger');
+jest.mock(
+  'src/components/PopupTrigger',
+  (): PopupTriggerExports => ({
+    ...jest.requireActual('src/components/PopupTrigger'),
+    MenuTrigger: jest.fn(),
+  })
+);
 
-jest.mock('src/analysis/modals/CloudEnvironmentModal', () => ({
-  ...jest.requireActual('src/analysis/modals/CloudEnvironmentModal'),
-  CloudEnvironmentModal: jest.fn(),
-}));
+type CloudEnvironmentModalExports = typeof import('src/analysis/modals/CloudEnvironmentModal');
+jest.mock(
+  'src/analysis/modals/CloudEnvironmentModal',
+  (): CloudEnvironmentModalExports => ({
+    ...jest.requireActual('src/analysis/modals/CloudEnvironmentModal'),
+    CloudEnvironmentModal: jest.fn(),
+  })
+);
 
-jest.mock('src/libs/config', () => ({
-  ...jest.requireActual('src/libs/config'),
-  isCromwellAppVisible: jest.fn(),
-}));
+type ConfigExports = typeof import('src/libs/config');
+jest.mock(
+  'src/libs/config',
+  (): ConfigExports => ({
+    ...jest.requireActual('src/libs/config'),
+    isCromwellAppVisible: jest.fn(),
+  })
+);
 
 jest.mock('src/libs/ajax');
 jest.mock('src/libs/feature-previews');
@@ -108,7 +136,7 @@ beforeEach(() => {
       : div([]);
   });
 
-  asMockedFn(Ajax).mockImplementation(() => defaultAjaxImpl as AjaxContract);
+  asMockedFn(Ajax).mockReturnValue(defaultAjaxImpl as AjaxContract);
 
   asMockedFn(getGalaxyComputeCost).mockReturnValue(GALAXY_COMPUTE_COST);
   asMockedFn(getGalaxyDiskCost).mockReturnValue(GALAXY_DISK_COST);
@@ -514,7 +542,7 @@ describe('ContextBar - buttons', () => {
 
   it('will render a Cromwell on Azure button with a disabled Terminal Button', () => {
     // Arrange
-    const cromwellOnAzureContextBarProps = {
+    const cromwellOnAzureContextBarProps: ContextBarProps = {
       ...contextBarPropsForAzure,
       apps: [cromwellOnAzureRunning],
       appDataDisks: [],
@@ -533,7 +561,7 @@ describe('ContextBar - buttons', () => {
 
   it('will not render a Cromwell button if workspace is not supported for cromwell', () => {
     // Arrange
-    const cromwellOnAzureContextBarProps = {
+    const cromwellOnAzureContextBarProps: ContextBarProps = {
       ...contextBarPropsForAzure,
       apps: [cromwellOnAzureRunning],
       appDataDisks: [],
@@ -551,7 +579,7 @@ describe('ContextBar - buttons', () => {
 
   it('will not render a cromwell button if it is hidden ', () => {
     // Arrange
-    const cromwellOnAzureContextBarProps = {
+    const cromwellOnAzureContextBarProps: ContextBarProps = {
       ...contextBarPropsForAzure,
       apps: [cromwellOnAzureRunning],
       appDataDisks: [],
@@ -623,7 +651,7 @@ describe('ContextBar - actions', () => {
 
   it('clicking Jupyter opens CloudEnvironmentModal with Jupyter as filter for tool.', () => {
     // Arrange
-    const jupyterContextBarProps = {
+    const jupyterContextBarProps: ContextBarProps = {
       ...contextBarProps,
       runtimes: [jupyter],
       persistentDisks: [runtimeDisk],
@@ -640,7 +668,7 @@ describe('ContextBar - actions', () => {
 
   it('clicking Galaxy opens CloudEnvironmentModal with Galaxy as filter for tool.', () => {
     // Arrange
-    const galaxyContextBarProps = {
+    const galaxyContextBarProps: ContextBarProps = {
       ...contextBarProps,
       apps: [galaxyRunning],
       appDataDisks: [galaxyDisk],
@@ -657,7 +685,7 @@ describe('ContextBar - actions', () => {
 
   it('clicking RStudio opens CloudEnvironmentModal with RStudio as filter for tool.', () => {
     // Act
-    const rstudioContextBarProps = {
+    const rstudioContextBarProps: ContextBarProps = {
       ...contextBarProps,
       runtimes: [rstudioRuntime],
       apps: [galaxyRunning],
@@ -691,7 +719,7 @@ describe('ContextBar - actions', () => {
       ...defaultAjaxImpl,
       Runtimes: mockRuntimes as RuntimesContract,
     };
-    asMockedFn(Ajax).mockImplementation(() => newMockAjax as AjaxContract);
+    asMockedFn(Ajax).mockReturnValue(newMockAjax as AjaxContract);
 
     const runtime: Runtime = {
       ...jupyter,
@@ -737,9 +765,9 @@ describe('ContextBar - actions', () => {
       ...defaultAjaxImpl,
       Runtimes: mockRuntimes as RuntimesContract,
     };
-    asMockedFn(Ajax).mockImplementation(() => newMockAjax as AjaxContract);
+    asMockedFn(Ajax).mockReturnValue(newMockAjax as AjaxContract);
 
-    const jupyterContextBarProps = {
+    const jupyterContextBarProps: ContextBarProps = {
       ...contextBarProps,
       runtimes: [jupyter],
       persistentDisks: [runtimeDisk],
@@ -796,7 +824,7 @@ describe('ContextBar - actions', () => {
 
   it('will render Hail Batch app if the feature flag is enabled', () => {
     // Arrange
-    const hailBatchContextBarProps = {
+    const hailBatchContextBarProps: ContextBarProps = {
       ...contextBarPropsForAzure,
       apps: [hailBatchAppRunning],
       appDataDisks: [],

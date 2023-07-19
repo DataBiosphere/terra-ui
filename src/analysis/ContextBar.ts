@@ -9,7 +9,7 @@
  */
 
 import _ from 'lodash/fp';
-import React, { Fragment, useState } from 'react';
+import { CSSProperties, Fragment, useState } from 'react';
 import { br, div, h, img, span } from 'react-hyperscript-helpers';
 import { CloudEnvironmentModal } from 'src/analysis/modals/CloudEnvironmentModal';
 import { appLauncherTabName } from 'src/analysis/runtime-common-components';
@@ -25,7 +25,7 @@ import {
 import {
   getCurrentAppDataDisk,
   getCurrentPersistentDisk,
-  mapToUndecoratedPd,
+  mapToUndecoratedPds,
   updatePdType,
 } from 'src/analysis/utils/disk-utils';
 import { getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
@@ -66,7 +66,7 @@ import {
 } from 'src/libs/workspace-utils';
 import { StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace';
 
-const contextBarStyles: { [label: string]: React.CSSProperties } = {
+const contextBarStyles: { [label: string]: CSSProperties } = {
   contextBarContainer: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -179,7 +179,7 @@ export const ContextBar = ({
               appDataDisks,
               computeRegion,
               currentRuntimeTool,
-              mapToUndecoratedPd(persistentDisks),
+              mapToUndecoratedPds(persistentDisks),
               runtimes,
               toolLabel
             ),
@@ -223,7 +223,7 @@ export const ContextBar = ({
     const galaxyRuntimeCost = galaxyApp ? getGalaxyComputeCost(galaxyApp) : 0;
     const galaxyDiskCost = galaxyDisk ? getGalaxyDiskCost(galaxyDisk) : 0;
     const runtimeCost = currentRuntime ? getRuntimeCost(currentRuntime) : 0;
-    const curPd = getCurrentPersistentDisk(runtimes, mapToUndecoratedPd(persistentDisks));
+    const curPd = getCurrentPersistentDisk(runtimes, mapToUndecoratedPds(persistentDisks));
     const diskCost = curPd ? getPersistentDiskCostHourly(updatePdType(curPd), computeRegion) : 0;
     const display = Utils.formatUSD(galaxyRuntimeCost + galaxyDiskCost + runtimeCost + diskCost);
     return display;
@@ -252,7 +252,7 @@ export const ContextBar = ({
       refreshApps,
       workspace,
       canCompute,
-      persistentDisks: mapToUndecoratedPd(persistentDisks),
+      persistentDisks: mapToUndecoratedPds(persistentDisks),
       location,
       computeRegion,
     }),

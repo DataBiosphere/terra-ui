@@ -39,7 +39,7 @@ export const undecoratePd = (disk: DecoratedPersistentDisk): PersistentDisk => (
   diskType: disk.diskType.value,
 });
 
-export const mapToUndecoratedPd = (disks: DecoratedPersistentDisk[]): PersistentDisk[] => _.map(undecoratePd, disks);
+export const mapToUndecoratedPds = (disks: DecoratedPersistentDisk[]): PersistentDisk[] => _.map(undecoratePd, disks);
 
 // Dataproc clusters don't have persistent disks.
 export const defaultDataprocMasterDiskSize = 150;
