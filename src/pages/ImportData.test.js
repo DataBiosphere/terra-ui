@@ -26,13 +26,6 @@ const nonProtectedUrls = [
   { url: null, format: 'PFB' },
 ];
 
-// The workspace menu uses react-virtualized's AutoSizer to size the options menu.
-// This makes the virtualized window large enough for options to be rendered.
-jest.mock('react-virtualized', () => ({
-  ...jest.requireActual('react-virtualized'),
-  AutoSizer: ({ children }) => children({ width: 300 }),
-}));
-
 describe('isProtectedSource', () => {
   it.each(protectedUrls)('%o should  be protected', ({ url, format }) => {
     expect(isProtectedSource(url, format)).toBe(true);

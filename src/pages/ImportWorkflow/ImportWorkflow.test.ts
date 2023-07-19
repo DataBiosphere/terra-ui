@@ -94,18 +94,6 @@ jest.mock(
   })
 );
 
-// The workspace menu uses react-virtualized's AutoSizer to size the options menu.
-// This makes the virtualized window large enough for options to be rendered.
-type ReactVirtualizedExports = typeof import('react-virtualized');
-jest.mock(
-  'react-virtualized',
-  (): ReactVirtualizedExports => ({
-    ...jest.requireActual('react-virtualized'),
-    // @ts-expect-error
-    AutoSizer: ({ children }) => children({ width: 300 }),
-  })
-);
-
 type ErrorExports = typeof import('src/libs/error');
 jest.mock('src/libs/error', (): ErrorExports => {
   const errorModule = jest.requireActual('src/libs/error');
