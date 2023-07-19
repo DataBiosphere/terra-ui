@@ -1,10 +1,13 @@
 import { appStatuses } from 'src/libs/ajax/leonardo/models/app-models';
+import { workflowsAppStore } from 'src/libs/state';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
-import { resolveRunningCromwellAppUrl } from 'src/workflows-app/utils/app-utils';
+import { doesAppProxyUrlExist, resolveRunningCromwellAppUrl } from 'src/workflows-app/utils/app-utils';
 
 describe('resolveRunningCromwellAppUrl', () => {
   const mockCbasUrl = 'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas';
   const mockCbasUiUrl = 'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/';
+  const mockCromwellUrl =
+    'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cromwell';
 
   const mockCurrentUserEmail = 'abc@gmail.com';
 
@@ -21,7 +24,7 @@ describe('resolveRunningCromwellAppUrl', () => {
   };
 
   it.each([
-    { appStatus: appStatuses.running.status, expectedUrl: { cbasUrl: mockCbasUrl, cbasUiUrl: mockCbasUiUrl } },
+    { appStatus: appStatuses.running.status, expectedUrl: { cbasUrl: mockCbasUrl, cbasUiUrl: mockCbasUiUrl, cromwellUrl: mockCromwellUrl } },
     { appStatus: appStatuses.provisioning.status, expectedUrl: null },
     { appStatus: appStatuses.stopped.status, expectedUrl: null },
     { appStatus: appStatuses.stopping.status, expectedUrl: null },
@@ -35,6 +38,7 @@ describe('resolveRunningCromwellAppUrl', () => {
         proxyUrls: {
           cbas: mockCbasUrl,
           'cbas-ui': mockCbasUiUrl,
+          cromwell: mockCromwellUrl,
         },
         auditInfo: {
           creator: mockCurrentUserEmail,
@@ -55,6 +59,7 @@ describe('resolveRunningCromwellAppUrl', () => {
         proxyUrls: {
           cbas: mockCbasUrl,
           'cbas-ui': mockCbasUiUrl,
+          cromwell: mockCromwellUrl,
         },
         auditInfo: {
           creator: 'not-abc@gmail.com',
@@ -83,5 +88,94 @@ describe('resolveRunningCromwellAppUrl', () => {
     ];
 
     expect(resolveRunningCromwellAppUrl(mockApps, mockCurrentUserEmail)).toBe(null);
+  });
+});
+
+describe('doesAppProxyUrlExist', () => {
+  const currentWorkspaceId = 'abc-123';
+  const otherWorkspaceId = 'xyz-890';
+  const mockCbasUrl = 'https://lz-abc/terra-app-abc/cbas';
+  const mockCromwellUrl = 'https://lz-abc/terra-app-abc/cromwell';
+  const mockWdsUrl = 'https://lz-abc/wds-abc-c07807929cd1/';
+
+  it('returns true for CBAS app in Ready state for current workspace', () => {
+    workflowsAppStore.set({
+      workspaceId: currentWorkspaceId,
+      cbasProxyUrlState: { status: 'Ready', state: mockCbasUrl },
+    });
+
+    expect(doesAppProxyUrlExist(currentWorkspaceId, 'cbasProxyUrlState')).toBe(true);
+  });
+
+  it('returns true for WDS app in Ready state for current workspace', () => {
+    workflowsAppStore.set({
+      workspaceId: currentWorkspaceId,
+      wdsProxyUrlState: { status: 'Ready', state: mockWdsUrl },
+    });
+
+    expect(doesAppProxyUrlExist(currentWorkspaceId, 'wdsProxyUrlState')).toBe(true);
+  });
+
+  it('returns true for Cromwell app in Ready state for current workspace', () => {
+    workflowsAppStore.set({
+      workspaceId: currentWorkspaceId,
+      cromwellProxyUrlState: { status: 'Ready', state: mockCromwellUrl },
+    });
+
+    expect(doesAppProxyUrlExist(currentWorkspaceId, 'cromwellProxyUrlState')).toBe(true);
+  });
+
+  it('returns false for CBAS app in None state for current workspace', () => {
+    workflowsAppStore.set({
+      workspaceId: currentWorkspaceId,
+      cbasProxyUrlState: { status: 'None', state: '' },
+    });
+
+    expect(doesAppProxyUrlExist(currentWorkspaceId, 'cbasProxyUrlState')).toBe(false);
+  });
+
+  it('returns false for WDS app in Error state for current workspace', () => {
+    workflowsAppStore.set({
+      workspaceId: currentWorkspaceId,
+      wdsProxyUrlState: { status: 'Error', state: '' },
+    });
+
+    expect(doesAppProxyUrlExist(currentWorkspaceId, 'wdsProxyUrlState')).toBe(false);
+  });
+
+  it('returns false for Cromwell app in None state for current workspace', () => {
+    workflowsAppStore.set({
+      workspaceId: currentWorkspaceId,
+      cromwellProxyUrlState: { status: 'None', state: '' },
+    });
+
+    expect(doesAppProxyUrlExist(currentWorkspaceId, 'cromwellProxyUrlState')).toBe(false);
+  });
+
+  it('returns false for CBAS app in Ready state but in different workspace', () => {
+    workflowsAppStore.set({
+      workspaceId: otherWorkspaceId,
+      cbasProxyUrlState: { status: 'Ready', state: mockCbasUrl },
+    });
+
+    expect(doesAppProxyUrlExist(currentWorkspaceId, 'cbasProxyUrlState')).toBe(false);
+  });
+
+  it('returns false for WDS app in Ready state but in different workspace', () => {
+    workflowsAppStore.set({
+      workspaceId: otherWorkspaceId,
+      wdsProxyUrlState: { status: 'Ready', state: mockWdsUrl },
+    });
+
+    expect(doesAppProxyUrlExist(currentWorkspaceId, 'wdsProxyUrlState')).toBe(false);
+  });
+
+  it('returns true for Cromwell app in Ready state but in different workspace', () => {
+    workflowsAppStore.set({
+      workspaceId: otherWorkspaceId,
+      cromwellProxyUrlState: { status: 'Ready', state: mockCromwellUrl },
+    });
+
+    expect(doesAppProxyUrlExist(currentWorkspaceId, 'cromwellProxyUrlState')).toBe(false);
   });
 });
