@@ -46,13 +46,19 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
       ]
     );
 
-  const troubleShooterRow = ([label, content, iconRunning, iconSuccess]) => {
+  const troubleShooterRow = ([label, content, iconRunning, iconSuccess, element]: [
+    string,
+    string | null,
+    boolean,
+    boolean,
+    ReactNode?
+  ]) => {
     return tr({ key: label }, [
       td({ style: { fontWeight: 'bold' } }, [
         iconRunning ? checkIcon('running') : iconSuccess ? checkIcon('success') : checkIcon('failure'),
       ]),
       td({ style: { fontWeight: 'bold' } }, [label]),
-      td([content]),
+      td([element || content]),
     ]);
   };
 
@@ -65,14 +71,15 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
    * 2. The rendered information
    * 3. A function or variable that evaluates to boolean, determining whether the info/validation is still running
    * 4. A function or variable that evaluates to boolean, determining whether the info/validation is successful
+   * 5. An optional element to use in place of the standard defined in troubleShooterRow
    * */
-  const troubleShooterText: [string, ReactNode, boolean, boolean][] = [
+  const troubleShooterText: [string, string | null, boolean, boolean, ReactNode?][] = [
     ['Workspace Id', workspaceId, false, !!workspaceId],
     ['Resource Group Id', mrgId, false, !!mrgId],
     ['App listing', `${numApps} app(s) total`, numApps == null, !!numApps && numApps !== 'unknown'],
     ['Data app name', appName, appName === null, !!appName && appName !== 'unknown'],
     ['Data app running?', appStatus, appStatus == null, !!appStatus && appStatus !== 'unknown'],
-    ['Data app proxy url', proxyElement, proxyUrl == null, !!proxyUrl && proxyUrl !== 'unknown'],
+    ['Data app proxy url', proxyUrl, proxyUrl == null, !!proxyUrl && proxyUrl !== 'unknown', proxyElement],
     ['Data app responding', `${wdsResponsive}`, wdsResponsive == null, !!wdsResponsive && wdsResponsive !== 'unknown'],
     ['Data app version', version, version == null, !!version && version !== 'unknown'],
     [
