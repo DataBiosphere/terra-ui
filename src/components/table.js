@@ -1,13 +1,12 @@
-import { arrayMoveImmutable as arrayMove } from 'array-move';
 import _ from 'lodash/fp';
 import PropTypes from 'prop-types';
 import { Fragment, useImperativeHandle, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
-import { button, div, h, label, option, select, span } from 'react-hyperscript-helpers';
+import { button, div, h, label, option, select } from 'react-hyperscript-helpers';
 import Pagination from 'react-paginating';
-import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
-import { AutoSizer, defaultCellRangeRenderer, Grid as RVGrid, List, ScrollSync as RVScrollSync } from 'react-virtualized';
-import { ButtonPrimary, Checkbox, Clickable, IdContainer, Link } from 'src/components/common';
+import { defaultCellRangeRenderer, Grid as RVGrid, ScrollSync as RVScrollSync } from 'react-virtualized';
+import { ColumnSettingsList } from 'src/components/ColumnSettingsList';
+import { ButtonPrimary, Clickable, IdContainer, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import Interactive from 'src/components/Interactive';
 import Modal from 'src/components/Modal';
@@ -1035,25 +1034,30 @@ export const Resizable = ({ onWidthChange, width, minWidth = 100, children }) =>
   );
 };
 
-const SortableDiv = SortableElement((props) => div(props));
-const SortableList = SortableContainer((props) => h(List, props));
-const SortableHandleDiv = SortableHandle((props) => div(props));
-
 export const ColumnSettings = ({ columnSettings, onChange }) => {
+  const indexedColumnSettings = _.map.convert({ cap: false })((value, index) => {
+    return _.merge(value, { id: index + 1 }); // I had to make this +1 to get the first element draggable
+  })(columnSettings);
+  const [items, setItems] = useState(indexedColumnSettings);
+
+  const updateItems = (modifiedItems) => {
+    setItems(modifiedItems);
+    onChange(modifiedItems);
+  };
+
   const toggleVisibility = (index) => {
-    onChange(_.update([index, 'visible'], (b) => !b)(columnSettings));
+    const modifiedItems = _.update([index, 'visible'], (b) => !b)(items);
+    updateItems(modifiedItems);
   };
 
   const setAll = (value) => {
-    onChange(_.map(_.set('visible', value))(columnSettings));
+    const modifiedItems = _.map(_.set('visible', value))(items);
+    updateItems(modifiedItems);
   };
 
   const sort = () => {
-    onChange(_.sortBy('name')(columnSettings));
-  };
-
-  const reorder = ({ oldIndex, newIndex }) => {
-    onChange(arrayMove(columnSettings, oldIndex, newIndex));
+    const modifiedItems = _.sortBy('name')(items);
+    updateItems(modifiedItems);
   };
 
   return h(Fragment, [
@@ -1065,60 +1069,7 @@ export const ColumnSettings = ({ columnSettings, onChange }) => {
       div({ style: { marginLeft: 'auto', fontWeight: 500 } }, ['Sort:']),
       h(Link, { style: { padding: '0 0.5rem' }, onClick: () => sort() }, ['alphabetical']),
     ]),
-    h(AutoSizer, { disableHeight: true }, [
-      ({ width }) => {
-        return h(SortableList, {
-          style: { outline: 'none' },
-          lockAxis: 'y',
-          useDragHandle: true,
-          width,
-          height: 400,
-          rowCount: columnSettings.length,
-          rowHeight: 30,
-          rowRenderer: ({ index, style, key }) => {
-            const { name, visible } = columnSettings[index];
-            return h(SortableDiv, { key, index, style: { ...style, display: 'flex' } }, [
-              h(SortableHandleDiv, { style: styles.columnHandle }, [icon('columnGrabber', { style: { transform: 'rotate(90deg)' } })]),
-              h(IdContainer, [
-                (id) =>
-                  h(Fragment, [
-                    h(
-                      TooltipTrigger,
-                      {
-                        // Since attribute names don't contain spaces, word-break: break-all is necessary to
-                        // wrap the attribute name instead of truncating it when the tooltip reaches its
-                        // max width of 400px.
-                        content: span({ style: { wordBreak: 'break-all' } }, name),
-                      },
-                      [
-                        label(
-                          {
-                            htmlFor: id,
-                            style: {
-                              lineHeight: '30px', // match rowHeight of SortableList
-                              ...Style.noWrapEllipsis,
-                            },
-                          },
-                          [
-                            h(Checkbox, {
-                              id,
-                              checked: visible,
-                              onChange: () => toggleVisibility(index),
-                            }),
-                            ' ',
-                            name,
-                          ]
-                        ),
-                      ]
-                    ),
-                  ]),
-              ]),
-            ]);
-          },
-          onSortEnd: (v) => reorder(v),
-        });
-      },
-    ]),
+    h(ColumnSettingsList, { items, onChange: updateItems, toggleVisibility }),
   ]);
 };
 
