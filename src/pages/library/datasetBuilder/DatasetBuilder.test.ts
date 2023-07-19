@@ -2,10 +2,10 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
+import { ConceptSet, dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
 import * as Nav from 'src/libs/nav';
 import { PREPACKAGED_CONCEPT_SETS } from 'src/pages/library/datasetBuilder/constants';
-import { cohortEditorState, ConceptSet, newCohort } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import { cohortEditorState, newCohort } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import {
   CohortSelector,
   ConceptSetSelector,

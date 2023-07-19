@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
+import { AnyCriteria, Cohort, CriteriaGroup, DomainCriteria, dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
 import {
   CohortEditor,
   criteriaFromOption,
@@ -10,10 +10,6 @@ import {
   CriteriaView,
 } from 'src/pages/library/datasetBuilder/CohortEditor';
 import {
-  AnyCriteria,
-  Cohort,
-  CriteriaGroup,
-  DomainCriteria,
   domainCriteriaSelectorState,
   homepageState,
   newCohort,
@@ -83,7 +79,7 @@ describe('CohortEditor', () => {
     renderCriteriaView({ criteria });
 
     expect(screen.getByText(criteria.name, { exact: false })).toBeTruthy();
-    expect(screen.getByText(criteria.valuesSelected[0].name)).toBeTruthy();
+    expect(screen.getByText(criteria.values[0].name)).toBeTruthy();
   });
 
   it('updates when list updated', async () => {

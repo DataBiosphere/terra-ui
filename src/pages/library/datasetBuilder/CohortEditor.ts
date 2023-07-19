@@ -4,24 +4,24 @@ import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
 import { ButtonOutline, ButtonPrimary, GroupedSelect, Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import {
+  AnyCriteria,
+  Cohort,
+  CriteriaGroup,
   DatasetResponse,
   DomainOption,
+  ProgramDataListCriteria,
   ProgramDataListOption,
-  ProgramDataListValueOption,
+  ProgramDataListValue,
+  ProgramDataRangeCriteria,
   ProgramDataRangeOption,
 } from 'src/libs/ajax/DatasetBuilder';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from 'src/pages/library/datasetBuilder/constants';
 import {
-  AnyCriteria,
-  Cohort,
-  CriteriaGroup,
   domainCriteriaSelectorState,
   homepageState,
   newCriteriaGroup,
-  ProgramDataListCriteria,
-  ProgramDataRangeCriteria,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
@@ -40,6 +40,8 @@ type CriteriaViewProps = {
   deleteCriteria: (criteria: AnyCriteria) => void;
   updateCriteria: (criteria: AnyCriteria) => void;
 };
+
+const addCriteriaText = 'Add criteria';
 
 export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: CriteriaViewProps) =>
   div(
@@ -72,7 +74,7 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                 return h(Fragment, [strong([`${criteria.domainOption.category}:`]), ` ${criteria.name}`]);
               case 'list':
                 return h(Fragment, [
-                  strong([`${criteria.name}: ${_.flow(_.map('name'), _.join(', '))(criteria.valuesSelected)}`]),
+                  strong([`${criteria.name}: ${_.flow(_.map('name'), _.join(', '))(criteria.values)}`]),
                   h(Select, {
                     'aria-label': `Select one or more ${criteria.name}`,
                     isClearable: true,
@@ -84,13 +86,13 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                       }),
                       criteria.listOption.values
                     ),
-                    value: _.map('id', criteria.valuesSelected),
+                    value: _.map('id', criteria.values),
                     onChange: (values) =>
                       _.flow(
                         _.set(
-                          'valuesSelected',
+                          'values',
                           _.filter(
-                            (value: ProgramDataListValueOption) => _.flow(_.map('value'), _.includes(value.id))(values),
+                            (value: ProgramDataListValue) => _.flow(_.map('value'), _.includes(value.id))(values),
                             criteria.listOption.values
                           )
                         ),
@@ -118,7 +120,7 @@ const createDefaultListCriteria = (listOption: ProgramDataListOption): ProgramDa
     name: listOption.name,
     id: criteriaCount++,
     count: 100,
-    valuesSelected: [listOption.values[0]],
+    values: [listOption.values[0]],
   };
 };
 
@@ -188,8 +190,8 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
         }, datasetDetails.programDataOptions),
       },
     ],
-    'aria-label': 'add criteria',
-    placeholder: 'Add criteria',
+    'aria-label': addCriteriaText,
+    placeholder: addCriteriaText,
     value: null,
     onChange: (x) => {
       if (x !== null) {
@@ -221,8 +223,14 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
   const deleteCriteria = (criteria: AnyCriteria) =>
     updateCohort(_.set(`criteriaGroups.${index}.criteria`, _.without([criteria], criteriaGroup.criteria)));
 
-  const updateCriteria = (criteria: AnyCriteria, criteriaIndex: number) =>
-    updateCohort(_.set(`criteriaGroups.${index}.criteria.${criteriaIndex}`, criteria));
+  const updateCriteria = (criteria: AnyCriteria) => {
+    updateCohort(
+      _.set(
+        `criteriaGroups.${index}.criteria.${_.findIndex({ id: criteria.id }, cohort.criteriaGroups[index].criteria)}`,
+        criteria
+      )
+    );
+  };
 
   return div(
     {
@@ -279,19 +287,19 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
         div([
           criteriaGroup.criteria.length !== 0
             ? _.map(
-                ([i, criteria]: [number, AnyCriteria]) =>
+                (criteria) =>
                   h(CriteriaView, {
                     deleteCriteria,
-                    updateCriteria: (updatedCriteria) => updateCriteria(updatedCriteria, i),
+                    updateCriteria,
                     criteria,
                     key: criteria.id,
                   }),
-                Utils.toIndexPairs(criteriaGroup.criteria)
+                criteriaGroup.criteria
               )
             : div({ style: { marginTop: 15 } }, [
                 div({ style: { fontWeight: 'bold', fontStyle: 'italic' } }, ['No criteria yet']),
                 div({ style: { fontStyle: 'italic', marginTop: narrowMargin } }, [
-                  "You can add a criteria by clicking on 'Add criteria'",
+                  `You can add a criteria by clicking on '${addCriteriaText}'`,
                 ]),
               ]),
         ]),

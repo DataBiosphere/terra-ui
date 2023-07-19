@@ -8,7 +8,15 @@ import { icon, spinner } from 'src/components/icons';
 import { ValidatedInput, ValidatedTextArea } from 'src/components/input';
 import Modal from 'src/components/Modal';
 import TopBar from 'src/components/TopBar';
-import { DatasetBuilder, DatasetBuilderValue, DatasetResponse, FeatureValueGroup } from 'src/libs/ajax/DatasetBuilder';
+import {
+  Cohort,
+  ConceptSet,
+  DatasetBuilder,
+  DatasetBuilderType,
+  DatasetBuilderValue,
+  DatasetResponse,
+  FeatureValueGroup,
+} from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
@@ -24,10 +32,7 @@ import {
 } from 'src/pages/library/datasetBuilder/constants';
 import {
   AnyDatasetBuilderState,
-  Cohort,
   cohortEditorState,
-  ConceptSet,
-  DatasetBuilderType,
   homepageState,
   newCohort,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
