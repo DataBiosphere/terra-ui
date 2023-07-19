@@ -46,14 +46,12 @@ const featurePreviewsConfig = [
     id: WORKFLOWS_TAB_AZURE_FEATURE_ID,
     title: 'Workflows Tab for Azure workspaces',
     description: 'Enabling this feature will allow you to launch workflows in Azure workspaces.',
-    groups: ['preview-workflows-azure'],
     feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on Workflows Tab (Azure)')}`,
   },
   {
     id: FIND_WORKFLOWS_AZURE_FEATURE_ID,
     title: 'Find Workflows for Azure workspaces',
-    description: 'Enabling this feature will allow you to find and import new workflows in Azure workspaces.',
-    groups: ['preview-workflows-azure'],
+    description: 'Enabling this feature will allow you to find and import new workflows in Azure workspaces. Requires the Workflows Tab.',
     feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on Find Workflows (Azure)')}`,
   },
   {
