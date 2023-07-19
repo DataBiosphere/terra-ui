@@ -56,7 +56,7 @@ const featurePreviewsConfig = [
   {
     id: FIND_WORKFLOWS_AZURE_FEATURE_ID,
     title: 'Find Workflows for Azure workspaces',
-    description: 'Enabling this feature will allow you to find and import new workflows in Azure workspaces.',
+    description: 'Enabling this feature will allow you to find and import new workflows in Azure workspaces. Requires the Workflows Tab.',
     feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on Find Workflows (Azure)')}`,
     order: 7,
   },
