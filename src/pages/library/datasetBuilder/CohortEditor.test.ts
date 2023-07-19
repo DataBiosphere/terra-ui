@@ -227,7 +227,7 @@ describe('CohortEditor', () => {
     const { cohort, updateCohort } = showCriteriaGroup();
     const user = userEvent.setup();
     // Act
-    await user.click(screen.getByLabelText('add criteria'));
+    await user.click(screen.getByLabelText('Add criteria'));
     const option = datasetDetails.programDataOptions[0];
     const dataOptionMenuItem = screen.getByText(option.name);
     await user.click(dataOptionMenuItem);
@@ -310,7 +310,7 @@ describe('CohortEditor', () => {
     const user = userEvent.setup();
     // Act
     await user.click(screen.getByText('Add group'));
-    await user.click(screen.getByLabelText('add criteria'));
+    await user.click(screen.getByLabelText('Add criteria'));
     const domainOption = datasetDetails.domainOptions[0];
     const domainMenuItem = screen.getByText(domainOption.category);
     await user.click(domainMenuItem);
