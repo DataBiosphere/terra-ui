@@ -274,6 +274,7 @@ describe('BaseSubmissionConfig with workflowsAppStore', () => {
     });
 
     workflowsAppStore.set({
+      workspaceId: undefined,
       wdsProxyUrlState: { status: 'None', state: '' },
       cbasProxyUrlState: { status: 'None', state: '' },
       cromwellProxyUrlState: { status: 'None', state: '' },
@@ -300,6 +301,7 @@ describe('BaseSubmissionConfig with workflowsAppStore', () => {
     });
 
     // assert that when the proxy urls were extracted they were also set in the workflowsAppStore
+    expect(workflowsAppStore.get().workspaceId).toStrictEqual(mockAzureWorkspace.workspace.workspaceId);
     expect(workflowsAppStore.get().wdsProxyUrlState).toStrictEqual({ status: 'Ready', state: 'https://lz-abc/wds-abc-c07807929cd1/' });
     expect(workflowsAppStore.get().cbasProxyUrlState).toStrictEqual({ status: 'Ready', state: 'https://lz-abc/terra-app-abc/cbas' });
     expect(workflowsAppStore.get().cromwellProxyUrlState).toStrictEqual({ status: 'Ready', state: 'https://lz-abc/terra-app-abc/cromwell' });
@@ -338,6 +340,7 @@ describe('BaseSubmissionConfig with workflowsAppStore', () => {
     });
 
     workflowsAppStore.set({
+      workspaceId: 'abc-c07807929cd1',
       wdsProxyUrlState: { status: 'Ready', state: 'https://lz-abc/wds-abc-c07807929cd1/' },
       cbasProxyUrlState: { status: 'Ready', state: 'https://lz-abc/terra-app-abc/cbas' },
       cromwellProxyUrlState: { status: 'Ready', state: 'https://lz-abc/terra-app-abc/cromwell' },

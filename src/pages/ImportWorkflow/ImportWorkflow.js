@@ -20,8 +20,8 @@ import { getUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { workflowNameValidation } from 'src/libs/workflow-utils';
-import { resolveRunningCromwellAppUrl } from 'src/libs/workflows-app-utils';
 import { isGoogleWorkspaceInfo } from 'src/libs/workspace-utils';
+import { resolveRunningCromwellAppUrl } from 'src/workflows-app/utils/app-utils';
 import validate from 'validate.js';
 
 import { importDockstoreWorkflow } from './importDockstoreWorkflow';

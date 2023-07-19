@@ -1,12 +1,10 @@
-import { appStatuses, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
-import { resolveRunningCromwellAppUrl } from 'src/libs/workflows-app-utils';
+import { appStatuses } from 'src/libs/ajax/leonardo/models/app-models';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
+import { resolveRunningCromwellAppUrl } from 'src/workflows-app/utils/app-utils';
 
 describe('resolveRunningCromwellAppUrl', () => {
-  const mockCbasUrl =
-    'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas';
-  const mockCbasUiUrl =
-    'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/';
+  const mockCbasUrl = 'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas';
+  const mockCbasUiUrl = 'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/';
 
   const mockCurrentUserEmail = 'abc@gmail.com';
 
@@ -29,7 +27,7 @@ describe('resolveRunningCromwellAppUrl', () => {
     { appStatus: appStatuses.stopping.status, expectedUrl: null },
     { appStatus: appStatuses.error.status, expectedUrl: null },
   ])('returns correct value for Cromwell app in $appStatus from the Leo response', ({ appStatus, expectedUrl }) => {
-    const mockAppsResponse: ListAppResponse[] = [
+    const mockAppsResponse = [
       {
         ...appResponseCommonField,
         appType: 'CROMWELL',
@@ -49,7 +47,7 @@ describe('resolveRunningCromwellAppUrl', () => {
   });
 
   it('returns null for Cromwell app not created by current user in the workspace', () => {
-    const mockApps: ListAppResponse[] = [
+    const mockApps = [
       {
         ...appResponseCommonField,
         appType: 'CROMWELL',
@@ -70,7 +68,7 @@ describe('resolveRunningCromwellAppUrl', () => {
   });
 
   it('returns null if there exists apps other than Cromwell in the workspace', () => {
-    const mockApps: ListAppResponse[] = [
+    const mockApps = [
       {
         ...appResponseCommonField,
         appType: 'HAIL_BATCH',

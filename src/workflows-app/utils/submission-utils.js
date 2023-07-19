@@ -3,14 +3,10 @@ import { div } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
 import { statusType as jobStatusType } from 'src/components/job-common';
 import { Ajax } from 'src/libs/ajax';
-import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
-import { getConfig } from 'src/libs/config';
 import { notify } from 'src/libs/notifications';
-import { getUser, workflowsAppStore } from 'src/libs/state';
 import { differenceFromDatesInSeconds, differenceFromNowInSeconds } from 'src/libs/utils';
 import * as Utils from 'src/libs/utils';
-import { resolveRunningCromwellAppUrl } from 'src/libs/workflows-app-utils';
 
 export const AutoRefreshInterval = 1000 * 60; // 1 minute
 export const WdsPollInterval = 1000 * 30; // 30 seconds
@@ -61,66 +57,6 @@ export const loadAllRunSets = async (signal) => {
     return _.merge(getRunSets, { run_sets: durationEnhancedRunSets });
   } catch (error) {
     notify('error', 'Error getting run set data', { detail: error instanceof Response ? await error.text() : error });
-  }
-};
-
-export const doesAppProxyUrlExist = (workspaceId, proxyUrlStateField) => {
-  const workflowsAppStoreLocal = workflowsAppStore.get();
-  return workflowsAppStoreLocal.workspaceId === workspaceId && workflowsAppStoreLocal[proxyUrlStateField].status === 'Ready';
-};
-
-const resolveProxyUrl = (configRoot, appsList, resolver) => {
-  if (configRoot) {
-    return { status: 'Ready', state: configRoot };
-  }
-
-  try {
-    const proxyUrl = resolver(appsList);
-    if (proxyUrl) {
-      return { status: 'Ready', state: proxyUrl };
-    }
-    return { status: 'None', state: '' };
-  } catch (error) {
-    return { status: 'None', state: '' };
-  }
-};
-
-export const loadAppUrls = async (workspaceId) => {
-  // we can set these configs in dev.json if we want local Terra UI to connect to local WDS or Workflows related services.
-  const wdsUrlRoot = getConfig().wdsUrlRoot;
-  const cbasUrlRoot = getConfig().cbasUrlRoot;
-  const cromwellUrlRoot = getConfig().cromwellUrlRoot;
-
-  // don't call Leonardo if Terra UI needs to ping all 3 services locally
-  if (wdsUrlRoot && cbasUrlRoot && cromwellUrlRoot) {
-    return {
-      wdsProxyUrlState: { status: 'Ready', state: wdsUrlRoot },
-      cbasProxyUrlState: { status: 'Ready', state: cbasUrlRoot },
-      cromwellProxyUrlState: { status: 'Ready', state: cromwellUrlRoot },
-    };
-  }
-
-  try {
-    const appsList = await Ajax().Apps.listAppsV2(workspaceId);
-    const wdsProxyUrlState = resolveProxyUrl(wdsUrlRoot, appsList, (appsList) => resolveWdsUrl(appsList));
-    const cbasProxyUrlState = resolveProxyUrl(cbasUrlRoot, appsList, (appsList) => resolveRunningCromwellAppUrl(appsList, getUser()?.email).cbasUrl);
-    const cromwellProxyUrlState = resolveProxyUrl(
-      cromwellUrlRoot,
-      appsList,
-      (appsList) => resolveRunningCromwellAppUrl(appsList, getUser()?.email).cromwellUrl
-    );
-
-    return {
-      wdsProxyUrlState,
-      cbasProxyUrlState,
-      cromwellProxyUrlState,
-    };
-  } catch (error) {
-    return {
-      wdsProxyUrlState: { status: 'Error', state: error },
-      cbasProxyUrlState: { status: 'Error', state: error },
-      cromwellProxyUrlState: { status: 'Error', state: error },
-    };
   }
 };
 

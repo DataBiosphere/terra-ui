@@ -20,15 +20,9 @@ import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
 import InputsTable from 'src/workflows-app/components/InputsTable';
 import OutputsTable from 'src/workflows-app/components/OutputsTable';
 import ViewWorkflowScriptModal from 'src/workflows-app/components/ViewWorkflowScriptModal';
+import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { convertToRawUrl } from 'src/workflows-app/utils/method-common';
-import {
-  CbasPollInterval,
-  convertArrayType,
-  doesAppProxyUrlExist,
-  loadAppUrls,
-  validateInputs,
-  WdsPollInterval,
-} from 'src/workflows-app/utils/submission-utils';
+import { CbasPollInterval, convertArrayType, validateInputs, WdsPollInterval } from 'src/workflows-app/utils/submission-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 export const BaseSubmissionConfig = (
