@@ -4,8 +4,6 @@ import { ButtonOutline, Clickable } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { FIND_WORKFLOWS_AZURE_FEATURE_ID } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
@@ -34,6 +32,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     {
       name,
       namespace,
+      workspace,
       workspace: {
         workspace: { workspaceId },
       },
@@ -97,11 +96,10 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
                 Clickable,
                 {
                   'aria-haspopup': 'dialog',
-                  disabled: !isFeaturePreviewEnabled(FIND_WORKFLOWS_AZURE_FEATURE_ID),
                   style: {
                     ...styles.card,
                     ...styles.shortCard,
-                    color: isFeaturePreviewEnabled(FIND_WORKFLOWS_AZURE_FEATURE_ID) ? colors.accent() : colors.dark(0.7),
+                    color: colors.accent(),
                     fontSize: 18,
                     lineHeight: '22px',
                   },
@@ -111,7 +109,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
               ),
               h(Fragment, [h(SavedWorkflows, { workspaceName: name, namespace, methodsData })]),
             ]),
-            viewFindWorkflowModal && h(FindWorkflowModal, { name, namespace, onDismiss: () => setViewFindWorkflowModal(false) }),
+            viewFindWorkflowModal && h(FindWorkflowModal, { name, namespace, workspace, onDismiss: () => setViewFindWorkflowModal(false) }),
           ]),
         ]);
   }
