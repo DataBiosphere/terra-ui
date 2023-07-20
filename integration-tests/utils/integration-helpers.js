@@ -205,7 +205,7 @@ const clickNavChildAndLoad = async (page, tab) => {
 };
 
 const viewWorkspaceDashboard = async (page, token, workspaceName) => {
-  // Sign in to handle unexpected NPS survey popup and Loading Terra... spinner
+  // Sign in to handle "Loading Terra..." spinner
   await signIntoTerra(page, { token });
   await click(page, clickable({ textContains: 'View Workspaces' }));
   await dismissNotifications(page);

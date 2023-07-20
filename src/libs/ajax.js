@@ -208,17 +208,6 @@ const User = (signal) => ({
     return getFirstTimeStamp(getUser().token);
   },
 
-  // UX is testing using AppCues. If experiment is successful, all NpsSurvey code can be deleted.
-  lastNpsResponse: async () => {
-    const res = await fetchRex('npsResponses/lastTimestamp', _.merge(authOpts(), { signal }));
-    return res.json();
-  },
-
-  // UX is testing using AppCues. If experiment is successful, all NpsSurvey code can be deleted.
-  postNpsResponse: (body) => {
-    return fetchRex('npsResponses/create', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
-  },
-
   getNihStatus: async () => {
     try {
       const res = await fetchOrchestration('api/nih/status', _.merge(authOpts(), { signal }));
