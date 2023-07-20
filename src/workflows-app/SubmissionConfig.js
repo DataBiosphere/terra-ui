@@ -16,10 +16,12 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { maybeParseJSON } from 'src/libs/utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
+import InputsTable from 'src/workflows-app/components/InputsTable';
 import OutputsTable from 'src/workflows-app/components/OutputsTable';
-import { convertArrayType, loadAppUrls, validateInputs, WdsPollInterval } from 'src/workflows-app/components/submission-common';
+import RecordsTable from 'src/workflows-app/components/RecordsTable';
 import ViewWorkflowScriptModal from 'src/workflows-app/components/ViewWorkflowScriptModal';
 import { convertToRawUrl } from 'src/workflows-app/utils/method-common';
+import { convertArrayType, loadAppUrls, validateInputs, WdsPollInterval } from 'src/workflows-app/utils/submission-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 export const BaseSubmissionConfig = (
@@ -39,6 +41,7 @@ export const BaseSubmissionConfig = (
   const [availableMethodVersions, setAvailableMethodVersions] = useState();
   const [selectedMethodVersion, setSelectedMethodVersion] = useState();
   const [records, setRecords] = useState([]);
+  const [dataTableColumnWidths, setDataTableColumnWidths] = useState({});
   const [loading, setLoading] = useState(false);
   const [workflowScript, setWorkflowScript] = useState();
   const [runSetRecordType, setRunSetRecordType] = useState();
@@ -60,6 +63,7 @@ export const BaseSubmissionConfig = (
   const [displayLaunchModal, setDisplayLaunchModal] = useState(false);
   const [noRecordTypeData, setNoRecordTypeData] = useState(null);
 
+  const dataTableRef = useRef();
   const signal = useCancellation();
   const pollWdsInterval = useRef();
   const errorMessageCount = _.filter((message) => message.type === 'error')(inputValidations).length;
@@ -235,6 +239,10 @@ export const BaseSubmissionConfig = (
       setInputValidations(newInputValidations);
     }
   }, [records, recordTypes, configuredInputDefinition]);
+
+  useEffect(() => {
+    dataTableRef.current?.recomputeColumnSizes();
+  }, [dataTableColumnWidths, records, recordTypes]);
 
   useEffect(() => {
     if (method && availableMethodVersions) {
@@ -464,6 +472,17 @@ export const BaseSubmissionConfig = (
     ]);
   };
 
+  const renderInputs = () => {
+    return configuredInputDefinition && recordTypes && records.length
+      ? h(InputsTable, {
+          selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
+          configuredInputDefinition,
+          setConfiguredInputDefinition,
+          inputValidations,
+        })
+      : 'No data table rows available or input definition is not configured...';
+  };
+
   const renderOutputs = () => {
     return configuredOutputDefinition
       ? h(OutputsTable, {
@@ -471,6 +490,20 @@ export const BaseSubmissionConfig = (
           setConfiguredOutputDefinition,
         })
       : 'No previous run set data...';
+  };
+
+  const renderRecordSelector = () => {
+    return recordTypes && records.length
+      ? h(RecordsTable, {
+          dataTableColumnWidths,
+          setDataTableColumnWidths,
+          dataTableRef,
+          records,
+          selectedRecords,
+          setSelectedRecords,
+          selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType || records[0].type],
+        })
+      : 'No data table rows selected...';
   };
 
   return loading
@@ -489,7 +522,6 @@ export const BaseSubmissionConfig = (
         div(
           {
             style: {
-              backgroundColor: 'rgb(235, 236, 238)',
               display: 'flex',
               flex: '1 1 auto',
               flexDirection: 'column',
@@ -499,8 +531,8 @@ export const BaseSubmissionConfig = (
           [
             Utils.switchCase(
               activeTab.key || 'select-data',
-              ['select-data', () => h2('TODO')], // https://broadworkbench.atlassian.net/browse/WM-2020
-              ['inputs', () => h2('TODO')], // https://broadworkbench.atlassian.net/browse/WM-2021
+              ['select-data', () => renderRecordSelector()],
+              ['inputs', () => renderInputs()],
               ['outputs', () => renderOutputs()]
             ),
           ]
