@@ -21,9 +21,9 @@ import {
   newCriteriaGroup,
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
+  Updater,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
-import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
 
 const flexWithBaseline = {
   display: 'flex',
@@ -130,7 +130,7 @@ export function criteriaFromOption(option: CriteriaOption): AnyCriteria | undefi
 type AddCriteriaSelectorProps = {
   index: number;
   criteriaGroup: CriteriaGroup;
-  updateCohort: CohortUpdater;
+  updateCohort: Updater<Cohort>;
   datasetDetails: DatasetResponse;
   onStateChange: OnStateChangeHandler;
   cohort: Cohort;
@@ -183,7 +183,7 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
 type CriteriaGroupViewProps = {
   index: number;
   criteriaGroup: CriteriaGroup;
-  updateCohort: CohortUpdater;
+  updateCohort: Updater<Cohort>;
   cohort: Cohort;
   datasetDetails: DatasetResponse;
   onStateChange: OnStateChangeHandler;
@@ -281,7 +281,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
 type CohortGroupsProps = {
   cohort: Cohort | undefined;
   datasetDetails: DatasetResponse;
-  updateCohort: CohortUpdater;
+  updateCohort: Updater<Cohort>;
   onStateChange: OnStateChangeHandler;
 };
 const CohortGroups: React.FC<CohortGroupsProps> = (props) => {
@@ -325,7 +325,7 @@ const CohortGroups: React.FC<CohortGroupsProps> = (props) => {
 const editorBackgroundColor = colors.light(0.7);
 
 type CohortEditorContentsProps = {
-  updateCohort: CohortUpdater;
+  updateCohort: Updater<Cohort>;
   cohort: Cohort;
   datasetDetails: DatasetResponse;
   onStateChange: OnStateChangeHandler;
@@ -377,17 +377,16 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
 };
 
 interface CohortEditorProps {
-  onStateChange: OnStateChangeHandler;
-  datasetDetails: DatasetResponse;
-  originalCohort: Cohort;
+  readonly onStateChange: OnStateChangeHandler;
+  readonly datasetDetails: DatasetResponse;
+  readonly originalCohort: Cohort;
+  readonly updateCohorts: Updater<Cohort[]>;
 }
 
-type CohortUpdater = (updater: (cohort: Cohort) => Cohort) => void;
-
 export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
-  const { onStateChange, datasetDetails, originalCohort } = props;
+  const { onStateChange, datasetDetails, originalCohort, updateCohorts } = props;
   const [cohort, setCohort] = useState<Cohort>(originalCohort);
-  const updateCohort: CohortUpdater = (updateCohort: (Cohort) => Cohort) => _.flow(updateCohort, setCohort)(cohort);
+  const updateCohort = (updateCohort: (Cohort) => Cohort) => _.flow(updateCohort, setCohort)(cohort);
 
   return h(Fragment, [
     h(CohortEditorContents, { updateCohort, cohort, datasetDetails, onStateChange }),
@@ -407,11 +406,10 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
           ButtonPrimary,
           {
             onClick: () => {
-              const cohorts: Cohort[] = datasetBuilderCohorts.get();
-              const cohortIndex = _.findIndex((c) => _.equals(c.name, cohort.name), cohorts);
-              datasetBuilderCohorts.set(
-                _.set(`[${cohortIndex === -1 ? cohorts.length : cohortIndex}]`, cohort, cohorts)
-              );
+              updateCohorts((cohorts) => {
+                const index = _.findIndex((c) => _.equals(c.name, cohort.name), cohorts);
+                return _.set(`[${index === -1 ? cohorts.length : index}]`, cohort, cohorts);
+              });
               onStateChange(homepageState.new());
             },
           },
