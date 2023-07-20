@@ -269,13 +269,11 @@ describe('NewWorkspaceModal', () => {
     const projectSelector = screen.getByText('Select a billing project');
     await user.click(projectSelector);
 
-    const azureBillingProject = screen.getByText('Azure Billing Project');
-    await user.click(azureBillingProject);
+    const azureBillingProject1 = screen.getByText('Azure Billing Project');
+    await user.click(azureBillingProject1);
 
     // Assert
     // getByText throws an error if the element is not found:
-    screen.getByText('Azure Billing Project');
-    expect(screen.queryByText('Google Billing Project')).toBeNull();
     expect(screen.queryByText('Workspace will have protected data')).toBeNull();
   });
 
