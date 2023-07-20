@@ -5,7 +5,7 @@ import {
   defaultGceBootDiskSize,
   getCurrentAttachedDataDisk,
   getCurrentPersistentDisk,
-  updatePdType,
+  pdTypeFromDiskType,
 } from 'src/analysis/utils/disk-utils';
 import {
   defaultComputeRegion,
@@ -25,7 +25,6 @@ import {
   diskStatuses,
   GooglePdType,
   googlePdTypes,
-  isUndecoratedPersistentDisk,
   LeoDiskStatus,
   PersistentDisk,
 } from 'src/libs/ajax/leonardo/models/disk-models';
@@ -274,6 +273,7 @@ export const getPersistentDiskCostMonthly = (disk: DecoratedPersistentDisk, comp
       );
   return price;
 };
+
 export const getPersistentDiskCostHourly = (
   disk:
     | DecoratedPersistentDisk
@@ -326,20 +326,15 @@ export const getCostForDisk = (
   toolLabel: ToolLabel
 ): number => {
   let diskCost = 0;
-  const rawPd = persistentDisks && persistentDisks.length && getCurrentPersistentDisk(runtimes, persistentDisks);
-  const curPd =
-    rawPd &&
-    rawPd.diskType &&
-    (isUndecoratedPersistentDisk(rawPd)
-      ? updatePdType(rawPd)
-      : updatePdType({ ...rawPd, diskType: rawPd.diskType.value }));
+  const curPd: PersistentDisk | undefined =
+    persistentDisks && persistentDisks.length > 0 ? getCurrentPersistentDisk(runtimes, persistentDisks) : undefined;
 
   if (curPd && isAzureDisk(curPd)) {
     return getAzureDiskCostEstimate({ region: computeRegion, persistentDiskSize: curPd.size }) / numberOfHoursPerMonth;
   }
-  if (currentRuntimeToolLabel === toolLabel && persistentDisks && persistentDisks.length) {
-    const { size = 0, status = diskStatuses.ready.leoLabel, diskType = googlePdTypes.standard } = curPd || {};
-    diskCost = getPersistentDiskCostHourly({ size, status, diskType }, computeRegion);
+  if (currentRuntimeToolLabel === toolLabel && persistentDisks && persistentDisks.length > 0) {
+    const { size = 0, status = diskStatuses.ready.leoLabel, diskType = googlePdTypes.standard.value } = curPd || {};
+    diskCost = getPersistentDiskCostHourly({ size, status, diskType: pdTypeFromDiskType(diskType) }, computeRegion);
   } else if (app && appDataDisks && toolLabel === appToolLabels.GALAXY) {
     const currentDataDisk = getCurrentAttachedDataDisk(app, appDataDisks);
     // Occasionally currentDataDisk will be undefined on initial render.
