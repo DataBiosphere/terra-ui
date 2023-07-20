@@ -2,33 +2,44 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
+import { AnyCriteria, Cohort, CriteriaGroup, DomainCriteria, dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
 import {
   CohortEditor,
-  createCriteriaViewComponent,
   criteriaFromOption,
   CriteriaGroupView,
+  CriteriaView,
 } from 'src/pages/library/datasetBuilder/CohortEditor';
 import {
-  Cohort,
-  CriteriaGroup,
-  DomainCriteria,
   domainCriteriaSelectorState,
   homepageState,
   newCohort,
   newCriteriaGroup,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
-import { datasetBuilderCohorts } from 'src/pages/library/datasetBuilder/state';
 
 describe('CohortEditor', () => {
+  type CriteriaViewPropsOverrides = {
+    criteria: AnyCriteria;
+    deleteCriteria?: (criteria: AnyCriteria) => void;
+    updateCriteria?: (criteria: AnyCriteria) => void;
+  };
+
   const datasetDetails = dummyDatasetDetails('unused');
+  const renderCriteriaView = (propsOverrides: CriteriaViewPropsOverrides) =>
+    render(
+      h(CriteriaView, {
+        deleteCriteria: _.noop,
+        updateCriteria: _.noop,
+        key: '1',
+        ...propsOverrides,
+      })
+    );
 
   it('renders unknown criteria', () => {
     // Arrange
     const criteria = { name: 'bogus', invalid: 'property' };
 
     // The 'as any' is required to create an invalid criteria for testing purposes.
-    render(createCriteriaViewComponent(_.noop)(criteria as any));
+    renderCriteriaView({ criteria: criteria as any });
     // Assert
     expect(screen.queryByText(criteria.name)).toBeFalsy();
     expect(screen.queryByText('Unknown criteria')).toBeTruthy();
@@ -50,7 +61,7 @@ describe('CohortEditor', () => {
         root: { id: 0, name: 'test concept', count: 0, hasChildren: false },
       },
     };
-    render(createCriteriaViewComponent(_.noop)(criteria));
+    renderCriteriaView({ criteria });
     // Assert
     expect(screen.getByText(criteria.domainOption.category, { exact: false })).toBeTruthy();
     expect(screen.getByText(criteria.name)).toBeTruthy();
@@ -64,10 +75,46 @@ describe('CohortEditor', () => {
       kind: 'list',
       values: [{ id: 0, name: 'value' }],
     });
-    render(createCriteriaViewComponent(_.noop)(criteria));
+    renderCriteriaView({ criteria });
 
     expect(screen.getByText(criteria.name, { exact: false })).toBeTruthy();
-    expect(screen.getByText(criteria.value.name)).toBeTruthy();
+    expect(screen.getByText(criteria.values[0].name)).toBeTruthy();
+  });
+
+  it('updates when list updated', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const updateCriteria = jest.fn();
+    const criteria = criteriaFromOption({
+      id: 0,
+      name: 'list',
+      kind: 'list',
+      values: [
+        { id: 0, name: 'value0' },
+        { id: 1, name: 'value1' },
+      ],
+    });
+    renderCriteriaView({
+      updateCriteria,
+      criteria,
+    });
+    // Act
+    await user.click(await screen.findByLabelText('Remove value0'));
+    // Assert
+    expect(updateCriteria).toBeCalledWith({ ...criteria, values: [] });
+    // Act
+    await user.click(screen.getByLabelText('Select one or more list'));
+    await user.click((await screen.findAllByText('value0'))[0]);
+    await user.click(screen.getByLabelText('Select one or more list'));
+    await user.click((await screen.findAllByText('value1'))[0]);
+    // Assert
+    expect(updateCriteria).toBeCalledWith({
+      ...criteria,
+      values: [
+        { id: 0, name: 'value0' },
+        { id: 1, name: 'value1' },
+      ],
+    });
   });
 
   it('renders range criteria', () => {
@@ -79,7 +126,9 @@ describe('CohortEditor', () => {
       min: 55,
       max: 99,
     });
-    render(createCriteriaViewComponent(_.noop)(criteria));
+    renderCriteriaView({
+      criteria,
+    });
     // Assert
     expect(screen.getByText(criteria.name, { exact: false })).toBeTruthy();
     expect(screen.getByText(criteria.low, { exact: false })).toBeTruthy();
@@ -91,7 +140,7 @@ describe('CohortEditor', () => {
     const criteria = criteriaFromOption({ id: 0, name: 'range', kind: 'range', min: 55, max: 99 });
     const deleteCriteria = jest.fn();
 
-    render(createCriteriaViewComponent(deleteCriteria)(criteria));
+    renderCriteriaView({ deleteCriteria, criteria });
     const user = userEvent.setup();
     // Act
     expect(screen.getByText('range', { exact: false })).toBeTruthy();
@@ -177,7 +226,7 @@ describe('CohortEditor', () => {
     const { cohort, updateCohort } = showCriteriaGroup();
     const user = userEvent.setup();
     // Act
-    await user.click(screen.getByLabelText('add criteria'));
+    await user.click(screen.getByLabelText('Add criteria'));
     const option = datasetDetails.programDataOptions[0];
     const dataOptionMenuItem = screen.getByText(option.name);
     await user.click(dataOptionMenuItem);
@@ -206,10 +255,10 @@ describe('CohortEditor', () => {
   function showCohortEditor() {
     const originalCohort = newCohort('my cohort name');
     const onStateChange = jest.fn();
-    datasetBuilderCohorts.set([]);
+    const updateCohorts = jest.fn();
 
-    render(h(CohortEditor, { onStateChange, datasetDetails, originalCohort }));
-    return { originalCohort, onStateChange };
+    render(h(CohortEditor, { onStateChange, datasetDetails, originalCohort, updateCohorts }));
+    return { originalCohort, onStateChange, updateCohorts };
   }
 
   it('renders a cohort', () => {
@@ -221,29 +270,29 @@ describe('CohortEditor', () => {
 
   it('saves a cohort', async () => {
     // Arrange
-    const { originalCohort, onStateChange } = showCohortEditor();
+    const { originalCohort, onStateChange, updateCohorts } = showCohortEditor();
     const user = userEvent.setup();
     // Act
     await user.click(screen.getByText('Save cohort'));
     // Assert
     expect(onStateChange).toBeCalledWith(homepageState.new());
-    expect(datasetBuilderCohorts.get()).toStrictEqual([originalCohort]);
+    expect(updateCohorts.mock.calls[0][0]([])).toStrictEqual([originalCohort]);
   });
 
   it('cancels editing a cohort', async () => {
     // Arrange
-    const { onStateChange } = showCohortEditor();
+    const { onStateChange, updateCohorts } = showCohortEditor();
     const user = userEvent.setup();
     // Act
     await user.click(screen.getByLabelText('cancel'));
     // Assert
     expect(onStateChange).toBeCalledWith(homepageState.new());
-    expect(datasetBuilderCohorts.get()).toStrictEqual([]);
+    expect(updateCohorts).not.toHaveBeenCalled();
   });
 
   it('can add a criteria group', async () => {
     // Arrange
-    const { originalCohort } = showCohortEditor();
+    const { originalCohort, updateCohorts } = showCohortEditor();
     const user = userEvent.setup();
     // Act
     await user.click(screen.getByText('Add group'));
@@ -251,7 +300,9 @@ describe('CohortEditor', () => {
     // Assert
     // Don't compare name since it's generated.
     const { name: _unused, ...expectedCriteriaGroup } = newCriteriaGroup();
-    expect(datasetBuilderCohorts.get()).toMatchObject([{ ...originalCohort, criteriaGroups: [expectedCriteriaGroup] }]);
+    expect(updateCohorts.mock.calls[0][0]([])).toMatchObject([
+      { ...originalCohort, criteriaGroups: [expectedCriteriaGroup] },
+    ]);
   });
 
   it('shows the domain criteria selector', async () => {
@@ -260,7 +311,7 @@ describe('CohortEditor', () => {
     const user = userEvent.setup();
     // Act
     await user.click(screen.getByText('Add group'));
-    await user.click(screen.getByLabelText('add criteria'));
+    await user.click(screen.getByLabelText('Add criteria'));
     const domainOption = datasetDetails.domainOptions[0];
     const domainMenuItem = screen.getByText(domainOption.category);
     await user.click(domainMenuItem);

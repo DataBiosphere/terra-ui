@@ -1,6 +1,5 @@
 // Types that can be used to create a criteria.
 import _ from 'lodash/fp';
-import { Cohort, ConceptSet, DatasetBuilderType } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 
 export interface DomainOption {
   kind: 'domain';
@@ -23,14 +22,14 @@ export interface ProgramDataRangeOption extends ProgramDataOption {
   max: number;
 }
 
-export interface ProgramDataListValueOption {
+export interface ProgramDataListValue {
   id: number;
   name: string;
 }
 
 export interface ProgramDataListOption extends ProgramDataOption {
   kind: 'list';
-  values: ProgramDataListValueOption[];
+  values: ProgramDataListValue[];
 }
 
 export interface DatasetResponse {
@@ -42,6 +41,55 @@ export interface DatasetResponse {
   learnMoreLink: string;
   accessLevel: AccessLevel;
   featureValueGroups: FeatureValueGroup[];
+}
+
+/** A specific criteria based on a type. */
+export interface Criteria {
+  kind: 'domain' | 'range' | 'list';
+  name: string;
+  id: number;
+  count: number;
+}
+
+export interface DomainCriteria extends Criteria {
+  kind: 'domain';
+  domainOption: DomainOption;
+}
+
+export interface ProgramDataRangeCriteria extends Criteria {
+  kind: 'range';
+  rangeOption: ProgramDataRangeOption;
+  low: number;
+  high: number;
+}
+
+export interface ProgramDataListCriteria extends Criteria {
+  kind: 'list';
+  listOption: ProgramDataListOption;
+  values: ProgramDataListValue[];
+}
+
+export type AnyCriteria = DomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
+
+/** A group of criteria. */
+export interface CriteriaGroup {
+  name: string;
+  criteria: AnyCriteria[];
+  mustMeet: boolean;
+  meetAll: boolean;
+  count: number;
+}
+
+export interface Cohort extends DatasetBuilderType {
+  criteriaGroups: CriteriaGroup[];
+}
+
+export interface ConceptSet extends DatasetBuilderType {
+  featureValueGroupName: string;
+}
+
+export interface DatasetBuilderType {
+  name: string;
 }
 
 export type DatasetBuilderValue = DatasetBuilderType;
