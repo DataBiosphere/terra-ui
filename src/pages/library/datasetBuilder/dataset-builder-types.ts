@@ -72,3 +72,5 @@ export type AnyDatasetBuilderState =
   | CohortEditorState
   | ConceptSetCreatorState
   | DomainCriteriaSelectorState;
+
+export type Updater<T> = (updater: (value: T) => T) => void;

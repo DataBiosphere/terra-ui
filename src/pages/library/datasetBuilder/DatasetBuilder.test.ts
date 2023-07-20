@@ -14,7 +14,6 @@ import {
   DatasetBuilderView,
   ValuesSelector,
 } from 'src/pages/library/datasetBuilder/DatasetBuilder';
-import { datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/pages/library/datasetBuilder/state';
 import { asMockedFn } from 'src/testing/test-utils';
 
 jest.mock('src/libs/nav', () => ({
@@ -31,23 +30,37 @@ jest.mock('src/components/Modal', () => {
 
 describe('DatasetBuilder', () => {
   const initializeValidDatasetRequest = async (user) => {
-    datasetBuilderCohorts.set([newCohort('cohort 1')]);
-    datasetBuilderConceptSets.set([{ name: 'concept set 1', featureValueGroupName: 'Condition' }]);
-    render(h(DatasetBuilderContents, { onStateChange: (state) => state, dataset: dummyDatasetDetails('id') }));
+    render(
+      h(DatasetBuilderContents, {
+        cohorts: [newCohort('cohort 1')],
+        conceptSets: [{ name: 'concept set 1', featureValueGroupName: 'Condition' }],
+        onStateChange: (state) => state,
+        dataset: dummyDatasetDetails('id'),
+      })
+    );
     await user.click(screen.getByLabelText('cohort 1'));
     await user.click(screen.getByLabelText('concept set 1'));
   };
 
   beforeEach(() => {
-    datasetBuilderCohorts.reset();
-    datasetBuilderConceptSets.reset();
     asMockedFn(Nav.useRoute).mockReturnValue({ title: 'Build Dataset', params: {}, query: {} });
   });
 
-  it('renders cohorts', () => {
-    datasetBuilderCohorts.set([newCohort('cohort 1'), newCohort('cohort 2')]);
-    render(h(CohortSelector, { selectedCohorts: [], onChange: (cohorts) => cohorts, onStateChange: (state) => state }));
+  const renderCohortSelector = () => {
+    render(
+      h(CohortSelector, {
+        cohorts: [newCohort('cohort 1'), newCohort('cohort 2')],
+        selectedCohorts: [],
+        onChange: (cohorts) => cohorts,
+        onStateChange: (state) => state,
+      })
+    );
+  };
 
+  it('renders cohorts', () => {
+    // Arrange
+    renderCohortSelector();
+    // Assert
     expect(screen.getByText('cohort 1')).toBeTruthy();
     expect(screen.getByText('cohort 2')).toBeTruthy();
   });
@@ -55,9 +68,7 @@ describe('DatasetBuilder', () => {
   it('opens the create cohort model when clicking plus', async () => {
     // Arrange
     const user = userEvent.setup();
-
-    datasetBuilderCohorts.set([newCohort('cohort 1'), newCohort('cohort 2')]);
-    render(h(CohortSelector, { selectedCohorts: [], onChange: (cohorts) => cohorts, onStateChange: (state) => state }));
+    renderCohortSelector();
     // Act
     await user.click(screen.getByLabelText('Create new cohort'));
     // Assert
@@ -69,7 +80,7 @@ describe('DatasetBuilder', () => {
     const user = userEvent.setup();
     const onStateChange = jest.fn();
 
-    render(h(CreateCohortModal, { onDismiss: () => {}, onStateChange }));
+    render(h(CreateCohortModal, { onDismiss: () => {}, onStateChange, cohorts: [] }));
     // Act
     const cohortName = 'new cohort';
     fireEvent.change(await screen.findByLabelText('Cohort name *'), { target: { value: cohortName } });
@@ -79,12 +90,12 @@ describe('DatasetBuilder', () => {
   });
 
   it('renders concept sets and prepackaged concept sets', () => {
-    datasetBuilderConceptSets.set([
-      { name: 'concept set 1', featureValueGroupName: 'a' },
-      { name: 'concept set 2', featureValueGroupName: 'b' },
-    ]);
     render(
       h(ConceptSetSelector, {
+        conceptSets: [
+          { name: 'concept set 1', featureValueGroupName: 'a' },
+          { name: 'concept set 2', featureValueGroupName: 'b' },
+        ],
         selectedConceptSets: [],
         onChange: (conceptSets) => conceptSets,
         onStateChange: (state) => state,
@@ -123,7 +134,14 @@ describe('DatasetBuilder', () => {
 
   it('renders dataset builder contents with cohorts and concept sets', () => {
     // Arrange
-    render(h(DatasetBuilderContents, { onStateChange: (state) => state, dataset: dummyDatasetDetails('id') }));
+    render(
+      h(DatasetBuilderContents, {
+        cohorts: [],
+        conceptSets: [],
+        onStateChange: (state) => state,
+        dataset: dummyDatasetDetails('id'),
+      })
+    );
     // Assert
     expect(screen.getByText('Select cohorts')).toBeTruthy();
     expect(screen.getByText('Select concept sets')).toBeTruthy();
@@ -133,13 +151,17 @@ describe('DatasetBuilder', () => {
   it('allows selecting cohorts, concept sets, and values', async () => {
     // Arrange
     const user = userEvent.setup();
-
-    datasetBuilderCohorts.set([newCohort('cohort 1'), newCohort('cohort 2')]);
-    datasetBuilderConceptSets.set([
-      { name: 'concept set 1', featureValueGroupName: 'Condition' },
-      { name: 'concept set 2', featureValueGroupName: 'Procedure' },
-    ]);
-    render(h(DatasetBuilderContents, { onStateChange: (state) => state, dataset: dummyDatasetDetails('id') }));
+    render(
+      h(DatasetBuilderContents, {
+        cohorts: [newCohort('cohort 1'), newCohort('cohort 2')],
+        conceptSets: [
+          { name: 'concept set 1', featureValueGroupName: 'Condition' },
+          { name: 'concept set 2', featureValueGroupName: 'Procedure' },
+        ],
+        onStateChange: (state) => state,
+        dataset: dummyDatasetDetails('id'),
+      })
+    );
     // Act
     await user.click(screen.getByLabelText('cohort 1'));
     await user.click(screen.getByLabelText('concept set 1'));
@@ -170,9 +192,14 @@ describe('DatasetBuilder', () => {
   it('places selectable values defaulted to selected when concept set is selected', async () => {
     // Arrange
     const user = userEvent.setup();
-
-    datasetBuilderConceptSets.set([{ name: 'concept set 1', featureValueGroupName: 'Condition' }]);
-    render(h(DatasetBuilderContents, { onStateChange: (state) => state, dataset: dummyDatasetDetails('id') }));
+    render(
+      h(DatasetBuilderContents, {
+        cohorts: [],
+        conceptSets: [{ name: 'concept set 1', featureValueGroupName: 'Condition' }],
+        onStateChange: (state) => state,
+        dataset: dummyDatasetDetails('id'),
+      })
+    );
     // Act
     await user.click(screen.getByLabelText('concept set 1'));
     // Assert
@@ -218,7 +245,9 @@ describe('DatasetBuilder', () => {
     // Arrange
     const user = userEvent.setup();
     const onStateChange = jest.fn();
-    render(h(DatasetBuilderContents, { onStateChange, dataset: dummyDatasetDetails('id') }));
+    render(
+      h(DatasetBuilderContents, { cohorts: [], conceptSets: [], onStateChange, dataset: dummyDatasetDetails('id') })
+    );
     // Act
     await user.click(await screen.findByLabelText('Create new concept set'));
     // Assert
