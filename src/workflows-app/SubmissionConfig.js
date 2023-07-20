@@ -9,6 +9,7 @@ import Modal from 'src/components/Modal';
 import StepButtons from 'src/components/StepButtons';
 import { TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
+import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
@@ -63,6 +64,7 @@ export const BaseSubmissionConfig = (
   const [displayLaunchModal, setDisplayLaunchModal] = useState(false);
   const [noRecordTypeData, setNoRecordTypeData] = useState(null);
 
+  const { captureEvent } = useMetricsEvent();
   const signal = useCancellation();
   const pollWdsInterval = useRef();
   const errorMessageCount = _.filter((message) => message.type === 'error')(inputValidations).length;
@@ -199,7 +201,7 @@ export const BaseSubmissionConfig = (
         message: 'You may check on the progress of workflow on this page anytime.',
         timeout: 5000,
       });
-      Ajax(signal).Metrics.captureEvent(Events.workflowsAppLaunchWorkflow, {
+      captureEvent(Events.workflowsAppLaunchWorkflow, {
         ...extractWorkspaceDetails(workspace),
         methodName: method.name,
         methodId,
