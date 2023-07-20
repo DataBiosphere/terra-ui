@@ -256,3 +256,16 @@ export const useLabelAssert = (componentName: string, options: UseLabelAssertOpt
     }
   }
 };
+
+export const useDebouncedValue = <T>(value: T, wait: number): T => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedValue(value);
+    }, wait);
+    return () => clearTimeout(timeout);
+  }, [value, wait]);
+
+  return debouncedValue;
+};
