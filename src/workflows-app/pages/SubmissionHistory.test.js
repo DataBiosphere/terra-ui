@@ -15,12 +15,12 @@
 // jest.mock('src/libs/notifications.js')
 // jest.mock('src/libs/ajax/leonardo/Apps');
 // jest.mock('src/components/PopupTrigger', () => {
-//   const originalModule = jest.requireActual('src/components/PopupTrigger')
+//   const originalModule = jest.requireActual('src/components/PopupTrigger');
 //   return {
 //     ...originalModule,
-//     MenuTrigger: jest.fn()
-//   }
-// })
+//     MenuTrigger: jest.fn(),
+//   };
+// });
 // jest.mock('src/libs/nav', () => ({
 //   getCurrentUrl: jest.fn().mockReturnValue(new URL('https://app.terra.bio')),
 //   getLink: jest.fn(),
@@ -40,8 +40,8 @@
 // // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
 // // values and render the component properly. Without this the tests will be break.
 // // (see https://github.com/bvaughn/react-virtualized/issues/493 and https://stackoverflow.com/a/62214834)
-// const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
-// const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
+// const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
+// const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth');
 //
 // const runSetData = {
 //   run_sets: [
@@ -52,7 +52,7 @@
 //       record_type: 'FOO',
 //       run_count: 1,
 //       run_set_id: 'ea001565-1cd6-4e43-b446-932ac1918081',
-//       state: 'COMPLETE'
+//       state: 'COMPLETE',
 //     },
 //     {
 //       error_count: 1,
@@ -61,10 +61,10 @@
 //       record_type: 'FOO',
 //       run_count: 2,
 //       run_set_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
-//       state: 'ERROR'
-//     }
+//       state: 'ERROR',
+//     },
 //   ]
-// }
+// };
 //
 // beforeAll(() => {
 //   Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
@@ -179,11 +179,11 @@
 //     });
 //
 //     // Act
-//     await render(h(SubmissionHistory, {
+//     render(h(SubmissionHistory, {
 //       name: 'test',
 //       namespace: 'test',
-//       workspace: workspace,
-//     }));
+//       workspace,
+//   }))
 //
 //     // Assert
 //     await waitFor(() => {
