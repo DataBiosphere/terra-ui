@@ -235,8 +235,9 @@ describe('NewWorkspaceModal', () => {
 
     // Assert
     // getByText throws an error if the element is not found:
-    screen.getByText('Workspace will have protected data');
-    expect(screen.getByRole('checkbox')).not.toHaveAttribute('disabled');
+    const checkbox = screen.getByRole('checkbox');
+    expect(checkbox).toHaveAccessibleName('Workspace will have protected data');
+    expect(checkbox).not.toHaveAttribute('disabled');
   });
 
   it('does not show an option for "Workspace will have protected data" (enhanced bucket logging) if an Azure billing project is selected', async () => {
@@ -273,11 +274,10 @@ describe('NewWorkspaceModal', () => {
     await user.click(azureBillingProject1);
 
     // Assert
-    // getByText throws an error if the element is not found:
     expect(screen.queryByText('Workspace will have protected data')).toBeNull();
   });
 
-  it('does not let the user disable "Workspace will have protected data" (enhanced bucket logging) if its required', async () => {
+  it('does not let the user uncheck "Workspace will have protected data" (enhanced bucket logging) if its required', async () => {
     // Arrange
     const user = userEvent.setup();
 
@@ -312,8 +312,9 @@ describe('NewWorkspaceModal', () => {
     await user.click(googleBillingProject);
 
     // Assert
-    // getByText throws an error if the element is not found:
-    expect(screen.getByRole('checkbox')).toHaveAttribute('disabled');
+    const checkbox = screen.getByRole('checkbox');
+    expect(checkbox).toHaveAccessibleName('Workspace will have protected data');
+    expect(checkbox).toHaveAttribute('disabled');
   });
 
   it('checks and disables "Workspace will have protected data" (enhanced bucket logging) if an auth domain is chosen', async () => {
@@ -357,8 +358,8 @@ describe('NewWorkspaceModal', () => {
     await user.click(authDomain);
 
     // Assert
-    // getByText throws an error if the element is not found:
     const checkbox = screen.getByRole('checkbox');
+    expect(checkbox).toHaveAccessibleName('Workspace will have protected data');
     expect(checkbox).toHaveAttribute('disabled');
     expect(checkbox).toBeChecked();
   });
