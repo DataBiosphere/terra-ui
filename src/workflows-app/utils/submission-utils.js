@@ -69,6 +69,13 @@ export const parseMethodString = (methodString) => {
   };
 };
 
+export const parseAttributeName = (attributeName) => {
+  const namespaceDelimiterIndex = _.lastIndexOf(':', attributeName);
+  const columnName = attributeName.slice(namespaceDelimiterIndex + 1);
+  const columnNamespace = attributeName.slice(0, namespaceDelimiterIndex + 1);
+  return { columnNamespace, columnName };
+};
+
 export const inputSourceLabels = {
   literal: 'Type a Value',
   record_lookup: 'Fetch from Data Table',

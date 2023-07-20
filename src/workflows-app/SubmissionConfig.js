@@ -19,6 +19,7 @@ import { maybeParseJSON } from 'src/libs/utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
 import InputsTable from 'src/workflows-app/components/InputsTable';
 import OutputsTable from 'src/workflows-app/components/OutputsTable';
+import RecordsTable from 'src/workflows-app/components/RecordsTable';
 import ViewWorkflowScriptModal from 'src/workflows-app/components/ViewWorkflowScriptModal';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { convertToRawUrl } from 'src/workflows-app/utils/method-common';
@@ -42,6 +43,7 @@ export const BaseSubmissionConfig = (
   const [availableMethodVersions, setAvailableMethodVersions] = useState();
   const [selectedMethodVersion, setSelectedMethodVersion] = useState();
   const [records, setRecords] = useState([]);
+  const [dataTableColumnWidths, setDataTableColumnWidths] = useState({});
   const [loading, setLoading] = useState(false);
   const [workflowScript, setWorkflowScript] = useState();
   const [runSetRecordType, setRunSetRecordType] = useState();
@@ -62,6 +64,7 @@ export const BaseSubmissionConfig = (
   const [displayLaunchModal, setDisplayLaunchModal] = useState(false);
   const [noRecordTypeData, setNoRecordTypeData] = useState(null);
 
+  const dataTableRef = useRef();
   const signal = useCancellation();
   const pollWdsInterval = useRef();
   const pollCbasInterval = useRef();
@@ -294,6 +297,10 @@ export const BaseSubmissionConfig = (
       setInputValidations(newInputValidations);
     }
   }, [records, recordTypes, configuredInputDefinition]);
+
+  useEffect(() => {
+    dataTableRef.current?.recomputeColumnSizes();
+  }, [dataTableColumnWidths, records, recordTypes]);
 
   useEffect(() => {
     if (method && availableMethodVersions) {
@@ -564,6 +571,20 @@ export const BaseSubmissionConfig = (
       : 'No previous run set data...';
   };
 
+  const renderRecordSelector = () => {
+    return recordTypes && records.length
+      ? h(RecordsTable, {
+          dataTableColumnWidths,
+          setDataTableColumnWidths,
+          dataTableRef,
+          records,
+          selectedRecords,
+          setSelectedRecords,
+          selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType || records[0].type],
+        })
+      : 'No data table rows selected...';
+  };
+
   return loading
     ? centeredSpinner()
     : h(Fragment, [
@@ -589,7 +610,7 @@ export const BaseSubmissionConfig = (
           [
             Utils.switchCase(
               activeTab.key || 'select-data',
-              ['select-data', () => h2('TODO')], // https://broadworkbench.atlassian.net/browse/WM-2020
+              ['select-data', () => renderRecordSelector()],
               ['inputs', () => renderInputs()],
               ['outputs', () => renderOutputs()]
             ),

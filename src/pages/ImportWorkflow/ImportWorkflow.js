@@ -14,6 +14,8 @@ import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { WORKFLOWS_TAB_AZURE_FEATURE_ID } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { useCancellation } from 'src/libs/react-utils';
 import { getUser } from 'src/libs/state';
@@ -69,7 +71,7 @@ export const ImportWorkflow = ({ path, version, source }) => {
   const signal = useCancellation();
   const { wdl, status: wdlStatus } = useDockstoreWdl({ path, version, isTool: source === 'dockstoretools' });
 
-  const importToAzureCromwellApp = async (workspaceId) => {
+  const importToAzureCromwellApp = async (workspaceId, namespace, name) => {
     const appUrls = await Apps(signal)
       .listAppsV2(workspaceId)
       .then((apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email));
@@ -85,9 +87,15 @@ export const ImportWorkflow = ({ path, version, source }) => {
         method_output_mappings: [],
       };
       const res = await Ajax(signal).Cbas.methods.post(appUrls.cbasUrl, postRequestBody);
+      const methodId = res.method_id;
 
-      await setAzureCookieOnUrl(signal, appUrls.cbasUiUrl, true);
-      window.location = `${appUrls.cbasUiUrl}#submission-config/${res.method_id}`;
+      // TODO: Remove this logic when fully migrated into Terra-UI and Cbas UI has been deprecated
+      if (isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID)) {
+        Nav.goToPath('workspace-workflows-app-submission-config', { name, namespace, methodId });
+      } else {
+        await setAzureCookieOnUrl(signal, appUrls.cbasUiUrl, true);
+        window.location = `${appUrls.cbasUiUrl}#submission-config/${methodId}`;
+      }
     } else {
       throw new Error(
         'Error identifying a unique and valid Cromwell App. Cromwell Apps are valid if they were created by the current user in the workspace and are in a Running state.'
@@ -120,7 +128,7 @@ export const ImportWorkflow = ({ path, version, source }) => {
           throw new Error('Currently only a workspace creator can import workflow to their Azure workspace.');
         }
 
-        await importToAzureCromwellApp(workspaceId);
+        await importToAzureCromwellApp(workspaceId, namespace, name);
       }
     } catch (error) {
       if (error.status === 409) {
