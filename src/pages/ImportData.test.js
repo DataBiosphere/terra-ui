@@ -159,7 +159,6 @@ describe('ImportDataDestination', () => {
     );
     const existingWorkspace = screen.queryByText('Start with an existing workspace', { exact: false });
     await userEvent.click(existingWorkspace); // select start with existing workspace
-
     const protectedWarning = screen.queryByText('You may only import to workspaces with an Authorization Domain and/or protected data setting.', {
       exact: false,
     });
