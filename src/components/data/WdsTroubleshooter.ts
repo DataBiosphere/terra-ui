@@ -85,7 +85,7 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     ['Data app responding', `${wdsResponsive}`, wdsResponsive == null, !!wdsResponsive && wdsResponsive !== 'unknown'],
     ['Data app version', version, version == null, !!version && version !== 'unknown'],
     ['Data app chart version', chartVersion, chartVersion === null, !!chartVersion && chartVersion !== 'unknown'],
-    ['Data app image', _.flow(_.split('/'), _.last)(image), image === null, !!image && image !== 'unknown'],
+    ['Data app image', _.flow(_.split('/'), _.last)(image) || '', image === null, !!image && image !== 'unknown'],
     [
       'Data app status',
       wdsStatus,
