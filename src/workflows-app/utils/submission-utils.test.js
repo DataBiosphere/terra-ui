@@ -9,6 +9,7 @@ import {
   isPrimitiveTypeInputValid,
   isRunInTerminalState,
   isRunSetInTerminalState,
+  parseAttributeName,
   renderTypeText,
   typeMatch,
   validateInputs,
@@ -488,4 +489,10 @@ describe('Workflow input type helpers', () => {
   it('Unsupported type recognized', () => {
     expect(renderTypeText({ type: 'foo' })).toStrictEqual('Unsupported Type');
   });
+});
+
+describe('parseAttributeName', () => {
+  expect(parseAttributeName('foo')).toStrictEqual({ columnNamespace: '', columnName: 'foo' });
+  expect(parseAttributeName('foo:bar')).toStrictEqual({ columnNamespace: 'foo:', columnName: 'bar' });
+  expect(parseAttributeName('foo:bar:baz')).toStrictEqual({ columnNamespace: 'foo:bar:', columnName: 'baz' });
 });
