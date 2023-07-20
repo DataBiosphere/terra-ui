@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { h, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { Checkbox } from 'src/components/common';
@@ -12,17 +12,9 @@ const recordMap = (records) => {
 };
 
 const RecordsTable = (props) => {
-  const {
-    dataTableColumnWidths,
-    setDataTableColumnWidths,
-    dataTableRef,
-    records,
-    selectedRecords,
-    setSelectedRecords,
-    selectedDataTable,
-    recordsTableSort,
-    setRecordsTableSort,
-  } = props;
+  const { dataTableColumnWidths, setDataTableColumnWidths, dataTableRef, records, selectedRecords, setSelectedRecords, selectedDataTable } = props;
+
+  const [recordsTableSort, setRecordsTableSort] = useState({ field: 'id', direction: 'asc' });
 
   const selectPage = () => {
     setSelectedRecords(_.assign(selectedRecords, recordMap(records)));

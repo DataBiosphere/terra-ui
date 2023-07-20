@@ -68,9 +68,6 @@ export const BaseSubmissionConfig = (
   const pollWdsInterval = useRef();
   const errorMessageCount = _.filter((message) => message.type === 'error')(inputValidations).length;
 
-  // TODO: this should probably be moved to a scope more local to the data selector
-  const [recordsTableSort, setRecordsTableSort] = useState({ field: 'id', direction: 'asc' });
-
   const loadAppProxyUrls = useCallback(async () => {
     const { wds: wdsProxyUrlResponse, cbas: cbasProxyUrlResponse } = await loadAppUrls(workspaceId);
     setWdsProxyUrl(wdsProxyUrlResponse);
@@ -505,8 +502,6 @@ export const BaseSubmissionConfig = (
           selectedRecords,
           setSelectedRecords,
           selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType || records[0].type],
-          recordsTableSort,
-          setRecordsTableSort,
         })
       : 'No data table rows selected...';
   };
