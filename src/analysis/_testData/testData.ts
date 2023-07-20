@@ -269,6 +269,7 @@ export const getRuntimeConfig = (overrides: Partial<RuntimeConfig> = {}): Runtim
   ...overrides,
 });
 
+// Use this if you only need to override top-level fields, otherwise use `getGoogleRuntime`
 export const generateTestGoogleRuntime = (overrides: Partial<Runtime> = {}): Runtime => {
   const runtime: Runtime = {
     id: getRandomInt(randomMaxInt),
@@ -377,7 +378,7 @@ export const getGoogleDataProcRuntime = ({
   };
 };
 
-// TODO: deprecate this in favor of more robust `generateTestGoogleRuntime`
+// Use this if you want a shortcut to override nested fields. Otherwise use `generateTestGoogleRuntime`
 export const getGoogleRuntime = ({
   workspace = defaultGoogleWorkspace,
   runtimeName = Utils.generateRuntimeName(),
