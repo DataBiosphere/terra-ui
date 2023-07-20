@@ -1,4 +1,9 @@
-import type { DraggableSyntheticListeners, UniqueIdentifier } from '@dnd-kit/core';
+import type {
+  Announcements,
+  DraggableSyntheticListeners,
+  ScreenReaderInstructions,
+  UniqueIdentifier,
+} from '@dnd-kit/core';
 import { DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -7,10 +12,13 @@ import type { CSSProperties, PropsWithChildren } from 'react';
 import { createContext, Fragment, useContext, useMemo } from 'react';
 import { div, h, label, span } from 'react-hyperscript-helpers';
 import { AutoSizer, List } from 'react-virtualized';
-import { Checkbox, IdContainer } from 'src/components/common';
+import { Checkbox } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import * as Style from 'src/libs/style';
+
+const rowHeight = 30;
+const dragHandleId = (id) => `drag-handle-${id}`;
 
 interface BaseItem {
   id: UniqueIdentifier;
@@ -24,11 +32,15 @@ interface SortableListProps<T extends BaseItem> {
   toggleVisibility(index: number): void;
 }
 
+// There are some strange visual interactions that occur, most likely related to the virtualized list.
+// However, basic functionality works, and the live region updates notify screen readers of the position
+// as they move items via the keyboard.
 function customCoordinatesGetter(event, args) {
   const { currentCoordinates } = args;
-  const delta = 30;
+  const delta = rowHeight;
 
   if (event.code === 'Down' || event.code === 'ArrowDown') {
+    // When focus goes beyond the end of the list, funky things happen. Try to move back into the list.
     if (!args.context.over) {
       return {
         ...currentCoordinates,
@@ -42,6 +54,7 @@ function customCoordinatesGetter(event, args) {
   }
 
   if (event.code === 'Up' || event.code === 'ArrowUp') {
+    // When focus goes above the beginning of the list, funky things happen. Try to move back into the list.
     if (!args.context.over) {
       return {
         ...currentCoordinates,
@@ -58,12 +71,16 @@ function customCoordinatesGetter(event, args) {
 
 interface SortableItemProps {
   id: UniqueIdentifier;
+  name: string;
+  index: number;
 }
 
 interface Context {
   attributes: Record<string, any>;
   listeners: DraggableSyntheticListeners;
-
+  id: UniqueIdentifier;
+  name: string;
+  index: number;
   ref(node: HTMLElement | null): void;
 }
 
@@ -71,10 +88,14 @@ const SortableItemContext = createContext<Context>({
   attributes: {},
   listeners: undefined,
   ref() {},
+  id: '',
+  name: '',
+  index: 0,
 });
 
-function SortableItem({ children, id }: PropsWithChildren<SortableItemProps>) {
+function SortableItem({ children, id, name, index }: PropsWithChildren<SortableItemProps>) {
   const { attributes, isDragging, listeners, setNodeRef, setActivatorNodeRef, transform, transition } = useSortable({
+    // Disable because the virtualized list causes issues with animating between the original location and the destination.
     animateLayoutChanges: () => false,
     id,
   });
@@ -83,8 +104,11 @@ function SortableItem({ children, id }: PropsWithChildren<SortableItemProps>) {
       attributes,
       listeners,
       ref: setActivatorNodeRef,
+      id,
+      name,
+      index,
     }),
-    [attributes, listeners, setActivatorNodeRef]
+    [attributes, listeners, setActivatorNodeRef, id, name, index]
   );
   const style: CSSProperties = {
     opacity: isDragging ? 0.4 : undefined,
@@ -108,10 +132,18 @@ const styles = {
 function DragHandle() {
   // attributes include aria roles to make drag and drop keyboard accessible.
   // ref is setActivatorNodeRef
-  const { attributes, listeners, ref } = useContext(SortableItemContext);
-  return div({ ref, ...attributes, ...listeners, style: styles.columnHandle }, [
-    icon('columnGrabber', { style: { transform: 'rotate(90deg)' } }),
-  ]);
+  const { attributes, listeners, ref, id, name, index } = useContext(SortableItemContext);
+  return div(
+    {
+      id: dragHandleId(id),
+      ref,
+      ...attributes,
+      ...listeners,
+      style: styles.columnHandle,
+      'aria-label': `Drag button for "${name}", currently at position ${index}.`,
+    },
+    [icon('columnGrabber', { style: { transform: 'rotate(90deg)' } })]
+  );
 }
 
 export const ColumnSettingsList = <T extends BaseItem>({ items, onChange, toggleVisibility }: SortableListProps<T>) => {
@@ -120,6 +152,11 @@ export const ColumnSettingsList = <T extends BaseItem>({ items, onChange, toggle
     useSensor(KeyboardSensor, {
       coordinateGetter: customCoordinatesGetter,
       scrollBehavior: 'smooth',
+      keyboardCodes: {
+        start: ['Space', 'Enter'],
+        cancel: ['KeyQ'], // Default is Escape, but that causes the modal to close.
+        end: ['Space', 'Enter'],
+      },
     })
   );
 
@@ -129,67 +166,106 @@ export const ColumnSettingsList = <T extends BaseItem>({ items, onChange, toggle
       const overIndex = items.findIndex(({ id }) => id === over.id);
 
       onChange(arrayMove(items, activeIndex, overIndex));
+      // This is necessary because of the virtualized list. Without this, focus after a drag ends on up on the drag
+      // handle in the row where the element was dragged from, not on the drag handle in the row it was dropped.
+      // In a setTimeout so that the re-rendering has already happened.
+      setTimeout(function () {
+        const handle = document.getElementById(dragHandleId(active?.id));
+        handle?.focus();
+      });
     }
   };
 
   const renderItem = (item, index) => {
-    return h(SortableItem, { id: item.id }, [
+    return h(SortableItem, { id: item.id, name: item.name, index: getPosition(item.id) }, [
       h(DragHandle),
-      h(IdContainer, [
-        (id) =>
-          h(Fragment, [
-            h(
-              TooltipTrigger,
+      h(Fragment, [
+        h(
+          TooltipTrigger,
+          {
+            // Since attribute names don't contain spaces, word-break: break-all is necessary to
+            // wrap the attribute name instead of truncating it when the tooltip reaches its
+            // max width of 400px.
+            content: span({ style: { wordBreak: 'break-all' } }, [item.name]),
+          },
+          [
+            label(
               {
-                // Since attribute names don't contain spaces, word-break: break-all is necessary to
-                // wrap the attribute name instead of truncating it when the tooltip reaches its
-                // max width of 400px.
-                content: span({ style: { wordBreak: 'break-all' } }, [item.name]),
+                style: {
+                  lineHeight: `${rowHeight}px`,
+                  ...Style.noWrapEllipsis,
+                },
               },
               [
-                label(
-                  {
-                    htmlFor: id,
-                    style: {
-                      lineHeight: '30px', // match rowHeight of SortableList
-                      ...Style.noWrapEllipsis,
-                    },
+                h(Checkbox, {
+                  'aria-label': `Show ${item.name} in table`,
+                  checked: item.visible,
+                  onChange: () => {
+                    if (!_.isUndefined(index)) toggleVisibility(index);
                   },
-                  [
-                    h(Checkbox, {
-                      id,
-                      checked: item.visible,
-                      onChange: () => {
-                        if (!_.isUndefined(index)) toggleVisibility(index);
-                      },
-                    }),
-                    ' ',
-                    item.name,
-                  ]
-                ),
+                }),
+                ' ',
+                item.name,
               ]
             ),
-          ]),
+          ]
+        ),
       ]),
     ]);
   };
 
+  const getPosition = (id) => _.findIndex({ id })(items) + 1;
+  const getName = (id) => {
+    const column = _.filter({ id })(items);
+    // @ts-ignore
+    return column ? column[0].name : 'unknown';
+  };
+
+  const announcements = <Announcements>{
+    onDragStart({ active }) {
+      return `Picked up "${getName(active.id)}". Column "${getName(active.id)}" is in position ${getPosition(
+        active.id
+      )} of ${items.length}`;
+    },
+    onDragOver({ active, over }) {
+      if (over) {
+        return `"${getName(active.id)}" was moved into position ${getPosition(over.id)} of ${items.length}`;
+      }
+    },
+    onDragEnd({ active, over }) {
+      if (over) {
+        return `"${getName(active.id)}" was dropped at position ${getPosition(over.id)} of ${items.length}`;
+      }
+    },
+    onDragCancel({ active }) {
+      return `Dragging was cancelled. "${getName(active.id)}" was dropped.`;
+    },
+  };
+
+  const screenReaderInstructions = <ScreenReaderInstructions>{
+    draggable: `
+    To begin a drag, press the space bar or Enter.
+    While dragging, use the up and down arrow keys to move the item.
+    Press space or Enter again to drop the item in its new position, or press the letter q to cancel.
+    `,
+  };
+
   return h(AutoSizer, { disableHeight: true }, [
     ({ width }) => {
-      return h(DndContext, { sensors, onDragEnd }, [
+      return h(DndContext, { sensors, onDragEnd, accessibility: { announcements, screenReaderInstructions } }, [
         h(SortableContext, { items }, [
           // @ts-ignore
           h(List, {
-            style: { outline: 'none' },
             lockAxis: 'y',
-            useDragHandle: true,
             width,
             height: 400,
             rowCount: items.length,
-            rowHeight: 30,
+            rowHeight,
             rowRenderer: ({ index, style, key }) => {
               const item = items[index];
-              return div({ key, style: { ...style, display: 'flex' } }, [renderItem(item, index)]);
+              return div({ key, style: { ...style, display: 'flex' }, role: 'row' }, [
+                div({ role: 'gridcell' }, [renderItem(item, index)]),
+              ]);
             },
           }),
         ]),
