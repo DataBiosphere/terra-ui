@@ -25,7 +25,7 @@ import {
 } from 'src/workflows-app/components/submission-common';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
-export const SubmissionHistory = wrapWorkflowsPage({ name: 'SubmissionHistory' })(({ name, namespace, workspace }, _ref) => {
+export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
   // State
   const [sort, setSort] = useState({ field: 'submission_timestamp', direction: 'desc' });
   const [pageNumber, setPageNumber] = useState(1);
@@ -318,7 +318,9 @@ export const SubmissionHistory = wrapWorkflowsPage({ name: 'SubmissionHistory' }
           ]),
         ]),
       ]);
-});
+};
+
+export const SubmissionHistory = wrapWorkflowsPage({ name: 'SubmissionHistory' })(BaseSubmissionHistory);
 
 export const navPaths = [
   {
