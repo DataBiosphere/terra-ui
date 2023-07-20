@@ -80,7 +80,7 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     ['Data app name', appName, appName === null, !!appName && appName !== 'unknown'],
     ['Data app running?', appStatus, appStatus == null, !!appStatus && appStatus !== 'unknown'],
     ['Data app proxy url', proxyUrl, proxyUrl == null, !!proxyUrl && proxyUrl !== 'unknown', proxyElement],
-    ['Data app responding', `${wdsResponsive}`, wdsResponsive == null, !!wdsResponsive && wdsResponsive !== 'unknown'],
+    ['Data app responding', wdsResponsive, wdsResponsive == null, wdsResponsive === 'true'],
     ['Data app version', version, version == null, !!version && version !== 'unknown'],
     [
       'Data app status',
