@@ -1,6 +1,8 @@
 export const JUPYTERLAB_GCP_FEATURE_ID = 'jupyterlab-gcp';
 export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP';
 export const HAIL_BATCH_AZURE_FEATURE_ID = 'hail-batch-azure';
+export const WORKFLOWS_TAB_AZURE_FEATURE_ID = 'workflows-tab-azure';
+export const DOCKSTORE_AZURE_FEATURE_ID = 'dockstore-azure';
 
 const featurePreviewsConfig = [
   {
@@ -38,6 +40,19 @@ const featurePreviewsConfig = [
     description: 'Enabling this feature will allow you to launch the Hail Batch app in Azure workspaces.',
     groups: ['preview-hail-batch-azure'],
     feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on Hail Batch (Azure)')}`,
+  },
+  {
+    id: WORKFLOWS_TAB_AZURE_FEATURE_ID,
+    title: 'Workflows Tab for Azure workspaces',
+    description: 'Enabling this feature will allow you to launch workflows in Azure workspaces.',
+    feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on Workflows Tab (Azure)')}`,
+  },
+  {
+    id: DOCKSTORE_AZURE_FEATURE_ID,
+    title: 'Import workflows with Dockstore for Azure workspaces ',
+    description: 'Enabling this feature will allow you to import new workflows in Azure workspaces from Dockstore.',
+    groups: ['preview-workflows-azure'],
+    feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on Dockstore (Azure)')}`,
   },
 ];
 
