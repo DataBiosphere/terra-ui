@@ -17,6 +17,8 @@ export type WdsStatus = {
 
   wdsResponsive: string | null;
   version: string | null;
+  chartVersion: string | null;
+  image: string | null;
   wdsStatus: string | null;
   wdsDbStatus: string | null;
   wdsPingStatus: string | null;
@@ -29,10 +31,12 @@ export type UseWdsStatusResult = {
   refreshStatus: () => Promise<void>;
 };
 
-const initialStatus = {
+const initialStatus: WdsStatus = {
   numApps: null,
   wdsResponsive: null,
   version: null,
+  chartVersion: null,
+  image: null,
   wdsStatus: null,
   wdsDbStatus: null,
   wdsPingStatus: null,
@@ -65,6 +69,8 @@ export const useWdsStatus = ({ workspaceId }: UseWdsStatusArgs) => {
         proxyUrl: 'unknown',
         wdsResponsive: 'unknown',
         version: 'unknown',
+        chartVersion: 'unknown',
+        image: 'unknown',
         wdsStatus: 'unresponsive',
         wdsDbStatus: 'unknown',
         wdsPingStatus: 'unknown',
@@ -84,6 +90,8 @@ export const useWdsStatus = ({ workspaceId }: UseWdsStatusArgs) => {
         proxyUrl: 'unknown',
         wdsResponsive: 'unknown',
         version: 'unknown',
+        chartVersion: 'unknown',
+        image: 'unknown',
         wdsStatus: 'unresponsive',
         wdsDbStatus: 'unknown',
         wdsPingStatus: 'unknown',
@@ -109,6 +117,8 @@ export const useWdsStatus = ({ workspaceId }: UseWdsStatusArgs) => {
             ...previouStatus,
             wdsResponsive: 'true',
             version: versionResponse.git?.commit?.id,
+            chartVersion: versionResponse.app ? versionResponse.app['chart-version'] : 'unknown',
+            image: versionResponse.app ? versionResponse.app.image : 'unknown',
           }));
         })
         .catch(() => {
@@ -116,6 +126,8 @@ export const useWdsStatus = ({ workspaceId }: UseWdsStatusArgs) => {
             ...previouStatus,
             wdsResponsive: 'false',
             version: 'unknown',
+            chartVersion: 'unknown',
+            image: 'unknown',
           }));
         }),
 
