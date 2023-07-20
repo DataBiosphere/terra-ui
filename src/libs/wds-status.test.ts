@@ -54,6 +54,8 @@ describe('useWdsStatus', () => {
         proxyUrl: 'unknown',
         wdsResponsive: 'unknown',
         version: 'unknown',
+        chartVersion: 'unknown',
+        image: 'unknown',
         wdsStatus: 'unresponsive',
         wdsDbStatus: 'unknown',
         wdsPingStatus: 'unknown',
@@ -85,6 +87,8 @@ describe('useWdsStatus', () => {
           proxyUrl: 'unknown',
           wdsResponsive: 'unknown',
           version: 'unknown',
+          chartVersion: 'unknown',
+          image: 'unknown',
           wdsStatus: 'unresponsive',
           wdsDbStatus: 'unknown',
           wdsPingStatus: 'unknown',
@@ -155,6 +159,8 @@ describe('useWdsStatus', () => {
           'https://lz34dd00bf3fdaa72f755eeea8f928bab7cd135043043d59d5.servicebus.windows.net/wds-6601fdbb-4b53-41da-87b2-81385f4a760e-6601fdbb-4b53-41da-87b2-81385f4a760e/',
         wdsResponsive: null,
         version: null,
+        chartVersion: null,
+        image: null,
         wdsStatus: null,
         wdsDbStatus: null,
         wdsPingStatus: null,
@@ -213,6 +219,8 @@ describe('useWdsStatus', () => {
             expect.objectContaining({
               wdsResponsive: 'false',
               version: 'unknown',
+              chartVersion: 'unknown',
+              image: 'unknown',
             })
           );
         });
@@ -220,6 +228,47 @@ describe('useWdsStatus', () => {
 
       describe('if version request succeeds', () => {
         it('updates status with git revision', async () => {
+          const mockVersion = {
+            app: {
+              'chart-version': 'wds-0.24.0',
+              image: 'us.gcr.io/broad-dsp-gcr-public/terra-workspace-data-service:eaf3f31',
+            },
+            git: { branch: 'main', commit: { id: 'c87286c', time: '2023-06-29T17:06:07Z' } },
+            build: {
+              artifact: 'service',
+              name: 'service',
+              time: '2023-06-29T21:19:57.307Z',
+              version: '0.2.92-SNAPSHOT',
+              group: 'org.databiosphere',
+            },
+          };
+          const mockAjax: DeepPartial<AjaxContract> = {
+            Apps: {
+              listAppsV2: jest.fn().mockResolvedValue([wdsApp]),
+            },
+            WorkspaceData: {
+              getVersion: jest.fn().mockResolvedValue(mockVersion),
+              getStatus: jest.fn().mockReturnValue(abandonedPromise()),
+              listInstances: jest.fn().mockReturnValue(abandonedPromise()),
+            },
+          };
+          asMockedFn(Ajax).mockReturnValue(mockAjax as AjaxContract);
+
+          // Act
+          const { result: renderHookRef } = await renderHookInAct(() => useWdsStatus({ workspaceId }));
+
+          // Assert
+          expect(renderHookRef.current.status).toEqual(
+            expect.objectContaining({
+              wdsResponsive: 'true',
+              version: 'c87286c',
+              chartVersion: 'wds-0.24.0',
+              image: 'us.gcr.io/broad-dsp-gcr-public/terra-workspace-data-service:eaf3f31',
+            })
+          );
+        });
+
+        it('handles version response without app', async () => {
           const mockVersion = {
             git: { branch: 'main', commit: { id: 'c87286c', time: '2023-06-29T17:06:07Z' } },
             build: {
@@ -250,6 +299,8 @@ describe('useWdsStatus', () => {
             expect.objectContaining({
               wdsResponsive: 'true',
               version: 'c87286c',
+              chartVersion: 'unknown',
+              image: 'unknown',
             })
           );
         });
@@ -459,6 +510,8 @@ describe('useWdsStatus', () => {
       proxyUrl: 'unknown',
       wdsResponsive: 'unknown',
       version: 'unknown',
+      chartVersion: 'unknown',
+      image: 'unknown',
       wdsStatus: 'unresponsive',
       wdsDbStatus: 'unknown',
       wdsPingStatus: 'unknown',
@@ -480,6 +533,8 @@ describe('useWdsStatus', () => {
       proxyUrl: null,
       wdsResponsive: null,
       version: null,
+      chartVersion: null,
+      image: null,
       wdsStatus: null,
       wdsDbStatus: null,
       wdsPingStatus: null,
