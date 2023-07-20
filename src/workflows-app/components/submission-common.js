@@ -7,6 +7,7 @@ import { statusType as jobStatusType } from 'src/components/job-common';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
 import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
+import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { notify } from 'src/libs/notifications';
@@ -53,9 +54,15 @@ export const getDuration = (state, submissionDate, lastModifiedTimestamp, stateC
   return stateCheckCallback(state) ? differenceFromDatesInSeconds(submissionDate, lastModifiedTimestamp) : differenceFromNowInSeconds(submissionDate);
 };
 
-export const loadAllRunSets = async (signal) => {
+export const loadAllRunSets = async (signal, workspaceId) => {
   try {
-    const getRunSets = await Ajax(signal).Cbas.runSets.get();
+    const cbasAppUrl = (
+      await Apps(signal)
+        .listAppsV2(workspaceId)
+        .then((apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email))
+    ).cbasUrl;
+
+    const getRunSets = await Ajax(signal).Cbas.runSets.get(cbasAppUrl);
     const durationEnhancedRunSets = _.map(
       (r) => _.merge(r, { duration: getDuration(r.state, r.submission_timestamp, r.last_modified_timestamp, isRunSetInTerminalState) }),
       getRunSets.run_sets

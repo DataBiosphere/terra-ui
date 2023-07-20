@@ -7,11 +7,14 @@ import { centeredSpinner, icon } from 'src/components/icons';
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger';
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
+import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import { getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import { resolveRunningCromwellAppUrl } from 'src/libs/workflows-app-utils';
 import {
   AutoRefreshInterval,
   getDuration,
@@ -27,6 +30,7 @@ export const SubmissionHistory = wrapWorkflowsPage({ name: 'SubmissionHistory' }
     {
       name,
       namespace,
+      workspace,
       workspace: {
         workspace: { workspaceId },
       },
@@ -47,7 +51,7 @@ export const SubmissionHistory = wrapWorkflowsPage({ name: 'SubmissionHistory' }
     // helper for auto-refresh
     const refresh = Utils.withBusyState(setLoading, async () => {
       try {
-        const loadedRunSetData = await loadAllRunSets(signal);
+        const loadedRunSetData = await loadAllRunSets(signal, workspaceId);
         setRunSetData(loadedRunSetData.run_sets);
         setRunSetsFullyUpdated(loadedRunSetData.fully_updated);
 
@@ -62,7 +66,13 @@ export const SubmissionHistory = wrapWorkflowsPage({ name: 'SubmissionHistory' }
 
     const cancelRunSet = async (submissionId) => {
       try {
-        await Ajax(signal).Cbas.runSets.cancel(submissionId);
+        const cbasAppUrl = (
+          await Apps(signal)
+            .listAppsV2(workspaceId)
+            .then((apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email))
+        ).cbasUrl;
+
+        await Ajax(signal).Cbas.runSets.cancel(cbasAppUrl, submissionId);
         notify('success', 'Abort submission request submitted successfully', {
           message: 'You may refresh the page to get most recent status changes.',
           timeout: 5000,
@@ -233,7 +243,11 @@ export const SubmissionHistory = wrapWorkflowsPage({ name: 'SubmissionHistory' }
                                   Link,
                                   {
                                     onClick: () => {
-                                      Nav.goToPath('submission-details', { submissionId: paginatedPreviousRunSets[rowIndex].run_set_id });
+                                      Nav.goToPath('workspace-workflows-app-submission-details', {
+                                        name: workspace.workspace.name,
+                                        namespace,
+                                        submissionId: paginatedPreviousRunSets[rowIndex].run_set_id,
+                                      });
                                     },
                                     style: { fontWeight: 'bold' },
                                   },

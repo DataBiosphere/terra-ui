@@ -24,9 +24,18 @@ export const Cbas = (signal) => ({
     },
   },
   runSets: {
+    get: async (cbasUrlRoot) => {
+      const res = await fetchFromProxy(cbasUrlRoot)('api/batch/v1/run_sets', _.mergeAll([authOpts(), { signal, method: 'GET' }]));
+      return res.json();
+    },
     getForMethod: async (cbasUrlRoot, methodId, pageSize) => {
       const keyParams = qs.stringify({ method_id: methodId, page_size: pageSize }, { arrayFormat: 'repeat' });
       const res = await fetchFromProxy(cbasUrlRoot)(`api/batch/v1/run_sets?${keyParams}`, _.mergeAll([authOpts(), { signal, method: 'GET' }]));
+      return res.json();
+    },
+    cancel: async (cbasUrlRoot, runSetId) => {
+      const keyParams = qs.stringify({ run_set_id: runSetId });
+      const res = await fetchFromProxy(cbasUrlRoot)(`api/batch/v1/run_sets/abort?${keyParams}`, _.mergeAll([authOpts(), { signal, method: 'POST' }]));
       return res.json();
     },
   },
