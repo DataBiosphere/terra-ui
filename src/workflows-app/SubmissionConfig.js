@@ -10,6 +10,7 @@ import StepButtons from 'src/components/StepButtons';
 import { TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
@@ -28,6 +29,7 @@ export const BaseSubmissionConfig = (
     methodId,
     name,
     namespace,
+    workspace,
     workspace: {
       workspace: { workspaceId },
     },
@@ -196,6 +198,14 @@ export const BaseSubmissionConfig = (
       notify('success', 'Workflow successfully submitted', {
         message: 'You may check on the progress of workflow on this page anytime.',
         timeout: 5000,
+      });
+      Ajax(signal).Metrics.captureEvent(Events.workflowsAppLaunchWorkflow, {
+        ...extractWorkspaceDetails(workspace),
+        methodName: method.name,
+        methodId,
+        methodVersionId: selectedMethodVersion.method_version_id,
+        methodSource: method.source,
+        previouslyRun: method.last_run.previously_run,
       });
       Nav.goToPath('submission-details', {
         submissionId: runSetObject.run_set_id,
