@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom';
 
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import RecordsTable from 'src/workflows-app/components/RecordsTable';
 
@@ -87,8 +88,6 @@ describe('RecordsTable', () => {
     const selectedRecords = {};
     const setSelectedRecords = jest.fn();
     const selectedDataTable = mockDataTable;
-    const recordsTableSort = { field: 'id', direction: 'asc' };
-    const setRecordsTableSort = jest.fn();
 
     render(
       h(RecordsTable, {
@@ -99,8 +98,6 @@ describe('RecordsTable', () => {
         selectedRecords,
         setSelectedRecords,
         selectedDataTable,
-        recordsTableSort,
-        setRecordsTableSort,
       })
     );
 
@@ -121,5 +118,110 @@ describe('RecordsTable', () => {
       '["https://datasettoaexample.blob.core.windows.net/dataset/abc.fastq.gz","https://datasettoaexample.blob.core.windows.net/dataset/xyz.fastq.gz"]'
     );
     within(dataRow[10]).getByText('{"foo_tries":3,"agg_foo_tries":3,"nested_foo_struct":{"foo_rating":4.5,"bar_rating":2.4}}');
+  });
+
+  it('should change record table sort order when column headers are clicked', async () => {
+    const dataTableColumnWidths = {};
+    const setDataTableColumnWidths = jest.fn();
+    const dataTableRef = { current: {} };
+    const selectedRecords = {};
+    const setSelectedRecords = jest.fn();
+
+    const records = [
+      {
+        id: 'FOO1',
+        type: 'FOO',
+        attributes: { sys_name: 'FOO1', foo_rating: 1000 },
+      },
+      {
+        id: 'FOO2',
+        type: 'FOO',
+        attributes: { sys_name: 'FOO2', foo_rating: 999 },
+      },
+      {
+        id: 'FOO3',
+        type: 'FOO',
+        attributes: { sys_name: 'FOO3', foo_rating: 85 },
+      },
+      {
+        id: 'FOO4',
+        type: 'FOO',
+        attributes: { sys_name: 'FOO4', foo_rating: 30 },
+      },
+    ];
+
+    const selectedDataTable = {
+      name: 'FOO',
+      attributes: [
+        {
+          name: 'foo_rating',
+          datatype: 'NUMBER',
+        },
+        {
+          name: 'bar_string',
+          datatype: 'STRING',
+        },
+        {
+          name: 'sys_name',
+          datatype: 'STRING',
+        },
+      ],
+      count: 4,
+      primaryKey: 'sys_name',
+    };
+
+    render(
+      h(RecordsTable, {
+        dataTableColumnWidths,
+        setDataTableColumnWidths,
+        dataTableRef,
+        records,
+        selectedRecords,
+        setSelectedRecords,
+        selectedDataTable,
+      })
+    );
+
+    const table = screen.getByRole('table');
+    const rows = within(table).queryAllByRole('row');
+    expect(rows.length).toBe(5);
+
+    const headers = within(rows[0]).queryAllByRole('columnheader');
+    expect(headers.length).toBe(5);
+
+    const cells1 = within(rows[1]).queryAllByRole('cell');
+    const cells2 = within(rows[2]).queryAllByRole('cell');
+    const cells3 = within(rows[3]).queryAllByRole('cell');
+    const cells4 = within(rows[4]).queryAllByRole('cell');
+
+    within(cells1[1]).getByText('FOO1');
+    within(cells2[1]).getByText('FOO2');
+    within(cells3[1]).getByText('FOO3');
+    within(cells4[1]).getByText('FOO4');
+
+    await act(async () => {
+      await userEvent.click(within(headers[1]).getByRole('button'));
+    });
+
+    within(cells1[1]).getByText('FOO4');
+    within(cells2[1]).getByText('FOO3');
+    within(cells3[1]).getByText('FOO2');
+    within(cells4[1]).getByText('FOO1');
+
+    await act(async () => {
+      await userEvent.click(within(headers[2]).getByRole('button'));
+    });
+    within(cells1[2]).getByText('30');
+    within(cells2[2]).getByText('85');
+    within(cells3[2]).getByText('999');
+    within(cells4[2]).getByText('1000');
+
+    await act(async () => {
+      await userEvent.click(within(headers[2]).getByRole('button'));
+    });
+    within(cells1[2]).getByText('1000');
+    within(cells2[2]).getByText('999');
+    within(cells3[2]).getByText('85');
+    within(cells4[2]).getByText('30');
   });
 });
