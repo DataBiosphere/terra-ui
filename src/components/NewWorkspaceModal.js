@@ -61,7 +61,6 @@ const invalidBillingAccountMsg = 'Workspaces may only be created in billing proj
 const ariaInvalidBillingAccountMsg = (invalidBillingAccount) => {
   return invalidBillingAccount ? ` with warning "${invalidBillingAccountMsg}"` : '';
 };
-
 const NewWorkspaceModal = withDisplayName(
   'NewWorkspaceModal',
   ({ cloneWorkspace, onSuccess, onDismiss, customMessage, requiredAuthDomain, requireEnhancedBucketLogging, title, buttonText, workflowImport }) => {
@@ -387,19 +386,26 @@ const NewWorkspaceModal = withDisplayName(
               ]),
               isGoogleBillingProject() &&
                 div({ style: { margin: '1rem 0.25rem 0.25rem 0' } }, [
-                  h(
-                    LabeledCheckbox,
-                    {
-                      style: { margin: '0rem 0.25rem 0.25rem 0' },
-                      checked: !!requireEnhancedBucketLogging || enhancedBucketLogging,
-                      disabled: !!requireEnhancedBucketLogging || groups.length > 0,
-                      onChange: () => setEnhancedBucketLogging(!enhancedBucketLogging),
-                    },
-                    [label({ style: { ...Style.elements.sectionHeader } }, ['Enhanced Bucket Logging'])]
-                  ),
-                  h(InfoBox, { style: { marginLeft: '0.25rem', verticalAlign: 'middle' } }, [
-                    'Enabling Enhanced Bucket Logging tells the Terra to log all data access requests to the workspace bucket. ' +
-                      'This feature is automatically enabled when a workspace is created with Authorization Domains.',
+                  h(IdContainer, [
+                    (id) =>
+                      h(Fragment, [
+                        h(
+                          LabeledCheckbox,
+                          {
+                            style: { margin: '0rem 0.25rem 0.25rem 0' },
+                            checked: enhancedBucketLogging,
+                            disabled: !!requireEnhancedBucketLogging || groups.length > 0,
+                            onChange: () => setEnhancedBucketLogging(!enhancedBucketLogging),
+                            'aria-describedby': id,
+                          },
+                          [label({ style: { ...Style.elements.sectionHeader } }, ['Workspace will have protected data'])]
+                        ),
+                        h(InfoBox, { style: { marginLeft: '0.25rem', verticalAlign: 'middle' } }, [
+                          'If checked, Terra will log all data access requests to the workspace bucket. ' +
+                            'This feature is automatically enabled when a workspace is created with Authorization Domains.',
+                        ]),
+                        p({ id, style: { marginTop: '.25rem' } }, ['Access to data will be logged by Terra']),
+                      ]),
                   ]),
                 ]),
               isGoogleBillingProject() &&
@@ -407,7 +413,7 @@ const NewWorkspaceModal = withDisplayName(
                   (id) =>
                     h(Fragment, [
                       h(FormLabel, { htmlFor: id }, [
-                        'Authorization domain',
+                        'Authorization domain (optional)',
                         h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
                           'An authorization domain can only be set when creating a workspace. ',
                           'Once set, it cannot be changed. ',
@@ -422,6 +428,7 @@ const NewWorkspaceModal = withDisplayName(
                           ),
                         ]),
                       ]),
+                      p({ style: { marginTop: '.25rem' } }, ['Additional group management controls']),
                       !!existingGroups.length &&
                         div({ style: { marginBottom: '0.5rem', fontSize: 12 } }, [
                           div({ style: { marginBottom: '0.2rem' } }, ['Inherited groups:']),
@@ -436,7 +443,7 @@ const NewWorkspaceModal = withDisplayName(
                         value: groups,
                         onChange: (data) => {
                           setGroups(_.map('value', data));
-                          setEnhancedBucketLogging(data.length > 0);
+                          setEnhancedBucketLogging(!!requireEnhancedBucketLogging || data.length > 0);
                         },
                         options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort(),
                       }),

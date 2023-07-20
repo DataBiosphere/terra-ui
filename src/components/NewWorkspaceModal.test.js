@@ -200,7 +200,7 @@ describe('NewWorkspaceModal', () => {
     ).toBeNull();
   });
 
-  it('shows an option for Enhanced Bucket Logging if a Google billing project is selected', async () => {
+  it('shows an option for "Workspace will have protected data" (enhanced bucket logging) if a Google billing project is selected', async () => {
     // Arrange
     const user = userEvent.setup();
 
@@ -235,10 +235,49 @@ describe('NewWorkspaceModal', () => {
 
     // Assert
     // getByText throws an error if the element is not found:
-    screen.getByText('Enhanced Bucket Logging');
+    const checkbox = screen.getByRole('checkbox');
+    expect(checkbox).toHaveAccessibleName('Workspace will have protected data');
+    expect(checkbox).not.toHaveAttribute('disabled');
   });
 
-  it('does not let the user disable Enhanced Bucket Logging if its required', async () => {
+  it('does not show an option for "Workspace will have protected data" (enhanced bucket logging) if an Azure billing project is selected', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    Ajax.mockImplementation(() => ({
+      Billing: {
+        listProjects: async () => [gcpBillingProject, azureBillingProject],
+      },
+      ...nonBillingAjax,
+    }));
+
+    await act(async () => {
+      // eslint-disable-line require-await
+      render(
+        h(NewWorkspaceModal, {
+          cloneWorkspace: false,
+          onSuccess: () => null,
+          onDismiss: () => null,
+          customMessage: null,
+          requiredAuthDomain: false,
+          title: null,
+          buttonText: null,
+          // workflowImport: false <== Not specified. False should be the default
+        })
+      );
+    });
+
+    const projectSelector = screen.getByText('Select a billing project');
+    await user.click(projectSelector);
+
+    const azureBillingProject1 = screen.getByText('Azure Billing Project');
+    await user.click(azureBillingProject1);
+
+    // Assert
+    expect(screen.queryByText('Workspace will have protected data')).toBeNull();
+  });
+
+  it('does not let the user uncheck "Workspace will have protected data" (enhanced bucket logging) if its required', async () => {
     // Arrange
     const user = userEvent.setup();
 
@@ -273,11 +312,12 @@ describe('NewWorkspaceModal', () => {
     await user.click(googleBillingProject);
 
     // Assert
-    // getByText throws an error if the element is not found:
-    expect(screen.getByRole('checkbox')).toHaveAttribute('disabled');
+    const checkbox = screen.getByRole('checkbox');
+    expect(checkbox).toHaveAccessibleName('Workspace will have protected data');
+    expect(checkbox).toHaveAttribute('disabled');
   });
 
-  it('checks and disables Enhanced Bucket Logging if an auth domain is chosen', async () => {
+  it('checks and disables "Workspace will have protected data" (enhanced bucket logging) if an auth domain is chosen', async () => {
     // Arrange
     const user = userEvent.setup();
 
@@ -318,60 +358,8 @@ describe('NewWorkspaceModal', () => {
     await user.click(authDomain);
 
     // Assert
-    // getByText throws an error if the element is not found:
     const checkbox = screen.getByRole('checkbox');
-    expect(checkbox).toHaveAttribute('disabled');
-    expect(checkbox).toBeChecked();
-  });
-
-  it('enables Enhanced Bucket Logging if an auth domain is removed', async () => {
-    // Arrange
-    const user = userEvent.setup();
-
-    Ajax.mockImplementation(() => ({
-      Billing: {
-        listProjects: async () => [gcpBillingProject, azureBillingProject],
-      },
-      ...hasGroupsAjax,
-    }));
-
-    await act(async () => {
-      // eslint-disable-line require-await
-      render(
-        h(NewWorkspaceModal, {
-          cloneWorkspace: false,
-          onSuccess: () => null,
-          onDismiss: () => null,
-          customMessage: null,
-          requiredAuthDomain: false,
-          requireEnhancedBucketLogging: true,
-          title: null,
-          buttonText: null,
-          // workflowImport: false <== Not specified. False should be the default
-        })
-      );
-    });
-
-    const projectSelector = screen.getByText('Select a billing project');
-    await user.click(projectSelector);
-
-    const googleBillingProject = screen.getByText('Google Billing Project');
-    await user.click(googleBillingProject);
-
-    const groupsSelector = screen.getByText('Select groups');
-    await user.click(groupsSelector);
-
-    const authDomain = screen.getByText('AuthDomain');
-    await user.click(authDomain);
-
-    // Assert
-    // getByText throws an error if the element is not found:
-    const checkbox = screen.getByRole('checkbox');
-    expect(checkbox).toHaveAttribute('disabled');
-    expect(checkbox).toBeChecked();
-
-    const removeAuthDomain = screen.getByRole('button', { name: 'Remove AuthDomain' });
-    await user.click(removeAuthDomain);
+    expect(checkbox).toHaveAccessibleName('Workspace will have protected data');
     expect(checkbox).toHaveAttribute('disabled');
     expect(checkbox).toBeChecked();
   });
