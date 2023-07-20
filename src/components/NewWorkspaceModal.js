@@ -61,7 +61,6 @@ const invalidBillingAccountMsg = 'Workspaces may only be created in billing proj
 const ariaInvalidBillingAccountMsg = (invalidBillingAccount) => {
   return invalidBillingAccount ? ` with warning "${invalidBillingAccountMsg}"` : '';
 };
-
 const NewWorkspaceModal = withDisplayName(
   'NewWorkspaceModal',
   ({ cloneWorkspace, onSuccess, onDismiss, customMessage, requiredAuthDomain, requireEnhancedBucketLogging, title, buttonText, workflowImport }) => {
@@ -442,7 +441,7 @@ const NewWorkspaceModal = withDisplayName(
                         value: groups,
                         onChange: (data) => {
                           setGroups(_.map('value', data));
-                          setEnhancedBucketLogging(data.length > 0);
+                          setEnhancedBucketLogging(!!requireEnhancedBucketLogging || data.length > 0);
                         },
                         options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort(),
                       }),
