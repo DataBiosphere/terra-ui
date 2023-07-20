@@ -55,11 +55,10 @@ import { useCancellation, useStore } from 'src/libs/react-utils';
 import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import {
-  AzureWorkspace,
+  BaseWorkspace,
   CloudProvider,
   cloudProviderTypes,
   getCloudProviderFromWorkspace,
-  GoogleWorkspace,
 } from 'src/libs/workspace-utils';
 
 const titleId = 'cloud-env-modal';
@@ -79,9 +78,6 @@ export const CloudEnvironmentModal = ({
   // Note: for Azure environments `location` and `computeRegion` are identical
   location,
   computeRegion,
-  workspace: {
-    workspace: { namespace, name: workspaceName },
-  },
   filterForTool = undefined,
 }: {
   isOpen: boolean;
@@ -93,7 +89,7 @@ export const CloudEnvironmentModal = ({
   appDataDisks: PersistentDisk[];
   refreshRuntimes: () => Promise<void>;
   refreshApps: () => Promise<void>;
-  workspace: GoogleWorkspace | AzureWorkspace;
+  workspace: BaseWorkspace;
   persistentDisks: PersistentDisk[];
   location: string;
   computeRegion: string;
@@ -109,6 +105,7 @@ export const CloudEnvironmentModal = ({
   const currentDisk = getCurrentPersistentDisk(runtimes, persistentDisks);
   const signal = useCancellation();
 
+  const { name, namespace } = workspace.workspace;
   const noCompute = 'You do not have access to run analyses on this workspace.';
 
   const resetView = () => setViewMode(undefined);
@@ -495,7 +492,7 @@ export const CloudEnvironmentModal = ({
           // TODO: Jupyter link isn't currently valid, and button will always be disabled for Jupyter because launching directly into tree view is problematic in terms of welder/nbextensions. We are investigating alternatives in https://broadworkbench.atlassian.net/browse/IA-2873
           const applicationLaunchLink = Nav.getLink(appLauncherTabName, {
             namespace,
-            name: workspaceName,
+            name,
             application: toolLabel,
           });
           return {
