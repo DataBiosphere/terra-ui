@@ -1,15 +1,17 @@
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
-import { Concept, DatasetBuilder, DomainOption, GetConceptsResponse } from 'src/libs/ajax/DatasetBuilder';
+import {
+  Concept,
+  DatasetBuilder,
+  DomainCriteria,
+  DomainOption,
+  GetConceptsResponse,
+} from 'src/libs/ajax/DatasetBuilder';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { useOnMount } from 'src/libs/react-utils';
 import { ConceptSelector } from 'src/pages/library/datasetBuilder/ConceptSelector';
-import {
-  cohortEditorState,
-  DomainCriteria,
-  DomainCriteriaSelectorState,
-} from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import { cohortEditorState, DomainCriteriaSelectorState } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 
 interface DomainCriteriaSelectorProps {

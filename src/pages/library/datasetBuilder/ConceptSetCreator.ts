@@ -1,8 +1,8 @@
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { Concept, DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
+import { Concept, ConceptSet, DatasetResponse } from 'src/libs/ajax/DatasetBuilder';
 import { ConceptSelector } from 'src/pages/library/datasetBuilder/ConceptSelector';
-import { ConceptSet, homepageState, Updater } from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import { homepageState, Updater } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
 
 export type ConceptSetCreatorProps = {

@@ -4,23 +4,24 @@ import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
 import { ButtonOutline, ButtonPrimary, GroupedSelect, Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import {
+  AnyCriteria,
+  Cohort,
+  CriteriaGroup,
   DatasetResponse,
   DomainOption,
+  ProgramDataListCriteria,
   ProgramDataListOption,
+  ProgramDataListValue,
+  ProgramDataRangeCriteria,
   ProgramDataRangeOption,
 } from 'src/libs/ajax/DatasetBuilder';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 import { PAGE_PADDING_HEIGHT, PAGE_PADDING_WIDTH } from 'src/pages/library/datasetBuilder/constants';
 import {
-  AnyCriteria,
-  Cohort,
-  CriteriaGroup,
   domainCriteriaSelectorState,
   homepageState,
   newCriteriaGroup,
-  ProgramDataListCriteria,
-  ProgramDataRangeCriteria,
   Updater,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { OnStateChangeHandler } from 'src/pages/library/datasetBuilder/DatasetBuilder';
@@ -34,10 +35,16 @@ const flexWithBaseline = {
 const narrowMargin = 5;
 const wideMargin = 10;
 
-type CriteriaViewProps = { criteria: AnyCriteria; deleteCriteria: (criteria: AnyCriteria) => void };
+type CriteriaViewProps = {
+  criteria: AnyCriteria;
+  deleteCriteria: (criteria: AnyCriteria) => void;
+  updateCriteria: (criteria: AnyCriteria) => void;
+};
 
-const CriteriaView = ({ criteria, deleteCriteria }: CriteriaViewProps) => {
-  return div(
+const addCriteriaText = 'Add criteria';
+
+export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: CriteriaViewProps) =>
+  div(
     {
       style: {
         ...flexWithBaseline,
@@ -66,7 +73,33 @@ const CriteriaView = ({ criteria, deleteCriteria }: CriteriaViewProps) => {
               case 'domain':
                 return h(Fragment, [strong([`${criteria.domainOption.category}:`]), ` ${criteria.name}`]);
               case 'list':
-                return h(Fragment, [strong([`${criteria.name}:`]), ` ${criteria.value.name}`]);
+                return h(Fragment, [
+                  strong([`${criteria.name}: ${_.flow(_.map('name'), _.join(', '))(criteria.values)}`]),
+                  h(Select, {
+                    'aria-label': `Select one or more ${criteria.name}`,
+                    isClearable: true,
+                    isMulti: true,
+                    options: _.map(
+                      (value) => ({
+                        label: value.name,
+                        value: value.id,
+                      }),
+                      criteria.listOption.values
+                    ),
+                    value: _.map('id', criteria.values),
+                    onChange: (values) =>
+                      _.flow(
+                        _.set(
+                          'values',
+                          _.filter(
+                            (value: ProgramDataListValue) => _.flow(_.map('value'), _.includes(value.id))(values),
+                            criteria.listOption.values
+                          )
+                        ),
+                        updateCriteria
+                      )(criteria),
+                  }),
+                ]);
               case 'range':
                 return h(Fragment, [strong([`${criteria.name}:`]), ` ${criteria.low} - ${criteria.high}`]);
               default:
@@ -78,11 +111,6 @@ const CriteriaView = ({ criteria, deleteCriteria }: CriteriaViewProps) => {
       `Count: ${criteria.count}`,
     ]
   );
-};
-
-export const createCriteriaViewComponent =
-  (deleteCriteria: (criteria: AnyCriteria) => void) => (criteria: AnyCriteria) =>
-    h(CriteriaView, { deleteCriteria, criteria, key: criteria.id });
 
 let criteriaCount = 1;
 const createDefaultListCriteria = (listOption: ProgramDataListOption): ProgramDataListCriteria => {
@@ -92,7 +120,7 @@ const createDefaultListCriteria = (listOption: ProgramDataListOption): ProgramDa
     name: listOption.name,
     id: criteriaCount++,
     count: 100,
-    value: listOption.values[0],
+    values: [listOption.values[0]],
   };
 };
 
@@ -162,8 +190,8 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
         }, datasetDetails.programDataOptions),
       },
     ],
-    'aria-label': 'add criteria',
-    placeholder: 'Add criteria',
+    'aria-label': addCriteriaText,
+    placeholder: addCriteriaText,
     value: null,
     onChange: (x) => {
       if (x !== null) {
@@ -191,6 +219,19 @@ type CriteriaGroupViewProps = {
 
 export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
   const { index, criteriaGroup, updateCohort, cohort, datasetDetails, onStateChange } = props;
+
+  const deleteCriteria = (criteria: AnyCriteria) =>
+    updateCohort(_.set(`criteriaGroups.${index}.criteria`, _.without([criteria], criteriaGroup.criteria)));
+
+  const updateCriteria = (criteria: AnyCriteria) => {
+    updateCohort(
+      _.set(
+        `criteriaGroups.${index}.criteria.${_.findIndex({ id: criteria.id }, cohort.criteriaGroups[index].criteria)}`,
+        criteria
+      )
+    );
+  };
+
   return div(
     {
       style: {
@@ -244,19 +285,23 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
           ]
         ),
         div([
-          (criteriaGroup.criteria.length !== 0 &&
-            _.map(
-              createCriteriaViewComponent((criteria: AnyCriteria) =>
-                updateCohort(_.set(`criteriaGroups.${index}.criteria`, _.without([criteria], criteriaGroup.criteria)))
-              ),
-              criteriaGroup.criteria
-            )) ||
-            div({ style: { marginTop: 15 } }, [
-              div({ style: { fontWeight: 'bold', fontStyle: 'italic' } }, ['No criteria yet']),
-              div({ style: { fontStyle: 'italic', marginTop: narrowMargin } }, [
-                "You can add a criteria by clicking on 'Add criteria'",
+          criteriaGroup.criteria.length !== 0
+            ? _.map(
+                (criteria) =>
+                  h(CriteriaView, {
+                    deleteCriteria,
+                    updateCriteria,
+                    criteria,
+                    key: criteria.id,
+                  }),
+                criteriaGroup.criteria
+              )
+            : div({ style: { marginTop: 15 } }, [
+                div({ style: { fontWeight: 'bold', fontStyle: 'italic' } }, ['No criteria yet']),
+                div({ style: { fontStyle: 'italic', marginTop: narrowMargin } }, [
+                  `You can add a criteria by clicking on '${addCriteriaText}'`,
+                ]),
               ]),
-            ]),
         ]),
         h(AddCriteriaSelector, { index, criteriaGroup, updateCohort, datasetDetails, onStateChange, cohort }),
       ]),
