@@ -105,7 +105,7 @@ const DragHandle = () => {
         display: 'flex',
         alignItems: 'center',
       },
-      'aria-label': `Drag button for "${name}", currently at position ${index}.`,
+      'aria-label': `Drag button for "${name}", currently at position ${index}`,
     },
     [icon('columnGrabber', { style: { transform: 'rotate(90deg)' } })]
   );
@@ -150,6 +150,23 @@ const customCoordinatesGetter = (event, args) => {
   return undefined;
 };
 
+// Exported for testing purposes only.
+export const dragEndNotifier = ({ active, over, items, onChange }) => {
+  if (over && active.id !== over?.id) {
+    const activeIndex = items.findIndex(({ id }) => id === active.id);
+    const overIndex = items.findIndex(({ id }) => id === over.id);
+
+    onChange(arrayMove(items, activeIndex, overIndex));
+    // This is necessary because of the virtualized list. Without this, focus after a drag ends on up on the drag
+    // handle in the row where the element was dragged from, not on the drag handle in the row it was dropped.
+    // In a setTimeout so that the re-rendering has already happened.
+    setTimeout(function () {
+      const handle = document.getElementById(dragHandleId(active?.id));
+      handle?.focus();
+    });
+  }
+};
+
 export const ColumnSettingsList = ({ items, onChange, toggleVisibility }: ColumnSettingsListProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -163,22 +180,6 @@ export const ColumnSettingsList = ({ items, onChange, toggleVisibility }: Column
       },
     })
   );
-
-  const onDragEnd = ({ active, over }) => {
-    if (over && active.id !== over?.id) {
-      const activeIndex = items.findIndex(({ id }) => id === active.id);
-      const overIndex = items.findIndex(({ id }) => id === over.id);
-
-      onChange(arrayMove(items, activeIndex, overIndex));
-      // This is necessary because of the virtualized list. Without this, focus after a drag ends on up on the drag
-      // handle in the row where the element was dragged from, not on the drag handle in the row it was dropped.
-      // In a setTimeout so that the re-rendering has already happened.
-      setTimeout(function () {
-        const handle = document.getElementById(dragHandleId(active?.id));
-        handle?.focus();
-      });
-    }
-  };
 
   const renderItem = (item, index) => {
     return h(SortableItem, { id: item.id, name: item.name, index: getPosition(item.id) }, [
@@ -202,7 +203,7 @@ export const ColumnSettingsList = ({ items, onChange, toggleVisibility }: Column
               },
               [
                 h(Checkbox, {
-                  'aria-label': `Show ${item.name} in table`,
+                  'aria-label': `Show "${item.name}" in table`,
                   checked: item.visible,
                   onChange: () => {
                     if (!_.isUndefined(index)) toggleVisibility(index);
@@ -228,16 +229,16 @@ export const ColumnSettingsList = ({ items, onChange, toggleVisibility }: Column
     onDragStart({ active }) {
       return `Picked up "${getName(active.id)}". Column "${getName(active.id)}" is in position ${getPosition(
         active.id
-      )} of ${items.length}`;
+      )} of ${items.length}.`;
     },
     onDragOver({ active, over }) {
       if (over) {
-        return `"${getName(active.id)}" was moved into position ${getPosition(over.id)} of ${items.length}`;
+        return `"${getName(active.id)}" was moved into position ${getPosition(over.id)} of ${items.length}.`;
       }
     },
     onDragEnd({ active, over }) {
       if (over) {
-        return `"${getName(active.id)}" was dropped at position ${getPosition(over.id)} of ${items.length}`;
+        return `"${getName(active.id)}" was dropped at position ${getPosition(over.id)} of ${items.length}.`;
       }
     },
     onDragCancel({ active }) {
@@ -251,6 +252,8 @@ export const ColumnSettingsList = ({ items, onChange, toggleVisibility }: Column
     Press space or Enter again to drop the item in its new position, or press the letter q to cancel.
     `,
   };
+
+  const onDragEnd = ({ active, over }) => dragEndNotifier({ active, over, items, onChange });
 
   return h(AutoSizer, { disableHeight: true }, [
     ({ width }) => {
