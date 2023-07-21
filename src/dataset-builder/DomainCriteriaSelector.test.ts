@@ -49,7 +49,13 @@ describe('DomainCriteriaSelector', () => {
     // Assert
     expect(onStateChange).toHaveBeenCalledWith(
       cohortEditorState.new(
-        _.update('criteriaGroups[0].criteria', () => [toCriteria(domainOption)(concept)], state.cohort)
+        _.update(
+          'criteriaGroups[0].criteria',
+          // Since each created criteria has a unique index, we need to subtract one
+          // so the expected value matches the generated value.
+          () => [_.update('index', (x) => x - 1, toCriteria(domainOption)(concept))],
+          state.cohort
+        )
       )
     );
   });
