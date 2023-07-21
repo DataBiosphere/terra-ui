@@ -7,14 +7,16 @@ import failOnConsole from 'jest-fail-on-console';
 // Fail tests that produce console logs.
 // Console warnings or errors suggest there are issues with the test.
 // Other console logs are noise that make it harder to find informative output when tests do fail.
-failOnConsole({
-  shouldFailOnAssert: true,
-  shouldFailOnDebug: true,
-  shouldFailOnInfo: true,
-  shouldFailOnLog: true,
-  shouldFailOnWarn: true,
-  shouldFailOnError: true,
-});
+if (!process.env.ALLOW_LOGS) {
+  failOnConsole({
+    shouldFailOnAssert: true,
+    shouldFailOnDebug: true,
+    shouldFailOnInfo: true,
+    shouldFailOnLog: true,
+    shouldFailOnWarn: true,
+    shouldFailOnError: true,
+  });
+}
 
 // VirtualizedSelect uses react-virtualized's AutoSizer to size the options menu.
 // Left to its own devices, in the unit test environment, AutoSizer makes the menu
