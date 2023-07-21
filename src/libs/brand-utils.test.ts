@@ -66,7 +66,7 @@ describe('brand-utils', () => {
   });
 
   describe('getEnabledBrand', () => {
-    beforeAll(() => {
+    beforeEach(() => {
       // For invalid brands, getEnabledBrand logs a notice and instructions for developers.
       // Those should not be shown in test output.
       jest.spyOn(console, 'log').mockImplementation(() => {});
