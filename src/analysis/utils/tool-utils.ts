@@ -9,7 +9,7 @@ import * as Utils from 'src/libs/utils';
 import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils';
 
 export type RuntimeToolLabel = 'Jupyter' | 'RStudio' | 'JupyterLab';
-export type AppToolLabel = 'GALAXY' | 'CROMWELL' | 'HAIL_BATCH';
+export type AppToolLabel = 'GALAXY' | 'CROMWELL' | 'HAIL_BATCH' | 'WDS';
 export type LaunchableToolLabel = 'spark' | 'terminal' | 'RStudio' | 'JupyterLab';
 export type ToolLabel = RuntimeToolLabel | AppToolLabel;
 
@@ -33,12 +33,14 @@ export const toolLabelDisplays: Record<ToolLabel, string> = {
   GALAXY: 'Galaxy',
   CROMWELL: 'Cromwell',
   HAIL_BATCH: 'Hail Batch',
+  WDS: 'Workspace Data Service',
 };
 
 export const appToolLabels: Record<AppToolLabel, AppToolLabel> = {
   GALAXY: 'GALAXY',
   CROMWELL: 'CROMWELL',
   HAIL_BATCH: 'HAIL_BATCH',
+  WDS: 'WDS',
 };
 
 export const isAppToolLabel = (x: ToolLabel): x is AppToolLabel => x in appToolLabels;
@@ -112,10 +114,13 @@ const Cromwell: AppTool = { label: 'CROMWELL', isPauseUnsupported: true };
 
 const HailBatch: AppTool = { label: 'HAIL_BATCH', isPauseUnsupported: true };
 
+const Wds: AppTool = { label: 'WDS', isPauseUnsupported: true };
+
 export const appTools: Record<AppToolLabel, AppTool> = {
   GALAXY: Galaxy,
   CROMWELL: Cromwell,
   HAIL_BATCH: HailBatch,
+  WDS: Wds,
 };
 
 export const runtimeTools: Record<RuntimeToolLabel, RuntimeTool> = {
