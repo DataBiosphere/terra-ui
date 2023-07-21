@@ -43,6 +43,8 @@ describe('HailBatchModal', () => {
 
   it('Calls createAppV2 API when create button is clicked', async () => {
     // Arrange
+    const user = userEvent.setup();
+
     const createFunc = jest.fn();
     asMockedFn(Apps).mockImplementation(() => {
       return {
@@ -53,10 +55,11 @@ describe('HailBatchModal', () => {
 
     // Act
     await act(async () => {
-      await render(h(HailBatchModal, defaultHailBatchProps));
-      const createButton = screen.getByText('Create');
-      await userEvent.click(createButton);
+      render(h(HailBatchModal, defaultHailBatchProps));
     });
+
+    const createButton = screen.getByText('Create');
+    await user.click(createButton);
 
     expect(createFunc).toHaveBeenCalledWith(
       expect.anything(),
@@ -68,6 +71,8 @@ describe('HailBatchModal', () => {
 
   it('shows deleteWarn message after initial delete click', async () => {
     // Arrange
+    const user = userEvent.setup();
+
     const deleteFunc = jest.fn();
     asMockedFn(Apps).mockImplementation(() => {
       return {
@@ -83,10 +88,11 @@ describe('HailBatchModal', () => {
 
     // Act
     await act(async () => {
-      await render(h(HailBatchModal, props));
-      const deleteButton = screen.getByText('Delete Environment');
-      await userEvent.click(deleteButton);
+      render(h(HailBatchModal, props));
     });
+
+    const deleteButton = screen.getByText('Delete Environment');
+    await user.click(deleteButton);
 
     // Assert
     screen.getByText('Delete environment');
@@ -98,7 +104,9 @@ describe('HailBatchModal', () => {
   });
 
   it('Calls deleteAppV2 API when delete button is clicked', async () => {
-    // Arrange
+    // Arrang
+    const user = userEvent.setup();
+
     const deleteFunc = jest.fn();
     asMockedFn(Apps).mockImplementation(() => {
       return {
@@ -114,12 +122,13 @@ describe('HailBatchModal', () => {
 
     // Act
     await act(async () => {
-      await render(h(HailBatchModal, props));
-      const deleteButton = screen.getByText('Delete Environment');
-      await userEvent.click(deleteButton);
-      const deleteButtonAgain = screen.getByText('Delete');
-      await userEvent.click(deleteButtonAgain);
+      render(h(HailBatchModal, props));
     });
+
+    const deleteButton = screen.getByText('Delete Environment');
+    await user.click(deleteButton);
+    const deleteButtonAgain = screen.getByText('Delete');
+    await user.click(deleteButtonAgain);
 
     // Assert
     expect(deleteFunc).toHaveBeenCalled();
