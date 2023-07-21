@@ -104,7 +104,7 @@ describe('HailBatchModal', () => {
   });
 
   it('Calls deleteAppV2 API when delete button is clicked', async () => {
-    // Arrang
+    // Arrange
     const user = userEvent.setup();
 
     const deleteFunc = jest.fn();
