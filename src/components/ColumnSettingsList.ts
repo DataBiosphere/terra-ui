@@ -17,25 +17,106 @@ import { icon } from 'src/components/icons';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import * as Style from 'src/libs/style';
 
-const rowHeight = 30;
-const dragHandleId = (id) => `drag-handle-${id}`;
-
-interface BaseItem {
+export interface ColumnData {
   id: UniqueIdentifier;
   name: string;
   visible: boolean;
 }
 
-interface SortableListProps<T extends BaseItem> {
-  items: T[];
-  onChange(items: T[]): void;
+export interface ColumnSettingsListProps {
+  items: ColumnData[];
+  onChange(items: ColumnData[]): void;
   toggleVisibility(index: number): void;
 }
+
+// Private classes related to the individual sortable item (related to a single instance of ColumnData).
+interface SortableItemProps {
+  id: UniqueIdentifier;
+  name: string;
+  index: number;
+}
+
+// To pass to the drag handle.
+interface Context {
+  attributes: Record<string, any>;
+  listeners: DraggableSyntheticListeners;
+  sortableItemProps: SortableItemProps;
+  ref(node: HTMLElement | null): void;
+}
+
+const SortableItemContext = createContext<Context>({
+  attributes: {},
+  listeners: undefined,
+  ref() {},
+  sortableItemProps: {
+    id: '',
+    name: '',
+    index: -1,
+  },
+});
+
+const SortableItem = ({ children, id, name, index }: PropsWithChildren<SortableItemProps>) => {
+  const { attributes, isDragging, listeners, setNodeRef, setActivatorNodeRef, transform, transition } = useSortable({
+    // Disable because the virtualized list causes issues with animating between the original location and the destination.
+    animateLayoutChanges: () => false,
+    id,
+  });
+  const context = useMemo(
+    () => ({
+      attributes,
+      listeners,
+      ref: setActivatorNodeRef,
+      sortableItemProps: {
+        id,
+        name,
+        index,
+      },
+    }),
+    [attributes, listeners, setActivatorNodeRef, id, name, index]
+  );
+
+  const style: CSSProperties = {
+    opacity: isDragging ? 0.4 : undefined,
+    transform: CSS.Translate.toString(transform),
+    transition,
+    display: 'flex',
+  };
+
+  return h(SortableItemContext.Provider, { value: context }, [div({ ref: setNodeRef, style }, [children])]);
+};
+
+const dragHandleId = (id) => `drag-handle-${id}`;
+
+const DragHandle = () => {
+  // attributes include aria roles to make drag and drop keyboard accessible
+  // ref is setActivatorNodeRef (which may not be useful given virtualized list and our focus management)
+  const { attributes, listeners, ref, sortableItemProps } = useContext(SortableItemContext);
+  const { id, index, name } = sortableItemProps;
+
+  return div(
+    {
+      id: dragHandleId(id),
+      ref,
+      ...attributes,
+      ...listeners,
+      style: {
+        paddingRight: '0.25rem',
+        cursor: 'move',
+        display: 'flex',
+        alignItems: 'center',
+      },
+      'aria-label': `Drag button for "${name}", currently at position ${index}.`,
+    },
+    [icon('columnGrabber', { style: { transform: 'rotate(90deg)' } })]
+  );
+};
+
+const rowHeight = 30;
 
 // There are some strange visual interactions that occur, most likely related to the virtualized list.
 // However, basic functionality works, and the live region updates notify screen readers of the position
 // as they move items via the keyboard.
-function customCoordinatesGetter(event, args) {
+const customCoordinatesGetter = (event, args) => {
   const { currentCoordinates } = args;
   const delta = rowHeight;
 
@@ -67,86 +148,9 @@ function customCoordinatesGetter(event, args) {
     };
   }
   return undefined;
-}
-
-interface SortableItemProps {
-  id: UniqueIdentifier;
-  name: string;
-  index: number;
-}
-
-interface Context {
-  attributes: Record<string, any>;
-  listeners: DraggableSyntheticListeners;
-  id: UniqueIdentifier;
-  name: string;
-  index: number;
-  ref(node: HTMLElement | null): void;
-}
-
-const SortableItemContext = createContext<Context>({
-  attributes: {},
-  listeners: undefined,
-  ref() {},
-  id: '',
-  name: '',
-  index: 0,
-});
-
-function SortableItem({ children, id, name, index }: PropsWithChildren<SortableItemProps>) {
-  const { attributes, isDragging, listeners, setNodeRef, setActivatorNodeRef, transform, transition } = useSortable({
-    // Disable because the virtualized list causes issues with animating between the original location and the destination.
-    animateLayoutChanges: () => false,
-    id,
-  });
-  const context = useMemo(
-    () => ({
-      attributes,
-      listeners,
-      ref: setActivatorNodeRef,
-      id,
-      name,
-      index,
-    }),
-    [attributes, listeners, setActivatorNodeRef, id, name, index]
-  );
-  const style: CSSProperties = {
-    opacity: isDragging ? 0.4 : undefined,
-    transform: CSS.Translate.toString(transform),
-    transition,
-    display: 'flex',
-  };
-
-  return h(SortableItemContext.Provider, { value: context }, [div({ ref: setNodeRef, style }, [children])]);
-}
-
-const styles = {
-  columnHandle: {
-    paddingRight: '0.25rem',
-    cursor: 'move',
-    display: 'flex',
-    alignItems: 'center',
-  },
 };
 
-function DragHandle() {
-  // attributes include aria roles to make drag and drop keyboard accessible.
-  // ref is setActivatorNodeRef
-  const { attributes, listeners, ref, id, name, index } = useContext(SortableItemContext);
-  return div(
-    {
-      id: dragHandleId(id),
-      ref,
-      ...attributes,
-      ...listeners,
-      style: styles.columnHandle,
-      'aria-label': `Drag button for "${name}", currently at position ${index}.`,
-    },
-    [icon('columnGrabber', { style: { transform: 'rotate(90deg)' } })]
-  );
-}
-
-export const ColumnSettingsList = <T extends BaseItem>({ items, onChange, toggleVisibility }: SortableListProps<T>) => {
+export const ColumnSettingsList = ({ items, onChange, toggleVisibility }: ColumnSettingsListProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -214,13 +218,12 @@ export const ColumnSettingsList = <T extends BaseItem>({ items, onChange, toggle
     ]);
   };
 
+  // Utilities and support related to screen reader text.
   const getPosition = (id) => _.findIndex({ id })(items) + 1;
   const getName = (id) => {
-    const column = _.filter({ id })(items);
-    // @ts-ignore
-    return column ? column[0].name : 'unknown';
+    const item = _.filter({ id })(items) as unknown;
+    return item ? item[0].name : 'unknown';
   };
-
   const announcements = <Announcements>{
     onDragStart({ active }) {
       return `Picked up "${getName(active.id)}". Column "${getName(active.id)}" is in position ${getPosition(
@@ -241,7 +244,6 @@ export const ColumnSettingsList = <T extends BaseItem>({ items, onChange, toggle
       return `Dragging was cancelled. "${getName(active.id)}" was dropped.`;
     },
   };
-
   const screenReaderInstructions = <ScreenReaderInstructions>{
     draggable: `
     To begin a drag, press the space bar or Enter.
