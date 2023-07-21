@@ -205,9 +205,7 @@ export const ColumnSettingsList = ({ items, onChange, toggleVisibility }: Column
                 h(Checkbox, {
                   'aria-label': `Show "${item.name}" in table`,
                   checked: item.visible,
-                  onChange: () => {
-                    if (!_.isUndefined(index)) toggleVisibility(index);
-                  },
+                  onChange: () => toggleVisibility(index),
                 }),
                 ' ',
                 item.name,
@@ -259,7 +257,7 @@ export const ColumnSettingsList = ({ items, onChange, toggleVisibility }: Column
     ({ width }) => {
       return h(DndContext, { sensors, onDragEnd, accessibility: { announcements, screenReaderInstructions } }, [
         h(SortableContext, { items }, [
-          // @ts-ignore
+          // @ts-expect-error
           h(List, {
             lockAxis: 'y',
             width,
