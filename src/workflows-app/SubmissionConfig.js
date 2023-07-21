@@ -209,23 +209,26 @@ export const BaseSubmissionConfig = (
     }
   };
 
-  useOnMount(async () => {
-    const {
-      cbasProxyUrlResponse: { status, state: cbasUrlRoot },
-      wdsProxyUrlResponse,
-    } = await loadAppProxyUrls();
+  useOnMount(() => {
+    const loadWorkflowsApp = async () => {
+      const {
+        cbasProxyUrlResponse: { status, state: cbasUrlRoot },
+        wdsProxyUrlResponse,
+      } = await loadAppProxyUrls();
 
-    if (status === 'Unauthorized') {
-      notify('warn', 'Error loading workflows app', {
-        detail: 'Service returned Unauthorized error. Session might have expired. Please refresh the page or login again.',
-      });
-    } else if (cbasUrlRoot) {
-      loadRunSet(cbasUrlRoot).then((runSet) => {
-        setRunSetRecordType(runSet.record_type);
-        loadMethodsData(cbasUrlRoot, runSet.method_id, runSet.method_version_id);
-        loadWdsData({ wdsProxyUrlState: wdsProxyUrlResponse, recordType: runSetRecordType });
-      });
-    }
+      if (status === 'Unauthorized') {
+        notify('warn', 'Error loading workflows app', {
+          detail: 'Service returned Unauthorized error. Session might have expired. Please refresh the page or login again.',
+        });
+      } else if (cbasUrlRoot) {
+        loadRunSet(cbasUrlRoot).then((runSet) => {
+          setRunSetRecordType(runSet.record_type);
+          loadMethodsData(cbasUrlRoot, runSet.method_id, runSet.method_version_id);
+          loadWdsData({ wdsProxyUrlState: wdsProxyUrlResponse, recordType: runSetRecordType });
+        });
+      }
+    };
+    loadWorkflowsApp();
   });
 
   useEffect(() => {

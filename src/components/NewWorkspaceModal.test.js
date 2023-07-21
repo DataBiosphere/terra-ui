@@ -363,4 +363,39 @@ describe('NewWorkspaceModal', () => {
     expect(checkbox).toHaveAttribute('disabled');
     expect(checkbox).toBeChecked();
   });
+
+  it('Hides azure billing projects for enhanced bucket logging', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    Ajax.mockImplementation(() => ({
+      Billing: {
+        listProjects: async () => [gcpBillingProject, azureBillingProject],
+      },
+      ...nonBillingAjax,
+    }));
+
+    await act(async () => {
+      // eslint-disable-line require-await
+      render(
+        h(NewWorkspaceModal, {
+          cloneWorkspace: false,
+          onSuccess: () => null,
+          onDismiss: () => null,
+          customMessage: null,
+          requiredAuthDomain: false,
+          title: null,
+          buttonText: null,
+          requireEnhancedBucketLogging: true,
+        })
+      );
+    });
+
+    const projectSelector = screen.getByText('Select a billing project');
+    await user.click(projectSelector);
+
+    // Assert
+    screen.getByText('Google Billing Project');
+    expect(screen.queryByText('Azure Billing Project')).toBeNull();
+  });
 });

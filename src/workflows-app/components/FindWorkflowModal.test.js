@@ -146,8 +146,8 @@ describe('FindWorkflowModal', () => {
         method_description:
           'The optimus 3 pipeline processes 10x genomics sequencing data based on the v2 chemistry. It corrects cell barcodes and UMIs, aligns reads, marks duplicates, and returns data as alignments in BAM format and as counts in sparse matrix exchange format.',
         method_source: 'GitHub',
-        method_version: 'Optimus_v5.7.2',
-        method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/Optimus_v5.7.2/pipelines/skylab/optimus/Optimus.wdl',
+        method_version: 'Optimus_v5.8.0',
+        method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/Optimus_v5.8.0/pipelines/skylab/optimus/Optimus.wdl',
       }
     );
   });
