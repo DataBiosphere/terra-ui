@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { defaultAzureWorkspace, generateTestAppWithAzureWorkspace } from 'src/analysis/_testData/testData';
@@ -54,9 +54,7 @@ describe('HailBatchModal', () => {
     });
 
     // Act
-    await act(async () => {
-      render(h(HailBatchModal, defaultHailBatchProps));
-    });
+    render(h(HailBatchModal, defaultHailBatchProps));
 
     const createButton = screen.getByText('Create');
     await user.click(createButton);
@@ -87,9 +85,7 @@ describe('HailBatchModal', () => {
     };
 
     // Act
-    await act(async () => {
-      render(h(HailBatchModal, props));
-    });
+    render(h(HailBatchModal, props));
 
     const deleteButton = screen.getByText('Delete Environment');
     await user.click(deleteButton);
@@ -121,9 +117,7 @@ describe('HailBatchModal', () => {
     };
 
     // Act
-    await act(async () => {
-      render(h(HailBatchModal, props));
-    });
+    render(h(HailBatchModal, props));
 
     const deleteButton = screen.getByText('Delete Environment');
     await user.click(deleteButton);
