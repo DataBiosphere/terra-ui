@@ -97,6 +97,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["iframe-resizer", "npm:4.3.2"],\
             ["igv", "npm:2.11.2"],\
             ["jest-axe", "npm:6.0.0"],\
+            ["jest-fail-on-console", "npm:3.1.1"],\
             ["jszip", "npm:3.10.1"],\
             ["jwt-decode", "npm:3.1.2"],\
             ["lint-staged", "npm:13.0.3"],\
@@ -13180,6 +13181,16 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["jest-fail-on-console", [\
+        ["npm:3.1.1", {\
+          "packageLocation": "./.yarn/cache/jest-fail-on-console-npm-3.1.1-9bf938b5f6-dbc244766f.zip/node_modules/jest-fail-on-console/",\
+          "packageDependencies": [\
+            ["jest-fail-on-console", "npm:3.1.1"],\
+            ["chalk", "npm:4.1.2"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["jest-get-type", [\
         ["npm:27.5.1", {\
           "packageLocation": "./.yarn/cache/jest-get-type-npm-27.5.1-980fbf7a43-63064ab701.zip/node_modules/jest-get-type/",\
@@ -20384,6 +20395,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["iframe-resizer", "npm:4.3.2"],\
             ["igv", "npm:2.11.2"],\
             ["jest-axe", "npm:6.0.0"],\
+            ["jest-fail-on-console", "npm:3.1.1"],\
             ["jszip", "npm:3.10.1"],\
             ["jwt-decode", "npm:3.1.2"],\
             ["lint-staged", "npm:13.0.3"],\

@@ -58,7 +58,7 @@ describe('useDeleteWorkspaceState', () => {
   const mockOnDismiss = jest.fn(() => {});
   const mockOnSuccess = jest.fn(() => {});
 
-  beforeAll(() => {
+  beforeEach(() => {
     jest.spyOn(console, 'log').mockImplementation(() => {});
   });
 
