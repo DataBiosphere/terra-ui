@@ -257,33 +257,36 @@ export const BaseSubmissionConfig = (
     }
   };
 
-  useOnMount(async () => {
-    if (!cbasReady || !wdsReady) {
-      const { wdsProxyUrlState, cbasProxyUrlState, cromwellProxyUrlState } = await loadAppUrls(workspaceId);
+  useOnMount(() => {
+    const loadWorkflowsApp = async () => {
+      if (!cbasReady || !wdsReady) {
+        const { wdsProxyUrlState, cbasProxyUrlState, cromwellProxyUrlState } = await loadAppUrls(workspaceId);
 
-      workflowsAppStore.set({
-        workspaceId,
-        wdsProxyUrlState,
-        cbasProxyUrlState,
-        cromwellProxyUrlState,
-      });
+        workflowsAppStore.set({
+          workspaceId,
+          wdsProxyUrlState,
+          cbasProxyUrlState,
+          cromwellProxyUrlState,
+        });
 
-      if (cbasProxyUrlState.status === 'Ready') {
-        loadRunSet(cbasProxyUrlState.state).then((runSet) => {
+        if (cbasProxyUrlState.status === 'Ready') {
+          loadRunSet(cbasProxyUrlState.state).then((runSet) => {
+            setRunSetRecordType(runSet.record_type);
+            loadMethodsData(cbasProxyUrlState.state, runSet.method_id, runSet.method_version_id);
+            loadWdsData({ wdsProxyUrlDetails: wdsProxyUrlState, recordType: runSetRecordType });
+          });
+        }
+      } else {
+        const cbasProxyUrlDetails = workflowsAppStore.get().cbasProxyUrlState;
+
+        loadRunSet(cbasProxyUrlDetails.state).then((runSet) => {
           setRunSetRecordType(runSet.record_type);
-          loadMethodsData(cbasProxyUrlState.state, runSet.method_id, runSet.method_version_id);
-          loadWdsData({ wdsProxyUrlDetails: wdsProxyUrlState, recordType: runSetRecordType });
+          loadMethodsData(cbasProxyUrlDetails.state, runSet.method_id, runSet.method_version_id);
+          loadWdsData({ wdsProxyUrlDetails: workflowsAppStore.get().wdsProxyUrlState, recordType: runSetRecordType });
         });
       }
-    } else {
-      const cbasProxyUrlDetails = workflowsAppStore.get().cbasProxyUrlState;
-
-      loadRunSet(cbasProxyUrlDetails.state).then((runSet) => {
-        setRunSetRecordType(runSet.record_type);
-        loadMethodsData(cbasProxyUrlDetails.state, runSet.method_id, runSet.method_version_id);
-        loadWdsData({ wdsProxyUrlDetails: workflowsAppStore.get().wdsProxyUrlState, recordType: runSetRecordType });
-      });
-    }
+    };
+    loadWorkflowsApp();
   });
 
   useEffect(() => {
