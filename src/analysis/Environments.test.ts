@@ -1,4 +1,4 @@
-import { act, fireEvent, getAllByRole, render, screen } from '@testing-library/react';
+import { fireEvent, getAllByRole, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
@@ -144,12 +144,10 @@ describe('Environments', () => {
         workspaces: [],
       });
 
-      await act(async () => {
-        await render(h(Environments, { nav: defaultNav }));
-      });
+      render(h(Environments, { nav: defaultNav }));
+      const tableRows = await screen.findAllByRole('row');
 
-      const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
-      const firstRuntimeRow: HTMLElement = tableRows[0];
+      const firstRuntimeRow: HTMLElement = tableRows[1];
       const workspaceForFirstRuntimeCell = getAllByRole(firstRuntimeRow, 'cell')[1].textContent;
       expect(workspaceForFirstRuntimeCell).toBe(`${runtime1.labels.saturnWorkspaceName} (unavailable)`);
     });
@@ -158,12 +156,10 @@ describe('Environments', () => {
       const runtime1 = generateTestGoogleRuntime();
       asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime1]));
 
-      await act(async () => {
-        await render(h(Environments, { nav: defaultNav }));
-      });
+      render(h(Environments, { nav: defaultNav }));
+      const tableRows = await screen.findAllByRole('row');
 
-      const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
-      const firstRuntimeRow: HTMLElement = tableRows[0];
+      const firstRuntimeRow: HTMLElement = tableRows[1]; // skip header row
       const workspaceForFirstRuntimeCell = getTextContentForColumn(firstRuntimeRow, 1);
 
       expect(getTextContentForColumn(firstRuntimeRow, 0)).toBe(runtime1.labels.saturnWorkspaceNamespace);
@@ -187,13 +183,10 @@ describe('Environments', () => {
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
       });
 
-      await act(async () => {
-        await render(h(Environments, { nav: defaultNav }));
-      });
+      render(h(Environments, { nav: defaultNav }));
+      const tableRows = await screen.findAllByRole('row');
 
-      const tableRows: HTMLElement[] = screen.getAllByRole('row');
-
-      const firstRuntimeRow: HTMLElement = tableRows[1];
+      const firstRuntimeRow: HTMLElement = tableRows[1]; // skip header row
       expect(getTextContentForColumn(firstRuntimeRow, 0)).toBe(`${runtime2.labels.saturnWorkspaceNamespace}`);
       expect(getTextContentForColumn(firstRuntimeRow, 1)).toBe(`${runtime2.labels.saturnWorkspaceName}`);
       expect(getTextContentForColumn(firstRuntimeRow, 2)).toBe(runtime2.runtimeConfig.cloudService);
@@ -222,11 +215,8 @@ describe('Environments', () => {
         workspaces: [defaultGoogleWorkspace],
       });
 
-      await act(async () => {
-        await render(h(Environments, { nav: defaultNav }));
-      });
-
-      const tableRows: HTMLElement[] = screen.getAllByRole('row');
+      render(h(Environments, { nav: defaultNav }));
+      const tableRows = await screen.findAllByRole('row');
 
       const firstRuntimeRow: HTMLElement = tableRows[1];
       expect(getTextContentForColumn(firstRuntimeRow, 0)).toBe(`${dataprocRuntime.labels.saturnWorkspaceNamespace}`);
@@ -259,11 +249,8 @@ describe('Environments', () => {
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
       });
 
-      await act(async () => {
-        await render(h(Environments, { nav: defaultNav }));
-      });
-
-      const tableRows: HTMLElement[] = screen.getAllByRole('row');
+      render(h(Environments, { nav: defaultNav }));
+      const tableRows = await screen.findAllByRole('row');
 
       // this is runtime3 in test data array
       const runtime1Row: HTMLElement = tableRows[1];
@@ -319,11 +306,9 @@ describe('Environments', () => {
         email: 'different@broad.com',
       });
 
-      await act(async () => {
-        await render(h(Environments, { nav: defaultNav }));
-      });
+      render(h(Environments, { nav: defaultNav }));
+      const tableRows = await screen.findAllByRole('row');
 
-      const tableRows: HTMLElement[] = screen.getAllByRole('row');
       const runtime1Row: HTMLElement = tableRows[1];
       const runtime1ButtonsCell = getAllByRole(runtime1Row, 'cell')[10];
       const buttons1 = getAllByRole(runtime1ButtonsCell, 'button');
@@ -345,11 +330,9 @@ describe('Environments', () => {
         workspaces: [workspace],
       });
 
-      await act(async () => {
-        await render(h(Environments, { nav: defaultNav }));
-      });
+      render(h(Environments, { nav: defaultNav }));
+      const tableRows = await screen.findAllByRole('row');
 
-      const tableRows: HTMLElement[] = screen.getAllByRole('row');
       const runtime1Row: HTMLElement = tableRows[1];
       const runtime1ButtonsCell = getAllByRole(runtime1Row, 'cell')[4];
       const button = getAllByRole(runtime1ButtonsCell, 'button');
@@ -385,11 +368,9 @@ describe('Environments', () => {
       };
       asMockedFn(useReplaceableAjaxExperimental).mockReturnValue(() => newMockAjax as AjaxContract);
 
-      await act(async () => {
-        await render(h(Environments, { nav: defaultNav }));
-      });
+      render(h(Environments, { nav: defaultNav }));
+      const tableRows = await screen.findAllByRole('row');
 
-      const tableRows: HTMLElement[] = screen.getAllByRole('row');
       const runtime1Row: HTMLElement = tableRows[1];
       const runtime1ButtonsCell = getAllByRole(runtime1Row, 'cell')[10];
       const buttons1 = getAllByRole(runtime1ButtonsCell, 'button');
@@ -425,11 +406,9 @@ describe('Environments', () => {
         workspaces: [workspace],
       });
 
-      await act(async () => {
-        await render(h(Environments, { nav: defaultNav }));
-      });
+      render(h(Environments, { nav: defaultNav }));
+      const tableRows = await screen.findAllByRole('row');
 
-      const tableRows: HTMLElement[] = screen.getAllByRole('row');
       const runtime1Row: HTMLElement = tableRows[1];
       const runtime1ButtonsCell = getAllByRole(runtime1Row, 'cell')[5];
       expect(runtime1ButtonsCell.textContent).toContain('Error');
@@ -447,12 +426,9 @@ describe('Environments', () => {
         workspaces: [defaultGoogleWorkspace],
       });
 
-      await act(async () => {
-        await render(h(Environments, { nav: defaultNav }));
-      });
-
-      const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
-      const firstAppRow: HTMLElement = tableRows[0];
+      render(h(Environments, { nav: defaultNav }));
+      const tableRows = await screen.findAllByRole('row');
+      const firstAppRow: HTMLElement = tableRows[1]; // Skip header row
       const workspaceForFirstRuntimeCell = getTextContentForColumn(firstAppRow, 1);
 
       expect(getTextContentForColumn(firstAppRow, 0)).toBe(galaxyApp.labels.saturnWorkspaceNamespace);
@@ -480,12 +456,10 @@ describe('Environments', () => {
         workspaces: [defaultGoogleWorkspace, googleWorkspace2, defaultAzureWorkspace, azureWorkspace2],
       });
 
-      await act(async () => {
-        await render(h(Environments, { nav: defaultNav }));
-      });
+      render(h(Environments, { nav: defaultNav }));
+      const tableRows = await screen.findAllByRole('row');
 
-      const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
-      const firstAppRow: HTMLElement = tableRows[0];
+      const firstAppRow: HTMLElement = tableRows[1]; // skip header row
       expect(getTextContentForColumn(firstAppRow, 0)).toBe(googleApp1.labels.saturnWorkspaceNamespace);
       expect(getTextContentForColumn(firstAppRow, 1)).toBe(googleApp1.labels.saturnWorkspaceName);
       expect(getTextContentForColumn(firstAppRow, 2)).toBe('Kubernetes');
@@ -495,7 +469,7 @@ describe('Environments', () => {
       expect(getTextContentForColumn(firstAppRow, 7)).toBe(Utils.makeCompleteDate(googleApp1.auditInfo.createdDate));
       expect(getTextContentForColumn(firstAppRow, 8)).toBe(Utils.makeCompleteDate(googleApp1.auditInfo.dateAccessed));
 
-      const secondAppRow: HTMLElement = tableRows[1];
+      const secondAppRow: HTMLElement = tableRows[2];
       expect(getTextContentForColumn(secondAppRow, 0)).toBe(googleApp2.labels.saturnWorkspaceNamespace);
       expect(getTextContentForColumn(secondAppRow, 1)).toBe(googleApp2.labels.saturnWorkspaceName);
       expect(getTextContentForColumn(secondAppRow, 2)).toBe('Kubernetes');
@@ -505,7 +479,7 @@ describe('Environments', () => {
       expect(getTextContentForColumn(secondAppRow, 7)).toBe(Utils.makeCompleteDate(googleApp2.auditInfo.createdDate));
       expect(getTextContentForColumn(secondAppRow, 8)).toBe(Utils.makeCompleteDate(googleApp1.auditInfo.dateAccessed));
 
-      const thirdAppRow: HTMLElement = tableRows[2];
+      const thirdAppRow: HTMLElement = tableRows[3];
       expect(getTextContentForColumn(thirdAppRow, 0)).toBe(azureApp1.labels.saturnWorkspaceNamespace);
       expect(getTextContentForColumn(thirdAppRow, 1)).toBe(azureApp1.labels.saturnWorkspaceName);
       expect(getTextContentForColumn(thirdAppRow, 2)).toBe('Kubernetes');
@@ -515,7 +489,7 @@ describe('Environments', () => {
       expect(getTextContentForColumn(thirdAppRow, 7)).toBe(Utils.makeCompleteDate(azureApp1.auditInfo.createdDate));
       expect(getTextContentForColumn(thirdAppRow, 8)).toBe(Utils.makeCompleteDate(azureApp1.auditInfo.dateAccessed));
 
-      const fourthAppRow: HTMLElement = tableRows[3];
+      const fourthAppRow: HTMLElement = tableRows[4];
       expect(getTextContentForColumn(fourthAppRow, 0)).toBe(azureApp2.labels.saturnWorkspaceNamespace);
       expect(getTextContentForColumn(fourthAppRow, 1)).toBe(azureApp2.labels.saturnWorkspaceName);
       expect(getTextContentForColumn(fourthAppRow, 2)).toBe('Kubernetes');
@@ -536,11 +510,9 @@ describe('Environments', () => {
         workspaces: [workspace],
       });
 
-      await act(async () => {
-        await render(h(Environments, { nav: defaultNav }));
-      });
+      render(h(Environments, { nav: defaultNav }));
+      const tableRows = await screen.findAllByRole('row');
 
-      const tableRows: HTMLElement[] = screen.getAllByRole('row');
       const appRow: HTMLElement = tableRows[1];
       const appDetailsButtonCell = getAllByRole(appRow, 'cell')[4];
       const button = getAllByRole(appDetailsButtonCell, 'button');
@@ -588,11 +560,9 @@ describe('Environments', () => {
       };
       asMockedFn(useReplaceableAjaxExperimental).mockReturnValue(() => newMockAjax as AjaxContract);
 
-      await act(async () => {
-        await render(h(Environments, { nav: defaultNav }));
-      });
+      render(h(Environments, { nav: defaultNav }));
+      const tableRows = await screen.findAllByRole('row');
 
-      const tableRows: HTMLElement[] = screen.getAllByRole('row');
       const app1Row: HTMLElement = tableRows[1];
       const app1ButtonsCell = getAllByRole(app1Row, 'cell')[10];
       const buttons1 = getAllByRole(app1ButtonsCell, 'button');
@@ -626,12 +596,8 @@ describe('Environments', () => {
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace],
       });
-
-      await act(async () => {
-        await render(h(Environments, { nav: defaultNav }));
-      });
-
-      const tableRows: HTMLElement[] = screen.getAllByRole('row');
+      render(h(Environments, { nav: defaultNav }));
+      const tableRows = await screen.findAllByRole('row');
       const firstDiskRow: HTMLElement = tableRows[3];
 
       expect(getTextContentForColumn(firstDiskRow, 0)).toBe(disk.labels.saturnWorkspaceNamespace);
@@ -658,11 +624,8 @@ describe('Environments', () => {
         workspaces: [defaultGoogleWorkspace, googleWorkspace2, defaultAzureWorkspace, azureWorkspace2],
       });
 
-      await act(async () => {
-        await render(h(Environments, { nav: defaultNav }));
-      });
-
-      const tableRows: HTMLElement[] = screen.getAllByRole('row');
+      render(h(Environments, { nav: defaultNav }));
+      const tableRows = await screen.findAllByRole('row');
 
       const firstDiskRow: HTMLElement = tableRows[3];
       expect(getTextContentForColumn(firstDiskRow, 0)).toBe(googleDisk1.labels.saturnWorkspaceNamespace);
@@ -713,11 +676,9 @@ describe('Environments', () => {
         workspaces: [workspace],
       });
 
-      await act(async () => {
-        await render(h(Environments, { nav: defaultNav }));
-      });
+      render(h(Environments, { nav: defaultNav }));
+      const tableRows = await screen.findAllByRole('row');
 
-      const tableRows: HTMLElement[] = screen.getAllByRole('row');
       const appRow: HTMLElement = tableRows[3];
       const appDetailsButtonCell = getAllByRole(appRow, 'cell')[2];
       const button = getAllByRole(appDetailsButtonCell, 'button');
@@ -743,16 +704,12 @@ describe('Environments', () => {
       });
 
       const mockDeleteDiskV1 = jest.fn();
-      const mockDeleteDiskV2 = jest.fn();
       const mockDisks = {
         disksV1: () => ({
           disk: () => ({
             delete: mockDeleteDiskV1,
           }),
           list,
-        }),
-        diskV2: () => ({
-          delete: mockDeleteDiskV2,
         }),
       };
 
@@ -762,11 +719,9 @@ describe('Environments', () => {
       };
       asMockedFn(useReplaceableAjaxExperimental).mockReturnValue(() => newMockAjax as AjaxContract);
 
-      await act(async () => {
-        await render(h(Environments, { nav: defaultNav }));
-      });
+      render(h(Environments, { nav: defaultNav }));
+      const tableRows = await screen.findAllByRole('row');
 
-      const tableRows: HTMLElement[] = screen.getAllByRole('row');
       const disk1Row: HTMLElement = tableRows[3];
       const disk1ButtonsCell = getAllByRole(disk1Row, 'cell')[9];
       const buttons1 = getAllByRole(disk1ButtonsCell, 'button');

@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { defaultAzureWorkspace, generateTestAppWithAzureWorkspace } from 'src/analysis/_testData/testData';
@@ -52,11 +52,9 @@ describe('HailBatchModal', () => {
     });
 
     // Act
-    await act(async () => {
-      await render(h(HailBatchModal, defaultHailBatchProps));
-      const createButton = screen.getByText('Create');
-      await userEvent.click(createButton);
-    });
+    render(h(HailBatchModal, defaultHailBatchProps));
+    const createButton = screen.getByText('Create');
+    await userEvent.click(createButton);
 
     expect(createFunc).toHaveBeenCalledWith(
       expect.anything(),
@@ -82,11 +80,9 @@ describe('HailBatchModal', () => {
     };
 
     // Act
-    await act(async () => {
-      await render(h(HailBatchModal, props));
-      const deleteButton = screen.getByText('Delete Environment');
-      await userEvent.click(deleteButton);
-    });
+    render(h(HailBatchModal, props));
+    const deleteButton = screen.getByText('Delete Environment');
+    await userEvent.click(deleteButton);
 
     // Assert
     screen.getByText('Delete environment');
@@ -113,13 +109,11 @@ describe('HailBatchModal', () => {
     };
 
     // Act
-    await act(async () => {
-      await render(h(HailBatchModal, props));
-      const deleteButton = screen.getByText('Delete Environment');
-      await userEvent.click(deleteButton);
-      const deleteButtonAgain = screen.getByText('Delete');
-      await userEvent.click(deleteButtonAgain);
-    });
+    render(h(HailBatchModal, props));
+    const deleteButton = screen.getByText('Delete Environment');
+    await userEvent.click(deleteButton);
+    const deleteButtonAgain = screen.getByText('Delete');
+    await userEvent.click(deleteButtonAgain);
 
     // Assert
     expect(deleteFunc).toHaveBeenCalled();
