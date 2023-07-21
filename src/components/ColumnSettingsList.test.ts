@@ -78,11 +78,10 @@ describe('ColumnSettingsList', () => {
 
   it('updates the items when onDragEnd is called', async () => {
     // Unfortunately we can't test actually completing a drag with user events because of the virtual dom
-    // (elements have zero bounding rectangles, and mocking would be difficult to maintain).
-    const active = visibleColumnA;
-    const over = nonVisibleColumnB;
-    dragEndNotifier({ active, over, items, onChange });
-    expect(onChange).toBeCalledWith([nonVisibleColumnB, active]);
+    // (elements have zero coordinate bounding rectangles, and mocking would be difficult to maintain).
+    // So trigger the event handler that is called when "Column A" is dragged over "Column B" and dropped.
+    dragEndNotifier({ active: visibleColumnA, over: nonVisibleColumnB, items, onChange });
+    expect(onChange).toBeCalledWith([nonVisibleColumnB, visibleColumnA]);
   });
 
   it('does not update items when onDragEnd is called but there has been no update', async () => {
