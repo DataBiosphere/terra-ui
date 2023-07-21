@@ -213,6 +213,7 @@ const dismissNotifications = async (page) => {
   return !!notificationCloseButtons.length && delay(1000); // delayed for alerts to animate off
 };
 
+// the NPS survey is handled by AppCues
 const dismissNPSSurvey = async (page) => {
   let element;
   try {

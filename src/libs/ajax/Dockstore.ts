@@ -63,6 +63,12 @@ export const Dockstore = (signal?: AbortSignal) => ({
     return fetchDockstore(workflowVersionsPath({ path, isTool }), { signal }).then((res) => res.json());
   },
 
+  getWorkflowSourceUrl: async (path, version) => {
+    const wdlPath = `${workflowVersionsPath({ path, isTool: false })}/${encodeURIComponent(version)}/WDL/descriptor`;
+    const { url } = await fetchDockstore(wdlPath, { signal }).then((res) => res.json());
+    return url;
+  },
+
   listTools: (params: ListToolsParams = {}): Promise<DockstoreWorkflow[]> => {
     return fetchDockstore(`api/ga4gh/v1/tools?${qs.stringify(params)}`, { signal }).then((res) => res.json());
   },

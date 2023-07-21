@@ -7,6 +7,28 @@ import {
   TsvUploadResponse,
 } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 
+export type WDSVersionResponse = {
+  // Older versions of WDS may not have the "app" field.
+  app?: {
+    'chart-version': string;
+    image: string;
+  };
+  build: {
+    artifact: string;
+    name: string;
+    time: string;
+    version: string;
+    group: string;
+  };
+  git: {
+    branch: string;
+    commit: {
+      id: string;
+      time: string;
+    };
+  };
+};
+
 export const WorkspaceData = (signal) => ({
   getSchema: async (root: string, instanceId: string): Promise<RecordTypeSchema[]> => {
     const res = await fetchWDS(root)(`${instanceId}/types/v0.2`, _.merge(authOpts(), { signal }));
@@ -45,7 +67,7 @@ export const WorkspaceData = (signal) => ({
     );
     return res.json();
   },
-  getVersion: async (root: string): Promise<any> => {
+  getVersion: async (root: string): Promise<WDSVersionResponse> => {
     const res = await fetchWDS(root)('version', _.merge(authOpts(), { signal }));
     return res.json();
   },
@@ -63,5 +85,27 @@ export const WorkspaceData = (signal) => ({
       _.mergeAll([authOpts(), { method: 'POST' }])
     );
     return res;
+  },
+  queryRecords: async (root: string, instanceId: string, wdsType: string): Promise<any> => {
+    const searchPayload = { limit: 100 };
+    const res = await fetchWDS(root)(
+      `${instanceId}/search/v0.2/${wdsType}`,
+      _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody(searchPayload)])
+    );
+    const resultJson = await res.json();
+    resultJson.records = _.map(_.unset('attributes.sys_name'), resultJson.records);
+    return resultJson;
+  },
+  describeAllRecordTypes: async (root: string, instanceId: string): Promise<any> => {
+    const res = await fetchWDS(root)(`${instanceId}/types/v0.2`, _.mergeAll([authOpts(), { signal, method: 'GET' }]));
+    return _.map(
+      (type) =>
+        _.set(
+          'attributes',
+          _.filter((attr) => attr.name !== 'sys_name', type.attributes),
+          type
+        ),
+      await res.json()
+    );
   },
 });
