@@ -4490,7 +4490,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["@testing-library/dom", "npm:9.3.1"],\
             ["@babel/code-frame", "npm:7.18.6"],\
-            ["@babel/runtime", "npm:7.21.0"],\
+            ["@babel/runtime", "npm:7.22.6"],\
             ["@types/aria-query", "npm:5.0.1"],\
             ["aria-query", "npm:5.1.3"],\
             ["chalk", "npm:4.1.2"],\
