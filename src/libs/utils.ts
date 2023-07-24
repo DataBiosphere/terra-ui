@@ -460,7 +460,8 @@ export const truncateInteger = (integer) => {
  * Polls using a given function until the pollUntil function returns true.
  * @param pollFn - The function to poll using
  * @param pollTime - How much time there should be in ms between calls of the pollFn
- * @param leading - Whether the function should wait {pollTime} ms before running for the first time
+ * @param leading - If true, the {pollFn} will run once before the next scheduled poll
+ *                  If false, it will wait {pollTime} before making the first scheduled poll
  *
  * @returns - The result from pollFn's return value once pollFn returns shouldContinue false
  */

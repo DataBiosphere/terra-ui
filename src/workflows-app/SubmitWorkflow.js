@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { ButtonOutline, Clickable } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
@@ -6,7 +6,7 @@ import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
-import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import { workflowsAppStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import { withBusyState } from 'src/libs/utils';
@@ -46,23 +46,19 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     const [viewFindWorkflowModal, setViewFindWorkflowModal] = useState(false);
 
     const signal = useCancellation();
-    const pollCbasInterval = useRef();
     const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
 
     const loadRunsData = useCallback(
       async (cbasProxyUrlDetails) => {
         try {
           if (cbasProxyUrlDetails.status !== 'Ready') {
-            // console.log('Inside SubmitWorkflow loadRunsData - cbasProxyUrlState is NOT READY');
             const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
             if (cbasProxyUrlState.status === 'Ready') {
-              // console.log('Inside SubmitWorkflow loadRunsData IF of IF - cbasProxyUrlState is READY');
               const runs = await Ajax(signal).Cbas.methods.getWithoutVersions(cbasProxyUrlState.state);
               setMethodsData(runs.methods);
             }
           } else {
-            // console.log('Inside SubmitWorkflow loadRunsData - cbasProxyUrlState ALREADY READY');
             const runs = await Ajax(signal).Cbas.methods.getWithoutVersions(cbasProxyUrlDetails.state);
             setMethodsData(runs.methods);
           }
@@ -73,28 +69,17 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       [signal, workspaceId]
     );
 
-    useEffect(() => {
-      // Start polling if we're missing CBAS proxy url and stop polling when we have it
-      if (!cbasReady && !pollCbasInterval.current) {
-        pollCbasInterval.current = setInterval(() => loadRunsData(workflowsAppStore.get().cbasProxyUrlState), CbasPollInterval);
-      } else if (cbasReady && pollCbasInterval.current) {
-        clearInterval(pollCbasInterval.current);
-        pollCbasInterval.current = undefined;
-      }
-
-      return () => {
-        clearInterval(pollCbasInterval.current);
-        pollCbasInterval.current = undefined;
-      };
-    }, [cbasReady, loadRunsData]);
+    // poll if we're missing CBAS proxy url and stop polling when we have it
+    usePollingEffect(() => !doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState') && loadRunsData(workflowsAppStore.get().cbasProxyUrlState), {
+      ms: CbasPollInterval,
+      leading: false,
+    });
 
     useOnMount(
       withBusyState(setLoading, async () => {
-        // console.log(`Inside SubmitWorkflow useOnMount - current state of workflowsAppStore - ${JSON.stringify(workflowsAppStore.get())}`);
         const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
         if (cbasProxyUrlState.status === 'Ready') {
-          // console.log('Inside SubmitWorkflow cbasProxyUrlState is READY');
           await loadRunsData(cbasProxyUrlState);
         }
       })

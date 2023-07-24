@@ -71,7 +71,6 @@ const fetchAppUrlsFromLeo = async (workspaceId, wdsUrlRoot, cbasUrlRoot, cromwel
   let cromwellProxyUrlState;
 
   try {
-    // console.log('Inside fetchAppUrlsFromLeo - Calling Leonardo');
     const appsList = await Ajax().Apps.listAppsV2(workspaceId);
     wdsProxyUrlState = resolveProxyUrl(wdsUrlRoot, appsList, (appsList) => resolveWdsUrl(appsList));
     cbasProxyUrlState = resolveProxyUrl(cbasUrlRoot, appsList, (appsList) => resolveRunningCromwellAppUrl(appsList, getUser()?.email).cbasUrl);
@@ -93,8 +92,6 @@ const fetchAppUrlsFromLeo = async (workspaceId, wdsUrlRoot, cbasUrlRoot, cromwel
     cromwellProxyUrlState,
   });
 
-  // console.log(`Inside fetchAppUrlsFromLeo - updated workflowsAppStore - ${JSON.stringify(workflowsAppStore.get())}`);
-
   return {
     wdsProxyUrlState,
     cbasProxyUrlState,
@@ -104,7 +101,6 @@ const fetchAppUrlsFromLeo = async (workspaceId, wdsUrlRoot, cbasUrlRoot, cromwel
 
 export const loadAppUrls = async (workspaceId, proxyUrlStateField) => {
   if (!doesAppProxyUrlExist(workspaceId, proxyUrlStateField)) {
-    // console.log(`Inside loadAppUrls - Proxy url NOT READY for proxyUrlStateField '${proxyUrlStateField}'`);
     // we can set these configs in dev.json if we want local Terra UI to connect to local WDS or Workflows related services
     const wdsUrlRoot = getConfig().wdsUrlRoot;
     const cbasUrlRoot = getConfig().cbasUrlRoot;
@@ -116,7 +112,6 @@ export const loadAppUrls = async (workspaceId, proxyUrlStateField) => {
     }
     return await fetchAppUrlsFromLeo(workspaceId, wdsUrlRoot, cbasUrlRoot, cromwellUrlRoot);
   }
-  // console.log(`Inside loadAppUrls - Proxy url ALREADY READY for proxyUrlStateField '${proxyUrlStateField}'`);
   const workflowsAppStoreLocal = workflowsAppStore.get();
   return {
     wdsProxyUrlState: workflowsAppStoreLocal.wdsProxyUrlState,

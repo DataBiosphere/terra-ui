@@ -12,7 +12,7 @@ import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
-import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import { workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { maybeParseJSON } from 'src/libs/utils';
@@ -66,11 +66,7 @@ export const BaseSubmissionConfig = (
 
   const dataTableRef = useRef();
   const signal = useCancellation();
-  const pollWdsInterval = useRef();
-  const pollCbasInterval = useRef();
   const errorMessageCount = _.filter((message) => message.type === 'error')(inputValidations).length;
-  const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
-  const wdsReady = doesAppProxyUrlExist(workspaceId, 'wdsProxyUrlState');
 
   const loadRecordsData = useCallback(
     async (recordType, wdsUrlRoot) => {
@@ -142,11 +138,9 @@ export const BaseSubmissionConfig = (
       try {
         // try to load WDS proxy URL if one doesn't exist
         if (wdsProxyUrlDetails.status !== 'Ready') {
-          // console.log('Inside SubmissionConfig loadWdsData - wdsProxyUrlState is NOT READY');
           const { wdsProxyUrlState } = await loadAppUrls(workspaceId, 'wdsProxyUrlState');
 
           if (wdsProxyUrlState.status === 'Ready') {
-            // console.log('Inside SubmissionConfig loadWdsData - wdsProxyUrlState is NOW READY');
             if (includeLoadRecordTypes) {
               await loadRecordTypes(wdsProxyUrlState.state);
             }
@@ -162,7 +156,6 @@ export const BaseSubmissionConfig = (
             });
           }
         } else {
-          // console.log('Inside SubmissionConfig loadWdsData - wdsProxyUrlState is ALREADY READY');
           // if we have the WDS proxy URL load the WDS data
           const wdsUrlRoot = wdsProxyUrlDetails.state;
           if (includeLoadRecordTypes) {
@@ -182,11 +175,9 @@ export const BaseSubmissionConfig = (
       try {
         // try to load CBAS proxy url if one doesn't exist
         if (cbasProxyUrlDetails.status !== 'Ready') {
-          // console.log('Inside SubmissionConfig loadConfigData - cbasProxyUrlState is NOT READY');
           const { wdsProxyUrlState, cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
           if (cbasProxyUrlState.status === 'Ready') {
-            // console.log('Inside SubmissionConfig loadConfigData - cbasProxyUrlState is NOW READY');
             loadRunSet(cbasProxyUrlState.state).then((runSet) => {
               setRunSetRecordType(runSet.record_type);
               loadMethodsData(cbasProxyUrlState.state, runSet.method_id, runSet.method_version_id);
@@ -203,7 +194,6 @@ export const BaseSubmissionConfig = (
             });
           }
         } else {
-          // console.log('Inside SubmissionConfig loadConfigData - cbasProxyUrlState is ALREADY READY');
           loadRunSet(cbasProxyUrlDetails.state).then((runSet) => {
             setRunSetRecordType(runSet.record_type);
             loadMethodsData(cbasProxyUrlDetails.state, runSet.method_id, runSet.method_version_id);
@@ -255,11 +245,9 @@ export const BaseSubmissionConfig = (
 
   useOnMount(() => {
     const loadWorkflowsApp = async () => {
-      // console.log(`Inside SubmissionConfig useOnMount - current state of workflowsAppStore - ${JSON.stringify(workflowsAppStore.get())}`);
       const { wdsProxyUrlState, cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
       if (cbasProxyUrlState.status === 'Ready') {
-        // console.log('Inside SubmissionConfig cbasProxyUrlState is READY');
         loadRunSet(cbasProxyUrlState.state).then((runSet) => {
           setRunSetRecordType(runSet.record_type);
           loadMethodsData(cbasProxyUrlState.state, runSet.method_id, runSet.method_version_id);
@@ -310,41 +298,21 @@ export const BaseSubmissionConfig = (
     }
   }, [signal, selectedMethodVersion, method]);
 
-  useEffect(() => {
-    // Start polling if we're missing CBAS proxy url and stop polling when we have it
-    if (!cbasReady && !pollCbasInterval.current) {
-      pollCbasInterval.current = setInterval(
-        () => loadConfigData(workflowsAppStore.get().cbasProxyUrlState, workflowsAppStore.get().wdsProxyUrlState),
-        CbasPollInterval
-      );
-    } else if (cbasReady && pollCbasInterval.current) {
-      clearInterval(pollCbasInterval.current);
-      pollCbasInterval.current = undefined;
-    }
+  // poll if we're missing CBAS proxy url and stop polling when we have it
+  usePollingEffect(
+    () =>
+      !doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState') &&
+      loadConfigData(workflowsAppStore.get().cbasProxyUrlState, workflowsAppStore.get().wdsProxyUrlState),
+    { ms: CbasPollInterval, leading: false }
+  );
 
-    return () => {
-      clearInterval(pollCbasInterval.current);
-      pollCbasInterval.current = undefined;
-    };
-  }, [loadConfigData, cbasReady]);
-
-  useEffect(() => {
-    // Start polling if we're missing WDS proxy url and stop polling when we have it
-    if (!wdsReady && !pollWdsInterval.current) {
-      pollWdsInterval.current = setInterval(
-        () => loadWdsData({ wdsProxyUrlDetails: workflowsAppStore.get().wdsProxyUrlState, recordType: runSetRecordType }),
-        WdsPollInterval
-      );
-    } else if (wdsReady && pollWdsInterval.current) {
-      clearInterval(pollWdsInterval.current);
-      pollWdsInterval.current = undefined;
-    }
-
-    return () => {
-      clearInterval(pollWdsInterval.current);
-      pollWdsInterval.current = undefined;
-    };
-  }, [loadWdsData, runSetRecordType, wdsReady]);
+  // poll if we're missing WDS proxy url and stop polling when we have it
+  usePollingEffect(
+    () =>
+      !doesAppProxyUrlExist(workspaceId, 'wdsProxyUrlState') &&
+      loadWdsData({ wdsProxyUrlDetails: workflowsAppStore.get().wdsProxyUrlState, recordType: runSetRecordType }),
+    { ms: WdsPollInterval, leading: false }
+  );
 
   const renderSummary = () => {
     return div({ style: { marginLeft: '2em', marginTop: '1rem', display: 'flex', justifyContent: 'space-between' } }, [
