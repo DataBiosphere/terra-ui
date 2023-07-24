@@ -53,20 +53,16 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       async (cbasProxyUrlDetails) => {
         try {
           if (cbasProxyUrlDetails.status !== 'Ready') {
-            const { wdsProxyUrlState, cbasProxyUrlState, cromwellProxyUrlState } = await loadAppUrls(workspaceId);
-
-            workflowsAppStore.set({
-              workspaceId,
-              wdsProxyUrlState,
-              cbasProxyUrlState,
-              cromwellProxyUrlState,
-            });
+            // console.log('Inside SubmitWorkflow loadRunsData - cbasProxyUrlState is NOT READY');
+            const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
             if (cbasProxyUrlState.status === 'Ready') {
+              // console.log('Inside SubmitWorkflow loadRunsData IF of IF - cbasProxyUrlState is READY');
               const runs = await Ajax(signal).Cbas.methods.getWithoutVersions(cbasProxyUrlState.state);
               setMethodsData(runs.methods);
             }
           } else {
+            // console.log('Inside SubmitWorkflow loadRunsData - cbasProxyUrlState ALREADY READY');
             const runs = await Ajax(signal).Cbas.methods.getWithoutVersions(cbasProxyUrlDetails.state);
             setMethodsData(runs.methods);
           }
@@ -94,21 +90,12 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
 
     useOnMount(
       withBusyState(setLoading, async () => {
-        if (!cbasReady) {
-          const { wdsProxyUrlState, cbasProxyUrlState, cromwellProxyUrlState } = await loadAppUrls(workspaceId);
+        // console.log(`Inside SubmitWorkflow useOnMount - current state of workflowsAppStore - ${JSON.stringify(workflowsAppStore.get())}`);
+        const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
-          workflowsAppStore.set({
-            workspaceId,
-            wdsProxyUrlState,
-            cbasProxyUrlState,
-            cromwellProxyUrlState,
-          });
-
-          if (cbasProxyUrlState.status === 'Ready') {
-            await loadRunsData(cbasProxyUrlState);
-          }
-        } else {
-          await loadRunsData(workflowsAppStore.get().cbasProxyUrlState);
+        if (cbasProxyUrlState.status === 'Ready') {
+          // console.log('Inside SubmitWorkflow cbasProxyUrlState is READY');
+          await loadRunsData(cbasProxyUrlState);
         }
       })
     );

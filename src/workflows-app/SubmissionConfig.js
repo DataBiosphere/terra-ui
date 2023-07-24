@@ -142,11 +142,11 @@ export const BaseSubmissionConfig = (
       try {
         // try to load WDS proxy URL if one doesn't exist
         if (wdsProxyUrlDetails.status !== 'Ready') {
-          const { wdsProxyUrlState } = await loadAppUrls(workspaceId);
-          // update only WDS proxy url state. CBAS proxy url will be updated during its own separate scheduled poll
-          workflowsAppStore.update((state) => ({ ...state, workspaceId, wdsProxyUrlState }));
+          // console.log('Inside SubmissionConfig loadWdsData - wdsProxyUrlState is NOT READY');
+          const { wdsProxyUrlState } = await loadAppUrls(workspaceId, 'wdsProxyUrlState');
 
           if (wdsProxyUrlState.status === 'Ready') {
+            // console.log('Inside SubmissionConfig loadWdsData - wdsProxyUrlState is NOW READY');
             if (includeLoadRecordTypes) {
               await loadRecordTypes(wdsProxyUrlState.state);
             }
@@ -162,6 +162,7 @@ export const BaseSubmissionConfig = (
             });
           }
         } else {
+          // console.log('Inside SubmissionConfig loadWdsData - wdsProxyUrlState is ALREADY READY');
           // if we have the WDS proxy URL load the WDS data
           const wdsUrlRoot = wdsProxyUrlDetails.state;
           if (includeLoadRecordTypes) {
@@ -181,17 +182,11 @@ export const BaseSubmissionConfig = (
       try {
         // try to load CBAS proxy url if one doesn't exist
         if (cbasProxyUrlDetails.status !== 'Ready') {
-          const { wdsProxyUrlState, cbasProxyUrlState, cromwellProxyUrlState } = await loadAppUrls(workspaceId);
-
-          // we update states of WDS proxy url as well since it is used in loadWdsData call below
-          workflowsAppStore.set({
-            workspaceId,
-            wdsProxyUrlState,
-            cbasProxyUrlState,
-            cromwellProxyUrlState,
-          });
+          // console.log('Inside SubmissionConfig loadConfigData - cbasProxyUrlState is NOT READY');
+          const { wdsProxyUrlState, cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
           if (cbasProxyUrlState.status === 'Ready') {
+            // console.log('Inside SubmissionConfig loadConfigData - cbasProxyUrlState is NOW READY');
             loadRunSet(cbasProxyUrlState.state).then((runSet) => {
               setRunSetRecordType(runSet.record_type);
               loadMethodsData(cbasProxyUrlState.state, runSet.method_id, runSet.method_version_id);
@@ -208,6 +203,7 @@ export const BaseSubmissionConfig = (
             });
           }
         } else {
+          // console.log('Inside SubmissionConfig loadConfigData - cbasProxyUrlState is ALREADY READY');
           loadRunSet(cbasProxyUrlDetails.state).then((runSet) => {
             setRunSetRecordType(runSet.record_type);
             loadMethodsData(cbasProxyUrlDetails.state, runSet.method_id, runSet.method_version_id);
@@ -259,30 +255,15 @@ export const BaseSubmissionConfig = (
 
   useOnMount(() => {
     const loadWorkflowsApp = async () => {
-      if (!cbasReady || !wdsReady) {
-        const { wdsProxyUrlState, cbasProxyUrlState, cromwellProxyUrlState } = await loadAppUrls(workspaceId);
+      // console.log(`Inside SubmissionConfig useOnMount - current state of workflowsAppStore - ${JSON.stringify(workflowsAppStore.get())}`);
+      const { wdsProxyUrlState, cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
-        workflowsAppStore.set({
-          workspaceId,
-          wdsProxyUrlState,
-          cbasProxyUrlState,
-          cromwellProxyUrlState,
-        });
-
-        if (cbasProxyUrlState.status === 'Ready') {
-          loadRunSet(cbasProxyUrlState.state).then((runSet) => {
-            setRunSetRecordType(runSet.record_type);
-            loadMethodsData(cbasProxyUrlState.state, runSet.method_id, runSet.method_version_id);
-            loadWdsData({ wdsProxyUrlDetails: wdsProxyUrlState, recordType: runSetRecordType });
-          });
-        }
-      } else {
-        const cbasProxyUrlDetails = workflowsAppStore.get().cbasProxyUrlState;
-
-        loadRunSet(cbasProxyUrlDetails.state).then((runSet) => {
+      if (cbasProxyUrlState.status === 'Ready') {
+        // console.log('Inside SubmissionConfig cbasProxyUrlState is READY');
+        loadRunSet(cbasProxyUrlState.state).then((runSet) => {
           setRunSetRecordType(runSet.record_type);
-          loadMethodsData(cbasProxyUrlDetails.state, runSet.method_id, runSet.method_version_id);
-          loadWdsData({ wdsProxyUrlDetails: workflowsAppStore.get().wdsProxyUrlState, recordType: runSetRecordType });
+          loadMethodsData(cbasProxyUrlState.state, runSet.method_id, runSet.method_version_id);
+          loadWdsData({ wdsProxyUrlDetails: wdsProxyUrlState, recordType: runSetRecordType });
         });
       }
     };
