@@ -85,6 +85,11 @@ export interface AttributeArray {
   items: unknown[]; // truly "unknown" here; the backend Java representation is Object[]
 }
 
+export type ColumnValue = {
+  value: string;
+  count: number;
+};
+
 // queryOptions can contain:
 export type GetPageFn = (
   signal: AbortSignal,
@@ -106,6 +111,8 @@ export type IsTsvUploadButtonDisabledFn = (options: TsvUploadButtonDisabledOptio
 export type TsvUploadButtonTooltipFn = (options: TsvUploadButtonTooltipOptions) => string;
 
 export type UploadTsvFn = (uploadParams: UploadParameters) => Promise<any>;
+
+export type GetColumnValuesFn = (entityType: string, field: string) => Promise<ColumnValue[]>;
 
 export interface DataTableFeatures {
   supportsTsvDownload: boolean;
@@ -138,6 +145,7 @@ export interface DataTableProvider {
   deleteTable: DeleteTableFn;
   downloadTsv: DownloadTsvFn;
   uploadTsv: UploadTsvFn;
+  getColumnValues: GetColumnValuesFn;
   // todos that we may need soon:
   // getMetadata: GetMetadataFn
   // updateAttribute: function, see also boolean

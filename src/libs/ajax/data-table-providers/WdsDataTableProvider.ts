@@ -3,6 +3,7 @@ import { notifyDataImportProgress } from 'src/components/data/data-utils';
 import { Ajax } from 'src/libs/ajax';
 import {
   AttributeArray,
+  ColumnValue,
   DataTableFeatures,
   DataTableProvider,
   EntityMetadata,
@@ -349,4 +350,8 @@ export class WdsDataTableProvider implements DataTableProvider {
       timeout: 3000,
     });
   });
+
+  getColumnValues = async (entityType: string, field: string): Promise<ColumnValue[]> => {
+    return Ajax().WorkspaceData.getColumnValues(this.proxyUrl, this.workspaceId, entityType, field);
+  };
 }

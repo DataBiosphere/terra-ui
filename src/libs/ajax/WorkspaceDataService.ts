@@ -7,6 +7,8 @@ import {
   TsvUploadResponse,
 } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 
+import { ColumnValue } from './data-table-providers/DataTableProvider';
+
 export type WDSVersionResponse = {
   // Older versions of WDS may not have the "app" field.
   app?: {
@@ -64,6 +66,18 @@ export const WorkspaceData = (signal) => ({
     const res = await fetchWDS(root)(
       `${instanceId}/tsv/v0.2/${recordType}`,
       _.mergeAll([authOpts(), { body: formData, signal, method: 'POST' }])
+    );
+    return res.json();
+  },
+  getColumnValues: async (
+    root: string,
+    instanceId: string,
+    recordType: string,
+    field: string
+  ): Promise<ColumnValue[]> => {
+    const res = await fetchWDS(root)(
+      `${instanceId}/types/v0.2/${recordType}/column/${field}`,
+      _.mergeAll([authOpts(), { signal }])
     );
     return res.json();
   },

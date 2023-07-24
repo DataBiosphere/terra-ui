@@ -43,6 +43,7 @@ import Events from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { clearNotification, notify } from 'src/libs/notifications';
 import { requesterPaysProjectStore } from 'src/libs/state';
+import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
@@ -1504,8 +1505,20 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
   );
 };
 
-export const HeaderOptions = ({ sort, field, onSort, extraActions, renderSearch, searchByColumn, children }) => {
+export const HeaderOptions = ({ sort, entityType, field, onSort, extraActions, renderSearch, searchByColumn, dataProvider, children }) => {
+  const [columnValues, setColumnValues] = useState(() => StateHistory.get().columnValues);
   const popup = useRef();
+
+  const loadColumnValues = async (field) => {
+    try {
+      const columnValues = await dataProvider.getColumnValues(entityType, field);
+      const selectOptions = _.map((cv) => ({ value: cv.value, label: `${cv.value} (${cv.count})` }), columnValues);
+      setColumnValues(selectOptions);
+    } catch (error) {
+      reportError(`Error loading column values in column ${field}`, error);
+    }
+  };
+
   const columnMenu = h(
     PopupTrigger,
     {
@@ -1531,6 +1544,19 @@ export const HeaderOptions = ({ sort, field, onSort, extraActions, renderSearch,
                 e.stopPropagation();
               },
             }),
+            h(Collapse, { title: 'Values', onClick: (e) => e.stopPropagation(), onFirstOpen: () => loadColumnValues(field) }, [
+              h(Select, {
+                id: `values-${field}`,
+                menuPlacement: 'auto',
+                isSearchable: true,
+                value: 'blah',
+                onChange: (option) => {
+                  searchByColumn(option.value, field);
+                  popup.current.close();
+                },
+                options: columnValues,
+              }),
+            ]),
           ]),
         !_.isEmpty(extraActions) &&
           h(Fragment, [

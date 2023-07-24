@@ -477,10 +477,12 @@ const DataTable = (props) => {
                           HeaderOptions,
                           {
                             sort,
+                            entityType,
                             field: 'name',
                             onSort: setSort,
                             renderSearch: true,
                             searchByColumn: (v) => searchByColumn(entityMetadata[entityType].idName, v),
+                            dataProvider,
                           },
                           [
                             h(HeaderCell, [
@@ -528,10 +530,12 @@ const DataTable = (props) => {
                             HeaderOptions,
                             {
                               sort,
+                              entityType,
                               field: attributeName,
                               onSort: setSort,
                               renderSearch: true,
                               searchByColumn: (v) => searchByColumn(attributeName, v),
+                              dataProvider,
                               extraActions: _.concat(
                                 editable
                                   ? [

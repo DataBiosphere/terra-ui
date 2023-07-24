@@ -2,6 +2,7 @@ import _ from 'lodash/fp';
 import { notifyDataImportProgress } from 'src/components/data/data-utils';
 import { Ajax } from 'src/libs/ajax';
 import {
+  ColumnValue,
   DataTableFeatures,
   DataTableProvider,
   EntityMetadata,
@@ -111,5 +112,9 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
       Utils.append({ targetWorkspace: { namespace: uploadParams.namespace, name: uploadParams.name }, jobId })
     );
     notifyDataImportProgress(jobId, 'Data will show up incrementally as the job progresses.');
+  };
+
+  getColumnValues = async (_entityType: string, _field: string): Promise<ColumnValue[]> => {
+    return [{ value: 'unsupported', count: -1 }];
   };
 }
