@@ -32,5 +32,6 @@
   "terraDockerVersionsFile": "terra-docker-versions-dev.json",
   "terraDockerImageBucket": "terra-docker-image-documentation-dev",
   "b2cBillingPolicy": "b2c_1a_signup_signin_billing_dev",
-  "terraDeploymentEnv": "dev"
+  "terraDeploymentEnv": "dev",
+  "localWdsWorkspace": "4237ed5b-b3d7-4fe7-9751-64b4ca33e479"
 }

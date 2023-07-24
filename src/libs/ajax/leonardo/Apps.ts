@@ -4,6 +4,7 @@ import { AppToolLabel } from 'src/analysis/utils/tool-utils';
 import { appIdentifier, authOpts, fetchLeo, jsonBody } from 'src/libs/ajax/ajax-common';
 import { CreateAppV1Request, GetAppResponse, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models';
+import { getConfig } from 'src/libs/config';
 
 export const Apps = (signal) => ({
   list: async (project: string, labels: LeoResourceLabels = {}): Promise<ListAppResponse[]> => {
@@ -83,6 +84,35 @@ export const Apps = (signal) => ({
       `api/apps/v2/${workspaceId}?${qs.stringify(labels)}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }])
     );
+    if (workspaceId === getConfig().localWdsWorkspace) {
+      const mockLocalApp: ListAppResponse = {
+        appName: '',
+        cloudContext: {
+          cloudProvider: 'AZURE',
+          cloudResource: '',
+        },
+        kubernetesRuntimeConfig: {
+          numNodes: 1,
+          machineType: '',
+          autoscalingEnabled: false,
+        },
+        errors: [],
+        status: 'RUNNING',
+        proxyUrls: {
+          wds: 'http://localhost:8080',
+        },
+        auditInfo: {
+          creator: '',
+          createdDate: '',
+          destroyedDate: '',
+          dateAccessed: '',
+        },
+        // @ts-expect-error Leo app types do not include WDS
+        appType: 'WDS',
+        labels: {},
+      };
+      return [mockLocalApp];
+    }
     return res.json();
   },
   createAppV2: (appName: string, workspaceId: string, appType: AppToolLabel): Promise<void> => {
