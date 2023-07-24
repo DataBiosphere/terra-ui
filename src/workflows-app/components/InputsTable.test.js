@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
@@ -79,6 +79,7 @@ describe('Input table rendering', () => {
 
   it('Searching filters the displayed rows', async () => {
     setupInputTableTest();
+    const user = userEvent.setup();
 
     const table = await screen.findByRole('table');
     const rows = within(table).queryAllByRole('row');
@@ -107,7 +108,7 @@ describe('Input table rendering', () => {
 
     // search for inputs belonging to target_workflow_1 task (removes foo_rating_workflow_var)
     const searchInput = await screen.getByLabelText('Search inputs');
-    await userEvent.type(searchInput, 'target_wor');
+    await user.type(searchInput, 'target_wor');
     await act(() => delay(300)); // debounced search
 
     expect(within(table).queryAllByRole('row').length).toBe(3);
@@ -125,8 +126,8 @@ describe('Input table rendering', () => {
     within(cells2[4]).getByDisplayValue('Hello World');
 
     // search for inputs with rating in name
-    await userEvent.clear(searchInput);
-    await userEvent.type(searchInput, 'rating');
+    await user.clear(searchInput);
+    await user.type(searchInput, 'rating');
     await act(() => delay(300)); // debounced search
 
     expect(within(table).queryAllByRole('row').length).toBe(2);
@@ -140,6 +141,7 @@ describe('Input table rendering', () => {
 
   it('Record lookup only shows attributes with matching type', async () => {
     setupInputTableTest();
+    const user = userEvent.setup();
 
     const table = await screen.findByRole('table');
     const rows = within(table).queryAllByRole('row');
@@ -161,19 +163,20 @@ describe('Input table rendering', () => {
 
     // see what records are available for Int input (foo)
     // foo_rating is the only NUMBER attribute
-    await userEvent.click(fooRecord);
+    await user.click(fooRecord);
     const fooRecordOptions = within(screen.getByRole('listbox')).getAllByText(/[[a-z]|[A-Z]|[0-9]]+/i);
     expect(fooRecordOptions).toHaveLength(1);
 
     // see what records are available for String input (bar)
     // bar_string and sys_name are STRING attributes, and foo_rating (NUMBER) can be coerced to string
-    await userEvent.click(barRecord);
+    await user.click(barRecord);
     const barRecordOptions = within(screen.getByRole('listbox')).getAllByText(/[[a-z]|[A-Z]|[0-9]]+/i);
     expect(barRecordOptions).toHaveLength(3);
   });
 
   it('should change input table sort order when column headers are clicked', async () => {
     setupInputTableTest();
+    const user = userEvent.setup();
 
     const table = await screen.findByRole('table');
     const rows = within(table).queryAllByRole('row');
@@ -201,9 +204,7 @@ describe('Input table rendering', () => {
     within(cells3[4]).getByDisplayValue('Hello World');
 
     // sort ascending by column 1
-    await act(async () => {
-      await fireEvent.click(within(headers[1]).getByRole('button'));
-    });
+    await user.click(within(headers[1]).getByRole('button'));
 
     within(cells1[0]).getByText('target_workflow_1');
     within(cells1[1]).getByText('bar_string_workflow_var');
@@ -224,9 +225,7 @@ describe('Input table rendering', () => {
     within(cells3[4]).getByDisplayValue('Hello World');
 
     // sort descending by column 1
-    await act(async () => {
-      await fireEvent.click(within(headers[1]).getByRole('button'));
-    });
+    await user.click(within(headers[1]).getByRole('button'));
 
     within(cells1[0]).getByText('target_workflow_1');
     within(cells1[1]).getByText('optional_var');
@@ -249,6 +248,7 @@ describe('Input table rendering', () => {
 
   it('should hide/show optional inputs when respective button is clicked', async () => {
     setupInputTableTest();
+    const user = userEvent.setup();
 
     const table = await screen.findByRole('table');
     const rows = within(table).queryAllByRole('row');
@@ -277,9 +277,7 @@ describe('Input table rendering', () => {
 
     // hide optional inputs (defaults to showing optional inputs)
     const hideButton = await screen.getByText('Hide optional inputs');
-    await act(async () => {
-      await fireEvent.click(hideButton);
-    });
+    await user.click(hideButton);
     await screen.findByText('Show optional inputs');
 
     within(cells1[0]).getByText('foo');
@@ -296,9 +294,7 @@ describe('Input table rendering', () => {
 
     // show optional inputs again
     const showButton = await screen.getByText('Show optional inputs');
-    await act(async () => {
-      await fireEvent.click(showButton);
-    });
+    await user.click(showButton);
     await screen.findByText('Hide optional inputs');
 
     within(cells1[0]).getByText('foo');
@@ -322,12 +318,13 @@ describe('Input table rendering', () => {
 
   it('should display struct builder modal when "view struct builder" link is clicked', async () => {
     setupInputTableTest({ configuredInputDefinition: runSetInputDefWithStruct });
+    const user = userEvent.setup();
 
     // ** ASSERT **
     await screen.findByRole('table'); // there should be only one table at this point
 
     const viewStructLink = await screen.getByText('View Struct');
-    await fireEvent.click(viewStructLink);
+    await user.click(viewStructLink);
     await screen.getByText('myOptional');
     await screen.getByText('myInnerStruct');
 
@@ -346,7 +343,7 @@ describe('Input table rendering', () => {
     within(structCells[1]).getByText('myInnerStruct');
     const viewMyInnerStructLink = within(structCells[4]).getByText('View Struct');
 
-    await fireEvent.click(viewMyInnerStructLink);
+    await user.click(viewMyInnerStructLink);
     const myInnerStructTable = await screen.getByLabelText('struct-table');
     const myInnerStructRows = within(myInnerStructTable).queryAllByRole('row');
     expect(myInnerStructRows.length).toBe(3);
@@ -354,14 +351,14 @@ describe('Input table rendering', () => {
     const myInnerStructBreadcrumbs = await screen.getByLabelText('struct-breadcrumbs');
     const myInnerStructBreadcrumbsButtons = within(myInnerStructBreadcrumbs).queryAllByRole('button');
     expect(myInnerStructBreadcrumbsButtons.length).toBe(1);
-    await fireEvent.click(myInnerStructBreadcrumbsButtons[0]);
+    await user.click(myInnerStructBreadcrumbsButtons[0]);
 
     const structTable2ndView = await screen.getByLabelText('struct-table');
     const structRows2ndView = within(structTable2ndView).queryAllByRole('row');
     expect(structRows2ndView.length).toBe(6);
 
     const modalDoneButton = await screen.getByText('Done');
-    fireEvent.click(modalDoneButton);
+    await user.click(modalDoneButton);
     await screen.findByRole('table'); // there should be only one table again
   });
 
@@ -450,6 +447,7 @@ describe('Input table rendering', () => {
 
   it('should not display warning icon for valid structs using struct builder', async () => {
     setupInputTableTest({ configuredInputDefinition: runSetInputDefWithCompleteStruct });
+    const user = userEvent.setup();
 
     // ** ASSERT **
     const table = await screen.findByRole('table');
@@ -459,7 +457,7 @@ describe('Input table rendering', () => {
     expect(inputWarningMessageActive).toBeNull();
 
     // ** ACT **
-    await userEvent.click(viewStructLink);
+    await user.click(viewStructLink);
 
     // ** ASSERT **
     const structTable = await screen.getByLabelText('struct-table');
@@ -473,7 +471,7 @@ describe('Input table rendering', () => {
     expect(structWarningMessageActive).toBeNull();
 
     // ** ACT **
-    await userEvent.click(viewMyInnerStructLink);
+    await user.click(viewMyInnerStructLink);
 
     // ** ASSERT **
     const innerStructTable = await screen.getByLabelText('struct-table');
@@ -495,6 +493,7 @@ describe('Input table rendering', () => {
 
   it('should display warning icon/message at each level of the struct builder when a field has a missing attribute', async () => {
     setupInputTableTest({ configuredInputDefinition: runSetInputDefWithStruct, selectedDataTable: typesResponseWithoutFooRating[0] });
+    const user = userEvent.setup();
 
     // ** ASSERT **
     const table = await screen.findByRole('table');
@@ -504,7 +503,7 @@ describe('Input table rendering', () => {
     expect(inputWarningMessageActive).not.toBeNull();
 
     // ** ACT **
-    await userEvent.click(viewStructLink);
+    await user.click(viewStructLink);
 
     // ** ASSERT **
     const structTable = await screen.getByLabelText('struct-table');
@@ -518,7 +517,7 @@ describe('Input table rendering', () => {
     expect(structWarningMessageActive).not.toBeNull();
 
     // ** ACT **
-    await userEvent.click(viewMyInnerStructLink);
+    await user.click(viewMyInnerStructLink);
 
     // ** ASSERT **
     const innerStructTable = await screen.getByLabelText('struct-table');
@@ -655,6 +654,7 @@ describe('Input table definition updates', () => {
 
   it('should populate fields from data table on click', async () => {
     const { setConfiguredInputDefinition } = setupInputTableTest({ configuredInputDefinition: runSetInputDefSameInputNames });
+    const user = userEvent.setup();
 
     const table = await screen.findByRole('table');
     const rows = within(table).queryAllByRole('row');
@@ -665,9 +665,7 @@ describe('Input table definition updates', () => {
     within(cells1[4]).getByText(/ from data table/);
 
     // fill single input from click
-    await act(async () => {
-      await fireEvent.click(inputFillButton);
-    });
+    await user.click(inputFillButton);
 
     expect(setConfiguredInputDefinition.mock.lastCall[0]).toStrictEqual(
       expect.arrayContaining([
@@ -681,10 +679,8 @@ describe('Input table definition updates', () => {
     const prevState = setConfiguredInputDefinition.mock.lastCall[0];
 
     // fill all from data table
-    await act(async () => {
-      const fillAllButton = await screen.findByText('Autofill (2) from data table');
-      await fireEvent.click(fillAllButton);
-    });
+    const fillAllButton = await screen.findByText('Autofill (2) from data table');
+    await user.click(fillAllButton);
 
     const setFn = setConfiguredInputDefinition.mock.lastCall[0];
 
@@ -704,6 +700,7 @@ describe('Input table definition updates', () => {
       configuredInputDefinition: runSetInputDefWithStruct,
       selectedDataTable: typesResponseWithoutFooRating[0],
     });
+    const user = userEvent.setup();
 
     // ** ASSERT **
     const table = await screen.findByRole('table');
@@ -719,9 +716,9 @@ describe('Input table definition updates', () => {
 
     // ** ACT **
     // user selects the attribute 'rating_for_foo' for input 'foo_rating_workflow_var'
-    await userEvent.click(within(cellsFoo[4]).getByText('foo_rating'));
+    await user.click(within(cellsFoo[4]).getByText('foo_rating'));
     const selectOption = await screen.findByText('rating_for_foo');
-    await userEvent.click(selectOption);
+    await user.click(selectOption);
 
     expect(setConfiguredInputDefinition).toBeCalledWith(
       _.set('[0].source', { type: 'record_lookup', record_attribute: 'rating_for_foo' }, configuredInputDefinition)
@@ -733,6 +730,7 @@ describe('Input table definition updates', () => {
       configuredInputDefinition: runSetInputDefWithStruct,
       selectedDataTable: typesResponseWithoutFooRating[0],
     });
+    const user = userEvent.setup();
 
     // ** ASSERT **
     const table = await screen.findByRole('table');
@@ -740,7 +738,7 @@ describe('Input table definition updates', () => {
     const viewStructLink = within(rows[2]).getByText('View Struct');
 
     // ** ACT **
-    await userEvent.click(viewStructLink);
+    await user.click(viewStructLink);
 
     // ** ASSERT **
     const structTable = await screen.getByLabelText('struct-table');
@@ -750,7 +748,7 @@ describe('Input table definition updates', () => {
     const viewMyInnerStructLink = within(structCells[4]).getByText('View Struct');
 
     // ** ACT **
-    await userEvent.click(viewMyInnerStructLink);
+    await user.click(viewMyInnerStructLink);
 
     // ** ASSERT **
     const innerStructTable = await screen.getByLabelText('struct-table');
@@ -763,9 +761,9 @@ describe('Input table definition updates', () => {
 
     // ** ACT **
     // user selects the attribute 'rating_for_foo' for input 'foo_rating_workflow_var'
-    await userEvent.click(within(innerStructCells[4]).getByText('foo_rating'));
+    await user.click(within(innerStructCells[4]).getByText('foo_rating'));
     const selectOption = await screen.findByText('rating_for_foo');
-    await userEvent.click(selectOption);
+    await user.click(selectOption);
 
     // ** ASSERT **
     expect(setConfiguredInputDefinition).toBeCalledWith(
@@ -775,6 +773,7 @@ describe('Input table definition updates', () => {
 
   it('should alter definition on literal input', async () => {
     const { configuredInputDefinition, setConfiguredInputDefinition } = setupInputTableTest({ configuredInputDefinition: runSetInputDef });
+    const user = userEvent.setup();
 
     // ** ASSERT **
     const table = await screen.findByRole('table');
@@ -787,7 +786,7 @@ describe('Input table definition updates', () => {
 
     // ** ACT **
     // user adds exclamation point to input
-    await userEvent.type(input, '!');
+    await user.type(input, '!');
 
     expect(setConfiguredInputDefinition).toBeCalledWith(
       _.set('[2].source', { type: 'literal', parameter_value: 'Hello World!' }, configuredInputDefinition)
@@ -796,6 +795,7 @@ describe('Input table definition updates', () => {
 
   it('should alter definition on source to none', async () => {
     const { configuredInputDefinition, setConfiguredInputDefinition } = setupInputTableTest({ configuredInputDefinition: runSetInputDef });
+    const user = userEvent.setup();
 
     // ** ASSERT **
     const table = await screen.findByRole('table');
@@ -808,9 +808,9 @@ describe('Input table definition updates', () => {
 
     // ** ACT **
     // user selects source none for 'optional_var'
-    await userEvent.click(selectSource);
+    await user.click(selectSource);
     const selectOption = await screen.findByText('None');
-    await userEvent.click(selectOption);
+    await user.click(selectOption);
 
     expect(setConfiguredInputDefinition).toBeCalledWith(_.set('[2].source', { type: 'none' }, configuredInputDefinition));
   });

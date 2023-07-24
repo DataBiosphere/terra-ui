@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import OutputsTable from 'src/workflows-app/components/OutputsTable';
@@ -52,6 +52,7 @@ describe('Output table rendering', () => {
 
   it('should change output table sort order when column headers are clicked', async () => {
     setupOutputTableTest();
+    const user = userEvent.setup();
 
     const table = await screen.findByRole('table');
     const rows = within(table).queryAllByRole('row');
@@ -70,9 +71,7 @@ describe('Output table rendering', () => {
     within(cells2[3]).getByDisplayValue('');
 
     // sort ascending by column 1
-    await act(async () => {
-      await fireEvent.click(within(headers[1]).getByRole('button'));
-    });
+    await user.click(within(headers[1]).getByRole('button'));
 
     within(cells1[0]).getByText('target_workflow_1');
     within(cells1[1]).getByText('file_output');
@@ -85,9 +84,7 @@ describe('Output table rendering', () => {
     within(cells2[3]).getByDisplayValue('');
 
     // sort descending by column 1
-    await act(async () => {
-      await fireEvent.click(within(headers[1]).getByRole('button'));
-    });
+    await user.click(within(headers[1]).getByRole('button'));
 
     within(cells1[0]).getByText('target_workflow_1');
     within(cells1[1]).getByText('unused_output');
@@ -113,15 +110,14 @@ describe('Output table definition updates', () => {
 
   it('should set output variable names when set defaults button is clicked', async () => {
     const { setConfiguredOutputDefinition } = setupOutputTableTest();
+    const user = userEvent.setup();
 
     const table = await screen.findByRole('table');
     const rows = within(table).queryAllByRole('row');
     const headers = within(rows[0]).queryAllByRole('columnheader');
 
     // set defaults
-    await act(async () => {
-      await userEvent.click(within(headers[3]).getByRole('button'));
-    });
+    await user.click(within(headers[3]).getByRole('button'));
 
     expect(setConfiguredOutputDefinition).toHaveBeenCalledWith(runSetOutputDefWithDefaults);
   });

@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 
-import { act, render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import RecordsTable from 'src/workflows-app/components/RecordsTable';
@@ -126,6 +126,7 @@ describe('RecordsTable', () => {
     const dataTableRef = { current: {} };
     const selectedRecords = {};
     const setSelectedRecords = jest.fn();
+    const user = userEvent.setup();
 
     const records = [
       {
@@ -199,26 +200,20 @@ describe('RecordsTable', () => {
     within(cells3[1]).getByText('FOO3');
     within(cells4[1]).getByText('FOO4');
 
-    await act(async () => {
-      await userEvent.click(within(headers[1]).getByRole('button'));
-    });
+    await user.click(within(headers[1]).getByRole('button'));
 
     within(cells1[1]).getByText('FOO4');
     within(cells2[1]).getByText('FOO3');
     within(cells3[1]).getByText('FOO2');
     within(cells4[1]).getByText('FOO1');
 
-    await act(async () => {
-      await userEvent.click(within(headers[2]).getByRole('button'));
-    });
+    await user.click(within(headers[2]).getByRole('button'));
     within(cells1[2]).getByText('30');
     within(cells2[2]).getByText('85');
     within(cells3[2]).getByText('999');
     within(cells4[2]).getByText('1000');
 
-    await act(async () => {
-      await userEvent.click(within(headers[2]).getByRole('button'));
-    });
+    await user.click(within(headers[2]).getByRole('button'));
     within(cells1[2]).getByText('1000');
     within(cells2[2]).getByText('999');
     within(cells3[2]).getByText('85');

@@ -474,8 +474,8 @@ export const badRecordTypeRunSetResponse = {
   run_sets: [
     {
       run_set_id: '20000000-0000-0000-0000-000000000002',
-      method_id: '00000000-0000-0000-0000-000000000002',
-      method_version_id: '50000000-0000-0000-0000-000000000005',
+      method_id: '00000000-0000-0000-0000-000000000001',
+      method_version_id: '50000000-0000-0000-0000-000000000006',
       is_template: true,
       run_set_name: 'Target workflow 2, run 1',
       run_set_description: 'Example run for target workflow 2',

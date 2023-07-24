@@ -1,4 +1,5 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
@@ -72,9 +73,7 @@ describe('Add a Workflow Link', () => {
 
   it('should render text inputs/headers', async () => {
     // ** ACT **
-    await act(async () => {
-      await render(h(ImportGithub, { onDismiss: jest.fn() }));
-    });
+    render(h(ImportGithub, { onDismiss: jest.fn() }));
 
     const urlLink = screen.getByText('Workflow Link *');
     const workflowName = screen.getByText('Workflow Name *');
@@ -88,6 +87,7 @@ describe('Add a Workflow Link', () => {
   it('should submit github.com links', async () => {
     const mockListAppsFn = jest.fn(() => Promise.resolve(mockAppResponse));
     const postMethodFunction = jest.fn(() => Promise.resolve({ method_id: 'abc123' }));
+    const user = userEvent.setup();
 
     await getUser.mockReturnValue({
       email: 'abc@gmail.com',
@@ -120,27 +120,25 @@ describe('Add a Workflow Link', () => {
 
     expect(addToWorkspaceButtonDisabled.getAttribute('aria-disabled')).toBe('true');
 
-    fireEvent.change(urlLink, { target: { value: githubLink } });
+    await user.type(urlLink, githubLink);
     expect(workflowName.value).toBe('simple_task');
     const addToWorkspaceButtonEnabled = screen.getByLabelText('Add to Workspace button');
     expect(addToWorkspaceButtonEnabled.getAttribute('aria-disabled')).toBe('false');
-    fireEvent.click(addToWorkspaceButtonEnabled);
+    await user.click(addToWorkspaceButtonEnabled);
 
     // ** ASSERT **
     // assert POST /methods endpoint was called with expected parameters & transformed github.com link
-    await waitFor(() => {
-      expect(postMethodFunction).toHaveBeenCalledTimes(1);
-      expect(postMethodFunction).toHaveBeenCalledWith(
-        'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas',
-        {
-          method_name: 'simple_task',
-          method_description: undefined,
-          method_source: 'GitHub',
-          method_version: 'develop',
-          method_url: githubLink,
-        }
-      );
-    });
+    expect(postMethodFunction).toHaveBeenCalledTimes(1);
+    expect(postMethodFunction).toHaveBeenCalledWith(
+      'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas',
+      {
+        method_name: 'simple_task',
+        method_description: undefined,
+        method_source: 'GitHub',
+        method_version: 'develop',
+        method_url: githubLink,
+      }
+    );
     jest.clearAllMocks();
   });
 
@@ -148,6 +146,7 @@ describe('Add a Workflow Link', () => {
     const rawGithubLink = 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl';
     const mockListAppsFn = jest.fn(() => Promise.resolve(mockAppResponse));
     const postMethodFunction = jest.fn(() => Promise.resolve({ method_id: 'abc123' }));
+    const user = userEvent.setup();
 
     await getUser.mockReturnValue({
       email: 'abc@gmail.com',
@@ -175,32 +174,32 @@ describe('Add a Workflow Link', () => {
     const urlLink = screen.getByPlaceholderText('Paste Github link');
     const workflowName = screen.getByPlaceholderText('Workflow Name');
 
-    fireEvent.change(urlLink, { target: { value: rawGithubLink } });
+    await user.type(urlLink, rawGithubLink);
     // Expect autofill
     expect(workflowName.value).toBe('simple_task');
     // User change name
-    fireEvent.change(workflowName, { target: { value: 'Test workflow again' } });
+    await user.clear(workflowName);
+    await user.type(workflowName, 'Test workflow again');
     const addToWorkspaceButtonEnabled = screen.getByLabelText('Add to Workspace button');
-    fireEvent.click(addToWorkspaceButtonEnabled);
+    await user.click(addToWorkspaceButtonEnabled);
 
     // Check that raw github links still work
-    await waitFor(() => {
-      expect(postMethodFunction).toHaveBeenCalledTimes(1);
-      expect(postMethodFunction).toHaveBeenCalledWith(
-        'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas',
-        {
-          method_name: 'Test workflow again',
-          method_description: undefined,
-          method_source: 'GitHub',
-          method_version: 'develop',
-          method_url: rawGithubLink,
-        }
-      );
-    });
+    expect(postMethodFunction).toHaveBeenCalledTimes(1);
+    expect(postMethodFunction).toHaveBeenCalledWith(
+      'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas',
+      {
+        method_name: 'Test workflow again',
+        method_description: undefined,
+        method_source: 'GitHub',
+        method_version: 'develop',
+        method_url: rawGithubLink,
+      }
+    );
   });
 
   it('should fail when given a non github link', async () => {
     const postMethodFunction = jest.fn(() => Promise.resolve({ method_id: 'abc123' }));
+    const user = userEvent.setup();
 
     await Ajax.mockImplementation(() => {
       return {
@@ -220,8 +219,8 @@ describe('Add a Workflow Link', () => {
     const workflowName = screen.getByPlaceholderText('Workflow Name');
     const addToWorkspaceButton = screen.getByLabelText('Add to Workspace button');
 
-    fireEvent.change(urlLink, { target: { value: 'lol.com' } });
-    fireEvent.change(workflowName, { target: { value: 'Test bad workflow' } });
+    await user.type(urlLink, 'lol.com');
+    await user.type(workflowName, 'Test bad workflow');
 
     expect(addToWorkspaceButton.getAttribute('aria-disabled')).toBe('true');
   });

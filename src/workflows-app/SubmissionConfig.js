@@ -47,7 +47,6 @@ export const BaseSubmissionConfig = (
   const [dataTableColumnWidths, setDataTableColumnWidths] = useState({});
   const [loading, setLoading] = useState(false);
   const [workflowScript, setWorkflowScript] = useState();
-  const [runSetRecordType, setRunSetRecordType] = useState();
   const [wdsProxyUrl, setWdsProxyUrl] = useState({ status: 'None', state: '' });
 
   // Options chosen on this page:
@@ -211,7 +210,9 @@ export const BaseSubmissionConfig = (
         methodSource: method.source,
         previouslyRun: method.last_run.previously_run,
       });
-      Nav.goToPath('submission-details', {
+      Nav.goToPath('workspace-workflows-app-submission-details', {
+        name,
+        namespace,
         submissionId: runSetObject.run_set_id,
       });
     } catch (error) {
@@ -232,10 +233,11 @@ export const BaseSubmissionConfig = (
           detail: 'Service returned Unauthorized error. Session might have expired. Please refresh the page or login again.',
         });
       } else if (cbasUrlRoot) {
-        loadRunSet(cbasUrlRoot).then((runSet) => {
-          setRunSetRecordType(runSet.record_type);
-          loadMethodsData(cbasUrlRoot, runSet.method_id, runSet.method_version_id);
-          loadWdsData({ wdsProxyUrlState: wdsProxyUrlResponse, recordType: runSetRecordType });
+        loadRunSet(cbasUrlRoot).then(async (runSet) => {
+          if (runSet !== undefined) {
+            loadMethodsData(cbasUrlRoot, runSet.method_id, runSet.method_version_id);
+            loadWdsData({ wdsProxyUrlState: wdsProxyUrlResponse, recordType: runSet.record_type });
+          }
         });
       }
     };
@@ -285,7 +287,7 @@ export const BaseSubmissionConfig = (
   useEffect(() => {
     // Start polling if we're missing WDS proxy url and stop polling when we have it
     if ((!wdsProxyUrl || wdsProxyUrl.status !== 'Ready') && wdsProxyUrl.status !== 'Unauthorized' && !pollWdsInterval.current) {
-      pollWdsInterval.current = setInterval(() => loadWdsData({ wdsProxyUrlState: wdsProxyUrl, recordType: runSetRecordType }), WdsPollInterval);
+      pollWdsInterval.current = setInterval(() => loadWdsData({ wdsProxyUrlState: wdsProxyUrl, recordType: selectedRecordType }), WdsPollInterval);
     } else if (!!wdsProxyUrl && wdsProxyUrl.status === 'Ready' && pollWdsInterval.current) {
       clearInterval(pollWdsInterval.current);
       pollWdsInterval.current = undefined;
@@ -295,7 +297,7 @@ export const BaseSubmissionConfig = (
       clearInterval(pollWdsInterval.current);
       pollWdsInterval.current = undefined;
     };
-  }, [loadWdsData, wdsProxyUrl, runSetRecordType]);
+  }, [loadWdsData, wdsProxyUrl, selectedRecordType]);
 
   const renderSummary = () => {
     return div({ style: { marginLeft: '2em', marginTop: '1rem', display: 'flex', justifyContent: 'space-between' } }, [
