@@ -22,7 +22,7 @@ import {
   loadAllRunSets,
   makeStatusLine,
   statusType,
-} from 'src/workflows-app/components/submission-common';
+} from 'src/workflows-app/utils/submission-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
