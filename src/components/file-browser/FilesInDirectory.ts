@@ -202,32 +202,32 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
                     Utils.cond(
                       [status === 'Loading', () => 'Loading files...'],
                       [status === 'Error', () => 'Unable to load files'],
-                      [
-                        path !== '',
-                        () =>
-                          h(
-                            ButtonOutline,
-                            {
-                              style: { marginTop: '1rem', textTransform: 'none' },
-                              onClick: async () => {
-                                // Attempt to delete folder placeholder object.
-                                // A placeholder object may not exist for the prefix being viewed, so do not an report error for 404 responses.
-                                // See https://cloud.google.com/storage/docs/folders for more information on placeholder objects.
-                                setBusy(true);
-                                try {
-                                  await provider.deleteEmptyDirectory(path);
-                                  setBusy(false);
-                                  onDeleteDirectory();
-                                } catch (error) {
-                                  setBusy(false);
-                                  reportError('Error deleting folder', error);
-                                }
+                      () =>
+                        h(Fragment, [
+                          div(['No files have been uploaded yet']),
+                          path !== '' &&
+                            h(
+                              ButtonOutline,
+                              {
+                                style: { marginTop: '1rem', textTransform: 'none' },
+                                onClick: async () => {
+                                  // Attempt to delete folder placeholder object.
+                                  // A placeholder object may not exist for the prefix being viewed, so do not an report error for 404 responses.
+                                  // See https://cloud.google.com/storage/docs/folders for more information on placeholder objects.
+                                  setBusy(true);
+                                  try {
+                                    await provider.deleteEmptyDirectory(path);
+                                    setBusy(false);
+                                    onDeleteDirectory();
+                                  } catch (error) {
+                                    setBusy(false);
+                                    reportError('Error deleting folder', error);
+                                  }
+                                },
                               },
-                            },
-                            ['Delete this folder']
-                          ),
-                      ],
-                      () => 'No files have been uploaded yet'
+                              ['Delete this folder']
+                            ),
+                        ])
                     ),
                   ]
                 ),
