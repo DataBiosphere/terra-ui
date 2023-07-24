@@ -17,14 +17,25 @@ import { requesterPaysProjectStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
 interface FileBrowserProps {
+  initialPath?: string;
   provider: FileBrowserProvider;
   rootLabel: string;
   title: string;
   workspace: any; // TODO: Type for workspace
+  onChangePath?: (newPath: string) => void;
 }
 
-const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps) => {
-  const [path, setPath] = useState('');
+const FileBrowser = (props: FileBrowserProps) => {
+  const { initialPath = '', provider, rootLabel, title, workspace, onChangePath } = props;
+
+  const [path, _setPath] = useState(initialPath);
+  const setPath = useCallback(
+    (newPath: string) => {
+      _setPath(newPath);
+      onChangePath?.(newPath);
+    },
+    [onChangePath]
+  );
 
   // refreshKey is a hack to make hooks in DirectoryTree and FilesInDirectory reload
   // after selecting a workspace to bill requester pays request to.
