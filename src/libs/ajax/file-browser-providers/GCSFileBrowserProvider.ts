@@ -101,7 +101,6 @@ const GCSFileBrowserProvider = ({
   };
 
   return {
-    supportsEmptyDirectories: true,
     getFilesInDirectory: (path, { signal } = {}) =>
       getNextPage({
         isFirstPage: true,

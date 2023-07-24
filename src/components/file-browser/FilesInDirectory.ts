@@ -203,7 +203,7 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
                       [status === 'Loading', () => 'Loading files...'],
                       [status === 'Error', () => 'Unable to load files'],
                       [
-                        path !== '' && provider.supportsEmptyDirectories,
+                        path !== '',
                         () =>
                           h(
                             ButtonOutline,

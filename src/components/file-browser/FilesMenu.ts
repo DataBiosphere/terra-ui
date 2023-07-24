@@ -73,17 +73,16 @@ export const FilesMenu = (props: FilesMenuProps) => {
         ]
       ),
 
-      provider.supportsEmptyDirectories &&
-        h(
-          Link,
-          {
-            disabled,
-            tooltip: disabled ? disabledReason : undefined,
-            style: { padding: '0.5rem' },
-            onClick: () => setCreatingNewDirectory(true),
-          },
-          [icon('folder'), ' New folder']
-        ),
+      h(
+        Link,
+        {
+          disabled,
+          tooltip: disabled ? disabledReason : undefined,
+          style: { padding: '0.5rem' },
+          onClick: () => setCreatingNewDirectory(true),
+        },
+        [icon('folder'), ' New folder']
+      ),
 
       h(
         Link,

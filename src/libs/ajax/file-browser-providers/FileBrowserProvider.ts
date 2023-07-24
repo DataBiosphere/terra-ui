@@ -13,8 +13,6 @@ export interface FileBrowserDirectory {
 }
 
 interface FileBrowserProvider {
-  supportsEmptyDirectories: boolean;
-
   getDirectoriesInDirectory(
     path: string,
     options?: { signal?: AbortSignal }
