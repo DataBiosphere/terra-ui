@@ -269,6 +269,16 @@ export class WdsDataTableProvider implements DataTableProvider {
     metadata: EntityMetadata
   ): Promise<EntityQueryResponse> => {
     if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded');
+
+    const searchColumnList = !queryOptions.columnFilter
+      ? {}
+      : (() => {
+          const filterArr = queryOptions.columnFilter.split('=');
+          const column = filterArr[0];
+          const find = queryOptions.columnFilter.substring(column.length + 1, queryOptions.columnFilter.length);
+          return { searchColumnList: [{ column, find }] };
+        })();
+
     const wdsPage: RecordQueryResponse = await Ajax(signal).WorkspaceData.getRecords(
       this.proxyUrl,
       this.workspaceId,
@@ -279,7 +289,10 @@ export class WdsDataTableProvider implements DataTableProvider {
           limit: queryOptions.itemsPerPage,
           sort: queryOptions.sortDirection,
         },
-        queryOptions.sortField === 'name' ? {} : { sortAttribute: queryOptions.sortField }
+        _.merge(
+          queryOptions.sortField === 'name' ? {} : { sortAttribute: queryOptions.sortField },
+          !queryOptions.columnFilter ? {} : searchColumnList
+        )
       )
     );
     return this.transformPage(wdsPage, entityType, queryOptions, metadata);

@@ -479,7 +479,7 @@ const DataTable = (props) => {
                             sort,
                             field: 'name',
                             onSort: setSort,
-                            renderSearch: !!googleProject,
+                            renderSearch: true,
                             searchByColumn: (v) => searchByColumn(entityMetadata[entityType].idName, v),
                           },
                           [
@@ -530,7 +530,7 @@ const DataTable = (props) => {
                               sort,
                               field: attributeName,
                               onSort: setSort,
-                              renderSearch: !!googleProject,
+                              renderSearch: true,
                               searchByColumn: (v) => searchByColumn(attributeName, v),
                               extraActions: _.concat(
                                 editable
