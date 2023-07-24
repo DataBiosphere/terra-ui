@@ -22,7 +22,6 @@ import {
   getToolLabelFromFileExtension,
   isAppToolLabel,
   isToolHidden,
-  RuntimeToolLabel,
   runtimeToolLabels,
   runtimeTools,
   Tool,
@@ -65,6 +64,11 @@ const analysisMode = Symbol('artifact');
 const environmentMode = Symbol('environment');
 
 const StringSelect = Select as typeof Select<string>;
+
+type AvailableAppTool = (typeof cloudAppTools)[keyof typeof cloudAppTools][number];
+type AvailableAppToolLabel = AvailableAppTool['label'];
+type AvailableRuntimeTool = (typeof cloudRuntimeTools)[keyof typeof cloudRuntimeTools][number];
+type AvailableRuntimeToolLabel = AvailableRuntimeTool['label'];
 
 export interface AnalysisModalProps {
   isOpen: boolean;
@@ -254,24 +258,22 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       hover: { backgroundColor: colors.accent(0.3) },
     };
 
-    const availableRuntimeTools = cloudRuntimeTools[cloudProvider];
-    const availableAppTools = cloudAppTools[cloudProvider];
+    const availableRuntimeTools: readonly AvailableRuntimeTool[] = cloudRuntimeTools[cloudProvider];
+    const availableAppTools: readonly AvailableAppTool[] = cloudAppTools[cloudProvider];
 
-    const currentApps: Record<AppToolLabel, App | undefined> = {
+    const currentApps: Record<AvailableAppToolLabel, App | undefined> = {
       GALAXY: currentApp(appToolLabels.GALAXY),
       CROMWELL: currentApp(appToolLabels.CROMWELL),
       HAIL_BATCH: currentApp(appToolLabels.HAIL_BATCH),
-      WDS: currentApp(appToolLabels.WDS),
     };
 
-    const appDisabledMessages: Record<AppToolLabel, string> = {
+    const appDisabledMessages: Record<AvailableAppToolLabel, string> = {
       GALAXY: 'You already have a Galaxy environment',
       CROMWELL: 'You already have a Cromwell instance',
       HAIL_BATCH: 'You already have a Hail Batch instance',
-      WDS: 'You already have a Workspace Data Service instance',
     };
 
-    const toolImages: Record<AppToolLabel | RuntimeToolLabel, ReactElement<'img'> | null> = {
+    const toolImages: Record<AvailableAppToolLabel | AvailableRuntimeToolLabel, ReactElement<'img'>> = {
       Jupyter: img({ src: jupyterLogoLong, alt: 'Create new notebook', style: _.merge(styles.image, { width: 111 }) }),
       RStudio: img({ src: rstudioBioLogo, alt: 'Create new R file', style: _.merge(styles.image, { width: 207 }) }),
       JupyterLab: img({
@@ -282,7 +284,6 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       GALAXY: img({ src: galaxyLogo, alt: 'Create new Galaxy app', style: _.merge(styles.image, { width: 139 }) }),
       CROMWELL: img({ src: cromwellImg, alt: 'Create new Cromwell app', style: styles.image }),
       HAIL_BATCH: img({ src: hailLogo, alt: 'Create new Hail Batch app', style: styles.image }),
-      WDS: null,
     };
 
     const runtimeToolButtons = availableRuntimeTools.map((runtimeTool) => {
