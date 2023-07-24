@@ -198,7 +198,10 @@ export const BaseSubmissionConfig = (
       };
 
       setIsSubmitting(true);
-      const runSetObject = await Ajax(signal).Cbas.runSets.post(runSetsPayload);
+      const {
+        cbasProxyUrlResponse: { state: cbasUrl },
+      } = await loadAppProxyUrls();
+      const runSetObject = await Ajax(signal).Cbas.runSets.post(cbasUrl, runSetsPayload);
       notify('success', 'Workflow successfully submitted', {
         message: 'You may check on the progress of workflow on this page anytime.',
         timeout: 5000,
