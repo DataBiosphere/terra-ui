@@ -4,6 +4,9 @@ export const HAIL_BATCH_AZURE_FEATURE_ID = 'hail-batch-azure';
 export const WORKFLOWS_TAB_AZURE_FEATURE_ID = 'workflows-tab-azure';
 export const DOCKSTORE_AZURE_FEATURE_ID = 'dockstore-azure';
 
+// If the groups option is defined for a FeaturePreview, it must contain at least one group.
+type GroupsList = readonly [string, ...string[]];
+
 export type FeaturePreview = {
   /**
    * ID for the feature. This is used to check if the feature is enabled and to toggle it enabled/disabled.
@@ -25,7 +28,7 @@ export type FeaturePreview = {
    * for users that are a member of at least one of the specified groups.
    * This only applies in production. In dev environments, all features are available to all users.
    */
-  readonly groups?: readonly string[];
+  readonly groups?: GroupsList;
 
   /**
    * Optional URL for feature documentation. Shown on the feature previews page.
