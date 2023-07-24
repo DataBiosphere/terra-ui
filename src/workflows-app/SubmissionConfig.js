@@ -207,6 +207,7 @@ export const BaseSubmissionConfig = (
       captureEvent(Events.workflowsAppLaunchWorkflow, {
         ...extractWorkspaceDetails(workspace),
         methodUrl: selectedMethodVersion.url,
+        methodVersion: selectedMethodVersion.name,
         methodSource: method.source,
         previouslyRun: method.last_run.previously_run,
       });
