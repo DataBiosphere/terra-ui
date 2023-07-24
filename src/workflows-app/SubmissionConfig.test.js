@@ -32,6 +32,11 @@ jest.mock('src/libs/nav', () => ({
   goToPath: jest.fn(),
 }));
 
+jest.mock('src/libs/ajax/metrics/useMetrics', () => ({
+  ...jest.requireActual('src/libs/ajax/metrics/useMetrics'),
+  useMetricsEvent: jest.fn(() => ({ captureEvent: jest.fn() })),
+}));
+
 // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
 // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
 // values and render the component properly. Without this the tests will be break.
