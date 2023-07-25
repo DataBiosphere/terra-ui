@@ -24,6 +24,15 @@ import { asMockedFn } from 'src/testing/test-utils';
 type AjaxContract = ReturnType<typeof Ajax>;
 jest.mock('src/libs/ajax');
 
+type ReactUtilsExports = typeof import('src/libs/react-utils');
+jest.mock('src/libs/react-utils', (): ReactUtilsExports => {
+  const actual = jest.requireActual<ReactUtilsExports>('src/libs/react-utils');
+  return {
+    ...actual,
+    useDebouncedValue: (value) => value,
+  };
+});
+
 describe('transforming user info to the request object', () => {
   beforeEach(() => {
     jest.resetAllMocks();

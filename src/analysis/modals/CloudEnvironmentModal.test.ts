@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h, p } from 'react-hyperscript-helpers';
 import {
@@ -519,9 +519,7 @@ describe('CloudEnvironmentModal', () => {
       // Assert
       const pauseButtons = screen.getAllByText('Pause');
       expect(pauseButtons.length).toBe(3);
-      await act(async () => {
-        await user.click(pauseButtons[expectedOutput.buttonIndex]);
-      });
+      await user.click(pauseButtons[expectedOutput.buttonIndex]);
       expect(stopFn).toBeCalledTimes(expectedOutput.stopTimes);
       expect(pauseFn).toBeCalledTimes(expectedOutput.pauseTimes);
     }
@@ -575,9 +573,7 @@ describe('CloudEnvironmentModal', () => {
     render(h(CloudEnvironmentModal, cloneAzure));
     // Assert
     const pauseButton = screen.getByText('Pause');
-    await act(async () => {
-      await user.click(pauseButton);
-    });
+    await user.click(pauseButton);
     expect(stopFn).toBeCalledTimes(1);
   });
 
@@ -717,9 +713,7 @@ describe('CloudEnvironmentModal', () => {
     // Assert
     const settingsButtons = screen.getAllByText('Settings');
     expect(settingsButtons.length).toBe(3);
-    await act(async () => {
-      await user.click(settingsButtons[buttonIndex]);
-    });
+    await user.click(settingsButtons[buttonIndex]);
     screen.getByText(modalName);
   });
 
@@ -734,9 +728,7 @@ describe('CloudEnvironmentModal', () => {
     render(h(CloudEnvironmentModal, cloneAzure));
     // Assert
     const settingsButton = screen.getByText('Settings');
-    await act(async () => {
-      await user.click(settingsButton);
-    });
+    await user.click(settingsButton);
     screen.getByText('AzureComputeModalBase');
   });
 });
@@ -763,7 +755,7 @@ describe('renderToolButtons', () => {
       apps: [cromwellRunning],
     };
     // Act
-    await render(h(CloudEnvironmentModal, testProps));
+    render(h(CloudEnvironmentModal, testProps));
 
     // Assert
     expect(PeriodicAzureCookieSetter).toHaveBeenCalled();
@@ -790,7 +782,7 @@ describe('renderToolButtons', () => {
       apps: [hailBatchAppRunning],
     };
     // Act
-    await render(h(CloudEnvironmentModal, testProps));
+    render(h(CloudEnvironmentModal, testProps));
 
     // Assert
     expect(PeriodicAzureCookieSetter).toHaveBeenCalled();
