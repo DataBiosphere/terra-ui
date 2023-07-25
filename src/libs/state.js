@@ -101,6 +101,7 @@ window.ajaxOverridesStore = ajaxOverridesStore;
 export const configOverridesStore = staticStorageSlot(getSessionStorage(), 'config-overrides');
 window.configOverridesStore = configOverridesStore;
 
+// enum for status of app proxy url
 export const AppProxyUrlStatus = Object.freeze({
   None: 'None',
   Ready: 'Ready',
