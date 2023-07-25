@@ -75,15 +75,16 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       leading: false,
     });
 
-    useOnMount(
-      withBusyState(setLoading, async () => {
+    useOnMount(() => {
+      const load = withBusyState(setLoading, async () => {
         const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
         if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
           await loadRunsData(cbasProxyUrlState);
         }
-      })
-    );
+      });
+      load();
+    });
 
     return loading
       ? centeredSpinner()
