@@ -7,7 +7,7 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
 import * as Nav from 'src/libs/nav';
-import { getUser, workflowsAppStore } from 'src/libs/state';
+import { AppProxyUrlStatus, getUser, workflowsAppStore } from 'src/libs/state';
 import { BaseSubmissionConfig } from 'src/workflows-app/SubmissionConfig';
 import {
   methodsResponse,
@@ -307,9 +307,15 @@ describe('BaseSubmissionConfig with workflowsAppStore', () => {
 
     // assert that when the proxy urls were extracted they were also set in the workflowsAppStore
     expect(workflowsAppStore.get().workspaceId).toStrictEqual(mockAzureWorkspace.workspace.workspaceId);
-    expect(workflowsAppStore.get().wdsProxyUrlState).toStrictEqual({ status: 'Ready', state: 'https://lz-abc/wds-abc-c07807929cd1/' });
-    expect(workflowsAppStore.get().cbasProxyUrlState).toStrictEqual({ status: 'Ready', state: 'https://lz-abc/terra-app-abc/cbas' });
-    expect(workflowsAppStore.get().cromwellProxyUrlState).toStrictEqual({ status: 'Ready', state: 'https://lz-abc/terra-app-abc/cromwell' });
+    expect(workflowsAppStore.get().wdsProxyUrlState).toStrictEqual({
+      status: AppProxyUrlStatus.Ready,
+      state: 'https://lz-abc/wds-abc-c07807929cd1/',
+    });
+    expect(workflowsAppStore.get().cbasProxyUrlState).toStrictEqual({ status: AppProxyUrlStatus.Ready, state: 'https://lz-abc/terra-app-abc/cbas' });
+    expect(workflowsAppStore.get().cromwellProxyUrlState).toStrictEqual({
+      status: AppProxyUrlStatus.Ready,
+      state: 'https://lz-abc/terra-app-abc/cromwell',
+    });
   });
 
   it("shouldn't call Leo to get proxy urls if they are already set in workflowsAppStore", async () => {
@@ -346,9 +352,9 @@ describe('BaseSubmissionConfig with workflowsAppStore', () => {
 
     workflowsAppStore.set({
       workspaceId: 'abc-c07807929cd1',
-      wdsProxyUrlState: { status: 'Ready', state: 'https://lz-abc/wds-abc-c07807929cd1/' },
-      cbasProxyUrlState: { status: 'Ready', state: 'https://lz-abc/terra-app-abc/cbas' },
-      cromwellProxyUrlState: { status: 'Ready', state: 'https://lz-abc/terra-app-abc/cromwell' },
+      wdsProxyUrlState: { status: AppProxyUrlStatus.Ready, state: 'https://lz-abc/wds-abc-c07807929cd1/' },
+      cbasProxyUrlState: { status: AppProxyUrlStatus.Ready, state: 'https://lz-abc/terra-app-abc/cbas' },
+      cromwellProxyUrlState: { status: AppProxyUrlStatus.Ready, state: 'https://lz-abc/terra-app-abc/cromwell' },
     });
 
     // ** ACT **
@@ -407,9 +413,9 @@ describe('BaseSubmissionConfig with workflowsAppStore', () => {
 
     workflowsAppStore.set({
       workspaceId: 'abc-c07807929cd1',
-      wdsProxyUrlState: { status: 'None', state: '' },
-      cbasProxyUrlState: { status: 'Ready', state: 'https://lz-abc/terra-app-abc/cbas' },
-      cromwellProxyUrlState: { status: 'Ready', state: 'https://lz-abc/terra-app-abc/cromwell' },
+      wdsProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
+      cbasProxyUrlState: { status: AppProxyUrlStatus.Ready, state: 'https://lz-abc/terra-app-abc/cbas' },
+      cromwellProxyUrlState: { status: AppProxyUrlStatus.Ready, state: 'https://lz-abc/terra-app-abc/cromwell' },
     });
 
     // ** ACT **
@@ -434,6 +440,9 @@ describe('BaseSubmissionConfig with workflowsAppStore', () => {
     });
 
     // verify that 'wdsProxyUrlState' in store was updated
-    expect(workflowsAppStore.get().wdsProxyUrlState).toStrictEqual({ status: 'Ready', state: 'https://lz-abc/wds-abc-c07807929cd1/' });
+    expect(workflowsAppStore.get().wdsProxyUrlState).toStrictEqual({
+      status: AppProxyUrlStatus.Ready,
+      state: 'https://lz-abc/wds-abc-c07807929cd1/',
+    });
   });
 });

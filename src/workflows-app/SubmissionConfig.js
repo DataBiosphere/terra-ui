@@ -15,7 +15,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
-import { workflowsAppStore } from 'src/libs/state';
+import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { maybeParseJSON } from 'src/libs/utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
@@ -141,10 +141,10 @@ export const BaseSubmissionConfig = (
     async ({ wdsProxyUrlDetails, recordType, includeLoadRecordTypes = true }) => {
       try {
         // try to load WDS proxy URL if one doesn't exist
-        if (wdsProxyUrlDetails.status !== 'Ready') {
+        if (wdsProxyUrlDetails.status !== AppProxyUrlStatus.Ready) {
           const { wdsProxyUrlState } = await loadAppUrls(workspaceId, 'wdsProxyUrlState');
 
-          if (wdsProxyUrlState.status === 'Ready') {
+          if (wdsProxyUrlState.status === AppProxyUrlStatus.Ready) {
             if (includeLoadRecordTypes) {
               await loadRecordTypes(wdsProxyUrlState.state);
             }
@@ -178,10 +178,10 @@ export const BaseSubmissionConfig = (
     async (cbasProxyUrlDetails, wdsProxyUrlDetails) => {
       try {
         // try to load CBAS proxy url if one doesn't exist
-        if (cbasProxyUrlDetails.status !== 'Ready') {
+        if (cbasProxyUrlDetails.status !== AppProxyUrlStatus.Ready) {
           const { wdsProxyUrlState, cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
-          if (cbasProxyUrlState.status === 'Ready') {
+          if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
             loadRunSet(cbasProxyUrlState.state).then((runSet) => {
               setRunSetRecordType(runSet.record_type);
               loadMethodsData(cbasProxyUrlState.state, runSet.method_id, runSet.method_version_id);
@@ -258,7 +258,7 @@ export const BaseSubmissionConfig = (
     const loadWorkflowsApp = async () => {
       const { wdsProxyUrlState, cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
-      if (cbasProxyUrlState.status === 'Ready') {
+      if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
         loadRunSet(cbasProxyUrlState.state).then((runSet) => {
           setRunSetRecordType(runSet.record_type);
           loadMethodsData(cbasProxyUrlState.state, runSet.method_id, runSet.method_version_id);

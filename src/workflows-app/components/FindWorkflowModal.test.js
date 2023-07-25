@@ -4,7 +4,7 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { workflowsAppStore } from 'src/libs/state';
+import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import FindWorkflowModal from 'src/workflows-app/components/FindWorkflowModal';
 
 jest.mock('src/libs/ajax');
@@ -76,7 +76,7 @@ describe('FindWorkflowModal', () => {
 
     workflowsAppStore.set({
       workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
-      cbasProxyUrlState: { status: 'Ready', state: 'https://lz-abc/terra-app-abc/cbas' },
+      cbasProxyUrlState: { status: AppProxyUrlStatus.Ready, state: 'https://lz-abc/terra-app-abc/cbas' },
     });
 
     // ** ACT **
@@ -120,7 +120,7 @@ describe('FindWorkflowModal', () => {
 
     workflowsAppStore.set({
       workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
-      cbasProxyUrlState: { status: 'None', state: '' },
+      cbasProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
     });
 
     // ** ACT **

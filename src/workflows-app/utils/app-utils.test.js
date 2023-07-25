@@ -1,5 +1,5 @@
 import { appStatuses } from 'src/libs/ajax/leonardo/models/app-models';
-import { workflowsAppStore } from 'src/libs/state';
+import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
 import { doesAppProxyUrlExist, resolveRunningCromwellAppUrl } from 'src/workflows-app/utils/app-utils';
 
@@ -101,7 +101,7 @@ describe('doesAppProxyUrlExist', () => {
   it('returns true for CBAS app in Ready state for current workspace', () => {
     workflowsAppStore.set({
       workspaceId: currentWorkspaceId,
-      cbasProxyUrlState: { status: 'Ready', state: mockCbasUrl },
+      cbasProxyUrlState: { status: AppProxyUrlStatus.Ready, state: mockCbasUrl },
     });
 
     expect(doesAppProxyUrlExist(currentWorkspaceId, 'cbasProxyUrlState')).toBe(true);
@@ -110,7 +110,7 @@ describe('doesAppProxyUrlExist', () => {
   it('returns true for WDS app in Ready state for current workspace', () => {
     workflowsAppStore.set({
       workspaceId: currentWorkspaceId,
-      wdsProxyUrlState: { status: 'Ready', state: mockWdsUrl },
+      wdsProxyUrlState: { status: AppProxyUrlStatus.Ready, state: mockWdsUrl },
     });
 
     expect(doesAppProxyUrlExist(currentWorkspaceId, 'wdsProxyUrlState')).toBe(true);
@@ -119,7 +119,7 @@ describe('doesAppProxyUrlExist', () => {
   it('returns true for Cromwell app in Ready state for current workspace', () => {
     workflowsAppStore.set({
       workspaceId: currentWorkspaceId,
-      cromwellProxyUrlState: { status: 'Ready', state: mockCromwellUrl },
+      cromwellProxyUrlState: { status: AppProxyUrlStatus.Ready, state: mockCromwellUrl },
     });
 
     expect(doesAppProxyUrlExist(currentWorkspaceId, 'cromwellProxyUrlState')).toBe(true);
@@ -128,7 +128,7 @@ describe('doesAppProxyUrlExist', () => {
   it('returns false for CBAS app in None state for current workspace', () => {
     workflowsAppStore.set({
       workspaceId: currentWorkspaceId,
-      cbasProxyUrlState: { status: 'None', state: '' },
+      cbasProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
     });
 
     expect(doesAppProxyUrlExist(currentWorkspaceId, 'cbasProxyUrlState')).toBe(false);
@@ -137,7 +137,7 @@ describe('doesAppProxyUrlExist', () => {
   it('returns false for WDS app in Error state for current workspace', () => {
     workflowsAppStore.set({
       workspaceId: currentWorkspaceId,
-      wdsProxyUrlState: { status: 'Error', state: '' },
+      wdsProxyUrlState: { status: AppProxyUrlStatus.Error, state: '' },
     });
 
     expect(doesAppProxyUrlExist(currentWorkspaceId, 'wdsProxyUrlState')).toBe(false);
@@ -146,7 +146,7 @@ describe('doesAppProxyUrlExist', () => {
   it('returns false for Cromwell app in None state for current workspace', () => {
     workflowsAppStore.set({
       workspaceId: currentWorkspaceId,
-      cromwellProxyUrlState: { status: 'None', state: '' },
+      cromwellProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
     });
 
     expect(doesAppProxyUrlExist(currentWorkspaceId, 'cromwellProxyUrlState')).toBe(false);
@@ -155,7 +155,7 @@ describe('doesAppProxyUrlExist', () => {
   it('returns false for CBAS app in Ready state but in different workspace', () => {
     workflowsAppStore.set({
       workspaceId: otherWorkspaceId,
-      cbasProxyUrlState: { status: 'Ready', state: mockCbasUrl },
+      cbasProxyUrlState: { status: AppProxyUrlStatus.Ready, state: mockCbasUrl },
     });
 
     expect(doesAppProxyUrlExist(currentWorkspaceId, 'cbasProxyUrlState')).toBe(false);
@@ -164,7 +164,7 @@ describe('doesAppProxyUrlExist', () => {
   it('returns false for WDS app in Ready state but in different workspace', () => {
     workflowsAppStore.set({
       workspaceId: otherWorkspaceId,
-      wdsProxyUrlState: { status: 'Ready', state: mockWdsUrl },
+      wdsProxyUrlState: { status: AppProxyUrlStatus.Ready, state: mockWdsUrl },
     });
 
     expect(doesAppProxyUrlExist(currentWorkspaceId, 'wdsProxyUrlState')).toBe(false);
@@ -173,7 +173,7 @@ describe('doesAppProxyUrlExist', () => {
   it('returns true for Cromwell app in Ready state but in different workspace', () => {
     workflowsAppStore.set({
       workspaceId: otherWorkspaceId,
-      cromwellProxyUrlState: { status: 'Ready', state: mockCromwellUrl },
+      cromwellProxyUrlState: { status: AppProxyUrlStatus.Ready, state: mockCromwellUrl },
     });
 
     expect(doesAppProxyUrlExist(currentWorkspaceId, 'cromwellProxyUrlState')).toBe(false);

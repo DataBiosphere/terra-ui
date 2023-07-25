@@ -2,11 +2,11 @@ import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
 import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { getConfig } from 'src/libs/config';
-import { getUser, workflowsAppStore } from 'src/libs/state';
+import { AppProxyUrlStatus, getUser, workflowsAppStore } from 'src/libs/state';
 
 export const doesAppProxyUrlExist = (workspaceId, proxyUrlStateField) => {
   const workflowsAppStoreLocal = workflowsAppStore.get();
-  return workflowsAppStoreLocal.workspaceId === workspaceId && workflowsAppStoreLocal[proxyUrlStateField].status === 'Ready';
+  return workflowsAppStoreLocal.workspaceId === workspaceId && workflowsAppStoreLocal[proxyUrlStateField].status === AppProxyUrlStatus.Ready;
 };
 
 export const resolveRunningCromwellAppUrl = (apps, currentUser) => {
@@ -32,24 +32,24 @@ export const resolveRunningCromwellAppUrl = (apps, currentUser) => {
 
 const resolveProxyUrl = (configRoot, appsList, resolver) => {
   if (configRoot) {
-    return { status: 'Ready', state: configRoot };
+    return { status: AppProxyUrlStatus.Ready, state: configRoot };
   }
 
   try {
     const proxyUrl = resolver(appsList);
     if (proxyUrl) {
-      return { status: 'Ready', state: proxyUrl };
+      return { status: AppProxyUrlStatus.Ready, state: proxyUrl };
     }
-    return { status: 'None', state: '' };
+    return { status: AppProxyUrlStatus.None, state: '' };
   } catch (error) {
-    return { status: 'None', state: '' };
+    return { status: AppProxyUrlStatus.None, state: '' };
   }
 };
 
 const setAllAppUrlsFromConfig = (workspaceId, wdsUrlRoot, cbasUrlRoot, cromwellUrlRoot) => {
-  const wdsProxyUrlState = { status: 'Ready', state: wdsUrlRoot };
-  const cbasProxyUrlState = { status: 'Ready', state: cbasUrlRoot };
-  const cromwellProxyUrlState = { status: 'Ready', state: cromwellUrlRoot };
+  const wdsProxyUrlState = { status: AppProxyUrlStatus.Ready, state: wdsUrlRoot };
+  const cbasProxyUrlState = { status: AppProxyUrlStatus.Ready, state: cbasUrlRoot };
+  const cromwellProxyUrlState = { status: AppProxyUrlStatus.Ready, state: cromwellUrlRoot };
 
   workflowsAppStore.set({
     workspaceId,
@@ -80,9 +80,9 @@ const fetchAppUrlsFromLeo = async (workspaceId, wdsUrlRoot, cbasUrlRoot, cromwel
       (appsList) => resolveRunningCromwellAppUrl(appsList, getUser()?.email).cromwellUrl
     );
   } catch (error) {
-    wdsProxyUrlState = { status: 'Error', state: error };
-    cbasProxyUrlState = { status: 'Error', state: error };
-    cromwellProxyUrlState = { status: 'Error', state: error };
+    wdsProxyUrlState = { status: AppProxyUrlStatus.Error, state: error };
+    cbasProxyUrlState = { status: AppProxyUrlStatus.Error, state: error };
+    cromwellProxyUrlState = { status: AppProxyUrlStatus.Error, state: error };
   }
 
   workflowsAppStore.set({

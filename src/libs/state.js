@@ -101,6 +101,12 @@ window.ajaxOverridesStore = ajaxOverridesStore;
 export const configOverridesStore = staticStorageSlot(getSessionStorage(), 'config-overrides');
 window.configOverridesStore = configOverridesStore;
 
+export const AppProxyUrlStatus = Object.freeze({
+  None: 'None',
+  Ready: 'Ready',
+  Error: 'Error',
+});
+
 /*
  * Stores the proxy urls for WDS and Azure Workflows apps for a workspace.
  * Status can be one of None, Ready and Error. The proxy url will be in 'state' field when 'status' is Ready.
@@ -108,7 +114,7 @@ window.configOverridesStore = configOverridesStore;
  */
 export const workflowsAppStore = Utils.atom({
   workspaceId: undefined,
-  wdsProxyUrlState: { status: 'None', state: '' },
-  cbasProxyUrlState: { status: 'None', state: '' },
-  cromwellProxyUrlState: { status: 'None', state: '' },
+  wdsProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
+  cbasProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
+  cromwellProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
 });

@@ -7,7 +7,7 @@ import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
-import { workflowsAppStore } from 'src/libs/state';
+import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import { withBusyState } from 'src/libs/utils';
 import FindWorkflowModal from 'src/workflows-app/components/FindWorkflowModal';
@@ -51,10 +51,10 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     const loadRunsData = useCallback(
       async (cbasProxyUrlDetails) => {
         try {
-          if (cbasProxyUrlDetails.status !== 'Ready') {
+          if (cbasProxyUrlDetails.status !== AppProxyUrlStatus.Ready) {
             const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
-            if (cbasProxyUrlState.status === 'Ready') {
+            if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
               const runs = await Ajax(signal).Cbas.methods.getWithoutVersions(cbasProxyUrlState.state);
               setMethodsData(runs.methods);
             }
@@ -79,7 +79,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       withBusyState(setLoading, async () => {
         const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
-        if (cbasProxyUrlState.status === 'Ready') {
+        if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
           await loadRunsData(cbasProxyUrlState);
         }
       })
