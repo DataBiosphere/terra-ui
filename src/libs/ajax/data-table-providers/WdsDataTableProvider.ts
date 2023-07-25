@@ -98,16 +98,13 @@ export const resolveWdsApp = (apps: ListAppResponse[]): ListAppResponse | undefi
   // an app may be in the 'PROVISIONING', 'STOPPED', 'STOPPING', which can still be deemed as an OK state for WDS
   const healthyStates = ['RUNNING', 'PROVISIONING', 'STOPPED', 'STOPPING'];
 
-  // @ts-expect-error Leo type definitions do not include WDS
   const eligibleApps = apps.filter((app) => app.appType === 'WDS' || app.appType === 'CROMWELL');
 
   const prioritizedApps = _.sortBy(
     [
       // Prefer WDS app with the proper name
-      // @ts-expect-error Leo type definitions do not include WDS
       (app) => (app.appType === 'WDS' && app.appName === `wds-${app.workspaceId}` ? -1 : 1),
       // Prefer WDS apps over CROMWELL apps
-      // @ts-expect-error Leo type definitions do not include WDS
       (app) => (app.appType === 'WDS' ? -1 : 1),
       // Prefer running apps
       (app) => (app.status === 'RUNNING' ? -1 : 1),
