@@ -106,6 +106,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-simple-import-sort": "^7.0.0",
     "husky": "^7.0.2",
+    "ignore": "^5.2.4",
     "jest-axe": "^6.0.0",
     "jest-fail-on-console": "^3.1.1",
     "lint-staged": "^13.0.3",
@@ -153,10 +154,5 @@
   "jest": {
     "clearMocks": true,
     "resetMocks": false
-  },
-  "lint-staged": {
-    "**/*.{js,ts}": [
-      "yarn eslint --max-warnings=0"
-    ]
   }
 }

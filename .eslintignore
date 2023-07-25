@@ -12,3 +12,4 @@ public
 node_modules
 .vscode
 coverage
+lint-staged.config.mjs

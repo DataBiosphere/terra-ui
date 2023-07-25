@@ -8710,6 +8710,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ignore@npm:^5.2.4":
+  version: 5.2.4
+  resolution: "ignore@npm:5.2.4"
+  checksum: 3d4c309c6006e2621659311783eaea7ebcd41fe4ca1d78c91c473157ad6666a57a2df790fe0d07a12300d9aac2888204d7be8d59f9aaf665b1c7fcdb432517ef
+  languageName: node
+  linkType: hard
+
 "igv@npm:2.11.2":
   version: 2.11.2
   resolution: "igv@npm:2.11.2"
@@ -15072,6 +15079,7 @@ __metadata:
     history: ^4.10.1
     husky: ^7.0.2
     iframe-resizer: ^4.3.2
+    ignore: ^5.2.4
     igv: 2.11.2
     jest-axe: ^6.0.0
     jest-fail-on-console: ^3.1.1
