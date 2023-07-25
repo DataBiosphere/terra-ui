@@ -90,6 +90,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["html-webpack-plugin", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.5.0"],\
             ["husky", "npm:7.0.2"],\
             ["iframe-resizer", "npm:4.3.2"],\
+            ["ignore", "npm:5.2.4"],\
             ["igv", "npm:2.11.2"],\
             ["jest-axe", "npm:6.0.0"],\
             ["jest-fail-on-console", "npm:3.1.1"],\
@@ -12196,6 +12197,13 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["ignore", "npm:5.2.0"]\
           ],\
           "linkType": "HARD"\
+        }],\
+        ["npm:5.2.4", {\
+          "packageLocation": "./.yarn/cache/ignore-npm-5.2.4-fbe6e989e5-3d4c309c60.zip/node_modules/ignore/",\
+          "packageDependencies": [\
+            ["ignore", "npm:5.2.4"]\
+          ],\
+          "linkType": "HARD"\
         }]\
       ]],\
       ["igv", [\
@@ -20428,6 +20436,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["html-webpack-plugin", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.5.0"],\
             ["husky", "npm:7.0.2"],\
             ["iframe-resizer", "npm:4.3.2"],\
+            ["ignore", "npm:5.2.4"],\
             ["igv", "npm:2.11.2"],\
             ["jest-axe", "npm:6.0.0"],\
             ["jest-fail-on-console", "npm:3.1.1"],\

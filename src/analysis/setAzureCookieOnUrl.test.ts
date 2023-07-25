@@ -47,9 +47,9 @@ describe('setAzureCookieOnUrl', () => {
     expect(azureCookieReadyStore.get().readyForApp).toBe(false);
   });
 
-  it('should call setAzureCookieOnUrl on cookie setter render', async () => {
+  it('should call setAzureCookieOnUrl on cookie setter render', () => {
     // Arrange
-    await render(h(PeriodicAzureCookieSetter));
+    render(h(PeriodicAzureCookieSetter));
 
     // Assert
     expect(mockSetAzureCookie).toHaveBeenCalled();

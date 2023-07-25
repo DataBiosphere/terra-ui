@@ -5,11 +5,12 @@ import selectEvent from 'react-select-event';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
 import * as Nav from 'src/libs/nav';
+import { AppProxyUrlStatus, getUser, workflowsAppStore } from 'src/libs/state';
 import { BaseSubmissionConfig } from 'src/workflows-app/SubmissionConfig';
 import {
   badRecordTypeRunSetResponse,
   methodsResponse,
-  mockApps,
+  mockAzureApps,
   mockAzureWorkspace,
   myStructInput,
   runSetInputDef,
@@ -37,6 +38,11 @@ jest.mock('src/libs/nav', () => ({
   goToPath: jest.fn(),
 }));
 
+jest.mock('src/libs/state', () => ({
+  ...jest.requireActual('src/libs/state'),
+  getUser: jest.fn(),
+}));
+
 jest.mock('src/components/Modal', () => {
   const mockModal = jest.requireActual('src/components/Modal.mock');
   return mockModal.mockModalModule();
@@ -55,8 +61,9 @@ const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototy
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth');
 
 const leoUrlRoot = 'https://leonardo.mock.org/';
-const wdsUrlRoot = 'http://localhost:3000/wds';
-const cbasUrlRoot = 'http://localhost:8080/cbas';
+const wdsUrlRoot = 'https://lz-abc/wds-abc-c07807929cd1/';
+const cbasUrlRoot = 'https://lz-abc/terra-app-abc/cbas';
+const cromwellUrlRoot = 'https://lz-abc/terra-app-abc/cromwell';
 
 describe('BaseSubmissionConfig renders workflow details', () => {
   beforeAll(() => {
@@ -65,7 +72,7 @@ describe('BaseSubmissionConfig renders workflow details', () => {
   });
 
   beforeEach(() => {
-    getConfig.mockReturnValue({ wdsUrlRoot, cbasUrlRoot });
+    getConfig.mockReturnValue({ wdsUrlRoot, cbasUrlRoot, cromwellUrlRoot });
   });
 
   afterEach(() => {
@@ -85,7 +92,7 @@ describe('BaseSubmissionConfig renders workflow details', () => {
     const mockSearchResponse = jest.fn((_root, _instanceId, recordType) => Promise.resolve(searchResponses[recordType]));
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
     const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
-    const mockLeoResponse = jest.fn(() => Promise.resolve(mockApps));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
 
     Ajax.mockImplementation(() => {
       return {
@@ -169,7 +176,7 @@ describe('BaseSubmissionConfig renders workflow details', () => {
     const mockSearchResponse = jest.fn((_root, _instanceId, recordType) => Promise.resolve(searchResponses[recordType]));
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
     const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
-    const mockLeoResponse = jest.fn(() => Promise.resolve(mockApps));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
 
     Ajax.mockImplementation(() => {
       return {
@@ -223,12 +230,12 @@ describe('BaseSubmissionConfig renders workflow details', () => {
     expect(Nav.goToPath).toHaveBeenCalledWith('workspace-workflows-app', {
       name: 'test-azure-ws-name',
       namespace: 'test-azure-ws-namespace',
-      workspace: { workspace: { workspaceId: 'unique-id-abc-123' } },
+      workspace: { workspace: { workspaceId: 'abc-c07807929cd1' } },
     });
   });
 });
 
-describe('BaseSubmissionConfig gets proxy urls from Leo', () => {
+describe('BaseSubmissionConfig with workflowsAppStore', () => {
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 });
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
@@ -236,6 +243,7 @@ describe('BaseSubmissionConfig gets proxy urls from Leo', () => {
 
   beforeEach(() => {
     getConfig.mockReturnValue({ leoUrlRoot });
+    getUser.mockReturnValue({ email: 'groot@gmail.com' });
   });
 
   afterEach(() => {
@@ -247,14 +255,14 @@ describe('BaseSubmissionConfig gets proxy urls from Leo', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
   });
 
-  it('should call Leo to get proxy urls', async () => {
+  it("should call Leo to get proxy urls if they aren't set in workflowsAppStore", async () => {
     // ** ARRANGE **
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
-    const mockSearchResponse = jest.fn((_root, _instanceId, recordType) => Promise.resolve(searchResponses[recordType]));
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]));
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
     const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
-    const mockLeoResponse = jest.fn(() => Promise.resolve(mockApps));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
 
     Ajax.mockImplementation(() => {
       return {
@@ -279,6 +287,13 @@ describe('BaseSubmissionConfig gets proxy urls from Leo', () => {
       };
     });
 
+    workflowsAppStore.set({
+      workspaceId: undefined,
+      wdsProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
+      cbasProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
+      cromwellProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
+    });
+
     // ** ACT **
     await act(async () =>
       render(
@@ -297,9 +312,215 @@ describe('BaseSubmissionConfig gets proxy urls from Leo', () => {
     expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
     expect(mockSearchResponse).toHaveBeenCalledTimes(1);
     expect(mockWdlResponse).toHaveBeenCalledTimes(1);
-    // currently the component calls Leo twice, once to get WDS url and second time to get CBAS url
-    // this might be reduced to 1 in a follow-up ticket: https://broadworkbench.atlassian.net/browse/WM-2076
-    expect(mockLeoResponse).toHaveBeenCalledTimes(2);
+    expect(mockLeoResponse).toHaveBeenCalledTimes(1);
+
+    // assert that when the proxy urls were extracted they were also set in the workflowsAppStore
+    expect(workflowsAppStore.get().workspaceId).toStrictEqual(mockAzureWorkspace.workspace.workspaceId);
+    expect(workflowsAppStore.get().wdsProxyUrlState).toStrictEqual({
+      status: AppProxyUrlStatus.Ready,
+      state: 'https://lz-abc/wds-abc-c07807929cd1/',
+    });
+    expect(workflowsAppStore.get().cbasProxyUrlState).toStrictEqual({ status: AppProxyUrlStatus.Ready, state: 'https://lz-abc/terra-app-abc/cbas' });
+    expect(workflowsAppStore.get().cromwellProxyUrlState).toStrictEqual({
+      status: AppProxyUrlStatus.Ready,
+      state: 'https://lz-abc/terra-app-abc/cromwell',
+    });
+  });
+
+  it("shouldn't call Leo to get proxy urls if they are already set in workflowsAppStore", async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
+    const mockSearchResponse = jest.fn((_root, _instanceId, recordType) => Promise.resolve(searchResponses[recordType]));
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
+    const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse,
+          },
+          methods: {
+            getById: mockMethodsResponse,
+          },
+        },
+        WorkspaceData: {
+          queryRecords: mockSearchResponse,
+          describeAllRecordTypes: mockTypesResponse,
+        },
+        WorkflowScript: {
+          get: mockWdlResponse,
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
+        },
+      };
+    });
+
+    workflowsAppStore.set({
+      workspaceId: 'abc-c07807929cd1',
+      wdsProxyUrlState: { status: AppProxyUrlStatus.Ready, state: 'https://lz-abc/wds-abc-c07807929cd1/' },
+      cbasProxyUrlState: { status: AppProxyUrlStatus.Ready, state: 'https://lz-abc/terra-app-abc/cbas' },
+      cromwellProxyUrlState: { status: AppProxyUrlStatus.Ready, state: 'https://lz-abc/terra-app-abc/cromwell' },
+    });
+
+    // ** ACT **
+    await act(async () =>
+      render(
+        h(BaseSubmissionConfig, {
+          methodId: '123',
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+        })
+      )
+    );
+
+    // ** ASSERT **
+    expect(mockRunSetResponse).toHaveBeenCalledTimes(1);
+    expect(mockTypesResponse).toHaveBeenCalledTimes(1);
+    expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
+    expect(mockSearchResponse).toHaveBeenCalledTimes(1);
+    expect(mockWdlResponse).toHaveBeenCalledTimes(1);
+    // Leo is not called since proxy urls were already ready in workflowsAppStore
+    expect(mockLeoResponse).toHaveBeenCalledTimes(0);
+  });
+
+  it('should call Leo to get proxy url for WDS if its not ready', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]));
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
+    const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse,
+          },
+          methods: {
+            getById: mockMethodsResponse,
+          },
+        },
+        WorkspaceData: {
+          queryRecords: mockSearchResponse,
+          describeAllRecordTypes: mockTypesResponse,
+        },
+        WorkflowScript: {
+          get: mockWdlResponse,
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
+        },
+      };
+    });
+
+    workflowsAppStore.set({
+      workspaceId: 'abc-c07807929cd1',
+      wdsProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
+      cbasProxyUrlState: { status: AppProxyUrlStatus.Ready, state: 'https://lz-abc/terra-app-abc/cbas' },
+      cromwellProxyUrlState: { status: AppProxyUrlStatus.Ready, state: 'https://lz-abc/terra-app-abc/cromwell' },
+    });
+
+    // ** ACT **
+    await act(async () =>
+      render(
+        h(BaseSubmissionConfig, {
+          methodId: '123',
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+        })
+      )
+    );
+
+    // ** ASSERT **
+
+    expect(mockRunSetResponse).toHaveBeenCalledTimes(1);
+    expect(mockTypesResponse).toHaveBeenCalledTimes(1);
+    expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
+    expect(mockSearchResponse).toHaveBeenCalledTimes(1);
+    expect(mockWdlResponse).toHaveBeenCalledTimes(1);
+    // Leo is called since proxy urls for WDS is not available yet
+    expect(mockLeoResponse).toHaveBeenCalledTimes(1);
+
+    // verify that 'wdsProxyUrlState' in store was updated
+    expect(workflowsAppStore.get().wdsProxyUrlState).toStrictEqual({
+      status: AppProxyUrlStatus.Ready,
+      state: 'https://lz-abc/wds-abc-c07807929cd1/',
+    });
+  });
+
+  it('should call Leo to get proxy url for WDS if its not ready', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
+    const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses.FOO));
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
+    const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse,
+          },
+          methods: {
+            getById: mockMethodsResponse,
+          },
+        },
+        WorkspaceData: {
+          queryRecords: mockSearchResponse,
+          describeAllRecordTypes: mockTypesResponse,
+        },
+        WorkflowScript: {
+          get: mockWdlResponse,
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
+        },
+      };
+    });
+
+    workflowsAppStore.set({
+      workspaceId: 'abc-c07807929cd1',
+      wdsProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
+      cbasProxyUrlState: { status: AppProxyUrlStatus.Ready, state: 'https://lz-abc/terra-app-abc/cbas' },
+      cromwellProxyUrlState: { status: AppProxyUrlStatus.Ready, state: 'https://lz-abc/terra-app-abc/cromwell' },
+    });
+
+    // ** ACT **
+    await act(async () =>
+      render(
+        h(BaseSubmissionConfig, {
+          methodId: '123',
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+        })
+      )
+    );
+
+    // ** ASSERT **
+    expect(mockRunSetResponse).toHaveBeenCalledTimes(1);
+    expect(mockTypesResponse).toHaveBeenCalledTimes(1);
+    expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
+    expect(mockSearchResponse).toHaveBeenCalledTimes(1);
+    expect(mockWdlResponse).toHaveBeenCalledTimes(1);
+    // Leo is called since proxy urls for WDS is not available yet
+    expect(mockLeoResponse).toHaveBeenCalledTimes(1);
+
+    // verify that 'wdsProxyUrlState' in store was updated
+    expect(workflowsAppStore.get().wdsProxyUrlState).toStrictEqual({
+      status: AppProxyUrlStatus.Ready,
+      state: 'https://lz-abc/wds-abc-c07807929cd1/',
+    });
   });
 });
 

@@ -1,10 +1,10 @@
 import { Ajax } from 'src/libs/ajax';
-import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
-import { getUser } from 'src/libs/state';
+import { workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { resolveRunningCromwellAppUrl } from 'src/libs/workflows-app-utils';
+import { doesAppProxyUrlExist } from 'src/workflows-app/utils/app-utils';
+import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
 
 const MethodSource = Object.freeze({
   GitHub: 'GitHub',
@@ -15,15 +15,9 @@ const Covid19Methods = ['fetch_sra_to_bam', 'assemble_refbased', 'sarscov2_nexts
 export const isCovid19Method = (methodName) => Covid19Methods.includes(methodName);
 
 export const submitMethod = async (signal, onDismiss, method, workspace) => {
-  const namespace = await workspace.workspace.namespace;
-  try {
-    const cbasUrl = (
-      await Apps(signal)
-        .listAppsV2(workspace.workspace.workspaceId)
-        .then((apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email))
-    ).cbasUrl;
-
-    if (cbasUrl) {
+  if (doesAppProxyUrlExist(workspace.workspace.workspaceId, 'cbasProxyUrlState')) {
+    const namespace = await workspace.workspace.namespace;
+    try {
       const methodPayload = {
         method_name: method.method_name,
         method_description: method.method_description,
@@ -31,17 +25,25 @@ export const submitMethod = async (signal, onDismiss, method, workspace) => {
         method_version: method.method_version,
         method_url: method.method_url,
       };
-      const methodObject = await Ajax(signal).Cbas.methods.post(cbasUrl, methodPayload);
+      const methodObject = await Ajax(signal).Cbas.methods.post(workflowsAppStore.get().cbasProxyUrlState.state, methodPayload);
       onDismiss();
       Nav.goToPath('workspace-workflows-app-submission-config', {
         name: workspace.workspace.name,
         namespace,
         methodId: methodObject.method_id,
       });
+    } catch (error) {
+      notify('error', 'Error creating new method', { detail: error instanceof Response ? await error.text() : error });
+      onDismiss();
     }
-  } catch (error) {
-    notify('error', 'Error creating new method', { detail: error instanceof Response ? await error.text() : error });
-    onDismiss();
+  } else {
+    const cbasUrlState = workflowsAppStore.get().cbasProxyUrlState.state;
+    const errorDetails = cbasUrlState instanceof Response ? await cbasUrlState.text() : cbasUrlState;
+    const additionalDetails = errorDetails ? `Error details: ${JSON.stringify(errorDetails)}` : '';
+    notify('warn', 'Error loading Workflows app', {
+      detail: `Workflows app not found. Please check if Workflows app is running. ${additionalDetails}`,
+      timeout: CbasPollInterval - 1000,
+    });
   }
 };
 
