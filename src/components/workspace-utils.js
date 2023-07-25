@@ -77,7 +77,9 @@ export const useWorkspaceDetails = ({ namespace, name }, fields) => {
     setWorkspace(ws);
   });
 
-  useOnMount(refresh);
+  useOnMount(() => {
+    refresh();
+  }, []);
 
   return { workspace, refresh, loading };
 };
