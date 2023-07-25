@@ -38,8 +38,8 @@ export const submitMethod = async (signal, onDismiss, method, workspace) => {
     }
   } else {
     const cbasUrlState = workflowsAppStore.get().cbasProxyUrlState.state;
-    const errorDetails = await (cbasUrlState instanceof Response ? cbasUrlState.text() : cbasUrlState);
-    const additionalDetails = errorDetails ? `Error details: ${errorDetails}` : '';
+    const errorDetails = cbasUrlState instanceof Response ? await cbasUrlState.text() : cbasUrlState;
+    const additionalDetails = errorDetails ? `Error details: ${JSON.stringify(errorDetails)}` : '';
     notify('warn', 'Error loading Workflows app', {
       detail: `Workflows app not found. Please check if Workflows app is running. ${additionalDetails}`,
       timeout: CbasPollInterval - 1000,
