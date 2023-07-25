@@ -68,7 +68,7 @@ export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
         timeout: 5000,
       });
     } catch (error) {
-      notify('error', 'Error aborting run set', { detail: await (error instanceof Response ? error.text() : error) });
+      notify('error', 'Error aborting run set', { detail: error instanceof Response ? await error.text() : error });
     }
   };
 
