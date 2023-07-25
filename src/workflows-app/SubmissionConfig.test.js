@@ -1,8 +1,5 @@
-import '@testing-library/jest-dom';
-
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
@@ -65,6 +62,8 @@ describe('BaseSubmissionConfig renders workflow details', () => {
 
   it('should render workflow details', async () => {
     // ** ARRANGE **
+    const user = userEvent.setup();
+
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
     const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]));
@@ -138,9 +137,7 @@ describe('BaseSubmissionConfig renders workflow details', () => {
 
     // ** ACT **
     // user clicks on View Workflow Script to open the modal
-    await act(async () => {
-      await userEvent.click(workflowScriptLink);
-    });
+    await user.click(workflowScriptLink);
 
     // ** ASSERT **
     // verify that modal was rendered on screen
@@ -150,6 +147,8 @@ describe('BaseSubmissionConfig renders workflow details', () => {
 
   it('should render a back to workflows button', async () => {
     // ** ARRANGE **
+    const user = userEvent.setup();
+
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
     const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]));
@@ -204,9 +203,7 @@ describe('BaseSubmissionConfig renders workflow details', () => {
 
     // ** ACT **
     // user clicks on back button
-    await act(async () => {
-      await userEvent.click(backButton);
-    });
+    await user.click(backButton);
 
     expect(Nav.goToPath).toHaveBeenCalledWith('workspace-workflows-app', {
       name: 'test-azure-ws-name',
