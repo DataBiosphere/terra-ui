@@ -369,7 +369,7 @@ describe('Initial state', () => {
     expect(mockSearchResponse).toHaveBeenCalledTimes(1);
     expect(mockWdlResponse).toHaveBeenCalledTimes(1);
 
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
 
     const rows = within(table).queryAllByRole('row');
     expect(rows.length).toBe(5);
@@ -429,13 +429,13 @@ describe('Initial state', () => {
     expect(mockSearchResponse).toHaveBeenCalledTimes(1);
     expect(mockWdlResponse).toHaveBeenCalledTimes(1);
 
-    const button = await screen.findByRole('button', { name: 'Inputs' });
+    const button = screen.getByRole('button', { name: 'Inputs' });
 
     // ** ACT **
     await user.click(button);
 
     // ** ASSERT **
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
 
     expect(rows.length).toBe(runSetInputDef.length + 1); // one row for each input definition variable, plus headers
@@ -516,13 +516,13 @@ describe('Initial state', () => {
     expect(mockSearchResponse).toHaveBeenCalledTimes(1);
     expect(mockWdlResponse).toHaveBeenCalledTimes(1);
 
-    const button = await screen.findByRole('button', { name: 'Outputs' });
+    const button = screen.getByRole('button', { name: 'Outputs' });
 
     // ** ACT **
     await user.click(button);
 
     // ** ASSERT **
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
 
     expect(runSetOutputDef.length).toBe(2);
@@ -612,10 +612,10 @@ describe('Records Table updates', () => {
     expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
     expect(mockSearchResponse).toHaveBeenCalledTimes(1);
     expect(mockWdlResponse).toHaveBeenCalledTimes(1);
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
 
     // ** ACT **
-    const dropdown = await screen.findByLabelText('Select a data table');
+    const dropdown = screen.getByLabelText('Select a data table');
     await act(async () => {
       await selectEvent.select(dropdown, ['BAR']);
     });
@@ -688,7 +688,7 @@ describe('Records Table updates', () => {
     expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
     expect(mockSearchResponse).toHaveBeenCalledTimes(1);
     expect(mockWdlResponse).toHaveBeenCalledTimes(1);
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
 
     const fooRows1 = within(table).queryAllByRole('row');
     expect(fooRows1.length).toBe(5);
@@ -711,7 +711,7 @@ describe('Records Table updates', () => {
 
     // ** ACT **
     // Change Data Table to 'BAR'
-    const dropdown1 = await screen.findByLabelText('Select a data table');
+    const dropdown1 = screen.getByLabelText('Select a data table');
     await act(async () => {
       await selectEvent.select(dropdown1, ['BAR']);
     });
@@ -738,7 +738,7 @@ describe('Records Table updates', () => {
 
     // ** ACT **
     // Change Data Table back to 'FOO'
-    const dropdown2 = await screen.findByLabelText('Select a data table');
+    const dropdown2 = screen.getByLabelText('Select a data table');
     await act(async () => {
       await selectEvent.select(dropdown2, ['FOO']);
     });
@@ -799,7 +799,7 @@ describe('Records Table updates', () => {
 
     const button = screen.getByLabelText('Submit button');
     await user.click(button);
-    await screen.getByText('Send submission');
+    screen.getByText('Send submission');
   });
 
   it('clear selected records when data type is changed', async () => {
@@ -855,7 +855,7 @@ describe('Records Table updates', () => {
     expect(screen.queryByText('No records selected')).toBeNull();
 
     // Change the selected data types
-    const dropdown1 = await screen.findByLabelText('Select a data table');
+    const dropdown1 = screen.getByLabelText('Select a data table');
     await act(async () => {
       await selectEvent.select(dropdown1, ['BAR']);
     });
@@ -1132,8 +1132,8 @@ describe('Submitting a run set', () => {
 
     // ** ASSERT **
     // Launch modal should be displayed
-    await screen.getByText('Send submission');
-    const modalSubmitButton = await screen.getByLabelText('Launch Submission');
+    screen.getByText('Send submission');
+    const modalSubmitButton = screen.getByLabelText('Launch Submission');
 
     // ** ACT **
     // user click on Submit button
@@ -1226,8 +1226,8 @@ describe('Submitting a run set', () => {
 
     // ** ASSERT **
     // Launch modal should be displayed
-    await screen.getByText('Send submission');
-    const modalSubmitButton = await screen.getByLabelText('Launch Submission');
+    screen.getByText('Send submission');
+    const modalSubmitButton = screen.getByLabelText('Launch Submission');
 
     // ** ACT **
     // user click on Submit button
@@ -1315,11 +1315,11 @@ describe('Submitting a run set', () => {
     expect(checkbox).toHaveAttribute('aria-checked', 'true');
 
     // ** ACT **
-    const inputsTabButton = await screen.findByRole('button', { name: 'Inputs' });
+    const inputsTabButton = screen.getByRole('button', { name: 'Inputs' });
     await user.click(inputsTabButton);
 
     // ** ASSERT **
-    const inputTable = await screen.findByRole('table');
+    const inputTable = screen.getByRole('table');
     const rows = within(inputTable).queryAllByRole('row');
     expect(rows.length).toBe(runSetInputDef.length + 1); // one row for each input definition variable, plus headers
 
@@ -1327,7 +1327,7 @@ describe('Submitting a run set', () => {
     // user sets the source to 'None' for input 'optional_var'
     const thirdInputRow = within(rows[3]).queryAllByRole('cell');
     await user.click(within(thirdInputRow[3]).getByText('Type a Value'));
-    const selectOption = await screen.findByText('None');
+    const selectOption = screen.getByText('None');
     await user.click(selectOption);
 
     // ** ASSERT **
@@ -1341,8 +1341,8 @@ describe('Submitting a run set', () => {
 
     // ** ASSERT **
     // Launch modal should be displayed
-    await screen.getByText('Send submission');
-    const modalSubmitButton = await screen.getByLabelText('Launch Submission');
+    screen.getByText('Send submission');
+    const modalSubmitButton = screen.getByLabelText('Launch Submission');
 
     // ** ACT **
     // user click on Submit button
@@ -1440,19 +1440,19 @@ describe('Submitting a run set', () => {
     // verify that the record was indeed selected
     expect(checkbox).toHaveAttribute('aria-checked', 'true');
 
-    const inputsTabButton = await screen.findByRole('button', { name: 'Inputs' });
+    const inputsTabButton = screen.getByRole('button', { name: 'Inputs' });
 
     // ** ACT **
     await user.click(inputsTabButton);
 
     // ** ASSERT **
-    await screen.findByRole('table'); // there should be only one table at this point
+    screen.getByRole('table'); // there should be only one table at this point
 
-    const viewStructLink = await screen.getByText('View Struct');
+    const viewStructLink = screen.getByText('View Struct');
     await user.click(viewStructLink);
-    await screen.getByText('myInnerStruct');
+    screen.getByText('myInnerStruct');
 
-    const structTable = await screen.getByLabelText('struct-table');
+    const structTable = screen.getByLabelText('struct-table');
     const structRows = within(structTable).queryAllByRole('row');
     expect(structRows.length).toBe(6);
 
@@ -1472,7 +1472,7 @@ describe('Submitting a run set', () => {
     const viewMyInnerStructLink = within(myInnerStructRowCells[4]).getByText('View Struct');
     await user.click(viewMyInnerStructLink);
 
-    const myInnerStructTable = await screen.getByLabelText('struct-table');
+    const myInnerStructTable = screen.getByLabelText('struct-table');
     const myInnerStructRows = within(myInnerStructTable).queryAllByRole('row');
     expect(myInnerStructRows.length).toBe(3);
 
@@ -1481,7 +1481,7 @@ describe('Submitting a run set', () => {
     const myInnermostPrimitiveRowCells = within(myInnerStructRows[1]).queryAllByRole('cell');
     within(myInnermostPrimitiveRowCells[1]).getByText('myInnermostPrimitive');
     await user.click(within(myInnermostPrimitiveRowCells[3]).getByText('Select Source'));
-    const selectOption = await within(screen.getByLabelText('Options')).findByText('Type a Value');
+    const selectOption = within(screen.getByLabelText('Options')).getByText('Type a Value');
     await user.click(selectOption);
     const myInnermostPrimitiveInput = within(myInnermostPrimitiveRowCells[4]).getByLabelText('Enter a value');
     await user.clear(myInnermostPrimitiveInput);
@@ -1490,11 +1490,11 @@ describe('Submitting a run set', () => {
 
     // ** ACT **
     // Exit the modal and submit
-    const innerStructModalDoneButton = await screen.getByText('Back');
+    const innerStructModalDoneButton = screen.getByText('Back');
     await user.click(innerStructModalDoneButton);
-    const modalDoneButton = await screen.getByText('Done');
+    const modalDoneButton = screen.getByText('Done');
     await user.click(modalDoneButton);
-    await screen.findByRole('table'); // there should be only one table again
+    screen.getByRole('table'); // there should be only one table again
 
     // ** ACT **
     // user clicks on Submit (inputs and outputs should be rendered based on previous submission)
@@ -1503,8 +1503,8 @@ describe('Submitting a run set', () => {
 
     // ** ASSERT **
     // Launch modal should be displayed
-    await screen.getByText('Send submission');
-    const modalSubmitButton = await screen.getByLabelText('Launch Submission');
+    screen.getByText('Send submission');
+    const modalSubmitButton = screen.getByLabelText('Launch Submission');
 
     // ** ACT **
     // user click on Submit button
@@ -1647,10 +1647,10 @@ describe('Submitting a run set', () => {
     // verify that the record was indeed selected
     expect(checkbox).toHaveAttribute('aria-checked', 'true');
 
-    const outputButton = await screen.findByRole('button', { name: 'Outputs' });
+    const outputButton = screen.getByRole('button', { name: 'Outputs' });
     await user.click(outputButton);
 
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
     const headers = within(rows[0]).queryAllByRole('columnheader');
 
@@ -1664,8 +1664,8 @@ describe('Submitting a run set', () => {
 
     // ** ASSERT **
     // Launch modal should be displayed
-    await screen.getByText('Send submission');
-    const modalSubmitButton = await screen.getByLabelText('Launch Submission');
+    screen.getByText('Send submission');
+    const modalSubmitButton = screen.getByLabelText('Launch Submission');
 
     // ** ACT **
     // user click on Submit button

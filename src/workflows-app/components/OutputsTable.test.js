@@ -34,7 +34,7 @@ describe('Output table rendering', () => {
   it('should render output variable names accurately', async () => {
     setupOutputTableTest();
 
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
     const cells1 = within(rows[1]).queryAllByRole('cell');
     const cells2 = within(rows[2]).queryAllByRole('cell');
@@ -54,7 +54,7 @@ describe('Output table rendering', () => {
     setupOutputTableTest();
     const user = userEvent.setup();
 
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
     const headers = within(rows[0]).queryAllByRole('columnheader');
     const cells1 = within(rows[1]).queryAllByRole('cell');
@@ -112,7 +112,7 @@ describe('Output table definition updates', () => {
     const { setConfiguredOutputDefinition } = setupOutputTableTest();
     const user = userEvent.setup();
 
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
     const headers = within(rows[0]).queryAllByRole('columnheader');
 

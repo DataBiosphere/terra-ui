@@ -79,7 +79,7 @@ describe('Input table rendering', () => {
     setupInputTableTest();
     const user = userEvent.setup();
 
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
     expect(rows.length).toBe(4);
     const cells1 = within(rows[1]).queryAllByRole('cell');
@@ -105,7 +105,7 @@ describe('Input table rendering', () => {
     within(cells3[4]).getByDisplayValue('Hello World');
 
     // search for inputs belonging to target_workflow_1 task (removes foo_rating_workflow_var)
-    const searchInput = await screen.getByLabelText('Search inputs');
+    const searchInput = screen.getByLabelText('Search inputs');
     await user.type(searchInput, 'target_wor');
     await act(() => delay(300)); // debounced search
 
@@ -141,7 +141,7 @@ describe('Input table rendering', () => {
     setupInputTableTest();
     const user = userEvent.setup();
 
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
     expect(rows.length).toBe(4);
     const cells1 = within(rows[1]).queryAllByRole('cell');
@@ -176,7 +176,7 @@ describe('Input table rendering', () => {
     setupInputTableTest();
     const user = userEvent.setup();
 
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
     const headers = within(rows[0]).queryAllByRole('columnheader');
     const cells1 = within(rows[1]).queryAllByRole('cell');
@@ -248,7 +248,7 @@ describe('Input table rendering', () => {
     setupInputTableTest();
     const user = userEvent.setup();
 
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
     expect(rows.length).toBe(4);
     const cells1 = within(rows[1]).queryAllByRole('cell');
@@ -274,9 +274,9 @@ describe('Input table rendering', () => {
     within(cells3[4]).getByDisplayValue('Hello World');
 
     // hide optional inputs (defaults to showing optional inputs)
-    const hideButton = await screen.getByText('Hide optional inputs');
+    const hideButton = screen.getByText('Hide optional inputs');
     await user.click(hideButton);
-    await screen.findByText('Show optional inputs');
+    screen.getByText('Show optional inputs');
 
     within(cells1[0]).getByText('foo');
     within(cells1[1]).getByText('foo_rating_workflow_var');
@@ -291,9 +291,9 @@ describe('Input table rendering', () => {
     within(cells2[4]).getByText('bar_string');
 
     // show optional inputs again
-    const showButton = await screen.getByText('Show optional inputs');
+    const showButton = screen.getByText('Show optional inputs');
     await user.click(showButton);
-    await screen.findByText('Hide optional inputs');
+    screen.getByText('Hide optional inputs');
 
     within(cells1[0]).getByText('foo');
     within(cells1[1]).getByText('foo_rating_workflow_var');
@@ -319,14 +319,14 @@ describe('Input table rendering', () => {
     const user = userEvent.setup();
 
     // ** ASSERT **
-    await screen.findByRole('table'); // there should be only one table at this point
+    screen.getByRole('table'); // there should be only one table at this point
 
-    const viewStructLink = await screen.getByText('View Struct');
+    const viewStructLink = screen.getByText('View Struct');
     await user.click(viewStructLink);
-    await screen.getByText('myOptional');
-    await screen.getByText('myInnerStruct');
+    screen.getByText('myOptional');
+    screen.getByText('myInnerStruct');
 
-    const structTable = await screen.getByLabelText('struct-table');
+    const structTable = screen.getByLabelText('struct-table');
     const structRows = within(structTable).queryAllByRole('row');
     expect(structRows.length).toBe(6);
 
@@ -342,28 +342,28 @@ describe('Input table rendering', () => {
     const viewMyInnerStructLink = within(structCells[4]).getByText('View Struct');
 
     await user.click(viewMyInnerStructLink);
-    const myInnerStructTable = await screen.getByLabelText('struct-table');
+    const myInnerStructTable = screen.getByLabelText('struct-table');
     const myInnerStructRows = within(myInnerStructTable).queryAllByRole('row');
     expect(myInnerStructRows.length).toBe(3);
 
-    const myInnerStructBreadcrumbs = await screen.getByLabelText('struct-breadcrumbs');
+    const myInnerStructBreadcrumbs = screen.getByLabelText('struct-breadcrumbs');
     const myInnerStructBreadcrumbsButtons = within(myInnerStructBreadcrumbs).queryAllByRole('button');
     expect(myInnerStructBreadcrumbsButtons.length).toBe(1);
     await user.click(myInnerStructBreadcrumbsButtons[0]);
 
-    const structTable2ndView = await screen.getByLabelText('struct-table');
+    const structTable2ndView = screen.getByLabelText('struct-table');
     const structRows2ndView = within(structTable2ndView).queryAllByRole('row');
     expect(structRows2ndView.length).toBe(6);
 
-    const modalDoneButton = await screen.getByText('Done');
+    const modalDoneButton = screen.getByText('Done');
     await user.click(modalDoneButton);
-    await screen.findByRole('table'); // there should be only one table again
+    screen.getByRole('table'); // there should be only one table again
   });
 
   it('should suggest fields from data table with matching names', async () => {
     setupInputTableTest({ configuredInputDefinition: runSetInputDefSameInputNames });
 
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
     const cells1 = within(rows[1]).queryAllByRole('cell');
     const cells2 = within(rows[2]).queryAllByRole('cell');
@@ -399,7 +399,7 @@ describe('Input table rendering', () => {
     setupInputTableTest({ configuredInputDefinition: runSetInputDefWithStruct });
 
     // ** ASSERT **
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
 
     expect(rows.length).toBe(runSetInputDefWithStruct.length + 1); // one row for each input definition variable, plus headers
@@ -423,7 +423,7 @@ describe('Input table rendering', () => {
     setupInputTableTest({ configuredInputDefinition: runSetInputDefWithStruct, selectedDataTable: typesResponseWithoutFooRating[0] });
 
     // ** ASSERT **
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
 
     expect(rows.length).toBe(runSetInputDefWithStruct.length + 1); // one row for each input definition variable, plus headers
@@ -448,7 +448,7 @@ describe('Input table rendering', () => {
     const user = userEvent.setup();
 
     // ** ASSERT **
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
     const viewStructLink = within(rows[2]).getByText('View Struct');
     const inputWarningMessageActive = within(rows[2]).queryByText('This struct is missing a required input');
@@ -458,7 +458,7 @@ describe('Input table rendering', () => {
     await user.click(viewStructLink);
 
     // ** ASSERT **
-    const structTable = await screen.getByLabelText('struct-table');
+    const structTable = screen.getByLabelText('struct-table');
     const structRows = within(structTable).queryAllByRole('row');
     expect(structRows.length).toBe(6);
 
@@ -472,7 +472,7 @@ describe('Input table rendering', () => {
     await user.click(viewMyInnerStructLink);
 
     // ** ASSERT **
-    const innerStructTable = await screen.getByLabelText('struct-table');
+    const innerStructTable = screen.getByLabelText('struct-table');
     const innerStructRows = within(innerStructTable).queryAllByRole('row');
     expect(innerStructRows.length).toBe(3);
 
@@ -494,7 +494,7 @@ describe('Input table rendering', () => {
     const user = userEvent.setup();
 
     // ** ASSERT **
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
     const viewStructLink = within(rows[2]).getByText('View Struct');
     const inputWarningMessageActive = within(rows[2]).queryByText('This struct is missing a required input');
@@ -504,7 +504,7 @@ describe('Input table rendering', () => {
     await user.click(viewStructLink);
 
     // ** ASSERT **
-    const structTable = await screen.getByLabelText('struct-table');
+    const structTable = screen.getByLabelText('struct-table');
     const structRows = within(structTable).queryAllByRole('row');
     expect(structRows.length).toBe(6);
 
@@ -518,7 +518,7 @@ describe('Input table rendering', () => {
     await user.click(viewMyInnerStructLink);
 
     // ** ASSERT **
-    const innerStructTable = await screen.getByLabelText('struct-table');
+    const innerStructTable = screen.getByLabelText('struct-table');
     const innerStructRows = within(innerStructTable).queryAllByRole('row');
     expect(innerStructRows.length).toBe(3);
 
@@ -540,7 +540,7 @@ describe('Input table rendering', () => {
 
     // ** ASSERT **
     // check that warnings appear next to empty required inputs
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
 
     // inputs sorted according to task name -> variable name
@@ -560,7 +560,7 @@ describe('Input table rendering', () => {
 
     // ** ASSERT **
     // check that warnings appear next to empty required inputs
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
 
     // inputs sorted according to task name -> variable name
@@ -578,7 +578,7 @@ describe('Input table rendering', () => {
   it('should display warning icon for input with value not matching expected type', async () => {
     setupInputTableTest({ configuredInputDefinition: runSetInputDefWithWrongTypes });
 
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
 
     const firstInputRowCells = within(rows[1]).queryAllByRole('cell');
@@ -602,7 +602,7 @@ describe('Input table rendering', () => {
   it('should display tooltips for array literals', async () => {
     setupInputTableTest({ configuredInputDefinition: runSetInputDefWithArrayMessages });
 
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
 
     const emptyIntRowCells = within(rows[1]).queryAllByRole('cell');
@@ -654,7 +654,7 @@ describe('Input table definition updates', () => {
     const { setConfiguredInputDefinition } = setupInputTableTest({ configuredInputDefinition: runSetInputDefSameInputNames });
     const user = userEvent.setup();
 
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
     const cells1 = within(rows[1]).queryAllByRole('cell');
 
@@ -677,7 +677,7 @@ describe('Input table definition updates', () => {
     const prevState = setConfiguredInputDefinition.mock.lastCall[0];
 
     // fill all from data table
-    const fillAllButton = await screen.findByText('Autofill (2) from data table');
+    const fillAllButton = screen.getByText('Autofill (2) from data table');
     await user.click(fillAllButton);
 
     const setFn = setConfiguredInputDefinition.mock.lastCall[0];
@@ -701,7 +701,7 @@ describe('Input table definition updates', () => {
     const user = userEvent.setup();
 
     // ** ASSERT **
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
 
     const cellsFoo = within(rows[1]).queryAllByRole('cell');
@@ -715,7 +715,7 @@ describe('Input table definition updates', () => {
     // ** ACT **
     // user selects the attribute 'rating_for_foo' for input 'foo_rating_workflow_var'
     await user.click(within(cellsFoo[4]).getByText('foo_rating'));
-    const selectOption = await screen.findByText('rating_for_foo');
+    const selectOption = screen.getByText('rating_for_foo');
     await user.click(selectOption);
 
     expect(setConfiguredInputDefinition).toBeCalledWith(
@@ -731,7 +731,7 @@ describe('Input table definition updates', () => {
     const user = userEvent.setup();
 
     // ** ASSERT **
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
     const viewStructLink = within(rows[2]).getByText('View Struct');
 
@@ -739,7 +739,7 @@ describe('Input table definition updates', () => {
     await user.click(viewStructLink);
 
     // ** ASSERT **
-    const structTable = await screen.getByLabelText('struct-table');
+    const structTable = screen.getByLabelText('struct-table');
     const structRows = within(structTable).queryAllByRole('row');
     const structCells = within(structRows[2]).queryAllByRole('cell');
     within(structCells[1]).getByText('myInnerStruct');
@@ -749,7 +749,7 @@ describe('Input table definition updates', () => {
     await user.click(viewMyInnerStructLink);
 
     // ** ASSERT **
-    const innerStructTable = await screen.getByLabelText('struct-table');
+    const innerStructTable = screen.getByLabelText('struct-table');
     const innerStructRows = within(innerStructTable).queryAllByRole('row');
     expect(innerStructRows.length).toBe(3);
 
@@ -760,7 +760,7 @@ describe('Input table definition updates', () => {
     // ** ACT **
     // user selects the attribute 'rating_for_foo' for input 'foo_rating_workflow_var'
     await user.click(within(innerStructCells[4]).getByText('foo_rating'));
-    const selectOption = await screen.findByText('rating_for_foo');
+    const selectOption = screen.getByText('rating_for_foo');
     await user.click(selectOption);
 
     // ** ASSERT **
@@ -774,7 +774,7 @@ describe('Input table definition updates', () => {
     const user = userEvent.setup();
 
     // ** ASSERT **
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
 
     const cellsOptional = within(rows[3]).queryAllByRole('cell');
@@ -796,7 +796,7 @@ describe('Input table definition updates', () => {
     const user = userEvent.setup();
 
     // ** ASSERT **
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
 
     const cellsOptional = within(rows[3]).queryAllByRole('cell');
@@ -807,7 +807,7 @@ describe('Input table definition updates', () => {
     // ** ACT **
     // user selects source none for 'optional_var'
     await user.click(selectSource);
-    const selectOption = await screen.findByText('None');
+    const selectOption = screen.getByText('None');
     await user.click(selectOption);
 
     expect(setConfiguredInputDefinition).toBeCalledWith(_.set('[2].source', { type: 'none' }, configuredInputDefinition));

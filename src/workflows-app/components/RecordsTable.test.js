@@ -99,7 +99,7 @@ describe('RecordsTable', () => {
       })
     );
 
-    const table = await screen.findByRole('table');
+    const table = screen.getByRole('table');
     const rows = within(table).queryAllByRole('row');
     expect(rows.length).toBe(2);
 
