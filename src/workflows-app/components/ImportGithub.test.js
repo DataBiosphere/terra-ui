@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
-import { workflowsAppStore } from 'src/libs/state';
+import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import ImportGithub from 'src/workflows-app/components/ImportGithub';
 
 jest.mock('src/libs/ajax');
@@ -65,7 +65,7 @@ describe('Add a Workflow Link', () => {
 
     workflowsAppStore.set({
       workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
-      cbasProxyUrlState: { status: 'Ready', state: 'https://lz-abc/terra-app-abc/cbas' },
+      cbasProxyUrlState: { status: AppProxyUrlStatus.Ready, state: 'https://lz-abc/terra-app-abc/cbas' },
     });
 
     // ** ACT **
@@ -114,7 +114,7 @@ describe('Add a Workflow Link', () => {
 
     workflowsAppStore.set({
       workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
-      cbasProxyUrlState: { status: 'Ready', state: 'https://lz-abc/terra-app-abc/cbas' },
+      cbasProxyUrlState: { status: AppProxyUrlStatus.Ready, state: 'https://lz-abc/terra-app-abc/cbas' },
     });
 
     // ** ACT **
@@ -187,7 +187,7 @@ describe('Add a Workflow Link', () => {
 
     workflowsAppStore.set({
       workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
-      cbasProxyUrlState: { status: 'None', state: '' },
+      cbasProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
     });
 
     // ** ACT **

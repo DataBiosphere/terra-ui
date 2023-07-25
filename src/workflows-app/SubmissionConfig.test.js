@@ -280,9 +280,9 @@ describe('BaseSubmissionConfig with workflowsAppStore', () => {
 
     workflowsAppStore.set({
       workspaceId: undefined,
-      wdsProxyUrlState: { status: 'None', state: '' },
-      cbasProxyUrlState: { status: 'None', state: '' },
-      cromwellProxyUrlState: { status: 'None', state: '' },
+      wdsProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
+      cbasProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
+      cromwellProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
     });
 
     // ** ACT **
