@@ -15,7 +15,7 @@ import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { resolveRunningCromwellAppUrl } from 'src/libs/workflows-app-utils';
+import { resolveRunningCromwellAppUrl } from 'src/workflows-app/utils/app-utils';
 import {
   AutoRefreshInterval,
   getDuration,
