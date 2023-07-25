@@ -151,8 +151,8 @@ export const BaseSubmissionConfig = (
             await loadRecordsData(recordType, wdsProxyUrlState.state);
           } else {
             const wdsUrlState = wdsProxyUrlState.state;
-            const errorDetails = await (wdsUrlState instanceof Response ? wdsUrlState.text() : wdsUrlState);
-            const additionalDetails = errorDetails ? `Error details: ${errorDetails}` : '';
+            const errorDetails = wdsUrlState instanceof Response ? await wdsUrlState.text() : wdsUrlState;
+            const additionalDetails = errorDetails ? `Error details: ${errorDetails.toString()}` : '';
             // to avoid stacked warning banners due to auto-poll for WDS url, we remove the current banner at 29th second
             notify('warn', 'Error loading data tables', {
               detail: `Data Table app not found. Will retry in 30 seconds. ${additionalDetails}`,
@@ -189,8 +189,8 @@ export const BaseSubmissionConfig = (
             });
           } else {
             const cbasUrlState = cbasProxyUrlState.state;
-            const errorDetails = await (cbasUrlState instanceof Response ? cbasUrlState.text() : cbasUrlState);
-            const additionalDetails = errorDetails ? `Error details: ${errorDetails}` : '';
+            const errorDetails = cbasUrlState instanceof Response ? await cbasUrlState.text() : cbasUrlState;
+            const additionalDetails = errorDetails ? `Error details: ${errorDetails.toString()}` : '';
             // to avoid stacked warning banners due to auto-poll for CBAS url, we remove the current banner at 29th second
             notify('warn', 'Error loading Workflows app', {
               detail: `Workflows app not found. Will retry in 30 seconds. ${additionalDetails}`,
