@@ -32,6 +32,7 @@ describe('DatasetBuilder', () => {
   const initializeValidDatasetRequest = async (user) => {
     render(
       h(DatasetBuilderContents, {
+        updateCohorts: jest.fn(),
         cohorts: [newCohort('cohort 1')],
         conceptSets: [{ name: 'concept set 1', featureValueGroupName: 'Condition' }],
         onStateChange: (state) => state,
@@ -49,6 +50,7 @@ describe('DatasetBuilder', () => {
   const renderCohortSelector = () => {
     render(
       h(CohortSelector, {
+        updateCohorts: jest.fn(),
         cohorts: [newCohort('cohort 1'), newCohort('cohort 2')],
         selectedCohorts: [],
         onChange: (cohorts) => cohorts,
@@ -136,6 +138,7 @@ describe('DatasetBuilder', () => {
     // Arrange
     render(
       h(DatasetBuilderContents, {
+        updateCohorts: jest.fn(),
         cohorts: [],
         conceptSets: [],
         onStateChange: (state) => state,
@@ -153,6 +156,7 @@ describe('DatasetBuilder', () => {
     const user = userEvent.setup();
     render(
       h(DatasetBuilderContents, {
+        updateCohorts: jest.fn(),
         cohorts: [newCohort('cohort 1'), newCohort('cohort 2')],
         conceptSets: [
           { name: 'concept set 1', featureValueGroupName: 'Condition' },
@@ -194,6 +198,7 @@ describe('DatasetBuilder', () => {
     const user = userEvent.setup();
     render(
       h(DatasetBuilderContents, {
+        updateCohorts: jest.fn(),
         cohorts: [],
         conceptSets: [{ name: 'concept set 1', featureValueGroupName: 'Condition' }],
         onStateChange: (state) => state,
@@ -246,7 +251,13 @@ describe('DatasetBuilder', () => {
     const user = userEvent.setup();
     const onStateChange = jest.fn();
     render(
-      h(DatasetBuilderContents, { cohorts: [], conceptSets: [], onStateChange, dataset: dummyDatasetDetails('id') })
+      h(DatasetBuilderContents, {
+        updateCohorts: jest.fn(),
+        cohorts: [],
+        conceptSets: [],
+        onStateChange,
+        dataset: dummyDatasetDetails('id'),
+      })
     );
     // Act
     await user.click(await screen.findByLabelText('Create new concept set'));
