@@ -1473,7 +1473,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:*, @babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.10.2, @babel/runtime@npm:^7.11.2, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.13, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.14.8, @babel/runtime@npm:^7.16.3, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.2.0, @babel/runtime@npm:^7.20.13, @babel/runtime@npm:^7.20.7, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.7.2, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7, @babel/runtime@npm:^7.9.2":
+"@babel/runtime@npm:*, @babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.10.2, @babel/runtime@npm:^7.11.2, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.13, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.14.8, @babel/runtime@npm:^7.16.3, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.20.13, @babel/runtime@npm:^7.20.7, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.7.2, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7, @babel/runtime@npm:^7.9.2":
   version: 7.22.6
   resolution: "@babel/runtime@npm:7.22.6"
   dependencies:
@@ -1631,6 +1631,55 @@ __metadata:
   version: 0.1.0
   resolution: "@databiosphere/bard-client@npm:0.1.0"
   checksum: 2ea6a8a73fc2673c1a01bc85d0d85206ac7a3a26124a23b2e167af892074b40bd6b49880ce6c100e91b3ac306ad7cfa4580168447d6c679314b19d912559d9d2
+  languageName: node
+  linkType: hard
+
+"@dnd-kit/accessibility@npm:^3.0.0":
+  version: 3.0.1
+  resolution: "@dnd-kit/accessibility@npm:3.0.1"
+  dependencies:
+    tslib: ^2.0.0
+  peerDependencies:
+    react: ">=16.8.0"
+  checksum: 0afc2c0fce9a1c107453620ca0da1778f182d340e74ffbc6e369ef0ac8943cafb929d3a6c0891d9b915aa23b2b92137ff4fad958f43118466586d8129a3359d5
+  languageName: node
+  linkType: hard
+
+"@dnd-kit/core@npm:^6.0.8":
+  version: 6.0.8
+  resolution: "@dnd-kit/core@npm:6.0.8"
+  dependencies:
+    "@dnd-kit/accessibility": ^3.0.0
+    "@dnd-kit/utilities": ^3.2.1
+    tslib: ^2.0.0
+  peerDependencies:
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+  checksum: abe48ff7395f84fd8c15e6c8b13da4df153dc1f1076096d783acd0c25539516c77e4854ea59be6621dde55739cb0df1d62924ad069df3267fe05ad90ef729b2f
+  languageName: node
+  linkType: hard
+
+"@dnd-kit/sortable@npm:^7.0.2":
+  version: 7.0.2
+  resolution: "@dnd-kit/sortable@npm:7.0.2"
+  dependencies:
+    "@dnd-kit/utilities": ^3.2.0
+    tslib: ^2.0.0
+  peerDependencies:
+    "@dnd-kit/core": ^6.0.7
+    react: ">=16.8.0"
+  checksum: 4ce705aceb15766a0deefe25a9d95a87e9413c3fb9088ea3eb0962e57f844895000117fcec7c0944a0d4ae4e1e889cfa69e3d3778164d4d23115fb1edb218283
+  languageName: node
+  linkType: hard
+
+"@dnd-kit/utilities@npm:^3.2.0, @dnd-kit/utilities@npm:^3.2.1":
+  version: 3.2.1
+  resolution: "@dnd-kit/utilities@npm:3.2.1"
+  dependencies:
+    tslib: ^2.0.0
+  peerDependencies:
+    react: ">=16.8.0"
+  checksum: 038fd5cc1328bf4c9dca17cd48046e5a687bbf9d904c7197f851aab869ab52d9dee2734b2e255256fd6158245acd00063a23deed962c7673c0fadfbf061f04ca
   languageName: node
   linkType: hard
 
@@ -7837,7 +7886,7 @@ __metadata:
 
 "fsevents@patch:fsevents@^2.3.2#~builtin<compat/fsevents>, fsevents@patch:fsevents@~2.3.2#~builtin<compat/fsevents>":
   version: 2.3.2
-  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=18f3a7"
+  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=df0bf1"
   dependencies:
     node-gyp: latest
   conditions: os=darwin
@@ -8684,6 +8733,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ignore@npm:^5.2.4":
+  version: 5.2.4
+  resolution: "ignore@npm:5.2.4"
+  checksum: 3d4c309c6006e2621659311783eaea7ebcd41fe4ca1d78c91c473157ad6666a57a2df790fe0d07a12300d9aac2888204d7be8d59f9aaf665b1c7fcdb432517ef
+  languageName: node
+  linkType: hard
+
 "igv@npm:2.11.2":
   version: 2.11.2
   resolution: "igv@npm:2.11.2"
@@ -8787,15 +8843,6 @@ __metadata:
     has: ^1.0.3
     side-channel: ^1.0.4
   checksum: 97e84046bf9e7574d0956bd98d7162313ce7057883b6db6c5c7b5e5f05688864b0978ba07610c726d15d66544ffe4b1050107d93f8a39ebc59b15d8b429b497a
-  languageName: node
-  linkType: hard
-
-"invariant@npm:^2.2.4":
-  version: 2.2.4
-  resolution: "invariant@npm:2.2.4"
-  dependencies:
-    loose-envify: ^1.0.0
-  checksum: cc3182d793aad82a8d1f0af697b462939cb46066ec48bbf1707c150ad5fad6406137e91a262022c269702e01621f35ef60269f6c0d7fd178487959809acdfb14
   languageName: node
   linkType: hard
 
@@ -9528,6 +9575,15 @@ __metadata:
     jest-environment-node: ^27.4.4
     merge-deep: ^3.0.3
   checksum: 48730cf6a471c64a05f40a3fb52ea87a082e7e8ea1d7da79edb3d774345741b77b018464c0a1be985997ca9fb5afe457f04a16ac2254b5c65d5422627744961c
+  languageName: node
+  linkType: hard
+
+"jest-fail-on-console@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "jest-fail-on-console@npm:3.1.1"
+  dependencies:
+    chalk: ^4.1.0
+  checksum: dbc244766fb78525b2d4a7e879678b91032acefa04694e17edb5917e325abf8ee356bdf728bc1c89058d67b9c8b3da4cd45515232eb9ab1b973a6b4f57bfb7af
   languageName: node
   linkType: hard
 
@@ -12731,7 +12787,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prop-types@npm:^15.5.7, prop-types@npm:^15.6.0, prop-types@npm:^15.6.2, prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
+"prop-types@npm:^15.6.0, prop-types@npm:^15.6.2, prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
   version: 15.8.1
   resolution: "prop-types@npm:15.8.1"
   dependencies:
@@ -13330,21 +13386,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-sortable-hoc@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "react-sortable-hoc@npm:2.0.0"
-  dependencies:
-    "@babel/runtime": ^7.2.0
-    invariant: ^2.2.4
-    prop-types: ^15.5.7
-  peerDependencies:
-    prop-types: ^15.5.7
-    react: ^16.3.0 || ^17.0.0
-    react-dom: ^16.3.0 || ^17.0.0
-  checksum: c4930856eb8e9be638220423d452ddaab834aa43ff76069eeb057c6a5f1d0538f9e43c17bedd34bfd2a66ff4aa1e289557821d792db73a42ebf061bd1c92a423
-  languageName: node
-  linkType: hard
-
 "react-switch@npm:^6.1.0":
   version: 6.1.0
   resolution: "react-switch@npm:6.1.0"
@@ -13721,7 +13762,7 @@ __metadata:
 
 "resolve@patch:resolve@^1.14.2#~builtin<compat/resolve>, resolve@patch:resolve@^1.19.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.20.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.22.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.22.1#~builtin<compat/resolve>, resolve@patch:resolve@^1.3.0#~builtin<compat/resolve>":
   version: 1.22.3
-  resolution: "resolve@patch:resolve@npm%3A1.22.3#~builtin<compat/resolve>::version=1.22.3&hash=07638b"
+  resolution: "resolve@patch:resolve@npm%3A1.22.3#~builtin<compat/resolve>::version=1.22.3&hash=c3c19d"
   dependencies:
     is-core-module: ^2.12.0
     path-parse: ^1.0.7
@@ -13734,7 +13775,7 @@ __metadata:
 
 "resolve@patch:resolve@^2.0.0-next.4#~builtin<compat/resolve>":
   version: 2.0.0-next.4
-  resolution: "resolve@patch:resolve@npm%3A2.0.0-next.4#~builtin<compat/resolve>::version=2.0.0-next.4&hash=07638b"
+  resolution: "resolve@patch:resolve@npm%3A2.0.0-next.4#~builtin<compat/resolve>::version=2.0.0-next.4&hash=c3c19d"
   dependencies:
     is-core-module: ^2.9.0
     path-parse: ^1.0.7
@@ -15027,6 +15068,9 @@ __metadata:
   dependencies:
     "@axe-core/react": ^4.6.1
     "@databiosphere/bard-client": ^0.1.0
+    "@dnd-kit/core": ^6.0.8
+    "@dnd-kit/sortable": ^7.0.2
+    "@dnd-kit/utilities": ^3.2.1
     "@fortawesome/fontawesome-svg-core": ^1.2.36
     "@fortawesome/free-regular-svg-icons": ^5.15.4
     "@fortawesome/free-solid-svg-icons": ^5.15.4
@@ -15076,8 +15120,10 @@ __metadata:
     history: ^4.10.1
     husky: ^7.0.2
     iframe-resizer: ^4.3.2
+    ignore: ^5.2.4
     igv: 2.11.2
     jest-axe: ^6.0.0
+    jest-fail-on-console: ^3.1.1
     jszip: ^3.10.1
     jwt-decode: ^3.1.2
     lint-staged: ^13.0.3
@@ -15109,14 +15155,13 @@ __metadata:
     react-select: ^5.7.4
     react-select-event: ^5.5.1
     react-simplemde-editor: ^5.0.2
-    react-sortable-hoc: ^2.0.0
     react-switch: ^6.1.0
     react-textarea-autosize: ^8.5.2
     react-transition-group: ^4.4.5
     react-virtualized: ^9.22.5
     source-map-explorer: ^2.5.2
     svgo: ^1.3.2
-    typescript: ^4.8.3
+    typescript: ^4.9.5
     use-memo-one: ^1.1.3
     uuid: ^8.3.2
     validate.js: ^0.13.1
@@ -15436,23 +15481,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.8.3":
-  version: 4.8.3
-  resolution: "typescript@npm:4.8.3"
+"typescript@npm:^4.9.5":
+  version: 4.9.5
+  resolution: "typescript@npm:4.9.5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 8286a5edcaf3d68e65c451aa1e7150ad1cf53ee0813c07ec35b7abdfdb10f355ecaa13c6a226a694ae7a67785fd7eeebf89f845da0b4f7e4a35561ddc459aba0
+  checksum: ee000bc26848147ad423b581bd250075662a354d84f0e06eb76d3b892328d8d4440b7487b5a83e851b12b255f55d71835b008a66cbf8f255a11e4400159237db
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.8.3#~builtin<compat/typescript>":
-  version: 4.8.3
-  resolution: "typescript@patch:typescript@npm%3A4.8.3#~builtin<compat/typescript>::version=4.8.3&hash=a1c5e5"
+"typescript@patch:typescript@^4.9.5#~builtin<compat/typescript>":
+  version: 4.9.5
+  resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=289587"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 2222d2382fb3146089b1d27ce2b55e9d1f99cc64118f1aba75809b693b856c5d3c324f052f60c75b577947fc538bc1c27bad0eb76cbdba9a63a253489504ba7e
+  checksum: 1f8f3b6aaea19f0f67cba79057674ba580438a7db55057eb89cc06950483c5d632115c14077f6663ea76fd09fce3c190e6414bb98582ec80aa5a4eaf345d5b68
   languageName: node
   linkType: hard
 

@@ -1,8 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
-import { Apps } from 'src/libs/ajax/leonardo/Apps';
-import { getUser } from 'src/libs/state';
+import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import ImportGithub from 'src/workflows-app/components/ImportGithub';
 
 jest.mock('src/libs/ajax');
@@ -31,41 +30,6 @@ describe('Add a Workflow Link', () => {
     },
   };
 
-  const mockAppResponse = [
-    {
-      workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
-      cloudContext: {
-        cloudProvider: 'AZURE',
-      },
-      status: 'RUNNING',
-      proxyUrls: {
-        cbas: 'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas',
-        'cbas-ui': 'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/',
-        cromwell: 'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cromwell',
-      },
-      appName: 'terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374',
-      appType: 'CROMWELL',
-      auditInfo: {
-        creator: 'abc@gmail.com',
-      },
-    },
-    {
-      workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
-      cloudContext: {
-        cloudProvider: 'AZURE',
-      },
-      status: 'RUNNING',
-      proxyUrls: {
-        wds: 'https://abc.servicebus.windows.net/wds-79201ea6-519a-4077-a9a4-75b2a7c4cdeb-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/',
-      },
-      appName: 'wds-79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
-      appType: 'WDS',
-      auditInfo: {
-        creator: 'abc@gmail.com',
-      },
-    },
-  ];
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -85,19 +49,9 @@ describe('Add a Workflow Link', () => {
     expect(addToWorkspaceButton).toBeInTheDocument();
   });
 
-  it('should submit github.com links', async () => {
-    const mockListAppsFn = jest.fn(() => Promise.resolve(mockAppResponse));
+  it('should submit github.com links for a running Workflows app', async () => {
+    const githubLink = 'https://github.com/broadinstitute/cromwell/blob/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl';
     const postMethodFunction = jest.fn(() => Promise.resolve({ method_id: 'abc123' }));
-
-    await getUser.mockReturnValue({
-      email: 'abc@gmail.com',
-    });
-
-    await Apps.mockImplementation(() => {
-      return {
-        listAppsV2: jest.fn(mockListAppsFn),
-      };
-    });
 
     await Ajax.mockImplementation(() => {
       return {
@@ -109,7 +63,10 @@ describe('Add a Workflow Link', () => {
       };
     });
 
-    const githubLink = 'https://github.com/broadinstitute/cromwell/blob/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl';
+    workflowsAppStore.set({
+      workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
+      cbasProxyUrlState: { status: AppProxyUrlStatus.Ready, state: 'https://lz-abc/terra-app-abc/cbas' },
+    });
 
     // ** ACT **
     render(h(ImportGithub, { setLoading: jest.fn(), signal: jest.fn(), onDismiss: jest.fn(), workspace }));
@@ -130,34 +87,20 @@ describe('Add a Workflow Link', () => {
     // assert POST /methods endpoint was called with expected parameters & transformed github.com link
     await waitFor(() => {
       expect(postMethodFunction).toHaveBeenCalledTimes(1);
-      expect(postMethodFunction).toHaveBeenCalledWith(
-        'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas',
-        {
-          method_name: 'simple_task',
-          method_description: undefined,
-          method_source: 'GitHub',
-          method_version: 'develop',
-          method_url: githubLink,
-        }
-      );
+      expect(postMethodFunction).toHaveBeenCalledWith('https://lz-abc/terra-app-abc/cbas', {
+        method_name: 'simple_task',
+        method_description: undefined,
+        method_source: 'GitHub',
+        method_version: 'develop',
+        method_url: githubLink,
+      });
     });
     jest.clearAllMocks();
   });
 
-  it('should accept raw github.com links', async () => {
+  it('should accept raw github.com links for a running Workflows app', async () => {
     const rawGithubLink = 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl';
-    const mockListAppsFn = jest.fn(() => Promise.resolve(mockAppResponse));
     const postMethodFunction = jest.fn(() => Promise.resolve({ method_id: 'abc123' }));
-
-    await getUser.mockReturnValue({
-      email: 'abc@gmail.com',
-    });
-
-    await Apps.mockImplementation(() => {
-      return {
-        listAppsV2: jest.fn(mockListAppsFn),
-      };
-    });
 
     await Ajax.mockImplementation(() => {
       return {
@@ -167,6 +110,11 @@ describe('Add a Workflow Link', () => {
           },
         },
       };
+    });
+
+    workflowsAppStore.set({
+      workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
+      cbasProxyUrlState: { status: AppProxyUrlStatus.Ready, state: 'https://lz-abc/terra-app-abc/cbas' },
     });
 
     // ** ACT **
@@ -186,16 +134,13 @@ describe('Add a Workflow Link', () => {
     // Check that raw github links still work
     await waitFor(() => {
       expect(postMethodFunction).toHaveBeenCalledTimes(1);
-      expect(postMethodFunction).toHaveBeenCalledWith(
-        'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas',
-        {
-          method_name: 'Test workflow again',
-          method_description: undefined,
-          method_source: 'GitHub',
-          method_version: 'develop',
-          method_url: rawGithubLink,
-        }
-      );
+      expect(postMethodFunction).toHaveBeenCalledWith('https://lz-abc/terra-app-abc/cbas', {
+        method_name: 'Test workflow again',
+        method_description: undefined,
+        method_source: 'GitHub',
+        method_version: 'develop',
+        method_url: rawGithubLink,
+      });
     });
   });
 
@@ -224,5 +169,40 @@ describe('Add a Workflow Link', () => {
     fireEvent.change(workflowName, { target: { value: 'Test bad workflow' } });
 
     expect(addToWorkspaceButton.getAttribute('aria-disabled')).toBe('true');
+  });
+
+  it('should not be able to import workflow if CBAS proxy url is not ready', async () => {
+    // ** ARRANGE **
+    const postMethodFunction = jest.fn(() => Promise.resolve({ method_id: 'abc123' }));
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          methods: {
+            post: jest.fn(postMethodFunction),
+          },
+        },
+      };
+    });
+
+    workflowsAppStore.set({
+      workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
+      cbasProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
+    });
+
+    // ** ACT **
+    render(h(ImportGithub, { setLoading: jest.fn(), signal: jest.fn(), onDismiss: jest.fn(), workspace }));
+
+    const urlLink = screen.getByPlaceholderText('Paste Github link');
+
+    fireEvent.change(urlLink, {
+      target: { value: 'https://github.com/broadinstitute/cromwell/blob/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl' },
+    });
+    const addToWorkspaceButtonEnabled = screen.getByLabelText('Add to Workspace button');
+    expect(addToWorkspaceButtonEnabled.getAttribute('aria-disabled')).toBe('false');
+    fireEvent.click(addToWorkspaceButtonEnabled);
+
+    // ** ASSERT **
+    expect(postMethodFunction).toHaveBeenCalledTimes(0);
   });
 });

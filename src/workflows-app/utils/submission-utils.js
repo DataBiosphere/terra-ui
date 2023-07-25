@@ -6,15 +6,13 @@ import { Ajax } from 'src/libs/ajax';
 import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import colors from 'src/libs/colors';
-import { getConfig } from 'src/libs/config';
 import { notify } from 'src/libs/notifications';
-import { getUser } from 'src/libs/state';
 import { differenceFromDatesInSeconds, differenceFromNowInSeconds } from 'src/libs/utils';
 import * as Utils from 'src/libs/utils';
-import { resolveRunningCromwellAppUrl } from 'src/libs/workflows-app-utils';
 
 export const AutoRefreshInterval = 1000 * 60; // 1 minute
 export const WdsPollInterval = 1000 * 30; // 30 seconds
+export const CbasPollInterval = 1000 * 30; // 30 seconds
 
 const iconSize = 24;
 export const addCountSuffix = (label, count = undefined) => {
@@ -68,34 +66,6 @@ export const loadAllRunSets = async (signal, workspaceId) => {
   } catch (error) {
     notify('error', 'Error getting run set data', { detail: error instanceof Response ? await error.text() : error });
   }
-};
-
-const getProxyUrl = async (root, workspaceId, resolver) => {
-  if (root) {
-    return { status: 'Ready', state: root };
-  }
-  try {
-    const url = await Ajax().Apps.listAppsV2(workspaceId).then(resolver);
-    if (url) {
-      return { status: 'Ready', state: url };
-    }
-    return { status: 'None', state: '' };
-  } catch (error) {
-    if (error.status === 401) return { status: 'Unauthorized', state: error };
-    return { status: 'Error', state: error };
-  }
-};
-
-export const loadAppUrls = async (workspaceId) => {
-  // for local testing - since we use local WDS setup, we don't need to call Leo to get proxy url
-  const wdsUrlRoot = getConfig().wdsUrlRoot;
-  const cbasUrlRoot = getConfig().cbasUrlRoot;
-  const wdsProxyUrlResponse = await getProxyUrl(wdsUrlRoot, workspaceId, resolveWdsUrl);
-  const cbasProxyUrlResponse = await getProxyUrl(cbasUrlRoot, workspaceId, (apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email).cbasUrl);
-  return {
-    wds: wdsProxyUrlResponse,
-    cbas: cbasProxyUrlResponse,
-  };
 };
 
 export const parseMethodString = (methodString) => {

@@ -198,8 +198,10 @@ const NewWorkspaceModal = withDisplayName(
     const isBillingProjectApplicable = (project) => {
       // Only support cloning a workspace to the same cloud environment. If this changes, also update
       // the Events.workspaceClone event data.
+      // As of AJ-1164, if requireEnhancedBucketLogging is true, then azure billing projects are ineligible.
+      // This coupling of enhanced bucket logging and billing project may change in the future.
       return Utils.cond(
-        [!!workflowImport, () => !isAzureBillingProject(project)],
+        [!!workflowImport || requireEnhancedBucketLogging, () => !isAzureBillingProject(project)],
         [!!cloneWorkspace && isAzureWorkspace(cloneWorkspace), () => isAzureBillingProject(project)],
         [!!cloneWorkspace && isGoogleWorkspace(cloneWorkspace), () => isGoogleBillingProject(project)],
         [Utils.DEFAULT, () => true]
