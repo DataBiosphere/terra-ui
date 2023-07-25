@@ -21,9 +21,15 @@ window._ = _;
 initializeClientId().then(() => {
   const root = createRoot(rootElement);
   root.render(h(Main));
-  initializeAuth();
-  initializeTCell();
-  startPollingServiceAlerts();
+
+  // react-notifications-component sets up its Store in the componentDidMount method
+  // of the ReactNotifications component. Use setTimeout to allow that to happen before
+  // doing anything that may show a notification.
+  setTimeout(() => {
+    initializeAuth();
+    initializeTCell();
+    startPollingServiceAlerts();
+  }, 0);
 
   if (isAxeEnabled()) {
     import('src/libs/axe-core');
