@@ -1,6 +1,5 @@
-import '@testing-library/jest-dom';
-
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { div, h } from 'react-hyperscript-helpers';
 import selectEvent from 'react-select-event';
@@ -8,7 +7,6 @@ import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { getConfig } from 'src/libs/config';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { getUser } from 'src/libs/state';
 import { BaseSubmissionHistory } from 'src/workflows-app/pages/SubmissionHistory';
 import { mockAbortResponse, mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
@@ -118,13 +116,12 @@ beforeEach(() => {
   MenuTrigger.mockImplementation(({ content }) => {
     return div({ role: 'menu' }, [content]);
   });
-  isFeaturePreviewEnabled.mockReturnValue(true);
   getConfig.mockReturnValue({ wdsUrlRoot: 'http://localhost:3000/wds', cbasUrlRoot: 'http://localhost:8080/cbas' });
 });
 
-afterEach(() => {
-  jest.clearAllMocks();
-});
+// afterEach(() => {
+//   jest.clearAllMocks();
+// });
 
 afterAll(() => {
   Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
@@ -349,6 +346,7 @@ describe('SubmissionHistory page', () => {
   });
 
   it('should sort columns properly', async () => {
+    const user = userEvent.setup();
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
     const mockListAppsFn = jest.fn(() => Promise.resolve(mockAppResponse));
 
@@ -374,7 +372,7 @@ describe('SubmissionHistory page', () => {
 
     // Act
     await act(async () => {
-      render(
+      await render(
         h(BaseSubmissionHistory, {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
@@ -387,7 +385,7 @@ describe('SubmissionHistory page', () => {
       expect(screen.getByRole('table')).toBeInTheDocument();
     });
 
-    const table = screen.getByRole('table');
+    const table = await screen.getByRole('table');
 
     const rows = within(table).queryAllByRole('row');
     expect(rows.length).toBe(3);
@@ -402,41 +400,31 @@ describe('SubmissionHistory page', () => {
 
     // Click on "Date Submitted" column and check that the top column is correct for:
     // * ascending order
-    await act(async () => {
-      await fireEvent.click(within(headers[headerPosition['Date Submitted']]).getByRole('button'));
-    });
+    await user.click(within(headers[headerPosition['Date Submitted']]).getByRole('button'));
+    // screen.debug(undefined, 300000);
     within(topRowCells(headerPosition['Date Submitted'])).getByText(/Jul 10, 2021/);
 
     // * descending order
-    await act(async () => {
-      await fireEvent.click(within(headers[headerPosition['Date Submitted']]).getByRole('button'));
-    });
+    await user.click(within(headers[headerPosition['Date Submitted']]).getByRole('button'));
     within(topRowCells(headerPosition['Date Submitted'])).getByText(/Jan 1, 2022/);
 
     // Click on "Status" column and check that the top column is correct for:
     // * ascending order
-    await act(async () => {
-      await fireEvent.click(within(headers[headerPosition.Status]).getByRole('button'));
-    });
+    await user.click(within(headers[headerPosition.Status]).getByRole('button'));
     within(topRowCells(headerPosition.Status)).getByText('Success');
 
     // * descending order
-    await act(async () => {
-      await fireEvent.click(within(headers[headerPosition.Status]).getByRole('button'));
-    });
+    await user.click(within(headers[headerPosition.Status]).getByRole('button'));
     within(topRowCells(headerPosition.Status)).getByText('Failed with 1 errors');
 
     // Click on "Duration" column and check that the top column is correct for:
     // * ascending order
-    await act(async () => {
-      await fireEvent.click(within(headers[headerPosition.Duration]).getByRole('button'));
-    });
+    await user.click(within(headers[headerPosition.Duration]).getByRole('button'));
     within(topRowCells(headerPosition.Duration)).getByText('1 day 1 hour 1 minute 1 second');
 
     // * descending order
-    await act(async () => {
-      await fireEvent.click(within(headers[headerPosition.Duration]).getByRole('button'));
-    });
+    await user.click(within(headers[headerPosition.Duration]).getByRole('button'));
+    screen.debug(undefined, 300000);
     within(topRowCells(headerPosition.Duration)).getByText('1 month 1 day 1 hour 1 minute 1 second');
   });
 
@@ -600,6 +588,7 @@ describe('SubmissionHistory page', () => {
   });
 
   it('should abort successfully', async () => {
+    const user = userEvent.setup();
     const runSetData = simpleRunSetData;
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
     const mockListAppsFn = jest.fn(() => Promise.resolve(mockAppResponse));
@@ -658,10 +647,11 @@ describe('SubmissionHistory page', () => {
     await act(async () => {
       await selectEvent.openMenu(actionsMenu);
       expect(actionsMenu).toHaveTextContent('Abort');
-      const abortButton = screen.getByText('Abort');
-      expect(abortButton).toHaveAttribute('aria-disabled', 'false');
-      fireEvent.click(abortButton);
     });
+
+    const abortButton = screen.getByText('Abort');
+    expect(abortButton).toHaveAttribute('aria-disabled', 'false');
+    await user.click(abortButton);
 
     expect(cancelSubmissionFunction).toHaveBeenCalled();
     expect(cancelSubmissionFunction).toBeCalledWith(
