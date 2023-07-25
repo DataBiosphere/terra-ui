@@ -3,12 +3,13 @@ import { div } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
 import { statusType as jobStatusType } from 'src/components/job-common';
 import { Ajax } from 'src/libs/ajax';
-import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import colors from 'src/libs/colors';
 import { notify } from 'src/libs/notifications';
+import { getUser } from 'src/libs/state';
 import { differenceFromDatesInSeconds, differenceFromNowInSeconds } from 'src/libs/utils';
 import * as Utils from 'src/libs/utils';
+import { resolveRunningCromwellAppUrl } from 'src/workflows-app/utils/app-utils';
 
 export const AutoRefreshInterval = 1000 * 60; // 1 minute
 export const WdsPollInterval = 1000 * 30; // 30 seconds
