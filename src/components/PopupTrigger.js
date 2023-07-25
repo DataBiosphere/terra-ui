@@ -164,29 +164,3 @@ export const MenuTrigger = ({ children, content, popupProps = {}, ...props }) =>
     [children]
   );
 };
-
-export const MenuButton = forwardRefWithName('MenuButton', ({ disabled, children, ...props }, ref) => {
-  return div({ role: 'menuitem' }, [
-    h(
-      Clickable,
-      _.merge(
-        {
-          ref,
-          disabled,
-          style: {
-            display: 'flex',
-            alignItems: 'center',
-            fontSize: 12,
-            minWidth: 125,
-            height: '2.25rem',
-            padding: '0.875rem',
-            ...(disabled ? { color: colors.dark(0.7), cursor: 'not-allowed' } : { cursor: 'pointer' }),
-          },
-          hover: !disabled ? { backgroundColor: colors.light(0.4), color: colors.accent() } : undefined,
-        },
-        props
-      ),
-      [children]
-    ),
-  ]);
-});
