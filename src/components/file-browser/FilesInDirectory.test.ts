@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { div, h } from 'react-hyperscript-helpers';
+import { h } from 'react-hyperscript-helpers';
 import { useFilesInDirectory } from 'src/components/file-browser/file-browser-hooks';
 import FilesInDirectory from 'src/components/file-browser/FilesInDirectory';
 import FilesTable from 'src/components/file-browser/FilesTable';
@@ -12,14 +12,21 @@ jest.mock('src/components/file-browser/file-browser-hooks', () => ({
   useFilesInDirectory: jest.fn(),
 }));
 
-jest.mock('src/components/file-browser/FilesTable', () => ({
-  ...jest.requireActual('src/components/file-browser/FilesTable'),
-  __esModule: true,
-  default: jest.fn(),
+// FileBrowserTable uses react-virtualized's AutoSizer to size the table.
+// This makes the virtualized window large enough for all rows/columns to be rendered in tests.
+jest.mock('react-virtualized', () => ({
+  ...jest.requireActual('react-virtualized'),
+  AutoSizer: ({ children }) => children({ width: 1000, height: 1000 }),
 }));
 
-beforeEach(() => {
-  asMockedFn(FilesTable).mockReturnValue(div());
+type FilesTableExports = typeof import('src/components/file-browser/FilesTable') & { __esModule: true };
+jest.mock('src/components/file-browser/FilesTable', (): FilesTableExports => {
+  const actual = jest.requireActual<FilesTableExports>('src/components/file-browser/FilesTable');
+  return {
+    ...actual,
+    __esModule: true,
+    default: jest.fn(actual.default),
+  };
 });
 
 type UseFilesInDirectoryResult = ReturnType<typeof useFilesInDirectory>;
@@ -340,5 +347,60 @@ describe('FilesInDirectory', () => {
     // Assert
     expect(deleteEmptyDirectory).toHaveBeenCalledWith('path/to/directory/');
     expect(onDeleteDirectory).toHaveBeenCalled();
+  });
+
+  it('allows renaming files', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    const files: FileBrowserFile[] = [
+      {
+        path: 'path/to/directory/file.txt',
+        url: 'gs://test-bucket/path/to/directory/file.txt',
+        size: 1024,
+        createdAt: 1667408400000,
+        updatedAt: 1667408400000,
+      },
+    ];
+
+    const moveFile = jest.fn(() => Promise.resolve());
+    const mockProvider = { moveFile } as Partial<FileBrowserProvider> as FileBrowserProvider;
+
+    const useFilesInDirectoryResult: UseFilesInDirectoryResult = {
+      state: { status: 'Ready', files },
+      hasNextPage: false,
+      loadNextPage: () => Promise.resolve(),
+      loadAllRemainingItems: () => Promise.resolve(),
+      reload: () => Promise.resolve(),
+    };
+
+    asMockedFn(useFilesInDirectory).mockReturnValue(useFilesInDirectoryResult);
+
+    render(
+      h(FilesInDirectory, {
+        provider: mockProvider,
+        path: 'path/to/directory/',
+        selectedFiles: {},
+        setSelectedFiles: () => {},
+        onClickFile: jest.fn(),
+        onCreateDirectory: () => {},
+        onDeleteDirectory: () => {},
+        onError: () => {},
+      })
+    );
+
+    // Act
+    const menuButton = screen.getByLabelText('Action menu for file: file.txt');
+    await user.click(menuButton);
+    await user.click(screen.getByText('Rename'));
+
+    const filenameInput = screen.getByLabelText('File name *');
+    await user.clear(filenameInput);
+    await user.type(filenameInput, 'newname.txt');
+
+    await user.click(screen.getByRole('button', { name: 'Update File' }));
+
+    // Assert
+    expect(moveFile).toHaveBeenCalledWith('path/to/directory/file.txt', 'path/to/directory/newname.txt');
   });
 });
