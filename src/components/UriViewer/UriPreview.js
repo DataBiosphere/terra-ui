@@ -55,7 +55,11 @@ export const UriPreview = ({ metadata, metadata: { bucket, name }, googleProject
       setPreview(null);
     }
   };
-  useOnMount(() => isFilePreviewable(metadata) && loadPreview());
+  useOnMount(() => {
+    if (isFilePreviewable(metadata)) {
+      loadPreview();
+    }
+  });
   return els.cell([
     Utils.cond(
       [

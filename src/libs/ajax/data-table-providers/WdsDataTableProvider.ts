@@ -13,6 +13,7 @@ import {
   TsvUploadButtonTooltipOptions,
   UploadParameters,
 } from 'src/libs/ajax/data-table-providers/DataTableProvider';
+import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { withErrorReporting } from 'src/libs/error';
 import { notify } from 'src/libs/notifications';
 import { notificationStore } from 'src/libs/state';
@@ -90,48 +91,32 @@ const getRelationParts = (val: unknown): string[] => {
 // Invokes logic to determine the appropriate app for WDS
 // If WDS is not running, a URL will not be present -- in some cases, this function may invoke
 // a new call to Leo to instantiate a WDS being available, thus having a valid URL
-export const resolveWdsApp = (apps) => {
+export const resolveWdsApp = (apps: ListAppResponse[]): ListAppResponse | undefined => {
   // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by Leo
   // See here for specific enumerations -- https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
   // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' -- if WDS is healthy and running, there should only be one app RUNNING
   // an app may be in the 'PROVISIONING', 'STOPPED', 'STOPPING', which can still be deemed as an OK state for WDS
   const healthyStates = ['RUNNING', 'PROVISIONING', 'STOPPED', 'STOPPING'];
 
-  // WDS appType is checked first and takes precedence over CROMWELL apps in the workspace
-  const wdsAppTypes = ['WDS', 'CROMWELL'];
-  for (const wdsAppType of wdsAppTypes) {
-    const namedApp = apps.filter(
-      (app) =>
-        app.appType === wdsAppType && app.appName === `wds-${app.workspaceId}` && healthyStates.includes(app.status)
-    );
-    if (namedApp.length === 1) {
-      return namedApp[0];
-    }
+  const eligibleApps = apps.filter((app) => app.appType === 'WDS' || app.appType === 'CROMWELL');
 
-    // Failed to find an app with the proper name, look for a RUNNING WDS or CROMWELL app
-    const runningWdsApps = apps.filter((app) => app.appType === wdsAppType && app.status === 'RUNNING');
-    if (runningWdsApps.length > 0) {
-      // Evaluate the earliest-created WDS app
-      runningWdsApps.sort(
-        (a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf()
-      );
-      return runningWdsApps[0];
-    }
+  const prioritizedApps = _.sortBy(
+    [
+      // Prefer WDS app with the proper name
+      (app) => (app.appType === 'WDS' && app.appName === `wds-${app.workspaceId}` ? -1 : 1),
+      // Prefer WDS apps over CROMWELL apps
+      (app) => (app.appType === 'WDS' ? -1 : 1),
+      // Prefer running apps
+      (app) => (app.status === 'RUNNING' ? -1 : 1),
+      // Prefer healthy apps
+      (app) => (healthyStates.includes(app.status) ? -1 : 1),
+      // Prefer apps created earlier
+      (app) => new Date(app.auditInfo?.createdDate).valueOf(),
+    ],
+    eligibleApps
+  );
 
-    // If we reach this logic, we have more than one Leo app with the associated workspace Id...
-    const allWdsApps = apps.filter(
-      (app) => app.appType === wdsAppType && ['PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status)
-    );
-    if (allWdsApps.length > 0) {
-      // Evaluate the earliest-created WDS app
-      allWdsApps.sort(
-        (a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf()
-      );
-      return allWdsApps[0];
-    }
-  }
-
-  return '';
+  return prioritizedApps[0];
 };
 
 // Extract wds URL from Leo response. exported for testing

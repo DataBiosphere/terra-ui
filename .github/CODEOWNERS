@@ -9,6 +9,7 @@
 /src/libs/ajax/AzureStorage.js @DataBiosphere/broad-interactive-analysis
 /src/libs/ajax/GoogleStorage.js @DataBiosphere/broad-interactive-analysis
 /src/libs/ajax/Catalog.ts @DataBiosphere/data-explorer-eng
+/src/libs/ajax/workflows-app/ @DataBiosphere/broad-workflow-management
 /src/pages/library/DataBrowser* @DataBiosphere/data-explorer-eng
 /src/pages/library/dataBrowser-utils* @DataBiosphere/data-explorer-eng
 /src/pages/library/Datasets* @DataBiosphere/data-explorer-eng
@@ -22,6 +23,7 @@
 /src/pages/workspaces/workspace/*Workspace* @DataBiosphere/broadworkspaces
 /src/components/*Workspace* @DataBiosphere/broadworkspaces
 /src/components/workspace-utils* @DataBiosphere/broadworkspaces
+/src/workflows-app/ @DataBiosphere/broad-workflow-management
 /integration-tests/tests/billing-projects.js @DataBiosphere/broadworkspaces
 /integration-tests/tests/janitor.js @DataBiosphere/broadworkspaces
 /integration-tests/tests/workspace-dashboard.js @DataBiosphere/broadworkspaces
