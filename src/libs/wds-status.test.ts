@@ -168,7 +168,7 @@ describe('useWdsStatus', () => {
       });
     });
 
-    it('requests WDS app version, status, and instances', async () => {
+    it('requests WDS app version, status, and instances if app is running', async () => {
       // Arrange
       const getVersion = jest.fn().mockReturnValue(abandonedPromise());
       const getStatus = jest.fn().mockReturnValue(abandonedPromise());
@@ -193,6 +193,50 @@ describe('useWdsStatus', () => {
       expect(getVersion).toBeCalledWith(wdsApp.proxyUrls.wds);
       expect(getStatus).toBeCalledWith(wdsApp.proxyUrls.wds);
       expect(listInstances).toBeCalledWith(wdsApp.proxyUrls.wds);
+    });
+
+    it('does not request WDS app version, status, and instances if app is not running', async () => {
+      // Arrange
+      const getVersion = jest.fn().mockReturnValue(abandonedPromise());
+      const getStatus = jest.fn().mockReturnValue(abandonedPromise());
+      const listInstances = jest.fn().mockReturnValue(abandonedPromise());
+
+      const mockAjax: DeepPartial<AjaxContract> = {
+        Apps: {
+          listAppsV2: jest.fn().mockResolvedValue([{ ...wdsApp, status: 'ERROR' }]),
+        },
+        WorkspaceData: {
+          getVersion,
+          getStatus,
+          listInstances,
+        },
+      };
+      asMockedFn(Ajax).mockReturnValue(mockAjax as AjaxContract);
+
+      // Act
+      const { result: hookReturnRef } = await renderHookInAct(() => useWdsStatus({ workspaceId }));
+
+      // Assert
+      expect(getVersion).not.toHaveBeenCalled();
+      expect(getStatus).not.toHaveBeenCalled();
+      expect(listInstances).not.toHaveBeenCalled();
+
+      expect(hookReturnRef.current.status).toEqual({
+        appName: 'wds-6601fdbb-4b53-41da-87b2-81385f4a760e',
+        appStatus: 'ERROR',
+        chartVersion: 'unknown',
+        defaultInstanceExists: 'unknown',
+        image: 'unknown',
+        numApps: '1',
+        proxyUrl:
+          'https://lz34dd00bf3fdaa72f755eeea8f928bab7cd135043043d59d5.servicebus.windows.net/wds-6601fdbb-4b53-41da-87b2-81385f4a760e-6601fdbb-4b53-41da-87b2-81385f4a760e/',
+        version: 'unknown',
+        wdsDbStatus: 'unknown',
+        wdsIamStatus: 'unknown',
+        wdsPingStatus: 'unknown',
+        wdsResponsive: 'unknown',
+        wdsStatus: 'unresponsive',
+      });
     });
 
     describe('version request', () => {

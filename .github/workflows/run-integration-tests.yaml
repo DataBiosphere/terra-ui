@@ -1,0 +1,131 @@
+name: Run E2E integration Tests
+
+# This workflow is meant to be called from other repositories' workflows to run integration checks autonomously.
+# While this workflow makes use of secrets, this workflow DOES NOT pull secrets itself and expects upstream callers to
+# provide the secrets via the github secrets functionality.
+#
+# The caller repository must have secrets set up for (Workload Identity Federation is not available for this suite atm)
+#        LYLE_CLIENT_EMAIL
+#        LYLE_PRIVATE_KEY
+#        FIRECLOUD_ACCOUNT_CLIENT_EMAIL
+#        FIRECLOUD_ACCOUNT_PRIVATE_KEY
+# Instruction for getting these secrets securely from vault to github secrets can be found here:
+# https://docs.google.com/document/d/1JbjV4xjAlSOuZY-2bInatl4av3M-y_LmHQkLYyISYns/edit?usp=sharing
+#
+# With that configured, here's how you can call this workflow from whatever workflow currently publishes the app:
+# ```yaml
+# jobs:
+#
+#
+#   This example runs just the register-user.js tests against terra-dev
+#   run-terra-ui-integration-tests:
+#     uses: databiosphere/terra-ui/.github/workflows/run-integration-tests.yaml@main
+#     permissions:
+#       contents: 'read'
+#      with:
+#        test_url: 'https://bvdp-saturn-dev.appspot.com/'
+#        environment: 'dev'
+#        tests_to_run: 'tests/register-user.js'
+#      secrets:
+#        LYLE_CLIENT_EMAIL: ${{ secrets.LYLE_CLIENT_EMAIL }}
+#        LYLE_PRIVATE_KEY: ${{ secrets.LYLE_PRIVATE_KEY }}
+#        FIRECLOUD_ACCOUNT_CLIENT_EMAIL: ${{ secrets.FIRECLOUD_ACCOUNT_CLIENT_EMAIL }}
+#        FIRECLOUD_ACCOUNT_PRIVATE_KEY: ${{ secrets.FIRECLOUD_ACCOUNT_PRIVATE_KEY }}
+# ```
+
+on:
+  workflow_call:
+    inputs:
+
+      ##
+      ## Configurations:
+      ##
+
+      test_url:
+        required: true
+        type: string
+        description: "URL of terraui instance to test against, required"
+      environment:
+        required: false
+        type: string
+        default: dev
+        description: "environment config to use, default: dev"
+      tests_to_run:
+        required: false
+        type: string
+        description: "space delimited list of js test files to run, default: run all"
+      target_branch:
+        required: false
+        type: string
+        description: "The branch to run integration tests against"
+
+    # technically, the emails are not secret, but they're stored w/ the private key so
+    # we'll just pull them to avoid potential sync/typo/refresh issues.
+    secrets:
+      LYLE_CLIENT_EMAIL: 
+        required: true
+      LYLE_PRIVATE_KEY: 
+        required: true
+      FIRECLOUD_ACCOUNT_CLIENT_EMAIL:
+        required: true
+      FIRECLOUD_ACCOUNT_PRIVATE_KEY:
+        required: true
+
+env:
+  ENVIRONMENT: ${{ inputs.environment }}
+  TEST_URL: ${{ inputs.test_url }}
+
+jobs:
+  run-integration-tests:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: 'read'
+    steps:
+
+      ##
+      ## Handle Checkout:
+      ##
+
+      - name: "Checkout terra-ui code"
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.target-branch }}
+          repository: databiosphere/terra-ui
+          path: terraui
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: "Run Yarn Install"
+        shell: bash
+        run: cd terraui && yarn install
+
+      # Current (Jul 2023) test implementation requires SA Keys to be made available (lyle-utilts.js, terra-sa-utils.js)
+      - name: "assemble Service Account Keys"
+        run: |
+          echo \
+          LYLE_SA_KEY=$(jq --null-input \
+          --arg client_email "${{ secrets.LYLE_CLIENT_EMAIL }}" \
+          --arg key"${{ secrets.LYLE_PRIVATE_KEY }}" \
+          '{"client_email": $client_email, "key": $key}') >> $GITHUB_ENV
+          
+          echo \
+          TERRA_SA_KEY=$(jq --null-input \
+          --arg client_email "${{ secrets.FIRECLOUD_ACCOUNT_CLIENT_EMAIL }}" \
+          --arg key "${{ secrets.FIRECLOUD_ACCOUNT_PRIVATE_KEY }}" \
+          '{"client_email": $client_email, "key": $key}') >> $GITHUB_ENV
+
+      - name: "Run Integration Tests"
+        shell: bash
+        run: |
+          cd terraui/integration-tests &&
+          yarn test ${{ inputs.tests_to_run }}
+
+      - name: 'Upload Test Artifacts'
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: terra-ui-logs-${{ github.run_id }}
+          path: |
+            /tmp/test-results
+            ./terraui/integration-tests/test-results/screenshots

@@ -227,7 +227,6 @@ describe('the share workspace modal', () => {
         authorizationDomain: [],
         createdDate: '',
         createdBy: '',
-        bucketName: 'test-bucket',
       },
     };
 
