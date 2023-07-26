@@ -109,6 +109,22 @@ export const useWdsStatus = ({ workspaceId }: UseWdsStatusArgs) => {
       proxyUrl,
     }));
 
+    if (wdsApp.status !== 'RUNNING') {
+      setStatus((previousStatus) => ({
+        ...previousStatus,
+        wdsResponsive: 'unknown',
+        version: 'unknown',
+        chartVersion: 'unknown',
+        image: 'unknown',
+        wdsStatus: 'unresponsive',
+        wdsDbStatus: 'unknown',
+        wdsPingStatus: 'unknown',
+        wdsIamStatus: 'unknown',
+        defaultInstanceExists: 'unknown',
+      }));
+      return;
+    }
+
     await Promise.allSettled([
       Ajax(signal)
         .WorkspaceData.getVersion(proxyUrl)

@@ -80,7 +80,12 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     ['Resource Group Id', mrgId, false, !!mrgId],
     ['App listing', `${numApps} app(s) total`, numApps == null, !!numApps && numApps !== 'unknown'],
     ['Data app name', appName, appName === null, !!appName && appName !== 'unknown'],
-    ['Data app running?', appStatus, appStatus == null, !!appStatus && appStatus !== 'unknown'],
+    [
+      'Data app running?',
+      appStatus,
+      appStatus == null,
+      !!appStatus && appStatus !== 'unknown' && appStatus !== 'ERROR',
+    ],
     ['Data app proxy url', proxyUrl, proxyUrl == null, !!proxyUrl && proxyUrl !== 'unknown', proxyElement],
     ['Data app responding', wdsResponsive, wdsResponsive == null, wdsResponsive === 'true'],
     ['Data app version', version, version == null, !!version && version !== 'unknown'],
