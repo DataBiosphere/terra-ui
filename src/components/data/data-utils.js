@@ -1512,7 +1512,13 @@ export const HeaderOptions = ({ sort, entityType, field, onSort, extraActions, r
   const loadColumnValues = async (field) => {
     try {
       const columnValues = await dataProvider.getColumnValues(entityType, field);
-      const selectOptions = _.map((cv) => ({ value: cv.value, label: `${cv.value} (${cv.count})` }), columnValues);
+      const selectOptions = _.map(
+        (cv) => ({
+          value: cv.value,
+          label: [`${cv.value} `, span({ style: { color: colors.grey(0.75) } }, [`(${cv.count})`])],
+        }),
+        columnValues
+      );
       setColumnValues(selectOptions);
     } catch (error) {
       reportError(`Error loading column values in column ${field}`, error);
