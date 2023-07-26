@@ -64,6 +64,7 @@ describe('useWdsStatus', () => {
         defaultInstanceExists: 'unknown',
         cloneSourceWorkspaceId: 'unknown',
         cloneStatus: 'unknown',
+        cloneErrorMessage: 'unknown',
       });
     });
   });
@@ -99,6 +100,7 @@ describe('useWdsStatus', () => {
           defaultInstanceExists: 'unknown',
           cloneSourceWorkspaceId: 'unknown',
           cloneStatus: 'unknown',
+          cloneErrorMessage: 'unknown',
         });
       });
     });
@@ -173,6 +175,7 @@ describe('useWdsStatus', () => {
         defaultInstanceExists: null,
         cloneSourceWorkspaceId: null,
         cloneStatus: null,
+        cloneErrorMessage: null,
       });
     });
 
@@ -636,6 +639,7 @@ describe('useWdsStatus', () => {
             expect.objectContaining({
               cloneSourceWorkspaceId: 'b3cc4ed2-678c-483f-9953-5d4789d5fa1b',
               cloneStatus: 'RESTORESUCCEEDED',
+              cloneErrorMessage: null,
             })
           );
         });
@@ -671,6 +675,7 @@ describe('useWdsStatus', () => {
       defaultInstanceExists: 'unknown',
       cloneSourceWorkspaceId: 'unknown',
       cloneStatus: 'unknown',
+      cloneErrorMessage: 'unknown',
     });
 
     listAppsV2.mockReturnValue(abandonedPromise());
@@ -696,6 +701,7 @@ describe('useWdsStatus', () => {
       defaultInstanceExists: null,
       cloneSourceWorkspaceId: null,
       cloneStatus: null,
+      cloneErrorMessage: null,
     });
 
     expect(listAppsV2).toHaveBeenCalledWith(otherWorkspaceId);

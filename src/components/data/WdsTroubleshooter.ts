@@ -29,6 +29,7 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     defaultInstanceExists,
     cloneSourceWorkspaceId,
     cloneStatus,
+    cloneErrorMessage,
   } = status;
 
   const checkIcon = (status, size = 24) =>
@@ -119,7 +120,7 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     ],
     [
       'Default Instance exists',
-      `${defaultInstanceExists}`,
+      defaultInstanceExists,
       defaultInstanceExists == null,
       !!defaultInstanceExists && defaultInstanceExists !== 'unknown',
     ],
@@ -128,7 +129,12 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
   if (cloneSourceWorkspaceId !== null) {
     troubleShooterText.push(
       ['Data table clone source', cloneSourceWorkspaceId, false, cloneSourceWorkspaceId !== 'unknown'],
-      ['Data table clone status', cloneStatus, false, cloneStatus !== 'unknown']
+      [
+        'Data table clone status',
+        cloneErrorMessage ? `${cloneStatus} (${cloneErrorMessage})` : cloneStatus,
+        false,
+        cloneStatus !== 'unknown' && cloneErrorMessage == null,
+      ]
     );
   }
 

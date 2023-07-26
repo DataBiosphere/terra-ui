@@ -43,6 +43,7 @@ describe('WdsTroubleshooter', () => {
       defaultInstanceExists: 'true',
       cloneSourceWorkspaceId: null,
       cloneStatus: null,
+      cloneErrorMessage: null,
     };
 
     asMockedFn(useWdsStatus).mockReturnValue({
@@ -107,6 +108,7 @@ describe('WdsTroubleshooter', () => {
       defaultInstanceExists: 'true',
       cloneSourceWorkspaceId: 'b3cc4ed2-678c-483f-9953-5d4789d5fa1b',
       cloneStatus: 'RESTORESUCCEEDED',
+      cloneErrorMessage: null,
     };
 
     asMockedFn(useWdsStatus).mockReturnValue({
@@ -154,6 +156,73 @@ describe('WdsTroubleshooter', () => {
     ]);
   });
 
+  it('shows clone error message if present', () => {
+    // Arrange
+    const mockStatus: WdsStatus = {
+      numApps: '1',
+      wdsResponsive: 'true',
+      version: 'c87286c',
+      chartVersion: 'wds-0.24.0',
+      image: 'us.gcr.io/broad-dsp-gcr-public/terra-workspace-data-service:eaf3f31',
+      wdsStatus: 'UP',
+      wdsDbStatus: 'UP',
+      wdsPingStatus: 'UP',
+      wdsIamStatus: 'UP',
+      appName: 'wds-6601fdbb-4b53-41da-87b2-81385f4a760e',
+      appStatus: 'RUNNING',
+      proxyUrl:
+        'https://lz34dd00bf3fdaa72f755eeea8f928bab7cd135043043d59d5.servicebus.windows.net/wds-6601fdbb-4b53-41da-87b2-81385f4a760e-6601fdbb-4b53-41da-87b2-81385f4a760e/',
+      defaultInstanceExists: 'true',
+      cloneSourceWorkspaceId: 'b3cc4ed2-678c-483f-9953-5d4789d5fa1b',
+      cloneStatus: 'BACKUPERROR',
+      cloneErrorMessage: 'Something went wrong',
+    };
+
+    asMockedFn(useWdsStatus).mockReturnValue({
+      status: mockStatus,
+      refreshStatus: jest.fn(),
+    });
+
+    // Act
+    render(
+      h(WdsTroubleshooter, {
+        workspaceId: 'test-workspace',
+        mrgId: 'test-mrg',
+        onDismiss: jest.fn(),
+      })
+    );
+
+    // Assert
+    const tableRows = screen.getAllByRole('row');
+    const statusLabelAndValueCells = tableRows.map((row) => {
+      const cells = getAllByRole(row, 'cell');
+      return cells.slice(1).map((el) => el.textContent);
+    });
+
+    expect(statusLabelAndValueCells).toEqual([
+      ['Workspace Id', 'test-workspace'],
+      ['Resource Group Id', 'test-mrg'],
+      ['App listing', '1 app(s) total'],
+      ['Data app name', 'wds-6601fdbb-4b53-41da-87b2-81385f4a760e'],
+      ['Data app running?', 'RUNNING'],
+      [
+        'Data app proxy url',
+        'https://lz34dd00bf3fdaa72f755eeea8f928bab7cd135043043d59d5.servicebus.windows.net/wds-6601fdbb-4b53-41da-87b2-81385f4a760e-6601fdbb-4b53-41da-87b2-81385f4a760e/',
+      ],
+      ['Data app responding', 'true'],
+      ['Data app version', 'c87286c'],
+      ['Data app chart version', 'wds-0.24.0'],
+      ['Data app image', 'terra-workspace-data-service:eaf3f31'],
+      ['Data app status', 'UP'],
+      ['Data app DB status', 'UP'],
+      ['Data app ping status', 'UP'],
+      ['Data app IAM status', 'UP'],
+      ['Default Instance exists', 'true'],
+      ['Data table clone source', 'b3cc4ed2-678c-483f-9953-5d4789d5fa1b'],
+      ['Data table clone status', 'BACKUPERROR (Something went wrong)'],
+    ]);
+  });
+
   it('copies status to clipboard', async () => {
     // Arrange
     const user = userEvent.setup();
@@ -175,6 +244,7 @@ describe('WdsTroubleshooter', () => {
       defaultInstanceExists: 'true',
       cloneSourceWorkspaceId: null,
       cloneStatus: null,
+      cloneErrorMessage: null,
     };
 
     asMockedFn(useWdsStatus).mockReturnValue({

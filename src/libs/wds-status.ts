@@ -29,6 +29,7 @@ export type WdsStatus = {
 
   cloneSourceWorkspaceId: string | null;
   cloneStatus: string | null;
+  cloneErrorMessage: string | null;
 };
 
 export type UseWdsStatusResult = {
@@ -52,6 +53,7 @@ const initialStatus: WdsStatus = {
   defaultInstanceExists: null,
   cloneSourceWorkspaceId: null,
   cloneStatus: null,
+  cloneErrorMessage: null,
 };
 
 export const useWdsStatus = ({ workspaceId }: UseWdsStatusArgs) => {
@@ -85,6 +87,7 @@ export const useWdsStatus = ({ workspaceId }: UseWdsStatusArgs) => {
         defaultInstanceExists: 'unknown',
         cloneSourceWorkspaceId: 'unknown',
         cloneStatus: 'unknown',
+        cloneErrorMessage: 'unknown',
       });
       return;
     }
@@ -108,6 +111,7 @@ export const useWdsStatus = ({ workspaceId }: UseWdsStatusArgs) => {
         defaultInstanceExists: 'unknown',
         cloneSourceWorkspaceId: 'unknown',
         cloneStatus: 'unknown',
+        cloneErrorMessage: 'unknown',
       }));
       return;
     }
@@ -204,6 +208,7 @@ export const useWdsStatus = ({ workspaceId }: UseWdsStatusArgs) => {
             ...previousStatus,
             cloneSourceWorkspaceId: cloneStatusResponse.result.sourceWorkspaceId,
             cloneStatus: cloneStatusResponse.result.status,
+            cloneErrorMessage: cloneStatusResponse.errorMessage || null,
           }));
         })
         .catch((err) => {
@@ -212,6 +217,7 @@ export const useWdsStatus = ({ workspaceId }: UseWdsStatusArgs) => {
               ...previousStatus,
               cloneSourceWorkspaceId: 'unknown',
               cloneStatus: 'unknown',
+              cloneErrorMessage: 'unknown',
             }));
           }
         }),

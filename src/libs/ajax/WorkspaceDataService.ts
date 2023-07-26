@@ -31,6 +31,8 @@ export type WDSVersionResponse = {
 
 export type WDSCloneStatusResponse = {
   created: string;
+  errorMessage?: string;
+  exception?: string;
   jobId: string;
   result: {
     sourceWorkspaceId: string;
