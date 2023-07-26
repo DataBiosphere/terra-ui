@@ -209,11 +209,12 @@ describe('useWdsStatus', () => {
       expect(getCloneStatus).toHaveBeenCalledWith(wdsApp.proxyUrls.wds);
     });
 
-    it('does not request WDS app version, status, and instances if app is not running', async () => {
+    it('does not request WDS app version, status, instances, and clone status if app is not running', async () => {
       // Arrange
       const getVersion = jest.fn().mockReturnValue(abandonedPromise());
       const getStatus = jest.fn().mockReturnValue(abandonedPromise());
       const listInstances = jest.fn().mockReturnValue(abandonedPromise());
+      const getCloneStatus = jest.fn().mockReturnValue(abandonedPromise());
 
       const mockAjax: DeepPartial<AjaxContract> = {
         Apps: {
@@ -223,6 +224,7 @@ describe('useWdsStatus', () => {
           getVersion,
           getStatus,
           listInstances,
+          getCloneStatus,
         },
       };
       asMockedFn(Ajax).mockReturnValue(mockAjax as AjaxContract);
@@ -234,6 +236,7 @@ describe('useWdsStatus', () => {
       expect(getVersion).not.toHaveBeenCalled();
       expect(getStatus).not.toHaveBeenCalled();
       expect(listInstances).not.toHaveBeenCalled();
+      expect(getCloneStatus).not.toHaveBeenCalled();
 
       expect(hookReturnRef.current.status).toEqual({
         appName: 'wds-6601fdbb-4b53-41da-87b2-81385f4a760e',
@@ -250,6 +253,9 @@ describe('useWdsStatus', () => {
         wdsPingStatus: 'unknown',
         wdsResponsive: 'unknown',
         wdsStatus: 'unresponsive',
+        cloneSourceWorkspaceId: null,
+        cloneStatus: null,
+        cloneErrorMessage: null,
       });
     });
 
