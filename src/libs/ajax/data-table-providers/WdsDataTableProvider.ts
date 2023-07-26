@@ -165,7 +165,7 @@ export class WdsDataTableProvider implements DataTableProvider {
     supportsTypeRenaming: false,
     supportsExport: false,
     supportsPointCorrection: false,
-    supportsFiltering: false,
+    supportsFiltering: true,
     supportsRowSelection: false,
   };
 
@@ -292,7 +292,13 @@ export class WdsDataTableProvider implements DataTableProvider {
         },
         _.merge(
           queryOptions.sortField === 'name' ? {} : { sortAttribute: queryOptions.sortField },
-          !queryOptions.columnFilter ? {} : searchColumnList
+          _.merge(
+            !queryOptions.columnFilter ? {} : searchColumnList,
+            _.merge(
+              !queryOptions.activeTextFilter ? {} : { filter: queryOptions.activeTextFilter },
+              !queryOptions.filterOperator ? { filterOperator: 'AND' } : { filterOperator: queryOptions.filterOperator }
+            )
+          )
         )
       )
     );
