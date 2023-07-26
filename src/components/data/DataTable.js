@@ -478,7 +478,7 @@ const DataTable = (props) => {
                           {
                             sort,
                             entityType,
-                            field: 'name',
+                            field: googleProject ? 'name' : entityMetadata[entityType].idName,
                             onSort: setSort,
                             renderSearch: true,
                             searchByColumn: (v) => searchByColumn(entityMetadata[entityType].idName, v),
