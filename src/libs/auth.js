@@ -348,6 +348,7 @@ authStore.subscribe(
       if (window.Appcues) {
         window.Appcues.identify(state.user.id, {
           // TODO update this to use the sam get user endpoint
+          // test
           dateJoined: parseJSON((await Ajax().User.firstTimestamp()).timestamp).getTime(),
         });
         window.Appcues.on('all', captureAppcuesEvent);
