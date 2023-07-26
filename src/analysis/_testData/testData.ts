@@ -158,8 +158,6 @@ export const generateAzureWorkspace = (prefix: string = uuid().substring(0, 8)):
   workspace: {
     authorizationDomain: [],
     cloudPlatform: 'Azure',
-    googleProject: '',
-    bucketName: '',
     name: `${prefix}-azure-ws-name`,
     namespace: `${prefix}-azure-ws-namespace`,
     workspaceId: uuid().substring(0, 8),
@@ -180,8 +178,6 @@ export const defaultAzureWorkspace: AzureWorkspace = {
   workspace: {
     authorizationDomain: [],
     cloudPlatform: 'Azure',
-    googleProject: '',
-    bucketName: '',
     name: 'test-azure-ws-name',
     namespace: 'test-azure-ws-namespace',
     workspaceId: 'fafbb550-62eb-4135-8b82-3ce4d53446af',
