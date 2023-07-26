@@ -127,6 +127,7 @@ export const WorkspaceTabs = ({
   const tabs = [
     { name: 'dashboard', link: 'workspace-dashboard' },
     { name: 'data', link: 'workspace-data' },
+    { name: 'explore', link: 'workspace-dataviz' },
     { name: 'analyses', link: analysisTabName },
     ...(googleWorkspace
       ? [

@@ -32,6 +32,7 @@ import * as WorkflowDetails from 'src/pages/workflows/workflow/WorkflowDetails';
 import * as WorkspaceList from 'src/pages/workspaces/List';
 import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard';
 import * as Data from 'src/pages/workspaces/workspace/Data';
+import * as Dataviz from 'src/pages/workspaces/workspace/Dataviz';
 import * as WorkspaceFiles from 'src/pages/workspaces/workspace/Files';
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory';
 import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/SubmissionDetails';
@@ -56,6 +57,7 @@ const routes = _.flatten([
   PrivacyPolicy.navPaths,
   Dashboard.navPaths,
   Data.navPaths,
+  Dataviz.navPaths,
   Analysis.navPaths,
   JobHistory.navPaths,
   SubmissionDetails.navPaths,
