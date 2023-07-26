@@ -111,17 +111,26 @@ beforeAll(() => {
   Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
 });
 
+let container = null;
+
 beforeEach(() => {
   jest.clearAllMocks();
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+  // setup a DOM element as a render target
+  container = document.createElement('div');
+  document.body.appendChild(container);
   MenuTrigger.mockImplementation(({ content }) => {
     return div({ role: 'menu' }, [content]);
   });
   getConfig.mockReturnValue({ wdsUrlRoot: 'http://localhost:3000/wds', cbasUrlRoot: 'http://localhost:8080/cbas' });
 });
 
-// afterEach(() => {
-//   jest.clearAllMocks();
-// });
+afterEach(() => {
+  jest.clearAllMocks();
+  // cleanup on exiting
+  container.remove();
+  container = null;
+});
 
 afterAll(() => {
   Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
@@ -401,7 +410,6 @@ describe('SubmissionHistory page', () => {
     // Click on "Date Submitted" column and check that the top column is correct for:
     // * ascending order
     await user.click(within(headers[headerPosition['Date Submitted']]).getByRole('button'));
-    // screen.debug(undefined, 300000);
     within(topRowCells(headerPosition['Date Submitted'])).getByText(/Jul 10, 2021/);
 
     // * descending order
@@ -424,8 +432,9 @@ describe('SubmissionHistory page', () => {
 
     // * descending order
     await user.click(within(headers[headerPosition.Duration]).getByRole('button'));
-    screen.debug(undefined, 300000);
     within(topRowCells(headerPosition.Duration)).getByText('1 month 1 day 1 hour 1 minute 1 second');
+
+    jest.spyOn(console, 'error');
   });
 
   const simpleRunSetData = {
@@ -609,7 +618,7 @@ describe('SubmissionHistory page', () => {
         Cbas: {
           runSets: {
             get: jest.fn(getRunSetsMethod),
-            cancel: cancelSubmissionFunction,
+            cancel: jest.fn(cancelSubmissionFunction),
           },
         },
       };
@@ -622,7 +631,8 @@ describe('SubmissionHistory page', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-        })
+        }),
+        container
       );
     });
 
@@ -631,9 +641,7 @@ describe('SubmissionHistory page', () => {
       expect(getRunSetsMethod).toBeCalledTimes(1);
     });
 
-    await waitFor(() => {
-      expect(screen.getByRole('table')).toBeInTheDocument();
-    });
+    expect(screen.getByRole('table')).toBeInTheDocument();
 
     const table = screen.getByRole('table');
 
