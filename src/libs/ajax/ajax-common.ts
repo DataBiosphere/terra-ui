@@ -198,6 +198,7 @@ export const fetchOrchestration = _.flow(
   withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 
+// TODO: remove rex
 export const fetchRex = _.flow(
   withUrlPrefix(`${getConfig().rexUrlRoot}/api/`),
   withRetryAfterReloadingExpiredAuthToken

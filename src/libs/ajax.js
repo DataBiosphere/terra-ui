@@ -48,6 +48,7 @@ window.ajaxOverrideUtils = {
   makeSuccess: (body) => (_wrappedFetch) => () => Promise.resolve(new Response(JSON.stringify(body), { status: 200 })),
 };
 
+// TODO: remove rex
 const getFirstTimeStamp = Utils.memoizeAsync(
   async (token) => {
     const res = await fetchRex('firstTimestamps/record', _.mergeAll([authOpts(token), { method: 'POST' }]));
@@ -204,6 +205,21 @@ const User = (signal) => ({
     return (await res.json()).upload;
   },
 
+  // TODO: make this get registered at date from sam get user endpoint. Something like this:
+  getRegisteredAtDate: async (userId) => {
+    try {
+      const res = await fetchSam(`/api/admin/v2/user/${userId}`, _.merge(authOpts(), { signal }));
+      const userInfo = res.json();
+      return userInfo.registeredAt;
+    } catch (error) {
+      if (error.status === 404 || error.status === 403) {
+        return null;
+      }
+      throw error;
+    }
+  },
+
+  // TODO: remove rex
   firstTimestamp: () => {
     return getFirstTimeStamp(getUser().token);
   },
