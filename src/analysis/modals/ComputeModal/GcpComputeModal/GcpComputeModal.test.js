@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
@@ -35,8 +35,8 @@ import { asMockedFn } from 'src/testing/test-utils';
 
 jest.mock('src/libs/notifications', () => ({
   notify: (...args) => {
-    console.debug('######################### notify')/* eslint-disable-line */
-    console.debug({ method: 'notify', args: [...args] })/* eslint-disable-line */
+    console.debug('######################### notify'); /* eslint-disable-line */
+    console.debug({ method: 'notify', args: [...args] }); /* eslint-disable-line */
   },
 }));
 
@@ -45,6 +45,7 @@ jest.mock('src/analysis/utils/cost-utils');
 jest.mock('src/libs/config', () => ({
   getConfig: () => ({
     terraDeploymentEnv: 'unitTest',
+    shouldUseDrsHub: true,
   }),
 }));
 
@@ -103,15 +104,19 @@ describe('GcpComputeModal', () => {
     // Arrange
 
     // Act
-    await act(async () => await render(h(GcpComputeModalBase, defaultModalProps)));
+    await act(async () => {
+      render(h(GcpComputeModalBase, defaultModalProps));
+    });
 
     // Assert
     verifyEnabled(getCreateButton());
     screen.getByText('Jupyter Cloud Environment');
   });
 
-  it('passes the TERRA_DEPLOYMENT_ENV env var through to the notebook through custom env vars', async () => {
+  it('passes the TERRA_DEPLOYMENT_ENV and DRS_RESOLVER_ENDPOINT env vars through to the notebook through custom env vars', async () => {
     // Arrange
+    const user = userEvent.setup();
+
     const createFunc = jest.fn();
     const runtimeFunc = jest.fn(() => ({
       create: createFunc,
@@ -126,9 +131,10 @@ describe('GcpComputeModal', () => {
 
     // Act
     await act(async () => {
-      await render(h(GcpComputeModalBase, defaultModalProps));
-      await userEvent.click(getCreateButton());
+      render(h(GcpComputeModalBase, defaultModalProps));
     });
+
+    await user.click(getCreateButton());
 
     // Assert
     expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
@@ -136,6 +142,7 @@ describe('GcpComputeModal', () => {
       expect.objectContaining({
         customEnvironmentVariables: expect.objectContaining({
           TERRA_DEPLOYMENT_ENV: 'unitTest',
+          DRS_RESOLVER_ENDPOINT: 'api/v4/drs/resolve',
         }),
       })
     );
@@ -144,6 +151,8 @@ describe('GcpComputeModal', () => {
 
   it('sends the proper leo API call in default create case (no runtimes or disks)', async () => {
     // Arrange
+    const user = userEvent.setup();
+
     const createFunc = jest.fn();
     const runtimeFunc = jest.fn(() => ({
       create: createFunc,
@@ -158,9 +167,10 @@ describe('GcpComputeModal', () => {
 
     // Act
     await act(async () => {
-      await render(h(GcpComputeModalBase, defaultModalProps));
-      await userEvent.click(getCreateButton());
+      render(h(GcpComputeModalBase, defaultModalProps));
     });
+
+    await user.click(getCreateButton());
 
     // Assert
     const labels = {
@@ -189,6 +199,8 @@ describe('GcpComputeModal', () => {
   // create button with disk but no runtime
   it('sends the proper API call in create case with an existing disk but no runtime', async () => {
     // Arrange
+    const user = userEvent.setup();
+
     // put value into local var so its easier to refactor
     const disk = defaultTestDisk;
     const createFunc = jest.fn();
@@ -212,14 +224,15 @@ describe('GcpComputeModal', () => {
 
     // Act
     await act(async () => {
-      await render(
+      render(
         h(GcpComputeModalBase, {
           ...defaultModalProps,
           currentDisk: disk,
         })
       );
-      await userEvent.click(getCreateButton());
     });
+
+    await user.click(getCreateButton());
 
     // Assert
     expect(runtimeFunc).toHaveBeenCalledWith(defaultGoogleWorkspace.workspace.googleProject, expect.anything());
@@ -263,7 +276,7 @@ describe('GcpComputeModal', () => {
 
       // Act
       await act(async () => {
-        await render(
+        render(
           h(GcpComputeModalBase, {
             ...defaultModalProps,
             currentDisk: disk,
@@ -319,7 +332,7 @@ describe('GcpComputeModal', () => {
 
       // Act
       await act(async () => {
-        await render(
+        render(
           h(GcpComputeModalBase, {
             ...defaultModalProps,
             currentDisk: disk,
@@ -342,6 +355,8 @@ describe('GcpComputeModal', () => {
     'deletes environment with a confirmation for disk deletion for tool $tool.label',
     async ({ tool }) => {
       // Arrange
+      const user = userEvent.setup();
+
       const disk = getDisk();
       const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
       const runtime = getGoogleRuntime(runtimeProps);
@@ -372,8 +387,9 @@ describe('GcpComputeModal', () => {
             currentRuntime: runtime,
           })
         );
-        await userEvent.click(screen.getByText('Delete Environment'));
       });
+
+      await user.click(screen.getByText('Delete Environment'));
 
       // Assert
       verifyEnabled(screen.getByText('Delete'));
@@ -389,6 +405,8 @@ describe('GcpComputeModal', () => {
     'clicking through delete confirmation and then delete should call delete for tool $tool.label',
     async ({ tool }) => {
       // Arrange
+      const user = userEvent.setup();
+
       const disk = getDisk();
       const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
       const runtime = getGoogleRuntime(runtimeProps);
@@ -422,9 +440,10 @@ describe('GcpComputeModal', () => {
             currentRuntime: runtime,
           })
         );
-        await userEvent.click(screen.getByText('Delete Environment'));
-        await userEvent.click(screen.getByText('Delete'));
       });
+
+      await user.click(screen.getByText('Delete Environment'));
+      await user.click(screen.getByText('Delete'));
 
       // Assert
       expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
@@ -436,6 +455,8 @@ describe('GcpComputeModal', () => {
     'updating a runtime after changing a field that requires downtime should call update for tool $tool.label',
     async ({ tool }) => {
       // Arrange
+      const user = userEvent.setup();
+
       const disk = getDisk();
       const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
       const runtime = getGoogleRuntime(runtimeProps);
@@ -462,29 +483,27 @@ describe('GcpComputeModal', () => {
 
       // Act
       await act(async () => {
-        await render(
+        render(
           h(GcpComputeModalBase, {
             ...defaultModalProps,
             currentDisk: disk,
             currentRuntime: runtime,
           })
         );
-
-        await userEvent.click(screen.getByLabelText('CPUs'));
-        const selectOption = await screen.findByText('2');
-        await userEvent.click(selectOption);
-        const nextButton = await screen.findByText('Next');
-        await userEvent.click(nextButton);
       });
+
+      await user.click(screen.getByLabelText('CPUs'));
+      const selectOption = await screen.findByText('2');
+      await user.click(selectOption);
+      const nextButton = await screen.findByText('Next');
+      await user.click(nextButton);
 
       // Assert
       await screen.findByText('Downtime required');
 
       // Act
-      await act(async () => {
-        const updateButton = await screen.findByText('Update');
-        await userEvent.click(updateButton);
-      });
+      const updateButton = await screen.findByText('Update');
+      await user.click(updateButton);
 
       // Assert
       expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
@@ -626,6 +645,8 @@ describe('GcpComputeModal', () => {
 
   it('should create dataproc spark cluster successfully', async () => {
     // Arrange
+    const user = userEvent.setup();
+
     const createFunc = jest.fn();
     const runtimeFunc = jest.fn(() => ({
       create: createFunc,
@@ -645,21 +666,21 @@ describe('GcpComputeModal', () => {
 
     // Act
     await act(async () => {
-      await render(h(GcpComputeModalBase, defaultModalProps));
-
-      const selectMenu = await screen.getByLabelText('Application configuration');
-      await userEvent.click(selectMenu);
-      const selectOption = await screen.findByText(hailImage.label);
-      await userEvent.click(selectOption);
-
-      const computeTypeSelect = await screen.getByLabelText('Compute type');
-      await userEvent.click(computeTypeSelect);
-      const sparkClusterOption = await screen.findByText('Spark cluster');
-      await userEvent.click(sparkClusterOption);
-
-      const create = await screen.getByText('Create');
-      await userEvent.click(create);
+      render(h(GcpComputeModalBase, defaultModalProps));
     });
+
+    const selectMenu = screen.getByLabelText('Application configuration');
+    await user.click(selectMenu);
+    const selectOption = await screen.findByText(hailImage.label);
+    await user.click(selectOption);
+
+    const computeTypeSelect = screen.getByLabelText('Compute type');
+    await user.click(computeTypeSelect);
+    const sparkClusterOption = await screen.findByText('Spark cluster');
+    await user.click(sparkClusterOption);
+
+    const create = screen.getByText('Create');
+    await user.click(create);
 
     expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
     expect(createFunc).toHaveBeenCalledWith(
@@ -703,13 +724,14 @@ describe('GcpComputeModal', () => {
     // Act
     await act(async () => {
       render(h(GcpComputeModalBase, defaultModalProps));
-      const selectMenu = screen.getByLabelText('Application configuration');
-      await user.click(selectMenu);
-      const selectOption = await screen.findByText(hailImage.label);
-      await user.click(selectOption);
-      const create = screen.getByText('Create');
-      await user.click(create);
     });
+
+    const selectMenu = screen.getByLabelText('Application configuration');
+    await user.click(selectMenu);
+    const selectOption = await screen.findByText(hailImage.label);
+    await user.click(selectOption);
+    const create = screen.getByText('Create');
+    await user.click(create);
 
     expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
 
@@ -732,6 +754,8 @@ describe('GcpComputeModal', () => {
   // Strongly recommend typing the compute modal before attempting to fix
   it('should delete spark single node successfully', async () => {
     // Arrange
+    const user = userEvent.setup();
+
     const runtimeProps = {
       runtimeConfig: getJupyterRuntimeConfig({
         diskId: undefined,
@@ -762,16 +786,17 @@ describe('GcpComputeModal', () => {
 
     // Act
     await act(async () => {
-      await render(
+      render(
         h(GcpComputeModalBase, {
           ...defaultModalProps,
           currentDisk: undefined,
           currentRuntime: runtime,
         })
       );
-      await userEvent.click(screen.getByText('Delete Runtime'));
-      await userEvent.click(screen.getByText('Delete'));
     });
+
+    await user.click(screen.getByText('Delete Runtime'));
+    await user.click(screen.getByText('Delete'));
 
     // Assert
     expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
@@ -820,7 +845,7 @@ describe('GcpComputeModal', () => {
 
     // Act
     await act(async () => {
-      await render(
+      render(
         h(GcpComputeModalBase, {
           ...defaultModalProps,
           currentRuntime: runtime,
@@ -856,6 +881,8 @@ describe('GcpComputeModal', () => {
   // spark cluster (pass a dataproc runtime and ensure it loads correctly) (
   it('creates a dataproc runtime', async () => {
     // Arrange
+    const user = userEvent.setup();
+
     const createFunc = jest.fn();
     const runtimeFunc = jest.fn(() => ({
       create: createFunc,
@@ -875,20 +902,20 @@ describe('GcpComputeModal', () => {
 
     // Act
     await act(async () => {
-      await render(h(GcpComputeModalBase, defaultModalProps));
-
-      const selectMenu = await screen.getByLabelText('Application configuration');
-      await userEvent.click(selectMenu);
-      const selectOption = await screen.findByText(hailImage.label);
-      await userEvent.click(selectOption);
-      const computeTypeSelect = await screen.getByLabelText('Compute type');
-      await userEvent.click(computeTypeSelect);
-      const sparkClusterOption = await screen.findByText('Spark cluster');
-      await userEvent.click(sparkClusterOption);
-
-      const create = await screen.getByText('Create');
-      await userEvent.click(create);
+      render(h(GcpComputeModalBase, defaultModalProps));
     });
+
+    const selectMenu = screen.getByLabelText('Application configuration');
+    await user.click(selectMenu);
+    const selectOption = await screen.findByText(hailImage.label);
+    await user.click(selectOption);
+    const computeTypeSelect = screen.getByLabelText('Compute type');
+    await user.click(computeTypeSelect);
+    const sparkClusterOption = await screen.findByText('Spark cluster');
+    await user.click(sparkClusterOption);
+
+    const create = screen.getByText('Create');
+    await user.click(create);
 
     expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
     expect(createFunc).toHaveBeenCalledWith(
@@ -914,6 +941,8 @@ describe('GcpComputeModal', () => {
     'custom Environment pane should behave correctly with an invalid image URI',
     async ({ tool }) => {
       // Arrange
+      const user = userEvent.setup();
+
       const createFunc = jest.fn();
       const disk = getDisk();
       const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
@@ -937,22 +966,22 @@ describe('GcpComputeModal', () => {
 
       // Act and assert
       await act(async () => {
-        await render(h(GcpComputeModalBase, defaultModalProps));
-
-        const selectMenu = await screen.getByLabelText('Application configuration');
-        await userEvent.click(selectMenu);
-        const selectOption = await screen.findByText('Custom Environment');
-        await userEvent.click(selectOption);
-
-        const imageInput = await screen.getByLabelText('Container image');
-        expect(imageInput).toBeInTheDocument();
-        const invalidImageUri = 'b';
-        await userEvent.type(imageInput, invalidImageUri);
-
-        const nextButton = await screen.findByText('Next');
-
-        verifyDisabled(nextButton);
+        render(h(GcpComputeModalBase, defaultModalProps));
       });
+
+      const selectMenu = screen.getByLabelText('Application configuration');
+      await user.click(selectMenu);
+      const selectOption = await screen.findByText('Custom Environment');
+      await user.click(selectOption);
+
+      const imageInput = screen.getByLabelText('Container image');
+      expect(imageInput).toBeInTheDocument();
+      const invalidImageUri = 'b';
+      await user.type(imageInput, invalidImageUri);
+
+      const nextButton = await screen.findByText('Next');
+
+      verifyDisabled(nextButton);
     }
   );
 
@@ -961,6 +990,8 @@ describe('GcpComputeModal', () => {
     'custom Environment pane should work with a valid image URI ',
     async ({ tool }) => {
       // Arrange
+      const user = userEvent.setup();
+
       const createFunc = jest.fn();
       const disk = getDisk();
       const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
@@ -984,44 +1015,47 @@ describe('GcpComputeModal', () => {
 
       // Act and assert
       await act(async () => {
-        await render(h(GcpComputeModalBase, defaultModalProps));
-
-        const selectMenu = await screen.getByLabelText('Application configuration');
-        await userEvent.click(selectMenu);
-        const selectOption = await screen.findByText('Custom Environment');
-        await userEvent.click(selectOption);
-
-        const imageInput = await screen.getByLabelText('Container image');
-        expect(imageInput).toBeInTheDocument();
-        const customImageUri = 'us';
-        await fireEvent.change(imageInput, { target: { value: customImageUri } });
-
-        await screen.findByText('Creation Timeout Limit');
-
-        const nextButton = await screen.findByText('Next');
-        verifyEnabled(nextButton);
-        await userEvent.click(nextButton);
-        const unverifiedDockerWarningHeader = await screen.findByText('Unverified Docker image');
-
-        expect(unverifiedDockerWarningHeader).toBeInTheDocument();
-        const createButton = await screen.findByText('Create');
-        await userEvent.click(createButton);
-        expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
-        expect(createFunc).toHaveBeenCalledWith(
-          expect.objectContaining({
-            toolDockerImage: customImageUri,
-          })
-        );
+        render(h(GcpComputeModalBase, defaultModalProps));
       });
+
+      const selectMenu = screen.getByLabelText('Application configuration');
+      await user.click(selectMenu);
+      const selectOption = await screen.findByText('Custom Environment');
+      await user.click(selectOption);
+
+      const imageInput = screen.getByLabelText('Container image');
+      expect(imageInput).toBeInTheDocument();
+      const customImageUri = 'us';
+      await user.type(imageInput, customImageUri);
+
+      await screen.findByText('Creation Timeout Limit');
+
+      const nextButton = await screen.findByText('Next');
+      verifyEnabled(nextButton);
+      await user.click(nextButton);
+      const unverifiedDockerWarningHeader = await screen.findByText('Unverified Docker image');
+
+      expect(unverifiedDockerWarningHeader).toBeInTheDocument();
+      const createButton = await screen.findByText('Create');
+      await user.click(createButton);
+      expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
+      expect(createFunc).toHaveBeenCalledWith(
+        expect.objectContaining({
+          toolDockerImage: customImageUri,
+        })
+      );
     }
   );
 
   // click learn more about persistent disk
   it('should render learn more about persistent disks', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
     // Act
     render(h(GcpComputeModalBase, defaultModalProps));
     const link = screen.getByText('Learn more about persistent disks and where your disk is mounted.');
-    await userEvent.click(link);
+    await user.click(link);
 
     // Assert
     screen.getByText('About persistent disk');
@@ -1032,12 +1066,14 @@ describe('GcpComputeModal', () => {
     'should check successfully that the disk type is clickable',
     async ({ tool }) => {
       // arrange
+      const user = userEvent.setup();
+
       const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ tool }) };
       const runtime = getGoogleRuntime(runtimeProps);
 
       // Act
       await act(async () => {
-        await render(
+        render(
           h(GcpComputeModalBase, {
             ...defaultModalProps,
             currentRuntime: runtime,
@@ -1047,17 +1083,21 @@ describe('GcpComputeModal', () => {
 
       // Assert
       const diskTypeDropdown = screen.getByLabelText('Disk Type');
-      await userEvent.click(diskTypeDropdown);
+      await user.click(diskTypeDropdown);
     }
   );
 
   it('should render whats installed on this environment', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
     // Act
     await act(async () => {
-      await render(h(GcpComputeModalBase, defaultModalProps));
-      const link = await screen.getByText('What’s installed on this environment?');
-      await userEvent.click(link);
+      render(h(GcpComputeModalBase, defaultModalProps));
     });
+
+    const link = await screen.getByText('What’s installed on this environment?');
+    await user.click(link);
 
     // Assert
     screen.getByText('Installed packages');
@@ -1068,6 +1108,8 @@ describe('GcpComputeModal', () => {
   // GPUs should function properly
   it.each([{ tool: runtimeTools.Jupyter.label }, { tool: runtimeTools.RStudio.label }])('creates a runtime with GPUs for $tool', async ({ tool }) => {
     // Arrange
+    const user = userEvent.setup();
+
     const createFunc = jest.fn();
     const runtimeFunc = jest.fn(() => ({
       create: createFunc,
@@ -1081,25 +1123,24 @@ describe('GcpComputeModal', () => {
     }));
     // Act
     await act(async () => {
-      await render(
+      render(
         h(GcpComputeModalBase, {
           ...defaultModalProps,
           tool,
         })
       );
-      const enableGPU = await screen.getByText('Enable GPUs');
-      await userEvent.click(enableGPU);
     });
+
+    const enableGPU = await screen.getByText('Enable GPUs');
+    await user.click(enableGPU);
 
     // Assert
     screen.getByText('GPU type');
     screen.getByText('GPUs');
 
     // Act
-    await act(async () => {
-      const create = screen.getByText('Create');
-      await userEvent.click(create);
-    });
+    const create = screen.getByText('Create');
+    await user.click(create);
 
     // Assert
     expect(createFunc).toHaveBeenCalledWith(
@@ -1117,6 +1158,8 @@ describe('GcpComputeModal', () => {
     { tool: runtimeTools.RStudio.label, expectedLabel: '/home/rstudio' },
   ])('should render learn more about persistent disks', async ({ tool, expectedLabel }) => {
     // Arrange
+    const user = userEvent.setup();
+
     const disk = getDisk();
     const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
     const runtime = getGoogleRuntime(runtimeProps);
@@ -1136,14 +1179,54 @@ describe('GcpComputeModal', () => {
 
     // Assert
     const link = screen.getByText('Learn more about persistent disks and where your disk is mounted.');
-    await userEvent.click(link);
+    await user.click(link);
     screen.getByText('About persistent disk');
     screen.getByText(expectedLabel);
   });
 
   it('correctly renders and updates timeoutInMinutes', async () => {
-    await act(async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    const createFunc = jest.fn();
+    const runtimeFunc = jest.fn(() => ({
+      create: createFunc,
+      details: jest.fn(),
+    }));
+    Ajax.mockImplementation(() => ({
+      ...defaultAjaxImpl,
+      Runtimes: {
+        runtime: runtimeFunc,
+      },
+    }));
+    render(h(GcpComputeModalBase, defaultModalProps));
+
+    // Act
+    const selectMenu = screen.getByLabelText('Application configuration');
+    await user.click(selectMenu);
+    const selectOption = await screen.findByText(/Legacy GATK:/);
+    await user.click(selectOption);
+
+    await screen.findByText('Creation Timeout Limit');
+    const timeoutInput = screen.getByLabelText('Creation Timeout Limit');
+    await user.type(timeoutInput, '20');
+
+    // Assert
+    expect(timeoutInput.value).toBe('20');
+
+    // Act
+    await user.click(selectMenu);
+    const selectOption2 = await screen.findByText(defaultImage.label);
+    await user.click(selectOption2);
+    // Assert
+    expect(timeoutInput).not.toBeVisible();
+  });
+
+  it.each([{ runtimeTool: runtimeTools.Jupyter }, { runtimeTool: runtimeTools.RStudio }])(
+    'correctly sends timeoutInMinutes to create for tool $runtimeTool.label',
+    async ({ runtimeTool }) => {
       // Arrange
+      const user = userEvent.setup();
       const createFunc = jest.fn();
       const runtimeFunc = jest.fn(() => ({
         create: createFunc,
@@ -1155,87 +1238,43 @@ describe('GcpComputeModal', () => {
           runtime: runtimeFunc,
         },
       }));
-      await render(h(GcpComputeModalBase, defaultModalProps));
 
       // Act
-      const selectMenu = await screen.getByLabelText('Application configuration');
-      await userEvent.click(selectMenu);
-      const selectOption = await screen.findByText(/Legacy GATK:/);
-      await userEvent.click(selectOption);
+      await act(async () => {
+        render(h(GcpComputeModalBase, { ...defaultModalProps, tool: runtimeTool.label }));
+      });
+
+      const selectMenu = screen.getByLabelText('Application configuration');
+      await user.click(selectMenu);
+      const customImageSelect = await screen.findByText('Custom Environment');
+      await user.click(customImageSelect);
 
       await screen.findByText('Creation Timeout Limit');
-      const timeoutInput = await screen.getByLabelText('Creation Timeout Limit');
-      await fireEvent.change(timeoutInput, { target: { value: 20 } });
+      const timeoutInput = screen.getByLabelText('Creation Timeout Limit');
+
+      const imageInput = screen.getByLabelText('Container image');
+      expect(imageInput).toBeInTheDocument();
+      const customImageUri = 'us';
+      await user.type(imageInput, customImageUri);
+
+      await user.type(timeoutInput, '20');
+      await user.click(selectMenu);
+
+      const nextButton = await screen.findByText('Next');
+      verifyEnabled(nextButton);
+      await user.click(nextButton);
+      const unverifiedDockerWarningHeader = await screen.findByText('Unverified Docker image');
+
+      expect(unverifiedDockerWarningHeader).toBeInTheDocument();
+      const createButton = await screen.findByText('Create');
+      await user.click(createButton);
 
       // Assert
-      expect(timeoutInput.value).toBe('20');
-
-      // Act
-      await userEvent.click(selectMenu);
-      const selectOption2 = await screen.findByText(defaultImage.label);
-      await userEvent.click(selectOption2);
-      // Assert
-      expect(timeoutInput).not.toBeVisible();
-    });
-  });
-
-  it.each([{ runtimeTool: runtimeTools.Jupyter }, { runtimeTool: runtimeTools.RStudio }])(
-    'correctly sends timeoutInMinutes to create for tool $runtimeTool.label',
-    async ({ runtimeTool }) => {
-      await act(async () => {
-        // Arrange
-        const createFunc = jest.fn();
-        const runtimeFunc = jest.fn(() => ({
-          create: createFunc,
-          details: jest.fn(),
-        }));
-        Ajax.mockImplementation(() => ({
-          ...defaultAjaxImpl,
-          Runtimes: {
-            runtime: runtimeFunc,
-          },
-        }));
-
-        // Act
-        await act(async () => {
-          await render(h(GcpComputeModalBase, { ...defaultModalProps, tool: runtimeTool.label }));
-
-          const selectMenu = await screen.getByLabelText('Application configuration');
-          await userEvent.click(selectMenu);
-          const customImageSelect = await screen.findByText('Custom Environment');
-          await userEvent.click(customImageSelect);
-
-          await screen.findByText('Creation Timeout Limit');
-          const timeoutInput = await screen.getByLabelText('Creation Timeout Limit');
-
-          const imageInput = await screen.getByLabelText('Container image');
-          expect(imageInput).toBeInTheDocument();
-          const customImageUri = 'us';
-          await fireEvent.change(imageInput, { target: { value: customImageUri } });
-
-          await fireEvent.change(timeoutInput, { target: { value: 20 } });
-          await userEvent.click(selectMenu);
-        });
-
-        // Act
-        await act(async () => {
-          const nextButton = await screen.findByText('Next');
-          verifyEnabled(nextButton);
-          await userEvent.click(nextButton);
-          const unverifiedDockerWarningHeader = await screen.findByText('Unverified Docker image');
-
-          expect(unverifiedDockerWarningHeader).toBeInTheDocument();
-          const createButton = await screen.findByText('Create');
-          await userEvent.click(createButton);
-        });
-
-        // Assert
-        expect(createFunc).toHaveBeenCalledWith(
-          expect.objectContaining({
-            timeoutInMinutes: 20,
-          })
-        );
-      });
+      expect(createFunc).toHaveBeenCalledWith(
+        expect.objectContaining({
+          timeoutInMinutes: 20,
+        })
+      );
     }
   );
 
@@ -1243,54 +1282,52 @@ describe('GcpComputeModal', () => {
     { runtimeTool: runtimeTools.Jupyter, imageLabel: defaultImage.label },
     { runtimeTool: runtimeTools.RStudio, imageLabel: defaultRImage.label },
   ])('sends null timeout in minutes  for tool $runtimeTool.label after setting and clearing the field', async ({ runtimeTool, imageLabel }) => {
+    // Arrange
+    const user = userEvent.setup();
+
+    const createFunc = jest.fn();
+    const runtimeFunc = jest.fn(() => ({
+      create: createFunc,
+      details: jest.fn(),
+    }));
+    Ajax.mockImplementation(() => ({
+      ...defaultAjaxImpl,
+      Runtimes: {
+        runtime: runtimeFunc,
+      },
+    }));
+
+    // Act
     await act(async () => {
-      // Arrange
-      const createFunc = jest.fn();
-      const runtimeFunc = jest.fn(() => ({
-        create: createFunc,
-        details: jest.fn(),
-      }));
-      Ajax.mockImplementation(() => ({
-        ...defaultAjaxImpl,
-        Runtimes: {
-          runtime: runtimeFunc,
-        },
-      }));
-
-      // Act
-      await act(async () => {
-        await render(h(GcpComputeModalBase, { ...defaultModalProps, tool: runtimeTool.label }));
-
-        const selectMenu = await screen.getByLabelText('Application configuration');
-        await userEvent.click(selectMenu);
-        const customImageSelect = await screen.findByText('Custom Environment');
-        await userEvent.click(customImageSelect);
-
-        await screen.findByText('Creation Timeout Limit');
-        const timeoutInput = await screen.getByLabelText('Creation Timeout Limit');
-        // Set the field to an arbitrary value
-        await fireEvent.change(timeoutInput, { target: { value: 20 } });
-        await userEvent.click(selectMenu);
-        const supportedImageSelect = await screen.findByText(imageLabel);
-        // Clear timeoutInput by selecting
-        await userEvent.click(supportedImageSelect);
-      });
-
-      // Act
-      await act(async () => {
-        const create = screen.getByText('Create');
-        await userEvent.click(create);
-      });
-
-      // Assert
-      expect(createFunc).toHaveBeenCalledWith(
-        expect.objectContaining({
-          // Verify that timeoutInMinutes is actually cleared by selecting
-          // a supported image.
-          timeoutInMinutes: null,
-        })
-      );
+      render(h(GcpComputeModalBase, { ...defaultModalProps, tool: runtimeTool.label }));
     });
+
+    const selectMenu = screen.getByLabelText('Application configuration');
+    await user.click(selectMenu);
+    const customImageSelect = await screen.findByText('Custom Environment');
+    await user.click(customImageSelect);
+
+    await screen.findByText('Creation Timeout Limit');
+    const timeoutInput = screen.getByLabelText('Creation Timeout Limit');
+    // Set the field to an arbitrary value
+    await user.type(timeoutInput, '20');
+    await user.click(selectMenu);
+    const supportedImageSelect = await screen.findByText(imageLabel);
+    // Clear timeoutInput by selecting
+    await user.click(supportedImageSelect);
+
+    // Act
+    const create = screen.getByText('Create');
+    await user.click(create);
+
+    // Assert
+    expect(createFunc).toHaveBeenCalledWith(
+      expect.objectContaining({
+        // Verify that timeoutInMinutes is actually cleared by selecting
+        // a supported image.
+        timeoutInMinutes: null,
+      })
+    );
   });
 
   it('renders default cost estimate', async () => {
@@ -1305,7 +1342,7 @@ describe('GcpComputeModal', () => {
 
     // Act
     await act(async () => {
-      await render(h(GcpComputeModalBase, defaultModalProps));
+      render(h(GcpComputeModalBase, defaultModalProps));
     });
 
     // Assert

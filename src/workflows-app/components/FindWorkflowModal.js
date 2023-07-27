@@ -141,7 +141,7 @@ const FindWorkflowModal = ({ onDismiss, workspace }) => {
               ),
             ]),
           ]),
-        isSubHeaderActive('add-a-workflow-link') && h(ImportGithub, { setLoading, signal, onDismiss, workspace, submitMethod }),
+        isSubHeaderActive('add-a-workflow-link') && h(ImportGithub, { setLoading, signal, onDismiss, workspace }),
         isSubHeaderActive('go-to-dockstore') &&
           div({ style: { marginLeft: '4rem', width: '50%' } }, [
             h(
