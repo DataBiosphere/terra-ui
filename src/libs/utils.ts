@@ -7,7 +7,7 @@ import { AnyPromiseFn, GenericPromiseFn } from 'src/libs/type-utils/general-type
 import { safeCurry } from 'src/libs/type-utils/lodash-fp-helpers';
 import { v4 as uuid } from 'uuid';
 
-import { getCloudProviderFromWorkspace, hasAccessLevel } from './workspace-utils';
+import { hasAccessLevel } from './workspace-utils';
 
 export interface Subscribable<T extends any[]> {
   subscribe: (fn: (...args: T) => void) => { unsubscribe: () => void };
@@ -317,25 +317,6 @@ export const normalizeLabel = _.flow(_.camelCase, _.startCase);
 
 // TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
 export const kvArrayToObject = _.reduce((acc, { key, value }) => _.set(key, value, acc) as any, {});
-
-export const isValidWsExportTarget = _.curry((sourceWs, destWs) => {
-  const {
-    workspace: { workspaceId: sourceId, authorizationDomain: sourceAD },
-  } = sourceWs;
-  const {
-    accessLevel,
-    workspace: { workspaceId: destId, authorizationDomain: destAD },
-  } = destWs;
-  const sourceWsCloudPlatform = getCloudProviderFromWorkspace(sourceWs);
-  const destWsCloudPlatform = getCloudProviderFromWorkspace(destWs);
-
-  return (
-    sourceId !== destId &&
-    canWrite(accessLevel) &&
-    _.intersectionWith(_.isEqual, sourceAD, destAD).length === sourceAD.length &&
-    sourceWsCloudPlatform === destWsCloudPlatform
-  );
-});
 
 export const append = _.curry((value, arr) => _.concat(arr, [value]));
 

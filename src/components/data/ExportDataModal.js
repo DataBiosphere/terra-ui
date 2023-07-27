@@ -13,6 +13,7 @@ import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { isValidWsExportTarget } from 'src/libs/workspace-utils';
 import validate from 'validate.js';
 
 const InfoTile = ({ isError = false, content }) => {
@@ -134,7 +135,7 @@ const ExportDataModal = ({ onDismiss, selectedDataType, selectedEntities, runnin
           h(Fragment, [
             h(FormLabel, { required: true }, ['Destination']),
             h(WorkspaceSelector, {
-              workspaces: _.filter(Utils.isValidWsExportTarget(workspace), workspaces),
+              workspaces: _.filter(isValidWsExportTarget(workspace), workspaces),
               value: selectedWorkspaceId,
               onChange: setSelectedWorkspaceId,
             }),

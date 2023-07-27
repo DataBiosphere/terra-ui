@@ -12,8 +12,8 @@ import Modal from 'src/components/Modal';
 import { WorkspaceSelector } from 'src/components/workspace-utils';
 import { FormLabel } from 'src/libs/forms';
 import { goToPath as navToPath } from 'src/libs/nav';
-import { isValidWsExportTarget, summarizeErrors } from 'src/libs/utils';
-import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { summarizeErrors } from 'src/libs/utils';
+import { isValidWsExportTarget, WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import validate from 'validate.js';
 
 export interface ExportAnalysisModalProps {
