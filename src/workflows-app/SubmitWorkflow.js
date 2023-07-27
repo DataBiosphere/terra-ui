@@ -2,7 +2,7 @@ import { Fragment, useCallback, useEffect, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
 import { appToolLabels, appTools } from 'src/analysis/utils/tool-utils';
-import { ButtonOutline, ButtonPrimary, Clickable } from 'src/components/common';
+import { ButtonOutline, ButtonPrimary, Clickable, Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import TitleBar from 'src/components/TitleBar';
 import { Ajax } from 'src/libs/ajax';
@@ -102,18 +102,18 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       ? centeredSpinner()
       : div([
           !cbasReady &&
-            div({ style: styles.card }, [
+            div({ style: { ...styles.card, margin: '2rem 4rem' } }, [
               h(TitleBar, {
                 id: 'workflow-app-launch-page',
-                title: 'Start the Workflows App to launch workflows',
+                title: 'Launch the Workflows App to run workflows',
                 style: { marginBottom: '0.5rem' },
               }),
-              div(['The Workflows App must be running to launch workflows. Running the Workflows App may incur additional costs.']),
+              div(['The Workflows App must be launched in order to explore, view, and submit workflows.']),
               div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-center' } }, [
-                !appCreating && 'Would you like to start the Workflows App?',
+                !appCreating && 'Would you like to get started?',
                 appCreating && pleaseWaitMessage,
               ]),
-              div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-end' } }, [
+              div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'flex-center' } }, [
                 h(
                   ButtonPrimary,
                   {
@@ -128,9 +128,18 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
                       setAppCreating(true);
                     }),
                   },
-                  ['Create']
+                  ['Yes, launch the Workflows App']
                 ),
               ]),
+              h(
+                Link,
+                {
+                  ...Utils.newTabLinkProps,
+                  href: 'https://support.terra.bio/hc/en-us/articles/360024743371-Working-with-workspaces',
+                  style: { marginTop: '2rem' },
+                },
+                ['Learn more about managing cloud cost']
+              ),
             ]),
           cbasReady &&
             div({ style: { margin: '2rem 4rem' } }, [
