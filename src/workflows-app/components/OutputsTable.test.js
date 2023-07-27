@@ -27,17 +27,13 @@ describe('Output table rendering', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should render output variable names accurately', async () => {
     setupOutputTableTest();
 
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
-    const cells1 = within(rows[1]).queryAllByRole('cell');
-    const cells2 = within(rows[2]).queryAllByRole('cell');
+    const rows = within(table).getAllByRole('row');
+    const cells1 = within(rows[1]).getAllByRole('cell');
+    const cells2 = within(rows[2]).getAllByRole('cell');
 
     within(cells1[0]).getByText('target_workflow_1');
     within(cells1[1]).getByText('file_output');
@@ -55,10 +51,10 @@ describe('Output table rendering', () => {
     const user = userEvent.setup();
 
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
-    const headers = within(rows[0]).queryAllByRole('columnheader');
-    const cells1 = within(rows[1]).queryAllByRole('cell');
-    const cells2 = within(rows[2]).queryAllByRole('cell');
+    const rows = within(table).getAllByRole('row');
+    const headers = within(rows[0]).getAllByRole('columnheader');
+    const cells1 = within(rows[1]).getAllByRole('cell');
+    const cells2 = within(rows[2]).getAllByRole('cell');
 
     within(cells1[0]).getByText('target_workflow_1');
     within(cells1[1]).getByText('file_output');
@@ -104,17 +100,13 @@ describe('Output table definition updates', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should set output variable names when set defaults button is clicked', async () => {
     const { setConfiguredOutputDefinition } = setupOutputTableTest();
     const user = userEvent.setup();
 
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
-    const headers = within(rows[0]).queryAllByRole('columnheader');
+    const rows = within(table).getAllByRole('row');
+    const headers = within(rows[0]).getAllByRole('columnheader');
 
     // set defaults
     await user.click(within(headers[3]).getByRole('button'));

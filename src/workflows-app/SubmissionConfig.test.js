@@ -75,10 +75,6 @@ describe('BaseSubmissionConfig renders workflow details', () => {
     getConfig.mockReturnValue({ wdsUrlRoot, cbasUrlRoot, cromwellUrlRoot });
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
@@ -244,10 +240,6 @@ describe('BaseSubmissionConfig with workflowsAppStore', () => {
   beforeEach(() => {
     getConfig.mockReturnValue({ leoUrlRoot });
     getUser.mockReturnValue({ email: 'groot@gmail.com' });
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   afterAll(() => {
@@ -534,10 +526,6 @@ describe('Initial state', () => {
     getConfig.mockReturnValue({ wdsUrlRoot, cbasUrlRoot });
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
@@ -592,13 +580,13 @@ describe('Initial state', () => {
 
     const table = screen.getByRole('table');
 
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(5);
 
-    const headers = within(rows[0]).queryAllByRole('columnheader');
+    const headers = within(rows[0]).getAllByRole('columnheader');
     expect(headers.length).toBe(4);
 
-    const cells = within(rows[1]).queryAllByRole('cell');
+    const cells = within(rows[1]).getAllByRole('cell');
     expect(cells.length).toBe(4);
   });
 
@@ -657,14 +645,14 @@ describe('Initial state', () => {
 
     // ** ASSERT **
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
 
     expect(rows.length).toBe(runSetInputDef.length + 1); // one row for each input definition variable, plus headers
 
-    const headers = within(rows[0]).queryAllByRole('columnheader');
+    const headers = within(rows[0]).getAllByRole('columnheader');
     expect(headers.length).toBe(5);
 
-    const cellsFoo = within(rows[1]).queryAllByRole('cell');
+    const cellsFoo = within(rows[1]).getAllByRole('cell');
     expect(cellsFoo.length).toBe(5);
     within(cellsFoo[0]).getByText('foo');
     within(cellsFoo[1]).getByText('foo_rating_workflow_var');
@@ -672,7 +660,7 @@ describe('Initial state', () => {
     within(cellsFoo[3]).getByText('Fetch from Data Table');
     within(cellsFoo[4]).getByText('foo_rating');
 
-    const cellsBar = within(rows[2]).queryAllByRole('cell');
+    const cellsBar = within(rows[2]).getAllByRole('cell');
     expect(cellsBar.length).toBe(5);
     expect(cellsBar[0].textContent).toBe('target_workflow_1');
     within(cellsBar[1]).getByText('bar_string_workflow_var');
@@ -680,7 +668,7 @@ describe('Initial state', () => {
     within(cellsBar[3]).getByText('Fetch from Data Table');
     within(cellsBar[4]).getByText('bar_string');
 
-    const thirdInputRow = within(rows[3]).queryAllByRole('cell');
+    const thirdInputRow = within(rows[3]).getAllByRole('cell');
     expect(thirdInputRow.length).toBe(5);
     expect(thirdInputRow[0].textContent).toBe('target_workflow_1');
     within(thirdInputRow[1]).getByText('optional_var');
@@ -744,22 +732,22 @@ describe('Initial state', () => {
 
     // ** ASSERT **
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
 
     expect(runSetOutputDef.length).toBe(2);
     expect(rows.length).toBe(runSetOutputDef.length + 1); // one row for each output definition variable, plus headers
 
-    const headers = within(rows[0]).queryAllByRole('columnheader');
+    const headers = within(rows[0]).getAllByRole('columnheader');
     expect(headers.length).toBe(4);
 
-    const row1cells = within(rows[1]).queryAllByRole('cell');
+    const row1cells = within(rows[1]).getAllByRole('cell');
     expect(row1cells.length).toBe(4);
     expect(row1cells[0].textContent).toBe('target_workflow_1');
     within(row1cells[1]).getByText('file_output');
     within(row1cells[2]).getByText('File');
     within(row1cells[3]).getByDisplayValue('target_workflow_1_file_output');
 
-    const row2cells = within(rows[2]).queryAllByRole('cell');
+    const row2cells = within(rows[2]).getAllByRole('cell');
     expect(row2cells.length).toBe(4);
     expect(row2cells[0].textContent).toBe('target_workflow_1');
     within(row2cells[1]).getByText('unused_output');
@@ -778,10 +766,6 @@ describe('Records Table updates', () => {
     getConfig.mockReturnValue({ wdsUrlRoot, cbasUrlRoot });
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
@@ -789,6 +773,7 @@ describe('Records Table updates', () => {
 
   it('should repopulate the record selector when the dropdown selection changes', async () => {
     // ** ARRANGE **
+    const user = userEvent.setup();
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
     const mockSearchResponse = jest.fn((_root, _instanceId, recordType) => Promise.resolve(searchResponses[recordType]));
@@ -838,33 +823,38 @@ describe('Records Table updates', () => {
     // ** ACT **
     const dropdown = screen.getByLabelText('Select a data table');
     await act(async () => {
-      await selectEvent.select(dropdown, ['BAR']);
+      await selectEvent.openMenu(dropdown);
     });
+
+    await user.click(screen.getByText('BAR'));
 
     // ** ASSERT **
     // selecting a dropdown option should trigger a re-render, and a second call to records data
     expect(mockSearchResponse).toHaveBeenCalledTimes(2);
-    const rowsBAR = within(table).queryAllByRole('row');
+    const rowsBAR = within(table).getAllByRole('row');
     expect(rowsBAR.length).toBe(3);
-    const headers = within(rowsBAR[0]).queryAllByRole('columnheader');
+    const headers = within(rowsBAR[0]).getAllByRole('columnheader');
     expect(headers.length).toBe(4);
-    const cells = within(rowsBAR[1]).queryAllByRole('cell');
+    const cells = within(rowsBAR[1]).getAllByRole('cell');
     expect(cells.length).toBe(4);
 
     // ** ACT **
     await act(async () => {
-      await selectEvent.select(dropdown, ['FOO']);
+      await selectEvent.openMenu(dropdown);
     });
+
+    await user.click(screen.getByText('FOO'));
 
     // ** ASSERT **
     // selecting a dropdown option should (again) trigger a re-render, and a third call to records data
     expect(mockSearchResponse).toHaveBeenCalledTimes(3);
-    const rowsFOO = within(table).queryAllByRole('row');
+    const rowsFOO = within(table).getAllByRole('row');
     expect(rowsFOO.length).toBe(5);
   });
 
   it('should resize the columns and new widths should be preserved when data table selection changes within given workflow', async () => {
     // ** ARRANGE **
+    const user = userEvent.setup();
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
     const mockSearchResponse = jest.fn((_root, _instanceId, recordType) => Promise.resolve(searchResponses[recordType]));
@@ -911,10 +901,10 @@ describe('Records Table updates', () => {
     expect(mockWdlResponse).toHaveBeenCalledTimes(1);
     const table = screen.getByRole('table');
 
-    const fooRows1 = within(table).queryAllByRole('row');
+    const fooRows1 = within(table).getAllByRole('row');
     expect(fooRows1.length).toBe(5);
 
-    const fooHeaders1 = within(fooRows1[0]).queryAllByRole('columnheader');
+    const fooHeaders1 = within(fooRows1[0]).getAllByRole('columnheader');
     expect(fooHeaders1.length).toBe(4);
     within(fooHeaders1[1]).getByText('ID');
     expect(getComputedStyle(fooHeaders1[1]).width).toBe('300px'); // initial column width
@@ -934,13 +924,15 @@ describe('Records Table updates', () => {
     // Change Data Table to 'BAR'
     const dropdown1 = screen.getByLabelText('Select a data table');
     await act(async () => {
-      await selectEvent.select(dropdown1, ['BAR']);
+      await selectEvent.openMenu(dropdown1);
     });
 
+    await user.click(screen.getByText('BAR'));
+
     // ** ASSERT **
-    const barRows = within(table).queryAllByRole('row');
+    const barRows = within(table).getAllByRole('row');
     expect(barRows.length).toBe(3);
-    const barHeaders = within(barRows[0]).queryAllByRole('columnheader');
+    const barHeaders = within(barRows[0]).getAllByRole('columnheader');
     expect(barHeaders.length).toBe(4);
     within(barHeaders[1]).getByText('ID');
     // even though both 'FOO' and 'BAR' data tables have 'ID' columns their widths can be different
@@ -961,13 +953,15 @@ describe('Records Table updates', () => {
     // Change Data Table back to 'FOO'
     const dropdown2 = screen.getByLabelText('Select a data table');
     await act(async () => {
-      await selectEvent.select(dropdown2, ['FOO']);
+      await selectEvent.openMenu(dropdown2);
     });
+
+    await user.click(screen.getByText('FOO'));
 
     // ** ASSERT **
     // verify that the width of column 'ID' has been preserved from previous resizing
-    const fooRows2 = within(table).queryAllByRole('row');
-    const fooHeaders2 = within(fooRows2[0]).queryAllByRole('columnheader');
+    const fooRows2 = within(table).getAllByRole('row');
+    const fooHeaders2 = within(fooRows2[0]).getAllByRole('columnheader');
     expect(getComputedStyle(fooHeaders2[1]).width).toBe('500px');
   });
 
@@ -1078,8 +1072,10 @@ describe('Records Table updates', () => {
     // Change the selected data types
     const dropdown1 = screen.getByLabelText('Select a data table');
     await act(async () => {
-      await selectEvent.select(dropdown1, ['BAR']);
+      await selectEvent.openMenu(dropdown1);
     });
+
+    await user.click(screen.getByText('BAR'));
 
     const checkboxesAfterRecordTypeChange = screen.getAllByRole('checkbox');
     for (const checkboxAfterRecordTypeChange of checkboxesAfterRecordTypeChange) {
@@ -1089,12 +1085,14 @@ describe('Records Table updates', () => {
     const buttonAfterRecordTypeChange = screen.getByLabelText('Submit button');
     expect(buttonAfterRecordTypeChange).toHaveAttribute('aria-disabled', 'true');
     expect(buttonAfterRecordTypeChange).toHaveAttribute('disabled');
-    expect(screen.queryByText('No records selected')).not.toBeNull();
+    screen.getByText('No records selected');
 
     // Change the selected data type back
     await act(async () => {
-      await selectEvent.select(dropdown1, ['FOO']);
+      await selectEvent.openMenu(dropdown1);
     });
+
+    await user.click(screen.getByText('FOO'));
 
     const checkboxesAfterRecordTypeChange2 = screen.getAllByRole('checkbox');
     for (const checkboxAfterRecordTypeChange of checkboxesAfterRecordTypeChange2) {
@@ -1105,7 +1103,7 @@ describe('Records Table updates', () => {
     // Still no records selected, so this all should still be true:
     expect(buttonAfterRecordTypeChange2).toHaveAttribute('aria-disabled', 'true');
     expect(buttonAfterRecordTypeChange2).toHaveAttribute('disabled');
-    expect(screen.queryByText('No records selected')).not.toBeNull();
+    screen.getByText('No records selected');
   });
 
   it('should display error message when WDS is unable to find a record type', async () => {
@@ -1276,10 +1274,6 @@ describe('Submitting a run set', () => {
 
   beforeEach(() => {
     getConfig.mockReturnValue({ wdsUrlRoot, cbasUrlRoot });
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   afterAll(() => {
@@ -1541,12 +1535,12 @@ describe('Submitting a run set', () => {
 
     // ** ASSERT **
     const inputTable = screen.getByRole('table');
-    const rows = within(inputTable).queryAllByRole('row');
+    const rows = within(inputTable).getAllByRole('row');
     expect(rows.length).toBe(runSetInputDef.length + 1); // one row for each input definition variable, plus headers
 
     // ** ACT **
     // user sets the source to 'None' for input 'optional_var'
-    const thirdInputRow = within(rows[3]).queryAllByRole('cell');
+    const thirdInputRow = within(rows[3]).getAllByRole('cell');
     await user.click(within(thirdInputRow[3]).getByText('Type a Value'));
     const selectOption = screen.getByText('None');
     await user.click(selectOption);
@@ -1674,12 +1668,12 @@ describe('Submitting a run set', () => {
     screen.getByText('myInnerStruct');
 
     const structTable = screen.getByLabelText('struct-table');
-    const structRows = within(structTable).queryAllByRole('row');
+    const structRows = within(structTable).getAllByRole('row');
     expect(structRows.length).toBe(6);
 
     // ** ACT **
     // Update the top-level struct field myPrimitive
-    const myPrimitiveRowCells = within(structRows[5]).queryAllByRole('cell');
+    const myPrimitiveRowCells = within(structRows[5]).getAllByRole('cell');
     within(myPrimitiveRowCells[1]).getByText('myPrimitive');
     const myPrimitiveInput = within(myPrimitiveRowCells[4]).getByDisplayValue('Fiesty');
     await user.clear(myPrimitiveInput);
@@ -1688,18 +1682,18 @@ describe('Submitting a run set', () => {
 
     // ** ACT **
     // Navigate the struct builder to myInnerStruct
-    const myInnerStructRowCells = within(structRows[2]).queryAllByRole('cell');
+    const myInnerStructRowCells = within(structRows[2]).getAllByRole('cell');
     within(myInnerStructRowCells[1]).getByText('myInnerStruct');
     const viewMyInnerStructLink = within(myInnerStructRowCells[4]).getByText('View Struct');
     await user.click(viewMyInnerStructLink);
 
     const myInnerStructTable = screen.getByLabelText('struct-table');
-    const myInnerStructRows = within(myInnerStructTable).queryAllByRole('row');
+    const myInnerStructRows = within(myInnerStructTable).getAllByRole('row');
     expect(myInnerStructRows.length).toBe(3);
 
     // ** ACT **
     // Update the struct within myInnerStruct
-    const myInnermostPrimitiveRowCells = within(myInnerStructRows[1]).queryAllByRole('cell');
+    const myInnermostPrimitiveRowCells = within(myInnerStructRows[1]).getAllByRole('cell');
     within(myInnermostPrimitiveRowCells[1]).getByText('myInnermostPrimitive');
     await user.click(within(myInnermostPrimitiveRowCells[3]).getByText('Select Source'));
     const selectOption = within(screen.getByLabelText('Options')).getByText('Type a Value');
@@ -1872,8 +1866,8 @@ describe('Submitting a run set', () => {
     await user.click(outputButton);
 
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
-    const headers = within(rows[0]).queryAllByRole('columnheader');
+    const rows = within(table).getAllByRole('row');
+    const headers = within(rows[0]).getAllByRole('columnheader');
 
     // set defaults
     await user.click(within(headers[3]).getByRole('button'));

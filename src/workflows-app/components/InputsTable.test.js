@@ -1,8 +1,7 @@
-import { act, render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { delay } from 'src/libs/utils';
 import InputsTable from 'src/workflows-app/components/InputsTable';
 import {
   runSetInputDef,
@@ -29,6 +28,11 @@ jest.mock('src/libs/notifications.js');
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
   getConfig: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock('src/components/input', () => ({
+  ...jest.requireActual('src/components/input'),
+  DelayedSearchInput: jest.requireActual('src/components/input').SearchInput,
 }));
 
 // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
@@ -61,10 +65,6 @@ const setupInputTableTest = ({ selectedDataTable = typesResponse[0], configuredI
 };
 
 describe('Input table rendering', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 });
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
@@ -80,11 +80,11 @@ describe('Input table rendering', () => {
     const user = userEvent.setup();
 
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(4);
-    const cells1 = within(rows[1]).queryAllByRole('cell');
-    const cells2 = within(rows[2]).queryAllByRole('cell');
-    const cells3 = within(rows[3]).queryAllByRole('cell');
+    const cells1 = within(rows[1]).getAllByRole('cell');
+    const cells2 = within(rows[2]).getAllByRole('cell');
+    const cells3 = within(rows[3]).getAllByRole('cell');
 
     within(cells1[0]).getByText('foo');
     within(cells1[1]).getByText('foo_rating_workflow_var');
@@ -107,9 +107,8 @@ describe('Input table rendering', () => {
     // search for inputs belonging to target_workflow_1 task (removes foo_rating_workflow_var)
     const searchInput = screen.getByLabelText('Search inputs');
     await user.type(searchInput, 'target_wor');
-    await act(() => delay(300)); // debounced search
 
-    expect(within(table).queryAllByRole('row').length).toBe(3);
+    expect(within(table).getAllByRole('row').length).toBe(3);
 
     within(cells1[0]).getByText('target_workflow_1');
     within(cells1[1]).getByText('bar_string_workflow_var');
@@ -126,9 +125,8 @@ describe('Input table rendering', () => {
     // search for inputs with rating in name
     await user.clear(searchInput);
     await user.type(searchInput, 'rating');
-    await act(() => delay(300)); // debounced search
 
-    expect(within(table).queryAllByRole('row').length).toBe(2);
+    expect(within(table).getAllByRole('row').length).toBe(2);
 
     within(cells1[0]).getByText('foo');
     within(cells1[1]).getByText('foo_rating_workflow_var');
@@ -142,10 +140,10 @@ describe('Input table rendering', () => {
     const user = userEvent.setup();
 
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(4);
-    const cells1 = within(rows[1]).queryAllByRole('cell');
-    const cells2 = within(rows[2]).queryAllByRole('cell');
+    const cells1 = within(rows[1]).getAllByRole('cell');
+    const cells2 = within(rows[2]).getAllByRole('cell');
 
     within(cells1[0]).getByText('foo');
     within(cells1[1]).getByText('foo_rating_workflow_var');
@@ -177,11 +175,11 @@ describe('Input table rendering', () => {
     const user = userEvent.setup();
 
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
-    const headers = within(rows[0]).queryAllByRole('columnheader');
-    const cells1 = within(rows[1]).queryAllByRole('cell');
-    const cells2 = within(rows[2]).queryAllByRole('cell');
-    const cells3 = within(rows[3]).queryAllByRole('cell');
+    const rows = within(table).getAllByRole('row');
+    const headers = within(rows[0]).getAllByRole('columnheader');
+    const cells1 = within(rows[1]).getAllByRole('cell');
+    const cells2 = within(rows[2]).getAllByRole('cell');
+    const cells3 = within(rows[3]).getAllByRole('cell');
 
     within(cells1[0]).getByText('foo');
     within(cells1[1]).getByText('foo_rating_workflow_var');
@@ -249,11 +247,11 @@ describe('Input table rendering', () => {
     const user = userEvent.setup();
 
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(4);
-    const cells1 = within(rows[1]).queryAllByRole('cell');
-    const cells2 = within(rows[2]).queryAllByRole('cell');
-    const cells3 = within(rows[3]).queryAllByRole('cell');
+    const cells1 = within(rows[1]).getAllByRole('cell');
+    const cells2 = within(rows[2]).getAllByRole('cell');
+    const cells3 = within(rows[3]).getAllByRole('cell');
 
     within(cells1[0]).getByText('foo');
     within(cells1[1]).getByText('foo_rating_workflow_var');
@@ -327,32 +325,32 @@ describe('Input table rendering', () => {
     screen.getByText('myInnerStruct');
 
     const structTable = screen.getByLabelText('struct-table');
-    const structRows = within(structTable).queryAllByRole('row');
+    const structRows = within(structTable).getAllByRole('row');
     expect(structRows.length).toBe(6);
 
-    const headers = within(structRows[0]).queryAllByRole('columnheader');
+    const headers = within(structRows[0]).getAllByRole('columnheader');
     within(headers[0]).getByText('Struct');
     within(headers[1]).getByText('Variable');
     within(headers[2]).getByText('Type');
     within(headers[3]).getByText('Input sources');
     within(headers[4]).getByText('Attribute');
 
-    const structCells = within(structRows[2]).queryAllByRole('cell');
+    const structCells = within(structRows[2]).getAllByRole('cell');
     within(structCells[1]).getByText('myInnerStruct');
     const viewMyInnerStructLink = within(structCells[4]).getByText('View Struct');
 
     await user.click(viewMyInnerStructLink);
     const myInnerStructTable = screen.getByLabelText('struct-table');
-    const myInnerStructRows = within(myInnerStructTable).queryAllByRole('row');
+    const myInnerStructRows = within(myInnerStructTable).getAllByRole('row');
     expect(myInnerStructRows.length).toBe(3);
 
     const myInnerStructBreadcrumbs = screen.getByLabelText('struct-breadcrumbs');
-    const myInnerStructBreadcrumbsButtons = within(myInnerStructBreadcrumbs).queryAllByRole('button');
+    const myInnerStructBreadcrumbsButtons = within(myInnerStructBreadcrumbs).getAllByRole('button');
     expect(myInnerStructBreadcrumbsButtons.length).toBe(1);
     await user.click(myInnerStructBreadcrumbsButtons[0]);
 
     const structTable2ndView = screen.getByLabelText('struct-table');
-    const structRows2ndView = within(structTable2ndView).queryAllByRole('row');
+    const structRows2ndView = within(structTable2ndView).getAllByRole('row');
     expect(structRows2ndView.length).toBe(6);
 
     const modalDoneButton = screen.getByText('Done');
@@ -364,10 +362,10 @@ describe('Input table rendering', () => {
     setupInputTableTest({ configuredInputDefinition: runSetInputDefSameInputNames });
 
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
-    const cells1 = within(rows[1]).queryAllByRole('cell');
-    const cells2 = within(rows[2]).queryAllByRole('cell');
-    const cells3 = within(rows[3]).queryAllByRole('cell');
+    const rows = within(table).getAllByRole('row');
+    const cells1 = within(rows[1]).getAllByRole('cell');
+    const cells2 = within(rows[2]).getAllByRole('cell');
+    const cells3 = within(rows[3]).getAllByRole('cell');
 
     screen.getByText('Autofill (2) from data table');
 
@@ -400,11 +398,11 @@ describe('Input table rendering', () => {
 
     // ** ASSERT **
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
 
     expect(rows.length).toBe(runSetInputDefWithStruct.length + 1); // one row for each input definition variable, plus headers
 
-    const cellsFoo = within(rows[1]).queryAllByRole('cell');
+    const cellsFoo = within(rows[1]).getAllByRole('cell');
     expect(cellsFoo.length).toBe(5);
     within(cellsFoo[0]).getByText('foo');
     within(cellsFoo[1]).getByText('foo_rating_workflow_var');
@@ -424,11 +422,11 @@ describe('Input table rendering', () => {
 
     // ** ASSERT **
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
 
     expect(rows.length).toBe(runSetInputDefWithStruct.length + 1); // one row for each input definition variable, plus headers
 
-    const cellsFoo = within(rows[1]).queryAllByRole('cell');
+    const cellsFoo = within(rows[1]).getAllByRole('cell');
     expect(cellsFoo.length).toBe(5);
     within(cellsFoo[0]).getByText('foo');
     within(cellsFoo[1]).getByText('foo_rating_workflow_var');
@@ -439,8 +437,7 @@ describe('Input table rendering', () => {
     // but there will be a warning message next to it
 
     within(cellsFoo[4]).getByText('foo_rating');
-    const warningMessageActive = within(cellsFoo[4]).queryByText("This attribute doesn't exist in the data table");
-    expect(warningMessageActive).not.toBeNull();
+    within(cellsFoo[4]).getByText("This attribute doesn't exist in the data table");
   });
 
   it('should not display warning icon for valid structs using struct builder', async () => {
@@ -449,7 +446,7 @@ describe('Input table rendering', () => {
 
     // ** ASSERT **
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
     const viewStructLink = within(rows[2]).getByText('View Struct');
     const inputWarningMessageActive = within(rows[2]).queryByText('This struct is missing a required input');
     expect(inputWarningMessageActive).toBeNull();
@@ -459,10 +456,10 @@ describe('Input table rendering', () => {
 
     // ** ASSERT **
     const structTable = screen.getByLabelText('struct-table');
-    const structRows = within(structTable).queryAllByRole('row');
+    const structRows = within(structTable).getAllByRole('row');
     expect(structRows.length).toBe(6);
 
-    const structCells = within(structRows[2]).queryAllByRole('cell');
+    const structCells = within(structRows[2]).getAllByRole('cell');
     within(structCells[1]).getByText('myInnerStruct');
     const viewMyInnerStructLink = within(structCells[4]).getByText('View Struct');
     const structWarningMessageActive = within(structCells[4]).queryByText('This struct is missing a required input');
@@ -473,16 +470,16 @@ describe('Input table rendering', () => {
 
     // ** ASSERT **
     const innerStructTable = screen.getByLabelText('struct-table');
-    const innerStructRows = within(innerStructTable).queryAllByRole('row');
+    const innerStructRows = within(innerStructTable).getAllByRole('row');
     expect(innerStructRows.length).toBe(3);
 
-    const innerStructRow1 = within(innerStructRows[1]).queryAllByRole('cell');
+    const innerStructRow1 = within(innerStructRows[1]).getAllByRole('cell');
     within(innerStructRow1[1]).getByText('myInnermostPrimitive');
     within(innerStructRow1[4]).getByDisplayValue('2');
     const innerPrimitiveWarningMessageActive = within(innerStructRow1[4]).queryByText('This attribute is required');
     expect(innerPrimitiveWarningMessageActive).toBeNull();
 
-    const innerStructRow2 = within(innerStructRows[2]).queryAllByRole('cell');
+    const innerStructRow2 = within(innerStructRows[2]).getAllByRole('cell');
     within(innerStructRow2[1]).getByText('myInnermostRecordLookup');
     within(innerStructRow2[4]).getByText('foo_rating');
     const innerLookupWarningMessageActive = within(innerStructRow2[4]).queryByText("This attribute doesn't exist in the data table");
@@ -495,20 +492,19 @@ describe('Input table rendering', () => {
 
     // ** ASSERT **
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
     const viewStructLink = within(rows[2]).getByText('View Struct');
-    const inputWarningMessageActive = within(rows[2]).queryByText('This struct is missing a required input');
-    expect(inputWarningMessageActive).not.toBeNull();
+    within(rows[2]).getByText('This struct is missing a required input');
 
     // ** ACT **
     await user.click(viewStructLink);
 
     // ** ASSERT **
     const structTable = screen.getByLabelText('struct-table');
-    const structRows = within(structTable).queryAllByRole('row');
+    const structRows = within(structTable).getAllByRole('row');
     expect(structRows.length).toBe(6);
 
-    const structCells = within(structRows[2]).queryAllByRole('cell');
+    const structCells = within(structRows[2]).getAllByRole('cell');
     within(structCells[1]).getByText('myInnerStruct');
     const viewMyInnerStructLink = within(structCells[4]).getByText('View Struct');
     const structWarningMessageActive = within(structCells[4]).getByText('This struct is missing a required input');
@@ -519,20 +515,18 @@ describe('Input table rendering', () => {
 
     // ** ASSERT **
     const innerStructTable = screen.getByLabelText('struct-table');
-    const innerStructRows = within(innerStructTable).queryAllByRole('row');
+    const innerStructRows = within(innerStructTable).getAllByRole('row');
     expect(innerStructRows.length).toBe(3);
 
-    const innerStructRow1 = within(innerStructRows[1]).queryAllByRole('cell');
+    const innerStructRow1 = within(innerStructRows[1]).getAllByRole('cell');
     within(innerStructRow1[1]).getByText('myInnermostPrimitive');
     within(innerStructRow1[3]).getByText('Select Source');
-    const innerPrimitiveWarningMessageActive = within(innerStructRow1[4]).queryByText('This attribute is required');
-    expect(innerPrimitiveWarningMessageActive).not.toBeNull();
+    within(innerStructRow1[4]).getByText('This attribute is required');
 
-    const innerStructRow2 = within(innerStructRows[2]).queryAllByRole('cell');
+    const innerStructRow2 = within(innerStructRows[2]).getAllByRole('cell');
     within(innerStructRow2[1]).getByText('myInnermostRecordLookup');
     within(innerStructRow2[4]).getByText('foo_rating');
-    const innerLookupWarningMessageActive = within(innerStructRow2[4]).queryByText("This attribute doesn't exist in the data table");
-    expect(innerLookupWarningMessageActive).not.toBeNull();
+    within(innerStructRow2[4]).getByText("This attribute doesn't exist in the data table");
   });
 
   it('should display warning for inputs without source', async () => {
@@ -541,17 +535,17 @@ describe('Input table rendering', () => {
     // ** ASSERT **
     // check that warnings appear next to empty required inputs
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
 
     // inputs sorted according to task name -> variable name
-    const firstInputRowCells = within(rows[1]).queryAllByRole('cell');
+    const firstInputRowCells = within(rows[1]).getAllByRole('cell');
     within(firstInputRowCells[4]).getByText('This input is required');
 
-    const thirdInputRowCells = within(rows[3]).queryAllByRole('cell');
+    const thirdInputRowCells = within(rows[3]).getAllByRole('cell');
     within(thirdInputRowCells[4]).getByText('Optional');
 
     // struct input
-    const secondInputRowCells = within(rows[2]).queryAllByRole('cell');
+    const secondInputRowCells = within(rows[2]).getAllByRole('cell');
     within(secondInputRowCells[4]).getByText('This input is required');
   });
 
@@ -561,17 +555,17 @@ describe('Input table rendering', () => {
     // ** ASSERT **
     // check that warnings appear next to empty required inputs
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
 
     // inputs sorted according to task name -> variable name
-    const firstInputRowCells = within(rows[1]).queryAllByRole('cell');
+    const firstInputRowCells = within(rows[1]).getAllByRole('cell');
     within(firstInputRowCells[4]).getByText('This attribute is required');
 
-    const thirdInputRowCells = within(rows[3]).queryAllByRole('cell');
+    const thirdInputRowCells = within(rows[3]).getAllByRole('cell');
     within(thirdInputRowCells[4]).getByText('Optional');
 
     // struct input
-    const secondInputRowCells = within(rows[2]).queryAllByRole('cell');
+    const secondInputRowCells = within(rows[2]).getAllByRole('cell');
     within(secondInputRowCells[4]).getByText('This struct is missing a required input');
   });
 
@@ -579,11 +573,11 @@ describe('Input table rendering', () => {
     setupInputTableTest({ configuredInputDefinition: runSetInputDefWithWrongTypes });
 
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
 
-    const firstInputRowCells = within(rows[1]).queryAllByRole('cell');
-    const secondInputRowCells = within(rows[2]).queryAllByRole('cell');
-    const thirdInputRowCells = within(rows[3]).queryAllByRole('cell');
+    const firstInputRowCells = within(rows[1]).getAllByRole('cell');
+    const secondInputRowCells = within(rows[2]).getAllByRole('cell');
+    const thirdInputRowCells = within(rows[3]).getAllByRole('cell');
 
     // ** ASSERT **
     // check that the warning message for empty value is displayed
@@ -603,31 +597,31 @@ describe('Input table rendering', () => {
     setupInputTableTest({ configuredInputDefinition: runSetInputDefWithArrayMessages });
 
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
 
-    const emptyIntRowCells = within(rows[1]).queryAllByRole('cell');
+    const emptyIntRowCells = within(rows[1]).getAllByRole('cell');
     within(emptyIntRowCells[1]).getByText('empty_int_array');
     within(emptyIntRowCells[4]).getByText('Successfully detected an array with 0 element(s).');
 
-    const invalidIntRowCells = within(rows[2]).queryAllByRole('cell');
+    const invalidIntRowCells = within(rows[2]).getAllByRole('cell');
     within(invalidIntRowCells[1]).getByText('invalid_int_array');
     within(invalidIntRowCells[4]).getByText('Array inputs should follow JSON array literal syntax. This input cannot be parsed');
 
-    const validIntRowCells = within(rows[3]).queryAllByRole('cell');
+    const validIntRowCells = within(rows[3]).getAllByRole('cell');
     within(validIntRowCells[1]).getByText('valid_int_array');
     within(validIntRowCells[4]).getByText('Successfully detected an array with 2 element(s).');
 
-    const stringNoSourceRowCells = within(rows[4]).queryAllByRole('cell');
+    const stringNoSourceRowCells = within(rows[4]).getAllByRole('cell');
     within(stringNoSourceRowCells[1]).getByText('string_array_no_source');
     within(stringNoSourceRowCells[4]).getByText('This input is required');
 
-    const emptyStringRowCells = within(rows[5]).queryAllByRole('cell');
+    const emptyStringRowCells = within(rows[5]).getAllByRole('cell');
     within(emptyStringRowCells[1]).getByText('string_array_empty_source');
     within(emptyStringRowCells[4]).getByText(
       'Array inputs should follow JSON array literal syntax. This input is empty. To submit an empty array, enter []'
     );
 
-    const singletonStringRowCells = within(rows[6]).queryAllByRole('cell');
+    const singletonStringRowCells = within(rows[6]).getAllByRole('cell');
     within(singletonStringRowCells[1]).getByText('string_array_string_value');
     within(singletonStringRowCells[4]).getByText(
       'Array inputs should follow JSON array literal syntax. This will be submitted as an array with one value: "not an array"'
@@ -636,10 +630,6 @@ describe('Input table rendering', () => {
 });
 
 describe('Input table definition updates', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 });
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
@@ -655,8 +645,8 @@ describe('Input table definition updates', () => {
     const user = userEvent.setup();
 
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
-    const cells1 = within(rows[1]).queryAllByRole('cell');
+    const rows = within(table).getAllByRole('row');
+    const cells1 = within(rows[1]).getAllByRole('cell');
 
     within(cells1[4]).getByText(/Autofill /);
     const inputFillButton = within(cells1[4]).getByText('foo_rating');
@@ -702,9 +692,9 @@ describe('Input table definition updates', () => {
 
     // ** ASSERT **
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
 
-    const cellsFoo = within(rows[1]).queryAllByRole('cell');
+    const cellsFoo = within(rows[1]).getAllByRole('cell');
     expect(cellsFoo.length).toBe(5);
     within(cellsFoo[0]).getByText('foo');
     within(cellsFoo[1]).getByText('foo_rating_workflow_var');
@@ -732,7 +722,7 @@ describe('Input table definition updates', () => {
 
     // ** ASSERT **
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
     const viewStructLink = within(rows[2]).getByText('View Struct');
 
     // ** ACT **
@@ -740,8 +730,8 @@ describe('Input table definition updates', () => {
 
     // ** ASSERT **
     const structTable = screen.getByLabelText('struct-table');
-    const structRows = within(structTable).queryAllByRole('row');
-    const structCells = within(structRows[2]).queryAllByRole('cell');
+    const structRows = within(structTable).getAllByRole('row');
+    const structCells = within(structRows[2]).getAllByRole('cell');
     within(structCells[1]).getByText('myInnerStruct');
     const viewMyInnerStructLink = within(structCells[4]).getByText('View Struct');
 
@@ -750,10 +740,10 @@ describe('Input table definition updates', () => {
 
     // ** ASSERT **
     const innerStructTable = screen.getByLabelText('struct-table');
-    const innerStructRows = within(innerStructTable).queryAllByRole('row');
+    const innerStructRows = within(innerStructTable).getAllByRole('row');
     expect(innerStructRows.length).toBe(3);
 
-    const innerStructCells = within(innerStructRows[2]).queryAllByRole('cell');
+    const innerStructCells = within(innerStructRows[2]).getAllByRole('cell');
     within(innerStructCells[1]).getByText('myInnermostRecordLookup');
     within(innerStructCells[4]).getByText('foo_rating');
 
@@ -775,9 +765,9 @@ describe('Input table definition updates', () => {
 
     // ** ASSERT **
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
 
-    const cellsOptional = within(rows[3]).queryAllByRole('cell');
+    const cellsOptional = within(rows[3]).getAllByRole('cell');
     within(cellsOptional[1]).getByText('optional_var');
     within(cellsOptional[3]).getByText('Type a Value');
     const input = within(cellsOptional[4]).getByDisplayValue('Hello World');
@@ -797,9 +787,9 @@ describe('Input table definition updates', () => {
 
     // ** ASSERT **
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
 
-    const cellsOptional = within(rows[3]).queryAllByRole('cell');
+    const cellsOptional = within(rows[3]).getAllByRole('cell');
     within(cellsOptional[1]).getByText('optional_var');
     const selectSource = within(cellsOptional[3]).getByText('Type a Value');
     within(cellsOptional[4]).getByDisplayValue('Hello World');

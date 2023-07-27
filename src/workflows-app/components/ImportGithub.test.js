@@ -31,10 +31,6 @@ describe('Add a Workflow Link', () => {
     },
   };
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should render text inputs/headers', async () => {
     // ** ACT **
     render(h(ImportGithub, { onDismiss: jest.fn() }));
@@ -93,7 +89,6 @@ describe('Add a Workflow Link', () => {
       method_version: 'develop',
       method_url: githubLink,
     });
-    jest.clearAllMocks();
   });
 
   it('should accept raw github.com links for a running Workflows app', async () => {

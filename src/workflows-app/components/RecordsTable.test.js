@@ -74,10 +74,6 @@ describe('RecordsTable', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800000 });
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('Render data as expected', async () => {
     const dataTableColumnWidths = {};
     const setDataTableColumnWidths = jest.fn();
@@ -100,10 +96,10 @@ describe('RecordsTable', () => {
     );
 
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(2);
 
-    const dataRow = within(rows[1]).queryAllByRole('cell');
+    const dataRow = within(rows[1]).getAllByRole('cell');
     within(dataRow[1]).getByText('foo_id');
     within(dataRow[2]).getByText('FOO');
     within(dataRow[3]).getByText('true');
@@ -182,16 +178,16 @@ describe('RecordsTable', () => {
     );
 
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(5);
 
-    const headers = within(rows[0]).queryAllByRole('columnheader');
+    const headers = within(rows[0]).getAllByRole('columnheader');
     expect(headers.length).toBe(5);
 
-    const cells1 = within(rows[1]).queryAllByRole('cell');
-    const cells2 = within(rows[2]).queryAllByRole('cell');
-    const cells3 = within(rows[3]).queryAllByRole('cell');
-    const cells4 = within(rows[4]).queryAllByRole('cell');
+    const cells1 = within(rows[1]).getAllByRole('cell');
+    const cells2 = within(rows[2]).getAllByRole('cell');
+    const cells3 = within(rows[3]).getAllByRole('cell');
+    const cells4 = within(rows[4]).getAllByRole('cell');
 
     within(cells1[1]).getByText('FOO1');
     within(cells2[1]).getByText('FOO2');
