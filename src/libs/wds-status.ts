@@ -19,11 +19,17 @@ export type WdsStatus = {
   version: string | null;
   chartVersion: string | null;
   image: string | null;
+
   wdsStatus: string | null;
   wdsDbStatus: string | null;
   wdsPingStatus: string | null;
   wdsIamStatus: string | null;
+
   defaultInstanceExists: string | null;
+
+  cloneSourceWorkspaceId: string | null;
+  cloneStatus: string | null;
+  cloneErrorMessage: string | null;
 };
 
 export type UseWdsStatusResult = {
@@ -45,6 +51,9 @@ const initialStatus: WdsStatus = {
   appStatus: null,
   proxyUrl: null,
   defaultInstanceExists: null,
+  cloneSourceWorkspaceId: null,
+  cloneStatus: null,
+  cloneErrorMessage: null,
 };
 
 export const useWdsStatus = ({ workspaceId }: UseWdsStatusArgs) => {
@@ -76,6 +85,9 @@ export const useWdsStatus = ({ workspaceId }: UseWdsStatusArgs) => {
         wdsPingStatus: 'unknown',
         wdsIamStatus: 'unknown',
         defaultInstanceExists: 'unknown',
+        cloneSourceWorkspaceId: 'unknown',
+        cloneStatus: 'unknown',
+        cloneErrorMessage: 'unknown',
       });
       return;
     }
@@ -97,6 +109,9 @@ export const useWdsStatus = ({ workspaceId }: UseWdsStatusArgs) => {
         wdsPingStatus: 'unknown',
         wdsIamStatus: 'unknown',
         defaultInstanceExists: 'unknown',
+        cloneSourceWorkspaceId: 'unknown',
+        cloneStatus: 'unknown',
+        cloneErrorMessage: 'unknown',
       }));
       return;
     }
@@ -184,6 +199,27 @@ export const useWdsStatus = ({ workspaceId }: UseWdsStatusArgs) => {
             ...previousStatus,
             defaultInstanceExists: 'unknown',
           }));
+        }),
+
+      Ajax(signal)
+        .WorkspaceData.getCloneStatus(proxyUrl)
+        .then((cloneStatusResponse) => {
+          setStatus((previousStatus) => ({
+            ...previousStatus,
+            cloneSourceWorkspaceId: cloneStatusResponse.result.sourceWorkspaceId,
+            cloneStatus: cloneStatusResponse.result.status,
+            cloneErrorMessage: cloneStatusResponse.errorMessage || null,
+          }));
+        })
+        .catch((err) => {
+          if (!(err instanceof Response && err.status === 404)) {
+            setStatus((previousStatus) => ({
+              ...previousStatus,
+              cloneSourceWorkspaceId: 'unknown',
+              cloneStatus: 'unknown',
+              cloneErrorMessage: 'unknown',
+            }));
+          }
         }),
     ]);
   }, []);
