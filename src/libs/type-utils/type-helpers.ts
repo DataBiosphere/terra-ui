@@ -16,3 +16,23 @@ export const isFetchResponse = (obj: unknown): obj is Response => {
     typeof maybeResponse.statusText === 'string';
   return isResponse;
 };
+
+/**
+ * Use this to ensure that all possible values are handled in a switch statement.
+ * @example
+ * type Status = 'Loading' | 'Ready' | 'Loading';
+ * const status: Status = ...
+ * switch (status) {
+ *   case 'Loading':
+ *     return ...
+ *   case 'Ready':
+ *     return ...
+ *   default:
+ *     // TypeScript warns that 'Error' is not handled.
+ *     // Argument of type 'string' is not assignable to parameter of type 'never'.ts
+ *     return exhaustiveGuard(status);
+ * }
+ */
+export const exhaustiveGuard = (_value: never): never => {
+  throw new Error(`Reached exhaustive guard with unexpected value: ${JSON.stringify(_value)}`);
+};
