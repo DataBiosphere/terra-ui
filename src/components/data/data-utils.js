@@ -1505,7 +1505,18 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
   );
 };
 
-export const HeaderOptions = ({ sort, entityType, field, onSort, extraActions, renderSearch, searchByColumn, dataProvider, children }) => {
+export const HeaderOptions = ({
+  sort,
+  entityType,
+  field,
+  onSort,
+  extraActions,
+  renderSearch,
+  searchByColumn,
+  replaceByColumn,
+  dataProvider,
+  children,
+}) => {
   const [columnValues, setColumnValues] = useState(() => StateHistory.get().columnValues);
   const popup = useRef();
 
@@ -1537,8 +1548,9 @@ export const HeaderOptions = ({ sort, entityType, field, onSort, extraActions, r
         renderSearch &&
           h(div, { style: { width: '98%' } }, [
             h(ConfirmedSearchInput, {
-              'aria-label': 'Exact match filter',
-              placeholder: 'Exact match filter',
+              id: `hack-find-${field}`,
+              'aria-label': 'Find',
+              placeholder: 'Find',
               style: { marginLeft: '0.25rem' },
               onChange: (e) => {
                 if (e) {
@@ -1550,6 +1562,25 @@ export const HeaderOptions = ({ sort, entityType, field, onSort, extraActions, r
                 e.stopPropagation();
               },
             }),
+            h(Collapse, { title: 'Replace', onClick: (e) => e.stopPropagation() }, [
+              h(ConfirmedSearchInput, {
+                iconName: 'edit',
+                'aria-label': 'Replace',
+                placeholder: 'Replace',
+                style: { marginLeft: '0.25rem' },
+                onChange: (e) => {
+                  if (e) {
+                    // this is so wrong, it should do a React thing instead
+                    const findValue = document.getElementById(`hack-find-${field}`).value;
+                    replaceByColumn(findValue, e);
+                    popup.current.close();
+                  }
+                },
+                onClick: (e) => {
+                  e.stopPropagation();
+                },
+              }),
+            ]),
             h(Collapse, { title: 'Values', onClick: (e) => e.stopPropagation(), onFirstOpen: () => loadColumnValues(field) }, [
               h(Select, {
                 id: `values-${field}`,

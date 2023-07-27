@@ -116,7 +116,7 @@ const DataTable = (props) => {
   const [pageNumber, setPageNumber] = useState(1);
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' });
   const [activeTextFilter, setActiveTextFilter] = useState(activeCrossTableTextFilter || '');
-  const [columnFilter, setColumnFilter] = useState({ filterColAttr: '', filterColTerm: '' });
+  const [columnFilter, setColumnFilter] = useState({ filterColAttr: '', filterColTerm: '', filterColReplace: '' });
 
   const [columnWidths, setColumnWidths] = useState(() => getLocalPref(persistenceId)?.columnWidths || {});
   const [columnState, setColumnState] = useState(() => {
@@ -180,6 +180,7 @@ const DataTable = (props) => {
     )(async () => {
       const colFilt =
         !!columnFilter.filterColAttr && !!columnFilter.filterColTerm ? `${columnFilter.filterColAttr}=${columnFilter.filterColTerm}` : '';
+
       const queryOptions = {
         pageNumber,
         itemsPerPage,
@@ -190,6 +191,7 @@ const DataTable = (props) => {
         activeTextFilter,
         filterOperator,
         columnFilter: colFilt,
+        columnFilterObject: columnFilter,
       };
       const {
         results,
@@ -283,7 +285,7 @@ const DataTable = (props) => {
 
   const searchByColumn = (field, v) => {
     setActiveTextFilter('');
-    setColumnFilter({ filterColAttr: field, filterColTerm: v.toString().trim() });
+    setColumnFilter({ filterColAttr: field, filterColTerm: v.toString().trim(), filterColReplace: '' });
     setPageNumber(1);
     Ajax().Metrics.captureEvent(Events.workspaceDataFilteredSearch, {
       workspaceNamespace: namespace,
@@ -291,6 +293,20 @@ const DataTable = (props) => {
       providerName: dataProvider.providerName,
       cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label,
     });
+  };
+
+  const replaceByColumn = (field, v, r) => {
+    // TODO: perform column replacement, then set states which trigger reloads
+    setActiveTextFilter('');
+    setColumnFilter({ filterColAttr: field, filterColTerm: v, filterColReplace: r });
+    setPageNumber(1);
+    // TODO: would need a different Mixpanel event
+    // Ajax().Metrics.captureEvent(Events.workspaceDataFilteredSearch, {
+    //   workspaceNamespace: namespace,
+    //   workspaceName: name,
+    //   providerName: dataProvider.providerName,
+    //   cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label,
+    // });
   };
 
   // Lifecycle
@@ -384,7 +400,7 @@ const DataTable = (props) => {
                   'aria-label': 'Search',
                   placeholder: 'Search',
                   onChange: (v) => {
-                    setColumnFilter({ filterColAttr: '', filterColTerm: '' });
+                    setColumnFilter({ filterColAttr: '', filterColTerm: '', filterColReplace: '' });
                     setActiveTextFilter(v.toString().trim());
                     setPageNumber(1);
                   },
@@ -452,7 +468,7 @@ const DataTable = (props) => {
                     style: { alignSelf: 'flex-start', marginLeft: '0.3rem' },
                     onClick: (e) => {
                       e.stopPropagation();
-                      setColumnFilter({ filterColAttr: '', filterColTerm: '' });
+                      setColumnFilter({ filterColAttr: '', filterColTerm: '', filterColReplace: '' });
                     },
                   },
                   [icon('times-circle', { color: colors.light(8), size: 16 })]
@@ -482,6 +498,7 @@ const DataTable = (props) => {
                             onSort: setSort,
                             renderSearch: true,
                             searchByColumn: (v) => searchByColumn(entityMetadata[entityType].idName, v),
+                            replaceByColumn: (v, r) => replaceByColumn(entityMetadata[entityType].idName, v, r),
                             dataProvider,
                           },
                           [
@@ -535,6 +552,7 @@ const DataTable = (props) => {
                               onSort: setSort,
                               renderSearch: true,
                               searchByColumn: (v) => searchByColumn(attributeName, v),
+                              replaceByColumn: (f, r) => replaceByColumn(attributeName, f, r),
                               dataProvider,
                               extraActions: _.concat(
                                 editable

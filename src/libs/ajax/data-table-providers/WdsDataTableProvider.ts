@@ -271,14 +271,26 @@ export class WdsDataTableProvider implements DataTableProvider {
   ): Promise<EntityQueryResponse> => {
     if (!this.proxyUrl) return Promise.reject('Proxy Url not loaded');
 
-    const searchColumnList = !queryOptions.columnFilter
-      ? {}
-      : (() => {
-          const filterArr = queryOptions.columnFilter.split('=');
-          const column = filterArr[0];
-          const find = queryOptions.columnFilter.substring(column.length + 1, queryOptions.columnFilter.length);
-          return { searchColumnList: [{ column, find }] };
-        })();
+    const searchColumnList = queryOptions.columnFilterObject
+      ? {
+          searchColumnList: [
+            {
+              column: queryOptions.columnFilterObject.filterColAttr,
+              find: queryOptions.columnFilterObject.filterColTerm,
+              replace: queryOptions.columnFilterObject.filterColReplace,
+            },
+          ],
+        }
+      : {};
+
+    // const searchColumnList = !queryOptions.columnFilter
+    //   ? {}
+    //   : (() => {
+    //       const filterArr = queryOptions.columnFilter.split('=');
+    //       const column = filterArr[0];
+    //       const find = queryOptions.columnFilter.substring(column.length + 1, queryOptions.columnFilter.length);
+    //       return { searchColumnList: [{ column, find }] };
+    //     })();
 
     const wdsPage: RecordQueryResponse = await Ajax(signal).WorkspaceData.getRecords(
       this.proxyUrl,

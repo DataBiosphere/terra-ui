@@ -104,7 +104,7 @@ export const TextInput = forwardRefWithName('TextInput', ({ onChange, nativeOnCh
   });
 });
 
-export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...props }) => {
+export const ConfirmedSearchInput = ({ defaultValue = '', iconName = 'search', onChange = _.noop, ...props }) => {
   const [internalValue, setInternalValue] = useState(defaultValue);
   const inputEl = useRef();
 
@@ -144,11 +144,11 @@ export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...
     h(
       ButtonPrimary,
       {
-        'aria-label': 'Search',
+        'aria-label': iconName,
         style: { borderRadius: '0 4px 4px 0', borderLeft: 'none' },
         onClick: () => onChange(internalValue),
       },
-      [icon('search', { size: 18 })]
+      [icon(iconName, { size: 18 })]
     ),
   ]);
 };

@@ -49,6 +49,7 @@ export interface EntityQueryOptions {
   activeTextFilter: string;
   filterOperator: string;
   columnFilter: string;
+  columnFilterObject?: any;
 }
 
 export type UploadParameters = {
