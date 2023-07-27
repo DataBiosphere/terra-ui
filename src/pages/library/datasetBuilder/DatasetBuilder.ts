@@ -392,9 +392,14 @@ export const ConceptSetSelector = ({
         header: 'Concept sets',
         values: conceptSets,
         makeIcon: (value, _header) =>
-          h(Clickable, { onClick: () => updateConceptSets((conceptSets) => _.without([value], conceptSets)) }, [
-            icon('trash-circle-filled', { size: 20 }),
-          ]),
+          h(
+            Clickable,
+            {
+              'aria-label': `${header}/${value} menu`,
+              onClick: () => updateConceptSets((conceptSets) => _.without([value], conceptSets)),
+            },
+            [icon('trash-circle-filled', { size: 20 })]
+          ),
       },
       { header: 'Prepackaged concept sets', values: PREPACKAGED_CONCEPT_SETS },
     ],
