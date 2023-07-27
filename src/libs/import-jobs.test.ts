@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react';
 import { Ajax } from 'src/libs/ajax';
 import { asyncImportJobStore } from 'src/libs/state';
 import { DeepPartial } from 'src/libs/type-utils/deep-partial';
