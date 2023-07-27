@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import FindWorkflowModal from 'src/workflows-app/components/FindWorkflowModal';
 
@@ -19,15 +18,8 @@ jest.mock('src/libs/config', () => ({
   getConfig: jest.fn().mockReturnValue({}),
 }));
 
-// Mocking feature preview setup
-jest.mock('src/libs/feature-previews', () => ({
-  ...jest.requireActual('src/libs/feature-previews'),
-  isFeaturePreviewEnabled: jest.fn(),
-}));
-
 describe('FindWorkflowModal', () => {
   beforeEach(() => {
-    isFeaturePreviewEnabled.mockReturnValue(true);
     getConfig.mockReturnValue({ dockstoreRootUrl: 'https://staging.dockstore.org/' });
   });
 

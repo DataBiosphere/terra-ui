@@ -2,7 +2,6 @@ export const JUPYTERLAB_GCP_FEATURE_ID = 'jupyterlab-gcp';
 export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP';
 export const HAIL_BATCH_AZURE_FEATURE_ID = 'hail-batch-azure';
 export const WORKFLOWS_TAB_AZURE_FEATURE_ID = 'workflows-tab-azure';
-export const DOCKSTORE_AZURE_FEATURE_ID = 'dockstore-azure';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
 type GroupsList = readonly [string, ...string[]];
@@ -86,13 +85,6 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     title: 'Workflows Tab for Azure workspaces',
     description: 'Enabling this feature will allow you to launch workflows in Azure workspaces.',
     feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on Workflows Tab (Azure)')}`,
-  },
-  {
-    id: DOCKSTORE_AZURE_FEATURE_ID,
-    title: 'Import workflows with Dockstore for Azure workspaces ',
-    description: 'Enabling this feature will allow you to import new workflows in Azure workspaces from Dockstore.',
-    groups: ['preview-workflows-azure'],
-    feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on Dockstore (Azure)')}`,
   },
 ];
 
