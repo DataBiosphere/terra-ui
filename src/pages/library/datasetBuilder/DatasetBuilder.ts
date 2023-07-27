@@ -391,7 +391,7 @@ export const ConceptSetSelector = ({
       {
         header: 'Concept sets',
         values: conceptSets,
-        makeIcon: (value, _header) =>
+        makeIcon: (value, header) =>
           h(
             Clickable,
             {
