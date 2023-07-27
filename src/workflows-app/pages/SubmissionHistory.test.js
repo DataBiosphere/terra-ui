@@ -406,7 +406,6 @@ describe('SubmissionHistory page', () => {
       const topRowCells = within(rows[1]).queryAllByRole('cell');
       return topRowCells[column];
     };
-
     // Click on "Date Submitted" column and check that the top column is correct for:
     // * ascending order
     await user.click(within(headers[headerPosition['Date Submitted']]).getByRole('button'));
@@ -433,8 +432,6 @@ describe('SubmissionHistory page', () => {
     // * descending order
     await user.click(within(headers[headerPosition.Duration]).getByRole('button'));
     within(topRowCells(headerPosition.Duration)).getByText('1 month 1 day 1 hour 1 minute 1 second');
-
-    jest.spyOn(console, 'error');
   });
 
   const simpleRunSetData = {
