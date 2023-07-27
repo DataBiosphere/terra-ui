@@ -33,6 +33,7 @@ describe('DatasetBuilder', () => {
     render(
       h(DatasetBuilderContents, {
         updateCohorts: jest.fn(),
+        updateConceptSets: jest.fn(),
         cohorts: [newCohort('cohort 1')],
         conceptSets: [{ name: 'concept set 1', featureValueGroupName: 'Condition' }],
         onStateChange: (state) => state,
@@ -99,6 +100,7 @@ describe('DatasetBuilder', () => {
           { name: 'concept set 2', featureValueGroupName: 'b' },
         ],
         selectedConceptSets: [],
+        updateConceptSets: jest.fn(),
         onChange: (conceptSets) => conceptSets,
         onStateChange: (state) => state,
       })
@@ -139,6 +141,7 @@ describe('DatasetBuilder', () => {
     render(
       h(DatasetBuilderContents, {
         updateCohorts: jest.fn(),
+        updateConceptSets: jest.fn(),
         cohorts: [],
         conceptSets: [],
         onStateChange: (state) => state,
@@ -157,6 +160,7 @@ describe('DatasetBuilder', () => {
     render(
       h(DatasetBuilderContents, {
         updateCohorts: jest.fn(),
+        updateConceptSets: jest.fn(),
         cohorts: [newCohort('cohort 1'), newCohort('cohort 2')],
         conceptSets: [
           { name: 'concept set 1', featureValueGroupName: 'Condition' },
@@ -199,6 +203,7 @@ describe('DatasetBuilder', () => {
     render(
       h(DatasetBuilderContents, {
         updateCohorts: jest.fn(),
+        updateConceptSets: jest.fn(),
         cohorts: [],
         conceptSets: [{ name: 'concept set 1', featureValueGroupName: 'Condition' }],
         onStateChange: (state) => state,
@@ -253,6 +258,7 @@ describe('DatasetBuilder', () => {
     render(
       h(DatasetBuilderContents, {
         updateCohorts: jest.fn(),
+        updateConceptSets: jest.fn(),
         cohorts: [],
         conceptSets: [],
         onStateChange,

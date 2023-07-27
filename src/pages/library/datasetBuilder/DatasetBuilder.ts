@@ -3,6 +3,7 @@ import React, { Fragment, ReactElement, useEffect, useMemo, useState } from 'rea
 import { div, h, h2, h3, label, li, ul } from 'react-hyperscript-helpers';
 import { ActionBar } from 'src/components/ActionBar';
 import { ButtonPrimary, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
+import { Clickable } from 'src/components/common/Clickable';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon, spinner } from 'src/components/icons';
 import { ValidatedInput, ValidatedTextArea } from 'src/components/input';
@@ -37,6 +38,7 @@ import {
   cohortEditorState,
   homepageState,
   newCohort,
+  Updater,
 } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import { DatasetBuilderHeader } from 'src/pages/library/datasetBuilder/DatasetBuilderHeader';
 import { DomainCriteriaSelector } from 'src/pages/library/datasetBuilder/DomainCriteriaSelector';
@@ -48,11 +50,11 @@ interface ObjectSetListItemProps<T extends DatasetBuilderType> {
   value: T;
   checked: boolean;
   onChange: (value: T) => void;
-  menu?: ReactElement | undefined;
+  icon?: ReactElement | undefined;
 }
 
 const ObjectSetListItem = <T extends DatasetBuilderType>(props: ObjectSetListItemProps<T>) => {
-  const { value, checked, onChange, menu } = props;
+  const { value, checked, onChange } = props;
   return div(
     {
       style: {
@@ -77,7 +79,7 @@ const ObjectSetListItem = <T extends DatasetBuilderType>(props: ObjectSetListIte
           [label({ style: { paddingLeft: '0.5rem' } }, [value.name])]
         ),
       ]),
-      menu,
+      props.icon,
     ]
   );
 };
@@ -86,11 +88,10 @@ interface ObjectSetListSectionProps<T extends DatasetBuilderType> {
   objectSet: HeaderAndValues<T>;
   selectedValues: { header: string; value: T }[];
   onChange: (value, header) => void;
-  makeMenuContents?: (value, header) => ReactElement;
 }
 
 const ObjectSetListSection = <T extends DatasetBuilderType>(props: ObjectSetListSectionProps<T>) => {
-  const { objectSet, selectedValues, onChange, makeMenuContents } = props;
+  const { objectSet, selectedValues, onChange } = props;
   const isChecked = (datasetBuilderObjectSet, value) =>
     _.intersectionWith(_.isEqual, [{ header: datasetBuilderObjectSet.header, value }], selectedValues).length > 0;
 
@@ -103,18 +104,7 @@ const ObjectSetListSection = <T extends DatasetBuilderType>(props: ObjectSetList
           value,
           checked: isChecked(objectSet, value),
           onChange: (value) => onChange(value, objectSet.header),
-          menu: makeMenuContents
-            ? h(
-                MenuTrigger,
-                {
-                  closeOnClick: true,
-                  style: { marginLeft: '1rem' },
-                  content: makeMenuContents(value, objectSet.header),
-                  side: 'right',
-                },
-                [makeMenuIcon('cardMenuIcon', { size: 16 })]
-              )
-            : undefined,
+          icon: objectSet.makeIcon ? objectSet.makeIcon(value, objectSet.header) : undefined,
         }),
       objectSet.values
     ),
@@ -124,6 +114,7 @@ const ObjectSetListSection = <T extends DatasetBuilderType>(props: ObjectSetList
 interface HeaderAndValues<T extends DatasetBuilderType> {
   header: string;
   values: T[];
+  makeIcon?: (value, header) => ReactElement;
 }
 
 interface SelectorProps<T extends DatasetBuilderType> {
@@ -136,23 +127,12 @@ interface SelectorProps<T extends DatasetBuilderType> {
   headerAction: any;
   placeholder?: any;
   style?: React.CSSProperties;
-  makeMenuContents?: (value, header) => ReactElement;
 }
 
 type SelectorComponent = <T extends DatasetBuilderType>(props: SelectorProps<T>) => ReactElement;
 const Selector: SelectorComponent = <T extends DatasetBuilderType>(props) => {
-  const {
-    number,
-    header,
-    subheader,
-    headerAction,
-    makeMenuContents,
-    placeholder,
-    objectSets,
-    onChange,
-    selectedObjectSets,
-    style,
-  } = props;
+  const { number, header, subheader, headerAction, placeholder, objectSets, onChange, selectedObjectSets, style } =
+    props;
   const selectedValues = _.flatMap(
     (selectedDatasetBuilderObjectSet) =>
       _.map(
@@ -215,7 +195,6 @@ const Selector: SelectorComponent = <T extends DatasetBuilderType>(props) => {
                     key: _.uniqueId(''),
                     objectSet,
                     selectedValues,
-                    makeMenuContents,
                     onChange: (value, header) => {
                       const index = _.findIndex(
                         (selectedObjectSet: HeaderAndValues<T>) => selectedObjectSet.header === header,
@@ -321,7 +300,7 @@ export const CohortSelector = ({
 }: {
   cohorts: Cohort[];
   selectedCohorts: HeaderAndValues<Cohort>[];
-  updateCohorts: (cohorts: Cohort[]) => void;
+  updateCohorts: Updater<Cohort[]>;
   onChange: (cohorts: HeaderAndValues<Cohort>[]) => void;
   onStateChange: OnStateChangeHandler;
 }) => {
@@ -340,7 +319,38 @@ export const CohortSelector = ({
       ),
       number: 1,
       onChange,
-      objectSets: [{ values: cohorts, header: 'Saved cohorts' }],
+      objectSets: [
+        {
+          values: cohorts,
+          header: 'Saved cohorts',
+          makeIcon: (value, header) =>
+            h(
+              MenuTrigger,
+              {
+                'aria-label': `${header}/${value} menu`,
+                closeOnClick: true,
+                style: { marginLeft: '1rem' },
+                content: h(Fragment, [
+                  h(
+                    MenuButton,
+                    { 'aria-label': 'Edit cohort', onClick: () => onStateChange(cohortEditorState.new(value)) },
+                    ['Edit']
+                  ),
+                  h(
+                    MenuButton,
+                    {
+                      'aria-label': 'Delete cohort',
+                      onClick: () => updateCohorts((cohorts) => _.without([value], cohorts)),
+                    },
+                    ['Delete']
+                  ),
+                ]),
+                side: 'right',
+              },
+              [makeMenuIcon('menu-icon-filled', { size: 20 })]
+            ),
+        },
+      ],
       selectedObjectSets: selectedCohorts,
       header: 'Select cohorts',
       subheader: 'Which participants to include',
@@ -348,15 +358,6 @@ export const CohortSelector = ({
         h(SelectorSubHeader, ['No cohorts yet']),
         div(["Create a cohort by clicking on the '+' icon"]),
       ]),
-      makeMenuContents: (value, _header) =>
-        h(Fragment, [
-          h(MenuButton, { 'aria-label': 'Edit cohort', onClick: () => onStateChange(cohortEditorState.new(value)) }, [
-            'Edit',
-          ]),
-          h(MenuButton, { 'aria-label': 'Delete cohort', onClick: () => updateCohorts(_.without([value], cohorts)) }, [
-            'Delete',
-          ]),
-        ]),
     }),
     creatingCohort && h(CreateCohortModal, { onDismiss: () => setCreatingCohort(false), onStateChange, cohorts }),
   ]);
@@ -365,11 +366,13 @@ export const CohortSelector = ({
 export const ConceptSetSelector = ({
   conceptSets,
   selectedConceptSets,
+  updateConceptSets,
   onChange,
   onStateChange,
 }: {
   conceptSets: ConceptSet[];
   selectedConceptSets: HeaderAndValues<ConceptSet>[];
+  updateConceptSets: Updater<ConceptSet[]>;
   onChange: (conceptSets: HeaderAndValues<ConceptSet>[]) => void;
   onStateChange: OnStateChangeHandler;
 }) => {
@@ -385,7 +388,14 @@ export const ConceptSetSelector = ({
     number: 2,
     onChange,
     objectSets: [
-      { header: 'Concept sets', values: conceptSets },
+      {
+        header: 'Concept sets',
+        values: conceptSets,
+        makeIcon: (value, _header) =>
+          h(Clickable, { onClick: () => updateConceptSets((conceptSets) => _.without([value], conceptSets)) }, [
+            icon('trash-circle-filled', { size: 20 }),
+          ]),
+      },
       { header: 'Prepackaged concept sets', values: PREPACKAGED_CONCEPT_SETS },
     ],
     selectedObjectSets: selectedConceptSets,
@@ -512,12 +522,14 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
 export const DatasetBuilderContents = ({
   onStateChange,
   updateCohorts,
+  updateConceptSets,
   dataset,
   cohorts,
   conceptSets,
 }: {
   onStateChange: OnStateChangeHandler;
-  updateCohorts: (cohorts: Cohort[]) => void;
+  updateCohorts: Updater<Cohort[]>;
+  updateConceptSets: Updater<ConceptSet[]>;
   dataset: DatasetResponse;
   cohorts: Cohort[];
   conceptSets: ConceptSet[];
@@ -598,6 +610,7 @@ export const DatasetBuilderContents = ({
           h(ConceptSetSelector, {
             conceptSets,
             selectedConceptSets,
+            updateConceptSets,
             onChange: async (conceptSets) => {
               const includedFeatureValueGroups = _.flow(
                 _.flatMap((headerAndValues: HeaderAndValues<ConceptSet>) => headerAndValues.values),
@@ -671,6 +684,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                 return h(DatasetBuilderContents, {
                   onStateChange,
                   updateCohorts: setCohorts,
+                  updateConceptSets: setConceptSets,
                   dataset: datasetDetails.state,
                   cohorts,
                   conceptSets,
