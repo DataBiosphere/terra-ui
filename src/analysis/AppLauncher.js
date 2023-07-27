@@ -203,15 +203,18 @@ const ApplicationLauncher = _.flow(
       );
     };
 
-    useOnMount(async () => {
-      const findHashedEmail = withErrorReporting('Error loading user email information', async () => {
-        const hashedEmail = await notebookLockHash(bucketName, email);
-        setHashedOwnerEmail(hashedEmail);
-      });
+    useOnMount(() => {
+      const loadUserEmail = async () => {
+        const findHashedEmail = withErrorReporting('Error loading user email information', async () => {
+          const hashedEmail = await notebookLockHash(bucketName, email);
+          setHashedOwnerEmail(hashedEmail);
+        });
 
-      await refreshRuntimes();
-      setBusy(false);
-      findHashedEmail();
+        await refreshRuntimes();
+        setBusy(false);
+        findHashedEmail();
+      };
+      loadUserEmail();
     });
 
     useEffect(() => {

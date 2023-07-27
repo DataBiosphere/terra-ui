@@ -154,8 +154,7 @@ describe('AzureSubscriptionStep', () => {
 
   it('shows the spinner overlay while the call to list managed apps is in progress', async () => {
     renderAzureSubscriptionStep({});
-    const queryLoadingSpinner = () =>
-      screen.queryByRole((_, node: Element | null) => node?.getAttribute('data-icon') === 'loadingSpinner');
+    const queryLoadingSpinner = () => document.querySelector('[data-icon="loadingSpinner]');
 
     expect(queryLoadingSpinner()).toBeNull();
     const listAzureManagedApplications = jest.fn(() => {
