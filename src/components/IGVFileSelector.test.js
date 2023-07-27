@@ -86,10 +86,24 @@ describe('getValidIgvFiles', () => {
   });
 
   it('requires GCS URLs', () => {
-    expect(getValidIgvFiles(['gs://bucket/test.bed', 'test.bed'])).toEqual([
+    expect(getValidIgvFiles(['gs://bucket/test.bed', 'https://example.com/test.bed', 'test.bed'])).toEqual([
       {
         filePath: 'gs://bucket/test.bed',
         indexFilePath: false,
+      },
+    ]);
+  });
+
+  it('allows TDR URLs', () => {
+    expect(
+      getValidIgvFiles([
+        'gs://datarepo-ab123456-bucket/cae37a2a-657f-4b04-9fef-59c215020078/5f5f634d-70f3-4914-9c71-9d14c7f98e60/test.bam',
+        'gs://datarepo-ab123456-bucket/cae37a2a-657f-4b04-9fef-59c215020078/2eeff61f-ae9e-41ae-bb40-909ff6bdfba8/test.bam.bai',
+      ])
+    ).toEqual([
+      {
+        filePath: 'gs://datarepo-ab123456-bucket/cae37a2a-657f-4b04-9fef-59c215020078/5f5f634d-70f3-4914-9c71-9d14c7f98e60/test.bam',
+        indexFilePath: 'gs://datarepo-ab123456-bucket/cae37a2a-657f-4b04-9fef-59c215020078/2eeff61f-ae9e-41ae-bb40-909ff6bdfba8/test.bam.bai',
       },
     ]);
   });

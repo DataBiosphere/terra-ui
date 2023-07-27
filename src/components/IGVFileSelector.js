@@ -19,18 +19,40 @@ const splitExtension = (fileUrl) => {
   return [base, extension];
 };
 
-const findIndexForFile = (fileUrl, fileUrls) => {
-  const [base, extension] = splitExtension(fileUrl);
+const isTdrUrl = (fileUrl) => {
+  const parts = fileUrl.split('/');
+  return (
+    parts.length === 6 &&
+    /datarepo-[a-f0-9]+-bucket/.test(parts[2]) &&
+    /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/.test(parts[3]) &&
+    /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/.test(parts[4])
+  );
+};
 
+const findIndexForFile = (fileUrl, fileUrls) => {
+  if (!['.cram', '.bam', '.vcf'].some((extension) => fileUrl.endsWith(extension))) {
+    return undefined;
+  }
+
+  if (isTdrUrl(fileUrl)) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [bucket, datasetId, fileRefId, object] = fileUrl.split('/').slice(2);
+    const [base, extension] = splitExtension(object);
+    const indexCandidates = {
+      cram: [`${base}.crai`, `${base}.cram.crai`],
+      bam: [`${base}.bai`, `${base}.bam.bai`],
+      vcf: [`${base}.idx`, `${base}.vcf.idx`, `${base}.tbi`, `${base}.vcf.tbi`],
+    }[extension].map(
+      (candidate) => new RegExp(`gs://${bucket}/${datasetId}/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/${candidate}`)
+    );
+    return fileUrls.find((url) => indexCandidates.some((candidate) => candidate.test(url)));
+  }
+  const [base, extension] = splitExtension(fileUrl);
   const indexCandidates = {
     cram: [`${base}.crai`, `${base}.cram.crai`],
     bam: [`${base}.bai`, `${base}.bam.bai`],
     vcf: [`${base}.idx`, `${base}.vcf.idx`, `${base}.tbi`, `${base}.vcf.tbi`],
   }[extension];
-
-  if (!indexCandidates) {
-    return undefined;
-  }
 
   return fileUrls.find((url) => indexCandidates.includes(url));
 };
