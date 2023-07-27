@@ -101,6 +101,7 @@ export type GCSMetadata = { [key: string]: string };
 // https://cloud.google.com/storage/docs/json_api/v1/objects/list
 export type GCSItem = {
   bucket: string;
+  contentType?: string;
   crc32c: string;
   etag: string;
   generation: string;

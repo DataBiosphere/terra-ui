@@ -123,6 +123,7 @@ const AzureBlobStorageFileBrowserProvider = ({
           const creationTime = blobProperties.getElementsByTagName('Creation-Time').item(0)!.textContent!;
           const lastModified = blobProperties.getElementsByTagName('Last-Modified').item(0)!.textContent!;
           const contentLength = blobProperties.getElementsByTagName('Content-Length').item(0)!.textContent!;
+          const contentType = blobProperties.getElementsByTagName('Content-Type').item(0)!.textContent!;
 
           const blobUrl = new URL(sasUrl);
           blobUrl.pathname += `/${name}`;
@@ -131,6 +132,7 @@ const AzureBlobStorageFileBrowserProvider = ({
           return {
             path: name,
             url: blobUrl.href,
+            contentType,
             size: parseInt(contentLength),
             createdAt: new Date(creationTime).getTime(),
             updatedAt: new Date(lastModified).getTime(),
