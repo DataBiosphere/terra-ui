@@ -2,9 +2,8 @@ import { Fragment, useCallback, useEffect, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
 import { appToolLabels, appTools } from 'src/analysis/utils/tool-utils';
-import { ButtonOutline, ButtonPrimary, Clickable, Link } from 'src/components/common';
+import { ButtonOutline, Clickable } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
-import TitleBar from 'src/components/TitleBar';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -16,6 +15,7 @@ import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import FindWorkflowModal from 'src/workflows-app/components/FindWorkflowModal';
 import { SavedWorkflows } from 'src/workflows-app/components/SavedWorkflows';
+import { WorkflowsAppLauncherCard } from 'src/workflows-app/components/WorkflowsAppLauncherCard';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
@@ -77,6 +77,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
 
     useEffect(() => {
       const app = getCurrentApp(appToolLabels.CROMWELL, apps);
+
       setAppCreating(getIsAppBusy(app));
       refreshApps();
     }, [apps, refreshApps]);
@@ -97,50 +98,20 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       });
       load();
     });
-    const pleaseWaitMessage = 'Workflows App is being created. Please wait.';
+
+    const createWorkflowsApp = Utils.withBusyState(setLoading, async () => {
+      await Ajax(signal).Apps.createAppV2(Utils.generateAppName(), workspace.workspace.workspaceId, appToolLabels.CROMWELL);
+      await Ajax(signal).Metrics.captureEvent(Events.applicationCreate, {
+        app: appTools.CROMWELL.label,
+        ...extractWorkspaceDetails(workspace),
+      });
+      setAppCreating(true);
+    });
+
     return loading
       ? centeredSpinner()
       : div([
-          !cbasReady &&
-            div({ style: { ...styles.card, margin: '2rem 4rem' } }, [
-              h(TitleBar, {
-                id: 'workflow-app-launch-page',
-                title: 'Launch the Workflows App to run workflows',
-                style: { marginBottom: '0.5rem' },
-              }),
-              div(['The Workflows App must be launched in order to explore, view, and submit workflows.']),
-              div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-center' } }, [
-                !appCreating && 'Would you like to get started?',
-                appCreating && pleaseWaitMessage,
-              ]),
-              div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'flex-center' } }, [
-                h(
-                  ButtonPrimary,
-                  {
-                    disabled: appCreating,
-                    tooltip: appCreating ? pleaseWaitMessage : 'Create Workflows App',
-                    onClick: Utils.withBusyState(setLoading, async () => {
-                      await Ajax(signal).Apps.createAppV2(Utils.generateAppName(), workspace.workspace.workspaceId, appToolLabels.CROMWELL);
-                      await Ajax(signal).Metrics.captureEvent(Events.applicationCreate, {
-                        app: appTools.CROMWELL.label,
-                        ...extractWorkspaceDetails(workspace),
-                      });
-                      setAppCreating(true);
-                    }),
-                  },
-                  ['Yes, launch the Workflows App']
-                ),
-              ]),
-              h(
-                Link,
-                {
-                  ...Utils.newTabLinkProps,
-                  href: 'https://support.terra.bio/hc/en-us/articles/360024743371-Working-with-workspaces',
-                  style: { marginTop: '2rem' },
-                },
-                ['Learn more about managing cloud cost']
-              ),
-            ]),
+          !cbasReady && h(WorkflowsAppLauncherCard, { onClick: createWorkflowsApp, appCreating }),
           cbasReady &&
             div({ style: { margin: '2rem 4rem' } }, [
               div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
