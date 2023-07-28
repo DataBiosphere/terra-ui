@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
@@ -82,7 +82,7 @@ describe('AzureComputeModal', () => {
     // Act
     // wrapping component init-time stateful side-effects with act()
     await act(async () => {
-      await render(h(AzureComputeModalBase, defaultModalProps));
+      render(h(AzureComputeModalBase, defaultModalProps));
     });
 
     // Assert
@@ -94,6 +94,8 @@ describe('AzureComputeModal', () => {
 
   it('sends the proper leo API call in default create case (no runtimes or disks)', async () => {
     // Arrange
+    const user = userEvent.setup();
+
     const createFunc = jest.fn();
     const runtimeFunc = jest.fn(() => ({
       create: createFunc,
@@ -109,9 +111,10 @@ describe('AzureComputeModal', () => {
     // Act
     // wrapping component init-time stateful side-effects with act()
     await act(async () => {
-      await render(h(AzureComputeModalBase, defaultModalProps));
-      await userEvent.click(getCreateButton());
+      render(h(AzureComputeModalBase, defaultModalProps));
     });
+
+    await user.click(getCreateButton());
 
     // Assert
     const labels = {
@@ -136,6 +139,8 @@ describe('AzureComputeModal', () => {
 
   it('sends the proper leo API call in the case of a persistent disk', async () => {
     // Arrange
+    const user = userEvent.setup();
+
     const createFunc = jest.fn();
     const runtimeFunc = jest.fn(() => ({
       create: createFunc,
@@ -151,9 +156,10 @@ describe('AzureComputeModal', () => {
     // Act
     // wrapping component init-time stateful side-effects with act()
     await act(async () => {
-      await render(h(AzureComputeModalBase, persistentDiskModalProps));
-      await userEvent.click(getCreateButton());
+      render(h(AzureComputeModalBase, persistentDiskModalProps));
     });
+
+    await user.click(getCreateButton());
 
     // Assert
     const labels = {
@@ -196,15 +202,15 @@ describe('AzureComputeModal', () => {
     // Act
     // wrapping component init-time stateful side-effects with act()
     await act(async () => {
-      await render(h(AzureComputeModalBase, defaultModalProps));
-
-      const numberInput = await screen.getByLabelText('minutes of inactivity');
-      expect(numberInput).toBeInTheDocument();
-      await user.type(numberInput, '0');
-      expect(numberInput.value).toBe('300');
-
-      await user.click(getCreateButton());
+      render(h(AzureComputeModalBase, defaultModalProps));
     });
+
+    const numberInput = await screen.getByLabelText('minutes of inactivity');
+    expect(numberInput).toBeInTheDocument();
+    await user.type(numberInput, '0');
+    expect(numberInput.value).toBe('300');
+
+    await user.click(getCreateButton());
 
     // Assert
     const labels = {
@@ -230,6 +236,8 @@ describe('AzureComputeModal', () => {
 
   it('sends the proper leo API call in create case (autopause disabled)', async () => {
     // Arrange
+    const user = userEvent.setup();
+
     const createFunc = jest.fn();
     const runtimeFunc = jest.fn(() => ({
       create: createFunc,
@@ -245,19 +253,18 @@ describe('AzureComputeModal', () => {
     // Act
     // wrapping component init-time stateful side-effects with act()
     await act(async () => {
-      await render(h(AzureComputeModalBase, defaultModalProps));
-
-      const autopauseCheckbox = await screen.getByLabelText('Enable autopause');
-      expect(autopauseCheckbox).toBeInTheDocument();
-      await expect(autopauseCheckbox).toBeChecked();
-      await fireEvent.click(autopauseCheckbox); // click to focus?
-      await fireEvent.click(autopauseCheckbox);
-      await expect(autopauseCheckbox).not.toBeChecked();
-      const numberInput = await screen.getByLabelText('minutes of inactivity');
-      await expect(numberInput).not.toBeVisible();
-
-      await userEvent.click(getCreateButton());
+      render(h(AzureComputeModalBase, defaultModalProps));
     });
+
+    const autopauseCheckbox = screen.getByLabelText('Enable autopause');
+    expect(autopauseCheckbox).toBeInTheDocument();
+    expect(autopauseCheckbox).toBeChecked();
+    await user.click(autopauseCheckbox);
+    expect(autopauseCheckbox).not.toBeChecked();
+    const numberInput = screen.getByLabelText('minutes of inactivity');
+    expect(numberInput).not.toBeVisible();
+
+    await user.click(getCreateButton());
 
     // Assert
     const labels = {
@@ -290,7 +297,7 @@ describe('AzureComputeModal', () => {
     // Act
     // wrapping component init-time stateful side-effects with act()
     await act(async () => {
-      await render(h(AzureComputeModalBase, defaultModalProps));
+      render(h(AzureComputeModalBase, defaultModalProps));
     });
 
     // Assert
@@ -315,14 +322,15 @@ describe('AzureComputeModal', () => {
     // Act
     // wrapping component init-time stateful side-effects with act()
     await act(async () => {
-      await render(h(AzureComputeModalBase, defaultModalProps));
-      expect(screen.getAllByText(formatUSD(initialComputeCost)).length).toBeTruthy(); // Verify initial value
-
-      const selectCompute = screen.getByLabelText('Cloud compute profile');
-      await user.click(selectCompute);
-      const selectOption = await screen.getByText(_.keys(azureMachineTypes)[1], { exact: false });
-      await user.click(selectOption);
+      render(h(AzureComputeModalBase, defaultModalProps));
     });
+
+    expect(screen.getAllByText(formatUSD(initialComputeCost)).length).toBeTruthy(); // Verify initial value
+
+    const selectCompute = screen.getByLabelText('Cloud compute profile');
+    await user.click(selectCompute);
+    const selectOption = await screen.getByText(_.keys(azureMachineTypes)[1], { exact: false });
+    await user.click(selectOption);
 
     // Assert
     expect(screen.getAllByText(formatUSD(expectedComputeCost)).length).toBeTruthy(); // Currently stopped and running are the same cost.
@@ -332,6 +340,8 @@ describe('AzureComputeModal', () => {
   // click delete environment on an existing [jupyter, rstudio] runtime with disk should bring up confirmation
   it('deletes environment with a confirmation for disk deletion for tool $tool.label', async () => {
     // Arrange
+    const user = userEvent.setup();
+
     const disk = getDisk();
     const runtime = azureRuntime;
     runtime.runtimeConfig.persistentDiskId = disk.id;
@@ -361,8 +371,9 @@ describe('AzureComputeModal', () => {
           currentRuntime: runtime,
         })
       );
-      await userEvent.click(screen.getByText('Delete Environment'));
     });
+
+    await user.click(screen.getByText('Delete Environment'));
 
     // Assert
     verifyEnabled(screen.getByText('Delete'));
@@ -374,6 +385,8 @@ describe('AzureComputeModal', () => {
 
   it('deletes disk when there is no runtime present.', async () => {
     // Arrange
+    const user = userEvent.setup();
+
     const disk = getDisk();
 
     const runtimeFunc = jest.fn(() => ({
@@ -400,8 +413,9 @@ describe('AzureComputeModal', () => {
           currentRuntime: null,
         })
       );
-      await userEvent.click(screen.getByText('Delete Persistent Disk'));
     });
+
+    await user.click(screen.getByText('Delete Persistent Disk'));
 
     // Assert
     verifyEnabled(screen.getByText('Delete'));
@@ -411,20 +425,22 @@ describe('AzureComputeModal', () => {
 
   it('toggles GPU on azure warning when GPU cloud compute profile is selected and unselected', async () => {
     // Arrange
-    await render(h(AzureComputeModalBase, defaultModalProps));
+    const user = userEvent.setup();
+
+    render(h(AzureComputeModalBase, defaultModalProps));
 
     // Act
     const selectCompute = screen.getByLabelText('Cloud compute profile');
-    await userEvent.click(selectCompute);
+    await user.click(selectCompute);
 
-    await userEvent.click(screen.getByText(getMachineTypeLabel('Standard_NC6s_v3')));
+    await user.click(screen.getByText(getMachineTypeLabel('Standard_NC6s_v3')));
 
     // Assert
     expect(screen.getByText('Learn more about enabling GPUs.')).toBeInTheDocument();
 
     // Act
-    await userEvent.click(selectCompute);
-    await userEvent.click(screen.getByText(getMachineTypeLabel('Standard_DS2_v2')));
+    await user.click(selectCompute);
+    await user.click(screen.getByText(getMachineTypeLabel('Standard_DS2_v2')));
 
     // Assert
     expect(screen.queryByText('Learn more about enabling GPUs.')).not.toBeInTheDocument();

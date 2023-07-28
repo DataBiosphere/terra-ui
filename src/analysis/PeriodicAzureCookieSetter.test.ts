@@ -28,30 +28,30 @@ jest.mock('src/libs/error', () => {
 });
 
 describe('PeriodicAzureCookieSetter', () => {
-  it('should call usePollingEffect', async () => {
+  it('should call usePollingEffect', () => {
     // Arrange
-    await render(h(PeriodicAzureCookieSetter));
+    render(h(PeriodicAzureCookieSetter));
 
     // Assert
     expect(usePollingEffect).toHaveBeenCalled();
   });
 
-  it('should call usePollingEffect and withErrorIgnoring', async () => {
+  it('should call usePollingEffect and withErrorIgnoring', () => {
     usePollingEffectMock.mockImplementationOnce(() => withErrorIgnoring);
     // Arrange
-    await render(h(PeriodicAzureCookieSetter));
+    render(h(PeriodicAzureCookieSetter));
 
     // Assert
     expect(usePollingEffect).toHaveBeenCalled();
     expect(withErrorIgnoring).toHaveBeenCalled();
   });
 
-  it('should call withErrorIgnoring', async () => {
+  it('should call withErrorIgnoring', () => {
     usePollingEffectMock.mockImplementation((effectFn, { ms, leading }) =>
       withErrorIgnoring(effectFn, { ms, leading })
     );
     // Arrange
-    await render(h(PeriodicAzureCookieSetter));
+    render(h(PeriodicAzureCookieSetter));
 
     // Assert
     expect(usePollingEffect).toHaveBeenCalled();

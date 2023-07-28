@@ -77,7 +77,9 @@ export const useWorkspaceDetails = ({ namespace, name }, fields) => {
     setWorkspace(ws);
   });
 
-  useOnMount(refresh);
+  useOnMount(() => {
+    refresh();
+  }, []);
 
   return { workspace, refresh, loading };
 };
@@ -97,7 +99,11 @@ export const withWorkspaces = (WrappedComponent) => {
 export const WorkspaceSelector = ({ workspaces, value, onChange, id, 'aria-label': ariaLabel, ...props }) => {
   const options = _.flow(
     _.sortBy((ws) => ws.workspace.name.toLowerCase()),
-    _.map(({ workspace: { workspaceId, name } }) => ({ value: workspaceId, label: name }))
+    _.map(({ workspace: { workspaceId, name, cloudPlatform, bucketName } }) => ({
+      value: workspaceId,
+      label: name,
+      workspace: { cloudPlatform, bucketName },
+    }))
   )(workspaces);
   return h(VirtualizedSelect, {
     id,

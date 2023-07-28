@@ -550,6 +550,8 @@ const testDeleteBillingProjectFn = withUserToken(async ({ page, testUrl, token }
   // Confirm delete
   await billingPage.confirmDeleteBillingProject();
 
+  await waitForNoSpinners(page);
+
   // Assert that the errored billing project is no longer visible
   await billingPage.assertTextNotFound(erroredBillingProjectName);
 });

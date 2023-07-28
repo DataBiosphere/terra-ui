@@ -7,6 +7,41 @@ import {
   TsvUploadResponse,
 } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 
+export type WDSVersionResponse = {
+  // Older versions of WDS may not have the "app" field.
+  app?: {
+    'chart-version': string;
+    image: string;
+  };
+  build: {
+    artifact: string;
+    name: string;
+    time: string;
+    version: string;
+    group: string;
+  };
+  git: {
+    branch: string;
+    commit: {
+      id: string;
+      time: string;
+    };
+  };
+};
+
+export type WDSCloneStatusResponse = {
+  created: string;
+  errorMessage?: string;
+  exception?: string;
+  jobId: string;
+  result: {
+    sourceWorkspaceId: string;
+    status: string;
+  };
+  status: string;
+  updated: string;
+};
+
 export const WorkspaceData = (signal) => ({
   getSchema: async (root: string, instanceId: string): Promise<RecordTypeSchema[]> => {
     const res = await fetchWDS(root)(`${instanceId}/types/v0.2`, _.merge(authOpts(), { signal }));
@@ -45,7 +80,7 @@ export const WorkspaceData = (signal) => ({
     );
     return res.json();
   },
-  getVersion: async (root: string): Promise<any> => {
+  getVersion: async (root: string): Promise<WDSVersionResponse> => {
     const res = await fetchWDS(root)('version', _.merge(authOpts(), { signal }));
     return res.json();
   },
@@ -55,6 +90,10 @@ export const WorkspaceData = (signal) => ({
   },
   listInstances: async (root: string): Promise<any> => {
     const res = await fetchWDS(root)('instances/v0.2', _.merge(authOpts(), { signal }));
+    return res.json();
+  },
+  getCloneStatus: async (root: string): Promise<WDSCloneStatusResponse> => {
+    const res = await fetchWDS(root)('clone/v0.2', _.merge(authOpts(), { signal }));
     return res.json();
   },
   importTdr: async (root: string, instanceId: string, snapshotId: string): Promise<Response> => {

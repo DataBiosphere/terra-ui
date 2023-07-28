@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react';
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import { reportError } from 'src/libs/error';
 import { controlledPromise } from 'src/testing/test-utils';
@@ -33,11 +33,10 @@ describe('useFileDownloadCommand', () => {
     };
 
     // Act
-    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() =>
-      useFileDownloadCommand({ file, provider: mockProvider })
-    );
-    getDownloadCommandForFileController.resolve('gsutil cp gs://test-bucket/path/to/example.txt .');
-    await waitForNextUpdate();
+    const { result: hookReturnRef } = renderHook(() => useFileDownloadCommand({ file, provider: mockProvider }));
+    await act(async () => {
+      getDownloadCommandForFileController.resolve('gsutil cp gs://test-bucket/path/to/example.txt .');
+    });
     const result = hookReturnRef.current;
 
     // Assert
@@ -55,11 +54,10 @@ describe('useFileDownloadCommand', () => {
     };
 
     // Act
-    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() =>
-      useFileDownloadCommand({ file, provider: mockProvider })
-    );
-    getDownloadCommandForFileController.reject(new Error('Something went wrong'));
-    await waitForNextUpdate();
+    const { result: hookReturnRef } = renderHook(() => useFileDownloadCommand({ file, provider: mockProvider }));
+    await act(async () => {
+      getDownloadCommandForFileController.reject(new Error('Something went wrong'));
+    });
     const result = hookReturnRef.current;
 
     // Assert

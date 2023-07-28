@@ -86,6 +86,38 @@ export const runSetInputDefWithSourceNone = [
   },
 ];
 
+export const runSetInputDefWithEmptySources = _.flow(
+  _.set('[0].source', { type: 'record_lookup', record_attribute: '' }),
+  _.set('[2].source', { type: 'object_builder', fields: [] })
+)(runSetInputDefWithSourceNone);
+
+export const runSetInputDefWithWrongTypes = [
+  {
+    input_name: 'target_workflow_1.a.empty_rating_workflow_var',
+    input_type: { type: 'primitive', primitive_type: 'Int' },
+    source: {
+      type: 'literal',
+      parameter_value: '',
+    },
+  },
+  {
+    input_name: 'target_workflow_1.b.foo_rating_workflow_var',
+    input_type: { type: 'primitive', primitive_type: 'Int' },
+    source: {
+      type: 'literal',
+      parameter_value: '123X',
+    },
+  },
+  {
+    input_name: 'target_workflow_1.c.bar_rating_workflow_var',
+    input_type: { type: 'primitive', primitive_type: 'Int' },
+    source: {
+      type: 'literal',
+      parameter_value: 123,
+    },
+  },
+];
+
 // example input configuration for a newly imported method with some of the same variable names as the table
 export const runSetInputDefSameInputNames = [
   {
@@ -245,7 +277,15 @@ export const myStructInput = {
   },
 };
 
+export const myStructInputCompleteAttribute = _.set(
+  'source.fields[4].source.fields[0].source',
+  { type: 'literal', parameter_value: 2 },
+  myStructInput
+);
+
 export const runSetInputDefWithStruct = [...runSetInputDef, myStructInput];
+
+export const runSetInputDefWithCompleteStruct = [...runSetInputDef, myStructInputCompleteAttribute];
 
 export const runSetInputDefWithArrays = [
   {
@@ -261,6 +301,56 @@ export const runSetInputDefWithArrays = [
     input_type: { type: 'optional', optional_type: { type: 'array', array_type: { type: 'primitive', primitive_type: 'String' } } },
     source: {
       type: 'none',
+    },
+  },
+];
+
+export const runSetInputDefWithArrayMessages = [
+  {
+    input_name: 'target_workflow_1.a.empty_int_array',
+    input_type: { type: 'array', array_type: { type: 'primitive', primitive_type: 'Int' } },
+    source: {
+      type: 'literal',
+      parameter_value: [],
+    },
+  },
+  {
+    input_name: 'target_workflow_1.b.invalid_int_array',
+    input_type: { type: 'array', array_type: { type: 'primitive', primitive_type: 'Int' } },
+    source: {
+      type: 'literal',
+      parameter_value: '[X]',
+    },
+  },
+  {
+    input_name: 'target_workflow_1.c.valid_int_array',
+    input_type: { type: 'array', array_type: { type: 'primitive', primitive_type: 'Int' } },
+    source: {
+      type: 'literal',
+      parameter_value: '[1, 2]',
+    },
+  },
+  {
+    input_name: 'target_workflow_1.d.string_array_no_source',
+    input_type: { type: 'array', array_type: { type: 'primitive', primitive_type: 'String' } },
+    source: {
+      type: 'none',
+    },
+  },
+  {
+    input_name: 'target_workflow_1.e.string_array_empty_source',
+    input_type: { type: 'array', array_type: { type: 'primitive', primitive_type: 'String' } },
+    source: {
+      type: 'literal',
+      parameter_value: '',
+    },
+  },
+  {
+    input_name: 'target_workflow_1.f.string_array_string_value',
+    input_type: { type: 'array', array_type: { type: 'primitive', primitive_type: 'String' } },
+    source: {
+      type: 'literal',
+      parameter_value: 'not an array',
     },
   },
 ];
@@ -573,14 +663,46 @@ export const searchResponses = {
   BAR: searchResponseBAR,
 };
 
-export const mockWdsProxyUrl = 'https://lzabc123.servicebus.windows.net/abc-proxy-url/wds';
-export const mockApps = [
+export const mockAzureApps = [
   {
-    appType: 'CROMWELL',
-    workspaceId: 'abc-123',
-    appName: 'wds-abc-123',
+    workspaceId: 'abc-c07807929cd1',
+    cloudContext: {
+      cloudProvider: 'AZURE',
+    },
+    errors: [],
     status: 'RUNNING',
-    proxyUrls: { wds: mockWdsProxyUrl },
+    proxyUrls: {
+      cbas: 'https://lz-abc/terra-app-abc/cbas',
+      'cbas-ui': 'https://lz-abc/terra-app-abc/',
+      cromwell: 'https://lz-abc/terra-app-abc/cromwell',
+    },
+    appName: 'terra-app-abc',
+    appType: 'CROMWELL',
+    diskName: null,
+    auditInfo: {
+      creator: 'groot@gmail.com',
+    },
+    accessScope: null,
+    labels: {},
+  },
+  {
+    workspaceId: 'abc-c07807929cd1',
+    cloudContext: {
+      cloudProvider: 'AZURE',
+    },
+    errors: [],
+    status: 'RUNNING',
+    proxyUrls: {
+      wds: 'https://lz-abc/wds-abc-c07807929cd1/',
+    },
+    appName: 'wds-abc-c07807929cd1',
+    appType: 'WDS',
+    diskName: null,
+    auditInfo: {
+      creator: 'groot@gmail.com',
+    },
+    accessScope: 'WORKSPACE_SHARED',
+    labels: {},
   },
 ];
 
@@ -599,7 +721,7 @@ export const mockAzureWorkspace = {
     isLocked: false,
     name: 'test-azure-ws-name',
     namespace: 'test-azure-ws-namespace',
-    workspaceId: 'unique-id-abc-123',
+    workspaceId: 'abc-c07807929cd1',
     createdDate: '2023-02-15T19:17:15.711Z',
     createdBy: 'groot@gmail.com',
   },

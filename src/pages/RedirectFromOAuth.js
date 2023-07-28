@@ -10,7 +10,13 @@ const RedirectFromOAuth = () => {
 
   const url = window.location.href;
   const isSilent = window.location.pathname.startsWith('/redirect-from-oauth-silent');
-  useOnMount(() => (isSilent === true ? userManager.signinSilentCallback(url) : userManager.signinPopupCallback(url)));
+  useOnMount(() => {
+    if (isSilent === true) {
+      userManager.signinSilentCallback(url);
+    } else {
+      userManager.signinPopupCallback(url);
+    }
+  });
 
   const spinnerSize = 54;
   return div({ role: 'main', style: { position: 'absolute', top: 0, left: 0, height: '100%', width: '100%' } }, [

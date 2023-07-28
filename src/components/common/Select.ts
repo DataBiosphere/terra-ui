@@ -10,7 +10,8 @@ import RSelect, {
   SingleValue as RSelectSingleValue,
 } from 'react-select';
 import RAsyncCreatableSelect from 'react-select/async-creatable';
-import { AutoSizer, List } from 'react-virtualized';
+import { List } from 'react-virtualized';
+import { AutoSizer } from 'src/components/common/VirtualizedSelectAutoSizer';
 import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import { useLabelAssert, useOnMount, useUniqueId } from 'src/libs/react-utils';
@@ -290,11 +291,10 @@ const VirtualizedMenuList = (props) => {
   const rowHeight = 40;
   const height = _.clamp(rowHeight, maxHeight, rowHeight * rowCount);
 
-  // @ts-expect-error
   return h(AutoSizer, { disableHeight: true }, [
     ({ width }) => {
+      // @ts-expect-error
       return h(List, {
-        // @ts-expect-error
         ref: list,
         height,
         width,
