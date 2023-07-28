@@ -327,7 +327,6 @@ export const CohortSelector = ({
             h(
               MenuTrigger,
               {
-                'aria-label': `${header}/${value} menu`,
                 closeOnClick: true,
                 style: { marginLeft: '1rem' },
                 content: h(Fragment, [
@@ -345,9 +344,8 @@ export const CohortSelector = ({
                     ['Delete']
                   ),
                 ]),
-                side: 'right',
               },
-              [makeMenuIcon('menu-icon-filled', { size: 20 })]
+              [makeMenuIcon('menu-icon-filled', { size: 20, 'aria-label': `${header}/${value.name} menu` })]
             ),
         },
       ],
@@ -395,7 +393,7 @@ export const ConceptSetSelector = ({
           h(
             Clickable,
             {
-              'aria-label': `${header}/${value} menu`,
+              'aria-label': `Delete ${header}/${value.name}`,
               onClick: () => updateConceptSets((conceptSets) => _.without([value], conceptSets)),
             },
             [icon('trash-circle-filled', { size: 20 })]

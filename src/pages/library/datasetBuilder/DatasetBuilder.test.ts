@@ -270,4 +270,72 @@ describe('DatasetBuilder', () => {
     // Assert
     expect(onStateChange).toHaveBeenCalledWith({ mode: 'concept-set-creator' });
   });
+
+  it('enables editing cohorts', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onStateChange = jest.fn();
+    const cohorts = [newCohort('cohort 1'), newCohort('cohort 2')];
+    render(
+      h(DatasetBuilderContents, {
+        updateCohorts: jest.fn(),
+        updateConceptSets: jest.fn(),
+        cohorts,
+        conceptSets: [],
+        onStateChange,
+        dataset: dummyDatasetDetails('id'),
+      })
+    );
+    // Act
+    await user.click(await screen.findByLabelText(`Saved cohorts/${cohorts[0].name} menu`));
+    await user.click(await screen.findByLabelText('Edit cohort'));
+    // Assert
+    expect(onStateChange).toHaveBeenCalledWith(cohortEditorState.new(cohorts[0]));
+  });
+
+  it('enables deleting cohorts', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const updateCohorts = jest.fn();
+    const cohorts = [newCohort('cohort 1'), newCohort('cohort 2')];
+    render(
+      h(DatasetBuilderContents, {
+        updateCohorts,
+        updateConceptSets: jest.fn(),
+        cohorts,
+        conceptSets: [],
+        onStateChange: jest.fn(),
+        dataset: dummyDatasetDetails('id'),
+      })
+    );
+    // Act
+    await user.click(await screen.findByLabelText(`Saved cohorts/${cohorts[0].name} menu`));
+    await user.click(await screen.findByLabelText('Delete cohort'));
+    // Assert
+    expect(updateCohorts.mock.calls[0][0](cohorts)).toStrictEqual(_.tail(cohorts));
+  });
+
+  it('enables deleting concept sets', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const updateConceptSets = jest.fn();
+    const conceptSets = [
+      { name: 'concept set 1', featureValueGroupName: 'Condition' },
+      { name: 'concept set 2', featureValueGroupName: 'Procedure' },
+    ];
+    render(
+      h(DatasetBuilderContents, {
+        updateCohorts: jest.fn(),
+        updateConceptSets,
+        cohorts: [],
+        conceptSets,
+        onStateChange: jest.fn(),
+        dataset: dummyDatasetDetails('id'),
+      })
+    );
+    // Act
+    await user.click(await screen.findByLabelText(`Delete Concept sets/${conceptSets[0].name}`));
+    // Assert
+    expect(updateConceptSets.mock.calls[0][0](conceptSets)).toStrictEqual(_.tail(conceptSets));
+  });
 });
