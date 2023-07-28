@@ -50,7 +50,7 @@ interface ObjectSetListItemProps<T extends DatasetBuilderType> {
   value: T;
   checked: boolean;
   onChange: (value: T) => void;
-  icon?: ReactElement | undefined;
+  icon?: ReactElement;
 }
 
 const ObjectSetListItem = <T extends DatasetBuilderType>(props: ObjectSetListItemProps<T>) => {
