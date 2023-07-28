@@ -10,6 +10,7 @@ import * as Projects from 'src/pages/billing/List/List';
 import * as FeaturePreviews from 'src/pages/FeaturePreviews';
 import * as Group from 'src/pages/groups/Group';
 import * as Groups from 'src/pages/groups/List';
+import * as ImportAnalysis from 'src/pages/ImportAnalysis';
 import * as ImportData from 'src/pages/ImportData';
 import * as ImportWorkflow from 'src/pages/ImportWorkflow/ImportWorkflow';
 import * as LandingPage from 'src/pages/LandingPage';
@@ -51,6 +52,7 @@ const routes = _.flatten([
   LandingPage.navPaths,
   WorkspaceList.navPaths,
   WorkflowView.navPaths,
+  ImportAnalysis.navPaths,
   ImportData.navPaths,
   ImportWorkflow.navPaths,
   PrivacyPolicy.navPaths,
