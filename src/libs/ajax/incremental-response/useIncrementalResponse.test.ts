@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react';
 import _ from 'lodash/fp';
 import { ErrorState, LoadingState, ReadyState } from 'src/libs/type-utils/LoadedState';
 import { controlledPromise, PromiseController, renderHookInAct } from 'src/testing/test-utils';

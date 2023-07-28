@@ -40,16 +40,16 @@
     "prismjs": "^1.27.0",
     "prop-types": "^15.7.2",
     "qs": "^6.10.1",
-    "react": "17.0.2",
+    "react": "18.2.0",
     "react-collapse": "^5.1.0",
-    "react-dom": "17.0.2",
+    "react-dom": "18.2.0",
     "react-draggable": "^4.4.4",
     "react-dropzone": "^11.4.0",
     "react-favicon": "^2.0.3",
     "react-focus-lock": "^2.9.5",
     "react-hyperscript-helpers": "^2.0.0",
     "react-modal": "^3.16.1",
-    "react-notifications-component": "^3.4.1",
+    "react-notifications-component": "^4.0.1",
     "react-oidc-context": "^2.1.0",
     "react-onclickoutside": "^6.13.0",
     "react-paginating": "^1.4.0",
@@ -78,18 +78,17 @@
   },
   "devDependencies": {
     "@axe-core/react": "^4.6.1",
-    "@testing-library/dom": "^8.17.1",
-    "@testing-library/jest-dom": "^5.16.4",
-    "@testing-library/react": "^12.1.5",
-    "@testing-library/react-hooks": "^8.0.1",
+    "@testing-library/dom": "^9.3.1",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.4.3",
     "@types/jest": "^28.1.8",
     "@types/lodash": "^4.14.184",
     "@types/node": "^18.7.16",
-    "@types/react": "^18.0.18",
-    "@types/react-dom": "^18.0.6",
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
     "@types/react-virtualized": "^9.21.22",
-    "@types/testing-library__jest-dom": "^5.9.1",
+    "@types/testing-library__jest-dom": "^5.14.9",
     "@typescript-eslint/eslint-plugin": "^5.59.1",
     "babel-plugin-prismjs": "^2.1.0",
     "blob-polyfill": "^7.0.20220408",
@@ -106,6 +105,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-simple-import-sort": "^7.0.0",
     "husky": "^7.0.2",
+    "ignore": "^5.2.4",
     "jest-axe": "^6.0.0",
     "jest-fail-on-console": "^3.1.1",
     "lint-staged": "^13.0.3",
@@ -153,10 +153,5 @@
   "jest": {
     "clearMocks": true,
     "resetMocks": false
-  },
-  "lint-staged": {
-    "**/*.{js,ts}": [
-      "yarn eslint --max-warnings=0"
-    ]
   }
 }

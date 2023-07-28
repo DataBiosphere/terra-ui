@@ -7,8 +7,6 @@ import ModalDrawer from 'src/components/ModalDrawer';
 import { TextCell } from 'src/components/table';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { DOCKSTORE_AZURE_FEATURE_ID } from 'src/libs/feature-previews-config';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -79,9 +77,7 @@ const FindWorkflowModal = ({ onDismiss, workspace }) => {
   const subHeadersMap = {
     'browse-suggested-workflows': 'Browse Suggested Workflows',
     'add-a-workflow-link': 'Add a Workflow Link',
-    ...(isFeaturePreviewEnabled(DOCKSTORE_AZURE_FEATURE_ID) && {
-      'go-to-dockstore': h(TextCell, {}, ['Dockstore', icon('export', { style: { marginLeft: '0.5rem' } })]),
-    }),
+    'go-to-dockstore': h(TextCell, {}, ['Dockstore', icon('export', { style: { marginLeft: '0.5rem' } })]),
   };
 
   const isSubHeaderActive = (subHeader) => selectedSubHeader === subHeader;
@@ -145,7 +141,7 @@ const FindWorkflowModal = ({ onDismiss, workspace }) => {
               ),
             ]),
           ]),
-        isSubHeaderActive('add-a-workflow-link') && h(ImportGithub, { setLoading, signal, onDismiss, workspace, submitMethod }),
+        isSubHeaderActive('add-a-workflow-link') && h(ImportGithub, { setLoading, signal, onDismiss, workspace }),
         isSubHeaderActive('go-to-dockstore') &&
           div({ style: { marginLeft: '4rem', width: '50%' } }, [
             h(
