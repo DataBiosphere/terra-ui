@@ -1,4 +1,7 @@
-import { act, renderHook, RenderHookOptions, RenderHookResult } from '@testing-library/react';
+import { act, renderHook, RenderHookOptions, RenderHookResult, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+type UserEvent = ReturnType<typeof userEvent.setup>;
 
 /*
  * Use when working with a jest.fn() mocked method to get better type safety and IDE hinting on
@@ -68,3 +71,31 @@ export const renderHookInAct = async <T, U>(
   });
   return result!;
 };
+
+export class SelectHelper {
+  selectElement: HTMLElement;
+
+  user: UserEvent;
+
+  constructor(selectElement: HTMLElement, user: UserEvent) {
+    this.selectElement = selectElement;
+    this.user = user;
+  }
+
+  async getOptions(): Promise<string[]> {
+    await this.user.click(this.selectElement);
+    const listboxId = this.selectElement.getAttribute('aria-controls')!;
+    const listBox = document.getElementById(listboxId)!;
+    const options = Array.from(listBox.querySelectorAll('[role="option"]'));
+    const optionLabels = options.map((opt) => opt.textContent!);
+    return optionLabels;
+  }
+
+  async selectOption(optionLabel: string): Promise<void> {
+    await this.user.click(this.selectElement);
+    const listboxId = this.selectElement.getAttribute('aria-controls')!;
+    const listBox = document.getElementById(listboxId)!;
+    const option = within(listBox).getByRole('option', { name: optionLabel });
+    await this.user.click(option);
+  }
+}
