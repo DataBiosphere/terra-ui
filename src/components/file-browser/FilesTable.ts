@@ -12,6 +12,8 @@ import * as Utils from 'src/libs/utils';
 
 export interface FilesTableProps {
   'aria-label'?: string;
+  editDisabled?: boolean;
+  editDisabledReason?: string;
   files: FileBrowserFile[];
   selectedFiles: { [path: string]: FileBrowserFile };
   setSelectedFiles: Dispatch<SetStateAction<{ [path: string]: FileBrowserFile }>>;
@@ -22,6 +24,8 @@ export interface FilesTableProps {
 const FilesTable = (props: FilesTableProps) => {
   const {
     'aria-label': ariaLabel = 'Files',
+    editDisabled = false,
+    editDisabledReason,
     files,
     selectedFiles,
     setSelectedFiles,
@@ -125,7 +129,14 @@ const FilesTable = (props: FilesTableProps) => {
               headerRenderer: () => h(HeaderCell, { className: 'sr-only' }, ['Actions']),
               cellRenderer: ({ rowIndex }) => {
                 const file = files[rowIndex];
-                return h(TextCell, [h(FileMenu, { file, onRename: onRenameFile })]);
+                return h(TextCell, [
+                  h(FileMenu, {
+                    editDisabled,
+                    editDisabledReason,
+                    file,
+                    onRename: onRenameFile,
+                  }),
+                ]);
               },
             },
           ],

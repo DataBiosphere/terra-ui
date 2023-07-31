@@ -8,16 +8,21 @@ import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 
 type FileMenuProps = {
+  editDisabled?: boolean;
+  editDisabledReason?: string;
   file: FileBrowserFile;
   onRename: (file: FileBrowserFile) => void;
 };
 
 const FileMenuContent = (props: FileMenuProps) => {
-  const { file, onRename } = props;
+  const { editDisabled = false, editDisabledReason, file, onRename } = props;
+
   return h(Fragment, [
     h(
       MenuButton,
       {
+        disabled: editDisabled,
+        tooltip: editDisabled ? editDisabledReason : undefined,
         tooltipSide: 'left',
         onClick: () => {
           onRename(file);

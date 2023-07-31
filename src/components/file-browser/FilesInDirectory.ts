@@ -147,6 +147,8 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
                 h(Fragment, [
                   h(FilesTable, {
                     'aria-label': `Files in ${directoryLabel}`,
+                    editDisabled,
+                    editDisabledReason,
                     files,
                     selectedFiles,
                     setSelectedFiles,
