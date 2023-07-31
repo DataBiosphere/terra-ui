@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
-import { a, div, h, h2, span } from 'react-hyperscript-helpers';
+import { a, div, h, h2, label, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link, Select } from 'src/components/common';
 import { Switch } from 'src/components/common/Switch';
 import { styles as errorStyles } from 'src/components/ErrorView';
@@ -336,6 +336,8 @@ export const BaseSubmissionConfig = (
     return `https://support.terra.bio/hc/en-us/articles/${article}`;
   };
 
+  const callCachingLabel = 'Call Caching';
+
   const renderSummary = () => {
     return div({ style: { marginLeft: '2em', marginTop: '1rem', display: 'flex', justifyContent: 'space-between' } }, [
       div([
@@ -396,16 +398,19 @@ export const BaseSubmissionConfig = (
               h(Link, { href: getSupportLink('360047664872'), ...Utils.newTabLinkProps }, ['Click here to learn more.']),
             ]),
           ]),
-          div({ style: { display: 'inline-block' } }, [
-            h(Switch, {
-              'data-testid': 'call-cache-toggle',
-              checked: isCallCachingEnabled,
-              onChange: (newValue) => {
-                setIsCallCachingEnabled(newValue);
-              },
-              onLabel: 'On',
-              offLabel: 'Off',
-            }),
+          label({ htmlFor: callCachingLabel }, [
+            div({ style: { display: 'inline-block' } }, [
+              h(Switch, {
+                id: callCachingLabel,
+                'data-testid': 'call-cache-toggle',
+                checked: isCallCachingEnabled,
+                onChange: (newValue) => {
+                  setIsCallCachingEnabled(newValue);
+                },
+                onLabel: 'On',
+                offLabel: 'Off',
+              }),
+            ]),
           ]),
         ]),
         div({ style: { marginTop: '1rem', height: '2rem', fontWeight: 'bold' } }, ['Select a data table:']),
