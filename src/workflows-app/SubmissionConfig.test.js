@@ -1,11 +1,11 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import selectEvent from 'react-select-event';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
 import * as Nav from 'src/libs/nav';
 import { AppProxyUrlStatus, getUser, workflowsAppStore } from 'src/libs/state';
+import { SelectHelper } from 'src/testing/test-utils';
 import { BaseSubmissionConfig } from 'src/workflows-app/SubmissionConfig';
 import {
   badRecordTypeRunSetResponse,
@@ -754,11 +754,8 @@ describe('Records Table updates', () => {
 
     // ** ACT **
     const dropdown = screen.getByLabelText('Select a data table');
-    await act(async () => {
-      await selectEvent.openMenu(dropdown);
-    });
-
-    await user.click(screen.getByText('BAR'));
+    const dropdownSelect = new SelectHelper(dropdown, user);
+    await dropdownSelect.selectOption('BAR');
 
     // ** ASSERT **
     // selecting a dropdown option should trigger a re-render, and a second call to records data
@@ -771,11 +768,7 @@ describe('Records Table updates', () => {
     expect(cells.length).toBe(4);
 
     // ** ACT **
-    await act(async () => {
-      await selectEvent.openMenu(dropdown);
-    });
-
-    await user.click(screen.getByText('FOO'));
+    await dropdownSelect.selectOption('FOO');
 
     // ** ASSERT **
     // selecting a dropdown option should (again) trigger a re-render, and a third call to records data
@@ -854,12 +847,9 @@ describe('Records Table updates', () => {
 
     // ** ACT **
     // Change Data Table to 'BAR'
-    const dropdown1 = screen.getByLabelText('Select a data table');
-    await act(async () => {
-      await selectEvent.openMenu(dropdown1);
-    });
-
-    await user.click(screen.getByText('BAR'));
+    const dropdown = screen.getByLabelText('Select a data table');
+    const dropdownSelect = new SelectHelper(dropdown, user);
+    await dropdownSelect.selectOption('BAR');
 
     // ** ASSERT **
     const barRows = within(table).getAllByRole('row');
@@ -883,12 +873,7 @@ describe('Records Table updates', () => {
 
     // ** ACT **
     // Change Data Table back to 'FOO'
-    const dropdown2 = screen.getByLabelText('Select a data table');
-    await act(async () => {
-      await selectEvent.openMenu(dropdown2);
-    });
-
-    await user.click(screen.getByText('FOO'));
+    await dropdownSelect.selectOption('FOO');
 
     // ** ASSERT **
     // verify that the width of column 'ID' has been preserved from previous resizing
@@ -1002,12 +987,9 @@ describe('Records Table updates', () => {
     expect(screen.queryByText('No records selected')).toBeNull();
 
     // Change the selected data types
-    const dropdown1 = screen.getByLabelText('Select a data table');
-    await act(async () => {
-      await selectEvent.openMenu(dropdown1);
-    });
-
-    await user.click(screen.getByText('BAR'));
+    const dropdown = screen.getByLabelText('Select a data table');
+    const dropdownSelect = new SelectHelper(dropdown, user);
+    await dropdownSelect.selectOption('BAR');
 
     const checkboxesAfterRecordTypeChange = screen.getAllByRole('checkbox');
     for (const checkboxAfterRecordTypeChange of checkboxesAfterRecordTypeChange) {
@@ -1020,11 +1002,7 @@ describe('Records Table updates', () => {
     screen.getByText('No records selected');
 
     // Change the selected data type back
-    await act(async () => {
-      await selectEvent.openMenu(dropdown1);
-    });
-
-    await user.click(screen.getByText('FOO'));
+    await dropdownSelect.selectOption('FOO');
 
     const checkboxesAfterRecordTypeChange2 = screen.getAllByRole('checkbox');
     for (const checkboxAfterRecordTypeChange of checkboxesAfterRecordTypeChange2) {
