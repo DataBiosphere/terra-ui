@@ -1,23 +1,3 @@
-import '@testing-library/jest-dom';
-import 'blob-polyfill';
-
-import { toHaveNoViolations } from 'jest-axe';
-import failOnConsole from 'jest-fail-on-console';
-
-// Fail tests that produce console logs.
-// Console warnings or errors suggest there are issues with the test.
-// Other console logs are noise that make it harder to find informative output when tests do fail.
-if (!process.env.ALLOW_LOGS) {
-  failOnConsole({
-    shouldFailOnAssert: true,
-    shouldFailOnDebug: true,
-    shouldFailOnInfo: true,
-    shouldFailOnLog: true,
-    shouldFailOnWarn: true,
-    shouldFailOnError: true,
-  });
-}
-
 // VirtualizedSelect uses react-virtualized's AutoSizer to size the options menu.
 // Left to its own devices, in the unit test environment, AutoSizer makes the menu
 // list 0px wide and no options are rendered. Mocking AutoSizer makes the virtualized
@@ -49,4 +29,4 @@ jest.mock('src/configStore', () => ({
   loadedConfigStore: { current: { jest: true } },
 }));
 
-expect.extend(toHaveNoViolations);
+export {};

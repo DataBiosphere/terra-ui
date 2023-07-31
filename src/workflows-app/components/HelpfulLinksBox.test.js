@@ -1,5 +1,3 @@
-import '@testing-library/jest-dom';
-
 import { render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
