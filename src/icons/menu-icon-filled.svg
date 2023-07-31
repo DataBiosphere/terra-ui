@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <title>icons/24x24/Menu icon</title>
-    <g id="icons/24x24/Menu-icon" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <g id="Group">
             <circle id="Oval" fill="#FFFFFF" cx="12" cy="12" r="12"></circle>
             <circle id="Oval-Copy" fill-opacity="0.2" fill="#4D72AA" cx="12" cy="12" r="12"></circle>

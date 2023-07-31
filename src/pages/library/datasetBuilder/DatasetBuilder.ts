@@ -104,7 +104,7 @@ const ObjectSetListSection = <T extends DatasetBuilderType>(props: ObjectSetList
           value,
           checked: isChecked(objectSet, value),
           onChange: (value) => onChange(value, objectSet.header),
-          icon: objectSet.makeIcon ? objectSet.makeIcon(value, objectSet.header) : undefined,
+          icon: objectSet.makeIcon?.(value, objectSet.header),
         }),
       objectSet.values
     ),
@@ -339,7 +339,7 @@ export const CohortSelector = ({
                     MenuButton,
                     {
                       'aria-label': 'Delete cohort',
-                      onClick: () => updateCohorts((cohorts) => _.without([value], cohorts)),
+                      onClick: () => updateCohorts(_.without([value])),
                     },
                     ['Delete']
                   ),
@@ -522,6 +522,15 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
   );
 };
 
+export type DatasetBuilderContentsProps = {
+  onStateChange: OnStateChangeHandler;
+  updateCohorts: Updater<Cohort[]>;
+  updateConceptSets: Updater<ConceptSet[]>;
+  dataset: DatasetResponse;
+  cohorts: Cohort[];
+  conceptSets: ConceptSet[];
+};
+
 export const DatasetBuilderContents = ({
   onStateChange,
   updateCohorts,
@@ -529,14 +538,7 @@ export const DatasetBuilderContents = ({
   dataset,
   cohorts,
   conceptSets,
-}: {
-  onStateChange: OnStateChangeHandler;
-  updateCohorts: Updater<Cohort[]>;
-  updateConceptSets: Updater<ConceptSet[]>;
-  dataset: DatasetResponse;
-  cohorts: Cohort[];
-  conceptSets: ConceptSet[];
-}) => {
+}: DatasetBuilderContentsProps) => {
   const [selectedCohorts, setSelectedCohorts] = useState([] as HeaderAndValues<Cohort>[]);
   const [selectedConceptSets, setSelectedConceptSets] = useState([] as HeaderAndValues<ConceptSet>[]);
   const [selectedValues, setSelectedValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
