@@ -73,27 +73,43 @@ export const renderHookInAct = async <T, U>(
 };
 
 export class SelectHelper {
-  selectElement: HTMLElement;
+  inputElement: HTMLElement;
 
   user: UserEvent;
 
-  constructor(selectElement: HTMLElement, user: UserEvent) {
-    this.selectElement = selectElement;
+  constructor(inputElement: HTMLElement, user: UserEvent) {
+    this.inputElement = inputElement;
     this.user = user;
   }
 
+  async openMenu(): Promise<void> {
+    const expanded = this.inputElement.getAttribute('aria-expanded');
+    if (expanded === 'false') {
+      await this.user.click(this.inputElement);
+    }
+  }
+
+  async closeMenu(): Promise<void> {
+    const expanded = this.inputElement.getAttribute('aria-expanded');
+    if (expanded === 'true') {
+      this.inputElement.focus();
+      await this.user.keyboard('{Escape}');
+    }
+  }
+
   async getOptions(): Promise<string[]> {
-    await this.user.click(this.selectElement);
-    const listboxId = this.selectElement.getAttribute('aria-controls')!;
+    await this.openMenu();
+    const listboxId = this.inputElement.getAttribute('aria-controls')!;
     const listBox = document.getElementById(listboxId)!;
     const options = Array.from(listBox.querySelectorAll('[role="option"]'));
     const optionLabels = options.map((opt) => opt.textContent!);
+    await this.closeMenu();
     return optionLabels;
   }
 
   async selectOption(optionLabel: string): Promise<void> {
-    await this.user.click(this.selectElement);
-    const listboxId = this.selectElement.getAttribute('aria-controls')!;
+    await this.openMenu();
+    const listboxId = this.inputElement.getAttribute('aria-controls')!;
     const listBox = document.getElementById(listboxId)!;
     const option = within(listBox).getByRole('option', { name: optionLabel });
     await this.user.click(option);

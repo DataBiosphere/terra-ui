@@ -30,6 +30,8 @@ describe('SelectHelper', () => {
 
     // Assert
     expect(options).toEqual(['Foo', 'Bar', 'Baz']);
+
+    expect(screen.getByLabelText('Test Select')).toHaveAttribute('aria-expanded', 'false');
   });
 });
 
