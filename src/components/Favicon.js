@@ -4,7 +4,7 @@ import bioDataCatalystFavicon from 'src/images/brands/bioDataCatalyst/bioDataCat
 import { isBioDataCatalyst } from 'src/libs/brand-utils';
 import * as Utils from 'src/libs/utils';
 
-const faviconPath = Utils.cond([isBioDataCatalyst(), () => bioDataCatalystFavicon], () => `${process.env.PUBLIC_URL}/favicon.png`);
+const faviconPath = Utils.cond([isBioDataCatalyst(), () => bioDataCatalystFavicon], () => '/favicon.png');
 
 const Favicon = () => {
   return h(RFavicon, { url: faviconPath });

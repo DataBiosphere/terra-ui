@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom';
 import 'blob-polyfill';
+import 'whatwg-fetch';
 
 import { toHaveNoViolations } from 'jest-axe';
 import failOnConsole from 'jest-fail-on-console';
