@@ -394,7 +394,7 @@ export const ConceptSetSelector = ({
             Clickable,
             {
               'aria-label': `Delete ${header}/${value.name}`,
-              onClick: () => updateConceptSets((conceptSets) => _.without([value], conceptSets)),
+              onClick: () => updateConceptSets(_.without([value])),
             },
             [icon('trash-circle-filled', { size: 20 })]
           ),
