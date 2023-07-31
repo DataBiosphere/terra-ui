@@ -2851,6 +2851,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@terra-ui-packages/test-utils@*, @terra-ui-packages/test-utils@workspace:packages/test-utils":
+  version: 0.0.0-use.local
+  resolution: "@terra-ui-packages/test-utils@workspace:packages/test-utils"
+  dependencies:
+    "@babel/core": ^7.16.0
+    "@testing-library/jest-dom": ^5.17.0
+    babel-jest: ^27.4.2
+    babel-preset-react-app: ^10.0.1
+    blob-polyfill: ^7.0.20220408
+    browserslist: ^4.18.1
+    camelcase: ^6.2.1
+    identity-obj-proxy: ^3.0.0
+    jest: ^27.4.3
+    jest-axe: ^6.0.0
+    jest-fail-on-console: ^3.1.1
+    jest-watch-typeahead: ^1.0.0
+    whatwg-fetch: ^3.6.2
+  languageName: unknown
+  linkType: soft
+
 "@testing-library/dom@npm:^9.0.0, @testing-library/dom@npm:^9.3.1":
   version: 9.3.1
   resolution: "@testing-library/dom@npm:9.3.1"
@@ -12394,7 +12414,6 @@ __metadata:
   resolution: "terra-ui@workspace:."
   dependencies:
     "@axe-core/react": ^4.6.1
-    "@babel/core": ^7.16.0
     "@databiosphere/bard-client": ^0.1.0
     "@dnd-kit/core": ^6.0.8
     "@dnd-kit/sortable": ^7.0.2
@@ -12404,8 +12423,8 @@ __metadata:
     "@fortawesome/free-solid-svg-icons": ^5.15.4
     "@fortawesome/react-fontawesome": ^0.1.15
     "@microlink/react-json-view": ^1.22.2
+    "@terra-ui-packages/test-utils": "*"
     "@testing-library/dom": ^9.3.1
-    "@testing-library/jest-dom": ^5.17.0
     "@testing-library/react": ^14.0.0
     "@testing-library/user-event": ^14.4.3
     "@types/jest": ^28.1.8
@@ -12419,11 +12438,7 @@ __metadata:
     "@vitejs/plugin-react": ^4.0.0
     animate.css: ^4.1.1
     array-move: ^4.0.0
-    babel-jest: ^27.4.2
-    babel-preset-react-app: ^10.0.1
-    blob-polyfill: ^7.0.20220408
     browserslist: ^4.18.1
-    camelcase: ^6.2.1
     check-dts: ^0.7.1
     clipboard-polyfill: ^3.0.3
     color: ^4.0.1
@@ -12449,14 +12464,11 @@ __metadata:
     highcharts-react-official: ^3.1.0
     history: ^4.10.1
     husky: ^7.0.2
-    identity-obj-proxy: ^3.0.0
     iframe-resizer: ^4.3.2
     ignore: ^5.2.4
     igv: 2.11.2
     jest: ^27.4.3
     jest-axe: ^6.0.0
-    jest-fail-on-console: ^3.1.1
-    jest-watch-typeahead: ^1.0.0
     jszip: ^3.10.1
     jwt-decode: ^3.1.2
     lint-staged: ^13.0.3
@@ -12501,7 +12513,6 @@ __metadata:
     validate.js: ^0.13.1
     vite: ^4.3.9
     vite-plugin-svgr: ^3.2.0
-    whatwg-fetch: ^3.6.2
   dependenciesMeta:
     "@fortawesome/fontawesome-common-types":
       built: false

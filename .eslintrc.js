@@ -1,8 +1,5 @@
 module.exports = {
   extends: ['airbnb-typescript-prettier'],
-  parserOptions: {
-    project: './tsconfig.json',
-  },
   settings: {
     'import/resolver': {
       'eslint-import-resolver-custom-alias': {
