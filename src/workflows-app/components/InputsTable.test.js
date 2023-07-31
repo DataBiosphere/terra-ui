@@ -1,5 +1,3 @@
-import '@testing-library/jest-dom';
-
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
