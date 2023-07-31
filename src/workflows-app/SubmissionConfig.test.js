@@ -137,6 +137,17 @@ describe('BaseSubmissionConfig renders workflow details', () => {
     expect(screen.getAllByText('Select a data table')[0]).toBeInTheDocument();
     expect(screen.getByText('FOO')).toBeInTheDocument();
 
+    // Call cache button should exist, be checked by default, and toggle to false when clicked.
+    expect(screen.getByText('Call Caching:')).toBeInTheDocument();
+    const callCacheToggleButton = screen.getByTestId('call-cache-toggle');
+    expect(callCacheToggleButton).toBeDefined();
+    expect(callCacheToggleButton).toHaveProperty('checked', true);
+    act(() => {
+      callCacheToggleButton.click();
+    });
+
+    expect(callCacheToggleButton).toHaveProperty('checked', false);
+
     const workflowScriptLink = screen.getByRole('button', { name: 'View Workflow Script' });
     expect(workflowScriptLink).toBeInTheDocument();
     expect(workflowScriptLink.getAttribute('aria-disabled')).toBe('false');

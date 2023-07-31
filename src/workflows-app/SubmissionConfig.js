@@ -1,3 +1,4 @@
+import { isEmpty } from 'lodash';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { a, div, h, h2, span } from 'react-hyperscript-helpers';
@@ -60,7 +61,7 @@ export const BaseSubmissionConfig = (
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState();
   const [inputValidations, setInputValidations] = useState([]);
   const [viewWorkflowScriptModal, setViewWorkflowScriptModal] = useState(false);
-  const [isCallCachingEnabled, setIsCallCachingEnabled] = useState(false);
+  const [isCallCachingEnabled, setIsCallCachingEnabled] = useState(true);
 
   const [runSetName, setRunSetName] = useState('');
   const [runSetDescription, setRunSetDescription] = useState('');
@@ -120,6 +121,10 @@ export const BaseSubmissionConfig = (
         setConfiguredInputDefinition(maybeParseJSON(newRunSetData.input_definition));
         setConfiguredOutputDefinition(maybeParseJSON(newRunSetData.output_definition));
         setSelectedRecordType(newRunSetData.record_type);
+
+        let callCache = maybeParseJSON(newRunSetData.call_caching_enabled);
+        callCache = isEmpty(callCache) ? true : callCache; // avoid setting boolean to undefined, default to true
+        setIsCallCachingEnabled(callCache);
 
         return newRunSetData;
       } catch (error) {
@@ -229,12 +234,12 @@ export const BaseSubmissionConfig = (
         method_version_id: selectedMethodVersion.method_version_id,
         workflow_input_definitions: _.map(convertArrayType)(configuredInputDefinition),
         workflow_output_definitions: configuredOutputDefinition,
+        call_caching_enabled: isCallCachingEnabled,
         wds_records: {
           record_type: selectedRecordType,
           record_ids: _.keys(selectedRecords),
         },
       };
-
       setIsSubmitting(true);
       const runSetObject = await Ajax(signal).Cbas.runSets.post(runSetsPayload);
       notify('success', 'Workflow successfully submitted', {
@@ -394,6 +399,7 @@ export const BaseSubmissionConfig = (
           ]),
           div({ style: { display: 'inline-block' } }, [
             h(Switch, {
+              'data-testid': 'call-cache-toggle',
               checked: isCallCachingEnabled,
               onChange: (newValue) => {
                 setIsCallCachingEnabled(newValue);
