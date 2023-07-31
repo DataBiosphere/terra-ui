@@ -1,5 +1,12 @@
+/* global Prism */
+import 'prismjs';
+import 'prismjs/components/prism-bash';
+import 'prismjs/components/prism-python';
+import 'prismjs/plugins/line-numbers/prism-line-numbers';
+import 'prismjs/plugins/line-numbers/prism-line-numbers.css';
+import 'prismjs/themes/prism.css';
+
 import _ from 'lodash/fp';
-import Prism from 'prismjs';
 import { useLayoutEffect, useRef } from 'react';
 import { code, pre } from 'react-hyperscript-helpers';
 import * as Style from 'src/libs/style';
@@ -14,6 +21,7 @@ import * as Style from 'src/libs/style';
  * that support isn't available in the WDL TextMate Grammar, perhaps because it
  * isn't possible.
  */
+
 Prism.languages.wdl = {
   comment: /#.*/,
   string: {
