@@ -1,4 +1,4 @@
-import { act, Renderer, renderHook, RenderHookOptions, RenderHookResult } from '@testing-library/react-hooks';
+import { act, renderHook, RenderHookOptions, RenderHookResult } from '@testing-library/react';
 
 /*
  * Use when working with a jest.fn() mocked method to get better type safety and IDE hinting on
@@ -61,8 +61,8 @@ export const setUpAutoSizerTesting = () => {
 export const renderHookInAct = async <T, U>(
   callback: (args: T) => U,
   options?: RenderHookOptions<T>
-): Promise<RenderHookResult<T, U, Renderer<T>>> => {
-  let result: RenderHookResult<T, U, Renderer<T>>;
+): Promise<RenderHookResult<U, T>> => {
+  let result: RenderHookResult<U, T>;
   await act(async () => {
     result = renderHook(callback, options);
   });

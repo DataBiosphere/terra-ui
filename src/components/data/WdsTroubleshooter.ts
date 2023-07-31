@@ -27,6 +27,9 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     wdsPingStatus,
     wdsIamStatus,
     defaultInstanceExists,
+    cloneSourceWorkspaceId,
+    cloneStatus,
+    cloneErrorMessage,
   } = status;
 
   const checkIcon = (status, size = 24) =>
@@ -80,7 +83,12 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     ['Resource Group Id', mrgId, false, !!mrgId],
     ['App listing', `${numApps} app(s) total`, numApps == null, !!numApps && numApps !== 'unknown'],
     ['Data app name', appName, appName === null, !!appName && appName !== 'unknown'],
-    ['Data app running?', appStatus, appStatus == null, !!appStatus && appStatus !== 'unknown'],
+    [
+      'Data app running?',
+      appStatus,
+      appStatus == null,
+      !!appStatus && appStatus !== 'unknown' && appStatus !== 'ERROR',
+    ],
     ['Data app proxy url', proxyUrl, proxyUrl == null, !!proxyUrl && proxyUrl !== 'unknown', proxyElement],
     ['Data app responding', wdsResponsive, wdsResponsive == null, wdsResponsive === 'true'],
     ['Data app version', version, version == null, !!version && version !== 'unknown'],
@@ -112,11 +120,23 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     ],
     [
       'Default Instance exists',
-      `${defaultInstanceExists}`,
+      defaultInstanceExists,
       defaultInstanceExists == null,
       !!defaultInstanceExists && defaultInstanceExists !== 'unknown',
     ],
   ];
+
+  if (cloneSourceWorkspaceId !== null) {
+    troubleShooterText.push(
+      ['Data table clone source', cloneSourceWorkspaceId, false, cloneSourceWorkspaceId !== 'unknown'],
+      [
+        'Data table clone status',
+        cloneErrorMessage ? `${cloneStatus} (${cloneErrorMessage})` : cloneStatus,
+        false,
+        cloneStatus !== 'unknown' && cloneErrorMessage == null,
+      ]
+    );
+  }
 
   const tableRows = troubleShooterText.map((x) => troubleShooterRow(x));
 

@@ -15,19 +15,21 @@ export const isKnownCloudProvider = (x: unknown): x is CloudProvider => {
   return (x as string) in cloudProviderTypes;
 };
 
-export interface BaseWorkspaceInfo {
+interface BaseWorkspaceInfo {
   namespace: string;
   name: string;
   workspaceId: string;
-  cloudPlatform: string;
   authorizationDomain: string[];
   createdDate: string;
   createdBy: string;
 }
 
-export type AzureWorkspaceInfo = BaseWorkspaceInfo;
+export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
+  cloudPlatform: 'Azure';
+}
 
 export interface GoogleWorkspaceInfo extends BaseWorkspaceInfo {
+  cloudPlatform: 'Gcp';
   googleProject: string;
   bucketName: string;
 }

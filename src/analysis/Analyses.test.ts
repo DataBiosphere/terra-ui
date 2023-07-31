@@ -389,11 +389,10 @@ describe('Analyses', () => {
 
     // Act
     await act(async () => {
-      // eslint-disable-line require-await
       render(h(BaseAnalyses, defaultAnalysesProps));
-      const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]')!;
-      await user.upload(fileInput, [fileToDrop]);
     });
+    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]')!;
+    await user.upload(fileInput, [fileToDrop]);
 
     expect(createObservable).toHaveBeenCalledWith(droppedFileName, runtimeToolLabels.Jupyter, fileToDrop);
   });

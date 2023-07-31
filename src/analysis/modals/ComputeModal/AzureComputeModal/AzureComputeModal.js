@@ -61,8 +61,8 @@ export const AzureComputeModalBase = ({
   const [deleteDiskSelected, setDeleteDiskSelected] = useState(false);
   const hasGpu = () => !!azureMachineTypes[computeConfig.machineType]?.hasGpu;
   // Lifecycle
-  useOnMount(
-    _.flow(
+  useOnMount(() => {
+    const loadCloudEnvironment = _.flow(
       withErrorReportingInModal('Error loading cloud environment', onError),
       Utils.withBusyState(setLoading)
     )(async () => {
@@ -80,8 +80,9 @@ export const AzureComputeModalBase = ({
         region: runtimeDetails?.runtimeConfig?.region || location || defaultAzureRegion,
         autopauseThreshold: runtimeDetails ? runtimeDetails.autopauseThreshold || autopauseDisabledValue : defaultAutopauseThreshold,
       });
-    })
-  );
+    });
+    loadCloudEnvironment();
+  });
 
   const renderTitleAndTagline = () => {
     return h(Fragment, [
