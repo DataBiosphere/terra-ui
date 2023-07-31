@@ -6,6 +6,7 @@ import { ButtonOutline, Clickable } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
+import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
@@ -48,11 +49,12 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
   ) => {
     const [methodsData, setMethodsData] = useState();
     const [loading, setLoading] = useState(false);
-    const [appCreating, setAppCreating] = useState(false);
+    const [creating, setCreating] = useState(false);
     const [viewFindWorkflowModal, setViewFindWorkflowModal] = useState(false);
 
     const signal = useCancellation();
     const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
+    const currentApp = getCurrentApp(appToolLabels.CROMWELL, apps);
 
     const loadRunsData = useCallback(
       async (cbasProxyUrlDetails) => {
@@ -75,13 +77,6 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       [signal, workspaceId]
     );
 
-    useEffect(() => {
-      const app = getCurrentApp(appToolLabels.CROMWELL, apps);
-
-      setAppCreating(getIsAppBusy(app));
-      refreshApps();
-    }, [apps, refreshApps]);
-
     // poll if we're missing CBAS proxy url and stop polling when we have it
     usePollingEffect(() => !doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState') && loadRunsData(workflowsAppStore.get().cbasProxyUrlState), {
       ms: CbasPollInterval,
@@ -99,20 +94,40 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       load();
     });
 
-    const createWorkflowsApp = Utils.withBusyState(setLoading, async () => {
-      await Ajax(signal).Apps.createAppV2(Utils.generateAppName(), workspace.workspace.workspaceId, appToolLabels.CROMWELL);
-      await Ajax(signal).Metrics.captureEvent(Events.applicationCreate, {
-        app: appTools.CROMWELL.label,
-        ...extractWorkspaceDetails(workspace),
-      });
-      setAppCreating(true);
+    useEffect(() => {
+      const refresh = async () => {
+        await refreshApps(true);
+      };
+
+      if (!currentApp || getIsAppBusy(currentApp)) {
+        refresh();
+      }
+    }, [currentApp, refreshApps]);
+
+    const createWorkflowsApp = Utils.withBusyState(setCreating, async () => {
+      try {
+        setCreating(true);
+        await Ajax(signal).Apps.createAppV2(Utils.generateAppName(), workspace.workspace.workspaceId, appToolLabels.CROMWELL);
+        await Ajax(signal).Metrics.captureEvent(Events.applicationCreate, {
+          app: appTools.CROMWELL.label,
+          ...extractWorkspaceDetails(workspace),
+        });
+        await refreshApps(true);
+      } catch (error) {
+        reportError('Cloud Environment Error', error);
+      } finally {
+        setCreating(false);
+      }
     });
+
+    const pageReady = cbasReady || (currentApp && !getIsAppBusy(currentApp));
+    const launcherDisabled = creating || (currentApp && getIsAppBusy(currentApp)) || (currentApp && !pageReady);
 
     return loading
       ? centeredSpinner()
       : div([
-          !cbasReady && h(WorkflowsAppLauncherCard, { onClick: createWorkflowsApp, appCreating }),
-          cbasReady &&
+          !pageReady && h(WorkflowsAppLauncherCard, { onClick: createWorkflowsApp, disabled: launcherDisabled }),
+          pageReady &&
             div({ style: { margin: '2rem 4rem' } }, [
               div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
                 h2(['Submit a workflow']),
