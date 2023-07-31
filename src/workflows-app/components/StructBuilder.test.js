@@ -123,14 +123,14 @@ describe('Configuration tests', () => {
     // use the struct builder to set an input type, and attribute, and assert that the payload has all the required fields
 
     // ** ASSERT **
-    const structTable = await screen.getByLabelText('struct-table');
-    const structRows = within(structTable).queryAllByRole('row');
+    const structTable = screen.getByLabelText('struct-table');
+    const structRows = within(structTable).getAllByRole('row');
     expect(structRows.length).toBe(2);
     expect(setStructSource).toHaveBeenCalledTimes(0);
 
-    const structCells = within(structRows[1]).queryAllByRole('cell');
+    const structCells = within(structRows[1]).getAllByRole('cell');
     await userEvent.click(within(structCells[3]).getByText('Select Source'));
-    const selectOption = await screen.findByText('Type a Value');
+    const selectOption = screen.getByText('Type a Value');
     await userEvent.click(selectOption);
 
     // upon selecting the source type of a previously empty source specification,
@@ -180,14 +180,14 @@ describe('Configuration tests', () => {
     );
 
     // ** ASSERT **
-    const structTable = await screen.getByLabelText('struct-table');
-    const structRows = within(structTable).queryAllByRole('row');
+    const structTable = screen.getByLabelText('struct-table');
+    const structRows = within(structTable).getAllByRole('row');
     expect(structRows.length).toBe(2);
     expect(setStructSource).toHaveBeenCalledTimes(0);
 
-    const structCells = within(structRows[1]).queryAllByRole('cell');
+    const structCells = within(structRows[1]).getAllByRole('cell');
     await userEvent.click(within(structCells[3]).getByText('Type a Value'));
-    const selectOption = await screen.findByText('Fetch from Data Table');
+    const selectOption = screen.getByText('Fetch from Data Table');
     await userEvent.click(selectOption);
 
     // upon selecting the source type of a previously empty source specification,
@@ -283,13 +283,13 @@ describe('Configuration tests', () => {
     );
 
     // ** ASSERT **
-    const structTable = await screen.getByLabelText('struct-table');
-    const structRows = within(structTable).queryAllByRole('row');
+    const structTable = screen.getByLabelText('struct-table');
+    const structRows = within(structTable).getAllByRole('row');
     expect(structRows.length).toBe(3);
     within(structRows[1]).getByText('pet_age');
     within(structRows[2]).getByText('pet_description');
 
-    const structCells = within(structRows[2]).queryAllByRole('cell');
+    const structCells = within(structRows[2]).getAllByRole('cell');
     within(structCells[3]).getByText('Use Struct Builder');
 
     // ** ACT **
@@ -298,29 +298,29 @@ describe('Configuration tests', () => {
 
     // ** ASSERT **
     // should be in inner struct now
-    const innerStructTable = await screen.getByLabelText('struct-table');
-    const innerStructRows = within(innerStructTable).queryAllByRole('row');
+    const innerStructTable = screen.getByLabelText('struct-table');
+    const innerStructRows = within(innerStructTable).getAllByRole('row');
     expect(innerStructRows.length).toBe(3);
     within(innerStructRows[1]).getByText('pet_has_tail');
     within(innerStructRows[2]).getByText('pet_num_legs');
 
     // ** ACT **
     // go back up a level by clicking 'Back'
-    const innerDoneButton = await screen.getByText('Back');
+    const innerDoneButton = screen.getByText('Back');
     await userEvent.click(innerDoneButton);
 
     // ** ASSERT **
     // onDismiss hasn't been called, back to outer struct
     expect(onDismiss).not.toHaveBeenCalled();
-    const outerStructTable = await screen.getByLabelText('struct-table');
-    const outerStructRows = within(outerStructTable).queryAllByRole('row');
+    const outerStructTable = screen.getByLabelText('struct-table');
+    const outerStructRows = within(outerStructTable).getAllByRole('row');
     expect(outerStructRows.length).toBe(3);
     within(outerStructRows[1]).getByText('pet_age');
     within(outerStructRows[2]).getByText('pet_description');
 
     // ** ACT **
     // exit modal by clicking 'Done'
-    const outerDoneButton = await screen.getByText('Done');
+    const outerDoneButton = screen.getByText('Done');
     await userEvent.click(outerDoneButton);
     expect(onDismiss).toHaveBeenCalled();
   });
@@ -344,18 +344,18 @@ describe('Configuration tests', () => {
     );
 
     // ** ASSERT **
-    const structTable = await screen.getByLabelText('struct-table');
-    const structRows = within(structTable).queryAllByRole('row');
+    const structTable = screen.getByLabelText('struct-table');
+    const structRows = within(structTable).getAllByRole('row');
     expect(structRows.length).toBe(3);
     within(structRows[1]).getByText('pet_age');
     within(structRows[2]).getByText('pet_description');
 
-    const searchInput = await screen.getByLabelText('Search inputs');
+    const searchInput = screen.getByLabelText('Search inputs');
     await userEvent.type(searchInput, 'pet_a');
     expect(searchInput).toHaveValue('pet_a');
     await act(() => delay(300)); // debounced search
 
-    const filteredStructRows = within(structTable).queryAllByRole('row');
+    const filteredStructRows = within(structTable).getAllByRole('row');
     expect(filteredStructRows.length).toBe(2);
     within(filteredStructRows[1]).getByText('pet_age');
 
@@ -363,7 +363,7 @@ describe('Configuration tests', () => {
     expect(searchInput).toHaveValue('pet_');
     await act(() => delay(300)); // debounced search
 
-    const allFilteredStructRows = within(structTable).queryAllByRole('row');
+    const allFilteredStructRows = within(structTable).getAllByRole('row');
     expect(allFilteredStructRows.length).toBe(3);
     within(allFilteredStructRows[1]).getByText('pet_age');
     within(allFilteredStructRows[2]).getByText('pet_description');
