@@ -1,4 +1,3 @@
-import { isEmpty } from 'lodash';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { a, div, h, h2, span } from 'react-hyperscript-helpers';
@@ -123,7 +122,7 @@ export const BaseSubmissionConfig = (
         setSelectedRecordType(newRunSetData.record_type);
 
         let callCache = maybeParseJSON(newRunSetData.call_caching_enabled);
-        callCache = isEmpty(callCache) ? true : callCache; // avoid setting boolean to undefined, default to true
+        callCache = _.isEmpty(callCache) ? true : callCache; // avoid setting boolean to undefined, default to true
         setIsCallCachingEnabled(callCache);
 
         return newRunSetData;

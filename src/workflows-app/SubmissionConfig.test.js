@@ -136,14 +136,12 @@ describe('BaseSubmissionConfig renders workflow details', () => {
     expect(screen.getByText('FOO')).toBeInTheDocument();
 
     // Call cache button should exist, be checked by default, and toggle to false when clicked.
+    const user = userEvent.setup();
     expect(screen.getByText('Call Caching:')).toBeInTheDocument();
     const callCacheToggleButton = screen.getByTestId('call-cache-toggle');
     expect(callCacheToggleButton).toBeDefined();
     expect(callCacheToggleButton).toHaveProperty('checked', true);
-    act(() => {
-      callCacheToggleButton.click();
-    });
-
+    await user.click(callCacheToggleButton);
     expect(callCacheToggleButton).toHaveProperty('checked', false);
 
     const workflowScriptLink = screen.getByRole('button', { name: 'View Workflow Script' });
