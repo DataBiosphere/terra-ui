@@ -8,7 +8,7 @@ import { Ajax } from 'src/libs/ajax';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { getConfig } from 'src/libs/config';
 import { getUser } from 'src/libs/state';
-import { BaseSubmissionHistory } from 'src/workflows-app/pages/SubmissionHistory';
+import { BaseSubmissionHistory } from 'src/workflows-app/SubmissionHistory';
 import { mockAbortResponse, mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 
 // Necessary to mock the AJAX module.
