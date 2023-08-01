@@ -450,53 +450,6 @@ describe('SubmissionHistory page', () => {
     expect(screen.getByText('Some submission statuses are not up to date. Refreshing the page may update more statuses.')).toBeInTheDocument();
   });
 
-  it('Gives abort option for actions button', async () => {
-    const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
-    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
-
-    await Ajax.mockImplementation(() => {
-      return {
-        Cbas: {
-          runSets: {
-            get: getRunSetsMethod,
-          },
-        },
-        Apps: {
-          listAppsV2: mockLeoResponse,
-        },
-      };
-    });
-
-    // Act
-    await act(async () => {
-      render(
-        h(BaseSubmissionHistory, {
-          name: 'test-azure-ws-name',
-          namespace: 'test-azure-ws-namespace',
-          workspace: mockAzureWorkspace,
-        })
-      );
-    });
-
-    await waitFor(() => {
-      expect(screen.getByRole('table')).toBeInTheDocument();
-    });
-
-    const table = screen.getByRole('table');
-
-    const rows = within(table).getAllByRole('row');
-    const headers = within(rows[0]).getAllByRole('columnheader');
-    expect(headers.length).toBe(6);
-
-    const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
-
-    await act(async () => {
-      const actionsMenu = within(cellsFromDataRow1[0]).getByRole('button');
-      await selectEvent.openMenu(actionsMenu);
-      expect(actionsMenu).toHaveTextContent('Abort');
-    });
-  });
-
   it('should abort successfully', async () => {
     let content;
     const user = userEvent.setup();
@@ -557,5 +510,52 @@ describe('SubmissionHistory page', () => {
 
     expect(cancelSubmissionFunction).toHaveBeenCalled();
     expect(cancelSubmissionFunction).toBeCalledWith('https://lz-abc/terra-app-abc/cbas', '20000000-0000-0000-0000-200000000002');
+  });
+
+  it('Gives abort option for actions button', async () => {
+    const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            get: getRunSetsMethod,
+          },
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
+        },
+      };
+    });
+
+    // Act
+    await act(async () => {
+      render(
+        h(BaseSubmissionHistory, {
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+        })
+      );
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('table')).toBeInTheDocument();
+    });
+
+    const table = screen.getByRole('table');
+
+    const rows = within(table).getAllByRole('row');
+    const headers = within(rows[0]).getAllByRole('columnheader');
+    expect(headers.length).toBe(6);
+
+    const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
+
+    await act(async () => {
+      const actionsMenu = within(cellsFromDataRow1[0]).getByRole('button');
+      await selectEvent.openMenu(actionsMenu);
+      expect(actionsMenu).toHaveTextContent('Abort');
+    });
   });
 });
