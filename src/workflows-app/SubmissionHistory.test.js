@@ -208,8 +208,8 @@ describe('SubmissionHistory page', () => {
     expect(table).toHaveAttribute('aria-colcount', '6');
     expect(table).toHaveAttribute('aria-rowcount', '1');
 
-    const rows = within(table).getAllByRole('cell');
-    await within(rows[1]).findByText('Nothing here yet! Your previously run submissions will be displayed here.');
+    const noContentCell = within(table).getByRole('cell');
+    expect(noContentCell).toHaveTextContent('Nothing here yet! Your previously run workflows will be displayed here.');
   });
 
   it('should correctly display previous 2 run sets', async () => {
