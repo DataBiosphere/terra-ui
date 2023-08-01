@@ -1,24 +1,9 @@
 import { getAllByRole, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/analysis/_testData/testData';
+import { defaultGoogleWorkspace } from 'src/analysis/_testData/testData';
 
-import { importAnalysisFile, ImportDestination, ImportOverview, isProtectedWorkspace } from './ImportAnalysis';
-
-describe('isProtectedWorkspace', () => {
-  const unprotectedWorkspaces = [defaultAzureWorkspace, defaultGoogleWorkspace];
-
-  it.each(unprotectedWorkspaces)('%o should not be protected', (workspace) => {
-    expect(isProtectedWorkspace(workspace)).toBe(false);
-  });
-
-  it('should recognize a protected workspace', () => {
-    const protectedWorkspace = { ...defaultGoogleWorkspace };
-    protectedWorkspace.workspace.bucketName = `fc-secure-${defaultGoogleWorkspace.workspace.bucketName}`;
-
-    expect(isProtectedWorkspace(protectedWorkspace)).toBe(true);
-  });
-});
+import { importAnalysisFile, ImportDestination, ImportOverview } from './ImportAnalysis';
 
 describe('ImportOverview', () => {
   const header = 'Analysis (Jupyter)';
@@ -210,41 +195,19 @@ describe('ImportDestination', () => {
     expect(unprotected2.getAttribute('aria-disabled')).toBe('true');
   });
 
-  it('should throw for an invalid runtime', () => {
-    const invalidRuntime = 'JupyterINVALID';
+  it('should throw for an invalid runtime tool label', async () => {
+    const invalidRuntimeToolLabel = 'JupyterINVALID';
     const url = 'https://storage.googleapis.com/export-bucket/generated.ipynb?x-goog-signature=123456signedurl';
     const filename = 'test.ipynb';
-    render(
-      h(ImportDestination, {
-        workspaceId: null,
-        templateWorkspaces: [],
-        template: [],
-        userHasBillingProjects: true,
-        importMayTakeTime: true,
-        authorizationDomain: '',
-        onImport: importAnalysisFile(defaultGoogleWorkspace.namespace, defaultGoogleWorkspace.name, url, filename, invalidRuntime),
-        isImporting: false,
-        requireProtectedWorkspace: true,
-      })
-    );
+    await expect(
+      importAnalysisFile(defaultGoogleWorkspace.namespace, defaultGoogleWorkspace.name, url, filename, invalidRuntimeToolLabel)
+    ).rejects.toThrow('JupyterINVALID is not a valid analysis runtime tool label');
   });
 
-  it('should not throw for a valid runtime', () => {
-    const validRuntime = 'Jupyter';
+  it('should not throw for a valid runtime tool label', async () => {
+    const validRuntimeToolLabel = 'Jupyter';
     const url = 'https://storage.googleapis.com/export-bucket/generated.ipynb?x-goog-signature=123456signedurl';
     const filename = 'test.ipynb';
-    render(
-      h(ImportDestination, {
-        workspaceId: null,
-        templateWorkspaces: [],
-        template: [],
-        userHasBillingProjects: true,
-        importMayTakeTime: true,
-        authorizationDomain: '',
-        onImport: importAnalysisFile(defaultGoogleWorkspace.namespace, defaultGoogleWorkspace.name, url, filename, validRuntime),
-        isImporting: false,
-        requireProtectedWorkspace: true,
-      })
-    );
+    await expect(importAnalysisFile(defaultGoogleWorkspace.namespace, defaultGoogleWorkspace.name, url, filename, validRuntimeToolLabel));
   });
 });

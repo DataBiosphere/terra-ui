@@ -26,7 +26,7 @@ import * as Utils from 'src/libs/utils';
 import { isGoogleWorkspace } from 'src/libs/workspace-utils';
 import { useDataCatalog } from 'src/pages/library/dataBrowser-utils';
 
-const styles = {
+export const styles = {
   container: {
     display: 'flex',
     alignItems: 'flex-start',
@@ -50,7 +50,7 @@ const styles = {
   },
 };
 
-const ChoiceButton = ({ iconName, title, detail, style, onClick, disabled, ...props }) => {
+export const ChoiceButton = ({ iconName, title, detail, style, onClick, disabled, ...props }) => {
   const color = disabled ? colors.dark(0.25) : colors.accent(1);
   return h(
     Clickable,
