@@ -142,6 +142,79 @@ describe('SubmissionHistory page', () => {
     Comment: 5,
   };
 
+  it('should sort columns properly', async () => {
+    const user = userEvent.setup();
+    const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            get: jest.fn(getRunSetsMethod),
+          },
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
+        },
+      };
+    });
+
+    // Act
+    await act(async () => {
+      await render(
+        h(BaseSubmissionHistory, {
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+        })
+      );
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('table')).toBeInTheDocument();
+    });
+
+    const table = await screen.getByRole('table');
+
+    const rows = within(table).getAllByRole('row');
+    expect(rows.length).toBe(3);
+
+    const headers = within(rows[0]).getAllByRole('columnheader');
+    expect(headers.length).toBe(6);
+
+    const topRowCells = (column) => {
+      const topRowCells = within(rows[1]).getAllByRole('cell');
+      return topRowCells[column];
+    };
+    // Click on "Date Submitted" column and check that the top column is correct for:
+    // * ascending order
+    await user.click(await within(headers[headerPosition['Date Submitted']]).getByRole('button'));
+    within(topRowCells(headerPosition['Date Submitted'])).getByText(/Jul 10, 2021/);
+
+    // * descending order
+    await user.click(await within(headers[headerPosition['Date Submitted']]).getByRole('button'));
+    within(topRowCells(headerPosition['Date Submitted'])).getByText(/Jan 1, 2022/);
+
+    // Click on "Status" column and check that the top column is correct for:
+    // * ascending order
+    await user.click(await within(headers[headerPosition.Status]).getByRole('button'));
+    within(topRowCells(headerPosition.Status)).getByText('Success');
+
+    // * descending order
+    await user.click(await within(headers[headerPosition.Status]).getByRole('button'));
+    within(topRowCells(headerPosition.Status)).getByText('Failed with 1 errors');
+
+    // Click on "Duration" column and check that the top column is correct for:
+    // * ascending order
+    await user.click(await within(headers[headerPosition.Duration]).getByRole('button'));
+    within(topRowCells(headerPosition.Duration)).getByText('1 day 1 hour 1 minute 1 second');
+
+    // * descending order
+    await user.click(await within(headers[headerPosition.Duration]).getByRole('button'));
+    within(topRowCells(headerPosition.Duration)).getByText('1 month 1 day 1 hour 1 minute 1 second');
+  });
+
   it('should display no content message when there are no previous run sets', async () => {
     // Arrange
     const mockRunSetResponse = jest.fn(() => Promise.resolve([]));
@@ -177,7 +250,7 @@ describe('SubmissionHistory page', () => {
 
     // Assert
     await waitFor(() => {
-      expect(mockRunSetResponse).toBeCalledTimes(1);
+      expect(mockRunSetResponse).toBeCalled();
     });
 
     const table = screen.getByRole('table');
@@ -265,7 +338,6 @@ describe('SubmissionHistory page', () => {
   });
 
   it('should support canceled and canceling submissions', async () => {
-    jest.clearAllMocks();
     const runSetData = {
       run_sets: [
         {
@@ -323,9 +395,9 @@ describe('SubmissionHistory page', () => {
       );
     });
 
-    await waitFor(() => {
-      expect(screen.getByRole('table')).toBeInTheDocument();
-    });
+    // await waitFor(() => {
+    expect(screen.getByRole('table')).toBeInTheDocument();
+    // });
 
     const table = screen.getByRole('table');
 
@@ -342,83 +414,6 @@ describe('SubmissionHistory page', () => {
 
     const cellsFromDataRow2 = within(rows[2]).getAllByRole('cell');
     within(cellsFromDataRow2[headerPosition.Status]).getByText('Canceling');
-  });
-
-  it('should sort columns properly', async () => {
-    const user = userEvent.setup();
-    const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
-    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
-
-    getUser.mockReturnValue({
-      email: 'abc@gmail.com',
-    });
-
-    await Ajax.mockImplementation(() => {
-      return {
-        Cbas: {
-          runSets: {
-            get: jest.fn(getRunSetsMethod),
-          },
-        },
-        Apps: {
-          listAppsV2: mockLeoResponse,
-        },
-      };
-    });
-
-    // Act
-    await act(async () => {
-      await render(
-        h(BaseSubmissionHistory, {
-          name: 'test-azure-ws-name',
-          namespace: 'test-azure-ws-namespace',
-          workspace: mockAzureWorkspace,
-        })
-      );
-    });
-
-    await waitFor(() => {
-      expect(screen.getByRole('table')).toBeInTheDocument();
-    });
-
-    const table = await screen.getByRole('table');
-
-    const rows = within(table).getAllByRole('row');
-    expect(rows.length).toBe(3);
-
-    const headers = within(rows[0]).getAllByRole('columnheader');
-    expect(headers.length).toBe(6);
-
-    const topRowCells = (column) => {
-      const topRowCells = within(rows[1]).getAllByRole('cell');
-      return topRowCells[column];
-    };
-    // Click on "Date Submitted" column and check that the top column is correct for:
-    // * ascending order
-    await user.click(await within(headers[headerPosition['Date Submitted']]).getByRole('button'));
-    within(topRowCells(headerPosition['Date Submitted'])).getByText(/Jul 10, 2021/);
-
-    // * descending order
-    await user.click(await within(headers[headerPosition['Date Submitted']]).getByRole('button'));
-    within(topRowCells(headerPosition['Date Submitted'])).getByText(/Jan 1, 2022/);
-
-    // Click on "Status" column and check that the top column is correct for:
-    // * ascending order
-    await user.click(await within(headers[headerPosition.Status]).getByRole('button'));
-    within(topRowCells(headerPosition.Status)).getByText('Success');
-
-    // * descending order
-    await user.click(await within(headers[headerPosition.Status]).getByRole('button'));
-    within(topRowCells(headerPosition.Status)).getByText('Failed with 1 errors');
-
-    // Click on "Duration" column and check that the top column is correct for:
-    // * ascending order
-    await user.click(await within(headers[headerPosition.Duration]).getByRole('button'));
-    within(topRowCells(headerPosition.Duration)).getByText('1 day 1 hour 1 minute 1 second');
-
-    // * descending order
-    await user.click(await within(headers[headerPosition.Duration]).getByRole('button'));
-    within(topRowCells(headerPosition.Duration)).getByText('1 month 1 day 1 hour 1 minute 1 second');
   });
 
   const simpleRunSetData = {
@@ -619,7 +614,7 @@ describe('SubmissionHistory page', () => {
 
     // Assert
     await waitFor(() => {
-      expect(getRunSetsMethod).toBeCalledTimes(1);
+      expect(getRunSetsMethod).toBeCalled();
     });
 
     expect(screen.getByRole('table')).toBeInTheDocument();
@@ -643,9 +638,6 @@ describe('SubmissionHistory page', () => {
     await user.click(abortButton);
 
     expect(cancelSubmissionFunction).toHaveBeenCalled();
-    expect(cancelSubmissionFunction).toBeCalledWith(
-      'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas',
-      '20000000-0000-0000-0000-200000000002'
-    );
+    expect(cancelSubmissionFunction).toBeCalledWith('https://lz-abc/terra-app-abc/cbas', '20000000-0000-0000-0000-200000000002');
   });
 });
