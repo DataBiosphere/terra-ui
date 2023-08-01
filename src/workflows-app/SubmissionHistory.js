@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment, useRef, useState } from 'react';
+import { Fragment, useCallback, useRef, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { ButtonOutline, Clickable, Link } from 'src/components/common';
@@ -13,17 +13,10 @@ import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
-import { getUser } from 'src/libs/state';
+import { AppProxyUrlStatus, getUser, workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { resolveRunningCromwellAppUrl } from 'src/workflows-app/utils/app-utils';
-import {
-  AutoRefreshInterval,
-  getDuration,
-  isRunSetInTerminalState,
-  loadAllRunSets,
-  makeStatusLine,
-  statusType,
-} from 'src/workflows-app/utils/submission-utils';
+import { loadAppUrls, resolveRunningCromwellAppUrl } from 'src/workflows-app/utils/app-utils';
+import { AutoRefreshInterval, getDuration, isRunSetInTerminalState, makeStatusLine, statusType } from 'src/workflows-app/utils/submission-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
@@ -39,15 +32,51 @@ export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
   const scheduledRefresh = useRef();
   const workspaceId = workspace.workspace.workspaceId;
 
+  const loadRunSets = useCallback(
+    async (cbasUrlRoot) => {
+      try {
+        const runSets = await Ajax(signal).Cbas.runSets.get(cbasUrlRoot);
+        const durationEnhancedRunSets = _.map(
+          (r) => _.merge(r, { duration: getDuration(r.state, r.submission_timestamp, r.last_modified_timestamp, isRunSetInTerminalState) }),
+          runSets.run_sets
+        );
+        return _.merge(runSets, { run_sets: durationEnhancedRunSets });
+      } catch (error) {
+        notify('error', 'Error getting run set data', { detail: error instanceof Response ? await error.text() : error });
+      }
+    },
+    [signal]
+  );
+
+  const loadAllRunSets = useCallback(
+    async (cbasProxyUrlDetails) => {
+      try {
+        if (cbasProxyUrlDetails.status !== AppProxyUrlStatus.Ready) {
+          const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
+
+          if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
+            loadRunSets(cbasProxyUrlState.state).then((runSets) => {
+              if (runSets !== undefined) {
+                setRunSetData(runSets.run_sets);
+                setRunSetsFullyUpdated(runSets.fully_updated);
+              }
+            });
+          }
+        }
+      } catch (error) {
+        notify('error', 'Error getting run set data', { detail: error instanceof Response ? await error.text() : error });
+      }
+    },
+    [workspaceId, loadRunSets]
+  );
+
   // helper for auto-refresh
   const refresh = Utils.withBusyState(setLoading, async () => {
     try {
-      const loadedRunSetData = await loadAllRunSets(signal, workspaceId);
-      setRunSetData(loadedRunSetData.run_sets);
-      setRunSetsFullyUpdated(loadedRunSetData.fully_updated);
+      await loadAllRunSets(workflowsAppStore.get().cbasProxyUrlState);
 
       // only refresh if there are Run Sets in non-terminal state
-      if (_.some(({ state }) => !isRunSetInTerminalState(state), loadedRunSetData.run_sets)) {
+      if (_.some(({ state }) => !isRunSetInTerminalState(state), runSetsData.run_sets)) {
         scheduledRefresh.current = setTimeout(refresh, AutoRefreshInterval);
       }
     } catch (error) {
