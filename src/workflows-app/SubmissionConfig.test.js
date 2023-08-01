@@ -135,14 +135,17 @@ describe('BaseSubmissionConfig renders workflow details', () => {
     expect(screen.getAllByText('Select a data table')[0]).toBeInTheDocument();
     expect(screen.getByText('FOO')).toBeInTheDocument();
 
-    // Call cache button should exist, be checked by default, and toggle to false when clicked.
+    // Call cache button should exist, be checked by default, and toggle when clicked.
     const user = userEvent.setup();
-    expect(screen.getByText('Call Caching:')).toBeInTheDocument();
+    const callCacheToggleLabel = screen.getByLabelText('Call Caching:');
     const callCacheToggleButton = screen.getByTestId('call-cache-toggle');
-    expect(callCacheToggleButton).toBeDefined();
-    expect(callCacheToggleButton).toHaveProperty('checked', true);
+    expect(callCacheToggleLabel).toBeDefined(); // Label text exists
+    expect(callCacheToggleButton).toBeDefined(); // Switch exists
+    expect(callCacheToggleButton).toHaveProperty('checked', true); // Switch defaults to true
     await user.click(callCacheToggleButton);
-    expect(callCacheToggleButton).toHaveProperty('checked', false);
+    expect(callCacheToggleButton).toHaveProperty('checked', false); // Clicking the switch toggles it
+    await user.click(callCacheToggleLabel);
+    expect(callCacheToggleButton).toHaveProperty('checked', true); // Clicking the label also toggles it
 
     const workflowScriptLink = screen.getByRole('button', { name: 'View Workflow Script' });
     expect(workflowScriptLink).toBeInTheDocument();

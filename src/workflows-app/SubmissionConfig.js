@@ -16,7 +16,7 @@ import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
-import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
+import { useCancellation, useOnMount, usePollingEffect, useUniqueId } from 'src/libs/react-utils';
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { maybeParseJSON } from 'src/libs/utils';
@@ -336,7 +336,7 @@ export const BaseSubmissionConfig = (
     return `https://support.terra.bio/hc/en-us/articles/${article}`;
   };
 
-  const callCachingLabel = 'call-cache-id';
+  const callCacheId = useUniqueId();
 
   const renderSummary = () => {
     return div({ style: { marginLeft: '2em', marginTop: '1rem', display: 'flex', justifyContent: 'space-between' } }, [
@@ -391,7 +391,7 @@ export const BaseSubmissionConfig = (
           ]),
         ]),
         div({ style: { marginTop: '1rem' } }, [
-          label({ htmlFor: callCachingLabel }, [
+          label({ htmlFor: callCacheId }, [
             div({ style: { height: '2rem', marginRight: '0.25rem', fontWeight: 'bold', display: 'inline-block' } }, ['Call Caching:']),
           ]),
           div({ style: { display: 'inline-block', marginRight: '1rem' } }, [
@@ -402,7 +402,7 @@ export const BaseSubmissionConfig = (
           ]),
           div({ style: { display: 'inline-block' } }, [
             h(Switch, {
-              id: callCachingLabel,
+              id: callCacheId,
               'data-testid': 'call-cache-toggle',
               checked: isCallCachingEnabled,
               onChange: (newValue) => {
