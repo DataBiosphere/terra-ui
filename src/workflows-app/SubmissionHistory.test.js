@@ -2,10 +2,10 @@ import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { div, h } from 'react-hyperscript-helpers';
-import selectEvent from 'react-select-event';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
+import { SelectHelper } from 'src/testing/test-utils';
 import { BaseSubmissionHistory } from 'src/workflows-app/SubmissionHistory';
 import { mockAbortResponse, mockAzureApps, mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 
@@ -435,7 +435,8 @@ describe('SubmissionHistory page', () => {
   });
 
   it('Gives abort option for actions button', async () => {
-    const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
+    const user = userEvent.setup();
+    const getRunSetsMethod = jest.fn(() => Promise.resolve(simpleRunSetData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
 
     Ajax.mockImplementation(() => {
@@ -471,11 +472,12 @@ describe('SubmissionHistory page', () => {
     expect(headers.length).toBe(6);
 
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
+    const actionsMenu = within(cellsFromDataRow1[1]).getByRole('button');
 
     await act(async () => {
-      const actionsMenu = within(cellsFromDataRow1[0]).getByRole('button');
-      await selectEvent.openMenu(actionsMenu);
-      expect(actionsMenu).toHaveTextContent('Abort');
+      const select = new SelectHelper(actionsMenu, user);
+      await select.openMenu();
+      expect(screen.getByText('Abort')).toBeInTheDocument();
     });
   });
 
@@ -520,11 +522,12 @@ describe('SubmissionHistory page', () => {
     expect(headers.length).toBe(6);
 
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
-    const actionsMenu = within(cellsFromDataRow1[0]).getByRole('button');
+    const actionsMenu = within(cellsFromDataRow1[1]).getByRole('button');
 
     await act(async () => {
-      await selectEvent.openMenu(actionsMenu);
-      expect(actionsMenu).toHaveTextContent('Abort');
+      const select = new SelectHelper(actionsMenu, user);
+      await select.openMenu();
+      expect(screen.getByText('Abort')).toBeInTheDocument();
     });
 
     const abortButton = screen.getByText('Abort');
