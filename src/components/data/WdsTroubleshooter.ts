@@ -63,7 +63,7 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
       td({ style: { fontWeight: 'bold' } }, [
         iconRunning ? checkIcon('running') : iconSuccess ? checkIcon('success') : checkIcon('failure'),
       ]),
-      td({ style: { fontWeight: 'bold' } }, [label]),
+      td({ style: { fontWeight: 'bold', whiteSpace: 'nowrap' } }, [label]),
       td([element || content]),
     ]);
   };
