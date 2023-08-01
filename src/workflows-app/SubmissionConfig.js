@@ -336,7 +336,7 @@ export const BaseSubmissionConfig = (
     return `https://support.terra.bio/hc/en-us/articles/${article}`;
   };
 
-  const callCachingLabel = 'Call Caching';
+  const callCachingLabel = 'call-cache-id';
 
   const renderSummary = () => {
     return div({ style: { marginLeft: '2em', marginTop: '1rem', display: 'flex', justifyContent: 'space-between' } }, [
@@ -391,26 +391,26 @@ export const BaseSubmissionConfig = (
           ]),
         ]),
         div({ style: { marginTop: '1rem' } }, [
-          div({ style: { height: '2rem', marginRight: '0.25rem', fontWeight: 'bold', display: 'inline-block' } }, ['Call Caching:']),
+          label({ htmlFor: callCachingLabel }, [
+            div({ style: { height: '2rem', marginRight: '0.25rem', fontWeight: 'bold', display: 'inline-block' } }, ['Call Caching:']),
+          ]),
           div({ style: { display: 'inline-block', marginRight: '1rem' } }, [
             h(InfoBox, [
               "Call caching detects when a job has been run in the past so that it doesn't have to re-compute results. ",
               h(Link, { href: getSupportLink('360047664872'), ...Utils.newTabLinkProps }, ['Click here to learn more.']),
             ]),
           ]),
-          label({ htmlFor: callCachingLabel }, [
-            div({ style: { display: 'inline-block' } }, [
-              h(Switch, {
-                id: callCachingLabel,
-                'data-testid': 'call-cache-toggle',
-                checked: isCallCachingEnabled,
-                onChange: (newValue) => {
-                  setIsCallCachingEnabled(newValue);
-                },
-                onLabel: 'On',
-                offLabel: 'Off',
-              }),
-            ]),
+          div({ style: { display: 'inline-block' } }, [
+            h(Switch, {
+              id: callCachingLabel,
+              'data-testid': 'call-cache-toggle',
+              checked: isCallCachingEnabled,
+              onChange: (newValue) => {
+                setIsCallCachingEnabled(newValue);
+              },
+              onLabel: 'On',
+              offLabel: 'Off',
+            }),
           ]),
         ]),
         div({ style: { marginTop: '1rem', height: '2rem', fontWeight: 'bold' } }, ['Select a data table:']),
