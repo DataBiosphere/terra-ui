@@ -9,6 +9,7 @@ jest.mock('src/libs/ajax');
 
 const gcsObject = (name: string): GCSItem => ({
   bucket: 'test-bucket',
+  contentType: 'text/plain',
   crc32c: 'crc32c',
   etag: 'etag',
   generation: '1666792590000000',
@@ -29,6 +30,7 @@ const gcsObject = (name: string): GCSItem => ({
 const expectedFile = (path: string): FileBrowserFile => ({
   path,
   url: `gs://test-bucket/${path}`,
+  contentType: 'text/plain',
   size: 1,
   createdAt: 1666792590000,
   updatedAt: 1666792590000,
