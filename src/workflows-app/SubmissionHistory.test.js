@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { div, h } from 'react-hyperscript-helpers';
@@ -84,10 +84,6 @@ beforeEach(() => {
   });
 });
 
-afterEach(() => {
-  jest.clearAllMocks();
-});
-
 afterAll(() => {
   Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
   Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
@@ -110,7 +106,7 @@ describe('SubmissionHistory page', () => {
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
 
-    await Ajax.mockImplementation(() => {
+    Ajax.mockImplementation(() => {
       return {
         Cbas: {
           runSets: {
@@ -134,9 +130,7 @@ describe('SubmissionHistory page', () => {
       );
     });
 
-    await waitFor(() => {
-      expect(screen.getByRole('table')).toBeInTheDocument();
-    });
+    expect(screen.getByRole('table')).toBeInTheDocument();
 
     const table = await screen.findByRole('table');
 
@@ -183,7 +177,7 @@ describe('SubmissionHistory page', () => {
     const mockRunSetResponse = jest.fn(() => Promise.resolve([]));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
 
-    await Ajax.mockImplementation(() => {
+    Ajax.mockImplementation(() => {
       return {
         Cbas: {
           runSets: {
@@ -208,9 +202,7 @@ describe('SubmissionHistory page', () => {
     });
 
     // Assert
-    await waitFor(() => {
-      expect(mockRunSetResponse).toBeCalled();
-    });
+    expect(mockRunSetResponse).toBeCalled();
 
     const table = await screen.findByRole('table');
     expect(table).toHaveAttribute('aria-colcount', '6');
@@ -224,7 +216,7 @@ describe('SubmissionHistory page', () => {
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
 
-    await Ajax.mockImplementation(() => {
+    Ajax.mockImplementation(() => {
       return {
         Cbas: {
           runSets: {
@@ -248,9 +240,7 @@ describe('SubmissionHistory page', () => {
       );
     });
 
-    await waitFor(() => {
-      expect(screen.getByRole('table')).toBeInTheDocument();
-    });
+    expect(screen.getByRole('table')).toBeInTheDocument();
 
     const table = await screen.findByRole('table');
 
@@ -316,7 +306,7 @@ describe('SubmissionHistory page', () => {
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
 
-    await Ajax.mockImplementation(() => {
+    Ajax.mockImplementation(() => {
       return {
         Cbas: {
           runSets: {
@@ -340,9 +330,7 @@ describe('SubmissionHistory page', () => {
       );
     });
 
-    // await waitFor(() => {
     expect(screen.getByRole('table')).toBeInTheDocument();
-    // });
 
     const table = await screen.findByRole('table');
 
@@ -382,7 +370,7 @@ describe('SubmissionHistory page', () => {
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
 
-    await Ajax.mockImplementation(() => {
+    Ajax.mockImplementation(() => {
       return {
         Cbas: {
           runSets: {
@@ -406,9 +394,7 @@ describe('SubmissionHistory page', () => {
       );
     });
 
-    await waitFor(() => {
-      expect(screen.getByRole('table')).toBeInTheDocument();
-    });
+    expect(screen.getByRole('table')).toBeInTheDocument();
 
     expect(screen.getByText('Submission statuses are all up to date.')).toBeInTheDocument();
   });
@@ -419,7 +405,7 @@ describe('SubmissionHistory page', () => {
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
 
-    await Ajax.mockImplementation(() => {
+    Ajax.mockImplementation(() => {
       return {
         Cbas: {
           runSets: {
@@ -443,9 +429,7 @@ describe('SubmissionHistory page', () => {
       );
     });
 
-    await waitFor(() => {
-      expect(screen.getByRole('table')).toBeInTheDocument();
-    });
+    expect(screen.getByRole('table')).toBeInTheDocument();
 
     expect(screen.getByText('Some submission statuses are not up to date. Refreshing the page may update more statuses.')).toBeInTheDocument();
   });
@@ -454,7 +438,7 @@ describe('SubmissionHistory page', () => {
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
 
-    await Ajax.mockImplementation(() => {
+    Ajax.mockImplementation(() => {
       return {
         Cbas: {
           runSets: {
@@ -478,9 +462,7 @@ describe('SubmissionHistory page', () => {
       );
     });
 
-    await waitFor(() => {
-      expect(screen.getByRole('table')).toBeInTheDocument();
-    });
+    expect(screen.getByRole('table')).toBeInTheDocument();
 
     const table = await screen.findByRole('table');
 
@@ -503,7 +485,7 @@ describe('SubmissionHistory page', () => {
     const cancelSubmissionFunction = jest.fn(() => Promise.resolve(mockAbortResponse));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
 
-    await Ajax.mockImplementation(() => {
+    Ajax.mockImplementation(() => {
       return {
         Cbas: {
           runSets: {
@@ -529,10 +511,7 @@ describe('SubmissionHistory page', () => {
     });
 
     // Assert
-    await waitFor(() => {
-      expect(getRunSetsMethod).toBeCalled();
-    });
-
+    expect(getRunSetsMethod).toBeCalled();
     expect(screen.getByRole('table')).toBeInTheDocument();
 
     const table = await screen.findByRole('table');
