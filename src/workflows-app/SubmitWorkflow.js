@@ -144,24 +144,27 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
                 ),
               ]),
               div(['Run a workflow in Terra using Cromwell engine. Full feature workflow submission coming soon.']),
-              div({ style: { marginTop: '3rem' } }, [
-                h(
-                  Clickable,
-                  {
-                    'aria-haspopup': 'dialog',
-                    style: {
-                      ...styles.card,
-                      ...styles.shortCard,
-                      color: colors.accent(),
-                      fontSize: 18,
-                      lineHeight: '22px',
+              !cbasReady &&
+                div({ style: { marginTop: '2rem' } }, [icon('loadingSpinner'), ' Loading your Workflows app, this may take a few minutes.']),
+              cbasReady &&
+                div({ style: { marginTop: '3rem' } }, [
+                  h(
+                    Clickable,
+                    {
+                      'aria-haspopup': 'dialog',
+                      style: {
+                        ...styles.card,
+                        ...styles.shortCard,
+                        color: colors.accent(),
+                        fontSize: 18,
+                        lineHeight: '22px',
+                      },
+                      onClick: () => setViewFindWorkflowModal(true),
                     },
-                    onClick: () => setViewFindWorkflowModal(true),
-                  },
-                  ['Find a Workflow', icon('plus-circle', { size: 32 })]
-                ),
-                h(Fragment, [h(SavedWorkflows, { workspaceName: name, namespace, methodsData })]),
-              ]),
+                    ['Find a Workflow', icon('plus-circle', { size: 32 })]
+                  ),
+                  h(Fragment, [h(SavedWorkflows, { workspaceName: name, namespace, methodsData })]),
+                ]),
               viewFindWorkflowModal && h(FindWorkflowModal, { name, namespace, workspace, onDismiss: () => setViewFindWorkflowModal(false) }),
             ]),
         ]);
