@@ -303,7 +303,6 @@ describe('FilesInDirectory', () => {
 
     const deleteEmptyDirectory = jest.fn(() => Promise.resolve());
     const mockProvider = {
-      supportsEmptyDirectories: true,
       deleteEmptyDirectory,
     } as Partial<FileBrowserProvider> as FileBrowserProvider;
 
