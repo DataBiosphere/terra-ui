@@ -1,5 +1,6 @@
 import { Fragment, useState } from 'react';
 import { div, h, img } from 'react-hyperscript-helpers';
+import { isAzureUri } from 'src/components/UriViewer/uri-viewer-utils';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
@@ -40,16 +41,20 @@ const isFilePreviewable = ({ size, ...metadata }) => {
   return !isBinary(metadata) && (isText(metadata) || (isImage(metadata) && size <= 1e9));
 };
 
-export const UriPreview = ({ metadata, metadata: { bucket, name }, googleProject }) => {
+export const UriPreview = ({ metadata, metadata: { uri, bucket, name }, googleProject }) => {
   const signal = useCancellation();
   const [preview, setPreview] = useState();
   const loadPreview = async () => {
     try {
-      const res = await Ajax(signal).Buckets.getObjectPreview(googleProject, bucket, name, isImage(metadata));
-      if (isImage(metadata)) {
-        setPreview(URL.createObjectURL(await res.blob()));
+      if (isAzureUri(uri)) {
+        setPreview(metadata.textContent); // NB: For now, we only support text previews for Azure URIs.
       } else {
-        setPreview(await res.text());
+        const res = await Ajax(signal).Buckets.getObjectPreview(googleProject, bucket, name, isImage(metadata));
+        if (isImage(metadata)) {
+          setPreview(URL.createObjectURL(await res.blob()));
+        } else {
+          setPreview(await res.text());
+        }
       }
     } catch (error) {
       setPreview(null);

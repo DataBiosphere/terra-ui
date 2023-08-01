@@ -8,7 +8,7 @@ import DownloadPrices from 'src/data/download-prices';
 import { Ajax } from 'src/libs/ajax';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
-import { knownBucketRequesterPaysStatuses } from 'src/libs/state';
+import { knownBucketRequesterPaysStatuses, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
 import els from './uri-viewer-styles';
@@ -59,43 +59,59 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
       }
     }
   };
+
   useOnMount(() => {
     getUrl();
   });
 
+  const loadingSpinner = () => {
+    return h(Fragment, ['Generating download link...', spinner({ style: { color: 'white', marginLeft: 4 } })]);
+  };
+
+  const azureDownloadButton = () => {
+    return h(
+      ButtonPrimary,
+      {
+        disabled: !url,
+        href: url,
+        download: fileName,
+        ...Utils.newTabLinkProps,
+      },
+      [url ? 'Download' : loadingSpinner()]
+    );
+  };
+
+  const googleDownloadButton = () => {
+    const cost = getMaxDownloadCostNA(size);
+    return h(
+      ButtonPrimary,
+      {
+        disabled: !url,
+        onClick: () => {
+          Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
+            ...extractWorkspaceDetails(workspaceStore.get().workspace),
+            fileType: _.head(/\.\w+$/.exec(uri)),
+            downloadFrom: 'file direct',
+          });
+        },
+        href: url,
+        /*
+         NOTE:
+         Some DOS/DRS servers return file names that are different from the end of the path in the gsUri/url.
+         Attempt to hint to the browser the correct name.
+         FYI this hint doesn't work in Chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=373182#c24
+         */
+        download: fileName,
+        ...Utils.newTabLinkProps,
+      },
+      [url ? `Download for ${cost}*` : loadingSpinner()]
+    );
+  };
+
+  // If URL missing, show error. Otherwise, show the Azure/GCP download button.
   return els.cell([
-    url === null
+    _.isEmpty(url)
       ? 'Unable to generate download link.'
-      : div({ style: { display: 'flex', justifyContent: isAzureUri(url) ? 'left' : 'center' } }, [
-          h(
-            ButtonPrimary,
-            {
-              disabled: !url,
-              onClick: () => {
-                Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
-                  ...extractWorkspaceDetails(workspace),
-                  fileType: _.head(/\.\w+$/.exec(uri)),
-                  downloadFrom: 'file direct',
-                });
-              },
-              href: url,
-              /*
-           NOTE:
-           Some DOS/DRS servers return file names that are different from the end of the path in the gsUri/url.
-           Attempt to hint to the browser the correct name.
-           FYI this hint doesn't work in Chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=373182#c24
-           */
-              download: fileName,
-              ...Utils.newTabLinkProps,
-            },
-            [
-              url
-                ? isAzureUri(url)
-                  ? 'Download'
-                  : `Download for ${getMaxDownloadCostNA(size)}*`
-                : h(Fragment, ['Generating download link...', spinner({ style: { color: 'white', marginLeft: 4 } })]),
-            ]
-          ),
-        ]),
+      : div({ style: { display: 'flex', justifyContent: 'center' } }, [isAzureUri(uri) ? azureDownloadButton() : googleDownloadButton()]),
   ]);
 };
