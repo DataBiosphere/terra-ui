@@ -297,9 +297,10 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
+                              textTransform: 'uppercase',
                             },
                           },
-                          ['LOG IN']
+                          ['Sign In']
                         ),
                       ]
                     ),
