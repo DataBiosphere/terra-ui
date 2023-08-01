@@ -410,7 +410,6 @@ export const BaseSubmissionConfig = (
           div({ style: { display: 'inline-block' } }, [
             h(Switch, {
               id: callCacheId,
-              'data-testid': 'call-cache-toggle',
               checked: isCallCachingEnabled,
               onChange: (newValue) => {
                 setIsCallCachingEnabled(newValue);
