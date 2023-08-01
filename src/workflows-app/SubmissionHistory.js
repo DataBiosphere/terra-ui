@@ -8,14 +8,13 @@ import { MenuButton } from 'src/components/MenuButton';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
-import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
-import { useCancellation, useOnMount } from 'src/libs/react-utils';
-import { AppProxyUrlStatus, getUser, workflowsAppStore } from 'src/libs/state';
+import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
+import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { loadAppUrls, resolveRunningCromwellAppUrl } from 'src/workflows-app/utils/app-utils';
+import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import {
   AutoRefreshInterval,
   CbasPollInterval,
@@ -108,13 +107,7 @@ export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
 
   const cancelRunSet = async (submissionId) => {
     try {
-      const cbasAppUrl = (
-        await Apps(signal)
-          .listAppsV2(workspaceId)
-          .then((apps) => resolveRunningCromwellAppUrl(apps, getUser()?.email))
-      ).cbasUrl;
-
-      await Ajax(signal).Cbas.runSets.cancel(cbasAppUrl, submissionId);
+      await Ajax(signal).Cbas.runSets.cancel(workflowsAppStore.get().cbasProxyUrlState.state, submissionId);
       notify('success', 'Abort submission request submitted successfully', {
         message: 'You may refresh the page to get most recent status changes.',
         timeout: 5000,
@@ -125,6 +118,19 @@ export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
   };
 
   useOnMount(() => {
+    const loadWorkflowsApp = async () => {
+      const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
+
+      if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
+        loadRunSets(cbasProxyUrlState.state).then((runSets) => {
+          if (runSets !== undefined) {
+            setRunSetData(runSets.run_sets);
+            setRunSetsFullyUpdated(runSets.fully_updated);
+          }
+        });
+      }
+    };
+    loadWorkflowsApp();
     refresh();
 
     return () => {
@@ -132,6 +138,11 @@ export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
         clearTimeout(scheduledRefresh.current);
       }
     };
+  });
+
+  usePollingEffect(() => !doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState') && loadAllRunSets(workflowsAppStore.get().cbasProxyUrlState), {
+    ms: CbasPollInterval,
+    leading: false,
   });
 
   const stateCell = ({ state, error_count: errorCount }) => {
