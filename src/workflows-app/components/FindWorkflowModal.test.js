@@ -1,9 +1,8 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import FindWorkflowModal from 'src/workflows-app/components/FindWorkflowModal';
 
@@ -19,15 +18,8 @@ jest.mock('src/libs/config', () => ({
   getConfig: jest.fn().mockReturnValue({}),
 }));
 
-// Mocking feature preview setup
-jest.mock('src/libs/feature-previews', () => ({
-  ...jest.requireActual('src/libs/feature-previews'),
-  isFeaturePreviewEnabled: jest.fn(),
-}));
-
 describe('FindWorkflowModal', () => {
   beforeEach(() => {
-    isFeaturePreviewEnabled.mockReturnValue(true);
     getConfig.mockReturnValue({ dockstoreRootUrl: 'https://staging.dockstore.org/' });
   });
 
@@ -63,6 +55,7 @@ describe('FindWorkflowModal', () => {
 
   it('should call POST /methods endpoint with expected parameters when selecting a method card', async () => {
     const postMethodFunction = jest.fn(() => Promise.resolve({ method_id: 'abc123' }));
+    const user = userEvent.setup();
 
     await Ajax.mockImplementation(() => {
       return {
@@ -87,10 +80,8 @@ describe('FindWorkflowModal', () => {
 
     // select and click on method in modal
     const firstWorkflow = screen.getByText('Optimus');
-    await userEvent.click(firstWorkflow);
-    await waitFor(() => {
-      expect(postMethodFunction).toHaveBeenCalled();
-    });
+    await user.click(firstWorkflow);
+    expect(postMethodFunction).toHaveBeenCalled();
 
     // ** ASSERT **
     // assert POST /methods endpoint was called with expected parameters

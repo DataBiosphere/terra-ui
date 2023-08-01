@@ -1,6 +1,4 @@
-import '@testing-library/jest-dom';
-
-import { act, render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import RecordsTable from 'src/workflows-app/components/RecordsTable';
@@ -76,10 +74,6 @@ describe('RecordsTable', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800000 });
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('Render data as expected', async () => {
     const dataTableColumnWidths = {};
     const setDataTableColumnWidths = jest.fn();
@@ -101,11 +95,11 @@ describe('RecordsTable', () => {
       })
     );
 
-    const table = await screen.findByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const table = screen.getByRole('table');
+    const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(2);
 
-    const dataRow = within(rows[1]).queryAllByRole('cell');
+    const dataRow = within(rows[1]).getAllByRole('cell');
     within(dataRow[1]).getByText('foo_id');
     within(dataRow[2]).getByText('FOO');
     within(dataRow[3]).getByText('true');
@@ -126,6 +120,7 @@ describe('RecordsTable', () => {
     const dataTableRef = { current: {} };
     const selectedRecords = {};
     const setSelectedRecords = jest.fn();
+    const user = userEvent.setup();
 
     const records = [
       {
@@ -183,42 +178,36 @@ describe('RecordsTable', () => {
     );
 
     const table = screen.getByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(5);
 
-    const headers = within(rows[0]).queryAllByRole('columnheader');
+    const headers = within(rows[0]).getAllByRole('columnheader');
     expect(headers.length).toBe(5);
 
-    const cells1 = within(rows[1]).queryAllByRole('cell');
-    const cells2 = within(rows[2]).queryAllByRole('cell');
-    const cells3 = within(rows[3]).queryAllByRole('cell');
-    const cells4 = within(rows[4]).queryAllByRole('cell');
+    const cells1 = within(rows[1]).getAllByRole('cell');
+    const cells2 = within(rows[2]).getAllByRole('cell');
+    const cells3 = within(rows[3]).getAllByRole('cell');
+    const cells4 = within(rows[4]).getAllByRole('cell');
 
     within(cells1[1]).getByText('FOO1');
     within(cells2[1]).getByText('FOO2');
     within(cells3[1]).getByText('FOO3');
     within(cells4[1]).getByText('FOO4');
 
-    await act(async () => {
-      await userEvent.click(within(headers[1]).getByRole('button'));
-    });
+    await user.click(within(headers[1]).getByRole('button'));
 
     within(cells1[1]).getByText('FOO4');
     within(cells2[1]).getByText('FOO3');
     within(cells3[1]).getByText('FOO2');
     within(cells4[1]).getByText('FOO1');
 
-    await act(async () => {
-      await userEvent.click(within(headers[2]).getByRole('button'));
-    });
+    await user.click(within(headers[2]).getByRole('button'));
     within(cells1[2]).getByText('30');
     within(cells2[2]).getByText('85');
     within(cells3[2]).getByText('999');
     within(cells4[2]).getByText('1000');
 
-    await act(async () => {
-      await userEvent.click(within(headers[2]).getByRole('button'));
-    });
+    await user.click(within(headers[2]).getByRole('button'));
     within(cells1[2]).getByText('1000');
     within(cells2[2]).getByText('999');
     within(cells3[2]).getByText('85');

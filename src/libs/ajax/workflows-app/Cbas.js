@@ -28,6 +28,10 @@ export const Cbas = (signal) => ({
       const res = await fetchFromProxy(cbasUrlRoot)('api/batch/v1/run_sets', _.mergeAll([authOpts(), { signal, method: 'GET' }]));
       return res.json();
     },
+    post: async (cbasUrlRoot, payload) => {
+      const res = await fetchFromProxy(cbasUrlRoot)('api/batch/v1/run_sets', _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody(payload)]));
+      return res.json();
+    },
     getForMethod: async (cbasUrlRoot, methodId, pageSize) => {
       const keyParams = qs.stringify({ method_id: methodId, page_size: pageSize }, { arrayFormat: 'repeat' });
       const res = await fetchFromProxy(cbasUrlRoot)(`api/batch/v1/run_sets?${keyParams}`, _.mergeAll([authOpts(), { signal, method: 'GET' }]));

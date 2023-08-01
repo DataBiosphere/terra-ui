@@ -1,4 +1,4 @@
-import { act } from '@testing-library/react-hooks';
+import { act } from '@testing-library/react';
 import { generateTestApp } from 'src/analysis/_testData/testData';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';

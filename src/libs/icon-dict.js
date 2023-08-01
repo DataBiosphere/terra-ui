@@ -79,6 +79,7 @@ import { ReactComponent as infoCircleRegular } from 'src/icons/info-circle-regul
 import { ReactComponent as leftCircleFilled } from 'src/icons/left-circle-filled.svg';
 import { ReactComponent as list } from 'src/icons/list-regular.svg';
 import { ReactComponent as loadingSpinner } from 'src/icons/loading-spinner.svg';
+import { ReactComponent as menuIconFilled } from 'src/icons/menu-icon-filled.svg';
 import { ReactComponent as minusCircleRed } from 'src/icons/minus-circle-red.svg';
 import { ReactComponent as plusCircleFilled } from 'src/icons/plus-circle-filled.svg';
 import { ReactComponent as renameIcon } from 'src/icons/rename-icon.svg';
@@ -149,6 +150,7 @@ const iconDict = {
   lock: fa(faLock),
   'long-arrow-alt-down': fa(faLongArrowAltDown),
   'long-arrow-alt-up': fa(faLongArrowAltUp),
+  'menu-icon-filled': custom(menuIconFilled),
   'minus-circle': fa(faMinusCircle),
   'minus-circle-red': custom(minusCircleRed),
   'money-check-alt': fa(faMoneyCheckAlt),

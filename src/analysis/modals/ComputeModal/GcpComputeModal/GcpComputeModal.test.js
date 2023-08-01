@@ -35,8 +35,8 @@ import { asMockedFn } from 'src/testing/test-utils';
 
 jest.mock('src/libs/notifications', () => ({
   notify: (...args) => {
-    console.debug('######################### notify')/* eslint-disable-line */
-    console.debug({ method: 'notify', args: [...args] })/* eslint-disable-line */
+    console.debug('######################### notify'); /* eslint-disable-line */
+    console.debug({ method: 'notify', args: [...args] }); /* eslint-disable-line */
   },
 }));
 
@@ -45,6 +45,7 @@ jest.mock('src/analysis/utils/cost-utils');
 jest.mock('src/libs/config', () => ({
   getConfig: () => ({
     terraDeploymentEnv: 'unitTest',
+    shouldUseDrsHub: true,
   }),
 }));
 
@@ -112,7 +113,7 @@ describe('GcpComputeModal', () => {
     screen.getByText('Jupyter Cloud Environment');
   });
 
-  it('passes the TERRA_DEPLOYMENT_ENV env var through to the notebook through custom env vars', async () => {
+  it('passes the TERRA_DEPLOYMENT_ENV and DRS_RESOLVER_ENDPOINT env vars through to the notebook through custom env vars', async () => {
     // Arrange
     const user = userEvent.setup();
 
@@ -141,6 +142,7 @@ describe('GcpComputeModal', () => {
       expect.objectContaining({
         customEnvironmentVariables: expect.objectContaining({
           TERRA_DEPLOYMENT_ENV: 'unitTest',
+          DRS_RESOLVER_ENDPOINT: 'api/v4/drs/resolve',
         }),
       })
     );
