@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import OutputsTable from 'src/workflows-app/components/OutputsTable';
@@ -27,17 +27,13 @@ describe('Output table rendering', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should render output variable names accurately', async () => {
     setupOutputTableTest();
 
-    const table = await screen.findByRole('table');
-    const rows = within(table).queryAllByRole('row');
-    const cells1 = within(rows[1]).queryAllByRole('cell');
-    const cells2 = within(rows[2]).queryAllByRole('cell');
+    const table = screen.getByRole('table');
+    const rows = within(table).getAllByRole('row');
+    const cells1 = within(rows[1]).getAllByRole('cell');
+    const cells2 = within(rows[2]).getAllByRole('cell');
 
     within(cells1[0]).getByText('target_workflow_1');
     within(cells1[1]).getByText('file_output');
@@ -52,12 +48,13 @@ describe('Output table rendering', () => {
 
   it('should change output table sort order when column headers are clicked', async () => {
     setupOutputTableTest();
+    const user = userEvent.setup();
 
-    const table = await screen.findByRole('table');
-    const rows = within(table).queryAllByRole('row');
-    const headers = within(rows[0]).queryAllByRole('columnheader');
-    const cells1 = within(rows[1]).queryAllByRole('cell');
-    const cells2 = within(rows[2]).queryAllByRole('cell');
+    const table = screen.getByRole('table');
+    const rows = within(table).getAllByRole('row');
+    const headers = within(rows[0]).getAllByRole('columnheader');
+    const cells1 = within(rows[1]).getAllByRole('cell');
+    const cells2 = within(rows[2]).getAllByRole('cell');
 
     within(cells1[0]).getByText('target_workflow_1');
     within(cells1[1]).getByText('file_output');
@@ -70,9 +67,7 @@ describe('Output table rendering', () => {
     within(cells2[3]).getByDisplayValue('');
 
     // sort ascending by column 1
-    await act(async () => {
-      await fireEvent.click(within(headers[1]).getByRole('button'));
-    });
+    await user.click(within(headers[1]).getByRole('button'));
 
     within(cells1[0]).getByText('target_workflow_1');
     within(cells1[1]).getByText('file_output');
@@ -85,9 +80,7 @@ describe('Output table rendering', () => {
     within(cells2[3]).getByDisplayValue('');
 
     // sort descending by column 1
-    await act(async () => {
-      await fireEvent.click(within(headers[1]).getByRole('button'));
-    });
+    await user.click(within(headers[1]).getByRole('button'));
 
     within(cells1[0]).getByText('target_workflow_1');
     within(cells1[1]).getByText('unused_output');
@@ -107,21 +100,16 @@ describe('Output table definition updates', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should set output variable names when set defaults button is clicked', async () => {
     const { setConfiguredOutputDefinition } = setupOutputTableTest();
+    const user = userEvent.setup();
 
-    const table = await screen.findByRole('table');
-    const rows = within(table).queryAllByRole('row');
-    const headers = within(rows[0]).queryAllByRole('columnheader');
+    const table = screen.getByRole('table');
+    const rows = within(table).getAllByRole('row');
+    const headers = within(rows[0]).getAllByRole('columnheader');
 
     // set defaults
-    await act(async () => {
-      await userEvent.click(within(headers[3]).getByRole('button'));
-    });
+    await user.click(within(headers[3]).getByRole('button'));
 
     expect(setConfiguredOutputDefinition).toHaveBeenCalledWith(runSetOutputDefWithDefaults);
   });

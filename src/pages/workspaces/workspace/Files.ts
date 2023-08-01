@@ -4,6 +4,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs';
 import FileBrowser from 'src/components/file-browser/FileBrowser';
 import AzureBlobStorageFileBrowserProvider from 'src/libs/ajax/file-browser-providers/AzureBlobStorageFileBrowserProvider';
 import GCSFileBrowserProvider from 'src/libs/ajax/file-browser-providers/GCSFileBrowserProvider';
+import { useQueryParameter } from 'src/libs/nav';
 import { forwardRefWithName } from 'src/libs/react-utils';
 import { isAzureWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
@@ -30,6 +31,8 @@ export const Files = _.flow(
 
   const rootLabel = isAzureWorkspace(workspace) ? 'Workspace cloud storage' : 'Workspace bucket';
 
+  const [path, setPath] = useQueryParameter('path');
+
   return div(
     {
       style: {
@@ -37,7 +40,16 @@ export const Files = _.flow(
         overflow: 'hidden',
       },
     },
-    [h(FileBrowser, { workspace, provider: fileBrowserProvider, rootLabel, title: 'Files' })]
+    [
+      h(FileBrowser, {
+        initialPath: path || '',
+        workspace,
+        provider: fileBrowserProvider,
+        rootLabel,
+        title: 'Files',
+        onChangePath: setPath,
+      }),
+    ]
   );
 });
 

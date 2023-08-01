@@ -94,7 +94,6 @@ describe('FilesMenu', () => {
 
     const createEmptyDirectory = jest.fn((path: string) => Promise.resolve({ path }));
     const mockProvider = {
-      supportsEmptyDirectories: true,
       createEmptyDirectory,
     } as Partial<FileBrowserProvider> as FileBrowserProvider;
 
