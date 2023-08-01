@@ -5,9 +5,7 @@ import { div, h } from 'react-hyperscript-helpers';
 import selectEvent from 'react-select-event';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
-import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { getConfig } from 'src/libs/config';
-import { getUser } from 'src/libs/state';
 import { BaseSubmissionHistory } from 'src/workflows-app/SubmissionHistory';
 import { mockAbortResponse, mockAzureApps, mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 
@@ -71,41 +69,6 @@ const runSetData = {
   ],
 };
 
-const mockAppResponse = [
-  {
-    workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
-    cloudContext: {
-      cloudProvider: 'AZURE',
-    },
-    status: 'RUNNING',
-    proxyUrls: {
-      cbas: 'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas',
-      'cbas-ui': 'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/',
-      cromwell: 'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cromwell',
-    },
-    appName: 'terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374',
-    appType: 'CROMWELL',
-    auditInfo: {
-      creator: 'abc@gmail.com',
-    },
-  },
-  {
-    workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
-    cloudContext: {
-      cloudProvider: 'AZURE',
-    },
-    status: 'RUNNING',
-    proxyUrls: {
-      wds: 'https://abc.servicebus.windows.net/wds-79201ea6-519a-4077-a9a4-75b2a7c4cdeb-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/',
-    },
-    appName: 'wds-79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
-    appType: 'WDS',
-    auditInfo: {
-      creator: 'abc@gmail.com',
-    },
-  },
-];
-
 beforeAll(() => {
   Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 });
   Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
@@ -151,7 +114,7 @@ describe('SubmissionHistory page', () => {
       return {
         Cbas: {
           runSets: {
-            get: jest.fn(getRunSetsMethod),
+            get: getRunSetsMethod,
           },
         },
         Apps: {
@@ -220,15 +183,11 @@ describe('SubmissionHistory page', () => {
     const mockRunSetResponse = jest.fn(() => Promise.resolve([]));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
 
-    getUser.mockReturnValue({
-      email: 'abc@gmail.com',
-    });
-
     await Ajax.mockImplementation(() => {
       return {
         Cbas: {
           runSets: {
-            get: jest.fn(mockRunSetResponse),
+            get: mockRunSetResponse,
           },
         },
         Apps: {
@@ -263,17 +222,7 @@ describe('SubmissionHistory page', () => {
 
   it('should correctly display previous 2 run sets', async () => {
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
-    const mockListAppsFn = jest.fn(() => Promise.resolve(mockAppResponse));
-
-    getUser.mockReturnValue({
-      email: 'abc@gmail.com',
-    });
-
-    await Apps.mockImplementation(() => {
-      return {
-        listAppsV2: jest.fn(mockListAppsFn),
-      };
-    });
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
 
     await Ajax.mockImplementation(() => {
       return {
@@ -281,6 +230,9 @@ describe('SubmissionHistory page', () => {
           runSets: {
             get: jest.fn(getRunSetsMethod),
           },
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
         },
       };
     });
@@ -362,24 +314,17 @@ describe('SubmissionHistory page', () => {
     };
 
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
-    const mockListAppsFn = jest.fn(() => Promise.resolve(mockAppResponse));
-
-    getUser.mockReturnValue({
-      email: 'abc@gmail.com',
-    });
-
-    await Apps.mockImplementation(() => {
-      return {
-        listAppsV2: jest.fn(mockListAppsFn),
-      };
-    });
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
 
     await Ajax.mockImplementation(() => {
       return {
         Cbas: {
           runSets: {
-            get: jest.fn(getRunSetsMethod),
+            get: getRunSetsMethod,
           },
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
         },
       };
     });
@@ -435,24 +380,17 @@ describe('SubmissionHistory page', () => {
     const runSetData = simpleRunSetData;
 
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
-    const mockListAppsFn = jest.fn(() => Promise.resolve(mockAppResponse));
-
-    getUser.mockReturnValue({
-      email: 'abc@gmail.com',
-    });
-
-    await Apps.mockImplementation(() => {
-      return {
-        listAppsV2: jest.fn(mockListAppsFn),
-      };
-    });
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
 
     await Ajax.mockImplementation(() => {
       return {
         Cbas: {
           runSets: {
-            get: jest.fn(getRunSetsMethod),
+            get: getRunSetsMethod,
           },
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
         },
       };
     });
@@ -479,24 +417,17 @@ describe('SubmissionHistory page', () => {
     const runSetData = _.merge(simpleRunSetData, { fully_updated: false });
 
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
-    const mockListAppsFn = jest.fn(() => Promise.resolve(mockAppResponse));
-
-    getUser.mockReturnValue({
-      email: 'abc@gmail.com',
-    });
-
-    await Apps.mockImplementation(() => {
-      return {
-        listAppsV2: jest.fn(mockListAppsFn),
-      };
-    });
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
 
     await Ajax.mockImplementation(() => {
       return {
         Cbas: {
           runSets: {
-            get: jest.fn(getRunSetsMethod),
+            get: getRunSetsMethod,
           },
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
         },
       };
     });
@@ -521,24 +452,17 @@ describe('SubmissionHistory page', () => {
 
   it('Gives abort option for actions button', async () => {
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
-    const mockListAppsFn = jest.fn(() => Promise.resolve(mockAppResponse));
-
-    getUser.mockReturnValue({
-      email: 'abc@gmail.com',
-    });
-
-    await Apps.mockImplementation(() => {
-      return {
-        listAppsV2: jest.fn(mockListAppsFn),
-      };
-    });
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
 
     await Ajax.mockImplementation(() => {
       return {
         Cbas: {
           runSets: {
-            get: jest.fn(getRunSetsMethod),
+            get: getRunSetsMethod,
           },
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
         },
       };
     });
@@ -577,26 +501,19 @@ describe('SubmissionHistory page', () => {
     const user = userEvent.setup();
     const runSetData = simpleRunSetData;
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
-    const mockListAppsFn = jest.fn(() => Promise.resolve(mockAppResponse));
     const cancelSubmissionFunction = jest.fn(() => Promise.resolve(mockAbortResponse));
-
-    getUser.mockReturnValue({
-      email: 'abc@gmail.com',
-    });
-
-    await Apps.mockImplementation(() => {
-      return {
-        listAppsV2: jest.fn(mockListAppsFn),
-      };
-    });
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
 
     await Ajax.mockImplementation(() => {
       return {
         Cbas: {
           runSets: {
-            get: jest.fn(getRunSetsMethod),
+            get: getRunSetsMethod,
             cancel: jest.fn(cancelSubmissionFunction),
           },
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
         },
       };
     });
