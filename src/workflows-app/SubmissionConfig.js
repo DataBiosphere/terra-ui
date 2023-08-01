@@ -398,8 +398,8 @@ export const BaseSubmissionConfig = (
           ]),
         ]),
         div({ style: { marginTop: '1rem' } }, [
-          label({ htmlFor: callCacheId }, [
-            div({ style: { height: '2rem', marginRight: '0.25rem', fontWeight: 'bold', display: 'inline-block' } }, ['Call Caching:']),
+          label({ htmlFor: callCacheId, style: { height: '2rem', marginRight: '0.25rem', fontWeight: 'bold', display: 'inline-block' } }, [
+            'Call Caching:',
           ]),
           div({ style: { display: 'inline-block', marginRight: '1rem' } }, [
             h(InfoBox, [
