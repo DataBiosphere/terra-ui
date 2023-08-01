@@ -75,7 +75,14 @@ const AzureBlobStorageFileBrowserProvider = ({
         const responseXML = new window.DOMParser().parseFromString(responseText, 'text/xml');
 
         const blobOrBlobPrefixElements = Array.from(responseXML.getElementsByTagName(tagName));
-        buffer = buffer.concat(blobOrBlobPrefixElements.map(mapBlobOrBlobPrefix));
+        const blobsOrPrefixes = blobOrBlobPrefixElements.map(mapBlobOrBlobPrefix);
+
+        // Exclude folder placeholder objects.
+        const blobsOrPrefixesWithoutPlaceholders = blobsOrPrefixes.filter(
+          (blobOrPrefix) => (blobOrPrefix as any).path !== prefix
+        );
+
+        buffer = buffer.concat(blobsOrPrefixesWithoutPlaceholders);
 
         nextPageToken = responseXML.getElementsByTagName('NextMarker').item(0)?.textContent || undefined;
       } while (buffer.length < pageSize && nextPageToken);
@@ -108,7 +115,6 @@ const AzureBlobStorageFileBrowserProvider = ({
   };
 
   return {
-    supportsEmptyDirectories: false,
     getFilesInDirectory: async (path, { signal } = {}) => {
       const {
         sas: { url: sasUrl },
@@ -206,11 +212,50 @@ const AzureBlobStorageFileBrowserProvider = ({
         method: 'DELETE',
       });
     },
-    createEmptyDirectory: (_directoryPath: string) => {
-      return Promise.reject(new Error('Empty directories not supported in Azure workspaces'));
+    createEmptyDirectory: async (directoryPath: string) => {
+      console.assert(directoryPath.endsWith('/'), 'Directory paths must include a trailing slash');
+
+      const {
+        sas: { url: originalSasUrl },
+      } = await storageDetailsPromise;
+
+      const blobUrl = new URL(originalSasUrl);
+      blobUrl.pathname += `/${directoryPath}`;
+
+      const directoryName = directoryPath.split('/').at(-2);
+      const placeholderObject = new File([''], `${directoryName}/`, { type: 'text/text' });
+
+      await fetchOk(blobUrl.href, {
+        body: placeholderObject,
+        headers: {
+          'Content-Length': placeholderObject.size,
+          'Content-Type': placeholderObject.type,
+          'x-ms-blob-type': 'BlockBlob',
+        },
+        method: 'PUT',
+      });
+
+      return {
+        path: directoryPath,
+      };
     },
-    deleteEmptyDirectory: (_directoryPath: string) => {
-      return Promise.reject(new Error('Empty directories not supported in Azure workspaces'));
+    deleteEmptyDirectory: async (directoryPath: string) => {
+      const {
+        sas: { url: originalSasUrl },
+      } = await storageDetailsPromise;
+
+      const blobUrl = new URL(originalSasUrl);
+      blobUrl.pathname += `/${directoryPath}`;
+
+      try {
+        await fetchOk(blobUrl.href, {
+          method: 'DELETE',
+        });
+      } catch (error) {
+        if (!(error instanceof Response && error.status === 404)) {
+          throw error;
+        }
+      }
     },
   };
 };
