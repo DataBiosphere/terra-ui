@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
@@ -165,7 +166,7 @@ describe('BaseSubmissionConfig renders workflow details', () => {
   });
 
   it('should render a functional call cache toggle button', async () => {
-    await act(async () => {
+    const { container } = await act(async () => {
       return render(
         h(BaseSubmissionConfig, {
           methodId: '123',
@@ -175,6 +176,7 @@ describe('BaseSubmissionConfig renders workflow details', () => {
         })
       );
     });
+    expect(await axe(container)).toHaveNoViolations();
     const user = userEvent.setup();
     const callCacheToggleButton = screen.getByLabelText('Call Caching:');
     expect(callCacheToggleButton).toBeDefined(); // Switch exists
