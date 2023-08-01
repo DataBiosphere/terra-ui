@@ -9,7 +9,7 @@ import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { getConfig } from 'src/libs/config';
 import { getUser } from 'src/libs/state';
 import { BaseSubmissionHistory } from 'src/workflows-app/SubmissionHistory';
-import { mockAbortResponse, mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
+import { mockAbortResponse, mockAzureApps, mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 
 // Necessary to mock the AJAX module.
 jest.mock('src/libs/ajax');
@@ -111,25 +111,18 @@ beforeAll(() => {
   Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
 });
 
-let container = null;
+const cbasUrlRoot = 'https://lz-abc/terra-app-abc/cbas';
+const cromwellUrlRoot = 'https://lz-abc/terra-app-abc/cromwell';
 
 beforeEach(() => {
-  jest.clearAllMocks();
-  jest.spyOn(console, 'error').mockImplementation(() => {});
-  // setup a DOM element as a render target
-  container = document.createElement('div');
-  document.body.appendChild(container);
+  getConfig.mockReturnValue({ cbasUrlRoot, cromwellUrlRoot });
   MenuTrigger.mockImplementation(({ content }) => {
     return div({ role: 'menu' }, [content]);
   });
-  getConfig.mockReturnValue({ wdsUrlRoot: 'http://localhost:3000/wds', cbasUrlRoot: 'http://localhost:8080/cbas' });
 });
 
 afterEach(() => {
   jest.clearAllMocks();
-  // cleanup on exiting
-  container.remove();
-  container = null;
 });
 
 afterAll(() => {
@@ -152,16 +145,10 @@ describe('SubmissionHistory page', () => {
   it('should display no content message when there are no previous run sets', async () => {
     // Arrange
     const mockRunSetResponse = jest.fn(() => Promise.resolve([]));
-    const mockListAppsFn = jest.fn(() => Promise.resolve(mockAppResponse));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
 
     getUser.mockReturnValue({
       email: 'abc@gmail.com',
-    });
-
-    await Apps.mockImplementation(() => {
-      return {
-        listAppsV2: jest.fn(mockListAppsFn),
-      };
     });
 
     await Ajax.mockImplementation(() => {
@@ -170,6 +157,9 @@ describe('SubmissionHistory page', () => {
           runSets: {
             get: jest.fn(mockRunSetResponse),
           },
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
         },
       };
     });
@@ -194,7 +184,7 @@ describe('SubmissionHistory page', () => {
     expect(table).toHaveAttribute('aria-colcount', '6');
     expect(table).toHaveAttribute('aria-rowcount', '1');
 
-    const rows = within(table).queryAllByRole('cell');
+    const rows = within(table).getAllByRole('cell');
     within(rows[1]).findByText('Nothing here yet! Your previously run submissions will be displayed here.');
   });
 
@@ -243,10 +233,10 @@ describe('SubmissionHistory page', () => {
     expect(table).toHaveAttribute('aria-colcount', '6');
     expect(table).toHaveAttribute('aria-rowcount', '3');
 
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(3);
 
-    const headers = within(rows[0]).queryAllByRole('columnheader');
+    const headers = within(rows[0]).getAllByRole('columnheader');
     expect(headers.length).toBe(6);
     within(headers[headerPosition.Actions]).getByText('Actions');
     within(headers[headerPosition.Submission]).getByText('Submission name');
@@ -256,7 +246,7 @@ describe('SubmissionHistory page', () => {
     within(headers[headerPosition.Comment]).getByText('Comment');
 
     // check data rows are rendered as expected
-    const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell');
+    const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
     expect(cellsFromDataRow1.length).toBe(6);
     within(headers[headerPosition.Actions]).getByText('Actions');
     within(cellsFromDataRow1[headerPosition.Submission]).getByText('Data used: FOO');
@@ -265,7 +255,7 @@ describe('SubmissionHistory page', () => {
     within(cellsFromDataRow1[headerPosition['Date Submitted']]).getByText(/Jan 1, 2022/);
     within(cellsFromDataRow1[headerPosition.Duration]).getByText('1 day 1 hour 1 minute 1 second');
 
-    const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell');
+    const cellsFromDataRow2 = within(rows[2]).getAllByRole('cell');
     expect(cellsFromDataRow2.length).toBe(6);
     within(headers[headerPosition.Actions]).getByText('Actions');
     within(cellsFromDataRow2[headerPosition.Submission]).getByText('Data used: FOO');
@@ -343,30 +333,24 @@ describe('SubmissionHistory page', () => {
     expect(table).toHaveAttribute('aria-colcount', '6');
     expect(table).toHaveAttribute('aria-rowcount', '3');
 
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(3);
 
     // check data rows are rendered as expected
-    const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell');
+    const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
     within(cellsFromDataRow1[headerPosition.Status]).getByText('Canceled');
 
-    const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell');
+    const cellsFromDataRow2 = within(rows[2]).getAllByRole('cell');
     within(cellsFromDataRow2[headerPosition.Status]).getByText('Canceling');
   });
 
   it('should sort columns properly', async () => {
     const user = userEvent.setup();
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
-    const mockListAppsFn = jest.fn(() => Promise.resolve(mockAppResponse));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
 
     getUser.mockReturnValue({
       email: 'abc@gmail.com',
-    });
-
-    await Apps.mockImplementation(() => {
-      return {
-        listAppsV2: jest.fn(mockListAppsFn),
-      };
     });
 
     await Ajax.mockImplementation(() => {
@@ -375,6 +359,9 @@ describe('SubmissionHistory page', () => {
           runSets: {
             get: jest.fn(getRunSetsMethod),
           },
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
         },
       };
     });
@@ -396,41 +383,41 @@ describe('SubmissionHistory page', () => {
 
     const table = await screen.getByRole('table');
 
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(3);
 
-    const headers = within(rows[0]).queryAllByRole('columnheader');
+    const headers = within(rows[0]).getAllByRole('columnheader');
     expect(headers.length).toBe(6);
 
     const topRowCells = (column) => {
-      const topRowCells = within(rows[1]).queryAllByRole('cell');
+      const topRowCells = within(rows[1]).getAllByRole('cell');
       return topRowCells[column];
     };
     // Click on "Date Submitted" column and check that the top column is correct for:
     // * ascending order
-    await user.click(within(headers[headerPosition['Date Submitted']]).getByRole('button'));
+    await user.click(await within(headers[headerPosition['Date Submitted']]).getByRole('button'));
     within(topRowCells(headerPosition['Date Submitted'])).getByText(/Jul 10, 2021/);
 
     // * descending order
-    await user.click(within(headers[headerPosition['Date Submitted']]).getByRole('button'));
+    await user.click(await within(headers[headerPosition['Date Submitted']]).getByRole('button'));
     within(topRowCells(headerPosition['Date Submitted'])).getByText(/Jan 1, 2022/);
 
     // Click on "Status" column and check that the top column is correct for:
     // * ascending order
-    await user.click(within(headers[headerPosition.Status]).getByRole('button'));
+    await user.click(await within(headers[headerPosition.Status]).getByRole('button'));
     within(topRowCells(headerPosition.Status)).getByText('Success');
 
     // * descending order
-    await user.click(within(headers[headerPosition.Status]).getByRole('button'));
+    await user.click(await within(headers[headerPosition.Status]).getByRole('button'));
     within(topRowCells(headerPosition.Status)).getByText('Failed with 1 errors');
 
     // Click on "Duration" column and check that the top column is correct for:
     // * ascending order
-    await user.click(within(headers[headerPosition.Duration]).getByRole('button'));
+    await user.click(await within(headers[headerPosition.Duration]).getByRole('button'));
     within(topRowCells(headerPosition.Duration)).getByText('1 day 1 hour 1 minute 1 second');
 
     // * descending order
-    await user.click(within(headers[headerPosition.Duration]).getByRole('button'));
+    await user.click(await within(headers[headerPosition.Duration]).getByRole('button'));
     within(topRowCells(headerPosition.Duration)).getByText('1 month 1 day 1 hour 1 minute 1 second');
   });
 
@@ -450,7 +437,6 @@ describe('SubmissionHistory page', () => {
   };
 
   it('should indicate fully updated polls', async () => {
-    jest.clearAllMocks();
     const runSetData = simpleRunSetData;
 
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
@@ -495,7 +481,6 @@ describe('SubmissionHistory page', () => {
   });
 
   it('should indicate incompletely updated polls', async () => {
-    jest.clearAllMocks();
     const runSetData = _.merge(simpleRunSetData, { fully_updated: false });
 
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
@@ -580,11 +565,11 @@ describe('SubmissionHistory page', () => {
 
     const table = screen.getByRole('table');
 
-    const rows = within(table).queryAllByRole('row');
-    const headers = within(rows[0]).queryAllByRole('columnheader');
+    const rows = within(table).getAllByRole('row');
+    const headers = within(rows[0]).getAllByRole('columnheader');
     expect(headers.length).toBe(6);
 
-    const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell');
+    const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
 
     await act(async () => {
       const actionsMenu = within(cellsFromDataRow1[0]).getByRole('button');
@@ -628,8 +613,7 @@ describe('SubmissionHistory page', () => {
           name: 'test-azure-ws-name',
           namespace: 'test-azure-ws-namespace',
           workspace: mockAzureWorkspace,
-        }),
-        container
+        })
       );
     });
 
@@ -642,11 +626,11 @@ describe('SubmissionHistory page', () => {
 
     const table = screen.getByRole('table');
 
-    const rows = within(table).queryAllByRole('row');
-    const headers = within(rows[0]).queryAllByRole('columnheader');
+    const rows = within(table).getAllByRole('row');
+    const headers = within(rows[0]).getAllByRole('columnheader');
     expect(headers.length).toBe(6);
 
-    const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell');
+    const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
     const actionsMenu = within(cellsFromDataRow1[0]).getByRole('button');
 
     await act(async () => {
