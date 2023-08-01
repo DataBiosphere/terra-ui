@@ -450,67 +450,6 @@ describe('SubmissionHistory page', () => {
     expect(screen.getByText('Some submission statuses are not up to date. Refreshing the page may update more statuses.')).toBeInTheDocument();
   });
 
-  it('should abort successfully', async () => {
-    const user = userEvent.setup();
-    const runSetData = simpleRunSetData;
-    const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
-    const cancelSubmissionFunction = jest.fn(() => Promise.resolve(mockAbortResponse));
-    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
-
-    await Ajax.mockImplementation(() => {
-      return {
-        Cbas: {
-          runSets: {
-            get: getRunSetsMethod,
-            cancel: jest.fn(cancelSubmissionFunction),
-          },
-        },
-        Apps: {
-          listAppsV2: mockLeoResponse,
-        },
-      };
-    });
-
-    // Act
-    await act(async () => {
-      render(
-        h(BaseSubmissionHistory, {
-          name: 'test-azure-ws-name',
-          namespace: 'test-azure-ws-namespace',
-          workspace: mockAzureWorkspace,
-        })
-      );
-    });
-
-    // Assert
-    await waitFor(() => {
-      expect(getRunSetsMethod).toBeCalled();
-    });
-
-    expect(screen.getByRole('table')).toBeInTheDocument();
-
-    const table = screen.getByRole('table');
-
-    const rows = within(table).getAllByRole('row');
-    const headers = within(rows[0]).getAllByRole('columnheader');
-    expect(headers.length).toBe(6);
-
-    const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
-    const actionsMenu = within(cellsFromDataRow1[0]).getByRole('button');
-
-    await act(async () => {
-      await selectEvent.openMenu(actionsMenu);
-      expect(actionsMenu).toHaveTextContent('Abort');
-    });
-
-    const abortButton = screen.getByText('Abort');
-    expect(abortButton).toHaveAttribute('aria-disabled', 'false');
-    await user.click(abortButton);
-
-    expect(cancelSubmissionFunction).toHaveBeenCalled();
-    expect(cancelSubmissionFunction).toBeCalledWith('https://lz-abc/terra-app-abc/cbas', '20000000-0000-0000-0000-200000000002');
-  });
-
   it('Gives abort option for actions button', async () => {
     const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
@@ -556,5 +495,67 @@ describe('SubmissionHistory page', () => {
       await selectEvent.openMenu(actionsMenu);
       expect(actionsMenu).toHaveTextContent('Abort');
     });
+  });
+
+  it('should abort successfully', async () => {
+    let content;
+    const user = userEvent.setup();
+    const runSetData = simpleRunSetData;
+    const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData));
+    const cancelSubmissionFunction = jest.fn(() => Promise.resolve(mockAbortResponse));
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            get: getRunSetsMethod,
+            cancel: jest.fn(cancelSubmissionFunction),
+          },
+        },
+        Apps: {
+          listAppsV2: mockLeoResponse,
+        },
+      };
+    });
+
+    // Act
+    await act(async () => {
+      content = render(
+        h(BaseSubmissionHistory, {
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+        })
+      );
+    });
+
+    // Assert
+    await waitFor(() => {
+      expect(getRunSetsMethod).toBeCalled();
+    });
+
+    expect(content.getByRole('table')).toBeInTheDocument();
+
+    const table = content.getByRole('table');
+
+    const rows = within(table).getAllByRole('row');
+    const headers = within(rows[0]).getAllByRole('columnheader');
+    expect(headers.length).toBe(6);
+
+    const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
+    const actionsMenu = within(cellsFromDataRow1[0]).getByRole('button');
+
+    await act(async () => {
+      await selectEvent.openMenu(actionsMenu);
+      expect(actionsMenu).toHaveTextContent('Abort');
+    });
+
+    const abortButton = screen.getByText('Abort');
+    expect(abortButton).toHaveAttribute('aria-disabled', 'false');
+    await user.click(abortButton);
+
+    expect(cancelSubmissionFunction).toHaveBeenCalled();
+    expect(cancelSubmissionFunction).toBeCalledWith('https://lz-abc/terra-app-abc/cbas', '20000000-0000-0000-0000-200000000002');
   });
 });
