@@ -9,8 +9,10 @@ export const getConfig = () => {
 
 /**
  * Flags for hidden features
+ * NB: Prefer the feature previews page instead of these config overrides for any future flags
  */
 export const isCromwellAppVisible = () => getConfig().isCromwellAppVisible;
+
 export const isAxeEnabled = () => {
   const storedValue = getConfig().isAxeEnabled;
   const isDev = process.env.NODE_ENV === 'development';

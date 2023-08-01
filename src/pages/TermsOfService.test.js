@@ -1,5 +1,4 @@
-import { render, screen } from '@testing-library/react';
-import { act } from 'react-dom/test-utils';
+import { act, render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { authStore } from 'src/libs/state';
@@ -8,7 +7,7 @@ import TermsOfServicePage from 'src/pages/TermsOfService';
 jest.mock('src/libs/ajax');
 jest.mock('react-notifications-component', () => {
   return {
-    store: {
+    Store: {
       addNotification: jest.fn(),
       removeNotification: jest.fn(),
     },
@@ -61,8 +60,7 @@ describe('TermsOfService', () => {
     // Assert
     expect(getTosFn).toHaveBeenCalled();
 
-    const termsOfServiceText = screen.findByText('some text');
-    expect(termsOfServiceText).not.toBeFalsy();
+    screen.getByText('some text');
   });
 
   it('shows "Continue under grace period" when the user has not accepted the latest ToS but is still allowed to use Terra', async () => {
@@ -78,8 +76,7 @@ describe('TermsOfService', () => {
     await act(async () => { render(h(TermsOfServicePage)) }) //eslint-disable-line
 
     // Assert
-    const continueUnderGracePeriodButton = screen.findByText('Continue under grace period');
-    expect(continueUnderGracePeriodButton).not.toBeFalsy();
+    screen.getByText('Continue under grace period');
   });
 
   it('does not show "Continue under grace period" when the user has not accepted the latest ToS and is not allowed to use Terra', async () => {

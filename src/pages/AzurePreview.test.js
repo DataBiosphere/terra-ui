@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
@@ -140,6 +140,16 @@ describe('AzurePreview', () => {
           await user.click(screen.getByText('Launch workflows'));
 
           // Assert
+          expect(isSubmitEnabled()).toBe(false);
+
+          // Act
+          await user.click(screen.getByLabelText('Which of the following best describes your organization? *'));
+          await user.click(screen.getByText('Healthcare (Academic Research Institute)'));
+
+          await user.click(screen.getByLabelText('In which region is your organization located? *'));
+          await user.click(screen.getByText('North America'));
+
+          // Assert
           expect(isSubmitEnabled()).toBe(true);
         });
       });
@@ -166,17 +176,32 @@ describe('AzurePreview', () => {
           await user.clear(screen.getByLabelText('Contact email address *'));
           await user.type(screen.getByLabelText('Contact email address *'), 'user@example.com');
           await user.click(screen.getByText('Launch workflows'));
+          await user.click(screen.getByLabelText('Which of the following best describes your organization? *'));
+          await user.click(screen.getByText('Healthcare (Academic Research Institute)'));
+          await user.click(screen.getByLabelText('In which region is your organization located? *'));
+          await user.click(screen.getByText('North America'));
 
           // Act
           const submitButton = screen.getByText('Submit');
-          await act(() => user.click(submitButton));
+          await user.click(submitButton);
         });
 
         it('submits user info', () => {
           expect(submitForm).toHaveBeenCalledWith(expect.any(String), expect.any(Object));
           const formInput = submitForm.mock.calls[0][1];
           expect(Object.values(formInput)).toEqual(
-            expect.arrayContaining(['A', 'User', 'Automated test', 'Terra UI', 'user@example.com', 'user@organization.name', 'Launch workflows'])
+            expect.arrayContaining([
+              'A', // First name
+              'User', // Last name
+              'Automated test', // Title/Role
+              'Terra UI', // Organization name
+              'user@example.com', // Contact email
+              'user@organization.name', // Terra email
+              'Launch workflows', // Use case
+              'Healthcare (Academic Research Institute)', // Organization description
+              '', // Organization description (other)
+              'North America', // Organization region
+            ])
           );
         });
 

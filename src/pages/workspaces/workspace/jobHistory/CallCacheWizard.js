@@ -1,7 +1,7 @@
+import ReactJson from '@microlink/react-json-view';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, hr, label } from 'react-hyperscript-helpers';
-import ReactJson from 'react-json-view';
 import { ButtonPrimary, IdContainer, Link, Select } from 'src/components/common';
 import ErrorView from 'src/components/ErrorView';
 import { icon } from 'src/components/icons';

@@ -1,22 +1,17 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 import { h } from 'react-hyperscript-helpers';
 import { CreateNamedProjectStep } from 'src/pages/billing/NewBillingProjectWizard/AzureBillingProjectWizard/CreateNamedProjectStep';
 
 // Exported for wizard integration test.
 export const nameBillingProject = async (billingProjectName) => {
-  await act(async () => {
-    await userEvent.click(getBillingProjectInput());
-  });
+  await userEvent.click(getBillingProjectInput());
   fireEvent.change(getBillingProjectInput(), { target: { value: billingProjectName } });
 };
 export const clickCreateBillingProject = async () => {
   const createButton = getCreateButton();
   verifyEnabled(createButton);
-  await act(async () => {
-    await userEvent.click(createButton);
-  });
+  await userEvent.click(createButton);
 };
 export const verifyCreateBillingProjectDisabled = () => {
   verifyDisabled(getCreateButton());
@@ -80,12 +75,12 @@ describe('CreateNamedProjectStep', () => {
 
   it('fires an event when the billing project input is focused', async () => {
     // Arrange
+    const user = userEvent.setup();
+
     render(h(CreateNamedProjectStep, defaultProps));
 
     // Act
-    await act(async () => {
-      await userEvent.click(getBillingProjectInput());
-    });
+    await user.click(getBillingProjectInput());
 
     // Assert
     expect(onBillingProjectInputFocused).toHaveBeenCalled();

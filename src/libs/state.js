@@ -67,7 +67,15 @@ export const workflowSelectionStore = Utils.atom({
   entities: undefined,
 });
 
-/** @type {Utils.Atom<any[]>} */
+/**
+ * @typedef {Object} AsyncImportJob
+ * @property {string} jobId
+ * @property {Object} targetWorkspace
+ * @property {string} targetWorkspace.namespace
+ * @property {string} targetWorkspace.name
+ */
+
+/** @type {Utils.Atom<AsyncImportJob[]>} */
 export const asyncImportJobStore = Utils.atom([]);
 
 export const snapshotsListStore = Utils.atom();
@@ -92,3 +100,22 @@ window.ajaxOverridesStore = ajaxOverridesStore;
  */
 export const configOverridesStore = staticStorageSlot(getSessionStorage(), 'config-overrides');
 window.configOverridesStore = configOverridesStore;
+
+// enum for status of app proxy url
+export const AppProxyUrlStatus = Object.freeze({
+  None: 'None',
+  Ready: 'Ready',
+  Error: 'Error',
+});
+
+/*
+ * Stores the proxy urls for WDS and Azure Workflows apps for a workspace.
+ * Status can be one of None, Ready and Error. The proxy url will be in 'state' field when 'status' is Ready.
+ * When 'state' is Error the 'state' field will contain the error that was returned from Leo (if any).
+ */
+export const workflowsAppStore = Utils.atom({
+  workspaceId: undefined,
+  wdsProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
+  cbasProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
+  cromwellProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
+});

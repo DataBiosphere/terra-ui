@@ -1,6 +1,4 @@
-import '@testing-library/jest-dom';
-
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h, p } from 'react-hyperscript-helpers';
 import {
@@ -14,14 +12,25 @@ import {
   getGoogleRuntime,
 } from 'src/analysis/_testData/testData';
 import { CloudEnvironmentModal } from 'src/analysis/modals/CloudEnvironmentModal';
-import { tools } from 'src/analysis/utils/tool-utils';
+import { PeriodicAzureCookieSetter } from 'src/analysis/runtime-common-components';
+import { appToolLabels, tools } from 'src/analysis/utils/tool-utils';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
+import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
+import { cloudProviderTypes } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
 
 type RuntimesAjaxExports = typeof import('src/libs/ajax/leonardo/Runtimes');
 type AppsAjaxExports = typeof import('src/libs/ajax/leonardo/Apps');
+
+jest.mock('src/analysis/runtime-common-components', () => {
+  return {
+    ...jest.requireActual('src/analysis/runtime-common-components'),
+    PeriodicAzureCookieSetter: jest.fn().mockReturnValue(null),
+    setAzureCookieOnUrl: jest.fn().mockReturnValue(null),
+  };
+});
 
 jest.mock('src/libs/ajax/leonardo/Runtimes', (): RuntimesAjaxExports => {
   return {
@@ -141,6 +150,64 @@ const CloudEnvironmentModalDefaultProps: any = {
   location: 'NORTHAMERICA-NORTHEAST1',
   computeRegion: 'NORTHAMERICA-NORTHEAST1',
   filterForTool: undefined,
+};
+
+const cromwellRunning: App = {
+  appName: 'terra-app-83f46705-524c-4fc8-xcyc-97fdvcfby14f',
+  appType: 'CROMWELL',
+  auditInfo: {
+    creator: 'cahrens@gmail.com',
+    createdDate: '2021-11-28T20:28:01.998494Z',
+    destroyedDate: undefined,
+    dateAccessed: '2021-11-28T20:28:01.998494Z',
+  },
+  diskName: 'saturn-pd-026594ac-d829-423d-a8df-55fe36f5b4e8',
+  errors: [],
+  kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+  labels: {},
+  cloudContext: {
+    cloudProvider: cloudProviderTypes.AZURE,
+    cloudResource: 'path/to/cloud/resource',
+  },
+  proxyUrls: {
+    'cromwell-service':
+      'https://leonardo-fiab.dsde-dev.broadinstitute.org/fd0cfbb14f/cromwell-service/swagger/cromwell.yaml',
+    'cbas-ui': 'testValue',
+  },
+  status: 'RUNNING',
+};
+
+const hailBatchAppRunning: App = {
+  appName: 'test-hail-batch-app',
+  cloudContext: {
+    cloudProvider: 'AZURE',
+    cloudResource: 'path/to/cloud/resource',
+  },
+  kubernetesRuntimeConfig: {
+    numNodes: 1,
+    machineType: 'Standard_A2_v2',
+    autoscalingEnabled: false,
+  },
+  errors: [],
+  status: 'RUNNING',
+  proxyUrls: {
+    batch: 'https://lz123.servicebus.windows.net/test-hail-batch-app/batch',
+  },
+  diskName: undefined,
+  customEnvironmentVariables: {},
+  auditInfo: {
+    creator: 'abc.testerson@gmail.com',
+    createdDate: '2023-01-18T23:28:47.605176Z',
+    destroyedDate: undefined,
+    dateAccessed: '2023-01-18T23:28:47.605176Z',
+  },
+  appType: appToolLabels.HAIL_BATCH,
+  labels: {
+    cloudContext: 'path/to/cloud/context',
+    appName: 'test-cromwell-app',
+    clusterServiceAccount: '/subscriptions/123/pet-101',
+    creator: 'abc.testerson@gmail.com',
+  },
 };
 
 type NavExports = typeof import('src/libs/nav');
@@ -452,9 +519,7 @@ describe('CloudEnvironmentModal', () => {
       // Assert
       const pauseButtons = screen.getAllByText('Pause');
       expect(pauseButtons.length).toBe(3);
-      await act(async () => {
-        await user.click(pauseButtons[expectedOutput.buttonIndex]);
-      });
+      await user.click(pauseButtons[expectedOutput.buttonIndex]);
       expect(stopFn).toBeCalledTimes(expectedOutput.stopTimes);
       expect(pauseFn).toBeCalledTimes(expectedOutput.pauseTimes);
     }
@@ -467,7 +532,6 @@ describe('CloudEnvironmentModal', () => {
     const stopFn = jest.fn();
     const mockRuntimes: Partial<RuntimesContract> = {
       runtimeWrapper: jest.fn(),
-
       list: jest.fn(),
       invalidateCookie: jest.fn(),
       setCookie: jest.fn(),
@@ -509,9 +573,7 @@ describe('CloudEnvironmentModal', () => {
     render(h(CloudEnvironmentModal, cloneAzure));
     // Assert
     const pauseButton = screen.getByText('Pause');
-    await act(async () => {
-      await user.click(pauseButton);
-    });
+    await user.click(pauseButton);
     expect(stopFn).toBeCalledTimes(1);
   });
 
@@ -651,9 +713,7 @@ describe('CloudEnvironmentModal', () => {
     // Assert
     const settingsButtons = screen.getAllByText('Settings');
     expect(settingsButtons.length).toBe(3);
-    await act(async () => {
-      await user.click(settingsButtons[buttonIndex]);
-    });
+    await user.click(settingsButtons[buttonIndex]);
     screen.getByText(modalName);
   });
 
@@ -668,9 +728,63 @@ describe('CloudEnvironmentModal', () => {
     render(h(CloudEnvironmentModal, cloneAzure));
     // Assert
     const settingsButton = screen.getByText('Settings');
-    await act(async () => {
-      await user.click(settingsButton);
-    });
+    await user.click(settingsButton);
     screen.getByText('AzureComputeModalBase');
+  });
+});
+
+describe('renderToolButtons', () => {
+  it('should render PeriodicAzureCookieSetter for Cromwell', async () => {
+    // Arrange
+    const mockRuntimes: Partial<RuntimesContract> = {
+      invalidateCookie: jest.fn(),
+      setCookie: jest.fn(),
+      runtime: jest.fn(),
+      azureProxy: jest.fn(),
+      listV2: jest.fn(),
+      listV2WithWorkspace: jest.fn(),
+      deleteAll: jest.fn(),
+      runtimeV2: jest.fn(),
+      fileSyncing: jest.fn(),
+    };
+
+    asMockedFn(Runtimes).mockImplementation(() => mockRuntimes as RuntimesContract);
+
+    const testProps = {
+      ...AzureCloudEnvironmentModalDefaultProps,
+      apps: [cromwellRunning],
+    };
+    // Act
+    render(h(CloudEnvironmentModal, testProps));
+
+    // Assert
+    expect(PeriodicAzureCookieSetter).toHaveBeenCalled();
+  });
+  it('should render PeriodicAzureCookieSetter for Hail Batch', async () => {
+    // Arrange
+    const mockRuntimes: Partial<RuntimesContract> = {
+      invalidateCookie: jest.fn(),
+      setCookie: jest.fn(),
+      runtime: jest.fn(),
+      azureProxy: jest.fn(),
+      listV2: jest.fn(),
+      listV2WithWorkspace: jest.fn(),
+      deleteAll: jest.fn(),
+      runtimeV2: jest.fn(),
+      fileSyncing: jest.fn(),
+    };
+
+    asMockedFn(Runtimes).mockImplementation(() => mockRuntimes as RuntimesContract);
+
+    const testProps = {
+      ...AzureCloudEnvironmentModalDefaultProps,
+      filterForTool: appToolLabels.HAIL_BATCH,
+      apps: [hailBatchAppRunning],
+    };
+    // Act
+    render(h(CloudEnvironmentModal, testProps));
+
+    // Assert
+    expect(PeriodicAzureCookieSetter).toHaveBeenCalled();
   });
 });

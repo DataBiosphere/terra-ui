@@ -1,6 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 import { h } from 'react-hyperscript-helpers';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/analysis/_testData/testData';
 import { AnalysesData, AnalysesProps, BaseAnalyses, getUniqueFileName } from 'src/analysis/Analyses';
@@ -390,11 +389,10 @@ describe('Analyses', () => {
 
     // Act
     await act(async () => {
-      // eslint-disable-line require-await
       render(h(BaseAnalyses, defaultAnalysesProps));
-      const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]')!;
-      await user.upload(fileInput, [fileToDrop]);
     });
+    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]')!;
+    await user.upload(fileInput, [fileToDrop]);
 
     expect(createObservable).toHaveBeenCalledWith(droppedFileName, runtimeToolLabels.Jupyter, fileToDrop);
   });

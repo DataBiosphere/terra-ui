@@ -1,6 +1,7 @@
-import { act, renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react';
 import _ from 'lodash/fp';
 import { ErrorState, LoadingState, ReadyState } from 'src/libs/type-utils/LoadedState';
+import { controlledPromise, PromiseController, renderHookInAct } from 'src/testing/test-utils';
 
 import IncrementalResponse from './IncrementalResponse';
 import useIncrementalResponse from './useIncrementalResponse';
@@ -32,10 +33,7 @@ describe('useIncrementalResponse', () => {
 
   it('gets initial response', async () => {
     // Act
-    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() =>
-      useIncrementalResponse(getTestIncrementalResponse)
-    );
-    await waitForNextUpdate();
+    const { result: hookReturnRef } = await renderHookInAct(() => useIncrementalResponse(getTestIncrementalResponse));
     const state = hookReturnRef.current.state;
 
     // Assert
@@ -44,18 +42,29 @@ describe('useIncrementalResponse', () => {
   });
 
   it('has loading state', async () => {
+    // Arrange
+    let getResponseController: PromiseController<IncrementalResponse<number>>;
+    const getControlledIncrementalResponse = () => {
+      const [promise, controller] = controlledPromise<IncrementalResponse<number>>();
+      getResponseController = controller;
+      return promise;
+    };
+
     // Act
-    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() =>
-      useIncrementalResponse(getTestIncrementalResponse)
-    );
+    const { result: hookReturnRef } = renderHook(() => useIncrementalResponse(getControlledIncrementalResponse));
     const initialState = hookReturnRef.current.state;
-    await waitForNextUpdate();
+    await act(async () => {
+      getResponseController.resolve({
+        items: [1, 2, 3],
+        getNextPage: () => new Promise(() => {}),
+        hasNextPage: true,
+      });
+    });
 
     act(() => {
       hookReturnRef.current.loadNextPage();
     });
-    const stateAfterLoadingNextPage = hookReturnRef.current.state;
-    await waitForNextUpdate();
+    const stateAfterLoadingNextPage = hookReturnRef!.current.state;
 
     // Assert
     const expectedInitialState: LoadingState<number[]> = { status: 'Loading', state: [] };
@@ -70,8 +79,7 @@ describe('useIncrementalResponse', () => {
     const throwError = () => Promise.reject(new Error('Something went wrong'));
 
     // Act
-    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useIncrementalResponse(throwError));
-    await waitForNextUpdate();
+    const { result: hookReturnRef } = await renderHookInAct(() => useIncrementalResponse(throwError));
     const state = hookReturnRef.current.state;
 
     // Assert
@@ -85,16 +93,10 @@ describe('useIncrementalResponse', () => {
 
   it('loads next page', async () => {
     // Arrange
-    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() =>
-      useIncrementalResponse(getTestIncrementalResponse)
-    );
-    await waitForNextUpdate();
+    const { result: hookReturnRef } = await renderHookInAct(() => useIncrementalResponse(getTestIncrementalResponse));
 
     // Act
-    act(() => {
-      hookReturnRef.current.loadNextPage();
-    });
-    await waitForNextUpdate();
+    await act(() => hookReturnRef.current.loadNextPage());
     const state = hookReturnRef.current.state;
 
     // Assert
@@ -104,16 +106,10 @@ describe('useIncrementalResponse', () => {
 
   it('loads all remaining pages', async () => {
     // Arrange
-    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() =>
-      useIncrementalResponse(getTestIncrementalResponse)
-    );
-    await waitForNextUpdate();
+    const { result: hookReturnRef } = await renderHookInAct(() => useIncrementalResponse(getTestIncrementalResponse));
 
     // Act
-    act(() => {
-      hookReturnRef.current.loadAllRemainingItems();
-    });
-    await waitForNextUpdate();
+    await act(() => hookReturnRef.current.loadAllRemainingItems());
     const state = hookReturnRef.current.state;
 
     // Assert
@@ -123,18 +119,12 @@ describe('useIncrementalResponse', () => {
 
   it('returns hasNextPage', async () => {
     // Arrange
-    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() =>
-      useIncrementalResponse(getTestIncrementalResponse)
-    );
-    await waitForNextUpdate();
+    const { result: hookReturnRef } = await renderHookInAct(() => useIncrementalResponse(getTestIncrementalResponse));
 
     // Act
     const firstPageHasNextPage = hookReturnRef.current.hasNextPage;
 
-    act(() => {
-      hookReturnRef.current.loadAllRemainingItems();
-    });
-    await waitForNextUpdate();
+    await act(() => hookReturnRef.current.loadAllRemainingItems());
     const lastPageHasNextPage = hookReturnRef.current.hasNextPage;
 
     // Assert
@@ -144,21 +134,12 @@ describe('useIncrementalResponse', () => {
 
   it('reloads / resets to first page', async () => {
     // Arrange
-    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() =>
-      useIncrementalResponse(getTestIncrementalResponse)
-    );
-    await waitForNextUpdate();
-    act(() => {
-      hookReturnRef.current.loadAllRemainingItems();
-    });
-    await waitForNextUpdate();
+    const { result: hookReturnRef } = await renderHookInAct(() => useIncrementalResponse(getTestIncrementalResponse));
+    await act(() => hookReturnRef.current.loadAllRemainingItems());
 
     // Act
     const stateBeforeReloading = hookReturnRef.current.state;
-    act(() => {
-      hookReturnRef.current.reload();
-    });
-    await waitForNextUpdate();
+    await act(() => hookReturnRef.current.reload());
     const stateAfterReloading = hookReturnRef.current.state;
 
     // Assert
@@ -181,19 +162,18 @@ describe('useIncrementalResponse', () => {
       });
     };
 
-    const {
-      rerender,
-      result: hookReturnRef,
-      waitForNextUpdate,
-    } = renderHook(({ getFirstPage }) => useIncrementalResponse(getFirstPage), {
-      initialProps: { getFirstPage: getTestIncrementalResponse },
-    });
-    await waitForNextUpdate();
+    const { rerender, result: hookReturnRef } = await renderHookInAct(
+      ({ getFirstPage }) => useIncrementalResponse(getFirstPage),
+      {
+        initialProps: { getFirstPage: getTestIncrementalResponse },
+      }
+    );
 
     // Act
     const stateBeforeChange = hookReturnRef.current.state;
-    rerender({ getFirstPage: getOtherTestIncrementalResponse });
-    await waitForNextUpdate();
+    await act(async () => {
+      return rerender({ getFirstPage: getOtherTestIncrementalResponse });
+    });
     const stateAfterChange = hookReturnRef.current.state;
 
     // Assert

@@ -1,7 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
-import { act } from 'react-dom/test-utils';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import Events from 'src/libs/events';
@@ -281,11 +280,10 @@ describe('GCPBillingProjectWizard Steps', () => {
 
   describe('Step 3 "I have verified" Checkbox Checked', () => {
     beforeEach(async () => {
+      const user = userEvent.setup();
       // Act
-      fireEvent.click(getStep2BillingAccountNoAccessButton());
-      await act(async () => {
-        await userEvent.click(expectNotNull(getStep3VerifyUserAdded()));
-      });
+      await user.click(getStep2BillingAccountNoAccessButton());
+      await user.click(expectNotNull(getStep3VerifyUserAdded()));
       expect(captureEvent).toHaveBeenCalledWith(Events.billingGCPCreationStep3VerifyUserAdded);
     });
     // Assert
@@ -309,10 +307,9 @@ describe('GCPBillingProjectWizard Steps', () => {
   describe('Step 3 Button ("I dont have access to do this") selected', () => {
     // Act
     beforeEach(async () => {
-      fireEvent.click(getStep2HaveBillingAccountButton());
-      await act(async () => {
-        await userEvent.click(expectNotNull(getStep3BillingAccountNoAccessButton()));
-      });
+      const user = userEvent.setup();
+      await user.click(getStep2HaveBillingAccountButton());
+      await user.click(expectNotNull(getStep3BillingAccountNoAccessButton()));
       expect(captureEvent).toHaveBeenCalledWith(Events.billingGCPCreationStep3BillingAccountNoAccess);
     });
     // Assert
@@ -335,10 +332,9 @@ describe('GCPBillingProjectWizard Steps', () => {
   describe('Step 3 Button ("I have added...") selected', () => {
     // Act
     beforeEach(async () => {
-      fireEvent.click(getStep2HaveBillingAccountButton());
-      await act(async () => {
-        await userEvent.click(expectNotNull(getStep3AddedTerraBillingButton()));
-      });
+      const user = userEvent.setup();
+      await user.click(getStep2HaveBillingAccountButton());
+      await user.click(expectNotNull(getStep3AddedTerraBillingButton()));
       expect(captureEvent).toHaveBeenCalledWith(Events.billingGCPCreationStep3AddedTerraBilling);
     });
     // Assert
@@ -371,12 +367,11 @@ describe('GCPBillingProjectWizard Steps', () => {
   describe('Step 4', () => {
     it('tests if Step 4 can create a project given valid inputs', async () => {
       // Arrange
+      const user = userEvent.setup();
       const projectName = 'Billing_Project_Name';
       // Complete Step 2 and 3
-      fireEvent.click(getStep2BillingAccountNoAccessButton());
-      await act(async () => {
-        await userEvent.click(expectNotNull(getStep3VerifyUserAdded()));
-      });
+      await user.click(getStep2BillingAccountNoAccessButton());
+      await user.click(expectNotNull(getStep3VerifyUserAdded()));
 
       // Step 4 status
       testStep4Enabled();
@@ -385,21 +380,19 @@ describe('GCPBillingProjectWizard Steps', () => {
       expect(getStep4RefreshButton()).toBeNull();
 
       // Insert valid project Name
-      await userEvent.type(getBillingProjectInput(), projectName);
+      await user.type(getBillingProjectInput(), projectName);
       expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationGCPProjectNameEntered);
       // Select a billing account
-      await userEvent.click(getBillingAccountInput());
+      await user.click(getBillingAccountInput());
       const selectOption = await screen.findByText(displayName);
-      await userEvent.click(selectOption);
+      await user.click(selectOption);
       expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationGCPBillingAccountSelected);
 
       // Verify accessibility now that all controls are enabled
       expect(await axe(wizardComponent.container)).toHaveNoViolations();
 
       // Act - Click Create
-      await act(async () => {
-        await userEvent.click(expectNotNull(getStep4CreateButton()));
-      });
+      await user.click(expectNotNull(getStep4CreateButton()));
       // Assert
       expect(createGCPProject).toHaveBeenCalledWith(projectName, accountName);
     });
@@ -425,10 +418,9 @@ describe('Step 4 Warning Message', () => {
       })
     );
 
-    fireEvent.click(getStep2BillingAccountNoAccessButton());
-    await act(async () => {
-      await userEvent.click(expectNotNull(getStep3VerifyUserAdded()));
-    });
+    const user = userEvent.setup();
+    await user.click(getStep2BillingAccountNoAccessButton());
+    await user.click(expectNotNull(getStep3VerifyUserAdded()));
   });
 
   it('should show a warning message when there are no billing accounts', () => {
@@ -440,9 +432,8 @@ describe('Step 4 Warning Message', () => {
 
   it('should show the correct message when refresh step 3 is clicked but there are no billing accounts', async () => {
     // Act
-    await act(async () => {
-      await userEvent.click(expectNotNull(screen.queryByText('Refresh Step 3')));
-    });
+    const user = userEvent.setup();
+    await user.click(expectNotNull(screen.queryByText('Refresh Step 3')));
     expect(captureEvent).toHaveBeenCalledWith(Events.billingGCPCreationRefreshStep3);
     // Assert
     expect(
@@ -505,19 +496,16 @@ describe('Changing prior answers', () => {
   });
 
   it('should reset from Step 3 if Step 3 checkbox is unchecked from Step 4', async () => {
+    const user = userEvent.setup();
     // Act - Check
-    fireEvent.click(getStep2BillingAccountNoAccessButton());
-    await act(async () => {
-      await userEvent.click(expectNotNull(getStep3VerifyUserAdded()));
-    });
+    await user.click(getStep2BillingAccountNoAccessButton());
+    await user.click(expectNotNull(getStep3VerifyUserAdded()));
     // Assert
     testStep2DontHaveAccessToBillingChecked();
     verifyChecked(getStep3VerifyUserAdded());
     testStep4Enabled();
     // Act - Uncheck
-    await act(async () => {
-      await userEvent.click(expectNotNull(getStep3VerifyUserAdded()));
-    });
+    await user.click(expectNotNull(getStep3VerifyUserAdded()));
     // Assert
     testStep2DontHaveAccessToBillingChecked();
     verifyUnchecked(getStep3VerifyUserAdded());
@@ -526,11 +514,10 @@ describe('Changing prior answers', () => {
   });
 
   it('should reset from Step 3 if Step 3 radio button answer is changed from Step 4', async () => {
+    const user = userEvent.setup();
     // Act - Check
-    fireEvent.click(getStep2HaveBillingAccountButton());
-    await act(async () => {
-      await userEvent.click(expectNotNull(getStep3AddedTerraBillingButton()));
-    });
+    await user.click(getStep2HaveBillingAccountButton());
+    await user.click(expectNotNull(getStep3AddedTerraBillingButton()));
     // Assert
     testStep2HaveBillingChecked();
     verifyChecked(getStep3AddedTerraBillingButton());

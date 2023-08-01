@@ -1,9 +1,10 @@
 import pluralize from 'pluralize';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { div, h, p } from 'react-hyperscript-helpers';
 import { useUniqueId } from 'src/components/common';
 import { ValidatedInput } from 'src/components/input';
 import { formHint, FormLabel } from 'src/libs/forms';
+import { useDebouncedValue } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import {
   columnEntryStyle,
@@ -38,16 +39,9 @@ interface EmailInputProps {
 
 const EmailInput = (props: EmailInputProps) => {
   const inputId = useUniqueId();
-  const [debouncedEmails, setDebouncedEmails] = useState<ReactNode>();
-  const [debouncedErrors, setDebouncedErrors] = useState<ReactNode>();
 
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setDebouncedEmails(props.emails);
-      setDebouncedErrors(props.errors);
-    }, props.inputDebounce);
-    return () => clearTimeout(timeoutId);
-  }, [props.emails, props.errors, props.inputDebounce]);
+  const debouncedEmails = useDebouncedValue(props.emails, props.inputDebounce || 0);
+  const debouncedErrors = useDebouncedValue(props.errors, props.inputDebounce || 0);
 
   const getIndividualEmails = (emails) =>
     emails

@@ -9,7 +9,7 @@ import * as Utils from 'src/libs/utils';
 import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils';
 
 export type RuntimeToolLabel = 'Jupyter' | 'RStudio' | 'JupyterLab';
-export type AppToolLabel = 'GALAXY' | 'CROMWELL' | 'HAIL_BATCH';
+export type AppToolLabel = 'GALAXY' | 'CROMWELL' | 'HAIL_BATCH' | 'WDS';
 export type LaunchableToolLabel = 'spark' | 'terminal' | 'RStudio' | 'JupyterLab';
 export type ToolLabel = RuntimeToolLabel | AppToolLabel;
 
@@ -33,12 +33,14 @@ export const toolLabelDisplays: Record<ToolLabel, string> = {
   GALAXY: 'Galaxy',
   CROMWELL: 'Cromwell',
   HAIL_BATCH: 'Hail Batch',
+  WDS: 'Workspace Data Service',
 };
 
 export const appToolLabels: Record<AppToolLabel, AppToolLabel> = {
   GALAXY: 'GALAXY',
   CROMWELL: 'CROMWELL',
   HAIL_BATCH: 'HAIL_BATCH',
+  WDS: 'WDS',
 };
 
 export const isAppToolLabel = (x: ToolLabel): x is AppToolLabel => x in appToolLabels;
@@ -106,16 +108,19 @@ const JupyterLab: RuntimeTool = {
   defaultImageId: '',
 };
 
-const Galaxy: AppTool = { label: 'GALAXY' };
+const Galaxy = { label: 'GALAXY' } as const satisfies AppTool;
 
-const Cromwell: AppTool = { label: 'CROMWELL', isPauseUnsupported: true };
+const Cromwell = { label: 'CROMWELL', isPauseUnsupported: true } as const satisfies AppTool;
 
-const HailBatch: AppTool = { label: 'HAIL_BATCH', isPauseUnsupported: true };
+const HailBatch = { label: 'HAIL_BATCH', isPauseUnsupported: true } as const satisfies AppTool;
+
+const Wds = { label: 'WDS', isPauseUnsupported: true } as const satisfies AppTool;
 
 export const appTools: Record<AppToolLabel, AppTool> = {
   GALAXY: Galaxy,
   CROMWELL: Cromwell,
   HAIL_BATCH: HailBatch,
+  WDS: Wds,
 };
 
 export const runtimeTools: Record<RuntimeToolLabel, RuntimeTool> = {
@@ -132,15 +137,15 @@ export const tools: Record<ToolLabel, AppTool | RuntimeTool> = {
 };
 
 // The order of the array is important, it decides the order in AnalysisModal.
-export const cloudRuntimeTools: Record<CloudProvider, RuntimeTool[]> = {
+export const cloudRuntimeTools = {
   GCP: [Jupyter, RStudio],
   AZURE: [JupyterLab],
-};
+} as const satisfies Record<CloudProvider, readonly RuntimeTool[]>;
 
-export const cloudAppTools: Record<CloudProvider, AppTool[]> = {
+export const cloudAppTools = {
   GCP: [Galaxy, Cromwell],
   AZURE: [Cromwell, HailBatch],
-};
+} as const satisfies Record<CloudProvider, readonly AppTool[]>;
 
 export interface ExtensionDisplay {
   label: string;
@@ -162,9 +167,9 @@ export const getPatternFromRuntimeTool = (toolLabel: RuntimeToolLabel): string =
     [runtimeToolLabels.JupyterLab, () => '.*\\.ipynb']
   );
 
-export const getToolsToDisplayForCloudProvider = (cloudProvider: CloudProvider): Tool[] =>
+export const getToolsToDisplayForCloudProvider = (cloudProvider: CloudProvider): readonly Tool[] =>
   _.remove((tool: Tool) => isToolHidden(tool.label, cloudProvider))(
-    (cloudRuntimeTools[cloudProvider] as Tool[]).concat(cloudAppTools[cloudProvider] as Tool[])
+    (cloudRuntimeTools[cloudProvider] as readonly Tool[]).concat(cloudAppTools[cloudProvider] as readonly Tool[])
   );
 
 export const toolToExtensionMap: Record<ToolLabel, FileExtension> = _.flow(

@@ -120,7 +120,7 @@ export const imageDocs = [
   },
 ];
 
-export const defaultGoogleWorkspace = {
+export const defaultGoogleWorkspace: GoogleWorkspace = {
   workspace: {
     authorizationDomain: [],
     cloudPlatform: 'Gcp',
@@ -158,8 +158,6 @@ export const generateAzureWorkspace = (prefix: string = uuid().substring(0, 8)):
   workspace: {
     authorizationDomain: [],
     cloudPlatform: 'Azure',
-    googleProject: '',
-    bucketName: '',
     name: `${prefix}-azure-ws-name`,
     namespace: `${prefix}-azure-ws-namespace`,
     workspaceId: uuid().substring(0, 8),
@@ -180,8 +178,6 @@ export const defaultAzureWorkspace: AzureWorkspace = {
   workspace: {
     authorizationDomain: [],
     cloudPlatform: 'Azure',
-    googleProject: '',
-    bucketName: '',
     name: 'test-azure-ws-name',
     namespace: 'test-azure-ws-namespace',
     workspaceId: 'fafbb550-62eb-4135-8b82-3ce4d53446af',
@@ -269,6 +265,7 @@ export const getRuntimeConfig = (overrides: Partial<RuntimeConfig> = {}): Runtim
   ...overrides,
 });
 
+// Use this if you only need to override top-level fields, otherwise use `getGoogleRuntime`
 export const generateTestGoogleRuntime = (overrides: Partial<Runtime> = {}): Runtime => {
   const runtime: Runtime = {
     id: getRandomInt(randomMaxInt),
@@ -377,7 +374,7 @@ export const getGoogleDataProcRuntime = ({
   };
 };
 
-// TODO: deprecate this in favor of more robust `generateTestGoogleRuntime`
+// Use this if you want a shortcut to override nested fields. Otherwise use `generateTestGoogleRuntime`
 export const getGoogleRuntime = ({
   workspace = defaultGoogleWorkspace,
   runtimeName = Utils.generateRuntimeName(),

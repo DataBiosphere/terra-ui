@@ -1,12 +1,18 @@
 import { render, screen, within } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { WorkspaceContainer, WorkspacePermissionNotice, WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 // Mocking for Nav.getLink
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
   getLink: jest.fn(() => '/'),
+}));
+// Mocking feature preview setup
+jest.mock('src/libs/feature-previews', () => ({
+  ...jest.requireActual('src/libs/feature-previews'),
+  isFeaturePreviewEnabled: jest.fn(),
 }));
 
 const mockWorkspaceMenu = jest.fn();
@@ -87,6 +93,23 @@ describe('WorkspaceTabs', () => {
     expect(within(tabs[0]).getByText('dashboard')).not.toBeNull();
     expect(within(tabs[1]).getByText('data')).not.toBeNull();
     expect(within(tabs[2]).getByText('analyses')).not.toBeNull();
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it('renders subset of tabs for Azure workspace with flag enabled, with no accessibility issues', async () => {
+    // Enable config
+    isFeaturePreviewEnabled.mockReturnValue(true);
+    // Arrange
+    const props = { workspace: { workspace: { cloudPlatform: 'Azure' } } };
+    // Act
+    const { container } = render(h(WorkspaceTabs, props));
+    // Assert
+    const tabs = screen.getAllByRole('menuitem');
+    expect(tabs.length).toBe(4);
+    expect(within(tabs[0]).getByText('dashboard')).not.toBeNull();
+    expect(within(tabs[1]).getByText('data')).not.toBeNull();
+    expect(within(tabs[2]).getByText('analyses')).not.toBeNull();
+    expect(within(tabs[3]).getByText('workflows')).not.toBeNull();
     expect(await axe(container)).toHaveNoViolations();
   });
 

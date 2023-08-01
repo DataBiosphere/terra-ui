@@ -26,7 +26,7 @@ import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/Export
 import { methodLink } from 'src/pages/workspaces/workspace/workflows/methodLink';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
-const styles = {
+export const styles = {
   cardContainer: (listView) => ({
     display: 'flex',
     flexWrap: 'wrap',

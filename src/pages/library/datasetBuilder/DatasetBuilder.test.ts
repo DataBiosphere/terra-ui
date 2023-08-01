@@ -2,24 +2,19 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
+import { Cohort, ConceptSet, DatasetResponse, dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
 import * as Nav from 'src/libs/nav';
 import { PREPACKAGED_CONCEPT_SETS } from 'src/pages/library/datasetBuilder/constants';
-import {
-  AnyDatasetBuilderState,
-  cohortEditorState,
-  ConceptSet,
-  newCohort,
-} from 'src/pages/library/datasetBuilder/dataset-builder-types';
+import { cohortEditorState, newCohort, Updater } from 'src/pages/library/datasetBuilder/dataset-builder-types';
 import {
   CohortSelector,
   ConceptSetSelector,
   CreateCohortModal,
   DatasetBuilderContents,
   DatasetBuilderView,
+  OnStateChangeHandler,
   ValuesSelector,
 } from 'src/pages/library/datasetBuilder/DatasetBuilder';
-import { datasetBuilderCohorts, datasetBuilderConceptSets } from 'src/pages/library/datasetBuilder/state';
 import { asMockedFn } from 'src/testing/test-utils';
 
 jest.mock('src/libs/nav', () => ({
@@ -35,16 +30,80 @@ jest.mock('src/components/Modal', () => {
 });
 
 describe('DatasetBuilder', () => {
+  type DatasetBuilderContentsPropsOverrides = {
+    onStateChange?: OnStateChangeHandler;
+    updateCohorts?: Updater<Cohort[]>;
+    updateConceptSets?: Updater<ConceptSet[]>;
+    dataset?: DatasetResponse;
+    cohorts?: Cohort[];
+    conceptSets?: ConceptSet[];
+  };
+  const showDatasetBuilderContents = (overrides?: DatasetBuilderContentsPropsOverrides) => {
+    render(
+      h(DatasetBuilderContents, {
+        cohorts: [],
+        conceptSets: [],
+        updateCohorts: jest.fn(),
+        updateConceptSets: jest.fn(),
+        onStateChange: (state) => state,
+        dataset: dummyDatasetDetails('id'),
+        ...overrides,
+      })
+    );
+  };
+
+  const initializeValidDatasetRequest = async (user) => {
+    showDatasetBuilderContents({
+      cohorts: [newCohort('cohort 1')],
+      conceptSets: [{ name: 'concept set 1', featureValueGroupName: 'Condition' }],
+    });
+    await user.click(screen.getByLabelText('cohort 1'));
+    await user.click(screen.getByLabelText('concept set 1'));
+  };
+
   beforeEach(() => {
-    datasetBuilderCohorts.reset();
-    datasetBuilderConceptSets.reset();
     asMockedFn(Nav.useRoute).mockReturnValue({ title: 'Build Dataset', params: {}, query: {} });
   });
 
-  it('renders cohorts', () => {
-    datasetBuilderCohorts.set([newCohort('cohort 1'), newCohort('cohort 2')]);
-    render(h(CohortSelector, { selectedCohorts: [], onChange: (cohorts) => cohorts, onStateChange: (state) => state }));
+  const renderCohortSelector = () => {
+    render(
+      h(CohortSelector, {
+        updateCohorts: jest.fn(),
+        cohorts: [newCohort('cohort 1'), newCohort('cohort 2')],
+        selectedCohorts: [],
+        onChange: (cohorts) => cohorts,
+        onStateChange: (state) => state,
+      })
+    );
+  };
 
+  const renderConceptSetSelector = () =>
+    render(
+      h(ConceptSetSelector, {
+        conceptSets: [
+          { name: 'concept set 1', featureValueGroupName: 'a' },
+          { name: 'concept set 2', featureValueGroupName: 'b' },
+        ],
+        selectedConceptSets: [],
+        updateConceptSets: jest.fn(),
+        onChange: (conceptSets) => conceptSets,
+        onStateChange: (state) => state,
+      })
+    );
+
+  const renderValuesSelector = (valuesValueSets) =>
+    render(
+      h(ValuesSelector, {
+        selectedValues: [],
+        onChange: (conceptSets) => conceptSets,
+        values: valuesValueSets,
+      })
+    );
+
+  it('renders cohorts', () => {
+    // Arrange
+    renderCohortSelector();
+    // Assert
     expect(screen.getByText('cohort 1')).toBeTruthy();
     expect(screen.getByText('cohort 2')).toBeTruthy();
   });
@@ -52,9 +111,7 @@ describe('DatasetBuilder', () => {
   it('opens the create cohort model when clicking plus', async () => {
     // Arrange
     const user = userEvent.setup();
-
-    datasetBuilderCohorts.set([newCohort('cohort 1'), newCohort('cohort 2')]);
-    render(h(CohortSelector, { selectedCohorts: [], onChange: (cohorts) => cohorts, onStateChange: (state) => state }));
+    renderCohortSelector();
     // Act
     await user.click(screen.getByLabelText('Create new cohort'));
     // Assert
@@ -66,7 +123,7 @@ describe('DatasetBuilder', () => {
     const user = userEvent.setup();
     const onStateChange = jest.fn();
 
-    render(h(CreateCohortModal, { onDismiss: () => {}, onStateChange }));
+    render(h(CreateCohortModal, { onDismiss: () => {}, onStateChange, cohorts: [] }));
     // Act
     const cohortName = 'new cohort';
     fireEvent.change(await screen.findByLabelText('Cohort name *'), { target: { value: cohortName } });
@@ -76,17 +133,7 @@ describe('DatasetBuilder', () => {
   });
 
   it('renders concept sets and prepackaged concept sets', () => {
-    datasetBuilderConceptSets.set([
-      { name: 'concept set 1', featureValueGroupName: 'a' },
-      { name: 'concept set 2', featureValueGroupName: 'b' },
-    ]);
-    render(
-      h(ConceptSetSelector, {
-        selectedConceptSets: [],
-        onChange: (conceptSets) => conceptSets,
-        onStateChange: (state) => state,
-      })
-    );
+    renderConceptSetSelector();
 
     expect(screen.getByText('concept set 1')).toBeTruthy();
     expect(screen.getByText('concept set 2')).toBeTruthy();
@@ -104,13 +151,7 @@ describe('DatasetBuilder', () => {
       { header: 'Condition', values: [{ name: 'condition field 1' }] },
       { header: 'Procedure', values: [{ name: 'procedure field 1' }] },
     ];
-    render(
-      h(ValuesSelector, {
-        selectedValues: [],
-        onChange: (conceptSets) => conceptSets,
-        values: valuesValueSets,
-      })
-    );
+    renderValuesSelector(valuesValueSets);
 
     _.forEach((valueSet) => {
       expect(screen.getByText(valueSet.header)).toBeTruthy();
@@ -120,7 +161,7 @@ describe('DatasetBuilder', () => {
 
   it('renders dataset builder contents with cohorts and concept sets', () => {
     // Arrange
-    render(h(DatasetBuilderContents, { onStateChange: (state) => state, dataset: dummyDatasetDetails('id') }));
+    showDatasetBuilderContents();
     // Assert
     expect(screen.getByText('Select cohorts')).toBeTruthy();
     expect(screen.getByText('Select concept sets')).toBeTruthy();
@@ -130,13 +171,13 @@ describe('DatasetBuilder', () => {
   it('allows selecting cohorts, concept sets, and values', async () => {
     // Arrange
     const user = userEvent.setup();
-
-    datasetBuilderCohorts.set([newCohort('cohort 1'), newCohort('cohort 2')]);
-    datasetBuilderConceptSets.set([
-      { name: 'concept set 1', featureValueGroupName: 'Condition' },
-      { name: 'concept set 2', featureValueGroupName: 'Procedure' },
-    ]);
-    render(h(DatasetBuilderContents, { onStateChange: (state) => state, dataset: dummyDatasetDetails('id') }));
+    showDatasetBuilderContents({
+      cohorts: [newCohort('cohort 1'), newCohort('cohort 2')],
+      conceptSets: [
+        { name: 'concept set 1', featureValueGroupName: 'Condition' },
+        { name: 'concept set 2', featureValueGroupName: 'Procedure' },
+      ],
+    });
     // Act
     await user.click(screen.getByLabelText('cohort 1'));
     await user.click(screen.getByLabelText('concept set 1'));
@@ -154,13 +195,7 @@ describe('DatasetBuilder', () => {
   it('maintains old values selections', async () => {
     // Arrange
     const user = userEvent.setup();
-
-    datasetBuilderCohorts.set([newCohort('cohort 1'), newCohort('cohort 2')]);
-    datasetBuilderConceptSets.set([{ name: 'concept set 1', featureValueGroupName: 'Condition' }]);
-    render(h(DatasetBuilderContents, { onStateChange: (state) => state, dataset: dummyDatasetDetails('id') }));
-    // Act
-    await user.click(screen.getByLabelText('cohort 1'));
-    await user.click(screen.getByLabelText('concept set 1'));
+    await initializeValidDatasetRequest(user);
     await user.click(screen.getByLabelText('condition column 1'));
     await user.click(screen.getByLabelText('concept set 1'));
     await user.click(screen.getByLabelText('concept set 1'));
@@ -173,9 +208,7 @@ describe('DatasetBuilder', () => {
   it('places selectable values defaulted to selected when concept set is selected', async () => {
     // Arrange
     const user = userEvent.setup();
-
-    datasetBuilderConceptSets.set([{ name: 'concept set 1', featureValueGroupName: 'Condition' }]);
-    render(h(DatasetBuilderContents, { onStateChange: (state) => state, dataset: dummyDatasetDetails('id') }));
+    showDatasetBuilderContents({ conceptSets: [{ name: 'concept set 1', featureValueGroupName: 'Condition' }] });
     // Act
     await user.click(screen.getByLabelText('concept set 1'));
     // Assert
@@ -199,11 +232,78 @@ describe('DatasetBuilder', () => {
     expect(await screen.findByText(initialState.cohort.name)).toBeTruthy();
   });
 
-  it('shows a placeholder page', async () => {
+  it('shows the participant count and request access buttons when request is valid', async () => {
     // Arrange
-    const initialState: AnyDatasetBuilderState = { mode: 'concept-selector' };
-    render(h(DatasetBuilderView, { datasetId: 'ignored', initialState }));
+    const user = userEvent.setup();
+    await initializeValidDatasetRequest(user);
     // Assert
-    expect(await screen.findByText(initialState.mode)).toBeTruthy();
+    expect(await screen.findByText('100 Participants in this dataset')).toBeTruthy();
+    expect(await screen.findByText('Request access to this dataset')).toBeTruthy();
+  });
+
+  it('opens the modal when requesting access to the dataset', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await initializeValidDatasetRequest(user);
+    await user.click(await screen.findByText('Request access to this dataset'));
+    // Assert
+    expect(await screen.findByText('Requesting access')).toBeTruthy();
+  });
+
+  it('shows the concept set creator', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onStateChange = jest.fn();
+    showDatasetBuilderContents({
+      onStateChange,
+    });
+    // Act
+    await user.click(await screen.findByLabelText('Create new concept set'));
+    // Assert
+    expect(onStateChange).toHaveBeenCalledWith({ mode: 'concept-set-creator' });
+  });
+
+  it('enables editing cohorts', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onStateChange = jest.fn();
+    const cohorts = [newCohort('cohort 1'), newCohort('cohort 2')];
+    showDatasetBuilderContents({
+      cohorts,
+      onStateChange,
+    });
+    // Act
+    await user.click(await screen.findByLabelText(`Saved cohorts/${cohorts[0].name} menu`));
+    await user.click(await screen.findByLabelText('Edit cohort'));
+    // Assert
+    expect(onStateChange).toHaveBeenCalledWith(cohortEditorState.new(cohorts[0]));
+  });
+
+  it('enables deleting cohorts', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const updateCohorts = jest.fn();
+    const cohorts = [newCohort('cohort 1'), newCohort('cohort 2')];
+    showDatasetBuilderContents({ cohorts, updateCohorts });
+    // Act
+    await user.click(await screen.findByLabelText(`Saved cohorts/${cohorts[0].name} menu`));
+    await user.click(await screen.findByLabelText('Delete cohort'));
+    // Assert
+    expect(updateCohorts.mock.calls[0][0](cohorts)).toStrictEqual(_.tail(cohorts));
+  });
+
+  it('enables deleting concept sets', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const updateConceptSets = jest.fn();
+    const conceptSets = [
+      { name: 'concept set 1', featureValueGroupName: 'Condition' },
+      { name: 'concept set 2', featureValueGroupName: 'Procedure' },
+    ];
+    showDatasetBuilderContents({ updateConceptSets, conceptSets });
+    // Act
+    await user.click(await screen.findByLabelText(`Delete Concept sets/${conceptSets[0].name}`));
+    // Assert
+    expect(updateConceptSets.mock.calls[0][0](conceptSets)).toStrictEqual(_.tail(conceptSets));
   });
 });

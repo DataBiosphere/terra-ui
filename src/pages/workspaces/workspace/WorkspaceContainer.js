@@ -20,6 +20,8 @@ import { isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { WORKFLOWS_TAB_AZURE_FEATURE_ID } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import { getUser } from 'src/libs/state';
@@ -28,7 +30,7 @@ import * as Utils from 'src/libs/utils';
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
-import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal';
+import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
 import { useWorkspace } from 'src/pages/workspaces/workspace/useWorkspace';
 import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu';
 
@@ -114,6 +116,7 @@ export const WorkspaceTabs = ({
   const isLocked = workspace?.workspace.isLocked;
   const workspaceLoaded = !!workspace;
   const googleWorkspace = workspaceLoaded && isGoogleWorkspace(workspace);
+  const azureWorkspace = workspaceLoaded && isAzureWorkspace(workspace);
 
   const onClone = () => setCloningWorkspace(true);
   const onDelete = () => setDeletingWorkspace(true);
@@ -125,8 +128,13 @@ export const WorkspaceTabs = ({
     { name: 'dashboard', link: 'workspace-dashboard' },
     { name: 'data', link: 'workspace-data' },
     { name: 'analyses', link: analysisTabName },
-    ...(googleWorkspace ? [{ name: 'workflows', link: 'workspace-workflows' }] : []),
-    ...(googleWorkspace ? [{ name: 'job history', link: 'workspace-job-history' }] : []),
+    ...(googleWorkspace
+      ? [
+          { name: 'workflows', link: 'workspace-workflows' },
+          { name: 'job history', link: 'workspace-job-history' },
+        ]
+      : []),
+    ...(azureWorkspace && isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID) ? [{ name: 'workflows', link: 'workspace-workflows-app' }] : []),
   ];
   return h(Fragment, [
     h(

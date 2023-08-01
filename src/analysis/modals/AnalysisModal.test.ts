@@ -1,6 +1,4 @@
-import '@testing-library/jest-dom';
-
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import {
@@ -160,19 +158,17 @@ describe('AnalysisModal', () => {
       const button = screen.getByAltText('Create new notebook');
       await user.click(button);
 
-      const fileTypeSelect = await screen.getByLabelText('Language *');
+      const fileTypeSelect = screen.getByLabelText('Language *');
       await user.click(fileTypeSelect);
 
       const selectOption = await screen.findAllByText(fileType);
       await user.click(selectOption[1]);
 
       const nameInput = screen.getByLabelText('Name of the notebook *');
-      await userEvent.type(nameInput, 'MyNewFile');
+      await user.type(nameInput, 'MyNewFile');
 
       const createButton = await screen.findByText('Create Analysis');
-      await act(async () => {
-        await user.click(createButton);
-      });
+      await user.click(createButton);
 
       // Assert
       screen.getByText('Jupyter Cloud Environment');
@@ -189,19 +185,17 @@ describe('AnalysisModal', () => {
     const button = screen.getByAltText('Create new notebook');
     await user.click(button);
 
-    const fileTypeSelect = await screen.getByLabelText('Language *');
+    const fileTypeSelect = screen.getByLabelText('Language *');
     await user.click(fileTypeSelect);
 
     const selectOption = await screen.findAllByText('Python 3');
     await user.click(selectOption[1]);
 
     const nameInput = screen.getByLabelText('Name of the notebook *');
-    await userEvent.type(nameInput, 'MyNewFile');
+    await user.type(nameInput, 'MyNewFile');
 
     const createButton = await screen.findByText('Create Analysis');
-    await act(async () => {
-      await user.click(createButton);
-    });
+    await user.click(createButton);
 
     // Assert
     expect(screen.queryByText('Jupyter Cloud Environment')).toBeNull();
@@ -219,20 +213,17 @@ describe('AnalysisModal', () => {
       const button = screen.getByAltText('Create new R file');
       await user.click(button);
 
-      const fileTypeSelect = await screen.getByLabelText('File Type *');
+      const fileTypeSelect = screen.getByLabelText('File Type *');
       await user.click(fileTypeSelect);
 
       const selectOption = await screen.findAllByText(fileType);
       await user.click(selectOption[1]);
 
       const nameInput = screen.getByLabelText('Name of the R file *');
-      await userEvent.type(nameInput, 'MyNewFile');
+      await user.type(nameInput, 'MyNewFile');
 
-      const createButton = await screen.getByText('Create Analysis');
-
-      await act(async () => {
-        await user.click(createButton);
-      });
+      const createButton = screen.getByText('Create Analysis');
+      await user.click(createButton);
 
       // Assert
       screen.getByText('RStudio Cloud Environment');
@@ -250,13 +241,11 @@ describe('AnalysisModal', () => {
     await user.click(button);
 
     const nameInput = screen.getByLabelText('Name of the R file *');
-    await userEvent.type(nameInput, 'MyNewFile');
+    await user.type(nameInput, 'MyNewFile');
 
-    const createButton = await screen.getByText('Create Analysis');
+    const createButton = screen.getByText('Create Analysis');
 
-    await act(async () => {
-      await user.click(createButton);
-    });
+    await user.click(createButton);
 
     // Assert
     expect(screen.queryByText('RStudio Cloud Environment')).toBeNull();
@@ -269,10 +258,8 @@ describe('AnalysisModal', () => {
     render(h(AnalysisModal, defaultGcpModalProps));
 
     // Act
-    await act(async () => {
-      const button = screen.getByAltText('Create new Galaxy app');
-      await user.click(button);
-    });
+    const button = screen.getByAltText('Create new Galaxy app');
+    await user.click(button);
 
     screen.getByText('Galaxy Cloud Environment');
   });
@@ -287,7 +274,7 @@ describe('AnalysisModal', () => {
     await user.hover(button);
 
     // Assert
-    expect(await screen.queryAllByText('You already have a Galaxy environment').length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryAllByText('You already have a Galaxy environment').length).toBeGreaterThanOrEqual(2);
   });
 
   it('Azure - Renders correctly by default', () => {
@@ -342,22 +329,20 @@ describe('AnalysisModal', () => {
       render(h(AnalysisModal, defaultAzureModalProps));
 
       // Act
-      await act(async () => {
-        const button = screen.getByAltText('Create new notebook');
-        await user.click(button);
+      const button = screen.getByAltText('Create new notebook');
+      await user.click(button);
 
-        const fileTypeSelect = await screen.getByLabelText('Language *');
-        await user.click(fileTypeSelect);
+      const fileTypeSelect = screen.getByLabelText('Language *');
+      await user.click(fileTypeSelect);
 
-        const selectOption = await screen.findAllByText(fileType);
-        await user.click(selectOption[1]);
+      const selectOption = await screen.findAllByText(fileType);
+      await user.click(selectOption[1]);
 
-        const nameInput = screen.getByLabelText('Name of the notebook *');
-        await userEvent.type(nameInput, 'MyNewFile');
+      const nameInput = screen.getByLabelText('Name of the notebook *');
+      await user.type(nameInput, 'MyNewFile');
 
-        const createButton = await screen.findByText('Create Analysis');
-        await user.click(createButton);
-      });
+      const createButton = await screen.findByText('Create Analysis');
+      await user.click(createButton);
 
       // Assert
       screen.getByText('Azure Cloud Environment');
@@ -389,16 +374,14 @@ describe('AnalysisModal', () => {
     );
 
     // Act
-    await act(async () => {
-      const button = screen.getByAltText('Create new notebook');
-      await user.click(button);
+    const button = screen.getByAltText('Create new notebook');
+    await user.click(button);
 
-      const nameInput = screen.getByLabelText('Name of the notebook *');
-      await userEvent.type(nameInput, fileList[0].displayName);
-    });
+    const nameInput = screen.getByLabelText('Name of the notebook *');
+    await user.type(nameInput, fileList[0].displayName);
 
     // Assert
-    expect(await screen.queryAllByText('Analysis name already exists').length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryAllByText('Analysis name already exists').length).toBeGreaterThanOrEqual(2);
   });
 
   it('Error on create', async () => {
@@ -423,16 +406,14 @@ describe('AnalysisModal', () => {
     );
 
     // Act
-    await act(async () => {
-      const button = screen.getByAltText('Create new notebook');
-      await user.click(button);
+    const button = screen.getByAltText('Create new notebook');
+    await user.click(button);
 
-      const nameInput = screen.getByLabelText('Name of the notebook *');
-      await userEvent.type(nameInput, 'My New Notebook');
+    const nameInput = screen.getByLabelText('Name of the notebook *');
+    await user.type(nameInput, 'My New Notebook');
 
-      const createButton = await screen.findByText('Create Analysis');
-      await user.click(createButton);
-    });
+    const createButton = await screen.findByText('Create Analysis');
+    await user.click(createButton);
 
     // Assert
     expect(createAnalysisMock).toHaveBeenCalled();
