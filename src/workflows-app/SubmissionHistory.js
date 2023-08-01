@@ -16,7 +16,14 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { AppProxyUrlStatus, getUser, workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { loadAppUrls, resolveRunningCromwellAppUrl } from 'src/workflows-app/utils/app-utils';
-import { AutoRefreshInterval, getDuration, isRunSetInTerminalState, makeStatusLine, statusType } from 'src/workflows-app/utils/submission-utils';
+import {
+  AutoRefreshInterval,
+  CbasPollInterval,
+  getDuration,
+  isRunSetInTerminalState,
+  makeStatusLine,
+  statusType,
+} from 'src/workflows-app/utils/submission-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
@@ -61,7 +68,22 @@ export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
                 setRunSetsFullyUpdated(runSets.fully_updated);
               }
             });
+          } else {
+            const cbasUrlState = cbasProxyUrlState.state;
+            const errorDetails = cbasUrlState instanceof Response ? await cbasUrlState.text() : cbasUrlState;
+            const additionalDetails = errorDetails ? `Error details: ${JSON.stringify(errorDetails)}` : '';
+            notify('warn', 'Error loading Workflows app', {
+              detail: `Workflows app not found. Will retry in 30 seconds. ${additionalDetails}`,
+              timeout: CbasPollInterval - 1000,
+            });
           }
+        } else {
+          loadRunSets(cbasProxyUrlDetails.state).then((runSets) => {
+            if (runSets !== undefined) {
+              setRunSetData(runSets.run_sets);
+              setRunSetsFullyUpdated(runSets.fully_updated);
+            }
+          });
         }
       } catch (error) {
         notify('error', 'Error getting run set data', { detail: error instanceof Response ? await error.text() : error });
@@ -76,7 +98,7 @@ export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
       await loadAllRunSets(workflowsAppStore.get().cbasProxyUrlState);
 
       // only refresh if there are Run Sets in non-terminal state
-      if (_.some(({ state }) => !isRunSetInTerminalState(state), runSetsData.run_sets)) {
+      if (_.some(({ state }) => !isRunSetInTerminalState(state), runSetsData)) {
         scheduledRefresh.current = setTimeout(refresh, AutoRefreshInterval);
       }
     } catch (error) {
@@ -102,8 +124,8 @@ export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
     }
   };
 
-  useOnMount(async () => {
-    await refresh();
+  useOnMount(() => {
+    refresh();
 
     return () => {
       if (scheduledRefresh.current) {
