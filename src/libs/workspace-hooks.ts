@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { useCancellation } from 'src/libs/react-utils';
-import { exhaustiveGuard } from 'src/libs/type-utils/type-helpers';
+import { exhaustiveGuard, renameKey } from 'src/libs/type-utils/type-helpers';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 export const useWorkspaceById = (workspaceId: string, fields?: string[]) => {
@@ -29,11 +29,9 @@ export const useWorkspaceById = (workspaceId: string, fields?: string[]) => {
       // When we're loading a different workspace, we don't want to return the previous workspace.
       return { workspace: null, status: 'Loading' as const };
     case 'Ready':
-      const { state: readyState, ...readyRest } = workspace;
-      return { ...readyRest, workspace: readyState };
+      return renameKey(workspace, 'state', 'workspace');
     case 'Error':
-      const { state: errorState, ...errorRest } = workspace;
-      return { ...errorRest, workspace: errorState };
+      return renameKey(workspace, 'state', 'workspace');
     default:
       return exhaustiveGuard(status);
   }

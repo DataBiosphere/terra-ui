@@ -36,3 +36,34 @@ export const isFetchResponse = (obj: unknown): obj is Response => {
 export const exhaustiveGuard = (_value: never): never => {
   throw new Error(`Reached exhaustive guard with unexpected value: ${JSON.stringify(_value)}`);
 };
+
+/**
+ * Maps type `T` to a new type with key `Key` renamed to `NewKey`.
+ * @example
+ * type Foo = { foo: string };
+ * type Bar = RenameKey<Foo, 'foo', 'bar'> // { bar: string }
+ */
+type RenameKey<T, Key extends keyof T, NewKey extends string> = Key extends keyof T
+  ? {
+      [K in keyof Record<keyof Omit<T, Key> | NewKey, unknown>]: K extends keyof T ? T[K] : T[Key];
+    }
+  : T;
+
+/**
+ * Renames key `key` of `obj` to `newKey`.
+ * @param obj An object.
+ * @param key The key to rename.
+ * @param newKey The new name for the key.
+ *
+ * @example
+ * renameKey({ foo: 1 }, 'foo', 'bar');
+ * // { bar: 1 }
+ */
+export const renameKey = <T, Key extends keyof T, NewKey extends string>(
+  obj: T,
+  key: Key,
+  newKey: NewKey
+): RenameKey<T, Key, NewKey> => {
+  const { [key]: value, ...rest } = obj;
+  return { ...rest, [newKey]: value } as RenameKey<T, Key, NewKey>;
+};
