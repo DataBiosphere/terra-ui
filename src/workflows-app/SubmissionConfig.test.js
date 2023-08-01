@@ -176,15 +176,19 @@ describe('BaseSubmissionConfig renders workflow details', () => {
       );
     });
     const user = userEvent.setup();
-    const callCacheToggleLabel = screen.getByLabelText('Call Caching:');
-    const callCacheToggleButton = screen.getByTestId('call-cache-toggle');
-    expect(callCacheToggleLabel).toBeDefined(); // Label text exists
+    const callCacheToggleButton = screen.getByTestId('call-cache-toggle'); // The switch itself
     expect(callCacheToggleButton).toBeDefined(); // Switch exists
+
+    // Assert that switch has an associated label. If it does, getByLabelText will return the switch.
+    const callCacheToggleLabel = screen.getByLabelText('Call Caching:');
+    expect(callCacheToggleLabel).toEqual(callCacheToggleButton);
+
+    expect(screen.getByText('Call Caching:')).toBeVisible(); // Label text exists and is visible
     expect(callCacheToggleButton).toHaveProperty('checked', true); // Switch defaults to true
     await user.click(callCacheToggleButton);
     expect(callCacheToggleButton).toHaveProperty('checked', false); // Clicking the switch toggles it
-    await user.click(callCacheToggleLabel);
-    expect(callCacheToggleButton).toHaveProperty('checked', true); // Clicking the label also toggles it
+    await user.click(callCacheToggleButton);
+    expect(callCacheToggleButton).toHaveProperty('checked', true); // Clicking switch again toggles it back.
   });
 
   it('should render a back to workflows button', async () => {
