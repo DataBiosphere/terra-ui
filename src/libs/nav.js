@@ -106,6 +106,17 @@ export const updateSearch = (params) => {
   }
 };
 
+export const useQueryParameter = (key) => {
+  const { query } = useRoute();
+
+  return [
+    query[key],
+    (value) => {
+      updateSearch({ ...query, [key]: value });
+    },
+  ];
+};
+
 export function PathHashInserter() {
   useOnMount(() => {
     const loc = window.location;
