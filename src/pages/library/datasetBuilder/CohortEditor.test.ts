@@ -163,6 +163,25 @@ describe('CohortEditor', () => {
     expect(updateCriteria).toBeCalledWith({ ...criteria, high: highInput });
   });
 
+  it('renders accessible slider handles', async () => {
+    // Arrange
+    const criteria = criteriaFromOption({
+      id: 0,
+      name: 'range',
+      kind: 'range',
+      min: 55,
+      max: 99,
+    });
+    const updateCriteria = jest.fn();
+    renderCriteriaView({
+      criteria,
+      updateCriteria,
+    });
+    // Act
+    screen.getByLabelText(`${criteria.name} low slider`);
+    screen.getByLabelText(`${criteria.name} high slider`);
+  });
+
   it('can delete criteria', async () => {
     // Arrange
     const criteria = criteriaFromOption({ id: 0, name: 'range', kind: 'range', min: 55, max: 99 });
