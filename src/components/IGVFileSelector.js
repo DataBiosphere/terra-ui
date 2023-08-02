@@ -30,7 +30,7 @@ const isTdrUrl = (fileUrl) => {
   const bucket = parts[0];
   const datasetId = parts[1];
   const fileRefId = parts[2];
-  return /datarepo-[a-f0-9]+-bucket/.test(bucket) && isUUID(datasetId) && isUUID(fileRefId);
+  return /datarepo(-(dev|alpha|perf|staging|tools))?-[a-f0-9]+-bucket/.test(bucket) && isUUID(datasetId) && isUUID(fileRefId);
 };
 
 const findIndexForFile = (fileUrl, fileUrls) => {
