@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
@@ -142,7 +143,7 @@ describe('BaseSubmissionConfig renders workflow details', () => {
       screen.getByText('https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_1/target_workflow_1.wdl')
     ).toBeInTheDocument();
 
-    expect(screen.getAllByText('Select a data table')[0]).toBeInTheDocument();
+    expect(screen.getByText('Select a data table:')).toBeInTheDocument();
     expect(screen.getByText('FOO')).toBeInTheDocument();
 
     const workflowScriptLink = screen.getByRole('button', { name: 'View Workflow Script' });
@@ -162,6 +163,29 @@ describe('BaseSubmissionConfig renders workflow details', () => {
     // verify that modal was rendered on screen
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Workflow Script')).toBeInTheDocument();
+  });
+
+  it('should render a functional call cache toggle button', async () => {
+    const { container } = await act(async () => {
+      return render(
+        h(BaseSubmissionConfig, {
+          methodId: '123',
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+        })
+      );
+    });
+    expect(await axe(container)).toHaveNoViolations();
+    const user = userEvent.setup();
+    const callCacheToggleButton = screen.getByLabelText('Call Caching:');
+    expect(callCacheToggleButton).toBeDefined(); // Switch exists
+    expect(screen.getByText('Call Caching:')).toBeVisible(); // Label text exists and is visible
+    expect(callCacheToggleButton).toHaveProperty('checked', true); // Switch defaults to true
+    await user.click(callCacheToggleButton);
+    expect(callCacheToggleButton).toHaveProperty('checked', false); // Clicking the switch toggles it
+    await user.click(callCacheToggleButton);
+    expect(callCacheToggleButton).toHaveProperty('checked', true); // Clicking switch again toggles it back.
   });
 
   it('should render a back to workflows button', async () => {
