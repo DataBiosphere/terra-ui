@@ -19,14 +19,15 @@ const splitExtension = (fileUrl) => {
   return [base, extension];
 };
 
+const UUID_PATTERN = '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}';
+
+const UUID_REGEX = new RegExp(UUID_PATTERN);
+
+const isUUID = (s) => UUID_REGEX.test(s);
+
 const isTdrUrl = (fileUrl) => {
   const parts = fileUrl.split('/');
-  return (
-    parts.length === 6 &&
-    /datarepo-[a-f0-9]+-bucket/.test(parts[2]) &&
-    /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/.test(parts[3]) &&
-    /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/.test(parts[4])
-  );
+  return parts.length === 6 && /datarepo-[a-f0-9]+-bucket/.test(parts[2]) && isUUID(parts[3]) && isUUID(parts[4]);
 };
 
 const findIndexForFile = (fileUrl, fileUrls) => {
@@ -42,9 +43,7 @@ const findIndexForFile = (fileUrl, fileUrls) => {
       cram: [`${base}.crai`, `${base}.cram.crai`],
       bam: [`${base}.bai`, `${base}.bam.bai`],
       vcf: [`${base}.idx`, `${base}.vcf.idx`, `${base}.tbi`, `${base}.vcf.tbi`],
-    }[extension].map(
-      (candidate) => new RegExp(`gs://${bucket}/${datasetId}/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/${candidate}`)
-    );
+    }[extension].map((candidate) => new RegExp(`gs://${bucket}/${datasetId}/${UUID_PATTERN}/${candidate}`));
     return fileUrls.find((url) => indexCandidates.some((candidate) => candidate.test(url)));
   }
   const [base, extension] = splitExtension(fileUrl);
