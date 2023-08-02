@@ -120,7 +120,7 @@ const AlertsIndicator = ({ style }) => {
         h(
           Clickable,
           {
-            as: 'span',
+            tagName: 'span',
             'aria-expanded': open,
             'aria-haspopup': true,
             'aria-label': 'System alerts',

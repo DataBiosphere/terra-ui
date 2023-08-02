@@ -282,7 +282,7 @@ export const ContextBar = ({
               h(
                 Interactive,
                 {
-                  as: 'div',
+                  tagName: 'div',
                   style: {
                     flexDirection: 'column',
                     justifyContent: 'center',

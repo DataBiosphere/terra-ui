@@ -16,7 +16,6 @@ const pointerTags = ['button', 'area', 'a', 'select'];
 const pointerTypes = ['radio', 'checkbox', 'submit', 'button'];
 
 export type InteractiveProps = {
-  as: keyof JSX.IntrinsicElements;
   children?: ReactNode;
   className?: string;
   disabled?: boolean;
@@ -24,6 +23,7 @@ export type InteractiveProps = {
   role?: string;
   style?: React.CSSProperties;
   tabIndex?: number;
+  tagName?: keyof JSX.IntrinsicElements;
   type?: string;
   onBlur?: (event: any) => void;
   onClick?: (event: any) => void;
@@ -34,7 +34,6 @@ export type InteractiveProps = {
 export const Interactive: React.ForwardRefExoticComponent<InteractiveProps> = forwardRef(
   (
     {
-      as: TagName = 'div',
       children,
       className = '',
       disabled,
@@ -42,6 +41,7 @@ export const Interactive: React.ForwardRefExoticComponent<InteractiveProps> = fo
       role,
       style = {},
       tabIndex,
+      tagName: TagName = 'div',
       type,
       onBlur,
       onClick,

@@ -347,7 +347,7 @@ const DirectoryTree = (props: DirectoryTreeProps) => {
   return h(
     Interactive,
     {
-      as: 'ul',
+      tagName: 'ul',
       ref: treeElementRef,
       // aria-activedescendant tells which tree item is "focused", while actual focus stays on the tree itself.
       'aria-activedescendant': activeDescendant,

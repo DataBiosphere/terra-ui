@@ -117,7 +117,7 @@ const DataTypeButton = ({
       ...wrapperProps,
       style: { ...Style.navList.itemContainer(selected), backgroundColor: selected ? colors.dark(0.1) : 'white' },
       hover: Style.navList.itemHover(selected),
-      as: 'div',
+      tagName: 'div',
     },
     [
       h(
@@ -334,7 +334,7 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
 
   return h(DraggableCore, { onDrag }, [
     h(Interactive, {
-      as: 'div',
+      tagName: 'div',
       role: 'separator',
       'aria-label': 'Resize sidebar',
       'aria-valuenow': sidebarWidth,

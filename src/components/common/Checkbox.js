@@ -15,7 +15,7 @@ export const Checkbox = ({ checked, onChange, disabled = false, ...props }) => {
     Interactive,
     _.merge(
       {
-        as: 'span',
+        tagName: 'span',
         className: 'fa-layers fa-fw',
         role: 'checkbox',
         'aria-checked': checked,

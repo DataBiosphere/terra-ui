@@ -346,7 +346,7 @@ export function FlexTable({
             {
               key: data.key,
               role: 'row',
-              as: 'div',
+              tagName: 'div',
               className: 'table-row',
               style: { ...data.style, backgroundColor: 'white', display: 'flex' },
               hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined,
@@ -468,7 +468,7 @@ export const SimpleFlexTable = ({
           {
             key: rowIndex,
             role: 'row',
-            as: 'div',
+            tagName: 'div',
             className: 'table-row',
             style: { backgroundColor: 'white', display: 'flex', minHeight: 48 },
             hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined,
@@ -859,7 +859,7 @@ export const SimpleTable = ({
           {
             key: i,
             role: 'row',
-            as: 'div',
+            tagName: 'div',
             style: { ...rowStyle, ...(i % 2 ? oddRowStyle : evenRowStyle) },
             className: 'table-row',
             hover: useHover && { backgroundColor: colors.light(0.4) },

@@ -7,17 +7,17 @@ import { forwardRefWithName, useLabelAssert } from 'src/libs/react-utils';
 
 export const Clickable = forwardRefWithName(
   'Clickable',
-  ({ href, as = href ? 'a' : 'div', disabled, tooltip, tooltipSide, tooltipDelay, useTooltipAsLabel, onClick, children, ...props }, ref) => {
+  ({ href, disabled, tagName = href ? 'a' : 'div', tooltip, tooltipSide, tooltipDelay, useTooltipAsLabel, onClick, children, ...props }, ref) => {
     const child = h(
       Interactive,
       {
         'aria-disabled': !!disabled,
-        as,
         disabled,
         ref,
         onClick: (...args) => onClick && !disabled && onClick(...args),
         href: !disabled ? href : undefined,
         tabIndex: disabled ? '-1' : '0',
+        tagName,
         ...props,
       },
       [children]

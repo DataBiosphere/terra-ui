@@ -181,7 +181,7 @@ export const renderDataCell = (attributeValue, workspace) => {
   return h(Fragment, [
     hasNonCurrentWorkspaceUrls &&
       h(TooltipTrigger, { content: 'Some files are located outside of the current workspace' }, [
-        h(Interactive, { as: 'span', tabIndex: 0, style: { marginRight: '1ch' } }, [
+        h(Interactive, { tagName: 'span', tabIndex: 0, style: { marginRight: '1ch' } }, [
           icon('warning-info', { size: 20, style: { color: colors.accent(), cursor: 'help' } }),
         ]),
       ]),
