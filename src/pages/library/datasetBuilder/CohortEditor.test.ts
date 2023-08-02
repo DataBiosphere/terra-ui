@@ -135,6 +135,53 @@ describe('CohortEditor', () => {
     expect(screen.getByText(criteria.high, { exact: false })).toBeTruthy();
   });
 
+  it('allows number inputs for range criteria', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const criteria = criteriaFromOption({
+      id: 0,
+      name: 'range',
+      kind: 'range',
+      min: 55,
+      max: 99,
+    });
+    const updateCriteria = jest.fn();
+    renderCriteriaView({
+      criteria,
+      updateCriteria,
+    });
+    const lowInput = 65;
+    const highInput = 75;
+    // Act
+    await user.clear(screen.getByLabelText(`${criteria.name} low`));
+    await user.type(screen.getByLabelText(`${criteria.name} low`), lowInput.toString());
+    await user.clear(screen.getByLabelText(`${criteria.name} high`));
+    await user.type(screen.getByLabelText(`${criteria.name} high`), highInput.toString());
+
+    // Assert
+    expect(updateCriteria).toBeCalledWith({ ...criteria, low: lowInput });
+    expect(updateCriteria).toBeCalledWith({ ...criteria, high: highInput });
+  });
+
+  it('renders accessible slider handles', async () => {
+    // Arrange
+    const criteria = criteriaFromOption({
+      id: 0,
+      name: 'range',
+      kind: 'range',
+      min: 55,
+      max: 99,
+    });
+    const updateCriteria = jest.fn();
+    renderCriteriaView({
+      criteria,
+      updateCriteria,
+    });
+    // Act
+    screen.getByLabelText(`${criteria.name} low slider`);
+    screen.getByLabelText(`${criteria.name} high slider`);
+  });
+
   it('can delete criteria', async () => {
     // Arrange
     const criteria = criteriaFromOption({ id: 0, name: 'range', kind: 'range', min: 55, max: 99 });

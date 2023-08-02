@@ -1,8 +1,12 @@
+import 'rc-slider/assets/index.css';
+
 import _ from 'lodash/fp';
+import Slider from 'rc-slider';
 import React, { Fragment, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
 import { ButtonOutline, ButtonPrimary, GroupedSelect, Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
+import { NumberInput } from 'src/components/input';
 import {
   AnyCriteria,
   Cohort,
@@ -67,7 +71,7 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
           },
           [icon('minus-circle-red', { size: 24, style: { color: colors.danger() } })]
         ),
-        div({ style: { marginLeft: narrowMargin } }, [
+        div({ style: { marginLeft: narrowMargin, width: '25rem' } }, [
           (() => {
             switch (criteria.kind) {
               case 'domain':
@@ -101,7 +105,60 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                   }),
                 ]);
               case 'range':
-                return h(Fragment, [strong([`${criteria.name}:`]), ` ${criteria.low} - ${criteria.high}`]);
+                const numberInputStyles = {
+                  width: '4rem',
+                  padding: 0,
+                };
+                const handleStyle = {
+                  borderColor: colors.accent(),
+                  backgroundColor: colors.accent(),
+                  opacity: 1,
+                  boxShadow: 'none',
+                  height: 18,
+                  width: 18,
+                  zIndex: 0,
+                };
+                const trackHeight = 8;
+                const trackStyle = { backgroundColor: colors.accent(0.5), height: trackHeight };
+                const railStyle = { backgroundColor: colors.accent(0.4), height: trackHeight };
+                const rangeSliderMargin = 20;
+                return h(Fragment, [
+                  div([strong([`${criteria.name}:`]), ` ${criteria.low} - ${criteria.high}`]),
+                  div({ style: { display: 'flex', alignItems: 'center' } }, [
+                    h(NumberInput, {
+                      min: criteria.rangeOption.min,
+                      max: criteria.high,
+                      isClearable: false,
+                      onlyInteger: true,
+                      value: criteria.low,
+                      onChange: (v) => updateCriteria({ ...criteria, low: v }),
+                      'aria-label': `${criteria.name} low`,
+                      style: numberInputStyles,
+                    }),
+                    h(Slider, {
+                      range: true,
+                      value: [criteria.low, criteria.high],
+                      min: criteria.rangeOption.min,
+                      onChange: (values) => updateCriteria({ ...criteria, low: values[0], high: values[1] }),
+                      max: criteria.rangeOption.max,
+                      style: { marginLeft: rangeSliderMargin },
+                      handleStyle,
+                      trackStyle,
+                      railStyle,
+                      ariaLabelForHandle: [`${criteria.name} low slider`, `${criteria.name} high slider`],
+                    }),
+                    h(NumberInput, {
+                      min: criteria.low,
+                      max: criteria.rangeOption.max,
+                      isClearable: false,
+                      onlyInteger: true,
+                      value: criteria.high,
+                      onChange: (v) => updateCriteria({ ...criteria, high: v }),
+                      'aria-label': `${criteria.name} high`,
+                      style: { ...numberInputStyles, marginLeft: rangeSliderMargin },
+                    }),
+                  ]),
+                ]);
               default:
                 return div(['Unknown criteria']);
             }
@@ -118,7 +175,7 @@ const createDefaultListCriteria = (listOption: ProgramDataListOption): ProgramDa
     kind: 'list',
     listOption,
     name: listOption.name,
-    id: criteriaCount++,
+    id: Number(_.uniqueId('')),
     count: 100,
     values: [listOption.values[0]],
   };
