@@ -150,15 +150,17 @@ describe('CohortEditor', () => {
       criteria,
       updateCriteria,
     });
+    const lowInput = 65;
+    const highInput = 75;
     // Act
     await user.clear(screen.getByLabelText(`${criteria.name} low`));
-    await user.type(screen.getByLabelText(`${criteria.name} low`), '65');
+    await user.type(screen.getByLabelText(`${criteria.name} low`), lowInput.toString());
     await user.clear(screen.getByLabelText(`${criteria.name} high`));
-    await user.type(screen.getByLabelText(`${criteria.name} high`), '75');
+    await user.type(screen.getByLabelText(`${criteria.name} high`), highInput.toString());
 
     // Assert
-    expect(updateCriteria).toBeCalledWith({ ...criteria, low: 65 });
-    expect(updateCriteria).toBeCalledWith({ ...criteria, high: 75 });
+    expect(updateCriteria).toBeCalledWith({ ...criteria, low: lowInput });
+    expect(updateCriteria).toBeCalledWith({ ...criteria, high: highInput });
   });
 
   it('can delete criteria', async () => {
