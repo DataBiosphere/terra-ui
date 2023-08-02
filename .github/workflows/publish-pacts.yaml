@@ -1,0 +1,50 @@
+name: Publish Pacts on Dev
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ dev ]
+
+jobs:
+  setup-and-test:
+    runs-on: ubuntu-latest
+    outputs:
+      nb-b64: ${{ steps.encode.outputs.nb-b64 }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install yarn
+        run: |
+          yarn install
+
+      - name: Run tests
+        run: yarn test
+
+      - name: Encode the pact as non-breaking base 64 string
+        id: encode
+        env:
+          PACT_FULL_PATH: 'pacts/terra-ui-cbas.json'  # this is a temporary hack until WM-1858 is done.
+        run: |
+          NON_BREAKING_B64=$(cat $PACT_FULL_PATH | base64 -w 0)
+          echo "nb-b64=${NON_BREAKING_B64}" >> $GITHUB_OUTPUT
+          echo $NON_BREAKING_B64
+
+  publish-pact-workflow:
+    runs-on: ubuntu-latest
+    needs: [setup-and-test]
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    steps:
+      - name: dispatch to terra-github-workflows
+        uses: aurelien-baudet/workflow-dispatch@93e95b157d791ae7f42aef8f8a0d3d723eba1c31 #commit sha for v2.1.1
+        with:
+          workflow: publish-contracts.yaml
+          repo: broadinstitute/terra-github-workflows
+          ref: refs/heads/main
+          token: ${{ secrets.BROADBOT_TOKEN}} # github token for access to kick off a job in the private repo
+          inputs: '{ "pact-b64": "${{ needs.setup-and-test.outputs.nb-b64 }}", "repo-owner": "DataBiosphere", "repo-name": "cbas-ui", "repo-branch": "main" }'
