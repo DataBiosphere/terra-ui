@@ -109,6 +109,18 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                   width: '4rem',
                   padding: 0,
                 };
+                const handleStyle = {
+                  borderColor: colors.accent(),
+                  backgroundColor: colors.accent(),
+                  opacity: 1,
+                  boxShadow: 'none',
+                  height: 18,
+                  width: 18,
+                  zIndex: 0,
+                };
+                const trackHeight = 8;
+                const trackStyle = { backgroundColor: colors.accent(0.5), height: trackHeight };
+                const railStyle = { backgroundColor: colors.accent(0.4), height: trackHeight };
                 const rangeSliderMargin = 20;
                 return h(Fragment, [
                   div([strong([`${criteria.name}:`]), ` ${criteria.low} - ${criteria.high}`]),
@@ -130,17 +142,9 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                       onChange: (values) => updateCriteria({ ...criteria, low: values[0], high: values[1] }),
                       max: criteria.rangeOption.max,
                       style: { marginLeft: rangeSliderMargin },
-                      handleStyle: {
-                        borderColor: colors.accent(),
-                        backgroundColor: colors.accent(),
-                        opacity: 1,
-                        boxShadow: 'none',
-                        height: 18,
-                        width: 18,
-                        zIndex: 0,
-                      },
-                      trackStyle: { backgroundColor: colors.accent(0.5), height: 8 },
-                      railStyle: { backgroundColor: colors.accent(0.4), height: 8 },
+                      handleStyle,
+                      trackStyle,
+                      railStyle,
                       ariaLabelForHandle: [`${criteria.name} low slider`, `${criteria.name} high slider`],
                     }),
                     h(NumberInput, {
