@@ -3,6 +3,7 @@ import IncrementalResponse from 'src/libs/ajax/incremental-response/IncrementalR
 export interface FileBrowserFile {
   path: string;
   url: string;
+  contentType: string;
   size: number;
   createdAt: number;
   updatedAt: number;
