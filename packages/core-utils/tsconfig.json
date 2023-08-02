@@ -1,3 +1,4 @@
+// TypeScript configuration to build package as ES modules.
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {

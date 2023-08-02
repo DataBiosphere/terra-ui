@@ -1,3 +1,5 @@
+// Base TypeScript configuration for Terra UI and packages.
+// Package configurations (packages/*/tsconfig.json) and app configuration (tsconfig.json) extend from this.
 {
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,

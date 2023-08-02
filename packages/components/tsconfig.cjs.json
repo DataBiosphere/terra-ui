@@ -1,3 +1,4 @@
+// TypeScript configuration to build package as CommonJS modules.
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {

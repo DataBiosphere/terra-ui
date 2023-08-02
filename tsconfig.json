@@ -1,3 +1,4 @@
+// TypeScript build configuration for Terra UI application.
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
@@ -10,6 +11,8 @@
     }
   },
   "include": ["src", "types/images"],
+  // A reference to every package should be included here so that `tsc --build`
+  // can build the packages that the Terra UI application depends on.
   "references": [
     {
       "path": "./packages/components/tsconfig.json"
