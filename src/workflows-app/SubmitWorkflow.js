@@ -120,7 +120,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       }
     });
 
-    const pageReady = cbasReady || (currentApp && !getIsAppBusy(currentApp));
+    const pageReady = cbasReady && currentApp && !getIsAppBusy(currentApp);
     const launcherDisabled = creating || (currentApp && getIsAppBusy(currentApp)) || (currentApp && !pageReady);
 
     return loading

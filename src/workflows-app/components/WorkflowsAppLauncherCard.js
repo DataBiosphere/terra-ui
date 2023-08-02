@@ -14,21 +14,21 @@ const styles = {
 };
 
 export const WorkflowsAppLauncherCard = ({ onClick, disabled, ...props }) => {
-  return div({ style: { ...styles.card, margin: '2rem 4rem' } }, [
+  return div({ style: { ...styles.card, width: '50rem', margin: '2rem 4rem' } }, [
     h(TitleBar, {
       id: 'workflow-app-launch-page',
-      title: 'Launch the Workflows App to run workflows',
+      title: 'Launch Cromwell to run workflows',
       style: { marginBottom: '0.5rem' },
     }),
     div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'flex-center' } }, [
-      'The Workflows App must be launched in order to explore, view, and submit workflows.',
+      'Cromwell must be launched in order to explore, view, and submit workflows.',
     ]),
     div({ style: { display: 'flex', marginTop: '.5rem', justifyContent: 'flex-center' } }, [
-      'Once launched, it will stay on until the workspace is deleted.',
+      'Once launched, Cromwell will remain active until the workspace is deleted.',
     ]),
     div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-center' } }, [
       disabled
-        ? 'Workflows App is being created. You may exit this page and return later without interrupting the creation process.'
+        ? 'Cromwell is being launched. You may exit this page and return later without interrupting the launching process.'
         : 'Would you like to get started?',
     ]),
     div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'flex-center', width: '18rem' } }, [
@@ -38,11 +38,11 @@ export const WorkflowsAppLauncherCard = ({ onClick, disabled, ...props }) => {
             ButtonPrimary,
             {
               disabled,
-              tooltip: disabled ? 'Workflows App is being created' : 'Create Workflows App',
+              tooltip: disabled ? 'Cromwell is being launched' : 'Launch Cromwell',
               onClick,
               style: { width: '100%' },
             },
-            ['Yes, launch the Workflows App ']
+            ['Yes, launch Cromwell']
           ),
     ]),
     h(
