@@ -26,8 +26,11 @@ const UUID_REGEX = new RegExp(UUID_PATTERN);
 const isUUID = (s) => UUID_REGEX.test(s);
 
 const isTdrUrl = (fileUrl) => {
-  const parts = fileUrl.split('/');
-  return parts.length === 6 && /datarepo-[a-f0-9]+-bucket/.test(parts[2]) && isUUID(parts[3]) && isUUID(parts[4]);
+  const parts = fileUrl.split('/').slice(2);
+  const bucket = parts[0];
+  const datasetId = parts[1];
+  const fileRefId = parts[2];
+  return /datarepo-[a-f0-9]+-bucket/.test(bucket) && isUUID(datasetId) && isUUID(fileRefId);
 };
 
 const findIndexForFile = (fileUrl, fileUrls) => {
@@ -36,14 +39,18 @@ const findIndexForFile = (fileUrl, fileUrls) => {
   }
 
   if (isTdrUrl(fileUrl)) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [bucket, datasetId, fileRefId, object] = fileUrl.split('/').slice(2);
-    const [base, extension] = splitExtension(object);
+    const parts = fileUrl.split('/').slice(2);
+    const bucket = parts[0];
+    const datasetId = parts[1];
+    // parts[2] is the fileRef. Skip it since the index file will have a different file ref.
+    const otherPathSegments = parts.slice(3, -1);
+    const filename = parts.at(-1);
+    const [base, extension] = splitExtension(filename);
     const indexCandidates = {
       cram: [`${base}.crai`, `${base}.cram.crai`],
       bam: [`${base}.bai`, `${base}.bam.bai`],
       vcf: [`${base}.idx`, `${base}.vcf.idx`, `${base}.tbi`, `${base}.vcf.tbi`],
-    }[extension].map((candidate) => new RegExp(`gs://${bucket}/${datasetId}/${UUID_PATTERN}/${candidate}`));
+    }[extension].map((candidate) => new RegExp([`gs://${bucket}`, datasetId, UUID_PATTERN, ...otherPathSegments, candidate].join('/')));
     return fileUrls.find((url) => indexCandidates.some((candidate) => candidate.test(url)));
   }
   const [base, extension] = splitExtension(fileUrl);
