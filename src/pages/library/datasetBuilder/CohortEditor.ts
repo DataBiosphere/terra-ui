@@ -108,7 +108,6 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                 const numberInputStyles = {
                   width: '4rem',
                   padding: 0,
-                  textAlign: 'center',
                 };
                 const rangeSliderMargin = 20;
                 return h(Fragment, [
@@ -138,6 +137,7 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                         boxShadow: 'none',
                         height: 18,
                         width: 18,
+                        zIndex: 0,
                       },
                       trackStyle: { backgroundColor: colors.accent(0.5), height: 8 },
                       railStyle: { backgroundColor: colors.accent(0.4), height: 8 },

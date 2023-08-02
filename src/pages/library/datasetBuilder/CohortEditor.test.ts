@@ -135,6 +135,32 @@ describe('CohortEditor', () => {
     expect(screen.getByText(criteria.high, { exact: false })).toBeTruthy();
   });
 
+  it('allows number inputs for range criteria', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const criteria = criteriaFromOption({
+      id: 0,
+      name: 'range',
+      kind: 'range',
+      min: 55,
+      max: 99,
+    });
+    const updateCriteria = jest.fn();
+    renderCriteriaView({
+      criteria,
+      updateCriteria,
+    });
+    // Act
+    await user.clear(screen.getByLabelText(`${criteria.name} low`));
+    await user.type(screen.getByLabelText(`${criteria.name} low`), '65');
+    await user.clear(screen.getByLabelText(`${criteria.name} high`));
+    await user.type(screen.getByLabelText(`${criteria.name} high`), '75');
+
+    // Assert
+    expect(updateCriteria).toBeCalledWith({ ...criteria, low: 65 });
+    expect(updateCriteria).toBeCalledWith({ ...criteria, high: 75 });
+  });
+
   it('can delete criteria', async () => {
     // Arrange
     const criteria = criteriaFromOption({ id: 0, name: 'range', kind: 'range', min: 55, max: 99 });
