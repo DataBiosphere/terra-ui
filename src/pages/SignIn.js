@@ -23,7 +23,9 @@ const styles = {
 const SignIn = () => {
   return h(HeroWrapper, { showMenu: false, showDocLink: true }, [
     div({ style: { maxWidth: 600 } }, [
-      div({ style: { fontSize: 16, lineHeight: 1.5, marginBottom: '2rem' } }, ['If you are a new user or returning user, click log in to continue.']),
+      div({ style: { fontSize: 16, lineHeight: 1.5, marginBottom: '2rem' } }, [
+        'If you are a new user or returning user, click sign in to continue.',
+      ]),
       h(SignInButton),
       !isAnvil() &&
         !isElwazi() &&
@@ -31,7 +33,7 @@ const SignIn = () => {
           div({ style: styles.warningNotice }, ['Warning Notice']),
           p([
             `
-          By continuing to log in, you acknowledge that you are accessing a US Government web site
+          By continuing to sign in, you acknowledge that you are accessing a US Government web site
           which may contain information that must be protected under the US Privacy Act or other
           sensitive information and is intended for Government authorized use only.
         `,
@@ -123,7 +125,7 @@ const SignIn = () => {
           ]),
           p([
             `
-          By continuing to log in, anyone accessing this website expressly consents to monitoring
+          By continuing to sign in, anyone accessing this website expressly consents to monitoring
           of their actions and all communications or data transiting or stored on related to this
           website and is advised that if such monitoring reveals possible evidence of criminal activity,
           evidence may be provided to law enforcement officials.
