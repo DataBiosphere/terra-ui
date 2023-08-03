@@ -22,15 +22,15 @@ export const TroubleshootingBox = ({ name, namespace, logUri, submissionId, work
     },
     [
       div({}, [span({ style: { fontSize: 16, fontWeight: 'bold' } }, ['Troubleshooting?'])]),
-      div({ 'data-testid': 'workflow-id-container', style: { display: 'flex', justifyContent: 'space-between' } }, [
+      div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
         span({}, [span({ style: { marginRight: '0.5rem', fontWeight: 'bold' } }, ['Workflow ID: ']), span({}, [workflowId])]),
-        span({ 'data-testid': 'workflow-clipboard-button' }, [h(ClipboardButton, { text: workflowId, 'aria-label': 'Copy workflow id' })]),
+        span([h(ClipboardButton, { text: workflowId, 'aria-label': 'Copy workflow id' })]),
       ]),
       div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
         span({}, [span({ style: { marginRight: '0.5rem', fontWeight: 'bold' } }, ['Submission ID: ']), span({}, [submissionId])]),
-        span({ 'data-testid': 'submission-clipboard-button' }, [h(ClipboardButton, { text: submissionId, 'aria-label': 'Copy submission id' })]),
+        span([h(ClipboardButton, { text: submissionId, 'aria-label': 'Copy submission id' })]),
       ]),
-      div({ 'data-testid': 'log-link-container', style: { display: 'flex', paddingTop: '3px' } }, [
+      div({ style: { display: 'flex', paddingTop: '3px' } }, [
         h(
           Link,
           {
@@ -38,7 +38,7 @@ export const TroubleshootingBox = ({ name, namespace, logUri, submissionId, work
               showLogModal(logUri);
             },
           },
-          [div({ 'data-testid': 'workflow-log-link', style: { marginRight: '1.5rem' } }, [icon('fileAlt', { size: 18 }), ' Execution Log'], {})]
+          [div({ style: { marginRight: '1.5rem' } }, [icon('fileAlt', { size: 18 }), ' Execution Log'], {})]
         ),
         h(Link, { href: Nav.getLink('workspace-files', { name, namespace }), target: '_blank' }, [
           icon('folder-open', { size: 18 }),

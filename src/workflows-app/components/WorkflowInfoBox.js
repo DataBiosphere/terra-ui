@@ -26,20 +26,20 @@ export const WorkflowInfoBox = ({ workflow }) => {
       },
     },
     [
-      div({ 'data-testid': 'timing-container' }, [
+      div([
         div({}, [span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Timing:'])]),
         div({}, [
-          div({ 'data-testid': 'workflow-start-container' }, [span({ style: { fontWeight: 'bold' } }, ['Start: ']), span({}, [workflowStart])]),
-          div({ 'data-testid': 'workflow-end-container' }, [span({ style: { fontWeight: 'bold' } }, ['End: ']), span({}, [workflowEnd])]),
+          div({ 'aria-label': 'Workflow Start Container' }, [span({ style: { fontWeight: 'bold' } }, ['Start: ']), span({}, [workflowStart])]),
+          div({ 'aria-label': 'Workflow End Container' }, [span({ style: { fontWeight: 'bold' } }, ['End: ']), span({}, [workflowEnd])]),
         ]),
       ]),
-      div({ 'data-testid': 'status-container', style: {} }, [
+      div({ 'aria-label': 'Workflow Status Container' }, [
         div({}, [span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Status:'])]),
         div({}, [
           div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [makeStatusLine((style) => collapseStatus(status).icon(style), status)]),
         ]),
       ]),
-      div({ 'data-testid': 'wdl-container', style: {} }, [
+      div([
         div({}, [span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Script:'])]),
         div({}, [
           h(

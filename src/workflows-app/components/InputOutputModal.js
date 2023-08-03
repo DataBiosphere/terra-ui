@@ -53,7 +53,6 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
       okButton: 'Done',
       width: 900,
       height: 500, // specify height to prevent the modal from being too tall
-      'data-testid': 'input-output-modal',
     },
     [
       div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [
@@ -71,7 +70,7 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
                   {
                     size: { basis: 100, grow: 30 },
                     field: 'key',
-                    headerRenderer: () => h(HeaderCell, { 'data-testid': 'inputoutput-key-header' }, ['Key']),
+                    headerRenderer: () => h(HeaderCell, ['Key']),
                     cellRenderer: ({ rowIndex }) => {
                       return div({}, dataArray[rowIndex][0]);
                     },
@@ -79,7 +78,7 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
                   {
                     size: { basis: 100, grow: 70 },
                     field: 'value',
-                    headerRenderer: () => h(HeaderCell, { 'data-testid': 'inputoutput-value-header' }, ['Value']),
+                    headerRenderer: () => h(HeaderCell, ['Value']),
                     cellRenderer: ({ rowIndex }) => {
                       return isAzureUri(dataArray[rowIndex][1]) ? renderBlobLink(dataArray[rowIndex][1]) : div({}, dataArray[rowIndex][1]);
                     },

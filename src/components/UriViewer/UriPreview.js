@@ -76,7 +76,14 @@ export const UriPreview = ({ metadata, metadata: { uri, bucket, name }, googlePr
               [preview === null, () => 'Unable to load preview.'],
               [preview === undefined, () => 'Loading preview...'],
               [isImage(metadata), () => img({ src: preview, width: 400 })],
-              () => div({ style: styles.previewText }, [preview])
+              () =>
+                div(
+                  {
+                    tabIndex: 0,
+                    style: styles.previewText,
+                  },
+                  [preview]
+                )
             ),
           ]),
       ],

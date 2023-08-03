@@ -1,11 +1,13 @@
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { isAzureUri } from 'src/components/UriViewer/uri-viewer-utils';
 import { Ajax } from 'src/libs/ajax';
 import * as configStore from 'src/libs/config';
 import { makeCompleteDate } from 'src/libs/utils';
+import { SelectHelper } from 'src/testing/test-utils';
 import { appendSASTokenIfNecessary, getFilenameFromAzureBlobPath } from 'src/workflows-app/components/InputOutputModal';
 import { collapseCromwellStatus } from 'src/workflows-app/components/job-common';
 import { failedTasks as failedTasksMetadata } from 'src/workflows-app/fixtures/failed-tasks';
@@ -16,6 +18,11 @@ import { BaseRunDetails } from 'src/workflows-app/RunDetails';
 import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 
 jest.mock('src/libs/ajax');
+
+jest.mock('src/components/Modal', () => {
+  const mockModal = jest.requireActual('src/components/Modal.mock');
+  return mockModal.mockModalModule();
+});
 
 const wdsUrlRoot = 'https://lz-abc/wds-abc-c07807929cd1/';
 const cbasUrlRoot = 'https://lz-abc/terra-app-abc/cbas';
@@ -116,24 +123,18 @@ describe('BaseRunDetails - render smoke test', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
   });
 
-  it('should mount the component', async () => {
-    // Act
-    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-
-    screen.getByTestId('run-details-container');
-  });
-
   it('shows the workflow status', async () => {
-    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const statusContainer = screen.getByTestId('status-container');
+    const { container } = await act(async () => render(h(BaseRunDetails, runDetailsProps)));
+    expect(await axe(container)).toHaveNoViolations();
+    const statusContainer = screen.getByLabelText('Workflow Status Container');
     within(statusContainer).getByText(runDetailsMetadata.status);
   });
 
   it('shows the workflow timing', async () => {
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
 
-    const startTime = screen.getByTestId('workflow-start-container');
-    const endTime = screen.getByTestId('workflow-end-container');
+    const startTime = screen.getByLabelText('Workflow Start Container');
+    const endTime = screen.getByLabelText('Workflow End Container');
     const formattedStart = makeCompleteDate(runDetailsMetadata.start);
     const formattedEnd = makeCompleteDate(runDetailsMetadata.end);
     expect(startTime.textContent).toContain(formattedStart);
@@ -150,8 +151,8 @@ describe('BaseRunDetails - render smoke test', () => {
 
   it('has copy buttons', async () => {
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    screen.getByTestId('workflow-clipboard-button');
-    screen.getByTestId('submission-clipboard-button');
+    screen.getByLabelText('Copy workflow id');
+    screen.getByLabelText('Copy submission id');
     screen.getByText(runDetailsProps.workflowId);
     screen.getByText(runDetailsProps.submissionId);
   });
@@ -177,7 +178,7 @@ describe('BaseRunDetails - render smoke test', () => {
 
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
 
-    const table = screen.getByTestId('call-table-container');
+    const table = screen.getByRole('table');
     const rows = within(table).getAllByRole('row');
     expect(rows.length).toEqual(calcRowCount());
     const taskRows = rows.slice(1);
@@ -186,10 +187,10 @@ describe('BaseRunDetails - render smoke test', () => {
       const { executionStatus, backendStatus, start, end } = calls[taskName][0];
       const row = taskRows[index];
       within(row).getByText(taskName);
-      within(row).getByTestId('stdout-modal-link');
-      within(row).getByTestId('stderr-modal-link');
-      within(row).getByTestId('inputs-modal-link');
-      within(row).getByTestId('outputs-modal-link');
+      within(row).getByLabelText('View stdout logs');
+      within(row).getByLabelText('View stderr logs');
+      within(row).getByLabelText('View task inputs');
+      within(row).getByLabelText('View task outputs');
       // Checking row text content for dates since querying by formatted date doesn't seem to work
       const statusObj = collapseCromwellStatus(executionStatus, backendStatus);
       const status = within(row).getAllByText(statusObj.label());
@@ -229,11 +230,13 @@ describe('BaseRunDetails - render smoke test', () => {
       return modifiedMock;
     });
 
-    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const statusFilter = screen.getByTestId('status-dropdown-filter');
-    within(statusFilter).getByText('Failed');
+    const user = userEvent.setup();
 
-    const table = screen.getByTestId('call-table-container');
+    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
+    const statusFilter = screen.getByLabelText('Status');
+    const select = new SelectHelper(statusFilter, user);
+    expect(select.getSelectedOptions()).toEqual(['Failed']);
+    const table = screen.getByRole('table');
     const rows = within(table).getAllByRole('row');
     expect(rows.length).toEqual(6);
     const targetRow = within(table).getAllByRole('row')[1];
@@ -251,7 +254,7 @@ describe('BaseRunDetails - render smoke test', () => {
   it('opens the uri viewer modal when stdout is clicked', async () => {
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const table = screen.getByTestId('call-table-container');
+    const table = screen.getByRole('table');
     const stdout = within(table).getAllByText('stdout');
     await user.click(stdout[0]);
     screen.getByText('File Details');
@@ -263,7 +266,7 @@ describe('BaseRunDetails - render smoke test', () => {
     Ajax.mockImplementation(() => altMockObj);
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const table = screen.getByTestId('call-table-container');
+    const table = screen.getByRole('table');
     const stdout = within(table).getAllByText('stdout');
     await user.click(stdout[0]);
     screen.getByText('File Details');
@@ -278,7 +281,7 @@ describe('BaseRunDetails - render smoke test', () => {
     Ajax.mockImplementation(() => altMockObj);
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const table = screen.getByTestId('call-table-container');
+    const table = screen.getByRole('table');
     const stderr = within(table).getAllByText('stderr');
     await user.click(stderr[0]);
     screen.getByText('File Details');
@@ -290,7 +293,7 @@ describe('BaseRunDetails - render smoke test', () => {
   it('opens the uri viewer modal when stderr is clicked', async () => {
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const table = screen.getByTestId('call-table-container');
+    const table = screen.getByRole('table');
     const stderr = within(table).getAllByText('stderr');
     await user.click(stderr[0]);
     screen.getByText('File Details');
@@ -328,9 +331,9 @@ describe('BaseRunDetails - render smoke test', () => {
   it('filters out task list via task name search', async () => {
     const taskName = Object.keys(runDetailsMetadata.calls)[0];
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const searchInput = screen.getByTestId('task-name-search-input');
+    const searchInput = screen.getByPlaceholderText('Search by task name');
     await userEvent.type(searchInput, 'Random');
-    const updatedTable = screen.getByTestId('call-table-container');
+    const updatedTable = screen.getByRole('table');
     const updatedRows = within(updatedTable).getAllByRole('row');
     expect(updatedRows.length).toEqual(1);
     const updatedElements = within(updatedTable).queryAllByText(taskName);
@@ -340,9 +343,9 @@ describe('BaseRunDetails - render smoke test', () => {
   it('filters in tasks via task name search', async () => {
     const taskName = Object.keys(runDetailsMetadata.calls)[0];
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const searchInput = screen.getByTestId('task-name-search-input');
+    const searchInput = screen.getByPlaceholderText('Search by task name');
     await userEvent.type(searchInput, 'Fetch');
-    const updatedTable = screen.getByTestId('call-table-container');
+    const updatedTable = screen.getByRole('table');
     const updatedRows = within(updatedTable).getAllByRole('row');
     expect(updatedRows.length).toEqual(2);
     const updatedElement = within(updatedTable).getAllByText(taskName);
@@ -353,11 +356,11 @@ describe('BaseRunDetails - render smoke test', () => {
   it('opens the input/output modal when Inputs is clicked', async () => {
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const table = screen.getByTestId('call-table-container');
-    const inputs = within(table).getAllByTestId('inputs-modal-link');
+    const table = screen.getByRole('table');
+    const inputs = within(table).getAllByLabelText('View task inputs');
     await user.click(inputs[0]);
-    screen.getByTestId('inputoutput-key-header');
-    screen.getByTestId('inputoutput-value-header');
+    screen.getByText('Key');
+    screen.getByText('Value');
     screen.getByText('docker');
     screen.getByText('quay.io/broadinstitute/ncbi-tools:2.10.7.10');
   });
@@ -365,12 +368,12 @@ describe('BaseRunDetails - render smoke test', () => {
   it('opens the input/output modal when Outputs is clicked', async () => {
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const table = screen.getByTestId('call-table-container');
-    const outputs = within(table).getAllByTestId('outputs-modal-link');
+    const table = screen.getByRole('table');
+    const outputs = within(table).getAllByLabelText('View task outputs');
     await user.click(outputs[0]);
     // There is no output data in this test case, but the modal still open.
-    screen.getByTestId('inputoutput-key-header');
-    screen.getByTestId('inputoutput-value-header');
+    screen.getByText('Key');
+    screen.getByText('Value');
   });
 
   it('input/output modal file functions work as expected', () => {
@@ -400,7 +403,7 @@ describe('BaseRunDetails - render smoke test', () => {
 
   it('renders the workflow path above the table for successful workflows', async () => {
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const workflowPath = screen.getByTestId('workflow-path');
+    const workflowPath = screen.getByLabelText('Workflow Breadcrumb');
     within(workflowPath).getByText(runDetailsMetadata.workflowName);
   });
 
@@ -409,9 +412,8 @@ describe('BaseRunDetails - render smoke test', () => {
     const altBaseRunDetailsProps = { ...runDetailsProps, workflowId: parentMetadata.id };
     Ajax.mockImplementation(() => ({ ...altMockObj, ...subworkflowCromwellAjaxMock({ status: 'Succeeded' }) }));
     await act(async () => render(h(BaseRunDetails, altBaseRunDetailsProps)));
-    const childId = childMetadata.id;
-    const table = screen.getByTestId('call-table-container');
-    within(table).getByTestId(`view-subworkflow-${childId}`);
+    const table = screen.getByRole('table');
+    within(table).getByText('View sub-workflow');
   });
 
   it('updates the workflow path when the "View sub-workflow" button is clicked', async () => {
@@ -420,11 +422,10 @@ describe('BaseRunDetails - render smoke test', () => {
     Ajax.mockImplementation(() => ({ ...altMockObj, ...subworkflowCromwellAjaxMock({ status: 'Succeeded' }) }));
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, altBaseRunDetailsProps)));
-    const childId = childMetadata.id;
-    const table = screen.getByTestId('call-table-container');
-    const subworkflowButton = within(table).getByTestId(`view-subworkflow-${childId}`);
+    const table = screen.getByRole('table');
+    const subworkflowButton = within(table).getByText('View sub-workflow');
     await user.click(subworkflowButton);
-    const workflowPath = screen.getByTestId('workflow-path');
+    const workflowPath = screen.getByLabelText('Workflow Breadcrumb');
     within(workflowPath).getByText(childMetadata.workflowName);
   });
 
@@ -434,11 +435,10 @@ describe('BaseRunDetails - render smoke test', () => {
     Ajax.mockImplementation(() => ({ ...altMockObj, ...subworkflowCromwellAjaxMock({ status: 'Succeeded' }) }));
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, altBaseRunDetailsProps)));
-    const childId = childMetadata.id;
-    const table = screen.getByTestId('call-table-container');
-    const subworkflowButton = within(table).getByTestId(`view-subworkflow-${childId}`);
+    const table = screen.getByRole('table');
+    const subworkflowButton = within(table).getByText('View sub-workflow');
     await user.click(subworkflowButton);
-    const updatedTable = screen.getByTestId('call-table-container');
+    const updatedTable = screen.getByRole('table');
     const subWorkflowTaskNames = Object.keys(childMetadata.calls);
     subWorkflowTaskNames.forEach((taskName) => {
       within(updatedTable).getAllByText(taskName);
@@ -451,15 +451,14 @@ describe('BaseRunDetails - render smoke test', () => {
     Ajax.mockImplementation(() => ({ ...altMockObj, ...subworkflowCromwellAjaxMock({ status: 'Succeeded' }) }));
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, altBaseRunDetailsProps)));
-    const childId = childMetadata.id;
-    const table = screen.getByTestId('call-table-container');
-    const subworkflowButton = within(table).getByTestId(`view-subworkflow-${childId}`);
+    const table = screen.getByRole('table');
+    const subworkflowButton = within(table).getByText('View sub-workflow');
     await user.click(subworkflowButton);
-    const workflowPath = screen.getByTestId('workflow-path');
+    const workflowPath = screen.getByLabelText('Workflow Breadcrumb');
     const targetIdPath = within(workflowPath).getByText(parentMetadata.workflowName);
     await user.click(targetIdPath);
-    const updatedTable = screen.getByTestId('call-table-container');
-    const updatedPath = screen.getByTestId('workflow-path');
+    const updatedTable = screen.getByRole('table');
+    const updatedPath = screen.getByLabelText('Workflow Breadcrumb');
     within(updatedPath).getByText(parentMetadata.workflowName);
     expect(screen.queryByText(childMetadata.workflowName)).not.toBeInTheDocument;
     const parentTaskNames = Object.keys(parentMetadata.calls);
@@ -497,10 +496,14 @@ describe('BaseRunDetails - render smoke test', () => {
       return modifiedMock;
     });
 
+    const user = userEvent.setup();
+
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const statusFilter = screen.getByTestId('status-dropdown-filter');
-    within(statusFilter).getByText('Failed');
-    const table = screen.getByTestId('call-table-container');
+
+    const statusFilter = screen.getByLabelText('Status');
+    const select = new SelectHelper(statusFilter, user);
+    expect(select.getSelectedOptions()).toEqual(['Failed']);
+    const table = screen.getByRole('table');
     const rows = within(table).getAllByRole('row');
     expect(rows.length).toEqual(2);
     const targetRow = within(table).getAllByRole('row')[1];

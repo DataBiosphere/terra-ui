@@ -114,4 +114,13 @@ export class SelectHelper {
     const option = within(listBox).getByRole('option', { name: optionLabel });
     await this.user.click(option);
   }
+
+  getSelectedOptions(): string[] {
+    // Searchable Select components have an additional wrapper element
+    const valueContainer = this.inputElement.getAttribute('aria-readonly')
+      ? this.inputElement.parentElement
+      : this.inputElement.parentElement?.parentElement;
+    const valueContainers = Array.from(valueContainer?.querySelectorAll(':scope > div[class*="Value"]') || []);
+    return valueContainers.map((element) => element.textContent || '');
+  }
 }

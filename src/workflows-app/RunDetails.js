@@ -173,7 +173,7 @@ export const BaseRunDetails = (
     return h(HeaderSection, { breadcrumbPathObjects, button: h(SubmitNewWorkflowButton, { name, namespace }), title: 'Workflow Details' });
   }, [workflow, submissionId, name, namespace]);
 
-  return div({ 'data-testid': 'run-details-container', id: 'run-details-page' }, [
+  return div({ id: 'run-details-page' }, [
     // Loading state (spinner)
     cond(
       [
@@ -211,13 +211,12 @@ export const BaseRunDetails = (
       () =>
         div([
           div({ style: { padding: '1rem 2rem 2rem' } }, [header]),
-          div({ 'data-testid': 'details-top-container', style: { display: 'flex', justifyContent: 'space-between', padding: '1rem 2rem 2rem' } }, [
+          div({ style: { display: 'flex', justifyContent: 'space-between', padding: '1rem 2rem 2rem' } }, [
             h(WorkflowInfoBox, { workflow }, []),
             h(TroubleshootingBox, { name, namespace, logUri: workflow.workflowLog, submissionId, workflowId, showLogModal }, []),
           ]),
           div(
             {
-              'data-testid': 'call-table-container',
               style: {
                 margin: '2rem',
               },

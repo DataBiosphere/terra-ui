@@ -27,9 +27,11 @@ describe('SelectHelper', () => {
     // Act
     const select = new SelectHelper(screen.getByLabelText('Test Select'), user);
     const options = await select.getOptions();
+    const selectedOptions = select.getSelectedOptions();
 
     // Assert
     expect(options).toEqual(['Foo', 'Bar', 'Baz']);
+    expect(selectedOptions).toEqual([]);
 
     expect(screen.getByLabelText('Test Select')).toHaveAttribute('aria-expanded', 'false');
   });

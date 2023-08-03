@@ -83,7 +83,6 @@ const SearchBar = ({ searchText, setSearchText }) => {
     },
     [
       input({
-        'data-testid': 'task-name-search-input',
         type: 'text',
         placeholder: 'Search by task name',
         style: { width: '100%', padding: '9px', borderRadius: '15px', border: '1px solid #8F95A0' },
@@ -104,7 +103,7 @@ const WorkflowBreadcrumb = ({ workflowPath, loadWorkflow, updateWorkflowPath }) 
       !isLast && span(' > '),
     ]);
   });
-  return div({ 'data-testid': 'workflow-path', style: { marginBottom: '10px' } }, [workflowPathRender]);
+  return div({ 'aria-label': 'Workflow Breadcrumb', style: { marginBottom: '10px' } }, [workflowPathRender]);
 };
 
 /* CALL TABLE */
@@ -193,7 +192,7 @@ const CallTable = ({
           },
         },
         [
-          div({ 'data-testid': 'status-dropdown-filter', style: { flexBasis: 250, marginRight: '20px' }, isRendered: !enableExplorer }, [
+          div({ style: { flexBasis: 250, marginRight: '20px' }, isRendered: !enableExplorer }, [
             h(Select, {
               isClearable: true,
               isMulti: true,
@@ -367,7 +366,6 @@ const CallTable = ({
                         h(
                           Link,
                           {
-                            'data-testid': `view-subworkflow-${subWorkflowId}`,
                             onClick: () => {
                               loadWorkflow(subWorkflowId, updateWorkflowPath);
                             },
@@ -379,7 +377,7 @@ const CallTable = ({
                         h(
                           Link,
                           {
-                            'data-testid': 'inputs-modal-link',
+                            'aria-label': 'View task inputs',
                             onClick: () => showTaskDataModal('Inputs', inputs),
                           },
                           ['Inputs']
@@ -387,7 +385,7 @@ const CallTable = ({
                         h(
                           Link,
                           {
-                            'data-testid': 'outputs-modal-link',
+                            'aria-label': 'View task outputs',
                             onClick: () => showTaskDataModal('Outputs', outputs),
                           },
                           ['Outputs']
@@ -395,7 +393,7 @@ const CallTable = ({
                         h(
                           Link,
                           {
-                            'data-testid': 'stdout-modal-link',
+                            'aria-label': 'View stdout logs',
                             onClick: () => showLogModal(stdout, true),
                           },
                           ['stdout']
@@ -403,7 +401,7 @@ const CallTable = ({
                         h(
                           Link,
                           {
-                            'data-testid': 'stderr-modal-link',
+                            'aria-label': 'View stderr logs',
                             onClick: () => showLogModal(stderr, true),
                           },
                           'stderr'
