@@ -290,6 +290,20 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
     );
   },
 
+  copyWithinBucket: async (
+    googleProject: string,
+    bucket: string,
+    sourceName: string,
+    destinationName: string
+  ): Promise<void> => {
+    await fetchBuckets(
+      `storage/v1/b/${bucket}/o/${encodeURIComponent(sourceName)}/copyTo/b/${bucket}/o/${encodeURIComponent(
+        destinationName
+      )}`,
+      _.mergeAll([authOpts(await saToken(googleProject)), { signal, method: 'POST' }])
+    );
+  },
+
   // TODO: this should be deprecated in favor of the smarter `analysis` set of functions
   notebook: (googleProject, bucket, name) => {
     const bucketUrl = `storage/v1/b/${bucket}/o`;
