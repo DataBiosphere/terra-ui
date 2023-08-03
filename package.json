@@ -31,6 +31,7 @@
     "igv": "2.11.2",
     "jszip": "^3.10.1",
     "jwt-decode": "^3.1.2",
+    "keycode-js": "^3.1.0",
     "lodash": "^4.17.21",
     "marked": "^4.0.10",
     "oidc-client-ts": "^2.0.4",

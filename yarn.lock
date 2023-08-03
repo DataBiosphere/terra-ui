@@ -8427,6 +8427,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"keycode-js@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "keycode-js@npm:3.1.0"
+  checksum: 3043e43d39aef08ba92b5bde7a71c52547cc4801b4a6d0d7670725e36986dc0dc068705b879347643362158b81ce4c6cafe86a17b94b9b552118a914bbd44a3b
+  languageName: node
+  linkType: hard
+
 "kind-of@npm:^2.0.1":
   version: 2.0.1
   resolution: "kind-of@npm:2.0.1"
@@ -11797,6 +11804,7 @@ __metadata:
     jest-axe: ^6.0.0
     jszip: ^3.10.1
     jwt-decode: ^3.1.2
+    keycode-js: ^3.1.0
     lint-staged: ^13.0.3
     lodash: ^4.17.21
     marked: ^4.0.10

@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { KEY_LEFT, KEY_RIGHT } from 'keycode-js';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { AnyCriteria, Cohort, CriteriaGroup, DomainCriteria, dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
@@ -165,12 +166,14 @@ describe('CohortEditor', () => {
 
   it('renders accessible slider handles', async () => {
     // Arrange
+    const min = 55;
+    const max = 99;
     const criteria = criteriaFromOption({
       id: 0,
       name: 'range',
       kind: 'range',
-      min: 55,
-      max: 99,
+      min,
+      max,
     });
     const updateCriteria = jest.fn();
     renderCriteriaView({
@@ -178,12 +181,13 @@ describe('CohortEditor', () => {
       updateCriteria,
     });
     // Act
-    fireEvent.keyDown(screen.getByLabelText(`${criteria.name} low slider`), { keyCode: 39 /* Right Arrow */ });
-    fireEvent.keyDown(screen.getByLabelText(`${criteria.name} high slider`), { keyCode: 37 /* Left Arrow */ });
+    // We need to use fireEvent for this because rc-slider uses deprecated KeyboardEvent properties which and keyCode
+    fireEvent.keyDown(screen.getByLabelText(`${criteria.name} low slider`), { keyCode: KEY_RIGHT /* Right Arrow */ });
+    fireEvent.keyDown(screen.getByLabelText(`${criteria.name} high slider`), { keyCode: KEY_LEFT /* Left Arrow */ });
 
     // Arrange
-    expect(updateCriteria).toBeCalledWith({ ...criteria, low: 56 });
-    expect(updateCriteria).toBeCalledWith({ ...criteria, high: 98 });
+    expect(updateCriteria).toBeCalledWith({ ...criteria, low: min + 1 });
+    expect(updateCriteria).toBeCalledWith({ ...criteria, high: max - 1 });
   });
 
   it('can delete criteria', async () => {
