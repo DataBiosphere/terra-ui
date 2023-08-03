@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
@@ -178,8 +178,11 @@ describe('CohortEditor', () => {
       updateCriteria,
     });
     // Act
-    screen.getByLabelText(`${criteria.name} low slider`);
-    screen.getByLabelText(`${criteria.name} high slider`);
+    fireEvent.keyDown(screen.getByLabelText(`${criteria.name} low slider`), { keyCode: 39 /* Right Arrow */ });
+    fireEvent.keyDown(screen.getByLabelText(`${criteria.name} high slider`), { keyCode: 37 /* Left Arrow */ });
+
+    expect(updateCriteria).toBeCalledWith({ ...criteria, low: 56 });
+    expect(updateCriteria).toBeCalledWith({ ...criteria, high: 98 });
   });
 
   it('can delete criteria', async () => {
