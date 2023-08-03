@@ -9,6 +9,7 @@ describe('File menu', () => {
   const file: FileBrowserFile = {
     path: 'path/to/file.txt',
     url: 'gs://test-bucket/path/to/file.txt',
+    contentType: 'text/plain',
     size: 1024,
     createdAt: 1667408400000,
     updatedAt: 1667408400000,
