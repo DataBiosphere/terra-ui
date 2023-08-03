@@ -2822,7 +2822,6 @@ __metadata:
     jest: ^27.4.3
     lodash: ^4.17.21
     react: 18.2.0
-    react-hyperscript-helpers: ^2.0.0
     typescript: ^4.9.5
   peerDependencies:
     react: 18.2.0
