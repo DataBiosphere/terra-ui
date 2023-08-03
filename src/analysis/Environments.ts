@@ -289,12 +289,20 @@ export const Environments = ({ nav = undefined }: EnvironmentsProps) => {
     const listArgs: Record<string, string> = shouldFilterByCreator
       ? { role: 'creator', includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }
       : { includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' };
+
+    // TODO [IA-4432] remove this restriction and fix performance of this endpoint
+    // HACK disable unfiltered apps listing; queries take >30s on prod and may break the server
+    const appsListArgs: Record<string, string> = {
+      role: 'creator',
+      includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName',
+    };
+
     const [newRuntimes, newDisks, newApps] = await Promise.all([
       ajax(signal).Runtimes.listV2(listArgs),
       ajax(signal)
         .Disks.disksV1()
         .list({ ...listArgs, includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }),
-      ajax(signal).Apps.listWithoutProject(listArgs),
+      ajax(signal).Apps.listWithoutProject(appsListArgs),
     ]);
     const endTimeForLeoCallsEpochMs = Date.now();
 
