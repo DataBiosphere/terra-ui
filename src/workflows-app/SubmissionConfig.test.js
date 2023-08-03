@@ -4,6 +4,8 @@ import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_CROMWELL_APP_CALL_CACHING } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { AppProxyUrlStatus, getUser, workflowsAppStore } from 'src/libs/state';
 import { SelectHelper } from 'src/testing/test-utils';
@@ -52,6 +54,11 @@ jest.mock('src/components/Modal', () => {
 jest.mock('src/libs/ajax/metrics/useMetrics', () => ({
   ...jest.requireActual('src/libs/ajax/metrics/useMetrics'),
   useMetricsEvent: jest.fn(() => ({ captureEvent: jest.fn() })),
+}));
+
+jest.mock('src/libs/feature-previews', () => ({
+  ...jest.requireActual('src/libs/feature-previews'),
+  isFeaturePreviewEnabled: jest.fn(),
 }));
 
 // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
@@ -166,6 +173,7 @@ describe('BaseSubmissionConfig renders workflow details', () => {
   });
 
   it('should render a functional call cache toggle button', async () => {
+    isFeaturePreviewEnabled.mockImplementation((id) => (id === ENABLE_CROMWELL_APP_CALL_CACHING ? true : isFeaturePreviewEnabled(id)));
     const { container } = await act(async () => {
       return render(
         h(BaseSubmissionConfig, {
@@ -186,6 +194,23 @@ describe('BaseSubmissionConfig renders workflow details', () => {
     expect(callCacheToggleButton).toHaveProperty('checked', false); // Clicking the switch toggles it
     await user.click(callCacheToggleButton);
     expect(callCacheToggleButton).toHaveProperty('checked', true); // Clicking switch again toggles it back.
+  });
+
+  it('should not render call cache toggle with disabled feature flag', async () => {
+    isFeaturePreviewEnabled.mockImplementation((id) => (id === ENABLE_CROMWELL_APP_CALL_CACHING ? false : isFeaturePreviewEnabled(id)));
+    const { container } = await act(async () => {
+      return render(
+        h(BaseSubmissionConfig, {
+          methodId: '123',
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+        })
+      );
+    });
+    expect(await axe(container)).toHaveNoViolations();
+    const toggleButton = screen.queryByLabelText('Call Caching:');
+    expect(toggleButton).not.toBeInTheDocument();
   });
 
   it('should render a back to workflows button', async () => {
