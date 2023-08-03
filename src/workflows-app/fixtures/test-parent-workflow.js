@@ -1,3 +1,5 @@
+import { commonWorkflowAttributes, failures } from 'src/workflows-app/fixtures/failed-tasks';
+
 export const metadata = {
   workflowName: 'main_workflow',
   workflowProcessingEvents: [
@@ -32,58 +34,9 @@ export const metadata = {
       {
         stdout: '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-done/execution/stdout',
         shardIndex: -1,
-        runtimeAttributes: {
-          maxRetries: '0',
-          failOnStderr: 'false',
-          continueOnReturnCode: '0',
-        },
-        callCaching: {
-          allowResultReuse: false,
-          hashes: {
-            'output count': 'C4CA4238A0B923820DCC509A6F75849B',
-            'runtime attribute': {
-              docker: 'N/A',
-              continueOnReturnCode: 'CFCD208495D565EF66E7DFF9F98764DA',
-              failOnStderr: '68934A3E9455FA72420237EB05902327',
-            },
-            'output expression': {
-              'String out': '0183144CF6617D5341681C6B2F756046',
-            },
-            'input count': 'CFCD208495D565EF66E7DFF9F98764DA',
-            'backend name': '509820290D57F333403F490DDE7316F4',
-            'command template': 'E80AE16736B864DC65CEA153382F11F7',
-          },
-          effectiveCallCachingMode: 'ReadAndWriteCache',
-          hit: false,
-          result: 'Cache Miss',
-        },
-        inputs: {},
-        failures: [
-          {
-            causedBy: [
-              {
-                causedBy: [
-                  {
-                    causedBy: [
-                      {
-                        causedBy: [],
-                        message: 'Divide by zero error: 2 / WomInteger(0)',
-                      },
-                    ],
-                    message: 'Error(s)',
-                  },
-                ],
-                message: 'Failed command instantiation',
-              },
-            ],
-            message: 'java.lang.Exception: Failed command instantiation',
-          },
-        ],
-        backend: 'Local',
+        ...commonWorkflowAttributes,
         end: '2023-06-18T15:50:27.947Z',
         start: '2023-06-18T15:49:37.278Z',
-        retryableFailure: false,
-        executionStatus: 'Failed',
         stderr: '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-done/execution/stderr',
         callRoot: '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-done',
         attempt: 1,
@@ -130,58 +83,9 @@ export const metadata = {
       {
         stdout: '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-start/execution/stdout',
         shardIndex: -1,
-        runtimeAttributes: {
-          maxRetries: '0',
-          failOnStderr: 'false',
-          continueOnReturnCode: '0',
-        },
-        callCaching: {
-          allowResultReuse: false,
-          hashes: {
-            'output count': 'C4CA4238A0B923820DCC509A6F75849B',
-            'runtime attribute': {
-              docker: 'N/A',
-              continueOnReturnCode: 'CFCD208495D565EF66E7DFF9F98764DA',
-              failOnStderr: '68934A3E9455FA72420237EB05902327',
-            },
-            'output expression': {
-              'String out': '0183144CF6617D5341681C6B2F756046',
-            },
-            'input count': 'CFCD208495D565EF66E7DFF9F98764DA',
-            'backend name': '509820290D57F333403F490DDE7316F4',
-            'command template': 'E80AE16736B864DC65CEA153382F11F7',
-          },
-          effectiveCallCachingMode: 'ReadAndWriteCache',
-          hit: false,
-          result: 'Cache Miss',
-        },
-        inputs: {},
-        failures: [
-          {
-            causedBy: [
-              {
-                causedBy: [
-                  {
-                    causedBy: [
-                      {
-                        causedBy: [],
-                        message: 'Divide by zero error: 2 / WomInteger(0)',
-                      },
-                    ],
-                    message: 'Error(s)',
-                  },
-                ],
-                message: 'Failed command instantiation',
-              },
-            ],
-            message: 'java.lang.Exception: Failed command instantiation',
-          },
-        ],
-        backend: 'Local',
+        ...commonWorkflowAttributes,
         end: '2023-06-18T15:50:19.945Z',
         start: '2023-06-18T15:49:37.282Z',
-        retryableFailure: false,
-        executionStatus: 'Failed',
         stderr: '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-start/execution/stderr',
         callRoot: '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-start',
         attempt: 1,
@@ -230,103 +134,7 @@ export const metadata = {
         inputs: {},
         failures: [
           {
-            causedBy: [
-              {
-                causedBy: [
-                  {
-                    causedBy: [
-                      {
-                        causedBy: [
-                          {
-                            causedBy: [],
-                            message: 'Divide by zero error: 2 / WomInteger(0)',
-                          },
-                        ],
-                        message: 'Error(s)',
-                      },
-                    ],
-                    message: 'Failed command instantiation',
-                  },
-                ],
-                message: 'java.lang.Exception: Failed command instantiation',
-              },
-              {
-                causedBy: [
-                  {
-                    causedBy: [
-                      {
-                        causedBy: [
-                          {
-                            causedBy: [],
-                            message: 'Divide by zero error: 2 / WomInteger(0)',
-                          },
-                        ],
-                        message: 'Error(s)',
-                      },
-                    ],
-                    message: 'Failed command instantiation',
-                  },
-                ],
-                message: 'java.lang.Exception: Failed command instantiation',
-              },
-              {
-                causedBy: [
-                  {
-                    causedBy: [
-                      {
-                        causedBy: [
-                          {
-                            causedBy: [],
-                            message: 'Divide by zero error: 2 / WomInteger(0)',
-                          },
-                        ],
-                        message: 'Error(s)',
-                      },
-                    ],
-                    message: 'Failed command instantiation',
-                  },
-                ],
-                message: 'java.lang.Exception: Failed command instantiation',
-              },
-              {
-                causedBy: [
-                  {
-                    causedBy: [
-                      {
-                        causedBy: [
-                          {
-                            causedBy: [],
-                            message: 'Divide by zero error: 2 / WomInteger(0)',
-                          },
-                        ],
-                        message: 'Error(s)',
-                      },
-                    ],
-                    message: 'Failed command instantiation',
-                  },
-                ],
-                message: 'java.lang.Exception: Failed command instantiation',
-              },
-              {
-                causedBy: [
-                  {
-                    causedBy: [
-                      {
-                        causedBy: [
-                          {
-                            causedBy: [],
-                            message: 'Divide by zero error: 2 / WomInteger(0)',
-                          },
-                        ],
-                        message: 'Error(s)',
-                      },
-                    ],
-                    message: 'Failed command instantiation',
-                  },
-                ],
-                message: 'java.lang.Exception: Failed command instantiation',
-              },
-            ],
+            causedBy: [failures, failures, failures, failures, failures],
             message: 'Workflow failed',
           },
         ],
@@ -368,142 +176,10 @@ export const metadata = {
   failures: [
     {
       causedBy: [
+        failures,
+        failures,
         {
-          causedBy: [
-            {
-              causedBy: [
-                {
-                  causedBy: [
-                    {
-                      causedBy: [],
-                      message: 'Divide by zero error: 2 / WomInteger(0)',
-                    },
-                  ],
-                  message: 'Error(s)',
-                },
-              ],
-              message: 'Failed command instantiation',
-            },
-          ],
-          message: 'java.lang.Exception: Failed command instantiation',
-        },
-        {
-          causedBy: [
-            {
-              causedBy: [
-                {
-                  causedBy: [
-                    {
-                      causedBy: [],
-                      message: 'Divide by zero error: 2 / WomInteger(0)',
-                    },
-                  ],
-                  message: 'Error(s)',
-                },
-              ],
-              message: 'Failed command instantiation',
-            },
-          ],
-          message: 'java.lang.Exception: Failed command instantiation',
-        },
-        {
-          causedBy: [
-            {
-              causedBy: [
-                {
-                  causedBy: [
-                    {
-                      causedBy: [
-                        {
-                          causedBy: [],
-                          message: 'Divide by zero error: 2 / WomInteger(0)',
-                        },
-                      ],
-                      message: 'Error(s)',
-                    },
-                  ],
-                  message: 'Failed command instantiation',
-                },
-              ],
-              message: 'java.lang.Exception: Failed command instantiation',
-            },
-            {
-              causedBy: [
-                {
-                  causedBy: [
-                    {
-                      causedBy: [
-                        {
-                          causedBy: [],
-                          message: 'Divide by zero error: 2 / WomInteger(0)',
-                        },
-                      ],
-                      message: 'Error(s)',
-                    },
-                  ],
-                  message: 'Failed command instantiation',
-                },
-              ],
-              message: 'java.lang.Exception: Failed command instantiation',
-            },
-            {
-              causedBy: [
-                {
-                  causedBy: [
-                    {
-                      causedBy: [
-                        {
-                          causedBy: [],
-                          message: 'Divide by zero error: 2 / WomInteger(0)',
-                        },
-                      ],
-                      message: 'Error(s)',
-                    },
-                  ],
-                  message: 'Failed command instantiation',
-                },
-              ],
-              message: 'java.lang.Exception: Failed command instantiation',
-            },
-            {
-              causedBy: [
-                {
-                  causedBy: [
-                    {
-                      causedBy: [
-                        {
-                          causedBy: [],
-                          message: 'Divide by zero error: 2 / WomInteger(0)',
-                        },
-                      ],
-                      message: 'Error(s)',
-                    },
-                  ],
-                  message: 'Failed command instantiation',
-                },
-              ],
-              message: 'java.lang.Exception: Failed command instantiation',
-            },
-            {
-              causedBy: [
-                {
-                  causedBy: [
-                    {
-                      causedBy: [
-                        {
-                          causedBy: [],
-                          message: 'Divide by zero error: 2 / WomInteger(0)',
-                        },
-                      ],
-                      message: 'Error(s)',
-                    },
-                  ],
-                  message: 'Failed command instantiation',
-                },
-              ],
-              message: 'java.lang.Exception: Failed command instantiation',
-            },
-          ],
+          causedBy: [failures, failures, failures, failures, failures],
           message: 'Workflow failed',
         },
       ],

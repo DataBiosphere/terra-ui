@@ -5,7 +5,7 @@ import { Select } from 'src/components/common';
 
 import { SelectHelper } from './test-utils';
 
-const TextSelect = Select as typeof Select<string>;
+const TextSelect = Select as typeof Select<string, boolean>;
 
 describe('SelectHelper', () => {
   it('returns options from Select', async () => {
@@ -27,11 +27,9 @@ describe('SelectHelper', () => {
     // Act
     const select = new SelectHelper(screen.getByLabelText('Test Select'), user);
     const options = await select.getOptions();
-    const selectedOptions = select.getSelectedOptions();
 
     // Assert
     expect(options).toEqual(['Foo', 'Bar', 'Baz']);
-    expect(selectedOptions).toEqual([]);
 
     expect(screen.getByLabelText('Test Select')).toHaveAttribute('aria-expanded', 'false');
   });
@@ -62,5 +60,80 @@ describe('selectOption', () => {
 
     // Assert
     expect(onChange).toHaveBeenCalledWith({ label: 'Bar', value: 'bar' }, expect.any(Object));
+  });
+});
+
+describe('getSelectedOptions', () => {
+  it('returns empty list when no options are selected', () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    render(
+      h(TextSelect, {
+        'aria-label': 'Test Select',
+        options: [
+          { label: 'Foo', value: 'foo' },
+          { label: 'Bar', value: 'bar' },
+          { label: 'Baz', value: 'baz' },
+        ],
+        value: null,
+      })
+    );
+
+    // Act
+    const select = new SelectHelper(screen.getByLabelText('Test Select'), user);
+    const selectedOptions = select.getSelectedOptions();
+
+    // Assert
+    expect(selectedOptions).toEqual([]);
+  });
+
+  it('returns empty list when no options are selected', () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    render(
+      h(TextSelect, {
+        'aria-label': 'Test Select',
+        options: [
+          { label: 'Foo', value: 'foo' },
+          { label: 'Bar', value: 'bar' },
+          { label: 'Baz', value: 'baz' },
+        ],
+        value: 'foo',
+      })
+    );
+
+    // Act
+    const select = new SelectHelper(screen.getByLabelText('Test Select'), user);
+    const selectedOptions = select.getSelectedOptions();
+
+    // Assert
+    expect(selectedOptions).toEqual(['Foo']);
+  });
+
+  it('returns empty list when no options are selected', () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    render(
+      h(TextSelect, {
+        isMulti: true,
+        'aria-label': 'Test Select',
+        options: [
+          { label: 'Foo', value: 'foo' },
+          { label: 'Bar', value: 'bar' },
+          { label: 'Baz', value: 'baz' },
+        ],
+        value: ['foo', 'baz'],
+      })
+    );
+
+    // Act
+    const select = new SelectHelper(screen.getByLabelText('Test Select'), user);
+    const selectedOptions = select.getSelectedOptions();
+
+    // Assert
+    expect(selectedOptions).toEqual(['Foo', 'Baz']);
   });
 });
