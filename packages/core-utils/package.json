@@ -1,0 +1,34 @@
+{
+  "name": "@terra-ui-packages/core-utils",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "tsc && tsc -p tsconfig.cjs.json",
+    "check-dts": "check-dts",
+    "test": "jest"
+  },
+  "type": "module",
+  "module": "./lib/es/index.js",
+  "main": "./lib/cjs/index.js",
+  "exports": {
+    ".": {
+      "import": "./lib/es/index.js",
+      "require": "./lib/cjs/index.js"
+    }
+  },
+  "files": [
+    "lib/cjs/**",
+    "lib/es/**"
+  ],
+  "dependencies": {
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@terra-ui-packages/test-utils": "*",
+    "@types/jest": "^28.1.8",
+    "@types/lodash": "^4.14.184",
+    "check-dts": "^0.7.2",
+    "jest": "^27.4.3",
+    "typescript": "^4.9.5"
+  }
+}

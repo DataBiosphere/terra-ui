@@ -1,3 +1,4 @@
+import { Interactive } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import pluralize from 'pluralize';
 import { Fragment, useRef, useState } from 'react';
@@ -23,7 +24,6 @@ import AttributeInput, { AttributeTypeInput } from 'src/components/data/Attribut
 import Dropzone from 'src/components/Dropzone';
 import { icon } from 'src/components/icons';
 import { AutocompleteTextInput, ConfirmedSearchInput, PasteOnlyInput, TextInput, ValidatedInput } from 'src/components/input';
-import Interactive from 'src/components/Interactive';
 import { MenuButton } from 'src/components/MenuButton';
 import Modal from 'src/components/Modal';
 import PopupTrigger, { MenuDivider } from 'src/components/PopupTrigger';
@@ -181,7 +181,7 @@ export const renderDataCell = (attributeValue, workspace) => {
   return h(Fragment, [
     hasNonCurrentWorkspaceUrls &&
       h(TooltipTrigger, { content: 'Some files are located outside of the current workspace' }, [
-        h(Interactive, { as: 'span', tabIndex: 0, style: { marginRight: '1ch' } }, [
+        h(Interactive, { tagName: 'span', tabIndex: 0, style: { marginRight: '1ch' } }, [
           icon('warning-info', { size: 20, style: { color: colors.accent(), cursor: 'help' } }),
         ]),
       ]),

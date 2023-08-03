@@ -1,5 +1,4 @@
-import { delay } from 'src/libs/utils';
-
+import { delay } from '../timer-utils';
 import { AnyFn, AnyPromiseFn, GenericFn, GenericPromiseFn } from './general-types';
 import { createHandler, createHandlerAsync, curryLastArg, safeCurry, withHandlers } from './lodash-fp-helpers';
 
