@@ -109,6 +109,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jest-axe", "npm:6.0.0"],\
             ["jszip", "npm:3.10.1"],\
             ["jwt-decode", "npm:3.1.2"],\
+            ["keycode-js", "npm:3.1.0"],\
             ["lint-staged", "npm:13.0.3"],\
             ["lodash", "npm:4.17.21"],\
             ["marked", "npm:4.0.10"],\
@@ -11792,6 +11793,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["keycode-js", [\
+        ["npm:3.1.0", {\
+          "packageLocation": "./.yarn/cache/keycode-js-npm-3.1.0-a8627edfc5-3043e43d39.zip/node_modules/keycode-js/",\
+          "packageDependencies": [\
+            ["keycode-js", "npm:3.1.0"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["kind-of", [\
         ["npm:2.0.1", {\
           "packageLocation": "./.yarn/cache/kind-of-npm-2.0.1-edc403c4d6-043df2943e.zip/node_modules/kind-of/",\
@@ -16184,6 +16194,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jest-axe", "npm:6.0.0"],\
             ["jszip", "npm:3.10.1"],\
             ["jwt-decode", "npm:3.1.2"],\
+            ["keycode-js", "npm:3.1.0"],\
             ["lint-staged", "npm:13.0.3"],\
             ["lodash", "npm:4.17.21"],\
             ["marked", "npm:4.0.10"],\
