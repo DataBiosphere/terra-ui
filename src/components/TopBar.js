@@ -520,11 +520,11 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                       h(
                         Clickable,
                         {
-                          href: `https://github.com/DataBiosphere/terra-ui/commits/${process.env.VITE_APP_VERSION}`,
+                          href: `https://github.com/DataBiosphere/terra-ui/commits/${getConfig().gitRevision}`,
                           ...Utils.newTabLinkProps,
                           style: { textDecoration: 'underline', marginLeft: '0.25rem' },
                         },
-                        [new Date(parseInt(process.env.VITE_APP_BUILD_TIMESTAMP, 10)).toLocaleString()]
+                        [new Date(parseInt(getConfig().buildTimestamp, 10)).toLocaleString()]
                       ),
                     ]),
                   ]
