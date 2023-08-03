@@ -11,6 +11,7 @@ packages/*/coverage
 /build
 packages/*/lib
 tsconfig.tsbuildinfo
+public/build-info.json
 
 # misc
 .DS_Store
