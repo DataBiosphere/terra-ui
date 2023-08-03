@@ -203,7 +203,7 @@ export const UriViewer = _.flow(
     );
   }
 
-  const { size, timeCreated, updated, bucket, name, fileName, accessUrl } = metadata || {};
+  const { size, bucket, name, fileName, accessUrl } = metadata || {};
   const gsUri = `gs://${bucket}/${name}`;
   return h(
     Modal,
@@ -241,21 +241,7 @@ export const UriViewer = _.flow(
                 ]),
               h(UriDownloadButton, { uri, metadata, accessUrl, workspace }),
               renderTerminalCommand(metadata),
-              (timeCreated || updated) &&
-                h(
-                  Collapse,
-                  {
-                    title: 'More Information',
-                    style: { marginTop: '2rem' },
-                    summaryStyle: { marginBottom: '0.5rem' },
-                  },
-                  [
-                    timeCreated && els.cell([els.label('Created'), els.data(new Date(timeCreated).toLocaleString())]),
-                    updated && els.cell([els.label('Updated'), els.data(new Date(updated).toLocaleString())]),
-                    isFeaturePreviewEnabled('data-table-provenance') &&
-                      els.cell([els.label('Where did this file come from?'), els.data([h(FileProvenance, { workspace, fileUrl: uri })])]),
-                  ]
-                ),
+              renderMoreInfo(metadata),
               div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.']),
             ]),
         ],
