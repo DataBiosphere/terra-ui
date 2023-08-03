@@ -120,7 +120,7 @@ export class SelectHelper {
     const valueContainer = this.inputElement.getAttribute('aria-readonly')
       ? this.inputElement.parentElement
       : this.inputElement.parentElement?.parentElement;
-    const valueContainers = Array.from(valueContainer?.querySelectorAll(':scope > div[class*="Value"]') || []);
-    return valueContainers.map((element) => element.textContent || '');
+    const values = Array.from(valueContainer!.querySelectorAll(':scope > div[class*="Value"]'));
+    return values.map((valueElement) => valueElement.textContent ?? '');
   }
 }
