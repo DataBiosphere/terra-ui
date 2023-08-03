@@ -1,8 +1,9 @@
 {
   "name": "@terra-ui-packages/components",
   "version": "0.0.1",
-  "private": true,
+  "private": false,
   "scripts": {
+    "artifactregistry-login": "npx google-artifactregistry-auth",
     "build": "tsc && tsc -p tsconfig.cjs.json",
     "test": "jest"
   },

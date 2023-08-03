@@ -1,7 +1,7 @@
 {
   "name": "@terra-ui-packages/core-utils",
   "version": "0.0.1",
-  "private": true,
+  "private": false,
   "scripts": {
     "build": "tsc && tsc -p tsconfig.cjs.json",
     "check-dts": "check-dts",
