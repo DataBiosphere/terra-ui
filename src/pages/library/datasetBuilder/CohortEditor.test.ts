@@ -181,6 +181,7 @@ describe('CohortEditor', () => {
     fireEvent.keyDown(screen.getByLabelText(`${criteria.name} low slider`), { keyCode: 39 /* Right Arrow */ });
     fireEvent.keyDown(screen.getByLabelText(`${criteria.name} high slider`), { keyCode: 37 /* Left Arrow */ });
 
+    // Arrange
     expect(updateCriteria).toBeCalledWith({ ...criteria, low: 56 });
     expect(updateCriteria).toBeCalledWith({ ...criteria, high: 98 });
   });
