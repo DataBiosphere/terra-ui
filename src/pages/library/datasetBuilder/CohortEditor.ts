@@ -2,7 +2,7 @@ import _ from 'lodash/fp';
 import React, { Fragment, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
 import { ButtonOutline, ButtonPrimary, GroupedSelect, Link, Select } from 'src/components/common';
-import TerraSlider from 'src/components/common/Slider';
+import Slider from 'src/components/common/Slider';
 import { icon } from 'src/components/icons';
 import { NumberInput } from 'src/components/input';
 import {
@@ -121,7 +121,7 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                       'aria-label': `${criteria.name} low`,
                       style: numberInputStyles,
                     }),
-                    h(TerraSlider, {
+                    h(Slider, {
                       range: true,
                       value: [criteria.low, criteria.high],
                       min: criteria.rangeOption.min,
