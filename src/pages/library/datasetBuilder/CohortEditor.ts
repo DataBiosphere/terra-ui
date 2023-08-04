@@ -1,10 +1,8 @@
-import 'rc-slider/assets/index.css';
-
 import _ from 'lodash/fp';
-import Slider from 'rc-slider';
 import React, { Fragment, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
 import { ButtonOutline, ButtonPrimary, GroupedSelect, Link, Select } from 'src/components/common';
+import Slider from 'src/components/common/Slider';
 import { icon } from 'src/components/icons';
 import { NumberInput } from 'src/components/input';
 import {
@@ -109,18 +107,6 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                   width: '4rem',
                   padding: 0,
                 };
-                const handleStyle = {
-                  borderColor: colors.accent(),
-                  backgroundColor: colors.accent(),
-                  opacity: 1,
-                  boxShadow: 'none',
-                  height: 18,
-                  width: 18,
-                  zIndex: 0,
-                };
-                const trackHeight = 8;
-                const trackStyle = { backgroundColor: colors.accent(0.5), height: trackHeight };
-                const railStyle = { backgroundColor: colors.accent(0.4), height: trackHeight };
                 const rangeSliderMargin = 20;
                 return h(Fragment, [
                   div([strong([`${criteria.name}:`]), ` ${criteria.low} - ${criteria.high}`]),
@@ -142,9 +128,6 @@ export const CriteriaView = ({ criteria, deleteCriteria, updateCriteria }: Crite
                       onChange: (values) => updateCriteria({ ...criteria, low: values[0], high: values[1] }),
                       max: criteria.rangeOption.max,
                       style: { marginLeft: rangeSliderMargin },
-                      handleStyle,
-                      trackStyle,
-                      railStyle,
                       ariaLabelForHandle: [`${criteria.name} low slider`, `${criteria.name} high slider`],
                     }),
                     h(NumberInput, {
