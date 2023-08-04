@@ -2,7 +2,6 @@ import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-// import selectEvent from 'react-select-event';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
 import { SelectHelper } from 'src/testing/test-utils';
