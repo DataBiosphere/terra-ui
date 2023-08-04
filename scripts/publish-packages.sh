@@ -6,7 +6,7 @@ for d in */ ; do
     PACKAGE_VERSION=$(node -p -e "require('./package.json').version")
     echo "Will check if version ${PACKAGE_VERSION} of ${PACKAGE_NAME} should be published."
 
-    PUBLISHED_VERSION=$(npm view "${PACKAGE_NAME}" version --no-workspaces)
+    PUBLISHED_VERSION=$(npm view "${PACKAGE_NAME}" version)
     echo "Current version of ${PACKAGE_NAME} in repository is ${PUBLISHED_VERSION}."
 
     if [[ ${PUBLISHED_VERSION} != ${PACKAGE_VERSION} ]]; then
