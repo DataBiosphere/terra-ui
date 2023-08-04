@@ -112,7 +112,7 @@ const AlertsIndicator = ({ style }) => {
       {
         side: 'bottom',
         onChange: setOpen,
-        content: div({ style: { padding: '0.5rem', width: 300 } }, [
+        content: div({ style: { padding: '0.5rem', width: 300, maxHeight: 'calc(100vh - 5rem)', overflowY: 'auto' } }, [
           _.size(alerts) > 0 ? h(AlertsList, { alerts }) : p(['No system alerts at this time.']),
         ]),
       },
