@@ -15,6 +15,6 @@ for d in */ ; do
     else
        echo "Version ${PACKAGE_VERSION} of ${PACKAGE_NAME} has already been published, so no new version has been published."
    fi
-
+   echo " "
    cd ..
 done
