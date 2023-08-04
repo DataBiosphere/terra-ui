@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
 import { appToolLabels, appTools } from 'src/analysis/utils/tool-utils';
@@ -94,15 +94,18 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       load();
     });
 
-    useEffect(() => {
-      const refresh = async () => {
-        await refreshApps(true);
-      };
-
-      if (!currentApp || getIsAppBusy(currentApp)) {
-        refresh();
+    usePollingEffect(
+      () => {
+        const refresh = async () => await refreshApps(true);
+        if (!currentApp || getIsAppBusy(currentApp)) {
+          refresh();
+        }
+      },
+      {
+        ms: 10000,
+        leading: false,
       }
-    }, [currentApp, refreshApps]);
+    );
 
     const createWorkflowsApp = Utils.withBusyState(setCreating, async () => {
       try {
