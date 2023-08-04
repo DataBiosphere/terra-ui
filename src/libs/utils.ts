@@ -1,6 +1,5 @@
-import { formatDuration, intervalToDuration, isToday, isYesterday } from 'date-fns';
 import { AnyPromiseFn, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
-import { isToday, isYesterday } from 'date-fns';
+import { formatDuration, intervalToDuration, isToday, isYesterday } from 'date-fns';
 import { differenceInCalendarMonths, differenceInSeconds, parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
