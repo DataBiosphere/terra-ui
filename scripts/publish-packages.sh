@@ -1,4 +1,3 @@
-npx google-artifactregistry-auth --yes
 for d in */ ; do
     cd $d
 

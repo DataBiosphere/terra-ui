@@ -121,7 +121,9 @@ jobs:
       # yarn workspaces foreach --no-private npm publish --tolerate-republish
       - name: Publish packages to NPM registry on merge commits
         working-directory: packages
-        run: ../scripts/publish-packages.sh
+        run: |
+          npx google-artifactregistry-auth --yes
+          ../scripts/publish-packages.sh
 
   report-to-sherlock:
     uses: broadinstitute/sherlock/.github/workflows/client-report-app-version.yaml@main
