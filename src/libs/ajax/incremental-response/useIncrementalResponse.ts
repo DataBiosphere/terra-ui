@@ -1,5 +1,5 @@
+import { LoadedState, NoneState } from '@terra-ui-packages/core-utils';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import LoadedState, { NoneState } from 'src/libs/type-utils/LoadedState';
 
 import IncrementalResponse from './IncrementalResponse';
 

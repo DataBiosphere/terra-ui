@@ -129,6 +129,7 @@ const AzureBlobStorageFileBrowserProvider = ({
           const creationTime = blobProperties.getElementsByTagName('Creation-Time').item(0)!.textContent!;
           const lastModified = blobProperties.getElementsByTagName('Last-Modified').item(0)!.textContent!;
           const contentLength = blobProperties.getElementsByTagName('Content-Length').item(0)!.textContent!;
+          const contentType = blobProperties.getElementsByTagName('Content-Type').item(0)!.textContent!;
 
           const blobUrl = new URL(sasUrl);
           blobUrl.pathname += `/${name}`;
@@ -137,6 +138,7 @@ const AzureBlobStorageFileBrowserProvider = ({
           return {
             path: name,
             url: blobUrl.href,
+            contentType,
             size: parseInt(contentLength),
             createdAt: new Date(creationTime).getTime(),
             updatedAt: new Date(lastModified).getTime(),
@@ -209,6 +211,37 @@ const AzureBlobStorageFileBrowserProvider = ({
       blobUrl.pathname += `/${path}`;
 
       await fetchOk(blobUrl.href, {
+        method: 'DELETE',
+      });
+    },
+    moveFile: async (sourcePath: string, destinationPath: string): Promise<void> => {
+      const {
+        sas: { url: originalSasUrl },
+      } = await storageDetailsPromise;
+
+      const sourceBlobUrl = new URL(originalSasUrl);
+      sourceBlobUrl.pathname += `/${sourcePath}`;
+
+      const destinationBlobUrl = new URL(originalSasUrl);
+      destinationBlobUrl.pathname += `/${destinationPath}`;
+
+      await fetchOk(destinationBlobUrl.href, {
+        method: 'PUT',
+        headers: {
+          'x-ms-copy-source': sourceBlobUrl.href,
+        },
+      });
+
+      // Note
+      // The copy operation can finish asychronously.
+      // https://learn.microsoft.com/en-us/rest/api/storageservices/copy-blob?tabs=azure-ad#remarks
+      // However, we can't access the x-ms-copy-status header from JavaScript to check if this is the case.
+      // To access this header, the response from Azure storage would have to include an Access-Control-Expose-Headers header.
+      // https://developer.mozilla.org/en-US/docs/Glossary/CORS-safelisted_response_header
+      //
+      // Thus, this optimistically assumes that the copy finished synchronously.
+
+      await fetchOk(sourceBlobUrl.href, {
         method: 'DELETE',
       });
     },

@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event';
 import * as clipboard from 'clipboard-polyfill/text';
 import { h } from 'react-hyperscript-helpers';
 import { useWdsStatus, WdsStatus } from 'src/libs/wds-status';
+import { useWorkspaceById } from 'src/libs/workspace-hooks';
+import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { WdsTroubleshooter } from './WdsTroubleshooter';
@@ -11,6 +13,24 @@ type WdsStatusExports = typeof import('src/libs/wds-status');
 jest.mock('src/libs/wds-status', (): WdsStatusExports => {
   return {
     useWdsStatus: jest.fn(),
+  };
+});
+
+type WorkspaceHooksExports = typeof import('src/libs/workspace-hooks');
+jest.mock('src/libs/workspace-hooks', (): WorkspaceHooksExports => {
+  const actual = jest.requireActual<WorkspaceHooksExports>('src/libs/workspace-hooks');
+  return {
+    ...actual,
+    useWorkspaceById: jest.fn(),
+  };
+});
+
+type NavExports = typeof import('src/libs/nav');
+jest.mock('src/libs/nav', (): NavExports => {
+  const actual = jest.requireActual<NavExports>('src/libs/nav');
+  return {
+    ...actual,
+    getLink: jest.fn(),
   };
 });
 
@@ -116,6 +136,31 @@ describe('WdsTroubleshooter', () => {
       refreshStatus: jest.fn(),
     });
 
+    const mockSourceWorkspace: WorkspaceWrapper = {
+      workspace: {
+        workspaceId: mockStatus.cloneSourceWorkspaceId!,
+        namespace: 'test-workspaces',
+        name: 'test-workspace',
+        cloudPlatform: 'Azure',
+        authorizationDomain: [],
+        createdBy: 'user@example.com',
+        createdDate: '2023-02-15T19:17:15.711Z',
+      },
+      azureContext: {
+        managedResourceGroupId: 'test-mrg',
+        subscriptionId: 'test-sub-id',
+        tenantId: 'test-tenant-id',
+      },
+      accessLevel: 'OWNER',
+      canShare: true,
+      canCompute: true,
+    };
+
+    asMockedFn(useWorkspaceById).mockReturnValue({
+      workspace: mockSourceWorkspace,
+      status: 'Ready',
+    });
+
     // Act
     render(
       h(WdsTroubleshooter, {
@@ -151,7 +196,7 @@ describe('WdsTroubleshooter', () => {
       ['Data app ping status', 'UP'],
       ['Data app IAM status', 'UP'],
       ['Default Instance exists', 'true'],
-      ['Data table clone source', 'b3cc4ed2-678c-483f-9953-5d4789d5fa1b'],
+      ['Data table clone source', 'test-workspaces/test-workspace'],
       ['Data table clone status', 'RESTORESUCCEEDED'],
     ]);
   });
@@ -183,6 +228,31 @@ describe('WdsTroubleshooter', () => {
       refreshStatus: jest.fn(),
     });
 
+    const mockSourceWorkspace: WorkspaceWrapper = {
+      workspace: {
+        workspaceId: mockStatus.cloneSourceWorkspaceId!,
+        namespace: 'test-workspaces',
+        name: 'test-workspace',
+        cloudPlatform: 'Azure',
+        authorizationDomain: [],
+        createdBy: 'user@example.com',
+        createdDate: '2023-02-15T19:17:15.711Z',
+      },
+      azureContext: {
+        managedResourceGroupId: 'test-mrg',
+        subscriptionId: 'test-sub-id',
+        tenantId: 'test-tenant-id',
+      },
+      accessLevel: 'OWNER',
+      canShare: true,
+      canCompute: true,
+    };
+
+    asMockedFn(useWorkspaceById).mockReturnValue({
+      workspace: mockSourceWorkspace,
+      status: 'Ready',
+    });
+
     // Act
     render(
       h(WdsTroubleshooter, {
@@ -218,7 +288,7 @@ describe('WdsTroubleshooter', () => {
       ['Data app ping status', 'UP'],
       ['Data app IAM status', 'UP'],
       ['Default Instance exists', 'true'],
-      ['Data table clone source', 'b3cc4ed2-678c-483f-9953-5d4789d5fa1b'],
+      ['Data table clone source', 'test-workspaces/test-workspace'],
       ['Data table clone status', 'BACKUPERROR (Something went wrong)'],
     ]);
   });

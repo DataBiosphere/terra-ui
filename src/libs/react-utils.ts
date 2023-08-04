@@ -1,3 +1,4 @@
+import { safeCurry } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import {
   EffectCallback,
@@ -10,7 +11,6 @@ import {
   useState,
 } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { safeCurry } from 'src/libs/type-utils/lodash-fp-helpers';
 import { Atom, delay, pollWithCancellation } from 'src/libs/utils';
 
 /**

@@ -1,3 +1,4 @@
+import { LoadedState, withHandlers } from '@terra-ui-packages/core-utils';
 import { useEffect, useState } from 'react';
 import {
   AbsolutePath,
@@ -14,8 +15,6 @@ import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import { useCancellation, useStore } from 'src/libs/react-utils';
 import { workspaceStore } from 'src/libs/state';
-import LoadedState from 'src/libs/type-utils/LoadedState';
-import { withHandlers } from 'src/libs/type-utils/lodash-fp-helpers';
 import * as Utils from 'src/libs/utils';
 import { CloudProvider, cloudProviderTypes, WorkspaceWrapper } from 'src/libs/workspace-utils';
 

@@ -1,3 +1,4 @@
+import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act } from '@testing-library/react';
 import _ from 'lodash/fp';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
@@ -8,7 +9,6 @@ import { AzureStorage, AzureStorageContract } from 'src/libs/ajax/AzureStorage';
 import * as GoogleStorage from 'src/libs/ajax/GoogleStorage';
 import * as Notifications from 'src/libs/notifications';
 import { workspaceStore } from 'src/libs/state';
-import { DeepPartial } from 'src/libs/type-utils/deep-partial';
 import {
   azureBucketRecheckRate,
   googlePermissionsRecheckRate,

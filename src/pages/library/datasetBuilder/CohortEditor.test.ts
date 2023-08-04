@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { KEY_LEFT, KEY_RIGHT } from 'keycode-js';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { AnyCriteria, Cohort, CriteriaGroup, DomainCriteria, dummyDatasetDetails } from 'src/libs/ajax/DatasetBuilder';
@@ -133,6 +134,60 @@ describe('CohortEditor', () => {
     expect(screen.getByText(criteria.name, { exact: false })).toBeTruthy();
     expect(screen.getByText(criteria.low, { exact: false })).toBeTruthy();
     expect(screen.getByText(criteria.high, { exact: false })).toBeTruthy();
+  });
+
+  it('allows number inputs for range criteria', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const criteria = criteriaFromOption({
+      id: 0,
+      name: 'range',
+      kind: 'range',
+      min: 55,
+      max: 99,
+    });
+    const updateCriteria = jest.fn();
+    renderCriteriaView({
+      criteria,
+      updateCriteria,
+    });
+    const lowInput = 65;
+    const highInput = 75;
+    // Act
+    await user.clear(screen.getByLabelText(`${criteria.name} low`));
+    await user.type(screen.getByLabelText(`${criteria.name} low`), lowInput.toString());
+    await user.clear(screen.getByLabelText(`${criteria.name} high`));
+    await user.type(screen.getByLabelText(`${criteria.name} high`), highInput.toString());
+
+    // Assert
+    expect(updateCriteria).toBeCalledWith({ ...criteria, low: lowInput });
+    expect(updateCriteria).toBeCalledWith({ ...criteria, high: highInput });
+  });
+
+  it('renders accessible slider handles', async () => {
+    // Arrange
+    const min = 55;
+    const max = 99;
+    const criteria = criteriaFromOption({
+      id: 0,
+      name: 'range',
+      kind: 'range',
+      min,
+      max,
+    });
+    const updateCriteria = jest.fn();
+    renderCriteriaView({
+      criteria,
+      updateCriteria,
+    });
+    // Act
+    // We need to use fireEvent for this because rc-slider uses deprecated KeyboardEvent properties which and keyCode
+    fireEvent.keyDown(screen.getByLabelText(`${criteria.name} low slider`), { keyCode: KEY_RIGHT /* Right Arrow */ });
+    fireEvent.keyDown(screen.getByLabelText(`${criteria.name} high slider`), { keyCode: KEY_LEFT /* Left Arrow */ });
+
+    // Arrange
+    expect(updateCriteria).toBeCalledWith({ ...criteria, low: min + 1 });
+    expect(updateCriteria).toBeCalledWith({ ...criteria, high: max - 1 });
   });
 
   it('can delete criteria', async () => {

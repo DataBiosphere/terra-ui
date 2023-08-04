@@ -24,8 +24,8 @@ const SwitchLabel = ({ isOn, onLabel, offLabel }) =>
 export const Switch = forwardRefWithName('Switch', ({ onChange, onLabel = 'True', offLabel = 'False', ...props }, ref) => {
   return h(RSwitch, {
     onChange: (value) => onChange(value),
-    offColor: colors.dark(0.5),
-    onColor: colors.success(1.2),
+    offColor: colors.dark(0.8),
+    onColor: colors.success(1.5),
     checkedIcon: h(SwitchLabel, { isOn: true, onLabel, offLabel }),
     uncheckedIcon: h(SwitchLabel, { isOn: false, onLabel, offLabel }),
     width: 80,

@@ -1,10 +1,10 @@
 import { formatDuration, intervalToDuration, isToday, isYesterday } from 'date-fns';
+import { AnyPromiseFn, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
+import { isToday, isYesterday } from 'date-fns';
 import { differenceInCalendarMonths, differenceInSeconds, parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { div, span } from 'react-hyperscript-helpers';
-import { AnyPromiseFn, GenericPromiseFn } from 'src/libs/type-utils/general-types';
-import { safeCurry } from 'src/libs/type-utils/lodash-fp-helpers';
 import { v4 as uuid } from 'uuid';
 
 import { getCloudProviderFromWorkspace, hasAccessLevel } from './workspace-utils';

@@ -273,7 +273,11 @@ export const Environments = ({ nav = undefined }: EnvironmentsProps) => {
   const [deleteAppId, setDeleteAppId] = useState();
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' });
   const [diskSort, setDiskSort] = useState({ field: 'project', direction: 'asc' });
-  const [shouldFilterByCreator, setShouldFilterByCreator] = useState(true);
+
+  // TODO [IA-4432] restore the stateful var when checkbox reintroduced
+  // const [shouldFilterByCreator, setShouldFilterByCreator] = useState(true);
+  const shouldFilterByCreator = true;
+
   const ajax = useReplaceableAjaxExperimental();
 
   const currentUser = getUser().email;
@@ -671,11 +675,12 @@ export const Environments = ({ nav = undefined }: EnvironmentsProps) => {
       h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '0 0 1rem 0', padding: 0 } }, [
         'Your cloud environments',
       ]),
-      div({ style: { marginBottom: '.5rem' } }, [
-        h(LabeledCheckbox, { checked: shouldFilterByCreator, onChange: setShouldFilterByCreator }, [
-          span({ style: { fontWeight: 600 } }, [' Hide resources you did not create']),
-        ]),
-      ]),
+      // TODO [IA-4432] reenable this checkbox when query performance is fixed
+      // div({ style: { marginBottom: '.5rem' } }, [
+      //   h(LabeledCheckbox, { checked: shouldFilterByCreator, onChange: setShouldFilterByCreator }, [
+      //     span({ style: { fontWeight: 600 } }, [' Hide resources you did not create']),
+      //   ]),
+      // ]),
       runtimes &&
         div({ style: { overflow: 'scroll', overflowWrap: 'break-word', wordBreak: 'break-all' } }, [
           h(SimpleFlexTable, {

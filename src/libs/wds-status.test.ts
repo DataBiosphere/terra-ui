@@ -1,7 +1,7 @@
+import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { Ajax } from 'src/libs/ajax';
 import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { WDSCloneStatusResponse } from 'src/libs/ajax/WorkspaceDataService';
-import { DeepPartial } from 'src/libs/type-utils/deep-partial';
 import { abandonedPromise } from 'src/libs/utils';
 import { asMockedFn, renderHookInAct } from 'src/testing/test-utils';
 

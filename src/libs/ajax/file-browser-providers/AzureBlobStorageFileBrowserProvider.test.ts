@@ -64,6 +64,7 @@ const blobPrefixXml = (name: string): string => {
 const expectedFile = (path: string): FileBrowserFile => ({
   path,
   url: `https://terra-ui-test.blob.core.windows.net/test-storage-container/${path}`,
+  contentType: 'text/plain',
   size: 1,
   createdAt: 1670455500000,
   updatedAt: 1670455800000,
@@ -264,6 +265,35 @@ describe('AzureBlobStorageFileBrowserProvider', () => {
     // Assert
     expect(fetchOk).toHaveBeenCalledWith(
       'https://terra-ui-test.blob.core.windows.net/test-storage-container/path/to/file.txt?tokenPlaceholder=value',
+      {
+        method: 'DELETE',
+      }
+    );
+  });
+
+  it('moves files', async () => {
+    // Arrange
+    asMockedFn(fetchOk).mockResolvedValue(new Response());
+
+    const provider = AzureBlobStorageFileBrowserProvider({ workspaceId: 'test-workspace' });
+
+    // Act
+    await provider.moveFile('path/to/source.txt', 'path/to/destination.txt');
+
+    // Assert
+    expect(fetchOk).toHaveBeenCalledWith(
+      'https://terra-ui-test.blob.core.windows.net/test-storage-container/path/to/destination.txt?tokenPlaceholder=value',
+      {
+        method: 'PUT',
+        headers: {
+          'x-ms-copy-source':
+            'https://terra-ui-test.blob.core.windows.net/test-storage-container/path/to/source.txt?tokenPlaceholder=value',
+        },
+      }
+    );
+
+    expect(fetchOk).toHaveBeenCalledWith(
+      'https://terra-ui-test.blob.core.windows.net/test-storage-container/path/to/source.txt?tokenPlaceholder=value',
       {
         method: 'DELETE',
       }
