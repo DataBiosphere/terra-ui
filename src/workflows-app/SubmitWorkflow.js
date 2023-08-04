@@ -55,6 +55,8 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     const signal = useCancellation();
     const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
     const currentApp = getCurrentApp(appToolLabels.CROMWELL, apps);
+    const pageReady = cbasReady && currentApp && !getIsAppBusy(currentApp);
+    const launcherDisabled = creating || (currentApp && getIsAppBusy(currentApp)) || (currentApp && !pageReady);
 
     const loadRunsData = useCallback(
       async (cbasProxyUrlDetails) => {
@@ -122,9 +124,6 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
         setCreating(false);
       }
     });
-
-    const pageReady = cbasReady && currentApp && !getIsAppBusy(currentApp);
-    const launcherDisabled = creating || (currentApp && getIsAppBusy(currentApp)) || (currentApp && !pageReady);
 
     return loading
       ? centeredSpinner()
