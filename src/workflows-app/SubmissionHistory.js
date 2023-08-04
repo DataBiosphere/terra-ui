@@ -94,11 +94,13 @@ export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
   // helper for auto-refresh
   const refresh = Utils.withBusyState(setLoading, async () => {
     try {
-      await loadAllRunSets(workflowsAppStore.get().cbasProxyUrlState);
+      if (workflowsAppStore.get().cbasProxyUrlState.state === AppProxyUrlStatus.Ready) {
+        await loadAllRunSets(workflowsAppStore.get().cbasProxyUrlState);
 
-      // only refresh if there are Run Sets in non-terminal state
-      if (_.some(({ state }) => !isRunSetInTerminalState(state), runSetsData)) {
-        scheduledRefresh.current = setTimeout(refresh, AutoRefreshInterval);
+        // only refresh if there are Run Sets in non-terminal state
+        if (_.some(({ state }) => !isRunSetInTerminalState(state), runSetsData)) {
+          scheduledRefresh.current = setTimeout(refresh, AutoRefreshInterval);
+        }
       }
     } catch (error) {
       notify('error', 'Error loading previous run sets', { detail: error instanceof Response ? await error.text() : error });
