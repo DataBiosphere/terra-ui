@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
@@ -18,13 +18,6 @@ jest.mock('src/libs/nav', () => ({
   getLink: jest.fn(),
   goToPath: jest.fn(),
 }));
-// jest.mock('src/components/PopupTrigger', () => {
-//   const originalModule = jest.requireActual('src/components/PopupTrigger');
-//   return {
-//     ...originalModule,
-//     MenuTrigger: jest.fn(),
-//   };
-// });
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
   getUser: jest.fn(),
@@ -151,10 +144,6 @@ describe('Submission Details page', () => {
     });
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
@@ -200,7 +189,7 @@ describe('Submission Details page', () => {
     expect(getRunsSets).toHaveBeenCalled();
     expect(getMethods).toHaveBeenCalled();
 
-    const table = screen.getByRole('table');
+    const table = await screen.findByRole('table');
 
     // Assert
     expect(table).toHaveAttribute('aria-colcount', '3');
@@ -211,22 +200,22 @@ describe('Submission Details page', () => {
 
     const headers = within(rows[0]).queryAllByRole('columnheader');
     expect(headers.length).toBe(3);
-    within(headers[0]).getByText('Sample ID');
-    within(headers[1]).getByText('Status');
-    within(headers[2]).getByText('Duration');
+    within(headers[0]).findByText('Sample ID');
+    within(headers[1]).findByText('Status');
+    within(headers[2]).findByText('Duration');
 
     // check data rows are rendered as expected (default sorting is by duration in desc order)
     const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell');
     expect(cellsFromDataRow1.length).toBe(3);
-    within(cellsFromDataRow1[0]).getByText('FOO2');
-    within(cellsFromDataRow1[1]).getByText('Failed');
-    within(cellsFromDataRow1[2]).getByText('52 minutes 10 seconds');
+    within(cellsFromDataRow1[0]).findByText('FOO2');
+    within(cellsFromDataRow1[1]).findByText('Failed');
+    within(cellsFromDataRow1[2]).findByText('52 minutes 10 seconds');
 
     const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell');
     expect(cellsFromDataRow2.length).toBe(3);
-    within(cellsFromDataRow2[0]).getByText('FOO1');
-    within(cellsFromDataRow2[1]).getByText('Succeeded');
-    within(cellsFromDataRow2[2]).getByText('37 seconds');
+    within(cellsFromDataRow2[0]).findByText('FOO1');
+    within(cellsFromDataRow2[1]).findByText('Succeeded');
+    within(cellsFromDataRow2[2]).findByText('37 seconds');
   });
 
   it('should display standard message when there are no saved workflows', async () => {
@@ -265,23 +254,22 @@ describe('Submission Details page', () => {
       );
     });
 
-    await waitFor(() => {
-      expect(getRuns).toHaveBeenCalled();
-      expect(getRunsSets).toHaveBeenCalled();
-      expect(getMethods).toHaveBeenCalled();
-    });
+    expect(getRuns).toHaveBeenCalled();
+    expect(getRunsSets).toHaveBeenCalled();
+    expect(getMethods).toHaveBeenCalled();
 
-    const table = screen.getByRole('table');
+    const table = await screen.findByRole('table');
 
     // Assert
     expect(table).toHaveAttribute('aria-colcount', '3');
     expect(table).toHaveAttribute('aria-rowcount', '1');
 
     // check that noContentMessage shows up as expected
-    screen.getByText('Nothing here yet! Your previously run workflows will be displayed here.');
+    screen.findByText('Nothing here yet! Your previously run workflows will be displayed here.');
   });
 
   it('should sort by duration column properly', async () => {
+    const user = userEvent.setup();
     const getRuns = jest.fn(() => Promise.resolve(runsData));
     const mockLeoResponse = jest.fn(() => Promise.resolve(mockAzureApps));
     Ajax.mockImplementation(() => {
@@ -310,7 +298,7 @@ describe('Submission Details page', () => {
     });
 
     // Assert
-    const table = screen.getByRole('table');
+    const table = await screen.findByRole('table');
     const rows = within(table).queryAllByRole('row');
     expect(rows.length).toBe(3);
 
@@ -318,49 +306,45 @@ describe('Submission Details page', () => {
     expect(headers.length).toBe(3);
 
     // Act - click on sort button on Duration column to sort by ascending order
-    await act(async () => {
-      await fireEvent.click(within(headers[2]).getByRole('button'));
-    });
+    user.click(await within(headers[2]).findByRole('button'));
 
     // Assert
     // check that rows are now sorted by duration in ascending order
     const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell');
     expect(cellsFromDataRow1.length).toBe(3);
-    within(cellsFromDataRow1[0]).getByText('FOO1');
-    within(cellsFromDataRow1[1]).getByText('Succeeded');
-    within(cellsFromDataRow1[2]).getByText('37 seconds');
+    await within(cellsFromDataRow1[0]).findByText('FOO1');
+    await within(cellsFromDataRow1[1]).findByText('Succeeded');
+    await within(cellsFromDataRow1[2]).findByText('37 seconds');
 
     const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell');
     expect(cellsFromDataRow2.length).toBe(3);
-    within(cellsFromDataRow2[0]).getByText('FOO2');
-    within(cellsFromDataRow2[1]).getByText('Failed');
-    within(cellsFromDataRow2[2]).getByText('52 minutes 10 seconds');
+    await within(cellsFromDataRow2[0]).findByText('FOO2');
+    await within(cellsFromDataRow2[1]).findByText('Failed');
+    await within(cellsFromDataRow2[2]).findByText('52 minutes 10 seconds');
 
     // Act - click on sort button on Duration column to sort by descending order
-    await act(async () => {
-      await fireEvent.click(within(headers[2]).getByRole('button'));
-    });
+    user.click(await within(headers[2]).findByRole('button'));
 
     // Assert
     // check that rows are now sorted by duration in descending order
     const cellsFromUpdatedDataRow1 = within(rows[1]).queryAllByRole('cell');
     expect(cellsFromUpdatedDataRow1.length).toBe(3);
-    within(cellsFromUpdatedDataRow1[0]).getByText('FOO2');
-    within(cellsFromUpdatedDataRow1[1]).getByText('Failed');
-    within(cellsFromUpdatedDataRow1[2]).getByText('52 minutes 10 seconds');
+    await within(cellsFromUpdatedDataRow1[0]).findByText('FOO2');
+    await within(cellsFromUpdatedDataRow1[1]).findByText('Failed');
+    await within(cellsFromUpdatedDataRow1[2]).findByText('52 minutes 10 seconds');
 
     const cellsFromUpdatedDataRow2 = within(rows[2]).queryAllByRole('cell');
     expect(cellsFromUpdatedDataRow2.length).toBe(3);
-    within(cellsFromUpdatedDataRow2[0]).getByText('FOO1');
-    within(cellsFromUpdatedDataRow2[1]).getByText('Succeeded');
-    within(cellsFromUpdatedDataRow2[2]).getByText('37 seconds');
+    await within(cellsFromUpdatedDataRow2[0]).findByText('FOO1');
+    await within(cellsFromUpdatedDataRow2[1]).findByText('Succeeded');
+    await within(cellsFromUpdatedDataRow2[2]).findByText('37 seconds');
   });
 
   it('display run set details', async () => {
     const getRuns = jest.fn(() => Promise.resolve(runsData));
     const getRunsSets = jest.fn(() => Promise.resolve(runSetData));
     const getMethods = jest.fn(() => Promise.resolve(methodData));
-    await Ajax.mockImplementation(() => {
+    Ajax.mockImplementation(() => {
       return {
         Cbas: {
           runs: {
@@ -388,16 +372,14 @@ describe('Submission Details page', () => {
       );
     });
 
-    await waitFor(() => {
-      expect(getRunsSets).toHaveBeenCalled();
-      expect(getMethods).toHaveBeenCalled();
-    });
+    expect(getRunsSets).toHaveBeenCalled();
+    expect(getMethods).toHaveBeenCalled();
 
-    await screen.getByText(/Submission e8347247-4738-4ad1-a591-56c119f93f58/);
-    await screen.getByText(/Submission name: hello world/);
-    await screen.getByText(/Workflow name: Hello world/);
-    await screen.getByText(/Submission date: Dec 8, 2022/);
-    await screen.getByText(/Duration: 17 hours 2 minutes/);
+    await screen.findByText(/Submission e8347247-4738-4ad1-a591-56c119f93f58/);
+    await screen.findByText(/Submission name: hello world/);
+    await screen.findByText(/Workflow name: Hello world/);
+    await screen.findByText(/Submission date: Dec 8, 2022/);
+    await screen.findByText(/Duration: 17 hours 2 minutes/);
   });
 
   it('should correctly set default option', async () => {
@@ -413,7 +395,7 @@ describe('Submission Details page', () => {
       );
     });
 
-    await screen.getByText(/None selected/);
+    await screen.findByText(/None selected/);
   });
 
   it('should correctly select and change results', async () => {
@@ -449,17 +431,15 @@ describe('Submission Details page', () => {
       );
     });
 
-    await waitFor(() => {
-      expect(getRuns).toHaveBeenCalled();
-      expect(getRunsSets).toHaveBeenCalled();
-      expect(getMethods).toHaveBeenCalled();
-    });
+    expect(getRuns).toHaveBeenCalled();
+    expect(getRunsSets).toHaveBeenCalled();
+    expect(getMethods).toHaveBeenCalled();
 
-    const dropdown = screen.getByLabelText('Filter selection');
+    const dropdown = await screen.findByLabelText('Filter selection');
     const filterDropdown = new SelectHelper(dropdown, user);
     await filterDropdown.selectOption('Error');
 
-    const table = screen.getByRole('table');
+    const table = await screen.findByRole('table');
 
     // Assert
     expect(table).toHaveAttribute('aria-colcount', '3');
@@ -470,16 +450,16 @@ describe('Submission Details page', () => {
 
     const headers = within(rows[0]).queryAllByRole('columnheader');
     expect(headers.length).toBe(3);
-    within(headers[0]).getByText('Sample ID');
-    within(headers[1]).getByText('Status');
-    within(headers[2]).getByText('Duration');
+    await within(headers[0]).findByText('Sample ID');
+    await within(headers[1]).findByText('Status');
+    await within(headers[2]).findByText('Duration');
 
     // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell');
     expect(cellsFromDataRow1.length).toBe(3);
-    within(cellsFromDataRow1[0]).getByText('FOO2');
-    within(cellsFromDataRow1[1]).getByText('Failed');
-    within(cellsFromDataRow1[2]).getByText('52 minutes 10 seconds');
+    await within(cellsFromDataRow1[0]).findByText('FOO2');
+    await within(cellsFromDataRow1[1]).findByText('Failed');
+    await within(cellsFromDataRow1[2]).findByText('52 minutes 10 seconds');
   });
 
   it('should correctly display a very recently started run', async () => {
@@ -525,7 +505,7 @@ describe('Submission Details page', () => {
       );
     });
 
-    const table = screen.getByRole('table');
+    const table = await screen.findByRole('table');
 
     // Assert
     expect(table).toHaveAttribute('aria-colcount', '3');
@@ -536,15 +516,15 @@ describe('Submission Details page', () => {
 
     const headers = within(rows[0]).queryAllByRole('columnheader');
     expect(headers.length).toBe(3);
-    within(headers[0]).getByText('Sample ID');
-    within(headers[1]).getByText('Status');
-    within(headers[2]).getByText('Duration');
+    await within(headers[0]).findByText('Sample ID');
+    await within(headers[1]).findByText('Status');
+    await within(headers[2]).findByText('Duration');
 
     // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell');
     expect(cellsFromDataRow1.length).toBe(3);
-    within(cellsFromDataRow1[0]).getByText('FOO2');
-    within(cellsFromDataRow1[1]).getByText('Initializing'); // Note: not UNKNOWN!
+    await within(cellsFromDataRow1[0]).findByText('FOO2');
+    await within(cellsFromDataRow1[1]).findByText('Initializing'); // Note: not UNKNOWN!
     // << Don't validate duration here since it depends on the test rendering time and is not particularly relevant >>
   });
 
@@ -592,7 +572,7 @@ describe('Submission Details page', () => {
       );
     });
 
-    expect(screen.getByText('Workflow statuses are all up to date.')).toBeInTheDocument();
+    expect(await screen.findByText('Workflow statuses are all up to date.')).toBeInTheDocument();
   });
 
   it('should indicate incompletely updated polls', async () => {
@@ -619,6 +599,6 @@ describe('Submission Details page', () => {
       );
     });
 
-    expect(screen.getByText('Some workflow statuses are not up to date. Refreshing the page may update more statuses.')).toBeInTheDocument();
+    expect(await screen.findByText('Some workflow statuses are not up to date. Refreshing the page may update more statuses.')).toBeInTheDocument();
   });
 });
