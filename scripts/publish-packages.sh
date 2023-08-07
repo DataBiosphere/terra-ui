@@ -9,6 +9,10 @@ for d in */ ; do
     echo "Current version of ${PACKAGE_NAME} in repository is ${PUBLISHED_VERSION}."
 
     if [[ ${PUBLISHED_VERSION} != ${PACKAGE_VERSION} ]]; then
+      echo "Building ${PACKAGE_NAME}."
+      yarn build
+
+      echo "Publishing ${PACKAGE_NAME}."
       npm publish
       echo "Successfully published version ${PACKAGE_VERSION} of ${PACKAGE_NAME}."
     else

@@ -122,7 +122,7 @@ jobs:
       - name: Publish packages to NPM registry on merge commits
         working-directory: packages
         run: |
-          npx google-artifactregistry-auth --yes
+          npx google-artifactregistry-auth --yes --credential-config ./.npmrc --repo-config ./.npmrc
           ../scripts/publish-packages.sh
 
   report-to-sherlock:
