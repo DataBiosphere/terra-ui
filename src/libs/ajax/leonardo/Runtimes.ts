@@ -12,7 +12,6 @@ import {
   makeRequestRetry,
 } from 'src/libs/ajax/ajax-common';
 import {
-  ListRuntimeItem,
   SanitizedGetRuntimeItem,
   SanitizedListRuntimeItem,
   sanitizeGetRuntime,
@@ -206,12 +205,16 @@ export const Runtimes = (signal) => {
     listV2WithWorkspace: async (
       workspaceId: string,
       labels: Record<string, string> = {}
-    ): Promise<ListRuntimeItem[]> => {
+    ): Promise<SanitizedListRuntimeItem[]> => {
       const res = await fetchLeo(
         `api/v2/runtimes/${workspaceId}?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
         _.mergeAll([authOpts(), appIdentifier, { signal }])
       );
-      return res.json();
+      const runtimeList = await res.json();
+      const sanitizedRuntimeList = _.map((runtime) => {
+        return sanitizeListRuntime(runtime);
+      }, runtimeList);
+      return sanitizedRuntimeList;
     },
 
     deleteAll: (workspaceId: string, deleteDisk = true): Promise<void> => {

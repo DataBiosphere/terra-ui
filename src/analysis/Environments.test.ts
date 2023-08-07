@@ -21,7 +21,7 @@ import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax, useReplaceableAjaxExperimental } from 'src/libs/ajax';
 import { authOpts, fetchLeo } from 'src/libs/ajax/ajax-common';
-import { ListRuntimeItem, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { Runtime, runtimeStatuses, SanitizedListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
@@ -75,7 +75,7 @@ jest.mock('src/libs/state', () => ({
   getUser: jest.fn(),
 }));
 
-const listRuntimesV2: () => Promise<ListRuntimeItem[]> = jest.fn();
+const listRuntimesV2: () => Promise<SanitizedListRuntimeItem[]> = jest.fn();
 const listWithoutProject: () => Promise<ListAppResponse[]> = jest.fn();
 const list: () => Promise<ListDiskItem[]> = jest.fn();
 const mockFetchLeo = jest.fn();
