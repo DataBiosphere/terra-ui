@@ -1,3 +1,5 @@
+SCRIPTS_DIR="$(dirname "$0")"
+cd "${SCRIPTS_DIR}/../packages"
 for d in */ ; do
     cd $d
 
