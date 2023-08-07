@@ -1,3 +1,4 @@
+import _ from 'lodash/fp';
 import { ToolLabel } from 'src/analysis/utils/tool-utils';
 import { AuditInfo, CloudContext, LeoError, LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models';
 import { DiskConfig } from 'src/libs/ajax/leonardo/models/disk-models';
@@ -55,6 +56,20 @@ export interface RuntimeError extends LeoError {
 
 export interface ListRuntimeItem {
   id: number;
+  workspaceId: string | null;
+  runtimeName: string;
+  googleProject: string;
+  cloudContext: CloudContext;
+  auditInfo: AuditInfo;
+  runtimeConfig: RuntimeConfig;
+  proxyUrl: string;
+  status: LeoRuntimeStatus;
+  labels: RuntimeLabels;
+  patchInProgress: boolean;
+}
+
+export interface SanitizedListRuntimeItem {
+  id: number;
   workspaceId?: string;
   runtimeName: string;
   googleProject: string;
@@ -66,6 +81,9 @@ export interface ListRuntimeItem {
   labels: RuntimeLabels;
   patchInProgress: boolean;
 }
+
+export const sanitizeListRuntime = (listRuntime: ListRuntimeItem): SanitizedListRuntimeItem =>
+  _.omitBy((value, key) => key === 'workspaceId' && value === null, listRuntime) as SanitizedListRuntimeItem;
 
 export interface AsyncRuntimeFields {
   googleId: string;
@@ -87,7 +105,7 @@ export interface LeoRuntimeImage {
   timestamp: string;
 }
 
-export interface GetRuntimeItem {
+export interface SanitizedGetRuntimeItem {
   id: number;
   runtimeName: string;
   googleProject: string;
@@ -114,7 +132,47 @@ export interface GetRuntimeItem {
   patchInProgress: boolean;
 }
 
-export type Runtime = GetRuntimeItem | ListRuntimeItem;
+export interface GetRuntimeItem {
+  id: number;
+  runtimeName: string;
+  googleProject: string;
+  cloudContext: CloudContext;
+  serviceAccount: string;
+  asyncRuntimeFields: AsyncRuntimeFields | null;
+  auditInfo: AuditInfo;
+  runtimeConfig: RuntimeConfig;
+  proxyUrl: string;
+  status: LeoRuntimeStatus;
+  labels: RuntimeLabels;
+  userScriptUri: string | null;
+  startUserScriptUri: string | null;
+  jupyterUserScriptUri: string | null;
+  jupyterStartUserScriptUri: string | null;
+  errors: RuntimeError[];
+  userJupyterExtensionConfig: UserJupyterExtensionConfig | null;
+  autopauseThreshold: number;
+  defaultClientId: string | null;
+  runtimeImages: LeoRuntimeImage[];
+  scopes: string[];
+  customEnvironmentVariables: Record<string, any>;
+  diskConfig: DiskConfig | null;
+  patchInProgress: boolean;
+}
+
+const optionalFields = new Set([
+  'asyncRuntimeFields',
+  'userScriptUri',
+  'startUserScriptUri',
+  'jupyterUserScriptUri',
+  'jupyterStartUserScriptUri',
+  'userJupyterExtensionConfig',
+  'defaultClientId',
+  'diskConfig',
+]);
+export const sanitizeGetRuntime = (getRuntime: GetRuntimeItem): SanitizedGetRuntimeItem =>
+  _.omitBy((value, key) => optionalFields.has(key) && value === null, getRuntime) as SanitizedGetRuntimeItem;
+
+export type Runtime = SanitizedGetRuntimeItem | SanitizedListRuntimeItem;
 export const isRuntime = (obj: any): obj is Runtime => {
   const castRuntime = obj as Runtime;
   return (
