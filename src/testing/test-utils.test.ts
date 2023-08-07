@@ -88,7 +88,7 @@ describe('getSelectedOptions', () => {
     expect(selectedOptions).toEqual([]);
   });
 
-  it('returns empty list when no options are selected', () => {
+  it('returns single-label list when one option is selected', () => {
     // Arrange
     const user = userEvent.setup();
 
@@ -112,7 +112,7 @@ describe('getSelectedOptions', () => {
     expect(selectedOptions).toEqual(['Foo']);
   });
 
-  it('returns empty list when no options are selected', () => {
+  it('returns multiple-label list when multiple options are selected', () => {
     // Arrange
     const user = userEvent.setup();
 
