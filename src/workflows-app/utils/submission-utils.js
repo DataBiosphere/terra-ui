@@ -2,9 +2,7 @@ import _ from 'lodash/fp';
 import { div } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
 import { statusType as jobStatusType } from 'src/components/job-common';
-import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
-import { notify } from 'src/libs/notifications';
 import { differenceFromDatesInSeconds, differenceFromNowInSeconds } from 'src/libs/utils';
 import * as Utils from 'src/libs/utils';
 
@@ -45,19 +43,6 @@ export const isRunInTerminalState = (runStatus) => RunTerminalStates.includes(ru
 
 export const getDuration = (state, submissionDate, lastModifiedTimestamp, stateCheckCallback) => {
   return stateCheckCallback(state) ? differenceFromDatesInSeconds(submissionDate, lastModifiedTimestamp) : differenceFromNowInSeconds(submissionDate);
-};
-
-export const loadAllRunSets = async (signal) => {
-  try {
-    const getRunSets = await Ajax(signal).Cbas.runSets.get();
-    const durationEnhancedRunSets = _.map(
-      (r) => _.merge(r, { duration: getDuration(r.state, r.submission_timestamp, r.last_modified_timestamp, isRunSetInTerminalState) }),
-      getRunSets.run_sets
-    );
-    return _.merge(getRunSets, { run_sets: durationEnhancedRunSets });
-  } catch (error) {
-    notify('error', 'Error getting run set data', { detail: error instanceof Response ? await error.text() : error });
-  }
 };
 
 export const parseMethodString = (methodString) => {

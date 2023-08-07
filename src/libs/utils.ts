@@ -1,5 +1,5 @@
 import { AnyPromiseFn, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
-import { isToday, isYesterday } from 'date-fns';
+import { formatDuration, intervalToDuration, isToday, isYesterday } from 'date-fns';
 import { differenceInCalendarMonths, differenceInSeconds, parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
@@ -259,6 +259,11 @@ export const nextSort = ({ field, direction }, newField) => {
   return newField === field
     ? { field, direction: direction === 'asc' ? 'desc' : 'asc' }
     : { field: newField, direction: 'asc' };
+};
+
+export const customFormatDuration = (seconds) => {
+  const durations = intervalToDuration({ start: 0, end: seconds * 1000 }); // this function expects milliseconds
+  return formatDuration(durations);
 };
 
 // TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
