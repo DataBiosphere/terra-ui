@@ -227,13 +227,14 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
       {
         label: 'Submission History',
         path: 'workspace-workflows-app-submission-history',
+        params: { name, namespace },
       },
       {
         label: `Submission ${submissionId}`,
       },
     ];
     return h(HeaderSection, { breadcrumbPathObjects, title: 'Submission Details', button: SubmitNewWorkflowButton });
-  }, [submissionId]);
+  }, [name, namespace, submissionId]);
 
   const rowWidth = 100;
   const rowHeight = 50;
@@ -392,9 +393,6 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                           },
                         },
                       ],
-                      styleCell: ({ rowIndex }) => {
-                        return rowIndex % 2 && { backgroundColor: colors.light(0.2) };
-                      },
                     }),
                 ]),
               ]
