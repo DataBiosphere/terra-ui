@@ -180,7 +180,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
         scheduledRefresh.current = setTimeout(refresh, AutoRefreshInterval);
       }
     } catch (error) {
-      notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) });
+      notify('error', 'Error loading previous runs', { detail: error instanceof Response ? await error.text() : error });
     }
   });
 
