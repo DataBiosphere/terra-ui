@@ -9,6 +9,8 @@ describe('getValidIgvFiles', () => {
         'gs://bucket/test2.bai',
         'gs://bucket/test3.bam',
         'gs://bucket/test3.bam.bai',
+        'gs://bucket/test4.sorted.bam',
+        'gs://bucket/test4.sorted.bam.bai',
       ])
     ).toEqual([
       {
@@ -18,6 +20,10 @@ describe('getValidIgvFiles', () => {
       {
         filePath: 'gs://bucket/test3.bam',
         indexFilePath: 'gs://bucket/test3.bam.bai',
+      },
+      {
+        filePath: 'gs://bucket/test4.sorted.bam',
+        indexFilePath: 'gs://bucket/test4.sorted.bam.bai',
       },
     ]);
   });
