@@ -101,7 +101,6 @@ const GCSFileBrowserProvider = ({
   };
 
   return {
-    supportsEmptyDirectories: true,
     getFilesInDirectory: (path, { signal } = {}) =>
       getNextPage({
         isFirstPage: true,
@@ -109,6 +108,9 @@ const GCSFileBrowserProvider = ({
         mapItemOrPrefix: (item) => ({
           path: item.name,
           url: `gs://${item.bucket}/${item.name}`,
+          // If an object is stored without a Content-Type, it is served as application/octet-stream.
+          // https://cloud.google.com/storage/docs/json_api/v1/objects#resource-representations
+          contentType: item.contentType || 'application/octet-stream',
           size: parseInt(item.size),
           createdAt: new Date(item.timeCreated).getTime(),
           updatedAt: new Date(item.updated).getTime(),
@@ -137,6 +139,10 @@ const GCSFileBrowserProvider = ({
     },
     deleteFile: async (path: string): Promise<void> => {
       await Ajax().Buckets.delete(project, bucket, path);
+    },
+    moveFile: async (sourcePath: string, destinationPath: string): Promise<void> => {
+      await Ajax().Buckets.copyWithinBucket(project, bucket, sourcePath, destinationPath);
+      await Ajax().Buckets.delete(project, bucket, sourcePath);
     },
     createEmptyDirectory: async (directoryPath: string) => {
       // Create a placeholder object for the new folder.

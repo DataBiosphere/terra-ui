@@ -10,7 +10,7 @@ export const SkipNavLink = forwardRefWithName('SkipNavLink', (props = {}, ref) =
     Link,
     _.merge(
       {
-        as: 'a',
+        tagName: 'a',
         href: '#',
         className: 'reveal-on-focus',
         style: {

@@ -1,3 +1,4 @@
+import { withHandlers } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, ReactElement, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
@@ -9,7 +10,6 @@ import { getEnabledBrand } from 'src/libs/brand-utils';
 import { withErrorReporting } from 'src/libs/error';
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { dataCatalogStore } from 'src/libs/state';
-import { withHandlers } from 'src/libs/type-utils/lodash-fp-helpers';
 import * as Utils from 'src/libs/utils';
 import { commonStyles } from 'src/pages/library/SearchAndFilterComponent';
 

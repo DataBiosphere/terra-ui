@@ -1,3 +1,4 @@
+import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
@@ -7,7 +8,6 @@ import { Ajax } from 'src/libs/ajax';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { errorWatcher } from 'src/libs/error.mock';
 import { getUser } from 'src/libs/state';
-import { DeepPartial } from 'src/libs/type-utils/deep-partial';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
 

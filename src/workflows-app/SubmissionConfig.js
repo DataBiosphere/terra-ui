@@ -1,20 +1,24 @@
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
-import { a, div, h, h2, span } from 'react-hyperscript-helpers';
+import { a, div, h, h2, label, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link, Select } from 'src/components/common';
+import { Switch } from 'src/components/common/Switch';
 import { styles as errorStyles } from 'src/components/ErrorView';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { TextArea, TextInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
+import { InfoBox } from 'src/components/PopupTrigger';
 import StepButtons from 'src/components/StepButtons';
 import { TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_CROMWELL_APP_CALL_CACHING } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
-import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
+import { useCancellation, useOnMount, usePollingEffect, useUniqueId } from 'src/libs/react-utils';
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { maybeParseJSON } from 'src/libs/utils';
@@ -57,6 +61,7 @@ export const BaseSubmissionConfig = (
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState();
   const [inputValidations, setInputValidations] = useState([]);
   const [viewWorkflowScriptModal, setViewWorkflowScriptModal] = useState(false);
+  const [isCallCachingEnabled, setIsCallCachingEnabled] = useState(true);
 
   const [runSetName, setRunSetName] = useState('');
   const [runSetDescription, setRunSetDescription] = useState('');
@@ -116,6 +121,10 @@ export const BaseSubmissionConfig = (
         setConfiguredInputDefinition(maybeParseJSON(newRunSetData.input_definition));
         setConfiguredOutputDefinition(maybeParseJSON(newRunSetData.output_definition));
         setSelectedRecordType(newRunSetData.record_type);
+
+        let callCache = maybeParseJSON(newRunSetData.call_caching_enabled);
+        callCache = _.isEmpty(callCache) ? true : callCache; // avoid setting boolean to undefined, default to true
+        setIsCallCachingEnabled(callCache);
 
         return newRunSetData;
       } catch (error) {
@@ -227,12 +236,12 @@ export const BaseSubmissionConfig = (
         method_version_id: selectedMethodVersion.method_version_id,
         workflow_input_definitions: _.map(convertArrayType)(configuredInputDefinition),
         workflow_output_definitions: configuredOutputDefinition,
+        call_caching_enabled: isCallCachingEnabled,
         wds_records: {
           record_type: selectedRecordType,
           record_ids: _.keys(selectedRecords),
         },
       };
-
       setIsSubmitting(true);
       const {
         cbasProxyUrlState: { state: cbasUrl },
@@ -332,6 +341,12 @@ export const BaseSubmissionConfig = (
     { ms: WdsPollInterval, leading: false }
   );
 
+  const getSupportLink = (article) => {
+    return `https://support.terra.bio/hc/en-us/articles/${article}`;
+  };
+
+  const callCacheId = useUniqueId();
+
   const renderSummary = () => {
     return div({ style: { marginLeft: '2em', marginTop: '1rem', display: 'flex', justifyContent: 'space-between' } }, [
       div([
@@ -384,7 +399,30 @@ export const BaseSubmissionConfig = (
             ),
           ]),
         ]),
-        div({ style: { marginTop: '2rem', height: '2rem', fontWeight: 'bold' } }, ['Select a data table']),
+        isFeaturePreviewEnabled(ENABLE_CROMWELL_APP_CALL_CACHING) &&
+          div({ style: { marginTop: '1rem' } }, [
+            label({ htmlFor: callCacheId, style: { height: '2rem', marginRight: '0.25rem', fontWeight: 'bold', display: 'inline-block' } }, [
+              'Call Caching:',
+            ]),
+            div({ style: { display: 'inline-block', marginRight: '1rem' } }, [
+              h(InfoBox, [
+                "Call caching detects when a job has been run in the past so that it doesn't have to re-compute results. ",
+                h(Link, { href: getSupportLink('360047664872'), ...Utils.newTabLinkProps }, ['Click here to learn more.']),
+              ]),
+            ]),
+            div({ style: { display: 'inline-block' } }, [
+              h(Switch, {
+                id: callCacheId,
+                checked: isCallCachingEnabled,
+                onChange: (newValue) => {
+                  setIsCallCachingEnabled(newValue);
+                },
+                onLabel: 'On',
+                offLabel: 'Off',
+              }),
+            ]),
+          ]),
+        div({ style: { marginTop: '1rem', height: '2rem', fontWeight: 'bold' } }, ['Select a data table:']),
         div({}, [
           h(Select, {
             isDisabled: false,

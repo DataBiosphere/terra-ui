@@ -16,6 +16,7 @@ describe('DownloadFileLink', () => {
   const file: FileBrowserFile = {
     path: 'path/to/example.txt',
     url: 'gs://test-bucket/path/to/example.txt',
+    contentType: 'text/plain',
     size: 1024 ** 2,
     createdAt: 1667408400000,
     updatedAt: 1667494800000,

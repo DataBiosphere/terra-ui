@@ -1,3 +1,4 @@
+import { NominalType } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { RuntimeToolLabel, runtimeToolLabels, ToolLabel } from 'src/analysis/utils/tool-utils';
 import { gpuTypes, machineTypes, zonesToGpus } from 'src/data/gce-machines';
@@ -11,7 +12,6 @@ import {
   isGceWithPdConfig,
 } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { DisplayRuntimeStatus, LeoRuntimeStatus, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
-import { NominalType } from 'src/libs/type-utils/type-helpers';
 import * as Utils from 'src/libs/utils';
 import { CloudProvider } from 'src/libs/workspace-utils';
 

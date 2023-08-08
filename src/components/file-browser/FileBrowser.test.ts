@@ -41,6 +41,7 @@ describe('FileBrowser', () => {
       {
         path: 'file.txt',
         url: 'gs://test-bucket/file.txt',
+        contentType: 'text/plain',
         size: 1024,
         createdAt: 1667408400000,
         updatedAt: 1667408400000,
@@ -77,6 +78,7 @@ describe('FileBrowser', () => {
           {
             path: 'file.txt',
             url: 'gs://test-bucket/file.txt',
+            contentType: 'text/plain',
             size: 1024,
             createdAt: 1667408400000,
             updatedAt: 1667408400000,

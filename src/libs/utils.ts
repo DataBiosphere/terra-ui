@@ -1,10 +1,9 @@
-import { isToday, isYesterday } from 'date-fns';
+import { AnyPromiseFn, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
+import { formatDuration, intervalToDuration, isToday, isYesterday } from 'date-fns';
 import { differenceInCalendarMonths, differenceInSeconds, parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { div, span } from 'react-hyperscript-helpers';
-import { AnyPromiseFn, GenericPromiseFn } from 'src/libs/type-utils/general-types';
-import { safeCurry } from 'src/libs/type-utils/lodash-fp-helpers';
 import { v4 as uuid } from 'uuid';
 
 import { getCloudProviderFromWorkspace, hasAccessLevel } from './workspace-utils';
@@ -260,6 +259,11 @@ export const nextSort = ({ field, direction }, newField) => {
   return newField === field
     ? { field, direction: direction === 'asc' ? 'desc' : 'asc' }
     : { field: newField, direction: 'asc' };
+};
+
+export const customFormatDuration = (seconds) => {
+  const durations = intervalToDuration({ start: 0, end: seconds * 1000 }); // this function expects milliseconds
+  return formatDuration(durations);
 };
 
 // TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67

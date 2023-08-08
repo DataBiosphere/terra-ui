@@ -3,6 +3,7 @@ import IncrementalResponse from 'src/libs/ajax/incremental-response/IncrementalR
 export interface FileBrowserFile {
   path: string;
   url: string;
+  contentType: string;
   size: number;
   createdAt: number;
   updatedAt: number;
@@ -13,8 +14,6 @@ export interface FileBrowserDirectory {
 }
 
 interface FileBrowserProvider {
-  supportsEmptyDirectories: boolean;
-
   getDirectoriesInDirectory(
     path: string,
     options?: { signal?: AbortSignal }
@@ -25,6 +24,7 @@ interface FileBrowserProvider {
 
   uploadFileToDirectory(directoryPath: string, file: File): Promise<void>;
   deleteFile(path: string): Promise<void>;
+  moveFile(sourcePath: string, destinationPath: string): Promise<void>;
 
   createEmptyDirectory(directoryPath: string): Promise<FileBrowserDirectory>;
   deleteEmptyDirectory(directoryPath: string): Promise<void>;

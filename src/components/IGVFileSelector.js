@@ -4,7 +4,6 @@ import { div, h } from 'react-hyperscript-helpers';
 import { AutoSizer, List } from 'react-virtualized';
 import ButtonBar from 'src/components/ButtonBar';
 import { ButtonPrimary, LabeledCheckbox, Link } from 'src/components/common';
-import { parseGsUri } from 'src/components/data/data-utils';
 import IGVReferenceSelector, { addIgvRecentlyUsedReference, defaultIgvReference } from 'src/components/IGVReferenceSelector';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -13,27 +12,86 @@ const getStrings = (v) => {
   return Utils.cond([_.isString(v), () => [v]], [!!v?.items, () => _.flatMap(getStrings, v.items)], () => []);
 };
 
+const splitExtension = (fileUrl) => {
+  const extensionDelimiterIndex = fileUrl.lastIndexOf('.');
+  const base = fileUrl.slice(0, extensionDelimiterIndex);
+  const extension = fileUrl.slice(extensionDelimiterIndex + 1);
+  return [base, extension];
+};
+
+const UUID_PATTERN = '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}';
+
+const UUID_REGEX = new RegExp(UUID_PATTERN);
+
+const isUUID = (s) => UUID_REGEX.test(s);
+
+const isTdrUrl = (fileUrl) => {
+  const parts = fileUrl.split('/').slice(2);
+  const bucket = parts[0];
+  const datasetId = parts[1];
+  const fileRefId = parts[2];
+  return /datarepo(-(dev|alpha|perf|staging|tools))?-[a-f0-9]+-bucket/.test(bucket) && isUUID(datasetId) && isUUID(fileRefId);
+};
+
+const findIndexForFile = (fileUrl, fileUrls) => {
+  if (!['.cram', '.bam', '.vcf'].some((extension) => fileUrl.endsWith(extension))) {
+    return undefined;
+  }
+
+  if (isTdrUrl(fileUrl)) {
+    const parts = fileUrl.split('/').slice(2);
+    const bucket = parts[0];
+    const datasetId = parts[1];
+    // parts[2] is the fileRef. Skip it since the index file will have a different file ref.
+    const otherPathSegments = parts.slice(3, -1);
+    const filename = parts.at(-1);
+    const [base, extension] = splitExtension(filename);
+    const indexCandidates = {
+      cram: [`${base}.crai`, `${base}.cram.crai`],
+      bam: [`${base}.bai`, `${base}.bam.bai`],
+      vcf: [`${base}.idx`, `${base}.vcf.idx`, `${base}.tbi`, `${base}.vcf.tbi`],
+    }[extension].map((candidate) => new RegExp([`gs://${bucket}`, datasetId, UUID_PATTERN, ...otherPathSegments, candidate].join('/')));
+    return fileUrls.find((url) => indexCandidates.some((candidate) => candidate.test(url)));
+  }
+  const [base, extension] = splitExtension(fileUrl);
+  const indexCandidates = {
+    cram: [`${base}.crai`, `${base}.cram.crai`],
+    bam: [`${base}.bai`, `${base}.bam.bai`],
+    vcf: [`${base}.idx`, `${base}.vcf.idx`, `${base}.tbi`, `${base}.vcf.tbi`],
+  }[extension];
+
+  return fileUrls.find((url) => indexCandidates.includes(url));
+};
+
 export const getValidIgvFiles = (values) => {
-  return _.flatMap((value) => {
-    const possibleFile = /(.+)\.([^.]+)$/.exec(value);
+  const relevantFileTypes = ['bam', 'bai', 'cram', 'crai', 'vcf', 'idx', 'tbi', 'bed'];
+  const fileUrls = values.filter((value) => {
+    let url;
+    try {
+      // Filter to values containing URLs.
+      url = new URL(value);
 
-    if (_.isEmpty(parseGsUri(value)) || !possibleFile) {
-      return [];
+      // Filter to GCS URLs (IGV.js supports GCS URLs).
+      if (url.protocol !== 'gs:') {
+        return false;
+      }
+
+      // Filter to URLs that point to a file with one of the relevant extensions.
+      const basename = url.pathname.split('/').at(-1);
+      const [base, extension] = splitExtension(basename);
+      return !!base && relevantFileTypes.includes(extension);
+    } catch (err) {
+      return false;
     }
+  });
 
-    const [, base, extension] = possibleFile;
-
-    const matchingIndexFilePath = Utils.switchCase(
-      extension,
-      ['cram', () => _.find((v) => _.includes(v, [`${base}.crai`, `${base}.cram.crai`]), values)],
-      ['bam', () => _.find((v) => _.includes(v, [`${base}.bai`, `${base}.bam.bai`]), values)],
-      ['vcf', () => _.find((v) => _.includes(v, [`${base}.idx`, `${base}.vcf.idx`, `${base}.tbi`, `${base}.vcf.tbi`]), values)],
-      ['bed', () => false],
-      [Utils.DEFAULT, () => undefined]
-    );
-
-    return matchingIndexFilePath !== undefined ? [{ filePath: value, indexFilePath: matchingIndexFilePath }] : [];
-  }, values);
+  return fileUrls.flatMap((fileUrl) => {
+    if (fileUrl.endsWith('.bed')) {
+      return [{ filePath: fileUrl, indexFilePath: false }];
+    }
+    const indexFileUrl = findIndexForFile(fileUrl, fileUrls);
+    return indexFileUrl !== undefined ? [{ filePath: fileUrl, indexFilePath: indexFileUrl }] : [];
+  });
 };
 
 export const getValidIgvFilesFromAttributeValues = (attributeValues) => {
