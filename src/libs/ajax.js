@@ -485,6 +485,19 @@ const Workspaces = (signal) => ({
     return res.json();
   },
 
+  /**
+   * @param {string} workspaceId
+   * @param {string[]} [fields]
+   */
+  getById: async (workspaceId, fields = undefined) => {
+    let url = `workspaces/id/${workspaceId}`;
+    if (fields) {
+      url += `?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`;
+    }
+    const response = await fetchRawls(url, _.mergeAll([authOpts(), { signal }]));
+    return response.json();
+  },
+
   workspace: (namespace, name) => {
     const root = `workspaces/${namespace}/${name}`;
     const mcPath = `${root}/methodconfigs`;

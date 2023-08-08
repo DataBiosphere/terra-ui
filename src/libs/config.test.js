@@ -3,7 +3,7 @@ import { isAxeEnabled } from 'src/libs/config';
 describe('isAxeEnabled', () => {
   let env;
 
-  beforeAll(() => {
+  beforeEach(() => {
     env = process.env.NODE_ENV;
 
     // isAxeEnabled logs a notice and instructions for developers.

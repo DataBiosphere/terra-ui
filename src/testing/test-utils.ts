@@ -1,4 +1,7 @@
-import { act, Renderer, renderHook, RenderHookOptions, RenderHookResult } from '@testing-library/react-hooks';
+import { act, renderHook, RenderHookOptions, RenderHookResult, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+type UserEvent = ReturnType<typeof userEvent.setup>;
 
 /*
  * Use when working with a jest.fn() mocked method to get better type safety and IDE hinting on
@@ -61,10 +64,54 @@ export const setUpAutoSizerTesting = () => {
 export const renderHookInAct = async <T, U>(
   callback: (args: T) => U,
   options?: RenderHookOptions<T>
-): Promise<RenderHookResult<T, U, Renderer<T>>> => {
-  let result: RenderHookResult<T, U, Renderer<T>>;
+): Promise<RenderHookResult<U, T>> => {
+  let result: RenderHookResult<U, T>;
   await act(async () => {
     result = renderHook(callback, options);
   });
   return result!;
 };
+
+export class SelectHelper {
+  inputElement: HTMLElement;
+
+  user: UserEvent;
+
+  constructor(inputElement: HTMLElement, user: UserEvent) {
+    this.inputElement = inputElement;
+    this.user = user;
+  }
+
+  async openMenu(): Promise<void> {
+    const expanded = this.inputElement.getAttribute('aria-expanded');
+    if (expanded === 'false') {
+      await this.user.click(this.inputElement);
+    }
+  }
+
+  async closeMenu(): Promise<void> {
+    const expanded = this.inputElement.getAttribute('aria-expanded');
+    if (expanded === 'true') {
+      this.inputElement.focus();
+      await this.user.keyboard('{Escape}');
+    }
+  }
+
+  async getOptions(): Promise<string[]> {
+    await this.openMenu();
+    const listboxId = this.inputElement.getAttribute('aria-controls')!;
+    const listBox = document.getElementById(listboxId)!;
+    const options = Array.from(listBox.querySelectorAll('[role="option"]'));
+    const optionLabels = options.map((opt) => opt.textContent!);
+    await this.closeMenu();
+    return optionLabels;
+  }
+
+  async selectOption(optionLabel: string): Promise<void> {
+    await this.openMenu();
+    const listboxId = this.inputElement.getAttribute('aria-controls')!;
+    const listBox = document.getElementById(listboxId)!;
+    const option = within(listBox).getByRole('option', { name: optionLabel });
+    await this.user.click(option);
+  }
+}

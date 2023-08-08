@@ -9,6 +9,7 @@ jest.mock('src/libs/ajax');
 
 const gcsObject = (name: string): GCSItem => ({
   bucket: 'test-bucket',
+  contentType: 'text/plain',
   crc32c: 'crc32c',
   etag: 'etag',
   generation: '1666792590000000',
@@ -29,6 +30,7 @@ const gcsObject = (name: string): GCSItem => ({
 const expectedFile = (path: string): FileBrowserFile => ({
   path,
   url: `gs://test-bucket/${path}`,
+  contentType: 'text/plain',
   size: 1,
   createdAt: 1666792590000,
   updatedAt: 1666792590000,
@@ -209,6 +211,35 @@ describe('GCSFileBrowserProvider', () => {
 
     // Assert
     expect(del).toHaveBeenCalledWith('test-project', 'test-bucket', 'path/to/file.txt');
+  });
+
+  it('moves files', async () => {
+    // Arrange
+    const copyWithinBucket = jest.fn(() => Promise.resolve());
+    const del = jest.fn(() => Promise.resolve());
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Buckets: {
+            copyWithinBucket,
+            delete: del,
+          } as Partial<GoogleStorageContract>,
+        } as ReturnType<typeof Ajax>)
+    );
+
+    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' });
+
+    // Act
+    await provider.moveFile('path/to/source.txt', 'path/to/destination.txt');
+
+    // Assert
+    expect(copyWithinBucket).toBeCalledWith(
+      'test-project',
+      'test-bucket',
+      'path/to/source.txt',
+      'path/to/destination.txt'
+    );
+    expect(del).toHaveBeenCalledWith('test-project', 'test-bucket', 'path/to/source.txt');
   });
 
   it('creates empty directories', async () => {

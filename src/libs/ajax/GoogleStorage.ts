@@ -101,6 +101,7 @@ export type GCSMetadata = { [key: string]: string };
 // https://cloud.google.com/storage/docs/json_api/v1/objects/list
 export type GCSItem = {
   bucket: string;
+  contentType?: string;
   crc32c: string;
   etag: string;
   generation: string;
@@ -286,6 +287,20 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
     return fetchBuckets(
       `storage/v1/b/${bucket}/o/${encodeURIComponent(name)}`,
       _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(metadata), { signal, method: 'PATCH' }])
+    );
+  },
+
+  copyWithinBucket: async (
+    googleProject: string,
+    bucket: string,
+    sourceName: string,
+    destinationName: string
+  ): Promise<void> => {
+    await fetchBuckets(
+      `storage/v1/b/${bucket}/o/${encodeURIComponent(sourceName)}/copyTo/b/${bucket}/o/${encodeURIComponent(
+        destinationName
+      )}`,
+      _.mergeAll([authOpts(await saToken(googleProject)), { signal, method: 'POST' }])
     );
   },
 

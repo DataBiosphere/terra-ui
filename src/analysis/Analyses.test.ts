@@ -1,3 +1,4 @@
+import { LoadedState } from '@terra-ui-packages/core-utils';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
@@ -12,7 +13,6 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { ENABLE_JUPYTERLAB_ID, JUPYTERLAB_GCP_FEATURE_ID } from 'src/libs/feature-previews-config';
 import { goToPath } from 'src/libs/nav';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
-import LoadedState from 'src/libs/type-utils/LoadedState';
 import { asMockedFn } from 'src/testing/test-utils';
 
 type NavExports = typeof import('src/libs/nav');
@@ -389,11 +389,10 @@ describe('Analyses', () => {
 
     // Act
     await act(async () => {
-      // eslint-disable-line require-await
       render(h(BaseAnalyses, defaultAnalysesProps));
-      const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]')!;
-      await user.upload(fileInput, [fileToDrop]);
     });
+    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]')!;
+    await user.upload(fileInput, [fileToDrop]);
 
     expect(createObservable).toHaveBeenCalledWith(droppedFileName, runtimeToolLabels.Jupyter, fileToDrop);
   });

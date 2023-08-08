@@ -4,8 +4,9 @@ import * as breadcrumbs from 'src/components/breadcrumbs';
 import FileBrowser from 'src/components/file-browser/FileBrowser';
 import AzureBlobStorageFileBrowserProvider from 'src/libs/ajax/file-browser-providers/AzureBlobStorageFileBrowserProvider';
 import GCSFileBrowserProvider from 'src/libs/ajax/file-browser-providers/GCSFileBrowserProvider';
+import { useQueryParameter } from 'src/libs/nav';
 import { forwardRefWithName } from 'src/libs/react-utils';
-import { isAzureWorkspace } from 'src/libs/workspace-utils';
+import { isAzureWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 import { useMemo } from 'use-memo-one';
 
@@ -17,17 +18,20 @@ export const Files = _.flow(
     title: 'Files',
     topBarContent: null,
   })
-)(({ workspace }: { workspace: any }, _ref) => {
+)(({ workspace }: { workspace: WorkspaceWrapper }, _ref) => {
+  const { workspace: workspaceInfo } = workspace;
   const fileBrowserProvider = useMemo(() => {
-    if (isAzureWorkspace(workspace)) {
-      const { workspaceId } = workspace.workspace;
+    if (workspaceInfo.cloudPlatform === 'Azure') {
+      const { workspaceId } = workspaceInfo;
       return AzureBlobStorageFileBrowserProvider({ workspaceId });
     }
-    const { bucketName, googleProject } = workspace.workspace;
+    const { bucketName, googleProject } = workspaceInfo;
     return GCSFileBrowserProvider({ bucket: bucketName, project: googleProject });
-  }, [workspace]);
+  }, [workspaceInfo]);
 
   const rootLabel = isAzureWorkspace(workspace) ? 'Workspace cloud storage' : 'Workspace bucket';
+
+  const [path, setPath] = useQueryParameter('path');
 
   return div(
     {
@@ -36,7 +40,16 @@ export const Files = _.flow(
         overflow: 'hidden',
       },
     },
-    [h(FileBrowser, { workspace, provider: fileBrowserProvider, rootLabel, title: 'Files' })]
+    [
+      h(FileBrowser, {
+        initialPath: path || '',
+        workspace,
+        provider: fileBrowserProvider,
+        rootLabel,
+        title: 'Files',
+        onChangePath: setPath,
+      }),
+    ]
   );
 });
 

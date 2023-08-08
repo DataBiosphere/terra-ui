@@ -12,3 +12,6 @@ public
 node_modules
 .vscode
 coverage
+lint-staged.config.mjs
+vite.config.js
+packages/*/lib

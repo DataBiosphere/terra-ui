@@ -47,7 +47,7 @@ const DashboardPublic = ({ namespace, name }) => {
         workspace?.description && h(MarkdownViewer, [workspace.description]),
       ]),
       div({ style: Style.dashboard.rightBox }, [
-        div({ style: signInStyle }, [div(['Log in to view full workspace']), div([h(SignInButton, { theme: 'dark' })])]),
+        div({ style: signInStyle }, [div(['Sign in to view full workspace']), div([h(SignInButton, { theme: 'dark' })])]),
       ]),
     ]),
   ]);

@@ -1,0 +1,10 @@
+// TypeScript configuration to build package as ES modules.
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "lib/es",
+    "rootDir": "src"
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.types.ts", "src/**/*.errors.ts"]
+}

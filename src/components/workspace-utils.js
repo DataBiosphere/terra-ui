@@ -77,7 +77,9 @@ export const useWorkspaceDetails = ({ namespace, name }, fields) => {
     setWorkspace(ws);
   });
 
-  useOnMount(refresh);
+  useOnMount(() => {
+    refresh();
+  }, []);
 
   return { workspace, refresh, loading };
 };
@@ -436,7 +438,7 @@ export const WorkspaceStarControl = ({ workspace, stars, setStars, style, updati
   return h(
     Clickable,
     {
-      as: 'span',
+      tagName: 'span',
       role: 'checkbox',
       'aria-checked': isStarred,
       tooltip: Utils.cond(

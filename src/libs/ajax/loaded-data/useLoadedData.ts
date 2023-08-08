@@ -1,7 +1,6 @@
+import { ErrorState, isFetchResponse, LoadedState } from '@terra-ui-packages/core-utils';
 import { useCallback, useEffect, useState } from 'react';
 import { usePrevious } from 'src/libs/react-utils';
-import LoadedState, { ErrorState } from 'src/libs/type-utils/LoadedState';
-import { isFetchResponse } from 'src/libs/type-utils/type-helpers';
 
 export interface UseLoadedDataArgs<T> {
   /**

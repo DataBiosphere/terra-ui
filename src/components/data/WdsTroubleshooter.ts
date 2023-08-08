@@ -5,6 +5,7 @@ import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonPrimary } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
+import { WorkspaceLinkById } from 'src/components/WorkspaceLinks';
 import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -27,6 +28,9 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     wdsPingStatus,
     wdsIamStatus,
     defaultInstanceExists,
+    cloneSourceWorkspaceId,
+    cloneStatus,
+    cloneErrorMessage,
   } = status;
 
   const checkIcon = (status, size = 24) =>
@@ -59,7 +63,7 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
       td({ style: { fontWeight: 'bold' } }, [
         iconRunning ? checkIcon('running') : iconSuccess ? checkIcon('success') : checkIcon('failure'),
       ]),
-      td({ style: { fontWeight: 'bold' } }, [label]),
+      td({ style: { fontWeight: 'bold', whiteSpace: 'nowrap' } }, [label]),
       td([element || content]),
     ]);
   };
@@ -80,7 +84,12 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     ['Resource Group Id', mrgId, false, !!mrgId],
     ['App listing', `${numApps} app(s) total`, numApps == null, !!numApps && numApps !== 'unknown'],
     ['Data app name', appName, appName === null, !!appName && appName !== 'unknown'],
-    ['Data app running?', appStatus, appStatus == null, !!appStatus && appStatus !== 'unknown'],
+    [
+      'Data app running?',
+      appStatus,
+      appStatus == null,
+      !!appStatus && appStatus !== 'unknown' && appStatus !== 'ERROR',
+    ],
     ['Data app proxy url', proxyUrl, proxyUrl == null, !!proxyUrl && proxyUrl !== 'unknown', proxyElement],
     ['Data app responding', wdsResponsive, wdsResponsive == null, wdsResponsive === 'true'],
     ['Data app version', version, version == null, !!version && version !== 'unknown'],
@@ -112,11 +121,29 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     ],
     [
       'Default Instance exists',
-      `${defaultInstanceExists}`,
+      defaultInstanceExists,
       defaultInstanceExists == null,
       !!defaultInstanceExists && defaultInstanceExists !== 'unknown',
     ],
   ];
+
+  if (cloneSourceWorkspaceId !== null) {
+    troubleShooterText.push(
+      [
+        'Data table clone source',
+        cloneSourceWorkspaceId,
+        false,
+        cloneSourceWorkspaceId !== 'unknown',
+        h(WorkspaceLinkById, { workspaceId: cloneSourceWorkspaceId }),
+      ],
+      [
+        'Data table clone status',
+        cloneErrorMessage ? `${cloneStatus} (${cloneErrorMessage})` : cloneStatus,
+        false,
+        cloneStatus !== 'unknown' && cloneErrorMessage == null,
+      ]
+    );
+  }
 
   const tableRows = troubleShooterText.map((x) => troubleShooterRow(x));
 

@@ -312,6 +312,7 @@ export const CloudEnvironmentModal = ({
         );
       case appStatuses.starting.status:
       case appStatuses.stopping.status:
+      case appStatuses.updating.status:
       case appStatuses.provisioning.status:
       case appStatuses.deleting.status:
       case appStatuses.status_unspecified.status:

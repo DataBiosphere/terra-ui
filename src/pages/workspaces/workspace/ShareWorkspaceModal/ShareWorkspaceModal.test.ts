@@ -1,9 +1,9 @@
+import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { getUser } from 'src/libs/state';
-import { DeepPartial } from 'src/libs/type-utils/deep-partial';
 import { AzureWorkspace, GoogleWorkspace } from 'src/libs/workspace-utils';
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
 import { AccessEntry, RawWorkspaceAcl } from 'src/pages/workspaces/workspace/WorkspaceAcl';
@@ -227,7 +227,6 @@ describe('the share workspace modal', () => {
         authorizationDomain: [],
         createdDate: '',
         createdBy: '',
-        bucketName: 'test-bucket',
       },
     };
 

@@ -1,4 +1,5 @@
-import { act } from '@testing-library/react-hooks';
+import { ReadyState } from '@terra-ui-packages/core-utils';
+import { act } from '@testing-library/react';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/analysis/_testData/testData';
 import { AnalysisFile, getFileFromPath, useAnalysisFiles } from 'src/analysis/useAnalysisFiles';
 import { AbsolutePath, getExtension, getFileName } from 'src/analysis/utils/file-utils';
@@ -7,7 +8,6 @@ import { AzureStorage, AzureStorageContract } from 'src/libs/ajax/AzureStorage';
 import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage';
 import { reportError } from 'src/libs/error';
 import { workspaceStore } from 'src/libs/state';
-import { ReadyState } from 'src/libs/type-utils/LoadedState';
 import { asMockedFn, renderHookInAct } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax/GoogleStorage');

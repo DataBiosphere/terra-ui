@@ -3,11 +3,12 @@ import { div, h, span } from 'react-hyperscript-helpers';
 import { ButtonOutline, Link, topSpinnerOverlay } from 'src/components/common';
 import Dropzone from 'src/components/Dropzone';
 import { useFilesInDirectory } from 'src/components/file-browser/file-browser-hooks';
-import { basename } from 'src/components/file-browser/file-browser-utils';
+import { basename, dirname } from 'src/components/file-browser/file-browser-utils';
 import { FilesMenu } from 'src/components/file-browser/FilesMenu';
 import FilesTable from 'src/components/file-browser/FilesTable';
 import { NoticeForPath } from 'src/components/file-browser/NoticeForPath';
 import { icon } from 'src/components/icons';
+import { NameModal } from 'src/components/NameModal';
 import { UploadProgressModal } from 'src/components/ProgressBar';
 import FileBrowserProvider, {
   FileBrowserDirectory,
@@ -75,6 +76,8 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
       ['Error', () => `Error loading files in ${directoryLabel}`]
     );
   }, [directoryLabel, files, status]);
+
+  const [renamingFile, setRenamingFile] = useState<FileBrowserFile>();
 
   const [busy, setBusy] = useState(false);
 
@@ -144,10 +147,13 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
                 h(Fragment, [
                   h(FilesTable, {
                     'aria-label': `Files in ${directoryLabel}`,
+                    editDisabled,
+                    editDisabledReason,
                     files,
                     selectedFiles,
                     setSelectedFiles,
                     onClickFile,
+                    onRenameFile: setRenamingFile,
                   }),
                   div(
                     {
@@ -202,38 +208,64 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
                     Utils.cond(
                       [status === 'Loading', () => 'Loading files...'],
                       [status === 'Error', () => 'Unable to load files'],
-                      [
-                        path !== '' && provider.supportsEmptyDirectories,
-                        () =>
-                          h(
-                            ButtonOutline,
-                            {
-                              style: { marginTop: '1rem', textTransform: 'none' },
-                              onClick: async () => {
-                                // Attempt to delete folder placeholder object.
-                                // A placeholder object may not exist for the prefix being viewed, so do not an report error for 404 responses.
-                                // See https://cloud.google.com/storage/docs/folders for more information on placeholder objects.
-                                setBusy(true);
-                                try {
-                                  await provider.deleteEmptyDirectory(path);
-                                  setBusy(false);
-                                  onDeleteDirectory();
-                                } catch (error) {
-                                  setBusy(false);
-                                  reportError('Error deleting folder', error);
-                                }
+                      () =>
+                        h(Fragment, [
+                          div(['No files have been uploaded yet']),
+                          path !== '' &&
+                            h(
+                              ButtonOutline,
+                              {
+                                style: { marginTop: '1rem', textTransform: 'none' },
+                                onClick: async () => {
+                                  // Attempt to delete folder placeholder object.
+                                  // A placeholder object may not exist for the prefix being viewed, so do not an report error for 404 responses.
+                                  // See https://cloud.google.com/storage/docs/folders for more information on placeholder objects.
+                                  setBusy(true);
+                                  try {
+                                    await provider.deleteEmptyDirectory(path);
+                                    setBusy(false);
+                                    onDeleteDirectory();
+                                  } catch (error) {
+                                    setBusy(false);
+                                    reportError('Error deleting folder', error);
+                                  }
+                                },
                               },
-                            },
-                            ['Delete this folder']
-                          ),
-                      ],
-                      () => 'No files have been uploaded yet'
+                              ['Delete this folder']
+                            ),
+                        ])
                     ),
                   ]
                 ),
             ]),
         ]
       ),
+
+      renamingFile &&
+        h(NameModal, {
+          thing: 'File',
+          value: basename(renamingFile.path),
+          // @ts-expect-error
+          validator: /^[^\s/#*?\[\]]+$/, // eslint-disable-line no-useless-escape
+          validationMessage:
+            'File name may not contain spaces, forward slashes, or any of the following characters: # * ? [ ]',
+          onDismiss: () => setRenamingFile(undefined),
+          onSuccess: async ({ name }) => {
+            setRenamingFile(undefined);
+            setBusy(true);
+
+            const destinationPath = `${dirname(renamingFile.path)}${name}`;
+            try {
+              await provider.moveFile(renamingFile.path, destinationPath);
+              reload();
+            } catch (error) {
+              reportError('Error renaming file', error);
+            } finally {
+              setBusy(false);
+            }
+          },
+        }),
+
       uploadState.active &&
         h(UploadProgressModal, {
           status: uploadState,

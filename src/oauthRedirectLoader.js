@@ -1,7 +1,7 @@
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { h } from 'react-hyperscript-helpers';
 import RedirectFromOAuth from 'src/pages/RedirectFromOAuth';
 
-const appRoot = document.getElementById('root');
-
-ReactDOM.render(h(RedirectFromOAuth), appRoot);
+const rootElement = document.getElementById('root');
+const root = createRoot(rootElement);
+root.render(h(RedirectFromOAuth));

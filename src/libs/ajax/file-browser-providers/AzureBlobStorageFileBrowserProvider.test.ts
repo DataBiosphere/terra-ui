@@ -64,6 +64,7 @@ const blobPrefixXml = (name: string): string => {
 const expectedFile = (path: string): FileBrowserFile => ({
   path,
   url: `https://terra-ui-test.blob.core.windows.net/test-storage-container/${path}`,
+  contentType: 'text/plain',
   size: 1,
   createdAt: 1670455500000,
   updatedAt: 1670455800000,
@@ -264,6 +265,79 @@ describe('AzureBlobStorageFileBrowserProvider', () => {
     // Assert
     expect(fetchOk).toHaveBeenCalledWith(
       'https://terra-ui-test.blob.core.windows.net/test-storage-container/path/to/file.txt?tokenPlaceholder=value',
+      {
+        method: 'DELETE',
+      }
+    );
+  });
+
+  it('moves files', async () => {
+    // Arrange
+    asMockedFn(fetchOk).mockResolvedValue(new Response());
+
+    const provider = AzureBlobStorageFileBrowserProvider({ workspaceId: 'test-workspace' });
+
+    // Act
+    await provider.moveFile('path/to/source.txt', 'path/to/destination.txt');
+
+    // Assert
+    expect(fetchOk).toHaveBeenCalledWith(
+      'https://terra-ui-test.blob.core.windows.net/test-storage-container/path/to/destination.txt?tokenPlaceholder=value',
+      {
+        method: 'PUT',
+        headers: {
+          'x-ms-copy-source':
+            'https://terra-ui-test.blob.core.windows.net/test-storage-container/path/to/source.txt?tokenPlaceholder=value',
+        },
+      }
+    );
+
+    expect(fetchOk).toHaveBeenCalledWith(
+      'https://terra-ui-test.blob.core.windows.net/test-storage-container/path/to/source.txt?tokenPlaceholder=value',
+      {
+        method: 'DELETE',
+      }
+    );
+  });
+
+  it('creates empty directories', async () => {
+    // Arrange
+    asMockedFn(fetchOk).mockResolvedValue(new Response());
+
+    const provider = AzureBlobStorageFileBrowserProvider({ workspaceId: 'test-workspace' });
+
+    // Act
+    const directory = await provider.createEmptyDirectory('foo/bar/baz/');
+
+    // Assert
+    expect(fetchOk).toHaveBeenCalledWith(
+      'https://terra-ui-test.blob.core.windows.net/test-storage-container/foo/bar/baz/?tokenPlaceholder=value',
+      {
+        body: expect.any(File),
+        headers: {
+          'Content-Length': 0,
+          'Content-Type': 'text/text',
+          'x-ms-blob-type': 'BlockBlob',
+        },
+        method: 'PUT',
+      }
+    );
+
+    expect(directory).toEqual({ path: 'foo/bar/baz/' });
+  });
+
+  it('deletes empty directories', async () => {
+    // Arrange
+    asMockedFn(fetchOk).mockResolvedValue(new Response());
+
+    const provider = AzureBlobStorageFileBrowserProvider({ workspaceId: 'test-workspace' });
+
+    // Act
+    await provider.deleteEmptyDirectory('foo/bar/baz/');
+
+    // Assert
+    expect(fetchOk).toHaveBeenCalledWith(
+      'https://terra-ui-test.blob.core.windows.net/test-storage-container/foo/bar/baz/?tokenPlaceholder=value',
       {
         method: 'DELETE',
       }

@@ -1,4 +1,5 @@
-import { act, fireEvent, render } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { div, h } from 'react-hyperscript-helpers';
 import {
   defaultAzureWorkspace,
@@ -704,6 +705,8 @@ describe('ContextBar - actions', () => {
 
   it('clicking Terminal will attempt to start currently stopped runtime', async () => {
     // Arrange
+    const user = userEvent.setup();
+
     const mockRuntimesStartFn = jest.fn();
     type RuntimesContract = AjaxContract['Runtimes'];
 
@@ -732,10 +735,8 @@ describe('ContextBar - actions', () => {
     };
 
     // Act
-    await act(async () => {
-      const { getByTestId } = render(h(ContextBar, jupyterContextBarProps));
-      await fireEvent.click(getByTestId('terminal-button-id'));
-    });
+    render(h(ContextBar, jupyterContextBarProps));
+    await user.click(screen.getByTestId('terminal-button-id'));
 
     // Assert
     expect(mockRuntimeWrapper).toHaveBeenCalledWith(

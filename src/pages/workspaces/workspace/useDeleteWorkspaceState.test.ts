@@ -1,8 +1,8 @@
-import { act } from '@testing-library/react-hooks';
+import { DeepPartial } from '@terra-ui-packages/core-utils';
+import { act } from '@testing-library/react';
 import { generateTestApp } from 'src/analysis/_testData/testData';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
-import { DeepPartial } from 'src/libs/type-utils/deep-partial';
 import { AzureWorkspaceInfo, BaseWorkspace, GoogleWorkspaceInfo } from 'src/libs/workspace-utils';
 import {
   useDeleteWorkspaceState,
@@ -58,7 +58,7 @@ describe('useDeleteWorkspaceState', () => {
   const mockOnDismiss = jest.fn(() => {});
   const mockOnSuccess = jest.fn(() => {});
 
-  beforeAll(() => {
+  beforeEach(() => {
     jest.spyOn(console, 'log').mockImplementation(() => {});
   });
 

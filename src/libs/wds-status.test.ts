@@ -1,6 +1,7 @@
+import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { Ajax } from 'src/libs/ajax';
 import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
-import { DeepPartial } from 'src/libs/type-utils/deep-partial';
+import { WDSCloneStatusResponse } from 'src/libs/ajax/WorkspaceDataService';
 import { abandonedPromise } from 'src/libs/utils';
 import { asMockedFn, renderHookInAct } from 'src/testing/test-utils';
 
@@ -61,6 +62,9 @@ describe('useWdsStatus', () => {
         wdsPingStatus: 'unknown',
         wdsIamStatus: 'unknown',
         defaultInstanceExists: 'unknown',
+        cloneSourceWorkspaceId: 'unknown',
+        cloneStatus: 'unknown',
+        cloneErrorMessage: 'unknown',
       });
     });
   });
@@ -94,6 +98,9 @@ describe('useWdsStatus', () => {
           wdsPingStatus: 'unknown',
           wdsIamStatus: 'unknown',
           defaultInstanceExists: 'unknown',
+          cloneSourceWorkspaceId: 'unknown',
+          cloneStatus: 'unknown',
+          cloneErrorMessage: 'unknown',
         });
       });
     });
@@ -118,7 +125,6 @@ describe('useWdsStatus', () => {
         wds: 'https://lz34dd00bf3fdaa72f755eeea8f928bab7cd135043043d59d5.servicebus.windows.net/wds-6601fdbb-4b53-41da-87b2-81385f4a760e-6601fdbb-4b53-41da-87b2-81385f4a760e/',
       },
       appName: 'wds-6601fdbb-4b53-41da-87b2-81385f4a760e',
-      // @ts-expect-error Leo app types do not include WDS
       appType: 'WDS',
       // @ts-expect-error Leo app types do not reflect actual API responses.
       diskName: null,
@@ -143,6 +149,7 @@ describe('useWdsStatus', () => {
           getVersion: jest.fn().mockReturnValue(abandonedPromise()),
           getStatus: jest.fn().mockReturnValue(abandonedPromise()),
           listInstances: jest.fn().mockReturnValue(abandonedPromise()),
+          getCloneStatus: jest.fn().mockReturnValue(abandonedPromise()),
         },
       };
       asMockedFn(Ajax).mockReturnValue(mockAjax as AjaxContract);
@@ -166,14 +173,18 @@ describe('useWdsStatus', () => {
         wdsPingStatus: null,
         wdsIamStatus: null,
         defaultInstanceExists: null,
+        cloneSourceWorkspaceId: null,
+        cloneStatus: null,
+        cloneErrorMessage: null,
       });
     });
 
-    it('requests WDS app version, status, and instances', async () => {
+    it('requests WDS app version, status, instances, and clone status if app is running', async () => {
       // Arrange
       const getVersion = jest.fn().mockReturnValue(abandonedPromise());
       const getStatus = jest.fn().mockReturnValue(abandonedPromise());
       const listInstances = jest.fn().mockReturnValue(abandonedPromise());
+      const getCloneStatus = jest.fn().mockReturnValue(abandonedPromise());
 
       const mockAjax: DeepPartial<AjaxContract> = {
         Apps: {
@@ -183,6 +194,7 @@ describe('useWdsStatus', () => {
           getVersion,
           getStatus,
           listInstances,
+          getCloneStatus,
         },
       };
       asMockedFn(Ajax).mockReturnValue(mockAjax as AjaxContract);
@@ -191,9 +203,60 @@ describe('useWdsStatus', () => {
       await renderHookInAct(() => useWdsStatus({ workspaceId }));
 
       // Assert
-      expect(getVersion).toBeCalledWith(wdsApp.proxyUrls.wds);
-      expect(getStatus).toBeCalledWith(wdsApp.proxyUrls.wds);
-      expect(listInstances).toBeCalledWith(wdsApp.proxyUrls.wds);
+      expect(getVersion).toHaveBeenCalledWith(wdsApp.proxyUrls.wds);
+      expect(getStatus).toHaveBeenCalledWith(wdsApp.proxyUrls.wds);
+      expect(listInstances).toHaveBeenCalledWith(wdsApp.proxyUrls.wds);
+      expect(getCloneStatus).toHaveBeenCalledWith(wdsApp.proxyUrls.wds);
+    });
+
+    it('does not request WDS app version, status, instances, and clone status if app is not running', async () => {
+      // Arrange
+      const getVersion = jest.fn().mockReturnValue(abandonedPromise());
+      const getStatus = jest.fn().mockReturnValue(abandonedPromise());
+      const listInstances = jest.fn().mockReturnValue(abandonedPromise());
+      const getCloneStatus = jest.fn().mockReturnValue(abandonedPromise());
+
+      const mockAjax: DeepPartial<AjaxContract> = {
+        Apps: {
+          listAppsV2: jest.fn().mockResolvedValue([{ ...wdsApp, status: 'ERROR' }]),
+        },
+        WorkspaceData: {
+          getVersion,
+          getStatus,
+          listInstances,
+          getCloneStatus,
+        },
+      };
+      asMockedFn(Ajax).mockReturnValue(mockAjax as AjaxContract);
+
+      // Act
+      const { result: hookReturnRef } = await renderHookInAct(() => useWdsStatus({ workspaceId }));
+
+      // Assert
+      expect(getVersion).not.toHaveBeenCalled();
+      expect(getStatus).not.toHaveBeenCalled();
+      expect(listInstances).not.toHaveBeenCalled();
+      expect(getCloneStatus).not.toHaveBeenCalled();
+
+      expect(hookReturnRef.current.status).toEqual({
+        appName: 'wds-6601fdbb-4b53-41da-87b2-81385f4a760e',
+        appStatus: 'ERROR',
+        chartVersion: 'unknown',
+        defaultInstanceExists: 'unknown',
+        image: 'unknown',
+        numApps: '1',
+        proxyUrl:
+          'https://lz34dd00bf3fdaa72f755eeea8f928bab7cd135043043d59d5.servicebus.windows.net/wds-6601fdbb-4b53-41da-87b2-81385f4a760e-6601fdbb-4b53-41da-87b2-81385f4a760e/',
+        version: 'unknown',
+        wdsDbStatus: 'unknown',
+        wdsIamStatus: 'unknown',
+        wdsPingStatus: 'unknown',
+        wdsResponsive: 'unknown',
+        wdsStatus: 'unresponsive',
+        cloneSourceWorkspaceId: null,
+        cloneStatus: null,
+        cloneErrorMessage: null,
+      });
     });
 
     describe('version request', () => {
@@ -207,6 +270,7 @@ describe('useWdsStatus', () => {
               getVersion: jest.fn().mockRejectedValue(new Error('Something went wrong')),
               getStatus: jest.fn().mockReturnValue(abandonedPromise()),
               listInstances: jest.fn().mockReturnValue(abandonedPromise()),
+              getCloneStatus: jest.fn().mockReturnValue(abandonedPromise()),
             },
           };
           asMockedFn(Ajax).mockReturnValue(mockAjax as AjaxContract);
@@ -250,6 +314,7 @@ describe('useWdsStatus', () => {
               getVersion: jest.fn().mockResolvedValue(mockVersion),
               getStatus: jest.fn().mockReturnValue(abandonedPromise()),
               listInstances: jest.fn().mockReturnValue(abandonedPromise()),
+              getCloneStatus: jest.fn().mockReturnValue(abandonedPromise()),
             },
           };
           asMockedFn(Ajax).mockReturnValue(mockAjax as AjaxContract);
@@ -287,6 +352,7 @@ describe('useWdsStatus', () => {
               getVersion: jest.fn().mockResolvedValue(mockVersion),
               getStatus: jest.fn().mockReturnValue(abandonedPromise()),
               listInstances: jest.fn().mockReturnValue(abandonedPromise()),
+              getCloneStatus: jest.fn().mockReturnValue(abandonedPromise()),
             },
           };
           asMockedFn(Ajax).mockReturnValue(mockAjax as AjaxContract);
@@ -318,6 +384,7 @@ describe('useWdsStatus', () => {
               getVersion: jest.fn().mockReturnValue(abandonedPromise()),
               getStatus: jest.fn().mockRejectedValue(new Error('Something went wrong')),
               listInstances: jest.fn().mockReturnValue(abandonedPromise()),
+              getCloneStatus: jest.fn().mockReturnValue(abandonedPromise()),
             },
           };
           asMockedFn(Ajax).mockReturnValue(mockAjax as AjaxContract);
@@ -368,6 +435,7 @@ describe('useWdsStatus', () => {
               getVersion: jest.fn().mockReturnValue(abandonedPromise()),
               getStatus: jest.fn().mockResolvedValue(mockStatus),
               listInstances: jest.fn().mockReturnValue(abandonedPromise()),
+              getCloneStatus: jest.fn().mockReturnValue(abandonedPromise()),
             },
           };
           asMockedFn(Ajax).mockReturnValue(mockAjax as AjaxContract);
@@ -415,6 +483,7 @@ describe('useWdsStatus', () => {
               getVersion: jest.fn().mockReturnValue(abandonedPromise()),
               getStatus: jest.fn().mockResolvedValue(mockStatus),
               listInstances: jest.fn().mockReturnValue(abandonedPromise()),
+              getCloneStatus: jest.fn().mockReturnValue(abandonedPromise()),
             },
           };
           asMockedFn(Ajax).mockReturnValue(mockAjax as AjaxContract);
@@ -446,6 +515,7 @@ describe('useWdsStatus', () => {
               getVersion: jest.fn().mockReturnValue(abandonedPromise()),
               getStatus: jest.fn().mockReturnValue(abandonedPromise()),
               listInstances: jest.fn().mockRejectedValue(new Error('Something went wrong')),
+              getCloneStatus: jest.fn().mockReturnValue(abandonedPromise()),
             },
           };
           asMockedFn(Ajax).mockReturnValue(mockAjax as AjaxContract);
@@ -473,6 +543,7 @@ describe('useWdsStatus', () => {
               getVersion: jest.fn().mockReturnValue(abandonedPromise()),
               getStatus: jest.fn().mockReturnValue(abandonedPromise()),
               listInstances: jest.fn().mockResolvedValue(mockInstances),
+              getCloneStatus: jest.fn().mockReturnValue(abandonedPromise()),
             },
           };
           asMockedFn(Ajax).mockReturnValue(mockAjax as AjaxContract);
@@ -484,6 +555,97 @@ describe('useWdsStatus', () => {
           expect(renderHookRef.current.status).toEqual(
             expect.objectContaining({
               defaultInstanceExists: 'true',
+            })
+          );
+        });
+      });
+    });
+
+    describe('clone status request', () => {
+      describe('if clone status request fails', () => {
+        it('does not update status on a 404 response', async () => {
+          const mockAjax: DeepPartial<AjaxContract> = {
+            Apps: {
+              listAppsV2: jest.fn().mockResolvedValue([wdsApp]),
+            },
+            WorkspaceData: {
+              getVersion: jest.fn().mockReturnValue(abandonedPromise()),
+              getStatus: jest.fn().mockReturnValue(abandonedPromise()),
+              listInstances: jest.fn().mockReturnValue(abandonedPromise()),
+              getCloneStatus: jest.fn().mockRejectedValue(new Response('', { status: 404 })),
+            },
+          };
+          asMockedFn(Ajax).mockReturnValue(mockAjax as AjaxContract);
+
+          // Act
+          const { result: renderHookRef } = await renderHookInAct(() => useWdsStatus({ workspaceId }));
+
+          // Assert
+          expect(renderHookRef.current.status).toEqual(
+            expect.objectContaining({
+              cloneSourceWorkspaceId: null,
+              cloneStatus: null,
+            })
+          );
+        });
+
+        it('updates status with unknown for clone status for other error responses', async () => {
+          const mockAjax: DeepPartial<AjaxContract> = {
+            Apps: {
+              listAppsV2: jest.fn().mockResolvedValue([wdsApp]),
+            },
+            WorkspaceData: {
+              getVersion: jest.fn().mockReturnValue(abandonedPromise()),
+              getStatus: jest.fn().mockReturnValue(abandonedPromise()),
+              listInstances: jest.fn().mockRejectedValue(new Error('Something went wrong')),
+              getCloneStatus: jest.fn().mockReturnValue(abandonedPromise()),
+            },
+          };
+          asMockedFn(Ajax).mockReturnValue(mockAjax as AjaxContract);
+
+          // Act
+          const { result: renderHookRef } = await renderHookInAct(() => useWdsStatus({ workspaceId }));
+
+          // Assert
+          expect(renderHookRef.current.status).toEqual(
+            expect.objectContaining({
+              defaultInstanceExists: 'unknown',
+            })
+          );
+        });
+      });
+
+      describe('if clone status request succeeds', () => {
+        it('updates status with clone status fields', async () => {
+          const mockCloneStatus: WDSCloneStatusResponse = {
+            created: '2023-07-20T18:49:17.264656',
+            jobId: '761fd9ae-8fa1-4805-94b2-be27997249c7',
+            result: { sourceWorkspaceId: 'b3cc4ed2-678c-483f-9953-5d4789d5fa1b', status: 'RESTORESUCCEEDED' },
+            status: 'SUCCEEDED',
+            updated: '2023-07-20T18:50:28.264989',
+          };
+          const mockAjax: DeepPartial<AjaxContract> = {
+            Apps: {
+              listAppsV2: jest.fn().mockResolvedValue([wdsApp]),
+            },
+            WorkspaceData: {
+              getVersion: jest.fn().mockReturnValue(abandonedPromise()),
+              getStatus: jest.fn().mockReturnValue(abandonedPromise()),
+              listInstances: jest.fn().mockReturnValue(abandonedPromise()),
+              getCloneStatus: jest.fn().mockResolvedValue(mockCloneStatus),
+            },
+          };
+          asMockedFn(Ajax).mockReturnValue(mockAjax as AjaxContract);
+
+          // Act
+          const { result: renderHookRef } = await renderHookInAct(() => useWdsStatus({ workspaceId }));
+
+          // Assert
+          expect(renderHookRef.current.status).toEqual(
+            expect.objectContaining({
+              cloneSourceWorkspaceId: 'b3cc4ed2-678c-483f-9953-5d4789d5fa1b',
+              cloneStatus: 'RESTORESUCCEEDED',
+              cloneErrorMessage: null,
             })
           );
         });
@@ -517,6 +679,9 @@ describe('useWdsStatus', () => {
       wdsPingStatus: 'unknown',
       wdsIamStatus: 'unknown',
       defaultInstanceExists: 'unknown',
+      cloneSourceWorkspaceId: 'unknown',
+      cloneStatus: 'unknown',
+      cloneErrorMessage: 'unknown',
     });
 
     listAppsV2.mockReturnValue(abandonedPromise());
@@ -540,6 +705,9 @@ describe('useWdsStatus', () => {
       wdsPingStatus: null,
       wdsIamStatus: null,
       defaultInstanceExists: null,
+      cloneSourceWorkspaceId: null,
+      cloneStatus: null,
+      cloneErrorMessage: null,
     });
 
     expect(listAppsV2).toHaveBeenCalledWith(otherWorkspaceId);

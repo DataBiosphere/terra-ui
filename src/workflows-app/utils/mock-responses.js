@@ -420,6 +420,7 @@ export const runSetResponseForNewMethod = {
       is_template: true,
       state: 'COMPLETE',
       record_type: 'FOO',
+      call_caching_enabled: true,
       submission_timestamp: '2022-12-07T17:26:53.153+00:00',
       last_modified_timestamp: '2022-12-07T17:26:53.153+00:00',
       run_count: 1,
@@ -439,6 +440,7 @@ export const runSetResponseSameInputNames = {
       is_template: true,
       state: 'COMPLETE',
       record_type: 'FOO',
+      call_caching_enabled: true,
       submission_timestamp: '2022-12-07T17:26:53.153+00:00',
       last_modified_timestamp: '2022-12-07T17:26:53.153+00:00',
       run_count: 1,
@@ -460,6 +462,7 @@ export const runSetResponseWithArrays = {
       is_template: true,
       state: 'COMPLETE',
       record_type: 'FOO',
+      call_caching_enabled: true,
       submission_timestamp: '2022-12-07T17:26:53.153+00:00',
       last_modified_timestamp: '2022-12-07T17:26:53.153+00:00',
       run_count: 1,
@@ -481,6 +484,7 @@ export const badRecordTypeRunSetResponse = {
       run_set_description: 'Example run for target workflow 2',
       state: 'COMPLETE',
       record_type: 'BADFOO',
+      call_caching_enabled: true,
       submission_timestamp: '2022-12-07T17:26:53.153+00:00',
       last_modified_timestamp: '2022-12-07T17:26:53.153+00:00',
       run_count: 1,
@@ -502,6 +506,7 @@ export const undefinedRecordTypeRunSetResponse = {
       run_set_description: 'Example run for target workflow 2',
       state: 'COMPLETE',
       record_type: undefined,
+      call_caching_enabled: true,
       submission_timestamp: '2022-12-07T17:26:53.153+00:00',
       last_modified_timestamp: '2022-12-07T17:26:53.153+00:00',
       run_count: 1,
@@ -663,14 +668,46 @@ export const searchResponses = {
   BAR: searchResponseBAR,
 };
 
-export const mockWdsProxyUrl = 'https://lzabc123.servicebus.windows.net/abc-proxy-url/wds';
-export const mockApps = [
+export const mockAzureApps = [
   {
-    appType: 'CROMWELL',
-    workspaceId: 'abc-123',
-    appName: 'wds-abc-123',
+    workspaceId: 'abc-c07807929cd1',
+    cloudContext: {
+      cloudProvider: 'AZURE',
+    },
+    errors: [],
     status: 'RUNNING',
-    proxyUrls: { wds: mockWdsProxyUrl },
+    proxyUrls: {
+      cbas: 'https://lz-abc/terra-app-abc/cbas',
+      'cbas-ui': 'https://lz-abc/terra-app-abc/',
+      cromwell: 'https://lz-abc/terra-app-abc/cromwell',
+    },
+    appName: 'terra-app-abc',
+    appType: 'CROMWELL',
+    diskName: null,
+    auditInfo: {
+      creator: 'groot@gmail.com',
+    },
+    accessScope: null,
+    labels: {},
+  },
+  {
+    workspaceId: 'abc-c07807929cd1',
+    cloudContext: {
+      cloudProvider: 'AZURE',
+    },
+    errors: [],
+    status: 'RUNNING',
+    proxyUrls: {
+      wds: 'https://lz-abc/wds-abc-c07807929cd1/',
+    },
+    appName: 'wds-abc-c07807929cd1',
+    appType: 'WDS',
+    diskName: null,
+    auditInfo: {
+      creator: 'groot@gmail.com',
+    },
+    accessScope: 'WORKSPACE_SHARED',
+    labels: {},
   },
 ];
 
@@ -689,7 +726,7 @@ export const mockAzureWorkspace = {
     isLocked: false,
     name: 'test-azure-ws-name',
     namespace: 'test-azure-ws-namespace',
-    workspaceId: 'unique-id-abc-123',
+    workspaceId: 'abc-c07807929cd1',
     createdDate: '2023-02-15T19:17:15.711Z',
     createdBy: 'groot@gmail.com',
   },

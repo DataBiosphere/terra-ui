@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react';
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import { reportError } from 'src/libs/error';
 import { controlledPromise } from 'src/testing/test-utils';
@@ -27,6 +27,7 @@ describe('useFileDownloadCommand', () => {
     const file: FileBrowserFile = {
       path: 'path/to/example.txt',
       url: 'gs://test-bucket/path/to/example.txt',
+      contentType: 'text/plain',
       size: 1024 ** 2,
       createdAt: 1667408400000,
       updatedAt: 1667494800000,
@@ -48,6 +49,7 @@ describe('useFileDownloadCommand', () => {
     const file: FileBrowserFile = {
       path: 'path/to/example.txt',
       url: 'gs://test-bucket/path/to/example.txt',
+      contentType: 'text/plain',
       size: 1024 ** 2,
       createdAt: 1667408400000,
       updatedAt: 1667494800000,

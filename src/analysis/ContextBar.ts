@@ -8,6 +8,7 @@
  * $ yarn test-local analysis-context-bar
  */
 
+import { Interactive } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, useState } from 'react';
 import { br, div, h, img, span } from 'react-hyperscript-helpers';
@@ -38,7 +39,6 @@ import {
 } from 'src/analysis/utils/tool-utils';
 import { Clickable } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import Interactive, { InteractiveProps } from 'src/components/Interactive';
 import { getRegionInfo } from 'src/components/region-common';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import cloudIcon from 'src/icons/cloud-compute.svg';
@@ -282,7 +282,7 @@ export const ContextBar = ({
               h(
                 Interactive,
                 {
-                  as: 'div',
+                  tagName: 'div',
                   style: {
                     flexDirection: 'column',
                     justifyContent: 'center',
@@ -292,7 +292,7 @@ export const ContextBar = ({
                     cursor: 'default',
                   },
                   hover: { ...contextBarStyles.hover },
-                } as InteractiveProps<'div'>,
+                },
                 [
                   div({ style: { textAlign: 'center', color: colors.dark(), fontSize: 12 } }, ['Rate:']),
                   div(
@@ -344,7 +344,6 @@ export const ContextBar = ({
                 color: !isTerminalVisible ? colors.dark(0.7) : contextBarStyles.contextBarButton.color,
               },
               hover: contextBarStyles.hover,
-              // @ts-expect-error
               'data-testid': 'terminal-button-id',
               tooltipSide: 'left',
               href: terminalLaunchLink,

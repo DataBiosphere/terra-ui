@@ -1,5 +1,5 @@
+import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { Ajax } from 'src/libs/ajax';
-import { DeepPartial } from 'src/libs/type-utils/deep-partial';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { importDockstoreWorkflow } from './importDockstoreWorkflow';

@@ -1,8 +1,5 @@
 module.exports = {
   extends: ['airbnb-typescript-prettier'],
-  parserOptions: {
-    project: './tsconfig.json',
-  },
   settings: {
     'import/resolver': {
       'eslint-import-resolver-custom-alias': {
@@ -88,7 +85,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['**/*.test.ts', '**/*.test.js', 'src/setupTests.js'],
+      files: ['**/*.test.ts', '**/*.test.js', 'src/setupTests.ts'],
       env: {
         jest: true,
       },
@@ -110,13 +107,6 @@ module.exports = {
         'no-console': 'off',
       }
     },
-    {
-      files: ['config-overrides.js'],
-      rules: {
-        // Webpack config uses CommonJS instead of ESM.
-        '@typescript-eslint/no-var-requires': 'off',
-      }
-    }
   ],
   plugins: ['lodash-fp', 'simple-import-sort'],
 };

@@ -75,7 +75,14 @@ const AzureBlobStorageFileBrowserProvider = ({
         const responseXML = new window.DOMParser().parseFromString(responseText, 'text/xml');
 
         const blobOrBlobPrefixElements = Array.from(responseXML.getElementsByTagName(tagName));
-        buffer = buffer.concat(blobOrBlobPrefixElements.map(mapBlobOrBlobPrefix));
+        const blobsOrPrefixes = blobOrBlobPrefixElements.map(mapBlobOrBlobPrefix);
+
+        // Exclude folder placeholder objects.
+        const blobsOrPrefixesWithoutPlaceholders = blobsOrPrefixes.filter(
+          (blobOrPrefix) => (blobOrPrefix as any).path !== prefix
+        );
+
+        buffer = buffer.concat(blobsOrPrefixesWithoutPlaceholders);
 
         nextPageToken = responseXML.getElementsByTagName('NextMarker').item(0)?.textContent || undefined;
       } while (buffer.length < pageSize && nextPageToken);
@@ -108,7 +115,6 @@ const AzureBlobStorageFileBrowserProvider = ({
   };
 
   return {
-    supportsEmptyDirectories: false,
     getFilesInDirectory: async (path, { signal } = {}) => {
       const {
         sas: { url: sasUrl },
@@ -123,6 +129,7 @@ const AzureBlobStorageFileBrowserProvider = ({
           const creationTime = blobProperties.getElementsByTagName('Creation-Time').item(0)!.textContent!;
           const lastModified = blobProperties.getElementsByTagName('Last-Modified').item(0)!.textContent!;
           const contentLength = blobProperties.getElementsByTagName('Content-Length').item(0)!.textContent!;
+          const contentType = blobProperties.getElementsByTagName('Content-Type').item(0)!.textContent!;
 
           const blobUrl = new URL(sasUrl);
           blobUrl.pathname += `/${name}`;
@@ -131,6 +138,7 @@ const AzureBlobStorageFileBrowserProvider = ({
           return {
             path: name,
             url: blobUrl.href,
+            contentType,
             size: parseInt(contentLength),
             createdAt: new Date(creationTime).getTime(),
             updatedAt: new Date(lastModified).getTime(),
@@ -206,11 +214,81 @@ const AzureBlobStorageFileBrowserProvider = ({
         method: 'DELETE',
       });
     },
-    createEmptyDirectory: (_directoryPath: string) => {
-      return Promise.reject(new Error('Empty directories not supported in Azure workspaces'));
+    moveFile: async (sourcePath: string, destinationPath: string): Promise<void> => {
+      const {
+        sas: { url: originalSasUrl },
+      } = await storageDetailsPromise;
+
+      const sourceBlobUrl = new URL(originalSasUrl);
+      sourceBlobUrl.pathname += `/${sourcePath}`;
+
+      const destinationBlobUrl = new URL(originalSasUrl);
+      destinationBlobUrl.pathname += `/${destinationPath}`;
+
+      await fetchOk(destinationBlobUrl.href, {
+        method: 'PUT',
+        headers: {
+          'x-ms-copy-source': sourceBlobUrl.href,
+        },
+      });
+
+      // Note
+      // The copy operation can finish asychronously.
+      // https://learn.microsoft.com/en-us/rest/api/storageservices/copy-blob?tabs=azure-ad#remarks
+      // However, we can't access the x-ms-copy-status header from JavaScript to check if this is the case.
+      // To access this header, the response from Azure storage would have to include an Access-Control-Expose-Headers header.
+      // https://developer.mozilla.org/en-US/docs/Glossary/CORS-safelisted_response_header
+      //
+      // Thus, this optimistically assumes that the copy finished synchronously.
+
+      await fetchOk(sourceBlobUrl.href, {
+        method: 'DELETE',
+      });
     },
-    deleteEmptyDirectory: (_directoryPath: string) => {
-      return Promise.reject(new Error('Empty directories not supported in Azure workspaces'));
+    createEmptyDirectory: async (directoryPath: string) => {
+      console.assert(directoryPath.endsWith('/'), 'Directory paths must include a trailing slash');
+
+      const {
+        sas: { url: originalSasUrl },
+      } = await storageDetailsPromise;
+
+      const blobUrl = new URL(originalSasUrl);
+      blobUrl.pathname += `/${directoryPath}`;
+
+      const directoryName = directoryPath.split('/').at(-2);
+      const placeholderObject = new File([''], `${directoryName}/`, { type: 'text/text' });
+
+      await fetchOk(blobUrl.href, {
+        body: placeholderObject,
+        headers: {
+          'Content-Length': placeholderObject.size,
+          'Content-Type': placeholderObject.type,
+          'x-ms-blob-type': 'BlockBlob',
+        },
+        method: 'PUT',
+      });
+
+      return {
+        path: directoryPath,
+      };
+    },
+    deleteEmptyDirectory: async (directoryPath: string) => {
+      const {
+        sas: { url: originalSasUrl },
+      } = await storageDetailsPromise;
+
+      const blobUrl = new URL(originalSasUrl);
+      blobUrl.pathname += `/${directoryPath}`;
+
+      try {
+        await fetchOk(blobUrl.href, {
+          method: 'DELETE',
+        });
+      } catch (error) {
+        if (!(error instanceof Response && error.status === 404)) {
+          throw error;
+        }
+      }
     },
   };
 };

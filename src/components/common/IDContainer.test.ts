@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react';
 import _ from 'lodash/fp';
 import { asMockedFn } from 'src/testing/test-utils';
 
