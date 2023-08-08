@@ -1,7 +1,7 @@
-import { isEmpty, isNil, kebabCase } from 'lodash';
+import { isNil, kebabCase } from 'lodash';
 import { Fragment } from 'react';
-import { div, h, h1, h3, h4, span } from 'react-hyperscript-helpers';
-import { ButtonOutline, Link } from 'src/components/common';
+import { div, h, h3, h4, span } from 'react-hyperscript-helpers';
+import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TooltipCell } from 'src/components/table';
 import colors from 'src/libs/colors';
@@ -215,32 +215,4 @@ export const Breadcrumbs = ({ breadcrumbPathObjects, pageId }) => {
   });
 
   return div({ id: `${pageId}-breadcrumbs-container` }, links);
-};
-
-export const SubmitNewWorkflowButton = h(
-  ButtonOutline,
-  {
-    onClick: () => goToPath('root'),
-  },
-  ['Submit a new workflow']
-);
-
-export const PageHeader = ({ breadcrumbPathObjects, title }) => {
-  const pageId = kebabCase(title);
-  return div({ id: `${pageId}-header-container` }, [
-    h1(
-      {
-        /* Make adjustments if needed */
-      },
-      [title]
-    ),
-    h(Breadcrumbs, { isRendered: !isEmpty(breadcrumbPathObjects), breadcrumbPathObjects, pageId }),
-  ]);
-};
-
-export const HeaderSection = ({ title, breadcrumbPathObjects, button }) => {
-  return div({ id: 'header-section', style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } }, [
-    h(PageHeader, { breadcrumbPathObjects, title }),
-    button,
-  ]);
 };

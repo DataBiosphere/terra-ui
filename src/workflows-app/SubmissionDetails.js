@@ -103,35 +103,39 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
 
   const loadRuns = useCallback(
     async (cbasUrlRoot) => {
-      const runsResponse = await Ajax(signal).Cbas.runs.get(cbasUrlRoot, submissionId);
-      const runsAnnotatedWithDurations = _.map(
-        (r) => _.merge(r, { duration: getDuration(r.state, r.submission_date, r.last_modified_timestamp, isRunInTerminalState) }),
-        runsResponse.runs
-      );
-      setRunsData(runsAnnotatedWithDurations);
-      setRunsFullyUpdated(runsResponse.fully_updated);
-    },
-    [signal, submissionId]
-  );
-
-  const loadRunsData = useCallback(
-    async (cbasProxyUrlDetails) => {
       try {
-        if (cbasProxyUrlDetails.status !== AppProxyUrlStatus.Ready) {
-          const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
-
-          if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
-            await loadRuns(cbasProxyUrlState.status);
-          }
-        } else {
-          await loadRuns(cbasProxyUrlDetails.state);
-        }
+        const runsResponse = await Ajax(signal).Cbas.runs.get(cbasUrlRoot, submissionId);
+        const runsAnnotatedWithDurations = _.map(
+          (r) => _.merge(r, { duration: getDuration(r.state, r.submission_date, r.last_modified_timestamp, isRunInTerminalState) }),
+          runsResponse.runs
+        );
+        setRunsData(runsAnnotatedWithDurations);
+        setRunsFullyUpdated(runsResponse.fully_updated);
       } catch (error) {
         notify('error', 'Error loading saved workflows', { detail: error instanceof Response ? await error.text() : error });
       }
     },
-    [loadRuns, workspaceId]
+    [signal, submissionId]
   );
+
+  // const loadRunsData = useCallback(
+  //   async (cbasProxyUrlDetails) => {
+  //     try {
+  //       if (cbasProxyUrlDetails.status !== AppProxyUrlStatus.Ready) {
+  //         const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
+  //
+  //         if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
+  //           await loadRuns(cbasProxyUrlState.status);
+  //         }
+  //       } else {
+  //         await loadRuns(cbasProxyUrlDetails.state);
+  //       }
+  //     } catch (error) {
+  //       notify('error', 'Error loading saved workflows', { detail: error instanceof Response ? await error.text() : error });
+  //     }
+  //   },
+  //   [loadRuns, workspaceId]
+  // );
 
   const loadRunSets = useCallback(
     async (cbasUrlRoot) => {
@@ -152,6 +156,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
           const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
           if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
+            loadRuns(cbasProxyUrlState.state);
             loadRunSets(cbasProxyUrlState.state).then((runSet) => {
               if (runSet !== undefined) {
                 setRunSetData(runSet);
@@ -168,6 +173,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
             });
           }
         } else {
+          loadRuns(cbasProxyUrlDetails.state);
           loadRunSets(cbasProxyUrlDetails.state).then((runSet) => {
             if (runSet !== undefined) {
               setRunSetData(runSet);
@@ -179,13 +185,13 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
         notify('error', 'Error getting run set data', { detail: error instanceof Response ? await error.text() : error });
       }
     },
-    [workspaceId, loadRunSets, loadMethodsData]
+    [workspaceId, loadRuns, loadRunSets, loadMethodsData]
   );
 
   // helper for auto-refresh
   const refresh = withBusyState(setLoading, async () => {
     try {
-      await loadRunsData(workflowsAppStore.get().cbasProxyUrlState);
+      // await loadRunsData(workflowsAppStore.get().cbasProxyUrlState);
       await loadAllRunSets(workflowsAppStore.get().cbasProxyUrlState);
 
       // only refresh if there are run sets in non-terminal state
@@ -198,10 +204,10 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
   });
 
   // poll if we're missing CBAS proxy url and stop polling when we have it
-  usePollingEffect(() => !doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState') && loadRunsData(workflowsAppStore.get().cbasProxyUrlState), {
-    ms: CbasPollInterval,
-    leading: false,
-  });
+  // usePollingEffect(() => !doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState') && loadRunsData(workflowsAppStore.get().cbasProxyUrlState), {
+  //   ms: CbasPollInterval,
+  //   leading: false,
+  // });
 
   usePollingEffect(() => !doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState') && loadAllRunSets(workflowsAppStore.get().cbasProxyUrlState), {
     ms: CbasPollInterval,
@@ -213,7 +219,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
       const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
       if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
-        await loadRunsData(cbasProxyUrlState);
+        // await loadRuns(cbasProxyUrlState);
         await loadAllRunSets(cbasProxyUrlState);
       }
     };
