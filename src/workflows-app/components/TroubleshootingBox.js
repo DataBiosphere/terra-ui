@@ -30,7 +30,7 @@ export const TroubleshootingBox = ({ name, namespace, logUri, submissionId, work
         span({}, [span({ style: { marginRight: '0.5rem', fontWeight: 'bold' } }, ['Submission ID: ']), span({}, [submissionId])]),
         span([h(ClipboardButton, { text: submissionId, 'aria-label': 'Copy submission id' })]),
       ]),
-      div({ style: { display: 'flex', paddingTop: '3px' } }, [
+      div({ style: { display: 'flex', justifyContent: 'center', paddingTop: '3px' } }, [
         h(
           Link,
           {
