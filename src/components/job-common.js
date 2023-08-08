@@ -8,6 +8,7 @@ import colors from 'src/libs/colors';
 import { goToPath } from 'src/libs/nav';
 import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
+import { cbasStatusTypes } from 'src/workflows-app/utils/job-common';
 
 const iconSize = 24;
 export const addCountSuffix = (label, count = undefined) => {
@@ -15,36 +16,7 @@ export const addCountSuffix = (label, count = undefined) => {
 };
 
 export const statusType = {
-  aborted: {
-    id: 'aborted', // Must match variable name for collection unpacking.
-    label: () => 'Aborted',
-    icon: (style) => icon('error-standard', { size: iconSize, style: { color: colors.warning(), ...style } }),
-  },
-  initializing: {
-    id: 'initializing', // Must match variable name for collection unpacking.
-    label: () => 'Initializing',
-    icon: (style) => icon('sync', { size: iconSize, style: { color: colors.dark(), ...style } }),
-  },
-  canceled: {
-    id: 'canceled', // Must match variable name for collection unpacking.
-    label: () => 'Canceled',
-    icon: (style) => icon('warning-standard', { size: iconSize, style: { color: colors.dark(), ...style } }),
-  },
-  canceling: {
-    id: 'canceling', // Must match variable name for collection unpacking.
-    label: () => 'Canceling',
-    icon: (style) => icon('sync', { size: iconSize, style: { color: colors.dark(), ...style } }),
-  },
-  paused: {
-    id: 'paused', // Must match variable name for collection unpacking.
-    label: () => 'Paused',
-    icon: (style) => icon('pause', { size: iconSize, style: { color: colors.dark(), ...style } }),
-  },
-  queued: {
-    id: 'queued', // Must match variable name for collection unpacking.
-    label: () => 'Queued',
-    icon: (style) => icon('clock', { size: iconSize, style: { color: colors.dark(), ...style } }),
-  },
+  ...cbasStatusTypes,
   succeeded: {
     id: 'succeeded', // Must match variable name for collection unpacking.
     label: () => 'Succeeded',

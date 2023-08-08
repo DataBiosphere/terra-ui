@@ -4,7 +4,7 @@ import { div, h, h2, h3 } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { ButtonPrimary, Link, Select } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
-import { HeaderSection, statusType, SubmitNewWorkflowButton } from 'src/components/job-common';
+import { statusType } from 'src/components/job-common';
 import Modal from 'src/components/Modal';
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
@@ -15,6 +15,7 @@ import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-ut
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import { customFormatDuration, differenceFromNowInSeconds, makeCompleteDate, withBusyState } from 'src/libs/utils';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
+import { HeaderSection, SubmitNewWorkflowButton } from 'src/workflows-app/utils/job-common';
 import {
   AutoRefreshInterval,
   CbasPollInterval,
@@ -118,25 +119,6 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
     [signal, submissionId]
   );
 
-  // const loadRunsData = useCallback(
-  //   async (cbasProxyUrlDetails) => {
-  //     try {
-  //       if (cbasProxyUrlDetails.status !== AppProxyUrlStatus.Ready) {
-  //         const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
-  //
-  //         if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
-  //           await loadRuns(cbasProxyUrlState.status);
-  //         }
-  //       } else {
-  //         await loadRuns(cbasProxyUrlDetails.state);
-  //       }
-  //     } catch (error) {
-  //       notify('error', 'Error loading saved workflows', { detail: error instanceof Response ? await error.text() : error });
-  //     }
-  //   },
-  //   [loadRuns, workspaceId]
-  // );
-
   const loadRunSets = useCallback(
     async (cbasUrlRoot) => {
       try {
@@ -156,7 +138,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
           const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
           if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
-            loadRuns(cbasProxyUrlState.state);
+            await loadRuns(cbasProxyUrlState.state);
             loadRunSets(cbasProxyUrlState.state).then((runSet) => {
               if (runSet !== undefined) {
                 setRunSetData(runSet);
@@ -191,7 +173,6 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
   // helper for auto-refresh
   const refresh = withBusyState(setLoading, async () => {
     try {
-      // await loadRunsData(workflowsAppStore.get().cbasProxyUrlState);
       await loadAllRunSets(workflowsAppStore.get().cbasProxyUrlState);
 
       // only refresh if there are run sets in non-terminal state
@@ -204,11 +185,6 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
   });
 
   // poll if we're missing CBAS proxy url and stop polling when we have it
-  // usePollingEffect(() => !doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState') && loadRunsData(workflowsAppStore.get().cbasProxyUrlState), {
-  //   ms: CbasPollInterval,
-  //   leading: false,
-  // });
-
   usePollingEffect(() => !doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState') && loadAllRunSets(workflowsAppStore.get().cbasProxyUrlState), {
     ms: CbasPollInterval,
     leading: false,
@@ -219,7 +195,6 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
       const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
       if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
-        // await loadRuns(cbasProxyUrlState);
         await loadAllRunSets(cbasProxyUrlState);
       }
     };
