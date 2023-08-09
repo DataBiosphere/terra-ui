@@ -91,6 +91,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
 
         if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
           await loadRunsData(cbasProxyUrlState);
+          await refreshApps(true);
         }
       });
       load();
@@ -105,7 +106,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       },
       {
         ms: 10000,
-        leading: false,
+        leading: true,
       }
     );
 
