@@ -215,6 +215,10 @@ const DataTable = (props) => {
   const getAllEntities = async () => {
     const params = _.pickBy(_.trim, { pageSize: filteredCount, filterTerms: activeTextFilter, filterOperator });
     const queryResults = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, params);
+    Ajax().Metrics.captureEvent(Events.workspaceDataFullTableSearch, {
+      workspaceNamespace: namespace, workspaceName: name, providerName: dataProvider.providerName,
+      cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label
+    })
     return queryResults.results;
   };
 
@@ -281,16 +285,26 @@ const DataTable = (props) => {
     return entities.length && _.every((k) => _.includes(k, selectedKeys), entityKeys);
   };
 
-  const searchByColumn = (field, v) => {
+  const searchByColumn = (field, v, type) => {
     setActiveTextFilter('');
     setColumnFilter({ filterColAttr: field, filterColTerm: v.toString().trim() });
     setPageNumber(1);
-    Ajax().Metrics.captureEvent(Events.workspaceDataFilteredSearch, {
-      workspaceNamespace: namespace,
-      workspaceName: name,
-      providerName: dataProvider.providerName,
-      cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label,
-    });
+    if(type === 'name') {
+      Ajax().Metrics.captureEvent(Events.workspaceDataFilterByName, {
+        workspaceNamespace: namespace,
+        workspaceName: name,
+        providerName: dataProvider.providerName,
+        cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label,
+      });
+    } else {
+      Ajax().Metrics.captureEvent(Events.workspaceDataFilterByColumn, {
+        workspaceNamespace: namespace,
+        workspaceName: name,
+        providerName: dataProvider.providerName,
+        cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label,
+      });
+    }
+
   };
 
   // Lifecycle
@@ -480,7 +494,7 @@ const DataTable = (props) => {
                             field: 'name',
                             onSort: setSort,
                             renderSearch: !!googleProject,
-                            searchByColumn: (v) => searchByColumn(entityMetadata[entityType].idName, v),
+                            searchByColumn: (v) => searchByColumn(entityMetadata[entityType].idName, v, field),
                           },
                           [
                             h(HeaderCell, [
@@ -531,7 +545,7 @@ const DataTable = (props) => {
                               field: attributeName,
                               onSort: setSort,
                               renderSearch: !!googleProject,
-                              searchByColumn: (v) => searchByColumn(attributeName, v),
+                              searchByColumn: (v) => searchByColumn(attributeName, v, field),
                               extraActions: _.concat(
                                 editable
                                   ? [
