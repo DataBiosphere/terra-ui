@@ -460,14 +460,16 @@ export const CloudEnvironmentModal = ({
         () => {
           return {
             ...baseProps,
-            href:
-              app &&
-              (cloudProvider === cloudProviderTypes.AZURE
-                ? app?.proxyUrls['cbas-ui']
-                : app?.proxyUrls['cromwell-service']),
+            href: app && (cloudProvider === cloudProviderTypes.GCP ? app?.proxyUrls['cromwell-service'] : ''),
             onClick: () => {
               onDismiss();
               Metrics(signal).captureEvent(Events.applicationLaunch, { app: appTools.CROMWELL.label });
+              if (
+                cloudProvider === cloudProviderTypes.AZURE &&
+                Nav.getCurrentRoute().name !== 'workspace-workflows-app'
+              ) {
+                Nav.goToPath('workspace-workflows-app', { namespace, name });
+              }
             },
             ...Utils.newTabLinkPropsWithReferrer,
           };

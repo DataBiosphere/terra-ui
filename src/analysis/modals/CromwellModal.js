@@ -10,6 +10,7 @@ import TitleBar from 'src/components/TitleBar';
 import { Ajax } from 'src/libs/ajax';
 import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import * as Nav from 'src/libs/nav';
 import { useStore, withDisplayName } from 'src/libs/react-utils';
 import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
@@ -78,11 +79,16 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
         : h(
             ButtonPrimary,
             {
-              href: app?.proxyUrls['cbas-ui'],
+              href: cloudProvider === cloudProviderTypes.GCP ? app?.proxyUrls['cromwell-service'] : '',
               disabled: !cookieReady,
               tooltip: Utils.cond([cookieReady, () => 'Open'], [Utils.DEFAULT, () => 'Please wait until Cromwell is running']),
               onClick: () => {
                 Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: appTools.CROMWELL.label });
+                if (Nav.getCurrentRoute().name !== 'workspace-workflows-app') {
+                  Nav.goToPath('workspace-workflows-app', { namespace, name: workspaceName });
+                } else {
+                  onDismiss();
+                }
               },
               ...Utils.newTabLinkPropsWithReferrer,
             },
