@@ -1,4 +1,4 @@
-import _ from 'lodash/fp';
+import _ from 'lodash/fp.js';
 
 export const DEFAULT = Symbol('Default switch case');
 

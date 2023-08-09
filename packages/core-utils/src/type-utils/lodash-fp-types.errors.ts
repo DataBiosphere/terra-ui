@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import _ from 'lodash/fp';
+import _ from 'lodash/fp.js';
 
-import { SafeCurry2, SafeCurry3, SafeCurry4 } from './lodash-fp-types';
+import { SafeCurry2, SafeCurry3, SafeCurry4 } from './lodash-fp-types.js';
 
 // Curry2 ////////////////////////////////////////////////////////////////
 

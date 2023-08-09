@@ -1,6 +1,6 @@
-import { delay } from '../timer-utils';
-import { AnyFn, AnyPromiseFn, GenericFn, GenericPromiseFn } from './general-types';
-import { createHandler, createHandlerAsync, curryLastArg, safeCurry, withHandlers } from './lodash-fp-helpers';
+import { delay } from '../timer-utils.js';
+import { AnyFn, AnyPromiseFn, GenericFn, GenericPromiseFn } from './general-types.js';
+import { createHandler, createHandlerAsync, curryLastArg, safeCurry, withHandlers } from './lodash-fp-helpers.js';
 
 describe('Lodash FP Helpers', () => {
   describe('withHandlers', () => {

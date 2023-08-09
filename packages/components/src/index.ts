@@ -1,1 +1,1 @@
-export { Interactive } from './Interactive';
+export { Interactive } from './Interactive.js';

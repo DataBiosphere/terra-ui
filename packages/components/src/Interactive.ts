@@ -1,7 +1,7 @@
-import _ from 'lodash/fp';
+import _ from 'lodash/fp.js';
 import { createElement, forwardRef, ReactNode, useState } from 'react';
 
-import * as Utils from './utils';
+import * as Utils from './utils.js';
 
 const allowedHoverVariables = [
   'background',
