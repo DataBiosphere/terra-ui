@@ -1242,6 +1242,7 @@ describe('Submitting a run set', () => {
 
   it('should call POST /run_sets endpoint with expected parameters', async () => {
     // ** ARRANGE **
+    isFeaturePreviewEnabled.mockImplementation((id) => (id === ENABLE_CROMWELL_APP_CALL_CACHING ? false : isFeaturePreviewEnabled(id)));
     const user = userEvent.setup();
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
@@ -1328,6 +1329,7 @@ describe('Submitting a run set', () => {
         },
       })
     );
+    expect(postRunSetFunction.mock.lastCall[1]).not.toHaveProperty('call_caching_enabled');
   });
 
   it('error message should display on workflow launch fail, and not on success', async () => {
@@ -1431,6 +1433,7 @@ describe('Submitting a run set', () => {
 
   it('should call POST /run_sets endpoint with expected parameters after an optional input is set to None', async () => {
     // ** ARRANGE **
+    isFeaturePreviewEnabled.mockImplementation((id) => (id === ENABLE_CROMWELL_APP_CALL_CACHING ? true : isFeaturePreviewEnabled(id)));
     const user = userEvent.setup();
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
@@ -1528,6 +1531,7 @@ describe('Submitting a run set', () => {
     expect(postRunSetFunction).toBeCalledWith(
       cbasUrlRoot,
       expect.objectContaining({
+        call_caching_enabled: true,
         method_version_id: runSetResponse.run_sets[0].method_version_id,
         workflow_input_definitions: [
           runSetInputDef[0],
