@@ -129,17 +129,23 @@ export const AzureStorage = (signal?: AbortSignal) => ({
 
         // instead of taking the url returned by azure storage, take it from the incoming url since there may be a folder path
         const urlwithFolder = new URL(azureStorageUrl);
-        const azureSasStorageUrl = `https://${urlwithFolder.hostname}${urlwithFolder.pathname}?&${token}`;
+        const azureSasStorageUrl = `https://${urlwithFolder.hostname}${urlwithFolder.pathname}?${token}`;
 
-        const res = await fetchOk(azureSasStorageUrl, { method: 'HEAD' });
+        const res = await fetchOk(azureSasStorageUrl, { method: 'GET' });
         const headerDict = Object.fromEntries(res.headers);
 
+        const textContent = await res.text().catch((_err) => undefined);
+
         return {
+          uri: azureStorageUrl,
+          sasToken: token,
           lastModified: headerDict['last-modified'],
           size: headerDict['content-length'],
           azureSasStorageUrl,
           workspaceId,
           fileName,
+          name: fileName,
+          textContent,
         };
       } catch (e) {
         // check if file can just be fetched without sas token

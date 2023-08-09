@@ -1,6 +1,6 @@
 import ReactJson from '@microlink/react-json-view';
 import _ from 'lodash/fp';
-import { Fragment, useRef, useState } from 'react';
+import { Fragment, useMemo, useRef, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import { ClipboardButton } from 'src/components/ClipboardButton';
@@ -132,17 +132,9 @@ const WorkflowDashboard = _.flow(
   /*
    * Page render
    */
-  const {
-    metadataArchiveStatus,
-    calls,
-    end,
-    failures,
-    start,
-    status,
-    workflowLog,
-    workflowRoot,
-    submittedFiles: { workflow: wdl } = {},
-  } = workflow || {};
+  const { metadataArchiveStatus, end, failures, start, status, workflowLog, workflowRoot, submittedFiles: { workflow: wdl } = {} } = workflow || {};
+
+  const callObjects = useMemo(() => workflow?.calls || {}, [workflow]);
 
   const restructureFailures = (failuresArray) => {
     const filtered = _.filter(({ message }) => !_.isEmpty(message) && !message.startsWith('Will not start job'), failuresArray);
@@ -165,8 +157,6 @@ const WorkflowDashboard = _.flow(
       simplifiedFailures
     );
   };
-
-  const callNames = _.sortBy((callName) => _.min(_.map('start', calls[callName])), _.keys(calls));
 
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
     workflowDetailsBreadcrumbSubtitle(namespace, name, submissionId, workflowId),
@@ -285,31 +275,14 @@ const WorkflowDashboard = _.flow(
             [
               div({ style: { marginLeft: '1rem' } }, [
                 makeSection('Total Call Status Counts', [
-                  !_.isEmpty(calls)
+                  !_.isEmpty(callObjects)
                     ? statusCell(workflow)
                     : div({ style: { marginTop: '0.5rem' } }, ['No calls have been started by this workflow.']),
                 ]),
-                !_.isEmpty(calls) &&
-                  makeSection(
-                    'Call Lists',
-                    [
-                      _.map((callName) => {
-                        return h(
-                          Collapse,
-                          {
-                            key: callName,
-                            style: { marginLeft: '1rem', marginTop: '0.5rem' },
-                            title: div({ style: { ...Style.codeFont, ...Style.elements.sectionHeader } }, [
-                              `${callName} × ${calls[callName].length}`,
-                            ]),
-                            initialOpenState: !_.every({ executionStatus: 'Done' }, calls[callName]),
-                          },
-                          [h(CallTable, { namespace, name, submissionId, workflowId, callName, callObjects: calls[callName] })]
-                        );
-                      }, callNames),
-                    ],
-                    { style: { overflow: 'visible' } }
-                  ),
+                !_.isEmpty(callObjects) &&
+                  makeSection('Call Lists', [h(CallTable, { namespace, name, submissionId, workflowId, callObjects })], {
+                    style: { overflow: 'visible' },
+                  }),
               ]),
             ]
           ),
