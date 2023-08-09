@@ -27,6 +27,7 @@ export default {
     '^.+\\.module\\.(css|sass|scss)$': 'identity-obj-proxy',
     '^src/(.*)$': '<rootDir>/src/$1',
   },
+  resolver: path.resolve(testUtilsPath, 'resolver.cjs'),
   watchPlugins: [require.resolve('jest-watch-typeahead/filename'), require.resolve('jest-watch-typeahead/testname')],
   resetMocks: false,
   clearMocks: true,
