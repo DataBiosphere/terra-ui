@@ -3,10 +3,11 @@
   "version": "0.0.2",
   "private": false,
   "scripts": {
-    "build": "tsc && tsc -p tsconfig.cjs.json",
+    "build": "yarn run build-es && yarn run build-cjs",
+    "build-es": "tsc -p tsconfig.json && echo '{\"type\": \"module\"}' > lib/es/package.json",
+    "build-cjs": "tsc -p tsconfig.cjs.json",
     "test": "jest"
   },
-  "type": "module",
   "module": "./lib/es/index.js",
   "main": "./lib/cjs/index.js",
   "exports": {
