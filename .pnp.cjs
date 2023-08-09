@@ -16,6 +16,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         "reference": "workspace:."\
       },\
       {\
+        "name": "eslint-plugin-terra-ui",\
+        "reference": "workspace:eslint-rules"\
+      },\
+      {\
         "name": "terra-integration-tests",\
         "reference": "workspace:integration-tests"\
       },\
@@ -38,6 +42,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
       ["@terra-ui-packages/components", ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/components", "workspace:packages/components"]],\
       ["@terra-ui-packages/core-utils", ["workspace:packages/core-utils"]],\
       ["@terra-ui-packages/test-utils", ["workspace:packages/test-utils"]],\
+      ["eslint-plugin-terra-ui", ["workspace:eslint-rules"]],\
       ["terra-integration-tests", ["workspace:integration-tests"]],\
       ["terra-ui", ["workspace:."]]\
     ],\
@@ -95,6 +100,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["eslint-plugin-react", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:7.32.2"],\
             ["eslint-plugin-react-hooks", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:4.6.0"],\
             ["eslint-plugin-simple-import-sort", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:7.0.0"],\
+            ["eslint-plugin-terra-ui", "workspace:eslint-rules"],\
             ["file-saver", "npm:2.0.5"],\
             ["filesize", "npm:7.0.0"],\
             ["github-markdown-css", "npm:4.0.0"],\
@@ -8912,6 +8918,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["eslint-plugin-terra-ui", [\
+        ["workspace:eslint-rules", {\
+          "packageLocation": "./eslint-rules/",\
+          "packageDependencies": [\
+            ["eslint-plugin-terra-ui", "workspace:eslint-rules"]\
+          ],\
+          "linkType": "SOFT"\
+        }]\
+      ]],\
       ["eslint-scope", [\
         ["npm:5.1.1", {\
           "packageLocation": "./.yarn/cache/eslint-scope-npm-5.1.1-71fe59b18a-47e4b6a3f0.zip/node_modules/eslint-scope/",\
@@ -16432,6 +16447,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["eslint-plugin-react", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:7.32.2"],\
             ["eslint-plugin-react-hooks", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:4.6.0"],\
             ["eslint-plugin-simple-import-sort", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:7.0.0"],\
+            ["eslint-plugin-terra-ui", "workspace:eslint-rules"],\
             ["file-saver", "npm:2.0.5"],\
             ["filesize", "npm:7.0.0"],\
             ["github-markdown-css", "npm:4.0.0"],\

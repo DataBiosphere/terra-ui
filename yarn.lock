@@ -5884,6 +5884,12 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eslint-plugin-terra-ui@*, eslint-plugin-terra-ui@workspace:eslint-rules":
+  version: 0.0.0-use.local
+  resolution: "eslint-plugin-terra-ui@workspace:eslint-rules"
+  languageName: unknown
+  linkType: soft
+
 "eslint-scope@npm:^5.1.1":
   version: 5.1.1
   resolution: "eslint-scope@npm:5.1.1"
@@ -12085,6 +12091,7 @@ __metadata:
     eslint-plugin-react: 7.32.2
     eslint-plugin-react-hooks: ^4.6.0
     eslint-plugin-simple-import-sort: ^7.0.0
+    eslint-plugin-terra-ui: "*"
     file-saver: ^2.0.5
     filesize: ^7.0.0
     github-markdown-css: ^4.0.0

@@ -109,6 +109,12 @@ module.exports = {
         'no-console': 'off',
       }
     },
+    {
+      files: ['packages/**'],
+      rules:{
+        'terra-ui/enforce-extensions': 'error',
+      },
+    },
   ],
-  plugins: ['lodash-fp', 'simple-import-sort'],
+  plugins: ['lodash-fp', 'simple-import-sort', 'terra-ui'],
 };
