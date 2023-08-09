@@ -4,7 +4,6 @@ import { div, h, h2, h3 } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { ButtonPrimary, Link, Select } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
-import { statusType } from 'src/components/job-common';
 import Modal from 'src/components/Modal';
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
@@ -15,7 +14,7 @@ import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-ut
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import { customFormatDuration, differenceFromNowInSeconds, makeCompleteDate, withBusyState } from 'src/libs/utils';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
-import { HeaderSection, SubmitNewWorkflowButton } from 'src/workflows-app/utils/job-common';
+import { cbasStatusTypes, HeaderSection, SubmitNewWorkflowButton } from 'src/workflows-app/utils/job-common';
 import {
   AutoRefreshInterval,
   CbasPollInterval,
@@ -63,25 +62,25 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
     switch (state) {
       case 'SYSTEM_ERROR':
       case 'EXECUTOR_ERROR':
-        return statusType.failed;
+        return cbasStatusTypes.failed;
       case 'COMPLETE':
-        return statusType.succeeded;
+        return cbasStatusTypes.succeeded;
       case 'INITIALIZING':
-        return statusType.initializing;
+        return cbasStatusTypes.initializing;
       case 'QUEUED':
-        return statusType.queued;
+        return cbasStatusTypes.queued;
       case 'RUNNING':
-        return statusType.running;
+        return cbasStatusTypes.running;
       case 'PAUSED':
-        return statusType.paused;
+        return cbasStatusTypes.paused;
       case 'CANCELED':
-        return statusType.canceled;
+        return cbasStatusTypes.canceled;
       case 'CANCELING':
-        return statusType.canceling;
+        return cbasStatusTypes.canceling;
       default:
         // 10 seconds should be enough for Cromwell to summarize the new workflow and get a status other
         // than UNKNOWN. In the meantime, handle this as an edge case in the UI:
-        return differenceFromNowInSeconds(submissionDate) < 10 ? statusType.initializing : statusType.unknown;
+        return differenceFromNowInSeconds(submissionDate) < 10 ? cbasStatusTypes.initializing : cbasStatusTypes.unknown;
     }
   };
 

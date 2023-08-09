@@ -6,7 +6,6 @@ import { TooltipCell } from 'src/components/table';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
-import { cbasStatusTypes } from 'src/workflows-app/utils/job-common';
 
 const iconSize = 24;
 export const addCountSuffix = (label, count = undefined) => {
@@ -14,7 +13,6 @@ export const addCountSuffix = (label, count = undefined) => {
 };
 
 export const statusType = {
-  ...cbasStatusTypes,
   succeeded: {
     id: 'succeeded', // Must match variable name for collection unpacking.
     label: () => 'Succeeded',
