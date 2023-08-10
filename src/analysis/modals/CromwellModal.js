@@ -81,18 +81,24 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
         : h(
             ButtonPrimary,
             {
-              href: isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID)
-                ? Nav.getLink('workspace-workflows-app', { namespace, name: workspaceName })
-                : app?.proxyUrls['cbas-ui'],
+              href: Utils.cond(
+                [
+                  cloudProvider === cloudProviderTypes.AZURE && isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID),
+                  () => Nav.getLink('workspace-workflows-app', { namespace, name: workspaceName }),
+                ],
+                [cloudProvider === cloudProviderTypes.AZURE, () => app?.proxyUrls['cbas-ui']],
+                () => app?.proxyUrls['cromwell-service']
+              ),
               disabled: !cookieReady,
               tooltip: Utils.cond([cookieReady, () => 'Open'], [Utils.DEFAULT, () => 'Please wait until Cromwell is running']),
               onClick: () => {
                 onDismiss();
                 Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: appTools.CROMWELL.label });
               },
-              ...(!isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID) || cloudProvider === cloudProviderTypes.GCP
-                ? Utils.newTabLinkPropsWithReferrer
-                : {}),
+              ...Utils.cond(
+                [cloudProvider === cloudProviderTypes.AZURE && isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID), () => {}],
+                () => Utils.newTabLinkPropsWithReferrer
+              ),
             },
             ['Open Cromwell']
           );

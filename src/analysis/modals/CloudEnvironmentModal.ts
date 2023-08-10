@@ -464,18 +464,25 @@ export const CloudEnvironmentModal = ({
             ...baseProps,
             href:
               app &&
-              (cloudProvider === cloudProviderTypes.AZURE
-                ? isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID)
-                  ? Nav.getLink('workspace-workflows-app', { namespace, name })
-                  : app?.proxyUrls['cbas-ui']
-                : app?.proxyUrls['cromwell-service']),
+              Utils.cond(
+                [
+                  cloudProvider === cloudProviderTypes.AZURE && isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID),
+                  () => Nav.getLink('workspace-workflows-app', { namespace, name }),
+                ],
+                [cloudProvider === cloudProviderTypes.AZURE, () => app?.proxyUrls['cbas-ui']],
+                () => app?.proxyUrls['cromwell-service']
+              ),
             onClick: () => {
               onDismiss();
               Metrics(signal).captureEvent(Events.applicationLaunch, { app: appTools.CROMWELL.label });
             },
-            ...(!isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID) || cloudProvider === cloudProviderTypes.GCP
-              ? Utils.newTabLinkPropsWithReferrer
-              : {}),
+            ...Utils.cond(
+              [
+                cloudProvider === cloudProviderTypes.AZURE && isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID),
+                () => {},
+              ],
+              () => Utils.newTabLinkPropsWithReferrer
+            ),
           };
         },
       ],
