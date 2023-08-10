@@ -213,11 +213,6 @@ const DataTable = (props) => {
   const getAllEntities = async () => {
     const params = _.pickBy(_.trim, { pageSize: filteredCount, filterTerms: activeTextFilter, filterOperator });
     const queryResults = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, params);
-    Ajax().Metrics.captureEvent(Events.workspaceDataColumnTableSearch, {
-      ...extractWorkspaceDetails(workspace.workspace),
-      searchType: 'full-table-search',
-      providerName: dataProvider.providerName,
-    });
     return queryResults.results;
   };
 
@@ -389,6 +384,11 @@ const DataTable = (props) => {
                     setColumnFilter({ filterColAttr: '', filterColTerm: '' });
                     setActiveTextFilter(v.toString().trim());
                     setPageNumber(1);
+                    Ajax().Metrics.captureEvent(Events.workspaceDataColumnTableSearch, {
+                      ...extractWorkspaceDetails(workspace.workspace),
+                      searchType: 'full-table-search',
+                      providerName: dataProvider.providerName,
+                    });
                   },
                   defaultValue: activeTextFilter,
                 }),
