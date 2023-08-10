@@ -482,7 +482,7 @@ const DataTable = (props) => {
                             field: 'name',
                             onSort: setSort,
                             renderSearch: !!googleProject,
-                            searchByColumn: (v) => searchByColumn(entityMetadata[entityType].idName, v, 'name'),
+                            searchByColumn: (v) => searchByColumn(entityMetadata[entityType].idName, v),
                           },
                           [
                             h(HeaderCell, [
@@ -533,7 +533,7 @@ const DataTable = (props) => {
                               field: attributeName,
                               onSort: setSort,
                               renderSearch: !!googleProject,
-                              searchByColumn: (v) => searchByColumn(attributeName, v, 'column'),
+                              searchByColumn: (v) => searchByColumn(attributeName, v),
                               extraActions: _.concat(
                                 editable
                                   ? [
