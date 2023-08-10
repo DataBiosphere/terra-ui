@@ -61,12 +61,12 @@ export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
           const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
           if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
-            loadRunSets(cbasProxyUrlState.state).then((runSets) => {
-              if (runSets !== undefined) {
-                setRunSetData(runSets.run_sets);
-                setRunSetsFullyUpdated(runSets.fully_updated);
-              }
-            });
+            const runSets = await loadRunSets(cbasProxyUrlState.state);
+            if (runSets !== undefined) {
+              setRunSetData(runSets.run_sets);
+              setRunSetsFullyUpdated(runSets.fully_updated);
+              return runSets;
+            }
           } else {
             const cbasUrlState = cbasProxyUrlState.state;
             const errorDetails = cbasUrlState instanceof Response ? await cbasUrlState.text() : cbasUrlState;
@@ -77,12 +77,12 @@ export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
             });
           }
         } else {
-          loadRunSets(cbasProxyUrlDetails.state).then((runSets) => {
-            if (runSets !== undefined) {
-              setRunSetData(runSets.run_sets);
-              setRunSetsFullyUpdated(runSets.fully_updated);
-            }
-          });
+          const runSets = await loadRunSets(cbasProxyUrlDetails.state);
+          if (runSets !== undefined) {
+            setRunSetData(runSets.run_sets);
+            setRunSetsFullyUpdated(runSets.fully_updated);
+            return runSets;
+          }
         }
       } catch (error) {
         notify('error', 'Error getting run set data', { detail: error instanceof Response ? await error.text() : error });
@@ -94,11 +94,12 @@ export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
   // helper for auto-refresh
   const refresh = Utils.withBusyState(setLoading, async () => {
     try {
-      if (workflowsAppStore.get().cbasProxyUrlState.state === AppProxyUrlStatus.Ready) {
-        await loadAllRunSets(workflowsAppStore.get().cbasProxyUrlState);
+      let updatedRunSets;
+      if (workflowsAppStore.get().cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
+        updatedRunSets = await loadAllRunSets(workflowsAppStore.get().cbasProxyUrlState);
 
         // only refresh if there are Run Sets in non-terminal state
-        if (_.some(({ state }) => !isRunSetInTerminalState(state), runSetsData)) {
+        if (!updatedRunSets || _.some(({ state }) => !isRunSetInTerminalState(state), updatedRunSets)) {
           scheduledRefresh.current = setTimeout(refresh, AutoRefreshInterval);
         }
       }
@@ -124,12 +125,7 @@ export const BaseSubmissionHistory = ({ name, namespace, workspace }, _ref) => {
       const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
       if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
-        loadRunSets(cbasProxyUrlState.state).then((runSets) => {
-          if (runSets !== undefined) {
-            setRunSetData(runSets.run_sets);
-            setRunSetsFullyUpdated(runSets.fully_updated);
-          }
-        });
+        await loadAllRunSets(cbasProxyUrlState);
       }
     };
     loadWorkflowsApp();

@@ -12,7 +12,8 @@ import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
-import { customFormatDuration, differenceFromNowInSeconds, makeCompleteDate, withBusyState } from 'src/libs/utils';
+import * as Utils from 'src/libs/utils';
+import { customFormatDuration, differenceFromNowInSeconds, makeCompleteDate } from 'src/libs/utils';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { cbasStatusTypes, HeaderSection, SubmitNewWorkflowButton } from 'src/workflows-app/utils/job-common';
 import {
@@ -122,6 +123,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
     async (cbasUrlRoot) => {
       try {
         const runSets = await Ajax(signal).Cbas.runSets.get(cbasUrlRoot);
+        setRunSetData(runSets.run_sets);
         return runSets.run_sets;
       } catch (error) {
         notify('error', 'Error getting run set data', { detail: error instanceof Response ? await error.text() : error });
@@ -129,6 +131,22 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
     },
     [signal]
   );
+
+  // helper for auto-refresh
+  const refresh = Utils.withBusyState(setLoading, async () => {
+    try {
+      let updatedRunSets;
+      if (workflowsAppStore.get().cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
+        updatedRunSets = await loadAllRunSets(workflowsAppStore.get().cbasProxyUrlState);
+      }
+      // only refresh if there are run sets in non-terminal state
+      if (!updatedRunSets || _.some(({ state }) => !isRunSetInTerminalState(state), updatedRunSets)) {
+        scheduledRefresh.current = setTimeout(refresh, AutoRefreshInterval);
+      }
+    } catch (error) {
+      notify('error', 'Error loading previous runs', { detail: error instanceof Response ? await error.text() : error });
+    }
+  });
 
   const loadAllRunSets = useCallback(
     async (cbasProxyUrlDetails) => {
@@ -138,12 +156,13 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
 
           if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
             await loadRuns(cbasProxyUrlState.state);
-            loadRunSets(cbasProxyUrlState.state).then((runSet) => {
-              if (runSet !== undefined) {
-                setRunSetData(runSet);
-                loadMethodsData(cbasProxyUrlDetails.state, runSet.method_id, runSet.method_version_id);
-              }
-            });
+            const runSets = await loadRunSets(cbasProxyUrlState.state);
+            if (runSets !== undefined) {
+              setRunSetData(runSets);
+              await loadMethodsData(cbasProxyUrlDetails.state, runSets.method_id, runSets.method_version_id);
+              return runSets;
+            }
+            // });
           } else {
             const cbasUrlState = cbasProxyUrlState.state;
             const errorDetails = cbasUrlState instanceof Response ? await cbasUrlState.text() : cbasUrlState;
@@ -154,13 +173,14 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
             });
           }
         } else {
-          loadRuns(cbasProxyUrlDetails.state);
-          loadRunSets(cbasProxyUrlDetails.state).then((runSet) => {
-            if (runSet !== undefined) {
-              setRunSetData(runSet);
-              loadMethodsData(cbasProxyUrlDetails.state, runSet.method_id, runSet.method_version_id);
-            }
-          });
+          await loadRuns(cbasProxyUrlDetails.state);
+
+          const runSets = await loadRunSets(cbasProxyUrlDetails.state);
+          if (runSets !== undefined) {
+            setRunSetData(runSets);
+            await loadMethodsData(cbasProxyUrlDetails.state, runSets.method_id, runSets.method_version_id);
+            return runSets;
+          }
         }
       } catch (error) {
         notify('error', 'Error getting run set data', { detail: error instanceof Response ? await error.text() : error });
@@ -168,20 +188,6 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
     },
     [workspaceId, loadRuns, loadRunSets, loadMethodsData]
   );
-
-  // helper for auto-refresh
-  const refresh = withBusyState(setLoading, async () => {
-    try {
-      await loadAllRunSets(workflowsAppStore.get().cbasProxyUrlState);
-
-      // only refresh if there are run sets in non-terminal state
-      if (_.some(({ state }) => !isRunSetInTerminalState(state), runSetData)) {
-        scheduledRefresh.current = setTimeout(refresh, AutoRefreshInterval);
-      }
-    } catch (error) {
-      notify('error', 'Error loading previous runs', { detail: error instanceof Response ? await error.text() : error });
-    }
-  });
 
   // poll if we're missing CBAS proxy url and stop polling when we have it
   usePollingEffect(() => !doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState') && loadAllRunSets(workflowsAppStore.get().cbasProxyUrlState), {
@@ -197,9 +203,8 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
         await loadAllRunSets(cbasProxyUrlState);
       }
     };
-    loadWorkflowsApp().then(() => {
-      refresh();
-    });
+    loadWorkflowsApp();
+    refresh();
 
     return () => {
       if (scheduledRefresh.current) {
