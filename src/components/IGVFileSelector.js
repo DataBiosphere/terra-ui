@@ -78,7 +78,7 @@ export const getValidIgvFiles = (values) => {
 
       // Filter to URLs that point to a file with one of the relevant extensions.
       const basename = url.pathname.split('/').at(-1);
-      const [base, extension] = basename.split('.');
+      const [base, extension] = splitExtension(basename);
       return !!base && relevantFileTypes.includes(extension);
     } catch (err) {
       return false;
