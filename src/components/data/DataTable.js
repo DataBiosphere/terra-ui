@@ -213,7 +213,7 @@ const DataTable = (props) => {
   const getAllEntities = async () => {
     const params = _.pickBy(_.trim, { pageSize: filteredCount, filterTerms: activeTextFilter, filterOperator });
     const queryResults = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, params);
-    Ajax().Metrics.captureEvent(Events.workspaceDataFilteredSearch, {
+    Ajax().Metrics.captureEvent(Events.workspaceDataColumnTableSearch, {
       ...extractWorkspaceDetails(workspace.workspace),
       searchType: 'full-table-search',
       providerName: dataProvider.providerName,
@@ -284,23 +284,15 @@ const DataTable = (props) => {
     return entities.length && _.every((k) => _.includes(k, selectedKeys), entityKeys);
   };
 
-  const searchByColumn = (field, v, type) => {
+  const searchByColumn = (field, v) => {
     setActiveTextFilter('');
     setColumnFilter({ filterColAttr: field, filterColTerm: v.toString().trim() });
     setPageNumber(1);
-    if (type === 'name') {
-      Ajax().Metrics.captureEvent(Events.workspaceDataFilteredSearch, {
-        ...extractWorkspaceDetails(workspace.workspace),
-        searchType: 'filter-by-name',
-        providerName: dataProvider.providerName,
-      });
-    } else {
-      Ajax().Metrics.captureEvent(Events.workspaceDataFilteredSearch, {
-        ...extractWorkspaceDetails(workspace.workspace),
-        searchType: 'filter-by-column',
-        providerName: dataProvider.providerName,
-      });
-    }
+    Ajax().Metrics.captureEvent(Events.workspaceDataColumnTableSearch, {
+      ...extractWorkspaceDetails(workspace.workspace),
+      searchType: field === entityMetadata[entityType].idName ? 'filter-by-name' : 'filter-by-column',
+      providerName: dataProvider.providerName,
+    });
   };
 
   // Lifecycle
