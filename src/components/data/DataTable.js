@@ -2,7 +2,6 @@ import _ from 'lodash/fp';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { b, div, h, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
-import { cloudProviders } from 'src/analysis/utils/runtime-utils';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import {
   ButtonPrimary,
@@ -30,7 +29,6 @@ import Modal from 'src/components/Modal';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { GridTable, HeaderCell, paginator, Resizable, TooltipCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
-import { wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -215,10 +213,11 @@ const DataTable = (props) => {
   const getAllEntities = async () => {
     const params = _.pickBy(_.trim, { pageSize: filteredCount, filterTerms: activeTextFilter, filterOperator });
     const queryResults = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, params);
-    Ajax().Metrics.captureEvent(Events.workspaceDataFullTableSearch, {
-      workspaceNamespace: namespace, workspaceName: name, providerName: dataProvider.providerName,
-      cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label
-    })
+    Ajax().Metrics.captureEvent(Events.workspaceDataFilteredSearch, {
+      ...extractWorkspaceDetails(workspace.workspace),
+      searchType: 'full-table-search',
+      providerName: dataProvider.providerName,
+    });
     return queryResults.results;
   };
 
@@ -289,22 +288,19 @@ const DataTable = (props) => {
     setActiveTextFilter('');
     setColumnFilter({ filterColAttr: field, filterColTerm: v.toString().trim() });
     setPageNumber(1);
-    if(type === 'name') {
-      Ajax().Metrics.captureEvent(Events.workspaceDataFilterByName, {
-        workspaceNamespace: namespace,
-        workspaceName: name,
+    if (type === 'name') {
+      Ajax().Metrics.captureEvent(Events.workspaceDataFilteredSearch, {
+        ...extractWorkspaceDetails(workspace.workspace),
+        searchType: 'filter-by-name',
         providerName: dataProvider.providerName,
-        cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label,
       });
     } else {
-      Ajax().Metrics.captureEvent(Events.workspaceDataFilterByColumn, {
-        workspaceNamespace: namespace,
-        workspaceName: name,
+      Ajax().Metrics.captureEvent(Events.workspaceDataFilteredSearch, {
+        ...extractWorkspaceDetails(workspace.workspace),
+        searchType: 'filter-by-column',
         providerName: dataProvider.providerName,
-        cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label,
       });
     }
-
   };
 
   // Lifecycle
@@ -494,7 +490,7 @@ const DataTable = (props) => {
                             field: 'name',
                             onSort: setSort,
                             renderSearch: !!googleProject,
-                            searchByColumn: (v) => searchByColumn(entityMetadata[entityType].idName, v, field),
+                            searchByColumn: (v) => searchByColumn(entityMetadata[entityType].idName, v, 'name'),
                           },
                           [
                             h(HeaderCell, [
@@ -545,7 +541,7 @@ const DataTable = (props) => {
                               field: attributeName,
                               onSort: setSort,
                               renderSearch: !!googleProject,
-                              searchByColumn: (v) => searchByColumn(attributeName, v, field),
+                              searchByColumn: (v) => searchByColumn(attributeName, v, 'column'),
                               extraActions: _.concat(
                                 editable
                                   ? [
