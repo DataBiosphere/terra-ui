@@ -1,7 +1,7 @@
 {
   "name": "@terra-ui-packages/components",
-  "version": "0.0.1",
-  "private": true,
+  "version": "0.0.2",
+  "private": false,
   "scripts": {
     "build": "tsc && tsc -p tsconfig.cjs.json",
     "test": "jest"
