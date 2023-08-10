@@ -9,7 +9,7 @@ import { runtimeToolLabels, tools } from 'src/analysis/utils/tool-utils';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { cloudServiceTypes, RuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
-import { Runtime, runtimeStatuses, SanitizedListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { ListRuntimeItem, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { defaultAzureRegion } from 'src/libs/azure-utils';
 import * as Utils from 'src/libs/utils';
 import { AzureWorkspace, cloudProviderTypes, GoogleWorkspace } from 'src/libs/workspace-utils';
@@ -702,7 +702,7 @@ export const azureDisk: PersistentDisk = {
   },
 };
 
-export const azureRuntime: SanitizedListRuntimeItem = {
+export const azureRuntime: ListRuntimeItem = {
   id: 79771,
   workspaceId: defaultAzureWorkspace.workspace.workspaceId,
   runtimeName: 'saturn-42a4398b-10f8-4626-9025-7abda26aedab',
@@ -743,7 +743,7 @@ export const azureRuntime: SanitizedListRuntimeItem = {
   patchInProgress: false,
 };
 
-export const dataprocRuntime: SanitizedListRuntimeItem = {
+export const dataprocRuntime: ListRuntimeItem = {
   id: 81666,
   runtimeName: 'saturn-a5eec7f3-857d-4fab-b26c-6f1291082641',
   googleProject: defaultGoogleWorkspace.workspace.googleProject,

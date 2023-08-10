@@ -11,12 +11,7 @@ import {
   jsonBody,
   makeRequestRetry,
 } from 'src/libs/ajax/ajax-common';
-import {
-  SanitizedGetRuntimeItem,
-  SanitizedListRuntimeItem,
-  sanitizeGetRuntime,
-  sanitizeListRuntime,
-} from 'src/libs/ajax/leonardo/models/runtime-models';
+import { GetRuntimeItem, ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getConfig } from 'src/libs/config';
 import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
 
@@ -39,9 +34,9 @@ export const Runtimes = (signal) => {
     const root = `api/google/v1/runtimes/${project}/${name}`;
 
     return {
-      details: async (): Promise<SanitizedGetRuntimeItem> => {
+      details: async (): Promise<GetRuntimeItem> => {
         const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]));
-        return sanitizeGetRuntime(res.json());
+        return res.json();
       },
 
       create: (options): Promise<void> => {
@@ -95,9 +90,9 @@ export const Runtimes = (signal) => {
     const noCloudProviderRoot = `api/v2/runtimes/${workspaceId}/${name}`;
 
     return {
-      details: async (): Promise<SanitizedGetRuntimeItem> => {
+      details: async (): Promise<GetRuntimeItem> => {
         const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]));
-        return sanitizeGetRuntime(res.json());
+        return res.json();
       },
 
       create: (options, useExistingDisk = false): Promise<void> => {
@@ -134,16 +129,12 @@ export const Runtimes = (signal) => {
   };
 
   return {
-    list: async (labels: Record<string, string> = {}): Promise<SanitizedListRuntimeItem[]> => {
+    list: async (labels: Record<string, string> = {}): Promise<ListRuntimeItem[]> => {
       const res = await fetchLeo(
         `api/google/v1/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
         _.mergeAll([authOpts(), appIdentifier, { signal }])
       );
-      const runtimeList = await res.json();
-      const sanitizedRuntimeList = _.map((runtime) => {
-        return sanitizeListRuntime(runtime);
-      }, runtimeList);
-      return sanitizedRuntimeList;
+      return res.json();
     },
 
     invalidateCookie: () => {
@@ -184,7 +175,7 @@ export const Runtimes = (signal) => {
       };
     },
 
-    listV2: async (labels: Record<string, string> = {}): Promise<SanitizedListRuntimeItem[]> => {
+    listV2: async (labels: Record<string, string> = {}): Promise<ListRuntimeItem[]> => {
       const res = await fetchLeo(
         `api/v2/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
         _.mergeAll([authOpts(), appIdentifier, { signal }])
@@ -197,7 +188,7 @@ export const Runtimes = (signal) => {
         if (runtime.labels.tool === 'Azure') {
           runtime.labels.tool = 'JupyterLab';
         }
-        return sanitizeListRuntime(runtime);
+        return runtime;
       }, runtimeList);
       return runtimesWithToolLabelDecorated;
     },
@@ -205,16 +196,12 @@ export const Runtimes = (signal) => {
     listV2WithWorkspace: async (
       workspaceId: string,
       labels: Record<string, string> = {}
-    ): Promise<SanitizedListRuntimeItem[]> => {
+    ): Promise<ListRuntimeItem[]> => {
       const res = await fetchLeo(
         `api/v2/runtimes/${workspaceId}?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
         _.mergeAll([authOpts(), appIdentifier, { signal }])
       );
-      const runtimeList = await res.json();
-      const sanitizedRuntimeList = _.map((runtime) => {
-        return sanitizeListRuntime(runtime);
-      }, runtimeList);
-      return sanitizedRuntimeList;
+      return res.json();
     },
 
     deleteAll: (workspaceId: string, deleteDisk = true): Promise<void> => {
