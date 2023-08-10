@@ -90,6 +90,7 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
                 onDismiss();
                 Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: appTools.CROMWELL.label });
               },
+              ...(!isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID) ? Utils.newTabLinkPropsWithReferrer : {}),
             },
             ['Open Cromwell']
           );

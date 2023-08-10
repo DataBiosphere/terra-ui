@@ -473,6 +473,7 @@ export const CloudEnvironmentModal = ({
               onDismiss();
               Metrics(signal).captureEvent(Events.applicationLaunch, { app: appTools.CROMWELL.label });
             },
+            ...(!isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID) ? Utils.newTabLinkPropsWithReferrer : {}),
           };
         },
       ],
