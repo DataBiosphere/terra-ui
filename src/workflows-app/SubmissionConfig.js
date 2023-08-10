@@ -236,11 +236,11 @@ export const BaseSubmissionConfig = (
         method_version_id: selectedMethodVersion.method_version_id,
         workflow_input_definitions: _.map(convertArrayType)(configuredInputDefinition),
         workflow_output_definitions: configuredOutputDefinition,
-        call_caching_enabled: isCallCachingEnabled,
         wds_records: {
           record_type: selectedRecordType,
           record_ids: _.keys(selectedRecords),
         },
+        ...(isFeaturePreviewEnabled(ENABLE_CROMWELL_APP_CALL_CACHING) ? { call_caching_enabled: isCallCachingEnabled } : {}),
       };
       setIsSubmitting(true);
       const {
