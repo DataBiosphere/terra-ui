@@ -46,7 +46,9 @@ export default defineConfig(({ mode }) => {
         // Because the library is built in two different formats, this results in the type declarations
         // being written twice. This isn't ideal, but it's acceptable to keep the build within Vite
         // and avoid running tsc separately.
-        plugins: [typescript({ compilerOptions: { noEmitOnError: mode !== 'development' } })],
+        //
+        // emitDeclarationOnly is specified here because putting it in tsconfig.json breaks check-dts.
+        plugins: [typescript({ compilerOptions: { emitDeclarationOnly: true, noEmitOnError: mode !== 'development' } })],
       },
     },
     // Without this, imports from dependencies would get written to /path/to/terra-ui/.yarn/cache/.../node_modules/...
