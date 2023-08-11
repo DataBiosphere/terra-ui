@@ -12,11 +12,11 @@ import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { WORKFLOWS_TAB_AZURE_FEATURE_ID } from 'src/libs/feature-previews-config';
-import * as Nav from 'src/libs/nav';
 import { useStore, withDisplayName } from 'src/libs/react-utils';
 import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderTypes, getCloudProviderFromWorkspace, isAzureWorkspace } from 'src/libs/workspace-utils';
+import { cromwellLinkProps } from 'src/workflows-app/utils/app-utils';
 
 import { computeStyles } from './modalStyles';
 
@@ -81,24 +81,19 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
         : h(
             ButtonPrimary,
             {
-              href: Utils.cond(
-                [
-                  cloudProvider === cloudProviderTypes.AZURE && isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID),
-                  () => Nav.getLink('workspace-workflows-app', { namespace, name: workspaceName }),
-                ],
-                [cloudProvider === cloudProviderTypes.AZURE, () => app?.proxyUrls['cbas-ui']],
-                () => app?.proxyUrls['cromwell-service']
-              ),
+              ...cromwellLinkProps({
+                cloudProvider,
+                namespace,
+                name: workspaceName,
+                proxyUrls: app?.proxyUrls,
+                isAzureWorkflowsTabEnabled: isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID),
+              }),
               disabled: !cookieReady,
               tooltip: Utils.cond([cookieReady, () => 'Open'], [Utils.DEFAULT, () => 'Please wait until Cromwell is running']),
               onClick: () => {
                 onDismiss();
                 Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: appTools.CROMWELL.label });
               },
-              ...Utils.cond(
-                [cloudProvider === cloudProviderTypes.AZURE && isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID), () => {}],
-                () => Utils.newTabLinkPropsWithReferrer
-              ),
             },
             ['Open Cromwell']
           );

@@ -62,6 +62,7 @@ import {
   cloudProviderTypes,
   getCloudProviderFromWorkspace,
 } from 'src/libs/workspace-utils';
+import { cromwellLinkProps } from 'src/workflows-app/utils/app-utils';
 
 const titleId = 'cloud-env-modal';
 
@@ -462,27 +463,17 @@ export const CloudEnvironmentModal = ({
         () => {
           return {
             ...baseProps,
-            href:
-              app &&
-              Utils.cond(
-                [
-                  cloudProvider === cloudProviderTypes.AZURE && isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID),
-                  () => Nav.getLink('workspace-workflows-app', { namespace, name }),
-                ],
-                [cloudProvider === cloudProviderTypes.AZURE, () => app?.proxyUrls['cbas-ui']],
-                () => app?.proxyUrls['cromwell-service']
-              ),
+            ...cromwellLinkProps({
+              cloudProvider,
+              namespace,
+              name,
+              proxyUrls: app?.proxyUrls,
+              isAzureWorkflowsTabEnabled: isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID),
+            }),
             onClick: () => {
               onDismiss();
               Metrics(signal).captureEvent(Events.applicationLaunch, { app: appTools.CROMWELL.label });
             },
-            ...Utils.cond(
-              [
-                cloudProvider === cloudProviderTypes.AZURE && isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID),
-                () => {},
-              ],
-              () => Utils.newTabLinkPropsWithReferrer
-            ),
           };
         },
       ],
