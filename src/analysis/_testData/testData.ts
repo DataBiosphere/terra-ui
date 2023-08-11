@@ -275,6 +275,7 @@ export const generateTestGoogleRuntime = (overrides: Partial<Runtime> = {}): Run
       cloudResource: defaultGoogleWorkspace.workspace.googleProject,
     },
     googleProject: 'terra-test-e4000484',
+    workspaceId: null,
     serviceAccount: 'testuser123@broad.com',
     auditInfo: defaultAuditInfo,
     runtimeConfig: getRuntimeConfig(),
@@ -340,7 +341,7 @@ export const getGoogleDataProcRuntime = ({
 } = {}): Runtime => {
   return {
     id: getRandomInt(randomMaxInt),
-    workspaceId: undefined,
+    workspaceId: null,
     runtimeName,
     googleProject: workspace.workspace.googleProject,
     cloudContext: {
@@ -394,7 +395,7 @@ export const getGoogleRuntime = ({
 
   return {
     id: getRandomInt(randomMaxInt),
-    workspaceId: undefined,
+    workspaceId: null,
     runtimeName,
     googleProject,
     cloudContext: {
@@ -747,6 +748,7 @@ export const dataprocRuntime: ListRuntimeItem = {
   id: 81666,
   runtimeName: 'saturn-a5eec7f3-857d-4fab-b26c-6f1291082641',
   googleProject: defaultGoogleWorkspace.workspace.googleProject,
+  workspaceId: null,
   cloudContext: { cloudProvider: 'GCP', cloudResource: defaultGoogleWorkspace.workspace.googleProject },
   auditInfo: {
     creator: 'jcanas@broadinstitute.org',

@@ -195,6 +195,7 @@ const cromwellDisk: PersistentDisk = {
 
 const cromwellOnAzureRunning: App = {
   appName: 'test-cromwell-app',
+  diskName: null,
   cloudContext: {
     cloudProvider: 'AZURE',
     cloudResource: 'path/to/cloud/resource',
@@ -414,6 +415,7 @@ const contextBarPropsForAzure: ContextBarProps = {
 
 const hailBatchAppRunning: App = {
   appName: 'test-hail-batch-app',
+  diskName: null,
   cloudContext: {
     cloudProvider: 'AZURE',
     cloudResource: 'path/to/cloud/resource',

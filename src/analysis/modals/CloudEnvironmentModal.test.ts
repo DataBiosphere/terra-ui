@@ -193,7 +193,7 @@ const hailBatchAppRunning: App = {
   proxyUrls: {
     batch: 'https://lz123.servicebus.windows.net/test-hail-batch-app/batch',
   },
-  diskName: undefined,
+  diskName: null,
   customEnvironmentVariables: {},
   auditInfo: {
     creator: 'abc.testerson@gmail.com',
