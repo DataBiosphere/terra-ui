@@ -397,6 +397,9 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                           },
                         },
                       ],
+                      styleCell: ({ rowIndex }) => {
+                        return rowIndex % 2 && { backgroundColor: colors.light(0.2) };
+                      },
                     }),
                 ]),
               ]

@@ -199,22 +199,22 @@ describe('Submission Details page', () => {
 
     const headers = within(rows[0]).queryAllByRole('columnheader');
     expect(headers.length).toBe(3);
-    within(headers[0]).findByText('Sample ID');
-    within(headers[1]).findByText('Status');
-    within(headers[2]).findByText('Duration');
+    await within(headers[0]).findByText('Sample ID');
+    await within(headers[1]).findByText('Status');
+    await within(headers[2]).findByText('Duration');
 
     // check data rows are rendered as expected (default sorting is by duration in desc order)
     const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell');
     expect(cellsFromDataRow1.length).toBe(3);
-    within(cellsFromDataRow1[0]).findByText('FOO2');
-    within(cellsFromDataRow1[1]).findByText('Failed');
-    within(cellsFromDataRow1[2]).findByText('52 minutes 10 seconds');
+    await within(cellsFromDataRow1[0]).findByText('FOO2');
+    await within(cellsFromDataRow1[1]).findByText('Failed');
+    await within(cellsFromDataRow1[2]).findByText('52 minutes 10 seconds');
 
     const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell');
     expect(cellsFromDataRow2.length).toBe(3);
-    within(cellsFromDataRow2[0]).findByText('FOO1');
-    within(cellsFromDataRow2[1]).findByText('Succeeded');
-    within(cellsFromDataRow2[2]).findByText('37 seconds');
+    await within(cellsFromDataRow2[0]).findByText('FOO1');
+    await within(cellsFromDataRow2[1]).findByText('Succeeded');
+    await within(cellsFromDataRow2[2]).findByText('37 seconds');
   });
 
   it('should display standard message when there are no saved workflows', async () => {
@@ -264,7 +264,7 @@ describe('Submission Details page', () => {
     expect(table).toHaveAttribute('aria-rowcount', '1');
 
     // check that noContentMessage shows up as expected
-    screen.findByText('Nothing here yet! Your previously run workflows will be displayed here.');
+    await screen.findByText('Nothing here yet! Your previously run workflows will be displayed here.');
   });
 
   it('should sort by duration column properly', async () => {
