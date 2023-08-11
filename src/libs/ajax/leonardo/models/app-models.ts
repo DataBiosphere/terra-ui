@@ -23,7 +23,8 @@ export type LeoAppStatus =
   | 'PROVISIONING'
   | 'STOPPING'
   | 'STOPPED'
-  | 'STARTING';
+  | 'STARTING'
+  | 'UPDATING';
 export type DisplayAppStatus =
   | 'Running'
   | 'Deleted'
@@ -34,7 +35,8 @@ export type DisplayAppStatus =
   | 'Pausing'
   | 'Paused'
   | 'Status_unspecified'
-  | 'Unknown';
+  | 'Unknown'
+  | 'Updating';
 
 export interface AppStatusObject {
   status: LeoAppStatus;
@@ -50,6 +52,7 @@ export const appStatuses: { [label: string]: AppStatusObject } = {
   stopping: { status: 'STOPPING', statusDisplay: 'Pausing' },
   stopped: { status: 'STOPPED', statusDisplay: 'Paused' },
   starting: { status: 'STARTING', statusDisplay: 'Resuming' },
+  updating: { status: 'UPDATING', statusDisplay: 'Updating' },
   status_unspecified: { status: 'STATUS_UNSPECIFIED', statusDisplay: 'Status_unspecified' },
 };
 

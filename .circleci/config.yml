@@ -11,7 +11,7 @@ parameters:
 
 orbs:
   slack: circleci/slack@3.4.2
-  sonarcloud: sonarsource/sonarcloud@1.0.3
+  sonarcloud: sonarsource/sonarcloud@2.0.0
 
 executors:
   node:
@@ -227,10 +227,10 @@ jobs:
           keys:
             - deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
       - run: yarn install --immutable-cache
+      - run: yarn run build
       - run: yarn eslint --max-warnings=0 .
-      - run: yarn test --coverage --maxWorkers=2
+      - run: yarn workspaces foreach --exclude terra-integration-tests run test --coverage --maxWorkers=2 --passWithNoTests
       - run: yarn check-types
-      - run: DISABLE_ESLINT_PLUGIN=true yarn build # already linted above
       - save_cache:
           key: deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
           paths:

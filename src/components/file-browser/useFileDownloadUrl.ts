@@ -1,8 +1,8 @@
+import { LoadedState, NoneState } from '@terra-ui-packages/core-utils';
 import { useEffect, useState } from 'react';
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import { reportError } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
-import LoadedState, { NoneState } from 'src/libs/type-utils/LoadedState';
 
 type UseFileDownloadUrlOptions = {
   file: FileBrowserFile;

@@ -2,7 +2,10 @@ import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
 import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { getConfig } from 'src/libs/config';
+import * as Nav from 'src/libs/nav';
 import { AppProxyUrlStatus, getUser, workflowsAppStore } from 'src/libs/state';
+import * as Utils from 'src/libs/utils';
+import { cloudProviderTypes } from 'src/libs/workspace-utils';
 
 export const doesAppProxyUrlExist = (workspaceId, proxyUrlStateField) => {
   const workflowsAppStoreLocal = workflowsAppStore.get();
@@ -117,5 +120,19 @@ export const loadAppUrls = async (workspaceId, proxyUrlStateField) => {
     wdsProxyUrlState: workflowsAppStoreLocal.wdsProxyUrlState,
     cbasProxyUrlState: workflowsAppStoreLocal.cbasProxyUrlState,
     cromwellProxyUrlState: workflowsAppStoreLocal.cromwellProxyUrlState,
+  };
+};
+
+export const cromwellLinkProps = ({ cloudProvider, namespace, name, app, isAzureWorkflowsTabEnabled }) => {
+  return {
+    href: Utils.cond(
+      [cloudProvider === cloudProviderTypes.AZURE && isAzureWorkflowsTabEnabled, () => Nav.getLink('workspace-workflows-app', { namespace, name })],
+      [cloudProvider === cloudProviderTypes.AZURE, () => app?.proxyUrls['cbas-ui']],
+      () => app?.proxyUrls['cromwell-service']
+    ),
+    ...Utils.cond(
+      [cloudProvider === cloudProviderTypes.AZURE && isAzureWorkflowsTabEnabled, () => {}],
+      () => Utils.newTabLinkPropsWithReferrer // if present, opens link in new tab
+    ),
   };
 };

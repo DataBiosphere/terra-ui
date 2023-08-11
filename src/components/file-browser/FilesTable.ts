@@ -4,6 +4,7 @@ import { div, h } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { Checkbox, Link } from 'src/components/common';
 import { basename } from 'src/components/file-browser/file-browser-utils';
+import { FileMenu } from 'src/components/file-browser/FileMenu';
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table';
 import { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import * as Style from 'src/libs/style';
@@ -11,14 +12,26 @@ import * as Utils from 'src/libs/utils';
 
 export interface FilesTableProps {
   'aria-label'?: string;
+  editDisabled?: boolean;
+  editDisabledReason?: string;
   files: FileBrowserFile[];
   selectedFiles: { [path: string]: FileBrowserFile };
   setSelectedFiles: Dispatch<SetStateAction<{ [path: string]: FileBrowserFile }>>;
   onClickFile: (file: FileBrowserFile) => void;
+  onRenameFile: (file: FileBrowserFile) => void;
 }
 
 const FilesTable = (props: FilesTableProps) => {
-  const { 'aria-label': ariaLabel = 'Files', files, selectedFiles, setSelectedFiles, onClickFile } = props;
+  const {
+    'aria-label': ariaLabel = 'Files',
+    editDisabled = false,
+    editDisabledReason,
+    files,
+    selectedFiles,
+    setSelectedFiles,
+    onClickFile,
+    onRenameFile,
+  } = props;
 
   const allFilesSelected = files.length > 0 && files.every((file) => file.path in selectedFiles);
 
@@ -109,6 +122,21 @@ const FilesTable = (props: FilesTableProps) => {
               cellRenderer: ({ rowIndex }) => {
                 const file = files[rowIndex];
                 return h(TextCell, [Utils.makePrettyDate(file.updatedAt)]);
+              },
+            },
+            {
+              size: { basis: 40, grow: 0, shrink: 0 },
+              headerRenderer: () => h(HeaderCell, { className: 'sr-only' }, ['Actions']),
+              cellRenderer: ({ rowIndex }) => {
+                const file = files[rowIndex];
+                return h(TextCell, [
+                  h(FileMenu, {
+                    editDisabled,
+                    editDisabledReason,
+                    file,
+                    onRename: onRenameFile,
+                  }),
+                ]);
               },
             },
           ],

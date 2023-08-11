@@ -1,10 +1,11 @@
+import { Interactive } from '@terra-ui-packages/components';
+import type { InteractiveProps } from '@terra-ui-packages/components/src/Interactive';
 import { Dispatch, Fragment, ReactNode, SetStateAction, useEffect, useRef, useState } from 'react';
 import { h, li, p, span, ul } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { useDirectoriesInDirectory } from 'src/components/file-browser/file-browser-hooks';
 import { basename } from 'src/components/file-browser/file-browser-utils';
 import { icon } from 'src/components/icons';
-import Interactive, { InteractiveProps } from 'src/components/Interactive'; // eslint-disable-line import/named
 import FileBrowserProvider from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
@@ -346,7 +347,7 @@ const DirectoryTree = (props: DirectoryTreeProps) => {
   return h(
     Interactive,
     {
-      as: 'ul',
+      tagName: 'ul',
       ref: treeElementRef,
       // aria-activedescendant tells which tree item is "focused", while actual focus stays on the tree itself.
       'aria-activedescendant': activeDescendant,
@@ -433,7 +434,7 @@ const DirectoryTree = (props: DirectoryTreeProps) => {
           }
         }
       },
-    } as InteractiveProps<'ul'>,
+    } as InteractiveProps,
     [
       h(Directory, {
         activeDescendant,

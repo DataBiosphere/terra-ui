@@ -14,7 +14,6 @@ const rootElement = document.getElementById('root');
 
 RModal.defaultStyles = { overlay: {}, content: {} };
 RModal.setAppElement(rootElement);
-window.SATURN_VERSION = import.meta.env.VITE_APP_VERSION;
 
 window._ = _;
 

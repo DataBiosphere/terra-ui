@@ -1,0 +1,8 @@
+// TypeScript configuration to build package as CommonJS modules.
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "outDir": "./lib/cjs"
+  }
+}

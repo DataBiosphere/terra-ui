@@ -1,3 +1,4 @@
+import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act, fireEvent, getAllByRole, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
@@ -29,7 +30,6 @@ import { asMockedFn } from 'src/testing/test-utils';
 
 import { ListAppResponse } from '../libs/ajax/leonardo/models/app-models';
 import { ListDiskItem } from '../libs/ajax/leonardo/models/disk-models';
-import { DeepPartial } from '../libs/type-utils/deep-partial';
 
 type ModalMockExports = typeof import('src/components/Modal.mock');
 

@@ -53,6 +53,7 @@ describe('FilesTable', () => {
         selectedFiles: {},
         setSelectedFiles: () => {},
         onClickFile: jest.fn(),
+        onRenameFile: () => {},
       })
     );
 
@@ -72,6 +73,7 @@ describe('FilesTable', () => {
         selectedFiles: {},
         setSelectedFiles: () => {},
         onClickFile: jest.fn(),
+        onRenameFile: () => {},
       })
     );
 
@@ -98,6 +100,7 @@ describe('FilesTable', () => {
         selectedFiles: {},
         setSelectedFiles: () => {},
         onClickFile,
+        onRenameFile: () => {},
       })
     );
 
@@ -131,6 +134,32 @@ describe('FilesTable', () => {
     ]);
   });
 
+  describe('file action menu', () => {
+    it('calls onRenameFile when rename is clicked', async () => {
+      // Arrange
+      const user = userEvent.setup();
+
+      const onRenameFile = jest.fn();
+      render(
+        h(FilesTable, {
+          files,
+          selectedFiles: {},
+          setSelectedFiles: () => {},
+          onClickFile: () => {},
+          onRenameFile,
+        })
+      );
+
+      // Act
+      const menuButton = screen.getByLabelText('Action menu for file: file1.txt');
+      await user.click(menuButton);
+      await user.click(screen.getByText('Rename'));
+
+      // Assert
+      expect(onRenameFile).toHaveBeenCalledWith(files[0]);
+    });
+  });
+
   describe('selected files', () => {
     // Arrange
     const user = userEvent.setup();
@@ -155,6 +184,7 @@ describe('FilesTable', () => {
           initialSelectedFiles: { [files[0].path]: files[0] },
           files,
           onClickFile: () => {},
+          onRenameFile: () => {},
         })
       );
     });

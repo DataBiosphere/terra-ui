@@ -1,3 +1,4 @@
+import { Interactive } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import PropTypes from 'prop-types';
 import { Fragment, useImperativeHandle, useRef, useState } from 'react';
@@ -8,7 +9,6 @@ import { defaultCellRangeRenderer, Grid as RVGrid, ScrollSync as RVScrollSync } 
 import { ColumnSettingsList } from 'src/components/ColumnSettingsList';
 import { ButtonPrimary, Clickable, IdContainer, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import Interactive from 'src/components/Interactive';
 import Modal from 'src/components/Modal';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import colors from 'src/libs/colors';
@@ -346,7 +346,7 @@ export function FlexTable({
             {
               key: data.key,
               role: 'row',
-              as: 'div',
+              tagName: 'div',
               className: 'table-row',
               style: { ...data.style, backgroundColor: 'white', display: 'flex' },
               hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined,
@@ -468,7 +468,7 @@ export const SimpleFlexTable = ({
           {
             key: rowIndex,
             role: 'row',
-            as: 'div',
+            tagName: 'div',
             className: 'table-row',
             style: { backgroundColor: 'white', display: 'flex', minHeight: 48 },
             hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined,
@@ -859,7 +859,7 @@ export const SimpleTable = ({
           {
             key: i,
             role: 'row',
-            as: 'div',
+            tagName: 'div',
             style: { ...rowStyle, ...(i % 2 ? oddRowStyle : evenRowStyle) },
             className: 'table-row',
             hover: useHover && { backgroundColor: colors.light(0.4) },

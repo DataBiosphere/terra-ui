@@ -123,7 +123,7 @@ export const InfoBox = ({ size, children, style, side, tooltip, iconOverride }) 
         Clickable,
         {
           tooltip,
-          as: 'span',
+          tagName: 'span',
           'aria-label': 'More info',
           'aria-expanded': open,
           'aria-haspopup': true,

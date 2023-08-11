@@ -438,7 +438,7 @@ export const WorkspaceStarControl = ({ workspace, stars, setStars, style, updati
   return h(
     Clickable,
     {
-      as: 'span',
+      tagName: 'span',
       role: 'checkbox',
       'aria-checked': isStarred,
       tooltip: Utils.cond(

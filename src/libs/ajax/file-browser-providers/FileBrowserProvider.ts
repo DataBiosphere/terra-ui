@@ -24,6 +24,7 @@ interface FileBrowserProvider {
 
   uploadFileToDirectory(directoryPath: string, file: File): Promise<void>;
   deleteFile(path: string): Promise<void>;
+  moveFile(sourcePath: string, destinationPath: string): Promise<void>;
 
   createEmptyDirectory(directoryPath: string): Promise<FileBrowserDirectory>;
   deleteEmptyDirectory(directoryPath: string): Promise<void>;

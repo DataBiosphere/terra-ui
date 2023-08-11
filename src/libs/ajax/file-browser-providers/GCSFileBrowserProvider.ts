@@ -140,6 +140,10 @@ const GCSFileBrowserProvider = ({
     deleteFile: async (path: string): Promise<void> => {
       await Ajax().Buckets.delete(project, bucket, path);
     },
+    moveFile: async (sourcePath: string, destinationPath: string): Promise<void> => {
+      await Ajax().Buckets.copyWithinBucket(project, bucket, sourcePath, destinationPath);
+      await Ajax().Buckets.delete(project, bucket, sourcePath);
+    },
     createEmptyDirectory: async (directoryPath: string) => {
       // Create a placeholder object for the new folder.
       // See https://cloud.google.com/storage/docs/folders for more information.
