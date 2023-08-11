@@ -8,7 +8,7 @@
       "type": "node",
       "request": "launch",
       "name": "Jest - current file",
-      "cwd": "${workspaceFolder}",
+      "cwd": "${fileDirname}",
       "runtimeExecutable": "yarn",
       "runtimeArgs": ["test", "${relativeFile}"],
       "console": "integratedTerminal"
