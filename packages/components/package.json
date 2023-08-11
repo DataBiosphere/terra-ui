@@ -1,6 +1,6 @@
 {
   "name": "@terra-ui-packages/components",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "scripts": {
     "build": "vite build --emptyOutDir",
     "dev": "vite build --mode=development --watch",
