@@ -466,8 +466,8 @@ export const CloudEnvironmentModal = ({
             ...cromwellLinkProps({
               cloudProvider,
               namespace,
+              app,
               name,
-              proxyUrls: app?.proxyUrls,
               isAzureWorkflowsTabEnabled: isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID),
             }),
             onClick: () => {

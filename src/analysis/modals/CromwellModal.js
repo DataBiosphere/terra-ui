@@ -84,8 +84,8 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
               ...cromwellLinkProps({
                 cloudProvider,
                 namespace,
+                app,
                 name: workspaceName,
-                proxyUrls: app?.proxyUrls,
                 isAzureWorkflowsTabEnabled: isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID),
               }),
               disabled: !cookieReady,
