@@ -8,6 +8,9 @@
       "import": "./src/index.mjs"
     }
   },
+  "scripts": {
+    "build": "true"
+  },
   "dependencies": {
     "@rollup/plugin-typescript": "^11.1.2",
     "tslib": "^2.6.1"
