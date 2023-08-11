@@ -2830,11 +2830,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@terra-ui-packages/build-utils@*, @terra-ui-packages/build-utils@workspace:packages/build-utils":
+  version: 0.0.0-use.local
+  resolution: "@terra-ui-packages/build-utils@workspace:packages/build-utils"
+  dependencies:
+    "@rollup/plugin-typescript": ^11.1.2
+    tslib: ^2.6.1
+    vite: ^4.3.9
+  peerDependencies:
+    typescript: ^4.9.5
+    vite: ^4.3.9
+  languageName: unknown
+  linkType: soft
+
 "@terra-ui-packages/components@*, @terra-ui-packages/components@workspace:packages/components":
   version: 0.0.0-use.local
   resolution: "@terra-ui-packages/components@workspace:packages/components"
   dependencies:
-    "@rollup/plugin-typescript": ^11.1.2
+    "@terra-ui-packages/build-utils": "*"
     "@terra-ui-packages/test-utils": "*"
     "@types/jest": ^28.1.8
     "@types/lodash": ^4.14.184
@@ -2842,7 +2855,6 @@ __metadata:
     jest: ^27.4.3
     lodash: ^4.17.21
     react: 18.2.0
-    tslib: ^2.6.1
     typescript: ^4.9.5
     vite: ^4.3.9
   peerDependencies:
@@ -2854,14 +2866,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@terra-ui-packages/core-utils@workspace:packages/core-utils"
   dependencies:
-    "@rollup/plugin-typescript": ^11.1.2
+    "@terra-ui-packages/build-utils": "*"
     "@terra-ui-packages/test-utils": "*"
     "@types/jest": ^28.1.8
     "@types/lodash": ^4.14.184
     check-dts: ^0.7.2
     jest: ^27.4.3
     lodash: ^4.17.21
-    tslib: ^2.6.1
     typescript: ^4.9.5
     vite: ^4.3.9
   languageName: unknown

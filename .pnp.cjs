@@ -20,6 +20,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         "reference": "workspace:integration-tests"\
       },\
       {\
+        "name": "@terra-ui-packages/build-utils",\
+        "reference": "workspace:packages/build-utils"\
+      },\
+      {\
         "name": "@terra-ui-packages/components",\
         "reference": "workspace:packages/components"\
       },\
@@ -35,6 +39,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
     "enableTopLevelFallback": true,\
     "ignorePatternData": "(^(?:\\\\.yarn\\\\/sdks(?:\\\\/(?!\\\\.{1,2}(?:\\\\/|$))(?:(?:(?!(?:^|\\\\/)\\\\.{1,2}(?:\\\\/|$)).)*?)|$))$)",\
     "fallbackExclusionList": [\
+      ["@terra-ui-packages/build-utils", ["virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#workspace:packages/build-utils", "workspace:packages/build-utils"]],\
       ["@terra-ui-packages/components", ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/components", "workspace:packages/components"]],\
       ["@terra-ui-packages/core-utils", ["workspace:packages/core-utils"]],\
       ["@terra-ui-packages/test-utils", ["workspace:packages/test-utils"]],\
@@ -4529,11 +4534,34 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:11.1.2", {\
-          "packageLocation": "./.yarn/__virtual__/@rollup-plugin-typescript-virtual-e541ea821d/0/cache/@rollup-plugin-typescript-npm-11.1.2-2948b9694d-f4655a35e0.zip/node_modules/@rollup/plugin-typescript/",\
+        ["virtual:900f6865e06bd19c656fece4e900df150f294009bf4fb77f248d26195363ba73a05c8c32baa22433aa06d523cba7c0fa00d87603f54255c70bcf97bcaac0f56f#npm:11.1.2", {\
+          "packageLocation": "./.yarn/__virtual__/@rollup-plugin-typescript-virtual-5c577a52b7/0/cache/@rollup-plugin-typescript-npm-11.1.2-2948b9694d-f4655a35e0.zip/node_modules/@rollup/plugin-typescript/",\
           "packageDependencies": [\
-            ["@rollup/plugin-typescript", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:11.1.2"],\
-            ["@rollup/pluginutils", "virtual:e541ea821dca3b461866c06338867e82e92524f438656239ac5d9296a50517dc3fdf2e4578c75e21dad6c58681d1ad8eb5681d130cd872576c195cfbab72150d#npm:5.0.2"],\
+            ["@rollup/plugin-typescript", "virtual:900f6865e06bd19c656fece4e900df150f294009bf4fb77f248d26195363ba73a05c8c32baa22433aa06d523cba7c0fa00d87603f54255c70bcf97bcaac0f56f#npm:11.1.2"],\
+            ["@rollup/pluginutils", "virtual:bff8328d6e99969aee14040d3735ccc9a55a4acc6d2fb49ce1a55b948f28384e2af691332c69f4ef513335177a60c28291db55dc8044b179d4808cfbaa45eabb#npm:5.0.2"],\
+            ["@types/rollup", null],\
+            ["@types/tslib", null],\
+            ["@types/typescript", null],\
+            ["resolve", "patch:resolve@npm%3A1.22.3#~builtin<compat/resolve>::version=1.22.3&hash=c3c19d"],\
+            ["rollup", null],\
+            ["tslib", "npm:2.6.1"],\
+            ["typescript", null]\
+          ],\
+          "packagePeers": [\
+            "@types/rollup",\
+            "@types/tslib",\
+            "@types/typescript",\
+            "rollup",\
+            "tslib",\
+            "typescript"\
+          ],\
+          "linkType": "HARD"\
+        }],\
+        ["virtual:f90a1f371e852bbf1eb959248d7c39712daf739e3922aa5403d3559fdab0ea54685ab625f0dd88a616779807d1d50edfc0c24534015cd596765f1e425dafd35a#npm:11.1.2", {\
+          "packageLocation": "./.yarn/__virtual__/@rollup-plugin-typescript-virtual-bff8328d6e/0/cache/@rollup-plugin-typescript-npm-11.1.2-2948b9694d-f4655a35e0.zip/node_modules/@rollup/plugin-typescript/",\
+          "packageDependencies": [\
+            ["@rollup/plugin-typescript", "virtual:f90a1f371e852bbf1eb959248d7c39712daf739e3922aa5403d3559fdab0ea54685ab625f0dd88a616779807d1d50edfc0c24534015cd596765f1e425dafd35a#npm:11.1.2"],\
+            ["@rollup/pluginutils", "virtual:bff8328d6e99969aee14040d3735ccc9a55a4acc6d2fb49ce1a55b948f28384e2af691332c69f4ef513335177a60c28291db55dc8044b179d4808cfbaa45eabb#npm:5.0.2"],\
             ["@types/rollup", null],\
             ["@types/tslib", null],\
             ["@types/typescript", null],\
@@ -4561,10 +4589,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:e541ea821dca3b461866c06338867e82e92524f438656239ac5d9296a50517dc3fdf2e4578c75e21dad6c58681d1ad8eb5681d130cd872576c195cfbab72150d#npm:5.0.2", {\
-          "packageLocation": "./.yarn/__virtual__/@rollup-pluginutils-virtual-a407bf93dc/0/cache/@rollup-pluginutils-npm-5.0.2-6aa9d0ddd4-edea15e543.zip/node_modules/@rollup/pluginutils/",\
+        ["virtual:bff8328d6e99969aee14040d3735ccc9a55a4acc6d2fb49ce1a55b948f28384e2af691332c69f4ef513335177a60c28291db55dc8044b179d4808cfbaa45eabb#npm:5.0.2", {\
+          "packageLocation": "./.yarn/__virtual__/@rollup-pluginutils-virtual-5f688f3908/0/cache/@rollup-pluginutils-npm-5.0.2-6aa9d0ddd4-edea15e543.zip/node_modules/@rollup/pluginutils/",\
           "packageDependencies": [\
-            ["@rollup/pluginutils", "virtual:e541ea821dca3b461866c06338867e82e92524f438656239ac5d9296a50517dc3fdf2e4578c75e21dad6c58681d1ad8eb5681d130cd872576c195cfbab72150d#npm:5.0.2"],\
+            ["@rollup/pluginutils", "virtual:bff8328d6e99969aee14040d3735ccc9a55a4acc6d2fb49ce1a55b948f28384e2af691332c69f4ef513335177a60c28291db55dc8044b179d4808cfbaa45eabb#npm:5.0.2"],\
             ["@types/estree", "npm:1.0.1"],\
             ["@types/rollup", null],\
             ["estree-walker", "npm:2.0.2"],\
@@ -4878,12 +4906,43 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["@terra-ui-packages/build-utils", [\
+        ["virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#workspace:packages/build-utils", {\
+          "packageLocation": "./.yarn/__virtual__/@terra-ui-packages-build-utils-virtual-f90a1f371e/1/packages/build-utils/",\
+          "packageDependencies": [\
+            ["@terra-ui-packages/build-utils", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#workspace:packages/build-utils"],\
+            ["@rollup/plugin-typescript", "virtual:f90a1f371e852bbf1eb959248d7c39712daf739e3922aa5403d3559fdab0ea54685ab625f0dd88a616779807d1d50edfc0c24534015cd596765f1e425dafd35a#npm:11.1.2"],\
+            ["@types/typescript", null],\
+            ["@types/vite", null],\
+            ["tslib", "npm:2.6.1"],\
+            ["typescript", "patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=289587"],\
+            ["vite", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:4.4.7"]\
+          ],\
+          "packagePeers": [\
+            "@types/typescript",\
+            "@types/vite",\
+            "typescript",\
+            "vite"\
+          ],\
+          "linkType": "SOFT"\
+        }],\
+        ["workspace:packages/build-utils", {\
+          "packageLocation": "./packages/build-utils/",\
+          "packageDependencies": [\
+            ["@terra-ui-packages/build-utils", "workspace:packages/build-utils"],\
+            ["@rollup/plugin-typescript", "virtual:900f6865e06bd19c656fece4e900df150f294009bf4fb77f248d26195363ba73a05c8c32baa22433aa06d523cba7c0fa00d87603f54255c70bcf97bcaac0f56f#npm:11.1.2"],\
+            ["tslib", "npm:2.6.1"],\
+            ["vite", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:4.4.7"]\
+          ],\
+          "linkType": "SOFT"\
+        }]\
+      ]],\
       ["@terra-ui-packages/components", [\
         ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/components", {\
           "packageLocation": "./.yarn/__virtual__/@terra-ui-packages-components-virtual-3cbce82a85/1/packages/components/",\
           "packageDependencies": [\
             ["@terra-ui-packages/components", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/components"],\
-            ["@rollup/plugin-typescript", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:11.1.2"],\
+            ["@terra-ui-packages/build-utils", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#workspace:packages/build-utils"],\
             ["@terra-ui-packages/test-utils", "workspace:packages/test-utils"],\
             ["@types/jest", "npm:28.1.8"],\
             ["@types/lodash", "npm:4.14.184"],\
@@ -4891,7 +4950,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jest", "virtual:8c00fb6d848584930a97145ab92981f57dfda3a26acb7c186ce59ef8e1d0c5c900af7e36dd05e12ff96b7235e88575a55bb45434a9589e1fb111101a9a3d2f5e#npm:27.5.1"],\
             ["lodash", "npm:4.17.21"],\
             ["react", "npm:18.2.0"],\
-            ["tslib", "npm:2.6.1"],\
             ["typescript", "patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=289587"],\
             ["vite", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:4.4.7"]\
           ],\
@@ -4905,7 +4963,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./packages/components/",\
           "packageDependencies": [\
             ["@terra-ui-packages/components", "workspace:packages/components"],\
-            ["@rollup/plugin-typescript", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:11.1.2"],\
+            ["@terra-ui-packages/build-utils", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#workspace:packages/build-utils"],\
             ["@terra-ui-packages/test-utils", "workspace:packages/test-utils"],\
             ["@types/jest", "npm:28.1.8"],\
             ["@types/lodash", "npm:4.14.184"],\
@@ -4913,7 +4971,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jest", "virtual:8c00fb6d848584930a97145ab92981f57dfda3a26acb7c186ce59ef8e1d0c5c900af7e36dd05e12ff96b7235e88575a55bb45434a9589e1fb111101a9a3d2f5e#npm:27.5.1"],\
             ["lodash", "npm:4.17.21"],\
             ["react", "npm:18.2.0"],\
-            ["tslib", "npm:2.6.1"],\
             ["typescript", "patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=289587"],\
             ["vite", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:4.4.7"]\
           ],\
@@ -4925,14 +4982,13 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./packages/core-utils/",\
           "packageDependencies": [\
             ["@terra-ui-packages/core-utils", "workspace:packages/core-utils"],\
-            ["@rollup/plugin-typescript", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:11.1.2"],\
+            ["@terra-ui-packages/build-utils", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#workspace:packages/build-utils"],\
             ["@terra-ui-packages/test-utils", "workspace:packages/test-utils"],\
             ["@types/jest", "npm:28.1.8"],\
             ["@types/lodash", "npm:4.14.184"],\
             ["check-dts", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:0.7.2"],\
             ["jest", "virtual:8c00fb6d848584930a97145ab92981f57dfda3a26acb7c186ce59ef8e1d0c5c900af7e36dd05e12ff96b7235e88575a55bb45434a9589e1fb111101a9a3d2f5e#npm:27.5.1"],\
             ["lodash", "npm:4.17.21"],\
-            ["tslib", "npm:2.6.1"],\
             ["typescript", "patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=289587"],\
             ["vite", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:4.4.7"]\
           ],\
@@ -17050,7 +17106,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/__virtual__/vite-plugin-svgr-virtual-691fd0a737/0/cache/vite-plugin-svgr-npm-3.2.0-b314906d2d-19887e1db9.zip/node_modules/vite-plugin-svgr/",\
           "packageDependencies": [\
             ["vite-plugin-svgr", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:3.2.0"],\
-            ["@rollup/pluginutils", "virtual:e541ea821dca3b461866c06338867e82e92524f438656239ac5d9296a50517dc3fdf2e4578c75e21dad6c58681d1ad8eb5681d130cd872576c195cfbab72150d#npm:5.0.2"],\
+            ["@rollup/pluginutils", "virtual:bff8328d6e99969aee14040d3735ccc9a55a4acc6d2fb49ce1a55b948f28384e2af691332c69f4ef513335177a60c28291db55dc8044b179d4808cfbaa45eabb#npm:5.0.2"],\
             ["@svgr/core", "npm:7.0.0"],\
             ["@svgr/plugin-jsx", "npm:7.0.0"],\
             ["@types/vite", null],\
