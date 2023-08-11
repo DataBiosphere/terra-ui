@@ -10,6 +10,10 @@ import { FileProvenance } from 'src/components/data/data-table-provenance';
 import { getDownloadCommand, parseGsUri } from 'src/components/data/data-utils';
 import { spinner } from 'src/components/icons';
 import Modal from 'src/components/Modal';
+import els from 'src/components/UriViewer/uri-viewer-styles';
+import { isAzureUri, isGsUri } from 'src/components/UriViewer/uri-viewer-utils';
+import { UriDownloadButton } from 'src/components/UriViewer/UriDownloadButton';
+import { UriPreview } from 'src/components/UriViewer/UriPreview';
 import { Ajax } from 'src/libs/ajax';
 import { bucketBrowserUrl } from 'src/libs/auth';
 import colors from 'src/libs/colors';
@@ -17,23 +21,17 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 
-import els from './uri-viewer-styles';
-import { isAzureUri, isGsUri } from './uri-viewer-utils';
-import { UriDownloadButton } from './UriDownloadButton';
-import { UriPreview } from './UriPreview';
-
 export const UriViewer = _.flow(
   withDisplayName('UriViewer'),
   requesterPaysWrapper({ onDismiss: ({ onDismiss }) => onDismiss() })
-)(({ workspace, uri, onDismiss, onRequesterPaysError }) => {
+)(({ workspace, uri, onDismiss, onRequesterPaysError, isStdLog }) => {
   const {
     workspace: { googleProject },
   } = workspace;
 
   const signal = useCancellation();
   const [metadata, setMetadata] = useState();
-  const [loadingError, setLoadingError] = useState();
-  const [azureStorage, setAzureStorage] = useState();
+  const [loadingError, setLoadingError] = useState(false);
 
   const loadMetadata = async () => {
     try {
@@ -45,8 +43,9 @@ export const UriViewer = _.flow(
         const metadata = await loadObject(googleProject, bucket, name);
         setMetadata(metadata);
       } else if (isAzureUri(uri)) {
-        const metadata = await Ajax(signal).AzureStorage.blobMetadata(uri).getData();
-        setAzureStorage(metadata);
+        const azureMetadata = await Ajax(signal).AzureStorage.blobMetadata(uri).getData();
+        setMetadata(azureMetadata);
+        setLoadingError(false);
       } else {
         // Fields are mapped from the drshub_v4 fields to those used by google
         // https://github.com/DataBiosphere/terra-drs-hub
@@ -87,8 +86,15 @@ export const UriViewer = _.flow(
     loadMetadata();
   });
 
-  const renderTerminalCommand = (downloadCommand) =>
-    h(Fragment, [
+  const renderTerminalCommand = (metadata) => {
+    const { bucket, name } = metadata;
+    const gsUri = `gs://${bucket}/${name}`;
+    const azUri = `${uri}?${metadata.sasToken}`;
+    const downloadCommand = isAzureUri(uri)
+      ? getDownloadCommand(metadata.name, azUri, metadata.accessUrl)
+      : getDownloadCommand(metadata.name, gsUri, metadata.accessUrl);
+
+    return h(Fragment, [
       p({ style: { marginBottom: '0.5rem', fontWeight: 500 } }, ['Terminal download command']),
       pre(
         {
@@ -121,45 +127,74 @@ export const UriViewer = _.flow(
         ]
       ),
     ]);
+  };
 
-  const renderFailureMessage = (loadingError) =>
-    h(Fragment, [
-      div({ style: { paddingBottom: '1rem' } }, ['Error loading data. This file does not exist or you do not have permission to view it.']),
-      h(Collapse, { title: 'Details' }, [
-        div({ style: { marginTop: '0.5rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
-          JSON.stringify(loadingError, null, 2),
-        ]),
-      ]),
-    ]);
+  const renderFailureMessage = (loadingError) => {
+    const errorMsg = isStdLog
+      ? 'Log file not found. This may be the result of a task failing to start. Please check relevant docker images and file paths to ensure valid references.'
+      : 'Error loading data. This file does not exist or you do not have permission to view it.';
+    return loadingError
+      ? h(Collapse, { title: 'Details' }, [
+          div({ style: { marginTop: '0.5rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
+            JSON.stringify(loadingError, null, 2),
+          ]),
+        ])
+      : h(Fragment, [div({ style: { paddingBottom: '1rem' } }, [errorMsg])]);
+  };
+
+  const renderMoreInfo = (metadata) => {
+    const { timeCreated, updated } = metadata;
+    return (
+      (timeCreated || updated) &&
+      h(
+        Collapse,
+        {
+          title: 'More Information',
+          style: { marginTop: '2rem' },
+          summaryStyle: { marginBottom: '0.5rem' },
+        },
+        [
+          timeCreated && els.cell([els.label('Created'), els.data(new Date(timeCreated).toLocaleString())]),
+          updated && els.cell([els.label('Updated'), els.data(new Date(updated).toLocaleString())]),
+          isFeaturePreviewEnabled('data-table-provenance') &&
+            els.cell([els.label('Where did this file come from?'), els.data([h(FileProvenance, { workspace, fileUrl: uri })])]),
+        ]
+      )
+    );
+  };
 
   const renderLoadingSymbol = (uri) =>
     h(Fragment, [isGsUri(uri) || isAzureUri(uri) ? 'Loading metadata...' : 'Resolving DRS file...', spinner({ style: { marginLeft: 4 } })]);
 
   if (isAzureUri(uri)) {
-    const { azureSasStorageUrl, fileName, lastModified, size } = azureStorage || {};
+    const { azureSasStorageUrl, fileName, size } = metadata || {};
     uri = azureSasStorageUrl || uri;
-    const downloadCommand = getDownloadCommand(fileName, uri);
-    const metadata = { fileName, size };
     return h(
       Modal,
       {
         onDismiss,
-        title: fileName,
+        title: 'File Details',
         showCancel: false,
         showX: true,
-        okButton: 'Done',
+        showButtons: false,
       },
       [
         Utils.cond(
-          [loadingError, () => renderFailureMessage(loadingError)],
+          [loadingError, () => renderFailureMessage()],
           [
-            azureStorage,
+            !loadingError && !_.isEmpty(metadata),
             () =>
               h(Fragment, [
-                lastModified && els.cell([els.label('Last Modified'), els.data(new Date(lastModified).toLocaleString())]),
+                els.cell([
+                  els.label('Filename'),
+                  els.data((fileName || _.last(name.split('/'))).split('.').join('.\u200B')), // allow line break on periods
+                ]),
+                h(UriPreview, { metadata, googleProject }),
+                div({ style: { display: 'flex', justifyContent: 'space-around' } }, [h(UriDownloadButton, { uri, metadata })]),
                 els.cell([els.label('File size'), els.data(filesize(size))]),
-                h(UriDownloadButton, { uri, metadata, accessUrl, workspace }),
-                renderTerminalCommand(downloadCommand),
+                renderTerminalCommand(metadata),
+                renderMoreInfo(metadata),
+                !isAzureUri(uri) && div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.']),
               ]),
           ],
           () => renderLoadingSymbol(uri)
@@ -168,9 +203,8 @@ export const UriViewer = _.flow(
     );
   }
 
-  const { size, timeCreated, updated, bucket, name, fileName, accessUrl } = metadata || {};
+  const { size, bucket, name, fileName, accessUrl } = metadata || {};
   const gsUri = `gs://${bucket}/${name}`;
-  const downloadCommand = getDownloadCommand(fileName, gsUri, accessUrl);
   return h(
     Modal,
     {
@@ -206,22 +240,8 @@ export const UriViewer = _.flow(
                   ),
                 ]),
               h(UriDownloadButton, { uri, metadata, accessUrl, workspace }),
-              renderTerminalCommand(downloadCommand),
-              (timeCreated || updated) &&
-                h(
-                  Collapse,
-                  {
-                    title: 'More Information',
-                    style: { marginTop: '2rem' },
-                    summaryStyle: { marginBottom: '0.5rem' },
-                  },
-                  [
-                    timeCreated && els.cell([els.label('Created'), els.data(new Date(timeCreated).toLocaleString())]),
-                    updated && els.cell([els.label('Updated'), els.data(new Date(updated).toLocaleString())]),
-                    isFeaturePreviewEnabled('data-table-provenance') &&
-                      els.cell([els.label('Where did this file come from?'), els.data([h(FileProvenance, { workspace, fileUrl: uri })])]),
-                  ]
-                ),
+              renderTerminalCommand(metadata),
+              renderMoreInfo(metadata),
               div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.']),
             ]),
         ],

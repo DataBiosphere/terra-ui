@@ -2,7 +2,6 @@ import _ from 'lodash/fp';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { b, div, h, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
-import { cloudProviders } from 'src/analysis/utils/runtime-utils';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import {
   ButtonPrimary,
@@ -30,7 +29,6 @@ import Modal from 'src/components/Modal';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { GridTable, HeaderCell, paginator, Resizable, TooltipCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
-import { wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -285,11 +283,10 @@ const DataTable = (props) => {
     setActiveTextFilter('');
     setColumnFilter({ filterColAttr: field, filterColTerm: v.toString().trim() });
     setPageNumber(1);
-    Ajax().Metrics.captureEvent(Events.workspaceDataFilteredSearch, {
-      workspaceNamespace: namespace,
-      workspaceName: name,
+    Ajax().Metrics.captureEvent(Events.workspaceDataColumnTableSearch, {
+      ...extractWorkspaceDetails(workspace.workspace),
+      searchType: field === entityMetadata[entityType].idName ? 'filter-by-name' : 'filter-by-column',
       providerName: dataProvider.providerName,
-      cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label,
     });
   };
 
@@ -387,6 +384,11 @@ const DataTable = (props) => {
                     setColumnFilter({ filterColAttr: '', filterColTerm: '' });
                     setActiveTextFilter(v.toString().trim());
                     setPageNumber(1);
+                    Ajax().Metrics.captureEvent(Events.workspaceDataColumnTableSearch, {
+                      ...extractWorkspaceDetails(workspace.workspace),
+                      searchType: 'full-table-search',
+                      providerName: dataProvider.providerName,
+                    });
                   },
                   defaultValue: activeTextFilter,
                 }),
