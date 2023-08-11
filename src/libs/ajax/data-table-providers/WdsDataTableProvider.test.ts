@@ -74,6 +74,7 @@ const testProxyUrlResponse: ListAppResponse[] = [
     labels: { saturnWorkspaceName: 'test-workspace' },
     proxyUrls: { wds: testProxyUrl },
     workspaceId: uuid,
+    diskName: null,
   },
 ];
 

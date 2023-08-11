@@ -126,7 +126,6 @@ describe('useWdsStatus', () => {
       },
       appName: 'wds-6601fdbb-4b53-41da-87b2-81385f4a760e',
       appType: 'WDS',
-      // @ts-expect-error Leo app types do not reflect actual API responses.
       diskName: null,
       auditInfo: {
         creator: 'userWexample.com',

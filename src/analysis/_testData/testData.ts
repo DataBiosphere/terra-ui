@@ -275,7 +275,6 @@ export const generateTestGoogleRuntime = (overrides: Partial<Runtime> = {}): Run
       cloudResource: defaultGoogleWorkspace.workspace.googleProject,
     },
     googleProject: 'terra-test-e4000484',
-    workspaceId: null,
     serviceAccount: 'testuser123@broad.com',
     auditInfo: defaultAuditInfo,
     runtimeConfig: getRuntimeConfig(),
@@ -326,6 +325,15 @@ export const generateTestGoogleRuntime = (overrides: Partial<Runtime> = {}): Run
     scopes: [],
     customEnvironmentVariables: {},
     patchInProgress: false,
+    asyncRuntimeFields: null,
+    userScriptUri: null,
+    startUserScriptUri: null,
+    jupyterUserScriptUri: null,
+    jupyterStartUserScriptUri: null,
+    userJupyterExtensionConfig: null,
+    defaultClientId: null,
+    diskConfig: null,
+    workspaceId: null,
     ...overrides,
   };
 
