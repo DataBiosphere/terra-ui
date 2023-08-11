@@ -333,7 +333,6 @@ export const generateTestGoogleRuntime = (overrides: Partial<Runtime> = {}): Run
     userJupyterExtensionConfig: null,
     defaultClientId: null,
     diskConfig: null,
-    workspaceId: null,
     ...overrides,
   };
 
