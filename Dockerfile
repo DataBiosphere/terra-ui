@@ -3,7 +3,7 @@ FROM node:18.10
 COPY . /terra-ui/
 RUN cd terra-ui \
   && PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true yarn install --immutable \
-  && yarn workspaces foreach --exclude terra-ui run build \
+  && yarn run build-packages \
   && yarn run build
 
 FROM us.gcr.io/broad-dsp-gcr-public/base/nginx:stable-alpine
