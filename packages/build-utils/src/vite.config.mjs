@@ -20,6 +20,8 @@ export default defineConfig(({ mode }) => {
         },
       },
       // Leave minification to consumers.
+      // This makes the distributed code easier to read and stack traces easier to relate
+      // back to the original source.
       minify: false,
       // Base output directory. Output paths are based on this and build.fileName.
       outDir: 'lib',
@@ -37,6 +39,8 @@ export default defineConfig(({ mode }) => {
             return id;
           },
           // Preserve source directory structure and file names.
+          // This makes the distributed code easier to read and stack traces easier to relate
+          // back to the original source.
           chunkFileNames: '[name].js',
           preserveModules: true,
           preserveModulesRoot: 'src',
@@ -44,9 +48,13 @@ export default defineConfig(({ mode }) => {
         // Check types and emit type declarations.
         // Because the library is built in two different formats, this results in the type declarations
         // being written twice. This isn't ideal, but it's acceptable to keep the build within Vite
-        // and avoid running tsc separately.
+        // and avoid running tsc separately. Using `@rollup/plugin-typescript` instead of `tsc` keeps
+        // package.json scripts simpler, allows us to use Vite's watcher to regenerate types after changes,
+        // and allows us to fail the Vite build if there are type errors (using noEmitOnError).
         //
         // emitDeclarationOnly is specified here because putting it in tsconfig.json breaks check-dts.
+        // noEmitOnError causes the Vite build to fail if there are type errors. This is disabled in
+        // the `dev` package.json script.
         plugins: [
           typescript({ compilerOptions: { emitDeclarationOnly: true, noEmitOnError: mode !== 'development' } }),
         ],
@@ -60,6 +68,7 @@ export default defineConfig(({ mode }) => {
 
 function preserveExternalImports() {
   // Depends on running the build from the package's directory.
+  // This is a valid assumption when running the build from a package.json script with yarn or npm.
   const packageDirectory = process.cwd();
   return {
     name: 'vite-plugin-leave-external-imports-unchanged',
