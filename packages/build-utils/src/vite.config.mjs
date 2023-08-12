@@ -75,9 +75,7 @@ function preserveExternalImports() {
     enforce: 'pre',
     resolveId: (id) => {
       const isInternal = id.startsWith('.') || id.startsWith(`${packageDirectory}/`);
-      if (!isInternal) {
-        return { id, external: true };
-      }
+      return isInternal ? null : { id, external: true };
     },
   };
 }
