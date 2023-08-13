@@ -1,6 +1,6 @@
 {
   "name": "@terra-ui-packages/build-utils",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "type": "module",
   "module": "./src/index.mjs",
   "exports": {

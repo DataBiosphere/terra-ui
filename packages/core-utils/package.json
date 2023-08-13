@@ -27,7 +27,7 @@
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@terra-ui-packages/build-utils": "*",
+    "@terra-ui-packages/build-utils": "^1.0.0",
     "@terra-ui-packages/test-utils": "*",
     "@types/jest": "^28.1.8",
     "@types/lodash": "^4.14.184",
