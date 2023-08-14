@@ -227,6 +227,7 @@ jobs:
           keys:
             - deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
       - run: yarn install --immutable-cache
+      - run: yarn run build-packages
       - run: yarn run build
       - run: yarn eslint --max-warnings=0 .
       - run: yarn workspaces foreach --exclude terra-integration-tests run test --coverage --maxWorkers=2 --passWithNoTests

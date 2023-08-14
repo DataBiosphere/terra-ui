@@ -10,21 +10,5 @@
       "src/*": ["./src/*"]
     }
   },
-  "include": ["src", "types/images"],
-  // A reference to every package should be included here so that `tsc --build`
-  // can build the packages that the Terra UI application depends on.
-  "references": [
-    {
-      "path": "./packages/components/tsconfig.json"
-    },
-    {
-      "path": "./packages/components/tsconfig.cjs.json"
-    },
-    {
-      "path": "./packages/core-utils/tsconfig.json"
-    },
-    {
-      "path": "./packages/core-utils/tsconfig.cjs.json"
-    }
-  ]
+  "include": ["src", "types/images"]
 }
