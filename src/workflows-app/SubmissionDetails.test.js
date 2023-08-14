@@ -101,7 +101,7 @@ describe('Submission Details page', () => {
     within(headers[1]).getByText('Status');
     within(headers[2]).getByText('Duration');
 
-    // // check data rows are rendered as expected (default sorting is by duration in desc order)
+    // check data rows are rendered as expected (default sorting is by duration in desc order)
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
     expect(cellsFromDataRow1.length).toBe(3);
     within(cellsFromDataRow1[0]).getByText('FOO2');
@@ -162,7 +162,7 @@ describe('Submission Details page', () => {
     expect(table).toHaveAttribute('aria-rowcount', '1');
 
     // check that noContentMessage shows up as expected
-    await screen.findByText('Nothing here yet! Your previously run workflows will be displayed here.');
+    screen.getByText('Nothing here yet! Your previously run workflows will be displayed here.');
   });
 
   it('should sort by duration column properly', async () => {
@@ -209,13 +209,13 @@ describe('Submission Details page', () => {
     // check that rows are now sorted by duration in ascending order
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
     expect(cellsFromDataRow1.length).toBe(3);
-    await within(cellsFromDataRow1[0]).findByText('FOO1');
+    within(cellsFromDataRow1[0]).getByText('FOO1');
     within(cellsFromDataRow1[1]).getByText('Succeeded');
     within(cellsFromDataRow1[2]).getByText('37 seconds');
 
     const cellsFromDataRow2 = within(rows[2]).getAllByRole('cell');
     expect(cellsFromDataRow2.length).toBe(3);
-    await within(cellsFromDataRow2[0]).findByText('FOO2');
+    within(cellsFromDataRow2[0]).getByText('FOO2');
     within(cellsFromDataRow2[1]).getByText('Failed');
     within(cellsFromDataRow2[2]).getByText('52 minutes 10 seconds');
 
@@ -270,11 +270,11 @@ describe('Submission Details page', () => {
     expect(getRunsSets).toHaveBeenCalled();
     expect(getMethods).toHaveBeenCalled();
 
-    await screen.findByText(/Submission e8347247-4738-4ad1-a591-56c119f93f58/);
-    await screen.findByText(/Submission name: hello world/);
-    await screen.findByText(/Workflow name: Hello world/);
-    await screen.findByText(/Submission date: Dec 8, 2022/);
-    await screen.findByText(/Duration: 17 hours 2 minutes/);
+    screen.getByText(/Submission e8347247-4738-4ad1-a591-56c119f93f58/);
+    screen.getByText(/Submission name: hello world/);
+    screen.getByText(/Workflow name: Hello world/);
+    screen.getByText(/Submission date: Dec 8, 2022/);
+    screen.getByText(/Duration: 17 hours 2 minutes/);
   });
 
   it('should correctly set default option', async () => {
@@ -290,7 +290,7 @@ describe('Submission Details page', () => {
       );
     });
 
-    await screen.findByText(/None selected/);
+    screen.getByText(/None selected/);
   });
 
   it('should correctly select and change results', async () => {
@@ -345,16 +345,16 @@ describe('Submission Details page', () => {
 
     const headers = within(rows[0]).getAllByRole('columnheader');
     expect(headers.length).toBe(3);
-    await within(headers[0]).findByText('Sample ID');
-    await within(headers[1]).findByText('Status');
-    await within(headers[2]).findByText('Duration');
+    within(headers[0]).getByText('Sample ID');
+    within(headers[1]).getByText('Status');
+    within(headers[2]).getByText('Duration');
 
     // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
     expect(cellsFromDataRow1.length).toBe(3);
-    await within(cellsFromDataRow1[0]).findByText('FOO2');
-    await within(cellsFromDataRow1[1]).findByText('Failed');
-    await within(cellsFromDataRow1[2]).findByText('52 minutes 10 seconds');
+    within(cellsFromDataRow1[0]).getByText('FOO2');
+    within(cellsFromDataRow1[1]).getByText('Failed');
+    within(cellsFromDataRow1[2]).getByText('52 minutes 10 seconds');
   });
 
   it('should correctly display a very recently started run', async () => {
@@ -411,15 +411,15 @@ describe('Submission Details page', () => {
 
     const headers = within(rows[0]).getAllByRole('columnheader');
     expect(headers.length).toBe(3);
-    await within(headers[0]).findByText('Sample ID');
-    await within(headers[1]).findByText('Status');
-    await within(headers[2]).findByText('Duration');
+    within(headers[0]).getByText('Sample ID');
+    within(headers[1]).getByText('Status');
+    within(headers[2]).getByText('Duration');
 
     // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
     expect(cellsFromDataRow1.length).toBe(3);
-    await within(cellsFromDataRow1[0]).findByText('FOO2');
-    await within(cellsFromDataRow1[1]).findByText('Initializing'); // Note: not UNKNOWN!
+    within(cellsFromDataRow1[0]).getByText('FOO2');
+    within(cellsFromDataRow1[1]).getByText('Initializing'); // Note: not UNKNOWN!
     // << Don't validate duration here since it depends on the test rendering time and is not particularly relevant >>
   });
 
@@ -447,7 +447,7 @@ describe('Submission Details page', () => {
       );
     });
 
-    expect(await screen.findByText('Workflow statuses are all up to date.')).toBeInTheDocument();
+    expect(screen.getByText('Workflow statuses are all up to date.')).toBeInTheDocument();
   });
 
   it('should indicate incompletely updated polls', async () => {
@@ -474,6 +474,6 @@ describe('Submission Details page', () => {
       );
     });
 
-    expect(await screen.findByText('Some workflow statuses are not up to date. Refreshing the page may update more statuses.')).toBeInTheDocument();
+    expect(screen.getByText('Some workflow statuses are not up to date. Refreshing the page may update more statuses.')).toBeInTheDocument();
   });
 });
