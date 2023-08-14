@@ -1,4 +1,5 @@
 import _ from 'lodash/fp';
+import { canWrite } from 'src/libs/utils';
 
 export type CloudProvider = 'AZURE' | 'GCP';
 export const cloudProviderTypes: Record<CloudProvider, CloudProvider> = {
@@ -95,3 +96,22 @@ export const hasProtectedData = (workspace: AzureWorkspace): boolean => contains
 
 export const containsProtectedDataPolicy = (policies: WorkspacePolicy[] | undefined): boolean =>
   _.any((policy) => policy.namespace === 'terra' && policy.name === 'protected-data', policies);
+
+export const isValidWsExportTarget = _.curry((sourceWs, destWs) => {
+  const {
+    workspace: { workspaceId: sourceId, authorizationDomain: sourceAD },
+  } = sourceWs;
+  const {
+    accessLevel,
+    workspace: { workspaceId: destId, authorizationDomain: destAD },
+  } = destWs;
+  const sourceWsCloudPlatform = getCloudProviderFromWorkspace(sourceWs);
+  const destWsCloudPlatform = getCloudProviderFromWorkspace(destWs);
+
+  return (
+    sourceId !== destId &&
+    canWrite(accessLevel) &&
+    _.intersectionWith(_.isEqual, sourceAD, destAD).length === sourceAD.length &&
+    sourceWsCloudPlatform === destWsCloudPlatform
+  );
+});
