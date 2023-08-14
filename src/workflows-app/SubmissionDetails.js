@@ -14,8 +14,8 @@ import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-ut
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { customFormatDuration, differenceFromNowInSeconds, makeCompleteDate } from 'src/libs/utils';
+import { HeaderSection, statusType, SubmitNewWorkflowButton } from 'src/workflows-app/components/job-common';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
-import { cbasStatusTypes, HeaderSection, SubmitNewWorkflowButton } from 'src/workflows-app/utils/job-common';
 import {
   AutoRefreshInterval,
   CbasPollInterval,
@@ -63,25 +63,25 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
     switch (state) {
       case 'SYSTEM_ERROR':
       case 'EXECUTOR_ERROR':
-        return cbasStatusTypes.failed;
+        return statusType.failed;
       case 'COMPLETE':
-        return cbasStatusTypes.succeeded;
+        return statusType.succeeded;
       case 'INITIALIZING':
-        return cbasStatusTypes.initializing;
+        return statusType.initializing;
       case 'QUEUED':
-        return cbasStatusTypes.queued;
+        return statusType.queued;
       case 'RUNNING':
-        return cbasStatusTypes.running;
+        return statusType.running;
       case 'PAUSED':
-        return cbasStatusTypes.paused;
+        return statusType.paused;
       case 'CANCELED':
-        return cbasStatusTypes.canceled;
+        return statusType.canceled;
       case 'CANCELING':
-        return cbasStatusTypes.canceling;
+        return statusType.canceling;
       default:
         // 10 seconds should be enough for Cromwell to summarize the new workflow and get a status other
         // than UNKNOWN. In the meantime, handle this as an edge case in the UI:
-        return differenceFromNowInSeconds(submissionDate) < 10 ? cbasStatusTypes.initializing : cbasStatusTypes.unknown;
+        return differenceFromNowInSeconds(submissionDate) < 10 ? statusType.initializing : statusType.unknown;
     }
   };
 
@@ -237,7 +237,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
         label: `Submission ${submissionId}`,
       },
     ];
-    return h(HeaderSection, { breadcrumbPathObjects, title: 'Submission Details', button: SubmitNewWorkflowButton });
+    return h(HeaderSection, { breadcrumbPathObjects, button: h(SubmitNewWorkflowButton, { name, namespace }), title: 'Submission Details' });
   }, [name, namespace, submissionId]);
 
   const rowWidth = 100;

@@ -162,7 +162,7 @@ describe('Submission Details page', () => {
     expect(table).toHaveAttribute('aria-rowcount', '1');
 
     // check that noContentMessage shows up as expected
-    screen.findByText('Nothing here yet! Your previously run workflows will be displayed here.');
+    await screen.findByText('Nothing here yet! Your previously run workflows will be displayed here.');
   });
 
   it('should sort by duration column properly', async () => {
