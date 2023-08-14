@@ -92,23 +92,23 @@ describe('Submission Details page', () => {
     expect(table).toHaveAttribute('aria-colcount', '3');
     expect(table).toHaveAttribute('aria-rowcount', '3');
 
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(3);
 
-    const headers = within(rows[0]).queryAllByRole('columnheader');
+    const headers = within(rows[0]).getAllByRole('columnheader');
     expect(headers.length).toBe(3);
     within(headers[0]).getByText('Sample ID');
     within(headers[1]).getByText('Status');
     within(headers[2]).getByText('Duration');
 
     // // check data rows are rendered as expected (default sorting is by duration in desc order)
-    const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell');
+    const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
     expect(cellsFromDataRow1.length).toBe(3);
     within(cellsFromDataRow1[0]).getByText('FOO2');
     within(cellsFromDataRow1[1]).getByText('Failed');
     within(cellsFromDataRow1[2]).getByText('52 minutes 10 seconds');
 
-    const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell');
+    const cellsFromDataRow2 = within(rows[2]).getAllByRole('cell');
     expect(cellsFromDataRow2.length).toBe(3);
     within(cellsFromDataRow2[0]).getByText('FOO1');
     within(cellsFromDataRow2[1]).getByText('Succeeded');
@@ -196,46 +196,45 @@ describe('Submission Details page', () => {
 
     // Assert
     const table = await screen.findByRole('table');
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(3);
 
-    const headers = within(rows[0]).queryAllByRole('columnheader');
+    const headers = within(rows[0]).getAllByRole('columnheader');
     expect(headers.length).toBe(3);
 
     // Act - click on sort button on Duration column to sort by ascending order
-    user.click(await within(headers[2]).findByRole('button'));
+    await user.click(await within(headers[2]).findByRole('button'));
 
     // Assert
     // check that rows are now sorted by duration in ascending order
-    const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell');
+    const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
     expect(cellsFromDataRow1.length).toBe(3);
     await within(cellsFromDataRow1[0]).findByText('FOO1');
     within(cellsFromDataRow1[1]).getByText('Succeeded');
     within(cellsFromDataRow1[2]).getByText('37 seconds');
 
-    const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell');
+    const cellsFromDataRow2 = within(rows[2]).getAllByRole('cell');
     expect(cellsFromDataRow2.length).toBe(3);
     await within(cellsFromDataRow2[0]).findByText('FOO2');
     within(cellsFromDataRow2[1]).getByText('Failed');
     within(cellsFromDataRow2[2]).getByText('52 minutes 10 seconds');
 
     // Act - click on sort button on Duration column to sort by descending order
-    user.click(await within(headers[2]).findByRole('button'));
+    await user.click(await within(headers[2]).findByRole('button'));
 
     // Assert
     // check that rows are now sorted by duration in descending order
-    const cellsFromUpdatedDataRow1 = within(rows[1]).queryAllByRole('cell');
+    const cellsFromUpdatedDataRow1 = within(rows[1]).getAllByRole('cell');
     expect(cellsFromUpdatedDataRow1.length).toBe(3);
-    await within(cellsFromUpdatedDataRow1[0]).findByText('FOO2');
+    within(cellsFromUpdatedDataRow1[0]).getByText('FOO2');
     within(cellsFromUpdatedDataRow1[1]).getByText('Failed');
     within(cellsFromUpdatedDataRow1[2]).getByText('52 minutes 10 seconds');
 
-    const cellsFromUpdatedDataRow2 = within(rows[2]).queryAllByRole('cell');
+    const cellsFromUpdatedDataRow2 = within(rows[2]).getAllByRole('cell');
     expect(cellsFromUpdatedDataRow2.length).toBe(3);
-    await within(cellsFromUpdatedDataRow2[0]).findByText('FOO1');
-    // why does the test fail when either of the following lines are not awaited and changed to `getByText`?
-    await within(cellsFromUpdatedDataRow2[1]).findByText('Succeeded');
-    await within(cellsFromUpdatedDataRow2[2]).findByText('37 seconds');
+    within(cellsFromUpdatedDataRow2[0]).getByText('FOO1');
+    within(cellsFromUpdatedDataRow2[1]).getByText('Succeeded');
+    within(cellsFromUpdatedDataRow2[2]).getByText('37 seconds');
   });
 
   it('display run set details', async () => {
@@ -341,17 +340,17 @@ describe('Submission Details page', () => {
     expect(table).toHaveAttribute('aria-colcount', '3');
     expect(table).toHaveAttribute('aria-rowcount', '2');
 
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(2);
 
-    const headers = within(rows[0]).queryAllByRole('columnheader');
+    const headers = within(rows[0]).getAllByRole('columnheader');
     expect(headers.length).toBe(3);
     await within(headers[0]).findByText('Sample ID');
     await within(headers[1]).findByText('Status');
     await within(headers[2]).findByText('Duration');
 
     // check data rows are rendered as expected
-    const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell');
+    const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
     expect(cellsFromDataRow1.length).toBe(3);
     await within(cellsFromDataRow1[0]).findByText('FOO2');
     await within(cellsFromDataRow1[1]).findByText('Failed');
@@ -407,17 +406,17 @@ describe('Submission Details page', () => {
     expect(table).toHaveAttribute('aria-colcount', '3');
     expect(table).toHaveAttribute('aria-rowcount', '2');
 
-    const rows = within(table).queryAllByRole('row');
+    const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(2);
 
-    const headers = within(rows[0]).queryAllByRole('columnheader');
+    const headers = within(rows[0]).getAllByRole('columnheader');
     expect(headers.length).toBe(3);
     await within(headers[0]).findByText('Sample ID');
     await within(headers[1]).findByText('Status');
     await within(headers[2]).findByText('Duration');
 
     // check data rows are rendered as expected
-    const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell');
+    const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
     expect(cellsFromDataRow1.length).toBe(3);
     await within(cellsFromDataRow1[0]).findByText('FOO2');
     await within(cellsFromDataRow1[1]).findByText('Initializing'); // Note: not UNKNOWN!
