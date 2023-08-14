@@ -237,7 +237,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
         label: `Submission ${submissionId}`,
       },
     ];
-    return h(HeaderSection, { breadcrumbPathObjects, title: 'Submission Details', button: SubmitNewWorkflowButton });
+    return h(HeaderSection, { breadcrumbPathObjects, button: h(SubmitNewWorkflowButton, { name, namespace }), title: 'Submission Details' });
   }, [name, namespace, submissionId]);
 
   const rowWidth = 100;
@@ -397,9 +397,6 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                           },
                         },
                       ],
-                      styleCell: ({ rowIndex }) => {
-                        return rowIndex % 2 && { backgroundColor: colors.light(0.2) };
-                      },
                     }),
                 ]),
               ]
