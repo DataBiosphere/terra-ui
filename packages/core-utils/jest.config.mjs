@@ -3,4 +3,8 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { baseConfig } from '@terra-ui-packages/test-utils';
 
-export default baseConfig;
+export default {
+  ...baseConfig,
+  // Ignore type tests when calculating coverage.
+  coveragePathIgnorePatterns: ['\\.types\\.ts$', '\\.errors\\.ts$'],
+};
