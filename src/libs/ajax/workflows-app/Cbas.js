@@ -7,6 +7,13 @@ export const Cbas = (signal) => ({
     const res = await fetchFromProxy(cbasUrlRoot)('status', _.mergeAll([authOpts(), { signal, method: 'GET' }]));
     return res.json();
   },
+  runs: {
+    get: async (cbasUrlRoot, submissionId) => {
+      const keyParams = qs.stringify({ run_set_id: submissionId });
+      const res = await fetchFromProxy(cbasUrlRoot)(`api/batch/v1/runs?${keyParams}`, _.mergeAll([authOpts(), { signal, method: 'GET' }]));
+      return res.json();
+    },
+  },
   methods: {
     post: async (cbasUrlRoot, payload) => {
       const res = await fetchFromProxy(cbasUrlRoot)('api/batch/v1/methods', _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]));
