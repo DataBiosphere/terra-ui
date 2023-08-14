@@ -97,22 +97,22 @@ describe('Submission Details page', () => {
 
     const headers = within(rows[0]).queryAllByRole('columnheader');
     expect(headers.length).toBe(3);
-    within(headers[0]).queryByText('Sample ID');
-    within(headers[1]).queryByText('Status');
-    within(headers[2]).queryByText('Duration');
+    within(headers[0]).getByText('Sample ID');
+    within(headers[1]).getByText('Status');
+    within(headers[2]).getByText('Duration');
 
     // // check data rows are rendered as expected (default sorting is by duration in desc order)
     const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell');
     expect(cellsFromDataRow1.length).toBe(3);
-    within(cellsFromDataRow1[0]).queryByText('FOO2');
-    within(cellsFromDataRow1[1]).queryByText('Failed');
-    within(cellsFromDataRow1[2]).queryByText('52 minutes 10 seconds');
+    within(cellsFromDataRow1[0]).getByText('FOO2');
+    within(cellsFromDataRow1[1]).getByText('Failed');
+    within(cellsFromDataRow1[2]).getByText('52 minutes 10 seconds');
 
     const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell');
     expect(cellsFromDataRow2.length).toBe(3);
-    within(cellsFromDataRow2[0]).queryByText('FOO1');
-    within(cellsFromDataRow2[1]).queryByText('Succeeded');
-    within(cellsFromDataRow2[2]).queryByText('37 seconds');
+    within(cellsFromDataRow2[0]).getByText('FOO1');
+    within(cellsFromDataRow2[1]).getByText('Succeeded');
+    within(cellsFromDataRow2[2]).getByText('37 seconds');
   });
 
   it('should display standard message when there are no saved workflows', async () => {
@@ -210,14 +210,14 @@ describe('Submission Details page', () => {
     const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell');
     expect(cellsFromDataRow1.length).toBe(3);
     await within(cellsFromDataRow1[0]).findByText('FOO1');
-    await within(cellsFromDataRow1[1]).findByText('Succeeded');
-    await within(cellsFromDataRow1[2]).findByText('37 seconds');
+    within(cellsFromDataRow1[1]).getByText('Succeeded');
+    within(cellsFromDataRow1[2]).getByText('37 seconds');
 
     const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell');
     expect(cellsFromDataRow2.length).toBe(3);
     await within(cellsFromDataRow2[0]).findByText('FOO2');
-    await within(cellsFromDataRow2[1]).findByText('Failed');
-    await within(cellsFromDataRow2[2]).findByText('52 minutes 10 seconds');
+    within(cellsFromDataRow2[1]).getByText('Failed');
+    within(cellsFromDataRow2[2]).getByText('52 minutes 10 seconds');
 
     // Act - click on sort button on Duration column to sort by descending order
     user.click(await within(headers[2]).findByRole('button'));
@@ -227,12 +227,13 @@ describe('Submission Details page', () => {
     const cellsFromUpdatedDataRow1 = within(rows[1]).queryAllByRole('cell');
     expect(cellsFromUpdatedDataRow1.length).toBe(3);
     await within(cellsFromUpdatedDataRow1[0]).findByText('FOO2');
-    await within(cellsFromUpdatedDataRow1[1]).findByText('Failed');
-    await within(cellsFromUpdatedDataRow1[2]).findByText('52 minutes 10 seconds');
+    within(cellsFromUpdatedDataRow1[1]).getByText('Failed');
+    within(cellsFromUpdatedDataRow1[2]).getByText('52 minutes 10 seconds');
 
     const cellsFromUpdatedDataRow2 = within(rows[2]).queryAllByRole('cell');
     expect(cellsFromUpdatedDataRow2.length).toBe(3);
     await within(cellsFromUpdatedDataRow2[0]).findByText('FOO1');
+    // why does the test fail when either of the following lines are not awaited and changed to `getByText`?
     await within(cellsFromUpdatedDataRow2[1]).findByText('Succeeded');
     await within(cellsFromUpdatedDataRow2[2]).findByText('37 seconds');
   });
