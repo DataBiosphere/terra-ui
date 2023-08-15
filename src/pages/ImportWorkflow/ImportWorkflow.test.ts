@@ -2,7 +2,6 @@ import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { setAzureCookieOnUrl } from 'src/analysis/runtime-common-components';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
@@ -406,12 +405,6 @@ describe('ImportWorkflow', () => {
         method_input_mappings: [],
         method_output_mappings: [],
       })
-    );
-
-    expect(setAzureCookieOnUrl).toHaveBeenCalledWith(
-      expect.anything(),
-      'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/',
-      true
     );
   });
 

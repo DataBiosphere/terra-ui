@@ -195,11 +195,10 @@ describe('cromwellLinkProps', () => {
   const namespace = 'mock-namespace';
   const name = 'mock-workspace-name';
 
-  it('props for Azure with workflows tab enabled', () => {
+  it('props for Azure', () => {
     expect(
       cromwellLinkProps({
         cloudProvider: cloudProviderTypes.AZURE,
-        isAzureWorkflowsTabEnabled: true,
         namespace,
         name,
         app,
@@ -209,24 +208,8 @@ describe('cromwellLinkProps', () => {
     });
   });
 
-  it('props for Azure with workflows tab disabled', () => {
-    expect(cromwellLinkProps({ cloudProvider: cloudProviderTypes.AZURE, isAzureWorkflowsTabEnabled: false, namespace, name, app })).toEqual({
-      href: 'http://cbas-ui.mock',
-      rel: 'noopener',
-      target: '_blank',
-    });
-  });
-
-  it('props for GCP with workflows tab enabled', () => {
-    expect(cromwellLinkProps({ cloudProvider: cloudProviderTypes.GCP, isAzureWorkflowsTabEnabled: true, namespace, name, app })).toEqual({
-      href: 'http://cromwell-service.mock',
-      rel: 'noopener',
-      target: '_blank',
-    });
-  });
-
-  it('props for GCP with workflows tab disabled', () => {
-    expect(cromwellLinkProps({ cloudProvider: cloudProviderTypes.GCP, isAzureWorkflowsTabEnabled: false, namespace, name, app })).toEqual({
+  it('props for GCP', () => {
+    expect(cromwellLinkProps({ cloudProvider: cloudProviderTypes.GCP, namespace, name, app })).toEqual({
       href: 'http://cromwell-service.mock',
       rel: 'noopener',
       target: '_blank',
