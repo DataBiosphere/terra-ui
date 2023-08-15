@@ -284,9 +284,8 @@ const EntitiesContent = ({
   } = useColumnProvenance(workspace, entityKey);
   const [showColumnProvenance, setShowColumnProvenance] = useState(undefined);
 
-  const buildTSV = (columnSettings, entities) => {
+  const buildTSV = (columnSettings, entities, isSet, forDownload) => {
     const sortedEntities = _.sortBy('name', entities);
-    const isSet = _.endsWith('_set', entityKey);
     const setRoot = entityKey.slice(0, -4);
     const attributeNames = _.flow(_.filter('visible'), _.map('name'), isSet ? _.without([`${setRoot}s`]) : _.identity)(columnSettings);
 
@@ -307,14 +306,14 @@ const EntitiesContent = ({
 
       const zipFile = new JSZip().file(`${entityKey}_entity.tsv`, entityTsv).file(`${entityKey}_membership.tsv`, membershipTsv);
 
-      return zipFile.generateAsync({ type: 'blob' });
+      return zipFile.generateAsync({ type: forDownload ? 'blob' : 'string' });
     }
     return entityTsv;
   };
 
   const downloadSelectedRows = async (columnSettings) => {
-    const tsv = buildTSV(columnSettings, selectedEntities);
     const isSet = _.endsWith('_set', entityKey);
+    const tsv = buildTSV(columnSettings, selectedEntities, isSet, true);
     isSet
       ? FileSaver.saveAs(await tsv, `${entityKey}.zip`)
       : FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`);
@@ -433,8 +432,9 @@ const EntitiesContent = ({
                 withErrorReporting('Error copying to clipboard.'),
                 Utils.withBusyState(setNowCopying)
               )(async () => {
-                const str = buildTSV(columnSettings, _.values(selectedEntities));
-                await clipboard.writeText(str);
+                const isSet = _.endsWith('_set', entityKey);
+                const str = buildTSV(columnSettings, _.values(selectedEntities), isSet, false);
+                isSet ? await clipboard.writeText(await str) : await clipboard.writeText(str);
                 notify('success', 'Successfully copied to clipboard.', { timeout: 3000 });
                 Ajax().Metrics.captureEvent(Events.workspaceDataCopyToClipboard, extractWorkspaceDetails(workspace.workspace));
               }),
