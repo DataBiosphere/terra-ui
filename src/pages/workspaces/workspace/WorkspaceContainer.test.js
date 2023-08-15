@@ -89,7 +89,7 @@ describe('WorkspaceTabs', () => {
     const { container } = render(h(WorkspaceTabs, props));
     // Assert
     const tabs = screen.getAllByRole('menuitem');
-    expect(tabs.length).toBe(3);
+    expect(tabs.length).toBe(4);
     expect(within(tabs[0]).getByText('dashboard')).not.toBeNull();
     expect(within(tabs[1]).getByText('data')).not.toBeNull();
     expect(within(tabs[2]).getByText('analyses')).not.toBeNull();
