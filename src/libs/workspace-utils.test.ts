@@ -1,24 +1,24 @@
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/analysis/_testData/testData';
 
-import { isValidWsExportTarget } from './workspace-utils';
+import { isValidWsExportTarget, WorkspaceWrapper } from './workspace-utils';
 
 describe('isValidWsExportTarget', () => {
   it('Returns true because source and dest workspaces are the same', () => {
     // Arrange
-    const sourceWs = {
+    const sourceWs: WorkspaceWrapper = {
       ...defaultGoogleWorkspace,
       workspace: {
-        ...defaultGoogleWorkspace,
-        authorizationDomain: [{}],
+        ...defaultGoogleWorkspace.workspace,
+        authorizationDomain: [],
       },
     };
 
-    const destWs = {
+    const destWs: WorkspaceWrapper = {
       ...defaultGoogleWorkspace,
       workspace: {
         ...defaultGoogleWorkspace.workspace,
         workspaceId: 'test-different-workspace-id',
-        authorizationDomain: [{}],
+        authorizationDomain: [],
       },
     };
 
@@ -44,7 +44,7 @@ describe('isValidWsExportTarget', () => {
   it('Returns false because AccessLevel does not contain Writer', () => {
     // Arrange
     const sourceWs = defaultGoogleWorkspace;
-    const destWs = {
+    const destWs: WorkspaceWrapper = {
       ...defaultGoogleWorkspace,
       accessLevel: 'READER',
       workspace: {
@@ -62,19 +62,19 @@ describe('isValidWsExportTarget', () => {
 
   it('Returns false because source and destination cloud platforms are not the same.', () => {
     // Arrange
-    const sourceWs = {
+    const sourceWs: WorkspaceWrapper = {
       ...defaultGoogleWorkspace,
       workspace: {
         ...defaultGoogleWorkspace.workspace,
-        authorizationDomain: [{}],
+        authorizationDomain: [],
       },
     };
 
-    const destWs = {
+    const destWs: WorkspaceWrapper = {
       ...defaultAzureWorkspace,
       workspace: {
         ...defaultAzureWorkspace.workspace,
-        authorizationDomain: [{}],
+        authorizationDomain: [],
       },
     };
 
@@ -85,17 +85,17 @@ describe('isValidWsExportTarget', () => {
     expect(result).toBe(false);
   });
 
-  it('Returns false because source and destination cloud platforms are not the same.', () => {
+  it('Returns false because source and destination authorization domains are not the same.', () => {
     // Arrange
-    const sourceWs = {
+    const sourceWs: WorkspaceWrapper = {
       ...defaultGoogleWorkspace,
       workspace: {
         ...defaultGoogleWorkspace.workspace,
-        authorizationDomain: [{}],
+        authorizationDomain: [{ membersGroupName: 'auth-domain' }],
       },
     };
 
-    const destWs = {
+    const destWs: WorkspaceWrapper = {
       ...defaultGoogleWorkspace,
       workspace: {
         ...defaultGoogleWorkspace.workspace,

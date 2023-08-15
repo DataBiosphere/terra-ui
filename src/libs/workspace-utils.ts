@@ -1,3 +1,4 @@
+import { safeCurry } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { canWrite } from 'src/libs/utils';
 
@@ -16,11 +17,15 @@ export const isKnownCloudProvider = (x: unknown): x is CloudProvider => {
   return (x as string) in cloudProviderTypes;
 };
 
+export type AuthorizationDomain = {
+  membersGroupName: string;
+};
+
 interface BaseWorkspaceInfo {
   namespace: string;
   name: string;
   workspaceId: string;
-  authorizationDomain: string[];
+  authorizationDomain: AuthorizationDomain[];
   createdDate: string;
   createdBy: string;
 }
@@ -97,7 +102,7 @@ export const hasProtectedData = (workspace: AzureWorkspace): boolean => contains
 export const containsProtectedDataPolicy = (policies: WorkspacePolicy[] | undefined): boolean =>
   _.any((policy) => policy.namespace === 'terra' && policy.name === 'protected-data', policies);
 
-export const isValidWsExportTarget = _.curry((sourceWs, destWs) => {
+export const isValidWsExportTarget = safeCurry((sourceWs: WorkspaceWrapper, destWs: WorkspaceWrapper) => {
   const {
     workspace: { workspaceId: sourceId, authorizationDomain: sourceAD },
   } = sourceWs;
