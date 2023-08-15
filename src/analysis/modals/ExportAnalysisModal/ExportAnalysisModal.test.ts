@@ -35,12 +35,12 @@ jest.mock(
   })
 );
 
-type UtilsExports = typeof import('src/libs/utils');
+type WorkspaceUtilsExports = typeof import('src/libs/workspace-utils');
 type LodashFpExports = typeof import('lodash/fp');
-jest.mock('src/libs/utils', (): UtilsExports => {
+jest.mock('src/libs/workspace-utils', (): WorkspaceUtilsExports => {
   const _ = jest.requireActual<LodashFpExports>('lodash/fp');
   return {
-    ...jest.requireActual('src/libs/utils'),
+    ...jest.requireActual('src/libs/workspace-utils'),
     isValidWsExportTarget: jest.fn().mockImplementation(
       _.curry((sourceWs: WorkspaceWrapper, destWs: WorkspaceWrapper) => {
         // mock this to have a much simpler check then the real implementation

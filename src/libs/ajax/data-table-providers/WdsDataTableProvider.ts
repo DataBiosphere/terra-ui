@@ -13,7 +13,7 @@ import {
   TsvUploadButtonTooltipOptions,
   UploadParameters,
 } from 'src/libs/ajax/data-table-providers/DataTableProvider';
-import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import { LeoAppStatus, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { withErrorReporting } from 'src/libs/error';
 import { notify } from 'src/libs/notifications';
 import { notificationStore } from 'src/libs/state';
@@ -95,8 +95,8 @@ export const resolveWdsApp = (apps: ListAppResponse[]): ListAppResponse | undefi
   // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by Leo
   // See here for specific enumerations -- https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
   // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' -- if WDS is healthy and running, there should only be one app RUNNING
-  // an app may be in the 'PROVISIONING', 'STOPPED', 'STOPPING', which can still be deemed as an OK state for WDS
-  const healthyStates = ['RUNNING', 'PROVISIONING', 'STOPPED', 'STOPPING'];
+  // an app may be in the 'PROVISIONING', 'UPDATING', 'STOPPED', 'STOPPING', which can still be deemed as an OK state for WDS
+  const healthyStates: LeoAppStatus[] = ['RUNNING', 'PROVISIONING', 'UPDATING', 'STOPPED', 'STOPPING'];
 
   const eligibleApps = apps.filter((app) => app.appType === 'WDS' || app.appType === 'CROMWELL');
 

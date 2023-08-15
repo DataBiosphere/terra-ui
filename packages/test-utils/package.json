@@ -1,7 +1,6 @@
 {
   "name": "@terra-ui-packages/test-utils",
   "version": "0.0.2",
-  "private": false,
   "type": "module",
   "module": "./src/index.mjs",
   "exports": {

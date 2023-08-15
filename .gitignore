@@ -10,6 +10,7 @@ packages/*/coverage
 # production
 /build
 packages/*/lib
+packages/*/.rollup.cache
 tsconfig.tsbuildinfo
 public/build-info.json
 
