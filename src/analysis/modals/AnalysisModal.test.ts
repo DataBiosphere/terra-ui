@@ -1,3 +1,4 @@
+import { LoadedState } from '@terra-ui-packages/core-utils';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
@@ -17,7 +18,6 @@ import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorag
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { reportError } from 'src/libs/error';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import LoadedState from 'src/libs/type-utils/LoadedState';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { AnalysisModal, AnalysisModalProps } from './AnalysisModal';

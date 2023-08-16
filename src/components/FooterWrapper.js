@@ -4,6 +4,7 @@ import { Clickable, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { isBioDataCatalyst } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
+import { getConfig } from 'src/libs/config';
 import { footerLogo } from 'src/libs/logos';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
@@ -18,7 +19,7 @@ const styles = {
   },
 };
 
-const buildTimestamp = new Date(parseInt(process.env.VITE_APP_BUILD_TIMESTAMP, 10));
+const buildDate = new Date(parseInt(getConfig().buildTimestamp, 10));
 
 // If you change the layout here, make sure it's reflected in the pre-rendered version in public/index.html
 const FooterWrapper = ({ children, alwaysShow = false, fixedHeight = false }) => {
@@ -88,7 +89,7 @@ const FooterWrapper = ({ children, alwaysShow = false, fixedHeight = false }) =>
       displayName: 'Terra.bio',
     }),
     div({ style: { flexGrow: 1 } }),
-    div({ style: { fontWeight: 600, fontSize: '10px' } }, [`Copyright ©${buildTimestamp.getFullYear()}`]),
+    div({ style: { fontWeight: 600, fontSize: '10px' } }, [`Copyright ©${buildDate.getFullYear()}`]),
   ]);
 
   const footerExists = isBioDataCatalyst() || alwaysShow;

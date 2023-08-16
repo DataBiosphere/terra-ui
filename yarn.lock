@@ -1463,7 +1463,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:*, @babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.10.2, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.13, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.14.8, @babel/runtime@npm:^7.16.3, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.20.13, @babel/runtime@npm:^7.20.7, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.7.2, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7, @babel/runtime@npm:^7.9.2":
+"@babel/runtime@npm:*, @babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.10.1, @babel/runtime@npm:^7.10.2, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.13, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.14.8, @babel/runtime@npm:^7.16.3, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.20.13, @babel/runtime@npm:^7.20.7, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.7.2, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7, @babel/runtime@npm:^7.9.2":
   version: 7.22.6
   resolution: "@babel/runtime@npm:7.22.6"
   dependencies:
@@ -2623,7 +2623,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/pluginutils@npm:^5.0.2":
+"@rollup/plugin-typescript@npm:^11.1.2":
+  version: 11.1.2
+  resolution: "@rollup/plugin-typescript@npm:11.1.2"
+  dependencies:
+    "@rollup/pluginutils": ^5.0.1
+    resolve: ^1.22.1
+  peerDependencies:
+    rollup: ^2.14.0||^3.0.0
+    tslib: "*"
+    typescript: ">=3.7.0"
+  peerDependenciesMeta:
+    rollup:
+      optional: true
+    tslib:
+      optional: true
+  checksum: f4655a35e08639574e86dbce578b76468ee8627e4a3d8a46b7e0703d5d98c39a9bda9aa7144510aae11c5d8ce9c3b065e7f3e52dd31fbc6780015dd7802e01f7
+  languageName: node
+  linkType: hard
+
+"@rollup/pluginutils@npm:^5.0.1, @rollup/pluginutils@npm:^5.0.2":
   version: 5.0.2
   resolution: "@rollup/pluginutils@npm:5.0.2"
   dependencies:
@@ -2810,6 +2829,54 @@ __metadata:
   checksum: 009421b8e3f32bf13ebec4d47c7997106cd806c6922349871f2d9a77cd3304f55d30630dd8948ff77a9ead2ee1869ac39ad65cf95ab95b2192ef21d5704bd367
   languageName: node
   linkType: hard
+
+"@terra-ui-packages/build-utils@^1.0.0, @terra-ui-packages/build-utils@workspace:packages/build-utils":
+  version: 0.0.0-use.local
+  resolution: "@terra-ui-packages/build-utils@workspace:packages/build-utils"
+  dependencies:
+    "@rollup/plugin-typescript": ^11.1.2
+    tslib: ^2.6.1
+    vite: ^4.3.9
+  peerDependencies:
+    typescript: ^4.9.5
+    vite: ^4.3.9
+  languageName: unknown
+  linkType: soft
+
+"@terra-ui-packages/components@*, @terra-ui-packages/components@workspace:packages/components":
+  version: 0.0.0-use.local
+  resolution: "@terra-ui-packages/components@workspace:packages/components"
+  dependencies:
+    "@terra-ui-packages/build-utils": ^1.0.0
+    "@terra-ui-packages/test-utils": "*"
+    "@types/jest": ^28.1.8
+    "@types/lodash": ^4.14.184
+    "@types/react": ^18.2.15
+    jest: ^27.4.3
+    lodash: ^4.17.21
+    react: 18.2.0
+    typescript: ^4.9.5
+    vite: ^4.3.9
+  peerDependencies:
+    react: 18.2.0
+  languageName: unknown
+  linkType: soft
+
+"@terra-ui-packages/core-utils@*, @terra-ui-packages/core-utils@workspace:packages/core-utils":
+  version: 0.0.0-use.local
+  resolution: "@terra-ui-packages/core-utils@workspace:packages/core-utils"
+  dependencies:
+    "@terra-ui-packages/build-utils": ^1.0.0
+    "@terra-ui-packages/test-utils": "*"
+    "@types/jest": ^28.1.8
+    "@types/lodash": ^4.14.184
+    check-dts: ^0.7.2
+    jest: ^27.4.3
+    lodash: ^4.17.21
+    typescript: ^4.9.5
+    vite: ^4.3.9
+  languageName: unknown
+  linkType: soft
 
 "@terra-ui-packages/test-utils@*, @terra-ui-packages/test-utils@workspace:packages/test-utils":
   version: 0.0.0-use.local
@@ -4264,9 +4331,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"check-dts@npm:^0.7.1":
-  version: 0.7.1
-  resolution: "check-dts@npm:0.7.1"
+"check-dts@npm:^0.7.2":
+  version: 0.7.2
+  resolution: "check-dts@npm:0.7.2"
   dependencies:
     fast-glob: ^3.2.12
     nanospinner: ^1.1.0
@@ -4276,7 +4343,7 @@ __metadata:
     typescript: ">=4.0.0"
   bin:
     check-dts: bin.js
-  checksum: 3fe599ff33fb37f0a2d6b62e864d0b0525b5f8a02eaa236c451dd11599c8a31991d01ac001d39f51474d31fcaa7ccd5e564c98860579e4438206f1724e7fee76
+  checksum: c870c7196949d1ea9acf6fea68d1047c2f53d4c7d9603b13288b9bde0932f9b38adab0d990586d184fb09d70640bba1fc8a515f8ece857ad634efbd49cb03b24
   languageName: node
   linkType: hard
 
@@ -4305,6 +4372,13 @@ __metadata:
   version: 1.2.2
   resolution: "cjs-module-lexer@npm:1.2.2"
   checksum: 977f3f042bd4f08e368c890d91eecfbc4f91da0bc009a3c557bc4dfbf32022ad1141244ac1178d44de70fc9f3dea7add7cd9a658a34b9fae98a55d8f92331ce5
+  languageName: node
+  linkType: hard
+
+"classnames@npm:^2.2.5":
+  version: 2.3.2
+  resolution: "classnames@npm:2.3.2"
+  checksum: 2c62199789618d95545c872787137262e741f9db13328e216b093eea91c85ef2bfb152c1f9e63027204e2559a006a92eb74147d46c800a9f96297ae1d9f96f4e
   languageName: node
   linkType: hard
 
@@ -8420,6 +8494,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"keycode-js@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "keycode-js@npm:3.1.0"
+  checksum: 3043e43d39aef08ba92b5bde7a71c52547cc4801b4a6d0d7670725e36986dc0dc068705b879347643362158b81ce4c6cafe86a17b94b9b552118a914bbd44a3b
+  languageName: node
+  linkType: hard
+
 "kind-of@npm:^2.0.1":
   version: 2.0.1
   resolution: "kind-of@npm:2.0.1"
@@ -10279,6 +10360,33 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rc-slider@npm:^10.2.1":
+  version: 10.2.1
+  resolution: "rc-slider@npm:10.2.1"
+  dependencies:
+    "@babel/runtime": ^7.10.1
+    classnames: ^2.2.5
+    rc-util: ^5.27.0
+  peerDependencies:
+    react: ">=16.9.0"
+    react-dom: ">=16.9.0"
+  checksum: 565eb55302c776a7a48bfbe6761f52bab6b0d3ea4f53fc10d32ae9958340708bc5072a9c254bb5ddfa822492093032b94cb03d5e52cdff774e076b90e20b9145
+  languageName: node
+  linkType: hard
+
+"rc-util@npm:^5.27.0":
+  version: 5.35.0
+  resolution: "rc-util@npm:5.35.0"
+  dependencies:
+    "@babel/runtime": ^7.18.3
+    react-is: ^16.12.0
+  peerDependencies:
+    react: ">=16.9.0"
+    react-dom: ">=16.9.0"
+  checksum: 8e99225c7d964d0be7b011e1b945822673f83437098bee5871d45d49531ac3d08128ddcaf0c0b503aad26feeced15a455082de179dd8c546be0f0281d8e7c176
+  languageName: node
+  linkType: hard
+
 "react-base16-styling@npm:~0.6.0":
   version: 0.6.0
   resolution: "react-base16-styling@npm:0.6.0"
@@ -10389,7 +10497,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-is@npm:^16.13.1, react-is@npm:^16.7.0":
+"react-is@npm:^16.12.0, react-is@npm:^16.13.1, react-is@npm:^16.7.0":
   version: 16.13.1
   resolution: "react-is@npm:16.13.1"
   checksum: f7a19ac3496de32ca9ae12aa030f00f14a3d45374f1ceca0af707c831b2a6098ef0d6bdae51bd437b0a306d7f01d4677fcc8de7c0d331eb47ad0f46130e53c5f
@@ -11715,6 +11823,8 @@ __metadata:
     "@fortawesome/free-solid-svg-icons": ^5.15.4
     "@fortawesome/react-fontawesome": ^0.1.15
     "@microlink/react-json-view": ^1.22.2
+    "@terra-ui-packages/components": "*"
+    "@terra-ui-packages/core-utils": "*"
     "@terra-ui-packages/test-utils": "*"
     "@testing-library/dom": ^9.3.1
     "@testing-library/react": ^14.0.0
@@ -11731,7 +11841,7 @@ __metadata:
     animate.css: ^4.1.1
     array-move: ^4.0.0
     browserslist: ^4.18.1
-    check-dts: ^0.7.1
+    check-dts: ^0.7.2
     clipboard-polyfill: ^3.0.3
     color: ^4.0.1
     date-fns: ^2.24.0
@@ -11763,6 +11873,7 @@ __metadata:
     jest-axe: ^6.0.0
     jszip: ^3.10.1
     jwt-decode: ^3.1.2
+    keycode-js: ^3.1.0
     lint-staged: ^13.0.3
     lodash: ^4.17.21
     marked: ^4.0.10
@@ -11778,6 +11889,7 @@ __metadata:
     prismjs: ^1.27.0
     prop-types: ^15.7.2
     qs: ^6.10.1
+    rc-slider: ^10.2.1
     react: 18.2.0
     react-collapse: ^5.1.0
     react-dom: 18.2.0
@@ -11959,6 +12071,13 @@ __metadata:
   version: 2.6.0
   resolution: "tslib@npm:2.6.0"
   checksum: c01066038f950016a18106ddeca4649b4d76caa76ec5a31e2a26e10586a59fceb4ee45e96719bf6c715648e7c14085a81fee5c62f7e9ebee68e77a5396e5538f
+  languageName: node
+  linkType: hard
+
+"tslib@npm:^2.6.1":
+  version: 2.6.1
+  resolution: "tslib@npm:2.6.1"
+  checksum: b0d176d176487905b66ae4d5856647df50e37beea7571c53b8d10ba9222c074b81f1410fb91da13debaf2cbc970663609068bdebafa844ea9d69b146527c38fe
   languageName: node
   linkType: hard
 

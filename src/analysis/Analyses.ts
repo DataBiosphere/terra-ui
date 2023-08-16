@@ -1,3 +1,4 @@
+import { withHandlers } from '@terra-ui-packages/core-utils';
 import * as clipboard from 'clipboard-polyfill/text';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
@@ -66,7 +67,6 @@ import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/l
 import { authStore } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
-import { withHandlers } from 'src/libs/type-utils/lodash-fp-helpers';
 import * as Utils from 'src/libs/utils';
 import { isAzureWorkspace, isGoogleWorkspace, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace';

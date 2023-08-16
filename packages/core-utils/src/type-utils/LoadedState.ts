@@ -18,6 +18,4 @@ export interface ErrorState<S, E = Error> {
   error: E;
 }
 
-type LoadedState<S, E = Error> = NoneState | LoadingState<S> | ReadyState<S> | ErrorState<S, E>;
-
-export default LoadedState;
+export type LoadedState<S, E = Error> = NoneState | LoadingState<S> | ReadyState<S> | ErrorState<S, E>;

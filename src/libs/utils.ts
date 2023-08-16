@@ -1,13 +1,12 @@
-import { isToday, isYesterday } from 'date-fns';
+import { AnyPromiseFn, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
+import { formatDuration, intervalToDuration, isToday, isYesterday } from 'date-fns';
 import { differenceInCalendarMonths, differenceInSeconds, parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { div, span } from 'react-hyperscript-helpers';
-import { AnyPromiseFn, GenericPromiseFn } from 'src/libs/type-utils/general-types';
-import { safeCurry } from 'src/libs/type-utils/lodash-fp-helpers';
 import { v4 as uuid } from 'uuid';
 
-import { getCloudProviderFromWorkspace, hasAccessLevel } from './workspace-utils';
+import { hasAccessLevel } from './workspace-utils';
 
 export interface Subscribable<T extends any[]> {
   subscribe: (fn: (...args: T) => void) => { unsubscribe: () => void };
@@ -262,6 +261,11 @@ export const nextSort = ({ field, direction }, newField) => {
     : { field: newField, direction: 'asc' };
 };
 
+export const customFormatDuration = (seconds) => {
+  const durations = intervalToDuration({ start: 0, end: seconds * 1000 }); // this function expects milliseconds
+  return formatDuration(durations);
+};
+
 // TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
 export const summarizeErrors = (errors) => {
   const errorList = cond(
@@ -317,25 +321,6 @@ export const normalizeLabel = _.flow(_.camelCase, _.startCase);
 
 // TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
 export const kvArrayToObject = _.reduce((acc, { key, value }) => _.set(key, value, acc) as any, {});
-
-export const isValidWsExportTarget = _.curry((sourceWs, destWs) => {
-  const {
-    workspace: { workspaceId: sourceId, authorizationDomain: sourceAD },
-  } = sourceWs;
-  const {
-    accessLevel,
-    workspace: { workspaceId: destId, authorizationDomain: destAD },
-  } = destWs;
-  const sourceWsCloudPlatform = getCloudProviderFromWorkspace(sourceWs);
-  const destWsCloudPlatform = getCloudProviderFromWorkspace(destWs);
-
-  return (
-    sourceId !== destId &&
-    canWrite(accessLevel) &&
-    _.intersectionWith(_.isEqual, sourceAD, destAD).length === sourceAD.length &&
-    sourceWsCloudPlatform === destWsCloudPlatform
-  );
-});
 
 export const append = _.curry((value, arr) => _.concat(arr, [value]));
 

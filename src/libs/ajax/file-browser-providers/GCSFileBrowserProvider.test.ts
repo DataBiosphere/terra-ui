@@ -213,6 +213,35 @@ describe('GCSFileBrowserProvider', () => {
     expect(del).toHaveBeenCalledWith('test-project', 'test-bucket', 'path/to/file.txt');
   });
 
+  it('moves files', async () => {
+    // Arrange
+    const copyWithinBucket = jest.fn(() => Promise.resolve());
+    const del = jest.fn(() => Promise.resolve());
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Buckets: {
+            copyWithinBucket,
+            delete: del,
+          } as Partial<GoogleStorageContract>,
+        } as ReturnType<typeof Ajax>)
+    );
+
+    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' });
+
+    // Act
+    await provider.moveFile('path/to/source.txt', 'path/to/destination.txt');
+
+    // Assert
+    expect(copyWithinBucket).toBeCalledWith(
+      'test-project',
+      'test-bucket',
+      'path/to/source.txt',
+      'path/to/destination.txt'
+    );
+    expect(del).toHaveBeenCalledWith('test-project', 'test-bucket', 'path/to/source.txt');
+  });
+
   it('creates empty directories', async () => {
     // Arrange
     const upload = jest.fn(() => Promise.resolve());

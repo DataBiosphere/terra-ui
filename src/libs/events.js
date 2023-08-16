@@ -101,7 +101,7 @@ const eventsList = {
   workspaceDataDownloadPartial: 'workspace:data:downloadpartial',
   workspaceDataEditMultiple: 'workspace:data:editMultiple',
   workspaceDataEditOne: 'workspace:data:editOne',
-  workspaceDataFilteredSearch: 'workspace:data:filteredSearch',
+  workspaceDataColumnTableSearch: 'workspace:data:columnTableSearch',
   workspaceDataOpenWithIGV: 'workspace:data:igv',
   workspaceDataOpenWithWorkflow: 'workspace:data:workflow',
   workspaceDataOpenWithDataExplorer: 'workspace:data:dataexplorer',

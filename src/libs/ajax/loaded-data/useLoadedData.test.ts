@@ -1,6 +1,6 @@
+import { LoadedState } from '@terra-ui-packages/core-utils';
 import { act, renderHook } from '@testing-library/react';
 import { useLoadedData, UseLoadedDataResult } from 'src/libs/ajax/loaded-data/useLoadedData';
-import LoadedState from 'src/libs/type-utils/LoadedState';
 import { controlledPromise } from 'src/testing/test-utils';
 
 interface TestData {

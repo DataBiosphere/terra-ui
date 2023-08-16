@@ -17,7 +17,7 @@ const WDSContent = ({
   const [refreshKey] = useState(0);
 
   // Render
-  const entityMetadata = wdsToEntityServiceMetadata(wdsSchema);
+  const [entityMetadata, setEntityMetadata] = useState(() => wdsToEntityServiceMetadata(wdsSchema));
 
   return h(Fragment, [
     h(DataTable, {
@@ -36,6 +36,7 @@ const WDSContent = ({
         selected: [],
         setSelected: () => [],
       },
+      setEntityMetadata,
       childrenBefore: undefined,
       enableSearch: false,
       controlPanelStyle: {

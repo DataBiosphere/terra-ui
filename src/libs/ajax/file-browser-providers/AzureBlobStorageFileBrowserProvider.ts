@@ -214,6 +214,37 @@ const AzureBlobStorageFileBrowserProvider = ({
         method: 'DELETE',
       });
     },
+    moveFile: async (sourcePath: string, destinationPath: string): Promise<void> => {
+      const {
+        sas: { url: originalSasUrl },
+      } = await storageDetailsPromise;
+
+      const sourceBlobUrl = new URL(originalSasUrl);
+      sourceBlobUrl.pathname += `/${sourcePath}`;
+
+      const destinationBlobUrl = new URL(originalSasUrl);
+      destinationBlobUrl.pathname += `/${destinationPath}`;
+
+      await fetchOk(destinationBlobUrl.href, {
+        method: 'PUT',
+        headers: {
+          'x-ms-copy-source': sourceBlobUrl.href,
+        },
+      });
+
+      // Note
+      // The copy operation can finish asychronously.
+      // https://learn.microsoft.com/en-us/rest/api/storageservices/copy-blob?tabs=azure-ad#remarks
+      // However, we can't access the x-ms-copy-status header from JavaScript to check if this is the case.
+      // To access this header, the response from Azure storage would have to include an Access-Control-Expose-Headers header.
+      // https://developer.mozilla.org/en-US/docs/Glossary/CORS-safelisted_response_header
+      //
+      // Thus, this optimistically assumes that the copy finished synchronously.
+
+      await fetchOk(sourceBlobUrl.href, {
+        method: 'DELETE',
+      });
+    },
     createEmptyDirectory: async (directoryPath: string) => {
       console.assert(directoryPath.endsWith('/'), 'Directory paths must include a trailing slash');
 

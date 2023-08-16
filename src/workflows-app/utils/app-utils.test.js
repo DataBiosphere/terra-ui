@@ -1,7 +1,7 @@
 import { appStatuses } from 'src/libs/ajax/leonardo/models/app-models';
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
-import { doesAppProxyUrlExist, resolveRunningCromwellAppUrl } from 'src/workflows-app/utils/app-utils';
+import { cromwellLinkProps, doesAppProxyUrlExist, resolveRunningCromwellAppUrl } from 'src/workflows-app/utils/app-utils';
 
 describe('resolveRunningCromwellAppUrl', () => {
   const mockCbasUrl = 'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas';
@@ -177,5 +177,59 @@ describe('doesAppProxyUrlExist', () => {
     });
 
     expect(doesAppProxyUrlExist(currentWorkspaceId, 'cromwellProxyUrlState')).toBe(false);
+  });
+});
+
+jest.mock('src/libs/nav', () => ({
+  ...jest.requireActual('src/libs/nav'),
+  getLink: jest.fn().mockImplementation((_, { namespace, name }) => `#workspaces/${namespace}/${name}/workflows-app`),
+}));
+
+describe('cromwellLinkProps', () => {
+  const app = {
+    proxyUrls: {
+      'cbas-ui': 'http://cbas-ui.mock',
+      'cromwell-service': 'http://cromwell-service.mock',
+    },
+  };
+  const namespace = 'mock-namespace';
+  const name = 'mock-workspace-name';
+
+  it('props for Azure with workflows tab enabled', () => {
+    expect(
+      cromwellLinkProps({
+        cloudProvider: cloudProviderTypes.AZURE,
+        isAzureWorkflowsTabEnabled: true,
+        namespace,
+        name,
+        app,
+      })
+    ).toEqual({
+      href: `#workspaces/${namespace}/${name}/workflows-app`,
+    });
+  });
+
+  it('props for Azure with workflows tab disabled', () => {
+    expect(cromwellLinkProps({ cloudProvider: cloudProviderTypes.AZURE, isAzureWorkflowsTabEnabled: false, namespace, name, app })).toEqual({
+      href: 'http://cbas-ui.mock',
+      rel: 'noopener',
+      target: '_blank',
+    });
+  });
+
+  it('props for GCP with workflows tab enabled', () => {
+    expect(cromwellLinkProps({ cloudProvider: cloudProviderTypes.GCP, isAzureWorkflowsTabEnabled: true, namespace, name, app })).toEqual({
+      href: 'http://cromwell-service.mock',
+      rel: 'noopener',
+      target: '_blank',
+    });
+  });
+
+  it('props for GCP with workflows tab disabled', () => {
+    expect(cromwellLinkProps({ cloudProvider: cloudProviderTypes.GCP, isAzureWorkflowsTabEnabled: false, namespace, name, app })).toEqual({
+      href: 'http://cromwell-service.mock',
+      rel: 'noopener',
+      target: '_blank',
+    });
   });
 });

@@ -90,7 +90,7 @@ const WDLViewer = ({ wdl, ...props }) => {
       },
       props
     ),
-    [code({ className: 'language-wdl', ref: elem }, [wdl])]
+    [code({ role: 'code', className: 'language-wdl', ref: elem }, [wdl])]
   );
 };
 

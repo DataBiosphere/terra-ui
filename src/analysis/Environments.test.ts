@@ -1,3 +1,4 @@
+import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act, fireEvent, getAllByRole, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
@@ -29,7 +30,6 @@ import { asMockedFn } from 'src/testing/test-utils';
 
 import { ListAppResponse } from '../libs/ajax/leonardo/models/app-models';
 import { ListDiskItem } from '../libs/ajax/leonardo/models/disk-models';
-import { DeepPartial } from '../libs/type-utils/deep-partial';
 
 type ModalMockExports = typeof import('src/components/Modal.mock');
 
@@ -76,6 +76,13 @@ jest.mock('src/libs/state', () => ({
 }));
 
 const listRuntimesV2: () => Promise<ListRuntimeItem[]> = jest.fn();
+
+// Transform a given list of mock Runtime objects into mock ListRuntimeItem objects (omit workspaceId)
+const mockListRuntimesReturn = (...runtimes: Runtime[]): Promise<ListRuntimeItem[]> => {
+  const isListRuntimeItem = (runtime: Runtime): runtime is ListRuntimeItem => 'workspaceId' in runtime;
+  return Promise.resolve(runtimes.filter(isListRuntimeItem));
+};
+
 const listWithoutProject: () => Promise<ListAppResponse[]> = jest.fn();
 const list: () => Promise<ListDiskItem[]> = jest.fn();
 const mockFetchLeo = jest.fn();
@@ -116,6 +123,7 @@ const defaultMockAjax: Partial<AjaxContract> = {
   Disks: mockDisks as AjaxContract['Disks'],
   Metrics: mockMetrics as AjaxContract['Metrics'],
 };
+
 describe('Environments', () => {
   beforeEach(() => {
     asMockedFn(useWorkspaces).mockReturnValue(defaultUseWorkspacesProps);
@@ -138,7 +146,7 @@ describe('Environments', () => {
   describe('Runtimes - ', () => {
     it('Renders page correctly with runtimes and no found workspaces', async () => {
       const runtime1 = generateTestGoogleRuntime();
-      asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime1]));
+      asMockedFn(listRuntimesV2).mockReturnValue(mockListRuntimesReturn(runtime1));
       asMockedFn(useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [],
@@ -156,7 +164,7 @@ describe('Environments', () => {
 
     it('Renders page correctly with a runtime', async () => {
       const runtime1 = generateTestGoogleRuntime();
-      asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime1]));
+      asMockedFn(listRuntimesV2).mockReturnValue(mockListRuntimesReturn(runtime1));
 
       await act(async () => {
         render(h(Environments, { nav: defaultNav }));
@@ -181,7 +189,7 @@ describe('Environments', () => {
       const runtime1 = generateTestGoogleRuntime();
       const runtime2 = azureRuntime;
 
-      asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime1, runtime2]));
+      asMockedFn(listRuntimesV2).mockReturnValue(mockListRuntimesReturn(runtime1, runtime2));
       asMockedFn(useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
@@ -253,7 +261,7 @@ describe('Environments', () => {
       const runtime4: Runtime = { ...azureRuntime, status: runtimeStatuses.error.leoLabel };
 
       // the order in the below array is the default sort order of the table
-      asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime3, runtime4, runtime1, runtime2]));
+      asMockedFn(listRuntimesV2).mockReturnValue(mockListRuntimesReturn(runtime3, runtime4, runtime1, runtime2));
       asMockedFn(useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
@@ -310,7 +318,7 @@ describe('Environments', () => {
       const runtime1 = generateTestGoogleRuntime();
 
       // the order in the below array is the default sort order of the table
-      asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime1]));
+      asMockedFn(listRuntimesV2).mockReturnValue(mockListRuntimesReturn(runtime1));
       asMockedFn(useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
@@ -339,7 +347,7 @@ describe('Environments', () => {
       },
       { runtime: azureRuntime, workspace: defaultAzureWorkspace },
     ])('Renders runtime details view correctly', async ({ runtime, workspace }) => {
-      asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime]));
+      asMockedFn(listRuntimesV2).mockReturnValue(mockListRuntimesReturn(runtime));
       asMockedFn(useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [workspace],
@@ -368,7 +376,7 @@ describe('Environments', () => {
     ])('Behaves properly when we click pause/delete for azure/gce vm', async ({ runtime, workspace }) => {
       const user = userEvent.setup();
 
-      asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime]));
+      asMockedFn(listRuntimesV2).mockReturnValue(mockListRuntimesReturn(runtime));
       asMockedFn(useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [workspace],
@@ -419,7 +427,7 @@ describe('Environments', () => {
       },
       { runtime: { ...azureRuntime, status: runtimeStatuses.error.leoLabel }, workspace: defaultAzureWorkspace },
     ])('Renders the error message properly for azure and gce vms', async ({ runtime, workspace }) => {
-      asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime]));
+      asMockedFn(listRuntimesV2).mockReturnValue(mockListRuntimesReturn(runtime));
       asMockedFn(useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [workspace],

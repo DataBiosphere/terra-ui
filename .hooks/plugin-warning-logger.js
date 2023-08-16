@@ -16,7 +16,12 @@ module.exports = {
         }
       },
       wrapScriptExecution(executor, project, locator, scriptName) {
-        if (scriptName === 'build' && !process.env.CI) {
+        let isAppWorkspace = false
+        try {
+          const workspace = project.getWorkspaceByLocator(locator);
+          isAppWorkspace = workspace.relativeCwd === '.';
+        } catch (err) {}
+        if (isAppWorkspace && scriptName === 'build' && !process.env.CI) {
           return async () => {
             const status = await executor()
             console.warn('\x1b[1m' /* bold */ + '╔'.padEnd(79, '═') + '╗')

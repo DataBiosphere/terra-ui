@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import _ from 'lodash/fp';
 
-import { SafeCurry2, SafeCurry3 } from '../../src/libs/type-utils/lodash-fp-types';
+import { SafeCurry2, SafeCurry3 } from './lodash-fp-types';
 
 // Curry2
 const fn1With2Args = (_x: number, _y: string): string => {

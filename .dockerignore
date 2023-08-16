@@ -1,11 +1,16 @@
 # yarn "unplugged" packages
 .yarn/unplugged
 
+# yarn state
+.yarn/install-state.gz
+
 # Build output
 build
+packages/*/lib
 
 # Jest coverage report
 coverage
 
 # Build tool caches
 node_modules
+tsconfig.tsbuildinfo

@@ -50,6 +50,8 @@ import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { WORKFLOWS_TAB_AZURE_FEATURE_ID } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useStore } from 'src/libs/react-utils';
 import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
@@ -60,6 +62,7 @@ import {
   cloudProviderTypes,
   getCloudProviderFromWorkspace,
 } from 'src/libs/workspace-utils';
+import { cromwellLinkProps } from 'src/workflows-app/utils/app-utils';
 
 const titleId = 'cloud-env-modal';
 
@@ -312,6 +315,7 @@ export const CloudEnvironmentModal = ({
         );
       case appStatuses.starting.status:
       case appStatuses.stopping.status:
+      case appStatuses.updating.status:
       case appStatuses.provisioning.status:
       case appStatuses.deleting.status:
       case appStatuses.status_unspecified.status:
@@ -459,16 +463,17 @@ export const CloudEnvironmentModal = ({
         () => {
           return {
             ...baseProps,
-            href:
-              app &&
-              (cloudProvider === cloudProviderTypes.AZURE
-                ? app?.proxyUrls['cbas-ui']
-                : app?.proxyUrls['cromwell-service']),
+            ...cromwellLinkProps({
+              cloudProvider,
+              namespace,
+              app,
+              name,
+              isAzureWorkflowsTabEnabled: isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID),
+            }),
             onClick: () => {
               onDismiss();
               Metrics(signal).captureEvent(Events.applicationLaunch, { app: appTools.CROMWELL.label });
             },
-            ...Utils.newTabLinkPropsWithReferrer,
           };
         },
       ],

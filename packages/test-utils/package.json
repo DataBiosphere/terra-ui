@@ -1,12 +1,15 @@
 {
   "name": "@terra-ui-packages/test-utils",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "module": "./src/index.mjs",
   "exports": {
     ".": {
       "import": "./src/index.mjs"
     }
+  },
+  "scripts": {
+    "build": "true"
   },
   "dependencies": {
     "@babel/core": "^7.16.0",

@@ -1,46 +1,227 @@
 import _ from 'lodash/fp';
-import { Fragment, useState } from 'react';
-import { div, h } from 'react-hyperscript-helpers';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { div, h, input, label, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { collapseCromwellStatus, makeCromwellStatusLine } from 'src/components/job-common';
-import { FlexTable, Sortable, tableHeight, TooltipCell } from 'src/components/table';
+import { makeCromwellStatusLine } from 'src/components/job-common';
+import { FlexTable, HeaderCell, Sortable, tableHeight, TooltipCell } from 'src/components/table';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 import CallCacheWizard from 'src/pages/workspaces/workspace/jobHistory/CallCacheWizard';
 import { FailuresModal } from 'src/pages/workspaces/workspace/jobHistory/FailuresViewer';
+import { collapseCromwellStatus } from 'src/workflows-app/components/job-common';
 
-const CallTable = ({ namespace, name, submissionId, workflowId, callName, callObjects }) => {
+/* FILTER UTILITY FUNCTIONS */
+export const taskNameFilter = (searchText) => {
+  const searchTerms = searchText.toLowerCase().split(/[\s_/]/);
+  return _.filter((callObject) => {
+    return searchTerms.every((term) => (callObject?.taskName || '').toLowerCase().includes(term));
+  });
+};
+
+export const statusFilter = (statuses) => {
+  return _.filter(({ statusObj }) => {
+    const { id } = statusObj;
+    return _.isEmpty(statuses) ? true : statuses.includes(_.startCase(id));
+  });
+};
+
+export const filterCallObjectsFn = (searchText, sort, statuses) =>
+  _.flow(taskNameFilter(searchText), statusFilter(statuses), _.sortBy(sort.field), sort.direction === 'asc' ? _.identity : _.reverse);
+
+// Helper method to generate data for the call table
+const generateCallTableData = (calls) => {
+  if (_.isEmpty(calls)) return [];
+  const taskNames = Object.keys(calls);
+  return _.flatMap((taskName) => {
+    const targetData = calls[taskName];
+    return _.map((taskCall) => _.merge({ taskName, statusObj: collapseCromwellStatus(taskCall.executionStatus, taskCall.backendStatus) }, taskCall))(
+      targetData
+    );
+  })(taskNames);
+};
+
+// helper method to combine metadata tasks and failed tasks into a single array
+// if the failed task data is not empty, combine only successful tasks from the metadata with the failed tasks data
+// otherwise just return the metadata
+const organizeCallTableData = (metadataCalls = {}, failedTaskCalls = {}) => {
+  const metadataTableData = generateCallTableData(metadataCalls);
+  const failedTaskTableData = generateCallTableData(failedTaskCalls);
+  if (!_.isEmpty(failedTaskTableData)) {
+    const successfulMetadata = _.filter(({ statusObj }) => {
+      const { id } = statusObj;
+      return id?.toLocaleLowerCase() !== 'failed';
+    }, metadataTableData);
+    return successfulMetadata.concat(failedTaskTableData);
+  }
+  return metadataTableData;
+};
+
+/* STATUS COUNT SUB-COMPONENT */
+const StatusCounts = ({ statusListObjects }) => {
+  const statuses = Object.keys(statusListObjects);
+  const statusCountRender = statuses.map((status) => {
+    const { count, icon } = statusListObjects[status];
+    return span({ key: `${status}-status-count`, style: { marginRight: '20px' } }, [
+      icon(),
+      span({ style: { fontWeight: 800, marginLeft: '3px' } }, [`${count} `]),
+      span(`${status}`),
+    ]);
+  });
+  return div({}, [statusCountRender]);
+};
+
+/* TABLE SEARCH BAR */
+const SearchBar = ({ searchText, setSearchText }) => {
+  return div(
+    {
+      id: 'task-name-search',
+      style: {
+        flexBasis: '400px',
+      },
+    },
+    [
+      input({
+        type: 'text',
+        placeholder: 'Search by task name',
+        style: { width: '100%', padding: '9px', borderRadius: '15px', border: '1px solid #8F95A0' },
+        value: searchText,
+        onChange: (e) => setSearchText(e.target.value),
+      }),
+    ]
+  );
+};
+
+/* WORKFLOW BREADCRUMB SUB-COMPONENT */
+const WorkflowBreadcrumb = ({ workflowPath, loadWorkflow, updateWorkflowPath }) => {
+  const workflowPathRender = workflowPath.map((workflow, index) => {
+    const { id, workflowName } = workflow;
+    const isLast = index === workflowPath.length - 1;
+    return span({ key: `${id}-breadcrumb`, style: { marginRight: '5px' } }, [
+      isLast ? span([workflowName]) : h(Link, { style: { cursor: 'pointer' }, onClick: () => loadWorkflow(id, updateWorkflowPath) }, [workflowName]),
+      !isLast && span(' > '),
+    ]);
+  });
+  return div({ 'aria-label': 'Workflow Breadcrumb', style: { marginBottom: '10px' } }, [workflowPathRender]);
+};
+
+/* CALL TABLE */
+const CallTable = ({
+  name,
+  namespace,
+  submissionId,
+  callObjects,
+  defaultFailedFilter = false,
+  showLogModal,
+  showTaskDataModal,
+  loadWorkflow,
+  enableExplorer = false,
+  workflowName,
+  workflowId,
+  failedTasks,
+}) => {
   const [failuresModalParams, setFailuresModalParams] = useState();
   const [wizardSelection, setWizardSelection] = useState();
+  const tableData = useMemo(() => organizeCallTableData(callObjects, failedTasks), [callObjects, failedTasks]);
   const [sort, setSort] = useState({ field: 'index', direction: 'asc' });
   const [statusFilter, setStatusFilter] = useState([]);
+  // NOTE: workflowPath is used to load the workflow in the explorer, implement after the table update is confirmed to be working
+  const [workflowPath, setWorkflowPath] = useState([{ id: workflowId, workflowName }]);
+  const [searchText, setSearchText] = useState('');
+  const filteredCallObjects = useMemo(() => {
+    return filterCallObjectsFn(searchText, sort, statusFilter)(tableData);
+  }, [searchText, sort, statusFilter, tableData]);
 
-  const filteredCallObjects = _.flow(
-    _.filter(({ executionStatus, backendStatus }) => {
-      const status = collapseCromwellStatus(executionStatus, backendStatus).label();
-      return _.isEmpty(statusFilter) || statusFilter.includes(status);
-    }),
-    _.sortBy(sort.field),
-    sort.direction === 'asc' ? _.identity : _.reverse
-  )(callObjects);
+  useEffect(() => {
+    if (defaultFailedFilter) {
+      setStatusFilter(['Failed']);
+    }
+  }, [defaultFailedFilter]);
+
+  const statusListObjects = useMemo(() => {
+    const statusSet = {};
+    tableData.forEach(({ statusObj }) => {
+      if (!_.isEmpty(statusObj)) {
+        const { icon, id } = statusObj;
+        const startCasedId = _.startCase(id);
+        if (!statusSet[startCasedId]) {
+          statusSet[startCasedId] = { count: 0 };
+        }
+        statusSet[startCasedId].count += 1;
+        statusSet[startCasedId].icon = icon;
+      } else {
+        return {};
+      }
+    });
+    return statusSet;
+  }, [tableData]);
+
+  const updateWorkflowPath = useCallback(
+    (id, workflowName) => {
+      const currentIndex = workflowPath.findIndex((workflow) => workflow.id === id);
+      if (currentIndex !== -1) {
+        setWorkflowPath(workflowPath.slice(0, currentIndex + 1));
+      } else {
+        setWorkflowPath([...workflowPath, { id, workflowName }]);
+      }
+    },
+    [workflowPath]
+  );
 
   return div([
-    div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [
-      div({ style: { flexBasis: 350 } }, [
-        h(Select, {
-          isClearable: true,
-          isMulti: true,
-          isSearchable: false,
-          placeholder: 'Status',
-          'aria-label': 'Status',
-          value: statusFilter,
-          onChange: (data) => setStatusFilter(_.map('value', data)),
-          options: ['Succeeded', 'Failed', 'Running', 'Submitted, Awaiting Cloud Quota', 'Unknown'],
-        }),
-      ]),
+    label(
+      {
+        isRendered: !enableExplorer,
+        style: {
+          fontWeight: 700,
+        },
+      },
+      ['Filter by:']
+    ),
+    div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
+      div(
+        {
+          id: 'filter-section-left',
+          style: {
+            display: 'flex',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+            flexBasis: 400,
+            flexGrow: 2,
+          },
+        },
+        [
+          div({ style: { flexBasis: 250, marginRight: '20px' }, isRendered: !enableExplorer }, [
+            h(Select, {
+              isClearable: true,
+              isMulti: true,
+              isSearchable: false,
+              placeholder: 'Status',
+              'aria-label': 'Status',
+              value: statusFilter,
+              onChange: (data) => setStatusFilter(_.map('value', data)),
+              options: Object.keys(statusListObjects),
+            }),
+          ]),
+          h(StatusCounts, { statusListObjects }),
+        ]
+      ),
+      div(
+        {
+          id: 'filter-section-right',
+          style: {
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            flexBasis: 400,
+            flexGrow: 1,
+          },
+        },
+        [h(SearchBar, { searchText, setSearchText })]
+      ),
     ]),
+    h(WorkflowBreadcrumb, { isRendered: enableExplorer, workflowPath, loadWorkflow, updateWorkflowPath }),
     h(AutoSizer, { disableHeight: true }, [
       ({ width }) =>
         h(FlexTable, {
@@ -52,16 +233,25 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
           noContentMessage: 'No matching calls',
           columns: [
             {
-              size: { basis: 100, grow: 0 },
-              field: 'index',
-              headerRenderer: () => h(Sortable, { sort, field: 'index', onSort: setSort }, ['Index']),
+              size: { basis: 300, grow: 2 },
+              field: 'taskName',
+              headerRenderer: () => h(Sortable, { sort, field: 'taskName', onSort: setSort }, ['Name']),
               cellRenderer: ({ rowIndex }) => {
-                const { shardIndex } = filteredCallObjects[rowIndex];
-                return shardIndex >= 0 ? shardIndex : 'N/A';
+                const { taskName } = filteredCallObjects[rowIndex];
+                return taskName;
               },
             },
             {
-              size: { basis: 100, grow: 0 },
+              size: { basis: 100, grow: 1 },
+              field: 'type',
+              headerRenderer: () => h(Sortable, { sort, field: 'type', onSort: setSort }, ['Type']),
+              cellRenderer: ({ rowIndex }) => {
+                const { subWorkflowId } = filteredCallObjects[rowIndex];
+                return _.isEmpty(subWorkflowId) ? 'Task' : 'Sub-workflow';
+              },
+            },
+            {
+              size: { basis: 100, grow: 1 },
               field: 'attempt',
               headerRenderer: () => h(Sortable, { sort, field: 'attempt', onSort: setSort }, ['Attempt']),
               cellRenderer: ({ rowIndex }) => {
@@ -70,7 +260,7 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
               },
             },
             {
-              size: { basis: 200, grow: 2 },
+              size: { basis: 150, grow: 2 },
               field: 'status',
               headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
               cellRenderer: ({ rowIndex }) => {
@@ -79,7 +269,7 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
               },
             },
             {
-              size: { basis: 200, grow: 2 },
+              size: { basis: 200, grow: 1 },
               field: 'start',
               headerRenderer: () => h(Sortable, { sort, field: 'start', onSort: setSort }, ['Start']),
               cellRenderer: ({ rowIndex }) => {
@@ -88,7 +278,7 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
               },
             },
             {
-              size: { basis: 200, grow: 2 },
+              size: { basis: 200, grow: 1 },
               field: 'end',
               headerRenderer: () => h(Sortable, { sort, field: 'end', onSort: setSort }, ['End']),
               cellRenderer: ({ rowIndex }) => {
@@ -97,11 +287,11 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
               },
             },
             {
-              size: { basis: 200, grow: 2 },
+              size: { basis: 200, grow: 1 },
               field: 'callCachingResult',
               headerRenderer: () => h(Sortable, { sort, field: 'callCachingResult', onSort: setSort }, ['Call Caching Result']),
               cellRenderer: ({ rowIndex }) => {
-                const { shardIndex: index, callCaching: { effectiveCallCachingMode, result } = {} } = filteredCallObjects[rowIndex];
+                const { taskName, shardIndex: index, callCaching: { effectiveCallCachingMode, result } = {} } = filteredCallObjects[rowIndex];
                 if (effectiveCallCachingMode === 'ReadAndWriteCache' || effectiveCallCachingMode === 'ReadCache') {
                   return result
                     ? h(Fragment, [
@@ -113,7 +303,7 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
                               key: 'cc',
                               style: { marginLeft: '0.5rem' },
                               tooltip: 'Call Cache Debug Wizard',
-                              onClick: () => setWizardSelection({ callFqn: callName, index }),
+                              onClick: () => setWizardSelection({ callFqn: taskName, index }),
                             },
                             [icon('search', { size: 18 })]
                           ),
@@ -127,18 +317,28 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
               },
             },
             {
-              size: { basis: 200, grow: 2 },
-              headerRenderer: () => 'Links',
+              size: { basis: 200, grow: 1 },
+              field: 'logs',
+              headerRenderer: () => h(HeaderCell, { fontWeight: 500 }, ['Logs']),
               cellRenderer: ({ rowIndex }) => {
-                const { failures, shardIndex: index, attempt } = filteredCallObjects[rowIndex];
+                const {
+                  taskName,
+                  stdout,
+                  stderr,
+                  inputs,
+                  outputs,
+                  subWorkflowId,
+                  failures,
+                  shardIndex: index,
+                  attempt,
+                } = filteredCallObjects[rowIndex];
                 const failureCount = _.size(failures);
-                return (
-                  !!failureCount &&
-                  h(
+                if (_.isEmpty(subWorkflowId) && !stdout && !stderr && !inputs && !outputs && failureCount) {
+                  return h(
                     Link,
                     {
                       style: { marginLeft: '0.5rem' },
-                      onClick: () => setFailuresModalParams({ index, attempt, failures }),
+                      onClick: () => setFailuresModalParams({ callFqn: taskName, index, attempt, failures }),
                     },
                     [
                       div({ style: { display: 'flex', alignItems: 'center' } }, [
@@ -146,14 +346,74 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
                         `${failureCount} Message${failureCount > 1 ? 's' : ''}`,
                       ]),
                     ]
-                  )
-                );
+                  );
+                }
+                const style =
+                  enableExplorer && !_.isEmpty(subWorkflowId)
+                    ? {
+                        display: 'flex',
+                        justifyContent: 'flex-start',
+                      }
+                    : {
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gridColumnGap: '0.3em',
+                        gridRowGap: '0.3em',
+                      };
+                const linkTemplate =
+                  enableExplorer && !_.isEmpty(subWorkflowId)
+                    ? [
+                        h(
+                          Link,
+                          {
+                            onClick: () => {
+                              loadWorkflow(subWorkflowId, updateWorkflowPath);
+                            },
+                          },
+                          ['View sub-workflow']
+                        ),
+                      ]
+                    : _.isEmpty(subWorkflowId) && [
+                        h(
+                          Link,
+                          {
+                            'aria-label': 'View task inputs',
+                            onClick: () => showTaskDataModal('Inputs', inputs),
+                          },
+                          ['Inputs']
+                        ),
+                        h(
+                          Link,
+                          {
+                            'aria-label': 'View task outputs',
+                            onClick: () => showTaskDataModal('Outputs', outputs),
+                          },
+                          ['Outputs']
+                        ),
+                        h(
+                          Link,
+                          {
+                            'aria-label': 'View stdout logs',
+                            onClick: () => showLogModal(stdout, true),
+                          },
+                          ['stdout']
+                        ),
+                        h(
+                          Link,
+                          {
+                            'aria-label': 'View stderr logs',
+                            onClick: () => showLogModal(stderr, true),
+                          },
+                          'stderr'
+                        ),
+                      ];
+                return div({ style }, linkTemplate);
               },
             },
           ],
         }),
     ]),
-    failuresModalParams && h(FailuresModal, { ...failuresModalParams, callFqn: callName, onDismiss: () => setFailuresModalParams(undefined) }),
+    failuresModalParams && h(FailuresModal, { ...failuresModalParams, onDismiss: () => setFailuresModalParams(undefined) }),
     wizardSelection &&
       h(CallCacheWizard, { onDismiss: () => setWizardSelection(undefined), namespace, name, submissionId, workflowId, ...wizardSelection }),
   ]);

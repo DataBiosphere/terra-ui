@@ -5,9 +5,14 @@ node_modules
 
 # testing
 /coverage
+packages/*/coverage
 
 # production
 /build
+packages/*/lib
+packages/*/.rollup.cache
+tsconfig.tsbuildinfo
+public/build-info.json
 
 # misc
 .DS_Store
