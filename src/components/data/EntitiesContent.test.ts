@@ -226,9 +226,7 @@ describe('EntitiesContent', () => {
     await user.click(copyButton);
 
     // Assert
-    expect(clipboard.writeText).toHaveBeenCalledWith(
-      'membership:sample_set_id\tsample\nsample_set_1\tsample_1\nsample_set_1\tsample_2\n'
-    );
+    expect(clipboard.writeText).toHaveBeenCalledWith('entity:sample_set_id\nsample_set_1\n');
   });
 
   it('downloads selection to tsv', async () => {

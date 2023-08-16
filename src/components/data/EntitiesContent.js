@@ -296,7 +296,7 @@ const EntitiesContent = ({
       }, sortedEntities),
     ]);
 
-    if (isSet) {
+    if (isSet && forDownload) {
       const membershipTsv = Utils.makeTSV([
         [`membership:${entityKey}_id`, setRoot],
         ..._.flatMap(({ attributes, name }) => {
@@ -304,13 +304,9 @@ const EntitiesContent = ({
         }, sortedEntities),
       ]);
 
-      if (forDownload) {
-        const zipFile = new JSZip().file(`${entityKey}_entity.tsv`, entityTsv).file(`${entityKey}_membership.tsv`, membershipTsv);
+      const zipFile = new JSZip().file(`${entityKey}_entity.tsv`, entityTsv).file(`${entityKey}_membership.tsv`, membershipTsv);
 
-        return zipFile.generateAsync({ type: 'blob' });
-      }
-
-      return membershipTsv;
+      return zipFile.generateAsync({ type: 'blob' });
     }
     return entityTsv;
   };
