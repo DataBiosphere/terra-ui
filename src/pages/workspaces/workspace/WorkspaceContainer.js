@@ -19,8 +19,6 @@ import { isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { WORKFLOWS_TAB_AZURE_FEATURE_ID } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import { getUser } from 'src/libs/state';
@@ -133,7 +131,7 @@ export const WorkspaceTabs = ({
           { name: 'job history', link: 'workspace-job-history' },
         ]
       : []),
-    ...(azureWorkspace && isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID) ? [{ name: 'workflows', link: 'workspace-workflows-app' }] : []),
+    ...(azureWorkspace ? [{ name: 'workflows', link: 'workspace-workflows-app' }] : []),
   ];
   return h(Fragment, [
     h(
