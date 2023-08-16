@@ -1,7 +1,6 @@
 export const JUPYTERLAB_GCP_FEATURE_ID = 'jupyterlab-gcp';
 export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP';
 export const HAIL_BATCH_AZURE_FEATURE_ID = 'hail-batch-azure';
-export const WORKFLOWS_TAB_AZURE_FEATURE_ID = 'workflows-tab-azure';
 export const ENABLE_CROMWELL_APP_CALL_CACHING = 'enableCromwellAppCallCaching';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
@@ -80,12 +79,6 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     description: 'Enabling this feature will allow you to launch the Hail Batch app in Azure workspaces.',
     groups: ['preview-hail-batch-azure'],
     feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on Hail Batch (Azure)')}`,
-  },
-  {
-    id: WORKFLOWS_TAB_AZURE_FEATURE_ID,
-    title: 'Workflows Tab for Azure workspaces',
-    description: 'Enabling this feature will allow you to launch workflows in Azure workspaces.',
-    feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on Workflows Tab (Azure)')}`,
   },
   {
     id: ENABLE_CROMWELL_APP_CALL_CACHING,

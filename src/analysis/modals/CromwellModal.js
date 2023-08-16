@@ -10,8 +10,6 @@ import TitleBar from 'src/components/TitleBar';
 import { Ajax } from 'src/libs/ajax';
 import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { WORKFLOWS_TAB_AZURE_FEATURE_ID } from 'src/libs/feature-previews-config';
 import { useStore, withDisplayName } from 'src/libs/react-utils';
 import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
@@ -86,7 +84,6 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
                 namespace,
                 app,
                 name: workspaceName,
-                isAzureWorkflowsTabEnabled: isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID),
               }),
               disabled: !cookieReady,
               tooltip: Utils.cond([cookieReady, () => 'Open'], [Utils.DEFAULT, () => 'Please wait until Cromwell is running']),
