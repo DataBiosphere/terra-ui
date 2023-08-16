@@ -118,10 +118,10 @@ jobs:
 
       - name: Publish packages to NPM registry on merge commits
         if: github.event_name != 'pull_request'
-        working-directory: packages
         run: |
           npx google-artifactregistry-auth --yes --repo-config ../.npmrc
-          ../scripts/publish-packages.sh
+          yarn install --immutable-cache
+          ./scripts/publish-packages.sh
 
   report-to-sherlock:
     uses: broadinstitute/sherlock/.github/workflows/client-report-app-version.yaml@main
