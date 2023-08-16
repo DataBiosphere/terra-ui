@@ -5,7 +5,6 @@ import {
   defaultGceBootDiskSize,
   getCurrentAttachedDataDisk,
   getCurrentPersistentDisk,
-  pdTypeFromDiskType,
 } from 'src/analysis/utils/disk-utils';
 import {
   defaultComputeRegion,
@@ -333,7 +332,7 @@ export const getCostForDisk = (
   }
   if (currentRuntimeToolLabel === toolLabel && persistentDisks && persistentDisks.length > 0) {
     const { size = 0, status = diskStatuses.ready.leoLabel, diskType = googlePdTypes.standard.value } = curPd || {};
-    diskCost = getPersistentDiskCostHourly({ size, status, diskType: pdTypeFromDiskType(diskType) }, computeRegion);
+    diskCost = getPersistentDiskCostHourly({ size, status, diskType }, computeRegion);
   } else if (app && appDataDisks && toolLabel === appToolLabels.GALAXY) {
     const currentDataDisk = getCurrentAttachedDataDisk(app, appDataDisks);
     // Occasionally currentDataDisk will be undefined on initial render.
