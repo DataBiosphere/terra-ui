@@ -434,7 +434,7 @@ const EntitiesContent = ({
               )(async () => {
                 const isSet = _.endsWith('_set', entityKey);
                 const str = buildTSV(columnSettings, _.values(selectedEntities), isSet, false);
-                isSet ? await clipboard.writeText(await str) : await clipboard.writeText(str);
+                await clipboard.writeText(str);
                 notify('success', 'Successfully copied to clipboard.', { timeout: 3000 });
                 Ajax().Metrics.captureEvent(Events.workspaceDataCopyToClipboard, extractWorkspaceDetails(workspace.workspace));
               }),
