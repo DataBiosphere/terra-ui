@@ -5,7 +5,6 @@ import { ContextBar } from 'src/analysis/ContextBar';
 import { analysisTabName } from 'src/analysis/runtime-common-components';
 import RuntimeManager from 'src/analysis/RuntimeManager';
 import { getDiskAppType } from 'src/analysis/utils/app-utils';
-import { mapToPdTypes } from 'src/analysis/utils/disk-utils';
 import { getConvertedRuntimeStatus, getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
@@ -351,7 +350,7 @@ const useCloudEnvironmentPolling = (workspace) => {
 
       setRuntimes(newRuntimes);
       setAppDataDisks(_.remove((disk) => _.isUndefined(getDiskAppType(disk)), newDisks));
-      setPersistentDisks(mapToPdTypes(_.filter((disk) => _.isUndefined(getDiskAppType(disk)), newDisks)));
+      setPersistentDisks(_.filter((disk) => _.isUndefined(getDiskAppType(disk)), newDisks));
       const runtime = getCurrentRuntime(newRuntimes);
       reschedule(
         maybeStale || ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring'].includes(getConvertedRuntimeStatus(runtime))

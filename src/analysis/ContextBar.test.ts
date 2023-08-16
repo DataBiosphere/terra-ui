@@ -23,7 +23,7 @@ import { MenuTrigger } from 'src/components/PopupTrigger';
 import { locationTypes } from 'src/components/region-common';
 import { Ajax } from 'src/libs/ajax';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
-import { DecoratedPersistentDisk, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { DecoratedPersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { defaultAzureMachineType, defaultAzureRegion } from 'src/libs/azure-utils';
 import { isCromwellAppVisible } from 'src/libs/config';
@@ -173,14 +173,18 @@ const cromwellRunning: App = {
   status: 'RUNNING',
 };
 
-const cromwellDisk: PersistentDisk = {
+const cromwellDisk: DecoratedPersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-26T20:19:13.162484Z',
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    value: 'pd-standard',
+    label: 'Standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',

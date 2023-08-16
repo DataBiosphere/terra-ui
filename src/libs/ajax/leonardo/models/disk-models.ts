@@ -61,7 +61,6 @@ export interface ListDiskItem {
 }
 
 export type PersistentDisk = ListDiskItem | GetDiskItem;
-export type AppDataDisk = PersistentDisk;
 
 export interface GooglePdType {
   value: GoogleDiskType;
@@ -111,6 +110,7 @@ export const googlePdTypes: Record<PDLabels, GooglePdType> = {
 export type DecoratedPersistentDisk = {
   diskType: GooglePdType;
 } & Omit<PersistentDisk, 'diskType'>;
+export type AppDataDisk = DecoratedPersistentDisk;
 
 export const GcpPersistentDiskOptions = [googlePdTypes.standard, googlePdTypes.balanced, googlePdTypes.ssd];
 

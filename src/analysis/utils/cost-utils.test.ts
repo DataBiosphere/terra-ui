@@ -16,17 +16,12 @@ import {
   runtimeConfigCost,
 } from 'src/analysis/utils/cost-utils';
 import { appToolLabels, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
-import {
-  DecoratedPersistentDisk,
-  diskStatuses,
-  googlePdTypes,
-  PersistentDisk,
-} from 'src/libs/ajax/leonardo/models/disk-models';
+import { DecoratedPersistentDisk, diskStatuses, googlePdTypes } from 'src/libs/ajax/leonardo/models/disk-models';
 import { cloudServiceTypes, GoogleRuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getAzurePricesForRegion } from 'src/libs/azure-utils';
 
-const jupyterDisk: PersistentDisk = {
+const jupyterDisk: DecoratedPersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-12-02T16:38:13.777424Z',
@@ -34,7 +29,11 @@ const jupyterDisk: PersistentDisk = {
   },
   blockSize: 4096,
   cloudContext: { cloudProvider: 'GCP', cloudResource: 'terra-test-f828b4cd' },
-  diskType: 'pd-standard',
+  diskType: {
+    label: 'Standard',
+    value: 'pd-standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   id: 29,
   labels: {},
   name: 'saturn-pd-bd0d0405-c048-4212-bccf-568435933081',

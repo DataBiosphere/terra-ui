@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { updatePdType } from 'src/analysis/utils/disk-utils';
+import { mapToPdTypes, updatePdType } from 'src/analysis/utils/disk-utils';
 import { appIdentifier, authOpts, fetchLeo, jsonBody } from 'src/libs/ajax/ajax-common';
 import { DecoratedPersistentDisk, GetDiskItem, ListDiskItem } from 'src/libs/ajax/leonardo/models/disk-models';
 
@@ -13,12 +13,13 @@ export const Disks = (signal) => {
   });
 
   const v1Func = () => ({
-    list: async (labels = {}): Promise<ListDiskItem[]> => {
+    list: async (labels = {}): Promise<DecoratedPersistentDisk[]> => {
       const res = await fetchLeo(
         `api/google/v1/disks${qs.stringify(labels, { addQueryPrefix: true })}`,
         _.mergeAll([authOpts(), appIdentifier, { signal }])
       );
-      return res.json();
+      const disks: ListDiskItem[] = res.json();
+      return mapToPdTypes(disks);
     },
     disk: (project: string, name: string) => ({
       create: (props): Promise<void> =>

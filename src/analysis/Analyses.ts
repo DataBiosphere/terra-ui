@@ -53,7 +53,7 @@ import rstudioBioLogo from 'src/images/r-bio-logo.svg';
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png';
 import { Ajax } from 'src/libs/ajax';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { DecoratedPersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
@@ -415,8 +415,8 @@ export interface AnalysesData {
   refreshApps: () => Promise<void>;
   runtimes: Runtime[];
   refreshRuntimes: () => Promise<void>;
-  appDataDisks: PersistentDisk[];
-  persistentDisks: PersistentDisk[];
+  appDataDisks: DecoratedPersistentDisk[];
+  persistentDisks: DecoratedPersistentDisk[];
 }
 
 export interface AnalysesProps {

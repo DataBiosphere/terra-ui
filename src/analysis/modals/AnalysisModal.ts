@@ -41,7 +41,7 @@ import jupyterLogoLong from 'src/images/jupyter-logo-long.png';
 import rstudioBioLogo from 'src/images/r-bio-logo.svg';
 import { Ajax } from 'src/libs/ajax';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
-import { AppDataDisk, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { AppDataDisk, DecoratedPersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
@@ -77,7 +77,7 @@ export interface AnalysisModalProps {
   runtimes: Runtime[];
   apps: App[];
   appDataDisks: AppDataDisk[];
-  persistentDisks: PersistentDisk[];
+  persistentDisks: DecoratedPersistentDisk[];
   onDismiss: () => void;
   onError: () => void;
   onSuccess: () => void;

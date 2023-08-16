@@ -34,13 +34,6 @@ export const updatePdType = (disk: PersistentDisk): DecoratedPersistentDisk => (
 });
 export const mapToPdTypes = (disks: PersistentDisk[]): DecoratedPersistentDisk[] => _.map(updatePdType, disks);
 
-export const undecoratePd = (disk: DecoratedPersistentDisk): PersistentDisk => ({
-  ...disk,
-  diskType: disk.diskType.value,
-});
-
-export const mapToUndecoratedPds = (disks: DecoratedPersistentDisk[]): PersistentDisk[] => _.map(undecoratePd, disks);
-
 // Dataproc clusters don't have persistent disks.
 export const defaultDataprocMasterDiskSize = 150;
 export const defaultDataprocWorkerDiskSize = 150;
@@ -51,10 +44,10 @@ export const defaultGcePersistentDiskSize = 50;
 export const defaultPersistentDiskType = googlePdTypes.standard;
 export const getCurrentAttachedDataDisk = (
   app: App,
-  appDataDisks: PersistentDisk[]
+  appDataDisks: DecoratedPersistentDisk[]
 ): DecoratedPersistentDisk | undefined => {
-  const currentDisk: PersistentDisk | undefined = _.find({ name: app?.diskName }, appDataDisks);
-  return currentDisk ? updatePdType(currentDisk) : currentDisk;
+  const currentDisk: DecoratedPersistentDisk | undefined = _.find({ name: app?.diskName }, appDataDisks);
+  return currentDisk;
 };
 
 export const workspaceHasMultipleDisks = (disks: DecoratedPersistentDisk[], diskAppType: AppToolLabel): boolean => {
@@ -75,7 +68,7 @@ export const workspaceHasMultipleDisks = (disks: DecoratedPersistentDisk[], disk
 export const getCurrentAppDataDisk = (
   appType: AppToolLabel,
   apps: App[],
-  appDataDisks: PersistentDisk[],
+  appDataDisks: DecoratedPersistentDisk[],
   workspaceName: string
 ): DecoratedPersistentDisk | undefined => {
   // a user's PD can either be attached to their current app, detaching from a deleting app or unattached
@@ -88,24 +81,24 @@ export const getCurrentAppDataDisk = (
   // If the disk is attached to an app (or being detached from a deleting app), return that disk. Otherwise,
   // return the newest unattached disk that was provisioned by the desired appType.
 
-  const filteredDisks: PersistentDisk[] = _.filter(
-    (disk: PersistentDisk) =>
+  const filteredDisks: DecoratedPersistentDisk[] = _.filter(
+    (disk: DecoratedPersistentDisk) =>
       getDiskAppType(disk) === appType &&
       disk.status !== 'Deleting' &&
       !_.includes(disk.name, attachedDiskNames) &&
       disk.labels.saturnWorkspaceName === workspaceName,
     appDataDisks
   );
-  const sortedDisks: PersistentDisk[] = _.sortBy('auditInfo.createdDate', filteredDisks);
+  const sortedDisks: DecoratedPersistentDisk[] = _.sortBy('auditInfo.createdDate', filteredDisks);
 
-  const newestUnattachedDisk: PersistentDisk | undefined = _.last(sortedDisks);
-  const attachedDisk: PersistentDisk | undefined = currentDiskName
+  const newestUnattachedDisk: DecoratedPersistentDisk | undefined = _.last(sortedDisks);
+  const attachedDisk: DecoratedPersistentDisk | undefined = currentDiskName
     ? _.find({ name: currentDiskName }, appDataDisks)
     : undefined;
 
   return Utils.cond(
-    [!!attachedDisk, () => !!attachedDisk && updatePdType(attachedDisk)],
-    [!!newestUnattachedDisk, () => !!newestUnattachedDisk && updatePdType(newestUnattachedDisk)],
+    [!!attachedDisk, () => !!attachedDisk && attachedDisk],
+    [!!newestUnattachedDisk, () => !!newestUnattachedDisk && newestUnattachedDisk],
     [Utils.DEFAULT, () => undefined]
   );
 };
@@ -120,8 +113,8 @@ export const getCurrentAppDataDisk = (
 // what is the significance of of the filter on ` !_.includes(id, attachedIds)`?
 export const getCurrentPersistentDisk = (
   runtimes: Runtime[],
-  persistentDisks: PersistentDisk[]
-): PersistentDisk | undefined => {
+  persistentDisks: DecoratedPersistentDisk[]
+): DecoratedPersistentDisk | undefined => {
   const currentRuntime = getCurrentRuntime(runtimes);
   const id: number | undefined = _.get('persistentDiskId', currentRuntime?.runtimeConfig);
   const attachedIds: number[] = _.without(
@@ -139,7 +132,9 @@ export const getCurrentPersistentDisk = (
       );
 };
 
-export const getReadyPersistentDisk = (persistentDisks: PersistentDisk[]): PersistentDisk | undefined => {
+export const getReadyPersistentDisk = (
+  persistentDisks: DecoratedPersistentDisk[]
+): DecoratedPersistentDisk | undefined => {
   // returns PD if one exists and is in ready status
   return persistentDisks.find((disk) => disk.status === diskStatuses.ready.leoLabel);
 };

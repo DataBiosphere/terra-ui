@@ -26,7 +26,6 @@ import {
   GooglePdType,
   googlePdTypes,
   LeoDiskStatus,
-  PersistentDisk,
 } from 'src/libs/ajax/leonardo/models/disk-models';
 import {
   AzureConfig,
@@ -318,15 +317,15 @@ export const getRuntimeCost = (runtime: Runtime): number => {
 
 export const getCostForDisk = (
   app: App | undefined,
-  appDataDisks: PersistentDisk[],
+  appDataDisks: DecoratedPersistentDisk[],
   computeRegion: string,
   currentRuntimeToolLabel: RuntimeToolLabel | ToolLabel | undefined,
-  persistentDisks: PersistentDisk[],
+  persistentDisks: DecoratedPersistentDisk[],
   runtimes: Runtime[],
   toolLabel: ToolLabel
 ): number => {
   let diskCost = 0;
-  const curPd: PersistentDisk | undefined =
+  const curPd: DecoratedPersistentDisk | undefined =
     persistentDisks && persistentDisks.length > 0 ? getCurrentPersistentDisk(runtimes, persistentDisks) : undefined;
 
   if (curPd && isAzureDisk(curPd)) {
@@ -368,10 +367,10 @@ export const getCostDisplayForTool = (
 
 export const getCostDisplayForDisk = (
   app: App | undefined,
-  appDataDisks: PersistentDisk[],
+  appDataDisks: DecoratedPersistentDisk[],
   computeRegion: string,
   currentRuntimeToolLabel: RuntimeToolLabel | ToolLabel | undefined,
-  persistentDisks: PersistentDisk[],
+  persistentDisks: DecoratedPersistentDisk[],
   runtimes: Runtime[],
   toolLabel: ToolLabel
 ): string => {
@@ -387,7 +386,7 @@ export const getCostDisplayForDisk = (
   return diskCost ? `Disk ${Utils.formatUSD(diskCost)}/hr` : '';
 };
 
-const isAzureDisk = (persistentDisk: PersistentDisk | DecoratedPersistentDisk) =>
+const isAzureDisk = (persistentDisk: DecoratedPersistentDisk) =>
   persistentDisk ? isAzureContext(persistentDisk.cloudContext) : false;
 
 // end COMMON METHODS

@@ -7,10 +7,10 @@ import {
   getEnvMessageBasedOnStatus,
   workspaceHasMultipleApps,
 } from 'src/analysis/utils/app-utils';
-import { getCurrentAppDataDisk, mapToPdTypes, workspaceHasMultipleDisks } from 'src/analysis/utils/disk-utils';
+import { getCurrentAppDataDisk, workspaceHasMultipleDisks } from 'src/analysis/utils/disk-utils';
 import { appToolLabels, appTools } from 'src/analysis/utils/tool-utils';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
-import { DecoratedPersistentDisk, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { DecoratedPersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { getConfig } from 'src/libs/config';
 import { cloudProviderTypes, WorkspaceInfo } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
@@ -170,14 +170,18 @@ const galaxyDiskUpdatedPd: DecoratedPersistentDisk = {
 };
 
 // Newer than galaxyDisk, attached to galaxyDeleting app.
-const galaxyDeletingDisk: PersistentDisk = {
+const galaxyDeletingDisk: DecoratedPersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-30T20:19:13.162484Z',
     dateAccessed: '2021-11-30T20:19:14.114Z',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    label: 'Standard',
+    value: 'pd-standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -214,14 +218,18 @@ const galaxyDeletingDiskUpdatedPd: DecoratedPersistentDisk = {
   zone: 'us-central1-a',
 };
 
-const cromwellUnattachedDisk: PersistentDisk = {
+const cromwellUnattachedDisk: DecoratedPersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-30T02:21:00.705505Z',
     dateAccessed: '2021-11-30T02:21:00.705505Z',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    label: 'Standard',
+    value: 'pd-standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -259,14 +267,18 @@ const cromwellUnattachedDiskUpdatedPd: DecoratedPersistentDisk = {
 };
 
 // Older than cromwellUnattachedDisk, attached to cromwellProvisioning app.
-const cromwellProvisioningDisk: PersistentDisk = {
+const cromwellProvisioningDisk: DecoratedPersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:28:01.998494Z',
     dateAccessed: '2021-11-29T20:28:03.109Z',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    label: 'Standard',
+    value: 'pd-standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -303,7 +315,7 @@ const cromwellProvisioningDiskUpdatedPd: DecoratedPersistentDisk = {
   zone: 'us-central1-a',
 };
 
-const jupyterDisk: PersistentDisk = {
+const jupyterDisk: DecoratedPersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-12-02T16:38:13.777424Z',
@@ -311,7 +323,11 @@ const jupyterDisk: PersistentDisk = {
   },
   blockSize: 4096,
   cloudContext: { cloudProvider: 'GCP', cloudResource: 'terra-test-f828b4cd' },
-  diskType: 'pd-standard',
+  diskType: {
+    label: 'Standard',
+    value: 'pd-standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   id: 29,
   labels: {},
   name: 'saturn-pd-bd0d0405-c048-4212-bccf-568435933081',
@@ -322,14 +338,18 @@ const jupyterDisk: PersistentDisk = {
 
 const mockAppDisks = [galaxyDisk, galaxyDeletingDisk, cromwellProvisioningDisk, cromwellUnattachedDisk];
 
-const galaxyDisk1Workspace1: PersistentDisk = {
+const galaxyDisk1Workspace1: DecoratedPersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-30T20:19:13.162484Z',
     dateAccessed: '2021-12-10T20:19:14.114Z',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    label: 'Standard',
+    value: 'pd-standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -342,14 +362,18 @@ const galaxyDisk1Workspace1: PersistentDisk = {
   zone: 'us-central1-a',
 };
 
-const galaxyDisk2Workspace1: PersistentDisk = {
+const galaxyDisk2Workspace1: DecoratedPersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-28T20:19:13.162484Z',
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    label: 'Standard',
+    value: 'pd-standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -362,7 +386,7 @@ const galaxyDisk2Workspace1: PersistentDisk = {
   zone: 'us-central1-a',
 };
 
-const galaxyDisk3Workspace2: PersistentDisk = {
+const galaxyDisk3Workspace2: DecoratedPersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-26T20:19:13.162484Z',
@@ -373,7 +397,11 @@ const galaxyDisk3Workspace2: PersistentDisk = {
     cloudResource: 'terra-test-e4000484',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    label: 'Standard',
+    value: 'pd-standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   id: 15,
   labels: { saturnApplication: 'GALAXY', saturnWorkspaceName: 'test-workspace-2' },
   name: 'saturn-pd-026594ac-d829-423d-a8df-33fe36f5b4e4',
@@ -382,14 +410,18 @@ const galaxyDisk3Workspace2: PersistentDisk = {
   zone: 'us-central1-a',
 };
 
-const cromwellDisk1Workspace1: PersistentDisk = {
+const cromwellDisk1Workspace1: DecoratedPersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-26T20:19:13.162484Z',
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    label: 'Standard',
+    value: 'pd-standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -519,10 +551,10 @@ describe('workspaceHasMultipleApps', () => {
 
 describe('workspaceHasMultipleDisks', () => {
   it('returns true when there are multiple galaxy disks in the same project and workspace', () => {
-    expect(workspaceHasMultipleDisks(mapToPdTypes(mockAppDisksSameWorkspace), appTools.GALAXY.label)).toBe(true);
+    expect(workspaceHasMultipleDisks(mockAppDisksSameWorkspace, appTools.GALAXY.label)).toBe(true);
   });
   it('returns false when there is not multiple cromwell disks', () => {
-    expect(workspaceHasMultipleDisks(mapToPdTypes(mockAppDisksSameWorkspace), appTools.CROMWELL.label)).toBe(false);
+    expect(workspaceHasMultipleDisks(mockAppDisksSameWorkspace, appTools.CROMWELL.label)).toBe(false);
   });
 });
 

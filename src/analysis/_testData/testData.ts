@@ -1,5 +1,6 @@
 import _ from 'lodash/fp';
 import {
+  DecoratedPersistentDisk,
   defaultGceBootDiskSize,
   defaultGcePersistentDiskSize,
   defaultPersistentDiskType,
@@ -7,7 +8,6 @@ import {
 import { defaultGceMachineType, defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels, tools } from 'src/analysis/utils/tool-utils';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { cloudServiceTypes, RuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { ListRuntimeItem, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { defaultAzureRegion } from 'src/libs/azure-utils';
@@ -583,16 +583,20 @@ export const generateTestAppWithAzureWorkspace = (
 });
 
 export const generateTestDiskWithGoogleWorkspace = (
-  overrides: Partial<PersistentDisk> = {},
+  overrides: Partial<DecoratedPersistentDisk> = {},
   workspace: GoogleWorkspace = defaultGoogleWorkspace
-): PersistentDisk => ({
+): DecoratedPersistentDisk => ({
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    value: 'pd-standard',
+    label: 'Standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: workspace.workspace.googleProject,
@@ -611,16 +615,20 @@ export const generateTestDiskWithGoogleWorkspace = (
 });
 
 export const generateTestDiskWithAzureWorkspace = (
-  overrides: Partial<PersistentDisk> = {},
+  overrides: Partial<DecoratedPersistentDisk> = {},
   workspace: AzureWorkspace = defaultAzureWorkspace
-): PersistentDisk => ({
+): DecoratedPersistentDisk => ({
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    value: 'pd-standard',
+    label: 'Standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   cloudContext: {
     cloudProvider: cloudProviderTypes.AZURE,
     cloudResource: `${workspace.azureContext.tenantId}/${workspace.azureContext.subscriptionId}/${workspace.azureContext.managedResourceGroupId}`,
@@ -638,14 +646,18 @@ export const generateTestDiskWithAzureWorkspace = (
   ...overrides,
 });
 
-export const generateTestDisk = (overrides: Partial<PersistentDisk> = {}): PersistentDisk => ({
+export const generateTestDisk = (overrides: Partial<DecoratedPersistentDisk> = {}): DecoratedPersistentDisk => ({
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    value: 'pd-standard',
+    label: 'Standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -659,14 +671,18 @@ export const generateTestDisk = (overrides: Partial<PersistentDisk> = {}): Persi
   ...overrides,
 });
 
-export const galaxyDisk: PersistentDisk = {
+export const galaxyDisk: DecoratedPersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    value: 'pd-standard',
+    label: 'Standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -679,7 +695,7 @@ export const galaxyDisk: PersistentDisk = {
   zone: 'us-central1-a',
 };
 
-export const azureDisk: PersistentDisk = {
+export const azureDisk: DecoratedPersistentDisk = {
   id: 16902,
   cloudContext: {
     cloudProvider: 'AZURE',
@@ -694,7 +710,11 @@ export const azureDisk: PersistentDisk = {
     dateAccessed: '2023-02-01T20:41:00.357Z',
   },
   size: 50,
-  diskType: 'pd-standard', // TODO: This should be stored in backend as Standard_LRS
+  diskType: {
+    value: 'pd-standard',
+    label: 'Standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  }, // TODO: This should be stored in backend as Standard_LRS
   blockSize: 4096,
   labels: {
     saturnWorkspaceNamespace: defaultAzureWorkspace.workspace.namespace,

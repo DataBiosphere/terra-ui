@@ -2,7 +2,7 @@ import _ from 'lodash/fp';
 import { getAppStatusForDisplay } from 'src/analysis/utils/app-utils';
 import { getDisplayRuntimeStatus } from 'src/analysis/utils/runtime-utils';
 import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { DecoratedPersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { isRuntime, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import * as Utils from 'src/libs/utils';
 
@@ -13,7 +13,7 @@ import * as Utils from 'src/libs/utils';
  * https://github.com/DataBiosphere/leonardo/blob/e60c71a9e78b53196c2848cd22a752e22a2cf6f5/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/diskModels.scala
  */
 // TODO: stop using resourceType here when all types are defined....
-export const isResourceDeletable = (resourceType, resource: App | PersistentDisk | Runtime) =>
+export const isResourceDeletable = (resourceType, resource: App | DecoratedPersistentDisk | Runtime) =>
   _.includes(
     _.lowerCase(resource?.status),
     Utils.switchCase(

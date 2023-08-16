@@ -70,7 +70,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
           kubernetesRuntimeConfig,
           diskName: currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(),
           diskSize: dataDisk.size,
-          diskType: dataDisk.diskType.value,
+          diskType: dataDisk.diskType,
           appType: appTools.GALAXY.label,
           namespace,
           bucketName,
@@ -372,6 +372,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
               div({ style: { marginTop: '0.5rem' } }, [
                 h(Select, {
                   id,
+                  // TODO: these are the decorated PD types now, do we need to do anything?
                   value: disabled ? currentDataDisk.diskType : dataDisk.diskType,
                   isDisabled: disabled,
                   onChange: ({ value }) => updateDataDisk('diskType', value),

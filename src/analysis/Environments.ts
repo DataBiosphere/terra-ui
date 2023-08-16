@@ -10,7 +10,7 @@ import {
   getPersistentDiskCostMonthly,
   getRuntimeCost,
 } from 'src/analysis/utils/cost-utils';
-import { mapToPdTypes, workspaceHasMultipleDisks } from 'src/analysis/utils/disk-utils';
+import { workspaceHasMultipleDisks } from 'src/analysis/utils/disk-utils';
 import {
   getCreatorForCompute,
   getDisplayStatus,
@@ -328,7 +328,7 @@ export const Environments = ({ nav = undefined }: EnvironmentsProps) => {
 
     const [decoratedRuntimes, decoratedDisks, decoratedApps] = _.map(_.map(decorateLabeledResourceWithWorkspace), [
       newRuntimes,
-      mapToPdTypes(newDisks),
+      newDisks,
       newApps,
     ]);
 
