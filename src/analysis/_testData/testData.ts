@@ -1,6 +1,5 @@
 import _ from 'lodash/fp';
 import {
-  DecoratedPersistentDisk,
   defaultGceBootDiskSize,
   defaultGcePersistentDiskSize,
   defaultPersistentDiskType,
@@ -8,6 +7,7 @@ import {
 import { defaultGceMachineType, defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels, tools } from 'src/analysis/utils/tool-utils';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
+import { DecoratedPersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { cloudServiceTypes, RuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { ListRuntimeItem, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { defaultAzureRegion } from 'src/libs/azure-utils';

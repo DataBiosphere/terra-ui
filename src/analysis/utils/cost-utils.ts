@@ -331,7 +331,7 @@ export const getCostForDisk = (
     return getAzureDiskCostEstimate({ region: computeRegion, persistentDiskSize: curPd.size }) / numberOfHoursPerMonth;
   }
   if (currentRuntimeToolLabel === toolLabel && persistentDisks && persistentDisks.length > 0) {
-    const { size = 0, status = diskStatuses.ready.leoLabel, diskType = googlePdTypes.standard.value } = curPd || {};
+    const { size = 0, status = diskStatuses.ready.leoLabel, diskType = googlePdTypes.standard } = curPd || {};
     diskCost = getPersistentDiskCostHourly({ size, status, diskType }, computeRegion);
   } else if (app && appDataDisks && toolLabel === appToolLabels.GALAXY) {
     const currentDataDisk = getCurrentAttachedDataDisk(app, appDataDisks);
