@@ -304,9 +304,13 @@ const EntitiesContent = ({
         }, sortedEntities),
       ]);
 
-      const zipFile = new JSZip().file(`${entityKey}_entity.tsv`, entityTsv).file(`${entityKey}_membership.tsv`, membershipTsv);
+      if (forDownload) {
+        const zipFile = new JSZip().file(`${entityKey}_entity.tsv`, entityTsv).file(`${entityKey}_membership.tsv`, membershipTsv);
 
-      return zipFile.generateAsync({ type: forDownload ? 'blob' : 'string' });
+        return zipFile.generateAsync({ type: 'blob' });
+      }
+
+      return membershipTsv;
     }
     return entityTsv;
   };
