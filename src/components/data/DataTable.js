@@ -211,7 +211,8 @@ const DataTable = (props) => {
     });
 
   const getAllEntities = async () => {
-    const params = _.pickBy(_.trim, { pageSize: filteredCount, filterTerms: activeTextFilter, filterOperator });
+    const colFilt = !!columnFilter.filterColAttr && !!columnFilter.filterColTerm ? `${columnFilter.filterColAttr}=${columnFilter.filterColTerm}` : '';
+    const params = _.pickBy(_.trim, { pageSize: filteredCount, filterTerms: activeTextFilter, filterOperator, columnFilter: colFilt });
     const queryResults = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, params);
     return queryResults.results;
   };
