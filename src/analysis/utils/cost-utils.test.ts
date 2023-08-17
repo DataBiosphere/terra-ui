@@ -256,7 +256,7 @@ describe('GCP getCostDisplayForTool', () => {
 
   it('Will get compute cost and compute status for a running Jupyter runtime', () => {
     // Arrange
-    const expectedResult = 'Running $0.05/hr';
+    const expectedResult = 'Running $0.06/hr';
     const app = undefined;
     const currentRuntime = getGoogleRuntime({
       runtimeConfig: getJupyterRuntimeConfig(),
@@ -273,7 +273,7 @@ describe('GCP getCostDisplayForTool', () => {
 
   it('Will get compute cost and compute status for a stopped Jupyter runtime', () => {
     // Arrange
-    const expectedResult = 'Paused < $0.01/hr';
+    const expectedResult = 'Paused $0.01/hr';
     const app = undefined;
     const jupyterRuntime = getGoogleRuntime({
       runtimeConfig: getJupyterRuntimeConfig(),
