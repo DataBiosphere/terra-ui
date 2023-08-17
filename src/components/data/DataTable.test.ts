@@ -1,6 +1,7 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import _ from 'lodash/fp';
 import { useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { defaultGoogleWorkspace } from 'src/analysis/_testData/testData';
@@ -23,6 +24,11 @@ jest.mock('react-notifications-component', (): DeepPartial<ReactNotificationsCom
   };
 });
 
+const entities = _.map(
+  (n) => ({ entityType: 'sample', name: `sample_${n}`, attributes: { attr: n % 2 === 0 ? 'even' : 'odd' } }),
+  _.range(0, 250)
+);
+
 type ReactVirtualizedExports = typeof import('react-virtualized');
 jest.mock('react-virtualized', (): ReactVirtualizedExports => {
   const actual = jest.requireActual<ReactVirtualizedExports>('react-virtualized');
@@ -30,7 +36,7 @@ jest.mock('react-virtualized', (): ReactVirtualizedExports => {
   const { AutoSizer } = actual;
   class MockAutoSizer extends AutoSizer {
     state = {
-      height: 1000,
+      height: 5000,
       width: 1000,
     };
 
@@ -43,17 +49,34 @@ jest.mock('react-virtualized', (): ReactVirtualizedExports => {
   };
 });
 
+const getPage = jest.fn().mockImplementation((queryOptions: { pageNumber; columnFilter }) => {
+  if (queryOptions.columnFilter) {
+    return Promise.resolve({
+      results: _.filter((s) => s.attributes.attr === 'even'),
+      entities,
+      resultMetadata: { filteredCount: 150, unfilteredCount: 300, filteredPageCount: 2 },
+    });
+  }
+  if (queryOptions.pageNumber === 1) {
+    return Promise.resolve({
+      results: entities.slice(0, 100),
+      resultMetadata: { filteredCount: 300, unfilteredCount: 300, filteredPageCount: 3 },
+    });
+  }
+  if (queryOptions.pageNumber === 2) {
+    return Promise.resolve({
+      results: entities.slice(100, 200),
+      resultMetadata: { filteredCount: 300, unfilteredCount: 300, filteredPageCount: 3 },
+    });
+  }
+  return Promise.resolve({
+    results: entities.slice(200),
+    resultMetadata: { filteredCount: 300, unfilteredCount: 300, filteredPageCount: 3 },
+  });
+});
+
 const mockDataProvider: DeepPartial<DataTableProvider> = {
-  getPage: jest.fn().mockResolvedValue({
-    results: [
-      {
-        entityType: 'sample',
-        name: 'sample_1',
-        attributes: {},
-      },
-    ],
-    resultMetadata: { filteredCount: 1, unfilteredCount: 1 },
-  }),
+  getPage,
   features: {
     supportsFiltering: true,
     supportsRowSelection: true,
@@ -71,34 +94,28 @@ const EntitiesContentHarness = (props) => {
   });
 };
 
+const paginatedEntitiesOfType = jest.fn().mockResolvedValue({
+  results: entities,
+  resultMetadata: { filteredCount: 300, unfilteredCount: 300, filteredPageCount: 3 },
+});
+const mockAjax: DeepPartial<AjaxContract> = {
+  Workspaces: {
+    workspace: () => {
+      return {
+        paginatedEntitiesOfType,
+      };
+    },
+  },
+  Metrics: {
+    captureEvent: () => {},
+  },
+};
+asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+
 describe('DataTable', () => {
   it('selects all', async () => {
     // Arrange
     const user = userEvent.setup();
-
-    const paginatedEntitiesOfType = jest.fn().mockResolvedValue({
-      results: [
-        {
-          entityType: 'sample',
-          name: 'sample_1',
-          attributes: {},
-        },
-      ],
-      resultMetadata: { filteredCount: 1, unfilteredCount: 1 },
-    });
-    const mockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () => {
-          return {
-            paginatedEntitiesOfType,
-          };
-        },
-      },
-      Metrics: {
-        captureEvent: () => {},
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
     await act(async () => {
       render(
@@ -108,11 +125,10 @@ describe('DataTable', () => {
             sample: {
               idName: 'sample_id',
               attributeNames: [],
-              count: 1,
+              count: 300,
             },
           },
           setEntityMetadata: () => {},
-          workspaceId: defaultGoogleWorkspace.workspace.workspaceId,
           workspace: {
             ...defaultGoogleWorkspace,
             workspace: {
@@ -148,59 +164,42 @@ describe('DataTable', () => {
     });
 
     // Act
-    // screen.debug();
 
     // Select all entities
-    const checkbox = screen.getByRole('checkbox', { name: 'Select all' });
-    await user.click(checkbox);
+    const button = screen.getByRole('button', { name: '"Select All" options' });
+    await user.click(button);
+
+    const pageButton = screen.getByRole('button', { name: 'All (300)' });
+    await user.click(pageButton);
 
     // Should include all rows + the 'Select all' check
     const allChecks = screen.getAllByRole('checkbox');
-    // console.log(allChecks.length);
-    // TODO: have more than one row and check length
+    expect(allChecks.length).toEqual(101);
+
     // Assert
     // They should all be checked
     allChecks.forEach((checkbox) => {
       expect(checkbox).toBeChecked();
     });
 
-    // const exportButton = screen.getByText('Export');
-    // await user.click(exportButton);
-    // const copyMenuItem = screen.getByRole('menuitem', { name: 'Copy to clipboard' });
-    // const copyButton = within(copyMenuItem).getByRole('button');
-    // await user.click(copyButton);
-    //
-    // expect(clipboard.writeText).toHaveBeenCalledWith('entity:sample_id\nsample_1\n');
+    // Go to next page
+    const nextPageButton = screen.getByRole('button', { name: 'Next page' });
+    await user.click(nextPageButton);
+
+    // Get the checkboxes on this page
+    const newPageChecks = screen.getAllByRole('checkbox');
+    expect(newPageChecks.length).toEqual(101);
+
+    // They should all be checked
+    newPageChecks.forEach((checkbox) => {
+      expect(checkbox).toBeChecked();
+    });
   });
 
   it('selects page', async () => {
     // Arrange
     const user = userEvent.setup();
 
-    const paginatedEntitiesOfType = jest.fn().mockResolvedValue({
-      results: [
-        {
-          entityType: 'sample',
-          name: 'sample_1',
-          attributes: {},
-        },
-      ],
-      resultMetadata: { filteredCount: 1, unfilteredCount: 1 },
-    });
-    const mockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () => {
-          return {
-            paginatedEntitiesOfType,
-          };
-        },
-      },
-      Metrics: {
-        captureEvent: () => {},
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
-
     await act(async () => {
       render(
         h(EntitiesContentHarness, {
@@ -209,11 +208,10 @@ describe('DataTable', () => {
             sample: {
               idName: 'sample_id',
               attributeNames: [],
-              count: 1,
+              count: 200,
             },
           },
           setEntityMetadata: () => {},
-          workspaceId: defaultGoogleWorkspace.workspace.workspaceId,
           workspace: {
             ...defaultGoogleWorkspace,
             workspace: {
@@ -249,59 +247,42 @@ describe('DataTable', () => {
     });
 
     // Act
-    // screen.debug();
 
-    // Select all entities
-    const checkbox = screen.getByRole('checkbox', { name: 'Select all' });
-    await user.click(checkbox);
+    // Select page of entities
+    const button = screen.getByRole('button', { name: '"Select All" options' });
+    await user.click(button);
+
+    const pageButton = screen.getByRole('button', { name: 'Page' });
+    await user.click(pageButton);
 
     // Should include all rows + the 'Select all' check
     const allChecks = screen.getAllByRole('checkbox');
-    // console.log(allChecks.length);
-    // TODO: have more than one row and check length
+    expect(allChecks.length).toEqual(101);
+
     // Assert
     // They should all be checked
     allChecks.forEach((checkbox) => {
       expect(checkbox).toBeChecked();
     });
 
-    // const exportButton = screen.getByText('Export');
-    // await user.click(exportButton);
-    // const copyMenuItem = screen.getByRole('menuitem', { name: 'Copy to clipboard' });
-    // const copyButton = within(copyMenuItem).getByRole('button');
-    // await user.click(copyButton);
-    //
-    // expect(clipboard.writeText).toHaveBeenCalledWith('entity:sample_id\nsample_1\n');
+    // Go to next page
+    const nextPageButton = screen.getByRole('button', { name: 'Next page' });
+    await user.click(nextPageButton);
+
+    // Get the checkboxes on this page
+    const newPageChecks = screen.getAllByRole('checkbox');
+    expect(newPageChecks.length).toEqual(101);
+
+    // They should not be checked
+    newPageChecks.forEach((checkbox) => {
+      expect(checkbox).not.toBeChecked();
+    });
   });
 
   it('selects filtered', async () => {
     // Arrange
     const user = userEvent.setup();
 
-    const paginatedEntitiesOfType = jest.fn().mockResolvedValue({
-      results: [
-        {
-          entityType: 'sample',
-          name: 'sample_1',
-          attributes: {},
-        },
-      ],
-      resultMetadata: { filteredCount: 1, unfilteredCount: 1 },
-    });
-    const mockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () => {
-          return {
-            paginatedEntitiesOfType,
-          };
-        },
-      },
-      Metrics: {
-        captureEvent: () => {},
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
-
     await act(async () => {
       render(
         h(EntitiesContentHarness, {
@@ -310,11 +291,10 @@ describe('DataTable', () => {
             sample: {
               idName: 'sample_id',
               attributeNames: [],
-              count: 1,
+              count: 200,
             },
           },
           setEntityMetadata: () => {},
-          workspaceId: defaultGoogleWorkspace.workspace.workspaceId,
           workspace: {
             ...defaultGoogleWorkspace,
             workspace: {
@@ -350,28 +330,44 @@ describe('DataTable', () => {
     });
 
     // Act
-    // screen.debug();
 
-    // Select all entities
-    const checkbox = screen.getByRole('checkbox', { name: 'Select all' });
+    const columnMenu = screen.getByRole('button', { name: 'Column menu' });
+    await user.click(columnMenu);
+
+    // Filter
+    await user.type(screen.getByLabelText('Exact match filter'), 'even');
+
+    const menuModal = screen.getByRole('dialog');
+    const searchButton = within(menuModal).getByRole('button', { name: 'Search' });
+    await user.click(searchButton);
+
+    // Select filtered entities
+    const checkbox = screen.getByRole('button', { name: '"Select All" options' });
     await user.click(checkbox);
 
-    // Should include all rows + the 'Select all' check
+    const pageButton = screen.getByRole('button', { name: 'Filtered (150)' });
+    await user.click(pageButton);
+
+    // Should include all (filtered) entities
     const allChecks = screen.getAllByRole('checkbox');
-    // console.log(allChecks.length);
-    // TODO: have more than one row and check length
-    // Assert
+
+    // // Assert
     // They should all be checked
     allChecks.forEach((checkbox) => {
       expect(checkbox).toBeChecked();
     });
 
-    // const exportButton = screen.getByText('Export');
-    // await user.click(exportButton);
-    // const copyMenuItem = screen.getByRole('menuitem', { name: 'Copy to clipboard' });
-    // const copyButton = within(copyMenuItem).getByRole('button');
-    // await user.click(copyButton);
-    //
-    // expect(clipboard.writeText).toHaveBeenCalledWith('entity:sample_id\nsample_1\n');
+    // Go to next page
+    const nextPageButton = screen.getByRole('button', { name: 'Next page' });
+    await user.click(nextPageButton);
+
+    // Get the checkboxes on this page
+    const newPageChecks = screen.getAllByRole('checkbox');
+    expect(newPageChecks.length).toEqual(51);
+
+    // They should not be checked
+    newPageChecks.forEach((checkbox) => {
+      expect(checkbox).toBeChecked();
+    });
   });
 });
