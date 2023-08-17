@@ -130,7 +130,6 @@ describe('useWdsStatus', () => {
       auditInfo: {
         creator: 'userWexample.com',
         createdDate: '2023-07-11T18:59:09.369822Z',
-        // @ts-expect-error Leo app types do not reflect actual API responses.
         destroyedDate: null,
         dateAccessed: '2023-07-11T18:59:09.369822Z',
       },
