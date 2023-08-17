@@ -1,9 +1,8 @@
 import { div, h } from 'react-hyperscript-helpers';
-import { ButtonPrimary, Link } from 'src/components/common';
+import { ButtonPrimary } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import TitleBar from 'src/components/TitleBar';
 import * as Style from 'src/libs/style';
-import * as Utils from 'src/libs/utils';
 
 const styles = {
   // Card's position: relative and the outer/inner styles are a little hack to fake nested links
@@ -45,14 +44,5 @@ export const WorkflowsAppLauncherCard = ({ onClick, disabled, ...props }) => {
             ['Yes, launch Cromwell']
           ),
     ]),
-    h(
-      Link,
-      {
-        ...Utils.newTabLinkProps,
-        href: 'https://support.terra.bio/hc/en-us/articles/360024743371-Working-with-workspaces',
-        style: { marginTop: '2rem' },
-      },
-      ['Learn more about managing cloud cost']
-    ),
   ]);
 };
