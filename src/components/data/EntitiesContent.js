@@ -284,9 +284,11 @@ const EntitiesContent = ({
   } = useColumnProvenance(workspace, entityKey);
   const [showColumnProvenance, setShowColumnProvenance] = useState(undefined);
 
-  const buildTSV = (columnSettings, entities, isSet, forDownload) => {
+  const buildTSV = (columnSettings, entities, forDownload) => {
     const sortedEntities = _.sortBy('name', entities);
     const setRoot = entityKey.slice(0, -4);
+    const isSet = _.endsWith('_set', entityKey);
+
     const attributeNames = _.flow(_.filter('visible'), _.map('name'), isSet ? _.without([`${setRoot}s`]) : _.identity)(columnSettings);
 
     const entityTsv = Utils.makeTSV([
@@ -312,8 +314,8 @@ const EntitiesContent = ({
   };
 
   const downloadSelectedRows = async (columnSettings) => {
+    const tsv = buildTSV(columnSettings, selectedEntities, true);
     const isSet = _.endsWith('_set', entityKey);
-    const tsv = buildTSV(columnSettings, selectedEntities, isSet, true);
     isSet
       ? FileSaver.saveAs(await tsv, `${entityKey}.zip`)
       : FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`);
@@ -432,8 +434,7 @@ const EntitiesContent = ({
                 withErrorReporting('Error copying to clipboard.'),
                 Utils.withBusyState(setNowCopying)
               )(async () => {
-                const isSet = _.endsWith('_set', entityKey);
-                const str = buildTSV(columnSettings, _.values(selectedEntities), isSet, false);
+                const str = buildTSV(columnSettings, _.values(selectedEntities), false);
                 await clipboard.writeText(str);
                 notify('success', 'Successfully copied to clipboard.', { timeout: 3000 });
                 Ajax().Metrics.captureEvent(Events.workspaceDataCopyToClipboard, extractWorkspaceDetails(workspace.workspace));
