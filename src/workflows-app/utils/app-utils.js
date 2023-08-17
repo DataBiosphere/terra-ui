@@ -123,15 +123,14 @@ export const loadAppUrls = async (workspaceId, proxyUrlStateField) => {
   };
 };
 
-export const cromwellLinkProps = ({ cloudProvider, namespace, name, app, isAzureWorkflowsTabEnabled }) => {
+export const cromwellLinkProps = ({ cloudProvider, namespace, name, app }) => {
   return {
     href: Utils.cond(
-      [cloudProvider === cloudProviderTypes.AZURE && isAzureWorkflowsTabEnabled, () => Nav.getLink('workspace-workflows-app', { namespace, name })],
-      [cloudProvider === cloudProviderTypes.AZURE, () => app?.proxyUrls['cbas-ui']],
+      [cloudProvider === cloudProviderTypes.AZURE, () => Nav.getLink('workspace-workflows-app', { namespace, name })],
       () => app?.proxyUrls['cromwell-service']
     ),
     ...Utils.cond(
-      [cloudProvider === cloudProviderTypes.AZURE && isAzureWorkflowsTabEnabled, () => {}],
+      [cloudProvider === cloudProviderTypes.AZURE, () => {}],
       () => Utils.newTabLinkPropsWithReferrer // if present, opens link in new tab
     ),
   };

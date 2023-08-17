@@ -1,7 +1,6 @@
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, h2, label } from 'react-hyperscript-helpers';
-import { setAzureCookieOnUrl } from 'src/analysis/runtime-common-components';
 import { DeleteConfirmationModal, IdContainer, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
@@ -14,8 +13,6 @@ import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { WORKFLOWS_TAB_AZURE_FEATURE_ID } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { useCancellation } from 'src/libs/react-utils';
 import { getUser } from 'src/libs/state';
@@ -89,13 +86,7 @@ export const ImportWorkflow = ({ path, version, source }) => {
       const res = await Ajax(signal).Cbas.methods.post(appUrls.cbasUrl, postRequestBody);
       const methodId = res.method_id;
 
-      // TODO: Remove this logic when fully migrated into Terra-UI and Cbas UI has been deprecated
-      if (isFeaturePreviewEnabled(WORKFLOWS_TAB_AZURE_FEATURE_ID)) {
-        Nav.goToPath('workspace-workflows-app-submission-config', { name, namespace, methodId });
-      } else {
-        await setAzureCookieOnUrl(signal, appUrls.cbasUiUrl, true);
-        window.location = `${appUrls.cbasUiUrl}#submission-config/${methodId}`;
-      }
+      Nav.goToPath('workspace-workflows-app-submission-config', { name, namespace, methodId });
     } else {
       throw new Error(
         'Error identifying a unique and valid Cromwell App. Cromwell Apps are valid if they were created by the current user in the workspace and are in a Running state.'
