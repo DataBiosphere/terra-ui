@@ -49,31 +49,34 @@ jest.mock('react-virtualized', (): ReactVirtualizedExports => {
   };
 });
 
-const getPage = jest.fn().mockImplementation((queryOptions: { pageNumber; columnFilter }) => {
-  if (queryOptions.columnFilter) {
+const getPage = jest
+  .fn()
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  .mockImplementation((signal, entityType, queryOptions: { pageNumber; columnFilter }, entityMetadata) => {
+    if (queryOptions.columnFilter) {
+      return Promise.resolve({
+        results: _.filter((s: { attributes: { attr: string } }) => s.attributes.attr === 'even'),
+        entities,
+        resultMetadata: { filteredCount: 150, unfilteredCount: 300, filteredPageCount: 2 },
+      });
+    }
+    if (queryOptions.pageNumber === 1) {
+      return Promise.resolve({
+        results: entities.slice(0, 100),
+        resultMetadata: { filteredCount: 300, unfilteredCount: 300, filteredPageCount: 3 },
+      });
+    }
+    if (queryOptions.pageNumber === 2) {
+      return Promise.resolve({
+        results: entities.slice(100, 200),
+        resultMetadata: { filteredCount: 300, unfilteredCount: 300, filteredPageCount: 3 },
+      });
+    }
     return Promise.resolve({
-      results: _.filter((s) => s.attributes.attr === 'even'),
-      entities,
-      resultMetadata: { filteredCount: 150, unfilteredCount: 300, filteredPageCount: 2 },
-    });
-  }
-  if (queryOptions.pageNumber === 1) {
-    return Promise.resolve({
-      results: entities.slice(0, 100),
+      results: entities.slice(200),
       resultMetadata: { filteredCount: 300, unfilteredCount: 300, filteredPageCount: 3 },
     });
-  }
-  if (queryOptions.pageNumber === 2) {
-    return Promise.resolve({
-      results: entities.slice(100, 200),
-      resultMetadata: { filteredCount: 300, unfilteredCount: 300, filteredPageCount: 3 },
-    });
-  }
-  return Promise.resolve({
-    results: entities.slice(200),
-    resultMetadata: { filteredCount: 300, unfilteredCount: 300, filteredPageCount: 3 },
   });
-});
 
 const mockDataProvider: DeepPartial<DataTableProvider> = {
   getPage,
