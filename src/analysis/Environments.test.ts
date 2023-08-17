@@ -29,7 +29,7 @@ import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { ListAppResponse } from '../libs/ajax/leonardo/models/app-models';
-import { ListDiskItem } from '../libs/ajax/leonardo/models/disk-models';
+import { DecoratedPersistentDisk } from '../libs/ajax/leonardo/models/disk-models';
 
 type ModalMockExports = typeof import('src/components/Modal.mock');
 
@@ -77,7 +77,7 @@ jest.mock('src/libs/state', () => ({
 
 const listRuntimesV2: () => Promise<ListRuntimeItem[]> = jest.fn();
 const listWithoutProject: () => Promise<ListAppResponse[]> = jest.fn();
-const list: () => Promise<ListDiskItem[]> = jest.fn();
+const list: () => Promise<DecoratedPersistentDisk[]> = jest.fn();
 const mockFetchLeo = jest.fn();
 const defaultNav = {
   getLink: jest.fn().mockReturnValue(''),
