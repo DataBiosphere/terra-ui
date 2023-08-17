@@ -621,7 +621,7 @@ describe('Environments', () => {
   describe('Disks - ', () => {
     it('Renders page correctly with a disk', async () => {
       const disk = generateTestDiskWithGoogleWorkspace();
-      asMockedFn(list).mockReturnValue(Promise.resolve(disk));
+      asMockedFn(list).mockReturnValue(Promise.resolve([disk]));
       asMockedFn(useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace],
