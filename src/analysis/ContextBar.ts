@@ -44,7 +44,7 @@ import jupyterLogo from 'src/images/jupyter-logo.svg';
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png';
 import { Ajax } from 'src/libs/ajax';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
-import { DecoratedPersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
@@ -82,12 +82,12 @@ const contextBarStyles: { [label: string]: CSSProperties } = {
 export interface ContextBarProps {
   runtimes: Runtime[];
   apps: App[];
-  appDataDisks: DecoratedPersistentDisk[];
+  appDataDisks: PersistentDisk[];
   refreshRuntimes: (maybeStale?: boolean) => Promise<void>;
   storageDetails: StorageDetails;
   refreshApps: (maybeStale?: boolean) => Promise<void>;
   workspace: BaseWorkspace;
-  persistentDisks: DecoratedPersistentDisk[];
+  persistentDisks: PersistentDisk[];
 }
 
 export const ContextBar = ({

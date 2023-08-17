@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { allAppTypes, AppToolLabel, appToolLabels, isAppToolLabel, ToolLabel } from 'src/analysis/utils/tool-utils';
 import { App, DisplayAppStatus, LeoAppStatus } from 'src/libs/ajax/leonardo/models/app-models';
-import { DecoratedPersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { getConfig } from 'src/libs/config';
 import { getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
@@ -55,7 +55,7 @@ export const getCurrentAppIncludingDeleting = (appType: AppToolLabel, apps: App[
   getCurrentAppExcludingStatuses(appType, [], apps);
 
 // If the disk was attached to an app, return the appType. Otherwise return undefined.
-export const getDiskAppType = (disk: DecoratedPersistentDisk): AppToolLabel | undefined => {
+export const getDiskAppType = (disk: PersistentDisk): AppToolLabel | undefined => {
   const saturnApp = disk.labels.saturnApplication;
   // Do a case-insensitive match as disks have been created with both "galaxy" and "GALAXY".
   const appType = _.find((type) => type.toLowerCase() === saturnApp?.toLowerCase(), allAppTypes);

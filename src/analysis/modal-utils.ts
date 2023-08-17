@@ -2,7 +2,7 @@ import _ from 'lodash/fp';
 import { defaultDataprocMachineType, getDefaultMachineType } from 'src/analysis/utils/runtime-utils';
 import { getToolLabelFromCloudEnv } from 'src/analysis/utils/tool-utils';
 import { cloudServices } from 'src/data/gce-machines';
-import { DecoratedPersistentDisk, GooglePdType, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
+import { GooglePdType, PersistentDisk, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
 
 export interface IComputeConfig {
   diskSize: number;
@@ -28,7 +28,7 @@ export interface IComputeConfig {
 export const buildExistingEnvironmentConfig = (
   computeConfig: IComputeConfig,
   currentRuntimeDetails: any,
-  currentPersistentDiskDetails: DecoratedPersistentDisk,
+  currentPersistentDiskDetails: PersistentDisk,
   isDataproc: boolean
 ) => {
   const runtimeConfig = currentRuntimeDetails?.runtimeConfig;

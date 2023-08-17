@@ -7,7 +7,7 @@ import {
 import { defaultGceMachineType, defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels, tools } from 'src/analysis/utils/tool-utils';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
-import { DecoratedPersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { cloudServiceTypes, RuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { ListRuntimeItem, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { defaultAzureRegion } from 'src/libs/azure-utils';
@@ -583,9 +583,9 @@ export const generateTestAppWithAzureWorkspace = (
 });
 
 export const generateTestDiskWithGoogleWorkspace = (
-  overrides: Partial<DecoratedPersistentDisk> = {},
+  overrides: Partial<PersistentDisk> = {},
   workspace: GoogleWorkspace = defaultGoogleWorkspace
-): DecoratedPersistentDisk => ({
+): PersistentDisk => ({
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
@@ -615,9 +615,9 @@ export const generateTestDiskWithGoogleWorkspace = (
 });
 
 export const generateTestDiskWithAzureWorkspace = (
-  overrides: Partial<DecoratedPersistentDisk> = {},
+  overrides: Partial<PersistentDisk> = {},
   workspace: AzureWorkspace = defaultAzureWorkspace
-): DecoratedPersistentDisk => ({
+): PersistentDisk => ({
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
@@ -646,7 +646,7 @@ export const generateTestDiskWithAzureWorkspace = (
   ...overrides,
 });
 
-export const generateTestDisk = (overrides: Partial<DecoratedPersistentDisk> = {}): DecoratedPersistentDisk => ({
+export const generateTestDisk = (overrides: Partial<PersistentDisk> = {}): PersistentDisk => ({
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
@@ -671,7 +671,7 @@ export const generateTestDisk = (overrides: Partial<DecoratedPersistentDisk> = {
   ...overrides,
 });
 
-export const galaxyDisk: DecoratedPersistentDisk = {
+export const galaxyDisk: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
@@ -695,7 +695,7 @@ export const galaxyDisk: DecoratedPersistentDisk = {
   zone: 'us-central1-a',
 };
 
-export const azureDisk: DecoratedPersistentDisk = {
+export const azureDisk: PersistentDisk = {
   id: 16902,
   cloudContext: {
     cloudProvider: 'AZURE',

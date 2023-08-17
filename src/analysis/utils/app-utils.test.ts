@@ -10,7 +10,7 @@ import {
 import { getCurrentAppDataDisk, workspaceHasMultipleDisks } from 'src/analysis/utils/disk-utils';
 import { appToolLabels, appTools } from 'src/analysis/utils/tool-utils';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
-import { DecoratedPersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { getConfig } from 'src/libs/config';
 import { cloudProviderTypes, WorkspaceInfo } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
@@ -145,7 +145,7 @@ const cromwell1Workspace1: App = {
 
 const mockAppsSameWorkspace = [galaxy1Workspace1, galaxy2Workspace1, cromwell1Workspace1];
 
-const galaxyDiskUpdatedPd: DecoratedPersistentDisk = {
+const galaxyDiskUpdatedPd: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
@@ -170,7 +170,7 @@ const galaxyDiskUpdatedPd: DecoratedPersistentDisk = {
 };
 
 // Newer than galaxyDisk, attached to galaxyDeleting app.
-const galaxyDeletingDisk: DecoratedPersistentDisk = {
+const galaxyDeletingDisk: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-30T20:19:13.162484Z',
@@ -194,7 +194,7 @@ const galaxyDeletingDisk: DecoratedPersistentDisk = {
   zone: 'us-central1-a',
 };
 
-const galaxyDeletingDiskUpdatedPd: DecoratedPersistentDisk = {
+const galaxyDeletingDiskUpdatedPd: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-30T20:19:13.162484Z',
@@ -218,7 +218,7 @@ const galaxyDeletingDiskUpdatedPd: DecoratedPersistentDisk = {
   zone: 'us-central1-a',
 };
 
-const cromwellUnattachedDisk: DecoratedPersistentDisk = {
+const cromwellUnattachedDisk: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-30T02:21:00.705505Z',
@@ -242,7 +242,7 @@ const cromwellUnattachedDisk: DecoratedPersistentDisk = {
   zone: 'us-central1-a',
 };
 
-const cromwellUnattachedDiskUpdatedPd: DecoratedPersistentDisk = {
+const cromwellUnattachedDiskUpdatedPd: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-30T02:21:00.705505Z',
@@ -267,7 +267,7 @@ const cromwellUnattachedDiskUpdatedPd: DecoratedPersistentDisk = {
 };
 
 // Older than cromwellUnattachedDisk, attached to cromwellProvisioning app.
-const cromwellProvisioningDisk: DecoratedPersistentDisk = {
+const cromwellProvisioningDisk: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:28:01.998494Z',
@@ -291,7 +291,7 @@ const cromwellProvisioningDisk: DecoratedPersistentDisk = {
   zone: 'us-central1-a',
 };
 
-const cromwellProvisioningDiskUpdatedPd: DecoratedPersistentDisk = {
+const cromwellProvisioningDiskUpdatedPd: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:28:01.998494Z',
@@ -315,7 +315,7 @@ const cromwellProvisioningDiskUpdatedPd: DecoratedPersistentDisk = {
   zone: 'us-central1-a',
 };
 
-const jupyterDisk: DecoratedPersistentDisk = {
+const jupyterDisk: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-12-02T16:38:13.777424Z',
@@ -338,7 +338,7 @@ const jupyterDisk: DecoratedPersistentDisk = {
 
 const mockAppDisks = [galaxyDisk, galaxyDeletingDisk, cromwellProvisioningDisk, cromwellUnattachedDisk];
 
-const galaxyDisk1Workspace1: DecoratedPersistentDisk = {
+const galaxyDisk1Workspace1: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-30T20:19:13.162484Z',
@@ -362,7 +362,7 @@ const galaxyDisk1Workspace1: DecoratedPersistentDisk = {
   zone: 'us-central1-a',
 };
 
-const galaxyDisk2Workspace1: DecoratedPersistentDisk = {
+const galaxyDisk2Workspace1: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-28T20:19:13.162484Z',
@@ -386,7 +386,7 @@ const galaxyDisk2Workspace1: DecoratedPersistentDisk = {
   zone: 'us-central1-a',
 };
 
-const galaxyDisk3Workspace2: DecoratedPersistentDisk = {
+const galaxyDisk3Workspace2: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-26T20:19:13.162484Z',
@@ -410,7 +410,7 @@ const galaxyDisk3Workspace2: DecoratedPersistentDisk = {
   zone: 'us-central1-a',
 };
 
-const cromwellDisk1Workspace1: DecoratedPersistentDisk = {
+const cromwellDisk1Workspace1: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-26T20:19:13.162484Z',

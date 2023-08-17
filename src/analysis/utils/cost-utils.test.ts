@@ -16,12 +16,12 @@ import {
   runtimeConfigCost,
 } from 'src/analysis/utils/cost-utils';
 import { appToolLabels, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
-import { DecoratedPersistentDisk, diskStatuses, googlePdTypes } from 'src/libs/ajax/leonardo/models/disk-models';
+import { diskStatuses, googlePdTypes, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { cloudServiceTypes, GoogleRuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getAzurePricesForRegion } from 'src/libs/azure-utils';
 
-const jupyterDisk: DecoratedPersistentDisk = {
+const jupyterDisk: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-12-02T16:38:13.777424Z',
@@ -366,7 +366,7 @@ describe('getCostDisplayForTool', () => {
 describe('getPersistentDiskCostMonthly', () => {
   it('GCP - Cost estimate', () => {
     // Arrange
-    const gcpDiskAttached: DecoratedPersistentDisk = {
+    const gcpDiskAttached: PersistentDisk = {
       ...getDisk({ size: 50 }),
       cloudContext: {
         cloudProvider: 'GCP',

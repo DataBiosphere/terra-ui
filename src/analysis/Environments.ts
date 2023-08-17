@@ -37,7 +37,7 @@ import TopBar from 'src/components/TopBar';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { useReplaceableAjaxExperimental } from 'src/libs/ajax';
 import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
-import { DecoratedPersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { isGceConfig, isGceWithPdConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { isRuntime, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import colors from 'src/libs/colors';
@@ -242,7 +242,7 @@ interface DecoratedResourceAttributes {
 }
 
 type RuntimeWithWorkspace = DecoratedResourceAttributes & Runtime;
-type DiskWithWorkspace = DecoratedResourceAttributes & DecoratedPersistentDisk;
+type DiskWithWorkspace = DecoratedResourceAttributes & PersistentDisk;
 type AppWithWorkspace = DecoratedResourceAttributes & App;
 
 type DecoratedComputeResource = RuntimeWithWorkspace | AppWithWorkspace;
@@ -311,9 +311,7 @@ export const Environments = ({ nav = undefined }: EnvironmentsProps) => {
       apps: newApps.length,
     });
 
-    const decorateLabeledResourceWithWorkspace = (
-      cloudObject: Runtime | DecoratedPersistentDisk | App
-    ): DecoratedResource => {
+    const decorateLabeledResourceWithWorkspace = (cloudObject: Runtime | PersistentDisk | App): DecoratedResource => {
       const {
         labels: { saturnWorkspaceNamespace, saturnWorkspaceName },
       } = cloudObject;
@@ -659,7 +657,7 @@ export const Environments = ({ nav = undefined }: EnvironmentsProps) => {
     });
   };
 
-  const multipleDisksError = (disks: DecoratedPersistentDisk[], appType: AppToolLabel | undefined) => {
+  const multipleDisksError = (disks: PersistentDisk[], appType: AppToolLabel | undefined) => {
     // appType is undefined for runtimes (ie Jupyter, RStudio) so the first part of the ternary is for processing app
     // disks. the second part is for processing runtime disks so it filters out app disks
     return appType

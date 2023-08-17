@@ -23,7 +23,7 @@ import { MenuTrigger } from 'src/components/PopupTrigger';
 import { locationTypes } from 'src/components/region-common';
 import { Ajax } from 'src/libs/ajax';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
-import { DecoratedPersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { defaultAzureMachineType, defaultAzureRegion } from 'src/libs/azure-utils';
 import { isCromwellAppVisible } from 'src/libs/config';
@@ -173,7 +173,7 @@ const cromwellRunning: App = {
   status: 'RUNNING',
 };
 
-const cromwellDisk: DecoratedPersistentDisk = {
+const cromwellDisk: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-26T20:19:13.162484Z',
@@ -356,7 +356,7 @@ const jupyterLabRunning: Runtime = {
   status: 'Running',
 };
 
-const runtimeDisk: DecoratedPersistentDisk = {
+const runtimeDisk: PersistentDisk = {
   id: 15778,
   cloudContext: {
     cloudProvider: 'GCP',
