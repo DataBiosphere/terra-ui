@@ -7,7 +7,7 @@ import RuntimeManager from 'src/analysis/RuntimeManager';
 import { getDiskAppType } from 'src/analysis/utils/app-utils';
 import { mapToPdTypes } from 'src/analysis/utils/disk-utils';
 import { getConvertedRuntimeStatus, getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
-import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
+import { ButtonPrimary, inlineSpinnerWithInnerStyles, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
@@ -74,6 +74,16 @@ const TitleBarWarning = (messageComponents) => {
   });
 };
 
+const TitleBarSpinner = (messageComponents) => {
+  return h(TitleBar, {
+    title: div({ role: 'alert', style: { display: 'flex', alignItems: 'center' } }, [
+      inlineSpinnerWithInnerStyles({ backgroundColor: colors.accent(0.35) }),
+      span({ style: { color: colors.dark(), fontSize: 14 } }, messageComponents),
+    ]),
+    style: { backgroundColor: colors.accent(0.35), borderBottom: `1px solid ${colors.accent()}` },
+  });
+};
+
 const AzureWarning = () => {
   const warningMessage = [
     'Do not store Unclassified Confidential Information in this platform, as it violates US Federal Policy (ie FISMA, FIPS-199, etc) unless explicitly authorized by the dataset manager or governed by your own agreements.',
@@ -83,7 +93,7 @@ const AzureWarning = () => {
 
 const GooglePermissionsWarning = () => {
   const warningMessage = [
-    'Google is syncing permissions for this workspace, which may take a few minutes or longer. During this time, access to workspace features will be unavailable. ',
+    'Terra is securing access to your data. This may take a couple moments.',
     h(
       Link,
       {
@@ -94,7 +104,7 @@ const GooglePermissionsWarning = () => {
     ),
   ];
 
-  return TitleBarWarning(warningMessage);
+  return TitleBarSpinner(warningMessage);
 };
 
 export const WorkspaceTabs = ({
@@ -237,7 +247,7 @@ export const WorkspaceContainer = ({
         setShowLockWorkspaceModal,
       }),
     workspaceLoaded && isAzureWorkspace(workspace) && h(AzureWarning),
-    isGoogleWorkspaceSyncing && h(GooglePermissionsWarning),
+    true && h(GooglePermissionsWarning),
     div({ role: 'main', style: Style.elements.pageContentContainer }, [
       div({ style: { flex: 1, display: 'flex' } }, [
         div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]),
