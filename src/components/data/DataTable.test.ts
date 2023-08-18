@@ -36,8 +36,8 @@ jest.mock('react-virtualized', (): ReactVirtualizedExports => {
   const { AutoSizer } = actual;
   class MockAutoSizer extends AutoSizer {
     state = {
-      height: 5000,
-      width: 1000,
+      height: 7000,
+      width: 2000,
     };
 
     setState = () => {};
@@ -55,26 +55,25 @@ const getPage = jest
   .mockImplementation((signal, entityType, queryOptions: { pageNumber; columnFilter }, entityMetadata) => {
     if (queryOptions.columnFilter) {
       return Promise.resolve({
-        results: _.filter((s: { attributes: { attr: string } }) => s.attributes.attr === 'even'),
-        entities,
-        resultMetadata: { filteredCount: 150, unfilteredCount: 300, filteredPageCount: 2 },
+        results: _.filter((s: { attributes: { attr: string } }) => s.attributes.attr === 'even', entities),
+        resultMetadata: { filteredCount: 125, unfilteredCount: 250, filteredPageCount: 2 },
       });
     }
-    if (queryOptions.pageNumber === 1) {
+    if (!queryOptions.pageNumber || queryOptions.pageNumber === 1) {
       return Promise.resolve({
         results: entities.slice(0, 100),
-        resultMetadata: { filteredCount: 300, unfilteredCount: 300, filteredPageCount: 3 },
+        resultMetadata: { filteredCount: 250, unfilteredCount: 250, filteredPageCount: 3 },
       });
     }
     if (queryOptions.pageNumber === 2) {
       return Promise.resolve({
         results: entities.slice(100, 200),
-        resultMetadata: { filteredCount: 300, unfilteredCount: 300, filteredPageCount: 3 },
+        resultMetadata: { filteredCount: 250, unfilteredCount: 250, filteredPageCount: 3 },
       });
     }
     return Promise.resolve({
       results: entities.slice(200),
-      resultMetadata: { filteredCount: 300, unfilteredCount: 300, filteredPageCount: 3 },
+      resultMetadata: { filteredCount: 250, unfilteredCount: 250, filteredPageCount: 3 },
     });
   });
 
@@ -97,10 +96,20 @@ const EntitiesContentHarness = (props) => {
   });
 };
 
-const paginatedEntitiesOfType = jest.fn().mockResolvedValue({
-  results: entities,
-  resultMetadata: { filteredCount: 300, unfilteredCount: 300, filteredPageCount: 3 },
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const paginatedEntitiesOfType = jest.fn().mockImplementation((entityType, params) => {
+  if (params.columnFilter) {
+    return Promise.resolve({
+      results: _.filter((s: { attributes: { attr: string } }) => s.attributes.attr === 'even', entities),
+      resultMetadata: { filteredCount: 125, unfilteredCount: 250, filteredPageCount: 2 },
+    });
+  }
+  return Promise.resolve({
+    results: entities,
+    resultMetadata: { filteredCount: 250, unfilteredCount: 250, filteredPageCount: 3 },
+  });
 });
+
 const mockAjax: DeepPartial<AjaxContract> = {
   Workspaces: {
     workspace: () => {
@@ -128,7 +137,7 @@ describe('DataTable', () => {
             sample: {
               idName: 'sample_id',
               attributeNames: [],
-              count: 300,
+              count: 250,
             },
           },
           setEntityMetadata: () => {},
@@ -172,31 +181,22 @@ describe('DataTable', () => {
     const button = screen.getByRole('button', { name: '"Select All" options' });
     await user.click(button);
 
-    const pageButton = screen.getByRole('button', { name: 'All (300)' });
+    const pageButton = screen.getByRole('button', { name: 'All (250)' });
     await user.click(pageButton);
 
-    // Should include all rows + the 'Select all' check
-    const allChecks = screen.getAllByRole('checkbox');
-    expect(allChecks.length).toEqual(101);
-
     // Assert
-    // They should all be checked
-    allChecks.forEach((checkbox) => {
-      expect(checkbox).toBeChecked();
-    });
+
+    // Should include all rows + the 'Select all' check
+    const allChecks = screen.getAllByRole('checkbox', { checked: true });
+    expect(allChecks.length).toEqual(101);
 
     // Go to next page
     const nextPageButton = screen.getByRole('button', { name: 'Next page' });
     await user.click(nextPageButton);
 
     // Get the checkboxes on this page
-    const newPageChecks = screen.getAllByRole('checkbox');
+    const newPageChecks = screen.getAllByRole('checkbox', { checked: true });
     expect(newPageChecks.length).toEqual(101);
-
-    // They should all be checked
-    newPageChecks.forEach((checkbox) => {
-      expect(checkbox).toBeChecked();
-    });
   });
 
   it('selects page', async () => {
@@ -211,7 +211,7 @@ describe('DataTable', () => {
             sample: {
               idName: 'sample_id',
               attributeNames: [],
-              count: 200,
+              count: 250,
             },
           },
           setEntityMetadata: () => {},
@@ -258,31 +258,22 @@ describe('DataTable', () => {
     const pageButton = screen.getByRole('button', { name: 'Page' });
     await user.click(pageButton);
 
-    // Should include all rows + the 'Select all' check
-    const allChecks = screen.getAllByRole('checkbox');
-    expect(allChecks.length).toEqual(101);
-
     // Assert
-    // They should all be checked
-    allChecks.forEach((checkbox) => {
-      expect(checkbox).toBeChecked();
-    });
+
+    // Should include all rows + the 'Select all' check
+    const allChecks = screen.getAllByRole('checkbox', { checked: true });
+    expect(allChecks.length).toEqual(101);
 
     // Go to next page
     const nextPageButton = screen.getByRole('button', { name: 'Next page' });
     await user.click(nextPageButton);
 
     // Get the checkboxes on this page
-    const newPageChecks = screen.getAllByRole('checkbox');
+    const newPageChecks = screen.getAllByRole('checkbox', { checked: false });
     expect(newPageChecks.length).toEqual(101);
-
-    // They should not be checked
-    newPageChecks.forEach((checkbox) => {
-      expect(checkbox).not.toBeChecked();
-    });
   });
 
-  it('selects filtered', async () => {
+  it('passes filters to getPaginatedEntities', async () => {
     // Arrange
     const user = userEvent.setup();
 
@@ -294,7 +285,7 @@ describe('DataTable', () => {
             sample: {
               idName: 'sample_id',
               attributeNames: [],
-              count: 200,
+              count: 250,
             },
           },
           setEntityMetadata: () => {},
@@ -348,29 +339,86 @@ describe('DataTable', () => {
     const checkbox = screen.getByRole('button', { name: '"Select All" options' });
     await user.click(checkbox);
 
-    const pageButton = screen.getByRole('button', { name: 'Filtered (150)' });
+    const pageButton = screen.getByRole('button', { name: 'Filtered (125)' });
     await user.click(pageButton);
 
-    // Should include all (filtered) entities
-    const allChecks = screen.getAllByRole('checkbox');
+    expect(paginatedEntitiesOfType).toHaveBeenCalledWith(
+      'sample',
+      expect.objectContaining({ columnFilter: 'sample_id=even' })
+    );
+  });
 
-    // // Assert
-    // They should all be checked
-    allChecks.forEach((checkbox) => {
-      expect(checkbox).toBeChecked();
+  it('selects filtered', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    await act(async () => {
+      render(
+        h(EntitiesContentHarness, {
+          entityType: 'sample',
+          entityMetadata: {
+            sample: {
+              idName: 'sample_id',
+              attributeNames: [],
+              count: 250,
+            },
+          },
+          setEntityMetadata: () => {},
+          workspace: {
+            ...defaultGoogleWorkspace,
+            workspace: {
+              ...defaultGoogleWorkspace.workspace,
+              attributes: {},
+            },
+            workspaceSubmissionStats: {
+              runningSubmissionsCount: 0,
+            },
+          },
+          googleProject: defaultGoogleWorkspace.workspace.googleProject,
+          workspaceId: {
+            namespace: defaultGoogleWorkspace.workspace.namespace,
+            name: defaultGoogleWorkspace.workspace.name,
+          },
+          onScroll: () => {},
+          initialX: 0,
+          initialY: 0,
+          loadMetadata: () => {},
+          childrenBefore: '',
+          editable: '',
+          activeCrossTableTextFilter: '',
+          persist: '',
+          refreshKey: 0,
+          snapshotName: null,
+          deleteColumnUpdateMetadata: () => {},
+          controlPanelStyle: '',
+          border: true,
+          extraColumnActions: '',
+          dataProvider: mockDataProvider,
+        })
+      );
     });
 
-    // Go to next page
-    const nextPageButton = screen.getByRole('button', { name: 'Next page' });
-    await user.click(nextPageButton);
+    // Act
 
-    // Get the checkboxes on this page
-    const newPageChecks = screen.getAllByRole('checkbox');
-    expect(newPageChecks.length).toEqual(51);
+    const columnMenu = screen.getByRole('button', { name: 'Column menu' });
+    await user.click(columnMenu);
 
-    // They should not be checked
-    newPageChecks.forEach((checkbox) => {
-      expect(checkbox).toBeChecked();
-    });
+    // Filter
+    await user.type(screen.getByLabelText('Exact match filter'), 'even');
+
+    const menuModal = screen.getByRole('dialog');
+    const searchButton = within(menuModal).getByRole('button', { name: 'Search' });
+    await user.click(searchButton);
+
+    // Select filtered entities
+    const checkbox = screen.getByRole('button', { name: '"Select All" options' });
+    await user.click(checkbox);
+
+    const pageButton = screen.getByRole('button', { name: 'Filtered (125)' });
+    await user.click(pageButton);
+
+    // Should include all (filtered) entities + select all checkbox
+    const allChecks = screen.getAllByRole('checkbox', { checked: true });
+    expect(allChecks.length).toEqual(126);
   });
 });
