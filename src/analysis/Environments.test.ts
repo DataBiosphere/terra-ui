@@ -28,7 +28,7 @@ import * as Utils from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
 
-import { ListAppResponse } from '../libs/ajax/leonardo/models/app-models';
+import { App, ListAppResponse } from '../libs/ajax/leonardo/models/app-models';
 import { ListDiskItem } from '../libs/ajax/leonardo/models/disk-models';
 
 type ModalMockExports = typeof import('src/components/Modal.mock');
@@ -84,6 +84,13 @@ const mockListRuntimesReturn = (...runtimes: Runtime[]): Promise<ListRuntimeItem
 };
 
 const listWithoutProject: () => Promise<ListAppResponse[]> = jest.fn();
+
+// Transform a given list of mock App objects into mock ListAppResponse objects (omit workspaceId)
+export const mockListAppsReturn = (...apps: App[]): Promise<ListAppResponse[]> => {
+  const isListAppResponse = (app: App): app is ListAppResponse => 'workspaceId' in app;
+  return Promise.resolve(apps.filter(isListAppResponse));
+};
+
 const list: () => Promise<ListDiskItem[]> = jest.fn();
 const mockFetchLeo = jest.fn();
 const defaultNav = {
@@ -449,7 +456,7 @@ describe('Environments', () => {
   describe('Apps - ', () => {
     it('Renders page correctly with an app', async () => {
       const galaxyApp = generateTestAppWithGoogleWorkspace({}, defaultGoogleWorkspace);
-      asMockedFn(listWithoutProject).mockReturnValue(Promise.resolve([galaxyApp]));
+      asMockedFn(listWithoutProject).mockReturnValue(mockListAppsReturn(galaxyApp));
       asMockedFn(useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace],
@@ -482,7 +489,7 @@ describe('Environments', () => {
       const azureApp1 = generateTestAppWithAzureWorkspace({ appType: appToolLabels.CROMWELL }, defaultAzureWorkspace);
       const azureWorkspace2 = generateAzureWorkspace();
       const azureApp2 = generateTestAppWithAzureWorkspace({ appType: appToolLabels.CROMWELL }, azureWorkspace2);
-      asMockedFn(listWithoutProject).mockReturnValue(Promise.resolve([googleApp1, googleApp2, azureApp1, azureApp2]));
+      asMockedFn(listWithoutProject).mockReturnValue(mockListAppsReturn(googleApp1, googleApp2, azureApp1, azureApp2));
       asMockedFn(useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, googleWorkspace2, defaultAzureWorkspace, azureWorkspace2],
@@ -538,7 +545,7 @@ describe('Environments', () => {
       { app: generateTestAppWithGoogleWorkspace({}, defaultGoogleWorkspace), workspace: defaultGoogleWorkspace },
       { app: generateTestAppWithAzureWorkspace({}, defaultAzureWorkspace), workspace: defaultAzureWorkspace },
     ])('Renders app details view correctly', async ({ app, workspace }) => {
-      asMockedFn(listWithoutProject).mockReturnValue(Promise.resolve([app]));
+      asMockedFn(listWithoutProject).mockReturnValue(mockListAppsReturn(app));
       asMockedFn(useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [workspace],
@@ -575,7 +582,7 @@ describe('Environments', () => {
     ])('Behaves properly when we click pause/delete for azure/gce app', async ({ app, workspace, isAzure }) => {
       const user = userEvent.setup();
 
-      asMockedFn(listWithoutProject).mockReturnValue(Promise.resolve([app]));
+      asMockedFn(listWithoutProject).mockReturnValue(mockListAppsReturn(app));
       asMockedFn(useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [workspace],

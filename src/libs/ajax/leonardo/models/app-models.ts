@@ -67,11 +67,12 @@ export interface GetAppResponse {
   customEnvironmentVariables: Record<string, string>;
   auditInfo: AuditInfo;
   appType: AppToolLabel;
+  accessScope: string | null;
   labels: LeoResourceLabels;
 }
 
 export interface ListAppResponse {
-  workspaceId?: string;
+  workspaceId: string | null;
   appName: string;
   cloudContext: CloudContext;
   kubernetesRuntimeConfig: KubernetesRuntimeConfig;
@@ -81,6 +82,7 @@ export interface ListAppResponse {
   diskName: string | null;
   auditInfo: AuditInfo;
   appType: AppToolLabel;
+  accessScope: string | null;
   labels: LeoResourceLabels;
 }
 

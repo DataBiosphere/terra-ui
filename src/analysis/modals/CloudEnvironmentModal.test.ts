@@ -153,12 +153,14 @@ const CloudEnvironmentModalDefaultProps: any = {
 };
 
 const cromwellRunning: App = {
+  workspaceId: null,
+  accessScope: null,
   appName: 'terra-app-83f46705-524c-4fc8-xcyc-97fdvcfby14f',
   appType: 'CROMWELL',
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-28T20:28:01.998494Z',
-    destroyedDate: undefined,
+    destroyedDate: null,
     dateAccessed: '2021-11-28T20:28:01.998494Z',
   },
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-55fe36f5b4e8',
@@ -178,6 +180,8 @@ const cromwellRunning: App = {
 };
 
 const hailBatchAppRunning: App = {
+  workspaceId: null,
+  accessScope: null,
   appName: 'test-hail-batch-app',
   cloudContext: {
     cloudProvider: 'AZURE',
@@ -198,7 +202,7 @@ const hailBatchAppRunning: App = {
   auditInfo: {
     creator: 'abc.testerson@gmail.com',
     createdDate: '2023-01-18T23:28:47.605176Z',
-    destroyedDate: undefined,
+    destroyedDate: null,
     dateAccessed: '2023-01-18T23:28:47.605176Z',
   },
   appType: appToolLabels.HAIL_BATCH,

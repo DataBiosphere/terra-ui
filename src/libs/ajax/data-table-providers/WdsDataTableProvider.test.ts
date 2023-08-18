@@ -65,6 +65,7 @@ const testProxyUrlResponse: ListAppResponse[] = [
     auditInfo: {
       creator: 'cahrens@gmail.com',
       createdDate: '2021-12-10T20:19:13.162484Z',
+      destroyedDate: null,
       dateAccessed: '2021-12-11T20:19:13.162484Z',
     },
     kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
@@ -75,6 +76,7 @@ const testProxyUrlResponse: ListAppResponse[] = [
     proxyUrls: { wds: testProxyUrl },
     workspaceId: uuid,
     diskName: null,
+    accessScope: null,
   },
 ];
 

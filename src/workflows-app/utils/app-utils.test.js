@@ -43,6 +43,7 @@ describe('resolveRunningCromwellAppUrl', () => {
         auditInfo: {
           creator: mockCurrentUserEmail,
           createdDate: '2021-12-10T20:19:13.162484Z',
+          destroyedDate: null,
           dateAccessed: '2021-12-11T20:19:13.162484Z',
         },
       },
@@ -64,6 +65,7 @@ describe('resolveRunningCromwellAppUrl', () => {
         auditInfo: {
           creator: 'not-abc@gmail.com',
           createdDate: '2021-12-10T20:19:13.162484Z',
+          destroyedDate: null,
           dateAccessed: '2021-12-11T20:19:13.162484Z',
         },
       },
@@ -82,6 +84,7 @@ describe('resolveRunningCromwellAppUrl', () => {
         auditInfo: {
           creator: mockCurrentUserEmail,
           createdDate: '2021-12-10T20:19:13.162484Z',
+          destroyedDate: null,
           dateAccessed: '2021-12-11T20:19:13.162484Z',
         },
       },

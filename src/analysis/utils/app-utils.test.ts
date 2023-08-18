@@ -29,6 +29,8 @@ jest.mock('src/libs/state', (): StateExports => {
 });
 
 const cromwellRunning: App = {
+  workspaceId: null,
+  accessScope: null,
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -38,6 +40,7 @@ const cromwellRunning: App = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-28T20:28:01.998494Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-28T20:28:01.998494Z',
   },
   diskName: 'saturn-pd-693a9707-634d-4134-bb3a-xyz73cd5a8ce',
@@ -53,6 +56,8 @@ const cromwellRunning: App = {
 
 // Newer than cromwellRunning
 const cromwellProvisioning: App = {
+  workspaceId: null,
+  accessScope: null,
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -62,6 +67,7 @@ const cromwellProvisioning: App = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:28:01.998494Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:28:01.998494Z',
   },
   diskName: 'saturn-pd-693a9707-634d-4134-bb3a-cbb73cd5a8ce',
@@ -78,6 +84,8 @@ const cromwellProvisioning: App = {
 const mockApps = [cromwellProvisioning, cromwellRunning, galaxyRunning, galaxyDeleting];
 
 const galaxy1Workspace1: App = {
+  workspaceId: null,
+  accessScope: null,
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -87,6 +95,7 @@ const galaxy1Workspace1: App = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-12-10T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-12-11T20:19:13.162484Z',
   },
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-87fe07f6b5e8', // galaxyDisk1Workspace1
@@ -100,6 +109,8 @@ const galaxy1Workspace1: App = {
 };
 
 const galaxy2Workspace1: App = {
+  workspaceId: null,
+  accessScope: null,
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -109,6 +120,7 @@ const galaxy2Workspace1: App = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-12-10T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-12-11T20:19:13.162484Z',
   },
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-98fe18f7b6e9', // galaxyDisk2Workspace1
@@ -122,6 +134,8 @@ const galaxy2Workspace1: App = {
 };
 
 const cromwell1Workspace1: App = {
+  workspaceId: null,
+  accessScope: null,
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -131,6 +145,7 @@ const cromwell1Workspace1: App = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-12-10T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-12-11T20:19:13.162484Z',
   },
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-55fe36f5b4e8', // cromwellDisk1Workspace1
@@ -149,6 +164,7 @@ const galaxyDiskUpdatedPd: DecoratedPersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
@@ -174,6 +190,7 @@ const galaxyDeletingDisk: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-30T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-30T20:19:14.114Z',
   },
   blockSize: 4096,
@@ -194,6 +211,7 @@ const galaxyDeletingDiskUpdatedPd: DecoratedPersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-30T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-30T20:19:14.114Z',
   },
   blockSize: 4096,
@@ -218,6 +236,7 @@ const cromwellUnattachedDisk: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-30T02:21:00.705505Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-30T02:21:00.705505Z',
   },
   blockSize: 4096,
@@ -238,6 +257,7 @@ const cromwellUnattachedDiskUpdatedPd: DecoratedPersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-30T02:21:00.705505Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-30T02:21:00.705505Z',
   },
   blockSize: 4096,
@@ -263,6 +283,7 @@ const cromwellProvisioningDisk: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:28:01.998494Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:28:03.109Z',
   },
   blockSize: 4096,
@@ -283,6 +304,7 @@ const cromwellProvisioningDiskUpdatedPd: DecoratedPersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:28:01.998494Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:28:03.109Z',
   },
   blockSize: 4096,
@@ -307,6 +329,7 @@ const jupyterDisk: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-12-02T16:38:13.777424Z',
+    destroyedDate: null,
     dateAccessed: '2021-12-02T16:40:23.464Z',
   },
   blockSize: 4096,
@@ -326,6 +349,7 @@ const galaxyDisk1Workspace1: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-30T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-12-10T20:19:14.114Z',
   },
   blockSize: 4096,
@@ -346,6 +370,7 @@ const galaxyDisk2Workspace1: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-28T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
@@ -366,6 +391,7 @@ const galaxyDisk3Workspace2: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-26T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   cloudContext: {
@@ -386,6 +412,7 @@ const cromwellDisk1Workspace1: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-26T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
@@ -428,6 +455,8 @@ const nonCreatorWorkspaceAfterWPP = {
 };
 
 const cromwellError: App = {
+  workspaceId: null,
+  accessScope: null,
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -437,6 +466,7 @@ const cromwellError: App = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-28T20:28:01.998494Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-28T20:28:01.998494Z',
   },
   diskName: 'saturn-pd-693a9707-634d-4134-bb3a-xyz73cd5a8ce',

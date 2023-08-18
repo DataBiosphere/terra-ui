@@ -250,6 +250,7 @@ export const getRandomInt = (max) => Math.floor(Math.random() * max);
 export const defaultAuditInfo = {
   creator: 'testuser123@broad.com',
   createdDate: '2022-07-18T18:35:32.012698Z',
+  destroyedDate: null,
   dateAccessed: '2022-07-18T21:44:17.565Z',
 };
 
@@ -358,7 +359,7 @@ export const getGoogleDataProcRuntime = ({
     auditInfo: {
       creator: 'broadterraui@gmail.com',
       createdDate: '2023-05-24T20:38:27.993689Z',
-      destroyedDate: undefined,
+      destroyedDate: null,
       dateAccessed: '2023-05-24T20:38:28.651Z',
     },
     runtimeConfig,
@@ -466,6 +467,8 @@ export const getGoogleRuntime = ({
 };
 
 export const galaxyRunning: App = {
+  workspaceId: null,
+  accessScope: null,
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -475,6 +478,7 @@ export const galaxyRunning: App = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:19:13.162484Z',
   },
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
@@ -488,6 +492,8 @@ export const galaxyRunning: App = {
 };
 
 export const galaxyDeleting: App = {
+  workspaceId: null,
+  accessScope: null,
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -497,6 +503,7 @@ export const galaxyDeleting: App = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-30T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-30T20:19:13.162484Z',
   },
   diskName: 'saturn-pd-1236594ac-d829-423d-a8df-76fe96f5897',
@@ -510,6 +517,8 @@ export const galaxyDeleting: App = {
 };
 
 export const generateTestApp = (overrides: Partial<App>): App => ({
+  workspaceId: null,
+  accessScope: null,
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -519,6 +528,7 @@ export const generateTestApp = (overrides: Partial<App>): App => ({
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:19:13.162484Z',
   },
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
@@ -536,6 +546,8 @@ export const generateTestAppWithGoogleWorkspace = (
   overrides: Partial<App> = {},
   workspace: GoogleWorkspace = defaultGoogleWorkspace
 ): App => ({
+  workspaceId: null,
+  accessScope: null,
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: workspace.workspace.googleProject,
@@ -545,6 +557,7 @@ export const generateTestAppWithGoogleWorkspace = (
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:19:13.162484Z',
   },
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
@@ -565,6 +578,8 @@ export const generateTestAppWithAzureWorkspace = (
   overrides: Partial<App> = {},
   workspace: AzureWorkspace = defaultAzureWorkspace
 ): App => ({
+  workspaceId: null,
+  accessScope: null,
   cloudContext: {
     cloudProvider: 'AZURE',
     cloudResource: `${workspace.azureContext.tenantId}/${workspace.azureContext.subscriptionId}/${workspace.azureContext.managedResourceGroupId}`,
@@ -574,6 +589,7 @@ export const generateTestAppWithAzureWorkspace = (
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:19:13.162484Z',
   },
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
@@ -597,6 +613,7 @@ export const generateTestDiskWithGoogleWorkspace = (
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
@@ -625,6 +642,7 @@ export const generateTestDiskWithAzureWorkspace = (
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
@@ -650,6 +668,7 @@ export const generateTestDisk = (overrides: Partial<PersistentDisk> = {}): Persi
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
@@ -671,6 +690,7 @@ export const galaxyDisk: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
@@ -699,6 +719,7 @@ export const azureDisk: PersistentDisk = {
   auditInfo: {
     creator: 'test.user@gmail.com',
     createdDate: '2023-02-01T20:40:50.428281Z',
+    destroyedDate: null,
     dateAccessed: '2023-02-01T20:41:00.357Z',
   },
   size: 50,
@@ -724,6 +745,7 @@ export const azureRuntime: ListRuntimeItem = {
   auditInfo: {
     creator: 'testuser123@broad.com',
     createdDate: '2023-02-01T20:40:50.428281Z',
+    destroyedDate: null,
     dateAccessed: '2023-02-01T20:41:00.357Z',
   },
   runtimeConfig: {
@@ -760,6 +782,7 @@ export const dataprocRuntime: ListRuntimeItem = {
   auditInfo: {
     creator: 'jcanas@broadinstitute.org',
     createdDate: '2023-05-03T19:53:22.510154Z',
+    destroyedDate: null,
     dateAccessed: '2023-05-03T19:53:23.559367Z',
   },
   runtimeConfig: {

@@ -30,6 +30,7 @@ const jupyterDisk: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-12-02T16:38:13.777424Z',
+    destroyedDate: null,
     dateAccessed: '2021-12-02T16:40:23.464Z',
   },
   blockSize: 4096,
@@ -379,7 +380,7 @@ describe('getPersistentDiskCostMonthly', () => {
         creator: 'trock@broadinstitute.org',
         createdDate: '2020-10-13T15:00:00.000Z',
         dateAccessed: '2020-10-13T15:00:00.000Z',
-        destroyedDate: undefined,
+        destroyedDate: null,
       },
       // diskType: googlePdTypes.standard,
     };
