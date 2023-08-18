@@ -1,5 +1,5 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { act, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { useState } from 'react';
@@ -329,7 +329,7 @@ describe('DataTable', () => {
     await user.click(columnMenu);
 
     // Filter
-    await user.type(screen.getByLabelText('Exact match filter'), 'even');
+    fireEvent.change(screen.getByLabelText('Exact match filter'), { target: { value: 'even' } });
 
     const menuModal = screen.getByRole('dialog');
     const searchButton = within(menuModal).getByRole('button', { name: 'Search' });
@@ -404,7 +404,7 @@ describe('DataTable', () => {
     await user.click(columnMenu);
 
     // Filter
-    await user.type(screen.getByLabelText('Exact match filter'), 'even');
+    fireEvent.change(screen.getByLabelText('Exact match filter'), { target: { value: 'even' } });
 
     const menuModal = screen.getByRole('dialog');
     const searchButton = within(menuModal).getByRole('button', { name: 'Search' });
