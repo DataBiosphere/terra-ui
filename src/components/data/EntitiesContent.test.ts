@@ -317,6 +317,7 @@ describe('EntitiesContent', () => {
     expect(clipboard.writeText).toHaveBeenCalledWith('entity:sample_id\nsample_1\n');
   });
 
+
   it('downloads selection to tsv', async () => {
     // Arrange
     const user = userEvent.setup();
