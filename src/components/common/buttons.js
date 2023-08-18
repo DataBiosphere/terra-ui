@@ -1,6 +1,6 @@
+import { useTheme } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import colors from 'src/libs/colors';
 
 import { Clickable } from './Clickable';
 
@@ -17,6 +17,7 @@ const buttonStyle = {
 };
 
 export const ButtonPrimary = ({ disabled, danger = false, children, ...props }) => {
+  const { colors } = useTheme();
   return h(
     Clickable,
     _.merge(
@@ -40,6 +41,7 @@ export const ButtonPrimary = ({ disabled, danger = false, children, ...props }) 
 };
 
 export const ButtonSecondary = ({ disabled, children, ...props }) => {
+  const { colors } = useTheme();
   return h(
     Clickable,
     _.merge(
@@ -59,6 +61,7 @@ export const ButtonSecondary = ({ disabled, children, ...props }) => {
 };
 
 export const ButtonOutline = ({ disabled, children, ...props }) => {
+  const { colors } = useTheme();
   return h(
     ButtonPrimary,
     _.merge(

@@ -21,6 +21,8 @@ module.exports = {
     'react/destructuring-assignment': 'off',
     // Use TypeScript instead of PropTypes for new code.
     'react/forbid-prop-types': 'off',
+    // Allow writing components as arrow functions.
+    'react/function-component-definition': 'off',
     'react/prop-types': 'off',
     'react/require-default-props': 'off',
     'react/sort-comp': 'off',

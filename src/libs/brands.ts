@@ -1,3 +1,4 @@
+import { Theme } from '@terra-ui-packages/components';
 import anvilLogo from 'src/images/brands/anvil/ANVIL-Logo.svg';
 import anvilLogoWhite from 'src/images/brands/anvil/ANVIL-Logo-White.svg';
 import baselineLogo from 'src/images/brands/baseline/baseline-logo-color.svg';
@@ -60,7 +61,23 @@ export interface BrandConfiguration {
 
   /** Optionally filter which datasets show up in the Data Catalog */
   catalogDataCollectionsToInclude?: string[];
+
+  /** Theme for components */
+  theme: Theme;
 }
+
+const baseColors = {
+  primary: '#74ae43', // Used as accent on header, loading spinner, background of beta version tag and some buttons
+  secondary: '#6d6e70', // Used as footer background
+  accent: '#4d72aa', // Used as button backgrounds, headers, links
+  success: '#74ae43',
+  warning: '#f7981c',
+  danger: '#db3214',
+  light: '#e9ecef', // Used as header background color, lightened for background of cells, panels, etc.
+  dark: '#333f52', // Used as text color, menu background (lightened), selected background (lightened)
+  grey: '#808080',
+  disabled: '#b6b7b8',
+};
 
 /**
  * Configuration for Terra co-brands (a.k.a. white label sites)
@@ -84,6 +101,9 @@ export const brands: Record<string, BrandConfiguration> = {
       color: anvilLogo,
       white: anvilLogoWhite,
     },
+    theme: {
+      colorPalette: { ...baseColors, primary: '#e0dd10', accent: '#035c94', light: '#f6f7f4', dark: '#012840' },
+    },
   },
   baseline: {
     name: 'Project Baseline',
@@ -101,6 +121,9 @@ export const brands: Record<string, BrandConfiguration> = {
     logos: {
       color: baselineLogo,
       white: baselineLogoWhite,
+    },
+    theme: {
+      colorPalette: { ...baseColors, primary: '#c41061', secondary: '#31164c', light: '#f6f7f4', dark: '#012840' },
     },
   },
   bioDataCatalyst: {
@@ -120,6 +143,16 @@ export const brands: Record<string, BrandConfiguration> = {
       color: bioDataCatalystLogo,
       white: bioDataCatalystLogoWhite,
     },
+    theme: {
+      colorPalette: {
+        ...baseColors,
+        primary: '#c0143c',
+        secondary: '#1a568c',
+        accent: '#1a568c',
+        light: '#f4f4f6',
+        dark: '#12385a',
+      },
+    },
   },
   datastage: {
     name: 'DataStage',
@@ -138,6 +171,16 @@ export const brands: Record<string, BrandConfiguration> = {
       color: datastageLogo,
       white: datastageLogoWhite,
     },
+    theme: {
+      colorPalette: {
+        ...baseColors,
+        primary: '#c02f42',
+        secondary: '#1a568c',
+        accent: '#1a568c',
+        light: '#f4f4f6',
+        dark: '#12385a',
+      },
+    },
   },
   elwazi: {
     name: 'eLwazi',
@@ -155,6 +198,16 @@ export const brands: Record<string, BrandConfiguration> = {
     logos: {
       color: elwaziLogo,
       white: elwaziLogoWhite,
+    },
+    theme: {
+      colorPalette: {
+        ...baseColors,
+        primary: '#c13f27',
+        secondary: '#c13f27',
+        dark: '#1d1d1b',
+        accent: '#6e3d3b',
+        success: '#9eb642',
+      },
     },
   },
   firecloud: {
@@ -182,6 +235,9 @@ export const brands: Record<string, BrandConfiguration> = {
       color: fcLogo,
       white: fcLogoWhite,
     },
+    theme: {
+      colorPalette: { ...baseColors, primary: '#4d72aa' },
+    },
   },
   projectSingular: {
     name: 'Project Singular',
@@ -199,6 +255,9 @@ export const brands: Record<string, BrandConfiguration> = {
     logos: {
       color: projectSingularLogo,
       white: projectSingularLogoWhite,
+    },
+    theme: {
+      colorPalette: { ...baseColors, primary: '#521b93', secondary: '#011c48', accent: '#521b93' },
     },
   },
   rareX: {
@@ -225,6 +284,16 @@ export const brands: Record<string, BrandConfiguration> = {
       color: rareXLogo,
       white: rareXLogoWhite,
     },
+    theme: {
+      colorPalette: {
+        ...baseColors,
+        primary: '#26355c',
+        secondary: '#26355c',
+        dark: '#414042',
+        accent: '#4e6888',
+        light: '#f4efea',
+      },
+    },
   },
   terra: {
     name: 'Terra',
@@ -247,6 +316,9 @@ export const brands: Record<string, BrandConfiguration> = {
       color: terraLogo,
       white: terraLogoWhite,
       shadow: terraLogoShadow,
+    },
+    theme: {
+      colorPalette: { ...baseColors },
     },
   },
 };

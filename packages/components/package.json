@@ -23,6 +23,7 @@
     "lib/types/**"
   ],
   "dependencies": {
+    "color": "^4.0.1",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
