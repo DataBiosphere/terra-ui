@@ -44,9 +44,12 @@ export const mapToUndecoratedPds = (disks: DecoratedPersistentDisk[]): Persisten
 // Dataproc clusters don't have persistent disks.
 export const defaultDataprocMasterDiskSize = 150;
 export const defaultDataprocWorkerDiskSize = 150;
-// Since Leonardo started supporting persistent disks (PDs) for GCE VMs, boot disk size for a GCE VM
-// with a PD has been non-user-customizable. Terra UI uses the value below for cost estimate calculations only.
+
+// For cost estimates only! Leonardo does not honor the bootDiskSize parameter in the createRuntime API.
+// Boot disks are sized by a param in Leonardo config:
+// https://github.com/DataBiosphere/leonardo/blob/0286480ee752e71eb32de64e93066e5d3d8fb22d/http/src/main/resources/reference.conf#L126
 export const defaultGceBootDiskSize = 250;
+
 export const defaultGcePersistentDiskSize = 50;
 export const defaultPersistentDiskType = googlePdTypes.standard;
 export const getCurrentAttachedDataDisk = (
