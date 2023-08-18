@@ -6,7 +6,7 @@ import { CloudProvider } from 'src/libs/workspace-utils';
 export interface AuditInfo {
   creator: string;
   createdDate: string;
-  destroyedDate?: string;
+  destroyedDate: string | null;
   dateAccessed: string;
 }
 

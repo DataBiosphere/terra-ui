@@ -126,10 +126,12 @@ describe('useWdsStatus', () => {
       },
       appName: 'wds-6601fdbb-4b53-41da-87b2-81385f4a760e',
       appType: 'WDS',
+      // @ts-expect-error Leo app types do not reflect actual API responses.
       diskName: null,
       auditInfo: {
         creator: 'userWexample.com',
         createdDate: '2023-07-11T18:59:09.369822Z',
+        // @ts-expect-error Leo app types do not reflect actual API responses.
         destroyedDate: null,
         dateAccessed: '2023-07-11T18:59:09.369822Z',
       },
