@@ -1,4 +1,5 @@
 import { AnyPromiseFn } from '@terra-ui-packages/core-utils';
+import { User } from 'oidc-client-ts';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import * as Utils from 'src/libs/utils';
 import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
@@ -19,7 +20,7 @@ export const authStore = Utils.atom<any>({
   isAzurePreviewUser: undefined,
 });
 
-export const getUser = () => authStore.get().user;
+export const getUser: User = () => authStore.get().user;
 
 export const userStatus = {
   unregistered: 'unregistered',

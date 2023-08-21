@@ -76,6 +76,7 @@ const eventsList = {
   permissionsSynchronizationDelayDisplayed: 'permissions:propagationDelay',
   resourceLeave: 'resource:leave',
   userLogin: 'user:login',
+  userLogout: 'user:logout',
   userRegister: 'user:register',
   workflowClearIO: 'workflow:clearIO',
   workflowImport: 'workflow:import',

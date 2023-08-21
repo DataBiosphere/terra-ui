@@ -1,6 +1,6 @@
 import { parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
-import { UserManager, WebStorageStateStore } from 'oidc-client-ts';
+import { User, UserManager, WebStorageStateStore } from 'oidc-client-ts';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
 import { Ajax } from 'src/libs/ajax';
 import { fetchOk } from 'src/libs/ajax/ajax-common';
@@ -57,12 +57,14 @@ const isGoogleAuthority = () => {
   return _.startsWith('https://accounts.google.com', authStore.get().oidcConfig.authorityEndpoint);
 };
 
-const getAuthInstance = () => {
+const getAuthInstance = (): any => {
   return authStore.get().authContext;
 };
 
 export const signOut = () => {
   // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
+  const user: User = getUser();
+  Ajax().Metrics.captureEvent(Events.userLogout, { user });
   cookieReadyStore.reset();
   azureCookieReadyStore.reset();
   getSessionStorage().clear();
@@ -109,7 +111,7 @@ const getSigninArgs = (includeBillingScope) => {
 
 export const signIn = async (includeBillingScope = false) => {
   const args = getSigninArgs(includeBillingScope);
-  const user = await getAuthInstance().signinPopup(args);
+  const user: User = await getAuthInstance().signinPopup(args);
 
   // For B2C record in the auth store whether we requested the GCP cloud-billing scope since there
   // is no way to determine it after the fact.
@@ -137,7 +139,9 @@ export const hasBillingScope = () => {
     // For Google check the scope directly on the user object.
     [isGoogleAuthority(), () => _.includes('https://www.googleapis.com/auth/cloud-billing', getUser().scope)],
     // For B2C check the hasGcpBillingScopeThroughB2C field in the auth store.
-    () => authStore.get().hasGcpBillingScopeThroughB2C === true
+    // This is naughty - don't use `any`, but for now it's fine
+    // eslint-disable-line @typescript-eslint/no-explicit-any
+    () => (authStore.get() as any).hasGcpBillingScopeThroughB2C === true
   );
 };
 
@@ -168,7 +172,10 @@ export const ensureBillingScope = async () => {
 };
 
 const becameRegistered = (oldState, state) => {
-  return oldState.registrationStatus !== userStatus.registeredWithTos && state.registrationStatus === userStatus.registeredWithTos;
+  return (
+    oldState.registrationStatus !== userStatus.registeredWithTos &&
+    state.registrationStatus === userStatus.registeredWithTos
+  );
 };
 
 export const isAuthSettled = ({ isSignedIn, registrationStatus }) => {
@@ -228,7 +235,9 @@ export const processUser = (user, isSignInEvent) => {
       fenceStatus: isSignedIn ? state.fenceStatus : {},
       // Load whether a user has input a cookie acceptance in a previous session on this system,
       // or whether they input cookie acceptance previously in this session
-      cookiesAccepted: isSignedIn ? state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey) : undefined,
+      cookiesAccepted: isSignedIn
+        ? state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey)
+        : undefined,
       isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
       hasGcpBillingScopeThroughB2C: isSignedIn ? state.hasGcpBillingScopeThroughB2C : undefined,
       // A user is an Azure preview user if state.isAzurePreviewUser is set to true (in Sam group or environment where we don't restrict)
@@ -275,7 +284,9 @@ export const initializeClientId = _.memoize(async () => {
 // This is intended for tests to short circuit the login flow
 window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) => {
   await initializeAuth(); // don't want this clobbered when real auth initializes
-  const res = await fetchOk('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${token}` } });
+  const res = await fetchOk('https://www.googleapis.com/oauth2/v3/userinfo', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   const data = await res.json();
   authStore.update((state) => {
     return {
@@ -305,7 +316,9 @@ authStore.subscribe(
         const { enabled } = await Ajax().User.getStatus();
         if (enabled) {
           // When Terra is first loaded, termsOfService.permitsSystemUsage will be undefined while the user's ToS status is fetched from Sam
-          return state.termsOfService.permitsSystemUsage ? userStatus.registeredWithTos : userStatus.registeredWithoutTos;
+          return state.termsOfService.permitsSystemUsage
+            ? userStatus.registeredWithTos
+            : userStatus.registeredWithoutTos;
         }
         return userStatus.disabled;
       } catch (error) {

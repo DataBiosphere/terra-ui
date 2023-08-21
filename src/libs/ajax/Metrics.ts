@@ -23,6 +23,7 @@ export const Metrics = (signal?: AbortSignal) => {
       event,
       properties: {
         ...details,
+        // TODO: Sup with this logic yo?
         distinct_id: isRegistered ? undefined : authStore.get().anonymousId,
         appId: 'Saturn',
         hostname: window.location.hostname,
