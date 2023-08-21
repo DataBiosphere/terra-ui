@@ -91,7 +91,7 @@ const AzureWarning = () => {
   return TitleBarWarning(warningMessage);
 };
 
-const GooglePermissionsWarning = () => {
+const GooglePermissionsSpinner = () => {
   const warningMessage = [
     'Terra is securing access to your data. This may take a couple moments.',
     h(
@@ -247,7 +247,7 @@ export const WorkspaceContainer = ({
         setShowLockWorkspaceModal,
       }),
     workspaceLoaded && isAzureWorkspace(workspace) && h(AzureWarning),
-    true && h(GooglePermissionsWarning),
+    isGoogleWorkspaceSyncing && h(GooglePermissionsSpinner),
     div({ role: 'main', style: Style.elements.pageContentContainer }, [
       div({ style: { flex: 1, display: 'flex' } }, [
         div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]),

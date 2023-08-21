@@ -29,7 +29,7 @@ const makeBaseSpinner = ({ outerStyles = {}, innerStyles = {} }) =>
 const makeInlineSpinner = ({ outerStyles = {}, innerStyles = {} }) =>
   div(
     {
-      'data-testId': 'inline-spinner',
+      'data-testid': 'inline-spinner',
       style: {
         position: 'relative',
         display: 'flex',
