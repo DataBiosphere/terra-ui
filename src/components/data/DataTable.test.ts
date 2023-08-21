@@ -49,6 +49,8 @@ jest.mock('react-virtualized', (): ReactVirtualizedExports => {
   };
 });
 
+// Returns a filtered subset of |entities| if a filter is included - more than one page
+// Else 100-item pages depending on page number
 const getPage = jest
   .fn()
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
