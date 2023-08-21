@@ -1,7 +1,6 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act } from '@testing-library/react';
 import { generateTestApp } from 'src/analysis/_testData/testData';
-import { mockListAppsReturn } from 'src/analysis/Environments.test';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 import { AzureWorkspaceInfo, BaseWorkspace, GoogleWorkspaceInfo } from 'src/libs/workspace-utils';
@@ -72,14 +71,12 @@ describe('useDeleteWorkspaceState', () => {
     const mockApps: Partial<AjaxAppsContract> = {
       listWithoutProject: jest.fn(),
     };
-    asMockedFn((mockApps as AjaxAppsContract).listWithoutProject).mockResolvedValue(
-      mockListAppsReturn(
-        generateTestApp({
-          appName: 'app1',
-          status: 'RUNNING',
-        })
-      )
-    );
+    asMockedFn((mockApps as AjaxAppsContract).listWithoutProject).mockResolvedValue([
+      generateTestApp({
+        appName: 'app1',
+        status: 'RUNNING',
+      }),
+    ]);
 
     const mockGetAcl = jest.fn().mockResolvedValue({ acl: { 'example1@example.com': {} } });
     const mockGetBucketUsage = jest.fn().mockResolvedValue({ usageInBytes: 1234 });
@@ -120,14 +117,12 @@ describe('useDeleteWorkspaceState', () => {
     const mockListAppsV2: Partial<AjaxAppsContract> = {
       listAppsV2: jest.fn(),
     };
-    asMockedFn((mockListAppsV2 as AjaxAppsContract).listAppsV2).mockResolvedValue(
-      mockListAppsReturn(
-        generateTestApp({
-          appName: 'example',
-          status: 'PROVISIONING',
-        })
-      )
-    );
+    asMockedFn((mockListAppsV2 as AjaxAppsContract).listAppsV2).mockResolvedValue([
+      generateTestApp({
+        appName: 'example',
+        status: 'PROVISIONING',
+      }),
+    ]);
     const mockListRuntimesV2: Partial<AjaxRuntimesContract> = {
       listV2WithWorkspace: jest.fn(),
     };
@@ -285,14 +280,12 @@ describe('useDeleteWorkspaceState', () => {
       listAppsV2: jest.fn(),
       deleteAllAppsV2: jest.fn(),
     };
-    asMockedFn((mockListAppsV2 as AjaxAppsContract).listAppsV2).mockResolvedValue(
-      mockListAppsReturn(
-        generateTestApp({
-          appName: 'app1',
-          status: 'PROVISIONING',
-        })
-      )
-    );
+    asMockedFn((mockListAppsV2 as AjaxAppsContract).listAppsV2).mockResolvedValue([
+      generateTestApp({
+        appName: 'app1',
+        status: 'PROVISIONING',
+      }),
+    ]);
     const mockListRuntimesV2: Partial<AjaxRuntimesContract> = {
       listV2WithWorkspace: jest.fn(),
     };
