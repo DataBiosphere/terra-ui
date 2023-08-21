@@ -76,6 +76,8 @@ export const signOut = () => {
 };
 
 export const signOutAfterSessionTimeout = () => {
+  const user: User = getUser();
+  Ajax().Metrics.captureEvent(Events.userTimeoutLogout, { user });
   signOut();
   notify('info', 'Session timed out', sessionTimeoutProps);
 };

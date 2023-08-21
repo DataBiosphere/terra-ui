@@ -78,6 +78,7 @@ const eventsList = {
   userLogin: 'user:login',
   userLogout: 'user:logout',
   userRegister: 'user:register',
+  userTimeoutLogout: 'user:timeoutLogout',
   workflowClearIO: 'workflow:clearIO',
   workflowImport: 'workflow:import',
   workflowLaunch: 'workflow:launch',
