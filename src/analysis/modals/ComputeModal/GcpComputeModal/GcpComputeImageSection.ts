@@ -46,7 +46,7 @@ export const GcpComputeImageSection: React.FC<GcpComputeImageSectionProps> = (pr
         setSelectedComputeImageUrl(currentImageUrl);
       } else {
         const defaultImageId: string = runtimeTools[tool].defaultImageId;
-        const defaultImageUrl: string = allImages.find(({ id }) => id === defaultImageId)?.image ?? '';
+        const defaultImageUrl: string = allImages.find(({ id }) => id === defaultImageId)?.url ?? '';
         setSelectedComputeImageUrl(defaultImageUrl);
       }
     }

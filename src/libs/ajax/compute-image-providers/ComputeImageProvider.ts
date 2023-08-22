@@ -1,5 +1,10 @@
 import { ComputeImage } from 'src/analysis/useComputeImages';
-import { getToolLabelForImage, runtimeToolLabels, terraSupportedRuntimeImageIds } from 'src/analysis/utils/tool-utils';
+import {
+  getToolLabelForImage,
+  isRuntimeToolLabel,
+  runtimeToolLabels,
+  terraSupportedRuntimeImageIds,
+} from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
 
@@ -7,20 +12,68 @@ export interface ComputeImageProviderContract {
   listImages: (googleProject: string, signal?: AbortSignal) => Promise<ComputeImage[]>;
 }
 
-const normalizeImage: (image: Partial<ComputeImage>) => ComputeImage = (image) => {
-  const toolLabel = getToolLabelForImage(image.image);
+/**
+ * Refers to a docker image of a Terra VM.
+ * Sample response:
+     {
+        "id": "terra-jupyter-bioconductor",
+        "image": "us.gcr.io/broad-dsp-gcr-public/terra-jupyter-bioconductor:2.2.1",
+        "label": "R / Bioconductor: (Python 3.10.11, R 4.3.1, Bioconductor 3.17, tidyverse 2.0.0)",
+        "packages": "https://storage.googleapis.com/terra-docker-image-documentation/terra-jupyter-bioconductor-2.2.1-versions.json",
+        "requiresSpark": false,
+        "updated": "2023-07-13",
+        "version": "2.2.1"
+    },
+ */
+export interface ComputeImageRaw {
+  id: string;
+  image: string;
+  isCommunity?: boolean;
+  isRStudio?: boolean;
+  label: string;
+  packages: string;
+  requiresSpark: boolean;
+  updated: string;
+  version: string;
+}
+
+const normalizeImage: (rawImage: ComputeImageRaw) => ComputeImage = (rawImage) => {
+  const toolLabel = getToolLabelForImage(rawImage.image);
+  if (toolLabel && !isRuntimeToolLabel(toolLabel)) {
+    throw Error('Compute images are not supported for non-Runtime tools');
+  }
+  const isRStudio = toolLabel === runtimeToolLabels.RStudio;
+
+  /* eslint-disable */
+  //prettier-ignore
+  const {
+    id,
+    image: url,
+    isCommunity = false,
+    label,
+    packages,
+    requiresSpark,
+    updated,
+    version,
+  } = rawImage;
+
   return {
-    ...image,
-    isCommunity: !!image.isCommunity,
-    isRStudio: toolLabel === runtimeToolLabels.RStudio,
+    id,
+    url,
+    isCommunity,
+    isRStudio,
     toolLabel,
-    url: image.image,
+    label,
+    packages,
+    requiresSpark,
+    updated,
+    version,
   };
 };
 
 export const ComputeImageProvider: ComputeImageProviderContract = {
   listImages: async (googleProject: string, signal?: AbortSignal): Promise<ComputeImage[]> => {
-    const fetchedImages: Partial<ComputeImage>[] = await Ajax(signal)
+    const fetchedImages: ComputeImageRaw[] = await Ajax(signal)
       .Buckets.getObjectPreview(
         googleProject,
         getConfig().terraDockerImageBucket,
