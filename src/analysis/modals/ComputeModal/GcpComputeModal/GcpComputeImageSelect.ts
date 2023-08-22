@@ -10,10 +10,15 @@ export interface GcpComputeImageSelectProps {
   readonly customOptionUrl: string;
 }
 
+interface ImageSelectOption {
+  label: string;
+  value: string;
+}
+
 export const GcpComputeImageSelect: React.FC<GcpComputeImageSelectProps> = (props: GcpComputeImageSelectProps) => {
   const { selectedComputeImageUrl, setSelectedComputeImageUrl, images, hasCustomOption, customOptionUrl } = props;
 
-  const filterImages = (predicate) =>
+  const filterImages: (Function) => ImageSelectOption[] = (predicate) =>
     _.flow(
       _.filter(predicate),
       _.map(({ label, image }) => ({ label, value: image }))
