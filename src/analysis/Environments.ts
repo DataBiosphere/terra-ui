@@ -796,7 +796,7 @@ export const Environments = ({ nav = undefined }: EnvironmentsProps) => {
                   const cloudEnvironment = filteredCloudEnvironments[rowIndex];
                   const computeType = isApp(cloudEnvironment) ? 'app' : 'runtime';
                   return h(Fragment, [
-                    h(PauseButton, { cloudEnvironment, currentUser, pauseComputeAndRefresh }),
+                    h(PauseButton, { cloudEnvironment, currentUser: currentUser!, pauseComputeAndRefresh }),
                     renderDeleteButton(computeType, cloudEnvironment),
                   ]);
                 },

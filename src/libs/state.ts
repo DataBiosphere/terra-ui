@@ -1,9 +1,57 @@
+import { AuthContextProps } from 'react-oidc-context';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import * as Utils from 'src/libs/utils';
 
 export const routeHandlersStore = Utils.atom([]);
 
-export const authStore = Utils.atom({
+type RegistrationStatus = 'unregistered' | 'registeredWithoutTos' | 'registered' | 'disabled';
+
+type LinkedAccount = {
+  username: string;
+  issued_at: string;
+};
+
+type TermsOfServiceStatus = {
+  permitsSystemUsage: boolean;
+  userHasAcceptedLatestTos: boolean;
+};
+
+// TODO: Improve this by splitting into multiple types for
+// uninitialized state, anonymous users, signed in users, etc.
+export type AuthState = {
+  anonymousId: string | undefined;
+  authContext: AuthContextProps | undefined;
+  cookiesAccepted: boolean | undefined;
+  fenceStatus: { [provider: string]: LinkedAccount };
+  hasGcpBillingScopeThroughB2C?: string | undefined;
+  isAzurePreviewUser?: boolean | undefined;
+  isSignedIn: boolean | undefined;
+  isTimeoutEnabled?: boolean | undefined;
+  nihStatus?: {
+    linkedNihUsername: string;
+    linkExpireTime: number;
+  };
+  oidcConfig: {
+    authorityEndpoint?: string;
+    clientId?: string;
+  };
+  profile: { [key: string]: string };
+  registrationStatus: RegistrationStatus | undefined;
+  termsOfService: TermsOfServiceStatus | {};
+  user: {
+    token?: string | undefined;
+    scope?: string | undefined;
+    id?: string | undefined;
+    email?: string | undefined;
+    name?: string | undefined;
+    givenName?: string | undefined;
+    familyName?: string | undefined;
+    imageUrl?: string | undefined;
+    idp?: string | undefined;
+  };
+};
+
+export const authStore = Utils.atom<AuthState>({
   isSignedIn: undefined,
   anonymousId: undefined,
   registrationStatus: undefined,
@@ -19,7 +67,7 @@ export const authStore = Utils.atom({
 
 export const getUser = () => authStore.get().user;
 
-export const userStatus = {
+export const userStatus: Record<string, RegistrationStatus> = {
   unregistered: 'unregistered',
   registeredWithoutTos: 'registeredWithoutTos',
   registeredWithTos: 'registered',
@@ -67,23 +115,21 @@ export const workflowSelectionStore = Utils.atom({
   entities: undefined,
 });
 
-/**
- * @typedef {Object} AsyncImportJob
- * @property {string} jobId
- * @property {Object} targetWorkspace
- * @property {string} targetWorkspace.namespace
- * @property {string} targetWorkspace.name
- */
+export type AsyncImportJob = {
+  jobId: string;
+  targetWorkspace: {
+    namespace: string;
+    name: string;
+  };
+};
 
-/** @type {Utils.Atom<AsyncImportJob[]>} */
-export const asyncImportJobStore = Utils.atom([]);
+export const asyncImportJobStore = Utils.atom<AsyncImportJob[]>([]);
 
 export const snapshotsListStore = Utils.atom();
 
 export const snapshotStore = Utils.atom();
 
-/** @type {Utils.Atom<any[]>} */
-export const dataCatalogStore = Utils.atom([]);
+export const dataCatalogStore = Utils.atom<any[]>([]);
 
 /*
  * Modifies ajax responses for testing purposes.
@@ -92,6 +138,7 @@ export const dataCatalogStore = Utils.atom([]);
  * If present, filter should be a RegExp that is matched against the url to target specific requests.
  */
 export const ajaxOverridesStore = Utils.atom();
+// @ts-expect-error
 window.ajaxOverridesStore = ajaxOverridesStore;
 
 /*
@@ -99,6 +146,7 @@ window.ajaxOverridesStore = ajaxOverridesStore;
  * Can be set to an object which will be merged with the loaded config object.
  */
 export const configOverridesStore = staticStorageSlot(getSessionStorage(), 'config-overrides');
+// @ts-expect-error
 window.configOverridesStore = configOverridesStore;
 
 // enum for status of app proxy url

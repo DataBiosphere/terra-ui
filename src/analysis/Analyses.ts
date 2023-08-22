@@ -500,7 +500,7 @@ export const BaseAnalyses = (
     )(async () => {
       const [currentUserHash, potentialLockers]: [string | undefined, any] = isGoogleWorkspace(workspace)
         ? await Promise.all([
-            notebookLockHash(workspace.workspace.bucketName, authState.user.email),
+            notebookLockHash(workspace.workspace.bucketName, authState.user.email!),
             findPotentialNotebookLockers(workspace),
           ])
         : await Promise.all([Promise.resolve(undefined), Promise.resolve([])]);
