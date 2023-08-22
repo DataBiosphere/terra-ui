@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
 import { b, div, fieldset, h, label, legend, p, span, strong } from 'react-hyperscript-helpers';
-import { buildExistingEnvironmentConfig, getImageUrl } from 'src/analysis/modal-utils';
+import { buildExistingEnvironmentConfig } from 'src/analysis/modal-utils';
 import { AboutPersistentDiskView } from 'src/analysis/modals/ComputeModal/AboutPersistentDiskView';
 import { GcpComputeImageSection } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSection';
 import { GcpPersistentDiskSection } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpPersistentDiskSection';
@@ -31,6 +31,7 @@ import {
   findMachineType,
   getAutopauseThreshold,
   getDefaultMachineType,
+  getImageUrlFromRuntime,
   getIsRuntimeBusy,
   getValidGpuOptions,
   getValidGpuTypesForZone,
@@ -699,7 +700,7 @@ export const GcpComputeModalBase = ({
   // Helper functions -- end
 
   useEffect(() => {
-    setCustomImageUrl(getImageUrl(currentRuntimeDetails));
+    setCustomImageUrl(getImageUrlFromRuntime(currentRuntimeDetails));
   }, [currentRuntimeDetails]);
 
   // Lifecycle

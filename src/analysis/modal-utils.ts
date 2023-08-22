@@ -1,8 +1,11 @@
-import { defaultDataprocMachineType, getDefaultMachineType } from 'src/analysis/utils/runtime-utils';
+import {
+  defaultDataprocMachineType,
+  getDefaultMachineType,
+  getImageUrlFromRuntime,
+} from 'src/analysis/utils/runtime-utils';
 import { getToolLabelFromCloudEnv } from 'src/analysis/utils/tool-utils';
 import { cloudServices } from 'src/data/gce-machines';
 import { GooglePdType, PersistentDisk, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
-import { GetRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 
 export interface IComputeConfig {
   diskSize: number;
@@ -42,7 +45,7 @@ export const buildExistingEnvironmentConfig = (
     runtime: currentRuntimeDetails
       ? {
           cloudService,
-          toolDockerImage: getImageUrl(currentRuntimeDetails),
+          toolDockerImage: getImageUrlFromRuntime(currentRuntimeDetails),
           tool: toolLabel,
           ...(currentRuntimeDetails?.jupyterUserScriptUri && {
             jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri,
@@ -79,12 +82,4 @@ export const buildExistingEnvironmentConfig = (
       ? { size: currentPersistentDiskDetails.size, diskType: currentPersistentDiskDetails.diskType }
       : undefined,
   };
-};
-
-/**
- * The first Jupyter or RStudio image URL on the provided runtime object.
- */
-export const getImageUrl = (runtimeDetails: Pick<GetRuntimeItem, 'runtimeImages'> | undefined) => {
-  const images = runtimeDetails?.runtimeImages ?? [];
-  return images.find(({ imageType }) => ['Jupyter', 'RStudio'].includes(imageType))?.imageUrl;
 };

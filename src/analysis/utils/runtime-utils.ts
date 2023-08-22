@@ -11,7 +11,12 @@ import {
   isGceConfig,
   isGceWithPdConfig,
 } from 'src/libs/ajax/leonardo/models/runtime-config-models';
-import { DisplayRuntimeStatus, LeoRuntimeStatus, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
+import {
+  DisplayRuntimeStatus,
+  GetRuntimeItem,
+  LeoRuntimeStatus,
+  Runtime,
+} from 'src/libs/ajax/leonardo/models/runtime-models';
 import * as Utils from 'src/libs/utils';
 import { CloudProvider } from 'src/libs/workspace-utils';
 
@@ -102,6 +107,15 @@ export const trimRuntimesOldestFirst = (runtimes: Runtime[]): Runtime[] => {
   const runtimesWithoutDeleting: Runtime[] = _.remove({ status: 'Deleting' }, runtimes);
   const sortedRuntimes: Runtime[] = _.sortBy('auditInfo.createdDate', runtimesWithoutDeleting);
   return sortedRuntimes;
+};
+
+/**
+ * The first Jupyter or RStudio image URL on the provided GCP runtime object.
+ */
+export const getImageUrlFromRuntime = (runtimeDetails: Pick<GetRuntimeItem, 'runtimeImages'> | undefined) => {
+  const images = runtimeDetails?.runtimeImages ?? [];
+  const gcpToolLabels = cloudRuntimeTools.GCP.map(({ label }) => label);
+  return images.find(({ imageType }) => gcpToolLabels.includes(imageType))?.imageUrl;
 };
 
 // Status note: undefined means still loading and no runtime
