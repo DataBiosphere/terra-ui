@@ -30,7 +30,6 @@ export const GcpComputeImageSelect: React.FC<GcpComputeImageSelectProps> = (prop
 
   return h(GroupedSelect, {
     'aria-label': 'Select Environment',
-    maxMenuHeight: 25,
     value: selectedComputeImageUrl,
     onChange: ({ value }: SingleValue<any>) => {
       setSelectedComputeImageUrl(value);
@@ -58,6 +57,6 @@ export const GcpComputeImageSelect: React.FC<GcpComputeImageSelectProps> = (prop
             },
           ]
         : []),
-    ],
+    ].filter(({ options }) => options?.length),
   });
 };

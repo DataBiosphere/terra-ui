@@ -7,19 +7,6 @@ import { useCancellation, useStore } from 'src/libs/react-utils';
 import { workspaceStore } from 'src/libs/state';
 import { isGoogleWorkspaceInfo, WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
 
-/**
- * Refers to a docker image of a Terra VM.
- * Sample response:
-     {
-        "id": "terra-jupyter-bioconductor",
-        "image": "us.gcr.io/broad-dsp-gcr-public/terra-jupyter-bioconductor:2.2.1",
-        "label": "R / Bioconductor: (Python 3.10.11, R 4.3.1, Bioconductor 3.17, tidyverse 2.0.0)",
-        "packages": "https://storage.googleapis.com/terra-docker-image-documentation/terra-jupyter-bioconductor-2.2.1-versions.json",
-        "requiresSpark": false,
-        "updated": "2023-07-13",
-        "version": "2.2.1"
-    },
- */
 export interface ComputeImage {
   id: string;
   url: string;
