@@ -1,4 +1,3 @@
-import _ from 'lodash/fp';
 import { ComputeImage } from 'src/analysis/useComputeImages';
 import { terraSupportedRuntimeImageIds } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
@@ -35,10 +34,8 @@ export const ComputeImageProvider: ComputeImageProviderContract = {
       )
       .then((r) => r.json());
 
-    const supportedImages = _.flow(
-      _.filter(({ id }) => terraSupportedRuntimeImageIds.includes(id)),
-      _.map(({ image }) => image)
-    )(fetchedImages);
+    const isImageSupported = ({ id }): boolean => terraSupportedRuntimeImageIds.includes(id);
+    const supportedImages: ComputeImage[] = fetchedImages.filter(isImageSupported);
     return supportedImages;
   },
 };
