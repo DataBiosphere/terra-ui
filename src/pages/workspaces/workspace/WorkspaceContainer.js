@@ -7,9 +7,9 @@ import RuntimeManager from 'src/analysis/RuntimeManager';
 import { getDiskAppType } from 'src/analysis/utils/app-utils';
 import { mapToPdTypes } from 'src/analysis/utils/disk-utils';
 import { getConvertedRuntimeStatus, getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
-import { ButtonPrimary, inlineSpinnerWithInnerStyles, Link, spinnerOverlay } from 'src/components/common';
+import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { icon } from 'src/components/icons';
+import { icon, spinner } from 'src/components/icons';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import { TabBar } from 'src/components/tabBars';
@@ -77,7 +77,17 @@ const TitleBarWarning = (messageComponents) => {
 const TitleBarSpinner = (messageComponents) => {
   return h(TitleBar, {
     title: div({ role: 'alert', style: { display: 'flex', alignItems: 'center' } }, [
-      inlineSpinnerWithInnerStyles({ backgroundColor: colors.accent(0.35) }),
+      spinner({
+        size: 64,
+        style: {
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          backgroundColor: colors.accent(0.35),
+          padding: '1rem',
+          borderRadius: '0.5rem',
+        },
+      }),
       span({ style: { color: colors.dark(), fontSize: 14 } }, messageComponents),
     ]),
     style: { backgroundColor: colors.accent(0.35), borderBottom: `1px solid ${colors.accent()}` },

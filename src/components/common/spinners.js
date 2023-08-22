@@ -26,25 +26,6 @@ const makeBaseSpinner = ({ outerStyles = {}, innerStyles = {} }) =>
     ]
   );
 
-const makeInlineSpinner = ({ outerStyles = {}, innerStyles = {} }) =>
-  div(
-    {
-      'data-testid': 'inline-spinner',
-      style: {
-        position: 'relative',
-        display: 'flex',
-        alignItems: 'center',
-        ...outerStyles,
-      },
-    },
-    [
-      centeredSpinner({
-        size: 64,
-        style: { backgroundColor: 'rgba(255, 255, 255, 0.85)', padding: '1rem', borderRadius: '0.5rem', ...innerStyles },
-      }),
-    ]
-  );
-
 export const spinnerOverlay = makeBaseSpinner({});
 
 export const absoluteSpinnerOverlay = makeBaseSpinner({ innerStyles: { position: 'absolute' } });
@@ -56,5 +37,3 @@ export const transparentSpinnerOverlay = makeBaseSpinner({ innerStyles: { backgr
 export const topSpinnerOverlay = makeBaseSpinner({ innerStyles: { marginTop: 150 } });
 
 export const customSpinnerOverlay = (outerStyles = {}, innerStyles = {}) => makeBaseSpinner({ outerStyles, innerStyles });
-
-export const inlineSpinnerWithInnerStyles = (innerStyles) => makeInlineSpinner({ innerStyles });
