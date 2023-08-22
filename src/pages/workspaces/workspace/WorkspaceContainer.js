@@ -83,14 +83,14 @@ const TitleBarSpinner = (messageComponents) => {
           position: 'relative',
           display: 'flex',
           alignItems: 'center',
-          backgroundColor: colors.accent(0.35),
+          backgroundColor: colors.warning(0.1),
           padding: '1rem',
           borderRadius: '0.5rem',
         },
       }),
       span({ style: { color: colors.dark(), fontSize: 14 } }, messageComponents),
     ]),
-    style: { backgroundColor: colors.accent(0.35), borderBottom: `1px solid ${colors.accent()}` },
+    style: { backgroundColor: colors.warning(0.1), borderBottom: `1px solid ${colors.warning()}` },
   });
 };
 
@@ -110,7 +110,7 @@ const GooglePermissionsSpinner = () => {
         href: 'https://support.terra.bio/hc/en-us/community/posts/12380560785819-Delays-in-Google-IAM-permissions-propagating',
         ...Utils.newTabLinkProps,
       },
-      [div(['Learn more here.'])]
+      [div(['Learn more here. ', icon('pop-out')])]
     ),
   ];
 
