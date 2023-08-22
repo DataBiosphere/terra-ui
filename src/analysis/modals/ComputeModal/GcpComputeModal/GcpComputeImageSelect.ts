@@ -25,7 +25,7 @@ export const GcpComputeImageSelect: React.FC<GcpComputeImageSelectProps> = (prop
     _.flow(
       () => images,
       _.filter(predicate),
-      _.map(({ label, image }) => ({ label, value: image }))
+      _.map(({ label, url }) => ({ label, value: url }))
     )();
 
   return h(GroupedSelect, {
