@@ -1,8 +1,9 @@
 import _ from 'lodash/fp';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { b, div, fieldset, h, label, legend, p, span, strong } from 'react-hyperscript-helpers';
 import { buildExistingEnvironmentConfig, getImageUrl } from 'src/analysis/modal-utils';
 import { AboutPersistentDiskView } from 'src/analysis/modals/ComputeModal/AboutPersistentDiskView';
+import { GcpComputeImageSelect } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSelect';
 import { GcpPersistentDiskSection } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpPersistentDiskSection';
 import { DeleteDiskChoices } from 'src/analysis/modals/DeleteDiskChoices';
 import { DeleteEnvironment } from 'src/analysis/modals/DeleteEnvironment';
@@ -36,15 +37,9 @@ import {
   isAutopauseEnabled,
   runtimeTypes,
 } from 'src/analysis/utils/runtime-utils';
-import {
-  getToolLabelForImage,
-  getToolLabelFromCloudEnv,
-  runtimeToolLabels,
-  runtimeTools,
-  terraSupportedRuntimeImageIds,
-} from 'src/analysis/utils/tool-utils';
+import { getToolLabelFromCloudEnv, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { ClipboardButton } from 'src/components/ClipboardButton';
-import { ButtonOutline, ButtonPrimary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common';
+import { ButtonOutline, ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { ImageDepViewer } from 'src/components/ImageDepViewer';
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input';
@@ -73,7 +68,6 @@ import { computeStyles } from '../../modalStyles';
 const showDebugPanel = false;
 const titleId = 'cloud-compute-modal-title';
 
-const customMode = '__custom_mode__';
 const terraDockerBaseGithubUrl = 'https://github.com/databiosphere/terra-docker';
 const terraBaseImages = `${terraDockerBaseGithubUrl}#terra-base-images`;
 const anVILRStudioImage = 'https://github.com/anvilproject/anvil-docker/tree/master/anvil-rstudio-bioconductor';
@@ -231,10 +225,10 @@ export const GcpComputeModalBase = ({
   const [viewMode, setViewMode] = useState(undefined);
   const [deleteDiskSelected, setDeleteDiskSelected] = useState(false);
   const [upgradeDiskSelected, setUpgradeDiskSelected] = useState(false);
-  const [leoImages, setLeoImages] = useState([]);
-  const [selectedLeoImage, setSelectedLeoImage] = useState(undefined);
+  const [selectedImage, setSelectedImage] = useState(undefined);
+  const [isCustomSelectedImage, setIsCustomSelectedImage] = useState(false);
+  const [customImageUrl, setCustomImageUrl] = useState('');
   const [timeoutInMinutes, setTimeoutInMinutes] = useState(null);
-  const [customEnvImage, setCustomEnvImage] = useState('');
   const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState('');
   const [runtimeType, setRuntimeType] = useState(runtimeTypes.gceVm);
   const [computeConfig, setComputeConfig] = useState({
@@ -261,12 +255,7 @@ export const GcpComputeModalBase = ({
   const cloudPlatform = getCloudProviderFromWorkspace(workspace);
   const isPersistentDisk = shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected);
 
-  const isCustomImage = selectedLeoImage === customMode;
-  const supportedImages = _.flow(
-    _.filter(({ id }) => terraSupportedRuntimeImageIds.includes(id)),
-    _.map(({ image }) => image)
-  )(leoImages);
-  const { version, updated, packages, requiresSpark } = _.find({ image: selectedLeoImage }, leoImages) || {};
+  const { version, updated, packages, requiresSpark } = selectedImage ?? {};
   // The memory sizes below are the minimum required to launch Terra-supported GCP runtimes, based on experimentation.
   const minRequiredMemory = isDataproc(runtimeType) ? 7.5 : 3.75; // in GB
   const validMachineTypes = _.filter(({ memory }) => memory >= minRequiredMemory, machineTypes);
@@ -281,15 +270,15 @@ export const GcpComputeModalBase = ({
   const canUpdateNumberOfWorkers = !currentRuntimeDetails || isRuntimeRunning;
 
   const errors = validate(
-    { mainMachineType, workerMachineType: computeConfig.workerMachineType, customEnvImage },
+    { mainMachineType, workerMachineType: computeConfig.workerMachineType, customImageUrl },
     {
       masterMachineType: machineTypeConstraints,
       workerMachineType: machineTypeConstraints,
-      customEnvImage: isCustomImage ? { format: { pattern: imageValidationRegexp } } : {},
+      customImageUrl: isCustomSelectedImage ? { format: { pattern: imageValidationRegexp } } : {},
     },
     {
       prettify: (v) =>
-        ({ customEnvImage: 'Container image', masterMachineType: 'Main CPU/memory', workerMachineType: 'Worker CPU/memory' }[v] ||
+        ({ customImageUrl: 'Container image', masterMachineType: 'Main CPU/memory', workerMachineType: 'Worker CPU/memory' }[v] ||
         validate.prettify(v)),
     }
   );
@@ -316,7 +305,7 @@ export const GcpComputeModalBase = ({
       WORKSPACE_NAMESPACE: namespace,
       WORKSPACE_BUCKET: `gs://${bucketName}`,
       GOOGLE_PROJECT: googleProject,
-      CUSTOM_IMAGE: isCustomImage.toString(),
+      CUSTOM_IMAGE: isCustomSelectedImage.toString(),
       ...(!!terraDeploymentEnv && { TERRA_DEPLOYMENT_ENV: terraDeploymentEnv }),
       ...customDrsResolverArgs,
     };
@@ -426,8 +415,6 @@ export const GcpComputeModalBase = ({
     return { currentNumCpus, currentMemory, validGpuName, validGpuNames, validGpuType, validGpuOptions, validNumGpus, validNumGpusOptions };
   };
 
-  const isRStudioImage = getToolLabelForImage(_.find({ image: selectedLeoImage }, leoImages)?.id) === runtimeTools.RStudio.label;
-
   const canUpdateRuntime = () => {
     const { runtime: existingRuntime, autopauseThreshold: existingAutopauseThreshold } = getExistingEnvironmentConfig();
     const { runtime: desiredRuntime, autopauseThreshold: desiredAutopauseThreshold } = getDesiredEnvironmentConfig();
@@ -474,7 +461,7 @@ export const GcpComputeModalBase = ({
           () => {
             return {
               cloudService,
-              toolDockerImage: selectedLeoImage === customMode ? customEnvImage : selectedLeoImage,
+              toolDockerImage: isCustomSelectedImage ? customImageUrl : selectedImage?.url,
               ...(jupyterUserScriptUri && { jupyterUserScriptUri }),
               ...(cloudService === cloudServices.GCE
                 ? {
@@ -594,13 +581,11 @@ export const GcpComputeModalBase = ({
   };
 
   const makeImageInfo = (style) => {
-    const selectedImage = _.find({ image: selectedLeoImage }, leoImages);
-    const shouldDisable = _.isEmpty(leoImages)
-      ? true
-      : selectedImage.isCommunity || getToolLabelForImage(selectedImage.id) === runtimeToolLabels.RStudio;
-    const changelogUrl = _.isEmpty(leoImages)
-      ? ''
-      : `https://github.com/DataBiosphere/terra-docker/blob/master/${_.replace('_legacy', '', selectedImage.id)}/CHANGELOG.md`;
+    const hasSelectedImage = selectedImage || isCustomSelectedImage;
+    const shouldDisable = !hasSelectedImage || selectedImage?.isCommunity || selectedImage?.isRStudio;
+    const changelogUrl = hasSelectedImage
+      ? `https://github.com/DataBiosphere/terra-docker/blob/master/${_.replace('_legacy', '', selectedImage?.id)}/CHANGELOG.md`
+      : '';
 
     return div({ style: { whiteSpace: 'pre', ...style } }, [
       div({ style: Style.proportionalNumbers }, ['Updated: ', updated ? Utils.makeStandardDate(updated) : null]),
@@ -614,7 +599,7 @@ export const GcpComputeModalBase = ({
         ['Version: ', version || null]
       ),
       h(ClipboardButton, {
-        text: selectedLeoImage,
+        text: selectedImage?.url,
         style: { marginLeft: '0.5rem' },
         'aria-label': 'clipboard',
         tooltip: 'Copy the image version',
@@ -657,8 +642,8 @@ export const GcpComputeModalBase = ({
       ..._.mapKeys((key) => `existingPersistentDisk_${key}`, existingPersistentDisk),
       existingPersistentDisk_diskType: existingPersistentDisk ? existingPersistentDisk.diskType.displayName : undefined,
       isDefaultConfig: !currentRuntimeDetails,
-      selectedLeoImage,
-      isCustomImage,
+      selectedLeoImage: selectedImage?.url,
+      isCustomImage: isCustomSelectedImage,
       tool,
       application: tool,
     });
@@ -713,6 +698,10 @@ export const GcpComputeModalBase = ({
     );
   // Helper functions -- end
 
+  useEffect(() => {
+    setCustomImageUrl(getImageUrl(currentRuntimeDetails));
+  }, [currentRuntimeDetails]);
+
   // Lifecycle
   useOnMount(() => {
     // Can't pass an async function into useEffect so we define the function in the body and then call it
@@ -720,50 +709,17 @@ export const GcpComputeModalBase = ({
       withErrorReporting('Error loading cloud environment'),
       Utils.withBusyState(setLoading)
     )(async () => {
-      const { googleProject } = getWorkspaceObject();
-
       Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
         existingConfig: !!currentRuntime,
         ...extractWorkspaceDetails(getWorkspaceObject()),
       });
 
-      const [currentRuntimeDetails, newLeoImages, currentPersistentDiskDetails] = await Promise.all([
+      const [runtimeDetails, persistentDiskDetails] = await Promise.all([
         currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
-        Ajax()
-          .Buckets.getObjectPreview(googleProject, getConfig().terraDockerImageBucket, getConfig().terraDockerVersionsFile, true)
-          .then((r) => r.json()),
         currentDisk ? Ajax().Disks.disksV1().disk(currentDisk.googleProject, currentDisk.name).details() : null,
       ]);
-
-      const filteredNewLeoImages = tool ? _.filter((image) => _.includes(image.id, runtimeTools[tool].imageIds), newLeoImages) : newLeoImages;
-
-      const imageUrl = currentRuntimeDetails ? getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image;
-      const foundImage = _.find({ image: imageUrl }, newLeoImages);
-
-      /* eslint-disable indent */
-      // Selected Leo image uses the following logic (psuedoCode not written in same way as code for clarity)
-      // if found image (aka image associated with user's runtime) NOT in newLeoImages (the image dropdown list from bucket)
-      //   user is using custom image
-      // else if found Image NOT in filteredNewLeoImages (filtered based on analysis tool selection)
-      //   use default image for selected tool
-      // else
-      //   use imageUrl derived from users current runtime
-      /* eslint-disable indent */
-      const getSelectedImage = () => {
-        if (foundImage) {
-          if (!_.includes(foundImage, filteredNewLeoImages)) {
-            return _.find({ id: runtimeTools[tool].defaultImageId }, newLeoImages).image;
-          }
-          return imageUrl;
-        }
-        return customMode;
-      };
-
-      setSelectedLeoImage(getSelectedImage());
-      setLeoImages(filteredNewLeoImages);
-      setCurrentRuntimeDetails(currentRuntimeDetails);
-      setCurrentPersistentDiskDetails(currentPersistentDiskDetails);
-      setCustomEnvImage(!foundImage && imageUrl ? imageUrl : '');
+      setCurrentRuntimeDetails(runtimeDetails);
+      setCurrentPersistentDiskDetails(persistentDiskDetails);
       setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '');
 
       const locationType = getLocationType(location);
@@ -840,7 +796,7 @@ export const GcpComputeModalBase = ({
 
     return Utils.cond(
       [
-        canShowWarning && isCustomImage && existingRuntime?.toolDockerImage !== desiredRuntime?.toolDockerImage,
+        canShowWarning && isCustomSelectedImage && existingRuntime?.toolDockerImage !== desiredRuntime?.toolDockerImage,
         () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('customImageWarning') }, ['Next']),
       ],
       [
@@ -913,64 +869,56 @@ export const GcpComputeModalBase = ({
               ]),
             ]),
             div({ style: { height: 45 } }, [
-              renderImageSelect({ id, includeCustom: tool === runtimeToolLabels.Jupyter || tool === runtimeToolLabels.RStudio }),
+              h(GcpComputeImageSelect, {
+                onSelect(image, isCustomImage) {
+                  setSelectedImage(image);
+                  setIsCustomSelectedImage(isCustomImage);
+                },
+                tool,
+                currentRuntime: currentRuntimeDetails,
+              }),
             ]),
           ]),
       ]),
-      Utils.switchCase(
-        selectedLeoImage,
-        [
-          customMode,
-          () => {
-            return h(Fragment, [
-              h(IdContainer, [
-                (id) =>
-                  h(Fragment, [
-                    label({ htmlFor: id, style: { ...computeStyles.label, display: 'block', margin: '0.5rem 0' } }, ['Container image']),
-                    div({ style: { height: 52 } }, [
-                      h(ValidatedInput, {
-                        inputProps: {
-                          id,
-                          placeholder: '<image name>:<tag>',
-                          value: customEnvImage,
-                          onChange: setCustomEnvImage,
-                        },
-                        error: Utils.summarizeErrors(customEnvImage && errors?.customEnvImage),
-                      }),
-                    ]),
+      isCustomSelectedImage
+        ? h(Fragment, [
+            h(IdContainer, [
+              (id) =>
+                h(Fragment, [
+                  label({ htmlFor: id, style: { ...computeStyles.label, display: 'block', margin: '0.5rem 0' } }, ['Container image']),
+                  div({ style: { height: 52 } }, [
+                    h(ValidatedInput, {
+                      inputProps: {
+                        id,
+                        placeholder: '<image name>:<tag>',
+                        value: customImageUrl,
+                        onChange: setCustomImageUrl,
+                      },
+                      error: Utils.summarizeErrors(customImageUrl && errors?.customImageUrl),
+                    }),
                   ]),
-              ]),
-              div([
-                'Custom environments ',
-                b(['must ']),
-                'be based off ',
-                ...Utils.switchCase(
-                  tool,
-                  [
-                    runtimeToolLabels.RStudio,
-                    () => ['the ', h(Link, { href: anVILRStudioImage, ...Utils.newTabLinkProps }, ['AnVIL RStudio image'])],
-                  ],
-                  [
-                    runtimeToolLabels.Jupyter,
-                    () => ['one of the ', h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images'])],
-                  ]
-                ),
-              ]),
-            ]);
-          },
-        ],
-        [
-          Utils.DEFAULT,
-          () => {
-            return h(Fragment, [
-              div({ style: { display: 'flex' } }, [
-                h(Link, { onClick: () => setViewMode('packages') }, ['What’s installed on this environment?']),
-                makeImageInfo({ marginLeft: 'auto' }),
-              ]),
-            ]);
-          },
-        ]
-      ),
+                ]),
+            ]),
+            div([
+              'Custom environments ',
+              b(['must ']),
+              'be based off ',
+              ...Utils.switchCase(
+                tool,
+                [runtimeToolLabels.RStudio, () => ['the ', h(Link, { href: anVILRStudioImage, ...Utils.newTabLinkProps }, ['AnVIL RStudio image'])]],
+                [
+                  runtimeToolLabels.Jupyter,
+                  () => ['one of the ', h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images'])],
+                ]
+              ),
+            ]),
+          ])
+        : h(Fragment, [
+            div({ style: { display: 'flex' } }, [
+              h(Link, { onClick: () => setViewMode('packages') }, ['What’s installed on this environment?']),
+              makeImageInfo({ marginLeft: 'auto' }),
+            ]),
+          ]),
       h(IdContainer, [
         (id) =>
           div({ style: { marginTop: '0.5rem' } }, [
@@ -999,7 +947,7 @@ export const GcpComputeModalBase = ({
             ]),
           ]),
       ]),
-      selectedLeoImage && !supportedImages.includes(selectedLeoImage) ? renderCustomTimeoutInMinutes() : [],
+      isCustomSelectedImage ? renderCustomTimeoutInMinutes() : [],
     ]);
   };
 
@@ -1138,7 +1086,7 @@ export const GcpComputeModalBase = ({
             (id) =>
               div({ style: { gridColumnEnd: 'span 4', marginTop: '0.5rem' } }, [
                 label({ htmlFor: id, style: computeStyles.label }, ['Compute type']),
-                (isRStudioImage || requiresSpark) &&
+                (selectedImage?.isRStudio || requiresSpark) &&
                   h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
                     'Only the compute types compatible with the selected application configuration are made available below.',
                   ]),
@@ -1159,8 +1107,8 @@ export const GcpComputeModalBase = ({
                       },
                       options: [
                         { value: runtimeTypes.gceVm, isDisabled: requiresSpark },
-                        { value: runtimeTypes.dataprocSingleNode, isDisabled: isRStudioImage },
-                        { value: runtimeTypes.dataprocCluster, isDisabled: isRStudioImage },
+                        { value: runtimeTypes.dataprocSingleNode, isDisabled: selectedImage?.isRStudio },
+                        { value: runtimeTypes.dataprocCluster, isDisabled: selectedImage?.isRStudio },
                       ],
                     }),
                   ]),
@@ -1450,8 +1398,8 @@ export const GcpComputeModalBase = ({
 
   const renderEnvironmentWarning = () => {
     const { runtime: existingRuntime } = getExistingEnvironmentConfig();
-    const desiredToolLabel = getToolLabelForImage(_.find({ image: selectedLeoImage }, leoImages)?.id);
-    const desiredToolLabelPhrase = isCustomImage ? 'a custom image' : strong([desiredToolLabel]);
+    const desiredToolLabel = selectedImage?.toolLabel;
+    const desiredToolLabelPhrase = isCustomSelectedImage ? 'a custom image' : strong([desiredToolLabel]);
 
     return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
       h(TitleBar, {
@@ -1536,64 +1484,6 @@ export const GcpComputeModalBase = ({
       ]),
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [renderActionButton()]),
     ]);
-  };
-
-  const renderImageSelect = ({ includeCustom, ...props }) => {
-    const getImages = (predicate) =>
-      _.flow(
-        _.filter(predicate),
-        _.map(({ label, image }) => ({ label, value: image }))
-      )(leoImages);
-
-    const desiredToolLabel = getToolLabelForImage(_.find({ image: selectedLeoImage }, leoImages)?.id);
-
-    return h(GroupedSelect, {
-      ...props,
-      maxMenuHeight: '25rem',
-      value: selectedLeoImage,
-      onChange: ({ value }) => {
-        const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark;
-        const newRuntimeType = Utils.cond(
-          [!!requiresSpark && isDataproc(runtimeType), () => runtimeType],
-          [!!requiresSpark && !isDataproc(runtimeType), () => runtimeTypes.dataprocSingleNode],
-          [Utils.DEFAULT, () => runtimeTypes.gceVm]
-        );
-        setSelectedLeoImage(value);
-        setTimeoutInMinutes(supportedImages.includes(value) ? null : timeoutInMinutes);
-        setCustomEnvImage('');
-        setRuntimeType(newRuntimeType);
-        updateComputeConfig('componentGatewayEnabled', isDataproc(newRuntimeType));
-        const machineType = getDefaultMachineType(isDataproc(newRuntimeType), desiredToolLabel);
-        updateComputeConfig('masterMachineType', machineType);
-        if (isDataproc(newRuntimeType) && computeConfig.masterDiskSize < defaultDataprocMasterDiskSize) {
-          updateComputeConfig('masterDiskSize', defaultDataprocMasterDiskSize);
-        }
-      },
-      isSearchable: true,
-      isClearable: false,
-      options: [
-        {
-          label: 'TERRA-MAINTAINED JUPYTER ENVIRONMENTS',
-          options: getImages(({ isCommunity, id }) => !isCommunity && !(getToolLabelForImage(id) === runtimeToolLabels.RStudio)),
-        },
-        {
-          label: 'COMMUNITY-MAINTAINED JUPYTER ENVIRONMENTS (verified partners)',
-          options: getImages(_.get(['isCommunity'])),
-        },
-        {
-          label: 'COMMUNITY-MAINTAINED RSTUDIO ENVIRONMENTS (verified partners)',
-          options: getImages((image) => getToolLabelForImage(image.id) === runtimeToolLabels.RStudio),
-        },
-        ...(includeCustom
-          ? [
-              {
-                label: 'OTHER ENVIRONMENTS',
-                options: [{ label: 'Custom Environment', value: customMode }],
-              },
-            ]
-          : []),
-      ],
-    });
   };
 
   const renderMainForm = () => {
@@ -1693,7 +1583,14 @@ export const GcpComputeModalBase = ({
         onDismiss,
         onPrevious: () => setViewMode(undefined),
       }),
-      renderImageSelect({ 'aria-label': 'Select Environment' }),
+      h(GcpComputeImageSelect, {
+        onSelect(image, isCustomImage) {
+          setSelectedImage(image);
+          setIsCustomSelectedImage(isCustomImage);
+        },
+        tool,
+        currentRuntime: currentRuntimeDetails,
+      }),
       makeImageInfo({ margin: '1rem 0 0.5rem' }),
       packages && h(ImageDepViewer, { packageLink: packages }),
     ]);
