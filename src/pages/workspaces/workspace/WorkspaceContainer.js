@@ -103,7 +103,7 @@ const AzureWarning = () => {
 
 const GooglePermissionsSpinner = () => {
   const warningMessage = [
-    'Terra is securing access to your data. This may take a couple moments.',
+    'Terra synchronizing permissions with Google. This may take a couple moments.',
     h(
       Link,
       {

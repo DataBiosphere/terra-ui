@@ -190,7 +190,7 @@ describe('WorkspaceContainer', () => {
     render(h(WorkspaceContainer, props));
     // Assert
     const alert = screen.getByRole('alert');
-    expect(within(alert).getByText(/Terra is securing access to your data/)).not.toBeNull();
+    expect(within(alert).getByText(/Terra synchronizing permissions with Google/)).not.toBeNull();
   });
 
   it('shows no alerts for initialized Gcp workspaces', async () => {
