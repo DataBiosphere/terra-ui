@@ -84,6 +84,7 @@
   },
   "devDependencies": {
     "@axe-core/react": "^4.6.1",
+    "@pact-foundation/pact": "10.2.2",
     "@terra-ui-packages/test-utils": "*",
     "@testing-library/dom": "^9.3.1",
     "@testing-library/react": "^14.0.0",
