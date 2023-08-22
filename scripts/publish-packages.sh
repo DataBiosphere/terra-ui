@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-set -eu
+set -euo pipefail
 
 SCRIPTS_DIR="$(dirname "$0")"
 cd "${SCRIPTS_DIR}/../packages"
