@@ -4,7 +4,7 @@ import { ComputeImageProvider } from 'src/libs/ajax/compute-image-providers/Comp
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { useCancellation, useStore } from 'src/libs/react-utils';
 import { workspaceStore } from 'src/libs/state';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { isGoogleWorkspaceInfo, WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 /**
  * Refers to a docker image of a Terra VM.
@@ -39,7 +39,7 @@ export interface ComputeImageStore {
 export const useComputeImages = (): ComputeImageStore => {
   const signal = useCancellation();
   const workspace: WorkspaceWrapper = useStore<WorkspaceWrapper>(workspaceStore);
-  const [loadedState, setloadedState] = useLoadedData<ComputeImage[]>({
+  const [loadedState, setLoadedState] = useLoadedData<ComputeImage[]>({
     onError: (state) => {
       // We can't rely on the formatting of the error, so show a generic message but include the error in the console for debugging purposes.
       if (state.error instanceof Response) {
@@ -47,17 +47,17 @@ export const useComputeImages = (): ComputeImageStore => {
       } else {
         console.error(state.error);
       }
-      setloadedState([]);
     },
   });
 
   const doRefresh = async (): Promise<void> => {
-    await setloadedState(async () => {
-      const loadedImages: ComputeImage[] = await ComputeImageProvider.listImages(
-        workspace.workspace.googleProject,
-        signal
-      );
-      return loadedImages;
+    await setLoadedState(async () => {
+      const workspaceInfo: WorkspaceInfo = workspace.workspace;
+      if (isGoogleWorkspaceInfo(workspaceInfo)) {
+        const loadedImages: ComputeImage[] = await ComputeImageProvider.listImages(workspaceInfo.googleProject, signal);
+        return loadedImages;
+      }
+      throw Error('Compute images are not configured for non-GCP workspaces');
     });
   };
 

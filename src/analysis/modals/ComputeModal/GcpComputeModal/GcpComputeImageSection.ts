@@ -1,9 +1,10 @@
-import React from 'react';
+import _ from 'lodash/fp';
+import React, { Fragment, useEffect, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { getImageUrl } from 'src/analysis/modal-utils';
 import { GcpComputeImageSelect } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSelect';
 import { ComputeImage, ComputeImageStore, useComputeImages } from 'src/analysis/useComputeImages';
-import { RuntimeToolLabel, runtimeTools } from 'src/analysis/utils/tool-utils';
+import { RuntimeToolLabel, runtimeToolLabels, runtimeTools } from 'src/analysis/utils/tool-utils';
 import { spinnerOverlay } from 'src/components/common';
 import { GetRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 
@@ -35,23 +36,25 @@ export const GcpComputeImageSection: React.FC<GcpComputeImageSectionProps> = (pr
       const imagesForTool = allImages.filter((image) => runtimeTools[tool].imageIds.includes(image.id));
 
       const currentImageUrl: string = getImageUrl(currentRuntime) ?? '';
-      const currentImage: ComputeImage = allImages.find(({ image }) => image === currentImageUrl);
+      const currentImage: ComputeImage | undefined = allImages.find(({ image }) => image === currentImageUrl);
 
       setImages(imagesForTool);
 
-      if (imagesForTool.includes(currentImage)) {
+      if (!currentImage) {
+        setSelectedComputeImageUrl(customImageOptionUrl);
+      } else if (imagesForTool.includes(currentImage)) {
         setSelectedComputeImageUrl(currentImageUrl);
-      } else if (currentImage) {
+      } else {
         const defaultImageId: string = runtimeTools[tool].defaultImageId;
         const defaultImageUrl: string = allImages.find(({ id }) => id === defaultImageId)?.image ?? '';
         setSelectedComputeImageUrl(defaultImageUrl);
-      } else {
-        setSelectedComputeImageUrl(customImageOptionUrl);
       }
     }
   }, [loadedState, currentRuntime, tool]);
 
-  useOnMount(refresh);
+  useEffect(() => {
+    _.once(refresh);
+  });
 
   return h(Fragment, [
     loadedState.status === 'Ready'

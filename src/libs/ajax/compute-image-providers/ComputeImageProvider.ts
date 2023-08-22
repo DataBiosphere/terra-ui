@@ -3,18 +3,6 @@ import { terraSupportedRuntimeImageIds } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
 
-export interface ComputeImage {
-  id: string;
-  image: string;
-  isCommunity?: boolean;
-  isRStudio?: boolean;
-  label: string;
-  packages: string;
-  requiresSpark: boolean;
-  updated: string;
-  version: string;
-}
-
 export interface ComputeImageProviderContract {
   listImages: (googleProject: string, signal?: AbortSignal) => Promise<ComputeImage[]>;
 }
