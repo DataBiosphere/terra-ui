@@ -9,7 +9,7 @@ import { spinnerOverlay } from 'src/components/common';
 import { GetRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 
 export interface GcpComputeImageSectionProps {
-  readonly setSelection: (image: ComputeImage | undefined, isCustomImage: boolean) => void;
+  readonly onSelect: (image: ComputeImage | undefined, isCustomImage: boolean) => void;
   readonly tool: RuntimeToolLabel;
   readonly currentRuntime?: Pick<GetRuntimeItem, 'runtimeImages'>;
 }
@@ -20,14 +20,14 @@ export const GcpComputeImageSection: React.FC<GcpComputeImageSectionProps> = (pr
   const { loadedState, refresh }: ComputeImageStore = useComputeImages();
   const [images, setImages] = useState<ComputeImage[]>([]);
   const [selectedComputeImageUrl, setSelectedComputeImageUrl] = useState<string>('');
-  const { setSelection, tool, currentRuntime } = props;
+  const { onSelect, tool, currentRuntime } = props;
 
   // on selection change
   useEffect(() => {
     const isCustom = selectedComputeImageUrl === customImageOptionUrl;
-    const selectedComputeImage = images.find(({ image }) => image === selectedComputeImageUrl);
-    setSelection(selectedComputeImage, isCustom);
-  }, [setSelection, selectedComputeImageUrl, images]);
+    const selectedComputeImage = images.find(({ url }) => url === selectedComputeImageUrl);
+    onSelect(selectedComputeImage, isCustom);
+  }, [onSelect, selectedComputeImageUrl, images]);
 
   // initialize on load
   useEffect(() => {
@@ -36,7 +36,7 @@ export const GcpComputeImageSection: React.FC<GcpComputeImageSectionProps> = (pr
       const imagesForTool = allImages.filter((image) => runtimeTools[tool].imageIds.includes(image.id));
 
       const currentImageUrl: string = getImageUrl(currentRuntime) ?? '';
-      const currentImage: ComputeImage | undefined = allImages.find(({ image }) => image === currentImageUrl);
+      const currentImage: ComputeImage | undefined = allImages.find(({ url }) => url === currentImageUrl);
 
       setImages(imagesForTool);
 

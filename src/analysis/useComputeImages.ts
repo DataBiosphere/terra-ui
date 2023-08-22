@@ -1,5 +1,6 @@
 import { LoadedState } from '@terra-ui-packages/core-utils';
 import { useEffect } from 'react';
+import { RuntimeToolLabel } from 'src/analysis/utils/tool-utils';
 import { ComputeImageProvider } from 'src/libs/ajax/compute-image-providers/ComputeImageProvider';
 import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { useCancellation, useStore } from 'src/libs/react-utils';
@@ -21,9 +22,10 @@ import { isGoogleWorkspaceInfo, WorkspaceInfo, WorkspaceWrapper } from 'src/libs
  */
 export interface ComputeImage {
   id: string;
-  image: string;
-  isCommunity?: boolean;
-  isRStudio?: boolean;
+  url: string;
+  isCommunity: boolean;
+  isRStudio: boolean;
+  toolLabel?: RuntimeToolLabel;
   label: string;
   packages: string;
   requiresSpark: boolean;

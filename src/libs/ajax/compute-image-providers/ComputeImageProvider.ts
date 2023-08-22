@@ -1,5 +1,5 @@
 import { ComputeImage } from 'src/analysis/useComputeImages';
-import { terraSupportedRuntimeImageIds } from 'src/analysis/utils/tool-utils';
+import { getToolLabelForImage, runtimeToolLabels, terraSupportedRuntimeImageIds } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
 
@@ -7,9 +7,20 @@ export interface ComputeImageProviderContract {
   listImages: (googleProject: string, signal?: AbortSignal) => Promise<ComputeImage[]>;
 }
 
+const normalizeImage: (image: Partial<ComputeImage>) => ComputeImage = (image) => {
+  const toolLabel = getToolLabelForImage(image.image);
+  return {
+    ...image,
+    isCommunity: !!image.isCommunity,
+    isRStudio: toolLabel === runtimeToolLabels.RStudio,
+    toolLabel,
+    url: image.image,
+  };
+};
+
 export const ComputeImageProvider: ComputeImageProviderContract = {
   listImages: async (googleProject: string, signal?: AbortSignal): Promise<ComputeImage[]> => {
-    const fetchedImages: ComputeImage[] = await Ajax(signal)
+    const fetchedImages: Partial<ComputeImage>[] = await Ajax(signal)
       .Buckets.getObjectPreview(
         googleProject,
         getConfig().terraDockerImageBucket,
@@ -22,8 +33,11 @@ export const ComputeImageProvider: ComputeImageProviderContract = {
       )
       .then((r) => r.json());
 
+    const normalizedImages: ComputeImage[] = fetchedImages.map(normalizeImage);
+
     const isImageSupported = ({ id }): boolean => terraSupportedRuntimeImageIds.includes(id);
-    const supportedImages: ComputeImage[] = fetchedImages.filter(isImageSupported);
+    const supportedImages: ComputeImage[] = normalizedImages.filter(isImageSupported);
+
     return supportedImages;
   },
 };
