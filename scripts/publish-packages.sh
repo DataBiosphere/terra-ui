@@ -15,11 +15,7 @@ for d in */ ; do
     # Look up the currently published version of the package in the registry.
     # npm view will fail if the package does not exist. This case needs to be handled
     # in order to support publishing new packages for the first time.
-    set +e
-    PUBLISHED_VERSION=$(npm --loglevel=error view "${PACKAGE_NAME}" version 2>&1)
-    NPM_VIEW_STATUS=$?
-    set -e
-    if [ $NPM_VIEW_STATUS != 0 ]; then
+    if ! PUBLISHED_VERSION=$(npm --loglevel=error view "${PACKAGE_NAME}" version 2>&1); then
       if echo "${PUBLISHED_VERSION}" | grep "E404" >/dev/null; then
         PUBLISHED_VERSION="unpublished"
       else
