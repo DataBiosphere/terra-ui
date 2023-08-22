@@ -33,19 +33,24 @@ export const GcpComputeImageSection: React.FC<GcpComputeImageSectionProps> = (pr
   useEffect(() => {
     if (loadedState.status === 'Ready') {
       const allImages = loadedState.state;
-      const imagesForTool = allImages.filter((image) => runtimeTools[tool].imageIds.includes(image.id));
+      setImages(allImages);
+
+      const currentTool = runtimeTools[tool];
+      const imagesForTool = allImages.filter((image) => currentTool.imageIds.includes(image.id));
 
       const currentImageUrl: string = getImageUrl(currentRuntime) ?? '';
       const currentImage: ComputeImage | undefined = allImages.find(({ url }) => url === currentImageUrl);
 
-      setImages(imagesForTool);
-
-      if (!currentImage) {
+      // Determine initial selection.
+      if (currentImageUrl && !currentImage) {
+        // 1. if our runtime has an image URL, but it doesn't match any of the base images -> custom
         setSelectedComputeImageUrl(customImageOptionUrl);
       } else if (imagesForTool.includes(currentImage)) {
+        // 2. if our runtime's image matches a base image in the visible tool (Jupyter | RStudio) -> that image
         setSelectedComputeImageUrl(currentImageUrl);
       } else {
-        const defaultImageId: string = runtimeTools[tool].defaultImageId;
+        // 3. if there is no image URL on our runtime, or if the image is for another tool -> default image for the visible tool
+        const defaultImageId: string = currentTool.defaultImageId;
         const defaultImageUrl: string = allImages.find(({ id }) => id === defaultImageId)?.url ?? '';
         setSelectedComputeImageUrl(defaultImageUrl);
       }

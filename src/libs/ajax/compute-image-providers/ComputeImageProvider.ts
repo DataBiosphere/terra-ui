@@ -38,11 +38,10 @@ export interface ComputeImageRaw {
 }
 
 const normalizeImage: (rawImage: ComputeImageRaw) => ComputeImage = (rawImage) => {
-  const toolLabel = getToolLabelForImage(rawImage.image);
+  const toolLabel = getToolLabelForImage(rawImage.id);
   if (toolLabel && !isRuntimeToolLabel(toolLabel)) {
     throw Error('Compute images are not supported for non-Runtime tools');
   }
-  const isRStudio = toolLabel === runtimeToolLabels.RStudio;
 
   /* eslint-disable */
   //prettier-ignore
@@ -50,6 +49,7 @@ const normalizeImage: (rawImage: ComputeImageRaw) => ComputeImage = (rawImage) =
     id,
     image: url,
     isCommunity = false,
+    isRStudio = toolLabel === runtimeToolLabels.RStudio,
     label,
     packages,
     requiresSpark,

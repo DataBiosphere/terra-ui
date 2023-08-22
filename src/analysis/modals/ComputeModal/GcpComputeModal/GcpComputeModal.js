@@ -3,7 +3,7 @@ import { Fragment, useEffect, useState } from 'react';
 import { b, div, fieldset, h, label, legend, p, span, strong } from 'react-hyperscript-helpers';
 import { buildExistingEnvironmentConfig, getImageUrl } from 'src/analysis/modal-utils';
 import { AboutPersistentDiskView } from 'src/analysis/modals/ComputeModal/AboutPersistentDiskView';
-import { GcpComputeImageSelect } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSelect';
+import { GcpComputeImageSection } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSection';
 import { GcpPersistentDiskSection } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpPersistentDiskSection';
 import { DeleteDiskChoices } from 'src/analysis/modals/DeleteDiskChoices';
 import { DeleteEnvironment } from 'src/analysis/modals/DeleteEnvironment';
@@ -869,7 +869,7 @@ export const GcpComputeModalBase = ({
               ]),
             ]),
             div({ style: { height: 45 } }, [
-              h(GcpComputeImageSelect, {
+              h(GcpComputeImageSection, {
                 onSelect(image, isCustomImage) {
                   setSelectedImage(image);
                   setIsCustomSelectedImage(isCustomImage);
@@ -1391,8 +1391,12 @@ export const GcpComputeModalBase = ({
         )
       : h(
           Link,
-          { 'aria-label': 'Show debugger', onClick: () => setShowDebugger(true), style: { position: 'fixed', top: 0, left: 0, color: 'white' } },
-          ['D']
+          {
+            'aria-label': 'Show debugger',
+            onClick: () => setShowDebugger(true),
+            style: { position: 'fixed', top: '1em', left: '1em', color: 'white', backgroundColor: 'darkolivegreen' },
+          },
+          ['SHOW DEBUGGER']
         );
   };
 
@@ -1583,7 +1587,7 @@ export const GcpComputeModalBase = ({
         onDismiss,
         onPrevious: () => setViewMode(undefined),
       }),
-      h(GcpComputeImageSelect, {
+      h(GcpComputeImageSection, {
         onSelect(image, isCustomImage) {
           setSelectedImage(image);
           setIsCustomSelectedImage(isCustomImage);
