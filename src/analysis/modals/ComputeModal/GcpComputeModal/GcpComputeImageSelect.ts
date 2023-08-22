@@ -1,6 +1,9 @@
+import _ from 'lodash/fp';
 import React from 'react';
 import { h } from 'react-hyperscript-helpers';
+import { SingleValue } from 'react-select';
 import { ComputeImage } from 'src/analysis/useComputeImages';
+import { GroupedSelect } from 'src/components/common';
 
 export interface GcpComputeImageSelectProps {
   readonly selectedComputeImageUrl: string;
@@ -11,24 +14,25 @@ export interface GcpComputeImageSelectProps {
 }
 
 interface ImageSelectOption {
-  label: string;
   value: string;
+  label?: string;
 }
 
 export const GcpComputeImageSelect: React.FC<GcpComputeImageSelectProps> = (props: GcpComputeImageSelectProps) => {
   const { selectedComputeImageUrl, setSelectedComputeImageUrl, images, hasCustomOption, customOptionUrl } = props;
 
-  const filterImages: (Function) => ImageSelectOption[] = (predicate) =>
+  const filterImages: (predicate: any) => ImageSelectOption[] = (predicate) =>
     _.flow(
+      () => images,
       _.filter(predicate),
       _.map(({ label, image }) => ({ label, value: image }))
-    )(images);
+    )();
 
   return h(GroupedSelect, {
     'aria-label': 'Select Environment',
-    maxMenuHeight: '25rem',
+    maxMenuHeight: 25,
     value: selectedComputeImageUrl,
-    onChange: ({ value }) => {
+    onChange: ({ value }: SingleValue<any>) => {
       setSelectedComputeImageUrl(value);
     },
     isSearchable: true,

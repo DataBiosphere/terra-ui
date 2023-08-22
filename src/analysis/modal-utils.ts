@@ -2,6 +2,7 @@ import { cloudServices } from 'src/analysis/utils/gce-machines';
 import { defaultDataprocMachineType, getDefaultMachineType } from 'src/analysis/utils/runtime-utils';
 import { getToolLabelFromCloudEnv } from 'src/analysis/utils/tool-utils';
 import { GooglePdType, PersistentDisk, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
+import { GetRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 
 export interface IComputeConfig {
   diskSize: number;
