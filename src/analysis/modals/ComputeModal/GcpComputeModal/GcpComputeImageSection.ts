@@ -16,12 +16,10 @@ export interface GcpComputeImageSectionProps {
 const customImageOptionUrl = 'CUSTOM_IMAGE_OPTION';
 
 export const GcpComputeImageSection: React.FC<GcpComputeImageSectionProps> = (props: GcpComputeImageSectionProps) => {
-  const { loadedState, refreshStore }: ComputeImageStore = useComputeImages();
+  const { loadedState, refresh }: ComputeImageStore = useComputeImages();
   const [images, setImages] = useState<ComputeImage[]>([]);
   const [selectedComputeImageUrl, setSelectedComputeImageUrl] = useState<string>('');
   const { setSelection, tool, currentRuntime } = props;
-
-  _.once(refreshStore());
 
   // on selection change
   useEffect(() => {
@@ -32,24 +30,28 @@ export const GcpComputeImageSection: React.FC<GcpComputeImageSectionProps> = (pr
 
   // initialize on load
   useEffect(() => {
-    const allImages: ComputeImage[] = loadedState.state ?? [];
-    const imagesForTool = allImages.filter((image) => runtimeTools[tool].imageIds.includes(image.id));
+    if (loadedState.status === 'Ready') {
+      const allImages = loadedState.state;
+      const imagesForTool = allImages.filter((image) => runtimeTools[tool].imageIds.includes(image.id));
 
-    const currentImageUrl: string = getImageUrl(currentRuntime) ?? '';
-    const currentImage: ComputeImage = allImages.find(({ image }) => image === currentImageUrl);
+      const currentImageUrl: string = getImageUrl(currentRuntime) ?? '';
+      const currentImage: ComputeImage = allImages.find(({ image }) => image === currentImageUrl);
 
-    setImages(imagesForTool);
+      setImages(imagesForTool);
 
-    if (imagesForTool.includes(currentImage)) {
-      setSelectedComputeImageUrl(currentImageUrl);
-    } else if (currentImage) {
-      const defaultImageId: string = runtimeTools[tool].defaultImageId;
-      const defaultImageUrl: string = allImages.find(({ id }) => id === defaultImageId)?.image ?? '';
-      setSelectedComputeImageUrl(defaultImageUrl);
-    } else {
-      setSelectedComputeImageUrl(customImageOptionUrl);
+      if (imagesForTool.includes(currentImage)) {
+        setSelectedComputeImageUrl(currentImageUrl);
+      } else if (currentImage) {
+        const defaultImageId: string = runtimeTools[tool].defaultImageId;
+        const defaultImageUrl: string = allImages.find(({ id }) => id === defaultImageId)?.image ?? '';
+        setSelectedComputeImageUrl(defaultImageUrl);
+      } else {
+        setSelectedComputeImageUrl(customImageOptionUrl);
+      }
     }
   }, [loadedState, currentRuntime, tool]);
+
+  useOnMount(refresh);
 
   return h(Fragment, [
     loadedState.status === 'Ready'

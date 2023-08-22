@@ -1,10 +1,9 @@
-import { LoadedState, withHandlers } from '@terra-ui-packages/core-utils';
-import { useEffect, useState } from 'react';
+import { LoadedState } from '@terra-ui-packages/core-utils';
+import { useEffect } from 'react';
 import { ComputeImageProvider } from 'src/libs/ajax/compute-image-providers/ComputeImageProvider';
-import { withErrorReporting } from 'src/libs/error';
+import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { useCancellation, useStore } from 'src/libs/react-utils';
 import { workspaceStore } from 'src/libs/state';
-import * as Utils from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 /**
@@ -33,31 +32,44 @@ export interface ComputeImage {
 }
 
 export interface ComputeImageStore {
-  refreshStore: () => Promise<void>;
+  refresh: () => void;
   loadedState: LoadedState<ComputeImage[], unknown>;
 }
 
 export const useComputeImages = (): ComputeImageStore => {
   const signal = useCancellation();
-  const [loading, setLoading] = useState(false);
-  const [images, setImages] = useState<ComputeImage[]>([]);
   const workspace: WorkspaceWrapper = useStore<WorkspaceWrapper>(workspaceStore);
+  const [loadedState, setloadedState] = useLoadedData<ComputeImage[]>({
+    onError: (state) => {
+      // We can't rely on the formatting of the error, so show a generic message but include the error in the console for debugging purposes.
+      if (state.error instanceof Response) {
+        state.error.text().then(console.error);
+      } else {
+        console.error(state.error);
+      }
+      setloadedState([]);
+    },
+  });
 
-  const refresh = withHandlers(
-    [withErrorReporting('Error loading compute images'), Utils.withBusyState(setLoading)],
-    async (): Promise<void> => {
-      const loadedImages = await ComputeImageProvider.listImages(workspace.workspace.googleProject, signal);
-      setImages(loadedImages);
-    }
-  );
+  const doRefresh = async (): Promise<void> => {
+    await setloadedState(async () => {
+      const loadedImages: ComputeImage[] = await ComputeImageProvider.listImages(
+        workspace.workspace.googleProject,
+        signal
+      );
+      return loadedImages;
+    });
+  };
 
   useEffect(() => {
-    refresh();
+    doRefresh();
   }, [workspace.workspace]); // eslint-disable-line react-hooks/exhaustive-deps
   // refresh depends only on workspace.workspace, do not want to refresh on workspace.workspaceInitialized
 
   return {
-    refreshStore: refresh,
-    loadedState: { status: loading ? 'Loading' : 'Ready', state: images },
+    refresh: (): void => {
+      void doRefresh();
+    },
+    loadedState,
   };
 };
