@@ -1,5 +1,7 @@
+export const DEFAULT = Symbol('Default switch case');
+
 type CondCase<T> = [boolean, (() => T) | T];
-type CondDefault<T> = (() => T) | T;
+type CondDefault<T> = [typeof DEFAULT, (() => T) | T] | (() => T) | T;
 
 type Cond = {
   <T>(...args: [...CondCase<T>[], CondDefault<T>]): T;
@@ -27,8 +29,6 @@ export const cond: Cond = (...args) => {
   }
   return undefined;
 };
-
-export const DEFAULT = Symbol('Default switch case');
 
 type SwitchCaseCase<T, U> = [T, () => U];
 type SwitchCaseDefault<U> = [typeof DEFAULT, () => U] | (() => U);

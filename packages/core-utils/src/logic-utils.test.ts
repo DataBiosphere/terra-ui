@@ -17,6 +17,14 @@ describe('cond', () => {
     expect(result).toBe('z');
   });
 
+  it("returns result of default value factory if one is provided and no case's condition is true", () => {
+    // Act
+    const result = cond([false, () => 'a'], [false, () => 'b'], [false, () => 'c'], [DEFAULT, () => 'z']);
+
+    // Assert
+    expect(result).toBe('z');
+  });
+
   it("returns undefined if no case's condition is true and no default value factory is provided", () => {
     // Act
     const result = cond([false, () => 'a'], [false, () => 'b'], [false, () => 'c']);
