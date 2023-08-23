@@ -3,7 +3,7 @@ import { compile, pathToRegexp } from 'path-to-regexp';
 import * as Analysis from 'src/analysis/Analyses';
 import * as AnalysisLauncher from 'src/analysis/AnalysisLauncher';
 import * as AppLauncher from 'src/analysis/AppLauncher';
-import * as Environments from 'src/analysis/Environments';
+import * as Environments from 'src/analysis/Environments/Environments';
 import { routeHandlersStore } from 'src/libs/state';
 import * as AzurePreview from 'src/pages/AzurePreview';
 import * as Projects from 'src/pages/billing/List/List';

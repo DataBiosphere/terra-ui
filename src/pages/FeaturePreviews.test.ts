@@ -2,7 +2,7 @@ import { act, fireEvent, getByText, render, screen } from '@testing-library/reac
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { generateTestAppWithAzureWorkspace, generateTestAppWithGoogleWorkspace } from 'src/analysis/_testData/testData';
-import { PauseButton } from 'src/analysis/Environments';
+import { PauseButton } from 'src/analysis/Environments/Environments';
 import { isFeaturePreviewEnabled, toggleFeaturePreview, useAvailableFeaturePreviews } from 'src/libs/feature-previews';
 import { FeaturePreviews } from 'src/pages/FeaturePreviews';
 import { asMockedFn } from 'src/testing/test-utils';
