@@ -2,7 +2,7 @@
   "agoraUrlRoot": "https://agora.dsde-staging.broadinstitute.org",
   "bardRoot": "https://terra-bard-staging.appspot.com",
   "billingProfileManagerUrlRoot": "https://bpm.dsde-staging.broadinstitute.org",
-  "bondUrlRoot": "https://broad-bond-staging.appspot.com",
+  "bondUrlRoot": "https://bond.dsde-staging.broadinstitute.org",
   "calhounUrlRoot": "https://calhoun.dsde-staging.broadinstitute.org",
   "catalogUrlRoot": "https://catalog.dsde-staging.broadinstitute.org",
   "dataRepoUrlRoot": "https://data.staging.envs-terra.bio",
