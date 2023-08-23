@@ -28,6 +28,9 @@ module.exports = {
 
     'import/named': 'off',
     'import/no-cycle': 'off',
+    // With eslint-import-resolver-typescript, ESLint sees 'date-fns' and 'date-fns/fp' as
+    // duplicates and combines them into one import from 'date-fns'.
+    'import/no-duplicates': 'off',
     'import/no-named-as-default': 'off',
     // Named exports are more convenient for mocking.
     'import/prefer-default-export': 'off',
