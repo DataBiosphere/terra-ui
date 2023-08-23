@@ -2,12 +2,11 @@ module.exports = {
   extends: ['airbnb-typescript-prettier'],
   settings: {
     'import/resolver': {
-      'eslint-import-resolver-custom-alias': {
-        alias: {
-          src: './src',
-          types: './types',
-        },
-        extensions: ['.js', '.ts'],
+      typescript: {
+        project: [
+          'tsconfig.json',
+          'packages/*/tsconfig.json',
+        ],
       },
     },
   },
