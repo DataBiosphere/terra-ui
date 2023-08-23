@@ -1,7 +1,12 @@
 import { LoadedState } from '@terra-ui-packages/core-utils';
 import { act, render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { defaultGoogleWorkspace, generateTestGoogleRuntime, imageDocs } from 'src/analysis/_testData/testData';
+import {
+  defaultGoogleWorkspace,
+  defaultImage,
+  generateTestGoogleRuntime,
+  imageDocs,
+} from 'src/analysis/_testData/testData';
 import {
   GcpComputeImageSection,
   GcpComputeImageSectionProps,
@@ -66,7 +71,7 @@ describe('GcpComputeImageSection', () => {
     asMockedFn(Ajax).mockReturnValue(mockAjax as AjaxContract);
   });
 
-  it('loads properly with no files', async () => {
+  it('loads properly', async () => {
     // Act
     await act(async () => {
       // eslint-disable-line require-await
@@ -74,6 +79,11 @@ describe('GcpComputeImageSection', () => {
     });
 
     // Assert
-    screen.getByLabelText('Select Environment');
+    const inputElement = screen.getByLabelText('Select Environment');
+    // todo this won't find our label
+    screen.getByText(defaultImage.label) === inputElement;
+
+    await user.click(element);
+    imageDocs.every(({ label }) => screen.getByText(label));
   });
 });
