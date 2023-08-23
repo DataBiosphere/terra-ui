@@ -47,6 +47,8 @@ export const isAppToolLabel = (x: ToolLabel): x is AppToolLabel => x in appToolL
 
 export const isRuntimeToolLabel = (x: ToolLabel): x is RuntimeToolLabel => x in runtimeToolLabels;
 
+export const isToolLabel = (x: ToolLabel | string): x is ToolLabel => x in appToolLabels || x in runtimeToolLabels;
+
 export interface BaseTool {
   isLaunchUnsupported?: boolean;
   isPauseUnsupported?: boolean;

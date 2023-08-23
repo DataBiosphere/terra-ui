@@ -1,6 +1,13 @@
 import { NominalType } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
-import { RuntimeToolLabel, runtimeToolLabels, ToolLabel } from 'src/analysis/utils/tool-utils';
+import {
+  cloudRuntimeTools,
+  isRuntimeToolLabel,
+  isToolLabel,
+  RuntimeToolLabel,
+  runtimeToolLabels,
+  ToolLabel,
+} from 'src/analysis/utils/tool-utils';
 import { gpuTypes, machineTypes, zonesToGpus } from 'src/data/gce-machines';
 import { CloudContext } from 'src/libs/ajax/leonardo/models/core-models';
 import {
@@ -14,6 +21,7 @@ import {
 import {
   DisplayRuntimeStatus,
   GetRuntimeItem,
+  LeoRuntimeImage,
   LeoRuntimeStatus,
   Runtime,
 } from 'src/libs/ajax/leonardo/models/runtime-models';
@@ -112,10 +120,18 @@ export const trimRuntimesOldestFirst = (runtimes: Runtime[]): Runtime[] => {
 /**
  * The first Jupyter or RStudio image URL on the provided GCP runtime object.
  */
-export const getImageUrlFromRuntime = (runtimeDetails: Pick<GetRuntimeItem, 'runtimeImages'> | undefined) => {
-  const images = runtimeDetails?.runtimeImages ?? [];
-  const gcpToolLabels = cloudRuntimeTools.GCP.map(({ label }) => label);
-  return images.find(({ imageType }) => gcpToolLabels.includes(imageType))?.imageUrl;
+export const getImageUrlFromRuntime = (
+  runtimeDetails: Pick<GetRuntimeItem, 'runtimeImages'> | undefined
+): string | undefined => {
+  const images: LeoRuntimeImage[] = runtimeDetails?.runtimeImages ?? [];
+  const gcpToolLabels: RuntimeToolLabel[] = cloudRuntimeTools.GCP.map(({ label }) => label);
+  return images.find(({ imageType }) => {
+    if (isToolLabel(imageType) && isRuntimeToolLabel(imageType)) {
+      const imageToolLabel: RuntimeToolLabel = imageType;
+      return gcpToolLabels.includes(imageToolLabel);
+    }
+    return undefined;
+  })?.imageUrl;
 };
 
 // Status note: undefined means still loading and no runtime

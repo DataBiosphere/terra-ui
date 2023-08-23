@@ -51,8 +51,10 @@ export const useComputeImages = (): ComputeImageStore => {
   };
 
   useEffect(() => {
-    doRefresh();
-  }, [workspace.workspace]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (workspace?.workspace) {
+      doRefresh();
+    }
+  }, [workspace?.workspace]); // eslint-disable-line react-hooks/exhaustive-deps
   // refresh depends only on workspace.workspace, do not want to refresh on workspace.workspaceInitialized
 
   return {

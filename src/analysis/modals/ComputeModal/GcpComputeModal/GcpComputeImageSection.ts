@@ -45,7 +45,7 @@ export const GcpComputeImageSection: React.FC<GcpComputeImageSectionProps> = (pr
       if (currentImageUrl && !currentImage) {
         // 1. if our runtime has an image URL, but it doesn't match any of the base images -> custom
         setSelectedComputeImageUrl(customImageOptionUrl);
-      } else if (imagesForTool.includes(currentImage)) {
+      } else if (currentImage && imagesForTool.includes(currentImage)) {
         // 2. if our runtime's image matches a base image in the visible tool (Jupyter | RStudio) -> that image
         setSelectedComputeImageUrl(currentImageUrl);
       } else {
