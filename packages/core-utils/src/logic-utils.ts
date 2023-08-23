@@ -1,9 +1,13 @@
-type CondCase<T> = [boolean, () => T];
-type CondDefault<T> = () => T;
+type CondCase<T> = [boolean, (() => T) | T];
+type CondDefault<T> = (() => T) | T;
 
 type Cond = {
   <T>(...args: [...CondCase<T>[], CondDefault<T>]): T;
   <T>(...args: CondCase<T>[]): T | undefined;
+};
+
+const maybeCall = <T>(arg: (() => T) | T): T => {
+  return arg instanceof Function ? arg() : arg;
 };
 
 /**
@@ -13,18 +17,21 @@ type Cond = {
  */
 export const cond: Cond = (...args) => {
   for (const arg of args) {
-    if (Array.isArray(arg) && arg[0]) {
-      return arg[1]();
-    }
-    if (arg instanceof Function) {
-      return arg();
+    if (Array.isArray(arg)) {
+      if (arg[0]) {
+        return maybeCall(arg[1]);
+      }
+    } else {
+      return maybeCall(arg);
     }
   }
   return undefined;
 };
 
+export const DEFAULT = Symbol('Default switch case');
+
 type SwitchCaseCase<T, U> = [T, () => U];
-type SwitchCaseDefault<U> = () => U;
+type SwitchCaseDefault<U> = [typeof DEFAULT, () => U] | (() => U);
 
 type SwitchCase = {
   <T, U>(value: T, ...args: [...SwitchCaseCase<T, U>[], SwitchCaseDefault<U>]): U;
@@ -38,8 +45,10 @@ type SwitchCase = {
  */
 export const switchCase: SwitchCase = (value, ...args) => {
   for (const arg of args) {
-    if (Array.isArray(arg) && arg[0] === value) {
-      return arg[1]();
+    if (Array.isArray(arg)) {
+      if (arg[0] === value || arg[0] === DEFAULT) {
+        return arg[1]();
+      }
     }
     if (arg instanceof Function) {
       return arg();
