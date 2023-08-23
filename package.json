@@ -113,6 +113,7 @@
     "ignore": "^5.2.4",
     "jest": "^27.4.3",
     "jest-axe": "^6.0.0",
+    "jest-html-reporter": "^3.10.2",
     "lint-staged": "^13.0.3",
     "postcss": "^8.4.24",
     "postcss-flexbugs-fixes": "^5.0.2",
