@@ -18,6 +18,8 @@ export const authStore = Utils.atom<any>({
   authContext: undefined,
   oidcConfig: {},
   isAzurePreviewUser: undefined,
+  sessionId: undefined,
+  sessionStartTime: undefined,
 });
 
 export const getUser: User = () => authStore.get().user;

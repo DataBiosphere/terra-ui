@@ -24,6 +24,7 @@ import {
   workspaceStore,
 } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import { v4 as uuid } from 'uuid';
 
 export const getOidcConfig = () => {
   const metadata = {
@@ -63,8 +64,12 @@ const getAuthInstance = (): any => {
 
 export const signOut = () => {
   // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
-  const user: User = getUser();
-  Ajax().Metrics.captureEvent(Events.userLogout, { user });
+  const sessionEndTime = Date.now();
+  Ajax().Metrics.captureEvent(Events.userLogout, {
+    sessionId: authStore.get().sessionId,
+    sessionEndTime: Utils.makeCompleteDate(sessionEndTime),
+    sessionDuration_msec: sessionEndTime - authStore.get().sessionStartTime,
+  });
   cookieReadyStore.reset();
   azureCookieReadyStore.reset();
   getSessionStorage().clear();
@@ -76,8 +81,9 @@ export const signOut = () => {
 };
 
 export const signOutAfterSessionTimeout = () => {
-  const user: User = getUser();
-  Ajax().Metrics.captureEvent(Events.userTimeoutLogout, { user });
+  Ajax().Metrics.captureEvent(Events.userTimeoutLogout, {
+    sessionId: authStore.get().sessionId,
+  });
   signOut();
   notify('info', 'Session timed out', sessionTimeoutProps);
 };
@@ -114,19 +120,33 @@ const getSigninArgs = (includeBillingScope) => {
 export const signIn = async (includeBillingScope = false) => {
   const args = getSigninArgs(includeBillingScope);
   const user: User = await getAuthInstance().signinPopup(args);
-
+  const generatedUuid = uuid();
+  const sessionStartTime = Date.now();
+  authStore.update((state) => ({
+    ...state,
+    sessionId: generatedUuid,
+    sessionStartTime,
+  }));
   // For B2C record in the auth store whether we requested the GCP cloud-billing scope since there
   // is no way to determine it after the fact.
   // For Google we don't need to do this since we can inspect the scope directly in the user object.
   if (!isGoogleAuthority()) {
     authStore.update((state) => ({ ...state, hasGcpBillingScopeThroughB2C: includeBillingScope }));
   }
-  Ajax().Metrics.captureEvent(Events.userLogin, { authProvider: user.profile.idp });
+  Ajax().Metrics.captureEvent(Events.userLogin, {
+    authProvider: user.profile.idp,
+    sessionId: generatedUuid,
+    sessionStartTime: Utils.makeCompleteDate(sessionStartTime),
+  });
   return user;
 };
 
 export const reloadAuthToken = (includeBillingScope = false) => {
   const args = getSigninArgs(includeBillingScope);
+  // session identifier would be ideal to log here
+  Ajax().Metrics.captureEvent(Events.userAuthTokenReload, {
+    sessionId: authStore.get().sessionId,
+  });
   return getAuthInstance()
     .signinSilent(args)
     .catch((e) => {

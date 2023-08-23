@@ -75,6 +75,7 @@ const eventsList = {
   pageView: 'page:view',
   permissionsSynchronizationDelayDisplayed: 'permissions:propagationDelay',
   resourceLeave: 'resource:leave',
+  userAuthTokenReload: 'user:authTokenReload',
   userLogin: 'user:login',
   userLogout: 'user:logout',
   userRegister: 'user:register',
