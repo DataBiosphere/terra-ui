@@ -25,6 +25,7 @@ describe('brand-utils', () => {
       color: '',
       white: '',
     },
+    theme: defaultBrand.theme,
   };
 
   describe('isBrand', () => {
