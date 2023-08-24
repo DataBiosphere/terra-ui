@@ -5,6 +5,7 @@ import { h } from 'react-hyperscript-helpers';
 import {
   defaultGoogleWorkspace,
   defaultImage,
+  defaultRImage,
   generateTestGoogleRuntime,
   imageDocs,
 } from 'src/analysis/_testData/testData';
@@ -116,7 +117,10 @@ describe('GcpComputeImageSection', () => {
     // Select element appears
     const inputElement = screen.getByLabelText('Select Environment');
     // Default image is default selection
-    expect(mockOnSelect).lastCalledWith(expect.objectContaining({ url: defaultImage.image }), false);
+    expect(mockOnSelect).lastCalledWith(
+      expect.objectContaining({ url: defaultImage.image, toolLabel: runtimeToolLabels.Jupyter }),
+      false
+    );
 
     // Act
     await user.click(inputElement);
@@ -133,5 +137,25 @@ describe('GcpComputeImageSection', () => {
       .filter(({ label }) => label !== defaultImage.label)
       .map(({ label }) => label)
       .every((imageLabel) => screen.getByText(imageLabel));
+
+    // Act
+    const rImageOption = screen.getByText(defaultRImage.label);
+    await user.click(rImageOption);
+
+    // Assert
+    // Change event fired
+    expect(mockOnSelect).lastCalledWith(
+      expect.objectContaining({ url: defaultRImage.image, isRStudio: true, toolLabel: runtimeToolLabels.RStudio }),
+      false
+    );
+
+    // Act
+    await user.click(inputElement);
+    const customImageOption = screen.getByText('Custom Environment');
+    await user.click(customImageOption);
+
+    // Assert
+    // Change event fired
+    expect(mockOnSelect).lastCalledWith(undefined, true);
   });
 });
