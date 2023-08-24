@@ -15,6 +15,7 @@ import {
   imageDocs,
   testDefaultLocation,
 } from 'src/analysis/_testData/testData';
+import { GcpComputeImageSection } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSection';
 import { GcpComputeModalBase } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal';
 import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/analysis/utils/cost-utils';
 import { defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize, defaultPersistentDiskType } from 'src/analysis/utils/disk-utils';
@@ -48,6 +49,13 @@ jest.mock('src/libs/config', () => ({
     shouldUseDrsHub: true,
   }),
 }));
+jest.mock('src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSection', () => (props) => {
+  return {
+    ...jest.requireActual('src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSection'),
+    __esModule: true,
+    default: jest.fn(),
+  };
+});
 
 const onSuccess = jest.fn();
 const defaultModalProps = {
@@ -71,7 +79,6 @@ const defaultAjaxImpl = {
       details: jest.fn(),
     }),
   },
-  Buckets: { getObjectPreview: () => Promise.resolve({ json: () => Promise.resolve(imageDocs) }) },
   Disks: {
     disksV1: () => ({
       disk: () => ({
@@ -84,11 +91,19 @@ const defaultAjaxImpl = {
   },
 };
 
+const mockGcpComputeImageSectionOnSelect = jest.fn();
+
 describe('GcpComputeModal', () => {
   beforeAll(() => {});
 
   beforeEach(() => {
     // Arrange
+    GcpComputeImageSection.mockImplementation((props) => {
+      props.onSelect = (...onSelectProps) => {
+        mockGcpComputeImageSectionOnSelect(onSelectProps);
+        props.onSelect(onSelectProps);
+      };
+    });
     Ajax.mockImplementation(() => ({
       ...defaultAjaxImpl,
     }));
