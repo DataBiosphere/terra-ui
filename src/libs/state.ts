@@ -5,10 +5,6 @@ import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 export const routeHandlersStore = Utils.atom<unknown[]>([]);
 
-interface OidcConfig {
-  authorityEndpoint: undefined;
-  clientId: undefined;
-}
 export const authStore = Utils.atom<any>({
   isSignedIn: undefined,
   anonymousId: undefined,
@@ -19,7 +15,10 @@ export const authStore = Utils.atom<any>({
   fenceStatus: {},
   cookiesAccepted: undefined,
   authContext: undefined,
-  oidcConfig: {} as OidcConfig,
+  oidcConfig: {
+    authorityEndpoint: undefined,
+    clientId: undefined,
+  },
   isAzurePreviewUser: undefined,
   sessionId: undefined,
   sessionStartTime: {} as number,

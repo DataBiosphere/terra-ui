@@ -51,6 +51,7 @@ export const getOidcConfig = () => {
     accessTokenExpiringNotificationTimeInSeconds: 330,
     includeIdTokenInSilentRenew: true,
     extraQueryParams: { access_type: 'offline' },
+    redirect_uri: '',
   };
 };
 
