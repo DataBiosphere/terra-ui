@@ -1,11 +1,14 @@
 import { AnyPromiseFn } from '@terra-ui-packages/core-utils';
-import { User } from 'oidc-client-ts';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import * as Utils from 'src/libs/utils';
 import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 export const routeHandlersStore = Utils.atom<unknown[]>([]);
 
+interface OidcConfig {
+  authorityEndpoint: undefined;
+  clientId: undefined;
+}
 export const authStore = Utils.atom<any>({
   isSignedIn: undefined,
   anonymousId: undefined,
@@ -16,13 +19,13 @@ export const authStore = Utils.atom<any>({
   fenceStatus: {},
   cookiesAccepted: undefined,
   authContext: undefined,
-  oidcConfig: {},
+  oidcConfig: {} as OidcConfig,
   isAzurePreviewUser: undefined,
   sessionId: undefined,
-  sessionStartTime: undefined,
+  sessionStartTime: {} as number,
 });
 
-export const getUser: User = () => authStore.get().user;
+export const getUser: any = () => authStore.get().user;
 
 export const userStatus = {
   unregistered: 'unregistered',

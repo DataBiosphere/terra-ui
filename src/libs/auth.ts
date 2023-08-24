@@ -64,8 +64,8 @@ const getAuthInstance = (): any => {
 
 export const signOut = () => {
   // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
-  const sessionEndTime = Date.now();
-  Ajax().Metrics.captureEvent(Events.userLogout, {
+  const sessionEndTime: number = Date.now();
+  Ajax({}).Metrics.captureEvent(Events.userLogout, {
     sessionId: authStore.get().sessionId,
     sessionEndTime: Utils.makeCompleteDate(sessionEndTime),
     sessionDuration_msec: sessionEndTime - authStore.get().sessionStartTime,
@@ -81,7 +81,7 @@ export const signOut = () => {
 };
 
 export const signOutAfterSessionTimeout = () => {
-  Ajax().Metrics.captureEvent(Events.userTimeoutLogout, {
+  Ajax({}).Metrics.captureEvent(Events.userTimeoutLogout, {
     sessionId: authStore.get().sessionId,
   });
   signOut();
@@ -91,12 +91,12 @@ export const signOutAfterSessionTimeout = () => {
 const revokeTokens = async () => {
   const auth = getAuthInstance();
   if (auth.settings.metadata.revocation_endpoint) {
-    // revokeTokens can fail if the the token has already been revoked.
+    // revokeTokens can fail if the token has already been revoked.
     // Recover from invalid_token errors to make sure signOut completes successfully.
     try {
       await auth.revokeTokens();
     } catch (e) {
-      if (e.error === 'invalid_token') {
+      if ((e as any).error === 'invalid_token') {
         return null;
       }
       throw e;
@@ -133,7 +133,7 @@ export const signIn = async (includeBillingScope = false) => {
   if (!isGoogleAuthority()) {
     authStore.update((state) => ({ ...state, hasGcpBillingScopeThroughB2C: includeBillingScope }));
   }
-  Ajax().Metrics.captureEvent(Events.userLogin, {
+  Ajax({}).Metrics.captureEvent(Events.userLogin, {
     authProvider: user.profile.idp,
     sessionId: generatedUuid,
     sessionStartTime: Utils.makeCompleteDate(sessionStartTime),
@@ -144,7 +144,7 @@ export const signIn = async (includeBillingScope = false) => {
 export const reloadAuthToken = (includeBillingScope = false) => {
   const args = getSigninArgs(includeBillingScope);
   // session identifier would be ideal to log here
-  Ajax().Metrics.captureEvent(Events.userAuthTokenReload, {
+  Ajax({}).Metrics.captureEvent(Events.userAuthTokenReload, {
     sessionId: authStore.get().sessionId,
   });
   return getAuthInstance()
@@ -163,7 +163,7 @@ export const hasBillingScope = () => {
     // For B2C check the hasGcpBillingScopeThroughB2C field in the auth store.
     // This is naughty - don't use `any`, but for now it's fine
     // eslint-disable-line @typescript-eslint/no-explicit-any
-    () => (authStore.get() as any).hasGcpBillingScopeThroughB2C === true
+    () => authStore.get().hasGcpBillingScopeThroughB2C === true
   );
 };
 
@@ -211,7 +211,7 @@ export const ensureAuthSettled = () => {
   return new Promise((resolve) => {
     const subscription = authStore.subscribe((state) => {
       if (isAuthSettled(state)) {
-        resolve();
+        resolve(undefined);
         subscription.unsubscribe();
       }
     });
@@ -295,11 +295,11 @@ export const initializeAuth = _.memoize(async () => {
   // Instiante a UserManager directly to populate the logged-in user at app initialization time.
   // All other auth usage should use the AuthContext from authStore.
   const userManager = new UserManager(getOidcConfig());
-  processUser(await userManager.getUser());
+  processUser(await userManager.getUser(), false);
 });
 
 export const initializeClientId = _.memoize(async () => {
-  const oidcConfig = await Ajax().OAuth2.getConfiguration();
+  const oidcConfig = await Ajax({}).OAuth2.getConfiguration();
   authStore.update((state) => ({ ...state, oidcConfig }));
 });
 
@@ -335,7 +335,7 @@ authStore.subscribe(
   withErrorReporting('Error checking registration', async (state, oldState) => {
     const getRegistrationStatus = async () => {
       try {
-        const { enabled } = await Ajax().User.getStatus();
+        const { enabled } = await Ajax({}).User.getStatus();
         if (enabled) {
           // When Terra is first loaded, termsOfService.permitsSystemUsage will be undefined while the user's ToS status is fetched from Sam
           return state.termsOfService.permitsSystemUsage
@@ -344,7 +344,7 @@ authStore.subscribe(
         }
         return userStatus.disabled;
       } catch (error) {
-        if (error.status === 404) {
+        if ((error as any).status === 404) {
           return userStatus.unregistered;
         }
         throw error;
@@ -363,7 +363,7 @@ authStore.subscribe(
 authStore.subscribe(
   withErrorReporting('Error checking TOS', async (state, oldState) => {
     if (!oldState.isSignedIn && state.isSignedIn) {
-      const tosComplianceStatus = await Ajax().User.getTermsOfServiceComplianceStatus();
+      const tosComplianceStatus = await Ajax({}).User.getTermsOfServiceComplianceStatus();
       // If the user is now logged in, but there's no ToS status from Sam,
       // then they haven't accepted it yet and Sam hasn't caught up.
       const termsOfService = _.isNull(tosComplianceStatus)
@@ -377,12 +377,20 @@ authStore.subscribe(
   })
 );
 
+// extending Window interface to access Appcues
+declare global {
+  interface Window {
+    Appcues: any;
+    forceSignIn: any;
+  }
+}
+
 authStore.subscribe(
   withErrorIgnoring(async (state, oldState) => {
     if (!oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage) {
       if (window.Appcues) {
         window.Appcues.identify(state.user.id, {
-          dateJoined: parseJSON((await Ajax().User.firstTimestamp()).timestamp).getTime(),
+          dateJoined: parseJSON((await Ajax({}).User.firstTimestamp()).timestamp).getTime(),
         });
         window.Appcues.on('all', captureAppcuesEvent);
       }
@@ -403,14 +411,14 @@ authStore.subscribe((state) => {
 authStore.subscribe(
   withErrorReporting('Error checking groups for timeout status', async (state, oldState) => {
     if (becameRegistered(oldState, state)) {
-      const isTimeoutEnabled = _.some({ groupName: 'session_timeout' }, await Ajax().Groups.list());
+      const isTimeoutEnabled = _.some({ groupName: 'session_timeout' }, await Ajax({}).Groups.list());
       authStore.update((state) => ({ ...state, isTimeoutEnabled }));
     }
   })
 );
 
 export const refreshTerraProfile = async () => {
-  const profile = Utils.kvArrayToObject((await Ajax().User.profile.get()).keyValuePairs);
+  const profile = Utils.kvArrayToObject((await Ajax({}).User.profile.get()).keyValuePairs);
   authStore.update((state) => ({ ...state, profile }));
 };
 
@@ -425,7 +433,7 @@ authStore.subscribe(
 authStore.subscribe(
   withErrorReporting('Error loading NIH account link status', async (state, oldState) => {
     if (becameRegistered(oldState, state)) {
-      const nihStatus = await Ajax().User.getNihStatus();
+      const nihStatus = await Ajax({}).User.getNihStatus();
       authStore.update((state) => ({ ...state, nihStatus }));
     }
   })
@@ -434,7 +442,7 @@ authStore.subscribe(
 authStore.subscribe(
   withErrorIgnoring(async (state, oldState) => {
     if (becameRegistered(oldState, state)) {
-      await Ajax().Metrics.syncProfile();
+      await Ajax({}).Metrics.syncProfile();
     }
   })
 );
@@ -443,7 +451,7 @@ authStore.subscribe(
   withErrorIgnoring(async (state, oldState) => {
     if (becameRegistered(oldState, state)) {
       if (state.anonymousId) {
-        return await Ajax().Metrics.identify(state.anonymousId);
+        return await Ajax({}).Metrics.identify(state.anonymousId);
       }
     }
   })
@@ -454,7 +462,7 @@ authStore.subscribe(
     if (becameRegistered(oldState, state)) {
       await Promise.all(
         _.map(async ({ key }) => {
-          const status = await Ajax().User.getFenceStatus(key);
+          const status = await Ajax({}).User.getFenceStatus(key);
           authStore.update(_.set(['fenceStatus', key], status));
         }, allProviders)
       );
@@ -483,7 +491,9 @@ authStore.subscribe(
     if (becameRegistered(oldState, state)) {
       // Note that `azurePreviewGroup` is set to true in all non-prod config files, so only call Sam if we have a non-boolean value (prod).
       const configValue = getConfig().azurePreviewGroup;
-      const isGroupMember = _.isBoolean(configValue) ? configValue : await Ajax().Groups.group(configValue).isMember();
+      const isGroupMember = _.isBoolean(configValue)
+        ? configValue
+        : await Ajax({}).Groups.group(configValue).isMember();
       const isAzurePreviewUser = oldState.isAzurePreviewUser || isGroupMember;
       authStore.update((state) => ({ ...state, isAzurePreviewUser }));
     }
