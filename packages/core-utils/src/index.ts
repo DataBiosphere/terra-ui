@@ -1,3 +1,4 @@
+export * from './logic-utils';
 export * from './timer-utils';
 export * from './type-utils/deep-partial';
 export * from './type-utils/general-types';

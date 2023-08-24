@@ -169,6 +169,10 @@ const DataTable = (props) => {
   const table = useRef();
   const signal = useCancellation();
 
+  const getColumnFilterQueryString = () => {
+    return !!columnFilter.filterColAttr && !!columnFilter.filterColTerm ? `${columnFilter.filterColAttr}=${columnFilter.filterColTerm}` : '';
+  };
+
   // Helpers
   const loadData =
     !!entityMetadata &&
@@ -176,8 +180,7 @@ const DataTable = (props) => {
       Utils.withBusyState(setLoading),
       withErrorReporting('Error loading entities')
     )(async () => {
-      const colFilt =
-        !!columnFilter.filterColAttr && !!columnFilter.filterColTerm ? `${columnFilter.filterColAttr}=${columnFilter.filterColTerm}` : '';
+      const columnFilterQueryString = getColumnFilterQueryString();
       const queryOptions = {
         pageNumber,
         itemsPerPage,
@@ -187,7 +190,7 @@ const DataTable = (props) => {
         googleProject,
         activeTextFilter,
         filterOperator,
-        columnFilter: colFilt,
+        columnFilter: columnFilterQueryString,
       };
       const {
         results,
@@ -211,7 +214,13 @@ const DataTable = (props) => {
     });
 
   const getAllEntities = async () => {
-    const params = _.pickBy(_.trim, { pageSize: filteredCount, filterTerms: activeTextFilter, filterOperator });
+    const columnFilterQueryString = getColumnFilterQueryString();
+    const params = _.pickBy(_.trim, {
+      pageSize: filteredCount,
+      filterTerms: activeTextFilter,
+      filterOperator,
+      columnFilter: columnFilterQueryString,
+    });
     const queryResults = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, params);
     return queryResults.results;
   };

@@ -46,7 +46,7 @@ export interface Atom<T> {
  * to lodash and Immutable. (deref => get, reset! => set, swap! => update, reset to go back to initial value)
  * Implements the Store interface
  */
-export const atom = <T = any>(initialValue: T): Atom<T> => {
+export const atom = <T>(initialValue: T): Atom<T> => {
   let value = initialValue;
   const { subscribe, next } = subscribable<[T, T]>();
   const get = () => value;
