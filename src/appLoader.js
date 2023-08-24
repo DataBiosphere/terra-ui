@@ -1,4 +1,3 @@
-import '@terra-ui-packages/components/style.css';
 import 'src/style.css';
 
 import _ from 'lodash/fp';

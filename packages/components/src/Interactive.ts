@@ -1,9 +1,31 @@
-import './Interactive.css';
-
 import _ from 'lodash/fp';
 import { createElement, forwardRef, ReactNode, useState } from 'react';
 
+import { injectStyle } from './injectStyle';
 import * as Utils from './utils';
+
+// Interactive's hover and focus styles depend on this CSS.
+injectStyle(`
+.hover-style:hover, .hover-style:focus {
+  --hover-background: var(--app-hover-background);
+  --hover-backgroundColor: var(--app-hover-backgroundColor);
+  --hover-border: var(--app-hover-border);
+  --hover-color: var(--app-hover-color);
+  --hover-boxShadow: var(--app-hover-boxShadow);
+  --hover-opacity: var(--app-hover-opacity);
+  --hover-textDecoration: var(--app-hover-textDecoration);
+}
+
+.hover-style:hover .hover-style:not(:hover) {
+  --hover-background: initial;
+  --hover-backgroundColor: initial;
+  --hover-border: initial;
+  --hover-color: initial;
+  --hover-boxShadow: initial;
+  --hover-opacity: initial;
+  --hover-textDecoration: initial;
+}
+`);
 
 const allowedHoverVariables = [
   'background',

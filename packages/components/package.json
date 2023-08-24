@@ -15,14 +15,12 @@
       "import": "./lib/es/index.js",
       "require": "./lib/cjs/index.cjs",
       "types": "./lib/types/index.d.ts"
-    },
-    "./style.css": "./lib/style.css"
+    }
   },
   "files": [
     "lib/cjs/**",
     "lib/es/**",
-    "lib/types/**",
-    "lib/style.css"
+    "lib/types/**"
   ],
   "dependencies": {
     "lodash": "^4.17.21"
