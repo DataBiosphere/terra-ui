@@ -18,6 +18,11 @@ interface ImageSelectOption {
   label?: string;
 }
 
+interface ImageSelectOptionGroup {
+  label: string;
+  options: ImageSelectOption[];
+}
+
 export const GcpComputeImageSelect: React.FC<GcpComputeImageSelectProps> = (props: GcpComputeImageSelectProps) => {
   const { selectedComputeImageUrl, setSelectedComputeImageUrl, images, hasCustomOption, customOptionUrl } = props;
 
@@ -28,6 +33,29 @@ export const GcpComputeImageSelect: React.FC<GcpComputeImageSelectProps> = (prop
       _.map(({ label, url }) => ({ label, value: url }))
     )();
 
+  const optionGroups: ImageSelectOptionGroup[] = [
+    {
+      label: 'TERRA-MAINTAINED JUPYTER ENVIRONMENTS',
+      options: filterImages(({ isCommunity, isRStudio }) => !isCommunity && !isRStudio),
+    },
+    {
+      label: 'COMMUNITY-MAINTAINED JUPYTER ENVIRONMENTS (verified partners)',
+      options: filterImages(_.get(['isCommunity'])),
+    },
+    {
+      label: 'COMMUNITY-MAINTAINED RSTUDIO ENVIRONMENTS (verified partners)',
+      options: filterImages(_.get(['isRStudio'])),
+    },
+    ...(hasCustomOption
+      ? [
+          {
+            label: 'OTHER ENVIRONMENTS',
+            options: [{ label: 'Custom Environment', value: customOptionUrl }],
+          },
+        ]
+      : []),
+  ];
+
   return h(GroupedSelect, {
     'aria-label': 'Select Environment',
     value: selectedComputeImageUrl,
@@ -36,27 +64,6 @@ export const GcpComputeImageSelect: React.FC<GcpComputeImageSelectProps> = (prop
     },
     isSearchable: true,
     isClearable: false,
-    options: [
-      {
-        label: 'TERRA-MAINTAINED JUPYTER ENVIRONMENTS',
-        options: filterImages(({ isCommunity, isRStudio }) => !isCommunity && !isRStudio),
-      },
-      {
-        label: 'COMMUNITY-MAINTAINED JUPYTER ENVIRONMENTS (verified partners)',
-        options: filterImages(_.get(['isCommunity'])),
-      },
-      {
-        label: 'COMMUNITY-MAINTAINED RSTUDIO ENVIRONMENTS (verified partners)',
-        options: filterImages(_.get(['isRStudio'])),
-      },
-      ...(hasCustomOption
-        ? [
-            {
-              label: 'OTHER ENVIRONMENTS',
-              options: [{ label: 'Custom Environment', value: customOptionUrl }],
-            },
-          ]
-        : []),
-    ].filter(({ options }) => options?.length),
+    options: optionGroups.filter(({ options }) => options?.length),
   });
 };

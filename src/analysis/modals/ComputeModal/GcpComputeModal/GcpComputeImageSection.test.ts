@@ -1,5 +1,6 @@
 import { LoadedState } from '@terra-ui-packages/core-utils';
 import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import {
   defaultGoogleWorkspace,
@@ -14,13 +15,14 @@ import {
 import { ComputeImage, useComputeImages } from 'src/analysis/useComputeImages';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
+import { ComputeImageRaw } from 'src/libs/ajax/compute-image-providers/ComputeImageProvider';
 import { asMockedFn } from 'src/testing/test-utils';
 
 type UseComputeImagesExport = typeof import('src/analysis/useComputeImages');
 jest.mock(
   'src/analysis/useComputeImages',
   (): UseComputeImagesExport => ({
-    ...jest.requireActual('src/analysis/useAnalysisFiles'),
+    ...jest.requireActual('src/analysis/useComputeImages'),
     useComputeImages: jest.fn(),
   })
 );
@@ -32,8 +34,10 @@ const defaultComputeImageStore = {
   loadedState: { status: 'Ready', state: [] as ComputeImage[] } as LoadedState<ComputeImage[], unknown>,
 };
 
+const mockOnSelect = jest.fn();
+
 const defaultGcpComputeImageSectionProps: GcpComputeImageSectionProps = {
-  onSelect: jest.fn(),
+  onSelect: mockOnSelect,
   tool: runtimeToolLabels.Jupyter,
   currentRuntime: {
     runtimeImages: generateTestGoogleRuntime().runtimeImages,
@@ -43,13 +47,13 @@ const defaultGcpComputeImageSectionProps: GcpComputeImageSectionProps = {
 type AjaxContract = ReturnType<typeof Ajax>;
 type AjaxOuterWorkspacesContract = AjaxContract['Workspaces'];
 type AjaxInnerWorkspacesContract = AjaxContract['Workspaces']['workspace'];
-type AjaxBucketsContract = AjaxContract['Buckets'];
+// type AjaxBucketsContract = AjaxContract['Buckets'];
 
-const mockBucketsObjectPreview = jest.fn();
-asMockedFn(mockBucketsObjectPreview as AjaxBucketsContract).mockResolvedValue(imageDocs);
-const mockBuckets: Partial<AjaxBucketsContract> = {
-  getObjectPreview: mockBucketsObjectPreview,
-};
+// const mockBucketsObjectPreview = jest.fn();
+// asMockedFn(mockBucketsObjectPreview).mockResolvedValue(imageDocs);
+// const mockBuckets: Partial<AjaxBucketsContract> = {
+//   getObjectPreview: mockBucketsObjectPreview,
+// };
 
 const mockInnerWorkspaces = jest.fn().mockReturnValue({
   googleProject: defaultGoogleWorkspace.googleProject,
@@ -61,7 +65,6 @@ const mockOuterWorkspaces: Partial<AjaxOuterWorkspacesContract> = {
 
 const mockAjax: Partial<AjaxContract> = {
   Workspaces: mockOuterWorkspaces as AjaxOuterWorkspacesContract,
-  Buckets: mockBuckets as AjaxBucketsContract,
 };
 
 describe('GcpComputeImageSection', () => {
@@ -69,21 +72,66 @@ describe('GcpComputeImageSection', () => {
     // Arrange
     asMockedFn(useComputeImages).mockReturnValue(defaultComputeImageStore);
     asMockedFn(Ajax).mockReturnValue(mockAjax as AjaxContract);
+    asMockedFn(mockOnSelect).mockImplementation();
   });
 
   it('loads properly', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    asMockedFn(useComputeImages).mockReturnValue({
+      ...defaultComputeImageStore,
+      loadedState: {
+        ...defaultComputeImageStore.loadedState,
+        state: imageDocs.map(
+          (image: ComputeImageRaw): ComputeImage => ({
+            ...image,
+            toolLabel: image.isRStudio ? runtimeToolLabels.RStudio : runtimeToolLabels.Jupyter,
+            url: image.image,
+          })
+        ),
+      },
+    });
+
     // Act
     await act(async () => {
       // eslint-disable-line require-await
-      render(h(GcpComputeImageSection, defaultGcpComputeImageSectionProps));
+      render(
+        h(GcpComputeImageSection, {
+          ...defaultGcpComputeImageSectionProps,
+          currentRuntime: {
+            runtimeImages: [
+              {
+                imageType: runtimeToolLabels.Jupyter,
+                imageUrl: defaultImage.image,
+                timestamp: '2022-09-19T15:37:11.035465Z',
+              },
+              ...defaultGcpComputeImageSectionProps.currentRuntime.runtimeImages,
+            ],
+          },
+        })
+      );
     });
 
     // Assert
+    // Select element appears
     const inputElement = screen.getByLabelText('Select Environment');
-    // todo this won't find our label
-    screen.getByText(defaultImage.label) === inputElement;
+    // Default image is default selection
+    expect(mockOnSelect).lastCalledWith(expect.objectContaining({ url: defaultImage.image }), false);
 
-    await user.click(element);
-    imageDocs.every(({ label }) => screen.getByText(label));
+    // Act
+    await user.click(inputElement);
+
+    // Assert
+    // All images appear as options
+    [
+      'TERRA-MAINTAINED JUPYTER ENVIRONMENTS',
+      'COMMUNITY-MAINTAINED JUPYTER ENVIRONMENTS (verified partners)',
+      'COMMUNITY-MAINTAINED RSTUDIO ENVIRONMENTS (verified partners)',
+      'OTHER ENVIRONMENTS',
+    ].every((heading) => screen.getByText(heading));
+    imageDocs
+      .filter(({ label }) => label !== defaultImage.label)
+      .map(({ label }) => label)
+      .every((imageLabel) => screen.getByText(imageLabel));
   });
 });
