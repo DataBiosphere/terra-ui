@@ -766,6 +766,11 @@ export const GcpComputeModalBase = ({
     doUseOnMount();
   });
 
+  const onSelectGcpComputeImageSection = (image, isCustomImage) => {
+    setSelectedImage(image);
+    setIsCustomSelectedImage(isCustomImage);
+  };
+
   // Render functions -- begin
   const renderActionButton = () => {
     const { runtime: existingRuntime, hasGpu } = getExistingEnvironmentConfig();
@@ -871,10 +876,7 @@ export const GcpComputeModalBase = ({
             ]),
             div({ style: { height: 45 } }, [
               h(GcpComputeImageSection, {
-                onSelect(image, isCustomImage) {
-                  setSelectedImage(image);
-                  setIsCustomSelectedImage(isCustomImage);
-                },
+                onSelect: onSelectGcpComputeImageSection,
                 tool,
                 currentRuntime: currentRuntimeDetails,
               }),
@@ -1589,10 +1591,7 @@ export const GcpComputeModalBase = ({
         onPrevious: () => setViewMode(undefined),
       }),
       h(GcpComputeImageSection, {
-        onSelect(image, isCustomImage) {
-          setSelectedImage(image);
-          setIsCustomSelectedImage(isCustomImage);
-        },
+        onSelect: onSelectGcpComputeImageSection,
         tool,
         currentRuntime: currentRuntimeDetails,
       }),

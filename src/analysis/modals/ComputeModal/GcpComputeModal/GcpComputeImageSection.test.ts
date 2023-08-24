@@ -36,7 +36,6 @@ const defaultComputeImageStore = {
 };
 
 const mockOnSelect = jest.fn();
-
 const defaultGcpComputeImageSectionProps: GcpComputeImageSectionProps = {
   onSelect: mockOnSelect,
   tool: runtimeToolLabels.Jupyter,
