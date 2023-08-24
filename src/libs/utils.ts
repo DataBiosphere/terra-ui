@@ -41,21 +41,16 @@ export interface Atom<T> {
   reset: () => void;
 }
 
-type AtomFactory = {
-  <T = unknown>(initialValue: T): Atom<T>;
-  <T = unknown>(): Atom<T | undefined>;
-};
-
 /**
  * A simple state container inspired by clojure atoms. Method names were chosen based on similarity
  * to lodash and Immutable. (deref => get, reset! => set, swap! => update, reset to go back to initial value)
  * Implements the Store interface
  */
-export const atom: AtomFactory = <T = unknown>(initialValue?: T): Atom<T | undefined> => {
+export const atom = <T>(initialValue: T): Atom<T> => {
   let value = initialValue;
-  const { subscribe, next } = subscribable<[T | undefined, T | undefined]>();
+  const { subscribe, next } = subscribable<[T, T]>();
   const get = () => value;
-  const set = (newValue: T | undefined) => {
+  const set = (newValue: T) => {
     const oldValue = value;
     value = newValue;
     next(newValue, oldValue);

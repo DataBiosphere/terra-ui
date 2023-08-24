@@ -3,7 +3,7 @@ import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/
 import * as Utils from 'src/libs/utils';
 import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
-export const routeHandlersStore = Utils.atom([]);
+export const routeHandlersStore = Utils.atom<unknown[]>([]);
 
 export const authStore = Utils.atom<any>({
   isSignedIn: undefined,
@@ -43,25 +43,25 @@ toggleStateAtom.update((v) => v || { notebooksTab: true });
 export const azurePreviewStore = staticStorageSlot(getLocalStorage(), 'azurePreview');
 azurePreviewStore.update((v) => v || false);
 
-export const notificationStore = Utils.atom([]);
+export const notificationStore = Utils.atom<any[]>([]);
 
 export const contactUsActive = Utils.atom(false);
 
-export const workspaceStore = Utils.atom<any>();
+export const workspaceStore = Utils.atom<any>(undefined);
 
 export const workspacesStore = Utils.atom<WorkspaceWrapper[]>([]);
 
-export const rerunFailuresStatus = Utils.atom();
+export const rerunFailuresStatus = Utils.atom<unknown>(undefined);
 
-export const errorNotifiedRuntimes = Utils.atom([]);
+export const errorNotifiedRuntimes = Utils.atom<unknown[]>([]);
 
-export const errorNotifiedApps = Utils.atom([]);
+export const errorNotifiedApps = Utils.atom<unknown[]>([]);
 
 export const knownBucketRequesterPaysStatuses = Utils.atom({});
 
-export const requesterPaysProjectStore = Utils.atom();
+export const requesterPaysProjectStore = Utils.atom<unknown>(undefined);
 
-export const runtimesStore = Utils.atom();
+export const runtimesStore = Utils.atom<unknown>(undefined);
 
 export const workflowSelectionStore = Utils.atom({
   key: undefined,
@@ -79,9 +79,9 @@ export type AsyncImportJob = {
 
 export const asyncImportJobStore = Utils.atom<AsyncImportJob[]>([]);
 
-export const snapshotsListStore = Utils.atom();
+export const snapshotsListStore = Utils.atom<unknown>(undefined);
 
-export const snapshotStore = Utils.atom();
+export const snapshotStore = Utils.atom<unknown>(undefined);
 
 export const dataCatalogStore = Utils.atom<any[]>([]);
 
@@ -97,7 +97,7 @@ type AjaxOverride = {
 
 declare global {
   interface Window {
-    ajaxOverridesStore: Utils.Atom<AjaxOverride[] | undefined>;
+    ajaxOverridesStore: Utils.Atom<AjaxOverride[]>;
     configOverridesStore: any;
   }
 }
@@ -108,7 +108,7 @@ declare global {
  * The fn should be a fetch wrapper (oldFetch => newFetch) that modifies the request process. (See ajaxOverrideUtils)
  * If present, filter should be a RegExp that is matched against the url to target specific requests.
  */
-export const ajaxOverridesStore = Utils.atom<AjaxOverride[]>();
+export const ajaxOverridesStore = Utils.atom<AjaxOverride[]>([]);
 window.ajaxOverridesStore = ajaxOverridesStore;
 
 /*
