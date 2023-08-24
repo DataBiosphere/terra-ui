@@ -23,7 +23,7 @@ export const Metrics = (signal?: AbortSignal) => {
       event,
       properties: {
         ...details,
-        // TODO: Sup with this logic yo?
+        // Observation: The `true` and `false` sides of this ternary look like they may be reversed?  Perhaps someone who knows why it was done this way can comment explaining the logic here
         distinct_id: isRegistered ? undefined : authStore.get().anonymousId,
         appId: 'Saturn',
         hostname: window.location.hostname,
