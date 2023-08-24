@@ -47,11 +47,11 @@ export const getOidcConfig = () => {
     stateStore: new WebStorageStateStore({ store: getLocalStorage() }),
     userStore: new WebStorageStateStore({ store: getLocalStorage() }),
     automaticSilentRenew: true,
-    // Leo's setCookie interval is currently 5 min, set refresh auth then 5 min 30 seconds to gurantee that setCookie's token won't expire between 2 setCookie api calls
+    // Leo's setCookie interval is currently 5 min, set refresh auth then 5 min 30 seconds to guarantee that setCookie's token won't expire between 2 setCookie api calls
     accessTokenExpiringNotificationTimeInSeconds: 330,
     includeIdTokenInSilentRenew: true,
     extraQueryParams: { access_type: 'offline' },
-    redirect_uri: '',
+    redirect_uri: '', // this field is not being used currently, but is expected from UserManager
   };
 };
 
@@ -162,8 +162,6 @@ export const hasBillingScope = () => {
     // For Google check the scope directly on the user object.
     [isGoogleAuthority(), () => _.includes('https://www.googleapis.com/auth/cloud-billing', getUser().scope)],
     // For B2C check the hasGcpBillingScopeThroughB2C field in the auth store.
-    // This is naughty - don't use `any`, but for now it's fine
-    // eslint-disable-line @typescript-eslint/no-explicit-any
     () => authStore.get().hasGcpBillingScopeThroughB2C === true
   );
 };
@@ -293,7 +291,7 @@ const initializeTermsOfService = (isSignedIn, state) => {
 };
 
 export const initializeAuth = _.memoize(async () => {
-  // Instiante a UserManager directly to populate the logged-in user at app initialization time.
+  // Instantiate a UserManager directly to populate the logged-in user at app initialization time.
   // All other auth usage should use the AuthContext from authStore.
   const userManager = new UserManager(getOidcConfig());
   processUser(await userManager.getUser(), false);
