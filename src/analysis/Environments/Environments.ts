@@ -26,14 +26,12 @@ import {
 } from 'src/analysis/utils/runtime-utils';
 import { AppToolLabel, appTools, getToolLabelFromCloudEnv, isPauseSupported } from 'src/analysis/utils/tool-utils';
 import { Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
-import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
 import PopupTrigger, { makeMenuIcon } from 'src/components/PopupTrigger';
 import SupportRequestWrapper from 'src/components/SupportRequest';
 import { SimpleFlexTable, Sortable } from 'src/components/table';
 import TooltipTrigger from 'src/components/TooltipTrigger';
-import TopBar from 'src/components/TopBar';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { useReplaceableAjaxExperimental } from 'src/libs/ajax';
 import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
@@ -43,7 +41,6 @@ import { isRuntime, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models
 import colors from 'src/libs/colors';
 import { withErrorIgnoring, withErrorReporting, withErrorReportingInModal } from 'src/libs/error';
 import Events from 'src/libs/events';
-import * as Nav from 'src/libs/nav';
 import { useCancellation, useGetter } from 'src/libs/react-utils';
 import { contactUsActive, getUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
@@ -248,10 +245,11 @@ type AppWithWorkspace = DecoratedResourceAttributes & App;
 type DecoratedComputeResource = RuntimeWithWorkspace | AppWithWorkspace;
 type DecoratedResource = DecoratedComputeResource | DiskWithWorkspace;
 
-interface EnvironmentsProps {
+export interface EnvironmentsProps {
   nav?: any;
 }
-export const Environments = ({ nav = undefined }: EnvironmentsProps) => {
+
+export const Environments: React.FC<EnvironmentsProps> = ({ nav = undefined }) => {
   const signal = useCancellation();
   const { workspaces, refresh: refreshWorkspaces } = _.flow(
     useWorkspaces,
@@ -1026,19 +1024,3 @@ export const Environments = ({ nav = undefined }: EnvironmentsProps) => {
 // Temporary export here for ease of access to it when using the above component from outside of
 // this repository.
 export { ajaxContext } from 'src/libs/ajax';
-
-const EnvironmentsPage = () =>
-  h(FooterWrapper, [
-    h(TopBar, { title: 'Cloud Environments', href: '' }, []),
-    // Passing Nav here allows overriding when this component is used outside of Terra UI.
-    h(Environments, { nav: Nav }),
-  ]);
-
-export const navPaths = [
-  {
-    name: 'environments',
-    path: '/clusters', // NB: This path name is a holdover from a previous naming scheme
-    component: EnvironmentsPage,
-    title: 'Cloud environments',
-  },
-];

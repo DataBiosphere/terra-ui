@@ -16,20 +16,19 @@ import {
   generateTestDiskWithGoogleWorkspace,
   generateTestGoogleRuntime,
 } from 'src/analysis/_testData/testData';
-import { Environments } from 'src/analysis/Environments';
+import { Environments } from 'src/analysis/Environments/Environments';
 import { defaultComputeZone } from 'src/analysis/utils/runtime-utils';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax, useReplaceableAjaxExperimental } from 'src/libs/ajax';
 import { authOpts, fetchLeo } from 'src/libs/ajax/ajax-common';
+import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
-
-import { ListAppResponse } from '../libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from '../libs/ajax/leonardo/models/disk-models';
 
 type ModalMockExports = typeof import('src/components/Modal.mock');
 

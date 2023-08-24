@@ -1,5 +1,5 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { act, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as clipboard from 'clipboard-polyfill/text';
 import FileSaver from 'file-saver';
@@ -227,6 +227,94 @@ describe('EntitiesContent', () => {
 
     // Assert
     expect(clipboard.writeText).toHaveBeenCalledWith('entity:sample_set_id\nsample_set_1\n');
+  });
+
+  it('copies filtered table to clipboard', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    const paginatedEntitiesOfType = jest.fn().mockResolvedValue({
+      results: [
+        {
+          entityType: 'sample',
+          name: 'sample_1',
+          attributes: {},
+        },
+      ],
+      resultMetadata: { filteredCount: 1, unfilteredCount: 2 },
+    });
+    const mockAjax: DeepPartial<AjaxContract> = {
+      Workspaces: {
+        workspace: () => {
+          return {
+            paginatedEntitiesOfType,
+          };
+        },
+      },
+      Metrics: {
+        captureEvent: () => {},
+      },
+    };
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+
+    await act(async () => {
+      render(
+        h(EntitiesContent, {
+          workspace: {
+            ...defaultGoogleWorkspace,
+            workspace: {
+              ...defaultGoogleWorkspace.workspace,
+              attributes: {},
+            },
+            workspaceSubmissionStats: {
+              runningSubmissionsCount: 0,
+            },
+          },
+          entityKey: 'sample',
+          activeCrossTableTextFilter: '',
+          entityMetadata: {
+            sample: {
+              idName: 'sample_id',
+              attributeNames: [],
+              count: 2,
+            },
+          },
+          setEntityMetadata: () => {},
+          loadMetadata: () => {},
+          snapshotName: null,
+          deleteColumnUpdateMetadata: () => {},
+        })
+      );
+    });
+
+    // Act
+
+    const columnMenu = screen.getByRole('button', { name: 'Column menu' });
+    await user.click(columnMenu);
+
+    // Filter
+    fireEvent.change(screen.getByLabelText('Exact match filter'), { target: { value: 'even' } });
+
+    const menuModal = screen.getByRole('dialog');
+    const searchButton = within(menuModal).getByRole('button', { name: 'Search' });
+    await user.click(searchButton);
+
+    // Select filtered entity
+    const checkbox = screen.getByRole('button', { name: '"Select All" options' });
+    await user.click(checkbox);
+
+    const pageButton = screen.getByRole('button', { name: 'Filtered (1)' });
+    await user.click(pageButton);
+
+    // Copy to clipboard
+    const exportButton = screen.getByText('Export');
+    await user.click(exportButton);
+    const copyMenuItem = screen.getByRole('menuitem', { name: 'Copy to clipboard' });
+    const copyButton = within(copyMenuItem).getByRole('button');
+    await user.click(copyButton);
+
+    // Assert
+    expect(clipboard.writeText).toHaveBeenCalledWith('entity:sample_id\nsample_1\n');
   });
 
   it('downloads selection to tsv', async () => {

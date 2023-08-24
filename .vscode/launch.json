@@ -1,0 +1,22 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Jest - current file",
+      // Run yarn from the directory containing the test.
+      // Yarn will run the test script from the nearest package.json in parent directories.
+      "cwd": "${fileDirname}",
+      "runtimeExecutable": "yarn",
+      // Pass the test file's path to yarn to filter to run only the current test.
+      // Use the path instead of the file name to avoid also running any tests with the same
+      // name in different directories.
+      "runtimeArgs": ["test", "${relativeFile}"],
+      "console": "integratedTerminal"
+    }
+  ]
+}

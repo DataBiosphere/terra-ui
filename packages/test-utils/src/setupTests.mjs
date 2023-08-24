@@ -9,7 +9,7 @@ import failOnConsole from 'jest-fail-on-console';
 // Fail tests that produce console logs.
 // Console warnings or errors suggest there are issues with the test.
 // Other console logs are noise that make it harder to find informative output when tests do fail.
-if (!process.env.ALLOW_LOGS) {
+if (process.env.CI) {
   failOnConsole({
     shouldFailOnAssert: true,
     shouldFailOnDebug: true,
