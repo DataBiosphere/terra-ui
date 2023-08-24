@@ -6,7 +6,7 @@ import * as Utils from './utils';
 
 // Interactive's hover and focus styles depend on this CSS.
 injectStyle(`
-.hover-style:hover, .hover-style:focus {
+.terra-ui--interactive:hover, .terra-ui--interactive:focus {
   --hover-background: var(--app-hover-background);
   --hover-backgroundColor: var(--app-hover-backgroundColor);
   --hover-border: var(--app-hover-border);
@@ -16,7 +16,7 @@ injectStyle(`
   --hover-textDecoration: var(--app-hover-textDecoration);
 }
 
-.hover-style:hover .hover-style:not(:hover) {
+.terra-ui--interactive:hover .terra-ui--interactive:not(:hover) {
   --hover-background: initial;
   --hover-backgroundColor: initial;
   --hover-border: initial;
@@ -102,7 +102,7 @@ export const Interactive: React.ForwardRefExoticComponent<InteractiveProps> = fo
       _.flatMap(([key, value]) => {
         console.assert(
           allowedHoverVariables.includes(key),
-          `${key} needs to be added to the hover-style in style.css for the style to be applied`
+          `${key} needs to be added to the .terra-ui--interactive CSS for the style to be applied`
         );
         return [
           [`--app-hover-${key}`, value],
@@ -116,7 +116,7 @@ export const Interactive: React.ForwardRefExoticComponent<InteractiveProps> = fo
       TagName,
       {
         ref,
-        className: `hover-style ${className}`,
+        className: `terra-ui--interactive ${className}`,
         style: {
           ...style,
           ...cssVariables,
