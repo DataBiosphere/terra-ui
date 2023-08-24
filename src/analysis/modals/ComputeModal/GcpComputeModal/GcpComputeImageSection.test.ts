@@ -1,4 +1,4 @@
-import { LoadedState } from '@terra-ui-packages/core-utils';
+import { ReadyState } from '@terra-ui-packages/core-utils';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
@@ -17,6 +17,7 @@ import { ComputeImage, useComputeImages } from 'src/analysis/useComputeImages';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
 import { ComputeImageRaw } from 'src/libs/ajax/compute-image-providers/ComputeImageProvider';
+import { GetRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { asMockedFn } from 'src/testing/test-utils';
 
 type UseComputeImagesExport = typeof import('src/analysis/useComputeImages');
@@ -32,7 +33,7 @@ jest.mock('src/libs/ajax');
 
 const defaultComputeImageStore = {
   refresh: () => Promise.resolve(),
-  loadedState: { status: 'Ready', state: [] as ComputeImage[] } as LoadedState<ComputeImage[], unknown>,
+  loadedState: { status: 'Ready', state: [] as ComputeImage[] } as ReadyState<ComputeImage[]>,
 };
 
 const mockOnSelect = jest.fn();
@@ -40,7 +41,7 @@ const defaultGcpComputeImageSectionProps: GcpComputeImageSectionProps = {
   onSelect: mockOnSelect,
   tool: runtimeToolLabels.Jupyter,
   currentRuntime: {
-    runtimeImages: generateTestGoogleRuntime().runtimeImages,
+    runtimeImages: (generateTestGoogleRuntime() as Pick<GetRuntimeItem, 'runtimeImages'>).runtimeImages,
   },
 };
 
@@ -56,8 +57,8 @@ type AjaxInnerWorkspacesContract = AjaxContract['Workspaces']['workspace'];
 // };
 
 const mockInnerWorkspaces = jest.fn().mockReturnValue({
-  googleProject: defaultGoogleWorkspace.googleProject,
-  cloudPlatform: defaultGoogleWorkspace.cloudPlatform,
+  googleProject: defaultGoogleWorkspace.workspace.googleProject,
+  cloudPlatform: defaultGoogleWorkspace.workspace.cloudPlatform,
 }) as AjaxInnerWorkspacesContract;
 const mockOuterWorkspaces: Partial<AjaxOuterWorkspacesContract> = {
   workspace: mockInnerWorkspaces,
@@ -85,6 +86,8 @@ describe('GcpComputeImageSection', () => {
         state: imageDocs.map(
           (image: ComputeImageRaw): ComputeImage => ({
             ...image,
+            isCommunity: !!image.isCommunity,
+            isRStudio: !!image.isRStudio,
             toolLabel: image.isRStudio ? runtimeToolLabels.RStudio : runtimeToolLabels.Jupyter,
             url: image.image,
           })
@@ -105,7 +108,7 @@ describe('GcpComputeImageSection', () => {
                 imageUrl: defaultImage.image,
                 timestamp: '2022-09-19T15:37:11.035465Z',
               },
-              ...defaultGcpComputeImageSectionProps.currentRuntime.runtimeImages,
+              ...(defaultGcpComputeImageSectionProps.currentRuntime?.runtimeImages ?? []),
             ],
           },
         })
