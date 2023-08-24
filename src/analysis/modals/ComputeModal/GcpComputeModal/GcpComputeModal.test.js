@@ -12,7 +12,6 @@ import {
   getGoogleRuntime,
   getJupyterRuntimeConfig,
   hailImage,
-  imageDocs,
   testDefaultLocation,
 } from 'src/analysis/_testData/testData';
 import { GcpComputeImageSection } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSection';
@@ -49,11 +48,11 @@ jest.mock('src/libs/config', () => ({
     shouldUseDrsHub: true,
   }),
 }));
-jest.mock('src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSection', () => (props) => {
+jest.mock('src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSection', () => {
   return {
     ...jest.requireActual('src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSection'),
     __esModule: true,
-    default: jest.fn(),
+    GcpComputeImageSection: jest.fn(),
   };
 });
 
@@ -91,19 +90,12 @@ const defaultAjaxImpl = {
   },
 };
 
-const mockGcpComputeImageSectionOnSelect = jest.fn();
-
 describe('GcpComputeModal', () => {
   beforeAll(() => {});
 
   beforeEach(() => {
     // Arrange
-    GcpComputeImageSection.mockImplementation((props) => {
-      props.onSelect = (...onSelectProps) => {
-        mockGcpComputeImageSectionOnSelect(onSelectProps);
-        props.onSelect(onSelectProps);
-      };
-    });
+    GcpComputeImageSection.mockImplementation(() => {});
     Ajax.mockImplementation(() => ({
       ...defaultAjaxImpl,
     }));
@@ -114,6 +106,17 @@ describe('GcpComputeModal', () => {
   });
 
   const getCreateButton = () => screen.getByText('Create');
+
+  const selectRuntimeImage = (ImageSection, runtime, isCustom = false) => {
+    const { onSelect: imageSectionOnSelect } = ImageSection.mock.lastCall[0];
+    const { imageUrl } = _.find({ imageType: runtime.labels.tool }, runtime.runtimeImages);
+    return imageSectionOnSelect({ url: imageUrl }, isCustom);
+  };
+  const selectImage = (ImageSection, { image, url, version, updated, packages, requiresSpark }, isCustom = false) => {
+    const normalizedImage = { url: image ?? url, version, updated, packages, requiresSpark };
+    const { onSelect: imageSectionOnSelect } = ImageSection.mock.lastCall[0];
+    return imageSectionOnSelect(normalizedImage, isCustom);
+  };
 
   it('renders correctly with minimal state', async () => {
     // Arrange
@@ -184,7 +187,9 @@ describe('GcpComputeModal', () => {
     await act(async () => {
       render(h(GcpComputeModalBase, defaultModalProps));
     });
-
+    await act(async () => {
+      selectImage(GcpComputeImageSection, defaultImage);
+    });
     await user.click(getCreateButton());
 
     // Assert
@@ -301,12 +306,13 @@ describe('GcpComputeModal', () => {
         );
       });
 
+      // Act
+      await act(async () => {
+        selectRuntimeImage(GcpComputeImageSection, runtime);
+      });
+
       // Assert
       screen.getByText(`${runtimeTool.label} Cloud Environment`);
-
-      const toolImage = _.find({ imageType: runtimeTool.label }, runtime.runtimeImages);
-      const selectText = _.find({ image: toolImage.imageUrl }, imageDocs).label;
-      screen.getByText(selectText);
 
       screen.getByText(machine.cpu);
       screen.getByText(machine.memory);
@@ -354,6 +360,9 @@ describe('GcpComputeModal', () => {
             currentRuntime: runtime,
           })
         );
+      });
+      await act(async () => {
+        selectRuntimeImage(GcpComputeImageSection, runtime);
       });
 
       // Assert
@@ -505,6 +514,9 @@ describe('GcpComputeModal', () => {
             currentRuntime: runtime,
           })
         );
+      });
+      await act(async () => {
+        selectRuntimeImage(GcpComputeImageSection, runtime);
       });
 
       await user.click(screen.getByLabelText('CPUs'));
@@ -683,20 +695,21 @@ describe('GcpComputeModal', () => {
     await act(async () => {
       render(h(GcpComputeModalBase, defaultModalProps));
     });
-
-    const selectMenu = screen.getByLabelText('Application configuration');
-    await user.click(selectMenu);
-    const selectOption = await screen.findByText(hailImage.label);
-    await user.click(selectOption);
-
-    const computeTypeSelect = screen.getByLabelText('Compute type');
-    await user.click(computeTypeSelect);
-    const sparkClusterOption = await screen.findByText('Spark cluster');
-    await user.click(sparkClusterOption);
-
-    const create = screen.getByText('Create');
-    await user.click(create);
-
+    await act(async () => {
+      selectImage(GcpComputeImageSection, hailImage);
+    });
+    await act(async () => {
+      const computeTypeSelect = screen.getByLabelText('Compute type');
+      await user.click(computeTypeSelect);
+    });
+    await act(async () => {
+      const sparkClusterOption = await screen.findByText('Spark cluster');
+      await user.click(sparkClusterOption);
+    });
+    await act(async () => {
+      const create = screen.getByText('Create');
+      await user.click(create);
+    });
     expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
     expect(createFunc).toHaveBeenCalledWith(
       expect.objectContaining({
