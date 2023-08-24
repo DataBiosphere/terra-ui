@@ -256,7 +256,6 @@ export const GcpComputeModalBase = ({
   const cloudPlatform = getCloudProviderFromWorkspace(workspace);
   const isPersistentDisk = shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected);
 
-  const { version, updated, packages, requiresSpark } = selectedImage ?? {};
   // The memory sizes below are the minimum required to launch Terra-supported GCP runtimes, based on experimentation.
   const minRequiredMemory = isDataproc(runtimeType) ? 7.5 : 3.75; // in GB
   const validMachineTypes = _.filter(({ memory }) => memory >= minRequiredMemory, machineTypes);
@@ -384,7 +383,7 @@ export const GcpComputeModalBase = ({
             runtimeConfig: createRuntimeConfig,
             autopauseThreshold: computeConfig.autopauseThreshold,
             toolDockerImage: desiredRuntime.toolDockerImage,
-            timeoutInMinutes,
+            timeoutInMinutes: isCustomSelectedImage ? timeoutInMinutes : null,
             labels: {
               saturnWorkspaceNamespace: namespace,
               saturnWorkspaceName: name,
@@ -589,7 +588,7 @@ export const GcpComputeModalBase = ({
       : '';
 
     return div({ style: { whiteSpace: 'pre', ...style } }, [
-      div({ style: Style.proportionalNumbers }, ['Updated: ', updated ? Utils.makeStandardDate(updated) : null]),
+      div({ style: Style.proportionalNumbers }, ['Updated: ', selectedImage?.updated ? Utils.makeStandardDate(selectedImage.updated) : null]),
       h(
         Link,
         {
@@ -597,7 +596,7 @@ export const GcpComputeModalBase = ({
           disabled: shouldDisable,
           ...Utils.newTabLinkProps,
         },
-        ['Version: ', version || null]
+        ['Version: ', selectedImage?.version || null]
       ),
       h(ClipboardButton, {
         text: selectedImage?.url,
@@ -650,7 +649,9 @@ export const GcpComputeModalBase = ({
     });
   };
 
-  const updateComputeConfig = _.curry((key, value) => setComputeConfig(_.set(key, value)));
+  const updateComputeConfig = _.curry((key, value) => {
+    setComputeConfig(_.set(key, value));
+  });
 
   const willDeleteBuiltinDisk = () => {
     const { runtime: existingRuntime } = getExistingEnvironmentConfig();
@@ -700,8 +701,29 @@ export const GcpComputeModalBase = ({
   // Helper functions -- end
 
   useEffect(() => {
-    setCustomImageUrl(getImageUrlFromRuntime(currentRuntimeDetails));
+    const runtimeImageUrl = getImageUrlFromRuntime(currentRuntimeDetails);
+    setCustomImageUrl(runtimeImageUrl);
   }, [currentRuntimeDetails]);
+
+  useEffect(() => {
+    const isDataprocPreviously = isDataproc(runtimeType);
+    const isDataprocNow = selectedImage?.requiresSpark;
+    const desiredToolLabel = selectedImage?.toolLabel ?? runtimeToolLabels.Jupyter;
+    if (!!isDataprocPreviously !== !!isDataprocNow) {
+      setRuntimeType(isDataprocNow ? runtimeTypes.dataprocSingleNode : runtimeTypes.gceVm);
+      updateComputeConfig('componentGatewayEnabled', isDataprocNow);
+      const machineType = getDefaultMachineType(isDataprocNow, desiredToolLabel);
+      updateComputeConfig('masterMachineType', machineType);
+      if (isDataprocNow && computeConfig.masterDiskSize < defaultDataprocMasterDiskSize) {
+        updateComputeConfig('masterDiskSize', defaultDataprocMasterDiskSize);
+      }
+    }
+  }, [selectedImage, isCustomSelectedImage, computeConfig, runtimeType, updateComputeConfig]);
+
+  const onSelectGcpComputeImageSection = (image, isCustomImage) => {
+    setSelectedImage(image);
+    setIsCustomSelectedImage(isCustomImage);
+  };
 
   // Lifecycle
   useOnMount(() => {
@@ -765,11 +787,6 @@ export const GcpComputeModalBase = ({
 
     doUseOnMount();
   });
-
-  const onSelectGcpComputeImageSection = (image, isCustomImage) => {
-    setSelectedImage(image);
-    setIsCustomSelectedImage(isCustomImage);
-  };
 
   // Render functions -- begin
   const renderActionButton = () => {
@@ -1089,7 +1106,7 @@ export const GcpComputeModalBase = ({
             (id) =>
               div({ style: { gridColumnEnd: 'span 4', marginTop: '0.5rem' } }, [
                 label({ htmlFor: id, style: computeStyles.label }, ['Compute type']),
-                (selectedImage?.isRStudio || requiresSpark) &&
+                (selectedImage?.isRStudio || selectedImage?.requiresSpark) &&
                   h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
                     'Only the compute types compatible with the selected application configuration are made available below.',
                   ]),
@@ -1109,7 +1126,7 @@ export const GcpComputeModalBase = ({
                         updateComputeConfig('componentGatewayEnabled', isDataproc(value));
                       },
                       options: [
-                        { value: runtimeTypes.gceVm, isDisabled: requiresSpark },
+                        { value: runtimeTypes.gceVm, isDisabled: selectedImage?.requiresSpark },
                         { value: runtimeTypes.dataprocSingleNode, isDisabled: selectedImage?.isRStudio },
                         { value: runtimeTypes.dataprocCluster, isDisabled: selectedImage?.isRStudio },
                       ],
@@ -1596,7 +1613,7 @@ export const GcpComputeModalBase = ({
         currentRuntime: currentRuntimeDetails,
       }),
       makeImageInfo({ margin: '1rem 0 0.5rem' }),
-      packages && h(ImageDepViewer, { packageLink: packages }),
+      selectedImage?.packages && h(ImageDepViewer, { packageLink: selectedImage.packages }),
     ]);
   };
 
