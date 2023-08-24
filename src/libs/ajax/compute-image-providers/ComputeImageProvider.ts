@@ -62,6 +62,7 @@ const normalizeImage: (rawImage: ComputeImageRaw) => ComputeImage = (rawImage) =
     url,
     isCommunity,
     isRStudio,
+    isTerraSupported: terraSupportedRuntimeImageIds.includes(id),
     toolLabel,
     label,
     packages,
@@ -87,10 +88,6 @@ export const ComputeImageProvider: ComputeImageProviderContract = {
       .then((r) => r.json());
 
     const normalizedImages: ComputeImage[] = fetchedImages.map(normalizeImage);
-
-    const isImageSupported = ({ id }): boolean => terraSupportedRuntimeImageIds.includes(id);
-    const supportedImages: ComputeImage[] = normalizedImages.filter(isImageSupported);
-
-    return supportedImages;
+    return normalizedImages;
   },
 };

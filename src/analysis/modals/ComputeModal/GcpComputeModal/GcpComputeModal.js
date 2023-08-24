@@ -383,7 +383,7 @@ export const GcpComputeModalBase = ({
             runtimeConfig: createRuntimeConfig,
             autopauseThreshold: computeConfig.autopauseThreshold,
             toolDockerImage: desiredRuntime.toolDockerImage,
-            timeoutInMinutes: isCustomSelectedImage ? timeoutInMinutes : null,
+            timeoutInMinutes: !selectedImage?.isTerraSupported ? timeoutInMinutes : null,
             labels: {
               saturnWorkspaceNamespace: namespace,
               saturnWorkspaceName: name,
@@ -706,10 +706,10 @@ export const GcpComputeModalBase = ({
   }, [currentRuntimeDetails]);
 
   useEffect(() => {
-    const isDataprocPreviously = isDataproc(runtimeType);
+    const isDataprocBefore = isDataproc(runtimeType);
     const isDataprocNow = selectedImage?.requiresSpark;
     const desiredToolLabel = selectedImage?.toolLabel ?? runtimeToolLabels.Jupyter;
-    if (!!isDataprocPreviously !== !!isDataprocNow) {
+    if (!!isDataprocBefore !== !!isDataprocNow) {
       setRuntimeType(isDataprocNow ? runtimeTypes.dataprocSingleNode : runtimeTypes.gceVm);
       updateComputeConfig('componentGatewayEnabled', isDataprocNow);
       const machineType = getDefaultMachineType(isDataprocNow, desiredToolLabel);
@@ -717,6 +717,9 @@ export const GcpComputeModalBase = ({
       if (isDataprocNow && computeConfig.masterDiskSize < defaultDataprocMasterDiskSize) {
         updateComputeConfig('masterDiskSize', defaultDataprocMasterDiskSize);
       }
+    }
+    if (selectedImage?.isTerraSupported && !isCustomSelectedImage) {
+      setTimeoutInMinutes(null);
     }
   }, [selectedImage, isCustomSelectedImage, computeConfig, runtimeType, updateComputeConfig]);
 
@@ -893,6 +896,8 @@ export const GcpComputeModalBase = ({
             ]),
             div({ style: { height: 45 } }, [
               h(GcpComputeImageSection, {
+                id,
+                'aria-label': 'Select Environment',
                 onSelect: onSelectGcpComputeImageSection,
                 tool,
                 currentRuntime: currentRuntimeDetails,
@@ -967,7 +972,7 @@ export const GcpComputeModalBase = ({
             ]),
           ]),
       ]),
-      isCustomSelectedImage ? renderCustomTimeoutInMinutes() : [],
+      !selectedImage?.isTerraSupported ? renderCustomTimeoutInMinutes() : [],
     ]);
   };
 
@@ -1608,6 +1613,7 @@ export const GcpComputeModalBase = ({
         onPrevious: () => setViewMode(undefined),
       }),
       h(GcpComputeImageSection, {
+        'aria-label': 'Select Environment',
         onSelect: onSelectGcpComputeImageSection,
         tool,
         currentRuntime: currentRuntimeDetails,

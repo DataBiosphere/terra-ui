@@ -24,7 +24,14 @@ interface ImageSelectOptionGroup {
 }
 
 export const GcpComputeImageSelect: React.FC<GcpComputeImageSelectProps> = (props: GcpComputeImageSelectProps) => {
-  const { selectedComputeImageUrl, setSelectedComputeImageUrl, images, hasCustomOption, customOptionUrl } = props;
+  const {
+    selectedComputeImageUrl,
+    setSelectedComputeImageUrl,
+    images,
+    hasCustomOption,
+    customOptionUrl,
+    ...restProps
+  } = props;
 
   const filterImages: (predicate: any) => ImageSelectOption[] = (predicate) =>
     _.flow(
@@ -57,7 +64,7 @@ export const GcpComputeImageSelect: React.FC<GcpComputeImageSelectProps> = (prop
   ];
 
   return h(GroupedSelect, {
-    'aria-label': 'Select Environment',
+    ...restProps,
     value: selectedComputeImageUrl,
     onChange: ({ value }: SingleValue<any>) => {
       setSelectedComputeImageUrl(value);
