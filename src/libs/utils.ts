@@ -87,6 +87,8 @@ export const makeStandardDate = (dateString) => dateFormat.format(new Date(dateS
 
 export const makeCompleteDate = (dateString) => completeDateFormat.format(new Date(dateString));
 
+export const makeCompleteDateSeconds = (dateString) => completeDateFormat.format(new Date(dateString * 1000));
+
 export const makeCompleteDateParts = (dateString) => {
   return _.map((part) => part.format(new Date(dateString)), completeDateFormatParts);
 };

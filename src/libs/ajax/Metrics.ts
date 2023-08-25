@@ -23,8 +23,7 @@ export const Metrics = (signal?: AbortSignal) => {
       event,
       properties: {
         ...details,
-        // Observation: The `true` and `false` sides of this ternary look like they may be reversed?  Perhaps someone who knows why it was done this way can comment explaining the logic here
-        distinct_id: isRegistered ? undefined : authStore.get().anonymousId,
+        // Users who have not registered are considered anonymous users. Send an anonymized distinct_id in that case; otherwise the user identity is captured via the auth token.        distinct_id: isRegistered ? undefined : authStore.get().anonymousId,
         appId: 'Saturn',
         hostname: window.location.hostname,
         appPath: Nav.getCurrentRoute().name,

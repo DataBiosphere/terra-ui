@@ -9,22 +9,26 @@ export const routeHandlersStore = Utils.atom<unknown[]>([]);
 // we don't want to cascade into migrating every file all at once,
 // so sometimes this is the answer to satisfy the TS compiler
 export const authStore = Utils.atom<any>({
-  isSignedIn: undefined,
   anonymousId: undefined,
-  registrationStatus: undefined,
-  termsOfService: {},
-  user: {},
-  profile: {},
-  fenceStatus: {},
-  cookiesAccepted: undefined,
   authContext: undefined,
+  authTokenMetadata: {
+    createdAt: -1,
+    expiresAt: -1,
+  },
+  cookiesAccepted: undefined,
+  fenceStatus: {},
+  isAzurePreviewUser: undefined,
+  isSignedIn: undefined,
   oidcConfig: {
     authorityEndpoint: undefined,
     clientId: undefined,
   },
-  isAzurePreviewUser: undefined,
+  profile: {},
+  registrationStatus: undefined,
   sessionId: undefined,
-  sessionStartTime: {} as number,
+  sessionStartTime: -1,
+  termsOfService: {},
+  user: {},
 });
 
 export const getUser: any = () => authStore.get().user;
