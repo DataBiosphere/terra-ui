@@ -1,6 +1,5 @@
 import { parseJSON } from 'date-fns/fp';
-// eslint-disable-next-line camelcase
-import { jwt_decode } from 'jwt-decode';
+import jwtDecode, { JwtPayload } from 'jwt-decode';
 import _ from 'lodash/fp';
 import { User, UserManager, WebStorageStateStore } from 'oidc-client-ts';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
@@ -126,8 +125,8 @@ export const signIn = async (includeBillingScope = false) => {
   const generatedUuid = uuid();
   const sessionStartTime = Date.now();
   const userJWT: any = user.id_token;
-  const decodedJWT: any = jwt_decode(userJWT);
-  const authTokenCreatedAt: any = decodedJWT.auth_time; // time in seconds when authorization token was created
+  const decodedJWT: JwtPayload = jwtDecode<JwtPayload>(userJWT);
+  const authTokenCreatedAt: any = (decodedJWT as any).auth_time; // time in seconds when authorization token was created
   const authTokenExpiresAt: any = user.expires_at; // time in seconds when authorization token expires
   const jwtTokenExpiresAt = decodedJWT.exp; // time in seconds when jwt expires (should not be read from)
   authStore.update((state) => ({
