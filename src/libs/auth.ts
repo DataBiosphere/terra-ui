@@ -67,10 +67,13 @@ const getAuthInstance = (): any => {
 export const signOut = () => {
   // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
   const sessionEndTime: number = Date.now();
+  const tokenMetadata: any = authStore.get().authTokenMetadata;
   Ajax().Metrics.captureEvent(Events.userLogout, {
     sessionId: authStore.get().sessionId,
     sessionEndTime: Utils.makeCompleteDate(sessionEndTime),
     sessionDurationMilliseconds: sessionEndTime - authStore.get().sessionStartTime,
+    authTokenCreatedAt: Utils.makeCompleteDateSeconds(tokenMetadata.createdAt),
+    authTokenExpiresAt: Utils.makeCompleteDateSeconds(tokenMetadata.expiresAt),
   });
   cookieReadyStore.reset();
   azureCookieReadyStore.reset();
@@ -122,27 +125,26 @@ const getSigninArgs = (includeBillingScope) => {
 export const signIn = async (includeBillingScope = false) => {
   const args = getSigninArgs(includeBillingScope);
   const user: User = await getAuthInstance().signinPopup(args);
-  const generatedUuid = uuid();
+  const sessionId = uuid();
   const sessionStartTime = Date.now();
   const userJWT: any = user.id_token;
   const decodedJWT: JwtPayload = jwtDecode<JwtPayload>(userJWT);
   const authTokenCreatedAt: any = (decodedJWT as any).auth_time; // time in seconds when authorization token was created
   const authTokenExpiresAt: any = user.expires_at; // time in seconds when authorization token expires
-  const jwtTokenExpiresAt = decodedJWT.exp; // time in seconds when jwt expires (should not be read from)
+  const jwtTokenExpiresAt = (decodedJWT as any).exp; // time in seconds when jwt expires (should not be read from)
   authStore.update((state) => ({
     ...state,
     hasGcpBillingScopeThroughB2C: includeBillingScope,
-    sessionId: generatedUuid,
+    sessionId,
     sessionStartTime,
     authTokenMetadata: {
       createdAt: authTokenCreatedAt,
       expiresAt: authTokenExpiresAt,
     },
   }));
-
   Ajax().Metrics.captureEvent(Events.userLogin, {
     authProvider: user.profile.idp,
-    sessionId: generatedUuid,
+    sessionId,
     sessionStartTime: Utils.makeCompleteDate(sessionStartTime),
     // Token times are in seconds, so converting to milliseconds to allow for displaying the dates nicely
     authTokenCreatedAt: Utils.makeCompleteDateSeconds(authTokenCreatedAt),
