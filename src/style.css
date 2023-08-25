@@ -7,26 +7,6 @@
 /* This adds some low-level css resets based on the browserslist in package.json, see https://create-react-app.dev/docs/adding-css-reset */
 @import-normalize;
 
-.hover-style:hover, .hover-style:focus {
-  --hover-background: var(--app-hover-background);
-  --hover-backgroundColor: var(--app-hover-backgroundColor);
-  --hover-border: var(--app-hover-border);
-  --hover-color: var(--app-hover-color);
-  --hover-boxShadow: var(--app-hover-boxShadow);
-  --hover-opacity: var(--app-hover-opacity);
-  --hover-textDecoration: var(--app-hover-textDecoration);
-}
-
-.hover-style:hover .hover-style:not(:hover) {
-  --hover-background: initial;
-  --hover-backgroundColor: initial;
-  --hover-border: initial;
-  --hover-color: initial;
-  --hover-boxShadow: initial;
-  --hover-opacity: initial;
-  --hover-textDecoration: initial;
-}
-
 body, input, textarea, select, button {
   font-family: "Montserrat", sans-serif;
   font-variant-numeric: tabular-nums;
