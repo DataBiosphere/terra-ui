@@ -356,7 +356,7 @@ authStore.subscribe(
         }
         return userStatus.disabled;
       } catch (error) {
-        if ((error as any).status === 404) {
+        if ((error as Response).status === 404) {
           return userStatus.unregistered;
         }
         throw error;
