@@ -1,4 +1,3 @@
-import _ from 'lodash/fp';
 import React, { Fragment, useEffect, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { GcpComputeImageSelect } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSelect';
@@ -17,7 +16,7 @@ export interface GcpComputeImageSectionProps {
 const customImageOptionUrl = 'CUSTOM_IMAGE_OPTION';
 
 export const GcpComputeImageSection: React.FC<GcpComputeImageSectionProps> = (props: GcpComputeImageSectionProps) => {
-  const { loadedState, refresh }: ComputeImageStore = useComputeImages();
+  const { loadedState }: ComputeImageStore = useComputeImages();
   const [images, setImages] = useState<ComputeImage[]>([]);
   const [selectedComputeImageUrl, setSelectedComputeImageUrl] = useState<string>('');
   const { onSelect, tool, currentRuntime, ...restProps } = props;
@@ -56,10 +55,6 @@ export const GcpComputeImageSection: React.FC<GcpComputeImageSectionProps> = (pr
       }
     }
   }, [loadedState, currentRuntime, tool]);
-
-  useEffect(() => {
-    _.once(refresh);
-  });
 
   return h(Fragment, [
     loadedState.status === 'Ready'
