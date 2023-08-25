@@ -1,9 +1,11 @@
+import { AnyPromiseFn } from '@terra-ui-packages/core-utils';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import * as Utils from 'src/libs/utils';
+import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
-export const routeHandlersStore = Utils.atom([]);
+export const routeHandlersStore = Utils.atom<unknown[]>([]);
 
-export const authStore = Utils.atom({
+export const authStore = Utils.atom<any>({
   isSignedIn: undefined,
   anonymousId: undefined,
   registrationStatus: undefined,
@@ -41,25 +43,25 @@ toggleStateAtom.update((v) => v || { notebooksTab: true });
 export const azurePreviewStore = staticStorageSlot(getLocalStorage(), 'azurePreview');
 azurePreviewStore.update((v) => v || false);
 
-export const notificationStore = Utils.atom([]);
+export const notificationStore = Utils.atom<any[]>([]);
 
 export const contactUsActive = Utils.atom(false);
 
-export const workspaceStore = Utils.atom();
+export const workspaceStore = Utils.atom<any>(undefined);
 
-export const workspacesStore = Utils.atom();
+export const workspacesStore = Utils.atom<WorkspaceWrapper[]>([]);
 
-export const rerunFailuresStatus = Utils.atom();
+export const rerunFailuresStatus = Utils.atom<unknown>(undefined);
 
-export const errorNotifiedRuntimes = Utils.atom([]);
+export const errorNotifiedRuntimes = Utils.atom<unknown[]>([]);
 
-export const errorNotifiedApps = Utils.atom([]);
+export const errorNotifiedApps = Utils.atom<unknown[]>([]);
 
 export const knownBucketRequesterPaysStatuses = Utils.atom({});
 
-export const requesterPaysProjectStore = Utils.atom();
+export const requesterPaysProjectStore = Utils.atom<unknown>(undefined);
 
-export const runtimesStore = Utils.atom();
+export const runtimesStore = Utils.atom<unknown>(undefined);
 
 export const workflowSelectionStore = Utils.atom({
   key: undefined,
@@ -67,23 +69,38 @@ export const workflowSelectionStore = Utils.atom({
   entities: undefined,
 });
 
-/**
- * @typedef {Object} AsyncImportJob
- * @property {string} jobId
- * @property {Object} targetWorkspace
- * @property {string} targetWorkspace.namespace
- * @property {string} targetWorkspace.name
- */
+export type AsyncImportJob = {
+  jobId: string;
+  targetWorkspace: {
+    namespace: string;
+    name: string;
+  };
+};
 
-/** @type {Utils.Atom<AsyncImportJob[]>} */
-export const asyncImportJobStore = Utils.atom([]);
+export const asyncImportJobStore = Utils.atom<AsyncImportJob[]>([]);
 
-export const snapshotsListStore = Utils.atom();
+export const snapshotsListStore = Utils.atom<unknown>(undefined);
 
-export const snapshotStore = Utils.atom();
+export const snapshotStore = Utils.atom<unknown>(undefined);
 
-/** @type {Utils.Atom<any[]>} */
-export const dataCatalogStore = Utils.atom([]);
+export const dataCatalogStore = Utils.atom<any[]>([]);
+
+type AjaxOverride = {
+  fn: (fetch: AnyPromiseFn) => AnyPromiseFn;
+  filter:
+    | {
+        url: RegExp;
+        method?: string;
+      }
+    | ((...args: any[]) => boolean);
+};
+
+declare global {
+  interface Window {
+    ajaxOverridesStore: Utils.Atom<AjaxOverride[]>;
+    configOverridesStore: any;
+  }
+}
 
 /*
  * Modifies ajax responses for testing purposes.
@@ -91,7 +108,7 @@ export const dataCatalogStore = Utils.atom([]);
  * The fn should be a fetch wrapper (oldFetch => newFetch) that modifies the request process. (See ajaxOverrideUtils)
  * If present, filter should be a RegExp that is matched against the url to target specific requests.
  */
-export const ajaxOverridesStore = Utils.atom();
+export const ajaxOverridesStore = Utils.atom<AjaxOverride[]>([]);
 window.ajaxOverridesStore = ajaxOverridesStore;
 
 /*
