@@ -69,4 +69,4 @@ export const ThemeProvider = (props: ThemeProviderProps) => {
   return createElement(EnrichedThemeContext.Provider, { value: enrichTheme(theme) }, children);
 };
 
-export const useTheme = (): EnrichedTheme => useContext(EnrichedThemeContext);
+export const useThemeFromContext = (): EnrichedTheme => useContext(EnrichedThemeContext);
