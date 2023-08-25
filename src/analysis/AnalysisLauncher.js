@@ -1,3 +1,4 @@
+import { atom } from '@terra-ui-packages/core-utils';
 import * as clipboard from 'clipboard-polyfill/text';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
@@ -712,7 +713,7 @@ function JupyterFrameManager({ onClose, frameRef, details = {} }) {
       cloudPlatform: details.cloudPlatform,
     });
 
-    const isSaved = Utils.atom(true);
+    const isSaved = atom(true);
     const onMessage = (e) => {
       switch (e.data) {
         case 'close':
