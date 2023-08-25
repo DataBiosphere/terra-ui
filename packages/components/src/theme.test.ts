@@ -4,7 +4,7 @@ import { h } from 'react-hyperscript-helpers';
 import { ErrorBoundary } from './ErrorBoundary';
 import { Theme, ThemeProvider, useThemeFromContext } from './theme';
 
-describe('useContextFromTheme', () => {
+describe('useThemeFromContext', () => {
   it('gets theme from context', () => {
     // Arrange
     const onRenderWithTheme = jest.fn();
