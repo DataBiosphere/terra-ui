@@ -33,6 +33,8 @@ module.exports = {
     // With eslint-import-resolver-typescript, ESLint sees 'date-fns' and 'date-fns/fp' as
     // duplicates and combines them into one import from 'date-fns'.
     'import/no-duplicates': 'off',
+    // Allow tests' dependencies to be listed in devDependencies or dependencies.
+    'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/*.test.{js,ts}'] }],
     'import/no-named-as-default': 'off',
     // Named exports are more convenient for mocking.
     'import/prefer-default-export': 'off',

@@ -24,14 +24,18 @@
   ],
   "dependencies": {
     "color": "^4.0.1",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "react-hyperscript-helpers": "^2.0.0"
   },
   "devDependencies": {
     "@terra-ui-packages/build-utils": "^1.0.0",
     "@terra-ui-packages/test-utils": "*",
+    "@testing-library/dom": "^9.3.1",
+    "@testing-library/react": "^14.0.0",
     "@types/jest": "^28.1.8",
     "@types/lodash": "^4.14.184",
     "@types/react": "^18.2.15",
+    "@types/testing-library__jest-dom": "^5.14.9",
     "jest": "^27.4.3",
     "react": "18.2.0",
     "typescript": "^4.9.5",
