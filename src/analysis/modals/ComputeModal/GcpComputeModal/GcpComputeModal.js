@@ -705,27 +705,27 @@ export const GcpComputeModalBase = ({
     setCustomImageUrl(runtimeImageUrl);
   }, [currentRuntimeDetails]);
 
-  useEffect(() => {
+  const handleToggleDataproc = ({ requiresSpark, toolLabel, isTerraSupported } = {}) => {
     const isDataprocBefore = isDataproc(runtimeType);
-    const isDataprocNow = selectedImage?.requiresSpark;
-    const desiredToolLabel = selectedImage?.toolLabel ?? runtimeToolLabels.Jupyter;
+    const isDataprocNow = requiresSpark;
     if (!!isDataprocBefore !== !!isDataprocNow) {
       setRuntimeType(isDataprocNow ? runtimeTypes.dataprocSingleNode : runtimeTypes.gceVm);
       updateComputeConfig('componentGatewayEnabled', isDataprocNow);
-      const machineType = getDefaultMachineType(isDataprocNow, desiredToolLabel);
+      const machineType = getDefaultMachineType(isDataprocNow, toolLabel);
       updateComputeConfig('masterMachineType', machineType);
       if (isDataprocNow && computeConfig.masterDiskSize < defaultDataprocMasterDiskSize) {
         updateComputeConfig('masterDiskSize', defaultDataprocMasterDiskSize);
       }
     }
-    if (selectedImage?.isTerraSupported && !isCustomSelectedImage) {
+    if (isTerraSupported) {
       setTimeoutInMinutes(null);
     }
-  }, [selectedImage, isCustomSelectedImage, computeConfig, runtimeType, updateComputeConfig]);
+  };
 
   const onSelectGcpComputeImageSection = (image, isCustomImage) => {
     setSelectedImage(image);
     setIsCustomSelectedImage(isCustomImage);
+    handleToggleDataproc(image);
   };
 
   // Lifecycle
