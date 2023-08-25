@@ -15,7 +15,7 @@ export interface GcpComputeImageSectionProps {
 
 const customImageOptionUrl = 'CUSTOM_IMAGE_OPTION';
 
-export const GcpComputeImageSection: React.FC<GcpComputeImageSectionProps> = (props: GcpComputeImageSectionProps) => {
+export const GcpComputeImageSection: React.FC<GcpComputeImageSectionProps> = (props) => {
   const { loadedState }: ComputeImageStore = useComputeImages();
   const [images, setImages] = useState<ComputeImage[]>([]);
   const [selectedComputeImageUrl, setSelectedComputeImageUrl] = useState<string>('');

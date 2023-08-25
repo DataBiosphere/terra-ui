@@ -47,7 +47,7 @@ export const useComputeImages = (): ComputeImageStore => {
         const loadedImages: ComputeImage[] = await ComputeImageProvider.listImages(workspaceInfo.googleProject, signal);
         return loadedImages;
       }
-      throw Error('Compute images are not configured for non-GCP workspaces');
+      throw Error('Compute images are only configured for GCP workspaces');
     });
   };
 
