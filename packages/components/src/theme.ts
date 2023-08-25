@@ -24,21 +24,6 @@ export type Theme = {
   colorPalette: ColorPalette;
 };
 
-const defaultTheme: Theme = {
-  colorPalette: {
-    primary: '#74ae43',
-    secondary: '#6d6e70',
-    accent: '#4d72aa',
-    success: '#74ae43',
-    warning: '#f7981c',
-    danger: '#db3214',
-    light: '#e9ecef',
-    dark: '#333f52',
-    grey: '#808080',
-    disabled: '#b6b7b8',
-  },
-};
-
 type EnrichedTheme = Theme & {
   colors: { [Color in keyof ColorPalette]: (intensity?: number) => string };
 };
@@ -58,7 +43,7 @@ const enrichTheme = (theme: Theme): EnrichedTheme => {
   };
 };
 
-const EnrichedThemeContext = createContext(enrichTheme(defaultTheme));
+const EnrichedThemeContext = createContext<EnrichedTheme | null>(null);
 
 type ThemeProviderProps = PropsWithChildren<{
   theme: Theme;
@@ -69,4 +54,10 @@ export const ThemeProvider = (props: ThemeProviderProps) => {
   return createElement(EnrichedThemeContext.Provider, { value: enrichTheme(theme) }, children);
 };
 
-export const useThemeFromContext = (): EnrichedTheme => useContext(EnrichedThemeContext);
+export const useThemeFromContext = (): EnrichedTheme => {
+  const theme = useContext(EnrichedThemeContext);
+  if (!theme) {
+    throw new Error('No theme provided. Components using useThemeFromContext must be descendants of ThemeProvider.');
+  }
+  return theme;
+};
