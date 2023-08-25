@@ -75,7 +75,7 @@ export const getIsAppBusy = (app: App | undefined): boolean =>
   app?.status !== 'RUNNING' && _.includes('ING', app?.status);
 
 export const getAppStatusForDisplay = (status: LeoAppStatus): DisplayAppStatus =>
-  Utils.switchCase(
+  Utils.switchCase<string, DisplayAppStatus>(
     _.lowerCase(status),
     ['status_unspecified', () => 'Unknown'],
     ['starting', () => 'Resuming'],
@@ -84,24 +84,29 @@ export const getAppStatusForDisplay = (status: LeoAppStatus): DisplayAppStatus =
     ['prestarting', () => 'Resuming'],
     ['prestopping', () => 'Pausing'],
     ['provisioning', () => 'Creating'],
-    [Utils.DEFAULT, () => _.capitalize(status)]
+    // TODO: is this case valid?
+    [Utils.DEFAULT, () => _.capitalize(status) as DisplayAppStatus]
   );
 
 export const getEnvMessageBasedOnStatus = (app: App | undefined): string => {
   const waitMessage = 'This process will take up to a few minutes.';
   const nonStatusSpecificMessage =
     'A cloud environment consists of application configuration, cloud compute and persistent disk(s).';
-  return !app
-    ? nonStatusSpecificMessage
-    : Utils.switchCase(
-        app.status,
-        ['PROVISIONING', () => 'The cloud compute is provisioning, which may take several minutes.'],
-        ['STOPPED', () => 'The cloud compute is paused.'],
-        ['PRESTOPPING', () => 'The cloud compute is preparing to pause.'],
-        ['STOPPING', () => `The cloud compute is pausing. ${waitMessage}`],
-        ['PRESTARTING', () => 'The cloud compute is preparing to resume.'],
-        ['STARTING', () => `The cloud compute is resuming. ${waitMessage}`],
-        ['RUNNING', () => nonStatusSpecificMessage],
-        ['ERROR', () => 'An error has occurred on your cloud environment.']
-      );
+
+  if (!app) {
+    return nonStatusSpecificMessage;
+  }
+
+  const statusMessages: Record<LeoAppStatus, string> = {
+    PROVISIONING: 'The cloud compute is provisioning, which may take several minutes.',
+    STOPPED: 'The cloud compute is paused.',
+    // @ts-expect-error Is PRESTOPPING a valid app status?
+    PRESTOPPING: 'The cloud compute is preparing to pause.',
+    STOPPING: `The cloud compute is pausing. ${waitMessage}`,
+    PRESTARTING: 'The cloud compute is preparing to resume.',
+    STARTING: `The cloud compute is resuming. ${waitMessage}`,
+    RUNNING: nonStatusSpecificMessage,
+    ERROR: 'An error has occurred on your cloud environment.',
+  };
+  return statusMessages[app.status];
 };

@@ -16,17 +16,19 @@ import * as Utils from 'src/libs/utils';
 export const isResourceDeletable = (resourceType, resource: App | PersistentDisk | Runtime) =>
   _.includes(
     _.lowerCase(resource?.status),
-    Utils.switchCase(
+    Utils.switchCase<string, string[] | undefined>(
       resourceType,
       ['runtime', () => ['unknown', 'running', 'updating', 'error', 'stopping', 'stopped', 'starting']],
       ['app', () => ['unspecified', 'running', 'error']],
       ['disk', () => ['failed', 'ready']],
       [
         Utils.DEFAULT,
-        () =>
+        () => {
           console.error(
             `Cannot determine deletability; resource type ${resourceType} must be one of runtime, app or disk.`
-          ),
+          );
+          return undefined;
+        },
       ]
     )
   );

@@ -16,17 +16,19 @@ import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import * as Utils from 'src/libs/utils';
 
 export const pdTypeFromDiskType = (type: GoogleDiskType): GooglePdType =>
-  Utils.switchCase(
+  Utils.switchCase<GoogleDiskType, GooglePdType | undefined>(
     type,
     [googlePdTypes.standard.value, () => googlePdTypes.standard],
     [googlePdTypes.balanced.value, () => googlePdTypes.balanced],
     [googlePdTypes.ssd.value, () => googlePdTypes.ssd],
     [
       Utils.DEFAULT,
-      () =>
-        console.error(`Invalid disk type: Should not be calling googlePdTypes.fromString for ${JSON.stringify(type)}`),
+      () => {
+        console.error(`Invalid disk type: Should not be calling googlePdTypes.fromString for ${JSON.stringify(type)}`);
+        return undefined;
+      },
     ]
-  );
+  ) as GooglePdType; // TODO: Remove cast
 
 export const updatePdType = (disk: PersistentDisk): DecoratedPersistentDisk => ({
   ...disk,

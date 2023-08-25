@@ -579,15 +579,13 @@ export const Environments: React.FC<EnvironmentsProps> = ({ nav = undefined }) =
     return getDetailsPopup(runtimeName, cloudContext?.cloudResource, disk, creator, workspace?.workspaceId);
   };
 
-  const renderDeleteButton = (resourceType, resource) => {
+  const renderDeleteButton = (resourceType: 'app' | 'runtime', resource) => {
     const isDeletable = isResourceDeletable(resourceType, resource);
     const resourceId = resourceType === 'app' ? resource.appName : resource.id;
-    const action = Utils.switchCase(
-      resourceType,
-      ['runtime', () => setDeleteRuntimeId],
-      ['app', () => setDeleteAppId],
-      ['disk', () => setDeleteDiskId]
-    );
+    const action = {
+      app: setDeleteAppId,
+      runtime: setDeleteRuntimeId,
+    }[resourceType];
 
     return h(
       Link,

@@ -410,14 +410,17 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       );
 
     const getArtifactLabel = (toolLabel) =>
-      Utils.switchCase(
+      Utils.switchCase<ToolLabel, string | undefined>(
         toolLabel,
         [runtimeToolLabels.RStudio, () => 'R file'],
         [runtimeToolLabels.Jupyter, () => 'notebook'],
         [runtimeToolLabels.JupyterLab, () => 'notebook'],
         [
           Utils.DEFAULT,
-          () => console.error(`Should not be calling getArtifactLabel for ${toolLabel}, artifacts not implemented`),
+          () => {
+            console.error(`Should not be calling getArtifactLabel for ${toolLabel}, artifacts not implemented`);
+            return undefined;
+          },
         ]
       );
 
