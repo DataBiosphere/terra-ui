@@ -373,7 +373,7 @@ describe('getPersistentDiskCostMonthly', () => {
         cloudProvider: 'GCP',
         cloudResource: 'disk',
       },
-      labels: [],
+      labels: {},
       status: diskStatuses.ready.leoLabel,
       auditInfo: {
         creator: 'trock@broadinstitute.org',

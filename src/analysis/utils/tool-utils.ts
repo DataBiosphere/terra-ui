@@ -194,7 +194,7 @@ export const getToolLabelForImage = (image: string): ToolLabel | undefined =>
 export const getToolLabelFromFileExtension = (fileName: FileExtension): ToolLabel =>
   extensionToToolMap[getExtension(fileName)];
 
-export const getToolLabelFromCloudEnv = (cloudEnv: Runtime | App): ToolLabel => cloudEnv?.labels?.tool;
+export const getToolLabelFromCloudEnv = (cloudEnv: Runtime | App): ToolLabel => cloudEnv?.labels?.tool as ToolLabel;
 
 // Returns registered appTypes.
 export const allAppTypes: AppToolLabel[] = _.flow(_.map('label'), _.compact)(appTools);

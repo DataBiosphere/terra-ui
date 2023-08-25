@@ -7,6 +7,39 @@ import { div, h } from 'react-hyperscript-helpers';
 import { useOnMount, useStore } from 'src/libs/react-utils';
 import { routeHandlersStore } from 'src/libs/state';
 
+
+// TODO: add all used nav key names here and switch consumers to use the safe const values here
+/**
+ * union type (enum-like) of safe nav key names
+ */
+export type TerraNavKey = 'billing' | 'workspace-dashboard' | 'workspaces';
+
+export type TerraNavKeyLookup = { [key in TerraNavKey]: key };
+
+// TODO: fill out this value lookup to reflect full list of key names once available above
+/**
+ * allowed values for nav keys in a lookup table
+ * Note: use terraNavKey type guard method below instead of this const.
+ *   Typescript currently allows unsafe object['not-a-enum-key-name'] indexing
+ *   lookups into this otherwise type-safe construct.
+ */
+export const terraNavKeyValue: TerraNavKeyLookup = {
+  billing: 'billing',
+  'workspace-dashboard': 'workspace-dashboard',
+  workspaces: 'workspaces',
+};
+
+/**
+ * type guard for nav keys to better enforce key names with snake-case
+ * @param key
+ */
+export const terraNavKey = (key: TerraNavKey): TerraNavKey => key;
+
+export const isTerraNavKey = (value: unknown): value is TerraNavKey => {
+  const maybeKey = value as string;
+  return maybeKey in terraNavKeyValue;
+};
+
 export const blockNav = atom(() => Promise.resolve());
 
 export const history = createHistory({
@@ -20,28 +53,28 @@ export const history = createHistory({
 history.block('');
 
 /**
- * @param k
- * @param params
- * @param [options]
- * @returns {string}
+ * returns the parsed url route path
  */
-export const getPath = (name, params, options) => {
-  const handler = _.find({ name }, routeHandlersStore.get());
-  console.assert(handler, `No handler found for key ${name}. Valid path keys are: ${_.map('name', routeHandlersStore.get())}`);
-  return handler.makePath(params, options);
+export const getPath = (name: string, params?: Record<string, any>): string => {
+  // TODO: replace any type with better type, and throw on _.find() returning undefined
+  const handler: any = _.find({ name }, routeHandlersStore.get());
+  console.assert(
+    handler,
+    `No handler found for key ${name}. Valid path keys are: ${_.map('name', routeHandlersStore.get())}`
+  );
+  return handler.makePath(params);
 };
 
 /**
- * @param args
- * @returns {string}
+ * alias for getPath()
  */
-export const getLink = (...args) => `#${getPath(...args).slice(1)}`; // slice off leading slash
+export const getLink = (name: string, params?: Record<string, any>) => `#${getPath(name, params).slice(1)}`; // slice off leading slash
 
 /**
- * @param args
+ * navigate the application to the desired nav path.
  */
-export const goToPath = (...args) => {
-  history.push({ pathname: getPath(...args) });
+export const goToPath = (name: string, params?: Record<string, any>) => {
+  history.push({ pathname: getPath(name, params) });
 };
 
 export function Redirector({ pathname, search }) {
@@ -64,7 +97,7 @@ const parseRoute = (handlers, { pathname, search }) => {
   );
 };
 
-const locationContext = createContext();
+const locationContext: React.Context<any> = createContext<any>(undefined);
 
 export const LocationProvider = ({ children }) => {
   const [location, setLocation] = useState(history.location);
@@ -83,7 +116,7 @@ export const getCurrentRoute = () => {
 };
 
 export const useRoute = () => {
-  const location = useContext(locationContext);
+  const location: any = useContext(locationContext);
   const handlers = useStore(routeHandlersStore);
   return parseRoute(handlers, location);
 };
@@ -91,7 +124,7 @@ export const useRoute = () => {
 export const Router = () => {
   const { component, params, query } = useRoute();
   useEffect(() => {
-    window.Appcues && window.Appcues.page();
+    (window as any).Appcues && (window as any).Appcues.page();
   }, [component]);
   return div({ style: { display: 'flex', flexDirection: 'column', flex: '1 0 auto', position: 'relative' } }, [
     h(component, { key: history.location.pathname, ...params, queryParams: query }),
@@ -128,3 +161,13 @@ export function PathHashInserter() {
   });
   return null;
 }
+
+export interface TerraNavLinkProvider {
+  getLink: (name: string, params?: Record<string, any>) => string;
+  goToPath: (name: string, params?: Record<string, any>) => void;
+}
+
+export const terraNavLinkProvider: TerraNavLinkProvider = {
+  getLink,
+  goToPath,
+};

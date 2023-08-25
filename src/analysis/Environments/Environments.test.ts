@@ -1,4 +1,4 @@
-import { DeepPartial } from '@terra-ui-packages/core-utils';
+import { DeepPartial, NavLinkProvider } from '@terra-ui-packages/core-utils';
 import { act, fireEvent, getAllByRole, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
@@ -16,7 +16,7 @@ import {
   generateTestDiskWithGoogleWorkspace,
   generateTestGoogleRuntime,
 } from 'src/analysis/_testData/testData';
-import { Environments } from 'src/analysis/Environments/Environments';
+import { EnvironmentNavActions, Environments } from 'src/analysis/Environments/Environments';
 import { defaultComputeZone } from 'src/analysis/utils/runtime-utils';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { useWorkspaces } from 'src/components/workspace-utils';
@@ -38,14 +38,6 @@ jest.mock('src/components/Modal', () => {
 });
 
 jest.mock('src/libs/ajax');
-type NavExports = typeof import('src/libs/nav');
-jest.mock(
-  'src/libs/nav',
-  (): NavExports => ({
-    ...jest.requireActual('src/libs/nav'),
-    getLink: jest.fn(),
-  })
-);
 
 type AjaxCommonExports = typeof import('src/libs/ajax/ajax-common');
 jest.mock(
@@ -78,8 +70,9 @@ const listRuntimesV2: () => Promise<ListRuntimeItem[]> = jest.fn();
 const listWithoutProject: () => Promise<ListAppResponse[]> = jest.fn();
 const list: () => Promise<ListDiskItem[]> = jest.fn();
 const mockFetchLeo = jest.fn();
-const defaultNav = {
-  getLink: jest.fn().mockReturnValue(''),
+const defaultNav: NavLinkProvider<EnvironmentNavActions> = {
+  getUrl: jest.fn().mockReturnValue(''),
+  navTo: jest.fn(),
 };
 
 jest.mock('src/libs/notifications', () => ({
