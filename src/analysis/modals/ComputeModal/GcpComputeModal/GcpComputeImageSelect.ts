@@ -33,7 +33,7 @@ export const GcpComputeImageSelect: React.FC<GcpComputeImageSelectProps> = (prop
     ...restProps
   } = props;
 
-  const filterImages: (predicate: any) => ImageSelectOption[] = (predicate) =>
+  const filterImages = (predicate: any): ImageSelectOption[] =>
     _.flow(
       () => images,
       _.filter(predicate),

@@ -24,7 +24,7 @@ type UseComputeImagesExport = typeof import('src/analysis/useComputeImages');
 jest.mock(
   'src/analysis/useComputeImages',
   (): UseComputeImagesExport => ({
-    ...jest.requireActual('src/analysis/useComputeImages'),
+    ...jest.requireActual<UseComputeImagesExport>('src/analysis/useComputeImages'),
     useComputeImages: jest.fn(),
   })
 );
@@ -33,7 +33,7 @@ jest.mock('src/libs/ajax');
 
 const defaultComputeImageStore = {
   refresh: () => Promise.resolve(),
-  loadedState: { status: 'Ready', state: [] as ComputeImage[] } as ReadyState<ComputeImage[]>,
+  loadedState: { status: 'Ready', state: [] } as ReadyState<ComputeImage[]>,
 };
 
 const mockOnSelect = jest.fn();
@@ -48,13 +48,6 @@ const defaultGcpComputeImageSectionProps: GcpComputeImageSectionProps = {
 type AjaxContract = ReturnType<typeof Ajax>;
 type AjaxOuterWorkspacesContract = AjaxContract['Workspaces'];
 type AjaxInnerWorkspacesContract = AjaxContract['Workspaces']['workspace'];
-// type AjaxBucketsContract = AjaxContract['Buckets'];
-
-// const mockBucketsObjectPreview = jest.fn();
-// asMockedFn(mockBucketsObjectPreview).mockResolvedValue(imageDocs);
-// const mockBuckets: Partial<AjaxBucketsContract> = {
-//   getObjectPreview: mockBucketsObjectPreview,
-// };
 
 const mockInnerWorkspaces = jest.fn().mockReturnValue({
   googleProject: defaultGoogleWorkspace.workspace.googleProject,
@@ -98,7 +91,6 @@ describe('GcpComputeImageSection', () => {
 
     // Act
     await act(async () => {
-      // eslint-disable-line require-await
       render(
         h(GcpComputeImageSection, {
           ...defaultGcpComputeImageSectionProps,
