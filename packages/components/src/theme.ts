@@ -21,13 +21,16 @@ type ColorPalette = {
 };
 
 export type Theme = {
+  /** Base color palette for theme. */
   colorPalette: ColorPalette;
 };
 
 type EnrichedTheme = Theme & {
+  /** Color mixing functions. Each takes an "intensity" and returns a modified color. */
   colors: { [Color in keyof ColorPalette]: (intensity?: number) => string };
 };
 
+/** Add additional functionality (color mixing functions) to theme. */
 const enrichTheme = (theme: Theme): EnrichedTheme => {
   const colors = mapValues((color: string) => {
     return (intensity = 1): string => {
@@ -49,11 +52,13 @@ type ThemeProviderProps = PropsWithChildren<{
   theme: Theme;
 }>;
 
+/** Provides a theme to descendents via React Context. */
 export const ThemeProvider = (props: ThemeProviderProps) => {
   const { children, theme } = props;
   return createElement(EnrichedThemeContext.Provider, { value: enrichTheme(theme) }, children);
 };
 
+/** Gets the current theme from React context. */
 export const useThemeFromContext = (): EnrichedTheme => {
   const theme = useContext(EnrichedThemeContext);
   if (!theme) {
