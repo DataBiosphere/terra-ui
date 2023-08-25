@@ -16,7 +16,7 @@ import * as Utils from 'src/libs/utils';
 export const isResourceDeletable = (resourceType, resource: App | PersistentDisk | Runtime) =>
   _.includes(
     _.lowerCase(resource?.status),
-    Utils.switchCase<string, string[] | undefined>(
+    Utils.switchCase(
       resourceType,
       ['runtime', () => ['unknown', 'running', 'updating', 'error', 'stopping', 'stopped', 'starting']],
       ['app', () => ['unspecified', 'running', 'error']],

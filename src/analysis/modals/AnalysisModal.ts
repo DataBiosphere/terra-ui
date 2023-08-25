@@ -410,7 +410,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       );
 
     const getArtifactLabel = (toolLabel) =>
-      Utils.switchCase<ToolLabel, string | undefined>(
+      Utils.switchCase(
         toolLabel,
         [runtimeToolLabels.RStudio, () => 'R file'],
         [runtimeToolLabels.Jupyter, () => 'notebook'],

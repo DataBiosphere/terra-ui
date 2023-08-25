@@ -16,7 +16,7 @@ import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import * as Utils from 'src/libs/utils';
 
 export const pdTypeFromDiskType = (type: GoogleDiskType): GooglePdType =>
-  Utils.switchCase<GoogleDiskType, GooglePdType | undefined>(
+  Utils.switchCase(
     type,
     [googlePdTypes.standard.value, () => googlePdTypes.standard],
     [googlePdTypes.balanced.value, () => googlePdTypes.balanced],
