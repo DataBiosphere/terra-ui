@@ -69,12 +69,11 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
   const isLoading = status === 'Loading';
 
   useEffect(() => {
-    loadedAlertElementRef.current!.innerHTML = Utils.switchCase(
-      status,
-      ['Loading', () => ''],
-      ['Ready', () => `Loaded ${files.length} files in ${directoryLabel}`],
-      ['Error', () => `Error loading files in ${directoryLabel}`]
-    );
+    loadedAlertElementRef.current!.innerHTML = {
+      Loading: '',
+      Ready: `Loaded ${files.length} files in ${directoryLabel}`,
+      Error: `Error loading files in ${directoryLabel}`,
+    }[status];
   }, [directoryLabel, files, status]);
 
   const [renamingFile, setRenamingFile] = useState<FileBrowserFile>();
