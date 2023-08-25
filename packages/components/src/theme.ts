@@ -25,13 +25,13 @@ export type Theme = {
   colorPalette: ColorPalette;
 };
 
-type EnrichedTheme = Theme & {
+export type EnrichedTheme = Theme & {
   /** Color mixing functions. Each takes an "intensity" and returns a modified color. */
   colors: { [Color in keyof ColorPalette]: (intensity?: number) => string };
 };
 
 /** Add additional functionality (color mixing functions) to theme. */
-const enrichTheme = (theme: Theme): EnrichedTheme => {
+export const enrichTheme = (theme: Theme): EnrichedTheme => {
   const colors = mapValues((color: string) => {
     return (intensity = 1): string => {
       return Color(color)
