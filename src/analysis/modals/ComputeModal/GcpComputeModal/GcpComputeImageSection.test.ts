@@ -94,6 +94,7 @@ describe('GcpComputeImageSection', () => {
       render(
         h(GcpComputeImageSection, {
           ...defaultGcpComputeImageSectionProps,
+          'aria-label': 'Select Environment',
           currentRuntime: {
             runtimeImages: [
               {
@@ -104,7 +105,7 @@ describe('GcpComputeImageSection', () => {
               ...(defaultGcpComputeImageSectionProps.currentRuntime?.runtimeImages ?? []),
             ],
           },
-        })
+        } as GcpComputeImageSectionProps)
       );
     });
 
