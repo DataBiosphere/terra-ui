@@ -43,8 +43,6 @@ const normalizeImage: (rawImage: ComputeImageRaw) => ComputeImage = (rawImage) =
     throw Error('Compute images are not supported for non-Runtime tools');
   }
 
-  /* eslint-disable */
-  //prettier-ignore
   const {
     id,
     image: url,
