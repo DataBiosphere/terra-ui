@@ -60,7 +60,6 @@ export const signOut = () => {
   const sessionEndTime: number = Date.now();
   const tokenMetadata: any = authStore.get().authTokenMetadata;
   Ajax().Metrics.captureEvent(Events.userLogout, {
-    sessionId: authStore.get().sessionId,
     sessionEndTime: Utils.makeCompleteDate(sessionEndTime),
     sessionDurationMilliseconds: sessionEndTime - authStore.get().sessionStartTime,
     authTokenCreatedAt: Utils.makeCompleteDateSeconds(tokenMetadata.createdAt),
@@ -77,9 +76,7 @@ export const signOut = () => {
 };
 
 export const signOutAfterSessionTimeout = () => {
-  Ajax().Metrics.captureEvent(Events.userTimeoutLogout, {
-    sessionId: authStore.get().sessionId,
-  });
+  Ajax().Metrics.captureEvent(Events.userTimeoutLogout, {});
   signOut();
   notify('info', 'Session timed out', sessionTimeoutProps);
 };
@@ -134,7 +131,6 @@ export const signIn = async (includeBillingScope = false): Promise<User> => {
   }));
   Ajax().Metrics.captureEvent(Events.userLogin, {
     authProvider: user.profile.idp,
-    sessionId,
     sessionStartTime: Utils.makeCompleteDate(sessionStartTime),
     // Token times are in seconds, so converting to milliseconds to allow for displaying the dates nicely
     authTokenCreatedAt: Utils.makeCompleteDateSeconds(authTokenCreatedAt),
@@ -158,7 +154,6 @@ export const reloadAuthToken = (includeBillingScope = false) => {
     })
     .finally(() => {
       Ajax().Metrics.captureEvent(Events.userAuthTokenReload, {
-        sessionId: authStore.get().sessionId,
         authReloadSuccessful,
         authTokenCreatedAt: Utils.makeCompleteDateSeconds(tokenMetadata.createdAt),
         authTokenExpiresAt: Utils.makeCompleteDateSeconds(tokenMetadata.expiresAt),
