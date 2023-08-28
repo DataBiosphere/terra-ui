@@ -5,9 +5,6 @@ import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 export const routeHandlersStore = Utils.atom<unknown[]>([]);
 
-// This is naughty - casting to `any` is ultimately not what we want, but while converting to TypeScript,
-// we don't want to cascade into migrating every file all at once,
-// so sometimes this is the answer to satisfy the TS compiler
 export const authStore = Utils.atom<any>({
   anonymousId: undefined,
   authContext: undefined,
@@ -32,7 +29,7 @@ export const authStore = Utils.atom<any>({
   user: {},
 });
 
-export const getUser: any = () => authStore.get().user;
+export const getUser = () => authStore.get().user;
 
 export const userStatus = {
   unregistered: 'unregistered',

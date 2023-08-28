@@ -51,7 +51,7 @@ export const getOidcConfig = () => {
   };
 };
 
-const getAuthInstance = (): any => {
+const getAuthInstance = () => {
   return authStore.get().authContext;
 };
 
