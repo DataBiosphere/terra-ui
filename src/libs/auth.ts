@@ -31,10 +31,6 @@ export const getOidcConfig = () => {
   const metadata = {
     authorization_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
     token_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/token`,
-    ...(isGoogleAuthority() && {
-      userinfo_endpoint: 'https://openidconnect.googleapis.com/v1/userinfo',
-      revocation_endpoint: 'https://oauth2.googleapis.com/revoke',
-    }),
   };
   return {
     authority: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
@@ -44,7 +40,6 @@ export const getOidcConfig = () => {
     metadata,
     prompt: 'consent login',
     scope: 'openid email profile',
-    loadUserInfo: isGoogleAuthority(),
     stateStore: new WebStorageStateStore({ store: getLocalStorage() }),
     userStore: new WebStorageStateStore({ store: getLocalStorage() }),
     automaticSilentRenew: true,
@@ -54,10 +49,6 @@ export const getOidcConfig = () => {
     extraQueryParams: { access_type: 'offline' },
     redirect_uri: '', // this field is not being used currently, but is expected from UserManager
   };
-};
-
-const isGoogleAuthority = () => {
-  return _.startsWith('https://accounts.google.com', authStore.get().oidcConfig.authorityEndpoint);
 };
 
 const getAuthInstance = (): any => {
@@ -112,9 +103,7 @@ const revokeTokens = async () => {
 const getSigninArgs = (includeBillingScope) => {
   return Utils.cond(
     [includeBillingScope === false, () => ({})],
-    // For Google just append the scope to the signin args.
-    [isGoogleAuthority(), () => ({ scope: 'openid email profile https://www.googleapis.com/auth/cloud-billing' })],
-    // For B2C switch to a dedicated policy endpoint configured for the GCP cloud-billing scope.
+    // For B2C use a dedicated policy endpoint configured for the GCP cloud-billing scope.
     () => ({
       extraQueryParams: { access_type: 'offline', p: getConfig().b2cBillingPolicy },
       extraTokenParams: { p: getConfig().b2cBillingPolicy },
@@ -158,28 +147,26 @@ export const signIn = async (includeBillingScope = false): Promise<User> => {
 export const reloadAuthToken = (includeBillingScope = false) => {
   const args = getSigninArgs(includeBillingScope);
   const tokenMetadata = authStore.get().authTokenMetadata;
-  Ajax().Metrics.captureEvent(Events.userAuthTokenReload, {
-    sessionId: authStore.get().sessionId,
-    authTokenCreatedAt: Utils.makeCompleteDateSeconds(tokenMetadata.createdAt),
-    authTokenExpiresAt: Utils.makeCompleteDateSeconds(tokenMetadata.expiresAt),
-  });
+  let authReloadSuccessful = true;
   return getAuthInstance()
     .signinSilent(args)
     .catch((e) => {
       console.error('An unexpected exception occurred while attempting to refresh auth credentials.');
       console.error(e);
+      authReloadSuccessful = false;
       return false;
+    })
+    .finally(() => {
+      Ajax().Metrics.captureEvent(Events.userAuthTokenReload, {
+        sessionId: authStore.get().sessionId,
+        authReloadSuccessful,
+        authTokenCreatedAt: Utils.makeCompleteDateSeconds(tokenMetadata.createdAt),
+        authTokenExpiresAt: Utils.makeCompleteDateSeconds(tokenMetadata.expiresAt),
+      });
     });
 };
 
-export const hasBillingScope = () => {
-  return Utils.cond(
-    // For Google check the scope directly on the user object.
-    [isGoogleAuthority(), () => _.includes('https://www.googleapis.com/auth/cloud-billing', getUser().scope)],
-    // For B2C check the hasGcpBillingScopeThroughB2C field in the auth store.
-    () => authStore.get().hasGcpBillingScopeThroughB2C === true
-  );
-};
+export const hasBillingScope = () => authStore.get().hasGcpBillingScopeThroughB2C === true;
 
 /*
  * Tries to obtain Google Cloud Billing scope silently.
