@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useState } from 'react';
 import { b, div, fieldset, h, label, legend, p, span, strong } from 'react-hyperscript-helpers';
 import { buildExistingEnvironmentConfig } from 'src/analysis/modal-utils';
 import { AboutPersistentDiskView } from 'src/analysis/modals/ComputeModal/AboutPersistentDiskView';
@@ -700,11 +700,6 @@ export const GcpComputeModalBase = ({
     );
   // Helper functions -- end
 
-  useEffect(() => {
-    const runtimeImageUrl = getImageUrlFromRuntime(currentRuntimeDetails);
-    setCustomImageUrl(runtimeImageUrl);
-  }, [currentRuntimeDetails]);
-
   const handleToggleDataproc = ({ requiresSpark, toolLabel, isTerraSupported } = {}) => {
     const isDataprocBefore = isDataproc(runtimeType);
     const isDataprocNow = requiresSpark;
@@ -748,6 +743,7 @@ export const GcpComputeModalBase = ({
       setCurrentPersistentDiskDetails(persistentDiskDetails);
       setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '');
 
+      const runtimeImageUrl = getImageUrlFromRuntime(runtimeDetails);
       const locationType = getLocationType(location);
       const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType);
       const runtimeConfig = currentRuntimeDetails?.runtimeConfig || computeConfig;
@@ -767,6 +763,7 @@ export const GcpComputeModalBase = ({
         () => defaultGceBootDiskSize
       );
 
+      setCustomImageUrl(runtimeImageUrl ?? '');
       setRuntimeType(newRuntimeType);
       setComputeConfig({
         diskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
