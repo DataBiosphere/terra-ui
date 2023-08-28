@@ -118,20 +118,21 @@ export const trimRuntimesOldestFirst = (runtimes: Runtime[]): Runtime[] => {
 };
 
 /**
- * The first Jupyter or RStudio image URL on the provided GCP runtime object.
+ * Get the first GCP-supported image URL on the runtime.
  */
 export const getImageUrlFromRuntime = (
   runtimeDetails: Pick<GetRuntimeItem, 'runtimeImages'> | undefined
 ): string | undefined => {
   const images: LeoRuntimeImage[] = runtimeDetails?.runtimeImages ?? [];
   const gcpToolLabels: RuntimeToolLabel[] = cloudRuntimeTools.GCP.map(({ label }) => label);
-  return images.find(({ imageType }) => {
+  const isGcpRuntimeImage = ({ imageType }) => {
     if (isToolLabel(imageType) && isRuntimeToolLabel(imageType)) {
       const imageToolLabel: RuntimeToolLabel = imageType;
       return gcpToolLabels.includes(imageToolLabel);
     }
     return undefined;
-  })?.imageUrl;
+  };
+  return images.find(isGcpRuntimeImage)?.imageUrl;
 };
 
 // Status note: undefined means still loading and no runtime
