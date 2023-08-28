@@ -3,8 +3,8 @@ import { getGoogleRuntime } from 'src/analysis/_testData/testData';
 import { getAnalysesDisplayList, getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 
-jest.mock('src/data/gce-machines', () => {
-  const originalModule = jest.requireActual('src/data/gce-machines');
+jest.mock('src/analysis/utils/gce-machines', () => {
+  const originalModule = jest.requireActual('src/analysis/utils/gce-machines');
 
   return {
     ...originalModule,

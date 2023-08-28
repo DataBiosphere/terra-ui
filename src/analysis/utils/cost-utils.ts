@@ -8,6 +8,12 @@ import {
   pdTypeFromDiskType,
 } from 'src/analysis/utils/disk-utils';
 import {
+  dataprocCpuPrice,
+  ephemeralExternalIpAddressPrice,
+  machineTypes,
+  regionToPrices,
+} from 'src/analysis/utils/gce-machines';
+import {
   defaultComputeRegion,
   defaultDataprocMachineType,
   defaultGceMachineType,
@@ -17,7 +23,6 @@ import {
   isAzureContext,
 } from 'src/analysis/utils/runtime-utils';
 import { AppToolLabel, appToolLabels, appTools, RuntimeToolLabel, ToolLabel } from 'src/analysis/utils/tool-utils';
-import { dataprocCpuPrice, ephemeralExternalIpAddressPrice, machineTypes, regionToPrices } from 'src/data/gce-machines';
 import { App, appStatuses } from 'src/libs/ajax/leonardo/models/app-models';
 import { CloudContext } from 'src/libs/ajax/leonardo/models/core-models';
 import {
