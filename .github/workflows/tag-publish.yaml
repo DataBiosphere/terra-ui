@@ -120,7 +120,7 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           npx google-artifactregistry-auth --yes --repo-config ./.npmrc
-          yarn install --immutable-cache
+          yarn install --immutable
           ./scripts/publish-packages.sh
 
   report-to-sherlock:

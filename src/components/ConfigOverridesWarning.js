@@ -8,7 +8,7 @@ const ConfigOverridesWarning = () => {
   const configOverrides = useStore(configOverridesStore);
   const ajaxOverrides = useStore(ajaxOverridesStore);
   return (
-    (!!configOverrides || !!ajaxOverrides) &&
+    (!!configOverrides || ajaxOverrides.length > 0) &&
     div(
       {
         style: {
@@ -23,7 +23,8 @@ const ConfigOverridesWarning = () => {
       [
         !!configOverrides &&
           div(['Config overrides are in effect.', h(Link, { variant: 'light', onClick: () => configOverridesStore.set() }, [' clear'])]),
-        !!ajaxOverrides && div(['Ajax overrides are in effect.', h(Link, { variant: 'light', onClick: () => ajaxOverridesStore.set() }, [' clear'])]),
+        ajaxOverrides.length > 0 &&
+          div(['Ajax overrides are in effect.', h(Link, { variant: 'light', onClick: () => ajaxOverridesStore.set([]) }, [' clear'])]),
       ]
     )
   );
