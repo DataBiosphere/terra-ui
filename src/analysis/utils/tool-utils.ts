@@ -187,8 +187,10 @@ const extensionToToolMap: Record<AnalysisFileExtension, ToolLabel> = {
   ipynb: runtimeTools.Jupyter.label,
 };
 
-export const getToolLabelForImage = (imageId: string): ToolLabel | undefined =>
-  _.find((tool) => _.includes(imageId, tool.imageIds), runtimeTools)?.label;
+export const getToolLabelForImage = (imageId: string): ToolLabel | undefined => {
+  const isImageInTool = (runtimeTool) => runtimeTool.imageIds.includes(imageId);
+  return _.find(isImageInTool, runtimeTools)?.label;
+};
 
 // Currently, a lot of consumers of this are not typescript, so we defensively use `getExtension` on the input
 // TODO: Once all consumer are in typescript, we can remove `getExtension` from this function
