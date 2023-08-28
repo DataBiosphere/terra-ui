@@ -700,10 +700,10 @@ export const GcpComputeModalBase = ({
     );
   // Helper functions -- end
 
-  const handleToggleDataproc = ({ requiresSpark, toolLabel, isTerraSupported } = {}) => {
-    const isDataprocBefore = isDataproc(runtimeType);
-    const isDataprocNow = requiresSpark;
-    if (!!isDataprocBefore !== !!isDataprocNow) {
+  const handleImageChanged = ({ requiresSpark, toolLabel, isTerraSupported } = {}) => {
+    const isDataprocBefore = !!isDataproc(runtimeType);
+    const isDataprocNow = !!requiresSpark;
+    if (isDataprocBefore !== isDataprocNow) {
       setRuntimeType(isDataprocNow ? runtimeTypes.dataprocSingleNode : runtimeTypes.gceVm);
       updateComputeConfig('componentGatewayEnabled', isDataprocNow);
       const machineType = getDefaultMachineType(isDataprocNow, toolLabel);
@@ -720,7 +720,7 @@ export const GcpComputeModalBase = ({
   const onSelectGcpComputeImageSection = (image, isCustomImage) => {
     setSelectedImage(image);
     setIsCustomSelectedImage(isCustomImage);
-    handleToggleDataproc(image);
+    handleImageChanged(image);
   };
 
   // Lifecycle
@@ -1120,7 +1120,7 @@ export const GcpComputeModalBase = ({
                       value: runtimeType,
                       onChange: ({ value }) => {
                         setRuntimeType(value);
-                        const defaultMachineTypeForSelectedValue = getDefaultMachineType(isDataproc(value), getToolLabelFromCloudEnv(value));
+                        const defaultMachineTypeForSelectedValue = getDefaultMachineType(isDataproc(value), selectedImage?.toolLabel);
                         // we need to update the compute config if the current value is smaller than the default for the dropdown option
                         if (isMachineTypeSmaller(computeConfig.masterMachineType, defaultMachineTypeForSelectedValue)) {
                           updateComputeConfig('masterMachineType', defaultMachineTypeForSelectedValue);
