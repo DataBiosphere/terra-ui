@@ -705,18 +705,14 @@ describe('GcpComputeModal', () => {
     await act(async () => {
       selectImage(GcpComputeImageSection, hailImage);
     });
-    await act(async () => {
-      const computeTypeSelect = screen.getByLabelText('Compute type');
-      await user.click(computeTypeSelect);
-    });
-    await act(async () => {
-      const sparkClusterOption = await screen.findByText('Spark cluster');
-      await user.click(sparkClusterOption);
-    });
-    await act(async () => {
-      const create = screen.getByText('Create');
-      await user.click(create);
-    });
+    const computeTypeSelect = screen.getByLabelText('Compute type');
+    await user.click(computeTypeSelect);
+    const sparkClusterOption = await screen.findByText('Spark cluster');
+    await user.click(sparkClusterOption);
+    const create = screen.getByText('Create');
+    await user.click(create);
+
+    // Assert
     expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
     expect(createFunc).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -1008,6 +1004,7 @@ describe('GcpComputeModal', () => {
       const imageInput = screen.getByLabelText('Container image');
       expect(imageInput).toBeInTheDocument();
       const invalidImageUri = 'b';
+
       await user.type(imageInput, invalidImageUri);
 
       const nextButton = await screen.findByText('Next');
