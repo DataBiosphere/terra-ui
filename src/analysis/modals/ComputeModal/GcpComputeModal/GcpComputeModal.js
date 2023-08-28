@@ -718,9 +718,11 @@ export const GcpComputeModalBase = ({
   };
 
   const onSelectGcpComputeImageSection = (image, isCustomImage) => {
-    setSelectedImage(image);
-    setIsCustomSelectedImage(isCustomImage);
-    handleImageChanged(image);
+    if (image !== selectedImage || isCustomImage !== isCustomSelectedImage) {
+      setSelectedImage(image);
+      setIsCustomSelectedImage(isCustomImage);
+      handleImageChanged(image);
+    }
   };
 
   // Lifecycle
@@ -1613,7 +1615,7 @@ export const GcpComputeModalBase = ({
         'aria-label': 'Select Environment',
         onSelect: onSelectGcpComputeImageSection,
         tool,
-        currentRuntime: currentRuntimeDetails,
+        currentRuntime: { runtimeImages: currentRuntimeDetails?.runtimeImages },
       }),
       makeImageInfo({ margin: '1rem 0 0.5rem' }),
       selectedImage?.packages && h(ImageDepViewer, { packageLink: selectedImage.packages }),
