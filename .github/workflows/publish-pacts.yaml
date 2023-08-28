@@ -1,4 +1,4 @@
-name: Publish Pacts on Dev
+name: Publish Pacts
 
 on:
   workflow_dispatch:
