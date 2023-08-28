@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment, useEffect, useState } from 'react';
+import { Dispatch, Fragment, SetStateAction, useEffect, useState } from 'react';
 import { div, h, h2, p, span, strong } from 'react-hyperscript-helpers';
 import { SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpGalaxy } from 'src/analysis/runtime-common-components';
 import { AppErrorModal, RuntimeErrorModal } from 'src/analysis/RuntimeManager';
@@ -582,7 +582,7 @@ export const Environments: React.FC<EnvironmentsProps> = ({ nav = undefined }) =
   const renderDeleteButton = (resourceType: 'app' | 'runtime', resource) => {
     const isDeletable = isResourceDeletable(resourceType, resource);
     const resourceId = resourceType === 'app' ? resource.appName : resource.id;
-    const action = {
+    const action: Dispatch<SetStateAction<any>> = {
       app: setDeleteAppId,
       runtime: setDeleteRuntimeId,
     }[resourceType];
