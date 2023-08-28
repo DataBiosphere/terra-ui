@@ -8,13 +8,14 @@ import {
   defaultRImage,
   generateTestGoogleRuntime,
   imageDocs,
+  pegasusImage,
 } from 'src/analysis/_testData/testData';
 import {
   GcpComputeImageSection,
   GcpComputeImageSectionProps,
 } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSection';
 import { ComputeImage, useComputeImages } from 'src/analysis/useComputeImages';
-import { runtimeToolLabels, terraSupportedRuntimeImageIds } from 'src/analysis/utils/tool-utils';
+import { runtimeToolLabels, runtimeTools, terraSupportedRuntimeImageIds } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
 import { ComputeImageRaw } from 'src/libs/ajax/compute-image-providers/ComputeImageProvider';
 import { GetRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
@@ -61,6 +62,21 @@ const mockAjax: Partial<AjaxContract> = {
   Workspaces: mockOuterWorkspaces as AjaxOuterWorkspacesContract,
 };
 
+const jupyterImageIds = runtimeTools.Jupyter.imageIds;
+
+const rImageIds = runtimeTools.RStudio.imageIds;
+
+const normalizedImages: ComputeImage[] = imageDocs.map(
+  (image: ComputeImageRaw): ComputeImage => ({
+    ...image,
+    isCommunity: !!image.isCommunity,
+    isRStudio: !!image.isRStudio,
+    isTerraSupported: terraSupportedRuntimeImageIds.includes(image.id),
+    toolLabel: image.isRStudio ? runtimeToolLabels.RStudio : runtimeToolLabels.Jupyter,
+    url: image.image,
+  })
+);
+
 describe('GcpComputeImageSection', () => {
   beforeEach(() => {
     // Arrange
@@ -69,23 +85,14 @@ describe('GcpComputeImageSection', () => {
     asMockedFn(mockOnSelect).mockImplementation();
   });
 
-  it('loads properly', async () => {
+  it('loads properly with default selections', async () => {
     // Arrange
     const user = userEvent.setup();
     asMockedFn(useComputeImages).mockReturnValue({
       ...defaultComputeImageStore,
       loadedState: {
         ...defaultComputeImageStore.loadedState,
-        state: imageDocs.map(
-          (image: ComputeImageRaw): ComputeImage => ({
-            ...image,
-            isCommunity: !!image.isCommunity,
-            isRStudio: !!image.isRStudio,
-            isTerraSupported: terraSupportedRuntimeImageIds.includes(image.id),
-            toolLabel: image.isRStudio ? runtimeToolLabels.RStudio : runtimeToolLabels.Jupyter,
-            url: image.image,
-          })
-        ),
+        state: normalizedImages,
       },
     });
 
@@ -122,26 +129,24 @@ describe('GcpComputeImageSection', () => {
     await user.click(inputElement);
 
     // Assert
-    // All images appear as options
+    // All images for the current tool appear as options
     [
       'TERRA-MAINTAINED JUPYTER ENVIRONMENTS',
       'COMMUNITY-MAINTAINED JUPYTER ENVIRONMENTS (verified partners)',
-      'COMMUNITY-MAINTAINED RSTUDIO ENVIRONMENTS (verified partners)',
       'OTHER ENVIRONMENTS',
     ].every((heading) => screen.getByText(heading));
     imageDocs
-      .filter(({ label }) => label !== defaultImage.label)
-      .map(({ label }) => label)
-      .every((imageLabel) => screen.getByText(imageLabel));
+      .filter(({ id, label }) => label !== defaultImage.label && jupyterImageIds.includes(id))
+      .every(({ label }) => screen.getByText(label));
 
     // Act
-    const rImageOption = screen.getByText(defaultRImage.label);
-    await user.click(rImageOption);
+    const pegasusImageOption = screen.getByText(pegasusImage.label);
+    await user.click(pegasusImageOption);
 
     // Assert
     // Change event fired
     expect(mockOnSelect).lastCalledWith(
-      expect.objectContaining({ url: defaultRImage.image, isRStudio: true, toolLabel: runtimeToolLabels.RStudio }),
+      expect.objectContaining({ url: pegasusImage.image, isCommunity: true, toolLabel: runtimeToolLabels.Jupyter }),
       false
     );
 
@@ -153,5 +158,59 @@ describe('GcpComputeImageSection', () => {
     // Assert
     // Change event fired
     expect(mockOnSelect).lastCalledWith(undefined, true);
+  });
+
+  it('loads RStudio tool images', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    asMockedFn(useComputeImages).mockReturnValue({
+      ...defaultComputeImageStore,
+      loadedState: {
+        ...defaultComputeImageStore.loadedState,
+        state: normalizedImages,
+      },
+    });
+
+    // Act
+    await act(async () => {
+      render(
+        h(GcpComputeImageSection, {
+          ...defaultGcpComputeImageSectionProps,
+          tool: runtimeToolLabels.RStudio,
+          'aria-label': 'Select Environment',
+          currentRuntime: {
+            runtimeImages: [
+              {
+                imageType: runtimeToolLabels.Jupyter,
+                imageUrl: defaultImage.image,
+                timestamp: '2022-09-19T15:37:11.035465Z',
+              },
+              ...(defaultGcpComputeImageSectionProps.currentRuntime?.runtimeImages ?? []),
+            ],
+          },
+        } as GcpComputeImageSectionProps)
+      );
+    });
+
+    // Assert
+    // Select element appears
+    const inputElement = screen.getByLabelText('Select Environment');
+    // Default image is default selection
+    expect(mockOnSelect).lastCalledWith(
+      expect.objectContaining({ url: defaultRImage.image, isRStudio: true, toolLabel: runtimeToolLabels.RStudio }),
+      false
+    );
+
+    // Act
+    await user.click(inputElement);
+
+    // Assert
+    // All images for the current tool appear as options
+    ['COMMUNITY-MAINTAINED RSTUDIO ENVIRONMENTS (verified partners)', 'OTHER ENVIRONMENTS'].every((heading) =>
+      screen.getByText(heading)
+    );
+    imageDocs
+      .filter(({ id, label }) => label !== defaultRImage.label && rImageIds.includes(id))
+      .every(({ label }) => screen.getByText(label));
   });
 });
