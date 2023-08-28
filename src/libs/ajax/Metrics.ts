@@ -23,7 +23,8 @@ export const Metrics = (signal?: AbortSignal) => {
       event,
       properties: {
         ...details,
-        // Users who have not registered are considered anonymous users. Send an anonymized distinct_id in that case; otherwise the user identity is captured via the auth token.        distinct_id: isRegistered ? undefined : authStore.get().anonymousId,
+        // Users who have not registered are considered anonymous users. Send an anonymized distinct_id in that case; otherwise the user identity is captured via the auth token.
+        distinct_id: isRegistered ? undefined : authStore.get().anonymousId,
         appId: 'Saturn',
         hostname: window.location.hostname,
         appPath: Nav.getCurrentRoute().name,

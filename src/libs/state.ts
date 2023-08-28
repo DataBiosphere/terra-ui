@@ -17,6 +17,7 @@ export const authStore = Utils.atom<any>({
   },
   cookiesAccepted: undefined,
   fenceStatus: {},
+  hasGcpBillingScopeThroughB2C: false,
   isAzurePreviewUser: undefined,
   isSignedIn: undefined,
   oidcConfig: {

@@ -122,11 +122,12 @@ const getSigninArgs = (includeBillingScope) => {
   );
 };
 
-export const signIn = async (includeBillingScope = false) => {
+export const signIn = async (includeBillingScope = false): Promise<User> => {
   const args = getSigninArgs(includeBillingScope);
   const user: User = await getAuthInstance().signinPopup(args);
+
   const sessionId = uuid();
-  const sessionStartTime = Date.now();
+  const sessionStartTime: number = Date.now();
   const userJWT: any = user.id_token;
   const decodedJWT: JwtPayload = jwtDecode<JwtPayload>(userJWT);
   const authTokenCreatedAt: any = (decodedJWT as any).auth_time; // time in seconds when authorization token was created
