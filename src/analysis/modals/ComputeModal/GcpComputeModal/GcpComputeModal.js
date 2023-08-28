@@ -233,6 +233,7 @@ export const GcpComputeModalBase = ({
   const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState('');
   const [runtimeType, setRuntimeType] = useState(runtimeTypes.gceVm);
   const [computeConfig, setComputeConfig] = useState({
+    bootDiskSize: defaultGceBootDiskSize,
     diskSize: defaultGcePersistentDiskSize,
     diskType: defaultPersistentDiskType.value,
     // The false here is valid because the modal never opens to dataproc as the default
@@ -469,7 +470,7 @@ export const GcpComputeModalBase = ({
                     region: computeConfig.computeRegion,
                     machineType: computeConfig.masterMachineType || getDefaultMachineType(false, getToolLabelFromCloudEnv(existingRuntime)),
                     ...(computeConfig.gpuEnabled ? { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } } : {}),
-                    bootDiskSize: existingRuntime?.bootDiskSize,
+                    bootDiskSize: computeConfig.bootDiskSize,
                     ...(shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected)
                       ? {
                           persistentDiskAttached: true,

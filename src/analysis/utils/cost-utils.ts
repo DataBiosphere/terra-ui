@@ -134,7 +134,9 @@ export const runtimeConfigCost = (config: GoogleRuntimeConfig): number => {
 
   const baseVmIpCost = ephemeralExternalIpAddressCost(1, 0);
 
-  return _.sum([baseMachinePrice, additionalDataprocCost, gpuCost, baseVmIpCost, runtimeConfigBaseCost(config)]);
+  const itemCosts = [baseMachinePrice, additionalDataprocCost, gpuCost, baseVmIpCost, runtimeConfigBaseCost(config)];
+  const totalCost = _.sum(itemCosts);
+  return totalCost;
 };
 
 // Per GB following https://cloud.google.com/compute/pricing
