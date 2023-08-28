@@ -48,3 +48,6 @@ saturn-ui.iml
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# A special case: we ignore pact-core because it exceeds 100mb (GitHub's file size limit).
+.yarn/cache/@pact-foundation-pact-core-npm-*
