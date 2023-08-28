@@ -254,40 +254,58 @@ describe('GCP getCostDisplayForTool', () => {
     expect(result).toBe(expectedResult);
   });
 
-  it('Will get compute cost and compute status for a running Jupyter runtime', () => {
-    // Arrange
-    const expectedResult = 'Running $0.05/hr';
-    const app = undefined;
-    const currentRuntime = getGoogleRuntime({
-      runtimeConfig: getJupyterRuntimeConfig(),
-    });
-    const currentRuntimeToolLabel = runtimeToolLabels.Jupyter;
-    const toolLabel = runtimeToolLabels.Jupyter;
+  it.each([
+    { bootDiskSize: 100, expectCost: '0.05' },
+    { bootDiskSize: 500, expectCost: '0.07' },
+  ])(
+    'Will get compute cost and compute status for a running $bootDiskSize Gb Jupyter runtime',
+    ({ bootDiskSize, expectCost }) => {
+      // Arrange
+      const expectedResult = `Running $${expectCost}/hr`;
+      const app = undefined;
+      const currentRuntime = getGoogleRuntime({
+        runtimeConfig: {
+          ...getJupyterRuntimeConfig(),
+          bootDiskSize,
+        },
+      });
+      const currentRuntimeToolLabel = runtimeToolLabels.Jupyter;
+      const toolLabel = runtimeToolLabels.Jupyter;
 
-    // Act
-    const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeToolLabel, toolLabel);
+      // Act
+      const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeToolLabel, toolLabel);
 
-    // Assert
-    expect(result).toBe(expectedResult);
-  });
+      // Assert
+      expect(result).toBe(expectedResult);
+    }
+  );
 
-  it('Will get compute cost and compute status for a stopped Jupyter runtime', () => {
-    // Arrange
-    const expectedResult = 'Paused < $0.01/hr';
-    const app = undefined;
-    const jupyterRuntime = getGoogleRuntime({
-      runtimeConfig: getJupyterRuntimeConfig(),
-    });
-    const currentRuntime = { ...jupyterRuntime, status: runtimeStatuses.stopped.leoLabel };
-    const currentRuntimeToolLabel = runtimeToolLabels.Jupyter;
-    const toolLabel = runtimeToolLabels.Jupyter;
+  it.each([
+    { bootDiskSize: 100, expectCost: '< $0.01' },
+    { bootDiskSize: 500, expectCost: '$0.03' },
+  ])(
+    'Will get compute cost and compute status for a stopped $bootDiskSize Gb Jupyter runtime',
+    ({ bootDiskSize, expectCost }) => {
+      // Arrange
+      const expectedResult = `Paused ${expectCost}/hr`;
+      const app = undefined;
+      const jupyterRuntime = getGoogleRuntime({
+        runtimeConfig: {
+          ...getJupyterRuntimeConfig(),
+          bootDiskSize,
+        },
+      });
+      const currentRuntime = { ...jupyterRuntime, status: runtimeStatuses.stopped.leoLabel };
+      const currentRuntimeToolLabel = runtimeToolLabels.Jupyter;
+      const toolLabel = runtimeToolLabels.Jupyter;
 
-    // Act
-    const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeToolLabel, toolLabel);
+      // Act
+      const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeToolLabel, toolLabel);
 
-    // Assert
-    expect(result).toBe(expectedResult);
-  });
+      // Assert
+      expect(result).toBe(expectedResult);
+    }
+  );
 
   it('Will return blank because current runtime is not equal to currentRuntimeToolLabel', () => {
     // Arrange
