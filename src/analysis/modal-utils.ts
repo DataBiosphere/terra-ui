@@ -5,13 +5,9 @@ import {
 } from 'src/analysis/utils/runtime-utils';
 import { getToolLabelFromCloudEnv } from 'src/analysis/utils/tool-utils';
 import { cloudServices } from 'src/data/gce-machines';
-import { GooglePdType, PersistentDisk, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
+import { GoogleDiskType, PersistentDisk, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
 
 export interface IComputeConfig {
-  diskSize: number;
-  diskType: GooglePdType;
-  persistentDiskSize: number;
-  persistentDiskType: SharedPdType; // TODO: Switch to DiskType
   masterMachineType: string;
   masterDiskSize: number;
   numberOfWorkers: number;
@@ -26,6 +22,14 @@ export interface IComputeConfig {
   autopauseThreshold: number;
   computeRegion: string;
   computeZone: string;
+
+  // Used by GCP disk select
+  diskSize: number;
+  diskType: GoogleDiskType;
+
+  // Used by Azure disk select
+  persistentDiskSize: number;
+  persistentDiskType: SharedPdType; // TODO: Switch to DiskType
 }
 
 export const buildExistingEnvironmentConfig = (
@@ -53,6 +57,7 @@ export const buildExistingEnvironmentConfig = (
           ...(cloudService === cloudServices.GCE
             ? {
                 zone: computeConfig.computeZone,
+                region: computeConfig.computeRegion,
                 machineType: runtimeConfig.machineType || getDefaultMachineType(false, toolLabel),
                 ...(computeConfig.hasGpu && gpuConfig ? { gpuConfig } : {}),
                 bootDiskSize: runtimeConfig.bootDiskSize,

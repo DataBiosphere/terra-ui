@@ -16,6 +16,7 @@ import {
   defaultGceBootDiskSize,
   defaultGcePersistentDiskSize,
   defaultPersistentDiskType,
+  pdTypeFromDiskType,
 } from 'src/analysis/utils/disk-utils';
 import {
   defaultAutopauseThreshold,
@@ -50,7 +51,6 @@ import { getAvailableComputeRegions, getLocationType, getRegionInfo, isLocationM
 import TitleBar from 'src/components/TitleBar';
 import { cloudServices, isMachineTypeSmaller, machineTypes } from 'src/data/gce-machines';
 import { Ajax } from 'src/libs/ajax';
-import { googlePdTypes } from 'src/libs/ajax/leonardo/models/disk-models';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error';
@@ -234,7 +234,7 @@ export const GcpComputeModalBase = ({
   const [runtimeType, setRuntimeType] = useState(runtimeTypes.gceVm);
   const [computeConfig, setComputeConfig] = useState({
     diskSize: defaultGcePersistentDiskSize,
-    diskType: defaultPersistentDiskType,
+    diskType: defaultPersistentDiskType.value,
     // The false here is valid because the modal never opens to dataproc as the default
     masterMachineType: getDefaultMachineType(false, tool),
     masterDiskSize: defaultDataprocMasterDiskSize,
@@ -296,7 +296,6 @@ export const GcpComputeModalBase = ({
     const shouldDeleteRuntime = existingRuntime && !canUpdateRuntime();
     const shouldCreateRuntime = !canUpdateRuntime() && !!desiredRuntime;
     const { namespace, name, bucketName, googleProject } = getWorkspaceObject();
-    const desiredToolLabel = getToolLabelFromCloudEnv(desiredRuntime);
     const terraDeploymentEnv = getConfig().terraDeploymentEnv;
     const customDrsResolverArgs = getConfig().shouldUseDrsHub ? { DRS_RESOLVER_ENDPOINT: 'api/v4/drs/resolve' } : {};
 
@@ -327,7 +326,7 @@ export const GcpComputeModalBase = ({
         ...(desiredRuntime.cloudService === cloudServices.GCE
           ? {
               zone: desiredRuntime.zone.toLowerCase(),
-              machineType: desiredRuntime.machineType || getDefaultMachineType(false, desiredToolLabel),
+              machineType: desiredRuntime.machineType || getDefaultMachineType(false, desiredRuntime.tool),
               ...(computeConfig.gpuEnabled && { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } }),
             }
           : {
@@ -365,7 +364,7 @@ export const GcpComputeModalBase = ({
               persistentDisk: {
                 name: Utils.generatePersistentDiskName(),
                 size: desiredPersistentDisk.size,
-                diskType: desiredPersistentDisk.diskType.value, // TODO: Disk type should already be the correct string
+                diskType: desiredPersistentDisk.diskType,
                 labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name },
               },
             }),
@@ -462,6 +461,7 @@ export const GcpComputeModalBase = ({
             return {
               cloudService,
               toolDockerImage: isCustomSelectedImage ? customImageUrl : selectedImage?.url,
+              tool: selectedImage?.toolLabel ?? getToolLabelFromCloudEnv(existingRuntime),
               ...(jupyterUserScriptUri && { jupyterUserScriptUri }),
               ...(cloudService === cloudServices.GCE
                 ? {
@@ -512,9 +512,10 @@ export const GcpComputeModalBase = ({
    * from leonardo. The cost calculation functions expect that shape, so this
    * is necessary to compute the cost for potential new disk configurations.
    */
-  const getPendingDisk = () => {
-    const { persistentDisk: { size = 0, diskType = googlePdTypes.standard } = {} } = getDesiredEnvironmentConfig();
-    return { size, status: 'Ready', diskType };
+  const formatDiskForCosts = () => {
+    const { persistentDisk: { size = 0, diskType = defaultPersistentDiskType.value } = {} } = getDesiredEnvironmentConfig();
+    const pdType = pdTypeFromDiskType(diskType);
+    return { size, status: 'Ready', diskType: pdType };
   };
 
   /**
@@ -522,20 +523,20 @@ export const GcpComputeModalBase = ({
    * returned from Leonardo. The cost calculation functions expect that shape,
    * so this is necessary to compute the cost for potential new configurations.
    */
-  const getPendingRuntimeConfig = () => {
+  const formatRuntimeConfigForCosts = () => {
     const { runtime: desiredRuntime, autopauseThreshold: desiredAutopauseThreshold } = getDesiredEnvironmentConfig();
     const toolLabel = getToolLabelFromCloudEnv(desiredRuntime);
+    const gceMachineType = desiredRuntime.machineType || getDefaultMachineType(false, toolLabel);
     return {
       cloudService: desiredRuntime.cloudService,
       autopauseThreshold: desiredAutopauseThreshold,
       ...(desiredRuntime.cloudService === cloudServices.GCE
         ? {
-            machineType: desiredRuntime.machineType || getDefaultMachineType(false, toolLabel),
-            bootDiskSize: desiredRuntime.bootDiskSize,
+            machineType: gceMachineType,
             region: desiredRuntime.region,
             zone: desiredRuntime.zone,
             ...(desiredRuntime.gpuConfig ? { gpuConfig: desiredRuntime.gpuConfig } : {}),
-            ...(desiredRuntime.diskSize ? { diskSize: desiredRuntime.diskSize } : {}),
+            diskSize: desiredRuntime.bootDiskSize,
           }
         : {
             region: desiredRuntime.region,
@@ -561,7 +562,15 @@ export const GcpComputeModalBase = ({
     const existingConfig = getExistingEnvironmentConfig();
     const desiredConfig = getDesiredEnvironmentConfig();
 
-    return !_.isEqual(existingConfig, desiredConfig);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const diffConfigs = (self, other) => {
+      const isEqualAtKey = (value, key) => _.equals(other[key], value);
+      return _.omitBy(isEqualAtKey, self);
+    };
+
+    const isEqualConfigs = _.isEqual(existingConfig, desiredConfig);
+
+    return !isEqualConfigs;
   };
 
   /**
@@ -628,19 +637,19 @@ export const GcpComputeModalBase = ({
       desiredRuntime_exists: !!desiredRuntime,
       desiredRuntime_cpus: desiredRuntime ? desiredRuntimeCpus : undefined,
       desiredRuntime_memory: desiredRuntime ? desiredRuntimeMemory : undefined,
-      desiredRuntime_costPerHour: desiredRuntime ? runtimeConfigCost(getPendingRuntimeConfig(), getPendingDisk()) : undefined,
-      desiredRuntime_pausedCostPerHour: desiredRuntime ? runtimeConfigBaseCost(getPendingRuntimeConfig(), getPendingDisk()) : undefined,
+      desiredRuntime_costPerHour: desiredRuntime ? runtimeConfigCost(formatRuntimeConfigForCosts()) : undefined,
+      desiredRuntime_pausedCostPerHour: desiredRuntime ? runtimeConfigBaseCost(formatRuntimeConfigForCosts()) : undefined,
       ..._.mapKeys((key) => `existingRuntime_${key}`, existingRuntime),
       existingRuntime_exists: !!existingRuntime,
       existingRuntime_cpus: existingRuntime ? existingRuntimeCpus : undefined,
       existingRuntime_memory: existingRuntime ? existingRuntimeMemory : undefined,
       ..._.mapKeys((key) => `desiredPersistentDisk_${key}`, desiredPersistentDisk),
-      desiredPersistentDisk_diskType: desiredPersistentDisk ? desiredPersistentDisk.diskType.displayName : undefined,
+      desiredPersistentDisk_diskType: desiredPersistentDisk?.diskType,
       desiredPersistentDisk_costPerMonth: desiredPersistentDisk
-        ? getPersistentDiskCostMonthly(getPendingDisk(), computeConfig.computeRegion)
+        ? getPersistentDiskCostMonthly(formatDiskForCosts(), computeConfig.computeRegion)
         : undefined,
       ..._.mapKeys((key) => `existingPersistentDisk_${key}`, existingPersistentDisk),
-      existingPersistentDisk_diskType: existingPersistentDisk ? existingPersistentDisk.diskType.displayName : undefined,
+      existingPersistentDisk_diskType: existingPersistentDisk?.diskType,
       isDefaultConfig: !currentRuntimeDetails,
       selectedLeoImage: selectedImage?.url,
       isCustomImage: isCustomSelectedImage,
@@ -718,7 +727,7 @@ export const GcpComputeModalBase = ({
   };
 
   const onSelectGcpComputeImageSection = (image, isCustomImage) => {
-    if (image !== selectedImage || isCustomImage !== isCustomSelectedImage) {
+    if (image?.url !== selectedImage?.url || !!isCustomImage !== !!isCustomSelectedImage) {
       setSelectedImage(image);
       setIsCustomSelectedImage(isCustomImage);
       handleImageChanged(image);
@@ -741,8 +750,16 @@ export const GcpComputeModalBase = ({
         currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
         currentDisk ? Ajax().Disks.disksV1().disk(currentDisk.googleProject, currentDisk.name).details() : null,
       ]);
+      const diskTypeName = persistentDiskDetails?.diskType?.value ?? persistentDiskDetails?.diskType;
       setCurrentRuntimeDetails(runtimeDetails);
-      setCurrentPersistentDiskDetails(persistentDiskDetails);
+      setCurrentPersistentDiskDetails(
+        persistentDiskDetails
+          ? {
+              ...persistentDiskDetails,
+              diskType: diskTypeName,
+            }
+          : undefined
+      );
       setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '');
 
       const runtimeImageUrl = getImageUrlFromRuntime(runtimeDetails);
@@ -757,8 +774,7 @@ export const GcpComputeModalBase = ({
         [cloudServices.GCE, () => runtimeTypes.gceVm],
         [Utils.DEFAULT, () => runtimeTypes.gceVm] // for when there's no existing runtime
       );
-
-      const diskSize = Utils.cond(
+      const masterDiskSize = Utils.cond(
         [!!runtimeConfig?.diskSize, () => runtimeConfig.diskSize],
         [!!runtimeConfig?.masterDiskSize, () => runtimeConfig.masterDiskSize],
         [isDataproc(newRuntimeType), () => defaultDataprocMasterDiskSize],
@@ -768,10 +784,11 @@ export const GcpComputeModalBase = ({
       setCustomImageUrl(runtimeImageUrl ?? '');
       setRuntimeType(newRuntimeType);
       setComputeConfig({
+        bootDiskSize: runtimeConfig?.bootDiskSize ?? defaultGceBootDiskSize,
         diskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
-        diskType: (!!currentPersistentDiskDetails?.diskType && currentPersistentDiskDetails.diskType) || defaultPersistentDiskType,
+        diskType: diskTypeName ?? defaultPersistentDiskType.value,
         masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
-        masterDiskSize: diskSize,
+        masterDiskSize,
         numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
         componentGatewayEnabled: runtimeConfig?.componentGatewayEnabled || isDataprocCluster(newRuntimeType),
         numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
@@ -794,7 +811,7 @@ export const GcpComputeModalBase = ({
   const renderActionButton = () => {
     const { runtime: existingRuntime, hasGpu } = getExistingEnvironmentConfig();
     const { runtime: desiredRuntime } = getDesiredEnvironmentConfig();
-    const commonButtonProps = Utils.cond(
+    const buttonModeProps = Utils.cond(
       [
         hasGpu && viewMode !== 'deleteEnvironment',
         () => ({ disabled: true, tooltip: 'Cloud compute with GPU(s) cannot be updated. Please delete it and create a new one.' }),
@@ -809,7 +826,11 @@ export const GcpComputeModalBase = ({
           viewMode !== 'deleteEnvironment',
         () => ({ disabled: true, tooltip: 'Cannot create environment in location differing from existing persistent disk location.' }),
       ],
-      () => ({ disabled: !hasChanges() || !!errors, tooltip: Utils.summarizeErrors(errors) })
+      [
+        viewMode !== 'deleteEnvironment',
+        () => ({ disabled: !!errors || !hasChanges(), tooltip: errors ? Utils.summarizeErrors(errors) : 'No changes' }),
+      ],
+      () => ({ disabled: !!errors, tooltip: Utils.summarizeErrors(errors) })
     );
 
     const isRuntimeError = existingRuntime?.status === 'Error';
@@ -822,31 +843,35 @@ export const GcpComputeModalBase = ({
     return Utils.cond(
       [
         canShowWarning && isCustomSelectedImage && existingRuntime?.toolDockerImage !== desiredRuntime?.toolDockerImage,
-        () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('customImageWarning') }, ['Next']),
+        () => h(ButtonPrimary, { ...buttonModeProps, onClick: () => setViewMode('customImageWarning') }, ['Next']),
       ],
       [
         canShowEnvironmentWarning && (willDeleteBuiltinDisk() || willDeletePersistentDisk() || willRequireDowntime() || willDetachPersistentDisk()),
-        () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('environmentWarning') }, ['Next']),
+        () => h(ButtonPrimary, { ...buttonModeProps, onClick: () => setViewMode('environmentWarning') }, ['Next']),
       ],
       [
         canShowWarning && isDifferentLocation(),
-        () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('differentLocationWarning') }, ['Next']),
+        () => h(ButtonPrimary, { ...buttonModeProps, onClick: () => setViewMode('differentLocationWarning') }, ['Next']),
       ],
       [
         canShowWarning && !isUSLocation(computeConfig.computeRegion),
-        () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('nonUSLocationWarning') }, ['Next']),
+        () => h(ButtonPrimary, { ...buttonModeProps, onClick: () => setViewMode('nonUSLocationWarning') }, ['Next']),
       ],
       () =>
         h(
           ButtonPrimary,
           {
-            ...commonButtonProps,
+            ...buttonModeProps,
             onClick: () => {
               applyChanges();
             },
-            disabled: isUpdateDisabled,
+            disabled: isUpdateDisabled || buttonModeProps.disabled,
             tooltipSide: 'left',
-            tooltip: isUpdateDisabled ? `Cannot perform change on environment in (${currentRuntimeDetails.status}) status` : 'Update Environment',
+            tooltip: Utils.cond(
+              [isUpdateDisabled, () => `Cannot perform change on environment in (${currentRuntimeDetails.status}) status`],
+              [buttonModeProps.disabled, () => buttonModeProps.tooltip],
+              () => 'Update Environment'
+            ),
           },
           [Utils.cond([viewMode === 'deleteEnvironment', () => 'Delete'], [existingRuntime, () => 'Update'], () => 'Create')]
         )
@@ -1282,17 +1307,17 @@ export const GcpComputeModalBase = ({
           [
             {
               label: 'Running cloud compute cost',
-              cost: Utils.formatUSD(runtimeConfigCost(getPendingRuntimeConfig(), getPendingDisk())),
+              cost: Utils.formatUSD(runtimeConfigCost(formatRuntimeConfigForCosts())),
               unitLabel: 'per hr',
             },
             {
               label: 'Paused cloud compute cost',
-              cost: Utils.formatUSD(runtimeConfigBaseCost(getPendingRuntimeConfig(), getPendingDisk())),
+              cost: Utils.formatUSD(runtimeConfigBaseCost(formatRuntimeConfigForCosts())),
               unitLabel: 'per hr',
             },
             {
               label: 'Persistent disk cost',
-              cost: isPersistentDisk ? Utils.formatUSD(getPersistentDiskCostMonthly(getPendingDisk(), computeConfig.computeRegion)) : 'N/A',
+              cost: isPersistentDisk ? Utils.formatUSD(getPersistentDiskCostMonthly(formatDiskForCosts(), computeConfig.computeRegion)) : 'N/A',
               unitLabel: isPersistentDisk ? 'per month' : '',
             },
           ]
@@ -1493,7 +1518,7 @@ export const GcpComputeModalBase = ({
             willRequireDowntime(),
             () =>
               h(Fragment, [
-                existingRuntime && existingRuntime.tool !== desiredToolLabel
+                existingRuntime && existingRuntime.tool !== selectedImage?.toolLabel
                   ? p([
                       'By continuing, you will be changing the application of your cloud environment from ',
                       strong([existingRuntime.tool]),
@@ -1558,9 +1583,9 @@ export const GcpComputeModalBase = ({
           h(GcpPersistentDiskSection, {
             persistentDiskExists: !!existingPersistentDisk,
             persistentDiskSize: computeConfig.diskSize,
-            persistentDiskType: computeConfig.diskType,
+            persistentDiskType: pdTypeFromDiskType(computeConfig.diskType),
             onChangePersistentDiskSize: (value) => updateComputeConfig('diskSize', value),
-            onChangePersistentDiskType: (value) => updateComputeConfig('diskType', value),
+            onChangePersistentDiskType: (value) => updateComputeConfig('diskType', value.value),
             updateComputeConfig,
             onClickAbout: () => {
               setViewMode('aboutPersistentDisk');
@@ -1668,7 +1693,7 @@ export const GcpComputeModalBase = ({
             runtimeConfig: currentRuntime && currentRuntime.runtimeConfig,
             persistentDiskId: currentPersistentDiskDetails?.id,
             persistentDiskCostDisplay: currentPersistentDiskDetails
-              ? Utils.formatUSD(getPersistentDiskCostMonthly(currentPersistentDiskDetails, computeConfig.computeRegion))
+              ? Utils.formatUSD(getPersistentDiskCostMonthly(formatDiskForCosts(), computeConfig.computeRegion))
               : 'N/A',
             deleteDiskSelected,
             setDeleteDiskSelected,
