@@ -84,7 +84,8 @@ export const getAppStatusForDisplay = (status: LeoAppStatus): DisplayAppStatus =
     ['prestarting', () => 'Resuming'],
     ['prestopping', () => 'Pausing'],
     ['provisioning', () => 'Creating'],
-    // TODO: is this case valid?
+    // TODO: Type safety could be improved here and the cast removed by mapping between the two types
+    // using an object typed Record<LeoAppStatus, DisplayAppStatus> instead of switchCase.
     [Utils.DEFAULT, () => _.capitalize(status) as DisplayAppStatus]
   );
 
