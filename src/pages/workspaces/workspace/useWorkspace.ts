@@ -53,6 +53,8 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
     location: string;
     locationType: string;
   }>({
+    // Changes to these defaults should be reflected by the `defaultGoogleBucketOptions` defined in
+    // workspace-fixtures.ts, which are intended to follow this implementation.
     fetchedLocation: undefined,
     location: defaultLocation,
     locationType: locationTypes.default, // These default types are historical

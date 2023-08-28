@@ -4,9 +4,9 @@ import userEvent from '@testing-library/user-event';
 import * as clipboard from 'clipboard-polyfill/text';
 import FileSaver from 'file-saver';
 import { h } from 'react-hyperscript-helpers';
-import { defaultGoogleWorkspace } from 'src/analysis/_testData/testData';
 import { Ajax } from 'src/libs/ajax';
 import { asMockedFn } from 'src/testing/test-utils';
+import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 import EntitiesContent from './EntitiesContent';
 
