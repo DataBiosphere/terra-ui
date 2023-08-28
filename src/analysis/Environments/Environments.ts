@@ -582,10 +582,11 @@ export const Environments: React.FC<EnvironmentsProps> = ({ nav = undefined }) =
   const renderDeleteButton = (resourceType: 'app' | 'runtime', resource) => {
     const isDeletable = isResourceDeletable(resourceType, resource);
     const resourceId = resourceType === 'app' ? resource.appName : resource.id;
-    const action: Dispatch<SetStateAction<any>> = {
+    const actions: Record<typeof resourceType, Dispatch<SetStateAction<any>>> = {
       app: setDeleteAppId,
       runtime: setDeleteRuntimeId,
-    }[resourceType];
+    };
+    const action: Dispatch<SetStateAction<any>> = actions[resourceType];
 
     return h(
       Link,
