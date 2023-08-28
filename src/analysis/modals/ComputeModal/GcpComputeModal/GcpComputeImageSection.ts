@@ -32,10 +32,10 @@ export const GcpComputeImageSection: React.FC<GcpComputeImageSectionProps> = (pr
   useEffect(() => {
     if (loadedState.status === 'Ready') {
       const allImages = loadedState.state;
-      setImages(allImages);
 
       const currentTool = runtimeTools[tool];
       const imagesForTool = allImages.filter((image) => currentTool.imageIds.includes(image.id));
+      setImages(imagesForTool);
 
       const currentImageUrl: string = getImageUrlFromRuntime(currentRuntime) ?? '';
       const currentImage: ComputeImage | undefined = allImages.find(({ url }) => url === currentImageUrl);
