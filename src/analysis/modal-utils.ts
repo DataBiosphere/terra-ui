@@ -1,4 +1,3 @@
-import _ from 'lodash/fp';
 import { cloudServices } from 'src/analysis/utils/gce-machines';
 import { defaultDataprocMachineType, getDefaultMachineType } from 'src/analysis/utils/runtime-utils';
 import { getToolLabelFromCloudEnv } from 'src/analysis/utils/tool-utils';
@@ -81,7 +80,10 @@ export const buildExistingEnvironmentConfig = (
   };
 };
 
-export const getImageUrl = (runtimeDetails) => {
-  return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), runtimeDetails?.runtimeImages)
-    ?.imageUrl;
+/**
+ * The first Jupyter or RStudio image URL on the provided runtime object.
+ */
+export const getImageUrl = (runtimeDetails: Pick<GetRuntimeItem, 'runtimeImages'> | undefined) => {
+  const images = runtimeDetails?.runtimeImages ?? [];
+  return images.find(({ imageType }) => ['Jupyter', 'RStudio'].includes(imageType))?.imageUrl;
 };

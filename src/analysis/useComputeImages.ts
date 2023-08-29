@@ -41,7 +41,7 @@ export const useComputeImages = (): ComputeImageStore => {
   const signal = useCancellation();
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<ComputeImage[]>([]);
-  const workspace: WorkspaceWrapper = useStore(workspaceStore);
+  const workspace: WorkspaceWrapper = useStore<WorkspaceWrapper>(workspaceStore);
 
   const refresh = withHandlers(
     [withErrorReporting('Error loading compute images'), Utils.withBusyState(setLoading)],
