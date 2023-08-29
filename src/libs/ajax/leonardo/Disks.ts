@@ -18,7 +18,7 @@ export const Disks = (signal) => {
         `api/google/v1/disks${qs.stringify(labels, { addQueryPrefix: true })}`,
         _.mergeAll([authOpts(), appIdentifier, { signal }])
       );
-      const disks: ListDiskItem[] = res.json();
+      const disks: ListDiskItem[] = await res.json();
       return mapToPdTypes(disks);
     },
     disk: (project: string, name: string) => ({
