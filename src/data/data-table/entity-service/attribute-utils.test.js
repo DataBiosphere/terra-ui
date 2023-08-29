@@ -1,4 +1,4 @@
-import { concatenateAttributeNames, convertAttributeValue, getAttributeType } from 'src/components/data/attribute-utils';
+import { concatenateAttributeNames, convertAttributeValue, getAttributeType } from './attribute-utils';
 
 describe('getAttributeType', () => {
   it('returns type of attribute value', () => {

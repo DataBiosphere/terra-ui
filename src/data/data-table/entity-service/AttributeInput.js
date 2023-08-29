@@ -3,11 +3,12 @@ import _ from 'lodash/fp';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { div, fieldset, h, label, legend, span } from 'react-hyperscript-helpers';
 import { IdContainer, LabeledCheckbox, Link, RadioButton, Select, Switch } from 'src/components/common';
-import { convertAttributeValue, getAttributeType } from 'src/components/data/attribute-utils';
 import { icon } from 'src/components/icons';
 import { NumberInput, TextInput } from 'src/components/input';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import * as Utils from 'src/libs/utils';
+
+import { convertAttributeValue, getAttributeType } from './attribute-utils';
 
 export const AttributeTypeInput = ({
   label: labelText = 'Type',
