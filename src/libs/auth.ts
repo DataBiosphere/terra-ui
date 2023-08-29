@@ -58,12 +58,12 @@ const getAuthInstance = () => {
 export const signOut = () => {
   // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
   const sessionEndTime: number = Date.now();
-  const tokenMetadata: any = authStore.get().authTokenMetadata;
+  const tokenMetadata = authStore.get().authTokenMetadata;
   Ajax().Metrics.captureEvent(Events.userLogout, {
     sessionEndTime: Utils.makeCompleteDate(sessionEndTime),
-    sessionDurationMilliseconds: sessionEndTime - authStore.get().sessionStartTime,
-    authTokenCreatedAt: Utils.makeCompleteDateSeconds(tokenMetadata.createdAt),
-    authTokenExpiresAt: Utils.makeCompleteDateSeconds(tokenMetadata.expiresAt),
+    sessionDurationInSeconds: (sessionEndTime - authStore.get().sessionStartTime) / 1000.0,
+    authTokenCreatedAt: Utils.formatTimestampInSeconds(tokenMetadata.createdAt),
+    authTokenExpiresAt: Utils.formatTimestampInSeconds(tokenMetadata.expiresAt),
   });
   cookieReadyStore.reset();
   azureCookieReadyStore.reset();
@@ -76,7 +76,7 @@ export const signOut = () => {
 };
 
 export const signOutAfterSessionTimeout = () => {
-  Ajax().Metrics.captureEvent(Events.userTimeoutLogout, {});
+  Ajax().Metrics.captureEvent(Events.userSessionTimeout, {});
   signOut();
   notify('info', 'Session timed out', sessionTimeoutProps);
 };
@@ -114,11 +114,11 @@ export const signIn = async (includeBillingScope = false): Promise<User> => {
 
   const sessionId = uuid();
   const sessionStartTime: number = Date.now();
-  const userJWT: any = user.id_token;
+  const userJWT: string = user.id_token!;
   const decodedJWT: JwtPayload = jwtDecode<JwtPayload>(userJWT);
-  const authTokenCreatedAt: any = (decodedJWT as any).auth_time; // time in seconds when authorization token was created
-  const authTokenExpiresAt: any = user.expires_at; // time in seconds when authorization token expires
-  const jwtTokenExpiresAt = (decodedJWT as any).exp; // time in seconds when jwt expires (should not be read from)
+  const authTokenCreatedAt: number = (decodedJWT as any).auth_time; // time in seconds when authorization token was created
+  const authTokenExpiresAt: number = user.expires_at; // time in seconds when authorization token expires
+  const jwtExpiresAt: number = (decodedJWT as any).exp; // time in seconds when jwt expires (should not be read from)
   authStore.update((state) => ({
     ...state,
     hasGcpBillingScopeThroughB2C: includeBillingScope,
@@ -133,9 +133,9 @@ export const signIn = async (includeBillingScope = false): Promise<User> => {
     authProvider: user.profile.idp,
     sessionStartTime: Utils.makeCompleteDate(sessionStartTime),
     // Token times are in seconds, so converting to milliseconds to allow for displaying the dates nicely
-    authTokenCreatedAt: Utils.makeCompleteDateSeconds(authTokenCreatedAt),
-    authTokenExpiresAt: Utils.makeCompleteDateSeconds(authTokenExpiresAt),
-    jwtTokenExpiresAt: Utils.makeCompleteDateSeconds(jwtTokenExpiresAt),
+    authTokenCreatedAt: Utils.formatTimestampInSeconds(authTokenCreatedAt),
+    authTokenExpiresAt: Utils.formatTimestampInSeconds(authTokenExpiresAt),
+    jwtExpiresAt: Utils.formatTimestampInSeconds(jwtExpiresAt),
   });
   return user;
 };
@@ -155,8 +155,8 @@ export const reloadAuthToken = (includeBillingScope = false) => {
     .finally(() => {
       Ajax().Metrics.captureEvent(Events.userAuthTokenReload, {
         authReloadSuccessful,
-        authTokenCreatedAt: Utils.makeCompleteDateSeconds(tokenMetadata.createdAt),
-        authTokenExpiresAt: Utils.makeCompleteDateSeconds(tokenMetadata.expiresAt),
+        authTokenCreatedAt: Utils.formatTimestampInSeconds(tokenMetadata.createdAt),
+        authTokenExpiresAt: Utils.formatTimestampInSeconds(tokenMetadata.expiresAt),
       });
     });
 };
