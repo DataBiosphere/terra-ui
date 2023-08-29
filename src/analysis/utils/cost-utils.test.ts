@@ -43,8 +43,8 @@ const jupyterDisk: PersistentDisk = {
   zone: 'us-central1-a',
 };
 
-jest.mock('src/data/gce-machines', () => {
-  const originalModule = jest.requireActual('src/data/gce-machines');
+jest.mock('src/analysis/utils/gce-machines', () => {
+  const originalModule = jest.requireActual('src/analysis/utils/gce-machines');
 
   return {
     ...originalModule,

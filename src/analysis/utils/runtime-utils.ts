@@ -1,7 +1,7 @@
 import { NominalType } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
+import { gpuTypes, machineTypes, zonesToGpus } from 'src/analysis/utils/gce-machines';
 import { RuntimeToolLabel, runtimeToolLabels, ToolLabel } from 'src/analysis/utils/tool-utils';
-import { gpuTypes, machineTypes, zonesToGpus } from 'src/data/gce-machines';
 import { CloudContext } from 'src/libs/ajax/leonardo/models/core-models';
 import {
   AzureConfig,
