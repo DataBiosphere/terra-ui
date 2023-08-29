@@ -439,8 +439,8 @@ export const GcpComputeModalBase = ({
   const canUpdatePersistentDisk = () => {
     const { persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig();
     const { persistentDisk: desiredPersistentDisk } = getDesiredEnvironmentConfig();
-
-    return !(!existingPersistentDisk || !desiredPersistentDisk || desiredPersistentDisk.size < existingPersistentDisk.size);
+    const isDownsizing = () => desiredPersistentDisk.size < existingPersistentDisk.size;
+    return existingPersistentDisk && desiredPersistentDisk && !isDownsizing();
   };
 
   const getExistingEnvironmentConfig = () =>
