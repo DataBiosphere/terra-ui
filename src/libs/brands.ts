@@ -66,15 +66,15 @@ export interface BrandConfiguration {
   theme: Theme;
 }
 
-const baseColors = {
-  primary: '#74ae43', // Used as accent on header, loading spinner, background of beta version tag and some buttons
-  secondary: '#6d6e70', // Used as footer background
-  accent: '#4d72aa', // Used as button backgrounds, headers, links
+const baseColors: Theme['colorPalette'] = {
+  primary: '#74ae43',
+  secondary: '#6d6e70',
+  accent: '#4d72aa',
   success: '#74ae43',
   warning: '#f7981c',
   danger: '#db3214',
-  light: '#e9ecef', // Used as header background color, lightened for background of cells, panels, etc.
-  dark: '#333f52', // Used as text color, menu background (lightened), selected background (lightened)
+  light: '#e9ecef',
+  dark: '#333f52',
   grey: '#808080',
   disabled: '#b6b7b8',
 };
