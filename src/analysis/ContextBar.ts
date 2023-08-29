@@ -118,13 +118,17 @@ export const ContextBar = ({
   const computeRegion = Utils.cond(
     [isGoogleWorkspace(workspace), () => getRegionInfo(googleBucketLocation, googleBucketType).computeRegion],
     [isAzureWorkspace(workspace), () => azureContainerRegion],
-    () => null
-  );
+    () => {
+      throw new Error('Unable to determine cloud provider for workspace');
+    }
+  )!;
   const location = Utils.cond(
     [isGoogleWorkspace(workspace), () => googleBucketLocation],
     [isAzureWorkspace(workspace), () => azureContainerRegion],
-    () => null
-  );
+    () => {
+      throw new Error('Unable to determine cloud provider for workspace');
+    }
+  )!;
 
   const getImgForTool = (toolLabel) =>
     Utils.switchCase(
@@ -138,7 +142,7 @@ export const ContextBar = ({
     );
 
   const getColorForStatus = (status) =>
-    Utils.cond(
+    Utils.cond<string>(
       [_.upperCase(status) === 'RUNNING', () => colors.success()],
       [_.upperCase(status) === 'ERROR', () => colors.danger()],
       [_.includes('ING', _.upperCase(status)), () => colors.accent()],

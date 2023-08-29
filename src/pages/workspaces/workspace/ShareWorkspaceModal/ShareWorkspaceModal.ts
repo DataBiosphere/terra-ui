@@ -165,7 +165,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
                 onChange: setSearchValue,
                 suggestions: cond(
                   [searchValueValid && !_.includes(searchValue, aclEmails), () => [searchValue]],
-                  [remainingSuggestions.length, () => remainingSuggestions],
+                  [remainingSuggestions.length > 0, () => remainingSuggestions as unknown as string[]],
                   () => []
                 ),
                 style: { fontSize: 16 },
@@ -200,14 +200,14 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
                     () => 'Allow Terra Support to view this workspace',
                   ],
                   [
-                    !currentTerraSupportAccessLevel && newTerraSupportAccessLevel,
+                    !currentTerraSupportAccessLevel && !!newTerraSupportAccessLevel,
                     () =>
                       `Saving will grant Terra Support ${_.toLower(
                         newTerraSupportAccessLevel!
                       )} access to this workspace`,
                   ],
                   [
-                    currentTerraSupportAccessLevel && !newTerraSupportAccessLevel,
+                    !!currentTerraSupportAccessLevel && !newTerraSupportAccessLevel,
                     () => "Saving will remove Terra Support's access to this workspace",
                   ],
                   [
