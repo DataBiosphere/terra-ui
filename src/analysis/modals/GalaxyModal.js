@@ -6,6 +6,7 @@ import { GalaxyLaunchButton, GalaxyWarning, RadioBlock, SaveFilesHelpGalaxy } fr
 import { getCurrentApp, getEnvMessageBasedOnStatus } from 'src/analysis/utils/app-utils';
 import { getGalaxyComputeCost, getGalaxyDiskCost } from 'src/analysis/utils/cost-utils';
 import { getCurrentAppDataDisk, getCurrentAttachedDataDisk } from 'src/analysis/utils/disk-utils';
+import { machineTypes } from 'src/analysis/utils/gce-machines';
 import { findMachineType } from 'src/analysis/utils/runtime-utils';
 import { appTools } from 'src/analysis/utils/tool-utils';
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common';
@@ -14,7 +15,6 @@ import { NumberInput } from 'src/components/input';
 import { withModalDrawer } from 'src/components/ModalDrawer';
 import TitleBar from 'src/components/TitleBar';
 import TooltipTrigger from 'src/components/TooltipTrigger';
-import { machineTypes } from 'src/data/gce-machines';
 import { Ajax } from 'src/libs/ajax';
 import { GcpPersistentDiskOptions, googlePdTypes } from 'src/libs/ajax/leonardo/models/disk-models';
 import colors from 'src/libs/colors';
