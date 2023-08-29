@@ -417,7 +417,10 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         [runtimeToolLabels.JupyterLab, () => 'notebook'],
         [
           Utils.DEFAULT,
-          () => console.error(`Should not be calling getArtifactLabel for ${toolLabel}, artifacts not implemented`),
+          () => {
+            console.error(`Should not be calling getArtifactLabel for ${toolLabel}, artifacts not implemented`);
+            return undefined;
+          },
         ]
       );
 

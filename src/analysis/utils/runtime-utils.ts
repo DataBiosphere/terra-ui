@@ -128,7 +128,7 @@ export const getConvertedRuntimeStatus = (runtime: Runtime | undefined): LeoRunt
 };
 
 export const getDisplayRuntimeStatus = (status: LeoRuntimeStatus): DisplayRuntimeStatus =>
-  Utils.switchCase(
+  Utils.switchCase<string, DisplayRuntimeStatus>(
     _.lowerCase(status),
     ['leoreconfiguring', () => 'Updating'],
     ['starting', () => 'Resuming'],
@@ -136,7 +136,9 @@ export const getDisplayRuntimeStatus = (status: LeoRuntimeStatus): DisplayRuntim
     ['stopped', () => 'Paused'],
     ['prestarting', () => 'Resuming'],
     ['prestopping', () => 'Pausing'],
-    [Utils.DEFAULT, () => _.capitalize(status)]
+    // TODO: Type safety could be improved here and the cast removed by mapping between the two types
+    // using an object typed Record<LeoAppStatus, DisplayAppStatus> instead of switchCase.
+    [Utils.DEFAULT, () => _.capitalize(status) as DisplayRuntimeStatus]
   );
 
 export const displayNameForGpuType = (type: string): string => {
