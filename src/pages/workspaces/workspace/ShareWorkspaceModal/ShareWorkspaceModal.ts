@@ -81,7 +81,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
   const searchValueValid = !validate({ searchValue }, { searchValue: { email: true } });
   const aclEmails = _.map('email', acl);
 
-  const suggestions = _.flow(
+  const suggestions: string[] = _.flow(
     _.map('groupEmail'),
     _.concat(shareSuggestions),
     (list) => _.difference(list, aclEmails),
@@ -165,7 +165,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
                 onChange: setSearchValue,
                 suggestions: cond(
                   [searchValueValid && !_.includes(searchValue, aclEmails), () => [searchValue]],
-                  [remainingSuggestions.length > 0, () => remainingSuggestions as unknown as string[]],
+                  [remainingSuggestions.length > 0, () => remainingSuggestions],
                   () => []
                 ),
                 style: { fontSize: 16 },
