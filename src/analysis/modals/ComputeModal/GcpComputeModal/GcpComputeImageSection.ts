@@ -1,9 +1,9 @@
 import _ from 'lodash/fp';
 import React, { Fragment, useEffect, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { getImageUrl } from 'src/analysis/modal-utils';
 import { GcpComputeImageSelect } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSelect';
 import { ComputeImage, ComputeImageStore, useComputeImages } from 'src/analysis/useComputeImages';
+import { getImageUrlFromRuntime } from 'src/analysis/utils/runtime-utils';
 import { RuntimeToolLabel, runtimeToolLabels, runtimeTools } from 'src/analysis/utils/tool-utils';
 import { spinnerOverlay } from 'src/components/common';
 import { GetRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
@@ -38,7 +38,7 @@ export const GcpComputeImageSection: React.FC<GcpComputeImageSectionProps> = (pr
       const currentTool = runtimeTools[tool];
       const imagesForTool = allImages.filter((image) => currentTool.imageIds.includes(image.id));
 
-      const currentImageUrl: string = getImageUrl(currentRuntime) ?? '';
+      const currentImageUrl: string = getImageUrlFromRuntime(currentRuntime) ?? '';
       const currentImage: ComputeImage | undefined = allImages.find(({ url }) => url === currentImageUrl);
 
       // Determine initial selection.
