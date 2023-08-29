@@ -20,7 +20,6 @@ import {
   spinnerOverlay,
 } from 'src/components/common';
 import { convertAttributeValue, getAttributeType } from 'src/components/data/attribute-utils';
-import AttributeInput, { AttributeTypeInput } from 'src/components/data/AttributeInput';
 import Dropzone from 'src/components/Dropzone';
 import { icon } from 'src/components/icons';
 import { AutocompleteTextInput, ConfirmedSearchInput, PasteOnlyInput, TextInput, ValidatedInput } from 'src/components/input';
@@ -32,6 +31,7 @@ import { Sortable, TextCell } from 'src/components/table';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { isAzureUri, isDrsUri, isGsUri } from 'src/components/UriViewer/uri-viewer-utils';
 import { UriViewerLink } from 'src/components/UriViewer/UriViewerLink';
+import AttributeInput, { AttributeTypeInput } from 'src/data/data-table/entity-service/AttributeInput';
 import ReferenceData from 'src/data/reference-data';
 import { Ajax } from 'src/libs/ajax';
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';

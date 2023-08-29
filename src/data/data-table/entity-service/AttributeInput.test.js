@@ -1,6 +1,7 @@
 import { fireEvent, render } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import AttributeInput, { AttributeTypeInput } from 'src/components/data/AttributeInput';
+
+import AttributeInput, { AttributeTypeInput } from './AttributeInput';
 
 describe('AttributeTypeInput', () => {
   it('renders radio buttons for available types', () => {
