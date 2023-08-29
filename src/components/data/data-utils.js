@@ -24,8 +24,6 @@ import { SimpleTabBar } from 'src/components/tabBars';
 import { Sortable } from 'src/components/table';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { isAzureUri, isGsUri } from 'src/components/UriViewer/uri-viewer-utils';
-import { prepareAttributeForUpload } from 'src/data/data-table/entity-service/attribute-utils';
-import AttributeInput from 'src/data/data-table/entity-service/AttributeInput';
 import ReferenceData from 'src/data/reference-data';
 import { Ajax } from 'src/libs/ajax';
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';
@@ -614,126 +612,6 @@ export const CreateEntitySetModal = ({ entityType, entityNames, workspaceId: { n
             ]),
         ]),
       ]),
-      isBusy && spinnerOverlay,
-    ]
-  );
-};
-
-export const AddColumnModal = ({ entityType, entityMetadata, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
-  const [columnName, setColumnName] = useState('');
-  const [columnNameTouched, setColumnNameTouched] = useState(false);
-  const columnNameError =
-    columnNameTouched &&
-    Utils.cond(
-      [!columnName, () => 'A column name is required.'],
-      [_.includes(columnName, entityMetadata[entityType].attributeNames), () => 'This column already exists.']
-    );
-
-  const [value, setValue] = useState('');
-
-  const [isBusy, setIsBusy] = useState();
-
-  const addColumn = async () => {
-    try {
-      setIsBusy(true);
-
-      const queryResults = await Ajax().Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, {
-        pageSize: entityMetadata[entityType].count,
-        fields: '',
-      });
-      const allEntityNames = _.map(_.get('name'), queryResults.results);
-
-      const entityUpdates = _.map(
-        (entityName) => ({
-          entityType,
-          name: entityName,
-          operations: [
-            {
-              op: 'AddUpdateAttribute',
-              attributeName: columnName,
-              addUpdateAttribute: prepareAttributeForUpload(value),
-            },
-          ],
-        }),
-        allEntityNames
-      );
-
-      await Ajax().Workspaces.workspace(namespace, name).upsertEntities(entityUpdates);
-      onSuccess();
-    } catch (e) {
-      onDismiss();
-      reportError('Unable to add column.', e);
-    }
-  };
-
-  return h(
-    Modal,
-    {
-      title: 'Add a new column',
-      onDismiss,
-      okButton: h(
-        ButtonPrimary,
-        {
-          disabled: !columnName || columnNameError,
-          tooltip: columnNameError,
-          onClick: addColumn,
-        },
-        ['Save']
-      ),
-    },
-    [
-      div({ style: { display: 'flex', flexDirection: 'column', marginBottom: '1rem' } }, [
-        h(IdContainer, [
-          (id) =>
-            h(Fragment, [
-              label({ htmlFor: id, style: { fontWeight: 'bold', marginBottom: '0.5rem' } }, 'Column name'),
-              div({ style: { position: 'relative', display: 'flex', alignItems: 'center' } }, [
-                h(TextInput, {
-                  id,
-                  value: columnName,
-                  placeholder: 'Enter a name (required)',
-                  style: columnNameError
-                    ? {
-                        paddingRight: '2.25rem',
-                        border: `1px solid ${colors.danger()}`,
-                      }
-                    : undefined,
-                  onChange: (value) => {
-                    setColumnName(value);
-                    setColumnNameTouched(true);
-                  },
-                }),
-                columnNameError &&
-                  icon('error-standard', {
-                    size: 24,
-                    style: {
-                      position: 'absolute',
-                      right: '0.5rem',
-                      color: colors.danger(),
-                    },
-                  }),
-              ]),
-              columnNameError &&
-                div(
-                  {
-                    'aria-live': 'assertive',
-                    'aria-relevant': 'all',
-                    style: {
-                      marginTop: '0.5rem',
-                      color: colors.danger(),
-                    },
-                  },
-                  columnNameError
-                ),
-            ]),
-        ]),
-      ]),
-      p([span({ style: { fontWeight: 'bold' } }, ['Default value']), ' (optional, will be entered for all rows)']),
-      h(AttributeInput, {
-        value,
-        onChange: setValue,
-        entityTypes: _.keys(entityMetadata),
-      }),
       isBusy && spinnerOverlay,
     ]
   );
