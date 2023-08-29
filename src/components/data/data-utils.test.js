@@ -5,7 +5,6 @@ import {
   getDownloadCommand,
   getRootTypeForSetTable,
   getSuggestedTableName,
-  prepareAttributeForUpload,
   renderDataCell,
 } from 'src/components/data/data-utils';
 import * as Utils from 'src/libs/utils';
@@ -264,72 +263,6 @@ describe('renderDataCell', () => {
       expect(container).toHaveTextContent('file1.cram');
       const link = getByRole('link');
       expect(link).toHaveAttribute('href', 'https://sa226344b664da26ad6863.blob.core.windows.net/file1.cram');
-    });
-  });
-});
-
-describe('prepareAttributeForUpload', () => {
-  it('trims string values', () => {
-    expect(prepareAttributeForUpload('foo ')).toEqual('foo');
-    expect(
-      prepareAttributeForUpload({
-        items: [' foo', ' bar '],
-        itemsType: 'AttributeValue',
-      })
-    ).toEqual({
-      items: ['foo', 'bar'],
-      itemsType: 'AttributeValue',
-    });
-  });
-
-  it('trims entity names in references', () => {
-    expect(
-      prepareAttributeForUpload({
-        entityType: 'thing',
-        entityName: 'thing_one ',
-      })
-    ).toEqual({
-      entityType: 'thing',
-      entityName: 'thing_one',
-    });
-    expect(
-      prepareAttributeForUpload({
-        items: [
-          { entityType: 'thing', entityName: 'thing_one ' },
-          { entityType: 'thing', entityName: ' thing_two' },
-        ],
-        itemsType: 'EntityReference',
-      })
-    ).toEqual({
-      items: [
-        { entityType: 'thing', entityName: 'thing_one' },
-        { entityType: 'thing', entityName: 'thing_two' },
-      ],
-      itemsType: 'EntityReference',
-    });
-  });
-
-  it('leaves other types unchanged', () => {
-    expect(prepareAttributeForUpload(false)).toEqual(false);
-    expect(
-      prepareAttributeForUpload({
-        items: [true, false],
-        itemsType: 'AttributeValue',
-      })
-    ).toEqual({
-      items: [true, false],
-      itemsType: 'AttributeValue',
-    });
-
-    expect(prepareAttributeForUpload(42)).toEqual(42);
-    expect(
-      prepareAttributeForUpload({
-        items: [1, 2, 3],
-        itemsType: 'AttributeValue',
-      })
-    ).toEqual({
-      items: [1, 2, 3],
-      itemsType: 'AttributeValue',
     });
   });
 });

@@ -17,7 +17,6 @@ import {
   entityAttributeText,
   EntityDeleter,
   ModalToolButton,
-  MultipleEntityEditor,
 } from 'src/components/data/data-utils';
 import DataTable from 'src/components/data/DataTable';
 import ExportDataModal from 'src/components/data/ExportDataModal';
@@ -30,6 +29,7 @@ import { withModalDrawer } from 'src/components/ModalDrawer';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
 import TitleBar from 'src/components/TitleBar';
 import WorkflowSelector from 'src/components/WorkflowSelector';
+import { MultipleEntityEditor } from 'src/data/data-table/entity-service/MultipleEntityEditor';
 import datasets from 'src/data/datasets';
 import dataExplorerLogo from 'src/images/data-explorer-logo.svg';
 import igvLogo from 'src/images/igv-logo.png';

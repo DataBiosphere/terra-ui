@@ -1,4 +1,4 @@
-import { concatenateAttributeNames, convertAttributeValue, getAttributeType } from './attribute-utils';
+import { concatenateAttributeNames, convertAttributeValue, getAttributeType, prepareAttributeForUpload } from './attribute-utils';
 
 describe('getAttributeType', () => {
   it('returns type of attribute value', () => {
@@ -191,5 +191,71 @@ describe('concatenateAttributeNames', () => {
     const attrList2 = ['namespace:bbb', 'aaa'];
     const expected = ['aaa', 'ddd', 'namespace:aaa', 'namespace:bbb', 'namespace:ccc'];
     expect(concatenateAttributeNames(attrList1, attrList2)).toEqual(expected);
+  });
+});
+
+describe('prepareAttributeForUpload', () => {
+  it('trims string values', () => {
+    expect(prepareAttributeForUpload('foo ')).toEqual('foo');
+    expect(
+      prepareAttributeForUpload({
+        items: [' foo', ' bar '],
+        itemsType: 'AttributeValue',
+      })
+    ).toEqual({
+      items: ['foo', 'bar'],
+      itemsType: 'AttributeValue',
+    });
+  });
+
+  it('trims entity names in references', () => {
+    expect(
+      prepareAttributeForUpload({
+        entityType: 'thing',
+        entityName: 'thing_one ',
+      })
+    ).toEqual({
+      entityType: 'thing',
+      entityName: 'thing_one',
+    });
+    expect(
+      prepareAttributeForUpload({
+        items: [
+          { entityType: 'thing', entityName: 'thing_one ' },
+          { entityType: 'thing', entityName: ' thing_two' },
+        ],
+        itemsType: 'EntityReference',
+      })
+    ).toEqual({
+      items: [
+        { entityType: 'thing', entityName: 'thing_one' },
+        { entityType: 'thing', entityName: 'thing_two' },
+      ],
+      itemsType: 'EntityReference',
+    });
+  });
+
+  it('leaves other types unchanged', () => {
+    expect(prepareAttributeForUpload(false)).toEqual(false);
+    expect(
+      prepareAttributeForUpload({
+        items: [true, false],
+        itemsType: 'AttributeValue',
+      })
+    ).toEqual({
+      items: [true, false],
+      itemsType: 'AttributeValue',
+    });
+
+    expect(prepareAttributeForUpload(42)).toEqual(42);
+    expect(
+      prepareAttributeForUpload({
+        items: [1, 2, 3],
+        itemsType: 'AttributeValue',
+      })
+    ).toEqual({
+      items: [1, 2, 3],
+      itemsType: 'AttributeValue',
+    });
   });
 });

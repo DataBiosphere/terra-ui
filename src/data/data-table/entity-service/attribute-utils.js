@@ -86,3 +86,16 @@ export const convertAttributeValue = (attributeValue, newType, referenceEntityTy
 export const concatenateAttributeNames = (attrList1, attrList2) => {
   return _.uniq(_.concat(attrList1, attrList2)).sort();
 };
+
+export const prepareAttributeForUpload = (attributeValue) => {
+  const { type, isList } = getAttributeType(attributeValue);
+
+  const transform = Utils.switchCase(
+    type,
+    ['string', () => _.trim],
+    ['reference', () => _.update('entityName', _.trim)],
+    [Utils.DEFAULT, () => _.identity]
+  );
+
+  return isList ? _.update('items', _.map(transform), attributeValue) : transform(attributeValue);
+};
