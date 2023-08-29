@@ -114,8 +114,11 @@ export const DeleteEnvironment = ({
         ],
         [
           !runtimeConfig && persistentDiskId,
-          () =>
-            h(Fragment, [
+          () => {
+            if (!deleteDiskSelected) {
+              setDeleteDiskSelected(true);
+            }
+            return h(Fragment, [
               h(
                 RadioBlock,
                 {
@@ -136,7 +139,8 @@ export const DeleteEnvironment = ({
               ),
               // At this point there is no runtime (we're in the !existingRuntime block) to check the tool
               h(SaveFilesHelpRStudio),
-            ]),
+            ]);
+          },
         ],
         [
           Utils.DEFAULT,
