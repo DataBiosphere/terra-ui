@@ -319,7 +319,7 @@ const CallTable = ({
             {
               size: { basis: 200, grow: 1 },
               field: 'logs',
-              headerRenderer: () => h(HeaderCell, {}, ['']), // intentionally empty: a title for this column doesn't make sense.
+              headerRenderer: () => h(HeaderCell, {}, ['Task Data']),
               cellRenderer: ({ rowIndex }) => {
                 const {
                   taskName,

@@ -5,29 +5,29 @@ import { SimpleTabBar } from 'src/components/tabBars';
 import { isAzureUri } from 'src/components/UriViewer/uri-viewer-utils';
 import { Ajax } from 'src/libs/ajax';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
+import { newTabLinkProps } from 'src/libs/utils';
 
 import { ButtonOutline } from '../common';
 import { centeredSpinner, icon } from '../icons';
 import Modal from '../Modal';
 import { InfoBox } from '../PopupTrigger';
-
 /**
  * Information needed to preview a log file.
- * @member logUri - The URI of the log file. Must be a valid Azure blob URI.
+ * @member logUri - The URI of the log file. Must be a valid Azure blob URI. No SaS token should be appended: a fresh one will be obtained.
  * @member logTitle - The title of the log. Displayed to the user as a tab title.
  * @member logKey - A unique key for this particular log.
  */
-type LogInfo = {
+export type LogInfo = {
   logUri: string;
-  logTitle: string; // Displayed to the user as the tab title
-  logKey: string; // Unique key for this particular log.
+  logTitle: string;
+  logKey: string;
 };
 
 /**
  * Props for the LogViewer component.
  * @member logs - An array of LogInfo objects.
  */
-type LogViewerProps = {
+export type LogViewerProps = {
   logs: LogInfo[];
   onDismiss: () => void;
 };
@@ -41,6 +41,14 @@ type SimpleTabProps = {
   width: number;
 };
 
+type FetchedLogData = {
+  textContent: string | undefined;
+  downloadUri: string | undefined; // The URI to use for downloading the log file. May or may not have SaS token appended, depending on if the file is public or private.
+};
+
+const modalMaxWidth = 1100;
+const tabMaxWidth = modalMaxWidth / 4 - 20;
+
 export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ logs, onDismiss }: LogViewerProps) => {
   const [currentlyActiveLog, setCurrentlyActiveLog] = _.isEmpty(logs)
     ? useState<LogInfo | undefined>(undefined)
@@ -48,9 +56,10 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ logs, onDismiss
 
   // string = fetched log content, undefined = loading, null = error.
   const [activeTextContent, setActiveTextContent] = useState<string | undefined | null>(undefined);
+  const [activeDownloadUri, setActiveDownloadUri] = useState<string | undefined>(undefined);
   const signal = useCancellation();
   const fetchLogContent = useCallback(
-    async (azureBlobUri: string): Promise<string | null> => {
+    async (azureBlobUri: string): Promise<FetchedLogData | null> => {
       if (!isAzureUri(azureBlobUri)) {
         console.error('Only Azure Blob URIs are supported for previewing log conent.');
         console.error(azureBlobUri);
@@ -58,7 +67,8 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ logs, onDismiss
       }
       try {
         const response = await Ajax(signal).AzureStorage.blobMetadata(azureBlobUri).getData();
-        return response.textContent;
+        const uri = _.isEmpty(response.azureSasStorageUrl) ? response.azureStorageUrl : response.azureSasStorageUrl;
+        return { textContent: response.textContent, downloadUri: uri };
       } catch (e) {
         console.error('Error fetching or parsing log content', e);
         return null;
@@ -69,7 +79,8 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ logs, onDismiss
 
   useOnMount(() => {
     fetchLogContent(logs[0].logUri).then((content) => {
-      setActiveTextContent(content);
+      setActiveTextContent(content?.textContent);
+      setActiveDownloadUri(content?.downloadUri);
     });
   });
 
@@ -78,8 +89,10 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ logs, onDismiss
       const res = await fetchLogContent(logUri);
       if (_.isEmpty(res)) {
         setActiveTextContent(null);
+        setActiveDownloadUri(undefined);
       } else {
-        setActiveTextContent(res);
+        setActiveTextContent(res?.textContent);
+        setActiveDownloadUri(res?.downloadUri);
       }
     };
     setActiveTextContent(undefined);
@@ -94,13 +107,15 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ logs, onDismiss
       return div([centeredSpinner()]);
     }
     if (activeTextContent === null) {
-      return div(['Error loading log content.']);
+      return div([
+        'Log file could not be loaded. Log files are only available after a task finishes, and some logs may not be available if the task failed before they were generated.',
+      ]);
     }
     return div([activeTextContent]);
   };
 
   const tabsArray: SimpleTabProps[] = logs.map((log) => {
-    return { key: log.logKey, title: log.logTitle, width: 200 } as SimpleTabProps;
+    return { key: log.logKey, title: log.logTitle, width: tabMaxWidth } as SimpleTabProps;
   });
 
   return h(
@@ -131,7 +146,7 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ logs, onDismiss
       showCancel: false,
       showX: true,
       showButtons: false,
-      width: 1050,
+      width: modalMaxWidth,
     },
     [
       h(
@@ -156,14 +171,17 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ logs, onDismiss
           },
         },
         [
-          span({ style: { paddingRight: '0.5rem', fontWeight: 'bold', fontSize: 16 } }, ['Filename:']),
-          span({ style: { fontSize: 16 } }, ['stdout.txt']),
+          span({}, [
+            span({ style: { paddingRight: '0.5rem', fontWeight: 'bold', fontSize: 16 } }, ['File:']),
+            span({ style: { fontSize: 16 } }, [currentlyActiveLog?.logKey]),
+          ]),
           h(
             ButtonOutline,
             {
-              disabled: false,
-              tooltip: 'Download this log file to your computer.',
-              style: { marginLeft: 'auto' },
+              disabled: _.isEmpty(currentlyActiveLog?.logUri),
+              href: activeDownloadUri,
+              download: activeDownloadUri,
+              ...newTabLinkProps,
             },
             [span([icon('download', { style: { marginRight: '1ch' } }), 'Download'])]
           ),
@@ -175,6 +193,7 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ logs, onDismiss
           style: {
             fontFamily: 'Menlo, monospace',
             overflowY: 'auto',
+            whiteSpace: 'pre-line',
             maxHeight: window.innerHeight * 0.6,
             marginTop: '0.5rem',
             padding: '0.5rem',
