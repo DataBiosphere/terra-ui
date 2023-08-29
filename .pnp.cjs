@@ -151,6 +151,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react-textarea-autosize", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:8.5.2"],\
             ["react-transition-group", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:4.4.5"],\
             ["react-virtualized", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#patch:react-virtualized@npm%3A9.22.5#./.yarn/patches/react-virtualized-9.22.5.patch::version=9.22.5&hash=5f11d8&locator=terra-ui%40workspace%3A."],\
+            ["setimmediate", "npm:1.0.5"],\
             ["source-map-explorer", "npm:2.5.2"],\
             ["svgo", "npm:1.3.2"],\
             ["typescript", "patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=289587"],\
@@ -17900,6 +17901,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react-textarea-autosize", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:8.5.2"],\
             ["react-transition-group", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:4.4.5"],\
             ["react-virtualized", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#patch:react-virtualized@npm%3A9.22.5#./.yarn/patches/react-virtualized-9.22.5.patch::version=9.22.5&hash=5f11d8&locator=terra-ui%40workspace%3A."],\
+            ["setimmediate", "npm:1.0.5"],\
             ["source-map-explorer", "npm:2.5.2"],\
             ["svgo", "npm:1.3.2"],\
             ["typescript", "patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=289587"],\
