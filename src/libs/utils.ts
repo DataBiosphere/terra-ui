@@ -74,8 +74,8 @@ const completeDateFormatParts = [
   new Intl.DateTimeFormat('default', { hour: 'numeric', minute: 'numeric' }),
 ];
 
-export const makePrettyDate = (dateString) => {
-  const date = new Date(dateString);
+export const makePrettyDate = (dateString: number | string | Date): string => {
+  const date: Date = new Date(dateString);
 
   return cond(
     [isToday(date), () => 'Today'],
@@ -85,9 +85,13 @@ export const makePrettyDate = (dateString) => {
   );
 };
 
-export const makeStandardDate = (dateString) => dateFormat.format(new Date(dateString));
+export const makeStandardDate = (dateString: number | string | Date): string => dateFormat.format(new Date(dateString));
 
-export const makeCompleteDate = (dateString) => completeDateFormat.format(new Date(dateString));
+export const makeCompleteDate = (dateString: number | string | Date): string =>
+  completeDateFormat.format(new Date(dateString));
+
+export const formatTimestampInSeconds = (secondsSinceEpoch: number): string =>
+  completeDateFormat.format(new Date(secondsSinceEpoch * 1000));
 
 export const makeCompleteDateParts = (dateString) => {
   return _.map((part) => part.format(new Date(dateString)), completeDateFormatParts);

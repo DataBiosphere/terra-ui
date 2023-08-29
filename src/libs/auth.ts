@@ -1,6 +1,7 @@
 import { parseJSON } from 'date-fns/fp';
+import jwtDecode, { JwtPayload } from 'jwt-decode';
 import _ from 'lodash/fp';
-import { UserManager, WebStorageStateStore } from 'oidc-client-ts';
+import { User, UserManager, WebStorageStateStore } from 'oidc-client-ts';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
 import { Ajax } from 'src/libs/ajax';
 import { fetchOk } from 'src/libs/ajax/ajax-common';
@@ -24,15 +25,12 @@ import {
   workspaceStore,
 } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import { v4 as uuid } from 'uuid';
 
 export const getOidcConfig = () => {
   const metadata = {
     authorization_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
     token_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/token`,
-    ...(isGoogleAuthority() && {
-      userinfo_endpoint: 'https://openidconnect.googleapis.com/v1/userinfo',
-      revocation_endpoint: 'https://oauth2.googleapis.com/revoke',
-    }),
   };
   return {
     authority: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
@@ -42,19 +40,15 @@ export const getOidcConfig = () => {
     metadata,
     prompt: 'consent login',
     scope: 'openid email profile',
-    loadUserInfo: isGoogleAuthority(),
     stateStore: new WebStorageStateStore({ store: getLocalStorage() }),
     userStore: new WebStorageStateStore({ store: getLocalStorage() }),
     automaticSilentRenew: true,
-    // Leo's setCookie interval is currently 5 min, set refresh auth then 5 min 30 seconds to gurantee that setCookie's token won't expire between 2 setCookie api calls
+    // Leo's setCookie interval is currently 5 min, set refresh auth then 5 min 30 seconds to guarantee that setCookie's token won't expire between 2 setCookie api calls
     accessTokenExpiringNotificationTimeInSeconds: 330,
     includeIdTokenInSilentRenew: true,
     extraQueryParams: { access_type: 'offline' },
+    redirect_uri: '', // this field is not being used currently, but is expected from UserManager
   };
-};
-
-const isGoogleAuthority = () => {
-  return _.startsWith('https://accounts.google.com', authStore.get().oidcConfig.authorityEndpoint);
 };
 
 const getAuthInstance = () => {
@@ -63,6 +57,14 @@ const getAuthInstance = () => {
 
 export const signOut = () => {
   // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
+  const sessionEndTime: number = Date.now();
+  const tokenMetadata = authStore.get().authTokenMetadata;
+  Ajax().Metrics.captureEvent(Events.userLogout, {
+    sessionEndTime: Utils.makeCompleteDate(sessionEndTime),
+    sessionDurationInSeconds: (sessionEndTime - authStore.get().sessionStartTime) / 1000.0,
+    authTokenCreatedAt: Utils.formatTimestampInSeconds(tokenMetadata.createdAt),
+    authTokenExpiresAt: Utils.formatTimestampInSeconds(tokenMetadata.expiresAt),
+  });
   cookieReadyStore.reset();
   azureCookieReadyStore.reset();
   getSessionStorage().clear();
@@ -74,6 +76,7 @@ export const signOut = () => {
 };
 
 export const signOutAfterSessionTimeout = () => {
+  Ajax().Metrics.captureEvent(Events.userSessionTimeout, {});
   signOut();
   notify('info', 'Session timed out', sessionTimeoutProps);
 };
@@ -81,12 +84,12 @@ export const signOutAfterSessionTimeout = () => {
 const revokeTokens = async () => {
   const auth = getAuthInstance();
   if (auth.settings.metadata.revocation_endpoint) {
-    // revokeTokens can fail if the the token has already been revoked.
+    // revokeTokens can fail if the token has already been revoked.
     // Recover from invalid_token errors to make sure signOut completes successfully.
     try {
       await auth.revokeTokens();
     } catch (e) {
-      if (e.error === 'invalid_token') {
+      if ((e as any).error === 'invalid_token') {
         return null;
       }
       throw e;
@@ -97,9 +100,7 @@ const revokeTokens = async () => {
 const getSigninArgs = (includeBillingScope) => {
   return Utils.cond(
     [includeBillingScope === false, () => ({})],
-    // For Google just append the scope to the signin args.
-    [isGoogleAuthority(), () => ({ scope: 'openid email profile https://www.googleapis.com/auth/cloud-billing' })],
-    // For B2C switch to a dedicated policy endpoint configured for the GCP cloud-billing scope.
+    // For B2C use a dedicated policy endpoint configured for the GCP cloud-billing scope.
     () => ({
       extraQueryParams: { access_type: 'offline', p: getConfig().b2cBillingPolicy },
       extraTokenParams: { p: getConfig().b2cBillingPolicy },
@@ -107,39 +108,60 @@ const getSigninArgs = (includeBillingScope) => {
   );
 };
 
-export const signIn = async (includeBillingScope = false) => {
+export const signIn = async (includeBillingScope = false): Promise<User> => {
   const args = getSigninArgs(includeBillingScope);
-  const user = await getAuthInstance().signinPopup(args);
+  const user: User = await getAuthInstance().signinPopup(args);
 
-  // For B2C record in the auth store whether we requested the GCP cloud-billing scope since there
-  // is no way to determine it after the fact.
-  // For Google we don't need to do this since we can inspect the scope directly in the user object.
-  if (!isGoogleAuthority()) {
-    authStore.update((state) => ({ ...state, hasGcpBillingScopeThroughB2C: includeBillingScope }));
-  }
-  Ajax().Metrics.captureEvent(Events.userLogin, { authProvider: user.profile.idp });
+  const sessionId = uuid();
+  const sessionStartTime: number = Date.now();
+  const userJWT: string = user.id_token!;
+  const decodedJWT: JwtPayload = jwtDecode<JwtPayload>(userJWT);
+  const authTokenCreatedAt: number = (decodedJWT as any).auth_time; // time in seconds when authorization token was created
+  const authTokenExpiresAt: number = user.expires_at!; // time in seconds when authorization token expires, as given by the oidc client
+  const jwtExpiresAt: number = (decodedJWT as any).exp; // time in seconds when the JWT expires, after which the JWT should not be read from
+
+  authStore.update((state) => ({
+    ...state,
+    hasGcpBillingScopeThroughB2C: includeBillingScope,
+    sessionId,
+    sessionStartTime,
+    authTokenMetadata: {
+      createdAt: authTokenCreatedAt,
+      expiresAt: authTokenExpiresAt,
+    },
+  }));
+  Ajax().Metrics.captureEvent(Events.userLogin, {
+    authProvider: user.profile.idp,
+    sessionStartTime: Utils.makeCompleteDate(sessionStartTime),
+    authTokenCreatedAt: Utils.formatTimestampInSeconds(authTokenCreatedAt),
+    authTokenExpiresAt: Utils.formatTimestampInSeconds(authTokenExpiresAt),
+    jwtExpiresAt: Utils.formatTimestampInSeconds(jwtExpiresAt),
+  });
   return user;
 };
 
 export const reloadAuthToken = (includeBillingScope = false) => {
   const args = getSigninArgs(includeBillingScope);
+  const tokenMetadata = authStore.get().authTokenMetadata;
+  let authReloadSuccessful = true;
   return getAuthInstance()
     .signinSilent(args)
     .catch((e) => {
       console.error('An unexpected exception occurred while attempting to refresh auth credentials.');
       console.error(e);
+      authReloadSuccessful = false;
       return false;
+    })
+    .finally(() => {
+      Ajax().Metrics.captureEvent(Events.userAuthTokenReload, {
+        authReloadSuccessful,
+        oldAuthTokenCreatedAt: Utils.formatTimestampInSeconds(tokenMetadata.createdAt),
+        oldAuthTokenExpiresAt: Utils.formatTimestampInSeconds(tokenMetadata.expiresAt),
+      });
     });
 };
 
-export const hasBillingScope = () => {
-  return Utils.cond(
-    // For Google check the scope directly on the user object.
-    [isGoogleAuthority(), () => _.includes('https://www.googleapis.com/auth/cloud-billing', getUser().scope)],
-    // For B2C check the hasGcpBillingScopeThroughB2C field in the auth store.
-    () => authStore.get().hasGcpBillingScopeThroughB2C === true
-  );
-};
+export const hasBillingScope = () => authStore.get().hasGcpBillingScopeThroughB2C === true;
 
 /*
  * Tries to obtain Google Cloud Billing scope silently.
@@ -168,7 +190,10 @@ export const ensureBillingScope = async () => {
 };
 
 const becameRegistered = (oldState, state) => {
-  return oldState.registrationStatus !== userStatus.registeredWithTos && state.registrationStatus === userStatus.registeredWithTos;
+  return (
+    oldState.registrationStatus !== userStatus.registeredWithTos &&
+    state.registrationStatus === userStatus.registeredWithTos
+  );
 };
 
 export const isAuthSettled = ({ isSignedIn, registrationStatus }) => {
@@ -182,7 +207,7 @@ export const ensureAuthSettled = () => {
   return new Promise((resolve) => {
     const subscription = authStore.subscribe((state) => {
       if (isAuthSettled(state)) {
-        resolve();
+        resolve(undefined);
         subscription.unsubscribe();
       }
     });
@@ -228,7 +253,9 @@ export const processUser = (user, isSignInEvent) => {
       fenceStatus: isSignedIn ? state.fenceStatus : {},
       // Load whether a user has input a cookie acceptance in a previous session on this system,
       // or whether they input cookie acceptance previously in this session
-      cookiesAccepted: isSignedIn ? state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey) : undefined,
+      cookiesAccepted: isSignedIn
+        ? state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey)
+        : undefined,
       isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
       hasGcpBillingScopeThroughB2C: isSignedIn ? state.hasGcpBillingScopeThroughB2C : undefined,
       // A user is an Azure preview user if state.isAzurePreviewUser is set to true (in Sam group or environment where we don't restrict)
@@ -261,10 +288,10 @@ const initializeTermsOfService = (isSignedIn, state) => {
 };
 
 export const initializeAuth = _.memoize(async () => {
-  // Instiante a UserManager directly to populate the logged-in user at app initialization time.
+  // Instantiate a UserManager directly to populate the logged-in user at app initialization time.
   // All other auth usage should use the AuthContext from authStore.
   const userManager = new UserManager(getOidcConfig());
-  processUser(await userManager.getUser());
+  processUser(await userManager.getUser(), false);
 });
 
 export const initializeClientId = _.memoize(async () => {
@@ -275,7 +302,9 @@ export const initializeClientId = _.memoize(async () => {
 // This is intended for tests to short circuit the login flow
 window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) => {
   await initializeAuth(); // don't want this clobbered when real auth initializes
-  const res = await fetchOk('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${token}` } });
+  const res = await fetchOk('https://www.googleapis.com/oauth2/v3/userinfo', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   const data = await res.json();
   authStore.update((state) => {
     return {
@@ -305,11 +334,13 @@ authStore.subscribe(
         const { enabled } = await Ajax().User.getStatus();
         if (enabled) {
           // When Terra is first loaded, termsOfService.permitsSystemUsage will be undefined while the user's ToS status is fetched from Sam
-          return state.termsOfService.permitsSystemUsage ? userStatus.registeredWithTos : userStatus.registeredWithoutTos;
+          return state.termsOfService.permitsSystemUsage
+            ? userStatus.registeredWithTos
+            : userStatus.registeredWithoutTos;
         }
         return userStatus.disabled;
       } catch (error) {
-        if (error.status === 404) {
+        if ((error as Response).status === 404) {
           return userStatus.unregistered;
         }
         throw error;
@@ -341,6 +372,14 @@ authStore.subscribe(
     }
   })
 );
+
+// extending Window interface to access Appcues
+declare global {
+  interface Window {
+    Appcues: any;
+    forceSignIn: any;
+  }
+}
 
 authStore.subscribe(
   withErrorIgnoring(async (state, oldState) => {
