@@ -25,8 +25,9 @@ import { SimpleTabBar } from 'src/components/tabBars';
 import { Sortable } from 'src/components/table';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { isAzureUri, isGsUri } from 'src/components/UriViewer/uri-viewer-utils';
-import { getAttributeType, prepareAttributeForUpload } from 'src/data/data-table/entity-service/attribute-utils';
+import { prepareAttributeForUpload } from 'src/data/data-table/entity-service/attribute-utils';
 import AttributeInput from 'src/data/data-table/entity-service/AttributeInput';
+import { entityAttributeText } from 'src/data/data-table/entity-service/entityAttributeText';
 import ReferenceData from 'src/data/reference-data';
 import { Ajax } from 'src/libs/ajax';
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';
@@ -78,20 +79,6 @@ export const getUserProjectForWorkspace = async (workspace) =>
   workspace && (await canUseWorkspaceProject(workspace)) ? workspace.workspace.googleProject : requesterPaysProjectStore.get();
 
 export const getRootTypeForSetTable = (tableName) => _.replace(/(_set)+$/, '', tableName);
-
-export const entityAttributeText = (attributeValue, machineReadable) => {
-  const { type, isList } = getAttributeType(attributeValue);
-
-  return Utils.cond(
-    [_.isNil(attributeValue), () => ''],
-    [type === 'json', () => JSON.stringify(attributeValue)],
-    [isList && machineReadable, () => JSON.stringify(attributeValue.items)],
-    [type === 'reference' && isList, () => _.join(', ', _.map('entityName', attributeValue.items))],
-    [type === 'reference', () => attributeValue.entityName],
-    [isList, () => _.join(', ', attributeValue.items)],
-    () => attributeValue?.toString()
-  );
-};
 
 export const EditDataLink = (props) =>
   h(

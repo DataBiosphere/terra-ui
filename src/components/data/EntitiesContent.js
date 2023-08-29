@@ -10,14 +10,7 @@ import { tools } from 'src/analysis/utils/tool-utils';
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils';
 import { ButtonSecondary } from 'src/components/common';
 import { DataTableColumnProvenance } from 'src/components/data/data-table-provenance';
-import {
-  AddColumnModal,
-  AddEntityModal,
-  CreateEntitySetModal,
-  entityAttributeText,
-  EntityDeleter,
-  ModalToolButton,
-} from 'src/components/data/data-utils';
+import { AddColumnModal, AddEntityModal, CreateEntitySetModal, EntityDeleter, ModalToolButton } from 'src/components/data/data-utils';
 import DataTable from 'src/components/data/DataTable';
 import ExportDataModal from 'src/components/data/ExportDataModal';
 import { icon, spinner } from 'src/components/icons';
@@ -29,6 +22,7 @@ import { withModalDrawer } from 'src/components/ModalDrawer';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
 import TitleBar from 'src/components/TitleBar';
 import WorkflowSelector from 'src/components/WorkflowSelector';
+import { entityAttributeText } from 'src/data/data-table/entity-service/entityAttributeText';
 import { MultipleEntityEditor } from 'src/data/data-table/entity-service/MultipleEntityEditor';
 import datasets from 'src/data/datasets';
 import dataExplorerLogo from 'src/images/data-explorer-logo.svg';
