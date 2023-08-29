@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment, useEffect, useState } from 'react';
+import { Dispatch, Fragment, SetStateAction, useEffect, useState } from 'react';
 import { div, h, h2, p, span, strong } from 'react-hyperscript-helpers';
 import { SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpGalaxy } from 'src/analysis/runtime-common-components';
 import { AppErrorModal, RuntimeErrorModal } from 'src/analysis/RuntimeManager';
@@ -577,15 +577,14 @@ export const Environments: React.FC<EnvironmentsProps> = ({ nav = undefined }) =
     return getDetailsPopup(runtimeName, cloudContext?.cloudResource, disk, creator, workspace?.workspaceId);
   };
 
-  const renderDeleteButton = (resourceType, resource) => {
+  const renderDeleteButton = (resourceType: 'app' | 'runtime', resource) => {
     const isDeletable = isResourceDeletable(resourceType, resource);
     const resourceId = resourceType === 'app' ? resource.appName : resource.id;
-    const action = Utils.switchCase(
-      resourceType,
-      ['runtime', () => setDeleteRuntimeId],
-      ['app', () => setDeleteAppId],
-      ['disk', () => setDeleteDiskId]
-    );
+    const actions: Record<typeof resourceType, Dispatch<SetStateAction<any>>> = {
+      app: setDeleteAppId,
+      runtime: setDeleteRuntimeId,
+    };
+    const action: Dispatch<SetStateAction<any>> = actions[resourceType];
 
     return h(
       Link,
