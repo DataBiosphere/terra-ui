@@ -12,6 +12,7 @@ export interface ComputeImage {
   url: string;
   isCommunity: boolean;
   isRStudio: boolean;
+  isTerraSupported: boolean;
   toolLabel?: RuntimeToolLabel;
   label: string;
   packages: string;

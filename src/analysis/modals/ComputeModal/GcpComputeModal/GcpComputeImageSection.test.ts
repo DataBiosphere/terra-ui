@@ -14,7 +14,7 @@ import {
   GcpComputeImageSectionProps,
 } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSection';
 import { ComputeImage, useComputeImages } from 'src/analysis/useComputeImages';
-import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
+import { runtimeToolLabels, terraSupportedRuntimeImageIds } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
 import { ComputeImageRaw } from 'src/libs/ajax/compute-image-providers/ComputeImageProvider';
 import { GetRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
@@ -88,6 +88,7 @@ describe('GcpComputeImageSection', () => {
             ...image,
             isCommunity: !!image.isCommunity,
             isRStudio: !!image.isRStudio,
+            isTerraSupported: terraSupportedRuntimeImageIds.includes(image.id),
             toolLabel: image.isRStudio ? runtimeToolLabels.RStudio : runtimeToolLabels.Jupyter,
             url: image.image,
           })

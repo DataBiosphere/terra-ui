@@ -20,7 +20,7 @@ export const GcpComputeImageSection: React.FC<GcpComputeImageSectionProps> = (pr
   const { loadedState, refresh }: ComputeImageStore = useComputeImages();
   const [images, setImages] = useState<ComputeImage[]>([]);
   const [selectedComputeImageUrl, setSelectedComputeImageUrl] = useState<string>('');
-  const { onSelect, tool, currentRuntime } = props;
+  const { onSelect, tool, currentRuntime, ...restProps } = props;
 
   // on selection change
   useEffect(() => {
@@ -64,6 +64,7 @@ export const GcpComputeImageSection: React.FC<GcpComputeImageSectionProps> = (pr
   return h(Fragment, [
     loadedState.status === 'Ready'
       ? h(GcpComputeImageSelect, {
+          ...restProps,
           selectedComputeImageUrl,
           setSelectedComputeImageUrl,
           images,
