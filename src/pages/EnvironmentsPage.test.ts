@@ -59,7 +59,7 @@ describe('Environments Page navProvider', () => {
     const pageNav = makeNavProvider(mockNav);
 
     // Act
-    pageNav.getUrl('view-workspace', { name: 'myName', namespace: 'myNamespace' });
+    pageNav.getUrl('workspace-view', { name: 'myName', namespace: 'myNamespace' });
 
     // Assert
     const watcher = asMockedFn(mockNav.getLink);
@@ -76,7 +76,7 @@ describe('Environments Page navProvider', () => {
     const pageNav = makeNavProvider(mockNav);
 
     // Act
-    pageNav.navTo('view-workspace', { name: 'myName', namespace: 'myNamespace' });
+    pageNav.navTo('workspace-view', { name: 'myName', namespace: 'myNamespace' });
 
     // Assert
     const watcher = asMockedFn(mockNav.goToPath);

@@ -49,7 +49,7 @@ import * as Utils from 'src/libs/utils';
 import { isGoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils';
 
 export type EnvironmentNavActions = {
-  'view-workspace': { namespace: string; name: string };
+  'workspace-view': { namespace: string; name: string };
 };
 
 const DeleteRuntimeModal = ({
@@ -487,7 +487,7 @@ export const Environments: React.FC<EnvironmentsProps> = (props) => {
     }
     return name
       ? h(Fragment, [
-          h(Link, { href: nav.getUrl('view-workspace', { namespace, name }), style: { wordBreak: 'break-word' } }, [
+          h(Link, { href: nav.getUrl('workspace-view', { namespace, name }), style: { wordBreak: 'break-word' } }, [
             name,
           ]),
           shouldWarn &&
@@ -854,7 +854,7 @@ export const Environments: React.FC<EnvironmentsProps> = (props) => {
                         h(
                           Link,
                           {
-                            href: nav.getUrl('view-workspace', { namespace, name }),
+                            href: nav.getUrl('workspace-view', { namespace, name }),
                             style: { wordBreak: 'break-word' },
                           },
                           [name]

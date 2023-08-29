@@ -70,8 +70,8 @@ const listRuntimesV2: () => Promise<ListRuntimeItem[]> = jest.fn();
 const listWithoutProject: () => Promise<ListAppResponse[]> = jest.fn();
 const list: () => Promise<ListDiskItem[]> = jest.fn();
 const mockFetchLeo = jest.fn();
-const defaultNav: NavLinkProvider<EnvironmentNavActions> = {
-  getUrl: jest.fn().mockReturnValue(''),
+const mockNav: NavLinkProvider<EnvironmentNavActions> = {
+  getUrl: jest.fn().mockReturnValue('/'),
   navTo: jest.fn(),
 };
 
@@ -137,7 +137,7 @@ describe('Environments', () => {
       });
 
       await act(async () => {
-        render(h(Environments, { nav: defaultNav }));
+        render(h(Environments, { nav: mockNav }));
       });
 
       const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
@@ -151,7 +151,7 @@ describe('Environments', () => {
       asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime1]));
 
       await act(async () => {
-        render(h(Environments, { nav: defaultNav }));
+        render(h(Environments, { nav: mockNav }));
       });
 
       const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
@@ -180,7 +180,7 @@ describe('Environments', () => {
       });
 
       await act(async () => {
-        render(h(Environments, { nav: defaultNav }));
+        render(h(Environments, { nav: mockNav }));
       });
 
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
@@ -215,7 +215,7 @@ describe('Environments', () => {
       });
 
       await act(async () => {
-        render(h(Environments, { nav: defaultNav }));
+        render(h(Environments, { nav: mockNav }));
       });
 
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
@@ -252,7 +252,7 @@ describe('Environments', () => {
       });
 
       await act(async () => {
-        render(h(Environments, { nav: defaultNav }));
+        render(h(Environments, { nav: mockNav }));
       });
 
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
@@ -312,7 +312,7 @@ describe('Environments', () => {
       });
 
       await act(async () => {
-        render(h(Environments, { nav: defaultNav }));
+        render(h(Environments, { nav: mockNav }));
       });
 
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
@@ -338,7 +338,7 @@ describe('Environments', () => {
       });
 
       await act(async () => {
-        render(h(Environments, { nav: defaultNav }));
+        render(h(Environments, { nav: mockNav }));
       });
 
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
@@ -378,7 +378,7 @@ describe('Environments', () => {
       asMockedFn(useReplaceableAjaxExperimental).mockReturnValue(() => newMockAjax as AjaxContract);
 
       await act(async () => {
-        render(h(Environments, { nav: defaultNav }));
+        render(h(Environments, { nav: mockNav }));
       });
 
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
@@ -418,7 +418,7 @@ describe('Environments', () => {
       });
 
       await act(async () => {
-        render(h(Environments, { nav: defaultNav }));
+        render(h(Environments, { nav: mockNav }));
       });
 
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
@@ -440,7 +440,7 @@ describe('Environments', () => {
       });
 
       await act(async () => {
-        render(h(Environments, { nav: defaultNav }));
+        render(h(Environments, { nav: mockNav }));
       });
 
       const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
@@ -473,7 +473,7 @@ describe('Environments', () => {
       });
 
       await act(async () => {
-        render(h(Environments, { nav: defaultNav }));
+        render(h(Environments, { nav: mockNav }));
       });
 
       const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
@@ -529,7 +529,7 @@ describe('Environments', () => {
       });
 
       await act(async () => {
-        render(h(Environments, { nav: defaultNav }));
+        render(h(Environments, { nav: mockNav }));
       });
 
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
@@ -581,7 +581,7 @@ describe('Environments', () => {
       asMockedFn(useReplaceableAjaxExperimental).mockReturnValue(() => newMockAjax as AjaxContract);
 
       await act(async () => {
-        render(h(Environments, { nav: defaultNav }));
+        render(h(Environments, { nav: mockNav }));
       });
 
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
@@ -620,7 +620,7 @@ describe('Environments', () => {
       });
 
       await act(async () => {
-        render(h(Environments, { nav: defaultNav }));
+        render(h(Environments, { nav: mockNav }));
       });
 
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
@@ -651,7 +651,7 @@ describe('Environments', () => {
       });
 
       await act(async () => {
-        render(h(Environments, { nav: defaultNav }));
+        render(h(Environments, { nav: mockNav }));
       });
 
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
@@ -706,7 +706,7 @@ describe('Environments', () => {
       });
 
       await act(async () => {
-        render(h(Environments, { nav: defaultNav }));
+        render(h(Environments, { nav: mockNav }));
       });
 
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
@@ -755,7 +755,7 @@ describe('Environments', () => {
       asMockedFn(useReplaceableAjaxExperimental).mockReturnValue(() => newMockAjax as AjaxContract);
 
       await act(async () => {
-        render(h(Environments, { nav: defaultNav }));
+        render(h(Environments, { nav: mockNav }));
       });
 
       const tableRows: HTMLElement[] = screen.getAllByRole('row');

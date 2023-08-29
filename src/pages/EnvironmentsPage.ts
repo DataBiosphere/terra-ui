@@ -9,20 +9,18 @@ type NavMap<NavTypes, FnReturn> = {
   [Property in keyof NavTypes]: (args: NavTypes[Property]) => FnReturn;
 };
 
-const workspaceNavKey = terraNavKey('workspace-dashboard');
-
 export const makeNavProvider = (terraNav: TerraNavLinkProvider): NavLinkProvider<EnvironmentNavActions> => {
   const { getLink, goToPath } = terraNav;
   const myNav: NavLinkProvider<EnvironmentNavActions> = {
     getUrl: <K extends keyof EnvironmentNavActions>(navKey: K, navArgs: EnvironmentNavActions[K]): string => {
       const navMap: NavMap<EnvironmentNavActions, string> = {
-        'view-workspace': (args) => getLink(workspaceNavKey, args),
+        'workspace-view': (args) => getLink(terraNavKey('workspace-dashboard'), args),
       };
       return navMap[navKey](navArgs);
     },
     navTo: <K extends keyof EnvironmentNavActions>(navKey: K, navArgs: EnvironmentNavActions[K]): void => {
       const navMap: NavMap<EnvironmentNavActions, void> = {
-        'view-workspace': (args) => goToPath(workspaceNavKey, args),
+        'workspace-view': (args) => goToPath(terraNavKey('workspace-dashboard'), args),
       };
       return navMap[navKey](navArgs);
     },

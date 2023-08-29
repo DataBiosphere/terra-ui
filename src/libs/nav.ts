@@ -1,4 +1,5 @@
 import { atom } from '@terra-ui-packages/core-utils';
+import { enforceType } from '@terra-ui-packages/core-utils';
 import { createHashHistory as createHistory } from 'history';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
@@ -19,8 +20,8 @@ export type TerraNavKeyLookup = { [key in TerraNavKey]: key };
 // TODO: fill out this value lookup to reflect full list of key names once available above
 /**
  * allowed values for nav keys in a lookup table
- * Note: use terraNavKey type guard method below instead of this const.
- *   Typescript currently allows unsafe object['not-a-enum-key-name'] indexing
+ * Note: use terraNavKey type helper method below instead of this const.
+ *   Typescript currently allows unsafe object['not-an-enum-key-name'] indexing
  *   lookups into this otherwise type-safe construct.
  */
 export const terraNavKeyValue: TerraNavKeyLookup = {
@@ -30,10 +31,10 @@ export const terraNavKeyValue: TerraNavKeyLookup = {
 };
 
 /**
- * type guard for nav keys to better enforce key names with snake-case
+ * type helper for nav keys to better enforce key names with snake-case
  * @param key
  */
-export const terraNavKey = (key: TerraNavKey): TerraNavKey => key;
+export const terraNavKey = (key: TerraNavKey) => enforceType<TerraNavKey>(key);
 
 export const isTerraNavKey = (value: unknown): value is TerraNavKey => {
   const maybeKey = value as string;
