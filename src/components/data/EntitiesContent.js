@@ -12,7 +12,6 @@ import { ButtonSecondary } from 'src/components/common';
 import { DataTableColumnProvenance } from 'src/components/data/data-table-provenance';
 import { ModalToolButton } from 'src/components/data/data-utils';
 import DataTable from 'src/components/data/DataTable';
-import ExportDataModal from 'src/components/data/ExportDataModal';
 import { icon, spinner } from 'src/components/icons';
 import IGVBrowser from 'src/components/IGVBrowser';
 import IGVFileSelector from 'src/components/IGVFileSelector';
@@ -27,6 +26,7 @@ import { AddEntityModal } from 'src/data/data-table/entity-service/AddEntityModa
 import { CreateEntitySetModal } from 'src/data/data-table/entity-service/CreateEntitySetModal';
 import { entityAttributeText } from 'src/data/data-table/entity-service/entityAttributeText';
 import { EntityDeleter } from 'src/data/data-table/entity-service/EntityDeleter';
+import { ExportDataModal } from 'src/data/data-table/entity-service/ExportDataModal';
 import { MultipleEntityEditor } from 'src/data/data-table/entity-service/MultipleEntityEditor';
 import datasets from 'src/data/datasets';
 import dataExplorerLogo from 'src/images/data-explorer-logo.svg';

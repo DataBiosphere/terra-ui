@@ -13,7 +13,6 @@ import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay
 import { DataTableSaveVersionModal, DataTableVersion, DataTableVersions } from 'src/components/data/data-table-versions';
 import { getRootTypeForSetTable, ReferenceDataDeleter, ReferenceDataImporter } from 'src/components/data/data-utils';
 import EntitiesContent from 'src/components/data/EntitiesContent';
-import ExportDataModal from 'src/components/data/ExportDataModal';
 import FileBrowser from 'src/components/data/FileBrowser';
 import LocalVariablesContent from 'src/components/data/LocalVariablesContent';
 import { useSavedColumnSettings } from 'src/components/data/SavedColumnSettings';
@@ -25,6 +24,7 @@ import { MenuButton } from 'src/components/MenuButton';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
 import { FlexTable, HeaderCell } from 'src/components/table';
 import { SnapshotInfo } from 'src/components/workspace-utils';
+import { ExportDataModal } from 'src/data/data-table/entity-service/ExportDataModal';
 import { RenameTableModal } from 'src/data/data-table/entity-service/RenameTableModal';
 import { renderDataCell } from 'src/data/data-table/entity-service/renderDataCell';
 import { EntityUploader } from 'src/data/data-table/shared/EntityUploader';

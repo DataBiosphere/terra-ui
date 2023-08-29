@@ -44,7 +44,7 @@ const displayEntities = (entities, runningSubmissionsCount, showType) => {
   );
 };
 
-const ExportDataModal = ({ onDismiss, selectedDataType, selectedEntities, runningSubmissionsCount, workspace }) => {
+export const ExportDataModal = ({ onDismiss, selectedDataType, selectedEntities, runningSubmissionsCount, workspace }) => {
   // State
   const [hardConflicts, setHardConflicts] = useState([]);
   const [softConflicts, setSoftConflicts] = useState([]);
@@ -205,5 +205,3 @@ const ExportDataModal = ({ onDismiss, selectedDataType, selectedEntities, runnin
 
   return copied ? renderPostCopy() : renderCopyForm();
 };
-
-export default ExportDataModal;
