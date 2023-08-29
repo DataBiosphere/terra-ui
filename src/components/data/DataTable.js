@@ -13,7 +13,7 @@ import {
   Link,
   RadioButton,
 } from 'src/components/common';
-import { EditDataLink, entityAttributeText, EntityRenamer, HeaderOptions, renderDataCell } from 'src/components/data/data-utils';
+import { EditDataLink, entityAttributeText, EntityRenamer, HeaderOptions } from 'src/components/data/data-utils';
 import RenameColumnModal from 'src/components/data/RenameColumnModal';
 import {
   allSavedColumnSettingsEntityTypeKey,
@@ -28,6 +28,7 @@ import Modal from 'src/components/Modal';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { GridTable, HeaderCell, paginator, Resizable, TooltipCell } from 'src/components/table';
 import { concatenateAttributeNames } from 'src/data/data-table/entity-service/attribute-utils';
+import { renderDataCell } from 'src/data/data-table/entity-service/renderDataCell';
 import { SingleEntityEditor } from 'src/data/data-table/entity-service/SingleEntityEditor';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
