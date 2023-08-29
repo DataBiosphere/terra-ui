@@ -14,7 +14,6 @@ import {
   RadioButton,
 } from 'src/components/common';
 import { EditDataLink, HeaderOptions } from 'src/components/data/data-utils';
-import RenameColumnModal from 'src/components/data/RenameColumnModal';
 import {
   allSavedColumnSettingsEntityTypeKey,
   allSavedColumnSettingsInWorkspace,
@@ -30,6 +29,7 @@ import { GridTable, HeaderCell, paginator, Resizable, TooltipCell } from 'src/co
 import { concatenateAttributeNames } from 'src/data/data-table/entity-service/attribute-utils';
 import { entityAttributeText } from 'src/data/data-table/entity-service/entityAttributeText';
 import { EntityRenamer } from 'src/data/data-table/entity-service/EntityRenamer';
+import { RenameColumnModal } from 'src/data/data-table/entity-service/RenameColumnModal';
 import { renderDataCell } from 'src/data/data-table/entity-service/renderDataCell';
 import { SingleEntityEditor } from 'src/data/data-table/entity-service/SingleEntityEditor';
 import { Ajax } from 'src/libs/ajax';

@@ -7,7 +7,7 @@ import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
 
-const RenameColumnModal = ({ onDismiss, onSuccess, namespace, name, entityType, oldAttributeName }) => {
+export const RenameColumnModal = ({ onDismiss, onSuccess, namespace, name, entityType, oldAttributeName }) => {
   // State
   const [newAttributeName, setNewAttributeName] = useState('');
   const [isBusy, setIsBusy] = useState(false);
@@ -60,5 +60,3 @@ const RenameColumnModal = ({ onDismiss, onSuccess, namespace, name, entityType, 
     ]
   );
 };
-
-export default RenameColumnModal;
