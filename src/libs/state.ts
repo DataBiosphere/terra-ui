@@ -6,17 +6,27 @@ import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 export const routeHandlersStore = Utils.atom<unknown[]>([]);
 
 export const authStore = Utils.atom<any>({
-  isSignedIn: undefined,
   anonymousId: undefined,
+  authContext: undefined,
+  authTokenMetadata: {
+    createdAt: -1,
+    expiresAt: -1,
+  },
+  cookiesAccepted: undefined,
+  fenceStatus: {},
+  hasGcpBillingScopeThroughB2C: false,
+  isAzurePreviewUser: undefined,
+  isSignedIn: undefined,
+  oidcConfig: {
+    authorityEndpoint: undefined,
+    clientId: undefined,
+  },
+  profile: {},
   registrationStatus: undefined,
+  sessionId: undefined,
+  sessionStartTime: -1,
   termsOfService: {},
   user: {},
-  profile: {},
-  fenceStatus: {},
-  cookiesAccepted: undefined,
-  authContext: undefined,
-  oidcConfig: {},
-  isAzurePreviewUser: undefined,
 });
 
 export const getUser = () => authStore.get().user;

@@ -22,6 +22,7 @@ import { getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import {
   getToolLabelFromCloudEnv,
   getToolLabelFromFileExtension,
+  RuntimeToolLabel,
   runtimeToolLabels,
   runtimeTools,
   ToolLabel,
@@ -331,12 +332,12 @@ const AnalysisCard = ({
     [getFileName(name)]
   );
 
-  const toolIconSrc: string = Utils.switchCase(
-    tool,
-    [runtimeToolLabels.Jupyter, () => jupyterLogo],
-    [runtimeToolLabels.RStudio, () => rstudioSquareLogo],
-    [runtimeToolLabels.JupyterLab, () => jupyterLogo]
-  );
+  const toolLogos: Record<RuntimeToolLabel, string> = {
+    [runtimeToolLabels.Jupyter]: jupyterLogo,
+    [runtimeToolLabels.RStudio]: rstudioSquareLogo,
+    [runtimeToolLabels.JupyterLab]: jupyterLogo,
+  };
+  const toolIconSrc: string | undefined = toolLogos[tool];
 
   const toolContainer = div(
     { role: 'cell', style: { display: 'flex', flex: 1, flexDirection: 'row', alignItems: 'center' } },

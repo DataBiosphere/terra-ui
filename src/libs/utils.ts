@@ -1,4 +1,4 @@
-import { AnyPromiseFn, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
+import { AnyPromiseFn, DEFAULT, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
 import { formatDuration, intervalToDuration, isToday, isYesterday } from 'date-fns';
 import { differenceInCalendarMonths, differenceInSeconds, parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
@@ -7,6 +7,8 @@ import { div, span } from 'react-hyperscript-helpers';
 import { v4 as uuid } from 'uuid';
 
 import { hasAccessLevel } from './workspace-utils';
+
+export { DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
 
 export interface Subscribable<T extends any[]> {
   subscribe: (fn: (...args: T) => void) => { unsubscribe: () => void };
@@ -72,8 +74,8 @@ const completeDateFormatParts = [
   new Intl.DateTimeFormat('default', { hour: 'numeric', minute: 'numeric' }),
 ];
 
-export const makePrettyDate = (dateString) => {
-  const date = new Date(dateString);
+export const makePrettyDate = (dateString: number | string | Date): string => {
+  const date: Date = new Date(dateString);
 
   return cond(
     [isToday(date), () => 'Today'],
@@ -83,9 +85,13 @@ export const makePrettyDate = (dateString) => {
   );
 };
 
-export const makeStandardDate = (dateString) => dateFormat.format(new Date(dateString));
+export const makeStandardDate = (dateString: number | string | Date): string => dateFormat.format(new Date(dateString));
 
-export const makeCompleteDate = (dateString) => completeDateFormat.format(new Date(dateString));
+export const makeCompleteDate = (dateString: number | string | Date): string =>
+  completeDateFormat.format(new Date(dateString));
+
+export const formatTimestampInSeconds = (secondsSinceEpoch: number): string =>
+  completeDateFormat.format(new Date(secondsSinceEpoch * 1000));
 
 export const makeCompleteDateParts = (dateString) => {
   return _.map((part) => part.format(new Date(dateString)), completeDateFormatParts);
@@ -169,12 +175,6 @@ export const cond = (...args: any[]): any => {
   return condTyped(...args);
 };
 
-export const DEFAULT = Symbol('Default switch case');
-
-export const switchCase = (value, ...pairs) => {
-  const match = _.find(([v]) => v === value || v === DEFAULT, pairs);
-  return match && match[1]();
-};
 export const toIndexPairs = <T>(obj: T[]): [number, T][] =>
   _.flow(
     _.toPairs,
