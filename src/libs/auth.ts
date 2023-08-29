@@ -117,8 +117,9 @@ export const signIn = async (includeBillingScope = false): Promise<User> => {
   const userJWT: string = user.id_token!;
   const decodedJWT: JwtPayload = jwtDecode<JwtPayload>(userJWT);
   const authTokenCreatedAt: number = (decodedJWT as any).auth_time; // time in seconds when authorization token was created
-  const authTokenExpiresAt: number = user.expires_at!; // time in seconds when authorization token expires
-  const jwtExpiresAt: number = (decodedJWT as any).exp; // time in seconds when jwt expires (should not be read from)
+  const authTokenExpiresAt: number = user.expires_at!; // time in seconds when authorization token expires, as given by the oidc client
+  const jwtExpiresAt: number = (decodedJWT as any).exp; // time in seconds when the JWT expires, after which the JWT should not be read from
+
   authStore.update((state) => ({
     ...state,
     hasGcpBillingScopeThroughB2C: includeBillingScope,
@@ -132,7 +133,6 @@ export const signIn = async (includeBillingScope = false): Promise<User> => {
   Ajax().Metrics.captureEvent(Events.userLogin, {
     authProvider: user.profile.idp,
     sessionStartTime: Utils.makeCompleteDate(sessionStartTime),
-    // Token times are in seconds, so converting to milliseconds to allow for displaying the dates nicely
     authTokenCreatedAt: Utils.formatTimestampInSeconds(authTokenCreatedAt),
     authTokenExpiresAt: Utils.formatTimestampInSeconds(authTokenExpiresAt),
     jwtExpiresAt: Utils.formatTimestampInSeconds(jwtExpiresAt),
@@ -155,8 +155,8 @@ export const reloadAuthToken = (includeBillingScope = false) => {
     .finally(() => {
       Ajax().Metrics.captureEvent(Events.userAuthTokenReload, {
         authReloadSuccessful,
-        authTokenCreatedAt: Utils.formatTimestampInSeconds(tokenMetadata.createdAt),
-        authTokenExpiresAt: Utils.formatTimestampInSeconds(tokenMetadata.expiresAt),
+        oldAuthTokenCreatedAt: Utils.formatTimestampInSeconds(tokenMetadata.createdAt),
+        oldAuthTokenExpiresAt: Utils.formatTimestampInSeconds(tokenMetadata.expiresAt),
       });
     });
 };
