@@ -117,7 +117,7 @@ export const signIn = async (includeBillingScope = false): Promise<User> => {
   const userJWT: string = user.id_token!;
   const decodedJWT: JwtPayload = jwtDecode<JwtPayload>(userJWT);
   const authTokenCreatedAt: number = (decodedJWT as any).auth_time; // time in seconds when authorization token was created
-  const authTokenExpiresAt: number = user.expires_at; // time in seconds when authorization token expires
+  const authTokenExpiresAt: number = user.expires_at!; // time in seconds when authorization token expires
   const jwtExpiresAt: number = (decodedJWT as any).exp; // time in seconds when jwt expires (should not be read from)
   authStore.update((state) => ({
     ...state,
