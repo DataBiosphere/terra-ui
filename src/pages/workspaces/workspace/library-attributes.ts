@@ -33,11 +33,13 @@ export const displayLibraryAttributes = [
 export const displayConsentCodes = [
   {
     key: 'library:GRU',
-    title: 'For health/medical/biomedical purposes and other biological research, including the study of population origins or ancestry.',
+    title:
+      'For health/medical/biomedical purposes and other biological research, including the study of population origins or ancestry.',
   },
   {
     key: 'library:HMB',
-    title: 'Use of the data is limited to health/medical/biomedical purposes, does not include the study of population origins or ancestry.',
+    title:
+      'Use of the data is limited to health/medical/biomedical purposes, does not include the study of population origins or ancestry.',
   },
   { key: 'library:DS', title: 'Use of the data must be related to a particular disease.' },
   { key: 'library:NCU', title: 'Use of the data is limited to non-commercial use.' },
@@ -54,7 +56,8 @@ export const displayConsentCodes = [
   },
   {
     key: 'library:NCTRL',
-    title: 'Data can be used as a control set ONLY within the bounds of other specified data use limitations (e.g. only for cancer studies).',
+    title:
+      'Data can be used as a control set ONLY within the bounds of other specified data use limitations (e.g. only for cancer studies).',
   },
   { key: 'library:RS-G', title: 'Use of the data is limited to studies of particular gender.' },
   { key: 'library:RS-PD', title: 'Use of the data is limited to pediatric research.' },
