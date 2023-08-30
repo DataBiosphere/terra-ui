@@ -21,6 +21,7 @@ import { withModalDrawer } from 'src/components/ModalDrawer';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
 import TitleBar from 'src/components/TitleBar';
 import WorkflowSelector from 'src/components/WorkflowSelector';
+import datasets from 'src/constants/datasets';
 import { AddColumnModal } from 'src/data/data-table/entity-service/AddColumnModal';
 import { AddEntityModal } from 'src/data/data-table/entity-service/AddEntityModal';
 import { CreateEntitySetModal } from 'src/data/data-table/entity-service/CreateEntitySetModal';
@@ -28,7 +29,6 @@ import { entityAttributeText } from 'src/data/data-table/entity-service/entityAt
 import { EntityDeleter } from 'src/data/data-table/entity-service/EntityDeleter';
 import { ExportDataModal } from 'src/data/data-table/entity-service/ExportDataModal';
 import { MultipleEntityEditor } from 'src/data/data-table/entity-service/MultipleEntityEditor';
-import datasets from 'src/data/datasets';
 import dataExplorerLogo from 'src/images/data-explorer-logo.svg';
 import igvLogo from 'src/images/igv-logo.png';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
