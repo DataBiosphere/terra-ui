@@ -10,56 +10,6 @@ import { hasAccessLevel } from './workspace-utils';
 
 export { DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
 
-export interface Subscribable<T extends any[]> {
-  subscribe: (fn: (...args: T) => void) => { unsubscribe: () => void };
-  next: (...args: T) => void;
-}
-
-/**
- * A mechanism for registering callbacks for some state change.
- */
-export const subscribable = <T extends any[]>(): Subscribable<T> => {
-  let subscribers: ((...args: T) => void)[] = [];
-  return {
-    subscribe: (fn: (...args: T) => void) => {
-      subscribers = append(fn, subscribers);
-      return {
-        unsubscribe: () => {
-          subscribers = _.without([fn], subscribers);
-        },
-      };
-    },
-    next: (...args: T) => {
-      _.forEach((fn) => fn(...args), subscribers);
-    },
-  };
-};
-
-export interface Atom<T> {
-  subscribe: (fn: (value: T, previousValue: T) => void) => { unsubscribe: () => void };
-  get: () => T;
-  set: (value: T) => void;
-  update: (fn: (currentValue: T) => T) => void;
-  reset: () => void;
-}
-
-/**
- * A simple state container inspired by clojure atoms. Method names were chosen based on similarity
- * to lodash and Immutable. (deref => get, reset! => set, swap! => update, reset to go back to initial value)
- * Implements the Store interface
- */
-export const atom = <T>(initialValue: T): Atom<T> => {
-  let value = initialValue;
-  const { subscribe, next } = subscribable<[T, T]>();
-  const get = () => value;
-  const set = (newValue: T) => {
-    const oldValue = value;
-    value = newValue;
-    next(newValue, oldValue);
-  };
-  return { subscribe, get, set, update: (fn) => set(fn(get())), reset: () => set(initialValue) };
-};
-
 const dateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric' });
 const monthYearFormat = new Intl.DateTimeFormat('default', { month: 'short', year: 'numeric' });
 const completeDateFormat = new Intl.DateTimeFormat('default', {
@@ -74,8 +24,8 @@ const completeDateFormatParts = [
   new Intl.DateTimeFormat('default', { hour: 'numeric', minute: 'numeric' }),
 ];
 
-export const makePrettyDate = (dateString) => {
-  const date = new Date(dateString);
+export const makePrettyDate = (dateString: number | string | Date): string => {
+  const date: Date = new Date(dateString);
 
   return cond(
     [isToday(date), () => 'Today'],
@@ -85,9 +35,13 @@ export const makePrettyDate = (dateString) => {
   );
 };
 
-export const makeStandardDate = (dateString) => dateFormat.format(new Date(dateString));
+export const makeStandardDate = (dateString: number | string | Date): string => dateFormat.format(new Date(dateString));
 
-export const makeCompleteDate = (dateString) => completeDateFormat.format(new Date(dateString));
+export const makeCompleteDate = (dateString: number | string | Date): string =>
+  completeDateFormat.format(new Date(dateString));
+
+export const formatTimestampInSeconds = (secondsSinceEpoch: number): string =>
+  completeDateFormat.format(new Date(secondsSinceEpoch * 1000));
 
 export const makeCompleteDateParts = (dateString) => {
   return _.map((part) => part.format(new Date(dateString)), completeDateFormatParts);
