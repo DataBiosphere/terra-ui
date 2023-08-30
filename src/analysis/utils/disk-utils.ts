@@ -59,11 +59,11 @@ export const defaultGceBootDiskSize = 120;
 export const defaultGcePersistentDiskSize = 50;
 export const defaultPersistentDiskType = googlePdTypes.standard;
 export const getCurrentAttachedDataDisk = (
-  app: App,
+  app: App | undefined,
   appDataDisks: PersistentDisk[]
 ): DecoratedPersistentDisk | undefined => {
   const currentDisk: PersistentDisk | undefined =
-    !!app && app.diskName === null ? undefined : appDataDisks.find(({ name }) => app.diskName === name);
+    app?.diskName === null ? undefined : appDataDisks.find(({ name }) => app?.diskName === name);
   return currentDisk ? updatePdType(currentDisk) : currentDisk;
 };
 
