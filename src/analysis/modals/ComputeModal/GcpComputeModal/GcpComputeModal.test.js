@@ -18,6 +18,7 @@ import {
 import { GcpComputeModalBase } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal';
 import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/analysis/utils/cost-utils';
 import { defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize, defaultPersistentDiskType } from 'src/analysis/utils/disk-utils';
+import { cloudServices } from 'src/analysis/utils/gce-machines';
 import {
   defaultDataprocMachineType,
   defaultGceMachineType,
@@ -27,7 +28,6 @@ import {
   defaultNumGpus,
 } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels, runtimeTools } from 'src/analysis/utils/tool-utils';
-import { cloudServices } from 'src/data/gce-machines';
 import { Ajax } from 'src/libs/ajax';
 import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { formatUSD } from 'src/libs/utils';

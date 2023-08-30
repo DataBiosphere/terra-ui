@@ -16,6 +16,7 @@ import {
   defaultGcePersistentDiskSize,
   defaultPersistentDiskType,
 } from 'src/analysis/utils/disk-utils';
+import { cloudServices, isMachineTypeSmaller, machineTypes } from 'src/analysis/utils/gce-machines';
 import {
   defaultAutopauseThreshold,
   defaultComputeRegion,
@@ -52,7 +53,6 @@ import { withModalDrawer } from 'src/components/ModalDrawer';
 import { InfoBox } from 'src/components/PopupTrigger';
 import { getAvailableComputeRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isUSLocation } from 'src/components/region-common';
 import TitleBar from 'src/components/TitleBar';
-import { cloudServices, isMachineTypeSmaller, machineTypes } from 'src/data/gce-machines';
 import { Ajax } from 'src/libs/ajax';
 import { googlePdTypes } from 'src/libs/ajax/leonardo/models/disk-models';
 import colors from 'src/libs/colors';

@@ -39,7 +39,8 @@ export const getDatasetReleasePoliciesDisplayInformation = (
     ['DUO:0000011', () => ({ label: 'POA', description: 'Population origins or ancestry research only' })],
     ['DUO:0000004', () => ({ label: 'NRES', description: 'No restriction' })],
     [undefined, () => ({ label: 'Unspecified', description: 'No specified dataset release policy' })],
-    [Utils.DEFAULT, () => ({ label: dataUsePermission })]
+    // Safe to use non-null assertion here because this case is only reached if dataUsePermission is defined.
+    [Utils.DEFAULT, () => ({ label: dataUsePermission! })]
   );
 
 export const makeDatasetReleasePolicyDisplayInformation = (dataUsePermission: string): ReactElement => {

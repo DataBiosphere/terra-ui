@@ -20,11 +20,11 @@ export const launchableToolLabel: Record<LaunchableToolLabel, LaunchableToolLabe
   spark: 'spark',
 };
 
-export const runtimeToolLabels: Record<RuntimeToolLabel, RuntimeToolLabel> = {
+export const runtimeToolLabels = {
   Jupyter: 'Jupyter',
   RStudio: 'RStudio',
   JupyterLab: 'JupyterLab',
-};
+} as const satisfies Record<RuntimeToolLabel, RuntimeToolLabel>;
 
 export const toolLabelDisplays: Record<ToolLabel, string> = {
   Jupyter: 'Jupyter',
@@ -159,13 +159,14 @@ export const toolExtensionDisplay: Partial<Record<ToolLabel, ExtensionDisplay[]>
   ],
   Jupyter: [{ label: 'IPython Notebook (.ipynb)', value: 'ipynb' as FileExtension }],
 };
-export const getPatternFromRuntimeTool = (toolLabel: RuntimeToolLabel): string =>
-  Utils.switchCase(
-    toolLabel,
-    [runtimeToolLabels.RStudio, () => '.+(\\.R|\\.Rmd)$'],
-    [runtimeToolLabels.Jupyter, () => '.*\\.ipynb'],
-    [runtimeToolLabels.JupyterLab, () => '.*\\.ipynb']
-  );
+export const getPatternFromRuntimeTool = (toolLabel: RuntimeToolLabel): string => {
+  const patterns: Record<RuntimeToolLabel, string> = {
+    [runtimeToolLabels.RStudio]: '.+(\\.R|\\.Rmd)$',
+    [runtimeToolLabels.Jupyter]: '.*\\.ipynb',
+    [runtimeToolLabels.JupyterLab]: '.*\\.ipynb',
+  };
+  return patterns[toolLabel];
+};
 
 export const getToolsToDisplayForCloudProvider = (cloudProvider: CloudProvider): readonly Tool[] =>
   _.remove((tool: Tool) => isToolHidden(tool.label, cloudProvider))(

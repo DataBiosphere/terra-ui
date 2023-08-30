@@ -1,3 +1,4 @@
+import { atom } from '@terra-ui-packages/core-utils';
 import * as clipboard from 'clipboard-polyfill/text';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
@@ -19,6 +20,7 @@ import {
 } from 'src/analysis/runtime-common-components';
 import { getCurrentPersistentDisk } from 'src/analysis/utils/disk-utils';
 import { findPotentialNotebookLockers, getExtension, getFileName, notebookLockHash } from 'src/analysis/utils/file-utils';
+import { dataSyncingDocUrl } from 'src/analysis/utils/gce-machines';
 import { getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/analysis/utils/runtime-utils';
 import { getPatternFromRuntimeTool, getToolLabelFromCloudEnv, getToolLabelFromFileExtension, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import * as breadcrumbs from 'src/components/breadcrumbs';
@@ -28,7 +30,6 @@ import { icon } from 'src/components/icons';
 import { MenuButton } from 'src/components/MenuButton';
 import Modal from 'src/components/Modal';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
-import { dataSyncingDocUrl } from 'src/data/gce-machines';
 import { Ajax } from 'src/libs/ajax';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
@@ -712,7 +713,7 @@ function JupyterFrameManager({ onClose, frameRef, details = {} }) {
       cloudPlatform: details.cloudPlatform,
     });
 
-    const isSaved = Utils.atom(true);
+    const isSaved = atom(true);
     const onMessage = (e) => {
       switch (e.data) {
         case 'close':
