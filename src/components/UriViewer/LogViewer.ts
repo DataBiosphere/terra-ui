@@ -42,7 +42,7 @@ type SimpleTabProps = {
 };
 
 type FetchedLogData = {
-  textContent: string | undefined;
+  textContent: string | undefined; // The literal characters of the log file.
   downloadUri: string | undefined; // The URI to use for downloading the log file. May or may not have SaS token appended, depending on if the file is public or private.
 };
 
@@ -95,7 +95,12 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ logs, onDismiss
         setActiveDownloadUri(res?.downloadUri);
       }
     };
+
+    // when switching tabs, reset content to undefined while we fetch the new content.
     setActiveTextContent(undefined);
+    setActiveDownloadUri(undefined);
+
+    // tab switching set the currently active log
     const uri = logs.find((log) => log.logKey === currentlyActiveLog?.logKey)?.logUri;
     if (!_.isEmpty(uri)) {
       fetch(uri);
@@ -176,16 +181,17 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ logs, onDismiss
             span({ style: { paddingRight: '0.5rem', fontWeight: 'bold', fontSize: 16 } }, ['File:']),
             span({ style: { fontSize: 16 } }, [currentlyActiveLog?.logKey]),
           ]),
-          h(
-            ButtonOutline,
-            {
-              disabled: _.isEmpty(currentlyActiveLog?.logUri),
-              href: activeDownloadUri,
-              download: activeDownloadUri,
-              ...newTabLinkProps,
-            },
-            [span([icon('download', { style: { marginRight: '1ch' } }), 'Download'])]
-          ),
+          !_.isEmpty(activeDownloadUri) &&
+            h(
+              ButtonOutline,
+              {
+                disabled: _.isEmpty(currentlyActiveLog?.logUri),
+                href: activeDownloadUri,
+                download: activeDownloadUri,
+                ...newTabLinkProps,
+              },
+              [span([icon('download', { style: { marginRight: '1ch' } }), 'Download'])]
+            ),
         ]
       ),
       div(
