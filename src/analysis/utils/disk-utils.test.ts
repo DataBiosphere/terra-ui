@@ -1,5 +1,5 @@
 import { addDays, subDays } from 'date-fns';
-import { generateTestDisk, generateTestGoogleRuntime, getRuntimeConfig } from 'src/analysis/_testData/testData';
+import { generateTestDisk, generateTestListGoogleRuntime, getRuntimeConfig } from 'src/analysis/_testData/testData';
 import { getCurrentPersistentDisk, getReadyPersistentDisk } from 'src/analysis/utils/disk-utils';
 import { diskStatuses } from 'src/libs/ajax/leonardo/models/disk-models';
 
@@ -48,8 +48,8 @@ describe('getCurrentPersistentDisk', () => {
   it('returns the disk attached to the current runtime', () => {
     // Arrange
     const disk1 = generateTestDisk();
-    const runtime1 = generateTestGoogleRuntime();
-    const runtime2 = generateTestGoogleRuntime({
+    const runtime1 = generateTestListGoogleRuntime();
+    const runtime2 = generateTestListGoogleRuntime({
       runtimeConfig: getRuntimeConfig({ persistentDiskId: disk1.id }),
     });
     const disk2 = generateTestDisk({
@@ -72,8 +72,8 @@ describe('getCurrentPersistentDisk', () => {
   it('returns no disk if there is a current runtime but it matches no disks', () => {
     // Arrange
     const disk1 = generateTestDisk();
-    const runtime1 = generateTestGoogleRuntime();
-    const runtime2 = generateTestGoogleRuntime();
+    const runtime1 = generateTestListGoogleRuntime();
+    const runtime2 = generateTestListGoogleRuntime();
     const disk2 = generateTestDisk({
       auditInfo: {
         ...disk1.auditInfo,
