@@ -13,9 +13,7 @@ import {
   Link,
   RadioButton,
 } from 'src/components/common';
-import { concatenateAttributeNames } from 'src/components/data/attribute-utils';
-import { EditDataLink, entityAttributeText, EntityRenamer, HeaderOptions, renderDataCell, SingleEntityEditor } from 'src/components/data/data-utils';
-import RenameColumnModal from 'src/components/data/RenameColumnModal';
+import { EditDataLink, HeaderOptions } from 'src/components/data/data-utils';
 import {
   allSavedColumnSettingsEntityTypeKey,
   allSavedColumnSettingsInWorkspace,
@@ -28,6 +26,12 @@ import { MenuButton } from 'src/components/MenuButton';
 import Modal from 'src/components/Modal';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { GridTable, HeaderCell, paginator, Resizable, TooltipCell } from 'src/components/table';
+import { concatenateAttributeNames } from 'src/data/data-table/entity-service/attribute-utils';
+import { entityAttributeText } from 'src/data/data-table/entity-service/entityAttributeText';
+import { EntityRenamer } from 'src/data/data-table/entity-service/EntityRenamer';
+import { RenameColumnModal } from 'src/data/data-table/entity-service/RenameColumnModal';
+import { renderDataCell } from 'src/data/data-table/entity-service/renderDataCell';
+import { SingleEntityEditor } from 'src/data/data-table/entity-service/SingleEntityEditor';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
