@@ -1,5 +1,6 @@
+import { subscribable } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
-import { maybeParseJSON, subscribable } from 'src/libs/utils';
+import { maybeParseJSON } from 'src/libs/utils';
 
 /**
  * This library provides a higher level interface on top of localStorage and sessionStorage.
