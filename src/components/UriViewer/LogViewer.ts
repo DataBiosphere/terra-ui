@@ -153,6 +153,7 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ logs, onDismiss
         SimpleTabBar,
         {
           value: currentlyActiveLog?.logKey,
+          'aria-label': 'Log file tabs',
           onChange: (key: string) => {
             const newLog = logs.find((log) => log.logKey === key);
             setCurrentlyActiveLog(newLog);
