@@ -16,11 +16,13 @@ import { InfoBox } from '../PopupTrigger';
  * @member logUri - The URI of the log file. Must be a valid Azure blob URI. No Sas token should be appended: a fresh one will be obtained.
  * @member logTitle - The title of the log. Displayed to the user as a tab title.
  * @member logKey - A unique key for this particular log.
+ * @member logFilename - The filename of this particular log. Does not need to be unique.
  */
 export type LogInfo = {
   logUri: string;
   logTitle: string;
   logKey: string;
+  logFilename: string;
 };
 
 /**
@@ -189,7 +191,7 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ modalTitle, log
         [
           span({}, [
             span({ style: { paddingRight: '0.5rem', fontWeight: 'bold', fontSize: 16 } }, ['File:']),
-            span({ style: { fontSize: 16 } }, [currentlyActiveLog?.logKey]),
+            span({ style: { fontSize: 16 } }, [currentlyActiveLog?.logFilename]),
           ]),
           !_.isEmpty(activeDownloadUri) &&
             h(

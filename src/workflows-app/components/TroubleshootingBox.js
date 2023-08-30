@@ -36,7 +36,7 @@ export const TroubleshootingBox = ({ name, namespace, logUri, submissionId, work
           {
             'aria-label': 'Execution Log',
             onClick: () => {
-              showLogModal('Execution Log', [{ logUri, logTitle: 'Execution Log', logKey: 'execution_log' }]);
+              showLogModal('Execution Log', [{ logUri, logTitle: 'Execution Log', logKey: 'execution_log', logFilename: 'workflow.log' }]);
             },
           },
           [div({ style: { marginRight: '1.5rem' } }, [icon('fileAlt', { size: 18 }), ' Execution Log'], {})]

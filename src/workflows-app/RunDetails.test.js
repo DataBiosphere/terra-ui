@@ -253,7 +253,7 @@ describe('BaseRunDetails - render smoke test', () => {
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
     const executionLogButton = screen.getByLabelText('Execution Log');
     await user.click(executionLogButton);
-    screen.getByText('execution_log');
+    screen.getByText('workflow.log');
     screen.getByText('this is the text of a mock file');
   });
 
@@ -275,6 +275,7 @@ describe('BaseRunDetails - render smoke test', () => {
     const table = screen.getByRole('table');
     const logsLink = within(table).getAllByText('Logs');
     await user.click(logsLink[0]);
+    expect(screen.queryByLabelText('Download log')).not.toBeDefined;
     screen.getByText('Task Standard Out');
     screen.getByText(
       "Log file could not be loaded. If the workflow or task is still in progress, the log file likely hasn't been generated yet. Some logs may be unavailable if the workflow or task failed before they could be generated."
@@ -295,23 +296,23 @@ describe('BaseRunDetails - render smoke test', () => {
     // We click on a tab title, see a corresponding filename, and don't see other filenames.
     const stdoutButton = screen.getByLabelText('Task Standard Out');
     await user.click(stdoutButton);
-    expect(screen.getByText('stdout')).toBeVisible();
-    expect(screen.queryByText('stderr')).not.toBeInTheDocument();
+    expect(screen.getByText('stdout.txt')).toBeVisible();
+    expect(screen.queryByText('stderr.txt')).not.toBeInTheDocument();
 
     const stderrButton = screen.getByLabelText('Task Standard Err');
     await user.click(stderrButton);
-    expect(screen.getByText('stderr')).toBeVisible();
-    expect(screen.queryByText('stdout')).not.toBeInTheDocument();
+    expect(screen.getByText('stderr.txt')).toBeVisible();
+    expect(screen.queryByText('stdout.txt')).not.toBeInTheDocument();
 
     const backendStdoutButton = screen.getByLabelText('Backend Standard Out');
     await user.click(backendStdoutButton);
-    expect(screen.getByText('tes_stdout')).toBeVisible();
-    expect(screen.queryByText('stderr')).not.toBeInTheDocument();
+    expect(screen.getByText('stdout.txt')).toBeVisible();
+    expect(screen.queryByText('stderr.txt')).not.toBeInTheDocument();
 
     const backendStderrButton = screen.getByLabelText('Backend Standard Err');
     await user.click(backendStderrButton);
-    expect(screen.getByText('tes_stderr')).toBeVisible();
-    expect(screen.queryByText('stderr')).not.toBeInTheDocument();
+    expect(screen.getByText('stderr.txt')).toBeVisible();
+    expect(screen.queryByText('stdout.txt')).not.toBeInTheDocument();
   });
 
   it('correctly identifies azure URIs', () => {
@@ -326,28 +327,22 @@ describe('BaseRunDetails - render smoke test', () => {
     await user.click(showLogsLink); // Open the modal
 
     // Verify all the element titles are present
-    screen.getByText('Task Standard Out');
-    screen.getByText('Task Standard Err');
-    screen.getByText('Backend Standard Out');
-    screen.getByText('Backend Standard Err');
+    screen.getByLabelText('Task Standard Out');
+    screen.getByLabelText('Task Standard Err');
+    screen.getByLabelText('Backend Standard Out');
+    screen.getByLabelText('Backend Standard Err');
     screen.getByLabelText('Download log');
     // Verify the data loaded properly
     screen.getByText('this is the text of a mock file');
   });
 
-  it('shows an error when no text content is fetched', async () => {
+  it('shows download button AND error when URI is valid but text could not be parsed', async () => {
     const altMockObj = _.cloneDeep(mockObj);
     altMockObj.AzureStorage.blobMetadata = jest.fn(() => ({
       getData: () =>
         Promise.resolve({
-          uri: undefined,
-          sasToken: undefined,
-          fileName: undefined,
-          name: undefined,
-          lastModified: undefined,
-          size: undefined,
-          contentType: undefined,
           textContent: undefined,
+          azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
         }),
     }));
     Ajax.mockImplementation(() => altMockObj);
@@ -361,6 +356,7 @@ describe('BaseRunDetails - render smoke test', () => {
     screen.getByText('Task Standard Err');
     screen.getByText('Backend Standard Out');
     screen.getByText('Backend Standard Err');
+    screen.getByLabelText('Download log');
 
     // Verify the error is displayed.
     screen.getByText(

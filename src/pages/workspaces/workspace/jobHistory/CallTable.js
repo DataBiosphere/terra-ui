@@ -404,12 +404,12 @@ const CallTable = ({
                             'aria-label': 'Logs',
                             onClick: () =>
                               showLogModal('Task Logs', [
-                                { logUri: stdout, logTitle: 'Task Standard Out', logKey: 'stdout' },
-                                { logUri: stderr, logTitle: 'Task Standard Err', logKey: 'stderr' },
+                                { logUri: stdout, logTitle: 'Task Standard Out', logKey: 'stdout', logFilename: 'stdout.txt' },
+                                { logUri: stderr, logTitle: 'Task Standard Err', logKey: 'stderr', logFilename: 'stderr.txt' },
                                 // eslint-disable-next-line camelcase
-                                { logUri: tes_stdout, logTitle: 'Backend Standard Out', logKey: 'tes_stdout' },
+                                { logUri: tes_stdout, logTitle: 'Backend Standard Out', logKey: 'tes_stdout', logFilename: 'stdout.txt' },
                                 // eslint-disable-next-line camelcase
-                                { logUri: tes_stderr, logTitle: 'Backend Standard Err', logKey: 'tes_stderr' },
+                                { logUri: tes_stderr, logTitle: 'Backend Standard Err', logKey: 'tes_stderr', logFilename: 'stderr.txt' },
                               ]),
                           },
                           ['Logs']
