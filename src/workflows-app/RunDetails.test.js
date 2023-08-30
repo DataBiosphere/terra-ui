@@ -73,6 +73,7 @@ const mockObj = {
           size: '324',
           contentType: 'text/plain',
           textContent: 'this is the text of a mock file',
+          azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
         }),
     })),
     details: jest.fn(() => {
@@ -187,7 +188,7 @@ describe('BaseRunDetails - render smoke test', () => {
       const { executionStatus, backendStatus, start, end } = calls[taskName][0];
       const row = taskRows[index];
       within(row).getByText(taskName);
-      expect(within(row).getByLabelText('Logs')).toBeDefined;
+      within(row).getByLabelText('Logs');
       // Checking row text content for dates since querying by formatted date doesn't seem to work
       const statusObj = collapseCromwellStatus(executionStatus, backendStatus);
       const status = within(row).getAllByText(statusObj.label());
@@ -253,6 +254,7 @@ describe('BaseRunDetails - render smoke test', () => {
     const executionLogButton = screen.getByLabelText('Execution Log');
     await user.click(executionLogButton);
     screen.getByText('execution_log');
+    screen.getByText('this is the text of a mock file');
   });
 
   it('opens the log viewer modal when Logs is clicked', async () => {
@@ -275,7 +277,7 @@ describe('BaseRunDetails - render smoke test', () => {
     await user.click(logsLink[0]);
     screen.getByText('Task Standard Out');
     screen.getByText(
-      'Log file could not be loaded. Log files are only available after a task finishes, and some logs may not be available if the task failed before they were generated.'
+      "Log file could not be loaded. If the workflow or task is still in progress, the log file likely hasn't been generated yet. Some logs may be unavailable if the workflow or task failed before they could be generated."
     );
   });
 
@@ -312,11 +314,6 @@ describe('BaseRunDetails - render smoke test', () => {
     expect(screen.queryByText('stderr')).not.toBeInTheDocument();
   });
 
-  it('shows the execution log button', async () => {
-    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    screen.getByText('Execution Log');
-  });
-
   it('correctly identifies azure URIs', () => {
     expect(isAzureUri('https://coaexternalstorage.blob.core.windows.net/cromwell/user-inputs/inputFile.txt')).toBeTruthy;
     expect(isAzureUri('gs://some-bucket/some-file.txt')).toBeFalsy;
@@ -329,12 +326,46 @@ describe('BaseRunDetails - render smoke test', () => {
     await user.click(showLogsLink); // Open the modal
 
     // Verify all the element titles are present
-    expect(screen.getByText('Task Standard Out')).toBeInTheDocument();
-    expect(screen.getByText('Task Standard Err')).toBeInTheDocument();
-    expect(screen.getByText('Backend Standard Out')).toBeInTheDocument();
-    expect(screen.getByText('Backend Standard Err')).toBeInTheDocument();
+    screen.getByText('Task Standard Out');
+    screen.getByText('Task Standard Err');
+    screen.getByText('Backend Standard Out');
+    screen.getByText('Backend Standard Err');
+    screen.getByLabelText('Download log');
     // Verify the data loaded properly
-    // screen.getByText('this is the text of a mock file');
+    screen.getByText('this is the text of a mock file');
+  });
+
+  it('shows an error when no text content is fetched', async () => {
+    const altMockObj = _.cloneDeep(mockObj);
+    altMockObj.AzureStorage.blobMetadata = jest.fn(() => ({
+      getData: () =>
+        Promise.resolve({
+          uri: undefined,
+          sasToken: undefined,
+          fileName: undefined,
+          name: undefined,
+          lastModified: undefined,
+          size: undefined,
+          contentType: undefined,
+          textContent: undefined,
+        }),
+    }));
+    Ajax.mockImplementation(() => altMockObj);
+    const user = userEvent.setup();
+    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
+    const showLogsLink = screen.getByLabelText('Logs');
+    await user.click(showLogsLink); // Open the modal
+
+    // Verify all the element titles are present
+    screen.getByText('Task Standard Out');
+    screen.getByText('Task Standard Err');
+    screen.getByText('Backend Standard Out');
+    screen.getByText('Backend Standard Err');
+
+    // Verify the error is displayed.
+    screen.getByText(
+      "Log file could not be loaded. If the workflow or task is still in progress, the log file likely hasn't been generated yet. Some logs may be unavailable if the workflow or task failed before they could be generated."
+    );
   });
 
   it('filters out task list via task name search', async () => {

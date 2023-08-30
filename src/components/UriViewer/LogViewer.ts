@@ -13,7 +13,7 @@ import Modal from '../Modal';
 import { InfoBox } from '../PopupTrigger';
 /**
  * Information needed to preview a log file.
- * @member logUri - The URI of the log file. Must be a valid Azure blob URI. No SaS token should be appended: a fresh one will be obtained.
+ * @member logUri - The URI of the log file. Must be a valid Azure blob URI. No Sas token should be appended: a fresh one will be obtained.
  * @member logTitle - The title of the log. Displayed to the user as a tab title.
  * @member logKey - A unique key for this particular log.
  */
@@ -45,7 +45,7 @@ type SimpleTabProps = {
 
 type FetchedLogData = {
   textContent: string | undefined; // The literal characters of the log file.
-  downloadUri: string | undefined; // The URI to use for downloading the log file. May or may not have SaS token appended, depending on if the file is public or private.
+  downloadUri: string | undefined; // The URI to use for downloading the log file. May or may not have token appended, depending on if the file is public or private.
 };
 
 const modalMaxWidth = 1100;
@@ -72,6 +72,7 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ modalTitle, log
         const uri = _.isEmpty(response.azureSasStorageUrl) ? response.azureStorageUrl : response.azureSasStorageUrl;
         return { textContent: response.textContent, downloadUri: uri };
       } catch (e) {
+        console.error(e);
         console.error('Error fetching or parsing log content', e);
         return null;
       }
@@ -81,7 +82,11 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ modalTitle, log
 
   useOnMount(() => {
     fetchLogContent(logs[0].logUri).then((content) => {
-      setActiveTextContent(content?.textContent);
+      if (_.isEmpty(content?.textContent)) {
+        setActiveTextContent(null);
+      } else {
+        setActiveTextContent(content?.textContent);
+      }
       setActiveDownloadUri(content?.downloadUri);
     });
   });
@@ -89,13 +94,12 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ modalTitle, log
   useEffect(() => {
     const fetch = async (logUri: string) => {
       const res = await fetchLogContent(logUri);
-      if (_.isEmpty(res)) {
-        setActiveTextContent(null);
-        setActiveDownloadUri(undefined);
+      if (_.isEmpty(res?.textContent)) {
+        setActiveTextContent(null); // Fetch failed. Display error.
       } else {
         setActiveTextContent(res?.textContent);
-        setActiveDownloadUri(res?.downloadUri);
       }
+      setActiveDownloadUri(res?.downloadUri);
     };
 
     // when switching tabs, reset content to undefined while we fetch the new content.
@@ -115,7 +119,7 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ modalTitle, log
     }
     if (activeTextContent === null) {
       return div([
-        'Log file could not be loaded. Log files are only available after a task finishes, and some logs may not be available if the task failed before they were generated.',
+        "Log file could not be loaded. If the workflow or task is still in progress, the log file likely hasn't been generated yet. Some logs may be unavailable if the workflow or task failed before they could be generated.",
       ]);
     }
     return div([activeTextContent]);
@@ -191,6 +195,7 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ modalTitle, log
             h(
               ButtonOutline,
               {
+                'aria-label': 'Download log',
                 disabled: _.isEmpty(currentlyActiveLog?.logUri),
                 href: activeDownloadUri,
                 download: activeDownloadUri,

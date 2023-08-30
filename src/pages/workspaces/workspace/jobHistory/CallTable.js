@@ -319,7 +319,7 @@ const CallTable = ({
             {
               size: { basis: 200, grow: 1 },
               field: 'logs',
-              headerRenderer: () => h(HeaderCell, {}, ['Task Data']),
+              headerRenderer: () => h(HeaderCell, { fontWeight: 500 }, ['Task Data']),
               cellRenderer: ({ rowIndex }) => {
                 const {
                   taskName,
