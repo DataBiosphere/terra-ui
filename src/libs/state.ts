@@ -1,11 +1,10 @@
-import { AnyPromiseFn } from '@terra-ui-packages/core-utils';
+import { AnyPromiseFn, Atom, atom } from '@terra-ui-packages/core-utils';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
-import * as Utils from 'src/libs/utils';
 import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
-export const routeHandlersStore = Utils.atom<unknown[]>([]);
+export const routeHandlersStore = atom<unknown[]>([]);
 
-export const authStore = Utils.atom<any>({
+export const authStore = atom<any>({
   anonymousId: undefined,
   authContext: undefined,
   authTokenMetadata: {
@@ -38,8 +37,8 @@ export const userStatus = {
   disabled: 'disabled',
 };
 
-export const cookieReadyStore = Utils.atom(false);
-export const azureCookieReadyStore = Utils.atom({
+export const cookieReadyStore = atom(false);
+export const azureCookieReadyStore = atom({
   readyForRuntime: false,
   readyForApp: false,
 });
@@ -53,27 +52,27 @@ toggleStateAtom.update((v) => v || { notebooksTab: true });
 export const azurePreviewStore = staticStorageSlot(getLocalStorage(), 'azurePreview');
 azurePreviewStore.update((v) => v || false);
 
-export const notificationStore = Utils.atom<any[]>([]);
+export const notificationStore = atom<any[]>([]);
 
-export const contactUsActive = Utils.atom(false);
+export const contactUsActive = atom(false);
 
-export const workspaceStore = Utils.atom<any>(undefined);
+export const workspaceStore = atom<any>(undefined);
 
-export const workspacesStore = Utils.atom<WorkspaceWrapper[]>([]);
+export const workspacesStore = atom<WorkspaceWrapper[]>([]);
 
-export const rerunFailuresStatus = Utils.atom<unknown>(undefined);
+export const rerunFailuresStatus = atom<unknown>(undefined);
 
-export const errorNotifiedRuntimes = Utils.atom<unknown[]>([]);
+export const errorNotifiedRuntimes = atom<unknown[]>([]);
 
-export const errorNotifiedApps = Utils.atom<unknown[]>([]);
+export const errorNotifiedApps = atom<unknown[]>([]);
 
-export const knownBucketRequesterPaysStatuses = Utils.atom({});
+export const knownBucketRequesterPaysStatuses = atom({});
 
-export const requesterPaysProjectStore = Utils.atom<unknown>(undefined);
+export const requesterPaysProjectStore = atom<unknown>(undefined);
 
-export const runtimesStore = Utils.atom<unknown>(undefined);
+export const runtimesStore = atom<unknown>(undefined);
 
-export const workflowSelectionStore = Utils.atom({
+export const workflowSelectionStore = atom({
   key: undefined,
   entityType: undefined,
   entities: undefined,
@@ -87,13 +86,13 @@ export type AsyncImportJob = {
   };
 };
 
-export const asyncImportJobStore = Utils.atom<AsyncImportJob[]>([]);
+export const asyncImportJobStore = atom<AsyncImportJob[]>([]);
 
-export const snapshotsListStore = Utils.atom<unknown>(undefined);
+export const snapshotsListStore = atom<unknown>(undefined);
 
-export const snapshotStore = Utils.atom<unknown>(undefined);
+export const snapshotStore = atom<unknown>(undefined);
 
-export const dataCatalogStore = Utils.atom<any[]>([]);
+export const dataCatalogStore = atom<any[]>([]);
 
 type AjaxOverride = {
   fn: (fetch: AnyPromiseFn) => AnyPromiseFn;
@@ -107,7 +106,7 @@ type AjaxOverride = {
 
 declare global {
   interface Window {
-    ajaxOverridesStore: Utils.Atom<AjaxOverride[]>;
+    ajaxOverridesStore: Atom<AjaxOverride[]>;
     configOverridesStore: any;
   }
 }
@@ -118,7 +117,7 @@ declare global {
  * The fn should be a fetch wrapper (oldFetch => newFetch) that modifies the request process. (See ajaxOverrideUtils)
  * If present, filter should be a RegExp that is matched against the url to target specific requests.
  */
-export const ajaxOverridesStore = Utils.atom<AjaxOverride[]>([]);
+export const ajaxOverridesStore = atom<AjaxOverride[]>([]);
 window.ajaxOverridesStore = ajaxOverridesStore;
 
 /*
@@ -140,7 +139,7 @@ export const AppProxyUrlStatus = Object.freeze({
  * Status can be one of None, Ready and Error. The proxy url will be in 'state' field when 'status' is Ready.
  * When 'state' is Error the 'state' field will contain the error that was returned from Leo (if any).
  */
-export const workflowsAppStore = Utils.atom({
+export const workflowsAppStore = atom({
   workspaceId: undefined,
   wdsProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
   cbasProxyUrlState: { status: AppProxyUrlStatus.None, state: '' },
