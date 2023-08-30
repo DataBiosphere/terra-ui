@@ -25,9 +25,11 @@ export type LogInfo = {
 
 /**
  * Props for the LogViewer component.
+ * @member modalTitle - Should represent the group of logs being displayed. E.g. "Task Logs"
  * @member logs - An array of LogInfo objects.
  */
 export type LogViewerProps = {
+  modalTitle: string;
   logs: LogInfo[];
   onDismiss: () => void;
 };
@@ -49,7 +51,7 @@ type FetchedLogData = {
 const modalMaxWidth = 1100;
 const tabMaxWidth = modalMaxWidth / 4 - 20;
 
-export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ logs, onDismiss }: LogViewerProps) => {
+export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ modalTitle, logs, onDismiss }: LogViewerProps) => {
   const [currentlyActiveLog, setCurrentlyActiveLog] = _.isEmpty(logs)
     ? useState<LogInfo | undefined>(undefined)
     : useState<LogInfo | undefined>(logs[0]);
@@ -100,8 +102,8 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ logs, onDismiss
     setActiveTextContent(undefined);
     setActiveDownloadUri(undefined);
 
-    // tab switching set the currently active log
-    const uri = logs.find((log) => log.logKey === currentlyActiveLog?.logKey)?.logUri;
+    // tab switching set the currently active log (which triggers this effect). Fetch the content for the new log.
+    const uri = currentlyActiveLog?.logUri;
     if (!_.isEmpty(uri)) {
       fetch(uri);
     }
@@ -127,7 +129,7 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ logs, onDismiss
     Modal,
     {
       onDismiss,
-      title: 'Task Log Files',
+      title: modalTitle,
       titleChildren: h(
         InfoBox,
         {
@@ -138,6 +140,10 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ logs, onDismiss
           iconOverride: undefined,
         },
         [
+          div({ style: { fontWeight: 'bold' } }, ['Execution:']),
+          div({ style: { marginLeft: '1rem', marginBottom: '1rem' } }, [
+            'Each workflow has a single execution log which comes from the engine running your workflow. Errors in this log might indicate a Terra Systems issue, or a problem parsing your WDL.',
+          ]),
           div({ style: { fontWeight: 'bold' } }, ['Task Standard Out/Error:']),
           div({ style: { marginLeft: '1rem' } }, [
             'Task logs are from user-defined commands in your WDL. You might see an error in these logs if there was a logic or syntax error in a command, or something went wrong while running it.',

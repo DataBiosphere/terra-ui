@@ -247,6 +247,14 @@ describe('BaseRunDetails - render smoke test', () => {
     within(targetRow).getByText('Logs');
   });
 
+  it('opens the log viewer modal when Execution Logs is clicked', async () => {
+    const user = userEvent.setup();
+    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
+    const executionLogButton = screen.getByLabelText('Execution Log');
+    await user.click(executionLogButton);
+    screen.getByText('execution_log');
+  });
+
   it('opens the log viewer modal when Logs is clicked', async () => {
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));

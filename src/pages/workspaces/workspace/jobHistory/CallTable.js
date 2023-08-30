@@ -403,7 +403,7 @@ const CallTable = ({
                           {
                             'aria-label': 'Logs',
                             onClick: () =>
-                              showLogModal([
+                              showLogModal('Task Logs', [
                                 { logUri: stdout, logTitle: 'Task Standard Out', logKey: 'stdout' },
                                 { logUri: stderr, logTitle: 'Task Standard Err', logKey: 'stderr' },
                                 // eslint-disable-next-line camelcase

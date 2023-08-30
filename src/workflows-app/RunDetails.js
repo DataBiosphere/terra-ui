@@ -40,6 +40,7 @@ export const BaseRunDetails = (
   const [callObjects, setCallObjects] = useState({});
   const [failedTasks, setFailedTasks] = useState({});
   const [showLog, setShowLog] = useState(false);
+  const [logsModalTitle, setLogsModalTitle] = useState('');
   const [logsArray, setLogsArray] = useState([]);
 
   const [taskDataTitle, setTaskDataTitle] = useState('');
@@ -52,8 +53,9 @@ export const BaseRunDetails = (
   const stateRefreshTimer = useRef();
 
   const [sasToken, setSasToken] = useState('');
-  const showLogModal = useCallback((logsArray) => {
+  const showLogModal = useCallback((modalTitle, logsArray) => {
     setShowLog(true);
+    setLogsModalTitle(modalTitle);
     setLogsArray(logsArray);
   }, []);
 
@@ -238,7 +240,7 @@ export const BaseRunDetails = (
               }),
             ]
           ),
-          showLog && h(LogViewer, { logs: logsArray, onDismiss: () => setShowLog(false) }),
+          showLog && h(LogViewer, { modalTitle: logsModalTitle, logs: logsArray, onDismiss: () => setShowLog(false) }),
           showTaskData &&
             h(InputOutputModal, { title: taskDataTitle, jsonData: taskDataJson, onDismiss: () => setShowTaskData(false), sasToken }, []),
         ])
