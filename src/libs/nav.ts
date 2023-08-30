@@ -31,11 +31,17 @@ export const terraNavKeyValue: TerraNavKeyLookup = {
 };
 
 /**
- * type helper for nav keys to better enforce key names with snake-case
+ * type helper for nav keys to better enforce key names with 'snake-case'
+ * at dev (ts-compiler) time.  Useful for cases where a safe key value is desired,
+ * but the expected type is only a string.
  * @param key
  */
-export const terraNavKey = (key: TerraNavKey) => enforceType<TerraNavKey>(key);
+export const terraNavKey = (key: TerraNavKey): TerraNavKey => key;
 
+/**
+ * type checker that can be used for run-time type safety for TerraNavKey
+ * @param value
+ */
 export const isTerraNavKey = (value: unknown): value is TerraNavKey => {
   const maybeKey = value as string;
   return maybeKey in terraNavKeyValue;
