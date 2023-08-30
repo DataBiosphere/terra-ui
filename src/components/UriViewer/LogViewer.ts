@@ -66,7 +66,6 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ modalTitle, log
     async (azureBlobUri: string): Promise<FetchedLogData | null> => {
       if (!isAzureUri(azureBlobUri)) {
         console.error('Only Azure Blob URIs are supported for previewing log conent.');
-        console.error(azureBlobUri);
         return null;
       }
       try {
@@ -74,7 +73,6 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ modalTitle, log
         const uri = _.isEmpty(response.azureSasStorageUrl) ? response.azureStorageUrl : response.azureSasStorageUrl;
         return { textContent: response.textContent, downloadUri: uri };
       } catch (e) {
-        console.error(e);
         console.error('Error fetching or parsing log content', e);
         return null;
       }
@@ -148,7 +146,7 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ modalTitle, log
         [
           div({ style: { fontWeight: 'bold' } }, ['Execution:']),
           div({ style: { marginLeft: '1rem', marginBottom: '1rem' } }, [
-            'Each workflow has a single execution log which comes from the engine running your workflow. Errors in this log might indicate a Terra Systems issue, or a problem parsing your WDL.',
+            'Each workflow has a single execution log which comes from the engine running your workflow. Errors in this log might indicate a Terra systems issue, or a problem parsing your WDL.',
           ]),
           div({ style: { fontWeight: 'bold' } }, ['Task Standard Out/Error:']),
           div({ style: { marginLeft: '1rem' } }, [

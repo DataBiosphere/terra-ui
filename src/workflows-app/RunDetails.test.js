@@ -352,10 +352,10 @@ describe('BaseRunDetails - render smoke test', () => {
     await user.click(showLogsLink); // Open the modal
 
     // Verify all the element titles are present
-    screen.getByText('Task Standard Out');
-    screen.getByText('Task Standard Err');
-    screen.getByText('Backend Standard Out');
-    screen.getByText('Backend Standard Err');
+    screen.getByLabelText('Task Standard Out');
+    screen.getByLabelText('Task Standard Err');
+    screen.getByLabelText('Backend Standard Out');
+    screen.getByLabelText('Backend Standard Err');
     screen.getByLabelText('Download log');
 
     // Verify the error is displayed.
