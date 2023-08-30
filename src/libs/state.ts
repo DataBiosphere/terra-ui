@@ -23,6 +23,7 @@ export const authStore = atom<any>({
   profile: {},
   registrationStatus: undefined,
   sessionId: undefined,
+  sessionValid: true,
   sessionStartTime: -1,
   termsOfService: {},
   user: {},
