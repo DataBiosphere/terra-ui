@@ -1,5 +1,6 @@
 import 'src/libs/routes';
 
+import { ThemeProvider } from '@terra-ui-packages/components';
 import { h } from 'react-hyperscript-helpers';
 import { ReactNotifications } from 'react-notifications-component';
 import { AuthProvider } from 'react-oidc-context';
@@ -17,28 +18,31 @@ import ImportStatus from 'src/components/ImportStatus';
 import SupportRequest from 'src/components/SupportRequest';
 import { TitleManager } from 'src/components/TitleManager';
 import { getOidcConfig } from 'src/libs/auth';
+import { getEnabledBrand } from 'src/libs/brand-utils';
 import { PageViewReporter } from 'src/libs/events';
 import { LocationProvider, PathHashInserter, Router } from 'src/libs/nav';
 
 const Main = () => {
-  return h(LocationProvider, [
-    h(PathHashInserter),
-    h(CookieRejectModal),
-    h(CookieWarning),
-    h(ReactNotifications),
-    h(ImportStatus),
-    h(Favicon),
-    h(IdleStatusMonitor),
-    h(ErrorWrapper, [
-      h(TitleManager),
-      h(FirecloudNotification),
-      h(AuthenticatedCookieSetter),
-      h(AuthProvider, getOidcConfig(), [h(AuthStoreSetter)]),
-      h(AuthContainer, [h(Router)]),
+  return h(ThemeProvider, { theme: getEnabledBrand().theme }, [
+    h(LocationProvider, [
+      h(PathHashInserter),
+      h(CookieRejectModal),
+      h(CookieWarning),
+      h(ReactNotifications),
+      h(ImportStatus),
+      h(Favicon),
+      h(IdleStatusMonitor),
+      h(ErrorWrapper, [
+        h(TitleManager),
+        h(FirecloudNotification),
+        h(AuthenticatedCookieSetter),
+        h(AuthProvider, getOidcConfig(), [h(AuthStoreSetter)]),
+        h(AuthContainer, [h(Router)]),
+      ]),
+      h(PageViewReporter),
+      h(SupportRequest),
+      h(ConfigOverridesWarning),
     ]),
-    h(PageViewReporter),
-    h(SupportRequest),
-    h(ConfigOverridesWarning),
   ]);
 };
 
