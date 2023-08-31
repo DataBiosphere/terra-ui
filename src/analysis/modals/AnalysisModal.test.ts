@@ -283,6 +283,19 @@ describe('AnalysisModal', () => {
     expect(screen.queryByAltText('Create new Hail Batch app')).toBeNull();
   });
 
+  it('Azure - Cromwell renders correctly', async () => {
+    const user = userEvent.setup();
+    // Act
+    render(h(AnalysisModal, defaultAzureModalProps));
+
+    // Act
+    const button = screen.getByAltText('Create new Cromwell app');
+    await user.click(button);
+
+    expect(screen.getByText('Cromwell Cloud Environment'));
+    expect(screen.getByText('Create'));
+  });
+
   it('Azure - Renders Hail Batch when feature flag is enabled', () => {
     // Arrange
     asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true);
