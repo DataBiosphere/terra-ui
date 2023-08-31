@@ -31,6 +31,8 @@ export const authStore = atom<any>({
 
 export const getUser = () => authStore.get().user;
 
+export const getSessionId = () => (authStore.get().sessionId === undefined ? 'undefined' : authStore.get().sessionId);
+
 export const userStatus = {
   unregistered: 'unregistered',
   registeredWithoutTos: 'registeredWithoutTos',

@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
-import { isSessionExpired, isSessionValid, signOutAfterSessionTimeout, tryReloadAuthToken } from 'src/libs/auth';
+import { signOutAfterSessionTimeout, tryReloadAuthToken } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
-import { ajaxOverridesStore, authStore, getUser } from 'src/libs/state';
+import { ajaxOverridesStore, getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
 export const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } });
@@ -75,45 +75,23 @@ const retryAfterReloadingAuthToken = async (
   resource: RequestInfo | URL,
   options?: RequestInit
 ): Promise<Response> => {
-  const requestSessionId = authStore.get().sessionId;
-  if (isSessionValid(requestSessionId)) {
-    if (isSessionExpired()) {
+  const requestHasAuthHeader = _.isMatch(authOpts(), options as object);
+  try {
+    return await wrappedFetch(resource, options);
+  } catch (error) {
+    if (isUnauthorizedResponse(error) && requestHasAuthHeader) {
       const successfullyReloadedAuthToken: boolean = await tryReloadAuthToken();
       if (successfullyReloadedAuthToken) {
         const optionsWithNewAuthToken = _.merge(options, authOpts());
         return retryAfterReloadingAuthToken(wrappedFetch, resource, optionsWithNewAuthToken);
       }
-    }
-    const requestHasAuthHeader = _.isMatch(authOpts(), options as object);
-    try {
-      return await wrappedFetch(resource, options);
-    } catch (error) {
-      if (isUnauthorizedResponse(error) && requestHasAuthHeader) {
-        if (!isSessionValid) {
-          // console.log('Session is not valid after request was attempted');
-          throw new Error('Session is not valid after request was attempted');
-        }
-        const successfullyReloadedAuthToken: boolean = await tryReloadAuthToken();
-        if (successfullyReloadedAuthToken) {
-          const optionsWithNewAuthToken = _.merge(options, authOpts());
-          return retryAfterReloadingAuthToken(wrappedFetch, resource, optionsWithNewAuthToken);
-        }
-        if (!isSessionValid) {
-          // console.log('Session is not valid after auth token refresh was attempted');
-          throw new Error('Session is not valid after auth token refresh was attempted');
-        }
-        signOutAfterSessionTimeout();
-        // console.log('Session timed out (due to authToken refresh failure or expired refresh token)');
-        throw new Error('Session timed out (due to authToken refresh failure or expired refresh token)');
-      } else {
-        throw error;
-      }
+      signOutAfterSessionTimeout();
+      // console.log('Session timed out (due to authToken refresh failure or expired refresh token)');
+      throw new Error('Session timed out (due to authToken refresh failure or expired refresh token)');
+    } else {
+      throw error;
     }
   }
-  // this should not be an error as it is a normal logical flow
-  // TODO: change this to the appropriate rejection
-  // console.log('Session is not valid before request was attempted');
-  throw new Error('Session is not valid before request was attempted');
 };
 
 const withAppIdentifier = (wrappedFetch) => (url, options) => {
