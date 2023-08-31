@@ -4,7 +4,7 @@ import { authOpts, fetchBard, jsonBody } from 'src/libs/ajax/ajax-common';
 import { ensureAuthSettled } from 'src/libs/auth';
 import { withErrorIgnoring } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
-import { authStore, userStatus } from 'src/libs/state';
+import { authStore, getSessionId, userStatus } from 'src/libs/state';
 import { v4 as uuid } from 'uuid';
 
 export const Metrics = (signal?: AbortSignal) => {
@@ -25,7 +25,7 @@ export const Metrics = (signal?: AbortSignal) => {
         ...details,
         // Users who have not registered are considered anonymous users. Send an anonymized distinct_id in that case; otherwise the user identity is captured via the auth token.
         distinct_id: isRegistered ? undefined : authStore.get().anonymousId,
-        sessionId: authStore.get().sessionId,
+        sessionId: getSessionId(),
         appId: 'Saturn',
         hostname: window.location.hostname,
         appPath: Nav.getCurrentRoute().name,
