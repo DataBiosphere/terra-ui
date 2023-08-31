@@ -1,7 +1,14 @@
 import { NominalType } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { gpuTypes, machineTypes, zonesToGpus } from 'src/analysis/utils/gce-machines';
-import { RuntimeToolLabel, runtimeToolLabels, ToolLabel } from 'src/analysis/utils/tool-utils';
+import {
+  cloudRuntimeTools,
+  isRuntimeToolLabel,
+  isToolLabel,
+  RuntimeToolLabel,
+  runtimeToolLabels,
+  ToolLabel,
+} from 'src/analysis/utils/tool-utils';
 import { CloudContext } from 'src/libs/ajax/leonardo/models/core-models';
 import {
   AzureConfig,
@@ -11,7 +18,13 @@ import {
   isGceConfig,
   isGceWithPdConfig,
 } from 'src/libs/ajax/leonardo/models/runtime-config-models';
-import { DisplayRuntimeStatus, LeoRuntimeStatus, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
+import {
+  DisplayRuntimeStatus,
+  GetRuntimeItem,
+  LeoRuntimeImage,
+  LeoRuntimeStatus,
+  Runtime,
+} from 'src/libs/ajax/leonardo/models/runtime-models';
 import * as Utils from 'src/libs/utils';
 import { CloudProvider } from 'src/libs/workspace-utils';
 
@@ -102,6 +115,24 @@ export const trimRuntimesOldestFirst = (runtimes: Runtime[]): Runtime[] => {
   const runtimesWithoutDeleting: Runtime[] = _.remove({ status: 'Deleting' }, runtimes);
   const sortedRuntimes: Runtime[] = _.sortBy('auditInfo.createdDate', runtimesWithoutDeleting);
   return sortedRuntimes;
+};
+
+/**
+ * Get the first GCP-supported image URL on the runtime.
+ */
+export const getImageUrlFromRuntime = (
+  runtimeDetails: Pick<GetRuntimeItem, 'runtimeImages'> | undefined
+): string | undefined => {
+  const images: LeoRuntimeImage[] = runtimeDetails?.runtimeImages ?? [];
+  const gcpToolLabels: RuntimeToolLabel[] = cloudRuntimeTools.GCP.map(({ label }) => label);
+  const isGcpRuntimeImage = ({ imageType }) => {
+    if (isToolLabel(imageType) && isRuntimeToolLabel(imageType)) {
+      const imageToolLabel: RuntimeToolLabel = imageType;
+      return gcpToolLabels.includes(imageToolLabel);
+    }
+    return undefined;
+  };
+  return images.find(isGcpRuntimeImage)?.imageUrl;
 };
 
 // Status note: undefined means still loading and no runtime

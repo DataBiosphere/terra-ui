@@ -1,12 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { div, h } from 'react-hyperscript-helpers';
-import {
-  defaultAzureWorkspace,
-  defaultGoogleWorkspace,
-  galaxyDisk,
-  galaxyRunning,
-} from 'src/analysis/_testData/testData';
+import { galaxyDisk, galaxyRunning } from 'src/analysis/_testData/testData';
 import { ContextBar, ContextBarProps } from 'src/analysis/ContextBar';
 import { CloudEnvironmentModal } from 'src/analysis/modals/CloudEnvironmentModal';
 import { doesWorkspaceSupportCromwellAppForUser } from 'src/analysis/utils/app-utils';
@@ -17,13 +12,11 @@ import {
   getRuntimeCost,
   runtimeConfigCost,
 } from 'src/analysis/utils/cost-utils';
-import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { appToolLabels, isToolHidden, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { MenuTrigger } from 'src/components/PopupTrigger';
-import { locationTypes } from 'src/components/region-common';
 import { Ajax } from 'src/libs/ajax';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
-import { DecoratedPersistentDisk, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { defaultAzureMachineType, defaultAzureRegion } from 'src/libs/azure-utils';
 import { isCromwellAppVisible } from 'src/libs/config';
@@ -31,6 +24,11 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import {
+  defaultAzureWorkspace,
+  defaultGoogleBucketOptions,
+  defaultGoogleWorkspace,
+} from 'src/testing/workspace-fixtures';
 
 const GALAXY_COMPUTE_COST = 10;
 const GALAXY_DISK_COST = 1;
@@ -180,7 +178,11 @@ const cromwellDisk: PersistentDisk = {
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    value: 'pd-standard',
+    label: 'Standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -352,7 +354,7 @@ const jupyterLabRunning: Runtime = {
   status: 'Running',
 };
 
-const runtimeDisk: DecoratedPersistentDisk = {
+const runtimeDisk: PersistentDisk = {
   id: 15778,
   cloudContext: {
     cloudProvider: 'GCP',
@@ -379,12 +381,7 @@ const runtimeDisk: DecoratedPersistentDisk = {
   },
 };
 
-const defaultGoogleBucketOptions = {
-  googleBucketLocation: defaultLocation,
-  googleBucketType: locationTypes.default,
-  fetchedGoogleBucketLocation: undefined,
-};
-const defaultAzureStorageOptions = {
+const populatedAzureStorageOptions = {
   azureContainerRegion: 'eastus',
   azureContainerUrl: 'container-url',
   azureContainerSasUrl: 'container-url?sas',
@@ -407,7 +404,7 @@ const contextBarPropsForAzure: ContextBarProps = {
   appDataDisks: [],
   persistentDisks: [],
   refreshRuntimes: () => Promise.resolve(),
-  storageDetails: { ...defaultGoogleBucketOptions, ...defaultAzureStorageOptions },
+  storageDetails: { ...defaultGoogleBucketOptions, ...populatedAzureStorageOptions },
   refreshApps: () => Promise.resolve(),
   workspace: defaultAzureWorkspace,
 };

@@ -206,7 +206,11 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       );
 
     const getAzureEnvironmentView = () =>
-      Utils.switchCase(currentTool, [runtimeToolLabels.JupyterLab, renderAzureModal]);
+      Utils.switchCase(
+        currentTool,
+        [runtimeToolLabels.JupyterLab, renderAzureModal],
+        [appToolLabels.CROMWELL, () => renderAppModal(CromwellModalBase, appToolLabels.CROMWELL)]
+      );
 
     const renderComputeModal = () =>
       h(GcpComputeModalBase, {

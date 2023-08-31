@@ -119,12 +119,7 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
       wdsIamStatus == null,
       !!wdsIamStatus && wdsIamStatus !== 'unknown' && wdsIamStatus !== 'DOWN',
     ],
-    [
-      'Default Instance exists',
-      defaultInstanceExists,
-      defaultInstanceExists == null,
-      !!defaultInstanceExists && defaultInstanceExists !== 'unknown',
-    ],
+    ['Default Instance exists', defaultInstanceExists, defaultInstanceExists == null, defaultInstanceExists === 'true'],
   ];
 
   if (cloneSourceWorkspaceId !== null) {

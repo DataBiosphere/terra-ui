@@ -270,7 +270,7 @@ export const Directory = (props: DirectoryProps) => {
               [isExpanded && hasLoadedContents, () => 'angle-down'],
               [isExpanded && !hasLoadedContents, () => 'loadingSpinner'],
               [!isExpanded, () => 'angle-right']
-            ),
+            )!,
             {
               // @ts-expect-error
               color: isSelected ? selectedDirectoryColor : colors.accent(),

@@ -1,4 +1,4 @@
-import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/analysis/_testData/testData';
+import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 import { isValidWsExportTarget, WorkspaceWrapper } from './workspace-utils';
 
