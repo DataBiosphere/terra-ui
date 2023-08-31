@@ -149,11 +149,14 @@ afterEach(() => {
 });
 
 const cromwellRunning: App = {
+  workspaceId: null,
+  accessScope: null,
   appName: 'terra-app-83f46705-524c-4fc8-xcyc-97fdvcfby14f',
   appType: 'CROMWELL',
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-28T20:28:01.998494Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-28T20:28:01.998494Z',
   },
   cloudContext: {
@@ -175,6 +178,7 @@ const cromwellDisk: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-26T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
@@ -196,7 +200,10 @@ const cromwellDisk: PersistentDisk = {
 };
 
 const cromwellOnAzureRunning: App = {
+  workspaceId: null,
+  accessScope: null,
   appName: 'test-cromwell-app',
+  diskName: null,
   cloudContext: {
     cloudProvider: 'AZURE',
     cloudResource: 'path/to/cloud/resource',
@@ -218,6 +225,7 @@ const cromwellOnAzureRunning: App = {
   auditInfo: {
     creator: 'abc.testerson@gmail.com',
     createdDate: '2023-01-18T23:28:47.605176Z',
+    destroyedDate: null,
     dateAccessed: '2023-01-18T23:28:47.605176Z',
   },
   appType: 'CROMWELL',
@@ -241,6 +249,7 @@ const rstudioRuntime: Runtime = {
   auditInfo: {
     creator: 'ncl.hedwig@gmail.com',
     createdDate: '2022-09-08T19:46:37.396597Z',
+    destroyedDate: null,
     dateAccessed: '2022-09-08T19:47:21.206Z',
   },
   runtimeConfig: {
@@ -283,6 +292,7 @@ const jupyter: Runtime = {
   auditInfo: {
     creator: 'testuser123@broad.com',
     createdDate: '2022-07-18T18:35:32.012698Z',
+    destroyedDate: null,
     dateAccessed: '2022-07-18T21:44:17.565Z',
   },
   runtimeConfig: {
@@ -316,6 +326,7 @@ const jupyter: Runtime = {
 const jupyterLabRunning: Runtime = {
   auditInfo: {
     createdDate: '2022-09-09T20:20:06.982538Z',
+    destroyedDate: null,
     creator: 'ncl.hedwig@gmail.com',
     dateAccessed: '2022-09-09T20:20:08.185Z',
   },
@@ -366,6 +377,7 @@ const runtimeDisk: PersistentDisk = {
   auditInfo: {
     creator: 'testuser123@broad.com',
     createdDate: '2022-07-18T18:35:32.012698Z',
+    destroyedDate: null,
     dateAccessed: '2022-07-18T20:34:56.092Z',
   },
   size: 50,
@@ -410,7 +422,10 @@ const contextBarPropsForAzure: ContextBarProps = {
 };
 
 const hailBatchAppRunning: App = {
+  workspaceId: null,
+  accessScope: null,
   appName: 'test-hail-batch-app',
+  diskName: null,
   cloudContext: {
     cloudProvider: 'AZURE',
     cloudResource: 'path/to/cloud/resource',
@@ -429,6 +444,7 @@ const hailBatchAppRunning: App = {
   auditInfo: {
     creator: 'abc.testerson@gmail.com',
     createdDate: '2023-01-18T23:28:47.605176Z',
+    destroyedDate: null,
     dateAccessed: '2023-01-18T23:28:47.605176Z',
   },
   appType: 'HAIL_BATCH',

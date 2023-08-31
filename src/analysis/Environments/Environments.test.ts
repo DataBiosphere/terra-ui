@@ -12,7 +12,7 @@ import {
   generateTestAppWithGoogleWorkspace,
   generateTestDiskWithAzureWorkspace,
   generateTestDiskWithGoogleWorkspace,
-  generateTestGoogleRuntime,
+  generateTestListGoogleRuntime,
 } from 'src/analysis/_testData/testData';
 import { EnvironmentNavActions, Environments } from 'src/analysis/Environments/Environments';
 import { defaultComputeZone } from 'src/analysis/utils/runtime-utils';
@@ -66,6 +66,7 @@ jest.mock('src/libs/state', () => ({
 }));
 
 const listRuntimesV2: () => Promise<ListRuntimeItem[]> = jest.fn();
+
 const listWithoutProject: () => Promise<ListAppResponse[]> = jest.fn();
 const list: () => Promise<PersistentDisk[]> = jest.fn();
 const mockFetchLeo = jest.fn();
@@ -107,6 +108,7 @@ const defaultMockAjax: Partial<AjaxContract> = {
   Disks: mockDisks as AjaxContract['Disks'],
   Metrics: mockMetrics as AjaxContract['Metrics'],
 };
+
 describe('Environments', () => {
   beforeEach(() => {
     asMockedFn(useWorkspaces).mockReturnValue(defaultUseWorkspacesProps);
@@ -128,7 +130,7 @@ describe('Environments', () => {
 
   describe('Runtimes - ', () => {
     it('Renders page correctly with runtimes and no found workspaces', async () => {
-      const runtime1 = generateTestGoogleRuntime();
+      const runtime1 = generateTestListGoogleRuntime();
       asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime1]));
       asMockedFn(useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
@@ -146,7 +148,7 @@ describe('Environments', () => {
     });
 
     it('Renders page correctly with a runtime', async () => {
-      const runtime1 = generateTestGoogleRuntime();
+      const runtime1 = generateTestListGoogleRuntime();
       asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime1]));
 
       await act(async () => {
@@ -169,7 +171,7 @@ describe('Environments', () => {
     });
 
     it('Renders page correctly with multiple runtimes and workspaces', async () => {
-      const runtime1 = generateTestGoogleRuntime();
+      const runtime1 = generateTestListGoogleRuntime();
       const runtime2 = azureRuntime;
 
       asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime1, runtime2]));
@@ -238,8 +240,8 @@ describe('Environments', () => {
     });
 
     it('Renders buttons for runtimes properly', async () => {
-      const runtime1 = generateTestGoogleRuntime();
-      const runtime2 = generateTestGoogleRuntime({ status: runtimeStatuses.deleting.leoLabel });
+      const runtime1 = generateTestListGoogleRuntime();
+      const runtime2 = generateTestListGoogleRuntime({ status: runtimeStatuses.deleting.leoLabel });
       const runtime3 = azureRuntime;
       const runtime4: Runtime = { ...azureRuntime, status: runtimeStatuses.error.leoLabel };
 
@@ -298,7 +300,7 @@ describe('Environments', () => {
     });
 
     it('should hide pause button where user is not creator of runtime', async () => {
-      const runtime1 = generateTestGoogleRuntime();
+      const runtime1 = generateTestListGoogleRuntime();
 
       // the order in the below array is the default sort order of the table
       asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime1]));
@@ -325,7 +327,7 @@ describe('Environments', () => {
 
     it.each([
       {
-        runtime: { ...generateTestGoogleRuntime(), workspaceId: defaultGoogleWorkspace.workspace.workspaceId },
+        runtime: { ...generateTestListGoogleRuntime(), workspaceId: defaultGoogleWorkspace.workspace.workspaceId },
         workspace: defaultGoogleWorkspace,
       },
       { runtime: azureRuntime, workspace: defaultAzureWorkspace },
@@ -355,7 +357,7 @@ describe('Environments', () => {
 
     it.each([
       { runtime: azureRuntime, workspace: defaultAzureWorkspace },
-      { runtime: generateTestGoogleRuntime(), workspace: defaultGoogleWorkspace },
+      { runtime: generateTestListGoogleRuntime(), workspace: defaultGoogleWorkspace },
     ])('Behaves properly when we click pause/delete for azure/gce vm', async ({ runtime, workspace }) => {
       const user = userEvent.setup();
 
@@ -405,7 +407,7 @@ describe('Environments', () => {
 
     it.each([
       {
-        runtime: { ...generateTestGoogleRuntime(), status: runtimeStatuses.error.leoLabel },
+        runtime: { ...generateTestListGoogleRuntime(), status: runtimeStatuses.error.leoLabel },
         workspace: defaultGoogleWorkspace,
       },
       { runtime: { ...azureRuntime, status: runtimeStatuses.error.leoLabel }, workspace: defaultAzureWorkspace },
