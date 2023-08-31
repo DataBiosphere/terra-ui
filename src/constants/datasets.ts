@@ -1,6 +1,6 @@
 // name must be name from Data Explorer dataset.json
 // authDomain must be authorization_domain from Data Explorer dataset.json
-const datasets = [
+const datasets: { name: string; origin: string; authDomain?: string; partner?: string }[] = [
   {
     name: '1000 Genomes',
     origin: 'https://test-data-explorer.appspot.com',

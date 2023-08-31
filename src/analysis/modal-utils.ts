@@ -41,25 +41,33 @@ export const buildExistingEnvironmentConfig = (
   const runtimeConfig = currentRuntimeDetails?.runtimeConfig;
   const cloudService = runtimeConfig?.cloudService;
   const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0;
+  const hasGpu = computeConfig.hasGpu;
   const gpuConfig = runtimeConfig?.gpuConfig;
   const toolLabel = getToolLabelFromCloudEnv(currentRuntimeDetails);
   return {
-    hasGpu: computeConfig.hasGpu,
-    autopauseThreshold: computeConfig.autopauseThreshold,
+    hasGpu,
+    autopauseThreshold: currentRuntimeDetails?.autopauseThreshold,
     runtime: currentRuntimeDetails
       ? {
           cloudService,
           toolDockerImage: getImageUrlFromRuntime(currentRuntimeDetails),
           tool: toolLabel,
-          ...(currentRuntimeDetails?.jupyterUserScriptUri && {
-            jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri,
-          }),
+          ...(currentRuntimeDetails?.jupyterUserScriptUri
+            ? {
+                jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri,
+              }
+            : {}),
+          ...(currentRuntimeDetails?.timeoutInMinutes
+            ? {
+                timeoutInMinutes: currentRuntimeDetails?.timeoutInMinutes,
+              }
+            : {}),
           ...(cloudService === cloudServices.GCE
             ? {
                 zone: computeConfig.computeZone,
                 region: computeConfig.computeRegion,
                 machineType: runtimeConfig.machineType || getDefaultMachineType(false, toolLabel),
-                ...(computeConfig.hasGpu && gpuConfig ? { gpuConfig } : {}),
+                ...(hasGpu && gpuConfig ? { gpuConfig } : {}),
                 bootDiskSize: runtimeConfig.bootDiskSize,
                 ...(runtimeConfig.persistentDiskId
                   ? {

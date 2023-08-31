@@ -233,6 +233,7 @@ export const GcpComputeModalBase = ({
   const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState('');
   const [runtimeType, setRuntimeType] = useState(runtimeTypes.gceVm);
   const [computeConfig, setComputeConfig] = useState({
+    bootDiskSize: defaultGceBootDiskSize,
     diskSize: defaultGcePersistentDiskSize,
     diskType: defaultPersistentDiskType.value,
     // The false here is valid because the modal never opens to dataproc as the default
@@ -462,14 +463,15 @@ export const GcpComputeModalBase = ({
               cloudService,
               toolDockerImage: isCustomSelectedImage ? customImageUrl : selectedImage?.url,
               tool: selectedImage?.toolLabel ?? getToolLabelFromCloudEnv(existingRuntime),
-              ...(jupyterUserScriptUri && { jupyterUserScriptUri }),
+              ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {}),
+              ...(timeoutInMinutes ? { timeoutInMinutes } : {}),
               ...(cloudService === cloudServices.GCE
                 ? {
                     zone: computeConfig.computeZone,
                     region: computeConfig.computeRegion,
                     machineType: computeConfig.masterMachineType || getDefaultMachineType(false, getToolLabelFromCloudEnv(existingRuntime)),
                     ...(computeConfig.gpuEnabled ? { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } } : {}),
-                    bootDiskSize: existingRuntime?.bootDiskSize,
+                    bootDiskSize: computeConfig.bootDiskSize,
                     ...(shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected)
                       ? {
                           persistentDiskAttached: true,
@@ -658,9 +660,7 @@ export const GcpComputeModalBase = ({
     });
   };
 
-  const updateComputeConfig = _.curry((key, value) => {
-    setComputeConfig(_.set(key, value));
-  });
+  const updateComputeConfig = _.curry((key, value) => setComputeConfig(_.set(key, value)));
 
   const willDeleteBuiltinDisk = () => {
     const { runtime: existingRuntime } = getExistingEnvironmentConfig();
@@ -758,16 +758,16 @@ export const GcpComputeModalBase = ({
               ...persistentDiskDetails,
               diskType: diskTypeName,
             }
-          : undefined
+          : null
       );
-      setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '');
+      setJupyterUserScriptUri(runtimeDetails?.jupyterUserScriptUri ?? '');
 
       const runtimeImageUrl = getImageUrlFromRuntime(runtimeDetails);
       const locationType = getLocationType(location);
       const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType);
-      const runtimeConfig = currentRuntimeDetails?.runtimeConfig || computeConfig;
+      const runtimeConfig = runtimeDetails?.runtimeConfig || computeConfig;
       const gpuConfig = runtimeConfig?.gpuConfig;
-      const autopauseThresholdCalculated = currentRuntimeDetails ? currentRuntimeDetails.autopauseThreshold : defaultAutopauseThreshold;
+      const autopauseThresholdCalculated = runtimeDetails?.autopauseThreshold ?? defaultAutopauseThreshold;
       const newRuntimeType = Utils.switchCase(
         runtimeConfig?.cloudService,
         [cloudServices.DATAPROC, () => (runtimeConfig.numberOfWorkers === 0 ? runtimeTypes.dataprocSingleNode : runtimeTypes.dataprocCluster)],
@@ -785,7 +785,7 @@ export const GcpComputeModalBase = ({
       setRuntimeType(newRuntimeType);
       setComputeConfig({
         bootDiskSize: runtimeConfig?.bootDiskSize ?? defaultGceBootDiskSize,
-        diskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
+        diskSize: persistentDiskDetails?.size || defaultGcePersistentDiskSize,
         diskType: diskTypeName ?? defaultPersistentDiskType.value,
         masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
         masterDiskSize,
@@ -811,7 +811,7 @@ export const GcpComputeModalBase = ({
   const renderActionButton = () => {
     const { runtime: existingRuntime, hasGpu } = getExistingEnvironmentConfig();
     const { runtime: desiredRuntime } = getDesiredEnvironmentConfig();
-    const buttonModeProps = Utils.cond(
+    const commonButtonProps = Utils.cond(
       [
         hasGpu && viewMode !== 'deleteEnvironment',
         () => ({ disabled: true, tooltip: 'Cloud compute with GPU(s) cannot be updated. Please delete it and create a new one.' }),
@@ -826,50 +826,48 @@ export const GcpComputeModalBase = ({
           viewMode !== 'deleteEnvironment',
         () => ({ disabled: true, tooltip: 'Cannot create environment in location differing from existing persistent disk location.' }),
       ],
-      [
-        viewMode !== 'deleteEnvironment',
-        () => ({ disabled: !!errors || !hasChanges(), tooltip: errors ? Utils.summarizeErrors(errors) : 'No changes' }),
-      ],
-      () => ({ disabled: !!errors, tooltip: Utils.summarizeErrors(errors) })
+      [!hasChanges() && viewMode !== 'deleteEnvironment', () => ({ disabled: true })],
+      [errors, () => ({ disabled: true, tooltip: Utils.summarizeErrors(errors) })],
+      () => ({ disabled: false })
     );
 
     const isRuntimeError = existingRuntime?.status === 'Error';
-    const shouldErrorDisableUpdate = existingRuntime?.toolDockerImage === desiredRuntime?.toolDockerImage;
-    const isUpdateDisabled = getIsRuntimeBusy(currentRuntimeDetails) || (shouldErrorDisableUpdate && isRuntimeError);
+    const isSameImage = existingRuntime?.toolDockerImage === desiredRuntime?.toolDockerImage;
+    const isUpdateDisabledByRuntimeStatus = getIsRuntimeBusy(currentRuntimeDetails) || (isRuntimeError && isSameImage);
 
     const canShowWarning = viewMode === undefined;
     const canShowEnvironmentWarning = _.includes(viewMode, [undefined, 'customImageWarning']);
 
     return Utils.cond(
       [
-        canShowWarning && isCustomSelectedImage && existingRuntime?.toolDockerImage !== desiredRuntime?.toolDockerImage,
-        () => h(ButtonPrimary, { ...buttonModeProps, onClick: () => setViewMode('customImageWarning') }, ['Next']),
+        canShowWarning && isCustomSelectedImage && !isSameImage,
+        () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('customImageWarning') }, ['Next']),
       ],
       [
         canShowEnvironmentWarning && (willDeleteBuiltinDisk() || willDeletePersistentDisk() || willRequireDowntime() || willDetachPersistentDisk()),
-        () => h(ButtonPrimary, { ...buttonModeProps, onClick: () => setViewMode('environmentWarning') }, ['Next']),
+        () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('environmentWarning') }, ['Next']),
       ],
       [
         canShowWarning && isDifferentLocation(),
-        () => h(ButtonPrimary, { ...buttonModeProps, onClick: () => setViewMode('differentLocationWarning') }, ['Next']),
+        () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('differentLocationWarning') }, ['Next']),
       ],
       [
         canShowWarning && !isUSLocation(computeConfig.computeRegion),
-        () => h(ButtonPrimary, { ...buttonModeProps, onClick: () => setViewMode('nonUSLocationWarning') }, ['Next']),
+        () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('nonUSLocationWarning') }, ['Next']),
       ],
       () =>
         h(
           ButtonPrimary,
           {
-            ...buttonModeProps,
+            ...commonButtonProps,
+            disabled: isUpdateDisabledByRuntimeStatus || commonButtonProps.disabled,
             onClick: () => {
               applyChanges();
             },
-            disabled: isUpdateDisabled || buttonModeProps.disabled,
             tooltipSide: 'left',
             tooltip: Utils.cond(
-              [isUpdateDisabled, () => `Cannot perform change on environment in (${currentRuntimeDetails.status}) status`],
-              [buttonModeProps.disabled, () => buttonModeProps.tooltip],
+              [isUpdateDisabledByRuntimeStatus, () => `Cannot perform change on environment in (${currentRuntimeDetails.status}) status`],
+              [commonButtonProps.disabled, () => commonButtonProps.tooltip],
               () => 'Update Environment'
             ),
           },
@@ -1076,7 +1074,7 @@ export const GcpComputeModalBase = ({
               {
                 checked: computeConfig.gpuEnabled,
                 disabled: gpuCheckboxDisabled,
-                onChange: (v) => updateComputeConfig('gpuEnabled', v),
+                onChange: updateComputeConfig('gpuEnabled'),
               },
               [
                 span(['Enable GPUs ', betaVersionTag]),
@@ -1417,7 +1415,10 @@ export const GcpComputeModalBase = ({
 
   const renderDebugger = () => {
     const makeHeader = (text) => div({ style: { fontSize: 20, margin: '0.5rem 0' } }, [text]);
-    const makeJSON = (value) => div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'Menlo, monospace' } }, [JSON.stringify(value, null, 2)]);
+    const makeJSON = (value) => {
+      const formattedValue = _.mapValues((v) => v ?? `${v}`, value);
+      return div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'Menlo, monospace' } }, [JSON.stringify(formattedValue, null, 2)]);
+    };
     return showDebugger
       ? div(
           { style: { position: 'fixed', top: 0, left: 0, bottom: 0, right: '50vw', backgroundColor: 'white', padding: '1rem', overflowY: 'auto' } },
@@ -1435,6 +1436,7 @@ export const GcpComputeModalBase = ({
               willDeleteBuiltinDisk: !!willDeleteBuiltinDisk(),
               willDeletePersistentDisk: !!willDeletePersistentDisk(),
               willRequireDowntime: !!willRequireDowntime(),
+              hasChanges: !!hasChanges(),
             }),
           ]
         )

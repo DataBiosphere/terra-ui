@@ -1,3 +1,4 @@
+import { atom } from '@terra-ui-packages/core-utils';
 import { createHashHistory as createHistory } from 'history';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
@@ -5,9 +6,8 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { useOnMount, useStore } from 'src/libs/react-utils';
 import { routeHandlersStore } from 'src/libs/state';
-import * as Utils from 'src/libs/utils';
 
-export const blockNav = Utils.atom(() => Promise.resolve());
+export const blockNav = atom(() => Promise.resolve());
 
 export const history = createHistory({
   hashType: 'noslash',
