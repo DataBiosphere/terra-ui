@@ -405,7 +405,8 @@ const logPageResponses = (page) => {
     if (shouldLogRequest) {
       const method = request.method();
       const status = response.status();
-      console.log('page.http', `${method} ${status} ${url}`);
+      const timing = response.timing();
+      console.log('page.http', `${method} ${status} ${url} ${timing.receiveHeadersEnd}ms`);
 
       const isErrorResponse = status >= 400;
       if (isErrorResponse) {

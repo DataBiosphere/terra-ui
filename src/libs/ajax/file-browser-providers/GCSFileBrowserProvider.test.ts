@@ -48,6 +48,7 @@ describe('GCSFileBrowserProvider', () => {
         [
           undefined,
           () => ({
+            kind: 'storage#objects',
             items: [gcsObject('a-file.txt'), gcsObject('b-file.txt')],
             prefixes: ['a-prefix/'],
             nextPageToken: '2',
@@ -56,6 +57,7 @@ describe('GCSFileBrowserProvider', () => {
         [
           '2',
           () => ({
+            kind: 'storage#objects',
             items: [gcsObject('c-file.txt'), gcsObject('d-file.txt')],
             prefixes: ['b-prefix/'],
             nextPageToken: '3',
@@ -64,6 +66,7 @@ describe('GCSFileBrowserProvider', () => {
         [
           '3',
           () => ({
+            kind: 'storage#objects',
             prefixes: ['c-prefix/', 'd-prefix/'],
           }),
         ],

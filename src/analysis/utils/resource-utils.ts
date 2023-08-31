@@ -23,10 +23,12 @@ export const isResourceDeletable = (resourceType, resource: App | PersistentDisk
       ['disk', () => ['failed', 'ready']],
       [
         Utils.DEFAULT,
-        () =>
+        () => {
           console.error(
             `Cannot determine deletability; resource type ${resourceType} must be one of runtime, app or disk.`
-          ),
+          );
+          return undefined;
+        },
       ]
     )
   );

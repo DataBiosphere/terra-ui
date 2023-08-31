@@ -1,4 +1,4 @@
-import { ErrorState, isFetchResponse, LoadedState } from '@terra-ui-packages/core-utils';
+import { ErrorState, LoadedState } from '@terra-ui-packages/core-utils';
 import { useCallback, useEffect, useState } from 'react';
 import { usePrevious } from 'src/libs/react-utils';
 
@@ -68,7 +68,7 @@ export const useLoadedData = <T>(hookArgs?: UseLoadedDataArgs<T>): UseLoadedData
         state: result,
       });
     } catch (err: unknown) {
-      const error = isFetchResponse(err) ? Error(await err.text()) : err;
+      const error = err instanceof Response ? Error(await err.text()) : err;
       setLoadedData((previousLoadedData) => {
         const previousState = previousLoadedData.status !== 'None' ? previousLoadedData.state : null;
         const errorResult: ErrorState<T, unknown> = {

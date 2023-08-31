@@ -14,7 +14,6 @@ import RequesterPaysModal from 'src/components/RequesterPaysModal';
 import { SimpleTable, TooltipCell } from 'src/components/table';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { WorkspaceTagSelect } from 'src/components/workspace-utils';
-import { displayConsentCodes, displayLibraryAttributes } from 'src/data/workspace-attributes';
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg';
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg';
 import { Ajax } from 'src/libs/ajax';
@@ -33,6 +32,7 @@ import * as Utils from 'src/libs/utils';
 import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
 import SignIn from 'src/pages/SignIn';
 import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic';
+import { displayConsentCodes, displayLibraryAttributes } from 'src/pages/workspaces/workspace/library-attributes';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 const styles = {

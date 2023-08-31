@@ -164,7 +164,7 @@ commands:
             - deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
       - run:
           working_directory: integration-tests
-          command: yarn install --immutable-cache
+          command: yarn install --immutable
       - when:
           condition: << parameters.local >>
           steps:
@@ -226,7 +226,7 @@ jobs:
       - restore_cache:
           keys:
             - deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
-      - run: yarn install --immutable-cache
+      - run: yarn install --immutable
       - run: yarn run build-packages
       - run: yarn run build
       - run: yarn eslint --max-warnings=0 .

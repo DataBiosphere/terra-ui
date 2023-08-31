@@ -98,11 +98,7 @@ describe('useLoadedData hook', () => {
     });
     const hookResult2: UseLoadedDataResult<TestData> = hookRender.result.current;
 
-    const mockFetchResponse: Partial<Response> = {
-      status: 500,
-      statusText: 'Server Error',
-      text: () => Promise.resolve('BOOM!'),
-    };
+    const mockFetchResponse = new Response('BOOM!', { status: 500, statusText: 'Server Error' });
     await act(async () => {
       controller.reject(mockFetchResponse);
     });

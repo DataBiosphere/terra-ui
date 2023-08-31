@@ -2,6 +2,7 @@ export const JUPYTERLAB_GCP_FEATURE_ID = 'jupyterlab-gcp';
 export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP';
 export const HAIL_BATCH_AZURE_FEATURE_ID = 'hail-batch-azure';
 export const ENABLE_CROMWELL_APP_CALL_CACHING = 'enableCromwellAppCallCaching';
+export const ENABLE_AZURE_COLLABORATIVE_WORKFLOWS = 'enableCollborativeWorkflows';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
 type GroupsList = readonly [string, ...string[]];
@@ -87,6 +88,15 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
       'Enabling this feature will allow you to configure call caching for Cromwell apps running in Azure workspaces. Workspace must be running Cromwell and CBAS versions that support Azure call caching.',
     feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent(
       'Feedback on Cromwell call caching configuration (Azure)'
+    )}`,
+  },
+  {
+    id: ENABLE_AZURE_COLLABORATIVE_WORKFLOWS,
+    title: 'Azure Collaborative Workflows',
+    description:
+      'Enabling this feature will allow for workspaces to become collaborative with other users to run workflows and read workspace data',
+    feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent(
+      'Feedback on Azure Collaborative Workflows experience.'
     )}`,
   },
 ];

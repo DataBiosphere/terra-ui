@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { version } from 'src/data/gce-machines';
+import { version } from 'src/analysis/utils/gce-machines';
 import {
   appIdentifier,
   authOpts,

@@ -2,12 +2,11 @@ module.exports = {
   extends: ['airbnb-typescript-prettier'],
   settings: {
     'import/resolver': {
-      'eslint-import-resolver-custom-alias': {
-        alias: {
-          src: './src',
-          types: './types',
-        },
-        extensions: ['.js', '.ts'],
+      typescript: {
+        project: [
+          'tsconfig.json',
+          'packages/*/tsconfig.json',
+        ],
       },
     },
   },
@@ -22,6 +21,8 @@ module.exports = {
     'react/destructuring-assignment': 'off',
     // Use TypeScript instead of PropTypes for new code.
     'react/forbid-prop-types': 'off',
+    // Allow writing components as arrow functions.
+    'react/function-component-definition': 'off',
     'react/prop-types': 'off',
     'react/require-default-props': 'off',
     'react/sort-comp': 'off',
@@ -29,6 +30,11 @@ module.exports = {
 
     'import/named': 'off',
     'import/no-cycle': 'off',
+    // With eslint-import-resolver-typescript, ESLint sees 'date-fns' and 'date-fns/fp' as
+    // duplicates and combines them into one import from 'date-fns'.
+    'import/no-duplicates': 'off',
+    // Allow tests' dependencies to be listed in devDependencies or dependencies.
+    'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/*.test.{js,ts}'] }],
     'import/no-named-as-default': 'off',
     // Named exports are more convenient for mocking.
     'import/prefer-default-export': 'off',

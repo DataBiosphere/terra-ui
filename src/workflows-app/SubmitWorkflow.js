@@ -1,6 +1,6 @@
 import { Fragment, useCallback, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
-import { getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
+import { doesWorkspaceSupportCromwellAppForUser, getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
 import { appToolLabels, appTools } from 'src/analysis/utils/tool-utils';
 import { ButtonOutline, Clickable } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
@@ -14,10 +14,11 @@ import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-ut
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
 import FindWorkflowModal from 'src/workflows-app/components/FindWorkflowModal';
 import { SavedWorkflows } from 'src/workflows-app/components/SavedWorkflows';
 import { WorkflowsAppLauncherCard } from 'src/workflows-app/components/WorkflowsAppLauncherCard';
-import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
+import { doesAppProxyUrlExist, getCromwellUnsupportedMessage, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
@@ -126,51 +127,55 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       }
     });
 
-    return loading
-      ? centeredSpinner()
-      : div([
-          !pageReady && h(WorkflowsAppLauncherCard, { onClick: createWorkflowsApp, disabled: launcherDisabled }),
-          pageReady &&
-            div({ style: { margin: '2rem 4rem' } }, [
-              div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
-                h2(['Submit a workflow']),
-                h(
-                  ButtonOutline,
-                  {
-                    onClick: () =>
-                      Nav.goToPath('workspace-workflows-app-submission-history', {
-                        name,
-                        namespace,
-                      }),
-                  },
-                  ['Submission history']
-                ),
-              ]),
-              div(['Run a workflow in Terra using Cromwell engine. Full feature workflow submission coming soon.']),
-              !cbasReady &&
-                div({ style: { marginTop: '2rem' } }, [icon('loadingSpinner'), ' Loading your Workflows app, this may take a few minutes.']),
-              cbasReady &&
-                div({ style: { marginTop: '3rem' } }, [
-                  h(
-                    Clickable,
-                    {
-                      'aria-haspopup': 'dialog',
-                      style: {
-                        ...styles.card,
-                        ...styles.shortCard,
-                        color: colors.accent(),
-                        fontSize: 18,
-                        lineHeight: '22px',
-                      },
-                      onClick: () => setViewFindWorkflowModal(true),
-                    },
-                    ['Find a Workflow', icon('plus-circle', { size: 32 })]
-                  ),
-                  h(Fragment, [h(SavedWorkflows, { workspaceName: name, namespace, methodsData })]),
-                ]),
-              viewFindWorkflowModal && h(FindWorkflowModal, { name, namespace, workspace, onDismiss: () => setViewFindWorkflowModal(false) }),
-            ]),
-        ]);
+    const renderSubmitWorkflow = () => {
+      return div({ style: { margin: '2rem 4rem' } }, [
+        div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
+          h2(['Submit a workflow']),
+          h(
+            ButtonOutline,
+            {
+              onClick: () =>
+                Nav.goToPath('workspace-workflows-app-submission-history', {
+                  name,
+                  namespace,
+                }),
+            },
+            ['Submission history']
+          ),
+        ]),
+        div(['Run a workflow in Terra using Cromwell engine. Full feature workflow submission coming soon.']),
+        !cbasReady && div({ style: { marginTop: '2rem' } }, [icon('loadingSpinner'), ' Loading your Workflows app, this may take a few minutes.']),
+        cbasReady &&
+          div({ style: { marginTop: '3rem' } }, [
+            h(
+              Clickable,
+              {
+                'aria-haspopup': 'dialog',
+                style: {
+                  ...styles.card,
+                  ...styles.shortCard,
+                  color: colors.accent(),
+                  fontSize: 18,
+                  lineHeight: '22px',
+                },
+                onClick: () => setViewFindWorkflowModal(true),
+              },
+              ['Find a Workflow', icon('plus-circle', { size: 32 })]
+            ),
+            h(Fragment, [h(SavedWorkflows, { workspaceName: name, namespace, methodsData })]),
+          ]),
+        viewFindWorkflowModal && h(FindWorkflowModal, { name, namespace, workspace, onDismiss: () => setViewFindWorkflowModal(false) }),
+      ]);
+    };
+    return Utils.cond(
+      [loading, () => centeredSpinner()],
+      [pageReady, () => renderSubmitWorkflow()],
+      [
+        doesWorkspaceSupportCromwellAppForUser(workspace.workspace, getCloudProviderFromWorkspace(workspace), appToolLabels.CROMWELL),
+        () => h(WorkflowsAppLauncherCard, { onClick: createWorkflowsApp, disabled: launcherDisabled }),
+      ],
+      [Utils.DEFAULT, () => div({ style: { ...styles.card, width: '50rem', margin: '2rem 4rem' } }, [getCromwellUnsupportedMessage()])]
+    );
   }
 );
 

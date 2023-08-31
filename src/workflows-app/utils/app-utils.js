@@ -7,6 +7,9 @@ import { AppProxyUrlStatus, getUser, workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
 
+export const getCromwellUnsupportedMessage = () =>
+  'Cromwell app is either not supported in this workspace or you need to be a workspace creator to access the app. Please create a new workspace to use Cromwell app.';
+
 export const doesAppProxyUrlExist = (workspaceId, proxyUrlStateField) => {
   const workflowsAppStoreLocal = workflowsAppStore.get();
   return workflowsAppStoreLocal.workspaceId === workspaceId && workflowsAppStoreLocal[proxyUrlStateField].status === AppProxyUrlStatus.Ready;

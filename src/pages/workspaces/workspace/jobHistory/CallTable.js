@@ -333,19 +333,22 @@ const CallTable = ({
                   attempt,
                 } = filteredCallObjects[rowIndex];
                 const failureCount = _.size(failures);
-                if (_.isEmpty(subWorkflowId) && !stdout && !stderr && !inputs && !outputs && failureCount) {
-                  return h(
-                    Link,
-                    {
-                      style: { marginLeft: '0.5rem' },
-                      onClick: () => setFailuresModalParams({ callFqn: taskName, index, attempt, failures }),
-                    },
-                    [
-                      div({ style: { display: 'flex', alignItems: 'center' } }, [
-                        icon('warning-standard', { size: 18, style: { color: colors.warning(), marginRight: '0.5rem' } }),
-                        `${failureCount} Message${failureCount > 1 ? 's' : ''}`,
-                      ]),
-                    ]
+                if (_.isEmpty(subWorkflowId) && !stdout && !stderr && !inputs && !outputs) {
+                  return (
+                    !!failureCount &&
+                    h(
+                      Link,
+                      {
+                        style: { marginLeft: '0.5rem' },
+                        onClick: () => setFailuresModalParams({ callFqn: taskName, index, attempt, failures }),
+                      },
+                      [
+                        div({ style: { display: 'flex', alignItems: 'center' } }, [
+                          icon('warning-standard', { size: 18, style: { color: colors.warning(), marginRight: '0.5rem' } }),
+                          `${failureCount} Message${failureCount > 1 ? 's' : ''}`,
+                        ]),
+                      ]
+                    )
                   );
                 }
                 const style =

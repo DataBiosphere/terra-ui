@@ -60,7 +60,7 @@ import {
   cloudProviderTypes,
   getCloudProviderFromWorkspace,
 } from 'src/libs/workspace-utils';
-import { cromwellLinkProps } from 'src/workflows-app/utils/app-utils';
+import { cromwellLinkProps, getCromwellUnsupportedMessage } from 'src/workflows-app/utils/app-utils';
 
 const titleId = 'cloud-env-modal';
 
@@ -425,8 +425,7 @@ export const CloudEnvironmentModal = ({
         [doesCloudEnvForToolExist && !isDisabled, () => 'Open'],
         [
           isDisabled && !doesWorkspaceSupportCromwellAppForUser(workspace.workspace, cloudProvider, toolLabel),
-          () =>
-            'Cromwell app is either not supported in this workspace or you need to be a workspace creator to access the app. Please create a new workspace to use Cromwell app.',
+          () => getCromwellUnsupportedMessage(),
         ],
         [
           doesCloudEnvForToolExist && isDisabled && isLaunchSupported(toolLabel),

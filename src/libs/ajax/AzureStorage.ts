@@ -19,7 +19,7 @@ type StorageDetails = {
   sas: SasInfo;
 };
 
-interface AzureFileRaw {
+export interface AzureFileRaw {
   name: string;
   lastModified: string;
   metadata?: AnalysisFileMetadata;

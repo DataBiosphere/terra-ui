@@ -905,8 +905,8 @@ export const TooltipCell = ({ children, tooltip, ...props }) =>
     [h(TextCell, props, [children])]
   );
 
-export const HeaderCell = (props) => {
-  return h(TextCell, _.merge({ style: { fontWeight: 600 } }, props));
+export const HeaderCell = ({ children, ...props }) => {
+  return h(TextCell, _.merge({ style: { fontWeight: 600 } }, props), [children]);
 };
 
 const getSortIcon = (sort, field, hovered) => {
