@@ -15,7 +15,7 @@ export interface LeoError {
   timestamp: string;
 }
 
-export type LeoResourceLabels = Record<string, any>;
+export type LeoResourceLabels = { [key: string]: string };
 
 export interface CloudContext {
   cloudProvider: CloudProvider;
