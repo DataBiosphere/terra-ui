@@ -201,7 +201,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         currentTool,
         [runtimeToolLabels.Jupyter, renderComputeModal],
         [runtimeToolLabels.RStudio, renderComputeModal],
-        [appToolLabels.GALAXY, () => renderAppModal(GalaxyModalBase, appToolLabels.GALAXY)]
+        [appToolLabels.GALAXY, () => renderAppModal(GalaxyModalBase, appToolLabels.GALAXY)],
+        [appToolLabels.CROMWELL, () => renderAppModal(CromwellModalBase, appToolLabels.CROMWELL)]
       );
 
     const getAzureEnvironmentView = () =>
