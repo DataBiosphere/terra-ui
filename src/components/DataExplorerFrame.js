@@ -2,7 +2,7 @@ import { iframeResizer } from 'iframe-resizer';
 import _ from 'lodash/fp';
 import { useEffect, useRef } from 'react';
 import { iframe } from 'react-hyperscript-helpers';
-import datasets from 'src/data/datasets';
+import datasets from 'src/constants/datasets';
 import * as Nav from 'src/libs/nav';
 
 const DataExplorerFrame = ({ dataset }) => {
