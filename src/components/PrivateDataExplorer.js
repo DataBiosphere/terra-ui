@@ -4,7 +4,7 @@ import { b, div, h, p } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import DataExplorerFrame from 'src/components/DataExplorerFrame';
 import { centeredSpinner } from 'src/components/icons';
-import datasets from 'src/data/datasets';
+import datasets from 'src/constants/datasets';
 import { Ajax } from 'src/libs/ajax';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { contactUsActive } from 'src/libs/state';
