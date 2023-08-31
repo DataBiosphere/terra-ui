@@ -148,11 +148,11 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ modalTitle, log
           ]),
           div({ style: { fontWeight: 'bold' } }, ['Task Standard Out/Error:']),
           div({ style: { marginLeft: '1rem' } }, [
-            'Task logs are from user-defined commands in your WDL. You might see an error in these logs if there was a logic or syntax error in a command, or something went wrong while running it.',
+            "Task logs are from user-defined commands in your WDL. You might see an error in these logs if there was a logic or syntax error in a command, or if something went with the tool you're running.",
           ]),
           div({ style: { marginTop: '1rem', fontWeight: 'bold' } }, ['Backend Standard Out/Error:']),
           div({ style: { marginLeft: '1rem' } }, [
-            "Backend logs are from the Azure Cloud compute job executing your task. You might see errors in these logs if the there was a problem downloading the task's input files or container, or if something went wrong while the task was running.",
+            "Backend logs are from the Azure Cloud compute job that prepares your task to run and cleans up after. You might see errors in these logs if the there was a problem downloading the task's input files or pulling its container, or if something went wrong on the compute node while the task was running.",
           ]),
         ]
       ),
