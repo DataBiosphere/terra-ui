@@ -1532,3 +1532,8 @@ export const navPaths = [
     title: ({ name }) => `${name} - Data`,
   },
 ];
+
+// These modules are exported for testing only.
+export const testOnlyExports = {
+  WorkspaceData,
+};
