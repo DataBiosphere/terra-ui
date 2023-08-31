@@ -53,6 +53,18 @@ export const hailImage = {
   version: '1.0.20',
 };
 
+export const pegasusImage = {
+  id: 'Pegasus',
+  image: 'cumulusprod/pegasus-terra:1.6.0',
+  isCommunity: true,
+  label: 'Pegasus (Pegasuspy 1.6.0, Python 3.7.12, harmony-pytorch 0.1.7, nmf-torch 0.1.1, scVI-tools 0.16.0)',
+  packages:
+    'https://raw.githubusercontent.com/lilab-bcb/cumulus/master/docker/pegasus-terra/1.6.0/pegasus-terra-1_6_0-versions.json',
+  requiresSpark: false,
+  updated: '2022-04-16',
+  version: '1.6.0',
+};
+
 export const imageDocs = [
   defaultImage,
   {
@@ -76,17 +88,7 @@ export const imageDocs = [
     updated: '2022-08-18',
     version: '1.0.13',
   },
-  {
-    id: 'Pegasus',
-    image: 'cumulusprod/pegasus-terra:1.6.0',
-    isCommunity: true,
-    label: 'Pegasus (Pegasuspy 1.6.0, Python 3.7.12, harmony-pytorch 0.1.7, nmf-torch 0.1.1, scVI-tools 0.16.0)',
-    packages:
-      'https://raw.githubusercontent.com/lilab-bcb/cumulus/master/docker/pegasus-terra/1.6.0/pegasus-terra-1_6_0-versions.json',
-    requiresSpark: false,
-    updated: '2022-04-16',
-    version: '1.6.0',
-  },
+  pegasusImage,
   defaultRImage,
   {
     id: 'OpenVINO integration with Tensorflow',
@@ -592,7 +594,11 @@ export const generateTestDiskWithGoogleWorkspace = (
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    value: 'pd-standard',
+    label: 'Standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: workspace.workspace.googleProject,
@@ -620,7 +626,11 @@ export const generateTestDiskWithAzureWorkspace = (
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    value: 'pd-standard',
+    label: 'Standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   cloudContext: {
     cloudProvider: cloudProviderTypes.AZURE,
     cloudResource: `${workspace.azureContext.tenantId}/${workspace.azureContext.subscriptionId}/${workspace.azureContext.managedResourceGroupId}`,
@@ -645,7 +655,11 @@ export const generateTestDisk = (overrides: Partial<PersistentDisk> = {}): Persi
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    value: 'pd-standard',
+    label: 'Standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -666,7 +680,11 @@ export const galaxyDisk: PersistentDisk = {
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    value: 'pd-standard',
+    label: 'Standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -694,7 +712,11 @@ export const azureDisk: PersistentDisk = {
     dateAccessed: '2023-02-01T20:41:00.357Z',
   },
   size: 50,
-  diskType: 'pd-standard', // TODO: This should be stored in backend as Standard_LRS
+  diskType: {
+    value: 'pd-standard',
+    label: 'Standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  }, // TODO: This should be stored in backend as Standard_LRS
   blockSize: 4096,
   labels: {
     saturnWorkspaceNamespace: defaultAzureWorkspace.workspace.namespace,

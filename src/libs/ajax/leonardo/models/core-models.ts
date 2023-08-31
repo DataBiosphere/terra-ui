@@ -1,5 +1,5 @@
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
-import { DecoratedPersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { CloudProvider } from 'src/libs/workspace-utils';
 
@@ -15,11 +15,11 @@ export interface LeoError {
   timestamp: string;
 }
 
-export type LeoResourceLabels = Record<string, any>;
+export type LeoResourceLabels = { [key: string]: string };
 
 export interface CloudContext {
   cloudProvider: CloudProvider;
   cloudResource: string;
 }
 
-export type Resource = DecoratedPersistentDisk | App | Runtime;
+export type Resource = PersistentDisk | App | Runtime;

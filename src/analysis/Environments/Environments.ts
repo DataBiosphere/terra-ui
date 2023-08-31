@@ -1,3 +1,4 @@
+import { NavLinkProvider } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Dispatch, Fragment, SetStateAction, useEffect, useState } from 'react';
 import { div, h, h2, p, span, strong } from 'react-hyperscript-helpers';
@@ -10,7 +11,7 @@ import {
   getPersistentDiskCostMonthly,
   getRuntimeCost,
 } from 'src/analysis/utils/cost-utils';
-import { mapToPdTypes, workspaceHasMultipleDisks } from 'src/analysis/utils/disk-utils';
+import { workspaceHasMultipleDisks } from 'src/analysis/utils/disk-utils';
 import {
   getCreatorForCompute,
   getDisplayStatus,
@@ -35,7 +36,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { useReplaceableAjaxExperimental } from 'src/libs/ajax';
 import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
-import { DecoratedPersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { isGceConfig, isGceWithPdConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { isRuntime, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import colors from 'src/libs/colors';
@@ -46,6 +47,10 @@ import { contactUsActive, getUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { isGoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils';
+
+export type EnvironmentNavActions = {
+  'workspace-view': { namespace: string; name: string };
+};
 
 const DeleteRuntimeModal = ({
   runtime: { cloudContext, googleProject, runtimeName, runtimeConfig },
@@ -239,17 +244,18 @@ interface DecoratedResourceAttributes {
 }
 
 type RuntimeWithWorkspace = DecoratedResourceAttributes & Runtime;
-type DiskWithWorkspace = DecoratedResourceAttributes & DecoratedPersistentDisk;
+type DiskWithWorkspace = DecoratedResourceAttributes & PersistentDisk;
 type AppWithWorkspace = DecoratedResourceAttributes & App;
 
 type DecoratedComputeResource = RuntimeWithWorkspace | AppWithWorkspace;
 type DecoratedResource = DecoratedComputeResource | DiskWithWorkspace;
 
 export interface EnvironmentsProps {
-  nav?: any;
+  nav: NavLinkProvider<EnvironmentNavActions>;
 }
 
-export const Environments: React.FC<EnvironmentsProps> = ({ nav = undefined }) => {
+export const Environments: React.FC<EnvironmentsProps> = (props) => {
+  const { nav } = props;
   const signal = useCancellation();
   const { workspaces, refresh: refreshWorkspaces } = _.flow(
     useWorkspaces,
@@ -309,9 +315,7 @@ export const Environments: React.FC<EnvironmentsProps> = ({ nav = undefined }) =
       apps: newApps.length,
     });
 
-    const decorateLabeledResourceWithWorkspace = (
-      cloudObject: Runtime | DecoratedPersistentDisk | App
-    ): DecoratedResource => {
+    const decorateLabeledResourceWithWorkspace = (cloudObject: Runtime | PersistentDisk | App): DecoratedResource => {
       const {
         labels: { saturnWorkspaceNamespace, saturnWorkspaceName },
       } = cloudObject;
@@ -326,7 +330,7 @@ export const Environments: React.FC<EnvironmentsProps> = ({ nav = undefined }) =
 
     const [decoratedRuntimes, decoratedDisks, decoratedApps] = _.map(_.map(decorateLabeledResourceWithWorkspace), [
       newRuntimes,
-      mapToPdTypes(newDisks),
+      newDisks,
       newApps,
     ]);
 
@@ -468,18 +472,22 @@ export const Environments: React.FC<EnvironmentsProps> = ({ nav = undefined }) =
   // not apply to the case where appType is not defined (e.g. Jupyter, RStudio).
   const forAppText = (appType) => (appType ? ` for ${_.capitalize(appType)}` : '');
 
-  const getWorkspaceCell = (namespace, name, appType, shouldWarn, unsupportedWorkspace) => {
+  const getWorkspaceCell = (
+    namespace: string,
+    name: string | undefined,
+    appType: AppToolLabel | null,
+    shouldWarn: boolean,
+    unsupportedWorkspace
+  ): React.ReactElement | string => {
     if (unsupportedWorkspace) {
       // Don't want to include a link because there is no workspace to link to.
       return `${name} (unavailable)`;
     }
     return name
       ? h(Fragment, [
-          h(
-            Link,
-            { href: nav.getLink('workspace-dashboard', { namespace, name }), style: { wordBreak: 'break-word' } },
-            [name]
-          ),
+          h(Link, { href: nav.getUrl('workspace-view', { namespace, name }), style: { wordBreak: 'break-word' } }, [
+            name,
+          ]),
           shouldWarn &&
             h(
               TooltipTrigger,
@@ -497,7 +505,7 @@ export const Environments: React.FC<EnvironmentsProps> = ({ nav = undefined }) =
   // Old apps, runtimes and disks may not have 'saturnWorkspaceNamespace' label defined. When they were
   // created, workspace namespace (a.k.a billing project) value used to equal the google project.
   // Therefore we use google project if the namespace label is not defined.
-  const renderWorkspaceForApps = (app) => {
+  const renderWorkspaceForApps = (app: AppWithWorkspace) => {
     const {
       appType,
       cloudContext: { cloudResource },
@@ -514,11 +522,11 @@ export const Environments: React.FC<EnvironmentsProps> = ({ nav = undefined }) =
     );
   };
 
-  const renderWorkspaceForRuntimes = (runtime) => {
+  const renderWorkspaceForRuntimes = (runtime: RuntimeWithWorkspace) => {
     const {
       status,
       googleProject,
-      labels: { saturnWorkspaceNamespace = googleProject, saturnWorkspaceName = undefined } = {},
+      labels: { saturnWorkspaceNamespace = googleProject, saturnWorkspaceName = undefined },
     } = runtime;
     // TODO: Azure runtimes are not covered in this logic
     const shouldWarn =
@@ -656,7 +664,7 @@ export const Environments: React.FC<EnvironmentsProps> = ({ nav = undefined }) =
     });
   };
 
-  const multipleDisksError = (disks: DecoratedPersistentDisk[], appType: AppToolLabel | undefined) => {
+  const multipleDisksError = (disks: PersistentDisk[], appType: AppToolLabel | undefined) => {
     // appType is undefined for runtimes (ie Jupyter, RStudio) so the first part of the ternary is for processing app
     // disks. the second part is for processing runtime disks so it filters out app disks
     return appType
@@ -844,7 +852,7 @@ export const Environments: React.FC<EnvironmentsProps> = ({ nav = undefined }) =
                         h(
                           Link,
                           {
-                            href: nav.getLink('workspace-dashboard', { namespace, name }),
+                            href: nav.getUrl('workspace-view', { namespace, name }),
                             style: { wordBreak: 'break-word' },
                           },
                           [name]
