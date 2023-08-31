@@ -5,12 +5,12 @@ import { getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import { AppToolLabel, appTools } from 'src/analysis/utils/tool-utils';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import {
-  DecoratedPersistentDisk,
   diskStatuses,
   GoogleDiskType,
   GooglePdType,
   googlePdTypes,
   PersistentDisk,
+  RawPersistentDisk,
 } from 'src/libs/ajax/leonardo/models/disk-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import * as Utils from 'src/libs/utils';
@@ -37,18 +37,11 @@ export const pdTypeFromDiskType = (type: GoogleDiskType): GooglePdType =>
      */
   ) as GooglePdType; // TODO: Remove cast
 
-export const updatePdType = (disk: PersistentDisk): DecoratedPersistentDisk => ({
+export const updatePdType = (disk: RawPersistentDisk): PersistentDisk => ({
   ...disk,
   diskType: pdTypeFromDiskType(disk.diskType),
 });
-export const mapToPdTypes = (disks: PersistentDisk[]): DecoratedPersistentDisk[] => _.map(updatePdType, disks);
-
-export const undecoratePd = (disk: DecoratedPersistentDisk): PersistentDisk => ({
-  ...disk,
-  diskType: disk.diskType.value,
-});
-
-export const mapToUndecoratedPds = (disks: DecoratedPersistentDisk[]): PersistentDisk[] => _.map(undecoratePd, disks);
+export const mapToPdTypes = (disks: RawPersistentDisk[]): PersistentDisk[] => _.map(updatePdType, disks);
 
 // Dataproc clusters don't have persistent disks.
 export const defaultDataprocMasterDiskSize = 150;
@@ -61,14 +54,14 @@ export const defaultPersistentDiskType = googlePdTypes.standard;
 export const getCurrentAttachedDataDisk = (
   app: App | undefined,
   appDataDisks: PersistentDisk[]
-): DecoratedPersistentDisk | undefined => {
+): PersistentDisk | undefined => {
   const currentDisk: PersistentDisk | undefined = !app?.diskName
     ? undefined
     : appDataDisks.find(({ name }) => app.diskName === name);
-  return currentDisk ? updatePdType(currentDisk) : currentDisk;
+  return currentDisk;
 };
 
-export const workspaceHasMultipleDisks = (disks: DecoratedPersistentDisk[], diskAppType: AppToolLabel): boolean => {
+export const workspaceHasMultipleDisks = (disks: PersistentDisk[], diskAppType: AppToolLabel): boolean => {
   const appTypeDisks = _.filter((disk) => getDiskAppType(disk) === diskAppType && disk.status !== 'Deleting', disks);
   const diskWorkspaces = _.map((currentDisk) => currentDisk.labels.saturnWorkspaceName, appTypeDisks);
   return _.uniq(diskWorkspaces).length < diskWorkspaces.length;
@@ -88,7 +81,7 @@ export const getCurrentAppDataDisk = (
   apps: App[],
   appDataDisks: PersistentDisk[],
   workspaceName: string
-): DecoratedPersistentDisk | undefined => {
+): PersistentDisk | undefined => {
   // a user's PD can either be attached to their current app, detaching from a deleting app or unattached
   const currentApp = getCurrentAppIncludingDeleting(appType, apps);
   const currentDiskName = currentApp?.diskName;
@@ -115,8 +108,8 @@ export const getCurrentAppDataDisk = (
     : undefined;
 
   return Utils.cond(
-    [!!attachedDisk, () => !!attachedDisk && updatePdType(attachedDisk)],
-    [!!newestUnattachedDisk, () => !!newestUnattachedDisk && updatePdType(newestUnattachedDisk)],
+    [!!attachedDisk, () => !!attachedDisk && attachedDisk],
+    [!!newestUnattachedDisk, () => !!newestUnattachedDisk && newestUnattachedDisk],
     [Utils.DEFAULT, () => undefined]
   );
 };

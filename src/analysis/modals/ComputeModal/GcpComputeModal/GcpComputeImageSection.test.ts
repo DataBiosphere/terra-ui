@@ -6,7 +6,7 @@ import {
   defaultGoogleWorkspace,
   defaultImage,
   defaultRImage,
-  generateTestGoogleRuntime,
+  generateTestGetGoogleRuntime,
   imageDocs,
   pegasusImage,
 } from 'src/analysis/_testData/testData';
@@ -42,7 +42,7 @@ const defaultGcpComputeImageSectionProps: GcpComputeImageSectionProps = {
   onSelect: mockOnSelect,
   tool: runtimeToolLabels.Jupyter,
   currentRuntime: {
-    runtimeImages: (generateTestGoogleRuntime() as Pick<GetRuntimeItem, 'runtimeImages'>).runtimeImages,
+    runtimeImages: (generateTestGetGoogleRuntime() as Pick<GetRuntimeItem, 'runtimeImages'>).runtimeImages,
   },
 };
 

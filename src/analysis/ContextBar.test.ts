@@ -23,7 +23,7 @@ import { MenuTrigger } from 'src/components/PopupTrigger';
 import { locationTypes } from 'src/components/region-common';
 import { Ajax } from 'src/libs/ajax';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
-import { DecoratedPersistentDisk, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { defaultAzureMachineType, defaultAzureRegion } from 'src/libs/azure-utils';
 import { isCromwellAppVisible } from 'src/libs/config';
@@ -184,7 +184,11 @@ const cromwellDisk: PersistentDisk = {
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    value: 'pd-standard',
+    label: 'Standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -363,7 +367,7 @@ const jupyterLabRunning: Runtime = {
   status: 'Running',
 };
 
-const runtimeDisk: DecoratedPersistentDisk = {
+const runtimeDisk: PersistentDisk = {
   id: 15778,
   cloudContext: {
     cloudProvider: 'GCP',

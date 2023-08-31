@@ -23,7 +23,7 @@ import { useWorkspaces } from 'src/components/workspace-utils';
 import { Ajax, useReplaceableAjaxExperimental } from 'src/libs/ajax';
 import { authOpts, fetchLeo } from 'src/libs/ajax/ajax-common';
 import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
-import { ListDiskItem } from 'src/libs/ajax/leonardo/models/disk-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
@@ -77,8 +77,7 @@ jest.mock('src/libs/state', () => ({
 const listRuntimesV2: () => Promise<ListRuntimeItem[]> = jest.fn();
 
 const listWithoutProject: () => Promise<ListAppResponse[]> = jest.fn();
-
-const list: () => Promise<ListDiskItem[]> = jest.fn();
+const list: () => Promise<PersistentDisk[]> = jest.fn();
 const mockFetchLeo = jest.fn();
 const defaultNav = {
   getLink: jest.fn().mockReturnValue(''),
