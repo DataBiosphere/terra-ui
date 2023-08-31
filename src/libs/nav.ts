@@ -1,5 +1,4 @@
 import { atom } from '@terra-ui-packages/core-utils';
-import { enforceType } from '@terra-ui-packages/core-utils';
 import { createHashHistory as createHistory } from 'history';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
@@ -7,7 +6,6 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { useOnMount, useStore } from 'src/libs/react-utils';
 import { routeHandlersStore } from 'src/libs/state';
-
 
 // TODO: add all used nav key names here and switch consumers to use the safe const values here
 /**
