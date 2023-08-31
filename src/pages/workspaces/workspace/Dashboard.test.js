@@ -3,12 +3,11 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { defaultLocation } from 'src/analysis/utils/runtime-utils';
-import { locationTypes } from 'src/components/region-common';
 import { Ajax } from 'src/libs/ajax';
 import { authStore } from 'src/libs/state';
 import { AzureStorageDetails, BucketLocation, WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard';
 import { asMockedFn } from 'src/testing/test-utils';
+import { defaultAzureStorageOptions, defaultGoogleBucketOptions } from 'src/testing/workspace-fixtures';
 
 jest.mock('src/libs/ajax');
 
@@ -99,17 +98,6 @@ describe('WorkspaceNotifications', () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 });
-
-const defaultGoogleBucketOptions = {
-  googleBucketLocation: defaultLocation,
-  googleBucketType: locationTypes.default,
-  fetchedGoogleBucketLocation: undefined,
-};
-const defaultAzureStorageOptions = {
-  azureContainerRegion: undefined,
-  azureContainerUrl: undefined,
-  azureContainerSasUrl: undefined,
-};
 
 describe('BucketLocation', () => {
   const workspace = { workspace: { namespace: 'test', name: 'test', cloudPlatform: 'Gcp' }, workspaceInitialized: true };
