@@ -7,7 +7,7 @@ import { authOpts, makeRequestRetry, withRetryAfterReloadingExpiredAuthToken } f
 type AuthExports = typeof import('src/libs/auth');
 jest.mock('src/libs/auth', (): Partial<AuthExports> => {
   return {
-    reloadAuthToken: jest.fn(),
+    loadAuthToken: jest.fn(),
     signOutAfterSessionTimeout: jest.fn(),
   };
 });

@@ -156,6 +156,7 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
         createdAt: authTokenCreatedAt,
         expiresAt: authTokenExpiresAt,
         id: authTokenId,
+        // there is a flaw here in that this is only the number of successful tokens created, not how many were attempted
         totalTokensThisSession: authStore.get().authTokenMetadata.totalTokensThisSession + 1,
       },
     }));
