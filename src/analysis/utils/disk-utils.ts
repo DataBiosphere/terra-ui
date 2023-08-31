@@ -103,8 +103,8 @@ export const getCurrentAppDataDisk = (
     : undefined;
 
   return Utils.cond(
-    [!!attachedDisk, () => !!attachedDisk && attachedDisk],
-    [!!newestUnattachedDisk, () => !!newestUnattachedDisk && newestUnattachedDisk],
+    [!!attachedDisk, () => attachedDisk!],
+    [!!newestUnattachedDisk, () => newestUnattachedDisk!],
     [Utils.DEFAULT, () => undefined]
   );
 };

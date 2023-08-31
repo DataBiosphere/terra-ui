@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, ReactNode } from 'react';
 import { div, h, p, span } from 'react-hyperscript-helpers';
 import { DeleteDiskChoices } from 'src/analysis/modals/DeleteDiskChoices';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
@@ -55,10 +55,10 @@ export const DeleteEnvironment = ({
       },
     }),
     div({ style: { lineHeight: '1.5rem' } }, [
-      Utils.cond(
+      Utils.cond<ReactNode>(
         [
-          runtimeConfig &&
-            persistentDiskId &&
+          !!runtimeConfig &&
+            !!persistentDiskId &&
             (!isGceConfig(runtimeConfig) || isGceWithPdConfig(runtimeConfig)) && // this line checks if the runtime is a GCE VM with a PD attached
             !isDataprocConfig(runtimeConfig) && // and this line makes sure it's not a Dataproc config
             persistentDiskId !== runtimeConfig?.persistentDiskId,
@@ -102,7 +102,7 @@ export const DeleteEnvironment = ({
             ]),
         ],
         [
-          runtimeConfig && persistentDiskId,
+          !!runtimeConfig && !!persistentDiskId,
           () =>
             h(DeleteDiskChoices, {
               persistentDiskCostDisplay,
@@ -113,7 +113,7 @@ export const DeleteEnvironment = ({
             }),
         ],
         [
-          !runtimeConfig && persistentDiskId,
+          !runtimeConfig && !!persistentDiskId,
           () => {
             if (!deleteDiskSelected) {
               setDeleteDiskSelected(true);
