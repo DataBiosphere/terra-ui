@@ -14,7 +14,7 @@ import Events from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import * as Utils from 'src/libs/utils';
 
-const RenameTableModal = ({
+export const RenameTableModal = ({
   onDismiss,
   onUpdateSuccess,
   getAllSavedColumnSettings,
@@ -156,5 +156,3 @@ const RenameTableModal = ({
     ]
   );
 };
-
-export default RenameTableModal;
