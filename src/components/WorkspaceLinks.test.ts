@@ -28,7 +28,9 @@ jest.mock('src/libs/workspace-hooks', (): WorkspaceHooksExports => {
 describe('WorkspaceLink', () => {
   it('renders a link to a workspace', () => {
     // Arrange
-    asMockedFn(getLink).mockImplementation((routeName, { namespace, name }) => `/${routeName}/${namespace}/${name}`);
+    asMockedFn(getLink).mockImplementation(
+      (routeName: string, { namespace, name }: any) => `/${routeName}/${namespace}/${name}`
+    );
 
     // Act
     render(
@@ -89,7 +91,9 @@ describe('WorkspaceLinkById', () => {
       status: 'Ready',
     });
 
-    asMockedFn(getLink).mockImplementation((routeName, { namespace, name }) => `/${routeName}/${namespace}/${name}`);
+    asMockedFn(getLink).mockImplementation(
+      (routeName: string, { namespace, name }: any) => `/${routeName}/${namespace}/${name}`
+    );
 
     // Act
     render(h(WorkspaceLinkById, { workspaceId: 'test-workspace-id' }));

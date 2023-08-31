@@ -45,9 +45,9 @@ export const runtimeStatuses: { [label: string]: RuntimeStatus } = {
   error: { label: 'Error', leoLabel: 'Error', canChangeCompute: true },
 };
 
-export interface RuntimeLabels extends LeoResourceLabels {
+export type RuntimeLabels = Omit<LeoResourceLabels, 'tool'> & {
   tool: ToolLabel;
-}
+};
 
 export interface RuntimeError extends LeoError {
   errorCode: number;
