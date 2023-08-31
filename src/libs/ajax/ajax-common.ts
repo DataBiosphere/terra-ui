@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { signOutAfterSessionTimeout, tryReloadAuthToken } from 'src/libs/auth';
+import { loadAuthToken, signOutAfterSessionTimeout } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
 import { ajaxOverridesStore, getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
@@ -80,7 +80,7 @@ const retryAfterReloadingAuthToken = async (
     return await wrappedFetch(resource, options);
   } catch (error) {
     if (isUnauthorizedResponse(error) && requestHasAuthHeader) {
-      const successfullyReloadedAuthToken: boolean = await tryReloadAuthToken();
+      const successfullyReloadedAuthToken = !!(await loadAuthToken());
       if (successfullyReloadedAuthToken) {
         const optionsWithNewAuthToken = _.merge(options, authOpts());
         return retryAfterReloadingAuthToken(wrappedFetch, resource, optionsWithNewAuthToken);

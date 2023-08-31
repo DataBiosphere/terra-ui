@@ -55,24 +55,19 @@ const getAuthInstance = () => {
   return authStore.get().authContext;
 };
 
-export const invalidateSession = (): void => {
-  authStore.update((state) => ({
-    ...state,
-    sessionValid: false,
-  }));
-};
-
 export const signOut = (): void => {
   // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
   const sessionEndTime: number = Date.now();
-  const tokenMetadata = authStore.get().authTokenMetadata;
+  const authStoreState = authStore.get();
+  const tokenMetadata = authStoreState.authTokenMetadata;
   Ajax().Metrics.captureEvent(Events.userLogout, {
     sessionEndTime: Utils.makeCompleteDate(sessionEndTime),
-    sessionDurationInSeconds: (sessionEndTime - authStore.get().sessionStartTime) / 1000.0,
+    sessionDurationInSeconds: (sessionEndTime - authStoreState.sessionStartTime) / 1000.0,
     authTokenCreatedAt: Utils.formatTimestampInSeconds(tokenMetadata.createdAt),
     authTokenExpiresAt: Utils.formatTimestampInSeconds(tokenMetadata.expiresAt),
+    totalAuthTokensThisSession: authStoreState.authTokenMetadata.totalTokensThisSession,
   });
-  invalidateSession();
+
   cookieReadyStore.reset();
   azureCookieReadyStore.reset();
   getSessionStorage().clear();
@@ -117,58 +112,88 @@ const getSigninArgs = (includeBillingScope: boolean) => {
 };
 
 export const signIn = async (includeBillingScope = false): Promise<User> => {
-  const args = getSigninArgs(includeBillingScope);
-  const user: User = await getAuthInstance().signinPopup(args);
-
-  const sessionId = uuid();
-  const sessionStartTime: number = Date.now();
-  const userJWT: string = user.id_token!;
-  const decodedJWT: JwtPayload = jwtDecode<JwtPayload>(userJWT);
-  const authTokenCreatedAt: number = (decodedJWT as any).auth_time; // time in seconds when authorization token was created
-  const authTokenExpiresAt: number = user.expires_at!; // time in seconds when authorization token expires, as given by the oidc client
-  const jwtExpiresAt: number = (decodedJWT as any).exp; // time in seconds when the JWT expires, after which the JWT should not be read from
-
-  authStore.update((state) => ({
-    ...state,
-    hasGcpBillingScopeThroughB2C: includeBillingScope,
-    sessionId,
-    sessionStartTime,
-    authTokenMetadata: {
-      createdAt: authTokenCreatedAt,
-      expiresAt: authTokenExpiresAt,
-    },
-  }));
-  Ajax().Metrics.captureEvent(Events.userLogin, {
-    authProvider: user.profile.idp,
-    sessionStartTime: Utils.makeCompleteDate(sessionStartTime),
-    authTokenCreatedAt: Utils.formatTimestampInSeconds(authTokenCreatedAt),
-    authTokenExpiresAt: Utils.formatTimestampInSeconds(authTokenExpiresAt),
-    jwtExpiresAt: Utils.formatTimestampInSeconds(jwtExpiresAt),
-  });
-  return user;
+  // we should handle if we get back null or false here (if loading the authTokenFails)
+  const user: User | null | boolean = await loadAuthToken(includeBillingScope, true);
+  if (user instanceof User) {
+    const sessionId = uuid();
+    const sessionStartTime: number = Date.now();
+    authStore.update((state) => ({
+      ...state,
+      hasGcpBillingScopeThroughB2C: includeBillingScope,
+      sessionId,
+      sessionStartTime,
+    }));
+    Ajax().Metrics.captureEvent(Events.userLogin, {
+      sessionStartTime: Utils.makeCompleteDate(sessionStartTime),
+    });
+    return user;
+  }
+  throw new Error('Auth token failed to load when signing in');
 };
 
-export const tryReloadAuthToken = async (): Promise<boolean> => {
-  const reloadedAuthTokenState: User | boolean | null = await reloadAuthToken();
-  const authReloadResult: string = Utils.cond(
-    [reloadedAuthTokenState instanceof User, (): string => 'refreshSucceeded'],
-    [reloadedAuthTokenState === null, (): string => 'refreshFailed:refreshTokenExpired'],
-    () => 'refreshFailed:error'
-  );
-  const tokenMetadata = authStore.get().authTokenMetadata;
-  Ajax().Metrics.captureEvent(Events.userAuthTokenReload, {
-    authReloadResult,
-    oldAuthTokenCreatedAt: Utils.formatTimestampInSeconds(tokenMetadata.createdAt),
-    oldAuthTokenExpiresAt: Utils.formatTimestampInSeconds(tokenMetadata.expiresAt),
-  });
-  return !!reloadedAuthTokenState;
+export const loadAuthToken = async (includeBillingScope = false, popUp = false): Promise<User | null | boolean> => {
+  // here we should update the auth token id
+  // might want to take refresh token and encrypt it to compare to a saved encrypted token
+  // to see if they are the same => track refresh update
+  // track lifespan of current authToken
+  // need to send information about the last authToken
+  const oldTokenMetadata = authStore.get().authTokenMetadata; // this can be null (first token), so cover that case
+  const reloadedAuthTokenState: User | boolean | null = popUp
+    ? await tryLoadAuthTokenPopUp(includeBillingScope)
+    : await tryLoadAuthTokenSilent(includeBillingScope);
+
+  if (reloadedAuthTokenState instanceof User) {
+    const user: User = reloadedAuthTokenState as User;
+    const userJWT: string = user.id_token!;
+    const decodedJWT: JwtPayload = jwtDecode<JwtPayload>(userJWT);
+    const authTokenCreatedAt: number = (decodedJWT as any).auth_time; // time in seconds when authorization token was created
+    const authTokenExpiresAt: number = user.expires_at!; // time in seconds when authorization token expires, as given by the oidc client
+    const authTokenId: string = uuid();
+    const jwtExpiresAt: number = (decodedJWT as any).exp; // time in seconds when the JWT expires, after which the JWT should not be read from
+    authStore.update((state) => ({
+      ...state,
+      authTokenMetadata: {
+        createdAt: authTokenCreatedAt,
+        expiresAt: authTokenExpiresAt,
+        id: authTokenId,
+        totalTokensThisSession: authStore.get().authTokenMetadata.totalTokensThisSession + 1,
+      },
+    }));
+    Ajax().Metrics.captureEvent(Events.userAuthTokenReload, {
+      authProvider: user.profile.idp,
+      authReloadResult: 'refreshSucceeded',
+      oldAuthTokenCreatedAt: Utils.formatTimestampInSeconds(oldTokenMetadata.createdAt),
+      oldAuthTokenExpiresAt: Utils.formatTimestampInSeconds(oldTokenMetadata.expiresAt),
+      oldAuthTokenId: oldTokenMetadata.id,
+      oldAuthTokenLifespan: Date.now() - oldTokenMetadata.createdAt / 1000.0,
+      authTokenCreatedAt: Utils.formatTimestampInSeconds(authTokenCreatedAt),
+      authTokenExpiresAt: Utils.formatTimestampInSeconds(authTokenExpiresAt),
+      authTokenId,
+      jwtExpiresAt: Utils.formatTimestampInSeconds(jwtExpiresAt),
+    });
+  } else if (reloadedAuthTokenState === null) {
+    Ajax().Metrics.captureEvent(Events.userAuthTokenReload, {
+      authReloadResult: 'refreshFailed:refreshTokenExpired',
+      oldAuthTokenCreatedAt: Utils.formatTimestampInSeconds(oldTokenMetadata.createdAt),
+      oldAuthTokenExpiresAt: Utils.formatTimestampInSeconds(oldTokenMetadata.expiresAt),
+      oldAuthTokenId: oldTokenMetadata.id,
+    });
+  } else {
+    Ajax().Metrics.captureEvent(Events.userAuthTokenReload, {
+      authReloadResult: 'refreshFailed:error',
+      oldAuthTokenCreatedAt: Utils.formatTimestampInSeconds(oldTokenMetadata.createdAt),
+      oldAuthTokenExpiresAt: Utils.formatTimestampInSeconds(oldTokenMetadata.expiresAt),
+      oldAuthTokenId: oldTokenMetadata.id,
+    });
+  }
+  return reloadedAuthTokenState;
 };
 
-export const reloadAuthToken = (includeBillingScope = false): Promise<User | null | boolean> => {
+export const tryLoadAuthTokenSilent = (includeBillingScope = false): Promise<User | null | boolean> => {
   const args = getSigninArgs(includeBillingScope);
   // if this returns a null -> refresh token has expired
   return getAuthInstance()
-    .signinSilent(args) // returns Promise<User | null>, attempts to use the refresh token
+    .signinSilent(args) // returns Promise<User | null>, attempts to use the refresh token to get a new authToken
     .catch((e) => {
       console.error('An unexpected exception occurred while attempting to refresh auth credentials.');
       console.error(e);
@@ -176,7 +201,19 @@ export const reloadAuthToken = (includeBillingScope = false): Promise<User | nul
     });
 };
 
-export const hasBillingScope = () => authStore.get().hasGcpBillingScopeThroughB2C === true;
+export const tryLoadAuthTokenPopUp = (includeBillingScope = false): Promise<User | null | boolean> => {
+  const args = getSigninArgs(includeBillingScope);
+  // if this returns a null -> refresh token has expired
+  return getAuthInstance()
+    .signinPopup(args) // returns Promise<User | null>, attempts to use the refresh token to get a new authToken
+    .catch((e) => {
+      console.error('An unexpected exception occurred while attempting to refresh auth credentials.');
+      console.error(e);
+      return false;
+    });
+};
+
+export const hasBillingScope = (): boolean => authStore.get().hasGcpBillingScopeThroughB2C === true;
 
 /*
  * Tries to obtain Google Cloud Billing scope silently.
@@ -186,7 +223,7 @@ export const hasBillingScope = () => authStore.get().hasGcpBillingScopeThroughB2
  */
 export const tryBillingScope = async () => {
   if (!hasBillingScope()) {
-    await reloadAuthToken(true);
+    await tryLoadAuthTokenSilent(true);
   }
 };
 

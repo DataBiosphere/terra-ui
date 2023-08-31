@@ -10,6 +10,8 @@ export const authStore = atom<any>({
   authTokenMetadata: {
     createdAt: -1,
     expiresAt: -1,
+    id: undefined,
+    totalTokensThisSession: 0,
   },
   cookiesAccepted: undefined,
   fenceStatus: {},
@@ -23,7 +25,6 @@ export const authStore = atom<any>({
   profile: {},
   registrationStatus: undefined,
   sessionId: undefined,
-  sessionValid: true,
   sessionStartTime: -1,
   termsOfService: {},
   user: {},

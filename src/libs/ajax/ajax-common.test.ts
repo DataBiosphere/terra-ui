@@ -1,4 +1,4 @@
-import { reloadAuthToken, signOutAfterSessionTimeout } from 'src/libs/auth';
+import { signOutAfterSessionTimeout, tryLoadAuthTokenSilent } from 'src/libs/auth';
 import { getUser } from 'src/libs/state';
 import { asMockedFn } from 'src/testing/test-utils';
 
@@ -65,7 +65,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
       let mockUser = { token: 'testtoken' };
       asMockedFn(getUser).mockImplementation(() => mockUser);
 
-      asMockedFn(reloadAuthToken).mockImplementation(() => {
+      asMockedFn(tryLoadAuthTokenSilent).mockImplementation(() => {
         mockUser = { token: 'newtesttoken' };
         return Promise.resolve(true);
       });
@@ -77,7 +77,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
       await Promise.allSettled([makeAuthenticatedRequest()]);
 
       // Assert
-      expect(reloadAuthToken).toHaveBeenCalled();
+      expect(tryLoadAuthTokenSilent).toHaveBeenCalled();
     });
 
     it('retries request with new auth token if reloading auth token succeeds', async () => {
@@ -97,7 +97,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
 
     describe('if reloading auth token fails', () => {
       beforeEach(() => {
-        asMockedFn(reloadAuthToken).mockImplementation(() => Promise.resolve(false));
+        asMockedFn(tryLoadAuthTokenSilent).mockImplementation(() => Promise.resolve(false));
       });
 
       it('signs out user', async () => {
