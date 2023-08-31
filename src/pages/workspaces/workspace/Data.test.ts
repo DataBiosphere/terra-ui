@@ -95,7 +95,7 @@ describe('WorkspaceData', () => {
     const { workspaceDataProps } = setup({ workspace: defaultAzureWorkspace, status: 'PROVISIONING' });
 
     // Act
-    await act(async () => {
+    await act(() => {
       render(h(WorkspaceData, workspaceDataProps));
     });
 
@@ -111,7 +111,7 @@ describe('WorkspaceData', () => {
     mockGetSchema.mockRejectedValue(new Error('schema error'));
 
     // Act
-    await act(async () => {
+    await act(() => {
       render(h(WorkspaceData, workspaceDataProps));
     });
 
@@ -125,7 +125,7 @@ describe('WorkspaceData', () => {
     const { workspaceDataProps } = setup({ workspace: defaultAzureWorkspace, status: 'RUNNING' });
 
     // Act
-    await act(async () => {
+    await act(() => {
       render(h(WorkspaceData, workspaceDataProps));
     });
 

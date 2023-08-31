@@ -1533,7 +1533,7 @@ export const navPaths = [
   },
 ];
 
-// These modules are exported for testing only.
+// These exports are for testing only.
 export const testOnlyExports = {
   WorkspaceData,
 };
