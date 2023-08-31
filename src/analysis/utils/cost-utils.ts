@@ -289,7 +289,7 @@ export const getPersistentDiskCostHourly = (
     ? 0.0
     : Utils.cond(
         [
-          cloudContext && isAzureContext(cloudContext),
+          !!cloudContext && isAzureContext(cloudContext),
           () => getAzureDiskCostEstimate({ region: computeRegion, persistentDiskSize: size }) / numberOfHoursPerMonth,
         ],
         [Utils.DEFAULT, () => size * getPersistentDiskPriceForRegionHourly(computeRegion, diskType)]

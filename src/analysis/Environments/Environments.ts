@@ -378,7 +378,13 @@ export const Environments: React.FC<EnvironmentsProps> = (props) => {
           // @ts-expect-error
           () => ajax().Apps.app(compute.workspace.googleProject, compute.appName).pause(),
         ],
-        [Utils.DEFAULT, () => console.error('Pause is not currently implemented for azure apps')]
+        [
+          Utils.DEFAULT,
+          () => {
+            console.error('Pause is not currently implemented for azure apps');
+            return Promise.resolve();
+          },
+        ]
       )
     );
     await wrappedPauseCompute();
@@ -394,7 +400,7 @@ export const Environments: React.FC<EnvironmentsProps> = (props) => {
   }, [shouldFilterByCreator]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getCloudProvider = (cloudEnvironment) =>
-    Utils.cond(
+    Utils.cond<string | undefined>(
       // TODO: AKS vs GKE apps
       [isApp(cloudEnvironment), () => 'Kubernetes'],
       [cloudEnvironment?.runtimeConfig?.cloudService === 'DATAPROC', () => 'Dataproc'],

@@ -13,9 +13,8 @@ import { GetRuntimeItem, ListRuntimeItem, runtimeStatuses } from 'src/libs/ajax/
 import { defaultAzureRegion } from 'src/libs/azure-utils';
 import * as Utils from 'src/libs/utils';
 import { AzureWorkspace, cloudProviderTypes, GoogleWorkspace } from 'src/libs/workspace-utils';
+import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { v4 as uuid } from 'uuid';
-
-const defaultGoogleWorkspaceNamespace = 'test-ws';
 
 // this is important, so the test impl can diverge
 export const testDefaultLocation = defaultLocation;
@@ -122,23 +121,6 @@ export const imageDocs = [
   },
 ];
 
-export const defaultGoogleWorkspace: GoogleWorkspace = {
-  workspace: {
-    authorizationDomain: [],
-    cloudPlatform: 'Gcp',
-    bucketName: 'test-bucket',
-    googleProject: `${defaultGoogleWorkspaceNamespace}-project`,
-    name: `${defaultGoogleWorkspaceNamespace}_ws`,
-    namespace: defaultGoogleWorkspaceNamespace,
-    workspaceId: 'testGoogleWorkspaceId',
-    createdDate: '2023-02-15T19:17:15.711Z',
-    createdBy: 'groot@gmail.com',
-  },
-  accessLevel: 'OWNER',
-  canShare: true,
-  canCompute: true,
-};
-
 export const generateGoogleWorkspace = (prefix: string = uuid().substring(0, 8)): GoogleWorkspace => ({
   workspace: {
     authorizationDomain: [],
@@ -175,26 +157,6 @@ export const generateAzureWorkspace = (prefix: string = uuid().substring(0, 8)):
   canShare: true,
   canCompute: true,
 });
-
-export const defaultAzureWorkspace: AzureWorkspace = {
-  workspace: {
-    authorizationDomain: [],
-    cloudPlatform: 'Azure',
-    name: 'test-azure-ws-name',
-    namespace: 'test-azure-ws-namespace',
-    workspaceId: 'fafbb550-62eb-4135-8b82-3ce4d53446af',
-    createdDate: '2023-02-15T19:17:15.711Z',
-    createdBy: 'justin@gmail.com',
-  },
-  azureContext: {
-    managedResourceGroupId: 'test-mrg',
-    subscriptionId: 'test-sub-id',
-    tenantId: 'test-tenant-id',
-  },
-  accessLevel: 'OWNER',
-  canShare: true,
-  canCompute: true,
-};
 
 export const defaultTestDisk = {
   id: 15778,

@@ -57,7 +57,10 @@ const FileBrowser = (props: FileBrowserProps) => {
   }, []);
 
   const editWorkspaceError = Utils.editWorkspaceError(workspace);
-  const { editDisabled, editDisabledReason } = Utils.cond(
+  const { editDisabled, editDisabledReason } = Utils.cond<{
+    editDisabled: boolean;
+    editDisabledReason: string | undefined;
+  }>(
     [!!editWorkspaceError, () => ({ editDisabled: true, editDisabledReason: editWorkspaceError })],
     [
       path.startsWith(`${dataTableVersionsPathRoot}/`),

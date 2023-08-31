@@ -6,8 +6,6 @@ import { h } from 'react-hyperscript-helpers';
 import {
   azureRuntime,
   dataprocRuntime,
-  defaultAzureWorkspace,
-  defaultGoogleWorkspace,
   generateAzureWorkspace,
   generateGoogleWorkspace,
   generateTestAppWithAzureWorkspace,
@@ -29,6 +27,7 @@ import { getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 type ModalMockExports = typeof import('src/components/Modal.mock');
 

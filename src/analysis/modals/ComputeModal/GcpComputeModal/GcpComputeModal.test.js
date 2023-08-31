@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import {
-  defaultGoogleWorkspace,
   defaultImage,
   defaultTestDisk,
   getDisk,
@@ -32,6 +31,7 @@ import { Ajax } from 'src/libs/ajax';
 import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { formatUSD } from 'src/libs/utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 jest.mock('src/libs/notifications', () => ({
   notify: (...args) => {
