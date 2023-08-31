@@ -65,7 +65,6 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ modalTitle, log
   const fetchLogContent = useCallback(
     async (azureBlobUri: string): Promise<FetchedLogData | null> => {
       if (!isAzureUri(azureBlobUri)) {
-        console.error('Only Azure Blob URIs are supported for previewing log conent.');
         return null;
       }
       try {
@@ -73,7 +72,6 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ modalTitle, log
         const uri = _.isEmpty(response.azureSasStorageUrl) ? response.azureStorageUrl : response.azureSasStorageUrl;
         return { textContent: response.textContent, downloadUri: uri };
       } catch (e) {
-        console.error('Error fetching or parsing log content', e);
         return null;
       }
     },
