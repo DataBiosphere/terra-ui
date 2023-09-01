@@ -799,6 +799,15 @@ describe('resolveWdsUrl', () => {
     expect(resolveWdsUrl(testProxyUrlResponseWithDifferentAppName)).toBe('');
   });
 
+  it('throws an exception if the response status is in ERROR and raiseOnError is set to true', () => {
+    const testProxyUrlResponseWithAppInErrorState: Array<Object> = [
+      { appType: 'WDS', appName: `wds-${uuid}`, status: 'ERROR', proxyUrls: { wds: testProxyUrl } },
+    ];
+    expect(() => resolveWdsUrl(testProxyUrlResponseWithAppInErrorState, /* raiseOnError= */ true)).toThrowError(
+      'WDS app is in ERROR state'
+    );
+  });
+
   it('return empty string if no CROMWELL app exists but other apps are present', () => {
     const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
       { appType: 'A_DIFFERENT_APP', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } },

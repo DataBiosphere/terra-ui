@@ -732,7 +732,7 @@ export const WorkspaceData = _.flow(
       // setWdsProxyUrl({ status: 'Loading', state: '' })
       return Ajax()
         .Apps.listAppsV2(workspaceId)
-        .then(resolveWdsUrl)
+        .then((apps) => resolveWdsUrl(apps, /* raiseOnError= */ true))
         .then((url) => {
           if (url) {
             setWdsProxyUrl({ status: 'Ready', state: url });
@@ -1379,6 +1379,23 @@ export const WorkspaceData = _.flow(
                   undefined,
                   () =>
                     Utils.cond(
+                      [
+                        isAzureWorkspace && wdsError,
+                        () =>
+                          div(
+                            {
+                              style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' },
+                            },
+                            [
+                              'Oh no! Something went wrong while preparing your data tables.',
+                              div({}, [
+                                'Please ',
+                                h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['check the status']),
+                                ' of your data table service and share the details with support@terra.bio to troubleshoot the problem.',
+                              ]),
+                            ]
+                          ),
+                      ],
                       [
                         isAzureWorkspace && !wdsReady,
                         () =>

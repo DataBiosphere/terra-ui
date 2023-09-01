@@ -120,6 +120,24 @@ describe('WorkspaceData', () => {
     expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // no error message
   });
 
+  it('displays an error message for an azure workspace whose status is ERROR', async () => {
+    // Arrange
+    const { workspaceDataProps } = setup({
+      workspace: defaultAzureWorkspace,
+      status: 'ERROR',
+    });
+
+    // Act
+    await act(async () => {
+      render(h(WorkspaceData, workspaceDataProps));
+    });
+
+    // Assert
+    expect(screen.getByText(/Data tables are unavailable/)).toBeVisible();
+    expect(screen.getByText(/Something went wrong/)).toBeVisible(); // display error message
+    expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
+  });
+
   it('displays an error message for an azure workspace that fails when loading schema info', async () => {
     // Arrange
     const { workspaceDataProps, mockGetSchema } = setup({
@@ -136,7 +154,8 @@ describe('WorkspaceData', () => {
 
     // Assert
     expect(screen.getByText(/Data tables are unavailable/)).toBeVisible();
-    expect(screen.getByText(/Preparing your data tables/)).toBeVisible(); // weird, but current behavior
+    expect(screen.getByText(/Something went wrong/)).toBeVisible(); // display error message
+    expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
   });
 
   it('displays a prompt to select a data type once azure workspace is loaded', async () => {
