@@ -51,8 +51,13 @@ export const defaultDataprocWorkerDiskSize = 150;
 export const defaultGceBootDiskSize = 250;
 export const defaultGcePersistentDiskSize = 50;
 export const defaultPersistentDiskType = googlePdTypes.standard;
-export const getCurrentAttachedDataDisk = (app: App, appDataDisks: PersistentDisk[]): PersistentDisk | undefined => {
-  const currentDisk: PersistentDisk | undefined = _.find({ name: app?.diskName }, appDataDisks);
+export const getCurrentAttachedDataDisk = (
+  app: App | undefined,
+  appDataDisks: PersistentDisk[]
+): PersistentDisk | undefined => {
+  const currentDisk: PersistentDisk | undefined = !app?.diskName
+    ? undefined
+    : appDataDisks.find(({ name }) => app.diskName === name);
   return currentDisk;
 };
 
