@@ -8,7 +8,7 @@ type AuthExports = typeof import('src/libs/auth');
 jest.mock('src/libs/auth', (): Partial<AuthExports> => {
   return {
     loadAuthToken: jest.fn(),
-    signOutAfterSessionTimeout: jest.fn(),
+    signOutAfterFailureToRefreshAuthToken: jest.fn(),
   };
 });
 
