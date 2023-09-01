@@ -39,11 +39,11 @@ type AjaxContract = ReturnType<typeof Ajax>;
 
 describe('WorkspaceData', () => {
   type SetupOptions = {
-    namespace: string;
-    name: string;
+    namespace?: string;
+    name?: string;
     workspace: WorkspaceWrapper;
-    refreshWorkspace: () => void;
-    storageDetails: StorageDetails;
+    refreshWorkspace?: () => void;
+    storageDetails?: StorageDetails;
     status: LeoAppStatus;
   };
   type SetupResult = {
@@ -57,18 +57,15 @@ describe('WorkspaceData', () => {
     azureContainerSasUrl: 'container-url?sas',
   };
 
-  const defaultSetupOptions: SetupOptions = {
-    namespace: 'test-namespace',
-    name: 'test-name',
-    workspace: defaultAzureWorkspace,
-    refreshWorkspace: () => {},
-    storageDetails: { ...defaultGoogleBucketOptions, ...populatedAzureStorageOptions },
-    status: 'RUNNING',
-  };
-
   // SIFERS setup, see: https://medium.com/@kolodny/testing-with-sifers-c9d6bb5b362
-  function setup(opts: SetupOptions = defaultSetupOptions): SetupResult {
-    const { namespace, name, workspace, refreshWorkspace, storageDetails, status } = opts;
+  function setup({
+    namespace = 'test-namespace',
+    name = 'test-name',
+    workspace,
+    refreshWorkspace = () => {},
+    storageDetails = { ...defaultGoogleBucketOptions, ...populatedAzureStorageOptions },
+    status = 'RUNNING',
+  }: SetupOptions): SetupResult {
     const wdsApp: DeepPartial<ListAppResponse> = {
       proxyUrls: {
         wds: 'https://fake.wds.url/',
@@ -109,7 +106,6 @@ describe('WorkspaceData', () => {
   it('displays a waiting message for an azure workspace that is still provisioning in WDS', async () => {
     // Arrange
     const { workspaceDataProps } = setup({
-      ...defaultSetupOptions,
       workspace: defaultAzureWorkspace,
       status: 'PROVISIONING',
     });
@@ -127,7 +123,6 @@ describe('WorkspaceData', () => {
   it('displays an error message for an azure workspace that fails when loading schema info', async () => {
     // Arrange
     const { workspaceDataProps, mockGetSchema } = setup({
-      ...defaultSetupOptions,
       workspace: defaultAzureWorkspace,
       status: 'RUNNING',
     });
@@ -147,7 +142,6 @@ describe('WorkspaceData', () => {
   it('displays a prompt to select a data type once azure workspace is loaded', async () => {
     // Arrange
     const { workspaceDataProps } = setup({
-      ...defaultSetupOptions,
       workspace: defaultAzureWorkspace,
       status: 'RUNNING',
     });
