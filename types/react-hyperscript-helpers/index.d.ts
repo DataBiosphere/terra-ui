@@ -10,7 +10,7 @@ declare module 'react-hyperscript-helpers' {
   // does not use. Thus, we can use the updated type signature without TypeScript 5.1.
   interface FunctionComponent<P = {}> {
     (props: P, context?: any): ReactNode;
-    displayName?: string | undefined;
+    displayName?: string;
   }
 
   type Component<P> = FunctionComponent<P> | React.ComponentClass<P>;
