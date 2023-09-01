@@ -294,22 +294,22 @@ describe('BaseRunDetails - render smoke test', () => {
 
     // We know we've successfully switchted tabs if:
     // We click on a tab title, see a corresponding filename, and don't see other filenames.
-    const stdoutButton = screen.getByLabelText('Task Standard Out');
+    const stdoutButton = screen.getByText('Task Standard Out');
     await user.click(stdoutButton);
     expect(screen.getByText('stdout.txt')).toBeVisible();
     expect(screen.queryByText('stderr.txt')).not.toBeInTheDocument();
 
-    const stderrButton = screen.getByLabelText('Task Standard Err');
+    const stderrButton = screen.getByText('Task Standard Err');
     await user.click(stderrButton);
     expect(screen.getByText('stderr.txt')).toBeVisible();
     expect(screen.queryByText('stdout.txt')).not.toBeInTheDocument();
 
-    const backendStdoutButton = screen.getByLabelText('Backend Standard Out');
+    const backendStdoutButton = screen.getByText('Backend Standard Out');
     await user.click(backendStdoutButton);
     expect(screen.getByText('stdout.txt')).toBeVisible();
     expect(screen.queryByText('stderr.txt')).not.toBeInTheDocument();
 
-    const backendStderrButton = screen.getByLabelText('Backend Standard Err');
+    const backendStderrButton = screen.getByText('Backend Standard Err');
     await user.click(backendStderrButton);
     expect(screen.getByText('stderr.txt')).toBeVisible();
     expect(screen.queryByText('stdout.txt')).not.toBeInTheDocument();
@@ -327,10 +327,10 @@ describe('BaseRunDetails - render smoke test', () => {
     await user.click(showLogsLink); // Open the modal
 
     // Verify all the element titles are present
-    screen.getByLabelText('Task Standard Out');
-    screen.getByLabelText('Task Standard Err');
-    screen.getByLabelText('Backend Standard Out');
-    screen.getByLabelText('Backend Standard Err');
+    screen.getByText('Task Standard Out');
+    screen.getByText('Task Standard Err');
+    screen.getByText('Backend Standard Out');
+    screen.getByText('Backend Standard Err');
     screen.getByLabelText('Download log');
     // Verify the data loaded properly
     screen.getByText('this is the text of a mock file');
@@ -352,10 +352,10 @@ describe('BaseRunDetails - render smoke test', () => {
     await user.click(showLogsLink); // Open the modal
 
     // Verify all the element titles are present
-    screen.getByLabelText('Task Standard Out');
-    screen.getByLabelText('Task Standard Err');
-    screen.getByLabelText('Backend Standard Out');
-    screen.getByLabelText('Backend Standard Err');
+    screen.getByText('Task Standard Out');
+    screen.getByText('Task Standard Err');
+    screen.getByText('Backend Standard Out');
+    screen.getByText('Backend Standard Err');
     screen.getByLabelText('Download log');
 
     // Verify the error is displayed.
