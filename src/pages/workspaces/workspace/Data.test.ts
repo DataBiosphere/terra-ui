@@ -4,13 +4,11 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { LeoAppStatus, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { testOnlyExports } from 'src/pages/workspaces/workspace/Data';
+import { WorkspaceData } from 'src/pages/workspaces/workspace/Data';
 import { asMockedFn } from 'src/testing/test-utils';
-import { defaultAzureWorkspace } from 'src/testing/workspace-fixtures';
+import { defaultAzureWorkspace, defaultGoogleBucketOptions } from 'src/testing/workspace-fixtures';
 
 import { StorageDetails } from './useWorkspace';
-
-const { WorkspaceData } = testOnlyExports;
 
 type WorkspaceContainerExports = typeof import('src/pages/workspaces/workspace/WorkspaceContainer');
 jest.mock('src/pages/workspaces/workspace/WorkspaceContainer', (): WorkspaceContainerExports => {
@@ -28,31 +26,49 @@ jest.mock('src/libs/ajax', (): AjaxExports => {
   };
 });
 
+// When Data.js is broken apart and the WorkspaceData component is converted to TypeScript,
+// this type belongs there.
+interface WorkspaceDataProps {
+  namespace: string;
+  name: string;
+  workspace: WorkspaceWrapper;
+  refreshWorkspace: () => void;
+  storageDetails: StorageDetails;
+}
+type AjaxContract = ReturnType<typeof Ajax>;
+
 describe('WorkspaceData', () => {
-  // When Data.js is broken apart and the WorkspaceData component is converted to TypeScript,
-  // this type belongs there.
-  interface WorkspaceDataProps {
+  type SetupOptions = {
     namespace: string;
     name: string;
     workspace: WorkspaceWrapper;
     refreshWorkspace: () => void;
     storageDetails: StorageDetails;
-  }
+    status: LeoAppStatus;
+  };
+  type SetupResult = {
+    workspaceDataProps: WorkspaceDataProps;
+    mockGetSchema: jest.Mock;
+  };
+
+  const populatedAzureStorageOptions = {
+    azureContainerRegion: 'eastus',
+    azureContainerUrl: 'container-url',
+    azureContainerSasUrl: 'container-url?sas',
+  };
+
+  const defaultSetupOptions: SetupOptions = {
+    namespace: 'test-namespace',
+    name: 'test-name',
+    workspace: defaultAzureWorkspace,
+    refreshWorkspace: () => {},
+    storageDetails: { ...defaultGoogleBucketOptions, ...populatedAzureStorageOptions },
+    status: 'RUNNING',
+  };
 
   // SIFERS setup, see: https://medium.com/@kolodny/testing-with-sifers-c9d6bb5b362
-  function setup({
-    namespace = 'test-namespace',
-    name = 'test-name',
-    workspace,
-    refreshWorkspace = () => {},
-    storageDetails = {},
-    status = 'RUNNING' as LeoAppStatus,
-  }) {
-    type AjaxContract = ReturnType<typeof Ajax>;
-    type WorkspacesContract = AjaxContract['Workspaces'];
-    type AppsContract = AjaxContract['Apps'];
-    type WorkspaceDataContract = AjaxContract['WorkspaceData'];
-
+  function setup(opts: SetupOptions = defaultSetupOptions): SetupResult {
+    const { namespace, name, workspace, refreshWorkspace, storageDetails, status } = opts;
     const wdsApp: DeepPartial<ListAppResponse> = {
       proxyUrls: {
         wds: 'https://fake.wds.url/',
@@ -68,34 +84,38 @@ describe('WorkspaceData', () => {
           listSnapshots: jest.fn().mockResolvedValue([]),
           entityMetadata: jest.fn().mockResolvedValue({}),
         }),
-      } as DeepPartial<WorkspacesContract>,
+      },
       WorkspaceData: {
         getSchema: mockGetSchema,
-      } as DeepPartial<WorkspaceDataContract>,
+      },
       Apps: {
         listAppsV2: jest.fn().mockResolvedValue([{ ...wdsApp, status }]),
-      } as DeepPartial<AppsContract>,
+      },
     };
 
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
 
-    const workspaceDataProps = {
+    const workspaceDataProps: WorkspaceDataProps = {
       namespace,
       name,
       workspace,
       refreshWorkspace,
       storageDetails,
-    } as WorkspaceDataProps;
+    };
 
     return { workspaceDataProps, mockGetSchema };
   }
 
   it('displays a waiting message for an azure workspace that is still provisioning in WDS', async () => {
     // Arrange
-    const { workspaceDataProps } = setup({ workspace: defaultAzureWorkspace, status: 'PROVISIONING' });
+    const { workspaceDataProps } = setup({
+      ...defaultSetupOptions,
+      workspace: defaultAzureWorkspace,
+      status: 'PROVISIONING',
+    });
 
     // Act
-    await act(() => {
+    await act(async () => {
       render(h(WorkspaceData, workspaceDataProps));
     });
 
@@ -106,12 +126,16 @@ describe('WorkspaceData', () => {
 
   it('displays an error message for an azure workspace that fails when loading schema info', async () => {
     // Arrange
-    const { workspaceDataProps, mockGetSchema } = setup({ workspace: defaultAzureWorkspace, status: 'RUNNING' });
+    const { workspaceDataProps, mockGetSchema } = setup({
+      ...defaultSetupOptions,
+      workspace: defaultAzureWorkspace,
+      status: 'RUNNING',
+    });
 
     mockGetSchema.mockRejectedValue(new Error('schema error'));
 
     // Act
-    await act(() => {
+    await act(async () => {
       render(h(WorkspaceData, workspaceDataProps));
     });
 
@@ -122,10 +146,14 @@ describe('WorkspaceData', () => {
 
   it('displays a prompt to select a data type once azure workspace is loaded', async () => {
     // Arrange
-    const { workspaceDataProps } = setup({ workspace: defaultAzureWorkspace, status: 'RUNNING' });
+    const { workspaceDataProps } = setup({
+      ...defaultSetupOptions,
+      workspace: defaultAzureWorkspace,
+      status: 'RUNNING',
+    });
 
     // Act
-    await act(() => {
+    await act(async () => {
       render(h(WorkspaceData, workspaceDataProps));
     });
 
