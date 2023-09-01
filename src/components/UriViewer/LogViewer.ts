@@ -1,16 +1,16 @@
+import { LoadedState } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { useCallback, useEffect, useState } from 'react';
-import { div, h, span } from 'react-hyperscript-helpers';
+import { dd, div, dl, dt, h, span } from 'react-hyperscript-helpers';
+import { ButtonOutline } from 'src/components/common';
+import { centeredSpinner, icon } from 'src/components/icons';
+import Modal from 'src/components/Modal';
+import { InfoBox } from 'src/components/PopupTrigger';
 import { SimpleTabBar } from 'src/components/tabBars';
 import { isAzureUri } from 'src/components/UriViewer/uri-viewer-utils';
 import { Ajax } from 'src/libs/ajax';
-import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
+import { useCancellation } from 'src/libs/react-utils';
 import { newTabLinkProps } from 'src/libs/utils';
-
-import { ButtonOutline } from '../common';
-import { centeredSpinner, icon } from '../icons';
-import Modal from '../Modal';
-import { InfoBox } from '../PopupTrigger';
 /**
  * Information needed to preview a log file.
  * @member logUri - The URI of the log file. Must be a valid Azure blob URI. No Sas token should be appended: a fresh one will be obtained.
@@ -50,17 +50,22 @@ type FetchedLogData = {
   downloadUri: string | undefined; // The URI to use for downloading the log file. May or may not have token appended, depending on if the file is public or private.
 };
 
+const logLoadingErrorMessage =
+  "Log file could not be loaded. If the workflow or task is still in progress, the log file likely hasn't been generated yet. Some logs may be unavailable if the workflow or task failed before they could be generated.";
 const modalMaxWidth = 1100;
 const tabMaxWidth = modalMaxWidth / 4 - 20;
 
-export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ modalTitle, logs, onDismiss }: LogViewerProps) => {
-  const [currentlyActiveLog, setCurrentlyActiveLog] = _.isEmpty(logs)
-    ? useState<LogInfo | undefined>(undefined)
-    : useState<LogInfo | undefined>(logs[0]);
+export const LogViewer = ({ modalTitle, logs, onDismiss }: LogViewerProps) => {
+  const [currentlyActiveLog, setCurrentlyActiveLog] = useState<LogInfo | undefined>(
+    _.isEmpty(logs) ? undefined : logs[0]
+  );
 
   // string = fetched log content, undefined = loading, null = error.
-  const [activeTextContent, setActiveTextContent] = useState<string | undefined | null>(undefined);
-  const [activeDownloadUri, setActiveDownloadUri] = useState<string | undefined>(undefined);
+  const [activeTextContent, setActiveTextContent] = useState<LoadedState<string | undefined>>({
+    status: 'Loading',
+    state: undefined,
+  });
+  const [activeDownloadUri, setActiveDownloadUri] = useState<string | undefined | null>(undefined);
   const signal = useCancellation();
   const fetchLogContent = useCallback(
     async (azureBlobUri: string): Promise<FetchedLogData | null> => {
@@ -78,30 +83,29 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ modalTitle, log
     [signal]
   );
 
-  useOnMount(() => {
-    fetchLogContent(logs[0].logUri).then((content) => {
-      if (_.isEmpty(content?.textContent)) {
-        setActiveTextContent(null);
-      } else {
-        setActiveTextContent(content?.textContent);
-      }
-      setActiveDownloadUri(content?.downloadUri);
-    });
-  });
-
   useEffect(() => {
     const fetch = async (logUri: string) => {
       const res = await fetchLogContent(logUri);
       if (_.isEmpty(res?.textContent)) {
-        setActiveTextContent(null); // Fetch failed. Display error.
+        setActiveTextContent({
+          status: 'Error',
+          state: null,
+          error: { name: 'Log Download Error', message: logLoadingErrorMessage },
+        });
       } else {
-        setActiveTextContent(res?.textContent);
+        setActiveTextContent({
+          status: 'Ready',
+          state: res?.textContent,
+        });
       }
       setActiveDownloadUri(res?.downloadUri);
     };
 
-    // when switching tabs, reset content to undefined while we fetch the new content.
-    setActiveTextContent(undefined);
+    // when switching tabs, switch back to loading state while we fetch new content.
+    setActiveTextContent({
+      status: 'Loading',
+      state: undefined,
+    });
     setActiveDownloadUri(undefined);
 
     // tab switching set the currently active log (which triggers this effect). Fetch the content for the new log.
@@ -112,19 +116,20 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ modalTitle, log
   }, [logs, currentlyActiveLog, fetchLogContent]);
 
   const renderActiveTextContent = () => {
-    if (activeTextContent === undefined) {
-      return div([centeredSpinner()]);
+    switch (activeTextContent.status) {
+      case 'Loading':
+        return div([centeredSpinner()]);
+      case 'Error':
+        return div([activeTextContent.error.message]);
+      case 'Ready':
+        return div([activeTextContent.state]);
+      default:
+        return div(['Unknown error']);
     }
-    if (activeTextContent === null) {
-      return div([
-        "Log file could not be loaded. If the workflow or task is still in progress, the log file likely hasn't been generated yet. Some logs may be unavailable if the workflow or task failed before they could be generated.",
-      ]);
-    }
-    return div([activeTextContent]);
   };
 
   const tabsArray: SimpleTabProps[] = logs.map((log) => {
-    return { key: log.logKey, title: log.logTitle, width: tabMaxWidth } as SimpleTabProps;
+    return { key: log.logKey, title: log.logTitle, width: tabMaxWidth };
   });
 
   return h(
@@ -142,17 +147,19 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ modalTitle, log
           iconOverride: undefined,
         },
         [
-          div({ style: { fontWeight: 'bold' } }, ['Execution:']),
-          div({ style: { marginLeft: '1rem', marginBottom: '1rem' } }, [
-            'Each workflow has a single execution log which comes from the engine running your workflow. Errors in this log might indicate a Terra systems issue, or a problem parsing your WDL.',
-          ]),
-          div({ style: { fontWeight: 'bold' } }, ['Task Standard Out/Error:']),
-          div({ style: { marginLeft: '1rem' } }, [
-            "Task logs are from user-defined commands in your WDL. You might see an error in these logs if there was a logic or syntax error in a command, or if something went with the tool you're running.",
-          ]),
-          div({ style: { marginTop: '1rem', fontWeight: 'bold' } }, ['Backend Standard Out/Error:']),
-          div({ style: { marginLeft: '1rem' } }, [
-            "Backend logs are from the Azure Cloud compute job that prepares your task to run and cleans up after. You might see errors in these logs if the there was a problem downloading the task's input files or pulling its container, or if something went wrong on the compute node while the task was running.",
+          dl([
+            dt({ style: { fontWeight: 'bold' } }, ['Execution:']),
+            dd({ style: { marginBottom: '0.5rem' } }, [
+              'Each workflow has a single execution log which comes from the engine running your workflow. Errors in this log might indicate a Terra systems issue, or a problem parsing your WDL.',
+            ]),
+            dt({ style: { fontWeight: 'bold' } }, ['Task Standard Out/Error:']),
+            dd({ style: { marginBottom: '0.5rem' } }, [
+              "Task logs are from user-defined commands in your WDL. You might see an error in these logs if there was a logic or syntax error in a command, or if something went with the tool you're running.",
+            ]),
+            dt({ style: { fontWeight: 'bold' } }, ['Backend Standard Out/Error:']),
+            dd({ style: { marginBottom: '0.5rem' } }, [
+              "Backend logs are from the Azure Cloud compute job that prepares your task to run and cleans up after. You might see errors in these logs if the there was a problem downloading the task's input files or pulling its container, or if something went wrong on the compute node while the task was running.",
+            ]),
           ]),
         ]
       ),
@@ -220,5 +227,5 @@ export const LogViewer = _.flow(withDisplayName('LogViewer'))(({ modalTitle, log
       ),
     ]
   );
-});
+};
 //

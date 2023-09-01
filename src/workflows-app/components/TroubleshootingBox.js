@@ -34,14 +34,13 @@ export const TroubleshootingBox = ({ name, namespace, logUri, submissionId, work
         h(
           Link,
           {
-            'aria-label': 'Execution Log',
             onClick: () => {
               showLogModal('Execution Log', [{ logUri, logTitle: 'Execution Log', logKey: 'execution_log', logFilename: 'workflow.log' }]);
             },
           },
           [div({ style: { marginRight: '1.5rem' } }, [icon('fileAlt', { size: 18 }), ' Execution Log'], {})]
         ),
-        h(Link, { 'aria-label': 'Execution Directory', href: Nav.getLink('workspace-files', { name, namespace }), target: '_blank' }, [
+        h(Link, { href: Nav.getLink('workspace-files', { name, namespace }), target: '_blank' }, [
           icon('folder-open', { size: 18 }),
           ' Execution Directory',
         ]),

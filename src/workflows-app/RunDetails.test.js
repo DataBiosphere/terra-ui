@@ -188,7 +188,7 @@ describe('BaseRunDetails - render smoke test', () => {
       const { executionStatus, backendStatus, start, end } = calls[taskName][0];
       const row = taskRows[index];
       within(row).getByText(taskName);
-      within(row).getByLabelText('Logs');
+      within(row).getByText('Logs');
       // Checking row text content for dates since querying by formatted date doesn't seem to work
       const statusObj = collapseCromwellStatus(executionStatus, backendStatus);
       const status = within(row).getAllByText(statusObj.label());
@@ -251,7 +251,7 @@ describe('BaseRunDetails - render smoke test', () => {
   it('opens the log viewer modal when Execution Logs is clicked', async () => {
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const executionLogButton = screen.getByLabelText('Execution Log');
+    const executionLogButton = screen.getByText('Execution Log');
     await user.click(executionLogButton);
     screen.getByText('workflow.log');
     screen.getByText('this is the text of a mock file');
@@ -323,7 +323,7 @@ describe('BaseRunDetails - render smoke test', () => {
   it('shows a functional log modal when clicked', async () => {
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const showLogsLink = screen.getByLabelText('Logs');
+    const showLogsLink = screen.getByText('Logs');
     await user.click(showLogsLink); // Open the modal
 
     // Verify all the element titles are present
@@ -348,7 +348,7 @@ describe('BaseRunDetails - render smoke test', () => {
     Ajax.mockImplementation(() => altMockObj);
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const showLogsLink = screen.getByLabelText('Logs');
+    const showLogsLink = screen.getByText('Logs');
     await user.click(showLogsLink); // Open the modal
 
     // Verify all the element titles are present

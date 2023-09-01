@@ -401,7 +401,6 @@ const CallTable = ({
                         h(
                           Link,
                           {
-                            'aria-label': 'Logs',
                             onClick: () =>
                               showLogModal('Task Logs', [
                                 { logUri: stdout, logTitle: 'Task Standard Out', logKey: 'stdout', logFilename: 'stdout.txt' },
