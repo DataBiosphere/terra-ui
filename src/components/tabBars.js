@@ -205,7 +205,6 @@ export function SimpleTabBar({
             'aria-posinset': i + 1, // The first tab is 1
             'aria-setsize': tabs.length,
             'aria-selected': selected,
-            'aria-label': title,
             style: { ...styles.tabBar.tab, ...(selected ? styles.tabBar.active : {}), width, ...tabStyle },
             hover: selected ? {} : styles.tabBar.hover,
             onClick: () => {
