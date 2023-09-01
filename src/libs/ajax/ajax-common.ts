@@ -1,5 +1,6 @@
 import _ from 'lodash/fp';
-import { loadAuthToken, signOutAfterSessionTimeout } from 'src/libs/auth';
+import { User } from 'oidc-client-ts';
+import { loadAuthToken, signOutAfterFailureToRefreshAuthToken } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
 import { ajaxOverridesStore, getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
@@ -80,12 +81,13 @@ const retryAfterReloadingAuthToken = async (
     return await wrappedFetch(resource, options);
   } catch (error) {
     if (isUnauthorizedResponse(error) && requestHasAuthHeader) {
-      const successfullyReloadedAuthToken = !!(await loadAuthToken());
-      if (successfullyReloadedAuthToken) {
+      const authTokenReloadState = await loadAuthToken();
+      // we should have this state be its own type since we need to do case matching on it in several places
+      if (authTokenReloadState instanceof User) {
         const optionsWithNewAuthToken = _.merge(options, authOpts());
         return retryAfterReloadingAuthToken(wrappedFetch, resource, optionsWithNewAuthToken);
       }
-      signOutAfterSessionTimeout();
+      signOutAfterFailureToRefreshAuthToken();
       // console.log('Session timed out (due to authToken refresh failure or expired refresh token)');
       throw new Error('Session timed out (due to authToken refresh failure or expired refresh token)');
     } else {

@@ -1,4 +1,4 @@
-import { signOutAfterSessionTimeout, tryLoadAuthTokenSilent } from 'src/libs/auth';
+import { signOutAfterFailureToRefreshAuthToken, tryLoadAuthTokenSilent } from 'src/libs/auth';
 import { getUser } from 'src/libs/state';
 import { asMockedFn } from 'src/testing/test-utils';
 
@@ -106,7 +106,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
         await Promise.allSettled([makeAuthenticatedRequest()]);
 
         // Assert
-        expect(signOutAfterSessionTimeout).toHaveBeenCalled();
+        expect(signOutAfterFailureToRefreshAuthToken).toHaveBeenCalled();
       });
 
       it('throws an error', () => {

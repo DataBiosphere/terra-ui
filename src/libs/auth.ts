@@ -55,6 +55,9 @@ const getAuthInstance = () => {
   return authStore.get().authContext;
 };
 
+// We should add a source/reason for the signOut so we can see if it was
+// done by a user or from a session timeout or failure to reload auth token
+// then fire corresponding events for user logout (userTriggered, sessionTimeout, authTokenRefreshError)
 export const signOut = (): void => {
   // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
   const sessionEndTime: number = Date.now();
@@ -78,9 +81,12 @@ export const signOut = (): void => {
     .finally(() => auth.clearStaleState());
 };
 
-export const signOutAfterSessionTimeout = (): void => {
+export const signOutAfterFailureToRefreshAuthToken = (): void => {
+  // we could maybe move all of these events into the loadAuthToken method
   Ajax().Metrics.captureEvent(Events.userSessionTimeout, {});
   signOut();
+  // this notification is a misnomer, and I would like to change it to be more accurate,
+  // but I do not know what is listening to this event so I will leave it alone for the time being
   notify('info', 'Session timed out', sessionTimeoutProps);
 };
 
@@ -160,9 +166,8 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
         totalTokensThisSession: authStore.get().authTokenMetadata.totalTokensThisSession + 1,
       },
     }));
-    Ajax().Metrics.captureEvent(Events.userAuthTokenReload, {
+    Ajax().Metrics.captureEvent(Events.userAuthTokenReloadSuccess, {
       authProvider: user.profile.idp,
-      authReloadResult: 'refreshSucceeded',
       oldAuthTokenCreatedAt: Utils.formatTimestampInSeconds(oldTokenMetadata.createdAt),
       oldAuthTokenExpiresAt: Utils.formatTimestampInSeconds(oldTokenMetadata.expiresAt),
       oldAuthTokenId: oldTokenMetadata.id,
@@ -173,15 +178,14 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
       jwtExpiresAt: Utils.formatTimestampInSeconds(jwtExpiresAt),
     });
   } else if (reloadedAuthTokenState === null) {
-    Ajax().Metrics.captureEvent(Events.userAuthTokenReload, {
-      authReloadResult: 'refreshFailed:refreshTokenExpired',
+    Ajax().Metrics.captureEvent(Events.userAuthTokenReloadExpired, {
       oldAuthTokenCreatedAt: Utils.formatTimestampInSeconds(oldTokenMetadata.createdAt),
       oldAuthTokenExpiresAt: Utils.formatTimestampInSeconds(oldTokenMetadata.expiresAt),
       oldAuthTokenId: oldTokenMetadata.id,
     });
   } else {
-    Ajax().Metrics.captureEvent(Events.userAuthTokenReload, {
-      authReloadResult: 'refreshFailed:error',
+    Ajax().Metrics.captureEvent(Events.userAuthTokenReloadError, {
+      // we could potentially log the reason but I don't know if that data is safe to log
       oldAuthTokenCreatedAt: Utils.formatTimestampInSeconds(oldTokenMetadata.createdAt),
       oldAuthTokenExpiresAt: Utils.formatTimestampInSeconds(oldTokenMetadata.expiresAt),
       oldAuthTokenId: oldTokenMetadata.id,
