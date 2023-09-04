@@ -1,8 +1,13 @@
-import { signOutAfterFailureToRefreshAuthToken, tryLoadAuthTokenSilent } from 'src/libs/auth';
+import { loadAuthToken, signOutAfterFailureToRefreshAuthToken } from 'src/libs/auth';
 import { getUser } from 'src/libs/state';
 import { asMockedFn } from 'src/testing/test-utils';
 
-import { authOpts, makeRequestRetry, withRetryAfterReloadingExpiredAuthToken } from './ajax-common';
+import {
+  authOpts,
+  makeRequestRetry,
+  sessionTimedOutErrorMessage,
+  withRetryAfterReloadingExpiredAuthToken,
+} from './ajax-common';
 
 type AuthExports = typeof import('src/libs/auth');
 jest.mock('src/libs/auth', (): Partial<AuthExports> => {
@@ -65,7 +70,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
       let mockUser = { token: 'testtoken' };
       asMockedFn(getUser).mockImplementation(() => mockUser);
 
-      asMockedFn(tryLoadAuthTokenSilent).mockImplementation(() => {
+      asMockedFn(loadAuthToken).mockImplementation(() => {
         mockUser = { token: 'newtesttoken' };
         return Promise.resolve(true);
       });
@@ -77,7 +82,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
       await Promise.allSettled([makeAuthenticatedRequest()]);
 
       // Assert
-      expect(tryLoadAuthTokenSilent).toHaveBeenCalled();
+      expect(loadAuthToken).toHaveBeenCalled();
     });
 
     it('retries request with new auth token if reloading auth token succeeds', async () => {
@@ -97,7 +102,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
 
     describe('if reloading auth token fails', () => {
       beforeEach(() => {
-        asMockedFn(tryLoadAuthTokenSilent).mockImplementation(() => Promise.resolve(false));
+        asMockedFn(loadAuthToken).mockImplementation(() => Promise.resolve(false));
       });
 
       it('signs out user', async () => {
@@ -114,7 +119,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
         const result = makeAuthenticatedRequest();
 
         // Assert
-        expect(result).rejects.toEqual(new Error('Session timed out'));
+        expect(result).rejects.toEqual(new Error(sessionTimedOutErrorMessage));
       });
     });
   });

@@ -1,5 +1,4 @@
 import _ from 'lodash/fp';
-import { User } from 'oidc-client-ts';
 import { loadAuthToken, signOutAfterFailureToRefreshAuthToken } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
 import { ajaxOverridesStore, getUser } from 'src/libs/state';
@@ -71,6 +70,9 @@ export const withRetryAfterReloadingExpiredAuthToken =
     return retryAfterReloadingAuthToken(wrappedFetch, resource, options);
   };
 
+export const sessionTimedOutErrorMessage =
+  'Session timed out (due to auth token refresh failure or expired refresh token)';
+
 const retryAfterReloadingAuthToken = async (
   wrappedFetch: FetchFn,
   resource: RequestInfo | URL,
@@ -81,15 +83,16 @@ const retryAfterReloadingAuthToken = async (
     return await wrappedFetch(resource, options);
   } catch (error) {
     if (isUnauthorizedResponse(error) && requestHasAuthHeader) {
-      const authTokenReloadState = await loadAuthToken();
+      const authTokenReloadState = !!(await loadAuthToken());
       // we should have this state be its own type since we need to do case matching on it in several places
-      if (authTokenReloadState instanceof User) {
+      // want to not use the !! and change it to authTokenReloadState instanceof User but that fails a test
+      if (authTokenReloadState) {
         const optionsWithNewAuthToken = _.merge(options, authOpts());
         return retryAfterReloadingAuthToken(wrappedFetch, resource, optionsWithNewAuthToken);
       }
       signOutAfterFailureToRefreshAuthToken();
-      // console.log('Session timed out (due to authToken refresh failure or expired refresh token)');
-      throw new Error('Session timed out (due to authToken refresh failure or expired refresh token)');
+      // console.log(sessionTimedOutErrorMessage);
+      throw new Error(sessionTimedOutErrorMessage);
     } else {
       throw error;
     }

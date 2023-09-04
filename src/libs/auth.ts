@@ -86,7 +86,7 @@ export const signOutAfterFailureToRefreshAuthToken = (): void => {
   Ajax().Metrics.captureEvent(Events.userSessionTimeout, {});
   signOut();
   // this notification is a misnomer, and I would like to change it to be more accurate,
-  // but I do not know what is listening to this event so I will leave it alone for the time being
+  // but I do not know what is listening to this event, so I will leave it alone for the time being
   notify('info', 'Session timed out', sessionTimeoutProps);
 };
 
@@ -194,7 +194,7 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
   return reloadedAuthTokenState;
 };
 
-export const tryLoadAuthTokenSilent = (includeBillingScope = false): Promise<User | null | boolean> => {
+const tryLoadAuthTokenSilent = (includeBillingScope = false): Promise<User | null | boolean> => {
   const args = getSigninArgs(includeBillingScope);
   // if this returns a null -> refresh token has expired
   return getAuthInstance()
@@ -206,7 +206,7 @@ export const tryLoadAuthTokenSilent = (includeBillingScope = false): Promise<Use
     });
 };
 
-export const tryLoadAuthTokenPopUp = (includeBillingScope = false): Promise<User | null | boolean> => {
+const tryLoadAuthTokenPopUp = (includeBillingScope = false): Promise<User | null | boolean> => {
   const args = getSigninArgs(includeBillingScope);
   // if this returns a null -> refresh token has expired
   return getAuthInstance()
@@ -228,7 +228,7 @@ export const hasBillingScope = (): boolean => authStore.get().hasGcpBillingScope
  */
 export const tryBillingScope = async () => {
   if (!hasBillingScope()) {
-    await tryLoadAuthTokenSilent(true);
+    await loadAuthToken(true);
   }
 };
 
@@ -289,7 +289,7 @@ export const processUser = (user, isSignInEvent) => {
     const userId = profile?.sub;
 
     // The following few lines of code are to handle sign-in failures due to privacy tools.
-    if (isSignInEvent === true && state.isSignedIn === false && isSignedIn === false) {
+    if (isSignInEvent === true && state.isSignedIn === false && !isSignedIn) {
       // if both of these values are false, it means that the user was initially not signed in (state.isSignedIn === false),
       // tried to sign in (invoking processUser) and was still not signed in (isSignedIn === false).
       notify('error', 'Could not sign in', {
@@ -407,7 +407,7 @@ authStore.subscribe(
     const isNowSignedIn = !oldState.isSignedIn && state.isSignedIn;
     if (isNowSignedIn || canNowUseSystem) {
       clearNotification(sessionTimeoutProps.id);
-      const registrationStatus = await getRegistrationStatus();
+      const registrationStatus: string = await getRegistrationStatus();
       authStore.update((state) => ({ ...state, registrationStatus }));
     }
   })

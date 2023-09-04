@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { useEffect } from 'react';
 import { useAuth } from 'react-oidc-context';
-import { processUser, tryLoadAuthTokenSilent } from 'src/libs/auth';
+import { loadAuthToken, processUser } from 'src/libs/auth';
 import { useOnMount } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 
@@ -15,7 +15,7 @@ function AuthStoreSetter() {
     const cleanupFns = [
       auth.events.addUserLoaded((user) => processUser(user, true)),
       auth.events.addUserUnloaded((user) => processUser(user, false)),
-      auth.events.addAccessTokenExpired(() => tryLoadAuthTokenSilent()),
+      auth.events.addAccessTokenExpired(() => loadAuthToken()),
     ];
     return _.over(cleanupFns);
   }, [auth]);
