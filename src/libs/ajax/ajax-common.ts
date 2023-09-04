@@ -67,7 +67,8 @@ const isUnauthorizedResponse = (error): boolean => error instanceof Response && 
 export const withRetryAfterReloadingExpiredAuthToken =
   (wrappedFetch: FetchFn): FetchFn =>
   async (resource: RequestInfo | URL, options?: RequestInit): Promise<Response> => {
-    return retryAfterReloadingAuthToken(wrappedFetch, resource, options);
+    const maxRetries = 3;
+    return retryAfterReloadingAuthToken(wrappedFetch, maxRetries, resource, options);
   };
 
 export const sessionTimedOutErrorMessage =
@@ -75,10 +76,15 @@ export const sessionTimedOutErrorMessage =
 
 const retryAfterReloadingAuthToken = async (
   wrappedFetch: FetchFn,
+  numRetries: number,
   resource: RequestInfo | URL,
   options?: RequestInit
 ): Promise<Response> => {
   const requestHasAuthHeader = _.isMatch(authOpts(), options as object);
+  if (numRetries <= 0) {
+    signOutAfterFailureToRefreshAuthToken();
+    throw new Error('Request has exceeded maximum number of retries');
+  }
   try {
     return await wrappedFetch(resource, options);
   } catch (error) {
@@ -88,7 +94,7 @@ const retryAfterReloadingAuthToken = async (
       // want to not use the !! and change it to authTokenReloadState instanceof User but that fails a test
       if (authTokenReloadState) {
         const optionsWithNewAuthToken = _.merge(options, authOpts());
-        return retryAfterReloadingAuthToken(wrappedFetch, resource, optionsWithNewAuthToken);
+        return retryAfterReloadingAuthToken(wrappedFetch, numRetries - 1, resource, optionsWithNewAuthToken);
       }
       signOutAfterFailureToRefreshAuthToken();
       // console.log(sessionTimedOutErrorMessage);
