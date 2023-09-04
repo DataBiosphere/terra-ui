@@ -67,7 +67,7 @@ const isUnauthorizedResponse = (error): boolean => error instanceof Response && 
 export const withRetryAfterReloadingExpiredAuthToken =
   (wrappedFetch: FetchFn): FetchFn =>
   async (resource: RequestInfo | URL, options?: RequestInit): Promise<Response> => {
-    const maxRetries = 3;
+    const maxRetries = 2;
     return retryAfterReloadingAuthToken(wrappedFetch, maxRetries, resource, options);
   };
 
