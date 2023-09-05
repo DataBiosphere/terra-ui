@@ -20,18 +20,6 @@ import { MenuButton } from 'src/components/MenuButton';
 import Modal from 'src/components/Modal';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { GridTable, HeaderCell, paginator, Resizable, TooltipCell } from 'src/components/table';
-import { concatenateAttributeNames } from 'src/data/data-table/entity-service/attribute-utils';
-import { entityAttributeText } from 'src/data/data-table/entity-service/entityAttributeText';
-import { EntityRenamer } from 'src/data/data-table/entity-service/EntityRenamer';
-import { RenameColumnModal } from 'src/data/data-table/entity-service/RenameColumnModal';
-import { renderDataCell } from 'src/data/data-table/entity-service/renderDataCell';
-import {
-  allSavedColumnSettingsEntityTypeKey,
-  allSavedColumnSettingsInWorkspace,
-  ColumnSettingsWithSavedColumnSettings,
-  decodeColumnSettings,
-} from 'src/data/data-table/entity-service/SavedColumnSettings';
-import { SingleEntityEditor } from 'src/data/data-table/entity-service/SingleEntityEditor';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
@@ -41,6 +29,19 @@ import { useCancellation } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+
+import { concatenateAttributeNames } from '../entity-service/attribute-utils';
+import { entityAttributeText } from '../entity-service/entityAttributeText';
+import { EntityRenamer } from '../entity-service/EntityRenamer';
+import { RenameColumnModal } from '../entity-service/RenameColumnModal';
+import { renderDataCell } from '../entity-service/renderDataCell';
+import {
+  allSavedColumnSettingsEntityTypeKey,
+  allSavedColumnSettingsInWorkspace,
+  ColumnSettingsWithSavedColumnSettings,
+  decodeColumnSettings,
+} from '../entity-service/SavedColumnSettings';
+import { SingleEntityEditor } from '../entity-service/SingleEntityEditor';
 
 const entityMap = (entities) => {
   return _.fromPairs(_.map((e) => [e.name, e], entities));

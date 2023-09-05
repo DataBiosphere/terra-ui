@@ -11,7 +11,6 @@ import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/b
 import { ButtonSecondary } from 'src/components/common';
 import { DataTableColumnProvenance } from 'src/components/data/data-table-provenance';
 import { ModalToolButton } from 'src/components/data/data-utils';
-import DataTable from 'src/components/data/DataTable';
 import { icon, spinner } from 'src/components/icons';
 import IGVBrowser from 'src/components/IGVBrowser';
 import IGVFileSelector from 'src/components/IGVFileSelector';
@@ -39,6 +38,7 @@ import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-uti
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 
+import DataTable from '../shared/DataTable';
 import { AddColumnModal } from './AddColumnModal';
 import { AddEntityModal } from './AddEntityModal';
 import { CreateEntitySetModal } from './CreateEntitySetModal';
