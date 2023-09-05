@@ -1,4 +1,4 @@
-import { DeepPartial, NavLinkProvider } from '@terra-ui-packages/core-utils';
+import { NavLinkProvider } from '@terra-ui-packages/core-utils';
 import { act, fireEvent, getAllByRole, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
@@ -14,15 +14,14 @@ import {
   generateTestDiskWithGoogleWorkspace,
   generateTestListGoogleRuntime,
 } from 'src/analysis/_testData/testData';
-import { EnvironmentNavActions, Environments, PauseButton } from 'src/analysis/Environments/Environments';
+import { EnvironmentNavActions, Environments, EnvironmentsProps, PauseButton } from 'src/analysis/Environments/Environments';
 import { defaultComputeZone } from 'src/analysis/utils/runtime-utils';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
-import { useWorkspaces } from 'src/components/workspace-utils';
-import { Ajax, useReplaceableAjaxExperimental } from 'src/libs/ajax';
-import { authOpts, fetchLeo } from 'src/libs/ajax/ajax-common';
-import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
-import { ListRuntimeItem, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { AzureConfig, GceWithPdConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
+import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
+import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
@@ -36,48 +35,19 @@ jest.mock('src/components/Modal', () => {
   return mockModal.mockModalModule();
 });
 
-jest.mock('src/libs/ajax');
-
-type AjaxCommonExports = typeof import('src/libs/ajax/ajax-common');
-jest.mock(
-  'src/libs/ajax/ajax-common',
-  (): AjaxCommonExports => ({
-    ...jest.requireActual('src/libs/ajax/ajax-common'),
-    fetchLeo: jest.fn(),
-    authOpts: jest.fn(),
-    jsonBody: jest.fn(),
-  })
-);
-
-type WorkspaceUtilsExports = typeof import('src/components/workspace-utils');
-jest.mock(
-  'src/components/workspace-utils',
-  (): WorkspaceUtilsExports => ({
-    ...jest.requireActual('src/components/workspace-utils'),
-    useWorkspaces: jest.fn(),
-  })
-);
-
-jest.mock('src/libs/ajax/leonardo/Runtimes');
-
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
   getTerraUser: jest.fn(),
 }));
 
-const listRuntimesV2: () => Promise<ListRuntimeItem[]> = jest.fn();
+jest.mock('src/libs/notifications', () => ({
+  notify: jest.fn(),
+}));
 
-const listWithoutProject: () => Promise<ListAppResponse[]> = jest.fn();
-const list: () => Promise<PersistentDisk[]> = jest.fn();
-const mockFetchLeo = jest.fn();
 const mockNav: NavLinkProvider<EnvironmentNavActions> = {
   getUrl: jest.fn().mockReturnValue('/'),
   navTo: jest.fn(),
 };
-
-jest.mock('src/libs/notifications', () => ({
-  notify: jest.fn(),
-}));
 
 const defaultUseWorkspacesProps = {
   workspaces: [defaultGoogleWorkspace] as WorkspaceWrapper[],
@@ -85,44 +55,58 @@ const defaultUseWorkspacesProps = {
   loading: false,
 };
 
-type AjaxContract = ReturnType<typeof Ajax>;
-type AjaxAppsContract = AjaxContract['Apps'];
+const getMockLeoAppProvider = (overrides?: Partial<LeoAppProvider>): LeoAppProvider => {
+  const defaultProvider: LeoAppProvider = {
+    listWithoutProject: jest.fn(),
+    pause: jest.fn(),
+    delete: jest.fn(),
+  };
+  asMockedFn(defaultProvider.listWithoutProject).mockResolvedValue([]);
 
-const mockRuntimes: Partial<AjaxContract['Runtimes']> = {
-  listV2: listRuntimesV2,
+  return { ...defaultProvider, ...overrides };
 };
-const mockApps: Partial<AjaxAppsContract> = {
-  listWithoutProject,
+
+const getMockLeoRuntimeProvider = (overrides?: Partial<LeoRuntimeProvider>): LeoRuntimeProvider => {
+  const defaultProvider: LeoRuntimeProvider = {
+    list: jest.fn(),
+    stop: jest.fn(),
+    delete: jest.fn(),
+  };
+  asMockedFn(defaultProvider.list).mockResolvedValue([]);
+
+  return { ...defaultProvider, ...overrides };
 };
-const mockDisks: DeepPartial<AjaxContract['Disks']> = {
-  disksV1: () => ({
-    list,
-  }),
+
+const getMockLeoDiskProvider = (overrides?: Partial<LeoDiskProvider>): LeoDiskProvider => {
+  const defaultProvider: LeoDiskProvider = {
+    list: jest.fn(),
+    delete: jest.fn(),
+  };
+  asMockedFn(defaultProvider.list).mockResolvedValue([]);
+
+  return { ...defaultProvider, ...overrides };
 };
-const mockMetrics: Partial<AjaxContract['Metrics']> = {
-  captureEvent: () => Promise.resolve(),
-};
-const defaultMockAjax: Partial<AjaxContract> = {
-  Apps: mockApps as AjaxAppsContract,
-  Runtimes: mockRuntimes as AjaxContract['Runtimes'],
-  Disks: mockDisks as AjaxContract['Disks'],
-  Metrics: mockMetrics as AjaxContract['Metrics'],
+
+const getEnvironmentsProps = (propsOverrides?: Partial<EnvironmentsProps>): EnvironmentsProps => {
+  const defaultProps: EnvironmentsProps = {
+    nav: mockNav,
+    useWorkspacesProvider: jest.fn(),
+    leoAppProvider: getMockLeoAppProvider(),
+    leoRuntimeProvider: getMockLeoRuntimeProvider(),
+    leoDiskProvider: getMockLeoDiskProvider(),
+    metricsProvider: {
+      captureEvent: jest.fn(),
+    },
+  };
+  asMockedFn(defaultProps.useWorkspacesProvider).mockReturnValue(defaultUseWorkspacesProps);
+
+  const finalizedProps: EnvironmentsProps = { ...defaultProps, ...propsOverrides };
+
+  return finalizedProps;
 };
 
 describe('Environments', () => {
   beforeEach(() => {
-    asMockedFn(useWorkspaces).mockReturnValue(defaultUseWorkspacesProps);
-
-    asMockedFn(Ajax).mockImplementation(() => defaultMockAjax as AjaxContract);
-    asMockedFn(useReplaceableAjaxExperimental).mockReturnValue(() => defaultMockAjax as AjaxContract);
-
-    asMockedFn(fetchLeo).mockImplementation(mockFetchLeo);
-    asMockedFn(authOpts).mockImplementation(jest.fn());
-
-    asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([]));
-    asMockedFn(listWithoutProject).mockReturnValue(Promise.resolve([]));
-    asMockedFn(list).mockReturnValue(Promise.resolve([]));
-
     asMockedFn(getTerraUser).mockReturnValue({
       email: 'testuser123@broad.com',
     });
@@ -130,17 +114,21 @@ describe('Environments', () => {
 
   describe('Runtimes - ', () => {
     it('Renders page correctly with runtimes and no found workspaces', async () => {
+      // Arrange
+      const props = getEnvironmentsProps();
       const runtime1 = generateTestListGoogleRuntime();
-      asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime1]));
-      asMockedFn(useWorkspaces).mockReturnValue({
+      asMockedFn(props.leoRuntimeProvider.list).mockResolvedValue([runtime1]);
+      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [],
       });
 
+      // Act
       await act(async () => {
-        render(h(Environments, { nav: mockNav }));
+        render(h(Environments, props));
       });
 
+      // Assert
       const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
       const firstRuntimeRow: HTMLElement = tableRows[0];
       const workspaceForFirstRuntimeCell = getAllByRole(firstRuntimeRow, 'cell')[1].textContent;
@@ -148,13 +136,17 @@ describe('Environments', () => {
     });
 
     it('Renders page correctly with a runtime', async () => {
+      // Arrange
+      const props = getEnvironmentsProps();
       const runtime1 = generateTestListGoogleRuntime();
-      asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime1]));
+      asMockedFn(props.leoRuntimeProvider.list).mockResolvedValue([runtime1]);
 
+      // Act
       await act(async () => {
-        render(h(Environments, { nav: mockNav }));
+        render(h(Environments, props));
       });
 
+      // Assert
       const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
       const firstRuntimeRow: HTMLElement = tableRows[0];
       const workspaceForFirstRuntimeCell = getTextContentForColumn(firstRuntimeRow, 1);
@@ -164,26 +156,28 @@ describe('Environments', () => {
       expect(getTextContentForColumn(firstRuntimeRow, 2)).toBe(runtime1.runtimeConfig.cloudService);
       expect(getTextContentForColumn(firstRuntimeRow, 3)).toBe(runtime1.labels.tool);
       expect(getTextContentForColumn(firstRuntimeRow, 5)).toBe(runtime1.status);
-      // @ts-expect-error ignore this ts error here, we know what type of runtime config it is since it is test data (therefore, we know zone exists)
-      expect(getTextContentForColumn(firstRuntimeRow, 6)).toBe(runtime1.runtimeConfig.zone);
+      expect(getTextContentForColumn(firstRuntimeRow, 6)).toBe((runtime1.runtimeConfig as GceWithPdConfig).zone);
       expect(getTextContentForColumn(firstRuntimeRow, 7)).toBe(Utils.makeCompleteDate(runtime1.auditInfo.createdDate));
       expect(getTextContentForColumn(firstRuntimeRow, 8)).toBe(Utils.makeCompleteDate(runtime1.auditInfo.dateAccessed));
     });
 
     it('Renders page correctly with multiple runtimes and workspaces', async () => {
+      // Arrange
+      const props = getEnvironmentsProps();
       const runtime1 = generateTestListGoogleRuntime();
       const runtime2 = azureRuntime;
-
-      asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime1, runtime2]));
-      asMockedFn(useWorkspaces).mockReturnValue({
+      asMockedFn(props.leoRuntimeProvider.list).mockResolvedValue([runtime1, runtime2]);
+      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
       });
 
+      // Act
       await act(async () => {
-        render(h(Environments, { nav: mockNav }));
+        render(h(Environments, props));
       });
 
+      // Assert
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
 
       const firstRuntimeRow: HTMLElement = tableRows[1];
@@ -192,8 +186,7 @@ describe('Environments', () => {
       expect(getTextContentForColumn(firstRuntimeRow, 2)).toBe(runtime2.runtimeConfig.cloudService);
       expect(getTextContentForColumn(firstRuntimeRow, 3)).toBe(_.capitalize(runtime2.labels.tool));
       expect(getTextContentForColumn(firstRuntimeRow, 5)).toBe(runtime2.status);
-      // @ts-expect-error ignore this ts error here, we know what type of runtime config it is since it is test data (therefore, we know zone exists)
-      expect(getTextContentForColumn(firstRuntimeRow, 6)).toBe(runtime2.runtimeConfig.region);
+      expect(getTextContentForColumn(firstRuntimeRow, 6)).toBe((runtime2.runtimeConfig as AzureConfig).region);
       expect(getTextContentForColumn(firstRuntimeRow, 7)).toBe(Utils.makeCompleteDate(runtime2.auditInfo.createdDate));
       expect(getTextContentForColumn(firstRuntimeRow, 8)).toBe(Utils.makeCompleteDate(runtime2.auditInfo.dateAccessed));
 
@@ -202,23 +195,26 @@ describe('Environments', () => {
       expect(getTextContentForColumn(tableRows[2], 2)).toBe(runtime1.runtimeConfig.cloudService);
       expect(getTextContentForColumn(tableRows[2], 3)).toBe(runtime1.labels.tool);
       expect(getTextContentForColumn(tableRows[2], 5)).toBe(runtime1.status);
-      // @ts-expect-error ignore this ts error here, we know what type of runtime config it is since it is test data (therefore, we know zone exists)
-      expect(getTextContentForColumn(tableRows[2], 6)).toBe(runtime1.runtimeConfig.zone);
+      expect(getTextContentForColumn(tableRows[2], 6)).toBe((runtime1.runtimeConfig as GceWithPdConfig).zone);
       expect(getTextContentForColumn(tableRows[2], 7)).toBe(Utils.makeCompleteDate(runtime1.auditInfo.createdDate));
       expect(getTextContentForColumn(tableRows[2], 8)).toBe(Utils.makeCompleteDate(runtime1.auditInfo.dateAccessed));
     });
 
     it('Renders page correctly for a Dataproc Runtime', async () => {
-      asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([dataprocRuntime]));
-      asMockedFn(useWorkspaces).mockReturnValue({
+      // Arrange
+      const props = getEnvironmentsProps();
+      asMockedFn(props.leoRuntimeProvider.list).mockResolvedValue([dataprocRuntime]);
+      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace],
       });
 
+      // Act
       await act(async () => {
-        render(h(Environments, { nav: mockNav }));
+        render(h(Environments, props));
       });
 
+      // Assert
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
 
       const firstRuntimeRow: HTMLElement = tableRows[1];
@@ -240,22 +236,25 @@ describe('Environments', () => {
     });
 
     it('Renders buttons for runtimes properly', async () => {
+      // Arrange
+      const props = getEnvironmentsProps();
       const runtime1 = generateTestListGoogleRuntime();
       const runtime2 = generateTestListGoogleRuntime({ status: runtimeStatuses.deleting.leoLabel });
       const runtime3 = azureRuntime;
       const runtime4: Runtime = { ...azureRuntime, status: runtimeStatuses.error.leoLabel };
-
       // the order in the below array is the default sort order of the table
-      asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime3, runtime4, runtime1, runtime2]));
-      asMockedFn(useWorkspaces).mockReturnValue({
+      asMockedFn(props.leoRuntimeProvider.list).mockResolvedValue([runtime3, runtime4, runtime1, runtime2]);
+      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
       });
 
+      // Act
       await act(async () => {
-        render(h(Environments, { nav: mockNav }));
+        render(h(Environments, props));
       });
 
+      // Assert
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
 
       // this is runtime3 in test data array
@@ -300,22 +299,25 @@ describe('Environments', () => {
     });
 
     it('should hide pause button where user is not creator of runtime', async () => {
+      // Arrange
+      const props = getEnvironmentsProps();
       const runtime1 = generateTestListGoogleRuntime();
-
-      // the order in the below array is the default sort order of the table
-      asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime1]));
-      asMockedFn(useWorkspaces).mockReturnValue({
+      asMockedFn(props.leoRuntimeProvider.list).mockResolvedValue([runtime1]);
+      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
       });
+
       asMockedFn(getTerraUser).mockReturnValue({
         email: 'different@broad.com',
       });
 
+      // Act
       await act(async () => {
-        render(h(Environments, { nav: mockNav }));
+        render(h(Environments, props));
       });
 
+      // Assert
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
       const runtime1Row: HTMLElement = tableRows[1];
       const runtime1ButtonsCell = getAllByRole(runtime1Row, 'cell')[10];
@@ -332,24 +334,31 @@ describe('Environments', () => {
       },
       { runtime: azureRuntime, workspace: defaultAzureWorkspace },
     ])('Renders runtime details view correctly', async ({ runtime, workspace }) => {
-      asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime]));
-      asMockedFn(useWorkspaces).mockReturnValue({
+      // Arrange
+      const props = getEnvironmentsProps();
+      asMockedFn(props.leoRuntimeProvider.list).mockResolvedValue([runtime]);
+      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [workspace],
       });
 
       await act(async () => {
-        render(h(Environments, { nav: mockNav }));
+        render(h(Environments, props));
       });
 
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
       const runtime1Row: HTMLElement = tableRows[1];
       const runtime1ButtonsCell = getAllByRole(runtime1Row, 'cell')[4];
       const button = getAllByRole(runtime1ButtonsCell, 'button');
-      expect(button.length).toBe(1);
-      expect(button[0].textContent).toBe('view');
+      const foundButtonCount = button.length;
+      const foundButtonText = button[0]?.textContent;
+
+      // Act
       fireEvent.click(button[0]);
 
+      // Assert
+      expect(foundButtonCount).toBe(1);
+      expect(foundButtonText).toBe('view');
       screen.getByText(workspace.workspace.workspaceId);
       screen.getByText(runtime.cloudContext.cloudResource);
       screen.getByText(runtime.runtimeName);
@@ -359,27 +368,18 @@ describe('Environments', () => {
       { runtime: azureRuntime, workspace: defaultAzureWorkspace },
       { runtime: generateTestListGoogleRuntime(), workspace: defaultGoogleWorkspace },
     ])('Behaves properly when we click pause/delete for azure/gce vm', async ({ runtime, workspace }) => {
+      // Arrange
       const user = userEvent.setup();
-
-      asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime]));
-      asMockedFn(useWorkspaces).mockReturnValue({
+      const props = getEnvironmentsProps();
+      asMockedFn(props.leoRuntimeProvider.list).mockResolvedValue([runtime]);
+      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [workspace],
       });
 
-      const mockRuntimesStopFn = jest.fn();
-      const mockRuntimeWrapper = jest.fn(() => ({
-        stop: mockRuntimesStopFn,
-      }));
-
-      const newMockAjax: Partial<AjaxContract> = {
-        ...defaultMockAjax,
-        Runtimes: { ...mockRuntimes, runtimeWrapper: mockRuntimeWrapper } as unknown as AjaxContract['Runtimes'],
-      };
-      asMockedFn(useReplaceableAjaxExperimental).mockReturnValue(() => newMockAjax as AjaxContract);
-
+      // Act
       await act(async () => {
-        render(h(Environments, { nav: mockNav }));
+        render(h(Environments, props));
       });
 
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
@@ -391,17 +391,21 @@ describe('Environments', () => {
       expect(buttons1.length).toBe(2);
       expect(buttons1[0].textContent).toBe('Pause');
 
-      // Pause button
+      // Act - Pause button
       await user.click(buttons1[0]);
-      expect(mockRuntimeWrapper).toHaveBeenCalledWith(
+
+      // Assert
+      expect(props.leoRuntimeProvider.stop).toBeCalledTimes(1);
+      expect(props.leoRuntimeProvider.stop).toBeCalledWith(
         expect.objectContaining({
           runtimeName: runtime.runtimeName,
         })
       );
-      expect(mockRuntimesStopFn).toHaveBeenCalled();
 
-      // Delete Button
+      // Act - Delete Button
       await user.click(buttons1[1]);
+
+      // Assert
       screen.getByText('Delete cloud environment?');
     });
 
@@ -412,16 +416,20 @@ describe('Environments', () => {
       },
       { runtime: { ...azureRuntime, status: runtimeStatuses.error.leoLabel }, workspace: defaultAzureWorkspace },
     ])('Renders the error message properly for azure and gce vms', async ({ runtime, workspace }) => {
-      asMockedFn(listRuntimesV2).mockReturnValue(Promise.resolve([runtime]));
-      asMockedFn(useWorkspaces).mockReturnValue({
+      // Arrange
+      const props = getEnvironmentsProps();
+      asMockedFn(props.leoRuntimeProvider.list).mockResolvedValue([runtime]);
+      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [workspace],
       });
 
+      // Act
       await act(async () => {
-        render(h(Environments, { nav: mockNav }));
+        render(h(Environments, props));
       });
 
+      // Assert
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
       const runtime1Row: HTMLElement = tableRows[1];
       const runtime1ButtonsCell = getAllByRole(runtime1Row, 'cell')[5];
@@ -433,17 +441,21 @@ describe('Environments', () => {
 
   describe('Apps - ', () => {
     it('Renders page correctly with an app', async () => {
+      // Arrange
+      const props = getEnvironmentsProps();
       const galaxyApp = generateTestAppWithGoogleWorkspace({}, defaultGoogleWorkspace);
-      asMockedFn(listWithoutProject).mockReturnValue(Promise.resolve([galaxyApp]));
-      asMockedFn(useWorkspaces).mockReturnValue({
+      asMockedFn(props.leoAppProvider.listWithoutProject).mockResolvedValue([galaxyApp]);
+      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace],
       });
 
+      // Act
       await act(async () => {
-        render(h(Environments, { nav: mockNav }));
+        render(h(Environments, props));
       });
 
+      // Assert
       const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
       const firstAppRow: HTMLElement = tableRows[0];
       const workspaceForFirstRuntimeCell = getTextContentForColumn(firstAppRow, 1);
@@ -459,6 +471,8 @@ describe('Environments', () => {
     });
 
     it('Renders page correctly with multiple apps and workspaces', async () => {
+      // Arrange
+      const props = getEnvironmentsProps();
       const googleApp1 = generateTestAppWithGoogleWorkspace({}, defaultGoogleWorkspace);
       // the page sorts alphabetically by workspace initially
       const googleWorkspace2 = generateGoogleWorkspace();
@@ -467,16 +481,23 @@ describe('Environments', () => {
       const azureApp1 = generateTestAppWithAzureWorkspace({ appType: appToolLabels.CROMWELL }, defaultAzureWorkspace);
       const azureWorkspace2 = generateAzureWorkspace();
       const azureApp2 = generateTestAppWithAzureWorkspace({ appType: appToolLabels.CROMWELL }, azureWorkspace2);
-      asMockedFn(listWithoutProject).mockReturnValue(Promise.resolve([googleApp1, googleApp2, azureApp1, azureApp2]));
-      asMockedFn(useWorkspaces).mockReturnValue({
+      asMockedFn(props.leoAppProvider.listWithoutProject).mockResolvedValue([
+        googleApp1,
+        googleApp2,
+        azureApp1,
+        azureApp2,
+      ]);
+      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, googleWorkspace2, defaultAzureWorkspace, azureWorkspace2],
       });
 
+      // Act
       await act(async () => {
-        render(h(Environments, { nav: mockNav }));
+        render(h(Environments, props));
       });
 
+      // Assert
       const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
       const firstAppRow: HTMLElement = tableRows[0];
       expect(getTextContentForColumn(firstAppRow, 0)).toBe(googleApp1.labels.saturnWorkspaceNamespace);
@@ -523,24 +544,31 @@ describe('Environments', () => {
       { app: generateTestAppWithGoogleWorkspace({}, defaultGoogleWorkspace), workspace: defaultGoogleWorkspace },
       { app: generateTestAppWithAzureWorkspace({}, defaultAzureWorkspace), workspace: defaultAzureWorkspace },
     ])('Renders app details view correctly', async ({ app, workspace }) => {
-      asMockedFn(listWithoutProject).mockReturnValue(Promise.resolve([app]));
-      asMockedFn(useWorkspaces).mockReturnValue({
+      // Arrange
+      const props = getEnvironmentsProps();
+      asMockedFn(props.leoAppProvider.listWithoutProject).mockResolvedValue([app]);
+      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [workspace],
       });
 
       await act(async () => {
-        render(h(Environments, { nav: mockNav }));
+        render(h(Environments, props));
       });
 
+      // Act
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
       const appRow: HTMLElement = tableRows[1];
       const appDetailsButtonCell = getAllByRole(appRow, 'cell')[4];
       const button = getAllByRole(appDetailsButtonCell, 'button');
-      expect(button.length).toBe(1);
-      expect(button[0].textContent).toBe('view');
+      const foundButtonCount = button.length;
+      const foundButtonText = button[0]?.textContent;
+
       fireEvent.click(button[0]);
 
+      // Assert
+      expect(foundButtonCount).toBe(1);
+      expect(foundButtonText).toBe('view');
       screen.getByText(workspace.workspace.workspaceId);
       screen.getByText(app.appName);
       screen.getByText(app.cloudContext.cloudResource);
@@ -558,10 +586,11 @@ describe('Environments', () => {
         isAzure: true,
       },
     ])('Behaves properly when we click pause/delete for azure/gce app', async ({ app, workspace, isAzure }) => {
+      // Arrange
       const user = userEvent.setup();
-
-      asMockedFn(listWithoutProject).mockReturnValue(Promise.resolve([app]));
-      asMockedFn(useWorkspaces).mockReturnValue({
+      const props = getEnvironmentsProps();
+      asMockedFn(props.leoAppProvider.listWithoutProject).mockResolvedValue([app]);
+      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [workspace],
       });
@@ -570,19 +599,8 @@ describe('Environments', () => {
         email: app.auditInfo.creator,
       });
 
-      const mockAppPauseFn = jest.fn();
-      const mockAppWrapper = jest.fn(() => ({
-        pause: mockAppPauseFn,
-      }));
-
-      const newMockAjax: Partial<AjaxContract> = {
-        ...defaultMockAjax,
-        Apps: { ...mockApps, app: mockAppWrapper } as unknown as AjaxContract['Apps'],
-      };
-      asMockedFn(useReplaceableAjaxExperimental).mockReturnValue(() => newMockAjax as AjaxContract);
-
       await act(async () => {
-        render(h(Environments, { nav: mockNav }));
+        render(h(Environments, props));
       });
 
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
@@ -598,8 +616,8 @@ describe('Environments', () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       await user.click(buttons1[0]);
       if (!isAzure) {
-        expect(mockAppWrapper).toHaveBeenCalledWith(expect.anything(), app.appName);
-        expect(mockAppPauseFn).toHaveBeenCalled();
+        expect(props.leoAppProvider.pause).toBeCalledTimes(1);
+        expect(props.leoAppProvider.pause).toBeCalledWith(expect.anything(), app.appName);
       } else {
         expect(consoleSpy).toHaveBeenCalledWith('Pause is not currently implemented for azure apps');
       }
@@ -613,17 +631,21 @@ describe('Environments', () => {
 
   describe('Disks - ', () => {
     it('Renders page correctly with a disk', async () => {
+      // Arrange
+      const props = getEnvironmentsProps();
       const disk = generateTestDiskWithGoogleWorkspace();
-      asMockedFn(list).mockReturnValue(Promise.resolve([disk]));
-      asMockedFn(useWorkspaces).mockReturnValue({
+      asMockedFn(props.leoDiskProvider.list).mockResolvedValue([disk]);
+      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace],
       });
 
+      // Act
       await act(async () => {
-        render(h(Environments, { nav: mockNav }));
+        render(h(Environments, props));
       });
 
+      // Assert
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
       const firstDiskRow: HTMLElement = tableRows[3];
 
@@ -637,6 +659,9 @@ describe('Environments', () => {
     });
 
     it('Renders page correctly with multiple workspaces/disks', async () => {
+      // Arrange
+      const props = getEnvironmentsProps();
+
       const googleDisk1 = generateTestDiskWithGoogleWorkspace({}, defaultGoogleWorkspace);
       // the page sorts alphabetically by workspace initially
       const googleWorkspace2 = generateGoogleWorkspace();
@@ -645,16 +670,19 @@ describe('Environments', () => {
       const azureDisk1 = generateTestDiskWithAzureWorkspace({}, defaultAzureWorkspace);
       const azureWorkspace2 = generateAzureWorkspace();
       const azureDisk2 = generateTestDiskWithAzureWorkspace({}, azureWorkspace2);
-      asMockedFn(list).mockReturnValue(Promise.resolve([googleDisk1, googleDisk2, azureDisk1, azureDisk2]));
-      asMockedFn(useWorkspaces).mockReturnValue({
+
+      asMockedFn(props.leoDiskProvider.list).mockResolvedValue([googleDisk1, googleDisk2, azureDisk1, azureDisk2]);
+      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, googleWorkspace2, defaultAzureWorkspace, azureWorkspace2],
       });
 
+      // Act
       await act(async () => {
-        render(h(Environments, { nav: mockNav }));
+        render(h(Environments, props));
       });
 
+      // Assert
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
 
       const firstDiskRow: HTMLElement = tableRows[3];
@@ -700,24 +728,30 @@ describe('Environments', () => {
       { disk: generateTestDiskWithGoogleWorkspace({}, defaultGoogleWorkspace), workspace: defaultGoogleWorkspace },
       { disk: generateTestDiskWithAzureWorkspace({}, defaultAzureWorkspace), workspace: defaultAzureWorkspace },
     ])('Renders disk details view correctly', async ({ disk, workspace }) => {
-      asMockedFn(list).mockReturnValue(Promise.resolve([disk]));
-      asMockedFn(useWorkspaces).mockReturnValue({
+      // Arrange
+      const props = getEnvironmentsProps();
+      asMockedFn(props.leoDiskProvider.list).mockResolvedValue([disk]);
+      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [workspace],
       });
 
       await act(async () => {
-        render(h(Environments, { nav: mockNav }));
+        render(h(Environments, props));
       });
 
+      // Act
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
       const appRow: HTMLElement = tableRows[3];
       const appDetailsButtonCell = getAllByRole(appRow, 'cell')[2];
       const button = getAllByRole(appDetailsButtonCell, 'button');
-      expect(button.length).toBe(1);
-      expect(button[0].textContent).toBe('view');
+      const foundButtonCount = button.length;
+      const foundButtonText = button[0]?.textContent;
       fireEvent.click(button[0]);
 
+      // Assert
+      expect(foundButtonCount).toBe(1);
+      expect(foundButtonText).toBe('view');
       screen.getByText(workspace.workspace.workspaceId);
       screen.getByText(disk.name);
       screen.getByText(disk.cloudContext.cloudResource);
@@ -727,49 +761,32 @@ describe('Environments', () => {
       { disk: generateTestDiskWithGoogleWorkspace({}, defaultGoogleWorkspace), workspace: defaultGoogleWorkspace },
       { disk: generateTestDiskWithAzureWorkspace({}, defaultAzureWorkspace), workspace: defaultAzureWorkspace },
     ])('Behaves properly when we click delete for azure/gce disk', async ({ disk, workspace }) => {
+      // Arrange
       const user = userEvent.setup();
-
-      asMockedFn(list).mockReturnValue(Promise.resolve([disk]));
-      asMockedFn(useWorkspaces).mockReturnValue({
+      const props = getEnvironmentsProps();
+      asMockedFn(props.leoDiskProvider.list).mockResolvedValue([disk]);
+      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [workspace],
       });
 
-      const mockDeleteDiskV1 = jest.fn();
-      const mockDeleteDiskV2 = jest.fn();
-      const mockDisks = {
-        disksV1: () => ({
-          disk: () => ({
-            delete: mockDeleteDiskV1,
-          }),
-          list,
-        }),
-        diskV2: () => ({
-          delete: mockDeleteDiskV2,
-        }),
-      };
-
-      const newMockAjax: Partial<AjaxContract> = {
-        ...defaultMockAjax,
-        Disks: mockDisks as unknown as AjaxContract['Disks'],
-      };
-      asMockedFn(useReplaceableAjaxExperimental).mockReturnValue(() => newMockAjax as AjaxContract);
-
       await act(async () => {
-        render(h(Environments, { nav: mockNav }));
+        render(h(Environments, props));
       });
 
+      // Act
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
       const disk1Row: HTMLElement = tableRows[3];
       const disk1ButtonsCell = getAllByRole(disk1Row, 'cell')[9];
       const buttons1 = getAllByRole(disk1ButtonsCell, 'button');
+      const foundButtons1Count = buttons1.length;
+      const foundButtons1Text = buttons1[0]?.textContent;
+
+      await user.click(buttons1[0]);
 
       // Assert
-      expect(buttons1.length).toBe(1);
-
-      // Delete Button
-      expect(buttons1[0].textContent).toBe('Delete');
-      await user.click(buttons1[0]);
+      expect(foundButtons1Count).toBe(1);
+      expect(foundButtons1Text).toBe('Delete');
       screen.getByText('Delete persistent disk?');
     });
   });

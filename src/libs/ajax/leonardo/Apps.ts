@@ -21,7 +21,7 @@ export const Apps = (signal) => ({
     );
     return res.json();
   },
-  app: (project, name) => {
+  app: (project: string, name: string) => {
     const root = `api/google/v1/apps/${project}/${name}`;
     return {
       delete: (deleteDisk = false): Promise<void> => {

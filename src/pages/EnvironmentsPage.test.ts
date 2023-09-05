@@ -1,12 +1,19 @@
 import { render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { Environments } from 'src/analysis/Environments/Environments';
+import { Environments, EnvironmentsProps, UseWorkspacesProvider } from 'src/analysis/Environments/Environments';
+import { useWorkspaces } from 'src/components/workspace-utils';
+import { leoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
+import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { leoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
+import { MetricsProvider, useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import { terraNavKey, TerraNavLinkProvider } from 'src/libs/nav';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { EnvironmentsPage, makeNavProvider, navProvider } from './EnvironmentsPage';
 
 jest.mock('src/analysis/Environments/Environments');
+
+jest.mock('src/libs/ajax/metrics/useMetrics');
 
 type FooterWrapperExports = typeof import('src/components/FooterWrapper') & { __esModule: true };
 jest.mock(
@@ -33,19 +40,34 @@ jest.mock(
 
 describe('Environments Page', () => {
   it('renders Environments component with correct args', () => {
-    // Note:
-    // This test does not arrange or assert that Environments component rendered by
-    // EnvironmentsPage is given the expected context, since the Ajax mechanics are expected
-    // to soon be improved.  This test will be extended once those improvements are in.
+    // Arrange
+    const mockMetricsProvider: MetricsProvider = {
+      captureEvent: jest.fn(),
+    };
+    asMockedFn(useMetricsEvent).mockReturnValue(mockMetricsProvider);
 
-    // ACT
+    // Act
+    /* Note: Because we are mocking the inner Environments component and just testing that we
+       are composing the expected arguments to it, we can get away with not needing to mock most
+       of the providers, since they will not be called upon.
+     */
     render(h(EnvironmentsPage));
 
-    // ASSERT
+    // Assert
     screen.getByText('Cloud Environments');
     const watcher = Environments;
     expect(watcher).toBeCalledTimes(1);
-    expect(watcher).toBeCalledWith({ nav: navProvider }, expect.anything());
+    expect(watcher).toBeCalledWith(
+      expect.objectContaining({
+        nav: navProvider,
+        useWorkspacesProvider: useWorkspaces as UseWorkspacesProvider,
+        leoAppProvider,
+        leoRuntimeProvider,
+        leoDiskProvider,
+        metricsProvider: mockMetricsProvider,
+      } satisfies EnvironmentsProps),
+      expect.anything()
+    );
   });
 });
 
