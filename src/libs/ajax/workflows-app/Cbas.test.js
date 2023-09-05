@@ -9,7 +9,7 @@ import {
   runSetInputDefWithSourceNone,
   runSetInputDefWithStruct,
   runSetOutputDef,
-} from 'src/libs/ajax/workflows-app/CbasMockResponses';
+} from 'src/libs/ajax/workflows-app/cbas-sample-configurations';
 
 jest.mock('src/libs/ajax/ajax-common', () => ({
   ...jest.requireActual('src/libs/ajax/ajax-common'),
