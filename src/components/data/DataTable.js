@@ -14,12 +14,6 @@ import {
   RadioButton,
 } from 'src/components/common';
 import { EditDataLink, HeaderOptions } from 'src/components/data/data-utils';
-import {
-  allSavedColumnSettingsEntityTypeKey,
-  allSavedColumnSettingsInWorkspace,
-  ColumnSettingsWithSavedColumnSettings,
-  decodeColumnSettings,
-} from 'src/components/data/SavedColumnSettings';
 import { icon } from 'src/components/icons';
 import { ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
@@ -31,6 +25,12 @@ import { entityAttributeText } from 'src/data/data-table/entity-service/entityAt
 import { EntityRenamer } from 'src/data/data-table/entity-service/EntityRenamer';
 import { RenameColumnModal } from 'src/data/data-table/entity-service/RenameColumnModal';
 import { renderDataCell } from 'src/data/data-table/entity-service/renderDataCell';
+import {
+  allSavedColumnSettingsEntityTypeKey,
+  allSavedColumnSettingsInWorkspace,
+  ColumnSettingsWithSavedColumnSettings,
+  decodeColumnSettings,
+} from 'src/data/data-table/entity-service/SavedColumnSettings';
 import { SingleEntityEditor } from 'src/data/data-table/entity-service/SingleEntityEditor';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';

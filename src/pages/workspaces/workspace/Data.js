@@ -15,7 +15,6 @@ import { getRootTypeForSetTable, ReferenceDataDeleter, ReferenceDataImporter } f
 import EntitiesContent from 'src/components/data/EntitiesContent';
 import FileBrowser from 'src/components/data/FileBrowser';
 import LocalVariablesContent from 'src/components/data/LocalVariablesContent';
-import { useSavedColumnSettings } from 'src/components/data/SavedColumnSettings';
 import WDSContent from 'src/components/data/WDSContent';
 import { WdsTroubleshooter } from 'src/components/data/WdsTroubleshooter';
 import { icon, spinner } from 'src/components/icons';
@@ -27,6 +26,7 @@ import { SnapshotInfo } from 'src/components/workspace-utils';
 import { ExportDataModal } from 'src/data/data-table/entity-service/ExportDataModal';
 import { RenameTableModal } from 'src/data/data-table/entity-service/RenameTableModal';
 import { renderDataCell } from 'src/data/data-table/entity-service/renderDataCell';
+import { useSavedColumnSettings } from 'src/data/data-table/entity-service/SavedColumnSettings';
 import { EntityUploader } from 'src/data/data-table/shared/EntityUploader';
 import { Ajax } from 'src/libs/ajax';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
