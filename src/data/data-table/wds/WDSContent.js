@@ -1,8 +1,9 @@
 import { Fragment, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import DataTable from 'src/data/data-table/shared/DataTable';
 import { wdsToEntityServiceMetadata } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
+
+import DataTable from '../shared/DataTable';
 
 const WDSContent = ({
   workspace,

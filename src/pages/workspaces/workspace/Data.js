@@ -14,7 +14,6 @@ import { DataTableSaveVersionModal, DataTableVersion, DataTableVersions } from '
 import { getRootTypeForSetTable, ReferenceDataDeleter, ReferenceDataImporter } from 'src/components/data/data-utils';
 import FileBrowser from 'src/components/data/FileBrowser';
 import LocalVariablesContent from 'src/components/data/LocalVariablesContent';
-import WDSContent from 'src/components/data/WDSContent';
 import { WdsTroubleshooter } from 'src/components/data/WdsTroubleshooter';
 import { icon, spinner } from 'src/components/icons';
 import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input';
@@ -28,6 +27,7 @@ import { RenameTableModal } from 'src/data/data-table/entity-service/RenameTable
 import { renderDataCell } from 'src/data/data-table/entity-service/renderDataCell';
 import { useSavedColumnSettings } from 'src/data/data-table/entity-service/SavedColumnSettings';
 import { EntityUploader } from 'src/data/data-table/shared/EntityUploader';
+import WDSContent from 'src/data/data-table/wds/WDSContent';
 import { Ajax } from 'src/libs/ajax';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
 import { resolveWdsApp, WdsDataTableProvider, wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
