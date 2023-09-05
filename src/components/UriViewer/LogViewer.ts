@@ -107,7 +107,7 @@ export const LogViewer = ({ modalTitle, logs, onDismiss }: LogViewerProps) => {
       }
     };
 
-    // when switching tabs, switch back to loading state while we fetch new content.
+    // when switching tabs, switch to loading state while we fetch new content.
     setActiveTextContent({
       status: 'Loading',
       state: null,
@@ -160,11 +160,11 @@ export const LogViewer = ({ modalTitle, logs, onDismiss }: LogViewerProps) => {
             ]),
             dt({ style: { fontWeight: 'bold' } }, ['Task Standard Out/Error:']),
             dd({ style: { marginBottom: '0.5rem' } }, [
-              "Task logs are from user-defined commands in your WDL. You might see an error in these logs if there was a logic or syntax error in a command, or if something went with the tool you're running.",
+              "Task logs are from user-defined commands in your WDL. You might see an error in these logs if there was a logic or syntax error in a command, or if something went wrong with the tool you're running.",
             ]),
             dt({ style: { fontWeight: 'bold' } }, ['Backend Standard Out/Error:']),
             dd({ style: { marginBottom: '0.5rem' } }, [
-              "Backend logs are from the Azure Cloud compute job that prepares your task to run and cleans up after. You might see errors in these logs if the there was a problem downloading the task's input files or pulling its container, or if something went wrong on the compute node while the task was running.",
+              "Backend logs are from the Azure Cloud compute job that prepares your task to run and cleans up afterwards. You might see errors in these logs if the there was a problem downloading the task's input files or pulling its container, or if something went wrong on the compute node while the task was running.",
             ]),
           ]),
         ]
