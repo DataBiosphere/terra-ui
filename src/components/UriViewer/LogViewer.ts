@@ -45,9 +45,14 @@ type SimpleTabProps = {
   width: number;
 };
 
+/**
+ * Represents data that has been fetched using an Azure Blob URI
+ */
 type FetchedLogData = {
-  textContent: string | undefined; // The literal characters of the log file.
-  downloadUri: string | undefined; // The URI to use for downloading the log file. May or may not have token appended, depending on if the file is public or private.
+  /** The character data of the log file */
+  textContent: string | undefined;
+  /** The URI to use for downloading the log file. May or may not have sas token appended, depending on if the file is public or private.  */
+  downloadUri: string | undefined;
 };
 
 const logLoadingErrorMessage =
@@ -60,12 +65,11 @@ export const LogViewer = ({ modalTitle, logs, onDismiss }: LogViewerProps) => {
     _.isEmpty(logs) ? undefined : logs[0]
   );
 
-  // string = fetched log content, undefined = loading, null = error.
-  const [activeTextContent, setActiveTextContent] = useState<LoadedState<string | undefined>>({
+  const [activeTextContent, setActiveTextContent] = useState<LoadedState<string>>({
     status: 'Loading',
-    state: undefined,
+    state: null,
   });
-  const [activeDownloadUri, setActiveDownloadUri] = useState<string | undefined | null>(undefined);
+  const [activeDownloadUri, setActiveDownloadUri] = useState<string | undefined>(undefined);
   const signal = useCancellation();
   const fetchLogContent = useCallback(
     async (azureBlobUri: string): Promise<FetchedLogData | null> => {
@@ -84,34 +88,36 @@ export const LogViewer = ({ modalTitle, logs, onDismiss }: LogViewerProps) => {
   );
 
   useEffect(() => {
-    const fetch = async (logUri: string) => {
+    const loadAzureLog = async (logUri: string) => {
       const res = await fetchLogContent(logUri);
       if (_.isEmpty(res?.textContent)) {
+        setActiveDownloadUri(undefined);
         setActiveTextContent({
           status: 'Error',
           state: null,
           error: { name: 'Log Download Error', message: logLoadingErrorMessage },
         });
       } else {
+        const content = res?.textContent;
+        setActiveDownloadUri(res?.downloadUri);
         setActiveTextContent({
           status: 'Ready',
-          state: res?.textContent,
+          state: _.isEmpty(content) ? '' : content,
         });
       }
-      setActiveDownloadUri(res?.downloadUri);
     };
 
     // when switching tabs, switch back to loading state while we fetch new content.
     setActiveTextContent({
       status: 'Loading',
-      state: undefined,
+      state: null,
     });
     setActiveDownloadUri(undefined);
 
     // tab switching set the currently active log (which triggers this effect). Fetch the content for the new log.
     const uri = currentlyActiveLog?.logUri;
     if (!_.isEmpty(uri)) {
-      fetch(uri);
+      loadAzureLog(uri);
     }
   }, [logs, currentlyActiveLog, fetchLogContent]);
 
@@ -180,50 +186,51 @@ export const LogViewer = ({ modalTitle, logs, onDismiss }: LogViewerProps) => {
           },
           tabs: tabsArray,
         },
-        []
-      ),
-      div(
-        {
-          style: {
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            paddingTop: '0.5rem',
-          },
-        },
         [
-          span({}, [
-            span({ style: { paddingRight: '0.5rem', fontWeight: 'bold', fontSize: 16 } }, ['File:']),
-            span({ style: { fontSize: 16 } }, [currentlyActiveLog?.logFilename]),
-          ]),
-          !_.isEmpty(activeDownloadUri) &&
-            h(
-              ButtonOutline,
-              {
-                'aria-label': 'Download log',
-                disabled: _.isEmpty(currentlyActiveLog?.logUri),
-                href: activeDownloadUri,
-                download: activeDownloadUri,
-                ...newTabLinkProps,
+          div(
+            {
+              style: {
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                paddingTop: '0.5rem',
               },
-              [span([icon('download', { style: { marginRight: '1ch' } }), 'Download'])]
-            ),
+            },
+            [
+              span({}, [
+                span({ style: { paddingRight: '0.5rem', fontWeight: 'bold', fontSize: 16 } }, ['File:']),
+                span({ style: { fontSize: 16 } }, [currentlyActiveLog?.logFilename]),
+              ]),
+              !_.isEmpty(activeDownloadUri) &&
+                h(
+                  ButtonOutline,
+                  {
+                    'aria-label': 'Download log',
+                    disabled: _.isEmpty(currentlyActiveLog?.logUri),
+                    href: activeDownloadUri,
+                    download: activeDownloadUri,
+                    ...newTabLinkProps,
+                  },
+                  [span([icon('download', { style: { marginRight: '1ch' } }), 'Download'])]
+                ),
+            ]
+          ),
+          div(
+            {
+              'aria-label': 'Log file content',
+              style: {
+                fontFamily: 'Menlo, monospace',
+                overflowY: 'auto',
+                whiteSpace: 'pre-line',
+                maxHeight: window.innerHeight * 0.6,
+                marginTop: '0.5rem',
+                padding: '0.5rem',
+                paddingRight: '10px', // reserve space for scrollbar
+              },
+            },
+            [renderActiveTextContent()]
+          ),
         ]
-      ),
-      div(
-        {
-          'aria-label': 'Log file content',
-          style: {
-            fontFamily: 'Menlo, monospace',
-            overflowY: 'auto',
-            whiteSpace: 'pre-line',
-            maxHeight: window.innerHeight * 0.6,
-            marginTop: '0.5rem',
-            padding: '0.5rem',
-            paddingRight: '10px', // reserve space for scrollbar
-          },
-        },
-        [renderActiveTextContent()]
       ),
     ]
   );

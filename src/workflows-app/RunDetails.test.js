@@ -356,7 +356,6 @@ describe('BaseRunDetails - render smoke test', () => {
     screen.getByText('Task Standard Err');
     screen.getByText('Backend Standard Out');
     screen.getByText('Backend Standard Err');
-    screen.getByLabelText('Download log');
 
     // Verify the error is displayed.
     screen.getByText(
