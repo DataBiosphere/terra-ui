@@ -11,7 +11,12 @@ import {
   runSetOutputDef,
 } from 'src/libs/ajax/workflows-app/CbasMockResponses';
 
-jest.mock('src/libs/ajax/ajax-common');
+jest.mock('src/libs/ajax/ajax-common', () => ({
+  ...jest.requireActual('src/libs/ajax/ajax-common'),
+  fetchFromProxy: jest.fn(),
+  fetchOk: jest.fn(),
+  authOpts: jest.fn(),
+}));
 
 jest.mock('src/libs/auth', () => {
   return {
@@ -67,7 +72,10 @@ describe('Cbas tests', () => {
     };
 
     await cbasPact.addInteraction({
-      states: [{ description: 'at least one run set exists with method_id 00000000-0000-0000-0000-000000000009' }],
+      states: [
+        { description: 'user has read permission' },
+        { description: 'at least one run set exists with method_id 00000000-0000-0000-0000-000000000009' },
+      ],
       uponReceiving: 'get run set with method_id=00000000-0000-0000-0000-000000000009 and page_size=1',
       withRequest: { method: 'GET', path: '/api/batch/v1/run_sets', query: { method_id: '00000000-0000-0000-0000-000000000009', page_size: 1 } },
       willRespondWith: { status: 200, body: expectedResponse },
@@ -119,6 +127,7 @@ describe('Cbas tests', () => {
 
     await cbasPact.addInteraction({
       states: [
+        { description: 'user has compute permission' },
         { description: 'ready to fetch recordId FOO1 from recordType FOO from wdsService' },
         { description: 'ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009' },
         { description: 'ready to receive exactly 1 call to POST run_sets' },
@@ -172,6 +181,7 @@ describe('Cbas tests', () => {
 
     await cbasPact.addInteraction({
       states: [
+        { description: 'user has compute permission' },
         { description: 'ready to fetch recordId FOO1 from recordType FOO from wdsService' },
         { description: 'ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009' },
         { description: 'ready to receive exactly 1 call to POST run_sets' },
@@ -225,6 +235,7 @@ describe('Cbas tests', () => {
 
     await cbasPact.addInteraction({
       states: [
+        { description: 'user has compute permission' },
         { description: 'ready to fetch recordId FOO1 from recordType FOO from wdsService' },
         { description: 'ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009' },
         { description: 'ready to receive exactly 1 call to POST run_sets' },
@@ -242,7 +253,7 @@ describe('Cbas tests', () => {
       fetchFromProxy.mockImplementation(() => fetchOk);
 
       // ACT
-      const response = await Cbas(signal).runSets.post(payload);
+      const response = await Cbas(signal).runSets.post(mockService.url, payload);
 
       // ASSERT
       expect(response).toBeDefined();
@@ -267,7 +278,7 @@ describe('Cbas tests', () => {
     const headers = { 'Content-Type': 'application/json' };
 
     await cbasPact.addInteraction({
-      states: [{ description: 'a run set with UUID 20000000-0000-0000-0000-000000000002 exists' }],
+      states: [{ description: 'user has compute permission' }, { description: 'a run set with UUID 20000000-0000-0000-0000-000000000002 exists' }],
       uponReceiving: 'a POST request to abort a run set',
       withRequest: { method: 'POST', path: '/api/batch/v1/run_sets/abort', query: { run_set_id: runSetId } },
       willRespondWith: { status: 200, body: expectedResponse },
@@ -310,6 +321,7 @@ describe('Cbas tests', () => {
 
     await cbasPact.addInteraction({
       states: [
+        { description: 'user has write permission' },
         { description: 'ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009' },
         { description: 'cromwell initialized' },
       ],
@@ -332,6 +344,51 @@ describe('Cbas tests', () => {
       expect(fetchOk).toBeCalledTimes(1);
       expect(fetchFromProxy).toBeCalledTimes(1);
       expect(fetchOk).toBeCalledWith('api/batch/v1/methods', { method: 'POST', signal, ...jsonBody(payload) });
+    });
+  });
+
+  it('should fail to POST a simple run_set without proper permissions', async () => {
+    const expectedResponse = {
+      message: string('User doesnt have compute permission on workspace resource'),
+    };
+
+    const payload = {
+      run_set_name: 'myRunSet',
+      run_set_description: 'myRunSet description',
+      method_version_id: '90000000-0000-0000-0000-000000000009',
+      wds_records: { record_type: 'FOO', record_ids: ['FOO1'] },
+      workflow_input_definitions: runSetInputDef,
+      workflow_output_definitions: runSetOutputDef,
+    };
+
+    await cbasPact.addInteraction({
+      states: [
+        { description: 'user has read permission' },
+        { description: 'ready to fetch recordId FOO1 from recordType FOO from wdsService' },
+        { description: 'ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009' },
+        { description: 'ready to receive exactly 1 call to POST run_sets' },
+      ],
+      uponReceiving: 'forbidden post to a simple run set',
+      withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', ...jsonBody(payload) },
+      willRespondWith: { status: 403, body: expectedResponse },
+    });
+
+    await cbasPact.executeTest(async (mockService) => {
+      // ARRANGE
+      const signal = 'fakeSignal';
+
+      fetchOk.mockImplementation(async (path) => await fetch(`${mockService.url}/${path}`, { method: 'POST', ...jsonBody(payload) }));
+      fetchFromProxy.mockImplementation(() => fetchOk);
+
+      // ACT
+      const response = await Cbas(signal).runSets.post(mockService.url, payload);
+
+      // ASSERT
+      expect(response).toBeDefined();
+      expect(fetchOk).toBeCalledTimes(1);
+      expect(fetchFromProxy).toBeCalledTimes(1);
+      expect(fetchOk).toBeCalledWith('api/batch/v1/run_sets', { method: 'POST', ...jsonBody(payload), signal });
+      expect(response).toHaveProperty('message');
     });
   });
 });
