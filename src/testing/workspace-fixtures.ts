@@ -12,6 +12,7 @@ export const defaultAzureWorkspace: AzureWorkspace = {
     workspaceId: 'fafbb550-62eb-4135-8b82-3ce4d53446af',
     createdDate: '2023-02-15T19:17:15.711Z',
     createdBy: 'justin@gmail.com',
+    lastModified: '2023-03-15T19:17:15.711Z',
   },
   azureContext: {
     managedResourceGroupId: 'test-mrg',
@@ -54,6 +55,7 @@ export const defaultGoogleWorkspace: GoogleWorkspace = {
     workspaceId: 'testGoogleWorkspaceId',
     createdDate: '2023-02-15T19:17:15.711Z',
     createdBy: 'groot@gmail.com',
+    lastModified: '2023-03-15T19:17:15.711Z',
   },
   accessLevel: 'OWNER',
   canShare: true,

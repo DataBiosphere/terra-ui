@@ -5,13 +5,60 @@ import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { authStore } from 'src/libs/state';
-import { AzureStorageDetails, BucketLocation, WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard';
+import { AzureStorageDetails, BucketLocation, WorkspaceInformation, WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard';
 import { asMockedFn } from 'src/testing/test-utils';
-import { defaultAzureStorageOptions, defaultGoogleBucketOptions } from 'src/testing/workspace-fixtures';
+import {
+  defaultAzureStorageOptions,
+  defaultGoogleBucketOptions,
+  defaultGoogleWorkspace,
+  protectedAzureWorkspace,
+} from 'src/testing/workspace-fixtures';
 
 jest.mock('src/libs/ajax');
 
 jest.mock('src/libs/notifications');
+
+describe('WorkspaceInformation', () => {
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('renders information for a non-protected workspace and does not fail accessibility tests', async () => {
+    // Act
+    const { container } = render(h(WorkspaceInformation, { workspace: defaultGoogleWorkspace }));
+
+    // Assert
+    // Access Level
+    expect(screen.getAllByText('Owner')).not.toBeNull();
+    // Created date
+    expect(screen.getAllByText('2/15/2023')).not.toBeNull();
+    // Last updated date
+    expect(screen.getAllByText('3/15/2023')).not.toBeNull();
+    // Should not have workspace protected entry
+    expect(screen.queryByText('Workspace Protected')).toBeNull();
+
+    // Accessibility
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it('renders information for a protected workspace and does not fail accessibility tests', async () => {
+    // Act
+    const { container } = render(h(WorkspaceInformation, { workspace: protectedAzureWorkspace }));
+
+    // Assert
+    // Access Level
+    expect(screen.getAllByText('Owner')).not.toBeNull();
+    // Created date
+    expect(screen.getAllByText('2/15/2023')).not.toBeNull();
+    // Last updated date
+    expect(screen.getAllByText('3/15/2023')).not.toBeNull();
+    // Should show protected workspace information.
+    expect(screen.getAllByText('Workspace Protected')).not.toBeNull();
+
+    // Accessibility
+    expect(await axe(container)).toHaveNoViolations();
+  });
+});
 
 describe('WorkspaceNotifications', () => {
   const testWorkspace = { workspace: { namespace: 'test', name: 'test' } };

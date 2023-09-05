@@ -260,6 +260,16 @@ export const AzureStorageDetails = ({ azureContext, storageDetails }) => {
   ]);
 };
 
+export const WorkspaceInformation = ({ workspace }) => {
+  return dl({}, [
+    h(InfoRow, { title: 'Last Updated' }, [new Date(workspace.workspace.lastModified).toLocaleDateString()]),
+    h(InfoRow, { title: 'Creation Date' }, [new Date(workspace.workspace.createdDate).toLocaleDateString()]),
+    h(InfoRow, { title: 'Access Level' }, [roleString[workspace.accessLevel]]),
+    hasProtectedData(workspace) &&
+      h(InfoRow, { title: 'Workspace Protected' }, ['Yes', h(InfoBox, { style: { marginLeft: '0.50rem' }, side: 'bottom' }, [protectedDataMessage])]),
+  ]);
+};
+
 export const WorkspaceNotifications = ({ workspace }) => {
   const {
     workspace: { namespace, name },
@@ -324,8 +334,6 @@ const WorkspaceDashboard = _.flow(
         owners,
         workspace: {
           authorizationDomain,
-          createdDate,
-          lastModified,
           bucketName,
           googleProject,
           attributes,
@@ -694,18 +702,7 @@ const WorkspaceDashboard = _.flow(
             initialOpenState: workspaceInfoPanelOpen !== undefined ? workspaceInfoPanelOpen : true,
             onClick: () => setWorkspaceInfoPanelOpen(workspaceInfoPanelOpen === undefined ? false : !workspaceInfoPanelOpen),
           },
-          [
-            dl({}, [
-              h(InfoRow, { title: 'Last Updated' }, [new Date(lastModified).toLocaleDateString()]),
-              h(InfoRow, { title: 'Creation Date' }, [new Date(createdDate).toLocaleDateString()]),
-              h(InfoRow, { title: 'Access Level' }, [roleString[accessLevel]]),
-              hasProtectedData(workspace) &&
-                h(InfoRow, { title: 'Workspace Protected' }, [
-                  'Yes',
-                  h(InfoBox, { style: { marginLeft: '0.50rem' }, side: 'bottom' }, [protectedDataMessage]),
-                ]),
-            ]),
-          ]
+          [h(WorkspaceInformation, { workspace })]
         ),
         h(
           RightBoxSection,

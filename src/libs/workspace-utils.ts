@@ -28,6 +28,7 @@ interface BaseWorkspaceInfo {
   authorizationDomain: AuthorizationDomain[];
   createdDate: string;
   createdBy: string;
+  lastModified: string;
 }
 
 export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
