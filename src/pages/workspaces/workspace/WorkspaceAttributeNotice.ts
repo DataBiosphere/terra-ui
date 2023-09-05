@@ -5,17 +5,17 @@ import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceAccessLevel } from 'src/libs/workspace-utils';
 
-interface WorkspaceAttributeProperties {
+interface WorkspaceAttributeNoticeProperties {
   accessLevel: WorkspaceAccessLevel;
   isLocked: boolean;
-  workspaceProtectedMessage: string | undefined;
+  workspaceProtectedMessage?: string;
 }
 
 const WorkspaceAttributeNotice = ({
   accessLevel,
   isLocked,
   workspaceProtectedMessage,
-}: WorkspaceAttributeProperties) => {
+}: WorkspaceAttributeNoticeProperties) => {
   const isReadOnly = !Utils.canWrite(accessLevel);
 
   return div({}, [

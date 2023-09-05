@@ -1,3 +1,4 @@
+import _ from 'lodash/fp';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { locationTypes } from 'src/components/region-common';
 import { AzureWorkspace, GoogleWorkspace } from 'src/libs/workspace-utils';
@@ -21,6 +22,16 @@ export const defaultAzureWorkspace: AzureWorkspace = {
   canShare: true,
   canCompute: true,
 };
+
+export const protectedAzureWorkspace: AzureWorkspace = _.merge(defaultAzureWorkspace, {
+  policies: [
+    {
+      additionalData: {},
+      name: 'protected-data',
+      namespace: 'terra',
+    },
+  ],
+});
 
 // These values are not populated by default, and for the majority of existing
 // Google workspaces will remain undefined.  This definition should only be
