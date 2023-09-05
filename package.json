@@ -63,7 +63,6 @@
     "react-textarea-autosize": "^8.5.2",
     "react-transition-group": "^4.4.5",
     "react-virtualized": "patch:react-virtualized@npm:^9.22.5#./.yarn/patches/react-virtualized-9.22.5.patch",
-    "setimmediate": "^1.0.5",
     "use-memo-one": "^1.1.3",
     "uuid": "^8.3.2",
     "validate.js": "^0.13.1"
@@ -85,6 +84,7 @@
     "save-build-info": "echo \\{\\\"gitRevision\\\": \\\"$(git rev-parse HEAD)\\\", \\\"buildTimestamp\\\": $(date -u '+%s000')\\} > public/build-info.json"
   },
   "devDependencies": {
+    "setimmediate": "^1.0.5",
     "@axe-core/react": "^4.6.1",
     "@pact-foundation/pact": "10.2.2",
     "@terra-ui-packages/test-utils": "*",
