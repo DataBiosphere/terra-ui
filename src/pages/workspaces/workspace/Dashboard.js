@@ -29,7 +29,7 @@ import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/l
 import { authStore, requesterPaysProjectStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
+import { hasProtectedData, isAzureWorkspace, isGoogleWorkspace, protectedDataMessage } from 'src/libs/workspace-utils';
 import SignIn from 'src/pages/SignIn';
 import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic';
 import { displayConsentCodes, displayLibraryAttributes } from 'src/pages/workspaces/workspace/library-attributes';
@@ -699,6 +699,11 @@ const WorkspaceDashboard = _.flow(
               h(InfoRow, { title: 'Last Updated' }, [new Date(lastModified).toLocaleDateString()]),
               h(InfoRow, { title: 'Creation Date' }, [new Date(createdDate).toLocaleDateString()]),
               h(InfoRow, { title: 'Access Level' }, [roleString[accessLevel]]),
+              hasProtectedData(workspace) &&
+                h(InfoRow, { title: 'Workspace Protected' }, [
+                  'Yes',
+                  h(InfoBox, { style: { marginLeft: '0.50rem' }, side: 'bottom' }, [protectedDataMessage]),
+                ]),
             ]),
           ]
         ),
