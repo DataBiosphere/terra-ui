@@ -9,7 +9,7 @@ jobs:
   setup-and-test:
     runs-on: ubuntu-latest
     outputs:
-      nb-b64: ${{ steps.encode.outputs.nb-b64 }}
+      pact-b64: ${{ steps.encode.outputs.pact-b64 }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up Node
@@ -30,7 +30,7 @@ jobs:
           PACT_FULL_PATH: 'pacts/terra-ui-cbas.json'  # Currently, workflows are limited to a single Pact file (see WM-1858).
         run: |
           NON_BREAKING_B64=$(cat $PACT_FULL_PATH | base64 -w 0)
-          echo "nb-b64=${NON_BREAKING_B64}" >> $GITHUB_OUTPUT
+          echo "pact-b64=${NON_BREAKING_B64}" >> $GITHUB_OUTPUT
           echo $NON_BREAKING_B64
 
   publish-pact-workflow:
@@ -47,4 +47,4 @@ jobs:
           repo: broadinstitute/terra-github-workflows
           ref: refs/heads/dev
           token: ${{ secrets.BROADBOT_TOKEN}} # github token for access to kick off a job in the private repo
-          inputs: '{ "pact-b64": "${{ needs.setup-and-test.outputs.nb-b64 }}", "repo-owner": "DataBiosphere", "repo-name": "terra-ui", "repo-branch": "dev" }'
+          inputs: '{ "pact-b64": "${{ needs.setup-and-test.outputs.pact-b64 }}", "repo-owner": "DataBiosphere", "repo-name": "terra-ui", "repo-branch": "dev" }'
