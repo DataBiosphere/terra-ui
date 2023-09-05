@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install yarn
+      - name: Install dependencies
         run: |
           yarn install
 
@@ -40,7 +40,7 @@ jobs:
       contents: 'read'
       id-token: 'write'
     steps:
-      - name: dispatch to terra-github-workflows
+      - name: Publish Pact contracts
         uses: aurelien-baudet/workflow-dispatch@93e95b157d791ae7f42aef8f8a0d3d723eba1c31 #commit sha for v2.1.1
         with:
           workflow: publish-contracts.yaml
