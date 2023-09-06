@@ -20,7 +20,6 @@ import {
   runSetOutputDef,
   runSetOutputDefWithDefaults,
   runSetResponse,
-  runSetResponseForNewMethod,
   runSetResponseWithStruct,
   searchResponses,
   typesResponse,
@@ -283,7 +282,7 @@ describe('BaseSubmissionConfig renders workflow details', () => {
   it('should render inputs prior to data table selection', async () => {
     // ** ARRANGE **
     const user = userEvent.setup();
-    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponseForNewMethod));
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(undefinedRecordTypeRunSetResponse));
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
     const mockSearchResponse = jest.fn((_root, _instanceId, recordType) => Promise.resolve(searchResponses[recordType]));
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
@@ -330,8 +329,11 @@ describe('BaseSubmissionConfig renders workflow details', () => {
     expect(mockTypesResponse).toHaveBeenCalledTimes(1);
     expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
     expect(mockSearchResponse).toHaveBeenCalledTimes(1);
-    expect(mockWdlResponse).toHaveBeenCalledTimes(1);
     expect(mockLeoResponse).toHaveBeenCalledTimes(0);
+
+    const dropdown = screen.getByLabelText('Select a data table');
+    const dropdownHelper = new SelectHelper(dropdown, user);
+    expect(dropdownHelper.getSelectedOptions()).toHaveLength(0);
 
     const inputsTabButton = screen.getByRole('button', { name: 'Inputs' });
 
