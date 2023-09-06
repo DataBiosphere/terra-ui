@@ -132,6 +132,7 @@ export const generateGoogleWorkspace = (prefix: string = uuid().substring(0, 8))
     workspaceId: uuid().substring(0, 8),
     createdDate: '2023-02-15T19:17:15.711Z',
     createdBy: 'justin@gmail.com',
+    lastModified: '2023-03-15T19:17:15.711Z',
   },
   accessLevel: 'OWNER',
   canShare: true,
@@ -147,6 +148,7 @@ export const generateAzureWorkspace = (prefix: string = uuid().substring(0, 8)):
     workspaceId: uuid().substring(0, 8),
     createdDate: '2023-02-15T19:17:15.711Z',
     createdBy: 'groot@gmail.com',
+    lastModified: '2023-03-15T19:17:15.711Z',
   },
   azureContext: {
     managedResourceGroupId: 'test-mrg',
