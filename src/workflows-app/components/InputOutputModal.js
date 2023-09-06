@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { div, h } from 'react-hyperscript-helpers';
+import { div, h, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
@@ -24,21 +24,19 @@ export const getFilenameFromAzureBlobPath = (blobPath) => {
 
 const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
   // Link to download the blob file
-  const renderBlobLink = (blobPath) => {
+  const renderBlobLink = (blobPath, key = undefined) => {
     const downloadUrl = appendSASTokenIfNecessary(blobPath, sasToken);
     const fileName = getFilenameFromAzureBlobPath(blobPath);
-    return h(
-      Link,
-      {
-        disabled: !downloadUrl,
-        isRendered: !_.isEmpty(fileName),
-        href: downloadUrl,
-        download: fileName,
-        style: {},
-        ...newTabLinkProps,
-      },
-      [fileName, icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
-    );
+    const props = {
+      disabled: !downloadUrl,
+      isRendered: !_.isEmpty(fileName),
+      href: downloadUrl,
+      download: fileName,
+      style: {},
+      ...(key !== undefined ? { key } : {}),
+      ...newTabLinkProps,
+    };
+    return h(Link, props, [fileName, icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]);
   };
 
   const dataArray = jsonData ? Object.keys(jsonData).map((key) => [key, jsonData[key]]) : [];
@@ -83,11 +81,13 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
                       let output = [];
                       const targetData = dataArray[rowIndex][1];
                       if (targetData instanceof Array) {
-                        output = targetData.map((item, index) =>
-                          isAzureUri(item) ? renderBlobLink(item) : div({ key: `output-${rowIndex}-item-${index}` }, item)
-                        );
+                        output = targetData.map((item, index) => {
+                          const key = `output-${rowIndex}-item-${index}`;
+                          return isAzureUri(item) ? renderBlobLink(item, key) : span({ key }, item);
+                        });
                       } else {
-                        output.push(isAzureUri(targetData) ? renderBlobLink(targetData) : div({ key: `output-${rowIndex}` }, targetData));
+                        const key = `output-${rowIndex}-item`;
+                        output.push(isAzureUri(targetData) ? renderBlobLink(targetData, key) : div({ key }, targetData));
                       }
                       return div(
                         {
