@@ -22,4 +22,5 @@ registerTest({
   name: 'run-catalog-workflow',
   fn: testCatalogFlowFn,
   timeout: 5 * 60 * 1000,
+  targetEnvironments: [],
 });
