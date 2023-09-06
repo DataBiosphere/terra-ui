@@ -216,20 +216,24 @@ export type UseWorkspacesProvider = (
   stringAttributeMaxLength?: string | number
 ) => UseWorkspacesResult;
 
+type LeoAppProviderNeeds = Pick<LeoAppProvider, 'listWithoutProject' | 'pause' | 'delete'>;
+type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'stop' | 'delete'>;
+type LeoDiskProviderNeeds = Pick<LeoDiskProvider, 'list' | 'delete'>;
+
 export interface EnvironmentsProps {
   nav: NavLinkProvider<EnvironmentNavActions>;
-  useWorkspacesProvider: UseWorkspacesProvider;
-  leoAppProvider: LeoAppProvider;
-  leoRuntimeProvider: LeoRuntimeProvider;
-  leoDiskProvider: LeoDiskProvider;
-  metricsProvider: MetricsProvider;
+  useWorkspacesState: UseWorkspacesProvider;
+  leoAppData: LeoAppProviderNeeds;
+  leoRuntimeData: LeoRuntimeProviderNeeds;
+  leoDiskData: LeoDiskProviderNeeds;
+  metrics: MetricsProvider;
 }
 
 export const Environments: React.FC<EnvironmentsProps> = (props) => {
-  const { nav, useWorkspacesProvider, leoAppProvider, leoDiskProvider, leoRuntimeProvider, metricsProvider } = props;
+  const { nav, useWorkspacesState, leoAppData, leoDiskData, leoRuntimeData, metrics } = props;
   const signal = useCancellation();
   const { workspaces, refresh: refreshWorkspaces } = _.flow(
-    useWorkspacesProvider,
+    useWorkspacesState,
     _.update('workspaces', _.flow(_.groupBy('workspace.namespace'), _.mapValues(_.keyBy('workspace.name'))))
   )() as UseWorkspacesResult;
 
@@ -253,7 +257,7 @@ export const Environments: React.FC<EnvironmentsProps> = (props) => {
         close();
         loadData();
       },
-      deleteProvider: leoAppProvider,
+      deleteProvider: leoAppData,
     })
   );
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' });
@@ -282,14 +286,14 @@ export const Environments: React.FC<EnvironmentsProps> = (props) => {
     };
 
     const [newRuntimes, newDisks, newApps] = await Promise.all([
-      leoRuntimeProvider.list(listArgs, signal),
-      leoDiskProvider.list(diskArgs, signal),
-      leoAppProvider.listWithoutProject(listArgs, signal),
+      leoRuntimeData.list(listArgs, signal),
+      leoDiskData.list(diskArgs, signal),
+      leoAppData.listWithoutProject(listArgs, signal),
     ]);
     const endTimeForLeoCallsEpochMs = Date.now();
 
     const leoCallTimeTotalMs = endTimeForLeoCallsEpochMs - startTimeForLeoCallsEpochMs;
-    metricsProvider.captureEvent(Events.cloudEnvironmentDetailsLoad, {
+    metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, {
       leoCallTimeMs: leoCallTimeTotalMs,
       totalCallTimeMs: leoCallTimeTotalMs,
       runtimes: newRuntimes.length,
@@ -341,15 +345,15 @@ export const Environments: React.FC<EnvironmentsProps> = (props) => {
   const pauseComputeAndRefresh = Utils.withBusyState(setLoading, async (compute: DecoratedComputeResource) => {
     const wrappedPauseCompute = withErrorReporting('Error pausing compute', async () => {
       if (isRuntime(compute) && isGoogleWorkspaceInfo(compute.workspace)) {
-        return leoRuntimeProvider.stop(compute);
+        return leoRuntimeData.stop(compute);
       }
       if (isRuntime(compute)) {
-        return leoRuntimeProvider.stop(compute);
+        return leoRuntimeData.stop(compute);
       }
       if (isApp(compute)) {
         const computeWorkspace = compute.workspace;
         if (isGoogleWorkspaceInfo(computeWorkspace)) {
-          return leoAppProvider.pause(computeWorkspace.googleProject, compute.appName);
+          return leoAppData.pause(computeWorkspace.googleProject, compute.appName);
         }
       }
       // default:
@@ -606,7 +610,7 @@ export const Environments: React.FC<EnvironmentsProps> = (props) => {
   const renderDeleteDiskModal = (disk) => {
     return h(DeleteDiskModal, {
       disk,
-      deleteProvider: leoDiskProvider,
+      deleteProvider: leoDiskData,
       onDismiss: () => setDeleteDiskId(undefined),
       onSuccess: () => {
         setDeleteDiskId(undefined);
@@ -956,7 +960,7 @@ export const Environments: React.FC<EnvironmentsProps> = (props) => {
         h(DeleteRuntimeModal, {
           runtime: runtimeToDelete,
           workspaceId: runtimeToDelete.workspace.workspaceId,
-          deleteProvider: leoRuntimeProvider,
+          deleteProvider: leoRuntimeData,
           onDismiss: () => setDeleteRuntimeId(undefined),
           onSuccess: () => {
             setDeleteRuntimeId(undefined);

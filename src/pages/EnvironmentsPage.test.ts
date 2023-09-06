@@ -60,11 +60,11 @@ describe('Environments Page', () => {
     expect(watcher).toBeCalledWith(
       expect.objectContaining({
         nav: navProvider,
-        useWorkspacesProvider: useWorkspaces as UseWorkspacesProvider,
-        leoAppProvider,
-        leoRuntimeProvider,
-        leoDiskProvider,
-        metricsProvider: mockMetricsProvider,
+        useWorkspacesState: useWorkspaces as UseWorkspacesProvider,
+        leoAppData: leoAppProvider,
+        leoRuntimeData: leoRuntimeProvider,
+        leoDiskData: leoDiskProvider,
+        metrics: mockMetricsProvider,
       } satisfies EnvironmentsProps),
       expect.anything()
     );

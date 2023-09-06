@@ -90,15 +90,15 @@ const getMockLeoDiskProvider = (overrides?: Partial<LeoDiskProvider>): LeoDiskPr
 const getEnvironmentsProps = (propsOverrides?: Partial<EnvironmentsProps>): EnvironmentsProps => {
   const defaultProps: EnvironmentsProps = {
     nav: mockNav,
-    useWorkspacesProvider: jest.fn(),
-    leoAppProvider: getMockLeoAppProvider(),
-    leoRuntimeProvider: getMockLeoRuntimeProvider(),
-    leoDiskProvider: getMockLeoDiskProvider(),
-    metricsProvider: {
+    useWorkspacesState: jest.fn(),
+    leoAppData: getMockLeoAppProvider(),
+    leoRuntimeData: getMockLeoRuntimeProvider(),
+    leoDiskData: getMockLeoDiskProvider(),
+    metrics: {
       captureEvent: jest.fn(),
     },
   };
-  asMockedFn(defaultProps.useWorkspacesProvider).mockReturnValue(defaultUseWorkspacesProps);
+  asMockedFn(defaultProps.useWorkspacesState).mockReturnValue(defaultUseWorkspacesProps);
 
   const finalizedProps: EnvironmentsProps = { ...defaultProps, ...propsOverrides };
 
@@ -117,8 +117,8 @@ describe('Environments', () => {
       // Arrange
       const props = getEnvironmentsProps();
       const runtime1 = generateTestListGoogleRuntime();
-      asMockedFn(props.leoRuntimeProvider.list).mockResolvedValue([runtime1]);
-      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
+      asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime1]);
+      asMockedFn(props.useWorkspacesState).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [],
       });
@@ -139,7 +139,7 @@ describe('Environments', () => {
       // Arrange
       const props = getEnvironmentsProps();
       const runtime1 = generateTestListGoogleRuntime();
-      asMockedFn(props.leoRuntimeProvider.list).mockResolvedValue([runtime1]);
+      asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime1]);
 
       // Act
       await act(async () => {
@@ -166,8 +166,8 @@ describe('Environments', () => {
       const props = getEnvironmentsProps();
       const runtime1 = generateTestListGoogleRuntime();
       const runtime2 = azureRuntime;
-      asMockedFn(props.leoRuntimeProvider.list).mockResolvedValue([runtime1, runtime2]);
-      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
+      asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime1, runtime2]);
+      asMockedFn(props.useWorkspacesState).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
       });
@@ -203,8 +203,8 @@ describe('Environments', () => {
     it('Renders page correctly for a Dataproc Runtime', async () => {
       // Arrange
       const props = getEnvironmentsProps();
-      asMockedFn(props.leoRuntimeProvider.list).mockResolvedValue([dataprocRuntime]);
-      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
+      asMockedFn(props.leoRuntimeData.list).mockResolvedValue([dataprocRuntime]);
+      asMockedFn(props.useWorkspacesState).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace],
       });
@@ -243,8 +243,8 @@ describe('Environments', () => {
       const runtime3 = azureRuntime;
       const runtime4: Runtime = { ...azureRuntime, status: runtimeStatuses.error.leoLabel };
       // the order in the below array is the default sort order of the table
-      asMockedFn(props.leoRuntimeProvider.list).mockResolvedValue([runtime3, runtime4, runtime1, runtime2]);
-      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
+      asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime3, runtime4, runtime1, runtime2]);
+      asMockedFn(props.useWorkspacesState).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
       });
@@ -302,8 +302,8 @@ describe('Environments', () => {
       // Arrange
       const props = getEnvironmentsProps();
       const runtime1 = generateTestListGoogleRuntime();
-      asMockedFn(props.leoRuntimeProvider.list).mockResolvedValue([runtime1]);
-      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
+      asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime1]);
+      asMockedFn(props.useWorkspacesState).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
       });
@@ -336,8 +336,8 @@ describe('Environments', () => {
     ])('Renders runtime details view correctly', async ({ runtime, workspace }) => {
       // Arrange
       const props = getEnvironmentsProps();
-      asMockedFn(props.leoRuntimeProvider.list).mockResolvedValue([runtime]);
-      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
+      asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime]);
+      asMockedFn(props.useWorkspacesState).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [workspace],
       });
@@ -371,8 +371,8 @@ describe('Environments', () => {
       // Arrange
       const user = userEvent.setup();
       const props = getEnvironmentsProps();
-      asMockedFn(props.leoRuntimeProvider.list).mockResolvedValue([runtime]);
-      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
+      asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime]);
+      asMockedFn(props.useWorkspacesState).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [workspace],
       });
@@ -395,8 +395,8 @@ describe('Environments', () => {
       await user.click(buttons1[0]);
 
       // Assert
-      expect(props.leoRuntimeProvider.stop).toBeCalledTimes(1);
-      expect(props.leoRuntimeProvider.stop).toBeCalledWith(
+      expect(props.leoRuntimeData.stop).toBeCalledTimes(1);
+      expect(props.leoRuntimeData.stop).toBeCalledWith(
         expect.objectContaining({
           runtimeName: runtime.runtimeName,
         })
@@ -418,8 +418,8 @@ describe('Environments', () => {
     ])('Renders the error message properly for azure and gce vms', async ({ runtime, workspace }) => {
       // Arrange
       const props = getEnvironmentsProps();
-      asMockedFn(props.leoRuntimeProvider.list).mockResolvedValue([runtime]);
-      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
+      asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime]);
+      asMockedFn(props.useWorkspacesState).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [workspace],
       });
@@ -444,8 +444,8 @@ describe('Environments', () => {
       // Arrange
       const props = getEnvironmentsProps();
       const galaxyApp = generateTestAppWithGoogleWorkspace({}, defaultGoogleWorkspace);
-      asMockedFn(props.leoAppProvider.listWithoutProject).mockResolvedValue([galaxyApp]);
-      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
+      asMockedFn(props.leoAppData.listWithoutProject).mockResolvedValue([galaxyApp]);
+      asMockedFn(props.useWorkspacesState).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace],
       });
@@ -481,13 +481,8 @@ describe('Environments', () => {
       const azureApp1 = generateTestAppWithAzureWorkspace({ appType: appToolLabels.CROMWELL }, defaultAzureWorkspace);
       const azureWorkspace2 = generateAzureWorkspace();
       const azureApp2 = generateTestAppWithAzureWorkspace({ appType: appToolLabels.CROMWELL }, azureWorkspace2);
-      asMockedFn(props.leoAppProvider.listWithoutProject).mockResolvedValue([
-        googleApp1,
-        googleApp2,
-        azureApp1,
-        azureApp2,
-      ]);
-      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
+      asMockedFn(props.leoAppData.listWithoutProject).mockResolvedValue([googleApp1, googleApp2, azureApp1, azureApp2]);
+      asMockedFn(props.useWorkspacesState).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, googleWorkspace2, defaultAzureWorkspace, azureWorkspace2],
       });
@@ -546,8 +541,8 @@ describe('Environments', () => {
     ])('Renders app details view correctly', async ({ app, workspace }) => {
       // Arrange
       const props = getEnvironmentsProps();
-      asMockedFn(props.leoAppProvider.listWithoutProject).mockResolvedValue([app]);
-      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
+      asMockedFn(props.leoAppData.listWithoutProject).mockResolvedValue([app]);
+      asMockedFn(props.useWorkspacesState).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [workspace],
       });
@@ -589,8 +584,8 @@ describe('Environments', () => {
       // Arrange
       const user = userEvent.setup();
       const props = getEnvironmentsProps();
-      asMockedFn(props.leoAppProvider.listWithoutProject).mockResolvedValue([app]);
-      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
+      asMockedFn(props.leoAppData.listWithoutProject).mockResolvedValue([app]);
+      asMockedFn(props.useWorkspacesState).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [workspace],
       });
@@ -616,8 +611,8 @@ describe('Environments', () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       await user.click(buttons1[0]);
       if (!isAzure) {
-        expect(props.leoAppProvider.pause).toBeCalledTimes(1);
-        expect(props.leoAppProvider.pause).toBeCalledWith(expect.anything(), app.appName);
+        expect(props.leoAppData.pause).toBeCalledTimes(1);
+        expect(props.leoAppData.pause).toBeCalledWith(expect.anything(), app.appName);
       } else {
         expect(consoleSpy).toHaveBeenCalledWith('Pause is not currently implemented for azure apps');
       }
@@ -634,8 +629,8 @@ describe('Environments', () => {
       // Arrange
       const props = getEnvironmentsProps();
       const disk = generateTestDiskWithGoogleWorkspace();
-      asMockedFn(props.leoDiskProvider.list).mockResolvedValue([disk]);
-      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
+      asMockedFn(props.leoDiskData.list).mockResolvedValue([disk]);
+      asMockedFn(props.useWorkspacesState).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace],
       });
@@ -671,8 +666,8 @@ describe('Environments', () => {
       const azureWorkspace2 = generateAzureWorkspace();
       const azureDisk2 = generateTestDiskWithAzureWorkspace({}, azureWorkspace2);
 
-      asMockedFn(props.leoDiskProvider.list).mockResolvedValue([googleDisk1, googleDisk2, azureDisk1, azureDisk2]);
-      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
+      asMockedFn(props.leoDiskData.list).mockResolvedValue([googleDisk1, googleDisk2, azureDisk1, azureDisk2]);
+      asMockedFn(props.useWorkspacesState).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, googleWorkspace2, defaultAzureWorkspace, azureWorkspace2],
       });
@@ -730,8 +725,8 @@ describe('Environments', () => {
     ])('Renders disk details view correctly', async ({ disk, workspace }) => {
       // Arrange
       const props = getEnvironmentsProps();
-      asMockedFn(props.leoDiskProvider.list).mockResolvedValue([disk]);
-      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
+      asMockedFn(props.leoDiskData.list).mockResolvedValue([disk]);
+      asMockedFn(props.useWorkspacesState).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [workspace],
       });
@@ -764,8 +759,8 @@ describe('Environments', () => {
       // Arrange
       const user = userEvent.setup();
       const props = getEnvironmentsProps();
-      asMockedFn(props.leoDiskProvider.list).mockResolvedValue([disk]);
-      asMockedFn(props.useWorkspacesProvider).mockReturnValue({
+      asMockedFn(props.leoDiskData.list).mockResolvedValue([disk]);
+      asMockedFn(props.useWorkspacesState).mockReturnValue({
         ...defaultUseWorkspacesProps,
         workspaces: [workspace],
       });

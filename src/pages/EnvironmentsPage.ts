@@ -41,11 +41,11 @@ export const EnvironmentsPage = () => {
     h(TopBar, { title: 'Cloud Environments', href: '' }, []),
     h(Environments, {
       nav: navProvider,
-      useWorkspacesProvider: useWorkspaces as UseWorkspacesProvider,
-      leoAppProvider,
-      leoRuntimeProvider,
-      leoDiskProvider,
-      metricsProvider,
+      useWorkspacesState: useWorkspaces as UseWorkspacesProvider,
+      leoAppData: leoAppProvider,
+      leoRuntimeData: leoRuntimeProvider,
+      leoDiskData: leoDiskProvider,
+      metrics: metricsProvider,
     }),
   ]);
 };
