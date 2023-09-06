@@ -175,6 +175,9 @@ const validateRecordLookup = (inputSource, inputType, recordAttributes) => {
     return true;
   }
   if (inputSource.type === 'record_lookup') {
+    if (recordAttributes === undefined) {
+      return { type: 'error', message: 'Select a data table' };
+    }
     if (!_.has(inputSource.record_attribute)(recordAttributes)) {
       return { type: 'error', message: "This attribute doesn't exist in the data table" };
     }
