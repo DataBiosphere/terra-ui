@@ -1387,7 +1387,7 @@ export const WorkspaceData = _.flow(
                               style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' },
                             },
                             [
-                              'Oh no! Something went wrong while preparing your data tables.',
+                              'An error occurred while preparing your data tables.',
                               div({}, [
                                 'Please ',
                                 h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['check the status']),

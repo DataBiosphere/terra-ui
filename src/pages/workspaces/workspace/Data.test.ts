@@ -134,7 +134,7 @@ describe('WorkspaceData', () => {
 
     // Assert
     expect(screen.getByText(/Data tables are unavailable/)).toBeVisible();
-    expect(screen.getByText(/Something went wrong/)).toBeVisible(); // display error message
+    expect(screen.getByText(/An error occurred while preparing/)).toBeVisible(); // display error message
     expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
   });
 
@@ -154,7 +154,7 @@ describe('WorkspaceData', () => {
 
     // Assert
     expect(screen.getByText(/Data tables are unavailable/)).toBeVisible();
-    expect(screen.getByText(/Something went wrong/)).toBeVisible(); // display error message
+    expect(screen.getByText(/An error occurred while preparing/)).toBeVisible(); // display error message
     expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
   });
 
