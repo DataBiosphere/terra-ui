@@ -1391,7 +1391,9 @@ export const WorkspaceData = _.flow(
                               div({}, [
                                 'Please ',
                                 h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['check the status']),
-                                ' of your data table service and share the details with support@terra.bio to troubleshoot the problem.',
+                                ' of your data table service and share the details with ',
+                                h(Link, { href: 'mailto:support@terra.bio' }, ['support@terra.bio']),
+                                ' to troubleshoot the problem.',
                               ]),
                             ]
                           ),
