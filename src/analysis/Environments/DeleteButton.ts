@@ -1,4 +1,5 @@
 import _ from 'lodash/fp';
+import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { isResourceDeletable } from 'src/analysis/utils/resource-utils';
 import { getDisplayRuntimeStatus } from 'src/analysis/utils/runtime-utils';
@@ -14,7 +15,7 @@ export interface DeleteButtonProps {
   onClick: (resource: DecoratedComputeResource) => void;
 }
 
-export const DeleteButton: React.FC<DeleteButtonProps> = (props) => {
+export const DeleteButton = (props: DeleteButtonProps): ReactNode => {
   const { resource, onClick } = props;
   const resourceType = isApp(resource) ? 'app' : 'runtime';
   const isDeletable = isResourceDeletable(resourceType, resource);

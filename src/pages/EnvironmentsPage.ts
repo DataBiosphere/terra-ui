@@ -1,4 +1,5 @@
 import { NavLinkProvider } from '@terra-ui-packages/core-utils';
+import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { EnvironmentNavActions, Environments, UseWorkspacesProvider } from 'src/analysis/Environments/Environments';
 import FooterWrapper from 'src/components/FooterWrapper';
@@ -35,7 +36,7 @@ export const makeNavProvider = (terraNav: TerraNavLinkProvider): NavLinkProvider
 
 export const navProvider = makeNavProvider(terraNavLinkProvider);
 
-export const EnvironmentsPage = () => {
+export const EnvironmentsPage = (): ReactNode => {
   const metricsProvider = useMetricsEvent();
   return h(FooterWrapper, [
     h(TopBar, { title: 'Cloud Environments', href: '' }, []),

@@ -1,6 +1,6 @@
 import { NavLinkProvider } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, ReactNode, useEffect, useState } from 'react';
 import { div, h, h2, p, span, strong } from 'react-hyperscript-helpers';
 import { SaveFilesHelp, SaveFilesHelpAzure } from 'src/analysis/runtime-common-components';
 import { AppErrorModal, RuntimeErrorModal } from 'src/analysis/RuntimeManager';
@@ -68,7 +68,7 @@ interface DeleteRuntimeModalProps {
   deleteProvider: Pick<LeoRuntimeProvider, 'delete'>;
 }
 
-const DeleteRuntimeModal: React.FC<DeleteRuntimeModalProps> = (props) => {
+const DeleteRuntimeModal = (props: DeleteRuntimeModalProps): ReactNode => {
   const { runtime, workspaceId, deleteProvider, onDismiss, onSuccess } = props;
   const { cloudContext, runtimeConfig } = runtime;
   const [deleteDisk, setDeleteDisk] = useState(false);
@@ -117,7 +117,7 @@ interface DeleteDiskModalProps {
   deleteProvider: Pick<LeoDiskProvider, 'delete'>;
 }
 
-const DeleteDiskModal: React.FC<DeleteDiskModalProps> = (props) => {
+const DeleteDiskModal = (props: DeleteDiskModalProps): ReactNode => {
   const { disk, deleteProvider, onDismiss, onSuccess } = props;
   const { workspace } = disk;
   const [busy, setBusy] = useState(false);
@@ -184,7 +184,8 @@ interface PauseButtonProps {
   pauseComputeAndRefresh: any;
 }
 
-export function PauseButton({ cloudEnvironment, currentUser, pauseComputeAndRefresh }: PauseButtonProps) {
+export function PauseButton(props: PauseButtonProps): ReactNode {
+  const { cloudEnvironment, currentUser, pauseComputeAndRefresh } = props;
   const shouldShowPauseButton =
     isPauseSupported(getToolLabelFromCloudEnv(cloudEnvironment)) &&
     currentUser === getCreatorForCompute(cloudEnvironment);
@@ -229,7 +230,7 @@ export interface EnvironmentsProps {
   metrics: MetricsProvider;
 }
 
-export const Environments: React.FC<EnvironmentsProps> = (props) => {
+export const Environments = (props: EnvironmentsProps): ReactNode => {
   const { nav, useWorkspacesState, leoAppData, leoDiskData, leoRuntimeData, metrics } = props;
   const signal = useCancellation();
   const { workspaces, refresh: refreshWorkspaces } = _.flow(

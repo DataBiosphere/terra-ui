@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { div, h, p, span } from 'react-hyperscript-helpers';
 import { SaveFilesHelpGalaxy } from 'src/analysis/runtime-common-components';
 import { appTools } from 'src/analysis/utils/tool-utils';
@@ -19,7 +19,7 @@ export interface DeleteAppModalProps {
   deleteProvider: DeleteAppProvider;
 }
 
-export const DeleteAppModal: React.FC<DeleteAppModalProps> = (props) => {
+export const DeleteAppModal = (props: DeleteAppModalProps): ReactNode => {
   const { app, onDismiss, onSuccess, deleteProvider } = props;
   const [deleteDisk, setDeleteDisk] = useState(false);
   const [deleting, setDeleting] = useState(false);
