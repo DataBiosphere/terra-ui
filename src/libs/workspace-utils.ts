@@ -62,7 +62,8 @@ export interface BaseWorkspace {
   canShare: boolean;
   canCompute: boolean;
   workspace: WorkspaceInfo;
-  // Populated on "MC" workspaces, which are currently just Azure, but eventually will include GCP workspaces.
+  // Currently will always be empty for GCP workspaces, but this will change in the future.
+  // For the purposes of test data, not requiring the specification of the field.
   policies?: WorkspacePolicy[];
 }
 

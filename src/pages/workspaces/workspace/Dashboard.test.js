@@ -19,10 +19,6 @@ jest.mock('src/libs/ajax');
 jest.mock('src/libs/notifications');
 
 describe('WorkspaceInformation', () => {
-  afterEach(() => {
-    jest.resetAllMocks();
-  });
-
   it('renders information for a non-protected workspace and does not fail accessibility tests', async () => {
     // Act
     const { container } = render(h(WorkspaceInformation, { workspace: defaultGoogleWorkspace }));

@@ -11,19 +11,15 @@ interface WorkspaceAttributeNoticeProperties {
   workspaceProtectedMessage?: string;
 }
 
-const WorkspaceAttributeNotice = ({
-  accessLevel,
-  isLocked,
-  workspaceProtectedMessage,
-}: WorkspaceAttributeNoticeProperties) => {
-  const isReadOnly = !Utils.canWrite(accessLevel);
+const WorkspaceAttributeNotice = (props: WorkspaceAttributeNoticeProperties) => {
+  const isReadOnly = !Utils.canWrite(props.accessLevel);
 
   return div({}, [
-    isLocked && h(Notice, { label: 'Locked', tooltip: 'Workspace is locked', iconName: 'lock' }),
+    props.isLocked && h(Notice, { label: 'Locked', tooltip: 'Workspace is locked', iconName: 'lock' }),
     isReadOnly && h(Notice, { label: 'Read-only', tooltip: 'Workspace is read-only', iconName: 'eye' }),
-    !!workspaceProtectedMessage &&
-      h(Notice, { label: 'Protected', tooltip: workspaceProtectedMessage, iconName: 'shield' }),
-    // TODO: ticket
+    !!props.workspaceProtectedMessage &&
+      h(Notice, { label: 'Protected', tooltip: props.workspaceProtectedMessage, iconName: 'shield' }),
+    // Will be used in WOR-1243
     // isRegionLimited && h(Notice,{label: 'Region-limited', tooltip: getRegionTooltip(), iconName: 'globe'}),
   ]);
 };
@@ -34,7 +30,7 @@ interface NoticeProperties {
   iconName: string;
 }
 
-const Notice = ({ label, tooltip, iconName }: NoticeProperties) => {
+const Notice = (props: NoticeProperties) => {
   return span(
     {
       style: {
@@ -52,9 +48,9 @@ const Notice = ({ label, tooltip, iconName }: NoticeProperties) => {
       h(
         TooltipTrigger,
         {
-          content: [div({ key: label }, [tooltip])],
+          content: [div({ key: props.label }, [props.tooltip])],
         },
-        [icon(iconName, { size: 20, 'aria-label': label })]
+        [icon(props.iconName, { size: 20, 'aria-label': props.label })]
       ),
     ]
   );
