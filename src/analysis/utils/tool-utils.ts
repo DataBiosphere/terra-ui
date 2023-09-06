@@ -9,7 +9,8 @@ import * as Utils from 'src/libs/utils';
 import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils';
 
 export type RuntimeToolLabel = 'Jupyter' | 'RStudio' | 'JupyterLab';
-export type AppToolLabel = 'GALAXY' | 'CROMWELL' | 'HAIL_BATCH' | 'WDS';
+export type AppToolLabel = 'GALAXY' | 'CROMWELL' | 'HAIL_BATCH' | 'WDS' | 'WORKFLOWS_APP' | 'CROMWELL_RUNNER_APP';
+export type AppAccessScope = 'USER_PRIVATE' | 'WORKSPACE_SHARED';
 export type LaunchableToolLabel = 'spark' | 'terminal' | 'RStudio' | 'JupyterLab';
 export type ToolLabel = RuntimeToolLabel | AppToolLabel;
 
@@ -32,6 +33,8 @@ export const toolLabelDisplays: Record<ToolLabel, string> = {
   JupyterLab: 'JupyterLab',
   GALAXY: 'Galaxy',
   CROMWELL: 'Cromwell',
+  WORKFLOWS_APP: 'Workflows',
+  CROMWELL_RUNNER_APP: 'Cromwell runner',
   HAIL_BATCH: 'Hail Batch',
   WDS: 'Workspace Data Service',
 };
@@ -39,8 +42,15 @@ export const toolLabelDisplays: Record<ToolLabel, string> = {
 export const appToolLabels: Record<AppToolLabel, AppToolLabel> = {
   GALAXY: 'GALAXY',
   CROMWELL: 'CROMWELL',
+  WORKFLOWS_APP: 'WORKFLOWS_APP',
+  CROMWELL_RUNNER_APP: 'CROMWELL_RUNNER_APP',
   HAIL_BATCH: 'HAIL_BATCH',
   WDS: 'WDS',
+};
+
+export const appAccessScopes: Record<AppAccessScope, AppAccessScope> = {
+  USER_PRIVATE: 'USER_PRIVATE',
+  WORKSPACE_SHARED: 'WORKSPACE_SHARED',
 };
 
 export const isAppToolLabel = (x: ToolLabel): x is AppToolLabel => x in appToolLabels;

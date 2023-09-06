@@ -1,7 +1,7 @@
 import { Fragment, useCallback, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { doesWorkspaceSupportCromwellAppForUser, generateAppName, getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
-import { appToolLabels, appTools } from 'src/analysis/utils/tool-utils';
+import { appAccessScopes, appToolLabels, appTools } from 'src/analysis/utils/tool-utils';
 import { ButtonOutline, Clickable } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
@@ -9,7 +9,7 @@ import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP } from 'src/libs/feature-previews-config';
+import { ENABLE_AZURE_COLLABORATIVE_WORKFLOWS, ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
@@ -117,7 +117,27 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
     const createWorkflowsApp = Utils.withBusyState(setCreating, async () => {
       try {
         setCreating(true);
-        await Ajax(signal).Apps.createAppV2(generateAppName(), workspace.workspace.workspaceId, appToolLabels.CROMWELL);
+        if (isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOWS)) {
+          await Ajax().Apps.createAppV2(
+            Utils.generateAppName(),
+            workspace.workspace.workspaceId,
+            appToolLabels.WORKFLOWS_APP,
+            appAccessScopes.WORKSPACE_SHARED
+          );
+          await Ajax().Apps.createAppV2(
+            Utils.generateAppName(),
+            workspace.workspace.workspaceId,
+            appToolLabels.CROMWELL_RUNNER_APP,
+            appAccessScopes.USER_PRIVATE
+          );
+        } else {
+          await Ajax().Apps.createAppV2(
+            generateAppName(),
+            workspace.workspace.workspaceId,
+            appToolLabels.CROMWELL,
+            appAccessScopes.USER_PRIVATE
+          );
+        }
         await Ajax(signal).Metrics.captureEvent(Events.applicationCreate, {
           app: appTools.CROMWELL.label,
           ...extractWorkspaceDetails(workspace),
