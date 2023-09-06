@@ -735,15 +735,25 @@ export const WorkspaceData = _.flow(
         .Apps.listAppsV2(workspaceId)
         .then((apps) => {
           const foundApp = resolveWdsApp(apps);
-          if (foundApp?.status === appStatuses.running.status) {
-            const url = foundApp.proxyUrls.wds;
-            setWdsProxyUrl({ status: 'Ready', state: url });
-            return url;
+
+          if (!foundApp) {
+            return '';
           }
-          if (foundApp?.status === appStatuses.error.status) {
-            setWdsProxyUrl({ status: 'Error', state: 'WDS app is in ERROR state' });
+          const appStatus = foundApp.status;
+          const url = foundApp.proxyUrls.wds;
+          switch (appStatus) {
+            case appStatuses.error.status:
+              setWdsProxyUrl({ status: 'Error', state: 'WDS app is in ERROR state' });
+              return '';
+            case appStatuses.updating.status:
+              setWdsProxyUrl({ status: 'Loading', state: url });
+              return url;
+            case appStatuses.running.status:
+              setWdsProxyUrl({ status: 'Ready', state: url });
+              return url;
+            default:
+              return '';
           }
-          return '';
         });
     }, []);
 
@@ -856,6 +866,8 @@ export const WorkspaceData = _.flow(
     // convenience vars for WDS
     const wdsReady = wdsProxyUrl.status === 'Ready' && wdsTypes.status === 'Ready';
     const wdsLoading = wdsProxyUrl.status === 'Loading' || wdsTypes.status === 'Loading';
+    // TODO: ???
+    const wdsUpdating = wdsProxyUrl.status === 'Updating' || wdsTypes.status === 'Updating';
     const wdsError = wdsProxyUrl.status === 'Error' || wdsTypes.status === 'Error';
 
     const canUploadTsv = isGoogleWorkspace || (isAzureWorkspace && wdsReady);
@@ -1401,6 +1413,25 @@ export const WorkspaceData = _.flow(
                           ),
                       ],
                       [
+                        isAzureWorkspace && wdsUpdating,
+                        () =>
+                          div(
+                            {
+                              style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' },
+                            },
+                            [
+                              icon('loadingSpinner'),
+                              ' Updating your data tables, this may take a few minutes. ',
+                              () =>
+                                div([
+                                  'You can ',
+                                  h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['check the status']),
+                                  ' of your data table service.',
+                                ]),
+                            ]
+                          ),
+                      ],
+                      [
                         isAzureWorkspace && !wdsReady,
                         () =>
                           div(
@@ -1414,7 +1445,7 @@ export const WorkspaceData = _.flow(
                                 [
                                   !uploadingWDSFile,
                                   () =>
-                                    div({}, [
+                                    div([
                                       'You can ',
                                       h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['check the status']),
                                       ' of your data table service.',

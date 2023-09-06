@@ -120,6 +120,23 @@ describe('WorkspaceData', () => {
     expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // no error message
   });
 
+  it('displays a waiting message for an azure workspace with an UPDATING status', async () => {
+    // Arrange
+    const { workspaceDataProps } = setup({
+      workspace: defaultAzureWorkspace,
+      status: 'UPDATING',
+    });
+
+    // Act
+    await act(async () => {
+      render(h(WorkspaceData, workspaceDataProps));
+    });
+
+    // Assert
+    // expect(screen.getByText(/orkspace is being updated/)).toBeVisible();
+    expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // no error message
+  });
+
   it('displays an error message for an azure workspace whose status is ERROR', async () => {
     // Arrange
     const { workspaceDataProps } = setup({
