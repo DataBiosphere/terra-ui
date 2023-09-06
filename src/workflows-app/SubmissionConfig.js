@@ -348,7 +348,7 @@ export const BaseSubmissionConfig = (
   const callCacheId = useUniqueId();
 
   const renderSummary = () => {
-    return div({ style: { marginLeft: '2em', marginTop: '1rem', display: 'flex', justifyContent: 'space-between' } }, [
+    return div({ style: { marginLeft: '2em', paddingTop: '1rem', display: 'flex', justifyContent: 'space-between' } }, [
       div([
         h(
           Link,
@@ -595,36 +595,47 @@ export const BaseSubmissionConfig = (
 
   return loading
     ? centeredSpinner()
-    : h(Fragment, [
-        div(
-          {
-            style: {
-              borderBottom: '2px solid rgb(116, 174, 67)',
-              boxShadow: 'rgb(0 0 0 / 26%) 0px 2px 5px 0px, rgb(0 0 0 / 16%) 0px 2px 10px 0px',
-              position: 'relative',
-            },
+    : div(
+        {
+          style: {
+            display: 'flex',
+            flex: '1 1 auto',
+            flexDirection: 'column',
+            overflowY: 'scroll',
           },
-          [renderSummary()]
-        ),
-        div(
-          {
-            style: {
-              display: 'flex',
-              flex: '1 1 auto',
-              flexDirection: 'column',
-              padding: '1rem 3rem',
+        },
+        [
+          div(
+            {
+              style: {
+                borderBottom: '2px solid rgb(116, 174, 67)',
+                boxShadow: 'rgb(0 0 0 / 26%) 0px 2px 5px 0px, rgb(0 0 0 / 16%) 0px 2px 10px 0px',
+                position: 'relative',
+              },
             },
-          },
-          [
-            Utils.switchCase(
-              activeTab.key || 'select-data',
-              ['select-data', () => renderRecordSelector()],
-              ['inputs', () => renderInputs()],
-              ['outputs', () => renderOutputs()]
-            ),
-          ]
-        ),
-      ]);
+            [renderSummary()]
+          ),
+          div(
+            {
+              style: {
+                display: 'flex',
+                flex: '1 1 auto',
+                minHeight: '30rem',
+                flexDirection: 'column',
+                padding: '1rem 3rem',
+              },
+            },
+            [
+              Utils.switchCase(
+                activeTab.key || 'select-data',
+                ['select-data', () => renderRecordSelector()],
+                ['inputs', () => renderInputs()],
+                ['outputs', () => renderOutputs()]
+              ),
+            ]
+          ),
+        ]
+      );
 };
 
 export const SubmissionConfig = wrapWorkflowsPage({ name: 'SubmissionConfig' })(BaseSubmissionConfig);
