@@ -2,7 +2,6 @@ import { LoadedState } from '@terra-ui-packages/core-utils';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/analysis/_testData/testData';
 import { AnalysesData, AnalysesProps, BaseAnalyses, getUniqueFileName } from 'src/analysis/Analyses';
 import { analysisLauncherTabName } from 'src/analysis/runtime-common-components';
 import { AnalysisFile, getFileFromPath, useAnalysisFiles } from 'src/analysis/useAnalysisFiles';
@@ -14,6 +13,7 @@ import { ENABLE_JUPYTERLAB_ID, JUPYTERLAB_GCP_FEATURE_ID } from 'src/libs/featur
 import { goToPath } from 'src/libs/nav';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { asMockedFn } from 'src/testing/test-utils';
+import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 type NavExports = typeof import('src/libs/nav');
 jest.mock(

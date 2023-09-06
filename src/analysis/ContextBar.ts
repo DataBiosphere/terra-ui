@@ -23,12 +23,7 @@ import {
   getPersistentDiskCostHourly,
   getRuntimeCost,
 } from 'src/analysis/utils/cost-utils';
-import {
-  getCurrentAppDataDisk,
-  getCurrentPersistentDisk,
-  mapToUndecoratedPds,
-  updatePdType,
-} from 'src/analysis/utils/disk-utils';
+import { getCurrentAppDataDisk, getCurrentPersistentDisk } from 'src/analysis/utils/disk-utils';
 import { getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import {
   appToolLabels,
@@ -49,7 +44,7 @@ import jupyterLogo from 'src/images/jupyter-logo.svg';
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png';
 import { Ajax } from 'src/libs/ajax';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
-import { DecoratedPersistentDisk, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
@@ -92,7 +87,7 @@ export interface ContextBarProps {
   storageDetails: StorageDetails;
   refreshApps: (maybeStale?: boolean) => Promise<void>;
   workspace: BaseWorkspace;
-  persistentDisks: DecoratedPersistentDisk[];
+  persistentDisks: PersistentDisk[];
 }
 
 export const ContextBar = ({
@@ -123,13 +118,17 @@ export const ContextBar = ({
   const computeRegion = Utils.cond(
     [isGoogleWorkspace(workspace), () => getRegionInfo(googleBucketLocation, googleBucketType).computeRegion],
     [isAzureWorkspace(workspace), () => azureContainerRegion],
-    () => null
-  );
+    () => {
+      throw new Error('Unable to determine cloud provider for workspace');
+    }
+  )!;
   const location = Utils.cond(
     [isGoogleWorkspace(workspace), () => googleBucketLocation],
     [isAzureWorkspace(workspace), () => azureContainerRegion],
-    () => null
-  );
+    () => {
+      throw new Error('Unable to determine cloud provider for workspace');
+    }
+  )!;
 
   const getImgForTool = (toolLabel) =>
     Utils.switchCase(
@@ -143,7 +142,7 @@ export const ContextBar = ({
     );
 
   const getColorForStatus = (status) =>
-    Utils.cond(
+    Utils.cond<string>(
       [_.upperCase(status) === 'RUNNING', () => colors.success()],
       [_.upperCase(status) === 'ERROR', () => colors.danger()],
       [_.includes('ING', _.upperCase(status)), () => colors.accent()],
@@ -179,7 +178,7 @@ export const ContextBar = ({
               appDataDisks,
               computeRegion,
               currentRuntimeTool,
-              mapToUndecoratedPds(persistentDisks),
+              persistentDisks,
               runtimes,
               toolLabel
             ),
@@ -223,8 +222,8 @@ export const ContextBar = ({
     const galaxyRuntimeCost = galaxyApp ? getGalaxyComputeCost(galaxyApp) : 0;
     const galaxyDiskCost = galaxyDisk ? getGalaxyDiskCost(galaxyDisk) : 0;
     const runtimeCost = currentRuntime ? getRuntimeCost(currentRuntime) : 0;
-    const curPd = getCurrentPersistentDisk(runtimes, mapToUndecoratedPds(persistentDisks));
-    const diskCost = curPd ? getPersistentDiskCostHourly(updatePdType(curPd), computeRegion) : 0;
+    const curPd = getCurrentPersistentDisk(runtimes, persistentDisks);
+    const diskCost = curPd ? getPersistentDiskCostHourly(curPd, computeRegion) : 0;
     const display = Utils.formatUSD(galaxyRuntimeCost + galaxyDiskCost + runtimeCost + diskCost);
     return display;
   };
@@ -252,7 +251,7 @@ export const ContextBar = ({
       refreshApps,
       workspace,
       canCompute,
-      persistentDisks: mapToUndecoratedPds(persistentDisks),
+      persistentDisks,
       location,
       computeRegion,
     }),

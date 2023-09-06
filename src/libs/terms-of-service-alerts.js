@@ -1,3 +1,4 @@
+import { atom } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, useEffect } from 'react';
 import { br, h } from 'react-hyperscript-helpers';
@@ -6,7 +7,6 @@ import { Ajax } from 'src/libs/ajax';
 import * as Nav from 'src/libs/nav';
 import { useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
-import * as Utils from 'src/libs/utils';
 
 const getNewTermsOfServiceNeedsAcceptingAlert = async (termsOfServiceState) => {
   const shouldNotify = !termsOfServiceState.userHasAcceptedLatestTos && termsOfServiceState.permitsSystemUsage;
@@ -42,7 +42,7 @@ export const getTermsOfServiceAlerts = async (authState) => {
   return _.compact([alerts]);
 };
 
-export const tosGracePeriodAlertsStore = Utils.atom([]);
+export const tosGracePeriodAlertsStore = atom([]);
 
 export const useTermsOfServiceAlerts = () => {
   useEffect(() => {

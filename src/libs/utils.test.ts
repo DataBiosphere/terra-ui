@@ -1,11 +1,4 @@
-import {
-  condTyped,
-  DEFAULT,
-  differenceFromDatesInSeconds,
-  differenceFromNowInSeconds,
-  formatBytes,
-  textMatch,
-} from 'src/libs/utils';
+import { differenceFromDatesInSeconds, differenceFromNowInSeconds, formatBytes, textMatch } from 'src/libs/utils';
 
 beforeAll(() => {
   jest.useFakeTimers();
@@ -78,18 +71,5 @@ describe('textMatch', () => {
     // Act
     const doesMatch = textMatch(needle, haystack);
     expect(doesMatch).toBe(result);
-  });
-
-  // add test for condTyped
-  describe('condTyped', () => {
-    it('handles constant results', () => {
-      expect(condTyped<string>([false, () => 'def'], [true, 'abc'])).toBe('abc');
-    });
-    it('handles function results', () => {
-      expect(condTyped<string>([false, 'def'], [true, () => 'abc'])).toBe('abc');
-    });
-    it('handles DEFAULT', () => {
-      expect(condTyped<string>([false, 'def'], [DEFAULT, 'abc'])).toBe('abc');
-    });
   });
 });

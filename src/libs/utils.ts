@@ -1,4 +1,4 @@
-import { AnyPromiseFn, DEFAULT, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
+import { AnyPromiseFn, cond, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
 import { formatDuration, intervalToDuration, isToday, isYesterday } from 'date-fns';
 import { differenceInCalendarMonths, differenceInSeconds, parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
@@ -8,57 +8,7 @@ import { v4 as uuid } from 'uuid';
 
 import { hasAccessLevel } from './workspace-utils';
 
-export { DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
-
-export interface Subscribable<T extends any[]> {
-  subscribe: (fn: (...args: T) => void) => { unsubscribe: () => void };
-  next: (...args: T) => void;
-}
-
-/**
- * A mechanism for registering callbacks for some state change.
- */
-export const subscribable = <T extends any[]>(): Subscribable<T> => {
-  let subscribers: ((...args: T) => void)[] = [];
-  return {
-    subscribe: (fn: (...args: T) => void) => {
-      subscribers = append(fn, subscribers);
-      return {
-        unsubscribe: () => {
-          subscribers = _.without([fn], subscribers);
-        },
-      };
-    },
-    next: (...args: T) => {
-      _.forEach((fn) => fn(...args), subscribers);
-    },
-  };
-};
-
-export interface Atom<T> {
-  subscribe: (fn: (value: T, previousValue: T) => void) => { unsubscribe: () => void };
-  get: () => T;
-  set: (value: T) => void;
-  update: (fn: (currentValue: T) => T) => void;
-  reset: () => void;
-}
-
-/**
- * A simple state container inspired by clojure atoms. Method names were chosen based on similarity
- * to lodash and Immutable. (deref => get, reset! => set, swap! => update, reset to go back to initial value)
- * Implements the Store interface
- */
-export const atom = <T>(initialValue: T): Atom<T> => {
-  let value = initialValue;
-  const { subscribe, next } = subscribable<[T, T]>();
-  const get = () => value;
-  const set = (newValue: T) => {
-    const oldValue = value;
-    value = newValue;
-    next(newValue, oldValue);
-  };
-  return { subscribe, get, set, update: (fn) => set(fn(get())), reset: () => set(initialValue) };
-};
+export { cond, DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
 
 const dateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric' });
 const monthYearFormat = new Intl.DateTimeFormat('default', { month: 'short', year: 'numeric' });
@@ -74,8 +24,8 @@ const completeDateFormatParts = [
   new Intl.DateTimeFormat('default', { hour: 'numeric', minute: 'numeric' }),
 ];
 
-export const makePrettyDate = (dateString) => {
-  const date = new Date(dateString);
+export const makePrettyDate = (dateString: number | string | Date): string => {
+  const date: Date = new Date(dateString);
 
   return cond(
     [isToday(date), () => 'Today'],
@@ -85,9 +35,13 @@ export const makePrettyDate = (dateString) => {
   );
 };
 
-export const makeStandardDate = (dateString) => dateFormat.format(new Date(dateString));
+export const makeStandardDate = (dateString: number | string | Date): string => dateFormat.format(new Date(dateString));
 
-export const makeCompleteDate = (dateString) => completeDateFormat.format(new Date(dateString));
+export const makeCompleteDate = (dateString: number | string | Date): string =>
+  completeDateFormat.format(new Date(dateString));
+
+export const formatTimestampInSeconds = (secondsSinceEpoch: number): string =>
+  completeDateFormat.format(new Date(secondsSinceEpoch * 1000));
 
 export const makeCompleteDateParts = (dateString) => {
   return _.map((part) => part.format(new Date(dateString)), completeDateFormatParts);
@@ -134,41 +88,6 @@ export const workflowStatuses = [
 export const log = (...args) => {
   console.log.apply(null, args); // eslint-disable-line no-console
   return _.last(args);
-};
-
-const maybeCall = <T>(maybeFn: T | (() => T)) => (_.isFunction(maybeFn) ? maybeFn() : maybeFn);
-
-type CondArgType<T> = [boolean | typeof DEFAULT, T | (() => T)] | (() => T);
-
-export const condTyped = <T>(...args: CondArgType<T>[]): T | undefined => {
-  for (const arg of args) {
-    if (_.isArray(arg)) {
-      const [predicate, value] = arg;
-      if (predicate) return maybeCall(value);
-    } else {
-      return maybeCall(arg);
-    }
-  }
-};
-
-/**
- * Takes any number of [predicate, value] pairs, followed by an optional default value.
- * Returns value() for the first truthy predicate, otherwise returns the default value().
- * Returns undefined if no predicate matches and there is no default value.
- *
- * DEPRECATED: If a value is not a function, it will be returned directly instead.
- * This behavior is deprecated, and will be removed in the future.
- *
- * @Deprecated use condTyped instead
- */
-export const cond = (...args: any[]): any => {
-  console.assert(
-    _.every((arg) => {
-      return _.isFunction(arg) || (_.isArray(arg) && arg.length === 2 && _.isFunction(arg[1]));
-    }, args),
-    'Invalid arguments to Utils.cond'
-  );
-  return condTyped(...args);
 };
 
 export const toIndexPairs = <T>(obj: T[]): [number, T][] =>
@@ -264,7 +183,7 @@ export const customFormatDuration = (seconds) => {
 
 // TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
 export const summarizeErrors = (errors) => {
-  const errorList = cond(
+  const errorList = cond<any[]>(
     [_.isPlainObject(errors), () => _.flatMap(_.values, errors)],
     [_.isArray(errors), () => errors],
     () => []

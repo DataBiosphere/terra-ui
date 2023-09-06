@@ -6,8 +6,8 @@ import { Ajax } from 'src/libs/ajax';
 import { reportErrorAndRethrow } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { useOnMount } from 'src/libs/react-utils';
-import { summarizeErrors, withBusyState } from 'src/libs/utils';
 import * as Utils from 'src/libs/utils';
+import { summarizeErrors, withBusyState } from 'src/libs/utils';
 import { billingProjectNameValidator } from 'src/pages/billing/billing-utils';
 import { AzureManagedAppCoordinates } from 'src/pages/billing/models/AzureManagedAppCoordinates';
 import { BillingRole } from 'src/pages/billing/models/BillingProject';
@@ -79,7 +79,7 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
   useEffect(() => {
     let isMounted = true; // Necessary to avoid React warning about updates in unmounted component after project created.
     if (isMounted) {
-      const errors = Utils.cond(
+      const errors = Utils.cond<ReactNode>(
         [
           !!billingProjectName,
           () =>

@@ -9,7 +9,7 @@ import {
   runSetInputDefWithSourceNone,
   runSetInputDefWithStruct,
   runSetOutputDef,
-} from 'src/libs/ajax/workflows-app/CbasMockResponses';
+} from 'src/libs/ajax/workflows-app/cbas-sample-configurations';
 
 jest.mock('src/libs/ajax/ajax-common', () => ({
   ...jest.requireActual('src/libs/ajax/ajax-common'),
@@ -32,11 +32,12 @@ jest.mock('src/libs/state', () => {
   };
 });
 
-const { timestamp, string, regex, boolean, integer, fromProviderState } = MatchersV3;
+const { string, regex, boolean, integer, fromProviderState } = MatchersV3;
 
 const UUID_REGEX = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
 const RUN_STATE_REGEX = 'UNKNOWN|QUEUED|INITIALIZING|RUNNING|PAUSED|COMPLETE|EXECUTOR_ERROR|SYSTEM_ERROR|CANCELED|CANCELING';
 const RUNSET_STATE_REGEX = 'UNKNOWN|QUEUED|RUNNING|COMPLETE|ERROR|CANCELED|CANCELING';
+const TIMESTAMP_REGEX = '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}\\+[0-9]{2}\\:[0-9]{2}';
 
 const cbasPact = new PactV3({
   consumer: 'terra-ui',
@@ -59,10 +60,10 @@ describe('Cbas tests', () => {
           is_template: boolean(true),
           run_set_name: string('struct_workflow_test template run set'),
           run_set_description: string('struct_workflow_test template submission'),
-          state: regex(RUNSET_STATE_REGEX, 'COMPLETE'),
+          state: regex(RUNSET_STATE_REGEX, 'UNKNOWN'),
           record_type: string('sample'),
-          submission_timestamp: timestamp("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", '2023-03-28T13:05:02.690+00:00'),
-          last_modified_timestamp: timestamp("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", '2023-03-28T13:05:02.690+00:00'),
+          submission_timestamp: regex(TIMESTAMP_REGEX, '2023-03-28T13:05:02.690+00:00'),
+          last_modified_timestamp: regex(TIMESTAMP_REGEX, '2023-03-28T13:05:02.690+00:00'),
           run_count: integer(0),
           error_count: integer(0),
           input_definition: string('[...]'),

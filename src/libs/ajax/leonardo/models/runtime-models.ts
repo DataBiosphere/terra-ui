@@ -45,9 +45,9 @@ export const runtimeStatuses: { [label: string]: RuntimeStatus } = {
   error: { label: 'Error', leoLabel: 'Error', canChangeCompute: true },
 };
 
-export interface RuntimeLabels extends LeoResourceLabels {
+export type RuntimeLabels = Omit<LeoResourceLabels, 'tool'> & {
   tool: ToolLabel;
-}
+};
 
 export interface RuntimeError extends LeoError {
   errorCode: number;
@@ -55,7 +55,7 @@ export interface RuntimeError extends LeoError {
 
 export interface ListRuntimeItem {
   id: number;
-  workspaceId?: string;
+  workspaceId: string | null;
   runtimeName: string;
   googleProject: string;
   cloudContext: CloudContext;
@@ -93,24 +93,24 @@ export interface GetRuntimeItem {
   googleProject: string;
   cloudContext: CloudContext;
   serviceAccount: string;
-  asyncRuntimeFields?: AsyncRuntimeFields;
+  asyncRuntimeFields: AsyncRuntimeFields | null;
   auditInfo: AuditInfo;
   runtimeConfig: RuntimeConfig;
   proxyUrl: string;
   status: LeoRuntimeStatus;
   labels: RuntimeLabels;
-  userScriptUri?: string;
-  startUserScriptUri?: string;
-  jupyterUserScriptUri?: string;
-  jupyterStartUserScriptUri?: string;
+  userScriptUri: string | null;
+  startUserScriptUri: string | null;
+  jupyterUserScriptUri: string | null;
+  jupyterStartUserScriptUri: string | null;
   errors: RuntimeError[];
-  userJupyterExtensionConfig?: UserJupyterExtensionConfig;
+  userJupyterExtensionConfig: UserJupyterExtensionConfig | null;
   autopauseThreshold: number;
-  defaultClientId?: string;
+  defaultClientId: string | null;
   runtimeImages: LeoRuntimeImage[];
   scopes: string[];
   customEnvironmentVariables: Record<string, any>;
-  diskConfig?: DiskConfig;
+  diskConfig: DiskConfig | null;
   patchInProgress: boolean;
 }
 

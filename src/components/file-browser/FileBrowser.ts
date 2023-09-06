@@ -1,3 +1,4 @@
+import { subscribable } from '@terra-ui-packages/core-utils';
 import { Fragment, useCallback, useEffect, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import DirectoryTree from 'src/components/file-browser/DirectoryTree';
@@ -56,7 +57,10 @@ const FileBrowser = (props: FileBrowserProps) => {
   }, []);
 
   const editWorkspaceError = Utils.editWorkspaceError(workspace);
-  const { editDisabled, editDisabledReason } = Utils.cond(
+  const { editDisabled, editDisabledReason } = Utils.cond<{
+    editDisabled: boolean;
+    editDisabledReason: string | undefined;
+  }>(
     [!!editWorkspaceError, () => ({ editDisabled: true, editDisabledReason: editWorkspaceError })],
     [
       path.startsWith(`${dataTableVersionsPathRoot}/`),
@@ -68,7 +72,7 @@ const FileBrowser = (props: FileBrowserProps) => {
     () => ({ editDisabled: false, editDisabledReason: undefined })
   );
 
-  const reloadRequests = Utils.subscribable();
+  const reloadRequests = subscribable();
 
   return h(Fragment, [
     div({ style: { display: 'flex', height: '100%' } }, [

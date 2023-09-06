@@ -283,7 +283,7 @@ export const List = (props: ListProps) => {
                     setCreatingBillingProjectType(null);
                     loadProjects();
                     Nav.history.push({
-                      pathname: Nav.getPath('billing', undefined, undefined),
+                      pathname: Nav.getPath('billing'),
                       search: qs.stringify({ selectedName: billingProjectName, type: 'project' }),
                     });
                   },

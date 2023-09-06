@@ -1,3 +1,4 @@
+import { atom } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Ajax } from 'src/libs/ajax';
 import { useStore } from 'src/libs/react-utils';
@@ -14,6 +15,6 @@ export const getServiceAlerts = async () => {
   )(serviceAlerts);
 };
 
-export const serviceAlertsStore = Utils.atom([]);
+export const serviceAlertsStore = atom([]);
 
 export const useServiceAlerts = () => useStore(serviceAlertsStore);
