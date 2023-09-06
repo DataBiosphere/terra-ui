@@ -729,7 +729,6 @@ export const WorkspaceData = _.flow(
     };
 
     const loadWdsUrl = useCallback((workspaceId) => {
-      // setWdsProxyUrl({ status: 'Loading', state: '' })
       return Ajax()
         .Apps.listAppsV2(workspaceId)
         .then((apps) => {
