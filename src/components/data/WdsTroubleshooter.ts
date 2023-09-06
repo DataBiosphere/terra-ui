@@ -2,7 +2,7 @@ import _ from 'lodash/fp';
 import { ReactNode } from 'react';
 import { div, h, table, tbody, td, tr } from 'react-hyperscript-helpers';
 import { ClipboardButton } from 'src/components/ClipboardButton';
-import { ButtonPrimary } from 'src/components/common';
+import { ButtonPrimary, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
 import { WorkspaceLinkById } from 'src/components/WorkspaceLinks';
@@ -162,7 +162,9 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
       div({ style: { padding: '1rem 0.5rem', lineHeight: '1.4rem' } }, [
         table({ style: { borderSpacing: '1rem 0', borderCollapse: 'separate' } }, [tbody([tableRows])]),
         div({ style: { marginTop: '1rem' } }, [
-          'Please copy this information and email support@terra.bio to troubleshoot the error with your data tables.',
+          'Please copy this information and email ',
+          h(Link, { href: 'mailto:support@terra.bio' }, ['support@terra.bio']),
+          ' to troubleshoot the error with your data tables.',
           // @ts-expect-error
           h(ClipboardButton, {
             'aria-label': 'Copy troubleshooting info to clipboard',
