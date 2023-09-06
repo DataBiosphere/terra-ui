@@ -39,8 +39,10 @@ export const metadata = {
           sample_collection_date: '2020-11-30',
           biosample_accession: 'SSM32424324',
           run_date: '2022-06-22',
-          sra_metadata:
+          sra_metadata: [
             'https://kj4l5k3hjklk3jlk43jl3kj43lkj3l4kj3.blob.core.windows.net/sc-random-value/workspace-services/cbas/terra-app-other-random-value/fetch_sra_to_bam/more-random-value/call-Fetch_SRA_to_BAM/execution/SRR13379731.json',
+            'https://kj4l5k3hjklk3jlk43jl3kj43lkj3l4kj3.blob.core.windows.net/sc-random-value/workspace-services/cbas/terra-app-other-random-value/fetch_sra_to_bam/more-random-value/call-Fetch_SRA_to_BAM/execution/SRR13379732.json',
+          ],
           library_strategy: 'AMPLICON',
           num_reads: 552132,
           sequencing_center: 'SQLCT',

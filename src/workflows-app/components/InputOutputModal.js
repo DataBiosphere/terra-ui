@@ -61,7 +61,7 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
             h(
               FlexTable,
               {
-                'aria-label': 'call table',
+                'aria-label': 'inputs outputs table',
                 height: tableHeight({ actualRows: dataArray.length, maxRows: 10.5 }), // The half-row here hints at there being extra rows if scrolled
                 width,
                 rowCount: dataArray.length,
@@ -80,7 +80,24 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
                     field: 'value',
                     headerRenderer: () => h(HeaderCell, ['Value']),
                     cellRenderer: ({ rowIndex }) => {
-                      return isAzureUri(dataArray[rowIndex][1]) ? renderBlobLink(dataArray[rowIndex][1]) : div({}, dataArray[rowIndex][1]);
+                      let output = [];
+                      const targetData = dataArray[rowIndex][1];
+                      if (targetData instanceof Array) {
+                        output = targetData.map((item, index) =>
+                          isAzureUri(item) ? renderBlobLink(item) : div({ key: `output-${rowIndex}-item-${index}` }, item)
+                        );
+                      } else {
+                        output.push(isAzureUri(targetData) ? renderBlobLink(targetData) : div({ key: `output-${rowIndex}` }, targetData));
+                      }
+                      return div(
+                        {
+                          style: {
+                            display: 'flex',
+                            flexDirection: 'column',
+                          },
+                        },
+                        [output]
+                      );
                     },
                   },
                 ],
