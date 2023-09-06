@@ -120,13 +120,10 @@ export const resolveWdsApp = (apps: ListAppResponse[]): ListAppResponse | undefi
 };
 
 // Extract wds URL from Leo response. exported for testing
-export const resolveWdsUrl = (apps, raiseOnError = false) => {
+export const resolveWdsUrl = (apps) => {
   const foundApp = resolveWdsApp(apps);
   if (foundApp?.status === 'RUNNING') {
     return foundApp.proxyUrls.wds;
-  }
-  if (raiseOnError && foundApp?.status === 'ERROR') {
-    throw new Error('WDS app is in ERROR state');
   }
   return '';
 };

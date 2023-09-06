@@ -30,7 +30,7 @@ import { renderDataCell } from 'src/data/data-table/entity-service/renderDataCel
 import { EntityUploader } from 'src/data/data-table/shared/EntityUploader';
 import { Ajax } from 'src/libs/ajax';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
-import { resolveWdsUrl, WdsDataTableProvider, wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
+import { resolveWdsApp, WdsDataTableProvider, wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions';
@@ -732,15 +732,16 @@ export const WorkspaceData = _.flow(
       // setWdsProxyUrl({ status: 'Loading', state: '' })
       return Ajax()
         .Apps.listAppsV2(workspaceId)
-        .then((apps) => resolveWdsUrl(apps, /* raiseOnError= */ true))
-        .then((url) => {
-          if (url) {
+        .then((apps) => {
+          const foundApp = resolveWdsApp(apps);
+          if (foundApp?.status === 'RUNNING') {
+            const url = foundApp.proxyUrls.wds;
             setWdsProxyUrl({ status: 'Ready', state: url });
+            return url;
           }
-          return url;
-        })
-        .catch((err) => {
-          setWdsProxyUrl({ status: 'Error', state: err });
+          if (foundApp?.status === 'ERROR') {
+            setWdsProxyUrl({ status: 'Error', state: 'WDS app is in ERROR state' });
+          }
           return '';
         });
     }, []);
