@@ -1,6 +1,6 @@
-import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { defaultAzureWorkspace, defaultGoogleWorkspace, protectedAzureWorkspace } from 'src/testing/workspace-fixtures';
 
-import { isValidWsExportTarget, WorkspaceWrapper } from './workspace-utils';
+import { hasProtectedData, isValidWsExportTarget, WorkspaceWrapper } from './workspace-utils';
 
 describe('isValidWsExportTarget', () => {
   it('Returns true because source and dest workspaces are the same', () => {
@@ -109,5 +109,16 @@ describe('isValidWsExportTarget', () => {
 
     // Assert
     expect(result).toBe(false);
+  });
+});
+
+describe('Protected Data', () => {
+  it('Returns true if protected data policy exists', () => {
+    expect(hasProtectedData(protectedAzureWorkspace)).toBe(true);
+  });
+
+  it('Returns false if protected data policy does not exist', () => {
+    expect(hasProtectedData(defaultAzureWorkspace)).toBe(false);
+    expect(hasProtectedData(defaultGoogleWorkspace)).toBe(false);
   });
 });

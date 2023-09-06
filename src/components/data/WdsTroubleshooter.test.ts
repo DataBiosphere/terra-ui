@@ -145,6 +145,7 @@ describe('WdsTroubleshooter', () => {
         authorizationDomain: [],
         createdBy: 'user@example.com',
         createdDate: '2023-02-15T19:17:15.711Z',
+        lastModified: '2023-03-15T19:17:15.711Z',
       },
       azureContext: {
         managedResourceGroupId: 'test-mrg',
@@ -237,6 +238,7 @@ describe('WdsTroubleshooter', () => {
         authorizationDomain: [],
         createdBy: 'user@example.com',
         createdDate: '2023-02-15T19:17:15.711Z',
+        lastModified: '2023-03-15T19:17:15.711Z',
       },
       azureContext: {
         managedResourceGroupId: 'test-mrg',

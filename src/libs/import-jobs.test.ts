@@ -25,6 +25,7 @@ describe('useImportJobs', () => {
         workspaceId: 'testGoogleWorkspaceId',
         createdDate: '2023-02-15T19:17:15.711Z',
         createdBy: 'user@example.com',
+        lastModified: '2023-03-15T19:17:15.711Z',
       },
       accessLevel: 'OWNER',
       canShare: true,
@@ -83,6 +84,7 @@ describe('useImportJobs', () => {
         workspaceId: 'fafbb550-62eb-4135-8b82-3ce4d53446af',
         createdDate: '2023-02-15T19:17:15.711Z',
         createdBy: 'user@example.com',
+        lastModified: '2023-03-15T19:17:15.711Z',
       },
       azureContext: {
         managedResourceGroupId: 'test-mrg',
