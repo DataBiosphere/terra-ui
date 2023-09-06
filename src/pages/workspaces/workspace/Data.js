@@ -31,6 +31,7 @@ import { EntityUploader } from 'src/data/data-table/shared/EntityUploader';
 import { Ajax } from 'src/libs/ajax';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
 import { resolveWdsApp, WdsDataTableProvider, wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
+import { appStatuses } from 'src/libs/ajax/leonardo/models/app-models';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions';
@@ -646,8 +647,8 @@ export const WorkspaceData = _.flow(
     const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}); // { [entityType: string]: boolean }
     const pollWdsInterval = useRef();
 
-    const [wdsProxyUrl, setWdsProxyUrl] = useState({ status: 'None', state: '' });
-    const [wdsTypes, setWdsTypes] = useState({ status: 'None', state: [] });
+    const [wdsProxyUrl, setWdsProxyUrl] = useState({ status: appStatuses.status_unspecified.status, state: '' });
+    const [wdsTypes, setWdsTypes] = useState({ status: appStatuses.status_unspecified.status, state: [] });
 
     const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } =
       useDataTableVersions(workspace);
@@ -733,13 +734,13 @@ export const WorkspaceData = _.flow(
         .Apps.listAppsV2(workspaceId)
         .then((apps) => {
           const foundApp = resolveWdsApp(apps);
-          if (foundApp?.status === 'RUNNING') {
+          if (foundApp?.status === appStatuses.running.status) {
             const url = foundApp.proxyUrls.wds;
-            setWdsProxyUrl({ status: 'Ready', state: url });
+            setWdsProxyUrl({ status: appStatuses.running.status, state: url });
             return url;
           }
-          if (foundApp?.status === 'ERROR') {
-            setWdsProxyUrl({ status: 'Error', state: 'WDS app is in ERROR state' });
+          if (foundApp?.status === appStatuses.error.status) {
+            setWdsProxyUrl({ status: appStatuses.error.status, state: 'WDS app is in ERROR state' });
           }
           return '';
         });
@@ -750,10 +751,10 @@ export const WorkspaceData = _.flow(
         return Ajax(signal)
           .WorkspaceData.getSchema(url, workspaceId)
           .then((typesResult) => {
-            setWdsTypes({ status: 'Ready', state: typesResult });
+            setWdsTypes({ status: appStatuses.running.status, state: typesResult });
           })
           .catch((err) => {
-            setWdsTypes({ status: 'Error', state: err });
+            setWdsTypes({ status: appStatuses.error.status, state: err });
           });
       },
       [signal]
@@ -762,7 +763,7 @@ export const WorkspaceData = _.flow(
     const loadWdsData = useCallback(async () => {
       try {
         // Try to load the proxy URL
-        if (!wdsProxyUrl || wdsProxyUrl.status !== 'Ready') {
+        if (!wdsProxyUrl || wdsProxyUrl.status !== appStatuses.running.status) {
           const wdsUrl = await loadWdsUrl(workspaceId);
           if (wdsUrl) {
             await loadWdsTypes(wdsUrl, workspaceId);
@@ -780,9 +781,9 @@ export const WorkspaceData = _.flow(
     useEffect(() => {
       if (isAzureWorkspace) {
         // Start polling if we're missing WDS Types, and stop polling when we have them.
-        if ((!wdsTypes || wdsTypes.status !== 'Ready') && !pollWdsInterval.current) {
+        if ((!wdsTypes || wdsTypes.status !== appStatuses.running.status) && !pollWdsInterval.current) {
           pollWdsInterval.current = setInterval(loadWdsData, 30 * 1000);
-        } else if (!!wdsTypes && wdsTypes.status === 'Ready' && pollWdsInterval.current) {
+        } else if (!!wdsTypes && wdsTypes.status === appStatuses.running.status && pollWdsInterval.current) {
           clearInterval(pollWdsInterval.current);
           pollWdsInterval.current = undefined;
         }
@@ -852,9 +853,9 @@ export const WorkspaceData = _.flow(
     const canEditWorkspace = !editWorkspaceErrorMessage;
 
     // convenience vars for WDS
-    const wdsReady = wdsProxyUrl.status === 'Ready' && wdsTypes.status === 'Ready';
-    const wdsLoading = wdsProxyUrl.status === 'Loading' || wdsTypes.status === 'Loading';
-    const wdsError = wdsProxyUrl.status === 'Error' || wdsTypes.status === 'Error';
+    const wdsReady = wdsProxyUrl.status === appStatuses.running.status && wdsTypes.status === appStatuses.running.status;
+    const wdsLoading = wdsProxyUrl.status === appStatuses.provisioning.status || wdsTypes.status === appStatuses.provisioning.status;
+    const wdsError = wdsProxyUrl.status === appStatuses.error.status || wdsTypes.status === appStatuses.error.status;
 
     const canUploadTsv = isGoogleWorkspace || (isAzureWorkspace && wdsReady);
     return div({ style: styles.tableContainer }, [
