@@ -47,6 +47,7 @@ describe('the share workspace modal', () => {
       createdBy: '',
       googleProject: 'test-project',
       bucketName: 'test-bucket',
+      lastModified: '',
     },
   };
 
@@ -227,6 +228,7 @@ describe('the share workspace modal', () => {
         authorizationDomain: [],
         createdDate: '',
         createdBy: '',
+        lastModified: '',
       },
     };
 
