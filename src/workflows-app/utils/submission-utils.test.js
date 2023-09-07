@@ -308,6 +308,34 @@ describe('validateInputs', () => {
     expect(validatedInputs).toEqual(expect.arrayContaining(_.map((input) => ({ name: input.input_name, type: 'none' }))(inputs)));
   });
 
+  it('should return errors for record lookups with no selected data table', () => {
+    const inputsWithIncorrectLookupDefinition = [
+      intInput(1234),
+      floatInput(23.32),
+      {
+        input_name: 'test_workflow.lookup_var',
+        input_type: {
+          type: 'primitive',
+          primitive_type: 'String',
+        },
+        source: {
+          type: 'record_lookup',
+          record_attribute: 'columnname',
+        },
+      },
+    ];
+
+    const validatedInputs = validateInputs(inputsWithIncorrectLookupDefinition, undefined);
+    expect(validatedInputs.length).toBe(3);
+    expect(validatedInputs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: intInput().input_name, type: 'none' }),
+        expect.objectContaining({ name: floatInput().input_name, type: 'none' }),
+        { name: 'test_workflow.lookup_var', type: 'error', message: 'Select a data table' },
+      ])
+    );
+  });
+
   const arrayInput = (name, arrayType, value) => {
     return {
       input_name: name,

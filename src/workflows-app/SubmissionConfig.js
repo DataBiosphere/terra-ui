@@ -294,6 +294,9 @@ export const BaseSubmissionConfig = (
       const newInputValidations = validateInputs(configuredInputDefinition, dataTableAttributes);
 
       setInputValidations(newInputValidations);
+    } else if (configuredInputDefinition) {
+      const newInputValidations = validateInputs(configuredInputDefinition, undefined);
+      setInputValidations(newInputValidations);
     }
   }, [records, recordTypes, configuredInputDefinition]);
 
@@ -560,14 +563,14 @@ export const BaseSubmissionConfig = (
   };
 
   const renderInputs = () => {
-    return configuredInputDefinition && recordTypes && records.length
+    return configuredInputDefinition
       ? h(InputsTable, {
-          selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
+          selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType] || {},
           configuredInputDefinition,
           setConfiguredInputDefinition,
           inputValidations,
         })
-      : 'No data table rows available or input definition is not configured...';
+      : 'Input definition is not configured...';
   };
 
   const renderOutputs = () => {
