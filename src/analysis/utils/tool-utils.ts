@@ -124,6 +124,10 @@ const Galaxy = { label: 'GALAXY' } as const satisfies AppTool;
 
 const Cromwell = { label: 'CROMWELL', isPauseUnsupported: true } as const satisfies AppTool;
 
+const Workflows = { label: 'WORKFLOWS_APP', isPauseUnsupported: true } as const satisfies AppTool;
+
+const CromwellRunner = { label: 'CROMWELL_RUNNER_APP', isPauseUnsupported: true } as const satisfies AppTool;
+
 const HailBatch = { label: 'HAIL_BATCH', isPauseUnsupported: true } as const satisfies AppTool;
 
 const Wds = { label: 'WDS', isPauseUnsupported: true } as const satisfies AppTool;
@@ -131,6 +135,8 @@ const Wds = { label: 'WDS', isPauseUnsupported: true } as const satisfies AppToo
 export const appTools: Record<AppToolLabel, AppTool> = {
   GALAXY: Galaxy,
   CROMWELL: Cromwell,
+  WORKFLOWS_APP: Workflows,
+  CROMWELL_RUNNER_APP: CromwellRunner,
   HAIL_BATCH: HailBatch,
   WDS: Wds,
 };
