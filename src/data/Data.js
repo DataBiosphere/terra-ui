@@ -745,6 +745,10 @@ export const WorkspaceData = _.flow(
             setWdsProxyUrl({ status: 'Error', state: 'WDS app is in ERROR state' });
           }
           return '';
+        })
+        .catch((error) => {
+          setWdsTypes({ status: 'Error', state: 'Error resolving WDS app' });
+          reportError('Error resolving WDS app', error);
         });
     }, []);
 
@@ -755,8 +759,9 @@ export const WorkspaceData = _.flow(
           .then((typesResult) => {
             setWdsTypes({ status: 'Ready', state: typesResult });
           })
-          .catch((err) => {
-            setWdsTypes({ status: 'Error', state: err });
+          .catch((error) => {
+            setWdsTypes({ status: 'Error', state: 'Error loading WDS schema' });
+            reportError('Error loading WDS schema', error);
           });
       },
       [signal]
