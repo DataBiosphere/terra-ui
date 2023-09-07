@@ -53,7 +53,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         [null, {\
           "packageLocation": "./",\
           "packageDependencies": [\
-            ["@adobe/css-tools", "npm:4.3.1"],\
             ["@axe-core/react", "npm:4.6.1"],\
             ["@databiosphere/bard-client", "npm:0.1.0"],\
             ["@dnd-kit/core", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:6.0.8"],\
@@ -17832,7 +17831,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./",\
           "packageDependencies": [\
             ["terra-ui", "workspace:."],\
-            ["@adobe/css-tools", "npm:4.3.1"],\
             ["@axe-core/react", "npm:4.6.1"],\
             ["@databiosphere/bard-client", "npm:0.1.0"],\
             ["@dnd-kit/core", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:6.0.8"],\
