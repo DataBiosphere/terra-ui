@@ -45,8 +45,6 @@ export const getDownloadCommand = (fileName, uri, accessUrl) => {
 export const getUserProjectForWorkspace = async (workspace) =>
   workspace && (await canUseWorkspaceProject(workspace)) ? workspace.workspace.googleProject : requesterPaysProjectStore.get();
 
-export const getRootTypeForSetTable = (tableName) => _.replace(/(_set)+$/, '', tableName);
-
 export const ReferenceDataImporter = ({ onSuccess, onDismiss, namespace, name }) => {
   const [loading, setLoading] = useState(false);
   const [selectedReference, setSelectedReference] = useState(undefined);

@@ -1,14 +1,4 @@
-import { getDownloadCommand, getRootTypeForSetTable } from 'src/components/data/data-utils';
-
-describe('getRootTypeForSetTable', () => {
-  it('gets member type for set tables', () => {
-    expect(getRootTypeForSetTable('sample_set')).toBe('sample');
-  });
-
-  it('gets member type for nested set tables', () => {
-    expect(getRootTypeForSetTable('sample_set_set')).toBe('sample');
-  });
-});
+import { getDownloadCommand } from 'src/components/data/data-utils';
 
 describe('getDownloadCommand', () => {
   it('gets download command for gsutil', () => {
