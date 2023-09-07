@@ -29,7 +29,6 @@ import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-t
 import { reportError, reportErrorAndRethrow, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { useImportJobs } from 'src/libs/import-jobs';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
@@ -47,6 +46,7 @@ import { useSavedColumnSettings } from './data-table/entity-service/SavedColumnS
 import { EntityUploader } from './data-table/shared/EntityUploader';
 import WDSContent from './data-table/wds/WDSContent';
 import { WdsTroubleshooter } from './data-table/wds/WdsTroubleshooter';
+import { useImportJobs } from './import-jobs';
 
 const styles = {
   tableContainer: {
