@@ -402,6 +402,59 @@ describe('validateInputs', () => {
       ])
     );
   });
+
+  it('should display info and error messages for record lookup type coercions and errors', () => {
+    const dataTableAttributes = {
+      singleNum: {
+        datatype: 'NUMBER',
+      },
+      arrayOfString: {
+        datatype: 'ARRAY_OF_STRING',
+      },
+    };
+
+    const inputsWithRecordLookups = [
+      // int arrays (float similar enough that not worried about specifics)
+      {
+        ...arrayInput('validInt', 'Int'), // success with info
+        source: {
+          type: 'record_lookup',
+          record_attribute: 'singleNum',
+        },
+      },
+      {
+        ...arrayInput('invalidInt', 'Int'), // failure
+        source: {
+          type: 'record_lookup',
+          record_attribute: 'arrayOfString',
+        },
+      },
+    ];
+
+    const inputMessages = validateInputs(inputsWithRecordLookups, dataTableAttributes);
+    const { error: errorInputs, info: infoInputs } = _.groupBy('type')(inputMessages);
+
+    expect(inputMessages.length).toBe(inputsWithRecordLookups.length);
+    expect(errorInputs.length).toBe(1);
+    expect(infoInputs.length).toBe(1);
+
+    expect(errorInputs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'invalidInt',
+          message: 'Provided type does not match expected type',
+        }),
+      ])
+    );
+    expect(infoInputs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'validInt',
+          message: 'Single value column will be coerced to an array',
+        }),
+      ])
+    );
+  });
 });
 
 const optional = (type) => ({ type: 'optional', optional_type: type });
@@ -445,8 +498,8 @@ describe('typeMatch', () => {
   });
 
   test.each(testCases)('CBAS array %s can be fulfilled by WDS ARRAY_OF_%s: %s', (cbas, wds, shouldMatch) => {
-    // if CBAS expects array but WDS does not provide, it's no good
-    expect(typeMatch(array(primitive(cbas)), wds)).toBe(false);
+    // if CBAS expects array but WDS does not provide, CBAS can convert to a singleton if the primitive inside matches
+    expect(typeMatch(array(primitive(cbas)), wds)).toBe(shouldMatch);
     // if CBAS expects a string but WDS provides arrays... we can convert that to a string
     expect(typeMatch(primitive(cbas), arrayWDS(wds))).toBe(cbas === 'String');
     // Otherwise arrays should typematch the same as if comparing their children
