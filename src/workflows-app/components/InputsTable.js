@@ -17,7 +17,7 @@ import { StructBuilderModal } from 'src/workflows-app/components/StructBuilder';
 import { inputTypeStyle, isInputOptional, parseMethodString, renderTypeText, typeMatch } from 'src/workflows-app/utils/submission-utils';
 
 const InputsTable = ({ selectedDataTable, configuredInputDefinition, setConfiguredInputDefinition, inputValidations }) => {
-  const [inputTableSort, setInputTableSort] = useState({ field: '', direction: 'asc' });
+  const [inputTableSort, setInputTableSort] = useState({ field: 'taskName', direction: 'asc' });
   const [structBuilderVisible, setStructBuilderVisible] = useState(false);
   const [structBuilderRow, setStructBuilderRow] = useState(null);
   const [includeOptionalInputs, setIncludeOptionalInputs] = useState(true);
@@ -37,9 +37,15 @@ const InputsTable = ({ selectedDataTable, configuredInputDefinition, setConfigur
         _.set('optional', isInputOptional(row.input_type)),
       ])(row);
     }),
-    _.orderBy([({ variable }) => _.lowerCase(variable)], ['asc']),
-    _.orderBy([({ taskName }) => _.lowerCase(taskName)], ['asc']),
-    _.orderBy([({ [inputTableSort.field]: field }) => _.lowerCase(field)], [inputTableSort.direction]),
+    _.orderBy(
+      [
+        _.get('optional'),
+        ({ [inputTableSort.field]: field }) => _.lowerCase(field),
+        ({ taskName }) => _.lowerCase(taskName),
+        ({ variable }) => _.lowerCase(variable),
+      ],
+      ['asc', inputTableSort.direction, 'asc', 'asc']
+    ),
     _.filter(
       _.overEvery([
         ({ optional }) => includeOptionalInputs || !optional,

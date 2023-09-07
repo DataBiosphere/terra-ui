@@ -73,6 +73,7 @@ const mockObj = {
           size: '324',
           contentType: 'text/plain',
           textContent: 'this is the text of a mock file',
+          azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
         }),
     })),
     details: jest.fn(() => {
@@ -187,10 +188,7 @@ describe('BaseRunDetails - render smoke test', () => {
       const { executionStatus, backendStatus, start, end } = calls[taskName][0];
       const row = taskRows[index];
       within(row).getByText(taskName);
-      within(row).getByLabelText('View stdout logs');
-      within(row).getByLabelText('View stderr logs');
-      within(row).getByLabelText('View task inputs');
-      within(row).getByLabelText('View task outputs');
+      within(row).getByText('Logs');
       // Checking row text content for dates since querying by formatted date doesn't seem to work
       const statusObj = collapseCromwellStatus(executionStatus, backendStatus);
       const status = within(row).getAllByText(statusObj.label());
@@ -247,61 +245,74 @@ describe('BaseRunDetails - render smoke test', () => {
     const targetEndText = makeCompleteDate(end);
     expect(targetRow.textContent).toContain(targetStartText);
     expect(targetRow.textContent).toContain(targetEndText);
-    within(targetRow).getByText('stdout');
-    within(targetRow).getByText('stderr');
+    within(targetRow).getByText('Logs');
   });
 
-  it('opens the uri viewer modal when stdout is clicked', async () => {
+  it('opens the log viewer modal when Execution Logs is clicked', async () => {
+    const user = userEvent.setup();
+    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
+    const executionLogButton = screen.getByText('Execution Log');
+    await user.click(executionLogButton);
+    screen.getByText('workflow.log');
+    screen.getByText('this is the text of a mock file');
+  });
+
+  it('opens the log viewer modal when Logs is clicked', async () => {
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
     const table = screen.getByRole('table');
-    const stdout = within(table).getAllByText('stdout');
-    await user.click(stdout[0]);
-    screen.getByText('File Details');
+    const logsLink = within(table).getAllByText('Logs');
+    await user.click(logsLink[0]);
+    screen.getByText('Task Standard Out');
   });
 
-  it('shows a static error message on UriViewer if stdout cannot be retrieved', async () => {
+  it('shows a static error message on LogViewer if log cannot be retrieved', async () => {
     const altMockObj = _.cloneDeep(mockObj);
     altMockObj.AzureStorage.blobMetadata = jest.fn(() => ({ getData: () => Promise.reject('Mock error') }));
     Ajax.mockImplementation(() => altMockObj);
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
     const table = screen.getByRole('table');
-    const stdout = within(table).getAllByText('stdout');
-    await user.click(stdout[0]);
-    screen.getByText('File Details');
+    const logsLink = within(table).getAllByText('Logs');
+    await user.click(logsLink[0]);
+    expect(screen.queryByLabelText('Download log')).not.toBeDefined;
+    screen.getByText('Task Standard Out');
     screen.getByText(
-      'Log file not found. This may be the result of a task failing to start. Please check relevant docker images and file paths to ensure valid references.'
+      "Log file could not be loaded. If the workflow or task is still in progress, the log file likely hasn't been generated yet. Some logs may be unavailable if the workflow or task failed before they could be generated."
     );
   });
 
-  it('shows a static error message on UriViewer if stderr cannot be retrieved', async () => {
+  it('opens a log modal with functional tabs', async () => {
     const altMockObj = _.cloneDeep(mockObj);
     altMockObj.AzureStorage.blobMetadata = jest.fn(() => ({ getData: () => Promise.reject('Mock error') }));
     Ajax.mockImplementation(() => altMockObj);
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
     const table = screen.getByRole('table');
-    const stderr = within(table).getAllByText('stderr');
-    await user.click(stderr[0]);
-    screen.getByText('File Details');
-    screen.getByText(
-      'Log file not found. This may be the result of a task failing to start. Please check relevant docker images and file paths to ensure valid references.'
-    );
-  });
+    const logsLink = within(table).getAllByText('Logs');
+    await user.click(logsLink[0]);
 
-  it('opens the uri viewer modal when stderr is clicked', async () => {
-    const user = userEvent.setup();
-    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const table = screen.getByRole('table');
-    const stderr = within(table).getAllByText('stderr');
-    await user.click(stderr[0]);
-    screen.getByText('File Details');
-  });
+    // We know we've successfully switchted tabs if:
+    // We click on a tab title, see a corresponding filename, and don't see other filenames.
+    const stdoutButton = screen.getByText('Task Standard Out');
+    await user.click(stdoutButton);
+    expect(screen.getByText('stdout.txt')).toBeVisible();
+    expect(screen.queryByText('stderr.txt')).not.toBeInTheDocument();
 
-  it('shows the execution log button', async () => {
-    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    screen.getByText('Execution Log');
+    const stderrButton = screen.getByText('Task Standard Err');
+    await user.click(stderrButton);
+    expect(screen.getByText('stderr.txt')).toBeVisible();
+    expect(screen.queryByText('stdout.txt')).not.toBeInTheDocument();
+
+    const backendStdoutButton = screen.getByText('Backend Standard Out');
+    await user.click(backendStdoutButton);
+    expect(screen.getByText('stdout.txt')).toBeVisible();
+    expect(screen.queryByText('stderr.txt')).not.toBeInTheDocument();
+
+    const backendStderrButton = screen.getByText('Backend Standard Err');
+    await user.click(backendStderrButton);
+    expect(screen.getByText('stderr.txt')).toBeVisible();
+    expect(screen.queryByText('stdout.txt')).not.toBeInTheDocument();
   });
 
   it('correctly identifies azure URIs', () => {
@@ -312,20 +323,44 @@ describe('BaseRunDetails - render smoke test', () => {
   it('shows a functional log modal when clicked', async () => {
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const executionLog = screen.getByText('Execution Log');
-    await user.click(executionLog); // Open the modal
+    const showLogsLink = screen.getByText('Logs');
+    await user.click(showLogsLink); // Open the modal
 
     // Verify all the element titles are present
-    screen.getByText('File Details');
-    screen.getByText('Filename');
-    screen.getByText('Preview');
-    screen.getByText('File size');
-    screen.getByText('Terminal download command');
-    screen.getByText('Download');
-
+    screen.getByText('Task Standard Out');
+    screen.getByText('Task Standard Err');
+    screen.getByText('Backend Standard Out');
+    screen.getByText('Backend Standard Err');
+    screen.getByLabelText('Download log');
     // Verify the data loaded properly
-    screen.getByText('inputFile.\u200Btxt'); // This weird character is here because we allow line breaks on periods when displaying the filename
     screen.getByText('this is the text of a mock file');
+  });
+
+  it('shows download button AND error when URI is valid but text could not be parsed', async () => {
+    const altMockObj = _.cloneDeep(mockObj);
+    altMockObj.AzureStorage.blobMetadata = jest.fn(() => ({
+      getData: () =>
+        Promise.resolve({
+          textContent: undefined,
+          azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+        }),
+    }));
+    Ajax.mockImplementation(() => altMockObj);
+    const user = userEvent.setup();
+    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
+    const showLogsLink = screen.getByText('Logs');
+    await user.click(showLogsLink); // Open the modal
+
+    // Verify all the element titles are present
+    screen.getByText('Task Standard Out');
+    screen.getByText('Task Standard Err');
+    screen.getByText('Backend Standard Out');
+    screen.getByText('Backend Standard Err');
+
+    // Verify the error is displayed.
+    screen.getByText(
+      "Log file could not be loaded. If the workflow or task is still in progress, the log file likely hasn't been generated yet. Some logs may be unavailable if the workflow or task failed before they could be generated."
+    );
   });
 
   it('filters out task list via task name search', async () => {

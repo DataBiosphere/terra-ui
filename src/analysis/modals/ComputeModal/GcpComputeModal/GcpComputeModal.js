@@ -291,11 +291,22 @@ export const GcpComputeModalBase = ({
   )(async () => {
     const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig();
     const { runtime: desiredRuntime, persistentDisk: desiredPersistentDisk } = getDesiredEnvironmentConfig();
+
+    // Whether applyChanges will send a PATCH request to the disk. Will only happen if runtime is updated or created.
     const shouldUpdatePersistentDisk = canUpdatePersistentDisk() && !_.isEqual(desiredPersistentDisk, existingPersistentDisk);
-    const shouldDeletePersistentDisk = existingPersistentDisk && !canUpdatePersistentDisk();
-    const shouldUpdateRuntime = canUpdateRuntime() && !_.isEqual(desiredRuntime, existingRuntime);
-    const shouldDeleteRuntime = existingRuntime && !canUpdateRuntime();
-    const shouldCreateRuntime = !canUpdateRuntime() && !!desiredRuntime;
+
+    // Whether applyChanges will send a DELETE request to the disk. Can happen alone or be followed by a runtime create.
+    const shouldDeletePersistentDisk = !canUpdatePersistentDisk() && !!existingPersistentDisk;
+
+    // Whether applyChanges will send a PATCH request to the runtime.
+    const shouldUpdateRuntime = canUpdateRuntime();
+
+    // Whether applyChanges will send a DELETE request to the runtime. Can happen alone or be followed by a runtime create.
+    const shouldDeleteRuntime = !shouldUpdateRuntime && !!existingRuntime;
+
+    // Whether applyChanges will send a POST request to the runtime.
+    const shouldCreateRuntime = !shouldUpdateRuntime && !!desiredRuntime;
+
     const { namespace, name, bucketName, googleProject } = getWorkspaceObject();
     const terraDeploymentEnv = getConfig().terraDeploymentEnv;
     const customDrsResolverArgs = getConfig().shouldUseDrsHub ? { DRS_RESOLVER_ENDPOINT: 'api/v4/drs/resolve' } : {};
@@ -415,6 +426,11 @@ export const GcpComputeModalBase = ({
     return { currentNumCpus, currentMemory, validGpuName, validGpuNames, validGpuType, validGpuOptions, validNumGpus, validNumGpusOptions };
   };
 
+  /**
+   * Whether the selection state entails an update action on the runtime.
+   * Checks the runtime, the autopause threshold (TODO why is this separate from the runtime?),
+   * and the persistent disk for changes which entail an update, but not a delete and recreate.
+   */
   const canUpdateRuntime = () => {
     const { runtime: existingRuntime, autopauseThreshold: existingAutopauseThreshold } = getExistingEnvironmentConfig();
     const { runtime: desiredRuntime, autopauseThreshold: desiredAutopauseThreshold } = getDesiredEnvironmentConfig();
@@ -437,6 +453,11 @@ export const GcpComputeModalBase = ({
     );
   };
 
+  /**
+   * Whether the selection state entails an update action on the disk.
+   * Only a size increase entails an update; if the size will decrease
+   * a delete and recreate is necessary.
+   */
   const canUpdatePersistentDisk = () => {
     const { persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig();
     const { persistentDisk: desiredPersistentDisk } = getDesiredEnvironmentConfig();

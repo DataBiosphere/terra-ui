@@ -30,7 +30,7 @@ import { renderDataCell } from 'src/data/data-table/entity-service/renderDataCel
 import { EntityUploader } from 'src/data/data-table/shared/EntityUploader';
 import { Ajax } from 'src/libs/ajax';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
-import { resolveWdsUrl, WdsDataTableProvider, wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
+import { resolveWdsApp, WdsDataTableProvider, wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions';
@@ -729,18 +729,18 @@ export const WorkspaceData = _.flow(
     };
 
     const loadWdsUrl = useCallback((workspaceId) => {
-      // setWdsProxyUrl({ status: 'Loading', state: '' })
       return Ajax()
         .Apps.listAppsV2(workspaceId)
-        .then(resolveWdsUrl)
-        .then((url) => {
-          if (url) {
+        .then((apps) => {
+          const foundApp = resolveWdsApp(apps);
+          if (foundApp?.status === 'RUNNING') {
+            const url = foundApp.proxyUrls.wds;
             setWdsProxyUrl({ status: 'Ready', state: url });
+            return url;
           }
-          return url;
-        })
-        .catch((err) => {
-          setWdsProxyUrl({ status: 'Error', state: err });
+          if (foundApp?.status === 'ERROR') {
+            setWdsProxyUrl({ status: 'Error', state: 'WDS app is in ERROR state' });
+          }
           return '';
         });
     }, []);
@@ -1379,6 +1379,25 @@ export const WorkspaceData = _.flow(
                   undefined,
                   () =>
                     Utils.cond(
+                      [
+                        isAzureWorkspace && wdsError,
+                        () =>
+                          div(
+                            {
+                              style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' },
+                            },
+                            [
+                              'An error occurred while preparing your data tables.',
+                              div([
+                                'Please ',
+                                h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['check the status']),
+                                ' of your data table service and share the details with ',
+                                h(Link, { href: 'mailto:support@terra.bio' }, ['support@terra.bio']),
+                                ' to troubleshoot the problem.',
+                              ]),
+                            ]
+                          ),
+                      ],
                       [
                         isAzureWorkspace && !wdsReady,
                         () =>

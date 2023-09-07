@@ -28,6 +28,7 @@ interface BaseWorkspaceInfo {
   authorizationDomain: AuthorizationDomain[];
   createdDate: string;
   createdBy: string;
+  lastModified: string;
 }
 
 export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
@@ -61,6 +62,9 @@ export interface BaseWorkspace {
   canShare: boolean;
   canCompute: boolean;
   workspace: WorkspaceInfo;
+  // Currently will always be empty for GCP workspaces, but this will change in the future.
+  // For the purposes of test data, not requiring the specification of the field.
+  policies?: WorkspacePolicy[];
 }
 
 export interface AzureContext {
@@ -77,7 +81,6 @@ interface WorkspacePolicy {
 
 export interface AzureWorkspace extends BaseWorkspace {
   azureContext: AzureContext;
-  policies?: WorkspacePolicy[];
 }
 
 export interface GoogleWorkspace extends BaseWorkspace {
@@ -97,10 +100,13 @@ export const isGoogleWorkspace = (workspace: BaseWorkspace): workspace is Google
 export const getCloudProviderFromWorkspace = (workspace: BaseWorkspace): CloudProvider =>
   isAzureWorkspace(workspace) ? cloudProviderTypes.AZURE : cloudProviderTypes.GCP;
 
-export const hasProtectedData = (workspace: AzureWorkspace): boolean => containsProtectedDataPolicy(workspace.policies);
+export const hasProtectedData = (workspace: BaseWorkspace): boolean => containsProtectedDataPolicy(workspace.policies);
 
 export const containsProtectedDataPolicy = (policies: WorkspacePolicy[] | undefined): boolean =>
   _.any((policy) => policy.namespace === 'terra' && policy.name === 'protected-data', policies);
+
+export const protectedDataMessage =
+  'Enhanced logging and monitoring are enabled to support the use of protected or sensitive data in this workspace.';
 
 export const isValidWsExportTarget = safeCurry((sourceWs: WorkspaceWrapper, destWs: WorkspaceWrapper) => {
   const {

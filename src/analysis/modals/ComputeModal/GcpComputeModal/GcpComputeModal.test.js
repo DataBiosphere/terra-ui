@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
@@ -553,129 +553,135 @@ describe('GcpComputeModal', () => {
     }
   );
 
-  // TODO: this is a bug that this doesn't work... needs more investigation
-  // click update with no downtime (and keep pd)
-  // it.each([
-  //   { tool: tools.Jupyter },
-  //   { tool: tools.RStudio }
-  // ])
-  // ('Updating a runtime and changing a field that requires no downtime should call update for tool $tool.label', async ({ tool }) => {
-  //   const disk = getDisk()
-  //   const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) }
-  //   const runtime = getGoogleRuntime(runtimeProps)
-  //
-  //   const updateFunc = jest.fn()
-  //
-  //   const runtimeFunc = jest.fn(() => ({
-  //     details: () => runtime,
-  //     update: updateFunc
-  //   }))
-  //   Ajax.mockImplementation(() => ({
-  //     ...defaultAjaxImpl,
-  //     Runtimes: {
-  //       runtime: runtimeFunc,
-  //     },
-  //     Disks: {
-  //       disk: () => ({
-  //         details: () => disk
-  //       })
-  //     }
-  //   }))
-  //
-  //   // Act
-  //   await act(async () => {
-  //     await render(h(GcpComputeModalBase, {
-  //       ...defaultModalProps,
-  //       currentDisk: disk,
-  //       currentRuntime: runtime
-  //     }))
-  //
-  //     const numberInput = await screen.getByDisplayValue(disk.size)
-  //     expect(numberInput).toBeInTheDocument()
-  //     fireEvent.change(numberInput, { target: { value: 51 } })
-  //
-  //     const changedNumberInput = await screen.getByDisplayValue(51)
-  //     expect(changedNumberInput).toBeInTheDocument()
-  //
-  //     const updateButton = await screen.findByText('Update')
-  //     await userEvent.click(updateButton)
-  //   })
-  //
-  //   expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything())
-  //   // expect(screen.getByText('51')).toBeInTheDocument()
-  //   expect(updateFunc).toHaveBeenCalledWith(expect.objectContaining({
-  //     runtimeConfig: expect.objectContaining({
-  //       diskSize: 51
-  //     })
-  //   }))
-  // })
+  it.each([{ tool: runtimeTools.Jupyter }, { tool: runtimeTools.RStudio }])(
+    'Updating a runtime and changing a field that requires no downtime should call update for tool $tool.label',
+    async ({ tool }) => {
+      // Arrange
+      const disk = getDisk();
+      const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
+      const runtime = getGoogleRuntime(runtimeProps);
 
-  // TODO: this is a bug that this doesn't work... needs more investigation
-  // decrease disk size
-  // it.each([
-  //   { tool: tools.Jupyter },
-  //   { tool: tools.RStudio }
-  // ])
-  // ('Decreasing disk size should prompt user their disk will be deleted for $tool.label', async ({ tool }) => {
-  //   const disk = getDisk()
-  //   const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) }
-  //   const runtime = getGoogleRuntime(runtimeProps)
-  //
-  //   const createFunc = jest.fn()
-  //   const deleteFunc = jest.fn()
-  //
-  //   const runtimeFunc = jest.fn(() => ({
-  //     details: () => runtime,
-  //     create: createFunc,
-  //     delete: deleteFunc
-  //   }))
-  //   Ajax.mockImplementation(() => ({
-  //     ...defaultAjaxImpl,
-  //     Runtimes: {
-  //       runtime: runtimeFunc,
-  //     },
-  //     Disks: {
-  //       disk: () => ({
-  //         details: () => disk
-  //       })
-  //     }
-  //   }))
-  //
-  //   // Act
-  //   await act(async () => {
-  //     await render(h(GcpComputeModalBase, {
-  //       ...defaultModalProps,
-  //       currentDisk: disk,
-  //       currentRuntime: runtime
-  //     }))
-  //
-  //     const numberInput = await screen.getByDisplayValue(disk.size)
-  //     expect(numberInput).toBeInTheDocument()
-  //     fireEvent.change(numberInput, { target: { value: disk.size - 1 } })
-  //
-  //     const changedNumberInput = await screen.getByDisplayValue(disk.size - 1)
-  //     expect(changedNumberInput).toBeInTheDocument()
-  //
-  //     const nextButton = await screen.findByText('Update')
-  //     await userEvent.click(nextButton)
-  //
-  //     const deleteConfirmationPaneHeader = await screen.findByText('Data will be deleted')
-  //     expect(deleteConfirmationPaneHeader).toBeInTheDocument()
-  //
-  //     const updateButton = await screen.findByText('Update')
-  //     await userEvent.click(updateButton)
-  //   })
-  //
-  //   expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, runtime.runtimeName)
-  //   expect(deleteFunc).toHaveBeenCalled()
-  //   expect(createFunc).toHaveBeenCalledWith(expect.objectContaining({
-  //     runtimeConfig: expect.objectContaining({
-  //       persistentDisk: expect.objectContaining({
-  //         size: disk.size - 1
-  //       })
-  //     })
-  //   }))
-  // })
+      const updateRuntimeFunc = jest.fn();
+      const updateDiskFunc = jest.fn();
+
+      const runtimeFunc = jest.fn(() => ({
+        details: () => runtime,
+        update: updateRuntimeFunc,
+      }));
+      Ajax.mockImplementation(() => ({
+        ...defaultAjaxImpl,
+        Runtimes: {
+          runtime: runtimeFunc,
+        },
+        Disks: {
+          disksV1: () => ({
+            disk: () => ({
+              details: () => disk,
+              update: updateDiskFunc,
+            }),
+          }),
+        },
+      }));
+
+      // Act
+      await act(async () => {
+        render(
+          h(GcpComputeModalBase, {
+            ...defaultModalProps,
+            currentDisk: disk,
+            currentRuntime: runtime,
+          })
+        );
+      });
+      await act(async () => {
+        selectRuntimeImage(GcpComputeImageSection, runtime);
+      });
+
+      const numberInput = await screen.getByDisplayValue(disk.size);
+      await fireEvent.change(numberInput, { target: { value: 51 } });
+
+      const updateButton = await screen.findByText('Update');
+      await userEvent.click(updateButton);
+
+      // Assert
+      expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
+      expect(updateRuntimeFunc).toHaveBeenCalledWith(
+        expect.objectContaining({
+          runtimeConfig: expect.objectContaining({
+            diskSize: 51,
+          }),
+        })
+      );
+    }
+  );
+
+  it.each([{ tool: runtimeTools.Jupyter }, { tool: runtimeTools.RStudio }])(
+    'Decreasing disk size should prompt user their disk will be deleted for $tool.label',
+    async ({ tool }) => {
+      const disk = getDisk();
+      const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) };
+      const runtime = getGoogleRuntime(runtimeProps);
+
+      const createFunc = jest.fn();
+      const deleteFunc = jest.fn();
+
+      const runtimeFunc = jest.fn(() => ({
+        details: () => runtime,
+        create: createFunc,
+        delete: deleteFunc,
+      }));
+      Ajax.mockImplementation(() => ({
+        ...defaultAjaxImpl,
+        Runtimes: {
+          runtime: runtimeFunc,
+        },
+        Disks: {
+          disksV1: () => ({
+            disk: () => ({
+              details: () => disk,
+            }),
+          }),
+        },
+      }));
+
+      // Act
+      await act(async () => {
+        render(
+          h(GcpComputeModalBase, {
+            ...defaultModalProps,
+            currentDisk: disk,
+            currentRuntime: runtime,
+          })
+        );
+      });
+      await act(async () => {
+        selectRuntimeImage(GcpComputeImageSection, runtime);
+      });
+
+      const numberInput = await screen.getByDisplayValue(disk.size);
+      fireEvent.change(numberInput, { target: { value: disk.size - 1 } });
+
+      const nextButton = await screen.findByText('Next');
+      await userEvent.click(nextButton);
+
+      await screen.findByText('Data will be deleted');
+
+      const updateButton = await screen.findByText('Update');
+      await userEvent.click(updateButton);
+
+      expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, runtime.runtimeName);
+      expect(deleteFunc).toHaveBeenCalled();
+      expect(createFunc).toHaveBeenCalledWith(
+        expect.objectContaining({
+          runtimeConfig: expect.objectContaining({
+            persistentDisk: expect.objectContaining({
+              size: disk.size - 1,
+            }),
+          }),
+        })
+      );
+    }
+  );
 
   it('should create dataproc spark cluster successfully', async () => {
     // Arrange
