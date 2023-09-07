@@ -86,7 +86,7 @@ const OutputsTable = (props) => {
                 h(HeaderCell, { style: { overflow: 'visible' } }, ['Attribute']),
                 h(Fragment, [
                   div({ style: { whiteSpace: 'pre' } }, ['  |  ']),
-                  h(Link, { onClick: clearOutputs }, ['Clear outputs']),
+                  h(Link, { style: { minWidth: 'fit-content' }, onClick: clearOutputs }, ['Clear outputs']),
                   div({ style: { whiteSpace: 'pre' } }, ['  |  ']),
                   WithWarnings({
                     baseComponent: h(Link, { onClick: setDefaultOutputs }, [`Autofill (${nonDefaultOutputs.length}) outputs`]),
