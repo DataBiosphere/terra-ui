@@ -74,7 +74,7 @@ export interface AzureContext {
   tenantId: string;
 }
 
-interface WorkspacePolicy {
+export interface WorkspacePolicy {
   name: string;
   namespace: string;
   additionalData: { [key: string]: string }[];

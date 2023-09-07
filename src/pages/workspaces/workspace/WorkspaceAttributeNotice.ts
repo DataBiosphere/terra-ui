@@ -21,7 +21,7 @@ const WorkspaceAttributeNotice = (props: WorkspaceAttributeNoticeProperties) => 
     !!props.workspaceProtectedMessage &&
       h(Notice, { label: 'Protected', tooltip: props.workspaceProtectedMessage, iconName: 'shield' }),
     !!props.workspaceRegionConstraintMessage &&
-      h(Notice, { label: 'Protected', tooltip: props.workspaceRegionConstraintMessage, iconName: 'globe' }),
+      h(Notice, { label: 'Region-restricted', tooltip: props.workspaceRegionConstraintMessage, iconName: 'globe' }),
   ]);
 };
 

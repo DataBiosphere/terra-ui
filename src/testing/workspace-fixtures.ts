@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { locationTypes } from 'src/components/region-common';
-import { AzureWorkspace, GoogleWorkspace } from 'src/libs/workspace-utils';
+import { AzureWorkspace, GoogleWorkspace, WorkspacePolicy } from 'src/libs/workspace-utils';
 
 export const defaultAzureWorkspace: AzureWorkspace = {
   workspace: {
@@ -24,34 +24,34 @@ export const defaultAzureWorkspace: AzureWorkspace = {
   canCompute: true,
 };
 
+const protectedDataPolicy: WorkspacePolicy = {
+  additionalData: [],
+  name: 'protected-data',
+  namespace: 'terra',
+};
+
 export const protectedAzureWorkspace: AzureWorkspace = _.merge(defaultAzureWorkspace, {
-  policies: [
-    {
-      additionalData: {},
-      name: 'protected-data',
-      namespace: 'terra',
-    },
-  ],
+  policies: [protectedDataPolicy],
 });
 
-export const regionRestrictedAzureWorkspace: AzureWorkspace = _.merge(defaultAzureWorkspace, {
-  policies: [
+const regionConstraintPolicy: WorkspacePolicy = {
+  additionalData: [
     {
-      additionalData: [
-        {
-          'region-name': 'azure.eastus',
-        },
-        {
-          'region-name': 'azure.westus2',
-        },
-        {
-          'region-name': 'unknownRegion',
-        },
-      ],
-      name: 'region-constraint',
-      namespace: 'terra',
+      'region-name': 'azure.eastus',
+    },
+    {
+      'region-name': 'azure.westus2',
+    },
+    {
+      'region-name': 'unknownRegion',
     },
   ],
+  name: 'region-constraint',
+  namespace: 'terra',
+};
+
+export const regionRestrictedAzureWorkspace: AzureWorkspace = _.merge(defaultAzureWorkspace, {
+  policies: [regionConstraintPolicy],
 });
 
 // These values are not populated by default, and for the majority of existing
