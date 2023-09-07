@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { isAzureUri } from 'src/components/UriViewer/uri-viewer-utils';
+import { isAzureUri } from 'src/data/data-table/uri-viewer/uri-viewer-utils';
 import { Ajax } from 'src/libs/ajax';
 import * as configStore from 'src/libs/config';
 import { makeCompleteDate } from 'src/libs/utils';
