@@ -64,46 +64,29 @@ export async function makeRequestRetry(request: Function, retryCount: number, ti
 
 const isUnauthorizedResponse = (error): boolean => error instanceof Response && error.status === 401;
 
-export const withRetryAfterReloadingExpiredAuthToken =
-  (wrappedFetch: FetchFn): FetchFn =>
-  async (resource: RequestInfo | URL, options?: RequestInit): Promise<Response> => {
-    const maxRetries = 2;
-    return retryAfterReloadingAuthToken(wrappedFetch, maxRetries, resource, options);
-  };
-
 export const sessionTimedOutErrorMessage =
   'Session timed out (due to auth token refresh failure or expired refresh token)';
 
-const retryAfterReloadingAuthToken = async (
-  wrappedFetch: FetchFn,
-  numRetries: number,
-  resource: RequestInfo | URL,
-  options?: RequestInit
-): Promise<Response> => {
-  const requestHasAuthHeader = _.isMatch(authOpts(), options as object);
-  if (numRetries <= 0) {
-    signOutAfterFailureToRefreshAuthToken();
-    throw new Error('Request has exceeded maximum number of retries');
-  }
-  try {
-    return await wrappedFetch(resource, options);
-  } catch (error) {
-    if (isUnauthorizedResponse(error) && requestHasAuthHeader) {
-      const authTokenReloadState = !!(await loadAuthToken());
-      // we should have this state be its own type since we need to do case matching on it in several places
-      // want to not use the !! and change it to authTokenReloadState instanceof User but that fails a test
-      if (authTokenReloadState) {
-        const optionsWithNewAuthToken = _.merge(options, authOpts());
-        return retryAfterReloadingAuthToken(wrappedFetch, numRetries - 1, resource, optionsWithNewAuthToken);
+export const withRetryAfterReloadingExpiredAuthToken =
+  (wrappedFetch: FetchFn): FetchFn =>
+  async (resource: RequestInfo | URL, options?: RequestInit): Promise<Response> => {
+    const requestHasAuthHeader = _.isMatch(authOpts(), options as object);
+    try {
+      return await wrappedFetch(resource, options);
+    } catch (error) {
+      if (isUnauthorizedResponse(error) && requestHasAuthHeader) {
+        const successfullyReloadedAuthToken = !!(await loadAuthToken());
+        if (successfullyReloadedAuthToken) {
+          const optionsWithNewAuthToken = _.merge(options, authOpts());
+          return await wrappedFetch(resource, optionsWithNewAuthToken);
+        }
+        signOutAfterFailureToRefreshAuthToken();
+        throw new Error(sessionTimedOutErrorMessage);
+      } else {
+        throw error;
       }
-      signOutAfterFailureToRefreshAuthToken();
-      // console.log(sessionTimedOutErrorMessage);
-      throw new Error(sessionTimedOutErrorMessage);
-    } else {
-      throw error;
     }
-  }
-};
+  };
 
 const withAppIdentifier = (wrappedFetch) => (url, options) => {
   return wrappedFetch(url, _.merge(options, appIdentifier));

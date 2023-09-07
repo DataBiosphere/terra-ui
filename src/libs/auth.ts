@@ -4,7 +4,7 @@ import _ from 'lodash/fp';
 import { User, UserManager, WebStorageStateStore } from 'oidc-client-ts';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
 import { Ajax } from 'src/libs/ajax';
-import { fetchOk } from 'src/libs/ajax/ajax-common';
+import { fetchOk, sessionTimedOutErrorMessage } from 'src/libs/ajax/ajax-common';
 import { getLocalStorage, getSessionStorage } from 'src/libs/browser-storage';
 import { getConfig } from 'src/libs/config';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
@@ -87,7 +87,7 @@ export const signOutAfterFailureToRefreshAuthToken = (): void => {
   signOut();
   // this notification is a misnomer, and I would like to change it to be more accurate,
   // but I do not know what is listening to this event, so I will leave it alone for the time being
-  notify('info', 'Session timed out', sessionTimeoutProps);
+  notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
 };
 
 const revokeTokens = async () => {
@@ -156,6 +156,7 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
     const authTokenExpiresAt: number = user.expires_at!; // time in seconds when authorization token expires, as given by the oidc client
     const authTokenId: string = uuid();
     const jwtExpiresAt: number = (decodedJWT as any).exp; // time in seconds when the JWT expires, after which the JWT should not be read from
+    // refresh token can be stored and labeled with a uuid, then only log the uuid
     authStore.update((state) => ({
       ...state,
       authTokenMetadata: {
@@ -185,7 +186,7 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
     });
   } else {
     Ajax().Metrics.captureEvent(Events.userAuthTokenReloadError, {
-      // we could potentially log the reason but I don't know if that data is safe to log
+      // we could potentially log the reason, but I don't know if that data is safe to log
       oldAuthTokenCreatedAt: Utils.formatTimestampInSeconds(oldTokenMetadata.createdAt),
       oldAuthTokenExpiresAt: Utils.formatTimestampInSeconds(oldTokenMetadata.expiresAt),
       oldAuthTokenId: oldTokenMetadata.id,
