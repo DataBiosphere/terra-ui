@@ -745,6 +745,10 @@ export const WorkspaceData = _.flow(
             setWdsProxyUrl({ status: 'Error', state: 'WDS app is in ERROR state' });
           }
           return '';
+        })
+        .catch((error) => {
+          setWdsTypes({ status: 'Error', state: 'Error resolving WDS app' });
+          reportError('Error resolving WDS app', error);
         });
     }, []);
 
@@ -755,28 +759,25 @@ export const WorkspaceData = _.flow(
           .then((typesResult) => {
             setWdsTypes({ status: 'Ready', state: typesResult });
           })
-          .catch((err) => {
-            setWdsTypes({ status: 'Error', state: err });
+          .catch((error) => {
+            setWdsTypes({ status: 'Error', state: 'Error loading WDS schema' });
+            reportError('Error loading WDS schema', error);
           });
       },
       [signal]
     );
 
     const loadWdsData = useCallback(async () => {
-      try {
-        // Try to load the proxy URL
-        if (!wdsProxyUrl || wdsProxyUrl.status !== 'Ready') {
-          const wdsUrl = await loadWdsUrl(workspaceId);
-          if (wdsUrl) {
-            await loadWdsTypes(wdsUrl, workspaceId);
-          }
-        } else {
-          // If we have the proxy URL try to load the WDS types
-          const proxyUrl = wdsProxyUrl.state;
-          await loadWdsTypes(proxyUrl, workspaceId);
+      // Try to load the proxy URL
+      if (!wdsProxyUrl || wdsProxyUrl.status !== 'Ready') {
+        const wdsUrl = await loadWdsUrl(workspaceId);
+        if (wdsUrl) {
+          await loadWdsTypes(wdsUrl, workspaceId);
         }
-      } catch (error) {
-        console.log(`Error thrown loading WDS schema: ${error}`); // eslint-disable-line no-console
+      } else {
+        // If we have the proxy URL try to load the WDS types
+        const proxyUrl = wdsProxyUrl.state;
+        await loadWdsTypes(proxyUrl, workspaceId);
       }
     }, [loadWdsUrl, loadWdsTypes, workspaceId, wdsProxyUrl]);
 
