@@ -428,14 +428,22 @@ describe('validateInputs', () => {
           record_attribute: 'arrayOfString',
         },
       },
+      {
+        ...arrayInput('validString', 'String'), // success no message
+        source: {
+          type: 'record_lookup',
+          record_attribute: 'arrayOfString',
+        },
+      },
     ];
 
     const inputMessages = validateInputs(inputsWithRecordLookups, dataTableAttributes);
-    const { error: errorInputs, info: infoInputs } = _.groupBy('type')(inputMessages);
+    const { error: errorInputs, info: infoInputs, none: noMessageInputs } = _.groupBy('type')(inputMessages);
 
     expect(inputMessages.length).toBe(inputsWithRecordLookups.length);
     expect(errorInputs.length).toBe(1);
     expect(infoInputs.length).toBe(1);
+    expect(noMessageInputs.length).toBe(1);
 
     expect(errorInputs).toEqual(
       expect.arrayContaining([
@@ -450,6 +458,13 @@ describe('validateInputs', () => {
         expect.objectContaining({
           name: 'validInt',
           message: 'Single value column will be coerced to an array',
+        }),
+      ])
+    );
+    expect(noMessageInputs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'validString',
         }),
       ])
     );
