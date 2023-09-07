@@ -30,6 +30,7 @@ import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 
+// TODO: Shared components should not depend on EntityService/WDS specific components.
 import { concatenateAttributeNames } from '../entity-service/attribute-utils';
 import { entityAttributeText } from '../entity-service/entityAttributeText';
 import { EntityRenamer } from '../entity-service/EntityRenamer';
