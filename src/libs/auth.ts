@@ -55,21 +55,58 @@ const getAuthInstance = () => {
   return authStore.get().authContext;
 };
 
-// We should add a source/reason for the signOut so we can see if it was
-// done by a user or from a session timeout or failure to reload auth token
-// then fire corresponding events for user logout (userTriggered, sessionTimeout, authTokenRefreshError)
-export const signOut = (): void => {
-  // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
+export const enum SignOutCauses {
+  requested,
+  disabled,
+  declinedTos,
+  expiredRefreshToken,
+  errorRefreshingAuthToken,
+  idleStatusMonitor,
+  unspecified,
+}
+
+const sendSignOutMetrics = (causes: SignOutCauses): void => {
+  const eventToFire = (() => {
+    switch (causes) {
+      case SignOutCauses.requested: {
+        return Events.user.signOut.requested;
+      }
+      case SignOutCauses.disabled: {
+        return Events.user.signOut.disabled;
+      }
+      case SignOutCauses.declinedTos: {
+        return Events.user.signOut.declinedTos;
+      }
+      case SignOutCauses.expiredRefreshToken: {
+        return Events.user.signOut.expiredRefreshToken;
+      }
+      case SignOutCauses.errorRefreshingAuthToken: {
+        return Events.user.signOut.errorRefreshingAuthToken;
+      }
+      case SignOutCauses.unspecified: {
+        return Events.user.signOut.unspecified;
+      }
+      default: {
+        return Events.user.signOut.unspecified;
+      }
+    }
+  })();
   const sessionEndTime: number = Date.now();
   const authStoreState = authStore.get();
   const tokenMetadata = authStoreState.authTokenMetadata;
-  Ajax().Metrics.captureEvent(Events.userLogout, {
+
+  Ajax().Metrics.captureEvent(eventToFire, {
     sessionEndTime: Utils.makeCompleteDate(sessionEndTime),
     sessionDurationInSeconds: (sessionEndTime - authStoreState.sessionStartTime) / 1000.0,
     authTokenCreatedAt: Utils.formatTimestampInSeconds(tokenMetadata.createdAt),
     authTokenExpiresAt: Utils.formatTimestampInSeconds(tokenMetadata.expiresAt),
     totalAuthTokensThisSession: authStoreState.authTokenMetadata.totalTokensThisSession,
   });
+};
+
+export const signOut = (causes: SignOutCauses = SignOutCauses.unspecified): void => {
+  sendSignOutMetrics(causes);
+  // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
 
   cookieReadyStore.reset();
   azureCookieReadyStore.reset();
@@ -81,10 +118,10 @@ export const signOut = (): void => {
     .finally(() => auth.clearStaleState());
 };
 
-export const signOutAfterFailureToRefreshAuthToken = (): void => {
+export const signOutAfterFailureToRefreshAuthToken = (causes: SignOutCauses): void => {
   // we could maybe move all of these events into the loadAuthToken method
-  Ajax().Metrics.captureEvent(Events.userSessionTimeout, {});
-  signOut();
+  Ajax().Metrics.captureEvent(Events.user.sessionTimeout, {});
+  signOut(causes);
   // this notification is a misnomer, and I would like to change it to be more accurate,
   // but I do not know what is listening to this event, so I will leave it alone for the time being
   notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
@@ -129,7 +166,7 @@ export const signIn = async (includeBillingScope = false): Promise<User> => {
       sessionId,
       sessionStartTime,
     }));
-    Ajax().Metrics.captureEvent(Events.userLogin, {
+    Ajax().Metrics.captureEvent(Events.user.login, {
       sessionStartTime: Utils.makeCompleteDate(sessionStartTime),
     });
     return user;
@@ -167,7 +204,7 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
         totalTokensThisSession: authStore.get().authTokenMetadata.totalTokensThisSession + 1,
       },
     }));
-    Ajax().Metrics.captureEvent(Events.userAuthTokenReloadSuccess, {
+    Ajax().Metrics.captureEvent(Events.user.authTokenLoad.success, {
       authProvider: user.profile.idp,
       oldAuthTokenCreatedAt: Utils.formatTimestampInSeconds(oldTokenMetadata.createdAt),
       oldAuthTokenExpiresAt: Utils.formatTimestampInSeconds(oldTokenMetadata.expiresAt),
@@ -179,13 +216,13 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
       jwtExpiresAt: Utils.formatTimestampInSeconds(jwtExpiresAt),
     });
   } else if (reloadedAuthTokenState === null) {
-    Ajax().Metrics.captureEvent(Events.userAuthTokenReloadExpired, {
+    Ajax().Metrics.captureEvent(Events.user.authTokenLoad.expired, {
       oldAuthTokenCreatedAt: Utils.formatTimestampInSeconds(oldTokenMetadata.createdAt),
       oldAuthTokenExpiresAt: Utils.formatTimestampInSeconds(oldTokenMetadata.expiresAt),
       oldAuthTokenId: oldTokenMetadata.id,
     });
   } else {
-    Ajax().Metrics.captureEvent(Events.userAuthTokenReloadError, {
+    Ajax().Metrics.captureEvent(Events.user.authTokenLoad.error, {
       // we could potentially log the reason, but I don't know if that data is safe to log
       oldAuthTokenCreatedAt: Utils.formatTimestampInSeconds(oldTokenMetadata.createdAt),
       oldAuthTokenExpiresAt: Utils.formatTimestampInSeconds(oldTokenMetadata.expiresAt),
