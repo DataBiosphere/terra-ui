@@ -80,7 +80,7 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
                     cellRenderer: ({ rowIndex }) => {
                       let output = [];
                       const targetData = dataArray[rowIndex][1];
-                      if (targetData instanceof Array) {
+                      if (Array.isArray(targetData)) {
                         output = targetData.map((item, index) => {
                           const key = `output-${rowIndex}-item-${index}`;
                           return isAzureUri(item) ? renderBlobLink(item, key) : span({ key }, item);
