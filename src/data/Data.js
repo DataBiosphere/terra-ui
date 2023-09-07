@@ -19,7 +19,6 @@ import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
 import { FlexTable, HeaderCell } from 'src/components/table';
-import { SnapshotInfo } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
 import { resolveWdsApp, WdsDataTableProvider, wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
@@ -43,6 +42,7 @@ import { ExportDataModal } from './data-table/entity-service/ExportDataModal';
 import { RenameTableModal } from './data-table/entity-service/RenameTableModal';
 import { renderDataCell } from './data-table/entity-service/renderDataCell';
 import { useSavedColumnSettings } from './data-table/entity-service/SavedColumnSettings';
+import { SnapshotContent } from './data-table/entity-service/SnapshotContent';
 import { getRootTypeForSetTable } from './data-table/entity-service/table-utils';
 import { EntityUploader } from './data-table/shared/EntityUploader';
 import WDSContent from './data-table/wds/WDSContent';
@@ -230,24 +230,6 @@ const ReferenceDataContent = ({ workspace, referenceKey }) => {
       ]),
     ]),
   ]);
-};
-const SnapshotContent = ({ workspace, snapshotDetails, loadMetadata, onUpdate, onDelete, snapshotName, tableName }) => {
-  return Utils.cond(
-    [!snapshotDetails?.[snapshotName], () => spinnerOverlay],
-    [
-      !!tableName,
-      () =>
-        h(EntitiesContent, {
-          snapshotName,
-          workspace,
-          entityMetadata: snapshotDetails[snapshotName].entityMetadata,
-          setEntityMetadata: () => {},
-          entityKey: tableName,
-          loadMetadata,
-        }),
-    ],
-    () => h(SnapshotInfo, { workspace, resource: snapshotDetails[snapshotName].resource, snapshotName, onUpdate, onDelete })
-  );
 };
 
 const DataTypeSection = ({ title, error, retryFunction, children }) => {
