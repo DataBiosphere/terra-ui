@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { b, div, h, img } from 'react-hyperscript-helpers';
 import { absoluteSpinnerOverlay, ButtonPrimary, Clickable, DeleteConfirmationModal, Select, spinnerOverlay } from 'src/components/common';
 import Modal from 'src/components/Modal';
-import { isAzureUri, isGsUri } from 'src/components/UriViewer/uri-viewer-utils';
 import ReferenceData from 'src/data/reference-data';
 import { Ajax } from 'src/libs/ajax';
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';
@@ -21,26 +20,6 @@ export const warningBoxStyle = {
 };
 
 export const parseGsUri = (uri) => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri));
-
-export const getDownloadCommand = (fileName, uri, accessUrl) => {
-  const { url: httpUrl, headers: httpHeaders } = accessUrl || {};
-  if (httpUrl) {
-    const headers = _.flow(
-      _.toPairs,
-      _.reduce((acc, [header, value]) => `${acc}-H '${header}: ${value}' `, '')
-    )(httpHeaders);
-    const output = fileName ? `-o '${fileName}' ` : '-O ';
-    return `curl ${headers}${output}'${httpUrl}'`;
-  }
-
-  if (isAzureUri(uri)) {
-    return `azcopy copy '${uri}' ${fileName || '.'}`;
-  }
-
-  if (isGsUri(uri)) {
-    return `gsutil cp '${uri}' ${fileName || '.'}`;
-  }
-};
 
 export const getUserProjectForWorkspace = async (workspace) =>
   workspace && (await canUseWorkspaceProject(workspace)) ? workspace.workspace.googleProject : requesterPaysProjectStore.get();

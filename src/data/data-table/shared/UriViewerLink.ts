@@ -1,12 +1,19 @@
 import _ from 'lodash/fp';
-import { Fragment, useState } from 'react';
+import { Fragment, ReactNode, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
+import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
-import { isAzureUri, isGsUri } from './uri-viewer-utils';
-import { UriViewer } from './UriViewer';
+import { isAzureUri, isGsUri } from '../uri-viewer/uri-viewer-utils';
+import { UriViewer } from '../uri-viewer/UriViewer';
 
-export const UriViewerLink = ({ uri, workspace }) => {
+type UriViewerLinkProps = {
+  uri: string;
+  workspace: WorkspaceWrapper;
+};
+
+export const UriViewerLink = (props: UriViewerLinkProps): ReactNode => {
+  const { uri, workspace } = props;
   const [modalOpen, setModalOpen] = useState(false);
   return h(Fragment, [
     h(
