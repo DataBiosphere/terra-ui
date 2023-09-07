@@ -9,7 +9,8 @@ import { WorkspaceLinkById } from 'src/components/WorkspaceLinks';
 import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { useWdsStatus } from 'src/libs/wds-status';
+
+import { useWdsStatus } from './wds-status';
 
 export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
   const { status } = useWdsStatus({ workspaceId });

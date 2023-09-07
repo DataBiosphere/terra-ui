@@ -2,15 +2,15 @@ import { getAllByRole, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as clipboard from 'clipboard-polyfill/text';
 import { h } from 'react-hyperscript-helpers';
-import { useWdsStatus, WdsStatus } from 'src/libs/wds-status';
 import { useWorkspaceById } from 'src/libs/workspace-hooks';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
 
+import { useWdsStatus, WdsStatus } from './wds-status';
 import { WdsTroubleshooter } from './WdsTroubleshooter';
 
-type WdsStatusExports = typeof import('src/libs/wds-status');
-jest.mock('src/libs/wds-status', (): WdsStatusExports => {
+type WdsStatusExports = typeof import('./wds-status');
+jest.mock('./wds-status', (): WdsStatusExports => {
   return {
     useWdsStatus: jest.fn(),
   };
