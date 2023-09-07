@@ -53,18 +53,6 @@ export const getUserProjectForWorkspace = async (workspace) =>
 
 export const getRootTypeForSetTable = (tableName) => _.replace(/(_set)+$/, '', tableName);
 
-export const EditDataLink = (props) =>
-  h(
-    Link,
-    {
-      className: 'cell-hover-only',
-      style: { marginLeft: '1ch' },
-      tooltip: 'Edit value',
-      ...props,
-    },
-    [icon('edit')]
-  );
-
 export const ReferenceDataImporter = ({ onSuccess, onDismiss, namespace, name }) => {
   const [loading, setLoading] = useState(false);
   const [selectedReference, setSelectedReference] = useState(undefined);

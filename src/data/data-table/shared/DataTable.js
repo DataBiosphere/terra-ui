@@ -13,7 +13,7 @@ import {
   Link,
   RadioButton,
 } from 'src/components/common';
-import { EditDataLink, HeaderOptions } from 'src/components/data/data-utils';
+import { HeaderOptions } from 'src/components/data/data-utils';
 import { icon } from 'src/components/icons';
 import { ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
@@ -43,6 +43,7 @@ import {
   decodeColumnSettings,
 } from '../entity-service/SavedColumnSettings';
 import { SingleEntityEditor } from '../entity-service/SingleEntityEditor';
+import { EditDataLink } from './EditDataLink';
 
 const entityMap = (entities) => {
   return _.fromPairs(_.map((e) => [e.name, e], entities));
