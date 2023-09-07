@@ -1,4 +1,4 @@
-// This is in its own file to avoid circular dependency issues.
+// This is in its own file instead of azure-utils to avoid circular dependency issues.
 // TODO [] other countries' flags
 export const azureRegions = {
   eastus: { flag: '🇺🇸', label: 'East US' },
