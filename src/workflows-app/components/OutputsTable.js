@@ -39,7 +39,7 @@ const OutputsTable = (props) => {
     );
   };
 
-  return div({ style: { flex: '1 1 auto' } }, [
+  return div({ style: { flex: '1 0 auto' } }, [
     h(SimpleFlexTable, {
       'aria-label': 'output-table',
       rowCount: outputTableData.length,
