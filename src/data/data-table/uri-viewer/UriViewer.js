@@ -7,7 +7,7 @@ import { ClipboardButton } from 'src/components/ClipboardButton';
 import Collapse from 'src/components/Collapse';
 import { Link } from 'src/components/common';
 import { FileProvenance } from 'src/components/data/data-table-provenance';
-import { getDownloadCommand, parseGsUri } from 'src/components/data/data-utils';
+import { parseGsUri } from 'src/components/data/data-utils';
 import { spinner } from 'src/components/icons';
 import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
@@ -18,7 +18,7 @@ import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-uti
 import * as Utils from 'src/libs/utils';
 
 import els from './uri-viewer-styles';
-import { isAzureUri, isGsUri } from './uri-viewer-utils';
+import { getDownloadCommand, isAzureUri, isGsUri } from './uri-viewer-utils';
 import { UriDownloadButton } from './UriDownloadButton';
 import { UriPreview } from './UriPreview';
 
