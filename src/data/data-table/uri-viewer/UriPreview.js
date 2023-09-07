@@ -1,12 +1,12 @@
 import { Fragment, useState } from 'react';
 import { div, h, img } from 'react-hyperscript-helpers';
-import { isAzureUri } from 'src/components/UriViewer/uri-viewer-utils';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 
 import els from './uri-viewer-styles';
+import { isAzureUri } from './uri-viewer-utils';
 
 const styles = {
   previewText: {

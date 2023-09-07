@@ -10,16 +10,17 @@ import { FileProvenance } from 'src/components/data/data-table-provenance';
 import { getDownloadCommand, parseGsUri } from 'src/components/data/data-utils';
 import { spinner } from 'src/components/icons';
 import Modal from 'src/components/Modal';
-import els from 'src/components/UriViewer/uri-viewer-styles';
-import { isAzureUri, isGsUri } from 'src/components/UriViewer/uri-viewer-utils';
-import { UriDownloadButton } from 'src/components/UriViewer/UriDownloadButton';
-import { UriPreview } from 'src/components/UriViewer/UriPreview';
 import { Ajax } from 'src/libs/ajax';
 import { bucketBrowserUrl } from 'src/libs/auth';
 import colors from 'src/libs/colors';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
+
+import els from './uri-viewer-styles';
+import { isAzureUri, isGsUri } from './uri-viewer-utils';
+import { UriDownloadButton } from './UriDownloadButton';
+import { UriPreview } from './UriPreview';
 
 export const UriViewer = _.flow(
   withDisplayName('UriViewer'),
