@@ -29,7 +29,7 @@ import RecordsTable from 'src/workflows-app/components/RecordsTable';
 import ViewWorkflowScriptModal from 'src/workflows-app/components/ViewWorkflowScriptModal';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { convertToRawUrl } from 'src/workflows-app/utils/method-common';
-import { CbasPollInterval, convertArrayType, validateInputs, WdsPollInterval } from 'src/workflows-app/utils/submission-utils';
+import { CbasPollInterval, convertArrayType, parseMethodString, validateInputs, WdsPollInterval } from 'src/workflows-app/utils/submission-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 export const BaseSubmissionConfig = (
@@ -119,7 +119,13 @@ export const BaseSubmissionConfig = (
         const newRunSetData = runSet.run_sets[0];
 
         setConfiguredInputDefinition(maybeParseJSON(newRunSetData.input_definition));
-        setConfiguredOutputDefinition(maybeParseJSON(newRunSetData.output_definition));
+        setConfiguredOutputDefinition(
+          _.map((outputDef) =>
+            _.get('destination.type', outputDef) === 'none'
+              ? _.set('destination', { type: 'record_update', record_attribute: parseMethodString(outputDef.output_name).variable || '' })(outputDef)
+              : outputDef
+          )(maybeParseJSON(newRunSetData.output_definition))
+        );
         setSelectedRecordType(newRunSetData.record_type);
 
         let callCache = maybeParseJSON(newRunSetData.call_caching_enabled);

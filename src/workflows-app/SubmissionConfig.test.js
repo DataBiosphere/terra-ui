@@ -18,6 +18,7 @@ import {
   myStructInput,
   runSetInputDef,
   runSetOutputDef,
+  runSetOutputDefFilled,
   runSetOutputDefWithDefaults,
   runSetResponse,
   runSetResponseWithStruct,
@@ -726,14 +727,14 @@ describe('Initial state', () => {
     expect(row1cells[0].textContent).toBe('target_workflow_1');
     within(row1cells[1]).getByText('file_output');
     within(row1cells[2]).getByText('File');
-    within(row1cells[3]).getByDisplayValue('target_workflow_1_file_output');
+    within(row1cells[3]).getByDisplayValue('target_workflow_1_file_output'); // autofill from previous run
 
     const row2cells = within(rows[2]).getAllByRole('cell');
     expect(row2cells.length).toBe(4);
     expect(row2cells[0].textContent).toBe('target_workflow_1');
     within(row2cells[1]).getByText('unused_output');
     within(row2cells[2]).getByText('String');
-    within(row2cells[3]).getByDisplayValue('');
+    within(row2cells[3]).getByDisplayValue('unused_output'); // autofill empty by name
   });
 });
 
@@ -1322,7 +1323,7 @@ describe('Submitting a run set', () => {
       expect.objectContaining({
         method_version_id: runSetResponse.run_sets[0].method_version_id,
         workflow_input_definitions: runSetInputDef,
-        workflow_output_definitions: runSetOutputDef,
+        workflow_output_definitions: runSetOutputDefFilled,
         wds_records: {
           record_type: 'FOO',
           record_ids: ['FOO1'],
@@ -1550,7 +1551,7 @@ describe('Submitting a run set', () => {
             },
           },
         ],
-        workflow_output_definitions: runSetOutputDef,
+        workflow_output_definitions: runSetOutputDefFilled,
         wds_records: {
           record_type: 'FOO',
           record_ids: ['FOO1'],
@@ -1757,7 +1758,7 @@ describe('Submitting a run set', () => {
             },
           },
         ],
-        workflow_output_definitions: runSetOutputDef,
+        workflow_output_definitions: runSetOutputDefFilled,
         wds_records: {
           record_type: 'FOO',
           record_ids: ['FOO1'],
@@ -1833,7 +1834,7 @@ describe('Submitting a run set', () => {
     const headers = within(rows[0]).getAllByRole('columnheader');
 
     // set defaults
-    await user.click(within(headers[3]).getByRole('button'));
+    await user.click(within(headers[3]).getByRole('button', { name: /Autofill/i }));
 
     // ** ACT **
     // user clicks on Submit (inputs and outputs should be rendered based on previous submission)

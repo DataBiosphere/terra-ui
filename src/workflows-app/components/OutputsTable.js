@@ -27,6 +27,10 @@ const OutputsTable = (props) => {
     _.orderBy([({ [outputTableSort.field]: field }) => _.lowerCase(field)], [outputTableSort.direction])
   )(configuredOutputDefinition);
 
+  const clearOutputs = () => {
+    setConfiguredOutputDefinition(_.map((output) => _.set('destination', { type: 'none' })(output))(configuredOutputDefinition));
+  };
+
   const nonDefaultOutputs = _.filter(
     (output) =>
       output.destination.type === 'none' ||
@@ -78,9 +82,11 @@ const OutputsTable = (props) => {
           },
           {
             headerRenderer: () =>
-              h(Fragment, [
+              div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'flex-start', flex: '1 1 auto' } }, [
                 h(HeaderCell, { style: { overflow: 'visible' } }, ['Attribute']),
                 h(Fragment, [
+                  div({ style: { whiteSpace: 'pre' } }, ['  |  ']),
+                  h(Link, { onClick: clearOutputs }, ['Clear outputs']),
                   div({ style: { whiteSpace: 'pre' } }, ['  |  ']),
                   WithWarnings({
                     baseComponent: h(Link, { onClick: setDefaultOutputs }, [`Autofill (${nonDefaultOutputs.length}) outputs`]),
