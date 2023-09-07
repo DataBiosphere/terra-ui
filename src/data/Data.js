@@ -20,14 +20,6 @@ import { MenuButton } from 'src/components/MenuButton';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
 import { FlexTable, HeaderCell } from 'src/components/table';
 import { SnapshotInfo } from 'src/components/workspace-utils';
-import EntitiesContent from 'src/data/data-table/entity-service/EntitiesContent';
-import { ExportDataModal } from 'src/data/data-table/entity-service/ExportDataModal';
-import { RenameTableModal } from 'src/data/data-table/entity-service/RenameTableModal';
-import { renderDataCell } from 'src/data/data-table/entity-service/renderDataCell';
-import { useSavedColumnSettings } from 'src/data/data-table/entity-service/SavedColumnSettings';
-import { EntityUploader } from 'src/data/data-table/shared/EntityUploader';
-import WDSContent from 'src/data/data-table/wds/WDSContent';
-import { WdsTroubleshooter } from 'src/data/data-table/wds/WdsTroubleshooter';
 import { Ajax } from 'src/libs/ajax';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
 import { resolveWdsApp, WdsDataTableProvider, wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
@@ -46,6 +38,15 @@ import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+
+import EntitiesContent from './data-table/entity-service/EntitiesContent';
+import { ExportDataModal } from './data-table/entity-service/ExportDataModal';
+import { RenameTableModal } from './data-table/entity-service/RenameTableModal';
+import { renderDataCell } from './data-table/entity-service/renderDataCell';
+import { useSavedColumnSettings } from './data-table/entity-service/SavedColumnSettings';
+import { EntityUploader } from './data-table/shared/EntityUploader';
+import WDSContent from './data-table/wds/WDSContent';
+import { WdsTroubleshooter } from './data-table/wds/WdsTroubleshooter';
 
 const styles = {
   tableContainer: {
