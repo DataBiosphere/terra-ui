@@ -414,7 +414,6 @@ describe('validateInputs', () => {
     };
 
     const inputsWithRecordLookups = [
-      // int arrays (float similar enough that not worried about specifics)
       {
         ...arrayInput('validInt', 'Int'), // success with info
         source: {
