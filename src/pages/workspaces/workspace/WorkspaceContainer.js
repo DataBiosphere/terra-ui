@@ -102,17 +102,7 @@ const AzureWarning = () => {
 };
 
 const GooglePermissionsSpinner = () => {
-  const warningMessage = [
-    'Terra synchronizing permissions with Google. This may take a couple moments.',
-    h(
-      Link,
-      {
-        href: 'https://support.terra.bio/hc/en-us/community/posts/12380560785819-Delays-in-Google-IAM-permissions-propagating',
-        ...Utils.newTabLinkProps,
-      },
-      [div(['Learn more here. ', icon('pop-out')])]
-    ),
-  ];
+  const warningMessage = ['Terra synchronizing permissions with Google. This may take a couple moments.'];
 
   return TitleBarSpinner(warningMessage);
 };
