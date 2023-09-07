@@ -49,7 +49,7 @@ const Notice = (props: NoticeProperties) => {
       h(
         TooltipTrigger,
         {
-          content: [div({ key: props.label }, [props.tooltip])],
+          content: [div({ key: props.label, style: { maxWidth: 300 } }, [props.tooltip])],
         },
         [icon(props.iconName, { size: 20, 'aria-label': props.label })]
       ),
