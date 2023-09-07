@@ -9,7 +9,6 @@ import { Ajax } from 'src/libs/ajax';
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
-import { notify } from 'src/libs/notifications';
 import { requesterPaysProjectStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 
@@ -117,13 +116,6 @@ export const ReferenceDataDeleter = ({ onSuccess, onDismiss, namespace, name, re
     },
     [div(['Are you sure you want to delete the ', b([referenceDataType]), ' reference data?']), deleting && absoluteSpinnerOverlay]
   );
-};
-
-export const notifyDataImportProgress = (jobId, message) => {
-  notify('info', 'Data import in progress.', {
-    id: jobId,
-    message,
-  });
 };
 
 export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
