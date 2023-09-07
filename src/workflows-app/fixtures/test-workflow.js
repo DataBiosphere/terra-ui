@@ -43,6 +43,9 @@ export const metadata = {
             'https://kj4l5k3hjklk3jlk43jl3kj43lkj3l4kj3.blob.core.windows.net/sc-random-value/workspace-services/cbas/terra-app-other-random-value/fetch_sra_to_bam/more-random-value/call-Fetch_SRA_to_BAM/execution/SRR13379731.json',
             'https://kj4l5k3hjklk3jlk43jl3kj43lkj3l4kj3.blob.core.windows.net/sc-random-value/workspace-services/cbas/terra-app-other-random-value/fetch_sra_to_bam/more-random-value/call-Fetch_SRA_to_BAM/execution/SRR13379732.json',
           ],
+          single_link: [
+            'https://kj4l5k3hjklk3jlk43jl3kj43lkj3l4kj3.blob.core.windows.net/sc-random-value/workspace-services/cbas/terra-app-other-random-value/fetch_sra_to_bam/more-random-value/call-Fetch_SRA_to_BAM/execution/SRR13379731.json',
+          ],
           library_strategy: 'AMPLICON',
           num_reads: 552132,
           sequencing_center: 'SQLCT',
@@ -76,6 +79,13 @@ export const metadata = {
           disk_size: 750,
           SRA_ID: 'sfkjl23k',
           machine_mem_gb: null,
+          test_links: [
+            'https://kj4l5k3hjklk3jlk43jl3kj43lkj3l4kj3.blob.core.windows.net/sc-random-value/workspace-services/cbas/terra-app-other-random-value/fetch_sra_to_bam/more-random-value/call-Fetch_SRA_to_BAM/execution/SRR13379731.json',
+            'https://kj4l5k3hjklk3jlk43jl3kj43lkj3l4kj3.blob.core.windows.net/sc-random-value/workspace-services/cbas/terra-app-other-random-value/fetch_sra_to_bam/more-random-value/call-Fetch_SRA_to_BAM/execution/SRR13379731.json',
+          ],
+          single_link: [
+            'https://kj4l5k3hjklk3jlk43jl3kj43lkj3l4kj3.blob.core.windows.net/sc-random-value/workspace-services/cbas/terra-app-other-random-value/fetch_sra_to_bam/more-random-value/call-Fetch_SRA_to_BAM/execution/SRR13379731.json',
+          ],
         },
         returnCode: 0,
         jobId: '117f49d5_59bbeae7208642e686a1ca0f57c8c25a',
