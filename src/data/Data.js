@@ -11,7 +11,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs';
 import Collapse from 'src/components/Collapse';
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common';
 import { DataTableSaveVersionModal, DataTableVersion, DataTableVersions } from 'src/components/data/data-table-versions';
-import { getRootTypeForSetTable, ReferenceDataDeleter, ReferenceDataImporter } from 'src/components/data/data-utils';
+import { ReferenceDataDeleter, ReferenceDataImporter } from 'src/components/data/data-utils';
 import FileBrowser from 'src/components/data/FileBrowser';
 import LocalVariablesContent from 'src/components/data/LocalVariablesContent';
 import { icon, spinner } from 'src/components/icons';
@@ -29,7 +29,6 @@ import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-t
 import { reportError, reportErrorAndRethrow, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { useImportJobs } from 'src/libs/import-jobs';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
@@ -44,9 +43,11 @@ import { ExportDataModal } from './data-table/entity-service/ExportDataModal';
 import { RenameTableModal } from './data-table/entity-service/RenameTableModal';
 import { renderDataCell } from './data-table/entity-service/renderDataCell';
 import { useSavedColumnSettings } from './data-table/entity-service/SavedColumnSettings';
+import { getRootTypeForSetTable } from './data-table/entity-service/table-utils';
 import { EntityUploader } from './data-table/shared/EntityUploader';
 import WDSContent from './data-table/wds/WDSContent';
 import { WdsTroubleshooter } from './data-table/wds/WdsTroubleshooter';
+import { useImportJobs } from './import-jobs';
 
 const styles = {
   tableContainer: {

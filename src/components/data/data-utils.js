@@ -1,20 +1,14 @@
 import _ from 'lodash/fp';
-import { Fragment, useRef, useState } from 'react';
+import { useState } from 'react';
 import { b, div, h, img } from 'react-hyperscript-helpers';
-import { absoluteSpinnerOverlay, ButtonPrimary, Clickable, DeleteConfirmationModal, Link, Select, spinnerOverlay } from 'src/components/common';
-import { icon } from 'src/components/icons';
-import { ConfirmedSearchInput } from 'src/components/input';
-import { MenuButton } from 'src/components/MenuButton';
+import { absoluteSpinnerOverlay, ButtonPrimary, Clickable, DeleteConfirmationModal, Select, spinnerOverlay } from 'src/components/common';
 import Modal from 'src/components/Modal';
-import PopupTrigger, { MenuDivider } from 'src/components/PopupTrigger';
-import { Sortable } from 'src/components/table';
 import { isAzureUri, isGsUri } from 'src/components/UriViewer/uri-viewer-utils';
 import ReferenceData from 'src/data/reference-data';
 import { Ajax } from 'src/libs/ajax';
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
-import { notify } from 'src/libs/notifications';
 import { requesterPaysProjectStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 
@@ -50,20 +44,6 @@ export const getDownloadCommand = (fileName, uri, accessUrl) => {
 
 export const getUserProjectForWorkspace = async (workspace) =>
   workspace && (await canUseWorkspaceProject(workspace)) ? workspace.workspace.googleProject : requesterPaysProjectStore.get();
-
-export const getRootTypeForSetTable = (tableName) => _.replace(/(_set)+$/, '', tableName);
-
-export const EditDataLink = (props) =>
-  h(
-    Link,
-    {
-      className: 'cell-hover-only',
-      style: { marginLeft: '1ch' },
-      tooltip: 'Edit value',
-      ...props,
-    },
-    [icon('edit')]
-  );
 
 export const ReferenceDataImporter = ({ onSuccess, onDismiss, namespace, name }) => {
   const [loading, setLoading] = useState(false);
@@ -136,13 +116,6 @@ export const ReferenceDataDeleter = ({ onSuccess, onDismiss, namespace, name, re
   );
 };
 
-export const notifyDataImportProgress = (jobId, message) => {
-  notify('info', 'Data import in progress.', {
-    id: jobId,
-    message,
-  });
-};
-
 export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
   return h(
     Clickable,
@@ -177,56 +150,4 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
       text,
     ]
   );
-};
-
-export const HeaderOptions = ({ sort, field, onSort, extraActions, renderSearch, searchByColumn, children }) => {
-  const popup = useRef();
-  const columnMenu = h(
-    PopupTrigger,
-    {
-      ref: popup,
-      closeOnClick: true,
-      side: 'bottom',
-      content: h(Fragment, [
-        h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
-        h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
-        renderSearch &&
-          h(div, { style: { width: '98%' } }, [
-            h(ConfirmedSearchInput, {
-              'aria-label': 'Exact match filter',
-              placeholder: 'Exact match filter',
-              style: { marginLeft: '0.25rem' },
-              onChange: (e) => {
-                if (e) {
-                  searchByColumn(e);
-                  popup.current.close();
-                }
-              },
-              onClick: (e) => {
-                e.stopPropagation();
-              },
-            }),
-          ]),
-        !_.isEmpty(extraActions) &&
-          h(Fragment, [
-            h(MenuDivider),
-            _.map(({ label, disabled, tooltip, onClick }) => h(MenuButton, { key: label, disabled, tooltip, onClick }, [label]), extraActions),
-          ]),
-      ]),
-    },
-    [h(Link, { 'aria-label': 'Column menu' }, [icon('cardMenuIcon', { size: 16 })])]
-  );
-
-  return h(Fragment, [
-    h(
-      Sortable,
-      {
-        sort,
-        field,
-        onSort,
-      },
-      [children, div({ style: { marginRight: '0.5rem', marginLeft: 'auto' } })]
-    ),
-    columnMenu,
-  ]);
 };
