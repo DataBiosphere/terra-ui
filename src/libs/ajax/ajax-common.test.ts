@@ -1,4 +1,4 @@
-import { loadAuthToken, signOutAfterFailureToRefreshAuthToken } from 'src/libs/auth';
+import { loadAuthToken, signOut } from 'src/libs/auth';
 import { getUser } from 'src/libs/state';
 import { asMockedFn } from 'src/testing/test-utils';
 
@@ -12,8 +12,11 @@ import {
 type AuthExports = typeof import('src/libs/auth');
 jest.mock('src/libs/auth', (): Partial<AuthExports> => {
   return {
+    // TODO: SignOutCauses should be using the real enum but it is not working, fix this
+    ...jest.requireActual('src/libs/auth'),
     loadAuthToken: jest.fn(),
-    signOutAfterFailureToRefreshAuthToken: jest.fn(),
+    signOut: jest.fn(),
+    // SignOutCauses: jest.requireActual<import('src/libs/auth').SignOutCauses>('src/libs/auth'),
   };
 });
 
@@ -107,11 +110,11 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
 
       it('signs out user', async () => {
         // Act
-        // Ignore errors because makeAuthenticatedReuqest is expected to return a rejected promise here.
+        // Ignore errors because makeAuthenticatedRequest is expected to return a rejected promise here.
         await Promise.allSettled([makeAuthenticatedRequest()]);
 
         // Assert
-        expect(signOutAfterFailureToRefreshAuthToken).toHaveBeenCalled();
+        expect(signOut).toHaveBeenCalled();
       });
 
       it('throws an error', () => {

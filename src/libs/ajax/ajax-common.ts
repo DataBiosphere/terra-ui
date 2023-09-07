@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { loadAuthToken, signOutAfterFailureToRefreshAuthToken, SignOutCauses } from 'src/libs/auth';
+import { loadAuthToken, signOut, SignOutCauses } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
 import { ajaxOverridesStore, getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
@@ -83,7 +83,7 @@ export const withRetryAfterReloadingExpiredAuthToken =
         }
         const causes =
           reloadedAuthTokenState === null ? SignOutCauses.expiredRefreshToken : SignOutCauses.errorRefreshingAuthToken;
-        signOutAfterFailureToRefreshAuthToken(causes);
+        signOut(causes);
         throw new Error(sessionTimedOutErrorMessage);
       } else {
         throw error;

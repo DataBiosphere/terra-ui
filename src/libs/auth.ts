@@ -106,8 +106,10 @@ const sendSignOutMetrics = (causes: SignOutCauses): void => {
 
 export const signOut = (causes: SignOutCauses = SignOutCauses.unspecified): void => {
   sendSignOutMetrics(causes);
+  if (causes === SignOutCauses.expiredRefreshToken || causes === SignOutCauses.errorRefreshingAuthToken) {
+    notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
+  }
   // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
-
   cookieReadyStore.reset();
   azureCookieReadyStore.reset();
   getSessionStorage().clear();
@@ -116,15 +118,6 @@ export const signOut = (causes: SignOutCauses = SignOutCauses.unspecified): void
   revokeTokens()
     .finally(() => auth.removeUser())
     .finally(() => auth.clearStaleState());
-};
-
-export const signOutAfterFailureToRefreshAuthToken = (causes: SignOutCauses): void => {
-  // we could maybe move all of these events into the loadAuthToken method
-  Ajax().Metrics.captureEvent(Events.user.sessionTimeout, {});
-  signOut(causes);
-  // this notification is a misnomer, and I would like to change it to be more accurate,
-  // but I do not know what is listening to this event, so I will leave it alone for the time being
-  notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
 };
 
 const revokeTokens = async () => {
