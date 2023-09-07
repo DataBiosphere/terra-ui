@@ -24,7 +24,7 @@ import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-uti
 import { getUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { hasProtectedData, isAzureWorkspace, isGoogleWorkspace, protectedDataMessage } from 'src/libs/workspace-utils';
+import { hasProtectedData, isAzureWorkspace, isGoogleWorkspace, protectedDataMessage, regionConstraintMessage } from 'src/libs/workspace-utils';
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
@@ -118,6 +118,7 @@ export const WorkspaceTabs = ({
             accessLevel: workspace.accessLevel,
             isLocked,
             workspaceProtectedMessage: hasProtectedData(workspace) ? protectedDataMessage : undefined,
+            workspaceRegionConstraintMessage: regionConstraintMessage(workspace),
           }),
         h(WorkspaceMenu, {
           iconSize: 27,

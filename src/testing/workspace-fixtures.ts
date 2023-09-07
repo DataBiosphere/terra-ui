@@ -34,6 +34,26 @@ export const protectedAzureWorkspace: AzureWorkspace = _.merge(defaultAzureWorks
   ],
 });
 
+export const regionRestrictedAzureWorkspace: AzureWorkspace = _.merge(defaultAzureWorkspace, {
+  policies: [
+    {
+      additionalData: [
+        {
+          'region-name': 'azure.eastus',
+        },
+        {
+          'region-name': 'azure.westus2',
+        },
+        {
+          'region-name': 'unknownRegion',
+        },
+      ],
+      name: 'region-constraint',
+      namespace: 'terra',
+    },
+  ],
+});
+
 // These values are not populated by default, and for the majority of existing
 // Google workspaces will remain undefined.  This definition should only be
 // changed to include test values if the default behavior also changes to always

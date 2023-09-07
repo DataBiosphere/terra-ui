@@ -1,5 +1,6 @@
 import { safeCurry } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
+import { azureRegions } from 'src/libs/azure-regions';
 import { canWrite } from 'src/libs/utils';
 
 export type CloudProvider = 'AZURE' | 'GCP';
@@ -76,7 +77,7 @@ export interface AzureContext {
 interface WorkspacePolicy {
   name: string;
   namespace: string;
-  additionalData: { [key: string]: string };
+  additionalData: { [key: string]: string }[];
 }
 
 export interface AzureWorkspace extends BaseWorkspace {
@@ -107,6 +108,34 @@ export const containsProtectedDataPolicy = (policies: WorkspacePolicy[] | undefi
 
 export const protectedDataMessage =
   'Enhanced logging and monitoring are enabled to support the use of protected or sensitive data in this workspace.';
+
+export const hasRegionConstraint = (workspace: BaseWorkspace): boolean =>
+  getRegionConstraintLabels(workspace.policies).length > 0;
+
+export const getRegionConstraintLabels = (policies: WorkspacePolicy[] | undefined): string[] => {
+  const regionPolicies = _.filter(
+    (policy) => policy.namespace === 'terra' && policy.name === 'region-constraint',
+    policies
+  );
+  const regionLabels: string[] = [];
+  _.forEach((policy) => {
+    _.forEach((data) => {
+      if ('region-name' in data) {
+        const region = data['region-name'];
+        const regionName = region.startsWith('azure.') ? region.split('azure.')[1] : region;
+        regionLabels.push(_.has(regionName, azureRegions) ? azureRegions[regionName].label : regionName);
+      }
+    }, policy.additionalData);
+  }, regionPolicies);
+  return regionLabels;
+};
+
+export const regionConstraintMessage = (workspace: BaseWorkspace): string | undefined => {
+  const regions = getRegionConstraintLabels(workspace.policies);
+  return regions.length === 0
+    ? undefined
+    : `Workspace storage and compute resources must remain in the following region(s): ${regions.join(', ')}.`;
+};
 
 export const isValidWsExportTarget = safeCurry((sourceWs: WorkspaceWrapper, destWs: WorkspaceWrapper) => {
   const {
