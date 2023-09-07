@@ -4,11 +4,11 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { LeoAppStatus, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { WorkspaceData } from 'src/pages/workspaces/workspace/Data';
+import { StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace';
 import { asMockedFn } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleBucketOptions } from 'src/testing/workspace-fixtures';
 
-import { StorageDetails } from './useWorkspace';
+import { WorkspaceData } from './Data';
 
 type WorkspaceContainerExports = typeof import('src/pages/workspaces/workspace/WorkspaceContainer');
 jest.mock('src/pages/workspaces/workspace/WorkspaceContainer', (): WorkspaceContainerExports => {
@@ -120,6 +120,24 @@ describe('WorkspaceData', () => {
     expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // no error message
   });
 
+  it('displays an error message for an azure workspace whose status is ERROR', async () => {
+    // Arrange
+    const { workspaceDataProps } = setup({
+      workspace: defaultAzureWorkspace,
+      status: 'ERROR',
+    });
+
+    // Act
+    await act(async () => {
+      render(h(WorkspaceData, workspaceDataProps));
+    });
+
+    // Assert
+    expect(screen.getByText(/Data tables are unavailable/)).toBeVisible();
+    expect(screen.getByText(/An error occurred while preparing/)).toBeVisible(); // display error message
+    expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
+  });
+
   it('displays an error message for an azure workspace that fails when loading schema info', async () => {
     // Arrange
     const { workspaceDataProps, mockGetSchema } = setup({
@@ -136,7 +154,8 @@ describe('WorkspaceData', () => {
 
     // Assert
     expect(screen.getByText(/Data tables are unavailable/)).toBeVisible();
-    expect(screen.getByText(/Preparing your data tables/)).toBeVisible(); // weird, but current behavior
+    expect(screen.getByText(/An error occurred while preparing/)).toBeVisible(); // display error message
+    expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
   });
 
   it('displays a prompt to select a data type once azure workspace is loaded', async () => {

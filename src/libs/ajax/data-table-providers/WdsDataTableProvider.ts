@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { notifyDataImportProgress } from 'src/components/data/data-utils';
+import { notifyDataImportProgress } from 'src/data/import-jobs';
 import { Ajax } from 'src/libs/ajax';
 import {
   AttributeArray,

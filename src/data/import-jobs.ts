@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
+import { notify } from 'src/libs/notifications';
 import { useCancellation, useStore } from 'src/libs/react-utils';
 import { AsyncImportJob, asyncImportJobStore } from 'src/libs/state';
 import { isAzureWorkspace, WorkspaceWrapper } from 'src/libs/workspace-utils';
@@ -54,4 +55,11 @@ export const useImportJobs = (workspace: WorkspaceWrapper): UseImportJobsResult 
     runningJobs: runningJobsInWorkspace.map((job) => job.jobId),
     refresh,
   };
+};
+
+export const notifyDataImportProgress = (jobId: string, message: string): void => {
+  notify('info', 'Data import in progress.', {
+    id: jobId,
+    message,
+  });
 };

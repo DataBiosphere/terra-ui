@@ -11,33 +11,24 @@ import * as breadcrumbs from 'src/components/breadcrumbs';
 import Collapse from 'src/components/Collapse';
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common';
 import { DataTableSaveVersionModal, DataTableVersion, DataTableVersions } from 'src/components/data/data-table-versions';
-import { getRootTypeForSetTable, ReferenceDataDeleter, ReferenceDataImporter } from 'src/components/data/data-utils';
-import EntitiesContent from 'src/components/data/EntitiesContent';
+import { ReferenceDataDeleter, ReferenceDataImporter } from 'src/components/data/data-utils';
 import FileBrowser from 'src/components/data/FileBrowser';
 import LocalVariablesContent from 'src/components/data/LocalVariablesContent';
-import { useSavedColumnSettings } from 'src/components/data/SavedColumnSettings';
-import WDSContent from 'src/components/data/WDSContent';
-import { WdsTroubleshooter } from 'src/components/data/WdsTroubleshooter';
 import { icon, spinner } from 'src/components/icons';
 import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
 import { FlexTable, HeaderCell } from 'src/components/table';
 import { SnapshotInfo } from 'src/components/workspace-utils';
-import { ExportDataModal } from 'src/data/data-table/entity-service/ExportDataModal';
-import { RenameTableModal } from 'src/data/data-table/entity-service/RenameTableModal';
-import { renderDataCell } from 'src/data/data-table/entity-service/renderDataCell';
-import { EntityUploader } from 'src/data/data-table/shared/EntityUploader';
 import { Ajax } from 'src/libs/ajax';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
-import { resolveWdsUrl, WdsDataTableProvider, wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
+import { resolveWdsApp, WdsDataTableProvider, wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions';
 import { reportError, reportErrorAndRethrow, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { useImportJobs } from 'src/libs/import-jobs';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
@@ -46,6 +37,17 @@ import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+
+import EntitiesContent from './data-table/entity-service/EntitiesContent';
+import { ExportDataModal } from './data-table/entity-service/ExportDataModal';
+import { RenameTableModal } from './data-table/entity-service/RenameTableModal';
+import { renderDataCell } from './data-table/entity-service/renderDataCell';
+import { useSavedColumnSettings } from './data-table/entity-service/SavedColumnSettings';
+import { getRootTypeForSetTable } from './data-table/entity-service/table-utils';
+import { EntityUploader } from './data-table/shared/EntityUploader';
+import WDSContent from './data-table/wds/WDSContent';
+import { WdsTroubleshooter } from './data-table/wds/WdsTroubleshooter';
+import { useImportJobs } from './import-jobs';
 
 const styles = {
   tableContainer: {
@@ -729,18 +731,18 @@ export const WorkspaceData = _.flow(
     };
 
     const loadWdsUrl = useCallback((workspaceId) => {
-      // setWdsProxyUrl({ status: 'Loading', state: '' })
       return Ajax()
         .Apps.listAppsV2(workspaceId)
-        .then(resolveWdsUrl)
-        .then((url) => {
-          if (url) {
+        .then((apps) => {
+          const foundApp = resolveWdsApp(apps);
+          if (foundApp?.status === 'RUNNING') {
+            const url = foundApp.proxyUrls.wds;
             setWdsProxyUrl({ status: 'Ready', state: url });
+            return url;
           }
-          return url;
-        })
-        .catch((err) => {
-          setWdsProxyUrl({ status: 'Error', state: err });
+          if (foundApp?.status === 'ERROR') {
+            setWdsProxyUrl({ status: 'Error', state: 'WDS app is in ERROR state' });
+          }
           return '';
         });
     }, []);
@@ -1379,6 +1381,25 @@ export const WorkspaceData = _.flow(
                   undefined,
                   () =>
                     Utils.cond(
+                      [
+                        isAzureWorkspace && wdsError,
+                        () =>
+                          div(
+                            {
+                              style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' },
+                            },
+                            [
+                              'An error occurred while preparing your data tables.',
+                              div([
+                                'Please ',
+                                h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['check the status']),
+                                ' of your data table service and share the details with ',
+                                h(Link, { href: 'mailto:support@terra.bio' }, ['support@terra.bio']),
+                                ' to troubleshoot the problem.',
+                              ]),
+                            ]
+                          ),
+                      ],
                       [
                         isAzureWorkspace && !wdsReady,
                         () =>
