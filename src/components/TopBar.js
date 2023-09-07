@@ -269,7 +269,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                         h(
                           DropDownSubItem,
                           {
-                            onClick: signOut(SignOutCauses.requested),
+                            onClick: () => signOut(SignOutCauses.requested),
                           },
                           ['Sign Out']
                         ),
