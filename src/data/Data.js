@@ -23,6 +23,7 @@ import { SnapshotInfo } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
 import { resolveWdsApp, WdsDataTableProvider, wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
+import { appStatuses } from 'src/libs/ajax/leonardo/models/app-models';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions';
@@ -734,12 +735,12 @@ export const WorkspaceData = _.flow(
         .Apps.listAppsV2(workspaceId)
         .then((apps) => {
           const foundApp = resolveWdsApp(apps);
-          if (foundApp?.status === 'RUNNING') {
+          if (foundApp?.status === appStatuses.running.status) {
             const url = foundApp.proxyUrls.wds;
             setWdsProxyUrl({ status: 'Ready', state: url });
             return url;
           }
-          if (foundApp?.status === 'ERROR') {
+          if (foundApp?.status === appStatuses.error.status) {
             setWdsProxyUrl({ status: 'Error', state: 'WDS app is in ERROR state' });
           }
           return '';
