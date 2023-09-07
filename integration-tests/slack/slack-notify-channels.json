@@ -37,9 +37,6 @@
         },
         {
           "name": "run-workflow"
-        },
-        {
-          "name": "run-catalog-workflow"
         }
       ]
     },
@@ -69,13 +66,10 @@
           "name": "run-catalog-filter"
         },
         {
-          "name": "run-catalog-workflow"
+          "name": "export-tdr-dataset-to-workspace"
         },
         {
-          "name": "export-tdr-dataset-to-new-workspace"
-        },
-        {
-          "name": "export-workspace-dataset-to-new-workspace"
+          "name": "export-workspace-dataset-to-workspace"
         },
         {
           "name": "import-cohort-data"
