@@ -13,6 +13,8 @@ import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { useCancellation } from 'src/libs/react-utils';
 import { getUser } from 'src/libs/state';
@@ -86,7 +88,9 @@ export const ImportWorkflow = ({ path, version, source }) => {
       const res = await Ajax(signal).Cbas.methods.post(appUrls.cbasUrl, postRequestBody);
       const methodId = res.method_id;
 
-      Nav.goToPath('workspace-workflows-app-submission-config', { name, namespace, methodId });
+      isFeaturePreviewEnabled(ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP)
+        ? Nav.goToPath('workspace-workflows-app', { name, namespace, methodId })
+        : Nav.goToPath('workspace-workflows-app-submission-config', { name, namespace, methodId });
     } else {
       throw new Error(
         'Error identifying a unique and valid Cromwell App. Cromwell Apps are valid if they were created by the current user in the workspace and are in a Running state.'
