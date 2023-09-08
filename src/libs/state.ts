@@ -8,10 +8,10 @@ export const authStore = atom<any>({
   anonymousId: undefined,
   authContext: undefined,
   authTokenMetadata: {
+    id: undefined,
     createdAt: -1,
     expiresAt: -1,
-    id: undefined,
-    totalTokensThisSession: 0,
+    totalAuthTokensThisSession: 0,
   },
   cookiesAccepted: undefined,
   fenceStatus: {},
@@ -23,6 +23,12 @@ export const authStore = atom<any>({
     clientId: undefined,
   },
   profile: {},
+  refreshTokenMetadata: {
+    token: undefined, // do not log or send this to a user (could move to hash in the future)
+    id: undefined,
+    createdAt: -1,
+    expiresAt: -1,
+  },
   registrationStatus: undefined,
   sessionId: undefined,
   sessionStartTime: -1,

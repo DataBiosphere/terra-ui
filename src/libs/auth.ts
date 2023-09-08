@@ -187,6 +187,20 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
     const authTokenId: string = uuid();
     const jwtExpiresAt: number = (decodedJWT as any).exp; // time in seconds when the JWT expires, after which the JWT should not be read from
     // refresh token can be stored and labeled with a uuid, then only log the uuid
+    const refreshToken: string | undefined = user.refresh_token;
+    const isNewRefreshToken = refreshToken !== null && refreshToken !== oldTokenMetadata.refreshToken;
+    if (isNewRefreshToken) {
+      authStore.update((state) => ({
+        ...state,
+        refreshTokenMetadata: {
+          id: uuid(),
+          token: refreshToken,
+          createdAt: authTokenCreatedAt,
+          // I do not think we have any way of getting this info except by looking at B2C configs
+          expiresAt: authTokenCreatedAt + 86400, // 24 hours in seconds
+        },
+      }));
+    }
     authStore.update((state) => ({
       ...state,
       authTokenMetadata: {
@@ -194,7 +208,7 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
         expiresAt: authTokenExpiresAt,
         id: authTokenId,
         // there is a flaw here in that this is only the number of successful tokens created, not how many were attempted
-        totalTokensThisSession: authStore.get().authTokenMetadata.totalTokensThisSession + 1,
+        totalAuthTokensThisSession: authStore.get().authTokenMetadata.totalTokensThisSession + 1,
       },
     }));
     Ajax().Metrics.captureEvent(Events.user.authTokenLoad.success, {
@@ -206,6 +220,9 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
       authTokenCreatedAt: Utils.formatTimestampInSeconds(authTokenCreatedAt),
       authTokenExpiresAt: Utils.formatTimestampInSeconds(authTokenExpiresAt),
       authTokenId,
+      refreshTokenId: authStore.get().refreshTokenMetadata.id,
+      refreshTokenCreatedAt: Utils.formatTimestampInSeconds(authStore.get().refreshTokenMetadata.createdAt),
+      refreshTokenExpiresAt: Utils.formatTimestampInSeconds(authStore.get().refreshTokenMetadata.expiresAt),
       jwtExpiresAt: Utils.formatTimestampInSeconds(jwtExpiresAt),
     });
   } else if (reloadedAuthTokenState === null) {
@@ -213,6 +230,9 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
       oldAuthTokenCreatedAt: Utils.formatTimestampInSeconds(oldTokenMetadata.createdAt),
       oldAuthTokenExpiresAt: Utils.formatTimestampInSeconds(oldTokenMetadata.expiresAt),
       oldAuthTokenId: oldTokenMetadata.id,
+      refreshTokenId: authStore.get().refreshTokenMetadata.id,
+      refreshTokenCreatedAt: Utils.formatTimestampInSeconds(authStore.get().refreshTokenMetadata.createdAt),
+      refreshTokenExpiresAt: Utils.formatTimestampInSeconds(authStore.get().refreshTokenMetadata.expiresAt),
     });
   } else {
     Ajax().Metrics.captureEvent(Events.user.authTokenLoad.error, {
@@ -220,6 +240,9 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
       oldAuthTokenCreatedAt: Utils.formatTimestampInSeconds(oldTokenMetadata.createdAt),
       oldAuthTokenExpiresAt: Utils.formatTimestampInSeconds(oldTokenMetadata.expiresAt),
       oldAuthTokenId: oldTokenMetadata.id,
+      refreshTokenId: authStore.get().refreshTokenMetadata.id,
+      refreshTokenCreatedAt: Utils.formatTimestampInSeconds(authStore.get().refreshTokenMetadata.createdAt),
+      refreshTokenExpiresAt: Utils.formatTimestampInSeconds(authStore.get().refreshTokenMetadata.expiresAt),
     });
   }
   return reloadedAuthTokenState;
