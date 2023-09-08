@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { b, div, h, img } from 'react-hyperscript-helpers';
 import { absoluteSpinnerOverlay, ButtonPrimary, Clickable, DeleteConfirmationModal, Select, spinnerOverlay } from 'src/components/common';
 import Modal from 'src/components/Modal';
-import ReferenceData from 'src/data/reference-data';
+import ReferenceData from 'src/data/reference-data/references';
 import { Ajax } from 'src/libs/ajax';
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';
 import colors from 'src/libs/colors';
