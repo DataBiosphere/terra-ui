@@ -5,7 +5,7 @@ import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 import { isCovid19Method } from 'src/workflows-app/utils/method-common';
 
-const HelpfulLinksBox = ({ method }) => {
+const HelpfulLinksBox = ({ method, ...props }) => {
   return div(
     {
       style: {
@@ -15,6 +15,7 @@ const HelpfulLinksBox = ({ method }) => {
         paddingBottom: '0.5em',
         paddingLeft: '0.75em',
         paddingRight: '0.75em',
+        ...props.style,
       },
     },
     [
