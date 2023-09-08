@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { Fragment, ReactElement, useState } from 'react';
+import { Fragment, ReactElement, ReactNode, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link } from 'src/components/common';
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
@@ -60,7 +60,7 @@ export const WorkspaceImporter: (props: WorkspaceImporterInnerProps) => ReactEle
           ButtonPrimary,
           {
             disabled: !selectedWorkspace || additionalErrors,
-            tooltip: Utils.cond(
+            tooltip: Utils.cond<ReactNode>(
               [!selectedWorkspace, () => 'Select valid a workspace to import'],
               [additionalErrors, () => Utils.summarizeErrors(additionalErrors)],
               () => 'Import workflow to workspace'

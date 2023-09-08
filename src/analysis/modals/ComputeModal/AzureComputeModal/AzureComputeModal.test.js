@@ -2,7 +2,7 @@ import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { azureRuntime, defaultAzureWorkspace, defaultTestDisk, getDisk, imageDocs, testAzureDefaultRegion } from 'src/analysis/_testData/testData';
+import { azureRuntime, defaultTestDisk, getDisk, imageDocs, testAzureDefaultRegion } from 'src/analysis/_testData/testData';
 import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/analysis/utils/cost-utils';
 import { autopauseDisabledValue, defaultAutopauseThreshold } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels, runtimeTools } from 'src/analysis/utils/tool-utils';
@@ -10,6 +10,7 @@ import { Ajax } from 'src/libs/ajax';
 import { azureMachineTypes, defaultAzureMachineType, getMachineTypeLabel } from 'src/libs/azure-utils';
 import { formatUSD } from 'src/libs/utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { defaultAzureWorkspace } from 'src/testing/workspace-fixtures';
 
 import { AzureComputeModalBase } from './AzureComputeModal';
 

@@ -6,9 +6,9 @@ import * as Utils from 'src/libs/utils';
 
 export function TitleManager() {
   const { title, params, query } = useRoute();
-  const newTitle = Utils.cond(
+  const newTitle = Utils.cond<string>(
     [_.isFunction(title), () => title({ ...params, queryParams: query })],
-    [title, () => title],
+    [!!title, () => title],
     () => getEnabledBrand().name
   );
   useEffect(() => {

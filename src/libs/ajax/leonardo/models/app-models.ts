@@ -63,24 +63,26 @@ export interface GetAppResponse {
   errors: AppError[];
   status: LeoAppStatus;
   proxyUrls: Record<string, string>;
-  diskName?: string;
+  diskName: string | null;
   customEnvironmentVariables: Record<string, string>;
   auditInfo: AuditInfo;
   appType: AppToolLabel;
+  accessScope: string | null;
   labels: LeoResourceLabels;
 }
 
 export interface ListAppResponse {
-  workspaceId?: string;
+  workspaceId: string | null;
   appName: string;
   cloudContext: CloudContext;
   kubernetesRuntimeConfig: KubernetesRuntimeConfig;
   errors: AppError[];
   status: LeoAppStatus;
   proxyUrls: Record<string, string>;
-  diskName?: string;
+  diskName: string | null;
   auditInfo: AuditInfo;
   appType: AppToolLabel;
+  accessScope: string | null;
   labels: LeoResourceLabels;
 }
 

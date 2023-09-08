@@ -4,11 +4,12 @@ import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { defaultGoogleWorkspace } from 'src/analysis/_testData/testData';
-import DataTable from 'src/components/data/DataTable';
 import { Ajax } from 'src/libs/ajax';
 import { DataTableProvider } from 'src/libs/ajax/data-table-providers/DataTableProvider';
 import { asMockedFn } from 'src/testing/test-utils';
+import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+
+import DataTable from './DataTable';
 
 type AjaxContract = ReturnType<typeof Ajax>;
 

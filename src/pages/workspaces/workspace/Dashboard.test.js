@@ -3,16 +3,58 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { defaultLocation } from 'src/analysis/utils/runtime-utils';
-import { locationTypes } from 'src/components/region-common';
 import { Ajax } from 'src/libs/ajax';
 import { authStore } from 'src/libs/state';
-import { AzureStorageDetails, BucketLocation, WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard';
+import { AzureStorageDetails, BucketLocation, WorkspaceInformation, WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard';
 import { asMockedFn } from 'src/testing/test-utils';
+import {
+  defaultAzureStorageOptions,
+  defaultGoogleBucketOptions,
+  defaultGoogleWorkspace,
+  protectedAzureWorkspace,
+} from 'src/testing/workspace-fixtures';
 
 jest.mock('src/libs/ajax');
 
 jest.mock('src/libs/notifications');
+
+describe('WorkspaceInformation', () => {
+  it('renders information for a non-protected workspace and does not fail accessibility tests', async () => {
+    // Act
+    const { container } = render(h(WorkspaceInformation, { workspace: defaultGoogleWorkspace }));
+
+    // Assert
+    // Access Level
+    expect(screen.getAllByText('Owner')).not.toBeNull();
+    // Created date
+    expect(screen.getAllByText('2/15/2023')).not.toBeNull();
+    // Last updated date
+    expect(screen.getAllByText('3/15/2023')).not.toBeNull();
+    // Should not have workspace protected entry
+    expect(screen.queryByText('Workspace Protected')).toBeNull();
+
+    // Accessibility
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it('renders information for a protected workspace and does not fail accessibility tests', async () => {
+    // Act
+    const { container } = render(h(WorkspaceInformation, { workspace: protectedAzureWorkspace }));
+
+    // Assert
+    // Access Level
+    expect(screen.getAllByText('Owner')).not.toBeNull();
+    // Created date
+    expect(screen.getAllByText('2/15/2023')).not.toBeNull();
+    // Last updated date
+    expect(screen.getAllByText('3/15/2023')).not.toBeNull();
+    // Should show protected workspace information.
+    expect(screen.getAllByText('Workspace Protected')).not.toBeNull();
+
+    // Accessibility
+    expect(await axe(container)).toHaveNoViolations();
+  });
+});
 
 describe('WorkspaceNotifications', () => {
   const testWorkspace = { workspace: { namespace: 'test', name: 'test' } };
@@ -99,17 +141,6 @@ describe('WorkspaceNotifications', () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 });
-
-const defaultGoogleBucketOptions = {
-  googleBucketLocation: defaultLocation,
-  googleBucketType: locationTypes.default,
-  fetchedGoogleBucketLocation: undefined,
-};
-const defaultAzureStorageOptions = {
-  azureContainerRegion: undefined,
-  azureContainerUrl: undefined,
-  azureContainerSasUrl: undefined,
-};
 
 describe('BucketLocation', () => {
   const workspace = { workspace: { namespace: 'test', name: 'test', cloudPlatform: 'Gcp' }, workspaceInitialized: true };

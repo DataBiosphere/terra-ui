@@ -1,4 +1,4 @@
-import { Dispatch, Fragment, SetStateAction, useEffect, useRef, useState } from 'react';
+import { Dispatch, Fragment, ReactNode, SetStateAction, useEffect, useRef, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { ButtonOutline, Link, topSpinnerOverlay } from 'src/components/common';
 import Dropzone from 'src/components/Dropzone';
@@ -204,7 +204,7 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
                     },
                   },
                   [
-                    Utils.cond(
+                    Utils.cond<ReactNode>(
                       [status === 'Loading', () => 'Loading files...'],
                       [status === 'Error', () => 'Unable to load files'],
                       () =>

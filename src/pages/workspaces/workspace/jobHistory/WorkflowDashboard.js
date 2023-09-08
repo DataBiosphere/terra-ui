@@ -15,8 +15,8 @@ import {
   statusType,
   workflowDetailsBreadcrumbSubtitle,
 } from 'src/components/job-common';
-import { UriViewer } from 'src/components/UriViewer/UriViewer';
 import WDLViewer from 'src/components/WDLViewer';
+import { UriViewer } from 'src/data/data-table/uri-viewer/UriViewer';
 import { Ajax } from 'src/libs/ajax';
 import { bucketBrowserUrl } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';

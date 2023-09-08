@@ -5,7 +5,6 @@ import { ContextBar } from 'src/analysis/ContextBar';
 import { analysisTabName } from 'src/analysis/runtime-common-components';
 import RuntimeManager from 'src/analysis/RuntimeManager';
 import { getDiskAppType } from 'src/analysis/utils/app-utils';
-import { mapToPdTypes } from 'src/analysis/utils/disk-utils';
 import { getConvertedRuntimeStatus, getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
@@ -25,44 +24,13 @@ import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-uti
 import { getUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
+import { hasProtectedData, isAzureWorkspace, isGoogleWorkspace, protectedDataMessage } from 'src/libs/workspace-utils';
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
 import { useWorkspace } from 'src/pages/workspaces/workspace/useWorkspace';
+import WorkspaceAttributeNotice from 'src/pages/workspaces/workspace/WorkspaceAttributeNotice';
 import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu';
-
-export const WorkspacePermissionNotice = ({ accessLevel, isLocked }) => {
-  const isReadOnly = !Utils.canWrite(accessLevel);
-
-  return (
-    (isReadOnly || isLocked) &&
-    span(
-      {
-        style: {
-          display: 'inline-flex',
-          alignItems: 'center',
-          height: '2rem',
-          padding: '0 1rem',
-          borderRadius: '1rem',
-          marginRight: '2rem',
-          backgroundColor: colors.dark(0.15),
-          textTransform: 'none',
-        },
-      },
-      [
-        isLocked ? icon('lock', { size: 16 }) : icon('eye', { size: 20 }),
-        span({ style: { marginLeft: '1ch' } }, [
-          Utils.cond(
-            [isLocked && isReadOnly, () => 'Workspace is locked and read only'],
-            [isLocked, () => 'Workspace is locked'],
-            [isReadOnly, () => 'Workspace is read only']
-          ),
-        ]),
-      ]
-    )
-  );
-};
 
 const TitleBarWarning = (messageComponents) => {
   return h(TitleBar, {
@@ -155,7 +123,12 @@ export const WorkspaceTabs = ({
         getHref: (currentTab) => Nav.getLink(_.find({ name: currentTab }, tabs).link, { namespace, name }),
       },
       [
-        workspace && h(WorkspacePermissionNotice, { accessLevel: workspace.accessLevel, isLocked }),
+        workspace &&
+          h(WorkspaceAttributeNotice, {
+            accessLevel: workspace.accessLevel,
+            isLocked,
+            workspaceProtectedMessage: hasProtectedData(workspace) ? protectedDataMessage : undefined,
+          }),
         h(WorkspaceMenu, {
           iconSize: 27,
           popupLocation: 'bottom',
@@ -359,7 +332,7 @@ const useCloudEnvironmentPolling = (workspace) => {
 
       setRuntimes(newRuntimes);
       setAppDataDisks(_.remove((disk) => _.isUndefined(getDiskAppType(disk)), newDisks));
-      setPersistentDisks(mapToPdTypes(_.filter((disk) => _.isUndefined(getDiskAppType(disk)), newDisks)));
+      setPersistentDisks(_.filter((disk) => _.isUndefined(getDiskAppType(disk)), newDisks));
       const runtime = getCurrentRuntime(newRuntimes);
       reschedule(
         maybeStale || ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring'].includes(getConvertedRuntimeStatus(runtime))

@@ -6,16 +6,15 @@ import {
 } from 'src/analysis/utils/disk-utils';
 import { defaultGceMachineType, defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels, tools } from 'src/analysis/utils/tool-utils';
-import { App } from 'src/libs/ajax/leonardo/models/app-models';
+import { App, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { cloudServiceTypes, RuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
-import { ListRuntimeItem, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { GetRuntimeItem, ListRuntimeItem, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { defaultAzureRegion } from 'src/libs/azure-utils';
 import * as Utils from 'src/libs/utils';
 import { AzureWorkspace, cloudProviderTypes, GoogleWorkspace } from 'src/libs/workspace-utils';
+import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { v4 as uuid } from 'uuid';
-
-const defaultGoogleWorkspaceNamespace = 'test-ws';
 
 // this is important, so the test impl can diverge
 export const testDefaultLocation = defaultLocation;
@@ -53,6 +52,18 @@ export const hailImage = {
   version: '1.0.20',
 };
 
+export const pegasusImage = {
+  id: 'Pegasus',
+  image: 'cumulusprod/pegasus-terra:1.6.0',
+  isCommunity: true,
+  label: 'Pegasus (Pegasuspy 1.6.0, Python 3.7.12, harmony-pytorch 0.1.7, nmf-torch 0.1.1, scVI-tools 0.16.0)',
+  packages:
+    'https://raw.githubusercontent.com/lilab-bcb/cumulus/master/docker/pegasus-terra/1.6.0/pegasus-terra-1_6_0-versions.json',
+  requiresSpark: false,
+  updated: '2022-04-16',
+  version: '1.6.0',
+};
+
 export const imageDocs = [
   defaultImage,
   {
@@ -76,17 +87,7 @@ export const imageDocs = [
     updated: '2022-08-18',
     version: '1.0.13',
   },
-  {
-    id: 'Pegasus',
-    image: 'cumulusprod/pegasus-terra:1.6.0',
-    isCommunity: true,
-    label: 'Pegasus (Pegasuspy 1.6.0, Python 3.7.12, harmony-pytorch 0.1.7, nmf-torch 0.1.1, scVI-tools 0.16.0)',
-    packages:
-      'https://raw.githubusercontent.com/lilab-bcb/cumulus/master/docker/pegasus-terra/1.6.0/pegasus-terra-1_6_0-versions.json',
-    requiresSpark: false,
-    updated: '2022-04-16',
-    version: '1.6.0',
-  },
+  pegasusImage,
   defaultRImage,
   {
     id: 'OpenVINO integration with Tensorflow',
@@ -120,23 +121,6 @@ export const imageDocs = [
   },
 ];
 
-export const defaultGoogleWorkspace: GoogleWorkspace = {
-  workspace: {
-    authorizationDomain: [],
-    cloudPlatform: 'Gcp',
-    bucketName: 'test-bucket',
-    googleProject: `${defaultGoogleWorkspaceNamespace}-project`,
-    name: `${defaultGoogleWorkspaceNamespace}_ws`,
-    namespace: defaultGoogleWorkspaceNamespace,
-    workspaceId: 'testGoogleWorkspaceId',
-    createdDate: '2023-02-15T19:17:15.711Z',
-    createdBy: 'groot@gmail.com',
-  },
-  accessLevel: 'OWNER',
-  canShare: true,
-  canCompute: true,
-};
-
 export const generateGoogleWorkspace = (prefix: string = uuid().substring(0, 8)): GoogleWorkspace => ({
   workspace: {
     authorizationDomain: [],
@@ -148,6 +132,7 @@ export const generateGoogleWorkspace = (prefix: string = uuid().substring(0, 8))
     workspaceId: uuid().substring(0, 8),
     createdDate: '2023-02-15T19:17:15.711Z',
     createdBy: 'justin@gmail.com',
+    lastModified: '2023-03-15T19:17:15.711Z',
   },
   accessLevel: 'OWNER',
   canShare: true,
@@ -163,6 +148,7 @@ export const generateAzureWorkspace = (prefix: string = uuid().substring(0, 8)):
     workspaceId: uuid().substring(0, 8),
     createdDate: '2023-02-15T19:17:15.711Z',
     createdBy: 'groot@gmail.com',
+    lastModified: '2023-03-15T19:17:15.711Z',
   },
   azureContext: {
     managedResourceGroupId: 'test-mrg',
@@ -173,26 +159,6 @@ export const generateAzureWorkspace = (prefix: string = uuid().substring(0, 8)):
   canShare: true,
   canCompute: true,
 });
-
-export const defaultAzureWorkspace: AzureWorkspace = {
-  workspace: {
-    authorizationDomain: [],
-    cloudPlatform: 'Azure',
-    name: 'test-azure-ws-name',
-    namespace: 'test-azure-ws-namespace',
-    workspaceId: 'fafbb550-62eb-4135-8b82-3ce4d53446af',
-    createdDate: '2023-02-15T19:17:15.711Z',
-    createdBy: 'justin@gmail.com',
-  },
-  azureContext: {
-    managedResourceGroupId: 'test-mrg',
-    subscriptionId: 'test-sub-id',
-    tenantId: 'test-tenant-id',
-  },
-  accessLevel: 'OWNER',
-  canShare: true,
-  canCompute: true,
-};
 
 export const defaultTestDisk = {
   id: 15778,
@@ -250,6 +216,7 @@ export const getRandomInt = (max) => Math.floor(Math.random() * max);
 export const defaultAuditInfo = {
   creator: 'testuser123@broad.com',
   createdDate: '2022-07-18T18:35:32.012698Z',
+  destroyedDate: null,
   dateAccessed: '2022-07-18T21:44:17.565Z',
 };
 
@@ -266,8 +233,8 @@ export const getRuntimeConfig = (overrides: Partial<RuntimeConfig> = {}): Runtim
 });
 
 // Use this if you only need to override top-level fields, otherwise use `getGoogleRuntime`
-export const generateTestGoogleRuntime = (overrides: Partial<Runtime> = {}): Runtime => {
-  const runtime: Runtime = {
+export const generateTestGetGoogleRuntime = (overrides: Partial<GetRuntimeItem> = {}): GetRuntimeItem => {
+  const runtime: GetRuntimeItem = {
     id: getRandomInt(randomMaxInt),
     runtimeName: 'test-runtime',
     cloudContext: {
@@ -325,6 +292,49 @@ export const generateTestGoogleRuntime = (overrides: Partial<Runtime> = {}): Run
     scopes: [],
     customEnvironmentVariables: {},
     patchInProgress: false,
+    asyncRuntimeFields: null,
+    userScriptUri: null,
+    startUserScriptUri: null,
+    jupyterUserScriptUri: null,
+    jupyterStartUserScriptUri: null,
+    userJupyterExtensionConfig: null,
+    defaultClientId: null,
+    diskConfig: null,
+    ...overrides,
+  };
+
+  return runtime;
+};
+
+// Use this if you only need to override top-level fields, otherwise use `listGoogleRuntime`
+export const generateTestListGoogleRuntime = (overrides: Partial<ListRuntimeItem> = {}): ListRuntimeItem => {
+  const runtime: ListRuntimeItem = {
+    id: getRandomInt(randomMaxInt),
+    workspaceId: null,
+    runtimeName: 'test-runtime',
+    cloudContext: {
+      cloudProvider: cloudProviderTypes.GCP,
+      cloudResource: defaultGoogleWorkspace.workspace.googleProject,
+    },
+    googleProject: 'terra-test-e4000484',
+    auditInfo: defaultAuditInfo,
+    runtimeConfig: getRuntimeConfig(),
+    proxyUrl: 'https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-test-e4000484/test-runtime/jupyter',
+    status: runtimeStatuses.running.leoLabel,
+    labels: {
+      ...defaultWorkspaceLabels,
+      'saturn-iframe-extension': 'https://bvdp-saturn-dev.appspot.com/jupyter-iframe-extension.js',
+      creator: 'testuser123@broad.com',
+      clusterServiceAccount: 'pet-26534176105071279add1@terra-dev-cf677740.iam.gserviceaccount.com',
+      saturnAutoCreated: 'true',
+      clusterName: 'test-runtime',
+      saturnVersion: '6',
+      tool: runtimeToolLabels.Jupyter,
+      runtimeName: 'test-runtime',
+      cloudContext: 'Gcp/terra-test-e4000484',
+      googleProject: 'terra-test-e4000484',
+    },
+    patchInProgress: false,
     ...overrides,
   };
 
@@ -337,10 +347,10 @@ export const getGoogleDataProcRuntime = ({
   status = runtimeStatuses.running.leoLabel,
   tool = tools.HAIL_BATCH.label,
   runtimeConfig = getRuntimeConfig(),
-} = {}): Runtime => {
+} = {}): ListRuntimeItem => {
   return {
     id: getRandomInt(randomMaxInt),
-    workspaceId: undefined,
+    workspaceId: null,
     runtimeName,
     googleProject: workspace.workspace.googleProject,
     cloudContext: {
@@ -350,7 +360,7 @@ export const getGoogleDataProcRuntime = ({
     auditInfo: {
       creator: 'broadterraui@gmail.com',
       createdDate: '2023-05-24T20:38:27.993689Z',
-      destroyedDate: undefined,
+      destroyedDate: null,
       dateAccessed: '2023-05-24T20:38:28.651Z',
     },
     runtimeConfig,
@@ -374,7 +384,7 @@ export const getGoogleDataProcRuntime = ({
   };
 };
 
-// Use this if you want a shortcut to override nested fields. Otherwise use `generateTestGoogleRuntime`
+// Use this if you want a shortcut to override nested fields. Otherwise use `generateTestGoogleGetRuntime`
 export const getGoogleRuntime = ({
   workspace = defaultGoogleWorkspace,
   runtimeName = Utils.generateRuntimeName(),
@@ -382,7 +392,7 @@ export const getGoogleRuntime = ({
   tool = tools.Jupyter,
   runtimeConfig = getJupyterRuntimeConfig(),
   image = undefined,
-} = {}): Runtime => {
+} = {}): GetRuntimeItem => {
   const googleProject = workspace.workspace.googleProject;
   const imageUri =
     image ||
@@ -394,7 +404,6 @@ export const getGoogleRuntime = ({
 
   return {
     id: getRandomInt(randomMaxInt),
-    workspaceId: undefined,
     runtimeName,
     googleProject,
     cloudContext: {
@@ -453,11 +462,64 @@ export const getGoogleRuntime = ({
     ],
     scopes: [],
     customEnvironmentVariables: {},
+    asyncRuntimeFields: null,
+    userScriptUri: null,
+    startUserScriptUri: null,
+    jupyterUserScriptUri: null,
+    jupyterStartUserScriptUri: null,
+    userJupyterExtensionConfig: null,
+    defaultClientId: null,
+    diskConfig: null,
+    patchInProgress: false,
+  };
+};
+
+// Use this if you want a shortcut to override nested fields. Otherwise use `generateTestListGoogleRuntime`
+export const listGoogleRuntime = ({
+  workspace = defaultGoogleWorkspace,
+  runtimeName = Utils.generateRuntimeName(),
+  status = runtimeStatuses.running.leoLabel,
+  tool = tools.Jupyter,
+  runtimeConfig = getJupyterRuntimeConfig(),
+} = {}): ListRuntimeItem => {
+  const googleProject = workspace.workspace.googleProject;
+  const workspaceId = workspace.workspace.workspaceId;
+
+  return {
+    id: getRandomInt(randomMaxInt),
+    workspaceId,
+    runtimeName,
+    googleProject,
+    cloudContext: {
+      cloudProvider: cloudProviderTypes.GCP,
+      cloudResource: googleProject,
+    },
+    auditInfo: defaultAuditInfo,
+    runtimeConfig,
+    proxyUrl: `https://leonardo.dsde-dev.broadinstitute.org/proxy/${googleProject}/${runtimeName}/${_.toLower(
+      tool.label
+    )}`,
+    status,
+    labels: {
+      ...defaultWorkspaceLabels,
+      'saturn-iframe-extension': 'https://bvdp-saturn-dev.appspot.com/jupyter-iframe-extension.js',
+      creator: 'testuser123@broad.com',
+      clusterServiceAccount: 'pet-26534176105071279add1@terra-dev-cf677740.iam.gserviceaccount.com',
+      saturnAutoCreated: 'true',
+      clusterName: runtimeName,
+      saturnVersion: '6',
+      tool: tool.label,
+      runtimeName,
+      cloudContext: `Gcp/${googleProject}`,
+      googleProject,
+    },
     patchInProgress: false,
   };
 };
 
 export const galaxyRunning: App = {
+  workspaceId: null,
+  accessScope: null,
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -467,6 +529,7 @@ export const galaxyRunning: App = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:19:13.162484Z',
   },
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
@@ -480,6 +543,8 @@ export const galaxyRunning: App = {
 };
 
 export const galaxyDeleting: App = {
+  workspaceId: null,
+  accessScope: null,
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -489,6 +554,7 @@ export const galaxyDeleting: App = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-30T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-30T20:19:13.162484Z',
   },
   diskName: 'saturn-pd-1236594ac-d829-423d-a8df-76fe96f5897',
@@ -501,7 +567,9 @@ export const galaxyDeleting: App = {
   status: 'DELETING',
 };
 
-export const generateTestApp = (overrides: Partial<App>): App => ({
+export const generateTestApp = (overrides: Partial<ListAppResponse>): ListAppResponse => ({
+  workspaceId: null,
+  accessScope: null,
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -511,6 +579,7 @@ export const generateTestApp = (overrides: Partial<App>): App => ({
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:19:13.162484Z',
   },
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
@@ -525,9 +594,11 @@ export const generateTestApp = (overrides: Partial<App>): App => ({
 });
 
 export const generateTestAppWithGoogleWorkspace = (
-  overrides: Partial<App> = {},
+  overrides: Partial<ListAppResponse> = {},
   workspace: GoogleWorkspace = defaultGoogleWorkspace
-): App => ({
+): ListAppResponse => ({
+  workspaceId: null,
+  accessScope: null,
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: workspace.workspace.googleProject,
@@ -537,6 +608,7 @@ export const generateTestAppWithGoogleWorkspace = (
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:19:13.162484Z',
   },
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
@@ -554,9 +626,11 @@ export const generateTestAppWithGoogleWorkspace = (
 });
 
 export const generateTestAppWithAzureWorkspace = (
-  overrides: Partial<App> = {},
+  overrides: Partial<ListAppResponse> = {},
   workspace: AzureWorkspace = defaultAzureWorkspace
-): App => ({
+): ListAppResponse => ({
+  workspaceId: null,
+  accessScope: null,
   cloudContext: {
     cloudProvider: 'AZURE',
     cloudResource: `${workspace.azureContext.tenantId}/${workspace.azureContext.subscriptionId}/${workspace.azureContext.managedResourceGroupId}`,
@@ -566,6 +640,7 @@ export const generateTestAppWithAzureWorkspace = (
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:19:13.162484Z',
   },
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
@@ -589,10 +664,15 @@ export const generateTestDiskWithGoogleWorkspace = (
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    value: 'pd-standard',
+    label: 'Standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: workspace.workspace.googleProject,
@@ -617,10 +697,15 @@ export const generateTestDiskWithAzureWorkspace = (
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    value: 'pd-standard',
+    label: 'Standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   cloudContext: {
     cloudProvider: cloudProviderTypes.AZURE,
     cloudResource: `${workspace.azureContext.tenantId}/${workspace.azureContext.subscriptionId}/${workspace.azureContext.managedResourceGroupId}`,
@@ -642,10 +727,15 @@ export const generateTestDisk = (overrides: Partial<PersistentDisk> = {}): Persi
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    value: 'pd-standard',
+    label: 'Standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -663,10 +753,15 @@ export const galaxyDisk: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-29T20:19:13.162484Z',
+    destroyedDate: null,
     dateAccessed: '2021-11-29T20:19:14.114Z',
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    value: 'pd-standard',
+    label: 'Standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
     cloudResource: 'terra-test-e4000484',
@@ -691,10 +786,15 @@ export const azureDisk: PersistentDisk = {
   auditInfo: {
     creator: 'test.user@gmail.com',
     createdDate: '2023-02-01T20:40:50.428281Z',
+    destroyedDate: null,
     dateAccessed: '2023-02-01T20:41:00.357Z',
   },
   size: 50,
-  diskType: 'pd-standard', // TODO: This should be stored in backend as Standard_LRS
+  diskType: {
+    value: 'pd-standard',
+    label: 'Standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  }, // TODO: This should be stored in backend as Standard_LRS
   blockSize: 4096,
   labels: {
     saturnWorkspaceNamespace: defaultAzureWorkspace.workspace.namespace,
@@ -716,6 +816,7 @@ export const azureRuntime: ListRuntimeItem = {
   auditInfo: {
     creator: 'testuser123@broad.com',
     createdDate: '2023-02-01T20:40:50.428281Z',
+    destroyedDate: null,
     dateAccessed: '2023-02-01T20:41:00.357Z',
   },
   runtimeConfig: {
@@ -747,10 +848,12 @@ export const dataprocRuntime: ListRuntimeItem = {
   id: 81666,
   runtimeName: 'saturn-a5eec7f3-857d-4fab-b26c-6f1291082641',
   googleProject: defaultGoogleWorkspace.workspace.googleProject,
+  workspaceId: null,
   cloudContext: { cloudProvider: 'GCP', cloudResource: defaultGoogleWorkspace.workspace.googleProject },
   auditInfo: {
     creator: 'jcanas@broadinstitute.org',
     createdDate: '2023-05-03T19:53:22.510154Z',
+    destroyedDate: null,
     dateAccessed: '2023-05-03T19:53:23.559367Z',
   },
   runtimeConfig: {

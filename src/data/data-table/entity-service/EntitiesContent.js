@@ -11,7 +11,6 @@ import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/b
 import { ButtonSecondary } from 'src/components/common';
 import { DataTableColumnProvenance } from 'src/components/data/data-table-provenance';
 import { ModalToolButton } from 'src/components/data/data-utils';
-import DataTable from 'src/components/data/DataTable';
 import { icon, spinner } from 'src/components/icons';
 import IGVBrowser from 'src/components/IGVBrowser';
 import IGVFileSelector from 'src/components/IGVFileSelector';
@@ -22,13 +21,6 @@ import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
 import TitleBar from 'src/components/TitleBar';
 import WorkflowSelector from 'src/components/WorkflowSelector';
 import datasets from 'src/constants/datasets';
-import { AddColumnModal } from 'src/data/data-table/entity-service/AddColumnModal';
-import { AddEntityModal } from 'src/data/data-table/entity-service/AddEntityModal';
-import { CreateEntitySetModal } from 'src/data/data-table/entity-service/CreateEntitySetModal';
-import { entityAttributeText } from 'src/data/data-table/entity-service/entityAttributeText';
-import { EntityDeleter } from 'src/data/data-table/entity-service/EntityDeleter';
-import { ExportDataModal } from 'src/data/data-table/entity-service/ExportDataModal';
-import { MultipleEntityEditor } from 'src/data/data-table/entity-service/MultipleEntityEditor';
 import dataExplorerLogo from 'src/images/data-explorer-logo.svg';
 import igvLogo from 'src/images/igv-logo.png';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
@@ -45,6 +37,15 @@ import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+
+import DataTable from '../shared/DataTable';
+import { AddColumnModal } from './AddColumnModal';
+import { AddEntityModal } from './AddEntityModal';
+import { CreateEntitySetModal } from './CreateEntitySetModal';
+import { entityAttributeText } from './entityAttributeText';
+import { EntityDeleter } from './EntityDeleter';
+import { ExportDataModal } from './ExportDataModal';
+import { MultipleEntityEditor } from './MultipleEntityEditor';
 
 const getDataset = (dataExplorerUrl) => {
   // Either cohort was imported from standalone Data Explorer, eg

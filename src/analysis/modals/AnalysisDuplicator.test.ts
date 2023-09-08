@@ -1,7 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/analysis/_testData/testData';
 import { AnalysisDuplicator, AnalysisDuplicatorProps } from 'src/analysis/modals/AnalysisDuplicator';
 import { AnalysisFile, getFileFromPath, useAnalysisFiles } from 'src/analysis/useAnalysisFiles';
 import { AbsolutePath, getExtension } from 'src/analysis/utils/file-utils';
@@ -10,6 +9,7 @@ import { AzureStorage, AzureStorageContract } from 'src/libs/ajax/AzureStorage';
 import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage';
 import { errorWatcher } from 'src/libs/error.mock';
 import { asMockedFn } from 'src/testing/test-utils';
+import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 type ModalMockExports = typeof import('src/components/Modal.mock');
 jest.mock('src/components/Modal', () => {
