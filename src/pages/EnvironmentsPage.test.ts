@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { Environments, EnvironmentsProps, UseWorkspacesProvider } from 'src/analysis/Environments/Environments';
+import { Environments, EnvironmentsProps, UseWorkspacesState } from 'src/analysis/Environments/Environments';
 import { useWorkspaces } from 'src/components/workspace-utils';
 import { leoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
@@ -60,7 +60,7 @@ describe('Environments Page', () => {
     expect(watcher).toBeCalledWith(
       expect.objectContaining({
         nav: navProvider,
-        useWorkspacesState: useWorkspaces as UseWorkspacesProvider,
+        useWorkspacesState: useWorkspaces as UseWorkspacesState,
         leoAppData: leoAppProvider,
         leoRuntimeData: leoRuntimeProvider,
         leoDiskData: leoDiskProvider,

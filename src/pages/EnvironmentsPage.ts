@@ -1,7 +1,7 @@
 import { NavLinkProvider } from '@terra-ui-packages/core-utils';
 import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { EnvironmentNavActions, Environments, UseWorkspacesProvider } from 'src/analysis/Environments/Environments';
+import { EnvironmentNavActions, Environments, UseWorkspacesState } from 'src/analysis/Environments/Environments';
 import FooterWrapper from 'src/components/FooterWrapper';
 import TopBar from 'src/components/TopBar';
 import { useWorkspaces } from 'src/components/workspace-utils';
@@ -42,7 +42,7 @@ export const EnvironmentsPage = (): ReactNode => {
     h(TopBar, { title: 'Cloud Environments', href: '' }, []),
     h(Environments, {
       nav: navProvider,
-      useWorkspacesState: useWorkspaces as UseWorkspacesProvider,
+      useWorkspacesState: useWorkspaces as UseWorkspacesState,
       leoAppData: leoAppProvider,
       leoRuntimeData: leoRuntimeProvider,
       leoDiskData: leoDiskProvider,
