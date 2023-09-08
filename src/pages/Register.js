@@ -1,6 +1,7 @@
+import _ from 'lodash/fp';
 import { useState } from 'react';
-import { div, h, label } from 'react-hyperscript-helpers';
-import { ButtonPrimary, ButtonSecondary, IdContainer } from 'src/components/common';
+import { div, h, h3, label, span } from 'react-hyperscript-helpers';
+import { ButtonPrimary, ButtonSecondary, IdContainer, LabeledCheckbox } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import { TextInput } from 'src/components/input';
 import planet from 'src/images/register-planet.svg';
@@ -13,26 +14,80 @@ import { registrationLogo } from 'src/libs/logos';
 import { authStore, getUser, userStatus } from 'src/libs/state';
 import validate from 'validate.js';
 
-const constraints = {
-  givenName: { presence: { allowEmpty: false } },
-  familyName: { presence: { allowEmpty: false } },
-  email: { presence: { allowEmpty: false } },
+const constraints = (partOfOrg) => {
+  return {
+    givenName: { presence: { allowEmpty: false } },
+    familyName: { presence: { allowEmpty: false } },
+    email: { presence: { allowEmpty: false } },
+    institute: { presence: { allowEmpty: !partOfOrg } },
+    department: { presence: { allowEmpty: !partOfOrg } },
+    title: { presence: { allowEmpty: !partOfOrg } },
+  };
 };
 
 const Register = () => {
   const user = getUser();
+  const profile = authStore.get().profile;
   const [busy, setBusy] = useState(false);
   const [givenName, setGivenName] = useState(user.givenName || '');
   const [familyName, setFamilyName] = useState(user.familyName || '');
   const [email, setEmail] = useState(user.email || '');
+  const [partOfOrganization, setPartOfOrganization] = useState(true);
+  const [institute, setInstitute] = useState(profile.institute || ''); // keep this key as 'institute' to be backwards compatible with existing Thurloe KVs
+  const [title, setTitle] = useState(profile.title || '');
+  const [department, setDepartment] = useState(profile.department || '');
+  const [interestInTerra, setInterestInTerra] = useState(!!profile.interestInTerra || '');
+
+  const checkboxLine = (children) =>
+    div(
+      {
+        style: {
+          marginRight: '1rem',
+        },
+      },
+      children
+    );
+  const interestInTerraCheckbox = (title) =>
+    div({ style: { marginTop: '.25rem' } }, [
+      h(
+        LabeledCheckbox,
+        {
+          checked: _.includes(title, interestInTerra),
+          onChange: (v) => {
+            const interestsList = _.isEmpty(interestInTerra) ? [] : _.split(',', interestInTerra);
+            const updatedInterestsList = v ? _.concat(interestsList, [title]) : _.without([title], interestsList);
+            setInterestInTerra(_.join(',', updatedInterestsList));
+          },
+        },
+        [
+          span(
+            {
+              style: {
+                marginLeft: '0.5rem',
+              },
+            },
+            [title]
+          ),
+        ]
+      ),
+    ]);
 
   const register = async () => {
     try {
       setBusy(true);
+      const orgFields = partOfOrganization
+        ? {
+            institute,
+            department,
+            title,
+          }
+        : {};
       await Ajax().User.profile.set({
         firstName: givenName,
         lastName: familyName,
         contactEmail: email,
+        interestInTerra,
+        ...orgFields,
       });
       authStore.update((state) => ({ ...state, registrationStatus: userStatus.registeredWithoutTos }));
       await refreshTerraProfile();
@@ -42,8 +97,7 @@ const Register = () => {
       setBusy(false);
     }
   };
-
-  const errors = validate({ givenName, familyName, email }, constraints);
+  const errors = validate({ givenName, familyName, email, institute, title, department }, constraints(partOfOrganization));
   return div(
     {
       role: 'main',
@@ -105,10 +159,80 @@ const Register = () => {
                 id,
                 value: email,
                 onChange: (v) => setEmail(v),
-                style: { width: '50ex' },
+                style: { width: '66ex' },
               }),
             ]),
           ]),
+      ]),
+      h(IdContainer, [
+        (id) =>
+          div({ style: { lineHeight: '170%' } }, [
+            label({ htmlFor: id, style: { display: 'block', marginTop: '2rem' } }, ['Organization *']),
+            div([
+              h(TextInput, {
+                id,
+                value: institute,
+                onChange: (v) => setInstitute(v),
+                disabled: !partOfOrganization,
+                style: { width: '66ex' },
+              }),
+            ]),
+          ]),
+      ]),
+      h(IdContainer, [
+        (id) =>
+          h(div, { style: { lineHeight: '170%', style: { marginTop: '0.25rem' } } }, [
+            h(
+              LabeledCheckbox,
+              {
+                checked: !partOfOrganization,
+                onChange: () => setPartOfOrganization(!partOfOrganization),
+                'aria-describedby': id,
+              },
+              [label({ htmlFor: id, style: { marginLeft: '0.25rem' } }, ['I am not a part of an organization'])]
+            ),
+          ]),
+      ]),
+      div({ style: { marginTop: '2rem', display: 'flex' } }, [
+        h(IdContainer, [
+          (id) =>
+            div({ style: { lineHeight: '170%' } }, [
+              label({ htmlFor: id, style: { display: 'block' } }, ['Department *']),
+              div([
+                h(TextInput, {
+                  id,
+                  value: department,
+                  onChange: (v) => setDepartment(v),
+                  disabled: !partOfOrganization,
+                }),
+              ]),
+            ]),
+        ]),
+        div({ style: { width: '1rem' } }),
+        h(IdContainer, [
+          (id) =>
+            div({ style: { lineHeight: '170%' } }, [
+              label({ htmlFor: id, style: { display: 'block' } }, ['Title *']),
+              div([
+                h(TextInput, {
+                  id,
+                  value: title,
+                  onChange: (v) => setTitle(v),
+                  disabled: !partOfOrganization,
+                }),
+              ]),
+            ]),
+        ]),
+      ]),
+      h3({ style: { marginTop: '2rem' } }, ['I am most interested in using Terra to (Check all that apply):']),
+      checkboxLine([
+        interestInTerraCheckbox('Collaborate with individuals within my organization'),
+        interestInTerraCheckbox('Collaborate with individuals outside of my organization'),
+        interestInTerraCheckbox('Access data'),
+        interestInTerraCheckbox('Manage datasets'),
+        interestInTerraCheckbox('Launch workflows'),
+        interestInTerraCheckbox('Complete interactive analyses'),
+        interestInTerraCheckbox('Build Tools'),
       ]),
       div({ style: { marginTop: '3rem' } }, [
         h(ButtonPrimary, { disabled: errors || busy, onClick: register }, 'Register'),
