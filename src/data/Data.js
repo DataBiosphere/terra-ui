@@ -23,6 +23,7 @@ import { SnapshotInfo } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
 import { resolveWdsApp, WdsDataTableProvider, wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
+import { appStatuses } from 'src/libs/ajax/leonardo/models/app-models';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions';
@@ -735,15 +736,19 @@ export const WorkspaceData = _.flow(
         .Apps.listAppsV2(workspaceId)
         .then((apps) => {
           const foundApp = resolveWdsApp(apps);
-          if (foundApp?.status === 'RUNNING') {
+          if (foundApp?.status === appStatuses.running.status) {
             const url = foundApp.proxyUrls.wds;
             setWdsProxyUrl({ status: 'Ready', state: url });
             return url;
           }
-          if (foundApp?.status === 'ERROR') {
+          if (foundApp?.status === appStatuses.error.status) {
             setWdsProxyUrl({ status: 'Error', state: 'WDS app is in ERROR state' });
           }
           return '';
+        })
+        .catch((error) => {
+          setWdsProxyUrl({ status: 'Error', state: 'Error resolving WDS app' });
+          reportError('Error resolving WDS app', error);
         });
     }, []);
 
@@ -754,28 +759,25 @@ export const WorkspaceData = _.flow(
           .then((typesResult) => {
             setWdsTypes({ status: 'Ready', state: typesResult });
           })
-          .catch((err) => {
-            setWdsTypes({ status: 'Error', state: err });
+          .catch((error) => {
+            setWdsTypes({ status: 'Error', state: 'Error loading WDS schema' });
+            reportError('Error loading WDS schema', error);
           });
       },
       [signal]
     );
 
     const loadWdsData = useCallback(async () => {
-      try {
-        // Try to load the proxy URL
-        if (!wdsProxyUrl || wdsProxyUrl.status !== 'Ready') {
-          const wdsUrl = await loadWdsUrl(workspaceId);
-          if (wdsUrl) {
-            await loadWdsTypes(wdsUrl, workspaceId);
-          }
-        } else {
-          // If we have the proxy URL try to load the WDS types
-          const proxyUrl = wdsProxyUrl.state;
-          await loadWdsTypes(proxyUrl, workspaceId);
+      // Try to load the proxy URL
+      if (!wdsProxyUrl || wdsProxyUrl.status !== 'Ready') {
+        const wdsUrl = await loadWdsUrl(workspaceId);
+        if (wdsUrl) {
+          await loadWdsTypes(wdsUrl, workspaceId);
         }
-      } catch (error) {
-        console.log(`Error thrown loading WDS schema: ${error}`); // eslint-disable-line no-console
+      } else {
+        // If we have the proxy URL try to load the WDS types
+        const proxyUrl = wdsProxyUrl.state;
+        await loadWdsTypes(proxyUrl, workspaceId);
       }
     }, [loadWdsUrl, loadWdsTypes, workspaceId, wdsProxyUrl]);
 
