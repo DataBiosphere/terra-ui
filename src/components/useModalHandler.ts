@@ -54,7 +54,7 @@ export const useModalHandler = <OpenArgs>(modalFactory: ModalFactoryFn<OpenArgs>
     maybeRender: () => {
       // openArgs will be given value as part of open() call above,
       // so it's safe to assume OpenArgs typing when isOpen is true
-      return isOpen && modalFactory(openArgs as OpenArgs, handler.close);
+      return isOpen && modalFactory(openArgs!, handler.close);
     },
   };
   return handler;

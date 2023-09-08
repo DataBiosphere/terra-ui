@@ -34,7 +34,6 @@ export const DeleteAppModal = (props: DeleteAppModalProps): ReactNode => {
   )(async () => {
     // TODO: this should use types in IA-3824
     if (cloudProvider === 'GCP') {
-      // await ajax().Apps.app(cloudResource, appName).delete(deleteDisk);
       await deleteProvider.delete(cloudResource, appName, deleteDisk);
       onSuccess();
     } else {

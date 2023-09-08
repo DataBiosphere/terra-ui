@@ -6,7 +6,7 @@ import { appIdentifier, authOpts, fetchLeo, jsonBody } from 'src/libs/ajax/ajax-
 import { CreateAppV1Request, GetAppResponse, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models';
 
-export const Apps = (signal) => ({
+export const Apps = (signal: AbortSignal) => ({
   list: async (project: string, labels: LeoResourceLabels = {}): Promise<ListAppResponse[]> => {
     const res = await fetchLeo(
       `api/google/v1/apps/${project}?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
@@ -120,3 +120,6 @@ export const Apps = (signal) => ({
     return res;
   },
 });
+
+export type AppsAjaxContract = ReturnType<typeof Apps>;
+export type AppAjaxContract = ReturnType<AppsAjaxContract['app']>;
