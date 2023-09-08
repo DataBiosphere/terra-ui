@@ -12,11 +12,17 @@ import {
 type AuthExports = typeof import('src/libs/auth');
 jest.mock('src/libs/auth', (): Partial<AuthExports> => {
   return {
-    // TODO: SignOutCauses should be using the real enum but it is not working, fix this
-    ...jest.requireActual('src/libs/auth'),
     loadAuthToken: jest.fn(),
     signOut: jest.fn(),
-    // SignOutCauses: jest.requireActual<import('src/libs/auth').SignOutCauses>('src/libs/auth'),
+    SignOutCauses: {
+      requested: 0,
+      disabled: 1,
+      declinedTos: 2,
+      expiredRefreshToken: 3,
+      errorRefreshingAuthToken: 4,
+      idleStatusMonitor: 5,
+      unspecified: 6,
+    },
   };
 });
 
