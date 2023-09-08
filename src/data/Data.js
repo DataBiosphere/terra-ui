@@ -1416,7 +1416,7 @@ export const WorkspaceData = _.flow(
                                 [
                                   !uploadingWDSFile,
                                   () =>
-                                    div({}, [
+                                    div([
                                       'You can ',
                                       h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['check the status']),
                                       ' of your data table service.',
