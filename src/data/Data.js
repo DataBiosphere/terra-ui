@@ -10,7 +10,6 @@ import * as breadcrumbs from 'src/components/breadcrumbs';
 import Collapse from 'src/components/Collapse';
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common';
 import { DataTableSaveVersionModal, DataTableVersion, DataTableVersions } from 'src/components/data/data-table-versions';
-import { ReferenceDataDeleter, ReferenceDataImporter } from 'src/components/data/data-utils';
 import FileBrowser from 'src/components/data/FileBrowser';
 import LocalVariablesContent from 'src/components/data/LocalVariablesContent';
 import { icon, spinner } from 'src/components/icons';
@@ -48,6 +47,8 @@ import { WdsTroubleshooter } from './data-table/wds/WdsTroubleshooter';
 import { useImportJobs } from './import-jobs';
 import { getReferenceData } from './reference-data/reference-data-utils';
 import { ReferenceDataContent } from './reference-data/ReferenceDataContent';
+import { ReferenceDataDeleter } from './reference-data/ReferenceDataDeleter';
+import { ReferenceDataImporter } from './reference-data/ReferenceDataImporter';
 
 const styles = {
   tableContainer: {
