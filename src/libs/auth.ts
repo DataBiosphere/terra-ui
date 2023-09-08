@@ -173,7 +173,7 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
   // to see if they are the same => track refresh update
   // track lifespan of current authToken
   // need to send information about the last authToken
-  const oldTokenMetadata = authStore.get().authTokenMetadata; // this can be null (first token), so cover that case
+  const oldAuthTokenMetadata = authStore.get().authTokenMetadata; // this can be null (first token), so cover that case
   const reloadedAuthTokenState: User | boolean | null = popUp
     ? await tryLoadAuthTokenPopUp(includeBillingScope)
     : await tryLoadAuthTokenSilent(includeBillingScope);
@@ -188,7 +188,7 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
     const jwtExpiresAt: number = (decodedJWT as any).exp; // time in seconds when the JWT expires, after which the JWT should not be read from
     // refresh token can be stored and labeled with a uuid, then only log the uuid
     const refreshToken: string | undefined = user.refresh_token;
-    const isNewRefreshToken = refreshToken !== null && refreshToken !== oldTokenMetadata.refreshToken;
+    const isNewRefreshToken = refreshToken !== null && refreshToken !== oldAuthTokenMetadata.refreshToken;
     if (isNewRefreshToken) {
       authStore.update((state) => ({
         ...state,
@@ -213,39 +213,44 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
     }));
     Ajax().Metrics.captureEvent(Events.user.authTokenLoad.success, {
       authProvider: user.profile.idp,
-      oldAuthTokenCreatedAt: Utils.formatTimestampInSeconds(oldTokenMetadata.createdAt),
-      oldAuthTokenExpiresAt: Utils.formatTimestampInSeconds(oldTokenMetadata.expiresAt),
-      oldAuthTokenId: oldTokenMetadata.id,
-      oldAuthTokenLifespan: Date.now() - oldTokenMetadata.createdAt / 1000.0,
-      authTokenCreatedAt: Utils.formatTimestampInSeconds(authTokenCreatedAt),
-      authTokenExpiresAt: Utils.formatTimestampInSeconds(authTokenExpiresAt),
+      ...labelOldAuthToken(oldAuthTokenMetadata),
+      authTokenCreatedAt: labelTimestampMetric(authTokenCreatedAt),
+      authTokenExpiresAt: labelTimestampMetric(authTokenExpiresAt),
       authTokenId,
       refreshTokenId: authStore.get().refreshTokenMetadata.id,
-      refreshTokenCreatedAt: Utils.formatTimestampInSeconds(authStore.get().refreshTokenMetadata.createdAt),
-      refreshTokenExpiresAt: Utils.formatTimestampInSeconds(authStore.get().refreshTokenMetadata.expiresAt),
-      jwtExpiresAt: Utils.formatTimestampInSeconds(jwtExpiresAt),
+      refreshTokenCreatedAt: labelTimestampMetric(authStore.get().refreshTokenMetadata.createdAt),
+      refreshTokenExpiresAt: labelTimestampMetric(authStore.get().refreshTokenMetadata.expiresAt),
+      jwtExpiresAt: labelTimestampMetric(jwtExpiresAt),
     });
   } else if (reloadedAuthTokenState === null) {
     Ajax().Metrics.captureEvent(Events.user.authTokenLoad.expired, {
-      oldAuthTokenCreatedAt: Utils.formatTimestampInSeconds(oldTokenMetadata.createdAt),
-      oldAuthTokenExpiresAt: Utils.formatTimestampInSeconds(oldTokenMetadata.expiresAt),
-      oldAuthTokenId: oldTokenMetadata.id,
+      ...labelOldAuthToken(oldAuthTokenMetadata),
       refreshTokenId: authStore.get().refreshTokenMetadata.id,
-      refreshTokenCreatedAt: Utils.formatTimestampInSeconds(authStore.get().refreshTokenMetadata.createdAt),
-      refreshTokenExpiresAt: Utils.formatTimestampInSeconds(authStore.get().refreshTokenMetadata.expiresAt),
+      refreshTokenCreatedAt: labelTimestampMetric(authStore.get().refreshTokenMetadata.createdAt),
+      refreshTokenExpiresAt: labelTimestampMetric(authStore.get().refreshTokenMetadata.expiresAt),
     });
   } else {
     Ajax().Metrics.captureEvent(Events.user.authTokenLoad.error, {
       // we could potentially log the reason, but I don't know if that data is safe to log
-      oldAuthTokenCreatedAt: Utils.formatTimestampInSeconds(oldTokenMetadata.createdAt),
-      oldAuthTokenExpiresAt: Utils.formatTimestampInSeconds(oldTokenMetadata.expiresAt),
-      oldAuthTokenId: oldTokenMetadata.id,
+      ...labelOldAuthToken(oldAuthTokenMetadata),
       refreshTokenId: authStore.get().refreshTokenMetadata.id,
-      refreshTokenCreatedAt: Utils.formatTimestampInSeconds(authStore.get().refreshTokenMetadata.createdAt),
-      refreshTokenExpiresAt: Utils.formatTimestampInSeconds(authStore.get().refreshTokenMetadata.expiresAt),
+      refreshTokenCreatedAt: labelTimestampMetric(authStore.get().refreshTokenMetadata.createdAt),
+      refreshTokenExpiresAt: labelTimestampMetric(authStore.get().refreshTokenMetadata.expiresAt),
     });
   }
   return reloadedAuthTokenState;
+};
+const labelOldAuthToken = (oldAuthTokenMetadata) => {
+  return {
+    oldAuthTokenCreatedAt: labelTimestampMetric(oldAuthTokenMetadata.createdAt),
+    oldAuthTokenExpiresAt: labelTimestampMetric(oldAuthTokenMetadata.expiresAt),
+    oldAuthTokenId: oldAuthTokenMetadata.id === undefined ? 'undefined' : oldAuthTokenMetadata.id,
+    oldAuthTokenLifespan:
+      oldAuthTokenMetadata.id === undefined ? 'undefined' : Date.now() - oldAuthTokenMetadata.createdAt / 1000.0,
+  };
+};
+const labelTimestampMetric = (timestamp: number): string => {
+  return timestamp < 0 ? 'timestamp unset' : Utils.formatTimestampInSeconds(timestamp);
 };
 
 const tryLoadAuthTokenSilent = (includeBillingScope = false): Promise<User | null | boolean> => {
