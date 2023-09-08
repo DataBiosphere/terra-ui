@@ -747,7 +747,7 @@ export const WorkspaceData = _.flow(
           return '';
         })
         .catch((error) => {
-          setWdsTypes({ status: 'Error', state: 'Error resolving WDS app' });
+          setWdsProxyUrl({ status: 'Error', state: 'Error resolving WDS app' });
           reportError('Error resolving WDS app', error);
         });
     }, []);
