@@ -561,7 +561,7 @@ export const WorkspaceData = _.flow(
     const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}); // { [entityType: string]: boolean }
     const pollWdsInterval = useRef();
 
-    const [wdsProxyUrl, setWdsProxyUrl] = useState({ status: 'None', state: '' });
+    const [wdsApp, setWdsApp] = useState({ status: 'None', state: undefined });
     const [wdsTypes, setWdsTypes] = useState({ status: 'None', state: [] });
 
     const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } =
@@ -577,9 +577,10 @@ export const WorkspaceData = _.flow(
     const region = isAzureWorkspace ? storageDetails.azureContainerRegion : storageDetails.googleBucketLocation;
 
     const wdsDataTableProvider = useMemo(() => {
-      const proxyUrl = !!wdsProxyUrl && wdsProxyUrl.state;
+      const app = !!wdsApp && wdsApp.state;
+      const proxyUrl = app && app.proxyUrl;
       return new WdsDataTableProvider(workspaceId, proxyUrl);
-    }, [workspaceId, wdsProxyUrl]);
+    }, [workspaceId, wdsApp]);
 
     const loadEntityMetadata = async () => {
       try {
@@ -643,25 +644,39 @@ export const WorkspaceData = _.flow(
       }
     };
 
-    const loadWdsUrl = useCallback((workspaceId) => {
-      return Ajax()
-        .Apps.listAppsV2(workspaceId)
-        .then((apps) => {
-          const foundApp = resolveWdsApp(apps);
-          if (foundApp?.status === appStatuses.running.status) {
-            const url = foundApp.proxyUrls.wds;
-            setWdsProxyUrl({ status: 'Ready', state: url });
-            return url;
-          }
-          if (foundApp?.status === appStatuses.error.status) {
-            setWdsProxyUrl({ status: 'Error', state: 'WDS app is in ERROR state' });
-          }
-        })
-        .catch((error) => {
-          setWdsProxyUrl({ status: 'Error', state: 'Error resolving WDS app' });
-          reportError('Error resolving WDS app', error);
-        });
-    }, []);
+    const loadWdsApp = useCallback(
+      (workspaceId) => {
+        return Ajax()
+          .Apps.listAppsV2(workspaceId)
+          .then((apps) => {
+            const foundApp = resolveWdsApp(apps);
+            switch (foundApp?.status) {
+              case appStatuses.provisioning.status:
+              case appStatuses.updating.status:
+                setWdsApp({ status: 'Loading', state: foundApp });
+                return;
+              case appStatuses.running.status:
+                setWdsApp({ status: 'Ready', state: foundApp });
+                return wdsApp;
+              case appStatuses.error.status:
+                setWdsApp({ status: 'Error', state: foundApp });
+                return undefined;
+              default:
+                if (foundApp?.status) {
+                  // eslint-disable-next-line no-console
+                  console.log(`Unhandled state [${foundApp?.status} while polling WDS`);
+                }
+
+                return undefined;
+            }
+          })
+          .catch((error) => {
+            setWdsApp({ status: 'Error', state: 'Error resolving WDS app' });
+            reportError('Error resolving WDS app', error);
+          });
+      },
+      [wdsApp]
+    );
 
     const loadWdsTypes = useCallback(
       (url, workspaceId) => {
@@ -680,17 +695,20 @@ export const WorkspaceData = _.flow(
 
     const loadWdsData = useCallback(async () => {
       // Try to load the proxy URL
-      if (!wdsProxyUrl || !['Ready', 'Error'].includes(wdsProxyUrl.status)) {
-        const wdsUrl = await loadWdsUrl(workspaceId);
-        if (wdsUrl) {
-          await loadWdsTypes(wdsUrl, workspaceId);
+      if (!wdsApp || !['Ready', 'Error'].includes(wdsApp.status)) {
+        const wdsApp = await loadWdsApp(workspaceId);
+        // TODO: figure out how not to make this redundant fetch, per
+        // https://github.com/DataBiosphere/terra-ui/pull/4202#discussion_r1319145491
+        if (wdsApp) {
+          loadWdsTypes(wdsApp.proxyUrl);
         }
       }
       // If we have the proxy URL try to load the WDS types
-      else if (wdsProxyUrl && wdsProxyUrl.status === 'Ready') {
-        await loadWdsTypes(wdsProxyUrl.state, workspaceId);
+      else if (wdsApp && wdsApp.status === 'Ready') {
+        const proxyUrl = wdsApp.state.proxyUrl;
+        await loadWdsTypes(proxyUrl, workspaceId);
       }
-    }, [loadWdsUrl, loadWdsTypes, workspaceId, wdsProxyUrl]);
+    }, [wdsApp, loadWdsApp, loadWdsTypes, workspaceId]);
 
     useEffect(() => {
       if (isAzureWorkspace) {
@@ -707,7 +725,7 @@ export const WorkspaceData = _.flow(
         clearInterval(pollWdsInterval.current);
         pollWdsInterval.current = undefined;
       };
-    }, [loadWdsData, workspaceId, wdsProxyUrl, wdsTypes, isAzureWorkspace]);
+    }, [loadWdsData, workspaceId, wdsApp, wdsTypes, isAzureWorkspace]);
 
     const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first));
 
@@ -767,9 +785,10 @@ export const WorkspaceData = _.flow(
     const canEditWorkspace = !editWorkspaceErrorMessage;
 
     // convenience vars for WDS
-    const wdsReady = wdsProxyUrl.status === 'Ready' && wdsTypes.status === 'Ready';
-    const wdsLoading = wdsProxyUrl.status === 'Loading' || wdsTypes.status === 'Loading';
-    const wdsError = wdsProxyUrl.status === 'Error' || wdsTypes.status === 'Error';
+    const wdsReady = wdsApp.status === 'Ready' && wdsTypes.status === 'Ready';
+    const wdsError = wdsApp.status === 'Error' || wdsTypes.status === 'Error';
+    const wdsAppState = wdsApp.state?.status;
+    const wdsLoading = !wdsReady && !wdsError && (wdsApp.status === 'Loading' || wdsTypes.status === 'Loading');
 
     const canUploadTsv = isGoogleWorkspace || (isAzureWorkspace && wdsReady);
     return div({ style: styles.tableContainer }, [
@@ -1314,7 +1333,7 @@ export const WorkspaceData = _.flow(
                           ),
                       ],
                       [
-                        isAzureWorkspace && !wdsReady,
+                        isAzureWorkspace && wdsLoading,
                         () =>
                           div(
                             {
@@ -1322,19 +1341,14 @@ export const WorkspaceData = _.flow(
                             },
                             [
                               icon('loadingSpinner'),
-                              ' Preparing your data tables, this may take a few minutes. ',
-                              Utils.cond(
-                                [
-                                  !uploadingWDSFile,
-                                  () =>
-                                    div([
-                                      'You can ',
-                                      h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['check the status']),
-                                      ' of your data table service.',
-                                    ]),
-                                ],
-                                () => ''
-                              ),
+                              ` ${
+                                wdsAppState === appStatuses.updating.status ? 'Updating' : 'Preparing'
+                              } your data tables, this may take a few minutes. `,
+                              div([
+                                'You can ',
+                                h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['check the status']),
+                                ' of your data table service.',
+                              ]),
                             ]
                           ),
                       ],
