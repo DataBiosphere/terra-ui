@@ -266,7 +266,7 @@ describe('BaseSubmissionConfig renders workflow details', () => {
     expect(mockWdlResponse).toHaveBeenCalledTimes(1);
     expect(mockLeoResponse).toHaveBeenCalledTimes(0);
 
-    const backButton = screen.getByText('Back to workflows');
+    const backButton = screen.getByText('Back to workflows in this workspace');
 
     // ** ACT **
     // user clicks on back button
