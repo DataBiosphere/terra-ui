@@ -100,7 +100,8 @@ const sendSignOutMetrics = (causes: SignOutCauses): void => {
     sessionDurationInSeconds: (sessionEndTime - authStoreState.sessionStartTime) / 1000.0,
     authTokenCreatedAt: Utils.formatTimestampInSeconds(tokenMetadata.createdAt),
     authTokenExpiresAt: Utils.formatTimestampInSeconds(tokenMetadata.expiresAt),
-    totalAuthTokensThisSession: authStoreState.authTokenMetadata.totalTokensThisSession,
+    totalAuthTokensUsedThisSession: authStoreState.authTokenMetadata.totalAuthTokensUsedThisSession,
+    totalAuthTokenLoadAttemptsThisSession: authStoreState.authTokenMetadata.totalAuthTokenLoadAttemptsThisSession,
   });
 };
 
@@ -174,6 +175,16 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
   // track lifespan of current authToken
   // need to send information about the last authToken
   const oldAuthTokenMetadata = authStore.get().authTokenMetadata; // this can be null (first token), so cover that case
+
+  authStore.update((state) => ({
+    ...state,
+    authTokenMetadata: {
+      ...oldAuthTokenMetadata,
+      totalAuthTokenLoadAttemptsThisSession:
+        authStore.get().authTokenMetadata.totalAuthTokenLoadAttemptsThisSession + 1,
+    },
+  }));
+
   const reloadedAuthTokenState: User | boolean | null = popUp
     ? await tryLoadAuthTokenPopUp(includeBillingScope)
     : await tryLoadAuthTokenSilent(includeBillingScope);
@@ -204,11 +215,11 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
     authStore.update((state) => ({
       ...state,
       authTokenMetadata: {
+        ...authStore.get().authTokenMetadata,
         createdAt: authTokenCreatedAt,
         expiresAt: authTokenExpiresAt,
         id: authTokenId,
-        // there is a flaw here in that this is only the number of successful tokens created, not how many were attempted
-        totalAuthTokensThisSession: authStore.get().authTokenMetadata.totalTokensThisSession + 1,
+        totalAuthTokensUsedThisSession: authStore.get().authTokenMetadata.totalAuthTokensUsedThisSession + 1,
       },
     }));
     Ajax().Metrics.captureEvent(Events.user.authTokenLoad.success, {
