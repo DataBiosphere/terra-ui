@@ -10,7 +10,7 @@ export default {
     ref_sa: 'gs://gcp-public-data--broad-references/t2t/v2/chm13v2.0.maskedY.fasta.sa',
     par_bed: 'gs://gcp-public-data--broad-references/t2t/v2/chm13v2.0_PAR.bed'
   },
-  hg38Human: {
+  hg38: {
     axiomPoly_resource_vcf:
         'gs://gcp-public-data--broad-references/hg38/v0/Axiom_Exome_Plus.genotypes.all_populations.poly.hg38.vcf.gz',
     ref_fasta: 'gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta',
