@@ -3,6 +3,7 @@ import { act, render, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { LeoAppStatus, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
+import { reportError } from 'src/libs/error';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { StorageDetails } from 'src/pages/workspaces/workspace/useWorkspace';
 import { asMockedFn } from 'src/testing/test-utils';
@@ -25,6 +26,11 @@ jest.mock('src/libs/ajax', (): AjaxExports => {
     Ajax: jest.fn(),
   };
 });
+
+jest.mock('src/libs/error', () => ({
+  ...jest.requireActual('src/libs/error'),
+  reportError: jest.fn(),
+}));
 
 // When Data.js is broken apart and the WorkspaceData component is converted to TypeScript,
 // this type belongs there.
@@ -49,6 +55,7 @@ describe('WorkspaceData', () => {
   type SetupResult = {
     workspaceDataProps: WorkspaceDataProps;
     mockGetSchema: jest.Mock;
+    mockListAppsV2: jest.Mock;
   };
 
   const populatedAzureStorageOptions = {
@@ -74,6 +81,7 @@ describe('WorkspaceData', () => {
     };
 
     const mockGetSchema = jest.fn().mockResolvedValue([]);
+    const mockListAppsV2 = jest.fn().mockResolvedValue([{ ...wdsApp, status }]);
     const mockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
         workspace: (_namespace, _name) => ({
@@ -86,7 +94,7 @@ describe('WorkspaceData', () => {
         getSchema: mockGetSchema,
       },
       Apps: {
-        listAppsV2: jest.fn().mockResolvedValue([{ ...wdsApp, status }]),
+        listAppsV2: mockListAppsV2,
       },
     };
 
@@ -100,7 +108,7 @@ describe('WorkspaceData', () => {
       storageDetails,
     };
 
-    return { workspaceDataProps, mockGetSchema };
+    return { workspaceDataProps, mockGetSchema, mockListAppsV2 };
   }
 
   it('displays a waiting message for an azure workspace that is still provisioning in WDS', async () => {
@@ -138,14 +146,15 @@ describe('WorkspaceData', () => {
     expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
   });
 
-  it('displays an error message for an azure workspace that fails when loading schema info', async () => {
+  it('displays an error message for an azure workspace that fails when resolving the app', async () => {
     // Arrange
-    const { workspaceDataProps, mockGetSchema } = setup({
+    const { workspaceDataProps, mockListAppsV2 } = setup({
       workspace: defaultAzureWorkspace,
       status: 'RUNNING',
     });
 
-    mockGetSchema.mockRejectedValue(new Error('schema error'));
+    const mockedError = new Error('app resolve error');
+    mockListAppsV2.mockRejectedValue(mockedError);
 
     // Act
     await act(async () => {
@@ -156,6 +165,29 @@ describe('WorkspaceData', () => {
     expect(screen.getByText(/Data tables are unavailable/)).toBeVisible();
     expect(screen.getByText(/An error occurred while preparing/)).toBeVisible(); // display error message
     expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
+    expect(reportError).toHaveBeenCalledWith('Error resolving WDS app', mockedError);
+  });
+
+  it('displays an error message for an azure workspace that fails when loading schema info', async () => {
+    // Arrange
+    const { workspaceDataProps, mockGetSchema } = setup({
+      workspace: defaultAzureWorkspace,
+      status: 'RUNNING',
+    });
+
+    const mockedError = new Error('schema error');
+    mockGetSchema.mockRejectedValue(mockedError);
+
+    // Act
+    await act(async () => {
+      render(h(WorkspaceData, workspaceDataProps));
+    });
+
+    // Assert
+    expect(screen.getByText(/Data tables are unavailable/)).toBeVisible();
+    expect(screen.getByText(/An error occurred while preparing/)).toBeVisible(); // display error message
+    expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
+    expect(reportError).toHaveBeenCalledWith('Error loading WDS schema', mockedError);
   });
 
   it('displays a prompt to select a data type once azure workspace is loaded', async () => {
