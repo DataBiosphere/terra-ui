@@ -103,7 +103,7 @@ export const WorkflowCard = ({ method, buttonText, onClick }: WorkflowCardProps)
                   height: '2rem',
                 },
               },
-              [method.description || 'No method description']
+              [method.description ?? 'No method description']
             ),
           ]),
           h(Clickable, { style: { marginLeft: '2rem' }, onClick }, [

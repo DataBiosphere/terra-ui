@@ -95,6 +95,49 @@ export const WorkflowsInWorkspace = (
     }
   );
 
+  const renderMethods = useCallback(
+    () =>
+      methodsData.length === 0
+        ? div(
+            {
+              style: {
+                padding: '1rem',
+                border: `1px solid ${colors.accent(1)}`,
+                borderRadius: 5,
+                backgroundColor: colors.accent(0.08),
+                width: '75%',
+              },
+            },
+            [
+              'Get started: add a workflow to this workspace by using the "Featured workflows" or "Import a workflow" links to the left.',
+            ]
+          )
+        : h(Fragment, [
+            div([
+              'Workflows in this workspace may be used with invited collaborators and will also be cloned when the workspace is cloned',
+            ]),
+            div(
+              { style: { marginTop: '1rem' } },
+              _.map(
+                (method) =>
+                  h(WorkflowCard, {
+                    key: method.method_id,
+                    method,
+                    buttonText: 'Configure',
+                    onClick: () =>
+                      Nav.goToPath('workspace-workflows-app-submission-config', {
+                        namespace,
+                        name,
+                        methodId: method.method_id,
+                      }),
+                  }),
+                methodsData
+              )
+            ),
+          ]),
+    [name, namespace, methodsData]
+  );
+
   return div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [
     h2({ style: { marginTop: 0 } }, ['Workflows in this workspace']),
     !cbasReady || loading
@@ -102,44 +145,7 @@ export const WorkflowsInWorkspace = (
           icon('loadingSpinner'),
           ' Loading your Workflows app, this may take a few minutes.',
         ])
-      : methodsData.length === 0
-      ? div(
-          {
-            style: {
-              padding: '1rem',
-              border: `1px solid ${colors.accent(1)}`,
-              borderRadius: 5,
-              backgroundColor: colors.accent(0.08),
-              width: '75%',
-            },
-          },
-          [
-            'Get started: add a workflow to this workspace by using the "Featured workflows" or "Import a workflow" links to the left.',
-          ]
-        )
-      : h(Fragment, [
-          div([
-            'Workflows in this workspace may be used with invited collaborators and will also be cloned when the workspace is cloned',
-          ]),
-          div(
-            { style: { marginTop: '1rem' } },
-            _.map(
-              (method) =>
-                h(WorkflowCard, {
-                  key: method.method_id,
-                  method,
-                  buttonText: 'Configure',
-                  onClick: () =>
-                    Nav.goToPath('workspace-workflows-app-submission-config', {
-                      namespace,
-                      name,
-                      methodId: method.method_id,
-                    }),
-                }),
-              methodsData
-            )
-          ),
-        ]),
+      : renderMethods(),
     viewFindWorkflowModal &&
       h(FindWorkflowModal, { name, namespace, workspace, onDismiss: () => setViewFindWorkflowModal(false) }),
   ]);
