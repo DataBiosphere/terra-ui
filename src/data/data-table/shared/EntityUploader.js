@@ -21,14 +21,6 @@ import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import validate from 'validate.js';
 
-const warningBoxStyle = {
-  backgroundColor: colors.warning(0.15),
-  padding: '1rem 1.25rem',
-  color: colors.dark(),
-  fontWeight: 'bold',
-  fontSize: 12,
-};
-
 const errorTextStyle = { color: colors.danger(), fontWeight: 'bold', fontSize: 12, marginTop: '0.5rem' };
 
 const supportsFireCloudDataModel = (entityType) => _.includes(entityType, ['pair', 'participant', 'sample']);
@@ -264,7 +256,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
                 ((isGoogleWorkspace && currentFile && entityTypeAlreadyExists) || (!isGoogleWorkspace && _.includes(recordType, entityTypes))) &&
                   div(
                     {
-                      style: { ...warningBoxStyle, margin: '1rem 0 0.5rem', display: 'flex', alignItems: 'center' },
+                      style: { ...Style.warningBoxStyle, margin: '1rem 0 0.5rem', display: 'flex', alignItems: 'center' },
                     },
                     [
                       icon('warning-standard', {
@@ -280,7 +272,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
                   entityTypeAlreadyExists &&
                   div(
                     {
-                      style: { ...warningBoxStyle, margin: '1rem 0 0.5rem' },
+                      style: { ...Style.warningBoxStyle, margin: '1rem 0 0.5rem' },
                     },
                     [
                       icon('warning-standard', {
