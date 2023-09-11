@@ -1,4 +1,4 @@
-import { AnyPromiseFn, cond, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
+import { AnyPromiseFn, cond, delay, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
 import { formatDuration, intervalToDuration, isToday, isYesterday } from 'date-fns';
 import { differenceInCalendarMonths, differenceInSeconds, parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
@@ -119,10 +119,6 @@ export const memoizeAsync = (asyncFn, { keyFn = _.identity, expires = Infinity }
     });
     return value;
   };
-};
-
-export const delay = (ms) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
 export const withDelay = _.curry((ms, wrappedFn) => async (...args) => {
