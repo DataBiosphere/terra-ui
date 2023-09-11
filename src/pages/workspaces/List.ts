@@ -1,6 +1,6 @@
 import { isAfter, parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { div, h, p, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
@@ -37,12 +37,14 @@ import { authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import {
-  canRead,
-  canWrite,
   cloudProviderLabels,
   cloudProviderTypes,
   getCloudProviderFromWorkspace,
+  WorkspaceAccessLevels,
   workspaceAccessLevels,
+  WorkspaceInfo,
+  WorkspaceSubmissionStats,
+  WorkspaceWrapper as Workspace,
 } from 'src/libs/workspace-utils';
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
@@ -89,7 +91,7 @@ const useWorkspacesWithSubmissionStats = () => {
 
   const signal = useCancellation();
   const [loadingSubmissionStats, setLoadingSubmissionStats] = useState(true);
-  const [submissionStats, setSubmissionStats] = useState(null);
+  const [submissionStats, setSubmissionStats] = useState<Record<string, WorkspaceSubmissionStats>>();
 
   useEffect(() => {
     // After the inital load, workspaces are refreshed after deleting a workspace or locking a workspace.
@@ -100,7 +102,9 @@ const useWorkspacesWithSubmissionStats = () => {
         Utils.withBusyState(setLoadingSubmissionStats)
       )(async () => {
         const response = await Ajax(signal).Workspaces.list(['workspace.workspaceId', 'workspaceSubmissionStats']);
-        setSubmissionStats(_.fromPairs(_.map((ws) => [ws.workspace.workspaceId, ws.workspaceSubmissionStats], response)));
+        setSubmissionStats(
+          _.fromPairs(_.map((ws: Workspace) => [ws.workspace.workspaceId, ws.workspaceSubmissionStats], response))
+        );
       });
 
       loadSubmissionStats();
@@ -108,25 +112,45 @@ const useWorkspacesWithSubmissionStats = () => {
   }, [workspaces, submissionStats, signal]);
 
   const workspacesWithSubmissionStats = useMemo(() => {
-    return _.map((ws) => _.set('workspaceSubmissionStats', _.get(ws.workspace.workspaceId, submissionStats), ws), workspaces);
+    return _.map(
+      (ws) => _.set('workspaceSubmissionStats', _.get(ws.workspace.workspaceId, submissionStats), ws),
+      workspaces
+    );
   }, [workspaces, submissionStats]);
 
   return { workspaces: workspacesWithSubmissionStats, refresh, loadingWorkspaces, loadingSubmissionStats };
 };
 
 const workspaceSubmissionStatus = (workspace) => {
-  const { runningSubmissionsCount, lastSuccessDate, lastFailureDate } = _.getOr({}, 'workspaceSubmissionStats', workspace);
+  const { runningSubmissionsCount, lastSuccessDate, lastFailureDate } = _.getOr(
+    {},
+    'workspaceSubmissionStats',
+    workspace
+  );
   return Utils.cond(
     [runningSubmissionsCount, () => 'running'],
-    [lastSuccessDate && (!lastFailureDate || isAfter(parseJSON(lastFailureDate), parseJSON(lastSuccessDate))), () => 'success'],
+    [
+      lastSuccessDate && (!lastFailureDate || isAfter(parseJSON(lastFailureDate), parseJSON(lastSuccessDate))),
+      () => 'success',
+    ],
     [lastFailureDate, () => 'failure']
   );
 };
 
 const EMPTY_LIST = [];
 
+interface WorkspaceSort {
+  field: keyof Workspace | keyof WorkspaceInfo;
+  direction: 'desc' | 'asc';
+}
+
 export const WorkspaceList = () => {
-  const { workspaces, refresh: refreshWorkspaces, loadingWorkspaces, loadingSubmissionStats } = useWorkspacesWithSubmissionStats();
+  const {
+    workspaces,
+    refresh: refreshWorkspaces,
+    loadingWorkspaces,
+    loadingSubmissionStats,
+  } = useWorkspacesWithSubmissionStats();
   const [featuredList, setFeaturedList] = useState();
 
   const {
@@ -147,13 +171,15 @@ export const WorkspaceList = () => {
   );
 
   const persistenceId = 'workspaces/list';
-  const [recentlyViewedOpen, setRecentlyViewedOpen] = useState(() => _.defaultTo(true, getLocalPref(persistenceId)?.recentlyViewedOpen));
+  const [recentlyViewedOpen, setRecentlyViewedOpen] = useState(() =>
+    _.defaultTo(true, getLocalPref(persistenceId)?.recentlyViewedOpen)
+  );
 
   const { query } = Nav.useRoute();
   const filter = query.filter || '';
   // Using the EMPTY_LIST constant as a default value instead of creating a new empty array on
   // each render avoids unnecessarily recomputing the memoized filteredWorkspaces value.
-  const accessLevelsFilter = query.accessLevelsFilter || EMPTY_LIST;
+  const accessLevelsFilter: WorkspaceAccessLevels = query.accessLevelsFilter || EMPTY_LIST;
   const projectsFilter = query.projectsFilter || undefined;
   const cloudPlatformFilter = query.cloudPlatform || undefined;
   const submissionsFilter = query.submissionsFilter || EMPTY_LIST;
@@ -170,15 +196,15 @@ export const WorkspaceList = () => {
     }
   });
 
-  const [creatingNewWorkspace, setCreatingNewWorkspace] = useState(false);
-  const [cloningWorkspaceId, setCloningWorkspaceId] = useState();
-  const [deletingWorkspaceId, setDeletingWorkspaceId] = useState();
-  const [lockingWorkspaceId, setLockingWorkspaceId] = useState();
+  const [creatingNewWorkspace, setCreatingNewWorkspace] = useState<boolean>(false);
+  const [cloningWorkspaceId, setCloningWorkspaceId] = useState<string>();
+  const [deletingWorkspaceId, setDeletingWorkspaceId] = useState<string>();
+  const [lockingWorkspaceId, setLockingWorkspaceId] = useState<string>();
   const [sharingWorkspace, setSharingWorkspace] = useState(undefined);
-  const [leavingWorkspaceId, setLeavingWorkspaceId] = useState();
-  const [requestingAccessWorkspaceId, setRequestingAccessWorkspaceId] = useState();
+  const [leavingWorkspaceId, setLeavingWorkspaceId] = useState<string>();
+  const [requestingAccessWorkspaceId, setRequestingAccessWorkspaceId] = useState<string>();
 
-  const [sort, setSort] = useState({ field: 'lastModified', direction: 'desc' });
+  const [sort, setSort] = useState<WorkspaceSort>({ field: 'lastModified', direction: 'desc' });
 
   useOnMount(() => {
     const loadFeatured = withErrorIgnoring(async () => {
@@ -192,13 +218,13 @@ export const WorkspaceList = () => {
     setLocalPref(persistenceId, { recentlyViewedOpen });
   }, [recentlyViewedOpen, persistenceId]);
 
-  const getWorkspace = (id) => _.find({ workspace: { workspaceId: id } }, workspaces);
+  const getWorkspace = (id: string) => _.find({ workspace: { workspaceId: id } }, workspaces);
 
   const initialFiltered = useMemo(() => {
     const [newWsList, featuredWsList] = _.partition('isNew', featuredList);
 
     return {
-      myWorkspaces: _.filter((ws) => !ws.public || canWrite(ws.accessLevel), workspaces),
+      myWorkspaces: _.filter((ws) => !ws.public || Utils.canWrite(ws.accessLevel), workspaces),
       public: _.filter('public', workspaces),
       newAndInteresting: _.flow(
         _.map(({ namespace, name }) => _.find({ workspace: { namespace, name } }, workspaces)),
@@ -214,7 +240,7 @@ export const WorkspaceList = () => {
   const filteredWorkspaces = useMemo(
     () =>
       _.mapValues(
-        _.filter((ws) => {
+        _.filter((ws: Workspace) => {
           const {
             workspace: { namespace, name, attributes },
           } = ws;
@@ -265,7 +291,7 @@ export const WorkspaceList = () => {
           rowCount: sortedWorkspaces.length,
           noContentRenderer: () =>
             Utils.cond(
-              [loadingWorkspaces, () => 'Loading...'],
+              [loadingWorkspaces, () => h(Fragment, ['Loading...'])],
               [
                 _.isEmpty(initialFiltered.myWorkspaces) && tab === 'myWorkspaces',
                 () =>
@@ -273,7 +299,10 @@ export const WorkspaceList = () => {
                     onClick: () => setCreatingNewWorkspace(true),
                   }),
               ],
-              [!_.isEmpty(submissionsFilter) && loadingSubmissionStats, () => 'Loading submission statuses...'],
+              [
+                !_.isEmpty(submissionsFilter) && loadingSubmissionStats,
+                () => h(Fragment, ['Loading submission statuses...']),
+              ],
               () => div({ style: { fontStyle: 'italic' } }, ['No matching workspaces'])
             ),
           variant: 'light',
@@ -285,15 +314,26 @@ export const WorkspaceList = () => {
               headerRenderer: () => div({ className: 'sr-only' }, ['Starred']),
               cellRenderer: ({ rowIndex }) => {
                 const workspace = sortedWorkspaces[rowIndex];
-                return div({ style: { ...styles.tableCellContainer, justifyContent: 'center', alignItems: 'center', padding: '0.5rem 0' } }, [
-                  h(WorkspaceStarControl, {
-                    workspace,
-                    setStars,
-                    updatingStars,
-                    setUpdatingStars,
-                    stars,
-                  }),
-                ]);
+                return div(
+                  {
+                    style: {
+                      ...styles.tableCellContainer,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      padding: '0.5rem 0',
+                    },
+                  },
+                  [
+                    h(WorkspaceStarControl, {
+                      workspace,
+                      setStars,
+                      style: {},
+                      updatingStars,
+                      setUpdatingStars,
+                      stars,
+                    }),
+                  ]
+                );
               },
               size: { basis: 40, grow: 0, shrink: 0 },
             },
@@ -304,14 +344,10 @@ export const WorkspaceList = () => {
                 const {
                   accessLevel,
                   workspace,
-                  workspace: {
-                    workspaceId,
-                    namespace,
-                    name,
-                    attributes: { description },
-                  },
+                  workspace: { workspaceId, namespace, name, attributes },
                 } = sortedWorkspaces[rowIndex];
-                const canView = canRead(accessLevel);
+                const description = attributes?.description;
+                const canView = Utils.canRead(accessLevel);
                 const canAccessWorkspace = () => (!canView ? setRequestingAccessWorkspaceId(workspaceId) : undefined);
 
                 return div({ style: styles.tableCellContainer }, [
@@ -329,7 +365,11 @@ export const WorkspaceList = () => {
                         href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
                         onClick: () => {
                           canAccessWorkspace();
-                          !!canView && Ajax().Metrics.captureEvent(Events.workspaceOpenFromList, extractWorkspaceDetails(workspace));
+                          !!canView &&
+                            Ajax().Metrics.captureEvent(
+                              Events.workspaceOpenFromList,
+                              extractWorkspaceDetails(workspace)
+                            );
                         },
                         tooltip:
                           !canView &&
@@ -368,7 +408,9 @@ export const WorkspaceList = () => {
 
                 return div({ style: styles.tableCellContainer }, [
                   div({ style: styles.tableCellContent }, [
-                    h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [div([Utils.makeStandardDate(lastModified)])]),
+                    h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
+                      div([Utils.makeStandardDate(lastModified)]),
+                    ]),
                   ]),
                 ]);
               },
@@ -394,7 +436,9 @@ export const WorkspaceList = () => {
               cellRenderer: ({ rowIndex }) => {
                 const { accessLevel } = sortedWorkspaces[rowIndex];
 
-                return div({ style: styles.tableCellContainer }, [div({ style: styles.tableCellContent }, [Utils.normalizeLabel(accessLevel)])]);
+                return div({ style: styles.tableCellContainer }, [
+                  div({ style: styles.tableCellContent }, [Utils.normalizeLabel(accessLevel)]),
+                ]);
               },
               size: { basis: 120, grow: 1, shrink: 0 },
             },
@@ -420,7 +464,9 @@ export const WorkspaceList = () => {
               cellRenderer: ({ rowIndex }) => {
                 const workspace = sortedWorkspaces[rowIndex];
                 return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
-                  div({ style: styles.tableCellContent }, [h(CloudProviderIcon, { cloudProvider: getCloudProviderFromWorkspace(workspace) })]),
+                  div({ style: styles.tableCellContent }, [
+                    h(CloudProviderIcon, { cloudProvider: getCloudProviderFromWorkspace(workspace) }),
+                  ]),
                 ]);
               },
               size: { basis: 30, grow: 0, shrink: 0 },
@@ -432,9 +478,11 @@ export const WorkspaceList = () => {
                   accessLevel,
                   workspace: { workspaceId, namespace, name },
                 } = sortedWorkspaces[rowIndex];
-                if (!canRead(accessLevel)) {
+                if (!Utils.canRead(accessLevel)) {
                   // No menu shown if user does not have read access.
-                  return div({ className: 'sr-only' }, ['You do not have permission to perform actions on this workspace.']);
+                  return div({ className: 'sr-only' }, [
+                    'You do not have permission to perform actions on this workspace.',
+                  ]);
                 }
                 const onClone = () => setCloningWorkspaceId(workspaceId);
                 const onDelete = () => setDeletingWorkspaceId(workspaceId);
@@ -536,7 +584,7 @@ export const WorkspaceList = () => {
           }),
         ]),
         div({ style: styles.filter }, [
-          h(Select, {
+          h(Select<string, true>, {
             isClearable: true,
             isMulti: true,
             isSearchable: false,
@@ -544,12 +592,12 @@ export const WorkspaceList = () => {
             'aria-label': 'Filter by access levels',
             value: accessLevelsFilter,
             onChange: (data) => Nav.updateSearch({ ...query, accessLevelsFilter: _.map('value', data) }),
-            options: workspaceAccessLevels,
+            options: [...workspaceAccessLevels], // need to re-create the list otherwise the readonly type of workspaceAccessLevels conflicts with the type of options
             getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
           }),
         ]),
         div({ style: styles.filter }, [
-          h(Select, {
+          h(Select<string, false>, {
             isClearable: true,
             isMulti: false,
             placeholder: 'Billing project',
@@ -561,7 +609,7 @@ export const WorkspaceList = () => {
           }),
         ]),
         div({ style: styles.filter }, [
-          h(Select, {
+          h(Select<string, true>, {
             isClearable: true,
             isMulti: true,
             isSearchable: false,
@@ -575,7 +623,7 @@ export const WorkspaceList = () => {
           }),
         ]),
         div({ style: { ...styles.filter, marginRight: 0 } }, [
-          h(Select, {
+          h(Select<string>, {
             isClearable: true,
             isMulti: false,
             placeholder: 'Cloud platform',
