@@ -2,7 +2,7 @@
 # See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners#codeowners-syntax
 /src/analysis @DataBiosphere/broad-interactive-analysis
 /src/constants/datasets.js @DataBiosphere/data-explorer-eng
-/src/import-data/ @DataBiosphere/data-explorer-eng
+/src/import-data/ @DataBiosphere/data-explorer-eng @DataBiosphere/analysisjourneys
 /src/libs/brand*.js @DataBiosphere/terra-cobranding
 /src/libs/colors.js @DataBiosphere/terra-cobranding
 /src/libs/ajax/Apps.ts @DataBiosphere/broad-interactive-analysis
