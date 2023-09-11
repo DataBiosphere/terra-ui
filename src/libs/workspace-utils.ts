@@ -69,6 +69,12 @@ export interface BaseWorkspace {
   // Currently will always be empty for GCP workspaces, but this will change in the future.
   // For the purposes of test data, not requiring the specification of the field.
   policies?: WorkspacePolicy[];
+  public?: boolean;
+  workspaceSubmissionStats?: {
+    lastSuccessDate?: string;
+    lastFailureDate?: string;
+    runningSubmissionsCount: number;
+  };
 }
 
 export interface AzureContext {
