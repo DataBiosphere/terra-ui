@@ -726,7 +726,6 @@ export const WorkspaceData = _.flow(
           if (foundApp?.status === appStatuses.error.status) {
             setWdsProxyUrl({ status: 'Error', state: 'WDS app is in ERROR state' });
           }
-          return '';
         })
         .catch((error) => {
           setWdsProxyUrl({ status: 'Error', state: 'Error resolving WDS app' });
@@ -751,22 +750,22 @@ export const WorkspaceData = _.flow(
 
     const loadWdsData = useCallback(async () => {
       // Try to load the proxy URL
-      if (!wdsProxyUrl || wdsProxyUrl.status !== 'Ready') {
+      if (!wdsProxyUrl || !['Ready', 'Error'].includes(wdsProxyUrl.status)) {
         const wdsUrl = await loadWdsUrl(workspaceId);
         if (wdsUrl) {
           await loadWdsTypes(wdsUrl, workspaceId);
         }
-      } else {
-        // If we have the proxy URL try to load the WDS types
-        const proxyUrl = wdsProxyUrl.state;
-        await loadWdsTypes(proxyUrl, workspaceId);
+      }
+      // If we have the proxy URL try to load the WDS types
+      else if (wdsProxyUrl && wdsProxyUrl.status === 'Ready') {
+        await loadWdsTypes(wdsProxyUrl.state, workspaceId);
       }
     }, [loadWdsUrl, loadWdsTypes, workspaceId, wdsProxyUrl]);
 
     useEffect(() => {
       if (isAzureWorkspace) {
         // Start polling if we're missing WDS Types, and stop polling when we have them.
-        if ((!wdsTypes || wdsTypes.status !== 'Ready') && !pollWdsInterval.current) {
+        if ((!wdsTypes || !['Ready', 'Error'].includes(wdsTypes.status)) && !pollWdsInterval.current) {
           pollWdsInterval.current = setInterval(loadWdsData, 30 * 1000);
         } else if (!!wdsTypes && wdsTypes.status === 'Ready' && pollWdsInterval.current) {
           clearInterval(pollWdsInterval.current);
@@ -1398,7 +1397,7 @@ export const WorkspaceData = _.flow(
                                 [
                                   !uploadingWDSFile,
                                   () =>
-                                    div({}, [
+                                    div([
                                       'You can ',
                                       h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['check the status']),
                                       ' of your data table service.',
