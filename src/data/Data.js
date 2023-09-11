@@ -577,8 +577,8 @@ export const WorkspaceData = _.flow(
     const region = isAzureWorkspace ? storageDetails.azureContainerRegion : storageDetails.googleBucketLocation;
 
     const wdsDataTableProvider = useMemo(() => {
-      const app = !!wdsApp && wdsApp.state;
-      const proxyUrl = app && app.proxyUrl;
+      const app = wdsApp?.state;
+      const proxyUrl = app?.proxyUrl;
       return new WdsDataTableProvider(workspaceId, proxyUrl);
     }, [workspaceId, wdsApp]);
 
@@ -644,39 +644,36 @@ export const WorkspaceData = _.flow(
       }
     };
 
-    const loadWdsApp = useCallback(
-      (workspaceId) => {
-        return Ajax()
-          .Apps.listAppsV2(workspaceId)
-          .then((apps) => {
-            const foundApp = resolveWdsApp(apps);
-            switch (foundApp?.status) {
-              case appStatuses.provisioning.status:
-              case appStatuses.updating.status:
-                setWdsApp({ status: 'Loading', state: foundApp });
-                return;
-              case appStatuses.running.status:
-                setWdsApp({ status: 'Ready', state: foundApp });
-                return wdsApp;
-              case appStatuses.error.status:
-                setWdsApp({ status: 'Error', state: foundApp });
-                return undefined;
-              default:
-                if (foundApp?.status) {
-                  // eslint-disable-next-line no-console
-                  console.log(`Unhandled state [${foundApp?.status} while polling WDS`);
-                }
+    const loadWdsApp = useCallback((workspaceId) => {
+      return Ajax()
+        .Apps.listAppsV2(workspaceId)
+        .then((apps) => {
+          const foundApp = resolveWdsApp(apps);
+          switch (foundApp?.status) {
+            case appStatuses.provisioning.status:
+            case appStatuses.updating.status:
+              setWdsApp({ status: 'Loading', state: foundApp });
+              return;
+            case appStatuses.running.status:
+              setWdsApp({ status: 'Ready', state: foundApp });
+              return foundApp;
+            case appStatuses.error.status:
+              setWdsApp({ status: 'Error', state: foundApp });
+              return undefined;
+            default:
+              if (foundApp?.status) {
+                // eslint-disable-next-line no-console
+                console.log(`Unhandled state [${foundApp?.status} while polling WDS`);
+              }
 
-                return undefined;
-            }
-          })
-          .catch((error) => {
-            setWdsApp({ status: 'Error', state: 'Error resolving WDS app' });
-            reportError('Error resolving WDS app', error);
-          });
-      },
-      [wdsApp]
-    );
+              return undefined;
+          }
+        })
+        .catch((error) => {
+          setWdsApp({ status: 'Error', state: 'Error resolving WDS app' });
+          reportError('Error resolving WDS app', error);
+        });
+    }, []);
 
     const loadWdsTypes = useCallback(
       (url, workspaceId) => {
@@ -704,7 +701,7 @@ export const WorkspaceData = _.flow(
         }
       }
       // If we have the proxy URL try to load the WDS types
-      else if (wdsApp && wdsApp.status === 'Ready') {
+      else if (wdsApp?.status === 'Ready') {
         const proxyUrl = wdsApp.state.proxyUrl;
         await loadWdsTypes(proxyUrl, workspaceId);
       }
@@ -715,7 +712,7 @@ export const WorkspaceData = _.flow(
         // Start polling if we're missing WDS Types, and stop polling when we have them.
         if ((!wdsTypes || !['Ready', 'Error'].includes(wdsTypes.status)) && !pollWdsInterval.current) {
           pollWdsInterval.current = setInterval(loadWdsData, 30 * 1000);
-        } else if (!!wdsTypes && wdsTypes.status === 'Ready' && pollWdsInterval.current) {
+        } else if (wdsTypes?.status === 'Ready' && pollWdsInterval.current) {
           clearInterval(pollWdsInterval.current);
           pollWdsInterval.current = undefined;
         }
