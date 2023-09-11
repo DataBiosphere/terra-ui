@@ -82,8 +82,6 @@ describe('Workflows in workspace', () => {
       )
     );
 
-    screen.debug();
-
     expect(getWithVersions).toHaveBeenCalledTimes(1);
 
     expect(screen.getByText('Hello world')).toBeInTheDocument();
