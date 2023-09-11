@@ -63,17 +63,6 @@ export const formatUSD = (v) =>
 
 export const formatNumber = new Intl.NumberFormat('en-US').format;
 
-export const workflowStatuses = [
-  'Queued',
-  'Launching',
-  'Submitted',
-  'Running',
-  'Aborting',
-  'Succeeded',
-  'Failed',
-  'Aborted',
-];
-
 export const toIndexPairs = <T>(obj: T[]): [number, T][] =>
   _.flow(
     _.toPairs,
