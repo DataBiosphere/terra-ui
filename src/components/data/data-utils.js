@@ -1,13 +1,10 @@
 import _ from 'lodash/fp';
-import { useState } from 'react';
-import { b, div, h, img } from 'react-hyperscript-helpers';
-import { absoluteSpinnerOverlay, ButtonPrimary, Clickable, DeleteConfirmationModal, Select, spinnerOverlay } from 'src/components/common';
-import Modal from 'src/components/Modal';
-import ReferenceData from 'src/data/reference-data';
-import { Ajax } from 'src/libs/ajax';
+import { div, h, img } from 'react-hyperscript-helpers';
+import { Clickable } from 'src/components/common';
+// Removing this import causes test failures related to circular imports.
+import { Ajax } from 'src/libs/ajax'; // eslint-disable-line
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';
 import colors from 'src/libs/colors';
-import { reportError } from 'src/libs/error';
 import { requesterPaysProjectStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 
@@ -23,77 +20,6 @@ export const parseGsUri = (uri) => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri)
 
 export const getUserProjectForWorkspace = async (workspace) =>
   workspace && (await canUseWorkspaceProject(workspace)) ? workspace.workspace.googleProject : requesterPaysProjectStore.get();
-
-export const ReferenceDataImporter = ({ onSuccess, onDismiss, namespace, name }) => {
-  const [loading, setLoading] = useState(false);
-  const [selectedReference, setSelectedReference] = useState(undefined);
-
-  return h(
-    Modal,
-    {
-      'aria-label': 'Add Reference Data',
-      onDismiss,
-      title: 'Add Reference Data',
-      okButton: h(
-        ButtonPrimary,
-        {
-          disabled: !selectedReference || loading,
-          onClick: async () => {
-            setLoading(true);
-            try {
-              await Ajax()
-                .Workspaces.workspace(namespace, name)
-                .shallowMergeNewAttributes(_.mapKeys((k) => `referenceData_${selectedReference}_${k}`, ReferenceData[selectedReference]));
-              onSuccess();
-            } catch (error) {
-              await reportError('Error importing reference data', error);
-              onDismiss();
-            }
-          },
-        },
-        'OK'
-      ),
-    },
-    [
-      h(Select, {
-        'aria-label': 'Select data',
-        autoFocus: true,
-        isSearchable: false,
-        placeholder: 'Select data',
-        value: selectedReference,
-        onChange: ({ value }) => setSelectedReference(value),
-        options: _.keys(ReferenceData),
-      }),
-      loading && spinnerOverlay,
-    ]
-  );
-};
-
-export const ReferenceDataDeleter = ({ onSuccess, onDismiss, namespace, name, referenceDataType }) => {
-  const [deleting, setDeleting] = useState(false);
-
-  return h(
-    DeleteConfirmationModal,
-    {
-      objectType: 'reference',
-      objectName: referenceDataType,
-      onConfirm: async () => {
-        setDeleting(true);
-        try {
-          await Ajax()
-            .Workspaces.workspace(namespace, name)
-            .deleteAttributes(_.map((key) => `referenceData_${referenceDataType}_${key}`, _.keys(ReferenceData[referenceDataType])));
-          onSuccess();
-        } catch (error) {
-          reportError('Error deleting reference data', error);
-          onDismiss();
-        }
-      },
-      onDismiss,
-    },
-    [div(['Are you sure you want to delete the ', b([referenceDataType]), ' reference data?']), deleting && absoluteSpinnerOverlay]
-  );
-};
 
 export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
   return h(

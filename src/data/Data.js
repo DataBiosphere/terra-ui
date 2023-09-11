@@ -5,20 +5,17 @@ import * as qs from 'qs';
 import { Fragment, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { DraggableCore } from 'react-draggable';
 import { div, form, h, h3, input, span } from 'react-hyperscript-helpers';
-import { AutoSizer } from 'react-virtualized';
 import { cloudProviders } from 'src/analysis/utils/runtime-utils';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import Collapse from 'src/components/Collapse';
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common';
 import { DataTableSaveVersionModal, DataTableVersion, DataTableVersions } from 'src/components/data/data-table-versions';
-import { ReferenceDataDeleter, ReferenceDataImporter } from 'src/components/data/data-utils';
 import FileBrowser from 'src/components/data/FileBrowser';
 import LocalVariablesContent from 'src/components/data/LocalVariablesContent';
 import { icon, spinner } from 'src/components/icons';
-import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input';
+import { ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
-import { FlexTable, HeaderCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
 import { resolveWdsApp, WdsDataTableProvider, wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
@@ -41,7 +38,6 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 import EntitiesContent from './data-table/entity-service/EntitiesContent';
 import { ExportDataModal } from './data-table/entity-service/ExportDataModal';
 import { RenameTableModal } from './data-table/entity-service/RenameTableModal';
-import { renderDataCell } from './data-table/entity-service/renderDataCell';
 import { useSavedColumnSettings } from './data-table/entity-service/SavedColumnSettings';
 import { SnapshotContent } from './data-table/entity-service/SnapshotContent';
 import { getRootTypeForSetTable } from './data-table/entity-service/table-utils';
@@ -49,6 +45,10 @@ import { EntityUploader } from './data-table/shared/EntityUploader';
 import WDSContent from './data-table/wds/WDSContent';
 import { WdsTroubleshooter } from './data-table/wds/WdsTroubleshooter';
 import { useImportJobs } from './import-jobs';
+import { getReferenceData } from './reference-data/reference-data-utils';
+import { ReferenceDataContent } from './reference-data/ReferenceDataContent';
+import { ReferenceDataDeleter } from './reference-data/ReferenceDataDeleter';
+import { ReferenceDataImporter } from './reference-data/ReferenceDataImporter';
 
 const styles = {
   tableContainer: {
@@ -160,76 +160,6 @@ const DataImportPlaceholder = () => {
   return div({ style: { ...Style.navList.item(false), color: colors.dark(0.7), marginLeft: '0.5rem' } }, [
     div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [icon('downloadRegular', { size: 14 })]),
     div({ style: { flex: 1 } }, ['Data import in progress']),
-  ]);
-};
-
-const getReferenceData = _.flow(
-  _.toPairs,
-  _.filter(([key]) => key.startsWith('referenceData_')),
-  _.map(([k, value]) => {
-    const [, datum, key] = /referenceData_([^_]+)_(.+)/.exec(k);
-    return { datum, key, value };
-  }),
-  _.groupBy('datum')
-);
-
-const ReferenceDataContent = ({ workspace, referenceKey }) => {
-  const {
-    workspace: { attributes },
-  } = workspace;
-  const [textFilter, setTextFilter] = useState('');
-
-  const selectedData = _.flow(
-    _.filter(({ key, value }) => Utils.textMatch(textFilter, `${key} ${value}`)),
-    _.sortBy('key')
-  )(getReferenceData(attributes)[referenceKey]);
-
-  return h(Fragment, [
-    div(
-      {
-        style: {
-          display: 'flex',
-          justifyContent: 'flex-end',
-          padding: '1rem',
-          background: colors.light(0.5),
-          borderBottom: `1px solid ${colors.grey(0.4)}`,
-        },
-      },
-      [
-        h(DelayedSearchInput, {
-          'aria-label': 'Search',
-          style: { width: 300 },
-          placeholder: 'Search',
-          onChange: setTextFilter,
-          value: textFilter,
-        }),
-      ]
-    ),
-    div({ style: { flex: 1, margin: '0 0 1rem' } }, [
-      h(AutoSizer, [
-        ({ width, height }) =>
-          h(FlexTable, {
-            'aria-label': 'reference data',
-            width,
-            height,
-            rowCount: selectedData.length,
-            noContentMessage: 'No matching data',
-            columns: [
-              {
-                size: { basis: 400, grow: 0 },
-                headerRenderer: () => h(HeaderCell, ['Key']),
-                cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].key, workspace),
-              },
-              {
-                size: { grow: 1 },
-                headerRenderer: () => h(HeaderCell, ['Value']),
-                cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].value, workspace),
-              },
-            ],
-            border: false,
-          }),
-      ]),
-    ]),
   ]);
 };
 
