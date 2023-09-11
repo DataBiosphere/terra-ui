@@ -3,14 +3,11 @@ import { Fragment, useCallback, useState } from 'react';
 import { div, h, h2, img, li, p, span, strong, ul } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, RadioButton, spinnerOverlay } from 'src/components/common';
-import FooterWrapper from 'src/components/FooterWrapper';
 import { icon, wdlIcon } from 'src/components/icons';
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
-import TopBar from 'src/components/TopBar';
 import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils';
 import { notifyDataImportProgress } from 'src/data/import-jobs';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
-import scienceBackground from 'src/images/science-background.jpg';
 import { Ajax } from 'src/libs/ajax';
 import { resolveWdsUrl, WdsDataTableProvider } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
@@ -395,7 +392,7 @@ export const isProtectedWorkspace = (workspace) => {
 // * Reading from the URL
 // * Loading initial Data
 // * Managing the import
-const ImportData = () => {
+export const ImportData = () => {
   const {
     query: { url, format, ad, wid, template, snapshotId, snapshotName, snapshotIds, referrer, tdrmanifest, catalogDatasetId, tdrSyncPermissions },
   } = Nav.useRoute();
@@ -411,10 +408,10 @@ const ImportData = () => {
   )(dataCatalog);
 
   const isDataset = !_.includes(format, ['snapshot', 'tdrexport']);
-  const [title, header] = Utils.cond(
-    [referrer === 'data-catalog', () => ['Catalog', 'Linking data to a workspace']],
-    [isDataset, () => ['Import Data', `Dataset ${snapshotName}`]],
-    [Utils.DEFAULT, () => ['Import Snapshot', `Snapshot ${snapshotName}`]]
+  const header = Utils.cond(
+    [referrer === 'data-catalog', () => 'Linking data to a workspace'],
+    [isDataset, () => `Dataset ${snapshotName}`],
+    [Utils.DEFAULT, () => `Snapshot ${snapshotName}`]
   );
 
   const isProtectedData = isProtectedSource(url, format);
@@ -541,35 +538,18 @@ const ImportData = () => {
     Nav.goToPath('workspace-data', { namespace, name });
   });
 
-  return h(FooterWrapper, [
-    h(TopBar, { title }),
-    div({ role: 'main', style: styles.container }, [
-      img({
-        src: scienceBackground,
-        alt: '',
-        style: { position: 'fixed', top: 0, left: 0, zIndex: -1 },
-      }),
-      h(ImportDataOverview, { header, snapshots, isDataset, snapshotResponses, url, isProtectedData }),
-      h(ImportDataDestination, {
-        workspaceId: wid,
-        templateWorkspaces,
-        template,
-        userHasBillingProjects,
-        importMayTakeTime: isDataset,
-        authorizationDomain: ad,
-        onImport,
-        isImporting,
-        isProtectedData,
-      }),
-    ]),
+  return h(Fragment, [
+    h(ImportDataOverview, { header, snapshots, isDataset, snapshotResponses, url, isProtectedData }),
+    h(ImportDataDestination, {
+      workspaceId: wid,
+      templateWorkspaces,
+      template,
+      userHasBillingProjects,
+      importMayTakeTime: isDataset,
+      authorizationDomain: ad,
+      onImport,
+      isImporting,
+      isProtectedData,
+    }),
   ]);
 };
-
-export const navPaths = [
-  {
-    name: 'import-data',
-    path: '/import-data',
-    component: ImportData,
-    title: 'Import Data',
-  },
-];
