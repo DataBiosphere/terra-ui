@@ -4,11 +4,11 @@ import { differenceInCalendarMonths, differenceInSeconds, parseJSON } from 'date
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { div, span } from 'react-hyperscript-helpers';
+import { canWrite } from 'src/libs/workspace-utils';
 import { v4 as uuid } from 'uuid';
 
-import { hasAccessLevel } from './workspace-utils';
-
 export { cond, DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
+export { canRead, canWrite, isOwner } from 'src/libs/workspace-utils';
 
 const dateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric' });
 const monthYearFormat = new Intl.DateTimeFormat('default', { month: 'short', year: 'numeric' });
@@ -63,10 +63,6 @@ export const formatUSD = (v) =>
   cond([_.isNaN(v), () => 'unknown'], [v > 0 && v < 0.01, () => '< $0.01'], () => usdFormatter.format(v));
 
 export const formatNumber = new Intl.NumberFormat('en-US').format;
-
-export const canWrite = (accessLevel) => hasAccessLevel('WRITER', accessLevel);
-export const canRead = (accessLevel) => hasAccessLevel('READER', accessLevel);
-export const isOwner = (accessLevel) => hasAccessLevel('OWNER', accessLevel);
 
 export const workflowStatuses = [
   'Queued',

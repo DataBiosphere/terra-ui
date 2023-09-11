@@ -1,6 +1,5 @@
 import { safeCurry } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
-import { canWrite } from 'src/libs/utils';
 
 export type CloudProvider = 'AZURE' | 'GCP';
 export const cloudProviderTypes: Record<CloudProvider, CloudProvider> = {
@@ -56,6 +55,10 @@ export type WorkspaceAccessLevel = WorkspaceAccessLevels[number];
 export const hasAccessLevel = (required: WorkspaceAccessLevel, current: WorkspaceAccessLevel): boolean => {
   return workspaceAccessLevels.indexOf(current) >= workspaceAccessLevels.indexOf(required);
 };
+
+export const canWrite = (accessLevel: WorkspaceAccessLevel): boolean => hasAccessLevel('WRITER', accessLevel);
+export const canRead = (accessLevel: WorkspaceAccessLevel): boolean => hasAccessLevel('READER', accessLevel);
+export const isOwner = (accessLevel: WorkspaceAccessLevel): boolean => hasAccessLevel('OWNER', accessLevel);
 
 export interface BaseWorkspace {
   accessLevel: WorkspaceAccessLevel;
