@@ -9,6 +9,7 @@ import { getConfig } from 'src/libs/config';
 import * as Style from 'src/libs/style';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
 import { SubmissionHistory } from 'src/workflows-app/SubmissionHistory';
+import { WorkflowsInWorkspace } from 'src/workflows-app/WorkflowsInWorkspace';
 
 const subHeadersMap = {
   'workspace-workflows': 'Workflows in this workspace',
@@ -20,7 +21,7 @@ const findAndAddSubheadersMap = {
   'import-workflow': 'Import a workflow', // Update in follow-up tickets
 };
 
-export const LeftNavigationPanel = ({ name, namespace, workspace, loading }) => {
+export const LeftNavigationPanel = ({ name, namespace, workspace, loading, analysesData }) => {
   const [selectedSubHeader, setSelectedSubHeader] = useState<string>('workspace-workflows');
 
   const isSubHeaderActive = (subHeader) => selectedSubHeader === subHeader;
@@ -148,7 +149,7 @@ export const LeftNavigationPanel = ({ name, namespace, workspace, loading }) => 
         style: { borderRadius: '20px', margin: '1.35em', bottom: '0', position: 'fixed' },
       }),
     ]),
-    isSubHeaderActive('workspace-workflows') && div(['TODO']),
+    isSubHeaderActive('workspace-workflows') && h(WorkflowsInWorkspace, { name, namespace, workspace, analysesData }),
     isSubHeaderActive('submission-history') && h(SubmissionHistory, { name, namespace, workspace }),
     isSubHeaderActive('featured-workflows') && div(['TODO']),
     isSubHeaderActive('import-workflow') && div(['TODO']),
