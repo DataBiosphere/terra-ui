@@ -14,7 +14,7 @@ import fcIconWhite from 'src/images/brands/firecloud/FireCloud-icon-white.svg';
 import headerLeftHexes from 'src/images/header-left-hexes.svg';
 import headerRightHexes from 'src/images/header-right-hexes.svg';
 import { Ajax } from 'src/libs/ajax';
-import { signIn, signOut, SignOutCauses } from 'src/libs/auth';
+import { signIn, signOut, SignOutCause } from 'src/libs/auth';
 import { isBaseline, isBioDataCatalyst, isDatastage, isFirecloud, isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
@@ -269,7 +269,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                         h(
                           DropDownSubItem,
                           {
-                            onClick: () => signOut(SignOutCauses.requested),
+                            onClick: () => signOut(SignOutCause.requested),
                           },
                           ['Sign Out']
                         ),

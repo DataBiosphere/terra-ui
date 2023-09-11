@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { div, h, iframe } from 'react-hyperscript-helpers';
 import ButtonBar from 'src/components/ButtonBar';
 import Modal from 'src/components/Modal';
-import { signOut, SignOutCauses } from 'src/libs/auth';
+import { signOut, SignOutCause } from 'src/libs/auth';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { useCurrentTime, useOnMount, useStore } from 'src/libs/react-utils';
@@ -50,7 +50,7 @@ const IdleStatusMonitor = ({ timeout = Utils.durationToMillis({ minutes: 15 }), 
   const doSignOut = () => {
     setLastActive();
     Nav.history.replace({ search: qs.stringify(_.set(['sessionExpired'], true, qs.parse(query))) });
-    signOut(SignOutCauses.idleStatusMonitor);
+    signOut(SignOutCause.idleStatusMonitor);
     setSignOutRequired(true);
   };
 

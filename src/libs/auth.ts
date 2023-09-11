@@ -1,3 +1,4 @@
+import { DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
 import { parseJSON } from 'date-fns/fp';
 import jwtDecode, { JwtPayload } from 'jwt-decode';
 import _ from 'lodash/fp';
@@ -55,7 +56,7 @@ const getAuthInstance = () => {
   return authStore.get().authContext;
 };
 
-export const enum SignOutCauses {
+export const enum SignOutCause {
   requested,
   disabled,
   declinedTos,
@@ -65,32 +66,17 @@ export const enum SignOutCauses {
   unspecified,
 }
 
-const sendSignOutMetrics = (causes: SignOutCauses): void => {
-  const eventToFire = (() => {
-    switch (causes) {
-      case SignOutCauses.requested: {
-        return Events.user.signOut.requested;
-      }
-      case SignOutCauses.disabled: {
-        return Events.user.signOut.disabled;
-      }
-      case SignOutCauses.declinedTos: {
-        return Events.user.signOut.declinedTos;
-      }
-      case SignOutCauses.expiredRefreshToken: {
-        return Events.user.signOut.expiredRefreshToken;
-      }
-      case SignOutCauses.errorRefreshingAuthToken: {
-        return Events.user.signOut.errorRefreshingAuthToken;
-      }
-      case SignOutCauses.unspecified: {
-        return Events.user.signOut.unspecified;
-      }
-      default: {
-        return Events.user.signOut.unspecified;
-      }
-    }
-  })();
+const sendSignOutMetrics = (cause: SignOutCause): void => {
+  const eventToFire: string = switchCase(
+    cause,
+    [SignOutCause.requested, () => Events.user.signOut.requested],
+    [SignOutCause.disabled, () => Events.user.signOut.disabled],
+    [SignOutCause.declinedTos, () => Events.user.signOut.declinedTos],
+    [SignOutCause.expiredRefreshToken, () => Events.user.signOut.expiredRefreshToken],
+    [SignOutCause.errorRefreshingAuthToken, () => Events.user.signOut.errorRefreshingAuthToken],
+    [SignOutCause.unspecified, () => Events.user.signOut.unspecified],
+    [DEFAULT, () => Events.user.signOut.unspecified]
+  );
   const sessionEndTime: number = Date.now();
   const authStoreState = authStore.get();
   const tokenMetadata = authStoreState.authTokenMetadata;
@@ -105,9 +91,9 @@ const sendSignOutMetrics = (causes: SignOutCauses): void => {
   });
 };
 
-export const signOut = (causes: SignOutCauses = SignOutCauses.unspecified): void => {
-  sendSignOutMetrics(causes);
-  if (causes === SignOutCauses.expiredRefreshToken || causes === SignOutCauses.errorRefreshingAuthToken) {
+export const signOut = (cause: SignOutCause = SignOutCause.unspecified): void => {
+  sendSignOutMetrics(cause);
+  if (cause === SignOutCause.expiredRefreshToken || cause === SignOutCause.errorRefreshingAuthToken) {
     notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
   }
   // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
@@ -169,11 +155,6 @@ export const signIn = async (includeBillingScope = false): Promise<User> => {
 };
 
 export const loadAuthToken = async (includeBillingScope = false, popUp = false): Promise<User | null | boolean> => {
-  // here we should update the auth token id
-  // might want to take refresh token and encrypt it to compare to a saved encrypted token
-  // to see if they are the same => track refresh update
-  // track lifespan of current authToken
-  // need to send information about the last authToken
   const oldAuthTokenMetadata = authStore.get().authTokenMetadata; // this can be null (first token), so cover that case
 
   authStore.update((state) => ({
@@ -184,10 +165,23 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
         authStore.get().authTokenMetadata.totalAuthTokenLoadAttemptsThisSession + 1,
     },
   }));
-
+  const args = getSigninArgs(includeBillingScope);
+  const authInstance = getAuthInstance();
   const reloadedAuthTokenState: User | boolean | null = popUp
-    ? await tryLoadAuthTokenPopUp(includeBillingScope)
-    : await tryLoadAuthTokenSilent(includeBillingScope);
+    ? await authInstance
+        .signinSilent(args) // returns Promise<User | null>, attempts to use the refresh token to get a new authToken
+        .catch((e) => {
+          console.error('An unexpected exception occurred while attempting to refresh auth credentials.');
+          console.error(e);
+          return false;
+        })
+    : await authInstance
+        .signinSilent(args) // returns Promise<User | null>, attempts to use the refresh token to get a new authToken
+        .catch((e) => {
+          console.error('An unexpected exception occurred while attempting to refresh auth credentials.');
+          console.error(e);
+          return false;
+        });
 
   if (reloadedAuthTokenState instanceof User) {
     const user: User = reloadedAuthTokenState as User;
@@ -197,9 +191,9 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
     const authTokenExpiresAt: number = user.expires_at!; // time in seconds when authorization token expires, as given by the oidc client
     const authTokenId: string = uuid();
     const jwtExpiresAt: number = (decodedJWT as any).exp; // time in seconds when the JWT expires, after which the JWT should not be read from
-    // refresh token can be stored and labeled with a uuid, then only log the uuid
     const refreshToken: string | undefined = user.refresh_token;
-    const isNewRefreshToken = refreshToken !== null && refreshToken !== oldAuthTokenMetadata.refreshToken;
+    // for future might want to take refresh token and hash it to compare to a saved hashed token to see if they are the same
+    const isNewRefreshToken = !!refreshToken && refreshToken !== oldAuthTokenMetadata.refreshToken;
     if (isNewRefreshToken) {
       authStore.update((state) => ({
         ...state,
@@ -262,30 +256,6 @@ const labelOldAuthToken = (oldAuthTokenMetadata) => {
 };
 const labelTimestampMetric = (timestamp: number): string => {
   return timestamp < 0 ? 'timestamp unset' : Utils.formatTimestampInSeconds(timestamp);
-};
-
-const tryLoadAuthTokenSilent = (includeBillingScope = false): Promise<User | null | boolean> => {
-  const args = getSigninArgs(includeBillingScope);
-  // if this returns a null -> refresh token has expired
-  return getAuthInstance()
-    .signinSilent(args) // returns Promise<User | null>, attempts to use the refresh token to get a new authToken
-    .catch((e) => {
-      console.error('An unexpected exception occurred while attempting to refresh auth credentials.');
-      console.error(e);
-      return false;
-    });
-};
-
-const tryLoadAuthTokenPopUp = (includeBillingScope = false): Promise<User | null | boolean> => {
-  const args = getSigninArgs(includeBillingScope);
-  // if this returns a null -> refresh token has expired
-  return getAuthInstance()
-    .signinPopup(args) // returns Promise<User | null>, attempts to use the refresh token to get a new authToken
-    .catch((e) => {
-      console.error('An unexpected exception occurred while attempting to refresh auth credentials.');
-      console.error(e);
-      return false;
-    });
 };
 
 export const hasBillingScope = (): boolean => authStore.get().hasGcpBillingScopeThroughB2C === true;
