@@ -10,6 +10,7 @@ import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
+import { withBusyState } from 'src/libs/utils';
 import FindWorkflowModal from 'src/workflows-app/components/FindWorkflowModal';
 import { WorkflowCard, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
@@ -29,6 +30,7 @@ export const WorkflowsInWorkspace = (
 ) => {
   const [methodsData, setMethodsData] = useState<WorkflowMethod[]>([]);
   const [viewFindWorkflowModal, setViewFindWorkflowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const signal = useCancellation();
   const cbasReady = doesAppProxyUrlExist(workspaceId, 'cbasProxyUrlState');
@@ -69,14 +71,14 @@ export const WorkflowsInWorkspace = (
   );
 
   useOnMount(() => {
-    const load = async () => {
+    const load = withBusyState(setLoading, async () => {
       const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
       if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
         await loadRunsData(cbasProxyUrlState);
         await refreshApps(true);
       }
-    };
+    });
     load();
   });
 
@@ -95,7 +97,7 @@ export const WorkflowsInWorkspace = (
 
   return div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, margin: '1rem 2rem' } }, [
     h2({ style: { marginTop: 0 } }, ['Workflows in this workspace']),
-    !cbasReady
+    !cbasReady || loading
       ? div({ style: { marginTop: '2rem' } }, [
           icon('loadingSpinner'),
           ' Loading your Workflows app, this may take a few minutes.',

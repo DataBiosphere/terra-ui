@@ -23,10 +23,10 @@ export type LastRun =
 export type WorkflowMethod = {
   name: string;
   last_run: LastRun;
-  description: string;
+  description?: string;
   source: WorkflowSource;
   method_id: string;
-  // This property has more info but is subject to change in future, and we only care about name for now
+  // This property has more info but is subject to change in the future, and we only care about name for now
   method_versions: [
     {
       name: string;
