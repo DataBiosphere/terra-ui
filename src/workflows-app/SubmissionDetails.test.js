@@ -366,7 +366,7 @@ describe('Submission Details page', () => {
           run_set_id: '0cd15673-7342-4cfa-883d-819660184a16',
           record_id: 'FOO2',
           workflow_url: 'https://xyz.wdl',
-          state: 'UNKNOWN',
+          state: 'INITIALIZING',
           workflow_params:
             "[{'input_name':'wf_hello.hello.addressee','input_type':{'type':'primitive','primitive_type':'String'},'source':{'type':'record_lookup','record_attribute':'foo_name'}}]",
           workflow_outputs: '[]',
@@ -419,7 +419,7 @@ describe('Submission Details page', () => {
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
     expect(cellsFromDataRow1.length).toBe(3);
     within(cellsFromDataRow1[0]).getByText('FOO2');
-    within(cellsFromDataRow1[1]).getByText('Initializing'); // Note: not UNKNOWN!
+    within(cellsFromDataRow1[1]).getByText('Initializing');
     // << Don't validate duration here since it depends on the test rendering time and is not particularly relevant >>
   });
 
