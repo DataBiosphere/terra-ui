@@ -18,9 +18,9 @@ import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
 import FindWorkflowModal from 'src/workflows-app/components/FindWorkflowModal';
-import { LeftNavigationPanel } from 'src/workflows-app/components/LeftNavigationPanel';
 import { SavedWorkflows } from 'src/workflows-app/components/SavedWorkflows';
 import { WorkflowsAppLauncherCard } from 'src/workflows-app/components/WorkflowsAppLauncherCard';
+import { WorkflowsAppNavPanel } from 'src/workflows-app/components/WorkflowsAppNavPanel';
 import { doesAppProxyUrlExist, getCromwellUnsupportedMessage, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
@@ -171,7 +171,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
               ]),
             viewFindWorkflowModal && h(FindWorkflowModal, { name, namespace, workspace, onDismiss: () => setViewFindWorkflowModal(false) }),
           ])
-        : h(LeftNavigationPanel, { name, namespace, workspace, loading });
+        : h(WorkflowsAppNavPanel, { name, namespace, workspace, loading });
     };
     return Utils.cond(
       [loading, () => centeredSpinner()],

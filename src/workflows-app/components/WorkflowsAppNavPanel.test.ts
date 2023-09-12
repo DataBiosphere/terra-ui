@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { LeftNavigationPanel } from 'src/workflows-app/components/LeftNavigationPanel';
+import { WorkflowsAppNavPanel } from 'src/workflows-app/components/WorkflowsAppNavPanel';
 import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 
 describe('Left Navigation Panel', () => {
@@ -9,7 +9,7 @@ describe('Left Navigation Panel', () => {
     const user = userEvent.setup();
 
     render(
-      h(LeftNavigationPanel, {
+      h(WorkflowsAppNavPanel, {
         name: 'test-azure-ws-name',
         namespace: 'test-azure-ws-namespace',
         workspace: mockAzureWorkspace,

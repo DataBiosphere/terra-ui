@@ -8,7 +8,6 @@ import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import * as Style from 'src/libs/style';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
-import { SubmissionHistory } from 'src/workflows-app/SubmissionHistory';
 
 const subHeadersMap = {
   'workspace-workflows': 'Workflows in this workspace',
@@ -16,11 +15,21 @@ const subHeadersMap = {
 } as const;
 
 const findAndAddSubheadersMap = {
-  'featured-workflows': 'Featured workflows', // Update in follow-up tickets
-  'import-workflow': 'Import a workflow', // Update in follow-up tickets
+  'featured-workflows': 'Featured workflows',
+  'import-workflow': 'Import a workflow',
 };
 
-export const LeftNavigationPanel = ({ name, namespace, workspace, loading }) => {
+const styles = {
+  subHeaders: (selected) => {
+    return {
+      ...Style.navList.itemContainer(selected),
+      ...Style.navList.item(selected),
+      ...(selected ? { backgroundColor: colors.accent(0.2) } : {}),
+    };
+  },
+};
+
+export const WorkflowsAppNavPanel = ({ loading }) => {
   const [selectedSubHeader, setSelectedSubHeader] = useState<string>('workspace-workflows');
 
   const isSubHeaderActive = (subHeader) => selectedSubHeader === subHeader;
@@ -35,42 +44,52 @@ export const LeftNavigationPanel = ({ name, namespace, workspace, loading }) => 
           flex: 'none',
           width: '100%',
           height: 50,
-          padding: '0 1.5rem',
           color: colors.accent(1.1),
-          ...props.style,
         },
       },
-      [div({ style: { fontSize: 15, wordBreak: 'break-all' } }, [title])]
+      [div({ style: { fontSize: 15, ...props.style } }, [title])]
     );
 
-  return div({ role: 'main', style: { display: 'flex', flex: 1, height: 'calc(100% - 66px)' } }, [
-    div({ style: { minWidth: 330, maxWidth: 330, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)', overflowY: 'auto' } }, [
-      _.map(([subHeaderKey, subHeaderName]) => {
-        const isActive = isSubHeaderActive(subHeaderKey);
-        return loading
-          ? centeredSpinner()
-          : h(
-              Clickable,
-              {
-                'aria-label': `${subHeaderKey}-header-button`,
-                style: { color: isActive ? colors.accent(1.1) : colors.accent(), fontSize: 16 },
-                onClick: () => setSelectedSubHeader(subHeaderKey),
-                hover: Style.navList.itemHover(isActive),
-                'aria-current': isActive,
-                key: subHeaderKey,
-              },
-              [
-                h(ListItem, {
-                  title: subHeaderName,
-                  style: { borderBottom: `0.5px solid ${colors.dark(0.2)}` },
-                }),
-              ]
-            );
-      }, Object.entries(subHeadersMap)),
-      h(Clickable, {}, [
+  return div({ role: 'main', style: { display: 'flex', flex: 1, height: 'calc(100% - 66px)', position: 'relative' } }, [
+    div(
+      {
+        style: {
+          minWidth: 330,
+          maxWidth: 330,
+          boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)',
+          overflowY: 'auto',
+        },
+      },
+      [
+        _.map(([subHeaderKey, subHeaderName]) => {
+          const isActive = isSubHeaderActive(subHeaderKey);
+          return loading
+            ? centeredSpinner()
+            : h(
+                Clickable,
+                {
+                  'aria-label': `${subHeaderKey}-header-button`,
+                  style: {
+                    ...styles.subHeaders(isActive),
+                    color: isActive ? colors.accent(1.1) : colors.accent(),
+                    fontSize: 16,
+                  },
+                  onClick: () => setSelectedSubHeader(subHeaderKey),
+                  hover: Style.navList.itemHover(isActive),
+                  'aria-current': isActive,
+                  key: subHeaderKey,
+                },
+                [
+                  h(ListItem, {
+                    title: subHeaderName,
+                  }),
+                ]
+              );
+        }, Object.entries(subHeadersMap)),
         h(
           Collapse,
           {
+            style: { borderBottom: `1px solid ${colors.dark(0.5)}` },
             title: span({ style: { fontSize: 15, color: colors.accent() } }, ['Find & add workflows']),
             initialOpenState: true,
             titleFirst: true,
@@ -79,7 +98,7 @@ export const LeftNavigationPanel = ({ name, namespace, workspace, loading }) => 
           [
             div(
               {
-                style: { alignItems: 'center', flexDirection: 'column', paddingLeft: '2rem' },
+                style: { flexDirection: 'column' },
               },
               [
                 _.map(([subHeaderKey, subHeaderName]) => {
@@ -88,7 +107,11 @@ export const LeftNavigationPanel = ({ name, namespace, workspace, loading }) => 
                     Clickable,
                     {
                       'aria-label': `${subHeaderKey}-header-button`,
-                      style: { color: isActive ? colors.accent(1.1) : colors.accent(), fontSize: 16 },
+                      style: {
+                        ...styles.subHeaders(isActive),
+                        color: isActive ? colors.accent(1.1) : colors.accent(),
+                        fontSize: 16,
+                      },
                       onClick: () => setSelectedSubHeader(subHeaderKey),
                       hover: Style.navList.itemHover(isActive),
                       'aria-current': isActive,
@@ -97,7 +120,7 @@ export const LeftNavigationPanel = ({ name, namespace, workspace, loading }) => 
                     [
                       h(ListItem, {
                         title: subHeaderName,
-                        style: { borderBottom: `0.5px solid ${colors.dark(0.2)}` },
+                        style: { paddingLeft: '2em' },
                       }),
                     ]
                   );
@@ -107,6 +130,8 @@ export const LeftNavigationPanel = ({ name, namespace, workspace, loading }) => 
                     style: {
                       marginRight: '3em',
                       marginTop: '1.5em',
+                      marginBottom: '2.75rem',
+                      marginLeft: '2rem',
                       display: 'flex',
                       alignItems: 'center',
                       flex: 'none',
@@ -128,7 +153,7 @@ export const LeftNavigationPanel = ({ name, namespace, workspace, loading }) => 
                         }/search?_type=workflow&descriptorType=WDL&searchMode=files`,
                       },
                       [
-                        div({ style: { fontWeight: 'bold' } }, ['Dockstore  ', icon('export')]),
+                        div({ style: { fontWeight: 'bold' } }, ['Dockstore  ', icon('pop-out')]),
                         div([
                           'Browse WDL workflows in Dockstore, an open platform used by the GA4GH for sharing Docker-based workflows.',
                         ]),
@@ -140,15 +165,25 @@ export const LeftNavigationPanel = ({ name, namespace, workspace, loading }) => 
             ),
           ]
         ),
-      ]),
-      h(HelpfulLinksBox, {
-        method: null,
-        style: { borderRadius: '20px', margin: '1.35em', bottom: '0', position: 'fixed' },
-      }),
-    ]),
-    isSubHeaderActive('workspace-workflows') && div(['TODO']),
-    isSubHeaderActive('submission-history') && h(SubmissionHistory, { name, namespace, workspace }),
-    isSubHeaderActive('featured-workflows') && div(['TODO']),
-    isSubHeaderActive('import-workflow') && div(['TODO']),
+        div(
+          {
+            style: { marginTop: '2rem' },
+          },
+          [
+            h(HelpfulLinksBox, {
+              method: null,
+              style: {
+                borderRadius: '20px',
+                margin: '1.35em',
+              },
+            }),
+          ]
+        ),
+      ]
+    ),
+    isSubHeaderActive('workspace-workflows') && div(['Workflows in this workspace TODO']),
+    isSubHeaderActive('submission-history') && div(['Submission history TODO']),
+    isSubHeaderActive('featured-workflows') && div(['Featured workflows TODO']),
+    isSubHeaderActive('import-workflow') && div(['import workflow TODO']),
   ]);
 };
