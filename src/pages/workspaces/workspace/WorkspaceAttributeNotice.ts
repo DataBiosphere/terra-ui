@@ -1,3 +1,4 @@
+import { IconId } from '@terra-ui-packages/components';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
 import TooltipTrigger from 'src/components/TooltipTrigger';
@@ -27,7 +28,7 @@ const WorkspaceAttributeNotice = (props: WorkspaceAttributeNoticeProperties) => 
 interface NoticeProperties {
   label: string;
   tooltip: string;
-  iconName: string;
+  iconName: IconId;
 }
 
 const Notice = (props: NoticeProperties) => {
