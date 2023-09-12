@@ -66,12 +66,7 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
             appAccessScopes.USER_PRIVATE
           );
         } else {
-          await Ajax().Apps.createAppV2(
-            generateAppName(),
-            workspace.workspace.workspaceId,
-            appToolLabels.CROMWELL,
-            appAccessScopes.USER_PRIVATE
-          );
+          await Ajax().Apps.createAppV2(generateAppName(), workspace.workspace.workspaceId, appToolLabels.CROMWELL, appAccessScopes.USER_PRIVATE);
         }
       } else {
         await Ajax()

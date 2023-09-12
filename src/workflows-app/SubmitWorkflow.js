@@ -131,12 +131,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
             appAccessScopes.USER_PRIVATE
           );
         } else {
-          await Ajax().Apps.createAppV2(
-            generateAppName(),
-            workspace.workspace.workspaceId,
-            appToolLabels.CROMWELL,
-            appAccessScopes.USER_PRIVATE
-          );
+          await Ajax().Apps.createAppV2(generateAppName(), workspace.workspace.workspaceId, appToolLabels.CROMWELL, appAccessScopes.USER_PRIVATE);
         }
         await Ajax(signal).Metrics.captureEvent(Events.applicationCreate, {
           app: appTools.CROMWELL.label,
