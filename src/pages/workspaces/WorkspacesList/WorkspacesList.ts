@@ -139,7 +139,7 @@ const workspaceSubmissionStatus = (workspace) => {
 const EMPTY_LIST = [];
 
 interface WorkspaceSort {
-  field: keyof Workspace | keyof WorkspaceInfo;
+  field: keyof WorkspaceInfo | keyof Workspace;
   direction: 'desc' | 'asc';
 }
 
@@ -217,7 +217,7 @@ export const WorkspacesList: React.FC<{}> = () => {
     setLocalPref(persistenceId, { recentlyViewedOpen });
   }, [recentlyViewedOpen, persistenceId]);
 
-  const getWorkspace = (id: string) => _.find({ workspace: { workspaceId: id } }, workspaces);
+  const getWorkspace = (id: string): Workspace => _.find({ workspace: { workspaceId: id } }, workspaces)!;
 
   const initialFiltered = useMemo(() => {
     const [newWsList, featuredWsList] = _.partition('isNew', featuredList);
@@ -260,8 +260,10 @@ export const WorkspacesList: React.FC<{}> = () => {
   // Starred workspaces are always floated to the top
   const sortedWorkspaces = _.orderBy(
     [
-      (ws) => _.includes(ws.workspace.workspaceId, starredWorkspaceIds),
-      sort.field === 'accessLevel' ? (ws) => -workspaceAccessLevels.indexOf(ws.accessLevel) : `workspace.${sort.field}`,
+      (ws: Workspace) => _.includes(ws.workspace.workspaceId, starredWorkspaceIds),
+      sort.field === 'accessLevel'
+        ? (ws: Workspace) => -workspaceAccessLevels.indexOf(ws.accessLevel)
+        : `workspace.${sort.field}`,
     ],
     ['desc', sort.direction],
     filteredWorkspaces[tab]
