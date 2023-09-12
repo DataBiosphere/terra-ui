@@ -29,6 +29,7 @@ interface BaseWorkspaceInfo {
   createdDate: string;
   createdBy: string;
   lastModified: string;
+  attributes?: Record<string, any>;
 }
 
 export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
@@ -60,6 +61,11 @@ export const hasAccessLevel = (required: WorkspaceAccessLevel, current: Workspac
 export const canWrite = (accessLevel: WorkspaceAccessLevel): boolean => hasAccessLevel('WRITER', accessLevel);
 export const canRead = (accessLevel: WorkspaceAccessLevel): boolean => hasAccessLevel('READER', accessLevel);
 export const isOwner = (accessLevel: WorkspaceAccessLevel): boolean => hasAccessLevel('OWNER', accessLevel);
+export interface WorkspaceSubmissionStats {
+  lastSuccessDate?: string;
+  lastFailureDate?: string;
+  runningSubmissionsCount: number;
+}
 
 export interface BaseWorkspace {
   accessLevel: WorkspaceAccessLevel;
@@ -70,11 +76,7 @@ export interface BaseWorkspace {
   // For the purposes of test data, not requiring the specification of the field.
   policies?: WorkspacePolicy[];
   public?: boolean;
-  workspaceSubmissionStats?: {
-    lastSuccessDate?: string;
-    lastFailureDate?: string;
-    runningSubmissionsCount: number;
-  };
+  workspaceSubmissionStats?: WorkspaceSubmissionStats;
 }
 
 export interface AzureContext {
