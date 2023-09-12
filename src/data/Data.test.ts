@@ -67,12 +67,6 @@ describe('WorkspaceData', () => {
     mockListAppsV2: jest.Mock;
   };
 
-  // Used for parameterized tests that check the waiting message for a given app status
-  type StatusParams = {
-    status: LeoAppStatus;
-    expectedMessage: RegExp;
-  };
-
   const populatedAzureStorageOptions = {
     azureContainerRegion: 'eastus',
     azureContainerUrl: 'container-url',
@@ -142,29 +136,6 @@ describe('WorkspaceData', () => {
     expect(screen.getByText(/Preparing your data tables/)).toBeVisible();
     expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // no error message
   });
-
-  it.each([
-    { status: 'PROVISIONING' as LeoAppStatus, expectedMessage: /Preparing your data tables/ },
-    { status: 'UPDATING' as LeoAppStatus, expectedMessage: /Updating your data tables/ },
-  ])(
-    'displays a waiting message for an azure workspace with $status status',
-    async ({ status, expectedMessage }: StatusParams) => {
-      // Arrange
-      const { workspaceDataProps } = setup({
-        workspace: defaultAzureWorkspace,
-        status,
-      });
-
-      // Act
-      await act(async () => {
-        render(h(WorkspaceData, workspaceDataProps));
-      });
-
-      // Assert
-      expect(screen.getByText(expectedMessage)).toBeVisible();
-      expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // no error message
-    }
-  );
 
   it('displays an error message for an azure workspace whose status is ERROR', async () => {
     // Arrange
@@ -297,19 +268,16 @@ describe('WorkspaceData', () => {
     expect(mockGetSchema).toHaveBeenCalledTimes(1); // no further invocations
   });
 
-  it.each([
-    { status: 'PROVISIONING' as LeoAppStatus, expectedMessage: /Preparing your data tables/ },
-    { status: 'UPDATING' as LeoAppStatus, expectedMessage: /Updating your data tables/ },
-  ])('polls for schema until $status app is RUNNING', async ({ status, expectedMessage }: StatusParams) => {
+  it('polls for schema info until a PROVISIONING app is RUNNING', async () => {
     // Arrange
     const { workspaceDataProps, mockListAppsV2, listAppResponse, mockGetSchema } = setup({
       workspace: defaultAzureWorkspace,
-      status,
+      status: 'PROVISIONING',
     });
 
     mockListAppsV2
-      .mockResolvedValueOnce([{ ...listAppResponse, status }])
-      .mockResolvedValueOnce([{ ...listAppResponse, status }])
+      .mockResolvedValueOnce([{ ...listAppResponse, status: 'PROVISIONING' }])
+      .mockResolvedValueOnce([{ ...listAppResponse, status: 'PROVISIONING' }])
       .mockResolvedValueOnce([{ ...listAppResponse, status: 'RUNNING' }]);
 
     // Act
@@ -318,10 +286,10 @@ describe('WorkspaceData', () => {
     });
 
     // Assert
-    expect(mockListAppsV2).toHaveBeenCalledTimes(1); // initial call, not yet running
+    expect(mockListAppsV2).toHaveBeenCalledTimes(1); // initial call, provisioning
     expect(mockGetSchema).not.toHaveBeenCalled(); // don't fetch schema yet
     expect(screen.queryByText(/Select a data type/)).toBeNull();
-    expect(screen.getByText(expectedMessage)).toBeVisible();
+    expect(screen.getByText(/Preparing your data tables/)).toBeVisible();
 
     // Act
     await act(async () => {
@@ -329,10 +297,10 @@ describe('WorkspaceData', () => {
     });
 
     // Assert
-    expect(mockListAppsV2).toHaveBeenCalledTimes(2); // second call, still pending
+    expect(mockListAppsV2).toHaveBeenCalledTimes(2); // second call, still provisioning
     expect(mockGetSchema).not.toHaveBeenCalled(); // don't fetch schema yet
     expect(screen.queryByText(/Select a data type/)).toBeNull();
-    expect(screen.getByText(expectedMessage)).toBeVisible();
+    expect(screen.getByText(/Preparing your data tables/)).toBeVisible();
 
     // Act
     await act(async () => {
@@ -344,7 +312,7 @@ describe('WorkspaceData', () => {
     expect(mockGetSchema).toHaveBeenCalled(); // fetch schema once running
 
     expect(screen.getByText(/Select a data type/)).toBeVisible();
-    expect(screen.queryByText(expectedMessage)).toBeNull(); // no waiting message
+    expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
     expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // no error message
   });
 });
