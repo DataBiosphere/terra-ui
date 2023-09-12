@@ -14,7 +14,7 @@ jest.mock('src/libs/auth', (): Partial<AuthExports> => {
   return {
     loadAuthToken: jest.fn(),
     signOut: jest.fn(),
-    SignOutCauses: {
+    SignOutCause: {
       requested: 0,
       disabled: 1,
       declinedTos: 2,
