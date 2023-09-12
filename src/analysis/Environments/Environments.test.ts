@@ -29,7 +29,6 @@ import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-ut
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 type ModalMockExports = typeof import('src/components/Modal.mock');
-
 jest.mock('src/components/Modal', () => {
   const mockModal = jest.requireActual<ModalMockExports>('src/components/Modal.mock');
   return mockModal.mockModalModule();
