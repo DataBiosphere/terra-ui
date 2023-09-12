@@ -1,3 +1,4 @@
+import { readFileAsText } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, p, span } from 'react-hyperscript-helpers';
@@ -100,7 +101,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
       activeStyle: { cursor: 'copy' },
       onDropAccepted: async ([file]) => {
         setFile(file);
-        const fileContentPreview = await Utils.readFileAsText(file.slice(0, 1000));
+        const fileContentPreview = await readFileAsText(file.slice(0, 1000));
         setFileContents(fileContentPreview);
         if (!recordType) {
           setRecordType(getSuggestedTableName(fileContentPreview) || '');

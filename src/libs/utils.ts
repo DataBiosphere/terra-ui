@@ -191,15 +191,6 @@ export const summarizeErrors = (errors) => {
   }
 };
 
-export const readFileAsText = (file) => {
-  const reader = new FileReader();
-  return new Promise((resolve, reject) => {
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsText(file);
-  });
-};
-
 /**
  * Returns true if a value can't be coerced into a number.
  */
