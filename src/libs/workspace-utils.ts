@@ -61,6 +61,7 @@ export const hasAccessLevel = (required: WorkspaceAccessLevel, current: Workspac
 export const canWrite = (accessLevel: WorkspaceAccessLevel): boolean => hasAccessLevel('WRITER', accessLevel);
 export const canRead = (accessLevel: WorkspaceAccessLevel): boolean => hasAccessLevel('READER', accessLevel);
 export const isOwner = (accessLevel: WorkspaceAccessLevel): boolean => hasAccessLevel('OWNER', accessLevel);
+
 export interface WorkspaceSubmissionStats {
   lastSuccessDate?: string;
   lastFailureDate?: string;
