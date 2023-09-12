@@ -13,7 +13,7 @@ import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { customFormatDuration, differenceFromNowInSeconds, makeCompleteDate } from 'src/libs/utils';
+import { customFormatDuration, makeCompleteDate } from 'src/libs/utils';
 import { HeaderSection, statusType, SubmitNewWorkflowButton } from 'src/workflows-app/components/job-common';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import {
@@ -59,7 +59,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
     return filterStatement;
   };
 
-  const state = (state, submissionDate) => {
+  const state = (state) => {
     switch (state) {
       case 'SYSTEM_ERROR':
       case 'EXECUTOR_ERROR':
@@ -79,9 +79,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
       case 'CANCELING':
         return statusType.canceling;
       default:
-        // 10 seconds should be enough for Cromwell to summarize the new workflow and get a status other
-        // than UNKNOWN. In the meantime, handle this as an edge case in the UI:
-        return differenceFromNowInSeconds(submissionDate) < 10 ? statusType.initializing : statusType.unknown;
+        return statusType.unknown;
     }
   };
 
@@ -371,7 +369,7 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                           field: 'state',
                           headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
                           cellRenderer: ({ rowIndex }) => {
-                            const status = state(paginatedPreviousRuns[rowIndex].state, paginatedPreviousRuns[rowIndex].submission_date);
+                            const status = state(paginatedPreviousRuns[rowIndex].state);
                             if (errorStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                               return div({ style: { width: '100%', textAlign: 'center' } }, [
                                 h(Link, { key: 'error link', style: { fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) }, [
