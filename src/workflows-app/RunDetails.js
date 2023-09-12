@@ -4,7 +4,6 @@ import { div, h, span } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { collapseStatus } from 'src/components/job-common';
-import { UriViewer } from 'src/components/UriViewer/UriViewer';
 import { Ajax } from 'src/libs/ajax';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
@@ -14,6 +13,7 @@ import { cond, newTabLinkProps } from 'src/libs/utils';
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable';
 import InputOutputModal from 'src/workflows-app/components/InputOutputModal';
 import { HeaderSection, statusType, SubmitNewWorkflowButton } from 'src/workflows-app/components/job-common';
+import { LogViewer } from 'src/workflows-app/components/LogViewer';
 import { TroubleshootingBox } from 'src/workflows-app/components/TroubleshootingBox';
 import { WorkflowInfoBox } from 'src/workflows-app/components/WorkflowInfoBox';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
@@ -25,7 +25,6 @@ export const BaseRunDetails = (
   {
     name,
     namespace,
-    workspace,
     workspace: {
       workspace: { workspaceId },
     },
@@ -41,8 +40,8 @@ export const BaseRunDetails = (
   const [callObjects, setCallObjects] = useState({});
   const [failedTasks, setFailedTasks] = useState({});
   const [showLog, setShowLog] = useState(false);
-  const [logUri, setLogUri] = useState({});
-  const [isStdLog, setIsStdLog] = useState(false);
+  const [logsModalTitle, setLogsModalTitle] = useState('');
+  const [logsArray, setLogsArray] = useState([]);
 
   const [taskDataTitle, setTaskDataTitle] = useState('');
   const [taskDataJson, setTaskDataJson] = useState({});
@@ -54,10 +53,10 @@ export const BaseRunDetails = (
   const stateRefreshTimer = useRef();
 
   const [sasToken, setSasToken] = useState('');
-  const showLogModal = useCallback((logUri, isStdLog = false) => {
-    setLogUri(logUri);
+  const showLogModal = useCallback((modalTitle, logsArray) => {
     setShowLog(true);
-    setIsStdLog(isStdLog);
+    setLogsModalTitle(modalTitle);
+    setLogsArray(logsArray);
   }, []);
 
   const showTaskDataModal = useCallback((taskDataTitle, taskJson) => {
@@ -78,6 +77,8 @@ export const BaseRunDetails = (
       'end',
       'stderr',
       'stdout',
+      'tes_stdout',
+      'tes_stderr',
       'attempt',
       'subWorkflowId', // needed for task type column
       // 'subWorkflowMetadata' //may need this later
@@ -239,7 +240,7 @@ export const BaseRunDetails = (
               }),
             ]
           ),
-          showLog && h(UriViewer, { workspace, uri: logUri || '', onDismiss: () => setShowLog(false), isStdLog }),
+          showLog && h(LogViewer, { modalTitle: logsModalTitle, logs: logsArray, onDismiss: () => setShowLog(false) }),
           showTaskData &&
             h(InputOutputModal, { title: taskDataTitle, jsonData: taskDataJson, onDismiss: () => setShowTaskData(false), sasToken }, []),
         ])

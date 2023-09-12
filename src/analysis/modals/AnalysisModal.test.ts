@@ -2,14 +2,7 @@ import { LoadedState } from '@terra-ui-packages/core-utils';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import {
-  defaultAzureWorkspace,
-  defaultGoogleWorkspace,
-  galaxyDisk,
-  galaxyRunning,
-  getGoogleRuntime,
-  imageDocs,
-} from 'src/analysis/_testData/testData';
+import { galaxyDisk, galaxyRunning, getGoogleRuntime, imageDocs } from 'src/analysis/_testData/testData';
 import { AnalysisFile, getFileFromPath } from 'src/analysis/useAnalysisFiles';
 import { AbsolutePath } from 'src/analysis/utils/file-utils';
 import { tools } from 'src/analysis/utils/tool-utils';
@@ -19,6 +12,7 @@ import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { reportError } from 'src/libs/error';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { asMockedFn } from 'src/testing/test-utils';
+import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 import { AnalysisModal, AnalysisModalProps } from './AnalysisModal';
 
@@ -287,6 +281,19 @@ describe('AnalysisModal', () => {
     expect(screen.queryByAltText('Create new R file')).toBeNull();
     expect(screen.queryByAltText('Create new Galaxy app')).toBeNull();
     expect(screen.queryByAltText('Create new Hail Batch app')).toBeNull();
+  });
+
+  it('Azure - Cromwell renders correctly', async () => {
+    const user = userEvent.setup();
+    // Act
+    render(h(AnalysisModal, defaultAzureModalProps));
+
+    // Act
+    const button = screen.getByAltText('Create new Cromwell app');
+    await user.click(button);
+
+    expect(screen.getByText('Cromwell Cloud Environment'));
+    expect(screen.getByText('Create'));
   });
 
   it('Azure - Renders Hail Batch when feature flag is enabled', () => {

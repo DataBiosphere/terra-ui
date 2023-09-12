@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { WorkspaceContainer, WorkspacePermissionNotice, WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+import { WorkspaceContainer, WorkspaceTabs } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 // Mocking for Nav.getLink
 jest.mock('src/libs/nav', () => ({
@@ -24,48 +24,6 @@ jest.mock(
       return null;
     }
 );
-
-describe('WorkspacePermissionNotice', () => {
-  it('renders read-only and locked workspace, with no accessibility issues', async () => {
-    // Arrange
-    const props = { accessLevel: 'READER', isLocked: true };
-    // Act
-    const { container } = render(h(WorkspacePermissionNotice, props));
-    // Assert
-    expect(screen.queryByText('Workspace is locked and read only')).not.toBeNull();
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it('renders read-only workspace', () => {
-    // Arrange
-    const props = { accessLevel: 'READER', isLocked: false };
-    // Act
-    render(h(WorkspacePermissionNotice, props));
-    // Assert
-    expect(screen.queryByText('Workspace is read only')).not.toBeNull();
-  });
-
-  it('renders locked workspace', () => {
-    // Arrange
-    const props = { accessLevel: 'WRITER', isLocked: true };
-    // Act
-    render(h(WorkspacePermissionNotice, props));
-    // Assert
-    expect(screen.queryByText('Workspace is locked')).not.toBeNull();
-  });
-
-  it('renders no messages for unlocked with writer access, with no with no accessibility issues', async () => {
-    // Arrange
-    const props = { accessLevel: 'WRITER', isLocked: false };
-    // Act
-    const { container } = render(h(WorkspacePermissionNotice, props));
-
-    // Assert
-    expect(screen.queryByText(/locked/)).toBeNull();
-    expect(screen.queryByText(/read only/)).toBeNull();
-    expect(await axe(container)).toHaveNoViolations();
-  });
-});
 
 describe('WorkspaceTabs', () => {
   it('renders subset of tabs if workspace is unknown, with no accessibility issues', async () => {
@@ -129,7 +87,7 @@ describe('WorkspaceTabs', () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
-  it('passes workspaceInfo to the workspaceMenu (OWNER, canShare) and workspacePermissionNotice', () => {
+  it('passes workspaceInfo to the workspaceMenu (OWNER, canShare)', () => {
     // Arrange
     const props = {
       workspace: { canShare: true, accessLevel: 'OWNER', workspace: { cloudPlatform: 'Gcp', isLocked: false } },
@@ -177,7 +135,7 @@ describe('WorkspaceContainer', () => {
     expect(within(alert).getByText(/Do not store Unclassified Confidential Information in this platform/)).not.toBeNull();
   });
 
-  it('shows a propagation warning for uninitialized Gcp workspaces', async () => {
+  it('shows a permissions loading spinner Gcp workspaces that have IAM propagation delays', async () => {
     // Arrange
     const props = {
       namespace: 'mock-namespace',
@@ -190,7 +148,7 @@ describe('WorkspaceContainer', () => {
     render(h(WorkspaceContainer, props));
     // Assert
     const alert = screen.getByRole('alert');
-    expect(within(alert).getByText(/Google is syncing permissions for this workspace/)).not.toBeNull();
+    expect(within(alert).getByText(/Terra synchronizing permissions with Google/)).not.toBeNull();
   });
 
   it('shows no alerts for initialized Gcp workspaces', async () => {

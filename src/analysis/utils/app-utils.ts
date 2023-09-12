@@ -1,11 +1,12 @@
 import _ from 'lodash/fp';
 import { allAppTypes, AppToolLabel, appToolLabels, isAppToolLabel, ToolLabel } from 'src/analysis/utils/tool-utils';
 import { App, DisplayAppStatus, LeoAppStatus } from 'src/libs/ajax/leonardo/models/app-models';
-import { DecoratedPersistentDisk, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { getConfig } from 'src/libs/config';
 import { getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { CloudProvider, cloudProviderTypes, WorkspaceInfo } from 'src/libs/workspace-utils';
+import { v4 as uuid } from 'uuid';
 
 const getCurrentAppExcludingStatuses = (
   appType: AppToolLabel,
@@ -55,7 +56,7 @@ export const getCurrentAppIncludingDeleting = (appType: AppToolLabel, apps: App[
   getCurrentAppExcludingStatuses(appType, [], apps);
 
 // If the disk was attached to an app, return the appType. Otherwise return undefined.
-export const getDiskAppType = (disk: PersistentDisk | DecoratedPersistentDisk): AppToolLabel | undefined => {
+export const getDiskAppType = (disk: PersistentDisk): AppToolLabel | undefined => {
   const saturnApp = disk.labels.saturnApplication;
   // Do a case-insensitive match as disks have been created with both "galaxy" and "GALAXY".
   const appType = _.find((type) => type.toLowerCase() === saturnApp?.toLowerCase(), allAppTypes);
@@ -108,3 +109,5 @@ export const getEnvMessageBasedOnStatus = (app: App | undefined): string | undef
   };
   return statusMessages[app.status];
 };
+
+export const generateAppName = () => `terra-app-${uuid()}`;

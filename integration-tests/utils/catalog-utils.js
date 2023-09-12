@@ -1,5 +1,5 @@
-const { navigateToDataCatalog, testWorkspaceName } = require('./integration-helpers');
-const { click, clickable, checkbox, clickTableCell, noSpinnersAfter, waitForNoSpinners, fillIn, select, findText } = require('./integration-utils');
+const { navigateToDataCatalog } = require('./integration-helpers');
+const { click, clickable, checkbox, clickTableCell, noSpinnersAfter, waitForNoSpinners, select, findText } = require('./integration-utils');
 
 const eitherThrow = (testFailure, { cleanupFailure, cleanupMessage }) => {
   if (testFailure) {
@@ -18,47 +18,14 @@ const linkDataToWorkspace = async (page, testUrl, token, datasetName) => {
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Prepare for analysis' })) });
 };
 
-const testExportToNewWorkspace = async (billingProject, page, testUrl, token, datasetName) => {
+const testExportToWorkspace = async (billingProject, page, testUrl, token, datasetName, workspaceName) => {
   await linkDataToWorkspace(page, testUrl, token, datasetName);
-  const newWorkspaceName = testWorkspaceName();
   await waitForNoSpinners(page);
-  await click(page, clickable({ textContains: 'Start with a new workspace' }));
-  await fillIn(page, '//*[@placeholder="Enter a name"]', `${newWorkspaceName}`);
-  await select(page, 'Billing project', `${billingProject}`);
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Create Workspace' })) });
-
-  const waitForWorkspacePage = async () => {
-    try {
-      await findText(page, `${billingProject}/${newWorkspaceName}`);
-      await findText(page, 'Select a data type');
-    } catch (error) {
-      return error;
-    }
-  };
-
-  const cleanupFn = async () => {
-    try {
-      await page.evaluate(
-        async (name, billingProject) => {
-          return await window.Ajax().Workspaces.workspace(billingProject, name).delete();
-        },
-        newWorkspaceName,
-        billingProject
-      );
-    } catch (error) {
-      return error;
-    }
-  };
-
-  const workspaceFailure = await waitForWorkspacePage();
-  const cleanupFailure = await cleanupFn();
-
-  if (workspaceFailure || cleanupFailure) {
-    eitherThrow(workspaceFailure, {
-      cleanupFailure,
-      cleanupMessage: `Failed to delete workspace: ${newWorkspaceName} with billing project ${billingProject}`,
-    });
-  }
+  await click(page, clickable({ textContains: 'Start with an existing workspace' }));
+  await select(page, 'Select a workspace', `${workspaceName}`);
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Import' })) });
+  await findText(page, `${billingProject}/${workspaceName}`);
+  await findText(page, 'Select a data type');
 };
 
-module.exports = { eitherThrow, linkDataToWorkspace, testExportToNewWorkspace };
+module.exports = { eitherThrow, linkDataToWorkspace, testExportToWorkspace };

@@ -162,7 +162,8 @@ export const typeMatch = (cbasType, wdsType) => {
     );
   }
   if (unwrappedCbasType.type === 'array') {
-    return _.startsWith('ARRAY_OF_')(wdsType) && typeMatch(unwrappedCbasType.array_type, _.replace('ARRAY_OF_', '')(wdsType));
+    // should match single values as well as array values
+    return typeMatch(unwrappedCbasType.array_type, _.replace('ARRAY_OF_', '')(wdsType));
   }
   if (unwrappedCbasType.type === 'struct') {
     return wdsType === 'JSON';
@@ -175,11 +176,20 @@ const validateRecordLookup = (inputSource, inputType, recordAttributes) => {
     return true;
   }
   if (inputSource.type === 'record_lookup') {
+    if (recordAttributes === undefined) {
+      return { type: 'error', message: 'Select a data table' };
+    }
     if (!_.has(inputSource.record_attribute)(recordAttributes)) {
       return { type: 'error', message: "This attribute doesn't exist in the data table" };
     }
     if (!typeMatch(inputType, _.get(`${inputSource.record_attribute}.datatype`)(recordAttributes))) {
       return { type: 'error', message: 'Provided type does not match expected type' };
+    }
+    if (
+      unwrapOptional(inputType).type === 'array' &&
+      !_.startsWith('ARRAY_OF_')(_.get(`${inputSource.record_attribute}.datatype`)(recordAttributes))
+    ) {
+      return { type: 'info', message: 'Single value column will be coerced to an array' };
     }
     return true;
   }
