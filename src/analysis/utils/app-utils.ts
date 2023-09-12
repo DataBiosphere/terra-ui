@@ -6,6 +6,7 @@ import { getConfig } from 'src/libs/config';
 import { getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { CloudProvider, cloudProviderTypes, WorkspaceInfo } from 'src/libs/workspace-utils';
+import { v4 as uuid } from 'uuid';
 
 const getCurrentAppExcludingStatuses = (
   appType: AppToolLabel,
@@ -108,3 +109,5 @@ export const getEnvMessageBasedOnStatus = (app: App | undefined): string | undef
   };
   return statusMessages[app.status];
 };
+
+export const generateAppName = () => `terra-app-${uuid()}`;

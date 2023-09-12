@@ -5,7 +5,6 @@ import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { div, span } from 'react-hyperscript-helpers';
 import { canWrite } from 'src/libs/workspace-utils';
-import { v4 as uuid } from 'uuid';
 
 export { cond, DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
 export { canRead, canWrite, isOwner } from 'src/libs/workspace-utils';
@@ -132,12 +131,6 @@ export const onNextTick = (fn, ...args) => setTimeout(() => fn(...args), 0);
 export const abandonedPromise = () => {
   return new Promise(() => {});
 };
-
-export const generateRuntimeName = () => `saturn-${uuid()}`;
-
-export const generateAppName = () => `terra-app-${uuid()}`;
-
-export const generatePersistentDiskName = () => `saturn-pd-${uuid()}`;
 
 export const waitOneTick = () => new Promise(setImmediate);
 

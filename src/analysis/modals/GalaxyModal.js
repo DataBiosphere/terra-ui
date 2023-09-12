@@ -3,9 +3,9 @@ import { Fragment, useState } from 'react';
 import { div, h, label, p, span } from 'react-hyperscript-helpers';
 import { WarningTitle } from 'src/analysis/modals/WarningTitle';
 import { GalaxyLaunchButton, GalaxyWarning, RadioBlock, SaveFilesHelpGalaxy } from 'src/analysis/runtime-common-components';
-import { getCurrentApp, getEnvMessageBasedOnStatus } from 'src/analysis/utils/app-utils';
+import { generateAppName, getCurrentApp, getEnvMessageBasedOnStatus } from 'src/analysis/utils/app-utils';
 import { getGalaxyComputeCost, getGalaxyDiskCost } from 'src/analysis/utils/cost-utils';
-import { getCurrentAppDataDisk, getCurrentAttachedDataDisk } from 'src/analysis/utils/disk-utils';
+import { generatePersistentDiskName, getCurrentAppDataDisk, getCurrentAttachedDataDisk } from 'src/analysis/utils/disk-utils';
 import { machineTypes } from 'src/analysis/utils/gce-machines';
 import { findMachineType } from 'src/analysis/utils/runtime-utils';
 import { appTools } from 'src/analysis/utils/tool-utils';
@@ -65,10 +65,10 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
       withErrorReportingInModal('Error creating app', onError)
     )(async () => {
       await Ajax()
-        .Apps.app(googleProject, Utils.generateAppName())
+        .Apps.app(googleProject, generateAppName())
         .create({
           kubernetesRuntimeConfig,
-          diskName: currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(),
+          diskName: currentDataDisk ? currentDataDisk.name : generatePersistentDiskName(),
           diskSize: dataDisk.size,
           diskType: dataDisk.diskType.value,
           appType: appTools.GALAXY.label,
