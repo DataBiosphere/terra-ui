@@ -5,7 +5,10 @@ import { ajaxOverridesStore, getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
 export const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } });
-export const jsonBody = (body) => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } });
+export const jsonBody = (body, replacerFn?: ((this, key: string, value) => any) | undefined) => ({
+  body: JSON.stringify(body, replacerFn),
+  headers: { 'Content-Type': 'application/json' },
+});
 export const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } };
 
 type FetchFn = typeof fetch;

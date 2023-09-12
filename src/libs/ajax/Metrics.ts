@@ -35,7 +35,11 @@ export const Metrics = (signal?: AbortSignal) => {
 
     return fetchBard(
       'api/event',
-      _.mergeAll([isRegistered ? authOpts() : undefined, jsonBody(body), { signal, method: 'POST' }])
+      _.mergeAll([
+        isRegistered ? authOpts() : undefined,
+        jsonBody(body, (_: string, value) => (value === undefined ? null : value)),
+        { signal, method: 'POST' },
+      ])
     );
   };
   return {
