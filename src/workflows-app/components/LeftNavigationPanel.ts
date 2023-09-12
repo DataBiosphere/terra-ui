@@ -40,7 +40,7 @@ export const LeftNavigationPanel = ({ name, namespace, workspace, loading }) => 
           ...props.style,
         },
       },
-      [div({ style: { fontSize: 15, wordBreak: 'break-all' }, role: 'list' }, [title])]
+      [div({ style: { fontSize: 15, wordBreak: 'break-all' } }, [title])]
     );
 
   return div({ role: 'main', style: { display: 'flex', flex: 1, height: 'calc(100% - 66px)' } }, [
@@ -80,7 +80,6 @@ export const LeftNavigationPanel = ({ name, namespace, workspace, loading }) => 
             div(
               {
                 style: { alignItems: 'center', flexDirection: 'column', paddingLeft: '2rem' },
-                role: 'list',
               },
               [
                 _.map(([subHeaderKey, subHeaderName]) => {
@@ -124,7 +123,6 @@ export const LeftNavigationPanel = ({ name, namespace, workspace, loading }) => 
                     h(
                       Clickable,
                       {
-                        role: 'list',
                         href: `${
                           getConfig().dockstoreUrlRoot
                         }/search?_type=workflow&descriptorType=WDL&searchMode=files`,
