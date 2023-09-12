@@ -1,11 +1,11 @@
 import _ from 'lodash/fp';
-import { FC, Fragment, ReactNode, useState } from 'react';
+import { FC, Fragment, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import { Link } from 'src/components/common';
 import { FirstParagraphMarkdownViewer } from 'src/components/markdown';
-import { FlexTable } from 'src/components/table';
+import { FlexTable, HeaderRenderer } from 'src/components/table';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import {
   NoWorkspacesMessage,
@@ -23,18 +23,36 @@ import * as Utils from 'src/libs/utils';
 import {
   getCloudProviderFromWorkspace,
   workspaceAccessLevels,
+  WorkspaceInfo,
   WorkspaceWrapper as Workspace,
 } from 'src/libs/workspace-utils';
 import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu';
 import { CatagorizedWorkspaces } from 'src/pages/workspaces/WorkspacesList/CatagorizedWorkspaces';
 import { workspaceSubmissionStatus } from 'src/pages/workspaces/WorkspacesList/useWorkspacesWithSubmissionStats';
-import { styles, WorkspaceSort } from 'src/pages/workspaces/WorkspacesList/WorkspacesList';
 import { WorkspaceTab } from 'src/pages/workspaces/WorkspacesList/WorkspaceTab';
+
+interface WorkspaceSort {
+  field: keyof WorkspaceInfo | keyof Workspace;
+  direction: 'desc' | 'asc';
+}
+
+const styles = {
+  tableCellContainer: {
+    height: '100%',
+    padding: '0.5rem 0',
+    paddingRight: '2rem',
+    borderTop: `1px solid ${colors.light()}`,
+  },
+  tableCellContent: {
+    height: '50%',
+    display: 'flex',
+    alignItems: 'center',
+  },
+};
 
 interface RenderedWorkspacesProps {
   workspaces: Workspace[];
   loadingWorkspaces: boolean;
-  sort: WorkspaceSort;
   initialFiltered: CatagorizedWorkspaces;
   filteredWorkspaces: CatagorizedWorkspaces;
   tabs: WorkspaceTab[];
@@ -46,13 +64,10 @@ interface RenderedWorkspacesProps {
   setSharingWorkspace: React.Dispatch<Workspace>;
   setLeavingWorkspaceId: React.Dispatch<string>;
   setRequestingAccessWorkspaceId: React.Dispatch<string>;
-
-  makeHeaderRenderer: (name: string) => () => ReactNode;
 }
 
 export const RenderedWorkspaces: FC<RenderedWorkspacesProps> = ({
   workspaces,
-  // sortedWorkspaces,
   loadingWorkspaces,
   setCreatingNewWorkspace,
   tabs,
@@ -65,8 +80,6 @@ export const RenderedWorkspaces: FC<RenderedWorkspacesProps> = ({
   setSharingWorkspace,
   setLeavingWorkspaceId,
   setRequestingAccessWorkspaceId,
-  makeHeaderRenderer,
-  sort,
 }) => {
   const { query } = Nav.useRoute();
   const tab = query.tab || 'myWorkspaces';
@@ -80,6 +93,10 @@ export const RenderedWorkspaces: FC<RenderedWorkspacesProps> = ({
   const starredWorkspaceIds = _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces);
   const [stars, setStars] = useState(starredWorkspaceIds);
   const [updatingStars, setUpdatingStars] = useState(false);
+
+  const [sort, setSort] = useState<WorkspaceSort>({ field: 'lastModified', direction: 'desc' });
+
+  const makeHeaderRenderer = (name: string) => () => h(HeaderRenderer, { sort, name, onSort: setSort });
 
   const sortedWorkspaces = _.orderBy(
     [

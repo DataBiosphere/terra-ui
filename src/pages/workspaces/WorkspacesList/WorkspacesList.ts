@@ -12,7 +12,6 @@ import TopBar from 'src/components/TopBar';
 import { recentlyViewedPersistenceId, RecentlyViewedWorkspaceCard } from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { isAzureUser } from 'src/libs/auth';
-import colors from 'src/libs/colors';
 import { withErrorIgnoring } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
@@ -30,26 +29,12 @@ import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModa
 import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal';
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
 import { catagorizeWorkspaces } from 'src/pages/workspaces/WorkspacesList/CatagorizedWorkspaces';
+import { RenderedWorkspaces } from 'src/pages/workspaces/WorkspacesList/RenderedWorkspaces';
 import {
   useWorkspacesWithSubmissionStats,
   workspaceSubmissionStatus,
 } from 'src/pages/workspaces/WorkspacesList/useWorkspacesWithSubmissionStats';
 import { WorkspaceFilters } from 'src/pages/workspaces/WorkspacesList/WorkspaceFilters';
-
-export const styles = {
-  tableCellContainer: {
-    height: '100%',
-    padding: '0.5rem 0',
-    paddingRight: '2rem',
-    borderTop: `1px solid ${colors.light()}`,
-  },
-  tableCellContent: {
-    height: '50%',
-    display: 'flex',
-    alignItems: 'center',
-  },
-  filter: { marginRight: '1rem', flex: '1 1 0', minWidth: 'max-content' },
-};
 
 const EMPTY_LIST = [];
 
