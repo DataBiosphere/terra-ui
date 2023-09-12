@@ -6,6 +6,7 @@ import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 
+import { RefAliasToName } from './reference_aliases';
 import ReferenceData from './references';
 
 export const ReferenceDataImporter = ({ onSuccess, onDismiss, namespace, name }) => {
@@ -27,7 +28,9 @@ export const ReferenceDataImporter = ({ onSuccess, onDismiss, namespace, name })
             try {
               await Ajax()
                 .Workspaces.workspace(namespace, name)
-                .shallowMergeNewAttributes(_.mapKeys((k) => `referenceData_${selectedReference}_${k}`, ReferenceData[selectedReference]));
+                .shallowMergeNewAttributes(
+                  _.mapKeys((k) => `referenceData_${RefAliasToName[selectedReference]}_${k}`, ReferenceData[RefAliasToName[selectedReference]])
+                );
               onSuccess();
             } catch (error) {
               await reportError('Error importing reference data', error);
@@ -46,7 +49,7 @@ export const ReferenceDataImporter = ({ onSuccess, onDismiss, namespace, name })
         placeholder: 'Select data',
         value: selectedReference,
         onChange: ({ value }) => setSelectedReference(value),
-        options: _.keys(ReferenceData),
+        options: _.keys(RefAliasToName),
       }),
       loading && spinnerOverlay,
     ]
