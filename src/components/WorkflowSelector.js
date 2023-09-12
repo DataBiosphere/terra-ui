@@ -1,8 +1,8 @@
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { ModalToolButton } from 'src/components/data/data-utils';
 import { centeredSpinner } from 'src/components/icons';
+import { ModalToolButton } from 'src/components/ModalToolButton';
 import { Ajax } from 'src/libs/ajax';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';

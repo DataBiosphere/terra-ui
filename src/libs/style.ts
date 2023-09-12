@@ -254,3 +254,11 @@ export const errorStyle = {
   border: `1px solid ${colors.danger(0.8)}`,
   backgroundColor: colors.danger(0.15),
 };
+
+export const warningBoxStyle = {
+  backgroundColor: colors.warning(0.15),
+  padding: '1rem 1.25rem',
+  color: colors.dark(),
+  fontWeight: 'bold',
+  fontSize: 12,
+};

@@ -8,7 +8,7 @@ import { getDiskAppType } from 'src/analysis/utils/app-utils';
 import { getConvertedRuntimeStatus, getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { icon } from 'src/components/icons';
+import { icon, spinner } from 'src/components/icons';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import { TabBar } from 'src/components/tabBars';
@@ -42,6 +42,26 @@ const TitleBarWarning = (messageComponents) => {
   });
 };
 
+const TitleBarSpinner = (messageComponents) => {
+  return h(TitleBar, {
+    title: div({ role: 'alert', style: { display: 'flex', alignItems: 'center' } }, [
+      spinner({
+        size: 64,
+        style: {
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          backgroundColor: colors.warning(0.1),
+          padding: '1rem',
+          borderRadius: '0.5rem',
+        },
+      }),
+      span({ style: { color: colors.dark(), fontSize: 14 } }, messageComponents),
+    ]),
+    style: { backgroundColor: colors.warning(0.1), borderBottom: `1px solid ${colors.warning()}` },
+  });
+};
+
 const AzureWarning = () => {
   const warningMessage = [
     'Do not store Unclassified Confidential Information in this platform, as it violates US Federal Policy (ie FISMA, FIPS-199, etc) unless explicitly authorized by the dataset manager or governed by your own agreements.',
@@ -49,20 +69,10 @@ const AzureWarning = () => {
   return TitleBarWarning(warningMessage);
 };
 
-const GooglePermissionsWarning = () => {
-  const warningMessage = [
-    'Google is syncing permissions for this workspace, which may take a few minutes or longer. During this time, access to workspace features will be unavailable. ',
-    h(
-      Link,
-      {
-        href: 'https://support.terra.bio/hc/en-us/community/posts/12380560785819-Delays-in-Google-IAM-permissions-propagating',
-        ...Utils.newTabLinkProps,
-      },
-      [div(['Learn more here.'])]
-    ),
-  ];
+const GooglePermissionsSpinner = () => {
+  const warningMessage = ['Terra synchronizing permissions with Google. This may take a couple moments.'];
 
-  return TitleBarWarning(warningMessage);
+  return TitleBarSpinner(warningMessage);
 };
 
 export const WorkspaceTabs = ({
@@ -211,7 +221,7 @@ export const WorkspaceContainer = ({
         setShowLockWorkspaceModal,
       }),
     workspaceLoaded && isAzureWorkspace(workspace) && h(AzureWarning),
-    isGoogleWorkspaceSyncing && h(GooglePermissionsWarning),
+    isGoogleWorkspaceSyncing && h(GooglePermissionsSpinner),
     div({ role: 'main', style: Style.elements.pageContentContainer }, [
       div({ style: { flex: 1, display: 'flex' } }, [
         div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]),

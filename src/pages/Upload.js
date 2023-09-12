@@ -1,3 +1,4 @@
+import { readFileAsText } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { code, div, h, h2, h3, li, p, span, strong, ul } from 'react-hyperscript-helpers';
@@ -604,7 +605,7 @@ const MetadataUploadPanel = ({
 
     try {
       // Read the file contents
-      const text = await Utils.readFileAsText(file);
+      const text = await readFileAsText(file);
 
       // Split rows by newlines and columns by tabs
       const rows = _.flow(

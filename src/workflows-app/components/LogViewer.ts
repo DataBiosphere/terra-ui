@@ -7,7 +7,7 @@ import { centeredSpinner, icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
 import { InfoBox } from 'src/components/PopupTrigger';
 import { SimpleTabBar } from 'src/components/tabBars';
-import { isAzureUri } from 'src/components/UriViewer/uri-viewer-utils';
+import { isAzureUri } from 'src/data/data-table/uri-viewer/uri-viewer-utils';
 import { Ajax } from 'src/libs/ajax';
 import { useCancellation } from 'src/libs/react-utils';
 import { newTabLinkProps } from 'src/libs/utils';
