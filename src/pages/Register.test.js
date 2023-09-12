@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 
 import Register from './Register';
@@ -20,7 +21,7 @@ describe('Register', () => {
     const user = userEvent.setup();
 
     // Act
-    render(h(Register));
+    const { container } = render(h(Register));
     await user.type(screen.getByLabelText('First Name *'), 'Test Name');
     await user.type(screen.getByLabelText('Last Name *'), 'Test Last Name');
     await user.type(screen.getByLabelText('Contact Email for Notifications *'), 'testemail@noreply.com');
@@ -28,6 +29,7 @@ describe('Register', () => {
     const registerButton = screen.getByText('Register');
     // expect(registerButton).toBeDisabled doesn't seem to work.
     expect(registerButton).toHaveAttribute('disabled');
+    expect(await axe(container)).toHaveNoViolations();
   });
 
   it('does not require Organization, Department, and Title if the checkbox is checked', async () => {
@@ -51,7 +53,7 @@ describe('Register', () => {
     const user = userEvent.setup();
 
     // Act
-    render(h(Register));
+    const { container } = render(h(Register));
     await user.type(screen.getByLabelText('First Name *'), 'Test Name');
     await user.type(screen.getByLabelText('Last Name *'), 'Test Last Name');
     await user.type(screen.getByLabelText('Contact Email for Notifications *'), 'testemail@noreply.com');
@@ -62,5 +64,6 @@ describe('Register', () => {
     // Assert
     const registerButton = screen.getByText('Register');
     expect(registerButton).not.toHaveAttribute('disabled');
+    expect(await axe(container)).toHaveNoViolations();
   });
 });
