@@ -62,44 +62,50 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import _ from 'lodash/fp';
+import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { ReactComponent as angleDoubleUp } from 'src/icons/angle-double-up-regular.svg';
-import { ReactComponent as angleUp } from 'src/icons/angle-up-regular.svg';
-import { ReactComponent as arrowLeftRegular } from 'src/icons/arrow-left-regular.svg';
-import { ReactComponent as bars } from 'src/icons/bars-light.svg';
-import { ReactComponent as books } from 'src/icons/books-solid.svg';
-import { ReactComponent as cardMenuIcon } from 'src/icons/card-menu-icon.svg';
-import { ReactComponent as faCloudBolt } from 'src/icons/cloud-compute.svg';
-import { ReactComponent as cloudUpload } from 'src/icons/cloud-upload-solid.svg';
-import { ReactComponent as columnGrabber } from 'src/icons/column_grabber.svg';
-import { ReactComponent as copySolid } from 'src/icons/copy-solid.svg';
-import { ReactComponent as downloadRegular } from 'src/icons/download-regular.svg';
-import { ReactComponent as externalLinkAlt } from 'src/icons/external-link-alt-regular.svg';
-import { ReactComponent as fileExport } from 'src/icons/file-export-regular.svg';
-import { ReactComponent as fileSearchSolid } from 'src/icons/file-search-solid.svg';
-import { ReactComponent as infoCircleRegular } from 'src/icons/info-circle-regular.svg';
-import { ReactComponent as leftCircleFilled } from 'src/icons/left-circle-filled.svg';
-import { ReactComponent as list } from 'src/icons/list-regular.svg';
-import { ReactComponent as loadingSpinner } from 'src/icons/loading-spinner.svg';
-import { ReactComponent as menuIconFilled } from 'src/icons/menu-icon-filled.svg';
-import { ReactComponent as minusCircleRed } from 'src/icons/minus-circle-red.svg';
-import { ReactComponent as plusCircleFilled } from 'src/icons/plus-circle-filled.svg';
-import { ReactComponent as renameIcon } from 'src/icons/rename-icon.svg';
-import { ReactComponent as squareLight } from 'src/icons/square-light.svg';
-import { ReactComponent as syncAlt } from 'src/icons/sync-alt-regular.svg';
-import { ReactComponent as talkBubble } from 'src/icons/talk-bubble.svg';
-import { ReactComponent as times } from 'src/icons/times-light.svg';
-import { ReactComponent as trashCircleFilled } from 'src/icons/trash-circle-filled.svg';
-import { ReactComponent as warningInfo } from 'src/icons/warning-info.svg';
 
-const fa = _.curry((shape, { size, ...props }) => h(FontAwesomeIcon, _.merge({ icon: shape, style: { height: size, width: size } }, props)));
+import { ReactComponent as angleDoubleUp } from './icons/angle-double-up-regular.svg';
+import { ReactComponent as angleUp } from './icons/angle-up-regular.svg';
+import { ReactComponent as arrowLeftRegular } from './icons/arrow-left-regular.svg';
+import { ReactComponent as bars } from './icons/bars-light.svg';
+import { ReactComponent as books } from './icons/books-solid.svg';
+import { ReactComponent as cardMenuIcon } from './icons/card-menu-icon.svg';
+import { ReactComponent as faCloudBolt } from './icons/cloud-compute.svg';
+import { ReactComponent as cloudUpload } from './icons/cloud-upload-solid.svg';
+import { ReactComponent as columnGrabber } from './icons/column_grabber.svg';
+import { ReactComponent as copySolid } from './icons/copy-solid.svg';
+import { ReactComponent as downloadRegular } from './icons/download-regular.svg';
+import { ReactComponent as externalLinkAlt } from './icons/external-link-alt-regular.svg';
+import { ReactComponent as fileExport } from './icons/file-export-regular.svg';
+import { ReactComponent as fileSearchSolid } from './icons/file-search-solid.svg';
+import { ReactComponent as infoCircleRegular } from './icons/info-circle-regular.svg';
+import { ReactComponent as leftCircleFilled } from './icons/left-circle-filled.svg';
+import { ReactComponent as list } from './icons/list-regular.svg';
+import { ReactComponent as loadingSpinner } from './icons/loading-spinner.svg';
+import { ReactComponent as menuIconFilled } from './icons/menu-icon-filled.svg';
+import { ReactComponent as minusCircleRed } from './icons/minus-circle-red.svg';
+import { ReactComponent as plusCircleFilled } from './icons/plus-circle-filled.svg';
+import { ReactComponent as renameIcon } from './icons/rename-icon.svg';
+import { ReactComponent as squareLight } from './icons/square-light.svg';
+import { ReactComponent as syncAlt } from './icons/sync-alt-regular.svg';
+import { ReactComponent as talkBubble } from './icons/talk-bubble.svg';
+import { ReactComponent as times } from './icons/times-light.svg';
+import { ReactComponent as trashCircleFilled } from './icons/trash-circle-filled.svg';
+import { ReactComponent as warningInfo } from './icons/warning-info.svg';
+
+const fa = _.curry((shape, { size, ...props }) =>
+  h(FontAwesomeIcon, _.merge({ icon: shape, style: { height: size, width: size } }, props))
+);
 const custom = _.curry((shape, { size, ...props }) =>
   h(shape, _.merge({ 'aria-hidden': true, focusable: false, style: { height: size, width: size } }, props))
 );
 
-const rotate = _.curry((rotation, shape, props) => shape(_.merge({ style: { transform: `rotate(${rotation}deg)` } }, props)));
+const rotate = _.curry((rotation, shape, props) =>
+  shape(_.merge({ style: { transform: `rotate(${rotation}deg)` } }, props))
+);
 
-const iconDict = {
+const iconLibrary = {
   'angle-down': rotate(180, custom(angleUp)),
   'angle-left': rotate(-90, custom(angleUp)),
   'angle-right': rotate(90, custom(angleUp)),
@@ -194,4 +200,7 @@ const iconDict = {
   'warning-standard': fa(faExclamationTriangle),
 };
 
-export default iconDict;
+export type IconId = keyof typeof iconLibrary;
+
+// TODO: Improve types
+export default iconLibrary as Record<IconId, (props: any) => ReactNode>;
