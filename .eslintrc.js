@@ -9,6 +9,9 @@ module.exports = {
         ],
       },
     },
+    react: {
+      version: require('react').version,
+    },
   },
   rules: {
     'simple-import-sort/imports': 'warn',

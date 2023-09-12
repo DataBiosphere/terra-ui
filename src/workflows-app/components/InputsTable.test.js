@@ -199,8 +199,8 @@ describe('Input table rendering', () => {
     within(cells3[3]).getByText('Type a Value');
     within(cells3[4]).getByDisplayValue('Hello World');
 
-    // sort ascending by column 1
-    await user.click(within(headers[1]).getByRole('button'));
+    // sort descending by column 1 - required inputs stay at top
+    await user.click(within(headers[0]).getByRole('button'));
 
     within(cells1[0]).getByText('target_workflow_1');
     within(cells1[1]).getByText('bar_string_workflow_var');
@@ -220,14 +220,14 @@ describe('Input table rendering', () => {
     within(cells3[3]).getByText('Type a Value');
     within(cells3[4]).getByDisplayValue('Hello World');
 
-    // sort descending by column 1
+    // sort ascending by column 2 - required inputs stay at top
     await user.click(within(headers[1]).getByRole('button'));
 
     within(cells1[0]).getByText('target_workflow_1');
-    within(cells1[1]).getByText('optional_var');
+    within(cells1[1]).getByText('bar_string_workflow_var');
     within(cells1[2]).getByText('String');
-    within(cells1[3]).getByText('Type a Value');
-    within(cells1[4]).getByDisplayValue('Hello World');
+    within(cells1[3]).getByText('Fetch from Data Table');
+    within(cells1[4]).getByText('bar_string');
 
     within(cells2[0]).getByText('foo');
     within(cells2[1]).getByText('foo_rating_workflow_var');
@@ -236,10 +236,10 @@ describe('Input table rendering', () => {
     within(cells2[4]).getByText('foo_rating');
 
     within(cells3[0]).getByText('target_workflow_1');
-    within(cells3[1]).getByText('bar_string_workflow_var');
+    within(cells3[1]).getByText('optional_var');
     within(cells3[2]).getByText('String');
-    within(cells3[3]).getByText('Fetch from Data Table');
-    within(cells3[4]).getByText('bar_string');
+    within(cells3[3]).getByText('Type a Value');
+    within(cells3[4]).getByDisplayValue('Hello World');
   });
 
   it('should hide/show optional inputs when respective button is clicked', async () => {
@@ -369,22 +369,22 @@ describe('Input table rendering', () => {
 
     screen.getByText('Autofill (2) from data table');
 
-    within(cells1[0]).getByText('foo');
-    within(cells1[1]).getByText('foo_rating');
-    within(cells1[2]).getByText('Int');
-    within(cells1[3]).getByText('None');
+    within(cells1[0]).getByText('target_workflow_1');
+    within(cells1[1]).getByText('bar_string');
+    within(cells1[2]).getByText('String');
+    within(cells1[3]).getByText('Select Source');
     within(cells1[4]).getByText(/Autofill /);
-    within(cells1[4]).getByText('foo_rating');
+    within(cells1[4]).getByText('bar_string');
     within(cells1[4]).getByText(/ from data table/);
+    within(cells1[4]).getByText('This attribute is required');
 
-    within(cells2[0]).getByText('target_workflow_1');
-    within(cells2[1]).getByText('bar_string');
-    within(cells2[2]).getByText('String');
-    within(cells2[3]).getByText('Select Source');
+    within(cells2[0]).getByText('foo');
+    within(cells2[1]).getByText('foo_rating');
+    within(cells2[2]).getByText('Int');
+    within(cells2[3]).getByText('None');
     within(cells2[4]).getByText(/Autofill /);
-    within(cells2[4]).getByText('bar_string');
+    within(cells2[4]).getByText('foo_rating');
     within(cells2[4]).getByText(/ from data table/);
-    within(cells2[4]).getByText('This attribute is required');
 
     within(cells3[0]).getByText('target_workflow_1');
     within(cells3[1]).getByText('not_in_table');
@@ -646,7 +646,7 @@ describe('Input table definition updates', () => {
 
     const table = screen.getByRole('table');
     const rows = within(table).getAllByRole('row');
-    const cells1 = within(rows[1]).getAllByRole('cell');
+    const cells1 = within(rows[2]).getAllByRole('cell');
 
     within(cells1[4]).getByText(/Autofill /);
     const inputFillButton = within(cells1[4]).getByText('foo_rating');

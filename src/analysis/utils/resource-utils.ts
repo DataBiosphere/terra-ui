@@ -44,7 +44,13 @@ export const isComputePausable = (compute: App | Runtime): boolean =>
         ]),
     ],
     [isApp(compute), () => _.includes(_.capitalize(compute.status), ['Running', 'Starting'])],
-    [Utils.DEFAULT, () => console.error(`Cannot determine pausability; compute ${compute} must be runtime or app.`)]
+    [
+      Utils.DEFAULT,
+      () => {
+        console.error(`Cannot determine pausability; compute ${compute} must be runtime or app.`);
+        return false;
+      },
+    ]
   );
 
 export const getCreatorForCompute = (compute: Runtime | App): string => compute?.auditInfo?.creator;

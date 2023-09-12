@@ -1,3 +1,4 @@
+import { delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
 import { b, div, h, input, label, p } from 'react-hyperscript-helpers';
@@ -69,7 +70,7 @@ export function RuntimeKicker({ runtime, refreshRuntimes }) {
         return;
       }
       if (currentRuntime === undefined || status === 'Stopping') {
-        await Utils.delay(500);
+        await delay(500);
       } else {
         return;
       }

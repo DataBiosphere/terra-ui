@@ -308,6 +308,34 @@ describe('validateInputs', () => {
     expect(validatedInputs).toEqual(expect.arrayContaining(_.map((input) => ({ name: input.input_name, type: 'none' }))(inputs)));
   });
 
+  it('should return errors for record lookups with no selected data table', () => {
+    const inputsWithIncorrectLookupDefinition = [
+      intInput(1234),
+      floatInput(23.32),
+      {
+        input_name: 'test_workflow.lookup_var',
+        input_type: {
+          type: 'primitive',
+          primitive_type: 'String',
+        },
+        source: {
+          type: 'record_lookup',
+          record_attribute: 'columnname',
+        },
+      },
+    ];
+
+    const validatedInputs = validateInputs(inputsWithIncorrectLookupDefinition, undefined);
+    expect(validatedInputs.length).toBe(3);
+    expect(validatedInputs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: intInput().input_name, type: 'none' }),
+        expect.objectContaining({ name: floatInput().input_name, type: 'none' }),
+        { name: 'test_workflow.lookup_var', type: 'error', message: 'Select a data table' },
+      ])
+    );
+  });
+
   const arrayInput = (name, arrayType, value) => {
     return {
       input_name: name,
@@ -402,6 +430,73 @@ describe('validateInputs', () => {
       ])
     );
   });
+
+  it('should display info and error messages for record lookup type coercions and errors', () => {
+    const dataTableAttributes = {
+      singleNum: {
+        datatype: 'NUMBER',
+      },
+      arrayOfString: {
+        datatype: 'ARRAY_OF_STRING',
+      },
+    };
+
+    const inputsWithRecordLookups = [
+      {
+        ...arrayInput('validInt', 'Int'), // success with info
+        source: {
+          type: 'record_lookup',
+          record_attribute: 'singleNum',
+        },
+      },
+      {
+        ...arrayInput('invalidInt', 'Int'), // failure
+        source: {
+          type: 'record_lookup',
+          record_attribute: 'arrayOfString',
+        },
+      },
+      {
+        ...arrayInput('validString', 'String'), // success no message
+        source: {
+          type: 'record_lookup',
+          record_attribute: 'arrayOfString',
+        },
+      },
+    ];
+
+    const inputMessages = validateInputs(inputsWithRecordLookups, dataTableAttributes);
+    const { error: errorInputs, info: infoInputs, none: noMessageInputs } = _.groupBy('type')(inputMessages);
+
+    expect(inputMessages.length).toBe(inputsWithRecordLookups.length);
+    expect(errorInputs.length).toBe(1);
+    expect(infoInputs.length).toBe(1);
+    expect(noMessageInputs.length).toBe(1);
+
+    expect(errorInputs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'invalidInt',
+          message: 'Provided type does not match expected type',
+        }),
+      ])
+    );
+    expect(infoInputs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'validInt',
+          message: 'Single value column will be coerced to an array',
+        }),
+      ])
+    );
+    expect(noMessageInputs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'validString',
+        }),
+      ])
+    );
+  });
 });
 
 const optional = (type) => ({ type: 'optional', optional_type: type });
@@ -445,8 +540,8 @@ describe('typeMatch', () => {
   });
 
   test.each(testCases)('CBAS array %s can be fulfilled by WDS ARRAY_OF_%s: %s', (cbas, wds, shouldMatch) => {
-    // if CBAS expects array but WDS does not provide, it's no good
-    expect(typeMatch(array(primitive(cbas)), wds)).toBe(false);
+    // if CBAS expects array but WDS does not provide, CBAS can convert to a singleton if the primitive inside matches
+    expect(typeMatch(array(primitive(cbas)), wds)).toBe(shouldMatch);
     // if CBAS expects a string but WDS provides arrays... we can convert that to a string
     expect(typeMatch(primitive(cbas), arrayWDS(wds))).toBe(cbas === 'String');
     // Otherwise arrays should typematch the same as if comparing their children

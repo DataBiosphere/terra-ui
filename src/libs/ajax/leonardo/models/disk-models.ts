@@ -60,8 +60,7 @@ export interface ListDiskItem {
   labels: LeoResourceLabels;
 }
 
-export type PersistentDisk = ListDiskItem | GetDiskItem;
-export type AppDataDisk = PersistentDisk;
+export type RawPersistentDisk = ListDiskItem | GetDiskItem;
 
 export interface GooglePdType {
   value: GoogleDiskType;
@@ -108,9 +107,10 @@ export const googlePdTypes: Record<PDLabels, GooglePdType> = {
     regionToPricesName: 'monthlySSDDiskPrice',
   },
 };
-export type DecoratedPersistentDisk = {
+export type PersistentDisk = {
   diskType: GooglePdType;
-} & Omit<PersistentDisk, 'diskType'>;
+} & Omit<RawPersistentDisk, 'diskType'>;
+export type AppDataDisk = PersistentDisk;
 
 export const GcpPersistentDiskOptions = [googlePdTypes.standard, googlePdTypes.balanced, googlePdTypes.ssd];
 

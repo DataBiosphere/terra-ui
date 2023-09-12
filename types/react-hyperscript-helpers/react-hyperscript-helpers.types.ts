@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { PropsWithChildren, ReactElement } from 'react';
+import { PropsWithChildren, ReactElement, ReactNode } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 
 // Empty element
@@ -43,6 +43,13 @@ h(TestComponent, { stringProp: 'value' }, ['Content']);
 h(TestComponent, [div()]);
 h(TestComponent, [div(), div()]);
 h(TestComponent, ['Content']);
+
+// Component typed as returning ReactNode
+const TestComponent2 = (props: TestComponentProps): ReactNode => {
+  return 'Hello world';
+};
+
+h(TestComponent2, { stringProp: 'value' });
 
 // Component that takes a function as a child
 interface FunctionChildComponentProps {

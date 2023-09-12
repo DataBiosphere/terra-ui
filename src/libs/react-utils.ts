@@ -1,4 +1,4 @@
-import { Atom, safeCurry } from '@terra-ui-packages/core-utils';
+import { Atom, delay, safeCurry } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import {
   EffectCallback,
@@ -11,7 +11,7 @@ import {
   useState,
 } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { delay, pollWithCancellation } from 'src/libs/utils';
+import { pollWithCancellation } from 'src/libs/utils';
 
 /**
  * Performs the given effect, but only on component mount.

@@ -14,7 +14,6 @@ import RequesterPaysModal from 'src/components/RequesterPaysModal';
 import { SimpleTable, TooltipCell } from 'src/components/table';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { WorkspaceTagSelect } from 'src/components/workspace-utils';
-import { displayConsentCodes, displayLibraryAttributes } from 'src/data/workspace-attributes';
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg';
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg';
 import { Ajax } from 'src/libs/ajax';
@@ -30,9 +29,17 @@ import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/l
 import { authStore, requesterPaysProjectStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils';
+import {
+  hasProtectedData,
+  hasRegionConstraint,
+  isAzureWorkspace,
+  isGoogleWorkspace,
+  protectedDataMessage,
+  regionConstraintMessage,
+} from 'src/libs/workspace-utils';
 import SignIn from 'src/pages/SignIn';
 import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic';
+import { displayConsentCodes, displayLibraryAttributes } from 'src/pages/workspaces/workspace/library-attributes';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 const styles = {
@@ -260,6 +267,21 @@ export const AzureStorageDetails = ({ azureContext, storageDetails }) => {
   ]);
 };
 
+export const WorkspaceInformation = ({ workspace }) => {
+  return dl({}, [
+    h(InfoRow, { title: 'Last Updated' }, [new Date(workspace.workspace.lastModified).toLocaleDateString()]),
+    h(InfoRow, { title: 'Creation Date' }, [new Date(workspace.workspace.createdDate).toLocaleDateString()]),
+    h(InfoRow, { title: 'Access Level' }, [roleString[workspace.accessLevel]]),
+    hasProtectedData(workspace) &&
+      h(InfoRow, { title: 'Workspace Protected' }, ['Yes', h(InfoBox, { style: { marginLeft: '0.50rem' }, side: 'bottom' }, [protectedDataMessage])]),
+    hasRegionConstraint(workspace) &&
+      h(InfoRow, { title: 'Region Constraint' }, [
+        'Yes',
+        h(InfoBox, { style: { marginLeft: '0.50rem' }, side: 'bottom' }, [regionConstraintMessage(workspace)]),
+      ]),
+  ]);
+};
+
 export const WorkspaceNotifications = ({ workspace }) => {
   const {
     workspace: { namespace, name },
@@ -324,8 +346,6 @@ const WorkspaceDashboard = _.flow(
         owners,
         workspace: {
           authorizationDomain,
-          createdDate,
-          lastModified,
           bucketName,
           googleProject,
           attributes,
@@ -694,13 +714,7 @@ const WorkspaceDashboard = _.flow(
             initialOpenState: workspaceInfoPanelOpen !== undefined ? workspaceInfoPanelOpen : true,
             onClick: () => setWorkspaceInfoPanelOpen(workspaceInfoPanelOpen === undefined ? false : !workspaceInfoPanelOpen),
           },
-          [
-            dl({}, [
-              h(InfoRow, { title: 'Last Updated' }, [new Date(lastModified).toLocaleDateString()]),
-              h(InfoRow, { title: 'Creation Date' }, [new Date(createdDate).toLocaleDateString()]),
-              h(InfoRow, { title: 'Access Level' }, [roleString[accessLevel]]),
-            ]),
-          ]
+          [h(WorkspaceInformation, { workspace })]
         ),
         h(
           RightBoxSection,

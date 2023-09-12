@@ -1,6 +1,6 @@
 import { safeCurry } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
-import { canWrite } from 'src/libs/utils';
+import { azureRegions } from 'src/libs/azure-regions';
 
 export type CloudProvider = 'AZURE' | 'GCP';
 export const cloudProviderTypes: Record<CloudProvider, CloudProvider> = {
@@ -28,6 +28,7 @@ interface BaseWorkspaceInfo {
   authorizationDomain: AuthorizationDomain[];
   createdDate: string;
   createdBy: string;
+  lastModified: string;
 }
 
 export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
@@ -56,11 +57,18 @@ export const hasAccessLevel = (required: WorkspaceAccessLevel, current: Workspac
   return workspaceAccessLevels.indexOf(current) >= workspaceAccessLevels.indexOf(required);
 };
 
+export const canWrite = (accessLevel: WorkspaceAccessLevel): boolean => hasAccessLevel('WRITER', accessLevel);
+export const canRead = (accessLevel: WorkspaceAccessLevel): boolean => hasAccessLevel('READER', accessLevel);
+export const isOwner = (accessLevel: WorkspaceAccessLevel): boolean => hasAccessLevel('OWNER', accessLevel);
+
 export interface BaseWorkspace {
   accessLevel: WorkspaceAccessLevel;
   canShare: boolean;
   canCompute: boolean;
   workspace: WorkspaceInfo;
+  // Currently will always be empty for GCP workspaces, but this will change in the future.
+  // For the purposes of test data, not requiring the specification of the field.
+  policies?: WorkspacePolicy[];
 }
 
 export interface AzureContext {
@@ -69,15 +77,14 @@ export interface AzureContext {
   tenantId: string;
 }
 
-interface WorkspacePolicy {
+export interface WorkspacePolicy {
   name: string;
   namespace: string;
-  additionalData: { [key: string]: string };
+  additionalData: { [key: string]: string }[];
 }
 
 export interface AzureWorkspace extends BaseWorkspace {
   azureContext: AzureContext;
-  policies?: WorkspacePolicy[];
 }
 
 export interface GoogleWorkspace extends BaseWorkspace {
@@ -97,10 +104,41 @@ export const isGoogleWorkspace = (workspace: BaseWorkspace): workspace is Google
 export const getCloudProviderFromWorkspace = (workspace: BaseWorkspace): CloudProvider =>
   isAzureWorkspace(workspace) ? cloudProviderTypes.AZURE : cloudProviderTypes.GCP;
 
-export const hasProtectedData = (workspace: AzureWorkspace): boolean => containsProtectedDataPolicy(workspace.policies);
+export const hasProtectedData = (workspace: BaseWorkspace): boolean => containsProtectedDataPolicy(workspace.policies);
 
 export const containsProtectedDataPolicy = (policies: WorkspacePolicy[] | undefined): boolean =>
   _.any((policy) => policy.namespace === 'terra' && policy.name === 'protected-data', policies);
+
+export const protectedDataMessage =
+  'Enhanced logging and monitoring are enabled to support the use of protected or sensitive data in this workspace.';
+
+export const hasRegionConstraint = (workspace: BaseWorkspace): boolean =>
+  getRegionConstraintLabels(workspace.policies).length > 0;
+
+export const getRegionConstraintLabels = (policies: WorkspacePolicy[] | undefined): string[] => {
+  const regionPolicies = _.filter(
+    (policy) => policy.namespace === 'terra' && policy.name === 'region-constraint',
+    policies
+  );
+  const regionLabels: string[] = [];
+  _.forEach((policy) => {
+    _.forEach((data) => {
+      if ('region-name' in data) {
+        const region = data['region-name'];
+        const regionName = region.startsWith('azure.') ? region.split('azure.')[1] : region;
+        regionLabels.push(_.has(regionName, azureRegions) ? azureRegions[regionName].label : regionName);
+      }
+    }, policy.additionalData);
+  }, regionPolicies);
+  return regionLabels;
+};
+
+export const regionConstraintMessage = (workspace: BaseWorkspace): string | undefined => {
+  const regions = getRegionConstraintLabels(workspace.policies);
+  return regions.length === 0
+    ? undefined
+    : `Workspace storage and compute resources must remain in the following region(s): ${regions.join(', ')}.`;
+};
 
 export const isValidWsExportTarget = safeCurry((sourceWs: WorkspaceWrapper, destWs: WorkspaceWrapper) => {
   const {
