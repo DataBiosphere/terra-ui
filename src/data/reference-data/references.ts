@@ -94,6 +94,9 @@ export default {
   'mRatBN7-2': {
     ref_fasta: 'gs://gcp-public-data--broad-references/R.norvegicus/mRatBN7.2/GCF_015227675.2_mRatBN7.2_genomic.fna',
   },
+  'Rnor-6-0': {
+    ref_fasta: 'gs://gcp-public-data--broad-references/R.norvegicus/Rnor_6.0/GCA_000001895.4_Rnor_6.0_genomic.fna',
+  },
   'Release-6-plus-ISO1-MT': {
     ref_fasta:
       'gs://gcp-public-data--broad-references/D.melanogaster/Release_6_plus_ISO1_MT/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna',
