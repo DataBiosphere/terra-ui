@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { useState } from 'react';
+import { CSSProperties, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import { Clickable } from 'src/components/common';
@@ -7,12 +7,13 @@ import { centeredSpinner, icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
 
 const subHeadersMap = {
   'workspace-workflows': 'Workflows in this workspace',
   'submission-history': 'Submission history',
-} as const;
+};
 
 const findAndAddSubheadersMap = {
   'featured-workflows': 'Featured workflows',
@@ -29,28 +30,36 @@ const styles = {
   },
 };
 
-export const WorkflowsAppNavPanel = ({ loading }) => {
+type ListItemProps = {
+  title: string;
+  style?: CSSProperties;
+};
+
+const ListItem = ({ title, ...props }: ListItemProps) =>
+  div(
+    {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        flex: 'none',
+        width: '100%',
+        height: 50,
+        color: colors.accent(1.1),
+      },
+    },
+    [div({ style: { fontSize: 15, ...props.style } }, [title])]
+  );
+
+type WorkflowsAppNavPanelProps = {
+  loading: boolean;
+};
+
+export const WorkflowsAppNavPanel = ({ loading }: WorkflowsAppNavPanelProps) => {
   const [selectedSubHeader, setSelectedSubHeader] = useState<string>('workspace-workflows');
 
-  const isSubHeaderActive = (subHeader) => selectedSubHeader === subHeader;
+  const isSubHeaderActive = (subHeader: string) => selectedSubHeader === subHeader;
 
-  const ListItem = ({ title, ...props }) =>
-    h(
-      Clickable,
-      {
-        style: {
-          display: 'flex',
-          alignItems: 'center',
-          flex: 'none',
-          width: '100%',
-          height: 50,
-          color: colors.accent(1.1),
-        },
-      },
-      [div({ style: { fontSize: 15, ...props.style } }, [title])]
-    );
-
-  return div({ role: 'main', style: { display: 'flex', flex: 1, height: 'calc(100% - 66px)', position: 'relative' } }, [
+  return div({ style: { display: 'flex', flex: 1, height: 'calc(100% - 66px)', position: 'relative' } }, [
     div(
       {
         style: {
@@ -177,9 +186,12 @@ export const WorkflowsAppNavPanel = ({ loading }) => {
         ),
       ]
     ),
-    isSubHeaderActive('workspace-workflows') && div(['Workflows in this workspace TODO']),
-    isSubHeaderActive('submission-history') && div(['Submission history TODO']),
-    isSubHeaderActive('featured-workflows') && div(['Featured workflows TODO']),
-    isSubHeaderActive('import-workflow') && div(['import workflow TODO']),
+    Utils.switchCase(
+      selectedSubHeader,
+      ['workspace-workflows', () => div(['Workflows in this workspace TODO'])],
+      ['submission-history', () => div(['Submission history TODO'])],
+      ['featured-workflows', () => div(['Featured workflows TODO'])],
+      ['import-workflow', () => div(['Import workflow TODO'])]
+    ),
   ]);
 };

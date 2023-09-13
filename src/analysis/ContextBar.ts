@@ -36,7 +36,6 @@ import { Clickable } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { getRegionInfo } from 'src/components/region-common';
 import TooltipTrigger from 'src/components/TooltipTrigger';
-import cloudIcon from 'src/icons/cloud-compute.svg';
 import cromwellImg from 'src/images/cromwell-logo.png'; // To be replaced by something square
 import galaxyLogo from 'src/images/galaxy-project-logo-square.png';
 import hailLogo from 'src/images/hail-logo.svg';
@@ -266,10 +265,10 @@ export const ContextBar = ({
               content: [
                 div({ key: 'p1' }, [
                   'Estimated hourly rate for all applications in a running or paused state, and associated persistent disks. For details, click',
-                  img({
-                    src: cloudIcon,
-                    style: { height: 20, padding: '0 5px', verticalAlign: 'text-bottom' },
-                    alt: 'Environment Configuration Icon',
+                  icon('cloudBolt', {
+                    'aria-label': 'Environment Configuration Icon',
+                    size: 20,
+                    style: { margin: '0 5px', verticalAlign: 'text-bottom' },
                   }),
                   'below.',
                 ]),
@@ -327,7 +326,7 @@ export const ContextBar = ({
               tooltipDelay: 100,
               useTooltipAsLabel: true,
             },
-            [img({ src: cloudIcon, style: { display: 'flex', margin: 'auto', height: 40, width: 40 }, alt: '' })]
+            [icon('cloudBolt', { size: 40 })]
           ),
           getEnvironmentStatusIcons(),
         ]),
