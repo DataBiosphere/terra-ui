@@ -16,6 +16,7 @@ import colors from 'src/libs/colors';
 import { dataTableVersionsPathRoot } from 'src/libs/data-table-versions';
 import { requesterPaysProjectStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import { editWorkspaceError } from 'src/libs/workspace-utils';
 
 interface FileBrowserProps {
   initialPath?: string;
@@ -56,12 +57,12 @@ const FileBrowser = (props: FileBrowserProps) => {
     }
   }, []);
 
-  const editWorkspaceError = Utils.editWorkspaceError(workspace);
+  const ewError = editWorkspaceError(workspace);
   const { editDisabled, editDisabledReason } = Utils.cond<{
     editDisabled: boolean;
     editDisabledReason: string | undefined;
   }>(
-    [!!editWorkspaceError, () => ({ editDisabled: true, editDisabledReason: editWorkspaceError })],
+    [!!ewError, () => ({ editDisabled: true, editDisabledReason: ewError })],
     [
       path.startsWith(`${dataTableVersionsPathRoot}/`),
       () => ({
