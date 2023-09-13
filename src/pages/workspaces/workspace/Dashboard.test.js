@@ -3,16 +3,102 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { defaultLocation } from 'src/analysis/utils/runtime-utils';
-import { locationTypes } from 'src/components/region-common';
 import { Ajax } from 'src/libs/ajax';
+import { azureRegions } from 'src/libs/azure-regions';
 import { authStore } from 'src/libs/state';
-import { AzureStorageDetails, BucketLocation, WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard';
+import { AzureStorageDetails, BucketLocation, WorkspaceInformation, WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard';
 import { asMockedFn } from 'src/testing/test-utils';
+import {
+  defaultAzureStorageOptions,
+  defaultGoogleBucketOptions,
+  defaultGoogleWorkspace,
+  protectedAzureWorkspace,
+  regionRestrictedAzureWorkspace,
+} from 'src/testing/workspace-fixtures';
 
 jest.mock('src/libs/ajax');
 
 jest.mock('src/libs/notifications');
+
+describe('WorkspaceInformation', () => {
+  it('renders information for a non-protected workspace without region constraints and does not fail accessibility tests', async () => {
+    // Act
+    const { container } = render(h(WorkspaceInformation, { workspace: defaultGoogleWorkspace }));
+
+    // Assert
+    // Access Level
+    expect(screen.getAllByText('Owner')).not.toBeNull();
+    // Created date
+    expect(screen.getAllByText('2/15/2023')).not.toBeNull();
+    // Last updated date
+    expect(screen.getAllByText('3/15/2023')).not.toBeNull();
+    // Should not have workspace protected entry
+    expect(screen.queryByText('Workspace Protected')).toBeNull();
+    // Should not have region constraint
+    expect(screen.queryByText('Region Constraint')).toBeNull();
+
+    // Accessibility
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it('renders information for a protected workspace and does not fail accessibility tests', async () => {
+    const user = userEvent.setup();
+
+    // Act
+    const { container } = render(h(WorkspaceInformation, { workspace: protectedAzureWorkspace }));
+
+    // Assert
+    // Access Level
+    expect(screen.getAllByText('Owner')).not.toBeNull();
+    // Created date
+    expect(screen.getAllByText('2/15/2023')).not.toBeNull();
+    // Last updated date
+    expect(screen.getAllByText('3/15/2023')).not.toBeNull();
+    // Should show protected workspace information.
+    expect(screen.getAllByText('Workspace Protected')).not.toBeNull();
+    // Should not have region constraint
+    expect(screen.queryByText('Region Constraint')).toBeNull();
+
+    // Act, click on the info button to get tooltip text to render.
+    await user.click(screen.getByLabelText('More info'));
+
+    // Assert
+    expect(screen.getAllByText(/protected or sensitive data/)).not.toBeNull();
+
+    // Accessibility
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it('renders information for a workspace with region constraints and does not fail accessibility tests', async () => {
+    const user = userEvent.setup();
+
+    // Act
+    const { container } = render(h(WorkspaceInformation, { workspace: regionRestrictedAzureWorkspace }));
+
+    // Assert
+    // Access Level
+    expect(screen.getAllByText('Owner')).not.toBeNull();
+    // Created date
+    expect(screen.getAllByText('2/15/2023')).not.toBeNull();
+    // Last updated date
+    expect(screen.getAllByText('3/15/2023')).not.toBeNull();
+    // Should not have workspace protected entry
+    expect(screen.queryByText('Workspace Protected')).toBeNull();
+    // Should show region constraint information.
+    expect(screen.getAllByText('Region Constraint')).not.toBeNull();
+
+    // Act, click on the info button to get tooltip text with region labels to render.
+    await user.click(screen.getByLabelText('More info'));
+
+    // Assert
+    expect(screen.getAllByText(new RegExp(`${azureRegions.eastus.label}`))).not.toBeNull();
+    expect(screen.getAllByText(new RegExp(`${azureRegions.westus2.label}`))).not.toBeNull();
+    expect(screen.getAllByText(/unknownRegion/)).not.toBeNull();
+
+    // Accessibility
+    expect(await axe(container)).toHaveNoViolations();
+  });
+});
 
 describe('WorkspaceNotifications', () => {
   const testWorkspace = { workspace: { namespace: 'test', name: 'test' } };
@@ -99,17 +185,6 @@ describe('WorkspaceNotifications', () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 });
-
-const defaultGoogleBucketOptions = {
-  googleBucketLocation: defaultLocation,
-  googleBucketType: locationTypes.default,
-  fetchedGoogleBucketLocation: undefined,
-};
-const defaultAzureStorageOptions = {
-  azureContainerRegion: undefined,
-  azureContainerUrl: undefined,
-  azureContainerSasUrl: undefined,
-};
 
 describe('BucketLocation', () => {
   const workspace = { workspace: { namespace: 'test', name: 'test', cloudPlatform: 'Gcp' }, workspaceInitialized: true };
@@ -260,7 +335,7 @@ describe('AzureDetails', () => {
 
     // Assert
     expect(screen.queryByText('Loading')).toBeNull();
-    expect(screen.getAllByText(/West US/)).not.toBeNull();
+    expect(screen.getAllByText(new RegExp(`${azureRegions.westus.label}`))).not.toBeNull();
     expect(screen.getAllByText(/🇺🇸/)).not.toBeNull();
     expect(screen.getAllByText(/only-container-url/)).not.toBeNull();
     expect(screen.getAllByText(/url-with-sas-token/)).not.toBeNull();

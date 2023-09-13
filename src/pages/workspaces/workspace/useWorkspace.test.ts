@@ -1,8 +1,6 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act } from '@testing-library/react';
 import _ from 'lodash/fp';
-import { defaultLocation } from 'src/analysis/utils/runtime-utils';
-import { locationTypes } from 'src/components/region-common';
 import * as WorkspaceUtils from 'src/components/workspace-utils';
 import { Ajax } from 'src/libs/ajax';
 import { AzureStorage, AzureStorageContract } from 'src/libs/ajax/AzureStorage';
@@ -15,6 +13,7 @@ import {
   useWorkspace,
 } from 'src/pages/workspaces/workspace/useWorkspace';
 import { asMockedFn, renderHookInAct } from 'src/testing/test-utils';
+import { defaultAzureStorageOptions, defaultGoogleBucketOptions } from 'src/testing/workspace-fixtures';
 
 jest.mock('src/libs/ajax/AzureStorage');
 
@@ -103,21 +102,9 @@ describe('useActiveWorkspace', () => {
     locationType: 'location-type',
   };
 
-  const defaultGoogleBucketOptions = {
-    googleBucketLocation: defaultLocation,
-    googleBucketType: locationTypes.default,
-    fetchedGoogleBucketLocation: undefined,
-  };
-
   const azureStorageDetails = {
     location: 'container-location',
     sas: { url: 'container-url?sas-token' },
-  };
-
-  const defaultAzureStorageOptions = {
-    azureContainerRegion: undefined,
-    azureContainerUrl: undefined,
-    azureContainerSasUrl: undefined,
   };
 
   beforeEach(() => {

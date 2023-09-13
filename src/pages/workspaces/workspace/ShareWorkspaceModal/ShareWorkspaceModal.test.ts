@@ -47,6 +47,7 @@ describe('the share workspace modal', () => {
       createdBy: '',
       googleProject: 'test-project',
       bucketName: 'test-bucket',
+      lastModified: '',
     },
   };
 
@@ -227,6 +228,7 @@ describe('the share workspace modal', () => {
         authorizationDomain: [],
         createdDate: '',
         createdBy: '',
+        lastModified: '',
       },
     };
 
@@ -240,7 +242,7 @@ describe('the share workspace modal', () => {
               ...azureWorkspace,
               policies: [
                 {
-                  additionalData: {},
+                  additionalData: [],
                   name: 'protected-data',
                   namespace: 'terra',
                 },
@@ -262,12 +264,12 @@ describe('the share workspace modal', () => {
               ...azureWorkspace,
               policies: [
                 {
-                  additionalData: {},
+                  additionalData: [],
                   name: 'not-protected-data',
                   namespace: 'terra',
                 },
                 {
-                  additionalData: {},
+                  additionalData: [],
                   name: 'protected-data',
                   namespace: 'something-besides-terra',
                 },

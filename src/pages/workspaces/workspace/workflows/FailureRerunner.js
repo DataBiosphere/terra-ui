@@ -1,3 +1,4 @@
+import { delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { div, h } from 'react-hyperscript-helpers';
 import { icon, spinner } from 'src/components/icons';
@@ -66,7 +67,7 @@ export const rerunFailures = async ({
     onDone();
     Ajax().Metrics.captureEvent(Events.workflowRerun, { ...eventData, success: true });
 
-    await Utils.delay(2000);
+    await delay(2000);
   } catch (error) {
     Ajax().Metrics.captureEvent(Events.workflowRerun, { ...eventData, success: false });
     reportError('Error rerunning failed workflows', error);

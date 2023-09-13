@@ -4,8 +4,6 @@ import { h, p } from 'react-hyperscript-helpers';
 import {
   azureDisk,
   azureRuntime,
-  defaultAzureWorkspace,
-  defaultGoogleWorkspace,
   defaultTestDisk,
   galaxyRunning,
   generateTestApp,
@@ -20,6 +18,7 @@ import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 type RuntimesAjaxExports = typeof import('src/libs/ajax/leonardo/Runtimes');
 type AppsAjaxExports = typeof import('src/libs/ajax/leonardo/Apps');
@@ -153,12 +152,14 @@ const CloudEnvironmentModalDefaultProps: any = {
 };
 
 const cromwellRunning: App = {
+  workspaceId: null,
+  accessScope: null,
   appName: 'terra-app-83f46705-524c-4fc8-xcyc-97fdvcfby14f',
   appType: 'CROMWELL',
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-11-28T20:28:01.998494Z',
-    destroyedDate: undefined,
+    destroyedDate: null,
     dateAccessed: '2021-11-28T20:28:01.998494Z',
   },
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-55fe36f5b4e8',
@@ -178,6 +179,8 @@ const cromwellRunning: App = {
 };
 
 const hailBatchAppRunning: App = {
+  workspaceId: null,
+  accessScope: null,
   appName: 'test-hail-batch-app',
   cloudContext: {
     cloudProvider: 'AZURE',
@@ -193,12 +196,12 @@ const hailBatchAppRunning: App = {
   proxyUrls: {
     batch: 'https://lz123.servicebus.windows.net/test-hail-batch-app/batch',
   },
-  diskName: undefined,
+  diskName: null,
   customEnvironmentVariables: {},
   auditInfo: {
     creator: 'abc.testerson@gmail.com',
     createdDate: '2023-01-18T23:28:47.605176Z',
-    destroyedDate: undefined,
+    destroyedDate: null,
     dateAccessed: '2023-01-18T23:28:47.605176Z',
   },
   appType: appToolLabels.HAIL_BATCH,

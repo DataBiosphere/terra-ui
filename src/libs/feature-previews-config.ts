@@ -87,7 +87,7 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     title: 'Cromwell App Call Caching',
     description:
       'Enabling this feature will allow you to configure call caching for Cromwell apps running in Azure workspaces. Workspace must be running Cromwell and CBAS versions that support Azure call caching.',
-    feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent(
+    feedbackUrl: `mailto:dsp-workflow-management@broadinstitute.org?subject=${encodeURIComponent(
       'Feedback on Cromwell call caching configuration (Azure)'
     )}`,
   },
@@ -96,7 +96,7 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     title: 'Azure Collaborative Workflows',
     description:
       'Enabling this feature will allow for workspaces to become collaborative with other users to run workflows and read workspace data',
-    feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent(
+    feedbackUrl: `mailto:dsp-workflow-management@broadinstitute.org?subject=${encodeURIComponent(
       'Feedback on Azure Collaborative Workflows experience.'
     )}`,
   },
@@ -104,7 +104,7 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     id: ENABLE_WORKFLOWS_SUBMISSION_UX_REVAMP,
     title: 'Workflows Submission UI Revamp',
     description: 'Enabling this feature will allow interaction with the updated Submission UI in Azure workspaces',
-    feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent(
+    feedbackUrl: `mailto:dsp-workflow-management@broadinstitute.org?subject=${encodeURIComponent(
       'Feedback on Submission UX experience.'
     )}`,
   },

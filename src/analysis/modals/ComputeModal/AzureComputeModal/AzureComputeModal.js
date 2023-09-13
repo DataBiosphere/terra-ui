@@ -6,9 +6,11 @@ import { AzurePersistentDiskSection } from 'src/analysis/modals/ComputeModal/Azu
 import { DeleteEnvironment } from 'src/analysis/modals/DeleteEnvironment';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
 import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/analysis/utils/cost-utils';
+import { generatePersistentDiskName } from 'src/analysis/utils/disk-utils';
 import {
   autopauseDisabledValue,
   defaultAutopauseThreshold,
+  generateRuntimeName,
   getAutopauseThreshold,
   getIsRuntimeBusy,
   isAutopauseEnabled,
@@ -341,12 +343,12 @@ export const AzureComputeModalBase = ({
         () => {
           const disk = {
             size: computeConfig.persistentDiskSize,
-            name: Utils.generatePersistentDiskName(),
+            name: generatePersistentDiskName(),
             labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: workspaceName },
           };
 
           return Ajax()
-            .Runtimes.runtimeV2(workspaceId, Utils.generateRuntimeName())
+            .Runtimes.runtimeV2(workspaceId, generateRuntimeName())
             .create(
               {
                 autopauseThreshold: computeConfig.autopauseThreshold,

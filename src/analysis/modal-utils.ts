@@ -1,14 +1,13 @@
-import _ from 'lodash/fp';
 import { cloudServices } from 'src/analysis/utils/gce-machines';
-import { defaultDataprocMachineType, getDefaultMachineType } from 'src/analysis/utils/runtime-utils';
+import {
+  defaultDataprocMachineType,
+  getDefaultMachineType,
+  getImageUrlFromRuntime,
+} from 'src/analysis/utils/runtime-utils';
 import { getToolLabelFromCloudEnv } from 'src/analysis/utils/tool-utils';
-import { GooglePdType, PersistentDisk, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
+import { GoogleDiskType, PersistentDisk, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
 
 export interface IComputeConfig {
-  diskSize: number;
-  diskType: GooglePdType;
-  persistentDiskSize: number;
-  persistentDiskType: SharedPdType; // TODO: Switch to DiskType
   masterMachineType: string;
   masterDiskSize: number;
   numberOfWorkers: number;
@@ -23,6 +22,14 @@ export interface IComputeConfig {
   autopauseThreshold: number;
   computeRegion: string;
   computeZone: string;
+
+  // Used by GCP disk select
+  diskSize: number;
+  diskType: GoogleDiskType;
+
+  // Used by Azure disk select
+  persistentDiskSize: number;
+  persistentDiskType: SharedPdType; // TODO: Switch to DiskType
 }
 
 export const buildExistingEnvironmentConfig = (
@@ -34,24 +41,33 @@ export const buildExistingEnvironmentConfig = (
   const runtimeConfig = currentRuntimeDetails?.runtimeConfig;
   const cloudService = runtimeConfig?.cloudService;
   const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0;
+  const hasGpu = computeConfig.hasGpu;
   const gpuConfig = runtimeConfig?.gpuConfig;
   const toolLabel = getToolLabelFromCloudEnv(currentRuntimeDetails);
   return {
-    hasGpu: computeConfig.hasGpu,
-    autopauseThreshold: computeConfig.autopauseThreshold,
+    hasGpu,
+    autopauseThreshold: currentRuntimeDetails?.autopauseThreshold,
     runtime: currentRuntimeDetails
       ? {
           cloudService,
-          toolDockerImage: getImageUrl(currentRuntimeDetails),
+          toolDockerImage: getImageUrlFromRuntime(currentRuntimeDetails),
           tool: toolLabel,
-          ...(currentRuntimeDetails?.jupyterUserScriptUri && {
-            jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri,
-          }),
+          ...(currentRuntimeDetails?.jupyterUserScriptUri
+            ? {
+                jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri,
+              }
+            : {}),
+          ...(currentRuntimeDetails?.timeoutInMinutes
+            ? {
+                timeoutInMinutes: currentRuntimeDetails?.timeoutInMinutes,
+              }
+            : {}),
           ...(cloudService === cloudServices.GCE
             ? {
                 zone: computeConfig.computeZone,
+                region: computeConfig.computeRegion,
                 machineType: runtimeConfig.machineType || getDefaultMachineType(false, toolLabel),
-                ...(computeConfig.hasGpu && gpuConfig ? { gpuConfig } : {}),
+                ...(hasGpu && gpuConfig ? { gpuConfig } : {}),
                 bootDiskSize: runtimeConfig.bootDiskSize,
                 ...(runtimeConfig.persistentDiskId
                   ? {
@@ -79,9 +95,4 @@ export const buildExistingEnvironmentConfig = (
       ? { size: currentPersistentDiskDetails.size, diskType: currentPersistentDiskDetails.diskType }
       : undefined,
   };
-};
-
-export const getImageUrl = (runtimeDetails) => {
-  return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), runtimeDetails?.runtimeImages)
-    ?.imageUrl;
 };
