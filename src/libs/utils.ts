@@ -7,7 +7,6 @@ import { div, span } from 'react-hyperscript-helpers';
 import { canWrite } from 'src/libs/workspace-utils';
 
 export { cond, DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
-export { canRead, canWrite, isOwner } from 'src/libs/workspace-utils';
 
 const dateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric' });
 const monthYearFormat = new Intl.DateTimeFormat('default', { month: 'short', year: 'numeric' });
