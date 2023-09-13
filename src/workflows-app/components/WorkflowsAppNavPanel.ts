@@ -89,7 +89,7 @@ export const WorkflowsAppNavPanel = ({ loading }) => {
         h(
           Collapse,
           {
-            style: { borderBottom: `1px solid ${colors.dark(0.5)}` },
+            style: { borderBottom: `1px solid ${colors.dark(0.2)}` },
             title: span({ style: { fontSize: 15, color: colors.accent() } }, ['Find & add workflows']),
             initialOpenState: true,
             titleFirst: true,
@@ -135,13 +135,10 @@ export const WorkflowsAppNavPanel = ({ loading }) => {
                       display: 'flex',
                       alignItems: 'center',
                       flex: 'none',
-                      backgroundColor: colors.accent(0.06),
-                      boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12)',
-                      paddingTop: '0.5em',
-                      paddingBottom: '0.5em',
-                      paddingLeft: '0.75em',
-                      paddingRight: '0.75em',
-                      borderRadius: '15px',
+                      backgroundColor: colors.accent(0.1),
+                      padding: '1em',
+                      borderRadius: '8px',
+                      lineHeight: '22px',
                     },
                   },
                   [
@@ -173,8 +170,7 @@ export const WorkflowsAppNavPanel = ({ loading }) => {
             h(HelpfulLinksBox, {
               method: null,
               style: {
-                borderRadius: '20px',
-                margin: '1.35em',
+                margin: '1.2em',
               },
             }),
           ]
