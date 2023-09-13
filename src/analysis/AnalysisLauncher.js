@@ -42,8 +42,7 @@ import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { authStore, cookieReadyStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
-import * as WsUtils from 'src/libs/workspace-utils';
+import { canWrite, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 import { AzureComputeModal } from './modals/ComputeModal/AzureComputeModal/AzureComputeModal';
@@ -98,11 +97,7 @@ const AnalysisLauncher = _.flow(
     return h(Fragment, [
       div({ style: { flex: 1, display: 'flex' } }, [
         div({ style: { flex: 1 } }, [
-          WsUtils.canWrite(accessLevel) &&
-          canCompute &&
-          !!mode &&
-          _.includes(status, usableStatuses) &&
-          currentRuntimeToolLabel === runtimeToolLabels.Jupyter
+          canWrite(accessLevel) && canCompute && !!mode && _.includes(status, usableStatuses) && currentRuntimeToolLabel === runtimeToolLabels.Jupyter
             ? h(labels?.welderInstallFailed ? WelderDisabledNotebookEditorFrame : AnalysisEditorFrame, {
                 key: runtimeName,
                 workspace,
@@ -122,7 +117,7 @@ const AnalysisLauncher = _.flow(
                   workspace,
                   setCreateOpen,
                   refreshRuntimes,
-                  readOnlyAccess: !(WsUtils.canWrite(accessLevel) && canCompute),
+                  readOnlyAccess: !(canWrite(accessLevel) && canCompute),
                 }),
                 h(AnalysisPreviewFrame, { styles: iframeStyles, analysisName, toolLabel: currentFileToolLabel, workspace }),
               ]),
