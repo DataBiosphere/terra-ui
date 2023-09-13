@@ -431,6 +431,10 @@ describe('ImportWorkflow', () => {
   });
 
   it('it imports the workflow into the selected Azure workspace', async () => {
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation(() => {
+      return false;
+    });
+
     // Arrange
     const user = userEvent.setup();
     const mockPostMethodResponse = {
