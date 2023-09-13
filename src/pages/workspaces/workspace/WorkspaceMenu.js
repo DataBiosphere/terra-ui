@@ -6,6 +6,7 @@ import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { useWorkspaceDetails } from 'src/components/workspace-utils';
 import * as Utils from 'src/libs/utils';
+import * as WsUtils from 'src/libs/workspace-utils';
 
 // In `workspaceInfo`, specify either `name and namespace` to fetch the Workspace details,
 // or `canShare, isLocked, and isOwner` to use previously fetched details.
@@ -50,7 +51,7 @@ const DynamicWorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDele
   const { workspace } = useWorkspaceDetails({ namespace, name }, ['accessLevel', 'policies', 'canShare', 'workspace.isLocked']);
 
   const canShare = workspace?.canShare;
-  const isOwner = workspace && Utils.isOwner(workspace.accessLevel);
+  const isOwner = workspace && WsUtils.isOwner(workspace.accessLevel);
   const isLocked = workspace?.workspace.isLocked;
 
   return WorkspaceMenuContent({

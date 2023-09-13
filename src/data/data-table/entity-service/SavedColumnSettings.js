@@ -15,7 +15,8 @@ import Events from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { noWrapEllipsis } from 'src/libs/style';
-import { cond, editWorkspaceError, withBusyState } from 'src/libs/utils';
+import { cond, withBusyState } from 'src/libs/utils';
+import { editWorkspaceError } from 'src/libs/workspace-utils';
 
 const savedColumnSettingsWorkspaceAttributeName = 'system:columnSettings';
 

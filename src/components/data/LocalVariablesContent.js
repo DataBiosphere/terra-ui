@@ -15,6 +15,7 @@ import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
+import * as WsUtils from 'src/libs/workspace-utils';
 
 export const getDisplayedAttribute = (arr) => {
   const { key, value, description = '' } = _.mergeAll(arr);
@@ -152,7 +153,7 @@ const LocalVariablesContent = ({
   return h(
     Dropzone,
     {
-      disabled: !!Utils.editWorkspaceError(workspace),
+      disabled: !!WsUtils.editWorkspaceError(workspace),
       style: { flex: 1, display: 'flex', flexDirection: 'column' },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       onDropAccepted: upload,
@@ -174,7 +175,7 @@ const LocalVariablesContent = ({
             },
             [
               h(Link, { onClick: download }, ['Download TSV']),
-              !Utils.editWorkspaceError(workspace) &&
+              !WsUtils.editWorkspaceError(workspace) &&
                 h(Fragment, [div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']), h(Link, { onClick: openUploader }, ['upload TSV'])]),
               h(DelayedSearchInput, {
                 'aria-label': 'Search',
@@ -285,8 +286,8 @@ const LocalVariablesContent = ({
                                 h(
                                   Link,
                                   {
-                                    disabled: !!Utils.editWorkspaceError(workspace),
-                                    tooltip: Utils.editWorkspaceError(workspace) || 'Edit variable',
+                                    disabled: !!WsUtils.editWorkspaceError(workspace),
+                                    tooltip: WsUtils.editWorkspaceError(workspace) || 'Edit variable',
                                     style: { marginLeft: '1rem' },
                                     onClick: () => {
                                       setEditIndex(rowIndex);
@@ -301,8 +302,8 @@ const LocalVariablesContent = ({
                                 h(
                                   Link,
                                   {
-                                    disabled: !!Utils.editWorkspaceError(workspace),
-                                    tooltip: Utils.editWorkspaceError(workspace) || 'Delete variable',
+                                    disabled: !!WsUtils.editWorkspaceError(workspace),
+                                    tooltip: WsUtils.editWorkspaceError(workspace) || 'Delete variable',
                                     style: { marginLeft: '1rem' },
                                     onClick: () => setDeleteIndex(rowIndex),
                                     'aria-haspopup': 'dialog',
@@ -319,7 +320,7 @@ const LocalVariablesContent = ({
           ]),
           !creatingNewVariable &&
             editIndex === undefined &&
-            !Utils.editWorkspaceError(workspace) &&
+            !WsUtils.editWorkspaceError(workspace) &&
             h(FloatingActionButton, {
               label: 'ADD VARIABLE',
               iconShape: 'plus',

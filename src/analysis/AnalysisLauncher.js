@@ -43,6 +43,7 @@ import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/l
 import { authStore, cookieReadyStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
+import * as WsUtils from 'src/libs/workspace-utils';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 import { AzureComputeModal } from './modals/ComputeModal/AzureComputeModal/AzureComputeModal';
@@ -97,7 +98,7 @@ const AnalysisLauncher = _.flow(
     return h(Fragment, [
       div({ style: { flex: 1, display: 'flex' } }, [
         div({ style: { flex: 1 } }, [
-          Utils.canWrite(accessLevel) &&
+          WsUtils.canWrite(accessLevel) &&
           canCompute &&
           !!mode &&
           _.includes(status, usableStatuses) &&
@@ -121,7 +122,7 @@ const AnalysisLauncher = _.flow(
                   workspace,
                   setCreateOpen,
                   refreshRuntimes,
-                  readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute),
+                  readOnlyAccess: !(WsUtils.canWrite(accessLevel) && canCompute),
                 }),
                 h(AnalysisPreviewFrame, { styles: iframeStyles, analysisName, toolLabel: currentFileToolLabel, workspace }),
               ]),
