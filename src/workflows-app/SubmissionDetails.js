@@ -391,7 +391,8 @@ export const BaseSubmissionDetails = ({ name, namespace, workspace, submissionId
                           field: 'duration',
                           headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
                           cellRenderer: ({ rowIndex }) => {
-                            return h(TextCell, [customFormatDuration(paginatedPreviousRuns[rowIndex].duration)]);
+                            const formattedDuration = customFormatDuration(paginatedPreviousRuns[rowIndex].duration);
+                            return h(TextCell, [formattedDuration === '' ? '0 seconds' : formattedDuration]);
                           },
                         },
                       ],
