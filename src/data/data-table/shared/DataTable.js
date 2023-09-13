@@ -28,6 +28,7 @@ import { useCancellation } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import * as WsUtils from 'src/libs/workspace-utils';
 
 // TODO: Shared components should not depend on EntityService/WDS specific components.
 import { concatenateAttributeNames } from '../entity-service/attribute-utils';
@@ -171,7 +172,7 @@ const DataTable = (props) => {
 
   const [filterOperator, setFilterOperator] = useState('AND');
 
-  const noEdit = Utils.editWorkspaceError(workspace);
+  const noEdit = WsUtils.editWorkspaceError(workspace);
 
   const table = useRef();
   const signal = useCancellation();
