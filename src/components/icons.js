@@ -1,3 +1,4 @@
+import { icon } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Children, Fragment } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
@@ -6,7 +7,8 @@ import { div, h, span } from 'react-hyperscript-helpers';
 // eslint-disable-next-line import/no-internal-modules
 import { DelayedRender } from 'src/components/common/DelayedRender';
 import colors from 'src/libs/colors';
-import iconDict from 'src/libs/icon-dict';
+
+export { icon } from '@terra-ui-packages/components';
 
 /**
  * To support accessibility, every icon must be labeled, either:
@@ -34,27 +36,6 @@ export const containsUnlabelledIcon = ({ children, 'aria-label': ariaLabel, 'ari
     }
   }
   return false;
-};
-
-/**
- * @typedef IconOptions
- * @property {string} [className] The class of the icon
- * @property {number} [size] The size of the icon
- * @property {object} [style] The icon style
- * @property {string} [aria-label] An optional accessible label to apply to the icon.
- *    If not specified 'aria-hidden' will be set to true.
- */
-
-/**
- * Creates an icon: FA or custom.
- * @param {string} shape - see {@link https://fontawesome.com/icons?d=gallery}
- * @param {IconOptions} [props]
- */
-export const icon = (shape, { size = 16, ...props } = {}) => {
-  // Unless we have a label, we need to hide the icon from screen readers
-  props['aria-hidden'] = !props['aria-label'] && !props['aria-labelledby'];
-
-  return _.invokeArgs(shape, [{ size, 'data-icon': shape, ...props }], iconDict);
 };
 
 export const spinner = ({ message = 'Loading', ...props } = {}) =>
