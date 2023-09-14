@@ -2,7 +2,6 @@ import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, IdContainer, RadioButton, spinnerOverlay } from 'src/components/common';
-import { warningBoxStyle } from 'src/components/data/data-utils';
 import { icon } from 'src/components/icons';
 import { ValidatedInput } from 'src/components/input';
 import Modal from 'src/components/Modal';
@@ -11,6 +10,7 @@ import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
+import { warningBoxStyle } from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 
 import { allSavedColumnSettingsEntityTypeKey } from './SavedColumnSettings';

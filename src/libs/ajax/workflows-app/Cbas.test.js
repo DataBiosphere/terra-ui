@@ -43,7 +43,7 @@ const cbasPact = new PactV3({
   consumer: 'terra-ui',
   provider: 'cbas',
   log: path.resolve(process.cwd(), 'logs', 'pact.log'),
-  logLevel: 'warn',
+  logLevel: 'error',
   dir: path.resolve(process.cwd(), 'pacts'),
   spec: SpecificationVersion.SPECIFICATION_VERSION_V3,
 });

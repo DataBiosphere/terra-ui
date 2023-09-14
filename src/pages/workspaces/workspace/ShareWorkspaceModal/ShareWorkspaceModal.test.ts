@@ -242,7 +242,7 @@ describe('the share workspace modal', () => {
               ...azureWorkspace,
               policies: [
                 {
-                  additionalData: {},
+                  additionalData: [],
                   name: 'protected-data',
                   namespace: 'terra',
                 },
@@ -264,12 +264,12 @@ describe('the share workspace modal', () => {
               ...azureWorkspace,
               policies: [
                 {
-                  additionalData: {},
+                  additionalData: [],
                   name: 'not-protected-data',
                   namespace: 'terra',
                 },
                 {
-                  additionalData: {},
+                  additionalData: [],
                   name: 'protected-data',
                   namespace: 'something-besides-terra',
                 },

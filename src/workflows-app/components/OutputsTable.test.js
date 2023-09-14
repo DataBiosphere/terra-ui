@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import OutputsTable from 'src/workflows-app/components/OutputsTable';
-import { runSetOutputDef, runSetOutputDefWithDefaults } from 'src/workflows-app/utils/mock-responses';
+import { runSetOutputDef, runSetOutputDefEmpty, runSetOutputDefWithDefaults } from 'src/workflows-app/utils/mock-responses';
 
 const setupOutputTableTest = ({ configuredOutputDefinition = runSetOutputDef } = {}) => {
   const setConfiguredOutputDefinition = jest.fn();
@@ -109,8 +109,22 @@ describe('Output table definition updates', () => {
     const headers = within(rows[0]).getAllByRole('columnheader');
 
     // set defaults
-    await user.click(within(headers[3]).getByRole('button'));
+    await user.click(within(headers[3]).getByRole('button', { name: /Autofill/i }));
 
     expect(setConfiguredOutputDefinition).toHaveBeenCalledWith(runSetOutputDefWithDefaults);
+  });
+
+  it('should clear output variable names when clear button is clicked', async () => {
+    const { setConfiguredOutputDefinition } = setupOutputTableTest();
+    const user = userEvent.setup();
+
+    const table = screen.getByRole('table');
+    const rows = within(table).getAllByRole('row');
+    const headers = within(rows[0]).getAllByRole('columnheader');
+
+    // clear
+    await user.click(within(headers[3]).getByRole('button', { name: /Clear/i }));
+
+    expect(setConfiguredOutputDefinition).toHaveBeenCalledWith(runSetOutputDefEmpty);
   });
 });

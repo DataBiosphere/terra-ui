@@ -1,3 +1,4 @@
+import { IconId } from '@terra-ui-packages/components';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
 import TooltipTrigger from 'src/components/TooltipTrigger';
@@ -9,6 +10,7 @@ interface WorkspaceAttributeNoticeProperties {
   accessLevel: WorkspaceAccessLevel;
   isLocked: boolean;
   workspaceProtectedMessage?: string;
+  workspaceRegionConstraintMessage?: string;
 }
 
 const WorkspaceAttributeNotice = (props: WorkspaceAttributeNoticeProperties) => {
@@ -19,15 +21,15 @@ const WorkspaceAttributeNotice = (props: WorkspaceAttributeNoticeProperties) => 
     isReadOnly && h(Notice, { label: 'Read-only', tooltip: 'Workspace is read-only', iconName: 'eye' }),
     !!props.workspaceProtectedMessage &&
       h(Notice, { label: 'Protected', tooltip: props.workspaceProtectedMessage, iconName: 'shield' }),
-    // Will be used in WOR-1243
-    // isRegionLimited && h(Notice,{label: 'Region-limited', tooltip: getRegionTooltip(), iconName: 'globe'}),
+    !!props.workspaceRegionConstraintMessage &&
+      h(Notice, { label: 'Region-restricted', tooltip: props.workspaceRegionConstraintMessage, iconName: 'globe' }),
   ]);
 };
 
 interface NoticeProperties {
   label: string;
   tooltip: string;
-  iconName: string;
+  iconName: IconId;
 }
 
 const Notice = (props: NoticeProperties) => {
@@ -48,7 +50,7 @@ const Notice = (props: NoticeProperties) => {
       h(
         TooltipTrigger,
         {
-          content: [div({ key: props.label }, [props.tooltip])],
+          content: [div({ key: props.label, style: { maxWidth: 300 } }, [props.tooltip])],
         },
         [icon(props.iconName, { size: 20, 'aria-label': props.label })]
       ),

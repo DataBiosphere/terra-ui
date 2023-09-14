@@ -1,8 +1,8 @@
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { getCurrentApp, getEnvMessageBasedOnStatus } from 'src/analysis/utils/app-utils';
-import { getCurrentAppDataDisk } from 'src/analysis/utils/disk-utils';
+import { generateAppName, getCurrentApp, getEnvMessageBasedOnStatus } from 'src/analysis/utils/app-utils';
+import { generatePersistentDiskName, getCurrentAppDataDisk } from 'src/analysis/utils/disk-utils';
 import { appToolLabels, appTools } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary, spinnerOverlay } from 'src/components/common';
 import { withModalDrawer } from 'src/components/ModalDrawer';
@@ -50,13 +50,13 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
       withErrorReportingInModal('Error creating Cromwell', onError)
     )(async () => {
       if (isAzureWorkspace(workspace)) {
-        await Ajax().Apps.createAppV2(Utils.generateAppName(), workspace.workspace.workspaceId, appToolLabels.CROMWELL);
+        await Ajax().Apps.createAppV2(generateAppName(), workspace.workspace.workspaceId, appToolLabels.CROMWELL);
       } else {
         await Ajax()
-          .Apps.app(googleProject, Utils.generateAppName())
+          .Apps.app(googleProject, generateAppName())
           .create({
             defaultKubernetesRuntimeConfig,
-            diskName: currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(),
+            diskName: currentDataDisk ? currentDataDisk.name : generatePersistentDiskName(),
             diskSize: defaultDataDiskSize,
             appType: appTools.CROMWELL.label,
             namespace,
