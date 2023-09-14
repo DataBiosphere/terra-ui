@@ -29,7 +29,9 @@ describe('Left Navigation Panel', () => {
     );
 
     // Assert
-    screen.getByText('Workflows in this workspace');
+    // Using getAll because there will also be a header in the body. Wondering if this also points to a refactor -
+    // where the panel and the content are on the same level, rather than the panel being a parent of the content
+    screen.getAllByText('Workflows in this workspace');
     screen.getByText('Submission history');
     screen.getByText('Find & add workflows');
     screen.getByText('Featured workflows');
