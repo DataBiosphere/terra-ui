@@ -10,8 +10,8 @@ import { Ajax } from 'src/libs/ajax';
 import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
-import * as WsUtils from 'src/libs/utils';
 import { workflowNameValidation } from 'src/libs/workflow-utils';
+import * as WsUtils from 'src/libs/workspace-utils';
 import validate from 'validate.js';
 
 const ExportWorkflowModal = ({ thisWorkspace, sameWorkspace, methodConfig, onSuccess, onDismiss }) => {
