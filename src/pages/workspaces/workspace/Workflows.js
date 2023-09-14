@@ -20,7 +20,7 @@ import { forwardRefWithName, memoWithName, useCancellation, useOnMount } from 's
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import * as WsUtils from 'src/libs/workspace-utils';
+import * as WorkspaceUtils from 'src/libs/workspace-utils';
 import { DockstoreTile, MethodCard, MethodRepoTile } from 'src/pages/library/Code';
 import DeleteWorkflowConfirmationModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowConfirmationModal';
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal';
@@ -123,8 +123,8 @@ const WorkflowCard = memoWithName('WorkflowCard', ({ listView, name, namespace, 
           MenuButton,
           {
             onClick: onCopy,
-            disabled: !!WsUtils.editWorkspaceError(workspace),
-            tooltip: WsUtils.editWorkspaceError(workspace),
+            disabled: !!WorkspaceUtils.editWorkspaceError(workspace),
+            tooltip: WorkspaceUtils.editWorkspaceError(workspace),
             tooltipSide: 'left',
           },
           [makeMenuIcon('copy'), 'Duplicate']
@@ -133,8 +133,8 @@ const WorkflowCard = memoWithName('WorkflowCard', ({ listView, name, namespace, 
           MenuButton,
           {
             onClick: onDelete,
-            disabled: !!WsUtils.editWorkspaceError(workspace),
-            tooltip: WsUtils.editWorkspaceError(workspace),
+            disabled: !!WorkspaceUtils.editWorkspaceError(workspace),
+            tooltip: WorkspaceUtils.editWorkspaceError(workspace),
             tooltipSide: 'left',
           },
           [makeMenuIcon('trash'), 'Delete']
@@ -452,8 +452,8 @@ export const Workflows = _.flow(
         Clickable,
         {
           'aria-haspopup': 'dialog',
-          disabled: !!WsUtils.editWorkspaceError(ws),
-          tooltip: WsUtils.editWorkspaceError(ws),
+          disabled: !!WorkspaceUtils.editWorkspaceError(ws),
+          tooltip: WorkspaceUtils.editWorkspaceError(ws),
           style: { ...styles.card, ...styles.shortCard, color: colors.accent(), fontSize: 18, lineHeight: '22px' },
           onClick: () => setFindingWorkflow(true),
         },

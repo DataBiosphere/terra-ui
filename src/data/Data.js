@@ -33,7 +33,7 @@ import { getUser } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import * as WsUtils from 'src/libs/workspace-utils';
+import * as WorkspaceUtils from 'src/libs/workspace-utils';
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
 
 import EntitiesContent from './data-table/entity-service/EntitiesContent';
@@ -299,7 +299,7 @@ const DataTableActions = ({
   const isSetOfSets = tableName.endsWith('_set_set');
   const setTableNames = _.filter((v) => v.match(`${tableName}(_set)+$`), _.keys(entityMetadata));
 
-  const editWorkspaceErrorMessage = WsUtils.editWorkspaceError(workspace);
+  const editWorkspaceErrorMessage = WorkspaceUtils.editWorkspaceError(workspace);
 
   const downloadForm = useRef();
   const signal = useCancellation();
@@ -764,7 +764,7 @@ export const WorkspaceData = _.flow(
     const sortedEntityPairs = toSortedPairs(entityMetadata);
     const sortedSnapshotPairs = toSortedPairs(snapshotDetails);
 
-    const editWorkspaceErrorMessage = WsUtils.editWorkspaceError(workspace);
+    const editWorkspaceErrorMessage = WorkspaceUtils.editWorkspaceError(workspace);
     const canEditWorkspace = !editWorkspaceErrorMessage;
 
     // convenience vars for WDS
@@ -1173,8 +1173,8 @@ export const WorkspaceData = _.flow(
                                   Link,
                                   {
                                     style: { flex: 0 },
-                                    disabled: !!WsUtils.editWorkspaceError(workspace),
-                                    tooltip: WsUtils.editWorkspaceError(workspace) || `Delete ${type}`,
+                                    disabled: !!WorkspaceUtils.editWorkspaceError(workspace),
+                                    tooltip: WorkspaceUtils.editWorkspaceError(workspace) || `Delete ${type}`,
                                     onClick: (e) => {
                                       e.stopPropagation();
                                       setDeletingReference(type);

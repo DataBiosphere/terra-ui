@@ -11,7 +11,7 @@ import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
 import { workflowNameValidation } from 'src/libs/workflow-utils';
-import * as WsUtils from 'src/libs/workspace-utils';
+import * as WorkspaceUtils from 'src/libs/workspace-utils';
 import validate from 'validate.js';
 
 const ExportWorkflowModal = ({ thisWorkspace, sameWorkspace, methodConfig, onSuccess, onDismiss }) => {
@@ -86,7 +86,7 @@ const ExportWorkflowModal = ({ thisWorkspace, sameWorkspace, methodConfig, onSuc
                 h(WorkspaceSelector, {
                   id,
                   workspaces: _.filter(({ workspace: { workspaceId }, accessLevel }) => {
-                    return thisWorkspace.workspaceId !== workspaceId && WsUtils.canWrite(accessLevel);
+                    return thisWorkspace.workspaceId !== workspaceId && WorkspaceUtils.canWrite(accessLevel);
                   }, workspaces),
                   value: selectedWorkspaceId,
                   onChange: setSelectedWorkspaceId,

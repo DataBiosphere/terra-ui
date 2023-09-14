@@ -25,7 +25,7 @@ import { getUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { hasProtectedData, isAzureWorkspace, isGoogleWorkspace, protectedDataMessage, regionConstraintMessage } from 'src/libs/workspace-utils';
-import * as WsUtils from 'src/libs/workspace-utils';
+import * as WorkspaceUtils from 'src/libs/workspace-utils';
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
@@ -88,7 +88,7 @@ export const WorkspaceTabs = ({
   setShowLockWorkspaceModal,
   setLeavingWorkspace,
 }) => {
-  const isOwner = workspace && WsUtils.isOwner(workspace.accessLevel);
+  const isOwner = workspace && WorkspaceUtils.isOwner(workspace.accessLevel);
   const canShare = workspace?.canShare;
   const isLocked = workspace?.workspace.isLocked;
   const workspaceLoaded = !!workspace;

@@ -5,7 +5,7 @@ import { div, h } from 'react-hyperscript-helpers';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import { useWorkspaceDetails } from 'src/components/workspace-utils';
-import * as WsUtils from 'src/libs/workspace-utils';
+import * as WorkspaceUtils from 'src/libs/workspace-utils';
 import WorkspaceMenu, { tooltipText } from 'src/pages/workspaces/workspace/WorkspaceMenu';
 
 jest.mock('src/components/workspace-utils', () => {
@@ -170,7 +170,7 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
     render(h(WorkspaceMenu, workspaceMenuProps));
     const menuItem = screen.getByText(menuText);
     // Assert
-    if (WsUtils.isOwner(accessLevel)) {
+    if (WorkspaceUtils.isOwner(accessLevel)) {
       expect(menuItem).not.toHaveAttribute('disabled');
     } else {
       expect(menuItem).toHaveAttribute('disabled');
@@ -202,7 +202,7 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
     render(h(WorkspaceMenu, workspaceMenuProps));
     const menuItem = screen.getByText('Delete');
     // Assert
-    if (!locked && WsUtils.isOwner(accessLevel)) {
+    if (!locked && WorkspaceUtils.isOwner(accessLevel)) {
       expect(menuItem).not.toHaveAttribute('disabled');
     } else {
       expect(menuItem).toHaveAttribute('disabled');
@@ -221,7 +221,7 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
     render(h(WorkspaceMenu, workspaceMenuProps));
     fireEvent.mouseOver(screen.getByText('Delete'));
     // Assert
-    if (!locked && WsUtils.isOwner(accessLevel)) {
+    if (!locked && WorkspaceUtils.isOwner(accessLevel)) {
       expect(screen.queryByText(tooltipText.deleteLocked)).toBeNull();
       expect(screen.queryByText(tooltipText.deleteNoPermission)).toBeNull();
     } else if (locked) {

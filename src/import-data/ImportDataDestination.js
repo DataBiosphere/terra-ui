@@ -11,7 +11,7 @@ import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import * as WsUtils from 'src/libs/workspace-utils';
+import * as WorkspaceUtils from 'src/libs/workspace-utils';
 
 import { isProtectedWorkspace } from './protected-data-utils';
 
@@ -105,7 +105,7 @@ export const ImportDataDestination = ({
               id,
               workspaces: _.filter((ws) => {
                 return (
-                  WsUtils.canWrite(ws.accessLevel) &&
+                  WorkspaceUtils.canWrite(ws.accessLevel) &&
                   (!authorizationDomain || _.some({ membersGroupName: authorizationDomain }, ws.workspace.authorizationDomain))
                 );
               }, workspaces),

@@ -22,7 +22,7 @@ import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import * as WsUtils from 'src/libs/workspace-utils';
+import * as WorkspaceUtils from 'src/libs/workspace-utils';
 
 // As you add support for uploading additional types of metadata, add them here.
 // You may also need to adjust the validation logic.
@@ -757,7 +757,7 @@ const MetadataUploadPanel = ({
       h(
         Dropzone,
         {
-          disabled: !!WsUtils.editWorkspaceError(workspace),
+          disabled: !!WorkspaceUtils.editWorkspaceError(workspace),
           style: {
             flex: 0,
             backgroundColor: 'white',
@@ -795,7 +795,7 @@ const MetadataUploadPanel = ({
                 },
                 ['Drag and drop your metadata .tsv or .txt file here']
               ),
-              !WsUtils.editWorkspaceError(workspace) &&
+              !WorkspaceUtils.editWorkspaceError(workspace) &&
                 h(FloatingActionButton, {
                   label: 'UPLOAD',
                   iconShape: 'plus',
@@ -956,7 +956,7 @@ const UploadData = _.flow(
 
   const filteredWorkspaces = useMemo(() => {
     return _.filter((ws) => {
-      return WsUtils.canWrite(ws.accessLevel); // && (!ad || _.some({ membersGroupName: ad }, ws.workspace.authorizationDomain))
+      return WorkspaceUtils.canWrite(ws.accessLevel); // && (!ad || _.some({ membersGroupName: ad }, ws.workspace.authorizationDomain))
     }, workspaces);
   }, [workspaces]);
 
