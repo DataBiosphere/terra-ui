@@ -1,7 +1,7 @@
+import { delay } from '@terra-ui-packages/core-utils';
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { delay } from 'src/libs/utils';
 import { buildStructBreadcrumbs, StructBuilder, StructBuilderModal } from 'src/workflows-app/components/StructBuilder';
 
 describe('unit tests', () => {

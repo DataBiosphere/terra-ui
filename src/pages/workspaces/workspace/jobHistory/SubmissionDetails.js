@@ -1,3 +1,4 @@
+import { delay } from '@terra-ui-packages/core-utils';
 import { differenceInDays, parseISO } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
@@ -361,7 +362,7 @@ const SubmissionDetails = _.flow(
         _.some(({ status }) => _.includes(collapseStatus(status), [statusType.running, statusType.submitted]), submission.workflows)
       ) {
         if (!_.isEmpty(submission)) {
-          await Utils.delay(60000);
+          await delay(60000);
         }
         const sub = _.update(
           ['workflows'],

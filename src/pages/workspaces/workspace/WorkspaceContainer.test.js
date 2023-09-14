@@ -135,7 +135,7 @@ describe('WorkspaceContainer', () => {
     expect(within(alert).getByText(/Do not store Unclassified Confidential Information in this platform/)).not.toBeNull();
   });
 
-  it('shows a propagation warning for uninitialized Gcp workspaces', async () => {
+  it('shows a permissions loading spinner Gcp workspaces that have IAM propagation delays', async () => {
     // Arrange
     const props = {
       namespace: 'mock-namespace',
@@ -148,7 +148,7 @@ describe('WorkspaceContainer', () => {
     render(h(WorkspaceContainer, props));
     // Assert
     const alert = screen.getByRole('alert');
-    expect(within(alert).getByText(/Google is syncing permissions for this workspace/)).not.toBeNull();
+    expect(within(alert).getByText(/Terra synchronizing permissions with Google/)).not.toBeNull();
   });
 
   it('shows no alerts for initialized Gcp workspaces', async () => {

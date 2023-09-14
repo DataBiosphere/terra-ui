@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
+import { AnalysesData } from 'src/analysis/Analyses';
 import { getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { icon } from 'src/components/icons';
@@ -11,25 +12,27 @@ import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
 import { withBusyState } from 'src/libs/utils';
-import FindWorkflowModal from 'src/workflows-app/components/FindWorkflowModal';
+import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { WorkflowCard, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
 
-export const WorkflowsInWorkspace = (
-  {
-    name,
-    namespace,
-    workspace,
-    workspace: {
-      workspace: { workspaceId },
-    },
-    analysesData: { apps, refreshApps },
+type WorkflowsInWorkspaceProps = {
+  name: string;
+  namespace: string;
+  workspace: WorkspaceWrapper;
+  analysesData: AnalysesData;
+};
+
+export const WorkflowsInWorkspace = ({
+  name,
+  namespace,
+  workspace: {
+    workspace: { workspaceId },
   },
-  _ref
-) => {
+  analysesData: { apps, refreshApps },
+}: WorkflowsInWorkspaceProps) => {
   const [methodsData, setMethodsData] = useState<WorkflowMethod[]>([]);
-  const [viewFindWorkflowModal, setViewFindWorkflowModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const signal = useCancellation();
@@ -76,7 +79,7 @@ export const WorkflowsInWorkspace = (
 
       if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
         await loadRunsData(cbasProxyUrlState);
-        await refreshApps(true);
+        await refreshApps();
       }
     });
     load();
@@ -84,7 +87,7 @@ export const WorkflowsInWorkspace = (
 
   usePollingEffect(
     async () => {
-      const refresh = async () => await refreshApps(true);
+      const refresh = async () => await refreshApps();
       if (!currentApp || getIsAppBusy(currentApp)) {
         await refresh();
       }
@@ -146,7 +149,5 @@ export const WorkflowsInWorkspace = (
           ' Loading your Workflows app, this may take a few minutes.',
         ])
       : renderMethods(),
-    viewFindWorkflowModal &&
-      h(FindWorkflowModal, { name, namespace, workspace, onDismiss: () => setViewFindWorkflowModal(false) }),
   ]);
 };
