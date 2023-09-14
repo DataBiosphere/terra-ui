@@ -36,7 +36,14 @@ import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { canWrite, cloudProviderLabels, cloudProviderTypes, getCloudProviderFromWorkspace, workspaceAccessLevels } from 'src/libs/workspace-utils';
+import {
+  canRead,
+  canWrite,
+  cloudProviderLabels,
+  cloudProviderTypes,
+  getCloudProviderFromWorkspace,
+  workspaceAccessLevels,
+} from 'src/libs/workspace-utils';
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
 import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal';
@@ -304,7 +311,7 @@ export const WorkspaceList = () => {
                     attributes: { description },
                   },
                 } = sortedWorkspaces[rowIndex];
-                const canView = Utils.canRead(accessLevel);
+                const canView = canRead(accessLevel);
                 const canAccessWorkspace = () => (!canView ? setRequestingAccessWorkspaceId(workspaceId) : undefined);
 
                 return div({ style: styles.tableCellContainer }, [
@@ -425,7 +432,7 @@ export const WorkspaceList = () => {
                   accessLevel,
                   workspace: { workspaceId, namespace, name },
                 } = sortedWorkspaces[rowIndex];
-                if (!Utils.canRead(accessLevel)) {
+                if (!canRead(accessLevel)) {
                   // No menu shown if user does not have read access.
                   return div({ className: 'sr-only' }, ['You do not have permission to perform actions on this workspace.']);
                 }
