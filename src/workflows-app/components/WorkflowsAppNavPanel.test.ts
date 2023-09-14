@@ -1,8 +1,18 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
+import { AnalysesData } from 'src/analysis/Analyses';
 import { WorkflowsAppNavPanel } from 'src/workflows-app/components/WorkflowsAppNavPanel';
 import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
+
+const defaultAnalysesData: AnalysesData = {
+  apps: [],
+  refreshApps: jest.fn().mockReturnValue(Promise.resolve()),
+  runtimes: [],
+  refreshRuntimes: () => Promise.resolve(),
+  appDataDisks: [],
+  persistentDisks: [],
+};
 
 describe('Left Navigation Panel', () => {
   it('renders headers', async () => {
@@ -13,6 +23,7 @@ describe('Left Navigation Panel', () => {
         name: 'test-azure-ws-name',
         namespace: 'test-azure-ws-namespace',
         workspace: mockAzureWorkspace,
+        analysesData: defaultAnalysesData,
         loading: false,
       })
     );
