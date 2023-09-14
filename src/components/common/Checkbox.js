@@ -4,13 +4,11 @@ import { Fragment } from 'react';
 import { h, span } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
-import { useLabelAssert } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 
 import { IdContainer } from './IdContainer';
 
 export const Checkbox = ({ checked, onChange, disabled = false, ...props }) => {
-  useLabelAssert('Checkbox', { ...props, allowId: true });
   return h(
     Interactive,
     _.merge(
