@@ -14,6 +14,8 @@ const defaultAnalysesData: AnalysesData = {
   persistentDisks: [],
 };
 
+jest.mock('src/libs/ajax');
+
 describe('Left Navigation Panel', () => {
   it('renders headers', async () => {
     const user = userEvent.setup();
