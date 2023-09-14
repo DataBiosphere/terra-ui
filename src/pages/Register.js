@@ -179,19 +179,15 @@ const Register = () => {
             ]),
           ]),
       ]),
-      h(IdContainer, [
-        (id) =>
-          h(div, { style: { lineHeight: '170%', style: { marginTop: '0.25rem' } } }, [
-            h(
-              LabeledCheckbox,
-              {
-                checked: !partOfOrganization,
-                onChange: () => setPartOfOrganization(!partOfOrganization),
-                'aria-describedby': id,
-              },
-              [label({ htmlFor: id, style: { marginLeft: '0.25rem' } }, ['I am not a part of an organization'])]
-            ),
-          ]),
+      h(div, { style: { lineHeight: '170%', style: { marginTop: '0.25rem' } } }, [
+        h(
+          LabeledCheckbox,
+          {
+            checked: !partOfOrganization,
+            onChange: () => setPartOfOrganization(!partOfOrganization),
+          },
+          [label({ style: { marginLeft: '0.25rem' } }, ['I am not a part of an organization'])]
+        ),
       ]),
       div({ style: { marginTop: '2rem', display: 'flex' } }, [
         h(IdContainer, [
