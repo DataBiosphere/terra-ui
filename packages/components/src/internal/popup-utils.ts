@@ -1,21 +1,21 @@
 import _ from 'lodash/fp';
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
 
-interface Size {
+export interface Size {
   width: number;
   height: number;
 }
 
-interface Position {
+export interface Position {
   top: number;
   right: number;
   bottom: number;
   left: number;
 }
 
-type Side = 'top' | 'right' | 'bottom' | 'left';
+export type Side = 'top' | 'right' | 'bottom' | 'left';
 
-interface ComputePopupPositionArgs {
+export interface ComputePopupPositionArgs {
   /* Size of the popup element. */
   elementSize: Size;
 
@@ -113,7 +113,7 @@ const toBoundingRect: (domRect: DOMRect) => BoundingRect = _.pick([
   'left',
 ]);
 
-type UseBoundingRectsSelector =
+export type UseBoundingRectsSelector =
   | { ref: RefObject<HTMLElement | null | undefined> }
   | { id: string }
   | { viewport: true };

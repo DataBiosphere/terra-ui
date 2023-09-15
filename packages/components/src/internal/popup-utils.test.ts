@@ -2,17 +2,17 @@ import { render } from '@testing-library/react';
 import { useRef } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 
-import { computePopupPosition, useBoundingRects } from './popup-utils';
+import { computePopupPosition, Position, Size, useBoundingRects } from './popup-utils';
 
 describe('computePopupPosition', () => {
   it('computes position of popup element based on position of target element', () => {
     // Arrange
-    const elementSize = { width: 300, height: 100 };
-    const viewportSize = {
+    const elementSize: Size = { width: 300, height: 100 };
+    const viewportSize: Size = {
       width: 1280,
       height: 960,
     };
-    const targetPosition = {
+    const targetPosition: Position = {
       top: 430,
       right: 690,
       bottom: 530,
@@ -69,12 +69,12 @@ describe('computePopupPosition', () => {
 
   it('moves popup to opposite side if there is not enough space on preferred side', () => {
     // Arrange
-    const elementSize = { width: 300, height: 100 };
-    const viewportSize = {
+    const elementSize: Size = { width: 300, height: 100 };
+    const viewportSize: Size = {
       width: 1280,
       height: 960,
     };
-    const targetPosition = {
+    const targetPosition: Position = {
       top: 430,
       right: 1180,
       bottom: 530,
