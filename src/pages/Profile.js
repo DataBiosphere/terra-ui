@@ -591,8 +591,9 @@ const PersonalInfoTab = ({ setSaving }) => {
       div({ style: styles.page }, [
         line([textField('firstName', 'First Name', { required: true }), textField('lastName', 'Last Name', { required: true })]),
         line([
+          textField('institute', 'Organization'), // keep this key as 'institute' to be backwards compatible with existing Thurloe KVs
           textField('title', 'Title'),
-          textField('institute', 'Organization or Company'), // keep this key as 'institute' to be backwards compatible with existing Thurloe KVs
+          textField('department', 'Department'),
         ]),
         line([textField('programLocationCity', 'City'), textField('programLocationState', 'State'), textField('programLocationCountry', 'Country')]),
         line([
