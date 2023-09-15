@@ -22,9 +22,9 @@ describe('Register', () => {
 
     // Act
     const { container } = render(h(Register));
-    await user.type(screen.getByLabelText('First Name *'), 'Test Name');
-    await user.type(screen.getByLabelText('Last Name *'), 'Test Last Name');
-    await user.type(screen.getByLabelText('Contact Email for Notifications *'), 'testemail@noreply.com');
+    await user.type(screen.getByLabelText(/First Name/), 'Test Name');
+    await user.type(screen.getByLabelText(/Last Name/), 'Test Last Name');
+    await user.type(screen.getByLabelText(/Contact Email for Notifications/), 'testemail@noreply.com');
     // Assert
     const registerButton = screen.getByText('Register');
     // expect(registerButton).toBeDisabled doesn't seem to work.
@@ -38,9 +38,9 @@ describe('Register', () => {
 
     // Act
     render(h(Register));
-    await user.type(screen.getByLabelText('First Name *'), 'Test Name');
-    await user.type(screen.getByLabelText('Last Name *'), 'Test Last Name');
-    await user.type(screen.getByLabelText('Contact Email for Notifications *'), 'testemail@noreply.com');
+    await user.type(screen.getByLabelText(/First Name/), 'Test Name');
+    await user.type(screen.getByLabelText(/Last Name/), 'Test Last Name');
+    await user.type(screen.getByLabelText(/Contact Email for Notifications/), 'testemail@noreply.com');
     await user.click(screen.getByLabelText('I am not a part of an organization'));
 
     // Assert
@@ -54,12 +54,12 @@ describe('Register', () => {
 
     // Act
     const { container } = render(h(Register));
-    await user.type(screen.getByLabelText('First Name *'), 'Test Name');
-    await user.type(screen.getByLabelText('Last Name *'), 'Test Last Name');
-    await user.type(screen.getByLabelText('Contact Email for Notifications *'), 'testemail@noreply.com');
-    await user.type(screen.getByLabelText('Organization *'), 'Test Organization');
-    await user.type(screen.getByLabelText('Department *'), 'Test Department');
-    await user.type(screen.getByLabelText('Title *'), 'Test Title');
+    await user.type(screen.getByLabelText(/First Name/), 'Test Name');
+    await user.type(screen.getByLabelText(/Last Name/), 'Test Last Name');
+    await user.type(screen.getByLabelText(/Contact Email for Notifications/), 'testemail@noreply.com');
+    await user.type(screen.getByLabelText(/Organization/), 'Test Organization');
+    await user.type(screen.getByLabelText(/Department/), 'Test Department');
+    await user.type(screen.getByLabelText(/Title/), 'Test Title');
 
     // Assert
     const registerButton = screen.getByText('Register');

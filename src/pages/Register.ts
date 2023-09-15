@@ -10,6 +10,7 @@ import { refreshTerraProfile, signOut } from 'src/libs/auth';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
+import { FormLabel } from 'src/libs/forms';
 import { registrationLogo } from 'src/libs/logos';
 import { authStore, getUser, userStatus } from 'src/libs/state';
 import validate from 'validate.js';
@@ -25,18 +26,25 @@ const constraints = (partOfOrg) => {
   };
 };
 
+interface UserProfile {
+  institute: string | undefined;
+  title: string | undefined;
+  department: string | undefined;
+  interestInTerra: string | undefined;
+}
+
 const Register = () => {
   const user = getUser();
-  const profile = authStore.get().profile;
+  const profile: UserProfile = authStore.get().profile;
   const [busy, setBusy] = useState(false);
   const [givenName, setGivenName] = useState(user.givenName || '');
   const [familyName, setFamilyName] = useState(user.familyName || '');
   const [email, setEmail] = useState(user.email || '');
   const [partOfOrganization, setPartOfOrganization] = useState(true);
-  const [institute, setInstitute] = useState(profile.institute || ''); // keep this key as 'institute' to be backwards compatible with existing Thurloe KVs
-  const [title, setTitle] = useState(profile.title || '');
-  const [department, setDepartment] = useState(profile.department || '');
-  const [interestInTerra, setInterestInTerra] = useState(!!profile.interestInTerra || '');
+  const [institute, setInstitute] = useState(profile.institute ?? ''); // keep this key as 'institute' to be backwards compatible with existing Thurloe KVs
+  const [title, setTitle] = useState(profile.title ?? '');
+  const [department, setDepartment] = useState(profile.department ?? '');
+  const [interestInTerra, setInterestInTerra] = useState(profile.interestInTerra ?? '');
 
   const checkboxLine = (children) =>
     div(
@@ -97,7 +105,10 @@ const Register = () => {
       setBusy(false);
     }
   };
-  const errors = validate({ givenName, familyName, email, institute, title, department }, constraints(partOfOrganization));
+  const errors = validate(
+    { givenName, familyName, email, institute, title, department },
+    constraints(partOfOrganization)
+  );
   return div(
     {
       role: 'main',
@@ -121,13 +132,13 @@ const Register = () => {
             fontWeight: 500,
           },
         },
-        'New User Registration'
+        ['New User Registration']
       ),
-      div({ style: { marginTop: '3rem', display: 'flex' } }, [
+      div({ style: { marginTop: '1rem', display: 'flex' } }, [
         h(IdContainer, [
           (id) =>
             div({ style: { lineHeight: '170%' } }, [
-              label({ htmlFor: id }, ['First Name *']),
+              h(FormLabel, { htmlFor: id, required: true }, ['First Name']),
               h(TextInput, {
                 id,
                 style: { display: 'block' },
@@ -140,7 +151,7 @@ const Register = () => {
         h(IdContainer, [
           (id) =>
             div({ style: { lineHeight: '170%' } }, [
-              label({ htmlFor: id }, ['Last Name *']),
+              h(FormLabel, { htmlFor: id, required: true }, ['Last Name']),
               h(TextInput, {
                 id,
                 style: { display: 'block' },
@@ -153,7 +164,9 @@ const Register = () => {
       h(IdContainer, [
         (id) =>
           div({ style: { lineHeight: '170%' } }, [
-            label({ htmlFor: id, style: { display: 'block', marginTop: '2rem' } }, ['Contact Email for Notifications *']),
+            h(FormLabel, { htmlFor: id, required: true, style: { display: 'block', marginTop: '2rem' } }, [
+              'Contact Email for Notifications',
+            ]),
             div([
               h(TextInput, {
                 id,
@@ -167,7 +180,11 @@ const Register = () => {
       h(IdContainer, [
         (id) =>
           div({ style: { lineHeight: '170%' } }, [
-            label({ htmlFor: id, style: { display: 'block', marginTop: '2rem' } }, ['Organization *']),
+            h(
+              FormLabel,
+              { htmlFor: id, required: partOfOrganization, style: { display: 'block', marginTop: '2rem' } },
+              ['Organization']
+            ),
             div([
               h(TextInput, {
                 id,
@@ -179,7 +196,7 @@ const Register = () => {
             ]),
           ]),
       ]),
-      h(div, { style: { lineHeight: '170%', style: { marginTop: '0.25rem' } } }, [
+      div({ style: { lineHeight: '170%', marginTop: '0.25rem' } }, [
         h(
           LabeledCheckbox,
           {
@@ -189,11 +206,11 @@ const Register = () => {
           [label({ style: { marginLeft: '0.25rem' } }, ['I am not a part of an organization'])]
         ),
       ]),
-      div({ style: { marginTop: '2rem', display: 'flex' } }, [
+      div({ style: { display: 'flex' } }, [
         h(IdContainer, [
           (id) =>
             div({ style: { lineHeight: '170%' } }, [
-              label({ htmlFor: id, style: { display: 'block' } }, ['Department *']),
+              h(FormLabel, { htmlFor: id, required: partOfOrganization, style: { display: 'block' } }, ['Department']),
               div([
                 h(TextInput, {
                   id,
@@ -208,7 +225,7 @@ const Register = () => {
         h(IdContainer, [
           (id) =>
             div({ style: { lineHeight: '170%' } }, [
-              label({ htmlFor: id, style: { display: 'block' } }, ['Title *']),
+              h(FormLabel, { htmlFor: id, required: partOfOrganization, style: { display: 'block' } }, ['Title']),
               div([
                 h(TextInput, {
                   id,
@@ -231,12 +248,12 @@ const Register = () => {
         interestInTerraCheckbox('Build Tools'),
       ]),
       div({ style: { marginTop: '3rem' } }, [
-        h(ButtonPrimary, { disabled: errors || busy, onClick: register }, 'Register'),
-        h(ButtonSecondary, { style: { marginLeft: '1rem' }, onClick: signOut }, 'Cancel'),
+        h(ButtonPrimary, { disabled: errors || busy, onClick: register }, ['Register']),
+        h(ButtonSecondary, { style: { marginLeft: '1rem' }, onClick: signOut }, ['Cancel']),
         busy &&
           centeredSpinner({
             size: 34,
-            style: { display: null, margin: null, marginLeft: '1ex' },
+            ...{ style: { display: null, margin: null, marginLeft: '1ex' } },
           }),
       ]),
     ]
