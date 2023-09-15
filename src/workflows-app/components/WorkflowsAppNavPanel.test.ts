@@ -16,7 +16,7 @@ const defaultAnalysesData: AnalysesData = {
 
 jest.mock('src/libs/ajax');
 
-describe('Left Navigation Panel', () => {
+describe('Workflows App Navigation Panel', () => {
   it('renders headers', async () => {
     const user = userEvent.setup();
 
