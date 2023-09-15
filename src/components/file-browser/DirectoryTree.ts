@@ -272,7 +272,6 @@ export const Directory = (props: DirectoryProps) => {
               [!isExpanded, () => 'angle-right']
             )!,
             {
-              // @ts-expect-error
               color: isSelected ? selectedDirectoryColor : colors.accent(),
               size: 14,
             }

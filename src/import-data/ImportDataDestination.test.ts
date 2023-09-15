@@ -49,9 +49,9 @@ describe('ImportDataDestination', () => {
 
     render(
       h(ImportDataDestination, {
-        workspaceId: null,
-        templateWorkspaces: [],
-        template: [],
+        workspaceId: undefined,
+        templateWorkspaces: {},
+        template: undefined,
         userHasBillingProjects: true,
         importMayTakeTime: true,
         authorizationDomain: '',
@@ -77,9 +77,9 @@ describe('ImportDataDestination', () => {
 
     render(
       h(ImportDataDestination, {
-        workspaceId: null,
-        templateWorkspaces: [],
-        template: [],
+        workspaceId: undefined,
+        templateWorkspaces: {},
+        template: undefined,
         userHasBillingProjects: true,
         importMayTakeTime: true,
         authorizationDomain: '',
@@ -104,9 +104,9 @@ describe('ImportDataDestination', () => {
 
     render(
       h(ImportDataDestination, {
-        workspaceId: null,
-        templateWorkspaces: [],
-        template: [],
+        workspaceId: undefined,
+        templateWorkspaces: {},
+        template: undefined,
         userHasBillingProjects: true,
         importMayTakeTime: true,
         authorizationDomain: '',

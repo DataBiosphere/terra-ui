@@ -1,8 +1,16 @@
+import { IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Fragment, useState } from 'react';
+import { CSSProperties, Fragment, ReactNode, useState } from 'react';
 import { div, h, h2, img, p, span } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
-import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, RadioButton, spinnerOverlay } from 'src/components/common';
+import {
+  ButtonPrimary,
+  ButtonSecondary,
+  Clickable,
+  IdContainer,
+  RadioButton,
+  spinnerOverlay,
+} from 'src/components/common';
 import { icon, wdlIcon } from 'src/components/icons';
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils';
@@ -11,19 +19,40 @@ import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { WorkspaceInfo } from 'src/libs/workspace-utils';
 
+import { TemplateWorkspaceInfo } from './import-types';
 import { isProtectedWorkspace } from './protected-data-utils';
 
 const styles = {
+  card: {
+    borderRadius: 5,
+    backgroundColor: 'white',
+    padding: '2rem',
+    flex: 1,
+    minWidth: 0,
+    boxShadow: Style.standardShadow,
+  },
   title: {
     fontSize: 24,
     fontWeight: 600,
     color: colors.dark(),
     margin: '0 0 1rem 0',
   },
-};
+} as const satisfies Record<string, CSSProperties>;
 
-const ChoiceButton = ({ iconName, title, detail, style, onClick, disabled, ...props }) => {
+interface ChoiceButtonProps {
+  'aria-haspopup'?: string;
+  detail: string;
+  disabled?: boolean;
+  iconName: IconId;
+  style?: CSSProperties;
+  title: string;
+  onClick: () => void;
+}
+
+const ChoiceButton = (props: ChoiceButtonProps): ReactNode => {
+  const { iconName, title, detail, style, onClick, disabled, ...otherProps } = props;
   const color = disabled ? colors.dark(0.25) : colors.accent(1);
   return h(
     Clickable,
@@ -40,7 +69,7 @@ const ChoiceButton = ({ iconName, title, detail, style, onClick, disabled, ...pr
       },
       hover: disabled ? undefined : { backgroundColor: colors.accent(0.1) },
       onClick: !disabled && onClick,
-      ...props,
+      ...otherProps,
     },
     [
       icon(iconName, { size: 29, style: { flex: 'none', marginRight: '1rem', color } }),
@@ -53,38 +82,59 @@ const ChoiceButton = ({ iconName, title, detail, style, onClick, disabled, ...pr
   );
 };
 
-export const ImportDataDestination = ({
-  workspaceId,
-  templateWorkspaces,
-  template,
-  userHasBillingProjects,
-  importMayTakeTime,
-  authorizationDomain,
-  onImport,
-  isImporting,
-  isProtectedData,
-}) => {
+interface ImportDataDestinationProps {
+  authorizationDomain: string | undefined;
+  importMayTakeTime: boolean;
+  isImporting: boolean;
+  isProtectedData: boolean;
+  template: string | undefined;
+  templateWorkspaces: { [key: string]: TemplateWorkspaceInfo[] } | undefined;
+  userHasBillingProjects: boolean;
+  workspaceId: string | undefined;
+  onImport: (workspace: WorkspaceInfo) => void;
+}
+
+export const ImportDataDestination = (props: ImportDataDestinationProps): ReactNode => {
+  const {
+    workspaceId,
+    templateWorkspaces,
+    template,
+    userHasBillingProjects,
+    importMayTakeTime,
+    authorizationDomain,
+    onImport,
+    isImporting,
+    isProtectedData,
+  } = props;
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces();
-  const [mode, setMode] = useState(workspaceId ? 'existing' : undefined);
+  const [mode, setMode] = useState<'existing' | 'template' | undefined>(workspaceId ? 'existing' : undefined);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isCloneOpen, setIsCloneOpen] = useState(false);
-  const [selectedTemplateWorkspaceKey, setSelectedTemplateWorkspaceKey] = useState();
+  const [selectedTemplateWorkspaceKey, setSelectedTemplateWorkspaceKey] = useState<{
+    namespace: string;
+    name: string;
+  }>();
 
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(workspaceId);
 
   const selectedWorkspace = _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces);
 
-  const filteredTemplates = _.flow(
-    _.flatMap((id) => (templateWorkspaces && templateWorkspaces[id]) || []),
-    _.filter(({ name, namespace }) => _.some({ workspace: { namespace, name } }, workspaces))
-  )(_.castArray(template));
+  const filteredTemplates = template
+    ? _.flow(
+        _.flatMap((id: string) => (templateWorkspaces && templateWorkspaces[id]) || []),
+        _.filter(({ name, namespace }) => _.some({ workspace: { namespace, name } }, workspaces))
+      )(_.castArray(template))
+    : [];
 
-  const importMayTakeTimeMessage = 'Note that the import process may take some time after you are redirected into your destination workspace.';
+  const importMayTakeTimeMessage =
+    'Note that the import process may take some time after you are redirected into your destination workspace.';
 
   const linkAccountPrompt = () => {
     return div({}, [
-      div({ style: { marginTop: '1.5rem' } }, ['But first, to use Terra, you need to link Terra to a cloud account for compute and storage costs']),
-      h(ButtonPrimary, { style: { marginTop: '.5rem', padding: '.75rem 3.5rem' }, href: '/billing' }, 'Get Started'),
+      div({ style: { marginTop: '1.5rem' } }, [
+        'But first, to use Terra, you need to link Terra to a cloud account for compute and storage costs',
+      ]),
+      h(ButtonPrimary, { style: { marginTop: '.5rem', padding: '.75rem 3.5rem' }, href: '/billing' }, ['Get Started']),
     ]);
   };
 
@@ -100,12 +150,14 @@ export const ImportDataDestination = ({
         (id) =>
           h(Fragment, [
             h(FormLabel, { htmlFor: id, style: { marginBottom: '0.25rem' } }, ['Select one of your workspaces']),
+            // @ts-expect-error
             h(WorkspaceSelector, {
               id,
               workspaces: _.filter((ws) => {
                 return (
                   Utils.canWrite(ws.accessLevel) &&
-                  (!authorizationDomain || _.some({ membersGroupName: authorizationDomain }, ws.workspace.authorizationDomain))
+                  (!authorizationDomain ||
+                    _.some({ membersGroupName: authorizationDomain }, ws.workspace.authorizationDomain))
                 );
               }, workspaces),
               value: selectedWorkspaceId,
@@ -122,7 +174,9 @@ export const ImportDataDestination = ({
           {
             style: { marginLeft: '2rem' },
             disabled: !selectedWorkspace,
-            onClick: () => onImport(selectedWorkspace.workspace),
+            // Since button is disabled when selectedWorkspace is falsy,
+            // it can safely be asserted non-null in onClick.
+            onClick: () => onImport(selectedWorkspace!.workspace),
           },
           ['Import']
         ),
@@ -156,6 +210,7 @@ export const ImportDataDestination = ({
                 },
               },
               [
+                // @ts-expect-error
                 h(RadioButton, {
                   name: 'select-template',
                   checked: isSelected,
@@ -166,9 +221,18 @@ export const ImportDataDestination = ({
                       style: { fontSize: 14, marginLeft: '0.5rem' },
                       title: span({ style: { display: 'flex', alignItems: 'center' } }, [
                         span({ style: { fontWeight: 600 } }, [name]),
-                        hasNotebooks && img({ src: jupyterLogo, style: { height: 23, width: 23, marginLeft: '0.5rem' } }),
+                        hasNotebooks &&
+                          img({ src: jupyterLogo, style: { height: 23, width: 23, marginLeft: '0.5rem' } }),
                         hasWorkflows &&
-                          wdlIcon({ style: { height: 23, width: 23, marginLeft: '0.5rem', borderRadius: 3, padding: '8px 4px 7px 4px' } }),
+                          wdlIcon({
+                            style: {
+                              height: 23,
+                              width: 23,
+                              marginLeft: '0.5rem',
+                              borderRadius: 3,
+                              padding: '8px 4px 7px 4px',
+                            },
+                          }),
                       ]),
                     },
                     [p({ style: { fontSize: 14, lineHeight: '1.5', marginRight: '1rem' } }, [description])]
@@ -248,7 +312,8 @@ export const ImportDataDestination = ({
     isCloneOpen &&
       h(NewWorkspaceModal, {
         cloneWorkspace: _.find({ workspace: selectedTemplateWorkspaceKey }, workspaces),
-        title: `Clone ${selectedTemplateWorkspaceKey.name} and Import Data`,
+        // This modal can only be opened if selectedTemplateWorkspaceKey is set.
+        title: `Clone ${selectedTemplateWorkspaceKey!.name} and Import Data`,
         buttonText: 'Clone and Import',
         customMessage: importMayTakeTime && importMayTakeTimeMessage,
         onDismiss: () => setIsCloneOpen(false),
