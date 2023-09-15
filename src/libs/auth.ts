@@ -5,7 +5,7 @@ import _ from 'lodash/fp';
 import { ExtraSigninRequestArgs, IdTokenClaims, User, UserManager, WebStorageStateStore } from 'oidc-client-ts';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
 import { Ajax } from 'src/libs/ajax';
-import { fetchOk, sessionTimedOutErrorMessage } from 'src/libs/ajax/ajax-common';
+import { fetchOk } from 'src/libs/ajax/ajax-common';
 import { getLocalStorage, getSessionStorage } from 'src/libs/browser-storage';
 import { getConfig } from 'src/libs/config';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
@@ -107,6 +107,9 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
     .finally(() => auth.removeUser())
     .finally(() => auth.clearStaleState());
 };
+
+export const sessionTimedOutErrorMessage =
+  'Session timed out (due to auth token refresh failure or expired refresh token)';
 
 const revokeTokens = async () => {
   const auth = getAuthInstance();

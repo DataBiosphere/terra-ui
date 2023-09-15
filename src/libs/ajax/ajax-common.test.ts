@@ -1,20 +1,16 @@
 import { User } from 'oidc-client-ts';
-import { loadAuthToken, signOut } from 'src/libs/auth';
+import { loadAuthToken, sessionTimedOutErrorMessage, signOut } from 'src/libs/auth';
 import { getUser } from 'src/libs/state';
 import { asMockedFn } from 'src/testing/test-utils';
 
-import {
-  authOpts,
-  makeRequestRetry,
-  sessionTimedOutErrorMessage,
-  withRetryAfterReloadingExpiredAuthToken,
-} from './ajax-common';
+import { authOpts, makeRequestRetry, withRetryAfterReloadingExpiredAuthToken } from './ajax-common';
 
 type AuthExports = typeof import('src/libs/auth');
 jest.mock('src/libs/auth', (): Partial<AuthExports> => {
   return {
     loadAuthToken: jest.fn(),
     signOut: jest.fn(),
+    sessionTimedOutErrorMessage: 'Session timed out (due to auth token refresh failure or expired refresh token)',
   };
 });
 
@@ -23,6 +19,13 @@ jest.mock('src/libs/state', (): StateExports => {
   return {
     ...jest.requireActual('src/libs/state'),
     getUser: jest.fn(() => ({ token: 'testtoken' })),
+  };
+});
+
+type OidcExports = typeof import('oidc-client-ts');
+jest.mock('oidc-client-ts', (): OidcExports => {
+  return {
+    ...jest.requireActual('oidc-client-ts'),
   };
 });
 
@@ -71,27 +74,8 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
 
     beforeEach(() => {
       let mockTerraUser = { token };
-      const mockOidcUser: User = {
-        id_token: undefined,
-        session_state: null,
-        access_token: token,
-        refresh_token: '',
-        token_type: '',
-        scope: undefined,
-        profile: {
-          sub: '',
-          iss: '',
-          aud: '',
-          exp: 0,
-          iat: 0,
-        },
-        expires_at: undefined,
-        state: undefined,
-        expires_in: 0,
-        expired: undefined,
-        scopes: [],
-        toStorageString: (): string => '',
-      };
+      const mockOidcUser: User = jest.requireActual('oidc-client-ts');
+
       asMockedFn(getUser).mockImplementation(() => mockTerraUser);
 
       asMockedFn(loadAuthToken).mockImplementation(() => {

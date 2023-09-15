@@ -1,6 +1,5 @@
 import { AnyPromiseFn, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
-// import { sessionTimedOutErrorMessage } from 'src/libs/ajax/ajax-common';
 import { notify } from 'src/libs/notifications';
 
 export const reportError = async (title, obj) => {

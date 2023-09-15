@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { loadAuthToken, signOut, SignOutCause } from 'src/libs/auth';
+import { loadAuthToken, sessionTimedOutErrorMessage, signOut, SignOutCause } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
 import { ajaxOverridesStore, getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
@@ -66,9 +66,6 @@ export async function makeRequestRetry(request: Function, retryCount: number, ti
 }
 
 const isUnauthorizedResponse = (error: unknown): boolean => error instanceof Response && error.status === 401;
-
-export const sessionTimedOutErrorMessage =
-  'Session timed out (due to auth token refresh failure or expired refresh token)';
 
 export const withRetryAfterReloadingExpiredAuthToken =
   (wrappedFetch: FetchFn): FetchFn =>
