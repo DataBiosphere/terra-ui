@@ -24,16 +24,25 @@ describe('resolveRunningCromwellAppUrl', () => {
   };
 
   it.each([
-    { appStatus: appStatuses.running.status, expectedUrl: { cbasUrl: mockCbasUrl, cbasUiUrl: mockCbasUiUrl, cromwellUrl: mockCromwellUrl } },
+    {
+      appStatus: appStatuses.running.status,
+      appType: 'CROMWELL',
+      expectedUrl: { cbasUrl: mockCbasUrl, cbasUiUrl: mockCbasUiUrl, cromwellUrl: mockCromwellUrl },
+    },
     { appStatus: appStatuses.provisioning.status, expectedUrl: null },
     { appStatus: appStatuses.stopped.status, expectedUrl: null },
     { appStatus: appStatuses.stopping.status, expectedUrl: null },
     { appStatus: appStatuses.error.status, expectedUrl: null },
-  ])('returns correct value for Cromwell app in $appStatus from the Leo response', ({ appStatus, expectedUrl }) => {
+    {
+      appStatus: appStatuses.running.status,
+      appType: 'WORKFLOWS_APP',
+      expectedUrl: { cbasUrl: mockCbasUrl, cbasUiUrl: mockCbasUiUrl, cromwellUrl: mockCromwellUrl },
+    },
+  ])('returns correct value for Cromwell app in $appStatus from the Leo response', ({ appStatus, appType, expectedUrl }) => {
     const mockAppsResponse = [
       {
         ...appResponseCommonField,
-        appType: 'CROMWELL',
+        appType,
         status: appStatus,
         proxyUrls: {
           cbas: mockCbasUrl,
