@@ -37,7 +37,8 @@ export const Metrics = (signal?: AbortSignal) => {
       'api/event',
       _.mergeAll([
         isRegistered ? authOpts() : undefined,
-        jsonBody(body, (_: string, value) => (value === undefined ? null : value)),
+        // TODO: Figure out why this breaks sign out
+        jsonBody(body /* (_: string, value) => (value === undefined ? null : value) */),
         { signal, method: 'POST' },
       ])
     );
