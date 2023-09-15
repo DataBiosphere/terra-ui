@@ -19,7 +19,6 @@ import * as Utils from 'src/libs/utils';
 import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
 import FindWorkflowModal from 'src/workflows-app/components/FindWorkflowModal';
 import { SavedWorkflows } from 'src/workflows-app/components/SavedWorkflows';
-import { WorkflowsAppLauncherCard } from 'src/workflows-app/components/WorkflowsAppLauncherCard';
 import { WorkflowsAppNavPanel } from 'src/workflows-app/components/WorkflowsAppNavPanel';
 import { doesAppProxyUrlExist, getCromwellUnsupportedMessage, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
@@ -178,7 +177,8 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       [pageReady, () => renderSubmitWorkflow()],
       [
         doesWorkspaceSupportCromwellAppForUser(workspace.workspace, getCloudProviderFromWorkspace(workspace), appToolLabels.CROMWELL),
-        () => h(WorkflowsAppLauncherCard, { onClick: createWorkflowsApp, disabled: launcherDisabled }),
+        () => h(Fragment, {}, [h(WorkflowsAppNavPanel, { pageReady, launcherDisabled, loading, createWorkflowsApp })]), // &&
+        // h(WorkflowsAppLauncherCard, { onClick: createWorkflowsApp, disabled: launcherDisabled }),
       ],
       [Utils.DEFAULT, () => div({ style: { ...styles.card, width: '50rem', margin: '2rem 4rem' } }, [getCromwellUnsupportedMessage()])]
     );
