@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
-import { loadAuthToken, signOut, SignOutCause } from 'src/libs/auth';
+import { AuthTokenState, loadAuthToken, signOut, SignOutCause } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
 import { ajaxOverridesStore, getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
@@ -76,14 +76,13 @@ export const withRetryAfterReloadingExpiredAuthToken =
       return await wrappedFetch(resource, options);
     } catch (error) {
       if (isUnauthorizedResponse(error) && requestHasAuthHeader) {
-        const reloadedAuthTokenState = await loadAuthToken();
-        const successfullyReloadedAuthToken = !!reloadedAuthTokenState;
-        if (successfullyReloadedAuthToken) {
+        const reloadedAuthTokenState: AuthTokenState = await loadAuthToken();
+        if (reloadedAuthTokenState.status === 'success') {
           const optionsWithNewAuthToken = _.merge(options, authOpts());
           return await wrappedFetch(resource, optionsWithNewAuthToken);
         }
         const signOutCause: SignOutCause =
-          reloadedAuthTokenState === null ? 'expiredRefreshToken' : 'errorRefreshingAuthToken';
+          reloadedAuthTokenState.status === 'expired' ? 'expiredRefreshToken' : 'errorRefreshingAuthToken';
         signOut(signOutCause);
         throw new Error(sessionTimedOutErrorMessage);
       } else {

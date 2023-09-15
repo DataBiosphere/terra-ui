@@ -100,7 +100,10 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
 
       asMockedFn(loadAuthToken).mockImplementation(() => {
         mockTerraUser = { token: 'newtesttoken' };
-        return Promise.resolve(mockOidcUser);
+        return Promise.resolve({
+          status: 'success',
+          user: mockOidcUser,
+        });
       });
     });
 
@@ -130,7 +133,13 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
 
     describe('if reloading auth token fails', () => {
       beforeEach(() => {
-        asMockedFn(loadAuthToken).mockImplementation(() => Promise.resolve(false));
+        asMockedFn(loadAuthToken).mockImplementation(() =>
+          Promise.resolve({
+            status: 'error',
+            errorMsg: 'unexpected error',
+            reason: {},
+          })
+        );
       });
 
       it('signs out user', async () => {
