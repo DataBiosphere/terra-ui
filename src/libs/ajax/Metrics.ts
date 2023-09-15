@@ -32,13 +32,12 @@ export const Metrics = (signal?: AbortSignal) => {
         ...getDefaultProperties(),
       },
     };
-
     return fetchBard(
       'api/event',
       _.mergeAll([
         isRegistered ? authOpts() : undefined,
-        // TODO: Figure out why this breaks sign out
-        jsonBody(body /* (_: string, value) => (value === undefined ? null : value) */),
+        // distinct_id is a mixpanel specific id and the value must not be null or this fetch will 400
+        jsonBody(body, (key: string, value) => (value === undefined && key !== 'distinct_id' ? null : value)),
         { signal, method: 'POST' },
       ])
     );

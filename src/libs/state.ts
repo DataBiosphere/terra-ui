@@ -4,49 +4,56 @@ import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 export const routeHandlersStore = atom<unknown[]>([]);
 
-export class TerraUser {
+export type TerraUser = {
   token?: string | undefined;
-
   scope?: string | undefined;
-
   id?: string | undefined;
-
   email?: string | undefined;
-
   name?: string | undefined;
-
   givenName?: string | undefined;
-
   familyName?: string | undefined;
-
   imageUrl?: string | undefined;
-
   idp?: string | undefined;
+};
 
-  constructor(args: {
-    email?: string;
-    familyName?: string;
-    givenName?: string;
-    id?: string;
-    idp?: string;
-    imageUrl?: string;
-    name?: string;
-    scope?: string;
-    token?: string;
-  }) {
-    this.email = args.email;
-    this.familyName = args.familyName;
-    this.givenName = args.givenName;
-    this.id = args.id;
-    this.idp = args.idp;
-    this.imageUrl = args.imageUrl;
-    this.name = args.idp;
-    this.scope = args.scope;
-    this.token = args.token;
-  }
-}
+export type TokenMetadata = {
+  // do not log or send this to a user (could move to hash in the future)
+  token?: string | undefined;
+  id?: string | undefined;
+  createdAt: number;
+  expiresAt: number;
+  totalTokensUsedThisSession: number;
+  totalTokenLoadAttemptsThisSession: number;
+};
 
-export const authStore = atom<any>({
+export type AuthState = {
+  anonymousId: string | undefined;
+  authContext: any;
+  authTokenMetadata: TokenMetadata;
+  cookiesAccepted: boolean | undefined;
+  fenceStatus: {};
+  hasGcpBillingScopeThroughB2C?: boolean | undefined;
+  isAzurePreviewUser?: boolean | undefined;
+  isSignedIn: boolean | undefined;
+  isTimeoutEnabled?: boolean | undefined;
+  nihStatus?: {
+    linkedNihUsername: string;
+    linkExpireTime: number;
+  };
+  oidcConfig: {
+    authorityEndpoint?: string;
+    clientId?: string;
+  };
+  profile: {};
+  refreshTokenMetadata: TokenMetadata;
+  registrationStatus: any;
+  sessionId?: string | undefined;
+  sessionStartTime: number;
+  termsOfService: {};
+  user: TerraUser;
+};
+
+export const authStore: Atom<AuthState> = atom<AuthState>({
   anonymousId: undefined,
   authContext: undefined,
   authTokenMetadata: {
@@ -54,8 +61,8 @@ export const authStore = atom<any>({
     id: undefined,
     createdAt: -1,
     expiresAt: -1,
-    totalAuthTokensUsedThisSession: 0,
-    totalAuthTokenLoadAttemptsThisSession: 0,
+    totalTokenLoadAttemptsThisSession: 0,
+    totalTokensUsedThisSession: 0,
   },
   cookiesAccepted: undefined,
   fenceStatus: {},
@@ -68,16 +75,18 @@ export const authStore = atom<any>({
   },
   profile: {},
   refreshTokenMetadata: {
-    token: undefined, // do not log or send this to a user (could move to hash in the future)
+    token: undefined,
     id: undefined,
     createdAt: -1,
     expiresAt: -1,
+    totalTokenLoadAttemptsThisSession: 0,
+    totalTokensUsedThisSession: 0,
   },
   registrationStatus: undefined,
   sessionId: undefined,
   sessionStartTime: -1,
   termsOfService: {},
-  user: new TerraUser({}),
+  user: {},
 });
 
 export const getUser = (): TerraUser => authStore.get().user;

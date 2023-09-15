@@ -1,5 +1,6 @@
 import { AnyPromiseFn, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
+import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { notify } from 'src/libs/notifications';
 
 export const reportError = async (title, obj) => {
@@ -7,10 +8,7 @@ export const reportError = async (title, obj) => {
   // Do not show an error notification when a session times out.
   // Notification for this case is handled elsewhere.
   // For some reason making using sessionTimedOutErrorMessage instead of the raw string breaks tests
-  if (
-    obj instanceof Error &&
-    obj.message === 'Session timed out (due to auth token refresh failure or expired refresh token)'
-  ) {
+  if (obj instanceof Error && obj.message === sessionTimedOutErrorMessage) {
     return;
   }
 

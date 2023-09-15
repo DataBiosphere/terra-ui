@@ -3,6 +3,7 @@ import { parseJSON } from 'date-fns/fp';
 import jwtDecode, { JwtPayload } from 'jwt-decode';
 import _ from 'lodash/fp';
 import { ExtraSigninRequestArgs, IdTokenClaims, User, UserManager, WebStorageStateStore } from 'oidc-client-ts';
+import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
 import { Ajax } from 'src/libs/ajax';
 import { fetchOk } from 'src/libs/ajax/ajax-common';
@@ -15,13 +16,14 @@ import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/pref
 import allProviders from 'src/libs/providers';
 import {
   asyncImportJobStore,
+  AuthState,
   authStore,
   azureCookieReadyStore,
   azurePreviewStore,
   cookieReadyStore,
   getUser,
   requesterPaysProjectStore,
-  TerraUser,
+  TokenMetadata,
   userStatus,
   workspacesStore,
   workspaceStore,
@@ -36,7 +38,7 @@ export const getOidcConfig = () => {
   };
   return {
     authority: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
-    client_id: authStore.get().oidcConfig.clientId,
+    client_id: authStore.get().oidcConfig.clientId!,
     popup_redirect_uri: `${window.origin}/redirect-from-oauth`,
     silent_redirect_uri: `${window.origin}/redirect-from-oauth-silent`,
     metadata,
@@ -66,7 +68,7 @@ export type SignOutCause =
   | 'idleStatusMonitor'
   | 'unspecified';
 
-const sendSignOutMetrics = (cause: SignOutCause): void => {
+const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
   const eventToFire: string = switchCase<SignOutCause, string>(
     cause,
     ['requested', () => Events.user.signOut.requested],
@@ -79,16 +81,17 @@ const sendSignOutMetrics = (cause: SignOutCause): void => {
     [DEFAULT, () => Events.user.signOut.unspecified]
   );
   const sessionEndTime: number = Date.now();
-  const authStoreState = authStore.get();
-  const tokenMetadata = authStoreState.authTokenMetadata;
+  const authStoreState: AuthState = authStore.get();
+  const tokenMetadata: TokenMetadata = authStoreState.authTokenMetadata;
 
-  Ajax().Metrics.captureEvent(eventToFire, {
+  await Ajax().Metrics.captureEvent(eventToFire, {
     sessionEndTime: Utils.makeCompleteDate(sessionEndTime),
-    sessionDurationInSeconds: (sessionEndTime - authStoreState.sessionStartTime) / 1000.0,
-    authTokenCreatedAt: Utils.formatTimestampInSeconds(tokenMetadata.createdAt),
-    authTokenExpiresAt: Utils.formatTimestampInSeconds(tokenMetadata.expiresAt),
-    totalAuthTokensUsedThisSession: authStoreState.authTokenMetadata.totalAuthTokensUsedThisSession,
-    totalAuthTokenLoadAttemptsThisSession: authStoreState.authTokenMetadata.totalAuthTokenLoadAttemptsThisSession,
+    sessionDurationInSeconds:
+      authStoreState.sessionStartTime < 0 ? undefined : (sessionEndTime - authStoreState.sessionStartTime) / 1000.0,
+    authTokenCreatedAt: labelTimestampMetric(tokenMetadata.createdAt),
+    authTokenExpiresAt: labelTimestampMetric(tokenMetadata.expiresAt),
+    totalAuthTokensUsedThisSession: authStoreState.authTokenMetadata.totalTokensUsedThisSession,
+    totalAuthTokenLoadAttemptsThisSession: authStoreState.authTokenMetadata.totalTokenLoadAttemptsThisSession,
   });
 };
 
@@ -107,9 +110,6 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
     .finally(() => auth.removeUser())
     .finally(() => auth.clearStaleState());
 };
-
-export const sessionTimedOutErrorMessage =
-  'Session timed out (due to auth token refresh failure or expired refresh token)';
 
 const revokeTokens = async () => {
   const auth = getAuthInstance();
@@ -167,14 +167,14 @@ export const signIn = async (includeBillingScope = false): Promise<User> => {
  * @param popUp whether signIn is attempted with a popup, or silently in the background.
  */
 export const loadAuthToken = async (includeBillingScope = false, popUp = false): Promise<User | null | false> => {
-  const oldAuthTokenMetadata = authStore.get().authTokenMetadata; // this can be null (first token), so cover that case
+  const oldAuthTokenMetadata: TokenMetadata = authStore.get().authTokenMetadata;
+  const oldRefreshTokenMetadata: TokenMetadata = authStore.get().refreshTokenMetadata;
 
   authStore.update((state) => ({
     ...state,
     authTokenMetadata: {
       ...oldAuthTokenMetadata,
-      totalAuthTokenLoadAttemptsThisSession:
-        authStore.get().authTokenMetadata.totalAuthTokenLoadAttemptsThisSession + 1,
+      totalTokenLoadAttemptsThisSession: authStore.get().authTokenMetadata.totalTokenLoadAttemptsThisSession + 1,
     },
   }));
   const args: ExtraSigninRequestArgs = getSigninArgs(includeBillingScope);
@@ -199,16 +199,19 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
     const jwtExpiresAt: number = (decodedJWT as any).exp; // time in seconds when the JWT expires, after which the JWT should not be read from
     const refreshToken: string | undefined = user.refresh_token;
     // for future might want to take refresh token and hash it to compare to a saved hashed token to see if they are the same
-    const isNewRefreshToken = !!refreshToken && refreshToken !== oldAuthTokenMetadata.refreshToken;
+    const isNewRefreshToken = !!refreshToken && refreshToken !== oldRefreshTokenMetadata.token;
     if (isNewRefreshToken) {
       authStore.update((state) => ({
         ...state,
         refreshTokenMetadata: {
+          ...authStore.get().refreshTokenMetadata,
           id: uuid(),
           token: refreshToken,
           createdAt: authTokenCreatedAt,
           // Auth token expiration is set to 24 hours in B2C configuration.
           expiresAt: authTokenCreatedAt + 86400, // 24 hours in seconds
+          totalTokensUsedThisSession: authStore.get().authTokenMetadata.totalTokensUsedThisSession + 1,
+          totalTokenLoadAttemptsThisSession: authStore.get().authTokenMetadata.totalTokenLoadAttemptsThisSession + 1,
         },
       }));
     }
@@ -221,11 +224,11 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
         expiresAt: authTokenExpiresAt,
         id: authTokenId,
         // TODO: Change this to only update if the auth token is different than the previous token
-        totalAuthTokensUsedThisSession: authStore.get().authTokenMetadata.totalAuthTokensUsedThisSession + 1,
+        totalTokensUsedThisSession: authStore.get().authTokenMetadata.totalTokensUsedThisSession + 1,
       },
     }));
     Ajax().Metrics.captureEvent(Events.user.authTokenLoad.success, {
-      authProvider: (user.profile as AzureIdTokenClaims).idp,
+      authProvider: (user.profile as B2cIdTokenClaims).idp,
       ...labelOldAuthToken(oldAuthTokenMetadata),
       authTokenCreatedAt: labelTimestampMetric(authTokenCreatedAt),
       authTokenExpiresAt: labelTimestampMetric(authTokenExpiresAt),
@@ -253,7 +256,7 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
   }
   return loadedAuthTokenState;
 };
-const labelOldAuthToken = (oldAuthTokenMetadata) => {
+const labelOldAuthToken = (oldAuthTokenMetadata: TokenMetadata) => {
   return {
     oldAuthTokenCreatedAt: labelTimestampMetric(oldAuthTokenMetadata.createdAt),
     oldAuthTokenExpiresAt: labelTimestampMetric(oldAuthTokenMetadata.expiresAt),
@@ -330,7 +333,7 @@ export const isAzureUser = (): boolean => {
   return _.startsWith('https://login.microsoftonline.com', getUser().idp!);
 };
 
-export interface AzureIdTokenClaims extends IdTokenClaims {
+export interface B2cIdTokenClaims extends IdTokenClaims {
   email_verified?: boolean | undefined;
   idp?: string | undefined;
   idp_access_token?: string | undefined;
@@ -341,7 +344,7 @@ export interface AzureIdTokenClaims extends IdTokenClaims {
 export const processUser = (user: User | null, isSignInEvent: boolean) => {
   return authStore.update((state) => {
     const isSignedIn = !_.isNil(user);
-    const profile: AzureIdTokenClaims | undefined = user?.profile;
+    const profile: B2cIdTokenClaims | undefined = user?.profile;
     const userId: string | undefined = profile?.sub;
     // The following few lines of code are to handle sign-in failures due to privacy tools.
     if (isSignInEvent && state.isSignedIn === false && !isSignedIn) {
@@ -375,7 +378,7 @@ export const processUser = (user: User | null, isSignInEvent: boolean) => {
       isAzurePreviewUser: isSignedIn
         ? state.isAzurePreviewUser || (profile !== undefined ? profile.isAzurePreviewUser : undefined)
         : undefined,
-      user: new TerraUser({
+      user: {
         token: user?.access_token,
         scope: user?.scope,
         id: userId,
@@ -389,7 +392,7 @@ export const processUser = (user: User | null, isSignInEvent: boolean) => {
               idp: profile.idp,
             }
           : {}),
-      }),
+      },
     };
   });
 };
@@ -428,7 +431,7 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) =
       isTimeoutEnabled: undefined,
       cookiesAccepted: true,
       profile: {},
-      user: new TerraUser({
+      user: {
         token,
         id: data.sub,
         email: data.email,
@@ -436,7 +439,7 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) =
         givenName: data.given_name,
         familyName: data.family_name,
         imageUrl: data.picture,
-      }),
+      },
     };
   });
 });

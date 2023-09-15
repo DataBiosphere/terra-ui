@@ -1,5 +1,6 @@
 import _ from 'lodash/fp';
-import { loadAuthToken, sessionTimedOutErrorMessage, signOut, SignOutCause } from 'src/libs/auth';
+import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
+import { loadAuthToken, signOut, SignOutCause } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
 import { ajaxOverridesStore, getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
