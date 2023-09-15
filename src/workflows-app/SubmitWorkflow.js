@@ -119,13 +119,13 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
         setCreating(true);
         if (isFeaturePreviewEnabled(ENABLE_AZURE_COLLABORATIVE_WORKFLOWS)) {
           await Ajax().Apps.createAppV2(
-            Utils.generateAppName(),
+            generateAppName(),
             workspace.workspace.workspaceId,
             appToolLabels.WORKFLOWS_APP,
             appAccessScopes.WORKSPACE_SHARED
           );
           await Ajax().Apps.createAppV2(
-            Utils.generateAppName(),
+            generateAppName(),
             workspace.workspace.workspaceId,
             appToolLabels.CROMWELL_RUNNER_APP,
             appAccessScopes.USER_PRIVATE
