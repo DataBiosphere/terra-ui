@@ -578,7 +578,7 @@ export const WorkspaceData = _.flow(
 
     const wdsDataTableProvider = useMemo(() => {
       const app = wdsApp?.state;
-      const proxyUrl = app?.proxyUrl;
+      const proxyUrl = app?.proxyUrls?.wds;
       return new WdsDataTableProvider(workspaceId, proxyUrl);
     }, [workspaceId, wdsApp]);
 
@@ -644,6 +644,8 @@ export const WorkspaceData = _.flow(
       }
     };
 
+    // returns the found app only if it is in a ready state,
+    // otherwise returns undefined
     const loadWdsApp = useCallback((workspaceId) => {
       return Ajax()
         .Apps.listAppsV2(workspaceId)
@@ -653,20 +655,18 @@ export const WorkspaceData = _.flow(
             case appStatuses.provisioning.status:
             case appStatuses.updating.status:
               setWdsApp({ status: 'Loading', state: foundApp });
-              return;
+              break;
             case appStatuses.running.status:
               setWdsApp({ status: 'Ready', state: foundApp });
               return foundApp;
             case appStatuses.error.status:
               setWdsApp({ status: 'Error', state: foundApp });
-              return undefined;
+              break;
             default:
               if (foundApp?.status) {
                 // eslint-disable-next-line no-console
                 console.log(`Unhandled state [${foundApp?.status} while polling WDS`);
               }
-
-              return undefined;
           }
         })
         .catch((error) => {
@@ -693,16 +693,16 @@ export const WorkspaceData = _.flow(
     const loadWdsData = useCallback(async () => {
       // Try to load the proxy URL
       if (!wdsApp || !['Ready', 'Error'].includes(wdsApp.status)) {
-        const wdsApp = await loadWdsApp(workspaceId);
+        const foundApp = await loadWdsApp(workspaceId);
         // TODO: figure out how not to make this redundant fetch, per
         // https://github.com/DataBiosphere/terra-ui/pull/4202#discussion_r1319145491
-        if (wdsApp) {
-          loadWdsTypes(wdsApp.proxyUrl);
+        if (foundApp) {
+          loadWdsTypes(foundApp.proxyUrls?.wds, workspaceId);
         }
       }
       // If we have the proxy URL try to load the WDS types
       else if (wdsApp?.status === 'Ready') {
-        const proxyUrl = wdsApp.state.proxyUrl;
+        const proxyUrl = wdsApp.state.proxyUrls?.wds;
         await loadWdsTypes(proxyUrl, workspaceId);
       }
     }, [wdsApp, loadWdsApp, loadWdsTypes, workspaceId]);

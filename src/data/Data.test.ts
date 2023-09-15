@@ -59,6 +59,7 @@ describe('WorkspaceData', () => {
     refreshWorkspace?: () => void;
     storageDetails?: StorageDetails;
     status: LeoAppStatus;
+    wdsUrl?: string | undefined;
   };
   type SetupResult = {
     workspaceDataProps: WorkspaceDataProps;
@@ -87,16 +88,18 @@ describe('WorkspaceData', () => {
     refreshWorkspace = () => {},
     storageDetails = { ...defaultGoogleBucketOptions, ...populatedAzureStorageOptions },
     status = 'RUNNING',
+    wdsUrl = 'http://fake.wds.url',
   }: SetupOptions): SetupResult {
     const listAppResponse: DeepPartial<ListAppResponse> = {
       proxyUrls: {
-        wds: 'https://fake.wds.url/',
+        wds: wdsUrl,
       },
       appType: 'WDS',
+      status,
     };
 
     const mockGetSchema = jest.fn().mockResolvedValue([]);
-    const mockListAppsV2 = jest.fn().mockResolvedValue([{ ...listAppResponse, status }]);
+    const mockListAppsV2 = jest.fn().mockResolvedValue([listAppResponse]);
     const mockAjax: DeepPartial<AjaxContract> = {
       Workspaces: {
         workspace: (_namespace, _name) => ({
@@ -128,9 +131,10 @@ describe('WorkspaceData', () => {
 
   it('displays a waiting message for an azure workspace that is still provisioning in WDS', async () => {
     // Arrange
-    const { workspaceDataProps } = setup({
+    const { workspaceDataProps, mockGetSchema } = setup({
       workspace: defaultAzureWorkspace,
       status: 'PROVISIONING',
+      wdsUrl: undefined, // no WDS URL yet
     });
 
     // Act
@@ -141,6 +145,26 @@ describe('WorkspaceData', () => {
     // Assert
     expect(screen.getByText(/Preparing your data tables/)).toBeVisible();
     expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // no error message
+    expect(mockGetSchema).not.toHaveBeenCalled(); // never tried fetching schema, which depends on wds URL
+  });
+
+  it('does not accidentally fetch schema before the proxyURL has been set', async () => {
+    // Arrange
+    const { workspaceDataProps, mockGetSchema } = setup({
+      workspace: defaultAzureWorkspace,
+      status: 'PROVISIONING',
+      wdsUrl: undefined, // no WDS URL yet
+    });
+
+    // Act
+    await act(async () => {
+      render(h(WorkspaceData, workspaceDataProps));
+    });
+
+    // Assert
+    expect(screen.getByText(/Preparing your data tables/)).toBeVisible();
+    expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // no error message
+    expect(mockGetSchema).not.toHaveBeenCalled(); // never tried fetching schema, which depends on wds URL
   });
 
   it.each([
@@ -303,14 +327,20 @@ describe('WorkspaceData', () => {
   ])('polls for schema until $status app is RUNNING', async ({ status, expectedMessage }: StatusParams) => {
     // Arrange
     const { workspaceDataProps, mockListAppsV2, listAppResponse, mockGetSchema } = setup({
-      workspace: defaultAzureWorkspace,
+      workspace: {
+        ...defaultAzureWorkspace,
+        workspace: {
+          ...defaultAzureWorkspace.workspace,
+          workspaceId: 'test-workspace-id',
+        },
+      },
       status,
     });
 
     mockListAppsV2
-      .mockResolvedValueOnce([{ ...listAppResponse, status }])
-      .mockResolvedValueOnce([{ ...listAppResponse, status }])
-      .mockResolvedValueOnce([{ ...listAppResponse, status: 'RUNNING' }]);
+      .mockResolvedValueOnce([{ ...listAppResponse, status, proxyUrls: {} }])
+      .mockResolvedValueOnce([{ ...listAppResponse, status, proxyUrls: {} }])
+      .mockResolvedValueOnce([{ ...listAppResponse, status: 'RUNNING', proxyUrls: { wds: 'http://test.wds.url' } }]);
 
     // Act
     await act(async () => {
@@ -341,7 +371,8 @@ describe('WorkspaceData', () => {
 
     // Assert
     expect(mockListAppsV2).toHaveBeenCalledTimes(3); // third call, now running
-    expect(mockGetSchema).toHaveBeenCalled(); // fetch schema once running
+    expect(mockListAppsV2).toHaveBeenCalledWith('test-workspace-id'); // it should have been called with the correct ID
+    expect(mockGetSchema).toHaveBeenCalledWith('http://test.wds.url', 'test-workspace-id'); // fetch schema after running
 
     expect(screen.getByText(/Select a data type/)).toBeVisible();
     expect(screen.queryByText(expectedMessage)).toBeNull(); // no waiting message
