@@ -12,7 +12,7 @@ import { icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import colors from 'src/libs/colors';
-import { forwardRefWithName, useLabelAssert, useOnMount } from 'src/libs/react-utils';
+import { forwardRefWithName, useOnMount } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 
@@ -276,8 +276,6 @@ export function FlexTable({
   tabIndex,
   ...props
 }) {
-  useLabelAssert('FlexTable', { 'aria-label': ariaLabel, allowLabelledBy: false });
-
   const [scrollbarSize, setScrollbarSize] = useState(0);
   const body = useRef();
 
@@ -433,8 +431,6 @@ export const SimpleFlexTable = ({
   readOnly = false,
   border = true,
 }) => {
-  useLabelAssert('SimpleFlexTable', { 'aria-label': ariaLabel, allowLabelledBy: false });
-
   return div(
     {
       role: 'table',
@@ -522,8 +518,6 @@ export const GridTable = forwardRefWithName(
     },
     ref
   ) => {
-    useLabelAssert('GridTable', { 'aria-label': ariaLabel, allowLabelledBy: false });
-
     const [scrollbarSize, setScrollbarSize] = useState(0);
     const header = useRef();
     const body = useRef();
@@ -828,8 +822,6 @@ export const SimpleTable = ({
   useHover = true,
   underRowKey,
 }) => {
-  useLabelAssert('SimpleTable', { 'aria-label': ariaLabel, allowLabelledBy: false });
-
   const cellStyles = { paddingTop: '0.25rem', paddingBottom: '0.25rem', ...cellStyleOverrides };
   return h(
     div,
