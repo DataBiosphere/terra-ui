@@ -17,7 +17,10 @@ describe('containsOnlyUnlabelledIcon', () => {
   ] as [ContainsOnlyUnlabelledIconArgs, boolean][])(
     'returns true if element has no label and only child is an icon without a label',
     (props, expectedResult) => {
+      // Act
       const result = containsOnlyUnlabelledIcon(props);
+
+      // Assert
       expect(result).toBe(expectedResult);
     }
   );
