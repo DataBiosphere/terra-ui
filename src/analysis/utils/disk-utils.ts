@@ -14,6 +14,7 @@ import {
 } from 'src/libs/ajax/leonardo/models/disk-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import * as Utils from 'src/libs/utils';
+import { v4 as uuid } from 'uuid';
 
 export const pdTypeFromDiskType = (type: GoogleDiskType): GooglePdType =>
   Utils.switchCase(
@@ -152,3 +153,5 @@ export const isCurrentGalaxyDiskDetaching = (apps: App[]): boolean => {
   const currentGalaxyApp = getCurrentAppIncludingDeleting(appTools.GALAXY.label, apps);
   return !!currentGalaxyApp && _.includes(currentGalaxyApp.status, ['DELETING', 'PREDELETING']);
 };
+
+export const generatePersistentDiskName = () => `saturn-pd-${uuid()}`;

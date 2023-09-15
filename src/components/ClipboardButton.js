@@ -1,3 +1,4 @@
+import { delay } from '@terra-ui-packages/core-utils';
 import * as clipboard from 'clipboard-polyfill/text';
 import _ from 'lodash/fp';
 import { useState } from 'react';
@@ -20,7 +21,7 @@ export const ClipboardButton = ({ text, onClick, children, ...props }) => {
       )(async (e) => {
         onClick?.(e);
         await clipboard.writeText(text);
-        await Utils.delay(1500);
+        await delay(1500);
       }),
     },
     [children, icon(copied ? 'check' : 'copy-to-clipboard', !!children && { style: { marginLeft: '0.5rem' } })]

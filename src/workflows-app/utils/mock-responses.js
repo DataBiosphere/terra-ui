@@ -373,6 +373,42 @@ export const runSetOutputDef = [
   },
 ];
 
+export const runSetOutputDefEmpty = [
+  {
+    output_name: 'target_workflow_1.file_output',
+    output_type: { type: 'primitive', primitive_type: 'File' },
+    destination: {
+      type: 'none',
+    },
+  },
+  {
+    output_name: 'target_workflow_1.unused_output',
+    output_type: { type: 'primitive', primitive_type: 'String' },
+    destination: {
+      type: 'none',
+    },
+  },
+];
+
+export const runSetOutputDefFilled = [
+  {
+    output_name: 'target_workflow_1.file_output',
+    output_type: { type: 'primitive', primitive_type: 'File' },
+    destination: {
+      type: 'record_update',
+      record_attribute: 'target_workflow_1_file_output',
+    },
+  },
+  {
+    output_name: 'target_workflow_1.unused_output',
+    output_type: { type: 'primitive', primitive_type: 'String' },
+    destination: {
+      type: 'record_update',
+      record_attribute: 'unused_output',
+    },
+  },
+];
+
 export const runSetOutputDefWithDefaults = [
   {
     output_name: 'target_workflow_1.file_output',

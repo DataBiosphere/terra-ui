@@ -4,6 +4,7 @@ import * as Analysis from 'src/analysis/Analyses';
 import * as AnalysisLauncher from 'src/analysis/AnalysisLauncher';
 import * as AppLauncher from 'src/analysis/AppLauncher';
 import * as Data from 'src/data/Data';
+import * as ImportDataPage from 'src/import-data/ImportDataPage';
 import { routeHandlersStore } from 'src/libs/state';
 import * as AzurePreview from 'src/pages/AzurePreview';
 import * as Projects from 'src/pages/billing/List/List';
@@ -11,7 +12,6 @@ import * as Environments from 'src/pages/EnvironmentsPage';
 import * as FeaturePreviews from 'src/pages/FeaturePreviews';
 import * as Group from 'src/pages/groups/Group';
 import * as Groups from 'src/pages/groups/List';
-import * as ImportData from 'src/pages/ImportData';
 import * as ImportWorkflow from 'src/pages/ImportWorkflow/ImportWorkflow';
 import * as LandingPage from 'src/pages/LandingPage';
 import * as Code from 'src/pages/library/Code';
@@ -51,7 +51,7 @@ const routes = _.flatten([
   LandingPage.navPaths,
   WorkspaceList.navPaths,
   WorkflowView.navPaths,
-  ImportData.navPaths,
+  ImportDataPage.navPaths,
   ImportWorkflow.navPaths,
   PrivacyPolicy.navPaths,
   Dashboard.navPaths,

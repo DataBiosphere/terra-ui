@@ -1,14 +1,13 @@
-import { AnyPromiseFn, cond, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
+import { AnyPromiseFn, cond, delay, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
 import { formatDuration, intervalToDuration, isToday, isYesterday } from 'date-fns';
 import { differenceInCalendarMonths, differenceInSeconds, parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { div, span } from 'react-hyperscript-helpers';
-import { v4 as uuid } from 'uuid';
-
-import { hasAccessLevel } from './workspace-utils';
+import { canWrite } from 'src/libs/workspace-utils';
 
 export { cond, DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
+export { canRead, canWrite, isOwner } from 'src/libs/workspace-utils';
 
 const dateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric' });
 const monthYearFormat = new Intl.DateTimeFormat('default', { month: 'short', year: 'numeric' });
@@ -64,10 +63,6 @@ export const formatUSD = (v) =>
 
 export const formatNumber = new Intl.NumberFormat('en-US').format;
 
-export const canWrite = (accessLevel) => hasAccessLevel('WRITER', accessLevel);
-export const canRead = (accessLevel) => hasAccessLevel('READER', accessLevel);
-export const isOwner = (accessLevel) => hasAccessLevel('OWNER', accessLevel);
-
 export const workflowStatuses = [
   'Queued',
   'Launching',
@@ -121,10 +116,6 @@ export const memoizeAsync = (asyncFn, { keyFn = _.identity, expires = Infinity }
   };
 };
 
-export const delay = (ms) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-};
-
 export const withDelay = _.curry((ms, wrappedFn) => async (...args) => {
   await delay(ms);
   return wrappedFn(...args);
@@ -136,12 +127,6 @@ export const onNextTick = (fn, ...args) => setTimeout(() => fn(...args), 0);
 export const abandonedPromise = () => {
   return new Promise(() => {});
 };
-
-export const generateRuntimeName = () => `saturn-${uuid()}`;
-
-export const generateAppName = () => `terra-app-${uuid()}`;
-
-export const generatePersistentDiskName = () => `saturn-pd-${uuid()}`;
 
 export const waitOneTick = () => new Promise(setImmediate);
 
@@ -193,15 +178,6 @@ export const summarizeErrors = (errors) => {
       return div({ key: k, style: { marginTop: k !== '0' ? '0.5rem' : undefined } }, [v as any]);
     }, _.toPairs(errorList));
   }
-};
-
-export const readFileAsText = (file) => {
-  const reader = new FileReader();
-  return new Promise((resolve, reject) => {
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsText(file);
-  });
 };
 
 /**
