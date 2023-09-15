@@ -4,7 +4,7 @@ import { h } from 'react-hyperscript-helpers';
 import { WorkflowsAppNavPanel } from 'src/workflows-app/components/WorkflowsAppNavPanel';
 import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 
-describe('Left Navigation Panel', () => {
+describe('Workflows App Navigation Panel', () => {
   it('renders headers', async () => {
     const user = userEvent.setup();
 
