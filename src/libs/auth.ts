@@ -21,6 +21,7 @@ import {
   cookieReadyStore,
   getUser,
   requesterPaysProjectStore,
+  TerraUser,
   userStatus,
   workspacesStore,
   workspaceStore,
@@ -212,14 +213,16 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
       ...state,
       authTokenMetadata: {
         ...authStore.get().authTokenMetadata,
+        token: user.access_token,
         createdAt: authTokenCreatedAt,
         expiresAt: authTokenExpiresAt,
         id: authTokenId,
+        // TODO: Change this to only update if the auth token is different than the previous token
         totalAuthTokensUsedThisSession: authStore.get().authTokenMetadata.totalAuthTokensUsedThisSession + 1,
       },
     }));
     Ajax().Metrics.captureEvent(Events.user.authTokenLoad.success, {
-      authProvider: user.profile.idp,
+      authProvider: (user.profile as AzureIdTokenClaims).idp,
       ...labelOldAuthToken(oldAuthTokenMetadata),
       authTokenCreatedAt: labelTimestampMetric(authTokenCreatedAt),
       authTokenExpiresAt: labelTimestampMetric(authTokenExpiresAt),
@@ -251,13 +254,13 @@ const labelOldAuthToken = (oldAuthTokenMetadata) => {
   return {
     oldAuthTokenCreatedAt: labelTimestampMetric(oldAuthTokenMetadata.createdAt),
     oldAuthTokenExpiresAt: labelTimestampMetric(oldAuthTokenMetadata.expiresAt),
-    oldAuthTokenId: oldAuthTokenMetadata.id === undefined ? 'undefined' : oldAuthTokenMetadata.id,
+    oldAuthTokenId: oldAuthTokenMetadata.id,
     oldAuthTokenLifespan:
-      oldAuthTokenMetadata.id === undefined ? 'undefined' : Date.now() - oldAuthTokenMetadata.createdAt / 1000.0,
+      oldAuthTokenMetadata.createdAt < 0 ? undefined : Date.now() - oldAuthTokenMetadata.createdAt / 1000.0,
   };
 };
-const labelTimestampMetric = (timestamp: number): string => {
-  return timestamp < 0 ? 'timestamp unset' : Utils.formatTimestampInSeconds(timestamp);
+const labelTimestampMetric = (timestamp: number): string | undefined => {
+  return timestamp < 0 ? undefined : Utils.formatTimestampInSeconds(timestamp);
 };
 
 export const hasBillingScope = (): boolean => authStore.get().hasGcpBillingScopeThroughB2C === true;
@@ -320,16 +323,23 @@ export const bucketBrowserUrl = (id) => {
 /*
  * Specifies whether the user has logged in via the Azure identity provider.
  */
-export const isAzureUser = () => {
-  return _.startsWith('https://login.microsoftonline.com', getUser().idp);
+export const isAzureUser = (): boolean => {
+  return _.startsWith('https://login.microsoftonline.com', getUser().idp!);
 };
 
+export interface AzureIdTokenClaims extends IdTokenClaims {
+  email_verified?: boolean | undefined;
+  idp?: string | undefined;
+  idp_access_token?: string | undefined;
+  isAzurePreviewUser?: boolean | undefined;
+  tid?: string | undefined;
+  ver?: string | undefined;
+}
 export const processUser = (user: User | null, isSignInEvent: boolean) => {
   return authStore.update((state) => {
     const isSignedIn = !_.isNil(user);
-    const profile: IdTokenClaims | undefined = user?.profile;
+    const profile: AzureIdTokenClaims | undefined = user?.profile;
     const userId: string | undefined = profile?.sub;
-
     // The following few lines of code are to handle sign-in failures due to privacy tools.
     if (isSignInEvent && state.isSignedIn === false && !isSignedIn) {
       // if both of these values are false, it means that the user was initially not signed in (state.isSignedIn === false),
@@ -359,8 +369,10 @@ export const processUser = (user: User | null, isSignInEvent: boolean) => {
       hasGcpBillingScopeThroughB2C: isSignedIn ? state.hasGcpBillingScopeThroughB2C : undefined,
       // A user is an Azure preview user if state.isAzurePreviewUser is set to true (in Sam group or environment where we don't restrict)
       // _or_ they have the `azurePreviewUser` claim set from B2C.
-      isAzurePreviewUser: isSignedIn ? state.isAzurePreviewUser || (profile as any).isAzurePreviewUser : undefined,
-      user: {
+      isAzurePreviewUser: isSignedIn
+        ? state.isAzurePreviewUser || (profile !== undefined ? profile.isAzurePreviewUser : undefined)
+        : undefined,
+      user: new TerraUser({
         token: user?.access_token,
         scope: user?.scope,
         id: userId,
@@ -368,13 +380,13 @@ export const processUser = (user: User | null, isSignInEvent: boolean) => {
           ? {
               email: profile.email,
               name: profile.name,
-              givenName: profile.givenName,
-              familyName: profile.familyName,
+              givenName: profile.given_name,
+              familyName: profile.family_name,
               imageUrl: profile.picture,
               idp: profile.idp,
             }
           : {}),
-      },
+      }),
     };
   });
 };
@@ -389,7 +401,7 @@ const initializeTermsOfService = (isSignedIn, state) => {
 export const initializeAuth = _.memoize(async () => {
   // Instantiate a UserManager directly to populate the logged-in user at app initialization time.
   // All other auth usage should use the AuthContext from authStore.
-  const userManager = new UserManager(getOidcConfig());
+  const userManager: UserManager = new UserManager(getOidcConfig());
   processUser(await userManager.getUser(), false);
 });
 
@@ -413,7 +425,7 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) =
       isTimeoutEnabled: undefined,
       cookiesAccepted: true,
       profile: {},
-      user: {
+      user: new TerraUser({
         token,
         id: data.sub,
         email: data.email,
@@ -421,7 +433,7 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) =
         givenName: data.given_name,
         familyName: data.family_name,
         imageUrl: data.picture,
-      },
+      }),
     };
   });
 });

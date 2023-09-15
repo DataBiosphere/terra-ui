@@ -4,10 +4,53 @@ import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
 export const routeHandlersStore = atom<unknown[]>([]);
 
+export class TerraUser {
+  token?: string | undefined;
+
+  scope?: string | undefined;
+
+  id?: string | undefined;
+
+  email?: string | undefined;
+
+  name?: string | undefined;
+
+  givenName?: string | undefined;
+
+  familyName?: string | undefined;
+
+  imageUrl?: string | undefined;
+
+  idp?: string | undefined;
+
+  constructor(args: {
+    email?: string;
+    familyName?: string;
+    givenName?: string;
+    id?: string;
+    idp?: string;
+    imageUrl?: string;
+    name?: string;
+    scope?: string;
+    token?: string;
+  }) {
+    this.email = args.email;
+    this.familyName = args.familyName;
+    this.givenName = args.givenName;
+    this.id = args.id;
+    this.idp = args.idp;
+    this.imageUrl = args.imageUrl;
+    this.name = args.idp;
+    this.scope = args.scope;
+    this.token = args.token;
+  }
+}
+
 export const authStore = atom<any>({
   anonymousId: undefined,
   authContext: undefined,
   authTokenMetadata: {
+    token: undefined,
     id: undefined,
     createdAt: -1,
     expiresAt: -1,
@@ -34,10 +77,10 @@ export const authStore = atom<any>({
   sessionId: undefined,
   sessionStartTime: -1,
   termsOfService: {},
-  user: {},
+  user: new TerraUser({}),
 });
 
-export const getUser = () => authStore.get().user;
+export const getUser = (): TerraUser => authStore.get().user;
 
 export const getSessionId = () => authStore.get().sessionId;
 

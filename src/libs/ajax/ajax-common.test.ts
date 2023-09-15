@@ -1,3 +1,4 @@
+import { User } from 'oidc-client-ts';
 import { loadAuthToken, signOut } from 'src/libs/auth';
 import { getUser } from 'src/libs/state';
 import { asMockedFn } from 'src/testing/test-utils';
@@ -73,15 +74,38 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
       Promise.reject(new Response(JSON.stringify({ success: false }), { status: 401 }))
     );
     const wrappedFetch = withRetryAfterReloadingExpiredAuthToken(originalFetch);
+
+    const token = 'testtoken';
     const makeAuthenticatedRequest = () => wrappedFetch('https://example.com', authOpts());
 
     beforeEach(() => {
-      let mockUser = { token: 'testtoken' };
-      asMockedFn(getUser).mockImplementation(() => mockUser);
+      let mockTerraUser = { token };
+      const mockOidcUser: User = {
+        id_token: undefined,
+        session_state: null,
+        access_token: token,
+        refresh_token: '',
+        token_type: '',
+        scope: undefined,
+        profile: {
+          sub: '',
+          iss: '',
+          aud: '',
+          exp: 0,
+          iat: 0,
+        },
+        expires_at: undefined,
+        state: undefined,
+        expires_in: 0,
+        expired: undefined,
+        scopes: [],
+        toStorageString: (): string => '',
+      };
+      asMockedFn(getUser).mockImplementation(() => mockTerraUser);
 
       asMockedFn(loadAuthToken).mockImplementation(() => {
-        mockUser = { token: 'newtesttoken' };
-        return Promise.resolve(true);
+        mockTerraUser = { token: 'newtesttoken' };
+        return Promise.resolve(mockOidcUser);
       });
     });
 
