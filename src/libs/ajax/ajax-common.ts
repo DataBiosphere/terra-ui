@@ -84,8 +84,8 @@ export const withRetryAfterReloadingExpiredAuthToken =
           const optionsWithNewAuthToken = _.merge(options, authOpts());
           return await wrappedFetch(resource, optionsWithNewAuthToken);
         }
-        const signOutCause =
-          reloadedAuthTokenState === null ? SignOutCause.expiredRefreshToken : SignOutCause.errorRefreshingAuthToken;
+        const signOutCause: SignOutCause =
+          reloadedAuthTokenState === null ? 'expiredRefreshToken' : 'errorRefreshingAuthToken';
         signOut(signOutCause);
         throw new Error(sessionTimedOutErrorMessage);
       } else {

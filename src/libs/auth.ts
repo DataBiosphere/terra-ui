@@ -57,25 +57,25 @@ const getAuthInstance = () => {
   return authStore.get().authContext;
 };
 
-export const enum SignOutCause {
-  requested,
-  disabled,
-  declinedTos,
-  expiredRefreshToken,
-  errorRefreshingAuthToken,
-  idleStatusMonitor,
-  unspecified,
-}
+export type SignOutCause =
+  | 'requested'
+  | 'disabled'
+  | 'declinedTos'
+  | 'expiredRefreshToken'
+  | 'errorRefreshingAuthToken'
+  | 'idleStatusMonitor'
+  | 'unspecified';
 
 const sendSignOutMetrics = (cause: SignOutCause): void => {
-  const eventToFire: string = switchCase(
+  const eventToFire: string = switchCase<SignOutCause, string>(
     cause,
-    [SignOutCause.requested, () => Events.user.signOut.requested],
-    [SignOutCause.disabled, () => Events.user.signOut.disabled],
-    [SignOutCause.declinedTos, () => Events.user.signOut.declinedTos],
-    [SignOutCause.expiredRefreshToken, () => Events.user.signOut.expiredRefreshToken],
-    [SignOutCause.errorRefreshingAuthToken, () => Events.user.signOut.errorRefreshingAuthToken],
-    [SignOutCause.unspecified, () => Events.user.signOut.unspecified],
+    ['requested', () => Events.user.signOut.requested],
+    ['disabled', () => Events.user.signOut.disabled],
+    ['declinedTos', () => Events.user.signOut.declinedTos],
+    ['expiredRefreshToken', () => Events.user.signOut.expiredRefreshToken],
+    ['errorRefreshingAuthToken', () => Events.user.signOut.errorRefreshingAuthToken],
+    ['idleStatusMonitor', () => Events.user.signOut.idleStatusMonitor],
+    ['unspecified', () => Events.user.signOut.unspecified],
     [DEFAULT, () => Events.user.signOut.unspecified]
   );
   const sessionEndTime: number = Date.now();
@@ -92,9 +92,9 @@ const sendSignOutMetrics = (cause: SignOutCause): void => {
   });
 };
 
-export const signOut = (cause: SignOutCause = SignOutCause.unspecified): void => {
+export const signOut = (cause: SignOutCause = 'unspecified'): void => {
   sendSignOutMetrics(cause);
-  if (cause === SignOutCause.expiredRefreshToken || cause === SignOutCause.errorRefreshingAuthToken) {
+  if (cause === 'expiredRefreshToken' || cause === 'errorRefreshingAuthToken') {
     notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
   }
   // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
