@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 
 /**
- * Returns the dimensions of the window.
+ * Returns window.innerWidth and window.innerHeight.
+ * Rerenders the component when the window is resized.
  */
 export const useWindowDimensions = (): { width: number; height: number } => {
   const [dimensions, setDimensions] = useState(() => ({ width: window.innerWidth, height: window.innerHeight }));
