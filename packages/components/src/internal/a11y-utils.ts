@@ -39,7 +39,7 @@ export const containsOnlyUnlabelledIcon = (args: ContainsOnlyUnlabelledIconArgs)
   } catch (e) {
     // Children.only throws an error if the component has multiple children.
     // `'data-icon' in onlyChild.props` throws an error if onlyChild is not a React element
-    // (if it's a string, number, etc.)
+    // (if it's a string, number, etc.) and thus does not have a 'props' property.
     // Both of those possibilities are expected and should result in this function returning false.
   }
 
