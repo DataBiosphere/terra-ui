@@ -16,6 +16,13 @@ export type TerraUser = {
   idp?: string | undefined;
 };
 
+export type TerraUserProfile = {
+  institute?: string | undefined;
+  title?: string | undefined;
+  department?: string | undefined;
+  interestInTerra?: string | undefined;
+};
+
 export type TokenMetadata = {
   // do not log or send this to a user (could move to hash in the future)
   token?: string | undefined;
@@ -44,7 +51,7 @@ export type AuthState = {
     authorityEndpoint?: string;
     clientId?: string;
   };
-  profile: {};
+  profile: TerraUserProfile & any;
   refreshTokenMetadata: TokenMetadata;
   registrationStatus: any;
   sessionId?: string | undefined;
