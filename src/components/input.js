@@ -8,7 +8,7 @@ import { icon } from 'src/components/icons';
 import { PopupPortal, useDynamicPosition, useWindowDimensions } from 'src/components/popup-utils';
 import TooltipTrigger from 'src/components/TooltipTrigger';
 import colors from 'src/libs/colors';
-import { combineRefs, forwardRefWithName, useGetter, useInstance, useLabelAssert, useOnMount } from 'src/libs/react-utils';
+import { combineRefs, forwardRefWithName, useGetter, useInstance, useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 
 const styles = {
@@ -80,8 +80,6 @@ export const withDebouncedChange = (WrappedComponent) => {
 };
 
 export const TextInput = forwardRefWithName('TextInput', ({ onChange, nativeOnChange = false, ...props }, ref) => {
-  useLabelAssert('TextInput', { ...props, allowId: true });
-
   return input({
     ..._.merge(
       {
@@ -180,9 +178,6 @@ export const DelayedSearchInput = withDebouncedChange(SearchInput);
 export const NumberInput = forwardRefWithName(
   'NumberInput',
   ({ onChange, onBlur, min = -Infinity, max = Infinity, onlyInteger = false, isClearable = true, tooltip, value, ...props }, ref) => {
-    // If the user provided a tooltip but no other label, use the tooltip as the label for the input
-    useLabelAssert('NumberInput', { tooltip, ...props, allowId: true, allowTooltip: true });
-
     const [internalValue, setInternalValue] = useState();
 
     const numberInputChild = div([
@@ -336,8 +331,6 @@ const withAutocomplete = (WrappedComponent) =>
       },
       ref
     ) => {
-      useLabelAssert('withAutocomplete', { id, 'aria-labelledby': labelId, ...props, allowId: true });
-
       const suggestions = _.filter(suggestionFilter(value), rawSuggestions);
       const controlProps = itemToString ? { itemToString: (v) => (v ? itemToString(v) : value) } : { selectedItem: value };
 
@@ -466,8 +459,6 @@ export const AutocompleteTextInput = withAutocomplete(TextInput);
 export const DelayedAutoCompleteInput = withDebouncedChange(AutocompleteTextInput);
 
 export const TextArea = forwardRefWithName('TextArea', ({ onChange, autosize = false, nativeOnChange = false, ...props }, ref) => {
-  useLabelAssert('TextArea', { ...props, allowId: true });
-
   return h(
     autosize ? TextAreaAutosize : 'textarea',
     _.merge(
@@ -505,8 +496,6 @@ export const ValidatedTextArea = ({ inputProps, error }) => {
 export const DelayedAutocompleteTextArea = withDebouncedChange(withAutocomplete(TextArea));
 
 export const PasteOnlyInput = ({ onPaste, ...props }) => {
-  useLabelAssert('PasteOnlyInput', { ...props, allowId: true });
-
   return textarea(
     _.merge(
       {
