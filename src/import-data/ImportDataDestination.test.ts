@@ -49,7 +49,7 @@ describe('ImportDataDestination', () => {
 
     render(
       h(ImportDataDestination, {
-        workspaceId: undefined,
+        initialSelectedWorkspaceId: undefined,
         templateWorkspaces: {},
         template: undefined,
         userHasBillingProjects: true,
@@ -76,7 +76,7 @@ describe('ImportDataDestination', () => {
 
     render(
       h(ImportDataDestination, {
-        workspaceId: undefined,
+        initialSelectedWorkspaceId: undefined,
         templateWorkspaces: {},
         template: undefined,
         userHasBillingProjects: true,
@@ -102,7 +102,7 @@ describe('ImportDataDestination', () => {
 
     render(
       h(ImportDataDestination, {
-        workspaceId: undefined,
+        initialSelectedWorkspaceId: undefined,
         templateWorkspaces: {},
         template: undefined,
         userHasBillingProjects: true,

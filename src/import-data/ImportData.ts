@@ -198,7 +198,7 @@ export const ImportData = () => {
   return h(Fragment, [
     h(ImportDataOverview, { header, snapshots, isDataset, snapshotResponses, url, isProtectedData }),
     h(ImportDataDestination, {
-      workspaceId: wid,
+      initialSelectedWorkspaceId: wid,
       templateWorkspaces,
       template,
       userHasBillingProjects,
