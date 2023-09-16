@@ -203,7 +203,7 @@ export const ImportData = () => {
       template,
       userHasBillingProjects,
       importMayTakeTime: isDataset,
-      authorizationDomain: ad,
+      requiredAuthorizationDomain: ad,
       onImport,
       isProtectedData,
     }),

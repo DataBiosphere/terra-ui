@@ -54,7 +54,7 @@ describe('ImportDataDestination', () => {
         template: undefined,
         userHasBillingProjects: true,
         importMayTakeTime: true,
-        authorizationDomain: '',
+        requiredAuthorizationDomain: undefined,
         onImport: () => {},
         isProtectedData: true,
       })
@@ -81,7 +81,7 @@ describe('ImportDataDestination', () => {
         template: undefined,
         userHasBillingProjects: true,
         importMayTakeTime: true,
-        authorizationDomain: '',
+        requiredAuthorizationDomain: undefined,
         onImport: () => {},
         isProtectedData: false,
       })
@@ -107,7 +107,7 @@ describe('ImportDataDestination', () => {
         template: undefined,
         userHasBillingProjects: true,
         importMayTakeTime: true,
-        authorizationDomain: '',
+        requiredAuthorizationDomain: undefined,
         onImport: () => {},
         isProtectedData: true,
       })

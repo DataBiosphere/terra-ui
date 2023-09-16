@@ -83,9 +83,9 @@ const ChoiceButton = (props: ChoiceButtonProps): ReactNode => {
 };
 
 interface ImportDataDestinationProps {
-  authorizationDomain: string | undefined;
   importMayTakeTime: boolean;
   isProtectedData: boolean;
+  requiredAuthorizationDomain: string | undefined;
   template: string | undefined;
   templateWorkspaces: { [key: string]: TemplateWorkspaceInfo[] } | undefined;
   userHasBillingProjects: boolean;
@@ -100,7 +100,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     template,
     userHasBillingProjects,
     importMayTakeTime,
-    authorizationDomain,
+    requiredAuthorizationDomain,
     onImport,
     isProtectedData,
   } = props;
@@ -154,8 +154,8 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               workspaces: _.filter((ws) => {
                 return (
                   Utils.canWrite(ws.accessLevel) &&
-                  (!authorizationDomain ||
-                    _.some({ membersGroupName: authorizationDomain }, ws.workspace.authorizationDomain))
+                  (!requiredAuthorizationDomain ||
+                    _.some({ membersGroupName: requiredAuthorizationDomain }, ws.workspace.authorizationDomain))
                 );
               }, workspaces),
               value: selectedWorkspaceId,
@@ -291,7 +291,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
             }),
             isCreateOpen &&
               h(NewWorkspaceModal, {
-                requiredAuthDomain: authorizationDomain,
+                requiredAuthDomain: requiredAuthorizationDomain,
                 customMessage: importMayTakeTime && importMayTakeTimeMessage,
                 requireEnhancedBucketLogging: isProtectedData,
                 onDismiss: () => setIsCreateOpen(false),
