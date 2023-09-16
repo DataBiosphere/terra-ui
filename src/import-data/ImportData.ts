@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
+import { spinnerOverlay } from 'src/components/common';
 import { notifyDataImportProgress } from 'src/data/import-jobs';
 import { Ajax } from 'src/libs/ajax';
 import { Dataset } from 'src/libs/ajax/Catalog';
@@ -204,8 +205,8 @@ export const ImportData = () => {
       importMayTakeTime: isDataset,
       authorizationDomain: ad,
       onImport,
-      isImporting,
       isProtectedData,
     }),
+    isImporting && spinnerOverlay,
   ]);
 };

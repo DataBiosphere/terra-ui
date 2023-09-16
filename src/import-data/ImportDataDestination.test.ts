@@ -56,7 +56,6 @@ describe('ImportDataDestination', () => {
         importMayTakeTime: true,
         authorizationDomain: '',
         onImport: () => {},
-        isImporting: false,
         isProtectedData: true,
       })
     );
@@ -84,7 +83,6 @@ describe('ImportDataDestination', () => {
         importMayTakeTime: true,
         authorizationDomain: '',
         onImport: () => {},
-        isImporting: false,
         isProtectedData: false,
       })
     );
@@ -111,7 +109,6 @@ describe('ImportDataDestination', () => {
         importMayTakeTime: true,
         authorizationDomain: '',
         onImport: () => {},
-        isImporting: false,
         isProtectedData: true,
       })
     );

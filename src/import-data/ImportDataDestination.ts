@@ -85,7 +85,6 @@ const ChoiceButton = (props: ChoiceButtonProps): ReactNode => {
 interface ImportDataDestinationProps {
   authorizationDomain: string | undefined;
   importMayTakeTime: boolean;
-  isImporting: boolean;
   isProtectedData: boolean;
   template: string | undefined;
   templateWorkspaces: { [key: string]: TemplateWorkspaceInfo[] } | undefined;
@@ -103,7 +102,6 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     importMayTakeTime,
     authorizationDomain,
     onImport,
-    isImporting,
     isProtectedData,
   } = props;
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces();
@@ -325,6 +323,6 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
           onImport(w);
         },
       }),
-    (isImporting || loadingWorkspaces) && spinnerOverlay,
+    loadingWorkspaces && spinnerOverlay,
   ]);
 };
