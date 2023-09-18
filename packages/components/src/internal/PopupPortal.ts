@@ -18,7 +18,7 @@ export const getPopupRoot = (): HTMLElement => {
   return popupRoot;
 };
 
-type PopupPortalProps = PropsWithChildren<{}>;
+export type PopupPortalProps = PropsWithChildren<{}>;
 
 /**
  * Renders children in the popup root element.
