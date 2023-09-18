@@ -129,7 +129,8 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
         asMockedFn(loadAuthToken).mockImplementation(() =>
           Promise.resolve({
             status: 'error',
-            errorMsg: 'unexpected error',
+            internalErrorMsg: 'unexpected error',
+            userErrorMsg: 'unexpected error',
             reason: {},
           })
         );
