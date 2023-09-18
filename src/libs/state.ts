@@ -39,7 +39,6 @@ export type AuthState = {
   cookiesAccepted: boolean | undefined;
   fenceStatus: {};
   hasGcpBillingScopeThroughB2C: boolean | undefined;
-  isAzurePreviewUser?: boolean | undefined;
   isSignedIn: boolean | undefined;
   isTimeoutEnabled?: boolean | undefined;
   nihStatus?: {
@@ -74,7 +73,6 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   cookiesAccepted: undefined,
   fenceStatus: {},
   hasGcpBillingScopeThroughB2C: false,
-  isAzurePreviewUser: undefined,
   isSignedIn: undefined,
   oidcConfig: {
     authorityEndpoint: undefined,

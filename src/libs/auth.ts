@@ -381,7 +381,6 @@ export interface B2cIdTokenClaims extends IdTokenClaims {
   email_verified?: boolean | undefined;
   idp?: string | undefined;
   idp_access_token?: string | undefined;
-  isAzurePreviewUser?: boolean | undefined;
   tid?: string | undefined;
   ver?: string | undefined;
 }
@@ -417,11 +416,6 @@ export const processUser = (user: User | null, isSignInEvent: boolean) => {
         : undefined,
       isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
       hasGcpBillingScopeThroughB2C: isSignedIn ? state.hasGcpBillingScopeThroughB2C : undefined,
-      // A user is an Azure preview user if state.isAzurePreviewUser is set to true (in Sam group or environment where we don't restrict)
-      // _or_ they have the `azurePreviewUser` claim set from B2C.
-      isAzurePreviewUser: isSignedIn
-        ? state.isAzurePreviewUser || (profile !== undefined ? profile.isAzurePreviewUser : undefined)
-        : undefined,
       user: {
         token: user?.access_token,
         scope: user?.scope,
@@ -642,15 +636,3 @@ workspaceStore.subscribe((newState, oldState) => {
     requesterPaysProjectStore.reset();
   }
 });
-
-authStore.subscribe(
-  withErrorReporting('Error loading azure preview group membership', async (state, oldState) => {
-    if (becameRegistered(oldState, state)) {
-      // Note that `azurePreviewGroup` is set to true in all non-prod config files, so only call Sam if we have a non-boolean value (prod).
-      const configValue = getConfig().azurePreviewGroup;
-      const isGroupMember = _.isBoolean(configValue) ? configValue : await Ajax().Groups.group(configValue).isMember();
-      const isAzurePreviewUser = oldState.isAzurePreviewUser || isGroupMember;
-      authStore.update((state) => ({ ...state, isAzurePreviewUser }));
-    }
-  })
-);
