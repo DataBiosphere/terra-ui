@@ -39,7 +39,6 @@ export type AuthState = {
   cookiesAccepted: boolean | undefined;
   fenceStatus: {};
   hasGcpBillingScopeThroughB2C: boolean | undefined;
-  isAzurePreviewUser?: boolean | undefined;
   isSignedIn: boolean | undefined;
   isTimeoutEnabled?: boolean | undefined;
   nihStatus?: {
