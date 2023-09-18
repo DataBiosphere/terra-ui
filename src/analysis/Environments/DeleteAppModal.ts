@@ -23,22 +23,13 @@ export const DeleteAppModal = (props: DeleteAppModalProps): ReactNode => {
   const { app, onDismiss, onSuccess, deleteProvider } = props;
   const [deleteDisk, setDeleteDisk] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const {
-    appName,
-    appType,
-    cloudContext: { cloudProvider, cloudResource },
-  } = app;
+  const { appType } = app;
   const deleteApp = _.flow(
     Utils.withBusyState(setDeleting),
     withErrorReportingInModal('Error deleting cloud environment', onDismiss)
   )(async () => {
-    // TODO: this should use types in IA-3824
-    if (cloudProvider === 'GCP') {
-      await deleteProvider.delete(cloudResource, appName, deleteDisk);
-      onSuccess();
-    } else {
-      throw new Error('Deleting apps is currently only supported on GCP');
-    }
+    await deleteProvider.delete(app, { deleteDisk });
+    onSuccess();
   });
   return h(
     Modal,

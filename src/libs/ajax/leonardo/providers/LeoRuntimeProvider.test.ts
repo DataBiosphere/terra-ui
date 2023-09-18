@@ -72,14 +72,14 @@ describe('leoRuntimeProvider', () => {
     // Arrange
     const ajaxMock = mockAjaxNeeds();
     asMockedFn(ajaxMock.Runtimes.listV2).mockResolvedValue([]);
-    const abort = new window.AbortController();
+    const signal = new window.AbortController().signal;
 
     // Act
-    const result = await leoRuntimeProvider.list({ arg: '1' }, abort.signal);
+    const result = await leoRuntimeProvider.list({ arg: '1' }, { signal });
 
     // Assert;
     expect(Ajax).toBeCalledTimes(1);
-    expect(Ajax).toBeCalledWith(abort.signal);
+    expect(Ajax).toBeCalledWith(signal);
     expect(ajaxMock.Runtimes.listV2).toBeCalledTimes(1);
     expect(ajaxMock.Runtimes.listV2).toBeCalledWith({ arg: '1' });
     expect(result).toEqual([]);
@@ -101,7 +101,7 @@ describe('leoRuntimeProvider', () => {
     };
 
     // Act
-    void (await leoRuntimeProvider.stop(runtime, abort.signal));
+    void (await leoRuntimeProvider.stop(runtime, { signal: abort.signal }));
 
     // Assert;
     expect(Ajax).toBeCalledTimes(1);
@@ -126,7 +126,7 @@ describe('leoRuntimeProvider', () => {
 
     // Act
     // calls to this method generally don't care about passing in signal, but doing it here for completeness
-    void (await leoRuntimeProvider.delete(runtime, false, abort.signal));
+    void (await leoRuntimeProvider.delete(runtime, { signal: abort.signal }));
 
     // Assert;
     expect(Ajax).toBeCalledTimes(1);
@@ -152,7 +152,7 @@ describe('leoRuntimeProvider', () => {
 
     // Act
     // calls to this method generally don't care about passing in signal, but doing it here for completeness
-    void (await leoRuntimeProvider.delete(runtime, false, abort.signal));
+    void (await leoRuntimeProvider.delete(runtime, { deleteDisk: true, signal: abort.signal }));
 
     // Assert;
     expect(Ajax).toBeCalledTimes(1);
@@ -160,6 +160,6 @@ describe('leoRuntimeProvider', () => {
     expect(ajaxMock.Runtimes.runtimeV2).toBeCalledTimes(1);
     expect(ajaxMock.Runtimes.runtimeV2).toBeCalledWith('myWorkspaceId', 'myRuntime');
     expect(ajaxMock.runtimeV2.delete).toBeCalledTimes(1);
-    expect(ajaxMock.runtimeV2.delete).toBeCalledWith(false);
+    expect(ajaxMock.runtimeV2.delete).toBeCalledWith(true);
   });
 });

@@ -5,11 +5,9 @@ import {
   DisksAjaxContractV1,
   DisksAjaxContractV2,
 } from 'src/libs/ajax/leonardo/Disks';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
-import { GoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
 
-import { leoDiskProvider } from './LeoDiskProvider';
+import { DiskBasics, leoDiskProvider } from './LeoDiskProvider';
 
 jest.mock('src/libs/ajax');
 
@@ -71,14 +69,14 @@ describe('leoDiskProvider', () => {
     // Arrange
     const ajaxMock = mockAjaxNeeds();
     asMockedFn(ajaxMock.DisksV1.list).mockResolvedValue([]);
-    const abort = new window.AbortController();
+    const signal = new window.AbortController().signal;
 
     // Act
-    const result = await leoDiskProvider.list({ arg: '1' }, abort.signal);
+    const result = await leoDiskProvider.list({ arg: '1' }, { signal });
 
     // Assert;
     expect(Ajax).toBeCalledTimes(1);
-    expect(Ajax).toBeCalledWith(abort.signal);
+    expect(Ajax).toBeCalledWith(signal);
     expect(ajaxMock.DisksV1.list).toBeCalledTimes(1);
     expect(ajaxMock.DisksV1.list).toBeCalledWith({ arg: '1' });
     expect(result).toEqual([]);
@@ -88,21 +86,18 @@ describe('leoDiskProvider', () => {
     // Arrange
     const ajaxMock = mockAjaxNeeds();
     const abort = new window.AbortController();
-    const disk: Partial<PersistentDisk> = {
+    const disk: DiskBasics = {
       name: 'myDiskName',
       id: 123,
       cloudContext: {
         cloudProvider: 'GCP',
-        cloudResource: 'myGoogleResource',
+        cloudResource: 'myGoogleProject',
       },
-    };
-    const workspace: Partial<GoogleWorkspaceInfo> = {
-      googleProject: 'myGoogleProject',
     };
 
     // Act
     // calls to this method generally don't care about passing in signal, but doing it here for completeness
-    void (await leoDiskProvider.delete(disk as PersistentDisk, workspace as WorkspaceInfo, abort.signal));
+    void (await leoDiskProvider.delete(disk, { signal: abort.signal }));
 
     // Assert;
     expect(Ajax).toBeCalledTimes(1);
@@ -116,7 +111,7 @@ describe('leoDiskProvider', () => {
     // Arrange
     const ajaxMock = mockAjaxNeeds();
     const abort = new window.AbortController();
-    const disk: Partial<PersistentDisk> = {
+    const disk: DiskBasics = {
       name: 'myDiskName',
       id: 123,
       cloudContext: {
@@ -124,13 +119,10 @@ describe('leoDiskProvider', () => {
         cloudResource: 'myAzureResource',
       },
     };
-    const workspace: Partial<WorkspaceInfo> = {
-      // don't actually need anything here for Azure case
-    };
 
     // Act
     // calls to this method generally don't care about passing in signal, but doing it here for completeness
-    void (await leoDiskProvider.delete(disk as PersistentDisk, workspace as WorkspaceInfo, abort.signal));
+    void (await leoDiskProvider.delete(disk, { signal: abort.signal }));
 
     // Assert;
     expect(Ajax).toBeCalledTimes(1);

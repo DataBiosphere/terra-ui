@@ -19,7 +19,7 @@ import { defaultComputeZone } from 'src/analysis/utils/runtime-utils';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { AzureConfig, GceWithPdConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
-import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
+import { AppBasics, LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { getTerraUser } from 'src/libs/state';
@@ -611,7 +611,12 @@ describe('Environments', () => {
       await user.click(buttons1[0]);
       if (!isAzure) {
         expect(props.leoAppData.pause).toBeCalledTimes(1);
-        expect(props.leoAppData.pause).toBeCalledWith(expect.anything(), app.appName);
+        expect(props.leoAppData.pause).toBeCalledWith(
+          expect.objectContaining({
+            appName: app.appName,
+            cloudContext: app.cloudContext,
+          } satisfies AppBasics)
+        );
       } else {
         expect(consoleSpy).toHaveBeenCalledWith('Pause is not currently implemented for azure apps');
       }

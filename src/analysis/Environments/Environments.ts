@@ -76,7 +76,7 @@ const DeleteRuntimeModal = (props: DeleteRuntimeModalProps): ReactNode => {
     Utils.withBusyState(setDeleting),
     withErrorReporting('Error deleting cloud environment')
   )(async () => {
-    await deleteProvider.delete(runtime, deleteDisk);
+    await deleteProvider.delete(runtime, { deleteDisk });
     onSuccess();
   });
 
@@ -118,14 +118,13 @@ interface DeleteDiskModalProps {
 
 const DeleteDiskModal = (props: DeleteDiskModalProps): ReactNode => {
   const { disk, deleteProvider, onDismiss, onSuccess } = props;
-  const { workspace } = disk;
   const [busy, setBusy] = useState(false);
 
   const deleteDisk = _.flow(
     Utils.withBusyState(setBusy),
     withErrorReporting('Error deleting persistent disk')
   )(async () => {
-    await deleteProvider.delete(disk, workspace);
+    await deleteProvider.delete(disk);
     onSuccess();
   });
   const isGalaxyDisk = getDiskAppType(disk) === appTools.GALAXY.label;
@@ -287,9 +286,9 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
     };
 
     const [newRuntimes, newDisks, newApps] = await Promise.all([
-      leoRuntimeData.list(listArgs, signal),
-      leoDiskData.list(diskArgs, signal),
-      leoAppData.listWithoutProject(listArgs, signal),
+      leoRuntimeData.list(listArgs, { signal }),
+      leoDiskData.list(diskArgs, { signal }),
+      leoAppData.listWithoutProject(listArgs, { signal }),
     ]);
     const endTimeForLeoCallsEpochMs = Date.now();
 
@@ -354,7 +353,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
       if (isApp(compute)) {
         const computeWorkspace = compute.workspace;
         if (isGoogleWorkspaceInfo(computeWorkspace)) {
-          return leoAppData.pause(computeWorkspace.googleProject, compute.appName);
+          return leoAppData.pause(compute);
         }
       }
       // default:
