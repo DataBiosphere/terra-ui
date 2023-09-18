@@ -130,10 +130,18 @@ export const useBoundingRects = (selectors: UseBoundingRectsSelector[]): Boundin
   const dimensionsRef = useRef<BoundingRect[]>();
   dimensionsRef.current = dimensions;
 
+  // The selectors argument is likely to be an array defined inline, and thus change identity every render.
+  // Thus, we don't want to make computePosition depend on it because the requestAnimationFrame effect hook
+  // depends on computePosition.
+  //
+  // To avoid that, we have computePosition access the current selectors value via a ref.
+  const selectorsRef = useRef<UseBoundingRectsSelector[]>(selectors);
+  selectorsRef.current = selectors;
+
   const animationRef = useRef<number>();
 
   const computePosition = useCallback(() => {
-    const newDimensions: BoundingRect[] = selectors.map((selector) => {
+    const newDimensions: BoundingRect[] = selectorsRef.current.map((selector) => {
       if ('ref' in selector && selector.ref.current) {
         return toBoundingRect(selector.ref.current.getBoundingClientRect());
       }
@@ -159,7 +167,7 @@ export const useBoundingRects = (selectors: UseBoundingRectsSelector[]): Boundin
     }
 
     animationRef.current = requestAnimationFrame(computePosition);
-  }, [selectors]);
+  }, []);
 
   useEffect(() => {
     computePosition();
