@@ -42,34 +42,56 @@ describe('computePopupPosition', () => {
     }
   );
 
-  it('moves popup to opposite side if there is not enough space on preferred side', () => {
-    // Arrange
-    const elementSize: Size = { width: 300, height: 100 };
-    const viewportSize: Size = {
-      width: 1280,
-      height: 960,
-    };
-    const targetPosition: Position = {
-      top: 430,
-      right: 1180,
-      bottom: 530,
-      left: 1080,
-    };
-    const gap = 10;
-
-    // Act
-    const popup = computePopupPosition({
-      elementSize,
-      gap,
+  it.each([
+    {
+      targetPosition: { top: 50, right: 690, bottom: 150, left: 590 },
+      preferredSide: 'top',
+      expectedPosition: { top: 160, right: 790, bottom: 260, left: 490 },
+      expectedSide: 'bottom',
+    },
+    {
+      targetPosition: { top: 430, right: 1180, bottom: 530, left: 1080 },
       preferredSide: 'right',
-      targetPosition,
-      viewportSize,
-    });
+      expectedPosition: { top: 430, right: 1070, bottom: 530, left: 770 },
+      expectedSide: 'left',
+    },
+    {
+      targetPosition: { top: 810, right: 690, bottom: 910, left: 590 },
+      preferredSide: 'bottom',
+      expectedPosition: { top: 700, right: 790, bottom: 800, left: 490 },
+      expectedSide: 'top',
+    },
+    {
+      targetPosition: { top: 430, right: 300, bottom: 530, left: 200 },
+      preferredSide: 'left',
+      expectedPosition: { top: 430, right: 610, bottom: 530, left: 310 },
+      expectedSide: 'right',
+    },
+  ] as { targetPosition: Position; preferredSide: Side; expectedPosition: Position; expectedSide: Side }[])(
+    'moves popup to opposite side if there is not enough space on preferred side',
+    ({ targetPosition, preferredSide, expectedPosition, expectedSide }) => {
+      // Arrange
+      const elementSize: Size = { width: 300, height: 100 };
+      const viewportSize: Size = {
+        width: 1280,
+        height: 960,
+      };
+      const gap = 10;
 
-    // Assert
-    expect(popup.position).toEqual({ top: 430, right: 1070, bottom: 530, left: 770 });
-    expect(popup.side).toBe('left');
-  });
+      // Act
+      const popup = computePopupPosition({
+        elementSize,
+        gap,
+        preferredSide,
+        targetPosition,
+        viewportSize,
+      });
+
+      // Assert
+      expect(popup.position).toEqual(expectedPosition);
+      expect(popup.side).toBe(expectedSide);
+    }
+  );
 });
 
 describe('useBoundingRects', () => {
