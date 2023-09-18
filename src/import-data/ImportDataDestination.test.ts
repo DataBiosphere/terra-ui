@@ -1,52 +1,40 @@
-import { getAllByRole, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
+import { useWorkspaces } from 'src/components/workspace-utils';
+import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { asMockedFn, SelectHelper } from 'src/testing/test-utils';
+import { makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
+import { canImportIntoWorkspace, ImportOptions } from './import-utils';
 import { ImportDataDestination } from './ImportDataDestination';
 
+type ImportUtilsExports = typeof import('./import-utils');
+jest.mock('./import-utils', (): ImportUtilsExports => {
+  return {
+    ...jest.requireActual<ImportUtilsExports>('./import-utils'),
+    canImportIntoWorkspace: jest.fn().mockReturnValue(true),
+  };
+});
+
 type WorkspaceUtilsExports = typeof import('src/components/workspace-utils');
-jest.mock(
-  'src/components/workspace-utils',
-  (): WorkspaceUtilsExports => ({
+jest.mock('src/components/workspace-utils', (): WorkspaceUtilsExports => {
+  return {
     ...jest.requireActual<WorkspaceUtilsExports>('src/components/workspace-utils'),
-    useWorkspaces: jest.fn().mockReturnValue({
-      loading: false,
-      workspaces: [
-        {
-          workspace: {
-            namespace: 'test-namespace',
-            name: 'protected-google',
-            cloudPlatform: 'Gcp',
-            googleProject: 'test-project-1',
-            workspaceId: 'ws-1',
-            bucketName: 'fc-secure-ws-1',
-          },
-          accessLevel: 'PROJECT_OWNER',
-        },
-        {
-          workspace: {
-            namespace: 'test-namespace',
-            name: 'unprotected-google',
-            cloudPlatform: 'Gcp',
-            googleProject: 'test-project-2',
-            workspaceId: 'ws-2',
-            bucketName: 'fc-ws-2',
-          },
-          accessLevel: 'OWNER',
-        },
-        {
-          workspace: { namespace: 'test-namespace', name: 'azure', cloudPlatform: 'Azure', workspaceId: 'ws-3' },
-          accessLevel: 'WRITER',
-        },
-      ],
-    }),
-  })
-);
+    useWorkspaces: jest.fn(),
+  };
+});
 
 describe('ImportDataDestination', () => {
   it.each([true, false])('should explain protected data restricts eligible workspaces', async (isProtectedData) => {
     // Arrange
     const user = userEvent.setup();
+
+    asMockedFn(useWorkspaces).mockReturnValue({
+      loading: false,
+      refresh: () => Promise.resolve(),
+      workspaces: [],
+    });
 
     render(
       h(ImportDataDestination, {
@@ -77,9 +65,34 @@ describe('ImportDataDestination', () => {
     expect(isWarningShown).toEqual(isProtectedData);
   });
 
-  it('should disable noncompliant workspaces', async () => {
+  it('should filters workspaces through canImportIntoWorkspace', async () => {
+    // Arrange
     const user = userEvent.setup();
 
+    asMockedFn(useWorkspaces).mockReturnValue({
+      loading: false,
+      refresh: () => Promise.resolve(),
+      workspaces: [
+        makeGoogleWorkspace({
+          workspace: {
+            name: 'allowed-workspace',
+          },
+        }),
+        makeGoogleWorkspace({
+          workspace: {
+            name: 'other-workspace',
+          },
+        }),
+      ],
+    });
+
+    asMockedFn(canImportIntoWorkspace).mockImplementation(
+      (_importOptions: ImportOptions, workspace: WorkspaceWrapper): boolean => {
+        return workspace.workspace.name === 'allowed-workspace';
+      }
+    );
+
+    // Act
     render(
       h(ImportDataDestination, {
         initialSelectedWorkspaceId: undefined,
@@ -87,7 +100,7 @@ describe('ImportDataDestination', () => {
         template: undefined,
         userHasBillingProjects: true,
         importMayTakeTime: true,
-        requiredAuthorizationDomain: undefined,
+        requiredAuthorizationDomain: 'test-auth-domain',
         onImport: () => {},
         isProtectedData: true,
       })
@@ -96,25 +109,17 @@ describe('ImportDataDestination', () => {
     const existingWorkspace = screen.getByText('Start with an existing workspace', { exact: false });
     await user.click(existingWorkspace); // select start with existing workspace
 
-    const selectInput = screen.getByLabelText('Select a workspace');
-    await user.click(selectInput);
+    const workspaceSelect = new SelectHelper(screen.getByLabelText('Select a workspace'), user);
+    const workspaces = await workspaceSelect.getOptions();
 
-    const listboxId = selectInput.getAttribute('aria-controls')!;
-    const listbox = document.getElementById(listboxId)!;
-
-    const options = getAllByRole(listbox, 'option');
-
-    // only the google protected workspace should be enabled
-    const protectedOpt = options.find((opt) => opt.textContent === 'protected-google');
-    expect(protectedOpt).not.toBeNull();
-    expect(protectedOpt!.getAttribute('aria-disabled')).toBe('false');
-
-    const unprotected1 = options.find((opt) => opt.textContent === 'unprotected-google');
-    expect(unprotected1).not.toBeNull();
-    expect(unprotected1!.getAttribute('aria-disabled')).toBe('true');
-
-    const unprotected2 = options.find((opt) => opt.textContent === 'azure');
-    expect(unprotected2).not.toBeNull();
-    expect(unprotected2!.getAttribute('aria-disabled')).toBe('true');
+    // Assert
+    expect(canImportIntoWorkspace).toHaveBeenCalledWith(
+      {
+        isProtectedData: true,
+        requiredAuthorizationDomain: 'test-auth-domain',
+      },
+      expect.anything()
+    );
+    expect(workspaces).toEqual(['allowed-workspace']);
   });
 });
