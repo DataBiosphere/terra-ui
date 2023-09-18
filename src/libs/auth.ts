@@ -636,4 +636,3 @@ workspaceStore.subscribe((newState, oldState) => {
     requesterPaysProjectStore.reset();
   }
 });
-

@@ -1,18 +1,11 @@
-import { Fragment, useCallback, useEffect, useState } from 'react';
-import { div, fieldset, form, h, h1, input, label, p, span } from 'react-hyperscript-helpers';
-import { ButtonOutline, ButtonPrimary, Checkbox, Select } from 'src/components/common';
-import { icon } from 'src/components/icons';
-import { TextArea, ValidatedInput } from 'src/components/input';
+import { Fragment } from 'react';
+import { div, h, h1, p } from 'react-hyperscript-helpers';
+import { ButtonOutline, ButtonPrimary } from 'src/components/common';
 import planet from 'src/images/register-planet.svg';
 import { ReactComponent as TerraOnAzureLogo } from 'src/images/terra-ms-logo.svg';
-import { Ajax } from 'src/libs/ajax';
 import { signOut } from 'src/libs/auth';
 import colors from 'src/libs/colors';
-import { reportError } from 'src/libs/error';
-import { FormLabel, FormLegend } from 'src/libs/forms';
-import { getLocalPref, setLocalPref } from 'src/libs/prefs';
-import { useStore } from 'src/libs/react-utils';
-import { authStore, azurePreviewStore, getUser } from 'src/libs/state';
+import { azurePreviewStore } from 'src/libs/state';
 
 const styles = {
   centered: {
@@ -52,7 +45,6 @@ const AzurePreviewForPreviewUser = () => {
     div({ style: { marginTop: '1rem' } }, [h(ButtonOutline, { onClick: () => signOut('requested'), style: styles.button }, ['Sign Out'])]),
   ]);
 };
-
 
 const AzurePreview = () => {
   return div(
