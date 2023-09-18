@@ -12,7 +12,7 @@ import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { registrationLogo } from 'src/libs/logos';
-import { authStore, getUser, userStatus } from 'src/libs/state';
+import { authStore, getUser, TerraUser, TerraUserProfile, userStatus } from 'src/libs/state';
 import validate from 'validate.js';
 
 const constraints = (partOfOrg) => {
@@ -26,16 +26,9 @@ const constraints = (partOfOrg) => {
   };
 };
 
-interface UserProfile {
-  institute: string | undefined;
-  title: string | undefined;
-  department: string | undefined;
-  interestInTerra: string | undefined;
-}
-
 const Register = () => {
-  const user = getUser();
-  const profile: UserProfile = authStore.get().profile;
+  const user: TerraUser = getUser();
+  const profile: TerraUserProfile = authStore.get().profile;
   const [busy, setBusy] = useState(false);
   const [givenName, setGivenName] = useState(user.givenName || '');
   const [familyName, setFamilyName] = useState(user.familyName || '');
