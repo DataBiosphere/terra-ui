@@ -4,7 +4,6 @@ import RModal from 'react-modal';
 import { Transition } from 'react-transition-group';
 import { getPopupRoot } from 'src/components/popup-utils';
 import colors from 'src/libs/colors';
-import { useLabelAssert } from 'src/libs/react-utils';
 
 const drawer = {
   overlay: (transitionState) =>
@@ -42,8 +41,6 @@ const drawer = {
 };
 
 function ModalDrawer({ isOpen, onDismiss, width = 450, children, onExited, ...props }) {
-  useLabelAssert('ModalDrawer', props);
-
   return h(
     Transition,
     {

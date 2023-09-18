@@ -62,6 +62,7 @@ const mockWorkspaces: Partial<WorkspaceWrapper>[] = [
       authorizationDomain: [],
       createdDate: '2023-02-15T19:17:15.711Z',
       createdBy: 'groot@gmail.com',
+      lastModified: '2023-03-15T19:17:15.711Z',
     },
   },
   {
@@ -73,6 +74,7 @@ const mockWorkspaces: Partial<WorkspaceWrapper>[] = [
       authorizationDomain: [],
       createdDate: '2023-02-15T19:17:15.711Z',
       createdBy: 'groot@gmail.com',
+      lastModified: '2023-03-15T19:17:15.711Z',
     },
   },
   {
@@ -84,6 +86,7 @@ const mockWorkspaces: Partial<WorkspaceWrapper>[] = [
       authorizationDomain: [],
       createdDate: '2023-02-15T19:17:15.711Z',
       createdBy: 'groot@gmail.com',
+      lastModified: '2023-03-15T19:17:15.711Z',
     },
   },
 ];

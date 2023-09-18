@@ -1,64 +1,13 @@
-import { AnyPromiseFn, DEFAULT, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
+import { AnyPromiseFn, cond, delay, GenericPromiseFn, safeCurry } from '@terra-ui-packages/core-utils';
 import { formatDuration, intervalToDuration, isToday, isYesterday } from 'date-fns';
 import { differenceInCalendarMonths, differenceInSeconds, parseJSON } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { div, span } from 'react-hyperscript-helpers';
-import { v4 as uuid } from 'uuid';
+import { canWrite } from 'src/libs/workspace-utils';
 
-import { hasAccessLevel } from './workspace-utils';
-
-export { DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
-
-export interface Subscribable<T extends any[]> {
-  subscribe: (fn: (...args: T) => void) => { unsubscribe: () => void };
-  next: (...args: T) => void;
-}
-
-/**
- * A mechanism for registering callbacks for some state change.
- */
-export const subscribable = <T extends any[]>(): Subscribable<T> => {
-  let subscribers: ((...args: T) => void)[] = [];
-  return {
-    subscribe: (fn: (...args: T) => void) => {
-      subscribers = append(fn, subscribers);
-      return {
-        unsubscribe: () => {
-          subscribers = _.without([fn], subscribers);
-        },
-      };
-    },
-    next: (...args: T) => {
-      _.forEach((fn) => fn(...args), subscribers);
-    },
-  };
-};
-
-export interface Atom<T> {
-  subscribe: (fn: (value: T, previousValue: T) => void) => { unsubscribe: () => void };
-  get: () => T;
-  set: (value: T) => void;
-  update: (fn: (currentValue: T) => T) => void;
-  reset: () => void;
-}
-
-/**
- * A simple state container inspired by clojure atoms. Method names were chosen based on similarity
- * to lodash and Immutable. (deref => get, reset! => set, swap! => update, reset to go back to initial value)
- * Implements the Store interface
- */
-export const atom = <T>(initialValue: T): Atom<T> => {
-  let value = initialValue;
-  const { subscribe, next } = subscribable<[T, T]>();
-  const get = () => value;
-  const set = (newValue: T) => {
-    const oldValue = value;
-    value = newValue;
-    next(newValue, oldValue);
-  };
-  return { subscribe, get, set, update: (fn) => set(fn(get())), reset: () => set(initialValue) };
-};
+export { cond, DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
+export { canRead, canWrite, isOwner } from 'src/libs/workspace-utils';
 
 const dateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric' });
 const monthYearFormat = new Intl.DateTimeFormat('default', { month: 'short', year: 'numeric' });
@@ -114,10 +63,6 @@ export const formatUSD = (v) =>
 
 export const formatNumber = new Intl.NumberFormat('en-US').format;
 
-export const canWrite = (accessLevel) => hasAccessLevel('WRITER', accessLevel);
-export const canRead = (accessLevel) => hasAccessLevel('READER', accessLevel);
-export const isOwner = (accessLevel) => hasAccessLevel('OWNER', accessLevel);
-
 export const workflowStatuses = [
   'Queued',
   'Launching',
@@ -138,41 +83,6 @@ export const workflowStatuses = [
 export const log = (...args) => {
   console.log.apply(null, args); // eslint-disable-line no-console
   return _.last(args);
-};
-
-const maybeCall = <T>(maybeFn: T | (() => T)) => (_.isFunction(maybeFn) ? maybeFn() : maybeFn);
-
-type CondArgType<T> = [boolean | typeof DEFAULT, T | (() => T)] | (() => T);
-
-export const condTyped = <T>(...args: CondArgType<T>[]): T | undefined => {
-  for (const arg of args) {
-    if (_.isArray(arg)) {
-      const [predicate, value] = arg;
-      if (predicate) return maybeCall(value);
-    } else {
-      return maybeCall(arg);
-    }
-  }
-};
-
-/**
- * Takes any number of [predicate, value] pairs, followed by an optional default value.
- * Returns value() for the first truthy predicate, otherwise returns the default value().
- * Returns undefined if no predicate matches and there is no default value.
- *
- * DEPRECATED: If a value is not a function, it will be returned directly instead.
- * This behavior is deprecated, and will be removed in the future.
- *
- * @Deprecated use condTyped instead
- */
-export const cond = (...args: any[]): any => {
-  console.assert(
-    _.every((arg) => {
-      return _.isFunction(arg) || (_.isArray(arg) && arg.length === 2 && _.isFunction(arg[1]));
-    }, args),
-    'Invalid arguments to Utils.cond'
-  );
-  return condTyped(...args);
 };
 
 export const toIndexPairs = <T>(obj: T[]): [number, T][] =>
@@ -206,10 +116,6 @@ export const memoizeAsync = (asyncFn, { keyFn = _.identity, expires = Infinity }
   };
 };
 
-export const delay = (ms) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-};
-
 export const withDelay = _.curry((ms, wrappedFn) => async (...args) => {
   await delay(ms);
   return wrappedFn(...args);
@@ -221,12 +127,6 @@ export const onNextTick = (fn, ...args) => setTimeout(() => fn(...args), 0);
 export const abandonedPromise = () => {
   return new Promise(() => {});
 };
-
-export const generateRuntimeName = () => `saturn-${uuid()}`;
-
-export const generateAppName = () => `terra-app-${uuid()}`;
-
-export const generatePersistentDiskName = () => `saturn-pd-${uuid()}`;
 
 export const waitOneTick = () => new Promise(setImmediate);
 
@@ -268,7 +168,7 @@ export const customFormatDuration = (seconds) => {
 
 // TODO: add good typing (remove any's) - ticket: https://broadworkbench.atlassian.net/browse/UIE-67
 export const summarizeErrors = (errors) => {
-  const errorList = cond(
+  const errorList = cond<any[]>(
     [_.isPlainObject(errors), () => _.flatMap(_.values, errors)],
     [_.isArray(errors), () => errors],
     () => []
@@ -278,15 +178,6 @@ export const summarizeErrors = (errors) => {
       return div({ key: k, style: { marginTop: k !== '0' ? '0.5rem' : undefined } }, [v as any]);
     }, _.toPairs(errorList));
   }
-};
-
-export const readFileAsText = (file) => {
-  const reader = new FileReader();
-  return new Promise((resolve, reject) => {
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsText(file);
-  });
 };
 
 /**

@@ -48,6 +48,7 @@ describe('a Collaborator component', () => {
       createdBy: '',
       googleProject: 'test-project',
       bucketName: 'test-bucket',
+      lastModified: '',
     },
   };
 

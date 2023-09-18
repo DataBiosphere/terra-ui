@@ -1,11 +1,12 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { defaultAzureWorkspace, generateTestAppWithAzureWorkspace } from 'src/analysis/_testData/testData';
+import { generateTestAppWithAzureWorkspace } from 'src/analysis/_testData/testData';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { asMockedFn } from 'src/testing/test-utils';
+import { defaultAzureWorkspace } from 'src/testing/workspace-fixtures';
 
-import { appToolLabels } from '../utils/tool-utils';
+import { appAccessScopes, appToolLabels } from '../utils/tool-utils';
 import { HailBatchModal, HailBatchModalProps } from './HailBatchModal';
 
 const onSuccess = jest.fn();
@@ -62,7 +63,8 @@ describe('HailBatchModal', () => {
     expect(createFunc).toHaveBeenCalledWith(
       expect.anything(),
       defaultAzureWorkspace.workspace.workspaceId,
-      appToolLabels.HAIL_BATCH
+      appToolLabels.HAIL_BATCH,
+      appAccessScopes.USER_PRIVATE
     );
     expect(onSuccess).toHaveBeenCalled();
   });

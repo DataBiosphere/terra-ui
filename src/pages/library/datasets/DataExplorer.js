@@ -5,7 +5,7 @@ import DataExplorerFrame from 'src/components/DataExplorerFrame';
 import FooterWrapper from 'src/components/FooterWrapper';
 import PrivateDataExplorer from 'src/components/PrivateDataExplorer';
 import TopBar from 'src/components/TopBar';
-import datasets from 'src/data/datasets';
+import datasets from 'src/constants/datasets';
 import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 

@@ -5,7 +5,7 @@ import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import Modal from 'src/components/Modal';
 import { FlexTable, HeaderCell, tableHeight } from 'src/components/table';
-import { isAzureUri } from 'src/components/UriViewer/uri-viewer-utils';
+import { isAzureUri } from 'src/data/data-table/uri-viewer/uri-viewer-utils';
 import { getConfig } from 'src/libs/config';
 import { newTabLinkProps } from 'src/libs/utils';
 

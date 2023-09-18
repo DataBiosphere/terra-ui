@@ -34,8 +34,11 @@ type SwitchCaseCase<T, U> = [T, () => U];
 type SwitchCaseDefault<U> = [typeof DEFAULT, () => U] | (() => U);
 
 type SwitchCase = {
-  <T, U>(value: T, ...args: [...SwitchCaseCase<T, U>[], SwitchCaseDefault<U>]): U;
-  <T, U>(value: T, ...args: SwitchCaseCase<T, U>[]): U | undefined;
+  <T extends string | number | boolean | null | undefined, U>(
+    value: T,
+    ...args: [...SwitchCaseCase<T, U>[], SwitchCaseDefault<U>]
+  ): U;
+  <T extends string | number | boolean | null | undefined, U>(value: T, ...args: SwitchCaseCase<T, U>[]): U | undefined;
 };
 
 /**

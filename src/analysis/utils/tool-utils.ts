@@ -9,7 +9,8 @@ import * as Utils from 'src/libs/utils';
 import { CloudProvider, cloudProviderTypes } from 'src/libs/workspace-utils';
 
 export type RuntimeToolLabel = 'Jupyter' | 'RStudio' | 'JupyterLab';
-export type AppToolLabel = 'GALAXY' | 'CROMWELL' | 'HAIL_BATCH' | 'WDS';
+export type AppToolLabel = 'GALAXY' | 'CROMWELL' | 'HAIL_BATCH' | 'WDS' | 'WORKFLOWS_APP' | 'CROMWELL_RUNNER_APP';
+export type AppAccessScope = 'USER_PRIVATE' | 'WORKSPACE_SHARED';
 export type LaunchableToolLabel = 'spark' | 'terminal' | 'RStudio' | 'JupyterLab';
 export type ToolLabel = RuntimeToolLabel | AppToolLabel;
 
@@ -32,6 +33,8 @@ export const toolLabelDisplays: Record<ToolLabel, string> = {
   JupyterLab: 'JupyterLab',
   GALAXY: 'Galaxy',
   CROMWELL: 'Cromwell',
+  WORKFLOWS_APP: 'Workflows',
+  CROMWELL_RUNNER_APP: 'Cromwell runner',
   HAIL_BATCH: 'Hail Batch',
   WDS: 'Workspace Data Service',
 };
@@ -39,13 +42,22 @@ export const toolLabelDisplays: Record<ToolLabel, string> = {
 export const appToolLabels: Record<AppToolLabel, AppToolLabel> = {
   GALAXY: 'GALAXY',
   CROMWELL: 'CROMWELL',
+  WORKFLOWS_APP: 'WORKFLOWS_APP',
+  CROMWELL_RUNNER_APP: 'CROMWELL_RUNNER_APP',
   HAIL_BATCH: 'HAIL_BATCH',
   WDS: 'WDS',
+};
+
+export const appAccessScopes: Record<AppAccessScope, AppAccessScope> = {
+  USER_PRIVATE: 'USER_PRIVATE',
+  WORKSPACE_SHARED: 'WORKSPACE_SHARED',
 };
 
 export const isAppToolLabel = (x: ToolLabel): x is AppToolLabel => x in appToolLabels;
 
 export const isRuntimeToolLabel = (x: ToolLabel): x is RuntimeToolLabel => x in runtimeToolLabels;
+
+export const isToolLabel = (x: ToolLabel | string): x is ToolLabel => x in appToolLabels || x in runtimeToolLabels;
 
 export interface BaseTool {
   isLaunchUnsupported?: boolean;
@@ -112,6 +124,10 @@ const Galaxy = { label: 'GALAXY' } as const satisfies AppTool;
 
 const Cromwell = { label: 'CROMWELL', isPauseUnsupported: true } as const satisfies AppTool;
 
+const Workflows = { label: 'WORKFLOWS_APP', isPauseUnsupported: true } as const satisfies AppTool;
+
+const CromwellRunner = { label: 'CROMWELL_RUNNER_APP', isPauseUnsupported: true } as const satisfies AppTool;
+
 const HailBatch = { label: 'HAIL_BATCH', isPauseUnsupported: true } as const satisfies AppTool;
 
 const Wds = { label: 'WDS', isPauseUnsupported: true } as const satisfies AppTool;
@@ -119,6 +135,8 @@ const Wds = { label: 'WDS', isPauseUnsupported: true } as const satisfies AppToo
 export const appTools: Record<AppToolLabel, AppTool> = {
   GALAXY: Galaxy,
   CROMWELL: Cromwell,
+  WORKFLOWS_APP: Workflows,
+  CROMWELL_RUNNER_APP: CromwellRunner,
   HAIL_BATCH: HailBatch,
   WDS: Wds,
 };
@@ -186,15 +204,17 @@ const extensionToToolMap: Record<AnalysisFileExtension, ToolLabel> = {
   ipynb: runtimeTools.Jupyter.label,
 };
 
-export const getToolLabelForImage = (image: string): ToolLabel | undefined =>
-  _.find((tool) => _.includes(image, tool.imageIds), runtimeTools)?.label;
+export const getToolLabelForImage = (imageId: string): ToolLabel | undefined => {
+  const isImageInTool = (runtimeTool) => runtimeTool.imageIds.includes(imageId);
+  return _.find(isImageInTool, runtimeTools)?.label;
+};
 
 // Currently, a lot of consumers of this are not typescript, so we defensively use `getExtension` on the input
 // TODO: Once all consumer are in typescript, we can remove `getExtension` from this function
 export const getToolLabelFromFileExtension = (fileName: FileExtension): ToolLabel =>
   extensionToToolMap[getExtension(fileName)];
 
-export const getToolLabelFromCloudEnv = (cloudEnv: Runtime | App): ToolLabel => cloudEnv?.labels?.tool;
+export const getToolLabelFromCloudEnv = (cloudEnv: Runtime | App): ToolLabel => cloudEnv?.labels?.tool as ToolLabel;
 
 // Returns registered appTypes.
 export const allAppTypes: AppToolLabel[] = _.flow(_.map('label'), _.compact)(appTools);

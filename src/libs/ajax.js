@@ -86,6 +86,7 @@ const User = (signal) => ({
         lastName: 'N/A',
         title: 'N/A',
         institute: 'N/A',
+        department: 'N/A',
         institutionalProgram: 'N/A',
         programLocationCity: 'N/A',
         programLocationState: 'N/A',

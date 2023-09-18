@@ -16,12 +16,7 @@ import {
   runtimeConfigCost,
 } from 'src/analysis/utils/cost-utils';
 import { appToolLabels, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
-import {
-  DecoratedPersistentDisk,
-  diskStatuses,
-  googlePdTypes,
-  PersistentDisk,
-} from 'src/libs/ajax/leonardo/models/disk-models';
+import { diskStatuses, googlePdTypes, PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { cloudServiceTypes, GoogleRuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { getAzurePricesForRegion } from 'src/libs/azure-utils';
@@ -30,11 +25,16 @@ const jupyterDisk: PersistentDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com',
     createdDate: '2021-12-02T16:38:13.777424Z',
+    destroyedDate: null,
     dateAccessed: '2021-12-02T16:40:23.464Z',
   },
   blockSize: 4096,
   cloudContext: { cloudProvider: 'GCP', cloudResource: 'terra-test-f828b4cd' },
-  diskType: 'pd-standard',
+  diskType: {
+    label: 'Standard',
+    value: 'pd-standard',
+    regionToPricesName: 'monthlyStandardDiskPrice',
+  },
   id: 29,
   labels: {},
   name: 'saturn-pd-bd0d0405-c048-4212-bccf-568435933081',
@@ -254,40 +254,58 @@ describe('GCP getCostDisplayForTool', () => {
     expect(result).toBe(expectedResult);
   });
 
-  it('Will get compute cost and compute status for a running Jupyter runtime', () => {
-    // Arrange
-    const expectedResult = 'Running $0.05/hr';
-    const app = undefined;
-    const currentRuntime = getGoogleRuntime({
-      runtimeConfig: getJupyterRuntimeConfig(),
-    });
-    const currentRuntimeToolLabel = runtimeToolLabels.Jupyter;
-    const toolLabel = runtimeToolLabels.Jupyter;
+  it.each([
+    { bootDiskSize: 100, expectCost: '0.05' },
+    { bootDiskSize: 500, expectCost: '0.07' },
+  ])(
+    'Will get compute cost and compute status for a running $bootDiskSize Gb Jupyter runtime',
+    ({ bootDiskSize, expectCost }) => {
+      // Arrange
+      const expectedResult = `Running $${expectCost}/hr`;
+      const app = undefined;
+      const currentRuntime = getGoogleRuntime({
+        runtimeConfig: {
+          ...getJupyterRuntimeConfig(),
+          bootDiskSize,
+        },
+      });
+      const currentRuntimeToolLabel = runtimeToolLabels.Jupyter;
+      const toolLabel = runtimeToolLabels.Jupyter;
 
-    // Act
-    const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeToolLabel, toolLabel);
+      // Act
+      const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeToolLabel, toolLabel);
 
-    // Assert
-    expect(result).toBe(expectedResult);
-  });
+      // Assert
+      expect(result).toBe(expectedResult);
+    }
+  );
 
-  it('Will get compute cost and compute status for a stopped Jupyter runtime', () => {
-    // Arrange
-    const expectedResult = 'Paused < $0.01/hr';
-    const app = undefined;
-    const jupyterRuntime = getGoogleRuntime({
-      runtimeConfig: getJupyterRuntimeConfig(),
-    });
-    const currentRuntime = { ...jupyterRuntime, status: runtimeStatuses.stopped.leoLabel };
-    const currentRuntimeToolLabel = runtimeToolLabels.Jupyter;
-    const toolLabel = runtimeToolLabels.Jupyter;
+  it.each([
+    { bootDiskSize: 100, expectCost: '< $0.01' },
+    { bootDiskSize: 500, expectCost: '$0.03' },
+  ])(
+    'Will get compute cost and compute status for a stopped $bootDiskSize Gb Jupyter runtime',
+    ({ bootDiskSize, expectCost }) => {
+      // Arrange
+      const expectedResult = `Paused ${expectCost}/hr`;
+      const app = undefined;
+      const jupyterRuntime = getGoogleRuntime({
+        runtimeConfig: {
+          ...getJupyterRuntimeConfig(),
+          bootDiskSize,
+        },
+      });
+      const currentRuntime = { ...jupyterRuntime, status: runtimeStatuses.stopped.leoLabel };
+      const currentRuntimeToolLabel = runtimeToolLabels.Jupyter;
+      const toolLabel = runtimeToolLabels.Jupyter;
 
-    // Act
-    const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeToolLabel, toolLabel);
+      // Act
+      const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeToolLabel, toolLabel);
 
-    // Assert
-    expect(result).toBe(expectedResult);
-  });
+      // Assert
+      expect(result).toBe(expectedResult);
+    }
+  );
 
   it('Will return blank because current runtime is not equal to currentRuntimeToolLabel', () => {
     // Arrange
@@ -367,19 +385,19 @@ describe('getCostDisplayForTool', () => {
 describe('getPersistentDiskCostMonthly', () => {
   it('GCP - Cost estimate', () => {
     // Arrange
-    const gcpDiskAttached: DecoratedPersistentDisk = {
+    const gcpDiskAttached: PersistentDisk = {
       ...getDisk({ size: 50 }),
       cloudContext: {
         cloudProvider: 'GCP',
         cloudResource: 'disk',
       },
-      labels: [],
+      labels: {},
       status: diskStatuses.ready.leoLabel,
       auditInfo: {
         creator: 'trock@broadinstitute.org',
         createdDate: '2020-10-13T15:00:00.000Z',
         dateAccessed: '2020-10-13T15:00:00.000Z',
-        destroyedDate: undefined,
+        destroyedDate: null,
       },
       // diskType: googlePdTypes.standard,
     };

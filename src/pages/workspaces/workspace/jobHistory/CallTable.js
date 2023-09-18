@@ -338,9 +338,20 @@ const CallTable = ({
             {
               size: { basis: 200, grow: 1 },
               field: 'logs',
-              headerRenderer: () => h(HeaderCell, { fontWeight: 500 }, ['Logs']),
+              headerRenderer: () => h(HeaderCell, { fontWeight: 500 }, ['Task Data']),
               cellRenderer: ({ rowIndex }) => {
-                const { stdout, stderr, inputs, outputs, subWorkflowId } = filteredCallObjects[rowIndex];
+                const {
+                  stdout,
+                  stderr,
+                  inputs,
+                  outputs,
+                  subWorkflowId,
+                  // disable linting to match the backend keys
+                  // eslint-disable-next-line camelcase
+                  tes_stderr,
+                  // eslint-disable-next-line camelcase
+                  tes_stdout,
+                } = filteredCallObjects[rowIndex];
                 const style =
                   enableExplorer && !_.isEmpty(subWorkflowId)
                     ? {
@@ -349,8 +360,8 @@ const CallTable = ({
                       }
                     : {
                         display: 'grid',
-                        gridTemplateColumns: '1fr 1fr',
-                        gridColumnGap: '0.3em',
+                        gridTemplateColumns: '1fr 1fr 1fr',
+                        gridColumnGap: '0.6em',
                         gridRowGap: '0.3em',
                       };
                 const linkTemplate =
@@ -386,18 +397,17 @@ const CallTable = ({
                         h(
                           Link,
                           {
-                            'aria-label': 'View stdout logs',
-                            onClick: () => showLogModal(stdout, true),
+                            onClick: () =>
+                              showLogModal('Task Logs', [
+                                { logUri: stdout, logTitle: 'Task Standard Out', logKey: 'stdout', logFilename: 'stdout.txt' },
+                                { logUri: stderr, logTitle: 'Task Standard Err', logKey: 'stderr', logFilename: 'stderr.txt' },
+                                // eslint-disable-next-line camelcase
+                                { logUri: tes_stdout, logTitle: 'Backend Standard Out', logKey: 'tes_stdout', logFilename: 'stdout.txt' },
+                                // eslint-disable-next-line camelcase
+                                { logUri: tes_stderr, logTitle: 'Backend Standard Err', logKey: 'tes_stderr', logFilename: 'stderr.txt' },
+                              ]),
                           },
-                          ['stdout']
-                        ),
-                        h(
-                          Link,
-                          {
-                            'aria-label': 'View stderr logs',
-                            onClick: () => showLogModal(stderr, true),
-                          },
-                          'stderr'
+                          ['Logs']
                         ),
                       ];
                 return div({ style }, linkTemplate);

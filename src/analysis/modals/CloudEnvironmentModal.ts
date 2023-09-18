@@ -1,3 +1,4 @@
+import { IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, ReactElement, useState } from 'react';
 import { Component, div, h, hr, img, span } from 'react-hyperscript-helpers';
@@ -205,7 +206,7 @@ export const CloudEnvironmentModal = ({
     style,
     ...props
   }: {
-    shape: string;
+    shape: IconId;
     onClick?: () => any;
     disabled: boolean;
     messageChildren: ReactElement[];
@@ -370,20 +371,21 @@ export const CloudEnvironmentModal = ({
       [runtimeToolLabels.JupyterLab, () => jupyterLogo]
     );
 
-  const isCloudEnvModalDisabled = (toolLabel: ToolLabel) => {
+  const isCloudEnvModalDisabled = (toolLabel: ToolLabel): boolean => {
     if (isAppToolLabel(toolLabel)) {
-      !canCompute ||
+      return (
+        !canCompute ||
         busy ||
         (toolLabel === appToolLabels.GALAXY && isCurrentGalaxyDiskDetaching(apps)) ||
-        getIsAppBusy(currentApp(toolLabel));
-    } else {
-      const runtime = toolLabel === currentRuntimeTool ? currentRuntime : undefined;
-      // This asks 'does this tool have a runtime'
-      //  if yes, then we allow cloud env modal to open (and ComputeModal determines if it should be read-only mode)
-      //  if no, then we want to disallow the cloud env modal opening if the other tool's runtime is busy
-      //  this check is not needed if we allow multiple runtimes, and cloud env modal will never be disabled in this case
-      return runtime ? false : !canCompute || busy || getIsRuntimeBusy(currentRuntime!);
+        getIsAppBusy(currentApp(toolLabel))
+      );
     }
+    const runtime = toolLabel === currentRuntimeTool ? currentRuntime : undefined;
+    // This asks 'does this tool have a runtime'
+    //  if yes, then we allow cloud env modal to open (and ComputeModal determines if it should be read-only mode)
+    //  if no, then we want to disallow the cloud env modal opening if the other tool's runtime is busy
+    //  this check is not needed if we allow multiple runtimes, and cloud env modal will never be disabled in this case
+    return runtime ? false : !canCompute || busy || getIsRuntimeBusy(currentRuntime!);
   };
 
   const getToolLaunchClickableProps = (toolLabel: ToolLabel, cloudProvider: CloudProvider) => {
@@ -422,17 +424,17 @@ export const CloudEnvironmentModal = ({
       },
       hover: isDisabled ? {} : { backgroundColor: colors.accent(0.2) },
       tooltip: Utils.cond(
-        [doesCloudEnvForToolExist && !isDisabled, () => 'Open'],
+        [!!doesCloudEnvForToolExist && !isDisabled, () => 'Open'],
         [
           isDisabled && !doesWorkspaceSupportCromwellAppForUser(workspace.workspace, cloudProvider, toolLabel),
           () => getCromwellUnsupportedMessage(),
         ],
         [
-          doesCloudEnvForToolExist && isDisabled && isLaunchSupported(toolLabel),
+          !!doesCloudEnvForToolExist && isDisabled && isLaunchSupported(toolLabel),
           () => `Please wait until ${toolLabelDisplays[toolLabel]} is running`,
         ],
         [
-          doesCloudEnvForToolExist && isDisabled && !isLaunchSupported(toolLabel),
+          !!doesCloudEnvForToolExist && isDisabled && !isLaunchSupported(toolLabel),
           () => `Select or create an analysis in the analyses tab to open ${toolLabelDisplays[toolLabel]}`,
         ],
         [Utils.DEFAULT, () => 'No Environment found']
@@ -516,7 +518,7 @@ export const CloudEnvironmentModal = ({
 
   const renderToolButtons = (toolLabel: ToolLabel, cloudProvider: CloudProvider) => {
     const app = currentApp(toolLabel);
-    const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || app;
+    const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || !!app;
     const isCloudEnvForToolDisabled = isCloudEnvModalDisabled(toolLabel);
     return h(Fragment, [
       // We cannot attach the periodic cookie setter until we have a running Cromwell app for Azure because the relay is not guaranteed to be ready until then
