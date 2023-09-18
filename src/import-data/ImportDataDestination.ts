@@ -83,31 +83,31 @@ const ChoiceButton = (props: ChoiceButtonProps): ReactNode => {
 };
 
 interface ImportDataDestinationProps {
-  authorizationDomain: string | undefined;
   importMayTakeTime: boolean;
-  isImporting: boolean;
+  initialSelectedWorkspaceId: string | undefined;
   isProtectedData: boolean;
+  requiredAuthorizationDomain: string | undefined;
   template: string | undefined;
   templateWorkspaces: { [key: string]: TemplateWorkspaceInfo[] } | undefined;
   userHasBillingProjects: boolean;
-  workspaceId: string | undefined;
   onImport: (workspace: WorkspaceInfo) => void;
 }
 
 export const ImportDataDestination = (props: ImportDataDestinationProps): ReactNode => {
   const {
-    workspaceId,
+    initialSelectedWorkspaceId,
     templateWorkspaces,
     template,
     userHasBillingProjects,
     importMayTakeTime,
-    authorizationDomain,
+    requiredAuthorizationDomain,
     onImport,
-    isImporting,
     isProtectedData,
   } = props;
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces();
-  const [mode, setMode] = useState<'existing' | 'template' | undefined>(workspaceId ? 'existing' : undefined);
+  const [mode, setMode] = useState<'existing' | 'template' | undefined>(
+    initialSelectedWorkspaceId ? 'existing' : undefined
+  );
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isCloneOpen, setIsCloneOpen] = useState(false);
   const [selectedTemplateWorkspaceKey, setSelectedTemplateWorkspaceKey] = useState<{
@@ -115,7 +115,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     name: string;
   }>();
 
-  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(workspaceId);
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(initialSelectedWorkspaceId);
 
   const selectedWorkspace = _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces);
 
@@ -156,8 +156,8 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               workspaces: _.filter((ws) => {
                 return (
                   Utils.canWrite(ws.accessLevel) &&
-                  (!authorizationDomain ||
-                    _.some({ membersGroupName: authorizationDomain }, ws.workspace.authorizationDomain))
+                  (!requiredAuthorizationDomain ||
+                    _.some({ membersGroupName: requiredAuthorizationDomain }, ws.workspace.authorizationDomain))
                 );
               }, workspaces),
               value: selectedWorkspaceId,
@@ -293,7 +293,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
             }),
             isCreateOpen &&
               h(NewWorkspaceModal, {
-                requiredAuthDomain: authorizationDomain,
+                requiredAuthDomain: requiredAuthorizationDomain,
                 customMessage: importMayTakeTime && importMayTakeTimeMessage,
                 requireEnhancedBucketLogging: isProtectedData,
                 onDismiss: () => setIsCreateOpen(false),
@@ -325,6 +325,6 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
           onImport(w);
         },
       }),
-    (isImporting || loadingWorkspaces) && spinnerOverlay,
+    loadingWorkspaces && spinnerOverlay,
   ]);
 };

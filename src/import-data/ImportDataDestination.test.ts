@@ -44,59 +44,37 @@ jest.mock(
 );
 
 describe('ImportDataDestination', () => {
-  it('should explain protected data restricts eligible workspaces', async () => {
+  it.each([true, false])('should explain protected data restricts eligible workspaces', async (isProtectedData) => {
+    // Arrange
     const user = userEvent.setup();
 
     render(
       h(ImportDataDestination, {
-        workspaceId: undefined,
+        initialSelectedWorkspaceId: undefined,
         templateWorkspaces: {},
         template: undefined,
         userHasBillingProjects: true,
         importMayTakeTime: true,
-        authorizationDomain: '',
+        requiredAuthorizationDomain: undefined,
         onImport: () => {},
-        isImporting: false,
-        isProtectedData: true,
+        isProtectedData,
       })
     );
+
+    // Act
     const existingWorkspace = screen.getByText('Start with an existing workspace', { exact: false });
     await user.click(existingWorkspace); // select start with existing workspace
 
+    // Assert
     const protectedWarning = screen.queryByText(
       'You may only import to workspaces with an Authorization Domain and/or protected data setting.',
       {
         exact: false,
       }
     );
-    expect(protectedWarning).not.toBeNull();
-  });
 
-  it('should not inform about protected data', async () => {
-    const user = userEvent.setup();
-
-    render(
-      h(ImportDataDestination, {
-        workspaceId: undefined,
-        templateWorkspaces: {},
-        template: undefined,
-        userHasBillingProjects: true,
-        importMayTakeTime: true,
-        authorizationDomain: '',
-        onImport: () => {},
-        isImporting: false,
-        isProtectedData: false,
-      })
-    );
-    const existingWorkspace = screen.getByText('Start with an existing workspace', { exact: false });
-    await user.click(existingWorkspace); // select start with existing workspace
-    const protectedWarning = screen.queryByText(
-      'You may only import to workspaces with an Authorization Domain and/or protected data setting.',
-      {
-        exact: false,
-      }
-    );
-    expect(protectedWarning).toBeNull();
+    const isWarningShown = !!protectedWarning;
+    expect(isWarningShown).toEqual(isProtectedData);
   });
 
   it('should disable noncompliant workspaces', async () => {
@@ -104,14 +82,13 @@ describe('ImportDataDestination', () => {
 
     render(
       h(ImportDataDestination, {
-        workspaceId: undefined,
+        initialSelectedWorkspaceId: undefined,
         templateWorkspaces: {},
         template: undefined,
         userHasBillingProjects: true,
         importMayTakeTime: true,
-        authorizationDomain: '',
+        requiredAuthorizationDomain: undefined,
         onImport: () => {},
-        isImporting: false,
         isProtectedData: true,
       })
     );
