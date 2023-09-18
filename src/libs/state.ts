@@ -74,7 +74,6 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   cookiesAccepted: undefined,
   fenceStatus: {},
   hasGcpBillingScopeThroughB2C: false,
-  isAzurePreviewUser: undefined,
   isSignedIn: undefined,
   oidcConfig: {
     authorityEndpoint: undefined,
