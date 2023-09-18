@@ -65,7 +65,7 @@ describe('ImportDataDestination', () => {
     expect(isWarningShown).toEqual(isProtectedData);
   });
 
-  it('should filters workspaces through canImportIntoWorkspace', async () => {
+  it('should filter workspaces through canImportIntoWorkspace', async () => {
     // Arrange
     const user = userEvent.setup();
 
