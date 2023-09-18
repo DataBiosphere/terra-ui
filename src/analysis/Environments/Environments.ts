@@ -284,7 +284,7 @@ export const Environments: React.FC<EnvironmentsProps> = (props) => {
 
   const ajax = useReplaceableAjaxExperimental();
 
-  const currentUser = getUser().email;
+  const currentUser: string = getUser().email!;
 
   const refreshData = Utils.withBusyState(setLoading, async () => {
     await refreshWorkspaces();

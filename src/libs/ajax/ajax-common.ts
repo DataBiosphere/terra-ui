@@ -1,11 +1,15 @@
 import _ from 'lodash/fp';
-import { reloadAuthToken, signOutAfterSessionTimeout } from 'src/libs/auth';
+import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
+import { AuthTokenState, loadAuthToken, signOut, SignOutCause } from 'src/libs/auth';
 import { getConfig } from 'src/libs/config';
 import { ajaxOverridesStore, getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
 export const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } });
-export const jsonBody = (body) => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } });
+export const jsonBody = (body) => ({
+  body: JSON.stringify(body),
+  headers: { 'Content-Type': 'application/json' },
+});
 export const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } };
 
 type FetchFn = typeof fetch;
@@ -62,22 +66,25 @@ export async function makeRequestRetry(request: Function, retryCount: number, ti
   }
 }
 
+const isUnauthorizedResponse = (error: unknown): boolean => error instanceof Response && error.status === 401;
+
 export const withRetryAfterReloadingExpiredAuthToken =
   (wrappedFetch: FetchFn): FetchFn =>
-  async (resource: RequestInfo | URL, options?: RequestInit) => {
+  async (resource: RequestInfo | URL, options?: RequestInit): Promise<Response> => {
     const requestHasAuthHeader = _.isMatch(authOpts(), options as object);
     try {
       return await wrappedFetch(resource, options);
     } catch (error) {
-      const isUnauthorizedResponse = error instanceof Response && error.status === 401;
-      if (isUnauthorizedResponse && requestHasAuthHeader) {
-        const successfullyReloadedAuthToken = !!(await reloadAuthToken());
-        if (successfullyReloadedAuthToken) {
+      if (isUnauthorizedResponse(error) && requestHasAuthHeader) {
+        const reloadedAuthTokenState: AuthTokenState = await loadAuthToken();
+        if (reloadedAuthTokenState.status === 'success') {
           const optionsWithNewAuthToken = _.merge(options, authOpts());
           return await wrappedFetch(resource, optionsWithNewAuthToken);
         }
-        signOutAfterSessionTimeout();
-        throw new Error('Session timed out');
+        const signOutCause: SignOutCause =
+          reloadedAuthTokenState.status === 'expired' ? 'expiredRefreshToken' : 'errorRefreshingAuthToken';
+        signOut(signOutCause);
+        throw new Error(sessionTimedOutErrorMessage);
       } else {
         throw error;
       }

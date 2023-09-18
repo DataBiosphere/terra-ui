@@ -49,7 +49,7 @@ const AzurePreviewForPreviewUser = () => {
     div({ style: { marginTop: '1.5rem' } }, [
       h(ButtonPrimary, { onClick: dismiss, style: styles.button }, ['Proceed to Terra on Microsoft Azure Preview']),
     ]),
-    div({ style: { marginTop: '1rem' } }, [h(ButtonOutline, { onClick: signOut, style: styles.button }, ['Sign Out'])]),
+    div({ style: { marginTop: '1rem' } }, [h(ButtonOutline, { onClick: () => signOut('requested'), style: styles.button }, ['Sign Out'])]),
   ]);
 };
 
@@ -393,7 +393,7 @@ const AzurePreviewForNonPreviewUser = () => {
         'Thank you for your interest in using Terra on Microsoft Azure. We will be in touch with your access information. ',
       ]),
       p({ style: styles.paragraph }, ['Please add preview@terra.bio to your contact list to not miss emails about access to the preview.']),
-      div({ style: { marginTop: '1.5rem' } }, [h(ButtonPrimary, { onClick: signOut, style: styles.button }, ['Sign Out'])]),
+      div({ style: { marginTop: '1.5rem' } }, [h(ButtonPrimary, { onClick: signOut('requested'), style: styles.button }, ['Sign Out'])]),
     ]);
   }
   return div([
@@ -423,7 +423,7 @@ const AzurePreviewForNonPreviewUser = () => {
           },
           ['Submit', busy && icon('loadingSpinner', { size: 12, style: { marginLeft: '1ch' } })]
         ),
-        h(ButtonOutline, { onClick: signOut, style: styles.button }, ['Sign Out']),
+        h(ButtonOutline, { onClick: () => signOut('requested'), style: styles.button }, ['Sign Out']),
       ]
     ),
   ]);
