@@ -169,7 +169,8 @@ export interface AuthTokenExpiredState {
 export interface AuthTokenErrorState {
   status: 'error';
   reason: any; // Promise rejection reason
-  errorMsg: string;
+  userErrorMsg: string;
+  internalErrorMsg: string;
 }
 
 export type AuthTokenState = AuthTokenSuccessState | AuthTokenExpiredState | AuthTokenErrorState;
@@ -186,6 +187,7 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
   const oldAuthTokenMetadata: TokenMetadata = authStore.get().authTokenMetadata;
   const oldRefreshTokenMetadata: TokenMetadata = authStore.get().refreshTokenMetadata;
 
+  // for metrics, updates number of authToken load attempts for this session
   authStore.update((state) => ({
     ...state,
     authTokenMetadata: {
@@ -207,21 +209,8 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
     const refreshToken: string | undefined = user.refresh_token;
     // for future might want to take refresh token and hash it to compare to a saved hashed token to see if they are the same
     const isNewRefreshToken = !!refreshToken && refreshToken !== oldRefreshTokenMetadata.token;
-    if (isNewRefreshToken) {
-      authStore.update((state) => ({
-        ...state,
-        refreshTokenMetadata: {
-          ...authStore.get().refreshTokenMetadata,
-          id: uuid(),
-          token: refreshToken,
-          createdAt: authTokenCreatedAt,
-          // Auth token expiration is set to 24 hours in B2C configuration.
-          expiresAt: authTokenCreatedAt + 86400, // 24 hours in seconds
-          totalTokensUsedThisSession: authStore.get().authTokenMetadata.totalTokensUsedThisSession + 1,
-          totalTokenLoadAttemptsThisSession: authStore.get().authTokenMetadata.totalTokenLoadAttemptsThisSession + 1,
-        },
-      }));
-    }
+
+    // for metrics, updates authToken metadata and refresh token metadata
     authStore.update((state) => ({
       ...state,
       authTokenMetadata: {
@@ -236,6 +225,18 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
             ? oldAuthTokenMetadata.totalTokensUsedThisSession
             : oldAuthTokenMetadata.totalTokensUsedThisSession + 1,
       },
+      refreshTokenMetadata: isNewRefreshToken
+        ? {
+            ...authStore.get().refreshTokenMetadata,
+            id: uuid(),
+            token: refreshToken,
+            createdAt: authTokenCreatedAt,
+            // Auth token expiration is set to 24 hours in B2C configuration.
+            expiresAt: authTokenCreatedAt + 86400, // 24 hours in seconds
+            totalTokensUsedThisSession: authStore.get().authTokenMetadata.totalTokensUsedThisSession + 1,
+            totalTokenLoadAttemptsThisSession: authStore.get().authTokenMetadata.totalTokenLoadAttemptsThisSession + 1,
+          }
+        : { ...authStore.get().refreshTokenMetadata },
     }));
     Ajax().Metrics.captureEvent(Events.user.authTokenLoad.success, {
       authProvider: (user.profile as B2cIdTokenClaims).idp,
@@ -275,11 +276,14 @@ const tryLoadAuthToken = async (includeBillingScope = false, popUp = false): Pro
       authInstance.signinPopup(args)
     : authInstance.signinSilent(args)
   ).catch((e) => {
-    const errorMsg = 'An unexpected exception occurred while attempting to load new auth token.';
-    console.error('Unable to sign in.');
-    console.error(e);
+    const userErrorMsg = 'Unable to sign in.';
+    const internalErrorMsg = 'An unexpected exception occurred while attempting to load new auth token.';
+    console.error(`user error message: ${userErrorMsg}`);
+    console.error(`internal error message: ${internalErrorMsg}`);
+    console.error(`reason: ${e}`);
     const errorState: AuthTokenErrorState = {
-      errorMsg,
+      internalErrorMsg,
+      userErrorMsg,
       reason: e,
       status: 'error',
     };
@@ -291,7 +295,6 @@ const tryLoadAuthToken = async (includeBillingScope = false, popUp = false): Pro
       user: loadedAuthTokenResponse,
     };
   }
-
   return {
     status: 'expired',
   };

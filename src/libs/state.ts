@@ -50,6 +50,7 @@ export type AuthState = {
     authorityEndpoint?: string;
     clientId?: string;
   };
+  // props in the TerraUserProfile are always present, but there may be more props
   profile: TerraUserProfile & any;
   refreshTokenMetadata: TokenMetadata;
   registrationStatus: any;
