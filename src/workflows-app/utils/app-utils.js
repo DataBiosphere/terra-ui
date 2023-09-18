@@ -23,7 +23,9 @@ export const resolveRunningCromwellAppUrl = (apps, currentUser) => {
   // note: the requirement for checking if the app was created by user will not be needed when we move to multi-user Workflows app where users with
   // OWNER and WRITER roles will be able to import methods to app created by another user
   const filteredApps = apps.filter(
-    (app) => app.appType === appToolLabels.CROMWELL && app.status === 'RUNNING' && app.auditInfo.creator === currentUser
+    (app) =>
+      ((app.appType === appToolLabels.CROMWELL && app.auditInfo.creator === currentUser) || app.appType === appToolLabels.WORKFLOWS_APP) &&
+      app.status === 'RUNNING'
   );
   if (filteredApps.length === 1) {
     return {
