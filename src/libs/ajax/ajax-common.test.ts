@@ -22,13 +22,6 @@ jest.mock('src/libs/state', (): StateExports => {
   };
 });
 
-type OidcExports = typeof import('oidc-client-ts');
-jest.mock('oidc-client-ts', (): OidcExports => {
-  return {
-    ...jest.requireActual('oidc-client-ts'),
-  };
-});
-
 describe('withRetryAfterReloadingExpiredAuthToken', () => {
   it('passes args through to wrapped fetch', async () => {
     // Arrange

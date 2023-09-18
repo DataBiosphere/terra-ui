@@ -7,7 +7,6 @@ export const reportError = async (title, obj) => {
   console.error(title, obj); // helpful when the notify component fails to render
   // Do not show an error notification when a session times out.
   // Notification for this case is handled elsewhere.
-  // For some reason making using sessionTimedOutErrorMessage instead of the raw string breaks tests
   if (obj instanceof Error && obj.message === sessionTimedOutErrorMessage) {
     return;
   }

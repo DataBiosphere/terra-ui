@@ -501,6 +501,7 @@ export const BaseAnalyses = (
     )(async () => {
       const [currentUserHash, potentialLockers]: [string | undefined, any] = isGoogleWorkspace(workspace)
         ? await Promise.all([
+            // non-null assertion since a user must be logged in to see this page
             notebookLockHash(workspace.workspace.bucketName, authState.user.email!),
             findPotentialNotebookLockers(workspace),
           ])

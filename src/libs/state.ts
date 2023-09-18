@@ -17,16 +17,15 @@ export type TerraUser = {
 };
 
 export type TerraUserProfile = {
-  institute?: string | undefined;
-  title?: string | undefined;
-  department?: string | undefined;
-  interestInTerra?: string | undefined;
+  institute: string | undefined;
+  title: string | undefined;
+  department: string | undefined;
+  interestInTerra: string | undefined;
 };
 
 export type TokenMetadata = {
-  // do not log or send this to a user (could move to hash in the future)
-  token?: string | undefined;
-  id?: string | undefined;
+  token: string | undefined; // do not log or send this to mixpanel
+  id: string | undefined;
   createdAt: number;
   expiresAt: number;
   totalTokensUsedThisSession: number;
@@ -39,7 +38,7 @@ export type AuthState = {
   authTokenMetadata: TokenMetadata;
   cookiesAccepted: boolean | undefined;
   fenceStatus: {};
-  hasGcpBillingScopeThroughB2C?: boolean | undefined;
+  hasGcpBillingScopeThroughB2C: boolean | undefined;
   isAzurePreviewUser?: boolean | undefined;
   isSignedIn: boolean | undefined;
   isTimeoutEnabled?: boolean | undefined;
@@ -80,7 +79,12 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     authorityEndpoint: undefined,
     clientId: undefined,
   },
-  profile: {},
+  profile: {
+    institute: undefined,
+    title: undefined,
+    department: undefined,
+    interestInTerra: undefined,
+  },
   refreshTokenMetadata: {
     token: undefined,
     id: undefined,
@@ -93,7 +97,17 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   sessionId: undefined,
   sessionStartTime: -1,
   termsOfService: {},
-  user: {},
+  user: {
+    token: undefined,
+    scope: undefined,
+    id: undefined,
+    email: undefined,
+    name: undefined,
+    givenName: undefined,
+    familyName: undefined,
+    imageUrl: undefined,
+    idp: undefined,
+  },
 });
 
 export const getUser = (): TerraUser => authStore.get().user;

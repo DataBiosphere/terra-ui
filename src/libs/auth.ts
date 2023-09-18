@@ -88,8 +88,8 @@ const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
     sessionEndTime: Utils.makeCompleteDate(sessionEndTime),
     sessionDurationInSeconds:
       authStoreState.sessionStartTime < 0 ? undefined : (sessionEndTime - authStoreState.sessionStartTime) / 1000.0,
-    authTokenCreatedAt: labelTimestampMetric(tokenMetadata.createdAt),
-    authTokenExpiresAt: labelTimestampMetric(tokenMetadata.expiresAt),
+    authTokenCreatedAt: getTimestampMetricLabel(tokenMetadata.createdAt),
+    authTokenExpiresAt: getTimestampMetricLabel(tokenMetadata.expiresAt),
     totalAuthTokensUsedThisSession: authStoreState.authTokenMetadata.totalTokensUsedThisSession,
     totalAuthTokenLoadAttemptsThisSession: authStoreState.authTokenMetadata.totalTokenLoadAttemptsThisSession,
   });
@@ -196,100 +196,87 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
 
   const loadedAuthTokenState: AuthTokenState = await tryLoadAuthToken(includeBillingScope, popUp);
 
-  switchCase<string, void>(
-    loadedAuthTokenState.status,
-    [
-      'success',
-      () => {
-        const user: User = (loadedAuthTokenState as AuthTokenSuccessState).user;
-        const userJWT: string = user.id_token!;
-        const decodedJWT: JwtPayload = jwtDecode<JwtPayload>(userJWT);
-        const authTokenCreatedAt: number = (decodedJWT as any).auth_time; // time in seconds when authorization token was created
-        const authTokenExpiresAt: number = user.expires_at!; // time in seconds when authorization token expires, as given by the oidc client
-        const authTokenId: string = uuid();
-        const jwtExpiresAt: number = (decodedJWT as any).exp; // time in seconds when the JWT expires, after which the JWT should not be read from
-        const refreshToken: string | undefined = user.refresh_token;
-        // for future might want to take refresh token and hash it to compare to a saved hashed token to see if they are the same
-        const isNewRefreshToken = !!refreshToken && refreshToken !== oldRefreshTokenMetadata.token;
-        if (isNewRefreshToken) {
-          authStore.update((state) => ({
-            ...state,
-            refreshTokenMetadata: {
-              ...authStore.get().refreshTokenMetadata,
-              id: uuid(),
-              token: refreshToken,
-              createdAt: authTokenCreatedAt,
-              // Auth token expiration is set to 24 hours in B2C configuration.
-              expiresAt: authTokenCreatedAt + 86400, // 24 hours in seconds
-              totalTokensUsedThisSession: authStore.get().authTokenMetadata.totalTokensUsedThisSession + 1,
-              totalTokenLoadAttemptsThisSession:
-                authStore.get().authTokenMetadata.totalTokenLoadAttemptsThisSession + 1,
-            },
-          }));
-        }
-        authStore.update((state) => ({
-          ...state,
-          authTokenMetadata: {
-            ...authStore.get().authTokenMetadata,
-            token: user.access_token,
-            createdAt: authTokenCreatedAt,
-            expiresAt: authTokenExpiresAt,
-            id: authTokenId,
-            // TODO: Change this to only update if the auth token is different than the previous token
-            totalTokensUsedThisSession: authStore.get().authTokenMetadata.totalTokensUsedThisSession + 1,
-          },
-        }));
-        Ajax().Metrics.captureEvent(Events.user.authTokenLoad.success, {
-          authProvider: (user.profile as B2cIdTokenClaims).idp,
-          ...labelOldAuthToken(oldAuthTokenMetadata),
-          authTokenCreatedAt: labelTimestampMetric(authTokenCreatedAt),
-          authTokenExpiresAt: labelTimestampMetric(authTokenExpiresAt),
-          authTokenId,
-          refreshTokenId: authStore.get().refreshTokenMetadata.id,
-          refreshTokenCreatedAt: labelTimestampMetric(authStore.get().refreshTokenMetadata.createdAt),
-          refreshTokenExpiresAt: labelTimestampMetric(authStore.get().refreshTokenMetadata.expiresAt),
-          jwtExpiresAt: labelTimestampMetric(jwtExpiresAt),
-        });
+  if (loadedAuthTokenState.status === 'success') {
+    const user: User = (loadedAuthTokenState as AuthTokenSuccessState).user;
+    const userJWT: string = user.id_token!;
+    const decodedJWT: JwtPayload = jwtDecode<JwtPayload>(userJWT);
+    const authTokenCreatedAt: number = (decodedJWT as any).auth_time; // time in seconds when authorization token was created
+    const authTokenExpiresAt: number = user.expires_at!; // time in seconds when authorization token expires, as given by the oidc client
+    const authTokenId: string = uuid();
+    const jwtExpiresAt: number = (decodedJWT as any).exp; // time in seconds when the JWT expires, after which the JWT should not be read from
+    const refreshToken: string | undefined = user.refresh_token;
+    // for future might want to take refresh token and hash it to compare to a saved hashed token to see if they are the same
+    const isNewRefreshToken = !!refreshToken && refreshToken !== oldRefreshTokenMetadata.token;
+    if (isNewRefreshToken) {
+      authStore.update((state) => ({
+        ...state,
+        refreshTokenMetadata: {
+          ...authStore.get().refreshTokenMetadata,
+          id: uuid(),
+          token: refreshToken,
+          createdAt: authTokenCreatedAt,
+          // Auth token expiration is set to 24 hours in B2C configuration.
+          expiresAt: authTokenCreatedAt + 86400, // 24 hours in seconds
+          totalTokensUsedThisSession: authStore.get().authTokenMetadata.totalTokensUsedThisSession + 1,
+          totalTokenLoadAttemptsThisSession: authStore.get().authTokenMetadata.totalTokenLoadAttemptsThisSession + 1,
+        },
+      }));
+    }
+    authStore.update((state) => ({
+      ...state,
+      authTokenMetadata: {
+        ...authStore.get().authTokenMetadata,
+        token: user.access_token,
+        createdAt: authTokenCreatedAt,
+        expiresAt: authTokenExpiresAt,
+        id: authTokenId,
+        totalTokensUsedThisSession:
+          oldAuthTokenMetadata.token !== undefined &&
+          oldAuthTokenMetadata.token === authStore.get().authTokenMetadata.token
+            ? oldAuthTokenMetadata.totalTokensUsedThisSession
+            : oldAuthTokenMetadata.totalTokensUsedThisSession + 1,
       },
-    ],
-    [
-      'expired',
-      () => {
-        Ajax().Metrics.captureEvent(Events.user.authTokenLoad.expired, {
-          ...labelOldAuthToken(oldAuthTokenMetadata),
-          refreshTokenId: authStore.get().refreshTokenMetadata.id,
-          refreshTokenCreatedAt: labelTimestampMetric(authStore.get().refreshTokenMetadata.createdAt),
-          refreshTokenExpiresAt: labelTimestampMetric(authStore.get().refreshTokenMetadata.expiresAt),
-        });
-      },
-    ],
-    [
-      'error',
-      () => {
-        Ajax().Metrics.captureEvent(Events.user.authTokenLoad.error, {
-          // we could potentially log the reason, but I don't know if that data is safe to log
-          ...labelOldAuthToken(oldAuthTokenMetadata),
-          refreshTokenId: authStore.get().refreshTokenMetadata.id,
-          refreshTokenCreatedAt: labelTimestampMetric(authStore.get().refreshTokenMetadata.createdAt),
-          refreshTokenExpiresAt: labelTimestampMetric(authStore.get().refreshTokenMetadata.expiresAt),
-        });
-      },
-    ]
-  );
-
+    }));
+    Ajax().Metrics.captureEvent(Events.user.authTokenLoad.success, {
+      authProvider: (user.profile as B2cIdTokenClaims).idp,
+      ...getOldAuthTokenLabels(oldAuthTokenMetadata),
+      authTokenCreatedAt: getTimestampMetricLabel(authTokenCreatedAt),
+      authTokenExpiresAt: getTimestampMetricLabel(authTokenExpiresAt),
+      authTokenId,
+      refreshTokenId: authStore.get().refreshTokenMetadata.id,
+      refreshTokenCreatedAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.createdAt),
+      refreshTokenExpiresAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.expiresAt),
+      jwtExpiresAt: getTimestampMetricLabel(jwtExpiresAt),
+    });
+  } else if (loadedAuthTokenState.status === 'expired') {
+    Ajax().Metrics.captureEvent(Events.user.authTokenLoad.expired, {
+      ...getOldAuthTokenLabels(oldAuthTokenMetadata),
+      refreshTokenId: authStore.get().refreshTokenMetadata.id,
+      refreshTokenCreatedAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.createdAt),
+      refreshTokenExpiresAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.expiresAt),
+    });
+  } else {
+    Ajax().Metrics.captureEvent(Events.user.authTokenLoad.error, {
+      // we could potentially log the reason, but I don't know if that data is safe to log
+      ...getOldAuthTokenLabels(oldAuthTokenMetadata),
+      refreshTokenId: authStore.get().refreshTokenMetadata.id,
+      refreshTokenCreatedAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.createdAt),
+      refreshTokenExpiresAt: getTimestampMetricLabel(authStore.get().refreshTokenMetadata.expiresAt),
+    });
+  }
   return loadedAuthTokenState;
 };
 
 const tryLoadAuthToken = async (includeBillingScope = false, popUp = false): Promise<AuthTokenState> => {
   const args: ExtraSigninRequestArgs = getSigninArgs(includeBillingScope);
   const authInstance = getAuthInstance();
-  const loadedAuthTokenResponse: User | null | AuthTokenErrorState = await (popUp
+  const loadedAuthTokenResponse: User | null = await (popUp
     ? // returns Promise<User | null>, attempts to use the refresh token to get a new authToken
       authInstance.signinPopup(args)
     : authInstance.signinSilent(args)
   ).catch((e) => {
-    const errorMsg = 'An unexpected exception occurred while attempting to load auth credentials.';
-    console.error(errorMsg);
+    const errorMsg = 'An unexpected exception occurred while attempting to load new auth token.';
+    console.error('Unable to sign in.');
     console.error(e);
     const errorState: AuthTokenErrorState = {
       errorMsg,
@@ -304,25 +291,22 @@ const tryLoadAuthToken = async (includeBillingScope = false, popUp = false): Pro
       user: loadedAuthTokenResponse,
     };
   }
-  if (loadedAuthTokenResponse === null) {
-    return {
-      status: 'expired',
-    };
-  }
 
-  return loadedAuthTokenResponse;
+  return {
+    status: 'expired',
+  };
 };
 
-const labelOldAuthToken = (oldAuthTokenMetadata: TokenMetadata) => {
+const getOldAuthTokenLabels = (oldAuthTokenMetadata: TokenMetadata) => {
   return {
-    oldAuthTokenCreatedAt: labelTimestampMetric(oldAuthTokenMetadata.createdAt),
-    oldAuthTokenExpiresAt: labelTimestampMetric(oldAuthTokenMetadata.expiresAt),
+    oldAuthTokenCreatedAt: getTimestampMetricLabel(oldAuthTokenMetadata.createdAt),
+    oldAuthTokenExpiresAt: getTimestampMetricLabel(oldAuthTokenMetadata.expiresAt),
     oldAuthTokenId: oldAuthTokenMetadata.id,
     oldAuthTokenLifespan:
       oldAuthTokenMetadata.createdAt < 0 ? undefined : Date.now() - oldAuthTokenMetadata.createdAt / 1000.0,
   };
 };
-const labelTimestampMetric = (timestamp: number): string | undefined => {
+const getTimestampMetricLabel = (timestamp: number): string | undefined => {
   return timestamp < 0 ? undefined : Utils.formatTimestampInSeconds(timestamp);
 };
 

@@ -36,8 +36,13 @@ export const Metrics = (signal?: AbortSignal) => {
       'api/event',
       _.mergeAll([
         isRegistered ? authOpts() : undefined,
-        // distinct_id is a mixpanel specific id and the value must not be null or this fetch will 400
-        jsonBody(body, (key: string, value) => (value === undefined && key !== 'distinct_id' ? null : value)),
+        {
+          body: JSON.stringify(body, (key: string, value) =>
+            // distinct_id is a mixpanel specific id and the value must not be null or this fetch will 400
+            value === undefined && key !== 'distinct_id' ? null : value
+          ),
+          headers: { 'Content-Type': 'application/json' },
+        },
         { signal, method: 'POST' },
       ])
     );
