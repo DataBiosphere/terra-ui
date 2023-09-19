@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
@@ -30,7 +30,7 @@ import { runtimeToolLabels, runtimeTools, terraSupportedRuntimeImageIds } from '
 import { Ajax } from 'src/libs/ajax';
 import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { formatUSD } from 'src/libs/utils';
-import { asMockedFn } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 jest.mock('src/libs/notifications', () => ({
