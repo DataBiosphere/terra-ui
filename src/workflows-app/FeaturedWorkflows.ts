@@ -6,6 +6,7 @@ import { getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { Clickable } from 'src/components/common';
 import { icon } from 'src/components/icons';
+import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
 import colors from 'src/libs/colors';
 import { notify } from 'src/libs/notifications';
@@ -33,7 +34,8 @@ const featuredWorkflowsData: WorkflowCardMethod[] = [
       {
         method_id: '00000000-0000-0000-0000-000000000008',
         name: 'fetch_sra_to_bam',
-        description: 'fetch_sra_to_bam',
+        description:
+          'Retrieve reads from the NCBI Short Read Archive in unaligned BAM format with relevant metadata encoded.',
         source: 'Github',
         method_versions: [
           {
@@ -54,7 +56,8 @@ const featuredWorkflowsData: WorkflowCardMethod[] = [
       {
         method_id: '00000000-0000-0000-0000-000000000005',
         name: 'assemble_refbased',
-        description: 'assemble_refbased',
+        description:
+          'Reference-based microbial consensus calling. Aligns NGS reads to a singular reference genome, calls a new consensus sequence, and emits: new assembly, reads aligned to provided reference, reads aligned to new assembly, various figures of merit, plots, and QC metrics. The user may provide unaligned reads spread across multiple input files and this workflow will parallelize alignment per input file before merging results prior to consensus calling.',
         source: 'Github',
         method_versions: [
           {
@@ -75,7 +78,8 @@ const featuredWorkflowsData: WorkflowCardMethod[] = [
       {
         method_id: '00000000-0000-0000-0000-000000000006',
         name: 'sarscov2_nextstrain',
-        description: 'sarscov2_nextstrain',
+        description:
+          'Align assemblies, build trees, and convert to json representation suitable for Nextstrain visualization. See https://nextstrain.org/docs/getting-started/ and https://nextstrain-augur.readthedocs.io/en/stable/',
         source: 'Github',
         method_versions: [
           {
@@ -181,9 +185,13 @@ export const FeaturedWorkflows = ({
               const matchingMethod = methodsData.find((existingMethod) =>
                 existingMethod.method_versions.some((version) => version.url === featuredMethod.method_versions[0].url)
               );
-              return [matchingMethod !== undefined, matchingMethod ?? featuredMethod] as const;
+              return [
+                matchingMethod !== undefined,
+                { ...featuredMethod, last_run: matchingMethod ? matchingMethod.last_run : featuredMethod.last_run },
+              ] as const;
             });
             const allMethodsInWorkspace = methodsInWorkspace.every(([inWorkspace, _method]) => inWorkspace);
+            const noMethodsInWorkspace = methodsInWorkspace.every(([inWorkspace, _method]) => !inWorkspace);
             const newMethodData = methodsInWorkspace.map(([_inWorkspace, method]) => method);
             return h(
               WorkflowCard,
@@ -209,36 +217,44 @@ export const FeaturedWorkflows = ({
                       },
                       [icon('success-standard'), '   Added']
                     )
-                  : h(
-                      Clickable,
-                      {
-                        onClick: () => {
-                          // eslint-disable-next-line no-console
-                          console.log(
-                            'Importing methods, ',
-                            methodsInWorkspace
-                              .filter(([inWorkspace, _method]) => inWorkspace)
-                              .map(([_inWorkspace, method]) => method)
-                          );
-                          // TODO: Import methods...
-                        },
-                      },
-                      [
-                        div(
+                  : div({ style: { display: 'flex', alignItems: 'center', flexDirection: 'row' } }, [
+                      !noMethodsInWorkspace &&
+                        h(
+                          TooltipTrigger,
                           {
-                            style: {
-                              borderRadius: 2,
-                              color: colors.light(0.5),
-                              fontWeight: 500,
-                              textAlign: 'center',
-                              padding: '0.75rem 0',
-                              backgroundColor: colors.accent(1),
-                            },
+                            content:
+                              'You already have some of the workflows in this set added to this workspace. Clicking add to workspace will only add the remaining workflows.',
                           },
-                          ['Add to workspace']
+                          [icon('info-circle', { style: { marginRight: '1rem' }, size: 16, color: colors.accent(1) })]
                         ),
-                      ]
-                    ),
+                      h(
+                        Clickable,
+                        {
+                          style: {
+                            flex: 1,
+                            borderRadius: 2,
+                            color: colors.light(0.5),
+                            fontWeight: 500,
+                            textAlign: 'center',
+                            padding: '0.75rem 0',
+                            minWidth: '10rem',
+                            backgroundColor: colors.accent(1),
+                          },
+                          onClick: () => {
+                            // eslint-disable-next-line no-console
+                            console.log(
+                              'Importing methods, ',
+                              methodsInWorkspace
+                                .filter(([inWorkspace, _method]) => inWorkspace)
+                                .map(([_inWorkspace, method]) => method)
+                            );
+                            // TODO: Import methods...
+                          },
+                        },
+
+                        ['Add to workspace']
+                      ),
+                    ]),
               ]
             );
           }, featuredWorkflowsData)

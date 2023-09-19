@@ -32,7 +32,7 @@ export type WorkflowMethod = {
       url: string;
       method_version_id: string;
       method_id: string;
-      description: string;
+      description?: string;
       last_run: LastRun;
     }
   ];
