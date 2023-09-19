@@ -57,6 +57,8 @@ type WorkflowsAppNavPanelProps = {
   launcherDisabled: boolean;
   createWorkflowsApp: Function;
   pageReady: boolean;
+  selectedSubHeader: string;
+  setSelectedSubHeader: Function;
 };
 
 export const WorkflowsAppNavPanel = ({
@@ -65,9 +67,9 @@ export const WorkflowsAppNavPanel = ({
   loading,
   createWorkflowsApp,
 }: WorkflowsAppNavPanelProps) => {
-  const [selectedSubHeader, setSelectedSubHeader] = useState<string>(pageReady ? 'workspace-workflows' : '');
+  const [selectedSubHeader, setSelectedSubHeader] = useState<string>('workspace-workflows');
 
-  const isSubHeaderActive = (subHeader: string) => selectedSubHeader === subHeader;
+  const isSubHeaderActive = (subHeader: string) => pageReady && selectedSubHeader === subHeader;
 
   return div(
     {
@@ -211,14 +213,19 @@ export const WorkflowsAppNavPanel = ({
           ),
         ]
       ),
-      Utils.switchCase(
-        selectedSubHeader,
-        ['workspace-workflows', () => div(['Workflows in this workspace TODO'])],
-        ['submission-history', () => div(['Submission history TODO'])],
-        ['featured-workflows', () => div(['Featured workflows TODO'])],
-        ['import-workflow', () => div(['Import workflow TODO'])],
+      Utils.cond(
         [
-          Utils.DEFAULT,
+          pageReady,
+          Utils.switchCase(
+            selectedSubHeader,
+            ['workspace-workflows', () => div(['Workflows in this workspace TODO'])],
+            ['submission-history', () => div(['Submission history TODO'])],
+            ['featured-workflows', () => div(['Featured workflows TODO'])],
+            ['import-workflow', () => div(['Import workflow TODO'])]
+          ),
+        ],
+        [
+          !pageReady,
           () => div([h(WorkflowsAppLauncherCard, { onClick: createWorkflowsApp, disabled: launcherDisabled })]),
         ]
       ),

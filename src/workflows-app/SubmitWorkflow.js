@@ -170,14 +170,14 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
               ]),
             viewFindWorkflowModal && h(FindWorkflowModal, { name, namespace, workspace, onDismiss: () => setViewFindWorkflowModal(false) }),
           ])
-        : h(WorkflowsAppNavPanel, { name, namespace, workspace, loading });
+        : h(WorkflowsAppNavPanel, { pageReady, launcherDisabled, loading, createWorkflowsApp });
     };
     return Utils.cond(
       [loading, () => centeredSpinner()],
       [pageReady, () => renderSubmitWorkflow()],
       [
         doesWorkspaceSupportCromwellAppForUser(workspace.workspace, getCloudProviderFromWorkspace(workspace), appToolLabels.CROMWELL),
-        () => h(Fragment, {}, [h(WorkflowsAppNavPanel, { pageReady, launcherDisabled, loading, createWorkflowsApp })]), // &&
+        () => h(WorkflowsAppNavPanel, { pageReady, launcherDisabled, loading, createWorkflowsApp }),
         // h(WorkflowsAppLauncherCard, { onClick: createWorkflowsApp, disabled: launcherDisabled }),
       ],
       [Utils.DEFAULT, () => div({ style: { ...styles.card, width: '50rem', margin: '2rem 4rem' } }, [getCromwellUnsupportedMessage()])]
