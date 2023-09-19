@@ -108,6 +108,7 @@ export const WorkflowsAppNavPanel = ({
                   hover: Style.navList.itemHover(isActive),
                   'aria-current': isActive,
                   key: subHeaderKey,
+                  disabled: !pageReady,
                 },
                 [
                   h(ListItem, {
@@ -150,6 +151,7 @@ export const WorkflowsAppNavPanel = ({
                       hover: Style.navList.itemHover(isActive),
                       'aria-current': isActive,
                       key: subHeaderKey,
+                      disabled: !pageReady,
                     },
                     [
                       h(ListItem, {
