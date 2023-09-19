@@ -4,7 +4,7 @@ import { button, h } from 'react-hyperscript-helpers';
 
 import { icon } from './icon';
 import { getPopupRoot } from './internal/PopupPortal';
-import { renderWithTheme } from './internal/test-utils';
+import { renderWithTheme, withFakeTimers } from './internal/test-utils';
 import { TooltipTrigger, TooltipTriggerProps } from './TooltipTrigger';
 
 describe('TooltipTrigger', () => {
@@ -109,36 +109,34 @@ describe('TooltipTrigger', () => {
     expect(onBlur).toHaveBeenCalled();
   });
 
-  it('allows delaying showing the tooltip', async () => {
-    // Arrange
-    jest.useFakeTimers();
+  it(
+    'allows delaying showing the tooltip',
+    withFakeTimers(async () => {
+      // Arrange
+      renderTooltipTrigger({ delay: 1000 });
 
-    renderTooltipTrigger({ delay: 1000 });
+      const btn = screen.getByRole('button');
 
-    const btn = screen.getByRole('button');
+      // Act
+      act(() => {
+        btn.focus();
+      });
 
-    // Act
-    act(() => {
-      btn.focus();
-    });
+      const tooltip = within(getPopupRoot()).getByText(tooltipContent);
 
-    const tooltip = within(getPopupRoot()).getByText(tooltipContent);
+      const isShownAfterFocus = tooltip.style.display !== 'none';
 
-    const isShownAfterFocus = tooltip.style.display !== 'none';
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
 
-    act(() => {
-      jest.advanceTimersByTime(1000);
-    });
+      const isShownAfterDelay = tooltip.style.display !== 'none';
 
-    const isShownAfterDelay = tooltip.style.display !== 'none';
-
-    // Assert
-    expect(isShownAfterFocus).toBe(false);
-    expect(isShownAfterDelay).toBe(true);
-
-    // Cleanup
-    jest.useRealTimers();
-  });
+      // Assert
+      expect(isShownAfterFocus).toBe(false);
+      expect(isShownAfterDelay).toBe(true);
+    })
+  );
 
   describe('accessibility', () => {
     it('marks child as described by tooltip content', () => {
