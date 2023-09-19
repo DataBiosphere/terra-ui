@@ -1,5 +1,5 @@
 # Terra UI
-Web user interface for the Terra platform.
+Web terraUser interface for the Terra platform.
 
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=DataBiosphere_terra-ui&metric=coverage)](https://sonarcloud.io/component_measures?metric=coverage&id=DataBiosphere_terra-ui&selected=DataBiosphere_terra-ui%3Asrc)
 

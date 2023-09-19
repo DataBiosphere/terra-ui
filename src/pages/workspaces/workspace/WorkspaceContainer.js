@@ -21,7 +21,7 @@ import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
-import { getUser } from 'src/libs/state';
+import { getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { hasProtectedData, isAzureWorkspace, isGoogleWorkspace, protectedDataMessage, regionConstraintMessage } from 'src/libs/workspace-utils';
@@ -170,7 +170,7 @@ export const WorkspaceContainer = ({
       Ajax().Metrics.captureEvent(Events.permissionsSynchronizationDelayDisplayed, {
         accessLevel: workspace.accessLevel,
         createdDate: workspace.workspace.createdDate,
-        isWorkspaceCreator: workspace.workspace.createdBy === getUser().email,
+        isWorkspaceCreator: workspace.workspace.createdBy === getTerraUser().email,
         ...extractWorkspaceDetails(workspace),
       });
     }
@@ -281,7 +281,7 @@ const WorkspaceAccessError = () => {
     p(['You are trying to access a workspace that either does not exist, or you do not have access to it.']),
     p([
       'You are currently logged in as ',
-      span({ style: { fontWeight: 600 } }, [getUser().email]),
+      span({ style: { fontWeight: 600 } }, [getTerraUser().email]),
       '. You may have access with a different account.',
     ]),
     p([
