@@ -163,7 +163,8 @@ export const RenderedWorkspaces: FC<RenderedWorkspacesProps> = ({
                 } = sortedWorkspaces[rowIndex];
                 const description = attributes?.description;
                 const canView = Utils.canRead(accessLevel);
-                const canAccessWorkspace = () => (!canView ? setRequestingAccessWorkspaceId(workspaceId) : undefined);
+                const canAccessWorkspace = () =>
+                  !canView ? updateWorkspaceActions({ requestingAccessWorkspaceId: workspaceId }) : undefined;
 
                 return div({ style: styles.tableCellContainer }, [
                   div({ style: styles.tableCellContent }, [
