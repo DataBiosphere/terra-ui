@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import { CSSProperties, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
+import { AnalysesData } from 'src/analysis/Analyses';
 import Collapse from 'src/components/Collapse';
 import { Clickable } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
@@ -8,8 +9,10 @@ import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import HelpfulLinksBox from 'src/workflows-app/components/HelpfulLinksBox';
 import { WorkflowsAppLauncherCard } from 'src/workflows-app/components/WorkflowsAppLauncherCard';
+import { WorkflowsInWorkspace } from 'src/workflows-app/WorkflowsInWorkspace';
 
 const subHeadersMap = {
   'workspace-workflows': 'Workflows in this workspace',
@@ -54,6 +57,10 @@ const ListItem = ({ title, pageReady, ...props }: ListItemProps) =>
 
 type WorkflowsAppNavPanelProps = {
   loading: boolean;
+  name: string;
+  namespace: string;
+  workspace: WorkspaceWrapper;
+  analysesData: AnalysesData;
   launcherDisabled: boolean;
   createWorkflowsApp: Function;
   pageReady: boolean;
@@ -63,6 +70,10 @@ export const WorkflowsAppNavPanel = ({
   pageReady,
   launcherDisabled,
   loading,
+  name,
+  namespace,
+  workspace,
+  analysesData,
   createWorkflowsApp,
 }: WorkflowsAppNavPanelProps) => {
   const [selectedSubHeader, setSelectedSubHeader] = useState<string>('workspace-workflows');
@@ -216,7 +227,7 @@ export const WorkflowsAppNavPanel = ({
           pageReady,
           Utils.switchCase(
             selectedSubHeader,
-            ['workspace-workflows', () => div(['Workflows in this workspace TODO'])],
+            ['workspace-workflows', () => h(WorkflowsInWorkspace, { name, namespace, workspace, analysesData })],
             ['submission-history', () => div(['Submission history TODO'])],
             ['featured-workflows', () => div(['Featured workflows TODO'])],
             ['import-workflow', () => div(['Import workflow TODO'])]

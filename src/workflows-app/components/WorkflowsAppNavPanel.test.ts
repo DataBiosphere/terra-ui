@@ -1,9 +1,22 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
+import { AnalysesData } from 'src/analysis/Analyses';
 import { WorkflowsAppNavPanel } from 'src/workflows-app/components/WorkflowsAppNavPanel';
+import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 
-describe('Left Navigation Panel', () => {
+const defaultAnalysesData: AnalysesData = {
+  apps: [],
+  refreshApps: jest.fn().mockReturnValue(Promise.resolve()),
+  runtimes: [],
+  refreshRuntimes: () => Promise.resolve(),
+  appDataDisks: [],
+  persistentDisks: [],
+};
+
+jest.mock('src/libs/ajax');
+
+describe('Workflows App Navigation Panel', () => {
   it('renders headers', async () => {
     const user = userEvent.setup();
 
@@ -13,11 +26,17 @@ describe('Left Navigation Panel', () => {
         launcherDisabled: true,
         createWorkflowsApp: jest.fn(),
         pageReady: true,
+        name: 'test-azure-ws-name',
+        namespace: 'test-azure-ws-namespace',
+        workspace: mockAzureWorkspace,
+        analysesData: defaultAnalysesData,
       })
     );
 
     // Assert
-    screen.getByText('Workflows in this workspace');
+    // Using getAll because there will also be a header in the body. Wondering if this also points to a refactor -
+    // where the panel and the content are on the same level, rather than the panel being a parent of the content
+    screen.getAllByText('Workflows in this workspace');
     screen.getByText('Submission history');
     screen.getByText('Find & add workflows');
     screen.getByText('Featured workflows');
