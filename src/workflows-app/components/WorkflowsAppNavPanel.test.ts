@@ -96,6 +96,7 @@ describe('Workflows App Navigation Panel', () => {
 
     expect(screen.getByText('Launch Workflows app to run workflows')).toBeInTheDocument();
 
+    // Re-render with pageReady: true
     await act(() => {
       rerender(
         h(WorkflowsAppNavPanel, {
