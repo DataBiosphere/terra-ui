@@ -1,10 +1,10 @@
+import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { useEffect, useRef, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
-import { useUniqueId } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 
 const Collapse = ({

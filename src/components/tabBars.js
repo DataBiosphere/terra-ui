@@ -1,3 +1,4 @@
+import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import PropTypes from 'prop-types';
 import { Fragment, useRef } from 'react';
@@ -6,7 +7,7 @@ import { Clickable } from 'src/components/common';
 import { HorizontalNavigation } from 'src/components/keyboard-nav';
 import { Ajax } from 'src/libs/ajax';
 import { terraSpecial } from 'src/libs/colors';
-import { useOnMount, useUniqueId } from 'src/libs/react-utils';
+import { useOnMount } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 
@@ -168,7 +169,8 @@ export function SimpleTabBar({
   children,
   ...props
 }) {
-  const tabIds = _.map(useUniqueId, _.range(0, tabs.length));
+  const baseId = useUniqueId();
+  const tabIds = _.map((i) => `${baseId}-tab-${i}`, _.range(0, tabs.length));
   const panelRef = useRef();
   const maybeEmitViewMetric = (key) => {
     !!metricsPrefix && Ajax().Metrics.captureEvent(`${metricsPrefix}:view:${_.replace(/\s/g, '-', key)}`, metricsData);

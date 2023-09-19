@@ -1,8 +1,6 @@
 import _ from 'lodash/fp';
 import { ReactElement, useState } from 'react';
 
-export { useUniqueId } from '@terra-ui-packages/components';
-
 type IdContainerProps = {
   children: (id: string) => ReactElement<any, any> | null;
 };
