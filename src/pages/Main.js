@@ -1,6 +1,6 @@
 import 'src/libs/routes';
 
-import { ThemeProvider } from '@terra-ui-packages/components';
+import { ErrorBoundary, ThemeProvider } from '@terra-ui-packages/components';
 import { h } from 'react-hyperscript-helpers';
 import { ReactNotifications } from 'react-notifications-component';
 import { AuthProvider } from 'react-oidc-context';
@@ -10,7 +10,6 @@ import AuthStoreSetter from 'src/components/AuthStoreSetter';
 import ConfigOverridesWarning from 'src/components/ConfigOverridesWarning';
 import CookieRejectModal from 'src/components/CookieRejectModal';
 import CookieWarning from 'src/components/CookieWarning';
-import ErrorWrapper from 'src/components/ErrorWrapper';
 import Favicon from 'src/components/Favicon';
 import FirecloudNotification from 'src/components/FirecloudNotification';
 import IdleStatusMonitor from 'src/components/IdleStatusMonitor';
@@ -19,6 +18,7 @@ import { TitleManager } from 'src/components/TitleManager';
 import ImportStatus from 'src/data/ImportStatus';
 import { getOidcConfig } from 'src/libs/auth';
 import { getEnabledBrand } from 'src/libs/brand-utils';
+import { reportError } from 'src/libs/error';
 import { PageViewReporter } from 'src/libs/events';
 import { LocationProvider, PathHashInserter, Router } from 'src/libs/nav';
 
@@ -32,13 +32,21 @@ const Main = () => {
       h(ImportStatus),
       h(Favicon),
       h(IdleStatusMonitor),
-      h(ErrorWrapper, [
-        h(TitleManager),
-        h(FirecloudNotification),
-        h(AuthenticatedCookieSetter),
-        h(AuthProvider, getOidcConfig(), [h(AuthStoreSetter)]),
-        h(AuthContainer, [h(Router)]),
-      ]),
+      h(
+        ErrorBoundary,
+        {
+          onError: (error) => {
+            reportError('An error occurred', error);
+          },
+        },
+        [
+          h(TitleManager),
+          h(FirecloudNotification),
+          h(AuthenticatedCookieSetter),
+          h(AuthProvider, getOidcConfig(), [h(AuthStoreSetter)]),
+          h(AuthContainer, [h(Router)]),
+        ]
+      ),
       h(PageViewReporter),
       h(SupportRequest),
       h(ConfigOverridesWarning),
