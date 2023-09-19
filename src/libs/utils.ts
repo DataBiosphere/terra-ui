@@ -74,17 +74,6 @@ export const workflowStatuses = [
   'Aborted',
 ];
 
-/**
- * Convenience helper for debugging _.flow pipelines.
- *
- * To inspect intermediate values in a pipeline, use:
- * _.flow(step1, Utils.log, step2)
- */
-export const log = (...args) => {
-  console.log.apply(null, args); // eslint-disable-line no-console
-  return _.last(args);
-};
-
 export const toIndexPairs = <T>(obj: T[]): [number, T][] =>
   _.flow(
     _.toPairs,
@@ -116,19 +105,10 @@ export const memoizeAsync = (asyncFn, { keyFn = _.identity, expires = Infinity }
   };
 };
 
-export const withDelay = _.curry((ms, wrappedFn) => async (...args) => {
-  await delay(ms);
-  return wrappedFn(...args);
-});
-
-export const onNextTick = (fn, ...args) => setTimeout(() => fn(...args), 0);
-
 // Returns a promise that will never resolve or reject. Useful for cancelling async flows.
 export const abandonedPromise = () => {
   return new Promise(() => {});
 };
-
-export const waitOneTick = () => new Promise(setImmediate);
 
 // Returns a message explaining that the desired snapshot reference could not be found by name
 export const snapshotReferenceMissingError = (snapshotReferenceName) => {
