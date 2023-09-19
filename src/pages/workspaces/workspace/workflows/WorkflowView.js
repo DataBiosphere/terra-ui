@@ -1219,9 +1219,9 @@ const WorkflowView = _.flow(
     async uploadJson(key, file) {
       try {
         const rawUpdates = JSON.parse(await readFileAsText(file));
-        const updates = _.mapValues((v) => (_.isString(v) && v.match(/\${(.*)}/) ? v.replace(/\${(.*)}/, (_, match) => match) : JSON.stringify(v)))(
-          rawUpdates
-        );
+        const updates = _.mapValues((v) => (
+          _.isString(v) && v.match(/\${([\s\S]*)}/) ? v.replace(/\${([\s\S]*)}/, (_, match) => match) : JSON.stringify(v))
+        )(rawUpdates);
         this.setState(({ modifiedConfig, modifiedInputsOutputs }) => {
           const existing = _.map('name', modifiedInputsOutputs[key]);
           return {
