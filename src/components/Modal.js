@@ -1,3 +1,4 @@
+import { useUniqueId } from '@terra-ui-packages/components';
 import { delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import PropTypes from 'prop-types';
@@ -7,7 +8,7 @@ import RModal from 'react-modal';
 import { ButtonPrimary, ButtonSecondary, Clickable } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { getPopupRoot } from 'src/components/popup-utils';
-import { useOnMount, useUniqueId } from 'src/libs/react-utils';
+import { useOnMount } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 

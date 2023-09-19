@@ -1,3 +1,4 @@
+import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { b, h } from 'react-hyperscript-helpers';
@@ -6,7 +7,7 @@ import { analysisLauncherTabName, analysisTabName } from 'src/analysis/runtime-c
 import { getAnalysisFileExtension, stripExtension } from 'src/analysis/utils/file-utils';
 import { analysisNameInput, analysisNameValidator } from 'src/analysis/utils/notebook-utils';
 import { ToolLabel } from 'src/analysis/utils/tool-utils';
-import { ButtonPrimary, spinnerOverlay, useUniqueId } from 'src/components/common';
+import { ButtonPrimary, spinnerOverlay } from 'src/components/common';
 import ErrorView from 'src/components/ErrorView';
 import Modal from 'src/components/Modal';
 import { WorkspaceSelector } from 'src/components/workspace-utils';

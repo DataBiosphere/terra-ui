@@ -1,7 +1,7 @@
+import { useUniqueId } from '@terra-ui-packages/components';
 import pluralize from 'pluralize';
 import { ReactNode, useState } from 'react';
 import { div, h, p } from 'react-hyperscript-helpers';
-import { useUniqueId } from 'src/components/common';
 import { ValidatedInput } from 'src/components/input';
 import { formHint, FormLabel } from 'src/libs/forms';
 import { useDebouncedValue } from 'src/libs/react-utils';
