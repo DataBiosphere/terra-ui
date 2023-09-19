@@ -22,11 +22,14 @@ describe('Workflows App Navigation Panel', () => {
 
     render(
       h(WorkflowsAppNavPanel, {
+        loading: false,
+        launcherDisabled: true,
+        createWorkflowsApp: jest.fn(),
+        pageReady: true,
         name: 'test-azure-ws-name',
         namespace: 'test-azure-ws-namespace',
         workspace: mockAzureWorkspace,
         analysesData: defaultAnalysesData,
-        loading: false,
       })
     );
 

@@ -12,22 +12,22 @@ const styles = {
   },
 };
 
-export const WorkflowsAppLauncherCard = ({ onClick, disabled, ...props }) => {
+export const WorkflowsAppLauncherCard = ({ onClick, disabled }) => {
   return div({ style: { ...styles.card, width: '50rem', margin: '2rem 4rem' } }, [
     h(TitleBar, {
       id: 'workflow-app-launch-page',
-      title: 'Launch Cromwell to run workflows',
+      title: 'Launch Workflows app to run workflows',
       style: { marginBottom: '0.5rem' },
     }),
     div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'flex-center' } }, [
-      'Cromwell must be launched in order to explore, view, and submit workflows.',
+      'Workflows app must be launched in order to explore, view, and submit workflows.',
     ]),
     div({ style: { display: 'flex', marginTop: '.5rem', justifyContent: 'flex-center' } }, [
-      'Once launched, Cromwell will remain active until the workspace is deleted.',
+      'Once launched, Workflows app will remain active until the workspace is deleted.',
     ]),
     div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-center' } }, [
       disabled
-        ? 'Cromwell is being launched. You may exit this page and return later without interrupting the launching process.'
+        ? 'Workflows app is being launched. You may exit this page and return later without interrupting the launching process.'
         : 'Would you like to get started?',
     ]),
     div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'flex-center', width: '18rem' } }, [
@@ -37,11 +37,11 @@ export const WorkflowsAppLauncherCard = ({ onClick, disabled, ...props }) => {
             ButtonPrimary,
             {
               disabled,
-              tooltip: disabled ? 'Cromwell is being launched' : 'Launch Cromwell',
+              tooltip: disabled ? 'Workflows app is being launched' : 'Launch Workflows app',
               onClick,
               style: { width: '100%' },
             },
-            ['Yes, launch Cromwell']
+            ['Yes, launch Workflows app']
           ),
     ]),
   ]);

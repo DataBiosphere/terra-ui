@@ -20,6 +20,7 @@ const Collapse = ({
   afterTitle,
   onFirstOpen = () => {},
   noTitleWrap,
+  disabled = false,
   ...props
 }) => {
   const [isOpened, setIsOpened] = useState(initialOpenState);
@@ -57,6 +58,7 @@ const Collapse = ({
           {
             'aria-expanded': isOpened,
             'aria-controls': isOpened ? id : undefined,
+            disabled,
             style: {
               color: colors.dark(),
               ...(noTitleWrap ? Style.noWrapEllipsis : {}),
