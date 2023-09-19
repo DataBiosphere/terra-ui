@@ -22,10 +22,12 @@ export const withUrlPrefix = _.curry((prefix, wrappedFetch) => (path, ...args) =
 export const withRetryOnError = _.curry((shouldNotRetryFn, wrappedFetch) => async (...args) => {
   const timeout = 5000;
   const somePointInTheFuture = Date.now() + timeout;
+  const maxDelayIncrement = 1500;
+  const minDelay = 500;
 
   while (Date.now() < somePointInTheFuture) {
     try {
-      await delay(500 + 1500 * Math.random());
+      await delay(minDelay + maxDelayIncrement * Math.random());
       return await wrappedFetch(...args);
     } catch (error) {
       if (shouldNotRetryFn(error)) {
