@@ -1,14 +1,14 @@
-import _ from 'lodash/fp';
-import { ReactElement, useState } from 'react';
+import { useUniqueId } from '@terra-ui-packages/components';
+import { ReactNode } from 'react';
 
 type IdContainerProps = {
-  children: (id: string) => ReactElement<any, any> | null;
+  children: (id: string) => ReactNode;
 };
 
 /**
  * DEPRECATED - should switch to useUniqueId pattern (below)
  */
-export const IdContainer = ({ children }: IdContainerProps) => {
-  const [id] = useState(() => _.uniqueId('element-'));
+export const IdContainer = ({ children }: IdContainerProps): ReactNode => {
+  const id = useUniqueId();
   return children(id);
 };
