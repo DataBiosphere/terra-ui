@@ -200,7 +200,7 @@ export type AuthTokenState = AuthTokenSuccessState | AuthTokenExpiredState | Aut
  * Attempts to load an auth token.
  * When token is successfully loaded, returns an AuthTokenSuccessState.
  * When token fails to load because of an expired refresh token, returns an AuthTokenExpiredState
- * WHen tokens fails to load because of an error, returns an AuthTokenErrorState
+ * When tokens fails to load because of an error, returns an AuthTokenErrorState
  * @param includeBillingScope
  * @param popUp whether signIn is attempted with a popup, or silently in the background.
  */
