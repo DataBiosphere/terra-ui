@@ -2,7 +2,6 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { WorkflowsAppNavPanel } from 'src/workflows-app/components/WorkflowsAppNavPanel';
-import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 
 describe('Left Navigation Panel', () => {
   it('renders headers', async () => {
@@ -10,10 +9,10 @@ describe('Left Navigation Panel', () => {
 
     render(
       h(WorkflowsAppNavPanel, {
-        name: 'test-azure-ws-name',
-        namespace: 'test-azure-ws-namespace',
-        workspace: mockAzureWorkspace,
         loading: false,
+        launcherDisabled: true,
+        createWorkflowsApp: jest.fn(),
+        pageReady: true,
       })
     );
 

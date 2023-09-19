@@ -57,8 +57,6 @@ type WorkflowsAppNavPanelProps = {
   launcherDisabled: boolean;
   createWorkflowsApp: Function;
   pageReady: boolean;
-  selectedSubHeader: string;
-  setSelectedSubHeader: Function;
 };
 
 export const WorkflowsAppNavPanel = ({
