@@ -1,3 +1,4 @@
+import { delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { AuthTokenState, loadAuthToken, signOut, SignOutCause } from 'src/libs/auth';
@@ -25,10 +26,9 @@ export const withRetryOnError = _.curry((shouldNotRetryFn, wrappedFetch) => asyn
   const minDelay = 500;
 
   while (Date.now() < somePointInTheFuture) {
-    const until = Math.random() * maxDelayIncrement + minDelay;
     try {
-      // @ts-ignore
-      return await Utils.withDelay(until, wrappedFetch)(...args);
+      await delay(minDelay + maxDelayIncrement * Math.random());
+      return await wrappedFetch(...args);
     } catch (error) {
       if (shouldNotRetryFn(error)) {
         throw error;
