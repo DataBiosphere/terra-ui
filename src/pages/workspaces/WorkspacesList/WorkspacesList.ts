@@ -15,7 +15,7 @@ import { isAzureUser } from 'src/libs/auth';
 import { withErrorIgnoring } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
-import { useOnMount } from 'src/libs/react-utils';
+import { useOnMount, useStore } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import {
@@ -35,6 +35,10 @@ import {
   workspaceSubmissionStatus,
 } from 'src/pages/workspaces/WorkspacesList/useWorkspacesWithSubmissionStats';
 import { WorkspaceFilters } from 'src/pages/workspaces/WorkspacesList/WorkspaceFilters';
+import {
+  updateWorkspaceActions,
+  workspaceUserActionsStore,
+} from 'src/pages/workspaces/WorkspacesList/WorkspaceUserActions';
 
 const EMPTY_LIST = [];
 
@@ -83,13 +87,7 @@ export const WorkspacesList: FC<{}> = () => {
     }
   });
 
-  const [creatingNewWorkspace, setCreatingNewWorkspace] = useState<boolean>(false);
-  const [cloningWorkspaceId, setCloningWorkspaceId] = useState<string>();
-  const [deletingWorkspaceId, setDeletingWorkspaceId] = useState<string>();
-  const [lockingWorkspaceId, setLockingWorkspaceId] = useState<string>();
-  const [sharingWorkspace, setSharingWorkspace] = useState<Workspace>();
-  const [leavingWorkspaceId, setLeavingWorkspaceId] = useState<string>();
-  const [requestingAccessWorkspaceId, setRequestingAccessWorkspaceId] = useState<string>();
+  const userActions = useStore(workspaceUserActionsStore);
 
   useOnMount(() => {
     const loadFeatured = withErrorIgnoring(async () => {
@@ -147,7 +145,7 @@ export const WorkspacesList: FC<{}> = () => {
         h(
           Link,
           {
-            onClick: () => setCreatingNewWorkspace(true),
+            onClick: () => updateWorkspaceActions({ creatingNewWorkspace: true }),
             style: { marginLeft: '0.5rem' },
             tooltip: 'Create a new workspace',
           },
@@ -213,60 +211,53 @@ export const WorkspacesList: FC<{}> = () => {
           h(RenderedWorkspaces, {
             workspaces,
             loadingWorkspaces,
-            setCreatingNewWorkspace,
             tabs,
             initialFiltered,
             filteredWorkspaces,
             loadingSubmissionStats,
-            setCloningWorkspaceId,
-            setDeletingWorkspaceId,
-            setLockingWorkspaceId,
-            setSharingWorkspace,
-            setLeavingWorkspaceId,
-            setRequestingAccessWorkspaceId,
           }),
         ]
       ),
-      creatingNewWorkspace &&
+      userActions.creatingNewWorkspace &&
         h(NewWorkspaceModal, {
-          onDismiss: () => setCreatingNewWorkspace(false),
+          onDismiss: () => updateWorkspaceActions({ creatingNewWorkspace: false }),
           onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name }),
         }),
-      cloningWorkspaceId &&
+      !!userActions.cloningWorkspaceId &&
         h(NewWorkspaceModal, {
-          cloneWorkspace: getWorkspace(cloningWorkspaceId),
-          onDismiss: () => setCloningWorkspaceId(undefined),
+          cloneWorkspace: getWorkspace(userActions.cloningWorkspaceId),
+          onDismiss: () => updateWorkspaceActions({ cloningWorkspaceId: undefined }),
           onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name }),
         }),
-      deletingWorkspaceId &&
+      !!userActions.deletingWorkspaceId &&
         h(DeleteWorkspaceModal, {
-          workspace: getWorkspace(deletingWorkspaceId),
-          onDismiss: () => setDeletingWorkspaceId(undefined),
+          workspace: getWorkspace(userActions.deletingWorkspaceId),
+          onDismiss: () => updateWorkspaceActions({ deletingWorkspaceId: undefined }),
           onSuccess: refreshWorkspaces,
         }),
-      lockingWorkspaceId &&
+      !!userActions.lockingWorkspaceId &&
         h(LockWorkspaceModal, {
-          workspace: getWorkspace(lockingWorkspaceId),
-          onDismiss: () => setLockingWorkspaceId(undefined),
+          workspace: getWorkspace(userActions.lockingWorkspaceId),
+          onDismiss: () => updateWorkspaceActions({ lockingWorkspaceId: undefined }),
           onSuccess: refreshWorkspaces,
         }),
-      !!sharingWorkspace &&
+      !!userActions.sharingWorkspace &&
         h(ShareWorkspaceModal, {
-          workspace: sharingWorkspace,
-          onDismiss: () => setSharingWorkspace(undefined),
+          workspace: userActions.sharingWorkspace,
+          onDismiss: () => updateWorkspaceActions({ sharingWorkspace: undefined }),
         }),
-      leavingWorkspaceId &&
+      !!userActions.leavingWorkspaceId &&
         h(LeaveResourceModal, {
-          samResourceId: leavingWorkspaceId,
+          samResourceId: userActions.leavingWorkspaceId,
           samResourceType: 'workspace',
           displayName: 'workspace',
-          onDismiss: () => setLeavingWorkspaceId(undefined),
+          onDismiss: () => updateWorkspaceActions({ leavingWorkspaceId: undefined }),
           onSuccess: refreshWorkspaces,
         }),
-      requestingAccessWorkspaceId &&
+      !!userActions.requestingAccessWorkspaceId &&
         h(RequestAccessModal, {
-          workspace: getWorkspace(requestingAccessWorkspaceId),
-          onDismiss: () => setRequestingAccessWorkspaceId(undefined),
+          workspace: getWorkspace(userActions.requestingAccessWorkspaceId),
+          onDismiss: () => updateWorkspaceActions({ requestingAccessWorkspaceId: undefined }),
         }),
       loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay),
     ]),

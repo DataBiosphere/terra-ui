@@ -30,6 +30,7 @@ import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu';
 import { CatagorizedWorkspaces } from 'src/pages/workspaces/WorkspacesList/CatagorizedWorkspaces';
 import { workspaceSubmissionStatus } from 'src/pages/workspaces/WorkspacesList/useWorkspacesWithSubmissionStats';
 import { WorkspaceTab } from 'src/pages/workspaces/WorkspacesList/WorkspaceTab';
+import { updateWorkspaceActions } from 'src/pages/workspaces/WorkspacesList/WorkspaceUserActions';
 
 interface WorkspaceSort {
   field: keyof WorkspaceInfo | keyof Workspace;
@@ -57,29 +58,15 @@ interface RenderedWorkspacesProps {
   filteredWorkspaces: CatagorizedWorkspaces;
   tabs: WorkspaceTab[];
   loadingSubmissionStats: boolean;
-  setCreatingNewWorkspace: React.Dispatch<boolean>;
-  setCloningWorkspaceId: React.Dispatch<string>;
-  setDeletingWorkspaceId: React.Dispatch<string>;
-  setLockingWorkspaceId: React.Dispatch<string>;
-  setSharingWorkspace: React.Dispatch<Workspace>;
-  setLeavingWorkspaceId: React.Dispatch<string>;
-  setRequestingAccessWorkspaceId: React.Dispatch<string>;
 }
 
 export const RenderedWorkspaces: FC<RenderedWorkspacesProps> = ({
   workspaces,
   loadingWorkspaces,
-  setCreatingNewWorkspace,
   tabs,
   initialFiltered,
   filteredWorkspaces,
   loadingSubmissionStats,
-  setCloningWorkspaceId,
-  setDeletingWorkspaceId,
-  setLockingWorkspaceId,
-  setSharingWorkspace,
-  setLeavingWorkspaceId,
-  setRequestingAccessWorkspaceId,
 }) => {
   const { query } = Nav.useRoute();
   const tab = query.tab || 'myWorkspaces';
@@ -124,7 +111,7 @@ export const RenderedWorkspaces: FC<RenderedWorkspacesProps> = ({
                 _.isEmpty(initialFiltered.myWorkspaces) && tab === 'myWorkspaces',
                 () =>
                   NoWorkspacesMessage({
-                    onClick: () => setCreatingNewWorkspace(true),
+                    onClick: () => updateWorkspaceActions({ creatingNewWorkspace: true }),
                   }),
               ],
               [
@@ -312,11 +299,12 @@ export const RenderedWorkspaces: FC<RenderedWorkspacesProps> = ({
                     'You do not have permission to perform actions on this workspace.',
                   ]);
                 }
-                const onClone = () => setCloningWorkspaceId(workspaceId);
-                const onDelete = () => setDeletingWorkspaceId(workspaceId);
-                const onLock = () => setLockingWorkspaceId(workspaceId);
-                const onShare = (policies) => setSharingWorkspace({ ...getWorkspace(workspaceId), policies });
-                const onLeave = () => setLeavingWorkspaceId(workspaceId);
+                const onClone = () => updateWorkspaceActions({ cloningWorkspaceId: workspaceId });
+                const onDelete = () => updateWorkspaceActions({ deletingWorkspaceId: workspaceId });
+                const onLock = () => updateWorkspaceActions({ lockingWorkspaceId: workspaceId });
+                const onShare = (policies) =>
+                  updateWorkspaceActions({ sharingWorkspace: { ...getWorkspace(workspaceId), policies } });
+                const onLeave = () => updateWorkspaceActions({ leavingWorkspaceId: workspaceId });
 
                 return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
                   div({ style: styles.tableCellContent }, [
