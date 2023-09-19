@@ -3,6 +3,7 @@ import { parseJSON } from 'date-fns/fp';
 import jwtDecode, { JwtPayload } from 'jwt-decode';
 import _ from 'lodash/fp';
 import { ExtraSigninRequestArgs, IdTokenClaims, User, UserManager, WebStorageStateStore } from 'oidc-client-ts';
+import { AuthContextProps } from 'react-oidc-context';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
 import { Ajax } from 'src/libs/ajax';
@@ -21,7 +22,7 @@ import {
   azureCookieReadyStore,
   azurePreviewStore,
   cookieReadyStore,
-  getUser,
+  getTerraUser,
   requesterPaysProjectStore,
   TokenMetadata,
   userStatus,
@@ -55,7 +56,7 @@ export const getOidcConfig = () => {
   };
 };
 
-const getAuthInstance = () => {
+const getAuthInstance = (): AuthContextProps | undefined => {
   return authStore.get().authContext;
 };
 
@@ -105,15 +106,16 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
   azureCookieReadyStore.reset();
   getSessionStorage().clear();
   azurePreviewStore.set(false);
-  const auth = getAuthInstance();
+  const auth: AuthContextProps = getAuthInstance()!;
   revokeTokens()
     .finally(() => auth.removeUser())
     .finally(() => auth.clearStaleState());
 };
 
 const revokeTokens = async () => {
-  const auth = getAuthInstance();
-  if (auth.settings.metadata.revocation_endpoint) {
+  // send back auth instance, so we can use it for remove and clear stale state
+  const auth: AuthContextProps = getAuthInstance()!;
+  if (auth.settings.metadata !== undefined && auth.settings.metadata.revocation_endpoint !== undefined) {
     // revokeTokens can fail if the token has already been revoked.
     // Recover from invalid_token errors to make sure signOut completes successfully.
     try {
@@ -153,14 +155,14 @@ export const signIn = async (includeBillingScope = false): Promise<User> => {
     Ajax().Metrics.captureEvent(Events.user.login, {
       sessionStartTime: Utils.makeCompleteDate(sessionStartTime),
     });
-    return authTokenState.user;
+    return authTokenState.oidcUser;
   }
   throw new Error('Auth token failed to load when signing in');
 };
 
 export interface AuthTokenSuccessState {
   status: 'success';
-  user: User;
+  oidcUser: User;
 }
 
 export interface AuthTokenExpiredState {
@@ -199,7 +201,7 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
   const loadedAuthTokenState: AuthTokenState = await tryLoadAuthToken(includeBillingScope, popUp);
 
   if (loadedAuthTokenState.status === 'success') {
-    const user: User = (loadedAuthTokenState as AuthTokenSuccessState).user;
+    const user: User = (loadedAuthTokenState as AuthTokenSuccessState).oidcUser;
     const userJWT: string = user.id_token!;
     const decodedJWT: JwtPayload = jwtDecode<JwtPayload>(userJWT);
     const authTokenCreatedAt: number = (decodedJWT as any).auth_time; // time in seconds when authorization token was created
@@ -270,8 +272,8 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
 
 const tryLoadAuthToken = async (includeBillingScope = false, popUp = false): Promise<AuthTokenState> => {
   const args: ExtraSigninRequestArgs = getSigninArgs(includeBillingScope);
-  const authInstance = getAuthInstance();
-  const loadedAuthTokenResponse: User | null = await (popUp
+  const authInstance: AuthContextProps = getAuthInstance()!;
+  const loadedAuthTokenResponse: User | null | AuthTokenErrorState = await (popUp
     ? // returns Promise<User | null>, attempts to use the refresh token to get a new authToken
       authInstance.signinPopup(args)
     : authInstance.signinSilent(args)
@@ -289,11 +291,14 @@ const tryLoadAuthToken = async (includeBillingScope = false, popUp = false): Pro
     };
     return errorState;
   });
-  if (loadedAuthTokenResponse instanceof User) {
-    return {
-      status: 'success',
-      user: loadedAuthTokenResponse,
-    };
+  if (loadedAuthTokenResponse !== null) {
+    if (loadedAuthTokenResponse instanceof User) {
+      return {
+        status: 'success',
+        oidcUser: loadedAuthTokenResponse,
+      };
+    }
+    return loadedAuthTokenResponse;
   }
   return {
     status: 'expired',
@@ -367,14 +372,14 @@ export const ensureAuthSettled = () => {
 };
 
 export const bucketBrowserUrl = (id) => {
-  return `https://console.cloud.google.com/storage/browser/${id}?authuser=${getUser().email}`;
+  return `https://console.cloud.google.com/storage/browser/${id}?authuser=${getTerraUser().email}`;
 };
 
 /*
  * Specifies whether the user has logged in via the Azure identity provider.
  */
 export const isAzureUser = (): boolean => {
-  return _.startsWith('https://login.microsoftonline.com', getUser().idp!);
+  return _.startsWith('https://login.microsoftonline.com', getTerraUser().idp!);
 };
 
 export interface B2cIdTokenClaims extends IdTokenClaims {
@@ -384,7 +389,7 @@ export interface B2cIdTokenClaims extends IdTokenClaims {
   tid?: string | undefined;
   ver?: string | undefined;
 }
-export const processUser = (user: User | null, isSignInEvent: boolean) => {
+export const processUser = (user: User | null, isSignInEvent: boolean): void => {
   return authStore.update((state) => {
     const isSignedIn = !_.isNil(user);
     const profile: B2cIdTokenClaims | undefined = user?.profile;
@@ -416,7 +421,7 @@ export const processUser = (user: User | null, isSignInEvent: boolean) => {
         : undefined,
       isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
       hasGcpBillingScopeThroughB2C: isSignedIn ? state.hasGcpBillingScopeThroughB2C : undefined,
-      user: {
+      terraUser: {
         token: user?.access_token,
         scope: user?.scope,
         id: userId,
@@ -469,7 +474,7 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) =
       isTimeoutEnabled: undefined,
       cookiesAccepted: true,
       profile: {},
-      user: {
+      terraUser: {
         token,
         id: data.sub,
         email: data.email,

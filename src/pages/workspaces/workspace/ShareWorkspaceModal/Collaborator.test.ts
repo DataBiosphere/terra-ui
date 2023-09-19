@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { Dispatch, SetStateAction } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { getUser } from 'src/libs/state';
+import { getTerraUser } from 'src/libs/state';
 import { BaseWorkspace } from 'src/libs/workspace-utils';
 import { Collaborator } from 'src/pages/workspaces/workspace/ShareWorkspaceModal/Collaborator';
 import { AccessEntry, WorkspaceAcl } from 'src/pages/workspaces/workspace/WorkspaceAcl';
@@ -9,7 +9,7 @@ import { asMockedFn } from 'src/testing/test-utils';
 
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
-  getUser: jest.fn(),
+  getTerraUser: jest.fn(),
 }));
 
 jest.mock('src/components/popup-utils', () => ({
@@ -29,7 +29,7 @@ const openMenu = (email: string) => {
 describe('a Collaborator component', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    asMockedFn(getUser).mockReturnValue({
+    asMockedFn(getTerraUser).mockReturnValue({
       email: 'owner@test.com',
     });
   });

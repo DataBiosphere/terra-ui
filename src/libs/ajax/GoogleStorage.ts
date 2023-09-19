@@ -19,7 +19,12 @@ import {
 } from 'src/libs/ajax/ajax-common';
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';
 import { getConfig } from 'src/libs/config';
-import { getUser, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state';
+import {
+  getTerraUser,
+  knownBucketRequesterPaysStatuses,
+  requesterPaysProjectStore,
+  workspaceStore,
+} from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderTypes } from 'src/libs/workspace-utils';
 
@@ -94,7 +99,7 @@ const getServiceAccountToken: (googleProject: string, token: string) => Promise<
 );
 
 export const saToken = (googleProject: string): Promise<string> =>
-  getServiceAccountToken(googleProject, getUser().token!);
+  getServiceAccountToken(googleProject, getTerraUser().token!);
 
 export type GCSMetadata = { [key: string]: string };
 

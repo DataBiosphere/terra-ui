@@ -1,4 +1,6 @@
 import { AnyPromiseFn, Atom, atom } from '@terra-ui-packages/core-utils';
+import { User } from 'oidc-client-ts';
+import { AuthContextProps } from 'react-oidc-context';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
@@ -34,7 +36,7 @@ export type TokenMetadata = {
 
 export type AuthState = {
   anonymousId: string | undefined;
-  authContext: any;
+  authContext: AuthContextProps | undefined;
   authTokenMetadata: TokenMetadata;
   cookiesAccepted: boolean | undefined;
   fenceStatus: {};
@@ -45,6 +47,7 @@ export type AuthState = {
     linkedNihUsername: string;
     linkExpireTime: number;
   };
+  oidcUser: User | undefined;
   oidcConfig: {
     authorityEndpoint?: string;
     clientId?: string;
@@ -56,7 +59,7 @@ export type AuthState = {
   sessionId?: string | undefined;
   sessionStartTime: number;
   termsOfService: {};
-  user: TerraUser;
+  terraUser: TerraUser;
 };
 
 export const authStore: Atom<AuthState> = atom<AuthState>({
@@ -78,6 +81,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
     authorityEndpoint: undefined,
     clientId: undefined,
   },
+  oidcUser: undefined,
   profile: {
     institute: undefined,
     title: undefined,
@@ -96,7 +100,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   sessionId: undefined,
   sessionStartTime: -1,
   termsOfService: {},
-  user: {
+  terraUser: {
     token: undefined,
     scope: undefined,
     id: undefined,
@@ -109,7 +113,9 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   },
 });
 
-export const getUser = (): TerraUser => authStore.get().user;
+export const getTerraUser = (): TerraUser => authStore.get().terraUser;
+
+export const getOidcUser = (): User | undefined => authStore.get().oidcUser;
 
 export const getSessionId = () => authStore.get().sessionId;
 
