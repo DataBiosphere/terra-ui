@@ -50,7 +50,7 @@ const IdleStatusMonitor = ({ timeout = Utils.durationToMillis({ minutes: 15 }), 
   const doSignOut = () => {
     setLastActive();
     Nav.history.replace({ search: qs.stringify(_.set(['sessionExpired'], true, qs.parse(query))) });
-    signOut();
+    signOut('idleStatusMonitor');
     setSignOutRequired(true);
   };
 

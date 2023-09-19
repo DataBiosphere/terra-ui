@@ -10,6 +10,9 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   await signIntoTerra(page, { token });
   await fillInReplace(page, input({ labelContains: 'First Name' }), 'Integration');
   await fillIn(page, input({ labelContains: 'Last Name' }), 'Test');
+  await fillIn(page, input({ labelContains: 'Organization' }), 'Test Organization');
+  await fillIn(page, input({ labelContains: 'Department' }), 'Test Department');
+  await fillIn(page, input({ labelContains: 'Title' }), 'Test Title');
   await verifyAccessibility(page);
   await click(page, clickable({ textContains: 'Register' }));
   await click(page, clickable({ textContains: 'Accept' }), { timeout: 90000 });

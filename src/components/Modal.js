@@ -1,3 +1,4 @@
+import { delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import PropTypes from 'prop-types';
 import { useRef } from 'react';
@@ -82,7 +83,7 @@ function Modal({
         const nodeToFocus = modalNode.current.contains(document.activeElement) ? document.activeElement : modalNode.current;
         // Add the focus update to the end of the event queue
         // Per react-focus-lock: https://github.com/theKashey/react-focus-lock#unmounting-and-focus-management
-        await Utils.delay(0);
+        await delay(0);
         previouslyFocusedNode.current = modalNode.current.contains(document.activeElement) ? previouslyFocusedNode.current : document.activeElement;
         nodeToFocus.focus();
       },
