@@ -94,7 +94,7 @@ const getServiceAccountToken: (googleProject: string, token: string) => Promise<
 );
 
 export const saToken = (googleProject: string): Promise<string> =>
-  getServiceAccountToken(googleProject, getUser().token);
+  getServiceAccountToken(googleProject, getUser().token!);
 
 export type GCSMetadata = { [key: string]: string };
 

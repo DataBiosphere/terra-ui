@@ -4,7 +4,7 @@ import {
   defaultGcePersistentDiskSize,
   defaultPersistentDiskType,
 } from 'src/analysis/utils/disk-utils';
-import { defaultGceMachineType, defaultLocation } from 'src/analysis/utils/runtime-utils';
+import { defaultGceMachineType, defaultLocation, generateRuntimeName } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels, tools } from 'src/analysis/utils/tool-utils';
 import { App, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
@@ -343,7 +343,7 @@ export const generateTestListGoogleRuntime = (overrides: Partial<ListRuntimeItem
 
 export const getGoogleDataProcRuntime = ({
   workspace = defaultGoogleWorkspace,
-  runtimeName = Utils.generateRuntimeName(),
+  runtimeName = generateRuntimeName(),
   status = runtimeStatuses.running.leoLabel,
   tool = tools.HAIL_BATCH.label,
   runtimeConfig = getRuntimeConfig(),
@@ -387,7 +387,7 @@ export const getGoogleDataProcRuntime = ({
 // Use this if you want a shortcut to override nested fields. Otherwise use `generateTestGoogleGetRuntime`
 export const getGoogleRuntime = ({
   workspace = defaultGoogleWorkspace,
-  runtimeName = Utils.generateRuntimeName(),
+  runtimeName = generateRuntimeName(),
   status = runtimeStatuses.running.leoLabel,
   tool = tools.Jupyter,
   runtimeConfig = getJupyterRuntimeConfig(),
@@ -477,7 +477,7 @@ export const getGoogleRuntime = ({
 // Use this if you want a shortcut to override nested fields. Otherwise use `generateTestListGoogleRuntime`
 export const listGoogleRuntime = ({
   workspace = defaultGoogleWorkspace,
-  runtimeName = Utils.generateRuntimeName(),
+  runtimeName = generateRuntimeName(),
   status = runtimeStatuses.running.leoLabel,
   tool = tools.Jupyter,
   runtimeConfig = getJupyterRuntimeConfig(),

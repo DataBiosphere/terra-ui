@@ -4,7 +4,7 @@ import { authOpts, fetchBard, jsonBody } from 'src/libs/ajax/ajax-common';
 import { ensureAuthSettled } from 'src/libs/auth';
 import { withErrorIgnoring } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
-import { authStore, userStatus } from 'src/libs/state';
+import { authStore, getSessionId, userStatus } from 'src/libs/state';
 import { v4 as uuid } from 'uuid';
 
 export const Metrics = (signal?: AbortSignal) => {
@@ -25,17 +25,26 @@ export const Metrics = (signal?: AbortSignal) => {
         ...details,
         // Users who have not registered are considered anonymous users. Send an anonymized distinct_id in that case; otherwise the user identity is captured via the auth token.
         distinct_id: isRegistered ? undefined : authStore.get().anonymousId,
-        sessionId: authStore.get().sessionId,
+        sessionId: getSessionId(),
         appId: 'Saturn',
         hostname: window.location.hostname,
         appPath: Nav.getCurrentRoute().name,
         ...getDefaultProperties(),
       },
     };
-
     return fetchBard(
       'api/event',
-      _.mergeAll([isRegistered ? authOpts() : undefined, jsonBody(body), { signal, method: 'POST' }])
+      _.mergeAll([
+        isRegistered ? authOpts() : undefined,
+        {
+          body: JSON.stringify(body, (key: string, value) =>
+            // distinct_id is a mixpanel specific id and the value must not be null or this fetch will 400
+            value === undefined && key !== 'distinct_id' ? null : value
+          ),
+          headers: { 'Content-Type': 'application/json' },
+        },
+        { signal, method: 'POST' },
+      ])
     );
   };
   return {

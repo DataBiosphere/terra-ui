@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { AppToolLabel } from 'src/analysis/utils/tool-utils';
+import { AppAccessScope } from 'src/analysis/utils/tool-utils';
 import { appIdentifier, authOpts, fetchLeo, jsonBody } from 'src/libs/ajax/ajax-common';
 import { CreateAppV1Request, GetAppResponse, ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models';
@@ -85,9 +86,15 @@ export const Apps = (signal) => ({
     );
     return res.json();
   },
-  createAppV2: (appName: string, workspaceId: string, appType: AppToolLabel): Promise<void> => {
+  createAppV2: (
+    appName: string,
+    workspaceId: string,
+    appType: AppToolLabel,
+    accessScope: AppAccessScope
+  ): Promise<void> => {
     const body = {
       appType,
+      accessScope,
       labels: {
         saturnAutoCreated: 'true',
       },

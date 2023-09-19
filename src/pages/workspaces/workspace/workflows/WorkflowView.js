@@ -1,3 +1,4 @@
+import { readFileAsText } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Component, Fragment, useEffect, useState } from 'react';
 import { b, div, h, label, span } from 'react-hyperscript-helpers';
@@ -1217,7 +1218,7 @@ const WorkflowView = _.flow(
 
     async uploadJson(key, file) {
       try {
-        const rawUpdates = JSON.parse(await Utils.readFileAsText(file));
+        const rawUpdates = JSON.parse(await readFileAsText(file));
         const updates = _.mapValues((v) => (_.isString(v) && v.match(/\${(.*)}/) ? v.replace(/\${(.*)}/, (_, match) => match) : JSON.stringify(v)))(
           rawUpdates
         );

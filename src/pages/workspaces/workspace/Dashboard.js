@@ -29,7 +29,14 @@ import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/l
 import { authStore, requesterPaysProjectStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { hasProtectedData, isAzureWorkspace, isGoogleWorkspace, protectedDataMessage } from 'src/libs/workspace-utils';
+import {
+  hasProtectedData,
+  hasRegionConstraint,
+  isAzureWorkspace,
+  isGoogleWorkspace,
+  protectedDataMessage,
+  regionConstraintMessage,
+} from 'src/libs/workspace-utils';
 import SignIn from 'src/pages/SignIn';
 import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic';
 import { displayConsentCodes, displayLibraryAttributes } from 'src/pages/workspaces/workspace/library-attributes';
@@ -267,6 +274,11 @@ export const WorkspaceInformation = ({ workspace }) => {
     h(InfoRow, { title: 'Access Level' }, [roleString[workspace.accessLevel]]),
     hasProtectedData(workspace) &&
       h(InfoRow, { title: 'Workspace Protected' }, ['Yes', h(InfoBox, { style: { marginLeft: '0.50rem' }, side: 'bottom' }, [protectedDataMessage])]),
+    hasRegionConstraint(workspace) &&
+      h(InfoRow, { title: 'Region Constraint' }, [
+        'Yes',
+        h(InfoBox, { style: { marginLeft: '0.50rem' }, side: 'bottom' }, [regionConstraintMessage(workspace)]),
+      ]),
   ]);
 };
 

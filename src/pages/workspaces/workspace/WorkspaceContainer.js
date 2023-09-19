@@ -8,7 +8,7 @@ import { getDiskAppType } from 'src/analysis/utils/app-utils';
 import { getConvertedRuntimeStatus, getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { icon } from 'src/components/icons';
+import { icon, spinner } from 'src/components/icons';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal';
 import { TabBar } from 'src/components/tabBars';
@@ -24,7 +24,7 @@ import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-uti
 import { getUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { hasProtectedData, isAzureWorkspace, isGoogleWorkspace, protectedDataMessage } from 'src/libs/workspace-utils';
+import { hasProtectedData, isAzureWorkspace, isGoogleWorkspace, protectedDataMessage, regionConstraintMessage } from 'src/libs/workspace-utils';
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal';
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal/ShareWorkspaceModal';
@@ -42,6 +42,26 @@ const TitleBarWarning = (messageComponents) => {
   });
 };
 
+const TitleBarSpinner = (messageComponents) => {
+  return h(TitleBar, {
+    title: div({ role: 'alert', style: { display: 'flex', alignItems: 'center' } }, [
+      spinner({
+        size: 64,
+        style: {
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          backgroundColor: colors.warning(0.1),
+          padding: '1rem',
+          borderRadius: '0.5rem',
+        },
+      }),
+      span({ style: { color: colors.dark(), fontSize: 14 } }, messageComponents),
+    ]),
+    style: { backgroundColor: colors.warning(0.1), borderBottom: `1px solid ${colors.warning()}` },
+  });
+};
+
 const AzureWarning = () => {
   const warningMessage = [
     'Do not store Unclassified Confidential Information in this platform, as it violates US Federal Policy (ie FISMA, FIPS-199, etc) unless explicitly authorized by the dataset manager or governed by your own agreements.',
@@ -49,20 +69,10 @@ const AzureWarning = () => {
   return TitleBarWarning(warningMessage);
 };
 
-const GooglePermissionsWarning = () => {
-  const warningMessage = [
-    'Google is syncing permissions for this workspace, which may take a few minutes or longer. During this time, access to workspace features will be unavailable. ',
-    h(
-      Link,
-      {
-        href: 'https://support.terra.bio/hc/en-us/community/posts/12380560785819-Delays-in-Google-IAM-permissions-propagating',
-        ...Utils.newTabLinkProps,
-      },
-      [div(['Learn more here.'])]
-    ),
-  ];
+const GooglePermissionsSpinner = () => {
+  const warningMessage = ['Terra synchronizing permissions with Google. This may take a couple moments.'];
 
-  return TitleBarWarning(warningMessage);
+  return TitleBarSpinner(warningMessage);
 };
 
 export const WorkspaceTabs = ({
@@ -118,6 +128,7 @@ export const WorkspaceTabs = ({
             accessLevel: workspace.accessLevel,
             isLocked,
             workspaceProtectedMessage: hasProtectedData(workspace) ? protectedDataMessage : undefined,
+            workspaceRegionConstraintMessage: regionConstraintMessage(workspace),
           }),
         h(WorkspaceMenu, {
           iconSize: 27,
@@ -210,7 +221,7 @@ export const WorkspaceContainer = ({
         setShowLockWorkspaceModal,
       }),
     workspaceLoaded && isAzureWorkspace(workspace) && h(AzureWarning),
-    isGoogleWorkspaceSyncing && h(GooglePermissionsWarning),
+    isGoogleWorkspaceSyncing && h(GooglePermissionsSpinner),
     div({ role: 'main', style: Style.elements.pageContentContainer }, [
       div({ style: { flex: 1, display: 'flex' } }, [
         div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]),

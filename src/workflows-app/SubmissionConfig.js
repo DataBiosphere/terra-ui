@@ -29,7 +29,7 @@ import RecordsTable from 'src/workflows-app/components/RecordsTable';
 import ViewWorkflowScriptModal from 'src/workflows-app/components/ViewWorkflowScriptModal';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { convertToRawUrl } from 'src/workflows-app/utils/method-common';
-import { CbasPollInterval, convertArrayType, validateInputs, WdsPollInterval } from 'src/workflows-app/utils/submission-utils';
+import { CbasPollInterval, convertArrayType, parseMethodString, validateInputs, WdsPollInterval } from 'src/workflows-app/utils/submission-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 export const BaseSubmissionConfig = (
@@ -119,7 +119,13 @@ export const BaseSubmissionConfig = (
         const newRunSetData = runSet.run_sets[0];
 
         setConfiguredInputDefinition(maybeParseJSON(newRunSetData.input_definition));
-        setConfiguredOutputDefinition(maybeParseJSON(newRunSetData.output_definition));
+        setConfiguredOutputDefinition(
+          _.map((outputDef) =>
+            _.get('destination.type', outputDef) === 'none'
+              ? _.set('destination', { type: 'record_update', record_attribute: parseMethodString(outputDef.output_name).variable || '' })(outputDef)
+              : outputDef
+          )(maybeParseJSON(newRunSetData.output_definition))
+        );
         setSelectedRecordType(newRunSetData.record_type);
 
         let callCache = maybeParseJSON(newRunSetData.call_caching_enabled);
@@ -294,6 +300,9 @@ export const BaseSubmissionConfig = (
       const newInputValidations = validateInputs(configuredInputDefinition, dataTableAttributes);
 
       setInputValidations(newInputValidations);
+    } else if (configuredInputDefinition) {
+      const newInputValidations = validateInputs(configuredInputDefinition, undefined);
+      setInputValidations(newInputValidations);
     }
   }, [records, recordTypes, configuredInputDefinition]);
 
@@ -363,7 +372,7 @@ export const BaseSubmissionConfig = (
               }),
             style: { display: 'inline-flex', alignItems: 'center', padding: '0.5rem 0 0' },
           },
-          [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to workflows']
+          [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to Workflows in this workspace']
         ),
         div([h2([method ? `Submission Configuration for ${method.name}` : 'loading'])]),
         div({ style: { lineHeight: 2.0 } }, [
@@ -560,14 +569,14 @@ export const BaseSubmissionConfig = (
   };
 
   const renderInputs = () => {
-    return configuredInputDefinition && recordTypes && records.length
+    return configuredInputDefinition
       ? h(InputsTable, {
-          selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
+          selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType] || {},
           configuredInputDefinition,
           setConfiguredInputDefinition,
           inputValidations,
         })
-      : 'No data table rows available or input definition is not configured...';
+      : 'Input definition is not configured...';
   };
 
   const renderOutputs = () => {

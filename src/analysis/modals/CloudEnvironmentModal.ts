@@ -1,3 +1,4 @@
+import { IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, ReactElement, useState } from 'react';
 import { Component, div, h, hr, img, span } from 'react-hyperscript-helpers';
@@ -205,7 +206,7 @@ export const CloudEnvironmentModal = ({
     style,
     ...props
   }: {
-    shape: string;
+    shape: IconId;
     onClick?: () => any;
     disabled: boolean;
     messageChildren: ReactElement[];

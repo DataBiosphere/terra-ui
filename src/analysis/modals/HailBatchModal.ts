@@ -2,8 +2,8 @@ import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { WarningTitle } from 'src/analysis/modals/WarningTitle';
-import { getCurrentApp, getEnvMessageBasedOnStatus } from 'src/analysis/utils/app-utils';
-import { appToolLabels, appTools } from 'src/analysis/utils/tool-utils';
+import { generateAppName, getCurrentApp, getEnvMessageBasedOnStatus } from 'src/analysis/utils/app-utils';
+import { appAccessScopes, appToolLabels, appTools } from 'src/analysis/utils/tool-utils';
 import { ButtonOutline, ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import ModalDrawer from 'src/components/ModalDrawer';
@@ -48,7 +48,12 @@ export const HailBatchModal = withDisplayName('HailBatchModal')(
       Utils.withBusyState(setLoading),
       withErrorReportingInModal('Error creating Hail Batch', onError)
     )(async () => {
-      await Apps(signal).createAppV2(Utils.generateAppName(), workspaceId, appToolLabels.HAIL_BATCH);
+      await Apps(signal).createAppV2(
+        generateAppName(),
+        workspaceId,
+        appToolLabels.HAIL_BATCH,
+        appAccessScopes.USER_PRIVATE
+      );
       Metrics().captureEvent(Events.applicationCreate, {
         app: appTools.CROMWELL.label,
         ...extractWorkspaceDetails(workspace),
