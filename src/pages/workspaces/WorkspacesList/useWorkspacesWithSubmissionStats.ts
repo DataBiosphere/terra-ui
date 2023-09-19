@@ -67,11 +67,11 @@ export const workspaceSubmissionStatus = (workspace: Workspace): string | undefi
   if (!stats) return undefined;
   const { runningSubmissionsCount, lastSuccessDate, lastFailureDate } = stats;
   return Utils.cond(
-    [runningSubmissionsCount, () => 'running'],
+    [!!runningSubmissionsCount, () => 'running'],
     [
-      lastSuccessDate && (!lastFailureDate || isAfter(parseJSON(lastFailureDate), parseJSON(lastSuccessDate))),
+      !!lastSuccessDate && (!lastFailureDate || isAfter(parseJSON(lastFailureDate), parseJSON(lastSuccessDate))),
       () => 'success',
     ],
-    [lastFailureDate, () => 'failure']
+    [!!lastFailureDate, () => 'failure']
   );
 };
