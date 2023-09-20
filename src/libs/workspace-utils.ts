@@ -29,7 +29,9 @@ interface BaseWorkspaceInfo {
   createdDate: string;
   createdBy: string;
   lastModified: string;
+  bucketName?: string;
   attributes?: Record<string, any>;
+  isLocked?: boolean;
 }
 
 export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
