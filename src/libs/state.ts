@@ -1,6 +1,6 @@
 import { AnyPromiseFn, Atom, atom } from '@terra-ui-packages/core-utils';
-import { User } from 'oidc-client-ts';
 import { AuthContextProps } from 'react-oidc-context';
+import { OidcUser } from 'src/libs/auth';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
 
@@ -47,7 +47,7 @@ export type AuthState = {
     linkedNihUsername: string;
     linkExpireTime: number;
   };
-  oidcUser: User | undefined;
+  oidcUser: OidcUser | undefined;
   oidcConfig: {
     authorityEndpoint?: string;
     clientId?: string;
@@ -115,7 +115,7 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
 
 export const getUser = (): TerraUser => authStore.get().user;
 
-export const getOidcUser = (): User | undefined => authStore.get().oidcUser;
+export const getOidcUser = (): OidcUser | undefined => authStore.get().oidcUser;
 
 export const getSessionId = () => authStore.get().sessionId;
 
