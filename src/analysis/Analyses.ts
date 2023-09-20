@@ -625,6 +625,7 @@ export const BaseAnalyses = (
     // Lodash does not have a well-typed return on this function and there are not any nice alternatives, so expect error for now
     // @ts-expect-error
     const sortedAnalyses: AnalysisFile[] = _.orderBy(sortTokens[field] || field, direction, filteredAnalyses);
+    const canWriteWithCurrentAccessLevel = canWrite(accessLevel);
     const analysisCards = _.map(
       ({ name, lastModified, metadata, tool }) =>
         h(AnalysisCard, {
@@ -637,7 +638,7 @@ export const BaseAnalyses = (
           tool,
           namespace: workspaceInfo.namespace,
           workspaceName: workspaceInfo.name,
-          canWrite: canWrite(accessLevel),
+          canWrite: canWriteWithCurrentAccessLevel,
           currentUserHash,
           potentialLockers,
           onRename: () => setRenamingAnalysisName(name),
