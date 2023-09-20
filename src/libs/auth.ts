@@ -416,7 +416,7 @@ export const processUser = (user: User | null, isSignInEvent: boolean) => {
         : undefined,
       isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
       hasGcpBillingScopeThroughB2C: isSignedIn ? state.hasGcpBillingScopeThroughB2C : undefined,
-      user: {
+      terraUser: {
         token: user?.access_token,
         scope: user?.scope,
         id: userId,
@@ -469,7 +469,7 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) =
       isTimeoutEnabled: undefined,
       cookiesAccepted: true,
       profile: {},
-      user: {
+      terraUser: {
         token,
         id: data.sub,
         email: data.email,
