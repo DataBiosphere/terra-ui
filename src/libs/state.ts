@@ -115,8 +115,6 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
 
 export const getUser = (): TerraUser => authStore.get().user;
 
-export const getOidcUser = (): OidcUser | undefined => authStore.get().oidcUser;
-
 export const getSessionId = () => authStore.get().sessionId;
 
 export const userStatus = {

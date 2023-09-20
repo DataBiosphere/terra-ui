@@ -37,11 +37,11 @@ export interface OidcUser extends User {
 }
 
 export interface B2cIdTokenClaims extends IdTokenClaims {
-  email_verified?: boolean | undefined;
-  idp?: string | undefined;
-  idp_access_token?: string | undefined;
-  tid?: string | undefined;
-  ver?: string | undefined;
+  email_verified?: boolean;
+  idp?: string;
+  idp_access_token?: string;
+  tid?: string;
+  ver?: string;
 }
 
 export const getOidcConfig = () => {
@@ -68,8 +68,12 @@ export const getOidcConfig = () => {
   };
 };
 
-const getAuthInstance = (): AuthContextProps | undefined => {
-  return authStore.get().authContext;
+const getAuthInstance = (): AuthContextProps => {
+  const authContext: AuthContextProps | undefined = authStore.get().authContext;
+  if (authContext === undefined) {
+    throw new Error('Auth instance is trying to be accessed before it is initialized');
+  }
+  return authContext;
 };
 
 export type SignOutCause =
@@ -118,7 +122,7 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
   azureCookieReadyStore.reset();
   getSessionStorage().clear();
   azurePreviewStore.set(false);
-  const auth: AuthContextProps = getAuthInstance()!;
+  const auth: AuthContextProps = getAuthInstance();
   revokeTokens()
     .finally(() => auth.removeUser())
     .finally(() => auth.clearStaleState());
@@ -126,7 +130,7 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
 
 const revokeTokens = async () => {
   // send back auth instance, so we can use it for remove and clear stale state
-  const auth: AuthContextProps = getAuthInstance()!;
+  const auth: AuthContextProps = getAuthInstance();
   if (auth.settings.metadata?.revocation_endpoint) {
     // revokeTokens can fail if the token has already been revoked.
     // Recover from invalid_token errors to make sure signOut completes successfully.
@@ -193,7 +197,7 @@ export type AuthTokenState = AuthTokenSuccessState | AuthTokenExpiredState | Aut
  * Attempts to load an auth token.
  * When token is successfully loaded, returns an AuthTokenSuccessState.
  * When token fails to load because of an expired refresh token, returns an AuthTokenExpiredState
- * WHen tokens fails to load because of an error, returns AuthTokenErrorState
+ * WHen tokens fails to load because of an error, returns an AuthTokenErrorState
  * @param includeBillingScope
  * @param popUp whether signIn is attempted with a popup, or silently in the background.
  */
@@ -285,37 +289,36 @@ export const loadAuthToken = async (includeBillingScope = false, popUp = false):
 
 const tryLoadAuthToken = async (includeBillingScope = false, popUp = false): Promise<AuthTokenState> => {
   const args: ExtraSigninRequestArgs = getSigninArgs(includeBillingScope);
-  const authInstance: AuthContextProps = getAuthInstance()!;
-  const loadedAuthTokenResponse: OidcUser | null | AuthTokenErrorState = await (popUp
-    ? // returns Promise<OidcUser | null>, attempts to use the refresh token to get a new authToken
-      authInstance.signinPopup(args)
-    : authInstance.signinSilent(args)
-  ).catch((e) => {
+  const authInstance: AuthContextProps = getAuthInstance();
+  try {
+    const loadedAuthTokenResponse: OidcUser | null | AuthTokenErrorState = await (popUp
+      ? // returns Promise<OidcUser | null>, attempts to use the refresh token to get a new authToken
+        authInstance.signinPopup(args)
+      : authInstance.signinSilent(args));
+
+    if (loadedAuthTokenResponse === null) {
+      return {
+        status: 'expired',
+      };
+    }
+
+    return {
+      status: 'success',
+      oidcUser: loadedAuthTokenResponse,
+    };
+  } catch (e) {
     const userErrorMsg = 'Unable to sign in.';
     const internalErrorMsg = 'An unexpected exception occurred while attempting to load new auth token.';
     console.error(`user error message: ${userErrorMsg}`);
     console.error(`internal error message: ${internalErrorMsg}`);
     console.error(`reason: ${e}`);
-    const errorState: AuthTokenErrorState = {
+    return {
       internalErrorMsg,
       userErrorMsg,
       reason: e,
       status: 'error',
     };
-    return errorState;
-  });
-  if (loadedAuthTokenResponse !== null) {
-    if ('status' in loadedAuthTokenResponse) {
-      return loadedAuthTokenResponse;
-    }
-    return {
-      status: 'success',
-      oidcUser: loadedAuthTokenResponse,
-    };
   }
-  return {
-    status: 'expired',
-  };
 };
 
 const getOldAuthTokenLabels = (oldAuthTokenMetadata: TokenMetadata) => {

@@ -1,10 +1,15 @@
 import { UserManager } from 'oidc-client-ts';
 import { div, img } from 'react-hyperscript-helpers';
-import { getOidcConfig } from 'src/libs/auth';
 import { useOnMount } from 'src/libs/react-utils';
 
 const RedirectFromOAuth = () => {
-  const userManager: UserManager = new UserManager(getOidcConfig());
+  const userManager = new UserManager({
+    authority: '',
+    client_id: '',
+    redirect_uri: '',
+    popup_redirect_uri: `${window.origin}/redirect-from-oauth`,
+    silent_redirect_uri: `${window.origin}/redirect-from-oauth-silent`,
+  });
 
   const url = window.location.href;
   const isSilent = window.location.pathname.startsWith('/redirect-from-oauth-silent');
