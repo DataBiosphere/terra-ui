@@ -1,6 +1,7 @@
 import 'src/libs/routes';
 
 import { ErrorBoundary, ThemeProvider } from '@terra-ui-packages/components';
+import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { ReactNotifications } from 'react-notifications-component';
 import { AuthProvider } from 'react-oidc-context';
@@ -22,7 +23,7 @@ import { reportError } from 'src/libs/error';
 import { PageViewReporter } from 'src/libs/events';
 import { LocationProvider, PathHashInserter, Router } from 'src/libs/nav';
 
-const Main = () => {
+const Main = (): ReactNode => {
   return h(ThemeProvider, { theme: getEnabledBrand().theme }, [
     h(LocationProvider, [
       h(PathHashInserter),
