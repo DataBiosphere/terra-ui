@@ -1,10 +1,10 @@
-import { getAllByRole, render, screen } from '@testing-library/react';
+import { getAllByRole, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as clipboard from 'clipboard-polyfill/text';
 import { h } from 'react-hyperscript-helpers';
 import { useWorkspaceById } from 'src/libs/workspace-hooks';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { asMockedFn } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { useWdsStatus, WdsStatus } from './wds-status';
 import { WdsTroubleshooter } from './WdsTroubleshooter';

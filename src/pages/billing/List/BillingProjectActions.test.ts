@@ -1,13 +1,13 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
-import { history } from 'src/libs/nav';
 import * as Nav from 'src/libs/nav';
+import { history } from 'src/libs/nav';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { BillingProjectActions } from 'src/pages/billing/List/BillingProjectActions';
-import { asMockedFn } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 type AjaxContract = ReturnType<typeof Ajax>;
 jest.mock('src/libs/ajax');
