@@ -3,7 +3,7 @@ import { allAppTypes, AppToolLabel, appToolLabels, isAppToolLabel, ToolLabel } f
 import { App, DisplayAppStatus, LeoAppStatus } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { getConfig } from 'src/libs/config';
-import { getTerraUser } from 'src/libs/state';
+import { getUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { CloudProvider, cloudProviderTypes, WorkspaceInfo } from 'src/libs/workspace-utils';
 import { v4 as uuid } from 'uuid';
@@ -39,11 +39,11 @@ export const doesWorkspaceSupportCromwellAppForUser = (
       toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviderTypes.AZURE && getConfig().isProd,
       () =>
         new Date(workspaceInfo.createdDate).valueOf() > workflowsPublicPreviewDate.valueOf() &&
-        workspaceInfo.createdBy === getTerraUser()?.email,
+        workspaceInfo.createdBy === getUser()?.email,
     ],
     [
       toolLabel === appToolLabels.CROMWELL && cloudProvider === cloudProviderTypes.AZURE,
-      () => workspaceInfo.createdBy === getTerraUser()?.email,
+      () => workspaceInfo.createdBy === getUser()?.email,
     ],
     [Utils.DEFAULT, () => true]
   );

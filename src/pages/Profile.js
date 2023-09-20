@@ -27,7 +27,7 @@ import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import allProviders from 'src/libs/providers';
 import { memoWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
-import { authStore, getTerraUser } from 'src/libs/state';
+import { authStore, getUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import validate from 'validate.js';
@@ -578,7 +578,7 @@ const PersonalInfoTab = ({ setSaving }) => {
           h(
             Link,
             {
-              href: `https://myaccount.google.com?authuser=${getTerraUser().email}`,
+              href: `https://myaccount.google.com?authuser=${getUser().email}`,
               ...Utils.newTabLinkProps,
             },
             ['Google account page.']
