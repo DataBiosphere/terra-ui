@@ -47,6 +47,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
       workspace: {
         workspace: { workspaceId },
       },
+      analysesData,
       analysesData: { apps, refreshApps },
     },
     _ref
@@ -186,7 +187,7 @@ export const SubmitWorkflow = wrapWorkflowsPage({ name: 'SubmitWorkflow' })(
               ]),
             viewFindWorkflowModal && h(FindWorkflowModal, { name, namespace, workspace, onDismiss: () => setViewFindWorkflowModal(false) }),
           ])
-        : h(WorkflowsAppNavPanel, { name, namespace, workspace, loading });
+        : h(WorkflowsAppNavPanel, { name, namespace, workspace, loading, analysesData });
     };
     return Utils.cond(
       [loading, () => centeredSpinner()],

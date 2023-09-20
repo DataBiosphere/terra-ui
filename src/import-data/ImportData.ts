@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
+import { spinnerOverlay } from 'src/components/common';
 import { notifyDataImportProgress } from 'src/data/import-jobs';
 import { Ajax } from 'src/libs/ajax';
 import { Dataset } from 'src/libs/ajax/Catalog';
@@ -197,15 +198,15 @@ export const ImportData = () => {
   return h(Fragment, [
     h(ImportDataOverview, { header, snapshots, isDataset, snapshotResponses, url, isProtectedData }),
     h(ImportDataDestination, {
-      workspaceId: wid,
+      initialSelectedWorkspaceId: wid,
       templateWorkspaces,
       template,
       userHasBillingProjects,
       importMayTakeTime: isDataset,
-      authorizationDomain: ad,
+      requiredAuthorizationDomain: ad,
       onImport,
-      isImporting,
       isProtectedData,
     }),
+    isImporting && spinnerOverlay,
   ]);
 };

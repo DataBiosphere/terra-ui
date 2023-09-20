@@ -13,8 +13,7 @@ import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';
 import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
-import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
-import { authStore } from 'src/libs/state';
+import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -55,7 +54,6 @@ export const List = (props: ListProps) => {
   const [isLoadingProjects, setIsLoadingProjects] = useState<boolean>(false);
   const [isAuthorizing, setIsAuthorizing] = useState<boolean>(false);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState<boolean>(false);
-  const { isAzurePreviewUser } = useStore(authStore);
   const { workspaces: allWorkspaces, loading: workspacesLoading, refresh: refreshWorkspaces } = useWorkspaces();
 
   const signal = useCancellation();
@@ -193,7 +191,7 @@ export const List = (props: ListProps) => {
             },
             [
               h2({ style: { fontSize: 16 } }, ['Billing Projects']),
-              h(CreateBillingProjectControl, { isAzurePreviewUser: !!isAzurePreviewUser, showCreateProjectModal }),
+              h(CreateBillingProjectControl, { showCreateProjectModal }),
             ]
           ),
           h(BillingProjectSubheader, { title: 'Owned by You' }, [

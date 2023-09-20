@@ -1,10 +1,11 @@
+import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Children, cloneElement, Fragment, useRef, useState } from 'react';
 import { div, h, path, svg } from 'react-hyperscript-helpers';
 import { containsUnlabelledIcon } from 'src/components/icons';
 import { computePopupPosition, PopupPortal, useDynamicPosition } from 'src/components/popup-utils';
 import colors from 'src/libs/colors';
-import { useOnMount, useUniqueId } from 'src/libs/react-utils';
+import { useOnMount } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 

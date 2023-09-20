@@ -1,3 +1,4 @@
+import { DeepPartial } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { locationTypes } from 'src/components/region-common';
@@ -22,6 +23,10 @@ export const defaultAzureWorkspace: AzureWorkspace = {
   accessLevel: 'OWNER',
   canShare: true,
   canCompute: true,
+};
+
+export const makeAzureWorkspace = (workspace?: DeepPartial<AzureWorkspace>): AzureWorkspace => {
+  return _.merge(_.cloneDeep(defaultAzureWorkspace), workspace);
 };
 
 const protectedDataPolicy: WorkspacePolicy = {
@@ -80,6 +85,10 @@ export const defaultGoogleWorkspace: GoogleWorkspace = {
   accessLevel: 'OWNER',
   canShare: true,
   canCompute: true,
+};
+
+export const makeGoogleWorkspace = (workspace?: DeepPartial<GoogleWorkspace>): GoogleWorkspace => {
+  return _.merge(_.cloneDeep(defaultGoogleWorkspace), workspace);
 };
 
 // These defaults are intended to track the default behavior implemented in useWorkspace.ts

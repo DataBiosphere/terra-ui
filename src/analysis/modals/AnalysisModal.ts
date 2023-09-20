@@ -1,3 +1,4 @@
+import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { Fragment, ReactElement, useState } from 'react';
 import { div, h, h2, hr, img, span } from 'react-hyperscript-helpers';
@@ -29,7 +30,7 @@ import {
   ToolLabel,
   tools,
 } from 'src/analysis/utils/tool-utils';
-import { ButtonPrimary, Clickable, Select, spinnerOverlay, useUniqueId } from 'src/components/common';
+import { ButtonPrimary, Clickable, Select, spinnerOverlay } from 'src/components/common';
 import Dropzone from 'src/components/Dropzone';
 import { icon } from 'src/components/icons';
 import ModalDrawer from 'src/components/ModalDrawer';
