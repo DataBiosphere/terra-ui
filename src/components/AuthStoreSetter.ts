@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { AuthContextProps, useAuth } from 'react-oidc-context';
 import { loadAuthToken, OidcUser, processUser } from 'src/libs/auth';
 import { useOnMount } from 'src/libs/react-utils';
-import { authStore, getOidcUser } from 'src/libs/state';
+import { authStore } from 'src/libs/state';
 
 function AuthStoreSetter(): null {
   const auth: AuthContextProps = useAuth();
@@ -11,17 +11,10 @@ function AuthStoreSetter(): null {
   useOnMount((): void => {
     authStore.update(_.set(['authContext'], auth));
   });
-  useEffect(() => {
+  useEffect((): void => {
     const cleanupFns = [
       auth.events.addUserLoaded((user: OidcUser) => processUser(user, true)),
-      auth.events.addUserUnloaded((): void => {
-        const oidcUser: OidcUser | undefined = getOidcUser();
-        if (oidcUser !== undefined) {
-          processUser(oidcUser, false);
-        } else {
-          console.error('addUserUnloaded did not have a defined user');
-        }
-      }),
+      auth.events.addUserUnloaded(() => processUser(null, false)),
       auth.events.addAccessTokenExpired((): void => {
         loadAuthToken();
       }),

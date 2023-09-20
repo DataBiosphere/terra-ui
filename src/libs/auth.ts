@@ -127,7 +127,7 @@ export const signOut = (cause: SignOutCause = 'unspecified'): void => {
 const revokeTokens = async () => {
   // send back auth instance, so we can use it for remove and clear stale state
   const auth: AuthContextProps = getAuthInstance()!;
-  if (auth.settings.metadata !== undefined && auth.settings.metadata.revocation_endpoint !== undefined) {
+  if (auth.settings.metadata?.revocation_endpoint) {
     // revokeTokens can fail if the token has already been revoked.
     // Recover from invalid_token errors to make sure signOut completes successfully.
     try {
