@@ -21,7 +21,7 @@ import {
   azureCookieReadyStore,
   azurePreviewStore,
   cookieReadyStore,
-  getUser,
+  getTerraUser,
   requesterPaysProjectStore,
   TokenMetadata,
   userStatus,
@@ -367,14 +367,14 @@ export const ensureAuthSettled = () => {
 };
 
 export const bucketBrowserUrl = (id) => {
-  return `https://console.cloud.google.com/storage/browser/${id}?authuser=${getUser().email}`;
+  return `https://console.cloud.google.com/storage/browser/${id}?authuser=${getTerraUser().email}`;
 };
 
 /*
  * Specifies whether the user has logged in via the Azure identity provider.
  */
 export const isAzureUser = (): boolean => {
-  return _.startsWith('https://login.microsoftonline.com', getUser().idp!);
+  return _.startsWith('https://login.microsoftonline.com', getTerraUser().idp!);
 };
 
 export interface B2cIdTokenClaims extends IdTokenClaims {

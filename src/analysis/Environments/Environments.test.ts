@@ -23,7 +23,7 @@ import { authOpts, fetchLeo } from 'src/libs/ajax/ajax-common';
 import { ListAppResponse } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { ListRuntimeItem, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
-import { getUser } from 'src/libs/state';
+import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
@@ -62,7 +62,7 @@ jest.mock('src/libs/ajax/leonardo/Runtimes');
 
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
-  getUser: jest.fn(),
+  getTerraUser: jest.fn(),
 }));
 
 const listRuntimesV2: () => Promise<ListRuntimeItem[]> = jest.fn();
@@ -123,7 +123,7 @@ describe('Environments', () => {
     asMockedFn(listWithoutProject).mockReturnValue(Promise.resolve([]));
     asMockedFn(list).mockReturnValue(Promise.resolve([]));
 
-    asMockedFn(getUser).mockReturnValue({
+    asMockedFn(getTerraUser).mockReturnValue({
       email: 'testuser123@broad.com',
     });
   });
@@ -308,7 +308,7 @@ describe('Environments', () => {
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
       });
-      asMockedFn(getUser).mockReturnValue({
+      asMockedFn(getTerraUser).mockReturnValue({
         email: 'different@broad.com',
       });
 
@@ -566,7 +566,7 @@ describe('Environments', () => {
         workspaces: [workspace],
       });
 
-      asMockedFn(getUser).mockReturnValue({
+      asMockedFn(getTerraUser).mockReturnValue({
         email: app.auditInfo.creator,
       });
 

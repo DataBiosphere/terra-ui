@@ -1,10 +1,10 @@
 import { img } from 'react-hyperscript-helpers';
-import { getUser } from 'src/libs/state';
+import { getTerraUser } from 'src/libs/state';
 
 const ProfilePicture = ({ size, style, ...props } = {}) => {
   // Note Azure logins don't currently have an imageUrl, so don't render anything.
   // See TOAZ-147 to support this in the future.
-  const imageUrl = getUser().imageUrl;
+  const imageUrl = getTerraUser().imageUrl;
   return (
     !!imageUrl &&
     img({

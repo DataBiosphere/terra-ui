@@ -1,7 +1,7 @@
 import { User } from 'oidc-client-ts';
 import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
 import { loadAuthToken, signOut } from 'src/libs/auth';
-import { getUser } from 'src/libs/state';
+import { getTerraUser } from 'src/libs/state';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { authOpts, makeRequestRetry, withRetryAfterReloadingExpiredAuthToken } from './ajax-common';
@@ -18,7 +18,7 @@ type StateExports = typeof import('src/libs/state');
 jest.mock('src/libs/state', (): StateExports => {
   return {
     ...jest.requireActual('src/libs/state'),
-    getUser: jest.fn(() => ({ token: 'testtoken' })),
+    getTerraUser: jest.fn(() => ({ token: 'testtoken' })),
   };
 });
 
@@ -89,7 +89,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
         toStorageString: (): string => '',
       };
 
-      asMockedFn(getUser).mockImplementation(() => mockTerraUser);
+      asMockedFn(getTerraUser).mockImplementation(() => mockTerraUser);
 
       asMockedFn(loadAuthToken).mockImplementation(() => {
         mockTerraUser = { token: 'newtesttoken' };
